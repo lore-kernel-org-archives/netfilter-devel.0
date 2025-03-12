@@ -1,463 +1,308 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+Received: from mail.jubileegroup.co.uk (host-83-67-166-33.static.as9105.net [83.67.166.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B6817BB6
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 09:31:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E48622578E
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 09:48:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.67.166.33
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741771885; cv=none; b=DXqGWqM2k+hY4a1FAlVJuuuKY9zzPIq07BFNGfgeBW8ETebgVL17J+aWOOAankerpwr0y0WKaoIyJrPVSV2XeQRm9JCD2zwK6zhm+yn3hVP3wBYUAaLUxkqtDSFch9W9U5nPutIJtUSPBIZLXw5fKVDAX/1wr4I6ZXu6sxQr5DU=
+	t=1741772913; cv=none; b=d0dYTM/zMwKZtEN8ALPT8wQw1bR36Im3I4kItfDMdX2fnrbPQ2e1veFD4dqxDEScSTOGgOpNf0UNIS/WL4n5C1mXtzZFWwMU5uu9KP/dBh6wBVL/YwB7vUL7siT6LFwO+I/RMRDDQr4+IyUmC9j4YgAvUWsnU71gxcxkrMIjdEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741771885; c=relaxed/simple;
-	bh=CW40BB0Pi0LHI/yrLgWRMW09drsR+klIhlfBrUr5b/M=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Foq8JpaGRNpoxy6G46oF51ZN0ZLuY7BFEn3Ri6hnUfBTBelHLILmdiz/QxZWB8wwkW0AalmyQOremfNPBfZUPUW/ttWhw5kvE117NH1vROT3dBtxS6EkRYDGIib6RddqR/T3nh/oojO2XP17BD9wQBmc29mv89uEktCDPsZrnsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=USVseVwu; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1741772913; c=relaxed/simple;
+	bh=ZoVASWjnB3FVD7BypNG2Y+Sy7KKnW852y9b6+qgtEC0=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=qZNk0Pqfamo9v7zptcsJMsss1dtldtlJHlZi7Bg0zyNwUny1ZD2BcQxRkStPVusPKjMB3yFMyjcJaPuZeRHkyq8/KEwwTCGpTcyK2y72IVPOPGdix0o8Nv9FUSorQCVetB2F3NGEI51eh+9W4kVbD05lrSlWWxrer6RT5A7b34M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=jubileegroup.co.uk; spf=pass smtp.mailfrom=jubileegroup.co.uk; dkim=pass (2048-bit key) header.d=jubileegroup.co.uk header.i=@jubileegroup.co.uk header.b=KV0p1+7B; arc=none smtp.client-ip=83.67.166.33
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=jubileegroup.co.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=jubileegroup.co.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="USVseVwu"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-223959039f4so129475295ad.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 02:31:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1741771882; x=1742376682; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=Qa6hzhuuEUYRjhGd1mTkxK45D5kbAv5+h4Iy12ejMgQ=;
-        b=USVseVwuLToW9raOpSXjCBJeBZs31tflzwKkZORuj6n+Px8hPq+Pv3E336egOtwdp3
-         QpXc9OS3i3z9bKn2dFbNvdTBEXuO2OGaOL66CWJEEAyjP80PWt7l0ba/Gx7FKegViera
-         M+qlm+kzdYhIFwMMUB/eXoVgQWxAw169c0uaqrXziweaO/DVuj7U/qoDdXGwyaLd4+cS
-         QNN1DfeTx7CcibDrFZO6zeKkoPQFkJkliG03GccA8CerJzV22RwvPKAIM0QqCWO7/kBT
-         /UHlaq68jii9sIHjMEgFqwD952oooZ83hoxBo6wtQ9HEIzU1Yp9ImcNiAPXXt1/SBrUe
-         vecA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741771882; x=1742376682;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Qa6hzhuuEUYRjhGd1mTkxK45D5kbAv5+h4Iy12ejMgQ=;
-        b=r+DyO7hOoIOr7vCu5K5XE3CIom62WOCE4y74iWe8oxhEN0mZfW1RIb8h5WuY85obj0
-         wslFU4COcnqfNoXy9AZW1XFA1PnFV0ngCkFEIn5l9m497TOGUwgEpZJ5utzJfGUOh8uU
-         CqVhU+hrXYK0RLChVr3uWoWrsLAgovM5NAyrI7zKSmW5HllF3w3jEf9Eg3AdWUQ3Pl/o
-         jB7cH50Jy7k6FrlS1CoVFxhdeRCPAKT5hpX/m5jZdPjdFxRX8whuwBvon0TGGeXyT3BF
-         FLmUYbFK7Cl+79bltfjaCTeSiNkiITbUJPOOKC623CuLRIhyNbAcdoG1IKZo5ByOLib5
-         dbUA==
-X-Gm-Message-State: AOJu0YzZFQejqO9F5wwMdFg0Pj9uen/30f+lerViuDZGO41+76SMQDjy
-	igdQNq21udPdQZfMOGCBH0kXq059BWrtabGX3vDQanDBJBO0v8gnU2jOSQ==
-X-Gm-Gg: ASbGncs3zuv7QFk3tTaZdFMfkz5jtp57q6sz1xBhdaZamUW4ppA86JAEgcIJt0GQK1C
-	mW5JIHpAY2o795A07UUXubk6+lEuywAUA6xFxv8+aEWLCxx9k7v5yEZyo3CMuRro1sO8rrrnv3k
-	pvmCxix3JujRldOxAX7a9h8XFsmazvkuF/q2JmHiyhI338VCXRMxrUdSGAR8T+nMa3bj3G+yUJx
-	lYz/qKk8IaZWb3pacQT5CiCqArg9jGhPsFShSX+rnvobLfHr2LEOr2vRaTCBONLe9SbSeZpNrLt
-	EOePdI0b7crBDFQ32zSxC9WoMMzlXm1Qa8eUcl09RbXazIbEMAHpgiNuuF9nm/Ho8xdKGSItzam
-	4a/prCg27tHWMCjqLjVhr6DkfhKVNtg==
-X-Google-Smtp-Source: AGHT+IG53RQbqWa1qQMoJOvPLGi0fkW4WvHT3GWrcQd2RAUOslQAcwu85eR40Wt55sIHhMardU23Cg==
-X-Received: by 2002:a17:903:283:b0:216:2bd7:1c2f with SMTP id d9443c01a7336-2242888d06amr271809585ad.18.1741771881687;
-        Wed, 12 Mar 2025 02:31:21 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22410aa8ae4sm111953745ad.243.2025.03.12.02.31.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Mar 2025 02:31:21 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@netfilter.org,
-	pablo@netfilter.org
-Subject: [PATCH libnetfilter_log] build: doc: Install latest build_man.sh from libnetfilter_queue
-Date: Wed, 12 Mar 2025 20:31:16 +1100
-Message-Id: <20250312093116.11655-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
+	dkim=pass (2048-bit key) header.d=jubileegroup.co.uk header.i=@jubileegroup.co.uk header.b="KV0p1+7B"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	jubileegroup.co.uk; h=date:from:to:cc:subject:in-reply-to
+	:message-id:references:mime-version:content-type; s=uk; bh=2CzS2
+	JehO6sFcgTF50fRxuc8aisQVduGBsC32l5gbgc=; b=KV0p1+7BJnu+xRUjYgmNl
+	YcTcqB7rcjFPr1I4uLkwyYd4ioWRr40e8w6ZPw0v1RSPsSRKgNJrBzTH6tAgosRN
+	6LSRDuVlHObhQIcDYNaUDSjv4oOfL7Zj6XNhnMOSFA/i8G/0L9JB3SR9muQO69FW
+	nvtBbcLlx25mys+/lhPgEcs9w4UqFq6qQaRFDQwMBjt6yw4ZTLkUdQ2t7FsMWbKR
+	Waxz0WTUBA8KZkEFNKfHNZk6ZgMn1/ORA1+54F8bD8y60F3ihBlqS0xHZ4jbP8i3
+	mv0zQcq8B436T1tsZYY6ptHDKDGwq7KNfphZNTR/vk4LSAqWc9Lz9TKBl4X1Ztdi
+	g==
+Received: from piplus.local.jubileegroup.co.uk (piplus.local.jubileegroup.co.uk [192.168.44.5])
+	by mail6.jubileegroup.co.uk (8.16.0.48/8.15.2/Debian-14~deb10u1) with ESMTPS id 52C9m0Du031148
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Wed, 12 Mar 2025 09:48:11 GMT
+Date: Wed, 12 Mar 2025 09:48:00 +0000 (GMT)
+From: "G.W. Haywood" <ged@jubileegroup.co.uk>
+To: Duncan Roe <duncan_roe@optusnet.com.au>
+cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Documentation oddity.
+In-Reply-To: <Z9EoA1g/USRbSufZ@slk15.local.net>
+Message-ID: <e0ebeec6-7b3b-c976-734e-9f2bbecaa6a@jubileegroup.co.uk>
+References: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk> <bda3eb41-742f-a3c3-f23e-c535e4e461fd@blackhole.kfki.hu> <4991be2e-3839-526f-505e-f8dd2c2fc3f3@jubileegroup.co.uk> <Z899IF0jLhUMQLE4@slk15.local.net> <99edfdb-3c85-3cce-dcc3-6e61c6268a77@jubileegroup.co.uk>
+ <Z9EoA1g/USRbSufZ@slk15.local.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="-1463810772-1637324354-1741772896=:3645"
+X-AS-Number: AS0 ([] [--] [192.168.44.5])
+X-Greylist-Delay: WHITELISTED Local IP, transport not delayed by extensible-milter-7.178s
 
-autogen.sh no longer fetches doxygen/build_man.sh from the
-libnetfilter_queue project using curl.
-Instead, just check in that file here.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Summary of updates (from git log in libnetfilter_queue tree):
-512cd12 build: doc: Fix silly error in test
-60aa427 build: doc: Fix `fprintf` in man pages from using single quotes
-f54dc69 build: doc: Only fix rendering of verbatim '\n"' when needed
-809240b build: add missing backslash to build_man.sh
-6d17e6d build: Speed up build_man.sh
-b35f537 make the HTML main page available as `man 7 libnetfilter_queue`
-7cff95b build: doc: Update build_man.sh to find bash in PATH
-088c883 build: doc: Update build_man.sh for doxygen 1.9.2
+---1463810772-1637324354-1741772896=:3645
+Content-Type: text/plain; charset=ISO-8859-7; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
----
- doxygen/build_man.sh | 276 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 193 insertions(+), 83 deletions(-)
+Hi Duncan,
 
-diff --git a/doxygen/build_man.sh b/doxygen/build_man.sh
-index 852c7b8..50ab884 100755
---- a/doxygen/build_man.sh
-+++ b/doxygen/build_man.sh
-@@ -1,18 +1,25 @@
--#!/bin/bash -p
-+#!/bin/sh
-+[ -n "$BASH" ] || exec bash -p $0 $@
- 
- # Script to process man pages output by doxygen.
- # We need to use bash for its associative array facility.
- # (`bash -p` prevents import of functions from the environment).
-+# Args: none or 2 being man7 page name & relative path of source with \mainpage
- 
- declare -A renamed_page
-+done_synopsis=false
- 
- main(){
-   set -e
--  cd man/man3; rm -f _*
-+  # make_man7 has no dependencies or dependants so kick it off now
-+  [ $# -ne 2 ] || make_man7 $@ &
-+  pushd man/man3 >/dev/null; rm -f _*
-   count_real_pages
-   rename_real_pages
--  make_symlinks
--  post_process
-+  # Nothing depends on make_symlinks so background it
-+  make_symlinks &
-+  post_process $@
-+  wait
- }
- 
- count_real_pages(){
-@@ -32,9 +39,16 @@ count_real_pages(){
- 
- rename_real_pages(){
-   for i in $(ls -S | head -n$page_count)
--  do for j in $(ls -S | tail -n+$first_link)
--    do grep -E -q $i$ $j && break
--    done
-+  do
-+    j=$(ed -s $i <<////
-+/Functions/+1;.#
-+/^\\.RI/;.#
-+.,.s/^.*\\\\fB//
-+.,.s/\\\\.*//
-+.,.w /dev/stdout
-+Q
-+////
-+).3
-     mv -f $i $j
-     renamed_page[$i]=$j
-   done
-@@ -47,35 +61,144 @@ make_symlinks(){
- }
- 
- post_process(){
--  make_temp_files
-   #
-   # DIAGNOSTIC / DEVELOPMENT CODE
-   # set -x and restrict processing to keep_me: un-comment to activate
-   # Change keep_me as required
-   #
--  #keep_me=nfq_icmp_get_hdr.3;\
--  #do_diagnostics;\
--  #
-+  #keep_me=nfq_icmp_get_hdr.3
-+  #do_diagnostics
-+
-+  # Record doxygen version
-+  i=$(doxygen --version)
-+  doxymajor=$(echo $i|cut -f1 -d.)
-+  doxyminor=$(echo $i|cut -f2 -d.)
-+
-+  # Decide if we need to fix rendering of verbatim "\n"
-+  [ $doxymajor -eq 1 -a $doxyminor -lt 9 ] &&
-+    fix_newlines=true || fix_newlines=false
-+
-+  # Decide if we need to fix double-to-single-quote conversion
-+  [ $doxymajor -eq 1 -a $doxyminor -ge 9 -a $doxyminor -lt 13 ] &&
-+    fix_quotes = true || fix_quotes=false
-+
-   # Work through the "real" man pages
-   for target in $(ls -S | head -n$page_count)
--  do mygrep "^\\.SH \"Function Documentation" $target
--    # Next file if this isn't a function page
--    [ $linnum -ne 0 ] || continue
-+  do grep -Eq "^\\.SH \"Function Documentation" $target || continue
- 
--    del_modules
--    del_bogus_synopsis
--    fix_name_line
--    move_synopsis
--    del_empty_det_desc
--    del_def_at_lines
--    fix_double_blanks
-+    {
-+      del_bogus_synopsis
-+      $done_synopsis || del_modules
-+      fix_name_line
-+      move_synopsis
-+      del_empty_det_desc
-+      del_def_at_lines
-+      fix_double_blanks
-+      [ $# -ne 2 ] || insert_see_also $@
- 
--    # Fix rendering of verbatim "\n" (in code snippets)
--    sed -i 's/\\n/\\\\n/' $target
-+      # Work around doxygen bugs (doxygen version-specific)
-+
-+      # Best effort: \" becomes \'
-+      #              Only do lines with some kind of printf,
-+      #              since other single quotes might be OK as-is.
-+      $fix_quotes && sed -i '/printf/s/'\''/"/g' $target
-+
-+      # Fix rendering of verbatim "\n" (in code snippets)
-+      $fix_newlines && sed -i 's/\\n/\\\\n/' $target
-+    }&
- 
-   done
- 
--  remove_temp_files
-+}
-+
-+make_man7(){
-+  target=$(grep -Ew INPUT doxygen.cfg | rev | cut -f1 -d' ' | rev)/$2
-+  mypath=$(dirname $0)
-+
-+  # Build up temporary source in temp.c
-+  # (doxygen only makes man pages from .c files).
-+  ed -s $target << ////
-+1,/\\\\mainpage/d
-+0i
-+/**
-+ * \\defgroup $1 $1 overview
-+.
-+/\\*\\//+1,\$d
-+a
-+
-+/**
-+ * @{
-+ *
-+ * $1 - DELETE_ME
-+ */
-+int $1(void)
-+{
-+	return 0;
-+}
-+/**
-+ * @}
-+ */
-+.
-+wq temp.c
-+////
-+
-+  # Create temporary doxygen config in doxytmp
-+  grep -Ew PROJECT_NUMBER doxygen.cfg >doxytmp
-+  cat >>doxytmp <<////
-+PROJECT_NAME = $1
-+ABBREVIATE_BRIEF =
-+FULL_PATH_NAMES = NO
-+TAB_SIZE = 8
-+OPTIMIZE_OUTPUT_FOR_C = YES
-+EXAMPLE_PATTERNS =
-+ALPHABETICAL_INDEX = NO
-+SEARCHENGINE = NO
-+GENERATE_LATEX = NO
-+INPUT = temp.c
-+GENERATE_HTML = NO
-+GENERATE_MAN = YES
-+MAN_EXTENSION = .7
-+////
-+
-+  doxygen doxytmp >/dev/null
-+
-+  # Remove SYNOPSIS line if there is one
-+  target=man/man7/$1.7
-+  mygrep "SH SYNOPSIS" $target
-+  [ $linnum -eq 0 ] || delete_lines $linnum $((linnum+1))
-+
-+  # doxygen 1.8.9.1 and possibly newer run the first para into NAME
-+  # (i.e. in this unusual group). There won't be a SYNOPSIS when this happens
-+  if grep -Eq "overview$1" $target; then
-+    echo "Re-running doxygen $(doxygen --version)"
-+    ed -s temp.c << ////
-+2a
-+ * \\manonly
-+.PP
-+.SH "Detailed Description"
-+.PP
-+\\endmanonly
-+.
-+wq
-+////
-+    doxygen doxytmp >/dev/null
-+  fi
-+
-+  rm temp.c doxytmp
-+}
-+
-+# Insert top-level "See also" of man7 page in man3 page
-+insert_see_also(){
-+  mygrep "Detailed Description" $target
-+  [ $linnum -ne 0 ] || mygrep "Function Documentation" $target
-+  [ $linnum -ne 0 ] || { echo "NO HEADER IN $target" >&2; return; }
-+  ed -s $target <<////
-+${linnum}i
-+.SH "See also"
-+\\fB${1}\\fP(7)
-+.
-+wq
-+////
- }
- 
- fix_double_blanks(){
-@@ -96,7 +219,7 @@ fix_double_blanks(){
- del_def_at_lines(){
-   linnum=1
-   while [ $linnum -ne 0 ]
--  do mygrep "^Definition at line [[:digit:]]* of file" $target
-+  do mygrep '^Definition at line (\\fB)?[[:digit:]]*(\\fP)? of file' $target
-     [ $linnum -eq 0 ] || delete_lines $(($linnum - 1)) $linnum
-   done
- }
-@@ -132,14 +255,13 @@ move_synopsis(){
-   mygrep "^\\.SS \"Functions" $target
-   [ $i -gt $linnum ] || return 0
- 
--  mygrep "^\\.SH \"Function Documentation" $target
--  j=$(($linnum - 1))
--  head -n$(($j - 1)) $target | tail -n$(($linnum - $i - 1)) >$fileC
--  delete_lines $i $j
--  mygrep "^\\.SS \"Functions" $target
--  head -n$(($linnum - 1)) $target >$fileA
--  tail -n+$(($linnum + 1)) $target >$fileB
--  cat $fileA $fileC $fileB >$target
-+  ed -s $target <<////
-+/^\\.SS \"Functions\"/;.d
-+.ka
-+/^\\.SH SYNOPSIS/;/^[[:space:]]*\$/-1m'a-1
-+/\"Function Documentation\"/-1;.d
-+wq
-+////
- }
- 
- fix_name_line(){
-@@ -147,81 +269,69 @@ fix_name_line(){
- 
-   # Search a shortened version of the page in case there are .RI lines later
-   mygrep "^\\.SH \"Function Documentation" $target
--  head -n$linnum $target >$fileC
-+  head -n$linnum $target >../$target.tmp
- 
-   while :
--  do mygrep ^\\.RI $fileC
--    [ $linnum -ne 0 ] || break
--    # Discard this entry
--    tail -n+$(($linnum + 1)) $fileC >$fileB
--    cp $fileB $fileC
-+  do foundline=$(grep -En "^\\.RI" ../$target.tmp 2>/dev/null | head -n1)
-+    [ "$foundline" ] || break
-+    linnum=$(echo $foundline | cut -f1 -d:)
-+    # Discard this entry (and all previous lines)
-+    ed -s ../$target.tmp <<////
-+1,${linnum}d
-+wq
-+////
- 
--    func=$(cat $fileG | cut -f2 -d\\ | cut -c3-)
-+    func=$(echo $foundline | cut -f2 -d\\ | cut -c3-)
-     [ -z "$all_funcs" ] && all_funcs=$func ||\
-       all_funcs="$all_funcs, $func"
-   done
-   # For now, assume name is at line 5
--  head -n4 $target >$fileA
-   desc=$(head -n5 $target | tail -n1 | cut -f3- -d" ")
--  tail -n+6 $target >$fileB
--  cat $fileA >$target
--  echo "$all_funcs \\- $desc" >>$target
--  cat $fileB >>$target
-+  ed -s $target <<////
-+5c
-+$all_funcs \\- $desc
-+.
-+wq
-+////
-+  rm ../$target.tmp
- }
- 
-+# Prior to doxygen 1.8.20 there was a "Modules" entry which became part of the
-+# "bogus" synopsis. Doxygen 1.11.0 replaces "Modules" with "Topics" still as
-+# part of the "bogus" synopsis and so cleaned up by del_bogus_synopsis().
- del_modules(){
--  mygrep "^\.SS \"Modules" $target
--  [ $linnum -ne 0  ] || return 0
--  i=$linnum
--  mygrep "^\\.SS \"Functions" $target
--  delete_lines $i $(($linnum - 1))
-+  grep -Eq "^\\.SS \"Modules" $target || return 0
-+  ed -s $target <<////
-+/^\\.SS \"Modules/,/^\\.SS \"Functions/-1d
-+wq
-+////
- }
- 
- del_bogus_synopsis(){
--  mygrep "SH SYNOPSIS" $target
-+  [ $(grep -E 'SH SYNOPSIS' $target | wc -l) -eq 2 ] || return 0
-   #
-   # doxygen 1.8.20 inserts its own SYNOPSIS line but there is no mention
-   # in the documentation or git log what to do with it.
-   # So get rid of it
-   #
--  [ $linnum -ne 0  ] || return 0
--  i=$linnum
--  # Look for the next one
--  tail -n+$(($i + 1)) $target >$fileC;\
--  mygrep "SH SYNOPSIS" $fileC
--  [ $linnum -ne 0  ] || return 0
--
--  mygrep "^\\.SS \"Functions" $target
--  delete_lines $i $(($linnum - 1))
-+  ed -s $target <<////
-+/SH SYNOPSIS/,/^\\.SS \"Functions/-1d
-+wq
-+////
-+  done_synopsis=true
- }
- 
- # Delete lines $1 through $2 from $target
- delete_lines(){
--  head -n$(($1 - 1)) $target >$fileA
--  tail -n+$(($2 +1)) $target >$fileB
--  cat $fileA $fileB >$target
-+  ed -s $target <<////
-+$1,$2d
-+wq
-+////
- }
- 
- mygrep(){
--  set +e
--  grep -En "$1" $2 2>/dev/null >$fileH
--  [ $? -ne 0 ] && linnum=0 ||\
--    { head -n1 $fileH >$fileG; linnum=$(cat $fileG | cut -f1 -d:); }
--  set -e
--}
--
--make_temp_files(){
--  temps="A B C G H"
--  for i in $temps
--  do declare -g file$i=$(mktemp)
--  done
--}
--
--remove_temp_files(){
--  for i in $temps
--  do j=file$i
--    rm ${!j}
--  done
-+  linnum=$(grep -En "$1" $2 2>/dev/null | head -n1 | cut -f1 -d:)
-+  [ $linnum ] || linnum=0
- }
- 
--main
-+main $@
+On Wed, 12 Mar 2025, Duncan Roe wrote:
+> On Tue, Mar 11, 2025 at 10:00:04AM +0000, G.W. Haywood wrote:
+>>
+>> Debian 11, gcc version 10.2.1-6 here.
+>>
+>> 8<----------------------------------------------------------------------
+>> $ gcc -g3 -gdwarf-4 -Wall -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
+>> /usr/bin/ld: /tmp/ccbLJv89.o: in function `nfq_send_verdict':
+>> /home/ged/nf-queue.c:30: undefined reference to `nfq_nlmsg_put'
+>> ...
+>> ...
+>> collect2: error: ld returned 1 exit status
+>> 8<----------------------------------------------------------------------
+>>
+> nf-queue.c has compiled fine.
+
+Quite so, but it hasn't linked and no executable has been produced... :/
+
+However, with the object and source file args at the beginning of the
+command line, there are no linker errors and the executable is produced.
+
+> There is a problem with the shared libraries libmnl.so and
+> libnetfilter_queue.so. Those 2 libraries should satisfy the mnl_ and nfq_
+> references respectively.
+
+Obviously I do have them installed.
+
+> On my (Slackware x86_64) system, "nm -D /usr/lib64/libmnl.so|grep -Ew T" gives:
+> | 0000000000003687 T mnl_attr_get_len@@LIBMNL_1.0
+> | 00000000000036ac T mnl_attr_get_payload@@LIBMNL_1.0
+> | 0000000000003698 T mnl_attr_get_payload_len@@LIBMNL_1.0
+> | ...
+> for a total of 68 lines. What do you get? (you may have to put /usr/lib instead
+> of /usr/lib64).
+
+The libraries are in /usr/lib/aarch64-linux-gnu/, and yes, 68 lines output:
+
+8<----------------------------------------------------------------------
+
+$ nm -D /usr/lib/aarch64-linux-gnu/libmnl.so|grep -Ew T | head
+0000000000002ad8 T mnl_attr_get_len@@LIBMNL_1.0
+0000000000002af0 T mnl_attr_get_payload@@LIBMNL_1.0
+0000000000002ae0 T mnl_attr_get_payload_len@@LIBMNL_1.0
+0000000000002f20 T mnl_attr_get_str@@LIBMNL_1.0
+0000000000002ac8 T mnl_attr_get_type@@LIBMNL_1.0
+0000000000002ed8 T mnl_attr_get_u16@@LIBMNL_1.0
+0000000000002ef0 T mnl_attr_get_u32@@LIBMNL_1.0
+0000000000002f08 T mnl_attr_get_u64@@LIBMNL_1.0
+0000000000002ec0 T mnl_attr_get_u8@@LIBMNL_1.0
+00000000000032a0 T mnl_attr_nest_cancel@@LIBMNL_1.0
+0000000000003278 T mnl_attr_nest_end@@LIBMNL_1.0
+00000000000030a8 T mnl_attr_nest_start@@LIBMNL_1.0
+0000000000003250 T mnl_attr_nest_start_check@@LIBMNL_1.0
+0000000000002c30 T mnl_attr_next@@LIBMNL_1.0
+0000000000002c00 T mnl_attr_ok@@LIBMNL_1.0
+0000000000002d08 T mnl_attr_parse@@LIBMNL_1.0
+0000000000002da0 T mnl_attr_parse_nested@@LIBMNL_1.0
+0000000000002e40 T mnl_attr_parse_payload@@LIBMNL_1.1
+0000000000002f28 T mnl_attr_put@@LIBMNL_1.0
+00000000000030e0 T mnl_attr_put_check@@LIBMNL_1.0
+0000000000003018 T mnl_attr_put_str@@LIBMNL_1.0
+00000000000031b0 T mnl_attr_put_str_check@@LIBMNL_1.0
+0000000000003060 T mnl_attr_put_strz@@LIBMNL_1.0
+0000000000003200 T mnl_attr_put_strz_check@@LIBMNL_1.0
+0000000000002fb8 T mnl_attr_put_u16@@LIBMNL_1.0
+0000000000003150 T mnl_attr_put_u16_check@@LIBMNL_1.0
+0000000000002fd8 T mnl_attr_put_u32@@LIBMNL_1.0
+0000000000003170 T mnl_attr_put_u32_check@@LIBMNL_1.0
+0000000000002ff8 T mnl_attr_put_u64@@LIBMNL_1.0
+0000000000003190 T mnl_attr_put_u64_check@@LIBMNL_1.0
+0000000000002f98 T mnl_attr_put_u8@@LIBMNL_1.0
+0000000000003130 T mnl_attr_put_u8_check@@LIBMNL_1.0
+0000000000002c48 T mnl_attr_type_valid@@LIBMNL_1.0
+0000000000002c98 T mnl_attr_validate@@LIBMNL_1.0
+0000000000002cd8 T mnl_attr_validate2@@LIBMNL_1.0
+00000000000022f8 T mnl_cb_run@@LIBMNL_1.0
+0000000000002168 T mnl_cb_run2@@LIBMNL_1.0
+0000000000002ab0 T mnl_nlmsg_batch_current@@LIBMNL_1.0
+0000000000002aa8 T mnl_nlmsg_batch_head@@LIBMNL_1.0
+0000000000002ab8 T mnl_nlmsg_batch_is_empty@@LIBMNL_1.0
+00000000000029f8 T mnl_nlmsg_batch_next@@LIBMNL_1.0
+0000000000002a40 T mnl_nlmsg_batch_reset@@LIBMNL_1.0
+0000000000002aa0 T mnl_nlmsg_batch_size@@LIBMNL_1.0
+00000000000029b8 T mnl_nlmsg_batch_start@@LIBMNL_1.0
+00000000000029f0 T mnl_nlmsg_batch_stop@@LIBMNL_1.0
+0000000000002590 T mnl_nlmsg_fprintf@@LIBMNL_1.0
+00000000000024c8 T mnl_nlmsg_get_payload@@LIBMNL_1.0
+0000000000002470 T mnl_nlmsg_get_payload_len@@LIBMNL_1.0
+00000000000024d0 T mnl_nlmsg_get_payload_offset@@LIBMNL_1.0
+0000000000002548 T mnl_nlmsg_get_payload_tail@@LIBMNL_1.0
+0000000000002518 T mnl_nlmsg_next@@LIBMNL_1.0
+00000000000024e8 T mnl_nlmsg_ok@@LIBMNL_1.0
+0000000000002578 T mnl_nlmsg_portid_ok@@LIBMNL_1.0
+0000000000002490 T mnl_nlmsg_put_extra_header@@LIBMNL_1.0
+0000000000002480 T mnl_nlmsg_put_header@@LIBMNL_1.0
+0000000000002560 T mnl_nlmsg_seq_ok@@LIBMNL_1.0
+0000000000002468 T mnl_nlmsg_size@@LIBMNL_1.0
+0000000000001ec0 T mnl_socket_bind@@LIBMNL_1.0
+0000000000002068 T mnl_socket_close@@LIBMNL_1.0
+0000000000001e18 T mnl_socket_fdopen@@LIBMNL_1.2
+0000000000001df8 T mnl_socket_get_fd@@LIBMNL_1.0
+0000000000001e00 T mnl_socket_get_portid@@LIBMNL_1.0
+00000000000020c0 T mnl_socket_getsockopt@@LIBMNL_1.0
+0000000000001e08 T mnl_socket_open@@LIBMNL_1.0
+0000000000001e10 T mnl_socket_open2@@LIBMNL_1.2
+0000000000001fa0 T mnl_socket_recvfrom@@LIBMNL_1.0
+0000000000001f88 T mnl_socket_sendto@@LIBMNL_1.0
+00000000000020a0 T mnl_socket_setsockopt@@LIBMNL_1.0
+$
+
+8<----------------------------------------------------------------------
+
+>> There were other problems when I tried the same thing on x86, but that
+>> was gcc version 8, so I think they can be ignored.
+>
+> gcc-8 should be fine. Please document these problems also.
+
+8<----------------------------------------------------------------------
+
+# uname -a
+Linux laptop3 4.19.0-27-amd64 #1 SMP Debian 4.19.316-1 (2024-06-25) x86_64 GNU/Linux
+# apt-get install libmnl-dev libmnl0 libnetfilter-queue-dev libnetfilter-queue1 libnftnl11 libnftnl-dev
+Reading package lists... Done
+Building dependency tree 
+Reading state information... Done
+libmnl-dev is already the newest version (1.0.4-2).
+libmnl0 is already the newest version (1.0.4-2).
+libnetfilter-queue-dev is already the newest version (1.0.3-1).
+libnetfilter-queue1 is already the newest version (1.0.3-1).
+libnftnl-dev is already the newest version (1.1.2-2).
+libnftnl11 is already the newest version (1.1.2-2).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+#
+
+8<----------------------------------------------------------------------
+
+8<----------------------------------------------------------------------
+
+$ gcc -g3 -gdwarf-4 -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
+nf-queue.c: In function ¡nfq_send_verdict¢:
+nf-queue.c:30:8: warning: implicit declaration of function ¡nfq_nlmsg_put¢; did you mean ¡nfq_nlmsg_parse¢? [-Wimplicit-function-declaration]
+   nlh = nfq_nlmsg_put(buf, NFQNL_MSG_VERDICT, queue_num);
+         ^~~~~~~~~~~~~
+         nfq_nlmsg_parse
+nf-queue.c:30:6: warning: assignment to ¡struct nlmsghdr *¢ from ¡int¢ makes pointer from integer without a cast [-Wint-conversion]
+   nlh = nfq_nlmsg_put(buf, NFQNL_MSG_VERDICT, queue_num);
+       ^
+nf-queue.c: In function ¡main¢:
+nf-queue.c:184:6: warning: assignment to ¡struct nlmsghdr *¢ from ¡int¢ makes pointer from integer without a cast [-Wint-conversion]
+   nlh = nfq_nlmsg_put(buf, NFQNL_MSG_CONFIG, queue_num);
+       ^
+nf-queue.c:195:6: warning: assignment to ¡struct nlmsghdr *¢ from ¡int¢ makes pointer from integer without a cast [-Wint-conversion]
+   nlh = nfq_nlmsg_put(buf, NFQNL_MSG_CONFIG, queue_num);
+       ^
+/usr/bin/ld: /tmp/cc2fCm9v.o: in function `nfq_send_verdict':
+/home/ged/Downloads/src/net/netfilter/nf-queue.c:30: undefined reference to `nfq_nlmsg_put'
+/usr/bin/ld: /tmp/cc2fCm9v.o: in function `main':
+/home/ged/Downloads/src/net/netfilter/nf-queue.c:184: undefined reference to `nfq_nlmsg_put'
+/usr/bin/ld: /home/ged/Downloads/src/net/netfilter/nf-queue.c:195: undefined reference to `nfq_nlmsg_put'
+collect2: error: ld returned 1 exit status
+$
+
+8<----------------------------------------------------------------------
+
+Changing the order of command line options doesn't seem to help.
+
+8<----------------------------------------------------------------------
+
+$ nm -D /usr/lib/x86_64-linux-gnu/libmnl.so|grep -Ew T
+0000000000002f20 T mnl_attr_get_len
+0000000000002fa0 T mnl_attr_get_payload
+0000000000002f60 T mnl_attr_get_payload_len
+0000000000003560 T mnl_attr_get_str
+0000000000002ee0 T mnl_attr_get_type
+00000000000034a0 T mnl_attr_get_u16
+00000000000034e0 T mnl_attr_get_u32
+0000000000003520 T mnl_attr_get_u64
+0000000000003460 T mnl_attr_get_u8
+0000000000003b80 T mnl_attr_nest_cancel
+0000000000003b40 T mnl_attr_nest_end
+0000000000003820 T mnl_attr_nest_start
+0000000000003ae0 T mnl_attr_nest_start_check
+0000000000003110 T mnl_attr_next
+00000000000030c0 T mnl_attr_ok
+0000000000003290 T mnl_attr_parse
+0000000000003330 T mnl_attr_parse_nested
+00000000000033e0 T mnl_attr_parse_payload
+00000000000035a0 T mnl_attr_put
+0000000000003870 T mnl_attr_put_check
+0000000000003760 T mnl_attr_put_str
+0000000000003a10 T mnl_attr_put_str_check
+00000000000037c0 T mnl_attr_put_strz
+0000000000003a70 T mnl_attr_put_strz_check
+0000000000003670 T mnl_attr_put_u16
+0000000000003920 T mnl_attr_put_u16_check
+00000000000036c0 T mnl_attr_put_u32
+0000000000003970 T mnl_attr_put_u32_check
+0000000000003710 T mnl_attr_put_u64
+00000000000039c0 T mnl_attr_put_u64_check
+0000000000003620 T mnl_attr_put_u8
+00000000000038d0 T mnl_attr_put_u8_check
+0000000000003150 T mnl_attr_type_valid
+00000000000031b0 T mnl_attr_validate
+0000000000003220 T mnl_attr_validate2
+0000000000002390 T mnl_cb_run
+0000000000002200 T mnl_cb_run2
+0000000000002e60 T mnl_nlmsg_batch_current
+0000000000002e20 T mnl_nlmsg_batch_head
+0000000000002ea0 T mnl_nlmsg_batch_is_empty
+0000000000002d00 T mnl_nlmsg_batch_next
+0000000000002d60 T mnl_nlmsg_batch_reset
+0000000000002de0 T mnl_nlmsg_batch_size
+0000000000002c60 T mnl_nlmsg_batch_start
+0000000000002cc0 T mnl_nlmsg_batch_stop
+0000000000002800 T mnl_nlmsg_fprintf
+0000000000002600 T mnl_nlmsg_get_payload
+0000000000002510 T mnl_nlmsg_get_payload_len
+0000000000002640 T mnl_nlmsg_get_payload_offset
+0000000000002720 T mnl_nlmsg_get_payload_tail
+00000000000026d0 T mnl_nlmsg_next
+0000000000002680 T mnl_nlmsg_ok
+00000000000027b0 T mnl_nlmsg_portid_ok
+00000000000025a0 T mnl_nlmsg_put_extra_header
+0000000000002550 T mnl_nlmsg_put_header
+0000000000002760 T mnl_nlmsg_seq_ok
+00000000000024d0 T mnl_nlmsg_size
+0000000000001e50 T mnl_socket_bind
+0000000000002010 T mnl_socket_close
+0000000000001dc0 T mnl_socket_fdopen
+0000000000001cd0 T mnl_socket_get_fd
+0000000000001d00 T mnl_socket_get_portid
+00000000000020b0 T mnl_socket_getsockopt
+0000000000001d40 T mnl_socket_open
+0000000000001d80 T mnl_socket_open2
+0000000000001f40 T mnl_socket_recvfrom
+0000000000001ef0 T mnl_socket_sendto
+0000000000002060 T mnl_socket_setsockopt
+$
+
+8<----------------------------------------------------------------------
+
+Thanks for being interested. :)
+
 -- 
-2.46.3
 
+73,
+Ged.
+---1463810772-1637324354-1741772896=:3645--
