@@ -1,31 +1,29 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12C9922B8A2
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 07:47:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EF41DB356
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 08:37:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741765651; cv=none; b=G/Uusc3ku1Hrm3hAb5VJKGk0wAfcW5g6dc5lF6d91aFUDvEUf0OeOYFrmRTeZw/KIOoWOhX1TuSji1enzizheOYi9UmnSduZQLKRbM11KlIoo4OVQ2Rez1iYSa5brnURbHEfGqV4I6oxz3bQngw8wkkLjIbVSZY5N5piWWmurkA=
+	t=1741768641; cv=none; b=l5maNo41HRDKfjaoAaz0em3wW8qdzTjXHNQY3plCV6IBmf1TGkQIZgsRO1FSL2Jz2XLG2uKzseV6Xtjtgi0zb70rdIexaXS/YjSS5kkFyvKUcqg2qS1nDtypvXHRQIbA3IPdkeBeTDa0gMBSOvKTXoe9A2UHwzSZkLR0XoxHQM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741765651; c=relaxed/simple;
-	bh=QxlyWoAKAcsHwTLeljh4Bal9HDhmN6DewOtJH7dlGRk=;
+	s=arc-20240116; t=1741768641; c=relaxed/simple;
+	bh=6hk5ORo4r2gkeTIz/wT8ycmO2sGMcUb8FsbmgIt+VBg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ETMI0IA2rPBZ4aycXpMuYcj2DQ+yPtGJqluONs1a/6x60hBG2xC23J6AGsb1FoVaAU8GvCGKLZif/Xq17iAgjC32cHQ3q2lBW9REI79trgOzGwvtfNNeoGZG41UHal4I1TPqVPU5N+mTp/q5ruh0iS/n3+ryHqxoWEq9k1oxieo=
+	 Content-Type:Content-Disposition:In-Reply-To; b=oJ+ynlfVCcOY8MsReZ9semR7OWdkOd8f59BNa06REqj3aSs6QdipKrjv64k7cXiG7mNfeXBbAGycIeWJ19+K5/3uNvWdaXLL7fhf4u8rs8FxK1T0p906jSye/On4ZY8HzJuJxPP0JdmHovi6sPQULcMPz69l7bbDwpziaC2XaA4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@strlen.de>)
-	id 1tsGoJ-0003LX-6u; Wed, 12 Mar 2025 08:47:27 +0100
-Date: Wed, 12 Mar 2025 08:47:27 +0100
+	id 1tsHaW-0003kT-Oy; Wed, 12 Mar 2025 09:37:16 +0100
+Date: Wed, 12 Mar 2025 09:37:16 +0100
 From: Florian Westphal <fw@strlen.de>
 To: Corubba Smith <corubba@gmx.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH ulogd2 2/8] ulogd: add ulogd_parse_configfile public
- function
-Message-ID: <Z9E8D1XcLL2Lh_xW@strlen.de>
-References: <ca5581f5-5e54-47f5-97c8-bcc788c77781@gmx.de>
- <4d7fe1dc-73ee-4e9e-b418-8f5fb87c1e4c@gmx.de>
+Subject: Re: [PATCH ulogd2] nfct: add network namespace support
+Message-ID: <20250312083716.GA14222@breakpoint.cc>
+References: <7d1478b6-ec25-4286-a365-ce28293f4a40@gmx.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,35 +32,42 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4d7fe1dc-73ee-4e9e-b418-8f5fb87c1e4c@gmx.de>
+In-Reply-To: <7d1478b6-ec25-4286-a365-ce28293f4a40@gmx.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
 Corubba Smith <corubba@gmx.de> wrote:
-> Provide a new function `ulogd_parse_configfile()` in the public
-> interface, which wraps `parse_config_file()` to parse a section of the
-> config file and communicates found errors to the user. It can be used
-> as a drop-in replacement because arguments and return value are
-> compatible.
+> Add a new option which allows opening the netlink socket in a different
+> network namespace. This way you can run ulogd in one (management)
+> network namespace which is able to talk with your export target (e.g.
+> database or IPFIX collector), and import flows from multiple (customer)
+> network namespaces.
 
-Most patches in this series no longer apply to ulogd2.git,
-can you rebase and resend?
+Makes sense to me.
 
-Thanks!
+> This commit only implements it for NFCT. I wanted to gather some
+> feedback before also implementing it for the other netlink-based
+> plugins.
 
-> +int ulogd_parse_configfile(const char *section, struct config_keyset *ce)
-> +{
-> +	int err;
-> +
-> +	err = config_parse_file(section, ce);
-> +
-> +	switch(err) {
-> +		case 0:
-> +			return ULOGD_IRET_OK;
-> +			break;
+Does it make sense to have this configured on a per-plugin basis?
 
-Up to you if you want to change it or not; you can reduce one
-indent level:
+>    Input plugins:
+>      NFLOG plugin:			${enable_nflog}
+>      NFCT plugin:			${enable_nfct}
 
-	switch(err) {
-	case 0:
-		return ULOGD_IRET_OK;
-...
+> +#ifdef NETNS_SUPPORT
+> +	if (strlen(target_netns_path) > 0) {
+> +		errno = 0;
+> +		original_netns_fd = open("/proc/self/ns/net", O_RDONLY | O_CLOEXEC);
+> +		if (original_netns_fd < 0) {
+> +			ulogd_log(ULOGD_FATAL, "error opening original network namespace: %s\n", strerror(errno));
+> +			goto err_ons;
+> +		}
+
+I think that in order to not have copypastry in all relevant plugins
+it would be better to turn code in the NETNS_SUPPORT ifdefs section
+into library helpers.
+
+The helpers would always exist; in case ulogd2 is built without
+support they would raise an error.
+
+That would also keep the ifdef out of plugin code.
