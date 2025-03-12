@@ -1,121 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f180.google.com (mail-lj1-f180.google.com [209.85.208.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452CD1F949;
-	Wed, 12 Mar 2025 12:44:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AC3C1482F5
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 13:57:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741783452; cv=none; b=p0iJQvqE+aWf1H4d3gkSRDc5UOdRiywAqs0ZGw7QON8E/rkBPnu7gIPKMC63MDnRmVtqN+C1vNKEiGITTkRBIXl6BN5tV8pDqo9c6MCM2piThsWu+/nZZvC6P/HMzGbT2KnFZoAxCJJkKsjtMZrt7LRWtkajk6xfgHl9LVjO62M=
+	t=1741787832; cv=none; b=g5NcvYkI17nDbjk/TH6XHIlD979zMdZW9PAAgY9daR5UYJdNHKM0yvW347E9chOhSvUHygPDSeyGcNce8t3xxoHmeIKBkXo6iCPtvqGwxgeyaXP+zT9qMH+aNwwyKRTpZJod+ibIzLtLo5th/1QRqcimRd85QRLB3bNlbVhO1wg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741783452; c=relaxed/simple;
-	bh=vWQA3sccFsAja7SYL3ZOCgnwwCe73v+dZK0nfBhnluE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z3QAatsuvSACzfkDMp7PfWo3ZIbLDlH1L336L7HV8DBA21+eKQ1hpNBQjQaT277in4QY6S2TSpcXSnMWNDofs7nI55iN1jm/tT08OLCECgGn14uWpuVmnZbmcy3Q/fRNWmC1LmyXvV1Po6Lfo3vGYW+sINzCVpMbpEX2iFOiIKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=obgl52uM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1741787832; c=relaxed/simple;
+	bh=OpC381GAqPVnE28HQUMPOa1a+NuNBOq9xtqAPiHdklg=;
+	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
+	 Message-Id:References:To; b=SAmJYztIQQ6JgXUzQ4HyUtvzpgfWkeTiaCmamvZboPpKrzQW7ffvCi9wL16giwIvop0L64iCeKwh7/t+rX/+sor/Lw79o+HIVbkfwhM4QxNy7gAyq9smQQmy70J1TNaXfqTvvTimrfbX7R3UcIDkQP9+eOczdoAyEaJ1I+3muR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ddz5HGoS; arc=none smtp.client-ip=209.85.208.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="obgl52uM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 437E8C4CEE3;
-	Wed, 12 Mar 2025 12:43:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1741783451;
-	bh=vWQA3sccFsAja7SYL3ZOCgnwwCe73v+dZK0nfBhnluE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=obgl52uMUBXXa+wYm1Irij/9I1QZJtaBivhOvy8CzyP6NzY7JinfSiog3ZJV/cONq
-	 acVsSgqjcvYy+p340LxPZ5bnEpPoG/icj4OLk2t2pJ+FRIhLZY+YsmSgbapdnzoaQT
-	 W5OP48U/8KEXt0rlawCfg4SL6Hl1Cake+aUzEQAfunEB31avcaw1581+nSzy2//jFi
-	 JafGQLDgU9Z8TFetGwoFGxtV4xVdEN1gfmkQE6jnESMoLZa6mp8cy6ru8syXxnlBUx
-	 NkrCcYzRuEcXcGXswM3btgmavYg1FdzdhNEVS8L1Uop0ud+MRpVG1n62bYEa5WNdiC
-	 PlNz9v1EpOwDQ==
-Date: Wed, 12 Mar 2025 13:43:40 +0100
-From: Simon Horman <horms@kernel.org>
-To: Stanislav Fomichev <sdf@fomichev.me>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, corbet@lwn.net, andrew+netdev@lunn.ch,
-	pablo@netfilter.org, kadlec@netfilter.org
-Subject: Re: [PATCH net-next] net: revert to lockless TC_SETUP_BLOCK and
- TC_SETUP_FT
-Message-ID: <20250312124340.GR4159220@kernel.org>
-References: <20250308044726.1193222-1-sdf@fomichev.me>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ddz5HGoS"
+Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-30613802a6bso71927841fa.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 06:57:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1741787828; x=1742392628; darn=vger.kernel.org;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OpC381GAqPVnE28HQUMPOa1a+NuNBOq9xtqAPiHdklg=;
+        b=ddz5HGoS8+YNgvMC2PcNuGCV1tXVUWrnXTqAZ630bojh8cEtSjx2F89aFiw+FQnjV5
+         0OkWcrK1Jm0GSHF8JJamrMrOtDIEhqo1AJ7MlSEj1NpWa9Jpp3d+dt91hgP8pnEW0vIr
+         MvsikrtD7SElsfnV0x41zoE0KN2qwfn/Q3Bux/QqoU/BIMhLGYg8/9cTInnlu2r7EYIN
+         fJCxp4RclNgBbCCLBHgODwxvSSd2fIz9d3g0+Gau8s56sY8nV5XdezqXCHB6gsUQUlLr
+         peqGQUMuAWXfTXh7E54is5l9OX72OklGg1h8zJiV1JZ0ZeP9qPV+Y+8eqsaLjofebQCb
+         pTrA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741787828; x=1742392628;
+        h=to:references:message-id:content-transfer-encoding:cc:date
+         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OpC381GAqPVnE28HQUMPOa1a+NuNBOq9xtqAPiHdklg=;
+        b=HxUBIwwpS7IVOZIiVlbV/0dMYZ+kDq7a9fHYUGyYvw7SKKCqRiA1uF/GwGZYgSXp0/
+         njMRhzhHjFk7s8gbxb2U+yMFMlvQhrcrpuPxmSv6nakcCTf35xPBjjXKo+pa0usdJWxs
+         Q1x/im0g5/QenBIiG23QDazk4NRA2s8uERvdqeX6KNXMvRjNubpjPqd2Mvlg2iXxQTKS
+         ZksBPRvSncI+LSBp/PEoyw4lryKljIEZBrLBi/r7P54UXnoc8SfZfOmGQBwBoEQS+Q2v
+         iYlJu6ZYWZPZmuEsiHDg38W1GvEJaLr7CJzXtNaUMPW3EZW5L7qPZdXIwsZHZzr7Y6wx
+         VEJA==
+X-Gm-Message-State: AOJu0Yw2AxFKRhZWPwLmPWbH1ddMpUpbZe6cvbO0b1+xwueho1OaoGMj
+	0aa6GQs2rb9k30T0ujxrknTdI9iVOsO9RpdrGwXtjbj3lGCsSdrmbh19BhHPqqI=
+X-Gm-Gg: ASbGnctXzWxdzO7PPrlvrP74BCh1d+3HU/PZdYPxqe/RYbWo+HXrsDzbRNHhltQNUsk
+	oKPW0gCYjT3naPrH2aqIPHxdJT1MiJvB+yz1qdg2wMfK+P/BmM8tK7957fFOCt7Fqg6Lw4yuhFN
+	bGdWD/HM21qT9yIkEx5JkQw+36QHmVrwpDG43YJXqkAkT/p/8OP24zAGitrMzxFOv4ohV8wl2LT
+	SM1Henqj9E1sugt+ZycI3MY2yzI9Wo0iFfUEW69PcLuy8V6dDKOlVRsJxpJJm/Iq8a86NcGdo2U
+	SsUv9ojiTCMsoxwHtbISKHq/Iwa95mm76u22YGcVsVhqVEi5R1CiitILz0Zw
+X-Google-Smtp-Source: AGHT+IErHefXjGOwc0iaTW2kRXT23mIdgMfmgL74ogbai/do7Y60aNmlxEQHNpFN5MuDpUP627HDXQ==
+X-Received: by 2002:a05:651c:2108:b0:30c:1308:1333 with SMTP id 38308e7fff4ca-30c130814e7mr47563741fa.13.1741787828187;
+        Wed, 12 Mar 2025 06:57:08 -0700 (PDT)
+Received: from smtpclient.apple ([195.16.41.104])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30c0ac7f36csm14853791fa.26.2025.03.12.06.57.07
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 12 Mar 2025 06:57:07 -0700 (PDT)
+Content-Type: text/plain;
+	charset=us-ascii
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250308044726.1193222-1-sdf@fomichev.me>
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3776.700.51\))
+Subject: Re: [PATCH] netfilter: nft_exthdr: fix offset with ipv4_find_option()
+From: Alexey Kashavkin <akashavkin@gmail.com>
+In-Reply-To: <20250312091540.GA15366@breakpoint.cc>
+Date: Wed, 12 Mar 2025 16:56:57 +0300
+Cc: netfilter-devel@vger.kernel.org,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Alexey Kashavkin <akashavkin@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <297363AA-9DF3-47C6-9DA8-BC60E7BC8CA8@gmail.com>
+References: <20250301211436.2207-1-akashavkin@gmail.com>
+ <20250312091540.GA15366@breakpoint.cc>
+To: Florian Westphal <fw@strlen.de>
+X-Mailer: Apple Mail (2.3776.700.51)
 
-On Fri, Mar 07, 2025 at 08:47:26PM -0800, Stanislav Fomichev wrote:
-> There is a couple of places from which we can arrive to ndo_setup_tc
-> with TC_SETUP_BLOCK/TC_SETUP_FT:
-> - netlink
-> - netlink notifier
-> - netdev notifier
-> 
-> Locking netdev too deep in this call chain seems to be problematic
-> (especially assuming some/all of the call_netdevice_notifiers
-> NETDEV_UNREGISTER) might soon be running with the instance lock).
-> Revert to lockless ndo_setup_tc for TC_SETUP_BLOCK/TC_SETUP_FT. NFT
-> framework already takes care of most of the locking. Document
-> the assumptions.
-> 
-> ndo_setup_tc TC_SETUP_BLOCK
->   nft_block_offload_cmd
->     nft_chain_offload_cmd
->       nft_flow_block_chain
->         nft_flow_offload_chain
-> 	  nft_flow_rule_offload_abort
-> 	    nft_flow_rule_offload_commit
-> 	  nft_flow_rule_offload_commit
-> 	    nf_tables_commit
-> 	      nfnetlink_rcv_batch
-> 	        nfnetlink_rcv_skb_batch
-> 		  nfnetlink_rcv
-> 	nft_offload_netdev_event
-> 	  NETDEV_UNREGISTER notifier
-> 
-> ndo_setup_tc TC_SETUP_FT
->   nf_flow_table_offload_cmd
->     nf_flow_table_offload_setup
->       nft_unregister_flowtable_hook
->         nft_register_flowtable_net_hooks
-> 	  nft_flowtable_update
-> 	  nf_tables_newflowtable
-> 	    nfnetlink_rcv_batch (.call NFNL_CB_BATCH)
-> 	nft_flowtable_update
-> 	  nf_tables_newflowtable
-> 	nft_flowtable_event
-> 	  nf_tables_flowtable_event
-> 	    NETDEV_UNREGISTER notifier
->       __nft_unregister_flowtable_net_hooks
->         nft_unregister_flowtable_net_hooks
-> 	  nf_tables_commit
-> 	    nfnetlink_rcv_batch (.call NFNL_CB_BATCH)
-> 	  __nf_tables_abort
-> 	    nf_tables_abort
-> 	      nfnetlink_rcv_batch
-> 	__nft_release_hook
-> 	  __nft_release_hooks
-> 	    nf_tables_pre_exit_net -> module unload
-> 	  nft_rcv_nl_event
-> 	    netlink_register_notifier (oh boy)
->       nft_register_flowtable_net_hooks
->       	nft_flowtable_update
-> 	  nf_tables_newflowtable
->         nf_tables_newflowtable
-> 
-> Fixes: c4f0f30b424e ("net: hold netdev instance lock during nft ndo_setup_tc")
-> Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
+> This is wrong, the array should be aligned to fit struct
+> requirements, so u32 is needed, or __aligned annotation is needed
+> for optbuf.
 
-Thanks Stan,
+This is the old common case of initialising the variable structure =
+ip_options, as in ip_sockglue.c or cipso_ipv4.c. But I don't understand =
+how best to do it, because if we change the optbuf type to u32, it might =
+be redundant if we don't change the array size, and therefore I have no =
+idea what boundary to align it on.
 
-Thinking aloud: the dev_setup_tc() helper checked if ndo_setup_tc is
-non-NULL, but that is not the case here. But that seems ok because it was
-also the case prior to the cited commit.
+> Can you make a second patch that places optbuf in the
+> stack frame of the calling function instead?
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+Into the ipv4_find_option() function?
 
-...
