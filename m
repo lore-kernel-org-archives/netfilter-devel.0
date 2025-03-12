@@ -1,121 +1,112 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6606E5684
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 00:15:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F32979443
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Mar 2025 00:30:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741738550; cv=none; b=iMAwOn5pYN/B1Vm/ESYCYuexSt7VXnVDOvTj1QWnEJzY/EHooXNcj/AltKHV8iVY6oAJhHv2Iwa7cUSWNCgaNWbx5P5X7tQqb1CwrR5o2b3pdLmYAjjyo/FPNgIqVcVgQQl8hYZVxKnF+LB51BXB6qg3DRO8J55fJYdjmf8o8Fs=
+	t=1741739454; cv=none; b=k7LLtweLEKp1zjC4YoEwbNTvtQgGF5uxoQfMVs481TyQq/rP1hUfj260RroWk9aVZ+I59frQTsXyQebVdPHTF4C2ppSPLrfwppCpk9mSXFCim9Tp0AThKTeKP387oqGJGK9c8sVUMTpk+AgKAYA2kH8UsZYmPQ8czFToJr1mEJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741738550; c=relaxed/simple;
-	bh=R5x7cLBoMe47wdDLMVibWEbBDYmMbfBucJlj5DLcyZY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=p7UnIEoPyVY6TrlH1RImK+DXLebgSj9uTB2bnm22Q89tNjnxqq2w2eXMKtMM3nn7I2W+s4VDx+iFLkgk4IrRgp5pmlzKhW2rdIn9N1y5e6iroDG7CyXaVxnYMfrZXQ/lL7T4Spy8njO1dcBY2N43qUDy2gmcWf4OeY1Wm0gIZfw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tbmQzmiN; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tbmQzmiN; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1741739454; c=relaxed/simple;
+	bh=qIJsjOIvR2iyPSMo59dC6WkSLhJnBHUZQ85H00ABC3k=;
+	h=Date:From:To:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=l8cb+6An3AxIucypjBRQ/pXW6slRTtDEmAKZ6QwV29l+k345Znm04802y2zYzHqE+7V9VUd1rlDA6iPvc8Iz8BN77If92lGjDFgXQzf08qzfmJawSVEAUKUWvo1uFwQehSXAdXkDWMtnBH43ZEbtt51E4jj+wL5hCnY6JMRBmBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XrPOIChr; arc=none smtp.client-ip=209.85.222.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tbmQzmiN";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tbmQzmiN"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 918596028A; Wed, 12 Mar 2025 01:15:46 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741738546;
-	bh=IvyS6B9hedwRU7n3jEyvD9iJYecBrj4hF1ESQTG0vBI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tbmQzmiNAZP3Yh+pTXL6M7dMaD3wAL0N2JsBS+k1+MmdlMOySEJrqdanXjf1JmCE/
-	 evrDEmnUUnAaf9+oeBtcOSeaeqYZdq9WXNmmtSEHeQK7pHGB5MmcuNpIZAcjjJikhA
-	 1UHOp2SxP8Uw1V2w/qOTDN1NTLBZoedLbKPuHVs7pJzwk3/9MqtLledVJiaAt3DzX1
-	 OqQoTg6e7blSCxwBRpQ27ANuyoDCmJuCcHpGwaukmaQspWwgllnYVDshR9Vg2nXC/q
-	 sRnv1B9Kl25T9FSHazumAMIngeWWPDfDXjqI62xPuqvsbfLan7TzIrx9AnbFjYzVqv
-	 qmo6bUvW4znUw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0463C60285;
-	Wed, 12 Mar 2025 01:15:46 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741738546;
-	bh=IvyS6B9hedwRU7n3jEyvD9iJYecBrj4hF1ESQTG0vBI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tbmQzmiNAZP3Yh+pTXL6M7dMaD3wAL0N2JsBS+k1+MmdlMOySEJrqdanXjf1JmCE/
-	 evrDEmnUUnAaf9+oeBtcOSeaeqYZdq9WXNmmtSEHeQK7pHGB5MmcuNpIZAcjjJikhA
-	 1UHOp2SxP8Uw1V2w/qOTDN1NTLBZoedLbKPuHVs7pJzwk3/9MqtLledVJiaAt3DzX1
-	 OqQoTg6e7blSCxwBRpQ27ANuyoDCmJuCcHpGwaukmaQspWwgllnYVDshR9Vg2nXC/q
-	 sRnv1B9Kl25T9FSHazumAMIngeWWPDfDXjqI62xPuqvsbfLan7TzIrx9AnbFjYzVqv
-	 qmo6bUvW4znUw==
-Date: Wed, 12 Mar 2025 01:15:44 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: shell: skip interval size tests on kernel
- that lack rbtree size fix
-Message-ID: <Z9DSMGuYq_jSEQVz@calendula>
-References: <20250310124232.11796-1-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XrPOIChr"
+Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-7c0a159ded2so650199985a.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Mar 2025 17:30:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1741739451; x=1742344251; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:to:from:date:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=R9dOnvo0Ueij2qvovi54VLR7sj2e+a02+eetIQYtB20=;
+        b=XrPOIChrBXHP0CC6oaSchGe+fA0fkageWYGh1uEx9hnmPSw4SW3lVQlOoBrS13KfPz
+         yKd6PmFCu3MqP7925OqSwkeWIqOWmhnWMgg2Z3XXkPUiMznWXTwpkwVSqpq+1etdBgPq
+         RLRMRE+jQG8MAx6IlMjaaQXq582bQN+a/9bkzXQlbB1TuZ52PIpGkJzKUxt8rQyw0CJG
+         ixw/LGvYQvqCRG1eAD4uEskFCLrMM7TUH3uSnBDP0GROoH4qKawyIY7cYUhUotzKJHcG
+         hIyjuBEq4raDNzqxd7pmvu110w1UXnQdLlnOJaR3WepT24uuWjIvor+C5WVCF4fi21iY
+         0raw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741739451; x=1742344251;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:to:from:date:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=R9dOnvo0Ueij2qvovi54VLR7sj2e+a02+eetIQYtB20=;
+        b=axUPHwlDdRJT2X3nFTBqvcrOMn8vXKMzVx0O1hvOYnq7/q9ijIk8OlEXlCzgGHyoJG
+         SDj4g+1ZbCBIIRfjcISRCbhrg9o3kN27U2Dh4obBah3XKZlyRSdTbG3/cAUU5dk+i22p
+         1hCgoIZxI6PZ36lHMlHJXTmvIHyaHtRsPrsYvihvaLaR9/QiHXy0zmp6iCiO6zift52b
+         G0YIHduvAUzndRegrIxoIZUjT9s4PAs1U4n962wxIJy+RanpX1np35K5JV3jiSx+YGFz
+         8P+9z4It1fY8n4Pp+EO8b64ugSwFM2S/xcMxlFpW2WOVDGpSLbVF3B8EzwEJFzwN0b9f
+         vyjA==
+X-Gm-Message-State: AOJu0YwbvPaOmwxCtYiJu4gHE6qlus20l+/O5M7IVG7bzgFkQM6szrXs
+	y82bQoY/awbR0Jzs+j0ZjVpSdl7s+Enpi+ICv6l6UngVKR7TS+xhFy5xYw==
+X-Gm-Gg: ASbGncv83nUagb6HmChlcR6Xxn8crD7VaSTTQgnzfEhZINsnlt97KDzlR/RM7X2yGUz
+	gKWeqLw4azMuL6rr4DsHbk/GM9C36RelCDUe3QiT8P++lwGvbh66eraYjQm+BDTG1HQmVmMtbZX
+	GmhudoyNHdWuiCPtKViKcf4HXAGu10IlAP8NdRoegYwGFFM8AJ+X9zLNjFurVVE6g4cksuawaaZ
+	5v9jCpp0eyz+vd/UaT2mb0bLinYg4aeU3Bo83YyqJwzS6mLga79n59bk/aa2noxrOLnyyj87crW
+	4OxElV7w+RUeBtpLVYDHn6uA4BgVHkGqVuLRBrM=
+X-Google-Smtp-Source: AGHT+IHZRP/vT/4Jg3PsO7Zuav1O9OANzqMFxvEAoK9Zvdw0ltmK3BOg1gSeCZfo4dakpSC/gyVAig==
+X-Received: by 2002:a05:620a:2b49:b0:7c5:3ca5:58fe with SMTP id af79cd13be357-7c53ca55a7fmr2057004185a.22.1741739451402;
+        Tue, 11 Mar 2025 17:30:51 -0700 (PDT)
+Received: from playground ([204.111.226.76])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7c5573f4b31sm346468885a.65.2025.03.11.17.30.50
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 11 Mar 2025 17:30:51 -0700 (PDT)
+Date: Tue, 11 Mar 2025 20:30:48 -0400
+From: <imnozi@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: netfilter expected behavior for established connections
+Message-ID: <20250311203048.5c275524@playground>
+In-Reply-To: <CABhP=tYOynShd82rwVuDMJDTE8LcM6+FHwx7Tfuk183EW+ipPA@mail.gmail.com>
+References: <CABhP=tYOynShd82rwVuDMJDTE8LcM6+FHwx7Tfuk183EW+ipPA@mail.gmail.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250310124232.11796-1-fw@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 10, 2025 at 01:42:29PM +0100, Florian Westphal wrote:
-> Skip these tests for older kernels.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+On Wed, 12 Mar 2025 00:56:48 +0100
+Antonio Ojea <antonio.ojea.garcia@gmail.com> wrote:
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Hi,
+> 
+> I'm puzzled trying to understand the following behavior, appreciate it
+> if you can help me to understand better how this works.
+> 
+> The setup is like this:  Client --- Router --- Server
+> 
+> - Router DNATs to a Virtual IP and Port of the Server.
+> - Client establishes a permanent connection to the Virtual IP.
+> - Router adds a REJECT rule in the FORWARD hook for the Server IP
+> 
+> I expect the REJECT to match the established connection, but the
+> client keeps reaching the Server using the existing connection.
+> 
+> The packets of the established connection do not show up on the traces
+> using nftrace.
+> 
+> Is it possible to "DROP/REJECT" the established connection ?
 
-> ---
->  tests/shell/features/rbtree_size_limit.nft      | 10 ++++++++++
->  tests/shell/testcases/sets/interval_size        |  2 ++
->  tests/shell/testcases/sets/interval_size_random |  2 ++
->  3 files changed, 14 insertions(+)
->  create mode 100644 tests/shell/features/rbtree_size_limit.nft
-> 
-> diff --git a/tests/shell/features/rbtree_size_limit.nft b/tests/shell/features/rbtree_size_limit.nft
-> new file mode 100644
-> index 000000000000..7eb44face077
-> --- /dev/null
-> +++ b/tests/shell/features/rbtree_size_limit.nft
-> @@ -0,0 +1,10 @@
-> +# 8d738c1869f6 ("netfilter: nf_tables: fix set size with rbtree backend")
-> +# v6.14-rc1~162^2~7^2~13
-> +table inet x {
-> +        set y {
-> +                typeof ip saddr
-> +                flags interval
-> +                size 1
-> +                elements = { 10.1.1.0/24 }
-> +        }
-> +}
-> diff --git a/tests/shell/testcases/sets/interval_size b/tests/shell/testcases/sets/interval_size
-> index 6d0759672999..55a6cd4948e2 100755
-> --- a/tests/shell/testcases/sets/interval_size
-> +++ b/tests/shell/testcases/sets/interval_size
-> @@ -1,5 +1,7 @@
->  #!/bin/bash
->  
-> +# NFT_TEST_REQUIRES(NFT_TEST_HAVE_rbtree_size_limit)
-> +
->  RULESET="table inet x {
->  	set x {
->  		typeof ip saddr
-> diff --git a/tests/shell/testcases/sets/interval_size_random b/tests/shell/testcases/sets/interval_size_random
-> index 701a1e73956c..3320b51245db 100755
-> --- a/tests/shell/testcases/sets/interval_size_random
-> +++ b/tests/shell/testcases/sets/interval_size_random
-> @@ -1,5 +1,7 @@
->  #!/bin/bash
->  
-> +# NFT_TEST_REQUIRES(NFT_TEST_HAVE_rbtree_size_limit)
-> +
->  generate_ip() {
->  	local first=($1)
->  	echo -n "$first.$((RANDOM % 256)).$((RANDOM % 256)).$((RANDOM % 256))"
-> -- 
-> 2.45.3
-> 
-> 
+If I understand correctly, if you want to terminate a TCP conn with iptables, you can:
+
+  iptables -N disconn
+  iptables -A disconn -p tcp -m state --state ESTABLISHED \
+      -j REJECT --reject-with tcp-reset
+  iptables -A disconn -j REJECT --reject-with icmp-admin-prohibited
+
+If your other rules determine that a conn should be shut down, they should jump to chain 'disconn' which will immediately reset the the sender's end if it's a TCP conn and cause all other packets for that conn from that end to be rejected. Each end must send a TCP packet on that conn for it to be fully reset.
+
+I've used this on my F/W for timed access. The 'instant' time moves into a prohibited span, all active connections for affected IPs are immediately shut down and blocked; not one more of their packets crosses the F/W. I also use it for blocklists.
+
+I expect nftables has similar functionality.
+
+Neal
