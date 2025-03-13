@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C445B14900B;
-	Thu, 13 Mar 2025 09:56:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 943AA261583;
+	Thu, 13 Mar 2025 09:56:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741859810; cv=none; b=WZtgjjmQ78Qv9Ra+kIuQEVZ7AxoMKL1ys/9eQHLKghfWESDjutfqLAoDHsg0WHboqy+cWANOctpS/leIBHQ3lFHUSh5ejzCLQWLpef9MjbvoZEgb/heyERTDHVNFIFZ0xpqtGpOToxLOb2P2k28jlQMeyeeWz4nu2IJsn7uC2B4=
+	t=1741859811; cv=none; b=ULfhU6yTQuI6jP/fRHomptysqBbzNIQW6l9uTiJ846qOmG3BZmrhBfYtoaNsrlI6DVr7xorkEWN+aWOcSAg8PBVJtFN8nQHkLTTb1/52lOu92zJqDsY0mS3v0hipC7CKSsvPgGt/HKM4Cwr4Uviz+ACbU6ZCUViJQHgLoi4Zu3Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741859810; c=relaxed/simple;
-	bh=nCJM9JttCQhuM8i09sT6rLLIH4ZDegDc50g9MLprn2k=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=D3DzZzsP+WP4elv4lgGmlsgiazuGkuyT9fiPSYN4ohAoQbCsI2/6irx/6C9fCsRDzXHf6G8xBoFrU1yP3+h2RrVjZJKoIItq7J15LQnaIFKbxd0uwq6pVwbRQpq5U8CpS89fylE3s3GwDGJwo+wXVObcepUb6s9fAXMyP2EtV2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f9hiEG2E; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LKLpI98v; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1741859811; c=relaxed/simple;
+	bh=U25XPuZChGih5sMqbblu+4+hSDFhayuJxQqCvl0h7+Q=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=qtOmdKoUdwfIobuPCmwpbp8LTo+efJ/ebQippbvWVt6DHHvSieGeBfJ6jgkiLEt+XHcgzZ+WfG1ZvKLSY+4oqnZqtpZrDxye44Qe4Kz/A+Prt2HrzLhUw0pQHYYGJH3D/dO80XMTnfyeYQm7OOoFzKH68e+hTt8EXhxQCEOdkrc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PVeaina1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PDBqsnYZ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f9hiEG2E";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LKLpI98v"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PVeaina1";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PDBqsnYZ"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 82E72602A4; Thu, 13 Mar 2025 10:56:43 +0100 (CET)
+	id DF6ED6029E; Thu, 13 Mar 2025 10:56:46 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741859803;
-	bh=vzQBH46HV+tyPy22K9hIC57UwVaCxAOhp9cJl9au10M=;
-	h=From:To:Cc:Subject:Date:From;
-	b=f9hiEG2EqrlBg3eN3Bqgead5r5gqv5RLjwAXrX5k2ult1doBXBnZFqNM7ZnLXeWcp
-	 D3MpsHz5NsPS5WT5gke6B10TafbM+8GeVak7DpGF6e2dIg0H9YoVrrAdu+Idggx2Iw
-	 9Z0i9pyOfnrC3cjgNepyjDaXNkF9qcTNorj1JNMErrMq5aMLSpjaec0chCL6D6aYT5
-	 9RTa0aTQwZbJK+k4HvcgZZMKB6jGVPsK4Y4TMu276GfpjRCa+d9xDXecUOy9uBmQXq
-	 2C7LxKAN9C+NVrGHt9PxhgwP+O4cA1qLTXwESdn/ApvEZqP23n4nZSFWbkBG0VLVZH
-	 CQ2vrJaSJgemQ==
+	s=2025; t=1741859806;
+	bh=s+Y/PTpwDLFLlDO+a9HwUA8HkC9QAepkO6/zuXcY8HE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=PVeaina1SuepSxC8TiDSaIByChHGRW5oj47fZQJ9Py+t6L1L+PUYftgFYitu+/2nI
+	 i+mRvBNoXDVl40F0tPMZMHhGor9eIDny/fV30gTwlogLsXD3Sa/f7qJLsknpbMS0XA
+	 j6TeoMYsmilYAJsQ72v7jMMFIOX7wB8O/WQ5z4N1JVGAggq0vK7DwT31sAzeXH5OFF
+	 lTEhMC/Q3CC3qMmflZSCOJO6FFVJKd4Ga4TbYvbAkTBhUzkOb58kOj7eaunaTMbmHn
+	 ZJHli99D2ner0a8jsunmx502/TWC0ZMuA2P6DQvoaLSDL7E+tXUngX2GCAkielTu3K
+	 v7rfdN5QN12IA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E6A3F6028B;
-	Thu, 13 Mar 2025 10:56:40 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 56A49602A6;
+	Thu, 13 Mar 2025 10:56:42 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741859801;
-	bh=vzQBH46HV+tyPy22K9hIC57UwVaCxAOhp9cJl9au10M=;
-	h=From:To:Cc:Subject:Date:From;
-	b=LKLpI98vByM0ja3k469oQj0T02f4oOX5z60lMFRO3dpEt2N4I4hViadMmTaI5a9Jg
-	 6Dc3TGHVFFYKWpvMKou/hr+gPOB3ivNhFSsPIIDYXDPNFkDU8WHrwu8XTVEkICRPFj
-	 2Pp9OjA0Zd1IId3t+Sjzj47puwW3kIwOhdheMVjBPxDwIIaWxrTnTokFuvJiv2ELEs
-	 L9gHH74HsK5vxZ6cMpUtQVmMY7ImizpAsTuvBDkO7iGWiArj9uXIFnReYst+d9vxCN
-	 CxydR5l36100xzzPkAvNE9548m5yhEJr1Gr+FlSx9I4r38P7x9uPYH98kpGuACVyhC
-	 8btoX9kB8kP1w==
+	s=2025; t=1741859802;
+	bh=s+Y/PTpwDLFLlDO+a9HwUA8HkC9QAepkO6/zuXcY8HE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=PDBqsnYZnNXjmR/izWdUzPSQmdoaN5Kq0NJ+q+LHl9AcQBEbTw4jR2PxJZl0HKiLg
+	 8qKJP06EJqOpKU7FoM+/bpAV2f1YRYewcGWKINBUqLKE8e734ciy4wLYJGVOuaNPcJ
+	 5dVHMgeh4hUsCTx2cGR49FEtAjDH8y9Q56iflAD9sm/I5gz/MJZKiGnPmfwmlwh06B
+	 w0mUNCpUsM4YpjE9VfXz8n/HxhyYOQrSvAldb3/yOXF9Y8BGufrada0fA35qZbnfGq
+	 fHALgjwKhFNxm4ZUBNzAgzTrUxFC9uNioF7clHjNTL5wTqMqD3ZEfV7gzEESTXulZb
+	 VCrm0vn1Pb69A==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net,v20/4] Netfilter/IPVS fixes for net
-Date: Thu, 13 Mar 2025 10:56:32 +0100
-Message-Id: <20250313095636.2186-1-pablo@netfilter.org>
+Subject: [PATCH net 1/4] netfilter: nf_conncount: Fully initialize struct nf_conncount_tuple in insert_tree()
+Date: Thu, 13 Mar 2025 10:56:33 +0100
+Message-Id: <20250313095636.2186-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250313095636.2186-1-pablo@netfilter.org>
+References: <20250313095636.2186-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,67 +66,123 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is v2 including one more fix for ipv4 option match in nft_exthdr.
+From: Kohei Enju <enjuk@amazon.com>
 
--o-
+Since commit b36e4523d4d5 ("netfilter: nf_conncount: fix garbage
+collection confirm race"), `cpu` and `jiffies32` were introduced to
+the struct nf_conncount_tuple.
 
-Hi,
+The commit made nf_conncount_add() initialize `conn->cpu` and
+`conn->jiffies32` when allocating the struct.
+In contrast, count_tree() was not changed to initialize them.
 
-The following patchset contains Netfilter/IPVS fixes for net:
+By commit 34848d5c896e ("netfilter: nf_conncount: Split insert and
+traversal"), count_tree() was split and the relevant allocation
+code now resides in insert_tree().
+Initialize `conn->cpu` and `conn->jiffies32` in insert_tree().
 
-1) Missing initialization of cpu and jiffies32 fields in conncount,
-   from Kohei Enju.
+BUG: KMSAN: uninit-value in find_or_evict net/netfilter/nf_conncount.c:117 [inline]
+BUG: KMSAN: uninit-value in __nf_conncount_add+0xd9c/0x2850 net/netfilter/nf_conncount.c:143
+ find_or_evict net/netfilter/nf_conncount.c:117 [inline]
+ __nf_conncount_add+0xd9c/0x2850 net/netfilter/nf_conncount.c:143
+ count_tree net/netfilter/nf_conncount.c:438 [inline]
+ nf_conncount_count+0x82f/0x1e80 net/netfilter/nf_conncount.c:521
+ connlimit_mt+0x7f6/0xbd0 net/netfilter/xt_connlimit.c:72
+ __nft_match_eval net/netfilter/nft_compat.c:403 [inline]
+ nft_match_eval+0x1a5/0x300 net/netfilter/nft_compat.c:433
+ expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
+ nft_do_chain+0x426/0x2290 net/netfilter/nf_tables_core.c:288
+ nft_do_chain_ipv4+0x1a5/0x230 net/netfilter/nft_chain_filter.c:23
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
+ nf_hook_slow_list+0x24d/0x860 net/netfilter/core.c:663
+ NF_HOOK_LIST include/linux/netfilter.h:350 [inline]
+ ip_sublist_rcv+0x17b7/0x17f0 net/ipv4/ip_input.c:633
+ ip_list_rcv+0x9ef/0xa40 net/ipv4/ip_input.c:669
+ __netif_receive_skb_list_ptype net/core/dev.c:5936 [inline]
+ __netif_receive_skb_list_core+0x15c5/0x1670 net/core/dev.c:5983
+ __netif_receive_skb_list net/core/dev.c:6035 [inline]
+ netif_receive_skb_list_internal+0x1085/0x1700 net/core/dev.c:6126
+ netif_receive_skb_list+0x5a/0x460 net/core/dev.c:6178
+ xdp_recv_frames net/bpf/test_run.c:280 [inline]
+ xdp_test_run_batch net/bpf/test_run.c:361 [inline]
+ bpf_test_run_xdp_live+0x2e86/0x3480 net/bpf/test_run.c:390
+ bpf_prog_test_run_xdp+0xf1d/0x1ae0 net/bpf/test_run.c:1316
+ bpf_prog_test_run+0x5e5/0xa30 kernel/bpf/syscall.c:4407
+ __sys_bpf+0x6aa/0xd90 kernel/bpf/syscall.c:5813
+ __do_sys_bpf kernel/bpf/syscall.c:5902 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:5900 [inline]
+ __ia32_sys_bpf+0xa0/0xe0 kernel/bpf/syscall.c:5900
+ ia32_sys_call+0x394d/0x4180 arch/x86/include/generated/asm/syscalls_32.h:358
+ do_syscall_32_irqs_on arch/x86/entry/common.c:165 [inline]
+ __do_fast_syscall_32+0xb0/0x110 arch/x86/entry/common.c:387
+ do_fast_syscall_32+0x38/0x80 arch/x86/entry/common.c:412
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:450
+ entry_SYSENTER_compat_after_hwframe+0x84/0x8e
 
-2) Skip several tests in case kernel is tainted, otherwise tests bogusly
-   report failure too as they also check for tainted kernel,
-   from Florian Westphal.
+Uninit was created at:
+ slab_post_alloc_hook mm/slub.c:4121 [inline]
+ slab_alloc_node mm/slub.c:4164 [inline]
+ kmem_cache_alloc_noprof+0x915/0xe10 mm/slub.c:4171
+ insert_tree net/netfilter/nf_conncount.c:372 [inline]
+ count_tree net/netfilter/nf_conncount.c:450 [inline]
+ nf_conncount_count+0x1415/0x1e80 net/netfilter/nf_conncount.c:521
+ connlimit_mt+0x7f6/0xbd0 net/netfilter/xt_connlimit.c:72
+ __nft_match_eval net/netfilter/nft_compat.c:403 [inline]
+ nft_match_eval+0x1a5/0x300 net/netfilter/nft_compat.c:433
+ expr_call_ops_eval net/netfilter/nf_tables_core.c:240 [inline]
+ nft_do_chain+0x426/0x2290 net/netfilter/nf_tables_core.c:288
+ nft_do_chain_ipv4+0x1a5/0x230 net/netfilter/nft_chain_filter.c:23
+ nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
+ nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626
+ nf_hook_slow_list+0x24d/0x860 net/netfilter/core.c:663
+ NF_HOOK_LIST include/linux/netfilter.h:350 [inline]
+ ip_sublist_rcv+0x17b7/0x17f0 net/ipv4/ip_input.c:633
+ ip_list_rcv+0x9ef/0xa40 net/ipv4/ip_input.c:669
+ __netif_receive_skb_list_ptype net/core/dev.c:5936 [inline]
+ __netif_receive_skb_list_core+0x15c5/0x1670 net/core/dev.c:5983
+ __netif_receive_skb_list net/core/dev.c:6035 [inline]
+ netif_receive_skb_list_internal+0x1085/0x1700 net/core/dev.c:6126
+ netif_receive_skb_list+0x5a/0x460 net/core/dev.c:6178
+ xdp_recv_frames net/bpf/test_run.c:280 [inline]
+ xdp_test_run_batch net/bpf/test_run.c:361 [inline]
+ bpf_test_run_xdp_live+0x2e86/0x3480 net/bpf/test_run.c:390
+ bpf_prog_test_run_xdp+0xf1d/0x1ae0 net/bpf/test_run.c:1316
+ bpf_prog_test_run+0x5e5/0xa30 kernel/bpf/syscall.c:4407
+ __sys_bpf+0x6aa/0xd90 kernel/bpf/syscall.c:5813
+ __do_sys_bpf kernel/bpf/syscall.c:5902 [inline]
+ __se_sys_bpf kernel/bpf/syscall.c:5900 [inline]
+ __ia32_sys_bpf+0xa0/0xe0 kernel/bpf/syscall.c:5900
+ ia32_sys_call+0x394d/0x4180 arch/x86/include/generated/asm/syscalls_32.h:358
+ do_syscall_32_irqs_on arch/x86/entry/common.c:165 [inline]
+ __do_fast_syscall_32+0xb0/0x110 arch/x86/entry/common.c:387
+ do_fast_syscall_32+0x38/0x80 arch/x86/entry/common.c:412
+ do_SYSENTER_32+0x1f/0x30 arch/x86/entry/common.c:450
+ entry_SYSENTER_compat_after_hwframe+0x84/0x8e
 
-3) Fix a hyphothetical integer overflow in do_ip_vs_get_ctl() leading
-   to bogus error logs, from Dan Carpenter.
+Reported-by: syzbot+83fed965338b573115f7@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=83fed965338b573115f7
+Fixes: b36e4523d4d5 ("netfilter: nf_conncount: fix garbage collection confirm race")
+Signed-off-by: Kohei Enju <enjuk@amazon.com>
+Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conncount.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-4) Fix incorrect offset in ipv4 option match in nft_exthdr, from
-   Alexey Kashavkin.
+diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
+index ebe38ed2e6f4..913ede2f57f9 100644
+--- a/net/netfilter/nf_conncount.c
++++ b/net/netfilter/nf_conncount.c
+@@ -377,6 +377,8 @@ insert_tree(struct net *net,
+ 
+ 	conn->tuple = *tuple;
+ 	conn->zone = *zone;
++	conn->cpu = raw_smp_processor_id();
++	conn->jiffies32 = (u32)jiffies;
+ 	memcpy(rbconn->key, key, sizeof(u32) * data->keylen);
+ 
+ 	nf_conncount_list_init(&rbconn->list);
+-- 
+2.30.2
 
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-03-13
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 77b2ab31fc65c595ca0a339f6c5b8ef3adfae5c6:
-
-  MAINTAINERS: sfc: remove Martin Habets (2025-03-10 13:34:15 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-03-13
-
-for you to fetch changes up to 6edd78af9506bb182518da7f6feebd75655d9a0e:
-
-  netfilter: nft_exthdr: fix offset with ipv4_find_option() (2025-03-13 10:02:39 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 25-03-13
-
-----------------------------------------------------------------
-Alexey Kashavkin (1):
-      netfilter: nft_exthdr: fix offset with ipv4_find_option()
-
-Dan Carpenter (1):
-      ipvs: prevent integer overflow in do_ip_vs_get_ctl()
-
-Florian Westphal (1):
-      selftests: netfilter: skip br_netfilter queue tests if kernel is tainted
-
-Kohei Enju (1):
-      netfilter: nf_conncount: Fully initialize struct nf_conncount_tuple in insert_tree()
-
- net/netfilter/ipvs/ip_vs_ctl.c                              |  8 ++++----
- net/netfilter/nf_conncount.c                                |  2 ++
- net/netfilter/nft_exthdr.c                                  | 10 ++++------
- tools/testing/selftests/net/netfilter/br_netfilter.sh       |  7 +++++++
- tools/testing/selftests/net/netfilter/br_netfilter_queue.sh |  7 +++++++
- tools/testing/selftests/net/netfilter/nft_queue.sh          |  1 +
- 6 files changed, 25 insertions(+), 10 deletions(-)
