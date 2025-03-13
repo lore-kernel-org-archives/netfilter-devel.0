@@ -1,138 +1,143 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FA04264F9E;
-	Thu, 13 Mar 2025 09:56:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3A7E2641DE
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 10:04:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741859813; cv=none; b=ZF+X9CNb9SiawRp8CkUFqyuT03wXe6mEPUDhu26xW80C9jJsajGQECosHDlLGCmNj1CLL2khAtRU/fvFx87X6UXT7lHSnmkRJc4TBj6xHRifbxUTneKRzOrs9EIu5ajM8mu+7KYVZsJIsS6LaN80bvTbxXf/LxUWUaoKsOuMdok=
+	t=1741860262; cv=none; b=XPa3MI7z/siireXNlhX6lJnDaxlvLgRWRTZydsC9ViGmhsFy5v7Ds71mRGTB7ZS2FylCuOCt9pe55KHXqA72Ny4fxI5dL4eSdQU4OVZ6FT2FBMHA6sNHN6vLaQqJfbwjPgVAJ91h4sNwrmdc6Petjjwc1s0WSONLfHJS8iJJVi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741859813; c=relaxed/simple;
-	bh=ID8InYM6vInNB3QiqZQq/uhymPx24SuVTTv+JMZ++3k=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=s/eUbkeNhqw/GcXx2HV2n5ZJKZb6/PB2npUzTJz0HmH47JJlxtE3K5LWH2UuYc7qoRcFVMGRcS3ezgCayCp2GjTyYaDG4Z2z4isCiic7a5ztfmky9AhqVne62mkM89bQbQC4t9kPfFZsIyZVxG6lu2tX4sunjy0mNIOjlE4136A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gsqMEpn3; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XIm0qxY1; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1741860262; c=relaxed/simple;
+	bh=EHSxhG1PkIEdi5v661jHsDd/DT1y6iyRJPoGDO0bT9s=;
+	h=From:Date:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dFejrnrRJstvZatBThM70ZubGEssziCaq54yk4vvqm4nBONFek7axNwc28G5jy2NDqc/s4uDfGeXDiTioxtocoChoQm7gmI5KBOpnoqG+xv5j8Iio1NlTZii0jiV67mKhIAeiasGh59ydLcft+PQ+Rlop/PqeYVuLTZ/y01NGVc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dATEmXMe; arc=none smtp.client-ip=209.85.216.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gsqMEpn3";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XIm0qxY1"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 15962602B6; Thu, 13 Mar 2025 10:56:50 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741859810;
-	bh=87NRBYzNEbBX3v/RgvJXkxtoky5J9/I1wYHH6QMAE5Q=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gsqMEpn3Yijvw99Fzr+kodsjbxuFP5E+rHN0M/q0kIuWhZ/kejmVOH/Ye536al4oF
-	 Fl0kQFXsUNUhaFLHlfsx4erfqV7KH2oAA5lMn1q/zIpBEtjFbpuwEwauiIpHn9DNGA
-	 HLRgKfxlRf2kkKoYjGkuN7yEzte5k2gOX1xYyA5MK670Ajf+qBECx0HySaOU6CDol2
-	 f/ygEKpuNwDmixDsfeXQAlnRtRwd5lyPQ1dNYCWWlSl+DfXoOOhksx8MjIwybmMz+M
-	 Jphdcu/B3S1g52ZWgiP2UqiqNcZRtghVeXafjpfmg079h2ptxr1JkXg0Ix+uthlPog
-	 gUoWwQqRBbVAQ==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B5400602B4;
-	Thu, 13 Mar 2025 10:56:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741859805;
-	bh=87NRBYzNEbBX3v/RgvJXkxtoky5J9/I1wYHH6QMAE5Q=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XIm0qxY1MIm8Alqse4Lt1qHcK34Eie6M/O9qDQOwu2jPCXNh3rJopGb+K1nW5vR8Y
-	 P2F+ZVT6gwe/968ForR4o9MoXQ2qCBuyiHMWkfXZpWBSqbSCw3K4UJiMnvuZcBmWZe
-	 z0sAbgblkP0Rvo2ftE4nMbYxchEbgu0hpp//TDtGg9h5S8IEHfkLZjoA06ImL/Dwbi
-	 wTVmK5U375AYxLRpSXhdGcCL7uwkm21yL18aAsCllAzfJ7M9evLduHY8q91MSUvcRQ
-	 qKElMm+QYjnn5T/SISSAnXB0+YnXfztdw9HFyPvxTxTSJlDfG83J1qerbJfAQRmQv0
-	 fTEGkLir1slkA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 4/4] netfilter: nft_exthdr: fix offset with ipv4_find_option()
-Date: Thu, 13 Mar 2025 10:56:36 +0100
-Message-Id: <20250313095636.2186-5-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250313095636.2186-1-pablo@netfilter.org>
-References: <20250313095636.2186-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dATEmXMe"
+Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-2fef5c978ccso1293438a91.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 03:04:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1741860259; x=1742465059; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=BDCdU5Y4qd2i6nDJI6Q4tcLfntu7NHQ3EbXxtF62Cvs=;
+        b=dATEmXMe4ANHp9jLMrDbaf3S831h4gWkHpxAlFiDctNU+pkm5eLNORCsLxXzXugBcT
+         vmM24DjIQL84TABpPXTAV7A1EshZGmjNhOogyLKBLjGvKxWNeP77MqgsKrdrky9kBxrN
+         znfsDtKkGOXhftGNAw1/aYezVBXc0JuCHwXr3C8g809dIEtA6sEKINCiRTqiKWYQT8iE
+         PcVy+9MyYYpqykizSWaYtJ48ulVNObPcMCsHg34/C2eDmwp0JPqn/54OyN7p4mLy1U5Y
+         eDNteovbKTP8cOOoEfq7K9lr2rtZinbqFB6uqgZFH3syMnZOlzm/CReUw7ib+LKQIWYh
+         AHyg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741860259; x=1742465059;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=BDCdU5Y4qd2i6nDJI6Q4tcLfntu7NHQ3EbXxtF62Cvs=;
+        b=BkkRrMP6IhxwtYWWd8i4+nSkd5u/UpOwDMjaH21Y5vlyQ3JwkOJZGwRm+hAeo4ASZe
+         YMwptOzZGisIRH+ajslUaU3rajWx+BpT8u557e2xrpUbxMYK3EWzkrEi6u0cFxXCDPFG
+         32aXQm16nG49cQrdAeYs/RGUNCmyL0ppIC0WawFFU7D4okEiOyX6sjjtCIeJUvzLyuly
+         xnpQe8qY5pncZVROpDMANjyBFfU9w9u5ae6kFOEZz0i6/o35OGNto5yl/afriyQ/1Kl7
+         lTDWh9ExiuyMkpBJc6UZfbKyodOSG5L/lHfiL+2SGdYuwAHrl2G70Kh1TjY/zIXaPdQy
+         ZTqQ==
+X-Gm-Message-State: AOJu0Yy3jwMb+6tQBG8ehzlhyTwITjNa1sTQ56ALbAp6m1WkPJ30oAD2
+	3es43At0ZcV6yxJx5hEe/Z+2sP3pCXQvVGv2X28u1Ajj9nsc61DVjpAkPg==
+X-Gm-Gg: ASbGnctAWLDl7SnjCVlGl2Ws2iIia2t5IvdQpt9DskvvRYnDNr+PXJSpAbhzAUMbGE2
+	EjfMFTkaz53IUNdGdsGm3i8m93c3TvYTJYbvAjC2vt3GzqSJCZGAy8h/rB2Y//RVtac3o9J94k6
+	6ScHy+59JC0LrfB6Zrf787d7EbqnSiWDx34M2kC1An5gUQmwhdRVi5HsIeDavtsrGwSa+HuUtZo
+	dZBlFZzXJKUrMBU6534hw04A7Ot14beWZB+aBoHEcdRr4wcjjpb1G150N3ECaCCenaNJaIiIITI
+	jIrEHCBSXJ1ZZsOGSyI0TMQh5N1DlQul97JK4UPrYxUHrMioDjUNoHxGIguFaQIvZ5Si478EpvN
+	AJdGBcdPbb2g4aNviUshQhg==
+X-Google-Smtp-Source: AGHT+IFGyPA/aYREd1HqM6JozLxtG2h0EzrWBZvVuLJYTjviXyoQGqnNVy4NQuzFtMth0fnikyPwWg==
+X-Received: by 2002:a17:90b:1d0a:b0:2ea:aa56:499 with SMTP id 98e67ed59e1d1-2ff7ce4f019mr32856935a91.1.1741860259241;
+        Thu, 13 Mar 2025 03:04:19 -0700 (PDT)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-225c688846csm9755315ad.33.2025.03.13.03.04.17
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 13 Mar 2025 03:04:18 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Thu, 13 Mar 2025 21:04:15 +1100
+To: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: Documentation oddity.
+Message-ID: <Z9Ktn9/lQlcxovkX@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk>
+ <bda3eb41-742f-a3c3-f23e-c535e4e461fd@blackhole.kfki.hu>
+ <4991be2e-3839-526f-505e-f8dd2c2fc3f3@jubileegroup.co.uk>
+ <Z899IF0jLhUMQLE4@slk15.local.net>
+ <99edfdb-3c85-3cce-dcc3-6e61c6268a77@jubileegroup.co.uk>
+ <Z9EoA1g/USRbSufZ@slk15.local.net>
+ <e0ebeec6-7b3b-c976-734e-9f2bbecaa6a@jubileegroup.co.uk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e0ebeec6-7b3b-c976-734e-9f2bbecaa6a@jubileegroup.co.uk>
 
-From: Alexey Kashavkin <akashavkin@gmail.com>
+On Wed, Mar 12, 2025 at 09:48:00AM +0000, G.W. Haywood wrote:
+> Hi Duncan,
 
-There is an incorrect calculation in the offset variable which causes
-the nft_skb_copy_to_reg() function to always return -EFAULT. Adding the
-start variable is redundant. In the __ip_options_compile() function the
-correct offset is specified when finding the function. There is no need
-to add the size of the iphdr structure to the offset.
+> On Wed, 12 Mar 2025, Duncan Roe wrote:
+> > On Tue, Mar 11, 2025 at 10:00:04AM +0000, G.W. Haywood wrote:
+> > >
+> > > Debian 11, gcc version 10.2.1-6 here.
+> > >
+> > > 8<----------------------------------------------------------------------
+> > > $ gcc -g3 -gdwarf-4 -Wall -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
+> > > /usr/bin/ld: /tmp/ccbLJv89.o: in function `nfq_send_verdict':
+> > > /home/ged/nf-queue.c:30: undefined reference to `nfq_nlmsg_put'
+> > > ...
+> > > ...
+> > > collect2: error: ld returned 1 exit status
+> > > 8<----------------------------------------------------------------------
+> > >
+> > nf-queue.c has compiled fine.
 
-Fixes: dbb5281a1f84 ("netfilter: nf_tables: add support for matching IPv4 options")
-Signed-off-by: Alexey Kashavkin <akashavkin@gmail.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_exthdr.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+> Quite so, but it hasn't linked and no executable has been produced... :/
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index b8d03364566c..c74012c99125 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -85,7 +85,6 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 	unsigned char optbuf[sizeof(struct ip_options) + 40];
- 	struct ip_options *opt = (struct ip_options *)optbuf;
- 	struct iphdr *iph, _iph;
--	unsigned int start;
- 	bool found = false;
- 	__be32 info;
- 	int optlen;
-@@ -93,7 +92,6 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 	iph = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
- 	if (!iph)
- 		return -EBADMSG;
--	start = sizeof(struct iphdr);
- 
- 	optlen = iph->ihl * 4 - (int)sizeof(struct iphdr);
- 	if (optlen <= 0)
-@@ -103,7 +101,7 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 	/* Copy the options since __ip_options_compile() modifies
- 	 * the options.
- 	 */
--	if (skb_copy_bits(skb, start, opt->__data, optlen))
-+	if (skb_copy_bits(skb, sizeof(struct iphdr), opt->__data, optlen))
- 		return -EBADMSG;
- 	opt->optlen = optlen;
- 
-@@ -118,18 +116,18 @@ static int ipv4_find_option(struct net *net, struct sk_buff *skb,
- 		found = target == IPOPT_SSRR ? opt->is_strictroute :
- 					       !opt->is_strictroute;
- 		if (found)
--			*offset = opt->srr + start;
-+			*offset = opt->srr;
- 		break;
- 	case IPOPT_RR:
- 		if (!opt->rr)
- 			break;
--		*offset = opt->rr + start;
-+		*offset = opt->rr;
- 		found = true;
- 		break;
- 	case IPOPT_RA:
- 		if (!opt->router_alert)
- 			break;
--		*offset = opt->router_alert + start;
-+		*offset = opt->router_alert;
- 		found = true;
- 		break;
- 	default:
--- 
-2.30.2
+> However, with the object and source file args at the beginning of the
+> command line, there are no linker errors and the executable is produced.
 
+Ok I can reproduce this on x86_64 in Debian 11.5. This is the first report in
+almost 5 years, so I think the problem may be Debian-specific. But I will submit
+a patch to change the argument order.
+
+> # uname -a
+> Linux laptop3 4.19.0-27-amd64 #1 SMP Debian 4.19.316-1 (2024-06-25) x86_64 GNU/Linux
+
+That's *old*. Linux 4.19 came out in October 2018
+
+> # apt-get install libmnl-dev libmnl0 libnetfilter-queue-dev libnetfilter-queue1 libnftnl11 libnftnl-dev
+> Reading package lists... Done
+> Building dependency tree Reading state information... Done
+> libmnl-dev is already the newest version (1.0.4-2).
+> libmnl0 is already the newest version (1.0.4-2).
+> libnetfilter-queue-dev is already the newest version (1.0.3-1).
+> libnetfilter-queue1 is already the newest version (1.0.3-1).
+> libnftnl-dev is already the newest version (1.1.2-2).
+> libnftnl11 is already the newest version (1.1.2-2).
+> 0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+> #
+
+You fetched libnetfilter-queue-dev 1.0.3 but 1.0.5 is current since June 2020.
+
+> $ gcc -g3 -gdwarf-4 -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
+> nf-queue.c: In function `nfq_send_verdict':
+> nf-queue.c:30:8: warning: implicit declaration of function `nfq_nlmsg_put'; did you mean `nfq_nlmsg_parse'? [-Wimplicit-function-declaration]
+>   nlh = nfq_nlmsg_put(buf, NFQNL_MSG_VERDICT, queue_num);
+>         ^~~~~~~~~~~~~
+
+Somehow the Debian folks updated the example to at least 1.0.4. nfq_nlmsg_put()
+was in 1.0.4 but not 1.0.3.
+
+Cheers ... Duncan.
