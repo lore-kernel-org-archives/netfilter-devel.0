@@ -1,84 +1,98 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AE75263887
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 08:53:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C468264614
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 09:39:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741856041; cv=none; b=YBiJRuonBWoNeMWHFt6tAM/stpKtDklRHMTAtyodCClTpzZ4KE/Orvafo6glnDBd82ZbPyVooJ0pmsQpZ42w6DcncSBs7J8vSMD1371c0DbKASWgwVuuC3+QFY3nr2KiCht2BLHVpQrOc+PX5mLKjZ2d3PJ3nyXTSTpedklwwm4=
+	t=1741858753; cv=none; b=rLKDl84azIPEmEPXIxQe9aDpqOnPdqTidGkwnymJ4oo1R7MMH9n1jy2u6zvSto9ouGDG9OgT1pKTTJKitgqzRgMN7wJWqHpeI4NJvC0D95RaTRN9oTGQcgfvuZeOzg+05CMHRpa7y/SynhrYJDsBmAqNP2+fhMnJZdA2oLmmncI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741856041; c=relaxed/simple;
-	bh=IE4k7Ro+fgaM62G4t+rzw59+XkkKeLUVg66dALj6nHc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Aa+JkiWJVvJ+HcDJdrl9y1vmKyRK84ES3yi41DW96WZhMJOdX3urNZkTDBJ5BluvpBKlfrOFJGejDOONHhfX/d8ZRKHRShw74hUEKknecShEuK/9Yqb9oal6rsQgmdq0lP2pigVFbNODkPELTL+g12NtxkVlxIWMJHfyvrUXPVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=K8qOTYYq; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=K8qOTYYq; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="K8qOTYYq";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="K8qOTYYq"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 7876D60298; Thu, 13 Mar 2025 09:53:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741856024;
-	bh=MPhiFG9Ydcbp8MbZvmWr9fK6YKp6kmKARDQR4pnFrHg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=K8qOTYYqBa0FaewwCK8JrmElW+8f5DVrGmFDOsbgFBHUvPaAhDY9V4hwl8KtuvcPb
-	 nlAgqD9thPgV/GjPHeWfdvRplN19rC4oBRwKDfhmoDG7pZPqM8/hluBMFBEUqIyXxn
-	 ecxpTz/9e763a9MRqrhTTvAUuGINX+7dCELgyq+1QG0PduIrVUq10MJTRvskE2550w
-	 SyHhqQt+fJoYdkXNIeHbGbnAQdBulJaDALFIYuHZwnKHzsiRj5G3b97PXF286FeVBd
-	 1HxeFpqI70jGXKP02TlxFqlwXiUOUSbnLHMjjOgfc0amj/34Dxq+Cx2CeGbjEdv/ao
-	 EtJ5+pLyeRCBw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E469060298;
-	Thu, 13 Mar 2025 09:53:43 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741856024;
-	bh=MPhiFG9Ydcbp8MbZvmWr9fK6YKp6kmKARDQR4pnFrHg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=K8qOTYYqBa0FaewwCK8JrmElW+8f5DVrGmFDOsbgFBHUvPaAhDY9V4hwl8KtuvcPb
-	 nlAgqD9thPgV/GjPHeWfdvRplN19rC4oBRwKDfhmoDG7pZPqM8/hluBMFBEUqIyXxn
-	 ecxpTz/9e763a9MRqrhTTvAUuGINX+7dCELgyq+1QG0PduIrVUq10MJTRvskE2550w
-	 SyHhqQt+fJoYdkXNIeHbGbnAQdBulJaDALFIYuHZwnKHzsiRj5G3b97PXF286FeVBd
-	 1HxeFpqI70jGXKP02TlxFqlwXiUOUSbnLHMjjOgfc0amj/34Dxq+Cx2CeGbjEdv/ao
-	 EtJ5+pLyeRCBw==
-Date: Thu, 13 Mar 2025 09:53:41 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [bug] nft asserts with invalid expr_range_value key
-Message-ID: <Z9KdFVQxe5xcW0O4@calendula>
-References: <20250313084909.GB31269@breakpoint.cc>
+	s=arc-20240116; t=1741858753; c=relaxed/simple;
+	bh=809aD9/HuoVkn3c1rnTeupN7OZFbRO+VHUi1lA1BiAY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=F15nlx3u6L+lnQaNnJJeyhKKSz6YoBmN/A/MIge3CbkDEpD5JQD5HB5BuFANwmWvxhWCQubvDunmoVqBgr/5zF2uNLksl9N6xPFqrX3PNDDNuNreVa3tWTXuUWjnoGhBKvvJGgm/Gm4/10etp70W1KhATH5R+wiM7dOuTWRH7BE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tsf1x-0000Tx-6k; Thu, 13 Mar 2025 10:39:09 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: don't allow merging interval set/map with non-interval one
+Date: Thu, 13 Mar 2025 10:38:25 +0100
+Message-ID: <20250313093828.736-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250313084909.GB31269@breakpoint.cc>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Mar 13, 2025 at 09:49:09AM +0100, Florian Westphal wrote:
-> nft -f -<<EOF
-> table ip x {
->        map y {
->                type ipv4_addr : ipv4_addr
->                elements = { 1.168.0.4 }
->        }
-> 
->         map y {
->                type ipv4_addr : ipv4_addr
->                flags interval
->                elements = { 10.141.3.0/24 : 192.8.0.3 }
->        }
-> }
-> EOF
-> BUG: invalid data expression type range_value
-> 
-> Q: Whats the intended behaviour here?
-> 
-> Should this be rejected (first y lacks interval flag)?
+Included bogon asserts with:
+BUG: invalid data expression type range_value
 
-Reject because flags interval is lacking.
+Pablo says: "Reject because flags interval is lacking".
+Make it so.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c                                 | 18 +++++++++++-------
+ .../invalid_data_expr_type_range_value_assert  | 12 ++++++++++++
+ 2 files changed, 23 insertions(+), 7 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 7fc210fd3b12..d59993dcdd4e 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -5080,15 +5080,19 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 			return table_not_found(ctx);
+ 
+ 		existing_set = set_cache_find(table, set->handle.set.name);
+-		if (!existing_set)
+-			set_cache_add(set_get(set), table);
++		if (existing_set) {
++			if (existing_set->flags & NFT_SET_EVAL) {
++				uint32_t existing_flags = existing_set->flags & ~NFT_SET_EVAL;
++				uint32_t new_flags = set->flags & ~NFT_SET_EVAL;
+ 
+-		if (existing_set && existing_set->flags & NFT_SET_EVAL) {
+-			uint32_t existing_flags = existing_set->flags & ~NFT_SET_EVAL;
+-			uint32_t new_flags = set->flags & ~NFT_SET_EVAL;
++				if (existing_flags == new_flags)
++					set->flags |= NFT_SET_EVAL;
++			}
+ 
+-			if (existing_flags == new_flags)
+-				set->flags |= NFT_SET_EVAL;
++			if (set_is_interval(set->flags) && !set_is_interval(existing_set->flags))
++				return set_error(ctx, set, "existing %s lacks interval flag", type);
++		} else {
++			set_cache_add(set_get(set), table);
+ 		}
+ 	}
+ 
+diff --git a/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert b/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert
+new file mode 100644
+index 000000000000..4637a4f9b9df
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert
+@@ -0,0 +1,12 @@
++table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		elements = { 1.168.0.4 }
++	}
++
++        map y {
++		type ipv4_addr : ipv4_addr
++		flags interval
++		elements = { 10.141.3.0/24 : 192.8.0.3 }
++	}
++}
+-- 
+2.45.3
+
