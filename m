@@ -1,135 +1,132 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91E822AE68
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 11:00:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F6FA6EB7C
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 12:42:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741863619; cv=none; b=umKbemBccqfY8KfbN6W2wuG+UmPbB0U7sf7U67lF6heikrg9VTNvpIXfkU2uZYcXIPkHcIF/uN/gXysKXP5ijyYJk6RbBZ0iM1ldY4EIkfGnvFze9paO7FdUN4YS28/z6PId/fyqaEQOvCB3uCTmHob6I8/uIwjQzkmL/UnReOk=
+	t=1741869749; cv=none; b=ZrBwPD4qVKwBnXeqYXaFSiygpO0H33UffEahEZcslWPawrUdqxnR74jTffRpUonrA5K8eABy1OCwO4Hw+YgBKYbIgi3svdeJbZadQr5ClAg7KmFzLlDLcXA1t9dQ8oFK7A0HAcQNPI2x8Mkyz94I56t0UBT7rrBByBNBei1EKpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741863619; c=relaxed/simple;
-	bh=zZTnjt3GszuWguJ0Bp+7FbABqLaDaiHj8iQVTGnTBnA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iYwQbv9f4Zg/aduiTqV5hLm0+9W0SxEsD8DxNViCH0LDnBy1zoCsueVj3FD/7s2Q6KpHpCq6qR5xIcyt8Rv+BA0l2byTYsH+5DPjwx64tRiGptxsA5cFD7qYTfxiVqbVXSfhCChaRru9gCI+W6twmB12SS/eRFWwl6t10lqmtMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eUn+Jy9G; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eUn+Jy9G; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1741869749; c=relaxed/simple;
+	bh=YMWvI/xIan9SnmLosmBgTrZeS3nypaa1tOfl0cjBusw=;
+	h=From:Content-Type:Mime-Version:Subject:Date:References:To:
+	 In-Reply-To:Message-Id; b=c1+xQbuB3Fdv7d6CjqgACYqoQr77v8fJwIcPBiygmWW3uEQMr6eP03ZW+V2Qh/bX3e0qphW+KEI5CIsK9EfQyKWjNPa2BVPmOLLvxdempBbK1VpcbDNuep/UYe0HfwWdzGd4f4zWGEGZMF718kH89s2grNkh+F8m9dOa+Z1gG5s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jIK+vQ7y; arc=none smtp.client-ip=209.85.167.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eUn+Jy9G";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eUn+Jy9G"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 8EEFA602A0; Thu, 13 Mar 2025 12:00:13 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741863613;
-	bh=B7vqpw5vpOl0SpLHCGUQ3YTSBC8lxOSOBV8lOiyYdaY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eUn+Jy9GPAdatJI9lOZewROPmKdJIsA//TT9s1lqZg1BKY4MtuzveyL50AvbMauOF
-	 RLDyQeG2hOtx05keCR3HfAqVdh8sTY0BsklpytSnv5Ero+5sXSaCbqA0zP1aPKvJ+T
-	 54wYgRhMTPo+MplqWZSBzlclgFLHsWKTiN5hkc1M0o7XvZ27s2zpCKUGzMK8i1+Z+d
-	 Y3XAFxUszuKb3nSxkAMwwPafBq36JqHw4Ng6UJlqDFaZxPqTfVJNc8PJzfJGGdHgD1
-	 Mmu4JuvNJCnAn8k9I5C/WzLa0VWpBCP33Ri5fbC+W5m4hlFd5ZxTa+Fzos2EI2eT8Y
-	 AWv+a1lbyGXjw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CA5B6602A0;
-	Thu, 13 Mar 2025 12:00:12 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741863613;
-	bh=B7vqpw5vpOl0SpLHCGUQ3YTSBC8lxOSOBV8lOiyYdaY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eUn+Jy9GPAdatJI9lOZewROPmKdJIsA//TT9s1lqZg1BKY4MtuzveyL50AvbMauOF
-	 RLDyQeG2hOtx05keCR3HfAqVdh8sTY0BsklpytSnv5Ero+5sXSaCbqA0zP1aPKvJ+T
-	 54wYgRhMTPo+MplqWZSBzlclgFLHsWKTiN5hkc1M0o7XvZ27s2zpCKUGzMK8i1+Z+d
-	 Y3XAFxUszuKb3nSxkAMwwPafBq36JqHw4Ng6UJlqDFaZxPqTfVJNc8PJzfJGGdHgD1
-	 Mmu4JuvNJCnAn8k9I5C/WzLa0VWpBCP33Ri5fbC+W5m4hlFd5ZxTa+Fzos2EI2eT8Y
-	 AWv+a1lbyGXjw==
-Date: Thu, 13 Mar 2025 12:00:10 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] evaluate: don't allow merging interval set/map with
- non-interval one
-Message-ID: <Z9K6uj8Q51om7NwR@calendula>
-References: <20250313093828.736-1-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jIK+vQ7y"
+Received: by mail-lf1-f44.google.com with SMTP id 2adb3069b0e04-5493b5bc6e8so999161e87.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 05:42:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1741869745; x=1742474545; darn=vger.kernel.org;
+        h=message-id:in-reply-to:to:references:date:subject:mime-version
+         :content-transfer-encoding:from:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=29W3BVoFIBcG7t9Kg8KvZGW+095sVPy8J0/ctBBA17E=;
+        b=jIK+vQ7yjqWru5Inic/GVPcXIX/6+2WeclL8+XgWxWI5GHJmsIwzLNB8LFUhCZsEY4
+         r8I4A9FDF5r2VPNy5h7ZL5aOuXHnUCfxWABmY+wQVw7LgZqGju+TRDBoNtd51iZ3AkcR
+         rd95wziF0aYAeOUy5A7fT9bMPRussNdyzVho1UOGZ9xd/3mbdbRGWYKTiPYgCuoFaJHS
+         R/LshyHCMETdJ3tC7GlUVWRHB4naNl2TQ7JzIefIfL2cnBXZqJRfWaR+HOMbdVGzPchV
+         mOH6Xr+j3vFR0VbDhDOZO3bDi05K8/n3ixcN5WnmVr7f6r466yvz+4sUzFR3TbgFh5DD
+         jcqA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1741869745; x=1742474545;
+        h=message-id:in-reply-to:to:references:date:subject:mime-version
+         :content-transfer-encoding:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=29W3BVoFIBcG7t9Kg8KvZGW+095sVPy8J0/ctBBA17E=;
+        b=DaGVi31mt+obbChud8Lpl8J8F70AffadcuPfDx53U0J7MwcIwKR19vbOqm6LCCYlcC
+         WMmWWHX+VFgPz2D4P8t7OHawFdKP4PZqg9aywQbvySnUrGAmlUrG6RD8b/0sfnq44/oT
+         G6n7F59Beq82ezIH6mpkiiuzSFT3wkyRgcI0kaix7wxMfniznL+k+c8PDwC7alcveeJy
+         l/1KUJzJDzbrpFYEkSsFo88kBFZC+Y23NxTleUC16AmoMTJ2irHt/7jf4L9iv8XosaDz
+         aoRldxAsDcclgH/MgUsfpMyNPRjtYGopTYEKUrXCr2bLo6f+qy43aoPDGlaZTjc49614
+         he6g==
+X-Gm-Message-State: AOJu0YwNiJV/RP9eglc95mDoaO4ioWwcqgXGE8DN8+cmeVNppHUGgxqI
+	KBh4DwQdeoebsQD6B5Bco1DRZmLh6fwCDWuaqPCi5MNzJ3uQK1SJuz3VctnB
+X-Gm-Gg: ASbGncsHuncmXJM1Xq+KXEGKhSAbgV148DVXxVdekZ5uQYFShS2BDxhj3fXQTNWixyd
+	JiZ9PsiMGdhPvF9gsNMUIjOZKQoVQCmevtC8h1EnZ78UPIKx+ywmCD+s4ESOpRmjhA8HvExBFCq
+	dxsbsEcJ1qcGAbd1bH9W0kITbOvNj6PE83BKPOnyE7OJqQaCRTGJAfkypvf+auoMfg7ihWuwKd3
+	E9/SXh6tHRaXksD/fJd25pPATFmc6FXolHjWCwmt1wNaIV0P6nyrQkLLlJIMCRBM50VwIQYFwEL
+	V7mzPpajjYwM8gTpE7becdACNhzhiKHNQF4HmASoysmIdu20qRKVbAm5sPnu
+X-Google-Smtp-Source: AGHT+IGWOslehcIzCwLebv09rLbrZ98vtL9RQQY15dcabQc78ZQbjsLd9bvpJ4bY7f1MukZe3d5s7w==
+X-Received: by 2002:a05:6512:12c3:b0:549:887b:253f with SMTP id 2adb3069b0e04-549910d6bc0mr10042758e87.51.1741869745066;
+        Thu, 13 Mar 2025 05:42:25 -0700 (PDT)
+Received: from smtpclient.apple ([195.16.41.104])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-549ba88598dsm199928e87.188.2025.03.13.05.42.05
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 13 Mar 2025 05:42:08 -0700 (PDT)
+From: Alexey Kashavkin <akashavkin@gmail.com>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250313093828.736-1-fw@strlen.de>
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.400.131.1.6\))
+Subject: Re: [PATCH] netfilter: nft_exthdr: fix offset with ipv4_find_option()
+Date: Thu, 13 Mar 2025 15:41:54 +0300
+References: <20250301211436.2207-1-akashavkin@gmail.com>
+ <B89DC7E1-9DA1-4B38-96EF-F2AB021F62C9@gmail.com>
+To: netfilter-devel@vger.kernel.org
+In-Reply-To: <B89DC7E1-9DA1-4B38-96EF-F2AB021F62C9@gmail.com>
+Message-Id: <20A1916E-9740-49AC-9881-5F770D481116@gmail.com>
+X-Mailer: Apple Mail (2.3826.400.131.1.6)
 
-On Thu, Mar 13, 2025 at 10:38:25AM +0100, Florian Westphal wrote:
-> Included bogon asserts with:
-> BUG: invalid data expression type range_value
-> 
-> Pablo says: "Reject because flags interval is lacking".
-> Make it so.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Rules such as the following will always result in the NFT_BREAK =
+verdict code:
+>=20
+> # filter input ip option rr ptr 4 counter
+>=20
+> Because the function nft_skb_copy_to_reg() returns -EFAULT. This =
+happens because in the skb_copy_bits() function the 'offset > =
+(int)skb->len - len' condition causes a jump to the fault part of the =
+code.
+>=20
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+As confirmation, here is a listing from kgdb. Target is Fedora 41 with =
+kernel - 6.11.4-301.fc41.x86_64.
 
-thanks
+Thread 2 hit Breakpoint 1, nft_exthdr_ipv4_eval =
+(expr=3D0xffff888004dc1210, regs=3D0xffffc900001009a0, =
+pkt=3D0xffffc90000100ab0) at net/netfilter/nft_exthdr.c:163
+163		if (nft_skb_copy_to_reg(pkt->skb, offset, dest, =
+priv->len) < 0)
+(gdb) p offset
+$4 =3D 42
+(gdb) n
+167		regs->verdict.code =3D NFT_BREAK;
+(gdb) p $eax
+$5 =3D -14
+(gdb) c
+Continuing.
+[Switching to Thread 27]
 
-> ---
->  src/evaluate.c                                 | 18 +++++++++++-------
->  .../invalid_data_expr_type_range_value_assert  | 12 ++++++++++++
->  2 files changed, 23 insertions(+), 7 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert
-> 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 7fc210fd3b12..d59993dcdd4e 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -5080,15 +5080,19 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
->  			return table_not_found(ctx);
->  
->  		existing_set = set_cache_find(table, set->handle.set.name);
-> -		if (!existing_set)
-> -			set_cache_add(set_get(set), table);
-> +		if (existing_set) {
-> +			if (existing_set->flags & NFT_SET_EVAL) {
-> +				uint32_t existing_flags = existing_set->flags & ~NFT_SET_EVAL;
-> +				uint32_t new_flags = set->flags & ~NFT_SET_EVAL;
->  
-> -		if (existing_set && existing_set->flags & NFT_SET_EVAL) {
-> -			uint32_t existing_flags = existing_set->flags & ~NFT_SET_EVAL;
-> -			uint32_t new_flags = set->flags & ~NFT_SET_EVAL;
-> +				if (existing_flags == new_flags)
-> +					set->flags |= NFT_SET_EVAL;
-> +			}
->  
-> -			if (existing_flags == new_flags)
-> -				set->flags |= NFT_SET_EVAL;
-> +			if (set_is_interval(set->flags) && !set_is_interval(existing_set->flags))
-> +				return set_error(ctx, set, "existing %s lacks interval flag", type);
-> +		} else {
-> +			set_cache_add(set_get(set), table);
->  		}
->  	}
->  
-> diff --git a/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert b/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert
-> new file mode 100644
-> index 000000000000..4637a4f9b9df
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_assert
-> @@ -0,0 +1,12 @@
-> +table ip x {
-> +	map y {
-> +		type ipv4_addr : ipv4_addr
-> +		elements = { 1.168.0.4 }
-> +	}
-> +
-> +        map y {
-> +		type ipv4_addr : ipv4_addr
-> +		flags interval
-> +		elements = { 10.141.3.0/24 : 192.8.0.3 }
-> +	}
-> +}
-> -- 
-> 2.45.3
-> 
-> 
+Thread 25 hit Breakpoint 1, nft_exthdr_ipv4_eval =
+(expr=3D0xffff888004dc1210, regs=3D0xffffc900000eb890, =
+pkt=3D0xffffc900000eb9a0) at net/netfilter/nft_exthdr.c:163
+163		if (nft_skb_copy_to_reg(pkt->skb, offset, dest, =
+priv->len) < 0)
+(gdb) s
+nft_skb_copy_to_reg (skb=3D0xffff888009407f00, offset=3D42, =
+dest=3D0xffffc900000eb8a0, len=3D1) at net/netfilter/nft_exthdr.c:40
+40		if (len % NFT_REG32_SIZE)
+(gdb) set offset -=3D sizeof(struct iphdr)
+(gdb) p offset
+$3 =3D 22
+(gdb) n
+41			dest[len / NFT_REG32_SIZE] =3D 0;
+(gdb)
+43		return skb_copy_bits(skb, offset, dest, len);
+(gdb)
+nft_do_chain (pkt=3D0xffffc900000eb9a0, priv=3D0x0 <fixed_percpu_data>) =
+at net/netfilter/nf_tables_core.c:290
+290				if (regs.verdict.code !=3D NFT_CONTINUE)
+
+
+With the second packet I manually changed the offset value in =
+nft_skb_copy_to_reg() and, as you can see, the jump to err for the =
+resulting NFT_BREAK did not happen.=
