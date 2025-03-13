@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C522641D4;
-	Thu, 13 Mar 2025 09:56:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F109264608;
+	Thu, 13 Mar 2025 09:56:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741859811; cv=none; b=nGxiJPGgXIKXrlqaf9KR7BjRCLWfkRDx6jmEF+chC2oDe9YK5+86NelV8oQIThuLbFygFloGGR871H7zhfSs2r6dtbwDu4MI01HORRfRF1O4fOCQA/gSy78yPa82GIxxgmQDtL45UDi+YBfZbdr/N9nPIt8X9GpXSWxT+f/acus=
+	t=1741859813; cv=none; b=JIcjqjJDCg7eqVwGCgsMeQrYkPVV4qHmq2UEYfI5JQszytWrcvJN+YOhKvMCdPbWtATtf0rq/xCM98qAvctxjwwUdUTlMDTj0ibq4iLC8Na/AJT79gdEJlCbp2/bQiHvfg5Fw0ahmWZA4vxS0CO94ncm+r0lw3WpZ1w2uK9ymsQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741859811; c=relaxed/simple;
-	bh=jwDLIPRDw7fhdn/k6p9BtqhraUokmqVoEtgSeZtpe6c=;
+	s=arc-20240116; t=1741859813; c=relaxed/simple;
+	bh=JpQ1k0m2Ua4J55+IfmJ9+Ez0qZ3wuKhCLFzvYd+jTnA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=h/5a4KPSn00Pluu+Iwug45cFjbSvLT6MxLzdSeJdTe9MxfyVWfMPJjkflYelCMtuiALtmfD/NpgJqgWsle5PozKypeEonwLfjT680Whg7WaGEybmArgIF9H36itOLxbr24mPK+F8NkxQL4sXArRSQeC19mojXUhpaeK93Mw5xlU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Ykv5lFwR; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IyAt+bW5; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=hsSZ+lLJ2lejDPTaexyY+En/Lot281Hiz6K2RuPTobJY/I7pO5Uv2ly4ePcHgV067vW2gtWUp6JfzBQY652mjvXGbAt8OzoTqT9sg1BqQsA3G5LGWFFDxujumuojUXnR8KRO7w7rqyhCZJzKwtknVIB4feMbpTbt1rK1i2PQEpQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iepz52V1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=g58Xi58H; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Ykv5lFwR";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IyAt+bW5"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iepz52V1";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="g58Xi58H"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 24871602BC; Thu, 13 Mar 2025 10:56:48 +0100 (CET)
+	id 134B1602B8; Thu, 13 Mar 2025 10:56:49 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741859808;
-	bh=e0AmXukwq9P57vmpf7gE0yMY2x9P0bff4+QdRRFXZkA=;
+	s=2025; t=1741859809;
+	bh=Mid4hPZG1XPNyJ4Ty0Tl23Wc5ItlNpUl/OMG2/peWk8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Ykv5lFwR35ScQgf13RBr2GfCb+xW/xZYgaHjvy3gT3wXk4337gz/w+B3p+7HKPjh3
-	 XphYj5gCzwR471J7PASpN16n2+dloUCXLcGx5lqJYd1QD0mNJmQSiYjRxktPzqxliU
-	 xyqw1P8N8md9GWmagal3Hw76dSGEPaLQMsIJIaitJpzXK0pvUs+Hs8qyUWER8xFo1V
-	 EkD4nWPShw8qRxZk4nh6Soc35bQV26gx2hT3gSo5al/jUKWeWN1j47s2aXLR+G2gVf
-	 N6penQ44sqz1Ope4S2zMDl0sx+FPeYFVAVqy+gEVF9vo6cEEChnuLpljR5prbwSIFk
-	 IfCwewm4qoC1g==
+	b=iepz52V1yY45ZKT+1qPS0R52E8mtSioSPKqW+B1fzSZVXujg9tY7wMMSsr5omqfD9
+	 sP6gWbo7bX0FVFStZdFF8rS9RSYstgsg5wENtASY10LJSV/jmrFKD1MtnEjoI+GhEy
+	 Bx76P/6XmoYJ7bqjOZRCKZ5Gp/MSLKp6+d6F2O6fwzELYOCEgQDWBD95H5+nEacQKF
+	 P3dFlSP8BwfAleLz4MkJMQZ/j1q5ro1i1buZASznBt9ni1zLdpovxAzScqYGEpyqPq
+	 g/HNjsst0rbkHKZrthzdkEQndwhoBWCt9vQC0lu6vokmD7nmmWeFx+uYRNbJpHHb7o
+	 5cxzYZbOFicsQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3DCD560292;
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0440F6028B;
 	Thu, 13 Mar 2025 10:56:43 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741859803;
-	bh=e0AmXukwq9P57vmpf7gE0yMY2x9P0bff4+QdRRFXZkA=;
+	s=2025; t=1741859804;
+	bh=Mid4hPZG1XPNyJ4Ty0Tl23Wc5ItlNpUl/OMG2/peWk8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=IyAt+bW5aNar+6JeWP5nFHVczawDC5JVRnaejabk+SOwf9izvUMnKMAx/qWE27lPg
-	 HpiSpgrEM+hHoEOLS6QrF9S+MMBFUkEl+XTU5KoMjYQB1wussdT64KrmFaS9sCjMkE
-	 Taduj/6KLEPyFnWJHvHywahLNXyIFTMmZTa7TEixIEMay6EDvrfnOiEq6lD0ELm+Dy
-	 4yZY5o7de4H0Goq9NmkM0VDKqIdhUO9BXtRdmjbOZmkl+hLhGNMJY6U/xRGwcBSDTk
-	 K/oYEY51fXK/huGBmj9pU2kI5Gd9WW0fq6bEwz6KiblUYLW2BQhXQCBcWAL00k8vsR
-	 1tkfMW7HI02wg==
+	b=g58Xi58H1v3Z8QmQq5mXFSBY4FhDBjmkZxHay74vLVlz/1HXjJjiIF1Y/qOYNBX4X
+	 ahtR6WbgA0FZhRNpvl6pnk1xXBHSFRRDF8yksQZ0fkEGmL/7y7PN5auf0UWhIdLl3a
+	 C+ShiFG3/GSVBGLQPQ7so/x2G6LTjExRiER1QU6GBtKdoIUua4eRNPd2UkGETlJspw
+	 KOGqbw+Xr5Tsx0DJ6P2DwapOVRguN+bfaYdexh/qgK9HOsKwOIZ5FKmCAE2GNCOHPK
+	 lz080KyqH++FqiLhIu4Q6BIcEONTBQxXLLaitXhVghVVQQ3PEoNqF/xIcJVGB0ztUX
+	 /fmhlYsoDWdZg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 2/4] selftests: netfilter: skip br_netfilter queue tests if kernel is tainted
-Date: Thu, 13 Mar 2025 10:56:34 +0100
-Message-Id: <20250313095636.2186-3-pablo@netfilter.org>
+Subject: [PATCH net 3/4] ipvs: prevent integer overflow in do_ip_vs_get_ctl()
+Date: Thu, 13 Mar 2025 10:56:35 +0100
+Message-Id: <20250313095636.2186-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250313095636.2186-1-pablo@netfilter.org>
 References: <20250313095636.2186-1-pablo@netfilter.org>
@@ -66,84 +66,63 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Dan Carpenter <dan.carpenter@linaro.org>
 
-These scripts fail if the kernel is tainted which leads to wrong test
-failure reports in CI environments when an unrelated test triggers some
-splat.
+The get->num_services variable is an unsigned int which is controlled by
+the user.  The struct_size() function ensures that the size calculation
+does not overflow an unsigned long, however, we are saving the result to
+an int so the calculation can overflow.
 
-Check taint state at start of script and SKIP if its already dodgy.
+Both "len" and "get->num_services" come from the user.  This check is
+just a sanity check to help the user and ensure they are using the API
+correctly.  An integer overflow here is not a big deal.  This has no
+security impact.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Save the result from struct_size() type size_t to fix this integer
+overflow bug.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tools/testing/selftests/net/netfilter/br_netfilter.sh      | 7 +++++++
- .../testing/selftests/net/netfilter/br_netfilter_queue.sh  | 7 +++++++
- tools/testing/selftests/net/netfilter/nft_queue.sh         | 1 +
- 3 files changed, 15 insertions(+)
+ net/netfilter/ipvs/ip_vs_ctl.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/br_netfilter.sh b/tools/testing/selftests/net/netfilter/br_netfilter.sh
-index c28379a965d8..1559ba275105 100755
---- a/tools/testing/selftests/net/netfilter/br_netfilter.sh
-+++ b/tools/testing/selftests/net/netfilter/br_netfilter.sh
-@@ -13,6 +13,12 @@ source lib.sh
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 7d13110ce188..0633276d96bf 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3091,12 +3091,12 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	case IP_VS_SO_GET_SERVICES:
+ 	{
+ 		struct ip_vs_get_services *get;
+-		int size;
++		size_t size;
  
- checktool "nft --version" "run test without nft tool"
+ 		get = (struct ip_vs_get_services *)arg;
+ 		size = struct_size(get, entrytable, get->num_services);
+ 		if (*len != size) {
+-			pr_err("length: %u != %u\n", *len, size);
++			pr_err("length: %u != %zu\n", *len, size);
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+@@ -3132,12 +3132,12 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	case IP_VS_SO_GET_DESTS:
+ 	{
+ 		struct ip_vs_get_dests *get;
+-		int size;
++		size_t size;
  
-+read t < /proc/sys/kernel/tainted
-+if [ "$t" -ne 0 ];then
-+	echo SKIP: kernel is tainted
-+	exit $ksft_skip
-+fi
-+
- cleanup() {
- 	cleanup_all_ns
- }
-@@ -165,6 +171,7 @@ if [ "$t" -eq 0 ];then
- 	echo PASS: kernel not tainted
- else
- 	echo ERROR: kernel is tainted
-+	dmesg
- 	ret=1
- fi
- 
-diff --git a/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh b/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
-index 6a764d70ab06..4788641717d9 100755
---- a/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/br_netfilter_queue.sh
-@@ -4,6 +4,12 @@ source lib.sh
- 
- checktool "nft --version" "run test without nft tool"
- 
-+read t < /proc/sys/kernel/tainted
-+if [ "$t" -ne 0 ];then
-+	echo SKIP: kernel is tainted
-+	exit $ksft_skip
-+fi
-+
- cleanup() {
- 	cleanup_all_ns
- }
-@@ -72,6 +78,7 @@ if [ "$t" -eq 0 ];then
- 	echo PASS: kernel not tainted
- else
- 	echo ERROR: kernel is tainted
-+	dmesg
- 	exit 1
- fi
- 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index 785e3875a6da..784d1b46912b 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -593,6 +593,7 @@ EOF
- 		echo "PASS: queue program exiting while packets queued"
- 	else
- 		echo "TAINT: queue program exiting while packets queued"
-+		dmesg
- 		ret=1
- 	fi
- }
+ 		get = (struct ip_vs_get_dests *)arg;
+ 		size = struct_size(get, entrytable, get->num_dests);
+ 		if (*len != size) {
+-			pr_err("length: %u != %u\n", *len, size);
++			pr_err("length: %u != %zu\n", *len, size);
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
 -- 
 2.30.2
 
