@@ -1,136 +1,150 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sonic308-15.consmr.mail.ne1.yahoo.com (sonic308-15.consmr.mail.ne1.yahoo.com [66.163.187.38])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87BEE1CD3F
-	for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2025 12:42:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2B3C156C79
+	for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2025 16:41:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.187.38
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741956163; cv=none; b=MFdw+ddaytqmCIEz/3rjKehrLGHauzVgFCXebQyzz8ZIQj3s4uogpDS4YfUObICb7UZ2d09EefNHGt580yDF05Vh/ja6P17+iKJgC4+RYCf9M+wpYjBcOzFwGiiMbAWiH4jhNI8TgJYrXU0tAF8bP4ZxO8P4N05ragPsMm8vbDU=
+	t=1741970499; cv=none; b=RmKAWMV4q6BlSBpC079Zd9P+sQLYaPaIAhSq3Qpbu6x0tIK9U+xrL4/IoNQ7O2p72Rdwgu4YnqM4KTJ6qBv3v+9g45Bw5jTa806wsyshmLOpIJepJfA9aYkRyiMxo8Wm6+++usfTdDkIxKpuFpPJGn+/EMoZiMBNHTDkGtj1bbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741956163; c=relaxed/simple;
-	bh=iD+MgR69CoDyku/9TsJF6tBuNK3jCMEv/I5vWM+HX4U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OlHAwwgjoW8AMxpmRJZkbc0DN/Z+GtrA+ZATMUIBWODgdTLNa20YwbrePjRQ955jWlfFkgSUCr6QMB6i9j8WRGCS6s/nTmdTppeJ9WrrfQ/U0V25QWDyIhK5WBb1TdeEGjAzxHV5Z98HqLB204PRjOWlFbDaeLo8tyy/GvLhhoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tt4N4-0006a2-FX; Fri, 14 Mar 2025 13:42:38 +0100
-From: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] netlink: fix stack buffer overrun when emitting ranged expressions
-Date: Fri, 14 Mar 2025 13:41:49 +0100
-Message-ID: <20250314124159.2131-1-fw@strlen.de>
-X-Mailer: git-send-email 2.45.3
+	s=arc-20240116; t=1741970499; c=relaxed/simple;
+	bh=O82n78ss5+Ih+r33ZKwLEO2agcUD4VZ0XGXk5KLTdfM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=TxAC4xpTvu9EeEcS6HCOVCKdjk//QpTBYDam8lQcrKwwbw03rZ3BTIoiUc/Uqw+klN6F0FLF7J77S/Rq4idCh4DzLLGl0nzeR2PlkBKanb9IToLlHsb+91IQ9xOGrDhPJdstLj0dCeqBzlPAG+4GKZkFc1BpbYCGQUg0yuUGYac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com; spf=none smtp.mailfrom=schaufler-ca.com; dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b=LNso99M4; arc=none smtp.client-ip=66.163.187.38
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=schaufler-ca.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=schaufler-ca.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=yahoo.com header.i=@yahoo.com header.b="LNso99M4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1741970490; bh=LSPWeeDc4kfnTy6XAQkhnXeL0TiR4naRLFabBLo1bMs=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=LNso99M4BYH1kVbCXtvSjy5XJIwAFVQ/tOmiZhx5zPKt0+f6KcGXN2Cun8EPk4/CSNawsj3/da69jGs2owL8o5u1W29X6m/5Km+hgAL+GnqBxaWYpZQaoMymufF52JJ2feSQYASWHqXle6k/heamH8KB40UXrbCDFpws/0GWATPXgoDwxSbBCDJfuc8Dhv9IvLMdea0dSC1NP8skohfKzZ8GS+3zazFvJRvZv274K49Uzj3QlT5x1EKlBgrczGmE7m8YbJKW+YlMP3eo2nHCFpaXXMFsfdOx0KbB/mr14VagTNB/Myelt9lyB4s53SLsiVfEES7+KOsefXcZ6L7yrQ==
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1741970490; bh=6jjAwDm2pxXtJK8wOstbrf3Oxp5hYC01T9bBVHhzKM7=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=M+vtayvJBDLYYN2Z/ub+Afh22JFWT8VarfPE9GaQ9//eKxa31XVEDhgDvOiSt2/AiJRG4yg45X0Lo+m28zv4Z+XFe1WI4r4Dr3hjJqz7Dr2Caox8iEbisnzTMAMRrgfXsPGPWw1eNEQ8jR39l2A1WqsuORU4GAvktLoVIVoqg1RJGX04CdleYawapmYVkVNI3I8vVAYbPVLpBM8pnSg/eOqfaxqH239knjYIgyMIufl8YeTnrVBRdhiU1j8pIQ/vb81AwN2rJK7QlcUz11re5e1cFgGoe2dgPKMDBLdxLWpPTd+ypB9/njGVw8WaaPWMAcrJkz9878VZkCWQRUF2jw==
+X-YMail-OSG: YOJJeNAVM1nD2IKlVSMjlgST4etRQIf0.CmdGrSFZNQCmezWvojqo0m5PJLr4Zs
+ IP0SAiA.xSSjs8eUYg1dqqwVb.WAJ6w2Rjetu15aL6eM71maI7mFtMRJEM2yyYOZJwqVHo7P8b20
+ jIpRkkcOtYjTQpL79bPk5mX6L7Xp4s9B5IGIdB83n2N5BEoUH8b7FSHvfFBlf7yhTuW7rdEvpI6H
+ F4L110vX6vzAojYCSA50OmSlIDPkJrbAwnBtHDsLEAZlx13QlgFVS1Yaf6qz60LvTUtSrG3KqyF3
+ m41DtMbjiMFvUcibFHFaHByUzWDBWg5lqO7pYjMW34AopOigaqyaJFje6PdvXiq6OhuzOiCfMbLE
+ Ioqjt2wfkpzznAJVK8Sn8fF5m5KkBfT3qTGClIMbQ7Q6jNUbO1a8mTpPFn_batbgFlX7vGPC_IBK
+ rTTntHM8yAVJVz64E5SsJ5VRw7fyH_jhjaFcta_4p9KzULSqPXWQDNJby9RooRt3W0w2sfHunyC5
+ o1wayG0pxT7FXXYaiUH0byCYr5ZWnpWhooAsfJnIIqApPkbdyXPoloOSOi0QopMJLO9U2ybbva_7
+ rVm5FDorQzn32DpN1X1XC0Hj_2b2XpX21CK7rlQ17sL2zu5BeSqj2kDgHmbP9w6wYFP9kBad_x3a
+ Nolh5Xq1BXBgLUQ60X07kO.Dfci_FMZVhp7u7G1CEffc_L5FkTPmhOSICeUHDOBwYQCUU7itN_QU
+ PXUn3caV3sPl6uguVANFkHkj4iVBMAJLzEALzGebML1rcEroeXjF7txslCk6D_ftyQlvEc7sKMqM
+ m0RwbX0Wca1V8WoZQS0FmLpicZmRkrV.nRZJa7orBGpENQF24S.ppiunW8u00TP_I2BSERzOg_H.
+ exdknPjAGSWUtbhXhgLbhu5JTSLeuHLJ9abiKctv0yZNRn0Aypynan0wjn_Rz7.rybHYFYFJPEwI
+ LiJ_apxgDSqPVk_zEKlJ0lzeNmuwelg0heJ_5o1lNVxPWRaI6sSMQ_kRtdZeMraz.rEWrPhG9D8L
+ aSUQgPb3V0WI5dqmNbD.z8VN1Y66bzgKlRBHbNGf3Z4Ad3WaMhtMd2qBiry9ae5dXKYiF7UXnD7u
+ w7svDtEfOXmpu2LgZx0EAdGbGcc8NsM361e8LlQQQDlJu9zE.xxxy5SMqCMnzwHeGIDlOABnqy09
+ javx98fTTyF5K81iJSiyEuGos9A6gstr9F0yhv6R1Jr83xL7NBYYTSxHULK4kt6h0clT2XwbIdLv
+ e64Rhd9Ovs7FZIVYxLI3xI6oNCv0yn3_1B2qwXir8ssLa6WKUI9MCSx2SOuQ47unytNz6jEacgO.
+ 87ofhYx4wdhzfUvUXGKmsTRh_cbZTH7PaQ84pBQXGntspanC0278Sc7v1ERvz.s0aLJr44HiIrRn
+ Lq.Pb5FfTu6vefHd2NgXJaF9ePh5Og9tSevAzAjHVlM.i3LBvJWQpptxLf2B9txIu3Yhz_tUTLnb
+ L0xCRtTFK6uWhRwoHtxr0u3RVoTZlWwaAz4oEKbwrb17dNWhTukEgVeOOw1EiOhX_hO5fqNK7kYI
+ a6uWOYPZ.hcBRd_ZCHpEUVjzQNVFz.8aRMOmZJdqCO5C2wUGfC_8nf1h5dUEmeVLmLcRtKuSuYBd
+ 4LFX2BAg0l5QOdjpZ2e3TECOzY1dlJz6We7ZchXorDX0g9vdERwea.Rw2WDVKh_9wfx6IiHE7HHf
+ dJT_foepbv08LUzJ0BgFRlpcRo._OAzQEHSmEB8R5WG_X7qlzzOS2euvsOQwn3Za0N6PlzL5Mami
+ 6s2GVZzEQgZ6hhum0.kM1JestrnsoXCxH6lFWlxOBgoAZeT1ysmGy.FyFLHcyn9tnAdqfByUtBYY
+ z92LO.MOmCSX0_yGCUUIZTts1GbCUMuErn1cNqB63tBhkjFFvxoXCgXwaNzvMuVivM71Kpegh3pp
+ 9lxGxt34zzLbb4TIMJJm4PXeol5oKa3vWN47D8TTNx9jWdpfu2ChtwBvyR7xnMUNs.Ptup0FoLks
+ stsTtDMxbl042_GVZTaRBXTdDWxqZTk_H_fGPwOC5POXFRP19wv4r3YVerHxPF4m4ZF3wfhBniuX
+ kkiQEcd64yN_yj1aJpQc1e02GaM6lv2cXYhGCP7F28lSDAt2J0V_SzMKRrEaClATYUNwP3ILRpEd
+ FLyjK6XM5osASD9uK1C0rpq1lknhgxgvE5eO0.61eLp5oYYXSDQOIJfO8Vs2IkHZaSjulCp1_lZX
+ CtZa.0vLTZvXjOKsVuIAF4n2W3I4pHevyln3pItBvEphyw78JXGjFHgoNQv4htgsvJwsnt9lCp7e
+ 3BUSAL1DU_cfwcjjTxuMc
+X-Sonic-MF: <casey@schaufler-ca.com>
+X-Sonic-ID: 853f45af-6bfd-42c6-8a39-b9fab4ed7dfe
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic308.consmr.mail.ne1.yahoo.com with HTTP; Fri, 14 Mar 2025 16:41:30 +0000
+Received: by hermes--production-gq1-7d5f4447dd-9qjv2 (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 6c9efc90c0421e9334029701ef688062;
+          Fri, 14 Mar 2025 16:41:27 +0000 (UTC)
+Message-ID: <42e5bb33-1826-43df-940d-ec80774fc65b@schaufler-ca.com>
+Date: Fri, 14 Mar 2025 09:41:24 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] net: Initialize ctx to avoid memory allocation error
+To: Florian Westphal <fw@strlen.de>, Chenyuan Yang <chenyuan0y@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, Casey Schaufler <casey@schaufler-ca.com>
+References: <20250313195441.515267-1-chenyuan0y@gmail.com>
+ <20250313201007.GA26103@breakpoint.cc>
+Content-Language: en-US
+From: Casey Schaufler <casey@schaufler-ca.com>
+In-Reply-To: <20250313201007.GA26103@breakpoint.cc>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-Mailer: WebService/1.1.23435 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
 
-Included bogon input generates following Sanitizer splat:
+On 3/13/2025 1:10 PM, Florian Westphal wrote:
+> [ trim CCs, CC Casey ]
+>
+> Chenyuan Yang <chenyuan0y@gmail.com> wrote:
+>> It is possible that ctx in nfqnl_build_packet_message() could be used
+>> before it is properly initialize, which is only initialized
+>> by nfqnl_get_sk_secctx().
+>>
+>> This patch corrects this problem by initializing the lsmctx to a safe
+>> value when it is declared.
+>>
+>> This is similar to the commit 35fcac7a7c25
+>> ("audit: Initialize lsmctx to avoid memory allocation error").
+> Fixes: 2d470c778120 ("lsm: replace context+len with lsm_context")
+>
+>> Signed-off-by: Chenyuan Yang <chenyuan0y@gmail.com>
+>> ---
+>>  net/netfilter/nfnetlink_queue.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+>> index 5c913987901a..8b7b39d8a109 100644
+>> --- a/net/netfilter/nfnetlink_queue.c
+>> +++ b/net/netfilter/nfnetlink_queue.c
+>> @@ -567,7 +567,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+>>  	enum ip_conntrack_info ctinfo = 0;
+>>  	const struct nfnl_ct_hook *nfnl_ct;
+>>  	bool csum_verify;
+>> -	struct lsm_context ctx;
+>> +	struct lsm_context ctx = { NULL, 0, 0 };
+>>  	int seclen = 0;
+>>  	ktime_t tstamp;
+> Someone that understands LSM should clarify what seclen == 0 means.
 
-AddressSanitizer: dynamic-stack-buffer-overflow on address 0x7...
-WRITE of size 2 at 0x7fffffffcbe4 thread T0
-    #0 0x0000003a68b8 in __asan_memset (src/nft+0x3a68b8) (BuildId: 3678ff51a5405c77e3e0492b9a985910efee73b8)
-    #1 0x0000004eb603 in __mpz_export_data src/gmputil.c:108:2
-    #2 0x0000004eb603 in netlink_export_pad src/netlink.c:256:2
-    #3 0x0000004eb603 in netlink_gen_range src/netlink.c:471:2
-    #4 0x0000004ea250 in __netlink_gen_data src/netlink.c:523:10
-    #5 0x0000004e8ee3 in alloc_nftnl_setelem src/netlink.c:205:3
-    #6 0x0000004d4541 in mnl_nft_setelem_batch src/mnl.c:1816:11
+If seclen is 0 it implies that there is no security context and that
+the secctx is NULL. How that is handled in the release function is up
+to the LSM. SELinux allocates secctx data, while Smack points to an
+entry in a persistent table.
 
-Problem is that the range end is emitted to the buffer at the *padded*
-location (rounded up to next register size), but buffer sizing is
-based of the expression length, not the padded length.
+> seclen needs to be > 0 or no secinfo is passed to userland,
+> yet the secctx release function is called anyway.
 
-Also extend the test script: Capture stderr and if we see
-AddressSanitizer warning, make it fail.
+That is correct. The security module is responsible for handling
+the release of secctx correctly.
 
-Same bug as the one fixed in 600b84631410 ("netlink: fix stack buffer overflow with sub-reg sized prefixes"),
-just in a different function.
+> Should seclen be initialised to -1?  Or we need the change below too?
 
-Apply same fix: no dynamic array + add a length check.
+No. The security modules handle secctx their own way.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/netlink.c                                   | 11 +++++++----
- tests/shell/testcases/bogons/assert_failures    | 17 ++++++++++++++++-
- ...an_stack_buffer_overrun_in_netlink_gen_range |  6 ++++++
- 3 files changed, 29 insertions(+), 5 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range
-
-diff --git a/src/netlink.c b/src/netlink.c
-index 8e6e2066fe2a..52c2d8009b82 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -462,11 +462,14 @@ static void netlink_gen_verdict(const struct expr *expr,
- static void netlink_gen_range(const struct expr *expr,
- 			      struct nft_data_linearize *nld)
- {
--	unsigned int len = div_round_up(expr->left->len, BITS_PER_BYTE) * 2;
--	unsigned char data[len];
--	unsigned int offset = 0;
-+	unsigned int len = (netlink_padded_len(expr->left->len) / BITS_PER_BYTE) * 2;
-+	unsigned char data[NFT_MAX_EXPR_LEN_BYTES];
-+	unsigned int offset;
- 
--	memset(data, 0, len);
-+	if (len > sizeof(data))
-+		BUG("Value export of %u bytes would overflow", len);
-+
-+	memset(data, 0, sizeof(data));
- 	offset = netlink_export_pad(data, expr->left->value, expr->left);
- 	netlink_export_pad(data + offset, expr->right->value, expr->right);
- 	nft_data_memcpy(nld, data, len);
-diff --git a/tests/shell/testcases/bogons/assert_failures b/tests/shell/testcases/bogons/assert_failures
-index 79099427c98a..3dee63b3f97b 100755
---- a/tests/shell/testcases/bogons/assert_failures
-+++ b/tests/shell/testcases/bogons/assert_failures
-@@ -1,12 +1,27 @@
- #!/bin/bash
- 
- dir=$(dirname $0)/nft-f/
-+tmpfile=$(mktemp)
-+
-+cleanup()
-+{
-+	rm -f "$tmpfile"
-+}
-+
-+trap cleanup EXIT
- 
- for f in $dir/*; do
--	$NFT --check -f "$f"
-+	echo "Check $f"
-+	$NFT --check -f "$f" 2> "$tmpfile"
- 
- 	if [ $? -ne 1 ]; then
- 		echo "Bogus input file $f did not cause expected error code" 1>&2
- 		exit 111
- 	fi
-+
-+	if grep AddressSanitizer "$tmpfile"; then
-+		echo "Address sanitizer splat for $f" 1>&2
-+		cat "$tmpfile"
-+		exit 111
-+	fi
- done
-diff --git a/tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range b/tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range
-new file mode 100644
-index 000000000000..2f7872e4accd
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range
-@@ -0,0 +1,6 @@
-+table ip test {
-+        chain y {
-+                redirect to :tcp dport map { 83 : 80/3, 84 :4 }
-+        }
-+}
-+
--- 
-2.45.3
-
+>
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
+> @@ -812,7 +812,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+>         }
+>
+>         nlh->nlmsg_len = skb->len;
+> -       if (seclen >= 0)
+> +       if (seclen > 0)
+>                 security_release_secctx(&ctx);
+>         return skb;
+>
+> @@ -821,7 +821,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+>         kfree_skb(skb);
+>         net_err_ratelimited("nf_queue: error creating packet message\n");
+>  nlmsg_failure:
+> -       if (seclen >= 0)
+> +       if (seclen > 0)
+>                 security_release_secctx(&ctx);
+>         return NULL;
+>  }
