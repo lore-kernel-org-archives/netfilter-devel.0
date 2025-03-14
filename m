@@ -1,63 +1,66 @@
 Received: from mail-ed1-f73.google.com (mail-ed1-f73.google.com [209.85.208.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22D8618DB0B
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 23:13:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C83131EA7DB
+	for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2025 09:28:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741907633; cv=none; b=ul+KwQeBeFOo2gCy7afxZDNmaSxYumxSjYLJUss/Tl/wXgXTaynAI2/brUr8ILoIU4UdIKTQtHSI4q0SB8NV6H8+Y2txkrr0Vc5H1+fJ/qSch+9VwpvZzTecfnT6vP+Td/wCUX4fL3mqrSZqdLLstJOOtGHRF6ERRBRe0DoZNmU=
+	t=1741944525; cv=none; b=ZBJSZQQFzmfKBmE55P4LpL1FKCNTYEDzC4c63H631Ms4dV5Ozxd3MnKDKGHltIZrEED8pVE4JeoFbvzk9Ci1a/AGFnLIVexg88gb/gGNVImHdFbQNydL176Xk3RdmQ0Q3fi/M1q1Ix1X6CltV+sMOKKVFlR1ateFtCdadlWwWgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741907633; c=relaxed/simple;
-	bh=eoqxsi0QUHXK+DDnyxuLK9FK74j2kIjYAJC2tcpKtEo=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=Wwzky2l3SwIVy/DIPX0ajNpdde7kYVeVRmb6gRWTeWv7At9MDFpatE04T15Ac8+2MDrPQAs8nJBBHcd6lS/JluBz5qg08FCKcusa+SzIyg8qS7vYpCvgVRZdS7/9gqnKC49gdkELHrnl2EpeA+fOv8Tvd1nraTEnL1c/4VGRU50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=qaChyUnP; arc=none smtp.client-ip=209.85.208.73
+	s=arc-20240116; t=1741944525; c=relaxed/simple;
+	bh=01taXzVYQWabsDA0tAj7jN/IvJG5d/cMnoYMhkIU8rc=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=qR8DEaIm8YfQyZrkziH+e634saygPIVjr+qlVxmm4l6on2dM9jIg/3pMli6G+Yx2dNEkT1hnNjtstug6YZYJfQmBYhvGvxjffSOVlO0lcnjhPlyC0/0rbIdZiP1wAA2xepkbAKsNnuIzJnS2+NhB8MQWsExT4jsGhWuFzq094Ec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=sAQOAR5B; arc=none smtp.client-ip=209.85.208.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aojea.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="qaChyUnP"
-Received: by mail-ed1-f73.google.com with SMTP id 4fb4d7f45d1cf-5e623fe6aa2so1579007a12.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Mar 2025 16:13:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="sAQOAR5B"
+Received: by mail-ed1-f73.google.com with SMTP id 4fb4d7f45d1cf-5e5edf8a509so1848010a12.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2025 02:28:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1741907629; x=1742512429; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=Mo0ZOWIG8xEBUQq9CUWle5LLNwSqTMFECjFo3cDk9BU=;
-        b=qaChyUnP9ZvsQrsSVh84hbNW8eWwKHman/JHfg9omfb47J7gai+iwyVXSF7VH9+roR
-         kEo8YAcBpC4I29NftM2+Evn5Kiurx6FrkXqmu0HRuwUMRiSltzgjdYR/MFuYBeU+6mrZ
-         qrwOJadXGLQ79zo91ZQ2VcHMpIJ+6GLMPEKaj7QCO6XfRJ5+i6NASPElyi7IFj5rEeBZ
-         rhnzp2cdl3jiUUVOe0hq4mQ13v0tn/dfOORCuVr+dBMcge1JiBGSyWzcF7lixbfbCBWv
-         LM+JeyYuKoh1Sj8/O/cHZoc1tqn75rROuogFxMU50LfeGCRGCZTgEIVXtXDrdEfMiY9z
-         2LeQ==
+        d=google.com; s=20230601; t=1741944522; x=1742549322; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=KeJba4QlEphc5+bR+eUOqsZFiPoLFzkxc7ZgbTwrgHc=;
+        b=sAQOAR5B9RInhnPURFqP90A1ai7c7LKZBDaJmESPhh6JwINuXiJuJPvdeHqjwyDPOn
+         xiE131H95ipfH1TiUIHMJvaIHvhyiK0XD0sd4a0lw/mxCNNlbTzaXFf+ig3D9IJ91rN0
+         1B8b1ch45BahGfNKgGsqPWzjBEwt8gK8ddNENDv9uPQ1ChDLHpnJuE/LnhEiuR991nd+
+         mAFhRjEVuI0WjCVyW73dgytKd5oKnFvhwwMGToT4DzWJYpSFxNVKHpTgjEm3T1Sqregy
+         3Aw6arW2kXr3Igz5+1whyxTV6Somi1pb0sNxxJng11ODf9V7Lwep4ilVi+edK1SCIEKP
+         6ntg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1741907629; x=1742512429;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Mo0ZOWIG8xEBUQq9CUWle5LLNwSqTMFECjFo3cDk9BU=;
-        b=ezMTGCxISRtflrjHM2YiLoXPjvWSSM0zeJ+s1S/m78aoy8omz9cRl/cIX9Dt1qfK+G
-         Ls+8p4mQ3yDWOY3qKbSF/xb6NtWXQ/ZjcDq+Y7eEZmqoMm+ScT2NCeMfd0hAiGRl69PH
-         SIe1l6LiyRKpNlpltQQ+wPHpReuKLSV9+3FHKtt6OVZUlaHqP9lP4iPoCHPXDIx0zIdP
-         xIsVAnK/VJhFPHUyljPsfVDyUrZLJiOH6ELu/DTc2cBWFQxG4mYKOI5I4BXhdOZ2wA3k
-         qUrjn4NkUjbus3MElbvMXnCW0OI4tLgxvwF1dtnOjjrZloIdNCoR1ieQ2bq233kOhRK3
-         N7lQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX6sAVKRxWw5w/eMTSsx7OvX7ViygTfU5Bo4mYLYbyPCsrpiXJSI5x4YyW4rYUHY9y8dX608pa91jFvdICchDM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxR5+1tEKgQyAEYYb5Mh2FPIlyL4x2LzX+YvVkw1r1Cmvxp5rgh
-	BuSq5XFK4xRS7TdpeSRNUotf0lRq4fJb5RJN0Vmo8trb85zyg3HGoWgRDXdArqR3ZshoS36EEg=
+        d=1e100.net; s=20230601; t=1741944522; x=1742549322;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=KeJba4QlEphc5+bR+eUOqsZFiPoLFzkxc7ZgbTwrgHc=;
+        b=cBNIB6/lvYUgyEhciAp0ueO6jm1HBA4bMuqaS0jf0W31M6gsOFwg5RHpIiR77zgqYF
+         7p3VaGynXwM79IFoL4dBMvaVdf7CFcDCkb6R2jDQYnwLtRH8ElcxmCJk06FrOz9bgzxv
+         5Z1rMKCRxcQN6P5yNycLfWhTZbrm9v64mSsZIPlO2Xd/99CGGlt3ezSxUD4r5kWFR7n1
+         MQowK8h0WGuFOCmQK2A8j5gT9yaduRzi5hzFs2HPmlSvbWUcjixyLXvD0RUNrGqBQHtD
+         Go4k0olLA3tJzCvYI1hCzBJN76yAn24Cx0zNES61+/sm0cwBIhDVENbIdo8YoWCYgvLx
+         3Zkg==
+X-Forwarded-Encrypted: i=1; AJvYcCUJWc8HlZ6iWJ+L0Z66CK9m1nRdfEwN4BeQpGbKPAHIW7nQxg1llehXOwlv8HQefrjGK1YQp33RS1hAORsdJWQ=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyAUXJ0Q5ONXUbaVIsdbp6E4LfNqBYQrGyatJwgsigc+11U1Dgr
+	45Kh5sdn/Foa/6yGeEH3i3pxnDqVwBNNEFa+P92UBVz3pbH8SnnEndp92+/L1P361ziG2Ktlpw=
 	=
-X-Google-Smtp-Source: AGHT+IGX1aKVtFOAEsSLrqeB9qfCyG7tbjSHX4Mr397BUr3X6EwBdBod0NF4EPJIjrixzyY4qCz56JbMYQ==
-X-Received: from edbbx25.prod.google.com ([2002:a05:6402:b59:b0:5e5:cbc8:77b7])
- (user=aojea job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6402:84d:b0:5e5:49af:411d
- with SMTP id 4fb4d7f45d1cf-5e89fa51fe4mr392141a12.17.1741907629423; Thu, 13
- Mar 2025 16:13:49 -0700 (PDT)
-Date: Thu, 13 Mar 2025 23:13:41 +0000
+X-Google-Smtp-Source: AGHT+IGP5hc7am+QvFYcstPb5ea3qY9uSnsy4/WlpyUSxZfTPUEUEOqyZdvJ7t7QN1jRFDrvMoWDqRxfLg==
+X-Received: from edbfd5.prod.google.com ([2002:a05:6402:3885:b0:5e4:9866:2778])
+ (user=aojea job=prod-delivery.src-stubby-dispatcher) by 2002:a05:6402:1d4e:b0:5e4:9348:72c3
+ with SMTP id 4fb4d7f45d1cf-5e89fa29a7amr1507109a12.10.1741944522195; Fri, 14
+ Mar 2025 02:28:42 -0700 (PDT)
+Date: Fri, 14 Mar 2025 09:28:37 +0000
+In-Reply-To: <20250313231341.3040002-1-aojea@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
+References: <20250313231341.3040002-1-aojea@google.com>
 X-Mailer: git-send-email 2.49.0.rc1.451.g8f38331e32-goog
-Message-ID: <20250313231341.3040002-1-aojea@google.com>
-Subject: [PATCH] selftests: netfilter: conntrack respect reject rules
+Message-ID: <20250314092837.3381916-1-aojea@google.com>
+Subject: [PATCH v2] selftests: netfilter: conntrack respect reject rules
 From: Antonio Ojea <aojea@google.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
 Cc: Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org, 
@@ -72,25 +75,22 @@ The test sets up three network namespaces: ns1, ns2, and nsrouter.
 nsrouter acts as a router with DNAT, exposing a service running in ns2
 via a virtual IP.
 
-The test then performs the following steps:
-
-1.  Establishes a connection from ns1 to ns2 (direct connection).
-2.  Establishes a persistent connection from ns1 to the virtual IP
-    (DNAT to ns2).
-3.  Establishes another connection from ns1 to the virtual IP.
-4.  Adds an nftables rule in nsrouter to reject traffic destined to ns2
-    on the service port.
-5.  Verifies that subsequent connections from ns1 to ns2 and the
-    virtual IP are rejected.
-6.  Verifies that the established persistent connection from ns1 to the
-    virtual IP is also closed.
+The test validates that is possible to filter and reject new and
+established connections to the DNATed IP in the prerouting and forward
+filters.
 
 Signed-off-by: Antonio Ojea <aojea@google.com>
 ---
+V1 -> V2:
+* Modified the test function to accept a third argument which contains
+  the nftables rules to be applied.
+
+* Add a new test case to filter and reject in the prerouting hook.
+---
  .../testing/selftests/net/netfilter/Makefile  |   1 +
  tools/testing/selftests/net/netfilter/config  |   1 +
- .../nft_conntrack_reject_established.sh       | 272 ++++++++++++++++++
- 3 files changed, 274 insertions(+)
+ .../nft_conntrack_reject_established.sh       | 294 ++++++++++++++++++
+ 3 files changed, 296 insertions(+)
  create mode 100755 tools/testing/selftests/net/netfilter/nft_conntrack_reject_established.sh
 
 diff --git a/tools/testing/selftests/net/netfilter/Makefile b/tools/testing/selftests/net/netfilter/Makefile
@@ -119,10 +119,10 @@ index 43d8b500d391..44ed1a7eb0b5 100644
  CONFIG_VETH=m
 diff --git a/tools/testing/selftests/net/netfilter/nft_conntrack_reject_established.sh b/tools/testing/selftests/net/netfilter/nft_conntrack_reject_established.sh
 new file mode 100755
-index 000000000000..50cdb463804d
+index 000000000000..69a5d426991f
 --- /dev/null
 +++ b/tools/testing/selftests/net/netfilter/nft_conntrack_reject_established.sh
-@@ -0,0 +1,272 @@
+@@ -0,0 +1,294 @@
 +#!/bin/bash
 +#
 +# This tests conntrack on the following scenario:
@@ -228,10 +228,12 @@ index 000000000000..50cdb463804d
 +test_conntrack_reject_established()
 +{
 +	local ip_proto="$1"
++	local testname="$2-$ip_proto"
++	local test_rules="$3"
 +	# derived variables
-+	local testname="test_${ip_proto}_conntrack_reject_established"
 +	local socat_ipproto
 +	local vip
++	local vip_ip_port
 +	local ns2_ip
 +	local ns2_ip_port
 +
@@ -271,14 +273,14 @@ index 000000000000..50cdb463804d
 +	TMPFILEIN=$(mktemp)
 +	TMPFILEOUT=$(mktemp)
 +	# set up a server in ns2
-+	timeout "$timeout" ip netns exec "$ns2" socat -u "$socat_ipproto" tcp-listen:8080,fork STDIO > "$TMPFILEOUT" &
++	timeout "$timeout" ip netns exec "$ns2" socat -u "$socat_ipproto" tcp-listen:8080,fork STDIO > "$TMPFILEOUT" 2> /dev/null &
 +	local server2_pid=$!
 +
 +	busywait "$BUSYWAIT_TIMEOUT" listener_ready "$ns2" 8080 "-t"
 +
 +	local result
 +	# request from ns1 to ns2 (direct traffic) must work
-+	if ! echo PING1 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$ns2_ip_port"; then
++	if ! echo PING1 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$ns2_ip_port" 2> /dev/null ; then
 +		echo "ERROR: $testname: fail to connect to $ns2_ip_port"
 +		ret=1
 +	fi
@@ -291,7 +293,7 @@ index 000000000000..50cdb463804d
 +	fi
 +
 +	# set up a persistent connection through DNAT to ns2
-+	timeout "$timeout" tail -f $TMPFILEIN | ip netns exec "$ns1" socat STDIO tcp:"$vip_ip_port,sourceport=12345" &
++	timeout "$timeout" tail -f $TMPFILEIN | ip netns exec "$ns1" socat STDIO tcp:"$vip_ip_port,sourceport=12345" 2> /dev/null &
 +	local client1_pid=$!
 +
 +	# request from ns1 to vip (DNAT to ns2) on an existing connection
@@ -307,7 +309,7 @@ index 000000000000..50cdb463804d
 +	fi
 +
 +	# request from ns1 to vip (DNAT to ns2)
-+	if ! echo PING3 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$vip_ip_port"; then
++	if ! echo PING3 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$vip_ip_port" 2> /dev/null; then
 +		echo "ERROR: $testname: fail to connect to $vip_ip_port"
 +		ret=1
 +	fi
@@ -331,27 +333,23 @@ index 000000000000..50cdb463804d
 +	fi
 +
 +	# add a rule to filter traffic to ns2 ip and port (after DNAT)
-+	ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+table inet filter {
-+	chain kube-proxy {
-+		type filter hook forward priority 0; policy accept;
-+		$ip_proto daddr $ns2_ip tcp dport 8080 counter reject with tcp reset
-+	}
-+}
-+EOF
++	eval "echo \"$test_rules\"" | ip netns exec "$nsrouter" nft -f /dev/stdin
 +
-+	# request from ns1 to ns2 (direct traffic)
-+	result=$(echo PING5 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$ns2_ip_port" 2>&1 >/dev/null)
-+	if [[ "$result" == *"Connection refused"* ]] ;then
-+		echo "PASS: $testname: ns1 got \"Connection refused\" connecting to vip (ns2)"
++	# request from ns1 to ns2 (direct traffic) must work
++	if ! echo PING5 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$ns2_ip_port" ; then
++		echo "ERROR: $testname: fail to connect to $ns2_ip_port directly"
++		ret=1
++	fi
++	result=$( tail -n 1 "$TMPFILEOUT" )
++	if [ "$result" == "PING5" ] ;then
++		echo "PASS: $testname: ns1 got reply \"$result\" connecting to ns2"
 +	else
-+		echo "ERROR: $testname: ns1 got reply \"$result\" connecting to vip, not \"Connection refused\" as intended"
++		echo "ERROR: $testname: ns1 got reply \"$result\" connecting to ns2, not \"PING5\" as intended"
 +		ret=1
 +	fi
 +
 +	# request from ns1 to vip (DNAT to ns2)
-+	result=$(echo PING6 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$vip_ip_port" 2>&1 >/dev/null)
-+	if [[ "$result" == *"Connection refused"* ]] ;then
++	if ! echo PING6 | ip netns exec "$ns1" socat -t 2 -T 2 -u STDIO tcp:"$vip_ip_port" 2> /dev/null ; then
 +		echo "PASS: $testname: ns1 connection to vip is closed (ns2)"
 +	else
 +		echo "ERROR: $testname: ns1 got reply \"$result\" connecting to vip, not \"Connection refused\" as intended"
@@ -362,7 +360,7 @@ index 000000000000..50cdb463804d
 +	echo -e "PING7" >> "$TMPFILEIN"
 +	sleep 0.5
 +	result=$( tail -n 1 "$TMPFILEOUT" )
-+	if [ "$result" == "PING4" ] ; then
++	if [ "$result" == "PING5" ] ; then
 +		echo "PASS: $testname: ns1 got no response"
 +	else
 +		echo "ERROR: $testname: ns1 got reply \"$result\" connecting to vip, persistent connection is not closed as intended"
@@ -391,8 +389,32 @@ index 000000000000..50cdb463804d
 +	exit $ret
 +fi
 +
-+test_conntrack_reject_established "ip"
-+test_conntrack_reject_established "ip6"
++# Define different rule combinations
++declare -A testcases
++
++testcases["frontend filter"]='
++flush table inet nat
++table inet filter {
++	chain kube-proxy {
++		type filter hook prerouting priority -1; policy accept;
++		$ip_proto daddr $vip tcp dport 8080 reject with tcp reset
++	}
++}'
++
++testcases["backend filter"]='
++table inet filter {
++	chain kube-proxy {
++		type filter hook forward priority -1; policy accept;
++		ct original $ip_proto daddr $ns2_ip accept
++		$ip_proto daddr $ns2_ip tcp dport 8080 reject with tcp reset
++	}
++}'
++
++
++for testname in "${!testcases[@]}"; do
++	test_conntrack_reject_established "ip" "$testname" "${testcases[$testname]}"
++	test_conntrack_reject_established "ip6" "$testname" "${testcases[$testname]}"
++done
 +
 +exit $ret
 -- 
