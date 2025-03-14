@@ -1,118 +1,136 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B6561FF613;
-	Fri, 14 Mar 2025 12:38:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87BEE1CD3F
+	for <netfilter-devel@vger.kernel.org>; Fri, 14 Mar 2025 12:42:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741955886; cv=none; b=SBhIWwR/oJNhDIvwcWh/LkpbqEiGrUENxe5P9Ntw00hr9a+4Ppl4oU7qax25mWoBVhaq6lKIEVfCfOTMD1kxdeo9PQRD5gxvk4YwKC2namDFkLTXk45UOE1HJa6B1HL9Oe50Ny7Aj1TH0kKSnhUL8jEU4CxlKXUDveq4nqK+2Uw=
+	t=1741956163; cv=none; b=MFdw+ddaytqmCIEz/3rjKehrLGHauzVgFCXebQyzz8ZIQj3s4uogpDS4YfUObICb7UZ2d09EefNHGt580yDF05Vh/ja6P17+iKJgC4+RYCf9M+wpYjBcOzFwGiiMbAWiH4jhNI8TgJYrXU0tAF8bP4ZxO8P4N05ragPsMm8vbDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741955886; c=relaxed/simple;
-	bh=p9mM05uTuuSxp/itWQ1aYr7D/Kek2qjOInkizONDbWo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QxIVw0mOjzlndXMK6hNiB5WuueZ2lIsdmInqjKIh9Bq3Tt7wn7zjJLim7AYDc4iQdr6R+ruN3JQUyS2RgOKNKvQ35xJFb3mvNyY/hBfyWUNcZePZ4VB5NoJtpDak7imQfLwVHlG8U6cHkjYsqCS6ahcPPOtnSznz/HfqxkRB7Do=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KOe75BT5; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GSRWPm72; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KOe75BT5";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GSRWPm72"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 30568603C7; Fri, 14 Mar 2025 13:37:52 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741955872;
-	bh=rPmJhpBheVqSUhPhE5IrqXg0aOCdmG4JQWmir+xGcw0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KOe75BT5fdnVHqcLuHnE+/zbg0SqDkpt1vfmqUe9yn1VV6HS8oANUox2ECks/ogIY
-	 EeLVs1iaZfaFreMKCYahqzFQX6UgjLAZf2QfbWhtfEDUXQBt8hE3ir6e3Xh6BHGjIw
-	 ChuJ1sV/aHOMZvjZvfmxgfW53YS1rPIdOZOnF5YVPpsvOlVZR5xyFVZh4Olt2gNTKF
-	 gE09asYyfShSEwkMudB9qoX4KPV7wsRRTxn/QPiBDLlG1uXVAAeZEjr+2VO9u+rmP3
-	 QpuagjteSJVQj35cv33ria3JWbJbntOyQKoF+sDIr1CXVS0dN8PBmF26uGX05XoQ5P
-	 xqgrOCHGtAykg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 94C35603BE;
-	Fri, 14 Mar 2025 13:37:46 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1741955866;
-	bh=rPmJhpBheVqSUhPhE5IrqXg0aOCdmG4JQWmir+xGcw0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GSRWPm72uFyqXTyUIJzzcpsMAUkh40VOnAyEcDD7VyG9eADghYPABLGJQdrSQUmwp
-	 ADzLKsqM/OgNyItHC69MGJkQMY9vFkOIUWclF/hPBeKglTj3RXqIqewOnLmq+PRo5T
-	 wjdPi1wutXLVs+jy6NHGkOQEk4SHS/ftJBZporkZBy527X5e0XMXYM6LO/tD+9fKvu
-	 F8vQ+5giSRhYXullElHg/Tqy98titObJDDwX9UcKwlJBqw8xzb4xomAVpVz7rskQ7K
-	 C+YlaTlzzdrM+cysMJNyirwtjrLw3dDIGKi0pAraMhKV0pHJ70SUuYzFCESM0rIWNj
-	 MBwY2wueKzqNQ==
-Date: Fri, 14 Mar 2025 13:37:43 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Kuniyuki Iwashima <kuniyu@amazon.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Roopa Prabhu <roopa@nvidia.com>, Ivan Vecera <ivecera@redhat.com>,
-	Jiri Pirko <jiri@resnulli.us>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Simon Horman <horms@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andrew Lunn <andrew+netdev@lunn.ch>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, linux-hardening@vger.kernel.org,
-	Kees Cook <kees@kernel.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	Alexander Lobakin <aleksander.lobakin@intel.com>,
-	Ahmed Zaki <ahmed.zaki@intel.com>,
-	Vladimir Oltean <olteanv@gmail.com>,
-	Frank Wunderlich <frank-w@public-files.de>,
-	Daniel Golle <daniel@makrotopia.org>
-Subject: Re: [PATCH v9 nf 00/15] bridge-fastpath and related improvements
-Message-ID: <Z9QjF5LhavodVA4Y@calendula>
-References: <20250305102949.16370-1-ericwouds@gmail.com>
- <897ade0e-a4d0-47d0-8bf7-e5888ef45a61@gmail.com>
- <Z9DKxOnxr1fSv0On@calendula>
- <58cbe875-80e7-4a44-950b-b836b97f3259@gmail.com>
- <Z9IUrL0IHTKQMUvC@calendula>
- <02b97708-1214-4fa4-a011-70388cff8f79@gmail.com>
+	s=arc-20240116; t=1741956163; c=relaxed/simple;
+	bh=iD+MgR69CoDyku/9TsJF6tBuNK3jCMEv/I5vWM+HX4U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OlHAwwgjoW8AMxpmRJZkbc0DN/Z+GtrA+ZATMUIBWODgdTLNa20YwbrePjRQ955jWlfFkgSUCr6QMB6i9j8WRGCS6s/nTmdTppeJ9WrrfQ/U0V25QWDyIhK5WBb1TdeEGjAzxHV5Z98HqLB204PRjOWlFbDaeLo8tyy/GvLhhoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tt4N4-0006a2-FX; Fri, 14 Mar 2025 13:42:38 +0100
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] netlink: fix stack buffer overrun when emitting ranged expressions
+Date: Fri, 14 Mar 2025 13:41:49 +0100
+Message-ID: <20250314124159.2131-1-fw@strlen.de>
+X-Mailer: git-send-email 2.45.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <02b97708-1214-4fa4-a011-70388cff8f79@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Mar 13, 2025 at 07:01:38PM +0100, Eric Woudstra wrote:
-> 
-> 
-> On 3/13/25 12:11 AM, Pablo Neira Ayuso wrote:
-> 
-> >> What do you suggest?
-> > 
-> > Probably I can collect 4/15 and 5/15 from this series to be included
-> > in the next pull request, let me take a look. But it would be good to
-> > have tests for these two patches.
-> > 
-> 
-> These are not most important to bridge-fastpath, but it gives extra
-> possibilities. How about concentrating first on patch 2/15 (with 1/15
-> removing a warning and 3/15 cleaning up), adding nf_flow_encap_push()
-> for xmit direct? It is a vital patch for the bridge-fastpath.
+Included bogon input generates following Sanitizer splat:
 
-I see cleanup patch 3/15 is a consequence of 2/15, let me take a look.
+AddressSanitizer: dynamic-stack-buffer-overflow on address 0x7...
+WRITE of size 2 at 0x7fffffffcbe4 thread T0
+    #0 0x0000003a68b8 in __asan_memset (src/nft+0x3a68b8) (BuildId: 3678ff51a5405c77e3e0492b9a985910efee73b8)
+    #1 0x0000004eb603 in __mpz_export_data src/gmputil.c:108:2
+    #2 0x0000004eb603 in netlink_export_pad src/netlink.c:256:2
+    #3 0x0000004eb603 in netlink_gen_range src/netlink.c:471:2
+    #4 0x0000004ea250 in __netlink_gen_data src/netlink.c:523:10
+    #5 0x0000004e8ee3 in alloc_nftnl_setelem src/netlink.c:205:3
+    #6 0x0000004d4541 in mnl_nft_setelem_batch src/mnl.c:1816:11
 
-> Anyway, I will look into writing selftests for conntrack-bridge setup,
-> including various vlan setups. This will take me some time, which I
-> do not have in abundance, so for that I do not know if I get it done
-> before the merge window.
+Problem is that the range end is emitted to the buffer at the *padded*
+location (rounded up to next register size), but buffer sizing is
+based of the expression length, not the padded length.
 
-There is tools/testing/selftests/net/netfilter/nft_flowtable.sh that
-can possibly be extended to improve coverage.
+Also extend the test script: Capture stderr and if we see
+AddressSanitizer warning, make it fail.
 
-Thanks.
+Same bug as the one fixed in 600b84631410 ("netlink: fix stack buffer overflow with sub-reg sized prefixes"),
+just in a different function.
+
+Apply same fix: no dynamic array + add a length check.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink.c                                   | 11 +++++++----
+ tests/shell/testcases/bogons/assert_failures    | 17 ++++++++++++++++-
+ ...an_stack_buffer_overrun_in_netlink_gen_range |  6 ++++++
+ 3 files changed, 29 insertions(+), 5 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range
+
+diff --git a/src/netlink.c b/src/netlink.c
+index 8e6e2066fe2a..52c2d8009b82 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -462,11 +462,14 @@ static void netlink_gen_verdict(const struct expr *expr,
+ static void netlink_gen_range(const struct expr *expr,
+ 			      struct nft_data_linearize *nld)
+ {
+-	unsigned int len = div_round_up(expr->left->len, BITS_PER_BYTE) * 2;
+-	unsigned char data[len];
+-	unsigned int offset = 0;
++	unsigned int len = (netlink_padded_len(expr->left->len) / BITS_PER_BYTE) * 2;
++	unsigned char data[NFT_MAX_EXPR_LEN_BYTES];
++	unsigned int offset;
+ 
+-	memset(data, 0, len);
++	if (len > sizeof(data))
++		BUG("Value export of %u bytes would overflow", len);
++
++	memset(data, 0, sizeof(data));
+ 	offset = netlink_export_pad(data, expr->left->value, expr->left);
+ 	netlink_export_pad(data + offset, expr->right->value, expr->right);
+ 	nft_data_memcpy(nld, data, len);
+diff --git a/tests/shell/testcases/bogons/assert_failures b/tests/shell/testcases/bogons/assert_failures
+index 79099427c98a..3dee63b3f97b 100755
+--- a/tests/shell/testcases/bogons/assert_failures
++++ b/tests/shell/testcases/bogons/assert_failures
+@@ -1,12 +1,27 @@
+ #!/bin/bash
+ 
+ dir=$(dirname $0)/nft-f/
++tmpfile=$(mktemp)
++
++cleanup()
++{
++	rm -f "$tmpfile"
++}
++
++trap cleanup EXIT
+ 
+ for f in $dir/*; do
+-	$NFT --check -f "$f"
++	echo "Check $f"
++	$NFT --check -f "$f" 2> "$tmpfile"
+ 
+ 	if [ $? -ne 1 ]; then
+ 		echo "Bogus input file $f did not cause expected error code" 1>&2
+ 		exit 111
+ 	fi
++
++	if grep AddressSanitizer "$tmpfile"; then
++		echo "Address sanitizer splat for $f" 1>&2
++		cat "$tmpfile"
++		exit 111
++	fi
+ done
+diff --git a/tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range b/tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range
+new file mode 100644
+index 000000000000..2f7872e4accd
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/asan_stack_buffer_overrun_in_netlink_gen_range
+@@ -0,0 +1,6 @@
++table ip test {
++        chain y {
++                redirect to :tcp dport map { 83 : 80/3, 84 :4 }
++        }
++}
++
+-- 
+2.45.3
+
