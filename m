@@ -1,96 +1,56 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 083C627701
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Mar 2025 11:57:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 616302376FF
+	for <netfilter-devel@vger.kernel.org>; Mon, 17 Mar 2025 13:19:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742212647; cv=none; b=mDGGidKg79EpAkaw/M3tX14V2denpVq3iNfY3a3I17Xvsshs/rkQhwNixGluX3h2vQzkCb/3Wqaduf9T2owr30yAEVhOoqTw2BENaZ5aKgG9jow+o3015eYeo7+9io2S+GPpRPVu0deJoA2+dUWYrOu941Dli/bYtrKU6HozA9s=
+	t=1742217601; cv=none; b=F7ZNE4YSn6sHxCn1qkl3zmLFkTRimEPeJAsB/SiYMctJ5FUbp/2xe7bAdPJyB8E4nd2oOXaQ39Qv3fxXlussdP5x4YnS5xKTa+kModPhrWfH2TMry+dAqchLox1Ss4o5gArfnyKHuvA2QcAI21r3oOioA3GWG5PVd6H1YLa6oJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742212647; c=relaxed/simple;
-	bh=FHq8vXmcpasy8RhYdtOciCjltExwEKtL/3cvwEY/FV8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ucyAGw+TRkPGSUWI5ll+0/ZuVYgQqLH7ZFBDCLqg5NU13llFcRSD9UzN2ZgawyvnZjXjgJYqJL4tkf4XEb2CA0ufZxqV5jtRL70Kr2OYYfdzPzmD5I7xog5RGkFnyNZa+3MAtYpd/INqNAJioYgK3dhIBr0yYqYH7ggGBPgpupg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1742217601; c=relaxed/simple;
+	bh=TOq3llmFRcQ0MRru9B7A8vqaZMVvNseDo2kOKZriPz8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=m1RhjymZTViOn1COZ5fJhN5dpIZ1yLNoUlz9D94eQWoq5oEEFyOdePreU4uFtkl3on0PgibDOYVkDrHtIgarxHE56rVoeh6RBd/QCdr3YYuEthlyotluUb8DnnD1AwnZMBPSKDHt2iBVtpI10MPS1BuTbP47u/qw/OmNZyXEzwU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tu95p-0000uD-2d; Mon, 17 Mar 2025 12:57:17 +0100
+	(envelope-from <fw@strlen.de>)
+	id 1tuANn-0001eP-FQ; Mon, 17 Mar 2025 14:19:55 +0100
+Date: Mon, 17 Mar 2025 14:19:55 +0100
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: move interval flag compat check after set key evaluation
-Date: Mon, 17 Mar 2025 12:56:36 +0100
-Message-ID: <20250317115639.19393-1-fw@strlen.de>
-X-Mailer: git-send-email 2.48.1
+To: Antonio Ojea <aojea@google.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Eric Dumazet <edumazet@google.com>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] selftests: netfilter: conntrack respect reject rules
+Message-ID: <20250317131955.GA5110@breakpoint.cc>
+References: <20250313231341.3040002-1-aojea@google.com>
+ <20250314092837.3381916-1-aojea@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250314092837.3381916-1-aojea@google.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Without this, included bogon asserts with:
-BUG: unhandled key type 13
-nft: src/intervals.c:73: setelem_expr_to_range: Assertion `0' failed.
+Antonio Ojea <aojea@google.com> wrote:
+> +	# request from ns1 to vip (DNAT to ns2) on an existing connection
+> +	# if we don't read from the pipe the traffic loops forever
+> +	echo PING2 >> "$TMPFILEIN"
+> +	sleep 0.5
 
-... because we no longer evaluate set->key/data.
+This doesn't really work, 0.5 is too low for my machine
+and the tests fail most of the time.
 
-Move the check to the tail of the function, right before assiging
-set->existing_set, so that set->key has been evaluated.
+Can you rework this to use the busywait helper
+instead of sleep?
 
-Fixes: ceab53cee499 ("evaluate: don't allow merging interval set/map with non-interval one")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/evaluate.c                                      |  6 +++---
- .../invalid_data_expr_type_range_value_2_assert     | 13 +++++++++++++
- 2 files changed, 16 insertions(+), 3 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_2_assert
+The checks are also very repetitive, so there is potential
+for code reuse.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index d59993dcdd4e..f1f7ddaab991 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -5088,9 +5088,6 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 				if (existing_flags == new_flags)
- 					set->flags |= NFT_SET_EVAL;
- 			}
--
--			if (set_is_interval(set->flags) && !set_is_interval(existing_set->flags))
--				return set_error(ctx, set, "existing %s lacks interval flag", type);
- 		} else {
- 			set_cache_add(set_get(set), table);
- 		}
-@@ -5181,6 +5178,9 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 		return 0;
- 	}
- 
-+	if (existing_set && set_is_interval(set->flags) && !set_is_interval(existing_set->flags))
-+		return set_error(ctx, set, "existing %s lacks interval flag", type);
-+
- 	set->existing_set = existing_set;
- 
- 	return 0;
-diff --git a/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_2_assert b/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_2_assert
-new file mode 100644
-index 000000000000..56f541a61e45
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/invalid_data_expr_type_range_value_2_assert
-@@ -0,0 +1,13 @@
-+table inet t {
-+        map m2 {
-+                typeof udp length . @ih,32,32 : verdict
-+                elements = {
-+                             1-10 . 0xa : drop }
-+        }
-+
-+	map m2 {
-+                typeof udp length . @ih,32,32 : verdict
-+                flags interval
-+                elements = { 20-80 . 0x14 : accept }
-+        }
-+}
--- 
-2.48.1
-
+Thanks.
