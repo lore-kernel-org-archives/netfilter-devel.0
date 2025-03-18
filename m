@@ -1,66 +1,65 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 584931EFFA8;
-	Tue, 18 Mar 2025 22:34:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC2192063FE;
+	Tue, 18 Mar 2025 23:05:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742337244; cv=none; b=G2QPgNay7ufivjF1NmTSTAgoMXWRrMrPD7Z8xrBtT5gFnTBrl66SWVhH7Eq+fpFdeQ+SVcahdUabHL1bfpW4wzDBeuBYuMfmgL0RVxl5DZQJf4LPkNdl41dzXu20w54AO81dlF7tiRg5wizIMBy8wGAw7XNzm4Yibc6KRiZrAIk=
+	t=1742339113; cv=none; b=E/M0jeKeDZ6/nf9qLUJtmXm6ICQKMIZfqrfyibOCfgIfJ6XTpSOqtGpoHzxDVktBhj1NLTJ4CKF8jCnFgXXotwKoS+LbUYe/Q0l2+jYiLsGJou6pttRgh6IWXkwrkSxrfTOBZK5Bp9akxrPAkmGinTsvAwdlD6P8lmQtWY+Oki4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742337244; c=relaxed/simple;
-	bh=1olzgF2iXunO8XWm2rJrE5cDHxmpjh9voIqEqYTKp8k=;
+	s=arc-20240116; t=1742339113; c=relaxed/simple;
+	bh=piKS54+5UzAnMXeI5r0yvoazJQIW/IzuMm+Ja7K5FI8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oMBVbPlX5f70tTQjWTmG7YCM8diMceqCLWr4u5fnNIvbOrMv/oXKojh2CGODEtaQgelojOD1qQOeZADGA6qSm5TrScK2hy8El7fpCow9VGb6kRot6UX93GquNu+H8RKfsQ+GJREugzyQUZIaN6ap3VxRbyz/VYn3rpeJG0nJd8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QU7OdvnO; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XApgvuGn; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ql9QaQKdZTH5V9ddynj3BLIeOQSTQzAdBxMfmnsuBUup74f7bW76E8vQocw7KDL1KMQVC0ioL4pvPNem6I+/hA1iL8l8mp8dPpmqSqo/skDxtKqnpr2mlxJ1gJp80AKM9BHP/oljKAI57K065fM1wVZ1LXITdp8bAdYTfhnlzCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S3x53vau; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wU2Vduk7; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QU7OdvnO";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XApgvuGn"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S3x53vau";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wU2Vduk7"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id C835F605A7; Tue, 18 Mar 2025 23:33:59 +0100 (CET)
+	id C8AD6605CE; Wed, 19 Mar 2025 00:05:02 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742337239;
-	bh=eW+ffQWCXuRgCSjw8N8pUZJFjNamrbXWHtYt9wjRti8=;
+	s=2025; t=1742339102;
+	bh=lJQJWhbRVIBubIqYR0cZHIzLd9iGpITQsoCcBK4dLXE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QU7OdvnOJTxCemhOT2xGnjAYyK8LNaGPFKuQG9Kyn7cLNVWPX25rQTW27TuGjKkar
-	 1khAb+WlSVZ/raNepTCosKjcUnE4eaHJqfWtrXEO7B56FJUm0+zJd7TXzc3Bpqi+/s
-	 uqUFUCi4a7b6/hJxsTLI0GPBMtu4yIfWRP3L49YyTj5jGwxBam+qLjB9vboQG0gCNg
-	 JbKDDjUjZjrAcv0vjmCIwd9JPk7XHqnHl/hcRkCXrhpWWLWJpDhppySpKX1FFTQPcK
-	 tt/vyqXoEXnNjs8J8jNrUtCB25bCo0h2ASgNY6jHapelP4ebB95gbWXMY6PkHFnim2
-	 Xh45JTuNeDenQ==
+	b=S3x53vauv1shnJIaWaf6LgGXCGhAw5pmnzIPKigGdflACHkRuV5i1FOHnu+RBSCrL
+	 i9FuaOwz+hipBmtUqjdh3Hd+CGCrXDMWLIJu9yBqMfA66VpzOWCIcJ7i05E/UXG5UK
+	 plVpaTRru5JJpy7/YD6JoGvh5v71tX3/tqEwYweMzhtCPP3U7RQBcQtTTjbEvQ0VkT
+	 R2xDFSM8L8FxIp4d7ZO20rWzfa0ClOTmFy+8lFkUZNiNYOhqv0/A0Fl/wM/dVWLoPP
+	 NsKCKgi86YMNPN7OQ+rsoTsWtERMAG3KpWENfS8hb8ch0Kl/ZCmwWDJP4EAeGBv7Tk
+	 iH//AnrozzrpA==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6C9C960581;
-	Tue, 18 Mar 2025 23:33:56 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C890B605AC;
+	Wed, 19 Mar 2025 00:04:59 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742337236;
-	bh=eW+ffQWCXuRgCSjw8N8pUZJFjNamrbXWHtYt9wjRti8=;
+	s=2025; t=1742339099;
+	bh=lJQJWhbRVIBubIqYR0cZHIzLd9iGpITQsoCcBK4dLXE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XApgvuGnE0mBwwZRmZzs5sTqXDEI4qOj/sH4PsnuQjBoZs5TGERlYjKGXuOc5gXuV
-	 OrBSy1f7neTKIfgoKQjvlBunV3PfYSMMjINss1weIbOmNzObteI+h5pCD5hU17vA9N
-	 6eiH64Ufae67M7m4PD/NMnwSJD4cJDfUx5G748HFlwCzEfJ9soAbn7X5iDg0ygFcgp
-	 E8kukFJqcmnf+PtKu2E300jm8weW5EaJOcVsYi9nayZq24C5Fon83JyNotmgss52BC
-	 rw5rDCYbq66NoX8x8np+QzI0Gt/Xk/wpedhzYmN5gx0zyklLGR48+T7rdF1/ppg+fd
-	 lFV2jIrTFBxYA==
-Date: Tue, 18 Mar 2025 23:33:53 +0100
+	b=wU2Vduk7YNQLGIEUrhrCN8P3Pq5S86ZrMIpJi/tKcBUK2KGH4pO4yYpkpy+sFDy+n
+	 kPrerKptDrD8Vz5IgrxyWMjWTlyW3l6snj/3BZnumxpz1hNQMxPL+mnYZ6QZ7pTSzL
+	 lk4c3igbmDeguw3pFb1l6vwWRYf178jI3yFgmCphE/MuKNXHNejCFVxeBPB/s5bhqo
+	 nOSrfnoI2vkDIxM9UnPXSzarlLD//GqegDUG2vgtDYc2S2wWHfHU2r8bzSD1RmA3A+
+	 LRN08nwFipOdLzz/RlhzRCehb3TPxqykXiq86FCe2OhHkHt+biodJ19xJY24FXtpeF
+	 IzRNjZaM0PVkA==
+Date: Wed, 19 Mar 2025 00:04:56 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Maxim Mikityanskiy <maxtram95@gmail.com>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Roopa Prabhu <roopa@nvidia.com>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
 	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, Patrick McHardy <kaber@trash.net>,
-	KOVACS Krisztian <hidden@balabit.hu>,
-	Balazs Scheidler <bazsi@balabit.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, Maxim Mikityanskiy <maxim@isovalent.com>
-Subject: Re: [PATCH net] netfilter: socket: Lookup orig tuple for IPv6 SNAT
-Message-ID: <Z9n00dy18IJHXdkK@calendula>
-References: <20250318161516.3791383-1-maxim@isovalent.com>
- <20250318201323.GB840@breakpoint.cc>
+	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+	netfilter-devel@vger.kernel.org, bridge@lists.linux.dev,
+	netdev@vger.kernel.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH v10 nf-next 2/3] netfilter: nft_chain_filter: Add bridge
+ double vlan and pppoe
+Message-ID: <Z9n8GHYfuhTFZB3p@calendula>
+References: <20250315200033.17820-1-ericwouds@gmail.com>
+ <20250315200033.17820-3-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,36 +68,74 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250318201323.GB840@breakpoint.cc>
+In-Reply-To: <20250315200033.17820-3-ericwouds@gmail.com>
 
-On Tue, Mar 18, 2025 at 09:13:23PM +0100, Florian Westphal wrote:
-> Maxim Mikityanskiy <maxtram95@gmail.com> wrote:
-> > nf_sk_lookup_slow_v4 does the conntrack lookup for IPv4 packets to
-> > restore the original 5-tuple in case of SNAT, to be able to find the
-> > right socket (if any). Then socket_match() can correctly check whether
-> > the socket was transparent.
-> > 
-> > However, the IPv6 counterpart (nf_sk_lookup_slow_v6) lacks this
-> > conntrack lookup, making xt_socket fail to match on the socket when the
-> > packet was SNATed. Add the same logic to nf_sk_lookup_slow_v6.
-> > 
-> > IPv6 SNAT is used in Kubernetes clusters for pod-to-world packets, as
-> > pods' addresses are in the fd00::/8 ULA subnet and need to be replaced
-> > with the node's external address. Cilium leverages Envoy to enforce L7
-> > policies, and Envoy uses transparent sockets. Cilium inserts an iptables
-> > prerouting rule that matches on `-m socket --transparent` and redirects
-> > the packets to localhost, but it fails to match SNATed IPv6 packets due
-> > to that missing conntrack lookup.
-> > 
-> > Closes: https://github.com/cilium/cilium/issues/37932
-> > Fixes: b64c9256a9b7 ("tproxy: added IPv6 support to the socket match")
+Hi,
+
+On Sat, Mar 15, 2025 at 09:00:32PM +0100, Eric Woudstra wrote:
+> This adds the capability to evaluate 802.1ad, QinQ, PPPoE and PPPoE-in-Q
+> packets in the bridge filter chain.
 > 
-> Note that this commit predates IPv6 NAT support in netfilter.
-
-Right. I am inclined to put this into nf-next.
-
-> No need to send a v2, just saying.
+> Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+> ---
+>  net/netfilter/nft_chain_filter.c | 20 +++++++++++++++++++-
+>  1 file changed, 19 insertions(+), 1 deletion(-)
 > 
-> Reviewed-by: Florian Westphal <fw@strlen.de>
+> diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+> index 19a553550c76..7c7080c1a67d 100644
+> --- a/net/netfilter/nft_chain_filter.c
+> +++ b/net/netfilter/nft_chain_filter.c
+> @@ -232,11 +232,27 @@ nft_do_chain_bridge(void *priv,
+>  		    struct sk_buff *skb,
+>  		    const struct nf_hook_state *state)
+>  {
+> +	struct ethhdr *ethh = eth_hdr(skb);
+>  	struct nft_pktinfo pkt;
+> +	int thoff;
+>  
+>  	nft_set_pktinfo(&pkt, skb, state);
+>  
+> -	switch (eth_hdr(skb)->h_proto) {
+> +	switch (ethh->h_proto) {
+> +	case htons(ETH_P_PPP_SES):
+> +		thoff = PPPOE_SES_HLEN;
+> +		ethh += thoff;
 
-Thanks.
+This pointer arithmetics does not look correct, ethh is struct ethhdr,
+neither void nor char.
+
+> +		break;
+> +	case htons(ETH_P_8021Q):
+> +		thoff = VLAN_HLEN;
+> +		ethh += thoff;
+
+Same here.
+
+> +		break;
+> +	default:
+> +		thoff = 0;
+> +		break;
+> +	}
+> +
+> +	switch (ethh->h_proto) {
+
+This switch will match on the wrong offset.
+
+>  	case htons(ETH_P_IP):
+>  		nft_set_pktinfo_ipv4_validate(&pkt);
+>  		break;
+> @@ -248,6 +264,8 @@ nft_do_chain_bridge(void *priv,
+>  		break;
+>  	}
+>  
+> +	pkt.thoff += thoff;
+
+And only transport offset is adjusted here.
+
+>  	return nft_do_chain(&pkt, priv);
+>  }
+>  
+> -- 
+> 2.47.1
+> 
