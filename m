@@ -1,56 +1,56 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF727185B4C;
-	Tue, 18 Mar 2025 22:03:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C2D205ACB;
+	Tue, 18 Mar 2025 22:03:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742335419; cv=none; b=XFS47zTYU45t+5h+KZ9FhgGCSIGCpyA4Qi7mkjh3tLizX9NoNr53JAMulfwDe1dI/JHMWEpMeraHRBiRIHC7MqD579kjeKD49oZgmSrJBG7sHV4B/Kl2dh8/fbY54uTJr/2MYEiaXqY+RDMATsOPldRJs1lBzcVszlhMEZoBQE8=
+	t=1742335419; cv=none; b=sBMYSGoS6P84yjQCBhj8htCWm1LfFLKwDKCzwrrNqSgjXq+w56hBtSKvIh2YKo4r5W7T3YZML0PiBTptlKKeDW1jigWPGC6MpRE91j/5OkNAIN76hMxpgzsATIFAhwVSY4NtI5mooi3PLVn0BhrbCa0jnWcMlDYEbRcclBGy8Uc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1742335419; c=relaxed/simple;
-	bh=Qafn44eCZTBukhygaH/K0DcQJZmHzSIAwVoFGB/XFX4=;
+	bh=vTjDyaBNft7jyJFiBjDu+msEm7ZQrT4R0tCAj451Q+g=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=uxrXVOdkQPB0TZg63USrerFVu8lWA/OwC1mn9K8VhyjTlFh4jIjFa8spoMH2edTmSZi+W5Jg7uHS7wq0ecE1Y3DHStcFqQV4FwwDOseT/XL1lJdgkuGMYO5meV2Q7QwaurUNEBdaoMGKCTZl4bIo7G0eJjhzQKiAcTCpPBV4dEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GSgJN/oP; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eErlEgBK; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=ednoGz0Ue6ZP0lSv4Y33Y2PfNUI0PHQ7GJeD6cUNVsZF+dRKXfDUMH/wEEMmLomt52lGxQvioKJRrIm4tRupO5ojqc6nx9d2rgkO41nIKDdGrxaTmLlB/v8F+/m1ddiI451z5hGPQXd3tQnBi+m3mkaXap9/Aw0ndJaAn4d5cyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lPDnV2PP; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sYAOOluO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GSgJN/oP";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eErlEgBK"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lPDnV2PP";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sYAOOluO"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 679BB605E7; Tue, 18 Mar 2025 23:03:31 +0100 (CET)
+	id 410B260666; Tue, 18 Mar 2025 23:03:33 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742335411;
-	bh=mrIjGV8KbeK/9HiBJMBBHZvovK/w03/T8X4vsT4GM8Q=;
+	s=2025; t=1742335413;
+	bh=d9p61YtiA3vsvnD2aKSeJIMrDRuMz3MQEkQyy0IjKtg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GSgJN/oPe9dDcQhzfnhNfMtjaVmttW6G95Pw+zr4U8wZlAuAnGQfy4MmnKXOFJO7N
-	 +RGk+PNsQQ1yNpqhgVXesxad3I305K37QFli44qqlu1yEZjkxy5c1cp8KGamGjkdk/
-	 Oe6vdj3pSnOtkTTdocSRPrT00XwsWjwLUUVzPQY+WEyUID27TURq/T+8jBE4S9tD0T
-	 HVkLdwWzIdI64L2rQTj1uUL9emH6o0RrYLI1m/qM0Og+oAPwqtNOTnIe9KBIgm+Trd
-	 Qb+jBme13TOJeFcnnJ/jD8ejOUqNu3LBb9ziNYBtbsRasafhLDi9qqN9kNJTZvySYE
-	 upYGInRzXp2UA==
+	b=lPDnV2PPMtbIQXEMiUqbCN0JHbf4O02FtI70qG8zQ9Y6iJZsRF/ojMgqeBoWm7kjR
+	 rjWOcumTCQX5+EX+fYBGXZ/X/7YTdrlH6H3BLyuzWL1EfijEye00d7Y9okN1Y8lCHc
+	 GYFxzXgx3j44PBxNcaNE5jal+fP0/3ZT+leVph6FQu1doAvF4j6lGGco6xEWXMzJ3/
+	 hKGsRoHx3ha7sxiflx3HjBbXRO5KtAQIFATcOBLkaTxjvYi0Os6ZEwto9iaryFANie
+	 hy+XrbUAZR9pVxoZIxPlFu0pspnm8BSsWgpXsnKrXmdYnh76V8i8nUL2VWGfA1M60T
+	 oaIVoavr6oxGQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 411BD60622;
-	Tue, 18 Mar 2025 23:03:29 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 255E960662;
+	Tue, 18 Mar 2025 23:03:31 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742335409;
-	bh=mrIjGV8KbeK/9HiBJMBBHZvovK/w03/T8X4vsT4GM8Q=;
+	s=2025; t=1742335411;
+	bh=d9p61YtiA3vsvnD2aKSeJIMrDRuMz3MQEkQyy0IjKtg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=eErlEgBK93/7ysMHiiU21HXawpHv7oRkTUpH3hVkML8F7wDAb1s/8+i2T+eDdlW6v
-	 I3E4MUhOjLBhDjD7Rax9hC89vD13oja0ptMI1fy9g3ZpfNauacTnN/r44hhCJ///ky
-	 OVfSnO++TN1Zl+m5P728ENgZr6pUhV5Rl6QtRtykauelAtudNpf05KVvq+rtzbKpO7
-	 VxA1j7fw2IPI2micTeYkVQqYuAn1hjkywtc0kRRBcD4QNQwMT7qlu7kG80lM1oBhFH
-	 L6xW2QV1WBRPqlZe9koEDRSFOu/R2ZZ9LS9PzATDR9utEk+NIYxMd3Fkh3YvKwBy2r
-	 NJI4kdqzeUMtg==
+	b=sYAOOluOVhNNtxbtmpkWyE5+09U0SNuYtggR3RhKDWuA9cfKJogIzcx4UA0SeLfbO
+	 CBvsOYFpUNOMhHGCpKwC98bw9nV3Vxd2T6czGuOyUKxPw4SmHkX7ooYrrb5aHAFbEk
+	 wN+X8CxK8B0+gNrgA0KE+0+mWsICqqgCHC8EeGGwgxo0ZojZso09h5rSunh4cwDfq2
+	 Ztn1Osgpg/BDw+IV9syxmy/XE0cr/ujiZsU0CcLJjvCdkRWmaBUanz2QUc3Zo22Ikt
+	 SWkXTQ2zU0JhAkNBdtn0i+tRC467EKEURC4lqq3qtojSjWuXn1jIxS5lgWL6RSVG+U
+	 Pcp3PsyGjYgjw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,6.6 1/2] netfilter: nf_tables: allow clone callbacks to sleep
-Date: Tue, 18 Mar 2025 23:03:04 +0100
-Message-Id: <20250318220305.224701-2-pablo@netfilter.org>
+Subject: [PATCH -stable,6.6 2/2] netfilter: nf_tables: use timestamp to check for set element timeout
+Date: Tue, 18 Mar 2025 23:03:05 +0100
+Message-Id: <20250318220305.224701-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250318220305.224701-1-pablo@netfilter.org>
 References: <20250318220305.224701-1-pablo@netfilter.org>
@@ -62,257 +62,318 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+[ Upstream commit 7395dfacfff65e9938ac0889dafa1ab01e987d15 ]
 
-commit fa23e0d4b756d25829e124d6b670a4c6bbd4bf7e upstream.
+Add a timestamp field at the beginning of the transaction, store it
+in the nftables per-netns area.
 
-Sven Auhagen reports transaction failures with following error:
-  ./main.nft:13:1-26: Error: Could not process rule: Cannot allocate memory
-  percpu: allocation failed, size=16 align=8 atomic=1, atomic alloc failed, no space left
+Update set backend .insert, .deactivate and sync gc path to use the
+timestamp, this avoids that an element expires while control plane
+transaction is still unfinished.
 
-This points to failing pcpu allocation with GFP_ATOMIC flag.
-However, transactions happen from user context and are allowed to sleep.
+.lookup and .update, which are used from packet path, still use the
+current time to check if the element has expired. And .get path and dump
+also since this runs lockless under rcu read size lock. Then, there is
+async gc which also needs to check the current time since it runs
+asynchronously from a workqueue.
 
-One case where we can call into percpu allocator with GFP_ATOMIC is
-nft_counter expression.
-
-Normally this happens from control plane, so this could use GFP_KERNEL
-instead.  But one use case, element insertion from packet path,
-needs to use GFP_ATOMIC allocations (nft_dynset expression).
-
-At this time, .clone callbacks always use GFP_ATOMIC for this reason.
-
-Add gfp_t argument to the .clone function and pass GFP_KERNEL or
-GFP_ATOMIC flag depending on context, this allows all clone memory
-allocations to sleep for the normal (transaction) case.
-
-Cc: Sven Auhagen <sven.auhagen@voleatech.de>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: c3e1b005ed1c ("netfilter: nf_tables: add set element timeout support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Jianqi Ren <jianqi.ren.cn@windriver.com>
+Signed-off-by: He Zhe <zhe.he@windriver.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |  4 ++--
- net/netfilter/nf_tables_api.c     |  8 ++++----
- net/netfilter/nft_connlimit.c     |  4 ++--
- net/netfilter/nft_counter.c       |  4 ++--
- net/netfilter/nft_dynset.c        |  2 +-
- net/netfilter/nft_last.c          |  4 ++--
- net/netfilter/nft_limit.c         | 14 ++++++++------
- net/netfilter/nft_quota.c         |  4 ++--
- 8 files changed, 23 insertions(+), 21 deletions(-)
+ include/net/netfilter/nf_tables.h | 16 ++++++++++++++--
+ net/netfilter/nf_tables_api.c     |  4 +++-
+ net/netfilter/nft_set_hash.c      |  8 +++++++-
+ net/netfilter/nft_set_pipapo.c    | 18 +++++++++++-------
+ net/netfilter/nft_set_rbtree.c    | 11 +++++++----
+ 5 files changed, 42 insertions(+), 15 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index dcbf3f299548..e497501fd34e 100644
+index e497501fd34e..c0f4b91e4f5e 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -407,7 +407,7 @@ struct nft_expr_info;
+@@ -826,10 +826,16 @@ static inline struct nft_set_elem_expr *nft_set_ext_expr(const struct nft_set_ex
+ 	return nft_set_ext(ext, NFT_SET_EXT_EXPRESSIONS);
+ }
  
- int nft_expr_inner_parse(const struct nft_ctx *ctx, const struct nlattr *nla,
- 			 struct nft_expr_info *info);
--int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src);
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src, gfp_t gfp);
- void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
- int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
- 		  const struct nft_expr *expr, bool reset);
-@@ -930,7 +930,7 @@ struct nft_expr_ops {
- 						struct nft_regs *regs,
- 						const struct nft_pktinfo *pkt);
- 	int				(*clone)(struct nft_expr *dst,
--						 const struct nft_expr *src);
-+						 const struct nft_expr *src, gfp_t gfp);
- 	unsigned int			size;
+-static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
++static inline bool __nft_set_elem_expired(const struct nft_set_ext *ext,
++					  u64 tstamp)
+ {
+ 	return nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION) &&
+-	       time_is_before_eq_jiffies64(*nft_set_ext_expiration(ext));
++	       time_after_eq64(tstamp, *nft_set_ext_expiration(ext));
++}
++
++static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
++{
++	return __nft_set_elem_expired(ext, get_jiffies_64());
+ }
  
- 	int				(*init)(const struct nft_ctx *ctx,
+ static inline struct nft_set_ext *nft_set_elem_ext(const struct nft_set *set,
+@@ -1791,6 +1797,7 @@ struct nftables_pernet {
+ 	struct list_head	notify_list;
+ 	struct mutex		commit_mutex;
+ 	u64			table_handle;
++	u64			tstamp;
+ 	unsigned int		base_seq;
+ 	unsigned int		gc_seq;
+ 	u8			validate_state;
+@@ -1803,6 +1810,11 @@ static inline struct nftables_pernet *nft_pernet(const struct net *net)
+ 	return net_generic(net, nf_tables_net_id);
+ }
+ 
++static inline u64 nft_net_tstamp(const struct net *net)
++{
++	return nft_pernet(net)->tstamp;
++}
++
+ #define __NFT_REDUCE_READONLY	1UL
+ #define NFT_REDUCE_READONLY	(void *)__NFT_REDUCE_READONLY
+ 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a85f5e0cc9d1..a48b1ece63cd 100644
+index a48b1ece63cd..9e9544f81942 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3332,7 +3332,7 @@ static struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
- 	return ERR_PTR(err);
- }
- 
--int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
-+int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src, gfp_t gfp)
+@@ -9962,6 +9962,7 @@ struct nft_trans_gc *nft_trans_gc_catchall_async(struct nft_trans_gc *gc,
+ struct nft_trans_gc *nft_trans_gc_catchall_sync(struct nft_trans_gc *gc)
  {
- 	int err;
+ 	struct nft_set_elem_catchall *catchall, *next;
++	u64 tstamp = nft_net_tstamp(gc->net);
+ 	const struct nft_set *set = gc->set;
+ 	struct nft_set_elem elem;
+ 	struct nft_set_ext *ext;
+@@ -9971,7 +9972,7 @@ struct nft_trans_gc *nft_trans_gc_catchall_sync(struct nft_trans_gc *gc)
+ 	list_for_each_entry_safe(catchall, next, &set->catchall_list, list) {
+ 		ext = nft_set_elem_ext(set, catchall->elem);
  
-@@ -3340,7 +3340,7 @@ int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
- 		return -EINVAL;
+-		if (!nft_set_elem_expired(ext))
++		if (!__nft_set_elem_expired(ext, tstamp))
+ 			continue;
  
- 	dst->ops = src->ops;
--	err = src->ops->clone(dst, src);
-+	err = src->ops->clone(dst, src, gfp);
- 	if (err < 0)
- 		return err;
+ 		gc = nft_trans_gc_queue_sync(gc, GFP_KERNEL);
+@@ -10776,6 +10777,7 @@ static bool nf_tables_valid_genid(struct net *net, u32 genid)
+ 	bool genid_ok;
  
-@@ -6457,7 +6457,7 @@ int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
- 		if (!expr)
- 			goto err_expr;
+ 	mutex_lock(&nft_net->commit_mutex);
++	nft_net->tstamp = get_jiffies_64();
  
--		err = nft_expr_clone(expr, set->exprs[i]);
-+		err = nft_expr_clone(expr, set->exprs[i], GFP_KERNEL_ACCOUNT);
- 		if (err < 0) {
- 			kfree(expr);
- 			goto err_expr;
-@@ -6496,7 +6496,7 @@ static int nft_set_elem_expr_setup(struct nft_ctx *ctx,
+ 	genid_ok = genid == 0 || nft_net->base_seq == genid;
+ 	if (!genid_ok)
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index cc1ae18485fa..0370f69dce86 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -37,6 +37,7 @@ struct nft_rhash_cmp_arg {
+ 	const struct nft_set		*set;
+ 	const u32			*key;
+ 	u8				genmask;
++	u64				tstamp;
+ };
  
- 	for (i = 0; i < num_exprs; i++) {
- 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
--		err = nft_expr_clone(expr, expr_array[i]);
-+		err = nft_expr_clone(expr, expr_array[i], GFP_KERNEL_ACCOUNT);
- 		if (err < 0)
- 			goto err_elem_expr_setup;
+ static inline u32 nft_rhash_key(const void *data, u32 len, u32 seed)
+@@ -63,7 +64,7 @@ static inline int nft_rhash_cmp(struct rhashtable_compare_arg *arg,
+ 		return 1;
+ 	if (nft_set_elem_is_dead(&he->ext))
+ 		return 1;
+-	if (nft_set_elem_expired(&he->ext))
++	if (__nft_set_elem_expired(&he->ext, x->tstamp))
+ 		return 1;
+ 	if (!nft_set_elem_active(&he->ext, x->genmask))
+ 		return 1;
+@@ -88,6 +89,7 @@ bool nft_rhash_lookup(const struct net *net, const struct nft_set *set,
+ 		.genmask = nft_genmask_cur(net),
+ 		.set	 = set,
+ 		.key	 = key,
++		.tstamp  = get_jiffies_64(),
+ 	};
  
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index de9d1980df69..92b984fa8175 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -210,12 +210,12 @@ static void nft_connlimit_destroy(const struct nft_ctx *ctx,
- 	nft_connlimit_do_destroy(ctx, priv);
- }
+ 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+@@ -106,6 +108,7 @@ static void *nft_rhash_get(const struct net *net, const struct nft_set *set,
+ 		.genmask = nft_genmask_cur(net),
+ 		.set	 = set,
+ 		.key	 = elem->key.val.data,
++		.tstamp  = get_jiffies_64(),
+ 	};
  
--static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_connlimit_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+@@ -129,6 +132,7 @@ static bool nft_rhash_update(struct nft_set *set, const u32 *key,
+ 		.genmask = NFT_GENMASK_ANY,
+ 		.set	 = set,
+ 		.key	 = key,
++		.tstamp  = get_jiffies_64(),
+ 	};
+ 
+ 	he = rhashtable_lookup(&priv->ht, &arg, nft_rhash_params);
+@@ -172,6 +176,7 @@ static int nft_rhash_insert(const struct net *net, const struct nft_set *set,
+ 		.genmask = nft_genmask_next(net),
+ 		.set	 = set,
+ 		.key	 = elem->key.val.data,
++		.tstamp	 = nft_net_tstamp(net),
+ 	};
+ 	struct nft_rhash_elem *prev;
+ 
+@@ -214,6 +219,7 @@ static void *nft_rhash_deactivate(const struct net *net,
+ 		.genmask = nft_genmask_next(net),
+ 		.set	 = set,
+ 		.key	 = elem->key.val.data,
++		.tstamp	 = nft_net_tstamp(net),
+ 	};
+ 
+ 	rcu_read_lock();
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 5dab9905ebbe..4274831b6e67 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -504,6 +504,7 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+  * @set:	nftables API set representation
+  * @data:	Key data to be matched against existing elements
+  * @genmask:	If set, check that element is active in given genmask
++ * @tstamp:	timestamp to check for expired elements
+  *
+  * This is essentially the same as the lookup function, except that it matches
+  * key data against the uncommitted copy and doesn't use preallocated maps for
+@@ -513,7 +514,8 @@ bool nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+  */
+ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
+ 					  const struct nft_set *set,
+-					  const u8 *data, u8 genmask)
++					  const u8 *data, u8 genmask,
++					  u64 tstamp)
  {
- 	struct nft_connlimit *priv_dst = nft_expr_priv(dst);
- 	struct nft_connlimit *priv_src = nft_expr_priv(src);
+ 	struct nft_pipapo_elem *ret = ERR_PTR(-ENOENT);
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+@@ -568,7 +570,7 @@ static struct nft_pipapo_elem *pipapo_get(const struct net *net,
+ 			goto out;
  
--	priv_dst->list = kmalloc(sizeof(*priv_dst->list), GFP_ATOMIC);
-+	priv_dst->list = kmalloc(sizeof(*priv_dst->list), gfp);
- 	if (!priv_dst->list)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index b7aa4d2c8c22..eab0dc66bee6 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -231,7 +231,7 @@ static void nft_counter_destroy(const struct nft_ctx *ctx,
- 	nft_counter_do_destroy(priv);
- }
- 
--static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ 		if (last) {
+-			if (nft_set_elem_expired(&f->mt[b].e->ext))
++			if (__nft_set_elem_expired(&f->mt[b].e->ext, tstamp))
+ 				goto next_match;
+ 			if ((genmask &&
+ 			     !nft_set_elem_active(&f->mt[b].e->ext, genmask)))
+@@ -605,7 +607,7 @@ static void *nft_pipapo_get(const struct net *net, const struct nft_set *set,
+ 			    const struct nft_set_elem *elem, unsigned int flags)
  {
- 	struct nft_counter_percpu_priv *priv = nft_expr_priv(src);
- 	struct nft_counter_percpu_priv *priv_clone = nft_expr_priv(dst);
-@@ -241,7 +241,7 @@ static int nft_counter_clone(struct nft_expr *dst, const struct nft_expr *src)
- 
- 	nft_counter_fetch(priv, &total);
- 
--	cpu_stats = alloc_percpu_gfp(struct nft_counter, GFP_ATOMIC);
-+	cpu_stats = alloc_percpu_gfp(struct nft_counter, gfp);
- 	if (cpu_stats == NULL)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 629a91a8c614..a81bd69b059b 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -35,7 +35,7 @@ static int nft_dynset_expr_setup(const struct nft_dynset *priv,
- 
- 	for (i = 0; i < priv->num_exprs; i++) {
- 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
--		if (nft_expr_clone(expr, priv->expr_array[i]) < 0)
-+		if (nft_expr_clone(expr, priv->expr_array[i], GFP_ATOMIC) < 0)
- 			return -1;
- 
- 		elem_expr->size += priv->expr_array[i]->ops->size;
-diff --git a/net/netfilter/nft_last.c b/net/netfilter/nft_last.c
-index 8e6d7eaf9dc8..de1b6066bfa8 100644
---- a/net/netfilter/nft_last.c
-+++ b/net/netfilter/nft_last.c
-@@ -102,12 +102,12 @@ static void nft_last_destroy(const struct nft_ctx *ctx,
- 	kfree(priv->last);
+ 	return pipapo_get(net, set, (const u8 *)elem->key.val.data,
+-			 nft_genmask_cur(net));
++			 nft_genmask_cur(net), get_jiffies_64());
  }
  
--static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_last_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
+ /**
+@@ -1199,6 +1201,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct nft_pipapo_match *m = priv->clone;
+ 	u8 genmask = nft_genmask_next(net);
++	u64 tstamp = nft_net_tstamp(net);
+ 	struct nft_pipapo_field *f;
+ 	const u8 *start_p, *end_p;
+ 	int i, bsize_max, err = 0;
+@@ -1208,7 +1211,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 	else
+ 		end = start;
+ 
+-	dup = pipapo_get(net, set, start, genmask);
++	dup = pipapo_get(net, set, start, genmask, tstamp);
+ 	if (!IS_ERR(dup)) {
+ 		/* Check if we already have the same exact entry */
+ 		const struct nft_data *dup_key, *dup_end;
+@@ -1230,7 +1233,7 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 
+ 	if (PTR_ERR(dup) == -ENOENT) {
+ 		/* Look for partially overlapping entries */
+-		dup = pipapo_get(net, set, end, nft_genmask_next(net));
++		dup = pipapo_get(net, set, end, nft_genmask_next(net), tstamp);
+ 	}
+ 
+ 	if (PTR_ERR(dup) != -ENOENT) {
+@@ -1581,6 +1584,7 @@ static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
  {
- 	struct nft_last_priv *priv_dst = nft_expr_priv(dst);
- 	struct nft_last_priv *priv_src = nft_expr_priv(src);
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct net *net = read_pnet(&set->net);
++	u64 tstamp = nft_net_tstamp(net);
+ 	int rules_f0, first_rule = 0;
+ 	struct nft_pipapo_elem *e;
+ 	struct nft_trans_gc *gc;
+@@ -1615,7 +1619,7 @@ static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
+ 		/* synchronous gc never fails, there is no need to set on
+ 		 * NFT_SET_ELEM_DEAD_BIT.
+ 		 */
+-		if (nft_set_elem_expired(&e->ext)) {
++		if (__nft_set_elem_expired(&e->ext, tstamp)) {
+ 			priv->dirty = true;
  
--	priv_dst->last = kzalloc(sizeof(*priv_dst->last), GFP_ATOMIC);
-+	priv_dst->last = kzalloc(sizeof(*priv_dst->last), gfp);
- 	if (!priv_dst->last)
- 		return -ENOMEM;
- 
-diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index cefa25e0dbb0..21d26b79b460 100644
---- a/net/netfilter/nft_limit.c
-+++ b/net/netfilter/nft_limit.c
-@@ -150,7 +150,7 @@ static void nft_limit_destroy(const struct nft_ctx *ctx,
- }
- 
- static int nft_limit_clone(struct nft_limit_priv *priv_dst,
--			   const struct nft_limit_priv *priv_src)
-+			   const struct nft_limit_priv *priv_src, gfp_t gfp)
+ 			gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
+@@ -1786,7 +1790,7 @@ static void *pipapo_deactivate(const struct net *net, const struct nft_set *set,
  {
- 	priv_dst->tokens_max = priv_src->tokens_max;
- 	priv_dst->rate = priv_src->rate;
-@@ -158,7 +158,7 @@ static int nft_limit_clone(struct nft_limit_priv *priv_dst,
- 	priv_dst->burst = priv_src->burst;
- 	priv_dst->invert = priv_src->invert;
+ 	struct nft_pipapo_elem *e;
  
--	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), GFP_ATOMIC);
-+	priv_dst->limit = kmalloc(sizeof(*priv_dst->limit), gfp);
- 	if (!priv_dst->limit)
- 		return -ENOMEM;
+-	e = pipapo_get(net, set, data, nft_genmask_next(net));
++	e = pipapo_get(net, set, data, nft_genmask_next(net), nft_net_tstamp(net));
+ 	if (IS_ERR(e))
+ 		return NULL;
  
-@@ -223,14 +223,15 @@ static void nft_limit_pkts_destroy(const struct nft_ctx *ctx,
- 	nft_limit_destroy(ctx, &priv->limit);
- }
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 8ad1e008d12b..04672238e17d 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -314,6 +314,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 cur_genmask = nft_genmask_cur(net);
+ 	u8 genmask = nft_genmask_next(net);
++	u64 tstamp = nft_net_tstamp(net);
+ 	int d;
  
--static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_limit_pkts_clone(struct nft_expr *dst, const struct nft_expr *src,
-+				gfp_t gfp)
- {
- 	struct nft_limit_priv_pkts *priv_dst = nft_expr_priv(dst);
- 	struct nft_limit_priv_pkts *priv_src = nft_expr_priv(src);
+ 	/* Descend the tree to search for an existing element greater than the
+@@ -361,7 +362,7 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 		/* perform garbage collection to avoid bogus overlap reports
+ 		 * but skip new elements in this transaction.
+ 		 */
+-		if (nft_set_elem_expired(&rbe->ext) &&
++		if (__nft_set_elem_expired(&rbe->ext, tstamp) &&
+ 		    nft_set_elem_active(&rbe->ext, cur_genmask)) {
+ 			const struct nft_rbtree_elem *removed_end;
  
- 	priv_dst->cost = priv_src->cost;
+@@ -553,6 +554,7 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 	const struct rb_node *parent = priv->root.rb_node;
+ 	struct nft_rbtree_elem *rbe, *this = elem->priv;
+ 	u8 genmask = nft_genmask_next(net);
++	u64 tstamp = nft_net_tstamp(net);
+ 	int d;
  
--	return nft_limit_clone(&priv_dst->limit, &priv_src->limit);
-+	return nft_limit_clone(&priv_dst->limit, &priv_src->limit, gfp);
- }
+ 	while (parent != NULL) {
+@@ -573,7 +575,7 @@ static void *nft_rbtree_deactivate(const struct net *net,
+ 				   nft_rbtree_interval_end(this)) {
+ 				parent = parent->rb_right;
+ 				continue;
+-			} else if (nft_set_elem_expired(&rbe->ext)) {
++			} else if (__nft_set_elem_expired(&rbe->ext, tstamp)) {
+ 				break;
+ 			} else if (!nft_set_elem_active(&rbe->ext, genmask)) {
+ 				parent = parent->rb_left;
+@@ -632,9 +634,10 @@ static void nft_rbtree_gc(struct nft_set *set)
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	struct nft_rbtree_elem *rbe, *rbe_end = NULL;
+ 	struct nftables_pernet *nft_net;
++	struct net *net = read_pnet(&set->net);
++	u64 tstamp = nft_net_tstamp(net);
+ 	struct rb_node *node, *next;
+ 	struct nft_trans_gc *gc;
+-	struct net *net;
  
- static struct nft_expr_type nft_limit_type;
-@@ -281,12 +282,13 @@ static void nft_limit_bytes_destroy(const struct nft_ctx *ctx,
- 	nft_limit_destroy(ctx, priv);
- }
+ 	set  = nft_set_container_of(priv);
+ 	net  = read_pnet(&set->net);
+@@ -657,7 +660,7 @@ static void nft_rbtree_gc(struct nft_set *set)
+ 			rbe_end = rbe;
+ 			continue;
+ 		}
+-		if (!nft_set_elem_expired(&rbe->ext))
++		if (!__nft_set_elem_expired(&rbe->ext, tstamp))
+ 			continue;
  
--static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_limit_bytes_clone(struct nft_expr *dst, const struct nft_expr *src,
-+				 gfp_t gfp)
- {
- 	struct nft_limit_priv *priv_dst = nft_expr_priv(dst);
- 	struct nft_limit_priv *priv_src = nft_expr_priv(src);
- 
--	return nft_limit_clone(priv_dst, priv_src);
-+	return nft_limit_clone(priv_dst, priv_src, gfp);
- }
- 
- static const struct nft_expr_ops nft_limit_bytes_ops = {
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index 3ba12a7471b0..9b2d7463d3d3 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -233,7 +233,7 @@ static void nft_quota_destroy(const struct nft_ctx *ctx,
- 	return nft_quota_do_destroy(ctx, priv);
- }
- 
--static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
-+static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src, gfp_t gfp)
- {
- 	struct nft_quota *priv_dst = nft_expr_priv(dst);
- 	struct nft_quota *priv_src = nft_expr_priv(src);
-@@ -241,7 +241,7 @@ static int nft_quota_clone(struct nft_expr *dst, const struct nft_expr *src)
- 	priv_dst->quota = priv_src->quota;
- 	priv_dst->flags = priv_src->flags;
- 
--	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), GFP_ATOMIC);
-+	priv_dst->consumed = kmalloc(sizeof(*priv_dst->consumed), gfp);
- 	if (!priv_dst->consumed)
- 		return -ENOMEM;
- 
+ 		gc = nft_trans_gc_queue_sync(gc, GFP_KERNEL);
 -- 
 2.30.2
 
