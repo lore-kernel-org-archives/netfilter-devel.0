@@ -1,66 +1,82 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AC61E8334
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2025 16:02:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE652116F7;
+	Tue, 18 Mar 2025 16:15:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742313742; cv=none; b=SFCvql02KsRXCB5qUUS3P4f/9KOOj8BgjcFSHKLRqzjRvhltOH4f2OC2q1Ep35Zvzitt+LzUN+waWKv4003tUawHeFXjY+DeGgWLZ0OhrKPeISxZLXaiA6t1cV4+pmtajLOZUN9hZidj5+B8g00FP8LP64Bvb4BgCy58jXW6sr0=
+	t=1742314555; cv=none; b=eTQQ6ewwT2FgJCsI4Dnp9aZDa43eNuZ2HMOiKgbTMCHn4pdW5v5A3G3cizcIiTnF4dVgCYI92Pks4j4F327UvC2CutPOJzpTh1wg2LIHjO5yzy3zwqXQPspDQ1zhjzMRJYXRf5AUx0YyIeJzXzoGE5eLGc9R0IOp/X2Dw0LW3o4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742313742; c=relaxed/simple;
-	bh=tadajSycUMfksYJtgJo0MDrQHVcb4QaBhCKobufIRVU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JpUt1kD5XHuggOSZQvlUQqHOmuPdRIxTCdJ2N1LDtPnTIq5Exdbyin42MFNbDjPwoFFPQHcW2hGF13arCxRHwsWuMxD1VsjTK1dEgL6J6t/C7HmmgW7BS6V6IqQwjzA4RDq838qpFeBCpCH9GoudwkSwVK9AwAbSLn/uSYmCUvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Yf3L7amS; arc=none smtp.client-ip=209.85.214.180
+	s=arc-20240116; t=1742314555; c=relaxed/simple;
+	bh=LmffCKADIeIffqapPxsU9tOy+2YOtIGz9W0FFK7WHVE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mN/tirKq+cxbeomgxZgL0t0y8j65PXrrkOkVIVAcvxh+h7SRkXaVuX+if3+lvOl/NzCWcCklKDY6Wxe9bSXIXolh7956BwMrWC/uRzSznILYTILN9sR5xV4L0tuIDv7Tu8u2fh99LIBOebR5CJ8Nw1lJnCIk64bBxraCOqvZW1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DRbmqAs9; arc=none smtp.client-ip=209.85.208.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Yf3L7amS"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-2240b4de12bso16170665ad.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2025 09:02:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DRbmqAs9"
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-5eb5ecf3217so798043a12.3;
+        Tue, 18 Mar 2025 09:15:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742313739; x=1742918539; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1742314552; x=1742919352; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=b1fNT6PQgaHhE+VbTZLbOS6dTEYQTDUvFJ5kD8i//Tg=;
-        b=Yf3L7amSc1QvoYWCcuQrAM/ZiHnUQ/r/0ZqHhuZWCVJAyx1C+Sur+G2yG6OE55MY9k
-         6WiKJjQiV6kOzaUMXeBjnYkpkdBkdXyLsZkcscXPzk8fxcF6awrHwr49whQkeJcUsBWl
-         1/6UNaRJRDmwlXqBUxVCoypOo819Tya0Qw+Yyb7NFJ4tYkQwsmBuEFTWPtB3qNqoXono
-         P+4/IqrXuCjskC5Z+5L8X5Sp3jIsFYiBT57y11DU81smWXLd4+NJJxfouw3qUxFiliaJ
-         2LcU6TyzeUnLjD/wGDAVZnAdfdJ5YRGi2msubq+oEglLcIbCNoa7KqLhje6fcahhsYXh
-         RRhA==
+        bh=rgo+etfraKUMI0M5lQ2rgHXdFZ4sUNxuHXFwWg3ih84=;
+        b=DRbmqAs94uoBRtltN2bbN6NhH4hsYJQH/T3faeu0v16vrkdANW2CVvB+bzo2kVywbL
+         92jnGzrCoEls3nFe7XVb66gcOLDHV83XCJ/vZkJ/vKPMhWmq1QNs12Bc+diM14JPey18
+         4NIlrt8NtKM2Qzs8RSDigpkB/tdIhGwvUxjmyLMHQyAGGAIbs5gCKuS6rH1J2edrduvx
+         2My/NtmlBiS+CJEQ1UbPtttMBoL6mmhgD3iJ6qH1p0pSzGS010aD634cl6I4OMDuxl7E
+         tHbG59qiNvG8Wp7oArmyA58wEk4KhQQ1o037WI2E7EM5KR+RulxRiep7+VLpt0+yV7pU
+         AzJw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742313739; x=1742918539;
+        d=1e100.net; s=20230601; t=1742314552; x=1742919352;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=b1fNT6PQgaHhE+VbTZLbOS6dTEYQTDUvFJ5kD8i//Tg=;
-        b=a3jDd73NHgSuOXKAlY3T3BHgHLcZrLY3XpuUETdGD5HZdc/O0Aew1kQj6mEl6oNrTD
-         AhYuFEQDlEFBWusG5jA6Kd2UWYQ6JvxBxc/+1ugc+PyAh2GTMjIXvVMTXhH6TnM0oUk4
-         LLN4e/4ENnpQWgEU+krYCLpLuFfJzI0OpEiMTnGBtn6/9XD7Yq7y1ZuJWMqYavUNz1dd
-         TzYvUnaXtoKIzl8wiID19Pv8/+BULZJvWpvWU1rjcwJE8TaKfO+Fbk5Oibd0neU4Yx5G
-         5aSyozEP7qd9ivxsUGxFOPdZLnLEMP/TYgLtLfxh6ncTfaHK0tnZWh4Rrh962SIy38iS
-         qKrw==
-X-Gm-Message-State: AOJu0YzLqOhjUwYptgvOnXy2dSRgT16ZZXeLyjH4FwXMJ91/anHMXwBN
-	krPL+lB6AxIOhqzSKtyG/0kzkKZF7BZsmigA5jdImMm0Ca3BYF9IFFSHhA==
-X-Gm-Gg: ASbGncuXRQMSSk/ObuHMfQglXeolZwFpJmPxYKBOYfxcJyIt7NBAv/RzF3Dlh2KoX52
-	L5rBux7PlT0Eb1EH+UTsHVZv02CyjF6YMc848iuZH1zt2VV/85LAXLTydVttesojoe7X0gK45WH
-	HxZomcW4Dmk83FqmeBf2q+rAjmpkZkj5NoyCna3sRNcRPO5++hjMyuMQ+3td5/xKMJqhkzVqSgP
-	Z6aSj35VKIDL9YrOvUN6ZmA5tuO/gXA18RwKGLYKdEyhQmEPx7jPQZOyltTU3W91xTojrak2VRI
-	26+fMFF4U/xZmmjacx7gcZQR4m60KKs+
-X-Google-Smtp-Source: AGHT+IEV39rBcktoZSmqtMdQM2AwscEWW3/y5Z62dcIlIE7xYh/l2NGkeTJOdYk3A8ALEAtokOvRdQ==
-X-Received: by 2002:a17:902:d50b:b0:223:5379:5e4e with SMTP id d9443c01a7336-225e0a62e97mr244375685ad.10.1742313739341;
-        Tue, 18 Mar 2025 09:02:19 -0700 (PDT)
-Received: from fire.. ([220.181.41.17])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-225c6bbfb4fsm96416845ad.208.2025.03.18.09.02.16
+        bh=rgo+etfraKUMI0M5lQ2rgHXdFZ4sUNxuHXFwWg3ih84=;
+        b=qTOuX072EiOhvzuWQP0C/i1qsDda884Ssa1uR49olCcgnbXHHLbzEsEnnG5E1OrMq6
+         abqRXPT3COZ0L9+VFcQYeUuQHjgDSXL2SudL17kClOD7QBobmjtjr71KEZnQyWulKEDQ
+         NdnKgkuaCh9+iaGtfSpEC66eCjQP+MmNFpB0l2o9CAuauO6MCvCJNQ4t8VD+fHH6odJD
+         65wSvwk6t0a38N7Du09DA0/xJv7eNNFBUOOiwaTs+8V00KzAvxHmaJdVNGtHNep70Ewf
+         XUFb72uJgDsIbYbdFmdz9bwKkvS/yQSVPo+RmyLLrb0ELHXgxAM32y1m+nRRfP3TZtPK
+         syPw==
+X-Forwarded-Encrypted: i=1; AJvYcCXeorFRtfzsGLuCXfDLYrkBpm/BArg8PFSGuBmzQ/QZxnK07iwIfuVaxGgfMLHaenZAA36BB24HpPbtYXLr3Ejb@vger.kernel.org, AJvYcCXxZzqe5rFUKzng+4lS7V1umU0s4BC4IyiBlFZPqzNc0Fcq2iz/n0Pbo11LLE2GE2nY6rknnIA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwrrX4Ie6Qv3hg9D71PYkNDzvIw0rDg3qUq/EjshE/fSwmvRpvo
+	EEwL04iz3odwWI2B+Z+abFTHdhbNj42LLDe2uWRJVSgu3sx8B4ZT
+X-Gm-Gg: ASbGncvVKK+d/uHlb1WzaU/BuaLVhK30bMCW2k2uM5yjOGqt/WTRTRGWRpvD/L3TA+8
+	jyWAp/B1lD4CwbcyPgpyQKGWjHXYw6vrAx1ecdja4Et1bhPSFhaXRP41kBP+m60Wd0qGqnIL4Gf
+	xF5qPToJOWIriVhe2/QLKF9CfT4iSI6+L3g/5tOp5JZ2mJz0r0BARUtdz2EXmsFbl+D1WQZrZQI
+	e6UPeT+V5Uv/Ahip70ZoHacgXiXxSmnT4w4UKsIUxUg56QNvsMh7rnKHJzDO6qOfofRP5X1ev9A
+	zvYlk2U6si9C0fH8OwC3vNLF/0GnOHsnRBfZDZ4j8+kDKeKw+hu3sbrmu1cnWmPGuaG04WJRKzl
+	iQK25iA==
+X-Google-Smtp-Source: AGHT+IGg53ur2jmSUxDXT3bKkey+aq++2T4faI8kMqp5GiJrYGOR8DsXKVvZLa/A4CTE5qj5lQ59XA==
+X-Received: by 2002:a17:907:e88c:b0:ac3:8794:21c9 with SMTP id a640c23a62f3a-ac3879427camr557665466b.21.1742314551759;
+        Tue, 18 Mar 2025 09:15:51 -0700 (PDT)
+Received: from localhost ([185.220.101.65])
+        by smtp.gmail.com with UTF8SMTPSA id a640c23a62f3a-ac3863146bbsm231819866b.146.2025.03.18.09.15.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Mar 2025 09:02:18 -0700 (PDT)
-From: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
-Subject: [PATCH libnftnl] expr: fix new header name printing of payload expr
-Date: Tue, 18 Mar 2025 16:02:04 +0000
-Message-ID: <20250318160204.49576-1-dzq.aishenghu0@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        Tue, 18 Mar 2025 09:15:51 -0700 (PDT)
+From: Maxim Mikityanskiy <maxtram95@gmail.com>
+X-Google-Original-From: Maxim Mikityanskiy <maxim@isovalent.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	KOVACS Krisztian <hidden@balabit.hu>,
+	Balazs Scheidler <bazsi@balabit.hu>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	Maxim Mikityanskiy <maxim@isovalent.com>
+Subject: [PATCH net] netfilter: socket: Lookup orig tuple for IPv6 SNAT
+Date: Tue, 18 Mar 2025 18:15:16 +0200
+Message-ID: <20250318161516.3791383-1-maxim@isovalent.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,45 +85,71 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The debug printing of the payload expr shows the tunnel header name as
-unknown. Since after the first version we added two new payload bases
-inner and tunnel, I prefer to make this change to meet possible future
-extensions rather than setting NFT_PAYLOAD_TUN_HEADER as the new bound.
+nf_sk_lookup_slow_v4 does the conntrack lookup for IPv4 packets to
+restore the original 5-tuple in case of SNAT, to be able to find the
+right socket (if any). Then socket_match() can correctly check whether
+the socket was transparent.
 
-Reproduce:
+However, the IPv6 counterpart (nf_sk_lookup_slow_v6) lacks this
+conntrack lookup, making xt_socket fail to match on the socket when the
+packet was SNATed. Add the same logic to nf_sk_lookup_slow_v6.
 
-nft --debug netlink add rule inet t c meta l4proto udp vxlan vni 0x123456
+IPv6 SNAT is used in Kubernetes clusters for pod-to-world packets, as
+pods' addresses are in the fd00::/8 ULA subnet and need to be replaced
+with the node's external address. Cilium leverages Envoy to enforce L7
+policies, and Envoy uses transparent sockets. Cilium inserts an iptables
+prerouting rule that matches on `-m socket --transparent` and redirects
+the packets to localhost, but it fails to match SNATed IPv6 packets due
+to that missing conntrack lookup.
 
-Before patch:
-  ...
-  [ inner type 1 hdrsize 8 flags f [ payload load 3b @ unknown header + 4 => reg 1 ] ]
-  ...
-
-After patch:
-  ...
-  [ inner type 1 hdrsize 8 flags f [ payload load 3b @ tunnel header + 4 => reg 1 ] ]
-  ...
-
-Fixes: da49c1241474 ("src: expr: use the function base2str in payload")
-Fixes: 3f3909afd76d ("expr: add inner support")
-Signed-off-by: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+Closes: https://github.com/cilium/cilium/issues/37932
+Fixes: b64c9256a9b7 ("tproxy: added IPv6 support to the socket match")
+Signed-off-by: Maxim Mikityanskiy <maxim@isovalent.com>
 ---
- src/expr/payload.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv6/netfilter/nf_socket_ipv6.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/src/expr/payload.c b/src/expr/payload.c
-index c3ac0c345aec..992c353423ef 100644
---- a/src/expr/payload.c
-+++ b/src/expr/payload.c
-@@ -207,7 +207,7 @@ static const char *base2str_array[NFT_PAYLOAD_TUN_HEADER + 1] = {
+diff --git a/net/ipv6/netfilter/nf_socket_ipv6.c b/net/ipv6/netfilter/nf_socket_ipv6.c
+index a7690ec62325..9ea5ef56cb27 100644
+--- a/net/ipv6/netfilter/nf_socket_ipv6.c
++++ b/net/ipv6/netfilter/nf_socket_ipv6.c
+@@ -103,6 +103,10 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 	struct sk_buff *data_skb = NULL;
+ 	int doff = 0;
+ 	int thoff = 0, tproto;
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn const *ct;
++#endif
  
- static const char *base2str(enum nft_payload_bases base)
- {
--	if (base > NFT_PAYLOAD_INNER_HEADER)
-+	if (base >= array_size(base2str_array) || !base2str_array[base])
- 		return "unknown";
+ 	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
+ 	if (tproto < 0) {
+@@ -136,6 +140,25 @@ struct sock *nf_sk_lookup_slow_v6(struct net *net, const struct sk_buff *skb,
+ 		return NULL;
+ 	}
  
- 	return base2str_array[base];
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	/* Do the lookup with the original socket address in
++	 * case this is a reply packet of an established
++	 * SNAT-ted connection.
++	 */
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct &&
++	    ((tproto != IPPROTO_ICMPV6 &&
++	      ctinfo == IP_CT_ESTABLISHED_REPLY) ||
++	     (tproto == IPPROTO_ICMPV6 &&
++	      ctinfo == IP_CT_RELATED_REPLY)) &&
++	    (ct->status & IPS_SRC_NAT_DONE)) {
++		daddr = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.in6;
++		dport = (tproto == IPPROTO_TCP) ?
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.tcp.port :
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
++	}
++#endif
++
+ 	return nf_socket_get_sock_v6(net, data_skb, doff, tproto, saddr, daddr,
+ 				     sport, dport, indev);
+ }
 -- 
-2.43.0
+2.48.1
 
