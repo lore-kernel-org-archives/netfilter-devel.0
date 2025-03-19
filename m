@@ -1,116 +1,162 @@
-Received: from mail-wm1-f67.google.com (mail-wm1-f67.google.com [209.85.128.67])
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 423D4205E3B
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 17:35:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.67
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 848A81CAA81;
+	Wed, 19 Mar 2025 19:18:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742405753; cv=none; b=YJUVDKmgx2a76CibopT7gofTWZQ2GQ3tvqF0g5JCFEiV9IgUBzpeZeFtef2ZZdi6nOTd6x1nllTk8tJbgzwQEn5af60aaCzTs/2zIm/DlIAsS8nCxbgHCZxu5cD4Jzw2Ceg2MY20XRZlD8bGoklSsNldH8IxFWas1HhEj1rzipM=
+	t=1742411923; cv=none; b=pX03alFvuvIJrf4znol8dF2GOTlL/1gbNJhGXtKJWbAvVzL3fR8J2qhK61WpvGEd2D9Ff9kj4e0yaB7AXm7gbAB9QoXSA+fooj+xp5q0aEb0wxewSI0VGb8wYbrphMZlry/wz6bwZKp812QUGsBb2Cdm79Uaq8riDmIF9Om6+TA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742405753; c=relaxed/simple;
-	bh=0l2z93wokPsNlr9CNoUbjWKtixu8c3OJeKbw+StPh74=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SmPllrVIQVI6/aLxUp34lJtzlS5QfLUbfYL8mVZn5Bf+pSHyYXivp1E2lFM7ScmBRxRAC33yxsyZUGLM6J53aEfxywVAg7NL07GJRTElX1pB+13a4r5ARMHqrFa20FiEgTL94e6VA/RAezGCBDDNns4ux75vacDb41Xrd8golWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=S2MiDkxi; arc=none smtp.client-ip=209.85.128.67
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1742411923; c=relaxed/simple;
+	bh=fCd7elDZWM9TbF2caKdqFUMKsgXTTve7IgUD0O7aD7Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=W4RCIJkDjWzC+njGXjvvkk8F66taeOHxo7cfUo7KGVOvzYtZBBL1cl30kG4x0VyTN/XHrcIkmQZKffHswKnY4WcXmN6evWkk74IR7umClEuJY4XnmM0yp/my0KW3jmDQFcFVg2WsEv7POFUQKtoGJgMHe0NIvDZInD+qZqsuMPQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DGt75Ix7; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="S2MiDkxi"
-Received: by mail-wm1-f67.google.com with SMTP id 5b1f17b1804b1-43d0618746bso37723455e9.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 10:35:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DGt75Ix7"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-ac2bfcd2a70so9750966b.0;
+        Wed, 19 Mar 2025 12:18:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1742405749; x=1743010549; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=0l2z93wokPsNlr9CNoUbjWKtixu8c3OJeKbw+StPh74=;
-        b=S2MiDkxiWVxeVrodJNDEDVn+o4/Ap8hnAMdkeK4F1d/+S2VLk0VfzUeR9eO6eJqt/X
-         8N7PZpX4Z+J2FnSYf2u8ruHHjq2G/rE7aUtMXhZm8MoKLYOvqMdggatBl6yWTSukZad4
-         ttJC+1eF9vY4FtEpbGRkRh8j8ZbW1iD94uDGrhSFXqWQvpbeGG7+E+9faTl38UKQ9nag
-         ZNXB56cRmh7niHEEmgra0cFMyIgOcpdO1sDoiRIxrBCWGcAb4aQQUiByamkpmUKwp+Ip
-         grnR0Jdq64TtlESaJGfi8Fkl2Ni90YDg9VVc1HibJgKZorTwbFOTqL5x+Cj/yG9RIJu6
-         T+Kw==
+        d=gmail.com; s=20230601; t=1742411920; x=1743016720; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=76rXdYGiosZcArDP+GPvRYX93rVBHSRF1s8ahqff0Xw=;
+        b=DGt75Ix7vsr4Q3p+quSee+74O3UhzkNH2yfxL5/btYkGw7j+b5qycgFp/uel6pVzPT
+         Bexng2y8bO+o8xgis8eV1Bm6to77VPXGbwbSqLZ0DVVcsQoe0wSf/7nl9AAFu6Ll2vKz
+         NQEN46gt6RNM35Rt5WKKn6s/bbW7NL1qvKnb/Yb4Efrm8GGwaFv4PGPKX+XcGsdfZjHe
+         +siC49fbrevprWpnbcx1dcDeK0aWdXFwet2yFZd2z742GHQ0jlCImuD6XTQrPNZzVG4T
+         k8LUQz2Pfm3d14Gh7jXDODXWVG4rRq6xBlF1LCGJEWrrfcI2j2/lyCb3QTVjb1q6Pp8u
+         bslw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742405749; x=1743010549;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0l2z93wokPsNlr9CNoUbjWKtixu8c3OJeKbw+StPh74=;
-        b=TvuekwH/hQiolSf6y9TEKBSwK4dX9NrFqqO426qAzUV/ECEsalW9GGAa0dXtTKseQA
-         /uH8b1ksZGpfMikhROrt15ifC64VtqZVSa5zzA217OA5U93uWkDy5wMdNWpojNMcWeiV
-         2aDvJ4BJTSmTgX/yFZg+/HMGFTOiXaNe9gN0k7CrWs+2XZ2idIK5B5lhW0M47lrE9waL
-         0QI+LuuXmk9bevGXaS+fvRh9RvFAVj+2FmziAKyfoSzydyXGOiCLQU1smqvbHHuAzXhC
-         Q3+rcRDhpHd0IEYDNYr0/6C3DNg3ZimXUtJWUNZHgCKmLi8WsCToiYMkTT5ieYPR4B2j
-         BK/Q==
-X-Gm-Message-State: AOJu0Yz2CFhgCttTbgD10CF2MhlCKMCQ5Re8bH7Yyog6dYtXTu8jVffZ
-	eG8sgQ3ZK8joOfARO/a5zz4sdPmTVuNiNU65DMMQD914EIuXn1HHJs5P27chV0sKZ+bfnv5MH1R
-	ivtdSxA==
-X-Gm-Gg: ASbGncvaDijUc2H59rjeVxw44NT161utnpAiAHdsle/imf36iHDT3oxwZqKCaVGoHcd
-	jJTMox5hrAD7BH45uFAPZoUMLxaxOrLB31j9UaddKP170JWbOJ3c7GBcpeFGq1DlbANBZdc1NaO
-	J6Ml8qRr+sxRwXcKg8fRGkBDYpsbPgaQw3sjfMr8QVo+jz/nySY5h2crOsVB4ZXAdjNp4I01gyU
-	kfTS1ngFP7C03SEqimsncGiFAv6ezs7XIg3iaIN0LYbtZJOrUvch+MVMFbisSXd8iMjdbYJEU2D
-	/o0DMfYuoyEb0t6L26iZ8F4a38nZh92mTWAxfW3K3MRBomQ=
-X-Google-Smtp-Source: AGHT+IGSY1s1s9fdWTOqCvd15nCY+1i4tmiNttO/M//h1esu/RG1YRloGZrRBRjGkhNkFUvY5SdRkw==
-X-Received: by 2002:a05:600c:3ac6:b0:43c:fe85:e4a0 with SMTP id 5b1f17b1804b1-43d4378b869mr37926545e9.7.1742405749373;
-        Wed, 19 Mar 2025 10:35:49 -0700 (PDT)
-Received: from blackdock.suse.cz ([193.86.92.181])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43d43f55721sm24738885e9.20.2025.03.19.10.35.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 19 Mar 2025 10:35:48 -0700 (PDT)
-Date: Wed, 19 Mar 2025 18:35:47 +0100
-From: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-To: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>, "David S . Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, cgroups@vger.kernel.org, 
-	Jan Engelhardt <ej@inai.de>, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
-Message-ID: <xn76sakdk5zai3o4puz4x25eevw4jxhh7v5uqkbollnlbuh4ly@vziavmudqqlv>
-References: <20250305170935.80558-1-mkoutny@suse.com>
+        d=1e100.net; s=20230601; t=1742411920; x=1743016720;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=76rXdYGiosZcArDP+GPvRYX93rVBHSRF1s8ahqff0Xw=;
+        b=eyP+wrLji8T/9LvQoAseIxTAfWcDXA83A+7nAi0tn5FG7znL/GQripgh6XvGOwsBYZ
+         L974VdPnr9o/BAUO0o+BnX11P4H7GcgN3UvxziCMpz7HRO/pVCHLe2fmNnXGGG/yxfWL
+         H5ZLre2xCzpFigAG9POz1lGJAfcxazhKrgSGIcgXyJrKes1bIN+OHdemfysYRkrT9swx
+         lzsGUu1UmJxa7pRtbmkEQFwSqQbKX1ksJ8+waST/Spiac1CksCHDUu9Wu0OSL+QEUftF
+         2eQRlwpantVRm41u/3o3UXVAphDwU7I+TKNSo8VJQtEqobmBZv94FCIs2GF5b0h/VQa9
+         MERg==
+X-Forwarded-Encrypted: i=1; AJvYcCVIXfZIcQhAUXxd1n2z6sBrPFUQ5CveXf2++P2SVLWITADFRb0HhO/19ysA7FY6ZGLkH6ok/X9C68vAxBiSnLc=@vger.kernel.org, AJvYcCWX8S/y1I4ckhNtMV+iFIfxRs8tGUh89eaLgUs+2oq/xKOhYNfFk1s0H9SyOItzqDtNLBTGCK1q6nDZIF/BCWWZ@vger.kernel.org, AJvYcCXkSRqja//E6VcEtA5CAqzOFJQaRg58eVbhqPFuw5A8m0Q4uXBfYszv5HJ8CX7l6KCcXA2zuPj3@vger.kernel.org
+X-Gm-Message-State: AOJu0YwpuXh1yfQ7NKIcZRFjT18+zpa+tsjcSY/Y5HekP/V5fAzFYkO6
+	4nOdrfA3y9BEQDBYwICEJRUtn2xmNwUqLDdDVEg4E/6U38lidxAx
+X-Gm-Gg: ASbGncu0Wk9TLEL1oaZczk4b/aZh378U3hDVn1Kfy+xswifPb4+3JRl9I8X5xQWFunn
+	w8dUnFH1luaXSzLHW1FQOHiier3/KSOQzd81O29saPYgFs9OM54jzN74sYzB6dQy69511IHkC2p
+	pmDupaPi2waARxNb7mU3cKVH0qU0iL0BWv+O7h7Tu7W7pmz6/XNlGua1/rRMK9LOJV8RxeWgjRU
+	wc6isDmKTjM84/lcP0DbnhPIA9SPoeZgVh7uiqOAQMJRQtRklgtE06Pzf5xsgI7dBZsluaQPxVa
+	OiIlDb9re0MKuEyRFHXgNeLI8dAHX65HsnykTG/WBvxtn1sO22DX+HI74gtUi+b5vDTY6JSqeac
+	iKvLzK16Ojz1YU5nj7NWNhcCT9HnOlu7VKMMYWv1C0F68t+25T2+w2BPiVt8qRtw6dmEKEjX1Le
+	Ky/sibVcr/Vr2UKKCzMhE=
+X-Google-Smtp-Source: AGHT+IFsH9Vg/8XWJJyAcoTa3h82RYSbCaCHm7YY/12jziTpQuEDgAGkZsZYd7f8xxPAv4Yo7aJb1g==
+X-Received: by 2002:a17:907:bb4c:b0:ac1:fbf8:6ae7 with SMTP id a640c23a62f3a-ac3b7c02376mr489571266b.13.1742411919425;
+        Wed, 19 Mar 2025 12:18:39 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5e816afe26bsm9467228a12.72.2025.03.19.12.18.38
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 19 Mar 2025 12:18:38 -0700 (PDT)
+Message-ID: <8a30aec8-fcc0-4d5f-b4e8-4cb60fe36725@gmail.com>
+Date: Wed, 19 Mar 2025 20:18:36 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="mkh2zl7plkwrsur7"
-Content-Disposition: inline
-In-Reply-To: <20250305170935.80558-1-mkoutny@suse.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v10 nf-next 2/3] netfilter: nft_chain_filter: Add bridge
+ double vlan and pppoe
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>, Roopa Prabhu <roopa@nvidia.com>,
+ Nikolay Aleksandrov <razor@blackwall.org>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
+ netfilter-devel@vger.kernel.org, bridge@lists.linux.dev,
+ netdev@vger.kernel.org, linux-kselftest@vger.kernel.org
+References: <20250315200033.17820-1-ericwouds@gmail.com>
+ <20250315200033.17820-3-ericwouds@gmail.com> <Z9n8GHYfuhTFZB3p@calendula>
+From: Eric Woudstra <ericwouds@gmail.com>
+Content-Language: en-US
+In-Reply-To: <Z9n8GHYfuhTFZB3p@calendula>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 
---mkh2zl7plkwrsur7
-Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
-MIME-Version: 1.0
 
-Hello.
+On 3/19/25 12:04 AM, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> On Sat, Mar 15, 2025 at 09:00:32PM +0100, Eric Woudstra wrote:
+>> This adds the capability to evaluate 802.1ad, QinQ, PPPoE and PPPoE-in-Q
+>> packets in the bridge filter chain.
+>>
+>> Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+>> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+>> ---
+>>  net/netfilter/nft_chain_filter.c | 20 +++++++++++++++++++-
+>>  1 file changed, 19 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+>> index 19a553550c76..7c7080c1a67d 100644
+>> --- a/net/netfilter/nft_chain_filter.c
+>> +++ b/net/netfilter/nft_chain_filter.c
+>> @@ -232,11 +232,27 @@ nft_do_chain_bridge(void *priv,
+>>  		    struct sk_buff *skb,
+>>  		    const struct nf_hook_state *state)
+>>  {
+>> +	struct ethhdr *ethh = eth_hdr(skb);
+>>  	struct nft_pktinfo pkt;
+>> +	int thoff;
+>>  
+>>  	nft_set_pktinfo(&pkt, skb, state);
+>>  
+>> -	switch (eth_hdr(skb)->h_proto) {
+>> +	switch (ethh->h_proto) {
+>> +	case htons(ETH_P_PPP_SES):
+>> +		thoff = PPPOE_SES_HLEN;
+>> +		ethh += thoff;
+> 
+> This pointer arithmetics does not look correct, ethh is struct ethhdr,
+> neither void nor char.
+> 
+>> +		break;
+>> +	case htons(ETH_P_8021Q):
+>> +		thoff = VLAN_HLEN;
+>> +		ethh += thoff;
+> 
+> Same here.
+> 
+>> +		break;
+>> +	default:
+>> +		thoff = 0;
+>> +		break;
+>> +	}
+>> +
+>> +	switch (ethh->h_proto) {
+> 
+> This switch will match on the wrong offset.
+> 
+>>  	case htons(ETH_P_IP):
+>>  		nft_set_pktinfo_ipv4_validate(&pkt);
+>>  		break;
+>> @@ -248,6 +264,8 @@ nft_do_chain_bridge(void *priv,
+>>  		break;
+>>  	}
+>>  
+>> +	pkt.thoff += thoff;
+> 
+> And only transport offset is adjusted here.
+> 
+>>  	return nft_do_chain(&pkt, priv);
+>>  }
+>>  
+>> -- 
+>> 2.47.1
+>>
 
-On Wed, Mar 05, 2025 at 06:09:35PM +0100, Michal Koutn=FD <mkoutny@suse.com=
-> wrote:
-=2E..
-> Changes from v1 (https://lore.kernel.org/r/20250228165216.339407-1-mkoutn=
-y@suse.com)
-> - terser guard (Jan)
-> - verboser message (Florian)
-> - better select !CGROUP_BPF (kernel test robot)
-
-Are there any more remarks or should I resend this?
-
-Michal
-
---mkh2zl7plkwrsur7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTd6mfF2PbEZnpdoAkt3Wney77BSQUCZ9sAcAAKCRAt3Wney77B
-SculAP9GVIoNd21oKejOf5K+kuWK6ln1L3Qw50YXK5VXLv4gMwEArmRvNKABVTIK
-cPswoGaacpZ2rtBI+7CV6ppLjJtekQU=
-=11CI
------END PGP SIGNATURE-----
-
---mkh2zl7plkwrsur7--
+I will sort this out and send a new version after the merge window.
