@@ -1,149 +1,92 @@
-Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-184.mta0.migadu.com (out-184.mta0.migadu.com [91.218.175.184])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46994212FBD;
-	Wed, 19 Mar 2025 19:37:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3C9213235
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 19:50:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.184
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742413053; cv=none; b=HHItc+amCXk0Y+WFiuyutE/ulLL366pNK1I6fnCuVMF/1YAH3mCJJXl3yj3bs11LekC4gE/EyPZgDyWPAT1WoPbqFF/iyKL5TIgcqO0CMJKIfTfGVMyqSLwFXXRuO0t4y/XYooUV6NQ8v7G5pcYkS2Yaxoag04bP/rww5XBoGrU=
+	t=1742413834; cv=none; b=nN96e01o5V9iIWQc5I/1716zQdnRBSeyKXOA3JMpPqRn4JTiWLjv7fhZXN8jISfFJDdxZl90REYno6eeo+2pM/d8S9TfOIHUZ5KbvNwQufs9lA77O2s9xQE3mBbg/5a4eksosooK6U8us9GtuVGVn0MoZge4Mkn/vPYyuuz6pi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742413053; c=relaxed/simple;
-	bh=NUjywNL79Bcz4+kco3+goMMB0g0EPgUwAxsOhv4kh1w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=poITFQ7AoQLaI8cy6xvgVseYZ4eM68DuWeT6I7mq5E9aaQ6mLDMrd+NN1yhTVrGCCki2q2q5Ggc9XcEU3pFdZCQROWqVox/4VpKLdXmW3iDKpu1eb4UhjjDC6zfvp0wVPhPK5ygNX57PeIvWrP77N8nN6PGxfhxDiHzHu/Z0seM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NDeFIrH5; arc=none smtp.client-ip=209.85.218.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1742413834; c=relaxed/simple;
+	bh=v59XltM8uQQ+KUCb53z50qzUzJuh28iAFOL+RdNCSfs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pH+iZKnMbrGn7r/kp/zpeuAv8p7HiD5RaYnDD/nIYXEQaPh2QvUKP7YZhawnIt2hfV20B3Pwx/K/X1ZwEbXGQL3J0+fTD/izqVB1m09yoN/eObog6ssbszMe1ua4IyXm9zu5RxitUUTNucTVy704vt/olkuFVWGxCins+Q58iAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=sSWfrnvE; arc=none smtp.client-ip=91.218.175.184
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NDeFIrH5"
-Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-ac2bfcd2a70so12556966b.0;
-        Wed, 19 Mar 2025 12:37:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742413050; x=1743017850; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=/hWjp2lAOR+xlpu16vpG0lA3R8Vrfh8sFtASS1Glky4=;
-        b=NDeFIrH58b0as23jtqDnr6ZDqDruXPv0od6poETwRfviXoIu75d/zQ4+M5uj+gjP37
-         EmgLMV9jCQnYQ9SKVh0ikohlfKDGPsmUxJzK9VIEvOl97lFzffKGye38uBbNSRO44rBG
-         rLdVQLUiqw2+4/ARegu83pt6Gy8mtKZhte2ZKrkYMnT+FNhj8gaYqZGGDftaK8uWa368
-         3tNYCAX/9fOLBKqyPtMpGIy3XfLvUvMAu/m1TZjkOmU+ziLon7gxN2C/e0+V8k/EREWd
-         4ZbTvEVKhpvQwjj1qJ/KWVHIwtIqR+ceA/TPXLCutZ2gydsyPWilUU6PwhTP/YRFA7zp
-         F/hQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742413050; x=1743017850;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=/hWjp2lAOR+xlpu16vpG0lA3R8Vrfh8sFtASS1Glky4=;
-        b=FPgzz6rWMtFVzEVT+F3SbeA2eEK9nteall0Aac54a3zZ4WjB3esuGoCMvRd3knduxp
-         UfyOmjv47iHFuCMGB7paFXRwvSxpZLac6Gzu2x2j/zpyX0szmEETMhcL6pW7Ib1FKYZH
-         vXfaFc+SODPisFiQ/CdJN4lVFFjPZGxqtbONprKrrhUY474ZHaJX0B/h6lMO8dlJhmIS
-         an4cpMK3hXRFonMkpgmNiIvbRIdFc8MWifTH7EQMswRC2mMrVdicW6Q2ikRPdnENBmWZ
-         6ZHGmIW9pEisTY79bzUI3AWixNfSo+6TsGgR0zj9ZtGuUivq750uMPpdkvG9xkkGb23A
-         bofg==
-X-Forwarded-Encrypted: i=1; AJvYcCU9Wja1OMZDM9GnU19LVWlBJQ6pzTRo0OU3MMPLLl47EL5cijhHuEiDKQe9AHQZlPVkfplGqENF@vger.kernel.org, AJvYcCV96C3BA9uezoZFgwPP97NDWjHFcOrwZrIVvHyc8pNlccRXcBI9TAPOdu6TyhXvEwazbvjJtTDjgUogMysOvjHW@vger.kernel.org, AJvYcCWxRZVX6NdREPvMPpdZBBvqmobjkY3jiNJal264QosXEngUBoQsOOwmMhgdqCqYOfLj2C+15A4YY3pO7lBj+HI=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx3EYFPNZTmOG0P8ThioXTnxM2W5I/AOqA1cqRoPJ2DIzjGfD3E
-	VJRkDEgb1EySjvkxLBr0UFJw/DGGoOV9Sqaop2TnlSWl3CrOLQq/
-X-Gm-Gg: ASbGnct+R53EUevpzBP3c7Sc5Fyg5LO0cjrzmEQQ7ZQV4IL/kc1/mpHVyAv84fIHoyu
-	gi5hFp7ueePrVue+lfF7p74hd64UtqCCttUFbJvbQiHpPuSjk0yxHhXJiXAbwuuloLRkukI6OXL
-	do1yZKdnjgDdZOp3N30e7vty9S11kcojMimFitisQuYv+3OgIGBkbRmawD8FHOFPUunCgZgkQ14
-	xB4DJqMcYaOyuetwxwK0pX5R4YyIJmevjUr24qFWJtrb03DFcV90O9Xmy+C2Hon0QSKudmqBqd+
-	UjxO6WTLDRraBQUuKPAnqI9VQcydh63BqIB/ElehVwR4Uc5ZO8OrkFzeE0usI6zXMbrbI1mZWGi
-	cwIaN0SsP1Fa0fU8KRc9cL8frhjSWpQbcIuM4/eVZAeUyJ2giL7LVNFD3MZgAnLMSXdp/wIfg2n
-	fSdPaJPeV2goHWJZFYOss=
-X-Google-Smtp-Source: AGHT+IFxBYUpzqxGSZdBA0JubUlnSNecSwjgT24V4GH75JqqwyWr1waPwEMz8/JdpX6S2eAzwSPnRw==
-X-Received: by 2002:a17:907:ec0d:b0:ac2:dcb9:d2d7 with SMTP id a640c23a62f3a-ac3b7a97454mr522728466b.12.1742413050194;
-        Wed, 19 Mar 2025 12:37:30 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac3146aecbasm1039783166b.37.2025.03.19.12.37.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 19 Mar 2025 12:37:29 -0700 (PDT)
-Message-ID: <eacbd4b8-b8dc-4402-9cbe-666c1ae112e2@gmail.com>
-Date: Wed, 19 Mar 2025 20:37:27 +0100
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="sSWfrnvE"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1742413820;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=byfiCU8fvjOZ+pAiCn4TzZ0P7EaHu1Y5GqBocSeFh7E=;
+	b=sSWfrnvEk2+rxhJK9xMy1vTfDisKz5u1r7lMzVqpPQ/S91NNiyKOvhOtPZerygChZEFufZ
+	boN6kGj878dpMvKHT/bTmZCquNU0wk+amb9ZZ4uBkBQPDpHPFM9qUTrX7EL0KTq1BTMGfH
+	F3Cr5F/vQwu5S6Xd9pNyMSLaamo84+8=
+From: Thorsten Blum <thorsten.blum@linux.dev>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next] netfilter: x_tables: Remove unnecessary strscpy() size arguments
+Date: Wed, 19 Mar 2025 20:49:33 +0100
+Message-ID: <20250319194934.3801-1-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v10 nf-next 2/3] netfilter: nf_flow_table_offload: Add
- nf_flow_encap_push() for xmit direct
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Michal Ostrowski <mostrows@earthlink.net>,
- Andrew Lunn <andrew+netdev@lunn.ch>, "David S. Miller"
- <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Jozsef Kadlecsik <kadlec@netfilter.org>, Simon Horman <horms@kernel.org>,
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
- linux-hardening@vger.kernel.org, Nikolay Aleksandrov <razor@blackwall.org>
-References: <20250315195910.17659-1-ericwouds@gmail.com>
- <20250315195910.17659-3-ericwouds@gmail.com> <Z9oAeJ5KifLxllEa@calendula>
-From: Eric Woudstra <ericwouds@gmail.com>
-Content-Language: en-US
-In-Reply-To: <Z9oAeJ5KifLxllEa@calendula>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
+If the destination buffer has a fixed length, both strscpy_pad() and
+strscpy() automatically determine its size using sizeof() when the
+argument is omitted. This makes the explicit sizeof() calls unnecessary.
+Remove them.
 
+No functional changes intended.
 
-On 3/19/25 12:23 AM, Pablo Neira Ayuso wrote:
-> On Sat, Mar 15, 2025 at 08:59:09PM +0100, Eric Woudstra wrote:
->> Loosely based on wenxu's patches:
->>
->> "nf_flow_table_offload: offload the vlan/PPPoE encap in the flowtable".
-> 
-> I remember that patch.
-> 
->> Fixed double vlan and pppoe packets, almost entirely rewriting the patch.
->>
->> After this patch, it is possible to transmit packets in the fastpath with
->> outgoing encaps, without using vlan- and/or pppoe-devices.
->>
->> This makes it possible to use more different kinds of network setups.
->> For example, when bridge tagging is used to egress vlan tagged
->> packets using the forward fastpath. Another example is passing 802.1q
->> tagged packets through a bridge using the bridge fastpath.
->>
->> This also makes the software fastpath process more similar to the
->> hardware offloaded fastpath process, where encaps are also pushed.
-> 
-> I am not convinced that making the software flowtable more similar
-> hardware is the way the go, we already have to deal with issues with
-> flow teardown mechanism (races) to make it more suitable for hardware
-> offload.
-> 
-> I think the benefit for pppoe is that packets do not go to userspace
-> anymore, but probably pppoe driver can be modified push the header
-> itself?
-> 
-> As for vlan, this is saving an indirection?
-> 
-> Going in this direction means the flowtable datapath will get more
-> headers to be pushed in this path in the future, eg. mpls.
-> 
-> Is this also possibly breaking existing setups? eg. xfrm + vlan
-> devices, but maybe I'm wrong.
-> 
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+---
+ net/netfilter/x_tables.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-If you do not want to touch the software fastpath, It should be possible
-to do it without.
-
-For bridged interfaces, only use the hardware fastpath, not installing a
-hook for the software fastpath at all.
-
-Another option is installing the hook (matching the hash, updating
-counter and perhaps calling flow_offload_refresh() and so), but then
-letting traffic continue the normal path. That is, until the hardware
-offload takes over.
-
-In both cases only allow to add the flowtable if the offload flag is set.
-
-What do you think?
-
-But in all cases (including existing cases in existing code), I think we
-need the patches from "[PATCH v10 nf-next 0/3] netfilter: fastpath fixes".
-
-Could you look at these?
-
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 709840612f0d..8607852dadec 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -766,9 +766,9 @@ void xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
+ 
+ 	msize += off;
+ 	m->u.user.match_size = msize;
+-	strscpy(name, match->name, sizeof(name));
++	strscpy(name, match->name);
+ 	module_put(match->me);
+-	strscpy_pad(m->u.user.name, name, sizeof(m->u.user.name));
++	strscpy_pad(m->u.user.name, name);
+ 
+ 	*size += off;
+ 	*dstptr += msize;
+@@ -1147,9 +1147,9 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
+ 
+ 	tsize += off;
+ 	t->u.user.target_size = tsize;
+-	strscpy(name, target->name, sizeof(name));
++	strscpy(name, target->name);
+ 	module_put(target->me);
+-	strscpy_pad(t->u.user.name, name, sizeof(t->u.user.name));
++	strscpy_pad(t->u.user.name, name);
+ 
+ 	*size += off;
+ 	*dstptr += tsize;
