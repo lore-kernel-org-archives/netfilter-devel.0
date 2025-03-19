@@ -1,99 +1,298 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (unknown [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F25C0B664
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 09:29:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A660422F19
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 11:19:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742376548; cv=none; b=Y2iM1IEYyRrO4YaznY0uwK12c9vHc9x6ES2rKmiV7pQ6xaWnSxOGlgBZ0Myevoav3qX9eygtcsuAAo9ViXsyyKaS7AhLoNN7lVckgfFJ1zfIU9NTPDujQ0MUJ8lBd+/cAs8zsX4lz6SIx4EJHE/SwxefLnYH/eXHe1NvIZCVDms=
+	t=1742383175; cv=none; b=N4L78yoeLwF8yYjn69NL6yLWo7vuHCkiZO3aahcYTg0e16OD4R9/oprXlMqjl/C4RWOj1xd8V1SYNcDd/yHQ8dBkZwGFj3aWW9WXPngx3DgigOUSjCpFx3IW/FKgMI78onMNiUJuZBaDD7730ctYGb27VDkqp6k5DNUs9fxTGtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742376548; c=relaxed/simple;
-	bh=wCxhvEIOQtcDo9+4Qx8/WLOux5bQBk5HbMp/0bB8qgI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DGe5iszVgZdnh5AzdfONhgxttqH8N/LZ9GSjbUeaJcsQSB+4gnHCdgS1hTizWArhVmj0zbKxmgl2IVOw3/UHd4acsk1qQH4gHFjP2rRUUuSX4jdJRIMx7oF+ZD+dLlmzQ8wqJ2yxBZ/IT/CXMoQdxedropB6n32VLMYTQEeCLp0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M6g2Osa6; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=re5T4baU; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M6g2Osa6";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="re5T4baU"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B7ECE6037B; Wed, 19 Mar 2025 10:28:57 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742376537;
-	bh=qIcwDexVnE8fH6uuovqyJcqUUvDRdjKWVVr7dcew5ZU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=M6g2Osa6nQui3jEYuA2gtb2SvZ5cuhlHYBaReSorSjfupedBmzyy3x2j0qseowQjr
-	 JV/UXVpukgcDqmajhGCdbKb2LiJHv4+Pn/eqJXmHr8uqkrqNMzMQ3LMuDiuJvjd6a8
-	 OXC4kFwxhiYbhQqJh7lFsGmQPmJur4CKFRzhG9OQp12eMQplimY5L8/8/FikZzXA0A
-	 TAmx/dfudLUzBM9b8MLKd2W3bJB4t9MxoU0OEtDDpnuEoHzKExglqPGx9B20u71Kin
-	 CfLuflFc69vZu8S2sKpFvVlTU/ghvNXa70NoKfJAmhRiXa6daPW0aP02RNnw1NC06j
-	 4xxo/sqJPZYhg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BC17060372;
-	Wed, 19 Mar 2025 10:28:55 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742376535;
-	bh=qIcwDexVnE8fH6uuovqyJcqUUvDRdjKWVVr7dcew5ZU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=re5T4baUDZ8UXqU3Boja78KMOoRMT7XX4/L4jo4rmICxF5+v2iogBxANZanP9WKYT
-	 RTOY7H7s9mDLwyEiZGAAbuiogc5Ll3dnRGBPnsqfmFy0jEhEZkWS8qFNte8MX3pspo
-	 9MPEfngco+esg3Nm6KkE5LY+WhO0cJW0O1QhKm6/37lYd+CDaYjVPYJGQayYYm39A0
-	 CdHQnma80DAQO3jtY5q3PNpwF7tO8nuwlGAUzzyM1E9HzhteyS584bO9cEj9iDs5PD
-	 x4RCKDKAPunc1Ikz9am+IrwexsYteI+uaD/QSgXvv12D1lQlCi2lZFaG9uK8hnw9Gw
-	 R/c3t5VTVX2eQ==
-Date: Wed, 19 Mar 2025 10:28:52 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Duncan Roe <duncan_roe@optusnet.com.au>
-Cc: netfilter-devel@vger.kernel.org, ged@jubileegroup.co.uk
-Subject: Re: [PATCH libnetfilter_queue] src: doc: Re-order gcc args so
- nf-queue.c compiles on Debian systems
-Message-ID: <Z9qOVEObhFzmVKx6@calendula>
-References: <20250319005605.18379-1-duncan_roe@optusnet.com.au>
+	s=arc-20240116; t=1742383175; c=relaxed/simple;
+	bh=IRHHzhRp8jkCddFqObMD96L2mYJNymGb/jOslOoz6eI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ERbC1tcWxzdPAtZ+fT0W40mODik9nF7xZbCY0YhKB3XSiZ/XO+X9BdqbsiwKzQreGfz99Lb/TE2YoBebky3C9gm2sk7KxCOwnezZCdCE9BTz1XbhAleOsT7Z6EHatgjSmY/csVk1cXBQDrF91ILQg/c0MEHtcBa5UQgtt7TQL6o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1turSN-0007lp-Jt; Wed, 19 Mar 2025 12:19:31 +0100
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] netlink_delinerize: add more restrictions on meta nfproto removal
+Date: Wed, 19 Mar 2025 12:18:51 +0100
+Message-ID: <20250319111855.5885-1-fw@strlen.de>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250319005605.18379-1-duncan_roe@optusnet.com.au>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 19, 2025 at 11:56:05AM +1100, Duncan Roe wrote:
-> Change the order of gcc arguments following the discussion starting at
-> https://www.spinics.net/lists/netfilter-devel/msg90612.html.
-> While being about it, update the obsolete -ggdb debug option to -gdwarf-4.
-> 
-> Reported-by: "G.W. Haywood" <ged@jubileegroup.co.uk>
-> Fixes: f0eb6a9c15a5 ("src: doc: Update the Main Page to be nft-focussed")
-> Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
-> ---
->  src/libnetfilter_queue.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-> index f152efb..99799c0 100644
-> --- a/src/libnetfilter_queue.c
-> +++ b/src/libnetfilter_queue.c
-> @@ -86,7 +86,7 @@
->   * nf-queue.c source file.
->   * Simple compile line:
->   * \verbatim
-> -gcc -g3 -ggdb -Wall -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
-> +gcc -g3 -gdwarf-4 -Wall nf-queue.c -o nf-queue -lnetfilter_queue -lmnl
+We can't remove 'meta nfproto' dependencies for all cases, e.g. inet.
 
-I am going t remove -g3 and -gdwarf-4, so it ends up with:
+   meta nfproto ipv4 ct protocol tcp
 
-gcc -Wall nf-queue.c -o nf-queue -lnetfilter_queue -lmnl
+is listed as 'ct protocol tcp'.
 
-to keep this example as simple as possible.
+meta l4proto removal checks were correct, but refactor this into a helper
+function to split meta/ct checks from the caller.
 
->  \endverbatim
->   *The doxygen documentation
->   * \htmlonly
-> -- 
-> 2.46.3
-> 
-> 
+We need to examine ct keys more closely to figure out if the dependency
+can be inferred or not: only NFT_CT_SRC/DST and its variants imply the
+network protocol to use.  All other keys must keep the l3 dependency.
+
+Also extend test coverage.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1783
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/ct.c                   |  4 ++
+ src/netlink_delinearize.c  | 82 +++++++++++++++++++++++++++++---------
+ tests/py/inet/ct.t         |  5 +++
+ tests/py/inet/ct.t.json    | 51 ++++++++++++++++++++++++
+ tests/py/inet/ct.t.payload | 14 +++++++
+ 5 files changed, 138 insertions(+), 18 deletions(-)
+
+diff --git a/src/ct.c b/src/ct.c
+index 6793464859ca..022b4282c520 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -456,7 +456,11 @@ struct expr *ct_expr_alloc(const struct location *loc, enum nft_ct_keys key,
+ 
+ 	switch (key) {
+ 	case NFT_CT_SRC:
++	case NFT_CT_SRC_IP:
++	case NFT_CT_SRC_IP6:
+ 	case NFT_CT_DST:
++	case NFT_CT_DST_IP:
++	case NFT_CT_DST_IP6:
+ 		expr->ct.base = PROTO_BASE_NETWORK_HDR;
+ 		break;
+ 	case NFT_CT_PROTO_SRC:
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index ae14065c00d6..ab8254e2a99c 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -2250,17 +2250,71 @@ static bool __meta_dependency_may_kill(const struct expr *dep, uint8_t *nfproto)
+ 	return false;
+ }
+ 
++static bool ct_may_dependency_kill(unsigned int meta_nfproto,
++				   const struct expr *ct)
++{
++	assert(ct->etype == EXPR_CT);
++
++	switch (ct->ct.key) {
++	case NFT_CT_DST:
++	case NFT_CT_SRC:
++		switch (ct->len) {
++		case 32:
++			return meta_nfproto == NFPROTO_IPV4;
++		case 128:
++			return meta_nfproto == NFPROTO_IPV6;
++		default:
++			break;
++		}
++		return false;
++	case NFT_CT_DST_IP:
++	case NFT_CT_SRC_IP:
++		return meta_nfproto == NFPROTO_IPV4;
++	case NFT_CT_DST_IP6:
++	case NFT_CT_SRC_IP6:
++		return meta_nfproto == NFPROTO_IPV6;
++	default:
++		break;
++	}
++
++	return false;
++}
++
++static bool meta_may_dependency_kill(uint8_t nfproto, const struct expr *meta, const struct expr *v)
++{
++	uint8_t l4proto;
++
++	if (meta->meta.key != NFT_META_L4PROTO)
++		return true;
++
++	if (v->etype != EXPR_VALUE || v->len != 8)
++		return false;
++
++	l4proto = mpz_get_uint8(v->value);
++
++	switch (l4proto) {
++	case IPPROTO_ICMP:
++		return nfproto == NFPROTO_IPV4;
++	case IPPROTO_ICMPV6:
++		return nfproto == NFPROTO_IPV6;
++	default:
++		break;
++	}
++
++	return false;
++}
++
+ /* We have seen a protocol key expression that restricts matching at the network
+  * base, leave it in place since this is meaningful in bridge, inet and netdev
+  * families. Exceptions are ICMP and ICMPv6 where this code assumes that can
+  * only happen with IPv4 and IPv6.
+  */
+-static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
++static bool ct_meta_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 				     unsigned int family,
+ 				     const struct expr *expr)
+ {
+-	uint8_t l4proto, nfproto = NFPROTO_UNSPEC;
+ 	struct expr *dep = payload_dependency_get(ctx, PROTO_BASE_NETWORK_HDR);
++	uint8_t nfproto = NFPROTO_UNSPEC;
+ 
+ 	if (!dep)
+ 		return true;
+@@ -2280,23 +2334,15 @@ static bool meta_may_dependency_kill(struct payload_dep_ctx *ctx,
+ 		return true;
+ 	}
+ 
+-	if (expr->left->meta.key != NFT_META_L4PROTO)
+-		return true;
+-
+-	l4proto = mpz_get_uint8(expr->right->value);
+-
+-	switch (l4proto) {
+-	case IPPROTO_ICMP:
+-	case IPPROTO_ICMPV6:
+-		break;
++	switch (expr->left->etype) {
++	case EXPR_META:
++		return meta_may_dependency_kill(nfproto, expr->left, expr->right);
++	case EXPR_CT:
++		return ct_may_dependency_kill(nfproto, expr->left);
+ 	default:
+-		return false;
++		break;
+ 	}
+ 
+-	if ((nfproto == NFPROTO_IPV4 && l4proto == IPPROTO_ICMPV6) ||
+-	    (nfproto == NFPROTO_IPV6 && l4proto == IPPROTO_ICMP))
+-		return false;
+-
+ 	return true;
+ }
+ 
+@@ -2322,8 +2368,8 @@ static void ct_meta_common_postprocess(struct rule_pp_ctx *ctx,
+ 
+ 		if (base < PROTO_BASE_TRANSPORT_HDR) {
+ 			if (payload_dependency_exists(&dl->pdctx, base) &&
+-			    meta_may_dependency_kill(&dl->pdctx,
+-						     dl->pctx.family, expr))
++			    ct_meta_may_dependency_kill(&dl->pdctx,
++							dl->pctx.family, expr))
+ 				payload_dependency_release(&dl->pdctx, base);
+ 
+ 			if (left->flags & EXPR_F_PROTOCOL)
+diff --git a/tests/py/inet/ct.t b/tests/py/inet/ct.t
+index 5312b328aa91..f2dbba89a703 100644
+--- a/tests/py/inet/ct.t
++++ b/tests/py/inet/ct.t
+@@ -3,11 +3,16 @@
+ 
+ *inet;test-inet;input
+ 
++# dependeny should be removed
+ meta nfproto ipv4 ct original saddr 1.2.3.4;ok;ct original ip saddr 1.2.3.4
+ ct original ip6 saddr ::1;ok
+ 
+ ct original ip daddr 1.2.3.4 accept;ok
+ 
++# dependeny must not be removed
++meta nfproto ipv4 ct mark 0x00000001;ok
++meta nfproto ipv6 ct protocol 6;ok
++
+ # missing protocol context
+ ct original saddr ::1;fail
+ 
+diff --git a/tests/py/inet/ct.t.json b/tests/py/inet/ct.t.json
+index 223ac9e7575f..155eecc5fa08 100644
+--- a/tests/py/inet/ct.t.json
++++ b/tests/py/inet/ct.t.json
+@@ -58,3 +58,54 @@
+     }
+ ]
+ 
++# meta nfproto ipv4 ct mark 0x00000001
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "nfproto"
++                }
++            },
++            "op": "==",
++            "right": "ipv4"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "ct": {
++                    "key": "mark"
++                }
++            },
++            "op": "==",
++            "right": 1
++        }
++    }
++]
++
++# meta nfproto ipv6 ct protocol 6
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "nfproto"
++                }
++            },
++            "op": "==",
++            "right": "ipv6"
++        }
++    },
++    {
++        "match": {
++            "left": {
++                "ct": {
++                    "key": "protocol"
++                }
++            },
++            "op": "==",
++            "right": 6
++        }
++    }
++]
+diff --git a/tests/py/inet/ct.t.payload b/tests/py/inet/ct.t.payload
+index f7a2ef27274a..216dad2bb531 100644
+--- a/tests/py/inet/ct.t.payload
++++ b/tests/py/inet/ct.t.payload
+@@ -15,3 +15,17 @@ inet test-inet input
+   [ ct load dst_ip => reg 1 , dir original ]
+   [ cmp eq reg 1 0x04030201 ]
+   [ immediate reg 0 accept ]
++
++# meta nfproto ipv4 ct mark 0x00000001
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ ct load mark => reg 1 ]
++  [ cmp eq reg 1 0x00000001 ]
++
++# meta nfproto ipv6 ct protocol 6
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ ct load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000006 ]
+-- 
+2.48.1
+
