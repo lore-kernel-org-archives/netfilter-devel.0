@@ -1,68 +1,57 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtpbgeu2.qq.com (smtpbgeu2.qq.com [18.194.254.142])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75200135A53
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 00:56:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F20088BE7;
+	Wed, 19 Mar 2025 03:36:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=18.194.254.142
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742345781; cv=none; b=s9irtiUiSiZbEDnrHAUXRIAKNBkcOzi4QlclNj1MqqES3lT+/o0HHoN7E6AiR6JGXXIwinjy9JUn2YD6oAm8+9bURxGcA5Tfv1fApuS1soj/OXPIeZZloFfav1ZSy8ZytkIlMKEx5dGE1yIAAmEayEelpTWBq2FWB8SLfMTknCA=
+	t=1742355418; cv=none; b=NKS+mEoixZirJiCG+o00+hESAdaO4iUXhiM5dFt/rFBSrag5uY7/Rw5bPAkthb4FKXERZMZCTRwDrwMkSIuHXkLrzrhHEcw3zOJSuhTRN1wCat0W8Pgl5xt45bQw3E9dy5CH86O+dO36n8R3CrxSrABWWxp6ipyonnG1gC13IP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742345781; c=relaxed/simple;
-	bh=vRj1OqRqRNWhn/k79DsZg9jynMzkEBaNjD/JAYVLMMM=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=V8wUtKtF34Zt7wMX01nd2lusRZzNKj43taU9MXjLvT1WqxKNbqFX5vQa2Gn2jFhM4w7++j4BQIo3ZJ9+k+nPNt0zxMOdJJNLFOOpHd6YKpqAZeB5yyhRw5SX7OlRIITk5fOfjc1i/kMO5w1fMvTVwdjjI4tueDBn0v7XH6mluWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FG9h+NH/; arc=none smtp.client-ip=209.85.216.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1742355418; c=relaxed/simple;
+	bh=pp1RgEz7+tlhRwSDDrL3qiowlEkFNLLCkbpWMHxeC2c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MmcA7+9ZpIdSI0Dy7J0WofAblYgbcJfC7EfpCWvkSmke3G0zZVClW6MBdzplXFzvbrxC6RI3J/P1oqKebT2ht3Ce+qxT5/w6EXqM1Q8/mwpNztb6CHWFopyhuyTm/BgafVZI9vOxwLyz0m7GnOKUh5QP51lg5oGYN7v/DcCYCgs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=j/L84cUU; arc=none smtp.client-ip=18.194.254.142
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FG9h+NH/"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-300f92661fcso6436967a91.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 18 Mar 2025 17:56:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742345774; x=1742950574; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=cnmU9Few8JeS1vhKfc9eVBnK6kBN3YHdQ3JvozrBSho=;
-        b=FG9h+NH/8hkrYPRoSRVhcXJW/6mnx8dt8WIPNV5xnZKPn6PrU4gDE3KV58zBT/ESmA
-         l7wXKT2XQxnwJb0TFY4RfJSWq2TzdCX9BNi+QH9IdNI3yXOUk2nhpfYmoE0S55058I31
-         I0uQ5Q4NJd5p5fr3mE4byVv4g5vlkNNuAn+17cNLlzItIh4Npbctvd+22dvec7cIRyB8
-         oCOPVT6ydUIgWh+HfTDL4ebs0JsWb7B31DWl/bSNWbJDgv5Cwac0cki42hF/dNs+fISU
-         zWCipWNEd2Fyt+1BZuLFJSp4AtrRIPR2kArxbfwqWVID+NujAH56iOa0FDhGbZJZu4KA
-         2Yfg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742345774; x=1742950574;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cnmU9Few8JeS1vhKfc9eVBnK6kBN3YHdQ3JvozrBSho=;
-        b=pkoICoAtvjJ+0+FnDN7Wr6UemGJiA7p+uE22WQzy2lDVBtXIfPdhw76P5W24fToDgB
-         pZHmBKGRnm49e7orB8AeDRfRXOuTM1V04nt/VGg+icIYHin4otFNcjXIo+/3VUY/t5JT
-         0VWDlEZT+qsg2Za3cpjy6UyLFj9JTIFBHS+WsZe8jTK+B3HQ9Oe8LUNxfa5TRELtUPFD
-         vYP830t5pk73G6AjcKx4WmhDzH4tH7qMWHiZ752OU9B4TjFta2sQeBoz1qU4GbzMmaat
-         VYRklGyYt6bWgkE7cP767hs1iky2n9OK1277N/GOYd1PRahphPsL3cbpJTwYMW78TFAb
-         IuGw==
-X-Gm-Message-State: AOJu0YwsMiz9yZmEP71Dgz4AXYlwq2mkOwtU/MjNvahkTALsqY3RsBoc
-	WwCj2siuSeVufhoR7y1qJ5x9FwQF3fcg0KcenmdAS6S90MBj9okpQoareg==
-X-Gm-Gg: ASbGncvGcNlSvlE6rq/Gz8CIulYIpA29fAhPASzBMZ3zNlaSVBRvCRptcmyR5HCdqjJ
-	prDOXX5Mjw6xcQhYXc9Rh4JLU3Fz+Iie+HRLIsNi4IN6Xd3KQSeDeKYA/5g/UyiDNQNkoQYIybq
-	eb7ArQBOiQN3wR0AOEwlWjijscCRQ9bWKo68yefoa24LH+Y6DIPBRKdlhwxUqMW1R8Wg7J3uw0H
-	sjJ4kuyvf9bSk4vsae3xBLv01IOR/9Y75Iv3A7VAGvivBNNqGhbKdkqqu0J9QuHpDQKyHKqMxZl
-	NdLjDMdH5X254Zt36liLpLHqwmQn50e9H1EZBPlVG5rIhynI7ZAxqDYGakPlKHGG7YbLKlMQjrY
-	Y4lrcqBGow1JKsXE/O0+EkekuTXbzVQ==
-X-Google-Smtp-Source: AGHT+IHFkXjPY4oA02Z+tdOgri4hpLPBc68yOD2z0eZ/BaLD8kU9ei9XavoqYvU8fU0hARMGx7pZxQ==
-X-Received: by 2002:a17:90b:4d05:b0:2ff:5ed8:83d0 with SMTP id 98e67ed59e1d1-301be08e808mr1123914a91.16.1742345774232;
-        Tue, 18 Mar 2025 17:56:14 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-af56ea7c87csm8095925a12.57.2025.03.18.17.56.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Mar 2025 17:56:13 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: netfilter-devel@vger.kernel.org
-Cc: ged@jubileegroup.co.uk
-Subject: [PATCH libnetfilter_queue] src: doc: Re-order gcc args so nf-queue.c compiles on Debian systems
-Date: Wed, 19 Mar 2025 11:56:05 +1100
-Message-Id: <20250319005605.18379-1-duncan_roe@optusnet.com.au>
-X-Mailer: git-send-email 2.35.8
+	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="j/L84cUU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
+	s=onoh2408; t=1742355399;
+	bh=fmRqY+JDZY5i3/fjqLE27xJ4JDCC12QtNnBz4AnHDpg=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version;
+	b=j/L84cUUyWGc6D3zBDR+vOXtzEPEKXN959iy1w3io6P1/snUD4F29ZYbELrU7cHLA
+	 vIXKtSpU3L3KFH05zVvNSTkl323iIbVh9z+4dCt+dvw2rQyMWyWCns+PiyiOxBASjN
+	 xDXdlZthTMg0obwKc37hlpaE+sr3FrdNUbHLta5w=
+X-QQ-mid: bizesmtpip4t1742355351tcmig4x
+X-QQ-Originating-IP: X9j/ZIBSIzwYhFiwIBBO/UOkuXEkV9sWk1tNamg6tvE=
+Received: from localhost.localdomain ( [localhost])
+	by bizesmtp.qq.com (ESMTP) with 
+	id ; Wed, 19 Mar 2025 11:35:49 +0800 (CST)
+X-QQ-SSF: 0000000000000000000000000000000
+X-QQ-GoodBg: 1
+X-BIZMAIL-ID: 17725562205952502162
+From: WangYuli <wangyuli@uniontech.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	eric.dumazet@gmail.com,
+	fw@strlen.de,
+	zhanjun@uniontech.com,
+	niecheng1@uniontech.com,
+	WangYuli <wangyuli@uniontech.com>,
+	Wentao Guan <guanwentao@uniontech.com>
+Subject: [PATCH net] netfilter: nf_tables: Only use nf_skip_indirect_calls() when MITIGATION_RETPOLINE
+Date: Wed, 19 Mar 2025 11:34:44 +0800
+Message-ID: <91A1F82B6B7D6AC2+20250319033444.1135201-1-wangyuli@uniontech.com>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -70,31 +59,101 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtpip:uniontech.com:qybglogicsvrgz:qybglogicsvrgz8a-1
+X-QQ-XMAILINFO: Mv+tyGIfil93X88bSXqjV4CVQrPFfvyx0qbbQdKtpXRIfY6Mc/IfpdeE
+	xrBf9XJ9A7vpNiYNBPIwHie4Y9HsukmxIf6uADEVC0xkmnGZbhvbpofBs1KVyeeQfUpn1Q2
+	/g3qhTKmNvhT1xQT/TK9rNsGr1Uv4NndOqMvsELK4TblVux2MJSQpYmEuPN6hIfJNKfcpg6
+	cXOl0zNoFJ3sYUCm3oz9AdhvSMHFephIrBiZQyL9a0rFGvpvswzAWDOi0RCmct1kxcWUAKN
+	cff21e/lM72Jyf9dvIE5yr+J2jgQpofiNWNQMiGjYUvfPuDYm4SBxJgW5dJhWrFy61pKbdi
+	2A5nGf0VT4mg5+cBWs4ejzV/UayON3RSIYA4LehV8QtFQf+fCAr2WL41DsPOZcY/0Cyr9SN
+	HYwCiI8US9nAjzLsHLYz872L+k532fZna7enOISjQ8Jf/S1TEzcpcQAETyPMHT7tFO4yV9P
+	inlojxhCjmIEy7/QF2g+CNury5CzX1DlxtwJTA70AEFEtri1Q92adtH3GoOcqS0RSE77Feh
+	nH2eJlCXEz7XL9H52/BL79XYTDdJ4SF1xqtrvPQ4nb7Xyyn+Ud+KqGRh5ooDv41cNz1yzWS
+	2uI+xq9yV2QlGLfK9tHAuEv+ROPx2GkmzVeCQoJLTm5J4e0klHVv5DEyFkm+wmPuhTefsZl
+	hctMqg/0CC52kkv29bUyhmcZZzaYxvw9Oy4SFZJrCU6J8V2L+IpwGmG51ODZDyjf7WLoFX0
+	XFbqu6VyNKPIvLfWVYdTx7ZiPNqCvoGbonTpZGiWZaenPRaBzJVnA5OdxHuUwK04/ztx3dJ
+	RcooLxSBBTxTvuC8SSPQ/+AgHADuvHTAA+BLofzs1gFmxU7yGB0N67ely/Ex27iLNwznYSU
+	GINhZUN+lfrMhq6V7AmfzB4T/RTpHok20apgXPeaKnazvYOmSnYaVrRvvG1VfJtQ5iOSXxL
+	t2BT7tH/y8vgcd+sCPZFaEyl3Wr4GbHCBTAkTSbxb+XVKKO/KIFvgzJ501Vv4Gmk8cWU=
+X-QQ-XMRINFO: MSVp+SPm3vtS1Vd6Y4Mggwc=
+X-QQ-RECHKSPAM: 0
 
-Change the order of gcc arguments following the discussion starting at
-https://www.spinics.net/lists/netfilter-devel/msg90612.html.
-While being about it, update the obsolete -ggdb debug option to -gdwarf-4.
+1. MITIGATION_RETPOLINE is x86-only (defined in arch/x86/Kconfig),
+so no need to AND with CONFIG_X86 when checking if enabled.
 
-Reported-by: "G.W. Haywood" <ged@jubileegroup.co.uk>
-Fixes: f0eb6a9c15a5 ("src: doc: Update the Main Page to be nft-focussed")
-Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+2. Remove unused declaration of nf_skip_indirect_calls() when
+MITIGATION_RETPOLINE is disabled to avoid warnings.
+
+3. Declare nf_skip_indirect_calls() and nf_skip_indirect_calls_enable()
+as inline when MITIGATION_RETPOLINE is enabled, as they are called
+only once and have simple logic.
+
+4. Following that, there's no need to define an empty
+nf_skip_indirect_calls_enable function. Just simply add the same macro
+condition around its sole call site.
+
+Fix follow error with clang-21 when W=1e:
+  net/netfilter/nf_tables_core.c:39:20: error: unused function 'nf_skip_indirect_calls' [-Werror,-Wunused-function]
+     39 | static inline bool nf_skip_indirect_calls(void) { return false; }
+        |                    ^~~~~~~~~~~~~~~~~~~~~~
+  1 error generated.
+  make[4]: *** [scripts/Makefile.build:207: net/netfilter/nf_tables_core.o] Error 1
+  make[3]: *** [scripts/Makefile.build:465: net/netfilter] Error 2
+  make[3]: *** Waiting for unfinished jobs....
+
+Fixes: d8d760627855 ("netfilter: nf_tables: add static key to skip retpoline workarounds")
+Co-developed-by: Wentao Guan <guanwentao@uniontech.com>
+Signed-off-by: Wentao Guan <guanwentao@uniontech.com>
+Signed-off-by: WangYuli <wangyuli@uniontech.com>
 ---
- src/libnetfilter_queue.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_core.c | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index f152efb..99799c0 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -86,7 +86,7 @@
-  * nf-queue.c source file.
-  * Simple compile line:
-  * \verbatim
--gcc -g3 -ggdb -Wall -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
-+gcc -g3 -gdwarf-4 -Wall nf-queue.c -o nf-queue -lnetfilter_queue -lmnl
- \endverbatim
-  *The doxygen documentation
-  * \htmlonly
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 75598520b0fa..48b8d2406d4e 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -21,25 +21,20 @@
+ #include <net/netfilter/nf_log.h>
+ #include <net/netfilter/nft_meta.h>
+ 
+-#if defined(CONFIG_MITIGATION_RETPOLINE) && defined(CONFIG_X86)
+-
++#ifdef CONFIG_MITIGATION_RETPOLINE
+ static struct static_key_false nf_tables_skip_direct_calls;
+ 
+-static bool nf_skip_indirect_calls(void)
++static inline bool nf_skip_indirect_calls(void)
+ {
+ 	return static_branch_likely(&nf_tables_skip_direct_calls);
+ }
+ 
+-static void __init nf_skip_indirect_calls_enable(void)
++static inline void __init nf_skip_indirect_calls_enable(void)
+ {
+ 	if (!cpu_feature_enabled(X86_FEATURE_RETPOLINE))
+ 		static_branch_enable(&nf_tables_skip_direct_calls);
+ }
+-#else
+-static inline bool nf_skip_indirect_calls(void) { return false; }
+-
+-static inline void nf_skip_indirect_calls_enable(void) { }
+-#endif
++#endif /* CONFIG_MITIGATION_RETPOLINE */
+ 
+ static noinline void __nft_trace_packet(const struct nft_pktinfo *pkt,
+ 					const struct nft_verdict *verdict,
+@@ -393,7 +388,9 @@ int __init nf_tables_core_module_init(void)
+ 			goto err;
+ 	}
+ 
++#ifdef CONFIG_MITIGATION_RETPOLINE
+ 	nf_skip_indirect_calls_enable();
++#endif /* CONFIG_MITIGATION_RETPOLINE */
+ 
+ 	return 0;
+ 
 -- 
-2.46.3
+2.49.0
 
