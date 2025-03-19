@@ -1,70 +1,105 @@
 Received: from Chamillionaire.breakpoint.cc (unknown [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 847DC1DF270;
-	Wed, 19 Mar 2025 15:04:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C58621DE899
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 16:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742396695; cv=none; b=fVRMWYSWb2mtpvF2MdJrwyjA2QtqhHuvmZLoWQlsDqtI/YqX+opcbCqSnefrt4PoA8Rcqu+Ld+2NDUp5xKE+tgbjM9EopOE0F6/VA/44HTYrCsdeB8zRqy9PFA6EDsKgDar1vgQkSfszzqpzxTBZoTGGkkBFEiWmHTkEBSkox7s=
+	t=1742401404; cv=none; b=j4XuVeRCfIwbExvQU7u7JCvxWrUOw4v83iNZs2/VzKAjH4qVDtDxuOuN0D/vXld/SwwOAXPg7h9km/htdykauK3pQjRipye+vQLzdr2uEWnRR0n8cAToejEqh+ALHP0oWOeOm8EQ04GZz1JbmeCCQMWUoyF6gBvo+M5uWtS9QLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742396695; c=relaxed/simple;
-	bh=a802EIIhJVA/hZWbSTG8ncNzKD+IQjyMDPo7K+tjJXs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SM3u+e46FfBLQNj4/yZek9NXHpaGk0YFBSMWXfNh7J824xIib6f5ueu/tJuktKKdi8W+F4hqVvHTd97WY0zeNB3albesS7WVLOc1Lu+RBe+ZLdtkD6e+y5xuVoJ1OZO1HHQF/BD3j/+6z8vbL0Ov+a6UUBqVhllxB+N0BVQN5cE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1742401404; c=relaxed/simple;
+	bh=PHV5XdEJQIRjIxC4xV3DwjZrpJQnUO86oDOnvrbe16g=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DIK/4Zku+hdFXCxsTluD1rglRSUyr5Wt/dt43IJelLFpFL1s5YvrY9ufk8SL9mZBUbbyds9TaDckeon4VMzf4uKsD8ZokFZwxi0nO+yBhTGikvgXE6C6e5BnRprmcCNnOgG35tQbw9H6csC8gByRnNG5UOL1hL+9NNPUNDOMUhw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tuuyH-00016f-OB; Wed, 19 Mar 2025 16:04:41 +0100
-Date: Wed, 19 Mar 2025 16:04:41 +0100
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tuwCO-0001uf-Pl; Wed, 19 Mar 2025 17:23:20 +0100
 From: Florian Westphal <fw@strlen.de>
-To: WangYuli <wangyuli@uniontech.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, eric.dumazet@gmail.com, fw@strlen.de,
-	zhanjun@uniontech.com, niecheng1@uniontech.com,
-	Wentao Guan <guanwentao@uniontech.com>
-Subject: Re: [PATCH net v2] netfilter: nf_tables: Only use
- nf_skip_indirect_calls() when MITIGATION_RETPOLINE
-Message-ID: <20250319150441.GB3991@breakpoint.cc>
-References: <568612395203CC2F+20250319140147.1862336-1-wangyuli@uniontech.com>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] parser_bison: reject non-serializeable typeof expressions
+Date: Wed, 19 Mar 2025 17:22:40 +0100
+Message-ID: <20250319162244.884-1-fw@strlen.de>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <568612395203CC2F+20250319140147.1862336-1-wangyuli@uniontech.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-WangYuli <wangyuli@uniontech.com> wrote:
-> 1. MITIGATION_RETPOLINE is x86-only (defined in arch/x86/Kconfig),
-> so no need to AND with CONFIG_X86 when checking if enabled.
-> 
-> 2. Remove unused declaration of nf_skip_indirect_calls() when
-> MITIGATION_RETPOLINE is disabled to avoid warnings.
-> 
-> 3. Declare nf_skip_indirect_calls() and nf_skip_indirect_calls_enable()
-> as inline when MITIGATION_RETPOLINE is enabled, as they are called
-> only once and have simple logic.
-> 
-> Fix follow error with clang-21 when W=1e:
->   net/netfilter/nf_tables_core.c:39:20: error: unused function 'nf_skip_indirect_calls' [-Werror,-Wunused-function]
->      39 | static inline bool nf_skip_indirect_calls(void) { return false; }
->         |                    ^~~~~~~~~~~~~~~~~~~~~~
->   1 error generated.
->   make[4]: *** [scripts/Makefile.build:207: net/netfilter/nf_tables_core.o] Error 1
->   make[3]: *** [scripts/Makefile.build:465: net/netfilter] Error 2
->   make[3]: *** Waiting for unfinished jobs....
-> 
-> Fixes: d8d760627855 ("netfilter: nf_tables: add static key to skip retpoline workarounds")
-> Co-developed-by: Wentao Guan <guanwentao@uniontech.com>
-> Signed-off-by: Wentao Guan <guanwentao@uniontech.com>
-> Signed-off-by: WangYuli <wangyuli@uniontech.com>
+Included bogon asserts with:
+BUG: unhandled key type 13
+nft: src/intervals.c:73: setelem_expr_to_range: Assertion `0' failed.
 
-Acked-by: Florian Westphal <fw@strlen.de>
+This should be rejected at parser stage, but the check for udata
+support was only done on the first item in a concatenation.
+
+After fix, parser rejects this with:
+Error: primary expression type 'symbol' lacks typeof serialization
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/parser_bison.y                                 | 14 ++++++++++----
+ .../nft-f/typeof_map_with_plain_integer_assert     |  7 +++++++
+ 2 files changed, 17 insertions(+), 4 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 4d4d39342bf7..cc3c908593a0 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -816,8 +816,8 @@ int nft_lex(void *, void *, void *);
+ 
+ %type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
+ %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
+-%type <expr>			primary_expr shift_expr and_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
+-%destructor { expr_free($$); }	primary_expr shift_expr and_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
++%type <expr>			primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
++%destructor { expr_free($$); }	primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
+ %type <expr>			exclusive_or_expr inclusive_or_expr
+ %destructor { expr_free($$); }	exclusive_or_expr inclusive_or_expr
+ %type <expr>			basic_expr
+@@ -2142,7 +2142,7 @@ typeof_data_expr	:	INTERVAL	typeof_expr
+ 			}
+ 			;
+ 
+-typeof_expr		:	primary_expr
++primary_typeof_expr	:	primary_expr
+ 			{
+ 				if (expr_ops($1)->build_udata == NULL) {
+ 					erec_queue(error(&@1, "primary expression type '%s' lacks typeof serialization", expr_ops($1)->name),
+@@ -2153,7 +2153,13 @@ typeof_expr		:	primary_expr
+ 
+ 				$$ = $1;
+ 			}
+-			|	typeof_expr		DOT		primary_expr
++			;
++
++typeof_expr		:	primary_typeof_expr
++			{
++				$$ = $1;
++			}
++			|	typeof_expr		DOT		primary_typeof_expr
+ 			{
+ 				struct location rhs[] = {
+ 					[1]	= @2,
+diff --git a/tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert b/tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert
+new file mode 100644
+index 000000000000..f1dc12f699ec
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert
+@@ -0,0 +1,7 @@
++table ip t {
++        map m {
++                typeof ip saddr . meta mark  . 0: verdict
++                flags interval
++                elements = { 127.0.0.1-127.0.0.4 . 0x00123434-0x00b00122 : accept }
++        }
++}
+-- 
+2.48.1
+
