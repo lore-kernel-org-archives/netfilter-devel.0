@@ -1,52 +1,84 @@
-Received: from Chamillionaire.breakpoint.cc (unknown [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 738BE2135DE;
-	Wed, 19 Mar 2025 21:22:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2572916F858;
+	Wed, 19 Mar 2025 23:44:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742419349; cv=none; b=dgviAlluWfUMX52xq1wnlngt3F3l1px1WdGzHoXGqTlH3jM0SXOsiJh9n4pLiDDiJ33KTimPnrVwExuq1mN9M/zPYSZ43XA9hplvJWUCEvXupw02LSYtzfCnseCXU7a3flkUP25qFwFvCFNcRa6srRrP2JoBT770ye0OFaKTs3M=
+	t=1742427871; cv=none; b=aHxqJU3H2oQQSj05buOk/OSw5Qsn0U1ddAGN5+fMX5ee5R3hVsjqZ+EsO9f3DXplNXkfYYbYYGrHjyG/PiSpeAsU9e1MEPhMZVsm+fQY+oV5roV/QZ9B/rn0UykdHqg5fE75s200hObbSKjqUqKj/b62Rzj6PWnBmTAJ4JTZUyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742419349; c=relaxed/simple;
-	bh=mk6K1vRRWM2J2POoK0XsPQO8DsR1T0vh3kZyOR5gqf0=;
+	s=arc-20240116; t=1742427871; c=relaxed/simple;
+	bh=8O4QrfRpB6IDq3ko+6A55O4k2nnuAuaY7R5+TSfdkmw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=b0Lh2tKul06ig9ak59bmOwMas5+5iOizrJVEuZ57FhMNoFhROg/83N3k/se7tUMDAJ7DvLYy+w5rDTGuIZtkn6CFJvyKx4WdSnA5w6YDpDVS6jHQQn0jxNIuwG3Xo2Hcy7VT859aPwFI0/BFr/CSZZO4y+avoxp/c2nRco4IKWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1tv0rT-0004Ob-P7; Wed, 19 Mar 2025 22:22:03 +0100
-Date: Wed, 19 Mar 2025 22:22:03 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	 Content-Type:Content-Disposition:In-Reply-To; b=dCIbRBP6/x5kfouybNoKw0F40AHL95dbywpf6ociu0n9h3Gk+6AQNXYgjzeI3LA3oPC83RX89E1Hfnzu/KlvymBZNfZoSTASnVwqnw1bsaq9FLfy/hOvvcucewCM1hyBWkxuaBka/o0vfmL+5pjcGMelkMQcgochzJnXz9t/RX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ctVkYzJO; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YG9j2QdD; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ctVkYzJO";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YG9j2QdD"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 069AD603AB; Thu, 20 Mar 2025 00:44:10 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1742427851;
+	bh=GNBfAL5tBesE6D+Wz3Kjvd8+408rgskBVZfEyIzPa+s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ctVkYzJOo9GYyWmIgvXN4v3gYHJek32Gns8BuDnlM6bgtREngTvE2e0fNsNjQS8+d
+	 PVQaQLo0KHjU5N59siBqwmTYQSNSbtqvB4tp8E0tLFBRb3ci5H7GF0Ja4BH7RiZFLD
+	 0nWRhgkeJ9Rp1+iQ1qyLs0nuSmWV1H5tCdcTyP5zYyQZnk5yja+KJLQdmdZNRi3hdz
+	 JF/js3byxkRNREgBoGCXh65ETboQucvyLMaUv4705lTeVXjCYav/iVYY9ZjfZ9pvHL
+	 H0aE+UxHy2avJ4YJvTdK+5SFvcrG+aj8URxydmpv9e57V4WV1uxf9D9wuF3JBFZXEJ
+	 8wVxQA826KWnw==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id D6D7A603AB;
+	Thu, 20 Mar 2025 00:44:08 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1742427849;
+	bh=GNBfAL5tBesE6D+Wz3Kjvd8+408rgskBVZfEyIzPa+s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=YG9j2QdDiW4VVFcqnNZ0P/sKJMImrtfoWq4inwhUv26jYyYMQpJdaguKvVZuUFLQc
+	 InzrOLE3peM+8sICbLzYBVkE7AsCk+DArG+fO1uc6n6LZ1GLMrBZFUPMVpo3BbE+0+
+	 ZNi0PevxgO8m0H1ChwQCwCfV5yFdEWlJem3pcNcg5UaNXx1kHj/ow4HBohlEWBWAxc
+	 uHwko22XM52Ufu5EUuMZSkTHzhU5NUja84dDHOt9vsLTyAjWCV6aiJr8J5Ylwqmcup
+	 I4ZtV94FVeH7MozjpHm3WLUiOK6od65baNH9fZhl9fHJetUy3q1sYcdUPnyY6Yn1l/
+	 THedQAJl+298A==
+Date: Thu, 20 Mar 2025 00:44:06 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
+	"David S . Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] netfilter: x_tables: Remove unnecessary
- strscpy() size arguments
-Message-ID: <20250319212203.GA16833@breakpoint.cc>
-References: <20250319194934.3801-1-thorsten.blum@linux.dev>
+	Simon Horman <horms@kernel.org>, cgroups@vger.kernel.org,
+	Jan Engelhardt <ej@inai.de>, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
+Message-ID: <Z9tWxkg4UQA-hQGi@calendula>
+References: <20250305170935.80558-1-mkoutny@suse.com>
+ <xn76sakdk5zai3o4puz4x25eevw4jxhh7v5uqkbollnlbuh4ly@vziavmudqqlv>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250319194934.3801-1-thorsten.blum@linux.dev>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <xn76sakdk5zai3o4puz4x25eevw4jxhh7v5uqkbollnlbuh4ly@vziavmudqqlv>
 
-Thorsten Blum <thorsten.blum@linux.dev> wrote:
-> If the destination buffer has a fixed length, both strscpy_pad() and
-> strscpy() automatically determine its size using sizeof() when the
-> argument is omitted. This makes the explicit sizeof() calls unnecessary.
-> Remove them.
+On Wed, Mar 19, 2025 at 06:35:47PM +0100, Michal Koutný wrote:
+> Hello.
+> 
+> On Wed, Mar 05, 2025 at 06:09:35PM +0100, Michal Koutný <mkoutny@suse.com> wrote:
+> ...
+> > Changes from v1 (https://lore.kernel.org/r/20250228165216.339407-1-mkoutny@suse.com)
+> > - terser guard (Jan)
+> > - verboser message (Florian)
+> > - better select !CGROUP_BPF (kernel test robot)
+> 
+> Are there any more remarks or should I resend this?
 
-Sorry, not going to ack this, IMO this is just useless noise.
+No need to resend, thanks.
