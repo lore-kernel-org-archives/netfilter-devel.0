@@ -1,56 +1,56 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 036AB1DE3A9
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Mar 2025 23:50:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F0FC81E
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 00:04:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742428238; cv=none; b=fMC3FzSSp3JXUBxlqL3CiIW6lE7qWLPWO2+tr4lVJ9eWzGUM37wXzbT+04654R/f+rd1hQNBPtB3g5zRaKlD1quEjsluzUHfr42/PFThREwU8+fljZFSmscVTYmuJSUs//253RSZJWjck2orU+ShRVJErqcd6Nz6mk4cGfzC7a4=
+	t=1742429086; cv=none; b=I2RPCfjNRyIyC5ZdQVsUz20PP02C3QyffElj6/LH7URQ2LKH2CEZiafZPIWuHc/W2IQ69Ug5GytqBWvT69M/572mUuCqkOSCdX7nj4b2OczZz3bvNYyyqUJ/Yov7QjpBWk3OGVoc1XtRC09c9T93p2nno38UmHYesENBdNbThxg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742428238; c=relaxed/simple;
-	bh=GB6s7xsAh1rh1e8snAntYeh+RyqA4tmeQONc5KhahGw=;
+	s=arc-20240116; t=1742429086; c=relaxed/simple;
+	bh=g3egrRSYYSRhZZySVaGNp71Xdvfwu2CQOaWCBzum86o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uW5sn+FUd0Kpm5xtpFddcSo8lqfDJfKb9EXJHob/Fq6IVbpLl3JWvRe7kr2uMWx60xGELeJMhYZIIqGj5IJ8p19evRgqR0qIGWLOQWF4C4dSeKspqahGR3En6Hv1QxwDk6uc51HEuoSAJJr0K35fPOPH8Com5+krO0RbuZVFCJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IPTkV53q; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FXvFEuxC; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=NaUGaQUqSs+IMoEacDDF8rFej80RIG7cZKiaCSmhSfvlcwI7pJBx4CtWu3yECYe7o+KqDr/0tNsU4CSn8HLF7TnsSmFkPh7A6OxBs3rO2AwGjpY9wY/o5E9Qehfmjlc3Owk+fa++wp6HZzUW7+xMZRWA/ejlhyDM+TbG58KJBJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W3yBhXwQ; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fLjcR2vl; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IPTkV53q";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FXvFEuxC"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W3yBhXwQ";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fLjcR2vl"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 15E5D603C2; Thu, 20 Mar 2025 00:50:32 +0100 (CET)
+	id 9D8B860549; Thu, 20 Mar 2025 01:04:42 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742428232;
-	bh=ZGqI94RBdlj7rytWdNeFwpGrzAvWosoxH1sQ2T4Cj+s=;
+	s=2025; t=1742429082;
+	bh=HgCdc8seaUZeRMc9+wYQ7s2O8C9jcTHwuxGTUwKBYsE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IPTkV53qMXQ4Sw72Dq/EhtFdfRvs+P0IvB1TK4aD1tRM5KHog2+mZaaZLE7YjVyhx
-	 z57FYmG9fTSPmwxfqzY+ARN/GkmQujVNsQoBHJC2MqO0SRtFvbmyx0S3uQh4xUIqlG
-	 8Tbkyw4xfd3DjogDh3x/dH7zl6r6g2V9klvX/zmnWQ0jGrCiUY92WRpxIcShxk7o2o
-	 EiOk3CwJNzmz1yqL7ZhZxAZ7moE6+/ra8tozn98Wrv+Op0WCIf9zL8P+2UthN7Nb9D
-	 9xJNZ0sOMfRfe1AFMMXVFUmAJfAhP6ZJ6gB6NsxoM+5weGbtP9jdCk78NqWC7YQ9uJ
-	 PJoG5ImAZ1ozQ==
+	b=W3yBhXwQ6LkijIT26tDrTvGq+OuQmEiAog8QTl3Qz2qV9P+46Qxwj1p4B6ZiEoAp4
+	 EHbOuUSK1sIaudANvAguQE0zsURL/rxFeQX5sGCAdYQG+s4UBikEuCHZgjaIJHpL6Q
+	 mhpNEo7AvxvJsndjtne/xR2U5R+XY2t2XerFYinHmzkgyz+ytKjhS6KDL6LVT+V/H7
+	 vLVOCYAa7XLUH1xv81VJooexAyo8mhFuM6gAieuVmILpcMld+UCY/Ro5Y0guMXxA6N
+	 YSijMVx1IViLh8A1Xrs3ssooH0SxDjueeIdycbkk06fZz1betvO3wkiLuA/gW9HGq6
+	 dWhOJZftdFYlQ==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 59B64603C2;
-	Thu, 20 Mar 2025 00:50:31 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B5CAB603A8;
+	Thu, 20 Mar 2025 01:04:40 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742428231;
-	bh=ZGqI94RBdlj7rytWdNeFwpGrzAvWosoxH1sQ2T4Cj+s=;
+	s=2025; t=1742429080;
+	bh=HgCdc8seaUZeRMc9+wYQ7s2O8C9jcTHwuxGTUwKBYsE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=FXvFEuxC3udmYUev3yYt1Xrf6cxt/ifLTeXR5GZti4amDfsMlRi7L2K2UGSJ4MBj9
-	 ySCBF/sOCYD3sElDkpm5bz5At6uj+J2vxSlLc13jJrpwOSEBcUfxmc+A4tdJIj1/ys
-	 1e7ngQ1ILH+MBBDCsCRlcy5PSKcqL8SID9NXKMrwnW7qyGm6YFToOTlTx2VBZOufZu
-	 xfDcF7q62Y65td2p5YrdsqTiFV9q3rcsn84wyvA+7dVnsvn6Ci+7un5V3B6PN8mhT3
-	 miqsUY+jRXqsZuz/YTcqNo9Nz95F/5fBuGLDNm7SIa1+k6OZeLtUO8RWsnW7cbP8Fy
-	 75dHOVKi65z4A==
-Date: Thu, 20 Mar 2025 00:50:28 +0100
+	b=fLjcR2vlS+r0lBPsddJkbCE8ry9hhBuL/oggFlRNi7zzozi6X4rALyQB+ZH0h6QuB
+	 yvLuJ/J4RsR/ibGyDfdygKR0yg5AxKNfUlDoXx5jBjh+sYWPecBX3ImefvGJ7mKzUz
+	 2/vrKmNk1SBWtOWgX5zlaypQ+PJUd+5TNl09t7QZDDXfalNO1eZZNYPSzK2qid1QQ5
+	 WzByD8bFiaJ8hcKa3P41e8XGsA1pL03+0wX1S/rS11XnNuJF2mTg+SoxWF+osoJTcs
+	 JtOL8arrtIimJX4id4K991fG04ITq1lSSV25Rg3GmYlZPo2Wx8qe0xOShYZIvcBbLj
+	 7ZfDqgLPdN7rw==
+Date: Thu, 20 Mar 2025 01:04:38 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] parser_bison: reject non-serializeable typeof
- expressions
-Message-ID: <Z9tYRHnNO6SvjMQK@calendula>
-References: <20250319162244.884-1-fw@strlen.de>
+To: Jan Engelhardt <jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org, matthias.gerstner@suse.com,
+	kevin@scrye.com, fcolista@alpinelinux.org, seblu@archlinux.org
+Subject: Re: [nftables PATCH v2] tools: add a systemd unit for static rulesets
+Message-ID: <Z9tbloqNMyxd4I0F@calendula>
+References: <20250308182250.98098-1-jengelh@inai.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,86 +59,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250319162244.884-1-fw@strlen.de>
+In-Reply-To: <20250308182250.98098-1-jengelh@inai.de>
 
-On Wed, Mar 19, 2025 at 05:22:40PM +0100, Florian Westphal wrote:
-> Included bogon asserts with:
-> BUG: unhandled key type 13
-> nft: src/intervals.c:73: setelem_expr_to_range: Assertion `0' failed.
-> 
-> This should be rejected at parser stage, but the check for udata
-> support was only done on the first item in a concatenation.
-> 
-> After fix, parser rejects this with:
-> Error: primary expression type 'symbol' lacks typeof serialization
+Hi Jan,
 
-Maybe... otherwise, please correct me.
+One more request, see below.
 
-Fixes: 4ab1e5e60779 ("src: allow use of 'verdict' in typeof definitions")
+On Sat, Mar 08, 2025 at 07:22:22PM +0100, Jan Engelhardt wrote:
+> diff --git a/configure.ac b/configure.ac
+> index 80a64813..64a164e5 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -114,6 +114,16 @@ AC_CHECK_DECLS([getprotobyname_r, getprotobynumber_r, getservbyport_r], [], [],
+>  #include <netdb.h>
+>  ]])
+>  
+> +AC_ARG_WITH([unitdir],
+> +	[AS_HELP_STRING([--with-unitdir=PATH], [Path to systemd service unit directory])],
+> +	[unitdir="$withval"],
+> +	[
+> +		unitdir=$("$PKG_CONFIG" systemd --variable systemdsystemunitdir 2>/dev/null)
+> +		AS_IF([test -z "$unitdir"], [unitdir='${prefix}/lib/systemd/system'])
+> +	])
+> +AC_SUBST([unitdir])
+> +
+> +
+>  AC_CONFIG_FILES([					\
+>  		Makefile				\
+>  		libnftables.pc				\
 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Update the configuration summary to display this service unit, I mean
+this report:
+
+echo "
+nft configuration:
+  cli support:                  ${with_cli}
+  enable debugging symbols:     ${enable_debug}
+  use mini-gmp:                 ${with_mini_gmp}
+  enable man page:              ${enable_man_doc}
+  libxtables support:           ${with_xtables}
+  json output support:          ${with_json}"
 
 Thanks.
-
-> ---
->  src/parser_bison.y                                 | 14 ++++++++++----
->  .../nft-f/typeof_map_with_plain_integer_assert     |  7 +++++++
->  2 files changed, 17 insertions(+), 4 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert
-> 
-> diff --git a/src/parser_bison.y b/src/parser_bison.y
-> index 4d4d39342bf7..cc3c908593a0 100644
-> --- a/src/parser_bison.y
-> +++ b/src/parser_bison.y
-> @@ -816,8 +816,8 @@ int nft_lex(void *, void *, void *);
->  
->  %type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
->  %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
-> -%type <expr>			primary_expr shift_expr and_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
-> -%destructor { expr_free($$); }	primary_expr shift_expr and_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
-> +%type <expr>			primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
-> +%destructor { expr_free($$); }	primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
->  %type <expr>			exclusive_or_expr inclusive_or_expr
->  %destructor { expr_free($$); }	exclusive_or_expr inclusive_or_expr
->  %type <expr>			basic_expr
-> @@ -2142,7 +2142,7 @@ typeof_data_expr	:	INTERVAL	typeof_expr
->  			}
->  			;
->  
-> -typeof_expr		:	primary_expr
-> +primary_typeof_expr	:	primary_expr
->  			{
->  				if (expr_ops($1)->build_udata == NULL) {
->  					erec_queue(error(&@1, "primary expression type '%s' lacks typeof serialization", expr_ops($1)->name),
-> @@ -2153,7 +2153,13 @@ typeof_expr		:	primary_expr
->  
->  				$$ = $1;
->  			}
-> -			|	typeof_expr		DOT		primary_expr
-> +			;
-> +
-> +typeof_expr		:	primary_typeof_expr
-> +			{
-> +				$$ = $1;
-> +			}
-> +			|	typeof_expr		DOT		primary_typeof_expr
->  			{
->  				struct location rhs[] = {
->  					[1]	= @2,
-> diff --git a/tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert b/tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert
-> new file mode 100644
-> index 000000000000..f1dc12f699ec
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-f/typeof_map_with_plain_integer_assert
-> @@ -0,0 +1,7 @@
-> +table ip t {
-> +        map m {
-> +                typeof ip saddr . meta mark  . 0: verdict
-> +                flags interval
-> +                elements = { 127.0.0.1-127.0.0.4 . 0x00123434-0x00b00122 : accept }
-> +        }
-> +}
-> -- 
-> 2.48.1
-> 
-> 
