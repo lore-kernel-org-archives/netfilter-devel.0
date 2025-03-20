@@ -1,93 +1,118 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA2131E1308
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 15:39:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26A1421CA00
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 17:37:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742485186; cv=none; b=TWva9Z1GiFuvVUEKkV59yPX983GxbQAtFU50DrughbX7BskCazSL763UxBjTKHlK6/g4nQ6OB1W921+G8yX6H9U5eyGblk+H0KdON3i6pPXGrkYYxci7FZPyn353DckS8lBpsacSXyW22xbLjchGdBWGd50dMr4eIj6FEXxZvYg=
+	t=1742492268; cv=none; b=n9Fv2AJ9x0izSafkteI2DjfVQ6ODiiT40Fvw8pOcImM8kOoi/KNpY0JJkizExYS6I7YaLAsNSZX6QdjFFLBQw+d+THUMKKqwbo1HACNu4bCAW5JlP8K6k/TZDa9RsdC16G++QOiquG8DIbAYxgg25qIrmr/rwaC8IzkAIPwtZiA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742485186; c=relaxed/simple;
-	bh=leyNnFkOUlC53e55UIdq/pbaRuhD6AgorOpJcoYKfys=;
+	s=arc-20240116; t=1742492268; c=relaxed/simple;
+	bh=l4qxWog+hfLGF3bvqlukd21jm5habpECW0/3lEu4Lk8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=go0eUzOdC2ubDk+RBjGfztJruO9h4jQ5az224GrYOGa+5MhW7cSjprLrp5bh8tPI7ygX9smKQxCM/G8F8yeAJsx0b+/pbbCipa12KyooNw84hFlSlg7L/NVGZ+vrRXYegrgKzj/2JLP1EWVbEdUZI3vbIagIvQFsDzNa4ja+e0E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=aaCGk1ST; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=oXbVve8N2QRG7pI6Zwmm+ATSJlk9RCIHjLl7f93phtzQzwQJ5e9Z2+OofccaVM5RaHH/GP99+xFbWVx0/S3ZpqydfMiwQJAZ9pN/CrSEtJVu8YaDYCJb5vyIefrHsS+VRn5/Vw0CxuLgqbV4By7JNsEtbThqLkuqmoMPRyNWpDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gscEtzkW; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TcL5m7qU; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="aaCGk1ST"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=U19HLXG3ayevhnvtfas6O5uHNq5V/YGQYDYWpo7FQUc=; b=aaCGk1STQ/svItja2nei7td7Ar
-	hV5JKcrmJNGHqx3/mjEf3AxXF0l7Klj0Dn/qGixTZre6IdS+myW62t4PhCzroHaAsiQlcFyFxL4hS
-	0AzZ3XjhFRtdR3LFs3IgdZl2mqyCNWHD9BTNUpb0USCdaRUHBb8i0xrYYdDf5WZxgY/CKZDN9Tp4E
-	ClqtQj2NxlibdGlXXu5SBP2s3woYIENXoeiIWNHOE1cVS26110mNhy3qT3ysaeqf3n64UcwpJX4ho
-	i+QKOysMuYR3k60wqz/zpEJEOQAfS/fjKKDgqjaJ1x28gp67sh8N3Jv1DgablLoatNqCFmtkBOcAV
-	MLXO9KpA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tvHzg-0000000014F-0k10;
-	Thu, 20 Mar 2025 16:39:40 +0100
-Date: Thu, 20 Mar 2025 16:39:40 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Guido Trentalancia <guido@trentalancia.com>
-Cc: Jan Engelhardt <ej@inai.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH iptables]: xtables: tolerate DNS lookup failures
-Message-ID: <Z9w2vLdyQfWepMET@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Guido Trentalancia <guido@trentalancia.com>,
-	Jan Engelhardt <ej@inai.de>, netfilter-devel@vger.kernel.org
-References: <1741354928.22595.4.camel@trentalancia.com>
- <qn655027-4830-ps48-87po-r61npps888s5@vanv.qr>
- <1741361076.5380.3.camel@trentalancia.com>
- <931rns88-4o59-s61q-6400-4prp16prsqs7@vanv.qr>
- <1741367396.5380.29.camel@trentalancia.com>
- <s4sq15s8-p28r-7o01-03n8-82623p8n3728@vanv.qr>
- <1741369231.5380.37.camel@trentalancia.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gscEtzkW";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TcL5m7qU"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id F3BB3603A9; Thu, 20 Mar 2025 18:37:37 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1742492258;
+	bh=NfstR9fKGaIncqixHV4wSqQ2dy3/G379ZOJ1EEOgqik=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=gscEtzkW9WIOPFa8jZIk9+3ARj9bdJqi4O3IRbIo6VSAK5iyU9kicr2NEQHyXL02X
+	 lfFcYEmQaKDW1XTfSA4Es3dyllcKGdRG3EHvjyeWeNfwpWwu7njDgOeJgrvUZUPRCk
+	 8qWGutd/JOFaN005VKVhVfy3Ub1Ef47IDZTZX7StN/HsUHFfQb/db/F6XDylAmvEDg
+	 Kh6x5WoK5l0z0dSSDkgTHmDn6ndlYvwgsmuKpC5Sfn+SOq3SQmsmgusefC9GYSdjLw
+	 E0UMMXXntca0Ea3xaqSMd4EF/OqvZrWNmHLCBuMblwodLRzR/iYsYMQGGGGOTK5vKS
+	 8gCmsZMORVxBA==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5AD44603A4;
+	Thu, 20 Mar 2025 18:37:33 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1742492253;
+	bh=NfstR9fKGaIncqixHV4wSqQ2dy3/G379ZOJ1EEOgqik=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=TcL5m7qUfU8/5Pggr/U/QFvBWAcD5S7sNKteRSHmOv+bW8Vpzym6pVv3UlgmfzNwD
+	 OsSCftrydJHQdAFK44H/1TwJmwOCNBuNL/GzCF+RPPsZpFDTwUV7mXqt8kACwuawpG
+	 FBxNQRFVM6Xpy7VSfG8CTUFhLLbMUTfUoxst3ZrDdeEML9bQ8w8UVJKyvhPAr9wSP4
+	 BhT3Q9A3e2Vwp623nGGe/Vp3d8t50X4HQK74PJ3gBP5OmXwdvC5YuGBTuS8L0yHOEz
+	 o+gOGRT04NhWDwY3YuwzgwvB7onDHrTZ6bVjftQ1hurdI6DjFV037a3r4iwxGPuuaV
+	 f1xVagCPhU2WQ==
+Date: Thu, 20 Mar 2025 18:37:30 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] rule: return error if table does not exist
+Message-ID: <Z9xSWqE-2S_SX52I@calendula>
+References: <20250320133145.31833-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <1741369231.5380.37.camel@trentalancia.com>
+In-Reply-To: <20250320133145.31833-1-fw@strlen.de>
 
-On Fri, Mar 07, 2025 at 06:40:31PM +0100, Guido Trentalancia wrote:
-> I am not familiar with the application layer tools such as
-> NetworkManager.
+On Thu, Mar 20, 2025 at 02:31:42PM +0100, Florian Westphal wrote:
+> The bogon triggers segfault due to NULL dereference.  Error out and set
+> errno to ENOENT; caller uses strerror() in the errmsg.
 > 
-> The point is that the underlying issue does not change with auxiliary
-> tools: I believe iptables should not abort setting up all rules, just
-> because one or more of them fail to resolve in DNS.
+> After fix, loading reproducer results in:
+> /tmp/A:2:1-18: Error: Could not process rule: No such file or directory
+> list table inet p
+> ^^^^^^^^^^^^^^^^^^
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-There is consensus amongst Netfilter developers that skipping rules or
-even parts of them when loading a ruleset is a critical flaw in the
-software because loaded ruleset behaviour is not deterministic anymore.
-The usual security context demands that behaviour is exactly as
-requested by the user, any bit flipped could disable the whole security
-concept. "We printed a warning" is not an excuse to this.
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-In order to implement the desired behaviour, just call iptables
-individually for each rule and ignore failures. You could also cache IP
-addresses, try a new lookup during firewall service startup and fall
-back to the cached entry if it fails.
+Thanks.
 
-My personal take is this: If a DNS reply is not deterministic, neither
-is a rule based on it. If it is, one may well hard-code the lookup
-result.
-
-> As already said, if one or more rules fail then those specific hosts
-> are most likely unreachable anyway.
-
-No, it just means DNS has failed. The resulting rules use IP addresses
-and there is no guarantee these are not reachable. You are making
-assumptions based on your use-case, but the proposed behaviour will
-affect all use-cases (and there is always that special one ... ;).
-
-Cheers, Phil
+> ---
+>  src/rule.c                                                | 8 +++++++-
+>  .../testcases/bogons/nft-f/list_a_deleted_table_crash     | 3 +++
+>  2 files changed, 10 insertions(+), 1 deletion(-)
+>  create mode 100644 tests/shell/testcases/bogons/nft-f/list_a_deleted_table_crash
+> 
+> diff --git a/src/rule.c b/src/rule.c
+> index 3edfa4715853..00fbbc4c080a 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -2380,10 +2380,16 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+>  	if (nft_output_json(&ctx->nft->output))
+>  		return do_command_list_json(ctx, cmd);
+>  
+> -	if (cmd->handle.table.name != NULL)
+> +	if (cmd->handle.table.name != NULL) {
+>  		table = table_cache_find(&ctx->nft->cache.table_cache,
+>  					 cmd->handle.table.name,
+>  					 cmd->handle.family);
+> +		if (!table) {
+> +			errno = ENOENT;
+> +			return -1;
+> +		}
+> +	}
+> +
+>  	switch (cmd->obj) {
+>  	case CMD_OBJ_TABLE:
+>  		if (!cmd->handle.table.name)
+> diff --git a/tests/shell/testcases/bogons/nft-f/list_a_deleted_table_crash b/tests/shell/testcases/bogons/nft-f/list_a_deleted_table_crash
+> new file mode 100644
+> index 000000000000..b802430bb6cc
+> --- /dev/null
+> +++ b/tests/shell/testcases/bogons/nft-f/list_a_deleted_table_crash
+> @@ -0,0 +1,3 @@
+> +table inet p
+> +list table inet p
+> +delete  table inet p
+> -- 
+> 2.48.1
+> 
+> 
