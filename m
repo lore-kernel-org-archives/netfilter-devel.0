@@ -1,53 +1,56 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB91E2063C5
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 12:11:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF2DB21CFE0
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 12:11:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742472669; cv=none; b=hveUntHiLSkQ4NNRV8i7Xim/1qMedX+NXhEZAn0x/pSmMLk7A/7GBxp/3I4/t71V8PIVbOTITQrrnP84xBxzBYi0/G5zJPoOzG6fwC+7SzjPzrbKm6TSA0Vg4QE7xk0zWGOH8l/O5vfPHEblQOYQpiJlDRyhrtxuEjoIwUWihQM=
+	t=1742472670; cv=none; b=bPhD0R6GbluPeTeODyNqCtxbCVmxx/yiGSI/vRjWt9eaMgKv03XbT1fWLNHgTq0/rPwC6NC6WpouPYEILF4VOh9oLotBBeRYJeRzWsWBknJ3jqMQtumESJpGiirMN+n57+AhsDgzd0b+DZwJygs+kzL9Lshn9CnBlILMmq2wxQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742472669; c=relaxed/simple;
-	bh=ub9GuSF8v5Kw2FbbwBJ8tNbU06XxBoJLDo1iMgi8T6Q=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=CMM48LRqPBkgvvJA4vclw+7PmE9T2DIhYXPHzRWoB4jnE8rVerj7KY6f9IpDVXCo7Xlak9hL89KbqjINNtykSF9jfT7t9kyiFbb4OYG8cff5goExMlZdnoGQv07p57mbPHAu51qAdAc4RLWlkhfQZp17HphDsjgQap4oPaogRjA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CV2DyA7w; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nIfcF6Dx; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1742472670; c=relaxed/simple;
+	bh=9w+1TnOxIZWKzlQBEiATmFYRpqtiQB98BV+yBKz4pEw=;
+	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=g3plNo+ERiMWrMDraNBqDBcLwAPF31RPuTCHLh64AVBS7CYBNTn1iSmAw8w84eAxiIReOc0BDXa4aV2eNqiSmstVMRFxebm2iF4f6YZXvBtHzJziN1+6bp80P3GKQpjbyN6ca6bUPxozM2EMBWCd7Mgp3atFiksOpPtFONlfWTk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=V0eNWDIM; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OZQOjFQQ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CV2DyA7w";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nIfcF6Dx"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="V0eNWDIM";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OZQOjFQQ"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 0618E605B0; Thu, 20 Mar 2025 13:11:04 +0100 (CET)
+	id 35CC9605B2; Thu, 20 Mar 2025 13:11:05 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742472664;
-	bh=CcZLGhP7qaNimQOzBWCNjHffyryWdpT1/h6MtTiq75M=;
-	h=From:To:Subject:Date:From;
-	b=CV2DyA7wCyIHUvEcAvlMMNLLXiH2Gx7vplbyrW7C6pMbXOMSirJPyQhcX9qRVZ7Th
-	 Gg2mgZYkkzWJvLU7H0BeDLpwLZjA3GUQEQtLAbbQCq9TgikRr4D4S4vSupTKW8XhHL
-	 vlxKIm1LLpB6b/scnPQemFkiUNqO/v3F0aESCxNvQFjcKkZQg1cAF6VTYG//3VUzjJ
-	 uuv8YD5O+DGfSPjDxNPbHUq64Ib3tYNkIXohzrApYwJRGy5bXJnFY9RQMwGeZyvQWB
-	 ahsVx8eBHIAYUvzI2mQElmXwbrXk26mXtApofHSG5D6o0KODPgvkCSjMhrAIESRjeX
-	 sYwW+qDy/XyWA==
+	s=2025; t=1742472665;
+	bh=unq7hlVX+3Sddum2tXr24UvqX6+8797RTfXTfCwEFAk=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=V0eNWDIMSg/kv/4B90txjlnlsYfhR0q15cx04L88LOyTLBSrLDSPmUEdYOC5E+TqV
+	 jX5X1RnewbsK16KQXRT6gMR2SAcXlWcGycD9EVeytFcxvxn7t4kYmrSiadWhaLZ69/
+	 gqJdsMjojJX7EMZHPlRBMMTsuaBjth8X4m9zS7ab9AMzzTgnZ4T9Q2qkI9dBkOExK9
+	 VZVGDHs1ZPEIRdJmX8sXpTVQCaR6k8wrK3cqV70BezFDtk7KNePqS8DjrsQYGIq/fu
+	 3lsQP1NMTgg5SJ1ua+gDzlDGPs5Bxf9ih2vFlEkawr7lj73wNyQya6sJmBThJStnBC
+	 aT9U1Leq0XmFQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9CF3E605A5
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 13:11:03 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A911E605A5
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 13:11:04 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742472663;
-	bh=CcZLGhP7qaNimQOzBWCNjHffyryWdpT1/h6MtTiq75M=;
-	h=From:To:Subject:Date:From;
-	b=nIfcF6DxG/+n+9SL1OyUTubaNnMwyc8t3AZSsRx3MdxJgPSPiv4i2jUk2IwT+T0ZH
-	 CfTybImv6A467EzjXqyFIf2ogRPpyVnPZ17WyA9Az1loCnUEf1AZ93lGpSSXWtwB7g
-	 EOEpyiXz0pbHSG7LWILXO3mKhYdKrtaAOIBtKFkZ0+czH71u/Aa0lthMDuYA5ZBLnR
-	 0+Ktxhxnl3b971BYiKDaaDTxKDIQUfEVJbkSEIuHivJMThxQiwyQ/fA5T3ZclXmUCh
-	 Mrj2Jn/Eob52Z/B5y9/oJ/+NT+5zIg1+lESkzwfVk8jdnFzOvmv2CBWTQDS+1RcDM6
-	 3Bg46SaOyWnPQ==
+	s=2025; t=1742472664;
+	bh=unq7hlVX+3Sddum2tXr24UvqX6+8797RTfXTfCwEFAk=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=OZQOjFQQVM5msECKYUuKfFJI9y4I9QJdvjTQkRnOBMIy8fPcLhcgHWBmWXRseYJLv
+	 4/2Hcs++fcKvi1znGxNpsDkf8vBh2X1Ucgob4cUYGMjg4oSMo86mrQI6NGhHANyk5f
+	 UOQk9hv13Cqau9ZayATlHUm8hfOiYN0iZxTl1mxSJkZ/WPuhQcEoQIIcDaJdmS6wSU
+	 w0MisGS3u5fjh87NkJDckpc/FkmvjRUdJXTCXztDhcT7l+WaA3MUHhLEYZ1oXf0yyt
+	 IB/dXxKDaVrqErEPUBEWPjMDPtk0ldp8sfkBN293/Ljhy4fQyZXW6Uabkb0QzQ4c3a
+	 ejrnYLshm75mg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/5] parser_bison: consolidate counter grammar rule for set elements
-Date: Thu, 20 Mar 2025 13:10:55 +0100
-Message-Id: <20250320121059.328524-1-pablo@netfilter.org>
+Subject: [PATCH nft 2/5] parser_bison: consolidate limit grammar rule for set elements
+Date: Thu, 20 Mar 2025 13:10:56 +0100
+Message-Id: <20250320121059.328524-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250320121059.328524-1-pablo@netfilter.org>
+References: <20250320121059.328524-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,35 +59,129 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use existing grammar rules to parse counters to simplify parser.
+Define limit_stmt_alloc and limit_args to follow similar idiom that is
+used for counters.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/parser_bison.y | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ src/parser_bison.y | 77 ++++++++++++++++++++++------------------------
+ 1 file changed, 37 insertions(+), 40 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4d4d39342bf7..0d37c920f00c 100644
+index 0d37c920f00c..1605c26df843 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -4590,16 +4590,7 @@ set_elem_stmt_list	:	set_elem_stmt
+@@ -769,6 +769,8 @@ int nft_lex(void *, void *, void *);
+ %destructor { stmt_free($$); }	stmt match_stmt verdict_stmt set_elem_stmt
+ %type <stmt>			counter_stmt counter_stmt_alloc stateful_stmt last_stmt
+ %destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc stateful_stmt last_stmt
++%type <stmt>			limit_stmt_alloc
++%destructor { stmt_free($$); }	limit_stmt_alloc
+ %type <stmt>			objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy
+ %destructor { stmt_free($$); }	objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy
+ 
+@@ -3177,7 +3179,7 @@ objref_stmt		:	objref_stmt_counter
+ 			;
+ 
+ stateful_stmt		:	counter_stmt	close_scope_counter
+-			|	limit_stmt
++			|	limit_stmt	close_scope_limit
+ 			|	quota_stmt
+ 			|	connlimit_stmt
+ 			|	last_stmt	close_scope_last
+@@ -3461,28 +3463,45 @@ log_flag_tcp		:	SEQUENCE
  			}
  			;
  
--set_elem_stmt		:	COUNTER	close_scope_counter
--			{
--				$$ = counter_stmt_alloc(&@$);
--			}
--			|	COUNTER	PACKETS	NUM	BYTES	NUM	close_scope_counter
--			{
--				$$ = counter_stmt_alloc(&@$);
--				$$->counter.packets = $3;
--				$$->counter.bytes = $5;
--			}
-+set_elem_stmt		:	counter_stmt	close_scope_counter
- 			|	LIMIT   RATE    limit_mode      limit_rate_pkts       limit_burst_pkts	close_scope_limit
+-limit_stmt		:	LIMIT	RATE	limit_mode	limit_rate_pkts	limit_burst_pkts	close_scope_limit
++limit_stmt_alloc	:	LIMIT	RATE
++			{
++				$$ = limit_stmt_alloc(&@$);
++			}
++			;
++
++limit_stmt		:	limit_stmt_alloc limit_args
++			;
++
++limit_args		:	limit_mode	limit_rate_pkts	limit_burst_pkts
+ 	    		{
+-				if ($5 == 0) {
+-					erec_queue(error(&@5, "packet limit burst must be > 0"),
++				struct limit_stmt *limit;
++
++				assert($<stmt>0->type == STMT_LIMIT);
++
++				if ($3 == 0) {
++					erec_queue(error(&@3, "packet limit burst must be > 0"),
+ 						   state->msgs);
+ 					YYERROR;
+ 				}
+-				$$ = limit_stmt_alloc(&@$);
+-				$$->limit.rate	= $4.rate;
+-				$$->limit.unit	= $4.unit;
+-				$$->limit.burst	= $5;
+-				$$->limit.type	= NFT_LIMIT_PKTS;
+-				$$->limit.flags = $3;
++				limit = &$<stmt>0->limit;
++				limit->rate = $2.rate;
++				limit->unit = $2.unit;
++				limit->burst = $3;
++				limit->type = NFT_LIMIT_PKTS;
++				limit->flags = $1;
+ 			}
+-			|	LIMIT	RATE	limit_mode	limit_rate_bytes	limit_burst_bytes	close_scope_limit
++			|	limit_mode	limit_rate_bytes	limit_burst_bytes
  			{
- 				if ($5 == 0) {
+-				$$ = limit_stmt_alloc(&@$);
+-				$$->limit.rate	= $4.rate;
+-				$$->limit.unit	= $4.unit;
+-				$$->limit.burst	= $5;
+-				$$->limit.type	= NFT_LIMIT_PKT_BYTES;
+-				$$->limit.flags = $3;
++				struct limit_stmt *limit;
++
++				assert($<stmt>0->type == STMT_LIMIT);
++
++				limit = &$<stmt>0->limit;
++				limit->rate = $2.rate;
++				limit->unit = $2.unit;
++				limit->burst = $3;
++				limit->type = NFT_LIMIT_PKT_BYTES;
++				limit->flags = $1;
+ 			}
+ 			;
+ 
+@@ -4591,29 +4610,7 @@ set_elem_stmt_list	:	set_elem_stmt
+ 			;
+ 
+ set_elem_stmt		:	counter_stmt	close_scope_counter
+-			|	LIMIT   RATE    limit_mode      limit_rate_pkts       limit_burst_pkts	close_scope_limit
+-			{
+-				if ($5 == 0) {
+-					erec_queue(error(&@5, "limit burst must be > 0"),
+-						   state->msgs);
+-					YYERROR;
+-				}
+-				$$ = limit_stmt_alloc(&@$);
+-				$$->limit.rate  = $4.rate;
+-				$$->limit.unit  = $4.unit;
+-				$$->limit.burst = $5;
+-				$$->limit.type  = NFT_LIMIT_PKTS;
+-				$$->limit.flags = $3;
+-			}
+-			|       LIMIT   RATE    limit_mode      limit_rate_bytes  limit_burst_bytes	close_scope_limit
+-			{
+-				$$ = limit_stmt_alloc(&@$);
+-				$$->limit.rate  = $4.rate;
+-				$$->limit.unit  = $4.unit;
+-				$$->limit.burst = $5;
+-				$$->limit.type  = NFT_LIMIT_PKT_BYTES;
+-				$$->limit.flags = $3;
+-			}
++			|	limit_stmt	close_scope_limit
+ 			|	CT	COUNT	NUM	close_scope_ct
+ 			{
+ 				$$ = connlimit_stmt_alloc(&@$);
 -- 
 2.30.2
 
