@@ -1,106 +1,114 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9F201E9B1D
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 18:15:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CACD79461
+	for <netfilter-devel@vger.kernel.org>; Fri, 21 Mar 2025 01:57:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742494563; cv=none; b=hkiI5bI8Drt1tcaQyggfuicpDCOaCG3H1FKgVLnLhMe16airPggAzXZdnQ+tqsK3Xy0IsIaLLocVndlhiiJZq5DVwIMQB8Yr+I9spYG6mej8sQSCOSbTKdkmdPqE3it3OPbzfIf9WfehQTHsDqR1NHgjXYxJm71VuNMfo2cjYMY=
+	t=1742522259; cv=none; b=PYnGjuE9KuA2Fpy7C9CacUbp+Rai3i4uGQCO+JQQV1bUf16NqqyAkdB3qpaKT7xmks62e07/n2LS8ioztMB47pT9IBKz/j2nGjfnilBJdM+3zalciYSGEpbHlkFa33CTJwOTnXcoTt1o7c1MOQevLPpap3CCE/FFIiMFh2alD7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742494563; c=relaxed/simple;
-	bh=GWHb5KM0EKbpnAhWXZzod2PxpisGR92kpfyIWRw049w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FPPiNA3wagVByGPp5LXO5DZfBPCjZnoS7iYuXFdwuaU3WWlxCI3Yut3qQG27h34ZteLciqB7VQm/xbqNX1GZ8AcILQfQ4CBbx68yqevOcdx3rF+J0PJeevDrhobUd1i/CwEgHMNvf6egmjEPCCnVoC/HpdGHtG9bjTocIuUAUpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UkPbjaGe; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RMpfencd; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1742522259; c=relaxed/simple;
+	bh=TFFomu1Eksr50yc4b/31emzAbCyM5bPlIZxmLS/D5lM=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cUKLMLF8BRNC0n7JZtW2daTmVe8gnht1s57lVhlR3MIWK/y/Z/uAEVIZKLiLkqVroq1lma5hEASty3SOPXAaaCNw8ZnT6jK8HyLjP7YXGol6KythZQNI58py7B+RyNora0aLeUUu24s9G99TUwm1Rxn9t3d0ychBtw59uLhXIEU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FlSKul6z; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UkPbjaGe";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RMpfencd"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 563136054E; Thu, 20 Mar 2025 19:15:54 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742494554;
-	bh=2KzjXEjMa+avuj8T7vgroQCu591s8RGKIT9fRQCvdRw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UkPbjaGeb7/XqhhJMGju4fwJICMq6YJLApiqWroE0k2C8xKPXeswNcmECSrf+Eds7
-	 g7NW/IemAtb2SsMECiOaaqaBEaUXpMqtUK+9K1QQkC0yg7iAI57u9pJocWtJEWR1DN
-	 yJox/OYf6/Ib/e7ak5lvke0FpUwle/VtW/1oChg1VmKStWioxdBI2iawEw0IwhOu7T
-	 ooHzi/SH7cQ3LNDY0wIzqlNwAqIE+kw8FfEZhKsbHplU+ckY4A89s/846MInLNTRo7
-	 Qb4/OPT1ZFt05+G+tMKFmrNlhIrO81R1/hfQ7LjI1+4VJ9m88kr+CvjZiFRFCWLFyH
-	 Hy3OuJGmf3Swg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id AEE616054E;
-	Thu, 20 Mar 2025 19:15:53 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742494553;
-	bh=2KzjXEjMa+avuj8T7vgroQCu591s8RGKIT9fRQCvdRw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=RMpfencd78K+WWF2MK6Fawom03kIeORoS3tTc4KBsVSfWc4IxXcog1T7320449S0G
-	 5QbG9qp1tBU0eXXSprAxrAOFBAPXCvwLwsqVlIyTfjBveXtzb73B8RUYfYFgWuHb4u
-	 14a2zWuvwOu5APpGig5L+2HOc3MLQW6zztwVotvDtpLMin/xoPKj31rxeq1aOYZa1I
-	 /2UxiUkm4orelcEDLy/yJXYj2mOeOoipNLvtIEz5hlFNOmCzau61gsXpwNDISonXAw
-	 NwO0VnXM4sLW5PHKhaaakDKTE0kf+MY/I7JnRrGMjF8etY8ZxPhZEMetTI4AKHDt/L
-	 Y/luvKNig+aaQ==
-Date: Thu, 20 Mar 2025 19:15:51 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] evaluate: fix assertion failure with malformed map
- definitions
-Message-ID: <Z9xbV0zU1Q1N-VmU@calendula>
-References: <20250320133308.31925-1-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FlSKul6z"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-225df540edcso54115475ad.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Mar 2025 18:57:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1742522257; x=1743127057; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=S0aP0TL7A+pAYTet05RbopSqH1JoLS7+bp3XLlQ0Lxw=;
+        b=FlSKul6zs/Wghk0hIw2mUHrfXTshrqN8i3w6J78lGyR4FNN8O5Lr59jGbgTEZ/c9OI
+         EqSdolnftqt77ITceE2nunkeuunhrNq6MeV7uF4EK+1t//7SZD35Z3trssYNxRBAi1BE
+         NaLL1IoIhQ4w9VAfebJoOlmP9F+JfAEWLbC96WhRQAMvs8fplpZliONioqEI3j+mDfso
+         7LJvfiajeLGm9RCbTwHLTFToNDziaib3fLqolf23NJ1EH2Likq4LLrjeSwAdXm4J71VJ
+         i5s+u06aAy6jFlPE4H8bBM9Nn7rtxszDX1aNYwql74FhJveufTGaqIeg9ftcfvrgE8Oh
+         vJrQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1742522257; x=1743127057;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:reply-to:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=S0aP0TL7A+pAYTet05RbopSqH1JoLS7+bp3XLlQ0Lxw=;
+        b=vednvLIn8d+wemhmk5OEpHXY2rhp4G5T0gdueWvShljLKhCM6uYf74f/vwbDX7rYZ5
+         CmBz9kOPVkYLl43AZUF9KDOMOXK9FOFVMeeWmjf2AjNOoS6PdTi5GrfRuJGUS6Mcaz1T
+         UJzNufJDgsGkJ4xH4Ir8PahaZaNaska61mKHNSjDHgfqgA8yHaNK0jc7HWlJDYlIC9t0
+         wFb/SW/to4gredxAsmnQwDHYJ/BcMIxHGvh3Z/Ay1ZnIUr4RRdPnjBIZhlTDwZ9gfos/
+         eHFKvpmIBICgQcDRufLnhtBeFYanV/S2QvTZRIXeYQGuhCWAc9X2X9/DCM3TgTQp0537
+         oIeA==
+X-Gm-Message-State: AOJu0Yx5H0OAfvkSvVY4f8zOS5WKGLKof2UgEIc9xTLH3QyE69osxE9c
+	BwFbxDEmGb/8+wbhezMkXZHTMnAU+GZ461GaMfi6J0vB/KdY/BBRaP978A==
+X-Gm-Gg: ASbGnctKFVdgsRl6B3P3zcLTsNUzuVeC/Ox3ibn5DJv9ui3ffjh4HEU16QnfS5M6irm
+	EQmb1UnCd5/RZJhM7oQsc2uuMXYxRo/71TZnYjQr94mBxMFmn52owvDVy0ShlATLCQ5HEYhrFVY
+	ANvNjv+s9dErQl/7lwjP85iyvedEhWr3DfXwgRsuKZ+5pvPlG1TMdOjV8bdYW/289Au1lWJLANn
+	wP7oEL6B0oCDBzlZRMg4+hife1IvjMvmq5qDEhLs2Hjl/Ra9/VX4ROoX01pFYcYheNGMBGmLdJS
+	nUKsGR9p6o9d/TTfAiI0jeodiqdLrGihmgBQv1uAwRuXYDVaAn255amn3J48lrhf0fIh5pdL8gP
+	jeFuQAMXqOfomY6CH2imsFg==
+X-Google-Smtp-Source: AGHT+IG4emdSoEmhMb7nrsvD6xV5x5zSwcJem0eeHmQJ7KMBFCOuvLQ5nD8NZfc9QSVA1xrXMlCA0A==
+X-Received: by 2002:a05:6a00:638d:b0:736:aea8:c9b7 with SMTP id d2e1a72fcca58-7377a08766dmr8091725b3a.2.1742522256957;
+        Thu, 20 Mar 2025 18:57:36 -0700 (PDT)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-73906159f6fsm566957b3a.156.2025.03.20.18.57.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 20 Mar 2025 18:57:35 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+X-Google-Original-From: Duncan Roe <dunc@slk15.local.net>
+Date: Fri, 21 Mar 2025 12:57:32 +1100
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH libnetfilter_queue] src: doc: Re-order gcc args so
+ nf-queue.c compiles on Debian systems
+Message-ID: <Z9zHjBkgCDyPiBoN@slk15.local.net>
+Reply-To: duncan_roe@optusnet.com.au
+Mail-Followup-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development <netfilter-devel@vger.kernel.org>
+References: <20250319005605.18379-1-duncan_roe@optusnet.com.au>
+ <Z9qOVEObhFzmVKx6@calendula>
+ <Z9ssJMKDJDetdYV2@slk15.local.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250320133308.31925-1-fw@strlen.de>
+In-Reply-To: <Z9ssJMKDJDetdYV2@slk15.local.net>
 
-TLDR; patch is fine with me.
+Hi Pablo,
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Thu, Mar 20, 2025 at 07:42:12AM +1100, Duncan Roe wrote:
+> Hi Pablo,
+>
+> On Wed, Mar 19, 2025 at 10:28:52AM +0100, Pablo Neira Ayuso wrote:
+> > On Wed, Mar 19, 2025 at 11:56:05AM +1100, Duncan Roe wrote:
+> > >   * Simple compile line:
+> > >   * \verbatim
+> > > -gcc -g3 -ggdb -Wall -lmnl -lnetfilter_queue -o nf-queue nf-queue.c
+> > > +gcc -g3 -gdwarf-4 -Wall nf-queue.c -o nf-queue -lnetfilter_queue -lmnl
+> >
+> > I am going t remove -g3 and -gdwarf-4, so it ends up with:
+> >
+> > gcc -Wall nf-queue.c -o nf-queue -lnetfilter_queue -lmnl
+>
+> That makes nonsense of the previous line:
+>
+> | you should start by reading (or, if feasible, compiling and stepping through with gdb) nf-queue.c
+>
+> You can only step through nf-queue.c if you compile with the debug options.
+>
+> Please leave them there.
+  ^^^^^^ ^^^^^ ^^^^ ^^^^^^
+You chose to ignore this or maybe you just missed it?
 
-On Thu, Mar 20, 2025 at 02:33:05PM +0100, Florian Westphal wrote:
-> diff --git a/tests/shell/testcases/bogons/nft-f/malformed_map_expr_evaluate_mapping_assert b/tests/shell/testcases/bogons/nft-f/malformed_map_expr_evaluate_mapping_assert
-> new file mode 100644
-> index 000000000000..c77a9c33e0ad
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-f/malformed_map_expr_evaluate_mapping_assert
-> @@ -0,0 +1,6 @@
-> +table ip x {
-> +        map m {
-> +                typeof ct saddr :ct expectation
+I can send a patch to remove the reference to gdb in the previous paragraph or I
+can send a patch to reinstate the gcc debug options. Which would you prefer?
 
-Longer story: This is declaration is "correct".
-
-Actually, ct saddr is broken because it is ambiguous, it is there in
-the parser for "backwards compatibility", IIRC it can be only used
-sanely from rules, ie. ct saddr cannot be used from set/map,
-ct original ip saddr should be used instead.
-
-The problem with ct saddr is that length depends on the context, and
-having a key with variable size is problematic, the assumption here is
-that all keys have fixed size.
-
-> +                elements = { * : none}
-> +        }
-> +}
-
-This variant bails out correctly:
-
-table ip x {
-        map m {
-                typeof ct original ip saddr : ct expectation
-                elements = { * : none}
-        }
-}
-
-/tmp/k:4:30-30: Error: Could not process rule: No such file or directory
-                elements = { * : none}
-
-because "none" ct expectation object does not exist.
+Cheers ... Duncan.
