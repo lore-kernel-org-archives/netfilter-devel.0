@@ -1,55 +1,30 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (unknown [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45247154426
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Mar 2025 14:53:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 700901D6DDD
+	for <netfilter-devel@vger.kernel.org>; Fri, 21 Mar 2025 14:58:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742568817; cv=none; b=l5JZELbE+ldHeKTptEqzxWhsjus/OHmnmwDqZvAiHer3+G8fs/uWLNzkDtBskCF/ArI+XW6q0pyHZTjaTMY8X4uvaa5ejKcCrLaHxIUAB5mK5gHf402a7uJQBf4l45EooVbzj0G0QbYsYhXqvi7ptAjWV4osKowFFpBMrfIl+6k=
+	t=1742569130; cv=none; b=d/H01SJTYsUp8ZZ1DXCunVr5NIi5zIz2boj6F8SNsQ6Yf+GhzH7AQKHjZCrpoDh5VVcjhLCy1NXRTlePUbe79V7QkiTkNNVVHmzzc3xkq0hcs1S8s31Nd/NpzIwOv32b7CBMF1/gn2IVdgjG5IjlLXRfnCMjmtFMBMfkFkThKcU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742568817; c=relaxed/simple;
-	bh=jtw5ioTA0xDMqvIPlMI45RqwlscI+sLDkG5YwST7d6g=;
+	s=arc-20240116; t=1742569130; c=relaxed/simple;
+	bh=aY6AOrhom1jdKJhUMZquBnZd1Yr7TTQcugrT3Mfccwg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JwEN1vMsL2Em6Qncfnc/h0wQMqbflQhJxCks7Of4hDV3RKU/HI7ViN3oMXGKSSr+O4/LP7P/gCpQQVLlcF1D3Z+6eXPwEXKlvpdJJoJSyPI/3XTsebye+4U38MVD4j1UPB1dewLKBYZnLOBOp2pwSTACthHSDAF9JXzEn+lweNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Xc4KCrqe; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Xc4KCrqe"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=jtw5ioTA0xDMqvIPlMI45RqwlscI+sLDkG5YwST7d6g=; b=Xc4KCrqegco4pzceQzP2qKiYhf
-	G34cJaJFvcMogDqtwCLuLiY0ok1CCOnA1Wt5dozGUJIeRxtr4ifXGRJF2olBaPHaLkY5O+V1SgtKb
-	BSeV1xDR2kZ4oMRTptSQTUL8tWcRa7jBQcQNxWy5NIybKXGcViEIsY0dT5oSWzXpYzncPYdHxEfdz
-	1OLU87Tqr7NR7cgfQJ8yAqnXlaKaOoaCr7xuPkDGVHQhf4bXdpKO7m1zv8CbYvlMr5V4HT35DIPQ/
-	bF/jamvNNi5X+/4UTIuZ2xqwp2e8fSK+ZjJd7FwjCBNtehfMmZWNoAYX9/6LNpfF9DjDCBXJGRHug
-	PWFBxrAg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1tvdka-000000003wu-1OcR;
-	Fri, 21 Mar 2025 15:53:32 +0100
-Date: Fri, 21 Mar 2025 15:53:32 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Guido Trentalancia <guido@trentalancia.com>
-Cc: netfilter-devel@vger.kernel.org, Jan Engelhardt <ej@inai.de>
-Subject: Re: [PATCH iptables]: xtables: tolerate DNS lookup failures
-Message-ID: <Z919bGfvp6scBYLi@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Guido Trentalancia <guido@trentalancia.com>,
-	netfilter-devel@vger.kernel.org, Jan Engelhardt <ej@inai.de>
-References: <1741354928.22595.4.camel@trentalancia.com>
- <qn655027-4830-ps48-87po-r61npps888s5@vanv.qr>
- <1741361076.5380.3.camel@trentalancia.com>
- <931rns88-4o59-s61q-6400-4prp16prsqs7@vanv.qr>
- <1741367396.5380.29.camel@trentalancia.com>
- <s4sq15s8-p28r-7o01-03n8-82623p8n3728@vanv.qr>
- <1741369231.5380.37.camel@trentalancia.com>
- <Z9w2vLdyQfWepMET@orbyte.nwl.cc>
- <1742556087.6585.35.camel@trentalancia.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=PLJx2qp/Fb97H84WWAz1OS5geOiiNkUVTdCQNcfbo9zpn2dxqhfpr1MHdxXDiDTevlq14t53v28qgQnJ0lh1FaBAi3PM6RBjvrvtkTSD423Ge3Bz4JDO+0KLMFwBFpkGOrYjV72NC2Cg4y3pLBqMbvkPxw8xp7kjtqtCam7ghak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1tvdpd-0005Zg-Dr; Fri, 21 Mar 2025 15:58:45 +0100
+Date: Fri, 21 Mar 2025 15:58:45 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH nf-next] netfilter: replace select by depends on for
+ IP{6}_NF_IPTABLES_LEGACY
+Message-ID: <20250321145845.GC20305@breakpoint.cc>
+References: <20250321103647.409501-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,19 +33,80 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1742556087.6585.35.camel@trentalancia.com>
+In-Reply-To: <20250321103647.409501-1-pablo@netfilter.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Hi,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Relax dependencies on iptables legacy, replace select by depends on,
+> this should cause no harm to existing kernel configs and users can still
+> toggle IP{6}_NF_IPTABLES_LEGACY in any case.
 
-On Fri, Mar 21, 2025 at 12:21:27PM +0100, Guido Trentalancia wrote:
-[...]
+I applied following delta on top:
 
-Sorry for skipping all your points. I didn't see any new data in them so
-no point in repeating what others have commented already.
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -65,7 +65,7 @@ if BRIDGE_NF_EBTABLES
+ #
+ config BRIDGE_EBT_BROUTE
+        tristate "ebt: broute table support"
+-       select BRIDGE_NF_EBTABLES_LEGACY
++       depends on BRIDGE_NF_EBTABLES_LEGACY
+        help
+          The ebtables broute table is used to define rules that decide between
+          bridging and routing frames, giving Linux the functionality of a
+@@ -76,7 +76,7 @@ config BRIDGE_EBT_BROUTE
+ 
+ config BRIDGE_EBT_T_FILTER
+        tristate "ebt: filter table support"
+-       select BRIDGE_NF_EBTABLES_LEGACY
++       depends on BRIDGE_NF_EBTABLES_LEGACY
+        help
+          The ebtables filter table is used to define frame filtering rules at
+          local input, forwarding and local output. See the man page for
+@@ -86,7 +86,7 @@ config BRIDGE_EBT_T_FILTER
+ 
+ config BRIDGE_EBT_T_NAT
+        tristate "ebt: nat table support"
+-       select BRIDGE_NF_EBTABLES_LEGACY
++       depends on BRIDGE_NF_EBTABLES_LEGACY
+        help
+          The ebtables nat table is used to define rules that alter the MAC
+          source address (MAC SNAT) or the MAC destination address (MAC DNAT).
 
-> I hope this helps...
 
-It does not. Applying a ruleset partially due to failures is not an
-acceptable behaviour, so this is a NACK to your patch from my side.
+./iptables-test.py -n
+[..]
+./extensions/libxt_TCPOPTSTRIP.t: ERROR: line 4 (cannot load: ip6tables -A PREROUTING -t mangle -p tcp -j TCPOPTSTRIP)
+./extensions/libxt_TCPOPTSTRIP.t: ERROR: line 5 (cannot load: ip6tables -A PREROUTING -t mangle -p tcp -j TCPOPTSTRIP --strip-options 2,3,4,5,6,7)
 
-Cheers, Phil
+The kernel module has a 'defined' check for ipv6 mangle table, not sure
+yet how to replace this (ipv4 works).
+
+shell tests worked.  I think we also might want to revisit/harmonize
+arptables, ATM legacy support is controlled via IP_NF_ARPTABLES.
+
+So perhaps (UNTESTED!) also change:
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -326,6 +326,7 @@ endif # IP_NF_IPTABLES
+ config IP_NF_ARPTABLES
+        tristate "Legacy ARPTABLES support"
+        depends on NETFILTER_XTABLES
++       select NETFILTER_FAMILY_ARP
+        default n
+        help
+          arptables is a legacy packet classifier.
+@@ -340,9 +341,7 @@ config NFT_COMPAT_ARP
+ 
+ config IP_NF_ARPFILTER
+        tristate "arptables-legacy packet filtering support"
+-       select IP_NF_ARPTABLES
+-       select NETFILTER_FAMILY_ARP
+-       depends on NETFILTER_XTABLES
++       depends on IP_NF_ARPTABLES
+        help
+          ARP packet filtering defines a table `filter', which has a series of
+          rules for simple ARP packet filtering at local input and
+
