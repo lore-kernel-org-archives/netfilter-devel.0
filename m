@@ -1,35 +1,33 @@
 Received: from a3.inai.de (a3.inai.de [144.76.212.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0751C84D6
-	for <netfilter-devel@vger.kernel.org>; Sat, 22 Mar 2025 09:33:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77041EFF9D
+	for <netfilter-devel@vger.kernel.org>; Sat, 22 Mar 2025 09:41:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742636018; cv=none; b=a7XtcXIzeCfba4Qs32EQOxxVlEVXIm1ftYEB45+1ceuKFLmTwNIVkdARv/XAXAdIx48VpkIJNCbkRL1XMVBRRGTH6+f6etrewhMwjMm9BxTSpnNCjCkZNyeozmnKM6loMESnJvmgSue1INIVn5MjdH5Tw9wDZQG9prEm9OuGZmE=
+	t=1742636471; cv=none; b=Q1aUMOPBCPItcURu43FutlRfh3/kjrhhZNHfDxYJo/mq87fpSohbPYe6dx2MfWiPPE5BbwVB2oskDdScOxEE6vrdvCIq4/Ryv3bDUuoDEnE74j9F5y282opUaIa9NTyQ6SweLcmSccVs0lx6pJ0AuHUEDsUDcL2du5mM1p7/qYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742636018; c=relaxed/simple;
-	bh=qiWSKpJjg8J0wR+rnKVrAWk5Gkrz2vXDBwquf2iTOpo=;
+	s=arc-20240116; t=1742636471; c=relaxed/simple;
+	bh=xroatHh9wAgLBtUZV+qJDjeXJLlrBiT6N1745aavX+0=;
 	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=Lr7NVZkjB+Yg5u9UiNcdcHvp9iBPXteGsQuOzE56lr1o3isodGuWt019fId6wj5SvWqwtJGi15et26p2Jkiav780TDwNR5jlUHrc4xnWKVCcvZrsbyxLYShddRL/GIbNt1+jqt3nC/+P54O2WdlXPhA5tQOswojqQxZ566Jfkko=
+	 MIME-Version:Content-Type; b=GJ948BJ17L3kzY4YbshFbXbI7C3og6raSJkKMyMG4xOxCstle1cYN+zt0r24/hCoYb5oUWTVzsYGW1ZWGuY7Dv7n3EpZ61Rc4FcWWMKPKNAtbLHKdto2yXI/B61iodkQ6OEsVSw4EPZSrrAFiABWZWmpCw8JEqqxVobqv3TsK+g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
 Received: by a3.inai.de (Postfix, from userid 25121)
-	id 970C8100FC56BB; Sat, 22 Mar 2025 10:24:59 +0100 (CET)
+	id 87B8F1003CFAD2; Sat, 22 Mar 2025 10:41:03 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-	by a3.inai.de (Postfix) with ESMTP id 96BEE110014B25;
-	Sat, 22 Mar 2025 10:24:59 +0100 (CET)
-Date: Sat, 22 Mar 2025 10:24:59 +0100 (CET)
+	by a3.inai.de (Postfix) with ESMTP id 860E61100C2DA7;
+	Sat, 22 Mar 2025 10:41:03 +0100 (CET)
+Date: Sat, 22 Mar 2025 10:41:03 +0100 (CET)
 From: Jan Engelhardt <ej@inai.de>
-To: Duncan Roe <duncan_roe@optusnet.com.au>
-cc: Arturo Borrero Gonzalez <arturo@debian.org>, 
-    Pablo Neira Ayuso <pablo@netfilter.org>, Jan Engelhardt <jengelh@inai.de>, 
-    netfilter-devel@vger.kernel.org, fw@strlen.de, matthias.gerstner@suse.com, 
-    phil@nwl.cc, eric@garver.life
+To: Eric Garver <eric@garver.life>
+cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org, 
+    fw@strlen.de, pablo@netfilter.org
 Subject: Re: [PATCH] tools: add a systemd unit for static rulesets
-In-Reply-To: <Z94XLnSQRfMh9THs@slk15.local.net>
-Message-ID: <22n4s4s4-8155-708o-4091-q6o3nq313641@vanv.qr>
-References: <20250228205935.59659-1-jengelh@inai.de> <Z8jDjlJcehMB_Z9F@calendula> <dfaada92-44ca-44c1-83e4-5844191ff57b@debian.org> <Z94XLnSQRfMh9THs@slk15.local.net>
+In-Reply-To: <Z8muJWOYP3y-giAP@egarver-mac>
+Message-ID: <21n3p554-628p-rp58-9n30-ons568967243@vanv.qr>
+References: <20250228205935.59659-1-jengelh@inai.de> <Z8muJWOYP3y-giAP@egarver-mac>
 User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -40,20 +38,24 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 
 
-On Saturday 2025-03-22 02:49, Duncan Roe wrote:
->>
->> I have mixed feelings about having this systemd service file in this repository.
->> Will this file be maintained wrt. systemd ecosystem updates? Or will it be
->> outdated and neglected after a few years?
+On Thursday 2025-03-06 15:16, Eric Garver wrote:
+>
+>to save the entire running ruleset. That's what I do. Mostly because I
+>want to make sure runtime accepts it before I make it permanent.
+>
+>Perhaps this is not mentioned due to the `flush ruleset`. We could
+>suggest saving runtime to a file that's included from main.nft, thus
+>retaining the flush.
 
-There are no changes expected to be necessary.
+I'll add it.
 
->> For most folks, I assume they will run nftables via firewalld or any other
->> ruleset manager, unless they know what they are doing. And if they know what
->> they are doing (i.e, they have crafted their own firewalling system), then
->> most likely the systemd config in this repo is ignored.
+>> +[Install]
+>> +WantedBy=sysinit.target
+>
+>The service definition is pretty close to the RHEL one [1]. The major
+>difference is DefaultDependencies=no, i.e. early boot service. I think
+>setting this to 'no' is okay for nftables. I don't see any
+>incompatibilities with the RHEL version.
 
-This is just a launcher, not the ruleset itself.
-And with /etc/init.d/boot.local practically gone on modern systems,
-it's not as simple anymore to just slap nft -f.. in boot.local.
-
+The patch already contains DefaultDependencies=no.
+https://lore.kernel.org/netfilter-devel/Z9wgoHjQhARxPtqm@orbyte.nwl.cc/T/#m8f856650f1553a3b6a0ed17af37ce1ad5acb3227
