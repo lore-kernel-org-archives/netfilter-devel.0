@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 993FC202960;
-	Sun, 23 Mar 2025 10:09:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F38D20409F;
+	Sun, 23 Mar 2025 10:09:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742724574; cv=none; b=ui/hh0XCoCzrVz/BXjM9MyDkv5cMgjSvvBcgB+EOtrMPCfZBsL0Vu7ze8hXQd97zfaQHx3Wss0eYvKqS9jta3PjaZBWVZHEfR+8k9WfcTg39fJ89U618iZMmvIHsG94yLmYLFWmknjUOySBEu/2Mo7/wVl5Q8g08MoXUgOYXsdM=
+	t=1742724577; cv=none; b=fV0SZx0SEwnzxFxUyUCHf0QJs7aTl4NqNbG+dxlIRSbiS6U1bgKBeqtZY8cinyjVxEFd2B80QxSdLB8zulAYC6L+yF3M0VdBdbDLP8/mTPL9td2E2bwpYHWMvtWEjy35Ir+bKGfMBxIFfyPo9/px3pS2Q4Bu3CDUZoULvzrgfVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742724574; c=relaxed/simple;
-	bh=7QkvyVWfkvcKoHD03Ld5JEn6xNCnCPkjuGUzo5KLVMk=;
+	s=arc-20240116; t=1742724577; c=relaxed/simple;
+	bh=fSowlrrngOwsDNZt8FbmBBamwAyDsrQjSR6Ir/QH+vc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=uzJTY5tjuis91wom07/k9WVf+sKypIrqs9lFTCKbHl0DQ41qV5yQj/QhaDGNy64p+WBUd90t4bHnFmai04ogndaOADRtF9tPAUZTfpzhpuAeRv+10m7it6k9wSPHEuC6ptEjx6cPfT8aVoUbHjmA6YK7hXg2nnN7sfi+ENQ8/H0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Q/qvOsRp; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FVcx9vhA; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=YKquVBMurXR2omn9euG3wpWqRA01deMGZQqPFGZqCV0yFEarLmuWRszUXHDpcDCzPZZ4RG2Xcz2F9ijbuBF8XAcvC8sEkoJNNz/TR80/6CvPmYo/ozddqXEvtXTrAMr8CExhqXerQZI66Btg/A31bNf1hYpr9Y4dDVn8otrAKqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kbig0TpY; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mk2T0NuB; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Q/qvOsRp";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FVcx9vhA"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kbig0TpY";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mk2T0NuB"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id EBC526039A; Sun, 23 Mar 2025 11:09:30 +0100 (CET)
+	id B950D60395; Sun, 23 Mar 2025 11:09:32 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724570;
-	bh=Jrj1Vudvlv3gJxIDFeWNyBbhMb72tRZRUB+3BFHOJRU=;
+	s=2025; t=1742724572;
+	bh=vHknCH8VVQ63SXtgAfiqydpIO92QyJPlZQQnn20OiWk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Q/qvOsRpsk5NM4Od/i02pGrMGChSeBAFh4OQ9Amm2Kjen6fuMSKwaN2nsppWFfnyJ
-	 MMvUq6gp3kjW00Sc1wDILUhAdMydnfOx9JGeEb8wES0o52kaM4oEc67MGeJ1cdS+Z9
-	 PFTIKAoyibVPoNteZGIYRxLqXYD66YXjQQGBhBQzvQIlwrjad/x/IwC03/mIRa31W0
-	 mJK8cGY6ws6GKIcw2iIjeh0r2VLjzuXFteOIsEVmsBsvG5WkMx5pWvByrjWfMIduex
-	 /HfyRma385edCO2GLZQZ6+QgX+omikVgwPTRqpJU397ThJAI3VvzDxarBMi88m8Arw
-	 W1DrYRFBiDYoQ==
+	b=kbig0TpY0/OoGjMRDyiOk3G8foYtiG72AGc9Q5eVICUesAm1BhSsjBsH9XFmyAOc0
+	 G7OGuIqMLYfuEFbo9YTlY71lxhN0qR6vCGcAHQpqXBdawijfyeFZjTAXtRutBlYaq2
+	 2BmBvMUiZ3DcQ+ignzXhEZhzicsuzclVTubUyByMifaMOHqEh3JNR3ObMrGKVo6791
+	 STU3aARrsg2EvfCPPoh+huwNSnROH6AyF0yx0TtO94D6WutZGmgQNQcfMuwkLVeOC0
+	 lMj5TzQvnc31dqoMOax6PsxVsqEY0BLfB16GVVvEt3a9xekNkTSAnxcRBsB9LlIjQY
+	 LTx85iPYU4SGQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4B2F360386;
-	Sun, 23 Mar 2025 11:09:27 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1AB8E6038C;
+	Sun, 23 Mar 2025 11:09:28 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724567;
-	bh=Jrj1Vudvlv3gJxIDFeWNyBbhMb72tRZRUB+3BFHOJRU=;
+	s=2025; t=1742724568;
+	bh=vHknCH8VVQ63SXtgAfiqydpIO92QyJPlZQQnn20OiWk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=FVcx9vhARl65FYppfRLuIiUsIXKclNztobhGK+SOU4w839Gn2tJgNKwF9PBA6yLIU
-	 cvKdGD8fAcMFJZtaWKtXpFP9114yEZmY1oNm815ETtYJnvC9+sksZ02b79AmWnWnT1
-	 ExK5POurvGWaaPu8th4laLW+aJ2Qn+d8VJZ0GFPWW8LD6bQhDz0zi92t7EQF51hei+
-	 440dwJL3QA/TvJxufrCrwW1jpFxhguZm46POmz+MYTZb3xTHGehN3hbcZV9lLn6JKm
-	 ZGewoUjVS6ElVLZWNFL2srUIBU4R6JTHALf3MFvo0fNsN1AldCaXMzRPBiHyL5Xcdg
-	 7H+Fnz0x9wdCA==
+	b=mk2T0NuBt1lP1n5PlxAdCm5EGr61xw9LAwjcfdrYN1WFttl9VM3HmZA9ZK0SGu+tg
+	 zA2VGS2uD5oT/fewiXhfuLjtkAoT0YotYB3i2ODlPIKhZjZ1+NzscR75sUNtVKrhcB
+	 7rWoBNH6QnQFBq0OkEBLNDXcPOW122TYp96neDYZhI1K9XqNW1jIhVobnyjYnUcH29
+	 rpwg8uRpFm2Hj58u/KifEEj13MVtwUcFKVAQHXXbSP6/na++FpeqrMU+a6Upo9G7xR
+	 VwxC6JDXntA64AKjSrpUg8MVAzAve7LJsjVYxUYzwKggxPYa3ZNWekegT6/6SzABb3
+	 mBWTvbsgzeWMg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 1/7] netfilter: xt_hashlimit: replace vmalloc calls with kvmalloc
-Date: Sun, 23 Mar 2025 11:09:16 +0100
-Message-Id: <20250323100922.59983-2-pablo@netfilter.org>
+Subject: [PATCH net-next 2/7] netfilter: conntrack: Bound nf_conntrack sysctl writes
+Date: Sun, 23 Mar 2025 11:09:17 +0100
+Message-Id: <20250323100922.59983-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250323100922.59983-1-pablo@netfilter.org>
 References: <20250323100922.59983-1-pablo@netfilter.org>
@@ -66,75 +66,79 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Denis Kirjanov <kirjanov@gmail.com>
+From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
 
-Replace vmalloc allocations with kvmalloc since
-kvmalloc is more flexible in memory allocation
+nf_conntrack_max and nf_conntrack_expect_max sysctls were authorized to
+be written any negative value, which would then be stored in the
+unsigned int variables nf_conntrack_max and nf_ct_expect_max variables.
 
-Signed-off-by: Denis Kirjanov <kirjanov@gmail.com>
-Reviewed-by: Florian Westphal <fw@strlen.de>
+While the do_proc_dointvec_conv function is supposed to limit writing
+handled by proc_dointvec proc_handler to INT_MAX. Such a negative value
+being written in an unsigned int leads to a very high value, exceeding
+this limit.
+
+Moreover, the nf_conntrack_expect_max sysctl documentation specifies the
+minimum value is 1.
+
+The proc_handlers have thus been updated to proc_dointvec_minmax in
+order to specify the following write bounds :
+
+* Bound nf_conntrack_max sysctl writings between SYSCTL_ZERO
+  and SYSCTL_INT_MAX.
+
+* Bound nf_conntrack_expect_max sysctl writings between SYSCTL_ONE
+  and SYSCTL_INT_MAX as defined in the sysctl documentation.
+
+With this patch applied, sysctl writes outside the defined in the bound
+will thus lead to a write error :
+
+```
+sysctl -w net.netfilter.nf_conntrack_expect_max=-1
+sysctl: setting key "net.netfilter.nf_conntrack_expect_max": Invalid argument
+```
+
+Signed-off-by: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_hashlimit.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ net/netfilter/nf_conntrack_standalone.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index fa02aab56724..3b507694e81e 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -15,7 +15,6 @@
- #include <linux/random.h>
- #include <linux/jhash.h>
- #include <linux/slab.h>
--#include <linux/vmalloc.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/list.h>
-@@ -294,8 +293,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 		if (size < 16)
- 			size = 16;
- 	}
--	/* FIXME: don't use vmalloc() here or anywhere else -HW */
--	hinfo = vmalloc(struct_size(hinfo, hash, size));
-+	hinfo = kvmalloc(struct_size(hinfo, hash, size), GFP_KERNEL);
- 	if (hinfo == NULL)
- 		return -ENOMEM;
- 	*out_hinfo = hinfo;
-@@ -303,7 +301,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 	/* copy match config into hashtable config */
- 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
- 	if (ret) {
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return ret;
- 	}
- 
-@@ -322,7 +320,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 	hinfo->rnd_initialized = false;
- 	hinfo->name = kstrdup(name, GFP_KERNEL);
- 	if (!hinfo->name) {
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return -ENOMEM;
- 	}
- 	spin_lock_init(&hinfo->lock);
-@@ -344,7 +342,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
- 		ops, hinfo);
- 	if (hinfo->pde == NULL) {
- 		kfree(hinfo->name);
--		vfree(hinfo);
-+		kvfree(hinfo);
- 		return -ENOMEM;
- 	}
- 	hinfo->net = net;
-@@ -433,7 +431,7 @@ static void htable_put(struct xt_hashlimit_htable *hinfo)
- 		cancel_delayed_work_sync(&hinfo->gc_work);
- 		htable_selective_cleanup(hinfo, true);
- 		kfree(hinfo->name);
--		vfree(hinfo);
-+		kvfree(hinfo);
- 	}
- }
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 502cf10aab41..2f666751c7e7 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -618,7 +618,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.data		= &nf_conntrack_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_INT_MAX,
+ 	},
+ 	[NF_SYSCTL_CT_COUNT] = {
+ 		.procname	= "nf_conntrack_count",
+@@ -654,7 +656,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.data		= &nf_ct_expect_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ONE,
++		.extra2		= SYSCTL_INT_MAX,
+ 	},
+ 	[NF_SYSCTL_CT_ACCT] = {
+ 		.procname	= "nf_conntrack_acct",
+@@ -947,7 +951,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
+ 		.data		= &nf_conntrack_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_INT_MAX,
+ 	},
+ };
  
 -- 
 2.30.2
