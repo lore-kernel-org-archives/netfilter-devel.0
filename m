@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 789131714B7;
-	Sun, 23 Mar 2025 10:09:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 993FC202960;
+	Sun, 23 Mar 2025 10:09:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742724572; cv=none; b=UrcWx9m7LIY2JovQwuiQNbMbwwmVoWkIOflB8Qjyh1NbH61Z5fPMmELdNa09+elV89Ll+u5vu9JGl9j8uBmirpMK3VWolz2J9lEHDv3AWcLSkAKH+cGn1pg/bzAENZgIG9vUwLx8XknEQsDYx8GLvpEV5fK/TI1yajxM5nA2ccg=
+	t=1742724574; cv=none; b=ui/hh0XCoCzrVz/BXjM9MyDkv5cMgjSvvBcgB+EOtrMPCfZBsL0Vu7ze8hXQd97zfaQHx3Wss0eYvKqS9jta3PjaZBWVZHEfR+8k9WfcTg39fJ89U618iZMmvIHsG94yLmYLFWmknjUOySBEu/2Mo7/wVl5Q8g08MoXUgOYXsdM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742724572; c=relaxed/simple;
-	bh=90fuXTxuhpswf3Bjhs5KtWTyd0z/K4YE+TJnCruOGRA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=G7r8m6WU+oH63tn/BeIBU4i8w5RCH4Q9eLSMo8IBplNPMuawN3YuB0yvXY2u0wGXltd3PiFx4EhliXHWLy+2FYIKBJ2Uvx/5VCUgcw5ibf3vkBuJ5olFMOlJDhQvjWHA+K2z0Yhbe9vmjZOG7cD1r620diYlGnQ7dd42cNljXvs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mGhj8JN9; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mzV/zQ4S; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1742724574; c=relaxed/simple;
+	bh=7QkvyVWfkvcKoHD03Ld5JEn6xNCnCPkjuGUzo5KLVMk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=uzJTY5tjuis91wom07/k9WVf+sKypIrqs9lFTCKbHl0DQ41qV5yQj/QhaDGNy64p+WBUd90t4bHnFmai04ogndaOADRtF9tPAUZTfpzhpuAeRv+10m7it6k9wSPHEuC6ptEjx6cPfT8aVoUbHjmA6YK7hXg2nnN7sfi+ENQ8/H0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Q/qvOsRp; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FVcx9vhA; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mGhj8JN9";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mzV/zQ4S"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Q/qvOsRp";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FVcx9vhA"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id A87916038F; Sun, 23 Mar 2025 11:09:28 +0100 (CET)
+	id EBC526039A; Sun, 23 Mar 2025 11:09:30 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724568;
-	bh=HwL/Zn4kwtC/FuFWmdEhUetBiarqhNlKkWkoacrCREQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=mGhj8JN95Gn//LS/JZSHCWi9I+uux+opPz/5ZlzzSCW55b7vV/XV0yy3miEvl0Cfc
-	 gt5iY7L2pMexsJm7dFy6uSpVrLJEhrfRI+e0WMJdev0b5oKxTBZx4C8ttPs7zNZLRg
-	 05Orv8ndxZJglhO9sLiP4GqakJ+g3eWWNAHHVO8y0jMpHVOvqCiQRxQu3X14I7AcMH
-	 mrx52rNUZZNQbMx2Vx0/sSZ8CWAIQAYGYSqr5Yf/txDp4yxzVeWWVIWQpk90fNN2Li
-	 mIxwN3URDQFp8un1NwH+l7GareIEsEUAXsyZihn/GTwaKBPI8TLAJ+dKQ6t79MjYJG
-	 qyj2xeMtjYgYA==
+	s=2025; t=1742724570;
+	bh=Jrj1Vudvlv3gJxIDFeWNyBbhMb72tRZRUB+3BFHOJRU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Q/qvOsRpsk5NM4Od/i02pGrMGChSeBAFh4OQ9Amm2Kjen6fuMSKwaN2nsppWFfnyJ
+	 MMvUq6gp3kjW00Sc1wDILUhAdMydnfOx9JGeEb8wES0o52kaM4oEc67MGeJ1cdS+Z9
+	 PFTIKAoyibVPoNteZGIYRxLqXYD66YXjQQGBhBQzvQIlwrjad/x/IwC03/mIRa31W0
+	 mJK8cGY6ws6GKIcw2iIjeh0r2VLjzuXFteOIsEVmsBsvG5WkMx5pWvByrjWfMIduex
+	 /HfyRma385edCO2GLZQZ6+QgX+omikVgwPTRqpJU397ThJAI3VvzDxarBMi88m8Arw
+	 W1DrYRFBiDYoQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 12DD86037B;
-	Sun, 23 Mar 2025 11:09:26 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4B2F360386;
+	Sun, 23 Mar 2025 11:09:27 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724566;
-	bh=HwL/Zn4kwtC/FuFWmdEhUetBiarqhNlKkWkoacrCREQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=mzV/zQ4S+wtUBM2rz+hBsdN80EOA5SNx4Tfdcxwb6QuxlrGOJsJKEgYil75EFOVyu
-	 gVnppjKEsz+Tn4f1TzRN38wCfpon1SFETbqLF+HJrzn77cIznALHyAvKqfD76+hQoi
-	 rc3kT4sN99dNfLVgM1SEW1jyFh0UfxVNVy3pbf0QxSB31+e3Gqf/DRpXs2JefdcDHu
-	 InHJGMk62iQbxEcNqEUKiA39agL75gc7KOMDHCOLDqby1HDqTziRxNchMmU5DeqpGD
-	 pCwcH1dzaMvX6E2gtoLIfD8VTec1aTB48dRmE7XQPwxvR6IzioIz/E7gxXlSLrVJ2G
-	 gft4o7aGi6v+g==
+	s=2025; t=1742724567;
+	bh=Jrj1Vudvlv3gJxIDFeWNyBbhMb72tRZRUB+3BFHOJRU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=FVcx9vhARl65FYppfRLuIiUsIXKclNztobhGK+SOU4w839Gn2tJgNKwF9PBA6yLIU
+	 cvKdGD8fAcMFJZtaWKtXpFP9114yEZmY1oNm815ETtYJnvC9+sksZ02b79AmWnWnT1
+	 ExK5POurvGWaaPu8th4laLW+aJ2Qn+d8VJZ0GFPWW8LD6bQhDz0zi92t7EQF51hei+
+	 440dwJL3QA/TvJxufrCrwW1jpFxhguZm46POmz+MYTZb3xTHGehN3hbcZV9lLn6JKm
+	 ZGewoUjVS6ElVLZWNFL2srUIBU4R6JTHALf3MFvo0fNsN1AldCaXMzRPBiHyL5Xcdg
+	 7H+Fnz0x9wdCA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 0/7] Netfilter updates for net-next
-Date: Sun, 23 Mar 2025 11:09:15 +0100
-Message-Id: <20250323100922.59983-1-pablo@netfilter.org>
+Subject: [PATCH net-next 1/7] netfilter: xt_hashlimit: replace vmalloc calls with kvmalloc
+Date: Sun, 23 Mar 2025 11:09:16 +0100
+Message-Id: <20250323100922.59983-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250323100922.59983-1-pablo@netfilter.org>
+References: <20250323100922.59983-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,83 +66,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Denis Kirjanov <kirjanov@gmail.com>
 
-The following batch contains Netfilter updates for net-next:
+Replace vmalloc allocations with kvmalloc since
+kvmalloc is more flexible in memory allocation
 
-1) Use kvmalloc in xt_hashlimit, from Denis Kirjanov.
+Signed-off-by: Denis Kirjanov <kirjanov@gmail.com>
+Reviewed-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_hashlimit.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-2) Tighten nf_conntrack sysctl accepted values for nf_conntrack_max
-   and nf_ct_expect_max, from Nicolas Bouchinet.
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index fa02aab56724..3b507694e81e 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -15,7 +15,6 @@
+ #include <linux/random.h>
+ #include <linux/jhash.h>
+ #include <linux/slab.h>
+-#include <linux/vmalloc.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/list.h>
+@@ -294,8 +293,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		if (size < 16)
+ 			size = 16;
+ 	}
+-	/* FIXME: don't use vmalloc() here or anywhere else -HW */
+-	hinfo = vmalloc(struct_size(hinfo, hash, size));
++	hinfo = kvmalloc(struct_size(hinfo, hash, size), GFP_KERNEL);
+ 	if (hinfo == NULL)
+ 		return -ENOMEM;
+ 	*out_hinfo = hinfo;
+@@ -303,7 +301,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 	/* copy match config into hashtable config */
+ 	ret = cfg_copy(&hinfo->cfg, (void *)cfg, 3);
+ 	if (ret) {
+-		vfree(hinfo);
++		kvfree(hinfo);
+ 		return ret;
+ 	}
+ 
+@@ -322,7 +320,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 	hinfo->rnd_initialized = false;
+ 	hinfo->name = kstrdup(name, GFP_KERNEL);
+ 	if (!hinfo->name) {
+-		vfree(hinfo);
++		kvfree(hinfo);
+ 		return -ENOMEM;
+ 	}
+ 	spin_lock_init(&hinfo->lock);
+@@ -344,7 +342,7 @@ static int htable_create(struct net *net, struct hashlimit_cfg3 *cfg,
+ 		ops, hinfo);
+ 	if (hinfo->pde == NULL) {
+ 		kfree(hinfo->name);
+-		vfree(hinfo);
++		kvfree(hinfo);
+ 		return -ENOMEM;
+ 	}
+ 	hinfo->net = net;
+@@ -433,7 +431,7 @@ static void htable_put(struct xt_hashlimit_htable *hinfo)
+ 		cancel_delayed_work_sync(&hinfo->gc_work);
+ 		htable_selective_cleanup(hinfo, true);
+ 		kfree(hinfo->name);
+-		vfree(hinfo);
++		kvfree(hinfo);
+ 	}
+ }
+ 
+-- 
+2.30.2
 
-3) Avoid lookup in nft_fib if socket is available, from Florian Westphal.
-
-4) Initialize struct lsm_context in nfnetlink_queue to avoid
-   hypothetical ENOMEM errors, Chenyuan Yang.
-
-5) Use strscpy() instead of _pad when initializing xtables table name,
-   kzalloc is already used to initialized the table memory area.
-   From Thorsten Blum.
-
-6) Missing socket lookup by conntrack information for IPv6 traffic
-   in nft_socket, there is a similar chunk in IPv4, this was never
-   added when IPv6 NAT was introduced. From Maxim Mikityanskiy.
-
-7) Fix clang issues with nf_tables CONFIG_MITIGATION_RETPOLINE,
-   from WangYuli.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-03-23
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 71ca3561c268a07888ba9ce089ab8c3f54710cd4:
-
-  Merge branch 'mptcp-pm-code-reorganisation' (2025-03-10 13:36:18 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-03-23
-
-for you to fetch changes up to e3a4182edd1ae60e7e3539ff3b3784af9830d223:
-
-  netfilter: nf_tables: Only use nf_skip_indirect_calls() when MITIGATION_RETPOLINE (2025-03-23 10:53:47 +0100)
-
-----------------------------------------------------------------
-netfilter pull request 25-03-23
-
-----------------------------------------------------------------
-Chenyuan Yang (1):
-      netfilter: nfnetlink_queue: Initialize ctx to avoid memory allocation error
-
-Denis Kirjanov (1):
-      netfilter: xt_hashlimit: replace vmalloc calls with kvmalloc
-
-Florian Westphal (1):
-      netfilter: fib: avoid lookup if socket is available
-
-Maxim Mikityanskiy (1):
-      netfilter: socket: Lookup orig tuple for IPv6 SNAT
-
-Nicolas Bouchinet (1):
-      netfilter: conntrack: Bound nf_conntrack sysctl writes
-
-Thorsten Blum (1):
-      netfilter: xtables: Use strscpy() instead of strscpy_pad()
-
-WangYuli (1):
-      netfilter: nf_tables: Only use nf_skip_indirect_calls() when MITIGATION_RETPOLINE
-
- include/net/netfilter/nft_fib.h         | 21 +++++++++++++++++++++
- net/ipv4/netfilter/nft_fib_ipv4.c       | 11 +++++------
- net/ipv6/netfilter/nf_socket_ipv6.c     | 23 +++++++++++++++++++++++
- net/ipv6/netfilter/nft_fib_ipv6.c       | 19 ++++++++++---------
- net/netfilter/nf_conntrack_standalone.c | 12 +++++++++---
- net/netfilter/nf_tables_core.c          | 11 ++++-------
- net/netfilter/nfnetlink_queue.c         |  2 +-
- net/netfilter/xt_hashlimit.c            | 12 +++++-------
- net/netfilter/xt_repldata.h             |  2 +-
- 9 files changed, 79 insertions(+), 34 deletions(-)
