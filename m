@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F38D20409F;
-	Sun, 23 Mar 2025 10:09:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A86AD202960;
+	Sun, 23 Mar 2025 10:09:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742724577; cv=none; b=fV0SZx0SEwnzxFxUyUCHf0QJs7aTl4NqNbG+dxlIRSbiS6U1bgKBeqtZY8cinyjVxEFd2B80QxSdLB8zulAYC6L+yF3M0VdBdbDLP8/mTPL9td2E2bwpYHWMvtWEjy35Ir+bKGfMBxIFfyPo9/px3pS2Q4Bu3CDUZoULvzrgfVE=
+	t=1742724578; cv=none; b=nhoCSJBwbL34rxRkj8SCGhLAXtXxNOdzxiXY+63nnHQ+go/oYC1fW8UJtmA7wILe5M+A1F2w8CPn3Y27UybvO1IbOhAbiIDXJnsYGLZvMSQS4ef5fXocW80nAggRn/Z6Vn428oYJXEreVFNMMqAwKNC/mvoLMKobIEtCLaM1iaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742724577; c=relaxed/simple;
-	bh=fSowlrrngOwsDNZt8FbmBBamwAyDsrQjSR6Ir/QH+vc=;
+	s=arc-20240116; t=1742724578; c=relaxed/simple;
+	bh=jHRQI1afRCduUTVINkX4kzU0h6QsudO5WWIJG2tq5SE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=YKquVBMurXR2omn9euG3wpWqRA01deMGZQqPFGZqCV0yFEarLmuWRszUXHDpcDCzPZZ4RG2Xcz2F9ijbuBF8XAcvC8sEkoJNNz/TR80/6CvPmYo/ozddqXEvtXTrAMr8CExhqXerQZI66Btg/A31bNf1hYpr9Y4dDVn8otrAKqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kbig0TpY; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mk2T0NuB; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=CB9IMUe6h1BfjZYaR3straZPBIlIJUhwbHep8naaZkSqaOxTOEQU/6Vt95G+sbMkv+YtbXOKdfIVyIxJnn4L7wP9D4lhS/oK1fxxan+G+2pZOrLbKKZQmOGzln4wWJFqbEJEHQyVV7LxSLakFsI4SPNL2wTT/1iPvAFfDYolx7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wJ3elm7D; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rGdNDddr; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kbig0TpY";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mk2T0NuB"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wJ3elm7D";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rGdNDddr"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B950D60395; Sun, 23 Mar 2025 11:09:32 +0100 (CET)
+	id 274B76037B; Sun, 23 Mar 2025 11:09:35 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724572;
-	bh=vHknCH8VVQ63SXtgAfiqydpIO92QyJPlZQQnn20OiWk=;
+	s=2025; t=1742724575;
+	bh=nKuBMBTjSQWadtU3KjEOfqhEgNBodhsp4nQpaPd9hX0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kbig0TpY0/OoGjMRDyiOk3G8foYtiG72AGc9Q5eVICUesAm1BhSsjBsH9XFmyAOc0
-	 G7OGuIqMLYfuEFbo9YTlY71lxhN0qR6vCGcAHQpqXBdawijfyeFZjTAXtRutBlYaq2
-	 2BmBvMUiZ3DcQ+ignzXhEZhzicsuzclVTubUyByMifaMOHqEh3JNR3ObMrGKVo6791
-	 STU3aARrsg2EvfCPPoh+huwNSnROH6AyF0yx0TtO94D6WutZGmgQNQcfMuwkLVeOC0
-	 lMj5TzQvnc31dqoMOax6PsxVsqEY0BLfB16GVVvEt3a9xekNkTSAnxcRBsB9LlIjQY
-	 LTx85iPYU4SGQ==
+	b=wJ3elm7DSe+2nvF0UBIW+CWbDT74KnrfLXLcY66KXS3mxH3HbRilSawg0k4WpZyzS
+	 pVcnh+LDVBVW8ZFdGz1GmvjaHot4LCV+nVpgKRLyImlL+4yU9xCxGogJy0XhDUDYvH
+	 5a0j+bw7ig54qYrs+kivjRB4I7W78c3rYSmzvu1Rwx6Vm3F+TzRW7XfM8wPAYWewr1
+	 NqsWGZKlEkF3s+kQ/C9hnc9weSqECP6MgLBuw+MlQQcWZnyP+nspGWvLYgAFvhSwn3
+	 cKyColoEEWo4VFaGHvRAHIxC1QGscMe3k8XgEXO/veJyC6VaR3OJRIqzC8mt+jdsiK
+	 /zfc8AZNXvI7g==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1AB8E6038C;
+	by mail.netfilter.org (Postfix) with ESMTPSA id D08F06037B;
 	Sun, 23 Mar 2025 11:09:28 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724568;
-	bh=vHknCH8VVQ63SXtgAfiqydpIO92QyJPlZQQnn20OiWk=;
+	s=2025; t=1742724569;
+	bh=nKuBMBTjSQWadtU3KjEOfqhEgNBodhsp4nQpaPd9hX0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=mk2T0NuBt1lP1n5PlxAdCm5EGr61xw9LAwjcfdrYN1WFttl9VM3HmZA9ZK0SGu+tg
-	 zA2VGS2uD5oT/fewiXhfuLjtkAoT0YotYB3i2ODlPIKhZjZ1+NzscR75sUNtVKrhcB
-	 7rWoBNH6QnQFBq0OkEBLNDXcPOW122TYp96neDYZhI1K9XqNW1jIhVobnyjYnUcH29
-	 rpwg8uRpFm2Hj58u/KifEEj13MVtwUcFKVAQHXXbSP6/na++FpeqrMU+a6Upo9G7xR
-	 VwxC6JDXntA64AKjSrpUg8MVAzAve7LJsjVYxUYzwKggxPYa3ZNWekegT6/6SzABb3
-	 mBWTvbsgzeWMg==
+	b=rGdNDddrrdGAXVqWz5JDuU8tyiezq+oDFQwjvIOVjVhYIU++ovujUpEJb83tLl+89
+	 Xp5fFlVY3qAGS4tlJ18Kku+e4UwG8rNoBstIfBR6p/ZktGxMFqL0LHWrBHYdG2LaSy
+	 2JiuOsfRlD0/7EN6t63F6tBZedbgvseyssmUiKgP9kNy9zyrbHg1G6b+6ZEZxLy55Z
+	 HLhoKz1ENgIUonq5Nb5GkaFUMKEapZE0fiFmOVx6McPixnZ+cLBfzi7oOWSuvAVeNH
+	 fAxYMPYPvIEG0U2PQmD6FRHoEzxOoNfDT1bYHb8PIw3H/XA0ivzQMczrfQags79avf
+	 LAxyw811wxcIg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 2/7] netfilter: conntrack: Bound nf_conntrack sysctl writes
-Date: Sun, 23 Mar 2025 11:09:17 +0100
-Message-Id: <20250323100922.59983-3-pablo@netfilter.org>
+Subject: [PATCH net-next 3/7] netfilter: fib: avoid lookup if socket is available
+Date: Sun, 23 Mar 2025 11:09:18 +0100
+Message-Id: <20250323100922.59983-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250323100922.59983-1-pablo@netfilter.org>
 References: <20250323100922.59983-1-pablo@netfilter.org>
@@ -66,80 +66,140 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+From: Florian Westphal <fw@strlen.de>
 
-nf_conntrack_max and nf_conntrack_expect_max sysctls were authorized to
-be written any negative value, which would then be stored in the
-unsigned int variables nf_conntrack_max and nf_ct_expect_max variables.
+In case the fib match is used from the input hook we can avoid the fib
+lookup if early demux assigned a socket for us: check that the input
+interface matches sk-cached one.
 
-While the do_proc_dointvec_conv function is supposed to limit writing
-handled by proc_dointvec proc_handler to INT_MAX. Such a negative value
-being written in an unsigned int leads to a very high value, exceeding
-this limit.
+Rework the existing 'lo bypass' logic to first check sk, then
+for loopback interface type to elide the fib lookup.
 
-Moreover, the nf_conntrack_expect_max sysctl documentation specifies the
-minimum value is 1.
+This speeds up fib matching a little, before:
+93.08 GBit/s (no rules at all)
+75.1  GBit/s ("fib saddr . iif oif missing drop" in prerouting)
+75.62 GBit/s ("fib saddr . iif oif missing drop" in input)
 
-The proc_handlers have thus been updated to proc_dointvec_minmax in
-order to specify the following write bounds :
+After:
+92.48 GBit/s (no rules at all)
+75.62 GBit/s (fib rule in prerouting)
+90.37 GBit/s (fib rule in input).
 
-* Bound nf_conntrack_max sysctl writings between SYSCTL_ZERO
-  and SYSCTL_INT_MAX.
+Numbers for the 'no rules' and 'prerouting' are expected to
+closely match in-between runs, the 3rd/input test case exercises the
+the 'avoid lookup if cached ifindex in sk matches' case.
 
-* Bound nf_conntrack_expect_max sysctl writings between SYSCTL_ONE
-  and SYSCTL_INT_MAX as defined in the sysctl documentation.
+Test used iperf3 via veth interface, lo can't be used due to existing
+loopback test.
 
-With this patch applied, sysctl writes outside the defined in the bound
-will thus lead to a write error :
-
-```
-sysctl -w net.netfilter.nf_conntrack_expect_max=-1
-sysctl: setting key "net.netfilter.nf_conntrack_expect_max": Invalid argument
-```
-
-Signed-off-by: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_standalone.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/net/netfilter/nft_fib.h   | 21 +++++++++++++++++++++
+ net/ipv4/netfilter/nft_fib_ipv4.c | 11 +++++------
+ net/ipv6/netfilter/nft_fib_ipv6.c | 19 ++++++++++---------
+ 3 files changed, 36 insertions(+), 15 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 502cf10aab41..2f666751c7e7 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -618,7 +618,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.data		= &nf_conntrack_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- 	[NF_SYSCTL_CT_COUNT] = {
- 		.procname	= "nf_conntrack_count",
-@@ -654,7 +656,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.data		= &nf_ct_expect_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ONE,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- 	[NF_SYSCTL_CT_ACCT] = {
- 		.procname	= "nf_conntrack_acct",
-@@ -947,7 +951,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
- 		.data		= &nf_conntrack_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- };
+diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
+index 38cae7113de4..6e202ed5e63f 100644
+--- a/include/net/netfilter/nft_fib.h
++++ b/include/net/netfilter/nft_fib.h
+@@ -18,6 +18,27 @@ nft_fib_is_loopback(const struct sk_buff *skb, const struct net_device *in)
+ 	return skb->pkt_type == PACKET_LOOPBACK || in->flags & IFF_LOOPBACK;
+ }
  
++static inline bool nft_fib_can_skip(const struct nft_pktinfo *pkt)
++{
++	const struct net_device *indev = nft_in(pkt);
++	const struct sock *sk;
++
++	switch (nft_hook(pkt)) {
++	case NF_INET_PRE_ROUTING:
++	case NF_INET_INGRESS:
++	case NF_INET_LOCAL_IN:
++		break;
++	default:
++		return false;
++	}
++
++	sk = pkt->skb->sk;
++	if (sk && sk_fullsock(sk))
++	       return sk->sk_rx_dst_ifindex == indev->ifindex;
++
++	return nft_fib_is_loopback(pkt->skb, indev);
++}
++
+ int nft_fib_dump(struct sk_buff *skb, const struct nft_expr *expr, bool reset);
+ int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		 const struct nlattr * const tb[]);
+diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
+index 625adbc42037..9082ca17e845 100644
+--- a/net/ipv4/netfilter/nft_fib_ipv4.c
++++ b/net/ipv4/netfilter/nft_fib_ipv4.c
+@@ -71,6 +71,11 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	const struct net_device *oif;
+ 	const struct net_device *found;
+ 
++	if (nft_fib_can_skip(pkt)) {
++		nft_fib_store_result(dest, priv, nft_in(pkt));
++		return;
++	}
++
+ 	/*
+ 	 * Do not set flowi4_oif, it restricts results (for example, asking
+ 	 * for oif 3 will get RTN_UNICAST result even if the daddr exits
+@@ -85,12 +90,6 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	else
+ 		oif = NULL;
+ 
+-	if (nft_hook(pkt) == NF_INET_PRE_ROUTING &&
+-	    nft_fib_is_loopback(pkt->skb, nft_in(pkt))) {
+-		nft_fib_store_result(dest, priv, nft_in(pkt));
+-		return;
+-	}
+-
+ 	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
+ 	if (!iph) {
+ 		regs->verdict.code = NFT_BREAK;
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index c9f1634b3838..7fd9d7b21cd4 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -170,6 +170,11 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	struct rt6_info *rt;
+ 	int lookup_flags;
+ 
++	if (nft_fib_can_skip(pkt)) {
++		nft_fib_store_result(dest, priv, nft_in(pkt));
++		return;
++	}
++
+ 	if (priv->flags & NFTA_FIB_F_IIF)
+ 		oif = nft_in(pkt);
+ 	else if (priv->flags & NFTA_FIB_F_OIF)
+@@ -181,17 +186,13 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 		return;
+ 	}
+ 
+-	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, oif, iph);
+-
+-	if (nft_hook(pkt) == NF_INET_PRE_ROUTING ||
+-	    nft_hook(pkt) == NF_INET_INGRESS) {
+-		if (nft_fib_is_loopback(pkt->skb, nft_in(pkt)) ||
+-		    nft_fib_v6_skip_icmpv6(pkt->skb, pkt->tprot, iph)) {
+-			nft_fib_store_result(dest, priv, nft_in(pkt));
+-			return;
+-		}
++	if (nft_fib_v6_skip_icmpv6(pkt->skb, pkt->tprot, iph)) {
++		nft_fib_store_result(dest, priv, nft_in(pkt));
++		return;
+ 	}
+ 
++	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, oif, iph);
++
+ 	*dest = 0;
+ 	rt = (void *)ip6_route_lookup(nft_net(pkt), &fl6, pkt->skb,
+ 				      lookup_flags);
 -- 
 2.30.2
 
