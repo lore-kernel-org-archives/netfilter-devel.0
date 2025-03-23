@@ -1,120 +1,145 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3749415E90
-	for <netfilter-devel@vger.kernel.org>; Sun, 23 Mar 2025 10:02:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 789131714B7;
+	Sun, 23 Mar 2025 10:09:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742724155; cv=none; b=kuiFhPuV/P8hNUnpsPT9JmHcLoTPIV71U23FZIS/OvGNpi2TbGSsZc/AJwwOBOyYNnCIvi0xlz4PKi+5HIcufNKnacljvzKJxh95bsA+mF+0+wy2XSuEpwDH7dYvit5+IWDB/EuQV0JHE71poiTOOAe7TAxrF7E/0hig41BTz3A=
+	t=1742724572; cv=none; b=UrcWx9m7LIY2JovQwuiQNbMbwwmVoWkIOflB8Qjyh1NbH61Z5fPMmELdNa09+elV89Ll+u5vu9JGl9j8uBmirpMK3VWolz2J9lEHDv3AWcLSkAKH+cGn1pg/bzAENZgIG9vUwLx8XknEQsDYx8GLvpEV5fK/TI1yajxM5nA2ccg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742724155; c=relaxed/simple;
-	bh=0uMTfHLjyeiqpyElYNVxZi5rMqdS9X8e21Js+o5oCCs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fGAUENLyH4G0uqVoM4sWVdsmLrK0TwbLt1TsXA++eaQBSMJUCRUpWgcA3XCTeBtG8Z4JgSaVbllfd41cIn4aRcQJxdPklU1Lt13vtLEYu3eXbFBp1YoxBzVTh3/WhLzZ4ASA9yFQ8QJROnR215hSMpPU+g4FtHuJagDfGg9DT/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=V6FQ7M7f; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Uv4bYHe3; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1742724572; c=relaxed/simple;
+	bh=90fuXTxuhpswf3Bjhs5KtWTyd0z/K4YE+TJnCruOGRA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=G7r8m6WU+oH63tn/BeIBU4i8w5RCH4Q9eLSMo8IBplNPMuawN3YuB0yvXY2u0wGXltd3PiFx4EhliXHWLy+2FYIKBJ2Uvx/5VCUgcw5ibf3vkBuJ5olFMOlJDhQvjWHA+K2z0Yhbe9vmjZOG7cD1r620diYlGnQ7dd42cNljXvs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mGhj8JN9; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mzV/zQ4S; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="V6FQ7M7f";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Uv4bYHe3"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mGhj8JN9";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mzV/zQ4S"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 5969760385; Sun, 23 Mar 2025 11:02:30 +0100 (CET)
+	id A87916038F; Sun, 23 Mar 2025 11:09:28 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724150;
-	bh=cwGAKpMpqzBoa9Xv46vDknr8vkprFyHgBGCd2fmsFoY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=V6FQ7M7fzuGqFd1gW1GtObGnM9EY/ZgSBKTUtZn/rSBEUH2zihKX9JEO/pTcu9nvX
-	 2JjsU16TQKqnex/2KRzURJ1acdnZUwpsjaKFngkOBWasUAo6srWSijL5aV97dZBD1P
-	 omd8hrAhdEgQMBAFdmpsC1LL2x5Zb0VRbYkNNbXQXw7F3++graE8NkptLkiDMAd76I
-	 mIEYCyQU6CRzYxOQeL2TWVWH/+tJes+1pqUqNG8Fguzo784p7W+3LRekMAlWHx5hfl
-	 SksDVUscV3gabjpaEL6O/ZM99nIEFITgY4m3I1r95/0/h2ZhgwMOHKHuQQjHegtiI4
-	 tBdIlio/GFzgQ==
+	s=2025; t=1742724568;
+	bh=HwL/Zn4kwtC/FuFWmdEhUetBiarqhNlKkWkoacrCREQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=mGhj8JN95Gn//LS/JZSHCWi9I+uux+opPz/5ZlzzSCW55b7vV/XV0yy3miEvl0Cfc
+	 gt5iY7L2pMexsJm7dFy6uSpVrLJEhrfRI+e0WMJdev0b5oKxTBZx4C8ttPs7zNZLRg
+	 05Orv8ndxZJglhO9sLiP4GqakJ+g3eWWNAHHVO8y0jMpHVOvqCiQRxQu3X14I7AcMH
+	 mrx52rNUZZNQbMx2Vx0/sSZ8CWAIQAYGYSqr5Yf/txDp4yxzVeWWVIWQpk90fNN2Li
+	 mIxwN3URDQFp8un1NwH+l7GareIEsEUAXsyZihn/GTwaKBPI8TLAJ+dKQ6t79MjYJG
+	 qyj2xeMtjYgYA==
 X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6C8A16037B;
-	Sun, 23 Mar 2025 11:02:29 +0100 (CET)
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 12DD86037B;
+	Sun, 23 Mar 2025 11:09:26 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1742724149;
-	bh=cwGAKpMpqzBoa9Xv46vDknr8vkprFyHgBGCd2fmsFoY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Uv4bYHe3Y0j7v8n3GmR6K5s7n6H7MruRHQX0NtKZiUh7SLUXubXblcxD+/pXatR+5
-	 jRax//Rp+yYxXm8UOTRJ/YdLM99qmIhMsm6rm6TRU4MUeOK351xEGzYod3cjMiAUam
-	 jLJvfQxdj9z5IO8j5CFqkCQ+Z9eNACbsA5ACm7XMaoA/eUwVEbZWP1iiGaDuKEDeCe
-	 M8kUveG3gduGgseXioN542zF3n+APmboH2s5B8fQknZRF0GrRF8pR1ERYCnwCb40wg
-	 mCrHU3a2YIwGYwmMmjtjgnJUWNHKGvwx61MsA7cceaO8WNo8mei2MhjLe9Q20U8rGG
-	 piJaJIe7nafnQ==
-Date: Sun, 23 Mar 2025 11:02:26 +0100
+	s=2025; t=1742724566;
+	bh=HwL/Zn4kwtC/FuFWmdEhUetBiarqhNlKkWkoacrCREQ=;
+	h=From:To:Cc:Subject:Date:From;
+	b=mzV/zQ4S+wtUBM2rz+hBsdN80EOA5SNx4Tfdcxwb6QuxlrGOJsJKEgYil75EFOVyu
+	 gVnppjKEsz+Tn4f1TzRN38wCfpon1SFETbqLF+HJrzn77cIznALHyAvKqfD76+hQoi
+	 rc3kT4sN99dNfLVgM1SEW1jyFh0UfxVNVy3pbf0QxSB31+e3Gqf/DRpXs2JefdcDHu
+	 InHJGMk62iQbxEcNqEUKiA39agL75gc7KOMDHCOLDqby1HDqTziRxNchMmU5DeqpGD
+	 pCwcH1dzaMvX6E2gtoLIfD8VTec1aTB48dRmE7XQPwxvR6IzioIz/E7gxXlSLrVJ2G
+	 gft4o7aGi6v+g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Antonio Ojea <aojea@google.com>
-Cc: Florian Westphal <fw@strlen.de>, Eric Dumazet <edumazet@google.com>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH v4] selftests: netfilter: conntrack respect reject rules
-Message-ID: <Z9_cDLTSaGeXcG5X@calendula>
-References: <20250318094138.3328627-1-aojea@google.com>
- <20250318163529.3585425-1-aojea@google.com>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net-next 0/7] Netfilter updates for net-next
+Date: Sun, 23 Mar 2025 11:09:15 +0100
+Message-Id: <20250323100922.59983-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250318163529.3585425-1-aojea@google.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Antonio,
+Hi,
 
-On Tue, Mar 18, 2025 at 04:35:29PM +0000, Antonio Ojea wrote:
-> This test ensures that conntrack correctly applies reject rules to
-> established connections after DNAT, even when those connections are
-> persistent.
-> 
-> The test sets up three network namespaces: ns1, ns2, and nsrouter.
-> nsrouter acts as a router with DNAT, exposing a service running in ns2
-> via a virtual IP.
-> 
-> The test validates that is possible to filter and reject new and
-> established connections to the DNATed IP in the prerouting and forward
-> filters.
+The following batch contains Netfilter updates for net-next:
 
-I am testing with different stable kernels to uncover timing issues.
+1) Use kvmalloc in xt_hashlimit, from Denis Kirjanov.
 
-With nf and nf-next kernels with instrumentions, **this works just fine**.
+2) Tighten nf_conntrack sysctl accepted values for nf_conntrack_max
+   and nf_ct_expect_max, from Nicolas Bouchinet.
 
-But I triggered a weird issue with Debian's 6.1.0-31-amd64:
+3) Avoid lookup in nft_fib if socket is available, from Florian Westphal.
 
-# ./nft_conntrack_reject_established.sh
-...
-ERROR: backend filter-ip6: fail to connect to [dead:2::99]:8080
-ERROR: backend filter-ip6: fail to connect over the established connection to [dead:4::a]:8080
-ERROR: backend filter-ip6: fail to connect to [dead:4::a]:8080
-ERROR: backend filter-ip6: fail to connect over the established connection to [dead:4::a]:8080
-ERROR: backend filter-ip6: fail to connect to [dead:2::99]:8080
+4) Initialize struct lsm_context in nfnetlink_queue to avoid
+   hypothetical ENOMEM errors, Chenyuan Yang.
 
-interestingly if I reversed the order, ie. I run ipv6 before ipv4
-test, then ipv4 fails:
+5) Use strscpy() instead of _pad when initializing xtables table name,
+   kzalloc is already used to initialized the table memory area.
+   From Thorsten Blum.
 
-for testname in "${!testcases[@]}"; do
--      test_conntrack_reject_established "ip" "$testname" "${testcases[$testname]}"
-       test_conntrack_reject_established "ip6" "$testname" "${testcases[$testname]}"
-+      test_conntrack_reject_established "ip" "$testname" "${testcases[$testname]}"
-done
+6) Missing socket lookup by conntrack information for IPv6 traffic
+   in nft_socket, there is a similar chunk in IPv4, this was never
+   added when IPv6 NAT was introduced. From Maxim Mikityanskiy.
 
-also, running standalone ipv4 test, ie.:
+7) Fix clang issues with nf_tables CONFIG_MITIGATION_RETPOLINE,
+   from WangYuli.
 
-for testname in "${!testcases[@]}"; do
-      test_conntrack_reject_established "ip" "$testname" "${testcases[$testname]}"
-done
+Please, pull these changes from:
 
-or ipv6 test, ie.:
-
-for testname in "${!testcases[@]}"; do
-      test_conntrack_reject_established "ip6" "$testname" "${testcases[$testname]}"
-done
-
-works perfectly fine.
-
-Hm, where is the issue? I have to double check, maybe -stable 6.1 is
-missing a backport fix.
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-03-23
 
 Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit 71ca3561c268a07888ba9ce089ab8c3f54710cd4:
+
+  Merge branch 'mptcp-pm-code-reorganisation' (2025-03-10 13:36:18 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-03-23
+
+for you to fetch changes up to e3a4182edd1ae60e7e3539ff3b3784af9830d223:
+
+  netfilter: nf_tables: Only use nf_skip_indirect_calls() when MITIGATION_RETPOLINE (2025-03-23 10:53:47 +0100)
+
+----------------------------------------------------------------
+netfilter pull request 25-03-23
+
+----------------------------------------------------------------
+Chenyuan Yang (1):
+      netfilter: nfnetlink_queue: Initialize ctx to avoid memory allocation error
+
+Denis Kirjanov (1):
+      netfilter: xt_hashlimit: replace vmalloc calls with kvmalloc
+
+Florian Westphal (1):
+      netfilter: fib: avoid lookup if socket is available
+
+Maxim Mikityanskiy (1):
+      netfilter: socket: Lookup orig tuple for IPv6 SNAT
+
+Nicolas Bouchinet (1):
+      netfilter: conntrack: Bound nf_conntrack sysctl writes
+
+Thorsten Blum (1):
+      netfilter: xtables: Use strscpy() instead of strscpy_pad()
+
+WangYuli (1):
+      netfilter: nf_tables: Only use nf_skip_indirect_calls() when MITIGATION_RETPOLINE
+
+ include/net/netfilter/nft_fib.h         | 21 +++++++++++++++++++++
+ net/ipv4/netfilter/nft_fib_ipv4.c       | 11 +++++------
+ net/ipv6/netfilter/nf_socket_ipv6.c     | 23 +++++++++++++++++++++++
+ net/ipv6/netfilter/nft_fib_ipv6.c       | 19 ++++++++++---------
+ net/netfilter/nf_conntrack_standalone.c | 12 +++++++++---
+ net/netfilter/nf_tables_core.c          | 11 ++++-------
+ net/netfilter/nfnetlink_queue.c         |  2 +-
+ net/netfilter/xt_hashlimit.c            | 12 +++++-------
+ net/netfilter/xt_repldata.h             |  2 +-
+ 9 files changed, 79 insertions(+), 34 deletions(-)
