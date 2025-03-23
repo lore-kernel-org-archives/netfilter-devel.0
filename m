@@ -1,48 +1,60 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0883EF510;
-	Sun, 23 Mar 2025 16:48:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C17B149DE8
+	for <netfilter-devel@vger.kernel.org>; Sun, 23 Mar 2025 21:04:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742748488; cv=none; b=LkNFg1apeKwiaootVzZHLmSXN+Ldt8hETYGN8zLhsX2mdkrRb377rqFICk2PPEQFQqD2fEZNvkCrtY3DomUteamNqL+gve5O3Af249lEtENKh+ccw/Vo8pDAYfh0pxRKrvTO2XQJDH5+Njz5BTRSBwnFwm84vawi8gfya65sKH4=
+	t=1742763862; cv=none; b=iL7p9i/t6JOSVXFtmNSGyArRJ0hyqVPYWU4vtuV1WoUzuFge+NpOMStkoJ3faldb+8LFWbzhsVhNER6i98i4qZciFoWz3FG9mi6KJf15IZTNySAHL2j28hTDDX35u6m5sm34hLmmtINQzQ+xMhWxCVhHFY8moP+hRGPH6TWiakI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742748488; c=relaxed/simple;
-	bh=NEy6S0p5xzIfy6ODr1lpmVmlv6zgmNVtot/sei4opx0=;
+	s=arc-20240116; t=1742763862; c=relaxed/simple;
+	bh=piNPWOksgCwONXg9udXmmoZrhenEPQlJF5mqYloCSts=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rUkFK2z/yQYqecDfXNPc3yEr965SJkAVKcKTiEw6+wbfcTNPgdDoKoTjD0Y3VP28Sum+DsKbnnItkxBzvg43e2PacGbPusHVLkno/oAynJwTabfjwoEeT8U1VzzNNdXPR0Z4ncg+MdybEAlEho+1KIVeELtWYCaZOSGZnESiri0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=o9Tn8Cbp; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=GouO888PP5HowK5y60HUvmdY8qO9Do7BlrO2q6/3zhZdhzW49DcQTEpYIFfsA8Zdw51ESWgw/qJ45AtibfhVNeRalrtDlWjn+7zrKokH8RUKkiEDZZhQaQVhwpWykqbkjuoV9SX6yZyJElYB6fIePflzC6A0AsnH03PioXDrJm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=QwT+H9q4; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="o9Tn8Cbp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 519BBC4CEE2;
-	Sun, 23 Mar 2025 16:48:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1742748486;
-	bh=NEy6S0p5xzIfy6ODr1lpmVmlv6zgmNVtot/sei4opx0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=o9Tn8CbpqNwKSsIdobFS00lNUgLtMSC6ZjE/0//uCGvnE9NY3xf4iF9fmkLXxjVwz
-	 7sQcyfN9Vu4CyGSgjSDAxtk4UpSU4A1N2XM5Fx3EUAjMODnecPaZ6KdRJ+dtYMsfYt
-	 wCnGiLKYGio4S+wENJcETL5x947S9jSTPp/BudWtNU5kO3Plce8XSkoXN5iDu0PUBp
-	 6/Ubzbb8ABqMRqxLoFZ4CT0DU35Wto6KE4pJDFg1S4HRPBWBeZoSIoNkIST401gjX6
-	 LWbPskvt//DXxfTSa7BM9Ih7TLe43DOAx0SM+vil6PeB/wxNL8R2cAGJbo7bkn3/mQ
-	 /Njwiv6/YdojA==
-Date: Sun, 23 Mar 2025 16:48:00 +0000
-From: Simon Horman <horms@kernel.org>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Michal Ostrowski <mostrows@earthlink.net>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="QwT+H9q4"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=G+jG/VPNlornxQkH0/Iv4ZAuIN2WnTKjama/3j7ibM0=; b=QwT+H9q4KsOFDVupewI7X8/xLr
+	3fm4S3N+op5ZntwUCfg90zqXZHR/5MrvdPTdLc4hm32jeO4Bm9YCLdmk5wWKh6JVvI2EPA2qX9gJT
+	BFtVS+oi8UxMJc5YvA1eqE9jalHYqONAn5A4c9gBbwDRtWc1fQZ/bHtzjPVoU0pYkm/2v8tfCiBlb
+	ku+cJ5PiAN9tBCgRMPYNfkHJfb16nr3fnEGGbHjflqzoja+Y46PozHDnNerqH26snnThoj8aMhe4G
+	rK9FXHRj6UXqq/AF8PoSqyjJ0ON4GDyAlitLhtXWOw64YU2WiZNT2XHKj70wol60RGOsAthTVgSEo
+	o6QuA9NA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1twSUK-000000006JS-14Jt;
+	Sun, 23 Mar 2025 22:04:08 +0100
+Date: Sun, 23 Mar 2025 22:04:08 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Jan Engelhardt <ej@inai.de>
+Cc: Arturo Borrero Gonzalez <arturo@debian.org>,
+	Duncan Roe <duncan_roe@optusnet.com.au>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-hardening@vger.kernel.org,
-	Nikolay Aleksandrov <razor@blackwall.org>
-Subject: Re: [PATCH v10 nf-next 1/3] net: pppoe: avoid zero-length arrays in
- struct pppoe_hdr
-Message-ID: <20250323164800.GR892515@horms.kernel.org>
-References: <20250315195910.17659-1-ericwouds@gmail.com>
- <20250315195910.17659-2-ericwouds@gmail.com>
+	Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+	fw@strlen.de, matthias.gerstner@suse.com, eric@garver.life
+Subject: Re: [PATCH] tools: add a systemd unit for static rulesets
+Message-ID: <Z-B3SLFZMoZmZObv@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Jan Engelhardt <ej@inai.de>,
+	Arturo Borrero Gonzalez <arturo@debian.org>,
+	Duncan Roe <duncan_roe@optusnet.com.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+	fw@strlen.de, matthias.gerstner@suse.com, eric@garver.life
+References: <20250228205935.59659-1-jengelh@inai.de>
+ <Z8jDjlJcehMB_Z9F@calendula>
+ <dfaada92-44ca-44c1-83e4-5844191ff57b@debian.org>
+ <Z94XLnSQRfMh9THs@slk15.local.net>
+ <22n4s4s4-8155-708o-4091-q6o3nq313641@vanv.qr>
+ <5bf4cd03-ddb3-4cc4-b07e-e25e475395f8@debian.org>
+ <s44sopr8-7n17-1979-4qrr-4p5ps9s4s1rn@vanv.qr>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,42 +63,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250315195910.17659-2-ericwouds@gmail.com>
+In-Reply-To: <s44sopr8-7n17-1979-4qrr-4p5ps9s4s1rn@vanv.qr>
 
-On Sat, Mar 15, 2025 at 08:59:08PM +0100, Eric Woudstra wrote:
-> Jakub Kicinski suggested following patch:
+On Sun, Mar 23, 2025 at 02:34:01PM +0100, Jan Engelhardt wrote:
 > 
-> W=1 C=1 GCC build gives us:
+> On Sunday 2025-03-23 11:00, Arturo Borrero Gonzalez wrote:
+> >> On Saturday 2025-03-22 02:49, Duncan Roe wrote:
+> >>>>
+> >>>> I have mixed feelings about having this systemd service file in this
+> >>>> repository.
+> >>>> Will this file be maintained wrt. systemd ecosystem updates? Or will it be
+> >>>> outdated and neglected after a few years?
+> >> 
+> >> There are no changes expected to be necessary.
+> >
+> > How so? Is the systemd ecosystem not evolving?
 > 
-> net/bridge/netfilter/nf_conntrack_bridge.c: note: in included file (through
-> ../include/linux/if_pppox.h, ../include/uapi/linux/netfilter_bridge.h,
-> ../include/linux/netfilter_bridge.h): include/uapi/linux/if_pppox.h:
-> 153:29: warning: array of flexible structures
-> 
-> It doesn't like that hdr has a zero-length array which overlaps proto.
-> The kernel code doesn't currently need those arrays.
-> 
-> PPPoE connection is functional after applying this patch.
-> 
-> Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
-> 
-> ---
-> 
-> Split from patch-set: bridge-fastpath and related improvements v9
-> 
-> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+> I do not have a crystal ball that shows me what will (or will not)
+> happen in the future, so as far as I can tell, it is perfect as it is.
+> And I have no indication that unit files are planned to be ditched
+> anytime soon.
 
-Hi Eric,
+Even if things will change and this thing gets outdated, who cares? The
+bottom line is what we do currently, namely maintain nftables.service
+ourselves downstream.
 
-Perhaps this is due to tooling, but your Signed-off-by line should
-appear immediately after the Reviewed-by line. No blank line in between.
+Apart from having to deal with heated debates over its content on the ML
+there is no real burden for upstream to maintain it, either.
 
-And, in particular, the Signed-off-by line should appear above the (first)
-scissors ("---"), as if git am is used to apply your patch then the
-commit message will be truncated at that point. Which results
-in a commit with no signed-off-by line.
+To me, this is an opportunity to share knowledge (e.g. others performing
+a needed unit file update before I find time reading up on systemd's
+latest "invention") and it may even encourage downstream maintainers in
+collecting/discussing sample config best practices.
 
-FWIIW, putting the note about splitting the patch-set below the scissors
-looks good to me.
-
-...
+Cheers, Phil
