@@ -1,55 +1,64 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 139352AE72
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Mar 2025 16:29:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7BB3261586;
+	Mon, 24 Mar 2025 16:49:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742833768; cv=none; b=WL0BBE/XkiBWq/vkojJbUTcKM9dvlJygq9iyYDlncFPgi8EGC8JWh4pHoII5hxrqvShA73+P/SMFHdm74UE8YWoTMAI2gqDvDhY9w6VyE1E2csILP5UUDazsSiQl4WR2Cv0IKlLK5sg2iX3f7h7K73tgOuqpMjqkW4OQwVy/VFE=
+	t=1742834967; cv=none; b=XXHwurOEwX7+LzM/HRtFoENrtbaL1kOvU0ktGu30ybLNc6ePubDQy90vavh7IQRps5mIx7wyQUbsQrWEH8O4Id7Qf6g3xgPVZbPKKYfFOb1GEKSjvzqcDTcvLAdNf5VAXcHVgfBDHll+9v8hw3Kl38AbGpB+dTHk99Xh61OYNI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742833768; c=relaxed/simple;
-	bh=9F8Ou1QYFH9FV9yiPRjTETE2yBYk9CRihlxlcXALa5g=;
+	s=arc-20240116; t=1742834967; c=relaxed/simple;
+	bh=5fRaRRqoLXk9VvHYdcvASGdB+1Jt16QfeJgofkT4YqM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=F/BHbMICP+Ufv+4D56biHoKY8CHFgJq0dnTAO83NLC7Gwi/p45WOAZ+VsJ7VtLB82a1mKo1PkF/th2O/ePc7Z1EU0MzGTV5+X5NajpXNaDrnVETSpIMyJEIcXAVLIN369lrhu73/XImdnQIpzGUPSDiBgYu0mDDmy4V7ZDQRbhY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=3KReyxde; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=TLbru1jr; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	 Content-Type:Content-Disposition:In-Reply-To; b=RxN6Yyy6iext76ZYR5VWb8JhNm4yZXDxk1QLBI5YUqznYZyp7GvTcVoQ8UkYSCIqXBKvCoix6WsU7K1/Sv8wXZcU2Nl50TJ7xfjrpKrHYPyrFg/vi3+VMJI+Zbrg9D+DtwCEDUBwvLuWufE3NVdXc6xdDi2QDhICZU6rFImYd9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wTRGOOI5; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DCPnz+Gj; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="3KReyxde";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="TLbru1jr"
-Date: Mon, 24 Mar 2025 17:29:23 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1742833765;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YW5yd7rKHOHutHs/5mNSnirmVmr+zWBSC0Na7fYCrI8=;
-	b=3KReyxdec+bVpQ7nRoBZgarw3MIhgTOoiutmInvDATlVqEypRUAvVvFcXR/c+02Y8Q8rPc
-	lVEyz6PcNDJIhHi+cKFtgjJGZZh8VmxtBo6V01+2YHVPcr85Meo0SBP3VChuHu0O5bgr8o
-	y59Zo1ECrsARm6ZXzWEPWDWMpaQzybwaVVTSah2Jy4vBgoxmf43Pu6uR0I+bjq7oJLBZTt
-	t4Y1Wal4ypOW1uH6rrMWiczC6IYGiQMbeN+Vyqcdhk02LB3Tb8xZbbiOO7+lF9EggbRp3o
-	CAX1jzhqwLxB6NjxNCZA0s5dFdBt5bKRacK1JH2GMtdVMB83cQY/gctfnl6VCg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1742833765;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YW5yd7rKHOHutHs/5mNSnirmVmr+zWBSC0Na7fYCrI8=;
-	b=TLbru1jrkH26BWgdFfd3Z5sGDneLZ9E/L/4JCxN+Mi8vOFg0O0hmt1OkVSfuX9gVa8C4li
-	RLqEILuCgBy7tICg==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wTRGOOI5";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DCPnz+Gj"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 7E48860390; Mon, 24 Mar 2025 17:49:15 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1742834955;
+	bh=GGDJ9ToJtDJw+S47TSdM9cpM1oN2wQQEXFzOumVzNjU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=wTRGOOI5j5ondXNwLDawdD4j82Ru2vOHGWWppgQwjHax3kidJsU01JPVyWMvJWUuo
+	 mTlzALu2ndA/PN1/PV3qbS1jtE0gIN4MZn9Px+MTY3f1ooPuHrejXseAm98hsak18I
+	 0ILH2j9IWbHG2oFFPSGwrTcaTurXdJLWbXKXQfInp8slWtBuf4gkUm1Ew72dTEhXBa
+	 mKrOPVtkR5ATvo3p/FZHS+q1ji+LyRr5TGNJKBCTM3gWAH0U6soNJVcMjgv2eJhA+m
+	 +aTajPruzLQkeBcZLdm0gHq9G1Ipv+72SP/3qZgQJ3KpiidC7bHjO+0Et/bjpTUOR9
+	 S1H1zkeyaSRPQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DB85C6034A;
+	Mon, 24 Mar 2025 17:49:11 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1742834952;
+	bh=GGDJ9ToJtDJw+S47TSdM9cpM1oN2wQQEXFzOumVzNjU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=DCPnz+GjATTwDRX3cEAXYvzpHMgEbhxo+Um4+G4iZp77oga/M9H5MquqVeX/BV9IY
+	 KBZNU0v6OevhOTNQ3Zt+sPKh3MbwtFLMevwQc7cFBfhhymq0TR+bZ2u+knkWHspR4D
+	 FjNxNetEur4h+TmKXvzrUWhyyFKZ99Fcf0W3w6sTMgrrEbNKJEl3X4rhs+VPAEEigu
+	 NhJNR9cQ37cusjxHiPxAqgV2ODW4wl3GVVmq/ey9BgQAWCOgrALHDvsz87SUcheLH2
+	 6ZOb5qYNROVcBaoqnRK5zV1FTYqtwHgPv5JjHiun/ZZ6xcOvlRS4hnOlzdsn3c215i
+	 ncHJcpfKEceYw==
+Date: Mon, 24 Mar 2025 17:49:09 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH net-next v2 0/3] Replace xt_recseq with u64_stats.
-Message-ID: <20250324162923.O308UeBw@linutronix.de>
-References: <20250221133143.5058-1-bigeasy@linutronix.de>
- <Z9IVs3LD3A1HPSS0@calendula>
- <20250313083440.yn5kdvv5@linutronix.de>
- <Z9wM9mqJIkHwyU1J@calendula>
- <Z90-Q3zyEHDWPBNr@calendula>
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, cgroups@vger.kernel.org,
+	Jan Engelhardt <ej@inai.de>, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
+Message-ID: <Z-GNBeCX0dg-rxgQ@calendula>
+References: <20250305170935.80558-1-mkoutny@suse.com>
+ <Z9_SSuPu2TXeN2TD@calendula>
+ <rpu5hl3jyvwhbvamjykjpxdxdvfmqllj4zyh7vygwdxhkpblbz@5i2abljyp2ts>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,32 +67,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Z90-Q3zyEHDWPBNr@calendula>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <rpu5hl3jyvwhbvamjykjpxdxdvfmqllj4zyh7vygwdxhkpblbz@5i2abljyp2ts>
 
-On 2025-03-21 11:24:03 [+0100], Pablo Neira Ayuso wrote:
-> Hi Sebastian,
-Hi Pablo,
-
-> I have been discussing this with Florian, our proposal:
+On Mon, Mar 24, 2025 at 01:56:07PM +0100, Michal Koutný wrote:
+> Hello Pablo.
 > 
-> 1. Make ipatbles legacy depend on !PREEMPT_RT which effectively
->    disabled iptables classic for RT.
+> On Sun, Mar 23, 2025 at 10:20:10AM +0100, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > why classid != 0 is accepted for cgroup_mt_check_v0()?
 > 
-> This should be ok, iptables-nft should work for RT.
+> It is opposite, only classid == 0 is accepted (that should be same for
+> all of v0..v2). (OTOH, there should be no change in validation with
+> CONFIG_CGROUP_NET_CLASSID.)
+
+Thanks for clarifying this, more questions below.
+
+> > cgroup_mt_check_v0 represents revision 0 of this match, and this match
+> > only supports for clsid (groupsv1).
+> > 
+> > History of revisions of cgroupsv2:
+> > 
+> > - cgroup_mt_check_v0 added to match on clsid (initial version of this match)
+> > - cgroup_mt_check_v1 is added to support cgroupsv2 matching 
+> > - cgroup_mt_check_v2 is added to make cgroupsv2 matching more flexible
+>  
+> > I mean, if !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID) then xt_cgroup
+> > should fail for cgroup_mt_check_v0.
 > 
-> 2. make iptables-legacy user-selectable.
 > 
-> these two are relatively simple.
+> I considered classid == 0 valid (regardless of CONFIG_*) as counterpart
+> to implementation of sock_cgroup_classid() that collapses to 0 when
+> !CONFIG_CGROUP_NET_CLASSID (thus at least rules with classid=0 remain
+> acceptable).
 
-Okay. Let me try that.
+That is, 0 is the default value when !CONFIG_CGROUP_NET_CLASSID.
 
-> If this does not make you happy, it should be possible to take your
-> patches plus hide synchronize_rcu() latency behind deferred free
-> (call_rcu+workqueue).
+> > But a more general question: why this check for classid == 0 in
+> > cgroup_mt_check_v1 and cgroup_mt_check_v2?
+> 
+> cgroup_mt_check_v1 is for cgroupv2 OR classid matching. Similar with
+> cgroup_mt_check_v2.
 
-I will try the suggested above and then will see who complains. But I
-think it should be doable to roll with nft only for future releases.
+Yes, and cgroup_mt_check_v0 only supports for classid matching.
 
-> Thanks.
+> IOW, all three versions accept classid=0 with !CONFIG_CGROUP_NET_CLASSID
+> equally because that is the value that sockets reported classid falls
+> back to.
 
-Sebastian
+If !CONFIG_CGROUP_NET_CLASSID, then no classid matching is possible.
+
+So why allow a rule to match on cgroup with classid == 0?
+
+Maybe simply do this instead?
+
+static bool possible_classid(u32 classid)
+{
+       return IS_ENABLED(CONFIG_CGROUP_NET_CLASSID);
+}
+
+Thanks.
