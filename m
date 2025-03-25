@@ -1,236 +1,136 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mx01.omp.ru (mx01.omp.ru [90.154.21.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B7F425EF90
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 16:58:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1896313633F;
+	Tue, 25 Mar 2025 17:19:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.154.21.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742921933; cv=none; b=rfaTzN0vCNZn+z7wxPmUhIUQQaX+uVJBQebojgxiTsgnpONPPvjvRrp4wwrDkRYc5z9RM/fa5WQQlqZxdNSLlpdkVEA5yoW17LefJ5Z9q3/P33jrcxeueiCmEgIrdbjbHnrYh7s0A+3v11EH7Sgg6Q0v54APNV/AGww0C1AIM/E=
+	t=1742923195; cv=none; b=JVnlwqVX6P2mPQEyZ+/VCGqJ4P18sGpLohEiLA42NvMdcuwFnvm6Gts6MotbeIPjngeCkr7IXavTEdHtxZ54NYjKzjnieHJbw52OYu20xq+NTnzQV8+qEdFr9x29mvagLSgEdt93kTrsER3utBA5TBu0NaZouBObCpg2MWJ/vlo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742921933; c=relaxed/simple;
-	bh=IiK4CXXX9i1tO4xSDZjLcOqcYuWamSnfGXNiKs89wok=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=L8c4ONcHOsveb/YukECKBec+RQTxqcLts27tHB0r5hUQprgciCP29LNCs9mt7HxsofcdjrOMGlskfW46v1jNjKN5hDo+xZrB4Bg39W0gITwhQwjBQ5QG9pQqx2xi9/S4p569co1cpWG2fl+kenkMXpYquqDMKZM+HbFuSiJfN9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=p7xvDQXd; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Mpe04Thy; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="p7xvDQXd";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Mpe04Thy"
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1742921923;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/QYRCSX3cmtWVsxGWKs9v5nQnvd8l6caTP0VXpZeadQ=;
-	b=p7xvDQXddsT09+uRqAzpg9h4S94cT9xgTKKkN0WOvgLgroX3CUX3P5MWZBBpv7r31Bc4uj
-	69rCViThaOoJbYzPzDVuNyrwdgHZBPZF78eFHjpUyy1PBQdIhH/RyRCa4xTJ+SKD2SfIPb
-	nxaRy1snTdPCBNQ/mGruwUymnP/v6iniCV5r6L2ibkAR2pYMtxdDZ/ramWoFkfKoVBexpq
-	g0NqwTIZ0VePo0rHX8dDY+cq5tv13sKYyX3qePzBOwbKYkIwDxXZlEv5f/FCOFweDUf95F
-	WoxDabmzGdjqv6k62ov7WeAOlQl7Z/me3MsdRlZku1btbXxmMAxEfeUdMYGpzw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1742921923;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/QYRCSX3cmtWVsxGWKs9v5nQnvd8l6caTP0VXpZeadQ=;
-	b=Mpe04ThyaAnzL45QkeR1VCL/+K/z07Sdw4jt7vYajLVQefH0VGOK6KiOO5+WzqgccdROnv
-	EOkogYp/nqkNXIAQ==
-To: netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [net-next v3 3/3] netfilter: Introduce NETFILTER_LEGACY to group all legacy code.
-Date: Tue, 25 Mar 2025 17:58:32 +0100
-Message-ID: <20250325165832.3110004-4-bigeasy@linutronix.de>
-In-Reply-To: <20250325165832.3110004-1-bigeasy@linutronix.de>
-References: <20250325165832.3110004-1-bigeasy@linutronix.de>
+	s=arc-20240116; t=1742923195; c=relaxed/simple;
+	bh=XhmLROfnnL3FtaOH27gIOe9sbljr3QNEJt4khOaoGEw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=thXfkLpcysvlslOLNwAsjXCeCS6JfK6KctSbO2VGPV3RuKnyk0b5C13uS18qMml/OaXFTQll1YJumJb0xtEBlz6OVXMzXwT+u0OP1YIXmFUMXF7N6mj6jdKsM0A+dPbTQIyLF0c2blFZmvdsLhtgQIwwYgh2AD86/cle9R4yFAI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=omp.ru; spf=pass smtp.mailfrom=omp.ru; arc=none smtp.client-ip=90.154.21.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=omp.ru
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=omp.ru
+Received: from [192.168.2.102] (213.87.136.199) by msexch01.omp.ru
+ (10.188.4.12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.1258.12; Tue, 25 Mar
+ 2025 20:19:41 +0300
+Message-ID: <05fec753-cdaa-45a5-a029-b6435c30eb07@omp.ru>
+Date: Tue, 25 Mar 2025 20:19:39 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH V3 25/43] rv64ilp32_abi: exec: Adapt 64lp64 env and
+ argv
+To: <guoren@kernel.org>, <arnd@arndb.de>, <gregkh@linuxfoundation.org>,
+	<torvalds@linux-foundation.org>, <paul.walmsley@sifive.com>,
+	<palmer@dabbelt.com>, <anup@brainfault.org>, <atishp@atishpatra.org>,
+	<oleg@redhat.com>, <kees@kernel.org>, <tglx@linutronix.de>,
+	<will@kernel.org>, <mark.rutland@arm.com>, <brauner@kernel.org>,
+	<akpm@linux-foundation.org>, <rostedt@goodmis.org>, <edumazet@google.com>,
+	<unicorn_wang@outlook.com>, <inochiama@outlook.com>, <gaohan@iscas.ac.cn>,
+	<shihua@iscas.ac.cn>, <jiawei@iscas.ac.cn>, <wuwei2016@iscas.ac.cn>,
+	<drew@pdp7.com>, <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+	<ctsai390@andestech.com>, <wefu@redhat.com>, <kuba@kernel.org>,
+	<pabeni@redhat.com>, <josef@toxicpanda.com>, <dsterba@suse.com>,
+	<mingo@redhat.com>, <peterz@infradead.org>, <boqun.feng@gmail.com>,
+	<xiao.w.wang@intel.com>, <qingfang.deng@siflower.com.cn>,
+	<leobras@redhat.com>, <jszhang@kernel.org>, <conor.dooley@microchip.com>,
+	<samuel.holland@sifive.com>, <yongxuan.wang@sifive.com>,
+	<luxu.kernel@bytedance.com>, <david@redhat.com>, <ruanjinjie@huawei.com>,
+	<cuiyunhui@bytedance.com>, <wangkefeng.wang@huawei.com>,
+	<qiaozhe@iscas.ac.cn>
+CC: <ardb@kernel.org>, <ast@kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-riscv@lists.infradead.org>, <kvm@vger.kernel.org>,
+	<kvm-riscv@lists.infradead.org>, <linux-mm@kvack.org>,
+	<linux-crypto@vger.kernel.org>, <bpf@vger.kernel.org>,
+	<linux-input@vger.kernel.org>, <linux-perf-users@vger.kernel.org>,
+	<linux-serial@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+	<linux-arch@vger.kernel.org>, <maple-tree@lists.infradead.org>,
+	<linux-trace-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<linux-atm-general@lists.sourceforge.net>, <linux-btrfs@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<linux-nfs@vger.kernel.org>, <linux-sctp@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>
+References: <20250325121624.523258-1-guoren@kernel.org>
+ <20250325121624.523258-26-guoren@kernel.org>
+Content-Language: en-US
+From: Sergey Shtylyov <s.shtylyov@omp.ru>
+Organization: Open Mobile Platform
+In-Reply-To: <20250325121624.523258-26-guoren@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: msexch01.omp.ru (10.188.4.12) To msexch01.omp.ru
+ (10.188.4.12)
+X-KSE-ServerInfo: msexch01.omp.ru, 9
+X-KSE-AntiSpam-Interceptor-Info: scan successful
+X-KSE-AntiSpam-Version: 6.1.1, Database issued on: 03/25/2025 16:50:54
+X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
+X-KSE-AntiSpam-Method: none
+X-KSE-AntiSpam-Rate: 0
+X-KSE-AntiSpam-Info: Lua profiles 192097 [Mar 25 2025]
+X-KSE-AntiSpam-Info: Version: 6.1.1.11
+X-KSE-AntiSpam-Info: Envelope from: s.shtylyov@omp.ru
+X-KSE-AntiSpam-Info: LuaCore: 51 0.3.51
+ 68896fb0083a027476849bf400a331a2d5d94398
+X-KSE-AntiSpam-Info: {rep_avail}
+X-KSE-AntiSpam-Info: {Tracking_from_domain_doesnt_match_to}
+X-KSE-AntiSpam-Info:
+	omp.ru:7.1.1;127.0.0.199:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1
+X-KSE-AntiSpam-Info: {Tracking_ip_hunter}
+X-KSE-AntiSpam-Info: FromAlignment: s
+X-KSE-AntiSpam-Info: ApMailHostAddress: 213.87.136.199
+X-KSE-AntiSpam-Info: Rate: 0
+X-KSE-AntiSpam-Info: Status: not_detected
+X-KSE-AntiSpam-Info: Method: none
+X-KSE-AntiSpam-Info: Auth:dmarc=temperror header.from=omp.ru;spf=temperror
+ smtp.mailfrom=omp.ru;dkim=none
+X-KSE-Antiphishing-Info: Clean
+X-KSE-Antiphishing-ScanningType: Heuristic
+X-KSE-Antiphishing-Method: None
+X-KSE-Antiphishing-Bases: 03/25/2025 16:52:00
+X-KSE-Antivirus-Interceptor-Info: scan successful
+X-KSE-Antivirus-Info: Clean, bases: 3/25/2025 3:18:00 PM
+X-KSE-Attachment-Filter-Triggered-Rules: Clean
+X-KSE-Attachment-Filter-Triggered-Filters: Clean
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
 
-The seqcount xt_recseq is used to synchronize the replacement of
-xt_table::private in xt_replace_table() against all readers such as
-ipt_do_table()
+On 3/25/25 3:16 PM, guoren@kernel.org wrote:
 
-To ensure that there is only one writer, the writing side disables
-bottom halves. The sequence counter can be acquired recursively. Only the
-first invocation modifies the sequence counter (signaling that a writer
-is in progress) while the following (recursive) writer does not modify
-the counter.
-The lack of a proper locking mechanism for the sequence counter can lead
-to live lock on PREEMPT_RT if the high prior reader preempts the
-writer. Additionally if the per-CPU lock on PREEMPT_RT is removed from
-local_bh_disable() then there is no synchronisation for the per-CPU
-sequence counter.
+> From: "Guo Ren (Alibaba DAMO Academy)" <guoren@kernel.org>
+> 
+> The rv64ilp32 abi reuses the env and argv memory layout of the
+> lp64 abi, so leave the space to fit the lp64 struct layout.
+> 
+> Signed-off-by: Guo Ren (Alibaba DAMO Academy) <guoren@kernel.org>
+> ---
+>  fs/exec.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/fs/exec.c b/fs/exec.c
+> index 506cd411f4ac..548d18b7ae92 100644
+> --- a/fs/exec.c
+> +++ b/fs/exec.c
+> @@ -424,6 +424,10 @@ static const char __user *get_user_arg_ptr(struct user_arg_ptr argv, int nr)
+>  	}
+>  #endif
+>  
+> +#if defined(CONFIG_64BIT) && (BITS_PER_LONG == 32)
 
-The affected code is "just" the legacy netfilter code which is replaced
-by "netfilter tables". That code can be disabled without sacrificing
-functionality because everything is provided by the newer
-implementation. This will only requires the usage of the "-nft" tools
-instead of the "-legacy" ones.
+   Parens don't seem necessary...
 
-Make EBTABLES_LEGACY, IPTABLES_LEGACY and ARPTABLES depend on
-NETFILTER_LEGACY. Hide xt_recseq and its users, xt_register_table() and
-xt_percpu_counter_alloc() behind NETFILTER_LEGACY. Let NETFILTER_LEGACY
-depend on !PREEMPT_RT.
+> +	nr = nr * 2;
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- net/Kconfig                  | 10 ++++++++++
- net/bridge/netfilter/Kconfig |  2 +-
- net/ipv4/netfilter/Kconfig   |  5 +++--
- net/ipv6/netfilter/Kconfig   |  2 +-
- net/netfilter/x_tables.c     | 16 +++++++++++-----
- 5 files changed, 26 insertions(+), 9 deletions(-)
+   Why not nr *= 2?
 
-diff --git a/net/Kconfig b/net/Kconfig
-index c3fca69a7c834..e5d5bcafa0e18 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -211,6 +211,16 @@ menuconfig NETFILTER
-=20
- if NETFILTER
-=20
-+config NETFILTER_LEGACY
-+	bool "Netfilter legacy tables support"
-+	depends on NETFILTER && !PREEMPT_RT
-+	help
-+	  Say Y here if you still require support for legacy tables. This is
-+	  required by the legacy tools (iptables-legacy) and is not needed if
-+	  you use iptables over nftables (iptales-nft).
-+	  Legacy support is not limited to IP, it also includes EBTABLES and
-+	  ARPTABLES.
-+
- config NETFILTER_ADVANCED
- 	bool "Advanced netfilter configuration"
- 	depends on NETFILTER
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index a6770845d3aba..0080127421882 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -42,7 +42,7 @@ config NF_CONNTRACK_BRIDGE
- # old sockopt interface and eval loop
- config BRIDGE_NF_EBTABLES_LEGACY
- 	tristate "Legacy EBTABLES support"
--	depends on BRIDGE && NETFILTER_XTABLES
-+	depends on BRIDGE && NETFILTER_XTABLES && NETFILTER_LEGACY
- 	default n
- 	help
- 	 Legacy ebtables packet/frame classifier.
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index a215f01d16a32..dcf015e0d4266 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -14,6 +14,7 @@ config NF_DEFRAG_IPV4
- config IP_NF_IPTABLES_LEGACY
- 	tristate "Legacy IP tables support"
- 	default	n
-+	depends on NETFILTER_LEGACY
- 	select NETFILTER_XTABLES
- 	help
- 	  iptables is a legacy packet classifier.
-@@ -325,7 +326,7 @@ endif # IP_NF_IPTABLES
- # ARP tables
- config IP_NF_ARPTABLES
- 	tristate "Legacy ARPTABLES support"
--	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_XTABLES && NETFILTER_LEGACY
- 	default n
- 	help
- 	  arptables is a legacy packet classifier.
-@@ -342,7 +343,7 @@ config IP_NF_ARPFILTER
- 	tristate "arptables-legacy packet filtering support"
- 	select IP_NF_ARPTABLES
- 	select NETFILTER_FAMILY_ARP
--	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_XTABLES && NETFILTER_LEGACY
- 	help
- 	  ARP packet filtering defines a table `filter', which has a series of
- 	  rules for simple ARP packet filtering at local input and
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 9ab8ef510dcfa..303942174b5d5 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -9,7 +9,7 @@ menu "IPv6: Netfilter Configuration"
- # old sockopt interface and eval loop
- config IP6_NF_IPTABLES_LEGACY
- 	tristate "Legacy IP6 tables support"
--	depends on INET && IPV6
-+	depends on INET && IPV6 && NETFILTER_LEGACY
- 	select NETFILTER_XTABLES
- 	select IP6_NF_IPTABLES
- 	default n
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 709840612f0df..24788bd3cbcb6 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1317,12 +1317,13 @@ void xt_compat_unlock(u_int8_t af)
- EXPORT_SYMBOL_GPL(xt_compat_unlock);
- #endif
-=20
--DEFINE_PER_CPU(seqcount_t, xt_recseq);
--EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
--
- struct static_key xt_tee_enabled __read_mostly;
- EXPORT_SYMBOL_GPL(xt_tee_enabled);
-=20
-+#ifdef CONFIG_NETFILTER_LEGACY
-+DEFINE_PER_CPU(seqcount_t, xt_recseq);
-+EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
-+
- static int xt_jumpstack_alloc(struct xt_table_info *i)
- {
- 	unsigned int size;
-@@ -1514,6 +1515,7 @@ void *xt_unregister_table(struct xt_table *table)
- 	return private;
- }
- EXPORT_SYMBOL_GPL(xt_unregister_table);
-+#endif
-=20
- #ifdef CONFIG_PROC_FS
- static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
-@@ -1897,6 +1899,7 @@ void xt_proto_fini(struct net *net, u_int8_t af)
- }
- EXPORT_SYMBOL_GPL(xt_proto_fini);
-=20
-+#ifdef CONFIG_NETFILTER_LEGACY
- /**
-  * xt_percpu_counter_alloc - allocate x_tables rule counter
-  *
-@@ -1951,6 +1954,7 @@ void xt_percpu_counter_free(struct xt_counters *count=
-ers)
- 		free_percpu((void __percpu *)pcnt);
- }
- EXPORT_SYMBOL_GPL(xt_percpu_counter_free);
-+#endif
-=20
- static int __net_init xt_net_init(struct net *net)
- {
-@@ -1983,8 +1987,10 @@ static int __init xt_init(void)
- 	unsigned int i;
- 	int rv;
-=20
--	for_each_possible_cpu(i) {
--		seqcount_init(&per_cpu(xt_recseq, i));
-+	if (IS_ENABLED(CONFIG_NETFILTER_LEGACY)) {
-+		for_each_possible_cpu(i) {
-+			seqcount_init(&per_cpu(xt_recseq, i));
-+		}
- 	}
-=20
- 	xt =3D kcalloc(NFPROTO_NUMPROTO, sizeof(struct xt_af), GFP_KERNEL);
---=20
-2.49.0
+[...]
+
+MBR, Sergey
 
