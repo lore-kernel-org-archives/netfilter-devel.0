@@ -1,130 +1,105 @@
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519392638BF
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Mar 2025 18:01:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B27A93D
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 00:24:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742839280; cv=none; b=f+Fs3XDYoY0t7IvGHRyMZZRjEMGwbNNV9hiZmbHRbeIFw1IorB6+9tWrLfSmizOYLyx4PrIhALtTEBj1Ncq+fKBSa+L/BOjvwIR9PdHnNutZpCmwnVtdJjgYuT9uJ+PICOJQjbmcLr+D8Gq9vYsAZ3aoDztPmNg+wJUJuKQzJIo=
+	t=1742862276; cv=none; b=F7tcjaMkPfEdYtts9N/c7QeTlPq1l2uUhwgjMS1zNV74cuk3H0+hfyCNLgg7naICFcI7Y257Up8RChAUB/ftBhFNWZzmGRveTddHnRjZW0dp/M/IIRsqBo4ug7QRQGNOLRqJUZc0EflmjPmIk5ZZYGEtN4UZIIlvHQ6OZ8QHbDw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742839280; c=relaxed/simple;
-	bh=eojI4yLCU5ZM+KEblfqsXQnd371BEMPPymG9U6eyyN8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RuJBVwC2qfCM5ZT7a4jydgKgzUmOImMhBYMtWYzu8cf6uUW6D9aRljm8WtuFH15JaaRzFO3+AM2PZCqplQqUTTVDcQs56TVK28TYJLEzKguGkOUK3Byh8pzUoNxdqE+mI9sZ13i0IDMmcnWSWdII1mKg6O0t+jJc63xzRRPrii4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Ek8qr84k; arc=none smtp.client-ip=209.85.128.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1742862276; c=relaxed/simple;
+	bh=EG7u97szhWHQ02zf7lj9SCk64uOzu8SmZ6N4wzmoVgQ=;
+	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=QOKCGqeL6iGUXse/oh0jShmy59SyMMbxF4o9FwgBrB+19Dd/eTo/YJADqK3GV5THGvDnN+zdoYUJKI5KqzZVfq8Z42hJa6oR4Mj6X7Nhftvg9HDJy4cnD02yxzWo6RlgGZK9AmMpNns15KrBCwR7hja764rQkH+zK2E48Ux+PnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=CItlw93f; arc=none smtp.client-ip=212.227.17.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Ek8qr84k"
-Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-43cfa7e7f54so28334225e9.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 24 Mar 2025 11:01:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1742839276; x=1743444076; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=MBaEI+J75lzSBFPYWcAssMLNcEktwqaN7tmaEftWXME=;
-        b=Ek8qr84kYlf0TixvmxR8kqQcep3wxV5k2VfEpASIRySaBsF8NQbw1bLStBPs3kkhw9
-         dTr+jgh7Y1z+Rt1hP6JWD5nbf4y5dbhPsl8n/MsSNxgjf6Yc0IBRzarpkfWdE5b/Msaj
-         GXsKl7rxtqRlR0gJ83T3jcDG9irZhNb6q7JniF3ignKkHAGilvj9n5ItoGHvxxSt6cqs
-         YxrZsyIGhOvfZm03UqOtspciqKJeoSuRHclYyaaStnwnnXppIQywI310iwvrWorok45A
-         cY8SwnOyZ3nQfk6BW2b48WQfdo2wLIMkm7jd74+X0S1QSmz0oCUMB7cEcFJ8ac/9p0VB
-         v5Gg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742839276; x=1743444076;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MBaEI+J75lzSBFPYWcAssMLNcEktwqaN7tmaEftWXME=;
-        b=a5F1Ag2dM0WStYGj42iPv6omp2eIf9QvDKduuNenYz/y9wAbyMX/IBweVkpmmzVDPI
-         eRoSQNjR/jcGYqUgfpsKaO+JuxnP0Q/T9SvWCuF6/Y7G3xu2/jRaVhmMV/HpSoFmnXoI
-         8HBP3ZTneqnBaRvrqHLpZGiKzGn77YHTEsHYdHBEk7LR0rSstBUzXkpHb1Ex4S+y52nU
-         3Hqb5JlqbEKV8qSxh3FUVY5PcLDaboLsKnohJ7vUmiVraNMB+HZ6DXFC4nGo+hfqspX7
-         JOdliQGK+/UDpQE0wXs27Ge2Ntd7L0Jl5rVX5Yyufe28bPh0X2FzASC+PfUt6/0XZv/Q
-         +kMA==
-X-Gm-Message-State: AOJu0Yxps7Jjz2BwzUAd/VO/SeZBsobVAxakZ0wSaMczz/pUgyUhUJNf
-	hLA0QK7tWI6CGZblare66+85JsFNOQqKVYNpIBt3pgKT49alO9IzDgIRn91bvCE=
-X-Gm-Gg: ASbGnctrw4/WOn+BRmJzKaHRdnZpYTJMiRDTvfLEkCrMmXD7rXSKVuibGWiPpzMDFTd
-	LJR/6qR2zgbOEIteF2Co7/+F1UAZ4bSfe3bnH9hLpDPKzstaNHS/lxUNgMD5FIld4EgWlMmlnKh
-	cWRJRpjxyF3zbw5998teq8mUkuCxOryfqNYA95ZsInF7Ql7JnuQn5uESGnCXOnaqpfqSavNiTeO
-	Fsg/zEeG3GsGE6VcbgPPegR+iBKuNeoLO4R/T4accS3V9KCteSfQgCDaouB5o11QHGKDwsaA/Bw
-	v5qfdNaWrfyDAoJD3WTjp40ew8Ru4cEUoEGwpKEkCrbYURo=
-X-Google-Smtp-Source: AGHT+IEdWNCbUcRtv0+28TrRm1gV/H/bWh9BvUkWbDbOi0k67J4zzVJ5xlOGZqnUUGJ6UxUKmd2efA==
-X-Received: by 2002:a05:600c:3552:b0:43c:f509:2bbf with SMTP id 5b1f17b1804b1-43d491bfe15mr214453805e9.15.1742839276464;
-        Mon, 24 Mar 2025 11:01:16 -0700 (PDT)
-Received: from blackdock.suse.cz ([193.86.92.181])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39abfc2115asm5569294f8f.4.2025.03.24.11.01.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 24 Mar 2025 11:01:16 -0700 (PDT)
-Date: Mon, 24 Mar 2025 19:01:14 +0100
-From: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>, "David S . Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, cgroups@vger.kernel.org, 
-	Jan Engelhardt <ej@inai.de>, Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
-Message-ID: <iy3wkjdtudq4m763oji7bhj6w7bj2pdst7sbtahtwgcjrhpx6i@a4cy47mlcnqf>
-References: <20250305170935.80558-1-mkoutny@suse.com>
- <Z9_SSuPu2TXeN2TD@calendula>
- <rpu5hl3jyvwhbvamjykjpxdxdvfmqllj4zyh7vygwdxhkpblbz@5i2abljyp2ts>
- <Z-GNBeCX0dg-rxgQ@calendula>
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="CItlw93f"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
+	s=s31663417; t=1742862272; x=1743467072; i=corubba@gmx.de;
+	bh=CP4XlK7/YSRvxB/RsdmJubiIemHUWc0oGaZ1VNY6dhc=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:From:Subject:
+	 Content-Type:Content-Transfer-Encoding:cc:
+	 content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=CItlw93fbeFbXE1pt6i184kUIxinSx/vTNCBNb8kZ/E7MgMPGNAXfBlVS6OUpW0m
+	 iw2hGZVF150bXNxGrSHWVkAGCOGfRLqKUQzqvy3lvKyvBK/cpturhB6oP6vmo4Tlh
+	 9PxQ6ozJv1zR/N0hpdkR1OlXWfdFmx2JHZhbfmFZ7wHwAgXkdZBGnPEegxZIhwLgf
+	 3L6lxo/DKtrZ0KxRs/q8e3CpYIapDIs5LZBIhNsYWlce/7bcrAgisG+ijlCperALd
+	 E1Q/eQdMiy/bZHqC1OflFfTAXEiPRNS5fnO7i+XyqMrDP7qwNGo7nCrj39oYhXmJQ
+	 PFrZ1sfovc/nAMKLmQ==
+X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
+Received: from 127.0.0.1 ([83.135.90.83]) by mail.gmx.net (mrgmx105
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MYeMt-1tb1ZD0dO7-00JT8k for
+ <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 01:24:32 +0100
+Message-ID: <ef47491d-5535-466a-a77b-37c04a8b5d43@gmx.de>
+Date: Tue, 25 Mar 2025 01:24:04 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="mcnpin23l7ibeznf"
-Content-Disposition: inline
-In-Reply-To: <Z-GNBeCX0dg-rxgQ@calendula>
-
-
---mcnpin23l7ibeznf
-Content-Type: text/plain; protected-headers=v1; charset=us-ascii
-Content-Disposition: inline
+Content-Language: de-CH
+To: netfilter-devel@vger.kernel.org
+From: Corubba Smith <corubba@gmx.de>
+Subject: [PATCH ulogd2] nfct: fix counter-reset without hashtable
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v2] netfilter: Make xt_cgroup independent from net_cls
-MIME-Version: 1.0
+X-Provags-ID: V03:K1:CCM0IWYQZ/ndQgSsOEdjhouX0bKQ09Usu9fJ9eyClm6PEsQ5Y96
+ mNJ146pekYPsMud2Eys/dFra5CIqG3PtbVNOwdTv+rJk654oNm50S5u/KlDgXmQK6BrtL6T
+ ZH5OIyY3DOJNulrz6O7fYy12n/bwNrMdhRyMiBhCCS4eY4xnQ033dNlfEweYhkQ3KpI8ECj
+ 04erqWXIfiqo9zY/XXY9A==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:j1a1U/w47zU=;nfL0DxdIqcqJh6IK6tXrQFBgNQI
+ 3zWjxIcgEreG9jc4XEG0dRP3VVlHXDr+/WbFkt1QBGEYXnI+z5f7daxmhOPXF3XahtgcqLlH4
+ Kp5DlsBBPCeSi+1k6wxboUOvEYFrmD1PrxeOQxDg/+aFpdx/g5Mddn+BCWSPDXWW2ltLgAaMK
+ H9N+aWwCzHRS42Nppi1Is2LGDdMYJyw8pR6jCr1Mi+o9kdzkmAW37ref5POqa34nq7CupMHhi
+ zyZ6zP2WGuCo6JygbjGQ6/TQ+C/jwzsbHlhaRjuy4RRJ84XbJ8PeBlBkd7JS/HLG560PGpIah
+ r/jhMOAGvNtGfSLz2QrGQOBizLIKS+O4xkqm9ESV1+Vd0eICUJ/qHQWh4Tg/zt4ElJLUbp86V
+ QzQr2UDv4FBHkkKnrgy3ktVDVA95hBcJ3JzTGGIGuqf8syPPJzfkvVU6E6AFqkoLyWdbxkmJ1
+ iMSDii7+8dxd2dD8kAjfzExMamhe0LMg59v+N8DEmu0uDP3M9x456Llv+cmS4lq6UG7lRzUfL
+ UUqtrMcipAG3yEya6aMcFHKTYqJZTrLoOhUrlepGbrRN8RS/WOjrhaQZkOLMagMya1z4WObG1
+ PKyHQ4asZxl0X5uICAK5TNe6dMVwq7oHMQsmeInBsIExtiGjwhkBzta7QlCwD0XJpa7AIK0ud
+ sO0lVumjGgE0wHunp+zKbGWsNYxza3DAV/Hx05WW1MXkonjAFCJIHOOoFUJMWnvQZrp+417jq
+ 786PwZ9luHfRcoRXnzjEcgaJv9jVXCoBcFq46FyO+raoMyIHzsMSQtXs88MCBeeZE3LyqJtwu
+ TQGKhc/X+ipEhcIQfvjFjR8du/UL3qEXQH8dNifWXkkaoIYd8vzrC5chlwyKFCoEe5wTlhkXE
+ D1y8E24snCiQ0wtrZNj65Sws5CdPphob2O8hCqPi8qSY1wt1ydqN8soBowFubb4PTVlefkfFW
+ I+chp9whtbeRpL+ybHlTtgmvGVMlrEHXcIuns70kCNlzNlvsedTURCPnv3Ht7ip+xja8JhOVD
+ IjOcWkuT8cIMZqAzJ9HPuSv/3/merOYRI+uu7kLnniYe2v0vl27JXZzGS6nLmPcC1C4IIVi6T
+ gDXuM0kJDJZwN2mIZzKsIQ1lM16cPs4KPlQ03T0pEG/8SIZG7tL5AV+mIrjB4SlCw2PxBWQZI
+ 5MPpCxyQKY7xbRDcrjhXuQ1rp0o5QJf4Fus63eQUJZWl9bIq99hmaM9wOB5FKK8vo88RTjLxQ
+ vfCJeZZL9UiZyaJLJkPLEGlTmrVBH+PkSYOUYcXdbEYgT8fdbQEHIptdfZyWcShAvLKM9jfyp
+ mBy+WlqFI4tBYQ/touxZSS+cLsXAdE8WCN4v6Y7obxpTXMXwDdhbUEpn19guCU1iNFRlUgGbq
+ in5gnxi797mXS9rttll1uVeL0HXwg/9HLdjgVRhAw5lohmGPpuDij6cO/4HEJxMDV7WeQFSGD
+ rkeHtnNZA/DBz3pMUghZGa9GrMds=
 
-On Mon, Mar 24, 2025 at 05:49:09PM +0100, Pablo Neira Ayuso <pablo@netfilte=
-r.org> wrote:
-> If !CONFIG_CGROUP_NET_CLASSID, then no classid matching is possible.
->=20
-> So why allow a rule to match on cgroup with classid =3D=3D 0?
+The dump_reset_handler will try to update the hashtable regardless of
+whether it is used (and thus initialized), which results in a segfault
+if it isn't. Instead just short-circuit the handler, and skip any
+further result processing because it's not used in this case anyway.
+All flow counters in conntrack are reset regardless of the return value
+of the handler/callback.
 
-It is conservative approach to supposed users who may have filtering
-rules with classid=3D0 but never mkdir any net_cls group. Only those who
-eventually need to mkdir would realize there's nowhere to mkdir on (with
-!CONFIG_CGROUP_NET_CLASSID). Admittedly, I have no idea if this helps to
-5% of net_cls users or 0.05% or 0%. Do you have any insights into that?
+Signed-off-by: Corubba Smith <corubba@gmx.de>
+=2D--
+ input/flow/ulogd_inpflow_NFCT.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> Maybe simply do this instead?
->=20
-> static bool possible_classid(u32 classid)
-> {
->        return IS_ENABLED(CONFIG_CGROUP_NET_CLASSID);
-> }
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NF=
+CT.c
+index 93edb76..cdda741 100644
+=2D-- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -989,6 +989,9 @@ dump_reset_handler(enum nf_conntrack_msg_type type,
+ 	int ret =3D NFCT_CB_CONTINUE, rc, id;
+ 	struct ct_timestamp *ts;
 
-Yes, if the above carefulness is unnecessary, I'd like to accompany this
-with complete removal of sock_cgroup_classid() function then (to have it
-compile-checked that it's really impossible to compare any classids w/o
-CONFIG_CGROUP_NET_CLASSID).
-
-Thanks,
-Michal
-
---mcnpin23l7ibeznf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTd6mfF2PbEZnpdoAkt3Wney77BSQUCZ+Gd6AAKCRAt3Wney77B
-ScRdAP0Z92ut0NmVTI6f/3wmuCsg0BNO0oPH4rVwOdXSZhSyBQEAvG/T076Mz7ge
-O2ZxP29tnCTjMeotK+HG03tvZSnluA8=
-=5gNv
------END PGP SIGNATURE-----
-
---mcnpin23l7ibeznf--
++	if (!cpi->ct_active)
++		return NFCT_CB_STOP;
++
+ 	switch(type) {
+ 	case NFCT_T_UPDATE:
+ 		id =3D hashtable_hash(cpi->ct_active, ct);
+=2D-
+2.49.0
