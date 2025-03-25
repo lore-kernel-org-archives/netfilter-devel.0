@@ -1,47 +1,47 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.17.20])
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 318A62E3381
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 01:07:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8141C2AF03
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 01:08:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.17.22
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742864850; cv=none; b=eUajhw/R4/KhHAfH7mDhwzVmCiD3qpvlV4UG41rWNavdE+7D/JbMqe/ZfX4rJ8kIIQjh9nUE7Oltj6M7++KcI3eQCN4NKaIgX4wmRKWLwVqKdLygXTL7EdoUM88lfXL90ucJ0owHLfXA2NT+Gt1cozOPxpcdAUfVGeSrpmJe4IM=
+	t=1742864919; cv=none; b=EaLpf6twjzQsmb8OxjuG5SS5RdiUyRYplaCjGKYr8K8pKUn4eac3mG3QRrI7pe9QWJYfLdmhfsR5n7mVSbxshgBcm9QGvv4vmQZ+O6xJOUKDYaOsYqCMCnYlkANXpZNtlTleai613E6cg5/3Py7I5r5rVCvmYI3vgajZ+JPakqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742864850; c=relaxed/simple;
-	bh=0Y46eX/Yt0t5LtaM6bXCKfX7zJxoQ4q/o8P2wkb1tac=;
+	s=arc-20240116; t=1742864919; c=relaxed/simple;
+	bh=gkrFV+iM2/Qld3T8nVtjJArpZ1pOEHD1uu6Jps84r7c=;
 	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
-	 In-Reply-To:Content-Type; b=GuxmlYB0imO7IzQE3JsZ3PRDXIMKn+xhIvRdkTJZy1BJpVjxoEbI1THjWFKgIQMPqAQiGaNAU41mmgMXZ+RO40ZP7TWcDL8vhV43ReZF4NhHZkQB0XZgDl7XWYGctrknHSypa9/e94pg14bQShys1Sbk6fggc88tbHUVInKfWBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=bSUW0MZJ; arc=none smtp.client-ip=212.227.17.20
+	 In-Reply-To:Content-Type; b=dd8lKqh7Oi13ziBei/tb0wZ4B7RhBJqkwgFopE6f87tb24fk9rOO/YbJpIf5SStFVxTWCaLgF1QsNH+DQrMZc3LFWxdCWAddat0t9peZG/bK3Ltl9xe71JcnHHYYrEVZma4K3kQcb6JdvksUsYubzq/mTaou7YorW2khM70yXns=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=Ul9NzSwX; arc=none smtp.client-ip=212.227.17.22
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="bSUW0MZJ"
+	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="Ul9NzSwX"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1742864846; x=1743469646; i=corubba@gmx.de;
-	bh=jIUvvmjvcxQ9rhy0bXoxgsfLvfBz8E12MMsxbQvB9To=;
+	s=s31663417; t=1742864913; x=1743469713; i=corubba@gmx.de;
+	bh=ZMsnZgrzqm/fDGyE/38WHozp1fm5nrwUVvYMXPWAc14=;
 	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:From:To:
 	 References:In-Reply-To:Content-Type:Content-Transfer-Encoding:cc:
 	 content-transfer-encoding:content-type:date:from:message-id:
 	 mime-version:reply-to:subject:to;
-	b=bSUW0MZJeyi4TDX2HUJ+ZLod2rgH+UA0rOjgIDqOMXOSt4di9PfYrBygbiCp6OEz
-	 duSR7vECFl4JsmVy6M1V1eyld2/dQqjzTRdcKXZmRl8H6UzLZ1lPLBXt9T9CyD5/f
-	 jqdqXLZWz/MsAG4prAFFofW1JqmVtnZnkPdaZQ4GIuo8MuPkHU3lubzHjgNZJxvjq
-	 zcIxMNhRSMeCs4Jh/qnJpwA+08+Eslaulsokz+4oNqB2NIdeAhm8O3HiUYClD4MgU
-	 nGTP7G7aCYI7Erlu6BO28gJmSKobsoGBuGohLXVib0ns1zo14n53P5X1ydWPaZc2D
-	 2bS90CuK5vRGPh5DNA==
+	b=Ul9NzSwX6BFXGYzrYi5Jlbab84thqvmMBa7FKGLgiAcQPQxL3zlcX93rk8kULWxT
+	 jHkrWIGtLdeXNV2TUuLTnmp/+GdfSL5G0MvOoiP1tTyWMu01CU2To5L7DIPndbnCy
+	 0dQ8v9X6nxbqUlgo4xEMBrlqKGKm0SVjibUpQX5d92KfDIZ4+vURC2BRKwP6lpMd1
+	 9gys3BxAYf+CueGdQSCx3FLzbhvoYey4eTT3osoFkQnTrJBL2mXOcL65O6B0JdT/m
+	 yG6mkWs3YjFG6KyQa2ot7PMHKIEK0hVTXjr95xJqVaq9V2Kd8B5WCGHHsuztUIB/Q
+	 t1L9bsurLxFjOSPmGQ==
 X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from 127.0.0.1 ([83.135.90.83]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MSbx3-1tZ4MB0kqP-00PWXq for
- <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 02:07:26 +0100
-Message-ID: <4c328ab1-b799-4e8b-a786-4329b40043a9@gmx.de>
-Date: Tue, 25 Mar 2025 02:07:25 +0100
+Received: from 127.0.0.1 ([83.135.90.83]) by mail.gmx.net (mrgmx104
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MryXN-1tKr4e1saj-00g3oF for
+ <netfilter-devel@vger.kernel.org>; Tue, 25 Mar 2025 02:08:33 +0100
+Message-ID: <0e7e461d-a30a-42af-9427-96cd97eb108d@gmx.de>
+Date: Tue, 25 Mar 2025 02:08:33 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: [PATCH ulogd2,v2 2/4] nfct: add network namespace support
+Subject: [PATCH ulogd2,v2 3/4] nflog: add network namespace support
 From: Corubba Smith <corubba@gmx.de>
 To: netfilter-devel@vger.kernel.org
 References: <c5cd1c3a-3875-4352-8181-5081103f96f6@gmx.de>
@@ -49,251 +49,122 @@ Content-Language: de-CH
 In-Reply-To: <c5cd1c3a-3875-4352-8181-5081103f96f6@gmx.de>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:hkGsRaxOjxRroPBN37x81nRAgmvjsrb+e5NaHYDKsG+QMMmcSkQ
- 9iG4BeW898XMgj8Z5h108cVyl+IuYGhnuGyiArQOKo8kBC6t2OLkqchjC6QaW/7PY9+3hAo
- 96zrcwfwM9+xeV+TV8H5euOPHNIrpurVXSJQWjA5ss3vzTo9QQHo8hUipoaQkJ/cxVdnEyY
- vfUkFOFc7iHLGtyY281VQ==
+X-Provags-ID: V03:K1:ojVLbg2Rw5xJysf3xnJeeQEBkjV5dJJRz4K4ekRwHW7XpnQ7RMi
+ NqEALY+kn+LUNwzbG3gAIdPnGpt+LO5FtVEjDc+UFLengeYYyv3e171TFA0C0PnqlDIWBGQ
+ jlbpfON3mFue8jsCtB8iDiZX7warJ/xiaxJsrl6F5AewqpHKzrQb3El+PL7AGULmz3ToysU
+ ofnEX+/PGNIJW2xR6iw6A==
 X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:9p1Urj5OQyo=;a+D+kwZe5gBktUDl2lUh/kvqpA6
- VoMGBHuijlfdej9e1Hei3siPZoV+Y7sbuwUk6IXpyUxrlsp+ECJ9D28Wh8s7aZhs6zLMOtZsj
- u98A6Is9c94sSglcYqEnIjBJtt4oGaV5ZrhEvf8ARGZJ3WaM29aMZcFkCtY8zyp4u+CxquQXj
- Hz975ZcEiyZwfcYq0ulNkeNM4MqORw90oeDVNygXDudpNOOJA240eS834oOb0bgnRPL5ZHDOO
- j3xfswfY3gV19X7t1Pf9IQOEf76dIm5tfGH3BbVpwCpMzOd6bDLFeY8K7o0MQnAnYLYZleiyI
- fgpUTsOUX7RHbMVFZ+CtPW5BFzPtq/yFhmuPetTYcOi40qAAOqchyu4//BW9pfPLBuzgAbx1+
- vmnvw/1vOjCWlE/oeFqFH/6R+LUlNo8EjRIMWzO8bdmYJ0kjxKAVpXwk7IqOk9VVTIcDVxAco
- gyARjJs1ST7xvvZN9P5AhawOILh2FAAE6bCOXn0wgxZl9n1VUiDT6UJwByar7SypjQV1GawMw
- 1JVFTUQv7556n9bU9NUFyC2aSyO7br+7FJSGvCE4WimmYnwiO3yRECoNH3ndhCFb92KdMH2/w
- Nz/3VkUFDMpsDbHnS5YP1QoeA07cOxy+Bn7QmBZ2/QLppQYfgMnEe/cqu7W/xm6BmMWqMMSg1
- b8dl2yC2yd04zDsSaLuoU45uAhWkKKRpFs+P4osk5WgxDTOQg9BmdH4+aOIXUrInmLeayVFqM
- xdKQ6a0KyelpLv7Q+EK0w1ilKq+q0B1XsHN6jt1rPyVVmjPQdbAD7X/0RSXn7skAzJjeYnief
- +nCmdoB7oiYVvI70q4t1NG++eyfADYsiLKC19U6rtGjCps8+PFxJI8gzHyUlz5DjSgDXgrx6x
- ouMzKeAOF8vyiYmAAVze/k/AZ936OsBD7UnEAOHvHl/MXVkE16sFTfS7KHau6enrLDief0NnH
- GRuW9e6d1mMwuqpbIPcuzuNyhWXaXnvqMegHsNYD0m6SUljdN7TG0n8uEwV4oHuxIoJQNjbH5
- EVJk0TyKoESvN3ijC6X97V8vi05bSkAOpqgXQXLDxspzftlUObCLoKIHcn9C/TJ5k/pQvD3yp
- gZCJ4981b2S7EVKqF2NzFZIobp0aTRM8PfAPno138S133ec7zMNpokrancfqGFN3XNBqq1/Ts
- feVHHyI1TNqfaYOQYzAzba+WsVCM6BVYK3j917t5dSO8ehrbYReV1PyFZo/E4+qTOBYBvyA/K
- znrNvu8842Wdu+EfSAMWmiPaWByP2gH98qkj9ZcoOEkkcoH76wlUp9SP/trLlG0QdR12i95j/
- ZFzponu1gZWxKdbNYJ3topa7aCgq1+UEMXoC0p+0xetJG4A955hB0eiIKXx6Ymp6u42GqcLjF
- Mc+rPYOJOBjvg9ol8UGPt980JYwcwvkvUA3pKxMgZZqPsA40aDInuxkbSGERqpG4I/7WMFWfx
- JN+SoZg7Mrgw4VOOX3VcYOQ9kGiw=
-
-Allow the plugin to fetch data from a different network namespace. This
-is possible by changing the network namespace before opening the netlink
-socket, and immediately changing back to the original network namespace
-once the socket is open. The number of nfct_open usages here warranted a
-dedicated wrapper function.
-
-If changing back to the original network namespace fails, ulogd will
-log an error, but continue to run in a different network namespace than
-it was started in, which may cause unexpected behaviour. But I don't see
-a way to properly "escalate" it such that ulogd aborts entirely.
-
-Also slightly adjust the error log messages to specify which socket
-failed to open.
+UI-OutboundReport: notjunk:1;M01:P0:BiFw+lCu/Wc=;6Z7E/qVP7L7hM1xah6Usxj6cfQY
+ zpvCHZgQPzCLxK6axMuEEY2RXgMLQtQzkdJHi0c7ewwAbywGQJ4zpNm/OOwIU5Yv3MrNxMo8G
+ EBVulvcenLDHuJTTBhupfAU3PiGKjI6XgkyZ3gbnSFLCeGhmRwVnby08BPFtstVTICUwx3eik
+ WpPO8JStlC0XfH+A+Q0FSQy+Otn7GfzuM5c5lNMT5jcrPHk8zDHQ3po58L9mKAybBb5PdCmoK
+ QFc6+gCOBK52jxvNvXtAULSn/S1UYiG2Hld0F+0v2TYiwXa5HFj9JcT0PL7OEvRs4/Fql/+Le
+ VPCst0z8kVPJHi5aiqPBkv8TBjFTMpyJ833uwOAfa7lwvUIsgyb4dPKJLvYuRbgCkrDiqFbiz
+ rMhyUR53fpx0MZRNvhM0fDhA7KiE36c45eCEHqUQLvjsLBa+0Qi0/o1Z19D53HXAhtpdYQIjN
+ C90phQtdYnHn1LUTQ5WOhaXpHBl13gLGWwRcjCJg8Hjuh+DBRo3RG2cv2SsrmbC+ilu20PRfk
+ veJ2Bw50kuxzHeDbBqG/Yx9IEt7cx9cF5ZgJB873bOBz8zqW101gRm0/CCWqHFQ4G+xSQK7P0
+ F0RxUmLW2q/j9l5QFCSb0GO3j6v0tkEtESCF1zU3F1jkktiyU0vnRY4OLE8Y3LAM8VkRI2mfT
+ MQnmjhUtobpGwCMolDNdnSqN3FHbEtlDpzRm1FSJEASw4ydtH7OauA04vaaf4CT6S6ge2kdy8
+ T94LmHDUPBr2dr9eR7LoBiZp4iUFioII3horNOCmOk5pcAVYe9lKggl/9pYCJBIhMyNvTj5TF
+ hHMQpn3+2Ux7RADPFhWWaHBQqDdhcYORPHC0Yqst3huixJHKhlBeZYMr/n8tmG7/ZL1sidaQA
+ BgFD040fKeP1lpzITU6u0u3xL4vcf2j2x7SqJczmwEMkUM/weuknm7xes7tfoKHFg5Hfb/mZ3
+ /HCsAY5T6MCaOXI2wNCnCsYzX8BwCZTV+ju1xLe/Zyfi+1U4UyNhI7kCzRTZ5IzDNTUA3XoR5
+ 5dPSgtuKwoyzi5io6PwAsAnr45U03UnJi+9l1Chl3ZM6Aj6Zx5kFdRajFtCh+MjGMzgibXoXb
+ S/1GCMpxM3vELOgY8CLkBdZdJ2yEXeAB0i9J7S0JJ3YHRFLbt0uqypRjONJhFeRWUKdyCv6+Y
+ G6iEE5zd4u01jh/rGd5oCNQG0lwKMUIaMwP8oM8lQqwi4CenbweBiPP4pQSphcnwb21ZVUHJi
+ 1DfhGO0PgPHwMiHAg/kZvk/eBJV5ApEYEZxquv1G8QtVSRLMbrSjjYobTl3E4FX3atQ78O0Ak
+ NPShtNfxZ/64R83aadGIO9+0gDcqBfCBJScoFmj+s5lgI7ReyW7Ifgtcz326yOxfOS+ON5qFe
+ wwHYafGIHc9DAC93d+EFMYWm1MouyUs4DnsTeH7QjH+cUoYP/YSvscWDNRDc5XCsG+U7Ucqtz
+ jFKu0BEQwhqEC9czHd/FrK7DAqkE=
 
 Signed-off-by: Corubba Smith <corubba@gmx.de>
 =2D--
- input/flow/ulogd_inpflow_NFCT.c | 81 +++++++++++++++++++++++++++------
- ulogd.conf.in                   |  1 +
- 2 files changed, 69 insertions(+), 13 deletions(-)
+ input/packet/ulogd_inppkt_NFLOG.c | 31 ++++++++++++++++++++++++++++++-
+ 1 file changed, 30 insertions(+), 1 deletion(-)
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NF=
-CT.c
-index 93edb76..7168b24 100644
-=2D-- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -45,6 +45,7 @@
- #include <ulogd/timer.h>
- #include <ulogd/ipfix_protocol.h>
- #include <ulogd/addr.h>
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt=
+_NFLOG.c
+index 62b3963..f99272e 100644
+=2D-- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -10,6 +10,7 @@
+ #include <stdbool.h>
+
+ #include <ulogd/ulogd.h>
 +#include <ulogd/namespace.h>
+ #include <libnfnetlink/libnfnetlink.h>
+ #include <libnetfilter_log/libnetfilter_log.h>
+ #ifdef BUILD_NFCT
+@@ -40,7 +41,7 @@ struct nflog_input {
+ /* configuration entries */
 
- #include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-
-@@ -78,7 +79,7 @@ struct nfct_pluginstance {
- #define EVENT_MASK	NF_NETLINK_CONNTRACK_NEW | NF_NETLINK_CONNTRACK_DESTRO=
-Y
-
- static struct config_keyset nfct_kset =3D {
+ static struct config_keyset libulog_kset =3D {
 -	.num_ces =3D 12,
 +	.num_ces =3D 13,
  	.ces =3D {
  		{
- 			.key	 =3D "pollinterval",
-@@ -149,6 +150,11 @@ static struct config_keyset nfct_kset =3D {
- 			.type	 =3D CONFIG_TYPE_STRING,
+ 			.key 	 =3D "bufsize",
+@@ -115,6 +116,11 @@ static struct config_keyset libulog_kset =3D {
  			.options =3D CONFIG_OPT_NONE,
+ 			.u.value =3D 0,
  		},
 +		{
 +			.key     =3D "network_namespace_path",
 +			.type    =3D CONFIG_TYPE_STRING,
 +			.options =3D CONFIG_OPT_NONE,
 +		},
- 	},
+ 	}
  };
- #define pollint_ce(x)	(x->ces[0])
-@@ -163,6 +169,7 @@ static struct config_keyset nfct_kset =3D {
- #define src_filter_ce(x)	((x)->ces[9])
- #define dst_filter_ce(x)	((x)->ces[10])
- #define proto_filter_ce(x)	((x)->ces[11])
-+#define network_namespace_path_ce(x)	((x)->ces[12])
 
- enum nfct_keys {
- 	NFCT_ORIG_IP_SADDR =3D 0,
-@@ -979,6 +986,54 @@ static int read_cb_ovh(int fd, unsigned int what, voi=
-d *param)
- 	return 0;
- }
+@@ -130,6 +136,7 @@ static struct config_keyset libulog_kset =3D {
+ #define nlthreshold_ce(x) (x->ces[9])
+ #define nltimeout_ce(x) (x->ces[10])
+ #define attach_conntrack_ce(x) (x->ces[11])
++#define network_namespace_path_ce(x) (x->ces[12])
 
-+/**
-+ * nfct_open_in_netns() - Open conntrack netlink socket in a namespace
-+ * @subscriptions: ctnetlink groups to subscribe to events
-+ * @target_netns_path: path to the network namespace, can be NULL
-+ *
-+ * On error, NULL is returned and errno is explicitly set.
-+ */
-+struct nfct_handle *nfct_open_in_netns(unsigned int subscriptions,
-+                                       const char *const target_netns_pat=
-h)
-+{
-+	struct nfct_handle *result =3D NULL;
+ enum nflog_keys {
+ 	NFLOG_KEY_RAW_MAC =3D 0,
+@@ -585,11 +592,31 @@ static int start(struct ulogd_pluginstance *upi)
+ 	if (!ui->nfulog_buf)
+ 		goto out_buf;
+
++	const char *const target_netns_path =3D
++			network_namespace_path_ce(upi->config_kset).u.string;
 +	int source_netns_fd =3D -1;
-+
-+	if ((target_netns_path !=3D NULL) &&
-+	    (strlen(target_netns_path) > 0) &&
++	if ((strlen(target_netns_path) > 0) &&
 +	    (join_netns_path(target_netns_path, &source_netns_fd) !=3D ULOGD_IRE=
-T_OK)) {
+T_OK)
++	   ) {
 +		ulogd_log(ULOGD_FATAL, "error joining target network "
 +		                       "namespace\n");
-+		goto err_tns;
++		goto out_ns;
 +	}
 +
-+	result =3D nfct_open(NFNL_SUBSYS_CTNETLINK, subscriptions);
-+	if (result =3D=3D NULL) {
-+		ulogd_log(ULOGD_FATAL, "error opening ctnetlink: %s\n",
-+		                       strerror(errno));
-+		goto err_nfct;
-+	}
-+
-+	if ((target_netns_path !=3D NULL) &&
-+	    (strlen(target_netns_path) > 0) &&
-+	    (join_netns_fd(source_netns_fd, NULL) !=3D ULOGD_IRET_OK)) {
+ 	ulogd_log(ULOGD_DEBUG, "opening nfnetlink socket\n");
+ 	ui->nful_h =3D nflog_open();
+ 	if (!ui->nful_h)
+ 		goto out_handle;
+
++	if ((strlen(target_netns_path) > 0) &&
++	    (join_netns_fd(source_netns_fd, NULL) !=3D ULOGD_IRET_OK)
++	   ) {
 +		ulogd_log(ULOGD_FATAL, "error joining source network "
 +		                       "namespace\n");
-+		goto err_sns;
++		goto out_handle;
 +	}
 +	source_netns_fd =3D -1;
 +
-+	return result;
-+
-+err_sns:
-+	nfct_close(result);
-+err_nfct:
-+	if (source_netns_fd >=3D 0)
-+		close(source_netns_fd);
-+err_tns:
-+	return NULL;
-+}
-+
- static int
- dump_reset_handler(enum nf_conntrack_msg_type type,
- 		   struct nf_conntrack *ct, void *data)
-@@ -1025,7 +1080,7 @@ static void get_ctr_zero(struct ulogd_pluginstance *=
-upi)
- 	struct nfct_handle *h;
- 	int family =3D AF_UNSPEC;
-
--	h =3D nfct_open(CONNTRACK, 0);
-+	h =3D nfct_open_in_netns(0, network_namespace_path_ce(upi->config_kset).=
-u.string);
- 	if (h =3D=3D NULL) {
- 		ulogd_log(ULOGD_FATAL, "Cannot dump and reset counters\n");
- 		return;
-@@ -1301,10 +1356,10 @@ static int constructor_nfct_events(struct ulogd_pl=
-uginstance *upi)
- 			(struct nfct_pluginstance *)upi->private;
-
-
--	cpi->cth =3D nfct_open(NFNL_SUBSYS_CTNETLINK,
--			     eventmask_ce(upi->config_kset).u.value);
-+	cpi->cth =3D nfct_open_in_netns(eventmask_ce(upi->config_kset).u.value,
-+	                              network_namespace_path_ce(upi->config_kset=
-).u.string);
- 	if (!cpi->cth) {
--		ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+		ulogd_log(ULOGD_FATAL, "error opening event netlink socket\n");
- 		goto err_cth;
+ 	/* This is the system logging (conntrack, ...) facility */
+ 	if ((group_ce(upi->config_kset).u.value =3D=3D 0) ||
+ 			(bind_ce(upi->config_kset).u.value > 0)) {
+@@ -685,6 +712,8 @@ out_bind:
  	}
-
-@@ -1372,9 +1427,9 @@ static int constructor_nfct_events(struct ulogd_plug=
-instance *upi)
- 		/* populate the hashtable: we use a disposable handler, we
- 		 * may hit overrun if we use cpi->cth. This ensures that the
- 		 * initial dump is successful. */
--		h =3D nfct_open(CONNTRACK, 0);
-+		h =3D nfct_open_in_netns(0, network_namespace_path_ce(upi->config_kset)=
-.u.string);
- 		if (!h) {
--			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+			ulogd_log(ULOGD_FATAL, "error opening initial-fill netlink socket\n");
- 			goto err_ovh;
- 		}
- 		nfct_callback_register(h, NFCT_T_ALL,
-@@ -1384,9 +1439,9 @@ static int constructor_nfct_events(struct ulogd_plug=
-instance *upi)
-
- 		/* the overrun handler only make sense with the hashtable,
- 		 * if we hit overrun, we resync with ther kernel table. */
--		cpi->ovh =3D nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
-+		cpi->ovh =3D nfct_open_in_netns(0, network_namespace_path_ce(upi->confi=
-g_kset).u.string);
- 		if (!cpi->ovh) {
--			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+			ulogd_log(ULOGD_FATAL, "error opening overrun-read netlink socket\n");
- 			goto err_ovh;
- 		}
-
-@@ -1403,9 +1458,9 @@ static int constructor_nfct_events(struct ulogd_plug=
-instance *upi)
- 		ulogd_register_fd(&cpi->nfct_ov);
-
- 		/* we use this to purge old entries during overruns.*/
--		cpi->pgh =3D nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
-+		cpi->pgh =3D nfct_open_in_netns(0, network_namespace_path_ce(upi->confi=
-g_kset).u.string);
- 		if (!cpi->pgh) {
--			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+			ulogd_log(ULOGD_FATAL, "error opening overrun-purge netlink socket\n")=
-;
- 			goto err_pgh;
- 		}
- 	}
-@@ -1438,9 +1493,9 @@ static int constructor_nfct_polling(struct ulogd_plu=
-ginstance *upi)
- 		goto err;
- 	}
-
--	cpi->pgh =3D nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
-+	cpi->pgh =3D nfct_open_in_netns(0, network_namespace_path_ce(upi->config=
-_kset).u.string);
- 	if (!cpi->pgh) {
--		ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+		ulogd_log(ULOGD_FATAL, "error opening polling netlink socket\n");
- 		goto err;
- 	}
- 	nfct_callback_register(cpi->pgh, NFCT_T_ALL, &polling_handler, upi);
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index 9a04bf7..f7e3fa3 100644
-=2D-- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -139,6 +139,7 @@ logfile=3D"/var/log/ulogd.log"
- #netlink_socket_buffer_size=3D217088
- #netlink_socket_buffer_maxsize=3D1085440
- #reliable=3D1 # enable reliable flow-based logging (may drop packets)
-+#network_namespace_path=3D/run/netns/other # import flows from a differen=
-t network namespace
- hash_enable=3D0
-
- # Logging of system packet through NFLOG
+ 	nflog_close(ui->nful_h);
+ out_handle:
++	if (source_netns_fd >=3D 0) close(source_netns_fd);
++out_ns:
+ 	free(ui->nfulog_buf);
+ out_buf:
+ 	return -1;
 =2D-
 2.49.0
