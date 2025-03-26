@@ -1,88 +1,57 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A59225332E
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 21:18:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 142EC2620CD
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 22:21:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743023929; cv=none; b=GjvioOZ/S/VbGuU6wHMvpauuxMrKeqaGa8Dx13BDZxqj8+h7GAesxMzKH1+zQOMsZ5g4hRAtnIVjExOc1J87thHtBetmLCyp72VmdswLx38evVlcm1erZrdc71MEeyXx9v34r+5V3MugYT5jVMzCMks5kr+2Ov62P1IbYrLzSxQ=
+	t=1743027681; cv=none; b=QkzdkNnWOk+NATRu95tkDkuWfryVsCHKjxdvGQQ67Qyu+yrZ3Lz5bKlcoE5/iWfqqQBm2cX7vGoek8u5cko4tH4mNf0LmfN6ERG5G6UyyfFohzFVkI7G24xD/hg9vyLQoEWWG59WH4dapu94mVflCUPEG70csJriZPxeBwee5Z4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743023929; c=relaxed/simple;
-	bh=Cokp8Ir4vMKQAE/tbGOZCkWah19q1JW/KBUQIt9Yq1s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LXNqpUAInUMZHVi4ol4N4eVc0fmPpd+7pZ5JlJzBZkhdDIfGu1fN+gBkgAvOqCKh3NkFTlO555jdHu8zCYaY/RxYFpenBKJhlt9GMX/9AUxPlNNwSKnvlfDqnoDQZ1i/Ta/Y+7H4s3MJ8uxo3KVgNTnw7XOboJS8TdINAtBKkf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=T4YlRZLm; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lGue/+OL; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="T4YlRZLm";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lGue/+OL"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id C6E0060602; Wed, 26 Mar 2025 22:18:45 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743023925;
-	bh=JqPoPQ/QwLVwURos4c8/T+noZTlFnCF2aQsDZJ1vEHk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=T4YlRZLmbCBoQgVgPHt6HBHHqncztKsVQGFWjoZ35Mz9LOU50J1zi7koei1dAmnUj
-	 UfSgWT921Oh7AxrTO8dMjRjUIf5GUS0uTjOK7UGDBTQhOuti3I9HWMibNmFfAIQCDO
-	 K/285zxTD6PkvKq9eXCcAgOImYCfnWU0cwZM+dSE7TxmYvtFe3uQX8jNNqf/pDYGRy
-	 B2uMF3wzA28jNjrgw+AFu4K8+j1UeOSU42efbuMGtBx1jIqjz+ptpTRyfZp3L8i5B5
-	 oZgLeZ0k/K5yR7zDgmcv7wPP9YZjhOT5To6FToukpWMJL0JRKxw7bjJ89TEkBIHD9T
-	 ltpu2IHLX2pzw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0F0BD605EA;
-	Wed, 26 Mar 2025 22:18:44 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743023924;
-	bh=JqPoPQ/QwLVwURos4c8/T+noZTlFnCF2aQsDZJ1vEHk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lGue/+OLj4yk27iBkD+YXpkJvn/Ozgdt+3x7IJKdXMbHTiwmBCX+tlaK+87AwYuZy
-	 jl29H2xs2HOBTMz6mI+LIenVmFtr/yAMHdU3qTr7KKGnJwxHRo6rRD32Tb5NcIniyB
-	 FqopnOCB+J1UylntMVuWLyeLq+47imuB1nG7VRAWX/mfRdB2E/3TWB63pyZXy/Mzrj
-	 kf0Bqd1ctkNTf1wMOilG1mXTUeKpnIAEctkizRqpR4iXieKyzqsRIEbV6VxezebVKm
-	 xU0GJK21Eyy6VeqI/4mcGBSXIrCZ6GdhOpxrv8fsfpXhYfFkWtuxf0ji1Ng3c2l+nD
-	 OSMg3lYVsacAA==
-Date: Wed, 26 Mar 2025 22:18:41 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-rt-devel@lists.linux.dev,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [net-next v3 0/3] Disable LEGACY iptables on PREEMPT_RT
-Message-ID: <Z-RvMRHykucNvvdO@calendula>
-References: <20250325165832.3110004-1-bigeasy@linutronix.de>
- <20250325194804.GA18860@breakpoint.cc>
- <20250326074721.Y1sIc4Al@linutronix.de>
+	s=arc-20240116; t=1743027681; c=relaxed/simple;
+	bh=mjZ2pESv4SUgAK89WKgsJ8JnYxXSMP5WJspMWCGJM/4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=i67ot+8zj2cuyh0RP/wKZ23f3tAgp6LQZUGgvQ3xbuABWXH5O1CLmBOtga4C5u8Y3SlGg7Pr0uhC2iCVDiFt2AWwzAapqCSZ4aG/z8cdL2VM+nJ3RyywsgKvwgmdWwb+YrIrlsD4KxI9QWOL2ZF93ph+53KCQBkXPeLspoUt3WA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id 7FB851003A832D; Wed, 26 Mar 2025 23:21:09 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id 7E013110035500;
+	Wed, 26 Mar 2025 23:21:09 +0100 (CET)
+Date: Wed, 26 Mar 2025 23:21:09 +0100 (CET)
+From: Jan Engelhardt <ej@inai.de>
+To: Phil Sutter <phil@nwl.cc>
+cc: Dan Winship <danwinship@redhat.com>, Eric Garver <eric@garver.life>, 
+    Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org, 
+    fw@strlen.de, pablo@netfilter.org, Kevin Fenzi <kevin@scrye.com>, 
+    Matthias Gerstner <matthias.gerstner@suse.com>, arturo@debian.org
+Subject: Re: [PATCH] tools: add a systemd unit for static rulesets
+In-Reply-To: <Z-QjsRMmEq90F6Qg@orbyte.nwl.cc>
+Message-ID: <s0r11o2s-35ns-4sp9-1s0p-6n7n5r743581@vanv.qr>
+References: <20250228205935.59659-1-jengelh@inai.de> <Z8muJWOYP3y-giAP@egarver-mac> <Z9wgoHjQhARxPtqm@orbyte.nwl.cc> <831bd90a-4305-489c-9163-827ad0b04e98@redhat.com> <Z-QjsRMmEq90F6Qg@orbyte.nwl.cc>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250326074721.Y1sIc4Al@linutronix.de>
+Content-Type: text/plain; charset=US-ASCII
 
-Hi Sebastian,
 
-On Wed, Mar 26, 2025 at 08:47:21AM +0100, Sebastian Andrzej Siewior wrote:
-> On 2025-03-25 20:48:04 [+0100], Florian Westphal wrote:
-> > I applied following diff on top of this series, after that
-> > ./iptables-test.py -n
-> > and
-> > iptables/tests/shell/run-tests.sh
-> > 
-> > pass (legacy version fails as expected).
-> > The change in xt_mark is awkward but its the only place that
-> > needs it so its not worth to add a new kconfig symbol to avoid ||
-> > test.
-> 
-> Thank you. I'm going to fold this into 1/3.
+On Wednesday 2025-03-26 16:56, Phil Sutter wrote:
+>
+>The suggested 'flush ruleset' stems from Fedora's nftables.service and
+>is also present in CentOS Stream and RHEL. So anyone running k8s there
+>either doesn't use nftables.service (likely, firewalld is default) or
+>doesn't restart the service. Maybe k8s should "officially" conflict with
+>nftables and iptables services?
 
-Unless Florian says otherwise, I suggest you collapse these three
-patches in one, my initial patch 1/3 in this series is indeed very
-much incomplete.
+It definitely should.
 
-Thanks for catching up on this.
+For example, in openSUSE we already added an extra constraint between
+firewalld <-> nftables, so k8s should likely get a similar treatment.
+
+fail2ban is also interesting, but a solved problem
+(equally added ordering constraints to the distro years ago).
