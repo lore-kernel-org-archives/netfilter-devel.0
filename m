@@ -1,83 +1,89 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8852B1F4288
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 17:11:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18E3625290D
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 19:23:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743009121; cv=none; b=Clg7DhjvRecqJ0VhvLOt2Bcz9f29p/MV31UJTa8OF+CH7C0cqL4gO02f+lfmeXQ/c0YKKwWDT9JGnkczMUbUF4qGEhnCLFB53LxPualToD85nmXhWCY6C4IxqgFYC+JDfCVoX58aE3BjmftGuzac+93kYJ0NTRJ9ZBDImAWG3CU=
+	t=1743017029; cv=none; b=O3/3Zi2g3O6algVVZ9HcKZIdjy0PmyfkGczbTBgyz7aqcsY+os76GhIZLSULhVnTsPcdqMUO7L/L6t6Vr3UMKypMbn7CkGSYWBDR8/xD0g75/ew6yp1sV6JEmqxWyzH1l9LWwiyAYChZhZcYzaDpPWx2On6+hBgTqAyUVrLx3ek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743009121; c=relaxed/simple;
-	bh=mirikUUelsYlHfkpjJllmLpQLcoB1ZhBw1NxNeDnfd4=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uWPvdBt1L5lMlvWdSnCIfaHwQbeZo5S8cPJZyh86vQR4PQGHjZ17ctPu91+/NRHYdsZRvTHEBwxugEJisPwXs5nfsPbvdtdOIjd/LU/zI46RJDtJvFFp1HZnydmGkggHWjAg0Dr2IB+p7cp/URXnNICMxUDq26Rg0b5P2mZn1nY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=0zg5RUgo; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=b7+qwTqr; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="0zg5RUgo";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="b7+qwTqr"
-Date: Wed, 26 Mar 2025 18:11:50 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1743009112;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Tw9T7Mv6yLNBgt/o8/ziQ6900fngdt3uwiO/mjTlsok=;
-	b=0zg5RUgoCvXiJeDMKk+465BcXubKaTrRCyPm+MDBIfWQ/Nl64KenJ7NJaUCRfUOMipyHPz
-	mYcw+vyRQHgaapnt6btJ50MXL0Vbo4LCYpOrEVAlpG30Lr1966OxBRHHXU2TjAyXlgCSLt
-	5a2jTKTkHiYe1LI/PdZn8Z897oso9x7xNYV0Hp7aMTDUrV3s80R3SMi73BOxHNeT4kF/E5
-	U9eHZGREzqmFPYjdqOHEiqGqUxsZsGofA4e0xD6PnQmdjPGMsDNYWODb+I5EGolSI1ov5A
-	CzEesuPOzBgZ4q/yPbl3jrKtTNFKRKJVC76RQoRby9fpgllBqXF2uNRXTmm/Sw==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1743009112;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Tw9T7Mv6yLNBgt/o8/ziQ6900fngdt3uwiO/mjTlsok=;
-	b=b7+qwTqr1hUVaFd68zAaNJ/4vD8aCRgpgljV3vjX1tjs7xLvmgzTLlTSz11LXYV6YaIizq
-	8uxkYW+DiEOt9uAw==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-rt-devel@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [net-next v3 1/3] netfilter: replace select by depends on for
- IP{6}_NF_IPTABLES_LEGACY
-Message-ID: <20250326171150.WC34AcV1@linutronix.de>
-References: <20250325165832.3110004-1-bigeasy@linutronix.de>
- <20250325165832.3110004-2-bigeasy@linutronix.de>
- <Z-Q0vi3r5aHxY8Pv@orbyte.nwl.cc>
+	s=arc-20240116; t=1743017029; c=relaxed/simple;
+	bh=7jnwtPCf2qe1UxFgsWP9cIeydcIoXL6VhC1nIqXf1BM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qvlE4SVMVrXlaUiRs+pM3FvQMwnfR5NG3WGuCETXV3lDK4fsc/K5NXHoegjSFiVlzvgtN3hvv6VTGxs3OT6fRay7C+uRlaidqMIKo5r0hrRYSsicOb07RCY9SiIhoAM6LFNbZBe9YTRBeXQ99BskMF46nRWOw5/SXtsWJhLh2k0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1txWLn-0000hL-P5; Wed, 26 Mar 2025 20:23:43 +0100
+Date: Wed, 26 Mar 2025 20:23:43 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Corubba Smith <corubba@gmx.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH ulogd2,v2 1/4] ulogd: add linux namespace helper
+Message-ID: <20250326192343.GA2205@breakpoint.cc>
+References: <c5cd1c3a-3875-4352-8181-5081103f96f6@gmx.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Z-Q0vi3r5aHxY8Pv@orbyte.nwl.cc>
+In-Reply-To: <c5cd1c3a-3875-4352-8181-5081103f96f6@gmx.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On 2025-03-26 18:09:18 [+0100], Phil Sutter wrote:
-> Hi Bigeasy!
-Phil!
-
-> On Tue, Mar 25, 2025 at 05:58:30PM +0100, Sebastian Andrzej Siewior wrote:
-> > From: Pablo Neira Ayuso <pablo@netfilter.org>
-> > 
-> > Relax dependencies on iptables legacy, replace select by depends on,
-> > this should cause no harm to existing kernel configs and users can still
-> > toggle IP{6}_NF_IPTABLES_LEGACY in any case.
-> > 
-> > [fw: Replace depends on BRIDGE_NF_EBTABLES_LEGACY with select]
+Corubba Smith <corubba@gmx.de> wrote:
+> The new namespace helper provides an internal stable interface for
+> plugins to use for switching various linux namespaces. Currently only
+> network namespaces are supported/implemented, but can easily be extended
+> if needed. autoconf will enable it automatically if the required symbols
+> are available. If ulogd is compiled without namespace support, the
+> functions will simply return an error, there is no need for conditional
+> compilation or special handling in plugin code.
 > 
-> I don't get this remark: The three chunks dealing with that symbol do
-> the opposite, namely replacing 'select ...' with 'depends on ...'. Do I
-> miss the point or is this a leftover?
+> Signed-off-by: Corubba Smith <corubba@gmx.de>
 
-It should have been the other way around. Will replace 'select' with
-"depends on".
+Looks good to me, I intend to apply this later this week unless
+there are objections.
 
-Sebastian
+>     and NFACCT plugins. I skipped ULOG because it's removed from the
+>     kernel since 7200135bc1e6 ("netfilter: kill ulog targets") aka v3.17
+
+Yeah, ULOG code should just be axed, there is no point in carrying this
+in the tree anymore.
+
+> --- a/src/Makefile.am
+> +++ b/src/Makefile.am
+> @@ -6,6 +6,7 @@ AM_CPPFLAGS += -DULOGD_CONFIGFILE='"$(sysconfdir)/ulogd.conf"' \
+> 
+>  sbin_PROGRAMS = ulogd
+> 
+> -ulogd_SOURCES = ulogd.c select.c timer.c rbtree.c conffile.c hash.c addr.c
+> +ulogd_SOURCES = ulogd.c select.c timer.c rbtree.c conffile.c hash.c \
+> +                addr.c namespace.c
+>  ulogd_LDADD   = ${libdl_LIBS} ${libpthread_LIBS}
+>  ulogd_LDFLAGS = -export-dynamic
+> diff --git a/src/namespace.c b/src/namespace.c
+> new file mode 100644
+> index 0000000..f9f23d4
+> --- /dev/null
+> +++ b/src/namespace.c
+> @@ -0,0 +1,237 @@
+> +/* namespace helper
+> + *
+> + * userspace logging daemon for the netfilter subsystem
+> + *
+> + * (C) 2025 The netfilter project
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License version 2
+> + *  as published by the Free Software Foundation.
+
+I intend to replace all of this with
+
+/* SPDX-License-Identifier: GPL-2.0 */
+
+No need for license boilerplate, IMO.
