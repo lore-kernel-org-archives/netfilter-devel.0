@@ -1,74 +1,78 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from mail.mailboxbox.com (mail.mailboxbox.com [54.38.240.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 288ED174EF0
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 07:47:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 621073D6A
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 09:05:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.38.240.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742975246; cv=none; b=qtT/AanL+ubct/phaC6j04dqjel0hggpsu95BA9fGcYiVlu3LiCSFpG6ZO/WVuETMKPgRwkKWQ9Uh7edxET2EWzDBlwbHmjF/U/+mYehQu40eFlvOBCBWQZFEnfQbbjiAoXBooGEAkLUciG87sMOdnmMhqz1lWm4cC8gTVhcEzw=
+	t=1742979934; cv=none; b=OgIEKnJe4UbfdlI0gfrrPayDSjkHeCvygDegT1O6voY4gZvGlZxG0syQ+OvO9RQ+dpY9XNuM7+O3IlL9dKPBqBM/Dfp27FnZb1q7MXokVANGa20B6hBs7EqG9E3gc0gjO8USApmvdtrdNpxKgp+PCwn8otLugiBkgrEh4Oyw5ik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742975246; c=relaxed/simple;
-	bh=oqAuSfMSrS/28Q2GlIxVDyjqiXyOJkjIwsmu+aBfnw0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ls7ZeybewgYlYb8qGmH8MiNW6DWpRNRZJQkg7K+JPu+dFVxnQXcrTyaruUOCKqY2BQh3bmVFz5/3Akz9iM6Ct4/8QDesrm2XFVJWYPVY7h+vCg0X8dBHRNdAJjihBJWfwbG3v9XeW5bvIO+q81hjyCfEo1P+8SwHKo9Yu1nxutk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=hK5zvcZp; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=GV/Mvi4n; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="hK5zvcZp";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="GV/Mvi4n"
-Date: Wed, 26 Mar 2025 08:47:21 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1742975243;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=085+LICjdE/m6qka7IOcxyXwv2893fXbhrLDfmQ7/PU=;
-	b=hK5zvcZpEfRsCuXQj8D46bBIwPoVxudFvYDoB0Y4derVKsrxb5wNkFfeXirfq6qBiEXLFN
-	0QhdVoCbErmfZF15fgVSzV2tL82XO/7CVm/90Kn5C6zmjqGiDRc5BqkneMxtBb4BF/j02j
-	ysLIarpYTpzOuyWChSHXbbKjW2Orrgye+fsfYu9jEDcKnX+WzYgN25D2qSwmEzNuhKY/ov
-	hnD76X18QkD5kKGEatzOuTYVNl5GEP219vPZnGDoH+P4+WUO097EUt8PohTCG8Ts5eNOSt
-	sUjTre9+dC/stB/+DU0/TOuVkZ4wl5eflqXgjA5qabhGeLDqdz46Vk/s3N3pNQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1742975243;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=085+LICjdE/m6qka7IOcxyXwv2893fXbhrLDfmQ7/PU=;
-	b=GV/Mvi4nHM3YtCUFjEht6JHJfPApjrkxS6HF6ImKlmTxLEhwtzeRa/Bw3jAaLunUXzbnSh
-	oniODT3+i7HmSvBQ==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [net-next v3 0/3] Disable LEGACY iptables on PREEMPT_RT
-Message-ID: <20250326074721.Y1sIc4Al@linutronix.de>
-References: <20250325165832.3110004-1-bigeasy@linutronix.de>
- <20250325194804.GA18860@breakpoint.cc>
+	s=arc-20240116; t=1742979934; c=relaxed/simple;
+	bh=6WKeX/ZsR+b4S3bOzFU5axg/45eAcfxxPwPBQZT0FDs=;
+	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:To; b=lhRDdPp5ClGPmG82wAFUViI2Ub0dJQZK2GpXFIyT7S5Eb9XdZTT0ZNpnIDiTdppxc+mOSBgt7UJLn+f5mvgvPBEE5hl7vcb/KKEIxs4Nce/UJbiAzt4RXdWAg59fHYBFEqz/1HHQEt7jallEDsLo44WoDs2OJX0FdFs0HcVNc30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=connectedserver.com; spf=pass smtp.mailfrom=connectedserver.com; arc=none smtp.client-ip=54.38.240.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=connectedserver.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=connectedserver.com
+Received: from mail.mailboxbox.com (localhost [127.0.0.1])
+	by mail.mailboxbox.com (Postfix) with ESMTP id A6F1520E2
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 09:55:40 +0100 (CET)
+X-Virus-Scanned: amavisd-new at mail.mailboxbox.com
+X-Spam-Flag: NO
+X-Spam-Score: -0.2
+X-Spam-Level:
+Received: from mail.mailboxbox.com ([127.0.0.1])
+ by mail.mailboxbox.com (mail.mailboxbox.com [127.0.0.1]) (amavisd-new, port 10026)
+ with ESMTP id awcSAD-v5gCx for <netfilter-devel@vger.kernel.org>;
+ Wed, 26 Mar 2025 09:55:39 +0100 (CET)
+Received: from smtpclient.apple (unknown [188.90.125.33])
+	by mail.mailboxbox.com (Postfix) with ESMTPSA id 56217765
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Mar 2025 09:55:39 +0100 (CET)
+From: Rob Bloemers <rob@connectedserver.com>
+Content-Type: text/plain;
+	charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250325194804.GA18860@breakpoint.cc>
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3826.400.131.1.6\))
+Subject: IPSET create exists issue
+Message-Id: <184E283D-2392-476C-B23A-9939FE71CA34@connectedserver.com>
+Date: Wed, 26 Mar 2025 09:55:28 +0100
+To: netfilter-devel@vger.kernel.org
+X-Mailer: Apple Mail (2.3826.400.131.1.6)
 
-On 2025-03-25 20:48:04 [+0100], Florian Westphal wrote:
-> I applied following diff on top of this series, after that
-> ./iptables-test.py -n
-> and
-> iptables/tests/shell/run-tests.sh
-> 
-> pass (legacy version fails as expected).
-> The change in xt_mark is awkward but its the only place that
-> needs it so its not worth to add a new kconfig symbol to avoid ||
-> test.
+Hi Netfilter,
 
-Thank you. I'm going to fold this into 1/3.
+Hope this is the correct list to email, else I=E2=80=99m eager to hear =
+which route to take.
 
-Sebastian
+Using netfilter-persistent package on ubuntu an iptables restart gives =
+error when reloading iptables and a ipset already exists. Afaics -exist =
+ought to work, but it still returns error code 1 and systemctl perceives =
+this as an error.
+
+/usr/share/netfilter-persistent/plugins.d/10-ipset start
+
+Which runs: ipset restore -exist < /etc/iptables/ipset=20
+Still returns: ipset v7.15: Error in line 1: Set cannot be created: set =
+with the same name already exists
+
+ipset restore -exist < /etc/iptables/ipsets                              =
+                               =20
+ipset v7.15: Error in line 1: Set cannot be created: set with the same =
+name already exists
+
+ipset create -exist vxs hash:ip family inet hashsize 1024 maxelem 65536 =
+bucketsize 12 initval 0x9bb42fcc
+ipset v7.15: Set cannot be created: set with the same name already =
+exists
+
+Also when directly using ipset create / restore I get an error where I =
+expected it to be quiet because of the -exist.
+
+
+Looking forward to your reply,
+Respectfully=20
+Rob Bloemers=
