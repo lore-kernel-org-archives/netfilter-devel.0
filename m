@@ -1,202 +1,150 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DBA72147F1;
-	Thu, 27 Mar 2025 13:13:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DBB41BC41
+	for <netfilter-devel@vger.kernel.org>; Thu, 27 Mar 2025 13:29:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743081237; cv=none; b=nmOho+1L1imQilhtyO4S8cPLiNHbrdsGCxpHOAZCDxy3zRtfAmJ/ojkLsYrII1k9Q+W3iS0mPTXZVaTH+MefECXcuXWL8bq0ts855TlW1fyw2NHs4gQvz8HPVxBC5a6tZX6SnEADG1rAv8hSkaUXSUtwZxrx1cOwH7lr712y4Eo=
+	t=1743082191; cv=none; b=pZtyW2I+f4PlhP9M1IOn99acwDCPbGiQwBB417onlC9uWoDAusQUJzmhIGTU084Xtxj07u3F6WB8lehT3nwOo7iMneaxZFt5X4Jni7rB7EMbtuhTpXQQ4o88iaeCInouNsDb2/difvK2axq9kfgD/vMoyVT4IBIeCxiYwLp0Hms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743081237; c=relaxed/simple;
-	bh=fKz9pnQ+RHCIb1EIYOpjNQk9UHkPlQZ8YelVCnzImCE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ed/A+/Wjt2/Rl79hcr4/tsoUPRhJ/hY7f8wxkUOeTj8mVbMlwqGASF2xjGugX54dhK8pIcttExhJQvjLGk4m8vXsf+l+kLjcfVwc5W1NGpIMRFCPz3Ix5uflbohCenbM76BUS+uulfL2xFvaB/D92k/5OKudDWRvhwI6wgtul+4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rucCoEpK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1743082191; c=relaxed/simple;
+	bh=6TGhwDdjM0S+VtTgOxSU9rUZPXPbef7+sdccY0RpqH8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B5oc+YyDoyip8WpNfqN4JVKRHMPuuqXMfCY3QlVCzr3jwiY3wmBzz2XHv9tNroHi3dX2HDldYa/R4hIaP5XJAj/hY29ODwhXOvaTyzRjSE+YnT4tcaRymrVyfYV5BPa1hlVZ5qx1kVCMtt5hetHiR/6Q4dhjj2qQaMCAhukOjoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=e0GNBqr4; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rucCoEpK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97A54C4CEF2;
-	Thu, 27 Mar 2025 13:13:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1743081236;
-	bh=fKz9pnQ+RHCIb1EIYOpjNQk9UHkPlQZ8YelVCnzImCE=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=rucCoEpKD2uKA82npuUHc2IlG2oWnwqgT8U9tN8DMOP4U1dwkgyyYXgAIKPFMuNMW
-	 Mr/rysi/pjy41dJOAzljBbZzg72+mfpEOGGzhjDTx6c9rxCGjmC5SMyEbWJ2N0+oWF
-	 Xl99PlkGVupFWkqkqPnK/n7IH270nzZea0M/gmSRDQXN9qd9osa7eI+CFXdg5DLHuu
-	 1M2pbO4Lh5olO8JonWgiuDrCf/0OvRFMkhALjgLziXzN6dyFchrENnGietvVrKXS4A
-	 SEpLCltJiXG4chUafZNqd/4THrfGNnJIQszxbPkTKIenmMOlkgpgrOYysOf2geIYRL
-	 xyGI4KognAkFg==
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-43ce70f9afbso9907195e9.0;
-        Thu, 27 Mar 2025 06:13:56 -0700 (PDT)
-X-Forwarded-Encrypted: i=1; AJvYcCU2rHYbsSoYALOqwNl+LyeGIXHPf/b7Hx5OBUC9w2azC9c0hEq6q1A7YV5CONjcTZstr3s/6TX/a6UGkaHN@vger.kernel.org, AJvYcCUAZCStn3bQIQUYHFT1ZJCZL8w4m3D4TXm/cKD9xLEaU19ACPf6+2AETge+UhwQdM/i/CXz34NZ0G6yuGVTesD3tA==@vger.kernel.org, AJvYcCUELgBhaY1jk7n9YD6L5IY6qRH7wKIPJogQZuZAAovzx2Hxyph/+wBrI47Hi8bhkHpnJPYkjsCKs+7yIgUIZS3oVIRf@vger.kernel.org, AJvYcCUKanLLvmZ4li3OmCWCyTCixdpqApDTm8nR/snTeCo5Op+Yxd82EC7fcdlLzTpsQQ9ZALMnYOaDioo4HD24@vger.kernel.org, AJvYcCUP7Xrb/zIIcggnQcvdZ8TB4HDO5kSh8uwhR1zsRpqeQ2Ha6rQ+puuAmcYw59f2CDJFMBZz2AlIUa2K0ig=@vger.kernel.org, AJvYcCUxp3BBaGBr7W2jzq/L/Z4K5KEl8JpV8JkBATkQuhmYLH85Otl6gI/xNDeWRb3iLQkZkf+U@vger.kernel.org, AJvYcCV9v2gSAeYHLCFpjTMYwr3Q8Iii79Ltmqrt2Oo/5jB2czj55HDLtIEqIQbHZ/+RXF8gyi/sbFqSmBvmpSkJBQ==@vger.kernel.org, AJvYcCVCESevdvNm+d0y4Ds0WJykCwDXTNJfvlMKnYVx/h6oqWPoVKScPEbQ05/hqFMStfPL/xA=@vger.kernel.org, AJvYcCVsaB84xARMIS68Iw6z+alSFQNFbRCP59YXqQ2sZLZkT6L5dcGrrmCcb2Xk/0wxH+ZBa7JMciFnw9Vw@vger.kernel.org, AJvYcCVxHoc2XCjDk2K1L++kq+O9OUEPuZzpQPFxOqLd/UO1CjJJOnLnfwg1Fu9uyN/wq6WDl7oDCpLNuumOEw==@vger.kernel.org, AJvYcCW/wzG9fxNKHDwf9sSRv3xZhNJT1qkhHhz62ydfz7gWaS1qtJDLExnbH5TQ45Tj/YaXSpLU/L/DwLONL6M=@vger.kernel.org, AJvYcCWBlybRWOtFWwx5OBsngOOrnh3lX9Q23VY4im+KeAoJx3+N+z56tKGnJ/MPLp7OnxcTgIEgMlHIrvZOtA==@vger.kernel.org, AJvYcCWX6DTFnzZ7QSVr2C+VWuqKNy7PGwytH/oTtLQHesYb6X8pEcXmw1K4y2tTKQX2CnngBZTkEe9VKtBzpBALTU2z@vger.kernel.org, AJvYcCX8Jur3EAlHTbMwSMiFh7/kUf/WygJAq9XTG62wVlkHNnMkMF2OrfE2QPEMZSG7BKNLeRELJPWQ@vger.kernel.org, AJvYcCXGfp0IFaSFKeXK20hDoElxEzViOGEO+egiBp0V9zAAlJalbatFhQiyF/nOWyZRgubAapPuLdC8W704QGg=@vger.kernel.org, AJvYcCXhrp3xcCkT7Vs6cJmniu4gWoeZW55jHPO0om4Od7XCqxD2Ch3rMPtT+eIZZ8xAeAPbahvaIdgMC4/1O1g4@vger.kernel.org, AJvYcCXujID1aVANCNeBM6SX7S7u6PPffTQq8mOPWcAKV2KHzXWLg6PvS7najW9J3LhOKeC+tePPTmmh2fcM@vger.kernel.org
-X-Gm-Message-State: AOJu0Yws3XeMuyGY6AFmN/pySrCXspUqGVyjqsc98fswN8ZoixDsLEe0
-	BqBolDfMViEAo80nKs6eKGxseCJXtifHHgyDpO/Axn9vAtsgbLgh2CU7TXJh7DDKtGy4Goq63rl
-	BCVtbcQJFY6Nr8nanYXtdfaEU77I=
-X-Google-Smtp-Source: AGHT+IEY5BSiBwNXEMT+eJeprlWhvYaVjud2VavXTPTPRvbe/6IFqzcZmwQqb+uo+KChSyUJAdyAvfkgwaIRQv6W9xk=
-X-Received: by 2002:a05:6000:1ace:b0:391:29f:4f70 with SMTP id
- ffacd0b85a97d-39ad17544e8mr3039357f8f.3.1743081235006; Thu, 27 Mar 2025
- 06:13:55 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="e0GNBqr4"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=RErU8pcc1RxaYZCfVTirrZ1GuTsOdSDhdJ9mUVyHWNc=; b=e0GNBqr4RFxq4ipPD6nkODB5EO
+	fLgvBGskctAr7CSDRmYBN5W2l8ZbwGQ/ncXxc0vyf1QB+iQivhYteIcJ4lEhth13EPx2jF50SlztE
+	uFd6esLDJP+Jd1uoKlyDYOpiBLajbU6czD1nTwAgGgEqBUHRCQIEqE2dRbEPAvc8wJL6Rwur71Bjk
+	W8kfCilxlmXtKPZBNlg1eeZi+E6d7+2M1R5OLkANYJLWvOpNzqdvr+SUwkeKHy6gCK8OebE2Cijb9
+	poIvfaZc3a/QX0RSqa4DOgGW+s34eCt7Ucr3GHJ0g8YeB0zI9vOFvdKljAaPcIrqvLdh2StbTDAxH
+	LFBUh08A==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1txnIm-0000000041z-0QaC;
+	Thu, 27 Mar 2025 14:29:44 +0100
+Date: Thu, 27 Mar 2025 14:29:44 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Dan Winship <danwinship@redhat.com>
+Cc: Eric Garver <eric@garver.life>, Jan Engelhardt <jengelh@inai.de>,
+	netfilter-devel@vger.kernel.org, fw@strlen.de, pablo@netfilter.org,
+	Kevin Fenzi <kevin@scrye.com>,
+	Matthias Gerstner <matthias.gerstner@suse.com>, arturo@debian.org
+Subject: Re: [PATCH] tools: add a systemd unit for static rulesets
+Message-ID: <Z-VSyAvlOdRlsoxO@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Dan Winship <danwinship@redhat.com>, Eric Garver <eric@garver.life>,
+	Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
+	fw@strlen.de, pablo@netfilter.org, Kevin Fenzi <kevin@scrye.com>,
+	Matthias Gerstner <matthias.gerstner@suse.com>, arturo@debian.org
+References: <20250228205935.59659-1-jengelh@inai.de>
+ <Z8muJWOYP3y-giAP@egarver-mac>
+ <Z9wgoHjQhARxPtqm@orbyte.nwl.cc>
+ <831bd90a-4305-489c-9163-827ad0b04e98@redhat.com>
+ <Z-QjsRMmEq90F6Qg@orbyte.nwl.cc>
+ <4cf4948f-e330-45e9-98b9-bbef7e2007be@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250325121624.523258-1-guoren@kernel.org> <20250325122640.GK36322@noisy.programming.kicks-ass.net>
- <db3c9923-8800-4ed3-a352-4ee9ef79c0b7@app.fastmail.com> <CAJF2gTSHpZMyUk+8HL0=bevCd4XZYRAkrPM600qLPCKxG+bfrg@mail.gmail.com>
- <a9dddc3d-d03d-4614-9d55-1ce48c6ad5ef@app.fastmail.com>
-In-Reply-To: <a9dddc3d-d03d-4614-9d55-1ce48c6ad5ef@app.fastmail.com>
-From: Guo Ren <guoren@kernel.org>
-Date: Thu, 27 Mar 2025 21:13:43 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTQtdKzq2Qc6s2qQs3pwMS79Re3vRY735kLM31qNFQD=rg@mail.gmail.com>
-X-Gm-Features: AQ5f1JrgAJHOCdrriP16_V_QmEg1YQ85TRRC6Mrmapp2zXhvmV1mwcc9X_F3CrI
-Message-ID: <CAJF2gTQtdKzq2Qc6s2qQs3pwMS79Re3vRY735kLM31qNFQD=rg@mail.gmail.com>
-Subject: Re: [RFC PATCH V3 00/43] rv64ilp32_abi: Build CONFIG_64BIT
- kernel-self with ILP32 ABI
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Linus Torvalds <torvalds@linux-foundation.org>, Paul Walmsley <paul.walmsley@sifive.com>, 
-	Palmer Dabbelt <palmer@dabbelt.com>, Anup Patel <anup@brainfault.org>, 
-	Atish Patra <atishp@atishpatra.org>, Oleg Nesterov <oleg@redhat.com>, Kees Cook <kees@kernel.org>, 
-	Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, 
-	Mark Rutland <mark.rutland@arm.com>, Christian Brauner <brauner@kernel.org>, 
-	Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, 
-	Eric Dumazet <edumazet@google.com>, Chen Wang <unicorn_wang@outlook.com>, 
-	Inochi Amaoto <inochiama@outlook.com>, gaohan@iscas.ac.cn, shihua@iscas.ac.cn, 
-	jiawei@iscas.ac.cn, wuwei2016@iscas.ac.cn, Drew Fustini <drew@pdp7.com>, 
-	"Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>, ctsai390@andestech.com, 
-	wefu@redhat.com, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Ingo Molnar <mingo@redhat.com>, 
-	Boqun Feng <boqun.feng@gmail.com>, Xiao W Wang <xiao.w.wang@intel.com>, 
-	qingfang.deng@siflower.com.cn, Leonardo Bras <leobras@redhat.com>, 
-	Jisheng Zhang <jszhang@kernel.org>, "Conor.Dooley" <conor.dooley@microchip.com>, 
-	Samuel Holland <samuel.holland@sifive.com>, yongxuan.wang@sifive.com, 
-	Xu Lu <luxu.kernel@bytedance.com>, David Hildenbrand <david@redhat.com>, 
-	Ruan Jinjie <ruanjinjie@huawei.com>, Yunhui Cui <cuiyunhui@bytedance.com>, 
-	Kefeng Wang <wangkefeng.wang@huawei.com>, qiaozhe@iscas.ac.cn, 
-	Ard Biesheuvel <ardb@kernel.org>, Alexei Starovoitov <ast@kernel.org>, linux-kernel@vger.kernel.org, 
-	linux-riscv@lists.infradead.org, kvm@vger.kernel.org, 
-	kvm-riscv@lists.infradead.org, linux-mm@kvack.org, 
-	linux-crypto@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-input@vger.kernel.org, linux-perf-users@vger.kernel.org, 
-	linux-serial@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Linux-Arch <linux-arch@vger.kernel.org>, maple-tree@lists.infradead.org, 
-	linux-trace-kernel@vger.kernel.org, Netdev <netdev@vger.kernel.org>, 
-	linux-atm-general@lists.sourceforge.net, linux-btrfs@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	linux-nfs@vger.kernel.org, linux-sctp@vger.kernel.org, 
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4cf4948f-e330-45e9-98b9-bbef7e2007be@redhat.com>
 
-On Wed, Mar 26, 2025 at 2:56=E2=80=AFPM Arnd Bergmann <arnd@arndb.de> wrote=
-:
->
-> On Wed, Mar 26, 2025, at 07:07, Guo Ren wrote:
-> > On Tue, Mar 25, 2025 at 9:18=E2=80=AFPM Arnd Bergmann <arnd@arndb.de> w=
-rote:
-> >> On Tue, Mar 25, 2025, at 13:26, Peter Zijlstra wrote:
-> >> > On Tue, Mar 25, 2025 at 08:15:41AM -0400, guoren@kernel.org wrote:
-> >>
-> >> You declare the syscall ABI to be the native 64-bit ABI, but this
-> >> is fundamentally not true because a many uapi structures are
-> >> defined in terms of 'long' or pointer values, in particular in
-> >> the ioctl call.
-> >
-> > I modified uapi with
-> > void __user *msg_name;
-> > ->
-> > union {void __user *msg_name; u64 __msg_name;};
-> > to make native 64-bit ABI.
-> >
-> > I would look at compat stuff instead of using __riscv_xlen macro.
->
-> The problem I see here is that there are many more drivers
-> that you did not modify than drivers that you did change this
-> way.  The union is particularly ugly, but even if you find
-> a nicer method of doing this, you now also put the burden
-> on future driver writers to do this right for your platform.
-Got it.
+On Thu, Mar 27, 2025 at 07:12:29AM -0400, Dan Winship wrote:
+> On 3/26/25 11:56, Phil Sutter wrote:
+> > The suggested 'flush ruleset' stems from Fedora's nftables.service and
+> > is also present in CentOS Stream and RHEL. So anyone running k8s there
+> > either doesn't use nftables.service (likely, firewalld is default) or
+> > doesn't restart the service. Maybe k8s should "officially" conflict with
+> > nftables and iptables services?
+> 
+> (It's weird that nftables.service is part of the nftables package, when
+> with iptables it was in a separate package, iptables-services? But
+> that's not a discussion for this mailing list...)
+> 
+> >> (If the nftables "owner" flag thwarts "flush ruleset", then that's
+> >> definitely *better*, though that flag is still too new to help very much.)
+> > 
+> > Yes, "owned" tables may only be manipulated by their owner. Firewalld
+> > will use it as well, for the same reason as k8s.
+> 
+> So in the long run, this solves my problem, even if static firewalls are
+> using "flush ruleset".
+> 
+> >> Once upon a time, it was reasonable for the system firewall scripts to
+> >> assume that they were the only users of netfilter on the system, but
+> >> that is not the world we live in any more. Sure, *most* Linux users
+> >> aren't running Kubernetes, but many people run hypervisors, or
+> >> docker/podman, or other things that create a handful of dynamic
+> >> iptables/nftables rules, and then expect those rules to not suddenly
+> >> disappear for no apparent reason later.
+> > 
+> > The question is whether the nftables and iptables services are meant for
+> > the world we live in now.
+> 
+> If they're not, then distros shouldn't install them by default. Having
+> them installed on the system (or provided as an example in the nftables
+> sources) suggests to admins that it's reasonable to use them. (And
+> having nftables.service use "flush ruleset" suggests to admins that
+> that's a reasonable command for them to run when they are building their
+> own things based on our examples.)
 
->
-> >> As far as I can tell, there is no way to rectify this design flaw
-> >> other than to drop support for 64-bit userspace and only support
-> >> regular rv32 userspace. I'm also skeptical that supporting rv64
-> >> userspace helps in practice other than for testing, since
-> >> generally most memory overhead is in userspace rather than the
-> >> kernel, and there is much more to gain from shrinking the larger
-> >> userspace by running rv32 compat mode binaries on a 64-bit kernel
-> >> than the other way round.
-> >
-> > The lp64-abi userspace rootfs works fine in this patch set, which
-> > proves the technique is valid. But the modification on uapi is raw,
-> > and I'm looking at compat stuff.
->
-> There is a big difference between making it work for a particular
-> set of userspace binaries and making it correct for the entire
-> kernel ABI.
->
-> I agree that limiting the hacks to the compat side while keeping
-> the native ABI as ilp32 as in your previous versions is better,
-> but I also don't think this can be easily done without major
-> changes to how compat mode works in general, and that still
-> seems like a show-stopper for two reasons:
->
-> - it still puts the burden on driver writers to get it right
->   for your platform. The scope is a bit smaller than in the
->   current version because that would be limited to the compat
->   handlers and not change the native codepath, but that's
->   still a lot of drivers.
->
-> - the way that I would imagine this to be implemented in
->   practice would require changing the compat code in a way that
->   allows multiple compat ABIs, so drivers can separate the
->   normal 32-on-64 handling from the 64-on-32 version you need.
->   We have discussed something like this in the past, but Linus
->   has already made it very clear that he doesn't want it done
->   that way. Whichever way you do it, this is unlikely to
->   find consensus.
-Got it, thanks for analysing.
+We're drifting into downstream details here, but I agree that we should
+have nftables-service(s) RPM which is not installed by default.
 
->
-> > Supporting lp64-abi userspace is essential because riscv lp64-abi and
-> > ilp32-abi userspace are hybrid deployments when the target is
-> > ilp32-abi userspace. The lp64-abi provides a good supplement to
-> > ilp32-abi which eases the development.
->
-> I'm not following here, please clarify. I do understand that
-> having a mixed 32/64 userspace can help for development, but
-> that can already be done on a 64-bit kernel and it doesn't
-> seem to be useful for deployment because having two sets of
-> support libraries makes this counterproductive for the goal
-> of saving RAM.
-In my case, most binaries and libraries are based on 32-bit, but a
-small part would remain on 64-bit, which may be statically linked.
-For RISC-V, the rv64 ecosystem is more complete than the rv32's. So,
-rv64-abi is always necessary, and rv32-abi is a supplement.
+> > At least with iptables, it is very hard not to
+> > stomp on others' feet when restarting.
+> 
+> Sure, there's nothing that can be done to improve the situation with
+> iptables. It just doesn't have the features needed to support multiple
+> users well. But nftables does. That's the whole point of multiple tables
+> isn't it?
 
->
-> >> If you remove the CONFIG_64BIT changes that Peter mentioned and
-> >> the support for ilp64 userland from your series, you end up
-> >> with a kernel that is very similar to a native rv32 kernel
-> >> but executes as rv64ilp32 and runs rv32 userspace. I don't have
-> >> any objections to that approach, and the same thing has come
-> >> up on arm64 as a possible idea as well, but I don't know if
-> >> that actually brings any notable advantage over an rv32 kernel.
-> >>
-> >> Are there CPUs that can run rv64 kernels and rv32 userspace
-> >> but not rv32 kernels, similar to what we have on Arm Cortex-A76
-> >> and Cortex-A510?
-> >
-> > Yes, there is, and it only supports rv32 userspace, not rv32 kernel.
-> > https://www.xrvm.com/product/xuantie/C908
->
-> Ok, thanks for the link.
->
->        Arnd
->
+Probably, yes. Tables only separate name spaces, though. The actual
+merge points are the netfilter hooks and tables don't matter there. The
+problem of rule ordering in a builtin iptables chain has become a
+problem of base chain ordering in a hook. Eventually rules are
+serialized and since one can't undo an earlier drop/reject, there's
+still room for conflicts. Real concurrent use therefore requires a
+mediating agent like firewalld and a more abstract language than "accept
+this, drop that".
 
+> > With nftables, we could cache the
+> > 'add table' commands for use later when stopping the service. There is
+> > margin for error though since the added table may well exist already.
+> 
+> I was thinking more like, the service documents that all of your rules
+> have to be in the table 'firewall', and while it may not actually
+> *prevent* you from setting up rules in other tables, it doesn't make any
+> effort to make that work either:
+> 
+> ExecStart=/sbin/nft 'destroy table firewall; add table firewall; include
+> "/etc/sysconfig/nftables.conf";'
+> ExecReload=/sbin/nft 'destroy table firewall; add table firewall;
+> include "/etc/sysconfig/nftables.conf";'
+> ExecStop=/sbin/nft destroy table firewall
 
---=20
-Best Regards
- Guo Ren
+Since tables are bound to an IP version (or "inet"), a single table may
+or may not suffice for users. Apart from that, one may even do:
+
+| ExecStart=nft 'add table firewall { include "/etc/sysconfig/nftables.conf"; }'
+
+One can't dump the current ruleset into that file anymore, though.
+
+Anyway, I think we're playing hide'n'seek here: Even if nftables service
+sticks to a given (set of) table(s), base chains may easily break k8s.
+Marking the two as conflicting with systemd is a better choice IMO.
+
+Cheers, Phil
