@@ -1,154 +1,189 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EABF210F65
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Mar 2025 11:12:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7023B4C96;
+	Thu, 27 Mar 2025 12:47:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743073956; cv=none; b=aWf1Zi/D95YGjDjINpaFD8I/l/3ztEMAxQJlv4OlEzB417dA6Liv1w/CO3Y6NlYpMMTU5t0G+FBhiJZpvPL5jZMwkdUIe84stb39p+xLxiQfEhAzRll+NjXQD65WpRWUCWrvKYmjDuVpvD2wFKSrMC+mpJcUYk1Cuv4HXMTOkUM=
+	t=1743079651; cv=none; b=EvAQMG5VESu7WGFcANCMq8XWSQ2ypSObJdG/8OQivYqTeVgXP5HzTziTSfSvJvtE6aRRLtqKFSiOFasws7eHyo1ZD+k90BQ/Df+zYjHLVpZFQMsqWTGXY434u1C9jksHTrCR9jzi/jmZygMgejsKlUaO4Vb8kp6qhT7q6N/e1/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743073956; c=relaxed/simple;
-	bh=1dUflcNRHPiXzimNjgYlDeVxMjeLaPocQBr0I8yZUMU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=ANmiKcu/6c4rcJMbRi46zSVaovHJwxw6n+aW5XUZCa7H5MTFmaspwF8/ZWWKAm3p/0bnqnmkO2PySAP+WqO9wAyZyavixhCK14R6TSe7GgJsAP047f89w3LOtd6mPwOUayh6QA3+SJsasBYyVbw2Mx0+Hupdgp9G68WLZeCmbOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LIBC18a0; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1743079651; c=relaxed/simple;
+	bh=tWRtgxQFfYLGIe+M3bP4npfrIUeWm1/2DsIIszdvZ1Y=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Content-Type; b=k4S+jnDoUCWuvrSHqjDtgq+sqlvtRW/6KtExIwqX7DNH2wgZF2T25JuLZL4BJ+S3D77oX9pgflFDjXTpJS+i0f0kmBsSbhIzTdwX6YMKnAKJo9jEBl2pLn0ItHPJmkKzK3eApkIEqFphg4iD84nXNJgt5aGXasmbTRs6aOxaKuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ry+3lJ4j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LIBC18a0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743073952;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=whBbk3VLGCJNoBaoCRuCK56hVodmlQcnpQ3814VaJxk=;
-	b=LIBC18a0Qa3WAiwoXT72PRp3jfrMUpGxgQls69jlFWb+mfei2Q0QzaDyo4esmTwaQx0hV6
-	fau8JnpUupF+p8AtBpPLByQS0m4RTIYqe3egVh+5xqlGxaNDIJ40E0rB1h7QpHA3lO8LdH
-	aoG9LOygbYA+SECeqImaX0mzkNI62ag=
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com
- [209.85.222.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-541-5aYyyfHDMRmak5gjbkebDw-1; Thu, 27 Mar 2025 07:12:31 -0400
-X-MC-Unique: 5aYyyfHDMRmak5gjbkebDw-1
-X-Mimecast-MFC-AGG-ID: 5aYyyfHDMRmak5gjbkebDw_1743073951
-Received: by mail-qk1-f200.google.com with SMTP id af79cd13be357-7c54e9f6e00so337243485a.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Mar 2025 04:12:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743073951; x=1743678751;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=whBbk3VLGCJNoBaoCRuCK56hVodmlQcnpQ3814VaJxk=;
-        b=dAo7xsMK+glRWUcdf0K+kkn7upQuqwH43ij5lDbFnssJEm0NgQVWDiKYky29C/X/Cf
-         NeqQ1Gq7Or17nXR3a1zSAuHz5nVIbL/Hn2DgRLS5oiO58x1UZTuwiYF7qQqVoW9emjfi
-         CZC+2ef+HuPfCvtj4o3MTYzk+Cyd/gJ49rvlsvj2aNN0EdfTt6560KXQiCugEtiwqJaO
-         rGU2Er2s+r6FhtHM5wC9yhWPegGqBLBWxTdIrTQHKlzZSeTDKMU+IyEsn+LFhB9PomqJ
-         akPjkcHMIK0GbeE2JFyKRmmqa3uF/jxMRdPaZ/oIouaHaY8+NonG70lf/6T8zGZCLp+G
-         OgWw==
-X-Forwarded-Encrypted: i=1; AJvYcCWzMRkozB4tLorAG2O26zURbrmzyyVffEEOUqlleoDB2vXZzXlrfkWj1PxJ43C5LbBZik4j9fEkmJjbql1haC4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzvPXXlJaAcy1t4Z0qjvvgt7VHCQkOvv+6xyBGEUJFVdouUo9Gl
-	nGHtErCvGqWPOYzT8VZ6OH2ZAZVuFCKOF1nz2ZGhUpJFRRzWPkX2HzGWy0DpKEVdU6FuY60qJmV
-	tFa0vlJhhMxuy6Oy18T7akyyswxEMOIeynSkw+ujy3S8FY7sJCm2rmkuZjYzqVePU1BLPLC59Ky
-	6i+kk=
-X-Gm-Gg: ASbGncvxJXiP2yfgMk/u1ZliANVkNcq+cVQkJPQ+SApDbNbM6GIx0NxfcwGLDyTcukm
-	DWJCcho54jvpOqgeF+9um9HN1zyyL+stMYMLKZT1POvXHXRHYn8iWPzU/FZkzmeZWOdC6XZZrKH
-	EpPT6g4KG9ZRvKLhWDIvJnwG1u5T4GeHvzcq0rkkCqW8FiyfbseV5jkgNphZlgYD2uFj8bnfqNk
-	BeUoTpIGx7OBC5DudmeZRK+r87rDdPuDUeSMT0Pv57o6JxmkDcGN452gaZcKkYB3tCdJlX7K0a1
-	5bceQr40S8SugmbsdSGtwjvsRIgVEbubm02nGewtTzgGA5kH4TvaHu2tfi07jxniQf6xPw==
-X-Received: by 2002:a05:620a:3706:b0:7c0:b490:2c26 with SMTP id af79cd13be357-7c5ed8c665amr551619385a.12.1743073950943;
-        Thu, 27 Mar 2025 04:12:30 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IECIu4B9ulsv8eQzIDcqNtJJf8gzKQY+i4sEz6JcLYT9Slg+wwEPNnKpuPglPQ/B61/F4uKtA==
-X-Received: by 2002:a05:620a:3706:b0:7c0:b490:2c26 with SMTP id af79cd13be357-7c5ed8c665amr551613785a.12.1743073950425;
-        Thu, 27 Mar 2025 04:12:30 -0700 (PDT)
-Received: from [192.168.0.146] (pool-108-18-47-179.washdc.fios.verizon.net. [108.18.47.179])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7c5b93482cesm886110885a.75.2025.03.27.04.12.29
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 27 Mar 2025 04:12:30 -0700 (PDT)
-Message-ID: <4cf4948f-e330-45e9-98b9-bbef7e2007be@redhat.com>
-Date: Thu, 27 Mar 2025 07:12:29 -0400
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ry+3lJ4j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA731C4CEF5;
+	Thu, 27 Mar 2025 12:47:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1743079650;
+	bh=tWRtgxQFfYLGIe+M3bP4npfrIUeWm1/2DsIIszdvZ1Y=;
+	h=References:In-Reply-To:From:Date:Subject:To:From;
+	b=ry+3lJ4jOXxi94y5mI1NbXnalzo+G/pnZhSjrID66dTcLVpvSN5jxYLjoTFSpm8t2
+	 RVmKewcN7zdZNd9LKSrvUmI7Bitb6RSvE7xtBxsyaXOJotG+IzA+4cSiX8s5XJcd4a
+	 Gflk19wroRN6hPkMWa+MtGfvaJAZL2ppLItlCErXCvjy0HVn2BGenZE8FkLMdyZJYX
+	 btnwncSVrJy5++ND3g+6x3gmSehP4lsafQ7UigXG8+8I+Idsw/U+sgz5n2nwr8zWSp
+	 H++QkUGRCbXL4b+bUxPVKQyPP9wfeJA4D52pvQD5Qmb8PrgNvDFT5Gco7rpxg0Rv5D
+	 +Xv0BqRwjjbZg==
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-3913d129c1aso661635f8f.0;
+        Thu, 27 Mar 2025 05:47:30 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCU5hcNep0PjlWuCjj4NMUHFm818rHYcrYyQ+DkL6NGKfFUJ4v/BcyFUrkel3sqzxPC+7UF4Gw0g7dKhWw==@vger.kernel.org, AJvYcCUpRF0LMC3Q/GxxnFl/SikHq8Eg1luCylG1nbvLCJPcP1H53E4fn+LAE7K8vpNsMPpG/fJCB/D7+PaJPcWB@vger.kernel.org, AJvYcCVsX2WU+aFIb+EtrTeOVhAhki8Xl8hnQccFte3jiXy7c+SoP336Isp5FOeu28FBGIlB2ROIeI3963eLc8op175jdLwY@vger.kernel.org, AJvYcCVsk9ryKBUmTtDTK3JMNACZZtZh3qUdTXBK9AUM7MpPooozj33rGfhHocYseLf3Hdvnbmv5iThAw60eV2s=@vger.kernel.org, AJvYcCW47Pl062oNYCMWE8maqYFeRsEBRX/OxIBtYxI+7yUwLObmkUp5z0ZRT6ORYTgwSsjyqPGDyRK1@vger.kernel.org, AJvYcCWMFNhPKyVBg8HzwapRAVSxnRnVozy30gmOACtgCyfhUIQf8mrsaEm6Sr0iSgGBOwVXrSe4RcIX6ekyUeg=@vger.kernel.org, AJvYcCWfBcnAb8xTLS1kbS+egemf7Ox6oWbJw8R88CXPeQ0Glbkxo3FEAp9vMhTnXT5oEvMPFPp8IajlFhVU@vger.kernel.org, AJvYcCWiTPAJ35xrAthksX8h3zgALJzAxpvYYIzj4lBvCXKn6jSapgtIYpu8ec64/MPLpAN6Lk/O4smDXiCYNlWYHlZrng==@vger.kernel.org, AJvYcCXAaymzApg5BY0elxAd++hiveDmgW/TXCPDnh29ZmDTNqH2o51O7w2VXjIPXhfRsvNGxrY=@vger.kernel.org, AJvYcCXHDwYP6ZaCTiL9My6z7yC6suW8qxpYc6dfkuhtoE/tOzDutoWCp0ns7baqRFBrVHzAXoQZ0151LFwp1WvP@vger.kernel.org, AJvYcCXL7YZFQf+f7P0qMC6EyEWiFbU79B0NU19DRu6ijcezGqQaBzbRmZ5mucWTZSA6w/8E70sTbVqSWZUdpnw=@vger.kernel.org, AJvYcCXbhSiKRWI9uyLNQQIsOEaFgZ/HxBAa7FVwybOlYAZASlseozeXHHaatK5zgAC488cNoZTwVseTG0h4VovH@vger.kernel.org, AJvYcCXc6FX30ucCj0pToZvuhkKqueU0sQe1vh6WfGO6OeFMjQYGCKQ709smTtbZe+9HllwgggFsuYuz695hqA==@vger.kernel.org, AJvYcCXd8kfvoPg1KTWlkTs6C90VCMZcmZaq9dnCLd/cBTgsqBFc5W0Cbbsci/9CyNUK3B65G5+bbV3X0RKSJF8U4ACe@vger.kernel.org, AJvYcCXgDYubmSZhvljBWKbJvpmcObj9oe/3BqtnZEQzuGIRwSlPUW2zpRQConp7qmzVn5I3i6VYXSB9+8ITYsFDTA==@vger.kernel.org, AJvYcCXjVLv+hm+wtOOo17m+XfrZWp3wVaANCLv+x+sHaEYWHFOqWt6rWdfRrUC8LpXl+CWVf08r@vger.kernel.org, AJvYcCXmUOIyGgfZKIULNMQLTqLSv8rJGp/ez2BeSn9pjUHExJDst1Bcq5xifH/YedVQF4xWXsxckkx1bYzA@vger.kernel.org
+X-Gm-Message-State: AOJu0YwJoiSfrI8TdhC5XKmUGK85XKg9Y46zYQOWy/j6Hv+i2J0vqjyE
+	eSR/rKOCuNSh8OsxjIXx1kSpDAAggC3xYT7ED8pCXthmRDFmY4F1Whz1DfDNzZMcDuRKcQa6C4W
+	p0wmuvj1AH6Wi7z+BkqbF/M8p9Ss=
+X-Google-Smtp-Source: AGHT+IHmUYVhD/X+fFCk9mo6iUY3GGy6zSlwPlvt9V5E3bXgq4+AzDcNpwzxGBSsif+BeffRslEST7FtUwPlgXmmxiQ=
+X-Received: by 2002:a5d:5f43:0:b0:391:65c:1b05 with SMTP id
+ ffacd0b85a97d-39c099cd2bbmr115764f8f.11.1743079648810; Thu, 27 Mar 2025
+ 05:47:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] tools: add a systemd unit for static rulesets
-To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
- Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org,
- fw@strlen.de, pablo@netfilter.org, Kevin Fenzi <kevin@scrye.com>,
- Matthias Gerstner <matthias.gerstner@suse.com>, arturo@debian.org
-References: <20250228205935.59659-1-jengelh@inai.de>
- <Z8muJWOYP3y-giAP@egarver-mac> <Z9wgoHjQhARxPtqm@orbyte.nwl.cc>
- <831bd90a-4305-489c-9163-827ad0b04e98@redhat.com>
- <Z-QjsRMmEq90F6Qg@orbyte.nwl.cc>
-From: Dan Winship <danwinship@redhat.com>
-Content-Language: en-US
-In-Reply-To: <Z-QjsRMmEq90F6Qg@orbyte.nwl.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20250325121624.523258-1-guoren@kernel.org> <20250325121624.523258-32-guoren@kernel.org>
+ <4gph4xikdbg6loy2id72uyxgldsldecc7gquhymusl3vreiw3a@ephk5ahhrdw7>
+In-Reply-To: <4gph4xikdbg6loy2id72uyxgldsldecc7gquhymusl3vreiw3a@ephk5ahhrdw7>
+From: Guo Ren <guoren@kernel.org>
+Date: Thu, 27 Mar 2025 20:47:15 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTSR+jh04BT7rCjALL6eWek=VWm7nFTW57vzwshkTbrtVg@mail.gmail.com>
+X-Gm-Features: AQ5f1JoN57xvarY3Pp887PY64wPP4HS8fDT1YiKKfNiabWlzF5M2aRc4_YpAz7M
+Message-ID: <CAJF2gTSR+jh04BT7rCjALL6eWek=VWm7nFTW57vzwshkTbrtVg@mail.gmail.com>
+Subject: Re: [RFC PATCH V3 31/43] rv64ilp32_abi: maple_tree: Use BITS_PER_LONG
+ instead of CONFIG_64BIT
+To: "Liam R. Howlett" <Liam.Howlett@oracle.com>, guoren@kernel.org, arnd@arndb.de, 
+	gregkh@linuxfoundation.org, torvalds@linux-foundation.org, 
+	paul.walmsley@sifive.com, palmer@dabbelt.com, anup@brainfault.org, 
+	atishp@atishpatra.org, oleg@redhat.com, kees@kernel.org, tglx@linutronix.de, 
+	will@kernel.org, mark.rutland@arm.com, brauner@kernel.org, 
+	akpm@linux-foundation.org, rostedt@goodmis.org, edumazet@google.com, 
+	unicorn_wang@outlook.com, inochiama@outlook.com, gaohan@iscas.ac.cn, 
+	shihua@iscas.ac.cn, jiawei@iscas.ac.cn, wuwei2016@iscas.ac.cn, drew@pdp7.com, 
+	prabhakar.mahadev-lad.rj@bp.renesas.com, ctsai390@andestech.com, 
+	wefu@redhat.com, kuba@kernel.org, pabeni@redhat.com, josef@toxicpanda.com, 
+	dsterba@suse.com, mingo@redhat.com, peterz@infradead.org, 
+	boqun.feng@gmail.com, xiao.w.wang@intel.com, qingfang.deng@siflower.com.cn, 
+	leobras@redhat.com, jszhang@kernel.org, conor.dooley@microchip.com, 
+	samuel.holland@sifive.com, yongxuan.wang@sifive.com, 
+	luxu.kernel@bytedance.com, david@redhat.com, ruanjinjie@huawei.com, 
+	cuiyunhui@bytedance.com, wangkefeng.wang@huawei.com, qiaozhe@iscas.ac.cn, 
+	ardb@kernel.org, ast@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-riscv@lists.infradead.org, kvm@vger.kernel.org, 
+	kvm-riscv@lists.infradead.org, linux-mm@kvack.org, 
+	linux-crypto@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-input@vger.kernel.org, linux-perf-users@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-arch@vger.kernel.org, maple-tree@lists.infradead.org, 
+	linux-trace-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	linux-atm-general@lists.sourceforge.net, linux-btrfs@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	linux-nfs@vger.kernel.org, linux-sctp@vger.kernel.org, 
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 3/26/25 11:56, Phil Sutter wrote:
-> The suggested 'flush ruleset' stems from Fedora's nftables.service and
-> is also present in CentOS Stream and RHEL. So anyone running k8s there
-> either doesn't use nftables.service (likely, firewalld is default) or
-> doesn't restart the service. Maybe k8s should "officially" conflict with
-> nftables and iptables services?
+On Wed, Mar 26, 2025 at 3:10=E2=80=AFAM Liam R. Howlett <Liam.Howlett@oracl=
+e.com> wrote:
+>
+> * guoren@kernel.org <guoren@kernel.org> [250325 08:24]:
+> > From: "Guo Ren (Alibaba DAMO Academy)" <guoren@kernel.org>
+> >
+> > The Maple tree algorithm uses ulong type for each element. The
+> > number of slots is based on BITS_PER_LONG for RV64ILP32 ABI, so
+> > use BITS_PER_LONG instead of CONFIG_64BIT.
+> >
+> > Signed-off-by: Guo Ren (Alibaba DAMO Academy) <guoren@kernel.org>
+> > ---
+> >  include/linux/maple_tree.h | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/include/linux/maple_tree.h b/include/linux/maple_tree.h
+> > index cbbcd18d4186..ff6265b6468b 100644
+> > --- a/include/linux/maple_tree.h
+> > +++ b/include/linux/maple_tree.h
+> > @@ -24,7 +24,7 @@
+> >   *
+> >   * Nodes in the tree point to their parent unless bit 0 is set.
+> >   */
+> > -#if defined(CONFIG_64BIT) || defined(BUILD_VDSO32_64)
+> > +#if (BITS_PER_LONG =3D=3D 64) || defined(BUILD_VDSO32_64)
+>
+> This will break my userspace testing, if you do not update the testing as
+> well.  This can be found in tools/testing/radix-tree.  Please also look
+> at the Makefile as well since it will generate a build flag for the
+> userspace.
+I think you are talking about the following:
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+../shared/shared.mk:
+ifndef LONG_BIT
+LONG_BIT :=3D $(shell getconf LONG_BIT)
+endif
 
-(It's weird that nftables.service is part of the nftables package, when
-with iptables it was in a separate package, iptables-services? But
-that's not a discussion for this mailing list...)
+generated/bit-length.h: FORCE
+        @mkdir -p generated
+        @if ! grep -qws CONFIG_$(LONG_BIT)BIT generated/bit-length.h; then =
+  \
+                echo "Generating $@";                                      =
+  \
+                echo "#define CONFIG_$(LONG_BIT)BIT 1" > $@;               =
+  \
+                echo "#define CONFIG_PHYS_ADDR_T_$(LONG_BIT)BIT 1" >> $@;  =
+  \
+        fi
 
->> (If the nftables "owner" flag thwarts "flush ruleset", then that's
->> definitely *better*, though that flag is still too new to help very much.)
-> 
-> Yes, "owned" tables may only be manipulated by their owner. Firewalld
-> will use it as well, for the same reason as k8s.
+$ grep CONFIG_64BIT * -r -A 2
+generated/bit-length.h:#define CONFIG_64BIT 1
+generated/bit-length.h-#define CONFIG_PHYS_ADDR_T_64BIT 1
+--
+maple.c:#if defined(CONFIG_64BIT)
+maple.c-static noinline void __init check_erase2_testset(struct maple_tree =
+*mt,
+maple.c-                const unsigned long *set, unsigned long size)
+--
+maple.c:#if CONFIG_64BIT
+maple.c-        MT_BUG_ON(mt, data_end !=3D mas_data_end(&mas));
+maple.c-#endif
+--
+maple.c:#if CONFIG_64BIT
+maple.c-        MT_BUG_ON(mt, data_end - 2 !=3D mas_data_end(&mas));
+maple.c-#endif
+--
+maple.c:#if CONFIG_64BIT
+maple.c-        MT_BUG_ON(mt, data_end - 4 !=3D mas_data_end(&mas));
+maple.c-#endif
+--
+maple.c:#if defined(CONFIG_64BIT)
+maple.c-        /* Captures from VMs that found previous errors */
+maple.c-        mt_init_flags(&tree, 0);
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-So in the long run, this solves my problem, even if static firewalls are
-using "flush ruleset".
+First, we don't introduce rv64ilp32-abi user space, which means these
+testing codes can't run on rv64ilp32-abi userspace currently. So, the
+problem you mentioned doesn't exist.
 
->> Once upon a time, it was reasonable for the system firewall scripts to
->> assume that they were the only users of netfilter on the system, but
->> that is not the world we live in any more. Sure, *most* Linux users
->> aren't running Kubernetes, but many people run hypervisors, or
->> docker/podman, or other things that create a handful of dynamic
->> iptables/nftables rules, and then expect those rules to not suddenly
->> disappear for no apparent reason later.
-> 
-> The question is whether the nftables and iptables services are meant for
-> the world we live in now.
+Second, CONFIG_32BIT is determined by LONG_BIT, so there's no issue in
+maple.c with future rv64ilp32-abi userspace.
+That means rv64ilp32-abi userspace would use CONFIG_32BIT to test
+radix-tree. It's okay.
 
-If they're not, then distros shouldn't install them by default. Having
-them installed on the system (or provided as an example in the nftables
-sources) suggests to admins that it's reasonable to use them. (And
-having nftables.service use "flush ruleset" suggests to admins that
-that's a reasonable command for them to run when they are building their
-own things based on our examples.)
+>
+> This raises other concerns as the code is found with a grep command, so
+> I'm not sure why it was missed and if anything else is missed?
+>
+> If you consider this email to be the (unasked) question about what to do
+> here, then please CC me, the maintainer of the files including the one
+> you are updating here.
+>
+> Thank you,
+> Liam
+>
 
-> At least with iptables, it is very hard not to
-> stomp on others' feet when restarting.
 
-Sure, there's nothing that can be done to improve the situation with
-iptables. It just doesn't have the features needed to support multiple
-users well. But nftables does. That's the whole point of multiple tables
-isn't it?
-
-> With nftables, we could cache the
-> 'add table' commands for use later when stopping the service. There is
-> margin for error though since the added table may well exist already.
-
-I was thinking more like, the service documents that all of your rules
-have to be in the table 'firewall', and while it may not actually
-*prevent* you from setting up rules in other tables, it doesn't make any
-effort to make that work either:
-
-ExecStart=/sbin/nft 'destroy table firewall; add table firewall; include
-"/etc/sysconfig/nftables.conf";'
-ExecReload=/sbin/nft 'destroy table firewall; add table firewall;
-include "/etc/sysconfig/nftables.conf";'
-ExecStop=/sbin/nft destroy table firewall
-
--- Dan
-
+--=20
+Best Regards
+ Guo Ren
