@@ -1,31 +1,54 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B317C221D9E
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 15:24:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B31B81FC3
+	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 15:50:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743434648; cv=none; b=AIMtRNIY65eh/O4WqcicRBv4+YJR+IcFKgFZ/YSeYMs9pHWmO/QXuW2/wuJy9arpzegV7grbZDC5pGkzdMCLINUBvgcAaunrGvQQPEQVppFJ70dlBCFAYyixLtG2UbzamqtEW8jevqfhcQxE5PSuGv35vSRnxkY8cPeiNsaCPsw=
+	t=1743436225; cv=none; b=HtifsPFgG8HvCTwX7g8d1ehBcCT2RXkx2KgaVB04SmcT8miOV8ycGRN3RxlLlMD8/Dkmuk+itRS1m9W7RQaYQjwQGvBXY36mzOfJO0vWMiFXyLhLXtFokkQU3vu4BTZS+fISVqMI3gM13YQk/yYB0O4HrW2jT/z24VjoZK4G0d0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743434648; c=relaxed/simple;
-	bh=qwbvQOhjMYHpW+PaIypnuWKzrKLi/AgUVZ2yWfKUxv4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rr2s6xwsT6+jUJMmLoXVsBX7FPwdx2F3hbyQSwQlOHfnD80Rzcf9Gv60kBVQr0y9T2vzQhuB6/D3/gaIS3fklHdGVISeg2RAoqb8Vi6bsEdAEWmcVACezyUAPaIx9aXIcTW50+xo4ftJoRI8r8T1BDrv/PsP0W6t/W6gtKUyYnM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tzGzb-000508-QK; Mon, 31 Mar 2025 17:24:03 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/2] evaluate: only allow stateful statements in set and map definitions
-Date: Mon, 31 Mar 2025 17:23:20 +0200
-Message-ID: <20250331152323.31093-2-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250331152323.31093-1-fw@strlen.de>
-References: <20250331152323.31093-1-fw@strlen.de>
+	s=arc-20240116; t=1743436225; c=relaxed/simple;
+	bh=HAh2fpUsJU8cmQM25r55dJLOaw284tY6vofficJgENs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=abRS47Y4gXGbwsFP77Y9fBxkTCj1mHBUctqOdJwWaB1/xUR7svQFY2kv9Z+CkJLNrqFOppAbTKxnEdK324RbzOe5pu2FbrhRkA/CpMkZhQ9aYpJG2D9/mKz7SzKd4nRk4qcG6D0DFicSo5+Ri44IQXx8Z3QVZ/TysAb91BMFmsY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kd/PwJzj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kd/PwJzj; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kd/PwJzj";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kd/PwJzj"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id BE94560571; Mon, 31 Mar 2025 17:50:18 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743436218;
+	bh=+ubVQTW0RN7x/ZuGRr9J40pmsg5Ghx2xCMGEcAQao4k=;
+	h=From:To:Cc:Subject:Date:From;
+	b=kd/PwJzjm4mI0PcsC5v+8gioTuq8HraCZRKi2ESbX+OCOcJoE/jsy1l5XxbhgZJZq
+	 lEJmx6Fl9+d9wyoRmd8DR9ZkHi0J+YJ+fGm/fsv7VVXxvPf9f+CUxKmzuUYbhvGDnJ
+	 s2ACnIXd9MlKwug4+NbiihAqsqpKaTTzKgyKI5lbTYeNfO4LCG70yB3dT+ZmtsuN/d
+	 IaSyaius9FQdGD8B4XKXTTMQS7eSyUfR386KLy9TnBNXGwP0fNF3W2GxMlES8+zhIj
+	 b+1FddjZNUiHH7xWvXFzXqsFyJ71AESlqs1/27QEmIg+30Mg2SRWKpgv//ALDPLoEh
+	 1ldunsofiVgyQ==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1587C60571;
+	Mon, 31 Mar 2025 17:50:18 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743436218;
+	bh=+ubVQTW0RN7x/ZuGRr9J40pmsg5Ghx2xCMGEcAQao4k=;
+	h=From:To:Cc:Subject:Date:From;
+	b=kd/PwJzjm4mI0PcsC5v+8gioTuq8HraCZRKi2ESbX+OCOcJoE/jsy1l5XxbhgZJZq
+	 lEJmx6Fl9+d9wyoRmd8DR9ZkHi0J+YJ+fGm/fsv7VVXxvPf9f+CUxKmzuUYbhvGDnJ
+	 s2ACnIXd9MlKwug4+NbiihAqsqpKaTTzKgyKI5lbTYeNfO4LCG70yB3dT+ZmtsuN/d
+	 IaSyaius9FQdGD8B4XKXTTMQS7eSyUfR386KLy9TnBNXGwP0fNF3W2GxMlES8+zhIj
+	 b+1FddjZNUiHH7xWvXFzXqsFyJ71AESlqs1/27QEmIg+30Mg2SRWKpgv//ALDPLoEh
+	 1ldunsofiVgyQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nft] expression: initialize list of expression to silence gcc compile warning
+Date: Mon, 31 Mar 2025 17:50:13 +0200
+Message-Id: <20250331155013.572712-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,81 +57,48 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The bison parser doesn't allow this to happen due to grammar
-restrictions, but the json input has no such issues.
+The helper function to translate flagcmp expression to binop expression
+results in the following compile warning.
 
-The bogon input assigns 'notrack' which triggers:
-BUG: unknown stateful statement type 19
-nft: src/netlink_linearize.c:1061: netlink_gen_stmt_stateful: Assertion `0' failed.
+  src/expression.c: In function 'list_expr_to_binop':
+  src/expression.c:1286:16: warning: 'last' may be used uninitialized [-Wmaybe-uninitialized]
+  1286 |         return last;
 
-After patch, we get:
-Error: map statement must be stateful
+While at it, add assert() to validate the premises where this function
+can be called.
 
-Fixes: 07958ec53830 ("json: add set statement list support")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 4d5990c92c83 ("src: transform flag match expression to binop expression from parser")
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c                                |  5 ++-
- .../unkown_stateful_statement_type_19_assert  | 34 +++++++++++++++++++
- 2 files changed, 38 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/testcases/bogons/nft-j-f/unkown_stateful_statement_type_19_assert
+ src/expression.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index e9ab829b6bbb..f73edc916406 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -5157,8 +5157,11 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 	if (set->timeout)
- 		set->flags |= NFT_SET_TIMEOUT;
- 
--	list_for_each_entry(stmt, &set->stmt_list, list)
-+	list_for_each_entry(stmt, &set->stmt_list, list) {
-+		if (stmt_evaluate_stateful(ctx, stmt,type) < 0)
-+			return -1;
- 		num_stmts++;
-+	}
- 
- 	if (num_stmts > 1)
- 		set->flags |= NFT_SET_EXPR;
-diff --git a/tests/shell/testcases/bogons/nft-j-f/unkown_stateful_statement_type_19_assert b/tests/shell/testcases/bogons/nft-j-f/unkown_stateful_statement_type_19_assert
-new file mode 100644
-index 000000000000..e8a0f768d754
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-j-f/unkown_stateful_statement_type_19_assert
-@@ -0,0 +1,34 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "map": {
-+        "family": "ip",
-+        "name": "m",
-+        "table": "t",
-+        "type": "ipv4_addr",
-+        "handle": 0,
-+        "map": "mark",
-+        "stmt": [
-+          {
-+            "notrack": null
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
+diff --git a/src/expression.c b/src/expression.c
+index 0b51b22e6103..9f19a379df0f 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -1266,7 +1266,9 @@ struct expr *list_expr_alloc(const struct location *loc)
+ /* list is assumed to have two items at least, otherwise extend this! */
+ struct expr *list_expr_to_binop(struct expr *expr)
+ {
+-	struct expr *first, *last, *i;
++	struct expr *first, *last = NULL, *i;
 +
++	assert(!list_empty(&expr->expressions));
+ 
+ 	first = list_first_entry(&expr->expressions, struct expr, list);
+ 	i = first;
+@@ -1279,6 +1281,9 @@ struct expr *list_expr_to_binop(struct expr *expr)
+ 			last = binop_expr_alloc(&expr->location, OP_OR, i, last);
+ 		}
+ 	}
++	/* list with one single item only, this should not happen. */
++	assert(first);
++
+ 	/* zap list expressions, they have been moved to binop expression. */
+ 	init_list_head(&expr->expressions);
+ 	expr_free(expr);
 -- 
-2.49.0
+2.30.2
 
