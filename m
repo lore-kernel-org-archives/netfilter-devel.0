@@ -1,117 +1,174 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0283A1DC991
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 10:23:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74D701B4F0F
+	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 11:22:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743416586; cv=none; b=qW28rpkkYWp0r5roNV7bAxgkK0cSFuD0pk8ISZGxNcizJ79Co4A07tOe6yg1v0Dy1KW/e375SoxEWh4rBTLOdQX/PuV/i7bNTjGtO2MT9cfDe7zbvXCf+4x9xt7y920R0S5CyuNkm8hvcYbwQsfvX1WkVHCspqaDkxxdh9a8YSA=
+	t=1743420175; cv=none; b=l7gS88VQKxBpab1MHE/mqbDYV2E0WDXjKnaEcZN/3JwazjRStmp4oX0p/hQAuFpCWOK1kKB9A0VImsdqg7VpskbGnWyBtqO6rd9yyKxRr75f0daO2yDBeBsJVDj/aIouwQmeqr92d3SBbwOHyQ8AK/SowrEs9jlVw/utAFPVtw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743416586; c=relaxed/simple;
-	bh=zsYjg5wjou4MzRcZn8WKzFl3uDb6Eux1GE7j3D+5Vf0=;
+	s=arc-20240116; t=1743420175; c=relaxed/simple;
+	bh=/9VDT3yJGZOI1N1/EgjlY/I5ke1Au2yXYxE1fNAdZLA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sAIypAR3TgQZPDMX+4jbN1VN34JA3cjvyv7UipmYAla9YXHKcT1MnO5vGVCg9YS0Y31XKnPPJ3A9Telp5Cnwso5iw9K+VoJTx8L1d8BSEilSAQFN/vygFeHUe6Z2tykDk5Lz8u60VPjaENhqKaAbJbKV8ddzWJ4imfC8wBKFgjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M7QJhN9F; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M7QJhN9F; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=UFftg8I1yKu9tmxwEgRVZYtIFbmMM1jlhIFClCgOSiw70sixCfWj6AC1n9f1dCtFifo+kVESEP7/Y3JJp/SC+J1HoPkDDsHbVIrdOqJGR6mP1Dy0GsO2ROS+RMnrJSCcg/VChv0W+rOXqMxdD8Y43SYRelFAaU3n2HrCIDTEBFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lyeWWLLP; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IX9V9cHz; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M7QJhN9F";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M7QJhN9F"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lyeWWLLP";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IX9V9cHz"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 97A66603B9; Mon, 31 Mar 2025 12:22:55 +0200 (CEST)
+	id 73958603C8; Mon, 31 Mar 2025 13:22:49 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743416575;
-	bh=+U2HpbJFQCj7wZx576pKRekL5epE/k5nRMtlro01VpA=;
+	s=2025; t=1743420169;
+	bh=paB53XXNAI/Hxnh58VpRTPoWYwVI0GZ4AF9rQxQSRAk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=M7QJhN9F8CTxzTzHsHo+JQbhWuceaKrmIkI31Tfpn2C0Ul3WgrkCuy/X0xvWcTKek
-	 7rt/MeMpbGu8DiWLkvpCTb+wh3B3Hl+SxQoIJzqr88PlwfldancigKRCbObM8sBxt1
-	 LuQ4RcaqzujgL3RkJDiuA/pdYC1CbZSkDzAGg467WKCNLhCTALiTM6qo6TSSVPApCc
-	 yq9bupOOZkZDW2vOAafYgNDj7kk+XOlFf0lqeCAl/ONlXzU8vWhJB9iRdKzunUVOx2
-	 c3qHcusBSsQzEK8hxEcQiB+IXMYhYPip/VT6AgJfuZEiur1klmu347dSgXQ4zQ5uY4
-	 WlcgkhnboZmEw==
+	b=lyeWWLLP5AiwrlmIAr0KHUnZsbegnHVA3DhT2Ory925clSrm86jYu6gtLQFm/QTi3
+	 4RC0CWG7JLgXax42/idG12TIdQP+9FQFnroyB5AK4RHYNNPDTxr1EDZj7/JWCOJzpw
+	 781NVrtOnHncbZJMv6oJtZ/TdFvpGcfg8UJp1EVBNgq858NRgN6jyVYiaKItZ6d1T1
+	 jH9y28rqxN3f28ZCfgYHBd2MZNLCPt9VQByVnC/1ceydUI8jbKpTtEO3gNodjH8AvG
+	 UFkw3AtKydvl8F4kHoKL2O78ZZgInwpa4swC02IsRxY/X3qphyjmLC0lGM7sk667Hr
+	 rr7HHlODUlm3Q==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0661D603B4;
-	Mon, 31 Mar 2025 12:22:55 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C3AE3603B5;
+	Mon, 31 Mar 2025 13:22:48 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743416575;
-	bh=+U2HpbJFQCj7wZx576pKRekL5epE/k5nRMtlro01VpA=;
+	s=2025; t=1743420168;
+	bh=paB53XXNAI/Hxnh58VpRTPoWYwVI0GZ4AF9rQxQSRAk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=M7QJhN9F8CTxzTzHsHo+JQbhWuceaKrmIkI31Tfpn2C0Ul3WgrkCuy/X0xvWcTKek
-	 7rt/MeMpbGu8DiWLkvpCTb+wh3B3Hl+SxQoIJzqr88PlwfldancigKRCbObM8sBxt1
-	 LuQ4RcaqzujgL3RkJDiuA/pdYC1CbZSkDzAGg467WKCNLhCTALiTM6qo6TSSVPApCc
-	 yq9bupOOZkZDW2vOAafYgNDj7kk+XOlFf0lqeCAl/ONlXzU8vWhJB9iRdKzunUVOx2
-	 c3qHcusBSsQzEK8hxEcQiB+IXMYhYPip/VT6AgJfuZEiur1klmu347dSgXQ4zQ5uY4
-	 WlcgkhnboZmEw==
-Date: Mon, 31 Mar 2025 12:22:52 +0200
+	b=IX9V9cHzwyOLxsfePfG/N9LUfv8IrA4wnUjTnpus2CafHw8U29Gq+VIgBiNd8hdG7
+	 kac2Mua0I16Z5FW2nQ9boIq0vbPwkYl9LuHf9Z0JsFYPMDIepxigwC9TuTR2AldUPP
+	 bGfT1+spjf5yvNPIXDxdY3XtfAMViUHW7fFUnqQWN13yXMgmH3L3jKe7z2eDAXHdMt
+	 8RRjU1ZRDRqGWLNvz0GvzmH7ZSgrJ5Wr6PxQwD6LBbMat+wQ1t9yZZX1oCaLuzmVcN
+	 GFzWsQeQy9lgZhquvpAkeXco1uI4clMTG1eXE8lXpfyVyEr0oQP8fdP5TfVUzRi/d5
+	 AmNu3+6ac9Qlw==
+Date: Mon, 31 Mar 2025 13:22:46 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] json: fix error protagation when parsing binop
- lhs/rhs
-Message-ID: <Z-ps_B-vTcI3O-R3@calendula>
-References: <20250328144911.21966-1-fw@strlen.de>
+Subject: Re: [PATCH nft] expression: don't try to import empty string
+Message-ID: <Z-p7BmD6RqC9-IN4@calendula>
+References: <20250327151720.17204-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="LbUjEXbZl5NVXe6E"
+Content-Disposition: inline
+In-Reply-To: <20250327151720.17204-1-fw@strlen.de>
+
+
+--LbUjEXbZl5NVXe6E
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250328144911.21966-1-fw@strlen.de>
 
-On Fri, Mar 28, 2025 at 03:49:04PM +0100, Florian Westphal wrote:
-> Malformed input returns NULL when decoding left/right side of binop.
-> This causes a NULL dereference in expr_evaluate_binop; left/right must
-> point to a valid expression.
-> 
-> Fix this in the parser, else would have to sprinkle NULL checks all over
-> the evaluation code.
-> 
-> After fix, loading the bogon yields:
-> internal:0:0-0: Error: Malformed object (too many properties): '{}'.
-> internal:0:0-0: Error: could not decode binop rhs, '<<'.
-> internal:0:0-0: Error: Invalid mangle statement value
-> internal:0:0-0: Error: Parsing expr array at index 1 failed.
-> internal:0:0-0: Error: Parsing command array at index 3 failed.
-> 
-> Fixes: 0ac39384fd9e ("json: Accept more than two operands in binary expressions")
+Hi Florian,
+
+On Thu, Mar 27, 2025 at 04:17:11PM +0100, Florian Westphal wrote:
+> The bogon will trigger the assertion in mpz_import_data:
+> src/expression.c:418: constant_expr_alloc: Assertion `(((len) + (8) - 1) / (8)) > 0' failed.
+
+I took a quick look searching for {s:s} in src/parser_json.c
+
+The common idiom is json_parse_err() then a helper parser function to
+validate the string.
+
+It seems it is missing in this case. Maybe tigthen json parser instead?
+
+Caller invoking constant_expr_alloc() with data != NULL but no len
+looks broken to me.
+
+Maybe take both patches if you prefer?
+
 > Signed-off-by: Florian Westphal <fw@strlen.de>
-
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-one nitpick:
-
-> diff --git a/tests/shell/testcases/bogons/nft-j-f/binop_rhs_decode_error_crash b/tests/shell/testcases/bogons/nft-j-f/binop_rhs_decode_error_crash
+> ---
+>  src/expression.c                              |  2 +-
+>  .../bogons/nft-j-f/constant_expr_alloc_assert | 38 +++++++++++++++++++
+>  2 files changed, 39 insertions(+), 1 deletion(-)
+>  create mode 100644 tests/shell/testcases/bogons/nft-j-f/constant_expr_alloc_assert
+> 
+> diff --git a/src/expression.c b/src/expression.c
+> index 156a66eb37f0..f230f5ad8935 100644
+> --- a/src/expression.c
+> +++ b/src/expression.c
+> @@ -494,7 +494,7 @@ struct expr *constant_expr_alloc(const struct location *loc,
+>  	expr->flags = EXPR_F_CONSTANT | EXPR_F_SINGLETON;
+>  
+>  	mpz_init2(expr->value, len);
+> -	if (data != NULL)
+> +	if (data != NULL && len)
+>  		mpz_import_data(expr->value, data, byteorder,
+>  				div_round_up(len, BITS_PER_BYTE));
+>  
+> diff --git a/tests/shell/testcases/bogons/nft-j-f/constant_expr_alloc_assert b/tests/shell/testcases/bogons/nft-j-f/constant_expr_alloc_assert
 > new file mode 100644
-> index 000000000000..c5de17111ff6
+> index 000000000000..9c40030212ef
 > --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-j-f/binop_rhs_decode_error_crash
-[...]
-> +              "value": {
-> +                "<<": [
-> +                  {
-> +                    "|": [
-> +                      {
-> +                        "meta": {
-> +                          "key": "mark"
-> +                        }
-> +                      },
-> +                      16
-> +                    ]
-> +                  },
-> +    {  },
-
-Something strange here in this indent.
-
-> +                  8
-> +                ]
+> +++ b/tests/shell/testcases/bogons/nft-j-f/constant_expr_alloc_assert
+> @@ -0,0 +1,38 @@
+> +{
+> +  "nftables": [
+> +    {
+> +      "table": {
+> +        "family": "ip",
+> +        "name": "t",
+> +        "handle": 0
+> +      }
+> +    },
+> +    {
+> +      "chain": {
+> +        "family": "ip",
+> +        "table": "t",
+> +        "name": "testchain",
+> +        "handle": 0
+> +      }
+> +    },
+> +    {
+> +      "map": {
+> +        "family": "ip",
+> +        "name": "testmap",
+> +        "table": "t",
+> +        "type": "ipv4_addr",
+> +        "handle": 0,
+> +        "map": "verdict",
+> +        "elem": [
+> +          [
+> +            {
+> +              "jump": {
+> +                "target": ""
 > +              }
 > +            }
-> +          }
+> +          ]
 > +        ]
 > +      }
 > +    }
 > +  ]
 > +}
+> -- 
+> 2.48.1
+> 
+> 
+
+--LbUjEXbZl5NVXe6E
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 04d762741e4a..ef7740840710 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1350,6 +1350,9 @@ static struct expr *json_parse_verdict_expr(struct json_ctx *ctx,
+ 		    json_unpack_err(ctx, root, "{s:s}", "target", &chain))
+ 			return NULL;
+ 
++		if (!chain || chain[0] == '\0')
++			return NULL;
++
+ 		return verdict_expr_alloc(int_loc, verdict_tbl[i].verdict,
+ 					  json_alloc_chain_expr(chain));
+ 	}
+
+--LbUjEXbZl5NVXe6E--
