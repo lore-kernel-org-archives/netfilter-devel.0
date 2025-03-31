@@ -1,28 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DAF9202982
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 12:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A650920298A
+	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 12:44:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743425064; cv=none; b=qiBTthvqJxnnYa2PipzUg6UAYYuq+6cPHOcfNAGP8USHsIXY22xmguOV4tyL2yZSBCY+N3Ie5muX8Rq/dB3i9Hbj7if3fxkWM0qbByKeGmFUXPHpaZ16G0OHfGBeYGoQxHi5zkSUmhN6AccaFjXLcLg1JyAxWzzABHzys4tnc9o=
+	t=1743425068; cv=none; b=AUt2DtPHAjDZAd2UTIUdZrbkIGYoXLPeVpsh4IZQfWwjox+NgxU1aczHEPW+sqpMjLAfXvpfhNm1vJc5yWYBj70k1ucJzfnFeVyT/+Kge4UjKPbvJVqbdALn/QFQrSoJdGCJrSvcpCK3NRXPDxaRsHMKazhxaGaSGCcwrG0OT0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743425064; c=relaxed/simple;
-	bh=PsJxchrowX48nBrBe9NE0zeTSisH/2Hhgr15LjzaLjI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=c/GndqfgPJEEuMD5WIA56pypORXZdzVkAsBPx/+DZP38AcDdm5RTGqSyPYq/Nj1/ynMCzn+2rTFaegPy2mj7Htm+AszL/uBD/OrxLAad97+NsjQoHOrBDzhgqAkdGK8qZs6YeIuSOjW5ihqLUwvonP5hcPOBCy6OtmRDwGmkslQ=
+	s=arc-20240116; t=1743425068; c=relaxed/simple;
+	bh=7P3v3QcrCo+xBWOgR+D95HLliaDvxXjdEU581EbaDRE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Uq+36jV2oQHhAFr2T3WnMwPvj8wDpehF1lEuNaJbZURJz3R4GkEzOoCi/FAyZz2WoSNvs9nHzPJ+bmchLr3S9HQwNQ26SsvXfckRQ1pK6P760GjqALmM5TkZ1TLsl52nolYyfP4nqB8FxKhtHfziL4y6bvWhZAHPcMvnHxaZt18=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tzEV2-0003QS-Lk; Mon, 31 Mar 2025 14:44:20 +0200
+	id 1tzEV6-0003Qp-P3; Mon, 31 Mar 2025 14:44:24 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/2] evaluate: reject: remove unused expr function argument
-Date: Mon, 31 Mar 2025 14:43:33 +0200
-Message-ID: <20250331124341.12151-1-fw@strlen.de>
+Subject: [PATCH nft 2/2] evaluate: fix crash when generating reject statement error
+Date: Mon, 31 Mar 2025 14:43:34 +0200
+Message-ID: <20250331124341.12151-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250331124341.12151-1-fw@strlen.de>
+References: <20250331124341.12151-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,113 +34,95 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-stmt_evaluate_reject passes cmd->expr argument but its never used.
+After patch, this gets rejected with:
+internal:0:0-0: Error: conflicting protocols specified: ip vs ip6
+
+Without patch, we crash with a NULL dereference: we cannot use
+reject.expr->location unconditionally.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c | 26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ src/evaluate.c                                | 16 ++++++++--
+ .../reject_stmt_with_no_expression_crash      | 32 +++++++++++++++++++
+ 2 files changed, 46 insertions(+), 2 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 0db3d80f8b56..507b1c86cafc 100644
+index 507b1c86cafc..e4a7b5ceaafa 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -3624,8 +3624,7 @@ static int reject_payload_gen_dependency_family(struct eval_ctx *ctx,
- 	return 1;
- }
- 
--static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
--				      struct expr *expr)
-+static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	struct expr *payload = NULL;
- 	struct stmt *nstmt;
-@@ -3705,8 +3704,7 @@ static int stmt_evaluate_reject_inet_family(struct eval_ctx *ctx,
+@@ -3791,6 +3791,18 @@ static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt)
  	return 0;
  }
  
--static int stmt_evaluate_reject_inet(struct eval_ctx *ctx, struct stmt *stmt,
--				     struct expr *expr)
-+static int stmt_evaluate_reject_inet(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	struct proto_ctx *pctx = eval_proto_ctx(ctx);
- 	const struct proto_desc *desc;
-@@ -3717,7 +3715,7 @@ static int stmt_evaluate_reject_inet(struct eval_ctx *ctx, struct stmt *stmt,
- 		return -1;
- 	if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
- 		return 0;
--	if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
-+	if (stmt_reject_gen_dependency(ctx, stmt) < 0)
- 		return -1;
- 	return 0;
- }
-@@ -3772,8 +3770,7 @@ static int stmt_evaluate_reject_bridge_family(struct eval_ctx *ctx,
- 	return 0;
- }
- 
--static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt,
--				       struct expr *expr)
-+static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt)
++static int stmt_reject_error(struct eval_ctx *ctx,
++			     const struct stmt *stmt,
++			     const char *msg)
++{
++	struct expr *e = stmt->reject.expr;
++
++	if (e)
++		return stmt_binary_error(ctx, e, stmt, "%s", msg);
++
++	return stmt_error(ctx, stmt, "%s", msg);
++}
++
+ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
  {
  	struct proto_ctx *pctx = eval_proto_ctx(ctx);
- 	const struct proto_desc *desc;
-@@ -3789,13 +3786,12 @@ static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt,
- 		return -1;
- 	if (stmt->reject.type == NFT_REJECT_ICMPX_UNREACH)
- 		return 0;
--	if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
-+	if (stmt_reject_gen_dependency(ctx, stmt) < 0)
- 		return -1;
- 	return 0;
- }
- 
--static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
--				       struct expr *expr)
-+static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	struct proto_ctx *pctx = eval_proto_ctx(ctx);
- 
-@@ -3806,7 +3802,7 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
- 	case NFPROTO_IPV6:
- 		switch (stmt->reject.type) {
- 		case NFT_REJECT_TCP_RST:
--			if (stmt_reject_gen_dependency(ctx, stmt, expr) < 0)
-+			if (stmt_reject_gen_dependency(ctx, stmt) < 0)
+@@ -3806,12 +3818,12 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
  				return -1;
  			break;
  		case NFT_REJECT_ICMPX_UNREACH:
-@@ -3821,11 +3817,11 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt,
+-			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
++			return stmt_reject_error(ctx, stmt,
+ 				   "abstracted ICMP unreachable not supported");
+ 		case NFT_REJECT_ICMP_UNREACH:
+ 			if (stmt->reject.family == pctx->family)
+ 				break;
+-			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
++			return stmt_reject_error(ctx, stmt,
+ 				  "conflicting protocols specified: ip vs ip6");
+ 		}
  		break;
- 	case NFPROTO_BRIDGE:
- 	case NFPROTO_NETDEV:
--		if (stmt_evaluate_reject_bridge(ctx, stmt, expr) < 0)
-+		if (stmt_evaluate_reject_bridge(ctx, stmt) < 0)
- 			return -1;
- 		break;
- 	case NFPROTO_INET:
--		if (stmt_evaluate_reject_inet(ctx, stmt, expr) < 0)
-+		if (stmt_evaluate_reject_inet(ctx, stmt) < 0)
- 			return -1;
- 		break;
- 	}
-@@ -3958,8 +3954,6 @@ static int stmt_evaluate_reset(struct eval_ctx *ctx, struct stmt *stmt)
- 
- static int stmt_evaluate_reject(struct eval_ctx *ctx, struct stmt *stmt)
- {
--	struct expr *expr = ctx->cmd->expr;
--
- 	if (stmt->reject.icmp_code < 0) {
- 		if (stmt_evaluate_reject_default(ctx, stmt) < 0)
- 			return -1;
-@@ -3971,7 +3965,7 @@ static int stmt_evaluate_reject(struct eval_ctx *ctx, struct stmt *stmt)
- 			return -1;
- 	}
- 
--	return stmt_evaluate_reject_family(ctx, stmt, expr);
-+	return stmt_evaluate_reject_family(ctx, stmt);
- }
- 
- static int nat_evaluate_family(struct eval_ctx *ctx, struct stmt *stmt)
+diff --git a/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash b/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
+new file mode 100644
+index 000000000000..04c01aa77a29
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
+@@ -0,0 +1,32 @@
++{
++  "nftables": [
++    {
++      "table": { "family": "ip", "name": "x",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "ip",
++        "table": "x",
++        "name": "c",
++        "handle": 0
++      }
++    },
++    {
++      "rule": {
++        "family": "ip",
++        "table": "x",
++        "chain": "c",
++             "expr": [
++          {
++            "reject": {
++              "type": "icmpv6",
++              "exprlimit": "port-unreachable"
++            }
++          }
++        ]
++      }
++    }
++  ]
++}
 -- 
 2.49.0
 
