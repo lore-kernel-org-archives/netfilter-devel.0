@@ -1,146 +1,122 @@
-Received: from mail-io1-f79.google.com (mail-io1-f79.google.com [209.85.166.79])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BD451DDC07
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 16:26:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B5262B9A8
+	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 16:31:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743438388; cv=none; b=ky/SVuwPQdmPXstniIXv2pJ1CpKVih78LpCufZX/vrIycZ0ou8b0mXPnBGtEVpUnhBoa7/D1r1pAz2GzLCklAn2CAcYziwKQUH9878UBc7tHd57IxOJin6zS3t7knb4omsRl0ghAshhYdCP2ezNzOm96ZDZUK3AlK/gghfxFB8U=
+	t=1743438716; cv=none; b=LJQvD9KCNJUyfzfzRRqoAG3WwCsodQaxbTeOnYENBNccs9yzLGKu45v55hZDjHK9cNQn3Z09Kjn8wvjqnXY9UhtEVS+WFDQQX3K48s+zhOrFAJHjwnAFHRhjwplRnKWiZfUwkr7SlWJxI9EDSGjlnTc+svkj2xbHnEDXwF7c6MM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743438388; c=relaxed/simple;
-	bh=krhqzMzyRJGboTMvJZ1x5N8zbcD9XjssP/1YS+Dvs2s=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=FPScALjRaJ0ZEwWWR/Nvq5b242gd//FkmRpV6Q0sn2WzIEPteanu7zeKZcTVcnPZYy72IlMUk2cuuNlqrj3Ns1CjAVRP4o7TVgspG2w4rQcpgPXJH8gDwyeFgwADVth2z75pR85RMEC7fltTVHS0/JaR6bK+BJ9ym/xrn/B8QV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.79
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f79.google.com with SMTP id ca18e2360f4ac-85e318dc464so870558839f.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 09:26:26 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743438385; x=1744043185;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=mz3TLPmwKhZz/v+PP8Eziw4Ts8qR9pufWd7yo3Whefw=;
-        b=DnVnBzb4bOtB1gpSgG4x+CQj22I+MsEnnD34bP0wyJ+Caz8fdwOPGPIRIQhGHqd9PN
-         JvUpxLKQtjp/bgyi3aU6NWmZXdO0JMFdYPDPRinFYCG17Ken/hEMrNzwqhiFnOd/aI3h
-         kBl6dbyvLHWlBT0vS6Au71NHHbIAxzIG48tsQJullhDgpE+CKxB0i6yTbqnWLlfWvJAw
-         jmYO4J5R1t7DJ5mIAttF5sCwp8vZVVy70JqJJw5roxI17mELGJ/jz3HU5Pj4Cc4QIAPA
-         LuTypk/jE3pmoQyEG5/RFdzEnRf7NEiCCFUgqoxpf8z0bKKXMO8kkWFn6yjlcTW0o7YB
-         n03Q==
-X-Forwarded-Encrypted: i=1; AJvYcCUp5niLDZawXsYNSpzLrlYg/DJItjCzLSXt2VTiJfRxQx5KgeoBTR5r9MjmGIaYQdO79IWu8VrlFNCSqfDfF+A=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzsJpPVAUuRhXUHWUsnoWomoajVq/WJf8Oj7pVuW6mvvD4b1y4w
-	VOckQBQI1UpR+IJFBwMm4lPVnl4EV9adUYSJs5MGsntHnAsx28viEtKOYXS7ienX5crR0sNdiKF
-	US1qQmKukUFNR4m6NsamLkp9digX5e8gFpEM36/VL8nFD7pusR/qs4Ak=
-X-Google-Smtp-Source: AGHT+IHniT1dbH2jFnDBbQerDknCGESfBUr4fqHSYAhnGi1cMHRj8xBqExGKd1dSl1cwawY/Ex4nw9ninO6VolkxynBWNXRlqwzQ
+	s=arc-20240116; t=1743438716; c=relaxed/simple;
+	bh=jwOt+64G6wHKFPa+1uMg4Z4vWXnGNyiifNqTZ6bwbsI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tsBQliFhFh7PLvuTtHjc1yilFrhStQhgA03t+tyGZkXWhRpE4bxjKwn2JczI08JWUv+KwsGEjAAsouLZgkuA8hRjH4thloTe9GU4DaiR8PWw8JevHokpLagmvsZmb96BJnFiVVM1SjaWzXdHN5kpo25DpE5dSvnWE8QUuFTi7+I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JA159cLA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R/9UbIbn; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JA159cLA";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R/9UbIbn"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id F17F160579; Mon, 31 Mar 2025 18:31:51 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743438711;
+	bh=dUVStz6idntPK1NnFn3WNTJdf8zBzXv9dOVV0v2CO/E=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JA159cLAY9rIAzN2dgaYJMo5ew/0Get6lhVpwwzSArvGonEl+PKkjvAYPPjFdbxjW
+	 Ts3GteZ6+JzlCjgcfXdxlkmy0q/oXigfTrEez7zLkNvaAWFzXmBLHjFF/P9ceQ5nA2
+	 35ymPdmIwoiPlu2UDmKWBAm/TWOqIqiY0PfevyCa7mQfvhfZ56gFPJ8TLVYxzDE7fa
+	 ZYAJCnawCPmidSQeqVmnbbIt5EGKFdSrz74XVA/DegOmR8mu/vn95K29ovtL/P4hRt
+	 mtvuA7T1VCEh6kQ/h6ZAP6RhnJIoApwB94stHa7GMTBWQWoXMmbLMhzWRk4k0si4a1
+	 3a0VpAT/JiIgg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id A094660571;
+	Mon, 31 Mar 2025 18:31:50 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743438710;
+	bh=dUVStz6idntPK1NnFn3WNTJdf8zBzXv9dOVV0v2CO/E=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=R/9UbIbnzbx5CRi40h23T1A103CVBVBDctL8evv9zP1ujX+wvF9SpQmSDKdnQ7sWh
+	 b1yjdpgW+B5t/1Ddf/hKfP780IJQ+D4/cJXe/MoesN3A3zyxS5W53fCH5dc6ReG2ZN
+	 hf1GAOo0e5Xs2zT4J4ZxcF4esb0/A2m6Pu5Z/lfDYLJ7a25IbhheQfdq/RmE82HqgD
+	 Drx7towssQMcPT+1GyBfPbz86LTc+eUFVjtcnIcV4883a/W6d1cBgjYYIET1Di4Fhn
+	 4Zy/tICZvq3ek9vmSvM3xnZD6OWPX00e4IT1+GEVSvcTLwPr4d546BFdpPp6yP1q0A
+	 zOmkgR/momODw==
+Date: Mon, 31 Mar 2025 18:31:47 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] evaluate: only allow stateful statements in set
+ and map definitions
+Message-ID: <Z-rDc1mdZSBif80q@calendula>
+References: <20250331152323.31093-1-fw@strlen.de>
+ <20250331152323.31093-2-fw@strlen.de>
+ <20250331161530.GA19247@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:194e:b0:3d5:8103:1a77 with SMTP id
- e9e14a558f8ab-3d5e08eda71mr109875815ab.1.1743438385664; Mon, 31 Mar 2025
- 09:26:25 -0700 (PDT)
-Date: Mon, 31 Mar 2025 09:26:25 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67eac231.050a0220.3c3d88.0047.GAE@google.com>
-Subject: [syzbot] [netfilter?] WARNING in __nf_unregister_net_hook (8)
-From: syzbot <syzbot+53ed3a6440173ddbf499@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250331161530.GA19247@breakpoint.cc>
 
-Hello,
+On Mon, Mar 31, 2025 at 06:15:30PM +0200, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > The bison parser doesn't allow this to happen due to grammar
+> > restrictions, but the json input has no such issues.
+> > 
+> > The bogon input assigns 'notrack' which triggers:
+> > BUG: unknown stateful statement type 19
+> > nft: src/netlink_linearize.c:1061: netlink_gen_stmt_stateful: Assertion `0' failed.
+> > 
+> > After patch, we get:
+> > Error: map statement must be stateful
+> 
+> On the same subject of 'do I fix this in evaluate.c or parser_json.c':
+> 
+> cat bla
+> table t {
+>         set sc {
+>                 type inet_service . ifname
+>         }
+> 
+>         chain c {
+>                 tcp dport . bla* @sc accept
+>         }
+> }
+> nft -f bla
+> BUG: unknown expression type prefix
+> nft: src/netlink_linearize.c:914: netlink_gen_expr: Assertion `0' failed.
+> Aborted (core dumped)
+> 
+> I can either fix this in evaluate.c, or I try to rework both
+> parser_bison.y and parser_json.c to no longer allow prefix expressions
+> when specifying the lookup key.
 
-syzbot found the following issue on:
+It is probably too complex from the parser in this case.
 
-HEAD commit:    4e82c87058f4 Merge tag 'rust-6.15' of git://git.kernel.org..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=133ea3e4580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=f8721be6a767792
-dashboard link: https://syzkaller.appspot.com/bug?extid=53ed3a6440173ddbf499
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+> I suspect that fixing it in evaluate.c is going to be a lot simpler.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+I agree.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/020d6f490695/disk-4e82c870.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/36e4561ed263/vmlinux-4e82c870.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/37b68c422eec/bzImage-4e82c870.xz
+But for things that are obviously incorrect at parsing stage and that
+are simple to reject, like the empty string case for goto/jump in
+verdict map, then it is easy to reject early. The json parser already
+rejects unexisting/unsupported keys, the parser is already making a
+first pass in validating the input.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+53ed3a6440173ddbf499@syzkaller.appspotmail.com
+I don't think it is a matter of picking between validating _only_ from
+parser or from evaluation, I think tightening from parser (when
+trivial) and evaluation for more complex invalid input is fine.
 
-RDX: 0000000000000000 RSI: 0000200000000080 RDI: 0000000000000003
-RBP: 00007fa126d94090 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
-R13: 0000000000000000 R14: 00007fa1261a5fa0 R15: 00007fa1262cfa28
- </TASK>
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 10727 at net/netfilter/core.c:501 __nf_unregister_net_hook+0x683/0x810 net/netfilter/core.c:501
-Modules linked in:
-CPU: 0 UID: 0 PID: 10727 Comm: syz.4.1505 Not tainted 6.14.0-syzkaller-10892-g4e82c87058f4 #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2025
-RIP: 0010:__nf_unregister_net_hook+0x683/0x810 net/netfilter/core.c:501
-Code: 41 5d 41 5e 41 5f 5d e9 cb f8 74 f7 e8 06 9d 8f f7 48 83 c4 38 5b 41 5c 41 5d 41 5e 41 5f 5d c3 cc cc cc cc e8 ee 9c 8f f7 90 <0f> 0b 90 48 c7 c7 60 16 16 90 48 83 c4 38 5b 41 5c 41 5d 41 5e 41
-RSP: 0018:ffffc900038cee10 EFLAGS: 00010293
-RAX: ffffffff8a33e022 RBX: 0000000000000000 RCX: ffff88802b90bc00
-RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
-RBP: dffffc0000000000 R08: ffffffff8a33da61 R09: 1ffffffff20be9ce
-R10: dffffc0000000000 R11: fffffbfff20be9cf R12: ffff888035670000
-R13: ffff8880333ce480 R14: dffffc0000000000 R15: ffff8880573fa710
-FS:  00007fa126d946c0(0000) GS:ffff888124fb1000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000200000f20030 CR3: 00000000511d4000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- nf_tables_updchain+0x108e/0x1e00 net/netfilter/nf_tables_api.c:2917
- nf_tables_newchain+0x10f6/0x3390 net/netfilter/nf_tables_api.c:3039
- nfnetlink_rcv_batch net/netfilter/nfnetlink.c:524 [inline]
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:647 [inline]
- nfnetlink_rcv+0x12eb/0x28f0 net/netfilter/nfnetlink.c:665
- netlink_unicast_kernel net/netlink/af_netlink.c:1313 [inline]
- netlink_unicast+0x7f8/0x9a0 net/netlink/af_netlink.c:1339
- netlink_sendmsg+0x8c3/0xcd0 net/netlink/af_netlink.c:1883
- sock_sendmsg_nosec net/socket.c:712 [inline]
- __sock_sendmsg+0x221/0x270 net/socket.c:727
- ____sys_sendmsg+0x523/0x860 net/socket.c:2566
- ___sys_sendmsg net/socket.c:2620 [inline]
- __sys_sendmsg+0x271/0x360 net/socket.c:2652
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fa125f8d169
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fa126d94038 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007fa1261a5fa0 RCX: 00007fa125f8d169
-RDX: 0000000000000000 RSI: 0000200000000080 RDI: 0000000000000003
-RBP: 00007fa126d94090 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000001
-R13: 0000000000000000 R14: 00007fa1261a5fa0 R15: 00007fa1262cfa28
- </TASK>
+> We can't disable prefixes in concatenations, its valid for set element
+> keys, but I suspect that we can use recursion counter to figure out if
+> the concatenation is on the RHS of something else (such as part of
+> EXPR_SET_ELEM).
+> 
+> I'll work on it tomorrow.
 
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+Thanks!
