@@ -1,31 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A650920298A
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 12:44:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B977D221D9B
+	for <netfilter-devel@vger.kernel.org>; Mon, 31 Mar 2025 15:24:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743425068; cv=none; b=AUt2DtPHAjDZAd2UTIUdZrbkIGYoXLPeVpsh4IZQfWwjox+NgxU1aczHEPW+sqpMjLAfXvpfhNm1vJc5yWYBj70k1ucJzfnFeVyT/+Kge4UjKPbvJVqbdALn/QFQrSoJdGCJrSvcpCK3NRXPDxaRsHMKazhxaGaSGCcwrG0OT0w=
+	t=1743434644; cv=none; b=OtvGv0ulWvc/0rOgnrQtbGr8Pa8JvH94XeKTVjEbdftPU2mGIbf4ikr9LOCjupoGKwDKdZBwT/ztJjTLbgBXHH3NFjwYwYvG3meA7PuNxNM5rdtwOytrQmVt6WcZrAJrwNjC/0pZEHIQFMV4DoQzRVciYfO+zgMyk1QXXAHJIlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743425068; c=relaxed/simple;
-	bh=7P3v3QcrCo+xBWOgR+D95HLliaDvxXjdEU581EbaDRE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Uq+36jV2oQHhAFr2T3WnMwPvj8wDpehF1lEuNaJbZURJz3R4GkEzOoCi/FAyZz2WoSNvs9nHzPJ+bmchLr3S9HQwNQ26SsvXfckRQ1pK6P760GjqALmM5TkZ1TLsl52nolYyfP4nqB8FxKhtHfziL4y6bvWhZAHPcMvnHxaZt18=
+	s=arc-20240116; t=1743434644; c=relaxed/simple;
+	bh=Rdi5RrOayx3EJqxrTECDbnOzPhrgNbUXCziSgPLVeNs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uJAcq2kn+p21zgiNx7cArQhTvS/MprUlcpVLbR8jExASdSyt1JwD+INIqpSxBR/6cOwpD3gFZgGg/63G5wnqeahwEUkXVvgOyamDoo/8oVdivwDi5iThys0CKXez/UTJZ5N6ouENx2DCaoWFOQ4peBqtb0hfRXr6Q6NdERCnHvI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1tzEV6-0003Qp-P3; Mon, 31 Mar 2025 14:44:24 +0200
+	id 1tzGzX-0004zz-Mt; Mon, 31 Mar 2025 17:23:59 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/2] evaluate: fix crash when generating reject statement error
-Date: Mon, 31 Mar 2025 14:43:34 +0200
-Message-ID: <20250331124341.12151-2-fw@strlen.de>
+Subject: [PATCH nft 1/2] evaluate: compact STMT_F_STATEFUL checks
+Date: Mon, 31 Mar 2025 17:23:19 +0200
+Message-ID: <20250331152323.31093-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250331124341.12151-1-fw@strlen.de>
-References: <20250331124341.12151-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,95 +31,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-After patch, this gets rejected with:
-internal:0:0-0: Error: conflicting protocols specified: ip vs ip6
-
-Without patch, we crash with a NULL dereference: we cannot use
-reject.expr->location unconditionally.
+We'll gain another F_STATEFUL check in a followup patch,
+so lets condense the pattern into a helper to reduce copypaste.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                                | 16 ++++++++--
- .../reject_stmt_with_no_expression_crash      | 32 +++++++++++++++++++
- 2 files changed, 46 insertions(+), 2 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
+ src/evaluate.c | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 507b1c86cafc..e4a7b5ceaafa 100644
+index e4a7b5ceaafa..e9ab829b6bbb 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -3791,6 +3791,18 @@ static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt)
- 	return 0;
+@@ -3453,6 +3453,17 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return expr_evaluate(ctx, &stmt->payload.val);
  }
  
-+static int stmt_reject_error(struct eval_ctx *ctx,
-+			     const struct stmt *stmt,
-+			     const char *msg)
++static int stmt_evaluate_stateful(struct eval_ctx *ctx, struct stmt *stmt, const char *name)
 +{
-+	struct expr *e = stmt->reject.expr;
++	if (stmt_evaluate(ctx, stmt) < 0)
++		return -1;
 +
-+	if (e)
-+		return stmt_binary_error(ctx, e, stmt, "%s", msg);
++	if (!(stmt->flags & STMT_F_STATEFUL))
++		return stmt_error(ctx, stmt, "%s statement must be stateful", name);
 +
-+	return stmt_error(ctx, stmt, "%s", msg);
++	return 0;
 +}
 +
- static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
+ static int stmt_evaluate_meter(struct eval_ctx *ctx, struct stmt *stmt)
  {
- 	struct proto_ctx *pctx = eval_proto_ctx(ctx);
-@@ -3806,12 +3818,12 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
- 				return -1;
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
--			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
-+			return stmt_reject_error(ctx, stmt,
- 				   "abstracted ICMP unreachable not supported");
- 		case NFT_REJECT_ICMP_UNREACH:
- 			if (stmt->reject.family == pctx->family)
- 				break;
--			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
-+			return stmt_reject_error(ctx, stmt,
- 				  "conflicting protocols specified: ip vs ip6");
- 		}
- 		break;
-diff --git a/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash b/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
-new file mode 100644
-index 000000000000..04c01aa77a29
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
-@@ -0,0 +1,32 @@
-+{
-+  "nftables": [
-+    {
-+      "table": { "family": "ip", "name": "x",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "ip",
-+        "table": "x",
-+        "name": "c",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "x",
-+        "chain": "c",
-+             "expr": [
-+          {
-+            "reject": {
-+              "type": "icmpv6",
-+              "exprlimit": "port-unreachable"
-+            }
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
+ 	struct expr *key, *setref;
+@@ -3526,11 +3537,8 @@ static int stmt_evaluate_meter(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ 	stmt->meter.set = setref;
+ 
+-	if (stmt_evaluate(ctx, stmt->meter.stmt) < 0)
++	if (stmt_evaluate_stateful(ctx, stmt->meter.stmt, "meter") < 0)
+ 		return -1;
+-	if (!(stmt->meter.stmt->flags & STMT_F_STATEFUL))
+-		return stmt_binary_error(ctx, stmt->meter.stmt, stmt,
+-					 "meter statement must be stateful");
+ 
+ 	return 0;
+ }
+@@ -4662,11 +4670,8 @@ static int stmt_evaluate_set(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return expr_error(ctx->msgs, stmt->set.key,
+ 				  "Key expression comments are not supported");
+ 	list_for_each_entry(this, &stmt->set.stmt_list, list) {
+-		if (stmt_evaluate(ctx, this) < 0)
++		if (stmt_evaluate_stateful(ctx, this, "set") < 0)
+ 			return -1;
+-		if (!(this->flags & STMT_F_STATEFUL))
+-			return stmt_error(ctx, this,
+-					  "statement must be stateful");
+ 	}
+ 
+ 	this_set = stmt->set.set->set;
+@@ -4726,11 +4731,8 @@ static int stmt_evaluate_map(struct eval_ctx *ctx, struct stmt *stmt)
+ 				  "Data expression timeouts are not supported");
+ 
+ 	list_for_each_entry(this, &stmt->map.stmt_list, list) {
+-		if (stmt_evaluate(ctx, this) < 0)
++		if (stmt_evaluate_stateful(ctx, this, "map") < 0)
+ 			return -1;
+-		if (!(this->flags & STMT_F_STATEFUL))
+-			return stmt_error(ctx, this,
+-					  "statement must be stateful");
+ 	}
+ 
+ 	return 0;
 -- 
 2.49.0
 
