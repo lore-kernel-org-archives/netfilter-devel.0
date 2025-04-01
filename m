@@ -1,115 +1,85 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CACE7202C34
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 14:33:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68D2156677
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 14:36:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743518027; cv=none; b=XvGNcD9Mp8Kj9BZ2i+HoThi0IEGOM0ssqkgBxAfKxWM+d4bWHeapRwwjbHLD4c7UeIxHSNIUIRCStE46ZeMHvUgfZlRZD+Zb1TJZBNrTNLRSPHnX5HjyTzLLRN/M7nj5M4MfCwWh2z39/qZSDHUbDI5nvcBqJ3/KblfIONRaWMc=
+	t=1743518220; cv=none; b=qyFjNk/NMb5XpuRaBY+8Ciy7LrFo547g7QHS1Q67zWFobM22XSP/Y1L2imf7SWOLnjuYPEL5Jk2VGcH4uMROpXvUTa2Fr5u+CvHqN2Unh4nKsBgzUJFSyA2YtNdPC153LxdDtyw43cudkJF8+XIiaMtoGosb6bUXCM5otq304nA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743518027; c=relaxed/simple;
-	bh=L1wxMrGxJIlwq8oeLfb1BougICYTfOoNfVdmIfwiqTo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nTcn1Ic2Po/LMMwBOmQcaNDzLYnZt9C4zVT3pjvTpXCienG4/GgBvD5CaIZjZTojrjIdGGoce4QiBIjHnXl6mud4qyH3kXEI4gkiWePXHwNVuIOTglWepiF0V37wuTLeKR+LvoSMti3X0Lkdp44mWY/kuTQc/a0n13p5aj9rjlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uq5tTCdN; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uq5tTCdN; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1743518220; c=relaxed/simple;
+	bh=G2TI8JLUUVg+6a0hVroN+pJxHLpsFYOB02bLypRkN5s=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=nP/TETTbYLc1yMha+y9HPL5NgsVieSpV/s+NJoAWsUoIVYiGi7b6miBjz5AU0VlGgnGKbbjbKwMDRcFEaE9a8NrknFdlwgMGi8f0zIcUx6NKhwavggQsviLE/DyNs7HYrwA+agyTuFKzZM+UbR2P8j+itxyRrF64wmy66icllmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cYeVj/4W; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cYeVj/4W; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uq5tTCdN";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uq5tTCdN"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cYeVj/4W";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cYeVj/4W"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id DD691603B6; Tue,  1 Apr 2025 16:33:42 +0200 (CEST)
+	id C29D76054C; Tue,  1 Apr 2025 16:36:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743518022;
-	bh=3O7+Q7jbVtS3ql3xlDKiKUIo2CzJAc/35DN57AfRlHk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=uq5tTCdNtchAAcTwIRDjHnoQ0J6YbZ7vb9ldijYDXan0q8jxwklOicGFGPpvoXgMb
-	 A3IWlBqpjzGlF0AEdehXdcAygiKK1ka5uPWkxH+BRbdevuD8+mCz35nz4DSIhXvidO
-	 ZMklS32AjeAHGiBrDEGrv+QVbVCH7sD7U1b8VS/1TiLV+G/+CqEEdHEYHQxL0xJ9t7
-	 4TRW9lHB00cML92x+X8iv55WV9qrRWoXX4dtS/uUdPJBumXuxbnG3xSNGrJwQfQaoF
-	 pGX8qm9V+HEEFa/tieEF/YUTjZ+uJCcWyjdPHYX+hW6rxH8qOWkAyUfWAK7qIOmaH0
-	 GrzvogG4MI/aA==
+	s=2025; t=1743518215;
+	bh=nHbQOHyLSSh7sxUoTx84b4ZqwiA4yNlLb1L7lrmTqwQ=;
+	h=From:To:Subject:Date:From;
+	b=cYeVj/4W5VYFKXU2CkhQNX+nEDmXL1pG1i/MRPgahMvhELPah0KC68C1EpPPJ9jfT
+	 Rlhf6PPkHR5YEt+sL5mi1m5hhWhEKez4DnFmIbKHsLjDzf11R+pzf+AOK8cdx2bGa2
+	 SPii+pjqWi9U7SKxzlKfXkXRQ2zppJ4VQ6jfYUlTo/N8fetMZZjHMc/1QMwaLJjmYH
+	 GcEz2y4b1IKhHhRXL8x1KC0LMkDOMZpGpO0oi0NvoU8HJ1FZNeIMP8SeANrGLdXBtU
+	 P2UKisGMW+k64h6wOrg/haXm22se8D44fI+eP6JDBXetiV9NNd5BdZPJxn7M1uH+WH
+	 cL/akts14BbuQ==
 X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 432246039E;
-	Tue,  1 Apr 2025 16:33:42 +0200 (CEST)
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6A87E603B8
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 16:36:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743518022;
-	bh=3O7+Q7jbVtS3ql3xlDKiKUIo2CzJAc/35DN57AfRlHk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=uq5tTCdNtchAAcTwIRDjHnoQ0J6YbZ7vb9ldijYDXan0q8jxwklOicGFGPpvoXgMb
-	 A3IWlBqpjzGlF0AEdehXdcAygiKK1ka5uPWkxH+BRbdevuD8+mCz35nz4DSIhXvidO
-	 ZMklS32AjeAHGiBrDEGrv+QVbVCH7sD7U1b8VS/1TiLV+G/+CqEEdHEYHQxL0xJ9t7
-	 4TRW9lHB00cML92x+X8iv55WV9qrRWoXX4dtS/uUdPJBumXuxbnG3xSNGrJwQfQaoF
-	 pGX8qm9V+HEEFa/tieEF/YUTjZ+uJCcWyjdPHYX+hW6rxH8qOWkAyUfWAK7qIOmaH0
-	 GrzvogG4MI/aA==
-Date: Tue, 1 Apr 2025 16:33:39 +0200
+	s=2025; t=1743518215;
+	bh=nHbQOHyLSSh7sxUoTx84b4ZqwiA4yNlLb1L7lrmTqwQ=;
+	h=From:To:Subject:Date:From;
+	b=cYeVj/4W5VYFKXU2CkhQNX+nEDmXL1pG1i/MRPgahMvhELPah0KC68C1EpPPJ9jfT
+	 Rlhf6PPkHR5YEt+sL5mi1m5hhWhEKez4DnFmIbKHsLjDzf11R+pzf+AOK8cdx2bGa2
+	 SPii+pjqWi9U7SKxzlKfXkXRQ2zppJ4VQ6jfYUlTo/N8fetMZZjHMc/1QMwaLJjmYH
+	 GcEz2y4b1IKhHhRXL8x1KC0LMkDOMZpGpO0oi0NvoU8HJ1FZNeIMP8SeANrGLdXBtU
+	 P2UKisGMW+k64h6wOrg/haXm22se8D44fI+eP6JDBXetiV9NNd5BdZPJxn7M1uH+WH
+	 cL/akts14BbuQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] cache: don't crash when filter is NULL
-Message-ID: <Z-v5Q5H7_am0OMOg@calendula>
-References: <20250401142917.11171-1-fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 1/2] parser_json: allow statement stateful statement only in set elements
+Date: Tue,  1 Apr 2025 16:36:50 +0200
+Message-Id: <20250401143651.1313098-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250401142917.11171-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Apr 01, 2025 at 04:29:14PM +0200, Florian Westphal wrote:
-> a delete request will cause a crash in obj_cache_dump, move the deref
-> into the filter block.
-> 
-> Fixes: dbff26bfba83 ("cache: consolidate reset command")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Upfront reject of non stateful statements in set elements.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 07958ec53830 ("json: add set statement list support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_json.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Thanks.
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 053dd81a076f..4c9dc5415445 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2433,6 +2433,11 @@ static void json_parse_set_stmt_list(struct json_ctx *ctx,
+ 			stmt_list_free(stmt_list);
+ 			return;
+ 		}
++		if (!(stmt->flags & STMT_F_STATEFUL)) {
++			stmt_free(stmt);
++			json_error(ctx, "Unsupported set statements array at index %zd failed.", index);
++			stmt_list_free(stmt_list);
++		}
+ 		list_add(&stmt->list, head);
+ 		head = &stmt->list;
+ 	}
+-- 
+2.30.2
 
-> ---
->  src/cache.c                                                 | 6 ++++--
->  .../testcases/bogons/nft-f/delete_nonexistant_object_crash  | 1 +
->  2 files changed, 5 insertions(+), 2 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-f/delete_nonexistant_object_crash
-> 
-> diff --git a/src/cache.c b/src/cache.c
-> index b75a5bf3283c..c0d96bd14a80 100644
-> --- a/src/cache.c
-> +++ b/src/cache.c
-> @@ -902,6 +902,7 @@ static struct nftnl_obj_list *obj_cache_dump(struct netlink_ctx *ctx,
->  	int family = NFPROTO_UNSPEC;
->  	const char *table = NULL;
->  	const char *obj = NULL;
-> +	bool reset = false;
->  	bool dump = true;
->  
->  	if (filter) {
-> @@ -914,9 +915,10 @@ static struct nftnl_obj_list *obj_cache_dump(struct netlink_ctx *ctx,
->  		}
->  		if (filter->list.obj_type)
->  			type = filter->list.obj_type;
-> +
-> +		reset = filter->reset.obj;
->  	}
-> -	obj_list = mnl_nft_obj_dump(ctx, family, table, obj, type, dump,
-> -				    filter->reset.obj);
-> +	obj_list = mnl_nft_obj_dump(ctx, family, table, obj, type, dump, reset);
->  	if (!obj_list) {
->                  if (errno == EINTR)
->  			return NULL;
-> diff --git a/tests/shell/testcases/bogons/nft-f/delete_nonexistant_object_crash b/tests/shell/testcases/bogons/nft-f/delete_nonexistant_object_crash
-> new file mode 100644
-> index 000000000000..c369dec8c07d
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-f/delete_nonexistant_object_crash
-> @@ -0,0 +1 @@
-> +delete quota a b
-> -- 
-> 2.49.0
-> 
-> 
