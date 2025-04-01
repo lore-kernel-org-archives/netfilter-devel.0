@@ -1,200 +1,71 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2C032EAF7
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 17:03:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6BC21E51EE
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 20:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743527010; cv=none; b=V8hk1YBVxETUqOAOsFsdIlkTXsxCOtb2Qp/2WA8beg2fKou8Dk61stEfUAYNvHX5X5sV777a1X6dcsfLmwPIJywXJoepWFDAdHqgSdPYjAG3hxDv8GQgASXubFoG87s5bduVXrku+S2Cx+7sMNq97aClP1soxdid6yx++wWoVV4=
+	t=1743537671; cv=none; b=K0cBjgc6A0l4ViL0wYyCKmgXgeo8nPBeV5sDW96eJCGXIpIO4qtGgThESE9sLZ3M9TD56PVSNNFpAGINjLjEtCkM4/OpE2rn5nFuaSjzp14/gTBpsQqXE6SEMsBpzo4EO2j91loySK3SK1LHfLOUzCv/DaRE/5TLh5oeb04o3FU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743527010; c=relaxed/simple;
-	bh=ED9dfSkZgPlk1iVnownCbdLAqjLoi43fa/YDu6B9fow=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=TyNB4wowVLgh/ysQcYVLj5HnEYjaPOnv3eRT5oLs6V7yVcuxpLbnfm6NtnNKXEu+2oaRKmtEnecn8ri6ZS6I4O5HM3JeRy4Z/HMkd5gSfaILR840a+a3F0Lzn/Ly67qn3s7DbvwsVbPKir88MLJtEBK71C+SwLr21YisgXPm4NA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=s5tm+R/S; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=E7eag8Dq; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1743537671; c=relaxed/simple;
+	bh=mEkuXsDcbQ1qG0Vqsa8HBBgcgJv4MAoqSi1qGtfqLh0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SFI4isNGQmX+/2DpWUAGz+ju70dp1olxaNsJGT4/9Pd44BN3DuV0zpaheGkG+InxJDwz0qDwCaw5GqjJFe1aDb4Im1dFS3PWoaEbnZdW1pIlFNdmA6BxsJ2bDb58E3sqDjiGWdBjCY69+2G/6JZzW0UQ9jNXsbMWiqwZUluZaoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vGVym9Mb; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vGVym9Mb; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="s5tm+R/S";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="E7eag8Dq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vGVym9Mb";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vGVym9Mb"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 214D4605B3; Tue,  1 Apr 2025 19:03:25 +0200 (CEST)
+	id DEBAF605BA; Tue,  1 Apr 2025 22:01:05 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743527005;
-	bh=O7h3yDwLKX7uvvQWYI/x+f9R4oS+CJQwM6UxTJGW1lo=;
-	h=From:To:Subject:Date:From;
-	b=s5tm+R/SyHW+KEU1ouiF43s2IC+zsQXEPlJ0aGnYDMlJ0HZSePDn+8zXxmoTfWaqm
-	 wiPPW4JLrqjt+13ALpcNzacIcekQq4Jfrwggi16Qo5uSGSVHokqEVcoExE9M1M2eje
-	 obqXVakzTYDJraImzzgAZl0nZFKpktH21ic60zMyWtRFIDNEqNwNiPee7mGO79MUld
-	 4scYVZuYBe9DroMCdCBsfZiH4c+7pPXC4ZN45/1QCA2cUet06pAsP69t3IbM24Sz3G
-	 UB/HXRMbA7mRsbGN9Xp/WKRn/mL0tUrDmjgfrD8rfvvCVfLLnrM8c907bBlQ1VyMFM
-	 F4KrqWjpcei8Q==
+	s=2025; t=1743537665;
+	bh=x8tGhRttkFqnsOIFuZTXGofVIg79pAjf7dMM5syxwEY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=vGVym9MbuZ5m17P1AUho/p4QlPVsssyE182Ewv1V5ZkurTK07EaS9IdgmJcsR06D3
+	 7YmNhVXQg8ZBrOXNMFHXVy/hBAY3OM+mM+2kO/7HLAt0ov/mSOtg2cEd7RsBVCmDb9
+	 5ktnTV7woOEGPHkgtsbZjy0chUjf9jpedn3mGGRFHIDiL5WFbohjqyAZ3X4ONeirIw
+	 U4pyosvQ8KTXCbaS57eVDGXrgaRPAiQNh2Yajl0uP2fbQfAqSEMgxFJe+egLR1ymyM
+	 lLCfKtxfOv2Jzhtrz6FR896RonhKbfHOnbJsPEeQqs7Pd5A7ehFaAe97n6fNRkbOiG
+	 iVtemT8W1DFCg==
 X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 87074605A6
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 19:03:24 +0200 (CEST)
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6376160393;
+	Tue,  1 Apr 2025 22:01:05 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743527004;
-	bh=O7h3yDwLKX7uvvQWYI/x+f9R4oS+CJQwM6UxTJGW1lo=;
-	h=From:To:Subject:Date:From;
-	b=E7eag8DqrvWB4YckRjgSXOxcG1P6eTKaRGy3A6mHxmRIKAzLxDNzN8nMKEhlbdy21
-	 9nHa1f6jQjvW9MV79iKL8X6QrUpDWAljNiE4P3fiLOBdEit45i5gsn1VVOVTrR9lVI
-	 s021+VXRq7OA345teeQsB5MyxQ7ONiZgqAFy+2Ne8EMTcrRPYHYXfqM2FVnRrsuJcW
-	 Q2mxyTVLPppB/qTxoXWYwLHrtHDx/l5MT+ynbf3m6/uxuiNvdoNJWO/nWt03Qskxcx
-	 7mitJxaejclcBUnH+90bW052m7mhWyzlYOsfXFRT5x3LKi2bubMFjQIuiJflaEHVhw
-	 v9SnDVGzqYuLQ==
+	s=2025; t=1743537665;
+	bh=x8tGhRttkFqnsOIFuZTXGofVIg79pAjf7dMM5syxwEY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=vGVym9MbuZ5m17P1AUho/p4QlPVsssyE182Ewv1V5ZkurTK07EaS9IdgmJcsR06D3
+	 7YmNhVXQg8ZBrOXNMFHXVy/hBAY3OM+mM+2kO/7HLAt0ov/mSOtg2cEd7RsBVCmDb9
+	 5ktnTV7woOEGPHkgtsbZjy0chUjf9jpedn3mGGRFHIDiL5WFbohjqyAZ3X4ONeirIw
+	 U4pyosvQ8KTXCbaS57eVDGXrgaRPAiQNh2Yajl0uP2fbQfAqSEMgxFJe+egLR1ymyM
+	 lLCfKtxfOv2Jzhtrz6FR896RonhKbfHOnbJsPEeQqs7Pd5A7ehFaAe97n6fNRkbOiG
+	 iVtemT8W1DFCg==
+Date: Tue, 1 Apr 2025 22:01:02 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft] optimize: expand expression list when merging into concatenation
-Date: Tue,  1 Apr 2025 19:03:20 +0200
-Message-Id: <20250401170320.1341011-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 1/2] evaluate: reject: remove unused expr function
+ argument
+Message-ID: <Z-xF_h2N_VokvdxA@calendula>
+References: <20250331124341.12151-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250331124341.12151-1-fw@strlen.de>
 
-The following rules:
+On Mon, Mar 31, 2025 at 02:43:33PM +0200, Florian Westphal wrote:
+> stmt_evaluate_reject passes cmd->expr argument but its never used.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-    udp dport 137 ct state new,untracked accept
-    udp dport 138 ct state new,untracked accept
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-results in:
-
-  nft: src/optimize.c:670: __merge_concat: Assertion `0' failed.
-
-The logic to expand to the new,untracked list in the concatenation is
-missing.
-
-Fixes: 187c6d01d357 ("optimize: expand implicit set element when merging into concatenation")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/optimize.c                                | 10 +++
- .../dumps/merge_stmts_concat.json-nft         | 61 +++++++++++++++++++
- .../dumps/merge_stmts_concat.nft              |  1 +
- .../optimizations/merge_stmts_concat          |  2 +
- 4 files changed, 74 insertions(+)
-
-diff --git a/src/optimize.c b/src/optimize.c
-index 44010f2bb377..139bc2d73c3c 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -666,6 +666,16 @@ static void __merge_concat(const struct optimize_ctx *ctx, uint32_t i,
- 				clone = expr_clone(stmt_a->expr->right);
- 				compound_expr_add(concat, clone);
- 				break;
-+			case EXPR_LIST:
-+				list_for_each_entry(expr, &stmt_a->expr->right->expressions, list) {
-+					concat_clone = expr_clone(concat);
-+					clone = expr_clone(expr);
-+					compound_expr_add(concat_clone, clone);
-+					list_add_tail(&concat_clone->list, &pending_list);
-+				}
-+				list_del(&concat->list);
-+				expr_free(concat);
-+				break;
- 			default:
- 				assert(0);
- 				break;
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.json-nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.json-nft
-index 267d84efffa3..46e740a8f5b5 100644
---- a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.json-nft
-+++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.json-nft
-@@ -181,6 +181,67 @@
-         ]
-       }
-     },
-+    {
-+      "rule": {
-+        "family": "ip",
-+        "table": "x",
-+        "chain": "y",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "match": {
-+              "op": "==",
-+              "left": {
-+                "concat": [
-+                  {
-+                    "payload": {
-+                      "protocol": "udp",
-+                      "field": "dport"
-+                    }
-+                  },
-+                  {
-+                    "ct": {
-+                      "key": "state"
-+                    }
-+                  }
-+                ]
-+              },
-+              "right": {
-+                "set": [
-+                  {
-+                    "concat": [
-+                      137,
-+                      "new"
-+                    ]
-+                  },
-+                  {
-+                    "concat": [
-+                      138,
-+                      "new"
-+                    ]
-+                  },
-+                  {
-+                    "concat": [
-+                      137,
-+                      "untracked"
-+                    ]
-+                  },
-+                  {
-+                    "concat": [
-+                      138,
-+                      "untracked"
-+                    ]
-+                  }
-+                ]
-+              }
-+            }
-+          },
-+          {
-+            "accept": null
-+          }
-+        ]
-+      }
-+    },
-     {
-       "rule": {
-         "family": "ip",
-diff --git a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
-index f56cea1c4fd7..d00ac417ca75 100644
---- a/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
-+++ b/tests/shell/testcases/optimizations/dumps/merge_stmts_concat.nft
-@@ -2,6 +2,7 @@ table ip x {
- 	chain y {
- 		iifname . ip saddr . ip daddr { "eth1" . 1.1.1.1 . 2.2.2.3, "eth1" . 1.1.1.2 . 2.2.2.4, "eth1" . 1.1.1.2 . 2.2.3.0/24, "eth1" . 1.1.1.2 . 2.2.4.0-2.2.4.10, "eth2" . 1.1.1.3 . 2.2.2.5 } accept
- 		ip protocol . th dport { tcp . 22, udp . 67 }
-+		udp dport . ct state { 137 . new, 138 . new, 137 . untracked, 138 . untracked } accept
- 	}
- 
- 	chain c1 {
-diff --git a/tests/shell/testcases/optimizations/merge_stmts_concat b/tests/shell/testcases/optimizations/merge_stmts_concat
-index 4db4a6f90944..bae54e3665e0 100755
---- a/tests/shell/testcases/optimizations/merge_stmts_concat
-+++ b/tests/shell/testcases/optimizations/merge_stmts_concat
-@@ -12,6 +12,8 @@ RULESET="table ip x {
- 		meta iifname eth1 ip saddr 1.1.1.2 ip daddr 2.2.4.0-2.2.4.10 accept
- 		meta iifname eth2 ip saddr 1.1.1.3 ip daddr 2.2.2.5 accept
- 		ip protocol . th dport { tcp . 22, udp . 67 }
-+		udp dport 137 ct state new,untracked accept
-+		udp dport 138 ct state new,untracked accept
- 	}
- }"
- 
--- 
-2.30.2
-
+Thanks!
