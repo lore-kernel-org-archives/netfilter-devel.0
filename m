@@ -1,30 +1,53 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFCE71F0E56
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 12:37:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1EA41ACED1
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 14:27:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743511057; cv=none; b=uYuI/HBs1UtpTzOOJ6HsNMOwqvZsZtI1B93WXKp01RZz/+79fgdNWeAznWeZtho+weozhjnpWQH54uyLpWqrysHEz/UHEuTGVhSN2muIke5IbFvB5Vp9kAg9oPXhxhQa7anwIl1WPqhT+hO85f03CtYgtmVJYDRM/LygF+7huUY=
+	t=1743517642; cv=none; b=FbT9uywKMicp1TMvKO7ty3TkMdnbQY4yKeVnzcHuwT3fw6jQoMlSYsHjqruI2axm9p4cq535r91TEPwAvZQr+OfrL+tDRh2DS/fUABdMdNadkP2KKjGENrXjcj0P+d/EWR9Y5ic21i0aBFPHSSj8V3yAGW19bXPaq2/4goGSW3k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743511057; c=relaxed/simple;
-	bh=S7uCprw/HlNueaMM7uKNB/PD8BjghObdsrX2gmIhe6E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=KiLztlwezxXOyrN9CejU/J99udMr2nZ5bUHbbvAd93DgZhVr6ySFMt0S0ob77IHg4FnEPTr0vp8SfLr9RvQH3zP7OART6o4gXS10cYhFoLUMdcmF5h0wW91h01arWmpO0evoM7oWt5m3S+yGShovn6ilkJqlokx35LkJ/Hg0YQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1tzaru-00075c-Ck; Tue, 01 Apr 2025 14:37:26 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: syzkaller-bugs@googlegroups.com,
-	Florian Westphal <fw@strlen.de>,
-	syzbot+53ed3a6440173ddbf499@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: nf_tables: don't unregister hook when table is dormant
-Date: Tue,  1 Apr 2025 14:36:47 +0200
-Message-ID: <20250401123651.29379-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
+	s=arc-20240116; t=1743517642; c=relaxed/simple;
+	bh=PYgiRT/k+MUoA7BnV33IXgh2Vrc45OXbXow2Jh+YY8U=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=VwYqUrXI9TTPoOfKixiMu+sFsQF7VLXUlGpOl6ohS2Pg8vxXtxaIriVceh6uAnG0jE+vuDlPDvFqHovjNojpfbNODi4WU8OhAVg0Kr5jVyntdE9mlFsw/Fwe+lfMlg6HQD0YHy3drnh9DrL6PMXDcAjIs96FFL0KYzMjIKCXG+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RPELyqVw; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cLN58vBi; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RPELyqVw";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cLN58vBi"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 695766037D; Tue,  1 Apr 2025 16:27:10 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743517630;
+	bh=e+rfHHz2jxMTB24rci3gtIvf9izAh2uMUitksj2HEfA=;
+	h=From:To:Subject:Date:From;
+	b=RPELyqVwyZI1T/4D2W6Mnj3qTvuxJZxEYWVKuSJ68qrXs3G8o8SENyROqofVwlNIu
+	 uZ6j3ShckXRkSAI9lFNtn0ViloxAoUMJnXNye//hbrVVROaBMZeNGWXArkq1H/O+id
+	 LMiuSk5n/UzW9VvG1QsS4lSmZ3pS/X2phsFi7iWR7n0MuHZbrhJhiEOnb/I/Yyo52q
+	 DlvTiw62wVbJM5jfQ8I35z/ZXCsPbjoJagV13EfIrRlo1xOI7HPAVYG7LWPJRKomHm
+	 OcJV5IgFPb2ZoqeXeaiAWghrd6zV/8NsjFucO8bD8zkIu6MAbSQGh6F9xI2kkmJ/XF
+	 fOnvCcfifjGYA==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7E77560375
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 16:27:08 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743517628;
+	bh=e+rfHHz2jxMTB24rci3gtIvf9izAh2uMUitksj2HEfA=;
+	h=From:To:Subject:Date:From;
+	b=cLN58vBi3dUvphvh6C5teL6Q3LArLzCF+BrvMW/F2NrTYsooiGOjdpPGOkV+GBwAB
+	 VHLWGdm2Hjl2qCWl/aT8+w/FE1dBgs/2VHW7TF5TLB9AauDVIHICudypdW90gKg1i+
+	 /O7xP1C54py/u4vAQ9HwOrpFpDgDavlwS7RifqGNQ/08EjyoDwQryHJ5CUNRkwxwyI
+	 vEVynHNmEeQMOPCYxCD/EnfTVlznz2s1VVxLNsvt05OCPHxXJ4cWwjvMUalk3DPNf6
+	 axtofMta59BQe4YxhgIX1kVwCyyQhHdCaXEqSzqgsAAY4h4EicqGz3y0miFyy5bAhr
+	 5EZKBULryMnbQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf] netfilter: nft_set_hash: GC reaps elements with conncount for dynamic sets only
+Date: Tue,  1 Apr 2025 16:27:02 +0200
+Message-Id: <20250401142702.1312902-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,38 +56,32 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When nf_tables_updchain encounters an error, hook registration needs to
-be rolled back.
+conncount has its own GC handler which determines when to reap stale
+elements, this convenient for dynamic sets. However, this also reaps
+non-dynamic sets with static configurations coming from control plane.
+Always run connlimit gc handler but honor feedback to reap element if
+this set is dynamic.
 
-This should only be done if the hook has been registered, which won't
-happen when the table is flagged as dormant (inactive).
-
-Just move the assignment into the registration block.
-
-Reported-by: syzbot+53ed3a6440173ddbf499@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=53ed3a6440173ddbf499
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 290180e2448c ("netfilter: nf_tables: add connlimit support")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nft_set_hash.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c2df81b7e950..567cea329e1f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2840,9 +2840,9 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 			if (err < 0)
- 				goto err_hooks;
- 		}
--	}
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 8bfac4185ac7..abb0c8ec6371 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -309,7 +309,8 @@ static bool nft_rhash_expr_needs_gc_run(const struct nft_set *set,
  
--	unregister = true;
-+		unregister = true;
-+	}
+ 	nft_setelem_expr_foreach(expr, elem_expr, size) {
+ 		if (expr->ops->gc &&
+-		    expr->ops->gc(read_pnet(&set->net), expr))
++		    expr->ops->gc(read_pnet(&set->net), expr) &&
++		    set->flags & NFT_SET_EVAL)
+ 			return true;
+ 	}
  
- 	if (nla[NFTA_CHAIN_COUNTERS]) {
- 		if (!nft_is_base_chain(chain)) {
 -- 
-2.49.0
+2.30.2
 
