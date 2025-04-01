@@ -1,90 +1,71 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F83204C30
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 14:39:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF99320B7EE
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 15:40:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743518396; cv=none; b=tnCzgF4tihJ9UEL3bBXTL74FJUlZvvX3mmGGKtTmJU1ssOieiZXsbokjgZ8KBMAWn8tsYlSD5ou8FRdgYyQrrd2hS8rLmJLH8pf6UrMfDfwZy19YMRvsjIVOo0mPwFypbU0OlpWOOBOsnNxupq5vKvRWKGXBQLr6NbcSVIKfsAY=
+	t=1743522045; cv=none; b=UC7TCQyWgPGF3yBUq06w11YrDXUlSZJv0wBhT5KWaTKHhKrKm6Z3ajwSk2hghfSwOcGfhobhyZwQS0gb9TInllyGKr2KWSgd6EooMNvgAQusPdEQxMq/NYRkKXdXUsUQgZNb+Oh0x3a2ouEWcNamnrwIbIkrCT1133bAW6r5ZiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743518396; c=relaxed/simple;
-	bh=XkyVvMowSXAS5feey7ZzNIJZlPwHBoJW30lTngXN1vo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=F5C3U2/MKCDUbZEnk8SXpoNmgEb8nQxw2fXmZRzJYeZ9PUihsia0bRE03e6QBRFMkIZUx85YI1uTIrVERnmX/cVxAC1MmI73JWOpe/s4NwC/u2gk2l0ikWDnRAWu7wqYZd8o9cWqCsQetI6rW7VNLSvBX3WK0Yu8J2a1hT953QU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VsMLLolY; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VsMLLolY; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1743522045; c=relaxed/simple;
+	bh=obbI6WhjDrpKvuaX/tPlpVRp4JJK2O7u7Dy314Nj45E=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=H6NSQKmjxOGiL4T1UyucavEEtoQ8TTGy0w0Z87IFzifMx/R4VyCJAlNZA8HGutlWRBAfxJ1ZMjWSZNm0o1ee7Ka01UWvqvZvwy+GQEq0ID1nmboPwrkR5w1DIsUOc8zxQ2sO0rVnoKyijhlMG9JbuQJYZbUKGFZBrWpjpYuToSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TJu8Ahgf; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eEEi1fij; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VsMLLolY";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VsMLLolY"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TJu8Ahgf";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eEEi1fij"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 928D560389; Tue,  1 Apr 2025 16:39:52 +0200 (CEST)
+	id 0F0CC6039F; Tue,  1 Apr 2025 17:40:39 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743518392;
-	bh=suz4pEndyIKI7FEZemgY1R0FmlW/K+j0Iqui/QZI8zg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VsMLLolYM5z9fDuT7iHHgARpVLeSZYfyI60LSb3O90noSWxOv/qk04dbyVsq24lp/
-	 KGFnFMauyFdlXI5uI8gwS8d2OJjnvZgxK5LwkBJP3Di/6hMuhZ0gOBM32wARCLnQry
-	 8HlxqF5GoLzXmUZg8eapSDDl45Qn/hPcxK7kmvuPi9jouC7UmD2FSOi4aI/Kpj6vKW
-	 8TVCsFPwureV158iDTYlb///cqbp3wrYbu3JLDj+jr1hp5LHgqygfwGUF5vVrrWqZ6
-	 OJjDOyj/ml8T2PlKBnp6XB0Lvc6MRIop+KjFJ5qEmgCIVAiZkkbh/9sHiea3PVZbDy
-	 7Se+XemLlIh2g==
+	s=2025; t=1743522040;
+	bh=ofegZdM7ANwqr+Yvvqn6szbDrqvzAoPiVUA2tCBlxqw=;
+	h=From:To:Cc:Subject:Date:From;
+	b=TJu8AhgfSUKmkdD+Q0AXhro73sks+XIuBsxBaT56JHN6OMEGg9cEXwhN/fvEAj0L3
+	 iFZTDIkMZ5T1XI4dA/tjxSgJ8kGOZFF1o8Snn6bVtIvrNzPJVhZBZ1etab1JMujoFD
+	 v2pSkKN4TG4RYVtdPeiHItyFALimUn3QqEw+DLNfHFWyqiEmDPnZadxvvhsYHUKxyF
+	 KNzOd0AcJ+UzVUmKLrMU6yuSH7GY9B84stAbwaKIklrqYhyhwBN4vKyBpugexnNreV
+	 qzXCrPGqOaC14n+aWbWdXvKL8l5UUJJqNWh2lhlKdug7qswdpgy3Q+PuCicHNM/UUd
+	 gH1s7aekeAo6Q==
 X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EE00060389;
-	Tue,  1 Apr 2025 16:39:51 +0200 (CEST)
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 662B16039F;
+	Tue,  1 Apr 2025 17:40:39 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743518392;
-	bh=suz4pEndyIKI7FEZemgY1R0FmlW/K+j0Iqui/QZI8zg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VsMLLolYM5z9fDuT7iHHgARpVLeSZYfyI60LSb3O90noSWxOv/qk04dbyVsq24lp/
-	 KGFnFMauyFdlXI5uI8gwS8d2OJjnvZgxK5LwkBJP3Di/6hMuhZ0gOBM32wARCLnQry
-	 8HlxqF5GoLzXmUZg8eapSDDl45Qn/hPcxK7kmvuPi9jouC7UmD2FSOi4aI/Kpj6vKW
-	 8TVCsFPwureV158iDTYlb///cqbp3wrYbu3JLDj+jr1hp5LHgqygfwGUF5vVrrWqZ6
-	 OJjDOyj/ml8T2PlKBnp6XB0Lvc6MRIop+KjFJ5qEmgCIVAiZkkbh/9sHiea3PVZbDy
-	 7Se+XemLlIh2g==
-Date: Tue, 1 Apr 2025 16:39:49 +0200
+	s=2025; t=1743522039;
+	bh=ofegZdM7ANwqr+Yvvqn6szbDrqvzAoPiVUA2tCBlxqw=;
+	h=From:To:Cc:Subject:Date:From;
+	b=eEEi1fij8K9HJwDAXXTm7d3trBpm/Re3OhzDIWdxPAuXJCXw2gicJpTLyfG1C0j/9
+	 3WMOGdlq1vtBGSf6PxtsU15yUlxMXKnclg0tB0GXQf71M5761J2HQk9L4Lio/0Szjl
+	 S9XcHBRFc1sYY9dc2KQbRyARQOB7hUwpdo8D68zJrwbAaBaJs8kArWLNGbmpKzqc8O
+	 NJKI0aP0NQotqlwrYRhGQI16Z/aj+r1MDqQxr28SF3xeAODEoH4p68Xly8igGImCFf
+	 UNA5iALqnSUQmJQSRaD+DVwSPbMR9Hetl7FnwBDUOAIB2wCpNviA877IdR4CZwIGYc
+	 f4kGK1T675hvw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] cache: don't crash when filter is NULL
-Message-ID: <Z-v6tZQP89dzUqeo@calendula>
-References: <20250401142917.11171-1-fw@strlen.de>
- <Z-v5Q5H7_am0OMOg@calendula>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nft] cache: prevent possible crash rule filter is NULL
+Date: Tue,  1 Apr 2025 17:40:35 +0200
+Message-Id: <20250401154035.1314871-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="+Tm/TJr2YgoPX8Qd"
-Content-Disposition: inline
-In-Reply-To: <Z-v5Q5H7_am0OMOg@calendula>
+Content-Transfer-Encoding: 8bit
 
+Similar to 3f0a47f9f00c ("cache: don't crash when filter is NULL").
 
---+Tm/TJr2YgoPX8Qd
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+No real crash observed but it is good to tigthen this.
 
-On Tue, Apr 01, 2025 at 04:33:42PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Apr 01, 2025 at 04:29:14PM +0200, Florian Westphal wrote:
-> > a delete request will cause a crash in obj_cache_dump, move the deref
-> > into the filter block.
-> > 
-> > Fixes: dbff26bfba83 ("cache: consolidate reset command")
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> 
-> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-BTW. Same pattern in:
-
-- rule_cache_dump()
-
-Maybe collapse this chunk too?
-
---+Tm/TJr2YgoPX8Qd
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="x.patch"
+Fixes: dbff26bfba83 ("cache: consolidate reset command")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/cache.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/src/cache.c b/src/cache.c
 index b75a5bf3283c..52f7c9abd741 100644
@@ -113,5 +94,6 @@ index b75a5bf3283c..52f7c9abd741 100644
  	if (rule_cache == NULL) {
  		if (errno == EINTR)
  			return -1;
+-- 
+2.30.2
 
---+Tm/TJr2YgoPX8Qd--
