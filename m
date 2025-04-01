@@ -1,168 +1,117 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71B31204592
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 14:36:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78F83204C30
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 14:39:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743518220; cv=none; b=k7yksNfB+QJnmbGfch3g/Pk2SZJBeobT9VpQh/8/kLHLpmNSLj2sddHTWuFVFfCEBACQLMCOaUIel7pZH22LvYaziPQni8/+xEYkuKm+adPlYVQM7zNATyg7qs8VVwQ79NY4Xz9cT5ZyWDSHT9hOG6glLwsH1yAbzDxPXNk4/HY=
+	t=1743518396; cv=none; b=tnCzgF4tihJ9UEL3bBXTL74FJUlZvvX3mmGGKtTmJU1ssOieiZXsbokjgZ8KBMAWn8tsYlSD5ou8FRdgYyQrrd2hS8rLmJLH8pf6UrMfDfwZy19YMRvsjIVOo0mPwFypbU0OlpWOOBOsnNxupq5vKvRWKGXBQLr6NbcSVIKfsAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743518220; c=relaxed/simple;
-	bh=wAiyrD19lQBJmN3v1HWXlbNm4pfUdZVmH71eG4PB3UM=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=lcj5zKrkpsRgzXppKj6mEFaN1O726k/D1lXYmu+8R1wB6bVfnJwWJe1FLkC1G2ejshq4Ik+JQQ8mtLDLlqIzhJa9HEqZm+C/dCGIwvra5EAWDR6xIujbMEAIbfqjx4aAbLyQ7ZEA90gLX4BbahptlYo13NrXB5R+DIRFkKXeqVI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b/yePj/u; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b/yePj/u; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1743518396; c=relaxed/simple;
+	bh=XkyVvMowSXAS5feey7ZzNIJZlPwHBoJW30lTngXN1vo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=F5C3U2/MKCDUbZEnk8SXpoNmgEb8nQxw2fXmZRzJYeZ9PUihsia0bRE03e6QBRFMkIZUx85YI1uTIrVERnmX/cVxAC1MmI73JWOpe/s4NwC/u2gk2l0ikWDnRAWu7wqYZd8o9cWqCsQetI6rW7VNLSvBX3WK0Yu8J2a1hT953QU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VsMLLolY; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VsMLLolY; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b/yePj/u";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b/yePj/u"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VsMLLolY";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VsMLLolY"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id AF37960561; Tue,  1 Apr 2025 16:36:56 +0200 (CEST)
+	id 928D560389; Tue,  1 Apr 2025 16:39:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743518216;
-	bh=AEqy4CfaOobgtRZCZjPeW9l97xwINAK4HWiwFxCAXUA=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=b/yePj/ufuKwNFwo6svPqj++VcvObNGMz65Ro5zr0JWFqRYqdNpl47ZPdzv63x+nb
-	 WZoEdqZ09S8garT6xJsAdjExUgiYACUvUYeBqDalBxrO5q8NDYbmoCC+ZJaso+b9tl
-	 Odt296kthARZIKzT3ar3TVMM/XaoEIlK66F4R1O+q1Aj5Mwjjh1QIgbkE1KwlQRPnA
-	 Tp3IjEA/LFE9sztJVrAuSxyQjhu9B/BEG5SgiDTssuSzDZLvbCHcb7WK6JpTCEAbqg
-	 JL8McMjTvkPHJfdWuJFMbolm678rahEq/t6gI9IBNgCmqQJpvOPCikx2mMPWiMihvD
-	 MqKoFgQXj0eFg==
+	s=2025; t=1743518392;
+	bh=suz4pEndyIKI7FEZemgY1R0FmlW/K+j0Iqui/QZI8zg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VsMLLolYM5z9fDuT7iHHgARpVLeSZYfyI60LSb3O90noSWxOv/qk04dbyVsq24lp/
+	 KGFnFMauyFdlXI5uI8gwS8d2OJjnvZgxK5LwkBJP3Di/6hMuhZ0gOBM32wARCLnQry
+	 8HlxqF5GoLzXmUZg8eapSDDl45Qn/hPcxK7kmvuPi9jouC7UmD2FSOi4aI/Kpj6vKW
+	 8TVCsFPwureV158iDTYlb///cqbp3wrYbu3JLDj+jr1hp5LHgqygfwGUF5vVrrWqZ6
+	 OJjDOyj/ml8T2PlKBnp6XB0Lvc6MRIop+KjFJ5qEmgCIVAiZkkbh/9sHiea3PVZbDy
+	 7Se+XemLlIh2g==
 X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 42C30603B8
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 16:36:56 +0200 (CEST)
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id EE00060389;
+	Tue,  1 Apr 2025 16:39:51 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743518216;
-	bh=AEqy4CfaOobgtRZCZjPeW9l97xwINAK4HWiwFxCAXUA=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=b/yePj/ufuKwNFwo6svPqj++VcvObNGMz65Ro5zr0JWFqRYqdNpl47ZPdzv63x+nb
-	 WZoEdqZ09S8garT6xJsAdjExUgiYACUvUYeBqDalBxrO5q8NDYbmoCC+ZJaso+b9tl
-	 Odt296kthARZIKzT3ar3TVMM/XaoEIlK66F4R1O+q1Aj5Mwjjh1QIgbkE1KwlQRPnA
-	 Tp3IjEA/LFE9sztJVrAuSxyQjhu9B/BEG5SgiDTssuSzDZLvbCHcb7WK6JpTCEAbqg
-	 JL8McMjTvkPHJfdWuJFMbolm678rahEq/t6gI9IBNgCmqQJpvOPCikx2mMPWiMihvD
-	 MqKoFgQXj0eFg==
+	s=2025; t=1743518392;
+	bh=suz4pEndyIKI7FEZemgY1R0FmlW/K+j0Iqui/QZI8zg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VsMLLolYM5z9fDuT7iHHgARpVLeSZYfyI60LSb3O90noSWxOv/qk04dbyVsq24lp/
+	 KGFnFMauyFdlXI5uI8gwS8d2OJjnvZgxK5LwkBJP3Di/6hMuhZ0gOBM32wARCLnQry
+	 8HlxqF5GoLzXmUZg8eapSDDl45Qn/hPcxK7kmvuPi9jouC7UmD2FSOi4aI/Kpj6vKW
+	 8TVCsFPwureV158iDTYlb///cqbp3wrYbu3JLDj+jr1hp5LHgqygfwGUF5vVrrWqZ6
+	 OJjDOyj/ml8T2PlKBnp6XB0Lvc6MRIop+KjFJ5qEmgCIVAiZkkbh/9sHiea3PVZbDy
+	 7Se+XemLlIh2g==
+Date: Tue, 1 Apr 2025 16:39:49 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/2] parser_json: bail out on malformed statement in set
-Date: Tue,  1 Apr 2025 16:36:51 +0200
-Message-Id: <20250401143651.1313098-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250401143651.1313098-1-pablo@netfilter.org>
-References: <20250401143651.1313098-1-pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] cache: don't crash when filter is NULL
+Message-ID: <Z-v6tZQP89dzUqeo@calendula>
+References: <20250401142917.11171-1-fw@strlen.de>
+ <Z-v5Q5H7_am0OMOg@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="+Tm/TJr2YgoPX8Qd"
+Content-Disposition: inline
+In-Reply-To: <Z-v5Q5H7_am0OMOg@calendula>
 
-Propagate error to caller so it bails out on malformed set statements.
 
-Fixes: 07958ec53830 ("json: add set statement list support")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/parser_json.c | 39 +++++++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 12 deletions(-)
+--+Tm/TJr2YgoPX8Qd
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 4c9dc5415445..94d09212314f 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2410,9 +2410,9 @@ static struct stmt *json_parse_reject_stmt(struct json_ctx *ctx,
- 	return stmt;
- }
+On Tue, Apr 01, 2025 at 04:33:42PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Apr 01, 2025 at 04:29:14PM +0200, Florian Westphal wrote:
+> > a delete request will cause a crash in obj_cache_dump, move the deref
+> > into the filter block.
+> > 
+> > Fixes: dbff26bfba83 ("cache: consolidate reset command")
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> 
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+BTW. Same pattern in:
+
+- rule_cache_dump()
+
+Maybe collapse this chunk too?
+
+--+Tm/TJr2YgoPX8Qd
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/src/cache.c b/src/cache.c
+index b75a5bf3283c..52f7c9abd741 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -714,6 +714,7 @@ static int rule_cache_dump(struct netlink_ctx *ctx, const struct handle *h,
+ 	const char *chain = NULL;
+ 	uint64_t rule_handle = 0;
+ 	int family = h->family;
++	bool reset = false;
+ 	bool dump = true;
  
--static void json_parse_set_stmt_list(struct json_ctx *ctx,
--				     struct list_head *stmt_list,
--				     json_t *stmt_json)
-+static int json_parse_set_stmt_list(struct json_ctx *ctx,
-+				    struct list_head *stmt_list,
-+				    json_t *stmt_json)
- {
- 	struct list_head *head;
- 	struct stmt *stmt;
-@@ -2420,10 +2420,12 @@ static void json_parse_set_stmt_list(struct json_ctx *ctx,
- 	size_t index;
- 
- 	if (!stmt_json)
--		return;
-+		return 0;
- 
--	if (!json_is_array(stmt_json))
-+	if (!json_is_array(stmt_json)) {
- 		json_error(ctx, "Unexpected object type in stmt");
-+		return -1;
-+	}
- 
- 	head = stmt_list;
- 	json_array_foreach(stmt_json, index, value) {
-@@ -2431,16 +2433,19 @@ static void json_parse_set_stmt_list(struct json_ctx *ctx,
- 		if (!stmt) {
- 			json_error(ctx, "Parsing set statements array at index %zd failed.", index);
- 			stmt_list_free(stmt_list);
--			return;
-+			return -1;
+ 	if (filter) {
+@@ -727,11 +728,12 @@ static int rule_cache_dump(struct netlink_ctx *ctx, const struct handle *h,
  		}
- 		if (!(stmt->flags & STMT_F_STATEFUL)) {
- 			stmt_free(stmt);
- 			json_error(ctx, "Unsupported set statements array at index %zd failed.", index);
- 			stmt_list_free(stmt_list);
-+			return -1;
- 		}
- 		list_add(&stmt->list, head);
- 		head = &stmt->list;
- 	}
+ 		if (filter->list.family)
+ 			family = filter->list.family;
 +
-+	return 0;
- }
++		reset = filter->reset.rule;
+ 	}
  
- static struct stmt *json_parse_set_stmt(struct json_ctx *ctx,
-@@ -2485,8 +2490,11 @@ static struct stmt *json_parse_set_stmt(struct json_ctx *ctx,
- 	stmt->set.key = expr;
- 	stmt->set.set = expr2;
- 
--	if (!json_unpack(value, "{s:o}", "stmt", &stmt_json))
--		json_parse_set_stmt_list(ctx, &stmt->set.stmt_list, stmt_json);
-+	if (!json_unpack(value, "{s:o}", "stmt", &stmt_json) &&
-+	    json_parse_set_stmt_list(ctx, &stmt->set.stmt_list, stmt_json) < 0) {
-+		stmt_free(stmt);
-+		return NULL;
-+	}
- 
- 	return stmt;
- }
-@@ -2542,8 +2550,11 @@ static struct stmt *json_parse_map_stmt(struct json_ctx *ctx,
- 	stmt->map.data = expr_data;
- 	stmt->map.set = expr2;
- 
--	if (!json_unpack(value, "{s:o}", "stmt", &stmt_json))
--		json_parse_set_stmt_list(ctx, &stmt->set.stmt_list, stmt_json);
-+	if (!json_unpack(value, "{s:o}", "stmt", &stmt_json) &&
-+	    json_parse_set_stmt_list(ctx, &stmt->set.stmt_list, stmt_json) < 0) {
-+		stmt_free(stmt);
-+		return NULL;
-+	}
- 
- 	return stmt;
- }
-@@ -3490,8 +3501,12 @@ static struct cmd *json_parse_cmd_add_set(struct json_ctx *ctx, json_t *root,
- 	json_unpack(root, "{s:i}", "size", &set->desc.size);
- 	json_unpack(root, "{s:b}", "auto-merge", &set->automerge);
- 
--	if (!json_unpack(root, "{s:o}", "stmt", &stmt_json))
--		json_parse_set_stmt_list(ctx, &set->stmt_list, stmt_json);
-+	if (!json_unpack(root, "{s:o}", "stmt", &stmt_json) &&
-+	    json_parse_set_stmt_list(ctx, &set->stmt_list, stmt_json) < 0) {
-+		set_free(set);
-+		handle_free(&h);
-+		return NULL;
-+	}
- 
- 	handle_merge(&set->handle, &h);
- 
--- 
-2.30.2
+ 	rule_cache = mnl_nft_rule_dump(ctx, family,
+-				       table, chain, rule_handle, dump,
+-				       filter->reset.rule);
++				       table, chain, rule_handle, dump, reset);
+ 	if (rule_cache == NULL) {
+ 		if (errno == EINTR)
+ 			return -1;
 
+--+Tm/TJr2YgoPX8Qd--
