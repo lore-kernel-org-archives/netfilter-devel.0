@@ -1,126 +1,110 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24DD22356CB
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 09:36:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AACE1FC0F3
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 10:36:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743586606; cv=none; b=SpHf2px+VOYqet+YAGqWIECEI93LGYP1ETz8Ri35S1fqJL89+4VTvFs5e7dkKEjhq3xCBWFL3043lWcarwcydVPoK0jzknGPCVsr4o0PcQYIiyBx9iTf2uxUhfvRQxZH0Nc0iwIadOHRRFNq8YFXa8WtVWEe9G5P7Cgu+3x8vNI=
+	t=1743590182; cv=none; b=I/jNbyNnmf0HvV+7W+EobSeHb0E9F3GhC6kK+M0z2uBL/ZlHOTPzPBxWoYhFS3k9vMzw0fQVVq+LvebG1XEP/djr0fPo5F34qhqPkJmU9co8VC9M6sLQrfolFxxtxlEPZSNwrXUqT6cOzlxx5k4Lyh+8nEVqoWC0f4yQRLtoBnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743586606; c=relaxed/simple;
-	bh=9FXByDhtXQPo26WfwDsjhSQ5+QQ+djvHZSnq1Td7Pww=;
+	s=arc-20240116; t=1743590182; c=relaxed/simple;
+	bh=s+1K1fTMIf7ZizJrtZAlFq1GMC2E7FzicK7sUgPeCls=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pM6M7OkDdqGSJ2PtjdptpvUb5tkxm/ck5yejNdPaMzV7iF3oxhEzHZRBW/3kBQSeJi6PpaPwvnoUD5ENHfJ5osvWT+cyEkOx2lxUeJWeXjUWVseALVqV4EItSAd8Dbl5Uc/u2tVXt5Be9n6Ishwg6KDDgQgQNtwSAwBiCQY1C2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=miXfr0Lv; arc=none smtp.client-ip=209.85.214.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Jsn5X+7ZVxXD1siy8zot9Wy4AIcsJhTgNK5ckNiCCdLHKgXS1fflM401nrohIJXrRDSVr8LR2x5ufU7Oi/FUNfzbNj8cSST/9KCyxtsFELrqR80g1oURVDtlt9wigcfsCykrgjepyzyRBF69BVXgNsGhl2YiuDkKBSztW+V0aSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kwJK1cOp; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vM9MSG1j; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="miXfr0Lv"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-22438c356c8so125087185ad.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 02 Apr 2025 02:36:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1743586604; x=1744191404; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:from:date:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=zOKS0P7hozNuI9mBYwyHdHB/M5XOwBk11Na2s/uqP7o=;
-        b=miXfr0Lv+vWAQyer/OVTIDVYvP6Ch7FC4QolY4zPWiIeLkVO4CbviNvVc/c/ehvgrS
-         ZshAMv6U5Ud76mRv7nqdfSIHm6arNu106QNVm/b7lGF+emxeqNOcxqJOBFjyvQvJwyBP
-         jwNPB8FZauvE0tZA1MyGtm+dGPxF27kqRwLW+yDG6AyVM+vZFlEoPil1SfK+7wlhXk6x
-         iRIFlzxdJqpnvwhNcFbSbVJZ5BQyr2s1k6cWqsTi8Znd+CaSygHRNL153XG46IviARLn
-         yU7SAGBXPYJnh3aTTYyWsX/cXYQN7tZnWaEpftxDnA/AOdMNdz4rYT2UW/GryoyuYdFc
-         gTjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743586604; x=1744191404;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:reply-to:message-id:subject:cc:to:from:date:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=zOKS0P7hozNuI9mBYwyHdHB/M5XOwBk11Na2s/uqP7o=;
-        b=qQdq1eMbp4uVfh2vpUlKDVgM1lb9DIVbnUee6W/gwFZpv8EGb6OPS4TzT3btE56bMy
-         R9B46gkTHRZgWNtZKixHucPR7yNhQ9jCd4KECq+ZjGuEj4oEDTkZJEwHl/ahi+hJ4MAb
-         oBlBMyY6FSjg66xbD5BYeWa0/BHVPhmX/2K+hxv+lzvDFrAWbzoqq3c0XDssFILanTr8
-         g81P0h3f2EONUCKLieEJP4DE8Nwc0Q/bn6ZMMXp1SpBQhGQhrbR+5huh7qWx+pJolG6r
-         7Sai2nlpjANFpNi2yi7zNdqBdSd3WIr5bntQiC6FTijFYgKlIiCH5n2GjRuQ4JEnQKjp
-         k4nw==
-X-Gm-Message-State: AOJu0YzQaIsPt4FIrb++fmknGCzb0mg6kTUXb3vDJVfwg2hxp9y2shce
-	MPhpO3hl5LjQOd6+kS+6fljKpQqggjjFYAF5AVcpoaY3nDe3/ezqCVjF2Q==
-X-Gm-Gg: ASbGnctiJw5p+nFMOgv0PAnB7O7hb9kh4Q7sMsWf88E2mODppgEFuNOMeqifzBZGUI3
-	231l3JQTrK0byscq7tnPmoNVNJcz4s8cCdADO4MMK6lqF/yvlq7L+tg+QARFrPBJjPI6SGv7Dcg
-	AELpKXsr0zm76gWg2hQfN2xn4IFDEtraqlKjuPzfvmWBBDFWQqYo3i7OzYwW0WiLT373czyjRhf
-	Oylf9eZZxQqAPyZ2MhwlUeg/ia0UFgLNuBaNL+zoSQnsGqNP+gblZD5002+3aHslzr8toYihw6A
-	pQkWT1T+ueZ8S+aN2ZLffuUWOBGE/EAHnChJ1cLx4SGRg8ImeZr3LMs2/pLXoIfQy6HazxFJeLU
-	4AQlawYq5aoZh2k8Fgmeb8rmzYHC3wg==
-X-Google-Smtp-Source: AGHT+IGpj2P9lvZ/UZ4VQes81USgyaBBkyvobPjsAxQzP93yxDViSozPbbGVAlD4Pv3MK26VaxTXHw==
-X-Received: by 2002:a17:902:ec85:b0:223:635d:3e2a with SMTP id d9443c01a7336-2292f974adamr224559455ad.23.1743586604234;
-        Wed, 02 Apr 2025 02:36:44 -0700 (PDT)
-Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2291f1cfb40sm103659585ad.107.2025.04.02.02.36.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Apr 2025 02:36:43 -0700 (PDT)
-Sender: Duncan Roe <duncan.roe2@gmail.com>
-Date: Wed, 2 Apr 2025 20:36:40 +1100
-From: Duncan Roe <duncan_roe@optusnet.com.au>
-To: "G.W. Haywood" <ged@jubileegroup.co.uk>
-Cc: Netfilter Development <netfilter-devel@vger.kernel.org>
-Subject: Re: Documentation oddity.
-Message-ID: <Z+0FKKFKcofghbwp@slk15.local.net>
-Reply-To: duncan_roe@optusnet.com.au
-Mail-Followup-To: "G.W. Haywood" <ged@jubileegroup.co.uk>,
-	Netfilter Development <netfilter-devel@vger.kernel.org>
-References: <9190a743-e6ac-fa2a-4740-864b62d5fda7@jubileegroup.co.uk>
- <bda3eb41-742f-a3c3-f23e-c535e4e461fd@blackhole.kfki.hu>
- <4991be2e-3839-526f-505e-f8dd2c2fc3f3@jubileegroup.co.uk>
- <Z899IF0jLhUMQLE4@slk15.local.net>
- <99edfdb-3c85-3cce-dcc3-6e61c6268a77@jubileegroup.co.uk>
- <Z9EoA1g/USRbSufZ@slk15.local.net>
- <f87285a5-f381-bb1f-3d31-97ef214946dd@jubileegroup.co.uk>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kwJK1cOp";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vM9MSG1j"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 46C1D605F2; Wed,  2 Apr 2025 12:36:16 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743590176;
+	bh=nXrg9zHM30G/LNDQ7B+Y3PdMr1Yc568/d414UyQV8HU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=kwJK1cOpE/NnX3JU31TEHtgetT5BmQsJ2AJw5ZX5Fw2jUEp+Z+NVBIF1M/Gmha4FK
+	 F1kiSa0iwKgLW8nJCo141Sk0cl19A7s9nhnOaX3j0kPBKEG3/my2FnXemkx6EDYQmr
+	 J4sYIFX38nRF5JPXX3j0jItkeNiMk6EnyEwcG9XzObKfSDjKRbMfpQXoQ3QACmOk2O
+	 fhFmjx98LSCylU4gjKMX4UMiO0iOFgnjMPYawEjSeYgKO9g0pR8JzrEPPc/5l6n1dE
+	 3SFDCo1JDlgLfNdkWv13Bd1Tm6rT3wWw7+oKRNjSFuWm97IBDukkxDaG+3j/DNpjL8
+	 YlTtEt3ri9r3w==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 15ECE605F2;
+	Wed,  2 Apr 2025 12:36:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1743590175;
+	bh=nXrg9zHM30G/LNDQ7B+Y3PdMr1Yc568/d414UyQV8HU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=vM9MSG1jjaFgx60UWHnV+vYZ0kY1Pye6YdQX5L5pldEfkG09wEGtNpcL9WCjD9jFx
+	 wYXCgkaxi0jlz96QDJRSDFPkY09jB+0bs39hg4jfX700NPRQ6l1vHYbwZq/y2MUPYa
+	 ACJ6L0sCGd2zLT1LN3Asl5iV3H/Lqa488lvSU6z3MtSoYdBNdmBht94P6Ux9BLMn+H
+	 rpVIazJh9z6B/GAVLF3r2Ssoa1mvWGsYXPT6qChbupgMDZX0qjfyBNJ8XieCMM/BDQ
+	 M1i0/bolZd4wBgCtP8PvqNqAkzVuX6ZQ8NJFUPA0OQcyc+9VmysySq/cJSe+Wrv0Ow
+	 r10Lv0ZF/cfXQ==
+Date: Wed, 2 Apr 2025 12:36:12 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
+	syzbot+53ed3a6440173ddbf499@syzkaller.appspotmail.com
+Subject: Re: [PATCH nf] netfilter: nf_tables: don't unregister hook when
+ table is dormant
+Message-ID: <Z-0THLCSy917XRq0@calendula>
+References: <20250401123651.29379-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <f87285a5-f381-bb1f-3d31-97ef214946dd@jubileegroup.co.uk>
+In-Reply-To: <20250401123651.29379-1-fw@strlen.de>
 
-Hi Ged,
+Hi Florian,
 
-On Fri, Mar 28, 2025 at 01:55:11PM +0000, G.W. Haywood wrote:
-> Hi there,
->
-> In the document at
->
-> https://netfilter.org/projects/libnetfilter_queue/doxygen/html/group__tcp.html#ga66fd94158867c63be8e4104d84050ac4
->
-> 1. At the top of the page it mentions a diagram, but I don't see anything
-> in my browsers.  Have I missed something?
+On Tue, Apr 01, 2025 at 02:36:47PM +0200, Florian Westphal wrote:
+> When nf_tables_updchain encounters an error, hook registration needs to
+> be rolled back.
+> 
+> This should only be done if the hook has been registered, which won't
+> happen when the table is flagged as dormant (inactive).
+> 
+> Just move the assignment into the registration block.
 
-No, the diagram is not there because the system where the document was built did
-not have the *graphviz* package installed. Graphviz supplies the `dot` utility
-which doxygen uses to create diagrams.
+I just made another pass today on this, I think this needs to be:
 
-In the absence of graphviz, the "Collaboration diagram..." line should not be
-there. This was a build issue, now fixed but not yet released.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c2df81b7e950..a133e1c175ce 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2839,11 +2839,11 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+                        err = nft_netdev_register_hooks(ctx->net, &hook.list);
+                        if (err < 0)
+                                goto err_hooks;
++
++                       unregister = true;
+                }
+        }
+ 
+-       unregister = true;
+-
+        if (nla[NFTA_CHAIN_COUNTERS]) {
+                if (!nft_is_base_chain(chain)) {
+                        err = -EOPNOTSUPP;
 
-If you're keen to see the diagram, you could email the webmaster requesting a
-rebuild with graphviz installed.
->
-> 2. Each section covering a function mentions the function name three times.
->
-> Except in the section for the function
->
-> nfq_tcp_snprintf
->
-> which at the third attempt actually calls it
->
-> nfq_pkt_snprintf_tcp_hdr
->
-> and which had me confused for a while.
->
-> 3. It also spells "human" as "humnan". :/
+This is the rationale:
 
-2. & 3. are actually on the same line. It's been like that forever - I've
-submitted a patch to fix (and nfq_udp_snprintf, same fixes).
->
-Cheers ... Duncan.
+- only updchain allows for adding new basechains for netdev family,
+  this is to add new devices to this netdev basechain.
+- !netdev families only check if the hook is the same in the chain
+  update. Otherwise, it reports EEXIST. That is, chain update of
+  !netdev families is not possible.
+
+I am moving "unregister = true" under this check:
+
+  if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
+
+only in this case hook registrations can happen. Then, in case of
+error, unwind only applies if basechain's family is netdev.
