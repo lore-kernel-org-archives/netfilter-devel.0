@@ -1,54 +1,28 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5660B21A42F
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 11:34:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C02B2356B5
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 14:51:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743593678; cv=none; b=QKrvio6a3Xb2iHRpN1CYoElYrZoPqRnzCWkMKy4rktx3/vDvh70RKB+AHsdwnSxb7gIe2DSoNErHyHoZBJCV9vqFqUtvCozL5CvbQGRGthEFpIJfdtDaLwg0CBBbSvW3AyxQuXSMaUqLcaUQNEgVUruhRV0eSDj7x8KarppQ9iM=
+	t=1743605515; cv=none; b=Iyg5jg7zYnqmidxjpxmn6vgpQdRHl02txuPrpJ+NjD2eN8LAtbHQ3a2T7Eygx0g8lU26pkBbxOvtXTWLm5hbWsaSFwRTOvJB+X1O0MVYpP57aAp1HZYZtLy/WS45r8/RbBssEd5SGwRC1Gw5mSxlr6JXAesSJBuNLe5CSzvg3/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743593678; c=relaxed/simple;
-	bh=/oMv/6uGASWehZYXpNh+BHvAc/0VZQ5Dx4nnzKrdYIE=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=uwNbwo3ojsHI78kuYjGvEa01HXXyLpMELXYNFPHzivdyjIJIiroiFOE/+3DTf9ttK2Na116V+VT8/nUxVIQ72TIJLp9KNzWBQKdCB8LqrWouZW14bXJkIZmFwMRoD5BlKf7DoHf/aGDoI0wDzbviYmrQCvFRGvJnKeG4ql+LLa4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PBU8SJ+w; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=J1f9iTGC; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PBU8SJ+w";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="J1f9iTGC"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 12BDD605B2; Wed,  2 Apr 2025 13:34:32 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743593672;
-	bh=BtYEGUMatC3h0sQF0cGnn0rdM1R9r9hRrSJ+7QJ30y8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=PBU8SJ+w5SmAA11EFQ5C57SRO8nDsbb7wzel1VVO/3PMjDkkfM8K6WexT7lL2KRYB
-	 XtT0GWcWxIIVvJN28USUQHudd80vbJqpzt/dMIqYolF8i6G2y/hL/oY1AhTw0eZnwx
-	 /l0M0IvmQzO1u874SUo22oEzkhKG1D34ioesN2w/fdnemlh+M2XMUIUahrkh6eErEm
-	 UKIzXaHniIM8b5gQSl/piChNgUiAK1V7gWiez8io5CHv/gOr92JpDN30Whs6/Trwqb
-	 IAp/PsB6FDQ5eDMk1ApenZoKxfNKQF8u3n/pvRTPrDaA2oknUepvva4pCRnnTF0HtD
-	 waHnVSdZe7RAQ==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5DCBA603A6;
-	Wed,  2 Apr 2025 13:34:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743593671;
-	bh=BtYEGUMatC3h0sQF0cGnn0rdM1R9r9hRrSJ+7QJ30y8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=J1f9iTGCYC8eOhawvqreeWO8GY1qvzDV3ddUh/XZ/OvaeT1t3h2zuikoo7rlII+JF
-	 fXFaHEv4nxbw+5GeGDzz5tRa72aUpzmfj6isNQ59k0dDw2+KNTsKHaV++pRbSSDzxq
-	 PhdMek9tV514krBoesl/N9C5M2Q/W/lbeMSwZVvUU5AoMihA6fBSHUSHz+XtzNPlXw
-	 3tRSYm1YlADUdKlde0X1qux2De6FgJl3BIHoD6KpxyDED8m0s7XPQgGMK8yazddcKI
-	 1zO92MJfHRuCJToDWt5RMrhFHraDv2ZNoJCi0yepB2uCEqHlQrT7dhLuTz9uHclpzH
-	 Q0o0O9LGlSPRQ==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf,v2] netfilter: nf_tables: don't unregister hook when table is dormant
-Date: Wed,  2 Apr 2025 13:34:27 +0200
-Message-Id: <20250402113427.53530-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+	s=arc-20240116; t=1743605515; c=relaxed/simple;
+	bh=G3ODJLwoJFVv/uS/XoLN2oEjUzFRwkC9eDK+5kWY5js=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WOzvC1mxwvEEy0ywoJWRcxM2570u+iWmiP7nUl91sM2VDCRSVwi5XlXg9qx4iQEd3xmqFOR3whQfi4cCx3R5hq0U5nsnFm/20flUE1RklGjcrujDVyxCPCPIK7UOgCrvFiJqxgTsUYnMtRqgkQKfsSkL+jsJj43tm88qSqUWzgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tzzRP-0003Kt-PH; Wed, 02 Apr 2025 16:51:43 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 1/2] evaluate: rename recursion counter to recursion.binop
+Date: Wed,  2 Apr 2025 16:50:39 +0200
+Message-ID: <20250402145045.4637-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -57,45 +31,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+The existing recursion counter is only used by the binop expression
+to detect if we've completely followed all the binops.
 
-When nf_tables_updchain encounters an error, hook registration needs to
-be rolled back.
+We can only chain up to NFT_MAX_EXPR_RECURSION binops, but
+the evaluation step can perform constant-folding, so we must
+first recurse until we found the rightmost (last) binop in the
+chain.
 
-This should only be done if the hook has been registered, which won't
-happen when the table is flagged as dormant (inactive).
+Then we can check the post-eval chain to see if it is something
+that can be serialized later or not.
 
-Just move the assignment into the registration block.
+Thus we can't reuse the existing ctx->recursion counter for
+other expressions; entering the initial expr_evaluate_binop with
+ctx->recursion > 0 would break things.
 
-Reported-by: syzbot+53ed3a6440173ddbf499@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=53ed3a6440173ddbf499
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
+Therefore rename this to an embedded structure.
+This allows us to add a new recursion counter to the new embedded
+structure in a followup patch.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: toggle unregister flag only for netdev basechain.
+ include/rule.h |  8 ++++++--
+ src/evaluate.c | 10 +++++-----
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index c2df81b7e950..a133e1c175ce 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2839,11 +2839,11 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 			err = nft_netdev_register_hooks(ctx->net, &hook.list);
- 			if (err < 0)
- 				goto err_hooks;
+diff --git a/include/rule.h b/include/rule.h
+index 85a0d9c0b524..e7e80a41506c 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -756,6 +756,10 @@ extern void cmd_free(struct cmd *cmd);
+ #include <payload.h>
+ #include <expression.h>
+ 
++struct eval_recursion {
++	uint16_t binop;
++};
 +
-+			unregister = true;
- 		}
+ /**
+  * struct eval_ctx - evaluation context
+  *
+@@ -767,7 +771,7 @@ extern void cmd_free(struct cmd *cmd);
+  * @set:	current set
+  * @stmt:	current statement
+  * @stmt_len:	current statement template length
+- * @recursion:  expr evaluation recursion counter
++ * @recursion:  expr evaluation recursion counters
+  * @cache:	cache context
+  * @debug_mask: debugging bitmask
+  * @ectx:	expression context
+@@ -783,7 +787,7 @@ struct eval_ctx {
+ 	struct set		*set;
+ 	struct stmt		*stmt;
+ 	uint32_t		stmt_len;
+-	uint32_t		recursion;
++	struct eval_recursion	recursion;
+ 	struct expr_ctx		ectx;
+ 	struct proto_ctx	_pctx[2];
+ 	const struct proto_desc	*inner_desc;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index f73edc916406..d099be137cb3 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1518,11 +1518,11 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 	unsigned int max_shift_len = ctx->ectx.len;
+ 	int ret = -1;
+ 
+-	if (ctx->recursion >= USHRT_MAX)
++	if (ctx->recursion.binop >= USHRT_MAX)
+ 		return expr_binary_error(ctx->msgs, op, NULL,
+ 					 "Binary operation limit %u reached ",
+-					 ctx->recursion);
+-	ctx->recursion++;
++					 ctx->recursion.binop);
++	ctx->recursion.binop++;
+ 
+ 	if (expr_evaluate(ctx, &op->left) < 0)
+ 		return -1;
+@@ -1607,7 +1607,7 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
  	}
  
--	unregister = true;
--
- 	if (nla[NFTA_CHAIN_COUNTERS]) {
- 		if (!nft_is_base_chain(chain)) {
- 			err = -EOPNOTSUPP;
+ 
+-	if (ctx->recursion == 0)
++	if (ctx->recursion.binop == 0)
+ 		BUG("recursion counter underflow");
+ 
+ 	/* can't check earlier: evaluate functions might do constant-merging + expr_free.
+@@ -1615,7 +1615,7 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
+ 	 * So once we've evaluate everything check for remaining length of the
+ 	 * binop chain.
+ 	 */
+-	if (--ctx->recursion == 0) {
++	if (--ctx->recursion.binop == 0) {
+ 		unsigned int to_linearize = 0;
+ 
+ 		op = *expr;
 -- 
-2.30.2
+2.49.0
 
