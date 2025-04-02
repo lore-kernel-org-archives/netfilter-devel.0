@@ -1,163 +1,155 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AAE6214A8B
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Apr 2025 20:04:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61D0E231A4D
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 06:25:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743537886; cv=none; b=E4P6zuIY111vDr4sqg67gs4dc34NsROSmJLjc7CKK5c71gCN2bAZskUmsNYWFxwHqoXF6xpbecdUlE8aqtsA0XGvyjoaCXD21xdKDnRI2S3nN5gW0kGtJVwtiCTRYf300/1PXoxPfSVpXU5MvDDeEYllMYrAn8RSsh4lqFOlbJk=
+	t=1743575149; cv=none; b=I5UScCRCzZ1ao3k5RcgAnZjWiyMd1DxZbalLZVw5AFdTblFLxog3V01gr6aX601EtvuMHFF/dlRU9n6u/Lsik8fkR3ftTmPtOgr66ALeMF7om2dRNmpw5pRKH3E1kBYZUVLdd0zwQU7QlkMN/DR427jsYbsAiqkLieyXKA8nejc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743537886; c=relaxed/simple;
-	bh=xIxo0mwDim3LLBHqzOAzvnkbTNhwez/O7YlU4SEA6Vw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FgwVuKO6pGZ2iB26eD5c7nmi4gAfVwGIh+radQO/0jP33IbrPxyFzYO1/GuSMZmBQLkMiaIuiYdIzCkPEtSm3mpsOGY2yXnHyKrmtxojCGp80BOs+ZXgbSf9WQJZFH+BICceF0imWW0Ho8GuabDGqnbI1HYGKQsfZeZqwLOzDro=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Q86v0dV1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=p60eA4p/; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Q86v0dV1";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="p60eA4p/"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 27A71605BD; Tue,  1 Apr 2025 22:04:42 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743537882;
-	bh=7dFiUvg4vNPSVbAvFWpiL7JLzmSR8HyCHpvXjpJPNfM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Q86v0dV1TebC6d323+FPPQEX9EKTKoBi871eOYk/42XxlVSOS6kAOtOmgVTgqDK77
-	 FtlUOFBzUt8UntzPUS+ddTYEFpv/nOMTtwk3Lp83enB7xHy+bc2kJtw9ow3FtjAEUl
-	 tnl3nHcCd3VjOf1Fb0lBMajN/XelW8er3bHz3geOEO/1qDZfC44mhriFBCaH+Xyqrx
-	 uy6GTvbt0STg3u8Cs8KyiWCUYv9h/Be1C5mLJdNx69cMtc8BC4AuKeMZp5cczgs9zv
-	 gkY6cxIIqWy7KVt//tJMUdYrllrHWr3lu0Z1msAoO2MYY0pbBEPJ0b8DHF0OiqXEx2
-	 +LhazYBajH/0A==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 71D0E605B3;
-	Tue,  1 Apr 2025 22:04:41 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743537881;
-	bh=7dFiUvg4vNPSVbAvFWpiL7JLzmSR8HyCHpvXjpJPNfM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=p60eA4p/9MHP8OUm2sIWqdKaQYMACA/TlYLWxKqYML1xel9DOwvvwWkdwiSv6N2gF
-	 NdfxbAjOt+eDSm7uPGSu5RNGSxoaI7QQ9VBEExw0xpYhYnkIBHPnIQO+6eQBcNM3Xn
-	 4GVgRkNUvKJmYivBhxkeeg8Jaripw6nlheTxd6loaOrpf4IKZVkGFTLZGbdVh/51hr
-	 3Us6Czj1JfTku3RZGJEMMy/ye6h69S5xq0aFEU8fyhF69LtQv7p6ULgXgc41nT3Awj
-	 OBTuusYpUKg+JLDhGbaVTSyzpVIM2ByUl/SK8QEHG/3PR+VkIGTUZTwSvQv5sWNhc8
-	 UTb8GYaMHn3SQ==
-Date: Tue, 1 Apr 2025 22:04:39 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/2] evaluate: fix crash when generating reject
- statement error
-Message-ID: <Z-xG13jqxy6SOuQE@calendula>
-References: <20250331124341.12151-1-fw@strlen.de>
- <20250331124341.12151-2-fw@strlen.de>
+	s=arc-20240116; t=1743575149; c=relaxed/simple;
+	bh=Iwhy+tqVoBbvrz/cJEuEQ/JVHG1ZmEDx408/y/7t5Aw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dhOZbniUErmyZEsSrVuvfJxmLhONQW3tAsfkHavKVslofpyVULTFnJNcXwGf5ootaflrQq3BXWPEH/tWkzVgm4pW+iGnhN+zEn8GI3ArrOhdax6pXm+SvuU/KrNhGCkIGEvN5VPlVU3/ppaCV5lpBn8mViCeQlF6OjvLva1TJrE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1tzrXl-0007Rv-8T; Wed, 02 Apr 2025 08:25:45 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] parser_json: only allow concatenations with 2 or more expressions
+Date: Wed,  2 Apr 2025 07:18:18 +0200
+Message-ID: <20250402051820.9653-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250331124341.12151-2-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Mar 31, 2025 at 02:43:34PM +0200, Florian Westphal wrote:
-> After patch, this gets rejected with:
-> internal:0:0-0: Error: conflicting protocols specified: ip vs ip6
-> 
-> Without patch, we crash with a NULL dereference: we cannot use
-> reject.expr->location unconditionally.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+The bison grammar enforces this implicitly by grammar rules, e.g.
+"mark . ip saddr" or similar, i.e., ALL concatenation expressions
+consist of at least two elements.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+But this doesn't apply to the json frontend which just uses an
+array: it can be empty or only contain one element.
 
-Thanks!
+The included reproducer makes the eval stage set the "concatenation" flag
+on the interval set.  This prevents the needed conversion code to turn the
+element values into ranges from getting run.
 
-> ---
->  src/evaluate.c                                | 16 ++++++++--
->  .../reject_stmt_with_no_expression_crash      | 32 +++++++++++++++++++
->  2 files changed, 46 insertions(+), 2 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
-> 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 507b1c86cafc..e4a7b5ceaafa 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -3791,6 +3791,18 @@ static int stmt_evaluate_reject_bridge(struct eval_ctx *ctx, struct stmt *stmt)
->  	return 0;
->  }
->  
-> +static int stmt_reject_error(struct eval_ctx *ctx,
-> +			     const struct stmt *stmt,
-> +			     const char *msg)
-> +{
-> +	struct expr *e = stmt->reject.expr;
-> +
-> +	if (e)
-> +		return stmt_binary_error(ctx, e, stmt, "%s", msg);
-> +
-> +	return stmt_error(ctx, stmt, "%s", msg);
-> +}
-> +
->  static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
->  {
->  	struct proto_ctx *pctx = eval_proto_ctx(ctx);
-> @@ -3806,12 +3818,12 @@ static int stmt_evaluate_reject_family(struct eval_ctx *ctx, struct stmt *stmt)
->  				return -1;
->  			break;
->  		case NFT_REJECT_ICMPX_UNREACH:
-> -			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
-> +			return stmt_reject_error(ctx, stmt,
->  				   "abstracted ICMP unreachable not supported");
->  		case NFT_REJECT_ICMP_UNREACH:
->  			if (stmt->reject.family == pctx->family)
->  				break;
-> -			return stmt_binary_error(ctx, stmt->reject.expr, stmt,
-> +			return stmt_reject_error(ctx, stmt,
->  				  "conflicting protocols specified: ip vs ip6");
->  		}
->  		break;
-> diff --git a/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash b/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
-> new file mode 100644
-> index 000000000000..04c01aa77a29
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-j-f/reject_stmt_with_no_expression_crash
-> @@ -0,0 +1,32 @@
-> +{
-> +  "nftables": [
-> +    {
-> +      "table": { "family": "ip", "name": "x",
-> +        "handle": 0
-> +      }
-> +    },
-> +    {
-> +      "chain": {
-> +        "family": "ip",
-> +        "table": "x",
-> +        "name": "c",
-> +        "handle": 0
-> +      }
-> +    },
-> +    {
-> +      "rule": {
-> +        "family": "ip",
-> +        "table": "x",
-> +        "chain": "c",
-> +             "expr": [
-> +          {
-> +            "reject": {
-> +              "type": "icmpv6",
-> +              "exprlimit": "port-unreachable"
-> +            }
-> +          }
-> +        ]
-> +      }
-> +    }
-> +  ]
-> +}
-> -- 
-> 2.49.0
-> 
-> 
+The reproducer asserts with:
+nft: src/intervals.c:786: setelem_to_interval: Assertion `key->etype == EXPR_RANGE_VALUE' failed.
+
+Convert the assertion to BUG() so we can see what element type got passed
+to the set interval code in case we have further issues in this area.
+
+Reject 0-or-1-element concatenations from the json parser.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/intervals.c                               |  4 ++-
+ src/parser_json.c                             | 20 ++++++++------
+ .../set_with_single_value_concat_assert       | 26 +++++++++++++++++++
+ 3 files changed, 41 insertions(+), 9 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert
+
+diff --git a/src/intervals.c b/src/intervals.c
+index 71ad210bf759..1ab443bcde87 100644
+--- a/src/intervals.c
++++ b/src/intervals.c
+@@ -783,7 +783,9 @@ int setelem_to_interval(const struct set *set, struct expr *elem,
+ 			next_key = NULL;
+ 	}
+ 
+-	assert(key->etype == EXPR_RANGE_VALUE);
++	if (key->etype != EXPR_RANGE_VALUE)
++		BUG("key must be RANGE_VALUE, not %s\n", expr_name(key));
++
+ 	assert(!next_key || next_key->etype == EXPR_RANGE_VALUE);
+ 
+ 	/* skip end element for adjacents intervals in anonymous sets. */
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 94d09212314f..724cba881623 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1251,6 +1251,16 @@ static struct expr *json_parse_binop_expr(struct json_ctx *ctx,
+ 	return binop_expr_alloc(int_loc, thisop, left, right);
+ }
+ 
++static struct expr *json_check_concat_expr(struct json_ctx *ctx, struct expr *e)
++{
++	if (e->size >= 2)
++		return e;
++
++	json_error(ctx, "Concatenation with %d elements is illegal", e->size);
++	expr_free(e);
++	return NULL;
++}
++
+ static struct expr *json_parse_concat_expr(struct json_ctx *ctx,
+ 					   const char *type, json_t *root)
+ {
+@@ -1284,7 +1294,7 @@ static struct expr *json_parse_concat_expr(struct json_ctx *ctx,
+ 		}
+ 		compound_expr_add(expr, tmp);
+ 	}
+-	return expr;
++	return expr ? json_check_concat_expr(ctx, expr) : NULL;
+ }
+ 
+ static struct expr *json_parse_prefix_expr(struct json_ctx *ctx,
+@@ -1748,13 +1758,7 @@ static struct expr *json_parse_dtype_expr(struct json_ctx *ctx, json_t *root)
+ 			compound_expr_add(expr, i);
+ 		}
+ 
+-		if (list_empty(&expr->expressions)) {
+-			json_error(ctx, "Empty concatenation");
+-			expr_free(expr);
+-			return NULL;
+-		}
+-
+-		return expr;
++		return json_check_concat_expr(ctx, expr);
+ 	} else if (json_is_object(root)) {
+ 		const char *key;
+ 		json_t *val;
+diff --git a/tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert b/tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert
+new file mode 100644
+index 000000000000..c99a26683470
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert
+@@ -0,0 +1,26 @@
++{
++  "nftables": [
++    {
++  "metainfo": {
++   "version": "nftables", "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++	"family": "ip",
++	"name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "set": {
++        "family": "ip",
++        "name": "s",
++        "table": "t",
++	"type": [ "ifname" ],
++        "flags": [ "interval" ],
++        "elem": [ [] ]
++      }
++    }
++  ]
++}
+-- 
+2.49.0
+
