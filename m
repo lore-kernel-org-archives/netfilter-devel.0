@@ -1,192 +1,113 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEC58234989
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 08:44:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B44A51C8603
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Apr 2025 09:19:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743583485; cv=none; b=DDxEgtPOS82Fy6ZNMedlMrQ/un4UORM/u3TguVXPQsYyVJQyO/TAslSinKRtbPz+e4sMbnsZ41K4UIMGbTQZu+JQQmLkWmFuto6fH5PSQB9vozo4CURg7tmkQVRo8ugNhtRLU+mYpfWWGg143AP4G3OJSqMOrFhIGN7ofCZvwPg=
+	t=1743585585; cv=none; b=nKs1R4ulcPtzZUdb16aR8czrFliiVX/S278aYFOQqXZipYMBaVQoTshikiPK+ZTDb0qWhm/VDU+IKFu1Z0qYCqLUz/GXJDF2yRKg5C/V6x6qMj4MP2hCl84nt2uFMZIglALsN9sy4W+bjRgsoVBfKRBZ5eel48e7QMQQ2uAA2X8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743583485; c=relaxed/simple;
-	bh=ZRAxATqCuYdG0AGRfAOn2y1iSb9dXYZZht7ntxYgj7M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=iB6q4WMarq82MjVphURmm4nAB3O8iEDm0JT2tl9qEuW+iCCo0gMK1K08gbdjEKniaYR+ATd1EVMTL/CaJnVhHYdLGXeJBcWy941bgSTwOM7HkAjTXkCLAHpttAVWIRoVH7v3uWG5jcuAYZY3bqKVt4KzHE3w+klcR8UOjVpvKX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XYHBCajf; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XYHBCajf; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1743585585; c=relaxed/simple;
+	bh=56k/nXtSoEKiefDLs2SanhGP1IiNe6zIp1dCZn/XcV4=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=kiOXkscQW4ToXOduX2j7oRAt6+zUaM274oXEw3vwg6wan1kuGj1SxUJ4zp5nFiXjNRlDkDRcLrkvpw+HaXQNFKTegE2SmuQymRUcDxx3Wmit2YIgvxkirOJuNEZBX3P3jdgVhhLj6ua6HQh89Y/wO9u5D4mOtCDtMgRPwfpJ/bE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AvEMooi0; arc=none smtp.client-ip=209.85.216.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=optusnet.com.au
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XYHBCajf";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XYHBCajf"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id E689B60578; Wed,  2 Apr 2025 10:44:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743583479;
-	bh=DlHyEk3KXxr7rKoAazQkU/qiFlBMMIC9FC3Oz9qxug4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XYHBCajfxeImexZP7GpR0qktrxsCeqAVQOxlv/xScAVd+GipYWwE7Fc3BmepNQcFI
-	 mrd4+Kpm/9HB0v9ziYUb2Srigq4ERevQwui6NNip7HkSEMJy4smzvRzhccB24UHIBD
-	 TIPqDU6FxQj1nQREDqVcSTW6Mrdpk2f++tnPEUwtRsEA1SjXw+UOg4FQrWpYkYQDlG
-	 8zy98+GjEvuGIut/Levj6Xh16j7r+30RgGrhAfSX/qpdifxjMARkpkLk8gbXc2QwIE
-	 0N5NaaU6fB2SsPCQcsBeaZuW34KG+wylDoOG6vbnxwnvKcTsgK121OL8SQqmbl49Ee
-	 lqVataT8YhyVw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 17CE76054C;
-	Wed,  2 Apr 2025 10:44:39 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1743583479;
-	bh=DlHyEk3KXxr7rKoAazQkU/qiFlBMMIC9FC3Oz9qxug4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XYHBCajfxeImexZP7GpR0qktrxsCeqAVQOxlv/xScAVd+GipYWwE7Fc3BmepNQcFI
-	 mrd4+Kpm/9HB0v9ziYUb2Srigq4ERevQwui6NNip7HkSEMJy4smzvRzhccB24UHIBD
-	 TIPqDU6FxQj1nQREDqVcSTW6Mrdpk2f++tnPEUwtRsEA1SjXw+UOg4FQrWpYkYQDlG
-	 8zy98+GjEvuGIut/Levj6Xh16j7r+30RgGrhAfSX/qpdifxjMARkpkLk8gbXc2QwIE
-	 0N5NaaU6fB2SsPCQcsBeaZuW34KG+wylDoOG6vbnxwnvKcTsgK121OL8SQqmbl49Ee
-	 lqVataT8YhyVw==
-Date: Wed, 2 Apr 2025 10:44:36 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] parser_json: only allow concatenations with 2 or
- more expressions
-Message-ID: <Z-z49Pv9YzdP8zsK@calendula>
-References: <20250402051820.9653-1-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AvEMooi0"
+Received: by mail-pj1-f49.google.com with SMTP id 98e67ed59e1d1-301e05b90caso11152245a91.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 Apr 2025 02:19:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1743585581; x=1744190381; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZVDuz4V+3/2NtrM9uV01J4vucut9/5Twb1m+wv0wLEk=;
+        b=AvEMooi0enUQNZy5aqjPrJRiTigAJn2JSwRWWSAu2K9TphxMQJy+J9htvXzLvG9ZzZ
+         n3A4tlf6TaYreD9QH2yAzqpVxhdLmPFVUogezSlheN0bH+Fsxae5TH/nV1zSpOdRUIjV
+         EW+8l0moaNQcYUCJCmkwLophj+PSOTPkckIdJ+xPF0Q+SU0ZnLaHvljHygaMqi0sh7IA
+         GO+gSmGheoo8NXn5ra3yiyTsnnIuwoJPhIZBaUcf76MuerAINwrUB0a/T6LvcQAtZ1/u
+         OOs3dx1bncgV/hi9EPhYzYncf4Ivu7Z4qS/6fN9BZVIWsSLfvwjw8p1zxN5Lv2nhDHzV
+         ykNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1743585581; x=1744190381;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZVDuz4V+3/2NtrM9uV01J4vucut9/5Twb1m+wv0wLEk=;
+        b=Cd+Nl42/y/2621/c88nz0Z/ddTEZiPs7OOvUnUothWi15hHq+Q8iUPhzh6XRow8yOc
+         3CjE7eq8pQJpCWRitbGBINMO02Wr2M57uDWPYc3LZEqZNOVMonJ3disA1xEeT4A093JL
+         mJ6Fl03bnAtjR+FYD6BMMhnR7gTvEfuh1fr1cuT1KI5oD1ixX0fCmq9QTw8Xol63I3ej
+         EMyd2ujDij3xnvlvF2XoqTEj7/Dv0/wMG7ZEHgqu5eLx6RDqi+2mzCNuSPRcBr8sUIva
+         UJNkU8naEVfwPuW/LTUN8Yu0dKO2j/qJgAZHqh2uNjqCS0tYfolkW7KHzzv8K+i8Dfso
+         XaDw==
+X-Gm-Message-State: AOJu0YybrZFXEr41AWMRtZcMHcNKJzEWrGx1L0kmMXv6WyIjekqIyAIh
+	B1h1c1nOypOkDpgt5RRWaWe1CCa6oteTgCOQIjPRLYiCvfMuPf8RgYFWjw==
+X-Gm-Gg: ASbGncvvdvY9N+8NHZOzuo84DLreJ+5SMG3ZPMPV18WeQ0E2fUhaDxTldRe/dmVk0ji
+	9jYJM3AlFYlMOcoyxSLr/vA5JGfHjRTHqxZ8QF+e2pdNwD3Ho8NsI4bigP2/I5nxz8ZGN2iGOeP
+	nsjn2Yzh1ZFhYu+fgk/0RGIq17hq0OrOc1F9xe6/WA/k5StEYDsZDAXbhcuIOBqondr7dqcHh/f
+	F0V+h+lgC+6dUbbpoBcLZjZIzxy9vGSYmC3EUwK4JaICIO3X25PN2UIzMm0CKmvCyASMZfOYcAs
+	VVoZgQ4F1qmf1BMOwk5b52Ry1gWNazCiILmpEsaBHbB93Mu8eCJa8Kbh3zhSBBC2MGaYQaFMtno
+	5jiDV89WG91ZKKXpUw8xmL7N8RfrN6Q==
+X-Google-Smtp-Source: AGHT+IEeJvICFe1Anm8uUJu1XVjBNjox8w1ijd8TmJysindbXXFvWp+R/pWbZGj3n7tMRwXNlLnSMw==
+X-Received: by 2002:a17:90b:5450:b0:2ee:8ea0:6b9c with SMTP id 98e67ed59e1d1-30531fa13bbmr30309786a91.12.1743585581363;
+        Wed, 02 Apr 2025 02:19:41 -0700 (PDT)
+Received: from slk15.local.net (n175-33-111-144.meb22.vic.optusnet.com.au. [175.33.111.144])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-3056f93413dsm1069907a91.31.2025.04.02.02.19.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Apr 2025 02:19:40 -0700 (PDT)
+Sender: Duncan Roe <duncan.roe2@gmail.com>
+From: Duncan Roe <duncan_roe@optusnet.com.au>
+To: netfilter-devel@vger.kernel.org
+Cc: "G.W. Haywood" <ged@jubileegroup.co.uk>
+Subject: [PATCH libnetfilter_queue] src: doc: Fix spelling and function name (x2)
+Date: Wed,  2 Apr 2025 20:17:43 +1100
+Message-Id: <20250402091742.1074-1-duncan_roe@optusnet.com.au>
+X-Mailer: git-send-email 2.35.8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250402051820.9653-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Apr 02, 2025 at 07:18:18AM +0200, Florian Westphal wrote:
-> The bison grammar enforces this implicitly by grammar rules, e.g.
-> "mark . ip saddr" or similar, i.e., ALL concatenation expressions
-> consist of at least two elements.
-> 
-> But this doesn't apply to the json frontend which just uses an
-> array: it can be empty or only contain one element.
-> 
-> The included reproducer makes the eval stage set the "concatenation" flag
-> on the interval set.  This prevents the needed conversion code to turn the
-> element values into ranges from getting run.
-> 
-> The reproducer asserts with:
-> nft: src/intervals.c:786: setelem_to_interval: Assertion `key->etype == EXPR_RANGE_VALUE' failed.
-> 
-> Convert the assertion to BUG() so we can see what element type got passed
-> to the set interval code in case we have further issues in this area.
-> 
-> Reject 0-or-1-element concatenations from the json parser.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Fix spelling of "humnan" and name nfq_pkt_snprintf_tcp_hdr
+in description of nfq_tcp_snprintf. Same fix for nfq_udp_snprintf.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reported-by: "G.W. Haywood" <ged@jubileegroup.co.uk>
+Fixes: f40eabb01163 ("add pkt_buff and protocol helper functions")
+Signed-off-by: Duncan Roe <duncan_roe@optusnet.com.au>
+---
+ src/extra/tcp.c | 2 +-
+ src/extra/udp.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Thanks
+diff --git a/src/extra/tcp.c b/src/extra/tcp.c
+index 720afd2..1bc379f 100644
+--- a/src/extra/tcp.c
++++ b/src/extra/tcp.c
+@@ -168,7 +168,7 @@ union tcp_word_hdr {
+ #define tcp_flag_word(tp) ( ((union tcp_word_hdr *)(tp))->words[3])
+ 
+ /**
+- * nfq_pkt_snprintf_tcp_hdr - print tcp header into one buffer in a humnan
++ * nfq_tcp_snprintf - print tcp header into one buffer in a human
+  * readable way
+  * \param buf: pointer to buffer that is used to print the object
+  * \param size: size of the buffer (or remaining room in it).
+diff --git a/src/extra/udp.c b/src/extra/udp.c
+index ede2196..4d457ea 100644
+--- a/src/extra/udp.c
++++ b/src/extra/udp.c
+@@ -228,7 +228,7 @@ int nfq_udp_mangle_ipv6(struct pkt_buff *pktb,
+ }
+ 
+ /**
+- * nfq_pkt_snprintf_udp_hdr - print udp header into one buffer in a humnan
++ * nfq_udp_snprintf - print udp header into one buffer in a human
+  * readable way
+  * \param buf: pointer to buffer that is used to print the object
+  * \param size: size of the buffer (or remaining room in it).
+-- 
+2.46.3
 
-> ---
->  src/intervals.c                               |  4 ++-
->  src/parser_json.c                             | 20 ++++++++------
->  .../set_with_single_value_concat_assert       | 26 +++++++++++++++++++
->  3 files changed, 41 insertions(+), 9 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert
-> 
-> diff --git a/src/intervals.c b/src/intervals.c
-> index 71ad210bf759..1ab443bcde87 100644
-> --- a/src/intervals.c
-> +++ b/src/intervals.c
-> @@ -783,7 +783,9 @@ int setelem_to_interval(const struct set *set, struct expr *elem,
->  			next_key = NULL;
->  	}
->  
-> -	assert(key->etype == EXPR_RANGE_VALUE);
-> +	if (key->etype != EXPR_RANGE_VALUE)
-> +		BUG("key must be RANGE_VALUE, not %s\n", expr_name(key));
-> +
->  	assert(!next_key || next_key->etype == EXPR_RANGE_VALUE);
->  
->  	/* skip end element for adjacents intervals in anonymous sets. */
-> diff --git a/src/parser_json.c b/src/parser_json.c
-> index 94d09212314f..724cba881623 100644
-> --- a/src/parser_json.c
-> +++ b/src/parser_json.c
-> @@ -1251,6 +1251,16 @@ static struct expr *json_parse_binop_expr(struct json_ctx *ctx,
->  	return binop_expr_alloc(int_loc, thisop, left, right);
->  }
->  
-> +static struct expr *json_check_concat_expr(struct json_ctx *ctx, struct expr *e)
-> +{
-> +	if (e->size >= 2)
-> +		return e;
-> +
-> +	json_error(ctx, "Concatenation with %d elements is illegal", e->size);
-> +	expr_free(e);
-> +	return NULL;
-> +}
-> +
->  static struct expr *json_parse_concat_expr(struct json_ctx *ctx,
->  					   const char *type, json_t *root)
->  {
-> @@ -1284,7 +1294,7 @@ static struct expr *json_parse_concat_expr(struct json_ctx *ctx,
->  		}
->  		compound_expr_add(expr, tmp);
->  	}
-> -	return expr;
-> +	return expr ? json_check_concat_expr(ctx, expr) : NULL;
->  }
->  
->  static struct expr *json_parse_prefix_expr(struct json_ctx *ctx,
-> @@ -1748,13 +1758,7 @@ static struct expr *json_parse_dtype_expr(struct json_ctx *ctx, json_t *root)
->  			compound_expr_add(expr, i);
->  		}
->  
-> -		if (list_empty(&expr->expressions)) {
-> -			json_error(ctx, "Empty concatenation");
-> -			expr_free(expr);
-> -			return NULL;
-> -		}
-> -
-> -		return expr;
-> +		return json_check_concat_expr(ctx, expr);
->  	} else if (json_is_object(root)) {
->  		const char *key;
->  		json_t *val;
-> diff --git a/tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert b/tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert
-> new file mode 100644
-> index 000000000000..c99a26683470
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-j-f/set_with_single_value_concat_assert
-> @@ -0,0 +1,26 @@
-> +{
-> +  "nftables": [
-> +    {
-> +  "metainfo": {
-> +   "version": "nftables", "json_schema_version": 1
-> +      }
-> +    },
-> +    {
-> +      "table": {
-> +	"family": "ip",
-> +	"name": "t",
-> +        "handle": 0
-> +      }
-> +    },
-> +    {
-> +      "set": {
-> +        "family": "ip",
-> +        "name": "s",
-> +        "table": "t",
-> +	"type": [ "ifname" ],
-> +        "flags": [ "interval" ],
-> +        "elem": [ [] ]
-> +      }
-> +    }
-> +  ]
-> +}
-> -- 
-> 2.49.0
-> 
-> 
