@@ -1,108 +1,104 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03FD81AE005
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Apr 2025 13:52:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF39C1DF724;
+	Mon,  7 Apr 2025 14:49:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744033960; cv=none; b=tnHbwxcd/LrsGhccaDjLX4Gjxytm4B/3QRzF0j6grdPbCGZVbPW+UD/HYggEcAiL7ZbXbcLKey+TLtsUls6HEhJAN4zUOzpW+GSH9zZBF/mWAI5iuqPYv60c4uUQKmRleX90Ifz4pTdtgkd1Z1oWmY4K5AYleTh5S2H38RhIRT0=
+	t=1744037390; cv=none; b=s3gyz/Lk1H67HtntjlkM2jfNgqhnshNE+JzAZi7S19Azo7YO8CdgsdwmtpiWVHeBB+qaNirD7g8AYWP09vYF8pE1WnVT/dis9vrGh03ZkLXtb78u0w86iK2uX9adweuOCVFdL3XG26yRW/xiSQz8wqV1V91dd906ctqpEFMHU1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744033960; c=relaxed/simple;
-	bh=y3nsb2wufjoVuI6/GrJJ0gqa1txh31hxeXbhpSs7NwQ=;
+	s=arc-20240116; t=1744037390; c=relaxed/simple;
+	bh=t8MuHn26ogD3YZ+VawM4zCp0dmjmSqrLzD4RK6IAnnM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NsqViSEx9lb2wnxol1NAnQQv6k1tQxiBnKndySzUs/hkCQt2kt6NO7q6rybDOrcQtCmSJs35wXFdnlx3lyVkajgGJM6pg2999q2gnY+Vl9QIVDk8fp05uk+qGdZ2qWFkIDAIkA68yKdA8QWHzLSFui5GDNfAHZHF9a32w9a3eQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=B7v2oLSt; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=v4FXapGy; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=UCJyr6WOTepnR4dTxncuWUp9q4TvObvhetMZMxfAPkA/U7KUaqMVN0ZWcOO0/lOSrtqRYMt0hV2oWpLR8PlUOXk9VpSqw6p+meFlQnqKU35iVCmNBUA5AfEBZSVnMyJcP85wWDcqrg36TupLQ53fwNaOxgH347EQVDE9UTHXMxs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bKZns8XN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="B7v2oLSt";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="v4FXapGy"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 189D46036D; Mon,  7 Apr 2025 15:52:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744033949;
-	bh=3sD0IiPx+hSEHlxvCpjpfw0P49RpM+0ECeExjPceoZE=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bKZns8XN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2196C4CEDD;
+	Mon,  7 Apr 2025 14:49:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744037390;
+	bh=t8MuHn26ogD3YZ+VawM4zCp0dmjmSqrLzD4RK6IAnnM=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=B7v2oLSt9oobX1tKDvNvEeNb0La3kYnHW1VhvMGjqlSBIaIWVaX63kB2ihdF3Ue4/
-	 ailK9F1wQRVtnlqFrNL7LIP6NvzRiPLdivCpdxSCjiZT3dTr60vJyCHsFMLJhFEYL3
-	 tz3UZx4ELX0Ct7SIubNQ3CXLMVCJFc9LkOTs+eexIR5/ANoex/m83hBxi2iKWA01gO
-	 Tb91yumMfTh28JyWSIgoRbFZV0BYWuJhuoIyDnVQSh3t0URlxgIo4009HFuhuwc+KH
-	 VRtC3fhFSDPVK1yh8lrxskj2xGljxGrIX0OeK7Q1XbKazGfaTT9akCkuLjUZynqy8N
-	 CNUNrwOOUsbtQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 692FA6036D;
-	Mon,  7 Apr 2025 15:52:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744033948;
-	bh=3sD0IiPx+hSEHlxvCpjpfw0P49RpM+0ECeExjPceoZE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=v4FXapGyuQh8nycDArdCNuA/zxIAp+1NDTPL0FlAjF2VA7rS+pJ3JrS+GCAgFmU2U
-	 coGmHJoJM2cy4UElL74XcsnKNpIeNBzFwORRthcHc6mNXNEFZF90w8c0ECwCsrQj1R
-	 GGDNNb4RLT+iu2GooRpUOnUeTGwiylrv8jvG8P9zbOR5F6581g62EzcC0JZdzDk48o
-	 VaILD4P5sD8vSRJ+VcxHMETT4e6+MGKq1n4Mnn99a29uG0fq/9lUpOtrLfxGUTNllW
-	 krR10hqRiA09lVSs2NQiP1yJ74pxkMcsTK5cg4CclHG5UpCpShck8X9bI6YPGzjV3V
-	 5bAsdocGO0UBA==
-Date: Mon, 7 Apr 2025 15:52:26 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] evaluate: bail out if ct saddr/daddr dependency
- cannot be inserted
-Message-ID: <Z_PYmglWmIqO-dId@calendula>
-References: <20250402230930.28757-1-fw@strlen.de>
+	b=bKZns8XNwkKsKzJPMlf2XX8Via/GsVSFkbr+ESGP7e6nbkTaIxe7sZeKDWDbDcpG7
+	 aELCLqK4H0PbRNAw8q6tm7A9oc51U5WbGGOlV+UVWk2lAnwBDPOXUKisl+irN6274r
+	 xj087zQXaX7QoibvX1pcx/yDr+nD1LBf8pMjfKS/1q3oiBoiJZSBjCAXnzlNemFd9a
+	 P+pZ5sNz5t+/Yw/QpIkc8XKsKfeVJeltASy3gEDPkivg9UESVhKJOYvmq7J1a1aHyP
+	 1r4LRbgr018FlojmYZqVaO5nl21sw9pXpde0avYSxSjslaBlWgppBnDC0TDy+vlEBQ
+	 fxyhQ0c7GYOzA==
+Date: Mon, 7 Apr 2025 15:49:45 +0100
+From: Simon Horman <horms@kernel.org>
+To: Chen Linxuan <chenlinxuan@uniontech.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>, netdev@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] docs: tproxy: fix formatting for nft code block
+Message-ID: <20250407144945.GL395307@horms.kernel.org>
+References: <CFD0AAF9D7040B1E+20250407031727.1615941-1-chenlinxuan@uniontech.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250402230930.28757-1-fw@strlen.de>
+In-Reply-To: <CFD0AAF9D7040B1E+20250407031727.1615941-1-chenlinxuan@uniontech.com>
 
-On Thu, Apr 03, 2025 at 01:09:22AM +0200, Florian Westphal wrote:
-> If we have an incomplete rule like "ct original saddr" in inet
-> family, this function generates an error because it can't determine the required protocol
-> dependency, hinting at missing ip/ip6 keyword.
-> 
-> We should not go on in this case to avoid a redundant followup error:
-> 
-> nft add rule inet f c ct original saddr 1.2.3.4
-> Error: cannot determine ip protocol version, use "ip saddr" or "ip6 saddr" instead
-> add rule inet f c ct original saddr 1.2.3.4
->                   ^^^^^^^^^^^^^^^^^
-> Error: Could not parse symbolic invalid expression
-> add rule inet f c ct original saddr 1.2.3.4
-> 
-> After this change only the first error is shown.
-> 
-> Fixes: 2b29ea5f3c3e ("src: ct: add eval part to inject dependencies for ct saddr/daddr")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
++ Pablo, Jozsef, netfilter-devel, coreteam
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Mon, Apr 07, 2025 at 11:17:27AM +0800, Chen Linxuan wrote:
 
-Thanks Florian
+Hi Chen,
 
+A description of why this change is being made should go here.
+
+As this is a patch for Netfilter documentation, it should probably be
+targeted at nf-next like this:
+
+  Subject: [PATCH nf-next] ...
+
+And Pablo, Jozsef, netfilter-devel and coreteam should be CCed.
+
+If you do post a follow-up, please do allow 24h between it and your
+original post as per:
+
+https://docs.kernel.org/process/maintainer-netdev.html
+
+The documentation update itself looks good to me.
+
+
+Pablo and Jozef,
+
+Should we add tproxy.rst to the MAINTAINERS entry for NETFILTER
+so that get_maintainer.pl does the right thing?
+
+> Signed-off-by: Chen Linxuan <chenlinxuan@uniontech.com>
 > ---
->  src/evaluate.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  Documentation/networking/tproxy.rst | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 0c8af09492d1..d6bb18ba2aa0 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -1190,7 +1190,8 @@ static int expr_evaluate_ct(struct eval_ctx *ctx, struct expr **expr)
->  	switch (ct->ct.key) {
->  	case NFT_CT_SRC:
->  	case NFT_CT_DST:
-> -		ct_gen_nh_dependency(ctx, ct);
-> +		if (ct_gen_nh_dependency(ctx, ct) < 0)
-> +			return -1;
->  		break;
->  	case NFT_CT_SRC_IP:
->  	case NFT_CT_DST_IP:
+> diff --git a/Documentation/networking/tproxy.rst b/Documentation/networking/tproxy.rst
+> index 7f7c1ff6f159..75e4990cc3db 100644
+> --- a/Documentation/networking/tproxy.rst
+> +++ b/Documentation/networking/tproxy.rst
+> @@ -69,9 +69,9 @@ add rules like this to the iptables ruleset above::
+>      # iptables -t mangle -A PREROUTING -p tcp --dport 80 -j TPROXY \
+>        --tproxy-mark 0x1/0x1 --on-port 50080
+>  
+> -Or the following rule to nft:
+> +Or the following rule to nft::
+>  
+> -# nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
+> +    # nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
+>  
+>  Note that for this to work you'll have to modify the proxy to enable (SOL_IP,
+>  IP_TRANSPARENT) for the listening socket.
 > -- 
-> 2.49.0
-> 
+> 2.48.1
 > 
