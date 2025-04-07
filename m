@@ -1,433 +1,175 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3032D1F4E21
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Apr 2025 15:28:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.5])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 30810230BCD;
+	Mon,  7 Apr 2025 09:54:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743780500; cv=none; b=LmGuC/F3OtnJ7ZPMgSREQXvFLx3Zid1hUPtvpiAKYsib8fyuDj0lPba30kgiDmNgwXwf8xYV8x4H6fMuAzP+E8BB63St1/EWTCZVHAGmj5vvrSJRM4pBPmSZWs4EsTZWWXnSznYAhljasFAIY62unLPmxKsceAfmxdTr1hagA5I=
+	t=1744019645; cv=none; b=gZRAr/X/4UMfywZJdb54dmpw/h33pupbBCGqI4xrElmUm6IWU0zqKJMHDB2okSxskZUAIdOF+hpV4uKZwfgGZ4DtlN9azaUHK4C0hp1X3m9Zyaib27GigYWDqmuN3BPlUM4j7t1ZFc+HB7hOFRCG4Lx0rcF8od449YL76HaGgtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743780500; c=relaxed/simple;
-	bh=sxAvBmp42r3jW9UX50NFFMCEWPlnNRfuMKWVmtch2oc=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=XADl/r4kvIyYz6Cn/3KWmmOc58Oq6gfnc4/9rwSTUxyiubUqcjPmsIUPUQ60X2SSSCg2oXqdRZtusEnehddVYj8ptQdOtMaNUfZtEBciKM4iorCwPnZLs5Sa+eAOSvnRhuSQq3gNJxi0Gv9KGYn/BUFYqDeHU4+VcH5YPB6WRAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=QGqFc2Xo; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=gcIn4hO4; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1744019645; c=relaxed/simple;
+	bh=AMs5E/7vQcoP8JN9w616wirweniY6V8tlDMDX8ZpMuI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=DXfwnBzmKqprSzYQXqsVfFotHgELDMdgk7h6EAD72lQYCGFa4qPZqgUkDhrBmrU/uXcVdLROGjdYCfRkBXBRr5O+KMEphJGGTaNU+LS43QrLRCltHxD+J1OjAGTLCZxNl8J6iKqGrL19B8lFJQ+Zf68y+uuXyuiobVYnnMt6YxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=beIMauX9; arc=none smtp.client-ip=220.197.31.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="QGqFc2Xo";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="gcIn4hO4"
-Date: Fri, 4 Apr 2025 17:28:15 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1743780496;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=9pUxYrYJ75I2Qzj5F7+lJRpAMG6CKnXkCRk1y3JLzDU=;
-	b=QGqFc2XoO/iwpgxA0ctGQECXJMGS/FBK9wM5eBdgfDO+iss4EIFfeyImrRcchjw2tjpwnj
-	aJGBROIL6CiqBx+oIrSAGtZREP0OJu1CrdJz9r6PXDDz9nJhKLNYlePKTZP6LNj53nSnUk
-	+RtwRpy5RJKnSRJhXUdEKHtB2gO5UKaymwin4/lOk2Bby2jM58yp8568iHmU6Kr77VOh/P
-	b+CaN/CXaZMxmd1DF2Fr3P1T0AMOQX3bPw7gfmxVQwu5eIegyp4jbX49+ejsuVOhMiqDUU
-	IFHqi6r8BgmJfLr/QpdQiSFYXlAnnxkSFkEiM30mqnrIiO3HvOBFYKH2UZXByA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1743780496;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=9pUxYrYJ75I2Qzj5F7+lJRpAMG6CKnXkCRk1y3JLzDU=;
-	b=gcIn4hO4k2XYeuxWyVHHDyMonJbjbHKcdcsXu+4xooW/LHYkQxX93RQCBohyMOjr1hJYHP
-	107Gv0YZb94sKQBA==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev
-Cc: Florian Westphal <fw@strlen.de>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="beIMauX9"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=u3iQT
+	sgB3fD+GDZqARLvaV5AEywdpsJ78jzKEjbTXJk=; b=beIMauX98rUS6wmxCp8VD
+	LDc5admd8h6chAxW6WyYyfGEEyIMK8wHPvmrPjnN0ywF1Q02fr1ht6c1y2RHdTrm
+	bscSqEdCHCzbEYrPYGHFV3FVOvYOoIageM/qOaXk0SZz4nwBVCnL6B5njz4iKYMQ
+	G3j6i1vR/1SFQ2q+8lF8lU=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g1-3 (Coremail) with SMTP id _____wDnJwOToPNnTOavEg--.16370S4;
+	Mon, 07 Apr 2025 17:53:25 +0800 (CST)
+From: lvxiafei <xiafei_xupt@163.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>
-Subject: [PATCH v4] netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
-Message-ID: <20250404152815.LilZda0r@linutronix.de>
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: lvxiafei <lvxiafei@sensetime.com>,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [PATCH] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Mon,  7 Apr 2025 17:50:51 +0800
+Message-Id: <20250407095052.49526-1-xiafei_xupt@163.com>
+X-Mailer: git-send-email 2.40.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wDnJwOToPNnTOavEg--.16370S4
+X-Coremail-Antispam: 1Uf129KBjvJXoWxZFWDtr1rZw1kGrWrCFWUCFg_yoWruF1DpF
+	n5t3y7tw47Jr4Yya18u3ykZF43Kws3C34a9rn8Ja4FywsxKry5Ga1rGFyxtF98tr40yFy3
+	ZF4jqr17Aa1ktFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07UZ0edUUUUU=
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMRIoU2fzmdGv8QAAsa
 
-=46rom: Pablo Neira Ayuso <pablo@netfilter.org>
+From: lvxiafei <lvxiafei@sensetime.com>
 
-The seqcount xt_recseq is used to synchronize the replacement of
-xt_table::private in xt_replace_table() against all readers such as
-ipt_do_table()
+The modification of nf_conntrack_max in one netns
+should not affect the value in another one.
 
-To ensure that there is only one writer, the writing side disables
-bottom halves. The sequence counter can be acquired recursively. Only the
-first invocation modifies the sequence counter (signaling that a writer
-is in progress) while the following (recursive) writer does not modify
-the counter.
-The lack of a proper locking mechanism for the sequence counter can lead
-to live lock on PREEMPT_RT if the high prior reader preempts the
-writer. Additionally if the per-CPU lock on PREEMPT_RT is removed from
-local_bh_disable() then there is no synchronisation for the per-CPU
-sequence counter.
-
-The affected code is "just" the legacy netfilter code which is replaced
-by "netfilter tables". That code can be disabled without sacrificing
-functionality because everything is provided by the newer
-implementation. This will only requires the usage of the "-nft" tools
-instead of the "-legacy" ones.
-The long term plan is to remove the legacy code so lets accelerate the
-progress.
-
-Relax dependencies on iptables legacy, replace select with depends on,
-this should cause no harm to existing kernel configs and users can still
-toggle IP{6}_NF_IPTABLES_LEGACY in any case.
-Make EBTABLES_LEGACY, IPTABLES_LEGACY and ARPTABLES depend on
-NETFILTER_LEGACY. Hide xt_recseq and its users, xt_register_table() and
-xt_percpu_counter_alloc() behind NETFILTER_LEGACY. Let NETFILTER_LEGACY
-depend on !PREEMPT_RT.
-
-Replace CONFIG_IP6_NF_MANGLE->CONFIG_IP6_NF_IPTABLES for TCPOPTSTRIP and
-add CONFIG_NFT_COMPAT_ARP to the MARK target for the IPv6 and ARP target
-to keep it enabled without the LEGACY code for NFT.
-
-Co-developed-by: Florian Westphal <fw@strlen.de>
-Co-developed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: lvxiafei <lvxiafei@sensetime.com>
 ---
+ include/net/netns/conntrack.h           |  1 +
+ net/netfilter/nf_conntrack_core.c       | 12 +++++++-----
+ net/netfilter/nf_conntrack_standalone.c |  6 ++++--
+ 3 files changed, 12 insertions(+), 7 deletions(-)
 
-v3=E2=80=A6v4 https://lore.kernel.org/all/20250325165832.3110004-1-bigeasy@=
-linutronix.de/
-  - Merge all three patches into one.
-  - CONFIG_IP6_NF_MANGLE -> CONFIG_IP6_NF_IPTABLES in xt_TCPOPTSTRIP and
-    + CONFIG_NFT_COMPAT_ARP xt_mark to allow the modules without LEGACY as =
-per
-    Florian.
-
-v2=E2=80=A6v3 https://lore.kernel.org/all/20250221133143.5058-1-bigeasy@lin=
-utronix.de/
-  - Instead of getting LEGACY code to work for PREEMPT_RT the code is
-    now disabled on PREEMPT_RT. Since the long term plan is to get rid of
-    it anyway, it might be less painful for everyone.
-
-v1=E2=80=A6v2 https://lore.kernel.org/all/20250216125135.3037967-1-bigeasy@=
-linutronix.de/
-  - Updated kerneldoc in 2/3 so that the renamed parameter is part of
-    it.
-  - Updated description 1/3 in case there are complains regarding the
-    synchronize_rcu(). The suggested course of action is to motivate
-    people to move away from "legacy" towards "nft" tooling. Last resort
-    is not to wait for the in-flight counter and just copy what is
-    there.
-
- net/Kconfig                    | 10 ++++++++++
- net/bridge/netfilter/Kconfig   |  8 ++++----
- net/ipv4/netfilter/Kconfig     | 15 ++++++++-------
- net/ipv6/netfilter/Kconfig     | 13 +++++++------
- net/netfilter/x_tables.c       | 16 +++++++++++-----
- net/netfilter/xt_TCPOPTSTRIP.c |  4 ++--
- net/netfilter/xt_mark.c        |  2 +-
- 7 files changed, 43 insertions(+), 25 deletions(-)
-
-diff --git a/net/Kconfig b/net/Kconfig
-index c3fca69a7c834..e5d5bcafa0e18 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -211,6 +211,16 @@ menuconfig NETFILTER
-=20
- if NETFILTER
-=20
-+config NETFILTER_LEGACY
-+	bool "Netfilter legacy tables support"
-+	depends on NETFILTER && !PREEMPT_RT
-+	help
-+	  Say Y here if you still require support for legacy tables. This is
-+	  required by the legacy tools (iptables-legacy) and is not needed if
-+	  you use iptables over nftables (iptales-nft).
-+	  Legacy support is not limited to IP, it also includes EBTABLES and
-+	  ARPTABLES.
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index bae914815aa3..dd31ba205419 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -102,6 +102,7 @@ struct netns_ct {
+ 	u8			sysctl_acct;
+ 	u8			sysctl_tstamp;
+ 	u8			sysctl_checksum;
++	u8			sysctl_max;
+ 
+ 	struct ip_conntrack_stat __percpu *stat;
+ 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7f8b245e287a..5f0dbd358d66 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1498,7 +1498,7 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+ 
+ static void gc_worker(struct work_struct *work)
+ {
+-	unsigned int i, hashsz, nf_conntrack_max95 = 0;
++	unsigned int i, hashsz;
+ 	u32 end_time, start_time = nfct_time_stamp;
+ 	struct conntrack_gc_work *gc_work;
+ 	unsigned int expired_count = 0;
+@@ -1509,8 +1509,6 @@ static void gc_worker(struct work_struct *work)
+ 	gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
+ 
+ 	i = gc_work->next_bucket;
+-	if (gc_work->early_drop)
+-		nf_conntrack_max95 = nf_conntrack_max / 100u * 95u;
+ 
+ 	if (i == 0) {
+ 		gc_work->avg_timeout = GC_SCAN_INTERVAL_INIT;
+@@ -1538,6 +1536,7 @@ static void gc_worker(struct work_struct *work)
+ 		}
+ 
+ 		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
++			unsigned int nf_conntrack_max95 = 0;
+ 			struct nf_conntrack_net *cnet;
+ 			struct net *net;
+ 			long expires;
+@@ -1567,11 +1566,14 @@ static void gc_worker(struct work_struct *work)
+ 			expires = clamp(nf_ct_expires(tmp), GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_CLAMP);
+ 			expires = (expires - (long)next_run) / ++count;
+ 			next_run += expires;
++			net = nf_ct_net(tmp);
 +
- config NETFILTER_ADVANCED
- 	bool "Advanced netfilter configuration"
- 	depends on NETFILTER
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index f16bbbbb94817..0080127421882 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -42,7 +42,7 @@ config NF_CONNTRACK_BRIDGE
- # old sockopt interface and eval loop
- config BRIDGE_NF_EBTABLES_LEGACY
- 	tristate "Legacy EBTABLES support"
--	depends on BRIDGE && NETFILTER_XTABLES
-+	depends on BRIDGE && NETFILTER_XTABLES && NETFILTER_LEGACY
- 	default n
- 	help
- 	 Legacy ebtables packet/frame classifier.
-@@ -65,7 +65,7 @@ if BRIDGE_NF_EBTABLES
- #
- config BRIDGE_EBT_BROUTE
- 	tristate "ebt: broute table support"
--	select BRIDGE_NF_EBTABLES_LEGACY
-+	depends on BRIDGE_NF_EBTABLES_LEGACY
- 	help
- 	  The ebtables broute table is used to define rules that decide between
- 	  bridging and routing frames, giving Linux the functionality of a
-@@ -76,7 +76,7 @@ config BRIDGE_EBT_BROUTE
-=20
- config BRIDGE_EBT_T_FILTER
- 	tristate "ebt: filter table support"
--	select BRIDGE_NF_EBTABLES_LEGACY
-+	depends on BRIDGE_NF_EBTABLES_LEGACY
- 	help
- 	  The ebtables filter table is used to define frame filtering rules at
- 	  local input, forwarding and local output. See the man page for
-@@ -86,7 +86,7 @@ config BRIDGE_EBT_T_FILTER
-=20
- config BRIDGE_EBT_T_NAT
- 	tristate "ebt: nat table support"
--	select BRIDGE_NF_EBTABLES_LEGACY
-+	depends on BRIDGE_NF_EBTABLES_LEGACY
- 	help
- 	  The ebtables nat table is used to define rules that alter the MAC
- 	  source address (MAC SNAT) or the MAC destination address (MAC DNAT).
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index ef8009281da5c..dcf015e0d4266 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -14,6 +14,7 @@ config NF_DEFRAG_IPV4
- config IP_NF_IPTABLES_LEGACY
- 	tristate "Legacy IP tables support"
- 	default	n
-+	depends on NETFILTER_LEGACY
- 	select NETFILTER_XTABLES
- 	help
- 	  iptables is a legacy packet classifier.
-@@ -183,7 +184,7 @@ config IP_NF_MATCH_TTL
- config IP_NF_FILTER
- 	tristate "Packet filtering"
- 	default m if NETFILTER_ADVANCED=3Dn
--	select IP_NF_IPTABLES_LEGACY
-+	depends on IP_NF_IPTABLES_LEGACY
- 	help
- 	  Packet filtering defines a table `filter', which has a series of
- 	  rules for simple packet filtering at local input, forwarding and
-@@ -220,10 +221,10 @@ config IP_NF_TARGET_SYNPROXY
- config IP_NF_NAT
- 	tristate "iptables NAT support"
- 	depends on NF_CONNTRACK
-+	depends on IP_NF_IPTABLES_LEGACY
- 	default m if NETFILTER_ADVANCED=3Dn
- 	select NF_NAT
- 	select NETFILTER_XT_NAT
--	select IP_NF_IPTABLES_LEGACY
- 	help
- 	  This enables the `nat' table in iptables. This allows masquerading,
- 	  port forwarding and other forms of full Network Address Port
-@@ -264,7 +265,7 @@ endif # IP_NF_NAT
- config IP_NF_MANGLE
- 	tristate "Packet mangling"
- 	default m if NETFILTER_ADVANCED=3Dn
--	select IP_NF_IPTABLES_LEGACY
-+	depends on IP_NF_IPTABLES_LEGACY
- 	help
- 	  This option adds a `mangle' table to iptables: see the man page for
- 	  iptables(8).  This table is used for various packet alterations
-@@ -299,7 +300,7 @@ config IP_NF_TARGET_TTL
- # raw + specific targets
- config IP_NF_RAW
- 	tristate  'raw table support (required for NOTRACK/TRACE)'
--	select IP_NF_IPTABLES_LEGACY
-+	depends on IP_NF_IPTABLES_LEGACY
- 	help
- 	  This option adds a `raw' table to iptables. This table is the very
- 	  first in the netfilter framework and hooks in at the PREROUTING
-@@ -313,7 +314,7 @@ config IP_NF_SECURITY
- 	tristate "Security table"
- 	depends on SECURITY
- 	depends on NETFILTER_ADVANCED
--	select IP_NF_IPTABLES_LEGACY
-+	depends on IP_NF_IPTABLES_LEGACY
- 	help
- 	  This option adds a `security' table to iptables, for use
- 	  with Mandatory Access Control (MAC) policy.
-@@ -325,7 +326,7 @@ endif # IP_NF_IPTABLES
- # ARP tables
- config IP_NF_ARPTABLES
- 	tristate "Legacy ARPTABLES support"
--	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_XTABLES && NETFILTER_LEGACY
- 	default n
- 	help
- 	  arptables is a legacy packet classifier.
-@@ -342,7 +343,7 @@ config IP_NF_ARPFILTER
- 	tristate "arptables-legacy packet filtering support"
- 	select IP_NF_ARPTABLES
- 	select NETFILTER_FAMILY_ARP
--	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_XTABLES && NETFILTER_LEGACY
- 	help
- 	  ARP packet filtering defines a table `filter', which has a series of
- 	  rules for simple ARP packet filtering at local input and
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index e087a8e97ba78..303942174b5d5 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -9,8 +9,9 @@ menu "IPv6: Netfilter Configuration"
- # old sockopt interface and eval loop
- config IP6_NF_IPTABLES_LEGACY
- 	tristate "Legacy IP6 tables support"
--	depends on INET && IPV6
-+	depends on INET && IPV6 && NETFILTER_LEGACY
- 	select NETFILTER_XTABLES
-+	select IP6_NF_IPTABLES
- 	default n
- 	help
- 	  ip6tables is a legacy packet classifier.
-@@ -197,7 +198,7 @@ config IP6_NF_TARGET_HL
- config IP6_NF_FILTER
- 	tristate "Packet filtering"
- 	default m if NETFILTER_ADVANCED=3Dn
--	select IP6_NF_IPTABLES_LEGACY
-+	depends on IP6_NF_IPTABLES_LEGACY
- 	tristate
- 	help
- 	  Packet filtering defines a table `filter', which has a series of
-@@ -234,7 +235,7 @@ config IP6_NF_TARGET_SYNPROXY
- config IP6_NF_MANGLE
- 	tristate "Packet mangling"
- 	default m if NETFILTER_ADVANCED=3Dn
--	select IP6_NF_IPTABLES_LEGACY
-+	depends on IP6_NF_IPTABLES_LEGACY
- 	help
- 	  This option adds a `mangle' table to iptables: see the man page for
- 	  iptables(8).  This table is used for various packet alterations
-@@ -244,7 +245,7 @@ config IP6_NF_MANGLE
-=20
- config IP6_NF_RAW
- 	tristate  'raw table support (required for TRACE)'
--	select IP6_NF_IPTABLES_LEGACY
-+	depends on IP6_NF_IPTABLES_LEGACY
- 	help
- 	  This option adds a `raw' table to ip6tables. This table is the very
- 	  first in the netfilter framework and hooks in at the PREROUTING
-@@ -258,7 +259,7 @@ config IP6_NF_SECURITY
- 	tristate "Security table"
- 	depends on SECURITY
- 	depends on NETFILTER_ADVANCED
--	select IP6_NF_IPTABLES_LEGACY
-+	depends on IP6_NF_IPTABLES_LEGACY
- 	help
- 	  This option adds a `security' table to iptables, for use
- 	  with Mandatory Access Control (MAC) policy.
-@@ -269,8 +270,8 @@ config IP6_NF_NAT
- 	tristate "ip6tables NAT support"
- 	depends on NF_CONNTRACK
- 	depends on NETFILTER_ADVANCED
-+	depends on IP6_NF_IPTABLES_LEGACY
- 	select NF_NAT
--	select IP6_NF_IPTABLES_LEGACY
- 	select NETFILTER_XT_NAT
- 	help
- 	  This enables the `nat' table in ip6tables. This allows masquerading,
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 709840612f0df..24788bd3cbcb6 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1317,12 +1317,13 @@ void xt_compat_unlock(u_int8_t af)
- EXPORT_SYMBOL_GPL(xt_compat_unlock);
- #endif
-=20
--DEFINE_PER_CPU(seqcount_t, xt_recseq);
--EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
--
- struct static_key xt_tee_enabled __read_mostly;
- EXPORT_SYMBOL_GPL(xt_tee_enabled);
-=20
-+#ifdef CONFIG_NETFILTER_LEGACY
-+DEFINE_PER_CPU(seqcount_t, xt_recseq);
-+EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
-+
- static int xt_jumpstack_alloc(struct xt_table_info *i)
- {
- 	unsigned int size;
-@@ -1514,6 +1515,7 @@ void *xt_unregister_table(struct xt_table *table)
- 	return private;
- }
- EXPORT_SYMBOL_GPL(xt_unregister_table);
-+#endif
-=20
- #ifdef CONFIG_PROC_FS
- static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
-@@ -1897,6 +1899,7 @@ void xt_proto_fini(struct net *net, u_int8_t af)
- }
- EXPORT_SYMBOL_GPL(xt_proto_fini);
-=20
-+#ifdef CONFIG_NETFILTER_LEGACY
- /**
-  * xt_percpu_counter_alloc - allocate x_tables rule counter
-  *
-@@ -1951,6 +1954,7 @@ void xt_percpu_counter_free(struct xt_counters *count=
-ers)
- 		free_percpu((void __percpu *)pcnt);
- }
- EXPORT_SYMBOL_GPL(xt_percpu_counter_free);
-+#endif
-=20
- static int __net_init xt_net_init(struct net *net)
- {
-@@ -1983,8 +1987,10 @@ static int __init xt_init(void)
- 	unsigned int i;
- 	int rv;
-=20
--	for_each_possible_cpu(i) {
--		seqcount_init(&per_cpu(xt_recseq, i));
-+	if (IS_ENABLED(CONFIG_NETFILTER_LEGACY)) {
-+		for_each_possible_cpu(i) {
-+			seqcount_init(&per_cpu(xt_recseq, i));
-+		}
- 	}
-=20
- 	xt =3D kcalloc(NFPROTO_NUMPROTO, sizeof(struct xt_af), GFP_KERNEL);
-diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
-index 30e99464171b7..93f064306901c 100644
---- a/net/netfilter/xt_TCPOPTSTRIP.c
-+++ b/net/netfilter/xt_TCPOPTSTRIP.c
-@@ -91,7 +91,7 @@ tcpoptstrip_tg4(struct sk_buff *skb, const struct xt_acti=
-on_param *par)
- 	return tcpoptstrip_mangle_packet(skb, par, ip_hdrlen(skb));
- }
-=20
--#if IS_ENABLED(CONFIG_IP6_NF_MANGLE)
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
- static unsigned int
- tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -119,7 +119,7 @@ static struct xt_target tcpoptstrip_tg_reg[] __read_mos=
-tly =3D {
- 		.targetsize =3D sizeof(struct xt_tcpoptstrip_target_info),
- 		.me         =3D THIS_MODULE,
- 	},
--#if IS_ENABLED(CONFIG_IP6_NF_MANGLE)
-+#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
++			if (gc_work->early_drop)
++				nf_conntrack_max95 = net->ct.sysctl_max / 100u * 95u;
+ 
+ 			if (nf_conntrack_max95 == 0 || gc_worker_skip_ct(tmp))
+ 				continue;
+ 
+-			net = nf_ct_net(tmp);
+ 			cnet = nf_ct_pernet(net);
+ 			if (atomic_read(&cnet->count) < nf_conntrack_max95)
+ 				continue;
+@@ -1654,7 +1656,7 @@ __nf_conntrack_alloc(struct net *net,
+ 	/* We don't want any race condition at early drop stage */
+ 	ct_count = atomic_inc_return(&cnet->count);
+ 
+-	if (nf_conntrack_max && unlikely(ct_count > nf_conntrack_max)) {
++	if (net->ct.sysctl_max && unlikely(ct_count > net->ct.sysctl_max)) {
+ 		if (!early_drop(net, hash)) {
+ 			if (!conntrack_gc_work.early_drop)
+ 				conntrack_gc_work.early_drop = true;
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 2f666751c7e7..5ac1893e9045 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -615,7 +615,7 @@ enum nf_ct_sysctl_index {
+ static struct ctl_table nf_ct_sysctl_table[] = {
+ 	[NF_SYSCTL_CT_MAX] = {
+ 		.procname	= "nf_conntrack_max",
+-		.data		= &nf_conntrack_max,
++		.data		= &init_net.ct.sysctl_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+@@ -948,7 +948,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ static struct ctl_table nf_ct_netfilter_table[] = {
  	{
- 		.name       =3D "TCPOPTSTRIP",
- 		.family     =3D NFPROTO_IPV6,
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 65b965ca40ea7..59b9d04400cac 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -48,7 +48,7 @@ static struct xt_target mark_tg_reg[] __read_mostly =3D {
- 		.targetsize     =3D sizeof(struct xt_mark_tginfo2),
- 		.me             =3D THIS_MODULE,
- 	},
--#if IS_ENABLED(CONFIG_IP_NF_ARPTABLES)
-+#if IS_ENABLED(CONFIG_IP_NF_ARPTABLES) || IS_ENABLED(CONFIG_NFT_COMPAT_ARP)
- 	{
- 		.name           =3D "MARK",
- 		.revision       =3D 2,
---=20
-2.49.0
+ 		.procname	= "nf_conntrack_max",
+-		.data		= &nf_conntrack_max,
++		.data		= &init_net.ct.sysctl_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+@@ -1063,6 +1063,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 
+ 	table[NF_SYSCTL_CT_COUNT].data = &cnet->count;
+ 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
++	table[NF_SYSCTL_CT_MAX].data = &net->ct.sysctl_max;
+ 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
+ 	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+@@ -1139,6 +1140,7 @@ static int nf_conntrack_pernet_init(struct net *net)
+ 	int ret;
+ 
+ 	net->ct.sysctl_checksum = 1;
++	net->ct.sysctl_max = nf_conntrack_max;
+ 
+ 	ret = nf_conntrack_standalone_init_sysctl(net);
+ 	if (ret < 0)
+-- 
+2.40.1
 
