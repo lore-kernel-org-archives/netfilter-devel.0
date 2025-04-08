@@ -1,28 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 214911A8F68
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Apr 2025 14:22:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AB66149DFF
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Apr 2025 14:22:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744122131; cv=none; b=DkqvxNF+FwDMau9ENoNlYfqqWKRqewNUC/ycS27T0ZFUB+F3knQSLFeX7SzK2OCAEvbqDMAozU3WusHRftuJ5U3AEi3cUdtP2BB+59GaSRGZzYpWkG3MEnj5T/a1Taz+sJH8viQKjGNMy/kweAqnuFAbfWHGlaKP/ffPDVBiFko=
+	t=1744122135; cv=none; b=T0F0mljHiR4Ph72G6y+GtStFEWwFAyMhptOk4iB87g/95Pn7O3TuFnAjFhu7vIlgfcoDWJhBwB8Jq/dbEwq1bJkqKhJMUimQOjxFciPd4VDtekaUGpDWtKV8TVepUlMPDcJPkDhh9P1f7sIdYzblxVWyUJmLPJBmjJ0zqryowls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744122131; c=relaxed/simple;
-	bh=TzmMWBuU1sJ7MdT7w0Ga9tB5S7KGzMT/pHtzE+tTyfI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=csTSiau7J5gI6kPwKh/SS673mgisnPcgXdnqdjqSmTAT8tEg0GGaesbb2pgvlgW1k1NiVZp449IkfgGCrfB5wIUDXHSNtpOdJKkql1BY3/a3vFaIbS+Of9TFPIDWCBWxusw2PAtvm0o7rmfvlHZ7YsM+J/Y0YkCrI2nyk9qjPqM=
+	s=arc-20240116; t=1744122135; c=relaxed/simple;
+	bh=jPFrdLx1u4jq4TBtT950PPtfjQf0649LTlewKZzOQXE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=cVN/duEfZ3MY1fOWsV1oHmuO8y5bLI29UVtGITEv0U4dTWLE4Bx/V25tCNQExzdew1wtVqqs6w3dIXkDFpDNXnptfJ1LHHa8rcYCIPUibAbvLrTNe9mF8/ejFmvc1r+SyN0ExvLIth/1VuHYZjI7kVVlqlNJVjlg+1q+MVPzZI8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1u29q3-0002xV-Gm; Tue, 08 Apr 2025 16:22:07 +0200
+	id 1u29q7-0002xd-KM; Tue, 08 Apr 2025 16:22:11 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nftables 0/4] src: print count variable in normal set listings
-Date: Tue,  8 Apr 2025 16:21:28 +0200
-Message-ID: <20250408142135.23000-1-fw@strlen.de>
+Subject: [PATCH v2 nftables 1/4] tests/py: prepare for set debug change
+Date: Tue,  8 Apr 2025 16:21:29 +0200
+Message-ID: <20250408142135.23000-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250408142135.23000-1-fw@strlen.de>
+References: <20250408142135.23000-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,70 +34,63 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Print the number of allocated set elements if the set provided
-an upper size limit and there is at least one element.
+Next patch will make initial set dump from kernel emit set debug
+information, so the obtained netlink debug file won't match what is
+recorded in tests/py.
 
-Example:
+Furthermore, as the python add rules for each of the family the test is
+for, subsequent dump will include debug information of the other/previous
+families.
 
-table ip t {
-   set s {
-       type ipv4_addr
-       size 65535      # count 1
-       flags dynamic
-       counter
-       elements = { 1.1.1.1 counter packets 1 bytes 11 }
-   }
-   ...
+Change the script to skip all unrelated information to only compare the
+relevant set element information and the generated expressions.
 
-First patch prepares python tests to skip the new debug
-information coming with updated libnftnl.
-This is needed to avoid a (large) update of all the
-existing / recorded dumpinfo.
+This change still finds changes in [ expr ... ] and set elem debug output.
 
-Second patch dumps set debug info with --debug=netlink flag,
-i.e.:
-nft --debug=netlink list ruleset
-family 2 s t 0 backend nft_set_rhash_type
-family 2 __set0 t 3 size 3 backend nft_set_hash_fast_type count 3
-(actual ruleset omitted)
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/py/nft-test.py | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Third patch includes the new 'size <value> # count <value>'
-output.
-
-Last patch fixes shell tests:
-Dumps are updated with the new format (not too many changes,
-the change is only needed for sets that have both 'size' set
-and are not empty at the end of the test).
-
-For old kernels (missing COUNT attribute), the dumps will be
-postprocessed after failure to strip '# count', then re-diff
-happens.
-
-Florian Westphal (4):
-  tests/py: prepare for set debug change
-  debug: include kernel set information on cache fill
-  src: print count variable in normal set listings
-  tests: shell: add feature check for count output change
-
- include/rule.h                                |  2 ++
- src/mnl.c                                     | 15 +++++++--
- src/netlink.c                                 |  6 ++++
- src/rule.c                                    |  9 +++--
- tests/py/nft-test.py                          | 15 ++++++---
- tests/shell/features/setcount.sh              | 13 ++++++++
- tests/shell/helpers/test-wrapper.sh           | 33 +++++++++++++++----
- .../testcases/rule_management/0011reset_0     | 30 ++++++++++-------
- .../rule_management/dumps/0011reset_0.nft     |  2 +-
- .../sets/dumps/0016element_leak_0.nft         |  2 +-
- .../sets/dumps/0017add_after_flush_0.nft      |  2 +-
- .../sets/dumps/0018set_check_size_1.nft       |  2 +-
- .../sets/dumps/0019set_check_size_0.nft       |  2 +-
- .../sets/dumps/0045concat_ipv4_service.nft    |  2 +-
- .../sets/dumps/0057set_create_fails_0.nft     |  2 +-
- .../sets/dumps/0060set_multistmt_1.nft        |  2 +-
- 16 files changed, 102 insertions(+), 37 deletions(-)
- create mode 100755 tests/shell/features/setcount.sh
-
+diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+index 7acdb77f2d0a..ea70f19b196d 100755
+--- a/tests/py/nft-test.py
++++ b/tests/py/nft-test.py
+@@ -717,17 +717,20 @@ def payload_check(payload_buffer, file, cmd):
+         return False
+ 
+     for lineno, want_line in enumerate(payload_buffer):
++        # skip irreleant parts, such as "ip test-ipv4 output"
++        if want_line.find("[") < 0 or want_line.find("]") < 0:
++             continue
++
+         line = file.readline()
++        while line.find("[") < 0 or line.find("]") < 0:
++            line = file.readline()
++            if line == "":
++                break
+ 
+         if want_line == line:
+             i += 1
+             continue
+ 
+-        if want_line.find('[') < 0 and line.find('[') < 0:
+-            continue
+-        if want_line.find(']') < 0 and line.find(']') < 0:
+-            continue
+-
+         if payload_check_set_elems(want_line, line):
+             continue
+ 
+@@ -877,6 +880,8 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+                     gotf.write("# %s\n" % rule[0])
+                     while True:
+                         line = payload_log.readline()
++                        if line.startswith("family "):
++                            continue
+                         if line == "":
+                             break
+                         gotf.write(line)
 -- 
 2.49.0
 
