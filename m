@@ -1,61 +1,63 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FC591DF99C;
-	Tue,  8 Apr 2025 14:24:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52CF11E0E08;
+	Tue,  8 Apr 2025 14:24:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744122285; cv=none; b=FV4PtyBQWMKORxxfdxB2ya+T6qsf0xBjIOAB80/Itr8n06xhrNCNl8Hb+HVzP1txjuCqUOJfxApsrUsbZbNH1xtX8fekhoBYJBbkPXuc/mD+n3Pos67BTUG1ncGcNN/khkuL2BOTYRdittvGziou35OQRS3qpi0dvcnx/qMJzrI=
+	t=1744122288; cv=none; b=L2goMk9HX8WgKk7PZCQ2aEY7q5FRPqQ1jt5Tv+KQT8IznBjGqIgDuJviIhybZP7iHxiL2PinOWeL82CK7o8JoMdf2t4mtITj+XArKus/uU/c2f1QoPhwL+6lVx/RS1b7bR+VW399XU421IqVzsx5pSqGeLFJfXqEfd9JGI84WvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744122285; c=relaxed/simple;
-	bh=xVFuMXsHme978IY/KLHqPnq9Gs5sHCEFkAwHkhU1IlI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eXUMcbk29R6l9BN7lqzmFOplKgFlEzuFlMNdAoUfSOgJ07dmCq/s1kBoTa80WHoUwwhjsYhBgrKUhHzW6fK4yRYacbKAC80X1agPZ9YW09Ra9MsM8LBrkP7SqTqQIH+SNMeQMl1Xunz8Te/aOv4O+Kz775i0zrnvM2WrcbFPN5M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f1vkcoUI; arc=none smtp.client-ip=209.85.218.49
+	s=arc-20240116; t=1744122288; c=relaxed/simple;
+	bh=4chn1/0IJNSwJ1oT95Yplw/ROsSLsSsjiBPzOuAxsgg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YSRr6t+KV9Cs7EQmAcDv0uooQBF9gbQYqkucih/qEtaNnNPAXmbeWwnN8I1sjQB8mmxAvZrf+LEx0D4x1CamP/Tx1tiGAQe6e8P4gkveuuryMUaAQLDnNzaDiHTZ809VDffLgw4ir1wTETDJADUYJWydWe5qq5u6Foh6eQsSUl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f+gPUbgO; arc=none smtp.client-ip=209.85.208.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f1vkcoUI"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ac28e66c0e1so859328466b.0;
-        Tue, 08 Apr 2025 07:24:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f+gPUbgO"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-5e61d91a087so8880704a12.0;
+        Tue, 08 Apr 2025 07:24:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744122282; x=1744727082; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=fKVAjikSlDmRp89nXnj0WKS+vYgTLsVIQjTDqAQvc3k=;
-        b=f1vkcoUIsoWKlGd6OLNWPUMaIdXHHLdtKxnME7TwLaun3XkNHVvcEN46kiz9EM+4Js
-         CcRxPZTIkPZdvDFE44bejau8V6aItu8c2tOtEoOkInT/e3ofih+BtTiETRvkwmbC3KNn
-         nJGwxjtLiexu4nLSwUuS+BDb1HAQAhnzHm7/x27wsIbT1dNazBTGHqBbLjMZeEfYOTRW
-         6n46ZoRuQuT35uoyf8A2PGzpwoxQBAYCO1wsJrcXmVhIlsPXwY9HeGNbthGfGMiw+l38
-         BVpWKY1sdteBGUDGxFNiQwjqkJMZlnDV7HG+7IpK9A+i6w6FDkld7/oaqX39BeHVQREQ
-         TZfA==
+        d=gmail.com; s=20230601; t=1744122284; x=1744727084; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UWSHNbB5JKEbeWuUj8vjDFfUx12Bd6PhpeoYLsDsQTU=;
+        b=f+gPUbgOLu/AjsutgyJ1PyRIwyLyJO3PSngDlYpLqVE3DDBQ0sIS7bXEvkIHI+fBDH
+         u4inVUaUQqCXt5XxI3eGMugoPx00T/aFpVbaEnnYBiuKE/PTmtETyn4HBstk6TR9Wz8G
+         hMv98l53H8mwTZCzTuzHuttKDwiQvjc688uvpsSheqxk8u2AwHKmHA8QcGIRAm2Sgub3
+         362yi73Ui7Ijj9qVT4qEFdLgAEnLtr0MdU8XW178BHzE4iGiugeD4q8ipkZpW/A26lu5
+         Ta+FWxkdOMd/6Mah1jcMb8UQaHMG3J7M2q4JkBFVDZU1y1O/M1IfDg6hxf2iARiSlMuW
+         XZqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744122282; x=1744727082;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=fKVAjikSlDmRp89nXnj0WKS+vYgTLsVIQjTDqAQvc3k=;
-        b=BwEgij/akk0g/SDm7xwMWQr6k48Ees+pggj1DU54CZckwsn78NtBHVitLn6ncyB1Zr
-         Fw3eohGhLmVb019B/aFLKnv0F/+yinP1IGOFT9C5KD+9GWN4i4bY6gt7Lu+FBb+CErMh
-         q7BeuWSddqWD0HArGYUbowjp8I6CblIyCJeNM1YlGxxeKgEzcdnMB+TzN4vsR9CCKv0v
-         f9Jxl5a8J3OpdKfAueMYCbYii8s4iwh2ST/+9InTMwM6OP1XprpjIUr00vsvPZzUJUkO
-         JdiM/BMRCM3P9qaaoDklhfOWzthJrE2ro4B7+WClHrz+sROPz9M4Ww2gTwKpGSRzO99f
-         rmdw==
-X-Forwarded-Encrypted: i=1; AJvYcCXnmcWbjW6aLh+5zCnSGwz6AdQI8AZwnzoavnarhcrEylV7MUK5sj7n4PlXUDr+C+aTKRBespbwdWaJ5ZTVjsCL@vger.kernel.org, AJvYcCXpGTywdMkVq4yRFC1Kq+1dUgMXJEsM6yB5/ysTcus7Egg0KBwWcX4VgRK1s96g4i6k1SMv1JKkl4RHcSTmPzI=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxwVxI4pJRS6N6jrQ3tWdP13vlNtM6bnA+v/OaTFFoBNwC2viP2
-	4uqrFPwUxl+3+zKOijf2ZMCAvSD4Qh4Wze0Rjg28z6zBQ5C/R6K9
-X-Gm-Gg: ASbGncv+4REHZejI9axuVjN+/x4C6nMPd/7vn5T4nuO//jYUN1cacs9YJxCPE6FZoJf
-	RRtCnHKbq96E207iAGDDuS9QS8ByNXzNnzEw25cEJiAO8sUOhRGYvjzrk9kiBe0NE/x1G4I4yaA
-	4/2x28wW3/yAlHtHa1AMlOBEuBAEayIc0SqNS8TG66mXADb3tyUoK4Bi2HIbiv/1yanvcUffLYI
-	S4YF4PTtCYHmXHhTZd+98QUc3ih2wTCS8/+gWrHAjmiAgtecwzL20xeZ6SMwhJY6ugcoAeIoC2p
-	hCjPTfK4I9Ax+LhQqKEetlYcCbrnbHu7AuOXsSmbjmKcIwn2t6upyWVUV16nuSXnmwDwh/Aj73x
-	CrmA9aBNKwOSrVyJ88KLrZ2dgI5PGk9RglJW/UmhH3oxPyvyNsGIFPDeU5qAN5SI=
-X-Google-Smtp-Source: AGHT+IFlZaybpe/j2Zow/p3HDFGofOuQSMcWsqmHQWMhOGtI9vBund4Q9QWMKTuUyBXPUyMoandRAA==
-X-Received: by 2002:a17:907:724f:b0:ac2:cdcb:6a85 with SMTP id a640c23a62f3a-ac7d6d2b3f4mr1401815466b.22.1744122281602;
-        Tue, 08 Apr 2025 07:24:41 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1744122284; x=1744727084;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=UWSHNbB5JKEbeWuUj8vjDFfUx12Bd6PhpeoYLsDsQTU=;
+        b=w66alTZZctLrx3cQOOZpoQf3tm0/z/u0tksKDAiqJ/nRMDNVaiFWvc7Nj0ZHMKFjHx
+         dQUnZQ/kMz0SEfdmCHH+qoXAmdGQjqP73uw7sB6X5zshOJlwXfYxTgyBdQzoZdLE33Bp
+         TDs3s9c4bWKgA9ZJmBKNtH3GYbSXUtVEiV8jMLfRduTCkDBmo4hQgVLoVSfMbEXnICm6
+         P/Ziq9dy6EUfdZvmE6LHm+jXDzCNpNCkv8bFQ0man4T92aRdKyvUaP06fu/2AV/4Ebsz
+         RiV+4mz9gMa7fer99URr/xDedX5iJqDIcVRA1k7Zv+9WvOBx10R4uPg25GXUnDFR6NyO
+         LCTg==
+X-Forwarded-Encrypted: i=1; AJvYcCWM/Q1BA2EPQCj/bpPloyMOQDowYnj1rmRi9NCDlwXn3UZfi+5cqXG5ZI5nCdUo3K9TPJkc5GOCXIh6+8OWqEQ=@vger.kernel.org, AJvYcCX2YNn6T8ntytrfjwMsbbxNusDMokO+DMCt4mbZDZPmNoNNhbNuKZjg4rQfWk30EfLFA2ZjxOCyq3MuLYxpD7l/@vger.kernel.org
+X-Gm-Message-State: AOJu0YzkykPDLHh2SZeMFm30X1uOgO1oV+vzhRYiyQlvSHU0KAUWOGA3
+	fNsr36LA9eoz3IRFq6rFGXrZA04YhLsznLnig/NHOd2BS39154kd
+X-Gm-Gg: ASbGnct8zrZl58ywXIU9WzCBrGo3ZI4SnShXFJkZ77HAteEPPOHZgT8rJRun/lQjEbx
+	zo5kea/6cAOBC/hzwfO3CozMS8d/5q9+xDSRekZzMh1t1Q9FFzDoT9fGR+5VuOiVcCvU5UGDzNv
+	aTmpItjcLiVHs92so1rqIuBfOdvUQt4D1ICVpUcalJbXMNtYnzq+yK30akoX68HfC1DuNvImS8W
+	epxdgPglVvkPnQSbdQ8f8xEoNW34nlp3Z3R6BWItPaZh8chrqaZmWTZkF+tM0oxqleJC9BH1yyn
+	T5uUyZo+lHrGBScHQEJnfFem0mGIP3PECJWkZWuCB7n2IkdYH0lABqFx3IAigAurt8n9QEd80ep
+	XLUFiL9SkpGFZsec4De2NHPOTY6db0iJocEOuhJKXe64P/CSfnGTYUQKnxOk6z/8=
+X-Google-Smtp-Source: AGHT+IFrt4lj1ddzOvJCV2IvTlAskXKWdQiEa5yn6Cmc+uvHs2KRJLuJEULhy2w31ppVoQJn+yMQiA==
+X-Received: by 2002:a17:907:7f91:b0:ac7:19c9:bb8e with SMTP id a640c23a62f3a-ac7d16ca982mr1372116966b.9.1744122284287;
+        Tue, 08 Apr 2025 07:24:44 -0700 (PDT)
 Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac7c1db6ea1sm928770066b.143.2025.04.08.07.24.40
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac7c1db6ea1sm928770066b.143.2025.04.08.07.24.41
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Apr 2025 07:24:40 -0700 (PDT)
+        Tue, 08 Apr 2025 07:24:42 -0700 (PDT)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Michal Ostrowski <mostrows@earthlink.net>,
 	Andrew Lunn <andrew+netdev@lunn.ch>,
@@ -71,10 +73,12 @@ Cc: netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	linux-hardening@vger.kernel.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v11 nf-next 0/2] Add nf_flow_encap_push() for xmit direct
-Date: Tue,  8 Apr 2025 16:24:23 +0200
-Message-ID: <20250408142425.95437-1-ericwouds@gmail.com>
+Subject: [PATCH v11 nf-next 1/2] net: pppoe: avoid zero-length arrays in struct pppoe_hdr
+Date: Tue,  8 Apr 2025 16:24:24 +0200
+Message-ID: <20250408142425.95437-2-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
+In-Reply-To: <20250408142425.95437-1-ericwouds@gmail.com>
+References: <20250408142425.95437-1-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -83,26 +87,64 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Patch to add nf_flow_encap_push(), see patch message.
+Jakub Kicinski suggested following patch:
 
-Added patch to eliminate array of flexible structures warning.
+W=1 C=1 GCC build gives us:
 
-Changed in v11:
-- Only push when tuple.out.ifidx == tuple.out.hw_ifidx
-- No changes in nft_dev_path_info()
+net/bridge/netfilter/nf_conntrack_bridge.c: note: in included file (through
+../include/linux/if_pppox.h, ../include/uapi/linux/netfilter_bridge.h,
+../include/linux/netfilter_bridge.h): include/uapi/linux/if_pppox.h:
+153:29: warning: array of flexible structures
 
-v10 split from patch-set: bridge-fastpath and related improvements v9
+It doesn't like that hdr has a zero-length array which overlaps proto.
+The kernel code doesn't currently need those arrays.
 
-Eric Woudstra (2):
-  net: pppoe: avoid zero-length arrays in struct pppoe_hdr
-  netfilter: nf_flow_table_offload: Add nf_flow_encap_push() for xmit
-    direct
+PPPoE connection is functional after applying this patch.
 
- drivers/net/ppp/pppoe.c          |  2 +-
- include/uapi/linux/if_pppox.h    |  4 ++
- net/netfilter/nf_flow_table_ip.c | 97 +++++++++++++++++++++++++++++++-
- 3 files changed, 100 insertions(+), 3 deletions(-)
+Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+---
+ drivers/net/ppp/pppoe.c       | 2 +-
+ include/uapi/linux/if_pppox.h | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/net/ppp/pppoe.c b/drivers/net/ppp/pppoe.c
+index 68e631718ab0..17946af6a8cf 100644
+--- a/drivers/net/ppp/pppoe.c
++++ b/drivers/net/ppp/pppoe.c
+@@ -882,7 +882,7 @@ static int pppoe_sendmsg(struct socket *sock, struct msghdr *m,
+ 	skb->protocol = cpu_to_be16(ETH_P_PPP_SES);
+ 
+ 	ph = skb_put(skb, total_len + sizeof(struct pppoe_hdr));
+-	start = (char *)&ph->tag[0];
++	start = (char *)ph + sizeof(*ph);
+ 
+ 	error = memcpy_from_msg(start, m, total_len);
+ 	if (error < 0) {
+diff --git a/include/uapi/linux/if_pppox.h b/include/uapi/linux/if_pppox.h
+index 9abd80dcc46f..29b804aa7474 100644
+--- a/include/uapi/linux/if_pppox.h
++++ b/include/uapi/linux/if_pppox.h
+@@ -122,7 +122,9 @@ struct sockaddr_pppol2tpv3in6 {
+ struct pppoe_tag {
+ 	__be16 tag_type;
+ 	__be16 tag_len;
++#ifndef __KERNEL__
+ 	char tag_data[];
++#endif
+ } __attribute__ ((packed));
+ 
+ /* Tag identifiers */
+@@ -150,7 +152,9 @@ struct pppoe_hdr {
+ 	__u8 code;
+ 	__be16 sid;
+ 	__be16 length;
++#ifndef __KERNEL__
+ 	struct pppoe_tag tag[];
++#endif
+ } __packed;
+ 
+ /* Length of entire PPPoE + PPP header */
 -- 
 2.47.1
 
