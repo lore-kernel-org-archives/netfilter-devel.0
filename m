@@ -1,49 +1,28 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.4])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6D0BC206F18;
-	Tue,  8 Apr 2025 12:40:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.4
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B573F38384
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Apr 2025 13:56:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744116005; cv=none; b=qcQZm5fAHArOwH7RnQjaLNGWpVoqj2KfAihhpEyMD4QbI/LqTozjSBUXv6buEz9ft9XR2S9pmY8VdZs22eTnSERWa/mUmRmZaYvMuFpHQ8r1ghTP9jjpJgZtjFFaqg58aPR7HTCdjZrDwCioPCExnJw0T1o9Bfk45RYcG6gmueo=
+	t=1744120592; cv=none; b=RvE9YNj/DOgja4CleDHCUv59g04biL00oIYVZHySjWrL3RE0dTieiiKWpDT8D9otQCJXBEFo0oiJ3lvqcELmu065ZdNpzvspXyhGR/poAjzO2gmjQxD/OJ/LPjyLzmvibtgl5I8Yivrke73uaYeOCcqVJYgeTCHio0d9Rp0e/RM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744116005; c=relaxed/simple;
-	bh=W2T7YCdGADKb75b9b3DlWwavvOCPJ0/TwhvEwmQo7f4=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=UYRFFVmUQvWXyDWpa1/oBr7Thb8GZcdeYmcIOSsxMWIj8QIXPOqZJijP9Fh7lpL2HQA44JQi9mZNAwRyCJIcJ/a5eSkvy6jg4hkUuydWD35zCOVP62T74mnbnZF6qGFj/GjTEXkR/OWkYWd4jXvvImzEQnahT3nT+KWzrhhYg3s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=TCaZdcmO; arc=none smtp.client-ip=220.197.31.4
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="TCaZdcmO"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=W2T7Y
-	CdGADKb75b9b3DlWwavvOCPJ0/TwhvEwmQo7f4=; b=TCaZdcmOEC/SZynHAHLgD
-	lCdsXB0IaOmQ0WUoOtRqdOPzO1I5js4hWQIu+Hbz3mD9GLipxDvvo7XXlTfdzTg3
-	BQsTpn2YVHv021pE9euB414Zfl7soUMKBdIpWkd4xL4L4cjqzZgP4Bx3sh9FcABN
-	7peCjWyNPtsstIBc0a+Ot8=
-Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-3 (Coremail) with SMTP id _____wDnpgLtGPVneK_AEw--.41217S4;
-	Tue, 08 Apr 2025 20:39:10 +0800 (CST)
-From: lvxiafei <xiafei_xupt@163.com>
-To: fw@strlen.de
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	horms@kernel.org,
-	kadlec@netfilter.org,
-	kuba@kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	xiafei_xupt@163.com
-Subject: Re: [PATCH V2] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
-Date: Tue,  8 Apr 2025 20:39:08 +0800
-Message-Id: <20250408123908.3608-1-xiafei_xupt@163.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20250408095854.GB536@breakpoint.cc>
-References: <20250408095854.GB536@breakpoint.cc>
+	s=arc-20240116; t=1744120592; c=relaxed/simple;
+	bh=uFfFdcs8ywuzI0HrLqrIaYBBr1OQcun4OfOAu5KUltU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RdG8wFuSUY0bBy5dWmqj97lP+vHrAuprhV0uExUvMXGAAIlqj12kPZzqeLbx9a1FBPrDh2QISsyT0fELDrvhANwsq1q0tX3e7aDwjjhm60445Bi/e/8YEtt3xkSc6ymb3uRUWOC40t07KNbRW2opu89p/HDcxjqoVbawi9Sc3No=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1u29RD-0002fT-RD; Tue, 08 Apr 2025 15:56:27 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next] netfilter: nf_tables: export set count and backend name to userspace
+Date: Tue,  8 Apr 2025 15:55:53 +0200
+Message-ID: <20250408135556.21431-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,63 +30,98 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wDnpgLtGPVneK_AEw--.41217S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Kw47XrWfAFyfGrWxGw43GFg_yoW8uFW8p3
-	yftrZrAryDtan3A34kKw17Ca1Fy393Ar13KF1UCFy8Cay5KrnI9rWxKF17CF97Cw4kCr1a
-	vr4jvr1kJas5AaDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0JUhF4_UUUUU=
-X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/1tbiKBMpU2f05gwTsgACsb
 
+nf_tables picks a suitable set backend implementation (bitmap, hash,
+rbtree..) based on the userspace requirements.
 
-On Tue, 8 Apr 2025 11:58:54 Florian Westphal <fw@strlen.de> wrote:
-> That seems the wrong thing to do.
-> There must be some way to limit the netns conntrack usage.
->
-> Whats the actual intent here?
->
-> You could apply max = min(init_net->max, net->max)
-> Or, you could relax it as long as netns are owned
-> by initial user ns, I guess.
->
-> Or perhaps its possible to make a guesstimate of
-> the maximum memory needed by the new limit, then
-> account that to memcg (at sysctl change time), and
-> reject if memcg is exhausted.
->
-> No other ideas at the moment, but I do not like the
-> "no limits" approach.
+Figuring out the chosen backend requires information about the set flags
+and the kernel version.  Export this to userspace so nft can include this
+information in '--debug=netlink' output.
 
-The original nf_conntrack_max is a global variable.
-Modification will affect the connection tracking
-limit in other netns, and the maximum memory
-consumption = number of netns * nf_conntrack_max
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ v2: rename attributes, handle errors in nf_tables_fill_set_info (Pablo Neira)
+     prefer snprintf to kasprintf
+     use new nft_set_userspace_size() to not expose rbtree
+     implementation details to userspace.
 
-This modification can make nf_conntrack_max support
-the netns level to set the size of the connection
-tracking table, and more flexibly limit the connection
-tracking of each netns. For example, the initial user ns
-has a default value (=max_factor*nf_conntrack_htable_size).
-The nf_conntrack_max when netns 1 and netns 2 are created
-is the same as the nf_conntrack_max in the initial user ns.
-You can set it to netns 1 1k and netns 2 2k without
-affecting each other.
+ include/uapi/linux/netfilter/nf_tables.h |  4 ++++
+ net/netfilter/nf_tables_api.c            | 26 ++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
 
-If you are worried that different netns may exceed the
-initial user limit and memory limit when setting,
-apply max = min(init_net->max, net->max), the value in
-netns is not greater than init_net->max, and the new
-maximum memory consumption <= the original maximum memory
-consumption, which limits memory consumption to a certain
-extent. However, this will bring several problems:
-
-1. Do not allow nf_conntrack_max in other netns to be greater
-than nf_conntrack_max of the initial user. For example, when
-other netns carry north-south traffic, the actual number of
-connection tracking is greater than that of the initial user.
-
-2. If nf_conntrack_max of the initial user is increased, the
-maximum memory consumption will inevitably increase by n copies
-
-3. If nf_conntrack_max of the initial user is reduced, will
-the existing connections in other netns be affected?
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 49c944e78463..7d6bc19a0153 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -394,6 +394,8 @@ enum nft_set_field_attributes {
+  * @NFTA_SET_HANDLE: set handle (NLA_U64)
+  * @NFTA_SET_EXPR: set expression (NLA_NESTED: nft_expr_attributes)
+  * @NFTA_SET_EXPRESSIONS: list of expressions (NLA_NESTED: nft_list_attributes)
++ * @NFTA_SET_TYPE: set backend type (NLA_STRING)
++ * @NFTA_SET_COUNT: number of set elements (NLA_U32)
+  */
+ enum nft_set_attributes {
+ 	NFTA_SET_UNSPEC,
+@@ -415,6 +417,8 @@ enum nft_set_attributes {
+ 	NFTA_SET_HANDLE,
+ 	NFTA_SET_EXPR,
+ 	NFTA_SET_EXPRESSIONS,
++	NFTA_SET_TYPE,
++	NFTA_SET_COUNT,
+ 	__NFTA_SET_MAX
+ };
+ #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index c2df81b7e950..dc12943558ac 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4569,6 +4569,8 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+ 	[NFTA_SET_HANDLE]		= { .type = NLA_U64 },
+ 	[NFTA_SET_EXPR]			= { .type = NLA_NESTED },
+ 	[NFTA_SET_EXPRESSIONS]		= NLA_POLICY_NESTED_ARRAY(nft_expr_policy),
++	[NFTA_SET_TYPE]			= { .type = NLA_REJECT },
++	[NFTA_SET_COUNT]		= { .type = NLA_REJECT },
+ };
+ 
+ static const struct nla_policy nft_concat_policy[NFTA_SET_FIELD_MAX + 1] = {
+@@ -4763,6 +4765,27 @@ static u32 nft_set_userspace_size(const struct nft_set_ops *ops, u32 size)
+ 	return size;
+ }
+ 
++static noinline_for_stack int
++nf_tables_fill_set_info(struct sk_buff *skb, const struct nft_set *set)
++{
++	unsigned int nelems;
++	char str[32];
++	int ret;
++
++	ret = snprintf(str, sizeof(str), "%ps", set->ops);
++
++	/* Not expected to happen and harmless: NFTA_SET_TYPE is dumped
++	 * to userspace purely for informational/debug purposes.
++	 */
++	DEBUG_NET_WARN_ON_ONCE(ret >= sizeof(str));
++
++	if (nla_put_string(skb, NFTA_SET_TYPE, str))
++		return -EMSGSIZE;
++
++	nelems = nft_set_userspace_size(set->ops, atomic_read(&set->nelems));
++	return nla_put_be32(skb, NFTA_SET_COUNT, htonl(nelems));
++}
++
+ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			      const struct nft_set *set, u16 event, u16 flags)
+ {
+@@ -4843,6 +4866,9 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 
+ 	nla_nest_end(skb, nest);
+ 
++	if (nf_tables_fill_set_info(skb, set))
++		goto nla_put_failure;
++
+ 	if (set->num_exprs == 1) {
+ 		nest = nla_nest_start_noflag(skb, NFTA_SET_EXPR);
+ 		if (nf_tables_fill_expr_info(skb, set->exprs[0], false) < 0)
+-- 
+2.49.0
 
