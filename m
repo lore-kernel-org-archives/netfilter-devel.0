@@ -1,123 +1,102 @@
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E7BE1E1A3F;
-	Tue,  8 Apr 2025 14:29:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D175122D4F9;
+	Tue,  8 Apr 2025 16:02:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744122549; cv=none; b=fyIep0Q9qD7ppa5oAy5WK/hfY2PHVT/JKgU7DYZ0N2op3AhI1TsPauyZKlNV7II4FOQQc/eql/9t8H3HpxqPGqerWzCYfMK46UAPqVGn7GNhqshEMIlixxXAvJiMYBdNaE0n8I45VZIDq1qwsrzlaJDxytcr6uHEQJHP7uLAiTc=
+	t=1744128180; cv=none; b=kk/WQCzchByJMfjYaKTDToabeCKTytaRwC6+vag2pNywTM7i8VTnqdMB+/P7nYs8EZGj/mCbrjZJShhe2VxB/YjmNNp7q+HqA4Mg1hhf/C/fQSgToed9c4BaKq3y3GxAF6fZot7CxLXiu32hEyOgpMRQlJZ9pamwb2epWMqX9cI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744122549; c=relaxed/simple;
-	bh=EZJG11e4pWpqrTF5AUNg7CFYWOk3WqLPNIo7rSIH9ys=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iJZ+JCfZRNVbJNEhAk8xghqXeeSf98Cz9f+wBhWuUwbEqdFozsL0MFpoItQyWH7Zyc/ih3fSq2QrsaEEm+iA2Pw4L73a1MV6548HYp65p+Xhuh7MeX4bC/K4/CSyE0zxykM5TuOC2CbINIMJFtaGcdOcGx8zaqzPOtJ/QATE/Nc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cHSHiPdd; arc=none smtp.client-ip=209.85.208.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1744128180; c=relaxed/simple;
+	bh=hZt3X6OvWRI5SH/sbZfJe+sNse4XUsMMIFUU1Z1QDtU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Ox1GflYq4VMyQWZ/eZlVMEiehzucBbBQ+DR+xlK0NVEdcTWUReTGDRCqPH2Z5dVBvDthkHJlcfuv+WiQ2wy8nwzMLBBO6/giXRHWF2VNVp3NiuEHg67bXL0CXIXQjmRHfSd+sOyOoAS7PWZHlmEcv14vExGVNOJcqWQYFwXJqCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CT4QmlfR; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f/FWUZle; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cHSHiPdd"
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-5ed43460d6bso8737987a12.0;
-        Tue, 08 Apr 2025 07:29:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744122546; x=1744727346; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=SMox0MpwPKygAR/vnpy2GVz1YAIGJ060oJ50J1k9QBo=;
-        b=cHSHiPdd6W8uREM69DzrDthQ+1aEQExgPJIjTIoAfL9shX7O4t7K6nMmW1VbWSBO66
-         GwqzsT1RQo7LaY7GWqIrqJe7fqc1ecFAfnMPaYRYM/ubDvv9QMt6LAaqPeKgZcCfqT2b
-         HbDcWTXGmuCKctodo7QXjPfc+1YpuimkbckZmhPWKs+keaadwXN+2eGO+UQ6RdtqxSQw
-         eXHCHso5csaFwS1PTRgB0Q61/UGxTI2KIqvo+n4BszACuKkPZBD9uZ3Lb7VnbCIDPYKO
-         BWfnEXPk3+QkzLx0T9t0Cqt6YO9us9p0/r7f32I5CJY7K1B/40LviMZQvwBVfa0sLPBh
-         /1qw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744122546; x=1744727346;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=SMox0MpwPKygAR/vnpy2GVz1YAIGJ060oJ50J1k9QBo=;
-        b=IlptyyJpG0VEVOmS/kTxHdj6Ib+npiAo3myR8uuJLJR9HWaZrlmznVNMhkHGptB0aR
-         FK4HvJ3F2bANKlTnR1EkhrxJnDfVOSAo0AmI1NVuN89RoxCBUqHi+FP0oXl7coiEzWQq
-         m3enNi/RDYE9BZMjr7YT5d/zWUNjihJm0dhhT7vMSbj8PF4wnaP4sNaDapC8x3ReBP+q
-         Kf9EnUnzXU0CIoyG3YOZiyL1GBnrpcqjudGAT8cO3W8tV/Jp4LPTrlHoAEl9iLFCsQ3V
-         4rMskNR8dDfwr+5hlbQ7WIwhrUuK9qyy8Q3j1jl6ESX1s4SmAg9JhroTZobQARlqHdUD
-         EiEA==
-X-Forwarded-Encrypted: i=1; AJvYcCWPE4QCGoaFZsLBsBlrgf+tRYqW5xMfCBwlXO9HNudPl5hzjmCbd9uS+3mHVKmTtqHEToHC3VY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwnmQQWVYNnJQoi3nF+eWw+kxbPNTD3CrlQj4qPYDt0qaqGydp4
-	ER5lKLlavU/vaTyVMAdGMbqvb0zRZe2LwOuIsYa3oTxQZNQYc7mM
-X-Gm-Gg: ASbGncsc0vQHS9ReuZ4+h42al7GRkJz8jsXpBIUo19KlqnuHSRoeFyHBkylqUAnrBwz
-	5ASdc3UK3aP5meUhzpIuPpjDEvvm6raWs+kMKOioy5YxfiqzpKhmuKRDyBNWiMAlTLNAGYoV/YH
-	n0J/GpnLB5wKb2a99Cp02big0K62V65HojdHGxb4b4hg8DqX0Kkq3aF51HpDb8dhHL/MS4C8n+r
-	lQ244iSnFibqWguRdU7hPoCK9UkgwKj4Gjrc7q1TIkB0ftxYeUM7IBdhadzmsWEKruRvLwK1qOQ
-	0KDsXXyjM9MA49C8vISvN5MqdzUG0A6PdOmzlTn+R6pzbUpm7LfaOnFC5awQzyyfTAHq3v+g3YU
-	fgxZpai6E1pB/JRZDaZ9yw9/40sYllcA6+6hsQR6x7o30DyQ/oOy0lLzt7Q3hx1o=
-X-Google-Smtp-Source: AGHT+IFiFXOEqtgluqyzIi/WCknfqKS4o7jSNlmNKIOd8sHqcoYOQXUTzezC2L6Lby3z0XIO3JmYpw==
-X-Received: by 2002:a17:907:3e0f:b0:ac7:b621:7635 with SMTP id a640c23a62f3a-ac7d6d8f3d7mr1635065966b.36.1744122545582;
-        Tue, 08 Apr 2025 07:29:05 -0700 (PDT)
-Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac7c01c2c13sm910586466b.182.2025.04.08.07.29.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Apr 2025 07:29:04 -0700 (PDT)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CT4QmlfR";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f/FWUZle"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id D798B603AD; Tue,  8 Apr 2025 18:02:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1744128169;
+	bh=gJptIUWpJ6UzYtRB0CDxnMyOu8usVQL/RyAHJ2KjoT8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=CT4QmlfRF8tqS695IN3rRFXuimmksjfHqU1bRJRHpUmbJJfh/exLTi9MsZLM2XPn8
+	 rP7lBrmoiwOGNy9+S0zH9laSNJEeCqc1tWOANyir4AE2y31M4TQtK8u2RyAMlwIMY0
+	 r2V2hlZGr7Het3gcXRpNEpIs2ZZNuJh6T1bC5G4t4kxvNA6Ig7g1OC2+qmFur+JXJx
+	 pLw7ZYluYfSLFtPveVlgZLq4xYKv5/IKG8lFNoBrAkAQZzAA4N8VUPB4fhgTzg5yhU
+	 QPrQCfJXkeDiAMiFdAOlFT+2Lz+ZQaV+P8p6vXj4DGlNM63Fn+d58XjSoG6H5yR6hf
+	 dEQbpSNY8KZHQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6FA5860280;
+	Tue,  8 Apr 2025 18:02:47 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1744128167;
+	bh=gJptIUWpJ6UzYtRB0CDxnMyOu8usVQL/RyAHJ2KjoT8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=f/FWUZleyb1H3NjvVG5hbGi3J1WYxnIe3cfT5MAeeJElzclT12Kfi/WIpq2xAcM/2
+	 5B3UmJw+6n+bWDa05vwGONRfEn+BTVvKinPQzOAqXoq8/guS7tVpDbI4M2ABzxotfd
+	 JdygmZlAFfy7p1YyIVs4XX+Rt/5oKdlO5/IKie8WFjMMO7eK8TrvtamK1Xlt4y15RJ
+	 CHnhh57raPF9LpePk4MCxiq8P+8nj0lkiui3k8YzoeSm9gwwIulZPh/KjweTi2b5Si
+	 xcjwBcifTMfYtq8lgLZV83SX/MJg5+iKan7SwJiKbTfqjBN0OiZNwus7yo8OXDBuHZ
+	 HYUuuPgVKMA3Q==
+Date: Tue, 8 Apr 2025 18:02:45 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Michal Ostrowski <mostrows@earthlink.net>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v2 nf-next 3/3] netfilter: nf_flow_table_ip: don't follow fastpath when marked teardown
-Date: Tue,  8 Apr 2025 16:28:48 +0200
-Message-ID: <20250408142848.96281-4-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.47.1
-In-Reply-To: <20250408142848.96281-1-ericwouds@gmail.com>
-References: <20250408142848.96281-1-ericwouds@gmail.com>
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Simon Horman <horms@kernel.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v11 nf-next 0/2] Add nf_flow_encap_push() for xmit direct
+Message-ID: <Z_VIpa9SP05rsW18@calendula>
+References: <20250408142425.95437-1-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250408142425.95437-1-ericwouds@gmail.com>
 
-When a flow is marked for teardown, because the destination is not valid
-any more, the software fastpath may still be in effect and traffic is
-still send to the wrong destination. Change the ip/ipv6 hooks to not use
-the software fastpath for a flow that is marked to be teared down and let
-the packet continue along the normal path.
+Hi,
 
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
----
- net/netfilter/nf_flow_table_ip.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Please, one series at a time. You pick a good target to start with.
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 64a12b9668e7..f9bf2b466ca8 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -542,6 +542,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+		return NF_ACCEPT;
-+
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rtable(tuplehash->tuple.dst_cache);
-@@ -838,6 +841,9 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+		return NF_ACCEPT;
-+
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
--- 
-2.47.1
+I already provided a few suggestions on where to start from.
 
+Thanks.
+
+On Tue, Apr 08, 2025 at 04:24:23PM +0200, Eric Woudstra wrote:
+> Patch to add nf_flow_encap_push(), see patch message.
+> 
+> Added patch to eliminate array of flexible structures warning.
+> 
+> Changed in v11:
+> - Only push when tuple.out.ifidx == tuple.out.hw_ifidx
+> - No changes in nft_dev_path_info()
+> 
+> v10 split from patch-set: bridge-fastpath and related improvements v9
+> 
+> Eric Woudstra (2):
+>   net: pppoe: avoid zero-length arrays in struct pppoe_hdr
+>   netfilter: nf_flow_table_offload: Add nf_flow_encap_push() for xmit
+>     direct
+> 
+>  drivers/net/ppp/pppoe.c          |  2 +-
+>  include/uapi/linux/if_pppox.h    |  4 ++
+>  net/netfilter/nf_flow_table_ip.c | 97 +++++++++++++++++++++++++++++++-
+>  3 files changed, 100 insertions(+), 3 deletions(-)
+> 
+> -- 
+> 2.47.1
+> 
