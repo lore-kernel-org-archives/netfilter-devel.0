@@ -1,61 +1,63 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 095671E5203;
-	Tue,  8 Apr 2025 14:27:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 356FB1E2858;
+	Tue,  8 Apr 2025 14:27:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744122451; cv=none; b=RuPDem33fv3S0DHKGZcgYBhQ/nGM7EakjIiSlgyF7gYAFY1fe7wLAMMYNu+kZ0Y4AcC6z1UerzSewyahpcCB6VjlbqoPlJ0fJUSy8eU2fhXwXsLPyxGuqJ4AamehD8v2eUvGA3r4IQpofXfHCXQfCUDNwpS4iBPReE937vnZgdo=
+	t=1744122452; cv=none; b=es1BBhcQ1285v1bam72Ee9Tp1l5sq32pj0DyIvb5ujpuPjqNiCh0s7iqEJrRwXEsmyXfBF0NYYQ3rc9MEPagrDzb+rs2QKERhqoUbli/yknVtEQ8O+Md/FUL0FwLx+Hf5Wq15XPK31iFoskYshxzVPIefh738bhVf29exnXKHCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744122451; c=relaxed/simple;
-	bh=skNX0VMpyq4TImbnITCqWtOmd+XstuAPKR34qrWn8TY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CNMpqjXmUndgAmE2At7EpxZRSzQReHzwLB6VnqhOD38pZON4xB/2B/lDCWTabF7aBSL2heeTMX/HiMbV7ssgyQnAXAZkb7wH4T7uXg+WkQrZx6aIpnTjAS36fo64AZmUiMwwuDwlrsD0WV7VK+WQmaliJHlGRQq5um5wQ1qcbOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iMpyWD24; arc=none smtp.client-ip=209.85.218.51
+	s=arc-20240116; t=1744122452; c=relaxed/simple;
+	bh=eoY5ZDeqkWc/fTWUEPR+4PRh+ioAiobGt1prQcCq8ls=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=M11VuiezgzHDygl6d1rpBfwVC5PESCDTeJXJB+e3WxubQiV4qOYMHYv0GIIBGXTt1dRFXAmeecyG5V+e9dDtTIWnZxnkUZ2tqWy0kkmT8EsLTHEOsKCdM6UF6M8QdJy/YhJ45lRHVmnxXaV9hwavKRPm+UsrqYIK2A9SDeiGz/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JVcplAhy; arc=none smtp.client-ip=209.85.208.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iMpyWD24"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-ac25d2b2354so1035977466b.1;
-        Tue, 08 Apr 2025 07:27:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JVcplAhy"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-5e5c7d6b96fso9925135a12.3;
+        Tue, 08 Apr 2025 07:27:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744122448; x=1744727248; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=VUm9gQnvGQXKP6784F7H7/avPA/P9IgZ4HfULi58AjM=;
-        b=iMpyWD24S5N9aMem0Bebrwtr+9aV/m7L298awG8YL98L3hUVlwbBdcvGKYMZrxdmaf
-         ItJAO5dpWAPhdkzVElO2k6KDZQgooUHGeWgNHaHO0OmU5x0YHJH/eYoTt0y3S8z/fHNh
-         rnMYTNXfC5bfSyJuXLgUsjNLBOWzWC7f8wuMirtx9bzR9wC9cSdKPf6Dg9b1816WR35N
-         rKRsA/VSM/43t9hn6Z1FMNteLmchKpL76QFf4XXdM3JUy5vwDMlpBQnflyCuA5zQjRGG
-         XNGNbbqLT/RjV+xkQnCZdCFA/4Qqoxc8i/XUSHmiQQtWhFH1P97FMFNdPEsfBl5o/uPz
-         +yCw==
+        d=gmail.com; s=20230601; t=1744122449; x=1744727249; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CZWb82/PgasUd3hxc4hu0fam4KL28GGEvVzyBGiqFMA=;
+        b=JVcplAhylLBF7PE8tpZXJ9WXvxTa/KZL4TrDuZHiolCoVpHnsbCXTr6Ac3dvTKLzXk
+         KjlcGyVrO9icvXhRi3R4lEMvM6HGtwRdhiBUf4c96bKHxkql6P2Q5rBiZDKE8bicybmo
+         WczaHe/U1G7jOSX87L3i1DZYa1B+Xsd901pnQRYjDdJJ8gg6sK0a81hQQOqxx77jjJIi
+         Z8+rtgnqYpNBXTKbh447CVCAkI2bkOLU0byoMI15OGH8TIrFsDZw4cZpzjTe+rmZtbdQ
+         FsChV2Q5bQJMty6EjLkMYm2DEo+XmPS/ZZiE09HJOj/Fqaqfssk6L0+DSl0V3iGBwpst
+         RlbQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744122448; x=1744727248;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=VUm9gQnvGQXKP6784F7H7/avPA/P9IgZ4HfULi58AjM=;
-        b=jLyZ8/y7b6dByVb9ZlohlBPqDJakVtA0LsUtYGhRHzeLvpUz5lDyVNgOy+CNPWIerf
-         yS7iT6pKCkIW60cdoRiq8W4Uk05gxAua2oYMPslXQFcGbdZkEXO0QWi5mBqa3RF91rkP
-         elRcKuYfoF+p7uwq8aFSIWSqzs0T/cCz0Hi9JTQq0LWlPhWiGfnW/Qa2AR3XYT2LffWh
-         CuaY8uDNGwCm/8LyVfbjqGeNcSL6xjV+4yGO4jL5VIkB/j4Srue6+nkTvqG0c2vT+ioC
-         qMZSv/BWKgYXX0+KR9qLfUquq/xU+8GuL0KEZMalawf9oZNCuIo7+4scQMu50Q6gKv9f
-         fTqw==
-X-Forwarded-Encrypted: i=1; AJvYcCVDP/M1tLbPc962X0N2/vdGF9Sx4mxcraIcNt1aor2ek1aXxpiuuLVrLc/FyexP//R231cm4aUCndeUp4Em83Y=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxVUwpx+Y4ShQZpknwCm8taGeyabNUOLD1wXKXE0mOJ3xxjsMc4
-	C9RvP4ekgEJRYfuCVW4qLIVix0+9N1GMnmocRsAMSrBR8/9Nrcgo
-X-Gm-Gg: ASbGnctLi07Jrz9QbAZGVNNGHR23xcEdvWtdSoWM/lXkJiWCoSNvoXIf9Zmsm40QtOE
-	DtX4nWA8jUNdzcGmnqRNQJyBc0bi7upkFWKg06iRsH03U3aJUvXAVrdJJ58QhCVBV+UCCG/1M2A
-	AWK8OuiFFT0c2vKninyYfY4KMO/GC8FP/KakRAJ/DFxDFwN7hihIDrGJ2MUv5ilq4LHM253RbtE
-	anERyWQot8cBQpcA9uvcYWIjYpXDoCjFucWK3ja5utMfdWlrglrQcwAylPNzU3Y7lGJNsuy19cr
-	uc2xrzX5xMcAt4uUfWin42woHHewPWRvi8n8wLaNe4TV93okLduaBZX4bfJfmLTz9RotSgz5Uzv
-	Nl1lGWyoHwDGTvqA5DG8NsBJS1prkGqvdrvKPmkTZy5OKvIIneKHhxhV7H65kChE=
-X-Google-Smtp-Source: AGHT+IEp5c94V6eqD35x0nSO2wKRP1MNbXvTRnXfeguOXryVg+FDsmDVzBaz9Z5e3HCToWicMtFIDA==
-X-Received: by 2002:a17:906:7310:b0:ac7:1350:e878 with SMTP id a640c23a62f3a-ac7d6e05c0bmr1509858666b.46.1744122448151;
-        Tue, 08 Apr 2025 07:27:28 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1744122449; x=1744727249;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=CZWb82/PgasUd3hxc4hu0fam4KL28GGEvVzyBGiqFMA=;
+        b=rkggRLBB9TBVF5AH0LRhmBqPGQrugkzKas6VJaZNoadX6c6eoLqrq2XAy+RAu+dlCz
+         iagbVVB2i8ikYefYfB4SIDkoH8eZ9vpJ1s+AIvXAYTnfSl2VCKZRr/9Bz2nv8T4ETBuP
+         DYYLIqmtXDJBIXixWJ6yX34fm8Ybu6YeAy3oNCynCh0DvIporIdOkeP+3VRj/3f3xX3Y
+         cnZsKuYEIVrD6voYeCE+r4lVwh+GmYqHFas7F5fY4xOl1S90kI5BFfGVc00RfxDrdldD
+         ApGSf2Kr0LW+syLdJlRBJYC+1bI02rW0pvad2EVh5KDJ0J07u/RaIIO9VrfBq4wVFOrS
+         sSSQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXDpS3NCGRAmeRg64wcLsYp2HsoV+YYbKnpamrE67KEFtH3o4sHi08aS10ApTGcrBc1Y69QOafQ3NmL+nBMiYE=@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywn6nUhIGcOIZ3EyDUutv+MQlZL09+rLHWFa93eyp3gf39jpr8l
+	CXcfwakSLiECxzU1iRrNNmjVVq6d65eVICdW2tH+ul++j6mSWVSo
+X-Gm-Gg: ASbGncvRsrScRnHehlF3bSwr5wtZD7TtgurAtwbysmEpXY88WOm2cgi4q0//fCH7fVK
+	2zQugO/IEEyj5N3Jy8RuI8oA4PrcsnriLmdA2Gj3nWRXxaOWsK7gQka5qfchztJh9X/QjO4QpvO
+	X9gXjZKy8uSHYhvUtYzf40rI2R/OlBgJWhlmu+WY8yZN4QzEG0eFvT8faNxVsuI5bR9WSKz2jPw
+	+vHC9/EPdLFocOnFhRWPT6J9LgnqvFeKRb2LpVfIXFO84jynTdBJn9Vg66iYX+oP0zhBB+RIa8A
+	AkyCs+NAooZJQyCvlPiFtbmhWcBSJYlaQKPBtXtc/12iBgq07buDiP7nbr4shokUHdSWjmvsS5p
+	8X9Qql77cdwdFH9mJYq8lVuuv7i++mR4bgqerD+YNQ9Zr+SHUtiP2b5ZgPmo10y0=
+X-Google-Smtp-Source: AGHT+IFVjpjwhiim+Bxc5j4VTe0TH54Bm1QrpuWBGrq3gtJayc9WyUqiJ7bQRpxPiIXdRTszdGVxkA==
+X-Received: by 2002:a17:907:7f90:b0:ac1:da09:5d32 with SMTP id a640c23a62f3a-ac7d6c9f77dmr1145483566b.6.1744122449312;
+        Tue, 08 Apr 2025 07:27:29 -0700 (PDT)
 Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac7bfe9be67sm910393266b.46.2025.04.08.07.27.27
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac7bfe9be67sm910393266b.46.2025.04.08.07.27.28
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Apr 2025 07:27:27 -0700 (PDT)
+        Tue, 08 Apr 2025 07:27:28 -0700 (PDT)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: "David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
@@ -76,10 +78,12 @@ Cc: netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	linux-mediatek@lists.infradead.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v11 nf-next 0/3] netfilter: fastpath fixes
-Date: Tue,  8 Apr 2025 16:27:13 +0200
-Message-ID: <20250408142716.95855-1-ericwouds@gmail.com>
+Subject: [PATCH v11 nf-next 1/3] netfilter: nft_flow_offload: Add DEV_PATH_MTK_WDMA to nft_dev_path_info()
+Date: Tue,  8 Apr 2025 16:27:14 +0200
+Message-ID: <20250408142716.95855-2-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
+In-Reply-To: <20250408142716.95855-1-ericwouds@gmail.com>
+References: <20250408142716.95855-1-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -88,39 +92,48 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Several fixes for the existing software forward-fastpath code, also
-needed for the software bridge-fastpath.
+In case of using mediatek wireless, in nft_dev_fill_forward_path(), the
+forward path is filled, ending with mediatek wlan1.
 
-DEV_PATH_BR_VLAN_UNTAG_HW should not be applied to dsa foreign ports.
+Because DEV_PATH_MTK_WDMA is unknown inside nft_dev_path_info() it returns
+with info.indev = NULL. Then nft_dev_forward_path() returns without
+setting the direct transmit parameters.
 
-Also DEV_PATH_MTK_WDMA needs to be introduced to nft_dev_path_info().
+This results in a neighbor transmit, and direct transmit not possible.
+But we want to use it for flow between bridged interfaces.
 
-Introduce DEV_PATH_BR_VLAN_KEEP_HW.
+So this patch adds DEV_PATH_MTK_WDMA to nft_dev_path_info() and makes
+direct transmission possible.
 
-Changes in v11, results of testing with bridge_fastpath.sh:
-- Dropped "No ingress_vlan forward info for dsa user port" patch.
-- Added Introduce DEV_PATH_BR_VLAN_KEEP_HW, which changed from
-   applying only in the bridge-fastpath to all fastpaths. Added
-   a better explanation to the description.
+Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+---
+ net/netfilter/nft_flow_offload.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-v10 split from patch-set: bridge-fastpath and related improvements v9
-
-Eric Woudstra (3):
-  netfilter: nft_flow_offload: Add DEV_PATH_MTK_WDMA to
-    nft_dev_path_info()
-  bridge: No DEV_PATH_BR_VLAN_UNTAG_HW for dsa foreign
-  bridge: Introduce DEV_PATH_BR_VLAN_KEEP_HW
-
- include/linux/netdevice.h        |  1 +
- include/net/switchdev.h          |  1 +
- net/bridge/br_device.c           |  1 +
- net/bridge/br_private.h          | 10 ++++++++++
- net/bridge/br_switchdev.c        | 15 +++++++++++++++
- net/bridge/br_vlan.c             | 23 ++++++++++++++++-------
- net/netfilter/nft_flow_offload.c |  8 ++++++++
- net/switchdev/switchdev.c        |  2 +-
- 8 files changed, 53 insertions(+), 8 deletions(-)
-
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index 221d50223018..d84e677384da 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -106,6 +106,7 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+ 		switch (path->type) {
+ 		case DEV_PATH_ETHERNET:
+ 		case DEV_PATH_DSA:
++		case DEV_PATH_MTK_WDMA:
+ 		case DEV_PATH_VLAN:
+ 		case DEV_PATH_PPPOE:
+ 			info->indev = path->dev;
+@@ -118,6 +119,10 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+ 				i = stack->num_paths;
+ 				break;
+ 			}
++			if (path->type == DEV_PATH_MTK_WDMA) {
++				i = stack->num_paths;
++				break;
++			}
+ 
+ 			/* DEV_PATH_VLAN and DEV_PATH_PPPOE */
+ 			if (info->num_encaps >= NF_FLOW_TABLE_ENCAP_MAX) {
 -- 
 2.47.1
 
