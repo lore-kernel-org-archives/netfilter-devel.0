@@ -1,587 +1,123 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EADB21B191
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Apr 2025 17:41:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D976C3597F;
+	Tue,  8 Apr 2025 00:47:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744047702; cv=none; b=BRem/ZGm+o/xaLQDOy6LYAkXv2398r50+Iguab98TlOfeHbXCLZ6Cq1xpId4zXmE0ws/NXCkNeOTmZu/caNxh3FmQCWQ2V+kRCkxVWT2WyC28hCGCl7PN2M9AZB1iHyufToS6JA+lwMDfjp0qgZOYAFThzMaY/83dtqy7k7M0s4=
+	t=1744073274; cv=none; b=LVyauuDw62AIkYUXywOoGJocFStQarK3F7FcGMhZt4g+zrjTKKQyDy16oze+xrIiwKVHf6tB6nSu4lH4vdvYc/8L69txCT7TsBAE2ze2VQuQmnm/eeF8LXMukCyLkNBU0Gm0+2yB9oXwzctWkrlNl6dLYUg5kCg8CS7FhrBrR/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744047702; c=relaxed/simple;
-	bh=T3sCi9GNYz3jJJ31V3R2KjDHCPJkHiaC/oroTFyyJzo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=A7/xeAjYxmcS/xrnpzR9e9cB8XavrmPljO8yNumG05lTl/RatZeLzN8HM7/PENXXEP5MrKRsmaFT/QUEAW0ZWKtTLgoahA9YCyWFqbhfYvAAqco2HB4Ccleav7AQC2P7N22VXcMsVY+yU7VJ8u9nBQqEiWpWVnGuNGCYxrTZJ04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1u1qTa-0008IX-DK; Mon, 07 Apr 2025 19:41:38 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: sbrivio@redhat.com,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf 3/3] nft_set_pipapo: add avx register usage tracking for NET_DEBUG builds
-Date: Mon,  7 Apr 2025 19:40:20 +0200
-Message-ID: <20250407174048.21272-4-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250407174048.21272-1-fw@strlen.de>
-References: <20250407174048.21272-1-fw@strlen.de>
+	s=arc-20240116; t=1744073274; c=relaxed/simple;
+	bh=oZzd4JgvsauRQ1gJUEoqzUUmgG/jRx6mRX7gvyNJilI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=u50nPfjG2wFXIEePlvpJ5noG0aPsmTY7isGbCyWFrE4U9wyItopA39SZNOeetrkOvZZLr7La+QhrUE3evgUTWGBrHmFbC3Syc+NSUDlmhHRDLk6ESMjQ5KRtQtY/N8suY1P3P5CkrwCrRDyYVnw+rd3gmdoCNmzXmO7VuqTjSHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TpLlI9eY; arc=none smtp.client-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TpLlI9eY"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-736dd9c4b40so4093764b3a.0;
+        Mon, 07 Apr 2025 17:47:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1744073272; x=1744678072; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=oZzd4JgvsauRQ1gJUEoqzUUmgG/jRx6mRX7gvyNJilI=;
+        b=TpLlI9eYPJXRIushWwOMdPPLSDfzr1BQHZOzjyzBzTcZCsFeGQ+CLLKPT+qVMZeemT
+         pUiG+kA6y5QObYR1cTGkj4FsKScPZDwneo/qz/srsXKXTuogLCK5h00/PanrqapYIavE
+         zp7cHrV05VTZP1REMf70cUbjuedfX8lVtltOeW6S/ZaKFNlEMMweTAGP32O3WMcrVAoe
+         txQARvXZv/h1MlS+rDN7BX39DJErfkI7Y077jE26pXRZE8Gw0gZdHFtbOhfEzraFiZgd
+         AX59Rpb9nMCOKpmzQywegXmGzqHo5tVgz1mRru2dNaI0wOSE1NzhV8mBEJ1WJ+2NsFlW
+         V5Yg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1744073272; x=1744678072;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=oZzd4JgvsauRQ1gJUEoqzUUmgG/jRx6mRX7gvyNJilI=;
+        b=KicaBaGsow22PZhu5lpeUTbPV8RnS2TM3386Jm/W1yle4PvXteWAwdR515AdF+dxt1
+         otonC5ni0avcriav3pjU0C28alLqo9hbZ3cR/AGcZw20KUhZhRetjg6sVl6nW9nFncU3
+         oDcX3tIo9uEjVlAWRbd89YfFE+eHUZcqWKgcHBXVIZeKLLyw/sKDQ9uZjQlLy8GNjE6B
+         2/f+9Dy54SE7IgZnvJ3Gg0rhugZva7as9/GRLRfu5Eu5xAGqi/LzTvwZIJC1CwOS+6V0
+         M2QP7ruPEKFE/cE72sqWIvv55vVGIj2l88CUCMWGumAJIWST5AoEjhcFZnjN0WJ7gAg1
+         1IRw==
+X-Forwarded-Encrypted: i=1; AJvYcCVNK/zz0jwr3uKNUsgIgLpmSijHmnkBTLZemBiQOS+qPTBLgiyjBVQI3A0xfizi0Lw3SSf0adnC0nA=@vger.kernel.org, AJvYcCXelh7hBpqBDPCht6tKlJrI74EGHslzLR/XxWH39pLzkijUP6/OeEu6rDSu8q96yNm3luv5sDcIlkIkNYPi@vger.kernel.org, AJvYcCXx19QRDZs41iVdnV5DM9CYXPJ+aPVbXAyingnxTOXOA9gqkDZ0Bott67OcwvLg6TYRvgLZznWlaU9ziZG1byiN@vger.kernel.org
+X-Gm-Message-State: AOJu0YwKQ73XM/+VfcL/lIRZ3+vAIHODLaDtRQ8l5ppDjMMuja6FGuYN
+	wzSBTrS8EsfOolsHbpFKBoO4GQAno7Mzrx8mEK81VrPqTpoePqp9
+X-Gm-Gg: ASbGnctmPLmwMmq21R08He5LDimvd/tSMIQ+b2JqKp0whcCrtcT1DCG+t4KRUgK0RBz
+	q1wip7zdce4ZqvGEStis/irLEjgxaJXiTNHTjiUy6i2wjzLCiD7x5XejU+rXlBGEwX7L/y92lw5
+	OHPqWYe0npAp7M7PLJa/9OZ8NqOB+wiWBBB1fcGtom9GXX3SqJnz8TIUBBAc3TVQiYbVQdE3LzW
+	pHAs2bMgxblRJz1fTnQsPVbn14BehQcboTeMtxjzuT/pXnIu7cdIqxLIwbj5DtUPpSDetXmrp2B
+	h3kLs6/LjQCcbB/+SuIs8Z34tSEd8s3Fy6CnoYDjv8zhA2USfn4YGzQ=
+X-Google-Smtp-Source: AGHT+IHbzD3pDAoVViW4x6OsfXpc/ZunvE+qr3/jIMkXXUfJThHznNKHobr3vIEqBOPjCMe5srcHOQ==
+X-Received: by 2002:a05:6a20:d49a:b0:1f3:383e:7739 with SMTP id adf61e73a8af0-2014392c946mr1980131637.7.1744073271885;
+        Mon, 07 Apr 2025 17:47:51 -0700 (PDT)
+Received: from archie.me ([103.124.138.155])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-af9bc318707sm7942832a12.17.2025.04.07.17.47.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Apr 2025 17:47:51 -0700 (PDT)
+Received: by archie.me (Postfix, from userid 1000)
+	id A3B17420A696; Tue, 08 Apr 2025 07:47:48 +0700 (WIB)
+Date: Tue, 8 Apr 2025 07:47:48 +0700
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+To: Chen Linxuan <chenlinxuan@uniontech.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>
+Cc: netdev@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] docs: tproxy: fix formatting for nft code block
+Message-ID: <Z_RyNA-iRn7C1h7Y@archie.me>
+References: <CFD0AAF9D7040B1E+20250407031727.1615941-1-chenlinxuan@uniontech.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="XrdiRZkpEXQfktZX"
+Content-Disposition: inline
+In-Reply-To: <CFD0AAF9D7040B1E+20250407031727.1615941-1-chenlinxuan@uniontech.com>
 
-Add ymm register tracking for avx2 helpers.
 
-A register can have following states:
-- mem (contains packet data)
-- and (was consumed, value folded into other register)
-- tmp (holds result of folding operation)
+--XrdiRZkpEXQfktZX
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-mem and tmp are mutually exclusive.
+[Cc'ing netfilter folks]
 
-Warn if
-a) register store happens while register has 'mem' bit set
-   but 'and' unset.
-   This detects clobbering of a register with new
-   packet data before the previous load has been processed.
-b) register is read but wasn't written to before
-   This detects operations happening on undefined register
-   content, such as AND or GOTOs.
-c) register is saved to memory, but it doesn't hold result
-   of an AND operation.
-   This detects erroneous stores to the memory scratch map.
-d) register is used for goto, but it doesn't contain result
-   of earlier AND operation.
-e) There is an unprocessed register left when the function
-   returns (only mem bit is set).
+On Mon, Apr 07, 2025 at 11:17:27AM +0800, Chen Linxuan wrote:
+> Signed-off-by: Chen Linxuan <chenlinxuan@uniontech.com>
 
-Also print a notice when we have a never-used-register,
-it would hint at some way to optimize code.
-For those helpers that don't process enough data fields
-to fill all, this error is suppressed -- they pass the
-highest inuse register.
+Hi Chen,
 
-There is one exception for c) in the code (where we only
-have one byte to process.  The helper
-nft_pipapo_avx2_force_tmp() is used for this to forcibly
-convert the state from 'mem' to 'tmp'.
+Missing patch description. From what the patch does, the description should=
+'ve
+been written like:
 
-This is disabled for NET_DEBUG=n builds.
+"nft command snippet for redirecting traffic isn't formatted in literal code
+block like the rest of snippet does. Fix the formatting inconsistency."
 
-v3: add additional 'done' test to check all registers
-    were handled
-    fix macro space/tab indent in a few places (Stefano)
-    fix yym typos (Stefano)
-    make this change last in the series
+Thanks.
 
-v2: Improve kdoc (Stefano Brivio)
-    Use u16, not long (Stefano Brivio)
-    Reduce macro usage in favor of inline helpers
-    warn if we store register to memory but its not holding
-    result of AND operation
+--=20
+An old man doll... just what I always wanted! - Clara
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_pipapo_avx2.c | 300 +++++++++++++++++++++++++---
- 1 file changed, 269 insertions(+), 31 deletions(-)
+--XrdiRZkpEXQfktZX
+Content-Type: application/pgp-signature; name=signature.asc
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index c15db28c5ebc..d2e321cc870f 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -26,7 +26,209 @@
- 
- #define NFT_PIPAPO_LONGS_PER_M256	(XSAVE_YMM_SIZE / BITS_PER_LONG)
- 
--/* Load from memory into YMM register with non-temporal hint ("stream load"),
-+/**
-+ * struct nft_pipapo_debug_regmap - Bitmaps representing sets of YMM registers
-+ *
-+ * @mem: n-th bit set if YMM<n> contains packet data loaded from memory
-+ * @and: n-th bit set if YMM<n> was folded (AND operation done)
-+ * @tmp: n-th bit set if YMM<n> contains folded data (result of AND operation)
-+ */
-+struct nft_pipapo_debug_regmap {
-+#ifdef CONFIG_DEBUG_NET
-+	u16 mem;
-+	u16 and;
-+	u16 tmp;
-+#endif
-+};
-+
-+#ifdef CONFIG_DEBUG_NET
-+/* ymm15 is used as an always-0-register, see nft_pipapo_avx2_prepare */
-+#define NFT_PIPAPO_AVX2_DEBUG_MAP					\
-+	struct nft_pipapo_debug_regmap __pipapo_debug_regmap = {	\
-+		.tmp = BIT(15),						\
-+	}
-+
-+#define NFT_PIPAPO_WARN(cond, reg, rmap, line, message)	({			\
-+	const struct nft_pipapo_debug_regmap *rm__ = (rmap);			\
-+	DEBUG_NET_WARN_ONCE((cond), "reg %d line %u %s, mem %04x, and %04x tmp %04x",\
-+		  (reg), (line), (message), rm__->mem, rm__->and, rm__->tmp);	\
-+})
-+#else /* !CONFIG_DEBUG_NET */
-+#define NFT_PIPAPO_AVX2_DEBUG_MAP                                       \
-+	struct nft_pipapo_debug_regmap __pipapo_debug_regmap
-+#endif
-+
-+/**
-+ * nft_pipapo_avx2_load_packet() - Check and record packet data store
-+ *
-+ * @reg: Index of register being written to
-+ * @r: Current bitmap of registers for debugging purposes
-+ * @line: __LINE__ number filled via AVX2 macro
-+ *
-+ * Mark reg as holding packet data.
-+ * Check reg is unused or had an AND operation performed on it.
-+ */
-+static inline void nft_pipapo_avx2_load_packet(unsigned int reg,
-+					       struct nft_pipapo_debug_regmap *r,
-+					       unsigned int line)
-+{
-+#ifdef CONFIG_DEBUG_NET
-+	bool used = BIT(reg) & (r->mem | r->tmp);
-+	bool anded = BIT(reg) & r->and;
-+
-+	r->and &= ~BIT(reg);
-+	r->tmp &= ~BIT(reg);
-+	r->mem |= BIT(reg);
-+
-+	if (used)
-+		NFT_PIPAPO_WARN(!anded, reg, r, line, "busy");
-+#endif
-+}
-+
-+/**
-+ * nft_pipapo_avx2_force_tmp() - Mark @reg as holding result of AND operation
-+ * @reg: Index of register
-+ * @r: Current bitmap of registers for debugging purposes
-+ *
-+ * Mark reg as holding temporary data, no checks are performed.
-+ */
-+static inline void nft_pipapo_avx2_force_tmp(unsigned int reg,
-+					     struct nft_pipapo_debug_regmap *r)
-+{
-+#ifdef CONFIG_DEBUG_NET
-+	r->tmp |= BIT(reg);
-+	r->mem &= ~BIT(reg);
-+#endif
-+}
-+
-+/**
-+ * nft_pipapo_avx2_load_tmp() - Check and record scratchmap restore
-+ *
-+ * @reg: Index of register being written to
-+ * @r: Current bitmap of registers for debugging purposes
-+ * @line: __LINE__ number filled via AVX2 macro
-+ *
-+ * Mark reg as holding temporary data.
-+ * Check reg is unused or had an AND operation performed on it.
-+ */
-+static inline void nft_pipapo_avx2_load_tmp(unsigned int reg,
-+					    struct nft_pipapo_debug_regmap *r,
-+					    unsigned int line)
-+{
-+#ifdef CONFIG_DEBUG_NET
-+	bool used = BIT(reg) & (r->mem | r->tmp);
-+	bool anded = BIT(reg) & r->and;
-+
-+	r->and &= ~BIT(reg);
-+
-+	nft_pipapo_avx2_force_tmp(reg, r);
-+
-+	if (used)
-+		NFT_PIPAPO_WARN(!anded, reg, r, line, "busy");
-+#endif
-+}
-+
-+/**
-+ * nft_pipapo_avx2_debug_and() - Mark registers as being ANDed
-+ *
-+ * @a: Index of register being written to
-+ * @b: Index of first register being ANDed
-+ * @c: Index of second register being ANDed
-+ * @r: Current bitmap of registers for debugging purposes
-+ * @line: __LINE__ number filled via AVX2 macro
-+ *
-+ * Tags @reg2 and @reg3 as ANDed register
-+ * Tags @reg1 as containing AND result
-+ */
-+static inline void nft_pipapo_avx2_debug_and(unsigned int a, unsigned int b,
-+					     unsigned int c,
-+					     struct nft_pipapo_debug_regmap *r,
-+					     unsigned int line)
-+{
-+#ifdef CONFIG_DEBUG_NET
-+	bool b_and = BIT(b) & r->and;
-+	bool c_and = BIT(c) & r->and;
-+	bool b_tmp = BIT(b) & r->tmp;
-+	bool c_tmp = BIT(c) & r->tmp;
-+	bool b_mem = BIT(b) & r->mem;
-+	bool c_mem = BIT(c) & r->mem;
-+
-+	r->and |= BIT(b);
-+	r->and |= BIT(c);
-+
-+	nft_pipapo_avx2_force_tmp(a, r);
-+
-+	NFT_PIPAPO_WARN((!b_mem && !b_and && !b_tmp), b, r, line, "unused");
-+	NFT_PIPAPO_WARN((!c_mem && !c_and && !c_tmp), c, r, line, "unused");
-+#endif
-+}
-+
-+/**
-+ * nft_pipapo_avx2_reg_tmp() - Check that @reg holds result of AND operation
-+ * @reg: Index of register
-+ * @r: Current bitmap of registers for debugging purposes
-+ * @line: __LINE__ number filled via AVX2 macro
-+ */
-+static inline void nft_pipapo_avx2_reg_tmp(unsigned int reg,
-+					   const struct nft_pipapo_debug_regmap *r,
-+					   unsigned int line)
-+{
-+#ifdef CONFIG_DEBUG_NET
-+	bool holds_and_result = BIT(reg) & r->tmp;
-+
-+	NFT_PIPAPO_WARN(!holds_and_result, reg, r, line, "unused");
-+#endif
-+}
-+
-+/**
-+ * nft_pipapo_avx2_debug_map_done() - Check all registers were used
-+ * @ret: Return value
-+ * @r: Current bitmap of registers for debugging purposes
-+ * @reg_hi: The highest ymm register used (0: all are used)
-+ * @line: __LINE__ number filled via AVX2 macro
-+ *
-+ * Raises a warning if a register hasn't been processed (AND'ed).
-+ * Prints a notice if it finds an unused register, this hints at
-+ * possible optimization.
-+ */
-+static inline int nft_pipapo_avx2_debug_map_done(int ret, struct nft_pipapo_debug_regmap *r,
-+						 unsigned int reg_hi,
-+						 unsigned int line)
-+{
-+#ifdef CONFIG_DEBUG_NET
-+	static const unsigned int ymm_regs = 16;
-+	u16 reg_bad, reg_ok;
-+	unsigned int i;
-+
-+	reg_ok = r->and | r->tmp;
-+	reg_bad = r->mem;
-+
-+	reg_hi = reg_hi > 0 ? reg_hi + 1 : ymm_regs;
-+
-+	for (i = 0; i < reg_hi; i++) {
-+		if (BIT(i) & reg_ok)
-+			continue;
-+
-+		if (BIT(i) & reg_bad)
-+			NFT_PIPAPO_WARN(1, i, r, line, "unprocessed");
-+		else
-+			pr_info_once("%s: at %u: reg %u unused\n", __func__, line, i);
-+	}
-+
-+	r->mem = 0;
-+	r->and = 0;
-+	r->tmp = 0;
-+#endif
-+
-+	return ret;
-+}
-+
-+#define NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(ret) \
-+	nft_pipapo_avx2_debug_map_done((ret), &__pipapo_debug_regmap, 0, __LINE__)
-+#define NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(ret, hr) \
-+	nft_pipapo_avx2_debug_map_done((ret), &__pipapo_debug_regmap, (hr), __LINE__)
-+
-+/* Load from memory into ymm register with non-temporal hint ("stream load"),
-  * that is, don't fetch lines from memory into the cache. This avoids pushing
-  * precious packet data out of the cache hierarchy, and is appropriate when:
-  *
-@@ -36,38 +238,59 @@
-  * - loading the result bitmap from the previous field, as it's never used
-  *   again
-  */
--#define NFT_PIPAPO_AVX2_LOAD(reg, loc)					\
-+#define __NFT_PIPAPO_AVX2_LOAD(reg, loc)				\
- 	asm volatile("vmovntdqa %0, %%ymm" #reg : : "m" (loc))
- 
--/* Stream a single lookup table bucket into YMM register given lookup table,
-+#define NFT_PIPAPO_AVX2_LOAD(reg, loc) do {				\
-+	nft_pipapo_avx2_load_tmp(reg,					\
-+				 &__pipapo_debug_regmap, __LINE__);	\
-+	__NFT_PIPAPO_AVX2_LOAD(reg, loc);				\
-+} while (0)
-+
-+/* Stream a single lookup table bucket into ymm register given lookup table,
-  * group index, value of packet bits, bucket size.
-  */
--#define NFT_PIPAPO_AVX2_BUCKET_LOAD4(reg, lt, group, v, bsize)		\
--	NFT_PIPAPO_AVX2_LOAD(reg,					\
--			     lt[((group) * NFT_PIPAPO_BUCKETS(4) +	\
--				 (v)) * (bsize)])
--#define NFT_PIPAPO_AVX2_BUCKET_LOAD8(reg, lt, group, v, bsize)		\
--	NFT_PIPAPO_AVX2_LOAD(reg,					\
--			     lt[((group) * NFT_PIPAPO_BUCKETS(8) +	\
--				 (v)) * (bsize)])
-+#define NFT_PIPAPO_AVX2_BUCKET_LOAD4(reg, lt, group, v, bsize) do {	\
-+	nft_pipapo_avx2_load_packet(reg,				\
-+				    &__pipapo_debug_regmap, __LINE__);	\
-+	__NFT_PIPAPO_AVX2_LOAD(reg,					\
-+			       lt[((group) * NFT_PIPAPO_BUCKETS(4) +	\
-+			       (v)) * (bsize)]);			\
-+} while (0)
-+
-+#define NFT_PIPAPO_AVX2_BUCKET_LOAD8(reg, lt, group, v, bsize) do {	\
-+	nft_pipapo_avx2_load_packet(reg,				\
-+				    &__pipapo_debug_regmap, __LINE__);	\
-+	__NFT_PIPAPO_AVX2_LOAD(reg,					\
-+			       lt[((group) * NFT_PIPAPO_BUCKETS(8) +	\
-+			       (v)) * (bsize)]);			\
-+} while (0)
- 
- /* Bitwise AND: the staple operation of this algorithm */
--#define NFT_PIPAPO_AVX2_AND(dst, a, b)					\
--	asm volatile("vpand %ymm" #a ", %ymm" #b ", %ymm" #dst)
-+#define NFT_PIPAPO_AVX2_AND(dst, a, b) do {				\
-+	BUILD_BUG_ON((a) == (b));					\
-+	asm volatile("vpand %ymm" #a ", %ymm" #b ", %ymm" #dst);	\
-+	nft_pipapo_avx2_debug_and(dst, a, b,				\
-+				  &__pipapo_debug_regmap, __LINE__);	\
-+} while (0)
- 
- /* Jump to label if @reg is zero */
--#define NFT_PIPAPO_AVX2_NOMATCH_GOTO(reg, label)			\
--	asm goto("vptest %%ymm" #reg ", %%ymm" #reg ";"	\
--			  "je %l[" #label "]" : : : : label)
-+#define NFT_PIPAPO_AVX2_NOMATCH_GOTO(reg, label) do {			\
-+	nft_pipapo_avx2_reg_tmp(reg, &__pipapo_debug_regmap, __LINE__);	\
-+	asm goto("vptest %%ymm" #reg ", %%ymm" #reg ";"			\
-+			  "je %l[" #label "]" : : : : label);		\
-+} while (0)
- 
--/* Store 256 bits from YMM register into memory. Contrary to bucket load
-+/* Store 256 bits from ymm register into memory. Contrary to bucket load
-  * operation, we don't bypass the cache here, as stored matching results
-  * are always used shortly after.
-  */
--#define NFT_PIPAPO_AVX2_STORE(loc, reg)					\
--	asm volatile("vmovdqa %%ymm" #reg ", %0" : "=m" (loc))
-+#define NFT_PIPAPO_AVX2_STORE(loc, reg) do {				\
-+	nft_pipapo_avx2_reg_tmp(reg, &__pipapo_debug_regmap, __LINE__);	\
-+	asm volatile("vmovdqa %%ymm" #reg ", %0" : "=m" (loc));		\
-+} while (0)
- 
--/* Zero out a complete YMM register, @reg */
-+/* Zero out a complete ymm register, @reg */
- #define NFT_PIPAPO_AVX2_ZERO(reg)					\
- 	asm volatile("vpxor %ymm" #reg ", %ymm" #reg ", %ymm" #reg)
- 
-@@ -219,6 +442,7 @@ static int nft_pipapo_avx2_lookup_4b_2(unsigned long *map, unsigned long *fill,
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	u8 pg[2] = { pkt[0] >> 4, pkt[0] & 0xf };
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -242,7 +466,7 @@ static int nft_pipapo_avx2_lookup_4b_2(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(b, 4);
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -254,7 +478,7 @@ static int nft_pipapo_avx2_lookup_4b_2(unsigned long *map, unsigned long *fill,
- 		;
- 	}
- 
--	return ret;
-+	return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(ret, 4);
- }
- 
- /**
-@@ -282,6 +506,7 @@ static int nft_pipapo_avx2_lookup_4b_4(unsigned long *map, unsigned long *fill,
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	u8 pg[4] = { pkt[0] >> 4, pkt[0] & 0xf, pkt[1] >> 4, pkt[1] & 0xf };
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -319,7 +544,7 @@ static int nft_pipapo_avx2_lookup_4b_4(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(b, 7);
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -331,6 +556,7 @@ static int nft_pipapo_avx2_lookup_4b_4(unsigned long *map, unsigned long *fill,
- 		;
- 	}
- 
-+	NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(ret, 7);
- 	return ret;
- }
- 
-@@ -361,6 +587,7 @@ static int nft_pipapo_avx2_lookup_4b_8(unsigned long *map, unsigned long *fill,
- 		   };
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -414,7 +641,7 @@ static int nft_pipapo_avx2_lookup_4b_8(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(b);
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -427,7 +654,7 @@ static int nft_pipapo_avx2_lookup_4b_8(unsigned long *map, unsigned long *fill,
- 		;
- 	}
- 
--	return ret;
-+	return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(ret);
- }
- 
- /**
-@@ -458,6 +685,7 @@ static int nft_pipapo_avx2_lookup_4b_12(unsigned long *map, unsigned long *fill,
- 		    };
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -505,7 +733,7 @@ static int nft_pipapo_avx2_lookup_4b_12(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(b);
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -517,7 +745,7 @@ static int nft_pipapo_avx2_lookup_4b_12(unsigned long *map, unsigned long *fill,
- 		;
- 	}
- 
--	return ret;
-+	return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(ret);
- }
- 
- /**
-@@ -553,6 +781,7 @@ static int nft_pipapo_avx2_lookup_4b_32(unsigned long *map, unsigned long *fill,
- 		    };
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -641,7 +870,7 @@ static int nft_pipapo_avx2_lookup_4b_32(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(b);
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -653,7 +882,7 @@ static int nft_pipapo_avx2_lookup_4b_32(unsigned long *map, unsigned long *fill,
- 		;
- 	}
- 
--	return ret;
-+	return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE(ret);
- }
- 
- /**
-@@ -680,6 +909,7 @@ static int nft_pipapo_avx2_lookup_8b_1(unsigned long *map, unsigned long *fill,
- {
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -687,6 +917,7 @@ static int nft_pipapo_avx2_lookup_8b_1(unsigned long *map, unsigned long *fill,
- 
- 		if (first) {
- 			NFT_PIPAPO_AVX2_BUCKET_LOAD8(2, lt, 0, pkt[0], bsize);
-+			nft_pipapo_avx2_force_tmp(2, &__pipapo_debug_regmap);
- 		} else {
- 			NFT_PIPAPO_AVX2_BUCKET_LOAD8(0, lt, 0, pkt[0], bsize);
- 			NFT_PIPAPO_AVX2_LOAD(1, map[i_ul]);
-@@ -699,7 +930,7 @@ static int nft_pipapo_avx2_lookup_8b_1(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(b, 2);
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -711,7 +942,10 @@ static int nft_pipapo_avx2_lookup_8b_1(unsigned long *map, unsigned long *fill,
- 		;
- 	}
- 
--	return ret;
-+	if (first)
-+		return ret;
-+
-+	return NFT_PIPAPO_AVX2_DEBUG_MAP_DONE2(ret, 2);
- }
- 
- /**
-@@ -738,6 +972,7 @@ static int nft_pipapo_avx2_lookup_8b_2(unsigned long *map, unsigned long *fill,
- {
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -803,6 +1038,7 @@ static int nft_pipapo_avx2_lookup_8b_4(unsigned long *map, unsigned long *fill,
- {
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -879,6 +1115,7 @@ static int nft_pipapo_avx2_lookup_8b_6(unsigned long *map, unsigned long *fill,
- {
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
-@@ -965,6 +1202,7 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
- {
- 	int i, ret = -1, m256_size = f->bsize / NFT_PIPAPO_LONGS_PER_M256, b;
- 	unsigned long *lt = f->lt, bsize = f->bsize;
-+	NFT_PIPAPO_AVX2_DEBUG_MAP;
- 
- 	lt += offset * NFT_PIPAPO_LONGS_PER_M256;
- 	for (i = offset; i < m256_size; i++, lt += NFT_PIPAPO_LONGS_PER_M256) {
--- 
-2.49.0
+-----BEGIN PGP SIGNATURE-----
 
+iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZ/RyNAAKCRD2uYlJVVFO
+oxV9AP4yfBfelSDqPIYOI6vzlAeU1b61jxRFuEeSMr6ZbSMsygD/VKoz0dVl99vC
+ULu6QZJ2Vy38lRMOTGbPB2HD0NGaQQw=
+=U0pP
+-----END PGP SIGNATURE-----
+
+--XrdiRZkpEXQfktZX--
