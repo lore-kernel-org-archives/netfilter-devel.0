@@ -1,55 +1,49 @@
-Received: from smtpbgbr2.qq.com (smtpbgbr2.qq.com [54.207.22.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02C02620CD;
-	Tue,  8 Apr 2025 07:40:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.207.22.56
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A3B2E1FE45C;
+	Tue,  8 Apr 2025 08:17:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744098069; cv=none; b=OhVvMH7H8qt6I8sGUkc5gAlfPqA55q0t2m13GwJaGFQJkLkYryyL+d3vpUZyQKZUvklecopDwXYC00+ExnCjoSdIzDYZinpFLkxb0903r980y7fvQm5bZz7pyl8KhrYM3r2b0QD6R155uuQcrWftfi6cOSWbn7F04vEkt/B9oog=
+	t=1744100282; cv=none; b=MVb0V1+2BDnziwyFi4L1wLpYMCeT69dlbLWpA60JjhaflFiBDP6RblTtBLSAQcvR3gNAtjHEcRGlaoBczq5S5WPpFpryCSLZgPDvmNihkrFuLLxaeTysScEHTW8ljIEcIAuxEtmV568ib8AFfLyb6xKZo3/DYj0nI3fPrkrqtSo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744098069; c=relaxed/simple;
-	bh=VmrdJVDpTY1Y3BF9QzGsEsk2pkeTQKYXt41LsIyEfyM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nU6dQWWxVXG6nBWU1sBK4QBJrSJ73ZEEvkS67otGiJdmOq8qi5sFixBFVxep7WjnqZUV9bvRUoXhbZAxEU5lmRiomXwrJfFpXwoMUvc77bVOEQDDTwwX8kfc2QpFvv6UZpFSqmwfgI+M0Zj0gTWJrjihqL6MtExQcauJcH8JzYs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=BKLZSlXi; arc=none smtp.client-ip=54.207.22.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+	s=arc-20240116; t=1744100282; c=relaxed/simple;
+	bh=z7C9+Aw9Lnh/zalZF4spiWpABhbIENKNGZqrSXIAjgo=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=OYEcJ9u/pPt5vrZxT5K0eatseSvPNim2W5yWOVQDe+u6lsjBJtso/u4FVkrknjAimc0ybEZftvKtXrGFLXwP/gOeRxv1AAXNql282WgXqXExzN48f4v7POggIeLrK8BoySJ7A8XOH3DQ8YVAt8VpzTf7DB1tY879IO8gWz/rIn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=mww3B8Jj; arc=none smtp.client-ip=117.135.210.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="BKLZSlXi"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1744098047;
-	bh=CwKUleQf27cGcf66047RnWHjOqMcyIi/LBBDO1qSzAM=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=BKLZSlXiwOS0ObJ8zdUczG1rUS1ZL2dEPFY1urmf19WwO2hi1pyfZKZz17LsAyV9B
-	 f/u/M4HoLlv9WY6YV8EssNEPQyRxdGH2d2AF+mcduMmLOKtqs3HNv0BLLAFSpzjh/w
-	 8oDqoRKsctdG9NWWKeWP9IoFCTPlXglH4CIVhfN4=
-X-QQ-mid: bizesmtpsz4t1744098041tb64312
-X-QQ-Originating-IP: YLpLnDErj1dtfcCfWuO3BojoYWQCqOM0zq8eEbVCJxE=
-Received: from localhost.localdomain ( [113.57.152.160])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Tue, 08 Apr 2025 15:40:39 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 8994852775391133971
-EX-QQ-RecipientCnt: 14
-From: Chen Linxuan <chenlinxuan@uniontech.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	Chen Linxuan <chenlinxuan@uniontech.com>,
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="mww3B8Jj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=NbkKe
+	gcA71YkI2H7dpP2G2+hQQJI+Zb1D4aPq7daL3U=; b=mww3B8JjD3DUBROqLEOsa
+	y8/AkAmBfI7ip2WaPfbtmPa20YhgTpVLB/7vwO8/pgPXvmH++AWkjzd0cJvby+uh
+	qBtmwuhxIFCnx2LKp866PSIDK5qMm7TuQDLOggu0XiDjUgiyTopYKakAqQlwPWTq
+	e7RfAe3Tnq4ev+3grFBRew=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g0-2 (Coremail) with SMTP id _____wAXLdSI2_RnL8PbEw--.43400S4;
+	Tue, 08 Apr 2025 16:17:14 +0800 (CST)
+From: lvxiafei <xiafei_xupt@163.com>
+To: fw@strlen.de
+Cc: coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	horms@kernel.org,
+	kadlec@netfilter.org,
+	kuba@kernel.org,
+	linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com,
 	netdev@vger.kernel.org,
-	linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 nf-next] docs: tproxy: fix formatting for nft code block
-Date: Tue,  8 Apr 2025 15:35:50 +0800
-Message-ID: <E25F951CDC9F22B2+20250408073550.3319892-2-chenlinxuan@uniontech.com>
-X-Mailer: git-send-email 2.48.1
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	xiafei_xupt@163.com
+Subject: Re: [PATCH] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Tue,  8 Apr 2025 16:17:12 +0800
+Message-Id: <20250408081712.54037-1-xiafei_xupt@163.com>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20250407101352.GA10818@breakpoint.cc>
+References: <20250407101352.GA10818@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -57,55 +51,36 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtpsz:uniontech.com:qybglogicsvrgz:qybglogicsvrgz5a-1
-X-QQ-XMAILINFO: MMREUZv4wJ7/uOrne6X5SSbeT+Yka9zVShie8oIcWhB2JdLJ5WW4MiZr
-	EcNaNn5OQy4bG0OswoJSKhKIxzRSTx8Ji7+YbJzGszsZ8swRuLITYCvaV75cop7PcdiT53B
-	Tv7gyq+M57NR8SB4wgCAM9Za1FVwoE7GLC2D0d7uJ5/eASbI4KET6cJJwKrNoBONKOPt6ZK
-	zhgULO6RkpBxK639RfIcrXaO5fmMxhpCoTi11CT8ViQimX2togtb6AC4vPfm5lsDzJ2wi54
-	Xk8ruXvnMBGOZzFyMTewDewcl4hSax4NknF/qpnG879YSKMRYWopOklFOisHVy+IDv3kfyc
-	E5FP+wSmH7Mh8Yv3mCk4id7pYXqxnFtE0ICnSUgPJBbPVpSodbLh5+DWNKtdQ6TILvQLkby
-	kVxVC1glPfD0e4hLg1A/1F37cqJZJxtKJR/X3UiC8SQCwJ6ObNth0QFb5MF+04L9GxMp28i
-	YN/+VoGG0SwWME66wZWCXhtYVYvMiTLTjbNhVPwaQa6MDjt2sL8jIKVPS8cJe8pnugeVdwn
-	f3vaUEbY8GHZwM4SE8loBmWQeZQAPGRAQNiannu2ZUsw5bNHtOWjrE0GMbnuLL6bGJ9KBbM
-	4MH1SqsuSL/aR/LlDtSWShsx1UyNy3kEiQu3cK3LXzPKw+iuipmLOgAB5LbkGFXa78aMa08
-	XcZR8u+ljZtIKTsbyeaMZW3RgG73Gf8TqBiOKW1CI02vsvznzkiiZ8K0CJ4CkuXapzUyzqs
-	U/CHkHFGQkyocjPZYxkajOOuOqs5NfWIyg8hSALnrQ+jk+wviR46TfyiGyn3NzOc/be4v2T
-	bpGsWOh6JyvHKz2flezWYgXJb09DfHzt1aBj7F8gdtaNjetsLUsxUKKku3/JO78xazNwsXK
-	o9cJriTCtnByBjDEIf54djXIGwmsKc4l8lC9GevAYyN9l9CAG9UXQzY/og/IBFV7FM+H76L
-	vxK9Dvm1Xl55Uj/pE1lX3+QYIOJcuIiVwZ7+o4MtD7qmun35OMrdZaGam
-X-QQ-XMRINFO: MPJ6Tf5t3I/ycC2BItcBVIA=
-X-QQ-RECHKSPAM: 0
+X-CM-TRANSID:_____wAXLdSI2_RnL8PbEw--.43400S4
+X-Coremail-Antispam: 1Uf129KBjvdXoWrtryfCw4xXw13Xw1xCr43trb_yoWDGrcEqr
+	Wqgry8Gw4Uu3ZxXan3t3Wxu3yUKay0yF4kAw47Zr4Sq3Z3tr97GFs09r1rZ3yxJw4DGrnI
+	krn8JF129rnIvjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7VUjEfO7UUUUU==
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMQwpU2f02DVkxAAAsZ
 
-The nft command snippet for redirecting traffic isn't formatted
-in a literal code block like the rest of snippets.
-Fix the formatting inconsistency.
+On Monday 2025-04-07 12:13, Florian Westphal wrote:
+>lvxiafei <xiafei_xupt@163.com> wrote:
+>> The modification of nf_conntrack_max in one netns
+>> should not affect the value in another one.
+>
+>nf_conntrack_max can only be changed in init_net.
+>
+>Given the check isn't removed:
+>   /* Don't allow non-init_net ns to alter global sysctls */
+>   if (!net_eq(&init_net, net)) {
+>       table[NF_SYSCTL_CT_MAX].mode = 0444;
+>
+>... this patch seems untested?
+>
+>But, removing this check would allow any netns to consume
+>arbitrary amount of kernel memory.
+>
+>How do you prevent this?
 
-Signed-off-by: Chen Linxuan <chenlinxuan@uniontech.com>
----
-v2:
-  - Update commit message according to suggestion from Bagas
-v1: https://lore.kernel.org/all/CFD0AAF9D7040B1E+20250407031727.1615941-1-chenlinxuan@uniontech.com/
----
- Documentation/networking/tproxy.rst | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/networking/tproxy.rst b/Documentation/networking/tproxy.rst
-index 7f7c1ff6f159..75e4990cc3db 100644
---- a/Documentation/networking/tproxy.rst
-+++ b/Documentation/networking/tproxy.rst
-@@ -69,9 +69,9 @@ add rules like this to the iptables ruleset above::
-     # iptables -t mangle -A PREROUTING -p tcp --dport 80 -j TPROXY \
-       --tproxy-mark 0x1/0x1 --on-port 50080
- 
--Or the following rule to nft:
-+Or the following rule to nft::
- 
--# nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
-+    # nft add rule filter divert tcp dport 80 tproxy to :50080 meta mark set 1 accept
- 
- Note that for this to work you'll have to modify the proxy to enable (SOL_IP,
- IP_TRANSPARENT) for the listening socket.
--- 
-2.48.1
+Yes, this check needs to be deleted
+All netns share the original nf_conntrack_max. The nf_conntrack_max
+limit does not limit the total ct_count of all netns. When it is changed
+to a netns-level parameter, the default value is the same as the original
+default value (=max_factor*nf_conntrack_htable_size), which is a global
+(ancestral) limit, and kernel memory consumption is not affected.
 
