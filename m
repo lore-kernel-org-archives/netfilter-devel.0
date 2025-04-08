@@ -1,28 +1,29 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 531B62CCC0
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Apr 2025 14:22:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B452E1CDA0B
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Apr 2025 14:22:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744122138; cv=none; b=DlsRsCYCwafHxg7NQU3oPPkg9x3JlMsS5/38GJ5aYOMk6nriXfFavqMYY1pd7me0lNQo9uvUIC7W0Ks0G1P7F+EL1P72eQfK2d9WBS0nyeEny0LEGucBLNg8L/yitDIGfYwX3/W6nRhhN3PzKhi779qx0kAE+3GtR/yH2tRMTTI=
+	t=1744122143; cv=none; b=L+2vVqEb2Ntvb4SPqK/6EIgMFfz4RveQGVlYS60ZCZkbyZieTyqDwvOWgcBNw7QF5Kho7rzvmx+C56pmUxDDQw66lpmYLTK7JFHKcUPZsuqfHObbuB3LyJlxrUb+8IfmwlUsnHF9MPbN2ZqJuCR02f6RM0H/51g37b3ky5rNLC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744122138; c=relaxed/simple;
-	bh=RmaVmagw8rgm55/zlJCtQ3C6XVHk4d13w3sKJEHe12Y=;
+	s=arc-20240116; t=1744122143; c=relaxed/simple;
+	bh=jWjQk2OExU2xYGhKX1QWTYPX9/ONEtyAZd+RkpClKsk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FRHTmFY+LonH+NwnkqahsCvpHmbmrSDLtZo9p9plSTsmypzhrxwonETDPxNnIuBO9Q1rFS1+colYKGdzVZwNw0lvZOFw/RMIoSTEB0On/b9ijPEKTUYA0NkI7vJdNuwM+QoVSMyRGt/DHiJ/VxBTYvjd7GIsYi/3nY4W8oaTPH4=
+	 MIME-Version; b=sdtAR/nMAqu1u8u36xw9oScWKTdSqNiDg5Wa23/0fh+iAfquRCv2cSdRv+Ug0g1+5XlxwZXXGXxp/ssk5XvvaW5geO8HMjqlArcPlkW7DsREq9i0yyXcLpXlqu8NNyGKk6GKOq60RIYIYBdxTyVLRC8NUvZbP7XKaE5d3upqxHw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1u29qB-0002xo-O9; Tue, 08 Apr 2025 16:22:15 +0200
+	id 1u29qF-0002xx-RB; Tue, 08 Apr 2025 16:22:19 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nftables 2/4] debug: include kernel set information on cache fill
-Date: Tue,  8 Apr 2025 16:21:30 +0200
-Message-ID: <20250408142135.23000-3-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v2 nftables 3/4] src: print count variable in normal set listings
+Date: Tue,  8 Apr 2025 16:21:31 +0200
+Message-ID: <20250408142135.23000-4-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250408142135.23000-1-fw@strlen.de>
 References: <20250408142135.23000-1-fw@strlen.de>
@@ -34,92 +35,88 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Honor --debug=netlink flag also when doing initial set dump
-from the kernel.
+Also print the number of allocated set elements if the set provided
+an upper size limit and there is at least one element.
 
-With recent libnftnl update this will include the chosen
-set backend name that is used by the kernel.
+Example:
 
-Because set names are scoped by table and protocol family,
-also include the family protocol number.
+table ip t {
+   set s {
+       type ipv4_addr
+       size 65535      # count 1
+       flags dynamic
+       counter
+       elements = { 1.1.1.1 counter packets 1 bytes 11 }
+   }
+   ...
 
-Dumping this information breaks tests/py as the recorded
-debug output no longer matches, this is fixed in previous
-change.
+JSON output is unchanged as this only has informational purposes.
 
+This change breaks tests, followup patch addresses this.
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/mnl.c     | 15 +++++++++++++--
- src/netlink.c |  3 +++
- 2 files changed, 16 insertions(+), 2 deletions(-)
+ include/rule.h | 2 ++
+ src/netlink.c  | 3 +++
+ src/rule.c     | 9 ++++++---
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/src/mnl.c b/src/mnl.c
-index 64b1aaedb84c..22041bc994fb 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -1385,9 +1385,15 @@ int mnl_nft_set_del(struct netlink_ctx *ctx, struct cmd *cmd)
- 	return 0;
- }
- 
-+struct set_cb_args {
-+	struct netlink_ctx *ctx;
-+	struct nftnl_set_list *list;
-+};
-+
- static int set_cb(const struct nlmsghdr *nlh, void *data)
- {
--	struct nftnl_set_list *nls_list = data;
-+	struct set_cb_args *args = data;
-+	struct nftnl_set_list *nls_list = args->list;
- 	struct nftnl_set *s;
- 
- 	if (check_genid(nlh) < 0)
-@@ -1400,6 +1406,8 @@ static int set_cb(const struct nlmsghdr *nlh, void *data)
- 	if (nftnl_set_nlmsg_parse(nlh, s) < 0)
- 		goto err_free;
- 
-+	netlink_dump_set(s, args->ctx);
-+
- 	nftnl_set_list_add_tail(s, nls_list);
- 	return MNL_CB_OK;
- 
-@@ -1418,6 +1426,7 @@ mnl_nft_set_dump(struct netlink_ctx *ctx, int family,
- 	struct nlmsghdr *nlh;
- 	struct nftnl_set *s;
- 	int ret;
-+	struct set_cb_args args;
- 
- 	s = nftnl_set_alloc();
- 	if (s == NULL)
-@@ -1439,7 +1448,9 @@ mnl_nft_set_dump(struct netlink_ctx *ctx, int family,
- 	if (nls_list == NULL)
- 		memory_allocation_error();
- 
--	ret = nft_mnl_talk(ctx, nlh, nlh->nlmsg_len, set_cb, nls_list);
-+	args.list = nls_list;
-+	args.ctx  = ctx;
-+	ret = nft_mnl_talk(ctx, nlh, nlh->nlmsg_len, set_cb, &args);
- 	if (ret < 0 && errno != ENOENT)
- 		goto err;
- 
+diff --git a/include/rule.h b/include/rule.h
+index 85a0d9c0b524..5c8870032472 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -321,6 +321,7 @@ void rule_stmt_insert_at(struct rule *rule, struct stmt *nstmt,
+  * @refcnt:	reference count
+  * @flags:	bitmask of set flags
+  * @gc_int:	garbage collection interval
++ * @count:	count of kernel-allocated elements
+  * @timeout:	default timeout value
+  * @key:	key expression (data type, length))
+  * @data:	mapping data expression
+@@ -345,6 +346,7 @@ struct set {
+ 	unsigned int		refcnt;
+ 	uint32_t		flags;
+ 	uint32_t		gc_int;
++	uint32_t		count;
+ 	uint64_t		timeout;
+ 	struct expr		*key;
+ 	struct expr		*data;
 diff --git a/src/netlink.c b/src/netlink.c
-index dfb7f4d17147..98ec3cdba996 100644
+index 98ec3cdba996..9b197f089d40 100644
 --- a/src/netlink.c
 +++ b/src/netlink.c
-@@ -847,10 +847,13 @@ static const struct datatype *dtype_map_from_kernel(enum nft_data_types type)
- void netlink_dump_set(const struct nftnl_set *nls, struct netlink_ctx *ctx)
- {
- 	FILE *fp = ctx->nft->output.output_fp;
-+	uint32_t family;
+@@ -1129,6 +1129,9 @@ struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 	if (nftnl_set_is_set(nls, NFTNL_SET_DESC_SIZE))
+ 		set->desc.size = nftnl_set_get_u32(nls, NFTNL_SET_DESC_SIZE);
  
- 	if (!(ctx->nft->debug_mask & NFT_DEBUG_NETLINK) || !fp)
- 		return;
++	if (nftnl_set_is_set(nls, NFTNL_SET_COUNT))
++		set->count = nftnl_set_get_u32(nls, NFTNL_SET_COUNT);
++
+ 	if (nftnl_set_is_set(nls, NFTNL_SET_DESC_CONCAT)) {
+ 		uint32_t len = NFT_REG32_COUNT;
+ 		const uint8_t *data;
+diff --git a/src/rule.c b/src/rule.c
+index 80315837baf0..6af8d57eddb6 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -335,10 +335,13 @@ static void set_print_declaration(const struct set *set,
+ 		}
  
-+	family = nftnl_set_get_u32(nls, NFTNL_SET_FAMILY);
-+	fprintf(fp, "family %d ", family);
- 	nftnl_set_fprintf(fp, nls, 0, 0);
- 	fprintf(fp, "\n");
- }
+ 		if (set->desc.size > 0) {
+-			nft_print(octx, "%s%ssize %u%s",
++			nft_print(octx, "%s%ssize %u",
+ 				  opts->tab, opts->tab,
+-				  set->desc.size,
+-				  opts->stmt_separator);
++				  set->desc.size);
++			if (set->count > 0)
++				nft_print(octx, "%s# count %u", opts->tab,
++					  set->count);
++			nft_print(octx, "%s", opts->stmt_separator);
+ 		}
+ 	}
+ 
 -- 
 2.49.0
 
