@@ -1,84 +1,78 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 414622550C5;
-	Wed,  9 Apr 2025 10:45:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B470226ACB;
+	Wed,  9 Apr 2025 16:25:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744195543; cv=none; b=ujdYMVB7hGpVQMYDkUxCvi98mJ2tLPO5hdjFAGNet7F3wKXys8n4bW35Msd6dozFjMNjXFKUUkPQJ83TFfcL0AwS8ukxZa/OXEVFi0qLGOnRYMmRWAMkhCicHMIoAXiS557hpZTZmOanImIgbyuoW2tr3RlTavqnMXngwjiAuyQ=
+	t=1744215932; cv=none; b=XYnoFUKKKlx7nCpPFbB7D8mZkRR7bqdRs38uPJ+cQXp+xBJk/Oxl56wrRBwuOpJOHi6AztWl9GKoug/bLRS9MtYaZrGgkmguqpkpJizawXGsnMWIPINLdjKyzA6LbJS2snAdgiOgZFSRgfXV/vy3mKQPuc9vhlttSmOHkrkmZhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744195543; c=relaxed/simple;
-	bh=Zd42bH/iKPNHGtL2PyAIzxQXMD0Ub6g/t7/nY59Wno4=;
+	s=arc-20240116; t=1744215932; c=relaxed/simple;
+	bh=Or8ZyypeIwZJpxaC5/YAmhtdOzEWbnUvN1Hsw/pxgzw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KElfBFiGs04KQ/6oqFbJS3Q7LpVly5WN4lvL6skkNKNYV9OpKBGRPF0quOXb/l4ATZe/pOtw8LiATVm8jKK029oaeZK/8TMgsGwfiKcLZUh30v0xvFJJ92bY07jnMikYvax0n3AQZzzV1HriIbcrKfh1Zvs5Unh9mfqgrnSSI6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1u2Svt-0005gk-4E; Wed, 09 Apr 2025 12:45:25 +0200
-Date: Wed, 9 Apr 2025 12:45:25 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Yang =?utf-8?B?SHVhamlhbu+8iOadqOWNjuWBpe+8iQ==?= <huajianyang@asrmicro.com>
-Cc: Florian Westphal <fw@strlen.de>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kadlec@netfilter.org" <kadlec@netfilter.org>,
-	"razor@blackwall.org" <razor@blackwall.org>,
-	"idosch@nvidia.com" <idosch@nvidia.com>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"dsahern@kernel.org" <dsahern@kernel.org>,
-	"edumazet@google.com" <edumazet@google.com>,
-	"kuba@kernel.org" <kuba@kernel.org>,
-	"pabeni@redhat.com" <pabeni@redhat.com>,
-	"horms@kernel.org" <horms@kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"bridge@lists.linux.dev" <bridge@lists.linux.dev>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: =?utf-8?B?562U5aSNOiBbUEFUQ0hdIG5ldDog?=
- =?utf-8?Q?Expand_headroo?= =?utf-8?Q?m?= to send fragmented packets in
- bridge fragment forward
-Message-ID: <20250409104525.GC17911@breakpoint.cc>
-References: <20250409073336.31996-1-huajianyang@asrmicro.com>
- <20250409091821.GA17911@breakpoint.cc>
- <0a711412f54c4dc6a7d58f4fa391dc0f@exch03.asrmicro.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=rJtPE8gpng+q00aV6Zsny5ewMnezbG92dHNywnbhIxE+zTFs3GYPElzC0rqckPoVSt1uUPFjNxMv2hOSMb0NHPbrIapngcLj2BtyZCLHAd9hKHe0p+ZuyFIs30EfDKu1O8pEj975IBTQEFwbqFFpx1K4dUdfGS1pAYtUoXVIwpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IjAFBKkb; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IjAFBKkb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C16CC4CEE2;
+	Wed,  9 Apr 2025 16:25:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744215932;
+	bh=Or8ZyypeIwZJpxaC5/YAmhtdOzEWbnUvN1Hsw/pxgzw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IjAFBKkbF6K0ZsrxQKGk6i10sxR6und2qMP+jB4em4QzK2W/iwyFpPxO64JKUTypT
+	 eu05VKyUzSf5HCVsvFSs/pcVK0u6L+pamnYVCCN6Hb6usWEjI5HO+OoPQkVERbyTLM
+	 LbTp51cPW8vP22NyyeHOr0yojQ5vBaOkRRRZZnwV/PtTU/Gbn2/ZO3NGnyv12viOBo
+	 ab1lTSERL8q42o23kT6XZhOtHorZxAvPqfG+UMNfSUheZEyAWUSUS7EMowoVQ0+xMZ
+	 TjAn3nXLQO0hq3hGAMh61V9BNOowEPLP9jwA2EkajH4q+frYGbne0pBsBbV/LWxSHo
+	 i2NwjluKNf4Bw==
+Date: Wed, 9 Apr 2025 09:25:29 -0700
+From: Kees Cook <kees@kernel.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Michal Ostrowski <mostrows@earthlink.net>,
+	Andrew Lunn <andrew+netdev@lunn.ch>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Simon Horman <horms@kernel.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v11 nf-next 1/2] net: pppoe: avoid zero-length arrays in
+ struct pppoe_hdr
+Message-ID: <202504090925.2FB4D65@keescook>
+References: <20250408142425.95437-1-ericwouds@gmail.com>
+ <20250408142425.95437-2-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <0a711412f54c4dc6a7d58f4fa391dc0f@exch03.asrmicro.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20250408142425.95437-2-ericwouds@gmail.com>
 
-Yang Huajian（杨华健） <huajianyang@asrmicro.com> wrote:
-> > if (skb_headroom(skb) < ll_rs)
-> >	goto expand_headroom;
+On Tue, Apr 08, 2025 at 04:24:24PM +0200, Eric Woudstra wrote:
+> Jakub Kicinski suggested following patch:
 > 
-> > ... but I'm not sure what the actual problem is.
+> W=1 C=1 GCC build gives us:
 > 
-> Yes, your guess is correct!
+> net/bridge/netfilter/nf_conntrack_bridge.c: note: in included file (through
+> ../include/linux/if_pppox.h, ../include/uapi/linux/netfilter_bridge.h,
+> ../include/linux/netfilter_bridge.h): include/uapi/linux/if_pppox.h:
+> 153:29: warning: array of flexible structures
 > 
-> Actual problem: I think it is unreasonable to directly drop skb with insufficient headroom.
+> It doesn't like that hdr has a zero-length array which overlaps proto.
+> The kernel code doesn't currently need those arrays.
 > 
-> > Why does this need to make a full skb copy?
-> > Should that be using skb_expand_head()?
+> PPPoE connection is functional after applying this patch.
 > 
-> Using skb_expand_head has the same effect.
- 
-> > Actually, can't you just (re)use the slowpath for the skb_headroom < ll_rs case instead of adding headroom expansion?
-> 
-> I tested it just now, reuse the slowpath will successed.
-> But maybe this change cannot resolve all cases if the netdevice really needs this headroom.
+> Reviewed-by: Nikolay Aleksandrov <razor@blackwall.org>
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 
-The slowpath considers headroom requirements, see ip_frag_next():
+Reviewed-by: Kees Cook <kees@kernel.org>
 
-        skb2 = alloc_skb(len + state->hlen + state->ll_rs, GFP_ATOMIC);
-
-You should wait for more feedback and then send a v2 tomorrow.
-
-Thanks!
+-- 
+Kees Cook
