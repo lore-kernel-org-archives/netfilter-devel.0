@@ -1,43 +1,49 @@
-Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF2925A637;
-	Wed,  9 Apr 2025 08:01:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.5])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C068B1DE3A5;
+	Wed,  9 Apr 2025 09:14:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744185715; cv=none; b=DXk7vBpBhze0hsk/jF6jd20fdnguriXyoxX+UQN7c62K0xcCVgj1q9SCIjjkZKVXdlJ/Mdv3/OsVpMPw6/JJdfKIPwY4AlxP6YzANBK1feuwyi4z4Q+xPS2Jt9GuUBHI8I0Dytw4VZwHoFSl6DVAZD2UqzWkDishpJYfAmUdob4=
+	t=1744190064; cv=none; b=a2NJ5KjFad1/thtOq4THT2QeigdJUK7n0POYZWfm3lzPn8NJ01jVWpefFg28jvfI0LZHr/Xgm3Q2gvI5ZVF7jEEk5zFVaZp37kkuBZRsvZWkzfj/YIq/1oHyGswHc8/nRe7aFzRsQ/jbcqa/Is+iEAViAO1mlle7Tb0Gpv9Evzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744185715; c=relaxed/simple;
-	bh=uB80WfCPadHDQNF1Ma8F2Btk9k5iSpMqhcGgLwl8MCg=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=iPWN4A7Q9xgVpIdNtQwWX/5Szoqw7PxSVFsWmod49G6W256dCSu/W/n1Vjxopy9GwkjaezYifwlXExXMEA5/CLmb8C+6ohOz/x3LJPFMyQOPDadxNvXimnjqjYXLfJnEwUvG5Y/DpplDGlsNXHRTQcaV1GP9M3TpnqWalxOrBOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
-Received: from spam.asrmicro.com (localhost [127.0.0.2] (may be forged))
-	by spam.asrmicro.com with ESMTP id 5397YsQT003323;
-	Wed, 9 Apr 2025 15:34:54 +0800 (GMT-8)
-	(envelope-from huajianyang@asrmicro.com)
-Received: from exch03.asrmicro.com (exch03.asrmicro.com [10.1.24.118])
-	by spam.asrmicro.com with ESMTPS id 5397Xk2e002977
-	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
-	Wed, 9 Apr 2025 15:33:46 +0800 (GMT-8)
-	(envelope-from huajianyang@asrmicro.com)
-Received: from localhost (10.26.128.141) by exch03.asrmicro.com (10.1.24.118)
- with Microsoft SMTP Server (TLS) id 15.0.847.32; Wed, 9 Apr 2025 15:33:49
- +0800
-From: Huajian Yang <huajianyang@asrmicro.com>
-To: <pablo@netfilter.org>
-CC: <kadlec@netfilter.org>, <razor@blackwall.org>, <idosch@nvidia.com>,
-        <davem@davemloft.net>, <dsahern@kernel.org>, <edumazet@google.com>,
-        <kuba@kernel.org>, <pabeni@redhat.com>, <horms@kernel.org>,
-        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-        <bridge@lists.linux.dev>, <netdev@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>,
-        Huajian Yang <huajianyang@asrmicro.com>
-Subject: [PATCH] net: Expand headroom to send fragmented packets in bridge fragment forward
-Date: Wed, 9 Apr 2025 15:33:36 +0800
-Message-ID: <20250409073336.31996-1-huajianyang@asrmicro.com>
-X-Mailer: git-send-email 2.48.1
+	s=arc-20240116; t=1744190064; c=relaxed/simple;
+	bh=pidPjAxOQUC9n6C32lfwewePZ3cS4lFV9cAEdT1v+4U=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=YrSHEgzgExUfyMP5VgtBrHcBL+RxVo46XrJxpwltCwVhSh/D6snE95otbUcm8FSHzTgKTHvfHGFFqX5/CY45oyHm8NL4jzTaUakhMjxcfsccgzLTCD57EPdJ6z0N3Am/OkNoGanJm4b3dGhdD2wnKK6lBDQ5EP+ua4bkJBYbT60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=lG/4VHfL; arc=none smtp.client-ip=117.135.210.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="lG/4VHfL"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=pidPj
+	AxOQUC9n6C32lfwewePZ3cS4lFV9cAEdT1v+4U=; b=lG/4VHfLm/ZuH9BG9qDIM
+	EcfSx2PPtF0SrMRZLuUbPDrjPSgxIsti0Szju+Uu4P5ln0WElCBX7CA7nUMrA+eG
+	hVA7c8j4XVANu6TvuXctOTtFvvO6rmtiytTUXXelrD6VSAfT5jYfHPOy6HO5Yt/F
+	bu5tiyQYiv5ixt729oFqxM=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp1 (Coremail) with SMTP id PCgvCgCXX+owOvZnHjkdAQ--.48217S4;
+	Wed, 09 Apr 2025 17:13:23 +0800 (CST)
+From: lvxiafei <xiafei_xupt@163.com>
+To: fw@strlen.de
+Cc: coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	horms@kernel.org,
+	kadlec@netfilter.org,
+	kuba@kernel.org,
+	linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	xiafei_xupt@163.com
+Subject: Re: [PATCH V3] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Wed,  9 Apr 2025 17:13:19 +0800
+Message-Id: <20250409091319.17856-1-xiafei_xupt@163.com>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20250409072028.GA14003@breakpoint.cc>
+References: <20250409072028.GA14003@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,112 +51,18 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: exch03.asrmicro.com (10.1.24.118) To exch03.asrmicro.com
- (10.1.24.118)
-X-DNSRBL: 
-X-SPAM-SOURCE-CHECK: pass
-X-MAIL:spam.asrmicro.com 5397YsQT003323
+X-CM-TRANSID:PCgvCgCXX+owOvZnHjkdAQ--.48217S4
+X-Coremail-Antispam: 1Uf129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+	VFW2AGmfu7bjvjm3AaLaJ3UbIYCTnIWIevJa73UjIFyTuYvjTRROJ5UUUUU
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/1tbiEBMqU2f2NYWJnwAAsN
 
-The config NF_CONNTRACK_BRIDGE will change the way fragments are processed.
-Bridge does not know that it is a fragmented packet and forwards it
-directly, after NF_CONNTRACK_BRIDGE is enabled, function nf_br_ip_fragment
-will check and fraglist this packet.
+Florian Westphal <fw@strlen.de> wrote:
+> Whats the function of nf_conntrack_max?
+> After this change its always 0?
 
-Some network devices that would not able to ping large packet under bridge,
-but large packet ping is successful if not enable NF_CONNTRACK_BRIDGE.
+nf_conntrack_max is a global (ancestor) limit, by default
+nf_conntrack_max = max_factor * nf_conntrack_htable_size.
 
-In function nf_br_ip_fragment, checking the headroom before sending is
-undoubted, but it is unreasonable to directly drop skb with insufficient
-headroom.
-
-Using skb_copy_expand to expand the headroom of skb instead of dropping
-it.
-
-Signed-off-by: Huajian Yang <huajianyang@asrmicro.com>
----
- net/bridge/netfilter/nf_conntrack_bridge.c | 14 ++++++++++++--
- net/ipv6/netfilter.c                       | 14 ++++++++++++--
- 2 files changed, 24 insertions(+), 4 deletions(-)
-
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 816bb0fde718..b8fb81a49377 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -62,7 +62,7 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
- 
- 		if (first_len - hlen > mtu ||
- 		    skb_headroom(skb) < ll_rs)
--			goto blackhole;
-+			goto expand_headroom;
- 
- 		if (skb_cloned(skb))
- 			goto slow_path;
-@@ -70,7 +70,7 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
- 		skb_walk_frags(skb, frag) {
- 			if (frag->len > mtu ||
- 			    skb_headroom(frag) < hlen + ll_rs)
--				goto blackhole;
-+				goto expand_headroom;
- 
- 			if (skb_shared(frag))
- 				goto slow_path;
-@@ -97,6 +97,16 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
- 
- 		return err;
- 	}
-+
-+expand_headroom:
-+	struct sk_buff *expand_skb;
-+
-+	expand_skb = skb_copy_expand(skb, ll_rs, skb_tailroom(skb), GFP_ATOMIC);
-+	if (unlikely(!expand_skb))
-+		goto blackhole;
-+	kfree_skb(skb);
-+	skb = expand_skb;
-+
- slow_path:
- 	/* This is a linearized skbuff, the original geometry is lost for us.
- 	 * This may also be a clone skbuff, we could preserve the geometry for
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 581ce055bf52..619d4b97581b 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -166,7 +166,7 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 
- 		if (first_len - hlen > mtu ||
- 		    skb_headroom(skb) < (hroom + sizeof(struct frag_hdr)))
--			goto blackhole;
-+			goto expand_headroom;
- 
- 		if (skb_cloned(skb))
- 			goto slow_path;
-@@ -174,7 +174,7 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 		skb_walk_frags(skb, frag2) {
- 			if (frag2->len > mtu ||
- 			    skb_headroom(frag2) < (hlen + hroom + sizeof(struct frag_hdr)))
--				goto blackhole;
-+				goto expand_headroom;
- 
- 			/* Partially cloned skb? */
- 			if (skb_shared(frag2))
-@@ -208,6 +208,16 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 		kfree_skb_list(iter.frag);
- 		return err;
- 	}
-+
-+expand_headroom:
-+	struct sk_buff *expand_skb;
-+
-+	expand_skb = skb_copy_expand(skb, ll_rs, skb_tailroom(skb), GFP_ATOMIC);
-+	if (unlikely(!expand_skb))
-+		goto blackhole;
-+	kfree_skb(skb);
-+	skb = expand_skb;
-+
- slow_path:
- 	/* This is a linearized skbuff, the original geometry is lost for us.
- 	 * This may also be a clone skbuff, we could preserve the geometry for
--- 
-2.48.1
+init_net.ct.sysctl_max is a parameter for each netns, and
+setting it will not affect the value of nf_conntrack_max.
 
