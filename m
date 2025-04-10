@@ -1,130 +1,204 @@
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07963204C2C
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 20:02:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FBA8EEB1
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 22:17:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744315378; cv=none; b=qThurqRtfpLxssqOgV3G9useaJEul4N3b4lQ5NWZiTM92xC7KfDeNbfVMf6jgQFJoxsnv4epdNkYrcq+gVqDeUcpS35axaajLhUNaVMX9MdcHwn7OJqi4cd47D7YKcpqPHq2Bd19cwbuDeLcv8N3YjJ3zcVYTucYFgdAlZDLyjs=
+	t=1744323444; cv=none; b=SxtvsaDfI6qT1m0lGcwlkeXCMca2batdecKPXLpcKQb0FdaDelfwdI5JNDtNZuMrNyhaY2HT1sy2wqc7wt/kOzIYLagxCbwE7bKnVmXHeLL3AXIki/+Icsgt/485ch4N4Xxar3r8xBX3VFIi3YiVgRhdsvdIM4pOn209CKghc1Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744315378; c=relaxed/simple;
-	bh=Sd/1BsgKdNzxY4Lc7sqApMO1kOdtmHBUBsXiHuwKtfw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=GZIy6TuR3/e2PTi5pyAFITQdu3K1dQAhBu2uyfLuCJQHwEmEfZkvytodk5s5T4d8/P+metaPqmzRFpeOmKzj35IizWsZ+2LLmnGUHoFHAkTSi64on9cmYTrLBvZxmGaN4KF/OvCCmzStNVAZiBSYDUn98Si6fYxnScGWvFd+f/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de; spf=pass smtp.mailfrom=gmx.de; dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b=KidPUc9r; arc=none smtp.client-ip=212.227.15.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=gmx.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmx.de
+	s=arc-20240116; t=1744323444; c=relaxed/simple;
+	bh=Dp03vyArHnDO3ieTGsrG0QwQANRcoAVqgdcC3Y0h3Lg=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=oHSUdhta72S20nMatchsk3tqpU5AMeojVQ1SB1Y56hyINhmP5XVL1f3VCNS266NNbgmREHxpXLm5nOM/j0udHepi6b9AzNWH2iAZ8bon6pffLNqRQbToz5jJRdq9EoQR/gF7p6A78n+RFCZ6pYE3BOY3yf4H6XVF7W1c6ZDDHeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AJqHMTZU; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=g2pTUPXK; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmx.de header.i=corubba@gmx.de header.b="KidPUc9r"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmx.de;
-	s=s31663417; t=1744315374; x=1744920174; i=corubba@gmx.de;
-	bh=Sd/1BsgKdNzxY4Lc7sqApMO1kOdtmHBUBsXiHuwKtfw=;
-	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To:Content-Type:
-	 Content-Transfer-Encoding:cc:content-transfer-encoding:
-	 content-type:date:from:message-id:mime-version:reply-to:subject:
-	 to;
-	b=KidPUc9rb6l6rDudNCctZYtuL111V4vI9weZ94EfLqz3CiFMeuNqUgW+SE38FAuH
-	 7Lbktse3tj5MzMmrwUfDJ9q2mMKI1JMRR8FgaeKU9nY2GC2bzm4MiSiOu5izcpIwZ
-	 6FGh7gXtJU1pf9I1l+b38yUhBbPezf5noBVpEJ72aYpa/GQ59zKpY3JFNZLG5AfS8
-	 D7F8uh9+yVYhY6nqzXecTG3R5d3lpBB2FQBNndaI8+biUBYUEAV5IT5pJUvpner1K
-	 kCPNSDXWA2C/S1UyQNzv730s9RIr7PIjLP6FC9Y9pIJZQ5hdT0L+BHEkKgNQ9p80P
-	 hr6grCYauMCjk639dg==
-X-UI-Sender-Class: 724b4f7f-cbec-4199-ad4e-598c01a50d3a
-Received: from 127.0.0.1 ([94.134.25.18]) by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1N4hzZ-1t5TA103vD-00uLyh; Thu, 10
- Apr 2025 22:02:54 +0200
-Message-ID: <92773ecf-bfbd-45b5-a83e-72efe26aba0b@gmx.de>
-Date: Thu, 10 Apr 2025 22:02:43 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AJqHMTZU";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="g2pTUPXK"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id B8758603B1; Fri, 11 Apr 2025 00:17:16 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1744323436;
+	bh=5b1B/yUky/NZ3TGgo5oZ0C56/qWRp4IYeFyGFRIHnIU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=AJqHMTZUoU8ntLA8hEx0nuAGSD5Kaw6mrnS6lJmBmqiJcNkyqA2Gn9Il6HPF/D4hE
+	 XZggU80FHIpHSW4pszrawCu+Jb6U0JRHcl0Ru2jwfuS2Eg+ulc4x7jd7xrSqxfTLGL
+	 qO/wZXcihj6vHVM+KMcLKh/FIVkfkZY6dGkfIblfi4+wvjrIh5dfqjYwoEzVFRunDq
+	 EBGugTpc6n88ce24RWc609Q+IHxo72djVZkVZp3rw8tqd6ygeylHX9yLRokon3qo5m
+	 trELP51Xyv9Hxap2Pf/Qtioj4G79xy2+fWYrzGE46eyRCOwcHxeZrjgXo05pvgYeCE
+	 z03Czdn73elsw==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id BE5D2603B1;
+	Fri, 11 Apr 2025 00:17:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1744323435;
+	bh=5b1B/yUky/NZ3TGgo5oZ0C56/qWRp4IYeFyGFRIHnIU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=g2pTUPXKXvzMOVFMIr9sGDQz1uIY1bJ/jz9QhebaNdrigX6dBZP8zMNXH0IFadAo/
+	 1kEtT3JmmjA4RxxOt9F42pv4XdOWvqdz7FHgYTnxV7L7beGj1RHpunjLZ51R2Hmdxc
+	 ESyy8KJNMwpwbJZMh5VClKnIdD9uXgFhUqMoc2nuXrY3CmaqZf3h+vSRPkwi6AgAnt
+	 6Jab+x3r2DgP08Or3+qc07NfyhR44YzwPw5xuleZYahd7B2kewWGeREArehoyMtgJC
+	 nToJ025obaRc6H5MYX8rXnyLHbw0WBEtb8ltWX4HeHoyjLKtK+8ZhJ80FcBcWj3GAG
+	 4/DpUbZdYkghw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nft] parser_bison: add selector_expr rule to restrict typeof_expr
+Date: Fri, 11 Apr 2025 00:17:10 +0200
+Message-Id: <20250410221710.1350528-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH ulogd2,v2 1/4] ulogd: add linux namespace helper
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-References: <c5cd1c3a-3875-4352-8181-5081103f96f6@gmx.de>
- <20250326192343.GA2205@breakpoint.cc>
-Content-Language: de-CH
-From: Corubba Smith <corubba@gmx.de>
-In-Reply-To: <20250326192343.GA2205@breakpoint.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Provags-ID: V03:K1:UmloydN+LYDt5aKG6xLB+qEt936swv/965juT+kkxSC6EoB9ay3
- +R/DQcb5TL4cfo+qglBwSt79rNKFmwtNkWpl7cq9r3bAKfSCAAyOvm+UFMnLjNt0izCn2dG
- kfogSQl5gC2xb4So4uqP5OdNsftwDraDXtXUC/r6qxLDWOjCeiGUvTM3iT6gG6Kh48qwoy8
- HzJQWl3/42tZUwyrY7t6Q==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:wo2Lya/+G+4=;R9BUtTwuKpWKFPE46el7YGgGRrj
- +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
+Content-Transfer-Encoding: 8bit
 
-On 3/26/25 20:23, Florian Westphal wrote:
-> Corubba Smith <corubba@gmx.de> wrote:
->> The new namespace helper provides an internal stable interface for
->> plugins to use for switching various linux namespaces. Currently only
->> network namespaces are supported/implemented, but can easily be extende=
-d
->> if needed. autoconf will enable it automatically if the required symbol=
-s
->> are available. If ulogd is compiled without namespace support, the
->> functions will simply return an error, there is no need for conditional
->> compilation or special handling in plugin code.
->>
->> Signed-off-by: Corubba Smith <corubba@gmx.de>
->
-> Looks good to me, I intend to apply this later this week unless
-> there are objections.
+typeof_expr allows for symbol, constant and bitwise expressions,
+restrict it to selector expressions.
 
-If I may be so bold: Friendly reminder that this patchset is not yet
-applied, and in the meantime I also sent a v3 [0] incorporating your
-feedback.
+After this patch, input generated by fuzzer is rejected upfront:
 
-[0] https://lore.kernel.org/netfilter-devel/3f962848-fe38-4869-8422-f54dac=
-c6a9d6@gmx.de/
+ # nft -f test.nft
+ test.nft:3:53-53: Error: syntax error, unexpected number
+               typeof numgen inc mod 2 : ip daddr . 0
+                                                    ^
+ test.nft:2:12-13: Error: set definition does not specify key
+       map t2 {
+           ^^
+ test.nft:8:65-67: Error: No such file or directory
+               meta l4proto tcp dnat ip to numgen inc mod 2 map @t2
+                                                                ^^^
+ test.nft:8:65-67: Error: No such file or directory
+               meta l4proto tcp dnat ip to numgen inc mod 2 map @t2
+                                                                ^^^
 
-=2D-
-Corubba
+Revisit 4ab1e5e60779 ("src: allow use of 'verdict' in typeof
+definitions") to handle to handle verdict as string, later a token can
+be added to the scanner and enable it via flex start conditions.
+
+Fixes: 14357cff40ed ("parser: add typeof keyword for declarations")
+Reported-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y                            | 43 +++++++++++--------
+ ...valid_set_key_stmt_evaluate_nat_map_assert | 10 +++++
+ 2 files changed, 36 insertions(+), 17 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 4b2b51d4275c..ed6a24a15377 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -818,8 +818,8 @@ int nft_lex(void *, void *, void *);
+ 
+ %type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
+ %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
+-%type <expr>			primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
+-%destructor { expr_free($$); }	primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
++%type <expr>			primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr selector_expr
++%destructor { expr_free($$); }	primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr selector_expr
+ %type <expr>			exclusive_or_expr inclusive_or_expr
+ %destructor { expr_free($$); }	exclusive_or_expr inclusive_or_expr
+ %type <expr>			basic_expr
+@@ -2097,19 +2097,10 @@ subchain_block		:	/* empty */	{ $$ = $<chain>-1; }
+ 			}
+ 			;
+ 
+-typeof_verdict_expr	:	primary_expr
++typeof_verdict_expr	:	selector_expr
+ 			{
+ 				struct expr *e = $1;
+ 
+-				if (e->etype == EXPR_SYMBOL &&
+-				    strcmp("verdict", e->identifier) == 0) {
+-					struct expr *v = verdict_expr_alloc(&@1, NF_ACCEPT, NULL);
+-
+-					expr_free(e);
+-					v->flags &= ~EXPR_F_CONSTANT;
+-					e = v;
+-				}
+-
+ 				if (expr_ops(e)->build_udata == NULL) {
+ 					erec_queue(error(&@1, "map data type '%s' lacks typeof serialization", expr_ops(e)->name),
+ 						   state->msgs);
+@@ -2118,7 +2109,7 @@ typeof_verdict_expr	:	primary_expr
+ 				}
+ 				$$ = e;
+ 			}
+-			|	typeof_expr		DOT		primary_expr
++			|	typeof_expr		DOT		selector_expr
+ 			{
+ 				struct location rhs[] = {
+ 					[1]	= @2,
+@@ -2142,9 +2133,24 @@ typeof_data_expr	:	INTERVAL	typeof_expr
+ 			{
+ 				$$ = constant_expr_alloc(&@$, &queue_type, BYTEORDER_HOST_ENDIAN, 16, NULL);
+ 			}
++			|	STRING
++			{
++				struct expr *verdict;
++
++				if (strcmp("verdict", $1) != 0) {
++					erec_queue(error(&@1, "map data type '%s' lacks typeof serialization", $1),
++						   state->msgs);
++					free_const($1);
++					YYERROR;
++				}
++				verdict = verdict_expr_alloc(&@1, NF_ACCEPT, NULL);
++				verdict->flags &= ~EXPR_F_CONSTANT;
++				$$ = verdict;
++				free_const($1);
++			}
+ 			;
+ 
+-primary_typeof_expr	:	primary_expr
++primary_typeof_expr	:	selector_expr
+ 			{
+ 				if (expr_ops($1)->build_udata == NULL) {
+ 					erec_queue(error(&@1, "primary expression type '%s' lacks typeof serialization", expr_ops($1)->name),
+@@ -4332,9 +4338,7 @@ integer_expr		:	NUM
+ 			}
+ 			;
+ 
+-primary_expr		:	symbol_expr			{ $$ = $1; }
+-			|	integer_expr			{ $$ = $1; }
+-			|	payload_expr			{ $$ = $1; }
++selector_expr		:	payload_expr			{ $$ = $1; }
+ 			|	exthdr_expr			{ $$ = $1; }
+ 			|	exthdr_exists_expr		{ $$ = $1; }
+ 			|	meta_expr			{ $$ = $1; }
+@@ -4346,6 +4350,11 @@ primary_expr		:	symbol_expr			{ $$ = $1; }
+ 			|	fib_expr			{ $$ = $1; }
+ 			|	osf_expr			{ $$ = $1; }
+ 			|	xfrm_expr			{ $$ = $1; }
++			;
++
++primary_expr		:	symbol_expr			{ $$ = $1; }
++			|	integer_expr			{ $$ = $1; }
++			|	selector_expr			{ $$ = $1; }
+ 			|	'('	basic_expr	')'	{ $$ = $2; }
+ 			;
+ 
+diff --git a/tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert b/tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert
+new file mode 100644
+index 000000000000..d73dce8e5ce1
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert
+@@ -0,0 +1,10 @@
++table ip t {
++	map t2 {
++		typeof numgen inc mod 2 : ip daddr . 0
++	}
++
++	chain c {
++		type nat hook prerouting priority dstnat; policy accept;
++		meta l4proto tcp dnat ip to numgen inc mod 2 map @t2
++	}
++}
+-- 
+2.30.2
 
