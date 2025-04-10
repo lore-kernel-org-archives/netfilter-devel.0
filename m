@@ -1,118 +1,101 @@
-Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90C1D265626
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Apr 2025 16:56:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA523202C4A
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 07:18:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744217783; cv=none; b=b9ObnPb2XjyQT/J12/fI7f0BpTf6Iborkywf1n84H3hiDF4t+wqmH6NLPYt1KFqNW9VVuKg1vlxOYgw6NnwpYN1O7GbIPiqinl+jP5mkNwURoZoxTIHGBYxIITInO1krji2yYVTNaD8a0df5mk7yhUesEJc4sUviXeEwQLs6Zek=
+	t=1744269485; cv=none; b=chzKOTncCmgcwqx/BDVLyvnJxNrkoeRLbunBAHO1oXioDVVmTY8HRKYjVJSPCtUjgWWpDEVmlkHfn6sTBMsXU/LQ1TIGIwS+nepglv2V7ZrL19KTIii5uWM4xOBysjNkvMZFvfwPuxlMjF/4XQoIrdJaCxcf0Q7sKM04Pkpu0GU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744217783; c=relaxed/simple;
-	bh=CahJy6bgX2TLgx/3RS9Og1YqQekeZkWNYVidjSfotuY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rP5HSo7Pc8Sot/1a17uZYKB3FtYmw8tUVMxtQoOzlH0qyxw5u8GcXVOyR/zw8rkwTvvoUkkuNTLFuvwusmMYUnsqv0UIYqvVIceNp7sHnNwht2Oo0R0xpdbEVTPCdrkvf3SZiNi/xDPqTt7AQrJ/XzBKfu/35aqConZie9YPx6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Jaqj/Ea6; arc=none smtp.client-ip=209.85.221.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1744269485; c=relaxed/simple;
+	bh=2XMcnUMhSrUO9pBhimasxAOq9704YBgjdzHl7LJ+jws=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XJxg0tJb5szuLwFH7MdftTrXDdJMnXJOZ/TYGGW/bln24QHureVcmXVDI/N+qWA4z9p+p9EdWVm6itKiF4Usn+87uqwwWy4e7jtJv1+nf55uSJ7vVabhRRmvGZqBUeq2gKmYjzqoiw4tsDToWmIegZ+pP0rNY7Njl+nB/Rxp3K4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EDCrZRe4; arc=none smtp.client-ip=209.85.214.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Jaqj/Ea6"
-Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-39141ffa9fcso7661030f8f.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Apr 2025 09:56:21 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EDCrZRe4"
+Received: by mail-pl1-f175.google.com with SMTP id d9443c01a7336-22580c9ee0aso4817725ad.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 00:18:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1744217780; x=1744822580; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=aCygb0R9J4//K5NBuySZGPAIajaz7uNogxidzxnmh7I=;
-        b=Jaqj/Ea66noBgWIMfDMKIPnxhOd4cUYDblRJcwIHZOhXg9UN7xSrpjMUrUuI8T3MIt
-         av69PYIG/o+nT38AiOIkek7OaSoE+hNmLaugqb6hYylJaG8nNXAyxVxnQM06uhOXpqp0
-         g1DYGmyNKCVxAskzpxNzb2Bh6U9NNfPXtmpg+6hOYpdt57zE++6nQqRRjvagNwpfEdwT
-         h133wfuS912UY1mSxcu1+u1ci8XD+iTxSifd+ggu31QHWRN/HIOa2W2sfkpkw1bJnbmq
-         uDwj+ylarVlQkNr8M8i4BF/gBDHg8vbdx/Kyrd5P2R84mYViqHgkkwHyKI9whV4kbCP2
-         NC3g==
+        d=gmail.com; s=20230601; t=1744269483; x=1744874283; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ay/DK1Y796X0/GWTd5CnHT0Jl72FswjnbGqDvKTNnaI=;
+        b=EDCrZRe4rVxc6LWfaKyFyy4MAO3sImP329xCXDPeshzLEekNe1zqN16Fe+P2udQ7xH
+         mttx2/3V/F3GofQoDo2bFX8bct/uW9t1VQ4PNvJaKCxiuRH/ybbtTs0WOX8kmznH175w
+         gFwpJdZ9YrtnOfnp14146s5/GfVQLv76q8X9mjiloqnSULQwWieYDTLGRI1A8XZlPqdc
+         1nRmyExGnU2zQLIPMsU6u764IyNGzG15r0bECF8eNCTiCJ1GrTAdqKIhPdxZlaZxDr9+
+         AYQW2FDv0gwHHDFJ74H4ZaixZkCPFGNVypbueP0fRH+zV4k4qA1HF+KUUJ7mBmmALfwn
+         MPLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744217780; x=1744822580;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=aCygb0R9J4//K5NBuySZGPAIajaz7uNogxidzxnmh7I=;
-        b=EbuKeQCjuSW5GYNG7LMadCiYnCVJJuUF84drrsU81v/S4vSpUE8ZSVowtZcfEa9iIZ
-         fkDY2ElDtBf4WjddV9wQRJDGwKcT7FBLSIB9EvucaPKBcCQVT2TdDEJTWPb0OqHvvJYM
-         wby4rZGdC1Z3zdhTHqbWCZ+yt7gbr1g8eBC8BFLHqqWjTXp2je2x4+/7BeYlPpYQvlyR
-         02WAcwB51hSy8EhqUh+gFNq4YNdFvW26Q+JMoxqh7bCbaNGkWw1PWzDG++oTovmOSzzc
-         U/ShHXq8LpFy0AYE+o59V3D+uKd+Ao+qQnAWoM54fDeYmqINJeCLGaLLWnwVmob1mwew
-         oMPg==
-X-Gm-Message-State: AOJu0Yxd4J18qKF8Zcq3tfDQoy8wOdu39WR+d/H8eA+hrMQHDXMXIXZ7
-	dKu2aIX+wrt7BeEPEeNsHW/9VvVHKVpDgLFK9w+sf7LO8UDZP+B0l/fY79DIw1c=
-X-Gm-Gg: ASbGncvv0ILAaI2XbSPyN3jAe0tZw5p6f3uMtDWctDRno6yOyC1tihOoKjUWjWqRIxW
-	A1LicWp7ryYUozA6uwCFl4iIWVqpjZte3oGbn3695q8CRUtSbyjNh5Q3csFaekjfQzac8Gy7Cg1
-	n5/fYqbA+m65zjyHV3x0ZZaZzR/8szU6ydy0RlvhZ9i1QZQk2UO/Ax3j6Y28Gt70P4fzEzf4olf
-	wPxyk9F/xz2lqL7el47ntPnxdexNDmMfiJCNQDGtl96ClnjbqLZUwpnurnidc6VI2znjkBlr/6H
-	b4uLvwZ4VYf2m7zRCjcs4U8FfK9F7kEEwdBE/TTFiHs=
-X-Google-Smtp-Source: AGHT+IHPxSpc27gK9gTsJW2IMf1ahXoIOaZfnAb9plx5JSVsHQKEzviSNHHXsGI8r7rx1qPcS3QdDQ==
-X-Received: by 2002:a05:6000:2901:b0:39a:c80b:8283 with SMTP id ffacd0b85a97d-39d87ab60f4mr3607872f8f.31.1744217779850;
-        Wed, 09 Apr 2025 09:56:19 -0700 (PDT)
-Received: from blackdock.suse.cz ([193.86.92.181])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-39d893fdf3bsm2083438f8f.83.2025.04.09.09.56.19
+        d=1e100.net; s=20230601; t=1744269483; x=1744874283;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ay/DK1Y796X0/GWTd5CnHT0Jl72FswjnbGqDvKTNnaI=;
+        b=Bn5ZYP3a9PJkHB6uX+O8omFBuoFM9f5bg1PFec3zx+5t0rbmXH7dRkchnXBWVGjBoD
+         pTYuALghn30NRn1mkNIESDDxrP7sAYd//kX0qyDf5+YBCj68MNOMlnozYeAVjpfQG0yA
+         2/vorwGb3DMy7rBP/HFiqwhlFL6QF4H4Od1D4jVZRbTz4ZrrrhdkNNt4dRItiXtbbBMK
+         823R/igJZKoJBc7ae2R4mN/G7qh+vUXmWsPYndKKms/yjrt1DlE+tearLr55HnXeV23w
+         agB10z4C2aH6nZYRslFyenvT8YOyR0ZehbyHDdwuOWQWdZFVSaJR/Uydz/nGA760oVJ8
+         01Zg==
+X-Forwarded-Encrypted: i=1; AJvYcCW89OvYUJyKqVVZQllJitWsolEWaJ4g38NZGqicXPfSQgaqLgbOB2K3h8zE+KRMPMqu0IAtDZv79hvuinHHq1M=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxpt5vavcWrF5SGBYG2QA17CMOak9R188Cg4EviClO/tWmaRXLn
+	AVAvVBMchIYhRxf6/TxWr8x8K5JhsVnXhG3FXoj1RRvCsU7lEfD5
+X-Gm-Gg: ASbGncugNlF4i4wAgDR/czTtI/iOEnn5bmANhn9Zqomv/Un8cDLPxdF5cf4Twulk3p4
+	kprjR2or9Tk7/u+rzU6z0utIrK/+ONXt1wEjSo5+jIBzn0dIxodNv1AMmPRy++P1LPpkAf08UIU
+	twJH9qHA3RO7dKBR89QMoykU71c2uPDgfeeaJFpKytruHsxkYmk/TrDprqL5uQKRdvmdD2oWwf4
+	2+SW+D3pZ5ACiMM6UK5UyXUgKm7KJ8RVeTrfOYam6rm0wytx9hKwNQ7BaDUNQ1G1nfMfD8cJrXS
+	mu5oLacnOyGdBuKIdXWEv0Xj
+X-Google-Smtp-Source: AGHT+IHg0Nupc8Ua8w/hUl3W8fhBebaLlZaZLcGbvnPElZ+i57KqpAM95JZC/GuZf1lFNZj081MffQ==
+X-Received: by 2002:a17:903:440d:b0:223:5ca1:3b0b with SMTP id d9443c01a7336-22be0388787mr24642815ad.40.1744269482924;
+        Thu, 10 Apr 2025 00:18:02 -0700 (PDT)
+Received: from fire.. ([220.181.41.17])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22ac7cc9202sm23562905ad.211.2025.04.10.00.17.59
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 09 Apr 2025 09:56:19 -0700 (PDT)
-Date: Wed, 9 Apr 2025 18:56:17 +0200
-From: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, cgroups@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	David Ahern <dsahern@kernel.org>, Tejun Heo <tj@kernel.org>, Eric Dumazet <edumazet@google.com>, 
-	"David S. Miller" <davem@davemloft.net>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [PATCH v3 0/3] netfilter: Make xt_cgroup independent from net_cls
-Message-ID: <o4q7vxrdblnuoiqbiw6qvb52bg5kb33helpfynphbbgt4bjttq@7344qly6lv5f>
-References: <20250401115736.1046942-1-mkoutny@suse.com>
+        Thu, 10 Apr 2025 00:18:02 -0700 (PDT)
+From: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+To: coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Simon Horman <horms@kernel.org>,
+	Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+Subject: [PATCH nf] netfilter: nft_quota: make nft_overquota() really over the quota
+Date: Thu, 10 Apr 2025 07:17:47 +0000
+Message-ID: <20250410071748.248027-1-dzq.aishenghu0@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="we4mrug4rvo3n7yf"
-Content-Disposition: inline
-In-Reply-To: <20250401115736.1046942-1-mkoutny@suse.com>
+Content-Transfer-Encoding: 8bit
 
+Keep consistency with xt_quota and nfacct.
 
---we4mrug4rvo3n7yf
-Content-Type: text/plain; protected-headers=v1; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: [PATCH v3 0/3] netfilter: Make xt_cgroup independent from net_cls
-MIME-Version: 1.0
+Fixes: 795595f68d6c ("netfilter: nft_quota: dump consumed quota")
+Signed-off-by: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+---
+ net/netfilter/nft_quota.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Tue, Apr 01, 2025 at 01:57:29PM +0200, Michal Koutn=FD <mkoutny@suse.com=
-> wrote:
-> Changes from v2 (https://lore.kernel.org/r/20250305170935.80558-1-mkoutny=
-@suse.com):
-> - don't accept zero classid neither (Pablo N. A.)
-> - eliminate code that might rely on comparison against zero with
->   !CONFIG_CGROUP_NET_CLASSID
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 9b2d7463d3d3..0bb43c723061 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -21,7 +21,7 @@ struct nft_quota {
+ static inline bool nft_overquota(struct nft_quota *priv,
+ 				 const struct sk_buff *skb)
+ {
+-	return atomic64_add_return(skb->len, priv->consumed) >=
++	return atomic64_add_return(skb->len, priv->consumed) >
+ 	       atomic64_read(&priv->quota);
+ }
+ 
+-- 
+2.43.0
 
-Pablo, just to break possible dilemma with Tejun's routing [1], it makes
-sense to me to route this series together via net(filter) git(s).
-
-Also, let me (anyone) know should there be further remarks to this form.
-
-Thanks,
-Michal
-
-[1] https://lore.kernel.org/all/Z-zqvmJFI3PkNl6R@slm.duckdns.org/
-
---we4mrug4rvo3n7yf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTd6mfF2PbEZnpdoAkt3Wney77BSQUCZ/amrQAKCRAt3Wney77B
-Sc39AP99KtNaZNwm4vEZCKRSGG9ggne9YFgWlu/J/1H6QhWHhwEAlOeJU05ieaCW
-NpbFj/MBd1Gk3x4gfipNegMDLyOinwA=
-=mfjY
------END PGP SIGNATURE-----
-
---we4mrug4rvo3n7yf--
