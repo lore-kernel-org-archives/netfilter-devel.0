@@ -1,204 +1,186 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FBA8EEB1
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 22:17:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54D981D5ADE
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 22:50:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744323444; cv=none; b=SxtvsaDfI6qT1m0lGcwlkeXCMca2batdecKPXLpcKQb0FdaDelfwdI5JNDtNZuMrNyhaY2HT1sy2wqc7wt/kOzIYLagxCbwE7bKnVmXHeLL3AXIki/+Icsgt/485ch4N4Xxar3r8xBX3VFIi3YiVgRhdsvdIM4pOn209CKghc1Y=
+	t=1744325433; cv=none; b=SCkwg3I4daqi2AnmZwH1IcdZoqT0wWER/DLDQ1F1w1IYcLfBLDZ/ox5RnzwCL+u2VdywI4o4Jf9n5WAHJewXEgbG3nYbGcUAu7Lwv4YWdF/zv/bZBlZeE3vgy78/SfzojB2dlTchKuPS02QwHv00swt6gh64cG2TzWcrThHiaXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744323444; c=relaxed/simple;
-	bh=Dp03vyArHnDO3ieTGsrG0QwQANRcoAVqgdcC3Y0h3Lg=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=oHSUdhta72S20nMatchsk3tqpU5AMeojVQ1SB1Y56hyINhmP5XVL1f3VCNS266NNbgmREHxpXLm5nOM/j0udHepi6b9AzNWH2iAZ8bon6pffLNqRQbToz5jJRdq9EoQR/gF7p6A78n+RFCZ6pYE3BOY3yf4H6XVF7W1c6ZDDHeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AJqHMTZU; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=g2pTUPXK; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1744325433; c=relaxed/simple;
+	bh=ELWiOCvcUAEHxoMp56bMK5sIvYO/XcspqxYCaeKapas=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JP2r4YGaRr8Uon8zxnvKK+785CA3P594N7q508/7J8LDXh1WJh7Gm5HWLW2SNUHax/z6DKgF/sSX/A3YJJz8KodAMIL87K5l/gTDNZkZebRzccPwqQIUzwpO84T7lvaMxr7W313xw9b0DWySsOkMAMSF0MIkrmglJUtPNji8u3M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KSGQQRqA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=H+bP2UPl; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AJqHMTZU";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="g2pTUPXK"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KSGQQRqA";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="H+bP2UPl"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B8758603B1; Fri, 11 Apr 2025 00:17:16 +0200 (CEST)
+	id B359E60653; Fri, 11 Apr 2025 00:50:26 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744323436;
-	bh=5b1B/yUky/NZ3TGgo5oZ0C56/qWRp4IYeFyGFRIHnIU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=AJqHMTZUoU8ntLA8hEx0nuAGSD5Kaw6mrnS6lJmBmqiJcNkyqA2Gn9Il6HPF/D4hE
-	 XZggU80FHIpHSW4pszrawCu+Jb6U0JRHcl0Ru2jwfuS2Eg+ulc4x7jd7xrSqxfTLGL
-	 qO/wZXcihj6vHVM+KMcLKh/FIVkfkZY6dGkfIblfi4+wvjrIh5dfqjYwoEzVFRunDq
-	 EBGugTpc6n88ce24RWc609Q+IHxo72djVZkVZp3rw8tqd6ygeylHX9yLRokon3qo5m
-	 trELP51Xyv9Hxap2Pf/Qtioj4G79xy2+fWYrzGE46eyRCOwcHxeZrjgXo05pvgYeCE
-	 z03Czdn73elsw==
+	s=2025; t=1744325426;
+	bh=DDGScoBYbNvjtC8KXC4oet1YOoPqIhnFMwYBO8/pbOI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=KSGQQRqADN5w4mmARl5jBVNPADnDt1Zqc5tEFLXhjtkRM8DqBW4ycmlQ1PmWbHCXO
+	 cXsujMPCJyE9/k4XpogTQ1z/1AQIptBdiPWKeoSvINCfVvvcr7G9Env7Kh8fFeQtID
+	 t8xm6i3rJ179B39czIwvcZu5cx9a4Cv1w5i6zk/Y9Mo5q5pKwvJk3jVJyuAvF5ttLG
+	 64K4KXHTWni0Q78bGQFJom9FLuw5mNA7QdQPYG/6sBc+1tXbfuNBwmW9reyhx/3+Qv
+	 vXb3tF/xnMHpO5FChmY7282hW0X/7DVYOC67rpKGtnWAssznPDqbzRxE+AJ50oQ0KT
+	 FSlQ/ncuPfvqQ==
 X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BE5D2603B1;
-	Fri, 11 Apr 2025 00:17:15 +0200 (CEST)
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id BDC0160643;
+	Fri, 11 Apr 2025 00:50:25 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744323435;
-	bh=5b1B/yUky/NZ3TGgo5oZ0C56/qWRp4IYeFyGFRIHnIU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=g2pTUPXKXvzMOVFMIr9sGDQz1uIY1bJ/jz9QhebaNdrigX6dBZP8zMNXH0IFadAo/
-	 1kEtT3JmmjA4RxxOt9F42pv4XdOWvqdz7FHgYTnxV7L7beGj1RHpunjLZ51R2Hmdxc
-	 ESyy8KJNMwpwbJZMh5VClKnIdD9uXgFhUqMoc2nuXrY3CmaqZf3h+vSRPkwi6AgAnt
-	 6Jab+x3r2DgP08Or3+qc07NfyhR44YzwPw5xuleZYahd7B2kewWGeREArehoyMtgJC
-	 nToJ025obaRc6H5MYX8rXnyLHbw0WBEtb8ltWX4HeHoyjLKtK+8ZhJ80FcBcWj3GAG
-	 4/DpUbZdYkghw==
+	s=2025; t=1744325425;
+	bh=DDGScoBYbNvjtC8KXC4oet1YOoPqIhnFMwYBO8/pbOI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=H+bP2UPluCaO0md4LTEP8kumqYNbfLj6XunbYKDQdCELIq2sm6zMiQYzWTA0Uqh82
+	 ctIUBlBypORPNkX2H3ivW4F10tEJbtnAlqdXyFrDlui+pxRdc3DJ7AWfFB2RYvP4MD
+	 430jzj1cKPq+oWrH61VmJcZZ1S6lES9dUhmwIFtabrVCz7CmOxommAk4GbKNJ+DkJy
+	 w5zXpPczdSUVyfbM+P6rcyjdbH2p/04viJTP6JB+G7sEM05lIUw8Q8GmaVf9MI2M8d
+	 U29+jYxb7aLHkr94MjLejZ0hpP2l5vrB5d/fo5gaUYUs8VqO7KdXyZhtqZxjUaDGET
+	 Ysj0oFIdKN77w==
+Date: Fri, 11 Apr 2025 00:50:22 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nft] parser_bison: add selector_expr rule to restrict typeof_expr
-Date: Fri, 11 Apr 2025 00:17:10 +0200
-Message-Id: <20250410221710.1350528-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] evaluate: restrict allowed subtypes of
+ concatenations
+Message-ID: <Z_hLLgRswOjXUKMa@calendula>
+References: <20250402145045.4637-1-fw@strlen.de>
+ <20250402145045.4637-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250402145045.4637-2-fw@strlen.de>
 
-typeof_expr allows for symbol, constant and bitwise expressions,
-restrict it to selector expressions.
+Hi Florian,
 
-After this patch, input generated by fuzzer is rejected upfront:
+On Wed, Apr 02, 2025 at 04:50:40PM +0200, Florian Westphal wrote:
+> We need to restrict this, included bogon asserts with:
+> BUG: unknown expression type prefix
+> nft: src/netlink_linearize.c:940: netlink_gen_expr: Assertion `0' failed.
+> 
+> Prefix expressions are only allowed if the concatenation is used within
+> a set element, not when specifying the lookup key.
+> 
+> For the former, anything that represents a value is allowed.
+> For the latter, only what will generate data (fill a register) is
+> permitted.
+> 
+> Add a new list recursion counter for this. If its 0 then we're building
+> the lookup key, if its the latter the concatenation is the RHS part
+> of a relational expression and prefix, ranges and so on are allowed.
+[...]
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index d099be137cb3..0c8af09492d1 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+[...]
+> @@ -1704,10 +1706,48 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+>  		if (list_member_evaluate(ctx, &i) < 0)
+>  			return -1;
+>  
+> -		if (i->etype == EXPR_SET)
+> +		switch (i->etype) {
+> +		case EXPR_VALUE:
+> +		case EXPR_UNARY:
+> +		case EXPR_BINOP:
+> +		case EXPR_RELATIONAL:
+> +		case EXPR_CONCAT:
+> +		case EXPR_MAP:
+> +		case EXPR_PAYLOAD:
+> +		case EXPR_EXTHDR:
+> +		case EXPR_META:
+> +		case EXPR_RT:
+> +		case EXPR_CT:
+> +		case EXPR_SET_ELEM:
+> +		case EXPR_NUMGEN:
+> +		case EXPR_HASH:
+> +		case EXPR_FIB:
+> +		case EXPR_SOCKET:
+> +		case EXPR_OSF:
+> +		case EXPR_XFRM:
 
- # nft -f test.nft
- test.nft:3:53-53: Error: syntax error, unexpected number
-               typeof numgen inc mod 2 : ip daddr . 0
-                                                    ^
- test.nft:2:12-13: Error: set definition does not specify key
-       map t2 {
-           ^^
- test.nft:8:65-67: Error: No such file or directory
-               meta l4proto tcp dnat ip to numgen inc mod 2 map @t2
-                                                                ^^^
- test.nft:8:65-67: Error: No such file or directory
-               meta l4proto tcp dnat ip to numgen inc mod 2 map @t2
-                                                                ^^^
+I am expecting more new selector expressions here that would need to
+be added and I think it is less likely to see new constant expressions
+in the future, so maybe reverse this logic ...
 
-Revisit 4ab1e5e60779 ("src: allow use of 'verdict' in typeof
-definitions") to handle to handle verdict as string, later a token can
-be added to the scanner and enable it via flex start conditions.
+		if (i->etype == EXPR_RANGE ||
+                    i->etype == EXPR_PREFIX) {
+			/* allowed on RHS (e.g. th dport . mark { 1-65535 . 42 }
+			 *                                       ~~~~~~~~ allowed
+			 * but not on LHS (e.g  1-4 . mark { ...}
+			 *                      ~~~ illegal
+                        ...
 
-Fixes: 14357cff40ed ("parser: add typeof keyword for declarations")
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/parser_bison.y                            | 43 +++++++++++--------
- ...valid_set_key_stmt_evaluate_nat_map_assert | 10 +++++
- 2 files changed, 36 insertions(+), 17 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert
+... and let anything else be accepted?
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4b2b51d4275c..ed6a24a15377 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -818,8 +818,8 @@ int nft_lex(void *, void *, void *);
- 
- %type <expr>			symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
- %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr variable_expr chain_expr policy_expr
--%type <expr>			primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
--%destructor { expr_free($$); }	primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr
-+%type <expr>			primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr selector_expr
-+%destructor { expr_free($$); }	primary_expr shift_expr and_expr primary_typeof_expr typeof_expr typeof_data_expr typeof_key_expr typeof_verdict_expr selector_expr
- %type <expr>			exclusive_or_expr inclusive_or_expr
- %destructor { expr_free($$); }	exclusive_or_expr inclusive_or_expr
- %type <expr>			basic_expr
-@@ -2097,19 +2097,10 @@ subchain_block		:	/* empty */	{ $$ = $<chain>-1; }
- 			}
- 			;
- 
--typeof_verdict_expr	:	primary_expr
-+typeof_verdict_expr	:	selector_expr
- 			{
- 				struct expr *e = $1;
- 
--				if (e->etype == EXPR_SYMBOL &&
--				    strcmp("verdict", e->identifier) == 0) {
--					struct expr *v = verdict_expr_alloc(&@1, NF_ACCEPT, NULL);
--
--					expr_free(e);
--					v->flags &= ~EXPR_F_CONSTANT;
--					e = v;
--				}
--
- 				if (expr_ops(e)->build_udata == NULL) {
- 					erec_queue(error(&@1, "map data type '%s' lacks typeof serialization", expr_ops(e)->name),
- 						   state->msgs);
-@@ -2118,7 +2109,7 @@ typeof_verdict_expr	:	primary_expr
- 				}
- 				$$ = e;
- 			}
--			|	typeof_expr		DOT		primary_expr
-+			|	typeof_expr		DOT		selector_expr
- 			{
- 				struct location rhs[] = {
- 					[1]	= @2,
-@@ -2142,9 +2133,24 @@ typeof_data_expr	:	INTERVAL	typeof_expr
- 			{
- 				$$ = constant_expr_alloc(&@$, &queue_type, BYTEORDER_HOST_ENDIAN, 16, NULL);
- 			}
-+			|	STRING
-+			{
-+				struct expr *verdict;
-+
-+				if (strcmp("verdict", $1) != 0) {
-+					erec_queue(error(&@1, "map data type '%s' lacks typeof serialization", $1),
-+						   state->msgs);
-+					free_const($1);
-+					YYERROR;
-+				}
-+				verdict = verdict_expr_alloc(&@1, NF_ACCEPT, NULL);
-+				verdict->flags &= ~EXPR_F_CONSTANT;
-+				$$ = verdict;
-+				free_const($1);
-+			}
- 			;
- 
--primary_typeof_expr	:	primary_expr
-+primary_typeof_expr	:	selector_expr
- 			{
- 				if (expr_ops($1)->build_udata == NULL) {
- 					erec_queue(error(&@1, "primary expression type '%s' lacks typeof serialization", expr_ops($1)->name),
-@@ -4332,9 +4338,7 @@ integer_expr		:	NUM
- 			}
- 			;
- 
--primary_expr		:	symbol_expr			{ $$ = $1; }
--			|	integer_expr			{ $$ = $1; }
--			|	payload_expr			{ $$ = $1; }
-+selector_expr		:	payload_expr			{ $$ = $1; }
- 			|	exthdr_expr			{ $$ = $1; }
- 			|	exthdr_exists_expr		{ $$ = $1; }
- 			|	meta_expr			{ $$ = $1; }
-@@ -4346,6 +4350,11 @@ primary_expr		:	symbol_expr			{ $$ = $1; }
- 			|	fib_expr			{ $$ = $1; }
- 			|	osf_expr			{ $$ = $1; }
- 			|	xfrm_expr			{ $$ = $1; }
-+			;
-+
-+primary_expr		:	symbol_expr			{ $$ = $1; }
-+			|	integer_expr			{ $$ = $1; }
-+			|	selector_expr			{ $$ = $1; }
- 			|	'('	basic_expr	')'	{ $$ = $2; }
- 			;
- 
-diff --git a/tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert b/tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert
-new file mode 100644
-index 000000000000..d73dce8e5ce1
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/invalid_set_key_stmt_evaluate_nat_map_assert
-@@ -0,0 +1,10 @@
-+table ip t {
-+	map t2 {
-+		typeof numgen inc mod 2 : ip daddr . 0
-+	}
-+
-+	chain c {
-+		type nat hook prerouting priority dstnat; policy accept;
-+		meta l4proto tcp dnat ip to numgen inc mod 2 map @t2
-+	}
-+}
--- 
-2.30.2
+> +			break;
+> +		case EXPR_RANGE:
+> +		case EXPR_PREFIX:
+> +			/* allowed on RHS (e.g. th dport . mark { 1-65535 . 42 }
+> +			 *                                       ~~~~~~~~ allowed
+> +			 * but not on LHS (e.g  1-4 . mark { ...}
+> +			 *                      ~~~ illegal
+> +			 *
+> +			 * recursion.list > 0 means that the concatenation is
+> +			 * part of another expression, such as EXPR_MAPPING or
+> +			 * EXPR_SET_ELEM (is used as RHS).
+> +			 */
+> +			if (ctx->recursion.list > 0)
+> +				break;
 
+So recursion.list is used to provide context to identify this is rhs,
+correct? Is your intention is to use this recursion.list to control to
+deeper recursions in a follow up patch?
+
+Not related, but if goal is to provide context then I also need more
+explicit context hints for bitfield payload and bitwise expressions
+where the evaluation needs to be different depending on where the
+expression is located (not the same if the expression is either used
+as selector or as lhs/rhs of assignment).
+
+I don't know yet how such new context enum to modify evaluation
+behaviour will look, so we can just use recursion.list by now, I don't
+want to block this fix.
+
+> +
+> +			return expr_error(ctx->msgs, i,
+> +					  "cannot use %s in concatenation",
+> +					  expr_name(i));
+> +		default:
+>  			return expr_error(ctx->msgs, i,
+>  					  "cannot use %s in concatenation",
+>  					  expr_name(i));
+> +		}
+>  
+>  		if (!i->dtype)
+>  			return expr_error(ctx->msgs, i,
+> diff --git a/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert b/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
+> new file mode 100644
+> index 000000000000..d7f8526092a5
+> --- /dev/null
+> +++ b/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
+> @@ -0,0 +1,9 @@
+> +table t {
+> +	set sc {
+> +		type inet_service . ifname
+> +	}
+> +
+> +	chain c {
+> +		tcp dport . bla* @sc accept
+> +	}
+> +}
+> -- 
+> 2.49.0
+> 
+> 
