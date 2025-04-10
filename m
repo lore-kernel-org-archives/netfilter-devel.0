@@ -1,94 +1,81 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03C774690;
-	Thu, 10 Apr 2025 10:54:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A36D284B4B;
+	Thu, 10 Apr 2025 12:40:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744282446; cv=none; b=jy4Dm455BeBm7YwSxqHzvukGSuUyPOMV7elMnVxLCLHe7eu3IAsSN9sv6+JJbFbZDPNJixVgT/0SjDReLdKHUQFEC+jA/2Ic1wWbPlNQCKjF0S5+sRnKj8AZ4R8hSQgCSdmibxKANLEPOB4d6FYwQrBNZ6HzsLj2m9nqJt5KDD0=
+	t=1744288803; cv=none; b=dXKDkuKnTtn91bsbekq/LsLmL9PuFLpAEs1aELj+2SSNfzHcNWPgMkmAf9ubK7bldIa7yD2fbkzOOrgdIOJvtAQJgi2cuhz1KJZ/XDfBTVfrIZgLtX0UmgZ2RrcIK1EdcZcSBz+MCYfNthfvyv74fmnQeH/oE4DHCDFICVpSRlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744282446; c=relaxed/simple;
-	bh=T0Eo6RBz2cS1tU44dJiO8W8b0KC+LupLMrZspOvecns=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q8RRL0ZOHyN00H/lgYQbZiLCmZh4Ue5au1HczQprY4iu5H48RM6qxc6PcSdA2CjuhWnPJE+7rnfRhnB14k4CYolo3NG4RVd+teEvprTvHCKKy0tcDbTbub41hM3wWtfX3ZrMSnAXhUhSSa0VOGAgfjMCqEjwBTJptM3//Kt2w4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1u2pXc-0003K3-9W; Thu, 10 Apr 2025 12:53:52 +0200
-Date: Thu, 10 Apr 2025 12:53:52 +0200
-From: Florian Westphal <fw@strlen.de>
-To: lvxiafei <xiafei_xupt@163.com>
-Cc: fw@strlen.de, coreteam@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, horms@kernel.org, kadlec@netfilter.org,
-	kuba@kernel.org, linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-	pablo@netfilter.org
-Subject: Re: [PATCH V3] netfilter: netns nf_conntrack: per-netns
- net.netfilter.nf_conntrack_max sysctl
-Message-ID: <20250410105352.GB6272@breakpoint.cc>
-References: <20250409094206.GB17911@breakpoint.cc>
- <20250410100227.83156-1-xiafei_xupt@163.com>
+	s=arc-20240116; t=1744288803; c=relaxed/simple;
+	bh=jZtzN/+Cb6gOitadW2d3v4gSNHImegz7YXSWHHoo5OM=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=D29KraCavj2GAI35grCA/lYm65ffOA74wEuoBelWDj0NqbNkr2z7UjauBsnrs5CoQ6jkoHSFgYC8883nCcjk8V6NQsGphHQGFIzcmkycwOBj3ebInGAJKiv6YfBL/xMTQUb4mo4cXdLzgrtasakPk+0y3j8YY6PM2qaGd4fCJbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=foBFv3Lm; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="foBFv3Lm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4096AC4CEDD;
+	Thu, 10 Apr 2025 12:40:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744288803;
+	bh=jZtzN/+Cb6gOitadW2d3v4gSNHImegz7YXSWHHoo5OM=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=foBFv3LmT7zeJV9DYKupnQgXFsdcQDuyuULXQc+VS2eIdR+YjsuA1CgBnr4kvp5fp
+	 h3EP4TyMYvglYDrqXihmCGBzeOFVeVM90zbmFs+UpWx8YhB4DQnsCu/2Lmj4oFwAYn
+	 DQ8clJgm1R+fBAc6adOoEQ5CjD7YMgF9QgEiLpC+hY4M+cnihWwdU8DqU9Br+hHRtq
+	 cu0wJJHAZqPVVt27SSSQax9X4Vl/ie5+STFGpmbVeXMp8UmugctXzexvTzgHXpgW2W
+	 d6fZqvSWMmma129gwGp1cy5+rn0KEfR8fnWiRBRVvj92j9USfy+Ms7s3Ssgwu5SRoH
+	 86sS5jhWgALAA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 001AE380CEF4;
+	Thu, 10 Apr 2025 12:40:41 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250410100227.83156-1-xiafei_xupt@163.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/2] nft_set_pipapo: fix incorrect avx2 match of 5th field
+ octet
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <174428884093.3651632.8182681897819384772.git-patchwork-notify@kernel.org>
+Date: Thu, 10 Apr 2025 12:40:40 +0000
+References: <20250410103647.1030244-2-pablo@netfilter.org>
+In-Reply-To: <20250410103647.1030244-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-lvxiafei <xiafei_xupt@163.com> wrote:
-> > in any case.
-> >
-> > Also:
-> >
-> > -       if (nf_conntrack_max && unlikely(ct_count > nf_conntrack_max)) {
-> > +       if (net->ct.sysctl_max && unlikely(ct_count > min(nf_conntrack_max, net->ct.sysctl_max))) {
-> >
-> >
-> > ... can't be right, this allows a 0 setting in the netns.
-> > So, setting 0 in non-init-net must be disallowed.
+Hello:
+
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
+
+On Thu, 10 Apr 2025 12:36:46 +0200 you wrote:
+> From: Florian Westphal <fw@strlen.de>
 > 
-> Yes, setting 0 in non-init-net must be disallowed.
+> Given a set element like:
 > 
-> Should be used:
-> unsigned int net_ct_sysctl_max = max(min(nf_conntrack_max, net->ct.sysctl_max), 0);
-> if (nf_conntrack_max && unlikely(ct_count > net_ct_sysctl_max)) {
+> 	icmpv6 . dead:beef:00ff::1
+> 
+> The value of 'ff' is irrelevant, any address will be matched
+> as long as the other octets are the same.
+> 
+> [...]
 
-That would work.  Alternative, probably preferrable, is to do
-something like this:
+Here is the summary with links:
+  - [net,1/2] nft_set_pipapo: fix incorrect avx2 match of 5th field octet
+    https://git.kernel.org/netdev/net/c/e042ed950d4e
+  - [net,2/2] selftests: netfilter: add test case for recent mismatch bug
+    https://git.kernel.org/netdev/net/c/27eb86e22f10
 
-@@ -615,10 +615,10 @@ enum nf_ct_sysctl_index {
- static struct ctl_table nf_ct_sysctl_table[] = {
--               .proc_handler   = proc_dointvec,
-+               .proc_handler   = proc_douintvec_minmax,
-+               .extra1         = SYSCTL_ZERO, /* 0 == no limit */
-        },
-        [NF_SYSCTL_CT_COUNT] = {
-                .procname       = "nf_conntrack_count",
-@@ -1081,9 +1082,11 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-        /* Don't allow non-init_net ns to alter global sysctls */
-        if (!net_eq(&init_net, net)) {
-                table[NF_SYSCTL_CT_EXPECT_MAX].mode = 0444;
-                table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
-+
-+               /* 0 means no limit, only allowed in init_net */
-+               table[NF_SYSCTL_CT_MAX].extra1 = SYSCTL_ONE;
-        }
 
-That will make setting a 0 value illegal for non-init net case:
-
-sysctl net.netfilter.nf_conntrack_max=0
-sysctl: setting key "net.netfilter.nf_conntrack_max": Invalid argument
-
-> min(nf_conntrack_max, net->ct.sysctl_max) is the upper limit of ct_count
-> At the same time, when net->ct.sysctl_max == 0, the original intention is no limit,
-> but it can be limited by nf_conntrack_max in different netns.
-
-Sounds good to me.
