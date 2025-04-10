@@ -1,101 +1,68 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5D2D928A3F9;
-	Thu, 10 Apr 2025 13:06:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25061372;
+	Thu, 10 Apr 2025 13:17:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744290383; cv=none; b=I//7b9CnbrpAZLYdolOUcf44PoxbIh9Cb5a8PWuZtz07PVm81BJL3Gi0vTgBIdj0HN57p68Mhtj/sCxn8vV5xDsRPu7+nUD+Ssl8nQfp784Zy8T8Pz64nbKTgxzcd96WVFgj314aiGGF9qpFK00T9ONstuFRtP5hDLHmC+j2sK8=
+	t=1744291055; cv=none; b=qzGy2cfv8JQQ8VtOl8ob6lR9ZtLoN4ErOJVLM9D6g61hWZg5ZiG4eUCw9BsnbBmnOGk/CsuyywCsH12y5Zp2L8xiMlzZbab8IvS8UswdxBaIZrCr+Y7nIlyDwFoseA0dBK7B/0Edm+l57PprZ69UKzWGYKmrV5U7QJfS1d2GwGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744290383; c=relaxed/simple;
-	bh=ilprkmVkg8ekcBXt5oGjKzpnFWff2QMcG+fxHM5EKFI=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=tiGZP24Xq9rz+aGlWaUMrxIVVNflwoo7FOcdwObkgK9Nf/adJdZMmX3REki8F3lTi89QTZ3cdr7Ze1Dh2O/+SyeDCXNP6ET6zaZVsoDz2916MmrKa+WEIvJjqC+cDBqaGMQZqyEp11dZiZmYpI7a573BKLElyy5oJoy+UTTdn60=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=SWPdHzjl; arc=none smtp.client-ip=117.135.210.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="SWPdHzjl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Mc3TK
-	Zgj1s8VPSM+/5mLbg/ZOiw9QDL0vilLiiDX2cU=; b=SWPdHzjlkMepb+REWSLFC
-	a1rCViDwG4s0Ladwh/9/hN67EiNME78FO4obnaUqxcTnvbABeoj9/o1suoNTB914
-	uhRq+KqzJxDuAEyAtVSmM6ggs1Zib52eQXmzPAwYpk+snUb6jDrKV/+cNLIIUgO1
-	D/NsDmxrpyIv7xul45e2N4=
-Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wAn7ZYbwvdn1ZBmFg--.18419S4;
-	Thu, 10 Apr 2025 21:05:33 +0800 (CST)
-From: lvxiafei <xiafei_xupt@163.com>
-To: fw@strlen.de
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	horms@kernel.org,
-	kadlec@netfilter.org,
-	kuba@kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	xiafei_xupt@163.com
-Subject: Re: [PATCH V3] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
-Date: Thu, 10 Apr 2025 21:05:31 +0800
-Message-Id: <20250410130531.17824-1-xiafei_xupt@163.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20250409094206.GB17911@breakpoint.cc>
+	s=arc-20240116; t=1744291055; c=relaxed/simple;
+	bh=oGJ4GmXx3Y8qppshySpiieF19TJpjQKaRvecWbygU6E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hkrQN6vGgiWZBc6Zwe0D2sz942Fkc4WHa85xjEchtFiAz9hbUSw930iV/7/ZTetidDnfgHMOV5btBetf5PRrex9XWjBjDxDhm26/hekrogBTfkH77RhZh3EXtt8HoAtohiO0WHfCZnbkG4NZ//5Edyzq4ZOvahXxplztFgySJ8s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1u2rmP-0004ks-4G; Thu, 10 Apr 2025 15:17:17 +0200
+Date: Thu, 10 Apr 2025 15:17:17 +0200
+From: Florian Westphal <fw@strlen.de>
+To: lvxiafei <xiafei_xupt@163.com>
+Cc: fw@strlen.de, coreteam@netfilter.org, davem@davemloft.net,
+	edumazet@google.com, horms@kernel.org, kadlec@netfilter.org,
+	kuba@kernel.org, linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+	pablo@netfilter.org
+Subject: Re: [PATCH V3] netfilter: netns nf_conntrack: per-netns
+ net.netfilter.nf_conntrack_max sysctl
+Message-ID: <20250410131717.GA14051@breakpoint.cc>
 References: <20250409094206.GB17911@breakpoint.cc>
+ <20250410130531.17824-1-xiafei_xupt@163.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wAn7ZYbwvdn1ZBmFg--.18419S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Kw47Ww43AFykuF4UZF1xuFg_yoW8Ar15pr
-	1fJr17Jw1UJr4UtF1UJw4UJr1UJw4rJw1jyF1DJry8Zr1j9ry7Gr1UJr18Jry2yry8Gr18
-	JF4UXryUJa15JrUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0JUhF4_UUUUU=
-X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMQIrU2f3kNmpPwADsH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250410130531.17824-1-xiafei_xupt@163.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Florian Westphal <fw@strlen.de> wrote:
-> I suggest to remove nf_conntrack_max as a global variable,
-> make net.nf_conntrack_max use init_net.nf_conntrack_max too internally,
-> so in the init_net both sysctls remain the same.
+lvxiafei <xiafei_xupt@163.com> wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > I suggest to remove nf_conntrack_max as a global variable,
+> > make net.nf_conntrack_max use init_net.nf_conntrack_max too internally,
+> > so in the init_net both sysctls remain the same.
+> 
+> The nf_conntrack_max global variable is a system calculated
+> value and should not be removed.
+> nf_conntrack_max = max_factor * nf_conntrack_htable_size;
 
-The nf_conntrack_max global variable is a system calculated
-value and should not be removed.
-nf_conntrack_max = max_factor * nf_conntrack_htable_size;
+Thats the default calculation for the initial sysctl value:
 
-> When a new conntrack is allocated, then:
->
-> If the limit in the init_net is lower than the netns, then
-> that limit applies, so it provides upper cap.
->
-> If the limit in the init_net is higher, the lower pernet limit
-> is applied.
->
-> If the init_net has 0 setting, no limit is applied.
+net/netfilter/nf_conntrack_standalone.c:                .data           = &nf_conntrack_max,
+net/netfilter/nf_conntrack_standalone.c:                .data           = &nf_conntrack_max,
 
-If the init_net has 0 setting, it should depend on the
-limit of other netns.
+You can make an initial patch that replaces all occurences of
+nf_conntrack_max with cnet->sysctl_conntrack_max
 
-The netns Limit Behavior:
-+------------------------+--------------------+-----------------------+
-| init_net.ct.sysctl_max | net->ct.sysctl_max | netns Limit Behavior  |
-+------------------------+--------------------+-----------------------+
-| 0                      | 0                  | No limit              |
-+------------------------+--------------------+-----------------------+
-| 0                      | Non-zero           | net->ct.sysctl_max    |
-+------------------------+--------------------+-----------------------+
-| Non-zero               | 0                  | init_net.ct.sysctl_max|
-+------------------------+--------------------+-----------------------+
-| Non-zero               | Non-zero           | min                   |
-+------------------------+--------------------+-----------------------+
+(adding a 'unsigned int sysctl_conntrack_max' to struct
+ nf_conntrack_net).
 
-net_ct_sysctl_max = likely(a && b) ? min(a, b) : max(a, b);
-or
-net_ct_sysctl_max = unlikely(a == 0 || b == 0) ? max(a, b) : min(a, b);
-
-if (net_ct_sysctl_max && unlikely(ct_count > net_ct_sysctl_max)) { ...
-
+Then, in a second patch, remove the '0444' readonly and redirect
+the child netns to use the copy in its own pernet area rather than the
+init_net one.
