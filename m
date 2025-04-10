@@ -1,35 +1,49 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A36D284B4B;
-	Thu, 10 Apr 2025 12:40:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5D2D928A3F9;
+	Thu, 10 Apr 2025 13:06:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744288803; cv=none; b=dXKDkuKnTtn91bsbekq/LsLmL9PuFLpAEs1aELj+2SSNfzHcNWPgMkmAf9ubK7bldIa7yD2fbkzOOrgdIOJvtAQJgi2cuhz1KJZ/XDfBTVfrIZgLtX0UmgZ2RrcIK1EdcZcSBz+MCYfNthfvyv74fmnQeH/oE4DHCDFICVpSRlg=
+	t=1744290383; cv=none; b=I//7b9CnbrpAZLYdolOUcf44PoxbIh9Cb5a8PWuZtz07PVm81BJL3Gi0vTgBIdj0HN57p68Mhtj/sCxn8vV5xDsRPu7+nUD+Ssl8nQfp784Zy8T8Pz64nbKTgxzcd96WVFgj314aiGGF9qpFK00T9ONstuFRtP5hDLHmC+j2sK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744288803; c=relaxed/simple;
-	bh=jZtzN/+Cb6gOitadW2d3v4gSNHImegz7YXSWHHoo5OM=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=D29KraCavj2GAI35grCA/lYm65ffOA74wEuoBelWDj0NqbNkr2z7UjauBsnrs5CoQ6jkoHSFgYC8883nCcjk8V6NQsGphHQGFIzcmkycwOBj3ebInGAJKiv6YfBL/xMTQUb4mo4cXdLzgrtasakPk+0y3j8YY6PM2qaGd4fCJbk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=foBFv3Lm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744290383; c=relaxed/simple;
+	bh=ilprkmVkg8ekcBXt5oGjKzpnFWff2QMcG+fxHM5EKFI=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=tiGZP24Xq9rz+aGlWaUMrxIVVNflwoo7FOcdwObkgK9Nf/adJdZMmX3REki8F3lTi89QTZ3cdr7Ze1Dh2O/+SyeDCXNP6ET6zaZVsoDz2916MmrKa+WEIvJjqC+cDBqaGMQZqyEp11dZiZmYpI7a573BKLElyy5oJoy+UTTdn60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=SWPdHzjl; arc=none smtp.client-ip=117.135.210.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="foBFv3Lm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4096AC4CEDD;
-	Thu, 10 Apr 2025 12:40:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1744288803;
-	bh=jZtzN/+Cb6gOitadW2d3v4gSNHImegz7YXSWHHoo5OM=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=foBFv3LmT7zeJV9DYKupnQgXFsdcQDuyuULXQc+VS2eIdR+YjsuA1CgBnr4kvp5fp
-	 h3EP4TyMYvglYDrqXihmCGBzeOFVeVM90zbmFs+UpWx8YhB4DQnsCu/2Lmj4oFwAYn
-	 DQ8clJgm1R+fBAc6adOoEQ5CjD7YMgF9QgEiLpC+hY4M+cnihWwdU8DqU9Br+hHRtq
-	 cu0wJJHAZqPVVt27SSSQax9X4Vl/ie5+STFGpmbVeXMp8UmugctXzexvTzgHXpgW2W
-	 d6fZqvSWMmma129gwGp1cy5+rn0KEfR8fnWiRBRVvj92j9USfy+Ms7s3Ssgwu5SRoH
-	 86sS5jhWgALAA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 001AE380CEF4;
-	Thu, 10 Apr 2025 12:40:41 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="SWPdHzjl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Mc3TK
+	Zgj1s8VPSM+/5mLbg/ZOiw9QDL0vilLiiDX2cU=; b=SWPdHzjlkMepb+REWSLFC
+	a1rCViDwG4s0Ladwh/9/hN67EiNME78FO4obnaUqxcTnvbABeoj9/o1suoNTB914
+	uhRq+KqzJxDuAEyAtVSmM6ggs1Zib52eQXmzPAwYpk+snUb6jDrKV/+cNLIIUgO1
+	D/NsDmxrpyIv7xul45e2N4=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g1-2 (Coremail) with SMTP id _____wAn7ZYbwvdn1ZBmFg--.18419S4;
+	Thu, 10 Apr 2025 21:05:33 +0800 (CST)
+From: lvxiafei <xiafei_xupt@163.com>
+To: fw@strlen.de
+Cc: coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	horms@kernel.org,
+	kadlec@netfilter.org,
+	kuba@kernel.org,
+	linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	xiafei_xupt@163.com
+Subject: Re: [PATCH V3] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Thu, 10 Apr 2025 21:05:31 +0800
+Message-Id: <20250410130531.17824-1-xiafei_xupt@163.com>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20250409094206.GB17911@breakpoint.cc>
+References: <20250409094206.GB17911@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,45 +51,51 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] nft_set_pipapo: fix incorrect avx2 match of 5th field
- octet
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <174428884093.3651632.8182681897819384772.git-patchwork-notify@kernel.org>
-Date: Thu, 10 Apr 2025 12:40:40 +0000
-References: <20250410103647.1030244-2-pablo@netfilter.org>
-In-Reply-To: <20250410103647.1030244-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+X-CM-TRANSID:_____wAn7ZYbwvdn1ZBmFg--.18419S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW7Kw47Ww43AFykuF4UZF1xuFg_yoW8Ar15pr
+	1fJr17Jw1UJr4UtF1UJw4UJr1UJw4rJw1jyF1DJry8Zr1j9ry7Gr1UJr18Jry2yry8Gr18
+	JF4UXryUJa15JrUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0JUhF4_UUUUU=
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMQIrU2f3kNmpPwADsH
 
-Hello:
+Florian Westphal <fw@strlen.de> wrote:
+> I suggest to remove nf_conntrack_max as a global variable,
+> make net.nf_conntrack_max use init_net.nf_conntrack_max too internally,
+> so in the init_net both sysctls remain the same.
 
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+The nf_conntrack_max global variable is a system calculated
+value and should not be removed.
+nf_conntrack_max = max_factor * nf_conntrack_htable_size;
 
-On Thu, 10 Apr 2025 12:36:46 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> Given a set element like:
-> 
-> 	icmpv6 . dead:beef:00ff::1
-> 
-> The value of 'ff' is irrelevant, any address will be matched
-> as long as the other octets are the same.
-> 
-> [...]
+> When a new conntrack is allocated, then:
+>
+> If the limit in the init_net is lower than the netns, then
+> that limit applies, so it provides upper cap.
+>
+> If the limit in the init_net is higher, the lower pernet limit
+> is applied.
+>
+> If the init_net has 0 setting, no limit is applied.
 
-Here is the summary with links:
-  - [net,1/2] nft_set_pipapo: fix incorrect avx2 match of 5th field octet
-    https://git.kernel.org/netdev/net/c/e042ed950d4e
-  - [net,2/2] selftests: netfilter: add test case for recent mismatch bug
-    https://git.kernel.org/netdev/net/c/27eb86e22f10
+If the init_net has 0 setting, it should depend on the
+limit of other netns.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+The netns Limit Behavior:
++------------------------+--------------------+-----------------------+
+| init_net.ct.sysctl_max | net->ct.sysctl_max | netns Limit Behavior  |
++------------------------+--------------------+-----------------------+
+| 0                      | 0                  | No limit              |
++------------------------+--------------------+-----------------------+
+| 0                      | Non-zero           | net->ct.sysctl_max    |
++------------------------+--------------------+-----------------------+
+| Non-zero               | 0                  | init_net.ct.sysctl_max|
++------------------------+--------------------+-----------------------+
+| Non-zero               | Non-zero           | min                   |
++------------------------+--------------------+-----------------------+
 
+net_ct_sysctl_max = likely(a && b) ? min(a, b) : max(a, b);
+or
+net_ct_sysctl_max = unlikely(a == 0 || b == 0) ? max(a, b) : min(a, b);
+
+if (net_ct_sysctl_max && unlikely(ct_count > net_ct_sysctl_max)) { ...
 
