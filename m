@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B783277016;
-	Thu, 10 Apr 2025 10:36:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B26FF2673B7;
+	Thu, 10 Apr 2025 10:36:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744281418; cv=none; b=h7YE/YFi2BDpCJyJrXvwo+aF+MepzHhR9192TA8HXBBouS3AKbUzoABp9lSlsjbM2/n9H/+KSLAbk/IKgQOLx5m5YEBD4YAblaw8ecrv74APmVFdY4mS0lsW/HjzoHmbLHSTljgfcFsKBgjlFdlYR03u+NmMLWyFor16tJLq1Ss=
+	t=1744281419; cv=none; b=XpxCDK06K6Up5eapHDJW9dbjMJl+6JbBF0OBlgtqsXiPUgiszzMEDkp2XiKPq2yEmXLVPGcMNMYI/QyN9LGINLZZVcRbb7EgF8DcWI+d8DVWzfu1IT66ePODhX7dHc4Xif2TUOqfTTM6SVVyAnm6mV5G+jzpNQtVCmZ9C7QEYVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744281418; c=relaxed/simple;
-	bh=ExCyK2fBqq/zLToa5rN3ial/lijiBIUoOVrGqdEyJFY=;
+	s=arc-20240116; t=1744281419; c=relaxed/simple;
+	bh=A5x2Lni6MiA4kqStl42vT0HC7NupGO7M0BBzEbokItM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=NMwTMcpNi6FRxv7lgO2kCwTfpSsSs+Yvm4OjdiDoFevu10DyjEAECy2K7SkHeuHzBKcjGQ7+LzqgJAAg8DkNlLF7rfKNsvYY20sYwQ1pAVjxK7L8gWHZ4ApWS4TdL7H5yz6H88O28PLjY5N+ScewFw/LMn6u0RKgjgD91w3ZP4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=O3Hww9n6; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GXq3ApXC; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=sZMikmY/erwl61P+4KzPSiEe/88uyq+EjcVdSQwPgbCtlaGnIdLRC3njtquZe1OBoeMO/flf5vlIEQozelJ1pl4dp8SE4jsWmmV8WC0jzSz1OjqnhwiFTzFnHa01th+pOL6BjIEgEx50hxtMgJXv+NaDBdSrrXVnlfUtE982NCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fPjOzkYV; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=U+MkvXF/; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="O3Hww9n6";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GXq3ApXC"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fPjOzkYV";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="U+MkvXF/"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id C4B77606BC; Thu, 10 Apr 2025 12:36:53 +0200 (CEST)
+	id 2F436606BA; Thu, 10 Apr 2025 12:36:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744281413;
-	bh=KXwrG12LCSU/qTyJBT24T9O+fpohmUtgKUoqFWR1LjM=;
+	s=2025; t=1744281415;
+	bh=9a3rtdGbc9VzUJM9n8G8ZvoAHHLZvqAo0jjONxdIEdU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=O3Hww9n62F3ST8/CI2blVn/7Flh/HJoc7V7d6FAzdJ0ZM4OsnBneVryHpwvlKmwxF
-	 S2589FcNc+vT2XrwrbROEELr+ASpWP4WrlmVcmNpsfrztl9Gqc7DdweyTl1aG02eqm
-	 YtbjDeb2kO9eDVU0+lZx+vW0r4t51O0aIFiUAkJJjvbyjeUPabQ3yfjLqdqK+9BEWO
-	 cuIV68xuDA+Vjtfsgr7cteXyBpuPylXZKGwPB8cAejKevNvptKahOpg/7Cr0FLxemk
-	 0dCNx/tSGhGBrzRGTs8rNCca1k+6e+Pje6FiPpfkFDrvLQXJ3HMy6T97IYbB0Hr6Te
-	 O3VY4B1n8rtZA==
+	b=fPjOzkYVmB6SuyIGnexuxznGGap/RCozNu1pqIpl3kD4s8A7hKGudycbdqRbN1ms9
+	 tfP/4F4USnL1Mv7vWwm22RxYhwUVXFl15E0RiVtgnkJ73eIBOyIWgJzG94iPZytB+Z
+	 6lR9pJG1aFjGOEoXi03TfwFVKis8VHBnk86D/pSkIHuO7GocceRO7CqlEXHLX6rVC/
+	 vMf4qzWuhMDm1Puvt0CydIR3wnwJ84JmztDORPrSmODFE/Tmbv+2dNLlZZjfavUkVZ
+	 fhLhT5SHmC64B8M43xusN3ktWtWcT0UZHYN0ryXN/hAvabKTIVILIJ2VnEMLWAxtzp
+	 5z9VjCW+3KF7g==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1C07E606AC;
-	Thu, 10 Apr 2025 12:36:52 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4072C606AC;
+	Thu, 10 Apr 2025 12:36:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744281412;
-	bh=KXwrG12LCSU/qTyJBT24T9O+fpohmUtgKUoqFWR1LjM=;
+	s=2025; t=1744281414;
+	bh=9a3rtdGbc9VzUJM9n8G8ZvoAHHLZvqAo0jjONxdIEdU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GXq3ApXCl0GOMiKDf0DK+1TEQ063NuGgBzh/jnvG1ofC4zML7OPHl6yV/qWUL4oXg
-	 wUSqnUZLAufeX5eanGlKNpME7/tw0dvs+iCldwzXc6he7nhQkDruE+yeymVBXdFMs4
-	 hqqotXqd5iK3vZVuKx9M2iYXk36gnuu2irnu43Dq8p+KC8H9oz0nq0wxALPkCmKuC1
-	 yqv1gMr+pD6EkkIzg9/cU9RtsP+QGkUidqlZ2y5DMpujSX1Jw78AbqQSbiId+xx6s7
-	 Kt9C7yYD/GvkLZlrrC6p5zyO3fKTE/2bE0E173J+rEfMU8yZff3LfgsYGfS3P5EYWx
-	 us2cx7w09Xknw==
+	b=U+MkvXF/N6z+BPW5xZ1fE4we//j0VCGV2xIwcWDIT4hDewbT//g9UeYWq80yE7JTp
+	 ga/MZ2/BfURNecFQoVHNaDIcEC/EQVFdUyn/KyEE+aWhQ4mRnXruSx698NhQkLFb/0
+	 /5qdpyUDp4JOc1993Gxe8hVa7GEvb0nTLvPokXGYOX/mx3RkjO1bYyIXo4ADSucuNW
+	 CjN+zOu8Wn9wgTMT2jT26tJfUGoKS7ozEyyUcWVTmXCFyV19YoO+5hFynkRHB7irQh
+	 OpPr9UvFXJYcGT+IlcZa+yQvgr2/6yWMHk5Rrj1YSx4tHX1B/omvA1oMa0hPy/5ynP
+	 GZVGKEgRGPDKQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 1/2] nft_set_pipapo: fix incorrect avx2 match of 5th field octet
-Date: Thu, 10 Apr 2025 12:36:46 +0200
-Message-Id: <20250410103647.1030244-2-pablo@netfilter.org>
+Subject: [PATCH net 2/2] selftests: netfilter: add test case for recent mismatch bug
+Date: Thu, 10 Apr 2025 12:36:47 +0200
+Message-Id: <20250410103647.1030244-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250410103647.1030244-1-pablo@netfilter.org>
 References: <20250410103647.1030244-1-pablo@netfilter.org>
@@ -68,46 +68,90 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-Given a set element like:
+Without 'nft_set_pipapo: fix incorrect avx2 match of 5th field octet"
+this fails:
 
-	icmpv6 . dead:beef:00ff::1
+TEST: reported issues
+  Add two elements, flush, re-add    1s  [ OK ]
+  net,mac with reload                0s  [ OK ]
+  net,port,proto                     3s  [ OK ]
+  avx2 false match                   0s  [FAIL]
+False match for fe80:dead:01fe:0a02:0b03:6007:8009:a001
 
-The value of 'ff' is irrelevant, any address will be matched
-as long as the other octets are the same.
+Other tests do not detect the kernel bug as they only alter parts in
+the /64 netmask.
 
-This is because of too-early register clobbering:
-ymm7 is reloaded with new packet data (pkt[9])  but it still holds data
-of an earlier load that wasn't processed yet.
-
-The existing tests in nft_concat_range.sh selftests do exercise this code
-path, but do not trigger incorrect matching due to the network prefix
-limitation.
-
-Fixes: 7400b063969b ("nft_set_pipapo: Introduce AVX2-based lookup implementation")
-Reported-by: sontu mazumdar <sontu21@gmail.com>
-Closes: https://lore.kernel.org/netfilter/CANgxkqwnMH7fXra+VUfODT-8+qFLgskq3set1cAzqqJaV4iEZg@mail.gmail.com/T/#t
 Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo_avx2.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ .../net/netfilter/nft_concat_range.sh         | 39 ++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index b8d3c3213efe..c15db28c5ebc 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -994,8 +994,9 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
- 		NFT_PIPAPO_AVX2_BUCKET_LOAD8(5, lt,  8,  pkt[8], bsize);
+diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+index 47088b005390..1f5979c1510c 100755
+--- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+@@ -27,7 +27,7 @@ TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
+        net6_port_net6_port net_port_mac_proto_net"
  
- 		NFT_PIPAPO_AVX2_AND(6, 2, 3);
-+		NFT_PIPAPO_AVX2_AND(3, 4, 7);
- 		NFT_PIPAPO_AVX2_BUCKET_LOAD8(7, lt,  9,  pkt[9], bsize);
--		NFT_PIPAPO_AVX2_AND(0, 4, 5);
-+		NFT_PIPAPO_AVX2_AND(0, 3, 5);
- 		NFT_PIPAPO_AVX2_BUCKET_LOAD8(1, lt, 10, pkt[10], bsize);
- 		NFT_PIPAPO_AVX2_AND(2, 6, 7);
- 		NFT_PIPAPO_AVX2_BUCKET_LOAD8(3, lt, 11, pkt[11], bsize);
+ # Reported bugs, also described by TYPE_ variables below
+-BUGS="flush_remove_add reload net_port_proto_match"
++BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch"
+ 
+ # List of possible paths to pktgen script from kernel tree for performance tests
+ PKTGEN_SCRIPT_PATHS="
+@@ -387,6 +387,25 @@ race_repeat	0
+ 
+ perf_duration	0
+ "
++
++TYPE_avx2_mismatch="
++display		avx2 false match
++type_spec	inet_proto . ipv6_addr
++chain_spec	meta l4proto . ip6 daddr
++dst		proto addr6
++src
++start		1
++count		1
++src_delta	1
++tools		ping
++proto		icmp6
++
++race_repeat	0
++
++perf_duration	0
++"
++
++
+ # Set template for all tests, types and rules are filled in depending on test
+ set_template='
+ flush ruleset
+@@ -1629,6 +1648,24 @@ test_bug_net_port_proto_match() {
+ 	nft flush ruleset
+ }
+ 
++test_bug_avx2_mismatch()
++{
++	setup veth send_"${proto}" set || return ${ksft_skip}
++
++	local a1="fe80:dead:01ff:0a02:0b03:6007:8009:a001"
++	local a2="fe80:dead:01fe:0a02:0b03:6007:8009:a001"
++
++	nft "add element inet filter test { icmpv6 . $a1 }"
++
++	dst_addr6="$a2"
++	send_icmp6
++
++	if [ "$(count_packets)" -gt "0" ]; then
++		err "False match for $a2"
++		return 1
++	fi
++}
++
+ test_reported_issues() {
+ 	eval test_bug_"${subtest}"
+ }
 -- 
 2.30.2
 
