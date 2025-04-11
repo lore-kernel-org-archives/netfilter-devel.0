@@ -1,31 +1,45 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82740278E44
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Apr 2025 10:12:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4DEA278E7C;
+	Fri, 11 Apr 2025 10:23:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744366364; cv=none; b=OwIHAgRal2qHFQ5PON91LqqA5tAUhjgEfiV2MKcQF6W3IX0nGik057CPiDUbJfojRVGPLtzcv9MyOtq5CCWOS30AWNhw3EEd+xgGw4yfCah5X6gX+SavFKLpT/9Coac3j8NFT2Fqi19bo0PwjnwFSOIQKbHUckiIglUwlsil/tA=
+	t=1744366993; cv=none; b=bMeWbvRoQqitay5Fq+xMdOvIi/wRbu0pRPgcqgxU0ZD7RjHlmY+07awfiOfOqHx5Pf6CqzuIHjhLf6kF/Jtsa1QO9mAC+/MrdUvaduBjI16mFHz8sQ9Hl8eJvy3cN+jCdAGUurp2wZa2A2TSMMDN/hwtgO0hD3wY+qnGmFJa3bk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744366364; c=relaxed/simple;
-	bh=uUSx2kppVumYDYj2KM7k7jWxGiBaSXFLFHOaJocSYtA=;
+	s=arc-20240116; t=1744366993; c=relaxed/simple;
+	bh=Atz93oKz2UiAG36ViypesYktnrowE+YmNw7wI/Xmg2o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=trHHqpx+HAEEZCkpGGNmefkCA/zclkfPWskNa39ihtwUvjbxcWDIhGEICGc/sZxm3dmDYMsTBkCLbD4+VKtE+RZo0pW2GFTg+39n85sjrja12F05hoEsV+QH4oqrcA+Pf4PBI9yOHgxMGNPqwgsJLVIZVjuAaiaDeboWA4Ex3pU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1u3BNI-0007C2-3P; Fri, 11 Apr 2025 12:12:40 +0200
-Date: Fri, 11 Apr 2025 12:12:40 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Braden Bassingthwaite <bbassingthwaite@digitalocean.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	ncardwell@google.com, maximmi@nvidia.com
-Subject: Re: SYNPROXY affecting initial BBR throughput
-Message-ID: <20250411101240.GB26507@breakpoint.cc>
-References: <CAFejGzLnjCKfhx2FnjWnnCnO1x1nH1mKnia41a_7OtrqbFbRLg@mail.gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=H6aJV0933KOmuu6QV+/T1ii+E/V5KVybWb7S2qnWsZbURQd45wTprYjQEkrXR1SYuE0DCb2Vp5tNr2BhIi09IiLedpO4MX0nwuUPpWupuerA7QnK+b2+obLEh9b+J9NKCDBXkAttEnRLB6T+qLLhY9nUGU6nB9sioDK8nqfZMgM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B5POn7xQ; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B5POn7xQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48056C4CEE2;
+	Fri, 11 Apr 2025 10:23:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744366993;
+	bh=Atz93oKz2UiAG36ViypesYktnrowE+YmNw7wI/Xmg2o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=B5POn7xQhMlH+mXmOEgnmOxYGScuLqft0/JihGI2g3FwOtNOPzVI6Xspc5khE+owS
+	 Xky8QMJZp52FQq6aJ3oFsgXbDFEjaZS+F8byf4ncgkgvIT/kR5YhGWUt6Pc0HQBvSn
+	 uykJyOf1i3gMA6v12d3qaDYZtZmK+azFPTBpWgf73yi3WQ5kvqewP1iXdzIgdusHJs
+	 z0KyowxVHhgZ5QDncv3ZGggo3+cCtVMLyq4hcCVOWwyj7L37B0NXci6bhm4OWIwDy7
+	 s3vuPD205IpEg/WD1GR6mbRTKHVuqrNF6Y7OSVqF+lmL4yzPlV15fNLqc0cvwNZ4ho
+	 bspNVgyR8qdFw==
+Date: Fri, 11 Apr 2025 11:23:08 +0100
+From: Simon Horman <horms@kernel.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH v2 nf-next 2/3] netfilter: nf_flow_table_core: teardown
+ direct xmit when destination changed
+Message-ID: <20250411102308.GX395307@horms.kernel.org>
+References: <20250408142848.96281-1-ericwouds@gmail.com>
+ <20250408142848.96281-3-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,38 +48,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAFejGzLnjCKfhx2FnjWnnCnO1x1nH1mKnia41a_7OtrqbFbRLg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <20250408142848.96281-3-ericwouds@gmail.com>
 
-Braden Bassingthwaite <bbassingthwaite@digitalocean.com> wrote:
-> I am using SYNPROXY with XDP and have discovered an issue with the current
-> SYNPROXY implementation. When used in conjunction with BBR (TCP Congestion
-> Control), connections over WANs have drastically reduced bandwidth (< 1
-> Mbps) for the first 10s of a connection, and will accelerate to their
-> expected bandwidth of ~ 500 Mbps.
+On Tue, Apr 08, 2025 at 04:28:47PM +0200, Eric Woudstra wrote:
+> In case of a bridge in the forward-fastpath or bridge-fastpath the fdb is
+> used to create the tuple. In case of roaming at layer 2 level, for example
+> 802.11r, the destination device is changed in the fdb. The destination
+> device of a direct transmitting tuple is no longer valid and traffic is
+> send to the wrong destination. Also the hardware offloaded fastpath is not
+> valid anymore.
 > 
-> I believe this is because SYNPROXY will internally send a SYN and SYN/ACK
-> after the 3HS is completed. This causes the initial RTT of the connection
-> to be artificially low < 50 microseconds when it should be > 100ms in our
-> experiments.
+> In case of roaming, a switchdev notification is send to delete the old fdb
+> entry. Upon receiving this notification, mark all direct transmitting flows
+> with the same ifindex, vid and hardware address as the fdb entry to be
+> teared down. The hardware offloaded fastpath is still in effect, so
+> minimize the delay of the work queue by setting the delay to zero.
 > 
-> BBR uses a RTT sliding window of 10s and during that window, it will
-> leverage the minRTT. For our WAN connections, the artificially low RTT
-> affects the window size and drastically reduces the available bandwidth for
-> that period for these connections.
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+> ---
+>  net/netfilter/nf_flow_table_core.c | 65 ++++++++++++++++++++++++++++++
+>  1 file changed, 65 insertions(+)
 > 
-> Ideally SYNPROXY would somehow signal to the TCP stack that it should
-> ignore this SYN->SYN/ACK RTT since it's not a valid measurement, and would
-> rely on subsequent RTTs.
+> diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
 
-SYNPROXY is designed as a middlebox, both sender and responder are
-considered to be on a different physical host, so its not possible to
-signal that initial rtt measurment should be discarded.
+...
 
-If you are already using BPF, did you consider
-https://lore.kernel.org/all/20240115205514.68364-1-kuniyu@amazon.com/
+> +struct notifier_block nf_flow_table_switchdev_nb __read_mostly = {
+> +	.notifier_call = nf_flow_table_switchdev_event,
+> +};
 
-instead of SYNPROXY?
+Hi Eric,
 
-(or just use normal tcp stacks syncookie mode, i don't see why you
- have to do upfront xdp cookies if its all on the same host ...).
+A minor nit from my side:
+
+nf_flow_table_switchdev_nb seems only be used in this file and if so it
+should be static.
+
+Flagged by Sparse.
+
+> +
+>  void nf_flow_table_free(struct nf_flowtable *flow_table)
+>  {
+>  	mutex_lock(&flowtable_lock);
+> @@ -816,6 +874,10 @@ static int __init nf_flow_table_module_init(void)
+>  	if (ret)
+>  		goto out_offload;
+>  
+> +	ret = register_switchdev_notifier(&nf_flow_table_switchdev_nb);
+> +	if (ret < 0)
+> +		goto out_sw_noti;
+> +
+>  	ret = nf_flow_register_bpf();
+>  	if (ret)
+>  		goto out_bpf;
+> @@ -823,6 +885,8 @@ static int __init nf_flow_table_module_init(void)
+>  	return 0;
+>  
+>  out_bpf:
+> +	unregister_switchdev_notifier(&nf_flow_table_switchdev_nb);
+> +out_sw_noti:
+>  	nf_flow_table_offload_exit();
+>  out_offload:
+>  	unregister_pernet_subsys(&nf_flow_table_net_ops);
+> @@ -831,6 +895,7 @@ static int __init nf_flow_table_module_init(void)
+>  
+>  static void __exit nf_flow_table_module_exit(void)
+>  {
+> +	unregister_switchdev_notifier(&nf_flow_table_switchdev_nb);
+>  	nf_flow_table_offload_exit();
+>  	unregister_pernet_subsys(&nf_flow_table_net_ops);
+>  }
+> -- 
+> 2.47.1
+> 
