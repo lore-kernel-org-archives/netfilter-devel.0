@@ -1,34 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0B241E5B72
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Apr 2025 09:48:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82740278E44
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Apr 2025 10:12:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744364905; cv=none; b=PL/6CUKjmU7p3ZBvskBI6mh6Bv+dN9t+wPq6F/Ol7HGLWxerkwjhZu+W7UwTb/z/kr6ih4vjLlxHxxuH5pJmEdNEqzPhIkcct98+Vra46ZoSvg2J6LptisDlFa34s7T9herMAM42SGILZawl+Y3Og8LunUOiAQqAjP1mvitk57s=
+	t=1744366364; cv=none; b=OwIHAgRal2qHFQ5PON91LqqA5tAUhjgEfiV2MKcQF6W3IX0nGik057CPiDUbJfojRVGPLtzcv9MyOtq5CCWOS30AWNhw3EEd+xgGw4yfCah5X6gX+SavFKLpT/9Coac3j8NFT2Fqi19bo0PwjnwFSOIQKbHUckiIglUwlsil/tA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744364905; c=relaxed/simple;
-	bh=qsid6nVAdnjaDGaLfY9jibdVuBAKgKkCfMQAoayQVTg=;
+	s=arc-20240116; t=1744366364; c=relaxed/simple;
+	bh=uUSx2kppVumYDYj2KM7k7jWxGiBaSXFLFHOaJocSYtA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RTuxLYEpnBQyHqQnnM3jVEnoJ9qT9B6ugZ7hnp6qDOS4q6AyQaSjRWrPMPq8zh8vSvta1ZXsfdKmRyi2bgPrVJ/9WkOt+7S7/x5hCaS5rA3xEfk8yDlauSNY9FwNlUI3THC1iP9Fs3dzLwYmrmzx6ndW7AsfbY7qyzhdmcnGb2U=
+	 Content-Type:Content-Disposition:In-Reply-To; b=trHHqpx+HAEEZCkpGGNmefkCA/zclkfPWskNa39ihtwUvjbxcWDIhGEICGc/sZxm3dmDYMsTBkCLbD4+VKtE+RZo0pW2GFTg+39n85sjrja12F05hoEsV+QH4oqrcA+Pf4PBI9yOHgxMGNPqwgsJLVIZVjuAaiaDeboWA4Ex3pU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@strlen.de>)
-	id 1u3Azk-0006su-L2; Fri, 11 Apr 2025 11:48:20 +0200
-Date: Fri, 11 Apr 2025 11:48:20 +0200
+	id 1u3BNI-0007C2-3P; Fri, 11 Apr 2025 12:12:40 +0200
+Date: Fri, 11 Apr 2025 12:12:40 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/2] evaluate: restrict allowed subtypes of
- concatenations
-Message-ID: <20250411094820.GA26374@breakpoint.cc>
-References: <20250402145045.4637-1-fw@strlen.de>
- <20250402145045.4637-2-fw@strlen.de>
- <Z_hLLgRswOjXUKMa@calendula>
- <20250411055201.GA17742@breakpoint.cc>
- <Z_jkfafmlGedPQ-H@calendula>
+To: Braden Bassingthwaite <bbassingthwaite@digitalocean.com>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	ncardwell@google.com, maximmi@nvidia.com
+Subject: Re: SYNPROXY affecting initial BBR throughput
+Message-ID: <20250411101240.GB26507@breakpoint.cc>
+References: <CAFejGzLnjCKfhx2FnjWnnCnO1x1nH1mKnia41a_7OtrqbFbRLg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,47 +34,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Z_jkfafmlGedPQ-H@calendula>
+In-Reply-To: <CAFejGzLnjCKfhx2FnjWnnCnO1x1nH1mKnia41a_7OtrqbFbRLg@mail.gmail.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I am in the need for such a context for payload/meta statements.
+Braden Bassingthwaite <bbassingthwaite@digitalocean.com> wrote:
+> I am using SYNPROXY with XDP and have discovered an issue with the current
+> SYNPROXY implementation. When used in conjunction with BBR (TCP Congestion
+> Control), connections over WANs have drastically reduced bandwidth (< 1
+> Mbps) for the first 10s of a connection, and will accelerate to their
+> expected bandwidth of ~ 500 Mbps.
 > 
->         meta mark set ip dscp map ...
->                       ^^^^^^^
+> I believe this is because SYNPROXY will internally send a SYN and SYN/ACK
+> after the 3HS is completed. This causes the initial RTT of the connection
+> to be artificially low < 50 microseconds when it should be > 100ms in our
+> experiments.
 > 
-> in this case, ip dscp needs to be evaluated as a key for lookups,
-> shift can probably be removed for implicit maps.
+> BBR uses a RTT sliding window of 10s and during that window, it will
+> leverage the minRTT. For our WAN connections, the artificially low RTT
+> affects the window size and drastically reduces the available bandwidth for
+> that period for these connections.
 > 
-> While in this case:
-> 
->         meta mark set ip dscp
->                       ^^^^^^^
-> 
-> in this case, ip dscp needs the shift.
-> 
-> Then, there is:
-> 
->         ip dscp set meta mark
->         ^^^^^^^
-> 
-> (note: this is not yet supported)
-> 
-> where ip dscp needs to expand to 16-bit because of the kernel
-> checksum routine requirements.
-> 
-> They are all payload expressions, but evaluation needs to be slightly
-> different depending on how the expression is used.
-> 
-> This context should help disentangle evaluation, evaluation is making
-> assumption based on subtle hints, I think there is a need for more
-> explicit hints.
+> Ideally SYNPROXY would somehow signal to the TCP stack that it should
+> ignore this SYN->SYN/ACK RTT since it's not a valid measurement, and would
+> rely on subsequent RTTs.
 
-Agreed.
+SYNPROXY is designed as a middlebox, both sender and responder are
+considered to be on a different physical host, so its not possible to
+signal that initial rtt measurment should be discarded.
 
-> We can revisit in a few weeks, otherwise take this.
+If you are already using BPF, did you consider
+https://lore.kernel.org/all/20240115205514.68364-1-kuniyu@amazon.com/
 
-OK, lets keep this back for now; technically I don't need
-to know the recursion depth, I need to know the placement
-(lhs / lookup key resp. rhs / element key) to figure out what
-restrictions apply.
+instead of SYNPROXY?
+
+(or just use normal tcp stacks syncookie mode, i don't see why you
+ have to do upfront xdp cookies if its all on the same host ...).
