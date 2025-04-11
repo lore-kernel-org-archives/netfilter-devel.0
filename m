@@ -1,70 +1,125 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3A0AA279342;
-	Fri, 11 Apr 2025 04:10:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B206927D765
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Apr 2025 05:52:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744344615; cv=none; b=pDzf8y4sDcbXOD5ZcaGO1fQ1jbjc9IGytiozCwA1uF5cT0oF0Wke8q7xkAZoBU0jfRt88qnTj4iDJ/aNOUmizJ8szA0H/B1bk6lkYtbHD1/f2dFQEyhoWu5wO8fEGCan73v7okbndbcxsswZWAwiwWSmdnrp3T7BuRxiM+m7qHQ=
+	t=1744350727; cv=none; b=rstxj+5JiWcIAoCs3/zypHB/is0dxLoN57dVQYKV9qhDE7zUqsiKudGzkqXz+Wwv9jtrdSk2Xzv0TupbJW9e4DdzQRJjsy7CT5VtgTGKXqFhwK7h/0JKQIUg4EOVwCimop+SlID9HHKBdBnGk5+ckMXCr8Vc5zIBqaLfgzxs2V8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744344615; c=relaxed/simple;
-	bh=orXBmWlZ1fH8MEXCRUQQCdOBQD0uXtGGwxXUdYizSlE=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=VMhqwuZh5BEuQmuITnLGqdbKDqgT8r5cVCDseylpc6JHgiWrzT2f55U2D6UxjMa27pSmIzmfcrn/7FfquwEVfQZbajCpCZyxu7BA5aZDNYn3NENa0KUZCDX9frB9/gMeSK5l/6cz6QKHlYRursFKdwpYGGovc5BdgHa6cVXRuIg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=AdUP8zbl; arc=none smtp.client-ip=220.197.31.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="AdUP8zbl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=orXBm
-	WlZ1fH8MEXCRUQQCdOBQD0uXtGGwxXUdYizSlE=; b=AdUP8zbl4zCWA6q9vfwrm
-	JTvtUzZA3crHApBWMUFPai/dn8RKSDFi2ZxSyd14ln6vmzBqBxAfVF9lQAIBtcwz
-	BCrqhkjMo90ew1oorNGqs+FEwqVz41CZohAfPTXboEQLaB8gKN683XX8Kam1yET2
-	2bfZCwH+Py+JaOu1XcokgU=
-Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g0-4 (Coremail) with SMTP id _____wC39kzklfhnwaejFg--.48165S4;
-	Fri, 11 Apr 2025 12:09:09 +0800 (CST)
-From: lvxiafei <xiafei_xupt@163.com>
-To: fw@strlen.de
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	horms@kernel.org,
-	kadlec@netfilter.org,
-	kuba@kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	xiafei_xupt@163.com
-Subject: Re: [PATCH V3] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
-Date: Fri, 11 Apr 2025 12:09:07 +0800
-Message-Id: <20250411040907.87007-1-xiafei_xupt@163.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20250410141655.GA20644@breakpoint.cc>
-References: <20250410141655.GA20644@breakpoint.cc>
+	s=arc-20240116; t=1744350727; c=relaxed/simple;
+	bh=3u370K3jFNpH4RvhYVYh48wyh6zIeximhyr6iOacyo8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fzZ9GAIGDma0/BkxAdCHz4him7pxzhQEwVBMthCPcc6VmivcUcp1/+/VHMsIArF8FKV9xGz9o448Boaiel3KNHnX8EMoOomXLrGSwkXzABmdf/Nl1/eCqe5LFVoNeqwu84NaFLPMQ+l1iyJkv6aRQLDC6uQY0WCl1N4E542OnHQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1u37J3-0004h2-DK; Fri, 11 Apr 2025 07:52:01 +0200
+Date: Fri, 11 Apr 2025 07:52:01 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 2/2] evaluate: restrict allowed subtypes of
+ concatenations
+Message-ID: <20250411055201.GA17742@breakpoint.cc>
+References: <20250402145045.4637-1-fw@strlen.de>
+ <20250402145045.4637-2-fw@strlen.de>
+ <Z_hLLgRswOjXUKMa@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wC39kzklfhnwaejFg--.48165S4
-X-Coremail-Antispam: 1Uf129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
-	VFW2AGmfu7bjvjm3AaLaJ3UbIYCTnIWIevJa73UjIFyTuYvjTRRpBfUUUUU
-X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/1tbiKBgsU2f4kzRVGwAAs5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <Z_hLLgRswOjXUKMa@calendula>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Florian Westphal <fw@strlen.de> wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > diff --git a/src/evaluate.c b/src/evaluate.c
+> > index d099be137cb3..0c8af09492d1 100644
+> > --- a/src/evaluate.c
+> > +++ b/src/evaluate.c
+> [...]
+> > @@ -1704,10 +1706,48 @@ static int expr_evaluate_concat(struct eval_ctx=
+ *ctx, struct expr **expr)
+> >  		if (list_member_evaluate(ctx, &i) < 0)
+> >  			return -1;
+> > =20
+> > -		if (i->etype =3D=3D EXPR_SET)
+> > +		switch (i->etype) {
+> > +		case EXPR_VALUE:
+> > +		case EXPR_UNARY:
+> > +		case EXPR_BINOP:
+> > +		case EXPR_RELATIONAL:
+> > +		case EXPR_CONCAT:
+> > +		case EXPR_MAP:
+> > +		case EXPR_PAYLOAD:
+> > +		case EXPR_EXTHDR:
+> > +		case EXPR_META:
+> > +		case EXPR_RT:
+> > +		case EXPR_CT:
+> > +		case EXPR_SET_ELEM:
+> > +		case EXPR_NUMGEN:
+> > +		case EXPR_HASH:
+> > +		case EXPR_FIB:
+> > +		case EXPR_SOCKET:
+> > +		case EXPR_OSF:
+> > +		case EXPR_XFRM:
+>=20
+> I am expecting more new selector expressions here that would need to
+> be added and I think it is less likely to see new constant expressions
+> in the future, so maybe reverse this logic ...
+>=20
+> 		if (i->etype =3D=3D EXPR_RANGE ||
+>                     i->etype =3D=3D EXPR_PREFIX) {
+> 			/* allowed on RHS (e.g. th dport . mark { 1-65535 . 42 }
+> 			 *                                       ~~~~~~~~ allowed
+> 			 * but not on LHS (e.g  1-4 . mark { ...}
+> 			 *                      ~~~ illegal
+>                         ...
+>=20
+> ... and let anything else be accepted?
 
-> > You can make an initial patch that replaces all occurences of
-> > nf_conntrack_max with cnet->sysctl_conntrack_max
->
-> Something like this:
-> ...
+I prefer "accept whats safe and reject rest" but I can invert
+if you want.
 
-Agreed, I can submit the changes later.
-First of all, a patch should do one thing clearly,
-which is convenient for maintainers to review.
+> > +			 * EXPR_SET_ELEM (is used as RHS).
+> > +			 */
+> > +			if (ctx->recursion.list > 0)
+> > +				break;
+>=20
+> So recursion.list is used to provide context to identify this is rhs,
+> correct?
 
+Yes.
+
+> Is your intention is to use this recursion.list to control to
+> deeper recursions in a follow up patch?
+
+No, what did you have in mind?
+
+I could see adding new members to ctx->recursion to control other
+possible recursions in addition to what we have now.
+
+But I don't see other uses for .list at this time.
+
+> Not related, but if goal is to provide context then I also need more
+> explicit context hints for bitfield payload and bitwise expressions
+> where the evaluation needs to be different depending on where the
+> expression is located (not the same if the expression is either used
+> as selector or as lhs/rhs of assignment).
+>=20
+> I don't know yet how such new context enum to modify evaluation
+> behaviour will look, so we can just use recursion.list by now, I don't
+> want to block this fix.
+
+OK.  Yes, it would also work if there was some different "where am I"
+indicator, e.g. if (ctx->expr_side =3D=3D CTX_EXPR_LHS) or whatever.
+
+This fix isn't urgent, we can keep it back and come back to this
+if you prefer to first work on the ctx hint extensions.
