@@ -1,186 +1,115 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54D981D5ADE
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Apr 2025 22:50:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11B9B1DE2A8;
+	Fri, 11 Apr 2025 02:45:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744325433; cv=none; b=SCkwg3I4daqi2AnmZwH1IcdZoqT0wWER/DLDQ1F1w1IYcLfBLDZ/ox5RnzwCL+u2VdywI4o4Jf9n5WAHJewXEgbG3nYbGcUAu7Lwv4YWdF/zv/bZBlZeE3vgy78/SfzojB2dlTchKuPS02QwHv00swt6gh64cG2TzWcrThHiaXw=
+	t=1744339510; cv=none; b=cb5DYmdhtz1m8lAr+ee+rhAvQcBKFftHosT/LODbjygRKWVePcx4MEmpAIWs+DPnruMRX109J2HtLEP1pjQ1bBzbReICvFhmyddrLx74vEbrUbELaJw5ND+89lTqIDPzQc0O4zf4WCso7KHqsuPOBNzYqfOzSmCmA3SILOskwlE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744325433; c=relaxed/simple;
-	bh=ELWiOCvcUAEHxoMp56bMK5sIvYO/XcspqxYCaeKapas=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JP2r4YGaRr8Uon8zxnvKK+785CA3P594N7q508/7J8LDXh1WJh7Gm5HWLW2SNUHax/z6DKgF/sSX/A3YJJz8KodAMIL87K5l/gTDNZkZebRzccPwqQIUzwpO84T7lvaMxr7W313xw9b0DWySsOkMAMSF0MIkrmglJUtPNji8u3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KSGQQRqA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=H+bP2UPl; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KSGQQRqA";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="H+bP2UPl"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B359E60653; Fri, 11 Apr 2025 00:50:26 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744325426;
-	bh=DDGScoBYbNvjtC8KXC4oet1YOoPqIhnFMwYBO8/pbOI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KSGQQRqADN5w4mmARl5jBVNPADnDt1Zqc5tEFLXhjtkRM8DqBW4ycmlQ1PmWbHCXO
-	 cXsujMPCJyE9/k4XpogTQ1z/1AQIptBdiPWKeoSvINCfVvvcr7G9Env7Kh8fFeQtID
-	 t8xm6i3rJ179B39czIwvcZu5cx9a4Cv1w5i6zk/Y9Mo5q5pKwvJk3jVJyuAvF5ttLG
-	 64K4KXHTWni0Q78bGQFJom9FLuw5mNA7QdQPYG/6sBc+1tXbfuNBwmW9reyhx/3+Qv
-	 vXb3tF/xnMHpO5FChmY7282hW0X/7DVYOC67rpKGtnWAssznPDqbzRxE+AJ50oQ0KT
-	 FSlQ/ncuPfvqQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BDC0160643;
-	Fri, 11 Apr 2025 00:50:25 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744325425;
-	bh=DDGScoBYbNvjtC8KXC4oet1YOoPqIhnFMwYBO8/pbOI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=H+bP2UPluCaO0md4LTEP8kumqYNbfLj6XunbYKDQdCELIq2sm6zMiQYzWTA0Uqh82
-	 ctIUBlBypORPNkX2H3ivW4F10tEJbtnAlqdXyFrDlui+pxRdc3DJ7AWfFB2RYvP4MD
-	 430jzj1cKPq+oWrH61VmJcZZ1S6lES9dUhmwIFtabrVCz7CmOxommAk4GbKNJ+DkJy
-	 w5zXpPczdSUVyfbM+P6rcyjdbH2p/04viJTP6JB+G7sEM05lIUw8Q8GmaVf9MI2M8d
-	 U29+jYxb7aLHkr94MjLejZ0hpP2l5vrB5d/fo5gaUYUs8VqO7KdXyZhtqZxjUaDGET
-	 Ysj0oFIdKN77w==
-Date: Fri, 11 Apr 2025 00:50:22 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	s=arc-20240116; t=1744339510; c=relaxed/simple;
+	bh=UCa/jybotYpcnxVFXxMFtM0241fEygkIsjF25VUQSpo=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=KXLseFfWkEWu1vG8YwyQuTE/lfehy7lTwpiQOzXKKGttyEy7TdUZny0PJEDL8B/+i3u2SB1S2SXm9nxL6E76znm/LQrSNqbP3D5kfwwC5eRaBD+MjQ8x8l/gdAyWpVKLH8vp3IhPh/EnJk4uI3E4LmY7L4gf839HoeOf/RmMZ6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
+Received: from exch02.asrmicro.com (exch02.asrmicro.com [10.1.24.122])
+	by spam.asrmicro.com with ESMTPS id 53B2hkuN041767
+	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
+	Fri, 11 Apr 2025 10:43:46 +0800 (GMT-8)
+	(envelope-from huajianyang@asrmicro.com)
+Received: from exch03.asrmicro.com (10.1.24.118) by exch02.asrmicro.com
+ (10.1.24.122) with Microsoft SMTP Server (TLS) id 15.0.847.32; Fri, 11 Apr
+ 2025 10:43:47 +0800
+Received: from exch03.asrmicro.com ([::1]) by exch03.asrmicro.com ([::1]) with
+ mapi id 15.00.0847.030; Fri, 11 Apr 2025 10:43:36 +0800
+From: =?gb2312?B?WWFuZyBIdWFqaWFuo6jR7ruqvaGjqQ==?= <huajianyang@asrmicro.com>
 To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 2/2] evaluate: restrict allowed subtypes of
- concatenations
-Message-ID: <Z_hLLgRswOjXUKMa@calendula>
-References: <20250402145045.4637-1-fw@strlen.de>
- <20250402145045.4637-2-fw@strlen.de>
+CC: "pablo@netfilter.org" <pablo@netfilter.org>,
+        "kadlec@netfilter.org"
+	<kadlec@netfilter.org>,
+        "razor@blackwall.org" <razor@blackwall.org>,
+        "idosch@nvidia.com" <idosch@nvidia.com>,
+        "davem@davemloft.net"
+	<davem@davemloft.net>,
+        "dsahern@kernel.org" <dsahern@kernel.org>,
+        "edumazet@google.com" <edumazet@google.com>,
+        "kuba@kernel.org"
+	<kuba@kernel.org>,
+        "pabeni@redhat.com" <pabeni@redhat.com>,
+        "horms@kernel.org" <horms@kernel.org>,
+        "netfilter-devel@vger.kernel.org"
+	<netfilter-devel@vger.kernel.org>,
+        "coreteam@netfilter.org"
+	<coreteam@netfilter.org>,
+        "bridge@lists.linux.dev" <bridge@lists.linux.dev>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: =?gb2312?B?tPC4tDogW1BBVENIXSBuZXQ6IE1vdmUgc3BlY2lmaWMgZnJhZ21lbnRlZCBw?=
+ =?gb2312?Q?acket_to_slow=5Fpath_instead_of_dropping_it?=
+Thread-Topic: [PATCH] net: Move specific fragmented packet to slow_path
+ instead of dropping it
+Thread-Index: AQHbqe43btIvaVaBvESzU8w5bMigsLOcKc8AgAGQvBA=
+Date: Fri, 11 Apr 2025 02:43:35 +0000
+Message-ID: <717907fcffc7406191a71297fc07f6b3@exch03.asrmicro.com>
+References: <20250410075726.8599-1-huajianyang@asrmicro.com>
+ <20250410101824.GA6272@breakpoint.cc>
+In-Reply-To: <20250410101824.GA6272@breakpoint.cc>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250402145045.4637-2-fw@strlen.de>
+X-DNSRBL: 
+X-SPAM-SOURCE-CHECK: pass
+X-MAIL:spam.asrmicro.com 53B2hkuN041767
 
-Hi Florian,
-
-On Wed, Apr 02, 2025 at 04:50:40PM +0200, Florian Westphal wrote:
-> We need to restrict this, included bogon asserts with:
-> BUG: unknown expression type prefix
-> nft: src/netlink_linearize.c:940: netlink_gen_expr: Assertion `0' failed.
-> 
-> Prefix expressions are only allowed if the concatenation is used within
-> a set element, not when specifying the lookup key.
-> 
-> For the former, anything that represents a value is allowed.
-> For the latter, only what will generate data (fill a register) is
-> permitted.
-> 
-> Add a new list recursion counter for this. If its 0 then we're building
-> the lookup key, if its the latter the concatenation is the RHS part
-> of a relational expression and prefix, ranges and so on are allowed.
-[...]
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index d099be137cb3..0c8af09492d1 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-[...]
-> @@ -1704,10 +1706,48 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
->  		if (list_member_evaluate(ctx, &i) < 0)
->  			return -1;
->  
-> -		if (i->etype == EXPR_SET)
-> +		switch (i->etype) {
-> +		case EXPR_VALUE:
-> +		case EXPR_UNARY:
-> +		case EXPR_BINOP:
-> +		case EXPR_RELATIONAL:
-> +		case EXPR_CONCAT:
-> +		case EXPR_MAP:
-> +		case EXPR_PAYLOAD:
-> +		case EXPR_EXTHDR:
-> +		case EXPR_META:
-> +		case EXPR_RT:
-> +		case EXPR_CT:
-> +		case EXPR_SET_ELEM:
-> +		case EXPR_NUMGEN:
-> +		case EXPR_HASH:
-> +		case EXPR_FIB:
-> +		case EXPR_SOCKET:
-> +		case EXPR_OSF:
-> +		case EXPR_XFRM:
-
-I am expecting more new selector expressions here that would need to
-be added and I think it is less likely to see new constant expressions
-in the future, so maybe reverse this logic ...
-
-		if (i->etype == EXPR_RANGE ||
-                    i->etype == EXPR_PREFIX) {
-			/* allowed on RHS (e.g. th dport . mark { 1-65535 . 42 }
-			 *                                       ~~~~~~~~ allowed
-			 * but not on LHS (e.g  1-4 . mark { ...}
-			 *                      ~~~ illegal
-                        ...
-
-... and let anything else be accepted?
-
-> +			break;
-> +		case EXPR_RANGE:
-> +		case EXPR_PREFIX:
-> +			/* allowed on RHS (e.g. th dport . mark { 1-65535 . 42 }
-> +			 *                                       ~~~~~~~~ allowed
-> +			 * but not on LHS (e.g  1-4 . mark { ...}
-> +			 *                      ~~~ illegal
-> +			 *
-> +			 * recursion.list > 0 means that the concatenation is
-> +			 * part of another expression, such as EXPR_MAPPING or
-> +			 * EXPR_SET_ELEM (is used as RHS).
-> +			 */
-> +			if (ctx->recursion.list > 0)
-> +				break;
-
-So recursion.list is used to provide context to identify this is rhs,
-correct? Is your intention is to use this recursion.list to control to
-deeper recursions in a follow up patch?
-
-Not related, but if goal is to provide context then I also need more
-explicit context hints for bitfield payload and bitwise expressions
-where the evaluation needs to be different depending on where the
-expression is located (not the same if the expression is either used
-as selector or as lhs/rhs of assignment).
-
-I don't know yet how such new context enum to modify evaluation
-behaviour will look, so we can just use recursion.list by now, I don't
-want to block this fix.
-
-> +
-> +			return expr_error(ctx->msgs, i,
-> +					  "cannot use %s in concatenation",
-> +					  expr_name(i));
-> +		default:
->  			return expr_error(ctx->msgs, i,
->  					  "cannot use %s in concatenation",
->  					  expr_name(i));
-> +		}
->  
->  		if (!i->dtype)
->  			return expr_error(ctx->msgs, i,
-> diff --git a/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert b/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
-> new file mode 100644
-> index 000000000000..d7f8526092a5
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
-> @@ -0,0 +1,9 @@
-> +table t {
-> +	set sc {
-> +		type inet_service . ifname
-> +	}
-> +
-> +	chain c {
-> +		tcp dport . bla* @sc accept
-> +	}
-> +}
-> -- 
-> 2.49.0
-> 
-> 
+VGhhbmsgeW91IGZvciB5b3VyIHJlcGx5IQ0KDQpJbiBhbiBlYXJsaWVyIGVtYWlsIEkgd3JvdGU6
+DQoNCj4gU29tZSBuZXR3b3JrIGRldmljZXMgdGhhdCB3b3VsZCBub3QgYWJsZSB0byBwaW5nIGxh
+cmdlIHBhY2tldCB1bmRlciANCj4gYnJpZGdlLCBidXQgbGFyZ2UgcGFja2V0IHBpbmcgaXMgc3Vj
+Y2Vzc2Z1bCBpZiBub3QgZW5hYmxlIE5GX0NPTk5UUkFDS19CUklER0UuDQoNCklmIHRoZSBwaW5n
+IHRlc3Qgc3VjY2Vzc2VkIHdpdGhvdXQgTkZfQ09OTlRSQUNLX0JSSURHRSwgaXQgaXMgYmVjYXVz
+ZSB0aGUgbmV0ZGV2IGRvZXNuJ3QgbmVlZCBzdWNoIGEgbGFyZ2UgaGVhZHJvb20gaW4gYWN0dWFs
+IG5ldHdvcmsgZm9yd2FyZGluZy4NCg0KSWYgdGhlIG5ldGRldiByZWFseSBuZWVkIGl0LCB0aGUg
+b3JpZ2luYWwgYnJpZGdlIGZvcndhcmRpbmcgd2lsbCBmYWlsIHRvby4NCg0KTWF5YmUgd2UgbmVl
+ZCByZWNvbmZpZyBvdXIgd2lmaSBuZXRkZXYgb3Igc29tZXRoaW5nIGVsc2UuDQoNClNvIGlzIHRo
+ZSBuZl9icl9pcF9mcmFnbWVudCBkb25lIHRvIGJlIGNvbnNpc3RlbnQgd2l0aCB0aGUgb3JpZ2lu
+YWwgYnJpZGdlIGZvcndhcmRpbmc/DQoNClRoZXJlIGFyZSB0d28gdmVyeSBkaWZmZXJlbnQgaWRl
+YXMgaGVyZToNCg0KT25lIGlzIHRvIHRyeSB0byBtYWludGFpbiB0aGUgc2FtZSB0cmVhdG1lbnQg
+YXMgdGhlIG9yaWdpbmFsIGJyaWRnZSwgYXMgaXQgaXMgY3VycmVudGx5Lg0KDQpUaGUgb3RoZXIg
+aXMgdG8gdHJ5IHRvIGVuc3VyZSB0aGF0IHRoZSBwYWNrZXQgaXMgZm9yd2FyZGVkLg0KDQo+IEkg
+d291bGQgcHJlZmVyIHRvIGtlZXAgYmxhY2tob2xlIGxvZ2ljIGZvciB0aGUgbXR1IHRlc3RzLCBp
+LmUuDQo+ICBpZiAoZmlyc3RfbGVuIC0gaGxlbiA+IG10dSkNCj4gICAgICBnb3RvIGJsYWNraG9s
+ZTsNCg0KQW55d2F5LCB0aGlzIG1vZGlmaWNhdGlvbiBpcyBtb3JlIGFwcHJvcHJpYXRlLg0KDQpC
+ZWNhdXNlIEkgaGF2ZSB0ZXN0ZWQgYnkgY2hhbmdlIG10dSBqdXN0IG5vdywgZ290byBzbG93cGF0
+aCBjYW5ub3QgZm9yd2FyZCBpdCBlaXRoZXIuDQoNCg0KQmVzdCBSZWdhcmRzLA0KSHVhamlhbg0K
+DQotLS0tLdPKvP7Urbz+LS0tLS0NCreivP7IyzogRmxvcmlhbiBXZXN0cGhhbCBbbWFpbHRvOmZ3
+QHN0cmxlbi5kZV0gDQq3osvNyrG85DogMjAyNcTqNNTCMTDI1SAxODoxOA0KytW8/sjLOiBZYW5n
+IEh1YWppYW6jqNHuu6q9oaOpIDxodWFqaWFueWFuZ0Bhc3JtaWNyby5jb20+DQqzrcvNOiBwYWJs
+b0BuZXRmaWx0ZXIub3JnOyBmd0BzdHJsZW4uZGU7IGthZGxlY0BuZXRmaWx0ZXIub3JnOyByYXpv
+ckBibGFja3dhbGwub3JnOyBpZG9zY2hAbnZpZGlhLmNvbTsgZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsg
+ZHNhaGVybkBrZXJuZWwub3JnOyBlZHVtYXpldEBnb29nbGUuY29tOyBrdWJhQGtlcm5lbC5vcmc7
+IHBhYmVuaUByZWRoYXQuY29tOyBob3Jtc0BrZXJuZWwub3JnOyBuZXRmaWx0ZXItZGV2ZWxAdmdl
+ci5rZXJuZWwub3JnOyBjb3JldGVhbUBuZXRmaWx0ZXIub3JnOyBicmlkZ2VAbGlzdHMubGludXgu
+ZGV2OyBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3Jn
+DQrW98ziOiBSZTogW1BBVENIXSBuZXQ6IE1vdmUgc3BlY2lmaWMgZnJhZ21lbnRlZCBwYWNrZXQg
+dG8gc2xvd19wYXRoIGluc3RlYWQgb2YgZHJvcHBpbmcgaXQNCg0KSHVhamlhbiBZYW5nIDxodWFq
+aWFueWFuZ0Bhc3JtaWNyby5jb20+IHdyb3RlOg0KPiAtLS0gYS9uZXQvYnJpZGdlL25ldGZpbHRl
+ci9uZl9jb25udHJhY2tfYnJpZGdlLmMNCj4gKysrIGIvbmV0L2JyaWRnZS9uZXRmaWx0ZXIvbmZf
+Y29ubnRyYWNrX2JyaWRnZS5jDQo+IEBAIC02MSwxOCArNjEsMTQgQEAgc3RhdGljIGludCBuZl9i
+cl9pcF9mcmFnbWVudChzdHJ1Y3QgbmV0ICpuZXQsIHN0cnVjdCBzb2NrICpzaywNCj4gIAkJc3Ry
+dWN0IHNrX2J1ZmYgKmZyYWc7DQo+ICANCj4gIAkJaWYgKGZpcnN0X2xlbiAtIGhsZW4gPiBtdHUg
+fHwNCj4gLQkJICAgIHNrYl9oZWFkcm9vbShza2IpIDwgbGxfcnMpDQo+IC0JCQlnb3RvIGJsYWNr
+aG9sZTsNCg0KSSB3b3VsZCBwcmVmZXIgdG8ga2VlcCBibGFja2hvbGUgbG9naWMgZm9yIHRoZSBt
+dHUgdGVzdHMsIGkuZS4NCiAgaWYgKGZpcnN0X2xlbiAtIGhsZW4gPiBtdHUpDQogICAgICBnb3Rv
+IGJsYWNraG9sZTsNCg0Kc2FtZSBmb3IgdGhlIGZyYWctPmxlbiB0ZXN0IGluIHRoZSBza2Jfd2Fs
+a19mcmFncyBsb29wLg0KRnJvbSB3aGF0IEkgdW5kZXJzdG9vZCB0aGUgcHJvYmxlbSBpcyBvbmx5
+IGJlY2F1c2Ugb2YgdGhlIGxvd2VyIGRldmljZXMnIGhlYWRyb29tIHJlcXVpcmVtZW50Lg0K
