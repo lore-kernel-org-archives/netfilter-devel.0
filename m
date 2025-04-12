@@ -1,28 +1,28 @@
 Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 66A4BDDC3;
-	Sat, 12 Apr 2025 14:38:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0DAC518C035;
+	Sat, 12 Apr 2025 17:26:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744468730; cv=none; b=dy0lOYVQH7ey3flydyHoVWyHy0LJERmz/FXQvYWNQRi4cHrU+qYpGTWy0du5e/oqRe5WQ/bkEWGm567hDkvIW49YQC9dMcEX8xl3/fjIuVuVk5Mfrye2uO0Bo101oVU2XFblUj3MmkQnakOAPCXV/wQvJMlzBBg9bZuHy86Uz3g=
+	t=1744478821; cv=none; b=Gag2LDgJ1Fk8sGJWKYxyhHLxaFbay49ET5vAH5H3M4/jHEURum65bQ3POEKkH+tSLGv3KCNyB1TO+TnHr/U2RkY0hc+TVj8Bu9upakVhHsqTI2OPrgo6MiobXr3JRp5WCtARyVFSnbRnvE+Y4FKXyyNXAmv0Rp9m1Xy9Ab6vpHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744468730; c=relaxed/simple;
-	bh=6AEAveB6uz0vTrlP4qe/RjM9noIUEh7id3YLW5cvepk=;
+	s=arc-20240116; t=1744478821; c=relaxed/simple;
+	bh=rntbUba3VSODfucFgd/aEty8d+8oEPtjZTsGP/8gO8w=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=gKPdkb9cGuY9J2WzZSyYfhJ3FErVv54eQdvpiagrAvO527MKAkvtz77g9u7M4MUONv7U7PrQ67na1vQJL0JCRCIEPAv5zcmWomdmhWeJJIqRcfjPcMrZv4/J9f8QeslzrydHlojZWpPnu8vsmX8846t3kGElLIX+JcQAecBwsd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=pLrKqURT; arc=none smtp.client-ip=220.197.31.3
+	 MIME-Version; b=TGVUJQ/ng3HxkHPCpBF42cl2fH4TEWKBXA+1YqdGt9XE10ZhdXnVlGZYqivdI9arbGpYxzcMYx0c4UhE6pGBDDtdxELzMjyH4f7p6OVo86R4SexHXx4ZLucTB2JIad9Zwoi/UT/RcjLv34tyRHt5v5h3BxGLLoTmmYKaPrSPZJg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=a+PylrlD; arc=none smtp.client-ip=220.197.31.3
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="pLrKqURT"
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="a+PylrlD"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=+eDl1
-	qPi+TohcFlN1qDvI2Of0X6ZTWeQFAV5uL0OqHo=; b=pLrKqURTMfYbmAxzVBCOo
-	kRe8/MfvebaUfxwy0TV7JvT2DOg4D4TKnYHyOY6GS3Fuj7zhXU62sN1Ew25wOGzM
-	OE8fIb9D3jXMtR0BgEOfL5VitcFrYptdqpUSwwtdGYd46nghI6vFUi1B9pciHuDN
-	7Wt2K1dOcqL4BgTVent1WM=
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=1PbZA
+	dHOMzXKSunlx61DMfXhxLlD4hJummMQ3WG5sXA=; b=a+PylrlDlO9dEhz+GuMCL
+	wnBQ7vYSnHXrWd8vWjxGcY4YEECLei4Hk/3mtNUYcPcNKxezr7UbtCY27RYcYX/S
+	x0zw66jLd9FhxH4ojuc12T9lzg0jF/+NLHUlN1Tlg28hoN1ta0Ebpdx5KLXXdAOy
+	WqMVcd1udekvE6x9DkfIcQ=
 Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-3 (Coremail) with SMTP id _____wAHQAe9evpnv8udFw--.49849S4;
-	Sat, 12 Apr 2025 22:37:50 +0800 (CST)
+	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wB3Vfg0ovpnzpIFGA--.26751S4;
+	Sun, 13 Apr 2025 01:26:13 +0800 (CST)
 From: lvxiafei <xiafei_xupt@163.com>
 To: xiafei_xupt@163.com
 Cc: coreteam@netfilter.org,
@@ -37,9 +37,9 @@ Cc: coreteam@netfilter.org,
 	netfilter-devel@vger.kernel.org,
 	pabeni@redhat.com,
 	pablo@netfilter.org
-Subject: [PATCH V4] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
-Date: Sat, 12 Apr 2025 22:37:46 +0800
-Message-Id: <20250412143746.3922-1-xiafei_xupt@163.com>
+Subject: [PATCH V5] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Sun, 13 Apr 2025 01:26:10 +0800
+Message-Id: <20250412172610.37844-1-xiafei_xupt@163.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <20250407095052.49526-1-xiafei_xupt@163.com>
 References: <20250407095052.49526-1-xiafei_xupt@163.com>
@@ -50,12 +50,12 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wAHQAe9evpnv8udFw--.49849S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW3JrW7JF1rAr1UXFyUWw45KFg_yoWfur1fp3
-	Wft347Jw17Jr4Yy3Wj93yDAFsxJws3Ca4S9rn8CFyrCwsI9r15CF4rKFWxJF98JrykJFy3
-	ZF4jvr1UAFs5taDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pRdb18UUUUU=
-X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/1tbiKBotU2f50deq6QABsW
+X-CM-TRANSID:_____wB3Vfg0ovpnzpIFGA--.26751S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW3tFy5ZryUWry5AFy7GF43GFg_yoWDXw15pF
+	1ft347Jw17Jr4Yya1j93yDAFsxG393Ca4a9rn8CFyrCwsI9r15CF4rKFyxJF98JrykAFy3
+	ZF4jvr1UAan5taDanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0pRdsqAUUUUU=
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMRQtU2f6mL7IKwAAsD
 
 From: lvxiafei <lvxiafei@sensetime.com>
 
@@ -75,11 +75,11 @@ Signed-off-by: lvxiafei <lvxiafei@sensetime.com>
  include/net/netns/conntrack.h                 |  1 +
  net/netfilter/nf_conntrack_core.c             | 19 ++++++------
  net/netfilter/nf_conntrack_netlink.c          |  2 +-
- net/netfilter/nf_conntrack_standalone.c       |  5 ++--
- 6 files changed, 44 insertions(+), 20 deletions(-)
+ net/netfilter/nf_conntrack_standalone.c       |  7 +++--
+ 6 files changed, 46 insertions(+), 20 deletions(-)
 
 diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
-index 238b66d0e059..58aad49ea179 100644
+index 238b66d0e059..6e7f17f5959a 100644
 --- a/Documentation/networking/nf_conntrack-sysctl.rst
 +++ b/Documentation/networking/nf_conntrack-sysctl.rst
 @@ -93,12 +93,29 @@ nf_conntrack_log_invalid - INTEGER
@@ -93,7 +93,7 @@ index 238b66d0e059..58aad49ea179 100644
 -        the reversed address). This means that with default settings a maxed-out
 -        table will have a average hash chain length of 2, not 1.
 +    - 0 - disabled (unlimited)
-+	- not 0 - enabled
++    - not 0 - enabled
 +
 +    Maximum number of allowed connection tracking entries per netns. This value
 +    is set to nf_conntrack_buckets by default.
@@ -145,14 +145,14 @@ index 3f02a45773e8..062e67b9a5d7 100644
  int nf_ct_handle_fragments(struct net *net, struct sk_buff *skb,
  			   u16 zone, u8 family, u8 *proto, u16 *mru);
 diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index bae914815aa3..2f343842c2d9 100644
+index bae914815aa3..d3fcd0b92b2d 100644
 --- a/include/net/netns/conntrack.h
 +++ b/include/net/netns/conntrack.h
 @@ -102,6 +102,7 @@ struct netns_ct {
  	u8			sysctl_acct;
  	u8			sysctl_tstamp;
  	u8			sysctl_checksum;
-+	unsigned int sysctl_max;
++	unsigned int		sysctl_max;
  
  	struct ip_conntrack_stat __percpu *stat;
  	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
@@ -251,7 +251,7 @@ index 2cc0fde23344..73e6bb1e939b 100644
  
  	nlmsg_end(skb, nlh);
 diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 2f666751c7e7..8608aec88758 100644
+index 2f666751c7e7..5db6df0e4eb3 100644
 --- a/net/netfilter/nf_conntrack_standalone.c
 +++ b/net/netfilter/nf_conntrack_standalone.c
 @@ -615,7 +615,7 @@ enum nf_ct_sysctl_index {
@@ -272,7 +272,15 @@ index 2f666751c7e7..8608aec88758 100644
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
-@@ -1087,7 +1087,6 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+@@ -1063,6 +1063,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 
+ 	table[NF_SYSCTL_CT_COUNT].data = &cnet->count;
+ 	table[NF_SYSCTL_CT_CHECKSUM].data = &net->ct.sysctl_checksum;
++	table[NF_SYSCTL_CT_MAX].data = &net->ct.sysctl_max;
+ 	table[NF_SYSCTL_CT_LOG_INVALID].data = &net->ct.sysctl_log_invalid;
+ 	table[NF_SYSCTL_CT_ACCT].data = &net->ct.sysctl_acct;
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+@@ -1087,7 +1088,6 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
  
  	/* Don't allow non-init_net ns to alter global sysctls */
  	if (!net_eq(&init_net, net)) {
@@ -280,6 +288,14 @@ index 2f666751c7e7..8608aec88758 100644
  		table[NF_SYSCTL_CT_EXPECT_MAX].mode = 0444;
  		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
  	}
+@@ -1139,6 +1139,7 @@ static int nf_conntrack_pernet_init(struct net *net)
+ 	int ret;
+ 
+ 	net->ct.sysctl_checksum = 1;
++	net->ct.sysctl_max = init_net.ct.sysctl_max;
+ 
+ 	ret = nf_conntrack_standalone_init_sysctl(net);
+ 	if (ret < 0)
 -- 
 2.40.1
 
