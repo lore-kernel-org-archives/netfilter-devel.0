@@ -1,106 +1,106 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7B44CEEC3;
-	Sun, 13 Apr 2025 01:15:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.3
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5FED18FDA5;
+	Sun, 13 Apr 2025 09:08:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744506929; cv=none; b=pQo/x3RoZKsZ0QFJS75kambgTDmCXh7Gs9FCXPJXO1A/OYWq+S+GvgTRM4owAIFDZ+zyh5Uj4x0refpGZUwAzYAcImUX3wZLd2Ee7Qi+Iy6HkQvbonxbM5HQYRJ72qfY4TqFMQLuYC6A0osjU4dldJHnm0CQ3HZaNexTe2mtG2c=
+	t=1744535305; cv=none; b=COK3z91p8kqJaXpZyS/COheBnp8u7s1EXSFy7c9qIQrt82yhpiqXZ2hULLYnT3gDrkgtfg6DNg9ZHjJicka0XW2/2y3Ugqsx9XwApWdvOEaiDNpLM0C/KEfaV04cHhz0j8gOazWWCZLNEllr3u2rlgmppXpRgmVEZYwdypbiEk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744506929; c=relaxed/simple;
-	bh=D3fz4fTUn8U8BzQBvnDXtTYCgY+nYo1uEy11tf3l2Io=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=f69UbYMW9hcq20QT3YmZoby8LOXIltDnoDCrfD4rlpu7R9NJZxZI2h2AnoWhJtjaQzjhrEMm28Fjr2zZX48I8KA6ic1J03R5tybw1EK+kw7Vk/t6TWcaQSNJUdVxFgXkAa68PpVDT0thlVDLVJkp0ssSWy/ypdfoPe2pAYUy0Ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ZxhQ4vPm; arc=none smtp.client-ip=117.135.210.3
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ZxhQ4vPm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version:
-	Content-Type; bh=7LcWQ3v1o29xFMs0TzDObXscRocZHBUcBwlusIx/aPg=;
-	b=ZxhQ4vPmQceYafLOPHyUXI2Cuzj1bWK8sBO23/wPXTZk/zT4jDXFfIvCAQfJc9
-	4v+J5DvR1pM6MXZOJWG6VU4T8feGeTCx1poIgf4YfYTQR3RfWqfYg+71uQAE7aRV
-	bYlT8PDsqIrJBaJAvje51iszFAv+6XlOqo7RlR14rXuQM=
-Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wC3EeHvD_tn8jDiGA--.20704S4;
-	Sun, 13 Apr 2025 09:14:24 +0800 (CST)
-From: lvxiafei <xiafei_xupt@163.com>
-To: kuba@kernel.org
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	horms@kernel.org,
-	kadlec@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	xiafei_xupt@163.com
-Subject: Re: [PATCH V5] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
-Date: Sun, 13 Apr 2025 09:14:23 +0800
-Message-Id: <20250413011423.76978-1-xiafei_xupt@163.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20250412141630.635c2b34@kernel.org>
-References: <20250412141630.635c2b34@kernel.org>
+	s=arc-20240116; t=1744535305; c=relaxed/simple;
+	bh=hY70RgUzIaYDB8r9oBPfUFVbPt7/tFSK8kAT5IQ5R2E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UhnaLsnsWr3IPQ/duyzlHWj1TvSfdabNwQmP7F09I1nvEkyuldMjDlCaALW14l6z9VnHE5C5wDnNSBwILyripKHOscoWcons9IhKUcuOoH/vHJfdRE2Rj94MwlVEtU6341xvj937jcfaxEVL/GpiibGnrHRCArHA2GBCw11HEu0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1u3tJj-0001aS-JW; Sun, 13 Apr 2025 11:07:55 +0200
+Date: Sun, 13 Apr 2025 11:07:55 +0200
+From: Florian Westphal <fw@strlen.de>
+To: lvxiafei <xiafei_xupt@163.com>
+Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
+	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org,
+	linux-kernel@vger.kernel.org, lvxiafei@sensetime.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com, pablo@netfilter.org
+Subject: Re: [PATCH V5] netfilter: netns nf_conntrack: per-netns
+ net.netfilter.nf_conntrack_max sysctl
+Message-ID: <20250413090755.GA5987@breakpoint.cc>
+References: <20250407095052.49526-1-xiafei_xupt@163.com>
+ <20250412172610.37844-1-xiafei_xupt@163.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wC3EeHvD_tn8jDiGA--.20704S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7ur4UXr1fWFWfAry3Gw1Dtrb_yoW8Xw4DpF
-	s8ZrykGa18XryrZrn8Aw1kZa4Uu397CrsIkrykury8ZFnFgFyUJFn0gF12qFyqyws7Ka1x
-	Kay3WFy5Gr4UJrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0JUppB3UUUUU=
-X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMRkuU2f7CLCQ8gAAsT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250412172610.37844-1-xiafei_xupt@163.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-> If you CC netdev@ please do not post multiple versions a day.
-> Please wait with posting v6 until you get some feedback (and
-> this email does not count).
+lvxiafei <xiafei_xupt@163.com> wrote:
+> +    Maximum number of allowed connection tracking entries per netns. This value
+> +    is set to nf_conntrack_buckets by default.
+> +
+> +    Note that connection tracking entries are added to the table twice -- once
+> +    for the original direction and once for the reply direction (i.e., with
+> +    the reversed address). This means that with default settings a maxed-out
+> +    table will have a average hash chain length of 2, not 1.
+> +
+> +    The limit of other netns cannot be greater than init_net netns.
+> +    +----------------+-------------+----------------+
+> +    | init_net netns | other netns | limit behavior |
+> +    +----------------+-------------+----------------+
+> +    | 0              | 0           | unlimited      |
+> +    +----------------+-------------+----------------+
+> +    | 0              | not 0       | other          |
+> +    +----------------+-------------+----------------+
+> +    | not 0          | 0           | init_net       |
+> +    +----------------+-------------+----------------+
+> +    | not 0          | not 0       | min            |
+> +    +----------------+-------------+----------------+
+>  
+>  nf_conntrack_tcp_be_liberal - BOOLEAN
+>  	- 0 - disabled (default)
+> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+> index 3f02a45773e8..062e67b9a5d7 100644
+> --- a/include/net/netfilter/nf_conntrack.h
+> +++ b/include/net/netfilter/nf_conntrack.h
+> @@ -320,7 +320,6 @@ int nf_conntrack_hash_resize(unsigned int hashsize);
+>  extern struct hlist_nulls_head *nf_conntrack_hash;
+>  extern unsigned int nf_conntrack_htable_size;
+>  extern seqcount_spinlock_t nf_conntrack_generation;
+> -extern unsigned int nf_conntrack_max;
+>  
+>  /* must be called with rcu read lock held */
+>  static inline void
+> @@ -360,6 +359,13 @@ static inline struct nf_conntrack_net *nf_ct_pernet(const struct net *net)
+>  	return net_generic(net, nf_conntrack_net_id);
+>  }
+>  
+> +static inline unsigned int nf_conntrack_max(const struct net *net)
+> +{
+> +	return likely(init_net.ct.sysctl_max && net->ct.sysctl_max) ?
+> +	    min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
+> +	    max(init_net.ct.sysctl_max, net->ct.sysctl_max);
+> +}
 
-Thanks for the reminder and the review.
+Is there a reason you did not follow my suggstion in
+https://lore.kernel.org/netdev/20250410105352.GB6272@breakpoint.cc/
 
-I’ll hold off on posting v6 until I receive proper feedback.
-Also, I’ll double-check the Kconfig dependencies and ensure the
-file doesn’t break builds when conntrack is not enabled.
+to disable net->ct.sysctl_max == 0 for non init netns?
 
-Appreciate your time!
+You could then make this
 
-Sincerely.
+   if (likely(init_net.ct.sysctl_max))
+	return min(init_net.ct.sysctl_max, net->ct.sysctl_max);
 
-> You need to be careful with the Kconfig, this file may be included
-> when contrack is not built:
->
-> In file included from ./include/linux/kernel.h:28,
->                  from ./include/linux/cpumask.h:11,
->                  from ./arch/x86/include/asm/cpumask.h:5,
->                  from ./arch/x86/include/asm/msr.h:11,
->                  from ./arch/x86/include/asm/tsc.h:10,
->                  from ./arch/x86/include/asm/timex.h:6,
->                  from ./include/linux/timex.h:67,
->                  from ./include/linux/time32.h:13,
->                  from ./include/linux/time.h:60,
->                  from ./include/linux/compat.h:10,
->                  from ./include/linux/ethtool.h:17,
->                  from drivers/net/vrf.c:12:
-> include/net/netfilter/nf_conntrack.h:365:25: error: ‘struct net’ has no member named ‘ct’
->   365 |             min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
->       |                         ^
+   return net->ct.sysctl_max;
 
-Add conditional compilation protection:
+... or am i missing something?
 
-+static inline unsigned int nf_conntrack_max(const struct net *net)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	return likely(init_net.ct.sysctl_max && net->ct.sysctl_max) ?
-+	    min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
-+	    max(init_net.ct.sysctl_max, net->ct.sysctl_max);
-+#else
-+	return 0;
-+#endif
-+}
-
+Aside from that (and the needed #IS_ENABLED() guard) this change looks
+good to me.
