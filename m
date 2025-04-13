@@ -1,44 +1,48 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4FA197A7A;
-	Sat, 12 Apr 2025 21:16:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.3])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7B44CEEC3;
+	Sun, 13 Apr 2025 01:15:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744492592; cv=none; b=OA45PdIPrKhPdUxynBbDQgniqvIAfbfZYZZQpPQJ/b5yk1GBpbBoNou0krB+hQYFJwtm8N0Y7gQIbbBaGJ3So7KO2rdq38O1hnSPCWSbJ0V8xwGmoWvhKS+dG/MDFLtrwVjTp2KlZrwet+uhSE+hK+3eR+rV3e0wJZ94QbpTOjI=
+	t=1744506929; cv=none; b=pQo/x3RoZKsZ0QFJS75kambgTDmCXh7Gs9FCXPJXO1A/OYWq+S+GvgTRM4owAIFDZ+zyh5Uj4x0refpGZUwAzYAcImUX3wZLd2Ee7Qi+Iy6HkQvbonxbM5HQYRJ72qfY4TqFMQLuYC6A0osjU4dldJHnm0CQ3HZaNexTe2mtG2c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744492592; c=relaxed/simple;
-	bh=LSm8n2JgBGQCeORLX5c07y6Iq9IWghBzRfmMe+pyr3Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OYvC5ncCvOWdh8ccABVcHMsUmrnkM0qpf7ASrXzhGUV1XPmOTfg2sckUlYKhqmSjBUaTu+1urBV7TVxORkTW6r5JZkXPSv7zw+15pxD0MJlgsWpdcQy9W0LmRBy+2efNWcPmTlArw47zNWjo9RsDnnSLeau6fYg/kLfS1JLT9TQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TA7ONDyj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744506929; c=relaxed/simple;
+	bh=D3fz4fTUn8U8BzQBvnDXtTYCgY+nYo1uEy11tf3l2Io=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=f69UbYMW9hcq20QT3YmZoby8LOXIltDnoDCrfD4rlpu7R9NJZxZI2h2AnoWhJtjaQzjhrEMm28Fjr2zZX48I8KA6ic1J03R5tybw1EK+kw7Vk/t6TWcaQSNJUdVxFgXkAa68PpVDT0thlVDLVJkp0ssSWy/ypdfoPe2pAYUy0Ds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=ZxhQ4vPm; arc=none smtp.client-ip=117.135.210.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TA7ONDyj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B05FC4CEE3;
-	Sat, 12 Apr 2025 21:16:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1744492591;
-	bh=LSm8n2JgBGQCeORLX5c07y6Iq9IWghBzRfmMe+pyr3Q=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=TA7ONDyjxdZCdBDb304gFf4xzIuDoNv4zFL/14N8yKiQiINbcs6ZdPsWT437tuL5G
-	 0/myzNd7c8OfzqRDn/NXTAbe8KKaLPwMXQyFA8VqCJRcYXODdECAJjHavyW9yywiZw
-	 VHXql/6NMZApCD0E7QUY7h19ALR81BsqMuopDbXZ1W+Wjgp4EtMFgj6/Oa2uzfDX0s
-	 uZI831l0pMfyXQ01/0B661njG+ox4K3tG7VCTGHUlkiMKfHuyaDyNjSaM6eQlE3Mnm
-	 X5yCIUCl3qzyDFKtjr2F4QEZ4lLz0XxwPtTGHXyTQntCaIsEbqdf1gMBYiMHFvKuJY
-	 gcNACIKN2egNg==
-Date: Sat, 12 Apr 2025 14:16:30 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: lvxiafei <xiafei_xupt@163.com>
-Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
- horms@kernel.org, kadlec@netfilter.org, linux-kernel@vger.kernel.org,
- lvxiafei@sensetime.com, netdev@vger.kernel.org,
- netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org
-Subject: Re: [PATCH V5] netfilter: netns nf_conntrack: per-netns
- net.netfilter.nf_conntrack_max sysctl
-Message-ID: <20250412141630.635c2b34@kernel.org>
-In-Reply-To: <20250412172610.37844-1-xiafei_xupt@163.com>
-References: <20250407095052.49526-1-xiafei_xupt@163.com>
-	<20250412172610.37844-1-xiafei_xupt@163.com>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="ZxhQ4vPm"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version:
+	Content-Type; bh=7LcWQ3v1o29xFMs0TzDObXscRocZHBUcBwlusIx/aPg=;
+	b=ZxhQ4vPmQceYafLOPHyUXI2Cuzj1bWK8sBO23/wPXTZk/zT4jDXFfIvCAQfJc9
+	4v+J5DvR1pM6MXZOJWG6VU4T8feGeTCx1poIgf4YfYTQR3RfWqfYg+71uQAE7aRV
+	bYlT8PDsqIrJBaJAvje51iszFAv+6XlOqo7RlR14rXuQM=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g0-0 (Coremail) with SMTP id _____wC3EeHvD_tn8jDiGA--.20704S4;
+	Sun, 13 Apr 2025 09:14:24 +0800 (CST)
+From: lvxiafei <xiafei_xupt@163.com>
+To: kuba@kernel.org
+Cc: coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	horms@kernel.org,
+	kadlec@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	xiafei_xupt@163.com
+Subject: Re: [PATCH V5] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Sun, 13 Apr 2025 09:14:23 +0800
+Message-Id: <20250413011423.76978-1-xiafei_xupt@163.com>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20250412141630.635c2b34@kernel.org>
+References: <20250412141630.635c2b34@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -46,35 +50,57 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wC3EeHvD_tn8jDiGA--.20704S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW7ur4UXr1fWFWfAry3Gw1Dtrb_yoW8Xw4DpF
+	s8ZrykGa18XryrZrn8Aw1kZa4Uu397CrsIkrykury8ZFnFgFyUJFn0gF12qFyqyws7Ka1x
+	Kay3WFy5Gr4UJrJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0JUppB3UUUUU=
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMRkuU2f7CLCQ8gAAsT
 
-On Sun, 13 Apr 2025 01:26:10 +0800 lvxiafei wrote:
-> +static inline unsigned int nf_conntrack_max(const struct net *net)
-> +{
-> +	return likely(init_net.ct.sysctl_max && net->ct.sysctl_max) ?
-> +	    min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
-> +	    max(init_net.ct.sysctl_max, net->ct.sysctl_max);
+> If you CC netdev@ please do not post multiple versions a day.
+> Please wait with posting v6 until you get some feedback (and
+> this email does not count).
 
-If you CC netdev@ please do not post multiple versions a day.
-Please wait with posting v6 until you get some feedback (and
-this email does not count).
+Thanks for the reminder and the review.
 
-You need to be careful with the Kconfig, this file may be included=20
-when contrack is not built:
+I’ll hold off on posting v6 until I receive proper feedback.
+Also, I’ll double-check the Kconfig dependencies and ensure the
+file doesn’t break builds when conntrack is not enabled.
 
-In file included from ./include/linux/kernel.h:28,
-                 from ./include/linux/cpumask.h:11,
-                 from ./arch/x86/include/asm/cpumask.h:5,
-                 from ./arch/x86/include/asm/msr.h:11,
-                 from ./arch/x86/include/asm/tsc.h:10,
-                 from ./arch/x86/include/asm/timex.h:6,
-                 from ./include/linux/timex.h:67,
-                 from ./include/linux/time32.h:13,
-                 from ./include/linux/time.h:60,
-                 from ./include/linux/compat.h:10,
-                 from ./include/linux/ethtool.h:17,
-                 from drivers/net/vrf.c:12:
-include/net/netfilter/nf_conntrack.h:365:25: error: =E2=80=98struct net=E2=
-=80=99 has no member named =E2=80=98ct=E2=80=99
-  365 |             min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
-      |                         ^
+Appreciate your time!
+
+Sincerely.
+
+> You need to be careful with the Kconfig, this file may be included
+> when contrack is not built:
+>
+> In file included from ./include/linux/kernel.h:28,
+>                  from ./include/linux/cpumask.h:11,
+>                  from ./arch/x86/include/asm/cpumask.h:5,
+>                  from ./arch/x86/include/asm/msr.h:11,
+>                  from ./arch/x86/include/asm/tsc.h:10,
+>                  from ./arch/x86/include/asm/timex.h:6,
+>                  from ./include/linux/timex.h:67,
+>                  from ./include/linux/time32.h:13,
+>                  from ./include/linux/time.h:60,
+>                  from ./include/linux/compat.h:10,
+>                  from ./include/linux/ethtool.h:17,
+>                  from drivers/net/vrf.c:12:
+> include/net/netfilter/nf_conntrack.h:365:25: error: ‘struct net’ has no member named ‘ct’
+>   365 |             min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
+>       |                         ^
+
+Add conditional compilation protection:
+
++static inline unsigned int nf_conntrack_max(const struct net *net)
++{
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	return likely(init_net.ct.sysctl_max && net->ct.sysctl_max) ?
++	    min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
++	    max(init_net.ct.sysctl_max, net->ct.sysctl_max);
++#else
++	return 0;
++#endif
++}
+
