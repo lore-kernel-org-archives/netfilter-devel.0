@@ -1,64 +1,43 @@
-Received: from smtpbgsg1.qq.com (smtpbgsg1.qq.com [54.254.200.92])
+Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4320E28E3F;
-	Mon, 14 Apr 2025 04:28:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=54.254.200.92
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E111827A118
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Apr 2025 14:36:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.129
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744604915; cv=none; b=tehnHW+4YDXGbOXxnQcPNOI7aaAkjz6TMlzCtH8AT4aHeNFojdbxMRlSJCAN6A93idMNT6OpY7XV6tw9YGqrQLVRc0UBC3wRvWfwEwwFaNb4sHMnoxOt7Wi90YpKDrIgYOt0J22Ak5jdPD0UlYy2A/TRWhEbMgUevM/notectjc=
+	t=1744641391; cv=none; b=svV9umOYS2dC7ma1K/5XmqM8S7hkgk5JunVusflDUkwpDhavvGDfSbsOSHHGYx3kQMK63kOS0gun5HGtW/uaTuMQcP6HYcjczWPHjlW1ihqb1pW1ieERGXAFfxxuRoyyxssQ4avPsFjMP97j1CI55nHiSUmOHxj1r8dLwteL93o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744604915; c=relaxed/simple;
-	bh=LZnUR7vmtdVSTSo6qFETKaD8UU1KgCEWRyr8qPadleE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=joOwyhUJEjY6CqsxEnAXJL5A5mO2LXYT79zmBL1K8/q526V7LEkMhAVQEM9UjfNA9jSEJpkkmZuEmEDfc/LOWwm7hVsF5D05zd5Gwl41CYIY+vrN7AVFvC799xnxIJMQyA2J3LgycIZDMyYEQVGX/JjR/RP09JENNJDVPC/cQGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com; spf=pass smtp.mailfrom=uniontech.com; dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b=dD3+9m1R; arc=none smtp.client-ip=54.254.200.92
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniontech.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniontech.com
+	s=arc-20240116; t=1744641391; c=relaxed/simple;
+	bh=/opPyPMHngvNulSRoZHmLft7j/S1h4xnT2uctUNJQNc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=e1ItzKEWUuGbq7CbeiySb7s+fdFeU8OagMaeyVa3kKX/cc4Q8d69uR+qyEeO3mOu2/MccrRAB5yoqirApBw6nd7jLbQuSpNf5ogKEIQBB9BQar1of1zDuPVOUndCqQ+omiVWAVK+mCaLL1uPliazCDwMce+zsEM5Vu6DZXM37b4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=NF8nnOXn; arc=none smtp.client-ip=198.252.153.129
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=riseup.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=uniontech.com header.i=@uniontech.com header.b="dD3+9m1R"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniontech.com;
-	s=onoh2408; t=1744604866;
-	bh=CUo+WSAZNxdFKYjPSCBE4ce1w0JxS0K3qkF+MdMjaw8=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version;
-	b=dD3+9m1RvEvw3uOakXHDtv4SPuquDW+XsXTbMkw4WyP/jxwlhVuMxeTclMMtpie/m
-	 INsml8DlJJIERx1hLE9fcmDtnWzhkWRwmTZXqDXLDNtoE0XS4c+vIYeu9c4fUo5L4s
-	 qo4dOlTqNpiPc96arVLk3sjdjf5OI8OVswbIKiig=
-X-QQ-mid: bizesmtpip4t1744604822t17b86d
-X-QQ-Originating-IP: 9EUIoungktXur6Ak3HAJ9BQt/09nZjDSBOqmFnfFsJk=
-Received: from localhost.localdomain ( [localhost])
-	by bizesmtp.qq.com (ESMTP) with 
-	id ; Mon, 14 Apr 2025 12:26:59 +0800 (CST)
-X-QQ-SSF: 0000000000000000000000000000000
-X-QQ-GoodBg: 1
-X-BIZMAIL-ID: 274253829898234873
-EX-QQ-RecipientCnt: 20
-From: WangYuli <wangyuli@uniontech.com>
-To: wangyuli@uniontech.com
-Cc: akpm@linux-foundation.org,
-	guanwentao@uniontech.com,
-	linux-kernel@vger.kernel.org,
-	mingo@kernel.org,
-	niecheng1@uniontech.com,
-	tglx@linutronix.de,
-	zhanjun@uniontech.com,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH v2 4/5] ipvs: ip_vs_conn_expire_now: Rename del_timer in comment
-Date: Mon, 14 Apr 2025 12:26:28 +0800
-Message-ID: <F1C0F449361FF57A+20250414042629.63019-4-wangyuli@uniontech.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <37A1CE32D2AEA134+20250414042251.61846-1-wangyuli@uniontech.com>
-References: <37A1CE32D2AEA134+20250414042251.61846-1-wangyuli@uniontech.com>
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="NF8nnOXn"
+Received: from fews01-sea.riseup.net (fews01-sea-pn.riseup.net [10.0.1.109])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx1.riseup.net (Postfix) with ESMTPS id 4Zbqbx0cjTzDqRT;
+	Mon, 14 Apr 2025 14:36:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+	t=1744641389; bh=/opPyPMHngvNulSRoZHmLft7j/S1h4xnT2uctUNJQNc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=NF8nnOXnJ5/CQ3lZVv9kkM4JHMM4QEiisBlIkPBYJiD+bux+4xvKw5gAWZyPtPot3
+	 pTu3yHdx18wzEp/ZqG1gguLw4y3bt6hCjD902tSzOqGe/27qfeCXl5g0nMpQV8uNhZ
+	 oi/A3c25xGav1qKi98adkqnOIPBHQe4HyZy0K2Fo=
+X-Riseup-User-ID: C1BBF53A157BC924B2D94FF33E60FAB4771DDC85E3F9DB735DF1F76B2921CDCA
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	 by fews01-sea.riseup.net (Postfix) with ESMTPSA id 4Zbqbv45ktzJtm8;
+	Mon, 14 Apr 2025 14:36:27 +0000 (UTC)
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH libnftnl] tunnel: add missing inner nested netlink attribute for vxlan options
+Date: Mon, 14 Apr 2025 16:36:04 +0200
+Message-ID: <20250414143604.4144-1-ffmancera@riseup.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -66,62 +45,48 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtpip:uniontech.com:qybglogicsvrgz:qybglogicsvrgz8a-1
-X-QQ-XMAILINFO: OMHTpzRlrft8gDeIaQEw9WPwIiw9JGvZCWC7H7kHYniHsG8TN9Psc+ql
-	fPya3/UElyR9DVO1olGnHWz/O1mMoLKb+ebYMj39hhe4PXPGxsNdzYtCWsjPi+t5QK1pp0j
-	QTL5rNp3XVByUnPbxIhmzcqQkZpPOCbJ15saaqF9v8YJc9WMD664zKZ2BdqDf7Amb/NDCHS
-	EgaMxpFrzjXbVup/AUE/ltN8mdftuMqXU0a6wkiriOsLqUYP+x5olCxdsOaKcNeA/85RdrS
-	ZQjamCWI3n0XkMGndeWKD6JeiQyt/8HMPDTJalOBMVTyQUmv20lX6agY0TpxH8QFijq3vIY
-	azf0gJJ43riaXCXLUTwpwIa+NcXlxFu5y3upCxc66XUq+cpMXVJ73SQjyc6CN/uhU2afQBC
-	VbIyw7WHvWTE6164N9kI13BCwwu2B2FYVW+hgzFRQ/0v/KF1SVPhdmydgmDQLXGCocmkEuV
-	SucWpO65AZos6cTXkQEzJeeos8kuBTqaB2XlVGkbKnEBqsZ6/j3wUUi2+/el5zybC2GNg3S
-	omeRRfenvTWO4fa/xUTOuLVafZL3udg6MvPxd/5v+YAcbqupMIxG51aUzDXjQT3UIk8mZXi
-	ZFkwC+aPW0SlgUkdENBfQvCaMnwLgmOMDNaIKHO3Z/9slJpmKzMSziQ7Yu1tzEB1BG5BrMj
-	9pO4K2uzPfTenp0Gp0iF8wy2LTWY6yGmv67OpH2G6lM5tVZJj8vu7zVfgOXG+3mYfytUpkK
-	HU0sl7DxRrq4cd/d8jrLbtMO07n2eBZE5eHHBj7GWcpvB5221s44kQJnWgWTV06cmO/4hnD
-	e3UBfBJCCUb7/rT1en1OveNfla8o05nRE0gPmQOfw2yCZ+/ui4ah7DzQYzhYZnM55xav/MR
-	GBzoDp4S1/ik6n0nqLuYcER+ugR+CaOj4VOEZRYtrHRS9CurL4Bq4+ASfvZCFJJUYdHZLzh
-	Ic7zyWWBvR2r0x9uVGnisEqfWp6fD35knF+licpO5OcTqJ369jV1/k06bUsbPQ7P65hLw9L
-	vnc+Foa5A4bd/HF0rgMjsRXrMKFV0=
-X-QQ-XMRINFO: NS+P29fieYNw95Bth2bWPxk=
-X-QQ-RECHKSPAM: 0
 
-Commit 8fa7292fee5c ("treewide: Switch/rename to timer_delete[_sync]()")
-switched del_timer to timer_delete, but did not modify the comment for
-ip_vs_conn_expire_now(). Now fix it.
+The VXLAN options must be nested inside the NFTA_TUNNEL_KEY_OPTS_VXLAN
+netlink attribute.
 
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Julian Anastasov <ja@ssi.bg>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: netdev@vger.kernel.org
-Cc: lvs-devel@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: WangYuli <wangyuli@uniontech.com>
+Fixes: ea63a05272f5 ("obj: add tunnel support")
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ src/obj/tunnel.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 8699944c0baf..ccc39c6557ee 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -926,7 +926,7 @@ static void ip_vs_conn_expire(struct timer_list *t)
- void ip_vs_conn_expire_now(struct ip_vs_conn *cp)
+diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
+index 980bffd..8941e39 100644
+--- a/src/obj/tunnel.c
++++ b/src/obj/tunnel.c
+@@ -175,7 +175,7 @@ static void
+ nftnl_obj_tunnel_build(struct nlmsghdr *nlh, const struct nftnl_obj *e)
  {
- 	/* Using mod_timer_pending will ensure the timer is not
--	 * modified after the final del_timer in ip_vs_conn_expire.
-+	 * modified after the final timer_delete in ip_vs_conn_expire.
- 	 */
- 	if (timer_pending(&cp->timer) &&
- 	    time_after(cp->timer.expires, jiffies))
+ 	struct nftnl_obj_tunnel *tun = nftnl_obj_data(e);
+-	struct nlattr *nest;
++	struct nlattr *nest, *nest_inner;
+ 
+ 	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_ID))
+ 		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ID, htonl(tun->id));
+@@ -214,16 +214,16 @@ nftnl_obj_tunnel_build(struct nlmsghdr *nlh, const struct nftnl_obj *e)
+ 		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_FLAGS, htonl(tun->tun_flags));
+ 	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_VXLAN_GBP)) {
+ 		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
++		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_VXLAN);
+ 		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_VXLAN_GBP,
+ 				 htonl(tun->u.tun_vxlan.gbp));
++		mnl_attr_nest_end(nlh, nest_inner);
+ 		mnl_attr_nest_end(nlh, nest);
+ 	}
+ 	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_VERSION) &&
+ 	    (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX) ||
+ 	     (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID) &&
+ 	      e->flags & (1u << NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR)))) {
+-		struct nlattr *nest_inner;
+-
+ 		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
+ 		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_ERSPAN);
+ 		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ERSPAN_VERSION,
 -- 
 2.49.0
 
