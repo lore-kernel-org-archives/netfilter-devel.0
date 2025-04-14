@@ -1,106 +1,86 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5FED18FDA5;
-	Sun, 13 Apr 2025 09:08:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.3])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 59AAD4430;
+	Mon, 14 Apr 2025 03:05:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744535305; cv=none; b=COK3z91p8kqJaXpZyS/COheBnp8u7s1EXSFy7c9qIQrt82yhpiqXZ2hULLYnT3gDrkgtfg6DNg9ZHjJicka0XW2/2y3Ugqsx9XwApWdvOEaiDNpLM0C/KEfaV04cHhz0j8gOazWWCZLNEllr3u2rlgmppXpRgmVEZYwdypbiEk0=
+	t=1744599962; cv=none; b=eBV5GtckZ7aCFIRZmBaE8YBRnAJL5BUksLvBfSKmv++vvONp8IKCrojl44RcaIujsbw7rX3sdWJb0AVSvaR1+M9UdD7rYhd8k3peXootz1a5WT+3vJgEOaRq0Y/CRvKmJfH9fnDHp9rKLb8Igo/bUG+sz4tIvH9jjLAorwM304k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744535305; c=relaxed/simple;
-	bh=hY70RgUzIaYDB8r9oBPfUFVbPt7/tFSK8kAT5IQ5R2E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UhnaLsnsWr3IPQ/duyzlHWj1TvSfdabNwQmP7F09I1nvEkyuldMjDlCaALW14l6z9VnHE5C5wDnNSBwILyripKHOscoWcons9IhKUcuOoH/vHJfdRE2Rj94MwlVEtU6341xvj937jcfaxEVL/GpiibGnrHRCArHA2GBCw11HEu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1u3tJj-0001aS-JW; Sun, 13 Apr 2025 11:07:55 +0200
-Date: Sun, 13 Apr 2025 11:07:55 +0200
-From: Florian Westphal <fw@strlen.de>
-To: lvxiafei <xiafei_xupt@163.com>
-Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org,
-	linux-kernel@vger.kernel.org, lvxiafei@sensetime.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com, pablo@netfilter.org
-Subject: Re: [PATCH V5] netfilter: netns nf_conntrack: per-netns
- net.netfilter.nf_conntrack_max sysctl
-Message-ID: <20250413090755.GA5987@breakpoint.cc>
-References: <20250407095052.49526-1-xiafei_xupt@163.com>
- <20250412172610.37844-1-xiafei_xupt@163.com>
+	s=arc-20240116; t=1744599962; c=relaxed/simple;
+	bh=kpBPKwbG2d4U5uu9XwFgcdKlogwWZUs1gsJB2mzYmsQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Yw3qGmB5CsY5uPPNKYbJXcgDSok1WZSTGef/nobkYRFUqCYWhKwhtRauErn83xFRM1VhCmaHdU6S/lT/bcz77oukmWuAlQGkkBSz2MDK8xzZcAaHC55spNKgHxKvPYZuLl+dbF5Mq2X1U0bBkHE4yG9dh70LIzxqgF3pV1O8Yec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=npIcDJHE; arc=none smtp.client-ip=220.197.31.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="npIcDJHE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Cq4E2
+	6iu20lnM9BSp9H78ESEizHTdfd4SvMACFK0RJw=; b=npIcDJHErj6f53MGj50L7
+	j7PkF7DaYfLKf+ZI7MKTcE1nxmh+UIBuGdbwTHWhL/3lEja5TaXq7OiWwjFBwvBJ
+	A+ScSJa02e1EpWSKXbbushuBagCZMB0vWF12huPHhq7qqqtnjN9LG4VqU0jpEL/S
+	F/YALdkhJTFo2ryCHTx6c8=
+Received: from localhost.localdomain (unknown [])
+	by gzga-smtp-mtada-g0-1 (Coremail) with SMTP id _____wDHjxFYe_xn1ERKGQ--.56117S4;
+	Mon, 14 Apr 2025 11:04:57 +0800 (CST)
+From: lvxiafei <xiafei_xupt@163.com>
+To: fw@strlen.de
+Cc: coreteam@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	horms@kernel.org,
+	kadlec@netfilter.org,
+	kuba@kernel.org,
+	linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	xiafei_xupt@163.com
+Subject: Re: [PATCH V5] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
+Date: Mon, 14 Apr 2025 11:04:55 +0800
+Message-Id: <20250414030455.25322-1-xiafei_xupt@163.com>
+X-Mailer: git-send-email 2.40.1
+In-Reply-To: <20250413090755.GA5987@breakpoint.cc>
+References: <20250413090755.GA5987@breakpoint.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250412172610.37844-1-xiafei_xupt@163.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:_____wDHjxFYe_xn1ERKGQ--.56117S4
+X-Coremail-Antispam: 1Uf129KBjvdXoWrtw1rKFyruFW8uw48Wry8Zrb_yoWkXFX_KF
+	WUX3Wrtw1UZF1DKr1UKrnxAryqgrWUGFn7Aw1Yqr4rZrn3Z34kJrZ3WrW8X3ZrXF18trZI
+	vw1kZw1UAry7ujkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7VUjtCzJUUUUU==
+X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/1tbiEA4uU2f8SUINswABsM
 
-lvxiafei <xiafei_xupt@163.com> wrote:
-> +    Maximum number of allowed connection tracking entries per netns. This value
-> +    is set to nf_conntrack_buckets by default.
-> +
-> +    Note that connection tracking entries are added to the table twice -- once
-> +    for the original direction and once for the reply direction (i.e., with
-> +    the reversed address). This means that with default settings a maxed-out
-> +    table will have a average hash chain length of 2, not 1.
-> +
-> +    The limit of other netns cannot be greater than init_net netns.
-> +    +----------------+-------------+----------------+
-> +    | init_net netns | other netns | limit behavior |
-> +    +----------------+-------------+----------------+
-> +    | 0              | 0           | unlimited      |
-> +    +----------------+-------------+----------------+
-> +    | 0              | not 0       | other          |
-> +    +----------------+-------------+----------------+
-> +    | not 0          | 0           | init_net       |
-> +    +----------------+-------------+----------------+
-> +    | not 0          | not 0       | min            |
-> +    +----------------+-------------+----------------+
->  
->  nf_conntrack_tcp_be_liberal - BOOLEAN
->  	- 0 - disabled (default)
-> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-> index 3f02a45773e8..062e67b9a5d7 100644
-> --- a/include/net/netfilter/nf_conntrack.h
-> +++ b/include/net/netfilter/nf_conntrack.h
-> @@ -320,7 +320,6 @@ int nf_conntrack_hash_resize(unsigned int hashsize);
->  extern struct hlist_nulls_head *nf_conntrack_hash;
->  extern unsigned int nf_conntrack_htable_size;
->  extern seqcount_spinlock_t nf_conntrack_generation;
-> -extern unsigned int nf_conntrack_max;
->  
->  /* must be called with rcu read lock held */
->  static inline void
-> @@ -360,6 +359,13 @@ static inline struct nf_conntrack_net *nf_ct_pernet(const struct net *net)
->  	return net_generic(net, nf_conntrack_net_id);
->  }
->  
-> +static inline unsigned int nf_conntrack_max(const struct net *net)
-> +{
-> +	return likely(init_net.ct.sysctl_max && net->ct.sysctl_max) ?
-> +	    min(init_net.ct.sysctl_max, net->ct.sysctl_max) :
-> +	    max(init_net.ct.sysctl_max, net->ct.sysctl_max);
-> +}
+On Sun, 13 Apr 2025 11:07:55 +0200 Florian Westphal <fw@strlen.de> wrote:
+> Is there a reason you did not follow my suggstion in
+> https://lore.kernel.org/netdev/20250410105352.GB6272@breakpoint.cc/
+>
+> to disable net->ct.sysctl_max == 0 for non init netns?
 
-Is there a reason you did not follow my suggstion in
-https://lore.kernel.org/netdev/20250410105352.GB6272@breakpoint.cc/
+in https://lore.kernel.org/netdev/20250410105352.GB6272@breakpoint.cc/
+> > min(nf_conntrack_max, net->ct.sysctl_max) is the upper limit of ct_count
+> > At the same time, when net->ct.sysctl_max == 0, the original intention is no limit,
+> > but it can be limited by nf_conntrack_max in different netns.
+>
+> Sounds good to me.
 
-to disable net->ct.sysctl_max == 0 for non init netns?
+It seems that there are two ways to change it:
 
-You could then make this
+1. Disallow net->ct.sysctl_max == 0
 
-   if (likely(init_net.ct.sysctl_max))
-	return min(init_net.ct.sysctl_max, net->ct.sysctl_max);
+2. Allow net->ct.sysctl_max == 0
+the original intention is no limit, but it can be limited by init_net netns
+in different netns. When init_net is modified, it will change dynamically.
+    +----------------+-------------+----------------+
+    | init_net netns | other netns | limit behavior |
+    +----------------+-------------+----------------+
+    | not 0          | 0           | init_net       |
+    +----------------+-------------+----------------+
 
-   return net->ct.sysctl_max;
-
-... or am i missing something?
-
-Aside from that (and the needed #IS_ENABLED() guard) this change looks
-good to me.
