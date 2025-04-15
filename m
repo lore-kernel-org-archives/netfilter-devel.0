@@ -1,117 +1,219 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE7061E47B0
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 16:06:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7155220DF4
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 17:57:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.129
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744733179; cv=none; b=S9llm9pQwQ3Lkp32g6y6dRLwR+mVamspHAdjem2P+ezrFCsiC6+0hKmrr12VV868XlRqzw1AeuaBzkVaMUVKHqJ/OOUP7LmjLwMs7Oy5UW8SP60PpwKOzRSzNTKoVwtMZLA+xzG2RWxWaamXvcj/UyxheVXhrI0gnLJjtX4SZds=
+	t=1744739826; cv=none; b=VeuRWHqQQsWGodxyjgGwk4XGcb+SxY3XZ/I9nXyGZl1oyWbF4FI2fV/BKYdGEIBb0NXSaRsk02ZJbW9Dkda2Q3iwJ36FAYUPVxa2cV0KjZZaBjbcHHb5hkdmFpdJaOpeUOqAvpnixN8rAeeKtpIb1l7cUiXOBO9eczTCvihfNVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744733179; c=relaxed/simple;
-	bh=hgZy3Bs5bZtFb1xBAHv8Wk2VAlSG2m8POnP/PmcT6P4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MdDwqPHHUG0RRgp/50ZRl7qnaGVCp0iAuneK0pQmPhiDmfmLMm5EBgeZALldlKItAFiLxurehH/eHGSEghUdwtYWebhymwRoaBwjLXhbmrN1Tkhblejjg/STyMn/2nXIUZcpI1XkufaQd5qIY31sxdXtMqCBX249wzGcVyV5rdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=gK7VuYa+; arc=none smtp.client-ip=209.85.128.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1744739826; c=relaxed/simple;
+	bh=jDuuepAtwx4CUf+yzSquyhgI+hE0PwWySiyQ63JneKo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=h+HIbCuSPVvis8KmtlIAI6MMaUWScwB3kYDyWxz0kHl/HnMp98EneKFJPmveLkQV+3UgJuA1KEuFI6np97aGS/3PTffI6L/cE4EJqkg3z2AZe/8/jOG4iBkzRWvwUHAfWYGmd6lL9Yu6+z4AahUpR8HYwpFA3Nf73JwOCznSdxQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=pyquptUc; arc=none smtp.client-ip=198.252.153.129
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=riseup.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="gK7VuYa+"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-43d0782d787so41652095e9.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 09:06:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1744733174; x=1745337974; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=hgZy3Bs5bZtFb1xBAHv8Wk2VAlSG2m8POnP/PmcT6P4=;
-        b=gK7VuYa+0pKQ4E+ZfumwQapOyIwoEcOhko7opvwZbU/Er5aCxvmq7iBYGbIEPX4SPC
-         1BvVEmV1+UhbXR1Ug6ywIATZbmywzZevnBBorWljaBiM+9D/zdg0OkJ7ExY1/Egvc8p1
-         CILBY+toPDLBEPrnUyjg2VJmjxe/g560NxNj1m3QwyPksABbpn09VbuxYrUq8lFJqjvQ
-         ikAxo+nWZavShlEk2JCeND19P44mQPKLLiIA0biH/Vx+Z6KLOGXJAUSWf/r3XThgSB8Z
-         26hPU9r7JHJUCPdbnjVeSk36G77uwdQDeA7+tTvs3BpRC/yjwi80bfkq0xRReExqT5YT
-         ajfw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744733174; x=1745337974;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hgZy3Bs5bZtFb1xBAHv8Wk2VAlSG2m8POnP/PmcT6P4=;
-        b=lHRXVVas4nvvTGoF/MDcLjF9/mDACIu0DzPz5OswyhVJDv29gIXu6gA23y/161uorh
-         AEQW+wOXYUiFVCFKxApAiV6o5Pkz7u9M3que/IPobZlr+F2/bgkkY7MFWcuhsOS0/40+
-         rRiRp3VJ4Cvas0FXa6iKdyQgA/5PYuZrlf8vJrdU5T+zKmSM9VtXgyhILMsajes0bDh9
-         VZ/ppylanoxgO1iUTTioh5umjFph4DbTcMuehAKuGpuuWFeEylLKr7gOqWZc67WoSX92
-         XW5cFqrLoubu37rB6LEUvTZbaUryw2jwnuZst+m6CJZesNpjCCi3GXCFkVyWWGF4Hi4Q
-         VtoA==
-X-Gm-Message-State: AOJu0Yz6+LOK1fScJlDMFp8tbFpnkkZvWGMpTd9wpuWhvC+4lMPpmm9g
-	LjcqfrDX8fkzC8UvOjD9NNhc4QIejSjnedM8nXfFAkmOAzTLaxrrlB/QwyMAT4M=
-X-Gm-Gg: ASbGnctGRsKcW0z/MRRKDFcyVgyCOEzMbpS5d3FYOBEHdx/sJLzWUjAQcPif9lLn/0c
-	yjz1F+J6tTjH+pyuwws4Gqy7q/EA3k1Nx7iZvxS5Ki1UVQCioyxwfqFrJ2h5+mQPpGVh+8XgrnJ
-	hMkfKyhSw++gvvabGn1Zo7/dujGFrvWPV5fzZN3aixGeVN9J3YmGuBxSaxEM3F6K7sfL9iwiOqH
-	/F8sHdBxdAiN1aO7tKimLWpyIkZOfhghQh9XxoppXPm3hBtP3WGFgM+e6Xf8B3iD/p7DKu7b8e7
-	3HKV3uK6MXqXNOMgTQ0Mn4quyqyIg8gS8nHABL3l27s=
-X-Google-Smtp-Source: AGHT+IGTKkmP0oe0fauFieWns1mCFUH/1vQsWUwM+pO9VnG6/65IgNgDirpko2Yd+tXf8f74r72J5Q==
-X-Received: by 2002:a05:600c:1e02:b0:43d:22d9:4b8e with SMTP id 5b1f17b1804b1-43f86e1f246mr49614045e9.10.1744733173992;
-        Tue, 15 Apr 2025 09:06:13 -0700 (PDT)
-Received: from blackdock.suse.cz ([193.86.92.181])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-43f2338db0dsm219073455e9.7.2025.04.15.09.06.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Apr 2025 09:06:13 -0700 (PDT)
-Date: Tue, 15 Apr 2025 18:06:11 +0200
-From: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, cgroups@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	David Ahern <dsahern@kernel.org>, Tejun Heo <tj@kernel.org>, Eric Dumazet <edumazet@google.com>, 
-	"David S. Miller" <davem@davemloft.net>, Johannes Weiner <hannes@cmpxchg.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [PATCH v3 0/3] netfilter: Make xt_cgroup independent from net_cls
-Message-ID: <zu5vvfmz2kfktu5tuedmcm5cpajt6dotkf72okrzxnyosbx7k7@kss7qnr4lenr>
-References: <20250401115736.1046942-1-mkoutny@suse.com>
- <o4q7vxrdblnuoiqbiw6qvb52bg5kb33helpfynphbbgt4bjttq@7344qly6lv5f>
- <Z_52r_v9-3JUzDT7@calendula>
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="pyquptUc"
+Received: from fews02-sea.riseup.net (fews02-sea-pn.riseup.net [10.0.1.112])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx1.riseup.net (Postfix) with ESMTPS id 4ZcX0p4xWSzDqkY;
+	Tue, 15 Apr 2025 17:56:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
+	t=1744739818; bh=jDuuepAtwx4CUf+yzSquyhgI+hE0PwWySiyQ63JneKo=;
+	h=From:To:Cc:Subject:Date:From;
+	b=pyquptUcqzdeypBnTvaxLFDVyj+n9DRe2GkGuPIByuoAnHzk/Mspq5xhKsgraYXs2
+	 Qd1hYBZp1TgCnuBmbsh/8cpBwb/MnQqwURD02/ucSLQRXO8JkFTkyayvTCKFR2Ju+0
+	 exiO1Hmr3+XaWM0rkE6Gxz6qu5OV2bsttiHc+wKE=
+X-Riseup-User-ID: 06F3669B98B2B359C9E4CBC41239850F3A85EFFA382378B83FA0ABBA04E2E938
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	 by fews02-sea.riseup.net (Postfix) with ESMTPSA id 4ZcX0n44nvzFwq9;
+	Tue, 15 Apr 2025 17:56:57 +0000 (UTC)
+From: Fernando Fernandez Mancera <ffmancera@riseup.net>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	Fernando Fernandez Mancera <ffmancera@riseup.net>
+Subject: [PATCH 1/2 libnftnl] src: use uint64_t for flags fields
+Date: Tue, 15 Apr 2025 19:56:42 +0200
+Message-ID: <20250415175643.4060-1-ffmancera@riseup.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="pqcmzdxhrghzvc3f"
-Content-Disposition: inline
-In-Reply-To: <Z_52r_v9-3JUzDT7@calendula>
+Content-Transfer-Encoding: 8bit
 
+The flags for the object tunnel already reach out 31, therefore, in
+order to be able to extend the flags field must be uint64_t. Otherwise,
+we will shift by more of the type size.
 
---pqcmzdxhrghzvc3f
-Content-Type: text/plain; protected-headers=v1; charset=us-ascii
-Content-Disposition: inline
-Subject: Re: [PATCH v3 0/3] netfilter: Make xt_cgroup independent from net_cls
-MIME-Version: 1.0
+Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
+---
+ include/obj.h   |  2 +-
+ include/rule.h  |  2 +-
+ include/set.h   |  2 +-
+ include/utils.h |  2 +-
+ src/chain.c     |  2 +-
+ src/flowtable.c |  2 +-
+ src/object.c    | 10 +++++-----
+ src/table.c     |  2 +-
+ src/utils.c     |  2 +-
+ 9 files changed, 13 insertions(+), 13 deletions(-)
 
-On Tue, Apr 15, 2025 at 05:09:35PM +0200, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I am going to apply 1/3 and 2/3 to nf-next.git
+diff --git a/include/obj.h b/include/obj.h
+index d217737..fc78e2a 100644
+--- a/include/obj.h
++++ b/include/obj.h
+@@ -19,7 +19,7 @@ struct nftnl_obj {
+ 	uint32_t		family;
+ 	uint32_t		use;
+ 
+-	uint32_t		flags;
++	uint64_t		flags;
+ 	uint64_t		handle;
+ 
+ 	struct {
+diff --git a/include/rule.h b/include/rule.h
+index 036c722..6432786 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -4,7 +4,7 @@
+ struct nftnl_rule {
+ 	struct list_head head;
+ 
+-	uint32_t	flags;
++	uint64_t	flags;
+ 	uint32_t	family;
+ 	const char	*table;
+ 	const char	*chain;
+diff --git a/include/set.h b/include/set.h
+index 55018b6..179f6ad 100644
+--- a/include/set.h
++++ b/include/set.h
+@@ -30,7 +30,7 @@ struct nftnl_set {
+ 	} desc;
+ 	struct list_head	element_list;
+ 
+-	uint32_t		flags;
++	uint64_t		flags;
+ 	uint32_t		gc_interval;
+ 	uint64_t		timeout;
+ 	struct list_head	expr_list;
+diff --git a/include/utils.h b/include/utils.h
+index eed6127..5da2ddb 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -79,7 +79,7 @@ int nftnl_fprintf(FILE *fpconst, const void *obj, uint32_t cmd, uint32_t type,
+ 			  	     uint32_t cmd, uint32_t type,
+ 				     uint32_t flags));
+ 
+-int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
++int nftnl_set_str_attr(const char **dptr, uint64_t *flags,
+ 		       uint16_t attr, const void *data, uint32_t data_len);
+ 
+ #endif
+diff --git a/src/chain.c b/src/chain.c
+index 895108c..a9e18dc 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -43,7 +43,7 @@ struct nftnl_chain {
+ 	uint64_t	packets;
+ 	uint64_t	bytes;
+ 	uint64_t	handle;
+-	uint32_t	flags;
++	uint64_t	flags;
+ 	uint32_t	chain_id;
+ 
+ 	struct {
+diff --git a/src/flowtable.c b/src/flowtable.c
+index fbbe0a8..c52ba0e 100644
+--- a/src/flowtable.c
++++ b/src/flowtable.c
+@@ -29,7 +29,7 @@ struct nftnl_flowtable {
+ 	struct nftnl_str_array	dev_array;
+ 	uint32_t		ft_flags;
+ 	uint32_t		use;
+-	uint32_t		flags;
++	uint64_t		flags;
+ 	uint64_t		handle;
+ };
+ 
+diff --git a/src/object.c b/src/object.c
+index bfcceb9..f307815 100644
+--- a/src/object.c
++++ b/src/object.c
+@@ -62,13 +62,13 @@ void nftnl_obj_free(const struct nftnl_obj *obj)
+ EXPORT_SYMBOL(nftnl_obj_is_set);
+ bool nftnl_obj_is_set(const struct nftnl_obj *obj, uint16_t attr)
+ {
+-	return obj->flags & (1 << attr);
++	return obj->flags & (1ULL << attr);
+ }
+ 
+ EXPORT_SYMBOL(nftnl_obj_unset);
+ void nftnl_obj_unset(struct nftnl_obj *obj, uint16_t attr)
+ {
+-	if (!(obj->flags & (1 << attr)))
++	if (!(obj->flags & (1ULL << attr)))
+ 		return;
+ 
+ 	switch (attr) {
+@@ -90,7 +90,7 @@ void nftnl_obj_unset(struct nftnl_obj *obj, uint16_t attr)
+ 		break;
+ 	}
+ 
+-	obj->flags &= ~(1 << attr);
++	obj->flags &= ~(1ULL << attr);
+ }
+ 
+ static uint32_t nftnl_obj_validate[NFTNL_OBJ_MAX + 1] = {
+@@ -153,7 +153,7 @@ int nftnl_obj_set_data(struct nftnl_obj *obj, uint16_t attr,
+ 		if (obj->ops->set(obj, attr, data, data_len) < 0)
+ 			return -1;
+ 	}
+-	obj->flags |= (1 << attr);
++	obj->flags |= (1ULL << attr);
+ 	return 0;
+ }
+ 
+@@ -197,7 +197,7 @@ EXPORT_SYMBOL(nftnl_obj_get_data);
+ const void *nftnl_obj_get_data(const struct nftnl_obj *obj, uint16_t attr,
+ 			       uint32_t *data_len)
+ {
+-	if (!(obj->flags & (1 << attr)))
++	if (!(obj->flags & (1ULL << attr)))
+ 		return NULL;
+ 
+ 	switch(attr) {
+diff --git a/src/table.c b/src/table.c
+index 9870dca..e183e2e 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -29,7 +29,7 @@ struct nftnl_table {
+ 	uint32_t	table_flags;
+ 	uint64_t 	handle;
+ 	uint32_t	use;
+-	uint32_t	flags;
++	uint64_t	flags;
+ 	uint32_t	owner;
+ 	struct {
+ 		void		*data;
+diff --git a/src/utils.c b/src/utils.c
+index 5f2c5bf..7942d67 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -133,7 +133,7 @@ void __noreturn __abi_breakage(const char *file, int line, const char *reason)
+        exit(EXIT_FAILURE);
+ }
+ 
+-int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
++int nftnl_set_str_attr(const char **dptr, uint64_t *flags,
+ 		       uint16_t attr, const void *data, uint32_t data_len)
+ {
+ 	if (*flags & (1 << attr))
+-- 
+2.49.0
 
-Thanks.
-
-> I suggest, then, you follow up to cgroups tree to submit 3/3.
-
-OK.
-
-> 3/3 does not show up in my patchwork for some reason.
-
-The reason is -- my invocation of get_maintainer.pl on the 3rd patch
-excluded anything netdev. Sorry.
-
-Michal
-
---pqcmzdxhrghzvc3f
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTd6mfF2PbEZnpdoAkt3Wney77BSQUCZ/6D8QAKCRAt3Wney77B
-SdAMAQDdLxRxMCm8JCPMZyX9ZYadyzJ6nkt7nq78k1iLIvQDawD+ICbdnSZr7N2t
-wIYe9I+drbFtQ44kwYWEDcKUdGL5wAs=
-=zr9E
------END PGP SIGNATURE-----
-
---pqcmzdxhrghzvc3f--
