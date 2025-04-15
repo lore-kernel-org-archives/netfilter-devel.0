@@ -1,64 +1,58 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAC9B199FA4;
-	Tue, 15 Apr 2025 15:09:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31B8629A3D7
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 15:14:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744729784; cv=none; b=N6AWF7HStfGiWbw9Gdu7UirdiJAot7QXsbRLFyRH8x4z+0LGWaNvgK2G7oU4UyChosbYRziGZiOFvO3NMYJkhOGjLx8BgvPwzivqlJav5UZZ1mOj08Fla4ePnaLtVFUR10yjGsfD/+kXWGBLvVCGgib4m1vS008nUnwBPyvJd4g=
+	t=1744730087; cv=none; b=A4OwwP9TNB3N6aCuKg5AkzJaYCixiImnGJ+58NxIn/8nvKnhwUx0h8r2tVxAp8ylBih+i1bKUEBn54aoKoqSwJw1VZbK/6zWq2mVIlbVtbAyMiGJOGQHTKGGeAxeSvIE1ZSymXzOeLmIr55Le/b4Q7BvqMJJJon1ktFxayHid2I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744729784; c=relaxed/simple;
-	bh=1sY8h35aN2Hmwd36JiY1vQFSG475B/5TTcTr4pmla/M=;
+	s=arc-20240116; t=1744730087; c=relaxed/simple;
+	bh=pql42fK8UCTE0I0nkDe1tqu9cxQr+xVYTV5n2ksdEtU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=I+0vvibdTDlXLydjcTuL5tbZiDapuIrKDyTeYoqfQ2a/mKbZz8nOaiC5n5nHsoWqXddr96ru1qhifx1Vq7rMJBIDoSWIHZGU6ZlF+jqLoXmXv8R8mGl2prYC8EalqDsALsK3HhDJ8AYmJafMip0rsd+aAm9HS6J9gvQnzDFttqw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UK5bJemo; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pRh0tqPv; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=swpjefAoxZ94HV11f4YvtfnKtd/Vlvlw7Gda5ZoTpQuEqy5FCkY83/I0R9ezLS8WoLKU77HEW48xZJelC/m6pe61gTRQWW8LY+fAifCAmn1+nHb6CvUd3BLjbXWK3p4kYjSoZ297en9KCWRhf6Okqw6wE/xuGQ5GJvVDIgkWrzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oniKxiyi; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rsd3q83N; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UK5bJemo";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pRh0tqPv"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oniKxiyi";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rsd3q83N"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 40BE660B8A; Tue, 15 Apr 2025 17:09:39 +0200 (CEST)
+	id A738460BB4; Tue, 15 Apr 2025 17:14:43 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744729780;
-	bh=vGQh7X7rXzqZp7edqwor6awCdiBrTcxU9eCBdReDiyA=;
+	s=2025; t=1744730083;
+	bh=K4BwkSwDsYNBSLJ98AleykATE+jvX4fcmUD9asazRcc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UK5bJemoSppoh2NRsRoyoVj4/gLHmnsPwH+OMNTQ7gS6MTRGGFYhUP2KJIUpymUsn
-	 wDP+prGuedR1RYt3+42LSw59ALvfJ3P8FW5qmMfHtgh5y72gVEEt3AD207Py702HLO
-	 ActJ0lT9U0IAlTQPC1n9HykjbCVTrov7IE/JavoV16XtKQp1pov+Ru1mlXin7zzPhB
-	 91RRYV6nKOv7YyeZ2F6+B6gArQlmhoy0max0OMulgoHDOuMNILNNHvWW1pQE+PqPsR
-	 5/NFymKqWot9G6z3GDKK2Q/uNLpJqjlYwcC/sTGhp2HPS0nSAFg6wAC3aa8X1cSX0v
-	 4S0OsDp01VwOg==
+	b=oniKxiyiFW4LL45kFq9YnRgyz9Df5SejQajeJkjQ6XuHCgSsmaomFHjJjLCKxy3pr
+	 PJHS+zwyV7vwPeyzpW3YUksVHdpRfoXNkpUT5crPlNNjEc8/RpbUz6m5EKUI/+1LKZ
+	 uR7HjoOsq5q11NePaC7AKiGT9DWhcLbJOaQx3eoldrwOnx7akTkdp1sYHJ1E1mAsoX
+	 ZLlyWVLshgzZZvUftQT4Acn9KABXDvDihmq6HU7R3m80BBMeUhXokmcrTdJ2h2g4lR
+	 58V3kLS/EfaP3Sh8cuJOBqfn5VpRj7VObmfo4CmPdhqCTNw+jIDseeHrnR+9/gtks9
+	 2FRn+pvqxr4eg==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 92F5D60B76;
-	Tue, 15 Apr 2025 17:09:37 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id AAE8060BB4;
+	Tue, 15 Apr 2025 17:14:41 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744729777;
-	bh=vGQh7X7rXzqZp7edqwor6awCdiBrTcxU9eCBdReDiyA=;
+	s=2025; t=1744730081;
+	bh=K4BwkSwDsYNBSLJ98AleykATE+jvX4fcmUD9asazRcc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=pRh0tqPv/J8UAh3jZ3ZSZVUlgwiqCdLBXy8YzG8tGeVG+Q5mPAhCARPFAVH1vXUdw
-	 VlZYTwWRrRIG2feir8w9zbpbmLnm/mX6aPHmLnafWKN/YO9o8IwkwneEvztum5mXT3
-	 Nnv7imQdfdoZHizskiyCXCYDnHU7auIyllSRiGmvi2aYB4/F413ukKbj+ixZI2RzZ+
-	 +W8oAGSbGNO0WesXEtSM3gqGG2ohYhb9fri8J4NuINNmPoCOFqYhwmf+AQW5BB8wEb
-	 AoXDucmQvphhX/LGNJgfxzcAHGUjsp5igTlcqk5kGAldMLKU2nVG7j0r1NeTfPObtJ
-	 y7iP/7bfkHg5g==
-Date: Tue, 15 Apr 2025 17:09:35 +0200
+	b=rsd3q83NT1OzTmBEQOTFQRcnsyb9m9l8KFMA4ZyoyVusYuS9GkpbSqh3imA2n+zSE
+	 qgTGAR5+DP74pjLf6MZt3nowLCDWtXvyNpPKP9dUL5ynhKk1cs0KNX45sN4gW88Fdi
+	 X0oXcDesDC2p+siM/hHicZKlb3ttUVdB4fS5rfBNTf77Zp9XWUdY9Z5b3kmDULetE3
+	 A606zx5AQbt+XJNW60GfaZSQJt8AcoZS/ERm6pOBbCin+Zf59WMkZiM24e5roNgzCA
+	 leomZ/vamUeu6k8D4jKKLEYGr+S88iik4U7ntjNj5/ICxOZJ76AbaRdq3ajfr7OuVv
+	 etVywzZLeC42w==
+Date: Tue, 15 Apr 2025 17:14:39 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>
-Cc: netfilter-devel@vger.kernel.org, cgroups@vger.kernel.org,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, David Ahern <dsahern@kernel.org>,
-	Tejun Heo <tj@kernel.org>, Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [PATCH v3 0/3] netfilter: Make xt_cgroup independent from net_cls
-Message-ID: <Z_52r_v9-3JUzDT7@calendula>
-References: <20250401115736.1046942-1-mkoutny@suse.com>
- <o4q7vxrdblnuoiqbiw6qvb52bg5kb33helpfynphbbgt4bjttq@7344qly6lv5f>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev, Florian Westphal <fw@strlen.de>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v4] netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
+Message-ID: <Z_5335rrIYsyVq6E@calendula>
+References: <20250404152815.LilZda0r@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -67,23 +61,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <o4q7vxrdblnuoiqbiw6qvb52bg5kb33helpfynphbbgt4bjttq@7344qly6lv5f>
+In-Reply-To: <20250404152815.LilZda0r@linutronix.de>
 
-On Wed, Apr 09, 2025 at 06:56:17PM +0200, Michal Koutný wrote:
-> On Tue, Apr 01, 2025 at 01:57:29PM +0200, Michal Koutný <mkoutny@suse.com> wrote:
-> > Changes from v2 (https://lore.kernel.org/r/20250305170935.80558-1-mkoutny@suse.com):
-> > - don't accept zero classid neither (Pablo N. A.)
-> > - eliminate code that might rely on comparison against zero with
-> >   !CONFIG_CGROUP_NET_CLASSID
+On Fri, Apr 04, 2025 at 05:28:15PM +0200, Sebastian Andrzej Siewior wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> Pablo, just to break possible dilemma with Tejun's routing [1], it makes
-> sense to me to route this series together via net(filter) git(s).
+> The seqcount xt_recseq is used to synchronize the replacement of
+> xt_table::private in xt_replace_table() against all readers such as
+> ipt_do_table()
 > 
-> Also, let me (anyone) know should there be further remarks to this form.
+> To ensure that there is only one writer, the writing side disables
+> bottom halves. The sequence counter can be acquired recursively. Only the
+> first invocation modifies the sequence counter (signaling that a writer
+> is in progress) while the following (recursive) writer does not modify
+> the counter.
+> The lack of a proper locking mechanism for the sequence counter can lead
+> to live lock on PREEMPT_RT if the high prior reader preempts the
+> writer. Additionally if the per-CPU lock on PREEMPT_RT is removed from
+> local_bh_disable() then there is no synchronisation for the per-CPU
+> sequence counter.
+> 
+> The affected code is "just" the legacy netfilter code which is replaced
+> by "netfilter tables". That code can be disabled without sacrificing
+> functionality because everything is provided by the newer
+> implementation. This will only requires the usage of the "-nft" tools
+> instead of the "-legacy" ones.
+> The long term plan is to remove the legacy code so lets accelerate the
+> progress.
+> 
+> Relax dependencies on iptables legacy, replace select with depends on,
+> this should cause no harm to existing kernel configs and users can still
+> toggle IP{6}_NF_IPTABLES_LEGACY in any case.
+> Make EBTABLES_LEGACY, IPTABLES_LEGACY and ARPTABLES depend on
+> NETFILTER_LEGACY. Hide xt_recseq and its users, xt_register_table() and
+> xt_percpu_counter_alloc() behind NETFILTER_LEGACY. Let NETFILTER_LEGACY
+> depend on !PREEMPT_RT.
+> 
+> Replace CONFIG_IP6_NF_MANGLE->CONFIG_IP6_NF_IPTABLES for TCPOPTSTRIP and
+> add CONFIG_NFT_COMPAT_ARP to the MARK target for the IPv6 and ARP target
+> to keep it enabled without the LEGACY code for NFT.
 
-I am going to apply 1/3 and 2/3 to nf-next.git
+Applied to nf-next.
 
-I suggest, then, you follow up to cgroups tree to submit 3/3.
-
-3/3 does not show up in my patchwork for some reason.
+Thanks for keeping me as author, I don't deserve it.
