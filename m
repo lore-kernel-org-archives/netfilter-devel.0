@@ -1,43 +1,46 @@
-Received: from mx1.riseup.net (mx1.riseup.net [198.252.153.129])
+Received: from mx0.riseup.net (mx0.riseup.net [198.252.153.6])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7155220DF4
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 17:57:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.129
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F70420DF4
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 17:57:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.252.153.6
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744739826; cv=none; b=VeuRWHqQQsWGodxyjgGwk4XGcb+SxY3XZ/I9nXyGZl1oyWbF4FI2fV/BKYdGEIBb0NXSaRsk02ZJbW9Dkda2Q3iwJ36FAYUPVxa2cV0KjZZaBjbcHHb5hkdmFpdJaOpeUOqAvpnixN8rAeeKtpIb1l7cUiXOBO9eczTCvihfNVY=
+	t=1744739832; cv=none; b=PJIzMuPDzTsqkswnqi7335D+4pmQu31ZpovDyS/ROs20ZW3MQign2+tGfd3iGhi6D+z+6YTfFqoOcLWL572M8EcFVEeHMRi/7wmfBUHCk4fEVUZl1UtyNBo2Jwy2AXq2k4dkymDj33RAd+Z7RmTUQPe7gfzAaEQvML74qErwpIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744739826; c=relaxed/simple;
-	bh=jDuuepAtwx4CUf+yzSquyhgI+hE0PwWySiyQ63JneKo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=h+HIbCuSPVvis8KmtlIAI6MMaUWScwB3kYDyWxz0kHl/HnMp98EneKFJPmveLkQV+3UgJuA1KEuFI6np97aGS/3PTffI6L/cE4EJqkg3z2AZe/8/jOG4iBkzRWvwUHAfWYGmd6lL9Yu6+z4AahUpR8HYwpFA3Nf73JwOCznSdxQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=pyquptUc; arc=none smtp.client-ip=198.252.153.129
+	s=arc-20240116; t=1744739832; c=relaxed/simple;
+	bh=3635aePK90sooP11Z+lp320BZF7W66o/XJ3J1O9dXII=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=GBttyktTHu/daNtAvxJGJWwa4jrF86wf6mhIXAVSgjzZHwPiXPvKBCLcqMw6THZtHorf71NAM81nWd3mAVRg3TunxyJJth6iVIpuUW7qSSKMn9CoZiQ9vLyVbD/Z32R2BTCPcVYfBrkXVTWBeLPGz9ZK4gBGeqzPW6KGSDdla9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net; spf=pass smtp.mailfrom=riseup.net; dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b=KDvppaJz; arc=none smtp.client-ip=198.252.153.6
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=riseup.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=riseup.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="pyquptUc"
+	dkim=pass (1024-bit key) header.d=riseup.net header.i=@riseup.net header.b="KDvppaJz"
 Received: from fews02-sea.riseup.net (fews02-sea-pn.riseup.net [10.0.1.112])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mx1.riseup.net (Postfix) with ESMTPS id 4ZcX0p4xWSzDqkY;
-	Tue, 15 Apr 2025 17:56:58 +0000 (UTC)
+	by mx0.riseup.net (Postfix) with ESMTPS id 4ZcX0w2y8tz9w0Y;
+	Tue, 15 Apr 2025 17:57:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=riseup.net; s=squak;
-	t=1744739818; bh=jDuuepAtwx4CUf+yzSquyhgI+hE0PwWySiyQ63JneKo=;
-	h=From:To:Cc:Subject:Date:From;
-	b=pyquptUcqzdeypBnTvaxLFDVyj+n9DRe2GkGuPIByuoAnHzk/Mspq5xhKsgraYXs2
-	 Qd1hYBZp1TgCnuBmbsh/8cpBwb/MnQqwURD02/ucSLQRXO8JkFTkyayvTCKFR2Ju+0
-	 exiO1Hmr3+XaWM0rkE6Gxz6qu5OV2bsttiHc+wKE=
-X-Riseup-User-ID: 06F3669B98B2B359C9E4CBC41239850F3A85EFFA382378B83FA0ABBA04E2E938
+	t=1744739824; bh=3635aePK90sooP11Z+lp320BZF7W66o/XJ3J1O9dXII=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=KDvppaJzABqIgnEkRbHt7TxEP42r3PoFbg/pZNmH2S8NY/ps7Gz2GRBzsh0ZH/EYC
+	 XaeoS5ATbQkNQrjXl0F5T/Xcv+1k26XA3tfasVPzrd34KpHle2hPVangLU9UAH8gs4
+	 qfo8/+wyAhCrFqLVg9i3qM/DtRNJWCPiajECvBHQ=
+X-Riseup-User-ID: 004EF85B01DB36316867FC4B9957EC7D6458863791AC0352B9D0E7E6CF2781EF
 Received: from [127.0.0.1] (localhost [127.0.0.1])
-	 by fews02-sea.riseup.net (Postfix) with ESMTPSA id 4ZcX0n44nvzFwq9;
-	Tue, 15 Apr 2025 17:56:57 +0000 (UTC)
+	 by fews02-sea.riseup.net (Postfix) with ESMTPSA id 4ZcX0v20KKzFwpC;
+	Tue, 15 Apr 2025 17:57:03 +0000 (UTC)
 From: Fernando Fernandez Mancera <ffmancera@riseup.net>
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
 	Fernando Fernandez Mancera <ffmancera@riseup.net>
-Subject: [PATCH 1/2 libnftnl] src: use uint64_t for flags fields
-Date: Tue, 15 Apr 2025 19:56:42 +0200
-Message-ID: <20250415175643.4060-1-ffmancera@riseup.net>
+Subject: [PATCH 2/2 libnftnl] tunnel: add support to geneve
+Date: Tue, 15 Apr 2025 19:56:43 +0200
+Message-ID: <20250415175643.4060-2-ffmancera@riseup.net>
+In-Reply-To: <20250415175643.4060-1-ffmancera@riseup.net>
+References: <20250415175643.4060-1-ffmancera@riseup.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -46,174 +49,205 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The flags for the object tunnel already reach out 31, therefore, in
-order to be able to extend the flags field must be uint64_t. Otherwise,
-we will shift by more of the type size.
-
 Signed-off-by: Fernando Fernandez Mancera <ffmancera@riseup.net>
 ---
- include/obj.h   |  2 +-
- include/rule.h  |  2 +-
- include/set.h   |  2 +-
- include/utils.h |  2 +-
- src/chain.c     |  2 +-
- src/flowtable.c |  2 +-
- src/object.c    | 10 +++++-----
- src/table.c     |  2 +-
- src/utils.c     |  2 +-
- 9 files changed, 13 insertions(+), 13 deletions(-)
+ include/libnftnl/object.h |   5 ++
+ include/obj.h             |   6 +++
+ src/obj/tunnel.c          | 103 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 114 insertions(+)
 
-diff --git a/include/obj.h b/include/obj.h
-index d217737..fc78e2a 100644
---- a/include/obj.h
-+++ b/include/obj.h
-@@ -19,7 +19,7 @@ struct nftnl_obj {
- 	uint32_t		family;
- 	uint32_t		use;
- 
--	uint32_t		flags;
-+	uint64_t		flags;
- 	uint64_t		handle;
- 
- 	struct {
-diff --git a/include/rule.h b/include/rule.h
-index 036c722..6432786 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -4,7 +4,7 @@
- struct nftnl_rule {
- 	struct list_head head;
- 
--	uint32_t	flags;
-+	uint64_t	flags;
- 	uint32_t	family;
- 	const char	*table;
- 	const char	*chain;
-diff --git a/include/set.h b/include/set.h
-index 55018b6..179f6ad 100644
---- a/include/set.h
-+++ b/include/set.h
-@@ -30,7 +30,7 @@ struct nftnl_set {
- 	} desc;
- 	struct list_head	element_list;
- 
--	uint32_t		flags;
-+	uint64_t		flags;
- 	uint32_t		gc_interval;
- 	uint64_t		timeout;
- 	struct list_head	expr_list;
-diff --git a/include/utils.h b/include/utils.h
-index eed6127..5da2ddb 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -79,7 +79,7 @@ int nftnl_fprintf(FILE *fpconst, const void *obj, uint32_t cmd, uint32_t type,
- 			  	     uint32_t cmd, uint32_t type,
- 				     uint32_t flags));
- 
--int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
-+int nftnl_set_str_attr(const char **dptr, uint64_t *flags,
- 		       uint16_t attr, const void *data, uint32_t data_len);
- 
- #endif
-diff --git a/src/chain.c b/src/chain.c
-index 895108c..a9e18dc 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -43,7 +43,7 @@ struct nftnl_chain {
- 	uint64_t	packets;
- 	uint64_t	bytes;
- 	uint64_t	handle;
--	uint32_t	flags;
-+	uint64_t	flags;
- 	uint32_t	chain_id;
- 
- 	struct {
-diff --git a/src/flowtable.c b/src/flowtable.c
-index fbbe0a8..c52ba0e 100644
---- a/src/flowtable.c
-+++ b/src/flowtable.c
-@@ -29,7 +29,7 @@ struct nftnl_flowtable {
- 	struct nftnl_str_array	dev_array;
- 	uint32_t		ft_flags;
- 	uint32_t		use;
--	uint32_t		flags;
-+	uint64_t		flags;
- 	uint64_t		handle;
+diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
+index 9930355..0c695ea 100644
+--- a/include/libnftnl/object.h
++++ b/include/libnftnl/object.h
+@@ -117,9 +117,14 @@ enum {
+ 	NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX,
+ 	NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID,
+ 	NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR,
++	NFTNL_OBJ_TUNNEL_GENEVE_CLASS,
++	NFTNL_OBJ_TUNNEL_GENEVE_TYPE,
++	NFTNL_OBJ_TUNNEL_GENEVE_DATA,
+ 	__NFTNL_OBJ_TUNNEL_MAX,
  };
  
-diff --git a/src/object.c b/src/object.c
-index bfcceb9..f307815 100644
---- a/src/object.c
-+++ b/src/object.c
-@@ -62,13 +62,13 @@ void nftnl_obj_free(const struct nftnl_obj *obj)
- EXPORT_SYMBOL(nftnl_obj_is_set);
- bool nftnl_obj_is_set(const struct nftnl_obj *obj, uint16_t attr)
- {
--	return obj->flags & (1 << attr);
-+	return obj->flags & (1ULL << attr);
- }
- 
- EXPORT_SYMBOL(nftnl_obj_unset);
- void nftnl_obj_unset(struct nftnl_obj *obj, uint16_t attr)
- {
--	if (!(obj->flags & (1 << attr)))
-+	if (!(obj->flags & (1ULL << attr)))
- 		return;
- 
- 	switch (attr) {
-@@ -90,7 +90,7 @@ void nftnl_obj_unset(struct nftnl_obj *obj, uint16_t attr)
++#define NFTNL_TUNNEL_GENEVE_DATA_MAXLEN	126
++
+ enum {
+ 	NFTNL_OBJ_SECMARK_CTX	= NFTNL_OBJ_BASE,
+ 	__NFTNL_OBJ_SECMARK_MAX,
+diff --git a/include/obj.h b/include/obj.h
+index fc78e2a..e6c1cbf 100644
+--- a/include/obj.h
++++ b/include/obj.h
+@@ -92,6 +92,12 @@ struct nftnl_obj {
+ 						} v2;
+ 					} u;
+ 				} tun_erspan;
++				struct {
++					uint16_t	geneve_class;
++					uint8_t		type;
++					uint8_t		data[NFTNL_TUNNEL_GENEVE_DATA_MAXLEN];
++					uint32_t	data_len;
++				} tun_geneve;
+ 			} u;
+ 		} tunnel;
+ 		struct nftnl_obj_secmark {
+diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
+index 8941e39..27a6acd 100644
+--- a/src/obj/tunnel.c
++++ b/src/obj/tunnel.c
+@@ -72,6 +72,16 @@ nftnl_obj_tunnel_set(struct nftnl_obj *e, uint16_t type,
+ 	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR:
+ 		memcpy(&tun->u.tun_erspan.u.v2.dir, data, data_len);
  		break;
++	case NFTNL_OBJ_TUNNEL_GENEVE_CLASS:
++		memcpy(&tun->u.tun_geneve.geneve_class, data, data_len);
++		break;
++	case NFTNL_OBJ_TUNNEL_GENEVE_TYPE:
++		memcpy(&tun->u.tun_geneve.type, data, data_len);
++		break;
++	case NFTNL_OBJ_TUNNEL_GENEVE_DATA:
++		memcpy(&tun->u.tun_geneve.data, data, data_len);
++		tun->u.tun_geneve.data_len = data_len;
++		break;
  	}
- 
--	obj->flags &= ~(1 << attr);
-+	obj->flags &= ~(1ULL << attr);
+ 	return 0;
+ }
+@@ -131,6 +141,15 @@ nftnl_obj_tunnel_get(const struct nftnl_obj *e, uint16_t type,
+ 	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR:
+ 		*data_len = sizeof(tun->u.tun_erspan.u.v2.dir);
+ 		return &tun->u.tun_erspan.u.v2.dir;
++	case NFTNL_OBJ_TUNNEL_GENEVE_CLASS:
++		*data_len = sizeof(tun->u.tun_geneve.geneve_class);
++		return &tun->u.tun_geneve.geneve_class;
++	case NFTNL_OBJ_TUNNEL_GENEVE_TYPE:
++		*data_len = sizeof(tun->u.tun_geneve.type);
++		return &tun->u.tun_geneve.type;
++	case NFTNL_OBJ_TUNNEL_GENEVE_DATA:
++		*data_len = tun->u.tun_geneve.data_len;
++		return &tun->u.tun_geneve.data;
+ 	}
+ 	return NULL;
+ }
+@@ -240,6 +259,21 @@ nftnl_obj_tunnel_build(struct nlmsghdr *nlh, const struct nftnl_obj *e)
+ 		mnl_attr_nest_end(nlh, nest_inner);
+ 		mnl_attr_nest_end(nlh, nest);
+ 	}
++	if (e->flags & (1ULL << NFTNL_OBJ_TUNNEL_GENEVE_CLASS) &&
++	    e->flags & (1ULL << NFTNL_OBJ_TUNNEL_GENEVE_TYPE) &&
++	    e->flags & (1ULL << NFTNL_OBJ_TUNNEL_GENEVE_DATA)) {
++		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
++		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_GENEVE);
++		mnl_attr_put_u16(nlh, NFTA_TUNNEL_KEY_GENEVE_CLASS,
++				 htons(tun->u.tun_geneve.geneve_class));
++		mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_GENEVE_TYPE,
++				tun->u.tun_geneve.type);
++		mnl_attr_put(nlh, NFTA_TUNNEL_KEY_GENEVE_DATA,
++			     tun->u.tun_geneve.data_len,
++			     tun->u.tun_geneve.data);
++		mnl_attr_nest_end(nlh, nest_inner);
++		mnl_attr_nest_end(nlh, nest);
++	}
  }
  
- static uint32_t nftnl_obj_validate[NFTNL_OBJ_MAX + 1] = {
-@@ -153,7 +153,7 @@ int nftnl_obj_set_data(struct nftnl_obj *obj, uint16_t attr,
- 		if (obj->ops->set(obj, attr, data, data_len) < 0)
- 			return -1;
- 	}
--	obj->flags |= (1 << attr);
-+	obj->flags |= (1ULL << attr);
+ static int nftnl_obj_tunnel_ip_cb(const struct nlattr *attr, void *data)
+@@ -335,6 +369,68 @@ static int nftnl_obj_tunnel_parse_ip6(struct nftnl_obj *e, struct nlattr *attr,
  	return 0;
  }
  
-@@ -197,7 +197,7 @@ EXPORT_SYMBOL(nftnl_obj_get_data);
- const void *nftnl_obj_get_data(const struct nftnl_obj *obj, uint16_t attr,
- 			       uint32_t *data_len)
++static int nftnl_obj_tunnel_geneve_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_TUNNEL_KEY_GENEVE_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch (type) {
++	case NFTA_TUNNEL_KEY_GENEVE_CLASS:
++		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
++			abi_breakage();
++		break;
++	case NFTA_TUNNEL_KEY_GENEVE_TYPE:
++		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
++			abi_breakage();
++		break;
++	case NFTA_TUNNEL_KEY_GENEVE_DATA:
++		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0)
++			abi_breakage();
++		break;
++	}
++
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++static int
++nftnl_obj_tunnel_parse_geneve(struct nftnl_obj *e, struct nlattr *attr,
++			      struct nftnl_obj_tunnel *tun)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_GENEVE_MAX + 1] = {};
++
++	if (mnl_attr_parse_nested(attr, nftnl_obj_tunnel_geneve_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_TUNNEL_KEY_GENEVE_CLASS]) {
++		tun->u.tun_geneve.geneve_class =
++			ntohs(mnl_attr_get_u16(tb[NFTA_TUNNEL_KEY_GENEVE_CLASS]));
++		e->flags |= (1ULL << NFTNL_OBJ_TUNNEL_GENEVE_CLASS);
++	}
++
++	if (tb[NFTA_TUNNEL_KEY_GENEVE_TYPE]) {
++		tun->u.tun_geneve.type =
++			mnl_attr_get_u8(tb[NFTA_TUNNEL_KEY_GENEVE_TYPE]);
++		e->flags |= (1ULL << NFTNL_OBJ_TUNNEL_GENEVE_TYPE);
++	}
++
++	if (tb[NFTA_TUNNEL_KEY_GENEVE_DATA]) {
++		uint32_t len = mnl_attr_get_payload_len(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]);
++
++		memcpy(tun->u.tun_geneve.data,
++		       mnl_attr_get_payload(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]),
++		       len);
++		tun->u.tun_geneve.data_len = len;
++
++		e->flags |= (1ULL << NFTNL_OBJ_TUNNEL_GENEVE_DATA);
++	}
++
++	return 0;
++}
++
+ static int nftnl_obj_tunnel_vxlan_cb(const struct nlattr *attr, void *data)
  {
--	if (!(obj->flags & (1 << attr)))
-+	if (!(obj->flags & (1ULL << attr)))
- 		return NULL;
+ 	const struct nlattr **tb = data;
+@@ -441,6 +537,7 @@ static int nftnl_obj_tunnel_opts_cb(const struct nlattr *attr, void *data)
+ 	switch (type) {
+ 	case NFTA_TUNNEL_KEY_OPTS_VXLAN:
+ 	case NFTA_TUNNEL_KEY_OPTS_ERSPAN:
++	case NFTA_TUNNEL_KEY_OPTS_GENEVE:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -466,6 +563,9 @@ nftnl_obj_tunnel_parse_opts(struct nftnl_obj *e, struct nlattr *attr,
+ 	} else if (tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN]) {
+ 		err = nftnl_obj_tunnel_parse_erspan(e, tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN],
+ 						    tun);
++	} else if (tb[NFTA_TUNNEL_KEY_OPTS_GENEVE]) {
++		err = nftnl_obj_tunnel_parse_geneve(e, tb[NFTA_TUNNEL_KEY_OPTS_GENEVE],
++						    tun);
+ 	}
  
- 	switch(attr) {
-diff --git a/src/table.c b/src/table.c
-index 9870dca..e183e2e 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -29,7 +29,7 @@ struct nftnl_table {
- 	uint32_t	table_flags;
- 	uint64_t 	handle;
- 	uint32_t	use;
--	uint32_t	flags;
-+	uint64_t	flags;
- 	uint32_t	owner;
- 	struct {
- 		void		*data;
-diff --git a/src/utils.c b/src/utils.c
-index 5f2c5bf..7942d67 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -133,7 +133,7 @@ void __noreturn __abi_breakage(const char *file, int line, const char *reason)
-        exit(EXIT_FAILURE);
- }
+ 	return err;
+@@ -549,6 +649,9 @@ static struct attr_policy obj_tunnel_attr_policy[__NFTNL_OBJ_TUNNEL_MAX] = {
+ 	[NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX] = { .maxlen = sizeof(uint32_t) },
+ 	[NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID] = { .maxlen = sizeof(uint8_t) },
+ 	[NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR] = { .maxlen = sizeof(uint8_t) },
++	[NFTNL_OBJ_TUNNEL_GENEVE_CLASS]	= { .maxlen = sizeof(uint16_t) },
++	[NFTNL_OBJ_TUNNEL_GENEVE_TYPE]	= { .maxlen = sizeof(uint8_t) },
++	[NFTNL_OBJ_TUNNEL_GENEVE_DATA]	= { .maxlen = NFTNL_TUNNEL_GENEVE_DATA_MAXLEN},
+ };
  
--int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
-+int nftnl_set_str_attr(const char **dptr, uint64_t *flags,
- 		       uint16_t attr, const void *data, uint32_t data_len)
- {
- 	if (*flags & (1 << attr))
+ struct obj_ops obj_ops_tunnel = {
 -- 
 2.49.0
 
