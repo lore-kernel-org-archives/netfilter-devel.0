@@ -1,149 +1,68 @@
-Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail-0201.mail-europe.com (mail-0201.mail-europe.com [51.77.79.158])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48CA1A5B96
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 14:04:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BCBF1D7E4A
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 14:14:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.77.79.158
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744725858; cv=none; b=fEHDHzk6IEb1VHZjLqOt0BW4vntHCDn20SveczmY5I6Ci4Hlfj1GQAKtabcSrsWa4+RoNJW84d2L19U+luTjLpuy5j9hItOLJSVRskOjgmhbQkiNUSERSMQGmFJpJrkjQXdAJscMaeR8nEVAoltSbkyNYwYtlQ9iSs/CpLMypBA=
+	t=1744726449; cv=none; b=gd6AVrgCQoT0Lf7l6trCB9wIrJI0rxR43Kam6Zey3ARUiNb4YspzMsy3KZYYMvWJEy6O22ZrbC2zaMAXRrCk9jpXfQmkcPAapSbm+RRXaZgbnJxHSOBLN9ridhhX5Ks9wgHMA1WUkOuiBBoY8RUo1BNqyy1YODvwmAn0iZliNDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744725858; c=relaxed/simple;
-	bh=/UmmUha/roHZFE9FKAQFvcGFH+aG3d9XPdgA7Gx3P+M=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=f3SJ16H/SfG0N+PP7dJQo6KnEediECcS9vaq/+78dzfgWMYdsu26hjxDHm2w+o+IvZwM8NZYGxAp5qzEj9HAQ1ag3UG5jvRdCifkDkcSnsVUAcrdz5w0/r6A376cYStBl0onkLBGfGA6DUaYG2DphXmDjmAwPY4tZCx6vmhD1g8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MwOvvI+f; arc=none smtp.client-ip=209.85.210.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1744726449; c=relaxed/simple;
+	bh=bYkqmEGcBQHD1mY43pSlVAdYsvYudl7ucejvfO2nNug=;
+	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=ksPyFKL4Fdp/F/FfiE3oAHXX9B6iOzR9dzpbO2RhmoENSD5awUtQuLNjyM9uYInEPqADlXNbShndR9STsXjZf/J+wpTZqGsmDvAwex71TOijc8zR2CaFr1ucUSS7D9DVm94yY1FUCZtvv90v/5PGuJB2dIQzWQyTnWK1xnaucPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=cPJqzZuY; arc=none smtp.client-ip=51.77.79.158
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MwOvvI+f"
-Received: by mail-pf1-f177.google.com with SMTP id d2e1a72fcca58-736c062b1f5so4672000b3a.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Apr 2025 07:04:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744725855; x=1745330655; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/qjm+9+/XxyezAD1iimBy/zvNtPxtx3lGI5kk4L4D1A=;
-        b=MwOvvI+fGjScPWKNWrwnLDYSdN44Nw2lZtT7jz67VA674tgNI+Xn8XDn9bovqJFOhi
-         rC65jKX9JBqKDGiZ6eSENKC620FvReSla9CGIiM1U2omzAy3JehGvFcSanmW4UjkbtXl
-         L/UBAe/CuO0mgihSKMzNQQjegDd0vX6Ptpl+FKB7xp4Tfj0dslzd0jiu5xh6SeLTMtle
-         d72Pf65lyCGlmvfTt37WeMgnyPG9NM3mTvSEMiACGpRGHZv0Laj/qOwa/6h7wgzGt1zZ
-         Ex+UHUytSxJCc9Q9eYcHwgjU+Q2Rtp5Y4uMdqtgwFOUX/mwFP31kDVItXvAE6I+Yu69U
-         ig0g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744725855; x=1745330655;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/qjm+9+/XxyezAD1iimBy/zvNtPxtx3lGI5kk4L4D1A=;
-        b=rz/QuK42Idp2zdMMvjBtVd2Kd31XgT/wuSPamcOKqMH/tjQi6WAgRc5Jt5lUwpjzK6
-         mGvhjCx3GBNIKQjTct3t93sEOt7AWY/EmsTn7ZuHATVZwhACchGmwKeLDgwEH8Lg7tw1
-         fdqw1ysXm9FFQyOQrn0hiq3Di6uD0z0NB9G3funRy7m2uCHREvAuHRrc3C59ICd5q1+y
-         EgKZksPmeUaUuE0WRLoPo1q9fA8Enlf7Fdvi8GCqfwB+a2sHsoqOVL4lcbi7eK79Vv8S
-         t3m1iMhHtUBC/7fn3R4puzWPa5z39AMyAyW8BuMazxZlLQf0kJp2Q7h2bI6/18B8bTTX
-         wS8g==
-X-Forwarded-Encrypted: i=1; AJvYcCUERML0zBbdgz0kvUfCqa0H54wGijXWfzQ27FHBEWmJpE1m77mgODrgGTIo0XsPRRkWO2ihWnxF/gTWyzfhtJs=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzud9MQatHbA8AY//EtOaUUIGW0ooGJDwx1Z/umxofJJ6SJ9vnT
-	sso37Az7HWME8DeRfS6xM/WDUQQZpVBWpqAVVAClIiMR/cqYTra1s247rw==
-X-Gm-Gg: ASbGnctLz9XL/YsWu8z23WDXElx4wNIqkk3QZ8g2GKOI3wxTZIx0MF+fPzw3DSTUeFT
-	4lIrR+sq1lUH+hrtzqv6NDVprqkR5oHUO+rDDXwxs7KS8jg+NPJOtCNk+1l+Nt4iVK0SGKS/+d8
-	peI5iK9WXQmeDjeB1XRIoNmweAip5MX0u22S4u6auzLJVqVbtAQEt+K2CJvL6xL/y2Ahk6keswt
-	wWiZLz9cEL/YRCR4q3YgdW8V/sUOtD9HkETssrl6Eef9Io7yH43K7ETiSepLblHMMqQBpXIpDNR
-	CA9DGiZMHd2K7GqelxmZGEOm
-X-Google-Smtp-Source: AGHT+IF5CWAIzg5kxxOUmlzDCghwy/f6YbRWYUD23+7WMPWUfhg0r68jhHUuYIpwzN62aQLcYT2SxQ==
-X-Received: by 2002:a05:6a00:22c4:b0:728:e2cc:bfd6 with SMTP id d2e1a72fcca58-73bd129e592mr22777086b3a.18.1744725854855;
-        Tue, 15 Apr 2025 07:04:14 -0700 (PDT)
-Received: from fire.. ([220.181.41.17])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-73bd21949e5sm8502324b3a.4.2025.04.15.07.04.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 15 Apr 2025 07:04:14 -0700 (PDT)
-From: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Zhongqiu Duan <dzq.aishenghu0@gmail.com>,
-	coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Simon Horman <horms@kernel.org>
-Subject: Re: [PATCH nf] netfilter: nft_quota: make nft_overquota() really over the quota
-Date: Tue, 15 Apr 2025 14:03:59 +0000
-Message-ID: <20250415140401.264659-1-dzq.aishenghu0@gmail.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <Z_2EYV1JiDkgf3gm@calendula>
-References: <20250410071748.248027-1-dzq.aishenghu0@gmail.com> <Z_2EYV1JiDkgf3gm@calendula>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="cPJqzZuY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1744726432; x=1744985632;
+	bh=bYkqmEGcBQHD1mY43pSlVAdYsvYudl7ucejvfO2nNug=;
+	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector:
+	 List-Unsubscribe:List-Unsubscribe-Post;
+	b=cPJqzZuYSLq/bZmKvzPGchJdgD8KC+9uz+Bs1Un7Tzy1MfiN4mpc6KL8LZekmiHSr
+	 /2gLrdt0Rsa+mOWinzVjeCcvRjZjpfE0yzTZtRGEDolgkyEdFoaTuu+n1VwdJBv7cf
+	 ShZrSatFpzA/KHTrJA+xN8ZZgcw8eK2PnmTXzIBx08itCq9MkJtTS3fyKUOUGwk5Fr
+	 Vxv1ibPzbAwa/vZyewcNL2adE8c1tN8ydyR3BtAaqi5eZbnjPapis8He8tXPeccUz/
+	 gzxQKBiWZYR+LTbftWXf3IwGfQ+Vz+YvQyOkpP6rLLjjFzb73tkFzQuqAPSFWGCVQF
+	 xRm+l8BILHRzA==
+Date: Tue, 15 Apr 2025 14:13:46 +0000
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: Turritopsis Dohrnii Teo En Ming <teo.en.ming@protonmail.com>
+Cc: "ceo@teo-en-ming-corp.com" <ceo@teo-en-ming-corp.com>
+Subject: Are Palo Alto and Check Point Firewalls using netfilter iptables?
+Message-ID: <3B9N9AvuovzViY865d-1WFTrY0qFdZbVVNejNthiBzLi5eNlPWf2hgoKfRpmQ5K1nc_KKDOEpThKnD1tOkhdCGWlygBB1X_jnFrSGtPpGM8=@protonmail.com>
+Feedback-ID: 39510961:user:proton
+X-Pm-Message-ID: 5f5e62f7fcf349a7fd1a8003fb61eda0735a45eb
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 14, 2025 at 11:55:45PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Apr 10, 2025 at 07:17:47AM +0000, Zhongqiu Duan wrote:
-> > Keep consistency with xt_quota and nfacct.
-> 
-> Where is the inconsistency?
-> 
-> > Fixes: 795595f68d6c ("netfilter: nft_quota: dump consumed quota")
-> > Signed-off-by: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
-> > ---
-> >  net/netfilter/nft_quota.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-> > index 9b2d7463d3d3..0bb43c723061 100644
-> > --- a/net/netfilter/nft_quota.c
-> > +++ b/net/netfilter/nft_quota.c
-> > @@ -21,7 +21,7 @@ struct nft_quota {
-> >  static inline bool nft_overquota(struct nft_quota *priv,
-> >  				 const struct sk_buff *skb)
-> >  {
-> > -	return atomic64_add_return(skb->len, priv->consumed) >=
-> > +	return atomic64_add_return(skb->len, priv->consumed) >
-> >  	       atomic64_read(&priv->quota);
-> 
-> >From xt_quota:
-> 
->         if (priv->quota >= skb->len) {
->                 priv->quota -= skb->len;
->                 ret = !ret;
+Subject: Are Palo Alto and Check Point Firewalls using netfilter iptables?
 
-They behave differently in the case of consumed bytes equal to quota.
+Good day from Singapore,
 
-From nft_quota:
+As far as I know, Palo Alto VM-Series Software Firewall 10.0.4 is based on =
+CentOS Linux.
 
-	overquota = nft_overquota(priv, pkt->skb);
-	if (overquota ^ nft_quota_invert(priv))
-		regs->verdict.code = NFT_BREAK;
+And Check Point Firewall R81.20 is based on Red Hat Enterprise Linux (RHEL)=
+.
 
-The xt_quota compares skb length with remaining quota, but the nft_quota
-compares it with consumed bytes.
+Are Palo Alto and Check Point Firewalls using netfilter iptables as the und=
+erlying firewalling mechanism?
 
-The xt_quota can match consumed bytes up to quota at maximum. But the
-nft_quota break match when consumed bytes equal to quota.
+Regards,
 
-i.e., nft_quota match consumed bytes in [0, quota - 1], not [0, quota].
+Mr. Turritopsis Dohrnii Teo En Ming
+Targeted Individuals in Singapore
+GIMP =3D Government-Induced Medical Problems
+15 Apr 2025 Tuesday
 
 
-Also note that after applying this patch, nft_quota obj will report when
-consumed bytes exceed the quota, but nfacct can report when consumed
-bytes are greater than or equal to the quota.
 
-From nft_quota:
-
-	if (overquota &&
-	    !test_and_set_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags))
-		nft_obj_notify(...);
-
-From nfacct:
-
-	if (now >= *quota &&
-	    !test_and_set_bit(NFACCT_OVERQUOTA_BIT, &nfacct->flags)) {
-		nfnl_overquota_report(net, nfacct);
-	}
-
-Should we report when quota is exhausted but not exceeded?
-
-
-Regards
