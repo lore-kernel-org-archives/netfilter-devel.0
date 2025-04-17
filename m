@@ -1,80 +1,908 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87467265CAF
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Apr 2025 18:22:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D4EF1E4B2
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Apr 2025 21:43:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744914123; cv=none; b=VA0TdyhVRdLfCtjqbWGWJo/7VWlIxOJRlb/RO7jMCyVFOGlqEC8KDarEOvgLhGH4d88QE7qbchfxFjwoiPNBOWhfn7pewAbM+/AUtovJpMjdtpPd2/tvFYzl7Va/Cga2eKZ4bIjzYfmJIon7rAo0PdQQdd3JIGbj+4s+QpYcqxU=
+	t=1744926202; cv=none; b=IaKWqNLLf4s/BbmYh66hImKVJU0SaP7sM7Iw9fvCY2JSjHC/uHBR5CM4jeaj/Ybie4XTZTvwSqjqH9cphwSE1FimscTrZr0CJnpsb7SdsRy5Wg0uROrAfdt/1ezc6v2ns4/nP5SNNgO0Albgpij4XqZBGngckUmMmlLAIORlYsU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744914123; c=relaxed/simple;
-	bh=shCdNbozHqkaJl7SEe3UdnLSz0iY2Gmm33awXqt2noA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QXU+NhmhFwizj/3jgOP0V6elvS8sSUGk2819zZUuIfef2uP9JrVt8++bw4RreuxLtF/W9ABuH+pLhGENuhH1gghE2fo8ysMCzWXWBuJ41F9eylt32OyG455qwo+IAe8H5xRU9OG70iyWfifIwDpujIm9jivnce/tFMx8PrRlpB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=jTmKvgSl; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=garver.life
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1744926202; c=relaxed/simple;
+	bh=h+NVP164aQSZsffwWTkJgD0QudUTSsqSNdKcUFIOYks=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=ErRLFgBDTNY8JI2z1G7LCeSwO0nGdwYrZqvBsGZcyzYsRLbxfvibPC+Xa4EGhVrmC8p8igUghbyaXSc4fotGYlS3gct9NI6Xd92yPmF8SDDXCI1vGMmLyc5KWxzon3pMuoLRI3hByiNVSCqbqGpyF4Je2tPUC15w3o7A6i07QbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BqCekNBT; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PjMukMjq; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="jTmKvgSl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1744914120;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=UEu2swHZw6SrQ/GBh9hVEnM+N2pIOK3vtI/5XlC99ek=;
-	b=jTmKvgSl4890xZBILAN9hC3nOHHwUWDIbsRZOdlcIWt4YBSk9MBSqKAsTacBEqZgrDOWeL
-	Cwp/dIfDjSb/YoT7dy2Y8f0oa3nesTizOIIkpWdxWxSMdxYGF8+Q1EWb/m9UfznpivZteN
-	PQLVbEBWrgJpgv2v39j0SyCtXXpmu5I=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-619-bwZ66JFMOlmB--giRPBvqw-1; Thu,
- 17 Apr 2025 14:21:54 -0400
-X-MC-Unique: bwZ66JFMOlmB--giRPBvqw-1
-X-Mimecast-MFC-AGG-ID: bwZ66JFMOlmB--giRPBvqw_1744914113
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with UTF8SMTPS id 34F531800876;
-	Thu, 17 Apr 2025 18:21:53 +0000 (UTC)
-Received: from localhost (unknown [10.22.65.170])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with UTF8SMTP id 699341800D9E;
-	Thu, 17 Apr 2025 18:21:52 +0000 (UTC)
-Date: Thu, 17 Apr 2025 14:21:49 -0400
-From: Eric Garver <eric@garver.life>
-To: Jan Engelhardt <jengelh@inai.de>
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org, phil@nwl.cc
-Subject: Re: [nftables PATCH v3] tools: add a systemd unit for static rulesets
-Message-ID: <aAFGvWycJoFnwG3q@egarver-mac>
-Mail-Followup-To: Eric Garver <eric@garver.life>,
-	Jan Engelhardt <jengelh@inai.de>, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org, phil@nwl.cc
-References: <20250417145055.2700920-1-jengelh@inai.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BqCekNBT";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PjMukMjq"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 919DE609B6; Thu, 17 Apr 2025 23:43:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1744926191;
+	bh=2DWbIl1B57iWBOhOptHYO4P3vBbnF5Yn4C+G1WiqNHQ=;
+	h=From:To:Subject:Date:From;
+	b=BqCekNBTJPW17i3/IFZxR6CXcaJ/e1bJ+/PhtpOOmDWbToYS1HuMYVg03lNmU85PH
+	 jYOHIy4QNlJJvkSDg0K0v6S5EaVisybnIB3cxaZqapFr2iVZ9dIcRv3fIkznhMKXI3
+	 lgAh6KWO2VEwKrW3C6cPXGFmflc2EQ3bj+mVf3wdKdrt68tXg7/6PAzbS5u5LERerV
+	 YP+kvgykXzrie4ky6i+c5A5coVUQRIi8derfbhdkJBqmU2o8ENbPfPSEqEmFHtBWH3
+	 oZ5mGK+mN81ysIcKIBKmQYLNgpLvwECzFCdPazXZeW+N3hqcsXO8r3eM+X3+q6QXL3
+	 yhJYQFdRDBOug==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id BF286609B3
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Apr 2025 23:43:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1744926190;
+	bh=2DWbIl1B57iWBOhOptHYO4P3vBbnF5Yn4C+G1WiqNHQ=;
+	h=From:To:Subject:Date:From;
+	b=PjMukMjq2M/kX6DVlSP+YICh73SWdk0hJDiaAuFu7EJYQvnghOQSAwBLIFlx89kxb
+	 qGZ4aBaHRgwP6SlkHymw1uYYE5XcK8FhMwFpnuKKBsYB9cCqGZQBk/2d8IrfyNi9oX
+	 MLkY5ciCvJyqOE0/rmQqqut2qSRRH0XHfl1CNfA6d1fMTxy62Ja8f+VMWA0RadmAEi
+	 jrALPY9HkJ2bSJ9u9HRrS9ov6JQbYJLeoqoBLK6ZecnaLv4YllTvcqHSEms28o5e/R
+	 9yccaG+S1kyL2b8v6IuAYwVgLqaHGRSmmS3F//sAI/OVmM01KLGJzJazjASJbxG+Es
+	 N938hFqV9CNWw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] netlink: bogus concatenated set ranges with netlink message overrun
+Date: Thu, 17 Apr 2025 23:43:05 +0200
+Message-Id: <20250417214305.329896-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250417145055.2700920-1-jengelh@inai.de>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+Content-Transfer-Encoding: 8bit
 
-On Thu, Apr 17, 2025 at 04:48:33PM +0200, Jan Engelhardt wrote:
-> There is a customer request (bugreport) for wanting to trivially load a ruleset
-> from a well-known location on boot, forwarded to me by M. Gerstner. A systemd
-> service unit is hereby added to provide that functionality. This is based on
-> various distributions attempting to do same, for example,
-> 
-> https://src.fedoraproject.org/rpms/nftables/tree/rawhide
-> https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/main/nftables/nftables.initd
-> https://gitlab.archlinux.org/archlinux/packaging/packages/nftables
-> 
-> ---
+When building each component of the set element key, a late byteorder
+switch is performed to ensure that all components in the interval are
+represented in big endian, as required by the pipapo backend.
 
-Thanks Jan!
+In case that the set element does not fit into the netlink message, the
+byteorder switch happens twice, leading to inserting an element with a
+bogus component with large sets, so instead:
 
-Acked-by: Eric Garver <eric@garver.life>
+      "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890"
+
+listing reports:
+
+  16777216 . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890"
+
+Note that 16777216 is 0x1000000, which should instead be 0x00000001 to
+represent "lo" as u32.
+
+Fix this by switching the value in a temporary variable and use it to
+set the set element key attribute in the netlink message.
+
+Later, revisit this to perform this byteorder switch from evaluation
+step.
+
+Add tests/shell unit to cover for this bug.
+
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1792
+Fixes: 8ac2f3b2fca3 ("src: Add support for concatenated set ranges")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink.c                                 |  19 +-
+ .../shell/testcases/sets/concat_nlmsg_overrun | 734 ++++++++++++++++++
+ .../sets/dumps/concat_nlmsg_overrun.nft       |   7 +
+ 3 files changed, 755 insertions(+), 5 deletions(-)
+ create mode 100755 tests/shell/testcases/sets/concat_nlmsg_overrun
+ create mode 100644 tests/shell/testcases/sets/dumps/concat_nlmsg_overrun.nft
+
+diff --git a/src/netlink.c b/src/netlink.c
+index dfb7f4d17147..86ca32144f02 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -268,6 +268,8 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ 				    unsigned char *data)
+ {
+ 	struct expr *expr;
++	mpz_t value;
++	int ret;
+ 
+ 	switch (i->etype) {
+ 	case EXPR_RANGE:
+@@ -276,9 +278,11 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ 		else
+ 			expr = i->left;
+ 
++		mpz_init_set(value, expr->value);
++
+ 		if (expr_basetype(expr)->type == TYPE_INTEGER &&
+ 		    expr->byteorder == BYTEORDER_HOST_ENDIAN)
+-			byteorder_switch_expr_value(expr->value, expr);
++			byteorder_switch_expr_value(value, expr);
+ 
+ 		i = expr;
+ 		break;
+@@ -299,22 +303,27 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
+ 		}
+ 		return netlink_export_pad(data, i->prefix->value, i);
+ 	case EXPR_VALUE:
+-		/* Switch byteorder only once for singleton values when the set
++		mpz_init_set(value, i->value);
++
++		/* Switch byteorder to big endian representation when the set
+ 		 * contains concatenation of intervals.
+ 		 */
+-		if (!(flags & EXPR_F_INTERVAL))
++		if (!(flags & (EXPR_F_INTERVAL| EXPR_F_INTERVAL_END)))
+ 			break;
+ 
+ 		expr = (struct expr *)i;
+ 		if (expr_basetype(expr)->type == TYPE_INTEGER &&
+ 		    expr->byteorder == BYTEORDER_HOST_ENDIAN)
+-			byteorder_switch_expr_value(expr->value, expr);
++			byteorder_switch_expr_value(value, expr);
+ 		break;
+ 	default:
+ 		BUG("invalid expression type '%s' in set", expr_ops(i)->name);
+ 	}
+ 
+-	return netlink_export_pad(data, i->value, i);
++	ret = netlink_export_pad(data, value, i);
++	mpz_clear(value);
++
++	return ret;
+ }
+ 
+ static void nft_data_memcpy(struct nft_data_linearize *nld,
+diff --git a/tests/shell/testcases/sets/concat_nlmsg_overrun b/tests/shell/testcases/sets/concat_nlmsg_overrun
+new file mode 100755
+index 000000000000..69cefe900e9d
+--- /dev/null
++++ b/tests/shell/testcases/sets/concat_nlmsg_overrun
+@@ -0,0 +1,734 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_pipapo)
++
++set -e
++
++RULESET='flush ruleset
++
++table ip filter {
++    set test_set {
++        type iface_index . ether_addr . ipv4_addr
++        flags interval
++            elements = {
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890",
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3,
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3,
++                    "lo" . 00:11:22:33:44:55 . 10.1.2.3,
++            }
++    }
++}'
++
++$NFT -f - <<< $RULESET
++
++exit 0
+diff --git a/tests/shell/testcases/sets/dumps/concat_nlmsg_overrun.nft b/tests/shell/testcases/sets/dumps/concat_nlmsg_overrun.nft
+new file mode 100644
+index 000000000000..01d76b9097df
+--- /dev/null
++++ b/tests/shell/testcases/sets/dumps/concat_nlmsg_overrun.nft
+@@ -0,0 +1,7 @@
++table ip filter {
++	set test_set {
++		type iface_index . ether_addr . ipv4_addr
++		flags interval
++		elements = { "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890" }
++	}
++}
+-- 
+2.30.2
 
