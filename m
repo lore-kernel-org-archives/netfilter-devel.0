@@ -1,86 +1,132 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0025821C162
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Apr 2025 08:38:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D011335BA;
+	Thu, 17 Apr 2025 09:36:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744879108; cv=none; b=BiSVhhcr0eeMTqGmSdOeK7Tw/tl7QsmVx+uXjEZO2d/gZ/95jzj7nFhimaH1smYelaib895CK+XKQhXBC1lEj5EAXok4dw4ZxLbylyX71lgP5i599JngpBo19WmlZNInDmS1IxgjeaAnLe821uUoG20M5PXhbkK0IyLmFeLoamM=
+	t=1744882576; cv=none; b=tjUrVyT13+t+lT9+W5jovnXEV3nOZGNnfrkyTSLdd4fPru/lR5KrEKBThEgeLerCWx0XHRLSWCf2pFOpMS5gvYmo/o5Xl6tz+GkzfSruwQMrGfxLgNZj4/UP4OZX4iDES5ahdro0u4VXax1WsuAysyJKn5Z3ZGu3Su0JH+qqucE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744879108; c=relaxed/simple;
-	bh=UH9voSbXHY2ibx2R017hySv+7p94nIaOHgfqFIOkwDg=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=em+bn1xlCP+kLvKo80CQWOiY9hx44GXPV396NV7bNiTHddDhTFYUB9J+nQhSG77cAutaCyXzO7M4RQ9YkD9z4k7KzQzd9pl6fUJrpUSho5Z1LfCTCc3fxwsC8yRcgGAdXUYX90Oev0Oxx03vXbxQwUic4KSJVc9Qp/kQkim5tKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-3d5da4fd946so12004065ab.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Apr 2025 01:38:26 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744879106; x=1745483906;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ZZi5ZNPX9S5wyizuS3a6KFqu7CE6UegjxBqKHLcgHyY=;
-        b=ZjUA7wvuaZB2YTXs0BKdSzMoLE/Kq2z/ky3VTl8S5lHdNJUSasr1JYJn5c0xzyJ0xa
-         qdzXMLv9HDV+BGLX2tYMWrYuI2sxmEcwLWwsD3N9DV15uEyDZMVW0wy/eAxvu9Cr1d4h
-         ER0ZAT+QWNzu7zKU9ZMm0YxVOcn9InpVbDkPvwaUn+WssthPBIg0asHQo/Q0O+nU1KFR
-         iwmn+DVFWdnHN3d263+Q9roIaY5M/zpW/ru5m17eUjJmxbhM5YlAVDadqnurNnw2L/dp
-         1npVx8ROGSsjRy5YLkoc/O3kWnb5tq2S72STmB0Ik0R1fgGiSHmuVjsb5DTWGEuAaNgQ
-         oxRg==
-X-Forwarded-Encrypted: i=1; AJvYcCVl+Ypb1zztavQoQE4y8bFNuwJ/gtpxKBu2/8geqGiNzetaK+mp7/bSJ8PafNvbUcp9wd2PwDpygIAArgR9m3Y=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxsZKvt+mfYY9Wn54dchfa1ACxxM6k8Qh8czlOwIUI06w/xNN0I
-	y/xozWK1F9piE9/PvElR1YKLRjNo/DdpJmej351dbwHF9YzSGqMrCJRunNavCWMPBC0cM/y8dwE
-	c/lve0LmWJlaVnvA/4kUTF8BBKA7yQgM2zprT55kSSE8KHh4SvGZX6sE=
-X-Google-Smtp-Source: AGHT+IEqoHGrUKvaaGvRUz8O7WU/jvu68WMIVM/pDoMJBtzCXkfzYf8QDQqXQWmtIka0No0EBP92ntn/wxZjPsEbzeLZ6goADD17
+	s=arc-20240116; t=1744882576; c=relaxed/simple;
+	bh=/3cgy1tOPVmp/GwqXQ5b09Rm9iK7C5DYKc0OMkdAHUc=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=AhUQAnP01iwT1wAlelbRcGkD5dm84w7oR3xvwk0NO+Vx5RKYmbTStWNusivUbdM+IvSbyUoGiICW3leZyfa51cxlvOzvcNJe/Q2m6S38eHwjWREPP/WfFighMjIJ1Xc/0KmFtVm4wNVpft9Y6WPqlaPqP9bR7QT73pRngIgqOmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
+Received: from exch03.asrmicro.com (exch03.asrmicro.com [10.1.24.118])
+	by spam.asrmicro.com with ESMTPS id 53H9TuF3001085
+	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
+	Thu, 17 Apr 2025 17:29:56 +0800 (GMT-8)
+	(envelope-from huajianyang@asrmicro.com)
+Received: from localhost (10.26.128.141) by exch03.asrmicro.com (10.1.24.118)
+ with Microsoft SMTP Server (TLS) id 15.0.847.32; Thu, 17 Apr 2025 17:29:59
+ +0800
+From: Huajian Yang <huajianyang@asrmicro.com>
+To: <pablo@netfilter.org>, <fw@strlen.de>
+CC: <kadlec@netfilter.org>, <razor@blackwall.org>, <idosch@nvidia.com>,
+        <davem@davemloft.net>, <dsahern@kernel.org>, <edumazet@google.com>,
+        <kuba@kernel.org>, <pabeni@redhat.com>, <horms@kernel.org>,
+        <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+        <bridge@lists.linux.dev>, <netdev@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Huajian Yang <huajianyang@asrmicro.com>
+Subject: [PATCH] net: Move specific fragmented packet to slow_path instead of dropping it
+Date: Thu, 17 Apr 2025 17:29:53 +0800
+Message-ID: <20250417092953.8275-1-huajianyang@asrmicro.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:2402:b0:3d0:4c9c:965f with SMTP id
- e9e14a558f8ab-3d815b70372mr56966505ab.20.1744879106169; Thu, 17 Apr 2025
- 01:38:26 -0700 (PDT)
-Date: Thu, 17 Apr 2025 01:38:26 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6800be02.050a0220.243d89.000f.GAE@google.com>
-Subject: [syzbot] Monthly netfilter report (Apr 2025)
-From: syzbot <syzbot+liste217d44efb9077d8089e@syzkaller.appspotmail.com>
-To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: exch02.asrmicro.com (10.1.24.122) To exch03.asrmicro.com
+ (10.1.24.118)
+X-DNSRBL: 
+X-SPAM-SOURCE-CHECK: pass
+X-MAIL:spam.asrmicro.com 53H9TuF3001085
 
-Hello netfilter maintainers/developers,
+The config NF_CONNTRACK_BRIDGE will change the bridge forwarding for
+fragmented packets.
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+The original bridge does not know that it is a fragmented packet and
+forwards it directly, after NF_CONNTRACK_BRIDGE is enabled, function
+nf_br_ip_fragment and br_ip6_fragment will check the headroom.
 
-During the period, 0 new issues were detected and 1 were fixed.
-In total, 10 issues are still open and 185 have already been fixed.
+In original br_forward, insufficient headroom of skb may indeed exist,
+but there's still a way to save the skb in the device driver after
+dev_queue_xmit.So droping the skb will change the original bridge
+forwarding in some cases.
 
-Some of the still happening issues:
-
-Ref Crashes Repro Title
-<1> 428     Yes   INFO: rcu detected stall in addrconf_rs_timer (6)
-                  https://syzkaller.appspot.com/bug?extid=fecf8bd19c1f78edb255
-<2> 157     Yes   INFO: rcu detected stall in gc_worker (3)
-                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-<3> 67      Yes   INFO: rcu detected stall in NF_HOOK (2)
-                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
-<4> 11      Yes   KMSAN: uninit-value in ip6table_mangle_hook (3)
-                  https://syzkaller.appspot.com/bug?extid=6023ea32e206eef7920a
-
+Signed-off-by: Huajian Yang <huajianyang@asrmicro.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ net/bridge/netfilter/nf_conntrack_bridge.c | 12 ++++++------
+ net/ipv6/netfilter.c                       | 12 ++++++------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index 816bb0fde718..6482de4d8750 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -60,19 +60,19 @@ static int nf_br_ip_fragment(struct net *net, struct sock *sk,
+ 		struct ip_fraglist_iter iter;
+ 		struct sk_buff *frag;
+ 
+-		if (first_len - hlen > mtu ||
+-		    skb_headroom(skb) < ll_rs)
++		if (first_len - hlen > mtu)
+ 			goto blackhole;
+ 
+-		if (skb_cloned(skb))
++		if (skb_cloned(skb) ||
++		    skb_headroom(skb) < ll_rs)
+ 			goto slow_path;
+ 
+ 		skb_walk_frags(skb, frag) {
+-			if (frag->len > mtu ||
+-			    skb_headroom(frag) < hlen + ll_rs)
++			if (frag->len > mtu)
+ 				goto blackhole;
+ 
+-			if (skb_shared(frag))
++			if (skb_shared(frag) ||
++			    skb_headroom(frag) < hlen + ll_rs)
+ 				goto slow_path;
+ 		}
+ 
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index 581ce055bf52..4541836ee3da 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -164,20 +164,20 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 		struct ip6_fraglist_iter iter;
+ 		struct sk_buff *frag2;
+ 
+-		if (first_len - hlen > mtu ||
+-		    skb_headroom(skb) < (hroom + sizeof(struct frag_hdr)))
++		if (first_len - hlen > mtu)
+ 			goto blackhole;
+ 
+-		if (skb_cloned(skb))
++		if (skb_cloned(skb) ||
++		    skb_headroom(skb) < (hroom + sizeof(struct frag_hdr)))
+ 			goto slow_path;
+ 
+ 		skb_walk_frags(skb, frag2) {
+-			if (frag2->len > mtu ||
+-			    skb_headroom(frag2) < (hlen + hroom + sizeof(struct frag_hdr)))
++			if (frag2->len > mtu)
+ 				goto blackhole;
+ 
+ 			/* Partially cloned skb? */
+-			if (skb_shared(frag2))
++			if (skb_shared(frag2) ||
++			    skb_headroom(frag2) < (hlen + hroom + sizeof(struct frag_hdr)))
+ 				goto slow_path;
+ 		}
+ 
+-- 
+2.48.1
 
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
