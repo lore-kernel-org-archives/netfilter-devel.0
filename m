@@ -1,137 +1,149 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E888225A37;
-	Thu, 17 Apr 2025 10:29:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F7723BCFE
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Apr 2025 11:22:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744885745; cv=none; b=c6fSMZzx8Wpeenl9xkv3vFkqd2qkYUmMwuVG1ICtRZyopBsr9CenKKiv5gxMCGbT7Cve92pSeM+ZBokabYPezM017GtqbaMNFdnGLKAldd9foyvOnftGCjYq9lKlXjjCMZkwqN4SYnzYhq4CiCG7sAXH0MvMk+t7A5X9Z6l9jJk=
+	t=1744888928; cv=none; b=kI71v93Ats7BFA62zwUgr8Mrp0K7Q6uUvgQ+voizmtYVqXbveXYgL/rS8m9IzjbyCKKUdxtXiIui/pSaRkyuvQ7bcKCjc96S12KQy0jt0waQXCbfZN48oZptBajcUHH8Vq+ViBFjNJ7STzJAp/FF2fhlMhmlJfDEr4rCN8R6dfQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744885745; c=relaxed/simple;
-	bh=uT/fRq6/1trlsr76gjZJ36sBmgvi8gbfTNKW74h8VJs=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=e9+Nga/Fy95E77VsarNnm4d8yuAMMMpVO47WfCSbUrIsR0FIXD0YC1vXi1jABV61uF4Fa3h8t5qkFNPCocrYDlz3npzxx6SEEJATIXYltf0tXwKReag5h2k4dueWPplfblADuhIDHMT/Tq7DeTf6W8SEViD6S9QcuKkDKDc4dvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bU8Kf/7T; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Rfy7fC9h; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1744888928; c=relaxed/simple;
+	bh=RPFnzjcTJHMLv0kZ8C836K11zibbjkW2jxYbsW5RjwM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mYh0Vjy2AkETI2fcwErQVujQLzPrrg5yoi4Qlx1H5LEDIs3iOJ9MrZVXGPEoGcqtRouitYRaPNu/wHNjAUqKbzahYKEHyk5asbWBQuoxKZ2WULmqf8qZgrsDuAnVHMESbGUltv9ey0hEgeSqJfP543Dc3tX86V2w1eX5NghtwiM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IzY0449V; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Wxp22HuV; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bU8Kf/7T";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Rfy7fC9h"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IzY0449V";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Wxp22HuV"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 8EEBA60A1D; Thu, 17 Apr 2025 12:28:55 +0200 (CEST)
+	id 3627D608CE; Thu, 17 Apr 2025 13:22:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744885735;
-	bh=4Zff9CbpB0jsb4kb75On8YckIzTrsURKLrAplUD462k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bU8Kf/7TM7Hu3pKzuHmPwWmvrAW7Wa0C6b33DwrPFdFaPj8HvYblYI7PkKCOlqCHC
-	 2K8Q+XoNGWFyYKK2k9uphKyA/Ou9H9ZrtFp5NNpDqMxN9BbHUqGll+timke9FOkDFr
-	 NV4znCPA6Ug7ZkeRblBJSh5uRt/qHsfeTQuISyNRDVcUkeHPxxBRDTTQK9pZIZe//u
-	 rARlng9Fz1bfM0NB7KE1xJ3R6TyliVoJopXt7ekX+3Udglsj5Ns4zxogrUFkgZvLdp
-	 r2mBJXcd4l2Wz4hpyrufvr1OwlEiOsrgBqReyMok1fqby1//a2prIE5oELKrvW+QN4
-	 NOsl3SqkipZ1Q==
+	s=2025; t=1744888924;
+	bh=ZjduUcucBiUrK3F68j5fMJ+y9yd3zjV4+r76BdLZza0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IzY0449VRXdGuMbOa6r2mJbIShxDmulR6FXkltDCv6ubh/XsDAG5Qidilwb66wLBp
+	 C30jWsiphbJ7AWLUwkb0RVpRim3HTW+NOZkzbXo32tRR1V5SlbzsR4mQciztVu8pQV
+	 csR/eWesSK5pkC+fGk1O9jzf805BttTTwqr6MMtZgG75MCxZaiLYdztUree9qHMxQB
+	 Pgj7n+KbdokpIV2y6ZZVCPzleiYU+oqFEZ2XcT4cEPjV5YFNFimWhRDbC2iK8x5R+v
+	 Nd8jGex0EZv9SCbIJoW+H5GY3MM7tc2LC+4CwpL9l2GuQLLxeG9oMdn8BHczSTOG0x
+	 1rSfolcTHilMw==
 X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9D93B60A19;
-	Thu, 17 Apr 2025 12:28:52 +0200 (CEST)
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9E77E60881;
+	Thu, 17 Apr 2025 13:22:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1744885733;
-	bh=4Zff9CbpB0jsb4kb75On8YckIzTrsURKLrAplUD462k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Rfy7fC9h6eEX8aEN+pKKX7wViDTdOF6esCHaMh+ZHIhpi+ydoY7hjfgs4wSyciAj9
-	 GCxxc0DzFEHwgnpkiDA8me6VSvtSIMEetKQKj9fVb/UEAA62/Oom1Zn417+dYBo3vH
-	 bjgSgBlr5P/0OCnHivGhsUzJ2gtxj/3iqQ1haLnTgAcLvoGGxg9p+FbhXTQgLMXS5p
-	 rTHouu9ShGV05SxfP9gwIFvDuKNyPHXNOJ9NHEqQaEqg+9T+mSzSePGC5R4v0OCjBI
-	 3hTB6ta3T+uOubfqWdw9l4qu8thDYn6DlSNlkbHF/A0zw45tmGrUNbJiikRXoPwvWx
-	 8XXAKCfzkMYNQ==
+	s=2025; t=1744888921;
+	bh=ZjduUcucBiUrK3F68j5fMJ+y9yd3zjV4+r76BdLZza0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Wxp22HuVjNsai2YJUP5HXX1hvHY5N+ggZTRzI6T0HyA4Y+2vmQbkSOGnd0Q4uwOYu
+	 36qYf9qL/4IhommLAAtlbQBwTQ7VxwV7/3sbn5MzV4ypryUz4Jpezar0iiNyU52Owg
+	 a+huDMiSfFwXcefLQrDn4E+yAT4m88cxb+C09Ap1XGRo/gnN3bym1kZYWkx4QjMd5W
+	 F8KkcGKnSkMa5yoBwqtYDE2JYNwBmT/2/k2Bj89rA6xS9Uo/HvQBlewxtmAfELqRRl
+	 wUumH1eUq5QKwJzg834pbON6O11Ankv68juy1E99vMdGeDOExeuFFfIA7vO492iXxd
+	 DnITiKYwgwDoQ==
+Date: Thu, 17 Apr 2025 13:21:58 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net 1/1] netfilter: conntrack: fix erronous removal of offload bit
-Date: Thu, 17 Apr 2025 12:28:47 +0200
-Message-Id: <20250417102847.16640-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250417102847.16640-1-pablo@netfilter.org>
-References: <20250417102847.16640-1-pablo@netfilter.org>
+To: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Simon Horman <horms@kernel.org>
+Subject: Re: [PATCH nf] netfilter: nft_quota: make nft_overquota() really
+ over the quota
+Message-ID: <aADkVkvVHlCpw061@calendula>
+References: <20250410071748.248027-1-dzq.aishenghu0@gmail.com>
+ <Z_2EYV1JiDkgf3gm@calendula>
+ <20250415140401.264659-1-dzq.aishenghu0@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="6K4ezYY4YihRbOnz"
+Content-Disposition: inline
+In-Reply-To: <20250415140401.264659-1-dzq.aishenghu0@gmail.com>
 
-From: Florian Westphal <fw@strlen.de>
 
-The blamed commit exposes a possible issue with flow_offload_teardown():
-We might remove the offload bit of a conntrack entry that has been
-offloaded again.
+--6K4ezYY4YihRbOnz
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-1. conntrack entry c1 is offloaded via flow f1 (f1->ct == c1).
-2. f1 times out and is pushed back to slowpath, c1 offload bit is
-   removed.  Due to bug, f1 is not unlinked from rhashtable right away.
-3. a new packet arrives for the flow and re-offload is triggered, i.e.
-   f2->ct == c1.  This is because lookup in flowtable skip entries with
-   teardown bit set.
-4. Next flowtable gc cycle finds f1 again
-5. flow_offload_teardown() is called again for f1 and c1 offload bit is
-   removed again, even though we have f2 referencing the same entry.
+Hi,
 
-This is harmless, but clearly not correct.
-Fix the bug that exposes this: set 'teardown = true' to have the gc
-callback unlink the flowtable entry from the table right away instead of
-the unintentional defer to the next round.
+On Tue, Apr 15, 2025 at 02:03:59PM +0000, Zhongqiu Duan wrote:
+[...]
+> They behave differently in the case of consumed bytes equal to quota.
+> 
+> From nft_quota:
+> 
+> 	overquota = nft_overquota(priv, pkt->skb);
+> 	if (overquota ^ nft_quota_invert(priv))
+> 		regs->verdict.code = NFT_BREAK;
+> 
+> The xt_quota compares skb length with remaining quota, but the nft_quota
+> compares it with consumed bytes.
+> 
+> The xt_quota can match consumed bytes up to quota at maximum. But the
+> nft_quota break match when consumed bytes equal to quota.
+> 
+> i.e., nft_quota match consumed bytes in [0, quota - 1], not [0, quota].
 
-Also prevent flow_offload_teardown() from fixing up the ct state more than
-once: We could also be called from the data path or a notifier, not only
-from the flowtable gc callback.
+Thanks for explaining.
 
-NF_FLOW_TEARDOWN can never be unset, so we can use it as synchronization
-point: if we observe did not see a 0 -> 1 transition, then another CPU
-is already doing the ct state fixups for us.
+> Also note that after applying this patch, nft_quota obj will report when
+> consumed bytes exceed the quota, but nfacct can report when consumed
+> bytes are greater than or equal to the quota.
+> 
+> From nft_quota:
+> 
+> 	if (overquota &&
+> 	    !test_and_set_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags))
+> 		nft_obj_notify(...);
+> 
+> From nfacct:
+> 
+> 	if (now >= *quota &&
+> 	    !test_and_set_bit(NFACCT_OVERQUOTA_BIT, &nfacct->flags)) {
+> 		nfnl_overquota_report(net, nfacct);
+> 	}
+> 
+> Should we report when quota is exhausted but not exceeded?
 
-Fixes: 03428ca5cee9 ("netfilter: conntrack: rework offload nf_conn timeout extension logic")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_flow_table_core.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+I think it is good if nfacct and nft_quota behave in the same way.
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 9d8361526f82..9441ac3d8c1a 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -383,8 +383,8 @@ static void flow_offload_del(struct nf_flowtable *flow_table,
- void flow_offload_teardown(struct flow_offload *flow)
+I'd suggest you collapse this patch.
+
+Please, route this patch v2 through the nf-next tree.
+
+Thanks.
+
+--6K4ezYY4YihRbOnz
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 0bb43c723061..9fd6985f54c5 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -51,13 +51,15 @@ static void nft_quota_obj_eval(struct nft_object *obj,
+ 			       const struct nft_pktinfo *pkt)
  {
- 	clear_bit(IPS_OFFLOAD_BIT, &flow->ct->status);
--	set_bit(NF_FLOW_TEARDOWN, &flow->flags);
--	flow_offload_fixup_ct(flow);
-+	if (!test_and_set_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+		flow_offload_fixup_ct(flow);
- }
- EXPORT_SYMBOL_GPL(flow_offload_teardown);
+ 	struct nft_quota *priv = nft_obj_data(obj);
++	u64 consumed = atomic64_add_return(pkt->skb->len, priv->consumed);
++	u64 quota = atomic64_read(&priv->quota);
+ 	bool overquota;
  
-@@ -558,10 +558,12 @@ static void nf_flow_offload_gc_step(struct nf_flowtable *flow_table,
+-	overquota = nft_overquota(priv, pkt->skb);
++	overquota = (consumed > quota);
+ 	if (overquota ^ nft_quota_invert(priv))
+ 		regs->verdict.code = NFT_BREAK;
  
- 	if (nf_flow_has_expired(flow) ||
- 	    nf_ct_is_dying(flow->ct) ||
--	    nf_flow_custom_gc(flow_table, flow))
-+	    nf_flow_custom_gc(flow_table, flow)) {
- 		flow_offload_teardown(flow);
--	else if (!teardown)
-+		teardown = true;
-+	} else if (!teardown) {
- 		nf_flow_table_extend_ct_timeout(flow->ct);
-+	}
- 
- 	if (teardown) {
- 		if (test_bit(NF_FLOW_HW, &flow->flags)) {
--- 
-2.30.2
+-	if (overquota &&
++	if (consumed >= quota &&
+ 	    !test_and_set_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags))
+ 		nft_obj_notify(nft_net(pkt), obj->key.table, obj, 0, 0,
+ 			       NFT_MSG_NEWOBJ, 0, nft_pf(pkt), 0, GFP_ATOMIC);
 
+--6K4ezYY4YihRbOnz--
