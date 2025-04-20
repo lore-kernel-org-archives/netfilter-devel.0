@@ -1,45 +1,45 @@
 Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C852B20C48C
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C858220C48F
 	for <netfilter-devel@vger.kernel.org>; Sun, 20 Apr 2025 17:20:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745169649; cv=none; b=DXg59dvMPBtqQnXDRuozlsz9GwPORLSpGH3ElMJv7dh/QL1dEb7IC8W6WVaXJT3COWcZbM8nWt5hEhmoJA17YQTnUrwCvsxD43M6BITgKn0UTjQFWK2M651mui78h3umDZST+/oPWDNtSgDy0+Aj7DS6Y555BZ4vy4kKl9COc0I=
+	t=1745169649; cv=none; b=Mv5UQisrYxVXn2LeRJA2cU7ssCt+wi4T1yxxzWAomRlKEfRAjHwuLbhGu6q/rM1+LTaancTuhF1csSEhFZeRrLs22IBOEoE0ti/WHI9j7G6nmEAqiA7FYkxj9lNQxpwJku6cPK3lJtKgntl0LfQOMUHJdAQAEQYSdDTZozl+CCI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1745169649; c=relaxed/simple;
-	bh=GAzS7+5/8sfNU6jLnMKq0skn4igMson3TNEf1bvches=;
+	bh=gTx7iNh1xwewgZVkBhrV08QSWkJmVA7Ei4My69LAkmk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=b0My3IeDcjfbRa/KMhLrkBvY/72AtZOCKC9zTICM4Ew44hQ/OQLaKFuoDemhaGUjmJT3vkDlU30LNgYL6vxFjlfOEDVXE5V6oVuzTCHVEZdw+hXP0NyOVcMO4XeqMX0yvKiqtBuUyly8gJ9lU396YkpJCWInpkmFyrHCsUodIDU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=OhBvG2ZQ; arc=none smtp.client-ip=35.176.194.208
+	 MIME-Version; b=T8+t08P8BxbeRNGMyn25tObKq+defEgwLp1NpRyal7LceoUpzj14FHfljMop3WmLPvFuSYa8ZGQTUQ95hftU6P2d1OUm8fFru9Vgo+Sy33p37yvjiZilZkYDfdyvh2KAhU8JBpG6kTO3PHdP4Q5Lyg2uL7WI0EHBbhj8oIBYjZE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=f6Lkp8qU; arc=none smtp.client-ip=35.176.194.208
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="OhBvG2ZQ"
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="f6Lkp8qU"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
 	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Xl4/kL0viNnxQx/R9VDGAXV77QAywMFGTjT8E9htAnA=; b=OhBvG2ZQ3NAjqHERNzlrEao9VA
-	igDknjunzhakpP4fLm9XmWfsxFpeBLW7phRRQF0zTe7MxY9k82Fps8i2D/c65mrKjkmM2GsjAa1pX
-	Orafsv9ZIScb2mCkIIFyIyQLX7zKn/OQOF7FgkQveRdX5QX9n+bBKUVDJHnmKCPe5Ew3R+q1X+229
-	aGrhTi6SpgWTd7VHJ8PKULedtZ50zaSNHclE2i8Ffr9sHqzjGlip5GYcVwIYc3YuuM6NUw1pB0nBN
-	WQjFCo+IANvSeUDgp729iDsTqTg9/P5WgOW/5IQQdKxDY9e99VW36yOaQOeWIMcB91BQs9c957nlt
-	RFubEOLA==;
+	bh=RU529esybRaPK6qk3Ng5QvpRG5w9S6/DvYxVU0I5ya8=; b=f6Lkp8qUa9WXJP+rth93bWS/+M
+	bvJ8rNB3A//BmAsvV0lSIs4R5DvC3au+199PeiPG9w784BzylJ7x01OjJVTSZ/fKXZKo7mlNv2EOL
+	IequC8t10PBoyXm7XkUD76OZsxZbbDIKhDZ6Qp9ghR9e74XXPls/OIBSerxwqELw9IHMsjAFrjJT4
+	zF4kazb3Q+0OUG1zkTDNsoaNoQIdj//dPrcyBPUdYveGZOrsHKAfYOT6J8VDr3TtsOjFMPTqMXbif
+	fo4qHwXLGBvawz3Gr6sIxGo0ci2Nl+57pqksyZ+6WtbGG52qvchW8k6KKvCJK34kkzJBQ80mL1Zkg
+	2JmRL9bQ==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
 	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.96)
 	(envelope-from <jeremy@azazel.net>)
-	id 1u6YLO-005Uip-0N;
+	id 1u6YLO-005Uip-16;
 	Sun, 20 Apr 2025 18:20:38 +0100
 From: Jeremy Sowden <jeremy@azazel.net>
 To: Netfilter Devel <netfilter-devel@vger.kernel.org>
 Cc: Slavko <linux@slavino.sk>
-Subject: [PATCH ulogd2 2/6] db, IP2BIN: correct `format_ipv6()` output buffer sizes
-Date: Sun, 20 Apr 2025 18:20:21 +0100
-Message-ID: <20250420172025.1994494-3-jeremy@azazel.net>
+Subject: [PATCH ulogd2 6/6] Add support for logging ARP packets
+Date: Sun, 20 Apr 2025 18:20:25 +0100
+Message-ID: <20250420172025.1994494-7-jeremy@azazel.net>
 X-Mailer: git-send-email 2.47.2
 In-Reply-To: <20250420172025.1994494-1-jeremy@azazel.net>
 References: <20250420172025.1994494-1-jeremy@azazel.net>
@@ -54,105 +54,171 @@ X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-`format_ipv6()` formats IPv6 addresses as hex-strings.  However, sizing for the
-output buffer is not done quite right.
+Hithero, ulogd has only fully supported handling ARP headers that are present in
+`NFPROTO_BRIDGE` packets.
 
-`format_ipv6()` itself uses the size of `struct in6_addr` to verify that the
-buffer size is large enough, and the output buffer for the call in util/db.c is
-sized the same way.  However, the size that should be used is that of the
-`s6_addr` member of `struct in6_addr`, not that of the whole structure.
+Add support for handling ARP packets in their own right.
 
-The elements of the `ipbin_array` array in ulogd_filter_IP2BIN.c are sized using
-a local macro, `IPADDR_LENGTH`, which is defined as 128, the number of bits in
-an IPv6 address; this is much larger than necessary.
-
-Define an appropriate macro and use that instead.
-
+Reported-by: Slavko <linux@slavino.sk>
 Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- filter/ulogd_filter_IP2BIN.c |  6 ++----
- include/ulogd/ulogd.h        | 13 +++++++++++--
- util/db.c                    |  2 +-
- 3 files changed, 14 insertions(+), 7 deletions(-)
+ filter/raw2packet/ulogd_raw2packet_BASE.c |  2 ++
+ filter/ulogd_filter_IP2BIN.c              | 24 +++++++++++++++++++++--
+ filter/ulogd_filter_IP2HBIN.c             | 23 +++++++++++++++++++++-
+ filter/ulogd_filter_IP2STR.c              |  1 +
+ util/printpkt.c                           |  3 +++
+ 5 files changed, 50 insertions(+), 3 deletions(-)
 
-diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
-index 7f7bea5071a7..f1ca4eee7d76 100644
---- a/filter/ulogd_filter_IP2BIN.c
-+++ b/filter/ulogd_filter_IP2BIN.c
-@@ -28,8 +28,6 @@
- #include <ulogd/ulogd.h>
- #include <netinet/if_ether.h>
- 
--#define IPADDR_LENGTH 128
--
- enum input_keys {
- 	KEY_OOB_FAMILY,
- 	KEY_OOB_PROTOCOL,
-@@ -114,7 +112,7 @@ static struct ulogd_key ip2bin_keys[] = {
- 
- };
- 
--static char ipbin_array[MAX_KEY - START_KEY + 1][IPADDR_LENGTH];
-+static char ipbin_array[MAX_KEY - START_KEY + 1][FORMAT_IPV6_BUFSZ];
- 
- static int ip2bin(struct ulogd_key *inp, int index, int oindex)
- {
-@@ -161,7 +159,7 @@ static int ip2bin(struct ulogd_key *inp, int index, int oindex)
- 			return ULOGD_IRET_ERR;
+diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
+index 4b6096421b71..2c0d16449cf1 100644
+--- a/filter/raw2packet/ulogd_raw2packet_BASE.c
++++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
+@@ -960,6 +960,8 @@ static int _interp_pkt(struct ulogd_pluginstance *pi)
+ 		return _interp_ipv6hdr(pi, len);
+ 	case NFPROTO_BRIDGE:
+ 		return _interp_bridge(pi, len);
++	case NFPROTO_ARP:
++		return _interp_arp(pi, len);
  	}
- 
--	format_ipv6(ipbin_array[oindex], IPADDR_LENGTH, addr);
-+	format_ipv6(ipbin_array[oindex], sizeof(ipbin_array[oindex]), addr);
- 
  	return ULOGD_IRET_OK;
  }
-diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
-index 5eafb21f9cfe..5b6134d94ea3 100644
---- a/include/ulogd/ulogd.h
-+++ b/include/ulogd/ulogd.h
-@@ -23,6 +23,15 @@
+diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
+index 9bbeebbb711e..9e6f3a929058 100644
+--- a/filter/ulogd_filter_IP2BIN.c
++++ b/filter/ulogd_filter_IP2BIN.c
+@@ -39,7 +39,9 @@ enum input_keys {
+ 	KEY_ORIG_IP_DADDR,
+ 	KEY_REPLY_IP_SADDR,
+ 	KEY_REPLY_IP_DADDR,
+-	MAX_KEY = KEY_REPLY_IP_DADDR,
++	KEY_ARP_SPA,
++	KEY_ARP_TPA,
++	MAX_KEY = KEY_ARP_TPA,
+ };
  
- #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+ static struct ulogd_key ip2bin_inp[] = {
+@@ -83,6 +85,16 @@ static struct ulogd_key ip2bin_inp[] = {
+ 		.flags	= ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
+ 		.name	= "reply.ip.daddr",
+ 	},
++	[KEY_ARP_SPA] = {
++		.type = ULOGD_RET_IPADDR,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "arp.saddr",
++	},
++	[KEY_ARP_TPA] = {
++		.type = ULOGD_RET_IPADDR,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "arp.daddr",
++	},
+ };
  
-+/*
-+ * Minimum size of buffer required to hold an ipv6 address encoded as a
-+ * hex-string, e.g.:
-+ *
-+ *                          ::1 -> "0x00000000000000000000000000000001"
-+ * 2600:1408:ec00:36::1736:7f28 -> "0x26001408ec0000360000000017367f28"
-+ */
-+#define FORMAT_IPV6_BUFSZ (2 + sizeof(((struct in6_addr) {}).s6_addr) * 2 + 1)
-+
- /* All types with MSB = 1 make use of value.ptr
-  * other types use one of the union's member */
+ static struct ulogd_key ip2bin_keys[] = {
+@@ -110,7 +122,14 @@ static struct ulogd_key ip2bin_keys[] = {
+ 		.type = ULOGD_RET_RAWSTR,
+ 		.name = "reply.ip.daddr.bin",
+ 	},
+-
++	{
++		.type = ULOGD_RET_RAWSTR,
++		.name = "arp.saddr.bin",
++	},
++	{
++		.type = ULOGD_RET_RAWSTR,
++		.name = "arp.daddr.bin",
++	},
+ };
  
-@@ -233,11 +242,11 @@ format_ipv6(char *buf, size_t size, const struct in6_addr *ipv6)
- {
- 	unsigned i = 0;
+ static char ipbin_array[MAX_KEY - START_KEY + 1][FORMAT_IPV6_BUFSZ];
+@@ -150,6 +169,7 @@ static int interp_ip2bin(struct ulogd_pluginstance *pi)
+ 		addr_family = AF_INET6;
+ 		break;
+ 	case NFPROTO_IPV4:
++	case NFPROTO_ARP:
+ 		addr_family = AF_INET;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+diff --git a/filter/ulogd_filter_IP2HBIN.c b/filter/ulogd_filter_IP2HBIN.c
+index 081b757a6f1a..38306e8406a2 100644
+--- a/filter/ulogd_filter_IP2HBIN.c
++++ b/filter/ulogd_filter_IP2HBIN.c
+@@ -40,7 +40,9 @@ enum input_keys {
+ 	KEY_ORIG_IP_DADDR,
+ 	KEY_REPLY_IP_SADDR,
+ 	KEY_REPLY_IP_DADDR,
+-	MAX_KEY = KEY_REPLY_IP_DADDR,
++	KEY_ARP_SPA,
++	KEY_ARP_TPA,
++	MAX_KEY = KEY_ARP_TPA,
+ };
  
--	if (size > 2 + sizeof (*ipv6) * 2) {
-+	if (size >= FORMAT_IPV6_BUFSZ) {
- 		buf[i++] = '0';
- 		buf[i++] = 'x';
+ static struct ulogd_key ip2hbin_inp[] = {
+@@ -84,6 +86,16 @@ static struct ulogd_key ip2hbin_inp[] = {
+ 		.flags	= ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
+ 		.name	= "reply.ip.daddr",
+ 	},
++	[KEY_ARP_SPA] = {
++		.type = ULOGD_RET_IPADDR,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "arp.saddr",
++	},
++	[KEY_ARP_TPA] = {
++		.type = ULOGD_RET_IPADDR,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "arp.daddr",
++	},
+ };
  
--		for (unsigned j = 0; i < sizeof(*ipv6); j += 4, i += 8) {
-+		for (unsigned j = 0; i < sizeof(ipv6->s6_addr); j += 4, i += 8) {
- 			sprintf(buf + i, "%02hhx%02hhx%02hhx%02hhx",
- 				ipv6->s6_addr[j + 0],
- 				ipv6->s6_addr[j + 1],
-diff --git a/util/db.c b/util/db.c
-index 11c3e6ad8454..69f4290f5c87 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -370,7 +370,7 @@ static void __format_query_db(struct ulogd_pluginstance *upi, char *start)
- 				sprintf(stmt_ins, "%u,", res->u.value.ui32);
- 			else {
- 				struct in6_addr ipv6;
--				char addrbuf[2 + sizeof(ipv6) * 2  + 1];
-+				char addrbuf[FORMAT_IPV6_BUFSZ];
+ static struct ulogd_key ip2hbin_keys[] = {
+@@ -111,6 +123,14 @@ static struct ulogd_key ip2hbin_keys[] = {
+ 		.type = ULOGD_RET_IPADDR,
+ 		.name = "reply.ip.hdaddr",
+ 	},
++	{
++		.type = ULOGD_RET_IPADDR,
++		.name = "arp.hsaddr",
++	},
++	{
++		.type = ULOGD_RET_IPADDR,
++		.name = "arp.hdaddr",
++	},
+ };
  
- 				memcpy(ipv6.s6_addr, res->u.value.ui128,
- 				       sizeof(ipv6.s6_addr));
+ static void ip2hbin(struct ulogd_key *inp, int i, struct ulogd_key *outp, int o,
+@@ -140,6 +160,7 @@ static int interp_ip2hbin(struct ulogd_pluginstance *pi)
+ 		addr_family = AF_INET6;
+ 		break;
+ 	case NFPROTO_IPV4:
++	case NFPROTO_ARP:
+ 		addr_family = AF_INET;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
+index 3d4d6e9dc897..12a376efafe4 100644
+--- a/filter/ulogd_filter_IP2STR.c
++++ b/filter/ulogd_filter_IP2STR.c
+@@ -175,6 +175,7 @@ static int interp_ip2str(struct ulogd_pluginstance *pi)
+ 		addr_family = AF_INET6;
+ 		break;
+ 	case NFPROTO_IPV4:
++	case NFPROTO_ARP:
+ 		addr_family = AF_INET;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+diff --git a/util/printpkt.c b/util/printpkt.c
+index 2fecd50e233c..93fe4722d63c 100644
+--- a/util/printpkt.c
++++ b/util/printpkt.c
+@@ -467,6 +467,9 @@ int printpkt_print(struct ulogd_key *res, char *buf)
+ 	case NFPROTO_BRIDGE:
+ 		buf_cur += printpkt_bridge(res, buf_cur);
+ 		break;
++	case NFPROTO_ARP:
++		buf_cur += printpkt_arp(res, buf_cur);
++		break;
+ 	}
+ 
+ 	if (pp_is_valid(res, KEY_OOB_UID))
 -- 
 2.47.2
 
