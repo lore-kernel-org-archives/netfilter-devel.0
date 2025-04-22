@@ -1,91 +1,130 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33739A59
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Apr 2025 05:44:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E1BD27815B;
+	Tue, 22 Apr 2025 11:44:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745300656; cv=none; b=C1m1z0RM0eIONAjMuFej+6gT7nnwKN98wNQIZQVMKfqs0GM+rkMK1pycGNbwZ9C6q/JWWbyvkKhRh/8L1Yy9g7NSPj/usg+JFdlICGJ9YcZZlUu+dt2WHorHQVAZL1AAdC0o5KK+cBW7evPHtxrUzXQtFh3AIR+GWfuVLG79xhA=
+	t=1745322251; cv=none; b=lRJmLab1oDPSgVPksV56ZTRzKx91WIjex5QUI9NSk2Rv7R2m1BI7FAkGqy8YOcF5auB+Lpu/sxkxlLClrp6bJJgh7mpeqCUJlAlRk+fzUw17KX+Q3VY44vrJ6yxWwt2jE2whkB8Qq/rWrMpko4A/vsDsEPxVg0XeTNm1ULQKXys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745300656; c=relaxed/simple;
-	bh=W4zuCjeS7cHmO4OBDLPOGOfsZ2aNksxQZYLhXxP2zmg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=esK1BOwhiLWGp7MOegoYbAV0oNZYYcx0qm7EXM4G6q0NPUbbVEDp0pbRuu0f17pqTM6OU/M04DB/JcU+cHzBN0hbS6QeK0OB2pyr1SR1VDXcR2dl7CYPD8hkLRLTQlutEj2bq/Ib1jTBjaz7vgukpeGelJriqhVn8ZtZn9jhIW4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1u76QU-0006ko-Jm; Tue, 22 Apr 2025 07:44:10 +0200
-Date: Tue, 22 Apr 2025 07:44:10 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Shaun Brady <brady.1345@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, ppwaskie@kernel.org
-Subject: Re: [PATCH] netfilter: nf_tables: Implement jump limit for
- nft_table_validate
-Message-ID: <20250422054410.GA25299@breakpoint.cc>
-References: <20250422001643.113149-1-brady.1345@gmail.com>
+	s=arc-20240116; t=1745322251; c=relaxed/simple;
+	bh=0SJZ4NFhZXBaM3WznzcAPczPKN69J8Kh0Zkk5FzAszw=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=l5j5irONek+t6miSQmDzsWr3rxm4zeBg9l/sTATxtMpCYgRLKONBtyYYEoVx2tuVdhyYAbgrR/9GOvnT2xMs2x5DkeMvI4SShQqCx54TxPsVEtF76DEPvpcU67TpetACz4RrDiArlSVsIR4WB+MZEHDYuUfBSyQOf8xudeLmq2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t9CwRx3h; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=X5uTpcw5; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t9CwRx3h";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="X5uTpcw5"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 8BC646062F; Tue, 22 Apr 2025 13:44:03 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1745322243;
+	bh=2lvC8aBIaC9vo96uZIY6di9kQoFjH1x9H9QBbtx+75c=;
+	h=Date:From:To:Cc:Subject:From;
+	b=t9CwRx3h3ZLSQoAemtcSHhCVOhFHGbshdxzvvUn5oHOWVhQAefYa00JZuYpSNnSkH
+	 NowvuxVoF0o5z4HHKwvGN02jk3iDHX1rgFW4lVUI0NOTuRpo8ZgY+wWietCqmMCavP
+	 7tVl/gXjqhJ2NtV9Vkof7ZGec3EgCQlF74V9fWOT0xTMF1lJ4Wd4sPzcIk8X2A8Orn
+	 O8PFcQ9mxOf+WmVbsqz99kO5uVz1xYg+W8Mm8PefgyCrXvbuqqGEpeB/apeNz3Ilxo
+	 3Ddj/i9GEgYbBd1x/TYcpbmTBPRUfsWVZCUkbnyA36A1LEcGNPdmJzGd8e0lX1r/um
+	 7NYaOmW5anZSQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id B3ADC6062F;
+	Tue, 22 Apr 2025 13:44:01 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1745322241;
+	bh=2lvC8aBIaC9vo96uZIY6di9kQoFjH1x9H9QBbtx+75c=;
+	h=Date:From:To:Cc:Subject:From;
+	b=X5uTpcw5fuPhnlqEX1HN8GUzZCYCc4kBXN76FAJKidxqklxgvDabgzwTUlSJY+xW7
+	 fR5bf4duNLTFnFgcY9l0armM3JycVfk2iwJ+za51PgHN4QkjEvxoy1aZ9lpwsknZuO
+	 QKjrcOzPHVFXzGik1l3pc1aZRd1avcmR89PV9p3dCuDVMfLW5KnFjlBFbFhYe/pmDx
+	 VRGf0sog/TGSn8dVgyJ2ZLgAOIe4lbKecY97pdxmpDS7+57fVgbmoAMK1is5BP/0zQ
+	 bis5HCV1Q53611fqMdZDlM+07WMjSqJcZW/J17LoiN7kP2AXr8KDs9D4zYBK/6Pl02
+	 iMGCP90eLMJsQ==
+Date: Tue, 22 Apr 2025 13:43:59 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net,
+	netdev@vger.kernel.org
+Subject: [ANNOUNCE] nftables 1.1.3 release
+Message-ID: <aAeA_6rbRNqpIRE2@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="v0lrDgCn2ghomeXI"
 Content-Disposition: inline
-In-Reply-To: <20250422001643.113149-1-brady.1345@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Shaun Brady <brady.1345@gmail.com> wrote:
-> The compile time limit NFT_DEFAULT_MAX_TABLE_JUMPS of 8192 was chosen to
-> account for any normal use case, and when this value (and associated
-> stressing loop table) was tested against a 1CPU/256MB machine, the
-> system remained functional.
 
-Keep in mind that one can register 1024 base chains, and that we have
-at least 5 hook points (ingress -> prerouting -> forward -> postrouting
--> egress), so one could create a ruleset where a packet visits 41943040
-chain jumps while in softirq context.
+--v0lrDgCn2ghomeXI
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Furthermore, the largest ruleset I have archived here (iptables-save
-kubernetes ruleset dump) has 27k jumps (many who are mutually exclusive
-and user-defined chains that are always terminal), but nf_tables_api.c
-lacks the ability to detect either of these cases).
+Hi!
 
-With the proposed change, the ruleset won't load anymore.
+The Netfilter project proudly presents:
 
-> +u32 sysctl_nf_max_table_jumps __read_mostly = NFT_DEFAULT_MAX_TABLE_JUMPS;
-> +EXPORT_SYMBOL(sysctl_nf_max_table_jumps);
+        nftables 1.1.3
 
-Why is this exported?
+This release contains a few fixes:
 
-> +static int netfilter_limit_control_sysctl_init(struct net *net)
-> +{
-> +	if (net_eq(net, &init_net)) {
-> +		net->nf.nf_limit_control_dir_header = register_net_sysctl(
-> +				net,
-> +				"net/netfilter",
-> +				nf_limit_control_sysctl_table);
-> +		if (!net->nf.nf_limit_control_dir_header)
-> +			goto err_alloc;
-> +	}
-> +	return 0;
+- Incorrect bytecode for vlan pcp mangling from netdev family chains
+  such as ingress/egress:
 
-I think you can just make this a global variable.
-Or, thats the alternative, make this a pernet tunable as long as
-the owning user_ns is the initial user namespace.
+     ... vlan pcp set 6 counter
 
-I think the idea is fine, but I'm not sure its going to work as-is.
+- Bogus element in large concatenated set ranges, leading to:
 
-Possible solutions to soften the impact/breakage potential:
-- make the sysctl only affect non-init-net namespaces.
-- make the sysctl only affect non-init-user-ns owned namespaces.
+      16777216 . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890"
 
-- Add the obseved total jump count to the table structure
-Then, when validating, do not start from 0 but from the sum
- of the total jump count of all registered tables in the same family.
-netdev family will need to be counted unconditionally.
+  instead of:
 
-This will allow to reject ruleset that create 1k base chains for each
-family:hook point combination, which in turn would allow to increase the
-default upper limit.
+     "lo" . 00:11:22:33:44:55 . 10.1.2.3 comment "123456789012345678901234567890"
+
+- Restore set auto-merge feature with timeouts, disabled in the
+  previous v1.1.2 release.
+
+See changelog for more details (attached to this email).
+
+You can download this new release from:
+
+https://www.netfilter.org/projects/nftables/downloads.html
+https://www.netfilter.org/pub/nftables/
+
+[ NOTE: We have switched to .tar.xz files for releases. ]
+
+To build the code, libnftnl >= 1.2.9 and libmnl >= 1.0.4 are required:
+
+* https://netfilter.org/projects/libnftnl/index.html
+* https://netfilter.org/projects/libmnl/index.html
+
+Visit our wikipage for user documentation at:
+
+* https://wiki.nftables.org
+
+For the manpage reference, check man(8) nft.
+
+In case of bugs and feature requests, file them via:
+
+* https://bugzilla.netfilter.org
+
+Happy firewalling.
+
+--v0lrDgCn2ghomeXI
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment; filename="changes-nftables-1.1.3.txt"
+
+Florian Westphal (1):
+      evalute: make vlan pcp updates work
+
+Pablo Neira Ayuso (3):
+      Revert "intervals: do not merge intervals with different timeout"
+      netlink: bogus concatenated set ranges with netlink message overrun
+      build: Bump version to 1.1.3
+
+
+--v0lrDgCn2ghomeXI--
