@@ -1,143 +1,78 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7AA3FC08
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 11:52:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6FCD2701B6
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 12:19:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745409134; cv=none; b=Gz/KHNxOTLM6JTxt5Ml1Lsz5vqJBLrjtlpmrgzIfnlwr4UEuOzlfVvDgmCTllMr+0ktFnXal9yGILFpgsq1Wg6UV59azqC9QgK969Pn7kL1bYzn4lchrlKbGP+V6iPQ0AAIW5iE5zfPmEkucqLuCH4K3eWMBKmRV29ZEjW/0zMo=
+	t=1745410786; cv=none; b=q2RqeWsGyJwfMov34Wb2mB2HHCVVFPYtUWlIwpY3iWXGa236H3l5M26J9asQrnktU5TMfRMfU393OsK3O+Wt3p4Ake73VnzCK5l6Zzr26jXM5KFXr4p6bd0C2+d7Wkgb+iUXLOTznoEF/FlhqryvPHtk8KFPYN36YbFulcxG17w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745409134; c=relaxed/simple;
-	bh=MRWryquFq1mr/R/svlPjN2T6gDgHOCWOs+iXQF4rkr0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gzHAwEugkjm47D5k22Z6UOLRWc3rs2kEAuNavAypvvt9F+vesP0TgN4kFXYZXPJczmNkpTLf0xchBN1f7ibI/G1QnlQmnPaV3i0oxOUy0S7rKpScSrRdjuQPKXQFDPyovY6qyewVaHqTcLrYYu58Ty8GkWIzpfO6GACTyJNFuMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=IxFT80Oz; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1745410786; c=relaxed/simple;
+	bh=w5SfRvVkqFoV0hCLwlf9SgkIGi/+3fYF7t7FaoHj80c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ldsvsc1N9oHDbgb3+cb9DC9uGkxQHkBrqQUANwJGFyfj84JaNVaIzwOTcHaUJ0ZsqD0BzjhyN+B243lMA8GW/Vn3o+OdnBID0GAbyTHL8SSR/e0LzHIIWDBkJlO9gGFPQ7tq8iDw+eAlq/QuUJbrburAEkTb4uPTqfTLRZBvmMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=I37lHgYp; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="IxFT80Oz"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="I37lHgYp"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Ed5YdELfO8WXzoeAN+Q0QXC5Mpytds32OL/uzJBApq8=; b=IxFT80OzI76eRJl4A7K0JZyf0G
-	fIwXhmiKOJ8hpGZsr+LNhFazXgJW+plYtu+VFJSkpLF7Fk6C/y7Z4u2eopHF5kNf+kbDkNmLrZ6NK
-	zTr/sxkMckzU6qruZppsitsPDYu/3zja9FMKHMpN9wcuSpQe6ivCyUUShSrY1Hzbp4aJfpA6rR6XO
-	baJ/GOKmDn/MFD29BA26JhOfKRYTdq05/9d9eS35niq9TG+ulfi6Hkxf7/g64yLuFm0ezzAqMZscH
-	TJXhkH2UYZP/+/EPvj7t3iwkjbPaTWKcS9jV5XqPN2QHOl/bBjgcXCLoWhA1S7jFRQYvXhr6+8rNL
-	Ck5dyFXQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=azazel.net)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1u7Ye2-007jhs-0m;
-	Wed, 23 Apr 2025 12:52:02 +0100
-Date: Wed, 23 Apr 2025 12:51:53 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Florian Westphal <fw@strlen.de>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH ulogd2 2/6] db, IP2BIN: correct `format_ipv6()` output
- buffer sizes
-Message-ID: <20250423115153.GA349976@azazel.net>
-References: <20250420172025.1994494-1-jeremy@azazel.net>
- <20250420172025.1994494-3-jeremy@azazel.net>
- <20250423112204.GA7371@breakpoint.cc>
+	bh=vvZqXcrXAjjZ3eg5Xsi/GpR29t5v9X7jkJUdAff86b0=; b=I37lHgYpHYElgdWEG+X4V7AxNs
+	fjZE6QxA+Yx99JWC/ginyaEgIAPV5dvoCJOGiQLYgYX2f0Dau/jz0JPG7D8oiTAJfeS07kiH5DON/
+	euJLWb8sJBzJ8PmLS3KMeg6gTyNWH6/EWruzbMnFG4f3gph2O8dvMo6mb41XqQhz4gaQJjlMC813R
+	EyHwLo/K4htSXxhiifkJvu3NURncmphQ4Y19lW+W+AdhOVPPFsBZPkhPq48L+G9hIm+SVNKlMoER9
+	+vvuvf4SO/VzjCqvZ0lIaTM8EPU+4WHknDfjXR5HFGWUdPmy/Ojxd93qAf8bqtX7OzhdiIlWo/Ooc
+	BwazNu0w==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1u7Z4h-000000004nG-0QEW;
+	Wed, 23 Apr 2025 14:19:35 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: [iptables PATCH] xshared: Accept an option if any given command allows it
+Date: Wed, 23 Apr 2025 14:19:29 +0200
+Message-ID: <20250423121929.31250-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="1SNpoLleIhAUdK8X"
-Content-Disposition: inline
-In-Reply-To: <20250423112204.GA7371@breakpoint.cc>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 
+Fixed commit made option checking overly strict: Some commands may be
+commbined (foremost --list and --zero), reject a given option only if it
+is not allowed by any of the given commands.
 
---1SNpoLleIhAUdK8X
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reported-by: Adam Nielsen <a.nielsen@shikadi.net>
+Fixes: 9c09d28102bb4 ("xshared: Simplify generic_opt_check()")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/xshared.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2025-04-23, at 13:22:04 +0200, Florian Westphal wrote:
-> Jeremy Sowden <jeremy@azazel.net> wrote:
-> > `format_ipv6()` formats IPv6 addresses as hex-strings.  However, sizing=
- for the
-> > output buffer is not done quite right.
-> >=20
-> > `format_ipv6()` itself uses the size of `struct in6_addr` to verify tha=
-t the
-> > buffer size is large enough, and the output buffer for the call in util=
-/db.c is
-> > sized the same way.  However, the size that should be used is that of t=
-he
-> > `s6_addr` member of `struct in6_addr`, not that of the whole structure.
->=20
-> ?
->=20
-> In what uinverse is sizeof(struct in6_addr) different from
-> sizeof(((struct in6_addr) {}).s6_addr)?
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index cdfd11ab2f279..fc61e0fd832bd 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -980,7 +980,7 @@ static void generic_opt_check(struct xt_cmd_parse_ops *ops,
+ 	 */
+ 	for (i = 0, optval = 1; i < NUMBER_OF_OPT; optval = (1 << ++i)) {
+ 		if ((options & optval) &&
+-		    (options_v_commands[i] & command) != command)
++		    !(options_v_commands[i] & command))
+ 			xtables_error(PARAMETER_PROBLEM,
+ 				      "Illegal option `%s' with this command",
+ 				      ops->option_name(optval));
+-- 
+2.49.0
 
-A POSIX-compliant one? :)
-
-	The <netinet/in.h> header shall define the in6_addr structure, which shall=
- include at least the following member:
-
-	  uint8_t s6_addr[16]
-
-I dare say it's hair-splitting, but it's the size of the `s6_addr` member t=
-hat
-is significant, not the structure as a whole.
-
-> > The elements of the `ipbin_array` array in ulogd_filter_IP2BIN.c are si=
-zed using
-> > a local macro, `IPADDR_LENGTH`, which is defined as 128, the number of =
-bits in
-> > an IPv6 address; this is much larger than necessary.
->=20
-> Agreed.
->=20
-> > +#define FORMAT_IPV6_BUFSZ (2 + sizeof(((struct in6_addr) {}).s6_addr) =
-* 2 + 1)
->=20
-> I'd prefer to not use the .s6_addr, its not needed.
->=20
-> > -		for (unsigned j =3D 0; i < sizeof(*ipv6); j +=3D 4, i +=3D 8) {
-> > +		for (unsigned j =3D 0; i < sizeof(ipv6->s6_addr); j +=3D 4, i +=3D 8=
-) {
->=20
-> I would leave this as-is.
-
-Fair enough.
-
-> First patch looks good, I'll apply it later today.  Still reviewing the
-> rest.
-
-J.
-
---1SNpoLleIhAUdK8X
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEbB20U2PvQDe9VtUXKYasCr3xBA0FAmgI1FEACgkQKYasCr3x
-BA3hcA//ahfA4UN8/wz3Oo5c7Afk8QvxsjxCEytQ5eajf26kkSrvtuM7TaH4ASiv
-U21a7LeZYuufIrSVCDp8BhepqcVuuuXileZ2ehvxRDzdW9szb+GYdpy46EjaHYGc
-KtiXgO7IpWDXaMzspiUE8hPklWe2PEw2Dnfcur1amdu6vKyvdm3PMGQW8w2hMm9j
-X3x4dcPhOLfbcBcWxQsXL/r9nPq/Z9IITQ0dO0p9Uzah4ht/EXvoGOFrIZ4LfU/s
-XmlrGMSvxQv73yb2Nx/6y18l444lff02tWwWs1JYAULTXx2BOwWp+1UWZ4CfjriQ
-fKsgNv2iHnEQToQFy6CiBlW8TAjeJ1/VX5mjFMkwLxJHj16ke4UY2HRvhORVKSzl
-Gika6TX8p/OexM2sALDHqT0I3Bat9Kq+QU5FlsbWEDZ1tbaid/q3rOfSGWLtBSis
-vraj/lvHa7EggP3E0w0PidXcknt6DL+XGnXCsR5GAh/ff1yDMyQWBTJqQUABWHpY
-vjGzwzg/PgHxtGb2K0bfu4oKxI59WUQ2mRohOq9ML4bKxE3Tz8dbl1h13CvPo7Vg
-4rqdmeDDZrrc0JOPSCX6nTJ3r0ZwirhslGPtLV9r5TDaqa/dK2KQi2C62GZwViqG
-myda3S89ogM5FLMgC2/ln7C8BnWcVRfcJQ+QqVJa8iIFmbMyeeE=
-=uNeS
------END PGP SIGNATURE-----
-
---1SNpoLleIhAUdK8X--
