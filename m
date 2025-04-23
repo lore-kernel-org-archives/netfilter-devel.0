@@ -1,91 +1,92 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86AE12566DA
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 10:02:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E062F1A0BC9
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 10:52:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745402573; cv=none; b=AClcz27prliaXplr2YtLKYmm0UkHTCzeQIO+0OcJFrvo+8ETqEsHNJJ1+GxBAPzCRUV5Y3Kzke1vJBhgFHCWpYU+lTCibpBuHhD9c3s+zLcqdcOmcdMlM6AmW0hJh4PRR7+6f870eNbq56tE5w0EA+ooH8oMqo0yMz8S4oTU5FI=
+	t=1745405539; cv=none; b=s7fEFXU38EZpKXveBar5Q8Ze8jGNlGgx0MFNjDdsLlfRGF1ZDWXy1/qls05BM1e384LZjclhQMyZBtrwcMY34Cu5/IhVSryoB010/2boAU/Ni6YVN8XzWJl2/uK5Nu+UsrBPEqzyjmeVovblLDBY0zVEB5RIuJuW6DZn1eb0W9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745402573; c=relaxed/simple;
-	bh=1ehbzzH+Ki89oU5ziI/acO5rIgeTLCepEDY/FqrlOu4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GZOzzcMxHjgRqcDRl6+2i26Chkysbepr3aHw40fsDu8nCBuABLvY0R1cczsAiwrIwb7MniKEqOkwnjBprXdkTjBig8QjLdIw+S6ZKPn8LkQNlpzJZkuW04iVrXVc4o8A9y/I2+dmXObCcMh54zGGr4Wrejt89rqn7K5XtiMNN5w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1745405539; c=relaxed/simple;
+	bh=ZpGiiVafPXe2Q65dNhhBNpIYJyEjecPtS7Px5HKaN5o=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IjV6v5ZugwV5fX0MelXl0dO2jpyNxjr7xsuZ5W3ydp8gFyhy031/k3PRAfy4WfVEbZFrPCSD2jxsD044EDwlMRoq3QmmoCQxK4hhGbEXmJniQ5RkaYIsG/KlcAMeiPxRiKAFJ8wOaa1KhYrMdeOzM/qQSf9MjQVrRJIoI6rWUk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1u7WwL-0001Ub-Ev; Wed, 23 Apr 2025 12:02:49 +0200
+	(envelope-from <fw@strlen.de>)
+	id 1u7XiA-0001qB-Gs; Wed, 23 Apr 2025 12:52:14 +0200
+Date: Wed, 23 Apr 2025 12:52:14 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] selftests: netfilter: nft_fib.sh: check lo packets bypass fib lookup
-Date: Wed, 23 Apr 2025 11:57:29 +0200
-Message-ID: <20250423095734.16109-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
+To: Shaun Brady <brady.1345@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	ppwaskie@kernel.org
+Subject: Re: [PATCH] netfilter: nf_tables: Implement jump limit for
+ nft_table_validate
+Message-ID: <20250423105214.GA6910@breakpoint.cc>
+References: <20250422001643.113149-1-brady.1345@gmail.com>
+ <20250422054410.GA25299@breakpoint.cc>
+ <CAKwNus-LzHUdN91umsmm6f0PNUr1jYaSR3BSdcSvYsydk7HygA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAKwNus-LzHUdN91umsmm6f0PNUr1jYaSR3BSdcSvYsydk7HygA@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-With reverted fix:
-PASS: fib expression did not cause unwanted packet drops
-[   37.285169] ns1-KK76Kt nft_rpfilter: IN=lo OUT= MAC=00:00:00:00:00:00:00:00:00:00:00:00:08:00 SRC=127.0.0.1 DST=127.0.0.1 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=32287 DF PROTO=ICMP TYPE=8 CODE=0 ID=1818 SEQ=1
-FAIL: rpfilter did drop packets
-FAIL: ns1-KK76Kt cannot reach 127.0.0.1, ret 0
+Shaun Brady <brady.1345@gmail.com> wrote:
+> > Furthermore, the largest ruleset I have archived here (iptables-save
+> > kubernetes ruleset dump) has 27k jumps (many who are mutually exclusive
+> > and user-defined chains that are always terminal), but nf_tables_api.c
+> > lacks the ability to detect either of these cases).
+> >
+> > With the proposed change, the ruleset won't load anymore.
+> 
+> Much of my testing was omitted from the commit message.  8192 was
+> chosen as to what seemed significantly above normal usage; I was way
+> off.
 
-Check for this.
+8k is brain damaged^W^W very high for nftables thanks to the existence of
+verdict maps.  The problem is iptables(-nft) and its linear rules.
 
-Link: https://lore.kernel.org/netfilter/20250422114352.GA2092@breakpoint.cc/
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/net/netfilter/nft_fib.sh        | 23 +++++++++++++++++++
- 1 file changed, 23 insertions(+)
+> What I did observe was that machines (both big and small) start
+> to act up around 16M.  Would it ease minds to simply increase this to
+> something like 4M or 8M?
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index ce1451c275fd..ea47dd246a08 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -45,6 +45,19 @@ table inet filter {
- EOF
- }
- 
-+load_input_ruleset() {
-+	local netns=$1
-+
-+ip netns exec "$netns" nft -f /dev/stdin <<EOF
-+table inet filter {
-+	chain input {
-+		type filter hook input priority 0; policy accept;
-+	        fib saddr . iif oif missing counter log prefix "$netns nft_rpfilter: " drop
-+	}
-+}
-+EOF
-+}
-+
- load_pbr_ruleset() {
- 	local netns=$1
- 
-@@ -165,6 +178,16 @@ check_drops || exit 1
- 
- echo "PASS: fib expression did not cause unwanted packet drops"
- 
-+load_input_ruleset "$ns1"
-+
-+test_ping 127.0.0.1 ::1 || exit 1
-+check_drops || exit 1
-+
-+test_ping 10.0.1.99 dead:1::99 || exit 1
-+check_drops || exit 1
-+
-+echo "PASS: fib expression did not discard loopback packets"
-+
- ip netns exec "$nsrouter" nft flush table inet filter
- 
- ip -net "$ns1" route del default
--- 
-2.49.0
+What about going with 64k and NOT applying that limit in the init_netns?
 
+The rationale would be that if you have the priviliges to ramp up the
+limitation threshold that limit doesn't exist in practice anyway.
+
+> > Possible solutions to soften the impact/breakage potential:
+> > - make the sysctl only affect non-init-net namespaces.
+> > - make the sysctl only affect non-init-user-ns owned namespaces.
+> 
+> I may be misunderstanding how limiting control to (only) non-init-*
+> namespaces would help. It certainly would keep a namespace from taking
+> the whole system down, but it would leave the original problem of
+> being able to create the deadly jump configuration purely in the
+> init-net.
+
+Sure, but why do you need to protect init_net?
+
+> Maybe protecting from a namespace is more fruitful than an
+> operator making mistakes (the initial revisions intent).
+
+I don't see how you can make such rulesets on accident.
+
+> > - Add the obseved total jump count to the table structure
+> > Then, when validating, do not start from 0 but from the sum
+> >  of the total jump count of all registered tables in the same family.
+> > netdev family will need to be counted unconditionally.
+> 
+> I had not considered one could spread the problem across multiple
+> tables (even if you can't jump between them).  This is a good insight,
+> and I will account for this.
+
+Thanks!
