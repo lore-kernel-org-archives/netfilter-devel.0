@@ -1,78 +1,76 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6FCD2701B6
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 12:19:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F4844C62
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 12:51:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745410786; cv=none; b=q2RqeWsGyJwfMov34Wb2mB2HHCVVFPYtUWlIwpY3iWXGa236H3l5M26J9asQrnktU5TMfRMfU393OsK3O+Wt3p4Ake73VnzCK5l6Zzr26jXM5KFXr4p6bd0C2+d7Wkgb+iUXLOTznoEF/FlhqryvPHtk8KFPYN36YbFulcxG17w=
+	t=1745412665; cv=none; b=vBbTjun08f7K5gB0VXTNl3QOaj2JY4es8Dyiwaru3lND6IvCeEP7REWk5SxYoW1zHEK1HaWIDxboYtw9sPK2QqKrOkV1kwcLzkVhzxwnOSmqsWvoIyOuGFX9cBs8YRnzC3q7vfCb87iohWZhaX5GS7cgOJn4I0mCMzqKtxY6dCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745410786; c=relaxed/simple;
-	bh=w5SfRvVkqFoV0hCLwlf9SgkIGi/+3fYF7t7FaoHj80c=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ldsvsc1N9oHDbgb3+cb9DC9uGkxQHkBrqQUANwJGFyfj84JaNVaIzwOTcHaUJ0ZsqD0BzjhyN+B243lMA8GW/Vn3o+OdnBID0GAbyTHL8SSR/e0LzHIIWDBkJlO9gGFPQ7tq8iDw+eAlq/QuUJbrburAEkTb4uPTqfTLRZBvmMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=I37lHgYp; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="I37lHgYp"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=vvZqXcrXAjjZ3eg5Xsi/GpR29t5v9X7jkJUdAff86b0=; b=I37lHgYpHYElgdWEG+X4V7AxNs
-	fjZE6QxA+Yx99JWC/ginyaEgIAPV5dvoCJOGiQLYgYX2f0Dau/jz0JPG7D8oiTAJfeS07kiH5DON/
-	euJLWb8sJBzJ8PmLS3KMeg6gTyNWH6/EWruzbMnFG4f3gph2O8dvMo6mb41XqQhz4gaQJjlMC813R
-	EyHwLo/K4htSXxhiifkJvu3NURncmphQ4Y19lW+W+AdhOVPPFsBZPkhPq48L+G9hIm+SVNKlMoER9
-	+vvuvf4SO/VzjCqvZ0lIaTM8EPU+4WHknDfjXR5HFGWUdPmy/Ojxd93qAf8bqtX7OzhdiIlWo/Ooc
-	BwazNu0w==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1u7Z4h-000000004nG-0QEW;
-	Wed, 23 Apr 2025 14:19:35 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Cc: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: [iptables PATCH] xshared: Accept an option if any given command allows it
-Date: Wed, 23 Apr 2025 14:19:29 +0200
-Message-ID: <20250423121929.31250-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
+	s=arc-20240116; t=1745412665; c=relaxed/simple;
+	bh=/1pnN00GsfOMSZfXztaj3edvGdlF0kyctOf/n/qWun0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GNtnrsiCzgvO14WaWWR9OTGJizLQ70g8oIBLvIJ2jEPOOtWfaV7OKbFamPp0tUqyJap1UT/ej2qB1SgLvfrfU7hFQuX6fZEjdCCF27cZNdeG3nHhd1Zx0zeSijzEM2iKhcPxAVF1heDrCUtDu8cahWqR5fyQrkHimFVaDwfczrM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@strlen.de>)
+	id 1u7ZZ6-0002Yx-GY; Wed, 23 Apr 2025 14:51:00 +0200
+Date: Wed, 23 Apr 2025 14:51:00 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: Florian Westphal <fw@strlen.de>,
+	Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH ulogd2 2/6] db, IP2BIN: correct `format_ipv6()` output
+ buffer sizes
+Message-ID: <20250423125100.GC7371@breakpoint.cc>
+References: <20250420172025.1994494-1-jeremy@azazel.net>
+ <20250420172025.1994494-3-jeremy@azazel.net>
+ <20250423112204.GA7371@breakpoint.cc>
+ <20250423115153.GA349976@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250423115153.GA349976@azazel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-Fixed commit made option checking overly strict: Some commands may be
-commbined (foremost --list and --zero), reject a given option only if it
-is not allowed by any of the given commands.
+Jeremy Sowden <jeremy@azazel.net> wrote:
+> On 2025-04-23, at 13:22:04 +0200, Florian Westphal wrote:
+> > Jeremy Sowden <jeremy@azazel.net> wrote:
+> > > `format_ipv6()` formats IPv6 addresses as hex-strings.  However, sizing for the
+> > > output buffer is not done quite right.
+> > > 
+> > > `format_ipv6()` itself uses the size of `struct in6_addr` to verify that the
+> > > buffer size is large enough, and the output buffer for the call in util/db.c is
+> > > sized the same way.  However, the size that should be used is that of the
+> > > `s6_addr` member of `struct in6_addr`, not that of the whole structure.
+> > 
+> > ?
+> > 
+> > In what uinverse is sizeof(struct in6_addr) different from
+> > sizeof(((struct in6_addr) {}).s6_addr)?
+> 
+> A POSIX-compliant one? :)
+> 
+> 	The <netinet/in.h> header shall define the in6_addr structure, which shall include at least the following member:
+> 
+> 	  uint8_t s6_addr[16]
+> 
+> I dare say it's hair-splitting, but it's the size of the `s6_addr` member that
+> is significant, not the structure as a whole.
 
-Reported-by: Adam Nielsen <a.nielsen@shikadi.net>
-Fixes: 9c09d28102bb4 ("xshared: Simplify generic_opt_check()")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- iptables/xshared.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'd argue that sizeof(struct in6_addr) > 128 bits is a bug...
 
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index cdfd11ab2f279..fc61e0fd832bd 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -980,7 +980,7 @@ static void generic_opt_check(struct xt_cmd_parse_ops *ops,
- 	 */
- 	for (i = 0, optval = 1; i < NUMBER_OF_OPT; optval = (1 << ++i)) {
- 		if ((options & optval) &&
--		    (options_v_commands[i] & command) != command)
-+		    !(options_v_commands[i] & command))
- 			xtables_error(PARAMETER_PROBLEM,
- 				      "Illegal option `%s' with this command",
- 				      ops->option_name(optval));
--- 
-2.49.0
+In any case i've never seen a definition of in6_addr where there is any
+member that would cause this.
 
+> > First patch looks good, I'll apply it later today.  Still reviewing the
+> > rest.
+
+FTR, I applied patches 1 and 3 to uglog2.git.
