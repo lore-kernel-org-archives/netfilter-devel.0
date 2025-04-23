@@ -1,94 +1,61 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE8116DCE1;
-	Wed, 23 Apr 2025 21:02:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3459265CBD
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Apr 2025 21:09:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745442128; cv=none; b=F4rhYwbyfDyjuOi1eZ1t1yxDKhCKqWl1GAJ8+/mfvbYl7VncTO6gjqmLpR+Hj6CDDxEUl4+J9vU/3R3p5QVrqppxgSfzDbvF5oCfbaYsAJPNUL7SDHqvDvaK1HERnOY2abyC54tEo4fJiiiYFXumHBD92zp0RA6YADxZUAaw9qg=
+	t=1745442575; cv=none; b=NqFbNz4fiFPPJ0u22Y+EOBZxTt0dkS2nQJrQIJcogiXT7oGHcoes7KHGWuQcC0aaTc2AXvnFiaMeFTd9TzUj5MFbXGtMzBVHVCoJE3hh032HyTYQTX7wkiINiPaaIMMDihGizPFuLbaBLwVoaKxAW+DwCuLFSL98Ee+CrLr9mek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745442128; c=relaxed/simple;
-	bh=m0NRbO5nY7qHPSrRaqy1oF54g1J1IPbxCrbifZ3F7bc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OCt36C6r8wczThxlTXaHlT22ofM4Q8pXDDmlQaZZyikfdGOCQIERd8bcIbLo+voRrh1e40EYmyu+gOyQQZyMWRahYCAX9TCOQnTObX8JYeHvpGtrp05F9zqfNZpgkazNLjKB5QrnZ41OVrUw/XFTQ8g4R9a/XNQkWZr0kkSomCI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BAd1EBng; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S5KYAfqt; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1745442575; c=relaxed/simple;
+	bh=jCDRIDdFBJvIPLb+uAuu2KhahngES1miDAt1O1qPk+0=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nxxsaAVGenmUoYEAUF2Rnf01X8hz7ln4jYl6BNfG2hbwr91oWTc8uvLOQi8uxBzU+QrHNy/xQlEdHdmdrz0kHBqpF6iuibxPhmrjaFbUnxLIPEp6ViA1/Q9Wzw5KmMbGuTR+ZsXwAMVTuCRpX7TsRdvRf1wus09GGjl4aLsgQz8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=dhnm6BtD; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BAd1EBng";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S5KYAfqt"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 786596068D; Wed, 23 Apr 2025 23:02:03 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745442123;
-	bh=U6mHiAVlBrKayEMdAqUBFkPkm2rVLSbO0qLr9kMNgmM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=BAd1EBngZjTFQdXKG1mf0e99IJBFfdIc7mZOQuN/oDBM/NvlycNPM6jyiBQTo26Xg
-	 wilGFglqoLQPfIiKlYY/2wj5fNIhMWPLfNnb4UX9I3xN0SlWS/Ol44wdjhnzR93r6T
-	 qnCmvasMvnn7tIgSZm5dxuQ5VHFQr0lbdrP3Fc9owxr0oyDFbl/Lv9yfgs5p5gJqgM
-	 C+ck43aK1i2+hGYXZ//Tey5OxtgedgbNsz4+dB0w6HyB6hONGB33AXQmNqOtGNvVoQ
-	 h940jpKV4sTEGPytL4dL1IfeWqg7hUUx9FoJlF/3ln0vQyvthbe9efUU2oW8jVEe/x
-	 6hPFyidGMzUeQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 69D8F60614;
-	Wed, 23 Apr 2025 23:02:01 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745442121;
-	bh=U6mHiAVlBrKayEMdAqUBFkPkm2rVLSbO0qLr9kMNgmM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=S5KYAfqtPU8EUYyvJMOUG9jp4ByyabH4zD8mBcMtXaradeIkxbtDQJrB7sw/lpPbt
-	 pkKIQexK6HfbRu8wFMuTXeCaz+bBLfjPiQB652dS57mBuTafC0s7E3Z+coG+5Lyxqi
-	 fUQZNzI5HkKhvWu0VikBbsMBME/wpKi3j2PFOw+RCn2WQ34u0SJodFTxFQmMyCvorY
-	 U37f8sAGTuDl34N43jCDwYo8CW5kom02XLsJL1tcM6LKugJB2tA9vJk5gEVk6ArCNd
-	 axKCpHvB1eRs/FkPn/nazFQO0wEsBQbuFx4zp+XDoIP2fr4lKbvqYMM0j1x43K4h3B
-	 EtoObU34J3MLQ==
-Date: Wed, 23 Apr 2025 23:01:58 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com,
-	edumazet@google.com, horms@kernel.org
-Subject: Re: [PATCH net-next 4/7] netfilter: Exclude LEGACY TABLES on
- PREEMPT_RT.
-Message-ID: <aAlVRq-ol-3jj1ml@calendula>
-References: <20250422202327.271536-1-pablo@netfilter.org>
- <20250422202327.271536-5-pablo@netfilter.org>
- <20250423070002.3dde704e@kernel.org>
- <20250423140654.GD7371@breakpoint.cc>
- <20250423144914.GA7214@breakpoint.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="dhnm6BtD"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Rnx1VamXsOuhRlTV0dl3QhkW9okJuyfZSyXKD68YSew=; b=dhnm6BtDUEgywATQYiawXok316
+	QcKzUYZGGWpF3e2xggzhHYr0zdLgHSjHGxgXyeqIRL2qn4Uq1UPPpcTDc9Q7rG676sBhm+HInNoDW
+	n3q8m7FMKI6hVSCJELs2lUZchJXShCZ05/T/5dHAyWP+1k7xwjFQ5PNnRnDVN38Ri+o+Bjvj/0Bn3
+	kCiqonDL3LsBNbTAl4/fKdDTfv4GsnHHeH0Mi0KsmPy8/dHG7GJpWu6WaHleKle/BEEJA0U3Jou61
+	4WJtsBVIYL/B1vi+FDlGYFvi2f1iqR4PH9oNn0GyjLUp1+8lFNJWrrO/8LNMIi4UpYy2ftIRpqIIY
+	D67Hw82A==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1u7hLW-000000007bB-1byx
+	for netfilter-devel@vger.kernel.org;
+	Wed, 23 Apr 2025 23:09:30 +0200
+Date: Wed, 23 Apr 2025 23:09:30 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] extensions: icmp: Support info-request/-reply
+ type names
+Message-ID: <aAlXCkfKsd0f1D1i@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org
+References: <20250328163908.31678-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250423144914.GA7214@breakpoint.cc>
+In-Reply-To: <20250328163908.31678-1-phil@nwl.cc>
 
-Hi Florian,
-
-On Wed, Apr 23, 2025 at 04:49:14PM +0200, Florian Westphal wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > I can have a look, likely there needs to a a patch before this one
-> > that adds a few explicit CONFIG_ entries rather than replying on
-> > implicit =y|m.
+On Fri, Mar 28, 2025 at 05:39:08PM +0100, Phil Sutter wrote:
+> The intended side-effect here is that iptables-translate will accept
+> them too. In nftables, the names are supported since basically day 1.
 > 
-> Pablo, whats the test suite expectation?
-> 
-> The netfilter tests pass when iptables is iptables-nft, but not
-> when iptables is iptables-legacy.
-> 
-> I can either patch them and replace iptables with iptables-nft
-> everywhere or I an update config so that iptables-legacy works too.
-> 
-> Unless you feel different, I will go with b) and add the needed
-> legacy config options.
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-b) is fine with me.
-
-> net tests are a different issue, they fail regardless of iptables-nft or
-> legacy, looking at that now.
-
-Thanks.
+Patch applied.
