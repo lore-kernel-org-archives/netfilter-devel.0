@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB00219995E;
-	Thu, 24 Apr 2025 21:15:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14D9928A1F3;
+	Thu, 24 Apr 2025 21:15:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745529321; cv=none; b=ooT6YeHfATjhka2rAX6IyyXihj8qlajFC6pa3hzbxAwjzkjg1KfNWMKGJ7eh5cVNE6mpB3rFXTIp5Bl9k58e57BFJulJVwpzef3itiD9cney8erdCksbI8J2PorGY51kk79C+RwxFomjZbCPcTdaYV+s1UwBXtjiZklk9dcb89E=
+	t=1745529322; cv=none; b=tzlHTZ1k3z8MymOGn7WH13N0Ww78+xwhHml7/fXRW3d5LLFlv65Ms834UrIV4rot5OV9NkR0m03eDyIFKFmD9OWJj2CRslwMqTecqCQWb9GqH3yU2HxIhjSJZvde8zGgUCAS2TD1rfqR1U4mgxxLkosQ3ZvkjAjoTQYj6iDNG3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745529321; c=relaxed/simple;
-	bh=kAkFT9NuZe6p88r2is5Q7cvNbgfrv31Ru3I3UFnHJCk=;
+	s=arc-20240116; t=1745529322; c=relaxed/simple;
+	bh=sqWzHCleqx+aTkor+eWfgpG807luOl3QJh2I302WKkw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=fp1wD7+klHC3XsRiA0FpvcMveEHxQuk1dlpMHydMjIUdcw/4j2YvYIQM+97qJVqob1r5IsBs+qAuS4luEdZ3j33Bh5JP58rqJ2+kTDHWghqVAdEpQYRXW4z++cA/c/M2syW+1zZnewyvE4xAuyUf9tuYnpq/oyNag296hs2Jshk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cJYdQdwG; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lR1wF74E; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version:Content-Type; b=hKjwlUIBNC6AfvGgBm1e2sM92Yxw1b4jiPBsf7xC3nlKqjX74X0CYdUSA/HKJwnVNWLv/z7vRT3XNy48sLwVv67MH6oDyDbOwfqF3kaYidy8BIRYq2UKw6TjR6mlZuxpYfrcbT3NS5PuawCRlalFDfsYxEfxalurbHq7q4EHArk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KyMemei4; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=o20p+UeW; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cJYdQdwG";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lR1wF74E"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KyMemei4";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="o20p+UeW"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 17A626071A; Thu, 24 Apr 2025 23:15:16 +0200 (CEST)
+	id 442B36072A; Thu, 24 Apr 2025 23:15:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745529316;
-	bh=TJWsdXZPBpv31JOUX7/ndIWlXpxGLhaWGE0QhtWFExw=;
+	s=2025; t=1745529317;
+	bh=z017CUzGV0l71hUx/IApQSwLDsb3L4hLiuy85K8bahU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=cJYdQdwGA4L3KccCGJK70zHX+jlx2MTEv0X5UNWZLNj0yZI0l7GrkzXr9vLo/ucnG
-	 dLmzrXDHlV2GJKJDlNxSTTKQs2s+Tl25yemUK9vVZubU1Lfe2JqG9ZALZdkdjbcOZO
-	 VLB9+Fm8yd4Omnoimk2VZCJ0Nm553KtP5SqUwo0WFASFdnjgE/ORGYNzINCrybHnj6
-	 R202Ioor+fy5VageDjlRYPHOvPtdS+ZJEexVeMd4bWdALNhcgx3tOgdbQlPkv1rx9O
-	 iXqCF/CYE11TWHDkTTXlYZCZ6p28NGdwG9ngZoVADlapgpfZg2nIwJ17S/zEG/FZuJ
-	 k1xgQNyujUH6A==
+	b=KyMemei4sUVZdOsWi7a2zYTGFFGCtBMsJrwuARDBFNGtAHTGc9R8YBPoH9eSZYmsO
+	 9I24bb9IOXAv78bMZl/E1w6/5/TDO/sTYKARuf4SFGa6TnKERLB1TPolJLmg5L+wJ9
+	 FKGTxK69yz2ITDLePvssFh3RCMWeU6oJqaxjOlCxYjv3PgNbuLNVhdzb+0V8wzKLag
+	 QYQfGVBtvFNPXy/NsPSL4EYIt+lbtN0Ah3rhYvC7yQEHwCCAYv4JOG8Wfp5h9vErSe
+	 +WhgGXCsJZvMQVRNGjKE2t9FqmUFJXryXK7XUfVsYRQYtn0iYSMhuQmLAhUFnXOH82
+	 +Yp5qbcI4kGXQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 29B2B6070B;
+	by mail.netfilter.org (Postfix) with ESMTPSA id DCD1D6070D;
 	Thu, 24 Apr 2025 23:15:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745529312;
-	bh=TJWsdXZPBpv31JOUX7/ndIWlXpxGLhaWGE0QhtWFExw=;
+	s=2025; t=1745529313;
+	bh=z017CUzGV0l71hUx/IApQSwLDsb3L4hLiuy85K8bahU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lR1wF74EPCNxtRUMJRH5qdZXWxn4K3CEsFiXV/8VysQCY4P2msiNwQyxLeXNJjBMm
-	 bnNUacPHBTdFEFmImJsCNZS9BaTyjIZCGjnaAV338QXGQkVDNU2kzuv7nRg84zhJdf
-	 VkGfxve0ebkk08daEVd5q3Zn2Nja/8IMz1/oiYqrhVn/RVu80fNC9bVQRW8HRY8UO3
-	 Mb7sSODoHl5dJPqhrCmsHGqoRjzI6EV0KZMuymGwLtqYZKFFDVWlvNpqM7GckmcErz
-	 IhbfwlqFbf1GwVtKU42j4W/jMUTxbmxSSOLmEfz/2xSDO4ZF/VZ/OzYfrfiKExKyHN
-	 mQbglP9hjGQvw==
+	b=o20p+UeWdJfu0cQmNQkSXrmW61BGhx6bkk/rsrTrd59HVn/To8wNq5JqLD8X0Gzj+
+	 xHsxLOARpePlZG2qZP/UC3ByTJzgNDQo+IZCt8nGul9pGMGCm6K6pCUH2qMpL+RKsn
+	 QCRPHpul48y+cVvj2g/6dmhwXQ/R0HBVf/C89j793o2pfrNkqJAl8Mox2HaXZE2Coc
+	 3ZNU9HoQww1vaQfhsHZSbZvVX2aHGAlQyL8Rr9IfwxqxCOjsP1wbsc+4jnraVB83pG
+	 gsDpwDAAXwNlkXrB0rFvLgTihf0x2wyDsLIB1BNVsY4Vkx9WMq8vr3onJHHOeVI23k
+	 a248dPtqBwhdw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 2/7] netfilter: xt_cgroup: Make it independent from net_cls
-Date: Thu, 24 Apr 2025 23:14:50 +0200
-Message-Id: <20250424211455.242482-3-pablo@netfilter.org>
+Subject: [PATCH net-next 3/7] net: cgroup: Guard users of sock_cgroup_classid()
+Date: Thu, 24 Apr 2025 23:14:51 +0200
+Message-Id: <20250424211455.242482-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250424211455.242482-1-pablo@netfilter.org>
 References: <20250424211455.242482-1-pablo@netfilter.org>
@@ -69,86 +69,76 @@ Content-Transfer-Encoding: 8bit
 
 From: Michal Koutný <mkoutny@suse.com>
 
-The xt_group matching supports the default hierarchy since commit
-c38c4597e4bf3 ("netfilter: implement xt_cgroup cgroup2 path match").
-The cgroup v1 matching (based on clsid) and cgroup v2 matching (based on
-path) are rather independent. Downgrade the Kconfig dependency to
-mere CONFIG_SOCK_GROUP_DATA so that xt_group can be built even without
-CONFIG_NET_CLS_CGROUP for path matching.
-Also add a message for users when they attempt to specify any clsid.
+Exclude code that relies on sock_cgroup_classid() as preparation of
+removal of the function.
 
-Link: https://lists.opensuse.org/archives/list/kernel@lists.opensuse.org/thread/S23NOILB7MUIRHSKPBOQKJHVSK26GP6X/
-Cc: Jan Engelhardt <ej@inai.de>
-Cc: Florian Westphal <fw@strlen.de>
 Signed-off-by: Michal Koutný <mkoutny@suse.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/Kconfig     |  2 +-
- net/netfilter/xt_cgroup.c | 17 +++++++++++++++++
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ net/ipv4/inet_diag.c      | 2 +-
+ net/netfilter/xt_cgroup.c | 9 +++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 047ba81865ed..3b2183fc7e56 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -1180,7 +1180,7 @@ config NETFILTER_XT_MATCH_CGROUP
- 	tristate '"control group" match support'
- 	depends on NETFILTER_ADVANCED
- 	depends on CGROUPS
--	select CGROUP_NET_CLASSID
-+	select SOCK_CGROUP_DATA
- 	help
- 	Socket/process control group matching allows you to match locally
- 	generated packets based on which net_cls control group processes
+diff --git a/net/ipv4/inet_diag.c b/net/ipv4/inet_diag.c
+index 907bad776b42..1d1d6ad53f4c 100644
+--- a/net/ipv4/inet_diag.c
++++ b/net/ipv4/inet_diag.c
+@@ -160,7 +160,7 @@ int inet_diag_msg_attrs_fill(struct sock *sk, struct sk_buff *skb,
+ 	    ext & (1 << (INET_DIAG_TCLASS - 1))) {
+ 		u32 classid = 0;
+ 
+-#ifdef CONFIG_SOCK_CGROUP_DATA
++#ifdef CONFIG_CGROUP_NET_CLASSID
+ 		classid = sock_cgroup_classid(&sk->sk_cgrp_data);
+ #endif
+ 		/* Fallback to socket priority if class id isn't set.
 diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
-index c0f5e9a4f3c6..66915bf0d89a 100644
+index 66915bf0d89a..c437fbd59ec1 100644
 --- a/net/netfilter/xt_cgroup.c
 +++ b/net/netfilter/xt_cgroup.c
-@@ -23,6 +23,8 @@ MODULE_DESCRIPTION("Xtables: process control group matching");
- MODULE_ALIAS("ipt_cgroup");
- MODULE_ALIAS("ip6t_cgroup");
- 
-+#define NET_CLS_CLASSID_INVALID_MSG "xt_cgroup: classid invalid without net_cls cgroups\n"
-+
- static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+@@ -117,6 +117,7 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ static bool
+ cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
  {
- 	struct xt_cgroup_info_v0 *info = par->matchinfo;
-@@ -30,6 +32,11 @@ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
- 	if (info->invert & ~1)
- 		return -EINVAL;
++#ifdef CONFIG_CGROUP_NET_CLASSID
+ 	const struct xt_cgroup_info_v0 *info = par->matchinfo;
+ 	struct sock *sk = skb->sk;
  
-+	if (!IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
-+		pr_info(NET_CLS_CLASSID_INVALID_MSG);
-+		return -EINVAL;
-+	}
-+
- 	return 0;
+@@ -125,6 +126,8 @@ cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	return (info->id == sock_cgroup_classid(&skb->sk->sk_cgrp_data)) ^
+ 		info->invert;
++#endif
++	return false;
  }
  
-@@ -51,6 +58,11 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 	}
+ static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -140,9 +143,12 @@ static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (ancestor)
+ 		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
+ 			info->invert_path;
++#ifdef CONFIG_CGROUP_NET_CLASSID
+ 	else
+ 		return (info->classid == sock_cgroup_classid(skcd)) ^
+ 			info->invert_classid;
++#endif
++	return false;
+ }
  
-+	if (info->has_classid && !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
-+		pr_info(NET_CLS_CLASSID_INVALID_MSG);
-+		return -EINVAL;
-+	}
-+
- 	info->priv = NULL;
- 	if (info->has_path) {
- 		cgrp = cgroup_get_from_path(info->path);
-@@ -83,6 +95,11 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 	}
+ static bool cgroup_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
+@@ -158,9 +164,12 @@ static bool cgroup_mt_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (ancestor)
+ 		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
+ 			info->invert_path;
++#ifdef CONFIG_CGROUP_NET_CLASSID
+ 	else
+ 		return (info->classid == sock_cgroup_classid(skcd)) ^
+ 			info->invert_classid;
++#endif
++	return false;
+ }
  
-+	if (info->has_classid && !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
-+		pr_info(NET_CLS_CLASSID_INVALID_MSG);
-+		return -EINVAL;
-+	}
-+
- 	info->priv = NULL;
- 	if (info->has_path) {
- 		cgrp = cgroup_get_from_path(info->path);
+ static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
 -- 
 2.30.2
 
