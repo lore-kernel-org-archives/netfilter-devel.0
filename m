@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAFAA18DF8D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB00219995E;
 	Thu, 24 Apr 2025 21:15:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745529321; cv=none; b=vALVRQLvpeEy2P8nNvBiwg8Jwv3SBPA4piquegBxYFmgIqdoJUNLJFVbm5Cjwr7AZKfNj+mMq0l6v3iStqWj8lWCJg0/C7/4/isB0XFjCYSXUl+B0GSI4n3UUEqosG8fIWPnas4R+hK/ZzmWzjcUPco9J3zIfNwsrZGhi3Nt+9o=
+	t=1745529321; cv=none; b=ooT6YeHfATjhka2rAX6IyyXihj8qlajFC6pa3hzbxAwjzkjg1KfNWMKGJ7eh5cVNE6mpB3rFXTIp5Bl9k58e57BFJulJVwpzef3itiD9cney8erdCksbI8J2PorGY51kk79C+RwxFomjZbCPcTdaYV+s1UwBXtjiZklk9dcb89E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1745529321; c=relaxed/simple;
-	bh=zYo6ldFzV+pxopFMuB7Jhdf5olFy2pgZELSZ+s4jhgw=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=X4bMoqjOasGHixKj+VK2ErVt4+WKMWOO8IBm8PTOUXOUdOv5Mpcx8cFmwoOgNQCBPIiQhKw829vLc/g/9Nn+EkFjD8++jHV5Bejh6EOkqs5qf4fJl1VLjupBMybWs5Vm+b3GLKWDd1TgcOOqAf6cGv1rmY5mDclCSTyXH+dgkkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QAIHxtr1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=A83UEY2L; arc=none smtp.client-ip=217.70.190.124
+	bh=kAkFT9NuZe6p88r2is5Q7cvNbgfrv31Ru3I3UFnHJCk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=fp1wD7+klHC3XsRiA0FpvcMveEHxQuk1dlpMHydMjIUdcw/4j2YvYIQM+97qJVqob1r5IsBs+qAuS4luEdZ3j33Bh5JP58rqJ2+kTDHWghqVAdEpQYRXW4z++cA/c/M2syW+1zZnewyvE4xAuyUf9tuYnpq/oyNag296hs2Jshk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cJYdQdwG; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lR1wF74E; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QAIHxtr1";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="A83UEY2L"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cJYdQdwG";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lR1wF74E"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 661B360713; Thu, 24 Apr 2025 23:15:10 +0200 (CEST)
+	id 17A626071A; Thu, 24 Apr 2025 23:15:16 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745529310;
-	bh=mJkeIJqWPn6GBMQVyjt9xFAzf3OtGBlIj9YYw3V21AU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=QAIHxtr1FiUPr6NSkr6Z79CASfNns2ra+BfvpdyHCTsrqQXrxafLfztohf2q+IbO5
-	 jTi8UMs26c+aE4Fhx5jGxnTQo/p/qyRBPkPoNNT+Bl17b3UUp6eh1rrioQZzBgvdGp
-	 DWc3Oxj1wJmegpDLvDYIMYnAX/CptHsoQGr+3GC2lO/6y8CIsndQWgy56eHIDpKC5Z
-	 njCnTvyh4mKInb8wPnY5sOVPDbtQzj06FYZFI7JVyTtfWWo80j6wHi6ceKyQNJ3N4y
-	 TFHh8abi0Zn5DGsuDwqSmDwBIwmwDOo0c62C8+qXgw2m7jisi/l+mWhj7XKpg4cPY6
-	 /GBlVIJE9GhuA==
+	s=2025; t=1745529316;
+	bh=TJWsdXZPBpv31JOUX7/ndIWlXpxGLhaWGE0QhtWFExw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=cJYdQdwGA4L3KccCGJK70zHX+jlx2MTEv0X5UNWZLNj0yZI0l7GrkzXr9vLo/ucnG
+	 dLmzrXDHlV2GJKJDlNxSTTKQs2s+Tl25yemUK9vVZubU1Lfe2JqG9ZALZdkdjbcOZO
+	 VLB9+Fm8yd4Omnoimk2VZCJ0Nm553KtP5SqUwo0WFASFdnjgE/ORGYNzINCrybHnj6
+	 R202Ioor+fy5VageDjlRYPHOvPtdS+ZJEexVeMd4bWdALNhcgx3tOgdbQlPkv1rx9O
+	 iXqCF/CYE11TWHDkTTXlYZCZ6p28NGdwG9ngZoVADlapgpfZg2nIwJ17S/zEG/FZuJ
+	 k1xgQNyujUH6A==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 209F76070A;
-	Thu, 24 Apr 2025 23:15:08 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 29B2B6070B;
+	Thu, 24 Apr 2025 23:15:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745529308;
-	bh=mJkeIJqWPn6GBMQVyjt9xFAzf3OtGBlIj9YYw3V21AU=;
-	h=From:To:Cc:Subject:Date:From;
-	b=A83UEY2LbdZ42SUSKQ1vPp18+xyzVBip5MZ0RlEefRXhCVSuAmJCnVYtEbuLLMrWP
-	 8pxVdx4aTO0Fr6682DDm6cHD4ikU8E8SUk6z+MWdBaFojCPcd8//NZm4wWOpzDsjiH
-	 8ie69+Vf9Tq6tgpEiBFJuzBdOPAcP+SMxfS4HGrinPd9IKoAjBS+64Lce54FDa/fPU
-	 e0W/6HvDamc6fzZOYF9WSlJ1yKG2ysXcuEyyivreJ7LVZtanaQ4+GLQ60oKxN3PF3w
-	 CqjZ6Yaw3xLY7NIl/OfrlQaqM/UqRemQayyZIxqI92cS0rTyD/kw0EorpLDtTjixJE
-	 XYX+VLjrWGHpg==
+	s=2025; t=1745529312;
+	bh=TJWsdXZPBpv31JOUX7/ndIWlXpxGLhaWGE0QhtWFExw=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=lR1wF74EPCNxtRUMJRH5qdZXWxn4K3CEsFiXV/8VysQCY4P2msiNwQyxLeXNJjBMm
+	 bnNUacPHBTdFEFmImJsCNZS9BaTyjIZCGjnaAV338QXGQkVDNU2kzuv7nRg84zhJdf
+	 VkGfxve0ebkk08daEVd5q3Zn2Nja/8IMz1/oiYqrhVn/RVu80fNC9bVQRW8HRY8UO3
+	 Mb7sSODoHl5dJPqhrCmsHGqoRjzI6EV0KZMuymGwLtqYZKFFDVWlvNpqM7GckmcErz
+	 IhbfwlqFbf1GwVtKU42j4W/jMUTxbmxSSOLmEfz/2xSDO4ZF/VZ/OzYfrfiKExKyHN
+	 mQbglP9hjGQvw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next,v2 0/7] Netfilter updates for net-next
-Date: Thu, 24 Apr 2025 23:14:48 +0200
-Message-Id: <20250424211455.242482-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/7] netfilter: xt_cgroup: Make it independent from net_cls
+Date: Thu, 24 Apr 2025 23:14:50 +0200
+Message-Id: <20250424211455.242482-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250424211455.242482-1-pablo@netfilter.org>
+References: <20250424211455.242482-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -64,92 +67,88 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-v2: including fixes from Florian to address selftest issues
-    and a fix for set element count and type.
+From: Michal Koutný <mkoutny@suse.com>
 
--o-
+The xt_group matching supports the default hierarchy since commit
+c38c4597e4bf3 ("netfilter: implement xt_cgroup cgroup2 path match").
+The cgroup v1 matching (based on clsid) and cgroup v2 matching (based on
+path) are rather independent. Downgrade the Kconfig dependency to
+mere CONFIG_SOCK_GROUP_DATA so that xt_group can be built even without
+CONFIG_NET_CLS_CGROUP for path matching.
+Also add a message for users when they attempt to specify any clsid.
 
-Hi,
+Link: https://lists.opensuse.org/archives/list/kernel@lists.opensuse.org/thread/S23NOILB7MUIRHSKPBOQKJHVSK26GP6X/
+Cc: Jan Engelhardt <ej@inai.de>
+Cc: Florian Westphal <fw@strlen.de>
+Signed-off-by: Michal Koutný <mkoutny@suse.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/Kconfig     |  2 +-
+ net/netfilter/xt_cgroup.c | 17 +++++++++++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-The following batch contains Netfilter updates for net-next:
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 047ba81865ed..3b2183fc7e56 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -1180,7 +1180,7 @@ config NETFILTER_XT_MATCH_CGROUP
+ 	tristate '"control group" match support'
+ 	depends on NETFILTER_ADVANCED
+ 	depends on CGROUPS
+-	select CGROUP_NET_CLASSID
++	select SOCK_CGROUP_DATA
+ 	help
+ 	Socket/process control group matching allows you to match locally
+ 	generated packets based on which net_cls control group processes
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index c0f5e9a4f3c6..66915bf0d89a 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -23,6 +23,8 @@ MODULE_DESCRIPTION("Xtables: process control group matching");
+ MODULE_ALIAS("ipt_cgroup");
+ MODULE_ALIAS("ip6t_cgroup");
+ 
++#define NET_CLS_CLASSID_INVALID_MSG "xt_cgroup: classid invalid without net_cls cgroups\n"
++
+ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_cgroup_info_v0 *info = par->matchinfo;
+@@ -30,6 +32,11 @@ static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
+ 	if (info->invert & ~1)
+ 		return -EINVAL;
+ 
++	if (!IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
++		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		return -EINVAL;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -51,6 +58,11 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
+ 
++	if (info->has_classid && !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
++		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		return -EINVAL;
++	}
++
+ 	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+@@ -83,6 +95,11 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	}
+ 
++	if (info->has_classid && !IS_ENABLED(CONFIG_CGROUP_NET_CLASSID)) {
++		pr_info(NET_CLS_CLASSID_INVALID_MSG);
++		return -EINVAL;
++	}
++
+ 	info->priv = NULL;
+ 	if (info->has_path) {
+ 		cgrp = cgroup_get_from_path(info->path);
+-- 
+2.30.2
 
-1) Replace msecs_to_jiffies() by secs_to_jiffies(), from Easwar Hariharan.
-
-2) Allow to compile xt_cgroup with cgroupsv2 support only,
-   from Michal Koutny.
-
-3) Prepare for sock_cgroup_classid() removal by wrapping it around
-   ifdef, also from Michal Koutny.
-
-4) Disable xtables legacy with PREEMPT_RT, from Sebastian Andrzej Siewior
-   and Florian Westphal.
-
-5) Remove redundant pointer fetch on conntrack template, from Xuanqiang Luo.
-
-6) Re-format one block in the tproxy documentation for consistency,
-   from Chen Linxuan.
-
-7) Expose set element count and type via netlink attributes,
-   from Florian Westphal.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-04-24
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit bef4f1156b74721b7d111114538659031119b6f2:
-
-  net: phy: marvell-88q2xxx: Enable temperature sensor for mv88q211x (2025-04-24 13:19:51 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-04-24
-
-for you to fetch changes up to 67587b4843ea66166d7fd4d785951734014e5a2c:
-
-  netfilter: nf_tables: export set count and backend name to userspace (2025-04-24 22:05:41 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-04-24
-
-----------------------------------------------------------------
-Chen Linxuan (1):
-      docs: tproxy: fix formatting for nft code block
-
-Easwar Hariharan (1):
-      netfilter: xt_IDLETIMER: convert timeouts to secs_to_jiffies()
-
-Florian Westphal (1):
-      netfilter: nf_tables: export set count and backend name to userspace
-
-Michal Koutný (2):
-      netfilter: xt_cgroup: Make it independent from net_cls
-      net: cgroup: Guard users of sock_cgroup_classid()
-
-Pablo Neira Ayuso (1):
-      netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
-
-Xuanqiang Luo (1):
-      netfilter: conntrack: Remove redundant NFCT_ALIGN call
-
- Documentation/networking/tproxy.rst          |  4 ++--
- include/uapi/linux/netfilter/nf_tables.h     |  4 ++++
- net/Kconfig                                  | 10 ++++++++++
- net/bridge/netfilter/Kconfig                 |  8 ++++----
- net/ipv4/inet_diag.c                         |  2 +-
- net/ipv4/netfilter/Kconfig                   | 15 ++++++++-------
- net/ipv6/netfilter/Kconfig                   | 13 +++++++------
- net/netfilter/Kconfig                        |  2 +-
- net/netfilter/nf_conntrack_core.c            |  4 +---
- net/netfilter/nf_tables_api.c                | 26 ++++++++++++++++++++++++++
- net/netfilter/x_tables.c                     | 16 +++++++++++-----
- net/netfilter/xt_IDLETIMER.c                 | 12 ++++++------
- net/netfilter/xt_TCPOPTSTRIP.c               |  4 ++--
- net/netfilter/xt_cgroup.c                    | 26 ++++++++++++++++++++++++++
- net/netfilter/xt_mark.c                      |  2 +-
- tools/testing/selftests/net/config           | 11 +++++++++++
- tools/testing/selftests/net/netfilter/config |  5 +++++
- 17 files changed, 126 insertions(+), 38 deletions(-)
