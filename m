@@ -1,93 +1,129 @@
-Received: from sphereful.sorra.shikadi.net (sphereful.sorra.shikadi.net [52.63.116.147])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 747B1214813
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 Apr 2025 11:07:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.63.116.147
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16721226CEB
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Apr 2025 11:53:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745492871; cv=none; b=flW5t/LWPdtojmZKtvRNKCG9CjwZ8ogUaQLN6Ai4aBS7zIVUG8K8kFJJ6/LJPu14rARp3C0ftbpO5QM//m4v8LXNfNvnwNV+evU4zfImxgqA3vGms1mLwsQOoSc5VYcl/CL5C7ohQWz64G6bfazEAVngZVF+PIiucVcnT44gk/Y=
+	t=1745495588; cv=none; b=ZuQh2Fe24sJAColWZ1o/uVQ0AsBlmy7ZJXQlMAHXs2qsLZ0blISTP3GSW8Sa2qTz6wPX6FCbCZpxFPRS0TNnQh7r2YX+jXpmGoEGua7qEb7DD9gI9Fes0ptJeMrz9dwXezGiQroLJst5WZYw1seRE6TLWOIdBK2EXJBaOLxKng8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745492871; c=relaxed/simple;
-	bh=P2DSxtuvKSdNJTHbz1qREgu6B4Vx7u7RvWMcHl7wk00=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=uwoGClVwYnifPA8FbRLqQKdNsoEogDCmRwnx72sOEyPcqh4XqNEMCzg5rW9k33dxckqH+/VOgR+lnILgrYWvDjFQyWr1koczRyCcdipaUAqEiXr3fC9ymWNRYg7YBz30XyD3HY4RcKzuPxeiZGxtTzuFctQw8ryzHqQNfUut4ck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=shikadi.net; spf=pass smtp.mailfrom=shikadi.net; dkim=pass (2048-bit key) header.d=shikadi.net header.i=@shikadi.net header.b=nyxH/3CO; arc=none smtp.client-ip=52.63.116.147
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=shikadi.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shikadi.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=shikadi.net header.i=@shikadi.net header.b="nyxH/3CO"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=shikadi.net
-	; s=since20200425; h=MIME-Version:References:In-Reply-To:Message-ID:Subject:
-	Cc:To:From:Date:Sender:Reply-To:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID;
-	bh=Beity7pSnNJyIiwrXnPvMeY8fd/yIluJdUYfa/nzJgs=; b=nyxH/3COWY0iCqhv55Y25U31aW
-	rIuuC31d+i9yA38WrJ1nYSpq+iFNT2o/UQ6D8xq5po5donnJS0fSQOXDOMvOTPBBle6qN4rm881bu
-	FmOf/Jcn8SZHIomiB/k1+EVUAprJFRf4g4mht1R2e2ShvdXIoCqMKR7CQ8y1o4Ld+LQgHLH+fdoKT
-	ZwqtxyiqDo7fKFr+bzdgeKVzwypFcMPCkep0/negDoewJS3GrulqJXLnGc1lypEAq+Sn9rl0je6Z0
-	/gTT5ae0ThDEnJRIzR41Y9XF5Ry4NtaNiKfEJt+gra3CPRDNpGtm3sPXcAVJsmQL6CK6rqr3d/GE/
-	XC4V7GVQ==;
-Received: by sphereful.sorra.shikadi.net with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96)
-	(envelope-from <a.nielsen@shikadi.net>)
-	id 1u7uQe-0002R0-31;
-	Thu, 24 Apr 2025 21:07:40 +1000
-Date: Thu, 24 Apr 2025 21:07:37 +1000
-From: Adam Nielsen <a.nielsen@shikadi.net>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [iptables PATCH] xshared: Accept an option if any given command
- allows it
-Message-ID: <20250424210737.265fe989@gnosticus>
-In-Reply-To: <aAn1ofkNuxpohhaA@orbyte.nwl.cc>
-References: <20250423121929.31250-1-phil@nwl.cc>
-	<aAlXGcRNV4AkXGk-@orbyte.nwl.cc>
-	<20250424085803.73864094@gnosticus>
-	<aAl6WkT9vx1IT1-8@orbyte.nwl.cc>
-	<20250424100409.5f9ca598@gnosticus>
-	<aAn1ofkNuxpohhaA@orbyte.nwl.cc>
-X-Mailer: Claws Mail 4.3.1 (GTK 3.24.48; x86_64-pc-linux-gnu)
+	s=arc-20240116; t=1745495588; c=relaxed/simple;
+	bh=BUiUilA9EosIWNp7Jp6/Oub+vGf7R4Ja8hjDd77XdDw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cERRYrLsK8PZWeT3KUdrS4kKv3VU/NThBHlejQH7oa47aMBm+LCNEkXm+p+QpGNSOWy3XfuCL6D4Sh0JYQ3aTaVVOhFm6BoaKRoK0g/c0aw2ukoZQ/sUwxmynVStfc5YSqbS1QsziggEQhPRNw0xQ163WgkzZlbksVHsXuaAgdU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1u7v8U-0003Fs-Fk; Thu, 24 Apr 2025 13:52:58 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] tools: selftests: prepare for non-default IP_TABLES_LEGACY
+Date: Thu, 24 Apr 2025 15:49:27 +0200
+Message-ID: <20250424134930.24043-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-> > Fair enough.  I think the previous release sat in my distro's repos for
-> > around 18 months before we got 1.18.11, so I was hoping I wouldn't have
-> > to wait that long again before 1.18.12 comes along and gets my
-> > bandwidth monitoring scripts working again!  
-> 
-> Which distribution are you using?
+Enable relevant iptables config options explicitly, this is needed
+to avoid breakage when symbols related to iptables-legacy
+will depend on NETFILTER_LEGACY resp. IP_TABLES_LEGACY.
 
-Arch Linux.  They're not particularly open to customising things,
-preferring to stick to upstream releases as closely as possible.
+This also means that the classic tables (Kernel modules) will
+not be enabled by default, so enable them too.
 
-> > I'll probably do a custom package with the git version, then I can get
-> > things going once more without hassling you for more frequent
-> > releases :)  
-> 
-> Can't you file a ticket in downstream bug tracker and request a
-> backport? They probably also want commit 40406dbfaefbc ("nft: fix
-> interface comparisons in `-C` commands").
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Hi Pablo
 
-I could but I've tried before and unless it's a serious problem you're
-usually out of luck.  They instead prefer to push the maintainers to do
-another release so they can just bump the version number in their
-package build scripts.
+ with this nf tests pass with iptables-legacy.
+ The problematic net tests pass for me as well with either iptables-nft
+ or -legacy.
 
-It's not too bad, Arch has a user repository for packages and I have
-found that someone has already made a package build script for the git
-version of iptables, so I tried installing that and it has fixed the
-problem, so my immediate concern is sorted now.
+ Problem with iptables-nft was that TARGET_TTL is ignored by Makefile,
+ the symbol picks up TARGET_HL behind the scenes but not after the
+ mentioned commit.
 
-I just have to remember to remove the git version and go back to the
-official package when the next version of iptables comes out, as the git
-packages don't update automatically.
+ This could be squashed with
+ netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
+ Or it could be added before.  In that case the commit
+ message needs to be updated (CONFIG_NETFILTER_LEGACY knob
+ doesn't exist yet in this case).
 
-Thanks again for getting a fix for this done so quickly.
+ tools/testing/selftests/net/config           | 11 +++++++++++
+ tools/testing/selftests/net/netfilter/config |  5 +++++
+ 2 files changed, 16 insertions(+)
 
-Cheers,
-Adam.
+diff --git a/tools/testing/selftests/net/config b/tools/testing/selftests/net/config
+index 3cfef5153823..20deec955d39 100644
+--- a/tools/testing/selftests/net/config
++++ b/tools/testing/selftests/net/config
+@@ -29,17 +29,26 @@ CONFIG_INET_ESP_OFFLOAD=y
+ CONFIG_NET_FOU=y
+ CONFIG_NET_FOU_IP_TUNNELS=y
+ CONFIG_NETFILTER=y
++CONFIG_NETFILTER_LEGACY=y
+ CONFIG_NETFILTER_ADVANCED=y
+ CONFIG_NF_CONNTRACK=m
+ CONFIG_IPV6_MROUTE=y
+ CONFIG_IPV6_SIT=y
+ CONFIG_NF_NAT=m
+ CONFIG_IP6_NF_IPTABLES=m
++CONFIG_IP6_NF_IPTABLES_LEGACY=m
+ CONFIG_IP_NF_IPTABLES=m
++CONFIG_IP_NF_IPTABLES_LEGACY=m
++CONFIG_IP6_NF_MANGLE=m
++CONFIG_IP6_NF_FILTER=m
+ CONFIG_IP6_NF_NAT=m
+ CONFIG_IP6_NF_RAW=m
++CONFIG_IP_NF_MANGLE=m
++CONFIG_IP_NF_FILTER=m
+ CONFIG_IP_NF_NAT=m
+ CONFIG_IP_NF_RAW=m
++CONFIG_IP_NF_TARGET_REJECT=m
++CONFIG_IP6_NF_TARGET_REJECT=m
+ CONFIG_IP_NF_TARGET_TTL=m
+ CONFIG_IPV6_GRE=m
+ CONFIG_IPV6_SEG6_LWTUNNEL=y
+@@ -57,6 +66,8 @@ CONFIG_NF_TABLES_IPV6=y
+ CONFIG_NF_TABLES_IPV4=y
+ CONFIG_NFT_NAT=m
+ CONFIG_NETFILTER_XT_MATCH_LENGTH=m
++CONFIG_NETFILTER_XT_TARGET_HL=m
++CONFIG_NETFILTER_XT_NAT=m
+ CONFIG_NET_ACT_CSUM=m
+ CONFIG_NET_ACT_CT=m
+ CONFIG_NET_ACT_GACT=m
+diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
+index 43d8b500d391..55ffb6f77ad4 100644
+--- a/tools/testing/selftests/net/netfilter/config
++++ b/tools/testing/selftests/net/netfilter/config
+@@ -1,6 +1,8 @@
+ CONFIG_AUDIT=y
+ CONFIG_BPF_SYSCALL=y
+ CONFIG_BRIDGE=m
++CONFIG_NETFILTER_LEGACY=y
++CONFIG_BRIDGE_NF_EBTABLES_LEGACY=m
+ CONFIG_BRIDGE_EBT_BROUTE=m
+ CONFIG_BRIDGE_EBT_IP=m
+ CONFIG_BRIDGE_EBT_REDIRECT=m
+@@ -14,7 +16,10 @@ CONFIG_INET_ESP=m
+ CONFIG_IP_NF_MATCH_RPFILTER=m
+ CONFIG_IP6_NF_MATCH_RPFILTER=m
+ CONFIG_IP_NF_IPTABLES=m
++CONFIG_IP_NF_IPTABLES_LEGACY=m
+ CONFIG_IP6_NF_IPTABLES=m
++CONFIG_IP6_NF_IPTABLES_LEGACY=m
++CONFIG_IP_NF_NAT=m
+ CONFIG_IP_NF_FILTER=m
+ CONFIG_IP6_NF_FILTER=m
+ CONFIG_IP_NF_RAW=m
+-- 
+2.49.0
+
