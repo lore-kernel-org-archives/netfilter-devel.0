@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 626A828CF78;
-	Thu, 24 Apr 2025 21:15:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF3A0290BD7;
+	Thu, 24 Apr 2025 21:15:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745529323; cv=none; b=ue5VbrrcP3vHj460p+wvePHNBO4EGikDJwSjhwFDmlAhhrapanL4cp+LirNKT3b/19AO5iCqOJhRwEzK4rp/t/bZzW5TvDWTT06N6uHIoKr3m75OxPR9aDG0VGI/Tv66XfGxRxwXDrupdXbgjqLbrgVt6nU+C1+e93mtxzUZDjk=
+	t=1745529325; cv=none; b=eHcYdLyECzLlNm9Sl1VNjArpEVV02Y53snrBAakoOcowgYf9M0DoE4d1c9CTggQgKOgx6qU/eRFT923ZAPuoihyeghnb6PoTTg1cDOkevYxv16C61Jni/hQM+mPHNENKi/Sg/OPhZ+JupZjfiIAgaJ23VmA32ircGlpoD590r4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745529323; c=relaxed/simple;
-	bh=jGZWp/s9c8MYYXptI7KPTyOMNgSBvW60zDMnz4Wv9Ok=;
+	s=arc-20240116; t=1745529325; c=relaxed/simple;
+	bh=fOzYwC+1kSuSFJXf1RmjiSpsBTH2v9g6dBB9rqLB7Yw=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZRvK+x06fcBKBmtwCuASpq1itSz9dOffx8uy/LXkAsmdLgRLnmjdeatLRSGiD+V7jzINlD6kTFtW6LbycYaZPCxRumGkmttxyTNfn6iBfQ+Tw+SedkO0lBOQaEbAhVq0jCwG18eUHzRz22ruejRy2w5TSA/1lLS16nLWqDUZoHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NNMzfbWa; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QCfCoDu4; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=MrX3vilb4Ez7FN+Z6sEfAMtv5mw5h7yPt+JBkk2EOvR/bV9wXKXIbQXQEqc31hxTvkEvdg7YmRqYqytGh4OAZZrbLlSBnL1RoesAU0mGFJKFATw5ShfoCgZWaH62CNm3UIvpDJM4RtPpT3N9WmqC8zIRVgSEHtzhtq7jXmTpNoU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BCrppAqy; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r0lOyD3R; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NNMzfbWa";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QCfCoDu4"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BCrppAqy";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r0lOyD3R"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 0D3B260719; Thu, 24 Apr 2025 23:15:13 +0200 (CEST)
+	id E4CE46070B; Thu, 24 Apr 2025 23:15:21 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745529314;
-	bh=Ii4iPquCDIwHC42dV7wmGy7Le9AS5Wx3alzRuxUPr+c=;
+	s=2025; t=1745529321;
+	bh=W2iPd5dcyQ8M4ppe67DmJVGFeHbT03yeWlCC/k3bkts=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=NNMzfbWa0wzycAne0o4J6w01Z0GgY9sGFjQVbdb65lC+4rREsQp/Rm4hFhILDMSzL
-	 jaoeo75lbS3WrhtxOVOrmwzFQu/DG8iGyLauzcUg5YC4GXdYJ2QwyJVw0OUjaxs3Kq
-	 AB3j/5Gg7TH9ebU2OmL0P8s8LVNb+JOOs9fC3lM4/K+p3SuYtDB06gfFuVkceIvIJA
-	 DwGGhPQv04zaAiTp+jFmel1A871buNmOm9oxS/2NeXnTkUIi+i3nfdmY9/jA0M62wh
-	 A9rdnmG5WF5dg0N8Nrap7Gr5IGweJj90P2kISnCvhOkCk4PsuTd33vx4sDJ7TyHRUt
-	 iWGqyGxpNtHwA==
+	b=BCrppAqybStu0TU8SHY1Y3CHhQJSN/H/FR33oO9sG55MWJqM3PHSkm64ri8eLruRv
+	 euKkhyv1o8ghniDiq1bS8pfM/xQ7p7g3SdmXh7ZV9XZXnUg2yAZzM/yy168bNnANvA
+	 aNR2fD3Y/+O2SX3ZKosF0X9Md9dADllF0c7uofcpgiY/VdUqomG9pfGB3wAxEL8uhj
+	 QG2qdhuynLWckd08JFBH00XsboiUzlK/EgqrPtHbfnBosLZ6/XmqMvgDKb7ENY7Bxm
+	 +cppmdgJn+sLqP+G47kk5/dXWLf0ROfW+Enm2LaxS2tI37YQh364/50H6Ri+4oRrw9
+	 hR1y90Vr+I7wA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 11EAA6070A;
-	Thu, 24 Apr 2025 23:15:11 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4389C60714;
+	Thu, 24 Apr 2025 23:15:14 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745529311;
-	bh=Ii4iPquCDIwHC42dV7wmGy7Le9AS5Wx3alzRuxUPr+c=;
+	s=2025; t=1745529314;
+	bh=W2iPd5dcyQ8M4ppe67DmJVGFeHbT03yeWlCC/k3bkts=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QCfCoDu4u+tDb1rw6llmzdmhiVyD8/wndLa+c4OCIPnXNkx8d/MmYDoHEuTEzish0
-	 M+C8SwzOLk4gKYe23EkkfKnsWWHTcCPVesQrt8qWED2yBd4FEZOwCSqVzOZYqS4f5i
-	 irGe4JboMzCLxGgU4hL1RhFSf+9ykV/BR+WyfWrOODZtlGJyp9jmCrygh+0oVwwRR4
-	 g7nu2t8kMxCXIOHLhDue3m78AGOfiSBa4eKFyox1/1EGgGJz4S+Stfpm9sc1tLh4WG
-	 DyB/chd01f2rMO9A4bwjml9fzRnI1v3cqVy5mgi57jUkqFEUQ0sCDS+VjrwfEjXgZq
-	 1PajrVnMXu3qQ==
+	b=r0lOyD3RrB7fuROB15m4kMi+gH//ZTELGoxipD/gPA3XvvDfexV6EojoZ6YVk/2DA
+	 J2i1fANe4G3CjQGyutYUqnmlkyJvQxetDCtY5Q0WVNUD0NmHSF8PaVXLKIRgh1HSHx
+	 jcOzpKLsNSmlW6TTCOjpMZ2bNu1fCqrwxNqLJZKL8TrXHt8Y90hLZ8hP/J4BgMBf7p
+	 WiGNeuxWY4PVEnI0xJWwVmrvz6fjlqoovCIiyY1gvnoPsfPZhSUF8rVna1MouwqMUj
+	 mN3wqvVm1vg8MzcvvATpNQw2uWaoAXvmIochDyxcUfBYvQMc2Znze118A4ytacwFr4
+	 T9vEoiBNPGAiQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 1/7] netfilter: xt_IDLETIMER: convert timeouts to secs_to_jiffies()
-Date: Thu, 24 Apr 2025 23:14:49 +0200
-Message-Id: <20250424211455.242482-2-pablo@netfilter.org>
+Subject: [PATCH net-next 5/7] netfilter: conntrack: Remove redundant NFCT_ALIGN call
+Date: Thu, 24 Apr 2025 23:14:53 +0200
+Message-Id: <20250424211455.242482-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250424211455.242482-1-pablo@netfilter.org>
 References: <20250424211455.242482-1-pablo@netfilter.org>
@@ -66,89 +66,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Easwar Hariharan <eahariha@linux.microsoft.com>
+From: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
 
-Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-secs_to_jiffies().  As the value here is a multiple of 1000, use
-secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
+The "nf_ct_tmpl_alloc" function had a redundant call to "NFCT_ALIGN" when
+aligning the pointer "p". Since "NFCT_ALIGN" always gives the same result
+for the same input.
 
-This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-the following Coccinelle rules:
-
-@depends on patch@
-expression E;
-@@
-
--msecs_to_jiffies(E * 1000)
-+secs_to_jiffies(E)
-
--msecs_to_jiffies(E * MSEC_PER_SEC)
-+secs_to_jiffies(E)
-
-Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+Signed-off-by: Xuanqiang Luo <luoxuanqiang@kylinos.cn>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_IDLETIMER.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index 9f54819eb52c..9082155ee558 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -168,7 +168,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
- 	INIT_WORK(&info->timer->work, idletimer_tg_work);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7f8b245e287a..de8d50af9b5b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -531,10 +531,8 @@ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
  
- 	mod_timer(&info->timer->timer,
--		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+		  secs_to_jiffies(info->timeout) + jiffies);
- 
- 	return 0;
- 
-@@ -229,7 +229,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 		p = tmpl;
+ 		tmpl = (struct nf_conn *)NFCT_ALIGN((unsigned long)p);
+-		if (tmpl != p) {
+-			tmpl = (struct nf_conn *)NFCT_ALIGN((unsigned long)p);
++		if (tmpl != p)
+ 			tmpl->proto.tmpl_padto = (char *)tmpl - (char *)p;
+-		}
  	} else {
- 		timer_setup(&info->timer->timer, idletimer_tg_expired, 0);
- 		mod_timer(&info->timer->timer,
--				msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+				secs_to_jiffies(info->timeout) + jiffies);
- 	}
- 
- 	return 0;
-@@ -254,7 +254,7 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
- 		 info->label, info->timeout);
- 
- 	mod_timer(&info->timer->timer,
--		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+		  secs_to_jiffies(info->timeout) + jiffies);
- 
- 	return XT_CONTINUE;
- }
-@@ -275,7 +275,7 @@ static unsigned int idletimer_tg_target_v1(struct sk_buff *skb,
- 		alarm_start_relative(&info->timer->alarm, tout);
- 	} else {
- 		mod_timer(&info->timer->timer,
--				msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+				secs_to_jiffies(info->timeout) + jiffies);
- 	}
- 
- 	return XT_CONTINUE;
-@@ -320,7 +320,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
- 	if (info->timer) {
- 		info->timer->refcnt++;
- 		mod_timer(&info->timer->timer,
--			  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+			  secs_to_jiffies(info->timeout) + jiffies);
- 
- 		pr_debug("increased refcnt of timer %s to %u\n",
- 			 info->label, info->timer->refcnt);
-@@ -382,7 +382,7 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
- 			}
- 		} else {
- 				mod_timer(&info->timer->timer,
--					msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+					secs_to_jiffies(info->timeout) + jiffies);
- 		}
- 		pr_debug("increased refcnt of timer %s to %u\n",
- 			 info->label, info->timer->refcnt);
+ 		tmpl = kzalloc(sizeof(*tmpl), flags);
+ 		if (!tmpl)
 -- 
 2.30.2
 
