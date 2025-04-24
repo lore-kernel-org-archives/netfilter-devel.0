@@ -1,129 +1,73 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16721226CEB
-	for <netfilter-devel@vger.kernel.org>; Thu, 24 Apr 2025 11:53:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ECB719CC3E
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Apr 2025 14:35:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745495588; cv=none; b=ZuQh2Fe24sJAColWZ1o/uVQ0AsBlmy7ZJXQlMAHXs2qsLZ0blISTP3GSW8Sa2qTz6wPX6FCbCZpxFPRS0TNnQh7r2YX+jXpmGoEGua7qEb7DD9gI9Fes0ptJeMrz9dwXezGiQroLJst5WZYw1seRE6TLWOIdBK2EXJBaOLxKng8=
+	t=1745505364; cv=none; b=PHrASR7JSH0I5G9YtJwutN0BPZzRt9EtuGovoM1DADndsFGovZmP0kPVB++J35uQfgS7BgaFF0sT8wrpJAcusNZOL1hH9MbzbTWmxwPx7jrzegwXsYJ0zCcOkpC7y0iUwFONMKafbhUOsVNgUUfOiiYnON1f4jn8hYycBmcqctY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745495588; c=relaxed/simple;
-	bh=BUiUilA9EosIWNp7Jp6/Oub+vGf7R4Ja8hjDd77XdDw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cERRYrLsK8PZWeT3KUdrS4kKv3VU/NThBHlejQH7oa47aMBm+LCNEkXm+p+QpGNSOWy3XfuCL6D4Sh0JYQ3aTaVVOhFm6BoaKRoK0g/c0aw2ukoZQ/sUwxmynVStfc5YSqbS1QsziggEQhPRNw0xQ163WgkzZlbksVHsXuaAgdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1u7v8U-0003Fs-Fk; Thu, 24 Apr 2025 13:52:58 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] tools: selftests: prepare for non-default IP_TABLES_LEGACY
-Date: Thu, 24 Apr 2025 15:49:27 +0200
-Message-ID: <20250424134930.24043-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
+	s=arc-20240116; t=1745505364; c=relaxed/simple;
+	bh=o7naMv77Z5nHTGQCNNa00KQ0mVjO5uwmH4Ax2GFzHuA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pSrO2n1PG0WnESbSKvlXwJYoPS3lGmW2ZWkWjcL9SFQXqHwsFq89TB9AXer0HAfgnlhNOTRNvELatUofgYhSwg8kgElZ8dZy3MNm5cuSSp+KQDqvc6v1n8edR3FxLt+S7Ijz4NFk+watyIE+HLIlQoiYijlEffaAD1VyoiZ5Y1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FLv/rhB1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FLv/rhB1; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FLv/rhB1";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FLv/rhB1"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 92DFB60ABA; Thu, 24 Apr 2025 16:35:57 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1745505357;
+	bh=0RsKzVeggbq7HKa/c8XZXpZw+RuN0lk/aeIEQ2TcQdc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=FLv/rhB1GBFzsFV+41S+HjFCceNfHeiMd0tybGvqiySBjfvfveRy2WB8JzasLj2MZ
+	 GBUfiLUxGARNjYlG4d2jibsFnJm5GuLlAA+PNQYQbnxnqWOGlv1Wh0cVhn2wE/Bfw8
+	 SF7wWppvVdCCjisxM5iKAf9DnMCVwblL2BWrsHcD6xXxgMgmosHlh+KY4C7iMQtRRi
+	 twd7SdltAwfZQmxYOhn06Gz9DmlBUyr4Jzeyho39qBmmDkkF26CaBf6FAzDrjzjnSj
+	 bgDlEGIsj1STj5GW2pqrdqDI07yUvwlweoXdb/HTC3exmDO2xjMWnNtaZAHZFhrWjt
+	 xICcPOTZETobg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DEBDD60AB3;
+	Thu, 24 Apr 2025 16:35:56 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1745505357;
+	bh=0RsKzVeggbq7HKa/c8XZXpZw+RuN0lk/aeIEQ2TcQdc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=FLv/rhB1GBFzsFV+41S+HjFCceNfHeiMd0tybGvqiySBjfvfveRy2WB8JzasLj2MZ
+	 GBUfiLUxGARNjYlG4d2jibsFnJm5GuLlAA+PNQYQbnxnqWOGlv1Wh0cVhn2wE/Bfw8
+	 SF7wWppvVdCCjisxM5iKAf9DnMCVwblL2BWrsHcD6xXxgMgmosHlh+KY4C7iMQtRRi
+	 twd7SdltAwfZQmxYOhn06Gz9DmlBUyr4Jzeyho39qBmmDkkF26CaBf6FAzDrjzjnSj
+	 bgDlEGIsj1STj5GW2pqrdqDI07yUvwlweoXdb/HTC3exmDO2xjMWnNtaZAHZFhrWjt
+	 xICcPOTZETobg==
+Date: Thu, 24 Apr 2025 16:35:54 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] tools: selftests: prepare for non-default
+ IP_TABLES_LEGACY
+Message-ID: <aApMSm-Uq6lCK2pk@calendula>
+References: <20250424134930.24043-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250424134930.24043-1-fw@strlen.de>
 
-Enable relevant iptables config options explicitly, this is needed
-to avoid breakage when symbols related to iptables-legacy
-will depend on NETFILTER_LEGACY resp. IP_TABLES_LEGACY.
+On Thu, Apr 24, 2025 at 03:49:27PM +0200, Florian Westphal wrote:
+[...]
+>  This could be squashed with
+>  netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
+>  Or it could be added before.  In that case the commit
+>  message needs to be updated (CONFIG_NETFILTER_LEGACY knob
+>  doesn't exist yet in this case).
 
-This also means that the classic tables (Kernel modules) will
-not be enabled by default, so enable them too.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Hi Pablo
-
- with this nf tests pass with iptables-legacy.
- The problematic net tests pass for me as well with either iptables-nft
- or -legacy.
-
- Problem with iptables-nft was that TARGET_TTL is ignored by Makefile,
- the symbol picks up TARGET_HL behind the scenes but not after the
- mentioned commit.
-
- This could be squashed with
- netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
- Or it could be added before.  In that case the commit
- message needs to be updated (CONFIG_NETFILTER_LEGACY knob
- doesn't exist yet in this case).
-
- tools/testing/selftests/net/config           | 11 +++++++++++
- tools/testing/selftests/net/netfilter/config |  5 +++++
- 2 files changed, 16 insertions(+)
-
-diff --git a/tools/testing/selftests/net/config b/tools/testing/selftests/net/config
-index 3cfef5153823..20deec955d39 100644
---- a/tools/testing/selftests/net/config
-+++ b/tools/testing/selftests/net/config
-@@ -29,17 +29,26 @@ CONFIG_INET_ESP_OFFLOAD=y
- CONFIG_NET_FOU=y
- CONFIG_NET_FOU_IP_TUNNELS=y
- CONFIG_NETFILTER=y
-+CONFIG_NETFILTER_LEGACY=y
- CONFIG_NETFILTER_ADVANCED=y
- CONFIG_NF_CONNTRACK=m
- CONFIG_IPV6_MROUTE=y
- CONFIG_IPV6_SIT=y
- CONFIG_NF_NAT=m
- CONFIG_IP6_NF_IPTABLES=m
-+CONFIG_IP6_NF_IPTABLES_LEGACY=m
- CONFIG_IP_NF_IPTABLES=m
-+CONFIG_IP_NF_IPTABLES_LEGACY=m
-+CONFIG_IP6_NF_MANGLE=m
-+CONFIG_IP6_NF_FILTER=m
- CONFIG_IP6_NF_NAT=m
- CONFIG_IP6_NF_RAW=m
-+CONFIG_IP_NF_MANGLE=m
-+CONFIG_IP_NF_FILTER=m
- CONFIG_IP_NF_NAT=m
- CONFIG_IP_NF_RAW=m
-+CONFIG_IP_NF_TARGET_REJECT=m
-+CONFIG_IP6_NF_TARGET_REJECT=m
- CONFIG_IP_NF_TARGET_TTL=m
- CONFIG_IPV6_GRE=m
- CONFIG_IPV6_SEG6_LWTUNNEL=y
-@@ -57,6 +66,8 @@ CONFIG_NF_TABLES_IPV6=y
- CONFIG_NF_TABLES_IPV4=y
- CONFIG_NFT_NAT=m
- CONFIG_NETFILTER_XT_MATCH_LENGTH=m
-+CONFIG_NETFILTER_XT_TARGET_HL=m
-+CONFIG_NETFILTER_XT_NAT=m
- CONFIG_NET_ACT_CSUM=m
- CONFIG_NET_ACT_CT=m
- CONFIG_NET_ACT_GACT=m
-diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
-index 43d8b500d391..55ffb6f77ad4 100644
---- a/tools/testing/selftests/net/netfilter/config
-+++ b/tools/testing/selftests/net/netfilter/config
-@@ -1,6 +1,8 @@
- CONFIG_AUDIT=y
- CONFIG_BPF_SYSCALL=y
- CONFIG_BRIDGE=m
-+CONFIG_NETFILTER_LEGACY=y
-+CONFIG_BRIDGE_NF_EBTABLES_LEGACY=m
- CONFIG_BRIDGE_EBT_BROUTE=m
- CONFIG_BRIDGE_EBT_IP=m
- CONFIG_BRIDGE_EBT_REDIRECT=m
-@@ -14,7 +16,10 @@ CONFIG_INET_ESP=m
- CONFIG_IP_NF_MATCH_RPFILTER=m
- CONFIG_IP6_NF_MATCH_RPFILTER=m
- CONFIG_IP_NF_IPTABLES=m
-+CONFIG_IP_NF_IPTABLES_LEGACY=m
- CONFIG_IP6_NF_IPTABLES=m
-+CONFIG_IP6_NF_IPTABLES_LEGACY=m
-+CONFIG_IP_NF_NAT=m
- CONFIG_IP_NF_FILTER=m
- CONFIG_IP6_NF_FILTER=m
- CONFIG_IP_NF_RAW=m
--- 
-2.49.0
-
+Thanks Florian, I am going to collapse this, make a few more tests
+then prepare for another pull request.
