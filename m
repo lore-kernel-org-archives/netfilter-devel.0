@@ -1,91 +1,115 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from ellsberg.gnupg.com (ellsberg.gnupg.com [176.9.119.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C12E35948;
-	Mon, 28 Apr 2025 09:46:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B531D79F2
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Apr 2025 10:17:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=176.9.119.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745833620; cv=none; b=VDjOV4xGT8kYiswxsYbJZYG37jLhmMoTnzGUujCY2qOe6hG0nOG+VrBvoKL6+2RYVt2TUuhKwf/rTmDXtLBUvXyTvtYeGW3TeNkEBP6SeDV0qtgrjUDjcO3g9W3nWUWo+ZYlheVp2xZRcycZaf2U9qXRva4bmPjRAuVZZrOrjXw=
+	t=1745835454; cv=none; b=IuwWPzFn1mx6d4q61E8bd+IRJKEOZQtxz1/CdBdRhDWCrvm9JptHAtnBgABMg8djQh+A0ZnGM/BnPHqQogZfZu1mpj8mPxWBBtrdP0K1n+fAxCwkBRpzLZnmpOTnibbLx7uysPsezShwpfhokztLJtA/9YwnB0ngagsS1QLJJPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745833620; c=relaxed/simple;
-	bh=C8iPtrd8fB52Gd1GyUrGYVxOaqvoL/bDk0LqRSLid5I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gfK+zu3le5qmZpZsbrOfWz+ajaCxJcc77gojZrimvpOHwTw4nvJBgHtCK/YEAG3WaRH49KTlpE3AFjm7BHjwvWnlU1w4td63mDSrm8hyRGAhlk7j5OHOAnAAz4FoLsP2kTK7xuCVIQfrYSRd5WsAN3Y8NmSXQ46ZKvT1QvFTOJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OVY4Cl7m; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r4XAPYlg; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1745835454; c=relaxed/simple;
+	bh=XvRhTNzThpsEmwT6MwR9D+uWwykhWeNaIQ+b2YcCYhI=;
+	h=From:To:Cc:Subject:References:Date:In-Reply-To:Message-ID:
+	 MIME-Version:Content-Type; b=Phdv91KIttbvmp4ya39qygupGTsSVk497UgqkBlHmx2WM4FEtBzrJVmBfdiIh5JMuUIIDDWPNggl0+MN54IrAN8n1DHbe5G1HEbsUqIioScBuVy0S9/M3Olvd+Rjam1GqRfi7r8xpnLkR4q7t/Q7rc07mRcK+woAT3R8lIQuvZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gnupg.org; spf=pass smtp.mailfrom=gnupg.org; dkim=pass (1024-bit key) header.d=gnupg.org header.i=@gnupg.org header.b=D9dGqOKG; arc=none smtp.client-ip=176.9.119.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gnupg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gnupg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OVY4Cl7m";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r4XAPYlg"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 968C6603AD; Mon, 28 Apr 2025 11:40:32 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745833232;
-	bh=IfY/Hyz4Uq5w4aafjWmTBVFETfIHLFXDrW7Dref7PfQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=OVY4Cl7mrYr9QAaz1+/xqfXx6t5Qz4MMOEYSoIjYRzNYvkCXf0DH3NtFsmYosJQNX
-	 HQXhDp3T7ErmwfRVPVwe0SniZDspGlbj69A/i89kftCma/okQgV+dOboCZ3btFnAoF
-	 +lWEsFmXY/Gnr91whID7pcFAzWdzXTWS2q7Wv+x05+2dtF31pBlFExA+ZFXuyGYPYF
-	 P2Yp55dy/HKyuPgaWqR2270xQfAFYeZH5voaEVRXp4Ld11As+VrS+WLhTAk2V6ppKb
-	 N5vz87vIhMVqURGBzJaiYGfEqSlIAc2xfhwhsU+esSIe1n9X90F5WEnbiLqxtTfMQ9
-	 G8FQli3fab/Cg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5B84260353;
-	Mon, 28 Apr 2025 11:40:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745833229;
-	bh=IfY/Hyz4Uq5w4aafjWmTBVFETfIHLFXDrW7Dref7PfQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=r4XAPYlgSMBXm6fsZ4DI1Z0s71BvbqUn+FMx2x9w1gTCVvWYzldUnf4l5UCWYfwQ4
-	 TRFtBGLRBQZ8dO5z1rWL0LocbDeYNydfj0fYPsNq6wKi5y0h07BmQjpEf9ubShNDNz
-	 EW8htwAq+kfD6gFcunGrRQF73LcteOJ8sJUGwcOB1tLQGnYoFj9nFPwIkpbSYOjjO6
-	 sdTLbB5n843nZI4I9StQzfGuI7ml6zv2e8TA3sD/4ITgr/nqbAeKbXzXemcAvTRlgI
-	 vWnoLoyjrPqsMEhH+bpvLHQBrxXCr5qJBx2mZWUA01PoG5f8peh64P7+mjJZZK8c8l
-	 n6F5BbnVYb8MA==
-Date: Mon, 28 Apr 2025 11:40:26 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: lvxiafei <xiafei_xupt@163.com>
-Cc: fw@strlen.de, coreteam@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, horms@kernel.org, kadlec@netfilter.org,
-	kuba@kernel.org, linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com
-Subject: Re: [PATCH V6] netfilter: netns nf_conntrack: per-netns
- net.netfilter.nf_conntrack_max sysctl
-Message-ID: <aA9NCkhJrLeeig9X@calendula>
-References: <20250415090834.24882-1-xiafei_xupt@163.com>
- <20250427081420.34163-1-xiafei_xupt@163.com>
+	dkim=pass (1024-bit key) header.d=gnupg.org header.i=@gnupg.org header.b="D9dGqOKG"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=gnupg.org;
+	s=20181017; h=Content-Type:MIME-Version:Message-ID:In-Reply-To:Date:
+	References:Subject:Cc:To:From:Sender:Reply-To:Content-Transfer-Encoding:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=fGgotoWYsSPdzRpExurOjjVVXGnKqPQXvcuWJ9gr3ZE=; b=D9dGqOKGJ6YUUVDCIIMprMkcch
+	XIadLmpwhwxhBkDPgTDahDJENX/Raqp8KQA2SzpI0ru3mmkUAaGgsBPcJunYboA2SANQvftwlyiY2
+	SgeGxfa9G9LuZAISHaZ8xGJLMFwnInRGmDKhLZnqKWxGNb4Tw5TPX0yOnJa4h5XkibHE=;
+Received: from uucp by ellsberg.gnupg.com with local-rmail (Exim 4.94.2 (Devuan))
+	(envelope-from <wk@gnupg.org>)
+	id 1u9KvB-0004Or-Ma
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Apr 2025 11:37:05 +0200
+Received: from wk by jacob.g10code.de with local (Exim 4.96 (Devuan))
+	(envelope-from <wk@gnupg.org>)
+	id 1u9Kwt-0008Lc-2l;
+	Mon, 28 Apr 2025 11:38:51 +0200
+From: Werner Koch <wk@gnupg.org>
+To: Jan Engelhardt <ej@inai.de>
+Cc: Florian Westphal <fw@strlen.de>,  oss-security@lists.openwall.com,
+  Sunny73Cr <Sunny73Cr@protonmail.com>,  "netfilter-devel@vger.kernel.org"
+ <netfilter-devel@vger.kernel.org>
+Subject: Re: [oss-security] Re: Trailing dot in Cygwin filenames [was:
+ failed to clone iptables,ipset,nftables]
+References: <1EYtBL_6T4QRNdyaUOoY2OO_FLzCtCfv4Q7gBf28RHR_k_LB-t0IN5R7v12bgaOOSKputo826H9PZ-2EmksldVLnGVoXyMQVemTy3tMra10=@protonmail.com>
+	<20250425062231.GA7332@breakpoint.cc>
+	<sqo7nqpr-151q-4sr4-1o40-r95r62179s29@vanv.qr>
+X-message-flag: Mails containing HTML will not be read!
+	 Please send only plain text.
+Jabber-ID: wk@jabber.gnupg.org
+Date: Mon, 28 Apr 2025 11:38:51 +0200
+In-Reply-To: <sqo7nqpr-151q-4sr4-1o40-r95r62179s29@vanv.qr> (Jan Engelhardt's
+	message of "Fri, 25 Apr 2025 09:46:15 +0200 (CEST)")
+Message-ID: <87sels7hhw.fsf@jacob.g10code.de>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250427081420.34163-1-xiafei_xupt@163.com>
+Content-Type: multipart/signed; boundary="=Plume_Standoff_Security_Evaluation_H5N1_UT/RUS_computer_terrorism_ID";
+	micalg=pgp-sha512; protocol="application/pgp-signature"
+
+--=Plume_Standoff_Security_Evaluation_H5N1_UT/RUS_computer_terrorism_ID
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 Hi!
 
-On Sun, Apr 27, 2025 at 04:14:20PM +0800, lvxiafei wrote:
-> Hello!
-> 
-> My name is Xiafei Lv, and I sent patch v6 on April 15, 2025. As of today, it
-> has been nearly two weeks, and I have not received any feedback. However, the
-> patch has been tested successfully, and you can view the details at this link:
-> https://patchwork.kernel.org/project/netdevbpf/patch/20250415090834.24882-1-xiafei_xupt@163.com/
->
-> I understand that kernel development is busy, and maintainers may have many
-> things to deal with and may not have time to review my patch. With this in mind,
-> I would like to politely ask what steps I should take next? If you have any
-> questions about my patch or need additional information from me, please feel
-> free to let me know and I will cooperate as soon as possible.
+> But Cygwin does something unusual, it *actually* creates a file with
+> the 2-char sequence "y.", through whatever means. Explorer *shows* it
 
-You just have to wait. We will get back to you with more questions if
-needed.
+  C:\Users\dd9jn\test>echo foo >x.
+=20=20
+  C:\Users\dd9jn\test>dir
+  [...]
+  28.04.2025  11:30                 6 x
+                 1 Datei(en),              6 Bytes
+=20=20
+  C:\Users\dd9jn\test>echo foo >\\?\\c:\users\dd9jn\test\x.
+=20=20
+  C:\Users\dd9jn\test>dir
+  [...]
+  28.04.2025  11:30                 6 x
+  28.04.2025  11:30                 6 x.
+                 2 Datei(en),             12 Bytes
+=20=20
+Thus you can create such a file using the Extended Path Length Prefix
+which bypasses the mapping used by CreateFile.  For detailed info see
+also
 
-> Thank you very much for taking the time to deal with my request, and I look
-> forward to your response.
+https://googleprojectzero.blogspot.com/2016/02/the-definitive-guide-on-win3=
+2-to-nt.html
 
-Thanks.
+
+
+Salam-Shalom,
+
+   Werner
+
+=2D-=20
+The pioneers of a warless world are the youth that
+refuse military service.             - A. Einstein
+
+--=Plume_Standoff_Security_Evaluation_H5N1_UT/RUS_computer_terrorism_ID
+Content-Type: application/pgp-signature; name="openpgp-digital-signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iIMEARYKACsWIQSHd0YfKgdOvEgNNZQZzByeCFsQegUCaA9Mqw0cd2tAZ251cGcu
+b3JnAAoJEBnMHJ4IWxB6GrMA/1ErZrryPW9I5PzDBEP7qnTm6CmvHb1XTGpPCYY3
+GzkiAQCspnhUjJls8OtNEQQGp8EQBS5QK658mrVqCDJk+3XACw==
+=L7uo
+-----END PGP SIGNATURE-----
+--=Plume_Standoff_Security_Evaluation_H5N1_UT/RUS_computer_terrorism_ID--
+
