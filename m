@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D06207B3E1;
-	Mon, 28 Apr 2025 22:13:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7850A21147B;
+	Mon, 28 Apr 2025 22:13:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745878396; cv=none; b=VDaTl/ww7lZapM+qqZ+5G1MJeT4mgmkF+etInBSeoTI3kDuq8a3qgH6fChk76wUowwiMOvVJp1PvQfOaTGbSvckGi2DGptdao4NqHP+S7kVY4CEvUUJD/ycHEy9gT7c3A2j00d4b/uArA7of0nhU5KAZjoUR9OFq+lZyuwMzq40=
+	t=1745878399; cv=none; b=CxSfyIC+9J5S2YMMnmjrs/U82FLD1o7hALfXhwOeT0gW8JSr+qMjEmvqHEI2pBA6xkgaXrN2+jbGMWx5Bc8M8aK3w3heQb4NoPcCodujdbjpRx/UH9bBdqUwmafMVhj+CWO633aEnu2AsWrPWZGia8haeU/tdvHoqSn+nOiY7U0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745878396; c=relaxed/simple;
-	bh=IW9t+ogoJrKf1tGo7dCWEzFKtzb0ltwJAR/0ddCywXM=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=OjCQ2ukROLxmpONULBfQGcc80qD35GxvbjXJaJM526EhZ87ZaihLhFHqFocMR4dh1EMX5gD2cvh+QzV5/W2C7XSrEc3o43EWxZoRwTg0caCiVdyCSvaKmYeraioVMIHpYEd1watIosKh52u0rLxNdjqqd3qRzb64E6anbOiIf+s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NIyMM2NA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eEcQRG0C; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1745878399; c=relaxed/simple;
+	bh=jGZWp/s9c8MYYXptI7KPTyOMNgSBvW60zDMnz4Wv9Ok=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=n4UeHfjNLBUkKbZWncuL++lr6LZrMEQ2WudTwHYGy73Pa564nV0vS8H4vlZ0QyZtOOax/aDFUR6LBZq2qd6PQ/wkOYeBdBWTIRmlQkqq47GcEs+2MTLhzFQn2wQet2gG6YRT8EbQKeBk5xeoYp0FKfP+vRc3GsEkJpcqtvHY7VI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nMyGlo3o; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t6I17io7; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NIyMM2NA";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eEcQRG0C"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nMyGlo3o";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t6I17io7"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id AE5D46039A; Tue, 29 Apr 2025 00:13:11 +0200 (CEST)
+	id 5011E6054C; Tue, 29 Apr 2025 00:13:13 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745878391;
-	bh=GSqzb+QX46oi8M4p3sN2hC88lDcDqUr58PeyDAxq0Yc=;
-	h=From:To:Cc:Subject:Date:From;
-	b=NIyMM2NASr020wDuFqaXP4pgfxHwqAu7qwjlQqFt7QjN+aBc+pye7u0h55Bn9aDP6
-	 FYG7DG+Ip6i8/o6TL4+YhW8kRJUeEIO0nvI9k5X1tXuK6SsDWN3qCX8Vx4f8YbOqD6
-	 XgootqmdkjnIVc4FYGST57rVkzhWpgZ+xGkZ8p+Ta/wveGaRu2dkRN3a42bQnASlMC
-	 DvKYYEI9sFAt2TsBe/ebgUxcVp0ZBzyVVHFDBkG+OGNzaMfwOfFdjDRpdMQBmYj7g/
-	 CsYlUsot2WUqmF/ljep1vQ30MLXG6cK+CBWQ2t4keSlYLozIguxrWXesqbdSlm6YI9
-	 3VuEN3251GNfg==
+	s=2025; t=1745878393;
+	bh=Ii4iPquCDIwHC42dV7wmGy7Le9AS5Wx3alzRuxUPr+c=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=nMyGlo3oAm0/JcMNx5rTAB43q4tEvgryKJ0ChxCAMqNTvYrEyUgHcOj7B/6tPJlJa
+	 6AEFyCj3tOwHAd7V0hhiiMdgsOMwiU6rBwhfVwOmA95KuNuT4x6cskIbvOEXWWHHm0
+	 px2uvaZBHTNeVD7tUv6fSy4OqR7RkXTPh7qNgMSm2OkjrjnF1WBzGhMOdPO4II91ph
+	 Sq2SAC0MOV8kw44UVORxRkoZsXRQsCxiyMDNuFcLlT4Q+uUfWuMdzWhxu6J1S/s7jN
+	 II/9hVOHyBhzd34dANVT1zORpie6JUKLXeEQnX/qIJXbaLxU59TCmeVXzJA0OXcGck
+	 7Y7DcWu5KJU+w==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 732766039A;
-	Tue, 29 Apr 2025 00:13:09 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4B4EC603C4;
+	Tue, 29 Apr 2025 00:13:11 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745878390;
-	bh=GSqzb+QX46oi8M4p3sN2hC88lDcDqUr58PeyDAxq0Yc=;
-	h=From:To:Cc:Subject:Date:From;
-	b=eEcQRG0CPjzPxmyTw71qNxmjzbSGY9g+Sv1PChTk/ROuXa1tWxkftbFMe18WzKMCU
-	 S1WCaRIZGzRP0l8hZD1AbZs0LiHf9h0JWM8MRsucpOp4PQiZ0dFKfwcoaImY5V4gGu
-	 UyrTLwTMkPV0CCUf/MZiZshViOQ6jpmw7tFumeZRd+e/HocaPTnZ4Ojb1wOSXgh5wG
-	 o2J6qNbDjPxrnP0lkeFQ8aVc4vk9qlUdL7e+EkJd1JH3d+ODUrjg1wcl9GoV40dJ5v
-	 /S2Xnky+U+GzDTxdWWBpkOHyhxQFUTvt9FV+la9h1NDNZZfOpzYTloIv5TEeXmcygr
-	 cxarL3oJpQVpg==
+	s=2025; t=1745878391;
+	bh=Ii4iPquCDIwHC42dV7wmGy7Le9AS5Wx3alzRuxUPr+c=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=t6I17io7XAtv0P1k3oc6bSAfpXdAxX0xSbC6yAXv6+WwjHInN4TRFARjeUcuL0RNs
+	 qWSzw2FOLsb5pfUQ86U9kNe8LEoMgYjmL+174F9e/VBzU4/x1zMHoaUU+5MJ1QMhri
+	 x+jsL85E/FDbqPYHToyHatgHQI767c6dItS3ZqgBaZp9f5U9+oQVHZXjdnqJ9K6JhO
+	 5ZaMA5QZmKIUe2uG9kitHq+YZeEqkEDTQd3dMkIPAETmyPaJCRFKH1jEoHmEWJs+Dd
+	 Zn6geUUlkFlqOBj3fmEShJvg5s+ljRkXSv6ke/6R1WZJXHnruTf4YRTqOO9Ij2ca6h
+	 KE4IfjiZJzDpQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,88 +52,103 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 0/6,v3] Netfilter updates for net-next
-Date: Tue, 29 Apr 2025 00:12:48 +0200
-Message-Id: <20250428221254.3853-1-pablo@netfilter.org>
+Subject: [PATCH net-next 1/6] netfilter: xt_IDLETIMER: convert timeouts to secs_to_jiffies()
+Date: Tue, 29 Apr 2025 00:12:49 +0200
+Message-Id: <20250428221254.3853-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250428221254.3853-1-pablo@netfilter.org>
+References: <20250428221254.3853-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Easwar Hariharan <eahariha@linux.microsoft.com>
 
-The following batch contains Netfilter updates for net-next:
+Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
+secs_to_jiffies().  As the value here is a multiple of 1000, use
+secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
 
-1) Replace msecs_to_jiffies() by secs_to_jiffies(), from Easwar Hariharan.
+This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
+the following Coccinelle rules:
 
-2) Allow to compile xt_cgroup with cgroupsv2 support only,
-   from Michal Koutny.
+@depends on patch@
+expression E;
+@@
 
-3) Prepare for sock_cgroup_classid() removal by wrapping it around
-   ifdef, also from Michal Koutny.
+-msecs_to_jiffies(E * 1000)
++secs_to_jiffies(E)
 
-4) Remove redundant pointer fetch on conntrack template, from Xuanqiang Luo.
+-msecs_to_jiffies(E * MSEC_PER_SEC)
++secs_to_jiffies(E)
 
-5) Re-format one block in the tproxy documentation for consistency,
-   from Chen Linxuan.
+Signed-off-by: Easwar Hariharan <eahariha@linux.microsoft.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_IDLETIMER.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-6) Expose set element count and type via netlink attributes,
-   from Florian Westphal.
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 9f54819eb52c..9082155ee558 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -168,7 +168,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 	INIT_WORK(&info->timer->work, idletimer_tg_work);
+ 
+ 	mod_timer(&info->timer->timer,
+-		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++		  secs_to_jiffies(info->timeout) + jiffies);
+ 
+ 	return 0;
+ 
+@@ -229,7 +229,7 @@ static int idletimer_tg_create_v1(struct idletimer_tg_info_v1 *info)
+ 	} else {
+ 		timer_setup(&info->timer->timer, idletimer_tg_expired, 0);
+ 		mod_timer(&info->timer->timer,
+-				msecs_to_jiffies(info->timeout * 1000) + jiffies);
++				secs_to_jiffies(info->timeout) + jiffies);
+ 	}
+ 
+ 	return 0;
+@@ -254,7 +254,7 @@ static unsigned int idletimer_tg_target(struct sk_buff *skb,
+ 		 info->label, info->timeout);
+ 
+ 	mod_timer(&info->timer->timer,
+-		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++		  secs_to_jiffies(info->timeout) + jiffies);
+ 
+ 	return XT_CONTINUE;
+ }
+@@ -275,7 +275,7 @@ static unsigned int idletimer_tg_target_v1(struct sk_buff *skb,
+ 		alarm_start_relative(&info->timer->alarm, tout);
+ 	} else {
+ 		mod_timer(&info->timer->timer,
+-				msecs_to_jiffies(info->timeout * 1000) + jiffies);
++				secs_to_jiffies(info->timeout) + jiffies);
+ 	}
+ 
+ 	return XT_CONTINUE;
+@@ -320,7 +320,7 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
+ 	if (info->timer) {
+ 		info->timer->refcnt++;
+ 		mod_timer(&info->timer->timer,
+-			  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++			  secs_to_jiffies(info->timeout) + jiffies);
+ 
+ 		pr_debug("increased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
+@@ -382,7 +382,7 @@ static int idletimer_tg_checkentry_v1(const struct xt_tgchk_param *par)
+ 			}
+ 		} else {
+ 				mod_timer(&info->timer->timer,
+-					msecs_to_jiffies(info->timeout * 1000) + jiffies);
++					secs_to_jiffies(info->timeout) + jiffies);
+ 		}
+ 		pr_debug("increased refcnt of timer %s to %u\n",
+ 			 info->label, info->timer->refcnt);
+-- 
+2.30.2
 
-I have put to sleep the patch "Disable xtables legacy with PREEMPT_RT"
-as suggested by Jakub Kicinski.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-04-29
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit bef4f1156b74721b7d111114538659031119b6f2:
-
-  net: phy: marvell-88q2xxx: Enable temperature sensor for mv88q211x (2025-04-24 13:19:51 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-04-29
-
-for you to fetch changes up to 0014af802193aa3547484b5db0f1a258bad28c81:
-
-  netfilter: nf_tables: export set count and backend name to userspace (2025-04-29 00:00:27 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-04-29
-
-----------------------------------------------------------------
-Chen Linxuan (1):
-      docs: tproxy: fix formatting for nft code block
-
-Easwar Hariharan (1):
-      netfilter: xt_IDLETIMER: convert timeouts to secs_to_jiffies()
-
-Florian Westphal (1):
-      netfilter: nf_tables: export set count and backend name to userspace
-
-Michal Koutný (2):
-      netfilter: xt_cgroup: Make it independent from net_cls
-      net: cgroup: Guard users of sock_cgroup_classid()
-
-Xuanqiang Luo (1):
-      netfilter: conntrack: Remove redundant NFCT_ALIGN call
-
- Documentation/networking/tproxy.rst      |  4 ++--
- include/uapi/linux/netfilter/nf_tables.h |  4 ++++
- net/ipv4/inet_diag.c                     |  2 +-
- net/netfilter/Kconfig                    |  2 +-
- net/netfilter/nf_conntrack_core.c        |  4 +---
- net/netfilter/nf_tables_api.c            | 26 ++++++++++++++++++++++++++
- net/netfilter/xt_IDLETIMER.c             | 12 ++++++------
- net/netfilter/xt_cgroup.c                | 26 ++++++++++++++++++++++++++
- 8 files changed, 67 insertions(+), 13 deletions(-)
