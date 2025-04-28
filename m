@@ -1,80 +1,91 @@
-Received: from m16.mail.163.com (m16.mail.163.com [117.135.210.2])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7B74524A067;
-	Sun, 27 Apr 2025 08:15:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=117.135.210.2
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C12E35948;
+	Mon, 28 Apr 2025 09:46:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745741725; cv=none; b=IXG4Bhdw7VaOLYrY46OSfR7kmfxhVsDGfKSoVFqHKMZv3wGnozT5tYa9naYAfYok7cB1aOfnJlbmElmNZtjY2h0kGN7qtYMykNG3pQTK3kRQgov3T676jF8NVi/zEaOR2dUH7LOzQoFt5MRdoHmRtFcHOfowAiQ2g89/BWMv2JY=
+	t=1745833620; cv=none; b=VDjOV4xGT8kYiswxsYbJZYG37jLhmMoTnzGUujCY2qOe6hG0nOG+VrBvoKL6+2RYVt2TUuhKwf/rTmDXtLBUvXyTvtYeGW3TeNkEBP6SeDV0qtgrjUDjcO3g9W3nWUWo+ZYlheVp2xZRcycZaf2U9qXRva4bmPjRAuVZZrOrjXw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745741725; c=relaxed/simple;
-	bh=Mn80SW3Km6lATD9DaG7Li6MT8pGTVqd9Ppo3rt/T/J8=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=nPQcAMB1GY7fwsdTDORXpzGYxH9KGcR028aLNsl9P6twQ+Rqt1RLXN1t+0tRb5MW1WIPp5DgT6v9EzeWN+3FmF48jPjV93cKUzuUxrVpLIVsfeUuYzOhadUqajwJk0UJ31cSHI5ry6gqE6ZFst+49x3eF2KZyc9DYhcttkhQ5/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=hWN+lRm/; arc=none smtp.client-ip=117.135.210.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1745833620; c=relaxed/simple;
+	bh=C8iPtrd8fB52Gd1GyUrGYVxOaqvoL/bDk0LqRSLid5I=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gfK+zu3le5qmZpZsbrOfWz+ajaCxJcc77gojZrimvpOHwTw4nvJBgHtCK/YEAG3WaRH49KTlpE3AFjm7BHjwvWnlU1w4td63mDSrm8hyRGAhlk7j5OHOAnAAz4FoLsP2kTK7xuCVIQfrYSRd5WsAN3Y8NmSXQ46ZKvT1QvFTOJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OVY4Cl7m; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r4XAPYlg; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="hWN+lRm/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=Mn80S
-	W3Km6lATD9DaG7Li6MT8pGTVqd9Ppo3rt/T/J8=; b=hWN+lRm/M1Yd7f0H7CtQe
-	jz7I97H5IfTJ3Jt98EUx/PY+2YI5D+Edq8MEVls8BWGpYJgBVdpJtdGVS7t/Ac8q
-	gbxihVwQAyjqqdIdkrafvWnJWMHMxPMydLlhDbWNVeVBnNq1xr1VQ054DJCu2+i1
-	4wBiSR/HtX4uu7wPs5BOCg=
-Received: from localhost.localdomain (unknown [])
-	by gzga-smtp-mtada-g1-1 (Coremail) with SMTP id _____wCXGBpd5w1ok9FMCw--.42436S4;
-	Sun, 27 Apr 2025 16:14:22 +0800 (CST)
-From: lvxiafei <xiafei_xupt@163.com>
-To: fw@strlen.de,
-	xiafei_xupt@163.com
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	horms@kernel.org,
-	kadlec@netfilter.org,
-	kuba@kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com,
-	netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org
-Subject: Re: [PATCH V6] netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_max sysctl
-Date: Sun, 27 Apr 2025 16:14:20 +0800
-Message-Id: <20250427081420.34163-1-xiafei_xupt@163.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20250415090834.24882-1-xiafei_xupt@163.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OVY4Cl7m";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r4XAPYlg"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 968C6603AD; Mon, 28 Apr 2025 11:40:32 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1745833232;
+	bh=IfY/Hyz4Uq5w4aafjWmTBVFETfIHLFXDrW7Dref7PfQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OVY4Cl7mrYr9QAaz1+/xqfXx6t5Qz4MMOEYSoIjYRzNYvkCXf0DH3NtFsmYosJQNX
+	 HQXhDp3T7ErmwfRVPVwe0SniZDspGlbj69A/i89kftCma/okQgV+dOboCZ3btFnAoF
+	 +lWEsFmXY/Gnr91whID7pcFAzWdzXTWS2q7Wv+x05+2dtF31pBlFExA+ZFXuyGYPYF
+	 P2Yp55dy/HKyuPgaWqR2270xQfAFYeZH5voaEVRXp4Ld11As+VrS+WLhTAk2V6ppKb
+	 N5vz87vIhMVqURGBzJaiYGfEqSlIAc2xfhwhsU+esSIe1n9X90F5WEnbiLqxtTfMQ9
+	 G8FQli3fab/Cg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5B84260353;
+	Mon, 28 Apr 2025 11:40:29 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1745833229;
+	bh=IfY/Hyz4Uq5w4aafjWmTBVFETfIHLFXDrW7Dref7PfQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=r4XAPYlgSMBXm6fsZ4DI1Z0s71BvbqUn+FMx2x9w1gTCVvWYzldUnf4l5UCWYfwQ4
+	 TRFtBGLRBQZ8dO5z1rWL0LocbDeYNydfj0fYPsNq6wKi5y0h07BmQjpEf9ubShNDNz
+	 EW8htwAq+kfD6gFcunGrRQF73LcteOJ8sJUGwcOB1tLQGnYoFj9nFPwIkpbSYOjjO6
+	 sdTLbB5n843nZI4I9StQzfGuI7ml6zv2e8TA3sD/4ITgr/nqbAeKbXzXemcAvTRlgI
+	 vWnoLoyjrPqsMEhH+bpvLHQBrxXCr5qJBx2mZWUA01PoG5f8peh64P7+mjJZZK8c8l
+	 n6F5BbnVYb8MA==
+Date: Mon, 28 Apr 2025 11:40:26 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: lvxiafei <xiafei_xupt@163.com>
+Cc: fw@strlen.de, coreteam@netfilter.org, davem@davemloft.net,
+	edumazet@google.com, horms@kernel.org, kadlec@netfilter.org,
+	kuba@kernel.org, linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com
+Subject: Re: [PATCH V6] netfilter: netns nf_conntrack: per-netns
+ net.netfilter.nf_conntrack_max sysctl
+Message-ID: <aA9NCkhJrLeeig9X@calendula>
 References: <20250415090834.24882-1-xiafei_xupt@163.com>
+ <20250427081420.34163-1-xiafei_xupt@163.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:_____wCXGBpd5w1ok9FMCw--.42436S4
-X-Coremail-Antispam: 1Uf129KBjvdXoW7Wr4rCF1fXryUJry7Cr47CFg_yoW3KrXE9F
-	n2kas3t3W5Xay0gr47tr1fZw40q3y7Za48ArWFqrW7J34Svrn5XFs2kanIva1Sqay8GF4D
-	tF1DGrW2vw45ujkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7VUjtrc7UUUUU==
-X-CM-SenderInfo: x0ldwvplb031rw6rljoofrz/xtbBMRo8U2gN4WSBvQABsZ
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250427081420.34163-1-xiafei_xupt@163.com>
 
-Hello!
+Hi!
 
-My name is Xiafei Lv, and I sent patch v6 on April 15, 2025. As of today, it
-has been nearly two weeks, and I have not received any feedback. However, the
-patch has been tested successfully, and you can view the details at this link:
-https://patchwork.kernel.org/project/netdevbpf/patch/20250415090834.24882-1-xiafei_xupt@163.com/
+On Sun, Apr 27, 2025 at 04:14:20PM +0800, lvxiafei wrote:
+> Hello!
+> 
+> My name is Xiafei Lv, and I sent patch v6 on April 15, 2025. As of today, it
+> has been nearly two weeks, and I have not received any feedback. However, the
+> patch has been tested successfully, and you can view the details at this link:
+> https://patchwork.kernel.org/project/netdevbpf/patch/20250415090834.24882-1-xiafei_xupt@163.com/
+>
+> I understand that kernel development is busy, and maintainers may have many
+> things to deal with and may not have time to review my patch. With this in mind,
+> I would like to politely ask what steps I should take next? If you have any
+> questions about my patch or need additional information from me, please feel
+> free to let me know and I will cooperate as soon as possible.
 
-I understand that kernel development is busy, and maintainers may have many
-things to deal with and may not have time to review my patch. With this in mind,
-I would like to politely ask what steps I should take next? If you have any
-questions about my patch or need additional information from me, please feel
-free to let me know and I will cooperate as soon as possible.
+You just have to wait. We will get back to you with more questions if
+needed.
 
-Thank you very much for taking the time to deal with my request, and I look
-forward to your response.
+> Thank you very much for taking the time to deal with my request, and I look
+> forward to your response.
 
-Best wishes!
-
-Xiafei Lv
-
+Thanks.
