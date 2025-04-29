@@ -1,160 +1,335 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82BA6210F5D;
-	Mon, 28 Apr 2025 22:13:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDEEB1E0DBA;
+	Tue, 29 Apr 2025 11:59:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745878404; cv=none; b=FkhC/9PCcqUJaJpV/QdemXp90OIPNvFx4QtyWuGhZTNpNt8D1S/utOLLmpp/iFglQvPeNae5P9MFITtUShu7p5AhmmboatnXfMu4CH1dtGEMuAGnbO7SPu+RDosd+9KKn5kONDR9We71dGQVKVTolu72NAMomxZd4WCt9pMgKpw=
+	t=1745927973; cv=none; b=oBxWj1u5E0vzsXJMZigV5njHDn2+0misMaZB1sCu5He/HGeof7yOHeP6SJ/SKBCBHWx+1LXkLGWD4CeU/wdttjEDeHldCrDK6urU5zM5Tl7uag0PSLqEdZ4Isu3TGPKDXPDbiMm/Je3ohKoTsf6ykHqIngD//fBAmOuXfuXXmN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745878404; c=relaxed/simple;
-	bh=xjQUqdHomWBGV+L9OFBYKbZJrG26ub27QJgU0MZfnfo=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rKK9wwqSHacSkm4BkN82kA5AX4wB21/MolzamofD951XNKA/wye/P8qVb64mhyiYAl0yyGE4KEzevmjaN9E4D898CZRngRdB3pthdxR2CTZheTc2hs3MvxlGlURp5swqrbMAmXr2XbnnEhH7taSuQQxI5/Wtgl/Fh5zR989uQVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TPpvGsXa; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dvJu3bC1; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TPpvGsXa";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dvJu3bC1"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id F1F80603A0; Tue, 29 Apr 2025 00:13:20 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745878400;
-	bh=Kx0D9pn3i6pERyxfuCLZBf3n2d0K6uejemARtibfXZ4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=TPpvGsXaQPU4c5TrOn9R1P4sPj1kUY6Kf0pu+bi8yIu7E7Kjpv2cdTF2D8PaLbkJd
-	 G8w8alD6wup0Na3pDq9DHSoyuoRrti1WSWvFTW40SrqJJ4wC0nau7HCG7vTAi31bAQ
-	 vRT0kBLuXFfXqFGfCdbG1n6e/+9I0TCzzMKaPQgqaupNoc7nCECYZV/SX2QxT3ojbs
-	 hZ/RGoiJuoXiOuqbF17Abq6TnxJX+CJFzQBBK00azInqi6lxEES6/7B8PDgLsWzcSy
-	 rG3b9CU3xXSfz6Hsmx6vP0/5VoT2Wk6pAndgE0hKKH7LzeC7vUBVAX2GlSNvkWz6fe
-	 3A7vX9lSkBSzg==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CF31D6039F;
-	Tue, 29 Apr 2025 00:13:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1745878397;
-	bh=Kx0D9pn3i6pERyxfuCLZBf3n2d0K6uejemARtibfXZ4=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dvJu3bC1FIZ5ppfAhQL25bRwdEaUhonH79Df3eCF7xgnCB3zoaQ66W3RVTfOOmuig
-	 Etp6SPj8qCyqCtPeblb0pDt2C3VM1K5UyJbB1egzrcnVKDqxzEgYKkyvZ0tnEO8g+c
-	 Fm0NX+oruo5ZhbDRGkxAMF7ugIh29jboIWnpgxMoVdgfGoS+8Ey69BC0oFOZBUmik5
-	 m6QgNWwxEb/4zy1kTpU/w+4pJGxvNiaTalTsSisQMDsQiG8aJSbgkY4okG1Pw7jpOg
-	 i18muu2KpY5vtRV3boOZJ/XNig4VJ6nQ6oNKdIY87t/mO0wd5k8A3ZRFcW8nXshFdK
-	 sxjH3qJvL85ZA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net-next 6/6] netfilter: nf_tables: export set count and backend name to userspace
-Date: Tue, 29 Apr 2025 00:12:54 +0200
-Message-Id: <20250428221254.3853-7-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250428221254.3853-1-pablo@netfilter.org>
-References: <20250428221254.3853-1-pablo@netfilter.org>
+	s=arc-20240116; t=1745927973; c=relaxed/simple;
+	bh=rABI53vpjnl1yAdQD0xk0cPlD1agLIFnuQ/S5FhSZrM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=jTVAzMusPKRaAmfBtqiBzsU4jmr7K7I1X0AXT/xS5sAcC55jfL+6evOMrTVDstLFHMcQhTpqQ/lrO1eCHjeS55nQgt3FLlDTE4fAdUTE28zASU6H8n9/djqqGVa8X6SmTZYvS1lvvzzAKjmVugL7VpUCSKfM7Bq1kF+DD2Fuens=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4ZmzJk1LfWz6M4ht;
+	Tue, 29 Apr 2025 19:55:02 +0800 (CST)
+Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
+	by mail.maildlp.com (Postfix) with ESMTPS id A2E471400D9;
+	Tue, 29 Apr 2025 19:59:20 +0800 (CST)
+Received: from [10.123.123.159] (10.123.123.159) by
+ mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Tue, 29 Apr 2025 14:59:18 +0300
+Message-ID: <5b82e994-e3a7-3c40-5ca0-46356084e688@huawei-partners.com>
+Date: Tue, 29 Apr 2025 14:59:16 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v3 00/19] Support socket access-control
+To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>,
+	=?UTF-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+CC: <willemdebruijn.kernel@gmail.com>, <gnoack3000@gmail.com>,
+	<linux-security-module@vger.kernel.org>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <yusongping@huawei.com>,
+	<artem.kuzin@huawei.com>, <konstantin.meskhidze@huawei.com>, Paul Moore
+	<paul@paul-moore.com>
+References: <20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com>
+ <20250422.iesaivaj8Aeb@digikod.net> <aAuU-LmjENslCF2P@google.com>
+Content-Language: ru
+From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+In-Reply-To: <aAuU-LmjENslCF2P@google.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: lhrpeml500012.china.huawei.com (7.191.174.4) To
+ mscpeml500004.china.huawei.com (7.188.26.250)
 
-From: Florian Westphal <fw@strlen.de>
+Hello, Günther, Mickaël!
 
-nf_tables picks a suitable set backend implementation (bitmap, hash,
-rbtree..) based on the userspace requirements.
+Sorry for the huge delay, I was snowed under with internal project and
+academic activity. I've almost finished the v4 patchset and will send it
+in a few days.
 
-Figuring out the chosen backend requires information about the set flags
-and the kernel version.  Export this to userspace so nft can include this
-information in '--debug=netlink' output.
+On 4/25/2025 4:58 PM, Günther Noack wrote:
+> Hello Mikhail!
+> 
+> I would also be interested in seeing this patch set land. :)
+> Do you think you would be able to pick this up again?
+> 
+> 
+> To refresh my memory, I also had a look at V3 again; One of the last big
+> questions here was the userspace API in struct landlock_socket_attr.
+> 
+> To briefly recap that discussion, what we settled on at the end [1] was that we
+> can use special wildcard values for some of the members of that struct, so that
+> it looks like this:
+> 
+> struct landlock_socket_attr {
+>    __u64 allowed_access;
+>    int family;   /* same as domain in socket(2)    (required, never a wildcard) */
+>    int type;     /* same as type in socket(2),     or the wildcard value (i64)-1 */
+>    int protocol; /* same as protocol in socket(2), or the wildcard value (i64)-1 */
+> };
+> 
+> (In other words, we have discarded the ideas of "handled_socket_layers" and
+> using bitmasks to specify different values for the socket(2) arguments.)
+> 
+> So, when an attempt is made to call socket(family, type, protocol), Landlock has
+> to check for the presence of the following keys in the RB-tree:
+> 
+>   1. (family, type, protocol)
+>   2. (family, type, *)
+>   3. (family, *,    *)
+>   4. (family, *,    protocol)
+> 
+> but is an acceptable compromise to make ([1]).
+> 
+> Small remark: The four lookups sound bad, but I suspect that in many cases, only
+> variant 1 (and maybe 2) will be used at all.  If you create four separate struct
+> rb_root for these four cases, then if the more obscure variants are unused, the
+> lookups for these will be almost for free.  (An empty rb_root contains only a
+> single NULL-pointer.)
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h |  4 ++++
- net/netfilter/nf_tables_api.c            | 26 ++++++++++++++++++++++++
- 2 files changed, 30 insertions(+)
+I expect socket rulesets to be quite small, so theoretically a single
+lookup operation should really be almost free.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 49c944e78463..7d6bc19a0153 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -394,6 +394,8 @@ enum nft_set_field_attributes {
-  * @NFTA_SET_HANDLE: set handle (NLA_U64)
-  * @NFTA_SET_EXPR: set expression (NLA_NESTED: nft_expr_attributes)
-  * @NFTA_SET_EXPRESSIONS: list of expressions (NLA_NESTED: nft_list_attributes)
-+ * @NFTA_SET_TYPE: set backend type (NLA_STRING)
-+ * @NFTA_SET_COUNT: number of set elements (NLA_U32)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -415,6 +417,8 @@ enum nft_set_attributes {
- 	NFTA_SET_HANDLE,
- 	NFTA_SET_EXPR,
- 	NFTA_SET_EXPRESSIONS,
-+	NFTA_SET_TYPE,
-+	NFTA_SET_COUNT,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a133e1c175ce..b28f6730e26d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4569,6 +4569,8 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
- 	[NFTA_SET_HANDLE]		= { .type = NLA_U64 },
- 	[NFTA_SET_EXPR]			= { .type = NLA_NESTED },
- 	[NFTA_SET_EXPRESSIONS]		= NLA_POLICY_NESTED_ARRAY(nft_expr_policy),
-+	[NFTA_SET_TYPE]			= { .type = NLA_REJECT },
-+	[NFTA_SET_COUNT]		= { .type = NLA_REJECT },
- };
- 
- static const struct nla_policy nft_concat_policy[NFTA_SET_FIELD_MAX + 1] = {
-@@ -4763,6 +4765,27 @@ static u32 nft_set_userspace_size(const struct nft_set_ops *ops, u32 size)
- 	return size;
- }
- 
-+static noinline_for_stack int
-+nf_tables_fill_set_info(struct sk_buff *skb, const struct nft_set *set)
-+{
-+	unsigned int nelems;
-+	char str[40];
-+	int ret;
-+
-+	ret = snprintf(str, sizeof(str), "%ps", set->ops);
-+
-+	/* Not expected to happen and harmless: NFTA_SET_TYPE is dumped
-+	 * to userspace purely for informational/debug purposes.
-+	 */
-+	DEBUG_NET_WARN_ON_ONCE(ret >= sizeof(str));
-+
-+	if (nla_put_string(skb, NFTA_SET_TYPE, str))
-+		return -EMSGSIZE;
-+
-+	nelems = nft_set_userspace_size(set->ops, atomic_read(&set->nelems));
-+	return nla_put_be32(skb, NFTA_SET_COUNT, htonl(nelems));
-+}
-+
- static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 			      const struct nft_set *set, u16 event, u16 flags)
- {
-@@ -4843,6 +4866,9 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 
- 	nla_nest_end(skb, nest);
- 
-+	if (nf_tables_fill_set_info(skb, set))
-+		goto nla_put_failure;
-+
- 	if (set->num_exprs == 1) {
- 		nest = nla_nest_start_noflag(skb, NFTA_SET_EXPR);
- 		if (nf_tables_fill_expr_info(skb, set->exprs[0], false) < 0)
--- 
-2.30.2
+Anyway, optimization can be implemented by modifying structure
+used to contain socket rules (rbtree currently). We can think of
+something like "rules" array of AF_MAX * SOCK_MAX (~500) entries,
+each entry holding information related to (family, type) pair.
 
+rules[family][type] can be represented by the following stucture:
+
+struct socket_rule {
+	bool allowed; // = 0 by default
+	struct socket_proto_rule *proto_rules;
+};
+
+struct socket_proto_rule {
+	struct list_head list;
+	int val; // eg. = IPPROTO_TCP
+};
+
+It will hold information about each of the following rules:
+	1. (family, type, protocol)
+	2. (family, type, *)
+	3. (family, *,    *)
+	4. (family, *,    protocol)
+
+- If user wants to add type 2 rule, we'll just set
+	rules[family][type].allowed = 1;
+
+- If user wants to add type 3 rule, we'll perform previous
+   operation for every socket type.
+
+- If user wants to add type 1 rule, we'll add a new entry in
+   socket_rule.proto_rules linked list.
+
+- For type 4 rule, we'll perform previous operation for every socket
+   type.
+
+If we expect to have about 2-3 protocols per-family in worst case, than
+lookup overhead should be negligible.
+
+> 
+> 
+> I hope this is a reasonable summary of the discussion at [1] and helps to
+> unblock the progress here?  Mikhail, are there any other open points which are
+> blocking you on this patch set?
+
+Yes, thank you!
+
+A single thing I'm not quite sure about is that protocols of IP and UNIX
+family can be defined in two ways. Socket API allows to have "default"
+protocols for each protocol family which can be specified by setting
+protocol = 0 in socket(2).
+
+For example, we can define TCP socket as
+	socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) and
+	socket(AF_INET, SOCK_STREAM, 0).
+Theoretically, it can be a little bit uncomfortable to take care about
+default values in ruleset definition, but I don't think there is a
+pretty way to optimize it.
+
+> 
+> -Günther
+> 
+> 
+> [1] https://lore.kernel.org/all/20250124.sei0Aur6aegu@digikod.net/
+> 
+> 
+> On Tue, Apr 22, 2025 at 07:19:02PM +0200, Mickaël Salaün wrote:
+>> Hi Mikhail.  Could you please send a new version taking into account the
+>> reviews?
+>>
+>> This series should support audit by logging socket creation denials and
+>> extending audit_log_lsm_data().  You can get inspiration from the format
+>> used by audit_net_cb() but without the number to text translation, that
+>> can be handled by auditd if needed.  New tests should check these new
+>> audit logs.
+
+Ok, thanks for pointing this out!
+
+>>
+>>
+>> On Wed, Sep 04, 2024 at 06:48:05PM +0800, Mikhail Ivanov wrote:
+>>> Hello! This is v3 RFC patch dedicated to socket protocols restriction.
+>>>
+>>> It is based on the landlock's mic-next branch on top of v6.11-rc1 kernel
+>>> version.
+>>>
+>>> Objective
+>>> =========
+>>> Extend Landlock with a mechanism to restrict any set of protocols in
+>>> a sandboxed process.
+>>>
+>>> Closes: https://github.com/landlock-lsm/linux/issues/6
+>>>
+>>> Motivation
+>>> ==========
+>>> Landlock implements the `LANDLOCK_RULE_NET_PORT` rule type, which provides
+>>> fine-grained control of actions for a specific protocol. Any action or
+>>> protocol that is not supported by this rule can not be controlled. As a
+>>> result, protocols for which fine-grained control is not supported can be
+>>> used in a sandboxed system and lead to vulnerabilities or unexpected
+>>> behavior.
+>>>
+>>> Controlling the protocols used will allow to use only those that are
+>>> necessary for the system and/or which have fine-grained Landlock control
+>>> through others types of rules (e.g. TCP bind/connect control with
+>>> `LANDLOCK_RULE_NET_PORT`, UNIX bind control with
+>>> `LANDLOCK_RULE_PATH_BENEATH`).
+>>>
+>>> Consider following examples:
+>>> * Server may want to use only TCP sockets for which there is fine-grained
+>>>    control of bind(2) and connect(2) actions [1].
+>>> * System that does not need a network or that may want to disable network
+>>>    for security reasons (e.g. [2]) can achieve this by restricting the use
+>>>    of all possible protocols.
+>>>
+>>> [1] https://lore.kernel.org/all/ZJvy2SViorgc+cZI@google.com/
+>>> [2] https://cr.yp.to/unix/disablenetwork.html
+>>>
+>>> Implementation
+>>> ==============
+>>> This patchset adds control over the protocols used by implementing a
+>>> restriction of socket creation. This is possible thanks to the new type
+>>> of rule - `LANDLOCK_RULE_SOCKET`, that allows to restrict actions on
+>>> sockets, and a new access right - `LANDLOCK_ACCESS_SOCKET_CREATE`, that
+>>> corresponds to creating user space sockets. The key in this rule is a pair
+>>> of address family and socket type (Cf. socket(2)).
+>>>
+>>> The right to create a socket is checked in the LSM hook, which is called
+>>> in the __sock_create method. The following user space operations are
+>>> subject to this check: socket(2), socketpair(2), io_uring(7).
+>>>
+>>> In the case of connection-based socket types,
+>>> `LANDLOCK_ACCESS_SOCKET_CREATE` does not restrict the actions that result
+>>> in creation of sockets used for messaging between already existing
+>>> endpoints (e.g. accept(2), setsockopt(2) with option
+>>> `SCTP_SOCKOPT_PEELOFF`).
+>>>
+>>> Current limitations
+>>> ===================
+>>> `SCTP_SOCKOPT_PEELOFF` should not be restricted (see test
+>>> socket_creation.sctp_peeloff).
+>>>
+>>> SCTP socket can be connected to a multiple endpoints (one-to-many
+>>> relation). Calling setsockopt(2) on such socket with option
+>>> `SCTP_SOCKOPT_PEELOFF` detaches one of existing connections to a separate
+>>> UDP socket. This detach is currently restrictable.
+>>>
+>>> Code coverage
+>>> =============
+>>> Code coverage(gcov) report with the launch of all the landlock selftests:
+>>> * security/landlock:
+>>> lines......: 93.5% (794 of 849 lines)
+>>> functions..: 95.5% (106 of 111 functions)
+>>>
+>>> * security/landlock/socket.c:
+>>> lines......: 100.0% (33 of 33 lines)
+>>> functions..: 100.0% (4 of 4 functions)
+>>>
+>>> General changes v2->v3
+>>> ======================
+>>> * Implementation
+>>>    * Accepts (AF_INET, SOCK_PACKET) as an alias for (AF_PACKET, SOCK_PACKET).
+>>>    * Adds check to not restrict kernel sockets.
+>>>    * Fixes UB in pack_socket_key().
+>>>    * Refactors documentation.
+>>> * Tests
+>>>    * Extends variants of `protocol` fixture with every protocol that can be
+>>>      used to create user space sockets.
+>>>    * Adds 5 new tests:
+>>>      * 3 tests to check socketpair(2), accept(2) and sctp_peeloff
+>>>        restriction.
+>>>      * 1 test to check restriction of kernel sockets.
+>>>      * 1 test to check AF_PACKET aliases.
+>>> * Documentation
+>>>    * Updates Documentation/userspace-api/landlock.rst.
+>>> * Commits
+>>>    * Rebases on mic-next.
+>>>    * Refactors commits.
+>>>
+>>> Previous versions
+>>> =================
+>>> v2: https://lore.kernel.org/all/20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com/
+>>> v1: https://lore.kernel.org/all/20240408093927.1759381-1-ivanov.mikhail1@huawei-partners.com/
+>>>
+>>> Mikhail Ivanov (19):
+>>>    landlock: Support socket access-control
+>>>    landlock: Add hook on socket creation
+>>>    selftests/landlock: Test basic socket restriction
+>>>    selftests/landlock: Test adding a rule with each supported access
+>>>    selftests/landlock: Test adding a rule for each unknown access
+>>>    selftests/landlock: Test adding a rule for unhandled access
+>>>    selftests/landlock: Test adding a rule for empty access
+>>>    selftests/landlock: Test overlapped restriction
+>>>    selftests/landlock: Test creating a ruleset with unknown access
+>>>    selftests/landlock: Test adding a rule with family and type outside
+>>>      the range
+>>>    selftests/landlock: Test unsupported protocol restriction
+>>>    selftests/landlock: Test that kernel space sockets are not restricted
+>>>    selftests/landlock: Test packet protocol alias
+>>>    selftests/landlock: Test socketpair(2) restriction
+>>>    selftests/landlock: Test SCTP peeloff restriction
+>>>    selftests/landlock: Test that accept(2) is not restricted
+>>>    samples/landlock: Replace atoi() with strtoull() in
+>>>      populate_ruleset_net()
+>>>    samples/landlock: Support socket protocol restrictions
+>>>    landlock: Document socket rule type support
+>>>
+>>>   Documentation/userspace-api/landlock.rst      |   46 +-
+>>>   include/uapi/linux/landlock.h                 |   61 +-
+>>>   samples/landlock/sandboxer.c                  |  135 ++-
+>>>   security/landlock/Makefile                    |    2 +-
+>>>   security/landlock/limits.h                    |    4 +
+>>>   security/landlock/ruleset.c                   |   33 +-
+>>>   security/landlock/ruleset.h                   |   45 +-
+>>>   security/landlock/setup.c                     |    2 +
+>>>   security/landlock/socket.c                    |  137 +++
+>>>   security/landlock/socket.h                    |   19 +
+>>>   security/landlock/syscalls.c                  |   66 +-
+>>>   tools/testing/selftests/landlock/base_test.c  |    2 +-
+>>>   tools/testing/selftests/landlock/common.h     |   13 +
+>>>   tools/testing/selftests/landlock/config       |   47 +
+>>>   tools/testing/selftests/landlock/net_test.c   |   11 -
+>>>   .../testing/selftests/landlock/socket_test.c  | 1013 +++++++++++++++++
+>>>   16 files changed, 1593 insertions(+), 43 deletions(-)
+>>>   create mode 100644 security/landlock/socket.c
+>>>   create mode 100644 security/landlock/socket.h
+>>>   create mode 100644 tools/testing/selftests/landlock/socket_test.c
+>>>
+>>>
+>>> base-commit: 8400291e289ee6b2bf9779ff1c83a291501f017b
+>>> -- 
+>>> 2.34.1
+>>>
+>>>
