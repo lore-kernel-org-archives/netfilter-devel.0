@@ -1,75 +1,89 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 465C81FBEB9;
-	Tue, 29 Apr 2025 13:29:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFCD52DC761;
+	Wed, 30 Apr 2025 00:19:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745933374; cv=none; b=W/kZYpPXO3vBfFZLDVgcasCLaB5CoMjpIVqyPwSdPEmuxZlQYqlfePCwW1D0deLaXlRT6Y+ilqJLqrLa9wqKxvWc+lSkXOII6KM+gx2Y3fZTqj5i/9pfb1EftlsvfI7KZEO9rACuHq71bV2XUmGh8uJZW+utZr1kkz9Hbi/vAT4=
+	t=1745972398; cv=none; b=gwMq3ZTFVdFNZmpuEWqhV0ykj/cHEpWe7RpwO68jRzwTOPti+nDMvnLlo2G1Q+stT1troYYAB3ZFcbXx8cKKjlphSB3En3LQef/J81CbEEdyDZ11yKK4rDhLa/n8K2LQ4mZAfsXqo9imku/y+fk7iGLG+st9c9J6FPmMBrm1d4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745933374; c=relaxed/simple;
-	bh=YwN4EMaAALUmRHq3OHZLExjO0utT8ZCGsFKX/ieuAps=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aF5LxWTydc3c2zza41YLXXqSECBlcQAUWO/QHeK2M+fuytOXhTG12VYzW93bnXlrRfPpb6KndQJawpIZ83j4dFnJt85oOU0ux1a4tuQ0DNMVzrtLGajWUy44sAFMnWQnJa+OBIVHcqCXa8OBm9DRZIVou/CmtOtwHyltQ9457ng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@strlen.de>)
-	id 1u9l1V-0001Fg-Om; Tue, 29 Apr 2025 15:29:21 +0200
-Date: Tue, 29 Apr 2025 15:29:21 +0200
-From: Florian Westphal <fw@strlen.de>
-To: avimalin@gmail.com
-Cc: vimal.agrawal@sophos.com, linux-kernel@vger.kernel.org,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
-	anirudh.gupta@sophos.com
-Subject: Re: [PATCH v1] nf_conntrack: sysctl: expose gc worker scan interval
- via sysctl
-Message-ID: <20250429132921.GA4721@breakpoint.cc>
-References: <20250429130940.74538-1-vimal.agrawal@sophos.com>
+	s=arc-20240116; t=1745972398; c=relaxed/simple;
+	bh=zP+nPvwhrjpFQt8o5V51U7DeMphw+ykLZjsaNV+96+Y=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=MItIBGchhRHsmUjjIU0cPnhMCDd03s5SFjJkGo6XSYIq4QuIdTBDCrxn0VxS8JuQUUHW9XLPJIAT7/ACRdLIM6+vOX1zceIC8L9uNU87kFtdRRkJWJCzF01E8UDscdyZ1CxeTVEZc8jlGnfHyFSNV/ZPDKDj3s8uSBIFDpDPSto=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sgrw7AP7; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sgrw7AP7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 459D5C4CEE3;
+	Wed, 30 Apr 2025 00:19:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1745972398;
+	bh=zP+nPvwhrjpFQt8o5V51U7DeMphw+ykLZjsaNV+96+Y=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=sgrw7AP7/uZfDjKulohV9nb4Q9Zn9VCpBKGoUWLzn2NqKfNR18NzSVr22LT644JBI
+	 Xlu0YETo0HZ8PUrk43bax296NBvkKKpwI1P7SxqhaLQI585d9hEHQgsidJbIcqYErS
+	 75RoEC58Vn8d5guBT3BH1zNr8FHemLnWOEXsg5UcIGMuv4+pGDISLLKilsrzSAYvVX
+	 1T5OEWEqIET7sGA5nkito/awH+/pZWYtX+IoRoJxTkSJ83znm0ot0v1Li07wAdBkfa
+	 Rn6Pnce7n2ipszEgcFiGDGr7ubvLxcIbNp5gFAZ7PjwjPCmJ+/lSFPpYWjXOTz4TeN
+	 IjW5XMysCW0QA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70F153822D4E;
+	Wed, 30 Apr 2025 00:20:38 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250429130940.74538-1-vimal.agrawal@sophos.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/6] netfilter: xt_IDLETIMER: convert timeouts to
+ secs_to_jiffies()
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <174597243725.1842791.14946610720814251605.git-patchwork-notify@kernel.org>
+Date: Wed, 30 Apr 2025 00:20:37 +0000
+References: <20250428221254.3853-2-pablo@netfilter.org>
+In-Reply-To: <20250428221254.3853-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-avimalin@gmail.com <avimalin@gmail.com> wrote:
-> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-> index 2f666751c7e7..480ff9a6f185 100644
-> --- a/net/netfilter/nf_conntrack_standalone.c
-> +++ b/net/netfilter/nf_conntrack_standalone.c
-> @@ -559,6 +559,7 @@ enum nf_ct_sysctl_index {
->  #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
->  	NF_SYSCTL_CT_TIMESTAMP,
->  #endif
-> +	NF_SYSCTL_CT_GC_SCAN_INTERVAL_INIT,
->  	NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC,
->  	NF_SYSCTL_CT_PROTO_TIMEOUT_TCP_SYN_SENT,
->  	NF_SYSCTL_CT_PROTO_TIMEOUT_TCP_SYN_RECV,
-> @@ -691,6 +692,13 @@ static struct ctl_table nf_ct_sysctl_table[] = {
->  		.extra2 	= SYSCTL_ONE,
->  	},
->  #endif
-> +	[NF_SYSCTL_CT_GC_SCAN_INTERVAL_INIT] = {
-> +		.procname	= "nf_conntrack_gc_scan_interval_init",
-> +		.data		= &nf_conntrack_gc_scan_interval_init,
-> +		.maxlen		= sizeof(unsigned int),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec_jiffies,
-> +	},
->  	[NF_SYSCTL_CT_PROTO_TIMEOUT_GENERIC] = {
->  		.procname	= "nf_conntrack_generic_timeout",
->  		.maxlen		= sizeof(unsigned int),
+Hello:
 
-I think you'll need to add NF_SYSCTL_CT_GC_SCAN_INTERVAL_INIT to
-the
+This series was applied to netdev/net-next.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
- /* Don't allow non-init_net ns to alter global sysctls */
- if (!net_eq(&init_net, net)) {
+On Tue, 29 Apr 2025 00:12:49 +0200 you wrote:
+> From: Easwar Hariharan <eahariha@linux.microsoft.com>
+> 
+> Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
+> secs_to_jiffies().  As the value here is a multiple of 1000, use
+> secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
+> 
+> This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
+> the following Coccinelle rules:
+> 
+> [...]
 
-branch in nf_conntrack_standalone_init_sysctl().
+Here is the summary with links:
+  - [net-next,1/6] netfilter: xt_IDLETIMER: convert timeouts to secs_to_jiffies()
+    https://git.kernel.org/netdev/net-next/c/f4293c2baf6f
+  - [net-next,2/6] netfilter: xt_cgroup: Make it independent from net_cls
+    https://git.kernel.org/netdev/net-next/c/3ba0032afea8
+  - [net-next,3/6] net: cgroup: Guard users of sock_cgroup_classid()
+    https://git.kernel.org/netdev/net-next/c/087645314745
+  - [net-next,4/6] netfilter: conntrack: Remove redundant NFCT_ALIGN call
+    https://git.kernel.org/netdev/net-next/c/eaa2b34db021
+  - [net-next,5/6] docs: tproxy: fix formatting for nft code block
+    https://git.kernel.org/netdev/net-next/c/149a133a5481
+  - [net-next,6/6] netfilter: nf_tables: export set count and backend name to userspace
+    https://git.kernel.org/netdev/net-next/c/0014af802193
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
