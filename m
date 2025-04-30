@@ -1,89 +1,84 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFCD52DC761;
-	Wed, 30 Apr 2025 00:19:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 185263D76
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Apr 2025 04:06:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745972398; cv=none; b=gwMq3ZTFVdFNZmpuEWqhV0ykj/cHEpWe7RpwO68jRzwTOPti+nDMvnLlo2G1Q+stT1troYYAB3ZFcbXx8cKKjlphSB3En3LQef/J81CbEEdyDZ11yKK4rDhLa/n8K2LQ4mZAfsXqo9imku/y+fk7iGLG+st9c9J6FPmMBrm1d4A=
+	t=1745985990; cv=none; b=HSbd0EplP8ZtJymciaEYQQQC0K4/EFxSkZIy5D8Y8P2tk/HrbZBM/jK2QnKj7H8Tmo9lzfFEQxdZxwcCrDAlHKkE5qLiHIdsM1ImHErg6w/9jXZ4T0jp6uNDqvzvT/9IWEuN3VdkDBKQVTM5tNvsRAZ8blX2dTenOJ3zDG8+fEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745972398; c=relaxed/simple;
-	bh=zP+nPvwhrjpFQt8o5V51U7DeMphw+ykLZjsaNV+96+Y=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=MItIBGchhRHsmUjjIU0cPnhMCDd03s5SFjJkGo6XSYIq4QuIdTBDCrxn0VxS8JuQUUHW9XLPJIAT7/ACRdLIM6+vOX1zceIC8L9uNU87kFtdRRkJWJCzF01E8UDscdyZ1CxeTVEZc8jlGnfHyFSNV/ZPDKDj3s8uSBIFDpDPSto=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sgrw7AP7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1745985990; c=relaxed/simple;
+	bh=AWEAszHixMabaHum7/doBO6Caip/PQgW7hNPrb1Yb0c=;
+	h=Message-ID:Date:MIME-Version:From:To:Subject:Content-Type; b=C5N5gHzp4iznqFZP6agf2GuDVfyoEiGwDCh0sh03+pCeYe+sVWFwh4lvricT1KZJQIBPJtSdyF6HGG1xQviH0dslYtemdKVzK11vNE6Xiw55Dz/cgnvv8BdIm9x6p7djvtqDpIOf+/jlpxV2FOhEYb7OVKeUix5xkQOa5wDTXyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TxcMEIFs; arc=none smtp.client-ip=209.85.221.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sgrw7AP7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 459D5C4CEE3;
-	Wed, 30 Apr 2025 00:19:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1745972398;
-	bh=zP+nPvwhrjpFQt8o5V51U7DeMphw+ykLZjsaNV+96+Y=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=sgrw7AP7/uZfDjKulohV9nb4Q9Zn9VCpBKGoUWLzn2NqKfNR18NzSVr22LT644JBI
-	 Xlu0YETo0HZ8PUrk43bax296NBvkKKpwI1P7SxqhaLQI585d9hEHQgsidJbIcqYErS
-	 75RoEC58Vn8d5guBT3BH1zNr8FHemLnWOEXsg5UcIGMuv4+pGDISLLKilsrzSAYvVX
-	 1T5OEWEqIET7sGA5nkito/awH+/pZWYtX+IoRoJxTkSJ83znm0ot0v1Li07wAdBkfa
-	 Rn6Pnce7n2ipszEgcFiGDGr7ubvLxcIbNp5gFAZ7PjwjPCmJ+/lSFPpYWjXOTz4TeN
-	 IjW5XMysCW0QA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70F153822D4E;
-	Wed, 30 Apr 2025 00:20:38 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TxcMEIFs"
+Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-39c14016868so7060009f8f.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Apr 2025 21:06:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1745985987; x=1746590787; darn=vger.kernel.org;
+        h=content-transfer-encoding:subject:to:from:mime-version:date
+         :message-id:from:to:cc:subject:date:message-id:reply-to;
+        bh=AWEAszHixMabaHum7/doBO6Caip/PQgW7hNPrb1Yb0c=;
+        b=TxcMEIFs8E1LfJwT3Q6cdK6qmdaqZlJphy95vouChNr+PYK7dIiE6Vch5vUERTc3ci
+         P1SM5I9z/x9quNpdQOQOkMLqeZnBHCvpFXpMW8XSXt8CKhQBgUOvewQArZTz1xZs+DKG
+         vlyrQ+5h0TIOphJ/dH/iSjjFszy3MDTny9zaqnTqMtbO9ZpBlPyuo8FlaOlT1Na7fBRY
+         a6um63cs4NoG8be1pZROsO5DYK13BirpByvdDXFiMujlC+17+1xGj6uQVMQWWY64khlb
+         080XmvGU9+lcm1fL4cTDvTkGcL5wlFgb8OgctUgdg7JBU/TjSNqKVdUD+i1ziKEtBVo7
+         4xqQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1745985987; x=1746590787;
+        h=content-transfer-encoding:subject:to:from:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=AWEAszHixMabaHum7/doBO6Caip/PQgW7hNPrb1Yb0c=;
+        b=h+86NptUIubTXVd+95lK79WD9k7DuFe7n/bUix+OyMcbyfC4TdWs5ExjhaP6tkAxiE
+         FCQ2GnWa2JqaKtCVUzw5FOZjp80jwlhsxpWSSils7NlCMP2lSnGLKybYTSVGrEudun9R
+         qa8E6X254XnS0Qcwl2qhNQZGVSnfJGNwrlOt38quPhdhvyN30VRcOTgGq87lIg7uowI9
+         YaGCNS9EDpzFECLaBj6VigVfAp5I97UyPWtck4X9KIwkm9P8gXUq5BRL2tZL3XicBGcX
+         4KYymbSj9uRp3BBk3I063M7PwIeEXT+TrZErJ9Es/0Oma+dWGaTewuicqAyXwkxeeOZ9
+         s7Dg==
+X-Gm-Message-State: AOJu0YyNIhXvfVMxAv1V9tizC836YpQCaWEWsiRg4d7Mc/a5H+fAdNfy
+	j/XT6m6FJMFanxzI0jGE74UhOJj9DuI28JkCnVDQzGIF1XaEOE33ID7Prg==
+X-Gm-Gg: ASbGncswF3Rp7Oc+iLixSigmYj2hjpQJtHI6DrqWAbpvLv1jeXmtGDIUE6XO1ouHrsK
+	AzPyfqxCjqrv9xaz+XJKLikENwcuXRPcxsGQl8TBAS55MFkBHRZOhDEjGICpspcFklH09d2103i
+	WIGeyQTBMXuj4LLaFOBlV1pQ7TwHWQptY8rvfPBQxj0DT5U2T32CZDNu5EqKpKzOhigF8PWcO3V
+	P9T0mwqEGhag4npaubEAjntxkwNgF2VDcgZWXiQDrfwxW+ntB3FFnewX0oFRCkrYP+sIihpDGw2
+	o1RTuTGySpEZGtnEGWXJrgg=
+X-Google-Smtp-Source: AGHT+IFyFkHFqAVoSV0YL8/cqniIkYxAVlGG6DOh5H69AYeXKaBFhYrCFc1ktCqUFLg7hftkBzpwIw==
+X-Received: by 2002:a05:6000:40df:b0:38f:2766:759f with SMTP id ffacd0b85a97d-3a08f7a4016mr1059399f8f.41.1745985987101;
+        Tue, 29 Apr 2025 21:06:27 -0700 (PDT)
+Received: from ULRICH ([197.234.221.145])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a089edeca6sm4235748f8f.40.2025.04.29.21.06.25
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1 cipher=ECDHE-ECDSA-AES128-SHA bits=128/128);
+        Tue, 29 Apr 2025 21:06:26 -0700 (PDT)
+Message-ID: <6811a1c2.050a0220.2c559.fa5e@mx.google.com>
+Date: Tue, 29 Apr 2025 21:06:26 -0700 (PDT)
+X-Google-Original-Date: 30 Apr 2025 05:06:27 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/6] netfilter: xt_IDLETIMER: convert timeouts to
- secs_to_jiffies()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <174597243725.1842791.14946610720814251605.git-patchwork-notify@kernel.org>
-Date: Wed, 30 Apr 2025 00:20:37 +0000
-References: <20250428221254.3853-2-pablo@netfilter.org>
-In-Reply-To: <20250428221254.3853-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+From: theodoseraymond5@gmail.com
+To: netfilter-devel@vger.kernel.org
+Subject: Privatkredit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 
-Hello:
-
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Tue, 29 Apr 2025 00:12:49 +0200 you wrote:
-> From: Easwar Hariharan <eahariha@linux.microsoft.com>
-> 
-> Commit b35108a51cf7 ("jiffies: Define secs_to_jiffies()") introduced
-> secs_to_jiffies().  As the value here is a multiple of 1000, use
-> secs_to_jiffies() instead of msecs_to_jiffies to avoid the multiplication.
-> 
-> This is converted using scripts/coccinelle/misc/secs_to_jiffies.cocci with
-> the following Coccinelle rules:
-> 
-> [...]
-
-Here is the summary with links:
-  - [net-next,1/6] netfilter: xt_IDLETIMER: convert timeouts to secs_to_jiffies()
-    https://git.kernel.org/netdev/net-next/c/f4293c2baf6f
-  - [net-next,2/6] netfilter: xt_cgroup: Make it independent from net_cls
-    https://git.kernel.org/netdev/net-next/c/3ba0032afea8
-  - [net-next,3/6] net: cgroup: Guard users of sock_cgroup_classid()
-    https://git.kernel.org/netdev/net-next/c/087645314745
-  - [net-next,4/6] netfilter: conntrack: Remove redundant NFCT_ALIGN call
-    https://git.kernel.org/netdev/net-next/c/eaa2b34db021
-  - [net-next,5/6] docs: tproxy: fix formatting for nft code block
-    https://git.kernel.org/netdev/net-next/c/149a133a5481
-  - [net-next,6/6] netfilter: nf_tables: export set count and backend name to userspace
-    https://git.kernel.org/netdev/net-next/c/0014af802193
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+R3V0ZW4gTW9yZ2VuLA0KSWNoIGJpZXRlIEtyZWRpdGzDtnN1bmdlbiwgZGllIElocmVu
+IEJlZMO8cmZuaXNzZW4gZW50c3ByZWNoZW4uIFdlbm4gU2llIMO8YmVyIGVpbmVuIFBy
+aXZhdGtyZWRpdCBvZGVyIGFuZGVyZSBPcHRpb25lbiBuYWNoZGVua2VuLCBzdGVoZSBp
+Y2ggSWhuZW4gZ2VybmUgenVyIFZlcmbDvGd1bmcuIEJldHLDpGdlIHZvbiAxMC4wMDAg
+YmlzIDUwMC4wMDAsIG1pdCBmbGV4aWJsZW4gUsO8Y2t6YWhsdW5nc2JlZGluZ3VuZ2Vu
+LiBLb250YWt0aWVyZW4gU2llIG1pY2guDQoNCkJvbmpvdXIsIA0KSmUgdm91cyBwcm9w
+b3NlIGRlcyBzb2x1dGlvbnMgZGUgcHLDqnQgcXVpIHLDqXBvbmRlbnQgw6Agdm9zIGJl
+c29pbnMuIFNpIHZvdXMgZW52aXNhZ2V6IHVuIHByw6p0IHBlcnNvbm5lbCBvdSBkJ2F1
+dHJlcyBvcHRpb25zLCBqZSBzdWlzIMOgIHZvdHJlIGRpc3Bvc2l0aW9uLiBNb250YW50
+cyBkZSAxMCAwMDAgw6AgNTAwIDAwMCwgYXZlYyBkZXMgZHVyw6llcyBkZSByZW1ib3Vy
+c2VtZW50IGZsZXhpYmxlcy4gQ29udGFjdGV6LW1vaS4=
 
