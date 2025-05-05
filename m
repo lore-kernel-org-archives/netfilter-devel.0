@@ -1,100 +1,86 @@
-Received: from mail-vk1-f177.google.com (mail-vk1-f177.google.com [209.85.221.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1926E38382;
-	Sat,  3 May 2025 02:27:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07CDD1FC7D9
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2025 11:14:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746239259; cv=none; b=t/V9rrj6AN+7nDxbGqlAFnl3i1LTS+kNTMCEYZxKeyyLDf7gdYtrNdHn/zIBq5zV+Sx1HlW+BI+d/cK52tUdS05wDbF8/mr4Vl819n3hFzV2Tj4xKb6SR/jKHi3RhoeIohP2eSMDtB59WgwRg6W7WEBUSo0FF3ec76DHnBfaIro=
+	t=1746443700; cv=none; b=soJETFfnX5RapEU8j0WBSO7CLbhsQ0XA/eVVv9NeleoM+iKCSVSkDhT8ZDjI0lRL9rCt0Eb3Oax+Jm04LjPPAWj6NA1AISNfuOGwk2FlvqTtWtTX0G2e7qQ8FYxYp44haxui7jCjBJqIgnrn8I8qjG6TWOGYx1EMOJ9ACoA1+x8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746239259; c=relaxed/simple;
-	bh=B+kv+itT1CshbsvpuR0NGbgTA2q00d/B2Y7LcG8e4xQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rbyUMNnf/d2dR12QmSmoSXE79jKbOwEOBOxE2R4m0NFAVEDBKclEGURjrSLgrg6QhMH+jW4gc+ymMgOORVKXXdj15sCyaw8YOOYjDBMgKPai4nmMm1VK9+fzEt5nRD6dk1egmMB8+44vGNXrIslEmiDIolOYTagXi4oMhBP8i5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gKgtdrAu; arc=none smtp.client-ip=209.85.221.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1746443700; c=relaxed/simple;
+	bh=IEpRTh1LS6mon/PcrO7Ts11AFbepFevAh8aO6gMOxmQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=mzaUHUMnevVuBtE2/j3O524uwQftwpe0TQOcwBUtI1SrUsEE1lrO+QgWEym7CfuLg+vHy66/AYO2kxaa7T/ZB3k6O2kMCDMFmcy9xFTR2BWc8yZPK1wJNxFlbirn/i4CBFXx56lf9uizdVifP0Wj7sb5nLBdljyv8qdnxKnGFIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Kdhr3mC/; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IjPnUtwo; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gKgtdrAu"
-Received: by mail-vk1-f177.google.com with SMTP id 71dfb90a1353d-5259327a937so717132e0c.0;
-        Fri, 02 May 2025 19:27:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1746239257; x=1746844057; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=B+kv+itT1CshbsvpuR0NGbgTA2q00d/B2Y7LcG8e4xQ=;
-        b=gKgtdrAuUb+zqUsmgAP1L+WNYBgp4YV2Dzei3BkO4uu+lejmKYrmsshe8YBIL8ZzFN
-         Cmq8x3FJkHfLH1avo2yyG6/dZOTQgW0yG8jo5chPWd1l81UXp0M4NGN+nJN3XKx4lKX1
-         kPGsj2FfHLQTAwg84GgA2emztOlEKIEe7PPuJvJ0w1rMWjtVOPjiyUVHLgzs1jor6n8P
-         roKFQ5E5y3Wyf65DxrTTxjBwoRGfT2MauZRqZEopqFwwaVsXHQjcs5kq9x5GDvkZzCv8
-         MG2a6zjYZbwLLsqr2daHYiR8qOGR0CE72pYj3jURtpZqAWyRLTtG01AeBvaPM5az8q9W
-         obGQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746239257; x=1746844057;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=B+kv+itT1CshbsvpuR0NGbgTA2q00d/B2Y7LcG8e4xQ=;
-        b=AKUzN1P4RfPyWPA7K2f5PyvWTG+FTVPqwW1hIXP+K+vUokro95PABHLo0KIKR7LrDw
-         5/GEnfPh1vFIq2HjoiEkrtPC8j6kxf56fv04xJqxtOeZoqEzN4vnl/IpzCfnIx1nd+ly
-         lSvfJIf6RvGHmAAJEVTAG6Khrmn5TlIhlfUk4KjofJhLd3nPIJiEZd2U5GfylTYTtTt+
-         msKHZnpuKqTCpVk530ujMpob1c8PPooIj4oi5ncvzX1OEoC8sI4LNLORQD++NoVmJXUK
-         jcfIsPmRiP+/aroFtWrq48J0DqTjlSONAg+tb/snVpaC9PLYpf/557CQForJg6z+UU/G
-         2XOQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUp/bdUmFFopQCnL1rUbYyc4p5Mu28sSbUHBDLOHkB4f4KtxAeXYXl3ZZ9CQccauV+4mH7KapEL5N6Xz9o6zg2v@vger.kernel.org, AJvYcCV90v115iISgFXtnboMRwj2cidbcvNau0vAUEtBE1Yq4uPlrl/CvqoxEdqbyntlLhjrqXZMy95PEnMGP6U=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxMiV8/LBLWcHPq2GFzugi2xDlqPPwtWzX2CzS+L7RlVHVFhbeo
-	0yaWj2jCpnaEshgQD9v+jVFGmTZt2rKlg93gRVpNNTSN13bkPiE2XbG1i4h4o8mFkuO5xJ5W+ib
-	ES8YtOJR32H2Hxr/ByT8PgxGJq3xt5w==
-X-Gm-Gg: ASbGncv3O6MNvG9AlecMkWY59A8hqB11QttSW1xDiZZjdkSZSPCLhV5ysXW4EWxJMtQ
-	cVjzSShuCuG7OP9WYQ0hLKb57Vc9eq79/Q/dcFTXmkUUrgTdtyzYM79B+ee644qP/SbNwa/3sai
-	zJjDraljoJhbuHttvK2VY+hzg=
-X-Google-Smtp-Source: AGHT+IFUBR1h6bKNYRwWrsKI1kDj3COpn2Z8/jkLaCy2QYOeeAkJnWsHzRLQeRiZL8otyCs/jz35vRH8AExQnNEMCXg=
-X-Received: by 2002:a05:6122:1814:b0:50d:a31c:678c with SMTP id
- 71dfb90a1353d-52afd2af9bfmr597295e0c.2.1746239256734; Fri, 02 May 2025
- 19:27:36 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Kdhr3mC/";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IjPnUtwo"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 2B5A8602DE; Mon,  5 May 2025 13:14:47 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746443687;
+	bh=3WvOhC0RE+UnEp1/QkDJgH3290PnhSdFdpCkliD7qm8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Kdhr3mC/wJrrLy98422eksUMNI9krul+Uu/tDDGnLtd0PjIUy+bgRAe3tYwNhxNLx
+	 Q5NIE663Z9ussw4ABLZ139eldD0jmt/ajzDDxFo899ayc5OGBkM/1Ba5pL5tj2xJW/
+	 SVg5t3BcVnBTW/WvlX63PxHVvwYGBOpNLaynmOj3wqSxbvwR531Nq3OoiIPNJf89FJ
+	 i0M68adempEzGV9Ljw+XFWlxMbp3ZenoZsr9lUfUwTSJ5FYCl3tQTpcsqCzX3+Tbnc
+	 pM4lRFfsrnTKjLeicnUnznw9ZD9dJk+T7qpJw0NTtnXxOGl5cWhLIJTTwIu+NViKN2
+	 raINdUpySqPNw==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8BBF8602DE;
+	Mon,  5 May 2025 13:14:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746443686;
+	bh=3WvOhC0RE+UnEp1/QkDJgH3290PnhSdFdpCkliD7qm8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=IjPnUtwoeL+HwVYv4NU4Dnb7dCdgtbulz3sZX9Z2J+nuZwCDkDfVItc/pB6k5v84o
+	 D6qXcNBp/v4vrdBF1Rg3dNO2v7iflFVpxsMkbAsPLsrYFImKz7SN2uRuRtLa0F5B46
+	 yFrF+yGD18ujSQ2OZgjG3U9Gjq/vPYSR78KKRSSp3JE9VUHIcQBuuzK+2YTSOUzWXN
+	 Gk0b/Rh+DU/VYZDs9iFVt3GYUuCBHF6vtJ24ezjdGJ96fKGiwif/nzwOGrkH/+53BG
+	 1PWRCPKTpd9bPEbFKo/tk+B/cvup/EwEAQs6F0Zy+c9OfYJ1eQFsWJzhbm09FqsD+i
+	 CWXx7dnRKwBIA==
+Date: Mon, 5 May 2025 13:14:43 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] selftests: netfilter: add conntrack stress test
+Message-ID: <aBido0Zw4uqe5AZU@calendula>
+References: <20250417151431.32183-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250430071140.GA29525@breakpoint.cc> <20250430072810.63169-1-vimal.agrawal@sophos.com>
- <20250430075711.GA30698@breakpoint.cc>
-In-Reply-To: <20250430075711.GA30698@breakpoint.cc>
-From: Vimal Agrawal <avimalin@gmail.com>
-Date: Sat, 3 May 2025 07:57:25 +0530
-X-Gm-Features: ATxdqUHurII3h99Z3uDYEDq8BOYvuwUe-h9vQBOmYUO83Tq5Bq1CwXZ5yFeb9AM
-Message-ID: <CALkUMdQ4LjMXTgz_OB+=9Gu13L8qKN++5v6kQtWH6x89-N4jbA@mail.gmail.com>
-Subject: Re: [PATCH v3] nf_conntrack: sysctl: expose gc worker scan interval
- via sysctl
-To: Florian Westphal <fw@strlen.de>
-Cc: vimal.agrawal@sophos.com, linux-kernel@vger.kernel.org, 
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org, 
-	anirudh.gupta@sophos.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250417151431.32183-1-fw@strlen.de>
 
-Thanks Florian for the suggestions and comments.
+On Thu, Apr 17, 2025 at 05:14:28PM +0200, Florian Westphal wrote:
+> Add a new test case to check:
+>  - conntrack_max limit is effective
+>  - conntrack_max limit cannot be exceeded from within a netns
+>  - resizing the hash table while packets are inflight works
+>  - removal of all conntrack rules disables conntrack in netns
+>  - conntrack tool dump (conntrack -L) returns expected number
+>    of (unique) entries
+>  - procfs interface - if available - has same number of entries
+>    as conntrack -L dump
+> 
+> Expected output with selftest framework:
+>  selftests: net/netfilter: conntrack_resize.sh
+>  PASS: got 1 connections: netns conntrack_max is pernet bound
+>  PASS: got 100 connections: netns conntrack_max is init_net bound
+>  PASS: dump in netns had same entry count (-C 1778, -L 1778, -p 1778, /proc 0)
+>  PASS: dump in netns had same entry count (-C 2000, -L 2000, -p 2000, /proc 0)
+>  PASS: test parallel conntrack dumps
+>  PASS: resize+flood
+>  PASS: got 0 connections: conntrack disabled
+>  PASS: got 1 connections: conntrack enabled
+> ok 1 selftests: net/netfilter: conntrack_resize.sh
 
-Hi Pablo, netfilter-devel,
-Could you also please review the patch and let me know if you have any comm=
-ent/s
-
-Thanks,
-Vimal
-
-On Wed, Apr 30, 2025 at 1:27=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
-te:
->
-> avimalin@gmail.com <avimalin@gmail.com> wrote:
-> > From: Vimal Agrawal <vimal.agrawal@sophos.com>
-> >
-> > Default initial gc scan interval of 60 secs is too long for system
-> > with low number of conntracks causing delay in conntrack deletion.
-> > It is affecting userspace which are replying on timely arrival of
-> > conntrack destroy event. So it is better that this is controlled
-> > through sysctl
->
-> Acked-by: Florian Westphal <fw@strlen.de>
->
+Applied to nf-next, thanks.
