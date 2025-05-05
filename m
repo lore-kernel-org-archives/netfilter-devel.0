@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A31030C1F1;
-	Mon,  5 May 2025 23:42:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A84A30C1EB;
+	Mon,  5 May 2025 23:42:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746488531; cv=none; b=r/EzE221rFTXSrwhEYpyxjabB0s038wJpY/Kki3JrdtRLKHXbh3+tjr2BsFNOrd2W936ct8cY4sBxddlTvikvp0xN/mOhGj1Mcse6KzIHB5MlT/OE+ZSC0bDa1LjAAE9TZrKiZgxdZJe2yG///PG8bPg/rREzXisODluwjPEc4I=
+	t=1746488533; cv=none; b=E3pNJ89M9+NRebEwv0g21iBoY28Ry4oAhp4wa53F8OzVVBX45sr5+v8mlxPHumb/24AcgFbwTr/+ArCZcdu1XcJmbdPO9diDLcp5/86DDB6ozWx83EJktrICog09jROVB2f1cpjZNk/Lng16NcFZqn5KHYB+rFZkwdC9CCz42wU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746488531; c=relaxed/simple;
-	bh=kdd3mQVBwB7++tB5TY+m3Ktr1QzFHuWr1UG2utClnjI=;
+	s=arc-20240116; t=1746488533; c=relaxed/simple;
+	bh=EFTRLRjwpBgNLtTNjIEWrilqYxjqnsGKjQ+o+P8hHtE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=IYwKwczvkXd1uR1njgOFNTvoBt6bbRRi2f7i1+vTouD6bVy+TQmBJtByhoapeU9AE1ArGIT4PeUnmS8uEFK5NNbKt7a3SLFrPIu9a8Xg9S/dtKOFVxY6aGITUMX0/pr/pV+c5YaxbZwJkzgWc/UMML3Zqkq79TAZYNJ3b72JMiw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KVeTctyf; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Rhlcb+2T; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=PGeXg+tt2SHn5jcoWGSliHgGCswYZHXgVioFyiGe3WzfxI7llf38xXYPg6cfoCFIKrCOWhTsSNBoSXdR6YjblLGid9qkDQeX8ywscjXMs++ZaZ+ParAEftZBToYg9iI7ItxDariX6FuTE4utGMQM2HLp/KvPampALMzxPWbi4h8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Pg2O77xA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SnRAT2rA; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KVeTctyf";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Rhlcb+2T"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Pg2O77xA";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SnRAT2rA"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 09E6C6065C; Tue,  6 May 2025 01:42:07 +0200 (CEST)
+	id CEE2A6065D; Tue,  6 May 2025 01:42:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746488527;
-	bh=/dUMYkJorBYhwIl8gqxS3G3TNKe7omnKRnv1Di8RrCM=;
+	s=2025; t=1746488528;
+	bh=LlI6nAsm5pW1gJVJCXsytPjMeoNq4AGK7ipClh+oORs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=KVeTctyfIOtAmpE0E7QCkDhzSeFajNVZ532TtbstqRA/YvWEEgXv+c77vHrNAZkyb
-	 Zdv2WRI2xTEkH4q85dEG5KEgy2jVuzk9x8uLEiRI1h1D6T91zwHAL2+00dN5YJkkx6
-	 dqFgrzUijDGeNnFHSUoV8W3a8SK8H0uu3WtEGAgvA8+V63KM6qqnvoFEm9xd2YZopP
-	 45Nv5zVlCUlgwli/9NcHbxSLzA+0XmhullGQU5TmsGXEVf4lwYeyOUg+Vq2mLcRVVr
-	 bWGOgmk6RTgSQBUiectGhvhgYkch3D/ZH+b3GoLO8W7ehkcMSMgMpL/9zhHMJr48ej
-	 8DUL8/GbTd09A==
+	b=Pg2O77xAflYii3Q++PZbXvwRP+75YUuXzBeskpBiW0k6tsx+FWbd9t4W/Tef8sIpR
+	 +/+TKhL7Ei+0mlYKadAn66EgSwWZtwlG3LyYbua7q17aXaE+SlGzOSIibBnmSYTpB4
+	 wtOdZZTsXkLfHkJWSzjXmITBXnqpKDP0/LNsPbrxaIBK57Pgn+OEmzUaS+qFNKKiMW
+	 9RPBUab1GnfydTdIC+ZjR/7tiDLxuQGgiddmoTBzc4UrSyzhfBdbP2wm+8etSOxtv4
+	 fK+8CwYmsxJHL0GkSiemD1rGNs6TRUqMHJsy4Ef8YuH+cPxylFjiof8iJ4dSywJRpw
+	 eDxJzD5vylHZg==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EAB5060657;
-	Tue,  6 May 2025 01:41:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B360660655;
+	Tue,  6 May 2025 01:41:59 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746488519;
-	bh=/dUMYkJorBYhwIl8gqxS3G3TNKe7omnKRnv1Di8RrCM=;
+	s=2025; t=1746488520;
+	bh=LlI6nAsm5pW1gJVJCXsytPjMeoNq4AGK7ipClh+oORs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Rhlcb+2T/Sw1LX+RxdnmdWDjZu0zfCGyWzvfXiBM85CB5tJ+1EV9psLyNPADU+bPM
-	 inpKC/gzmRuzy58Z6LQhColpspQN/ocimEw7pJUENNrLeOV6NBhO3Jq82xzgizDkNj
-	 5ViAUdOkuNsCmqoBIugYro98lr5/V501zcbdiYiYNT8ut1LKweOe6kdlrYTue+XMXr
-	 lc/q4PBzmE5WKQxvunfXwel7X2rI1xtFYNvx3zYlq2Agr9k5sKc56uOlm2+OlF9+lS
-	 Y+knhTxtM681v1/39KH3B7gnC/ERfFeLOPD09Rf9WH22BHjuYK+6DGpYNxOFX9aBSJ
-	 x20Rvqhn3zzzw==
+	b=SnRAT2rAM3lkshAxsIV4qqrgqKVKfiJSXEry9ajWMMUvIA4/V7YR5mx/4VqftuVO2
+	 dGJaJceZtZqJUPhYo7bXjPWLlSIyppMMwmFZ/N6xSj6OY6JLkNGEPIoLQ4u+6ocHNb
+	 XX830jQBnqh7wDA9AoGw9GCf42wGDNBc+gzCoeDiIR6zYd+ujBxp9jNvvUhhZToh5U
+	 ZvRcKDlWUArgT7y6Gi+Y2XoU+YlRyGJYeTfv3QrUGTnmkCFIG180WNu9tWhSIcpNHd
+	 18oxwQ6aiqoRMqzPtwmmmf3Ewq6HmACwYugRQ9992pyNKTvpKnFTF7ENz9dEli01Ft
+	 YcOrGVo1BynnQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH nf-next 4/7] netfilter: nf_conntrack: speed up reads from nf_conntrack proc file
-Date: Tue,  6 May 2025 01:41:48 +0200
-Message-Id: <20250505234151.228057-5-pablo@netfilter.org>
+Subject: [PATCH nf-next 5/7] netfilter: nft_set_pipapo: prevent overflow in lookup table allocation
+Date: Tue,  6 May 2025 01:41:49 +0200
+Message-Id: <20250505234151.228057-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250505234151.228057-1-pablo@netfilter.org>
 References: <20250505234151.228057-1-pablo@netfilter.org>
@@ -66,151 +66,149 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+When calculating the lookup table size, ensure the following
+multiplication does not overflow:
 
-Dumping all conntrack entries via proc interface can take hours due to
-linear search to skip entries dumped so far in each cycle.
+- desc->field_len[] maximum value is U8_MAX multiplied by
+  NFT_PIPAPO_GROUPS_PER_BYTE(f) that can be 2, worst case.
+- NFT_PIPAPO_BUCKETS(f->bb) is 2^8, worst case.
+- sizeof(unsigned long), from sizeof(*f->lt), lt in
+  struct nft_pipapo_field.
 
-Apply same strategy used to speed up ipvs proc reading done in
-commit 178883fd039d ("ipvs: speed up reads from ip_vs_conn proc file")
-to nf_conntrack.
+Then, use check_mul_overflow() to multiply by bucket size and then use
+check_add_overflow() to the alignment for avx2 (if needed). Finally, add
+lt_size_check_overflow() helper and use it to consolidate this.
 
-Note that the ctnetlink interface doesn't suffer from this problem, but
-many scripts depend on the nf_conntrack proc interface.
+While at it, replace leftover allocation using the GFP_KERNEL to
+GFP_KERNEL_ACCOUNT for consistency, in pipapo_resize().
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_standalone.c | 88 +++++++++++++++----------
- 1 file changed, 53 insertions(+), 35 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 58 ++++++++++++++++++++++++++--------
+ 1 file changed, 44 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 2f666751c7e7..6c4cff10357d 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -98,69 +98,87 @@ struct ct_iter_state {
- 	struct seq_net_private p;
- 	struct hlist_nulls_head *hash;
- 	unsigned int htable_size;
-+	unsigned int skip_elems;
- 	unsigned int bucket;
- 	u_int64_t time_now;
- };
- 
--static struct hlist_nulls_node *ct_get_first(struct seq_file *seq)
-+static struct nf_conntrack_tuple_hash *ct_get_next(const struct net *net,
-+						   struct ct_iter_state *st)
- {
--	struct ct_iter_state *st = seq->private;
-+	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
-+	unsigned int i;
- 
--	for (st->bucket = 0;
--	     st->bucket < st->htable_size;
--	     st->bucket++) {
--		n = rcu_dereference(
--			hlist_nulls_first_rcu(&st->hash[st->bucket]));
--		if (!is_a_nulls(n))
--			return n;
--	}
--	return NULL;
--}
-+	for (i = st->bucket; i < st->htable_size; i++) {
-+		unsigned int skip = 0;
- 
--static struct hlist_nulls_node *ct_get_next(struct seq_file *seq,
--				      struct hlist_nulls_node *head)
--{
--	struct ct_iter_state *st = seq->private;
-+restart:
-+		hlist_nulls_for_each_entry_rcu(h, n, &st->hash[i], hnnode) {
-+			struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+			struct hlist_nulls_node *tmp = n;
- 
--	head = rcu_dereference(hlist_nulls_next_rcu(head));
--	while (is_a_nulls(head)) {
--		if (likely(get_nulls_value(head) == st->bucket)) {
--			if (++st->bucket >= st->htable_size)
--				return NULL;
-+			if (!net_eq(net, nf_ct_net(ct)))
-+				continue;
-+
-+			if (++skip <= st->skip_elems)
-+				continue;
-+
-+			/* h should be returned, skip to nulls marker. */
-+			while (!is_a_nulls(tmp))
-+				tmp = rcu_dereference(hlist_nulls_next_rcu(tmp));
-+
-+			/* check if h is still linked to hash[i] */
-+			if (get_nulls_value(tmp) != i) {
-+				skip = 0;
-+				goto restart;
-+			}
-+
-+			st->skip_elems = skip;
-+			st->bucket = i;
-+			return h;
- 		}
--		head = rcu_dereference(
--			hlist_nulls_first_rcu(&st->hash[st->bucket]));
--	}
--	return head;
--}
- 
--static struct hlist_nulls_node *ct_get_idx(struct seq_file *seq, loff_t pos)
--{
--	struct hlist_nulls_node *head = ct_get_first(seq);
-+		skip = 0;
-+		if (get_nulls_value(n) != i)
-+			goto restart;
-+
-+		st->skip_elems = 0;
-+	}
- 
--	if (head)
--		while (pos && (head = ct_get_next(seq, head)))
--			pos--;
--	return pos ? NULL : head;
-+	st->bucket = i;
-+	return NULL;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 7be342b495f5..0529e4ef7520 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -683,6 +683,30 @@ static int pipapo_realloc_mt(struct nft_pipapo_field *f,
+ 	return 0;
  }
  
- static void *ct_seq_start(struct seq_file *seq, loff_t *pos)
- 	__acquires(RCU)
++
++/**
++ * lt_calculate_size() - Get storage size for lookup table with overflow check
++ * @groups:	Amount of bit groups
++ * @bb:		Number of bits grouped together in lookup table buckets
++ * @bsize:	Size of each bucket in lookup table, in longs
++ *
++ * Return: allocation size including alignment overhead, negative on overflow
++ */
++static ssize_t lt_calculate_size(unsigned int groups, unsigned int bb,
++				 unsigned int bsize)
++{
++	ssize_t ret = groups * NFT_PIPAPO_BUCKETS(bb) * sizeof(long);
++
++	if (check_mul_overflow(ret, bsize, &ret))
++		return -1;
++	if (check_add_overflow(ret, NFT_PIPAPO_ALIGN_HEADROOM, &ret))
++		return -1;
++	if (ret > INT_MAX)
++		return -1;
++
++	return ret;
++}
++
+ /**
+  * pipapo_resize() - Resize lookup or mapping table, or both
+  * @f:		Field containing lookup and mapping tables
+@@ -701,6 +725,7 @@ static int pipapo_resize(struct nft_pipapo_field *f,
+ 	long *new_lt = NULL, *new_p, *old_lt = f->lt, *old_p;
+ 	unsigned int new_bucket_size, copy;
+ 	int group, bucket, err;
++	ssize_t lt_size;
+ 
+ 	if (rules >= NFT_PIPAPO_RULE0_MAX)
+ 		return -ENOSPC;
+@@ -719,10 +744,11 @@ static int pipapo_resize(struct nft_pipapo_field *f,
+ 	else
+ 		copy = new_bucket_size;
+ 
+-	new_lt = kvzalloc(f->groups * NFT_PIPAPO_BUCKETS(f->bb) *
+-			  new_bucket_size * sizeof(*new_lt) +
+-			  NFT_PIPAPO_ALIGN_HEADROOM,
+-			  GFP_KERNEL);
++	lt_size = lt_calculate_size(f->groups, f->bb, new_bucket_size);
++	if (lt_size < 0)
++		return -ENOMEM;
++
++	new_lt = kvzalloc(lt_size, GFP_KERNEL_ACCOUNT);
+ 	if (!new_lt)
+ 		return -ENOMEM;
+ 
+@@ -907,7 +933,7 @@ static void pipapo_lt_bits_adjust(struct nft_pipapo_field *f)
  {
- 	struct ct_iter_state *st = seq->private;
-+	struct net *net = seq_file_net(seq);
+ 	unsigned int groups, bb;
+ 	unsigned long *new_lt;
+-	size_t lt_size;
++	ssize_t lt_size;
  
- 	st->time_now = ktime_get_real_ns();
- 	rcu_read_lock();
+ 	lt_size = f->groups * NFT_PIPAPO_BUCKETS(f->bb) * f->bsize *
+ 		  sizeof(*f->lt);
+@@ -917,15 +943,17 @@ static void pipapo_lt_bits_adjust(struct nft_pipapo_field *f)
+ 		groups = f->groups * 2;
+ 		bb = NFT_PIPAPO_GROUP_BITS_LARGE_SET;
  
- 	nf_conntrack_get_ht(&st->hash, &st->htable_size);
--	return ct_get_idx(seq, *pos);
+-		lt_size = groups * NFT_PIPAPO_BUCKETS(bb) * f->bsize *
+-			  sizeof(*f->lt);
++		lt_size = lt_calculate_size(groups, bb, f->bsize);
++		if (lt_size < 0)
++			return;
+ 	} else if (f->bb == NFT_PIPAPO_GROUP_BITS_LARGE_SET &&
+ 		   lt_size < NFT_PIPAPO_LT_SIZE_LOW) {
+ 		groups = f->groups / 2;
+ 		bb = NFT_PIPAPO_GROUP_BITS_SMALL_SET;
+ 
+-		lt_size = groups * NFT_PIPAPO_BUCKETS(bb) * f->bsize *
+-			  sizeof(*f->lt);
++		lt_size = lt_calculate_size(groups, bb, f->bsize);
++		if (lt_size < 0)
++			return;
+ 
+ 		/* Don't increase group width if the resulting lookup table size
+ 		 * would exceed the upper size threshold for a "small" set.
+@@ -936,7 +964,7 @@ static void pipapo_lt_bits_adjust(struct nft_pipapo_field *f)
+ 		return;
+ 	}
+ 
+-	new_lt = kvzalloc(lt_size + NFT_PIPAPO_ALIGN_HEADROOM, GFP_KERNEL_ACCOUNT);
++	new_lt = kvzalloc(lt_size, GFP_KERNEL_ACCOUNT);
+ 	if (!new_lt)
+ 		return;
+ 
+@@ -1451,13 +1479,15 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
+ 
+ 	for (i = 0; i < old->field_count; i++) {
+ 		unsigned long *new_lt;
++		ssize_t lt_size;
+ 
+ 		memcpy(dst, src, offsetof(struct nft_pipapo_field, lt));
+ 
+-		new_lt = kvzalloc(src->groups * NFT_PIPAPO_BUCKETS(src->bb) *
+-				  src->bsize * sizeof(*dst->lt) +
+-				  NFT_PIPAPO_ALIGN_HEADROOM,
+-				  GFP_KERNEL_ACCOUNT);
++		lt_size = lt_calculate_size(src->groups, src->bb, src->bsize);
++		if (lt_size < 0)
++			goto out_lt;
 +
-+	if (*pos == 0) {
-+		st->skip_elems = 0;
-+		st->bucket = 0;
-+	} else if (st->skip_elems) {
-+		/* resume from last dumped entry */
-+		st->skip_elems--;
-+	}
-+
-+	return ct_get_next(net, st);
- }
++		new_lt = kvzalloc(lt_size, GFP_KERNEL_ACCOUNT);
+ 		if (!new_lt)
+ 			goto out_lt;
  
- static void *ct_seq_next(struct seq_file *s, void *v, loff_t *pos)
- {
-+	struct ct_iter_state *st = s->private;
-+	struct net *net = seq_file_net(s);
-+
- 	(*pos)++;
--	return ct_get_next(s, v);
-+	return ct_get_next(net, st);
- }
- 
- static void ct_seq_stop(struct seq_file *s, void *v)
 -- 
 2.30.2
 
