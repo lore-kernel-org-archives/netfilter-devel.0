@@ -1,139 +1,138 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A4A93ACFEE;
-	Mon,  5 May 2025 23:19:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9321F30C1E0;
+	Mon,  5 May 2025 23:42:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746487159; cv=none; b=g7kqKoOfy4i26TGMkcbMoXlvArGfby8qsOb7+97PqTvLpQLL+fwAJLgdwUcRohayHKA1VmazCSw5f8if1c6GqmhJ7ZTavTbilRy/kr5e2lOzMkJs+tsDG8mp2wvgDOVME0FWOKgGqU4xe8vKOpSsMCs14/TFMgJlxiOwZMY7Bwk=
+	t=1746488528; cv=none; b=Dql651J8IkHU8F5G+rA1N8xub70FkC7JxYFtrjqzRvjdqxX2nZcfi0SSIssMK12dPGYNyv8XQXFo1K9ytcFjgFjzWgcb/blF/3X4ay8qAcXLJYTiy2hlN+P+l+WuTZrHiWBAUruj2tuE08qHYnD7fUxFixOTXsAj8vkYW8B8Fro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746487159; c=relaxed/simple;
-	bh=sMwPyvXBpK7TDRml1p1f82FV+kXU0/d7luIOBrkuOvo=;
+	s=arc-20240116; t=1746488528; c=relaxed/simple;
+	bh=ZH1ZzqA69lXuCKWl8Ws0pw2Vc0tcQ8gsneoCOXXbufc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ZxcgBYVK1nl1swXqcRCN7cNzbZr6ZyHM3g9Ql+X1xy9eaixaci+oGpDOPrjUixtzS0LR1rb+ZNMXBFSqNVDJc05J1rjRwat806V5q6dOhazy0nPbNWCSiwDXUtqkvE56xJR6gJii5rMhspREScLFV0rD8Q2ArWZAZj00Ga8i0Ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pRGy9K5u; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=suTteaCpI+v9m244yqcoohM+9hWbZ6uZfdpog60f3wFvjSgISk2MWXCLdrJMX8LA1REeZ6Lnu7dAa3oFiIkNDBKAmKCz2a+kwSLR2xgeDNZ12KasSFjrI1ppaAWuEcu4NVu3uQe6jirMBSSfEaeYaZUXsNcArs02GLOseNRPugw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NcQOIkYN; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nkzVsfmr; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pRGy9K5u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03607C4CEED;
-	Mon,  5 May 2025 23:19:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746487159;
-	bh=sMwPyvXBpK7TDRml1p1f82FV+kXU0/d7luIOBrkuOvo=;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NcQOIkYN";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nkzVsfmr"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 11E4B6065E; Tue,  6 May 2025 01:42:05 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746488525;
+	bh=X6lkzL4xDqlKfS4sQJUKU3QpUlZ3xfXhNKhaCPkcJBQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=pRGy9K5u6ds7DKD+JKsESg4l2M33LrhOps55WZ9POcP19NkjDudN1u3zVtToPsfXK
-	 ObCChZexZmCGUH28SMrfU7GiyPaQvW0VHJI0kSR0FEASLP5/HmaUY5nuQ/FYdFa8P7
-	 n8RCmlesww6F6xkz2pq7G/NfW9avVpnc0gaHRkY9yiMYsKKbP/V1WSi4dq40g1VMfq
-	 7s+K8wFvDJbLvPOXrP23ic2kvinbQ7R7lpMLbHGWV8pyXVnLWL/utUEbjLvte8Srag
-	 oegfl3nhnm1lKe+H28hiQ5ayyXVaTXsTPfMM276YhpoLNBOOeJ0ImjWO2BhGFfZoGW
-	 DNRt2onu3FZFg==
-From: Sasha Levin <sashal@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Cc: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Sasha Levin <sashal@kernel.org>,
-	kadlec@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
+	b=NcQOIkYNsmfqPD+oz2AVPTkfHoOL5f8/mOUrH/6c06sUW/NDHlpbwvSy0dvCre4dO
+	 9DmvfQgTKRfF25dYovYyHUyp+ifTOqPtQZCzYxdCOXoamEeEUyJyTRiS4jBkObNj/p
+	 Mdh9CBWtkD0ZZ84ZaipAki/p+sRNN8P9xtOCitSbcHfFhT83XWqNLldkLa214+f64S
+	 +WLsVphsw36KpBuoioYYwOYPaFMUIyfb+EbXMhSZn7ELjeaAyqbHXP7lRzG0XC7YgG
+	 qivf3r36ftE01ErLe/6anRJ7vvAQo89yvWT11yafgGfCFbyAe9jiiFT1rWhWxPbdD9
+	 sZcBZMVKzoQMw==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2E94F6065C;
+	Tue,  6 May 2025 01:41:58 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746488518;
+	bh=X6lkzL4xDqlKfS4sQJUKU3QpUlZ3xfXhNKhaCPkcJBQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=nkzVsfmr/k/w2UXnLxgCbgosE4Z1f/GKFYJMpOzq6rHIflQIGSRvA1la18yf9FhPd
+	 ZdMvWdkhx/Pw9HId0fxIiVxHRZL8i2tHedqEDNILb5MFfB/JU8u2rn3FMw3yGxOFTL
+	 +duYONTYEVDN026G8g2bkOB7NxYkS1PXZ+IB5n7QWUHVNscSi5C77sYwyb0Ha8fDMS
+	 BRd8kco4AloXCDb/GTqeS5af14RlRqMwMwhVVxBc4qKvbPLTO38pEforU8xF8e5ZnR
+	 iivdHqBZGNGQTiRUBdfESbUQty3y3uQ8NeEwTf/k1D4qwLsIdh198KlCkS+077fC+P
+	 7FkQoimTo3+3g==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
 	kuba@kernel.org,
 	pabeni@redhat.com,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 033/114] netfilter: conntrack: Bound nf_conntrack sysctl writes
-Date: Mon,  5 May 2025 19:16:56 -0400
-Message-Id: <20250505231817.2697367-33-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250505231817.2697367-1-sashal@kernel.org>
-References: <20250505231817.2697367-1-sashal@kernel.org>
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH nf-next 3/7] netfilter: nft_quota: match correctly when the quota just depleted
+Date: Tue,  6 May 2025 01:41:47 +0200
+Message-Id: <20250505234151.228057-4-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250505234151.228057-1-pablo@netfilter.org>
+References: <20250505234151.228057-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.237
 Content-Transfer-Encoding: 8bit
 
-From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+From: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
 
-[ Upstream commit 8b6861390ffee6b8ed78b9395e3776c16fec6579 ]
+The xt_quota compares skb length with remaining quota, but the nft_quota
+compares it with consumed bytes.
 
-nf_conntrack_max and nf_conntrack_expect_max sysctls were authorized to
-be written any negative value, which would then be stored in the
-unsigned int variables nf_conntrack_max and nf_ct_expect_max variables.
+The xt_quota can match consumed bytes up to quota at maximum. But the
+nft_quota break match when consumed bytes equal to quota.
 
-While the do_proc_dointvec_conv function is supposed to limit writing
-handled by proc_dointvec proc_handler to INT_MAX. Such a negative value
-being written in an unsigned int leads to a very high value, exceeding
-this limit.
+i.e., nft_quota match consumed bytes in [0, quota - 1], not [0, quota].
 
-Moreover, the nf_conntrack_expect_max sysctl documentation specifies the
-minimum value is 1.
-
-The proc_handlers have thus been updated to proc_dointvec_minmax in
-order to specify the following write bounds :
-
-* Bound nf_conntrack_max sysctl writings between SYSCTL_ZERO
-  and SYSCTL_INT_MAX.
-
-* Bound nf_conntrack_expect_max sysctl writings between SYSCTL_ONE
-  and SYSCTL_INT_MAX as defined in the sysctl documentation.
-
-With this patch applied, sysctl writes outside the defined in the bound
-will thus lead to a write error :
-
-```
-sysctl -w net.netfilter.nf_conntrack_expect_max=-1
-sysctl: setting key "net.netfilter.nf_conntrack_expect_max": Invalid argument
-```
-
-Signed-off-by: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
+Fixes: 795595f68d6c ("netfilter: nft_quota: dump consumed quota")
+Signed-off-by: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- net/netfilter/nf_conntrack_standalone.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ net/netfilter/nft_quota.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 8498bf27a3531..abf558868db11 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -613,7 +613,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.data		= &nf_conntrack_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- 	[NF_SYSCTL_CT_COUNT] = {
- 		.procname	= "nf_conntrack_count",
-@@ -652,7 +654,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.data		= &nf_ct_expect_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ONE,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- 	[NF_SYSCTL_CT_ACCT] = {
- 		.procname	= "nf_conntrack_acct",
-@@ -931,7 +935,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
- 		.data		= &nf_conntrack_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_INT_MAX,
- 	},
- 	{ }
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 9b2d7463d3d3..df0798da2329 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -19,10 +19,16 @@ struct nft_quota {
  };
+ 
+ static inline bool nft_overquota(struct nft_quota *priv,
+-				 const struct sk_buff *skb)
++				 const struct sk_buff *skb,
++				 bool *report)
+ {
+-	return atomic64_add_return(skb->len, priv->consumed) >=
+-	       atomic64_read(&priv->quota);
++	u64 consumed = atomic64_add_return(skb->len, priv->consumed);
++	u64 quota = atomic64_read(&priv->quota);
++
++	if (report)
++		*report = consumed >= quota;
++
++	return consumed > quota;
+ }
+ 
+ static inline bool nft_quota_invert(struct nft_quota *priv)
+@@ -34,7 +40,7 @@ static inline void nft_quota_do_eval(struct nft_quota *priv,
+ 				     struct nft_regs *regs,
+ 				     const struct nft_pktinfo *pkt)
+ {
+-	if (nft_overquota(priv, pkt->skb) ^ nft_quota_invert(priv))
++	if (nft_overquota(priv, pkt->skb, NULL) ^ nft_quota_invert(priv))
+ 		regs->verdict.code = NFT_BREAK;
+ }
+ 
+@@ -51,13 +57,13 @@ static void nft_quota_obj_eval(struct nft_object *obj,
+ 			       const struct nft_pktinfo *pkt)
+ {
+ 	struct nft_quota *priv = nft_obj_data(obj);
+-	bool overquota;
++	bool overquota, report;
+ 
+-	overquota = nft_overquota(priv, pkt->skb);
++	overquota = nft_overquota(priv, pkt->skb, &report);
+ 	if (overquota ^ nft_quota_invert(priv))
+ 		regs->verdict.code = NFT_BREAK;
+ 
+-	if (overquota &&
++	if (report &&
+ 	    !test_and_set_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags))
+ 		nft_obj_notify(nft_net(pkt), obj->key.table, obj, 0, 0,
+ 			       NFT_MSG_NEWOBJ, 0, nft_pf(pkt), 0, GFP_ATOMIC);
 -- 
-2.39.5
+2.30.2
 
