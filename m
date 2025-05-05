@@ -1,58 +1,56 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C94514B96E
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2025 11:16:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 995FA142E86
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2025 11:18:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746443771; cv=none; b=erYZvQoXctXI5Up6RcqbiixPlY92/fHI6bmcxFaWO+VgGnJW6bp1jDEP5ZtYmw9pA1fSgVjDshv8uOHEvMsf8RmikqQMB2fj/ymhJDhlg6Npns9Tgoa7wMRqR9kLN/6gzjaUouveCnjN83Fou63MoBwc4A24gF3KI4aGdaIcDvg=
+	t=1746443913; cv=none; b=sfQLO5DgnxNmXEiXltnZqUTieVpOa/b4ZciJrKB6P+PU/76eUfI7Xjayj8vzZxQfZUvggKT9gFPxICLrUIwMqPXMXH57INHNoXmuVM4ayB8hXtVPnYrUF1QhypwmQANPabsGjkq70R3Lbg5XfyjHGkQet1980vsVRFpD+bcwjOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746443771; c=relaxed/simple;
-	bh=fRuDYZpI6FjeBhzjMFNmRDALBx1YCyNFfLOihpN7ZQI=;
+	s=arc-20240116; t=1746443913; c=relaxed/simple;
+	bh=g5cG/NCtKUQ0jbblJKripliHND94VlYO37sn5GN8En4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tskr6q24sx0XeYO6kIZHqJ/aKJP3wOyJuCfXyYywX27iZpSKyCALOKhPjntQwf8OMIuh4Q7pWDEbYxADaR2OqCv0/eLrUuDYPp/HiY/APQzqj2ol37KAStPogIvOh2QtiVxM6z5V+J0ELjw2SL4ugwgVUaWh9ggLbrtux4tmt/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Gwb7LQV6; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rEwqlslJ; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=A+onldEpOR8f/xoqUirgN42wnow6nk/MGbIViJVsutwX7XhQh8xinyLZbc0vbyflKR7hxfmCWYVnG1PbTCtVLyQBuA1OqzlAGmpA6qZk+sOpfjV7+U9A4rhRJTx3lA6PkejRwZubmH6qwD9yZzrEPymDXdlOfy7wLPSIPbTS8A4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fSAJ/aRQ; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Ryb6DEGI; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Gwb7LQV6";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rEwqlslJ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fSAJ/aRQ";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Ryb6DEGI"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 5026A602F0; Mon,  5 May 2025 13:16:07 +0200 (CEST)
+	id 10506602F1; Mon,  5 May 2025 13:18:30 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746443767;
-	bh=h+La5K64mX85UcJxOjwTIXNT009JBLWxj4SHMjyqQKA=;
+	s=2025; t=1746443910;
+	bh=fZkZRk6J5pyG7EFv6+B60wmFWj9wnCD7anDDmc3wA0w=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Gwb7LQV6TiXf9bTgnUKRRabcwsrXGXVcAjMcuj+4DzlHrbhnr7ReVBQ1vxmrt/bWH
-	 +DrO0gMOELBgjjlUXLnr/F4RkxbbezH9CzvOD8/l9Qv9bthLq3uTmeexLLtpSnoh25
-	 Okr4OEtNFAtYtc6U631AU7GJM2uIQaQHQVQPbwSLfAbBjDnsYxP4i1fC41+3B270SV
-	 OEvgc+8RfDEbVrWYSQkbYsIud7+cHpH6DGQqsEDMExNmqJ8bu/jGEHqANPOp/WeHT6
-	 BMgnOwVS7TXStk3k6l6MfyJEYWWhHE8QuNIuO7yrTjqL3J7ASBzM1kxeQjjhzr9E99
-	 3qeMdGKaoB+rg==
+	b=fSAJ/aRQ45zAqbaVkQnepo4lyL57ZXkD2ywNeswu7PQ9T82NryBqpRzfftEBR9lHv
+	 oVs4XlV+F+cIskYyOVW2GVAf/nG+hOYXJzluHFbIzti8cka1+pQATKCAf/g1RfXNxu
+	 uohHVaq05w3HjiISpbxFF7TPJrFJqFg3qtObcLEc6PizYL0sOr9J2RU5T4uio7aiKS
+	 pg91MiRFojm/yZqJP39TXl76eJV8YceQR3C6i2scKO41V50AfWg9kjonnF0D5wpYNL
+	 yOcbtsKpR6JAOoHG8t9jRZUuzU15z9tThWk+QUGs7ypAJgJdX3lLX0mA6FwgDIq1jv
+	 gQejNI9AW124A==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CFA00602E1;
-	Mon,  5 May 2025 13:16:04 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 856EF602E8;
+	Mon,  5 May 2025 13:18:29 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746443765;
-	bh=h+La5K64mX85UcJxOjwTIXNT009JBLWxj4SHMjyqQKA=;
+	s=2025; t=1746443909;
+	bh=fZkZRk6J5pyG7EFv6+B60wmFWj9wnCD7anDDmc3wA0w=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rEwqlslJVz5C8rAeaoYLilHZ7KEGPjHaD7vdPGK/uMb/VfR+ow3zO9RurcdpGKvrK
-	 Y4v4qXZOuhhw24TeGX7dsog/Hi1GFST/UdykoM6eJV0riLprH3qvmzz28jHuRbPjJE
-	 6+yGFBhsKiaWbHG2muICzYmWA6L8WG0eNCziZCNGuSN9Spm6KgIxkpV/gqEYmwgJQX
-	 SJwMf0jXp5T+91P47j3zOp4hULNDUrMSxqxQO4giDPPXFnt7UN/5JvzgNVUUlV4y8U
-	 rhoAe6V9M3+Tkwz2AeIDmNXRAzr4rl9plDV2DWz4HsFVdTwv6iDDbPwKBhvGrk+t9b
-	 tGixoZy09kpqQ==
-Date: Mon, 5 May 2025 13:16:02 +0200
+	b=Ryb6DEGI8W8PDkXEQb5DGSpza8+e8jvBlH1FLTqLUU/XAfsG63ravejRaiDxfh/bk
+	 x4ZhlNS3+sQTX+pYP3IEbe0eT3QE/UO/ykjj+y1GssFxpgmskL+KrYezjMaFLfdGj4
+	 qafYEpxT5B/OkKvr3hiybXlvh8i/tUhT4KoQG0N8BUa51GJaLGkTzHzyhkcZUyNnF9
+	 rrZ9i1xTRsleajXywlEndSl6qtTRH5Wgo7WCzFy2c/HPtqVU+UvQjvhGR723HRwFW3
+	 kXk+S7IwUcKbHuCfvqzmFebHghlK2QEP8EcnHPAoAiGS7YRAhh0VsAGyvVTU2UtBFX
+	 7rhI2IiORopMw==
+Date: Mon, 5 May 2025 13:18:27 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Simon Horman <horms@kernel.org>
-Subject: Re: [PATCH nf-next v2] netfilter: nft_quota: match correctly when
- the quota just depleted
-Message-ID: <aBid8mozezsMFv_F@calendula>
-References: <20250417154932.314972-1-dzq.aishenghu0@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] selftests: netfilter: nft_fib.sh: check lo
+ packets bypass fib lookup
+Message-ID: <aBieg4v1-8AtP-_g@calendula>
+References: <20250423095734.16109-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -61,17 +59,15 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250417154932.314972-1-dzq.aishenghu0@gmail.com>
+In-Reply-To: <20250423095734.16109-1-fw@strlen.de>
 
-On Thu, Apr 17, 2025 at 03:49:30PM +0000, Zhongqiu Duan wrote:
-> The xt_quota compares skb length with remaining quota, but the nft_quota
-> compares it with consumed bytes.
+On Wed, Apr 23, 2025 at 11:57:29AM +0200, Florian Westphal wrote:
+> With reverted fix:
+> PASS: fib expression did not cause unwanted packet drops
+> [   37.285169] ns1-KK76Kt nft_rpfilter: IN=lo OUT= MAC=00:00:00:00:00:00:00:00:00:00:00:00:08:00 SRC=127.0.0.1 DST=127.0.0.1 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=32287 DF PROTO=ICMP TYPE=8 CODE=0 ID=1818 SEQ=1
+> FAIL: rpfilter did drop packets
+> FAIL: ns1-KK76Kt cannot reach 127.0.0.1, ret 0
 > 
-> The xt_quota can match consumed bytes up to quota at maximum. But the
-> nft_quota break match when consumed bytes equal to quota.
-> 
-> i.e., nft_quota match consumed bytes in [0, quota - 1], not [0, quota].
+> Check for this.
 
-Yes, quota is off by one.
-
-Applied to nf-next, thanks.
+Applied to nf-next, thanks Florian
