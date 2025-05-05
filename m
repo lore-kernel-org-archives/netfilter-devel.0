@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8087129A3E5;
-	Mon,  5 May 2025 22:43:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F27F3BB681;
+	Mon,  5 May 2025 23:22:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746485038; cv=none; b=hNcMAvyBfQZr7BcHclicSzHynP/2cPkwIyP5PVEsChJkpNqN4DNthoviHNFQVeI4MEdCPg9JbKVaALwfxSgxlrSmUytCg9u58XoKS7cuwv1kY+St/AjEV2kWFupH3C/Smm+KNShzYk/iXgJIOIY0ndYUOLvl0Mge+mUzRteXUQ0=
+	t=1746487355; cv=none; b=rFZqYBIk407A7dg5V9DlSKDOkC/TYlXBp/OLcEgINJe1bI++WkLQPXZ6RPMwdDjquw8kB925y3O+T/0EPzlXhE3gsRvt7aYGO923QJjh9+1fwW9TgI/hKxR9mGwMDAawQyRUlJLKFExBWIAeo8q8/MZvtZvRzkx4q+vmCPj2TMQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746485038; c=relaxed/simple;
-	bh=BjLeZRjT7RgjsCwKpIEeIybZ8EIpiwyBzGS14AWFqV4=;
+	s=arc-20240116; t=1746487355; c=relaxed/simple;
+	bh=33fKuR8xSXXrYYpGa+BSRpBI1AmNXITApsh+Wb6LxWI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=G6XLky2+kRWhSuZi144iCd3BjCNHUyVl8Bq2Q+COSTqxIuD8XqgDhIULUmRzgixdmnSJTTmFHRtUcqHOINXbr86rk58QhLYChqAGyI5VOKAPEuRk+8yjYjM7noR3/C//qwIh155LKzDwuRKukLfZMCvpi0TR4VD+Gjy9RAJm28E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m6ZdxZ1N; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=HsSjveUZ32yspzLN5j2UN0xCxyjmsPqlwxsxPYayXcIn03XgBuUwamKcvn8yE3CS0CD87rxzUMu7EkM+VF4OZSMUzJab7N8fNhk2DXomtw4eE/I69KLXPjIqs9jYDeGlHIRhHnTWwqtvq9FDGwstA4dg3k2oTp3XIkM39IJTaI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=CWib3jlR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m6ZdxZ1N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0995FC4CEEF;
-	Mon,  5 May 2025 22:43:56 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CWib3jlR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87B68C4CEF2;
+	Mon,  5 May 2025 23:22:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746485038;
-	bh=BjLeZRjT7RgjsCwKpIEeIybZ8EIpiwyBzGS14AWFqV4=;
+	s=k20201202; t=1746487354;
+	bh=33fKuR8xSXXrYYpGa+BSRpBI1AmNXITApsh+Wb6LxWI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=m6ZdxZ1NfvVfb/rKkhzZJtwbjYtlPOEJZnbm5oy+AaVtVPF325LO/aib7YS44fjrg
-	 RDe4v680iOX1CrrU46Xf99hkXPEJDzsaVu701NUp7xHTjHBrRQh/yecWGsY7pYjuUp
-	 evKLWp8ueA/mRwH+1diPy+b00TJ9X8AuF3FFm3JCAuvHUX+fNeaszzAnwXcsMYWW3r
-	 ZV1dK4HyIZusupuBsShK47YV1ITZ5WWP8hiinEd12aOWg/SQlifGvblfrPWTMVW3iL
-	 f38Y0CXKCLbXl95kRDb3neT7UpnAzG9W/bmknNw+8VDc6gSoJ/w3WeKmuBR23xwW81
-	 KcZ5UHuuLcYxQ==
+	b=CWib3jlRTj8QtOwbPvpLNmL+yBmN+XTpLkFZNCP9nBMn2V0vNdso5e65bM3wEacrR
+	 177ssZdoXLxDgXCtWuFrASIld4TFaRF9UmK8TRXj9otveIl1w5pE8dhvdXZLsGdvrG
+	 4Lr6Rp8yZZwxVo66uLCebUrf9c81ahlDz/dYWRgkHW9RnSbs221yCNcMHD0vrZc80/
+	 vsqhVNQXW5lin+WCHiaCYyV9UFGTlm16PuS057lLCuwcOOVO/t6yDBh4Iwt3keU/jz
+	 3B5YLSBJorixAS9pF9UwraDbO0in76792tRvNbjXMff+OjJA0GBYFlzGdC5TVq7KIQ
+	 usR2uXxV/hTJQ==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -40,12 +40,12 @@ Cc: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.12 135/486] netfilter: conntrack: Bound nf_conntrack sysctl writes
-Date: Mon,  5 May 2025 18:33:31 -0400
-Message-Id: <20250505223922.2682012-135-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 25/79] netfilter: conntrack: Bound nf_conntrack sysctl writes
+Date: Mon,  5 May 2025 19:20:57 -0400
+Message-Id: <20250505232151.2698893-25-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250505223922.2682012-1-sashal@kernel.org>
-References: <20250505223922.2682012-1-sashal@kernel.org>
+In-Reply-To: <20250505232151.2698893-1-sashal@kernel.org>
+References: <20250505232151.2698893-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,7 +54,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.12.26
+X-stable-base: Linux 5.4.293
 Content-Transfer-Encoding: 8bit
 
 From: Nicolas Bouchinet <nicolas.bouchinet@ssi.gouv.fr>
@@ -98,10 +98,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 9 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 7d4f0fa8b609d..3ea60ff7a6a49 100644
+index 1e3dbed9d7840..de330dffa0a28 100644
 --- a/net/netfilter/nf_conntrack_standalone.c
 +++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -619,7 +619,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+@@ -608,7 +608,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
  		.data		= &nf_conntrack_max,
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
@@ -112,7 +112,7 @@ index 7d4f0fa8b609d..3ea60ff7a6a49 100644
  	},
  	[NF_SYSCTL_CT_COUNT] = {
  		.procname	= "nf_conntrack_count",
-@@ -655,7 +657,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+@@ -647,7 +649,9 @@ static struct ctl_table nf_ct_sysctl_table[] = {
  		.data		= &nf_ct_expect_max,
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
@@ -123,7 +123,7 @@ index 7d4f0fa8b609d..3ea60ff7a6a49 100644
  	},
  	[NF_SYSCTL_CT_ACCT] = {
  		.procname	= "nf_conntrack_acct",
-@@ -948,7 +952,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
+@@ -926,7 +930,9 @@ static struct ctl_table nf_ct_netfilter_table[] = {
  		.data		= &nf_conntrack_max,
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
@@ -132,8 +132,8 @@ index 7d4f0fa8b609d..3ea60ff7a6a49 100644
 +		.extra1		= SYSCTL_ZERO,
 +		.extra2		= SYSCTL_INT_MAX,
  	},
+ 	{ }
  };
- 
 -- 
 2.39.5
 
