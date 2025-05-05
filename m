@@ -1,55 +1,58 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07CDD1FC7D9
-	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2025 11:14:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C94514B96E
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 May 2025 11:16:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746443700; cv=none; b=soJETFfnX5RapEU8j0WBSO7CLbhsQ0XA/eVVv9NeleoM+iKCSVSkDhT8ZDjI0lRL9rCt0Eb3Oax+Jm04LjPPAWj6NA1AISNfuOGwk2FlvqTtWtTX0G2e7qQ8FYxYp44haxui7jCjBJqIgnrn8I8qjG6TWOGYx1EMOJ9ACoA1+x8=
+	t=1746443771; cv=none; b=erYZvQoXctXI5Up6RcqbiixPlY92/fHI6bmcxFaWO+VgGnJW6bp1jDEP5ZtYmw9pA1fSgVjDshv8uOHEvMsf8RmikqQMB2fj/ymhJDhlg6Npns9Tgoa7wMRqR9kLN/6gzjaUouveCnjN83Fou63MoBwc4A24gF3KI4aGdaIcDvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746443700; c=relaxed/simple;
-	bh=IEpRTh1LS6mon/PcrO7Ts11AFbepFevAh8aO6gMOxmQ=;
+	s=arc-20240116; t=1746443771; c=relaxed/simple;
+	bh=fRuDYZpI6FjeBhzjMFNmRDALBx1YCyNFfLOihpN7ZQI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mzaUHUMnevVuBtE2/j3O524uwQftwpe0TQOcwBUtI1SrUsEE1lrO+QgWEym7CfuLg+vHy66/AYO2kxaa7T/ZB3k6O2kMCDMFmcy9xFTR2BWc8yZPK1wJNxFlbirn/i4CBFXx56lf9uizdVifP0Wj7sb5nLBdljyv8qdnxKnGFIg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Kdhr3mC/; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IjPnUtwo; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=tskr6q24sx0XeYO6kIZHqJ/aKJP3wOyJuCfXyYywX27iZpSKyCALOKhPjntQwf8OMIuh4Q7pWDEbYxADaR2OqCv0/eLrUuDYPp/HiY/APQzqj2ol37KAStPogIvOh2QtiVxM6z5V+J0ELjw2SL4ugwgVUaWh9ggLbrtux4tmt/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Gwb7LQV6; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rEwqlslJ; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Kdhr3mC/";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IjPnUtwo"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Gwb7LQV6";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rEwqlslJ"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 2B5A8602DE; Mon,  5 May 2025 13:14:47 +0200 (CEST)
+	id 5026A602F0; Mon,  5 May 2025 13:16:07 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746443687;
-	bh=3WvOhC0RE+UnEp1/QkDJgH3290PnhSdFdpCkliD7qm8=;
+	s=2025; t=1746443767;
+	bh=h+La5K64mX85UcJxOjwTIXNT009JBLWxj4SHMjyqQKA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Kdhr3mC/wJrrLy98422eksUMNI9krul+Uu/tDDGnLtd0PjIUy+bgRAe3tYwNhxNLx
-	 Q5NIE663Z9ussw4ABLZ139eldD0jmt/ajzDDxFo899ayc5OGBkM/1Ba5pL5tj2xJW/
-	 SVg5t3BcVnBTW/WvlX63PxHVvwYGBOpNLaynmOj3wqSxbvwR531Nq3OoiIPNJf89FJ
-	 i0M68adempEzGV9Ljw+XFWlxMbp3ZenoZsr9lUfUwTSJ5FYCl3tQTpcsqCzX3+Tbnc
-	 pM4lRFfsrnTKjLeicnUnznw9ZD9dJk+T7qpJw0NTtnXxOGl5cWhLIJTTwIu+NViKN2
-	 raINdUpySqPNw==
+	b=Gwb7LQV6TiXf9bTgnUKRRabcwsrXGXVcAjMcuj+4DzlHrbhnr7ReVBQ1vxmrt/bWH
+	 +DrO0gMOELBgjjlUXLnr/F4RkxbbezH9CzvOD8/l9Qv9bthLq3uTmeexLLtpSnoh25
+	 Okr4OEtNFAtYtc6U631AU7GJM2uIQaQHQVQPbwSLfAbBjDnsYxP4i1fC41+3B270SV
+	 OEvgc+8RfDEbVrWYSQkbYsIud7+cHpH6DGQqsEDMExNmqJ8bu/jGEHqANPOp/WeHT6
+	 BMgnOwVS7TXStk3k6l6MfyJEYWWhHE8QuNIuO7yrTjqL3J7ASBzM1kxeQjjhzr9E99
+	 3qeMdGKaoB+rg==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8BBF8602DE;
-	Mon,  5 May 2025 13:14:46 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id CFA00602E1;
+	Mon,  5 May 2025 13:16:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746443686;
-	bh=3WvOhC0RE+UnEp1/QkDJgH3290PnhSdFdpCkliD7qm8=;
+	s=2025; t=1746443765;
+	bh=h+La5K64mX85UcJxOjwTIXNT009JBLWxj4SHMjyqQKA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IjPnUtwoeL+HwVYv4NU4Dnb7dCdgtbulz3sZX9Z2J+nuZwCDkDfVItc/pB6k5v84o
-	 D6qXcNBp/v4vrdBF1Rg3dNO2v7iflFVpxsMkbAsPLsrYFImKz7SN2uRuRtLa0F5B46
-	 yFrF+yGD18ujSQ2OZgjG3U9Gjq/vPYSR78KKRSSp3JE9VUHIcQBuuzK+2YTSOUzWXN
-	 Gk0b/Rh+DU/VYZDs9iFVt3GYUuCBHF6vtJ24ezjdGJ96fKGiwif/nzwOGrkH/+53BG
-	 1PWRCPKTpd9bPEbFKo/tk+B/cvup/EwEAQs6F0Zy+c9OfYJ1eQFsWJzhbm09FqsD+i
-	 CWXx7dnRKwBIA==
-Date: Mon, 5 May 2025 13:14:43 +0200
+	b=rEwqlslJVz5C8rAeaoYLilHZ7KEGPjHaD7vdPGK/uMb/VfR+ow3zO9RurcdpGKvrK
+	 Y4v4qXZOuhhw24TeGX7dsog/Hi1GFST/UdykoM6eJV0riLprH3qvmzz28jHuRbPjJE
+	 6+yGFBhsKiaWbHG2muICzYmWA6L8WG0eNCziZCNGuSN9Spm6KgIxkpV/gqEYmwgJQX
+	 SJwMf0jXp5T+91P47j3zOp4hULNDUrMSxqxQO4giDPPXFnt7UN/5JvzgNVUUlV4y8U
+	 rhoAe6V9M3+Tkwz2AeIDmNXRAzr4rl9plDV2DWz4HsFVdTwv6iDDbPwKBhvGrk+t9b
+	 tGixoZy09kpqQ==
+Date: Mon, 5 May 2025 13:16:02 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next] selftests: netfilter: add conntrack stress test
-Message-ID: <aBido0Zw4uqe5AZU@calendula>
-References: <20250417151431.32183-1-fw@strlen.de>
+To: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Simon Horman <horms@kernel.org>
+Subject: Re: [PATCH nf-next v2] netfilter: nft_quota: match correctly when
+ the quota just depleted
+Message-ID: <aBid8mozezsMFv_F@calendula>
+References: <20250417154932.314972-1-dzq.aishenghu0@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,29 +61,17 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250417151431.32183-1-fw@strlen.de>
+In-Reply-To: <20250417154932.314972-1-dzq.aishenghu0@gmail.com>
 
-On Thu, Apr 17, 2025 at 05:14:28PM +0200, Florian Westphal wrote:
-> Add a new test case to check:
->  - conntrack_max limit is effective
->  - conntrack_max limit cannot be exceeded from within a netns
->  - resizing the hash table while packets are inflight works
->  - removal of all conntrack rules disables conntrack in netns
->  - conntrack tool dump (conntrack -L) returns expected number
->    of (unique) entries
->  - procfs interface - if available - has same number of entries
->    as conntrack -L dump
+On Thu, Apr 17, 2025 at 03:49:30PM +0000, Zhongqiu Duan wrote:
+> The xt_quota compares skb length with remaining quota, but the nft_quota
+> compares it with consumed bytes.
 > 
-> Expected output with selftest framework:
->  selftests: net/netfilter: conntrack_resize.sh
->  PASS: got 1 connections: netns conntrack_max is pernet bound
->  PASS: got 100 connections: netns conntrack_max is init_net bound
->  PASS: dump in netns had same entry count (-C 1778, -L 1778, -p 1778, /proc 0)
->  PASS: dump in netns had same entry count (-C 2000, -L 2000, -p 2000, /proc 0)
->  PASS: test parallel conntrack dumps
->  PASS: resize+flood
->  PASS: got 0 connections: conntrack disabled
->  PASS: got 1 connections: conntrack enabled
-> ok 1 selftests: net/netfilter: conntrack_resize.sh
+> The xt_quota can match consumed bytes up to quota at maximum. But the
+> nft_quota break match when consumed bytes equal to quota.
+> 
+> i.e., nft_quota match consumed bytes in [0, quota - 1], not [0, quota].
+
+Yes, quota is off by one.
 
 Applied to nf-next, thanks.
