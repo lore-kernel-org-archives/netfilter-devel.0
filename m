@@ -1,35 +1,29 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3D317A310;
-	Tue,  6 May 2025 11:29:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC95280003
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 May 2025 13:08:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746530996; cv=none; b=DfpN0Aj6rS9dWV4FyAvTEqyywzPsOf4WNgnmApt3R0jkRXTcs7KEvSsz6QB0Wn5V/w6rDd/r0JITJsfKmrNibmlMwO1FVI7EKSBL/4AWuyhsdP7ApA9n9NJIMv50BocsP2nO10FLXTe+usltVA6bpdD79G4m96eMnxtl7XD9UHc=
+	t=1746536886; cv=none; b=ZcXnSgd8Z0r9RNIvsQA54HilgIrjzuv4Vb94u90HK1JN/IL8kADZRkW6iFrJG5rk3aD7x1G26g1I7xmMWrHLj3MbPm8wnsU8oRLqnahe0smKudTdKgTstRko4LwZjSYDzrMdurmFoWkb83HRouQLfL4c77X8fMZztcQNhx2vNWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746530996; c=relaxed/simple;
-	bh=i0gF6+9iAmY0MZaxMD7Mcx2ZxhDZnu+1hx/PpST1aDY=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=dqEiXndzXy1GI/asI2jCtXdF+7omxWnybLK+5A0N2SBV46N9PetCbEFnXmc0KCc/UdcibMBJoZxx9Q/TjsXJbbRXAbvT9bQSLrAYnkL+yr0YyHWzOrDWDKGW9p8x2JDSW7CyjIQChoPRx6o++qK6r4JubvSO2IFcgxr9UJrX63A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sEu8qczZ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sEu8qczZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B439C4CEED;
-	Tue,  6 May 2025 11:29:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746530994;
-	bh=i0gF6+9iAmY0MZaxMD7Mcx2ZxhDZnu+1hx/PpST1aDY=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=sEu8qczZRJNi9nMAWH1Yh4y8yqFYjIHAv0hI8HR0V/SmTglhxCDRbZiOCSQjsQjoa
-	 OAZ/IwMiVnstJrnUWGnmHhe0+Lv/nca+us7gEc1TKSrb9lPmZEnXhjAP40ffIQZcL4
-	 Iv3MFkGdyK7/f/pzIyUY2Qg8ZQ9T7DrETE7gONYVUMw3iLFPOc34GjMmC0Z7dj3G5q
-	 kOuL85khVpPMulGwLl7ullB4es+WKKbU/h7KvXBdRJ7IYkPg8xU5o1AiTYe74j5K3k
-	 ERekzuemBSUEtzniihIrURhbAOxZLRybimFka1ZfUTgOswEyTuWZp35JKlz9FcrApn
-	 MZ1K8uOQeheKw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EAD6D380CFFB;
-	Tue,  6 May 2025 11:30:34 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1746536886; c=relaxed/simple;
+	bh=kHztFdPfgU0w2v/zhf2WURAtIXfcs0eJ6zeTfXgPuwc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EGlryvyr42fqoWBIC/UtvZOMVBvszdzkFSRaMFc9LKiP/tukJWZERSYoNKP1y9J56/5JG+wa+DJ3qMiozV80DYR8+1h89y3MNTTPo34GoNigiUQ/PTMeQyu8NoFLfn9DYncIeNSj/w87Huj7v1Gi3z6O893gUybzvVehozLe/vQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
+	(envelope-from <fw@breakpoint.cc>)
+	id 1uCI1a-0003Jh-ID; Tue, 06 May 2025 15:07:54 +0200
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Stefano Brivio <sbrivio@redhat.com>
+Subject: [PATCH nf-next] selftests: netfilter: nft_concat_range.sh: add coverage for 4bit group representation
+Date: Tue,  6 May 2025 15:07:11 +0200
+Message-ID: <20250506130716.3266-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,55 +31,217 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH nf-next 1/7] netfilter: bridge: Move specific fragmented
- packet to slow_path instead of dropping it
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <174653103375.1485451.11465333231560680057.git-patchwork-notify@kernel.org>
-Date: Tue, 06 May 2025 11:30:33 +0000
-References: <20250505234151.228057-2-pablo@netfilter.org>
-In-Reply-To: <20250505234151.228057-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-Hello:
+Pipapo supports a more compact '4 bit group' format that is chosen when
+the memory needed for the default exceeds a threshold (2mb).
 
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+Add coverage for those code paths, the existing tests use small sets that
+are handled by the default representation.
 
-On Tue,  6 May 2025 01:41:45 +0200 you wrote:
-> From: Huajian Yang <huajianyang@asrmicro.com>
-> 
-> The config NF_CONNTRACK_BRIDGE will change the bridge forwarding for
-> fragmented packets.
-> 
-> The original bridge does not know that it is a fragmented packet and
-> forwards it directly, after NF_CONNTRACK_BRIDGE is enabled, function
-> nf_br_ip_fragment and br_ip6_fragment will check the headroom.
-> 
-> [...]
+This comes with a test script run-time increase, but I think its ok:
 
-Here is the summary with links:
-  - [nf-next,1/7] netfilter: bridge: Move specific fragmented packet to slow_path instead of dropping it
-    https://git.kernel.org/netdev/net-next/c/aa04c6f45b92
-  - [nf-next,2/7] selftests: netfilter: add conntrack stress test
-    https://git.kernel.org/netdev/net-next/c/d33f889fd80c
-  - [nf-next,3/7] netfilter: nft_quota: match correctly when the quota just depleted
-    https://git.kernel.org/netdev/net-next/c/bfe7cfb65c75
-  - [nf-next,4/7] netfilter: nf_conntrack: speed up reads from nf_conntrack proc file
-    https://git.kernel.org/netdev/net-next/c/5e4d107abd79
-  - [nf-next,5/7] netfilter: nft_set_pipapo: prevent overflow in lookup table allocation
-    https://git.kernel.org/netdev/net-next/c/4c5c6aa9967d
-  - [nf-next,6/7] netfilter: nft_set_pipapo: clamp maximum map bucket size to INT_MAX
-    https://git.kernel.org/netdev/net-next/c/b85e3367a571
-  - [nf-next,7/7] selftests: netfilter: nft_fib.sh: check lo packets bypass fib lookup
-    https://git.kernel.org/netdev/net-next/c/fc91d5e6d948
+ normal: 2m35s -> 3m9s
+ debug:  3m24s -> 5m29s (with KSFT_MACHINE_SLOW=yes).
 
-You are awesome, thank you!
+Cc: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../net/netfilter/nft_concat_range.sh         | 165 +++++++++++++++++-
+ 1 file changed, 161 insertions(+), 4 deletions(-)
+
+diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+index 1f5979c1510c..efea93cf23d4 100755
+--- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+@@ -15,10 +15,12 @@ source lib.sh
+ # Available test groups:
+ # - reported_issues: check for issues that were reported in the past
+ # - correctness: check that packets match given entries, and only those
++# - correctness_large: same but with additional non-matching entries
+ # - concurrency: attempt races between insertion, deletion and lookup
+ # - timeout: check that packets match entries until they expire
+ # - performance: estimate matching rate, compare with rbtree and hash baselines
+-TESTS="reported_issues correctness concurrency timeout"
++TESTS="reported_issues correctness correctness_large concurrency timeout"
++
+ [ -n "$NFT_CONCAT_RANGE_TESTS" ] && TESTS="${NFT_CONCAT_RANGE_TESTS}"
+ 
+ # Set types, defined by TYPE_ variables below
+@@ -1257,9 +1259,7 @@ send_nomatch() {
+ # - add ranged element, check that packets match it
+ # - check that packets outside range don't match it
+ # - remove some elements, check that packets don't match anymore
+-test_correctness() {
+-	setup veth send_"${proto}" set || return ${ksft_skip}
+-
++test_correctness_main() {
+ 	range_size=1
+ 	for i in $(seq "${start}" $((start + count))); do
+ 		end=$((start + range_size))
+@@ -1293,6 +1293,163 @@ test_correctness() {
+ 	done
+ }
+ 
++test_correctness() {
++	setup veth send_"${proto}" set || return ${ksft_skip}
++
++	test_correctness_main
++}
++
++# Repeat the correctness tests, but add extra non-matching entries.
++# This exercises the more compact '4 bit group' representation that
++# gets picked when the default 8-bit representation exceed
++# NFT_PIPAPO_LT_SIZE_HIGH bytes of memory.
++# See usage of NFT_PIPAPO_LT_SIZE_HIGH in pipapo_lt_bits_adjust().
++#
++# The format() helper is way too slow when generating lots of
++# entries so its not used here.
++test_correctness_large() {
++	setup veth send_"${proto}" set || return ${ksft_skip}
++	# number of dummy (filler) entries to add.
++	local dcount=16385
++
++	(
++	echo -n "add element inet filter test { "
++
++	case "$type_spec" in
++	"ether_addr . ipv4_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_mac $((1000000 + i))
++			printf ". 172.%i.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"inet_proto . ipv6_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . " $((RANDOM%256))
++			format_addr6 $((1000000 + i))
++		done
++		;;
++	"inet_service . inet_proto")
++		# smaller key sizes, need more entries to hit the
++		# 4-bit threshold.
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			local proto=$((RANDOM%256))
++
++			# Test uses UDP to match, as it also fails when matching
++			# an entry that doesn't exist, so skip 'udp' entries
++			# to not trigger a wrong failure.
++			[ $proto -eq 17 ] && proto=18
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . %i " $(((i%65534) + 1)) $((proto))
++		done
++		;;
++	"inet_service . ipv4_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . 172.%i.%i.%i " $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"ipv4_addr . ether_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . " $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++			format_mac $((1000000 + i))
++		done
++		;;
++	"ipv4_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i" $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1))
++		done
++		;;
++	"ipv4_addr . inet_service . ether_addr . inet_proto . ipv4_addr")
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1))
++			format_mac $((1000000 + i))
++			printf ". %i . 192.168.%i.%i" $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"ipv4_addr . inet_service . inet_proto")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . %i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256))
++		done
++		;;
++	"ipv4_addr . inet_service . inet_proto . ipv4_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . %i . 192.168.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256))
++		done
++		;;
++	"ipv4_addr . inet_service . ipv4_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . 192.168.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256))
++		done
++		;;
++	"ipv6_addr . ether_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " . "
++			format_mac $((1000000 + i))
++		done
++		;;
++	"ipv6_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1))"
++		done
++		;;
++	"ipv6_addr . inet_service . ether_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_mac $((i + 1000000))
++		done
++		;;
++	"ipv6_addr . inet_service . ether_addr . inet_proto")
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_mac $((i + 1000000))
++			echo -n " .  $((RANDOM%256))"
++		done
++		;;
++	"ipv6_addr . inet_service . ipv6_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_addr6 $((i + 2123456))
++			echo -n " .  $((RANDOM%256))"
++		done
++		;;
++	*)
++		"Unhandled $type_spec"
++		return 1
++	esac
++	echo -n "}"
++
++	) | nft -f - || return 1
++
++	test_correctness_main
++}
++
+ # Concurrency test template:
+ # - add all the elements
+ # - start a thread for each physical thread that:
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.49.0
 
