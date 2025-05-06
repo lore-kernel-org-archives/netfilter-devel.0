@@ -1,129 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 255F825C6EA;
-	Tue,  6 May 2025 17:20:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 062B242AA9
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 May 2025 20:24:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746552050; cv=none; b=QLNoHQpX845afLQuOosleWYfKqJNkGhph1gA2IRaK++VOYZeHt7TU6hADj/GFog9R7HsXNLIXxiz31shqIxTufLs4q+9DxiicLmJG4wn6k7XiEpo03HOyEkvvdZynVSZ7OWje3ty6QYvSafCiW/cgmLlgsoYWyOUQQ0rOYQ6lHs=
+	t=1746563076; cv=none; b=s7Nhu6igjfCc1PR58h+6X8Q8Y3cDq95V8MJ33pElH2XWjuleMXAz7o+KdTKIIx0dtK4kynEPQ8RvkVBG1hxbp6d/CHSSs9wZ4xaKB647sKFJCfYbvIY6L8FgccnYEIlSPqCS/geDOaZSdMX8JaQwg4VIwMb1FM6xO54Zf+uEbls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746552050; c=relaxed/simple;
-	bh=Jrl24qKIrJcrTt9cLE88QccwkTInmMzCHE8X6UhcXG8=;
+	s=arc-20240116; t=1746563076; c=relaxed/simple;
+	bh=tBXZe1Q7kV5sxPdu1ZbWZkqjHDV6TfcxiaFAimbiQFM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lzghjQNPeRaHERvfJESmNhIIyRmdfGOYOQIKmgu69K2yD1333O88Th3xdCjN59IPTls548GZ6pFLtxOzunWeErGo+yyBcByNY27j5Z3wteG9QStcpRqv8jxN3Fwa1RPrfqCQ6i4Yo7NqCGbeWb6CBLRzRcRGelvYkknqjY/6/Gw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KKaXvcIP; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=sfK4HFfc28jSzfFopwqWb97TzrFOjkD+p0HmnFB8y5Q9K8D2FLxFgJDA59gZyeswD0B3TcV/Dm3mvLaYshWIsL4dDO+F5oyvxDlcCAHo4lwhEn/P+jpTtW1LamNMxu1rOURJeMLoI4q33Wqmts56thSq13wMuGE8aTBY/YY9chM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MMySRAkz; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JhhKqvSq; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KKaXvcIP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02907C4CEE4;
-	Tue,  6 May 2025 17:20:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746552050;
-	bh=Jrl24qKIrJcrTt9cLE88QccwkTInmMzCHE8X6UhcXG8=;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MMySRAkz";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JhhKqvSq"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 29220602D0; Tue,  6 May 2025 22:24:25 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746563065;
+	bh=t7b5K4/DGa8ZcuxpUPhOXA/07rDpdd6C+s0EtccW3yA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KKaXvcIP8WnYVbGMkEgX543fbXo8iiZ/bSzVhgvCnQgCBO4yJmJxo3EJHmZ0LlOWR
-	 4o+qBof/HmYLlC3qCrg3D8QfL97n0a00hwMulg6mA/twsT64bXgeCoUfvcxZ5NteCk
-	 M/v+W5LnS+TYF5URhXUje0VFlbiieeEBgutOwAk3oT71zW4o6uLKYIAsSdjVuPTS9H
-	 CCc1vPJkmJbhhEqR31mTJiM6GVR96m0fLxsB9WxM+nY4b9sKeDb9afG+aVs+vENXyp
-	 325+ERFRWGqm9QZKc/w3hSCf/Lhi2nDIoHzzXgKMxBeWymiwUNu1k9CcHlOsHvbC9z
-	 jAb80j6IyPcxQ==
-Date: Tue, 6 May 2025 18:20:46 +0100
-From: Simon Horman <horms@kernel.org>
-To: Julian Anastasov <ja@ssi.bg>
-Cc: lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] ipvs: fix uninit-value for saddr in do_output_route4
-Message-ID: <20250506172046.GX3339421@horms.kernel.org>
-References: <20250502220118.68234-1-ja@ssi.bg>
+	b=MMySRAkzR5EuQdX5S6tnRr8pGez7ZNzNxPrig4TDW1aFKvhdAMlCOwy35vzo1g2bn
+	 RNiJhb5IJ4RdtpwhfcU3sd6FJzYofEc2XaTVyyrmSFoO96pDYtyacv9+BLUjHVPiRb
+	 lhgr+qK6QK/N1jpShKz6EbLnW3VD3incDvDYFa5JBTAl4nVV2x1+dw+fImFdCYDFXT
+	 S0ld7w2wXKyEGV6ZcadQZ5tqd1Z2Z94hxa91r8htJy+hagEfEbKtq5bPkKjfkxuoCO
+	 mTxDOlaB8Lb7VbeG+F+WlZgaiCffeUGcJvtzblOI9yfucUVxB3LyDcByYrhey2MoLZ
+	 5DknlHhZSVcow==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8BD9E602B6;
+	Tue,  6 May 2025 22:24:24 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746563064;
+	bh=t7b5K4/DGa8ZcuxpUPhOXA/07rDpdd6C+s0EtccW3yA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JhhKqvSqfjpMRo2pSlOXeKyr+fZPbvEEwruBOXZaf5Wh8tGYi5cF/leYzEXxofo2u
+	 Dv/U/b8uo693FnrtXu4ipdLKNxYoocU2rnSLY4Kvb0dmzsZsSqJtb6pdIdVk34Unj2
+	 zEwZZ5LiWJrnjV2kGa+lL5uXsLuj8Fdflp2HPuG8KnDx+YFSAe5Ic++gUenzQ8THhE
+	 2cGeFs92Ia5kOJ82r/OlAlqeVGfwlUZMg+nNK33SxbqdJGApbtiduUAO4ZBsD9g9nd
+	 oXOhfd1T+7KqAX3VZqMvhvpy3tiMnWwctIMaLrrFXkqJcqN104IW7J+WiwBVONFGtQ
+	 76/vo90NgnpXg==
+Date: Tue, 6 May 2025 22:24:22 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Monib <monib619@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: nftables netlink cache initialization failure with dnsmasq
+Message-ID: <aBpv9rBirbFkpWvB@calendula>
+References: <CAJV_tgbKEHTn9T+AZSduNe4YdxQxe8aeriteuYzBmjUm9vNnyg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250502220118.68234-1-ja@ssi.bg>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAJV_tgbKEHTn9T+AZSduNe4YdxQxe8aeriteuYzBmjUm9vNnyg@mail.gmail.com>
 
-On Sat, May 03, 2025 at 01:01:18AM +0300, Julian Anastasov wrote:
-> syzbot reports for uninit-value for the saddr argument [1].
-> commit 4754957f04f5 ("ipvs: do not use random local source address for
-> tunnels") already implies that the input value of saddr
-> should be ignored but the code is still reading it which can prevent
-> to connect the route. Fix it by changing the argument to ret_saddr.
-> 
-> [1]
-> BUG: KMSAN: uninit-value in do_output_route4+0x42c/0x4d0 net/netfilter/ipvs/ip_vs_xmit.c:147
->  do_output_route4+0x42c/0x4d0 net/netfilter/ipvs/ip_vs_xmit.c:147
->  __ip_vs_get_out_rt+0x403/0x21d0 net/netfilter/ipvs/ip_vs_xmit.c:330
->  ip_vs_tunnel_xmit+0x205/0x2380 net/netfilter/ipvs/ip_vs_xmit.c:1136
->  ip_vs_in_hook+0x1aa5/0x35b0 net/netfilter/ipvs/ip_vs_core.c:2063
->  nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
->  nf_hook_slow+0xf7/0x400 net/netfilter/core.c:626
->  nf_hook include/linux/netfilter.h:269 [inline]
->  __ip_local_out+0x758/0x7e0 net/ipv4/ip_output.c:118
->  ip_local_out net/ipv4/ip_output.c:127 [inline]
->  ip_send_skb+0x6a/0x3c0 net/ipv4/ip_output.c:1501
->  udp_send_skb+0xfda/0x1b70 net/ipv4/udp.c:1195
->  udp_sendmsg+0x2fe3/0x33c0 net/ipv4/udp.c:1483
->  inet_sendmsg+0x1fc/0x280 net/ipv4/af_inet.c:851
->  sock_sendmsg_nosec net/socket.c:712 [inline]
->  __sock_sendmsg+0x267/0x380 net/socket.c:727
->  ____sys_sendmsg+0x91b/0xda0 net/socket.c:2566
->  ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2620
->  __sys_sendmmsg+0x41d/0x880 net/socket.c:2702
->  __compat_sys_sendmmsg net/compat.c:360 [inline]
->  __do_compat_sys_sendmmsg net/compat.c:367 [inline]
->  __se_compat_sys_sendmmsg net/compat.c:364 [inline]
->  __ia32_compat_sys_sendmmsg+0xc8/0x140 net/compat.c:364
->  ia32_sys_call+0x3ffa/0x41f0 arch/x86/include/generated/asm/syscalls_32.h:346
->  do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
->  __do_fast_syscall_32+0xb0/0x110 arch/x86/entry/syscall_32.c:306
->  do_fast_syscall_32+0x38/0x80 arch/x86/entry/syscall_32.c:331
->  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/syscall_32.c:369
->  entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-> 
-> Uninit was created at:
->  slab_post_alloc_hook mm/slub.c:4167 [inline]
->  slab_alloc_node mm/slub.c:4210 [inline]
->  __kmalloc_cache_noprof+0x8fa/0xe00 mm/slub.c:4367
->  kmalloc_noprof include/linux/slab.h:905 [inline]
->  ip_vs_dest_dst_alloc net/netfilter/ipvs/ip_vs_xmit.c:61 [inline]
->  __ip_vs_get_out_rt+0x35d/0x21d0 net/netfilter/ipvs/ip_vs_xmit.c:323
->  ip_vs_tunnel_xmit+0x205/0x2380 net/netfilter/ipvs/ip_vs_xmit.c:1136
->  ip_vs_in_hook+0x1aa5/0x35b0 net/netfilter/ipvs/ip_vs_core.c:2063
->  nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline]
->  nf_hook_slow+0xf7/0x400 net/netfilter/core.c:626
->  nf_hook include/linux/netfilter.h:269 [inline]
->  __ip_local_out+0x758/0x7e0 net/ipv4/ip_output.c:118
->  ip_local_out net/ipv4/ip_output.c:127 [inline]
->  ip_send_skb+0x6a/0x3c0 net/ipv4/ip_output.c:1501
->  udp_send_skb+0xfda/0x1b70 net/ipv4/udp.c:1195
->  udp_sendmsg+0x2fe3/0x33c0 net/ipv4/udp.c:1483
->  inet_sendmsg+0x1fc/0x280 net/ipv4/af_inet.c:851
->  sock_sendmsg_nosec net/socket.c:712 [inline]
->  __sock_sendmsg+0x267/0x380 net/socket.c:727
->  ____sys_sendmsg+0x91b/0xda0 net/socket.c:2566
->  ___sys_sendmsg+0x28d/0x3c0 net/socket.c:2620
->  __sys_sendmmsg+0x41d/0x880 net/socket.c:2702
->  __compat_sys_sendmmsg net/compat.c:360 [inline]
->  __do_compat_sys_sendmmsg net/compat.c:367 [inline]
->  __se_compat_sys_sendmmsg net/compat.c:364 [inline]
->  __ia32_compat_sys_sendmmsg+0xc8/0x140 net/compat.c:364
->  ia32_sys_call+0x3ffa/0x41f0 arch/x86/include/generated/asm/syscalls_32.h:346
->  do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
->  __do_fast_syscall_32+0xb0/0x110 arch/x86/entry/syscall_32.c:306
->  do_fast_syscall_32+0x38/0x80 arch/x86/entry/syscall_32.c:331
->  do_SYSENTER_32+0x1f/0x30 arch/x86/entry/syscall_32.c:369
->  entry_SYSENTER_compat_after_hwframe+0x84/0x8e
-> 
-> CPU: 0 UID: 0 PID: 22408 Comm: syz.4.5165 Not tainted 6.15.0-rc3-syzkaller-00019-gbc3372351d0c #0 PREEMPT(undef)
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2025
-> 
-> Reported-by: syzbot+04b9a82855c8aed20860@syzkaller.appspotmail.com
-> Closes: https://lore.kernel.org/netdev/68138dfa.050a0220.14dd7d.0017.GAE@google.com/
-> Fixes: 4754957f04f5 ("ipvs: do not use random local source address for tunnels")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Hi,
 
-Acked-by: Simon Horman <horms@kernel.org>
+On Tue, May 06, 2025 at 03:57:23PM +0500, Monib wrote:
+> Hello,
+> 
+> An OpenWRT user here who has been trying to set up split tunneling
+> using https://docs.openwrt.melmac.net/pbr/, which uses dnsmasq and
+> nftables, but I am having some issues.
+> 
+> I am encountering an error — "netlink: Error: cache initialization
+> failed: Protocol error" — which seems to be produced by nftables. This
+> error message was introduced in the following commit:
+> https://git.netfilter.org/nftables/commit/?id=a2ddb38f7eb818312c50be78028bc35145c039ae.
+> The commit message says: "cache initialization failure (which should
+> not ever happen) is not reported to the user."
 
+This commit you refer above is exposing an existing issue.
 
+> The issue starts happening semi-randomly but seems to occur when too
+> many DNS requests are made in a short period. Once it appears, the
+> relevant nftables sets stop being populated by dnsmasq.
+> 
+> Here is what I see in the logs:
+> 
+> Sun Mar 23 17:52:24 2025 daemon.err dnsmasq[4]: nftset inet fw4
+> pbr_wg_xray_4_dst_ip_cfg066ff5 netlink: Error: cache initialization
+> failed: Protocol error
+
+EPROTO can be reported by libmnl with netlink sequence problems.
+
+Quickly browsing dnsmasq code, it looks like there is a pool of child
+processes that are sharing a single nft_ctx handle to handle events,
+two or more child processes are racing.
+
+I can expand libnftables(3) manpage to clarify this.
+
+Thanks for reporting.
