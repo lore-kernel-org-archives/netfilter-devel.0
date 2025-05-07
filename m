@@ -1,117 +1,117 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 644F4287513;
-	Wed,  7 May 2025 13:19:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E30B28980B;
+	Wed,  7 May 2025 14:13:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746623995; cv=none; b=MTL9Qm7BpQGTjiccIQjwlbBTvgeh9q+4u1b5KDBCc8fogNViQrvHcq7ZkVlFGOtQhN+vRlGd8++zQisCKivD//yuqppl/4Sd9z6C7ZArBCuzQpERFPemtUrXTC/BBx4v2CeRVspjhuyEH8DxdvI+YxDCMlsFr3X4H/ISAePRoVc=
+	t=1746627237; cv=none; b=Pae2pFS27xADAhT4Ek+QJVjp0MlXdcSa0ogyNPNfr3wZOfW4nPIUwTTUdqEL4ObWsl8ECH2IKj6kS/wgrACof+e2rol6VKraUhCJkAxmMsMQOpuRKRhfpzawyGSVgeDXttsk5kYzBmhG0dD4yO/D+sDFyBbhA+b7jtNiDkDKltY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746623995; c=relaxed/simple;
-	bh=pGCESf98a2q8tFRVKDwEPR9HphxMHhS6pJq4K4rLTvg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uWMwkPieI8t/E2t3CnMKFkMEI1fCPbyhnee8Jpv0s2XsVK74q3tisHXFJytKrQOXJgIB24WJpMR14RLTr9JmzxjFChIGJ3nohEEkTx0P8AMQgViEJJeu4J4KAaUVyLEe4terRP6wDb5LKHdjZvB+vm1Qr6Zu9Rm3ufH+9PiIaAI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RfQk/EqI; arc=none smtp.client-ip=209.85.216.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1746627237; c=relaxed/simple;
+	bh=3TI6ZtTmhNfmS18yyCZHU4n2CxVy0mVy/3zbEhvzdIQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=l0Sln1B6oyx6n5sod4sG+tFSwgB0vMb7/sMch19L47ccXhiY9Cns83clT5utXpIC8lAI4FRo3zLJnDQgGyUZ8x9N3p5OSMFiPpgjrHjM7h39fetaA8roDxas4E3ppXiUnLEutbNqWqXcBi2a/+IekpBfNldi8bIiCNPTaXDhsys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RWkp9OAP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RfQk/EqI"
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-30a9cd61159so825363a91.1;
-        Wed, 07 May 2025 06:19:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1746623993; x=1747228793; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZWIeCnEAL6ezhpEyDQ2QxTqdF36G5ahedpjkpixynRI=;
-        b=RfQk/EqI1wYNF0KDxiaLV5z1SgT20HEpEU0MB0RTVUAk3rX+RAL5JZUl9qPs69XDc/
-         8DdmBHuZ5+OvutQDOVOENMPprT2X5xMTpkAP1oA9gVrnSTo5ERBxkbcwj/YpvH0c/Sq6
-         j6KsDHvYbcuvOSX/JEQheUTs827agGuazXSeCugIuXKfgxPgIy8ZPLkaHPSffJFPMrAc
-         jcze5yPsbSvbzPOLhQcjhLw6t3CvAZR7XAAoOuYxlPFf9I5gRy1ehv2sFCvxX7ge+YVN
-         WVywqRlN1vNWzb13Pu+prfipXIEEUgHZe+VTGX4YEtCXtXXbeW3KiJZuBKc3Vil7NIMo
-         Heuw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746623993; x=1747228793;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ZWIeCnEAL6ezhpEyDQ2QxTqdF36G5ahedpjkpixynRI=;
-        b=YrMtRfNtnMXhZ4snfwQYvWbKdmyUr2HMptUJs4IO3pB73r7yil+gfFLsTMNCi+4tiQ
-         VUQSN+6PAHiSsZdzMXrnuuB2NVDxHCbSkzCUd9LrnVLiTGyLAoGy/II2wr60BFZ3+iEj
-         rJYtMltZ8O5mPKTpnouPviKzymmWhuvQ6cR/lHSSwPEV1m0DC4naQ31J9cm8WY8uPqKd
-         ZzaKsPZttt0akDHWjMR8PjXSfMrOJdU4ezpyVEvOIZ8GLJYE/kZ5/FTfy5iJ2TaG0kDc
-         pEgVYJWWxjTNmD3XMYMm9rgEO0oCVgOUK8vQOrGsY2kK40+48PKYvs8GjBfhxdp5SjZs
-         vMTQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUemC3H47whS+RKNgoGowNa0kBOzf1CgSgqASnhSFO0l4XoRs1DROurJkpBKSdKDMkkdlf5f34EU3njVEfcfgk=@vger.kernel.org, AJvYcCUsEJOGJ5l+EH3hG4g/Fk7cp6noQz9+QibwhPlkCfARvvyxLC7W8sDk9tpYwwTaUw237mI1MlIdATTnc/qEM2P6@vger.kernel.org
-X-Gm-Message-State: AOJu0YwPTct5yLKqukUtHrBnWL2sJXYfislD46VB3J3hz4Ak4IKcjzAY
-	BTC/ca1/5MEWGvls0/QPCI5UJvJKyZcyga1WbFmzwqcQhNsUs3s59xGULeOV
-X-Gm-Gg: ASbGncskaoTYrBShWpTSL5qoFeCiyNSJM9iG5THFy9hY7mJuMMG2L/H7EJf41X8kHSd
-	edrltXFZxYJH3Rwq36P4Ks0CAQlkfZTr1hiwrj6PWktU7U4bJHwlimIOj+lvfVut9yh08WztPoK
-	6uKaW/OyhmXTc8MnHGGlV+GKJKInweeLtDqse6oRbpjTQJDjd7VwNdB1gBq9aqm0KWvIFZUODFV
-	vmWbxlWIZb9jrHraHC015T5ljQFY02ONb8yj2wzfNm0/wZL4/j988VBzTRb/s0SG4Hf5EnyYrDa
-	cf9zcS1n+MCWt2uGPTSsY7VhU3gB4NfPI170fBJ29p4ICEQ7sYhd9xYRyNdP
-X-Google-Smtp-Source: AGHT+IGWaWfGTs4mdubVYu6seZegE278kHJcKhUfM24Xyh9AmlVDo+zcwuC5LDbCC8DzofCmSPW9EQ==
-X-Received: by 2002:a17:90b:2e45:b0:30a:9feb:1e0f with SMTP id 98e67ed59e1d1-30aaecdc652mr4538239a91.5.1746623993354;
-        Wed, 07 May 2025 06:19:53 -0700 (PDT)
-Received: from fedora.dns.podman ([209.132.188.88])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22e5e93ee88sm17414765ad.86.2025.05.07.06.19.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 07 May 2025 06:19:52 -0700 (PDT)
-From: Hangbin Liu <liuhangbin@gmail.com>
-To: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Shuah Khan <shuah@kernel.org>,
-	Matthieu Baerts <matttbe@kernel.org>,
-	Mat Martineau <martineau@kernel.org>,
-	Geliang Tang <geliang@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Andrea Mayer <andrea.mayer@uniroma2.it>,
-	Paolo Lungaroni <paolo.lungaroni@uniroma2.it>,
-	linux-kselftest@vger.kernel.org,
-	mptcp@lists.linux.dev,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	Hangbin Liu <liuhangbin@gmail.com>
-Subject: [PATCH net-next 6/6] selftests: mptcp: remove rp_filter configuration
-Date: Wed,  7 May 2025 13:18:56 +0000
-Message-ID: <20250507131856.78393-7-liuhangbin@gmail.com>
-X-Mailer: git-send-email 2.46.0
-In-Reply-To: <20250507131856.78393-1-liuhangbin@gmail.com>
-References: <20250507131856.78393-1-liuhangbin@gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RWkp9OAP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A4F8C4CEE2;
+	Wed,  7 May 2025 14:13:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1746627236;
+	bh=3TI6ZtTmhNfmS18yyCZHU4n2CxVy0mVy/3zbEhvzdIQ=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=RWkp9OAPQEKEd0Zm0/C9BZkGHdfmg9LCbZYdDbblvVLZpzTeyt0wICrJFFeCpF7L7
+	 w+7e7PBCjh732NsCCTurStQjuRPMjbmU6j6jK1kWHdbGHbHg15XJtQ0+gVVUWVOdB1
+	 Q5stFqcq6WcXiWMqGQTULcwHzTz3pzP96FJ1+HMXPeAVFeaGiPQZQOnfLGpADD36F4
+	 i7W2M6oU6CYWi1gm9hK3OgtwZiHEpT4tlfPWzyhg6MjJKqPDJL/mRRsGRvw0FlelF1
+	 8kdo4CTdn0nbwMqPXV/k0RGrCi3GSTYnfYMNwPibCc/GfT/hN8/XspDelsgdcWPhUi
+	 zffU8U80VMdbg==
+Message-ID: <d111a832-7924-47fb-a3b3-4d856569942f@kernel.org>
+Date: Wed, 7 May 2025 16:13:48 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird Beta
+Subject: Re: [PATCH net-next 6/6] selftests: mptcp: remove rp_filter
+ configuration
+Content-Language: en-GB, fr-BE
+To: Hangbin Liu <liuhangbin@gmail.com>, netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+ Shuah Khan <shuah@kernel.org>, Mat Martineau <martineau@kernel.org>,
+ Geliang Tang <geliang@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>,
+ Andrea Mayer <andrea.mayer@uniroma2.it>,
+ Paolo Lungaroni <paolo.lungaroni@uniroma2.it>,
+ linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <20250507131856.78393-1-liuhangbin@gmail.com>
+ <20250507131856.78393-7-liuhangbin@gmail.com>
+From: Matthieu Baerts <matttbe@kernel.org>
+Autocrypt: addr=matttbe@kernel.org; keydata=
+ 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
+ lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
+Organization: NGI0 Core
+In-Reply-To: <20250507131856.78393-7-liuhangbin@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Remove the manual rp_filter configuration from MPTCP tests, as it is now
-handled by setup_ns.
+Hi Hangbin,
 
-Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
----
- tools/testing/selftests/net/mptcp/mptcp_lib.sh | 2 --
- 1 file changed, 2 deletions(-)
+On 07/05/2025 15:18, Hangbin Liu wrote:
+> Remove the manual rp_filter configuration from MPTCP tests, as it is now
+> handled by setup_ns.
 
-diff --git a/tools/testing/selftests/net/mptcp/mptcp_lib.sh b/tools/testing/selftests/net/mptcp/mptcp_lib.sh
-index 99c87cd6e255..55212188871e 100644
---- a/tools/testing/selftests/net/mptcp/mptcp_lib.sh
-+++ b/tools/testing/selftests/net/mptcp/mptcp_lib.sh
-@@ -479,8 +479,6 @@ mptcp_lib_ns_init() {
- 	local netns
- 	for netns in "${@}"; do
- 		ip netns exec "${!netns}" sysctl -q net.mptcp.enabled=1
--		ip netns exec "${!netns}" sysctl -q net.ipv4.conf.all.rp_filter=0
--		ip netns exec "${!netns}" sysctl -q net.ipv4.conf.default.rp_filter=0
- 	done
- }
- 
+Thanks!
+
+Acked-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+
+Cheers,
+Matt
 -- 
-2.46.0
+Sponsored by the NGI0 Core fund.
 
