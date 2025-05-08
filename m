@@ -1,31 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D58F27FD4F
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 May 2025 15:09:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A47BB270EB6
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 May 2025 15:27:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746716988; cv=none; b=fEvD1zC+MF0/GyBN5rSJcYUgyKk7hZIAV6wt6rrrLxME6Urs4OkDIp6zPqcHWRlneysBKotAh7U0Zen9HvWcNvHVzcNWq5JHubbCAQ4mzqGPG1smCJJETlzboMWARtCkxUkS7RcCQ2F/IMIvu/0Ic9zkJZHS2XPX3bowG5dzWuk=
+	t=1746718036; cv=none; b=HA301AuSn4kpckklwch5Gl4oysAlwQnLbJ794cqewttzYIWnG6HLvj3boUW1Qn0kfQYpJwc+VEDYjUv9E+BTbN+EuQ7MIL8D/mmGkRHNPEEMsEFoQtdtKjjq1dKR9MpicCHNJHy/CALb1B8oS/v+Zrk2eOZdB6dMj/1LFgCpvJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746716988; c=relaxed/simple;
-	bh=qAxtul1JmapCF1JWaqve2nIKLCXRfz6pj8RHpwwo7XU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YphuMaQsWscp/TT7iapKgHerdpTURftCArU8z7grZqMWsSI+Vovrij3m7HJdDCvOuMx9UFr/ZplsIM0DQQXSUw3fizQb7hf6ML7VEvKSHvvsHL+P9N9Jdfy/N70rZMLXTbj/iX0ylrHNsqNv4PcOAtDRdojNkbUXpIP8W1oZCjU=
+	s=arc-20240116; t=1746718036; c=relaxed/simple;
+	bh=CvUboLN6taNwcmU332GUPSJhyVJfM4HcDiBYIPdvyYM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oiQ74+zwHeMLM9gd4W3srzlDoWavnDRVyxAtoTmfeFNzKB4FqdFhwIjCJrSZQ9cTUbqyz6RWzRA7rd2sG1ZTJHt9xkCXK6DRg7AALtyvGRVvZpArSqxMXskOXaymtaL2A2i/9YwfGe1Jd6sA9eU4rAuuLFqVyGJXjZMIWTM3T7g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
 Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
 	(envelope-from <fw@breakpoint.cc>)
-	id 1uD2sa-0004uV-EH; Thu, 08 May 2025 17:09:44 +0200
+	id 1uD39U-00052V-UB; Thu, 08 May 2025 17:27:12 +0200
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/2] netfilter: nf_tables: add packets conntrack state to debug trace info
-Date: Thu,  8 May 2025 17:08:52 +0200
-Message-ID: <20250508150855.6902-3-fw@strlen.de>
+Subject: [PATCH libnftnl] trace: add support for TRACE_CT information
+Date: Thu,  8 May 2025 17:26:29 +0200
+Message-ID: <20250508152632.7520-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250508150855.6902-1-fw@strlen.de>
-References: <20250508150855.6902-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,37 +31,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add the minimal relevant info needed for userspace ("nftables monitor
-trace") to provide the conntrack view of the packet:
-
-- state (new, related, established)
-- direction (original, reply)
-- status (e.g., if connection is subject to dnat)
-- id (allows to query ctnetlink for remaining conntrack state info)
-
-Example:
-trace id a62 inet filter PRE_RAW packet: iif "enp0s3" ether [..]
-  [..]
-trace id a62 inet filter PRE_MANGLE conntrack: ct direction original ct state new ct id 32
-trace id a62 inet filter PRE_MANGLE packet: [..]
- [..]
-trace id a62 inet filter IN conntrack: ct direction original ct state new ct status dnat-done ct id 32
- [..]
-
-In this case one can see that while NAT is active, the new connection
-isn't subject to a translation.
+Decode direction/id/state/status information.
+This will be used by 'nftables monitor trace' to print a packets
+conntrack state.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  2 +
- net/netfilter/nf_tables_trace.c          | 65 +++++++++++++++++++++++-
- 2 files changed, 66 insertions(+), 1 deletion(-)
+ include/libnftnl/trace.h            |  4 ++
+ include/linux/netfilter/nf_tables.h |  2 +
+ src/trace.c                         | 78 +++++++++++++++++++++++++++++
+ 3 files changed, 84 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 7d6bc19a0153..19cddbd1a315 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1841,6 +1841,7 @@ enum nft_xfrm_keys {
+diff --git a/include/libnftnl/trace.h b/include/libnftnl/trace.h
+index 18ab0c3baef7..5d66b50b2d31 100644
+--- a/include/libnftnl/trace.h
++++ b/include/libnftnl/trace.h
+@@ -28,6 +28,10 @@ enum nftnl_trace_attr {
+ 	NFTNL_TRACE_VERDICT,
+ 	NFTNL_TRACE_NFPROTO,
+ 	NFTNL_TRACE_POLICY,
++	NFTNL_TRACE_CT_DIRECTION,
++	NFTNL_TRACE_CT_ID,
++	NFTNL_TRACE_CT_STATE,
++	NFTNL_TRACE_CT_STATUS,
+ 	__NFTNL_TRACE_MAX,
+ };
+ #define NFTNL_TRACE_MAX (__NFTNL_TRACE_MAX - 1)
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 49c944e78463..5a00ec9a4879 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1837,6 +1837,7 @@ enum nft_xfrm_keys {
   * @NFTA_TRACE_MARK: nfmark (NLA_U32)
   * @NFTA_TRACE_NFPROTO: nf protocol processed (NLA_U32)
   * @NFTA_TRACE_POLICY: policy that decided fate of packet (NLA_U32)
@@ -72,7 +69,7 @@ index 7d6bc19a0153..19cddbd1a315 100644
   */
  enum nft_trace_attributes {
  	NFTA_TRACE_UNSPEC,
-@@ -1861,6 +1862,7 @@ enum nft_trace_attributes {
+@@ -1857,6 +1858,7 @@ enum nft_trace_attributes {
  	NFTA_TRACE_NFPROTO,
  	NFTA_TRACE_POLICY,
  	NFTA_TRACE_PAD,
@@ -80,103 +77,122 @@ index 7d6bc19a0153..19cddbd1a315 100644
  	__NFTA_TRACE_MAX
  };
  #define NFTA_TRACE_MAX (__NFTA_TRACE_MAX - 1)
-diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
-index 580c55268f65..ba8b0a8c00e6 100644
---- a/net/netfilter/nf_tables_trace.c
-+++ b/net/netfilter/nf_tables_trace.c
-@@ -15,6 +15,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
+diff --git a/src/trace.c b/src/trace.c
+index f7eb45ed6704..a218289ceb25 100644
+--- a/src/trace.c
++++ b/src/trace.c
+@@ -44,6 +44,12 @@ struct nftnl_trace {
+ 	uint32_t policy;
+ 	uint16_t iiftype;
+ 	uint16_t oiftype;
++	struct {
++		uint16_t dir;
++		uint32_t id;
++		uint32_t state;
++		uint32_t status;
++	} ct;
  
-@@ -90,6 +91,59 @@ static int nf_trace_fill_dev_info(struct sk_buff *nlskb,
+ 	uint32_t flags;
+ };
+@@ -85,6 +91,7 @@ static int nftnl_trace_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	case __NFTA_TRACE_MAX:
+ 		break;
+ 	case NFTA_TRACE_VERDICT:
++	case NFTA_TRACE_CT:
+                 if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -190,6 +197,18 @@ const void *nftnl_trace_get_data(const struct nftnl_trace *trace,
+ 	case NFTNL_TRACE_POLICY:
+ 		*data_len = sizeof(uint32_t);
+ 		return &trace->policy;
++	case NFTNL_TRACE_CT_DIRECTION:
++		*data_len = sizeof(uint16_t);
++		return &trace->ct.dir;
++	case NFTNL_TRACE_CT_ID:
++		*data_len = sizeof(uint32_t);
++		return &trace->ct.id;
++	case NFTNL_TRACE_CT_STATE:
++		*data_len = sizeof(uint32_t);
++		return &trace->ct.state;
++	case NFTNL_TRACE_CT_STATUS:
++		*data_len = sizeof(uint32_t);
++		return &trace->ct.status;
+ 	case __NFTNL_TRACE_MAX:
+ 		break;
+ 	}
+@@ -321,6 +340,61 @@ static int nftnl_trace_parse_verdict(const struct nlattr *attr,
  	return 0;
  }
  
-+static int nf_trace_fill_ct_info(struct sk_buff *nlskb,
-+				 const struct sk_buff *skb)
++static int nftnl_trace_parse_ct_cb(const struct nlattr *attr, void *data)
 +{
-+	const struct nf_ct_hook *ct_hook;
-+	enum ip_conntrack_info ctinfo;
-+	const struct nf_conn *ct;
-+	struct nlattr *nest;
-+	u32 state;
++	int type = mnl_attr_get_type(attr);
++	const struct nlattr **tb = data;
 +
-+	ct_hook = rcu_dereference(nf_ct_hook);
-+	if (!ct_hook)
-+		return 0;
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (!ct) {
-+		if (ctinfo != IP_CT_UNTRACKED) /* not seen by conntrack or invalid */
-+			return 0;
-+
-+		state = NF_CT_STATE_UNTRACKED_BIT;
-+	} else {
-+		state = NF_CT_STATE_BIT(ctinfo);
++	switch (type) {
++	case NFT_CT_DIRECTION:
++		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
++			abi_breakage();
++		tb[type] = attr;
++		break;
++	case NFT_CT_STATE:
++	case NFT_CT_STATUS:
++	case NFT_CT_ID:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		tb[type] = attr;
++		break;
 +	}
 +
-+	nest = nla_nest_start(nlskb, NFTA_TRACE_CT);
-+	if (!nest)
-+		return -1;
-+
-+	if (nla_put_be32(nlskb, NFT_CT_STATE, htonl(state)))
-+		goto nla_put_failure;
-+
-+	if (ct) {
-+		u32 id = ct_hook->get_id(&ct->ct_general);
-+		u32 status = READ_ONCE(ct->status);
-+		u8 dir = CTINFO2DIR(ctinfo);
-+
-+		if (nla_put_u8(nlskb, NFT_CT_DIRECTION, dir))
-+			goto nla_put_failure;
-+
-+		if (nla_put_be32(nlskb, NFT_CT_ID, (__force __be32)id))
-+			goto nla_put_failure;
-+
-+		if (status && nla_put_be32(nlskb, NFT_CT_STATUS, htonl(status)))
-+			goto nla_put_failure;
-+	}
-+
-+	nla_nest_end(nlskb, nest);
-+	return 0;
-+
-+nla_put_failure:
-+	nla_nest_cancel(nlskb, nest);
-+	return -1;
++	return MNL_CB_OK;
 +}
 +
- static int nf_trace_fill_pkt_info(struct sk_buff *nlskb,
- 				  const struct nft_pktinfo *pkt)
++static int nftnl_trace_parse_ct(const struct nlattr *attr,
++				struct nftnl_trace *t)
++{
++	struct nlattr *tb[NFT_CT_MAX+1] = {};
++
++	if (mnl_attr_parse_nested(attr, nftnl_trace_parse_ct_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFT_CT_DIRECTION]) {
++		t->ct.dir = mnl_attr_get_u8(tb[NFT_CT_DIRECTION]);
++		t->flags |= (1 << NFTNL_TRACE_CT_DIRECTION);
++	}
++
++	if (tb[NFT_CT_ID]) {
++		/* NFT_CT_ID is expected to be in big endian */
++		t->ct.id = mnl_attr_get_u32(tb[NFT_CT_ID]);
++		t->flags |= (1 << NFTNL_TRACE_CT_ID);
++	}
++
++	if (tb[NFT_CT_STATE]) {
++		t->ct.state = ntohl(mnl_attr_get_u32(tb[NFT_CT_STATE]));
++		t->flags |= (1 << NFTNL_TRACE_CT_STATE);
++	}
++
++	if (tb[NFT_CT_STATUS]) {
++		t->ct.status = ntohl(mnl_attr_get_u32(tb[NFT_CT_STATUS]));
++		t->flags |= (1 << NFTNL_TRACE_CT_STATUS);
++	}
++
++	return 0;
++}
++
+ EXPORT_SYMBOL(nftnl_trace_nlmsg_parse);
+ int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
  {
-@@ -210,7 +264,12 @@ void nft_trace_notify(const struct nft_pktinfo *pkt,
- 		nla_total_size(sizeof(__be32)) +	/* trace type */
- 		nla_total_size(0) +			/* VERDICT, nested */
- 			nla_total_size(sizeof(u32)) +	/* verdict code */
--		nla_total_size(sizeof(u32)) +		/* id */
-+		nla_total_size(0) +			/* nft_ct_keys, nested */
-+			nla_total_size(sizeof(u8)) +	/* direction */
-+			nla_total_size(sizeof(u32)) +	/* state */
-+			nla_total_size(sizeof(u32)) +	/* status */
-+			nla_total_size(sizeof(u32)) +	/* id */
-+		nla_total_size(sizeof(u32)) +		/* trace id */
- 		nla_total_size(NFT_TRACETYPE_LL_HSIZE) +
- 		nla_total_size(NFT_TRACETYPE_NETWORK_HSIZE) +
- 		nla_total_size(NFT_TRACETYPE_TRANSPORT_HSIZE) +
-@@ -291,6 +350,10 @@ void nft_trace_notify(const struct nft_pktinfo *pkt,
- 
- 		if (nf_trace_fill_pkt_info(skb, pkt))
- 			goto nla_put_failure;
-+
-+		if (nf_trace_fill_ct_info(skb, pkt->skb))
-+			goto nla_put_failure;
-+
- 		info->packet_dumped = true;
+@@ -419,5 +493,9 @@ int nftnl_trace_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_trace *t)
+ 		t->flags |= (1 << NFTNL_TRACE_MARK);
  	}
  
++	if (tb[NFTA_TRACE_CT] &&
++	    nftnl_trace_parse_ct(tb[NFTA_TRACE_CT], t) < 0)
++		return -1;
++
+ 	return 0;
+ }
 -- 
 2.49.0
 
