@@ -1,28 +1,50 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47948278E42
-	for <netfilter-devel@vger.kernel.org>; Thu,  8 May 2025 15:34:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BF281E22E9
+	for <netfilter-devel@vger.kernel.org>; Thu,  8 May 2025 21:47:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746718482; cv=none; b=e9rvicdvErKROqszeRrP7d1k6mcgDJRFEE9whRIY7STXgyU3y8aqIr2gJHtTSs4jpvkFewvkMCyC2JDL4+N76NWDvYwhPmkVCvQIDA+L/ata27KfiGpxYJFh/4Kr+aw66pPP9lFPjfFDNw/+/2Qov8BkhfSF0wrDxpy8Y/zgUx0=
+	t=1746740852; cv=none; b=r/q2YlSpRiC+vV9lfI6v/kaIM6YGy/Xn6Z998SAP3g958r+jOKm8RYWj2VGOvZRQhQC4d7orQ57aBM9r3DuZJhiyjhrz/rUi8R4RjIAxcNVfYIu75Cr4YXTuJ3PoQrtHVfdRRJK+8jfV7Kkzhqe6LYAgDNs41vwDi0oGXN1ynUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746718482; c=relaxed/simple;
-	bh=m0nc4BsPKeO6fzCOo3xMJ9hk2iXRN2kDeSef+lCWMco=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=buiQ5jyaDHZz82NYdULrFbKu+jBq9X8QEEINnuQTFYMEQL5xJFrrqgVYVCnrhX0kSaEfnmnLdtM5xV54dmkncQqPLBacvGqVQgZRms874jzWtGYkkSq7Agz6bGmg8sfrlokIQM+YspkhsfGV2v8PXBXq+9hKZAEA0EtAuN25PlM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=breakpoint.cc
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.92)
-	(envelope-from <fw@breakpoint.cc>)
-	id 1uD3Gg-00056G-IV; Thu, 08 May 2025 17:34:38 +0200
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] src: add conntrack information to trace monitor mode
-Date: Thu,  8 May 2025 17:33:56 +0200
-Message-ID: <20250508153358.8015-1-fw@strlen.de>
+	s=arc-20240116; t=1746740852; c=relaxed/simple;
+	bh=uLv1CIwHLBYzQzQsRElb0KZoJwIH1BQUGteHCRiDDtM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=HU7VGdPxKPlBIeGx6TZyxA1efPADA3QQjBlAGt5hqAUJprtMBkvULrKZcPBEUa+afeSsxC/5+C93FxAP3QV3YomNn+NZEUr1Bc1998zpSY/3WZeXfEnTlSe7fHlq+rLARBpmk262acYssogk4uAnvQUHkn066gWlHxuYKH+7YE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PRJxFJEE; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PRJxFJEE"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=G/FzAYQgFnpjfa3wCsISza8Y3t0ir/XkyAzqqTxupn8=; b=PRJxFJEE/1eV+IHtA+Cqwxpx7o
+	oCC61/kW2V3+VHGPjAsvewFA/u7XVzTuuIvl0ER37tRowqg6yBKyyTUuD5ZgE/wJnNbE04oCvSz/x
+	yYD8Ca/VDeetTQY4DTqV3JxZEJ1hPKFgrukEmXovFAQfSXZO6eLg2dUvq9ceOWIhHl2UwSxLT4c2y
+	MEH496E8STc9GvjcwRfy9nOvjsNxGIoY4szPgTgIGACokPcAPoqW6Ro2T6bstoW4zd1R4ix0k5gRI
+	/ihXd1E8ubGGVmKfZr/1OjARar9vZCONK9wNhnVEC83wMlMDzVjUR3Kiu1lcQgIFtrvDqfeOpUmCM
+	Twp4mA7A==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uD95U-000000000mn-1ety;
+	Thu, 08 May 2025 23:47:28 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 3/6] json: Print single fib flag as non-array
+Date: Thu,  8 May 2025 23:47:19 +0200
+Message-ID: <20250508214722.20808-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250508214722.20808-1-phil@nwl.cc>
+References: <20250507222830.22525-1-phil@nwl.cc>
+ <20250508214722.20808-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,181 +53,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Upcoming kernel change provides the packets conntrack state in the
-trace message data.
+Check array size and reduce the array if possible.
 
-This allows to see if packet is seen as original or reply, the conntrack
-state (new, establieshed, related) and the status bits which show if e.g.
-NAT was applied.  Alsoi include conntrack ID so users can use conntrack
-tool to query the kernel for more information via ctnetlink.
+The zero array length check is dead code here due to the surrounding 'if
+(flags)' block, but it's a common idiom one could replace by a shared
+routine later.
 
-This improves debugging when e.g. packets do not pick up the expected
-NAT mapping, which could e.g. also happen because of expectations
-following the NAT binding of the owning conntrack entry.
-
-Example output ("conntrack: " lines are new):
-
-trace id 32 t PRE_RAW packet: iif "enp0s3" ether saddr [..]
-trace id 32 t PRE_RAW rule tcp flags syn meta nftrace set 1 (verdict continue)
-trace id 32 t PRE_RAW policy accept
-trace id 32 t PRE_MANGLE conntrack: ct direction original ct state new ct id 2641368242
-trace id 32 t PRE_MANGLE packet: iif "enp0s3" ether saddr [..]
-trace id 32 t ct_new_pre rule jump rpfilter (verdict jump rpfilter)
-trace id 32 t PRE_MANGLE policy accept
-trace id 32 t INPUT conntrack: ct direction original ct state new ct status dnat-done ct id 2641368242
-trace id 32 t INPUT packet: iif "enp0s3" [..]
-trace id 32 t public_in rule tcp dport 443 accept (verdict accept)
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/ct.c      |   4 ++
- src/netlink.c | 110 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 114 insertions(+)
+ src/json.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/src/ct.c b/src/ct.c
-index 71ebb9483893..fc43bf63f02c 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -98,7 +98,11 @@ static const struct symbol_table ct_status_tbl = {
- 		SYMBOL("confirmed",	IPS_CONFIRMED),
- 		SYMBOL("snat",		IPS_SRC_NAT),
- 		SYMBOL("dnat",		IPS_DST_NAT),
-+		SYMBOL("seq-adjust",	IPS_SEQ_ADJUST),
-+		SYMBOL("snat-done",	IPS_SRC_NAT_DONE),
-+		SYMBOL("dnat-done",	IPS_DST_NAT_DONE),
- 		SYMBOL("dying",		IPS_DYING),
-+		SYMBOL("fixed-timeout",	IPS_FIXED_TIMEOUT),
- 		SYMBOL_LIST_END
- 	},
- };
-diff --git a/src/netlink.c b/src/netlink.c
-index 86ca32144f02..b1d1dc7f4bd1 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -2116,6 +2116,114 @@ next:
- 	}
- }
- 
-+static struct expr *trace_alloc_list(const struct datatype *dtype,
-+				     enum byteorder byteorder,
-+				     unsigned int len, const void *data)
-+{
-+	struct expr *list_expr;
-+	unsigned int i;
-+	mpz_t value;
-+	uint32_t v;
+diff --git a/src/json.c b/src/json.c
+index 6b27ccb927017..a8b0abeba6396 100644
+--- a/src/json.c
++++ b/src/json.c
+@@ -939,7 +939,15 @@ json_t *fib_expr_json(const struct expr *expr, struct output_ctx *octx)
+ 		}
+ 		if (flags)
+ 			json_array_append_new(tmp, json_integer(flags));
+-		json_object_set_new(root, "flags", tmp);
 +
-+	if (len != sizeof(v))
-+		return constant_expr_alloc(&netlink_location,
-+					   dtype, byteorder,
-+					   len * BITS_PER_BYTE, data);
-+
-+	list_expr = list_expr_alloc(&netlink_location);
-+
-+	mpz_init2(value, 32);
-+	mpz_import_data(value, data, byteorder, len);
-+	v = mpz_get_uint32(value);
-+	if (v == 0) {
-+		mpz_clear(value);
-+		return NULL;
-+	}
-+
-+	for (i = 0; i < 32; i++) {
-+		uint32_t bitv = v & (1 << i);
-+
-+		if (bitv == 0)
-+			continue;
-+
-+		compound_expr_add(list_expr,
-+				  constant_expr_alloc(&netlink_location,
-+						      dtype, byteorder,
-+						      len * BITS_PER_BYTE,
-+						      &bitv));
-+	}
-+
-+	mpz_clear(value);
-+	return list_expr;
-+}
-+
-+static void trace_print_ct_expr(const struct nftnl_trace *nlt, unsigned int attr,
-+				enum nft_ct_keys key, struct output_ctx *octx)
-+{
-+	struct expr *lhs, *rhs, *rel;
-+	const void *data;
-+	uint32_t len;
-+
-+	data = nftnl_trace_get_data(nlt, attr, &len);
-+	lhs = ct_expr_alloc(&netlink_location, key, -1);
-+
-+	switch (key) {
-+	case NFT_CT_STATUS:
-+		rhs = trace_alloc_list(lhs->dtype, lhs->byteorder, len, data);
-+		if (!rhs) {
-+			expr_free(lhs);
-+			return;
++		if (json_array_size(tmp) > 1) {
++			json_object_set_new(root, "flags", tmp);
++		} else {
++			if (json_array_size(tmp))
++				json_object_set(root, "flags",
++						json_array_get(tmp, 0));
++			json_decref(tmp);
 +		}
-+		rel  = binop_expr_alloc(&netlink_location, OP_IMPLICIT, lhs, rhs);
-+		break;
-+	case NFT_CT_DIRECTION:
-+	case NFT_CT_STATE:
-+	case NFT_CT_ID:
-+		/* fallthrough */
-+	default:
-+		rhs  = constant_expr_alloc(&netlink_location,
-+					   lhs->dtype, lhs->byteorder,
-+					   len * BITS_PER_BYTE, data);
-+		rel  = relational_expr_alloc(&netlink_location, OP_IMPLICIT, lhs, rhs);
-+		break;
-+	}
-+
-+	expr_print(rel, octx);
-+	nft_print(octx, " ");
-+	expr_free(rel);
-+}
-+
-+static void trace_print_ct(const struct nftnl_trace *nlt,
-+			   struct output_ctx *octx)
-+{
-+	bool ct = nftnl_trace_is_set(nlt, NFTNL_TRACE_CT_STATE);
-+
-+	if (!ct)
-+		return;
-+
-+	trace_print_hdr(nlt, octx);
-+
-+	nft_print(octx, "conntrack: ");
-+
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_CT_DIRECTION))
-+		trace_print_ct_expr(nlt, NFTNL_TRACE_CT_DIRECTION,
-+				    NFT_CT_DIRECTION, octx);
-+
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_CT_STATE))
-+		trace_print_ct_expr(nlt, NFTNL_TRACE_CT_STATE,
-+				    NFT_CT_STATE, octx);
-+
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_CT_STATUS))
-+		trace_print_ct_expr(nlt, NFTNL_TRACE_CT_STATUS,
-+				    NFT_CT_STATUS, octx);
-+
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_CT_ID))
-+		trace_print_ct_expr(nlt, NFTNL_TRACE_CT_ID,
-+				    NFT_CT_ID, octx);
-+
-+	nft_print(octx, "\n");
-+}
-+
- static void trace_print_packet(const struct nftnl_trace *nlt,
- 			        struct output_ctx *octx)
- {
-@@ -2127,6 +2235,8 @@ static void trace_print_packet(const struct nftnl_trace *nlt,
- 	uint32_t nfproto;
- 	struct stmt *stmt, *next;
- 
-+	trace_print_ct(nlt, octx);
-+
- 	trace_print_hdr(nlt, octx);
- 
- 	nft_print(octx, "packet: ");
+ 	}
+ 	return json_pack("{s:o}", "fib", root);
+ }
 -- 
 2.49.0
 
