@@ -1,49 +1,41 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38372322E;
-	Wed,  7 May 2025 23:39:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01447173;
+	Thu,  8 May 2025 00:04:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746661146; cv=none; b=C6qE3MrFxvl48Exhjai9YPosRF8U7Z0Ls8gPAIdTdBD51Ra94cWvXJCUvvf9UojpRKlNKB6oDYbWmlsxp0YuHEh90jEFGOst/fXIF0rvVov6l/4wLMe4dUXWMM4zVCPAY8tWR3m25D9fvnEQQXg4KkoMWajulj57cK4RnnwVEJU=
+	t=1746662679; cv=none; b=jT3IcbQ4BFp9jybFakmTlEezD/Q/28ZEdMLW0GVZneiTaBKDUUiG9ZMfDVBUA9ilBoKw32/Hfcw9veisONxoYRJH80xihPqbCMQXVqVNk76o+0LqH4i4eb/HE59ydKuZP1xe5N5y9ulosMR749Frg1cU0cgxuv0YjIqH4m+5t8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746661146; c=relaxed/simple;
-	bh=bepzADMBmeJubYU52S00C2Sj4qWm1A/DTh0PH7TT7nE=;
+	s=arc-20240116; t=1746662679; c=relaxed/simple;
+	bh=tsLgvYDsTTn+lct3eqEnQ/C8qUE0TseZs2FG9kGs7CM=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LJ0WosYSRFj0vfXTVItwbjDEdGNGuz7j1kxHSaf481EcAYKD6AxVKOJLdNV+jV7dB3SyyPxBdkeT2PS35rT5LxZF0JqdLLcyB5XJTUOfWc+chL8OrfOAJWpeyvAMrEU6cQgBRaI2xvKnJzHpe7TDq5ocGyiuajCxphoS/GvRp1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BHadYZ1K; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=V/LCqRrtB1hp5IzfKNQFkmryPLt1qhXms6oRpCh0aNzy1uqoww/JE6r0ry10LQfTbvUXMy1H9osgf7nFqMd7Ie6Qo/pySyXnt2o3PBelzGuo07IYBtu8xzcDzVRAR1Ogs09IaT3K97+dVyt2ls+qExEJYfD4kbLpZrOfnK9qK0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=vBP5QAph; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BHadYZ1K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18303C4CEE2;
-	Wed,  7 May 2025 23:39:05 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="vBP5QAph"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38E0DC4CEE2;
+	Thu,  8 May 2025 00:04:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1746661145;
-	bh=bepzADMBmeJubYU52S00C2Sj4qWm1A/DTh0PH7TT7nE=;
+	s=k20201202; t=1746662678;
+	bh=tsLgvYDsTTn+lct3eqEnQ/C8qUE0TseZs2FG9kGs7CM=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=BHadYZ1KoLNnRNVb9ztDvpUgTMEOay4qPgO4bALGYoBL6B+/GR+G+nw8HgxoAGBBP
-	 6OdZf3NQOijhqtrrwNIn5HD7ZcekbMkyXm4k86PXIsYof4DAsi8siPCMVOMh86Xxex
-	 HTnsHHpJCH68bOXdd9eJWpAX0km/L+jUWeH3+4jqF0K1eRRq3SdXNWD4TnGDU3WMuk
-	 Ph6VswS+n5r9d9bmCj6i01Yrg409vlDU68t+jmtSFtW9/itqnv5lwP2RLPlIs6+7/R
-	 fGVu26FMdAEHqDCxiUAverLitKo2IFonrSmx5QhL4INtMILPnuRhQX6oW+Gf9ZzH1J
-	 4D0mVTr+TA8rg==
-Date: Wed, 7 May 2025 16:39:04 -0700
+	b=vBP5QAphIOZhc0/9eanPXFDZGo2w2PWFEdUtiVPdkAqX0wYBYhksdk8T99e6pBjFJ
+	 oa/VnQTu8DQoVlMwTTUExAxsQvicOEPzn4OyX/jChihxE7VaA0VMZmETVPuGOMaXkZ
+	 8Ao4lt5jVSB26MiuVU04rvBlR2eLi7AV6ypOHnqLNX5Hekof4sQ7XtSsMCRmZTDXpp
+	 mmG7MiQmAI8Zwb1nPrTQZgKd2J0j56OLLdFpC6xGlxuqDxEZD8Z51AcfpMytLOECRL
+	 ljhWSboSxyjRbQ2DST4jIQlJjr6hQ3x45Cv+42n4dednWBtBU3gv7ofG3BJdTeb5vk
+	 OS7m6whGm9NGw==
+Date: Wed, 7 May 2025 17:04:37 -0700
 From: Jakub Kicinski <kuba@kernel.org>
-To: Hangbin Liu <liuhangbin@gmail.com>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Simon
- Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>, Matthieu Baerts
- <matttbe@kernel.org>, Mat Martineau <martineau@kernel.org>, Geliang Tang
- <geliang@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef
- Kadlecsik <kadlec@netfilter.org>, Andrea Mayer <andrea.mayer@uniroma2.it>,
- Paolo Lungaroni <paolo.lungaroni@uniroma2.it>,
- linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH net-next 4/6] selftests: net: use setup_ns for SRv6
- tests and remove rp_filter configuration
-Message-ID: <20250507163904.0cf86c59@kernel.org>
-In-Reply-To: <20250507131856.78393-5-liuhangbin@gmail.com>
-References: <20250507131856.78393-1-liuhangbin@gmail.com>
-	<20250507131856.78393-5-liuhangbin@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: <netdev@vger.kernel.org>, netfilter-devel
+ <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH net-next] selftests: netfilter: fix conntrack stress
+ test failures on debug kernels
+Message-ID: <20250507170437.0ed28860@kernel.org>
+In-Reply-To: <20250507075000.5819-1-fw@strlen.de>
+References: <20250507075000.5819-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,16 +45,30 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Wed,  7 May 2025 13:18:54 +0000 Hangbin Liu wrote:
-> Some SRv6 tests manually set up network namespaces and disable rp_filter.
-> Since the setup_ns library function already handles rp_filter configuration,
-> convert these SRv6 tests to use setup_ns and remove the redundant rp_filter
-> settings.
+On Wed,  7 May 2025 09:49:55 +0200 Florian Westphal wrote:
+> Jakub reports test failures on debug kernel:
+> FAIL: proc inconsistency after uniq filter for ...
+> 
+> This is because entries are expiring while validation is happening.
+> 
+> Increase the timeout of ctnetlink injected entries and the
+> icmp (ping) timeout to 1h to avoid this.
+> 
+> To reduce run-time, add less entries via ctnetlink when KSFT_MACHINE_SLOW
+> is set.
+> 
+> also log of a failed run had:
+>  PASS: dump in netns had same entry count (-C 0, -L 0, -p 0, /proc 0)
+> 
+> ... i.e. all entries already expired: add a check and set failure if
+> this happens.
+> 
+> While at it, include a diff when there were duplicate entries and add
+> netns name to error messages (it tells if icmp or ctnetlink failed).
+> 
+> Fixes: d33f889fd80c ("selftests: netfilter: add conntrack stress test")
+> Reported-by: Jakub Kicinski <kuba@kernel.org>
+> Closes: https://lore.kernel.org/netdev/20250506061125.1a244d12@kernel.org/
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Missed some get_nodename calls, I think?
-
-# ./srv6_hl2encap_red_l2vpn_test.sh: line 470: get_nodename: command not found
-# SKIP: Setting up the testing environment failed
-ok 1 selftests: net: srv6_hl2encap_red_l2vpn_test.sh # SKIP
--- 
-pw-bot: cr
+Great! Run 6 times since and 100% green. Thanks for the quick reaction.
