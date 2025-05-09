@@ -1,79 +1,99 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 333F722539F
-	for <netfilter-devel@vger.kernel.org>; Fri,  9 May 2025 14:36:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048AE254B14
+	for <netfilter-devel@vger.kernel.org>; Fri,  9 May 2025 22:27:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746801385; cv=none; b=QtPmeNpU46YHV6fGqoRVYxhHSrpkiSDkyBr1YNeYCGr7pYk+eICmY+g7aCEbcmmZK4cl8SP3n5VI7xn0rFhDAS+PHrvVI4d2hAGELHamgAUiO/m/5N8M/StGimjEt1gVJ+sZnvUYxXh8ucVZznb1n3ZMp8h9IXIkOscq7Z99Pds=
+	t=1746829673; cv=none; b=f4xSXPhHPQ/MwbJqI54U5t1bDnIsbWZS9tgRVo9YdhgA2IfyYvOExoC1MLkD5KztmsYQEJ2ahNdElQ2wFCuif/eKjYroHqRxs3PNCxhJiplYyufOr6uAlpvLXtpOdCiNLjo8Rs7bqXQAgFscTWiazHCL5quvNKWT+bbyOEOgPZg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746801385; c=relaxed/simple;
-	bh=U3pVmWVkDv8x+PjI3ZYz9ITYuuWZcj6PJqYFwQwj/Ag=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HR9vVCYPrbtdaXDkbYMcn8tMNgAfqWRRaH0bQayIbSnqnz8AVOKCFjh8I5O80QAy/B9X0cMmD/vB+RkNlvwtiOWCN+3x9e8bPONk6Vft7zR3/XwCQrZxgOYw6ZWthgKHKa639Njm+7Cuhb2/zy7WvIjL+d0zRhf5FuQRM/G1qoY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=VLLdavlw; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1746829673; c=relaxed/simple;
+	bh=1z26PuzvOuO920EUTXl1VqwDrZ01cZk7532QxKp6WFU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=DJzjDIS/6buIhhjDRvMWznsJBjYJhB4nsuQBwCY3FTT0W8d9htm5LD8TQbJD75M2EVHhSMnSIe/4sAvAOXpMDH8S4/7v+TtP+DkD5m9CDBzUGc7y//mio7FkV/hmDXEtlffaA2PZN6QC3FEXVA2aL05S9rY73q6ZASdoDHVZ7LY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HeX7NyIE; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Sg1MT6D0; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="VLLdavlw"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=CQFKHF9YsBLOV0+PRvQCP+bU5vFl6LQF9Cuf879L+vg=; b=VLLdavlwnrFmUd0aInxDZOCpg7
-	/bOjxw66locWdpJKfm6PUKXXUpRpui5wiYUXQ5xGGdPnCUUc6zjUe4aDGj1vNNrjb/Br2yX5J/yVu
-	GewnaG/bWagP9MoJjdluahNiyUcRNK72dmPfP8IRJBnlzio+ygg+Fw2aHnrn7LknTQDC73Ax71nje
-	ZxqY4GKqT/xdlTn0imjYUSHPGZDfYOLCBctffmJmRLTwRyraMqeRytuDxFhzbx3vsB2V0p+yiiD/D
-	zygufuknuvcD7VXZvMJrPEJgNnr3HVIqe/TLL0jihx5mkq4UIPk9OqoWs8GYrLVh8GmhqTEQoncjF
-	xRUpRSXw==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uDOpd-000000005Yi-1tGE;
-	Fri, 09 May 2025 16:36:09 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HeX7NyIE";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Sg1MT6D0"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 24D0460277; Sat, 10 May 2025 00:27:41 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746829661;
+	bh=qLZH6xZlFOZCzcwvuIFLTMDvINkBIJ+FCLGi8Jv0Z4o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=HeX7NyIEiQvZVH0Vw/JVhnV6o7vCAERJqTd8EcGeok5Ci9urWybVgbXsuaotFmbEu
+	 hAhrbYy6o0twjakVeVwJRSsmZOhAoiWoGIPfQqtjYQs+mZmMeGdYwVMbqzPZPG58no
+	 ZgRvSAJVIF7OIOWxoQBjeg9MudkJYZ0grZh4sgl42S/0hJD+4Geb6rCN7uGudBuiRy
+	 Cc/kOAUKj6qrhFQrF8tAdKI9GcMgcy4Wmdm/1Y06Qnw0tCn6EZ5g+agdug5S3AIw0z
+	 Ynzll0mt4+Opg/FJbkcvRzoWed/g0g5WqsgcYLW821xzht3rP8ZbrOVYRJ57wNKW1Q
+	 2+/ZGaPOxAa/Q==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 77D8A6026E;
+	Sat, 10 May 2025 00:27:40 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1746829660;
+	bh=qLZH6xZlFOZCzcwvuIFLTMDvINkBIJ+FCLGi8Jv0Z4o=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Sg1MT6D0iNEm6BGF57vOkG+rByfsI0JhvFEtREwQdsHhluTAoMd2K1N2g0tQit2tT
+	 O2uWZMwMGhMEMZ672tqEzaqx8ctmsiz0ABcvlRKMJggzFqAZuHuPA3g5VIMiBJcGzG
+	 APgnreppfDCp3O3PLmXivZKkhdZInG32dVd2IoVpyQhCNLTEhzLFgYgMb2JBkjakli
+	 6im+lt5qTNdqS0xZmDe3NN2e5sk613OJj/GOdhF30LtS82/WAlSIGnZ1WMeJrDU69M
+	 5OFibAfGkAXpwW5uz1hm5d5LP5nGd1MdVg9YQ/LgNE0pZBwrD75DnF9WtMLoSkjo6q
+	 pC4pA0idvLvZQ==
+Date: Sat, 10 May 2025 00:27:37 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] tests: shell: Include kernel taint value in warning
-Date: Fri,  9 May 2025 14:53:21 +0200
-Message-ID: <20250509125321.21336-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
+Subject: Re: [PATCH nft] src: netlink: fix crash when ops doesn't support
+ udata
+Message-ID: <aB6BWUCRyp2NlyjI@calendula>
+References: <20250508142907.4871-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250508142907.4871-1-fw@strlen.de>
 
-If kernel is already tainted, not all tests yield usable results.
-Printing the taint cause might help users tracking down the external
-cause.
+On Thu, May 08, 2025 at 04:29:04PM +0200, Florian Westphal wrote:
+> Whenever a new version adds udata support to an expression, then old
+> versions of nft will crash when trying to list such a ruleset generated
+> by a more recent version of nftables.
+> 
+> Fix this by falling back to 'type' format.
 
-If a test taints the kernel, the value is stored in rc-failed-tainted
-file already.
+Fixes: 6e48df5329ea ('src: add "typeof" build/parse/print support')
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/shell/run-tests.sh | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
-index 6a9b518c3aed5..2d2e0ad146c80 100755
---- a/tests/shell/run-tests.sh
-+++ b/tests/shell/run-tests.sh
-@@ -784,7 +784,7 @@ check_kmemleak()
- 
- read kernel_tainted < /proc/sys/kernel/tainted
- if [ "$kernel_tainted" -ne 0 ] ; then
--	msg_warn "kernel is tainted"
-+	msg_warn "kernel is tainted ($kernel_tainted)"
- 	echo
- fi
- 
--- 
-2.49.0
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
+Thanks.
+
+> ---
+>  src/netlink.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/src/netlink.c b/src/netlink.c
+> index 25ee3419772b..5825a68d03bc 100644
+> --- a/src/netlink.c
+> +++ b/src/netlink.c
+> @@ -913,7 +913,7 @@ static struct expr *set_make_key(const struct nftnl_udata *attr)
+>  
+>  	etype = nftnl_udata_get_u32(ud[NFTNL_UDATA_SET_TYPEOF_EXPR]);
+>  	ops = expr_ops_by_type_u32(etype);
+> -	if (!ops)
+> +	if (!ops || !ops->parse_udata)
+>  		return NULL;
+>  
+>  	expr = ops->parse_udata(ud[NFTNL_UDATA_SET_TYPEOF_DATA]);
+> -- 
+> 2.49.0
+> 
+> 
