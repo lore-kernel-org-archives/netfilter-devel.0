@@ -1,99 +1,127 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048AE254B14
-	for <netfilter-devel@vger.kernel.org>; Fri,  9 May 2025 22:27:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C13B51F150B
+	for <netfilter-devel@vger.kernel.org>; Sat, 10 May 2025 12:52:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746829673; cv=none; b=f4xSXPhHPQ/MwbJqI54U5t1bDnIsbWZS9tgRVo9YdhgA2IfyYvOExoC1MLkD5KztmsYQEJ2ahNdElQ2wFCuif/eKjYroHqRxs3PNCxhJiplYyufOr6uAlpvLXtpOdCiNLjo8Rs7bqXQAgFscTWiazHCL5quvNKWT+bbyOEOgPZg=
+	t=1746881545; cv=none; b=lFVolwyVpU57R17nt42a9yFP5be4tY2dqLsoDam8dxAutG/BxCdvx7fukRAOkEpyzNuBpAg5cCj/9aZoYqhw9YzdQJo710flq7TjFBfksV/XU4SWRib3N8+W7JBC2UFY+NhjKuUvCadUuXsUOdbvAUwcw94EW6+hdMh63UE2pfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746829673; c=relaxed/simple;
-	bh=1z26PuzvOuO920EUTXl1VqwDrZ01cZk7532QxKp6WFU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DJzjDIS/6buIhhjDRvMWznsJBjYJhB4nsuQBwCY3FTT0W8d9htm5LD8TQbJD75M2EVHhSMnSIe/4sAvAOXpMDH8S4/7v+TtP+DkD5m9CDBzUGc7y//mio7FkV/hmDXEtlffaA2PZN6QC3FEXVA2aL05S9rY73q6ZASdoDHVZ7LY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HeX7NyIE; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Sg1MT6D0; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1746881545; c=relaxed/simple;
+	bh=OVfzBzTM5p7s501tty3I4y5w4ys0SbvKw8vscIbcKm0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=T5uHyfT5dGBB3Vo0yRCYvS05sSXTOWYE7gveDXqiwcwsC55aVBN2HcCMVNGYhb+hD+MpcJfLNKU3VOQ9iXvRS9BSBbkGAWNknaoSsbVw7lqDCGogv6twgHeuejvMCF8KByH/V6efIgKOlMkPkwo03qmfejN3Ngvt8qqKcna7Bn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KgPNgW9b; arc=none smtp.client-ip=209.85.167.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HeX7NyIE";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Sg1MT6D0"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 24D0460277; Sat, 10 May 2025 00:27:41 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746829661;
-	bh=qLZH6xZlFOZCzcwvuIFLTMDvINkBIJ+FCLGi8Jv0Z4o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HeX7NyIEiQvZVH0Vw/JVhnV6o7vCAERJqTd8EcGeok5Ci9urWybVgbXsuaotFmbEu
-	 hAhrbYy6o0twjakVeVwJRSsmZOhAoiWoGIPfQqtjYQs+mZmMeGdYwVMbqzPZPG58no
-	 ZgRvSAJVIF7OIOWxoQBjeg9MudkJYZ0grZh4sgl42S/0hJD+4Geb6rCN7uGudBuiRy
-	 Cc/kOAUKj6qrhFQrF8tAdKI9GcMgcy4Wmdm/1Y06Qnw0tCn6EZ5g+agdug5S3AIw0z
-	 Ynzll0mt4+Opg/FJbkcvRzoWed/g0g5WqsgcYLW821xzht3rP8ZbrOVYRJ57wNKW1Q
-	 2+/ZGaPOxAa/Q==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 77D8A6026E;
-	Sat, 10 May 2025 00:27:40 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1746829660;
-	bh=qLZH6xZlFOZCzcwvuIFLTMDvINkBIJ+FCLGi8Jv0Z4o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Sg1MT6D0iNEm6BGF57vOkG+rByfsI0JhvFEtREwQdsHhluTAoMd2K1N2g0tQit2tT
-	 O2uWZMwMGhMEMZ672tqEzaqx8ctmsiz0ABcvlRKMJggzFqAZuHuPA3g5VIMiBJcGzG
-	 APgnreppfDCp3O3PLmXivZKkhdZInG32dVd2IoVpyQhCNLTEhzLFgYgMb2JBkjakli
-	 6im+lt5qTNdqS0xZmDe3NN2e5sk613OJj/GOdhF30LtS82/WAlSIGnZ1WMeJrDU69M
-	 5OFibAfGkAXpwW5uz1hm5d5LP5nGd1MdVg9YQ/LgNE0pZBwrD75DnF9WtMLoSkjo6q
-	 pC4pA0idvLvZQ==
-Date: Sat, 10 May 2025 00:27:37 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: netlink: fix crash when ops doesn't support
- udata
-Message-ID: <aB6BWUCRyp2NlyjI@calendula>
-References: <20250508142907.4871-1-fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KgPNgW9b"
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-54fc64e8419so2159177e87.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 10 May 2025 05:52:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1746881542; x=1747486342; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OVfzBzTM5p7s501tty3I4y5w4ys0SbvKw8vscIbcKm0=;
+        b=KgPNgW9bi+ylD2w9yM4miVzUI1/DYIk6uMfDHyk6xi1B6Aa5HKgA+L0qHy5EkntKK4
+         QEdDXezCYJJhYB56bVi5rGckBiIPCYXfsEcnjH213D9ftuguIPdwqc3IJT/1/K5b2tPB
+         AM2xjiK9BsYswzlrrJz2h8hEtiVRAZCYsM7VCJj7qrak6Sx5NXIE4A3rJjBMKFFzfzbb
+         8/n5oeGSF9/g3FlbMBOC2ltHfboHbmVVZ4DIHNMgjbMZiNHcvWhJNZYXN86EbKszceqZ
+         MdA8IhtBI7ifzV7IsjBOmFaYRJZoJu8h05f5qYD58Un6AqPhtFlLC7NpmuaBKUhaktkZ
+         qnrA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1746881542; x=1747486342;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OVfzBzTM5p7s501tty3I4y5w4ys0SbvKw8vscIbcKm0=;
+        b=VSxy67GRUIauPAKNZToPMbZipRsFS8S/lc2b5fTBLX040v3KXOMGchKV/RYNiv6uiy
+         vLinCxaDE+uTTrddXbVWUUxlm1JVC3tarsq6neqqppVknu/4f57yZoWWHzSCflQybQOI
+         3eo55xNVt1b0aIgLsDqcdvCkecAuPWIg6bdZ6ioyECq2Amt4OWYWNRJwuGo6afbTQYea
+         qBdnt4vLNJZ4qDtx7nBKDQPyrkMfxLLRuUFGAivkT1lxTRazNgVO5L9T8xkOe4mAJhkZ
+         fw2o5RBypROlpMPDoLgTKLMoRM7vEpmuG6QFfeMMIM/McUKcwdVulgNofZ18wFMw5dL7
+         pBUA==
+X-Gm-Message-State: AOJu0YwTsNL5B5gVxCHxouh/Z+6IMte4EiIOOwMYjusWhNm9RYFg0paY
+	s2/uS7L7Nu6e1z8hPGxlXjxmIcHKaC6OlewwfVVJQqdx/cp9FjysGl7stccvCoxeB4Rdora99Fi
+	dTz6Sahu9NmLwDt3sxuLauamNvaQ=
+X-Gm-Gg: ASbGnctaCkGeuXjNwo4xuQdhwOBfovSImqJlFV53UoqHeNLnKv6OgUtcu5vLcqAq/C+
+	jC6LKxyBDVgON7RNrqfQoR5x5rHIMOeK6vxrxA5zCtNrpQ9u8BM4TFHV4S2I1645ToffXe0i/RM
+	e8h0cclvAXwehWNCZWqYVyOCfQ/BN2CO+v
+X-Google-Smtp-Source: AGHT+IGKcZoSggAewKC3+ChEFJzbYUhM40pzRhTK52HS8sJtLkzmVbpuzSn0yLK7qhRJOJm/xCTjtRrWHkoypGDaaXM=
+X-Received: by 2002:a05:6512:3127:b0:54f:c404:d273 with SMTP id
+ 2adb3069b0e04-54fc404d2cfmr2846728e87.26.1746881541538; Sat, 10 May 2025
+ 05:52:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250508142907.4871-1-fw@strlen.de>
+References: <CAJV_tgbKEHTn9T+AZSduNe4YdxQxe8aeriteuYzBmjUm9vNnyg@mail.gmail.com>
+ <aBpv9rBirbFkpWvB@calendula>
+In-Reply-To: <aBpv9rBirbFkpWvB@calendula>
+From: Monib <monib619@gmail.com>
+Date: Sat, 10 May 2025 17:52:08 +0500
+X-Gm-Features: AX0GCFtAg8rpjxzDRDGI1wI10BM0xQo9GcI0BegIQRjCrAgIUoQp7cMFwHJQbp8
+Message-ID: <CAJV_tgYPKU__gJpfgV+7uVzMGuDk-NE5GWTfBgr+2OOnyJtuqw@mail.gmail.com>
+Subject: Re: nftables netlink cache initialization failure with dnsmasq
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 08, 2025 at 04:29:04PM +0200, Florian Westphal wrote:
-> Whenever a new version adds udata support to an expression, then old
-> versions of nft will crash when trying to list such a ruleset generated
-> by a more recent version of nftables.
-> 
-> Fix this by falling back to 'type' format.
+Hi,
 
-Fixes: 6e48df5329ea ('src: add "typeof" build/parse/print support')
+Just wanted to let you know that I forwarded the issue and your
+insight to dnsmasq, and they have applied a fix for it.
+https://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2025q2/018168.htm=
+l
+Thank you so much for your help and for pointing me in the right direction!
 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Thanks,
+LoV432
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Thanks.
-
-> ---
->  src/netlink.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/netlink.c b/src/netlink.c
-> index 25ee3419772b..5825a68d03bc 100644
-> --- a/src/netlink.c
-> +++ b/src/netlink.c
-> @@ -913,7 +913,7 @@ static struct expr *set_make_key(const struct nftnl_udata *attr)
->  
->  	etype = nftnl_udata_get_u32(ud[NFTNL_UDATA_SET_TYPEOF_EXPR]);
->  	ops = expr_ops_by_type_u32(etype);
-> -	if (!ops)
-> +	if (!ops || !ops->parse_udata)
->  		return NULL;
->  
->  	expr = ops->parse_udata(ud[NFTNL_UDATA_SET_TYPEOF_DATA]);
-> -- 
-> 2.49.0
-> 
-> 
+On Wed, May 7, 2025 at 1:24=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.o=
+rg> wrote:
+>
+> Hi,
+>
+> On Tue, May 06, 2025 at 03:57:23PM +0500, Monib wrote:
+> > Hello,
+> >
+> > An OpenWRT user here who has been trying to set up split tunneling
+> > using https://docs.openwrt.melmac.net/pbr/, which uses dnsmasq and
+> > nftables, but I am having some issues.
+> >
+> > I am encountering an error =E2=80=94 "netlink: Error: cache initializat=
+ion
+> > failed: Protocol error" =E2=80=94 which seems to be produced by nftable=
+s. This
+> > error message was introduced in the following commit:
+> > https://git.netfilter.org/nftables/commit/?id=3Da2ddb38f7eb818312c50be7=
+8028bc35145c039ae.
+> > The commit message says: "cache initialization failure (which should
+> > not ever happen) is not reported to the user."
+>
+> This commit you refer above is exposing an existing issue.
+>
+> > The issue starts happening semi-randomly but seems to occur when too
+> > many DNS requests are made in a short period. Once it appears, the
+> > relevant nftables sets stop being populated by dnsmasq.
+> >
+> > Here is what I see in the logs:
+> >
+> > Sun Mar 23 17:52:24 2025 daemon.err dnsmasq[4]: nftset inet fw4
+> > pbr_wg_xray_4_dst_ip_cfg066ff5 netlink: Error: cache initialization
+> > failed: Protocol error
+>
+> EPROTO can be reported by libmnl with netlink sequence problems.
+>
+> Quickly browsing dnsmasq code, it looks like there is a pool of child
+> processes that are sharing a single nft_ctx handle to handle events,
+> two or more child processes are racing.
+>
+> I can expand libnftables(3) manpage to clarify this.
+>
+> Thanks for reporting.
