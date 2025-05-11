@@ -1,127 +1,101 @@
-Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.uniroma2.it (smtp.uniroma2.it [160.80.4.32])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C13B51F150B
-	for <netfilter-devel@vger.kernel.org>; Sat, 10 May 2025 12:52:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6CA139D;
+	Sun, 11 May 2025 01:35:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=160.80.4.32
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746881545; cv=none; b=lFVolwyVpU57R17nt42a9yFP5be4tY2dqLsoDam8dxAutG/BxCdvx7fukRAOkEpyzNuBpAg5cCj/9aZoYqhw9YzdQJo710flq7TjFBfksV/XU4SWRib3N8+W7JBC2UFY+NhjKuUvCadUuXsUOdbvAUwcw94EW6+hdMh63UE2pfA=
+	t=1746927323; cv=none; b=q0IR570MtpHurmn+0NU1Pv1uhtuWMcocxVLx5pIXV0HRmNstfoWI8YAebA5bRplyW4r+Lu6xfhHWbXDM8MPko4LzY6lOB59xu+WG67bTQc4dDOEBoiQRwVwoj2rkwqsFDpiP9+SOOB8QhED/rYQeFw5LC2MUzBKpEHiGtrdIb3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746881545; c=relaxed/simple;
-	bh=OVfzBzTM5p7s501tty3I4y5w4ys0SbvKw8vscIbcKm0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=T5uHyfT5dGBB3Vo0yRCYvS05sSXTOWYE7gveDXqiwcwsC55aVBN2HcCMVNGYhb+hD+MpcJfLNKU3VOQ9iXvRS9BSBbkGAWNknaoSsbVw7lqDCGogv6twgHeuejvMCF8KByH/V6efIgKOlMkPkwo03qmfejN3Ngvt8qqKcna7Bn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KgPNgW9b; arc=none smtp.client-ip=209.85.167.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1746927323; c=relaxed/simple;
+	bh=Rs6jpnBP7P1WnzGa9WTZgmxvwHQOZBb+PfH5fr7joxQ=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=kdGmg5kxMSjkMQDJsuoSVBNq6mGBXzpWUPoBAkcm9pljd8QQjez4esdgmabpJUtH95CFdXgcX30JLf5ik3/q8MN4zRfiyAwLGZVH854wuojqwh8MhYCEzbnAhdOs4BaKxVY1GFzYKFLgrtnU0LKSXC7p7Qr9a3n0zSmIj0uXYI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniroma2.it; spf=pass smtp.mailfrom=uniroma2.it; dkim=permerror (0-bit key) header.d=uniroma2.it header.i=@uniroma2.it header.b=fzfiC2Ct; dkim=pass (2048-bit key) header.d=uniroma2.it header.i=@uniroma2.it header.b=uPhnhPGs; arc=none smtp.client-ip=160.80.4.32
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=uniroma2.it
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=uniroma2.it
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KgPNgW9b"
-Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-54fc64e8419so2159177e87.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 May 2025 05:52:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1746881542; x=1747486342; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=OVfzBzTM5p7s501tty3I4y5w4ys0SbvKw8vscIbcKm0=;
-        b=KgPNgW9bi+ylD2w9yM4miVzUI1/DYIk6uMfDHyk6xi1B6Aa5HKgA+L0qHy5EkntKK4
-         QEdDXezCYJJhYB56bVi5rGckBiIPCYXfsEcnjH213D9ftuguIPdwqc3IJT/1/K5b2tPB
-         AM2xjiK9BsYswzlrrJz2h8hEtiVRAZCYsM7VCJj7qrak6Sx5NXIE4A3rJjBMKFFzfzbb
-         8/n5oeGSF9/g3FlbMBOC2ltHfboHbmVVZ4DIHNMgjbMZiNHcvWhJNZYXN86EbKszceqZ
-         MdA8IhtBI7ifzV7IsjBOmFaYRJZoJu8h05f5qYD58Un6AqPhtFlLC7NpmuaBKUhaktkZ
-         qnrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746881542; x=1747486342;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=OVfzBzTM5p7s501tty3I4y5w4ys0SbvKw8vscIbcKm0=;
-        b=VSxy67GRUIauPAKNZToPMbZipRsFS8S/lc2b5fTBLX040v3KXOMGchKV/RYNiv6uiy
-         vLinCxaDE+uTTrddXbVWUUxlm1JVC3tarsq6neqqppVknu/4f57yZoWWHzSCflQybQOI
-         3eo55xNVt1b0aIgLsDqcdvCkecAuPWIg6bdZ6ioyECq2Amt4OWYWNRJwuGo6afbTQYea
-         qBdnt4vLNJZ4qDtx7nBKDQPyrkMfxLLRuUFGAivkT1lxTRazNgVO5L9T8xkOe4mAJhkZ
-         fw2o5RBypROlpMPDoLgTKLMoRM7vEpmuG6QFfeMMIM/McUKcwdVulgNofZ18wFMw5dL7
-         pBUA==
-X-Gm-Message-State: AOJu0YwTsNL5B5gVxCHxouh/Z+6IMte4EiIOOwMYjusWhNm9RYFg0paY
-	s2/uS7L7Nu6e1z8hPGxlXjxmIcHKaC6OlewwfVVJQqdx/cp9FjysGl7stccvCoxeB4Rdora99Fi
-	dTz6Sahu9NmLwDt3sxuLauamNvaQ=
-X-Gm-Gg: ASbGnctaCkGeuXjNwo4xuQdhwOBfovSImqJlFV53UoqHeNLnKv6OgUtcu5vLcqAq/C+
-	jC6LKxyBDVgON7RNrqfQoR5x5rHIMOeK6vxrxA5zCtNrpQ9u8BM4TFHV4S2I1645ToffXe0i/RM
-	e8h0cclvAXwehWNCZWqYVyOCfQ/BN2CO+v
-X-Google-Smtp-Source: AGHT+IGKcZoSggAewKC3+ChEFJzbYUhM40pzRhTK52HS8sJtLkzmVbpuzSn0yLK7qhRJOJm/xCTjtRrWHkoypGDaaXM=
-X-Received: by 2002:a05:6512:3127:b0:54f:c404:d273 with SMTP id
- 2adb3069b0e04-54fc404d2cfmr2846728e87.26.1746881541538; Sat, 10 May 2025
- 05:52:21 -0700 (PDT)
+	dkim=permerror (0-bit key) header.d=uniroma2.it header.i=@uniroma2.it header.b="fzfiC2Ct";
+	dkim=pass (2048-bit key) header.d=uniroma2.it header.i=@uniroma2.it header.b="uPhnhPGs"
+Received: from smtpauth-2019-1.uniroma2.it (smtpauth.uniroma2.it [160.80.5.46])
+	by smtp-2015.uniroma2.it (8.14.4/8.14.4/Debian-8) with ESMTP id 54B1YXnR024460;
+	Sun, 11 May 2025 03:34:39 +0200
+Received: from lubuntu-18.04 (unknown [160.80.103.126])
+	by smtpauth-2019-1.uniroma2.it (Postfix) with ESMTPSA id A46BE12288E;
+	Sun, 11 May 2025 03:34:29 +0200 (CEST)
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=uniroma2.it;
+	s=ed201904; t=1746927270; h=from:from:sender:reply-to:subject:subject:date:date:
+	 message-id:message-id:to:to:cc:cc:mime-version:mime-version:
+	 content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ofX56hdJp36rarI7IXO8x0nRNPdV54JQ4yA2f+BTyKs=;
+	b=fzfiC2Ct4a6SnKma4CIVLfAL9UyPHOlQI0zaCEeLA1kMgavI/qkeINJIeteYJRtFGdmv/1
+	Ol0rQxix6EiAxTCw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=uniroma2.it; s=rsa201904;
+	t=1746927270; h=from:from:sender:reply-to:subject:subject:date:date:
+	 message-id:message-id:to:to:cc:cc:mime-version:mime-version:
+	 content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ofX56hdJp36rarI7IXO8x0nRNPdV54JQ4yA2f+BTyKs=;
+	b=uPhnhPGsWi/y8my6VOCZKHsvEmoF6BOkbNffNxISp2rxY0hP0DIqvUqytonz5mqQgA5rQu
+	p8QeCV7HwFSB10uD83gp9tu0KnMmaMZh/DSQ56RQ3eCIpAhLNII4zfeEZMxWZProA7oQKd
+	RSIbkjEmrSNKD+nGvDvJ2wnC9kWRXaURRebdw4seAAyj2L/qVKyiINxwjIF2elSzlj3SDL
+	kRKpGLBcbSPUZGS5JBQMv2FkztMzPW78CRHEnoQEnGpyg4gpVF2pQIQmNZy64WrivweW16
+	i9FeZUkpclGg/BtKaEO4UDPYUTnSGMMzH1Av0wXzXuNQRxLUHDs0MS1uEivtiQ==
+Date: Sun, 11 May 2025 03:34:29 +0200
+From: Andrea Mayer <andrea.mayer@uniroma2.it>
+To: Hangbin Liu <liuhangbin@gmail.com>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+        Eric
+ Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo
+ Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+        Shuah Khan
+ <shuah@kernel.org>, Matthieu Baerts <matttbe@kernel.org>,
+        Mat Martineau
+ <martineau@kernel.org>,
+        Geliang Tang <geliang@kernel.org>,
+        Pablo Neira
+ Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Paolo
+ Lungaroni <paolo.lungaroni@uniroma2.it>,
+        linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        Andrea Mayer <andrea.mayer@uniroma2.it>
+Subject: Re: [PATCHv2 net-next 4/6] selftests: net: use setup_ns for SRv6
+ tests and remove rp_filter configuration
+Message-Id: <20250511033429.aabb9627fac2d36a61c3d64d@uniroma2.it>
+In-Reply-To: <20250508081910.84216-5-liuhangbin@gmail.com>
+References: <20250508081910.84216-1-liuhangbin@gmail.com>
+	<20250508081910.84216-5-liuhangbin@gmail.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <CAJV_tgbKEHTn9T+AZSduNe4YdxQxe8aeriteuYzBmjUm9vNnyg@mail.gmail.com>
- <aBpv9rBirbFkpWvB@calendula>
-In-Reply-To: <aBpv9rBirbFkpWvB@calendula>
-From: Monib <monib619@gmail.com>
-Date: Sat, 10 May 2025 17:52:08 +0500
-X-Gm-Features: AX0GCFtAg8rpjxzDRDGI1wI10BM0xQo9GcI0BegIQRjCrAgIUoQp7cMFwHJQbp8
-Message-ID: <CAJV_tgYPKU__gJpfgV+7uVzMGuDk-NE5GWTfBgr+2OOnyJtuqw@mail.gmail.com>
-Subject: Re: nftables netlink cache initialization failure with dnsmasq
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-Virus-Scanned: clamav-milter 0.100.0 at smtp-2015
+X-Virus-Status: Clean
 
-Hi,
+On Thu,  8 May 2025 08:19:08 +0000
+Hangbin Liu <liuhangbin@gmail.com> wrote:
 
-Just wanted to let you know that I forwarded the issue and your
-insight to dnsmasq, and they have applied a fix for it.
-https://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2025q2/018168.htm=
-l
-Thank you so much for your help and for pointing me in the right direction!
+> Some SRv6 tests manually set up network namespaces and disable rp_filter.
+> Since the setup_ns library function already handles rp_filter configuration,
+> convert these SRv6 tests to use setup_ns and remove the redundant rp_filter
+> settings.
+> 
+> Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+
+Acked-by: Andrea Mayer <andrea.mayer@uniroma2.it>
+
+Changes look good to me.
 
 Thanks,
-LoV432
-
-On Wed, May 7, 2025 at 1:24=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.o=
-rg> wrote:
->
-> Hi,
->
-> On Tue, May 06, 2025 at 03:57:23PM +0500, Monib wrote:
-> > Hello,
-> >
-> > An OpenWRT user here who has been trying to set up split tunneling
-> > using https://docs.openwrt.melmac.net/pbr/, which uses dnsmasq and
-> > nftables, but I am having some issues.
-> >
-> > I am encountering an error =E2=80=94 "netlink: Error: cache initializat=
-ion
-> > failed: Protocol error" =E2=80=94 which seems to be produced by nftable=
-s. This
-> > error message was introduced in the following commit:
-> > https://git.netfilter.org/nftables/commit/?id=3Da2ddb38f7eb818312c50be7=
-8028bc35145c039ae.
-> > The commit message says: "cache initialization failure (which should
-> > not ever happen) is not reported to the user."
->
-> This commit you refer above is exposing an existing issue.
->
-> > The issue starts happening semi-randomly but seems to occur when too
-> > many DNS requests are made in a short period. Once it appears, the
-> > relevant nftables sets stop being populated by dnsmasq.
-> >
-> > Here is what I see in the logs:
-> >
-> > Sun Mar 23 17:52:24 2025 daemon.err dnsmasq[4]: nftset inet fw4
-> > pbr_wg_xray_4_dst_ip_cfg066ff5 netlink: Error: cache initialization
-> > failed: Protocol error
->
-> EPROTO can be reported by libmnl with netlink sequence problems.
->
-> Quickly browsing dnsmasq code, it looks like there is a pool of child
-> processes that are sharing a single nft_ctx handle to handle events,
-> two or more child processes are racing.
->
-> I can expand libnftables(3) manpage to clarify this.
->
-> Thanks for reporting.
+Andrea
