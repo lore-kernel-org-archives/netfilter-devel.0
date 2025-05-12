@@ -1,32 +1,32 @@
-Received: from mx0a-0064b401.pphosted.com (mx0a-0064b401.pphosted.com [205.220.166.238])
+Received: from mx0b-0064b401.pphosted.com (mx0b-0064b401.pphosted.com [205.220.178.238])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 785141A285;
-	Mon, 12 May 2025 03:03:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.166.238
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAACBC8DC;
+	Mon, 12 May 2025 03:09:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.178.238
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747019011; cv=none; b=ZvoIzbq5OVG8lINmn7SIw7g1gmV0g+iy9sDnu/NWzb+YoXAFls17+DmET6q15saP2hDUR3rLy9aDgdvD91/sWHiqJ14pIEtKfYH41lgHiO80Y42l+imyizM8mBhTbwmFtd6tkH4e3KKdS8Wx5/c3egWtAQ6ETl1g5UpMXwYp+Ig=
+	t=1747019382; cv=none; b=TY98l9L50OkGjHrlc3QxRURs5uUKq4rhbOQ/nu26eBh2mZF/QrVtt41zIouk8yuKnv2clCUi57bFcwaDUfd+eNSvl4S7eBmHF2xcGFF8s4ZbcojVSbt1tCLDtGfH2AWnFsgJEmSVaXVabq+kqABNwUtusepWn2AJwp8B/9BRdaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747019011; c=relaxed/simple;
-	bh=Cm4FKWjXZBEEKUsvPkYE1m13P2ESiRwCZ2EaOSh08m8=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=KfQa4pJToVs4+FhEQCUM5Zp6DorHTRZBJwUJbfSjN1JdLvppGwGQTRBCIHxQbfNzQhE54LSb4JKE7mZJN8YqSW5ghqmp2y6UNGH8rlklSFdc4WVfqZZWoHjZkNxuRMMUzFEFFU5thGM+ChJpYEykFCznkFSdSZM4ODigYmTgB8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.166.238
+	s=arc-20240116; t=1747019382; c=relaxed/simple;
+	bh=1pcwk6KV+B77NKatBp76l4mAmdog8PFZ8aV0zAeB3mE=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=lOD6ls1dSbFQPrKiK4R55syj4O5MoP+tGHy/iBwn0dHNpq0pP02Lp5NwNfhI8HNzWzzx27cBsFVNlyvJLwDE1bmCtFv0TjEzos5XJhAW12IatHkP3AHAsfZQjCFfrgphkFM+A0pA21x8/69oF5uDzv5M6tDHStXFW0nqCKdyMco=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.178.238
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
-Received: from pps.filterd (m0250810.ppops.net [127.0.0.1])
-	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 54C2eXqW021504;
-	Sun, 11 May 2025 20:02:58 -0700
+Received: from pps.filterd (m0250812.ppops.net [127.0.0.1])
+	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 54C2tjg3010202;
+	Mon, 12 May 2025 03:09:20 GMT
 Received: from ala-exchng02.corp.ad.wrs.com (ala-exchng02.wrs.com [147.11.82.254])
-	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 46j233h4ve-1
+	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 46hws89926-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Sun, 11 May 2025 20:02:58 -0700 (PDT)
+	Mon, 12 May 2025 03:09:20 +0000 (GMT)
 Received: from ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) by
  ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.43; Sun, 11 May 2025 20:02:57 -0700
+ 15.1.2507.43; Sun, 11 May 2025 20:09:18 -0700
 Received: from pek-lpg-core1.wrs.com (147.11.136.210) by
  ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server id
- 15.1.2507.43 via Frontend Transport; Sun, 11 May 2025 20:02:53 -0700
+ 15.1.2507.43 via Frontend Transport; Sun, 11 May 2025 20:09:15 -0700
 From: <jianqi.ren.cn@windriver.com>
 To: <gregkh@linuxfoundation.org>, <stable@vger.kernel.org>
 CC: <patches@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
@@ -35,9 +35,9 @@ CC: <patches@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
         <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
         <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
         <netdev@vger.kernel.org>
-Subject: [PATCH 6.1.y] netfilter: nf_tables: fix memleak in map from abort path
-Date: Mon, 12 May 2025 11:02:52 +0800
-Message-ID: <20250512030252.3329782-1-jianqi.ren.cn@windriver.com>
+Subject: [PATCH 5.15.y] netfilter: nf_tables: fix memleak in map from abort path
+Date: Mon, 12 May 2025 11:09:14 +0800
+Message-ID: <20250512030914.3330393-1-jianqi.ren.cn@windriver.com>
 X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -47,23 +47,23 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Authority-Analysis: v=2.4 cv=EojSrTcA c=1 sm=1 tr=0 ts=682164e2 cx=c_pps a=K4BcnWQioVPsTJd46EJO2w==:117 a=K4BcnWQioVPsTJd46EJO2w==:17 a=dt9VzEwgFbYA:10 a=3HDBlxybAAAA:8 a=t7CeM3EgAAAA:8 a=JvIdB4Z2PfN4shd601kA:9 a=laEoCiVfU_Unz3mSdgXN:22
+X-Proofpoint-ORIG-GUID: kwxk-6QC03G-YDb6iF6cWIHnjgRpF7mB
+X-Proofpoint-GUID: kwxk-6QC03G-YDb6iF6cWIHnjgRpF7mB
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNTEyMDAzMSBTYWx0ZWRfXz9h0c1Jq+9vo YyZezL5RlkZBtOz3d3PBgasPp9x+kEP7ebpQgLlASulgIUn4wOFeS5/74vv5DgbNDZCDbX2Qqre zhp+AZiy1C3NBWURLlmjXVk2XKKg16QKkkZwABe2bLPetDJqdUQoK4MdDaB6KQZZtESA+weAv6f
+ sGQN+uRKNS8EfsJlmZtCAR28Qqs8PiCYUWPlVg8YQy75Fws+eKF07Millyq9IUQ/5ejpEcleat2 0ymC11EyNuc1E9oMPcLiOGnsZUf1DHYtOX3Ul+SEBWueKIGNHoZ8/l5ElE5vdRcGJdcmCGjL6Su j9ilbmewXaG55NwDgGZYVM32mkJNnffkUnGujChKAaxo3fmx7cebHaEKJLFL2z0zro4SycmO5Jn
+ sjxa8ENjgEozigxjPr4VIEv+UOFTKaKAhA7lotRQODRZAPd4GAv54u3mdeRo3wamJR+BLcG3
+X-Authority-Analysis: v=2.4 cv=Q+HS452a c=1 sm=1 tr=0 ts=68216660 cx=c_pps a=K4BcnWQioVPsTJd46EJO2w==:117 a=K4BcnWQioVPsTJd46EJO2w==:17 a=dt9VzEwgFbYA:10 a=3HDBlxybAAAA:8 a=t7CeM3EgAAAA:8 a=JvIdB4Z2PfN4shd601kA:9 a=laEoCiVfU_Unz3mSdgXN:22
  a=FdTzh2GWekK77mhwV6Dw:22
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNTEyMDAzMCBTYWx0ZWRfX4Ekq0dv7Cywu z5sXRleEKek6QFiaiDoC0eiGIFqE6JPLgCc1vnpetrJk9hJE1eC7wFdtPSQSJEhD3y4kOfUTY3n /Hoo95pb/YuP2FGWZxTP6d66t5vxzbML5EdXq90Ga6WYb9SPyN22mqaYEq0UlVz7/KicsUVxtSe
- V3hZrudDR+VGTO0KMbg0FwbxQqKgGMNVDmEJa0ibzvjzZHtaZ/6FWvIymfXytqIxmKstjIedhh8 XOe9bv/TYTIi1Kc8sWywWDR/iGUWdXCXaWpYW2QB04WzNpJuBnQW6cfKKmvHaCX9U0Hvj60qCqB 0coPVhQ/uQI+a1uNnAqTRKU8si8JLyUcHAjBwwoOXnFGeS+pDqmdRz5R8HNH3MZ0FrqLzlAtkSY
- NXbN+WYWvekrNslSrjOPmxXjtIJZhKicMs/e6dCAhUBpkNQk3/+YY2C0aMNKxfUpkKQ+CCBY
-X-Proofpoint-GUID: 4MpkbcK2UMrwMzWBlHEQtmEpnCYcT2TP
-X-Proofpoint-ORIG-GUID: 4MpkbcK2UMrwMzWBlHEQtmEpnCYcT2TP
 X-Sensitive_Customer_Information: Yes
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.0.736,FMLib:17.12.80.40
  definitions=2025-05-12_01,2025-05-09_01,2025-02-21_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- phishscore=0 priorityscore=1501 mlxlogscore=999 adultscore=0
- impostorscore=0 clxscore=1015 malwarescore=0 mlxscore=0 spamscore=0
- bulkscore=0 suspectscore=0 classifier=spam authscore=0 authtc=n/a authcc=
- route=outbound adjust=0 reason=mlx scancount=1 engine=8.21.0-2504070000
- definitions=main-2505120030
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ phishscore=0 mlxlogscore=999 bulkscore=0 lowpriorityscore=0 spamscore=0
+ clxscore=1015 suspectscore=0 adultscore=0 malwarescore=0 impostorscore=0
+ mlxscore=0 classifier=spam authscore=0 authtc=n/a authcc= route=outbound
+ adjust=0 reason=mlx scancount=1 engine=8.21.0-2504070000
+ definitions=main-2505120031
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -126,10 +126,10 @@ Verified the build test
  1 file changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 656c4fb76773..1d4d77d21d61 100644
+index 07fdd5f18f3c..211d67dc8e28 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6772,6 +6772,16 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
+@@ -6650,6 +6650,16 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
  	}
  }
  
@@ -146,7 +146,7 @@ index 656c4fb76773..1d4d77d21d61 100644
  static void nft_setelem_data_activate(const struct net *net,
  				      const struct nft_set *set,
  				      struct nft_set_elem *elem)
-@@ -10115,8 +10125,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+@@ -9881,8 +9891,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
  		case NFT_MSG_DELSETELEM:
  			te = (struct nft_trans_elem *)trans->data;
  
