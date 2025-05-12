@@ -1,78 +1,176 @@
-Received: from zg8tmja5ljk3lje4ms43mwaa.icoremail.net (zg8tmja5ljk3lje4ms43mwaa.icoremail.net [209.97.181.73])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CB891248F51
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 May 2025 07:10:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.97.181.73
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6480825B666;
+	Mon, 12 May 2025 09:33:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747033861; cv=none; b=cnxPUlKF+1BqWR3Aue5hx78fSAMNYWc42o1QGa5A1cyNv/af2xAtUo1iKyQi/IlTHj6oDNh9q0aPFl3ocqeprDQnXJW08QjfVMeSlLdSjY3L/CXdIOD29p3yKhfvbCba+Ezg3OCvtwwVgyHUdCrqr0DT0F7X1+Pin7ttMxZweUY=
+	t=1747042400; cv=none; b=UjYKw1shw3OeyxgefsZaE2G2JxyT3mrZIqV8ePzlbpIy5ALjgaxuxgpERUZxtlRDeZetAsvJEVwoIAJo+HTA+ct8jTktVQ9qHbo6Ai6lOPWMvXYIUPUwNnBMp32vr/elkpvItdtpQNPsBJtzkHPx3U3YSzX1W3GrWGDSFEkcrow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747033861; c=relaxed/simple;
-	bh=qlStNBAjNQwR86rjwxuqA+iJxR3dlpELZfUW4Lba5OA=;
-	h=Date:From:To:Subject:Content-Type:MIME-Version:Message-ID; b=JgVgZ5LC/45N7zs86H14jb9nZlevK8sJPezNVRaA/LQ1RjzZcu8c18QcVJXsY1w6QdEO34yfA9R6bVpVfKZ6KDag9Leh5n+S8kNfktphKbqdxs2dfwzCVKtKeH4bSDlLmEsIqB5CTg2q9noP+8+NrAmZ81Aoc4k4Cdh6JGEbBYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn; spf=pass smtp.mailfrom=zju.edu.cn; arc=none smtp.client-ip=209.97.181.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
-Received: from zju.edu.cn (unknown [10.190.64.35])
-	by mtasvr (Coremail) with SMTP id _____wCnFiz3niFo+1IsAQ--.110S3;
-	Mon, 12 May 2025 15:10:47 +0800 (CST)
-Received: from 22321077$zju.edu.cn ( [10.190.64.35] ) by
- ajax-webmail-mail-app3 (Coremail) ; Mon, 12 May 2025 15:10:47 +0800
- (GMT+08:00)
-Date: Mon, 12 May 2025 15:10:47 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From: =?UTF-8?B?5ZGo5oG66Iiq?= <22321077@zju.edu.cn>
-To: netfilter-devel@vger.kernel.org
-Subject: Fix resource leak in iptables/xtables-restore.c
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2024.2-cmXT6 build
- 20241206(f7804f05) Copyright (c) 2002-2025 www.mailtech.cn zju.edu.cn
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+	s=arc-20240116; t=1747042400; c=relaxed/simple;
+	bh=M19xGDONn5VgKHmn0/EDMvQGS9t5Eg3pnc6Yra/cyx4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=L2oOOqCTbHTttuPkhgmRYteUDLNIOwCX0SgHKCxLccZ1OYi4c31oxLesZjiK3Jlp38SzCrgYOiB/T9E72P3HQVqNpKP0TapnsE5vsQNxm71sxxfYbQbGZ92HxLXB5MbHAVlnDVOBdLSr2jj97dTi93THbQGG8obeNGmf2dtQXIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=luNasOy1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OEB60FWz; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="luNasOy1";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OEB60FWz"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 74E5860277; Mon, 12 May 2025 11:33:10 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747042390;
+	bh=m349sq8Swdk7znjJN0xDNc3cb1P/jVq2JLrl/2lX6Vw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=luNasOy1FXWHDdpuVTmPLgkmjSJp4bLI/YOatfb0E4jH4FqGtUySpCSFG85zw5et8
+	 l5GBlBPFCzGK5JuyKZVwiSSavZxyd/goztB0KM6JmNe0i/aAhMCzEi0maNj2mMrCz8
+	 msYSiINLcP6psE6dvuiCaQrbULOfjRaOnZnmg/Qd2kPMoUDuu7XNeTJYJR7MkDZkjh
+	 pHv4cc/hERIhhZnh33g+aXm6D7VycQbYRZOsV+iROjepfoZ+Ejhe0mohLoV9x4iSy2
+	 jcDZU8oPrEGnWfkdQyapi8Ngm9/F1nHQ9ood3kCR4HOQVMVIF/umM6PjeN8qGNvJ1L
+	 /DWadqth6/F1A==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8AD1660276;
+	Mon, 12 May 2025 11:33:05 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747042385;
+	bh=m349sq8Swdk7znjJN0xDNc3cb1P/jVq2JLrl/2lX6Vw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=OEB60FWz4/aa8eXmlFuPyZUqfushGbITQ9ascBV/pNsaTzjv59qpckbWLzTwJnVOQ
+	 hjGzGSTj5Bq4TJ3IjP0lB1TPRWbHkmgUV51NM32Ft1UANFtVIUKOocmG9APGb65fbM
+	 YPh+U0tGU7pNpJoKr2Q/MCTsxcHDTeQauK6u9xUwIt0mG0zciz63BUkt1eY6TqnB/o
+	 cf6LRh/vDE83MvupymKP8HeSyjHFopBUs9dMMunU/94FDQdQV+YVdWmT+i7T+VxnWP
+	 iiVX9+BDt9MPIZIETjWYD4dcbx8zQTPe6ozmJ30MJ3F3miUv4f0evPTTLscNHRddTv
+	 GSRn7sHQ92Uig==
+Date: Mon, 12 May 2025 11:33:02 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: jianqi.ren.cn@windriver.com
+Cc: gregkh@linuxfoundation.org, stable@vger.kernel.org,
+	patches@lists.linux.dev, linux-kernel@vger.kernel.org,
+	kadlec@netfilter.org, fw@strlen.de, davem@davemloft.net,
+	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH 6.1.y] netfilter: nf_tables: fix memleak in map from
+ abort path
+Message-ID: <aCHATgAjsQS2EMIx@calendula>
+References: <20250512030252.3329782-1-jianqi.ren.cn@windriver.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <87aa5c8.77e3.196c354f80c.Coremail.22321077@zju.edu.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:zS_KCgBHKF_3niFoky5LAA--.5973W
-X-CM-SenderInfo: qsstjiaqxxq6lmxovvfxof0/1tbiAgQEA2ggsAkvKAABs2
-X-CM-DELIVERINFO: =?B?x88tlwXKKxbFmtjJiESix3B1w3st9zawssEjFy5Mij1sbnSF+UqcrL28bbYbthgFzE
-	NeYzeBpJYe9MZ8RKqD8bOEp8BREu01zq+JEdFtAi1DGyA6K5ZnVOnxZWKZVP0ktpB60ibg
-	zd4OpAd0b0J7c6rLudyXGTgA0vrFJz2XgcJWL7cremfLrPUHdGZNeoSD2NFj3Q==
-X-Coremail-Antispam: 1Uk129KBj9xXoW7Wr1kuw17ur4DXw4rCF1Utwc_yoWxtrg_Gw
-	12qFyDWFy7Jw1UKFWDtF4kAFy7Ca4rJw48Jr13tF45t3y0q3yUKFWUWF1Fva17GF1ayrW5
-	GanrJrsxuw43ZosvyTuYvTs0mTUanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUj1kv1TuYvT
-	s0mT0YCTnIWjqI5I8CrVACY4xI64kE6c02F40Ex7xfYxn0WfASr-VFAUDa7-sFnT9fnUUI
-	cSsGvfJTRUUU11kYFVCjjxCrM7AC8VAFwI0_Jr0_Gr1l1xkIjI8I6I8E6xAIw20EY4v20x
-	vaj40_Wr0E3s1l1IIY67AEw4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxS
-	w2x7M28EF7xvwVC0I7IYx2IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxV
-	W8Jr0_Cr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v2
-	6rxl6s0DM2vYz4IE04k24VAvwVAKI4IrM2AIxVAIcxkEcVAq07x20xvEncxIr21l57IF6x
-	kI12xvs2x26I8E6xACxx1l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v2
-	6r106r15McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2
-	Ij64vIr41lF7xvr2IYc2Ij64vIr40E4x8a64kEw24lFcxC0VAYjxAxZF0Ew4CEw7xC0wAC
-	Y4xI67k04243AVC20s07M4xvF2IEb7IF0Fy26I8I3I0EFcxC0VAYjxAxZF0Ew4CEw7xC0V
-	CF72vEw4AK0VC2zVAF1VAY17CE14v26r1j6r15M4xvF2IEb7IF0Fy26I8I3I0E4x8a64kE
-	w2IEx4CE17CEb7AF67AKxVWUJVWUXwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbV
-	WUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF
-	67kF1VAFwI0_Jr0_JrylIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42
-	IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF
-	0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Jr0_Gr1l6VACY4xI67
-	k04243AbIYCTnIWIevJa73UjIFyTuYvjxUsuc_DUUUU
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250512030252.3329782-1-jianqi.ren.cn@windriver.com>
 
-VGhlIGZ1bmN0aW9uIHh0YWJsZXNfcmVzdG9yZV9tYWluIG9wZW5zIGEgZmlsZSBzdHJlYW0gcC5p
-biBidXQgZmFpbHMgdG8gY2xvc2UgaXQgYmVmb3JlIHJldHVybmluZy4gVGhpcyBsZWFkcyB0byBh
-IHJlc291cmNlIGxlYWsgYXMgdGhlIGZpbGUgZGVzY3JpcHRvciByZW1haW5zIG9wZW4uCgoKU2ln
-bmVkLW9mZi1ieTogS2FpaGFuZyBaaG91IDwyMjMyMTA3N0B6anUuZWR1LmNuPgoKLS0tCiBpcHRh
-Ymxlcy94dGFibGVzLXJlc3RvcmUuYyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9u
-KCspCgoKZGlmZiAtLWdpdCBhL2lwdGFibGVzL3h0YWJsZXMtcmVzdG9yZS5jIGIvaXB0YWJsZXMv
-eHRhYmxlcy1yZXN0b3JlLmMKCmluZGV4IGU3ODAyYjllLi5mMDlhYjdlZSAxMDA2NDQKLS0tIGEv
-aXB0YWJsZXMveHRhYmxlcy1yZXN0b3JlLmMKKysrIGIvaXB0YWJsZXMveHRhYmxlcy1yZXN0b3Jl
-LmMKQEAgLTM4MSw2ICszODEsNyBAQCB4dGFibGVzX3Jlc3RvcmVfbWFpbihpbnQgZmFtaWx5LCBj
-b25zdCBjaGFyICpwcm9nbmFtZSwgaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSkKICAgICAgICAgICAg
-ICAgIGJyZWFrOwogICAgICAgIGRlZmF1bHQ6CiAgICAgICAgICAgICAgICBmcHJpbnRmKHN0ZGVy
-ciwgIlVua25vd24gZmFtaWx5ICVkXG4iLCBmYW1pbHkpOworICAgICAgICAgICAgICAgZmNsb3Nl
-KHAuaW4pOwogICAgICAgICAgICAgICAgcmV0dXJuIDE7CiAgICAgICAgfQoKCi0tCgoyLjQzLjAK
-Cg==
+Hi,
 
+NACK.
+
+This patch requires:
+
+  e79b47a8615d ("netfilter: nf_tables: restore set elements when delete set fails")
+
+which you have skipped for some reason.
+
+On Mon, May 12, 2025 at 11:02:52AM +0800, jianqi.ren.cn@windriver.com wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [ Upstream commit 86a1471d7cde792941109b93b558b5dc078b9ee9 ]
+> 
+> The delete set command does not rely on the transaction object for
+> element removal, therefore, a combination of delete element + delete set
+> from the abort path could result in restoring twice the refcount of the
+> mapping.
+> 
+> Check for inactive element in the next generation for the delete element
+> command in the abort path, skip restoring state if next generation bit
+> has been already cleared. This is similar to the activate logic using
+> the set walk iterator.
+> 
+> [ 6170.286929] ------------[ cut here ]------------
+> [ 6170.286939] WARNING: CPU: 6 PID: 790302 at net/netfilter/nf_tables_api.c:2086 nf_tables_chain_destroy+0x1f7/0x220 [nf_tables]
+> [ 6170.287071] Modules linked in: [...]
+> [ 6170.287633] CPU: 6 PID: 790302 Comm: kworker/6:2 Not tainted 6.9.0-rc3+ #365
+> [ 6170.287768] RIP: 0010:nf_tables_chain_destroy+0x1f7/0x220 [nf_tables]
+> [ 6170.287886] Code: df 48 8d 7d 58 e8 69 2e 3b df 48 8b 7d 58 e8 80 1b 37 df 48 8d 7d 68 e8 57 2e 3b df 48 8b 7d 68 e8 6e 1b 37 df 48 89 ef eb c4 <0f> 0b 48 83 c4 08 5b 5d 41 5c 41 5d 41 5e 41 5f c3 cc cc cc cc 0f
+> [ 6170.287895] RSP: 0018:ffff888134b8fd08 EFLAGS: 00010202
+> [ 6170.287904] RAX: 0000000000000001 RBX: ffff888125bffb28 RCX: dffffc0000000000
+> [ 6170.287912] RDX: 0000000000000003 RSI: ffffffffa20298ab RDI: ffff88811ebe4750
+> [ 6170.287919] RBP: ffff88811ebe4700 R08: ffff88838e812650 R09: fffffbfff0623a55
+> [ 6170.287926] R10: ffffffff8311d2af R11: 0000000000000001 R12: ffff888125bffb10
+> [ 6170.287933] R13: ffff888125bffb10 R14: dead000000000122 R15: dead000000000100
+> [ 6170.287940] FS:  0000000000000000(0000) GS:ffff888390b00000(0000) knlGS:0000000000000000
+> [ 6170.287948] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 6170.287955] CR2: 00007fd31fc00710 CR3: 0000000133f60004 CR4: 00000000001706f0
+> [ 6170.287962] Call Trace:
+> [ 6170.287967]  <TASK>
+> [ 6170.287973]  ? __warn+0x9f/0x1a0
+> [ 6170.287986]  ? nf_tables_chain_destroy+0x1f7/0x220 [nf_tables]
+> [ 6170.288092]  ? report_bug+0x1b1/0x1e0
+> [ 6170.287986]  ? nf_tables_chain_destroy+0x1f7/0x220 [nf_tables]
+> [ 6170.288092]  ? report_bug+0x1b1/0x1e0
+> [ 6170.288104]  ? handle_bug+0x3c/0x70
+> [ 6170.288112]  ? exc_invalid_op+0x17/0x40
+> [ 6170.288120]  ? asm_exc_invalid_op+0x1a/0x20
+> [ 6170.288132]  ? nf_tables_chain_destroy+0x2b/0x220 [nf_tables]
+> [ 6170.288243]  ? nf_tables_chain_destroy+0x1f7/0x220 [nf_tables]
+> [ 6170.288366]  ? nf_tables_chain_destroy+0x2b/0x220 [nf_tables]
+> [ 6170.288483]  nf_tables_trans_destroy_work+0x588/0x590 [nf_tables]
+> 
+> Fixes: 591054469b3e ("netfilter: nf_tables: revisit chain/object refcounting from elements")
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> [fixed conflicts due to missing commits
+>  0e1ea651c9717ddcd8e0648d8468477a31867b0a ("netfilter: nf_tables: shrink
+>  memory consumption of set elements") and
+>  9dad402b89e81a0516bad5e0ac009b7a0a80898f ("netfilter: nf_tables: expose
+>  opaque set element as struct nft_elem_priv") so we pass the correct types
+>  and values to nft_setelem_active_next() + nft_set_elem_ext()]
+> Signed-off-by: Jianqi Ren <jianqi.ren.cn@windriver.com>
+> Signed-off-by: He Zhe <zhe.he@windriver.com>
+> ---
+> Verified the build test
+> ---
+>  net/netfilter/nf_tables_api.c | 16 ++++++++++++++--
+>  1 file changed, 14 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 656c4fb76773..1d4d77d21d61 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -6772,6 +6772,16 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
+>  	}
+>  }
+>  
+> +static int nft_setelem_active_next(const struct net *net,
+> +				   const struct nft_set *set,
+> +				   struct nft_set_elem *elem)
+> +{
+> +	const struct nft_set_ext *ext = nft_set_elem_ext(set, elem->priv);
+> +	u8 genmask = nft_genmask_next(net);
+> +
+> +	return nft_set_elem_active(ext, genmask);
+> +}
+> +
+>  static void nft_setelem_data_activate(const struct net *net,
+>  				      const struct nft_set *set,
+>  				      struct nft_set_elem *elem)
+> @@ -10115,8 +10125,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+>  		case NFT_MSG_DELSETELEM:
+>  			te = (struct nft_trans_elem *)trans->data;
+>  
+> -			nft_setelem_data_activate(net, te->set, &te->elem);
+> -			nft_setelem_activate(net, te->set, &te->elem);
+> +			if (!nft_setelem_active_next(net, te->set, &te->elem)) {
+> +				nft_setelem_data_activate(net, te->set, &te->elem);
+> +				nft_setelem_activate(net, te->set, &te->elem);
+> +			}
+>  			if (!nft_setelem_is_catchall(te->set, &te->elem))
+>  				te->set->ndeact--;
+>  
+> -- 
+> 2.34.1
+> 
