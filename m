@@ -1,116 +1,202 @@
-Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [52.229.168.213])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5006C22EE5
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2025 05:20:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.229.168.213
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E2B226AFB
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2025 07:41:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747113624; cv=none; b=hU7osKorIuC780E6qmHQIZZFbaAHPGstiLbhhxUwj6SnIyD9bcpNzmnnspTF7/UWn4po6sU+acqKJSGeJZ245HoHbh8B4gW8mStuAhVcs8lSX6fsi80JuNEbMGjHNOmHZjt3rrOWbjq3qpBqoWftcojj/EQXPdzJL2YhEh95WNs=
+	t=1747122114; cv=none; b=NsB41fUwGxB87/Dnpo8u73vOU4pockX6Hek8GrqZzqxZtqkfXnY37+vHDIm8NUvVOybS4GUFXiwL7RYdURlBozdCX2YvB6QEvTzoDsNSYg4h8zHgbLiomYzZNMGXJchDTE/Z2qrwlGtrq3JsUlG9svboXuscJHGN2K6/WSFwlwc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747113624; c=relaxed/simple;
-	bh=vlKLquLczj0LDh+qUZtoKkcAJNV1UKoEcDN9Jjype9I=;
-	h=Date:From:To:Subject:In-Reply-To:References:Content-Type:
-	 MIME-Version:Message-ID; b=o0sq+xU6bJsip7afv4LTNew7cmouIPbDu8VnCsjKk2+s4JCULTM/d9g5MYPvobYY09iklTGd4gVmkEZPBgl4frEw86E+phn59lo55Hbqt/u74HN+iddh8qjoGPIq612PJbcwIJezWacmnh9L2pmsMRZvCx4jev0FLjpnc7hDHrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn; spf=pass smtp.mailfrom=zju.edu.cn; arc=none smtp.client-ip=52.229.168.213
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
-Received: from zju.edu.cn (unknown [10.190.64.224])
-	by mtasvr (Coremail) with SMTP id _____wDXNziF1iJoACBDAQ--.2438S3;
-	Tue, 13 May 2025 13:20:05 +0800 (CST)
-Received: from 22321077$zju.edu.cn ( [10.190.64.224] ) by
- ajax-webmail-mail-app3 (Coremail) ; Tue, 13 May 2025 13:20:05 +0800
- (GMT+08:00)
-Date: Tue, 13 May 2025 13:20:05 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From: =?UTF-8?B?5ZGo5oG66Iiq?= <22321077@zju.edu.cn>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: Re: Fix resource leak in iptables/xtables-restore.c
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2024.2-cmXT6 build
- 20241206(f7804f05) Copyright (c) 2002-2025 www.mailtech.cn zju.edu.cn
-In-Reply-To: <aCHMICSGU2LT7SS-@orbyte.nwl.cc>
-References: <87aa5c8.77e3.196c354f80c.Coremail.22321077@zju.edu.cn>
- <aCHMICSGU2LT7SS-@orbyte.nwl.cc>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+	s=arc-20240116; t=1747122114; c=relaxed/simple;
+	bh=r50UNiOEJKnQWLi20xXahfSoCy7e6teXlwPaDBArhE8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jM6Mfae6HFOGoOg5/QRDZhEAZiFpQWJqntqvpmUNVHk4Xg3HtTSXqSWDuOaeuSHi5OGGXcoPf/XnGM5d4V5IopyGhpVwWhvt8Te98WT1o38odA/xMF63LvVHoxDDAKdpjkUanIgvYpa5erxxcHLPcS8lB74yxNl5aYQvRwJ5+aY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=mO6QJO7d; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="mO6QJO7d"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=zAvzqlLb7lzBordY6Dup0jGeb86bK7rHcK0ClPhz8DQ=; b=mO6QJO7d+chWJWoWQCSNzXHyrK
+	RWwVnSX5dwI3ivtesBJRbIK+FkRlJ4nRKjUHZ3fTqoR1JGHwEoRY4QXOKZjq7xMRvyZWRi827XL7M
+	fEYJJEGS+fB8KlysmfpBwCaye6Zb/eJu2REnh3Wxm2TKP8Y5FLVq0KY2I8V0TuJlnlNorZG5+plJ8
+	gp2RA92yhNjA5m41Gk3NoEntDEnpQSdK5KERjZfmSzq6S1VgT93MmEtzW9vx2gygwTnS6GL31/Rcl
+	yEssxI/KvzplKuO9hLWhVB0ppdGJaAxAAmG+jCDCPQ2egT4LiHvafxL6RapXdjHpVdqdm56gahym7
+	Cb/HHPSw==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uEkGq-000000006J9-44Da;
+	Tue, 13 May 2025 09:41:49 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>,
+	Dan Winship <danwinship@redhat.com>
+Subject: [nft RFC] table: Embed creating nft version into userdata
+Date: Mon, 12 May 2025 23:03:21 +0200
+Message-ID: <20250512210321.29032-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-ID: <63b7ba31.88a5.196c815f8b5.Coremail.22321077@zju.edu.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:zS_KCgC3qTyF1iJoEKAYAA--.1849W
-X-CM-SenderInfo: qsstjiaqxxq6lmxovvfxof0/1tbiBgEFA2giAhQeqwADsr
-X-CM-DELIVERINFO: =?B?BbQfsQXKKxbFmtjJiESix3B1w3st9zawssEjFy5Mij1sbnSF+UqcrL28bbYbthgFzE
-	NeY7Kqmwqq98oKYO6QOeRPBG4cy3ZTrsWl2nlB3Q8jg3AqdJpQFaePFSVixlH5oFx8vS14
-	3JUHd09OBlQ/gBxMFHeDUVmLASgCeHCTDkcgp40t7Ke058gCoiBUUDasSV+9/w==
-X-Coremail-Antispam: 1Uk129KBj93XoW7uFW8ZF1ftF1Duw4UAFW5urX_yoW5JrWkpF
-	sxAa47trW3JryDJ3Wxtw17KFyayFsYqr1kGr1jyw1xXws8urykGw4fGrWfWas7ArW8Za4F
-	vr4Ikr10vFWkZFXCm3ZEXasCq-sJn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7KY7ZEXa
-	sCq-sGcSsGvfJ3Ic02F40EFcxC0VAKzVAqx4xG6I80ebIjqfuFe4nvWSU5nxnvy29KBjDU
-	0xBIdaVrnRJUUUJKb4IE77IF4wAFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2
-	IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48v
-	e4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI
-	0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AK
-	xVW0oVCq3wAac4AC62xK8xCEY4vEwIxC4wAS0I0E0xvYzxvE52x082IY62kv0487Mc804V
-	CY07AIYIkI8VC2zVCFFI0UMc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0I7IYx2IY67AK
-	xVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r4UM4x0Y48Icx
-	kI7VAKI48JM4x0Y48IcxkI7VAKI48G6xCjnVAKz4kxM4xvF2IEb7IF0Fy264kE64k0F24l
-	FcxC0VAYjxAxZF0Ex2IqxwACY4xI67k04243AVC20s0264xvF2IEb7IF0Fy264kE64k0F2
-	IE4x8a64kEw2IEx4CE17CEb7AF67AKxVWUJVWUXwACY4xI67k04243AVC20s026xCjnVAK
-	z4kI6I8E67AF67kF1VAFwI0_Jr0_Jryl42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7
-	v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF
-	1VAY17CE14v26r1j6r15MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIx
-	AIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI
-	42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UMVCEFcxC0V
-	AYjxAxZFUvcSsGvfC2KfnxnUUI43ZEXa7IU0lAp5UUUUU==
+Content-Transfer-Encoding: 8bit
 
-CgoKPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQoKCj4gRnJvbTogIlBoaWwgU3V0dGVyIiA8
-cGhpbEBud2wuY2M+Cgo+IFNlbnQ6IE1vbmRheSwgTWF5IDEyLCAyMDI1IDE4OjIzOjI4Cj4gVG86
-IOWRqOaBuuiIqiA8MjIzMjEwNzdAemp1LmVkdS5jbj4KPiBDYzogbmV0ZmlsdGVyLWRldmVsQHZn
-ZXIua2VybmVsLm9yZwo+IFN1YmplY3Q6IFJlOiBGaXggcmVzb3VyY2UgbGVhayBpbiBpcHRhYmxl
-cy94dGFibGVzLXJlc3RvcmUuY2MKPiAKPiBIaSwKPiAKPiBPbiBNb24sIE1heSAxMiwgMjAyNSBh
-dCAwMzoxMDo0N1BNICswODAwLCDlkajmgbroiKogd3JvdGU6Cj4gPiBUaGUgZnVuY3Rpb24geHRh
-Ymxlc19yZXN0b3JlX21haW4gb3BlbnMgYSBmaWxlIHN0cmVhbSBwLmluIGJ1dCBmYWlscyB0byBj
-bG9zZSBpdCBiZWZvcmUgcmV0dXJuaW5nLiBUaGlzIGxlYWRzIHRvIGEgcmVzb3VyY2UgbGVhayBh
-cyB0aGUgZmlsZSBkZXNjcmlwdG9yIHJlbWFpbnMgb3Blbi4KPiA+IAo+ID4gCj4gPiBTaWduZWQt
-b2ZmLWJ5OiBLYWloYW5nIFpob3UgPDIyMzIxMDc3QHpqdS5lZHUuY24+Cj4gPiAKPiA+IC0tLQo+
-ID4gIGlwdGFibGVzL3h0YWJsZXMtcmVzdG9yZS5jIHwgMSArCj4gPiAgMSBmaWxlIGNoYW5nZWQs
-IDEgaW5zZXJ0aW9uKCspCj4gPiAKPiA+IAo+ID4gZGlmZiAtLWdpdCBhL2lwdGFibGVzL3h0YWJs
-ZXMtcmVzdG9yZS5jIGIvaXB0YWJsZXMveHRhYmxlcy1yZXN0b3JlLmMKPiA+IAo+ID4gaW5kZXgg
-ZTc4MDJiOWUuLmYwOWFiN2VlIDEwMDY0NAo+ID4gLS0tIGEvaXB0YWJsZXMveHRhYmxlcy1yZXN0
-b3JlLmMKPiA+ICsrKyBiL2lwdGFibGVzL3h0YWJsZXMtcmVzdG9yZS5jCj4gPiBAQCAtMzgxLDYg
-KzM4MSw3IEBAIHh0YWJsZXNfcmVzdG9yZV9tYWluKGludCBmYW1pbHksIGNvbnN0IGNoYXIgKnBy
-b2duYW1lLCBpbnQgYXJnYywgY2hhciAqYXJndltdKQo+ID4gICAgICAgICAgICAgICAgIGJyZWFr
-Owo+ID4gICAgICAgICBkZWZhdWx0Ogo+ID4gICAgICAgICAgICAgICAgIGZwcmludGYoc3RkZXJy
-LCAiVW5rbm93biBmYW1pbHkgJWRcbiIsIGZhbWlseSk7Cj4gPiArICAgICAgICAgICAgICAgZmNs
-b3NlKHAuaW4pOwo+ID4gICAgICAgICAgICAgICAgIHJldHVybiAxOwo+ID4gICAgICAgICB9Cj4g
-Cj4gU2luY2UgdGhpcyBpcyBub3QgdGhlIG9ubHkgZXJyb3IgcGF0aCB3aGljaCBsZWF2ZXMgcC5p
-biBvcGVuIChlaWdodAo+IGxpbmVzIGJlbG93IGlzIHRoZSBuZXh0IG9uZSBmb3IgaW5zdGFuY2Up
-LCB3aHkgZml4IHRoaXMgb25lIGluCj4gcGFydGljdWxhciBhbmQgbGVhdmUgdGhlIG90aGVyIG9u
-ZXMgaW4gcGxhY2U/Cj4gCj4gQ2hlZXJzLCBQaGlsCgpBdCBmaXJzdCwgSSB0aG91Z2h0IHRoYXQg
-bm90IGNsb3NpbmcgdGhlIGZpbGUgaGFuZGxlIGJlZm9yZSB0aGUgcmV0dXJuIHdhcyBtb3JlIHNl
-cmlvdXMsIGFuZCB0aGF0IHdoZW4gZXhpdCB0ZXJtaW5hdGVzIHRoZSBwcm9ncmFtLCB0aGUgc3lz
-dGVtIG1pZ2h0IGF1dG9tYXRpY2FsbHkgcmVjbGFpbSByZXNvdXJjZXMuIEJ1dCBpdCdzIG9idmlv
-dXMgdGhhdCB0aGlzIHVuZGVyc3RhbmRpbmcgaXMgd3JvbmcuIEJvdGggYXJlIGJhZCBwcm9ncmFt
-bWluZyBoYWJpdHMgYW5kIG1heSBsZWFkIHRvIHByb2JsZW1zIGluIHJlc291cmNlIG1hbmFnZW1l
-bnQgYW5kIHByb2dyYW0gc3RhYmlsaXR5LiBJJ3ZlIHJldmlzZWQgdGhlIHBhdGNoLlRoYW5rIHlv
-dS4KCgoKU2lnbmVkLW9mZi1ieTogS2FpaGFuZyBaaG91IDwyMjMyMTA3N0B6anUuZWR1LmNuPgoK
-Ci0tLQoKIGlwdGFibGVzL3h0YWJsZXMtcmVzdG9yZS5jIHwgMiArKwogMSBmaWxlIGNoYW5nZWQs
-IDIgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2lwdGFibGVzL3h0YWJsZXMtcmVzdG9yZS5j
-IGIvaXB0YWJsZXMveHRhYmxlcy1yZXN0b3JlLmMKCgppbmRleCBlNzgwMmI5ZS4uNjJlZTY4ZmMg
-MTAwNjQ0CgotLS0gYS9pcHRhYmxlcy94dGFibGVzLXJlc3RvcmUuYworKysgYi9pcHRhYmxlcy94
-dGFibGVzLXJlc3RvcmUuYwpAQCAtMzgxLDYgKzM4MSw3IEBAIHh0YWJsZXNfcmVzdG9yZV9tYWlu
-KGludCBmYW1pbHksIGNvbnN0IGNoYXIgKnByb2duYW1lLCBpbnQgYXJnYywgY2hhciAqYXJndltd
-KQogICAgICAgICAgICAgICAgYnJlYWs7CiAgICAgICAgZGVmYXVsdDoKICAgICAgICAgICAgICAg
-IGZwcmludGYoc3RkZXJyLCAiVW5rbm93biBmYW1pbHkgJWRcbiIsIGZhbWlseSk7CisgICAgICAg
-ICAgICAgICBmY2xvc2UocC5pbik7CiAgICAgICAgICAgICAgICByZXR1cm4gMTsKICAgICAgICB9
-CgpAQCAtMzg5LDYgKzM5MCw3IEBAIHh0YWJsZXNfcmVzdG9yZV9tYWluKGludCBmYW1pbHksIGNv
-bnN0IGNoYXIgKnByb2duYW1lLCBpbnQgYXJnYywgY2hhciAqYXJndltdKQoKCiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgeHRhYmxlc19nbG9iYWxzLnByb2dyYW1fbmFtZSwKCiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgeHRhYmxlc19nbG9iYWxzLnByb2dyYW1fdmVyc2lv
-biwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJlcnJvcihlcnJubykpOworICAg
-ICAgICAgICAgICAgZmNsb3NlKHAuaW4pOwogICAgICAgICAgICAgICAgZXhpdChFWElUX0ZBSUxV
-UkUpOwogICAgICAgIH0KICAgICAgICBoLm5vZmx1c2ggPSBub2ZsdXNoOwoKCi0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLQoyLjQzLjAKCgoKCgo=
+Upon listing a table which was created by a newer version of nftables,
+warn about the potentially incomplete content.
+
+Suggested-by: Florian Westphal <fw@strlen.de>
+Cc: Dan Winship <danwinship@redhat.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/nft.h  |  2 ++
+ include/rule.h |  1 +
+ src/mnl.c      | 18 ++++++++++++------
+ src/netlink.c  | 25 ++++++++++++++++++++++++-
+ src/rule.c     |  4 ++++
+ 5 files changed, 43 insertions(+), 7 deletions(-)
+
+diff --git a/include/nft.h b/include/nft.h
+index a2d62dbf4808a..b406a68ffeb18 100644
+--- a/include/nft.h
++++ b/include/nft.h
+@@ -15,4 +15,6 @@
+  * something we frequently need to do and it's intentional. */
+ #define free_const(ptr) free((void *)(ptr))
+ 
++#define NFTNL_UDATA_TABLE_NFTVER 1
++
+ #endif /* NFTABLES_NFT_H */
+diff --git a/include/rule.h b/include/rule.h
+index 85a0d9c0b524b..c4fecb2a8faeb 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -170,6 +170,7 @@ struct table {
+ 	uint32_t		owner;
+ 	const char		*comment;
+ 	bool			has_xt_stmts;
++	bool			is_from_future;
+ };
+ 
+ extern struct table *table_alloc(void);
+diff --git a/src/mnl.c b/src/mnl.c
+index ee51933798580..174e97ccb74f6 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1069,24 +1069,30 @@ int mnl_nft_table_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 	if (nlt == NULL)
+ 		memory_allocation_error();
+ 
++	udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
++	if (!udbuf)
++		memory_allocation_error();
++
+ 	nftnl_table_set_u32(nlt, NFTNL_TABLE_FAMILY, cmd->handle.family);
+ 	if (cmd->table) {
+ 		nftnl_table_set_u32(nlt, NFTNL_TABLE_FLAGS, cmd->table->flags);
+ 
+ 		if (cmd->table->comment) {
+-			udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
+-			if (!udbuf)
+-				memory_allocation_error();
+ 			if (!nftnl_udata_put_strz(udbuf, NFTNL_UDATA_TABLE_COMMENT, cmd->table->comment))
+ 				memory_allocation_error();
+-			nftnl_table_set_data(nlt, NFTNL_TABLE_USERDATA, nftnl_udata_buf_data(udbuf),
+-					     nftnl_udata_buf_len(udbuf));
+-			nftnl_udata_buf_free(udbuf);
+ 		}
+ 	} else {
+ 		nftnl_table_set_u32(nlt, NFTNL_TABLE_FLAGS, 0);
+ 	}
+ 
++	if (!nftnl_udata_put_strz(udbuf, NFTNL_UDATA_TABLE_NFTVER,
++				  PACKAGE_VERSION))
++		memory_allocation_error();
++	nftnl_table_set_data(nlt, NFTNL_TABLE_USERDATA,
++			     nftnl_udata_buf_data(udbuf),
++			     nftnl_udata_buf_len(udbuf));
++	nftnl_udata_buf_free(udbuf);
++
+ 	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
+ 				    NFT_MSG_NEWTABLE,
+ 				    cmd->handle.family,
+diff --git a/src/netlink.c b/src/netlink.c
+index 86ca32144f029..88d4cf73352f6 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -751,6 +751,7 @@ static int table_parse_udata_cb(const struct nftnl_udata *attr, void *data)
+ 
+ 	switch (type) {
+ 		case NFTNL_UDATA_TABLE_COMMENT:
++		case NFTNL_UDATA_TABLE_NFTVER:
+ 			if (value[len - 1] != '\0')
+ 				return -1;
+ 			break;
+@@ -761,10 +762,28 @@ static int table_parse_udata_cb(const struct nftnl_udata *attr, void *data)
+ 	return 0;
+ }
+ 
++static int version_cmp(const char *ver_a, const char *ver_b)
++{
++	int ax, ay, az, bx, by, bz;
++
++	if (sscanf(ver_a, "%d.%d.%d", &ax, &ay, &az) != 3 ||
++	    sscanf(ver_b, "%d.%d.%d", &bx, &by, &bz) != 3)
++		return 0;
++
++	if (ax != bx)
++		return ax - bx;
++	if (ay != by)
++		return ay - by;
++	if (az != bz)
++		return az - bz;
++
++	return strcmp(ver_a, ver_b);
++}
++
+ struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
+ 					const struct nftnl_table *nlt)
+ {
+-	const struct nftnl_udata *ud[NFTNL_UDATA_TABLE_MAX + 1] = {};
++	const struct nftnl_udata *ud[NFTNL_UDATA_TABLE_MAX + 2] = {}, *udtmp;
+ 	struct table *table;
+ 	const char *udata;
+ 	uint32_t ulen;
+@@ -785,6 +804,10 @@ struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
+ 		}
+ 		if (ud[NFTNL_UDATA_TABLE_COMMENT])
+ 			table->comment = xstrdup(nftnl_udata_get(ud[NFTNL_UDATA_TABLE_COMMENT]));
++		udtmp = ud[NFTNL_UDATA_TABLE_NFTVER];
++		if (udtmp && version_cmp(PACKAGE_VERSION,
++					 nftnl_udata_get(udtmp)) < 0)
++			table->is_from_future = true;
+ 	}
+ 
+ 	return table;
+diff --git a/src/rule.c b/src/rule.c
+index 80315837baf06..9b9a7e1e080ab 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1285,6 +1285,10 @@ static void table_print(const struct table *table, struct output_ctx *octx)
+ 		fprintf(octx->error_fp,
+ 			"# Warning: table %s %s is managed by iptables-nft, do not touch!\n",
+ 			family, table->handle.table.name);
++	if (table->is_from_future)
++		fprintf(octx->error_fp,
++			"# Warning: table %s %s was created by a newer version of nftables, content may be incomplete!\n",
++			family, table->handle.table.name);
+ 
+ 	nft_print(octx, "table %s %s {", family, table->handle.table.name);
+ 	if (nft_output_handle(octx) || table->flags & TABLE_F_OWNER)
+-- 
+2.49.0
 
