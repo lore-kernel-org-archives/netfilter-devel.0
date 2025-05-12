@@ -1,32 +1,32 @@
 Received: from mx0b-0064b401.pphosted.com (mx0b-0064b401.pphosted.com [205.220.178.238])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAACBC8DC;
-	Mon, 12 May 2025 03:09:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B34419F101;
+	Mon, 12 May 2025 03:10:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.178.238
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747019382; cv=none; b=TY98l9L50OkGjHrlc3QxRURs5uUKq4rhbOQ/nu26eBh2mZF/QrVtt41zIouk8yuKnv2clCUi57bFcwaDUfd+eNSvl4S7eBmHF2xcGFF8s4ZbcojVSbt1tCLDtGfH2AWnFsgJEmSVaXVabq+kqABNwUtusepWn2AJwp8B/9BRdaY=
+	t=1747019444; cv=none; b=LwCDmynHtOMzwAdIL5N05oYML16NAJ43UO/Z3AN6WPmrSO+np01zbeKpfIhpkIidLRx09Gd/9wrHzY1zZnAKDnl1gOOd3/3mCQ9ClPnTRszOotcGBNRQ8qC6j6kJMwr2lKeUWa2xc59P3DdzbA9eykgOB5AwRPNc5K//0c13xQY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747019382; c=relaxed/simple;
-	bh=1pcwk6KV+B77NKatBp76l4mAmdog8PFZ8aV0zAeB3mE=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=lOD6ls1dSbFQPrKiK4R55syj4O5MoP+tGHy/iBwn0dHNpq0pP02Lp5NwNfhI8HNzWzzx27cBsFVNlyvJLwDE1bmCtFv0TjEzos5XJhAW12IatHkP3AHAsfZQjCFfrgphkFM+A0pA21x8/69oF5uDzv5M6tDHStXFW0nqCKdyMco=
+	s=arc-20240116; t=1747019444; c=relaxed/simple;
+	bh=7qg7Lp+zUb0A2yK2xfcoJwvg/SEjwY6DJI0FUBv47zk=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=u4cPUr4XgORewPHDqpRmpMkbdTIU4q+AdDpm511Yz3jtuxoJUhGdb6/MgBxlNV6TvFjr3ngky+9PdkfHLVdbecJIrBe1wYadf4UDJRsgsvSwCpgVm+NO3EAfIy54ejgnSJ76OYfquGI+XY4Gc4xiJQNhjVJw1rKi6TIU5OqNNTI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com; spf=pass smtp.mailfrom=windriver.com; arc=none smtp.client-ip=205.220.178.238
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=windriver.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=windriver.com
 Received: from pps.filterd (m0250812.ppops.net [127.0.0.1])
-	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 54C2tjg3010202;
-	Mon, 12 May 2025 03:09:20 GMT
+	by mx0a-0064b401.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 54C1wt9Y023882;
+	Mon, 12 May 2025 03:10:25 GMT
 Received: from ala-exchng02.corp.ad.wrs.com (ala-exchng02.wrs.com [147.11.82.254])
-	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 46hws89926-1
+	by mx0a-0064b401.pphosted.com (PPS) with ESMTPS id 46hws89937-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-	Mon, 12 May 2025 03:09:20 +0000 (GMT)
+	Mon, 12 May 2025 03:10:25 +0000 (GMT)
 Received: from ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) by
  ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.43; Sun, 11 May 2025 20:09:18 -0700
+ 15.1.2507.43; Sun, 11 May 2025 20:10:23 -0700
 Received: from pek-lpg-core1.wrs.com (147.11.136.210) by
  ALA-EXCHNG02.corp.ad.wrs.com (147.11.82.254) with Microsoft SMTP Server id
- 15.1.2507.43 via Frontend Transport; Sun, 11 May 2025 20:09:15 -0700
+ 15.1.2507.43 via Frontend Transport; Sun, 11 May 2025 20:10:20 -0700
 From: <jianqi.ren.cn@windriver.com>
 To: <gregkh@linuxfoundation.org>, <stable@vger.kernel.org>
 CC: <patches@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
@@ -35,9 +35,9 @@ CC: <patches@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
         <edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
         <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
         <netdev@vger.kernel.org>
-Subject: [PATCH 5.15.y] netfilter: nf_tables: fix memleak in map from abort path
-Date: Mon, 12 May 2025 11:09:14 +0800
-Message-ID: <20250512030914.3330393-1-jianqi.ren.cn@windriver.com>
+Subject: [PATCH 5.10.y] netfilter: nf_tables: fix memleak in map from abort path
+Date: Mon, 12 May 2025 11:10:19 +0800
+Message-ID: <20250512031019.3330707-1-jianqi.ren.cn@windriver.com>
 X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -47,12 +47,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-Proofpoint-ORIG-GUID: kwxk-6QC03G-YDb6iF6cWIHnjgRpF7mB
-X-Proofpoint-GUID: kwxk-6QC03G-YDb6iF6cWIHnjgRpF7mB
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNTEyMDAzMSBTYWx0ZWRfXz9h0c1Jq+9vo YyZezL5RlkZBtOz3d3PBgasPp9x+kEP7ebpQgLlASulgIUn4wOFeS5/74vv5DgbNDZCDbX2Qqre zhp+AZiy1C3NBWURLlmjXVk2XKKg16QKkkZwABe2bLPetDJqdUQoK4MdDaB6KQZZtESA+weAv6f
- sGQN+uRKNS8EfsJlmZtCAR28Qqs8PiCYUWPlVg8YQy75Fws+eKF07Millyq9IUQ/5ejpEcleat2 0ymC11EyNuc1E9oMPcLiOGnsZUf1DHYtOX3Ul+SEBWueKIGNHoZ8/l5ElE5vdRcGJdcmCGjL6Su j9ilbmewXaG55NwDgGZYVM32mkJNnffkUnGujChKAaxo3fmx7cebHaEKJLFL2z0zro4SycmO5Jn
- sjxa8ENjgEozigxjPr4VIEv+UOFTKaKAhA7lotRQODRZAPd4GAv54u3mdeRo3wamJR+BLcG3
-X-Authority-Analysis: v=2.4 cv=Q+HS452a c=1 sm=1 tr=0 ts=68216660 cx=c_pps a=K4BcnWQioVPsTJd46EJO2w==:117 a=K4BcnWQioVPsTJd46EJO2w==:17 a=dt9VzEwgFbYA:10 a=3HDBlxybAAAA:8 a=t7CeM3EgAAAA:8 a=JvIdB4Z2PfN4shd601kA:9 a=laEoCiVfU_Unz3mSdgXN:22
+X-Proofpoint-ORIG-GUID: UdS4JYDtrjvHeiB5aJtQspkaz271wt2i
+X-Proofpoint-GUID: UdS4JYDtrjvHeiB5aJtQspkaz271wt2i
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwNTEyMDAzMSBTYWx0ZWRfX98GUb3Y6cKmQ xknrt52qnqu9E1jMzhHSC4lh7CGRQUehphVEmL5vkd1p6tTy3wXptNotbOgAP8nNwBm3wuNLOkI U2TVJCFEPSIwDyVkMnbGaCfoRTOZ3BKfBAIBNayXbzHl6Lrqi6Ty1lqJx7hW7Ha/Lbqosw8UEzB
+ 5flUFdkWAWjovztCzn0Qjh0nIb6xo19P5VhhwUP/RSsYYytuNs9ECSHOdfcUkeauGMvheHzbt3t lUK6O+LgI30FkjGtgDCAYl7Bp54phocEWlZw+sGZi4ogMUGJgkyUCK8KzUVJHzqngjoZSYF9OgF qo6nuDt0DewHHcmAhkpVXUDr7TEUfnzAaT7J2fZ9iItVIxcgrEdXq/f4vdCXoBwV8Xx6XZADAyy
+ gyORcJZeHtT7hfT8c2G5kX+CC3h9J8L+BCtHLM0GPTtzHCDeyYQd9j5YMoNHy3ZYOON8cdRR
+X-Authority-Analysis: v=2.4 cv=Q+HS452a c=1 sm=1 tr=0 ts=682166a1 cx=c_pps a=K4BcnWQioVPsTJd46EJO2w==:117 a=K4BcnWQioVPsTJd46EJO2w==:17 a=dt9VzEwgFbYA:10 a=3HDBlxybAAAA:8 a=t7CeM3EgAAAA:8 a=JvIdB4Z2PfN4shd601kA:9 a=laEoCiVfU_Unz3mSdgXN:22
  a=FdTzh2GWekK77mhwV6Dw:22
 X-Sensitive_Customer_Information: Yes
 X-Proofpoint-Virus-Version: vendor=baseguard
@@ -112,6 +112,8 @@ the set walk iterator.
 Fixes: 591054469b3e ("netfilter: nf_tables: revisit chain/object refcounting from elements")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 [fixed conflicts due to missing commits
+ aaa31047a6d25da0fa101da1ed544e1247949b40 ("netfilter: nftables: add
+ catch-all set element support"),
  0e1ea651c9717ddcd8e0648d8468477a31867b0a ("netfilter: nf_tables: shrink
  memory consumption of set elements") and
  9dad402b89e81a0516bad5e0ac009b7a0a80898f ("netfilter: nf_tables: expose
@@ -126,10 +128,10 @@ Verified the build test
  1 file changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 07fdd5f18f3c..211d67dc8e28 100644
+index 04fda8c14e04..5b4d5b882418 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6650,6 +6650,16 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
+@@ -5933,6 +5933,16 @@ void nft_data_hold(const struct nft_data *data, enum nft_data_types type)
  	}
  }
  
@@ -146,19 +148,19 @@ index 07fdd5f18f3c..211d67dc8e28 100644
  static void nft_setelem_data_activate(const struct net *net,
  				      const struct nft_set *set,
  				      struct nft_set_elem *elem)
-@@ -9881,8 +9891,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
+@@ -8990,8 +9000,10 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
  		case NFT_MSG_DELSETELEM:
  			te = (struct nft_trans_elem *)trans->data;
  
 -			nft_setelem_data_activate(net, te->set, &te->elem);
--			nft_setelem_activate(net, te->set, &te->elem);
+-			te->set->ops->activate(net, te->set, &te->elem);
 +			if (!nft_setelem_active_next(net, te->set, &te->elem)) {
 +				nft_setelem_data_activate(net, te->set, &te->elem);
-+				nft_setelem_activate(net, te->set, &te->elem);
++				te->set->ops->activate(net, te->set, &te->elem);
 +			}
- 			if (!nft_setelem_is_catchall(te->set, &te->elem))
- 				te->set->ndeact--;
+ 			te->set->ndeact--;
  
+ 			if (te->set->ops->abort &&
 -- 
 2.34.1
 
