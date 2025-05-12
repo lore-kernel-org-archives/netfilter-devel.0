@@ -1,86 +1,87 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58D5425A32A
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 May 2025 10:23:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F5C255250
+	for <netfilter-devel@vger.kernel.org>; Mon, 12 May 2025 10:28:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747045422; cv=none; b=P7ALYzyUe830qqsupNf2GMMuwKu5s/A29FD/9Vpi2RVOOEgmYkhSwYVEGG2kDYyc4n0lJbXBHCZjZ6gTmktdN6PSu+QgfWNlrR+Fdq5Jc341Q557iaY6kMuGzKEJjs1cwzqUN+cWuq5Au3iG9g+E4R9EHB/PYwDpOgS/zyKpZmg=
+	t=1747045734; cv=none; b=jcOqCC3c7nYaKvK/EwtV1DmILHNSX9957Smuq1ulAYxFe6V2W1pHFnIx1PhuXrwztUXV5h57Ip/e4QsG6DAQZ1CrXHxcq5UEWBGF1B0FjOPqHkrGsJ7XIwFIMG0/gFlGNHn02ICY41Q5oUgze+I7bG8NOfJhtKdE/yhmswNG6E0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747045422; c=relaxed/simple;
-	bh=aI0fhk8+5czSg7Nd8dzJMROIVuRfY50SDs36spXqGBI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IodxAZrg6n6IBaKFSxyQZTymGrAixIdx32LpugRq54CX9XMgCmAUDGqORRVWgDJFFbXtje40EMK7OttxcOwK/3B4kgfmlu3HDNrrmjCVBYui0Oz9gmRkGskB4UDNjeHuskeZQTDtqQO3QIPP/jBLK0IZw4F4ojpX6FvYug5YGSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=B137jdzP; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1747045734; c=relaxed/simple;
+	bh=OJRCGagqab4zHuoCt2O1vZ93G1rkw4fB7SYyrI8B07s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oT4uZGnQKYXTyjT6gE6MZE99OYCFZqmxnvgMc+2tKChC57ETxkcSCce+ZvnbrGRBe/4bND/LmpuyUSg5MQQICq5C6iDRYOUyNpGjzuvK/WqO+Ih0jYGBQ00/U8opqUyGvSY6jjhKHujw+I7hI9WnUg20ou1GcQ8UkjRWTpRvyos=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=QruhBU9Q; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=xYsQhc51; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="B137jdzP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=MzD1nmKuhXwANk02AE5y2rDumD4sRELCwfZIC0lDWSE=; b=B137jdzP9NX6M11q2sUrKuGJw7
-	tNidAvvZxeyBeHibEj0uAOlYJl3ZDY0xG6sdmaDyJNr1q2rRvRY7U7Do7nRkUBR4ofJT0piqlOHn7
-	pcv/GxMCd32n9TPTbR/xkKgB69YTfTfyMoCXGUpwmAsbmDn9HDT6aHRw8cIpwtDtDYdovAg+P0XJi
-	Mfz+IWnNbNgSHEmZdf9yTa0WTVhHM6r83W9c+zy54yxFfpk5j6eaT7qmPoDwIY59CUAdqzcF0o3kR
-	lmI4Z8U90NDqD82HAPukh4idgzuxItxjTgNH3ED4w0vczPB/5jaI/gMkNSLRFqS0YgUiQbglwSpKy
-	iP6pxT5A==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uEQJk-000000006TW-3yYl;
-	Mon, 12 May 2025 12:23:28 +0200
-Date: Mon, 12 May 2025 12:23:28 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: =?utf-8?B?5ZGo5oG66Iiq?= <22321077@zju.edu.cn>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Fix resource leak in iptables/xtables-restore.c
-Message-ID: <aCHMICSGU2LT7SS-@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	=?utf-8?B?5ZGo5oG66Iiq?= <22321077@zju.edu.cn>,
-	netfilter-devel@vger.kernel.org
-References: <87aa5c8.77e3.196c354f80c.Coremail.22321077@zju.edu.cn>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="QruhBU9Q";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="xYsQhc51"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1747045730;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=zfUXiTNZXr8cVx9t4UZL90lhwrU2i31fwxwdhJdvdeY=;
+	b=QruhBU9QmTF0ifnaB/OERFubtt6d7DVyZV89CmisPvc8ipmscMiFRyUaWfCREXhUY8gdoR
+	/q6tqjTDpHochp1Ola7VOM1uxLFh4k1MyyzJDmZ2Zr400Wu/s2IOnyZPCt12/7RbbFc6tX
+	RV9lHgB+C0zzAiH3+bJqPi9f+z53Er+8yheWyrYA1iJhqTJjbGUh7Vwof8uX2laTTnLmdZ
+	dTCHqJCSjj5YWMzEnx6M01u18mJo6kCnQiw38vn97Yzpljn4dlIaKYavlsn+vMPz3jzV6p
+	Ev4dif90xVCLxplPE3RmnPOgFKchqq0yYjkQyX8+NKlOizfcIJ1EcsHnVqmf0A==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1747045730;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=zfUXiTNZXr8cVx9t4UZL90lhwrU2i31fwxwdhJdvdeY=;
+	b=xYsQhc510L3yTHNjxfyqmuH5JUdLjBtafSzBdjuyaeuwS+ffTtvbRffNEM2W1VlmyG+kMC
+	CqGEMreAowFu7UAg==
+To: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH nf-next v1 0/3] netfilter: Cover more per-CPU storage with local nested BH locking.
+Date: Mon, 12 May 2025 12:28:43 +0200
+Message-ID: <20250512102846.234111-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <87aa5c8.77e3.196c354f80c.Coremail.22321077@zju.edu.cn>
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+I was looking at the build-time defined per-CPU variables in netfilter
+and added the needed local-BH-locks in order to be able to remove the
+current per-CPU lock in local_bh_disable() on PREMPT_RT.
+NF wise nft_set_pipapo is missing but this requires some core changes so
+I need to postspone it for now.
 
-On Mon, May 12, 2025 at 03:10:47PM +0800, 周恺航 wrote:
-> The function xtables_restore_main opens a file stream p.in but fails to close it before returning. This leads to a resource leak as the file descriptor remains open.
-> 
-> 
-> Signed-off-by: Kaihang Zhou <22321077@zju.edu.cn>
-> 
-> ---
->  iptables/xtables-restore.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> 
-> diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-> 
-> index e7802b9e..f09ab7ee 100644
-> --- a/iptables/xtables-restore.c
-> +++ b/iptables/xtables-restore.c
-> @@ -381,6 +381,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
->                 break;
->         default:
->                 fprintf(stderr, "Unknown family %d\n", family);
-> +               fclose(p.in);
->                 return 1;
->         }
+This has been split out of the networking series which was sent earlier.
+Therefore the last patch (nf_dup_netdev) will likely clash with net-next
+due to changes in include/linux/netdevice_xmit.h (both add an entry).
 
-Since this is not the only error path which leaves p.in open (eight
-lines below is the next one for instance), why fix this one in
-particular and leave the other ones in place?
+Sebastian Andrzej Siewior (3):
+  netfilter: nf_dup{4, 6}: Move duplication check to task_struct
+  netfilter: nft_inner: Use nested-BH locking for nft_pcpu_tun_ctx
+  netfilter: nf_dup_netdev: Move the recursion counter struct
+    netdev_xmit
 
-Cheers, Phil
+ include/linux/netdevice_xmit.h   |  3 +++
+ include/linux/netfilter.h        | 11 -----------
+ include/linux/sched.h            |  1 +
+ net/ipv4/netfilter/ip_tables.c   |  2 +-
+ net/ipv4/netfilter/nf_dup_ipv4.c |  6 +++---
+ net/ipv6/netfilter/ip6_tables.c  |  2 +-
+ net/ipv6/netfilter/nf_dup_ipv6.c |  6 +++---
+ net/netfilter/core.c             |  3 ---
+ net/netfilter/nf_dup_netdev.c    | 22 ++++++++++++++++++----
+ net/netfilter/nft_inner.c        | 18 +++++++++++++++---
+ 10 files changed, 45 insertions(+), 29 deletions(-)
+
+--=20
+2.49.0
+
