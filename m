@@ -1,114 +1,132 @@
-Received: from mail.jubileegroup.co.uk (host-83-67-166-33.static.as9105.net [83.67.166.33])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A8092750E3
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 19:20:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.67.166.33
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCC3A191F98
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 21:42:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747250453; cv=none; b=W8lSUbIMNCbpyU660zulNho7LsQz23Nl+aN+4celyX/4bsH86NN4z+5hiZ9+G8Z+8wnZHoa9v/ZJi+Xk14+Et6J+JT9etw1XULXO6ieAn4g2VIa3dRLvKj3SM9CXFR7Q1sHsbSwSscnWUsvUe1ZMrZEK1Fcn3P27wjtDKrvCm8k=
+	t=1747258953; cv=none; b=WrVWHMwD3OyK0SzmKG/saoRHwKdAUWrULyH3RawuJcF2Z03Tlzvh/wgZxTVpC1K5FkY1c9k2VozR9fJ7HuwfEUfiaMkzXsulxCMCXmmA4Ot93URRgPCS3KZ52INwzOSxEKZHSXym+ohVcUyh5Y3ERVOr5KxmS1vtDhmej8J81k4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747250453; c=relaxed/simple;
-	bh=HOTiOFe0G/UqXtcej9PhZG2Fq5X93DdFsFquPTuBmiQ=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type; b=coffLK1WVWov2OjIpsBegKO0CX2ZVZkdUvkCFq2x5Gya6tASIwkxvMAMMF8kF8Q99vol4ImIydInKvQT//mq2IeI9wad03xUVQYbmxHUH9RSnqW+92PDwhAiLxdYxqKQz5/5VMwhg9So/PyeuS3lbtcQw/1oIhSkNtxn+P+5hVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=jubileegroup.co.uk; spf=pass smtp.mailfrom=jubileegroup.co.uk; dkim=pass (2048-bit key) header.d=jubileegroup.co.uk header.i=@jubileegroup.co.uk header.b=G2svQsA1; arc=none smtp.client-ip=83.67.166.33
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=jubileegroup.co.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=jubileegroup.co.uk
+	s=arc-20240116; t=1747258953; c=relaxed/simple;
+	bh=DGSH2T49Tk9DPvNLdd8tfgdsIKJBgKX7s+6JZRL3G/c=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=dlCUoCvHEglUChdnAOszV5ARwSY5dG5sVvZh3/bNN+Z2F3yRI6ogUY5CiMQs27XfrYRvb+q1VKSGPY2UrKufqGa2N/SQ4tB61RYF649WCB3TS0pYr42lYbXDivTPi7P0M1tbL89aCW1Dm/H01jZXLtVVdlNmjQOpftOK4jZtEyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MOlxJUt4; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MOlxJUt4; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=jubileegroup.co.uk header.i=@jubileegroup.co.uk header.b="G2svQsA1"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	jubileegroup.co.uk; h=date:from:to:subject:message-id
-	:mime-version:content-type; s=uk; bh=htxPRuZM+ZF/Qo9oKkDj73wggu0
-	p0AkEi7nKb0FCzsM=; b=G2svQsA1R9HBfUyUd6vC1ktz1xyMgnvRVUUmaSoFS+L
-	8PuGU6x7O4zxLsU53OqxDjVZF6dI9S8+hdmSyZhbrNUxmQvsFUw84Cta8R5ZRDbM
-	iogsbbelEhJx3ygP+RpIUVmZINWRAgduGVhzt64PNG+7JTRLWvlesP9rElUSslRB
-	dqbTvlS0IumQTaONqpyub7y5RzkQ0mKMH9O3S82Ub31XiddC3Xjbhl/cGt0w730h
-	R8E2f9851sw528xie505HCJisPAgYp2bqj6f0eU1MzUDr1kSu/cEYZVA7Djs/eVz
-	PjDnCL9rMa45OTcODPws3B8/AmYqH1vX9HaS8Biojag==
-Received: from piplus.local.jubileegroup.co.uk (piplus.local.jubileegroup.co.uk [192.168.44.5])
-	by mail6.jubileegroup.co.uk (8.16.0.48/8.15.2/Debian-14~deb10u1) with ESMTPS id 54EJENBf006804
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 20:14:35 +0100
-Date: Wed, 14 May 2025 20:14:22 +0100 (BST)
-From: "G.W. Haywood" <ged@jubileegroup.co.uk>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MOlxJUt4";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MOlxJUt4"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 7629B60741; Wed, 14 May 2025 23:42:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747258948;
+	bh=IDJgxFonol/WS/zsxWtjQznn1JIENMsZMpVmolcnxi4=;
+	h=From:To:Subject:Date:From;
+	b=MOlxJUt4azhBw6H8hN5I3dRLMfRRSX/uSSb/YHTvAuIWjcTTdk9RHmZOAn5IWC9p1
+	 kG4ekAC0j5jY4HT+ItjR7Xuogq3wRLs66RNfUCFr9EPy59O0IG3TVACvvc023L6xjP
+	 rb2aF5tdFwDsIx+6c0mjw80cgu1XuJHFMwiCZ3DBPZaYm53RDOUfixA245/iAQ5KBK
+	 cKmkYknave5/7rF1Q8+fi9/F4XrbAGhzXQdZ0hgN/DUU/eiLr0QgsD0sKLiCXliYIO
+	 M3TCU9Q2SirTncqUFz0rSbCc0tDouMWzT2W4pD0O7AbRG5+eDTwfcTj6tLAB2UUZyJ
+	 fMz6OfAfwdNqQ==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id E24076073E
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 23:42:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747258948;
+	bh=IDJgxFonol/WS/zsxWtjQznn1JIENMsZMpVmolcnxi4=;
+	h=From:To:Subject:Date:From;
+	b=MOlxJUt4azhBw6H8hN5I3dRLMfRRSX/uSSb/YHTvAuIWjcTTdk9RHmZOAn5IWC9p1
+	 kG4ekAC0j5jY4HT+ItjR7Xuogq3wRLs66RNfUCFr9EPy59O0IG3TVACvvc023L6xjP
+	 rb2aF5tdFwDsIx+6c0mjw80cgu1XuJHFMwiCZ3DBPZaYm53RDOUfixA245/iAQ5KBK
+	 cKmkYknave5/7rF1Q8+fi9/F4XrbAGhzXQdZ0hgN/DUU/eiLr0QgsD0sKLiCXliYIO
+	 M3TCU9Q2SirTncqUFz0rSbCc0tDouMWzT2W4pD0O7AbRG5+eDTwfcTj6tLAB2UUZyJ
+	 fMz6OfAfwdNqQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: Packets sent to local interface seemingly not accepted by nfq_set_verdict
- despite ACCEPT call.
-Message-ID: <e15788d6-4dce-68fe-2337-d9e83d51a63@jubileegroup.co.uk>
+Subject: [PATCH nf-next,v1 0/6] revisiting nf_tables ruleset validation
+Date: Wed, 14 May 2025 23:42:10 +0200
+Message-Id: <20250514214216.828862-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=US-ASCII
-X-AS-Number: AS0 ([] [--] [192.168.44.5])
-X-Greylist-Delay: WHITELISTED Local IP, transport not delayed by extensible-milter-7.178t
+Content-Transfer-Encoding: 8bit
 
-Hi there,
+Hi,
 
-Still just feeling my way around userspace processing with netfilter,
-so anything (such as stupidity on my part) is possible.
+The following patchset adds a new infrastructure to validate incremental
+updates on rulesets.
 
-In the hope of teaching myself something I've hacked the nfqnl_test.c
-code to give me statistics about packets outgoing from our mailserver.
+This new validation approach is based on a the following observations:
 
-One of the processes here which generates outgoing packets is part of
-our Nagios/Icinga setup.  It reports how many days remain before the
-certificate for our mail server will expire.  The Icinga server calls
-a plugin on the mailserver.  The plugin uses openssl to get the mail-
-server to connect to itself to query the certificate, and reports the
-valid days remaining result to Icinga.  I chose to get the mailserver
-to connect to its own LAN interface IP to request this information.
-This worked fine for years.  Right up until I installed nfqnl_test.
+- New rules always require validation since they could come with
+  expressions that are not supported by the basechain type,
+  eg. masquerade on the filter chain.
+- New rules that jump/goto target chain result in the validation of
+  such target chain and subsequent chains that are connected this
+  target chain. Same applies to new elements that jump/goto target
+  chain.
 
-To begin with it didn't appear to cause any problems.  But three and a
-half days later, all the network connections to the box went down.  To
-recover, I had to go to a console and kill the nfqnl_test process.
+Such target chains that need validation are stored in a validation list.
+Then, for each chain, the binding graph is used to perform the
+validation from the commit/abort phase. Sets and chains provide a list
+of bindings backwards (to reach the basechain) and forward (to validate
+subsequent chains that are connected to the target chain.
 
-The three and a half day delay turned out to be repeatable, so it took
-quite a while to figure out what was going on.  It *looks* like what's
-happening is that if nfqnl_test sees a packet with *both* the source
-and destination IPv4 addresses equal to that of the Ethernet interface
-and it then calls
+The new binding object stores is composed of a tuple that describes the
+origin set/chain and the target set/chain, valid binding combinations
+are:
 
-int result = nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+1) chain-to-chain, eg. rule performs jump/goto target chain
+2) chain-to-set, eg. rule performs lookup to set (verdict map).
+3) set-to-chain, eg. set element performs jump/goto target chain (verdict map)
 
-the packet is not accepted even though the return value says it was:
+Adding bindings for 1) and 2) is relatively easy, 3) requires a bit more
+new code to deal with set deletion and aborting new set element, as well
+as netlink/netns exit path, to release bindings.
 
-May 14 16:44:16 mail6 NFqueue[27783]: Line 254: pktlen=64 data=[450000405283400040060eb2c0a82c19c0a82c19cfe80019b5fe6f1b812db3e5]
-May 14 16:44:16 mail6 NFqueue[27783]: Line 290: ACCEPT packet (nfq_set_verdict returned [32])
+This patchset uses a hashtable of bindings to look up for existing
+bindings when adding new jump/goto chain from rules and set elements.
 
-I don't know what happens to the packet.  I think it gets stuck in the
-queue, and eventually the queue fills up and the network hangs:
+Patches #1 and #2 prepare for this infrastructure by disabling chain
+validation from preparation phase when validation state is _SKIP as well
+as avoiding a replay of the transaction on EINTR.
 
-May  6 04:19:12 mail6 kernel: nfnetlink_queue: nf_queue: full at 1024 entries, dropping packets(s)
-May  6 04:19:12 mail6 kernel: nfnetlink_queue: nf_queue: full at 1024 entries, dropping packets(s)
-May  6 04:19:12 mail6 kernel: nfnetlink_queue: nf_queue: full at 1024 entries, dropping packets(s)
-...
-...
+Patches #3 to #6 add the infrastructure to collect chains that need
+valudation, add the new binding infrastructure and finally use it.
 
-If I put in a rule (rule 4 below) which ACCEPTs these packets before
-they're sent to userspace, things work as I expect them to work.
+This is passing tests/shell with debugging instrumentation.
 
-Chain OUTPUT (policy ACCEPT 35456608 packets, 9701968770 bytes)
-num target   prot opt in out source        destination 
-1   NFQUEUE  all  --  *   *  0.0.0.0/0     192.168.241.0/28 NFQUEUE num 11 bypass
-2   ACCEPT  !tcp  --  *   *  0.0.0.0/0     0.0.0.0/0
-3   ACCEPT   all  --  *   *  127.0.0.0/8   0.0.0.0/0
-4   ACCEPT   all  --  *   *  192.168.44.25 192.168.44.25
-5   NFQUEUE  tcp  --  *   *  0.0.0.0/0     0.0.0.0/0        NFQUEUE num 11 bypass
+On my TODO list:
 
-So to my questions:
+- If the hashtable of bindings is per-netns (instead of per table as in
+  this series), then I think that limiting the maximum number of jump/goto
+  chain should be relatively trivial by adding a counter of total existing
+  bindings in this per-netns (as counterproposal to Shaun Brady's patch
+  to limit the number of jumps per-netns).
 
-1. Does any of this make sense?
+- I did not explore yet the replacement of the (old) set binding logic
+  (struct nft_set_binding) by this new infrastructure.
 
-2. How can I instrument the queue?  I'd really like to know how many
-packets are in it at any time I choose to look.  I've looked at a few
-utilities but nothing seems to answer the question.
+Comments welcome, thanks.
 
-3. Any suggestions to take the investigation further?
+Pablo Neira Ayuso (6):
+  netfilter: nf_tables: honor EINTR in ruleset validation from commit/abort path
+  netfilter: nf_tables: honor validation state in preparation phase
+  netfilter: nf_tables: add infrastructure for chain validation on updates
+  netfilter: nf_tables: add new binding infrastructure
+  netfilter: nf_tables: use new binding infrastructure
+  netfilter: nf_tables: add support for validating incremental ruleset updates
+
+ include/net/netfilter/nf_tables.h |  52 +-
+ net/netfilter/nf_tables_api.c     | 800 ++++++++++++++++++++++++++++--
+ net/netfilter/nft_immediate.c     |  25 +-
+ 3 files changed, 844 insertions(+), 33 deletions(-)
 
 -- 
+2.30.2
 
-73,
-Ged.
