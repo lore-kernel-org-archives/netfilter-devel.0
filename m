@@ -1,102 +1,137 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E5E1DFE8
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 02:54:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1EF43EA98;
+	Wed, 14 May 2025 05:15:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747191259; cv=none; b=ObJ+t2nbtzRv3BM53A4GDvR8j7Akf7++YCcekAEiPltcjDBxcTbXXxttMB6FxWHkzeGWrh5B4M5Khb77rhiX1TTbALi2xf4yAIAUq35SThVjLLVcSP7KL/+htvmBNNUrTJS2yEPcZLy0aZDRNPFdI6rtPCxXxi+1raxNFBbTCOM=
+	t=1747199729; cv=none; b=WeN3gB+abKkBGw+VgEK6fxALbNeH259bbMQwSgL+t23WywMrAHaQRVInX6CsCJHprmDEHeux1IOWu8XgS12gGBjHPOKgAQt3zIL8n6wpKHPNeVqSdnOhsK2Fb521qjmyRv56fkxrfM/5I8CS+Rb+5nWvR0gUXEOvA2MU88uab/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747191259; c=relaxed/simple;
-	bh=aEVtejBO9RZYmIQjubc592cuKBW60b1EHXaK3Y+Kx2k=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=PbMmmaza2Km7s6M/7tNZpjcXlndXS3Iv/GE/eFbGivdTNXgCCwiA1BLJCGvxyb5zGGEVHfK7n2mC+1Unpl20bMHwQhud5RnefbpswkmT5HsitIkTOuvbDfIJ1Ws7UF5FdlxBcP0M4ufNFaZ+7snd61ZnpsmzsezdtJibRvq0eJ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FgNN+9pO; arc=none smtp.client-ip=209.85.160.169
+	s=arc-20240116; t=1747199729; c=relaxed/simple;
+	bh=eFw1BfYnPC6LmkfRtAtYqLZ6BKk+kEAe1jllLDkqNpY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=WLyVcHBEu0mJLsUHv4o/fWEm9C8P9HHb33Y9YGUocs5egXB0aReG1V1wzBcvVrhqqxhCH4Lf0eBJh/YG/Cslll9Fm6we83YH+qYv6oYAQ1SOtjFCKtgu57xoaoPhnNDl854WoVIMf23U3n+xI0FMr4gTYz38leMz0Q9X5T5MvEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SGmkeJ4F; arc=none smtp.client-ip=209.85.216.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FgNN+9pO"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4769aef457bso77598061cf.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2025 19:54:16 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SGmkeJ4F"
+Received: by mail-pj1-f41.google.com with SMTP id 98e67ed59e1d1-30a93117e1bso8341448a91.1;
+        Tue, 13 May 2025 22:15:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747191255; x=1747796055; darn=vger.kernel.org;
-        h=content-disposition:mime-version:message-id:subject:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=GEKFVhL6hCb1xNlmq13kTzUPUrn4LG2l0oIWGcff+8c=;
-        b=FgNN+9pO0qXjf/QuIkM3MHeptRvwHG2gWf9YkZG6PcHp3X73PC2vQ34zPHecY1n7wJ
-         YdRxMp4lBdpD7pRWX28uBvmCMPxtCGkCSU/ZJgkX8bluiqB8zgqbb6OAf49Mdbf0HVq3
-         1WN3sUh0LSb9qTGKft/wJIyU9Au5l9+XJ/BogG667DUJkgs83d/v+1IhAPQLwraoTX1k
-         cC+/JKEgAjRwU+05jRv0+vbKkoDxr/FXUDqElfHq91uEW8XnzmXqeKkaDdYZ3IZycvZ5
-         3n/Sv+v5B6KIGXAg3sY9xkPqlOYUCWXIHfTnFAT6ZYOk8PEpDEi1dYlZUpNxDybMZzZ9
-         AQRg==
+        d=gmail.com; s=20230601; t=1747199727; x=1747804527; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=CbgHUhLTFdpIfxXqLYxPxEoyz3s4oC9scCc+c5WkiQw=;
+        b=SGmkeJ4F/PivhWTLugJRWxh8VlvhdzFLkGjEHo+9f6f8vJ2holp35MHKQLn4mvBkZw
+         tr7cEq6oSExYOajmSLZq5XHrFT20mdUWaJ7Dngz+8vVHGeWpxrUtyrEtgI+3T/48pd5R
+         n/D5kVETv8xir4Ejw8GnRdGg7cHF+Rxz0lMiD5q7RzWkfbX94y1sqVzGVDXTXjXbmAvy
+         tFCU84jEe8NXjDntSk6r9eQwt90t8WD316rLTqc5jtds+AfAbolR19Yf6Mk8I5EBWPsr
+         A5XSO+tHzPcuLW8DcLOh91K4T/y3NDDNfRsfRepdSPMG0yJAtPhESNm95AzwRYEosHDE
+         EXKQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747191255; x=1747796055;
-        h=content-disposition:mime-version:message-id:subject:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=GEKFVhL6hCb1xNlmq13kTzUPUrn4LG2l0oIWGcff+8c=;
-        b=R7YWCKb2dxNHHQXO3PuCAxXLC4Tm+g+A7RVqhl/5aWZhovNc8rNCaEMG3UJDygzThC
-         0ide5ycIbcw38VKD8QqEi33VnMtfgootXtCyKCFmQhzMnVcWBWV15xRwUHtYRe49/cjG
-         xgAWUOWvhFenM/US7UDOF/1w10xlrDP2U+O4gKAfqxDbZV+9v9Wq/d1+zJzui0sxhu2S
-         EIHzBUvlJmcVuT+lRCI6FOx3CVp2XeqP2OQbInWVb//ll1fpdyMCPAAohR3tpWrD1E+G
-         mxf/oFuhDMx4GOygpkHtIET1Vbks54BDbsQepN3qs0F1QnnjmEqmKEpmuAYzypNwVqIK
-         TV9g==
-X-Gm-Message-State: AOJu0YxWNW1Uup2Qka5Lkc1TDw0nQGJ1Ut6vFaI8K3SaxZXPFt6Vq410
-	Mpcm55zg4maRLAYtctuOHHsOfCwppoWx2naSslMJJzi2ghtX1NEKfxIxeA==
-X-Gm-Gg: ASbGncviFmwlyUnfvD/vU1LnnySVvjtsOCGoaYsF9XGmsi2q95IrSempjIswsmP5B53
-	ECaR0ROzHHC1lyXmwDy3SE9TQtMPvojGTw2dWI0L4cFnH2vgHX4pnM+G3U+n4QuRiBZlZNLlOG0
-	HUNHIdeMUjz+xcw3OPRAK0NemrH/dTtZSVJD+VHYglKUhlwD31eqWM19qwTsW6XmuUfeF9PXn2+
-	mRt9w01DPLw8Rj9KQUxjT/iiC0CgCtXXcOXfqJwQHwzsffpPEp3xneBEV26rGVFXCFRHQLviv8D
-	TKriaQGsAhAHiJOncEA8nuj4OKrsISPAWo0k/ZQozMdwJ2J4on2TivK/AcL0YD3kLZx4KMQCXno
-	6cd1bI/3Znp2DO/VfGYQ=
-X-Google-Smtp-Source: AGHT+IELPBJCRMdUqVdKQbzxeQCcYeacCXjWZqijVoa0htqsyPt//BVeMUp6DhuXffYAgDXLf3VTOQ==
-X-Received: by 2002:ac8:4cda:0:b0:494:993d:ec36 with SMTP id d75a77b69052e-494993df0d8mr3129261cf.14.1747191255582;
-        Tue, 13 May 2025 19:54:15 -0700 (PDT)
-Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-494524bc561sm72580031cf.35.2025.05.13.19.54.14
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 May 2025 19:54:15 -0700 (PDT)
-Date: Tue, 13 May 2025 22:54:13 -0400
-From: Shaun Brady <brady.1345@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Subject: Looking for TODO
-Message-ID: <aCQF1eDdqgmYE3Sx@fedora>
+        d=1e100.net; s=20230601; t=1747199727; x=1747804527;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=CbgHUhLTFdpIfxXqLYxPxEoyz3s4oC9scCc+c5WkiQw=;
+        b=FSXR/RyUZA3PTUPnYWD55zzP02afXuCndykJQqGMUzIfqO3QI+33dhsDu5ixECBruI
+         tMtnPUMoW/lAiktobZU+3YnuS71L1Qifogp+BVo/s72OpU1MxvuQoEQekvR28w7Y8+g4
+         vz8mGfwhryluROb36wToqfntzgyJUeKiKM5ywht6/HQIwYhXf62dl5gwHd+/G6UyUW/w
+         YHmB9FrawY9ECSixHaPcwnWJrSsSvsA/TqhikGDMyyII2sOXrbzcKkQT5HjF7M+Y1scj
+         G6jhflBpurTQ/zChcKVVupnlsnHM4G4y3LJegs7YI0DlJxkPy/1nMKLNvsf33gpOkcey
+         +SDg==
+X-Forwarded-Encrypted: i=1; AJvYcCVJS39S4+tZVxd7PfU9JDppSkceSBw63q05riIsmUKtZH5KxFui5hGqL7B7BKSv99PmdSNiG+Wg7JX6Ed17iE83@vger.kernel.org, AJvYcCXMuvGN/q9pF6Kqv8DWrHLnDEu1QkQ94QT1YOjqec/H6FT42w4U6JTws6iLvnvHpFm/tFU15dcMfhFGwek=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzpq1RGL1o9kikngFZBHLdatMZlVzQz2ns7NfD96odfJZ/4y0nC
+	GElW6D1eVhhG/j1XJcqF/7dW0Y0w8A66sBjywrsWrW86QX1jG9L1
+X-Gm-Gg: ASbGncvnAyQa3orZgTcBUOGB83PkreNuwtW/1ufEG9JEGLzCOmywsVoQOZaebFE73FT
+	xlx/FhShuOVC/W1Qr6TSIttNFVk061LVUPV3ebjYuKve9uHGKIA6HmA4Gw2PUuwCJwar4WUsYjT
+	N1VesvtPwiXWg8Tf6iuDX4u8QHvgAATaoLC7OSyiy54Cq86ujXIzSututuTaFAPdjn3uGC5ULk5
+	p14A5BpOs65xVWDwqW7s5utBGljlft05pYU3N4jjvX3Fcxbq4KRKSR2sfFiUL3RGY9IHPqEHxU2
+	t/XlarCDxzkQB8rvCRe9HsuBgI7s8LM2p5G1IwMeycCI080ZUaQ117vrWrnm
+X-Google-Smtp-Source: AGHT+IGvqXzMfcnyqNrj7p7wdnvTyszTPNPdWx0CWx39jKf1J8JTm3+PQhCMuWqtdtAl4jV5nLIrKw==
+X-Received: by 2002:a17:903:b0e:b0:224:ff0:4360 with SMTP id d9443c01a7336-2319816828amr32312535ad.53.1747199727007;
+        Tue, 13 May 2025 22:15:27 -0700 (PDT)
+Received: from EBJ9932692.tcent.cn ([124.156.216.125])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-22fc8271af7sm89967845ad.151.2025.05.13.22.15.23
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Tue, 13 May 2025 22:15:26 -0700 (PDT)
+From: Lance Yang <ioworker0@gmail.com>
+X-Google-Original-From: Lance Yang <lance.yang@linux.dev>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org
+Cc: davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Zi Li <zili@linux.dev>,
+	Lance Yang <lance.yang@linux.dev>
+Subject: [PATCH 1/1] netfilter: load nf_log_syslog on enabling nf_conntrack_log_invalid
+Date: Wed, 14 May 2025 13:15:07 +0800
+Message-ID: <20250514051507.87494-1-lance.yang@linux.dev>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hello Netfilter-ers,
+From: Lance Yang <lance.yang@linux.dev>
 
-I'm in the process of submitting my first patch, and have very much
-enjoyed the process.
+When nf_log_syslog is not loaded, nf_conntrack_log_invalid fails to log
+invalid packets, leaving users unaware of actual invalid traffic. Improve
+this by loading nf_log_syslog, similar to how 'iptables -I FORWARD 1 -m
+conntrack --ctstate INVALID -j LOG' triggers it.
 
-To find the work, I browsed the netfilter bugzilla, looking for
-something I felt I was capable of, and started hacking.
+Signed-off-by: Zi Li <zili@linux.dev>
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+---
+ net/netfilter/nf_conntrack_standalone.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-I found this link about the Core Team:
-https://www.netfilter.org/about.html#coreteam
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 2f666751c7e7..b4acff01088f 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -543,6 +543,24 @@ nf_conntrack_hash_sysctl(const struct ctl_table *table, int write,
+ 	return ret;
+ }
+ 
++static int
++nf_conntrack_log_invalid_sysctl(const struct ctl_table *table, int write,
++				void *buffer, size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
++	if (ret < 0 || !write)
++		return ret;
++
++	if (*(u8 *)table->data == 0)
++		return ret;
++
++	request_module("%s", "nf_log_syslog");
++
++	return ret;
++}
++
+ static struct ctl_table_header *nf_ct_netfilter_header;
+ 
+ enum nf_ct_sysctl_index {
+@@ -649,7 +667,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.data		= &init_net.ct.sysctl_log_invalid,
+ 		.maxlen		= sizeof(u8),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dou8vec_minmax,
++		.proc_handler	= nf_conntrack_log_invalid_sysctl,
+ 	},
+ 	[NF_SYSCTL_CT_EXPECT_MAX] = {
+ 		.procname	= "nf_conntrack_expect_max",
+-- 
+2.49.0
 
-6 bullets are listed as to what the Core Team finds valuable, one of
-them being: "Implement what's on the projects TODO list.".
-
-I possess no delusions of grandeur of being on the Core Team, having
-just started, but I want to do impactful work for the project.
-
-Where is this TODO list?  I looked in the various git repositories, and
-some of the userland tools had TODO files in the root, but I did not see
-one for nftables and wouldn't know where to find one for the kernel
-code.
-
-If there are better strategies to knowing what is the best thing to do,
-even if that's back to the bugzilla mines, I'm all ears.
-
-
-Thanks for the assistance!
-
-
-SB
