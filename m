@@ -1,137 +1,92 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75F201DDC28;
-	Wed, 14 May 2025 05:38:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3983156B81
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 08:19:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747201081; cv=none; b=BrzFJSpLWgNXOZoFoCcT85cmNzvNP/9lWboW34GImSu/wPIbPST+zOIz7UGzLy9y86Pk+aZzjvD2swAUyjbj+pNxS9FrQGw29NGnJRc2ISfvwNS0VRZv2Aj+/h++94KchAj8ja3F11YN/bOnbTVhrTSomw7ePWgcVURzoubUn34=
+	t=1747210768; cv=none; b=pyTCYIiml2BVet0rB79vVZBGzZcxgiTKO4pHtLhJVIKlwDGGcoZgb2AGmZwKutV8hr6Xm4gXGzKrd5gkOsB0uc/Ou8rsByAYunwuLqNcZDSEMv3g8PZhg9W/JMiab4/tQvff7gYdWtNFCFJkYdDXKmsaz2SQkKuXb9uZIfi2y1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747201081; c=relaxed/simple;
-	bh=/ZAskp40rYSNhz66uBQbuHwURjSXVxSPsnAOOjVdcv0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aA0PceyXABFE/hkSmr+rLFl+Ju3W7y+VsQtpqFEiMiDYSr1Z3bmSU14VrEywea2FDy1WX01jS+56zeZhQUc5rYsPFGhpdPYq7fyeaXnt2czWaSDNEIyDoWSGQ9p2+4FkHV/W/luG/mfz7YWScpbkIVCPY9lU5i6bv9PjCMLF510=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UkB1dvAW; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1747210768; c=relaxed/simple;
+	bh=FIOhBPl5qWEn79zHaywgGdt3PneaU80lA78tQDcjCWo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Zf3xLQ16h7aka+3Y/KbyL0H2jZPR2kUpsT5kTygYZKUsGzvM1YtrXorYJBB9tfnM12njG/hgGeAi/vaevLcS8owmp+kJNVLp458likOlHVZceetUoCoyx43sZDiqf3YqsPn/AnSHNl60nQ/Zc9A9s830BPSOqU0R1CsPuQhueRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DhFe4W1P; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pO3tZ6sr; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UkB1dvAW"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-74264d1832eso3718044b3a.0;
-        Tue, 13 May 2025 22:38:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747201080; x=1747805880; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=z1FrVevl9xk1mZlS2y4IA8EHsiTRZOhyhjcDocMnWEw=;
-        b=UkB1dvAWPJrThANpUYuD3RvI+nLawMMyjL4wIluJTT/b097l2lZAZvAhvbnhkFd48k
-         WookxgPFEO+ogtK2dLW701wiK629xrdrMsTLZucOaOYNl6juFzvJz5j57sQK33VT2fRW
-         FSmp/eukDXJfU8PwXxvGr0NhI0RPWGgia9Ed/ULCZoah3WKq32SiTB4m6rjmjOFXRMLD
-         iv61xSBtHsG8Ld+paPxE1DkMi33Y0QLFGHOHJe7TZtsxrD4ULKy5BGakmfwVyc7Deoxl
-         mjIkc6SRcg4mqM8lui1bH4O9bfAoBuS+bUl2CMoOjtr/rNrEwngJPIOF5qGtNZT/thlJ
-         D8HQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747201080; x=1747805880;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=z1FrVevl9xk1mZlS2y4IA8EHsiTRZOhyhjcDocMnWEw=;
-        b=P/tEhOKHlCdjRWW/zxABuNYqLyUfIRYjDwCX5Ao4LITd7x4K52WdbqFZ1h8elBNwW/
-         1iYoOctt1GdaCXfHyrZY7B+Xj8daGb69gnAul9WiMMmKZB4kay1AEGwDmaJh79xNOTBS
-         Sf9LY4ixJVmeLp0uRJ7tldr9jqCcPysEl+O4rACbcAJN3gof74UikVNcLCiveaaIbEoJ
-         JDyLr7ctu/axw15ZluLEiPqVP+B2MQXT7laKFHx00G85eQwDKInkAMDbJ9QbuuG0f7Kr
-         9g11Q/pX6apxuCHj8dmBvFllXC+MQtS/xaGLKXGYwalUGf0YVm+ymT51etPAb2r1cmTv
-         pJUA==
-X-Forwarded-Encrypted: i=1; AJvYcCWWcNVm6pfZMuXTG2zAQ2xh+1T0LiO1pgZhb+lpwPc81CzUAx5Dv6R6C+0nQ3wvEHW8tclcUeJDOv7lTTc=@vger.kernel.org, AJvYcCWaEEvr/Kxyc8KoN8x26sLOmrp45uK4OqcaNAX3dboAYpsGkDgsJxI/jk5k2yHOxZEkb507SYWM2FSnmQYJs+6P@vger.kernel.org
-X-Gm-Message-State: AOJu0YwPoUKo4w2i4fLJsncNzKKZkv/TYNitTKwFQjDsmmrWs90uuMC9
-	F5RsIjkafLGjpaZolAVIdGXdTxAaw49ppefdrI43h5jOg1sDNUh5
-X-Gm-Gg: ASbGnctJZ0Ssq4CEKhXKEsNKEtn3gCyFUVvsOrGAxV5EvFen5e08UW46AGZWyKRlS6L
-	sVfzYfxT+xKNJAEyolJvxcKLNKcgYsFVei2SOGIkMZY10gA5FATqbOGa1+F4ogSTOveTklOeyJZ
-	i49olIGtRgzlKuFPwC8eJB5lkDAODAQdWTKJjxHyj0VldtDIp7/ilVGSsWk/6FZHq/xg6NQ9wt+
-	OzduK1vPV6csbILh2Kxlo3yskT1Vw8L6SvkE3AIL1+8mqVQk+26aqZNt0ZBaWfdvkL8Ol/NUt2s
-	f0EsxxBJ0FbaB4wpWAw3/nFWbX0L7BLD/p4W11XCd5YzkE92aN0gQfStg/9C
-X-Google-Smtp-Source: AGHT+IFw4qAk9jrbGR1Hwgey0fD8K/CvhR07siSBPrK3CH8gb/JyYgc/5ALTVVOH8bNxg1xqJiBM9A==
-X-Received: by 2002:a05:6a20:258e:b0:1f5:8d91:293a with SMTP id adf61e73a8af0-215ff1c00ddmr3015791637.41.1747201079675;
-        Tue, 13 May 2025 22:37:59 -0700 (PDT)
-Received: from EBJ9932692.tcent.cn ([124.156.216.125])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b2349dd1fcdsm7003609a12.18.2025.05.13.22.37.55
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Tue, 13 May 2025 22:37:59 -0700 (PDT)
-From: Lance Yang <ioworker0@gmail.com>
-X-Google-Original-From: Lance Yang <lance.yang@linux.dev>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org
-Cc: davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Zi Li <zi.li@linux.dev>,
-	Lance Yang <lance.yang@linux.dev>
-Subject: [RESEND PATCH 1/1] netfilter: load nf_log_syslog on enabling nf_conntrack_log_invalid
-Date: Wed, 14 May 2025 13:37:51 +0800
-Message-ID: <20250514053751.2271-1-lance.yang@linux.dev>
-X-Mailer: git-send-email 2.49.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DhFe4W1P";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pO3tZ6sr"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 565DD606AD; Wed, 14 May 2025 10:19:17 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747210757;
+	bh=gdT0mxlzvXifTjy5BmRL0g1g4YGD6TRAXSv9Q3N7rAw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=DhFe4W1P1NBJ3Qgsn/7x4CutCi2isMpN6B5xxf+FXhIPOw1ZuD+E21MICjqauT5pE
+	 kF4rfBmURN/KLY8p9T5ELtIO5E1b+Xfc1lDedARAX56hGNmIanmmiIy7R0yuintAfs
+	 zLY36Ttt9oKMB78M5raBYX0B/AOzDrHKywyiDUWxyFO1e73/3qKsL0zldBNCYiHZrB
+	 0LW81IRDh3OGftmHEaK8mPY3pN2LZ6KfvpsvcxZ5aM3vqL4snIJgaWpnN541tpNz5+
+	 Me58OObEYDZbx3fR65M2pfJ3gpTC66tQSMl6B1KooBB15qhJfnu1DsnroWzLrK4cJm
+	 EdUt/d3SfsSsA==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1C1BA606A8;
+	Wed, 14 May 2025 10:19:16 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747210756;
+	bh=gdT0mxlzvXifTjy5BmRL0g1g4YGD6TRAXSv9Q3N7rAw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=pO3tZ6sraXpO4zRJNepyRFmfIku1wOsyEjAHCxE5cRucMC1uQ6McrambN5msd69xI
+	 +toSjSB0dhP110dhXBPdGTucH1BYt66787aC3nAAbmXV7Qlw8/RvOXLuhpBWc9Rl6p
+	 6gEB3XOdEDX3MHMjLd4rxQxroyK/Xqqg6sKOnhcA2L+V6uxczT0JJ/7VPFk9rL7+lp
+	 TAU6AcHmP4eM5o4Ms+D0g4DkFqnm1L3Uai5BoJxCeR+E1gFd0bGPHbPRzxfPDT8ByF
+	 Zhzkj0MsxV2lCs2y1PNJzrbIp2g+wC7wt4bPe3udeWD+ema6pKj0kf1e4rE6wBBn17
+	 k3lRKNpwQ3s2g==
+Date: Wed, 14 May 2025 10:19:12 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Shaun Brady <brady.1345@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, ppwaskie@kernel.org, fw@strlen.de
+Subject: Re: [PATCH v3] netfilter: nf_tables: Implement jump limit for
+ nft_table_validate
+Message-ID: <aCRPkxvH5LCtc7Bi@calendula>
+References: <20250513020856.2466270-1-brady.1345@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250513020856.2466270-1-brady.1345@gmail.com>
 
-From: Lance Yang <lance.yang@linux.dev>
+Hi,
 
-When nf_log_syslog is not loaded, nf_conntrack_log_invalid fails to log
-invalid packets, leaving users unaware of actual invalid traffic. Improve
-this by loading nf_log_syslog, similar to how 'iptables -I FORWARD 1 -m
-conntrack --ctstate INVALID -j LOG' triggers it.
+On Mon, May 12, 2025 at 10:08:56PM -0400, Shaun Brady wrote:
+[...]
+> Add a new counter, total_jump_counter, to nft_ctx.  On every call to
+> nft_table_validate() (rule addition time, versus packet inspection time)
+> start the counter at the current sum of all jump counts in all other
+> tables with the same family, as well as netdev.
 
-Signed-off-by: Zi Li <zi.li@linux.dev>
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
----
- net/netfilter/nf_conntrack_standalone.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+What about the bridge family? If bridged frames are passed up to the
+IP stack, then these hooks can have basechains with jumps too.
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 2f666751c7e7..b4acff01088f 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -543,6 +543,24 @@ nf_conntrack_hash_sysctl(const struct ctl_table *table, int write,
- 	return ret;
- }
- 
-+static int
-+nf_conntrack_log_invalid_sysctl(const struct ctl_table *table, int write,
-+				void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
-+	if (ret < 0 || !write)
-+		return ret;
-+
-+	if (*(u8 *)table->data == 0)
-+		return ret;
-+
-+	request_module("%s", "nf_log_syslog");
-+
-+	return ret;
-+}
-+
- static struct ctl_table_header *nf_ct_netfilter_header;
- 
- enum nf_ct_sysctl_index {
-@@ -649,7 +667,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.data		= &init_net.ct.sysctl_log_invalid,
- 		.maxlen		= sizeof(u8),
- 		.mode		= 0644,
--		.proc_handler	= proc_dou8vec_minmax,
-+		.proc_handler	= nf_conntrack_log_invalid_sysctl,
- 	},
- 	[NF_SYSCTL_CT_EXPECT_MAX] = {
- 		.procname	= "nf_conntrack_expect_max",
--- 
-2.49.0
+Maybe it is better to have a global limit for all tables, regardless
+the family, in a non-init-netns?
 
+> Increment said counter for every jump encountered during table
+> validation.  If the counter ever exceeds the namespaces jump limit
+> *during validation*, gracefully reject the rule with -EMLINK (the same
+> behavior as exceeding NFT_JUMP_STACK_SIZE).
+> 
+> This allows immediate feedback to the user about a bad chain, versus the
+> original idea (from the bug report) of allowing the addition to the
+> table.  It keeps the in memory ruleset consistent, versus catching the
+> failure during packet inspection at some unknown point in the future and
+> arbitrarily denying the packet.
+
+Agreed, I also prefer to enforce this limit from control plane.
+
+Thanks
