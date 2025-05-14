@@ -1,112 +1,102 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C04F31D555
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2025 15:57:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E5E1DFE8
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 02:54:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747151848; cv=none; b=lgQgZX5Nn/jetVvdgsPOk0CHZUpRMmc9eh9T8ynIYIcq/bGR3luG0ugmgFyuDIUTe/Nj9VnAxTgBidS/CRwyIanLp6r7vWx4jF4exXjeae+EcuuwcOQMTVlNrHBM2w/e9bv+gK21o1aVNxOjIPnkBscasf5VtGLn0U5YyRuH40Y=
+	t=1747191259; cv=none; b=ObJ+t2nbtzRv3BM53A4GDvR8j7Akf7++YCcekAEiPltcjDBxcTbXXxttMB6FxWHkzeGWrh5B4M5Khb77rhiX1TTbALi2xf4yAIAUq35SThVjLLVcSP7KL/+htvmBNNUrTJS2yEPcZLy0aZDRNPFdI6rtPCxXxi+1raxNFBbTCOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747151848; c=relaxed/simple;
-	bh=UgAcjhx2yGQ/FSUc9Rw25dAk2mjr0dCNdw86A/YrxJI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rjJQEzWeXMayKtO9fha4OgQn9NpqfOBhQ1Wos09FbaK0gDcmTuVlEJJ9pEqiy92dG7ZgW4uz+fjdHXyfaKqobwU0bQXRDEtKevP2baa8yPsWm4D/uNE8X0dq50qGuy2QhhOmmECygW5O2+32bQcam+ZQ8hVl9VjSrSQUW3ta85A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=AfWVXgEU; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1747191259; c=relaxed/simple;
+	bh=aEVtejBO9RZYmIQjubc592cuKBW60b1EHXaK3Y+Kx2k=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=PbMmmaza2Km7s6M/7tNZpjcXlndXS3Iv/GE/eFbGivdTNXgCCwiA1BLJCGvxyb5zGGEVHfK7n2mC+1Unpl20bMHwQhud5RnefbpswkmT5HsitIkTOuvbDfIJ1Ws7UF5FdlxBcP0M4ufNFaZ+7snd61ZnpsmzsezdtJibRvq0eJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FgNN+9pO; arc=none smtp.client-ip=209.85.160.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="AfWVXgEU"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=DYYxKdIAjnWbaOJiLdKEInixISBb7zkb6Jru4OwMX3o=; b=AfWVXgEUE8tkyJTkS5TMD+Sjay
-	bf523D9PRK71MWriEc2kPAfct1EXgo6E5rg7vpvwzTU8O/pT5Dp1GaY1hy3Lh5bzzsTGVw16u04v5
-	TS5ZI68bs4n0gh5og+ZJcTDdtRufxtcEW1udd3VQQ5wrBGobriXzStJTS3vXhnKpWq3ug15ya7E1f
-	TZLqUxTH72f6EaQ26dMPnQA9i4AynZ8T4lOxS19F1KJjlAACt/lOTQ+e66uf2Sdyju4aEzYzHPkXf
-	QpZyZOFPxRpUM6AZlkL2O0J7gWGGQ7rWIRZkYPNUE+HrJHdT8SJJ9A/XyoXoLqqfJhQebMP7lgo9r
-	Y+1taWwA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uEs0G-000000001sq-2c7h;
-	Tue, 13 May 2025 17:57:12 +0200
-Date: Tue, 13 May 2025 17:57:12 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: =?utf-8?B?5ZGo5oG66Iiq?= <22321077@zju.edu.cn>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Re: Fix resource leak in iptables/xtables-restore.c
-Message-ID: <aCNr2GS7Pyp6wsJH@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	=?utf-8?B?5ZGo5oG66Iiq?= <22321077@zju.edu.cn>,
-	netfilter-devel@vger.kernel.org
-References: <87aa5c8.77e3.196c354f80c.Coremail.22321077@zju.edu.cn>
- <aCHMICSGU2LT7SS-@orbyte.nwl.cc>
- <63b7ba31.88a5.196c815f8b5.Coremail.22321077@zju.edu.cn>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FgNN+9pO"
+Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4769aef457bso77598061cf.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2025 19:54:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747191255; x=1747796055; darn=vger.kernel.org;
+        h=content-disposition:mime-version:message-id:subject:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=GEKFVhL6hCb1xNlmq13kTzUPUrn4LG2l0oIWGcff+8c=;
+        b=FgNN+9pO0qXjf/QuIkM3MHeptRvwHG2gWf9YkZG6PcHp3X73PC2vQ34zPHecY1n7wJ
+         YdRxMp4lBdpD7pRWX28uBvmCMPxtCGkCSU/ZJgkX8bluiqB8zgqbb6OAf49Mdbf0HVq3
+         1WN3sUh0LSb9qTGKft/wJIyU9Au5l9+XJ/BogG667DUJkgs83d/v+1IhAPQLwraoTX1k
+         cC+/JKEgAjRwU+05jRv0+vbKkoDxr/FXUDqElfHq91uEW8XnzmXqeKkaDdYZ3IZycvZ5
+         3n/Sv+v5B6KIGXAg3sY9xkPqlOYUCWXIHfTnFAT6ZYOk8PEpDEi1dYlZUpNxDybMZzZ9
+         AQRg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747191255; x=1747796055;
+        h=content-disposition:mime-version:message-id:subject:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=GEKFVhL6hCb1xNlmq13kTzUPUrn4LG2l0oIWGcff+8c=;
+        b=R7YWCKb2dxNHHQXO3PuCAxXLC4Tm+g+A7RVqhl/5aWZhovNc8rNCaEMG3UJDygzThC
+         0ide5ycIbcw38VKD8QqEi33VnMtfgootXtCyKCFmQhzMnVcWBWV15xRwUHtYRe49/cjG
+         xgAWUOWvhFenM/US7UDOF/1w10xlrDP2U+O4gKAfqxDbZV+9v9Wq/d1+zJzui0sxhu2S
+         EIHzBUvlJmcVuT+lRCI6FOx3CVp2XeqP2OQbInWVb//ll1fpdyMCPAAohR3tpWrD1E+G
+         mxf/oFuhDMx4GOygpkHtIET1Vbks54BDbsQepN3qs0F1QnnjmEqmKEpmuAYzypNwVqIK
+         TV9g==
+X-Gm-Message-State: AOJu0YxWNW1Uup2Qka5Lkc1TDw0nQGJ1Ut6vFaI8K3SaxZXPFt6Vq410
+	Mpcm55zg4maRLAYtctuOHHsOfCwppoWx2naSslMJJzi2ghtX1NEKfxIxeA==
+X-Gm-Gg: ASbGncviFmwlyUnfvD/vU1LnnySVvjtsOCGoaYsF9XGmsi2q95IrSempjIswsmP5B53
+	ECaR0ROzHHC1lyXmwDy3SE9TQtMPvojGTw2dWI0L4cFnH2vgHX4pnM+G3U+n4QuRiBZlZNLlOG0
+	HUNHIdeMUjz+xcw3OPRAK0NemrH/dTtZSVJD+VHYglKUhlwD31eqWM19qwTsW6XmuUfeF9PXn2+
+	mRt9w01DPLw8Rj9KQUxjT/iiC0CgCtXXcOXfqJwQHwzsffpPEp3xneBEV26rGVFXCFRHQLviv8D
+	TKriaQGsAhAHiJOncEA8nuj4OKrsISPAWo0k/ZQozMdwJ2J4on2TivK/AcL0YD3kLZx4KMQCXno
+	6cd1bI/3Znp2DO/VfGYQ=
+X-Google-Smtp-Source: AGHT+IELPBJCRMdUqVdKQbzxeQCcYeacCXjWZqijVoa0htqsyPt//BVeMUp6DhuXffYAgDXLf3VTOQ==
+X-Received: by 2002:ac8:4cda:0:b0:494:993d:ec36 with SMTP id d75a77b69052e-494993df0d8mr3129261cf.14.1747191255582;
+        Tue, 13 May 2025 19:54:15 -0700 (PDT)
+Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-494524bc561sm72580031cf.35.2025.05.13.19.54.14
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 13 May 2025 19:54:15 -0700 (PDT)
+Date: Tue, 13 May 2025 22:54:13 -0400
+From: Shaun Brady <brady.1345@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Subject: Looking for TODO
+Message-ID: <aCQF1eDdqgmYE3Sx@fedora>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <63b7ba31.88a5.196c815f8b5.Coremail.22321077@zju.edu.cn>
 
-On Tue, May 13, 2025 at 01:20:05PM +0800, 周恺航 wrote:
-> 
-> 
-> 
-> > -----Original Message-----
-> 
-> 
-> > From: "Phil Sutter" <phil@nwl.cc>
-> 
-> > Sent: Monday, May 12, 2025 18:23:28
-> > To: 周恺航 <22321077@zju.edu.cn>
-> > Cc: netfilter-devel@vger.kernel.org
-> > Subject: Re: Fix resource leak in iptables/xtables-restore.cc
-> > 
-> > Hi,
-> > 
-> > On Mon, May 12, 2025 at 03:10:47PM +0800, 周恺航 wrote:
-> > > The function xtables_restore_main opens a file stream p.in but fails to close it before returning. This leads to a resource leak as the file descriptor remains open.
-> > > 
-> > > 
-> > > Signed-off-by: Kaihang Zhou <22321077@zju.edu.cn>
-> > > 
-> > > ---
-> > >  iptables/xtables-restore.c | 1 +
-> > >  1 file changed, 1 insertion(+)
-> > > 
-> > > 
-> > > diff --git a/iptables/xtables-restore.c b/iptables/xtables-restore.c
-> > > 
-> > > index e7802b9e..f09ab7ee 100644
-> > > --- a/iptables/xtables-restore.c
-> > > +++ b/iptables/xtables-restore.c
-> > > @@ -381,6 +381,7 @@ xtables_restore_main(int family, const char *progname, int argc, char *argv[])
-> > >                 break;
-> > >         default:
-> > >                 fprintf(stderr, "Unknown family %d\n", family);
-> > > +               fclose(p.in);
-> > >                 return 1;
-> > >         }
-> > 
-> > Since this is not the only error path which leaves p.in open (eight
-> > lines below is the next one for instance), why fix this one in
-> > particular and leave the other ones in place?
-> > 
-> > Cheers, Phil
-> 
-> At first, I thought that not closing the file handle before the return was more serious, and that when exit terminates the program, the system might automatically reclaim resources. But it's obvious that this understanding is wrong. Both are bad programming habits and may lead to problems in resource management and program stability. I've revised the patch.Thank you.
+Hello Netfilter-ers,
 
-I was not listing all problematic cases but merely giving an example.
-Another one is the exit() call in xtables_restore_parse() or all calls
-to xtables_error() in various spots. If you want to avoid p.in remaining
-open upon program exit in error paths, please submit a patch which
-addresses all cases.
+I'm in the process of submitting my first patch, and have very much
+enjoyed the process.
 
-Thanks, Phil
+To find the work, I browsed the netfilter bugzilla, looking for
+something I felt I was capable of, and started hacking.
+
+I found this link about the Core Team:
+https://www.netfilter.org/about.html#coreteam
+
+6 bullets are listed as to what the Core Team finds valuable, one of
+them being: "Implement what's on the projects TODO list.".
+
+I possess no delusions of grandeur of being on the Core Team, having
+just started, but I want to do impactful work for the project.
+
+Where is this TODO list?  I looked in the various git repositories, and
+some of the userland tools had TODO files in the root, but I did not see
+one for nftables and wouldn't know where to find one for the kernel
+code.
+
+If there are better strategies to knowing what is the best thing to do,
+even if that's back to the bugzilla mines, I'm all ears.
+
+
+Thanks for the assistance!
+
+
+SB
