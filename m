@@ -1,53 +1,53 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2295C221F2A
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 21:42:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C594F221F2F
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 21:42:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747258955; cv=none; b=oUZxic1/3b8HIpqrTW9CdpnJkGH3hmJlV5vP5Rxb5FlpE5XK0DAPaieguW8UZs8Z+7wcUGcIPzUef70kC9VAPywTnw4Un0ep8I7JehDF0h1z6r9VqT9I3arhbe8MuXbpeMUCPEYthL7ZW8fQt0OEyL293Xr5lOTC+s95CUg4xQ8=
+	t=1747258956; cv=none; b=EnZHHzjA4bv6aHSDPu7fZlQJYjzSAfZxo4syNbWcfcwXQNRBqSCM4yeISMdgfJFuOXMm+GHF95PqtQNEag+LJqQ2GP0bwL5SBSFtXUXpam4wCjOemgl8mTCzOhxHygGPxytI0JrA3e79TE4WYBCA0COGNSuFqJSU2QQ0dZ4okbI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747258955; c=relaxed/simple;
-	bh=BxNAFFy7W4liFRKeGdojfkcABsgS6sUUhgg4HHe/TSU=;
+	s=arc-20240116; t=1747258956; c=relaxed/simple;
+	bh=bBAcdgSOPhk0GbIE/5AQ6YR83bMFxS7fuSPy6KnNWWk=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=QDFyOmRzRNE5NyRU/PumWkBSLp+ooh3TXtwP7GRULSJeQzbbOOqvnLETmM9BDD/Q9sy0yR2oHNX5L1DhxBm1bOP2uGwQzgf9tWRaPPnElSLLMWZYRdthDt/qc4YUqZ1hb95f0ATq6uivxMt4//FI4DS1xNljW3VVggIqfywrNVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MbxlSbMa; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kqz6ZEct; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=rFKEU8ySBbVQ/1ZUxx5qIu9IHGLpuCim9jhLDwqePWbiPlBb8ZwEI6xBt4voLRvsQjUQUUePSajdifOC8CQVzvM/rplEvaLzx6t/i0KT5LGuKK0G3s3NVHInZTJXyl/xgU3Dl2diNGUfCj0mIA8dmYK9M0TOyOOwSnM9JWPfqbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AIwtgwpT; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lKoiqMKy; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MbxlSbMa";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kqz6ZEct"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AIwtgwpT";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lKoiqMKy"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 245FE6073E; Wed, 14 May 2025 23:42:30 +0200 (CEST)
+	id B01ED60747; Wed, 14 May 2025 23:42:31 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747258950;
-	bh=SwOIkAlZS5WNrlZlm2L7xsvLlR214f3Y04VjZX/0NYY=;
+	s=2025; t=1747258951;
+	bh=VZskdhjWyBPDL+RPF1nFOnVjBCYm4A7DTzqoKdXHzCQ=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=MbxlSbMaBWmc5VAwM8+bALxx9IoEzBtAWt7bAngkULh3nfSXw5UcUQIEnygug29b7
-	 Skzp6GIe5P33YE4B5C/IW0+n61fd1Ftlt6SE04EhXFFYwCDfocX1HB7bG3PUmivKHr
-	 AjLIkYKYCbzXpTRZ7jCIFRaLohddyBEU5Z/P4BlcxB6x/OSEwukLfryaiC9sIo4Xji
-	 nCBRVnHourIVMJE+glGwmJMLYrm24bb5dz433CFzMAXQF7TtcgEsn+Rz7AeZqLX+re
-	 s5l3s+IzT51SB0XWpqnG9MLAGyJdXx4eglYlAmahKgZXmujaTIQg3sjBONFs/hqYeh
-	 nopyD0DFYI9bA==
+	b=AIwtgwpTwg9pBDz8RgSNa8TH5SDp3MIk5eevoECt33JcgpNCVCgGk0QAdwqbG3MZf
+	 ZSKJ6wzXOCtRZ/LPH1Vj0qSb8s54LrFAh6KajoJCbAZlNCY3UoJ96nkmUSjF9xYeIl
+	 AI0CialNTUx0IhhKJiJru/vYflCjLah02ZkQsftR1BvNMjAK1PucO2X1SgrSLS+MPj
+	 2IRso1j7rHyovLDeLO4W9MAIle8Say6aqsrIIMbKk0OZvETj2uSJnMr5pcH75oBtrd
+	 jYTNn7Fru/9m3dUhXBlPMgSugCdcTmb/YE0nXusENHDdMRm2cGsmVJggC7KMe6WETH
+	 AH/KYTKxo6r3A==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8DD006073E
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 23:42:29 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7F52960743
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 23:42:30 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747258949;
-	bh=SwOIkAlZS5WNrlZlm2L7xsvLlR214f3Y04VjZX/0NYY=;
+	s=2025; t=1747258950;
+	bh=VZskdhjWyBPDL+RPF1nFOnVjBCYm4A7DTzqoKdXHzCQ=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=kqz6ZEctJfoUx18ZNOFjvxmahDWaJP+QRSSP+LM+MGMLoatgkZQXqe8zXkYpAvl34
-	 322CD624q96NY+EYDMupt53akHd+ZOwVNiYsHHDRyq3iI1g/xqJZimgCe0nhWYKriY
-	 Een5HQwNTVgP9z9YuVfyC/OpH1c/pg8JjT5JS7hTXS/hPHF4QfcciT5AOS133YwHus
-	 6Nt/CDqilMQBo3HDlUySYacYpMd1VtFQ/3pzhSL3D/xS2VkjFYhhhkJ8bOjqAw0Faa
-	 uTgSYe77w2Ch4CbmYOuIm8LX9ZjwvW7627y64c+7eu+Xc4eYy6L3KCPKQhFcumlsvQ
-	 OAv2YEwd5hDqg==
+	b=lKoiqMKybuKfJQQs5xhH0/Z6Jul2VZgcqGrleVcY3ZELJhLUnsa8y/TJweRA/CLgQ
+	 Yu5KWhd/SMBSRLWaMcV15wjo2q0YzZq+8Kcq9bO1uuuw/UuHHI5ST5+KumP9Lhfmss
+	 rrJQ+rdQTXCuKLx0P2PGwW3JmQgfrt1GTEnvBjXUy16XQ48ffkMf8l49R++NZJJLWg
+	 irAObRd/w6+HLo/FYtguBOtCArKAsQjeK+pEosARu9N9xww4t2oGNXaevmrV0V35mn
+	 7lMlr1O53V7OAV2ItAj3hPcdXjVVqALGvmjf+tQ8ek563bQVLJYe4AZ8Liry2uzwym
+	 VYwVfI1lrP02w==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v1 2/6] netfilter: nf_tables: honor validation state in preparation phase
-Date: Wed, 14 May 2025 23:42:12 +0200
-Message-Id: <20250514214216.828862-3-pablo@netfilter.org>
+Subject: [PATCH nf-next,v1 4/6] netfilter: nf_tables: add new binding infrastructure
+Date: Wed, 14 May 2025 23:42:14 +0200
+Message-Id: <20250514214216.828862-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250514214216.828862-1-pablo@netfilter.org>
 References: <20250514214216.828862-1-pablo@netfilter.org>
@@ -59,134 +59,509 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There are three states for table validation:
+Add new binding infrastructure to build a graph that relates chains and
+sets via jump/goto such as:
 
-- SKIP, this is the initial state, skip validation from the preparation
-  phase and the commit/abort path.
-- NEED, this state is entered from the preparation phase, to validate
-  the table from the commit/abort path. In case that validation fails,
-  this enters the DO state and the transaction is replayed.
-- DO, this state validates updates incremental from the preparation
-  step for error reporting.
+- chain to chain, ie. rule jump/goto chain.
+- set to chain, ie. set element jump/goto chain.
+- chain to set, ie. rule lookup to set.
 
-Currently the NEED state is set on if:
-- A new rule contains expressions that require validation, this
-  includes jump/goto chain.
-- A new set element with jump/goto chain.
+The binding is composed of two tuples that describe [ from, to ], each
+component of this tuple is defined as the object type and the pointer to
+the object. This patch adds a hashtable for bindings per table to allow
+for lookups of existing bindings in the preparation phase.
 
-However, there are two issues:
+The bindings allows to backtrack to the basechain that refers to
+this object for validation, and to go forward to check for loops
+and to perform the rule validation.
 
-- Validation is performed incrementally with new rules and elements
-  regardless the states. This patch updates the logic to perform the
-  validation only in the DO state.
+This patch adds interfaces to deactivate/activate these bindings during
+the preparation phase. Reference counter of zero tells us this binding
+will be removed after this transaction.
 
-- Reset validate state in case the transaction is finally aborted with
-  with NFNL_ABORT_NONE. Otherwise, the next batch can observe the DO
-  state and it performs the validation incrementally.
+This is still a preparation patch, a follow patch uses this infrastructure.
 
-Fixes: a654de8fdc18 ("netfilter: nf_tables: fix chain dependency validation")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 50 ++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 12 deletions(-)
+ include/net/netfilter/nf_tables.h |  45 ++++
+ net/netfilter/nf_tables_api.c     | 352 ++++++++++++++++++++++++++++++
+ 2 files changed, 397 insertions(+)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index d391990d1a96..807097746d24 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -585,6 +585,8 @@ struct nft_set_elem_expr {
+ struct nft_set {
+ 	struct list_head		list;
+ 	struct list_head		bindings;
++	struct list_head		binding_list;
++	struct list_head		backbinding_list;
+ 	refcount_t			refs;
+ 	struct nft_table		*table;
+ 	possible_net_t			net;
+@@ -1117,6 +1119,8 @@ struct nft_rule_blob {
+ struct nft_chain {
+ 	struct nft_rule_blob		__rcu *blob_gen_0;
+ 	struct nft_rule_blob		__rcu *blob_gen_1;
++	struct list_head		binding_list;
++	struct list_head		backbinding_list;
+ 	struct list_head		rules;
+ 	struct list_head		list;
+ 	struct list_head		validate_list;
+@@ -1293,6 +1297,7 @@ struct nft_table {
+ 	struct list_head		sets;
+ 	struct list_head		objects;
+ 	struct list_head		flowtables;
++	struct rhashtable		bindings_ht;
+ 	u64				hgenerator;
+ 	u64				handle;
+ 	u32				use;
+@@ -1628,6 +1633,46 @@ static inline int nft_set_elem_is_dead(const struct nft_set_ext *ext)
+ 	return test_bit(NFT_SET_ELEM_DEAD_BIT, word);
+ }
+ 
++enum nft_binding_type {
++        NFT_BIND_CHAIN	= 0,
++        NFT_BIND_SET,
++};
++
++/* Bindings. */
++struct nft_binding_key {
++	union {
++		const struct nft_chain	*chain;
++		const struct nft_set	*set;
++		const void		*ptr;
++	};
++	enum nft_binding_type		type;
++};
++
++struct nft_binding {
++	struct rhash_head		node;
++	struct list_head		list;
++	struct list_head		backlist;
++	struct nft_binding_key		from;
++	struct nft_binding_key		to;
++	uint32_t			use;
++};
++
++struct nft_chain;
++struct nft_set;
++
++int nft_add_chain_binding(struct nft_chain *chain1, struct nft_chain *chain2);
++void nft_activate_chain_binding(struct nft_chain *chain1, struct nft_chain *chain2);
++void nft_deactivate_chain_binding(struct nft_chain *chain1, struct nft_chain *chain2);
++void nft_del_chain_binding(struct nft_chain *chain1, struct nft_chain *chain2);
++int nft_add_chain_set_binding(struct nft_chain *chain, struct nft_set *set);
++void nft_deactivate_chain_set_binding(struct nft_chain *chain, struct nft_set *set);
++void nft_activate_chain_set_binding(struct nft_chain *chain, struct nft_set *set);
++void nft_del_chain_set_binding(struct nft_chain *chain, struct nft_set *set);
++int nft_add_set_chain_binding(struct nft_set *set, struct nft_chain *chain);
++void nft_deactivate_set_chain_binding(struct nft_set *set, struct nft_chain *chain);
++void nft_activate_set_chain_binding(struct nft_set *set, struct nft_chain *chain);
++void nft_del_set_chain_binding(struct nft_set *set, struct nft_chain *chain);
++
+ /**
+  * struct nft_trans - nf_tables object update in transaction
+  *
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d5de843ee773..46465a8c255f 100644
+index d35cad55c99b..463ee7b4ec19 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -3997,16 +3997,8 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
- 	nf_tables_rule_destroy(ctx, rule);
+@@ -954,6 +954,347 @@ void __nft_reg_track_cancel(struct nft_regs_track *track, u8 dreg)
  }
+ EXPORT_SYMBOL_GPL(__nft_reg_track_cancel);
  
--/** nft_chain_validate - loop detection and hook validation
-- *
-- * @ctx: context containing call depth and base chain
-- * @chain: chain to validate
-- *
-- * Walk through the rules of the given chain and chase all jumps/gotos
-- * and set lookups until either the jump limit is hit or all reachable
-- * chains have been validated.
-- */
--int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
-+static int __nft_chain_validate(const struct nft_ctx *ctx,
-+				const struct nft_chain *chain)
- {
- 	struct nft_expr *expr, *last;
- 	struct nft_rule *rule;
-@@ -4037,6 +4029,30 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
- 
- 	return 0;
- }
++struct nft_binding_cmp_key {
++	const struct nft_binding_key	*from;
++	const struct nft_binding_key	*to;
++};
 +
-+/** nft_chain_validate - loop detection and hook validation
-+ *
-+ * @ctx: context containing call depth and base chain
-+ * @chain: chain to validate
-+ *
-+ * Walk through the rules of the given chain and chase all jumps/gotos and set
-+ * lookups until either the jump limit is hit or all reachable chains have been
-+ * validated.
-+ *
-+ * This function is called from preparation phase: initial state is SKIP which
-+ * means that validation can be skipped entirely. However, in case of a new rule
-+ * or set element needs validation, then the NEED state is entered and the
-+ * validation is performed from the commit/abort phase. In case this fails, the
-+ * transaction is aborted and it is replayed in the DO validation state, then
-+ * incremental validation is performed for error reporting.
-+ */
-+int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
++static u32 nft_binding_hash(const void *data, u32 len, u32 seed)
 +{
-+	if (ctx->table->validate_state != NFT_VALIDATE_DO)
-+		return 0;
++	const struct nft_binding_cmp_key *key = data;
++	unsigned long tuple[4];
 +
-+	return __nft_chain_validate(ctx, chain);
++	tuple[0] = (unsigned long)key->from->ptr;
++	tuple[1] = (unsigned long)key->from->type;
++	tuple[2] = (unsigned long)key->to->ptr;
++	tuple[3] = (unsigned long)key->to->type;
++
++	return jhash(tuple, sizeof(tuple), seed);
 +}
- EXPORT_SYMBOL_GPL(nft_chain_validate);
++
++static u32 nft_binding_hash_obj(const void *data, u32 len, u32 seed)
++{
++	const struct nft_binding *binding = data;
++	unsigned long tuple[4];
++
++	tuple[0] = (unsigned long)binding->from.ptr;
++	tuple[1] = (unsigned long)binding->from.type;
++	tuple[2] = (unsigned long)binding->to.ptr;
++	tuple[3] = (unsigned long)binding->to.type;
++
++	return jhash(tuple, sizeof(tuple), seed);
++}
++
++static int nft_binding_hash_cmp(struct rhashtable_compare_arg *arg,
++				const void *ptr)
++{
++	const struct nft_binding_cmp_key *key = arg->key;
++	const struct nft_binding *binding = ptr;
++
++	return key->from->ptr != binding->from.ptr ||
++	       key->from->type != binding->from.type ||
++	       key->to->ptr != binding->to.ptr ||
++	       key->to->type != binding->to.type;
++}
++
++static const struct rhashtable_params nft_binding_ht_params = {
++	.head_offset		= offsetof(struct nft_binding, node),
++	.hashfn			= nft_binding_hash,
++	.obj_hashfn		= nft_binding_hash_obj,
++	.obj_cmpfn		= nft_binding_hash_cmp,
++	.automatic_shrinking	= true,
++};
++
++static struct nft_binding *nft_binding_lookup(struct nft_table *table,
++					      const struct nft_binding_key *from,
++					      const struct nft_binding_key *to)
++{
++	struct nft_binding_cmp_key key = {
++		.from	= from,
++		.to	= to,
++	};
++
++	return rhashtable_lookup_fast(&table->bindings_ht, &key,
++				      nft_binding_ht_params);
++}
++
++static void nft_deactivate_binding(struct nft_table *table,
++				   const struct nft_binding_key *from,
++				   const struct nft_binding_key *to)
++{
++	struct nft_binding *binding;
++
++	binding = nft_binding_lookup(table, from, to);
++	if (WARN_ON_ONCE(!binding))
++		return;
++	if (WARN_ON_ONCE(binding->use == 0))
++		return;
++
++	binding->use--;
++}
++
++void nft_deactivate_chain_binding(struct nft_chain *chain1,
++				  struct nft_chain *chain2)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain1,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain2,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	nft_deactivate_binding(chain1->table, &from, &to);
++}
++
++void nft_deactivate_chain_set_binding(struct nft_chain *chain,
++				      struct nft_set *set)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++
++	nft_deactivate_binding(chain->table, &from, &to);
++}
++
++void nft_deactivate_set_chain_binding(struct nft_set *set,
++				      struct nft_chain *chain)
++{
++	struct nft_binding_key from = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	nft_deactivate_binding(chain->table, &from, &to);
++}
++
++static void nft_activate_binding(struct nft_table *table,
++				 const struct nft_binding_key *from,
++				 const struct nft_binding_key *to)
++{
++	struct nft_binding *binding;
++
++	binding = nft_binding_lookup(table, from, to);
++	if (WARN_ON_ONCE(!binding))
++		return;
++
++	binding->use++;
++}
++
++void nft_activate_chain_binding(struct nft_chain *chain1,
++				struct nft_chain *chain2)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain1,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain2,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	nft_activate_binding(chain1->table, &from, &to);
++}
++
++void nft_activate_chain_set_binding(struct nft_chain *chain,
++				    struct nft_set *set)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++
++	nft_activate_binding(chain->table, &from, &to);
++}
++
++void nft_activate_set_chain_binding(struct nft_set *set,
++				    struct nft_chain *chain)
++{
++	struct nft_binding_key from = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	nft_activate_binding(chain->table, &from, &to);
++}
++
++static void nft_del_binding(struct nft_table *table,
++			    const struct nft_binding_key *from,
++			    const struct nft_binding_key *to)
++{
++	struct nft_binding *binding;
++	int err;
++
++	binding = nft_binding_lookup(table, from, to);
++	/* With several references to object, deactivate deals to zero use,
++	 * then first delete binding call remove it.
++	 */
++	if (!binding)
++		return;
++
++	if (binding->use != 0)
++		return;
++
++	list_del(&binding->list);
++	list_del(&binding->backlist);
++
++	err = rhashtable_remove_fast(&table->bindings_ht,
++				     &binding->node, nft_binding_ht_params);
++	if (WARN_ON_ONCE(err < 0))
++		return;
++
++	kfree(binding);
++}
++
++void nft_del_chain_binding(struct nft_chain *chain1, struct nft_chain *chain2)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain1,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain2,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	nft_del_binding(chain1->table, &from, &to);
++}
++
++void nft_del_chain_set_binding(struct nft_chain *chain, struct nft_set *set)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++
++	nft_del_binding(chain->table, &from, &to);
++}
++
++void nft_del_set_chain_binding(struct nft_set *set, struct nft_chain *chain)
++{
++	struct nft_binding_key from = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	nft_del_binding(chain->table, &from, &to);
++}
++
++static int __nft_add_binding(struct nft_table *table,
++			     const struct nft_binding_key *from,
++			     const struct nft_binding_key *to,
++			     struct list_head *binding_list,
++			     struct list_head *backbinding_list)
++{
++	struct nft_binding *binding;
++
++	binding = kzalloc(sizeof(struct nft_binding), GFP_KERNEL);
++	if (!binding)
++		return -ENOMEM;
++
++	binding->from = *from;
++	binding->to = *to;
++	binding->use++;
++
++	list_add_tail(&binding->list, binding_list);
++	list_add_tail(&binding->backlist, backbinding_list);
++
++	return rhashtable_insert_fast(&table->bindings_ht, &binding->node,
++				      nft_binding_ht_params);
++}
++
++static int nft_add_binding(struct nft_table *table,
++			   const struct nft_binding_key *from,
++			   const struct nft_binding_key *to,
++			   struct list_head *binding_list,
++			   struct list_head *backbinding_list)
++{
++	struct nft_binding *binding;
++
++	binding = nft_binding_lookup(table, from, to);
++	if (!binding)
++		return __nft_add_binding(table, from, to,
++					 binding_list, backbinding_list);
++
++	if (binding->use == UINT_MAX)
++		return -EOVERFLOW;
++
++	binding->use++;
++
++	return 0;
++}
++
++int nft_add_chain_binding(struct nft_chain *chain1, struct nft_chain *chain2)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain1,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain2,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	return nft_add_binding(chain1->table, &from, &to,
++			       &chain1->binding_list, &chain2->backbinding_list);
++}
++
++int nft_add_chain_set_binding(struct nft_chain *chain, struct nft_set *set)
++{
++	struct nft_binding_key from = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++	struct nft_binding_key to = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++
++	return nft_add_binding(chain->table, &from, &to,
++			       &chain->binding_list, &set->backbinding_list);
++}
++
++int nft_add_set_chain_binding(struct nft_set *set, struct nft_chain *chain)
++{
++	struct nft_binding_key from = {
++		.ptr	= set,
++		.type	= NFT_BIND_SET,
++	};
++	struct nft_binding_key to = {
++		.ptr	= chain,
++		.type	= NFT_BIND_CHAIN,
++	};
++
++	return nft_add_binding(chain->table, &from, &to,
++			       &set->binding_list, &chain->backbinding_list);
++}
++
+ /*
+  * Tables
+  */
+@@ -1611,6 +1952,10 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
+ 	if (err)
+ 		goto err_chain_ht;
  
- static int nft_table_validate(struct net *net, const struct nft_table *table)
-@@ -4044,6 +4060,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 	struct nft_chain *chain;
- 	struct nft_ctx ctx = {
- 		.net	= net,
-+		.table	= (struct nft_table *)table,
- 		.family	= table->family,
- 	};
- 	int err;
-@@ -4053,7 +4070,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 			continue;
++	err = rhashtable_init(&table->bindings_ht, &nft_binding_ht_params);
++	if (err)
++		goto err_binding_ht;
++
+ 	INIT_LIST_HEAD(&table->chains);
+ 	INIT_LIST_HEAD(&table->sets);
+ 	INIT_LIST_HEAD(&table->objects);
+@@ -1629,6 +1974,8 @@ static int nf_tables_newtable(struct sk_buff *skb, const struct nfnl_info *info,
+ 	list_add_tail_rcu(&table->list, &nft_net->tables);
+ 	return 0;
+ err_trans:
++	rhashtable_destroy(&table->bindings_ht);
++err_binding_ht:
+ 	rhltable_destroy(&table->chains_ht);
+ err_chain_ht:
+ 	kfree(table->udata);
+@@ -1794,6 +2141,7 @@ static void nf_tables_table_destroy(struct nft_table *table)
+ 	if (WARN_ON(table->use > 0))
+ 		return;
  
- 		ctx.chain = chain;
--		err = nft_chain_validate(&ctx, chain);
-+		err = __nft_chain_validate(&ctx, chain);
- 		if (err < 0)
- 			return err;
++	rhashtable_destroy(&table->bindings_ht);
+ 	rhltable_destroy(&table->chains_ht);
+ 	kfree(table->name);
+ 	kfree(table->udata);
+@@ -2691,6 +3039,8 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
+ 	ctx->chain = chain;
  
-@@ -11063,15 +11080,24 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 	struct nft_trans *trans, *next;
- 	LIST_HEAD(set_update_list);
- 	struct nft_trans_elem *te;
-+	struct nft_table *table;
- 	struct nft_ctx ctx = {
- 		.net = net,
- 	};
- 	int err = 0;
+ 	INIT_LIST_HEAD(&chain->rules);
++	INIT_LIST_HEAD(&chain->binding_list);
++	INIT_LIST_HEAD(&chain->backbinding_list);
+ 	chain->handle = nf_tables_alloc_handle(table);
+ 	chain->table = table;
  
--	if (action == NFNL_ABORT_VALIDATE) {
-+	switch (action) {
-+	case NFNL_ABORT_NONE:
-+		list_for_each_entry(table, &nft_net->tables, list)
-+			nft_validate_state_update(table, NFT_VALIDATE_SKIP);
-+		break;
-+	case NFNL_ABORT_AUTOLOAD:
-+		break;
-+	case NFNL_ABORT_VALIDATE:
- 		err = nf_tables_validate(net);
- 		if (err < 0 && err != -EINTR)
- 			err = -EAGAIN;
-+		break;
+@@ -5523,6 +5873,8 @@ static int nf_tables_newset(struct sk_buff *skb, const struct nfnl_info *info,
  	}
  
- 	list_for_each_entry_safe_reverse(trans, next, &nft_net->commit_list,
+ 	INIT_LIST_HEAD(&set->bindings);
++	INIT_LIST_HEAD(&set->binding_list);
++	INIT_LIST_HEAD(&set->backbinding_list);
+ 	INIT_LIST_HEAD(&set->catchall_list);
+ 	refcount_set(&set->refs, 1);
+ 	set->table = table;
 -- 
 2.30.2
 
