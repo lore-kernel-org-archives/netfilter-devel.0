@@ -1,497 +1,84 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C74A259CA1
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2025 18:08:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D9C1F153C
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2025 22:49:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747332515; cv=none; b=JM3fYbJFDW9HCMugIzjhZOIg0GR6w+nETaXqP2AzwfHjyKFq2aLQnCR8wr/N9j5wgMw3Yc9CuS7ZejtNzIih1qIZhMRlVPEMKW4Qw52UkY9QrZ21AuVcWSCRTxyX5mG5FofOBdX7zNJBvBXm9Krx8kJCXfnckDJdNG1dDlgJiw4=
+	t=1747349360; cv=none; b=nO1fjBE/YXsTH+pA11eH4LlvDl2ViJ9yiEGbMfJCXlUhfLfnCU+Sg0E4I4jEgP7+6Ww4YteuaKoP4qZOxHjcHkWnWUsalja1cHUDqGq7v625V+Fazy2AWHK/3u5GKaFnFsZUlkw1jzjHcHN8GeGOeJmxcz/bezfGYsfJXz01V3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747332515; c=relaxed/simple;
-	bh=CbA8dxFOsXfEUcmE7YA6+ZC3ALI+QNJrek8ljwFKjq4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nS5uLALhnPg/BZzti3YhxvyuYDSjrxCIBHDqdUnbIRkvIALGH/5YjiTA0UEAM/qadinlcF0UMbbfSICNA0CLAtmRpyqvxJ2Nz5h3RsSmW/WJT/9Npjtdmr5LMY8ZZ+ly7geTMuOWsR+QqKTDyg74tTbInGRa1TpkBpTo1MzfONY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 912F960033; Thu, 15 May 2025 20:08:31 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 5/5] selftests: netfilter: nft_fib.sh: add type and oif tests with and without VRFs
-Date: Thu, 15 May 2025 20:06:52 +0200
-Message-ID: <20250515180657.4037-6-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250515180657.4037-1-fw@strlen.de>
-References: <20250515180657.4037-1-fw@strlen.de>
+	s=arc-20240116; t=1747349360; c=relaxed/simple;
+	bh=wMCPviMa6NpmVScsLU7OrnqeSgQTjpebmvCX7qZvzrI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FS4a6EUqZtKHMyVFwqhTsRyg9Msh2qTgT1eY53qN/97pYgeQkPljI7tB81ZoosEWCzPdlejnoUOfvLWfpljYTzbwBkSyaRzIJCtnjFkqRaLC1bCa/7vF23aV4hT6i89OzykUoCvlradRDkBqh3DSMtIsIM6qXd3gm3/nwJVownw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SBD5DkYq; arc=none smtp.client-ip=209.85.219.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SBD5DkYq"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-6f53c54df75so17923246d6.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2025 15:49:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747349358; x=1747954158; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=bLoWjLWQrc2nVuQAuvy2PU/MMx8/Ilo7VZXPyacGnbg=;
+        b=SBD5DkYqZrkDQInazXr5/XM5iZb5KVh1pakU8iFhUtA/k1TyeT4UNfQSJlvZXhCHTp
+         TjkwT3aVXbMjlCHV9VSZsAO0p15qTLGuNu7eGII1z++BaHab52cozCZ99pmtXHExg3/Y
+         0t/iyfh2KShkQvcB/0pRo7gwnxExAdAbXTvfSLv7tFBiynQDhVfOcaYdouvwqN+BWky7
+         3gC/bQI6DcnG8YxxhsbxtcXI042zyM+9nrkgJ3J+3Wu8Wvgft8VUhf/0Q2RVWPWDBsqs
+         ASuwz4ZE5cPSmpX4LusUQFgLXQbknOWHxFCCFh3PXUXbuAOEiZUpMGnCBdCRvqkFlsED
+         JCwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747349358; x=1747954158;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=bLoWjLWQrc2nVuQAuvy2PU/MMx8/Ilo7VZXPyacGnbg=;
+        b=htAF7rFMmjjIpUXkVjpuN8896RDxftKhohYU9c6iwbaCBv+rxblIvy99X39drsitzv
+         Hy/SoH+pB7GzrSuJaEQ3m4lf1pKK0cQtpoA84ObhPm2LyZ9YyXxr4DqE6fy7hZkaYOaG
+         0SE3nWi675nbSvWIeeQe6P9wNOm9WDkB/zTh6MwlETfX13jhu+T7sLMIwmxnfvDzNyDw
+         /vaKEXwMbvPLVVPUvXsH6sgDzxZ7F9lAF4TMeVl1ysSwbfCAvheKur7r0sC1TV1JhGcc
+         6Dd9T1E+V9NVOV4ZVtlc5qOObcz3mSz3SecnXd+ASx8Fy2+QH4J5OgThJkHlHR2FGkSK
+         zlpA==
+X-Gm-Message-State: AOJu0Yx92f7asm7EwNx7vDmKstfXHCG/aEGEt6uBBnnUgsriTglUI7zg
+	maf0yUxDHFlbOxZcWta8nfagHpAAt1XgLDw4pP4uFtzDMOxbmnxoIXwOMqFskQ==
+X-Gm-Gg: ASbGnctkqQxEhs+GBjfywih1TJSesdqyjulP1DW1gHHbbRIssgqR40cYtxId1dzMZrg
+	aieZghJ9tafaQrJepSp/+xSZT41K+TemeaPDPk+e/rw7AqAHK8jjZ1fgGB/Gro5el6TleeNxY4H
+	iTg20JLZOZxfbFNiRSsjiU/qz8B8WzNWfd48xNh9B+D5yFjZxnyVhph46UArBUF/KCy98ivkKxs
+	J+OZbW8aPeiyZVwGdYeC913FHCU+CvR3Atgz94KminFKmDsQKFIGK+zKkKhgS4vZhNv2W0tkshZ
+	WnIvpUo8oKo1VJlZVAPrSjNwi9Hq8YU5fBFsD9vxePjzLOdH1xDDYRhjQy/WSWQjqTTLoUYmYI1
+	HPb+YDKB2
+X-Google-Smtp-Source: AGHT+IH1Slcv52hLuwVoPVo1RbwyPVH27y5FAkfTZzXeUbz3nGa+aOCy7trj3zyXtoeBuC3hD9QlMA==
+X-Received: by 2002:a05:6214:1308:b0:6f8:a7c6:22ca with SMTP id 6a1803df08f44-6f8b2c5f2bbmr8270686d6.16.1747349357843;
+        Thu, 15 May 2025 15:49:17 -0700 (PDT)
+Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6f8b0965aaesm4726826d6.76.2025.05.15.15.49.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 May 2025 15:49:17 -0700 (PDT)
+Date: Thu, 15 May 2025 18:49:15 -0400
+From: Shaun Brady <brady.1345@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: Looking for TODO
+Message-ID: <aCZva4wbM9Q8ZR6n@fedora>
+References: <aCQF1eDdqgmYE3Sx@fedora>
+ <aCSF_RwSPS8zkSiS@strlen.de>
+ <aCX_D98jCtRuwwoh@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aCX_D98jCtRuwwoh@strlen.de>
 
-Replace the existing VRF test with a more comprehensive one.
+On Thu, May 15, 2025 at 04:49:51PM +0200, Florian Westphal wrote:
+> FTR, Ido Schimmel sent a patch to fix this:
+> https://patchwork.kernel.org/project/netdevbpf/patch/20250515084848.727706-1-idosch@nvidia.com/
 
-It tests following combinations:
- - fib type (returns address type, e.g. unicast)
- - fib oif (route output interface index
- - both with and without 'iif' keyword (changes result, e.g.
-  'fib daddr type local' will be true when the destination address
-  is configured on the local machine, but
-  'fib daddr . iif type local' will only be true when the destination
-  address is configured on the incoming interface.
+Thanks.  I'll still take a look at this.
 
-Add all types of addresses to test with for both ipv4 and ipv6:
-- local address on the incoming interface
-- local address on another interface
-- local address on another interface thats part of a vrf
-- address on another host
-
-The ruleset stores obtained results from 'fib' in nftables sets and
-then queries the sets to check that it has the expected results.
-
-Perform one pass while packets are coming in on interface NOT part of
-a VRF and then again when it was added and make sure fib returns the
-expected routes and address types for the various addresses in the
-setup.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/net/netfilter/nft_fib.sh        | 392 ++++++++++++++++--
- 1 file changed, 365 insertions(+), 27 deletions(-)
-
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index b38f13efd936..48c6b4f34601 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -324,12 +324,338 @@ test_fib_vrf_dev_add_dummy()
- 		return 1
- 	fi
- 
--	ip -net "$nsrouter" link set veth0 master tvrf
- 	ip -net "$nsrouter" link set dummy0 master tvrf
- 	ip -net "$nsrouter" link set dummy0 up
- 	ip -net "$nsrouter" link set tvrf up
- }
- 
-+load_ruleset_vrf()
-+{
-+# Due to the many different possible combinations using named counters
-+# or one-rule-per-expected-result is complex.
-+#
-+# Instead, add dynamic sets for the fib modes
-+# (fib address type, fib output interface lookup .. ),
-+# and then add the obtained fib results to them.
-+#
-+# The test is successful if the sets contain the expected results
-+# and no unexpected extra entries existed.
-+ip netns exec "$nsrouter" nft -f - <<EOF
-+flush ruleset
-+table inet t {
-+	set fibif4 {
-+		typeof meta iif . ip daddr . fib daddr oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibif4iif {
-+		typeof meta iif . ip daddr . fib daddr . iif oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibif6 {
-+		typeof meta iif . ip6 daddr . fib daddr oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibif6iif {
-+		typeof meta iif . ip6 daddr . fib daddr . iif oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype4 {
-+		typeof meta iif . ip daddr . fib daddr type
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype4iif {
-+		typeof meta iif . ip daddr . fib daddr . iif type
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype6 {
-+		typeof meta iif . ip6 daddr . fib daddr type
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype6iif {
-+		typeof meta iif . ip6 daddr . fib daddr . iif type
-+		flags dynamic
-+		counter
-+	}
-+
-+	chain fib_test {
-+		meta nfproto ipv4 jump {
-+			add @fibif4 { meta iif . ip daddr . fib daddr oif }
-+			add @fibif4iif { meta iif . ip daddr . fib daddr . iif oif }
-+			add @fibtype4 { meta iif . ip daddr . fib daddr type }
-+			add @fibtype4iif { meta iif . ip daddr . fib daddr . iif type }
-+
-+			add @fibif4 { meta iif . ip saddr . fib saddr oif }
-+			add @fibif4iif { meta iif . ip saddr . fib saddr . iif oif }
-+		}
-+
-+		meta nfproto ipv6 jump {
-+			add @fibif6    { meta iif . ip6 daddr . fib daddr oif }
-+			add @fibif6iif { meta iif . ip6 daddr . fib daddr . iif oif }
-+			add @fibtype6    { meta iif . ip6 daddr . fib daddr type }
-+			add @fibtype6iif { meta iif . ip6 daddr . fib daddr . iif type }
-+
-+			add @fibif6 { meta iif . ip6 saddr . fib saddr oif }
-+			add @fibif6iif { meta iif . ip6 saddr . fib saddr . iif oif }
-+		}
-+	}
-+
-+	chain prerouting {
-+		type filter hook prerouting priority 0;
-+		icmp type echo-request counter jump fib_test
-+
-+		# neighbour discovery to be ignored.
-+		icmpv6 type echo-request counter jump fib_test
-+	}
-+}
-+EOF
-+
-+if [ $? -ne 0 ] ;then
-+	echo "SKIP: Could not load ruleset for fib vrf test"
-+	[ $ret -eq 0 ] && ret=$ksft_skip
-+	return 1
-+fi
-+}
-+
-+check_type()
-+{
-+	local setname="$1"
-+	local iifname="$2"
-+	local addr="$3"
-+	local type="$4"
-+	local count="$5"
-+
-+	[ -z "$count" ] && count=1
-+
-+	if ! ip netns exec "$nsrouter" nft get element inet t "$setname" { "$iifname" . "$addr" . "$type" } |grep -q "counter packets $count";then
-+		echo "FAIL: did not find $iifname . $addr . $type in $setname"
-+		ip netns exec "$nsrouter" nft list set inet t "$setname"
-+		ret=1
-+		return 1
-+	fi
-+
-+	# delete the entry, this allows to check if anything unexpected appeared
-+	# at the end of the test run: all dynamic sets should be empty by then.
-+	if ! ip netns exec "$nsrouter" nft delete element inet t "$setname" { "$iifname" . "$addr" . "$type" } ; then
-+		echo "FAIL: can't delete $iifname . $addr . $type in $setname"
-+		ip netns exec "$nsrouter" nft list set inet t "$setname"
-+		ret=1
-+		return 1
-+	fi
-+
-+	return 0
-+}
-+
-+check_local()
-+{
-+	check_type $@ "local" 1
-+}
-+
-+check_unicast()
-+{
-+	check_type $@ "unicast" 1
-+}
-+
-+check_rpf()
-+{
-+	check_type $@
-+}
-+
-+check_fib_vrf_sets_empty()
-+{
-+	local setname=""
-+	local lret=0
-+
-+	# A non-empty set means that we have seen unexpected packets OR
-+	# that a fib lookup provided unexpected results.
-+	for setname in "fibif4" "fibif4iif" "fibif6" "fibif6iif" \
-+		       "fibtype4" "fibtype4iif" "fibtype6" "fibtype6iif";do
-+		if ip netns exec "$nsrouter" nft list set inet t "$setname" | grep -q elements;then
-+			echo "FAIL: $setname not empty"
-+	                ip netns exec "$nsrouter" nft list set inet t "$setname"
-+			ret=1
-+			lret=1
-+		fi
-+	done
-+
-+	return $lret
-+}
-+
-+check_fib_vrf_type()
-+{
-+	local msg="$1"
-+
-+	local addr
-+	# the incoming interface is always veth0.  As its not linked to a VRF,
-+	# the 'tvrf' device should NOT show up anywhere.
-+	local ifname="veth0"
-+	local lret=0
-+
-+	# local_veth0, local_veth1
-+	for addr in "10.0.1.1" "10.0.2.1"; do
-+		check_local fibtype4  "$ifname" "$addr" || lret=1
-+		check_type  fibif4    "$ifname" "$addr" "0" || lret=1
-+	done
-+	for addr in "dead:1::1" "dead:2::1";do
-+		check_local fibtype6  "$ifname" "$addr" || lret=1
-+		check_type  fibif6    "$ifname" "$addr" "0" || lret=1
-+	done
-+
-+	# when restricted to the incoming interface, 10.0.1.1 should
-+	# be 'local', but 10.0.2.1 unicast.
-+	check_local fibtype4iif   "$ifname" "10.0.1.1" || lret=1
-+	check_unicast fibtype4iif "$ifname" "10.0.2.1" || lret=1
-+
-+	# same for the ipv6 addresses.
-+	check_local fibtype6iif   "$ifname" "dead:1::1" || lret=1
-+	check_unicast fibtype6iif "$ifname" "dead:2::1" || lret=1
-+
-+	# None of these addresses should find a valid route when restricting
-+	# to the incoming interface (we ask for daddr - 10.0.1.1/2.1 are
-+	# reachable via 'lo'.
-+	for addr in "10.0.1.1" "10.0.2.1" "10.9.9.1" "10.9.9.2";do
-+		check_type fibif4iif "$ifname" "$addr" "0" || lret=1
-+	done
-+
-+	# expect default route (veth1), dummy0 is part of VRF but iif isn't.
-+	for addr in "10.9.9.1" "10.9.9.2";do
-+		check_unicast fibtype4    "$ifname" "$addr" || lret=1
-+		check_unicast fibtype4iif "$ifname" "$addr" || lret=1
-+		check_type fibif4 "$ifname" "$addr" "veth1" || lret=1
-+	done
-+	for addr in "dead:9::1" "dead:9::2";do
-+		check_unicast fibtype6    "$ifname" "$addr" || lret=1
-+		check_unicast fibtype6iif "$ifname" "$addr" || lret=1
-+		check_type fibif6 "$ifname" "$addr" "veth1" || lret=1
-+	done
-+
-+	# same for the IPv6 equivalent addresses.
-+	for addr in "dead:1::1" "dead:2::1" "dead:9::1" "dead:9::2";do
-+		check_type  fibif6iif "$ifname" "$addr" "0" || lret=1
-+	done
-+
-+	check_unicast fibtype4    "$ifname" "10.0.2.99" || lret=1
-+	check_unicast fibtype4iif "$ifname" "10.0.2.99" || lret=1
-+	check_unicast fibtype6    "$ifname" "dead:2::99" || lret=1
-+	check_unicast fibtype6iif "$ifname" "dead:2::99" || lret=1
-+
-+	check_type fibif4 "$ifname" "10.0.2.99" "veth1" || lret=1
-+	check_type fibif4iif "$ifname" "10.0.2.99" 0 || lret=1
-+	check_type fibif6 "$ifname" "dead:2::99" "veth1" || lret=1
-+	check_type fibif6iif "$ifname" "dead:2::99" 0 || lret=1
-+
-+	check_rpf  fibif4    "$ifname" "10.0.1.99" "veth0" 5 || lret=1
-+	check_rpf  fibif4iif "$ifname" "10.0.1.99" "veth0" 5 || lret=1
-+	check_rpf  fibif6    "$ifname" "dead:1::99" "veth0" 5 || lret=1
-+	check_rpf  fibif6iif "$ifname" "dead:1::99" "veth0" 5 || lret=1
-+
-+	check_fib_vrf_sets_empty || lret=1
-+
-+	if [ $lret -eq 0 ];then
-+		echo "PASS: $msg"
-+	else
-+		echo "FAIL: $msg"
-+		ret=1
-+	fi
-+}
-+
-+check_fib_veth_vrf_type()
-+{
-+	local msg="$1"
-+
-+	local addr
-+	local ifname
-+	local setname
-+	local lret=0
-+
-+	# as veth0 is now part of tvrf interface, packets will be seen
-+	# twice, once with iif veth0, then with iif tvrf.
-+
-+	for ifname in "veth0" "tvrf"; do
-+		for addr in "10.0.1.1" "10.9.9.1"; do
-+			check_local fibtype4  "$ifname" "$addr" || lret=1
-+			# addr local, but nft_fib doesn't return routes with RTN_LOCAL.
-+			check_type  fibif4    "$ifname" "$addr" 0 || lret=1
-+			check_type  fibif4iif "$ifname" "$addr" 0 || lret=1
-+		done
-+
-+		for addr in "dead:1::1" "dead:9::1"; do
-+			check_local fibtype6 "$ifname" "$addr" || lret=1
-+			# same, address is local but no route is returned for lo.
-+			check_type  fibif6    "$ifname" "$addr" 0 || lret=1
-+			check_type  fibif6iif "$ifname" "$addr" 0 || lret=1
-+		done
-+
-+		for t in fibtype4 fibtype4iif; do
-+			check_unicast "$t" "$ifname" 10.9.9.2 || lret=1
-+		done
-+		for t in fibtype6 fibtype6iif; do
-+			check_unicast "$t" "$ifname" dead:9::2 || lret=1
-+		done
-+
-+		check_unicast fibtype4iif "$ifname" "10.9.9.1" || lret=1
-+		check_unicast fibtype6iif "$ifname" "dead:9::1" || lret=1
-+
-+		check_unicast fibtype4    "$ifname" "10.0.2.99" || lret=1
-+		check_unicast fibtype4iif "$ifname" "10.0.2.99" || lret=1
-+
-+		check_unicast fibtype6    "$ifname" "dead:2::99" || lret=1
-+		check_unicast fibtype6iif "$ifname" "dead:2::99" || lret=1
-+
-+		check_type fibif4    "$ifname"  "10.0.2.99" "veth1" || lret=1
-+		check_type fibif6    "$ifname" "dead:2::99" "veth1" || lret=1
-+		check_type fibif4    "$ifname"   "10.9.9.2" "dummy0" || lret=1
-+		check_type fibif6    "$ifname"  "dead:9::2" "dummy0" || lret=1
-+
-+		# restricted to iif -- MUST NOT provide result, its != $ifname.
-+		check_type fibif4iif "$ifname"  "10.0.2.99" 0 || lret=1
-+		check_type fibif6iif "$ifname" "dead:2::99" 0 || lret=1
-+
-+		check_rpf  fibif4 "$ifname" "10.0.1.99" "veth0" 4 || lret=1
-+		check_rpf  fibif6 "$ifname" "dead:1::99" "veth0" 4 || lret=1
-+		check_rpf  fibif4iif "$ifname" "10.0.1.99" "$ifname" 4 || lret=1
-+		check_rpf  fibif6iif "$ifname" "dead:1::99" "$ifname" 4 || lret=1
-+	done
-+
-+	check_local fibtype4iif "veth0" "10.0.1.1" || lret=1
-+	check_local fibtype6iif "veth0" "dead:1::1" || lret=1
-+
-+	check_unicast fibtype4iif "tvrf" "10.0.1.1" || lret=1
-+	check_unicast fibtype6iif "tvrf" "dead:1::1" || lret=1
-+
-+	# 10.9.9.2 should not provide a result for iif veth, but
-+	# should when iif is tvrf.
-+	# This is because its reachable via dummy0 which is part of
-+	# tvrf.  iif veth0 MUST conceal the dummy0 result (i.e. return oif 0).
-+	check_type fibif4iif "veth0" "10.9.9.2" 0 || lret=1
-+	check_type fibif6iif "veth0"  "dead:9::2" 0 || lret=1
-+
-+	check_type fibif4iif "tvrf" "10.9.9.2" "tvrf" || lret=1
-+	check_type fibif6iif "tvrf" "dead:9::2" "tvrf" || lret=1
-+
-+	check_fib_vrf_sets_empty || lret=1
-+
-+	if [ $lret -eq 0 ];then
-+		echo "PASS: $msg"
-+	else
-+		echo "FAIL: $msg"
-+		ret=1
-+	fi
-+}
-+
- # Extends nsrouter config by adding dummy0+vrf.
- #
- #  10.0.1.99     10.0.1.1           10.0.2.1         10.0.2.99
-@@ -341,8 +667,6 @@ test_fib_vrf_dev_add_dummy()
- #                          [tvrf]
- test_fib_vrf()
- {
--	local dummynet="10.9.9"
--	local dummynet6="dead:9"
- 	local cntname=""
- 
- 	if ! test_fib_vrf_dev_add_dummy; then
-@@ -350,37 +674,51 @@ test_fib_vrf()
- 		return
- 	fi
- 
--	ip -net "$nsrouter" addr add "$dummynet.1"/24 dev dummy0
--	ip -net "$nsrouter" addr add "${dummynet6}::1"/64 dev dummy0 nodad
-+	ip -net "$nsrouter" addr add "10.9.9.1"/24 dev dummy0
-+	ip -net "$nsrouter" addr add "dead:9::1"/64 dev dummy0 nodad
- 
-+	ip -net "$nsrouter" route add default via 10.0.2.99
-+	ip -net "$nsrouter" route add default via dead:2::99
- 
--ip netns exec "$nsrouter" nft -f - <<EOF
--flush ruleset
--table inet t {
--	counter fibcount4 { }
--	counter fibcount6 { }
-+	load_ruleset_vrf || return
- 
--	chain prerouting {
--		type filter hook prerouting priority 0;
--		meta iifname veth0 ip daddr ${dummynet}.2 fib daddr oif dummy0 counter name fibcount4
--		meta iifname veth0 ip6 daddr ${dummynet6}::2 fib daddr oif dummy0 counter name fibcount6
--	}
--}
--EOF
- 	# no echo reply for these addresses: The dummy interface is part of tvrf,
--	test_ping_unreachable "$dummynet.2" "${dummynet6}::2" &
-+	# but veth0 (incoming interface) isn't linked to it.
-+	test_ping_unreachable "10.9.9.1" "dead:9::1" &
-+	test_ping_unreachable "10.9.9.2" "dead:9::2" &
-+
-+	# expect replies from these.
-+	test_ping "10.0.1.1" "dead:1::1"
-+	test_ping "10.0.2.1" "dead:2::1"
-+	test_ping "10.0.2.99" "dead:2::99"
- 
- 	wait
- 
--	for cntname in fibcount4 fibcount6;do
--		if ip netns exec "$nsrouter" nft list counter inet t "$cntname" | grep -q "packets 1"; then
--			echo "PASS: vrf fib lookup did return expected output interface for $cntname"
--		else
--			ip netns exec "$nsrouter" nft list counter inet t "$cntname"
--			echo "FAIL: vrf fib lookup did not return expected output interface for $cntname"
--			ret=1
--		fi
--	done
-+	check_fib_vrf_type "fib expression address types match (iif not in vrf)"
-+
-+	# second round: this time, make veth0 (rx interface) part of the vrf.
-+	# 10.9.9.1 / dead:9::1 become reachable from ns1, while ns2
-+	# becomes unreachable.
-+	ip -net "$nsrouter" link set veth0 master tvrf
-+	ip -net "$nsrouter" addr add dead:1::1/64 dev veth0 nodad
-+
-+	# this reload should not be needed, but in case
-+	# there is some error (missing or unexpected entry) this will prevent them
-+	# from leaking into round 2.
-+	load_ruleset_vrf || return
-+
-+	test_ping "10.0.1.1" "dead:1::1"
-+	test_ping "10.9.9.1" "dead:9::1"
-+
-+	# ns2 should no longer be reachable (veth1 not in vrf)
-+	test_ping_unreachable "10.0.2.99" "dead:2::99" &
-+
-+	# vrf via dummy0, but host doesn't exist
-+	test_ping_unreachable "10.9.9.2" "dead:9::2" &
-+
-+	wait
-+
-+	check_fib_veth_vrf_type "fib expression address types match (iif in vrf)"
- }
- 
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
--- 
-2.49.0
-
+SB
