@@ -1,111 +1,86 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63EAE801
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2025 01:09:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.53
+Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 1298923BE;
+	Thu, 15 May 2025 01:32:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747271372; cv=none; b=srCFJGWazmTnJrGkAaExYtUmZD7CGyZBEUDx2tRNfXgMi4FpE4it9Ld07ov8SQtldAhgLmvjPIyMalPzDlP6ZNT+6lWgi5yhU7ZqPMNZlAjpAHfgIJDXhQ8SjW/ShkpJWjoxdana71+GUuxZ1Y0Fj3Okm6GeQtspHMmj8VFb/Gc=
+	t=1747272776; cv=none; b=cTO4vnteVC31g6VCddAazi11T0RGVzclS/3oqrf71RbtQ7VoNgdZyo1iXgYOQ2GFtKP6HsSdsFi1l7Pj+Mk2ns/JSqJbDOs7TSUKLS94ud5ZCdloRTOafxndH3RmVPQywfCY7tMFdzSXVtNjqOSPSDob/f88iX6irmfa1AKqg1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747271372; c=relaxed/simple;
-	bh=zHaA5NnaNR8vB0QBtR0co6v3T+tjyWDWF9fl+rF2O/0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FmqWxVqpqeXWuECn0/O5v38Mf8YNQKG0Enb1oXdpkqwBrv12S7DL3YTKtcj70jbzurpPZpVxuWXwSzcHtc4DMAhJv76dq4PT03gGl7ZHj6HVM6H4A3aqA08YRxlXcRsRmlxTJvW4C0nXGXVwKRjp3LudTq4yTMRZCdAaCYbCq78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jrMTxWeA; arc=none smtp.client-ip=209.85.219.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1747272776; c=relaxed/simple;
+	bh=9wA7RdmbNapS/2b7J2TfGqrkP22KbPova+zjoxgyb+I=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=KJLtgL7eEgWALSFNH1X5rP6OUa6GyNEtcWr3QpuKbrj1AmAw2E8d9HYHc7EJ30EZm74msdWGYNB9lGxw8Ysvz40nlPYjpeArcvLbo76g//t1SXPUk6NF9kzEYd/C9mzT1moG4QNBB4pv8HK8uqfK20Fbkm9UF+GIT/LiJLfTK5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=AnoUd7QG; arc=none smtp.client-ip=220.197.31.2
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jrMTxWeA"
-Received: by mail-qv1-f53.google.com with SMTP id 6a1803df08f44-6f0ad74483fso5071886d6.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 May 2025 18:09:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747271370; x=1747876170; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Ob5lPTQZ3p6gkLLFtuuMoJxIWILx8ax9skOWmwDcFXs=;
-        b=jrMTxWeAfMn1yXG++V6eQe+NPm4MpZ6Ol+o2+4szVDKCnGaTHqNQCM1LtGcEgpu279
-         RkZmvAQJiU1zYtH7eQKgYfHDOLlKwu3AA2e9ohNgFBbpfynROB3mQtLu/n6WpjljNyVg
-         +9pkJremg/lcr/dEbvRovU3mvRF6ml3yA9Qnfcd6JIBFeywAF2jHUTNP142wgS6cSu+N
-         xWSHZBSMEzbBInkfaRswwxDydLzjA9xsWc3/Hho+xN7AF1R4F0fOW9tStmGGY5qtGlIH
-         mtDdE9LVyIYopYQj+7PuGSM+VHosO+FWnxl+3+3/Jyhg+qbP5FrSUBVE08e5ANZSucI0
-         xZjw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747271370; x=1747876170;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Ob5lPTQZ3p6gkLLFtuuMoJxIWILx8ax9skOWmwDcFXs=;
-        b=wnbxZOww2mxksVMwtmBmUCtADGqZw9biowCdgCDLtxX6IhjrVeF85RkWZxN5KGE2Nb
-         u/vStHlqohjhP/pxehG7+Hp2nRJzVjtKqNXrUZTBAEV3+igLImNabifXcAlxMXDLc3fe
-         Ro71ttZQ9JIItFcHa8RaQtsCCkgctsQVxBis4kffg78pow5gB7iq0xWzRvux9cz7CSFq
-         x2c7F7zDdNF8kJGmeSmjJnpL3t2DCHw+j1KNhBjESDlZzqNob+6Hy17uR+vTWqGPa690
-         7WrQBcKQDZfwV5RTLTJTZxftQErpX1fROeDhly1g6Ba0NnEVMeT99URL0ZWso3iyLkkO
-         r8pA==
-X-Forwarded-Encrypted: i=1; AJvYcCUus8wWmJGggffeNfhmy7jAd3uLogTbYlzXcghTOQ/gxqogeO2Ebfc3aRY7LVi8p8AKdZHl7eIZwQta3kR4WV4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwjyUoMG5qzdgS3Goq09xRFkeRB8pHXXVzLZcK07Gq+s+/QOWLX
-	+nW14TeGiXdXRuOE1mtb+lFKPJ4q7WTBDfOCWfWfk+zlTg2O8oqf
-X-Gm-Gg: ASbGnctLg+l0yDQ65mLAc0KLuCYa5AhKT5BycktFVxvDwIop4X0jtI0eBsEf+zr/c3y
-	Tx2xFa1JniIh4Pj6emLPRl415hAUhKZ1H1e062LcFLQO8sRPGRriH5XEXxofBWanCrF3Bv2PXgb
-	R5KFIB8Yb8HWqRxiZ8Q1Ij6p+fBpLPCxluor05YdNgEYa6LQZJeyZaQmBreYfoFUJrsfPmRr9dd
-	zwhj+JDx/yEsMuGnylI3H7UHqbeJrX6F4RpvPMHaumPHssC6dFcxGgyis1Bfw7Rx4gezDAHtXf4
-	m51RIUrmwLPwcY1UhnADrMLN1xhUeE8USmJ5U0Rc9iXfdukAmnOUN39yHao+kyqkfgN9Y02YBju
-	FdcymrNVUAOOldoYkwpc=
-X-Google-Smtp-Source: AGHT+IEGvPlMFoffb9gHIgqeEpzSGY68SKD3OODZamqSZ5PEOPr8OF/RBYed3h+5nK5bybrxKMPfMw==
-X-Received: by 2002:a05:6214:234e:b0:6f2:b094:430e with SMTP id 6a1803df08f44-6f896e35c98mr91309606d6.25.1747271369480;
-        Wed, 14 May 2025 18:09:29 -0700 (PDT)
-Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6f6e3a538f8sm87315206d6.114.2025.05.14.18.09.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 14 May 2025 18:09:29 -0700 (PDT)
-Date: Wed, 14 May 2025 21:09:27 -0400
-From: Shaun Brady <brady.1345@gmail.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, ppwaskie@kernel.org
-Subject: Re: [PATCH v3] netfilter: nf_tables: Implement jump limit for
- nft_table_validate
-Message-ID: <aCU-x4SbsJ_Jy7RM@fedora>
-References: <20250513020856.2466270-1-brady.1345@gmail.com>
- <aCRPkxvH5LCtc7Bi@calendula>
- <aCSJiV5Hz-MTMFLd@strlen.de>
+	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="AnoUd7QG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=Ss
+	eu97KlXl6TVBlUuVYBOxoW4h4rgHHPvwjyLex7C+8=; b=AnoUd7QGNahbWEFnxW
+	LSWwxkfIt/bAFitKFtf05oVZKS4zH9KR6BRY//mIYTXU+qBK3Ee79CzUXBRAdOB9
+	wkYszWe2ZCe3qtL2mtGBVtaiEVuwPHu2zrl9EWnREkWdgCrmeC862Ik9teNoESSF
+	j5BN3R+ZlBkYNFdiyUpMS7IXc=
+Received: from localhost.localdomain (unknown [])
+	by gzsmtp5 (Coremail) with SMTP id QCgvCgAXf9clRCVoPz_mAg--.40336S2;
+	Thu, 15 May 2025 09:32:23 +0800 (CST)
+From: Feng Yang <yangfeng59949@163.com>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: bpf: Remove bpf_nf_func_proto
+Date: Thu, 15 May 2025 09:32:21 +0800
+Message-Id: <20250515013221.25503-1-yangfeng59949@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aCSJiV5Hz-MTMFLd@strlen.de>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:QCgvCgAXf9clRCVoPz_mAg--.40336S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZF15Kr4DKr43ZryUCw17KFg_yoWfKFg_Cr
+	y8tayxGFWrKr95Aa4UuFZrury5G34rWr4fXa4xXws8A343J3WvkFWxWr9YvrW5u3W7KryS
+	yrs0kryUtrWDKjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUji0eJUUUUU==
+X-CM-SenderInfo: p1dqww5hqjkmqzuzqiywtou0bp/1tbiThpOeGglQ6wTrwAAs8
 
-On Wed, May 14, 2025 at 02:16:09PM +0200, Florian Westphal wrote:
-> > Maybe it is better to have a global limit for all tables, regardless
-> > the family, in a non-init-netns?
-> 
-> Looks like it would be simpler.
-> 
-> The only cases where processing is disjunct is ipv4 vs. ipv6.
-> 
-> And arp. But large arp rulesets are unicorns so we should not bother
-> with that.
+From: Feng Yang <yangfeng@kylinos.cn>
 
-I'm good with the simpler condition.  Let me double check my
-understanding:
+Only use bpf_base_func_proto, so bpf_nf_func_proto can be removed
 
-Each table will keep a running jump count.  When validating a table
-(rule modification), sum every other table in the netns, with the single condition set being
+Signed-off-by: Feng Yang <yangfeng@kylinos.cn>
+---
+ net/netfilter/nf_bpf_link.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-if sibling_table->family == NFPROTO_IPV4 && table->family == NFPROTO_IPV6
-||
-   sibling_table->family == NFPROTO_IPV6 && table->family == NFPROTO_IPV4
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index 06b084844700..f277722f9025 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -316,13 +316,7 @@ static bool nf_is_valid_access(int off, int size, enum bpf_access_type type,
+ 	return false;
+ }
+ 
+-static const struct bpf_func_proto *
+-bpf_nf_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
+-{
+-	return bpf_base_func_proto(func_id, prog);
+-}
+-
+ const struct bpf_verifier_ops netfilter_verifier_ops = {
+ 	.is_valid_access	= nf_is_valid_access,
+-	.get_func_proto		= bpf_nf_func_proto,
++	.get_func_proto		= bpf_base_func_proto,
+ };
+-- 
+2.43.0
 
-   do not include in total for netns (break).
-
-
-Assuming this logic is sound, I'll do v4.
-
-
-Thanks!
-
-
-SB
