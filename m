@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05E8A25A2DA
-	for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2025 18:08:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C74A259CA1
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2025 18:08:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747332510; cv=none; b=tQbVAFlKdYvP2DOb/9Sr3wlTQZZvz66ST6xIKZSGIiHyHtMFd97iQv6wCFWdfwnN2RHweizxfWtxqm3hG0EYgHcFNe8LpKqWbVDiHfY1f9fLnig4e3elxTVJ6Fkfjaz1dd0J3moX/VTPM96s57DubGid3vyjHQwJDpqbEA5CovI=
+	t=1747332515; cv=none; b=JM3fYbJFDW9HCMugIzjhZOIg0GR6w+nETaXqP2AzwfHjyKFq2aLQnCR8wr/N9j5wgMw3Yc9CuS7ZejtNzIih1qIZhMRlVPEMKW4Qw52UkY9QrZ21AuVcWSCRTxyX5mG5FofOBdX7zNJBvBXm9Krx8kJCXfnckDJdNG1dDlgJiw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747332510; c=relaxed/simple;
-	bh=GkoZfkpcD3x9V9Gv0lA+qgi960/kZIA0ppQrqOYcdrI=;
+	s=arc-20240116; t=1747332515; c=relaxed/simple;
+	bh=CbA8dxFOsXfEUcmE7YA6+ZC3ALI+QNJrek8ljwFKjq4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=cm38OCjQ3oRRtAza8H7z0dJR4VKZ7heBYCgnZK4ndBrRH4M5pDM0CnVciTz0yUzEhwOaytY1POLb/irLXfZj36LGfpPureVBVzDI4VxVcy0toGSbD/aIaWh8hud6/QspsFhZ+0Nc+vVatzCfqRIQnih6DEkPZgC+9kKrK8iXTJg=
+	 MIME-Version; b=nS5uLALhnPg/BZzti3YhxvyuYDSjrxCIBHDqdUnbIRkvIALGH/5YjiTA0UEAM/qadinlcF0UMbbfSICNA0CLAtmRpyqvxJ2Nz5h3RsSmW/WJT/9Npjtdmr5LMY8ZZ+ly7geTMuOWsR+QqKTDyg74tTbInGRa1TpkBpTo1MzfONY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3FC3D60033; Thu, 15 May 2025 20:08:27 +0200 (CEST)
+	id 912F960033; Thu, 15 May 2025 20:08:31 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 4/5] netfilter: nf_tables: nft_fib: consistent l3mdev handling
-Date: Thu, 15 May 2025 20:06:51 +0200
-Message-ID: <20250515180657.4037-5-fw@strlen.de>
+Subject: [PATCH nf-next 5/5] selftests: netfilter: nft_fib.sh: add type and oif tests with and without VRFs
+Date: Thu, 15 May 2025 20:06:52 +0200
+Message-ID: <20250515180657.4037-6-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250515180657.4037-1-fw@strlen.de>
 References: <20250515180657.4037-1-fw@strlen.de>
@@ -33,166 +33,465 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-fib has two modes:
-1. Obtain output device according to source or destination address
-2. Obtain the type of the address, e.g. local, unicast, multicast.
+Replace the existing VRF test with a more comprehensive one.
 
-'fib daddr type' should return 'local' if the address is configured
-in this netns or unicast otherwise.
+It tests following combinations:
+ - fib type (returns address type, e.g. unicast)
+ - fib oif (route output interface index
+ - both with and without 'iif' keyword (changes result, e.g.
+  'fib daddr type local' will be true when the destination address
+  is configured on the local machine, but
+  'fib daddr . iif type local' will only be true when the destination
+  address is configured on the incoming interface.
 
-'fib daddr . iif type' should return 'local' if the address is configured
-on the input interface or unicast otherwise, i.e. more restrictive.
+Add all types of addresses to test with for both ipv4 and ipv6:
+- local address on the incoming interface
+- local address on another interface
+- local address on another interface thats part of a vrf
+- address on another host
 
-However, if the interface is part of a VRF, then 'fib daddr type'
-returns unicast even if the address is configured on the incoming
-interface.
+The ruleset stores obtained results from 'fib' in nftables sets and
+then queries the sets to check that it has the expected results.
 
-This is broken for both ipv4 and ipv6.
+Perform one pass while packets are coming in on interface NOT part of
+a VRF and then again when it was added and make sure fib returns the
+expected routes and address types for the various addresses in the
+setup.
 
-In the ipv4 case, inet_dev_addr_type must only be used if the
-'iif' or 'oif' (strict mode) was requested.
-
-Else inet_addr_type_dev_table() needs to be used and the correct
-dev argument must be passed as well so the correct fib (vrf) table
-is used.
-
-In the ipv6 case, the bug is similar, without strict mode, dev is NULL
-so .flowi6_l3mdev will be set to 0.
-
-Add a new 'nft_fib_l3mdev_master_ifindex_rcu()' helper and use that
-to init the .l3mdev structure member.
-
-For ipv6, use it from nft_fib6_flowi_init() which gets called from
-both the 'type' and the 'route' mode eval functions.
-
-This provides consistent behaviour for all modes for both ipv4 and ipv6:
-If strict matching is requested, the input respectively output device
-of the netfilter hooks is used.
-
-Otherwise, use skb->dev to obtain the l3mdev ifindex.
-
-Without this, most type checks in updated nft_fib.sh selftest fail:
-
-  FAIL: did not find veth0 . 10.9.9.1 . local in fibtype4
-  FAIL: did not find veth0 . dead:1::1 . local in fibtype6
-  FAIL: did not find veth0 . dead:9::1 . local in fibtype6
-  FAIL: did not find tvrf . 10.0.1.1 . local in fibtype4
-  FAIL: did not find tvrf . 10.9.9.1 . local in fibtype4
-  FAIL: did not find tvrf . dead:1::1 . local in fibtype6
-  FAIL: did not find tvrf . dead:9::1 . local in fibtype6
-  FAIL: fib expression address types match (iif in vrf)
-
-(fib errounously returns 'unicast' for all of them, even
- though all of these addresses are local to the vrf).
-
-Fixes: f6d0cbcf09c5 ("netfilter: nf_tables: add fib expression")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nft_fib.h   | 16 ++++++++++++++++
- net/ipv4/netfilter/nft_fib_ipv4.c | 11 +++++++++--
- net/ipv6/netfilter/nft_fib_ipv6.c |  4 +---
- 3 files changed, 26 insertions(+), 5 deletions(-)
+ .../selftests/net/netfilter/nft_fib.sh        | 392 ++++++++++++++++--
+ 1 file changed, 365 insertions(+), 27 deletions(-)
 
-diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
-index 6e202ed5e63f..2eea102c6609 100644
---- a/include/net/netfilter/nft_fib.h
-+++ b/include/net/netfilter/nft_fib.h
-@@ -2,6 +2,7 @@
- #ifndef _NFT_FIB_H_
- #define _NFT_FIB_H_
+diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
+index b38f13efd936..48c6b4f34601 100755
+--- a/tools/testing/selftests/net/netfilter/nft_fib.sh
++++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
+@@ -324,12 +324,338 @@ test_fib_vrf_dev_add_dummy()
+ 		return 1
+ 	fi
  
-+#include <net/l3mdev.h>
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_fib {
-@@ -39,6 +40,21 @@ static inline bool nft_fib_can_skip(const struct nft_pktinfo *pkt)
- 	return nft_fib_is_loopback(pkt->skb, indev);
+-	ip -net "$nsrouter" link set veth0 master tvrf
+ 	ip -net "$nsrouter" link set dummy0 master tvrf
+ 	ip -net "$nsrouter" link set dummy0 up
+ 	ip -net "$nsrouter" link set tvrf up
  }
  
-+/**
-+ * nft_fib_l3mdev_get_rcu - return ifindex of l3 master device
-+ * @pkt: pktinfo container passed to nft_fib_eval function
-+ * @iif: input interface, can be NULL
-+ *
-+ * Return: interface index or 0.
-+ */
-+static inline int nft_fib_l3mdev_master_ifindex_rcu(const struct nft_pktinfo *pkt,
-+						    const struct net_device *iif)
++load_ruleset_vrf()
 +{
-+	const struct net_device *dev = iif ? iif : pkt->skb->dev;
-+
-+	return l3mdev_master_ifindex_rcu(dev);
-+}
-+
- int nft_fib_dump(struct sk_buff *skb, const struct nft_expr *expr, bool reset);
- int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		 const struct nlattr * const tb[]);
-diff --git a/net/ipv4/netfilter/nft_fib_ipv4.c b/net/ipv4/netfilter/nft_fib_ipv4.c
-index 9082ca17e845..7e7c49535e3f 100644
---- a/net/ipv4/netfilter/nft_fib_ipv4.c
-+++ b/net/ipv4/netfilter/nft_fib_ipv4.c
-@@ -50,7 +50,12 @@ void nft_fib4_eval_type(const struct nft_expr *expr, struct nft_regs *regs,
- 	else
- 		addr = iph->saddr;
- 
--	*dst = inet_dev_addr_type(nft_net(pkt), dev, addr);
-+	if (priv->flags & (NFTA_FIB_F_IIF | NFTA_FIB_F_OIF)) {
-+		*dst = inet_dev_addr_type(nft_net(pkt), dev, addr);
-+		return;
++# Due to the many different possible combinations using named counters
++# or one-rule-per-expected-result is complex.
++#
++# Instead, add dynamic sets for the fib modes
++# (fib address type, fib output interface lookup .. ),
++# and then add the obtained fib results to them.
++#
++# The test is successful if the sets contain the expected results
++# and no unexpected extra entries existed.
++ip netns exec "$nsrouter" nft -f - <<EOF
++flush ruleset
++table inet t {
++	set fibif4 {
++		typeof meta iif . ip daddr . fib daddr oif
++		flags dynamic
++		counter
 +	}
 +
-+	*dst = inet_addr_type_dev_table(nft_net(pkt), pkt->skb->dev, addr);
- }
- EXPORT_SYMBOL_GPL(nft_fib4_eval_type);
- 
-@@ -65,8 +70,8 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	struct flowi4 fl4 = {
- 		.flowi4_scope = RT_SCOPE_UNIVERSE,
- 		.flowi4_iif = LOOPBACK_IFINDEX,
-+		.flowi4_proto = pkt->tprot,
- 		.flowi4_uid = sock_net_uid(nft_net(pkt), NULL),
--		.flowi4_l3mdev = l3mdev_master_ifindex_rcu(nft_in(pkt)),
- 	};
- 	const struct net_device *oif;
- 	const struct net_device *found;
-@@ -90,6 +95,8 @@ void nft_fib4_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	else
- 		oif = NULL;
- 
-+	fl4.flowi4_l3mdev = nft_fib_l3mdev_master_ifindex_rcu(pkt, oif);
++	set fibif4iif {
++		typeof meta iif . ip daddr . fib daddr . iif oif
++		flags dynamic
++		counter
++	}
 +
- 	iph = skb_header_pointer(pkt->skb, noff, sizeof(_iph), &_iph);
- 	if (!iph) {
- 		regs->verdict.code = NFT_BREAK;
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index f1f5640da672..421036a3605b 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -50,6 +50,7 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
- 		fl6->flowi6_mark = pkt->skb->mark;
++	set fibif6 {
++		typeof meta iif . ip6 daddr . fib daddr oif
++		flags dynamic
++		counter
++	}
++
++	set fibif6iif {
++		typeof meta iif . ip6 daddr . fib daddr . iif oif
++		flags dynamic
++		counter
++	}
++
++	set fibtype4 {
++		typeof meta iif . ip daddr . fib daddr type
++		flags dynamic
++		counter
++	}
++
++	set fibtype4iif {
++		typeof meta iif . ip daddr . fib daddr . iif type
++		flags dynamic
++		counter
++	}
++
++	set fibtype6 {
++		typeof meta iif . ip6 daddr . fib daddr type
++		flags dynamic
++		counter
++	}
++
++	set fibtype6iif {
++		typeof meta iif . ip6 daddr . fib daddr . iif type
++		flags dynamic
++		counter
++	}
++
++	chain fib_test {
++		meta nfproto ipv4 jump {
++			add @fibif4 { meta iif . ip daddr . fib daddr oif }
++			add @fibif4iif { meta iif . ip daddr . fib daddr . iif oif }
++			add @fibtype4 { meta iif . ip daddr . fib daddr type }
++			add @fibtype4iif { meta iif . ip daddr . fib daddr . iif type }
++
++			add @fibif4 { meta iif . ip saddr . fib saddr oif }
++			add @fibif4iif { meta iif . ip saddr . fib saddr . iif oif }
++		}
++
++		meta nfproto ipv6 jump {
++			add @fibif6    { meta iif . ip6 daddr . fib daddr oif }
++			add @fibif6iif { meta iif . ip6 daddr . fib daddr . iif oif }
++			add @fibtype6    { meta iif . ip6 daddr . fib daddr type }
++			add @fibtype6iif { meta iif . ip6 daddr . fib daddr . iif type }
++
++			add @fibif6 { meta iif . ip6 saddr . fib saddr oif }
++			add @fibif6iif { meta iif . ip6 saddr . fib saddr . iif oif }
++		}
++	}
++
++	chain prerouting {
++		type filter hook prerouting priority 0;
++		icmp type echo-request counter jump fib_test
++
++		# neighbour discovery to be ignored.
++		icmpv6 type echo-request counter jump fib_test
++	}
++}
++EOF
++
++if [ $? -ne 0 ] ;then
++	echo "SKIP: Could not load ruleset for fib vrf test"
++	[ $ret -eq 0 ] && ret=$ksft_skip
++	return 1
++fi
++}
++
++check_type()
++{
++	local setname="$1"
++	local iifname="$2"
++	local addr="$3"
++	local type="$4"
++	local count="$5"
++
++	[ -z "$count" ] && count=1
++
++	if ! ip netns exec "$nsrouter" nft get element inet t "$setname" { "$iifname" . "$addr" . "$type" } |grep -q "counter packets $count";then
++		echo "FAIL: did not find $iifname . $addr . $type in $setname"
++		ip netns exec "$nsrouter" nft list set inet t "$setname"
++		ret=1
++		return 1
++	fi
++
++	# delete the entry, this allows to check if anything unexpected appeared
++	# at the end of the test run: all dynamic sets should be empty by then.
++	if ! ip netns exec "$nsrouter" nft delete element inet t "$setname" { "$iifname" . "$addr" . "$type" } ; then
++		echo "FAIL: can't delete $iifname . $addr . $type in $setname"
++		ip netns exec "$nsrouter" nft list set inet t "$setname"
++		ret=1
++		return 1
++	fi
++
++	return 0
++}
++
++check_local()
++{
++	check_type $@ "local" 1
++}
++
++check_unicast()
++{
++	check_type $@ "unicast" 1
++}
++
++check_rpf()
++{
++	check_type $@
++}
++
++check_fib_vrf_sets_empty()
++{
++	local setname=""
++	local lret=0
++
++	# A non-empty set means that we have seen unexpected packets OR
++	# that a fib lookup provided unexpected results.
++	for setname in "fibif4" "fibif4iif" "fibif6" "fibif6iif" \
++		       "fibtype4" "fibtype4iif" "fibtype6" "fibtype6iif";do
++		if ip netns exec "$nsrouter" nft list set inet t "$setname" | grep -q elements;then
++			echo "FAIL: $setname not empty"
++	                ip netns exec "$nsrouter" nft list set inet t "$setname"
++			ret=1
++			lret=1
++		fi
++	done
++
++	return $lret
++}
++
++check_fib_vrf_type()
++{
++	local msg="$1"
++
++	local addr
++	# the incoming interface is always veth0.  As its not linked to a VRF,
++	# the 'tvrf' device should NOT show up anywhere.
++	local ifname="veth0"
++	local lret=0
++
++	# local_veth0, local_veth1
++	for addr in "10.0.1.1" "10.0.2.1"; do
++		check_local fibtype4  "$ifname" "$addr" || lret=1
++		check_type  fibif4    "$ifname" "$addr" "0" || lret=1
++	done
++	for addr in "dead:1::1" "dead:2::1";do
++		check_local fibtype6  "$ifname" "$addr" || lret=1
++		check_type  fibif6    "$ifname" "$addr" "0" || lret=1
++	done
++
++	# when restricted to the incoming interface, 10.0.1.1 should
++	# be 'local', but 10.0.2.1 unicast.
++	check_local fibtype4iif   "$ifname" "10.0.1.1" || lret=1
++	check_unicast fibtype4iif "$ifname" "10.0.2.1" || lret=1
++
++	# same for the ipv6 addresses.
++	check_local fibtype6iif   "$ifname" "dead:1::1" || lret=1
++	check_unicast fibtype6iif "$ifname" "dead:2::1" || lret=1
++
++	# None of these addresses should find a valid route when restricting
++	# to the incoming interface (we ask for daddr - 10.0.1.1/2.1 are
++	# reachable via 'lo'.
++	for addr in "10.0.1.1" "10.0.2.1" "10.9.9.1" "10.9.9.2";do
++		check_type fibif4iif "$ifname" "$addr" "0" || lret=1
++	done
++
++	# expect default route (veth1), dummy0 is part of VRF but iif isn't.
++	for addr in "10.9.9.1" "10.9.9.2";do
++		check_unicast fibtype4    "$ifname" "$addr" || lret=1
++		check_unicast fibtype4iif "$ifname" "$addr" || lret=1
++		check_type fibif4 "$ifname" "$addr" "veth1" || lret=1
++	done
++	for addr in "dead:9::1" "dead:9::2";do
++		check_unicast fibtype6    "$ifname" "$addr" || lret=1
++		check_unicast fibtype6iif "$ifname" "$addr" || lret=1
++		check_type fibif6 "$ifname" "$addr" "veth1" || lret=1
++	done
++
++	# same for the IPv6 equivalent addresses.
++	for addr in "dead:1::1" "dead:2::1" "dead:9::1" "dead:9::2";do
++		check_type  fibif6iif "$ifname" "$addr" "0" || lret=1
++	done
++
++	check_unicast fibtype4    "$ifname" "10.0.2.99" || lret=1
++	check_unicast fibtype4iif "$ifname" "10.0.2.99" || lret=1
++	check_unicast fibtype6    "$ifname" "dead:2::99" || lret=1
++	check_unicast fibtype6iif "$ifname" "dead:2::99" || lret=1
++
++	check_type fibif4 "$ifname" "10.0.2.99" "veth1" || lret=1
++	check_type fibif4iif "$ifname" "10.0.2.99" 0 || lret=1
++	check_type fibif6 "$ifname" "dead:2::99" "veth1" || lret=1
++	check_type fibif6iif "$ifname" "dead:2::99" 0 || lret=1
++
++	check_rpf  fibif4    "$ifname" "10.0.1.99" "veth0" 5 || lret=1
++	check_rpf  fibif4iif "$ifname" "10.0.1.99" "veth0" 5 || lret=1
++	check_rpf  fibif6    "$ifname" "dead:1::99" "veth0" 5 || lret=1
++	check_rpf  fibif6iif "$ifname" "dead:1::99" "veth0" 5 || lret=1
++
++	check_fib_vrf_sets_empty || lret=1
++
++	if [ $lret -eq 0 ];then
++		echo "PASS: $msg"
++	else
++		echo "FAIL: $msg"
++		ret=1
++	fi
++}
++
++check_fib_veth_vrf_type()
++{
++	local msg="$1"
++
++	local addr
++	local ifname
++	local setname
++	local lret=0
++
++	# as veth0 is now part of tvrf interface, packets will be seen
++	# twice, once with iif veth0, then with iif tvrf.
++
++	for ifname in "veth0" "tvrf"; do
++		for addr in "10.0.1.1" "10.9.9.1"; do
++			check_local fibtype4  "$ifname" "$addr" || lret=1
++			# addr local, but nft_fib doesn't return routes with RTN_LOCAL.
++			check_type  fibif4    "$ifname" "$addr" 0 || lret=1
++			check_type  fibif4iif "$ifname" "$addr" 0 || lret=1
++		done
++
++		for addr in "dead:1::1" "dead:9::1"; do
++			check_local fibtype6 "$ifname" "$addr" || lret=1
++			# same, address is local but no route is returned for lo.
++			check_type  fibif6    "$ifname" "$addr" 0 || lret=1
++			check_type  fibif6iif "$ifname" "$addr" 0 || lret=1
++		done
++
++		for t in fibtype4 fibtype4iif; do
++			check_unicast "$t" "$ifname" 10.9.9.2 || lret=1
++		done
++		for t in fibtype6 fibtype6iif; do
++			check_unicast "$t" "$ifname" dead:9::2 || lret=1
++		done
++
++		check_unicast fibtype4iif "$ifname" "10.9.9.1" || lret=1
++		check_unicast fibtype6iif "$ifname" "dead:9::1" || lret=1
++
++		check_unicast fibtype4    "$ifname" "10.0.2.99" || lret=1
++		check_unicast fibtype4iif "$ifname" "10.0.2.99" || lret=1
++
++		check_unicast fibtype6    "$ifname" "dead:2::99" || lret=1
++		check_unicast fibtype6iif "$ifname" "dead:2::99" || lret=1
++
++		check_type fibif4    "$ifname"  "10.0.2.99" "veth1" || lret=1
++		check_type fibif6    "$ifname" "dead:2::99" "veth1" || lret=1
++		check_type fibif4    "$ifname"   "10.9.9.2" "dummy0" || lret=1
++		check_type fibif6    "$ifname"  "dead:9::2" "dummy0" || lret=1
++
++		# restricted to iif -- MUST NOT provide result, its != $ifname.
++		check_type fibif4iif "$ifname"  "10.0.2.99" 0 || lret=1
++		check_type fibif6iif "$ifname" "dead:2::99" 0 || lret=1
++
++		check_rpf  fibif4 "$ifname" "10.0.1.99" "veth0" 4 || lret=1
++		check_rpf  fibif6 "$ifname" "dead:1::99" "veth0" 4 || lret=1
++		check_rpf  fibif4iif "$ifname" "10.0.1.99" "$ifname" 4 || lret=1
++		check_rpf  fibif6iif "$ifname" "dead:1::99" "$ifname" 4 || lret=1
++	done
++
++	check_local fibtype4iif "veth0" "10.0.1.1" || lret=1
++	check_local fibtype6iif "veth0" "dead:1::1" || lret=1
++
++	check_unicast fibtype4iif "tvrf" "10.0.1.1" || lret=1
++	check_unicast fibtype6iif "tvrf" "dead:1::1" || lret=1
++
++	# 10.9.9.2 should not provide a result for iif veth, but
++	# should when iif is tvrf.
++	# This is because its reachable via dummy0 which is part of
++	# tvrf.  iif veth0 MUST conceal the dummy0 result (i.e. return oif 0).
++	check_type fibif4iif "veth0" "10.9.9.2" 0 || lret=1
++	check_type fibif6iif "veth0"  "dead:9::2" 0 || lret=1
++
++	check_type fibif4iif "tvrf" "10.9.9.2" "tvrf" || lret=1
++	check_type fibif6iif "tvrf" "dead:9::2" "tvrf" || lret=1
++
++	check_fib_vrf_sets_empty || lret=1
++
++	if [ $lret -eq 0 ];then
++		echo "PASS: $msg"
++	else
++		echo "FAIL: $msg"
++		ret=1
++	fi
++}
++
+ # Extends nsrouter config by adding dummy0+vrf.
+ #
+ #  10.0.1.99     10.0.1.1           10.0.2.1         10.0.2.99
+@@ -341,8 +667,6 @@ test_fib_vrf_dev_add_dummy()
+ #                          [tvrf]
+ test_fib_vrf()
+ {
+-	local dummynet="10.9.9"
+-	local dummynet6="dead:9"
+ 	local cntname=""
  
- 	fl6->flowlabel = (*(__be32 *)iph) & IPV6_FLOWINFO_MASK;
-+	fl6->flowi6_l3mdev = nft_fib_l3mdev_master_ifindex_rcu(pkt, dev);
+ 	if ! test_fib_vrf_dev_add_dummy; then
+@@ -350,37 +674,51 @@ test_fib_vrf()
+ 		return
+ 	fi
  
- 	return lookup_flags;
+-	ip -net "$nsrouter" addr add "$dummynet.1"/24 dev dummy0
+-	ip -net "$nsrouter" addr add "${dummynet6}::1"/64 dev dummy0 nodad
++	ip -net "$nsrouter" addr add "10.9.9.1"/24 dev dummy0
++	ip -net "$nsrouter" addr add "dead:9::1"/64 dev dummy0 nodad
+ 
++	ip -net "$nsrouter" route add default via 10.0.2.99
++	ip -net "$nsrouter" route add default via dead:2::99
+ 
+-ip netns exec "$nsrouter" nft -f - <<EOF
+-flush ruleset
+-table inet t {
+-	counter fibcount4 { }
+-	counter fibcount6 { }
++	load_ruleset_vrf || return
+ 
+-	chain prerouting {
+-		type filter hook prerouting priority 0;
+-		meta iifname veth0 ip daddr ${dummynet}.2 fib daddr oif dummy0 counter name fibcount4
+-		meta iifname veth0 ip6 daddr ${dummynet6}::2 fib daddr oif dummy0 counter name fibcount6
+-	}
+-}
+-EOF
+ 	# no echo reply for these addresses: The dummy interface is part of tvrf,
+-	test_ping_unreachable "$dummynet.2" "${dummynet6}::2" &
++	# but veth0 (incoming interface) isn't linked to it.
++	test_ping_unreachable "10.9.9.1" "dead:9::1" &
++	test_ping_unreachable "10.9.9.2" "dead:9::2" &
++
++	# expect replies from these.
++	test_ping "10.0.1.1" "dead:1::1"
++	test_ping "10.0.2.1" "dead:2::1"
++	test_ping "10.0.2.99" "dead:2::99"
+ 
+ 	wait
+ 
+-	for cntname in fibcount4 fibcount6;do
+-		if ip netns exec "$nsrouter" nft list counter inet t "$cntname" | grep -q "packets 1"; then
+-			echo "PASS: vrf fib lookup did return expected output interface for $cntname"
+-		else
+-			ip netns exec "$nsrouter" nft list counter inet t "$cntname"
+-			echo "FAIL: vrf fib lookup did not return expected output interface for $cntname"
+-			ret=1
+-		fi
+-	done
++	check_fib_vrf_type "fib expression address types match (iif not in vrf)"
++
++	# second round: this time, make veth0 (rx interface) part of the vrf.
++	# 10.9.9.1 / dead:9::1 become reachable from ns1, while ns2
++	# becomes unreachable.
++	ip -net "$nsrouter" link set veth0 master tvrf
++	ip -net "$nsrouter" addr add dead:1::1/64 dev veth0 nodad
++
++	# this reload should not be needed, but in case
++	# there is some error (missing or unexpected entry) this will prevent them
++	# from leaking into round 2.
++	load_ruleset_vrf || return
++
++	test_ping "10.0.1.1" "dead:1::1"
++	test_ping "10.9.9.1" "dead:9::1"
++
++	# ns2 should no longer be reachable (veth1 not in vrf)
++	test_ping_unreachable "10.0.2.99" "dead:2::99" &
++
++	# vrf via dummy0, but host doesn't exist
++	test_ping_unreachable "10.9.9.2" "dead:9::2" &
++
++	wait
++
++	check_fib_veth_vrf_type "fib expression address types match (iif in vrf)"
  }
-@@ -73,8 +74,6 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 	else if (priv->flags & NFTA_FIB_F_OIF)
- 		dev = nft_out(pkt);
  
--	fl6.flowi6_l3mdev = l3mdev_master_ifindex_rcu(dev);
--
- 	nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
- 
- 	if (dev && nf_ipv6_chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
-@@ -166,7 +165,6 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
- 		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
--		.flowi6_l3mdev = l3mdev_master_ifindex_rcu(nft_in(pkt)),
- 	};
- 	struct rt6_info *rt;
- 	int lookup_flags;
+ ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
 -- 
 2.49.0
 
