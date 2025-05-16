@@ -1,30 +1,47 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2B9241667
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 May 2025 12:50:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0D043232
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 May 2025 18:16:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747399844; cv=none; b=IiOCGhYrXuTpc3XstLjKSut+BEiGpN6L9tJC/jJXCO33/B8cpeBPsK4BzkK3elXAJMjiRTsaCpRYQDwjhCu+L0SZBSdLOLrXqO/jq8uO3394t7Fvh+cDS3X0Gb1UX+sf012vMd8xom64TBrH05ggV49iNlujr4rR4gQoJrkMIc4=
+	t=1747419417; cv=none; b=G+V/P/h+Nz3s5PyGf18jBNfk4cK5+ZJ/EUBJ1WO2WPjrFC9SHgH0GuGtJ2Eys0CXGN11BOu9KL4GeCgfM1JhLyLWFXQAHbLlHvnpbiIyBbkIi7Wyx9PMVXHwFSlmUKAyMiQ72/qPssu7USedOkkaKX8+gSqXh/hLjWV6qBuFX/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747399844; c=relaxed/simple;
-	bh=6HYqhhgDLuWy5GE79r80bimwWrvcSb3cN8+2gDD2IFk=;
+	s=arc-20240116; t=1747419417; c=relaxed/simple;
+	bh=Mi4c9nZ4ucs72S7EGKLQf3RmwMrx2kZwZVN7aVxQv3k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EVb679TWfa4O8Ty9VJrcoGfSfY0A4Zxvua4e0ID1qsBFdMTjZA06rqscYzRe9OtCuFjbSB/OD3n5vUZKvEZHDQVv0DSzMUDq49E2Rj62tjs5QRls/9/ojUKwHdeVw8ZWoV0MNyHxZ9OkLqZtpLcHF45Pr9rv0PI5Lpa97fWZyIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 60343601A1; Fri, 16 May 2025 14:50:38 +0200 (CEST)
-Date: Fri, 16 May 2025 16:42:13 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Shaun Brady <brady.1345@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, ppwaskie@kernel.org,
-	pablo@netfilter.org
-Subject: Re: [PATCH v4] netfilter: nf_tables: Implement jump limit for
- nft_table_validate
-Message-ID: <aCdOxXft8MC-G-DH@strlen.de>
-References: <20250516033452.2752825-1-brady.1345@gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=DFcTd3TDqY1IL9S7LM6+oPZMGVHBoUhicSXk+TE8+jiwMAbTNvxP4JwjTRBd92SBWVWTBtiI1Mh9vPe5Ap7fI9WvrH4UgtOxbkyUsikBuXHeqIyEBcct2376XaU4UverFCSx6Eh1Oo6RKf5hmp71zgdEPbaWWPdWp6Wpq7C7yQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fnQTTSgm; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fnQTTSgm"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=2D/z9wFgHmaT3wx6YNWaTvd6237xaeXM5K4cwraiyC0=; b=fnQTTSgmwdu5bB+hN7ldk4wQse
+	tgwUql7x0P39HObQJ0twB1r5xEqpzmTIP7pzbj0RZj+TuCl+CuPsNBeQC6obR2hcIcbX/1ruu5CLY
+	/klTDvYr0NvIXbE9wGR6D8vxtexF4jXaGnt9mbWuMevDBvliPNhALth1RqH7CIIg0+t6p2hLwUn3c
+	5VZrElVxWFubk2SoB/5VUcPRRIuNFvkN9v+w9Rh2nwVZjuy/TxBUmcSoUfNAQX/P5BCj+gmC/l11l
+	xOSuAmMxDdAUK1pMcKXGg64ROMO0tjqWyEfVEidhC+jgANvMwtoy58wg2IC0WQicrN9CRQpRqe2iX
+	WROJJKmg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uFzbz-000000005cT-0WhR;
+	Fri, 16 May 2025 20:16:47 +0200
+Date: Fri, 16 May 2025 20:16:47 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] tests: shell: Include kernel taint value in warning
+Message-ID: <aCeBDw5rrWUa7szR@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20250509125321.21336-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,359 +50,16 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250516033452.2752825-1-brady.1345@gmail.com>
+In-Reply-To: <20250509125321.21336-1-phil@nwl.cc>
 
-Shaun Brady <brady.1345@gmail.com> wrote:
-> Observing https://bugzilla.netfilter.org/show_bug.cgi?id=1665, I was
-> able to reproduce the bug using linux-stable.  Summarized, when adding
-> large/repeated jump chains, while still staying under the
-> NFT_JUMP_STACK_SIZE (currently 16), the kernel soons locks up.
+On Fri, May 09, 2025 at 02:53:21PM +0200, Phil Sutter wrote:
+> If kernel is already tainted, not all tests yield usable results.
+> Printing the taint cause might help users tracking down the external
+> cause.
 > 
-> From the bug report:
->   table='loop-test'
->   nft add table inet $table
->   nft add chain inet $table test0 '{type filter hook input priority 0; policy accept;}'
->   for((i=1;i<16;i++));do nft add chain inet $table test$i;done
->   nft add rule inet $table test0 jump test1
->   for((i=1;i<15;i++));do nft add rule inet $table test$i jump test$((i+1));done
->   nft add rule inet $table test15 tcp dport 8080 drop
+> If a test taints the kernel, the value is stored in rc-failed-tainted
+> file already.
 > 
->   After the jump rule is added for 3 to 5 times, the system freezes and even softlockup occurs.
->   for((i=1;i<15;i++));do nft add rule inet $table test$i jump test$((i+1));done
->   for((i=1;i<15;i++));do nft add rule inet $table test$i jump test$((i+1));done
->   for((i=1;i<15;i++));do nft add rule inet $table test$i jump test$((i+1));done
-> 
-> This patch is a different approach than the original proposed approach
-> found in the bug report.  Additionally, the limit, namespace specific,
-> is only applied to non-init-net namespaces, with the common use case
-> being to protect against rogue containers.
-> 
-> Add a new counter, total_jump_counter, to nft_ctx.  On every call to
-> nft_table_validate() (rule addition time, versus packet inspection time)
-> start the counter at the current sum of all jump counts in all other
-> tables, sans 4 vs 6 differences.
-> 
-> Increment said counter for every jump encountered during table
-> validation.  If the counter ever exceeds the namespaces jump limit
-> *during validation*, gracefully reject the rule with -EMLINK (the same
-> behavior as exceeding NFT_JUMP_STACK_SIZE).
-> 
-> This allows immediate feedback to the user about a bad chain, versus the
-> original idea (from the bug report) of allowing the addition to the
-> table.  It keeps the in memory ruleset consistent, versus catching the
-> failure during packet inspection at some unknown point in the future and
-> arbitrarily denying the packet.  Most importantly, it removes the
-> original problem of a kernel crash.
-> 
-> The compile time limit NFT_DEFAULT_MAX_TABLE_JUMPS of 65536 was chosen
-> to account for any normal use case, and when this value (and associated
-> stressing loop table) was tested against a 1CPU/256MB machine, the
-> system remained functional.
-> 
-> A sysctl entry net/netfilter/nf_max_table_jumps_netns for the limit was
-> also added for any use cases that may exceed this limit.  It is network
-> namespace specific.  As it is a control limit, for namespaces with an
-> owner that is non-init_user_ns, this sysctl is read only.
-> 
-> Example output of nft when patch is applied (and count is reached):
-> 
-> Error: Could not process rule: Too many links
-> add rule inet loop-test test14 jump test15
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 
-> v2: nf_max_table_jumps renamed to nf_max_table_jumps_netns;
->     Limit namespace specific, only applies to non-init netns;
->     Limit raised to 16k
-> v3: Fix improper conditional compile; removed unneeded pernet subsys;
->     Include NFPROTO_IPV4|6 for _INET matches; add selftest script
-> v4: Simplify table jump count logic in for netns
-> 
-> Signed-off-by: Shaun Brady <brady.1345@gmail.com>
-> ---
->  Documentation/networking/netfilter-sysctl.rst |   9 +
->  include/net/netfilter/nf_tables.h             |   4 +
->  include/net/netns/netfilter.h                 |   2 +
->  net/netfilter/nf_tables_api.c                 | 100 +++++++-
->  net/netfilter/nft_immediate.c                 |   1 +
->  .../testing/selftests/net/netfilter/Makefile  |   1 +
->  .../netfilter/nft_max_table_jumps_netns.sh    | 221 ++++++++++++++++++
->  7 files changed, 336 insertions(+), 2 deletions(-)
->  create mode 100755 tools/testing/selftests/net/netfilter/nft_max_table_jumps_netns.sh
-> 
-> diff --git a/Documentation/networking/netfilter-sysctl.rst b/Documentation/networking/netfilter-sysctl.rst
-> index beb6d7b275d4..8a87c72f0672 100644
-> --- a/Documentation/networking/netfilter-sysctl.rst
-> +++ b/Documentation/networking/netfilter-sysctl.rst
-> @@ -15,3 +15,12 @@ nf_log_all_netns - BOOLEAN
->  	with LOG target; this aims to prevent containers from flooding host
->  	kernel log. If enabled, this target also works in other network
->  	namespaces. This variable is only accessible from init_net.
-> +
-> +nf_max_table_jumps_netns - INTEGER (count)
-> +	default 65536
-> +
-> +	The maximum numbers of jumps a netns can have across its tables.
-> +	This only applies to non-init_net namespaces, and is read only for
-> +	non-init_user_ns namespaces.  Meeting or exceeding this value will
-> +	cause additional rules to not be added, with EMLINK being return to
-> +	the user.
-> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> index 803d5f1601f9..61b8ae421e4f 100644
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -205,6 +205,7 @@ static inline void nft_data_copy(u32 *dst, const struct nft_data *src,
->   *	@nla: netlink attributes
->   *	@portid: netlink portID of the original message
->   *	@seq: netlink sequence number
-> + *	@total_jump_count: Found jumps for netns
->   *	@flags: modifiers to new request
->   *	@family: protocol family
->   *	@level: depth of the chains
-> @@ -218,6 +219,7 @@ struct nft_ctx {
->  	const struct nlattr * const 	*nla;
->  	u32				portid;
->  	u32				seq;
-> +	u32				total_jump_count;
->  	u16				flags;
->  	u8				family;
->  	u8				level;
-> @@ -1275,6 +1277,7 @@ static inline void nft_use_inc_restore(u32 *use)
->   *	@hgenerator: handle generator state
->   *	@handle: table handle
->   *	@use: number of chain references to this table
-> + *	@total_jump_count: jumps as per last validate
->   *	@family:address family
->   *	@flags: table flag (see enum nft_table_flags)
->   *	@genmask: generation mask
-> @@ -1294,6 +1297,7 @@ struct nft_table {
->  	u64				hgenerator;
->  	u64				handle;
->  	u32				use;
-> +	u32				total_jump_count;
->  	u16				family:6,
->  					flags:8,
->  					genmask:2;
-> diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
-> index a6a0bf4a247e..c0dcd85d108c 100644
-> --- a/include/net/netns/netfilter.h
-> +++ b/include/net/netns/netfilter.h
-> @@ -15,6 +15,7 @@ struct netns_nf {
->  	const struct nf_logger __rcu *nf_loggers[NFPROTO_NUMPROTO];
->  #ifdef CONFIG_SYSCTL
->  	struct ctl_table_header *nf_log_dir_header;
-> +	struct ctl_table_header *nf_limit_control_dir_header;
->  #ifdef CONFIG_LWTUNNEL
->  	struct ctl_table_header *nf_lwtnl_dir_header;
->  #endif
-> @@ -33,5 +34,6 @@ struct netns_nf {
->  #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
->  	unsigned int defrag_ipv6_users;
->  #endif
-> +	u32 nf_max_table_jumps_netns __maybe_unused;
->  };
->  #endif
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index b28f6730e26d..16469b70816e 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -16,6 +16,7 @@
->  #include <linux/netfilter.h>
->  #include <linux/netfilter/nfnetlink.h>
->  #include <linux/netfilter/nf_tables.h>
-> +#include <linux/sysctl.h>
->  #include <net/netfilter/nf_flow_table.h>
->  #include <net/netfilter/nf_tables_core.h>
->  #include <net/netfilter/nf_tables.h>
-> @@ -25,10 +26,13 @@
->  
->  #define NFT_MODULE_AUTOLOAD_LIMIT (MODULE_NAME_LEN - sizeof("nft-expr-255-"))
->  #define NFT_SET_MAX_ANONLEN 16
-> +#define NFT_DEFAULT_MAX_TABLE_JUMPS 65536
->  
->  /* limit compaction to avoid huge kmalloc/krealloc sizes. */
->  #define NFT_MAX_SET_NELEMS ((2048 - sizeof(struct nft_trans_elem)) / sizeof(struct nft_trans_one_elem))
->  
-> +u32 nf_max_table_jumps_netns __read_mostly = NFT_DEFAULT_MAX_TABLE_JUMPS;
-> +
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-I think this variable should be removed, just use NFT_DEFAULT_MAX_TABLE_JUMPS
-directly.
-
-> +	if (!net_eq(net, &init_net)) {
-> +		list_for_each_entry(sibling_table, &nft_net->tables, list) {
-> +			if (sibling_table == table ||  /* ourselves */
-> +			    (sibling_table->family == NFPROTO_IPV4 &&
-> +			     table->family == NFPROTO_IPV6) ||
-> +			    (sibling_table->family == NFPROTO_IPV6 &&
-> +			     table->family == NFPROTO_IPV4)) {
-> +				continue;
-
-Maybe add a brief comment or move this to a small helper so its a bit
-more explicit for the reader as to why this gets skipped
-(packet can't be both ipv4 and ipv6...).
-
-A small helper might make sense given you can condense the test, e.g.
-
-/* return false if a packet can be processed by a or b, but not both */
-static bool families_compatible(u8 a, u8 b)
-{
-	if (b > a)
-		return families_compatible(b, a);
-
-	if (a == b)
-		return true;
-
-	/* test the typical incompatible families so assume 'compat' by default */
-	switch (a) {
-	case NFPROTO_IPV4:
-		if (b == NFPROTO_IPV6)
-			return false;
-		break;
-	/* could extend it to cover more esoteric cases like NFPROTO_ARP */
-	}
-
-	return true;
-}
-
-Or remove this altogether, it can be added later.
-
-> +static struct ctl_table nf_limit_control_sysctl_table[] = {
-> +	{
-> +		.procname	= "nf_max_table_jumps_netns",
-> +		.data		= &nf_max_table_jumps_netns,
-
-You can use init_net.nf.nf_max_table_jumps_netns here, avoids the
-extra u32.
-
-> +		.maxlen		= sizeof(nf_max_table_jumps_netns),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec,
-> +	},
-> +};
-> +
-> +static int netfilter_limit_control_sysctl_init(struct net *net)
-> +{
-> +	struct ctl_table *tbl;
-> +
-> +	tbl = nf_limit_control_sysctl_table;
-> +	if (!net_eq(net, &init_net)) {
-> +		tbl = kmemdup(tbl, sizeof(nf_limit_control_sysctl_table), GFP_KERNEL);
-> +		net->nf.nf_max_table_jumps_netns = nf_max_table_jumps_netns;
-
-.. and then use NFT_DEFAULT_MAX_TABLE_JUMPS here.
-
->  TEST_PROGS += nft_flowtable.sh
-> +TEST_PROGS += nft_max_table_jumps_netns.sh
->  TEST_PROGS += nft_meta.sh
->  TEST_PROGS += nft_nat.sh
-
-Thanks for providing a test case!
-Can you split this?  One patch for the functioanlity, second patch with
-test case.
-
-> +err_string=$(
-> +ip netns exec $user_owned_netns \
-> +nft -f - 2>&1 <<EOF
-> +table inet loop-test {
-> +	chain test0 {
-> +		type filter hook input priority filter; policy accept;
-> +		jump test1
-> +		jump test1
-> +	}
-> +
-> +	chain test1 {
-> +		jump test2
-> +		jump test2
-> +	}
-> +
-> +	chain test2 {
-> +		jump test3
-> +		tcp dport 8080 drop
-> +		tcp dport 8080 drop
-> +	}
-> +
-> +	chain test3 {
-> +		jump test4
-> +	}
-> +
-> +	chain test4 {
-> +		jump test5
-> +	}
-> +
-> +	chain test5 {
-> +		jump test6
-> +	}
-> +
-> +	chain test6 {
-> +		jump test7
-> +	}
-> +
-> +	chain test7 {
-> +		jump test8
-> +	}
-> +
-> +	chain test8 {
-> +		jump test9
-> +	}
-> +
-> +	chain test9 {
-> +		jump test10
-> +	}
-> +
-> +	chain test10 {
-> +		jump test11
-> +	}
-> +
-> +	chain test11 {
-> +		jump test12
-> +	}
-> +
-> +	chain test12 {
-> +		jump test13
-> +	}
-> +
-> +	chain test13 {
-> +		jump test14
-> +	}
-> +
-> +	chain test14 {
-> +		jump test15
-> +		jump test15
-> +	}
-> +
-> +	chain test15 {
-> +	}
-> +}
-> +EOF
-> +)
-> +if [[ "$err_string" != *"Too many links"* ]];then
-> +	echo "Fail: Limited incorrectly applied"
-> +	exit 1
-> +fi
-
-This won't work correctly, if anything you need to reset the locale.
-Users might get error messages in language other than english.
-
-If would just check that nft fails to load the ruleset, e.g.
-
-if [ $? -eq 0 ];then ...
-
-> +ip netns del $user_owned_netns
-> +
-> +# Previously set value does not impact root namespace; check value from before
-> +new_value=$(sysctl -n net.netfilter.nf_max_table_jumps_netns)
-> +if [ "$new_value" -ne "$DEFAULT_SYSCTL" ];then
-> +	echo "Fail: Non-init namespace altered init namespace"
-> +	exit 1
-> +fi
-> +
-> +# Make non-init_user_ns owned netns, can not change value
-> +err_string=$(unshare -Un sysctl -w net.netfilter.nf_max_table_jumps_netns=1234 2>&1)
-> +if [[ "$err_string" != *"Operation not permitted"* ]];then
-
-Same comment, error string might be in another language.
-Maybe split the 'nft -f' in a helper, try to change the sysctl, then see
-nft suddently succeeds with loading the thing?
-
-Or change, then read it back and check that value is same as old one
-before the write attempt.
+Patch applied.
