@@ -1,80 +1,79 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E98A919938D
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 May 2025 18:25:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27A5E36124;
+	Sat, 17 May 2025 14:18:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747419943; cv=none; b=OsMuE+KfaZPCR+DhdY8epA5+S4GfQdx1T6EdgXVCNufbzhtgDFqfeqKraMOvQP+eNk5ZIQX224FxAj3Rau/I/+T0TR2Aj1HMSz+BJqWPrkOOVWBcspNdkkoExJ2mvDRN8m0fnYFUmANBPeBEcbvkDSLz/h8omXm0yderu9XHSqU=
+	t=1747491503; cv=none; b=ddWbKSV/zNmjtIKuToKkAh6CUpFvOo/zqLrWlErAyYnzeCiGnFz65Z2NUuUHa4Q4JRdrUTuOyfw/6l1zgd4JCWghYsfORQSu6Gmyrl/WEkjhd2XsKi9v6Ko4SRsPxqnRmuBTElT+WSBEiJNTAvnJkDu3aWlHKfQFqQdl7TIu/Gg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747419943; c=relaxed/simple;
-	bh=ZMiRhfIzWROeBZH1i11zLQabzZzEqdxCrqcBUebgx+g=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eUJmMOx28VLsjqe2/sAbktZUSF/kvnT9vfPYA/GYnPwMlDJyVAqwA8uwnHIZCpX9ttueKIs8SP3Swo1lQZzUl7caWdMj4otjqOf4BFkJ9Mvzez4gA3/cnHcQXEqBPAgsCweCZRSEuLtlJ/YtxyHxzxObNGGc+6fNlUUJIyTl0LE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=MQLky2y1; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="MQLky2y1"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=YWAI6611ZTRCqnN3/BjUq0qkpViOZsgdXfk27s89TA8=; b=MQLky2y1l16fGtbIa8d8L9uVBS
-	97oLo0bnnzb42EAS4AC/jSYOAlmtD1dmmuQdXbyJuPmDswv6di1C850jU8p7cmMTyS2dgoTicorzM
-	t8T9zESV3ATtC4ZGfEDoiugW0YMqCAmLyz0PdOar3ni5i9VLoP1bOoGOqSkGWoM5LAZd8o1hgTqH8
-	VsDO99E/T+uFfK/cPf3mdsAVw7cLlp14nNg6rut5iV9Mahy3s4IvuEI1ypkff35uKwPLDLe0Ql5/+
-	K6QlP7CheDtnJWlWkuUh6DgcdAgDhKyQywyH/kz7cEGxOY4tZyKPjNMbVlD2wrfCEaCZUSERs+GwI
-	WU5aNJeQ==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uFzkY-000000005j6-2E7K;
-	Fri, 16 May 2025 20:25:38 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 1/2] netlink: Avoid potential NULL-ptr deref parsing set elem expressions
-Date: Fri, 16 May 2025 20:25:32 +0200
-Message-ID: <20250516182533.2739-2-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250516182533.2739-1-phil@nwl.cc>
-References: <20250516182533.2739-1-phil@nwl.cc>
+	s=arc-20240116; t=1747491503; c=relaxed/simple;
+	bh=3Ms3uQ9OkmCBdcUOft7hQ+dcKpJ2PP0n6BeOTq8OA1s=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type; b=cPO9udgdJ5kIIncWilob642/rSQcvOgsWvbNuevqnlQ4B99HWgGUz4edIDj8/upXHofO12jVCk1cgFNsB8OARkt8crKFyw4Te7VeWrWVMHM7gKsaV3brbeyezdwQixczzATgeK8FdJ6ld/d4uU42zrLUkpCC2VmUTRdImTtF57E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Received: from localhost (localhost [127.0.0.1])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 93C2C19201B6;
+	Sat, 17 May 2025 16:08:30 +0200 (CEST)
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id bwj59q2Nblcb; Sat, 17 May 2025 16:08:28 +0200 (CEST)
+Received: from mentat.rmki.kfki.hu (92-249-141-197.pool.digikabel.hu [92.249.141.197])
+	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
+	by smtp0.kfki.hu (Postfix) with ESMTPSA id 556C6192019E;
+	Sat, 17 May 2025 16:08:28 +0200 (CEST)
+Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
+	id 1296D14209B; Sat, 17 May 2025 16:08:28 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 0F65B1419A1;
+	Sat, 17 May 2025 16:08:28 +0200 (CEST)
+Date: Sat, 17 May 2025 16:08:28 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [ANNOUNCE] ipset 7.24 released
+Message-ID: <9a47a1a8-7ae4-53fd-cca7-044a78da4c7b@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+X-deepspam: dunno 71%
 
-Since netlink_parse_set_expr() may return NULL, the following deref must
-be guarded.
+Hi,
 
-Fixes: e6d1d0d611958 ("src: add set element multi-statement support")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- src/netlink.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I'm happy to announce ipset 7.24 with brings a couple of json related 
+output fixes and an important kernel side region locking fix for all hash 
+types when timeouts are used.
 
-diff --git a/src/netlink.c b/src/netlink.c
-index d88912457c591..0724190a25d6f 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -969,7 +969,8 @@ static int set_elem_parse_expressions(struct nftnl_expr *e, void *data)
- 	struct stmt *stmt;
- 
- 	stmt = netlink_parse_set_expr(set, cache, e);
--	list_add_tail(&stmt->list, &setelem_parse_ctx->stmt_list);
-+	if (stmt)
-+		list_add_tail(&stmt->list, &setelem_parse_ctx->stmt_list);
- 
- 	return 0;
- }
+Userspace changes:
+  - Improve fixing commas in sorted json output
+  - Fix extra quotes around elements in json output
+    (bugzilla #1793, issue 3.)
+  - Fix commas in sorted json output (bugzilla #1793, issue 4)
+  - Fix unquoted port range in json output (bugzilla #1793, issue 1)
+  - Fix extraneous comma in terse list json output (Joachim,
+    bugzilla #1793, issue 2)
+  - bash-completion: restore fix for syntax error (Jeremy Sowden)
+  - Correct typo in man-page (Jeremy Sowden)
+
+Kernel part changes:
+  - netfilter: ipset: fix region locking in hash types
+  - Handle "netfilter: ipset: Fix for recursive locking warning"
+    patch for backward compatibility
+  - netfilter: ipset: Fix for recursive locking warning
+
+You can download the source code of ipset from:
+        https://ipset.netfilter.org
+        git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
 -- 
-2.49.0
-
+E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, 
+         kadlecsik.jozsef@wigner.hu
+Address: Wigner Research Centre for Physics
+         H-1525 Budapest 114, POB. 49, Hungary
