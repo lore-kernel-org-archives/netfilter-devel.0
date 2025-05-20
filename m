@@ -1,42 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FCB92441A7;
-	Tue, 20 May 2025 13:54:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 337D922D7A8;
+	Tue, 20 May 2025 13:59:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747749297; cv=none; b=DFjoeoSpuJnHfLd13F+sbVjKbyKAa009c5temyfeasR2PIrZ5/z9pNjPmvpoga1oQLMbO2NTqycaXmaCPmQwZba+VYX9S4scp9eieuxKtcxTGIfEZIxonjgOIuzl1yi8KvCtO9Kq8BkuBL350TVYxRFf8Pb1rdL2i5grbXWPIqU=
+	t=1747749576; cv=none; b=PxCFkzpzrOahrReK2UihAd8SUXBFo0weTXDK2A7RA0efPD1HjsfHfPik8BLcnrlGhND7mN4U7uTxTFzkZXMqxacHE0NazlLOyJ4wgJqvJGznZVe7ZQuSYT+S24J90SheO7gx63sMvPe/AUIyNkg+DKz2KRD5ABh4kPcD3pDTSto=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747749297; c=relaxed/simple;
-	bh=2EW5TUqZx1ccwk9Rxj4imTGlZq5CtzKm5pUsLogdbvY=;
+	s=arc-20240116; t=1747749576; c=relaxed/simple;
+	bh=rike2Iya2BKqGpSKrATIBsPE38qyS+ukB48gvvLwdQ8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=RXSlxakjqfnOFJqDEykwr7hfQLqVShHaHlEN9LcYd8P5NAQydXZLiOuau0l6/7uP6fjXD1gWit7zCfIPvVKe35YfjT/VI7ss2Fyy5PH/PQtvnP7PIhs9cXbRZjT58kXQcRJ7eG2eb2JJcHwusvfmqYhqOAWTAqf2asyeOriDcKE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=kaotmcZq; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=dQFrIDB3rQLBZNhMaRtmjc6aKZt4fxUy56GOjg3be/tBvU8jzaCp4Rj5PVX66cHJFUl8PiycJD5gkYChQlTY5SpRXPM8ARV4Th+KWBUzKKSxRt9VeG3nR6vRuGUVUaq8rs9X9IU0SFrfkRJLaVuiHvWCLkrbXJj/Lltht2o8S0I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=ukxPXqnu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="kaotmcZq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09DFDC4CEE9;
-	Tue, 20 May 2025 13:54:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="ukxPXqnu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8AAAC4CEE9;
+	Tue, 20 May 2025 13:59:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1747749297;
-	bh=2EW5TUqZx1ccwk9Rxj4imTGlZq5CtzKm5pUsLogdbvY=;
+	s=korg; t=1747749576;
+	bh=rike2Iya2BKqGpSKrATIBsPE38qyS+ukB48gvvLwdQ8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kaotmcZqM98OeyGqDNB3uGSUhY4nMq4qgB8taRGhehCNJqEggIb3o7wJWaEROy686
-	 7l/e84RQZwDO/ldRM4Hx9Hb6WqwjmjY4uZPfiBZq5mE+c1aYraOHro8KVLiLgxn4WG
-	 xiUqt6GKbQBaAAkglTCd9JDFOMXrQ6g8qoeWan5M=
+	b=ukxPXqnuxRnf2xSByYIPoQFAjftdwkYKerEq4CZTIaBchjULzTvbnotQRtL7qAhYe
+	 lOuR91hzHhWkiVIxSl6E9M+lIvxAjSiLojkgAp0JnYszrUmnojSbF8HzIz1LDt8YUh
+	 1imxMBMFZiUAM3wgM57odUbN4d7PTwnA3/Pu/lg4=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: stable@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	patches@lists.linux.dev,
-	syzbot+b26935466701e56cfdc2@syzkaller.appspotmail.com,
 	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5.15 58/59] netfilter: nf_tables: do not defer rule destruction via call_rcu
-Date: Tue, 20 May 2025 15:50:49 +0200
-Message-ID: <20250520125756.144291818@linuxfoundation.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 6.1 88/97] netfilter: nf_tables: pass nft_chain to destroy function, not nft_ctx
+Date: Tue, 20 May 2025 15:50:53 +0200
+Message-ID: <20250520125804.115742516@linuxfoundation.org>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250520125753.836407405@linuxfoundation.org>
-References: <20250520125753.836407405@linuxfoundation.org>
+In-Reply-To: <20250520125800.653047540@linuxfoundation.org>
+References: <20250520125800.653047540@linuxfoundation.org>
 User-Agent: quilt/0.68
 X-stable: review
 X-Patchwork-Hint: ignore
@@ -48,156 +48,124 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-5.15-stable review patch.  If anyone has any objections, please let me know.
+6.1-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
 From: Florian Westphal <fw@strlen.de>
 
-commit b04df3da1b5c6f6dc7cdccc37941740c078c4043 upstream.
+commit 8965d42bcf54d42cbc72fe34a9d0ec3f8527debd upstream.
 
-nf_tables_chain_destroy can sleep, it can't be used from call_rcu
-callbacks.
+It would be better to not store nft_ctx inside nft_trans object,
+the netlink ctx strucutre is huge and most of its information is
+never needed in places that use trans->ctx.
 
-Moreover, nf_tables_rule_release() is only safe for error unwinding,
-while transaction mutex is held and the to-be-desroyed rule was not
-exposed to either dataplane or dumps, as it deactives+frees without
-the required synchronize_rcu() in-between.
+Avoid/reduce its usage if possible, no runtime behaviour change
+intended.
 
-nft_rule_expr_deactivate() callbacks will change ->use counters
-of other chains/sets, see e.g. nft_lookup .deactivate callback, these
-must be serialized via transaction mutex.
-
-Also add a few lockdep asserts to make this more explicit.
-
-Calling synchronize_rcu() isn't ideal, but fixing this without is hard
-and way more intrusive.  As-is, we can get:
-
-WARNING: .. net/netfilter/nf_tables_api.c:5515 nft_set_destroy+0x..
-Workqueue: events nf_tables_trans_destroy_work
-RIP: 0010:nft_set_destroy+0x3fe/0x5c0
-Call Trace:
- <TASK>
- nf_tables_trans_destroy_work+0x6b7/0xad0
- process_one_work+0x64a/0xce0
- worker_thread+0x613/0x10d0
-
-In case the synchronize_rcu becomes an issue, we can explore alternatives.
-
-One way would be to allocate nft_trans_rule objects + one nft_trans_chain
-object, deactivate the rules + the chain and then defer the freeing to the
-nft destroy workqueue.  We'd still need to keep the synchronize_rcu path as
-a fallback to handle -ENOMEM corner cases though.
-
-Reported-by: syzbot+b26935466701e56cfdc2@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/67478d92.050a0220.253251.0062.GAE@google.com/T/
-Fixes: c03d278fdf35 ("netfilter: nf_tables: wait for rcu grace period on net_device removal")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Stable-dep-of: c03d278fdf35 ("netfilter: nf_tables: wait for rcu grace period on net_device removal")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/net/netfilter/nf_tables.h |    3 ---
- net/netfilter/nf_tables_api.c     |   32 +++++++++++++++-----------------
- 2 files changed, 15 insertions(+), 20 deletions(-)
+ include/net/netfilter/nf_tables.h |    2 +-
+ net/netfilter/nf_tables_api.c     |   17 ++++++++---------
+ net/netfilter/nft_immediate.c     |    2 +-
+ 3 files changed, 10 insertions(+), 11 deletions(-)
 
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -1028,7 +1028,6 @@ struct nft_chain {
- 	char				*name;
- 	u16				udlen;
- 	u8				*udata;
--	struct rcu_head			rcu_head;
+@@ -1121,7 +1121,7 @@ static inline bool nft_chain_is_bound(st
  
- 	/* Only used during control plane commit phase: */
- 	struct nft_rule			**rules_next;
-@@ -1171,7 +1170,6 @@ static inline void nft_use_inc_restore(u
-  *	@sets: sets in the table
-  *	@objects: stateful objects in the table
-  *	@flowtables: flow tables in the table
-- *	@net: netnamespace this table belongs to
-  *	@hgenerator: handle generator state
-  *	@handle: table handle
-  *	@use: number of chain references to this table
-@@ -1187,7 +1185,6 @@ struct nft_table {
- 	struct list_head		sets;
- 	struct list_head		objects;
- 	struct list_head		flowtables;
--	possible_net_t			net;
- 	u64				hgenerator;
- 	u64				handle;
- 	u32				use;
+ int nft_chain_add(struct nft_table *table, struct nft_chain *chain);
+ void nft_chain_del(struct nft_chain *chain);
+-void nf_tables_chain_destroy(struct nft_ctx *ctx);
++void nf_tables_chain_destroy(struct nft_chain *chain);
+ 
+ struct nft_stats {
+ 	u64			bytes;
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1360,7 +1360,6 @@ static int nf_tables_newtable(struct sk_
- 	INIT_LIST_HEAD(&table->sets);
- 	INIT_LIST_HEAD(&table->objects);
- 	INIT_LIST_HEAD(&table->flowtables);
--	write_pnet(&table->net, net);
- 	table->family = family;
- 	table->flags = flags;
- 	table->handle = ++nft_net->table_handle;
-@@ -3441,8 +3440,11 @@ void nf_tables_rule_destroy(const struct
- 	kfree(rule);
+@@ -2034,9 +2034,9 @@ static void nf_tables_chain_free_chain_r
+ 	kvfree(chain->blob_next);
  }
  
-+/* can only be used if rule is no longer visible to dumps */
- static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *rule)
+-void nf_tables_chain_destroy(struct nft_ctx *ctx)
++void nf_tables_chain_destroy(struct nft_chain *chain)
  {
-+	lockdep_commit_lock_is_held(ctx->net);
-+
- 	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_RELEASE);
- 	nf_tables_rule_destroy(ctx, rule);
- }
-@@ -5178,6 +5180,8 @@ void nf_tables_deactivate_set(const stru
- 			      struct nft_set_binding *binding,
- 			      enum nft_trans_phase phase)
- {
-+	lockdep_commit_lock_is_held(ctx->net);
-+
- 	switch (phase) {
- 	case NFT_TRANS_PREPARE_ERROR:
- 		nft_set_trans_unbind(ctx, set);
-@@ -10440,19 +10444,6 @@ static void __nft_release_basechain_now(
- 	nf_tables_chain_destroy(ctx->chain);
- }
+-	struct nft_chain *chain = ctx->chain;
++	const struct nft_table *table = chain->table;
+ 	struct nft_hook *hook, *next;
  
--static void nft_release_basechain_rcu(struct rcu_head *head)
--{
--	struct nft_chain *chain = container_of(head, struct nft_chain, rcu_head);
--	struct nft_ctx ctx = {
--		.family	= chain->table->family,
--		.chain	= chain,
--		.net	= read_pnet(&chain->table->net),
--	};
--
--	__nft_release_basechain_now(&ctx);
--	put_net(ctx.net);
--}
--
- int __nft_release_basechain(struct nft_ctx *ctx)
- {
- 	struct nft_rule *rule;
-@@ -10467,11 +10458,18 @@ int __nft_release_basechain(struct nft_c
+ 	if (WARN_ON(chain->use > 0))
+@@ -2048,7 +2048,7 @@ void nf_tables_chain_destroy(struct nft_
+ 	if (nft_is_base_chain(chain)) {
+ 		struct nft_base_chain *basechain = nft_base_chain(chain);
+ 
+-		if (nft_base_chain_netdev(ctx->family, basechain->ops.hooknum)) {
++		if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
+ 			list_for_each_entry_safe(hook, next,
+ 						 &basechain->hook_list, list) {
+ 				list_del_rcu(&hook->list);
+@@ -2515,7 +2515,7 @@ err_chain_add:
+ err_trans:
+ 	nft_use_dec_restore(&table->use);
+ err_destroy_chain:
+-	nf_tables_chain_destroy(ctx);
++	nf_tables_chain_destroy(chain);
+ 
+ 	return err;
+ }
+@@ -8994,7 +8994,7 @@ static void nft_commit_release(struct nf
+ 		kfree(nft_trans_chain_name(trans));
+ 		break;
+ 	case NFT_MSG_DELCHAIN:
+-		nf_tables_chain_destroy(&trans->ctx);
++		nf_tables_chain_destroy(nft_trans_chain(trans));
+ 		break;
+ 	case NFT_MSG_DELRULE:
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+@@ -9955,7 +9955,7 @@ static void nf_tables_abort_release(stru
+ 		nf_tables_table_destroy(&trans->ctx);
+ 		break;
+ 	case NFT_MSG_NEWCHAIN:
+-		nf_tables_chain_destroy(&trans->ctx);
++		nf_tables_chain_destroy(nft_trans_chain(trans));
+ 		break;
+ 	case NFT_MSG_NEWRULE:
+ 		nf_tables_rule_destroy(&trans->ctx, nft_trans_rule(trans));
+@@ -10677,7 +10677,7 @@ int __nft_release_basechain(struct nft_c
+ 	}
  	nft_chain_del(ctx->chain);
  	nft_use_dec(&ctx->table->use);
+-	nf_tables_chain_destroy(ctx);
++	nf_tables_chain_destroy(ctx->chain);
  
--	if (maybe_get_net(ctx->net))
--		call_rcu(&ctx->chain->rcu_head, nft_release_basechain_rcu);
--	else
-+	if (!maybe_get_net(ctx->net)) {
- 		__nft_release_basechain_now(ctx);
-+		return 0;
-+	}
-+
-+	/* wait for ruleset dumps to complete.  Owning chain is no longer in
-+	 * lists, so new dumps can't find any of these rules anymore.
-+	 */
-+	synchronize_rcu();
- 
-+	__nft_release_basechain_now(ctx);
-+	put_net(ctx->net);
  	return 0;
  }
- EXPORT_SYMBOL_GPL(__nft_release_basechain);
+@@ -10753,10 +10753,9 @@ static void __nft_release_table(struct n
+ 		nft_obj_destroy(&ctx, obj);
+ 	}
+ 	list_for_each_entry_safe(chain, nc, &table->chains, list) {
+-		ctx.chain = chain;
+ 		nft_chain_del(chain);
+ 		nft_use_dec(&table->use);
+-		nf_tables_chain_destroy(&ctx);
++		nf_tables_chain_destroy(chain);
+ 	}
+ 	nf_tables_table_destroy(&ctx);
+ }
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -221,7 +221,7 @@ static void nft_immediate_destroy(const
+ 			list_del(&rule->list);
+ 			nf_tables_rule_destroy(&chain_ctx, rule);
+ 		}
+-		nf_tables_chain_destroy(&chain_ctx);
++		nf_tables_chain_destroy(chain);
+ 		break;
+ 	default:
+ 		break;
 
 
