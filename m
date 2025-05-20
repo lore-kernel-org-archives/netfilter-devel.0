@@ -1,51 +1,36 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16EC27F75F
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 May 2025 11:08:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF21727A128;
+	Tue, 20 May 2025 11:09:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747739328; cv=none; b=XpA1psyfg6+Vb7BtCmwOtBcu9uCz3ENpdpu4TXpWlqkKVLk3xirpKV3PMl4QektLnXiQE/leRj+hml2o4C3qszOC/k6U3TCgLX1B0ysMPpn4MQ6ZEKY6E4dZlz3HE0Q1/hfQtdYAAhj39b5MjeuwDfrczpRDvknl3e775nct1bw=
+	t=1747739344; cv=none; b=DTDCf/WOOtSOvcS+0tcQvfmfgzFxdlvFRnBkEpmRRn5mp6d7OEkbaic5ZC1X0HRemWTRcSJTJGS71VsnBNKFN5TFNFbB9zRviEwyKV+lD9fXZDCY3WnqgeZ97gGmfUE7w9qNuKhHlxjQDbKgnLYNaLkRIxzJo9sxS5z27Uhrn38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747739328; c=relaxed/simple;
-	bh=z1kCkxQ9OR1WejzNf+GvvC+97V5YxXh4J1/cgRoaMNc=;
+	s=arc-20240116; t=1747739344; c=relaxed/simple;
+	bh=wUBAPcM3h4h9sfAm09rqg5/mI3M5u/QWh9zdXEUH5So=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J0jolX2KxMpEWt3/+O9gRVJ7GFq76R0VhZ2G7/ujWDSeF1TkYTgLAsVNGBL8M5r5ccN0UtyQ6n7UBtFiQTrGMy0oHNJwCX2PPFTuSEhnRoztjG5Y1G9sIBIJJ0b+bnkd+qqtqUE7+hDqnMoECW8q4w8CvRgarvC1lSQtY+rDAsg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=pvwZiCLW; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=B3WFuuACWgS1jDJ7l2t2ZLKm8VSg7jVa3LQvITEbJb2Aia++5ppnNkCec3gr4HJKfbtZclRuEZRkKuNVF68wZpz16f6JsfWwuVJ+LnvjzB4wVCoE9UZuLeLqqK5LpDvd0+nmUqHil2p/geFws4fFaiM00GAfsgEnZLXYcCUagsA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=EiAr+J3+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pvwZiCLW"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=XcGVGMM8Ew4g01a8uzXAmWxbQBIp0dGO4plQDgLFrM4=; b=pvwZiCLWMrVXeEXAWjVE2Y8qth
-	AIxhfaD5VHRMt1hW6vOe7pPfWmSd+BU8ocYVDWwxpgw0AqxB9MXOYizatu5WuUjOX8UHV1/zdA5YS
-	76BlH00mfepmgrVyedFCCNSImKjp0GBIkHnyk/OpgKlmd36Qxf+XNu4BArUSAJWGZNwg5bEi3unfI
-	vsV+nTVTvI+pDLn7yDVUQ9u1wuccbReYfDvfJ8S3V5GpANVjLDRJIKZ/nwFWQ88BaLhHVsBfzGV7L
-	cy2hR/nY8SZ9a/+4AAVQT9Qp7D0ApIgznGNU2gzqfgoplS0c1Yzv7tQtgv3SGaDdbHOMFYFjxVX+B
-	b9AOPaCg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uHKpw-000000008V7-43Qm;
-	Tue, 20 May 2025 13:08:44 +0200
-Date: Tue, 20 May 2025 13:08:44 +0200
-From: Phil Sutter <phil@nwl.cc>
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="EiAr+J3+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 973CEC4CEE9;
+	Tue, 20 May 2025 11:09:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1747739344;
+	bh=wUBAPcM3h4h9sfAm09rqg5/mI3M5u/QWh9zdXEUH5So=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=EiAr+J3+btA797hPhIByNLI2XSDgV8RczHGGS+rcgiDElj5vTmSX99zi/+q1D5t0q
+	 ABl5TUxW3uqj7IqnyXfWWZgbF/mYYVxJRt2ZR7C6mSh8MrO4FCjY3RUpcQvLp1rRNQ
+	 QxYYiOTvOJO0YqyUJ/CLuuIkX/d5V0DMkM4bFToE=
+Date: Tue, 20 May 2025 13:09:01 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Eric Garver <e@erig.me>
-Subject: Re: [nf-next PATCH v6 00/12] Dynamic hook interface binding part 2
-Message-ID: <aCxivIkJztgsynjQ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Eric Garver <e@erig.me>
-References: <20250415154440.22371-1-phil@nwl.cc>
- <aCxgYJAE5G7nMi7V@orbyte.nwl.cc>
- <aCxhhBWNsVQYluX5@calendula>
+Cc: netfilter-devel@vger.kernel.org, sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH -stable,6.1 0/3] Netfilter fixes for -stable
+Message-ID: <2025052052-wistful-cork-c09f@gregkh>
+References: <20250519233438.22640-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,21 +39,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aCxhhBWNsVQYluX5@calendula>
+In-Reply-To: <20250519233438.22640-1-pablo@netfilter.org>
 
-On Tue, May 20, 2025 at 01:03:32PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, May 20, 2025 at 12:58:40PM +0200, Phil Sutter wrote:
-> > Bump!
-> > 
-> > Anything I can do to help push this forward? The series I submitted to
-> > add support for this to libnftnl and nftables should still apply as-is.
-> > Anything else missing on my end? Or should I try to break this down into
-> > smaller patches/chunks?
+On Tue, May 20, 2025 at 01:34:35AM +0200, Pablo Neira Ayuso wrote:
+> Hi Greg, Sasha,
 > 
-> I was exactly now looking into integrating this into nf-next, sorry
-> for the slow turn around.
+> This batch contains backported fixes for 6.1 -stable.
+> 
+> The following list shows the backported patches, I am using original commit
+> IDs for reference:
+> 
+> 1) 8965d42bcf54 ("netfilter: nf_tables: pass nft_chain to destroy function, not nft_ctx")
+> 
+>    This is a stable dependency for the next patch.
+> 
+> 2) c03d278fdf35 ("netfilter: nf_tables: wait for rcu grace period on net_device removal")
+> 
+> 3) b04df3da1b5c ("netfilter: nf_tables: do not defer rule destruction via call_rcu")
+> 
+>    This is a fix-for-fix for patch 2.
+> 
+> These three patches are required to fix the netdevice release path for
+> netdev family basechains.
+> 
 
-Nice! I obviously start to sense when someone reviews a patch of mine.
-:D
+All now queued up, thanks!
 
-Thanks, Phil
+greg k-h
