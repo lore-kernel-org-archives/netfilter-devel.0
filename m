@@ -1,164 +1,141 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2B9250BED
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 09:41:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E482525B688;
+	Wed, 21 May 2025 10:07:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747820501; cv=none; b=LABu60vJQWS4pt0zvD46G+cNuwfZa/RXyhDcgVB4ZaCzOqVtmJzocKUEPgk1nrEBJ7INNSRPXeYfZ6+LloGLvvzKBUdL32u0y+UClI7ZAALRl74HFP+lxHQXS7eQhqZnDyPK+j+arFS+enXzpg9HBqOED/v5PjDFDDVqAeJPLtA=
+	t=1747822036; cv=none; b=Rd6kGuZI0YOaKhhP7Efua1EUse23TJpSXLBj6fzCLdOqcnLJBr4cBRxe7TUW3mv/UuF19MfMjStAiJaSsVLQCZ0aok2QpurCR3GHyybOtQuMZo4/OA9TXFhpKdWveptzSf1ym5Xr0raV2Xe2a1h+jdMiQ0AbMTFDCPq+mXETSPQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747820501; c=relaxed/simple;
-	bh=6+lipTu1Kj/IRkwUmfNF49kyyydcx2KsvYsMwukokb0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QRTBsACVfrvk+vST4CX1FpSRr7VWugP53HRhkAgfcPsgVyja6wxRummzBA0w5Zi6CbNfCKMR4YuX0wf1lB9hAuMsmBBFcHjvkW/KJ4hJZ37yO/jQDjSsunVQnQ+utLzyIS5Km4UTmxfsBFt7sVjrOD/7NiHiMsqaJquQcj+LvQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=edo/rUvs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=U7wBEKcK; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=edo/rUvs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=U7wBEKcK; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1747822036; c=relaxed/simple;
+	bh=S5Z4lpB+PVEMLATY/9LtfcmptgY13HExZPi6ZL1tZ9I=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WOIc/X3aCGBguGv3Jsc5pN09rg8no+GAnDAgrJZJ172suYWVyoHjUttJfQlN+jNpsZQTeciGBVKva4pf+FOSPit7ISaf9oNcUjTjn9M8bYo851icOEkyfFJo4Lh4mvsErmBFZZA45RgfeJcT7LwndJn8bwZLMmT2hUVmBAw9SVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=m55KzAKi; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RYAiDCX2; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="edo/rUvs";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="U7wBEKcK";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="edo/rUvs";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="U7wBEKcK"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id E01502080C;
-	Wed, 21 May 2025 09:41:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1747820497; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
-	b=edo/rUvsWk9fs9CM6d/rdtw2mzQX65UZ7F6BiSiVbJ0C+3HVgceMnt0ghFeS4DpD0ax4vl
-	1RxfmVHFxzn95MsrIp8/R2UdQ9P3+k8uveNpG+Rs9HpyuVDNZp0ZYnAsV/Kn0z6fQl2NFQ
-	cg/UGJhoMdgXKLJMH48eNeYsGUecmP0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1747820497;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
-	b=U7wBEKcKWHPZYU56d5b92ZL/Jkd+NmlTLsWln7GyO5fdCWILzewF6Tb56Tb2v5Ok4uQDPk
-	b03eGWaAab7vTSBg==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1747820497; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
-	b=edo/rUvsWk9fs9CM6d/rdtw2mzQX65UZ7F6BiSiVbJ0C+3HVgceMnt0ghFeS4DpD0ax4vl
-	1RxfmVHFxzn95MsrIp8/R2UdQ9P3+k8uveNpG+Rs9HpyuVDNZp0ZYnAsV/Kn0z6fQl2NFQ
-	cg/UGJhoMdgXKLJMH48eNeYsGUecmP0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1747820497;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
-	b=U7wBEKcKWHPZYU56d5b92ZL/Jkd+NmlTLsWln7GyO5fdCWILzewF6Tb56Tb2v5Ok4uQDPk
-	b03eGWaAab7vTSBg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C2DE713888;
-	Wed, 21 May 2025 09:41:37 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id JhpGLtGfLWhGQwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 21 May 2025 09:41:37 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf] netfilter: nft_tunnel: fix geneve_opt dump
-Date: Wed, 21 May 2025 11:41:08 +0200
-Message-ID: <20250521094108.23690-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.49.0
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="m55KzAKi";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RYAiDCX2"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id BB40C60724; Wed, 21 May 2025 12:07:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747822031;
+	bh=FCKLw1/BI8fQGqiFzPRPzkBL4jrZBBv292m0Eoh2Ad8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=m55KzAKirQEN2JgIW0IxRi4qNm2RpFBITJ4UCGcsunYkwREFnWb+2PcC4GfTTg5hg
+	 rBcCYGyaj5YTUHtDNnH4Ok0YHtPVBcYnlv1eFMSRJBnaIth86s74tnYNn9YOhmDLCZ
+	 Xhn4OHGggu2skk2uj4DGu1lN65iHe/obg5jXNWCrAkkbNICmbHUA1fYHK/XlkWglSe
+	 ufLjV3nagZdS7+P/5hEX/bhIFMNN+DEQ+B0p+b+DLENyy2eGvPlK7qGcl0n9/pYU6T
+	 gsJyfBUzTVly5HW1xOjLRNCRzSljJ9VFPbtw/jWGqcqYZgprZOkCyVoHkGP2jLWFjh
+	 kjwznBXzIZ9AQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4537C606ED;
+	Wed, 21 May 2025 12:07:08 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747822028;
+	bh=FCKLw1/BI8fQGqiFzPRPzkBL4jrZBBv292m0Eoh2Ad8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=RYAiDCX2OcSSzxyuBAls8SzlhXb1m5VY+qAabqz3ZwGb/StUlrOsNnyyX77Wq4ldu
+	 MZBPnqMfeqh0+e605adkl6cUWwc2+741hOBZAQNufbNrOXKAVoW7bhs3+tS2md3Ryn
+	 c3Z6QT6hVzl60hyMNn3gj/nQEBXFSFq3C3RInYGK/YeQbAl5mRXq9J/v/UOpbYdz0T
+	 MVi0BHncJsV3I9OCUFyNRWjlZw1z/29HCUbWMKB+wcjJuhZCTBH/V+wOUYjSjzVv6f
+	 sVAF4wxT14R2Zpehp6356fc6156xag3KpLpHUmrqt/22y2dcQbO4a44yyOem5cKHAZ
+	 u4lVeki4xC0IQ==
+Date: Wed, 21 May 2025 12:07:05 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lance Yang <ioworker0@gmail.com>
+Cc: kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Zi Li <zi.li@linux.dev>,
+	Lance Yang <lance.yang@linux.dev>, fw@strlen.de
+Subject: Re: [RESEND PATCH 1/1] netfilter: load nf_log_syslog on enabling
+ nf_conntrack_log_invalid
+Message-ID: <aC2lyYN72raND8S0@calendula>
+References: <20250514053751.2271-1-lance.yang@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Spam-Score: 0.20
-X-Spamd-Result: default: False [0.20 / 50.00];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_CONTAINS_FROM(1.00)[];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[3];
-	FROM_EQ_ENVFROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[]
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250514053751.2271-1-lance.yang@linux.dev>
 
-When dumping a nft_tunnel with more than one geneve_opt configured the
-netlink attribute hierarchy should be as follow:
+Hi,
 
- NFTA_TUNNEL_KEY_OPTS
- |
- |--NFTA_TUNNEL_KEY_OPTS_GENEVE
- |  |
- |  |--NFTA_TUNNEL_KEY_GENEVE_CLASS
- |  |--NFTA_TUNNEL_KEY_GENEVE_TYPE
- |  |--NFTA_TUNNEL_KEY_GENEVE_DATA
- |
- |--NFTA_TUNNEL_KEY_OPTS_GENEVE
- |  |
- |  |--NFTA_TUNNEL_KEY_GENEVE_CLASS
- |  |--NFTA_TUNNEL_KEY_GENEVE_TYPE
- |  |--NFTA_TUNNEL_KEY_GENEVE_DATA
- |
- |--NFTA_TUNNEL_KEY_OPTS_GENEVE
- ...
+Cc: Florian Westphal.
 
-Otherwise, userspace tools won't be able to fetch the geneve options
-configured correctly.
+On Wed, May 14, 2025 at 01:37:51PM +0800, Lance Yang wrote:
+> From: Lance Yang <lance.yang@linux.dev>
+> 
+> When nf_log_syslog is not loaded, nf_conntrack_log_invalid fails to log
+> invalid packets, leaving users unaware of actual invalid traffic. Improve
+> this by loading nf_log_syslog, similar to how 'iptables -I FORWARD 1 -m
+> conntrack --ctstate INVALID -j LOG' triggers it.
 
-Fixes: 925d844696d9 ("netfilter: nft_tunnel: add support for geneve opts")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- net/netfilter/nft_tunnel.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+I have been beaten by this usability issue in the past, it happens
+since conntrack is loaded on demand.
 
-diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
-index 0c63d1367cf7..a12486ae089d 100644
---- a/net/netfilter/nft_tunnel.c
-+++ b/net/netfilter/nft_tunnel.c
-@@ -621,10 +621,10 @@ static int nft_tunnel_opts_dump(struct sk_buff *skb,
- 		struct geneve_opt *opt;
- 		int offset = 0;
- 
--		inner = nla_nest_start_noflag(skb, NFTA_TUNNEL_KEY_OPTS_GENEVE);
--		if (!inner)
--			goto failure;
- 		while (opts->len > offset) {
-+			inner = nla_nest_start_noflag(skb, NFTA_TUNNEL_KEY_OPTS_GENEVE);
-+			if (!inner)
-+				goto failure;
- 			opt = (struct geneve_opt *)(opts->u.data + offset);
- 			if (nla_put_be16(skb, NFTA_TUNNEL_KEY_GENEVE_CLASS,
- 					 opt->opt_class) ||
-@@ -634,8 +634,8 @@ static int nft_tunnel_opts_dump(struct sk_buff *skb,
- 				    opt->length * 4, opt->opt_data))
- 				goto inner_failure;
- 			offset += sizeof(*opt) + opt->length * 4;
-+			nla_nest_end(skb, inner);
- 		}
--		nla_nest_end(skb, inner);
- 	}
- 	nla_nest_end(skb, nest);
- 	return 0;
--- 
-2.49.0
+Maybe add an inconditionally soft dependency? This is a oneliner patch.
 
+        MODULE_SOFTDEP("pre: nf_log_syslog");
+
+Florian, do you prefer this patch (on-demand) or a oneliner to load
+this module when conntrack gets loaded too?
+
+It is a bit more memory to make it inconditional, but better to expose
+to users this soft dependency via lsmod.
+
+Thanks.
+
+> Signed-off-by: Zi Li <zi.li@linux.dev>
+> Signed-off-by: Lance Yang <lance.yang@linux.dev>
+> ---
+>  net/netfilter/nf_conntrack_standalone.c | 20 +++++++++++++++++++-
+>  1 file changed, 19 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index 2f666751c7e7..b4acff01088f 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -543,6 +543,24 @@ nf_conntrack_hash_sysctl(const struct ctl_table *table, int write,
+>  	return ret;
+>  }
+>  
+> +static int
+> +nf_conntrack_log_invalid_sysctl(const struct ctl_table *table, int write,
+> +				void *buffer, size_t *lenp, loff_t *ppos)
+> +{
+> +	int ret;
+> +
+> +	ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
+> +	if (ret < 0 || !write)
+> +		return ret;
+> +
+> +	if (*(u8 *)table->data == 0)
+> +		return ret;
+> +
+> +	request_module("%s", "nf_log_syslog");
+> +
+> +	return ret;
+> +}
+> +
+>  static struct ctl_table_header *nf_ct_netfilter_header;
+>  
+>  enum nf_ct_sysctl_index {
+> @@ -649,7 +667,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+>  		.data		= &init_net.ct.sysctl_log_invalid,
+>  		.maxlen		= sizeof(u8),
+>  		.mode		= 0644,
+> -		.proc_handler	= proc_dou8vec_minmax,
+> +		.proc_handler	= nf_conntrack_log_invalid_sysctl,
+>  	},
+>  	[NF_SYSCTL_CT_EXPECT_MAX] = {
+>  		.procname	= "nf_conntrack_expect_max",
+> -- 
+> 2.49.0
+> 
