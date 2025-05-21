@@ -1,110 +1,101 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from out-177.mta1.migadu.com (out-177.mta1.migadu.com [95.215.58.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82DD31D618A
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 14:40:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED35189513
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 15:22:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747838449; cv=none; b=BR2ppMOlEgpRwbpSh6/8NP/6TPW5QhFKyFwVTN2vYfJmKN5p83+3CHUJgbcHLfwtDy4lzJq5M6QJPB0f6RNzOuNIyBfDMnce+0fxYHlqFSELZG/DE38JN6/PK2Nmy+hh34Xrs3hKPAOw1IBXHtiQGlgnnVszDPNFlFj7ASQo730=
+	t=1747840940; cv=none; b=lKXfJ5Gv8bQDs3jncMkCMaJjuyJjuFFTbPh+hxTNlehqFT0bJ7UPEDmhCyytHFasnSPOFhsV6JCz3U3scB17DkM1rhOHuGJbUuAvpKzn2oqLpIJbU/1yop1gSdKSxpD2/qArEC6Zll5pHZVC/LAnjaF17tbtPmfIAEWxWp6ZPpM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747838449; c=relaxed/simple;
-	bh=vOOnUMnkrIXmJ01pfQ2OILcsQnrRdIeb5vT8tap26K8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=F/gvMbnfHh6FAnBFsYP5RUi8zQK/4RkvCKAkWYpf8GvYOxqFDy0QJA8GTYC2VrF7CbMdp7JqATopO7y4ZsovElpxYVqyRF3tNiLUoLpIe+w1DuZABhtXd8b5Z5gN6SZ1qRVb7OB5xh5tMqePXL2M3KVpTaK7A9KJZdef+4C+8Jo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=hztkJFx1; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=BxNOiDjh; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1747840940; c=relaxed/simple;
+	bh=GFKhmbuUQucyfYyIeEkAVA9XLa8smldr0M/nQft6Drc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Cm6ci3Cb3A86BFt/LT5KCBOodgzTvBbIB7tV/+qarAMTHmOlFIj3Sy6ZfqNlKJeshRTiJY+eIYJuLemwXibpmlVUZ+PpT6cFs66hmvXyTrjcikbS2Cfy8KXy7uxdKaqOBkk6DIQMTwIyqOsOvDgfSytBwgffc5bq499/2yAcGd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=LgCKjKRT; arc=none smtp.client-ip=95.215.58.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="hztkJFx1";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="BxNOiDjh"
-Date: Wed, 21 May 2025 16:40:43 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1747838445;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="LgCKjKRT"
+Message-ID: <6f35a7af-bae7-472d-8db6-7d33fb3e5a96@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1747840926;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=gSQHsAYM89P0VfgA2H+Gi2ThTGHxt7V5bozecxij+es=;
-	b=hztkJFx1pw4MBIYe60NACKiQ1XocINPxHLHEv6FC/qBTVM1Hzlbg9pgRyp/Ev4hzdFsze2
-	OfSirX6f63olubJD10Z4o2RNq7ksksyDbmXPpOIeTTbzZHd1s452hh0v8KyO215qsp6J08
-	6/rREanubcGqSxMPGx77RTJkBMzSXtTHLfSYBsjMHsM7f7HPu2J2HcD8hxYRKQq5pJrT9I
-	wzBDxLEQjTaDbvEIOVSXIE3gW131AgxWdGciqjhQnVMK9gi3sjvkIKpINkmE7TJTq9s7/G
-	q3aEQpCaA3N9/RWPxEoE2xtRwPqP1qPD7i6G4NwXy7QD2mi92DsdnRnst5mvsQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1747838445;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gSQHsAYM89P0VfgA2H+Gi2ThTGHxt7V5bozecxij+es=;
-	b=BxNOiDjhMZKxIFcHxk4SXxBw59ZmaxKIyKHh7qNb9AV1sEv/4U5jlij+etxAh7XlUOQaNw
-	pHg0FY4TyAGUMtCg==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Juri Lelli <juri.lelli@redhat.com>,
-	Vincent Guittot <vincent.guittot@linaro.org>,
-	Dietmar Eggemann <dietmar.eggemann@arm.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
-	Valentin Schneider <vschneid@redhat.com>
-Subject: Re: [PATCH nf-next v1 1/3] netfilter: nf_dup{4, 6}: Move duplication
- check to task_struct
-Message-ID: <20250521144043.GFZkHbrX@linutronix.de>
-References: <20250512102846.234111-1-bigeasy@linutronix.de>
- <20250512102846.234111-2-bigeasy@linutronix.de>
- <aC3iO9FJo1FvdloW@calendula>
+	bh=XjTP0D8RvhabPX+yOSJlJgd7qda/73QUkgNtD9M1PFY=;
+	b=LgCKjKRTSCH5jjtERxa/Hgu7EZ9kXGXSRC81VN3ZHTm90s2WkLa1t/nhQCVQK5lkgv3XIf
+	f7EOdUBPBKp6GGa9n8E1rpL7+gXOY78EX6GG5UUycXH1JwZn5sxZa5JudTzKtgWn2qrJiK
+	yt4jUrz+8s0pOGJybbTEPdh/suv9164=
+Date: Wed, 21 May 2025 23:21:45 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aC3iO9FJo1FvdloW@calendula>
+Subject: Re: [RESEND PATCH 1/1] netfilter: load nf_log_syslog on enabling
+ nf_conntrack_log_invalid
+Content-Language: en-US
+To: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Lance Yang <ioworker0@gmail.com>, kadlec@netfilter.org,
+ davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+ pabeni@redhat.com, horms@kernel.org, coreteam@netfilter.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ Zi Li <zi.li@linux.dev>
+References: <20250514053751.2271-1-lance.yang@linux.dev>
+ <aC2lyYN72raND8S0@calendula> <aC23TW08pieLxpsf@strlen.de>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Lance Yang <lance.yang@linux.dev>
+In-Reply-To: <aC23TW08pieLxpsf@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
-On 2025-05-21 16:24:59 [+0200], Pablo Neira Ayuso wrote:
-> Hi Sebastian,
-Hi Pablo,
+Hi Pablo and Florian,
 
-> On Mon, May 12, 2025 at 12:28:44PM +0200, Sebastian Andrzej Siewior wrote:
-> [...]
-> > diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
-> > index 0c39c77fe8a8a..b903c62c00c9e 100644
-> > --- a/net/ipv6/netfilter/nf_dup_ipv6.c
-> > +++ b/net/ipv6/netfilter/nf_dup_ipv6.c
-> > @@ -48,7 +48,7 @@ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
-> >  		 const struct in6_addr *gw, int oif)
-> >  {
-> >  	local_bh_disable();
-> > -	if (this_cpu_read(nf_skb_duplicated))
-> > +	if (current->in_nf_duplicate)
+Thanks for taking the time to review!
+
+On 2025/5/21 19:21, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> I have been beaten by this usability issue in the past, it happens
+>> since conntrack is loaded on demand.
+>>
+>> Maybe add an inconditionally soft dependency? This is a oneliner patch.
+>>
+>>          MODULE_SOFTDEP("pre: nf_log_syslog");
+>>
+>> Florian, do you prefer this patch (on-demand) or a oneliner to load
+>> this module when conntrack gets loaded too?
+>>
+>> It is a bit more memory to make it inconditional, but better to expose
+>> to users this soft dependency via lsmod.
+>>
+>> Thanks.
 > 
-> Netfilter runs from the forwarding path too, where no current process
-> is available.
+> I don't like this patch or the above because we do have two log
+> backends, syslog + nflog.
 
-If you refer to in-softirq with no task running then there is the idle
-task/ swapper which is pointed to by current in this case. There is one
-idle task for each CPU, they don't migrate.
+Ah, good to know! I wasn't aware of that :(
 
-> >  		goto out;
-> >  	skb = pskb_copy(skb, GFP_ATOMIC);
-> >  	if (skb == NULL)
-> > @@ -64,9 +64,9 @@ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
-> >  		--iph->hop_limit;
-> >  	}
-> >  	if (nf_dup_ipv6_route(net, skb, gw, oif)) {
-> > -		__this_cpu_write(nf_skb_duplicated, true);
-> > +		current->in_nf_duplicate = true;
-> >  		ip6_local_out(net, skb->sk, skb);
-> > -		__this_cpu_write(nf_skb_duplicated, false);
-> > +		current->in_nf_duplicate = false;
-> >  	} else {
-> >  		kfree_skb(skb);
-> >  	}
+> 
+> There is no need for 'syslog' to be active for 'log_invalid' to be
+> useful as long as the system in question has e.g. ulogd running
+> and listening to nflog messages.
+> 
+> If anything, the modprobe should be done only when no logger
+> is registered.
 
-Sebastian
+Yes, could we load the module only when no logger exists? Something
+like:
+
++ if (nf_logger_find_get(NFPROTO_IPV4, NF_LOG_TYPE_LOG) != 0)
++ 	request_module("%s", "nf_log_syslog");
+
+Hmm... is nf_logger_find_get() the correct way to check if no
+logger is registered, or are there preferred alternatives?
+
+Thanks,
+Lance
+
+
