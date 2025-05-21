@@ -1,30 +1,77 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 657B21A3BD7
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 09:40:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2B9250BED
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 09:41:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747820429; cv=none; b=dH+9yb745TxWjBx58bkRVZDKvmHk+nt2O8vmirMQUpdfyt7cCQl4NoArfQVogkApMgajmQu+eAwIMIy6HPJHAQALdVaQQUXLQSO65NMndHqmIEP/gzeGLZosrkD3l2ujMXdQlmckcKFoPaiK28AXxUj1YyCvpK2yBLSscBgAbjM=
+	t=1747820501; cv=none; b=LABu60vJQWS4pt0zvD46G+cNuwfZa/RXyhDcgVB4ZaCzOqVtmJzocKUEPgk1nrEBJ7INNSRPXeYfZ6+LloGLvvzKBUdL32u0y+UClI7ZAALRl74HFP+lxHQXS7eQhqZnDyPK+j+arFS+enXzpg9HBqOED/v5PjDFDDVqAeJPLtA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747820429; c=relaxed/simple;
-	bh=K4OMoLW6unvCA3DcKFDOq6LCMggVXQkRHPLO0ZgWfvw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uCER5baqUZJQywQukAj5W1pTfV2VqWdSKGtwM6BYap9cWTVjGbYvc3fZGXfU8rQ3QNJzQX7YEGRZ5Zy7USacLkyHf7oOVqjFqY/iy4IY8GBt8VsjMNNKXtijH5EyFpN2y9E9Yd+BG9LX5jxyxgwfGPmX1FaqxY1oTy+Zs2guK5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 96AAB60140; Wed, 21 May 2025 11:40:25 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 5/5] selftests: netfilter: nft_fib.sh: add type and oif tests with and without VRFs
-Date: Wed, 21 May 2025 11:38:49 +0200
-Message-ID: <20250521093858.1831-6-fw@strlen.de>
+	s=arc-20240116; t=1747820501; c=relaxed/simple;
+	bh=6+lipTu1Kj/IRkwUmfNF49kyyydcx2KsvYsMwukokb0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QRTBsACVfrvk+vST4CX1FpSRr7VWugP53HRhkAgfcPsgVyja6wxRummzBA0w5Zi6CbNfCKMR4YuX0wf1lB9hAuMsmBBFcHjvkW/KJ4hJZ37yO/jQDjSsunVQnQ+utLzyIS5Km4UTmxfsBFt7sVjrOD/7NiHiMsqaJquQcj+LvQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=edo/rUvs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=U7wBEKcK; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=edo/rUvs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=U7wBEKcK; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="edo/rUvs";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="U7wBEKcK";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="edo/rUvs";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="U7wBEKcK"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id E01502080C;
+	Wed, 21 May 2025 09:41:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1747820497; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
+	b=edo/rUvsWk9fs9CM6d/rdtw2mzQX65UZ7F6BiSiVbJ0C+3HVgceMnt0ghFeS4DpD0ax4vl
+	1RxfmVHFxzn95MsrIp8/R2UdQ9P3+k8uveNpG+Rs9HpyuVDNZp0ZYnAsV/Kn0z6fQl2NFQ
+	cg/UGJhoMdgXKLJMH48eNeYsGUecmP0=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1747820497;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
+	b=U7wBEKcKWHPZYU56d5b92ZL/Jkd+NmlTLsWln7GyO5fdCWILzewF6Tb56Tb2v5Ok4uQDPk
+	b03eGWaAab7vTSBg==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1747820497; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
+	b=edo/rUvsWk9fs9CM6d/rdtw2mzQX65UZ7F6BiSiVbJ0C+3HVgceMnt0ghFeS4DpD0ax4vl
+	1RxfmVHFxzn95MsrIp8/R2UdQ9P3+k8uveNpG+Rs9HpyuVDNZp0ZYnAsV/Kn0z6fQl2NFQ
+	cg/UGJhoMdgXKLJMH48eNeYsGUecmP0=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1747820497;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=cke/grpHNZ1QNIUV/Vek/0wkszcPu6wFazqTyBWh88s=;
+	b=U7wBEKcKWHPZYU56d5b92ZL/Jkd+NmlTLsWln7GyO5fdCWILzewF6Tb56Tb2v5Ok4uQDPk
+	b03eGWaAab7vTSBg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C2DE713888;
+	Wed, 21 May 2025 09:41:37 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id JhpGLtGfLWhGQwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 21 May 2025 09:41:37 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH nf] netfilter: nft_tunnel: fix geneve_opt dump
+Date: Wed, 21 May 2025 11:41:08 +0200
+Message-ID: <20250521094108.23690-1-fmancera@suse.de>
 X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250521093858.1831-1-fw@strlen.de>
-References: <20250521093858.1831-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,466 +79,86 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spam-Score: 0.20
+X-Spamd-Result: default: False [0.20 / 50.00];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
+	MIME_GOOD(-0.10)[text/plain];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	FROM_EQ_ENVFROM(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[]
 
-Replace the existing VRF test with a more comprehensive one.
+When dumping a nft_tunnel with more than one geneve_opt configured the
+netlink attribute hierarchy should be as follow:
 
-It tests following combinations:
- - fib type (returns address type, e.g. unicast)
- - fib oif (route output interface index
- - both with and without 'iif' keyword (changes result, e.g.
-  'fib daddr type local' will be true when the destination address
-  is configured on the local machine, but
-  'fib daddr . iif type local' will only be true when the destination
-  address is configured on the incoming interface.
+ NFTA_TUNNEL_KEY_OPTS
+ |
+ |--NFTA_TUNNEL_KEY_OPTS_GENEVE
+ |  |
+ |  |--NFTA_TUNNEL_KEY_GENEVE_CLASS
+ |  |--NFTA_TUNNEL_KEY_GENEVE_TYPE
+ |  |--NFTA_TUNNEL_KEY_GENEVE_DATA
+ |
+ |--NFTA_TUNNEL_KEY_OPTS_GENEVE
+ |  |
+ |  |--NFTA_TUNNEL_KEY_GENEVE_CLASS
+ |  |--NFTA_TUNNEL_KEY_GENEVE_TYPE
+ |  |--NFTA_TUNNEL_KEY_GENEVE_DATA
+ |
+ |--NFTA_TUNNEL_KEY_OPTS_GENEVE
+ ...
 
-Add all types of addresses to test with for both ipv4 and ipv6:
-- local address on the incoming interface
-- local address on another interface
-- local address on another interface thats part of a vrf
-- address on another host
+Otherwise, userspace tools won't be able to fetch the geneve options
+configured correctly.
 
-The ruleset stores obtained results from 'fib' in nftables sets and
-then queries the sets to check that it has the expected results.
-
-Perform one pass while packets are coming in on interface NOT part of
-a VRF and then again when it was added and make sure fib returns the
-expected routes and address types for the various addresses in the
-setup.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 925d844696d9 ("netfilter: nft_tunnel: add support for geneve opts")
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
- .../selftests/net/netfilter/nft_fib.sh        | 392 ++++++++++++++++--
- 1 file changed, 365 insertions(+), 27 deletions(-)
+ net/netfilter/nft_tunnel.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index f636ad781033..9929a9ffef65 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -324,12 +324,338 @@ test_fib_vrf_dev_add_dummy()
- 		return 1
- 	fi
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index 0c63d1367cf7..a12486ae089d 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -621,10 +621,10 @@ static int nft_tunnel_opts_dump(struct sk_buff *skb,
+ 		struct geneve_opt *opt;
+ 		int offset = 0;
  
--	ip -net "$nsrouter" link set veth0 master tvrf
- 	ip -net "$nsrouter" link set dummy0 master tvrf
- 	ip -net "$nsrouter" link set dummy0 up
- 	ip -net "$nsrouter" link set tvrf up
- }
- 
-+load_ruleset_vrf()
-+{
-+# Due to the many different possible combinations using named counters
-+# or one-rule-per-expected-result is complex.
-+#
-+# Instead, add dynamic sets for the fib modes
-+# (fib address type, fib output interface lookup .. ),
-+# and then add the obtained fib results to them.
-+#
-+# The test is successful if the sets contain the expected results
-+# and no unexpected extra entries existed.
-+ip netns exec "$nsrouter" nft -f - <<EOF
-+flush ruleset
-+table inet t {
-+	set fibif4 {
-+		typeof meta iif . ip daddr . fib daddr oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibif4iif {
-+		typeof meta iif . ip daddr . fib daddr . iif oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibif6 {
-+		typeof meta iif . ip6 daddr . fib daddr oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibif6iif {
-+		typeof meta iif . ip6 daddr . fib daddr . iif oif
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype4 {
-+		typeof meta iif . ip daddr . fib daddr type
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype4iif {
-+		typeof meta iif . ip daddr . fib daddr . iif type
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype6 {
-+		typeof meta iif . ip6 daddr . fib daddr type
-+		flags dynamic
-+		counter
-+	}
-+
-+	set fibtype6iif {
-+		typeof meta iif . ip6 daddr . fib daddr . iif type
-+		flags dynamic
-+		counter
-+	}
-+
-+	chain fib_test {
-+		meta nfproto ipv4 jump {
-+			add @fibif4 { meta iif . ip daddr . fib daddr oif }
-+			add @fibif4iif { meta iif . ip daddr . fib daddr . iif oif }
-+			add @fibtype4 { meta iif . ip daddr . fib daddr type }
-+			add @fibtype4iif { meta iif . ip daddr . fib daddr . iif type }
-+
-+			add @fibif4 { meta iif . ip saddr . fib saddr oif }
-+			add @fibif4iif { meta iif . ip saddr . fib saddr . iif oif }
-+		}
-+
-+		meta nfproto ipv6 jump {
-+			add @fibif6    { meta iif . ip6 daddr . fib daddr oif }
-+			add @fibif6iif { meta iif . ip6 daddr . fib daddr . iif oif }
-+			add @fibtype6    { meta iif . ip6 daddr . fib daddr type }
-+			add @fibtype6iif { meta iif . ip6 daddr . fib daddr . iif type }
-+
-+			add @fibif6 { meta iif . ip6 saddr . fib saddr oif }
-+			add @fibif6iif { meta iif . ip6 saddr . fib saddr . iif oif }
-+		}
-+	}
-+
-+	chain prerouting {
-+		type filter hook prerouting priority 0;
-+		icmp type echo-request counter jump fib_test
-+
-+		# neighbour discovery to be ignored.
-+		icmpv6 type echo-request counter jump fib_test
-+	}
-+}
-+EOF
-+
-+if [ $? -ne 0 ] ;then
-+	echo "SKIP: Could not load ruleset for fib vrf test"
-+	[ $ret -eq 0 ] && ret=$ksft_skip
-+	return 1
-+fi
-+}
-+
-+check_type()
-+{
-+	local setname="$1"
-+	local iifname="$2"
-+	local addr="$3"
-+	local type="$4"
-+	local count="$5"
-+
-+	[ -z "$count" ] && count=1
-+
-+	if ! ip netns exec "$nsrouter" nft get element inet t "$setname" { "$iifname" . "$addr" . "$type" } |grep -q "counter packets $count";then
-+		echo "FAIL: did not find $iifname . $addr . $type in $setname"
-+		ip netns exec "$nsrouter" nft list set inet t "$setname"
-+		ret=1
-+		return 1
-+	fi
-+
-+	# delete the entry, this allows to check if anything unexpected appeared
-+	# at the end of the test run: all dynamic sets should be empty by then.
-+	if ! ip netns exec "$nsrouter" nft delete element inet t "$setname" { "$iifname" . "$addr" . "$type" } ; then
-+		echo "FAIL: can't delete $iifname . $addr . $type in $setname"
-+		ip netns exec "$nsrouter" nft list set inet t "$setname"
-+		ret=1
-+		return 1
-+	fi
-+
-+	return 0
-+}
-+
-+check_local()
-+{
-+	check_type $@ "local" 1
-+}
-+
-+check_unicast()
-+{
-+	check_type $@ "unicast" 1
-+}
-+
-+check_rpf()
-+{
-+	check_type $@
-+}
-+
-+check_fib_vrf_sets_empty()
-+{
-+	local setname=""
-+	local lret=0
-+
-+	# A non-empty set means that we have seen unexpected packets OR
-+	# that a fib lookup provided unexpected results.
-+	for setname in "fibif4" "fibif4iif" "fibif6" "fibif6iif" \
-+		       "fibtype4" "fibtype4iif" "fibtype6" "fibtype6iif";do
-+		if ip netns exec "$nsrouter" nft list set inet t "$setname" | grep -q elements;then
-+			echo "FAIL: $setname not empty"
-+	                ip netns exec "$nsrouter" nft list set inet t "$setname"
-+			ret=1
-+			lret=1
-+		fi
-+	done
-+
-+	return $lret
-+}
-+
-+check_fib_vrf_type()
-+{
-+	local msg="$1"
-+
-+	local addr
-+	# the incoming interface is always veth0.  As its not linked to a VRF,
-+	# the 'tvrf' device should NOT show up anywhere.
-+	local ifname="veth0"
-+	local lret=0
-+
-+	# local_veth0, local_veth1
-+	for addr in "10.0.1.1" "10.0.2.1"; do
-+		check_local fibtype4  "$ifname" "$addr" || lret=1
-+		check_type  fibif4    "$ifname" "$addr" "0" || lret=1
-+	done
-+	for addr in "dead:1::1" "dead:2::1";do
-+		check_local fibtype6  "$ifname" "$addr" || lret=1
-+		check_type  fibif6    "$ifname" "$addr" "0" || lret=1
-+	done
-+
-+	# when restricted to the incoming interface, 10.0.1.1 should
-+	# be 'local', but 10.0.2.1 unicast.
-+	check_local fibtype4iif   "$ifname" "10.0.1.1" || lret=1
-+	check_unicast fibtype4iif "$ifname" "10.0.2.1" || lret=1
-+
-+	# same for the ipv6 addresses.
-+	check_local fibtype6iif   "$ifname" "dead:1::1" || lret=1
-+	check_unicast fibtype6iif "$ifname" "dead:2::1" || lret=1
-+
-+	# None of these addresses should find a valid route when restricting
-+	# to the incoming interface (we ask for daddr - 10.0.1.1/2.1 are
-+	# reachable via 'lo'.
-+	for addr in "10.0.1.1" "10.0.2.1" "10.9.9.1" "10.9.9.2";do
-+		check_type fibif4iif "$ifname" "$addr" "0" || lret=1
-+	done
-+
-+	# expect default route (veth1), dummy0 is part of VRF but iif isn't.
-+	for addr in "10.9.9.1" "10.9.9.2";do
-+		check_unicast fibtype4    "$ifname" "$addr" || lret=1
-+		check_unicast fibtype4iif "$ifname" "$addr" || lret=1
-+		check_type fibif4 "$ifname" "$addr" "veth1" || lret=1
-+	done
-+	for addr in "dead:9::1" "dead:9::2";do
-+		check_unicast fibtype6    "$ifname" "$addr" || lret=1
-+		check_unicast fibtype6iif "$ifname" "$addr" || lret=1
-+		check_type fibif6 "$ifname" "$addr" "veth1" || lret=1
-+	done
-+
-+	# same for the IPv6 equivalent addresses.
-+	for addr in "dead:1::1" "dead:2::1" "dead:9::1" "dead:9::2";do
-+		check_type  fibif6iif "$ifname" "$addr" "0" || lret=1
-+	done
-+
-+	check_unicast fibtype4    "$ifname" "10.0.2.99" || lret=1
-+	check_unicast fibtype4iif "$ifname" "10.0.2.99" || lret=1
-+	check_unicast fibtype6    "$ifname" "dead:2::99" || lret=1
-+	check_unicast fibtype6iif "$ifname" "dead:2::99" || lret=1
-+
-+	check_type fibif4 "$ifname" "10.0.2.99" "veth1" || lret=1
-+	check_type fibif4iif "$ifname" "10.0.2.99" 0 || lret=1
-+	check_type fibif6 "$ifname" "dead:2::99" "veth1" || lret=1
-+	check_type fibif6iif "$ifname" "dead:2::99" 0 || lret=1
-+
-+	check_rpf  fibif4    "$ifname" "10.0.1.99" "veth0" 5 || lret=1
-+	check_rpf  fibif4iif "$ifname" "10.0.1.99" "veth0" 5 || lret=1
-+	check_rpf  fibif6    "$ifname" "dead:1::99" "veth0" 5 || lret=1
-+	check_rpf  fibif6iif "$ifname" "dead:1::99" "veth0" 5 || lret=1
-+
-+	check_fib_vrf_sets_empty || lret=1
-+
-+	if [ $lret -eq 0 ];then
-+		echo "PASS: $msg"
-+	else
-+		echo "FAIL: $msg"
-+		ret=1
-+	fi
-+}
-+
-+check_fib_veth_vrf_type()
-+{
-+	local msg="$1"
-+
-+	local addr
-+	local ifname
-+	local setname
-+	local lret=0
-+
-+	# as veth0 is now part of tvrf interface, packets will be seen
-+	# twice, once with iif veth0, then with iif tvrf.
-+
-+	for ifname in "veth0" "tvrf"; do
-+		for addr in "10.0.1.1" "10.9.9.1"; do
-+			check_local fibtype4  "$ifname" "$addr" || lret=1
-+			# addr local, but nft_fib doesn't return routes with RTN_LOCAL.
-+			check_type  fibif4    "$ifname" "$addr" 0 || lret=1
-+			check_type  fibif4iif "$ifname" "$addr" 0 || lret=1
-+		done
-+
-+		for addr in "dead:1::1" "dead:9::1"; do
-+			check_local fibtype6 "$ifname" "$addr" || lret=1
-+			# same, address is local but no route is returned for lo.
-+			check_type  fibif6    "$ifname" "$addr" 0 || lret=1
-+			check_type  fibif6iif "$ifname" "$addr" 0 || lret=1
-+		done
-+
-+		for t in fibtype4 fibtype4iif; do
-+			check_unicast "$t" "$ifname" 10.9.9.2 || lret=1
-+		done
-+		for t in fibtype6 fibtype6iif; do
-+			check_unicast "$t" "$ifname" dead:9::2 || lret=1
-+		done
-+
-+		check_unicast fibtype4iif "$ifname" "10.9.9.1" || lret=1
-+		check_unicast fibtype6iif "$ifname" "dead:9::1" || lret=1
-+
-+		check_unicast fibtype4    "$ifname" "10.0.2.99" || lret=1
-+		check_unicast fibtype4iif "$ifname" "10.0.2.99" || lret=1
-+
-+		check_unicast fibtype6    "$ifname" "dead:2::99" || lret=1
-+		check_unicast fibtype6iif "$ifname" "dead:2::99" || lret=1
-+
-+		check_type fibif4    "$ifname"  "10.0.2.99" "veth1" || lret=1
-+		check_type fibif6    "$ifname" "dead:2::99" "veth1" || lret=1
-+		check_type fibif4    "$ifname"   "10.9.9.2" "dummy0" || lret=1
-+		check_type fibif6    "$ifname"  "dead:9::2" "dummy0" || lret=1
-+
-+		# restricted to iif -- MUST NOT provide result, its != $ifname.
-+		check_type fibif4iif "$ifname"  "10.0.2.99" 0 || lret=1
-+		check_type fibif6iif "$ifname" "dead:2::99" 0 || lret=1
-+
-+		check_rpf  fibif4 "$ifname" "10.0.1.99" "veth0" 4 || lret=1
-+		check_rpf  fibif6 "$ifname" "dead:1::99" "veth0" 4 || lret=1
-+		check_rpf  fibif4iif "$ifname" "10.0.1.99" "$ifname" 4 || lret=1
-+		check_rpf  fibif6iif "$ifname" "dead:1::99" "$ifname" 4 || lret=1
-+	done
-+
-+	check_local fibtype4iif "veth0" "10.0.1.1" || lret=1
-+	check_local fibtype6iif "veth0" "dead:1::1" || lret=1
-+
-+	check_unicast fibtype4iif "tvrf" "10.0.1.1" || lret=1
-+	check_unicast fibtype6iif "tvrf" "dead:1::1" || lret=1
-+
-+	# 10.9.9.2 should not provide a result for iif veth, but
-+	# should when iif is tvrf.
-+	# This is because its reachable via dummy0 which is part of
-+	# tvrf.  iif veth0 MUST conceal the dummy0 result (i.e. return oif 0).
-+	check_type fibif4iif "veth0" "10.9.9.2" 0 || lret=1
-+	check_type fibif6iif "veth0"  "dead:9::2" 0 || lret=1
-+
-+	check_type fibif4iif "tvrf" "10.9.9.2" "tvrf" || lret=1
-+	check_type fibif6iif "tvrf" "dead:9::2" "tvrf" || lret=1
-+
-+	check_fib_vrf_sets_empty || lret=1
-+
-+	if [ $lret -eq 0 ];then
-+		echo "PASS: $msg"
-+	else
-+		echo "FAIL: $msg"
-+		ret=1
-+	fi
-+}
-+
- # Extends nsrouter config by adding dummy0+vrf.
- #
- #  10.0.1.99     10.0.1.1           10.0.2.1         10.0.2.99
-@@ -341,8 +667,6 @@ test_fib_vrf_dev_add_dummy()
- #                          [tvrf]
- test_fib_vrf()
- {
--	local dummynet="10.9.9"
--	local dummynet6="dead:9"
- 	local cntname=""
- 
- 	if ! test_fib_vrf_dev_add_dummy; then
-@@ -350,37 +674,51 @@ test_fib_vrf()
- 		return
- 	fi
- 
--	ip -net "$nsrouter" addr add "$dummynet.1"/24 dev dummy0
--	ip -net "$nsrouter" addr add "${dummynet6}::1"/64 dev dummy0 nodad
-+	ip -net "$nsrouter" addr add "10.9.9.1"/24 dev dummy0
-+	ip -net "$nsrouter" addr add "dead:9::1"/64 dev dummy0 nodad
- 
-+	ip -net "$nsrouter" route add default via 10.0.2.99
-+	ip -net "$nsrouter" route add default via dead:2::99
- 
--ip netns exec "$nsrouter" nft -f - <<EOF
--flush ruleset
--table inet t {
--	counter fibcount4 { }
--	counter fibcount6 { }
-+	load_ruleset_vrf || return
- 
--	chain prerouting {
--		type filter hook prerouting priority 0;
--		meta iifname veth0 ip daddr ${dummynet}.2 fib daddr oif dummy0 counter name fibcount4
--		meta iifname veth0 ip6 daddr ${dummynet6}::2 fib daddr oif dummy0 counter name fibcount6
--	}
--}
--EOF
- 	# no echo reply for these addresses: The dummy interface is part of tvrf,
--	test_ping_unreachable "$dummynet.2" "${dummynet6}::2" &
-+	# but veth0 (incoming interface) isn't linked to it.
-+	test_ping_unreachable "10.9.9.1" "dead:9::1" &
-+	test_ping_unreachable "10.9.9.2" "dead:9::2" &
-+
-+	# expect replies from these.
-+	test_ping "10.0.1.1" "dead:1::1"
-+	test_ping "10.0.2.1" "dead:2::1"
-+	test_ping "10.0.2.99" "dead:2::99"
- 
- 	wait
- 
--	for cntname in fibcount4 fibcount6;do
--		if ip netns exec "$nsrouter" nft list counter inet t "$cntname" | grep -q "packets 1"; then
--			echo "PASS: vrf fib lookup did return expected output interface for $cntname"
--		else
--			ip netns exec "$nsrouter" nft list counter inet t "$cntname"
--			echo "FAIL: vrf fib lookup did not return expected output interface for $cntname"
--			ret=1
--		fi
--	done
-+	check_fib_vrf_type "fib expression address types match (iif not in vrf)"
-+
-+	# second round: this time, make veth0 (rx interface) part of the vrf.
-+	# 10.9.9.1 / dead:9::1 become reachable from ns1, while ns2
-+	# becomes unreachable.
-+	ip -net "$nsrouter" link set veth0 master tvrf
-+	ip -net "$nsrouter" addr add dead:1::1/64 dev veth0 nodad
-+
-+	# this reload should not be needed, but in case
-+	# there is some error (missing or unexpected entry) this will prevent them
-+	# from leaking into round 2.
-+	load_ruleset_vrf || return
-+
-+	test_ping "10.0.1.1" "dead:1::1"
-+	test_ping "10.9.9.1" "dead:9::1"
-+
-+	# ns2 should no longer be reachable (veth1 not in vrf)
-+	test_ping_unreachable "10.0.2.99" "dead:2::99" &
-+
-+	# vrf via dummy0, but host doesn't exist
-+	test_ping_unreachable "10.9.9.2" "dead:9::2" &
-+
-+	wait
-+
-+	check_fib_veth_vrf_type "fib expression address types match (iif in vrf)"
- }
- 
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+-		inner = nla_nest_start_noflag(skb, NFTA_TUNNEL_KEY_OPTS_GENEVE);
+-		if (!inner)
+-			goto failure;
+ 		while (opts->len > offset) {
++			inner = nla_nest_start_noflag(skb, NFTA_TUNNEL_KEY_OPTS_GENEVE);
++			if (!inner)
++				goto failure;
+ 			opt = (struct geneve_opt *)(opts->u.data + offset);
+ 			if (nla_put_be16(skb, NFTA_TUNNEL_KEY_GENEVE_CLASS,
+ 					 opt->opt_class) ||
+@@ -634,8 +634,8 @@ static int nft_tunnel_opts_dump(struct sk_buff *skb,
+ 				    opt->length * 4, opt->opt_data))
+ 				goto inner_failure;
+ 			offset += sizeof(*opt) + opt->length * 4;
++			nla_nest_end(skb, inner);
+ 		}
+-		nla_nest_end(skb, inner);
+ 	}
+ 	nla_nest_end(skb, nest);
+ 	return 0;
 -- 
 2.49.0
 
