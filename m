@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 068E51A3BD7
-	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 09:40:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A57561A3BD7
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 09:40:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747820418; cv=none; b=JR81E31cqeP9H4Bao/P57CH/y+Dp3BuJXAnr2TEalt0x3JxyZc9KidYcl1GwPRPTYamrV3NoP7EAVF0LYXLhJhI12mXBmkDhgbWV227W0/YAyxX5x/oBy5YHnkcL1lYXvyHs7gtZ1H6EvLl/4RKRipKtSyVDMkasw1E97Qwm32k=
+	t=1747820421; cv=none; b=ZL2guXyD9SQQFl+yjnuRN/nCJmy6OoHOIbtg3l6WNiWiwVb6F58gLtvfk20uDXGTA5GmXHUZ/ko8FHT2ZyIynRJbu7BkP0dm5948rIwCcRyxfsmIPvTKIE/+zv/V8Qh4C9l5U0fczA/QXP56Y0M7kDGHqdUiKQooH+R2rcdrf5g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747820418; c=relaxed/simple;
-	bh=Jmul+C0rcByF7WLVSixfWY+5+KaDJUEL07XaMfnptuE=;
+	s=arc-20240116; t=1747820421; c=relaxed/simple;
+	bh=5TMX27h5rmCGdg+VESheVswmBoUmsDOksOLj7Q+h82I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mxGxYUryyAPudrYaNousvt47KeNua/P+UPTN3Ew9F6M4MImtHWlhiSG5Fv+y97sp2VXpfvan6uMbmnOySsjSEzC5BV5ULPqpBpMv5iDK46w/hRmhk0oS2KIGy+SaNPu3Q/yDuBsERbPaQ2SaA+KRPHQcY7ZK0XgQsO3LOJrMiOw=
+	 MIME-Version; b=qcdfnjwoCwkHijLuqd2ZAZCasQoObrA4WsSYmVIx/BCSjv+6hvYRg9EE8UIxXtT4DU8+b2ZTx6tHrcri8LMDtmdZgyRX2KntyG54kmlt5nYdprT/2+Mr0TSebUBUXZvJ+XvcGwzEAO1ga4OL+/rLYkS9iro1UwV1hLaTVB3wsd8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 27A6C602AC; Wed, 21 May 2025 11:40:08 +0200 (CEST)
+	id D947460140; Wed, 21 May 2025 11:40:16 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 1/5] selftests: netfilter: nft_fib.sh: add 'type' mode tests
-Date: Wed, 21 May 2025 11:38:45 +0200
-Message-ID: <20250521093858.1831-2-fw@strlen.de>
+Subject: [PATCH nf-next v2 3/5] netfilter: nf_tables: nft_fib_ipv6: fix VRF ipv4/ipv6 result discrepancy
+Date: Wed, 21 May 2025 11:38:47 +0200
+Message-ID: <20250521093858.1831-4-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250521093858.1831-1-fw@strlen.de>
 References: <20250521093858.1831-1-fw@strlen.de>
@@ -33,266 +33,71 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-fib can either lookup the interface id/name of the output interface that
-would be used for the given address, or it can check for the type of the
-address according to the fib, e.g. local, unicast, multicast and so on.
+With a VRF, ipv4 and ipv6 FIB expression behave differently.
 
-This can be used to e.g. make a locally configured address only reachable
-through its interface.
+   fib daddr . iif oif
 
-Example: given eth0:10.1.1.1 and eth1:10.1.2.1 then 'fib daddr type' for
-10.1.1.1 arriving on eth1 will be 'local', but 'fib daddr . iif type' is
-expected to return 'unicast', whereas 'fib daddr' and 'fib daddr . iif'
-are expected to indicate 'local' if such a packet arrives on eth0.
+Will return the input interface name for ipv4, but the real device
+for ipv6.  Example:
 
-So far nft_fib.sh only covered oif/oifname, not type.
+If VRF device name is tvrf and real (incoming) device is veth0.
+First round is ok, both ipv4 and ipv6 will yield 'veth0'.
 
-Repeat tests both with default and a policy (ip rule) based setup.
+But in the second round (incoming device will be set to "tvrf"), ipv4
+will yield "tvrf" whereas ipv6 returns "veth0" for the second round too.
 
-Also try to run all remaining tests even if a subtest has failed.
+This makes ipv6 behave like ipv4.
 
+A followup patch will add a test case for this, without this change
+it will fail with:
+  get element inet t fibif6iif { tvrf . dead:1::99 . tvrf }
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  FAIL: did not find tvrf . dead:1::99 . tvrf in fibif6iif
+
+Alternatively we could either not do anything at all or change
+ipv4 to also return the lower/real device, however, nft (userspace)
+doc says "iif: if fib lookup provides a route then check its output
+interface is identical to the packets input interface." which is what
+the nft fib ipv4 behaviour is.
+
+Fixes: f6d0cbcf09c5 ("netfilter: nf_tables: add fib expression")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/nft_fib.sh        | 184 +++++++++++++++++-
- 1 file changed, 174 insertions(+), 10 deletions(-)
+ net/ipv6/netfilter/nft_fib_ipv6.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 82780b39277c..4b93e4954536 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -3,6 +3,10 @@
- # This tests the fib expression.
- #
- # Kselftest framework requirement - SKIP code is 4.
-+#
-+#  10.0.1.99     10.0.1.1           10.0.2.1         10.0.2.99
-+# dead:1::99    dead:1::1          dead:2::1        dead:2::99
-+# ns1 <-------> [ veth0 ] nsrouter [veth1] <-------> ns2
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 7fd9d7b21cd4..f1f5640da672 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -158,6 +158,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ {
+ 	const struct nft_fib *priv = nft_expr_priv(expr);
+ 	int noff = skb_network_offset(pkt->skb);
++	const struct net_device *found = NULL;
+ 	const struct net_device *oif = NULL;
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	struct ipv6hdr *iph, _iph;
+@@ -203,11 +204,15 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
+ 		goto put_rt_err;
  
- source lib.sh
+-	if (oif && oif != rt->rt6i_idev->dev &&
+-	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) != oif->ifindex)
+-		goto put_rt_err;
++	if (!oif) {
++		found = rt->rt6i_idev->dev;
++	} else {
++		if (oif == rt->rt6i_idev->dev ||
++		    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == oif->ifindex)
++			found = oif;
++	}
  
-@@ -72,6 +76,89 @@ table inet filter {
- EOF
+-	nft_fib_store_result(dest, priv, rt->rt6i_idev->dev);
++	nft_fib_store_result(dest, priv, found);
+  put_rt_err:
+ 	ip6_rt_put(rt);
  }
- 
-+load_type_ruleset() {
-+	local netns=$1
-+
-+	for family in ip ip6;do
-+ip netns exec "$netns" nft -f /dev/stdin <<EOF
-+table $family filter {
-+	chain type_match_in {
-+		fib daddr type local counter comment "daddr configured on other iface"
-+		fib daddr . iif type local counter comment "daddr configured on iif"
-+		fib daddr type unicast counter comment "daddr not local"
-+		fib daddr . iif type unicast counter comment "daddr not configured on iif"
-+	}
-+
-+	chain type_match_out {
-+		fib daddr type unicast counter
-+		fib daddr . oif type unicast counter
-+		fib daddr type local counter
-+		fib daddr . oif type local counter
-+	}
-+
-+	chain prerouting {
-+		type filter hook prerouting priority 0;
-+		icmp type echo-request counter jump type_match_in
-+		icmpv6 type echo-request counter jump type_match_in
-+	}
-+
-+	chain input {
-+		type filter hook input priority 0;
-+		icmp type echo-request counter jump type_match_in
-+		icmpv6 type echo-request counter jump type_match_in
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority 0;
-+		icmp type echo-request counter jump type_match_in
-+		icmpv6 type echo-request counter jump type_match_in
-+	}
-+
-+	chain output {
-+		type filter hook output priority 0;
-+		icmp type echo-request counter jump type_match_out
-+		icmpv6 type echo-request counter jump type_match_out
-+	}
-+
-+	chain postrouting {
-+		type filter hook postrouting priority 0;
-+		icmp type echo-request counter jump type_match_out
-+		icmpv6 type echo-request counter jump type_match_out
-+	}
-+}
-+EOF
-+done
-+}
-+
-+reload_type_ruleset() {
-+	ip netns exec "$1" nft flush table ip filter
-+	ip netns exec "$1" nft flush table ip6 filter
-+	load_type_ruleset "$1"
-+}
-+
-+check_fib_type_counter_family() {
-+	local family="$1"
-+	local want="$2"
-+	local ns="$3"
-+	local chain="$4"
-+	local what="$5"
-+	local errmsg="$6"
-+
-+	if ! ip netns exec "$ns" nft list chain "$family" filter "$chain" | grep "$what" | grep -q "packets $want";then
-+		echo "Netns $ns $family fib type counter doesn't match expected packet count of $want for $what $errmsg" 1>&2
-+		ip netns exec "$ns" nft list chain "$family" filter "$chain"
-+		ret=1
-+		return 1
-+	fi
-+
-+	return 0
-+}
-+
-+check_fib_type_counter() {
-+	check_fib_type_counter_family "ip" "$@" || return 1
-+	check_fib_type_counter_family "ip6" "$@" || return 1
-+}
-+
- load_ruleset_count() {
- 	local netns=$1
- 
-@@ -90,6 +177,7 @@ check_drops() {
- 	if dmesg | grep -q ' nft_rpfilter: ';then
- 		dmesg | grep ' nft_rpfilter: '
- 		echo "FAIL: rpfilter did drop packets"
-+		ret=1
- 		return 1
- 	fi
- 
-@@ -164,17 +252,70 @@ test_ping() {
-   return 0
- }
- 
-+test_fib_type() {
-+	local notice="$1"
-+	local errmsg="addr-on-if"
-+	local lret=0
-+
-+	if ! load_type_ruleset "$nsrouter";then
-+		echo "SKIP: Could not load fib type ruleset"
-+		[ $ret -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	# makes router receive packet for addresses configured on incoming
-+	# interface.
-+	test_ping 10.0.1.1 dead:1::1 || return 1
-+
-+	# expectation: triggers all 'local' in prerouting/input.
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr type local" "$errmsg" || lret=1
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr . iif type local" "$errmsg" || lret=1
-+
-+	reload_type_ruleset "$nsrouter"
-+	# makes router receive packet for address configured on a different (but local)
-+	# interface.
-+	test_ping 10.0.2.1 dead:2::1 || return 1
-+
-+	# expectation: triggers 'unicast' in prerouting/input for daddr . iif and local for 'daddr'.
-+	errmsg="addr-on-host"
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr type local" "$errmsg" || lret=1
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr . iif type unicast" "$errmsg" || lret=1
-+
-+	reload_type_ruleset "$nsrouter"
-+	test_ping 10.0.2.99 dead:2::99 || return 1
-+	errmsg="addr-on-otherhost"
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr type unicast" "$errmsg" || lret=1
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr . iif type unicast" "$errmsg" || lret=1
-+
-+	if [ $lret -eq 0 ];then
-+		echo "PASS: fib expression address types match ($notice)"
-+	else
-+		echo "FAIL: fib expression address types match ($notice)"
-+		ret=1
-+	fi
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
- 
- test_ping 10.0.2.1 dead:2::1 || exit 1
--check_drops || exit 1
-+check_drops
- 
- test_ping 10.0.2.99 dead:2::99 || exit 1
--check_drops || exit 1
-+check_drops
- 
--echo "PASS: fib expression did not cause unwanted packet drops"
-+[ $ret -eq 0 ] && echo "PASS: fib expression did not cause unwanted packet drops"
-+
-+load_input_ruleset "$ns1"
-+
-+test_ping 127.0.0.1 ::1
-+check_drops
-+
-+test_ping 10.0.1.99 dead:1::99
-+check_drops
-+
-+[ $ret -eq 0 ] && echo "PASS: fib expression did not discard loopback packets"
- 
- load_input_ruleset "$ns1"
- 
-@@ -234,7 +375,7 @@ ip -net "$nsrouter" addr del dead:2::1/64 dev veth0
- # ... pbr ruleset for the router, check iif+oif.
- if ! load_pbr_ruleset "$nsrouter";then
- 	echo "SKIP: Could not load fib forward ruleset"
--	exit $ksft_skip
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
- fi
- 
- ip -net "$nsrouter" rule add from all table 128
-@@ -245,11 +386,34 @@ ip -net "$nsrouter" route add table 129 to 10.0.2.0/24 dev veth1
- # drop main ipv4 table
- ip -net "$nsrouter" -4 rule delete table main
- 
--if ! test_ping 10.0.2.99 dead:2::99;then
--	ip -net "$nsrouter" nft list ruleset
--	echo "FAIL: fib mismatch in pbr setup"
--	exit 1
-+if test_ping 10.0.2.99 dead:2::99;then
-+	echo "PASS: fib expression forward check with policy based routing"
-+else
-+	echo "FAIL: fib expression forward check with policy based routing"
-+	ret=1
- fi
- 
--echo "PASS: fib expression forward check with policy based routing"
--exit 0
-+test_fib_type "policy routing"
-+ip netns exec "$nsrouter" nft delete table ip filter
-+ip netns exec "$nsrouter" nft delete table ip6 filter
-+
-+# Un-do policy routing changes
-+ip -net "$nsrouter" rule del from all table 128
-+ip -net "$nsrouter" rule del from all iif veth0 table 129
-+
-+ip -net "$nsrouter" route del table 128 to 10.0.1.0/24 dev veth0
-+ip -net "$nsrouter" route del table 129 to 10.0.2.0/24 dev veth1
-+
-+ip -net "$ns1" -4 route del default
-+ip -net "$ns1" -6 route del default
-+
-+ip -net "$ns1" -4 route add default via 10.0.1.1
-+ip -net "$ns1" -6 route add default via dead:1::1
-+
-+ip -net "$nsrouter" -4 rule add from all table main priority 32766
-+
-+test_fib_type "default table"
-+ip netns exec "$nsrouter" nft delete table ip filter
-+ip netns exec "$nsrouter" nft delete table ip6 filter
-+
-+exit $ret
 -- 
 2.49.0
 
