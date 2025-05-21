@@ -1,56 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 047CA25FA0E
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 May 2025 22:28:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F054524887A
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2025 09:35:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747780092; cv=none; b=RfhU/thDyZ6fg5AZAUCgOiou2gVseOI5WCdLgP073+BKwyJsk/UMxoj3KssZ9JUFhQcFSDX8alsmr/ShgtWfjpOph4BoI4Vh+zW2qzHi7TYYJdMJJWDqOm/1uClW6bkUJ4tuxYczuFqIbpGhrpSh9MZ6P07haYEJIsOa1MxprZE=
+	t=1747820122; cv=none; b=hvyd8ZBZbM8n0DGQiwNUwoKO7wAioLtTsNGMkxnkM6Cfip3C9RcHY7O0hXlwrp1R/5OGlrES1w0Pzj6C6cZVXK5Z+ReFKRSSo6yKRqD7X0rSes/T87XC7O9D6PSSpUHXf43lPsVrpUL2Riah9QaBPxcpy0dL9zAYdLl3WbwQ5zo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747780092; c=relaxed/simple;
-	bh=PqJ0nluBrLX/xhLCgjGMeHX86GpfX/cx7facyofrx6s=;
+	s=arc-20240116; t=1747820122; c=relaxed/simple;
+	bh=n1ez93h8ihDRKxcDt7ebTgrKD6istJuZrmCGppn90xo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sw+UtIWV2RnGxHTYJ63M7Pg2Mzva8/lelwxj9imGMWm6qzQmZA8vu5kg8e11XbtB7Nhfv+oWbzotun//cxwoFykrqKMo/9jJxHTLi7ZMmdp+Y/XYe8pWjNVAeKLHjcIf6EndUcRnStYrbpx2pqzJRzC+31zKsjOYlBNgwhUkPWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Rvx6wCOX; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KkhYz6Nf; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=JXM5SQ6NALwa97zglQ4YzltxF95flZBMViEnF8vbVuK6JlqtTv/aJX8tQRFsqvyH5tP0ujBmmh2aCyI2zYMruRO470acjZjcNRVUIDiKaXXJotwzVFofEV0oTBjdtGUCSRju4tWaAJULbGb881M9TWzZqwMXB8G4wrd57eT2XTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jz5VPXrf; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PYyePrar; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Rvx6wCOX";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KkhYz6Nf"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jz5VPXrf";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PYyePrar"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 2842B60781; Wed, 21 May 2025 00:28:06 +0200 (CEST)
+	id 0CD6E606ED; Wed, 21 May 2025 11:35:15 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747780086;
-	bh=bYSB1bJCEO1Tgx1fIY5h5m6M53P9Evo+RtQQOgS8YnY=;
+	s=2025; t=1747820116;
+	bh=sK1557DCXWRqN0wGPzZNtBBAufeheZjmqJ3kWaisnn0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Rvx6wCOXUDvnEOko+Ya3FbhQBeIsRsNXl2B3tZ6Iz6ldlHRHPmvEDuTVCYUvrwkcU
-	 IGxGqxphTFYP7j6SxZvfWbtiYVvENGJEZ6wOZ2FLbGAZX6FaAKgd5ylKr/giAJf/Tw
-	 6d5ecSAcquyp+1oXLQb0indIfIk0LHEmN+ALECC3+cLDUupIFweJbsNSix1/C5N+I8
-	 jVHnuHnHFVz3MbNX9HngYFi8PuPPB3oqybpZGTpoVcurATcR5r9qvMO7tCR6ZEvfvv
-	 r7gps0eryYlosVoX7ZO300Xqc1/WxeMQWWZlNHgQbf/K88H8cqxiko7rEq0HuhVW/R
-	 h+fxvEBDYuIqQ==
+	b=jz5VPXrfKIrY4o+eUHhqW5zllqCwGNh7+ztzGfowmahWpw+cvF1JuXKAmR2OUY25U
+	 tiBPdew4bNqGEBUzJaMYhosMHO7hBIV+bbRLlcfCJ056XI1zruhHl734d8oJAhLtvE
+	 Akkoqx/4iidvZIY4akJI1bpwwTL6SO1HMvbyuY+2aD9AkeDjoBu49BTgZW/a/16uQP
+	 JqvptyL3YBqgXtr8rAiEYYx/VJ9bekGIm9HKdXlGFD4dLNZd9u9kaR2WO59SScYAeL
+	 ZAGkeVmIyiaBsKDEdP39Q47DbLdsP9cD4I8A8wb1QwPmpjA33lJaWUakB6CgAegMMm
+	 HCBy6Sfvzn4jA==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A70FE6077B;
-	Wed, 21 May 2025 00:28:04 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 344EA606ED;
+	Wed, 21 May 2025 11:35:15 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747780084;
-	bh=bYSB1bJCEO1Tgx1fIY5h5m6M53P9Evo+RtQQOgS8YnY=;
+	s=2025; t=1747820115;
+	bh=sK1557DCXWRqN0wGPzZNtBBAufeheZjmqJ3kWaisnn0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KkhYz6Nf7Q844DoXMlIhKGxMMK6zBsMc7uDndeN4zIgjyshOgtFblxo2OyhETjz74
-	 7pKBHSqEoN13ODCGBqKYsKLfecvhBrLRRr1PnBNESdHI8mVEOp30wdT5AEtpUsTtkY
-	 Erx7JIoOp9ffe99vFDq5QM+9R0t9hnNOKb6s8chw8yJVELt1v1X8SqP6Vrrow9yhmA
-	 qJReYYkeZiAs+U2puIxDPJxkSRQSc9zDfboDPeF/UPHcPTwbgz4QjVuCSl5cVJ7vw0
-	 Pq13/wTEVgbvXQx8IBa4rgx3w/RI8ysI7AGfCYqEwulKF6b5LDF513RLpxffpMm/9d
-	 dTMF0Q8+Ofibg==
-Date: Wed, 21 May 2025 00:28:01 +0200
+	b=PYyePrarIYQyWcvN2FPyjUf9a5+ZvAewWu+VakB9bxppoiYSNVjJSSsDEvJtqBObP
+	 3LPhdIGDh/PzkWiFf5z6YqkJ3Dy3yiKsnT0COh4TQKTce4uPR5f9fkOYTO/W1Tm7f+
+	 fbDzq8n/+G8sidtSGCH1kYrq8+Z0/sNvFI5bOUMA11h9VIsqL302SgJCTcjS0cdRtz
+	 pZflQArEv+GKQOmiL9A73t0UQRyIo3Jh+eG6E6g93GTnS/1MSwst7onUTeHscaGYh2
+	 T1Pf852MJpNbrG6cLwLCWQy1bFRm00Mh5+Az99QkX6xRT2TumBTKjUGPL4XUTmzNtP
+	 iiIJuIOSlt0/Q==
+Date: Wed, 21 May 2025 11:35:13 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Eric Garver <e@erig.me>
-Subject: Re: [nf-next PATCH v6 00/12] Dynamic hook interface binding part 2
-Message-ID: <aC0B8ZSp8qNzbPqR@calendula>
-References: <20250415154440.22371-1-phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 2/2] netfilter: nf_tables: add packets conntrack
+ state to debug trace info
+Message-ID: <aC2eUd6OOxn9ramP@calendula>
+References: <20250508150855.6902-1-fw@strlen.de>
+ <20250508150855.6902-3-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,124 +60,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250415154440.22371-1-phil@nwl.cc>
+In-Reply-To: <20250508150855.6902-3-fw@strlen.de>
 
-Hi Phil,
+Hi Florian,
 
-This looks very good, I still have a few comments, related to three
-patches:
-
-== netfilter: nf_tables: Have a list of nf_hook_ops in nft_hook
-
-1) There's a possible inconsistent use of list_for_each_entry{_safe}
-   while calling nf_unregister_net_hook().
-
- static void nft_netdev_unregister_hooks(struct net *net,
-                                        struct list_head *hook_list,
-                                        bool release_netdev)
- {
-+       struct nf_hook_ops *ops, *nextops;
-        struct nft_hook *hook, *next;
-
-        list_for_each_entry_safe(hook, next, hook_list, list) {
--               nf_unregister_net_hook(net, &hook->ops);
-+               list_for_each_entry_safe(ops, nextops, &hook->ops_list, list) <--- HERE
-+                       nf_unregister_net_hook(net, ops);
-
+On Thu, May 08, 2025 at 05:08:52PM +0200, Florian Westphal wrote:
+> Add the minimal relevant info needed for userspace ("nftables monitor
+> trace") to provide the conntrack view of the packet:
+> 
+> - state (new, related, established)
+> - direction (original, reply)
+> - status (e.g., if connection is subject to dnat)
+> - id (allows to query ctnetlink for remaining conntrack state info)
+> 
+> Example:
+> trace id a62 inet filter PRE_RAW packet: iif "enp0s3" ether [..]
+>   [..]
+> trace id a62 inet filter PRE_MANGLE conntrack: ct direction original ct state new ct id 32
+> trace id a62 inet filter PRE_MANGLE packet: [..]
+>  [..]
+> trace id a62 inet filter IN conntrack: ct direction original ct state new ct status dnat-done ct id 32
+>  [..]
+> 
+> In this case one can see that while NAT is active, the new connection
+> isn't subject to a translation.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/uapi/linux/netfilter/nf_tables.h |  2 +
+>  net/netfilter/nf_tables_trace.c          | 65 +++++++++++++++++++++++-
+>  2 files changed, 66 insertions(+), 1 deletion(-)
 [...]
+> diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
+> index 580c55268f65..ba8b0a8c00e6 100644
+> --- a/net/netfilter/nf_tables_trace.c
+> +++ b/net/netfilter/nf_tables_trace.c
+[...]
+> +	if (nla_put_be32(nlskb, NFT_CT_STATE, htonl(state)))
+> +		goto nla_put_failure;
+> +
+> +	if (ct) {
+> +		u32 id = ct_hook->get_id(&ct->ct_general);
+> +		u32 status = READ_ONCE(ct->status);
+> +		u8 dir = CTINFO2DIR(ctinfo);
+> +
+> +		if (nla_put_u8(nlskb, NFT_CT_DIRECTION, dir))
+> +			goto nla_put_failure;
+> +
+> +		if (nla_put_be32(nlskb, NFT_CT_ID, (__force __be32)id))
+> +			goto nla_put_failure;
+> +
+> +		if (status && nla_put_be32(nlskb, NFT_CT_STATUS, htonl(status)))
+> +			goto nla_put_failure;
 
-@@ -2923,8 +2962,10 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- err_hooks:
-        if (nla[NFTA_CHAIN_HOOK]) {
-                list_for_each_entry_safe(h, next, &hook.list, list) {
--                       if (unregister)
--                               nf_unregister_net_hook(ctx->net, &h->ops);
-+                       if (unregister) {
-+                               list_for_each_entry(ops, &h->ops_list, list)   <--- HERE
-+                                       nf_unregister_net_hook(ctx->net, ops);
+NFT_CT_* is enum nft_ct_keys which is not intended to be used as
+netlink attribute.
 
-Which one should be adjusted? I think _safe can be removed?
+NFT_CT_STATE is 0 which is usually reserved for _UNSPEC in netlink
+attribute definitions.
 
-Maybe add nf_unregister_net_hook_list() helper? It helps to avoid
-future similar issues.
-
-2) I wonder if nft_hook_find_ops()  will need a hashtable sooner or
-   later. With the wildcard, the number of devices could be significantly
-   large in this list lookup.
-
-@@ -9611,9 +9666,12 @@ static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
- struct nf_hook_ops *nft_hook_find_ops(const struct nft_hook *hook,
-                                      const struct net_device *dev)
- {
--       if (hook->ops.dev == dev)
--               return (struct nf_hook_ops *)&hook->ops;
-+       struct nf_hook_ops *ops;
-
-+       list_for_each_entry(ops, &hook->ops_list, list) {
-+               if (ops->dev == dev)
-+                       return ops;
-+       }
-        return NULL;
- }
-
-3) Maybe move struct rcu_head at the end of struct nf_hook_ops?
-
- struct nf_hook_ops {
-+       struct list_head        list;
-+       struct rcu_head         rcu; <--- move it at the end of this struct?
-
-   This is a control plane object, but still it is common to place
-   this at the end. But not a deal breaker.
-
-4) nft_netdev_event() is missing a break; I think it is an overlook?
-
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index 783e4b5ef3e0..bac5aa8970a4 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -332,9 +332,8 @@ static void nft_netdev_event(unsigned long event, struct net_device *dev,
-                if (!(basechain->chain.table->flags & NFT_TABLE_F_DORMANT))
-                        nf_unregister_net_hook(dev_net(dev), ops);
-
--               list_del_rcu(&hook->list);
--               kfree_rcu(hook, rcu);
--               break;    <------------------------- this is gone!
-+               list_del_rcu(&ops->list);
-+               kfree_rcu(ops, rcu);
-        }
- }
-
-but I can still see break; in the flowtable event handler.
-
-So nft_netdev_event() shows no break;
-But nft_flowtable_event() still has a break;
-
-== Support wildcard netdev hook specs
-
-Nitpick: the err_ops_alloc: tag takes me to nft_netdev_hook_free(hook);
-maybe better rename it to err_hook_free: ? Because currently
-err_ops_alloc takes me to nft_netdev_hook_free(hook);
-
-@@ -2323,7 +2323,7 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
-
-        err = nla_strscpy(hook->ifname, attr, IFNAMSIZ);
-        if (err < 0)
--               goto err_hook_dev;
-+               goto err_ops_alloc;
-
-but takes you to free the hook:
-
--err_hook_dev:
--       kfree(hook);
-+err_ops_alloc:
-+       nft_netdev_hook_free(hook);
-
-== netfilter: nf_tables: Add "notications" <-- typo: "notifications"
-
-I suggest you add a new NFNLGRP_NFT_DEV group for these notifications,
-so NFNLGRP_NFTABLES is only used for control plane updates via
-nfnetlink API. In this case, these events are triggered by rtnetlink
-when a new device is registered and it matches the existing an
-existing device if I understood the rationale.
+My suggestion is that you define new attributes for this, it is
+boilerplate code to be added to uapi.
 
 Thanks.
