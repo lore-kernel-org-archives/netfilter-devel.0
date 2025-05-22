@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C95F29B22D;
-	Thu, 22 May 2025 16:53:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C99429B761;
+	Thu, 22 May 2025 16:53:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747932793; cv=none; b=PV7wKqvOf+MZEmZM+5SJ6JbJc5kXODuNSw9Pu+vSaS7VazcBmCShZePUgf9OIgBGToLtaj8G+VrzMzVJccRMJ5v0iGobXbfs3Fr2AHIauR7j+bebVeHJYoJSC5Z5a3KDuIpdeUqGPKki8cjcoQbLRyhE2Hmdyrnn3fyAswxicA0=
+	t=1747932794; cv=none; b=cFT4G6PN+ZyfNHUK/HPNpfdr6suXXAZmkQjF114XTaIZ/Wrntg6DRja+rm4ZyupqX/heYKvvK2sk1M/n8w4Nm+NfpptkwDBE4oN8o9LlxRukD8loX9SOTy/vSLHfJ21fprr4dXKMNODd9hpAh8pUW72KuOU9CqkIRfkW/MHlJrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747932793; c=relaxed/simple;
-	bh=LEiauz+zWpCfyU9UT7XYHMLagbCZtN10b/0Jh695pSY=;
+	s=arc-20240116; t=1747932794; c=relaxed/simple;
+	bh=pTQVKRvH/7Bw9fY8C3IZ2t3Rk2Fgp4azhsVQPnvUNZg=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=LG0f+o//LnFfGnw4ECG3CG+6N58acv9U7oY8fjE3SgqUUaw04W2b6QPdOtLYJknYH8sk+YRYFbb3V1Yp/e7uTFF+LunZt/KNPh6dlb2dWXLewgEOXwep4TyG3y9FnXF3xk1u6N+ZU8F+csxm/GaNR3QwpzEur5oIHEx4ws5eELg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QUUV9CyY; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jgn/eDdr; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Pc8HhKYm7O3Qw811OaRopk6V0eILrfZvMvGyp8O5FmujaXOJ4Ty2WTVu5/+F9q1w1m5U+XXogDxsxQQGn0+83me8jVZaKz35TXAludIfr94rq/BUfBIo4DVjRdrce8d+FZSczVlTDWktLeLmXBrnW8Lpgu9qXI6vseHdpQRfaxE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ueJ5sqrg; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=F09TwkNO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QUUV9CyY";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jgn/eDdr"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ueJ5sqrg";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="F09TwkNO"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id E3F4F60742; Thu, 22 May 2025 18:53:10 +0200 (CEST)
+	id C388F60741; Thu, 22 May 2025 18:53:11 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747932790;
-	bh=OSqhPbdT5k/HQXhpBxzIiOIubefCV6Annz6LnYqQNkk=;
+	s=2025; t=1747932791;
+	bh=aakCYKDbeqNzohCmZk1RknJKRIgHtzmU4dFCNXNNmDM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QUUV9CyY6phfrrM1gT1OuvS/3TUYV3Hzaqz4RT+nYuBSpee1Np/FJsSM/2Tvpf1qE
-	 MWnGTBAqgIrJkh69E5Yc1EHF2XxriVB4bp9GKKGhFfxAGw9grP56MOQKALuY1o98gR
-	 JMKduhMrw3SqWuNByBbQG3eiri+6TRXsZhcJ9fz8guNs5RHH6bgNMzMHLkj2rFRSYX
-	 5JouWscGYThCrqvLgBPa/f+jz/xv89L/J6nN34epBdPZocy94e31imckfqiYPQ6xyX
-	 mW6RGtgxaswAPD5FqRma4A0I63zXiRl9qofW3VFgaZhx/dVyUfiWra6se1Gb74ZjjC
-	 /hLzfRdJgQqZA==
+	b=ueJ5sqrggRqPRWJgzO12A3OYBZQ0U+pSMA/FXPu+Xx6gL3wigJNde1l8MxI3AH4Qk
+	 q7dT8JayueOumJ9wUF/8RWs90L7BiKgGHCSDrJwi2aDpMlyPiWwS0IYLJ3V8wVosRP
+	 clFSxRelZr4IxtybC++32zWu8qQ6Uxlj5XpJynKFu6NjgqNF575k/3DyCH9rWtDjhq
+	 iQCfnbIge44JvUUV/ZKWUkWtoh4EJEtYwiujJlIerVIuN4Ou7gMYO7+17lFr3WT40S
+	 PmHPpvAlJSN6lIzTnYYYEK23K6d83Sv+hitPuUAnrs3hnpyBwbW4WUodZPmh5gHGuo
+	 X005h4rkW66RQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id AB05D60718;
-	Thu, 22 May 2025 18:52:52 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 50C7F6072B;
+	Thu, 22 May 2025 18:52:53 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
 	s=2025; t=1747932773;
-	bh=OSqhPbdT5k/HQXhpBxzIiOIubefCV6Annz6LnYqQNkk=;
+	bh=aakCYKDbeqNzohCmZk1RknJKRIgHtzmU4dFCNXNNmDM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=jgn/eDdrCN1f0oXWsUYyluuCfqshXLqARBr+6gqsfMUv2h81R0zp5EzIbgkfNS5+X
-	 p4q3ShZJtjiU877tf1k5qkRV4c/6XDMqmzjji7eqKnBHWcupEx8rZ7n8LBy8WGUC/S
-	 an7q01uOzZLJDY1T1XDTuYbFKmamdmFotBR6qCG97V9MK86+ZvYTp8ZN7ZBXKcNen0
-	 2TYlS+2BBEy1zOtqJ7SjZ7i65u99MQWyRpeno4qbd4CtWGHY6Tmb6NsGmM9vJcjRPA
-	 azr5XnaTS+Zp0jx2FPrpgtVb8CMeMA8Y3CjIk9RjkUz3PRJuzY0Vw+xXJVcRtalG8d
-	 avJosGklYDe8A==
+	b=F09TwkNO6UbA27Q0t96+KgFWjqwWbmAbAE8aK8iWIvx+7t38H9GKkcwhe/QpVMqjH
+	 7andGq8qbzjBF9AKaoJ8Q8faXM2YgMO1jlx3LGm9VC0BzPA5ci3XlnnJ9HxS7sqCkZ
+	 Fsnp6nBpeoEM8oX0Ke+uTPlIcHUuIRaoJeL3r3+dZY6lhN4zJgsjaTzIukrN64vkIG
+	 n/UEVOmjd5b+xkz7kXzIOZerwRIsnUYtZf1rEVvsuL+qhRruhH47e04kkm0P1bpnxA
+	 AwdnAQ+LtZwsz4f33nuOSZgLsDq59YIbH+QzP8OSeViQS8hO4p0yM8FGOh1ZBN3rI6
+	 9GECdtF0cgvfw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 09/26] netfilter: nf_dup{4, 6}: Move duplication check to task_struct
-Date: Thu, 22 May 2025 18:52:21 +0200
-Message-Id: <20250522165238.378456-10-pablo@netfilter.org>
+Subject: [PATCH net-next 10/26] netfilter: nft_inner: Use nested-BH locking for nft_pcpu_tun_ctx
+Date: Thu, 22 May 2025 18:52:22 +0200
+Message-Id: <20250522165238.378456-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250522165238.378456-1-pablo@netfilter.org>
 References: <20250522165238.378456-1-pablo@netfilter.org>
@@ -68,163 +68,71 @@ Content-Transfer-Encoding: 8bit
 
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-nf_skb_duplicated is a per-CPU variable and relies on disabled BH for its
+nft_pcpu_tun_ctx is a per-CPU variable and relies on disabled BH for its
 locking. Without per-CPU locking in local_bh_disable() on PREEMPT_RT
 this data structure requires explicit locking.
 
-Due to the recursion involved, the simplest change is to make it a
-per-task variable.
+Make a struct with a nft_inner_tun_ctx member (original
+nft_pcpu_tun_ctx) and a local_lock_t and use local_lock_nested_bh() for
+locking. This change adds only lockdep coverage and does not alter the
+functional behaviour for !PREEMPT_RT.
 
-Move the per-CPU variable nf_skb_duplicated to task_struct and name it
-in_nf_duplicate. Add it to the existing bitfield so it doesn't use
-additional memory.
-
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h        | 11 -----------
- include/linux/sched.h            |  1 +
- net/ipv4/netfilter/ip_tables.c   |  2 +-
- net/ipv4/netfilter/nf_dup_ipv4.c |  6 +++---
- net/ipv6/netfilter/ip6_tables.c  |  2 +-
- net/ipv6/netfilter/nf_dup_ipv6.c |  6 +++---
- net/netfilter/core.c             |  3 ---
- 7 files changed, 9 insertions(+), 22 deletions(-)
+ net/netfilter/nft_inner.c | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 2b8aac2c70ad..892d12823ed4 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -497,17 +497,6 @@ struct nf_defrag_hook {
- extern const struct nf_defrag_hook __rcu *nf_defrag_v4_hook;
- extern const struct nf_defrag_hook __rcu *nf_defrag_v6_hook;
+diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+index 817ab978d24a..c4569d4b9228 100644
+--- a/net/netfilter/nft_inner.c
++++ b/net/netfilter/nft_inner.c
+@@ -23,7 +23,14 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
  
--/*
-- * nf_skb_duplicated - TEE target has sent a packet
-- *
-- * When a xtables target sends a packet, the OUTPUT and POSTROUTING
-- * hooks are traversed again, i.e. nft and xtables are invoked recursively.
-- *
-- * This is used by xtables TEE target to prevent the duplicated skb from
-- * being duplicated again.
-- */
--DECLARE_PER_CPU(bool, nf_skb_duplicated);
--
- /*
-  * Contains bitmask of ctnetlink event subscribers, if any.
-  * Can't be pernet due to NETLINK_LISTEN_ALL_NSID setsockopt flag.
-diff --git a/include/linux/sched.h b/include/linux/sched.h
-index f96ac1982893..52d9c52dc8f2 100644
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -1044,6 +1044,7 @@ struct task_struct {
- 	/* delay due to memory thrashing */
- 	unsigned                        in_thrashing:1;
- #endif
-+	unsigned			in_nf_duplicate:1;
- #ifdef CONFIG_PREEMPT_RT
- 	struct netdev_xmit		net_xmit;
- #endif
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 3d101613f27f..23c8deff8095 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -270,7 +270,7 @@ ipt_do_table(void *priv,
- 	 * but it is no problem since absolute verdict is issued by these.
- 	 */
- 	if (static_key_false(&xt_tee_enabled))
--		jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
-+		jumpstack += private->stacksize * current->in_nf_duplicate;
+-static DEFINE_PER_CPU(struct nft_inner_tun_ctx, nft_pcpu_tun_ctx);
++struct nft_inner_tun_ctx_locked {
++	struct nft_inner_tun_ctx ctx;
++	local_lock_t bh_lock;
++};
++
++static DEFINE_PER_CPU(struct nft_inner_tun_ctx_locked, nft_pcpu_tun_ctx) = {
++	.bh_lock = INIT_LOCAL_LOCK(bh_lock),
++};
  
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
-diff --git a/net/ipv4/netfilter/nf_dup_ipv4.c b/net/ipv4/netfilter/nf_dup_ipv4.c
-index 25e1e8eb18dd..ed08fb78cfa8 100644
---- a/net/ipv4/netfilter/nf_dup_ipv4.c
-+++ b/net/ipv4/netfilter/nf_dup_ipv4.c
-@@ -54,7 +54,7 @@ void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 	struct iphdr *iph;
+ /* Same layout as nft_expr but it embeds the private expression data area. */
+ struct __nft_expr {
+@@ -237,12 +244,15 @@ static bool nft_inner_restore_tun_ctx(const struct nft_pktinfo *pkt,
+ 	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
  
  	local_bh_disable();
--	if (this_cpu_read(nf_skb_duplicated))
-+	if (current->in_nf_duplicate)
- 		goto out;
- 	/*
- 	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE for
-@@ -86,9 +86,9 @@ void nf_dup_ipv4(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 		--iph->ttl;
- 
- 	if (nf_dup_ipv4_route(net, skb, gw, oif)) {
--		__this_cpu_write(nf_skb_duplicated, true);
-+		current->in_nf_duplicate = true;
- 		ip_local_out(net, skb->sk, skb);
--		__this_cpu_write(nf_skb_duplicated, false);
-+		current->in_nf_duplicate = false;
- 	} else {
- 		kfree_skb(skb);
+-	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
++	local_lock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
++	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx.ctx);
+ 	if (this_cpu_tun_ctx->cookie != (unsigned long)pkt->skb) {
+ 		local_bh_enable();
++		local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
+ 		return false;
  	}
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 7d5602950ae7..d585ac3c1113 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -292,7 +292,7 @@ ip6t_do_table(void *priv, struct sk_buff *skb,
- 	 * but it is no problem since absolute verdict is issued by these.
- 	 */
- 	if (static_key_false(&xt_tee_enabled))
--		jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
-+		jumpstack += private->stacksize * current->in_nf_duplicate;
+ 	*tun_ctx = *this_cpu_tun_ctx;
++	local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
+ 	local_bh_enable();
  
- 	e = get_entry(table_base, private->hook_entry[hook]);
+ 	return true;
+@@ -254,9 +264,11 @@ static void nft_inner_save_tun_ctx(const struct nft_pktinfo *pkt,
+ 	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
  
-diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
-index 0c39c77fe8a8..b903c62c00c9 100644
---- a/net/ipv6/netfilter/nf_dup_ipv6.c
-+++ b/net/ipv6/netfilter/nf_dup_ipv6.c
-@@ -48,7 +48,7 @@ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 		 const struct in6_addr *gw, int oif)
- {
  	local_bh_disable();
--	if (this_cpu_read(nf_skb_duplicated))
-+	if (current->in_nf_duplicate)
- 		goto out;
- 	skb = pskb_copy(skb, GFP_ATOMIC);
- 	if (skb == NULL)
-@@ -64,9 +64,9 @@ void nf_dup_ipv6(struct net *net, struct sk_buff *skb, unsigned int hooknum,
- 		--iph->hop_limit;
- 	}
- 	if (nf_dup_ipv6_route(net, skb, gw, oif)) {
--		__this_cpu_write(nf_skb_duplicated, true);
-+		current->in_nf_duplicate = true;
- 		ip6_local_out(net, skb->sk, skb);
--		__this_cpu_write(nf_skb_duplicated, false);
-+		current->in_nf_duplicate = false;
- 	} else {
- 		kfree_skb(skb);
- 	}
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index b9f551f02c81..11a702065bab 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -31,9 +31,6 @@
- const struct nf_ipv6_ops __rcu *nf_ipv6_ops __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ipv6_ops);
+-	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
++	local_lock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
++	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx.ctx);
+ 	if (this_cpu_tun_ctx->cookie != tun_ctx->cookie)
+ 		*this_cpu_tun_ctx = *tun_ctx;
++	local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
+ 	local_bh_enable();
+ }
  
--DEFINE_PER_CPU(bool, nf_skb_duplicated);
--EXPORT_SYMBOL_GPL(nf_skb_duplicated);
--
- #ifdef CONFIG_JUMP_LABEL
- struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- EXPORT_SYMBOL(nf_hooks_needed);
 -- 
 2.30.2
 
