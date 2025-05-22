@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47BAC24679F;
-	Thu, 22 May 2025 16:52:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46202299ABA;
+	Thu, 22 May 2025 16:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747932781; cv=none; b=OOwFV8jyHTQB1XNddQgsZnGVsidA50RLt6cfDMQhkqrBLyozUBmVnxhFxo2yfLkEhDulivJ0yVMZ2AHuY9XLAjLPmc8xPboaiNvOd97jIZaO/luSGCCeycFs8J4tKAxwwgtiU00PBwv4BIWt+NAUfeoTwHOwPBUmC3BxZX0v/kA=
+	t=1747932782; cv=none; b=rT1UE+3F9clZJ5iUPR74r56CsL7GlXfDGiriHJYaGYj3vlTBiWtByWI+hMJGSHDY9bAh9BFT/i50uP0t8E+91ZjNg77QhknBbxwLDXo9g/wnxJYVJ3rrgYyH/a+/1W6EIYem4h9n4VzEYP2oNlI+nNtBlXTq2uQdejGrlTM80mc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747932781; c=relaxed/simple;
-	bh=ksEvzO03lp3GriT1qWSzNE0pZj+Mm2UAUdagusr9T54=;
+	s=arc-20240116; t=1747932782; c=relaxed/simple;
+	bh=/QYcmDszcQ3wcvWhsbVhi+ZoekOt8llcKMTOjaU8ug0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=DnGkc/tng7AQKKZJkRuX/sN0L8MK761lCNivemmEM6aIhB3viCMSceZLGoBvqiQJ6uZjU5PHXhLlU5EQpYve+eeZLdZXhkxfWh5fulB1aL//TXtOLuEdlBmwCsAWUF6EU+yAPZHSqJ7Lue/X3BCmKKjVJcbpfCXfqd80grbLfCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hC3IUuKi; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XS8llhgo; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Y8y7Rryygy4ORgL16htOwjqdKOzJESltzVSnyzn1tjJDSBjp6c2UQOvC6/HKG1R4NArwKGhnNZ6N6liGDTJhZIU46I9bshdDJFVCwuLuzlcrkGIWRTx8hY7BmhhFrZ5IuS+Px7261GB0PpCex8/O4Tk0xt541kuRvBWA5eYwhrk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NhS/E01c; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=a3Jr/T7l; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hC3IUuKi";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XS8llhgo"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NhS/E01c";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="a3Jr/T7l"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 72E1B6073F; Thu, 22 May 2025 18:52:57 +0200 (CEST)
+	id B027260735; Thu, 22 May 2025 18:52:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747932777;
-	bh=XA0KyrDRGAr/mtk3l0D4aVQyTki2uhJ6pWoHJucWZ/o=;
+	s=2025; t=1747932772;
+	bh=tQIdFw7PHkXMKQD9JAXUxWHS0IhpFoyUQh9Gbyxd5RU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hC3IUuKiUQEMe1/50Md7ZvIGdb0mzYBzJVwp+T7slUFJ9yOUYpoBjTsVUudNBp/7I
-	 L0IW7UsLoBHrCIgVRHkwBCQy/csMvqlxYqMLyPBASJCbMwxbiWlP/O/f77UFGb69jM
-	 5R+Fsu4zrp5boOMdt3ZIwtxilCBtCZ71zr+uL6QLiA+tDMYGr7XkU9/3dXqcsr3QMW
-	 Kvtwa4Z1I+QDWKhWzPjgu0TAR0Vk0my4kaFIPIXhLE5tQgvOfWH+jhmu+rKk8zZytK
-	 nvoUR/bKS2zF/CMPiXtHkGSwJb9SAqhrxnjY1xaGVHApw91ltXl89U4QOkA6xxwoYH
-	 lhhRn4Qe54pEQ==
+	b=NhS/E01cphqmxuNdqI1SW/yGHOtbPNCbc/otVne7Mdmqyg9S6kwGSc0rxVUcLtNAa
+	 bMuLMq9hnjGMcdY4IjGdQuLZkxGvKwPO7hJcNtw+/XG0Ti4MyBQrvOmdBbdkVN+a3m
+	 gZhFHJY4QX9EtLD4ushY50mdxjheZ8ccyNFynuQCmFyNBLh4MNxQLRlC83Ia0im552
+	 xnO2u9GXlP4pr1i8SO30jLdaNXOi6Puu7mXH/X2hWaG1uCCvDjEW79+mlMUdNA52x8
+	 6mFzhhmlzCXWbqE0y55NEm+XWO7JFwyhScPIlTK2Dxhby20PRC4r8VCN5r52IQ5T0I
+	 +pYyRDGf2F2pA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9DB7E60722;
-	Thu, 22 May 2025 18:52:48 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 38AB560718;
+	Thu, 22 May 2025 18:52:47 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747932769;
-	bh=XA0KyrDRGAr/mtk3l0D4aVQyTki2uhJ6pWoHJucWZ/o=;
+	s=2025; t=1747932767;
+	bh=tQIdFw7PHkXMKQD9JAXUxWHS0IhpFoyUQh9Gbyxd5RU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XS8llhgoXmLelgJIvpg+rLOVUN7gqygZaFJ+94Q3OLcuHopg2uJfMY8DjY0+oGeI8
-	 BOUAUeZi69UK9+qZbwHLmmX8rSu3MUMFKt/TJIIqmStrGmpGN3g4PmywbcWwU0GR6L
-	 z1Kp0glQajDi61HEJThWcmB8B8aVoTRbPeQvRfLZLhAgwgpvRylZR7VBYC5+FGmHqu
-	 Zo4SNoPImLWs743WusC6ti1FwTLg2sLe6GuUREdkcIBBJEv1YExjXI6Z4HZZfl1GYa
-	 kWssQMQn44Xl2QgyW0lT5faied14VphvWo8cRJWhQlY2F+035bkCJyB5U64xnY0m9E
-	 J+I02Ib7Z1LAg==
+	b=a3Jr/T7lNAzpXrGAUhybo3MgFGgikrqT/wiOYZHwoQwX1S1Nc4RaYIJ461Q5mRG2f
+	 WH9VsgCYaM25JZjf8MlNkHRwzdPxkkBlLwEx4aiiMddLeMvPc2htyrxsGMe0axRxER
+	 w6qgfZgzy8gkOwaM2XONQoda006OC2GRVEQjpAF7fd/pYwh1aNO2KbQqdhIPqJMZAc
+	 NOGtk0Q0Ert8Yunho8pfapQdHAU/1/mMTlzFCBeGD8sRif+kQV/JMtJQofjCx/RFtz
+	 CevSlkReQSzKJDA3ShzhszfFM3VVfWWGg7lynR2Uw0Ki0z0rS2VwM7yjIaJKOJ3PEA
+	 DTgbrwR2sv/Xw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 03/26] selftests: netfilter: nft_fib.sh: add 'type' mode tests
-Date: Thu, 22 May 2025 18:52:15 +0200
-Message-Id: <20250522165238.378456-4-pablo@netfilter.org>
+Subject: [PATCH net-next 01/26] selftests: netfilter: nft_concat_range.sh: add coverage for 4bit group representation
+Date: Thu, 22 May 2025 18:52:13 +0200
+Message-Id: <20250522165238.378456-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250522165238.378456-1-pablo@netfilter.org>
 References: <20250522165238.378456-1-pablo@netfilter.org>
@@ -68,267 +68,218 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-fib can either lookup the interface id/name of the output interface that
-would be used for the given address, or it can check for the type of the
-address according to the fib, e.g. local, unicast, multicast and so on.
+Pipapo supports a more compact '4 bit group' format that is chosen when
+the memory needed for the default exceeds a threshold (2mb).
 
-This can be used to e.g. make a locally configured address only reachable
-through its interface.
+Add coverage for those code paths, the existing tests use small sets that
+are handled by the default representation.
 
-Example: given eth0:10.1.1.1 and eth1:10.1.2.1 then 'fib daddr type' for
-10.1.1.1 arriving on eth1 will be 'local', but 'fib daddr . iif type' is
-expected to return 'unicast', whereas 'fib daddr' and 'fib daddr . iif'
-are expected to indicate 'local' if such a packet arrives on eth0.
+This comes with a test script run-time increase, but I think its ok:
 
-So far nft_fib.sh only covered oif/oifname, not type.
+ normal: 2m35s -> 3m9s
+ debug:  3m24s -> 5m29s (with KSFT_MACHINE_SLOW=yes).
 
-Repeat tests both with default and a policy (ip rule) based setup.
-
-Also try to run all remaining tests even if a subtest has failed.
-
+Cc: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../selftests/net/netfilter/nft_fib.sh        | 184 +++++++++++++++++-
- 1 file changed, 174 insertions(+), 10 deletions(-)
+ .../net/netfilter/nft_concat_range.sh         | 165 +++++++++++++++++-
+ 1 file changed, 161 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 82780b39277c..4b93e4954536 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -3,6 +3,10 @@
- # This tests the fib expression.
- #
- # Kselftest framework requirement - SKIP code is 4.
+diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+index 1f5979c1510c..efea93cf23d4 100755
+--- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+@@ -15,10 +15,12 @@ source lib.sh
+ # Available test groups:
+ # - reported_issues: check for issues that were reported in the past
+ # - correctness: check that packets match given entries, and only those
++# - correctness_large: same but with additional non-matching entries
+ # - concurrency: attempt races between insertion, deletion and lookup
+ # - timeout: check that packets match entries until they expire
+ # - performance: estimate matching rate, compare with rbtree and hash baselines
+-TESTS="reported_issues correctness concurrency timeout"
++TESTS="reported_issues correctness correctness_large concurrency timeout"
++
+ [ -n "$NFT_CONCAT_RANGE_TESTS" ] && TESTS="${NFT_CONCAT_RANGE_TESTS}"
+ 
+ # Set types, defined by TYPE_ variables below
+@@ -1257,9 +1259,7 @@ send_nomatch() {
+ # - add ranged element, check that packets match it
+ # - check that packets outside range don't match it
+ # - remove some elements, check that packets don't match anymore
+-test_correctness() {
+-	setup veth send_"${proto}" set || return ${ksft_skip}
+-
++test_correctness_main() {
+ 	range_size=1
+ 	for i in $(seq "${start}" $((start + count))); do
+ 		end=$((start + range_size))
+@@ -1293,6 +1293,163 @@ test_correctness() {
+ 	done
+ }
+ 
++test_correctness() {
++	setup veth send_"${proto}" set || return ${ksft_skip}
++
++	test_correctness_main
++}
++
++# Repeat the correctness tests, but add extra non-matching entries.
++# This exercises the more compact '4 bit group' representation that
++# gets picked when the default 8-bit representation exceed
++# NFT_PIPAPO_LT_SIZE_HIGH bytes of memory.
++# See usage of NFT_PIPAPO_LT_SIZE_HIGH in pipapo_lt_bits_adjust().
 +#
-+#  10.0.1.99     10.0.1.1           10.0.2.1         10.0.2.99
-+# dead:1::99    dead:1::1          dead:2::1        dead:2::99
-+# ns1 <-------> [ veth0 ] nsrouter [veth1] <-------> ns2
- 
- source lib.sh
- 
-@@ -72,6 +76,89 @@ table inet filter {
- EOF
- }
- 
-+load_type_ruleset() {
-+	local netns=$1
++# The format() helper is way too slow when generating lots of
++# entries so its not used here.
++test_correctness_large() {
++	setup veth send_"${proto}" set || return ${ksft_skip}
++	# number of dummy (filler) entries to add.
++	local dcount=16385
 +
-+	for family in ip ip6;do
-+ip netns exec "$netns" nft -f /dev/stdin <<EOF
-+table $family filter {
-+	chain type_match_in {
-+		fib daddr type local counter comment "daddr configured on other iface"
-+		fib daddr . iif type local counter comment "daddr configured on iif"
-+		fib daddr type unicast counter comment "daddr not local"
-+		fib daddr . iif type unicast counter comment "daddr not configured on iif"
-+	}
++	(
++	echo -n "add element inet filter test { "
 +
-+	chain type_match_out {
-+		fib daddr type unicast counter
-+		fib daddr . oif type unicast counter
-+		fib daddr type local counter
-+		fib daddr . oif type local counter
-+	}
++	case "$type_spec" in
++	"ether_addr . ipv4_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_mac $((1000000 + i))
++			printf ". 172.%i.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"inet_proto . ipv6_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . " $((RANDOM%256))
++			format_addr6 $((1000000 + i))
++		done
++		;;
++	"inet_service . inet_proto")
++		# smaller key sizes, need more entries to hit the
++		# 4-bit threshold.
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			local proto=$((RANDOM%256))
 +
-+	chain prerouting {
-+		type filter hook prerouting priority 0;
-+		icmp type echo-request counter jump type_match_in
-+		icmpv6 type echo-request counter jump type_match_in
-+	}
-+
-+	chain input {
-+		type filter hook input priority 0;
-+		icmp type echo-request counter jump type_match_in
-+		icmpv6 type echo-request counter jump type_match_in
-+	}
-+
-+	chain forward {
-+		type filter hook forward priority 0;
-+		icmp type echo-request counter jump type_match_in
-+		icmpv6 type echo-request counter jump type_match_in
-+	}
-+
-+	chain output {
-+		type filter hook output priority 0;
-+		icmp type echo-request counter jump type_match_out
-+		icmpv6 type echo-request counter jump type_match_out
-+	}
-+
-+	chain postrouting {
-+		type filter hook postrouting priority 0;
-+		icmp type echo-request counter jump type_match_out
-+		icmpv6 type echo-request counter jump type_match_out
-+	}
-+}
-+EOF
-+done
-+}
-+
-+reload_type_ruleset() {
-+	ip netns exec "$1" nft flush table ip filter
-+	ip netns exec "$1" nft flush table ip6 filter
-+	load_type_ruleset "$1"
-+}
-+
-+check_fib_type_counter_family() {
-+	local family="$1"
-+	local want="$2"
-+	local ns="$3"
-+	local chain="$4"
-+	local what="$5"
-+	local errmsg="$6"
-+
-+	if ! ip netns exec "$ns" nft list chain "$family" filter "$chain" | grep "$what" | grep -q "packets $want";then
-+		echo "Netns $ns $family fib type counter doesn't match expected packet count of $want for $what $errmsg" 1>&2
-+		ip netns exec "$ns" nft list chain "$family" filter "$chain"
-+		ret=1
++			# Test uses UDP to match, as it also fails when matching
++			# an entry that doesn't exist, so skip 'udp' entries
++			# to not trigger a wrong failure.
++			[ $proto -eq 17 ] && proto=18
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . %i " $(((i%65534) + 1)) $((proto))
++		done
++		;;
++	"inet_service . ipv4_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . 172.%i.%i.%i " $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"ipv4_addr . ether_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . " $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++			format_mac $((1000000 + i))
++		done
++		;;
++	"ipv4_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i" $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1))
++		done
++		;;
++	"ipv4_addr . inet_service . ether_addr . inet_proto . ipv4_addr")
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1))
++			format_mac $((1000000 + i))
++			printf ". %i . 192.168.%i.%i" $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"ipv4_addr . inet_service . inet_proto")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . %i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256))
++		done
++		;;
++	"ipv4_addr . inet_service . inet_proto . ipv4_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . %i . 192.168.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256))
++		done
++		;;
++	"ipv4_addr . inet_service . ipv4_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . 192.168.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256))
++		done
++		;;
++	"ipv6_addr . ether_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " . "
++			format_mac $((1000000 + i))
++		done
++		;;
++	"ipv6_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1))"
++		done
++		;;
++	"ipv6_addr . inet_service . ether_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_mac $((i + 1000000))
++		done
++		;;
++	"ipv6_addr . inet_service . ether_addr . inet_proto")
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_mac $((i + 1000000))
++			echo -n " .  $((RANDOM%256))"
++		done
++		;;
++	"ipv6_addr . inet_service . ipv6_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_addr6 $((i + 2123456))
++			echo -n " .  $((RANDOM%256))"
++		done
++		;;
++	*)
++		"Unhandled $type_spec"
 +		return 1
-+	fi
++	esac
++	echo -n "}"
 +
-+	return 0
++	) | nft -f - || return 1
++
++	test_correctness_main
 +}
 +
-+check_fib_type_counter() {
-+	check_fib_type_counter_family "ip" "$@" || return 1
-+	check_fib_type_counter_family "ip6" "$@" || return 1
-+}
-+
- load_ruleset_count() {
- 	local netns=$1
- 
-@@ -90,6 +177,7 @@ check_drops() {
- 	if dmesg | grep -q ' nft_rpfilter: ';then
- 		dmesg | grep ' nft_rpfilter: '
- 		echo "FAIL: rpfilter did drop packets"
-+		ret=1
- 		return 1
- 	fi
- 
-@@ -164,17 +252,70 @@ test_ping() {
-   return 0
- }
- 
-+test_fib_type() {
-+	local notice="$1"
-+	local errmsg="addr-on-if"
-+	local lret=0
-+
-+	if ! load_type_ruleset "$nsrouter";then
-+		echo "SKIP: Could not load fib type ruleset"
-+		[ $ret -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	# makes router receive packet for addresses configured on incoming
-+	# interface.
-+	test_ping 10.0.1.1 dead:1::1 || return 1
-+
-+	# expectation: triggers all 'local' in prerouting/input.
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr type local" "$errmsg" || lret=1
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr . iif type local" "$errmsg" || lret=1
-+
-+	reload_type_ruleset "$nsrouter"
-+	# makes router receive packet for address configured on a different (but local)
-+	# interface.
-+	test_ping 10.0.2.1 dead:2::1 || return 1
-+
-+	# expectation: triggers 'unicast' in prerouting/input for daddr . iif and local for 'daddr'.
-+	errmsg="addr-on-host"
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr type local" "$errmsg" || lret=1
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr . iif type unicast" "$errmsg" || lret=1
-+
-+	reload_type_ruleset "$nsrouter"
-+	test_ping 10.0.2.99 dead:2::99 || return 1
-+	errmsg="addr-on-otherhost"
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr type unicast" "$errmsg" || lret=1
-+	check_fib_type_counter 2 "$nsrouter" "type_match_in" "fib daddr . iif type unicast" "$errmsg" || lret=1
-+
-+	if [ $lret -eq 0 ];then
-+		echo "PASS: fib expression address types match ($notice)"
-+	else
-+		echo "FAIL: fib expression address types match ($notice)"
-+		ret=1
-+	fi
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
- 
- test_ping 10.0.2.1 dead:2::1 || exit 1
--check_drops || exit 1
-+check_drops
- 
- test_ping 10.0.2.99 dead:2::99 || exit 1
--check_drops || exit 1
-+check_drops
- 
--echo "PASS: fib expression did not cause unwanted packet drops"
-+[ $ret -eq 0 ] && echo "PASS: fib expression did not cause unwanted packet drops"
-+
-+load_input_ruleset "$ns1"
-+
-+test_ping 127.0.0.1 ::1
-+check_drops
-+
-+test_ping 10.0.1.99 dead:1::99
-+check_drops
-+
-+[ $ret -eq 0 ] && echo "PASS: fib expression did not discard loopback packets"
- 
- load_input_ruleset "$ns1"
- 
-@@ -234,7 +375,7 @@ ip -net "$nsrouter" addr del dead:2::1/64 dev veth0
- # ... pbr ruleset for the router, check iif+oif.
- if ! load_pbr_ruleset "$nsrouter";then
- 	echo "SKIP: Could not load fib forward ruleset"
--	exit $ksft_skip
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
- fi
- 
- ip -net "$nsrouter" rule add from all table 128
-@@ -245,11 +386,34 @@ ip -net "$nsrouter" route add table 129 to 10.0.2.0/24 dev veth1
- # drop main ipv4 table
- ip -net "$nsrouter" -4 rule delete table main
- 
--if ! test_ping 10.0.2.99 dead:2::99;then
--	ip -net "$nsrouter" nft list ruleset
--	echo "FAIL: fib mismatch in pbr setup"
--	exit 1
-+if test_ping 10.0.2.99 dead:2::99;then
-+	echo "PASS: fib expression forward check with policy based routing"
-+else
-+	echo "FAIL: fib expression forward check with policy based routing"
-+	ret=1
- fi
- 
--echo "PASS: fib expression forward check with policy based routing"
--exit 0
-+test_fib_type "policy routing"
-+ip netns exec "$nsrouter" nft delete table ip filter
-+ip netns exec "$nsrouter" nft delete table ip6 filter
-+
-+# Un-do policy routing changes
-+ip -net "$nsrouter" rule del from all table 128
-+ip -net "$nsrouter" rule del from all iif veth0 table 129
-+
-+ip -net "$nsrouter" route del table 128 to 10.0.1.0/24 dev veth0
-+ip -net "$nsrouter" route del table 129 to 10.0.2.0/24 dev veth1
-+
-+ip -net "$ns1" -4 route del default
-+ip -net "$ns1" -6 route del default
-+
-+ip -net "$ns1" -4 route add default via 10.0.1.1
-+ip -net "$ns1" -6 route add default via dead:1::1
-+
-+ip -net "$nsrouter" -4 rule add from all table main priority 32766
-+
-+test_fib_type "default table"
-+ip netns exec "$nsrouter" nft delete table ip filter
-+ip netns exec "$nsrouter" nft delete table ip6 filter
-+
-+exit $ret
+ # Concurrency test template:
+ # - add all the elements
+ # - start a thread for each physical thread that:
 -- 
 2.30.2
 
