@@ -1,27 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1CD72882BC
-	for <netfilter-devel@vger.kernel.org>; Thu, 22 May 2025 13:53:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A6D2882BC
+	for <netfilter-devel@vger.kernel.org>; Thu, 22 May 2025 13:53:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747922011; cv=none; b=RT0RadhJCySOx/M09uYFHzLtzc0WVyuXoCKdQyTJbMs7U1bKuKiXWkz8CATLHXFhzeIS/6y3u3cF+teU8Wt9j49h4tP5kTY98X1JxOewugXJ80+/nQS2MiC1JVhBGY1s2GyxCZMaewe13svSpgtQ95m8ohttezsyjFXhZXJwlBk=
+	t=1747922016; cv=none; b=SuKM9k4lCJ+LmbKTlcJROS2XPrexsC1OIvU6BCQP7ibKkAXnDkGbqbzH4Gj2YcTfQRB6HBSNz5Mf9UiVblmPk9oirRCEgylWqLTUZtLU/2+W6DGtG0qWTp+dMGMNzYLnmwnd1/CZcJsIa4Amv/J3y4RPtF5OcpYByLd0a0nzOLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747922011; c=relaxed/simple;
-	bh=TYuhMCvSOI1bX8KqkSxEsB9kRjUdmHsH8004UCDto0I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Jg63IMycnAl9DUfYHFw7idXkpE9TSDOmZGasWwYcGDjncKhuSyyPSskCM7yqqM/NRBCM4qCeo6wlGb8tpEmkLhcc+oOYSf77hPoDW9Hct95DqStixsDWvAzWr1rqb6Xt5g+lt01raDkHa/4XFe1gU5U6yDtaQZ+TOZ/aEelqIbg=
+	s=arc-20240116; t=1747922016; c=relaxed/simple;
+	bh=Fsg7N5JgiS+Qg4H5bSHdR7hx0kXk8HhBgYg2+35xvcY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BvkF3slrIjPZLtUPs7y6IfY2XBa/qipHAN0yoWPERPwMoipi2s6zMhnJIqp2BXseQ+jKodXTKXWXkVAM1IPvxR/U03n5AgpceiGxUhvgTiv+75iSZ77FrXd82jrXjIItIOQs7wM7jbbMFlO3XJjDgaEPWnhtFFCS4r1+Z7ydHx4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D17976014F; Thu, 22 May 2025 15:53:27 +0200 (CEST)
+	id 3707F6014F; Thu, 22 May 2025 15:53:32 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 0/2] netfilter: nf_tables: include conntrack state in trace messages
-Date: Thu, 22 May 2025 15:49:32 +0200
-Message-ID: <20250522134938.30351-1-fw@strlen.de>
+Subject: [PATCH nf-next v2 1/2] netfilter: conntrack: make nf_conntrack_id callable without a module dependency
+Date: Thu, 22 May 2025 15:49:33 +0200
+Message-ID: <20250522134938.30351-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250522134938.30351-1-fw@strlen.de>
+References: <20250522134938.30351-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,44 +33,65 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v2:
-Address feedback from Pablo: don't reuse nft_ct_keys, but add extra
-ct_trace attributes.  No other changes.
+While nf_conntrack_id() doesn't need any functionaliy from conntrack, it
+does reside in nf_conntrack_core.c -- callers add a module
+dependency on conntrack.
 
-Add the minimal relevant info needed for userspace ("nftables monitor
-trace") to provide the conntrack view of the packet:
+Followup patch will need to compute the conntrack id from nf_tables_trace.c
+to include it in nf_trace messages emitted to userspace via netlink.
 
-- state (new, related, established)
-- direction (original, reply)
-- status (e.g., if connection is subject to dnat)
-- id (allows to query ctnetlink for remaining conntrack state info)
+I don't want to introduce a module dependency between nf_tables and
+conntrack for this.
 
-Example:
-trace id a62 inet filter PRE_RAW packet: iif "enp0s3" ether [..]
-  [..]
-trace id a62 inet filter PRE_MANGLE conntrack: ct direction original ct state new ct id 32
-trace id a62 inet filter PRE_MANGLE packet: [..]
- [..]
-trace id a62 inet filter IN conntrack: ct direction original ct state new ct status dnat-done ct id 32
- [..]
+Since trace is slowpath, the added indirection is ok.
 
-First patch is a needed prerequisite to avoid a module dependency.
-Second patch adds the needed info.
+One alternative is to move nf_conntrack_id to the netfilter/core.c,
+but I don't see a compelling reason so far.
 
-Updated patch for libnftnl will follow shortly, the nftables patch
-doesn't need adjustment: it uses libnftl for all trace accesses.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ No changes since v1.
 
-Florian Westphal (2):
-  netfilter: conntrack: make nf_conntrack_id callable without a module
-    dependency
-  netfilter: nf_tables: add packets conntrack state to debug trace info
+ include/linux/netfilter.h         | 1 +
+ net/netfilter/nf_conntrack_core.c | 6 ++++++
+ 2 files changed, 7 insertions(+)
 
- include/linux/netfilter.h                |  1 +
- include/uapi/linux/netfilter/nf_tables.h |  8 ++++
- net/netfilter/nf_conntrack_core.c        |  6 +++
- net/netfilter/nf_tables_trace.c          | 54 +++++++++++++++++++++++-
- 4 files changed, 68 insertions(+), 1 deletion(-)
-
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 2b8aac2c70ad..10d95556befe 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -470,6 +470,7 @@ struct nf_ct_hook {
+ 	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
+ 	void (*set_closing)(struct nf_conntrack *nfct);
+ 	int (*confirm)(struct sk_buff *skb);
++	u32 (*get_id)(const struct nf_conntrack *nfct);
+ };
+ extern const struct nf_ct_hook __rcu *nf_ct_hook;
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index de8d50af9b5b..201d3c4ec623 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -505,6 +505,11 @@ u32 nf_ct_get_id(const struct nf_conn *ct)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_get_id);
+ 
++static u32 nf_conntrack_get_id(const struct nf_conntrack *nfct)
++{
++	return nf_ct_get_id(nf_ct_to_nf_conn(nfct));
++}
++
+ static void
+ clean_from_lists(struct nf_conn *ct)
+ {
+@@ -2710,6 +2715,7 @@ static const struct nf_ct_hook nf_conntrack_hook = {
+ 	.attach		= nf_conntrack_attach,
+ 	.set_closing	= nf_conntrack_set_closing,
+ 	.confirm	= __nf_conntrack_confirm,
++	.get_id		= nf_conntrack_get_id,
+ };
+ 
+ void nf_conntrack_init_end(void)
 -- 
 2.49.0
 
