@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E4129AAE8;
-	Thu, 22 May 2025 16:53:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57D6929AB1B;
+	Thu, 22 May 2025 16:53:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747932783; cv=none; b=jOP+gtT+3+jchPPRkJtDRnJ5YtNwDxT0pp0OLcSnMevWL7kTYKPuJZpgh8xQim3BSiXJBU1Sh5cAZzS3qEhMElApgkgpC3IcYaxfMrBKGrI/mANF+mvmYhQR4SV//CmiVilgG5TP5zCrQSCah38W4kP5DQPqIvo8pzoCDf1DcNE=
+	t=1747932783; cv=none; b=JgqL4jvdx4IUiJGEXyKxBlFTEe98Yh9RHj8AWBBtGS5TCl5VsZBAV1P9+6g082ZIIS2TLBjJyIkwRMPlDBQpZLBpfWX9RY0Nuroz6Iq2vcVj14asf9bKyoET5mGhsOKuxHDo4IbszndTQEO+kfn91jLbtnJiLYZr3fcbpMPdkSs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1747932783; c=relaxed/simple;
-	bh=NTH6kECzPpXanoAZm0u/VO2TS9XpoVmEqX9TTnLFidE=;
+	bh=+RxcN1Uh+QPDVJAYOyNbBN3j+ADTL/9Twz7ECbKb3AU=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Tr3Sw7dk7F0uVWqwyogJBm5YaYtZ2tAbYz7U2NJer5xYNLC36r7yqHH06qw8vH09UpBgMT1GFb3GaCev9iVlg8i4B6GkP0m2VUDKzoCBNl4QHTUR374pVkXVJuDYUSbTy8fcEfjX0gaTaNimFp0RAysj20ZCZmUjEdMn796Cdko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RNNIo2QW; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EmARbUeQ; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Gx0/vrekvtSzT/sJLxJKASyA8P14rnORT/OtQgYoglHThHWEtO44AzyTUYM8rpykbxWkBIE+7OIlwmJeZm/efVtyRNw8gWADW4pXSS96Uc/ewEbEXDEagSRWQSnLa2OsC1fFrqbzDfWiJurvLZlImDeyMDk54pxi39IxDDZGF+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mZKgsBjs; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fgV/ssr4; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RNNIo2QW";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EmARbUeQ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mZKgsBjs";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fgV/ssr4"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D9C4A60744; Thu, 22 May 2025 18:52:59 +0200 (CEST)
+	id 6656360726; Thu, 22 May 2025 18:53:00 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747932779;
-	bh=MXp3+00aJe+c85KcoRT8nrcRrZ1XBLmuc+9HhJO9MEg=;
+	s=2025; t=1747932780;
+	bh=6Jph4bWy9QL2136aunA+oFBDB+vYXhseO7uA6qD5Wo8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RNNIo2QW645vXyLWGp81lXMJR6vbI9pveZuiJSfudkrLArG4ULSG17oaNXahGMkYL
-	 kgV17EygRYg+90EXOrDuNXYoou57gwIXbSfEHMCLo4isSJLxPyXldAeKWri3h66wxU
-	 4L8vdUEInggcnXm41J1MCTUmRKF23xBJOllU/AdQe1701tkpUppZ8QgPol4wzrZP9K
-	 QkWLBWmJ1x7DD70Xc8s0oQWcD6BSTHBIOQY2NW20piNTAGgzuNXLSKU6jvbwU/inUr
-	 WdmASDZLUiXRGRUpIAH1vq3Hmm08UMBUc9DnidTOpRkiqUcEV0WFA5elfI9rT31xzA
-	 53jpmCV1fhYKw==
+	b=mZKgsBjs3m3oxKpzkJ52rBwRNxd8w78DpEE96gkjRm1TUnIlFCVZ43zttQffp4rCc
+	 51PdT5JuoqZSk2f3nsI+qZaSO4FerRUWiTfJmCjaCwxRICG0GEpOEfgP9xciTo0HZ9
+	 qE3Zzh/zVqsaY94PZ7UkyBa8hmzaGfpJf6+rAEf4lZRg114AXX80o/AcRPRU8BdmSo
+	 BnBmijGe9V6txSi6OaxPBw/v4PCUd5phpdwzsH6hHgYzEMKV/F3gu0twRktlA6GYl7
+	 n+E5DKwjBQvV+jPACDLozl09q99KHsfL+2S8mLx3Sib8UWgugYhwU0tmVknyKamSaG
+	 hBhNwxzvt3QLQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 54C4A60726;
+	by mail.netfilter.org (Postfix) with ESMTPSA id 06C7060729;
 	Thu, 22 May 2025 18:52:49 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1747932769;
-	bh=MXp3+00aJe+c85KcoRT8nrcRrZ1XBLmuc+9HhJO9MEg=;
+	s=2025; t=1747932770;
+	bh=6Jph4bWy9QL2136aunA+oFBDB+vYXhseO7uA6qD5Wo8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EmARbUeQ/jM0MPtDynDHPC/dtDiTzC9GhGQ9MzPhNHc3MGqtyC3tKaI79qsudNGgN
-	 +GrOXAMj2dre30dPRD3xIbgKeAt5db2JeK4H3OLaDt6fk6D5d0hcufaDPLVM+BWbsK
-	 yZVySioJoNqBXpLlKVrV/S8GSbzR2DNFMyhqlfcwcGi/j+i/NOfgwT7fCRMI72ZkdY
-	 8EmI41OtOZRb2/vXAt6pUH01j82B7JY1E8HqNdxSUQMsYdLeKijW2ZL031g6iDkb/K
-	 YMOHrVC+BvFAQlh65tN2mcPx6sf6P2S49iDArZk5GZk5NDpdiz0Dmpv+qEBl5sxDLp
-	 x4mvUcp7hx8BQ==
+	b=fgV/ssr4mVuSNqKCreVzXkz28yTyGavKyDRfgVpjnbCN57Z+QvPeiF3W5YVCAddWE
+	 i64Cp3i/V3GentwDNxEIjSz21+50xEiNdSDUOGPOKQ5VP4gly93ds4gXuT1gGIxLxY
+	 aZdAyMOvAbnORHGizofXKBygmM+v6VZagQROUsFkAoDk84u5qGClA4RPIkzGavK/dq
+	 um9uHhkfY/nzVmg4GxAL2Z0rNPsdLzPHMfe+KlGmkPPG5VgCth31ljvmuTCVM0l2VK
+	 WP/PPNQ79bwFpijjWDfyePJLexgk85FCiAbBncvfm53CwKRk8GXig2Tzd1/HoajfAr
+	 psZ+qxf9LsbgA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 04/26] selftests: netfilter: move fib vrf test to nft_fib.sh
-Date: Thu, 22 May 2025 18:52:16 +0200
-Message-Id: <20250522165238.378456-5-pablo@netfilter.org>
+Subject: [PATCH net-next 05/26] netfilter: nf_tables: nft_fib_ipv6: fix VRF ipv4/ipv6 result discrepancy
+Date: Thu, 22 May 2025 18:52:17 +0200
+Message-Id: <20250522165238.378456-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250522165238.378456-1-pablo@netfilter.org>
 References: <20250522165238.378456-1-pablo@netfilter.org>
@@ -68,213 +68,72 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-It was located in conntrack_vrf.sh because that already had the VRF bits.
-Lets not add to this and move it to nft_fib.sh where this belongs.
+With a VRF, ipv4 and ipv6 FIB expression behave differently.
 
-No functional changes for the subtest intended.
-The subtest is limited, it only covered 'fib oif'
-(route output interface query) when the incoming interface is part
-of a VRF.
+   fib daddr . iif oif
 
-Next we can extend it to cover 'fib type' for VRFs and also check fib
-results when there is an unrelated VRF in same netns.
+Will return the input interface name for ipv4, but the real device
+for ipv6.  Example:
 
+If VRF device name is tvrf and real (incoming) device is veth0.
+First round is ok, both ipv4 and ipv6 will yield 'veth0'.
+
+But in the second round (incoming device will be set to "tvrf"), ipv4
+will yield "tvrf" whereas ipv6 returns "veth0" for the second round too.
+
+This makes ipv6 behave like ipv4.
+
+A followup patch will add a test case for this, without this change
+it will fail with:
+  get element inet t fibif6iif { tvrf . dead:1::99 . tvrf }
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  FAIL: did not find tvrf . dead:1::99 . tvrf in fibif6iif
+
+Alternatively we could either not do anything at all or change
+ipv4 to also return the lower/real device, however, nft (userspace)
+doc says "iif: if fib lookup provides a route then check its output
+interface is identical to the packets input interface." which is what
+the nft fib ipv4 behaviour is.
+
+Fixes: f6d0cbcf09c5 ("netfilter: nf_tables: add fib expression")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../selftests/net/netfilter/conntrack_vrf.sh  | 34 -------
- .../selftests/net/netfilter/nft_fib.sh        | 90 +++++++++++++++++++
- 2 files changed, 90 insertions(+), 34 deletions(-)
+ net/ipv6/netfilter/nft_fib_ipv6.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_vrf.sh b/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-index 025b58f2ae91..207b79932d91 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_vrf.sh
-@@ -32,7 +32,6 @@ source lib.sh
- 
- IP0=172.30.30.1
- IP1=172.30.30.2
--DUMMYNET=10.9.9
- PFXL=30
- ret=0
- 
-@@ -52,8 +51,6 @@ trap cleanup EXIT
- 
- setup_ns ns0 ns1
- 
--ip netns exec "$ns0" sysctl -q -w net.ipv4.conf.all.forwarding=1
--
- if ! ip link add veth0 netns "$ns0" type veth peer name veth0 netns "$ns1" > /dev/null 2>&1; then
- 	echo "SKIP: Could not add veth device"
- 	exit $ksft_skip
-@@ -64,18 +61,13 @@ if ! ip -net "$ns0" li add tvrf type vrf table 9876; then
- 	exit $ksft_skip
- fi
- 
--ip -net "$ns0" link add dummy0 type dummy
--
- ip -net "$ns0" li set veth0 master tvrf
--ip -net "$ns0" li set dummy0 master tvrf
- ip -net "$ns0" li set tvrf up
- ip -net "$ns0" li set veth0 up
--ip -net "$ns0" li set dummy0 up
- ip -net "$ns1" li set veth0 up
- 
- ip -net "$ns0" addr add $IP0/$PFXL dev veth0
- ip -net "$ns1" addr add $IP1/$PFXL dev veth0
--ip -net "$ns0" addr add $DUMMYNET.1/$PFXL dev dummy0
- 
- listener_ready()
+diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
+index 7fd9d7b21cd4..f1f5640da672 100644
+--- a/net/ipv6/netfilter/nft_fib_ipv6.c
++++ b/net/ipv6/netfilter/nft_fib_ipv6.c
+@@ -158,6 +158,7 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
  {
-@@ -216,35 +208,9 @@ EOF
- 	fi
- }
+ 	const struct nft_fib *priv = nft_expr_priv(expr);
+ 	int noff = skb_network_offset(pkt->skb);
++	const struct net_device *found = NULL;
+ 	const struct net_device *oif = NULL;
+ 	u32 *dest = &regs->data[priv->dreg];
+ 	struct ipv6hdr *iph, _iph;
+@@ -203,11 +204,15 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
+ 		goto put_rt_err;
  
--test_fib()
--{
--ip netns exec "$ns0" nft -f - <<EOF
--flush ruleset
--table ip t {
--	counter fibcount { }
--
--	chain prerouting {
--		type filter hook prerouting priority 0;
--		meta iifname veth0 ip daddr $DUMMYNET.2 fib daddr oif dummy0 counter name fibcount notrack
--	}
--}
--EOF
--	ip -net "$ns1" route add 10.9.9.0/24 via "$IP0" dev veth0
--	ip netns exec "$ns1" ping -q -w 1 -c 1 "$DUMMYNET".2 > /dev/null
--
--	if ip netns exec "$ns0" nft list counter t fibcount | grep -q "packets 1"; then
--		echo "PASS: fib lookup returned exepected output interface"
--	else
--		echo "FAIL: fib lookup did not return exepected output interface"
--		ret=1
--		return
--	fi
--}
--
- test_ct_zone_in
- test_masquerade_vrf "default"
- test_masquerade_vrf "pfifo"
- test_masquerade_veth
--test_fib
- 
- exit $ret
-diff --git a/tools/testing/selftests/net/netfilter/nft_fib.sh b/tools/testing/selftests/net/netfilter/nft_fib.sh
-index 4b93e4954536..f636ad781033 100755
---- a/tools/testing/selftests/net/netfilter/nft_fib.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_fib.sh
-@@ -252,6 +252,23 @@ test_ping() {
-   return 0
- }
- 
-+test_ping_unreachable() {
-+  local daddr4=$1
-+  local daddr6=$2
-+
-+  if ip netns exec "$ns1" ping -c 1 -w 1 -q "$daddr4" > /dev/null; then
-+	echo "FAIL: ${ns1} could reach $daddr4" 1>&2
-+	return 1
-+  fi
-+
-+  if ip netns exec "$ns1" ping -c 1 -w 1 -q "$daddr6" > /dev/null; then
-+	echo "FAIL: ${ns1} could reach $daddr6" 1>&2
-+	return 1
-+  fi
-+
-+  return 0
-+}
-+
- test_fib_type() {
- 	local notice="$1"
- 	local errmsg="addr-on-if"
-@@ -295,6 +312,77 @@ test_fib_type() {
- 	fi
- }
- 
-+test_fib_vrf_dev_add_dummy()
-+{
-+	if ! ip -net "$nsrouter" link add dummy0 type dummy ;then
-+		echo "SKIP: VRF tests: dummy device type not supported"
-+		return 1
-+	fi
-+
-+	if ! ip -net "$nsrouter" link add tvrf type vrf table 9876;then
-+		echo "SKIP: VRF tests: vrf device type not supported"
-+		return 1
-+	fi
-+
-+	ip -net "$nsrouter" link set veth0 master tvrf
-+	ip -net "$nsrouter" link set dummy0 master tvrf
-+	ip -net "$nsrouter" link set dummy0 up
-+	ip -net "$nsrouter" link set tvrf up
-+}
-+
-+# Extends nsrouter config by adding dummy0+vrf.
-+#
-+#  10.0.1.99     10.0.1.1           10.0.2.1         10.0.2.99
-+# dead:1::99    dead:1::1          dead:2::1        dead:2::99
-+# ns1 <-------> [ veth0 ] nsrouter [veth1] <-------> ns2
-+#                         [dummy0]
-+#                         10.9.9.1
-+#                        dead:9::1
-+#                          [tvrf]
-+test_fib_vrf()
-+{
-+	local dummynet="10.9.9"
-+	local dummynet6="dead:9"
-+	local cntname=""
-+
-+	if ! test_fib_vrf_dev_add_dummy; then
-+		[ $ret -eq 0 ] && ret=$ksft_skip
-+		return
-+	fi
-+
-+	ip -net "$nsrouter" addr add "$dummynet.1"/24 dev dummy0
-+	ip -net "$nsrouter" addr add "${dummynet6}::1"/64 dev dummy0 nodad
-+
-+
-+ip netns exec "$nsrouter" nft -f - <<EOF
-+flush ruleset
-+table inet t {
-+	counter fibcount4 { }
-+	counter fibcount6 { }
-+
-+	chain prerouting {
-+		type filter hook prerouting priority 0;
-+		meta iifname veth0 ip daddr ${dummynet}.2 fib daddr oif dummy0 counter name fibcount4
-+		meta iifname veth0 ip6 daddr ${dummynet6}::2 fib daddr oif dummy0 counter name fibcount6
+-	if (oif && oif != rt->rt6i_idev->dev &&
+-	    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) != oif->ifindex)
+-		goto put_rt_err;
++	if (!oif) {
++		found = rt->rt6i_idev->dev;
++	} else {
++		if (oif == rt->rt6i_idev->dev ||
++		    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == oif->ifindex)
++			found = oif;
 +	}
-+}
-+EOF
-+	# no echo reply for these addresses: The dummy interface is part of tvrf,
-+	test_ping_unreachable "$dummynet.2" "${dummynet6}::2" &
-+
-+	wait
-+
-+	for cntname in fibcount4 fibcount6;do
-+		if ip netns exec "$nsrouter" nft list counter inet t "$cntname" | grep -q "packets 1"; then
-+			echo "PASS: vrf fib lookup did return expected output interface for $cntname"
-+		else
-+			ip netns exec "$nsrouter" nft list counter inet t "$cntname"
-+			echo "FAIL: vrf fib lookup did not return expected output interface for $cntname"
-+			ret=1
-+		fi
-+	done
-+}
-+
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth0.forwarding=1 > /dev/null
- ip netns exec "$nsrouter" sysctl net.ipv4.conf.veth1.forwarding=1 > /dev/null
-@@ -416,4 +504,6 @@ test_fib_type "default table"
- ip netns exec "$nsrouter" nft delete table ip filter
- ip netns exec "$nsrouter" nft delete table ip6 filter
  
-+test_fib_vrf
-+
- exit $ret
+-	nft_fib_store_result(dest, priv, rt->rt6i_idev->dev);
++	nft_fib_store_result(dest, priv, found);
+  put_rt_err:
+ 	ip6_rt_put(rt);
+ }
 -- 
 2.30.2
 
