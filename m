@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F21812920A8;
-	Fri, 23 May 2025 13:27:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7003D2920AA;
+	Fri, 23 May 2025 13:27:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748006875; cv=none; b=ITpqORgcHOWhTCfnUBcBfwTDoylUPqXQ182Yqt9WSwsbgyXWf3QC1t8iDuLcIt/v62zVOek9J2+GfPUuR1oeXgxyj8+Ad7VdHpgbNmrbt4tOSBjUvy6yJDg8OagM0qfef14B30fr9zaYs36qZK96avmbgud199VU06iUsYPsWAk=
+	t=1748006875; cv=none; b=Cw/xLF3prxzvuz8PM3qG/J+NJXj547xUVPTftjiKWmLkd+l4JFG1OeFtmmNPb5tj/zzaQ16KU9oJK4EHF8VMvvGnAG0wUhkpZdxv2aBeoz2bjzbAH681UKo/+Uey+InsyZU9ioJpxP4r2YCJAG/XLiqcbZ0/8xdZaEw1UIUPmfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1748006875; c=relaxed/simple;
-	bh=Ma2619K6JlGt617K8eDhrURbu18LN3hIGjrMFA1r2co=;
+	bh=R6lBbr9j7LlwJiLupFk985xmeRLWeRceIxsmZhXILEE=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=gT32SMInvbJhF59LZADY7W7anGGx36rZ7BTw29tCThzEeYjSrQb/bsbZmCluAqdIqEk7//oiyAlBnn/t3Yebp3j7hEvONh5f5jJgAdTkpg+aEmcz250oGO6l35ZE9a8B7U27CxVew9xBtZp+ms26VjIOFAkZSMeZtqkXX3QwfvE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hLVwwx4r; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uoLRUdSF; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=HycCiwWJdO9Wfb9pg2pMpAlht7AJpV8JYxa1MrbU+7ipScZfWpl5yumMjshls6gfulFMhfcMlrJlAxcbGd1Ff2GPQDyOJwr5aTZaj16gkPQRdwFljwj0ORuwmcOQpOOa6MJVhxv4dxdV/akx+zYIB4kaMSFk4lZor6++aYE2WgE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QMEO2baa; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fErsup6G; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hLVwwx4r";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uoLRUdSF"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QMEO2baa";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fErsup6G"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B548E60307; Fri, 23 May 2025 15:27:52 +0200 (CEST)
+	id 3BCB060298; Fri, 23 May 2025 15:27:53 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006872;
-	bh=s3IRiWwEpkmC0HelhLsEJvCeRxFecKfpzzHFGbjUW9o=;
+	s=2025; t=1748006873;
+	bh=7+8rNsQHuGn78VP8QDzb4tbhD/GtmhyAQzafzrrpBPw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hLVwwx4rpehDkr3XXH4Fponuqqxjxd/JKqvCWsEWMhjbdyN7XpiPSmViWe88v4O7G
-	 tDBNc6MkQRy7qcYynFvRHKTOb/p5WHqEow8PLSt68vaeQeaN8JXxTbaNtqMiuJ0yN+
-	 KuOYHeZfCom5Arws91D7ssnMdqXzGAnp8Q2Juo7qV0s5Ra7saft7GwLbn7WFxZqa6A
-	 5KViK1FitY3TfiCBNdRtRQYfnkPyWE+n1KUJKTQdi/40eXzLpGBgtk/dmRVSI3pQ3R
-	 ykDc+RTN4St9NUE7NpQAsoHHUsRaLuDQPEiZzYgDMo5yVWHS0xNBeHfQ/dEqQtpHMg
-	 0B3Jcw2f1l44g==
+	b=QMEO2baaaJgv4Yg7qartl9BawxX0uLrrxulnJCmN8BNSb+Zcb2QTHZZyXaZGBMBny
+	 gLmCe0ZLovGKddx/doqfNCdChzw//x8s0JQk9MG8V1JCDbfGSeWnQ05OuhQhdI9keB
+	 /zYsslv8OpM0zjRjc3eIjQIbHKmiIoSzfMIWe61otSb0IqeHJlM2oeNGcb5hwJ4Keq
+	 vO6YExmEQzJleOJzIdH0TkgHMsmKmXsh+fiLmoh0h+mO7ApIEgVPQxIqdrrYYuZhyF
+	 AhOns2kbMOOC4xxbama1kgo6jQHtEW1dcS4iQzqlREXBDxo4sBwivgrFfnw5bnkf+n
+	 122dy63Gxo6GA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2900460763;
+	by mail.netfilter.org (Postfix) with ESMTPSA id BCD1C60764;
 	Fri, 23 May 2025 15:27:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006847;
-	bh=s3IRiWwEpkmC0HelhLsEJvCeRxFecKfpzzHFGbjUW9o=;
+	s=2025; t=1748006848;
+	bh=7+8rNsQHuGn78VP8QDzb4tbhD/GtmhyAQzafzrrpBPw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=uoLRUdSFS5Q4E6CU46ys99kRciKiZmbEzuT4mUDzq3FP3Ib3mm+gKZUqdz1S764MZ
-	 x8+y7AwrTJchsKaMCMa9WDCRaOtR1l1ebWT/RsZUviLrt4a6KxU/2WEbgHwFDKoqms
-	 BWLYBhls5rdDN/wU1IRbJWvtj36Eki3DmbS1lrpyB2eT5eYj3TsF1tOkhuAX/A5wVj
-	 Z8F2AAPMwBgDbPPztdzTBmV4wNmr8OHuBOQz+tA0+dG5TGmr+w9wesuU4vu6mgDro6
-	 gNeCpq7nsNdtoVfFZSWMwU7v9Y6H18VNyxC/UqsAZ/p8H5FMOUk7innfQHl+RIK644
-	 omkglPSc8BwDA==
+	b=fErsup6G2NeqMY+fYeK6mU3ahoBcP+uxgzOek5K1t0CP+za9NVJ/650SGU/Rca2OQ
+	 CiadW+TVNlbKLMvACy27gsd9Uswg4nreyaRH+fX670hIMGNRsU2J77jD3V86xWBW6f
+	 qEQnqZMoM3UuisVmaDfbpXlLI3LNCxocWXZ2nQVoRiSvZYNS2ZXFXOa9HxCmlvAsIK
+	 b7NE17jRWt3PQ2pCGSltkh7Go8+1d/sCcakL6jWyiqoQLHbzEEbjvlEfcuHWxiSHt2
+	 8msazQb7DaWgqLn6H3Hf/v003z+jPDuwwe5+b1JogM8tL3ojE4YEEhfb990quRe4n+
+	 G7TZ7iwR2ghbg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 11/26] netfilter: nf_dup_netdev: Move the recursion counter struct netdev_xmit
-Date: Fri, 23 May 2025 15:26:57 +0200
-Message-Id: <20250523132712.458507-12-pablo@netfilter.org>
+Subject: [PATCH net-next 12/26] netfilter: conntrack: make nf_conntrack_id callable without a module dependency
+Date: Fri, 23 May 2025 15:26:58 +0200
+Message-Id: <20250523132712.458507-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250523132712.458507-1-pablo@netfilter.org>
 References: <20250523132712.458507-1-pablo@netfilter.org>
@@ -66,80 +66,66 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+From: Florian Westphal <fw@strlen.de>
 
-nf_dup_skb_recursion is a per-CPU variable and relies on disabled BH for its
-locking. Without per-CPU locking in local_bh_disable() on PREEMPT_RT
-this data structure requires explicit locking.
+While nf_conntrack_id() doesn't need any functionaliy from conntrack, it
+does reside in nf_conntrack_core.c -- callers add a module
+dependency on conntrack.
 
-Move nf_dup_skb_recursion to struct netdev_xmit, provide wrappers.
+Followup patch will need to compute the conntrack id from nf_tables_trace.c
+to include it in nf_trace messages emitted to userspace via netlink.
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+I don't want to introduce a module dependency between nf_tables and
+conntrack for this.
+
+Since trace is slowpath, the added indirection is ok.
+
+One alternative is to move nf_conntrack_id to the netfilter/core.c,
+but I don't see a compelling reason so far.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netdevice_xmit.h |  3 +++
- net/netfilter/nf_dup_netdev.c  | 22 ++++++++++++++++++----
- 2 files changed, 21 insertions(+), 4 deletions(-)
+ include/linux/netfilter.h         | 1 +
+ net/netfilter/nf_conntrack_core.c | 6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/include/linux/netdevice_xmit.h b/include/linux/netdevice_xmit.h
-index 848735b3a7c0..813a19122ebb 100644
---- a/include/linux/netdevice_xmit.h
-+++ b/include/linux/netdevice_xmit.h
-@@ -11,6 +11,9 @@ struct netdev_xmit {
- #if IS_ENABLED(CONFIG_NET_ACT_MIRRED)
- 	u8 sched_mirred_nest;
- #endif
-+#if IS_ENABLED(CONFIG_NF_DUP_NETDEV)
-+	u8 nf_dup_skb_recursion;
-+#endif
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 892d12823ed4..20947f2c685b 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -470,6 +470,7 @@ struct nf_ct_hook {
+ 	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
+ 	void (*set_closing)(struct nf_conntrack *nfct);
+ 	int (*confirm)(struct sk_buff *skb);
++	u32 (*get_id)(const struct nf_conntrack *nfct);
+ };
+ extern const struct nf_ct_hook __rcu *nf_ct_hook;
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index de8d50af9b5b..201d3c4ec623 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -505,6 +505,11 @@ u32 nf_ct_get_id(const struct nf_conn *ct)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_get_id);
+ 
++static u32 nf_conntrack_get_id(const struct nf_conntrack *nfct)
++{
++	return nf_ct_get_id(nf_ct_to_nf_conn(nfct));
++}
++
+ static void
+ clean_from_lists(struct nf_conn *ct)
+ {
+@@ -2710,6 +2715,7 @@ static const struct nf_ct_hook nf_conntrack_hook = {
+ 	.attach		= nf_conntrack_attach,
+ 	.set_closing	= nf_conntrack_set_closing,
+ 	.confirm	= __nf_conntrack_confirm,
++	.get_id		= nf_conntrack_get_id,
  };
  
- #endif
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index a8e2425e43b0..fab8b9011098 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -15,12 +15,26 @@
- 
- #define NF_RECURSION_LIMIT	2
- 
--static DEFINE_PER_CPU(u8, nf_dup_skb_recursion);
-+#ifndef CONFIG_PREEMPT_RT
-+static u8 *nf_get_nf_dup_skb_recursion(void)
-+{
-+	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
-+}
-+#else
-+
-+static u8 *nf_get_nf_dup_skb_recursion(void)
-+{
-+	return &current->net_xmit.nf_dup_skb_recursion;
-+}
-+
-+#endif
- 
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
- {
--	if (__this_cpu_read(nf_dup_skb_recursion) > NF_RECURSION_LIMIT)
-+	u8 *nf_dup_skb_recursion = nf_get_nf_dup_skb_recursion();
-+
-+	if (*nf_dup_skb_recursion > NF_RECURSION_LIMIT)
- 		goto err;
- 
- 	if (hook == NF_NETDEV_INGRESS && skb_mac_header_was_set(skb)) {
-@@ -32,9 +46,9 @@ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
--	__this_cpu_inc(nf_dup_skb_recursion);
-+	(*nf_dup_skb_recursion)++;
- 	dev_queue_xmit(skb);
--	__this_cpu_dec(nf_dup_skb_recursion);
-+	(*nf_dup_skb_recursion)--;
- 	return;
- err:
- 	kfree_skb(skb);
+ void nf_conntrack_init_end(void)
 -- 
 2.30.2
 
