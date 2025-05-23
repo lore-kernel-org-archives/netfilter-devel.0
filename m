@@ -1,45 +1,44 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DD50151990;
-	Fri, 23 May 2025 13:08:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF7641FDD;
+	Fri, 23 May 2025 13:26:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748005726; cv=none; b=tVMsVCvJMCPL2cdYkH2cCftRpaDTwtjc9r0zKVjy3n3zmjqwBN7jQmP1lyeUmGghsS9NgP2ESnnliJlnxX+oEHXhNZFWF/yTPX7EzPpDhS31iXWoO0YszSm/5xKzSJrsOSDMHhcVqy8iM4rRwHBdANBhkkzbN5pyvMo51qWzGus=
+	t=1748006778; cv=none; b=HXglYA3eP5dk/VHeIXbdgfft8vT61bU9JNhleW3qpgRdxBFpKnhGngrv1CxHirLmR6I0dgD0s3MYuedUOXKBhuNMaqj0xmdYFOHRX6IoNBPohjZiSoCh/Wt72A98JX4tvK9SSAd/4UrFKMEMd3ew3mXVopM4WkpDnz09H2LGlJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748005726; c=relaxed/simple;
-	bh=JV/1Gfqr7/DTYbohhc0eut/n2vI/4G6jIFGhCVznTik=;
+	s=arc-20240116; t=1748006778; c=relaxed/simple;
+	bh=QfwOzRXg17oiLyI62vHbF9ot/93AkhMBVAj65vYAFU8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YtqJJrwWY9C+xnQ7QQ0dLTNUA3UckakF8wPFCaVLCS1XPMlfujZKYacDotIO+oiz2+TQRITgdRylg0kp0dKkXM/7fyoGwyHspck1y+Adc7/5NwG8dhKw0KpPsIIlxu4p1kTd0l+g9pmzU6yf3C87EES2uWfCNesRSrOZH4o7+Wg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kcBej1hc; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=IiLGBALtn/+2JiMSx9I0OB0WTUq7wOAuD1c/Kpzt4DFf3M9w4hvnE+uUUiaMS0lShzQl/J3MWbdGuOsmflnibF0srN3SPVrZbRPj08VNVTbibQFOys0f9DbZa0c5pi7HYP3wTxC050rfWEuggvYjsxZAicgns2cBXPGmJSwavUQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J0SM2qQA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kcBej1hc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D868C4CEE9;
-	Fri, 23 May 2025 13:08:42 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J0SM2qQA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C34F0C4CEEF;
+	Fri, 23 May 2025 13:26:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1748005725;
-	bh=JV/1Gfqr7/DTYbohhc0eut/n2vI/4G6jIFGhCVznTik=;
+	s=k20201202; t=1748006774;
+	bh=QfwOzRXg17oiLyI62vHbF9ot/93AkhMBVAj65vYAFU8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kcBej1hcKyPZAL+Y6Kt7H+YmTtUJEXG/vbY9hEAEOFrqAtuluopoLxfNZyc6B4mZp
-	 gm/W9sDufD3sIEvS5sMDANkwMqtYNJF7kI4vmb6i+yTcHcYnkEAtoTbrFz/XeaLUd5
-	 KFjrR/Tk/FXeCjfhhTSjEkcbnf7Lkpd+DlM/5Ng5VS2xQNnkjyvbGq9p21XidbBxfb
-	 uMD9xjY+eRFel9a3tJpF/wQbvgDCPvhfevuBJvFewf2sC1UHvgqyLXkjfSi4T/kcAR
-	 c7SLAcnFIgrHt6WXrxvTHHrmcqruZtj5MWOcgJjCo6Lmw6FArbJBlEVbBHTvavzaq+
-	 I3j60WApuHbCQ==
-Date: Fri, 23 May 2025 14:08:40 +0100
+	b=J0SM2qQAJ0QSQC9EaQsqBP43689pdaWL6ORgjeVf6eZNkfu1npGOzI5MmUEL5e+sd
+	 OGHZae5eU4PxTUlOC8RUucAQJkh0LBETYRjK7Cq/qIhfngcluWkxg5W8x6F5hAdrr2
+	 nj7Uni6nfwo9KNg+g+gpi5LmmdAP7Bl4ZbGpaMOGuvq4cQFk4YmLWJ8zaAnX6vaViY
+	 9EMVvYMNgRhv6qgPfQuUq0O2pWAb2oYuNDv4gnF7D8ToyQjCUyf4JTGBLmzpy6TORS
+	 aV81Kdo0csejTOBHaz5H1rULXB2Yby4b0yF3vkd4jlzoVGWGPfp7sLohgXp/R1v/Md
+	 A1351QqQVaiEw==
+Date: Fri, 23 May 2025 14:26:10 +0100
 From: Simon Horman <horms@kernel.org>
-To: Praveen Balakrishnan <praveen.balakrishnan@magd.ox.ac.uk>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	shuah@kernel.org, aconole@redhat.com, echaudro@redhat.com,
-	i.maximets@ovn.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kselftest@vger.kernel.org, linux-kernel@vger.kernel.org,
-	skhan@linuxfoundation.org, linux-kernel-mentees@lists.linux.dev
-Subject: Re: [PATCH v2] selftests: net: fix spelling and grammar mistakes
-Message-ID: <20250523130840.GT365796@horms.kernel.org>
-References: <4f0d5c19-8358-4e5b-a8f0-3adcee34ffd4@linuxfoundation.org>
- <20250523022242.3518-1-praveen.balakrishnan@magd.ox.ac.uk>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@google.com, fw@strlen.de
+Subject: Re: [PATCH net-next 06/26] netfilter: nf_tables: nft_fib: consistent
+ l3mdev handling
+Message-ID: <20250523132610.GV365796@horms.kernel.org>
+References: <20250522165238.378456-1-pablo@netfilter.org>
+ <20250522165238.378456-7-pablo@netfilter.org>
+ <20250523073524.GR365796@horms.kernel.org>
+ <aDAmMUGwlvMoEYE0@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,23 +47,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250523022242.3518-1-praveen.balakrishnan@magd.ox.ac.uk>
+In-Reply-To: <aDAmMUGwlvMoEYE0@calendula>
 
-On Fri, May 23, 2025 at 03:22:42AM +0100, Praveen Balakrishnan wrote:
-> Fix several spelling and grammatical mistakes in output messages from
-> the net selftests to improve readability.
+On Fri, May 23, 2025 at 09:39:29AM +0200, Pablo Neira Ayuso wrote:
+> On Fri, May 23, 2025 at 08:35:24AM +0100, Simon Horman wrote:
+> > On Thu, May 22, 2025 at 06:52:18PM +0200, Pablo Neira Ayuso wrote:
+> > > @@ -39,6 +40,21 @@ static inline bool nft_fib_can_skip(const struct nft_pktinfo *pkt)
+> > >  	return nft_fib_is_loopback(pkt->skb, indev);
+> > >  }
+> > >  
+> > > +/**
+> > > + * nft_fib_l3mdev_get_rcu - return ifindex of l3 master device
+> > 
+> > Hi Pablo,
+> > 
+> > I don't mean to hold up progress of this pull request. But it would be nice
+> > if at some point the above could be changed to
+> > nft_fib_l3mdev_master_ifindex_rcu so it matches the name of the function
+> > below that it documents.
+> > 
+> > Flagged by ./scripts/kernel-doc -none
 > 
-> Only the message strings for the test output have been modified. No
-> changes to the functional logic of the tests have been made.
-> 
-> Signed-off-by: Praveen Balakrishnan <praveen.balakrishnan@magd.ox.ac.uk>
-> ---
-> Changes in v2:
-> - Resending to full recipient list as requested by Shuah Khan. No code
->   changes since v1.
+> Thanks for letting me know, I can resubmit the series, let me know.
 
-Thanks,
-
-I agree these are all good improvements.
-
-Reviewed-by: Simon Horman <horms@kernel.org>
+I'd lean towards fixing it later unless there is another reason to
+resubmit the series.
