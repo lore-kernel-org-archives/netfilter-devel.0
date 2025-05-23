@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28F55292921;
-	Fri, 23 May 2025 13:27:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F21812920A8;
+	Fri, 23 May 2025 13:27:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748006870; cv=none; b=NloArmkmnQsYUPk9renk/54Tg1dtvA12oi27wdO10BQF+zlql24/GrgFUXXp9mSJXUyJrJle+Ci8lqI4UaAlbpy8ALxvXn+yu4ySVSCh+YtfxLZHESdujo7o94vOarxer5G8eArqmKBYnWsT/uCg0zYbg02VZx0cWXxFs1GkJTg=
+	t=1748006875; cv=none; b=ITpqORgcHOWhTCfnUBcBfwTDoylUPqXQ182Yqt9WSwsbgyXWf3QC1t8iDuLcIt/v62zVOek9J2+GfPUuR1oeXgxyj8+Ad7VdHpgbNmrbt4tOSBjUvy6yJDg8OagM0qfef14B30fr9zaYs36qZK96avmbgud199VU06iUsYPsWAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748006870; c=relaxed/simple;
-	bh=pTQVKRvH/7Bw9fY8C3IZ2t3Rk2Fgp4azhsVQPnvUNZg=;
+	s=arc-20240116; t=1748006875; c=relaxed/simple;
+	bh=Ma2619K6JlGt617K8eDhrURbu18LN3hIGjrMFA1r2co=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=IkFI507aHvtrjH7lJdUDEt/H2HjMkyv1/Voexs9EtrfTeYprPCRTrczBNc/v6ed1XU4UkFSx/QuO5U8bzVKAw73Cky4NCkNPM9iIGP7y41q5rX2ELyy10Eh1+jVYHNeoI0pX+DI0kYgb2dvWNqPKbuz7BJSSj5xoVtj/yWoZPgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=apOD6QAe; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=P271TYm3; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=gT32SMInvbJhF59LZADY7W7anGGx36rZ7BTw29tCThzEeYjSrQb/bsbZmCluAqdIqEk7//oiyAlBnn/t3Yebp3j7hEvONh5f5jJgAdTkpg+aEmcz250oGO6l35ZE9a8B7U27CxVew9xBtZp+ms26VjIOFAkZSMeZtqkXX3QwfvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hLVwwx4r; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=uoLRUdSF; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="apOD6QAe";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="P271TYm3"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hLVwwx4r";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="uoLRUdSF"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B7B9960779; Fri, 23 May 2025 15:27:47 +0200 (CEST)
+	id B548E60307; Fri, 23 May 2025 15:27:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006867;
-	bh=aakCYKDbeqNzohCmZk1RknJKRIgHtzmU4dFCNXNNmDM=;
+	s=2025; t=1748006872;
+	bh=s3IRiWwEpkmC0HelhLsEJvCeRxFecKfpzzHFGbjUW9o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=apOD6QAes5ghw0RdGZOXsyShgzp7TcFw6Kc3/peJydmPBR0wDCcbNGFhDvZXYgZn9
-	 +oLJmwpoyD/maco81iallaKblLNiEmfP+LMmtnRAXzCmSAOyy6UTKO/pcyIW628txI
-	 lz7fqT4r2gBsGaQFiPhFvo59Arc5jA2jJ5O3pII8+1eKyZU0MMvDVWvkD0BDvGpKKV
-	 P2cRodA/M6fjACdbVQpbPHM18YmYRle/nIMfHatPUk/g1QRdu6WFgKDo4DFs5utZDC
-	 HZhOXS7nOaIR+wQe5wRQ32Lu7lfUZj7csu9HRVfKtYgCzckleFgLT0M21wnBrw+S/U
-	 fBAoUYFqdn0dw==
+	b=hLVwwx4rpehDkr3XXH4Fponuqqxjxd/JKqvCWsEWMhjbdyN7XpiPSmViWe88v4O7G
+	 tDBNc6MkQRy7qcYynFvRHKTOb/p5WHqEow8PLSt68vaeQeaN8JXxTbaNtqMiuJ0yN+
+	 KuOYHeZfCom5Arws91D7ssnMdqXzGAnp8Q2Juo7qV0s5Ra7saft7GwLbn7WFxZqa6A
+	 5KViK1FitY3TfiCBNdRtRQYfnkPyWE+n1KUJKTQdi/40eXzLpGBgtk/dmRVSI3pQ3R
+	 ykDc+RTN4St9NUE7NpQAsoHHUsRaLuDQPEiZzYgDMo5yVWHS0xNBeHfQ/dEqQtpHMg
+	 0B3Jcw2f1l44g==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8682A60770;
-	Fri, 23 May 2025 15:27:26 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2900460763;
+	Fri, 23 May 2025 15:27:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006846;
-	bh=aakCYKDbeqNzohCmZk1RknJKRIgHtzmU4dFCNXNNmDM=;
+	s=2025; t=1748006847;
+	bh=s3IRiWwEpkmC0HelhLsEJvCeRxFecKfpzzHFGbjUW9o=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=P271TYm3Wqe/DnXi5V1UTVHTjyHKlaaC9TD0tEkQdzVnZ5IelKC2biPVyXHQexWGj
-	 DwjcLaXae1OLuKEVy0NBtQmhFOHPHj6zQeOI8rDeg/2i/HBff1JCMCYhnzzQEKpdoi
-	 U0iR5bI/13OT8mXnbm5uwus6twrFKTV5BlyrUIQFgVZyIIWoDQTiBXJ7VFHmAgQuJa
-	 E1neVMMovV1JD8+LSrYy1wBrR6fhb6o6wA/GbwSBIU1pmlVp5EmDZ1+m7AR049Z1AF
-	 gJQkL8V8efJRXCQUvbA3qQhh+SeTBrX/YM8rAzJSfAisxHUAnG1bSuNjmHf+ucTpJa
-	 UG77mTj4DulSg==
+	b=uoLRUdSFS5Q4E6CU46ys99kRciKiZmbEzuT4mUDzq3FP3Ib3mm+gKZUqdz1S764MZ
+	 x8+y7AwrTJchsKaMCMa9WDCRaOtR1l1ebWT/RsZUviLrt4a6KxU/2WEbgHwFDKoqms
+	 BWLYBhls5rdDN/wU1IRbJWvtj36Eki3DmbS1lrpyB2eT5eYj3TsF1tOkhuAX/A5wVj
+	 Z8F2AAPMwBgDbPPztdzTBmV4wNmr8OHuBOQz+tA0+dG5TGmr+w9wesuU4vu6mgDro6
+	 gNeCpq7nsNdtoVfFZSWMwU7v9Y6H18VNyxC/UqsAZ/p8H5FMOUk7innfQHl+RIK644
+	 omkglPSc8BwDA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 10/26] netfilter: nft_inner: Use nested-BH locking for nft_pcpu_tun_ctx
-Date: Fri, 23 May 2025 15:26:56 +0200
-Message-Id: <20250523132712.458507-11-pablo@netfilter.org>
+Subject: [PATCH net-next 11/26] netfilter: nf_dup_netdev: Move the recursion counter struct netdev_xmit
+Date: Fri, 23 May 2025 15:26:57 +0200
+Message-Id: <20250523132712.458507-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250523132712.458507-1-pablo@netfilter.org>
 References: <20250523132712.458507-1-pablo@netfilter.org>
@@ -68,71 +68,78 @@ Content-Transfer-Encoding: 8bit
 
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-nft_pcpu_tun_ctx is a per-CPU variable and relies on disabled BH for its
+nf_dup_skb_recursion is a per-CPU variable and relies on disabled BH for its
 locking. Without per-CPU locking in local_bh_disable() on PREEMPT_RT
 this data structure requires explicit locking.
 
-Make a struct with a nft_inner_tun_ctx member (original
-nft_pcpu_tun_ctx) and a local_lock_t and use local_lock_nested_bh() for
-locking. This change adds only lockdep coverage and does not alter the
-functional behaviour for !PREEMPT_RT.
+Move nf_dup_skb_recursion to struct netdev_xmit, provide wrappers.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_inner.c | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ include/linux/netdevice_xmit.h |  3 +++
+ net/netfilter/nf_dup_netdev.c  | 22 ++++++++++++++++++----
+ 2 files changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
-index 817ab978d24a..c4569d4b9228 100644
---- a/net/netfilter/nft_inner.c
-+++ b/net/netfilter/nft_inner.c
-@@ -23,7 +23,14 @@
- #include <linux/ip.h>
- #include <linux/ipv6.h>
+diff --git a/include/linux/netdevice_xmit.h b/include/linux/netdevice_xmit.h
+index 848735b3a7c0..813a19122ebb 100644
+--- a/include/linux/netdevice_xmit.h
++++ b/include/linux/netdevice_xmit.h
+@@ -11,6 +11,9 @@ struct netdev_xmit {
+ #if IS_ENABLED(CONFIG_NET_ACT_MIRRED)
+ 	u8 sched_mirred_nest;
+ #endif
++#if IS_ENABLED(CONFIG_NF_DUP_NETDEV)
++	u8 nf_dup_skb_recursion;
++#endif
+ };
  
--static DEFINE_PER_CPU(struct nft_inner_tun_ctx, nft_pcpu_tun_ctx);
-+struct nft_inner_tun_ctx_locked {
-+	struct nft_inner_tun_ctx ctx;
-+	local_lock_t bh_lock;
-+};
+ #endif
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index a8e2425e43b0..fab8b9011098 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -15,12 +15,26 @@
+ 
+ #define NF_RECURSION_LIMIT	2
+ 
+-static DEFINE_PER_CPU(u8, nf_dup_skb_recursion);
++#ifndef CONFIG_PREEMPT_RT
++static u8 *nf_get_nf_dup_skb_recursion(void)
++{
++	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
++}
++#else
 +
-+static DEFINE_PER_CPU(struct nft_inner_tun_ctx_locked, nft_pcpu_tun_ctx) = {
-+	.bh_lock = INIT_LOCAL_LOCK(bh_lock),
-+};
++static u8 *nf_get_nf_dup_skb_recursion(void)
++{
++	return &current->net_xmit.nf_dup_skb_recursion;
++}
++
++#endif
  
- /* Same layout as nft_expr but it embeds the private expression data area. */
- struct __nft_expr {
-@@ -237,12 +244,15 @@ static bool nft_inner_restore_tun_ctx(const struct nft_pktinfo *pkt,
- 	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
+ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
+ 				enum nf_dev_hooks hook)
+ {
+-	if (__this_cpu_read(nf_dup_skb_recursion) > NF_RECURSION_LIMIT)
++	u8 *nf_dup_skb_recursion = nf_get_nf_dup_skb_recursion();
++
++	if (*nf_dup_skb_recursion > NF_RECURSION_LIMIT)
+ 		goto err;
  
- 	local_bh_disable();
--	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
-+	local_lock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
-+	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx.ctx);
- 	if (this_cpu_tun_ctx->cookie != (unsigned long)pkt->skb) {
- 		local_bh_enable();
-+		local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
- 		return false;
- 	}
- 	*tun_ctx = *this_cpu_tun_ctx;
-+	local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
- 	local_bh_enable();
+ 	if (hook == NF_NETDEV_INGRESS && skb_mac_header_was_set(skb)) {
+@@ -32,9 +46,9 @@ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
  
- 	return true;
-@@ -254,9 +264,11 @@ static void nft_inner_save_tun_ctx(const struct nft_pktinfo *pkt,
- 	struct nft_inner_tun_ctx *this_cpu_tun_ctx;
- 
- 	local_bh_disable();
--	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx);
-+	local_lock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
-+	this_cpu_tun_ctx = this_cpu_ptr(&nft_pcpu_tun_ctx.ctx);
- 	if (this_cpu_tun_ctx->cookie != tun_ctx->cookie)
- 		*this_cpu_tun_ctx = *tun_ctx;
-+	local_unlock_nested_bh(&nft_pcpu_tun_ctx.bh_lock);
- 	local_bh_enable();
- }
- 
+ 	skb->dev = dev;
+ 	skb_clear_tstamp(skb);
+-	__this_cpu_inc(nf_dup_skb_recursion);
++	(*nf_dup_skb_recursion)++;
+ 	dev_queue_xmit(skb);
+-	__this_cpu_dec(nf_dup_skb_recursion);
++	(*nf_dup_skb_recursion)--;
+ 	return;
+ err:
+ 	kfree_skb(skb);
 -- 
 2.30.2
 
