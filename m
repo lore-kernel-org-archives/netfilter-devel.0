@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 742C51FDD;
-	Fri, 23 May 2025 13:27:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B77F2920B4;
+	Fri, 23 May 2025 13:27:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748006847; cv=none; b=JhWsnuiNZCe7sIhPfiUcLhCPvwAgobJUwJbeeYIgCiTVrqN+zcjlXjYvIkzWdoz5o8F9TjAgbOszChUNgiVpHYB+uyqkKUL2FS5Q7EDH7iqtfHBzrq0xIxoiUK6Zs3IB7ilT4kbngpg8hn+b/Qz4s3PLvkvqBufXnyEH+iDiw60=
+	t=1748006850; cv=none; b=AdqnRcshOKehuNbHStJ5CVebS6AdIH3QbNBMtuuFp5ERkn82AvFeWjXA6Xgg3PdhXaF73mBaldM2VLJX55ktmGYNYPBJvy2UZi00AbAr4l9v5ZvJdO5tBM7Hm46DEXB/tQeBts9v3nUvURPcjgUv5JCXYhssqG0eRSmPs3+Xz4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748006847; c=relaxed/simple;
-	bh=/x0XWzWOxsH3FnjaHSNOMVQkhx9uVIy12Eys8Ywkvps=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=OTKdSvYJzxhiYWh41Ztme/ocPN9Rbs4kHf6cHc2rA3y4wuFqNe1JLI4nmvk38sI6cQ72qFNqFFFQ9en341aG1FctlA2zKb//Der/7LIPz/aYiUzpH8euATBujVv49ZvgZGVtv7TeJyn3QN/9wgd6v6gvJOafyd/tVj4rFgPj+6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hofZ7FjL; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nZMZdvs6; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1748006850; c=relaxed/simple;
+	bh=/QYcmDszcQ3wcvWhsbVhi+ZoekOt8llcKMTOjaU8ug0=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=FZ0gn9SFp+G8gN9rfMgbBYK4vOQd2v3Dhb0VyfJ7LkofOhoqQzFz9Y6EACnwhYqcpaudYNMB9vuroDhY7GQIMQdkKCPNBQ1uqeDbA1OeKbQY0CITA6DnThy6OIDdPpNmgj8QoypD997EXzg7cNtLaMxStbwQe4nRU201ijEsh1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ud8ef83m; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=F+EiRhKm; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hofZ7FjL";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nZMZdvs6"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ud8ef83m";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="F+EiRhKm"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B154C60765; Fri, 23 May 2025 15:27:22 +0200 (CEST)
+	id 8761460777; Fri, 23 May 2025 15:27:26 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006842;
-	bh=04JCSTRb+q6/BonbgucE0G7lB8ElifakTKVJiczH7MQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=hofZ7FjL6+0aURfBcblc3S/QJc+IpolGbvlEOPt4TczQJBQG5d+JO/Tv1FsI/9H+b
-	 T66psMo3msvcqVyhE1m2pbC7CMWZwreCQXGPSSK3R6yRn/LTXcfrmjO+XmgpsYFeDS
-	 x34C9rUSbEZK+UA7bo58ivYEZx88Yj+s+6QXmr1MBaWMzKoZQLEdGliluFGUtTECbi
-	 KbvEaPp1gYBQRjoJ+k1JyP/Th9R0a8LJftr39E3yXsxwzADnCuqIuFB66q7G8rChZY
-	 vvWNIU/Nr5OyE7h/jTL97JPCAGYJDqHwttRYsvOm0vmNz97jp2MzydDZiYDekq4QEz
-	 1phj/pvaGypZg==
+	s=2025; t=1748006846;
+	bh=tQIdFw7PHkXMKQD9JAXUxWHS0IhpFoyUQh9Gbyxd5RU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ud8ef83muDKqLymZa4yFu4uMxX8pQ0C64mpjO3M4rAmCQVOlL39ovnWLlI8tm6qwd
+	 9fmnUgovkxn4eGIjosxJo21D3ALFM3GNeY2GX+Me4Ro7V83d6P+Etc12EBUNjx9fLu
+	 P7Wbz4uqMvOFMg6BYRsO4xKsQe+J5U81kyklyHlZDLub0ZdjBMNahND9VY/A5OhKYx
+	 w7milMbeK3YG95UfWQQQn+5ygQwP3xbNrbKdyORh/GUprLxelFq5mGIfcPpNEKQtn+
+	 meBR+FyY9Uu6av5G7A9GzPIxMDgQ3JzrapFWTeH0cgP3jZYu3IeWJddrHf794RDu5u
+	 M/2exKyuBfgiQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0A23A6075E;
-	Fri, 23 May 2025 15:27:19 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 40C3F60764;
+	Fri, 23 May 2025 15:27:20 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006839;
-	bh=04JCSTRb+q6/BonbgucE0G7lB8ElifakTKVJiczH7MQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=nZMZdvs6asbrJw3v/miXPxBEn0qbOwXz1URfCJj4P8j9IdxvSUwesUsRdiLKJVVDP
-	 WMukIWjYkD/lOWqoX3+uS1qbrD5xaMEix3hezfoiPi5JDI295SWZQMh58wHDLQ58V4
-	 si7dkWJ2RlLi6HCSvm8p1d1iaC1c0M0A/GytH5Hfh+fSQqUObjq6HFUyiRdlPWCFS1
-	 JyVshBcYCA7fHMDsS08ekmcpNaLavF/9E3wiJTosq1fFQKEHF8U6XrucCcagrUd5n/
-	 jqWkL6nh/vKnwrqFrqwdDFm2cDA5uSi17IUaigUPJ+yJxMpo1WBjyaZF4UeqPIZaNw
-	 0FymVQqut4eeg==
+	s=2025; t=1748006840;
+	bh=tQIdFw7PHkXMKQD9JAXUxWHS0IhpFoyUQh9Gbyxd5RU=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=F+EiRhKmlgqj3A/B3NVXC9C+0ql32N1XzKwMTDf7tq6vg8dKg910pxT5k0P80fp8J
+	 pNbkLDgEjTXYa+x8ACSRP7Bz8TVvK4ffnZrMhmBhzxROLY25xB2kDk+sRzoHeaZuye
+	 398rE1Lb++32s8PPV63UaVoM3LHFVX9ul3PVtZdv1Ee3ulbN5N/noUcEP9LkQPIEFX
+	 zQ6PucLoBTta/aHdVYWqugtIr3C/5DNY+rUb2Ag7OVmH/2/BOICNmtVA6r/m2ODXEK
+	 rJcz1PS+v/CEBp/FLhlTA/vXM3bHr+pjEAk1GvDy0jT9Ha/Tpy/ARC7IV+kOl5X5Tv
+	 LgiycAoNnB1qA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next,v2 00/26] Netfilter updates for net-next
-Date: Fri, 23 May 2025 15:26:46 +0200
-Message-Id: <20250523132712.458507-1-pablo@netfilter.org>
+Subject: [PATCH net-next 01/26] selftests: netfilter: nft_concat_range.sh: add coverage for 4bit group representation
+Date: Fri, 23 May 2025 15:26:47 +0200
+Message-Id: <20250523132712.458507-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250523132712.458507-1-pablo@netfilter.org>
+References: <20250523132712.458507-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,134 +66,220 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v2: fixing kdoc issue reported by Simon Horman.
+From: Florian Westphal <fw@strlen.de>
 
--o-
+Pipapo supports a more compact '4 bit group' format that is chosen when
+the memory needed for the default exceeds a threshold (2mb).
 
-Hi,
+Add coverage for those code paths, the existing tests use small sets that
+are handled by the default representation.
 
-The following batch contains Netfilter updates for net-next,
-specifically 26 patches: 5 patches adding/updating selftests,
-4 fixes, 3 PREEMPT_RT fixes, and 14 patches to enhance nf_tables):
+This comes with a test script run-time increase, but I think its ok:
 
-1) Improve selftest coverage for pipapo 4 bit group format, from
-   Florian Westphal.
+ normal: 2m35s -> 3m9s
+ debug:  3m24s -> 5m29s (with KSFT_MACHINE_SLOW=yes).
 
-2) Fix incorrect dependencies when compiling a kernel without
-   legacy ip{6}tables support, also from Florian.
+Cc: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../net/netfilter/nft_concat_range.sh         | 165 +++++++++++++++++-
+ 1 file changed, 161 insertions(+), 4 deletions(-)
 
-3) Two patches to fix nft_fib vrf issues, including selftest updates
-   to improve coverage, also from Florian Westphal.
+diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+index 1f5979c1510c..efea93cf23d4 100755
+--- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+@@ -15,10 +15,12 @@ source lib.sh
+ # Available test groups:
+ # - reported_issues: check for issues that were reported in the past
+ # - correctness: check that packets match given entries, and only those
++# - correctness_large: same but with additional non-matching entries
+ # - concurrency: attempt races between insertion, deletion and lookup
+ # - timeout: check that packets match entries until they expire
+ # - performance: estimate matching rate, compare with rbtree and hash baselines
+-TESTS="reported_issues correctness concurrency timeout"
++TESTS="reported_issues correctness correctness_large concurrency timeout"
++
+ [ -n "$NFT_CONCAT_RANGE_TESTS" ] && TESTS="${NFT_CONCAT_RANGE_TESTS}"
+ 
+ # Set types, defined by TYPE_ variables below
+@@ -1257,9 +1259,7 @@ send_nomatch() {
+ # - add ranged element, check that packets match it
+ # - check that packets outside range don't match it
+ # - remove some elements, check that packets don't match anymore
+-test_correctness() {
+-	setup veth send_"${proto}" set || return ${ksft_skip}
+-
++test_correctness_main() {
+ 	range_size=1
+ 	for i in $(seq "${start}" $((start + count))); do
+ 		end=$((start + range_size))
+@@ -1293,6 +1293,163 @@ test_correctness() {
+ 	done
+ }
+ 
++test_correctness() {
++	setup veth send_"${proto}" set || return ${ksft_skip}
++
++	test_correctness_main
++}
++
++# Repeat the correctness tests, but add extra non-matching entries.
++# This exercises the more compact '4 bit group' representation that
++# gets picked when the default 8-bit representation exceed
++# NFT_PIPAPO_LT_SIZE_HIGH bytes of memory.
++# See usage of NFT_PIPAPO_LT_SIZE_HIGH in pipapo_lt_bits_adjust().
++#
++# The format() helper is way too slow when generating lots of
++# entries so its not used here.
++test_correctness_large() {
++	setup veth send_"${proto}" set || return ${ksft_skip}
++	# number of dummy (filler) entries to add.
++	local dcount=16385
++
++	(
++	echo -n "add element inet filter test { "
++
++	case "$type_spec" in
++	"ether_addr . ipv4_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_mac $((1000000 + i))
++			printf ". 172.%i.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"inet_proto . ipv6_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . " $((RANDOM%256))
++			format_addr6 $((1000000 + i))
++		done
++		;;
++	"inet_service . inet_proto")
++		# smaller key sizes, need more entries to hit the
++		# 4-bit threshold.
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			local proto=$((RANDOM%256))
++
++			# Test uses UDP to match, as it also fails when matching
++			# an entry that doesn't exist, so skip 'udp' entries
++			# to not trigger a wrong failure.
++			[ $proto -eq 17 ] && proto=18
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . %i " $(((i%65534) + 1)) $((proto))
++		done
++		;;
++	"inet_service . ipv4_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "%i . 172.%i.%i.%i " $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"ipv4_addr . ether_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . " $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++			format_mac $((1000000 + i))
++		done
++		;;
++	"ipv4_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i" $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1))
++		done
++		;;
++	"ipv4_addr . inet_service . ether_addr . inet_proto . ipv4_addr")
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1))
++			format_mac $((1000000 + i))
++			printf ". %i . 192.168.%i.%i" $((RANDOM%256)) $((RANDOM%256)) $((i%256))
++		done
++		;;
++	"ipv4_addr . inet_service . inet_proto")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . %i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256))
++		done
++		;;
++	"ipv4_addr . inet_service . inet_proto . ipv4_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . %i . 192.168.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256))
++		done
++		;;
++	"ipv4_addr . inet_service . ipv4_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			printf "172.%i.%i.%i . %i . 192.168.%i.%i " $((RANDOM%256)) $((RANDOM%256)) $((i%256)) $(((RANDOM%65534) + 1)) $((RANDOM%256)) $((RANDOM%256))
++		done
++		;;
++	"ipv6_addr . ether_addr")
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " . "
++			format_mac $((1000000 + i))
++		done
++		;;
++	"ipv6_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1))"
++		done
++		;;
++	"ipv6_addr . inet_service . ether_addr")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_mac $((i + 1000000))
++		done
++		;;
++	"ipv6_addr . inet_service . ether_addr . inet_proto")
++		dcount=65536
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_mac $((i + 1000000))
++			echo -n " .  $((RANDOM%256))"
++		done
++		;;
++	"ipv6_addr . inet_service . ipv6_addr . inet_service")
++		dcount=32768
++		for i in $(seq 1 $dcount); do
++			[ $i -gt 1 ] && echo ", "
++			format_addr6 $((i + 1000000))
++			echo -n " .  $(((RANDOM%65534) + 1)) . "
++			format_addr6 $((i + 2123456))
++			echo -n " .  $((RANDOM%256))"
++		done
++		;;
++	*)
++		"Unhandled $type_spec"
++		return 1
++	esac
++	echo -n "}"
++
++	) | nft -f - || return 1
++
++	test_correctness_main
++}
++
+ # Concurrency test template:
+ # - add all the elements
+ # - start a thread for each physical thread that:
+-- 
+2.30.2
 
-4) Fix incorrect nesting in nft_tunnel's GENEVE support, from
-   Fernando F. Mancera.
-
-5) Three patches to fix PREEMPT_RT issues with nf_dup infrastructure
-   and nft_inner to match in inner headers, from Sebastian Andrzej Siewior.
-
-6) Integrate conntrack information into nft trace infrastructure,
-   from Florian Westphal.
-
-7) A series of 13 patches to allow to specify wildcard netdevice in
-   netdev basechain and flowtables, eg.
-
-   table netdev filter {
-       chain ingress {
-           type filter hook ingress devices = { eth0, eth1, vlan* } priority 0; policy accept;
-       }
-   }
-
-   This also allows for runtime hook registration on NETDEV_{UN}REGISTER
-   event, from Phil Sutter.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-05-23
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit f685204c57e87d2a88b159c7525426d70ee745c9:
-
-  Merge branch 'queue_api-reduce-risk-of-name-collision-over-txq' (2025-05-19 20:09:07 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-05-23
-
-for you to fetch changes up to 73db1b5dab6fe17baf9fe2b0d7c8dfd1d4a5b3e5:
-
-  selftests: netfilter: Torture nftables netdev hooks (2025-05-23 13:57:14 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-05-23
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: nft_tunnel: fix geneve_opt dump
-
-Florian Westphal (9):
-      selftests: netfilter: nft_concat_range.sh: add coverage for 4bit group representation
-      netfilter: xtables: support arpt_mark and ipv6 optstrip for iptables-nft only builds
-      selftests: netfilter: nft_fib.sh: add 'type' mode tests
-      selftests: netfilter: move fib vrf test to nft_fib.sh
-      netfilter: nf_tables: nft_fib_ipv6: fix VRF ipv4/ipv6 result discrepancy
-      netfilter: nf_tables: nft_fib: consistent l3mdev handling
-      selftests: netfilter: nft_fib.sh: add type and oif tests with and without VRFs
-      netfilter: conntrack: make nf_conntrack_id callable without a module dependency
-      netfilter: nf_tables: add packets conntrack state to debug trace info
-
-Phil Sutter (13):
-      netfilter: nf_tables: Introduce functions freeing nft_hook objects
-      netfilter: nf_tables: Introduce nft_hook_find_ops{,_rcu}()
-      netfilter: nf_tables: Introduce nft_register_flowtable_ops()
-      netfilter: nf_tables: Pass nf_hook_ops to nft_unregister_flowtable_hook()
-      netfilter: nf_tables: Have a list of nf_hook_ops in nft_hook
-      netfilter: nf_tables: Prepare for handling NETDEV_REGISTER events
-      netfilter: nf_tables: Respect NETDEV_REGISTER events
-      netfilter: nf_tables: Wrap netdev notifiers
-      netfilter: nf_tables: Handle NETDEV_CHANGENAME events
-      netfilter: nf_tables: Sort labels in nft_netdev_hook_alloc()
-      netfilter: nf_tables: Support wildcard netdev hook specs
-      netfilter: nf_tables: Add notifications for hook changes
-      selftests: netfilter: Torture nftables netdev hooks
-
-Sebastian Andrzej Siewior (3):
-      netfilter: nf_dup{4, 6}: Move duplication check to task_struct
-      netfilter: nft_inner: Use nested-BH locking for nft_pcpu_tun_ctx
-      netfilter: nf_dup_netdev: Move the recursion counter struct netdev_xmit
-
- include/linux/netdevice_xmit.h                     |   3 +
- include/linux/netfilter.h                          |  15 +-
- include/linux/sched.h                              |   1 +
- include/net/netfilter/nf_tables.h                  |  12 +-
- include/net/netfilter/nft_fib.h                    |   9 +
- include/uapi/linux/netfilter/nf_tables.h           |  18 +
- include/uapi/linux/netfilter/nfnetlink.h           |   2 +
- net/ipv4/netfilter/ip_tables.c                     |   2 +-
- net/ipv4/netfilter/nf_dup_ipv4.c                   |   6 +-
- net/ipv4/netfilter/nft_fib_ipv4.c                  |  11 +-
- net/ipv6/netfilter/ip6_tables.c                    |   2 +-
- net/ipv6/netfilter/nf_dup_ipv6.c                   |   6 +-
- net/ipv6/netfilter/nft_fib_ipv6.c                  |  17 +-
- net/netfilter/core.c                               |   3 -
- net/netfilter/nf_conntrack_core.c                  |   6 +
- net/netfilter/nf_dup_netdev.c                      |  22 +-
- net/netfilter/nf_tables_api.c                      | 402 ++++++++++----
- net/netfilter/nf_tables_offload.c                  |  51 +-
- net/netfilter/nf_tables_trace.c                    |  54 +-
- net/netfilter/nfnetlink.c                          |   1 +
- net/netfilter/nft_chain_filter.c                   |  94 +++-
- net/netfilter/nft_flow_offload.c                   |   2 +-
- net/netfilter/nft_inner.c                          |  18 +-
- net/netfilter/nft_tunnel.c                         |   8 +-
- net/netfilter/xt_TCPOPTSTRIP.c                     |   4 +-
- net/netfilter/xt_mark.c                            |   2 +-
- tools/testing/selftests/net/netfilter/Makefile     |   1 +
- .../selftests/net/netfilter/conntrack_vrf.sh       |  34 --
- .../selftests/net/netfilter/nft_concat_range.sh    | 165 +++++-
- tools/testing/selftests/net/netfilter/nft_fib.sh   | 612 ++++++++++++++++++++-
- .../net/netfilter/nft_interface_stress.sh          | 151 +++++
- 31 files changed, 1504 insertions(+), 230 deletions(-)
- create mode 100755 tools/testing/selftests/net/netfilter/nft_interface_stress.sh
