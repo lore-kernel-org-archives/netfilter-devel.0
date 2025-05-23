@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7003D2920AA;
-	Fri, 23 May 2025 13:27:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA816292935;
+	Fri, 23 May 2025 13:27:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748006875; cv=none; b=Cw/xLF3prxzvuz8PM3qG/J+NJXj547xUVPTftjiKWmLkd+l4JFG1OeFtmmNPb5tj/zzaQ16KU9oJK4EHF8VMvvGnAG0wUhkpZdxv2aBeoz2bjzbAH681UKo/+Uey+InsyZU9ioJpxP4r2YCJAG/XLiqcbZ0/8xdZaEw1UIUPmfk=
+	t=1748006879; cv=none; b=ar6ereMLXS8dRNbi3bn8T/YzAjNIOcvIx1Gycq59nYJCS8yf/OWj9YgqZe+Z6BgVqFjewp2zzkGpIfG5+Z2YOJKmQOT02hkQ6HVR1ISdMD4bXDvrxoTtMAjI311xiuGeAlO2tAt8LqHI2REIqFfnvhrD0eYV8YDlsSnWZBEPae8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748006875; c=relaxed/simple;
-	bh=R6lBbr9j7LlwJiLupFk985xmeRLWeRceIxsmZhXILEE=;
+	s=arc-20240116; t=1748006879; c=relaxed/simple;
+	bh=XDQ0tLO/EZ7FEN9tiJzhtV2vp+j2OjzKeEzRijHGHXo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=HycCiwWJdO9Wfb9pg2pMpAlht7AJpV8JYxa1MrbU+7ipScZfWpl5yumMjshls6gfulFMhfcMlrJlAxcbGd1Ff2GPQDyOJwr5aTZaj16gkPQRdwFljwj0ORuwmcOQpOOa6MJVhxv4dxdV/akx+zYIB4kaMSFk4lZor6++aYE2WgE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QMEO2baa; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fErsup6G; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=qfMOxihP71HI7BCKeu96eh3l2ULfMSoyUdMCZw/l4RD0DW6s6oWy3NnpSF3DJrLpQ6YGD6Qe7jYt517usoHpu9DXxsoqiIRePe+9ttxLD0NC/Lm/Z/9TwfqKYTziAdelOQxO8pYzBvSdAFYEJpTcO9lP0GFyl1x2Zgb0MI64sXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gnck/S3z; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GfXU9NQj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QMEO2baa";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fErsup6G"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gnck/S3z";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GfXU9NQj"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 3BCB060298; Fri, 23 May 2025 15:27:53 +0200 (CEST)
+	id 5D5CE6029E; Fri, 23 May 2025 15:27:56 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748006873;
-	bh=7+8rNsQHuGn78VP8QDzb4tbhD/GtmhyAQzafzrrpBPw=;
+	s=2025; t=1748006876;
+	bh=BLpjsMX87D8mY75Cvazue0spW0/GyfhAZk3tvo5Ttho=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QMEO2baaaJgv4Yg7qartl9BawxX0uLrrxulnJCmN8BNSb+Zcb2QTHZZyXaZGBMBny
-	 gLmCe0ZLovGKddx/doqfNCdChzw//x8s0JQk9MG8V1JCDbfGSeWnQ05OuhQhdI9keB
-	 /zYsslv8OpM0zjRjc3eIjQIbHKmiIoSzfMIWe61otSb0IqeHJlM2oeNGcb5hwJ4Keq
-	 vO6YExmEQzJleOJzIdH0TkgHMsmKmXsh+fiLmoh0h+mO7ApIEgVPQxIqdrrYYuZhyF
-	 AhOns2kbMOOC4xxbama1kgo6jQHtEW1dcS4iQzqlREXBDxo4sBwivgrFfnw5bnkf+n
-	 122dy63Gxo6GA==
+	b=gnck/S3zNhwJMT/Fbum0U6tZ3S9zVgzhsfMLretrS/pwdIjjvlkCk2myTjCEBaxze
+	 D5eHTnjA01R8ybyayVv9lB7Sz13zLX+hyUMmbtc1jOY8E5jyN6XzlOaBH6dj8CZiHy
+	 uErRYD8BFFm+0fXDcQJp2prXO2tDSfe+JUwICfY45XiDfOUpyUkMH669YD4VvFR/Sl
+	 IX2VLDT8XZ6zZa7D5GwBEwxVqR3xo1e0IusyHyNnaOUlBsXsnxYAKvB5S2ERs8ISHd
+	 3QQOuhvFF6Pspr1INBFt3FykIDhNhHK4Kir0dRRw0UX8Q+DE4NA0oy7koyS5pcbAm+
+	 aOyXSUXqN1tKg==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BCD1C60764;
-	Fri, 23 May 2025 15:27:27 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5F87960765;
+	Fri, 23 May 2025 15:27:28 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
 	s=2025; t=1748006848;
-	bh=7+8rNsQHuGn78VP8QDzb4tbhD/GtmhyAQzafzrrpBPw=;
+	bh=BLpjsMX87D8mY75Cvazue0spW0/GyfhAZk3tvo5Ttho=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=fErsup6G2NeqMY+fYeK6mU3ahoBcP+uxgzOek5K1t0CP+za9NVJ/650SGU/Rca2OQ
-	 CiadW+TVNlbKLMvACy27gsd9Uswg4nreyaRH+fX670hIMGNRsU2J77jD3V86xWBW6f
-	 qEQnqZMoM3UuisVmaDfbpXlLI3LNCxocWXZ2nQVoRiSvZYNS2ZXFXOa9HxCmlvAsIK
-	 b7NE17jRWt3PQ2pCGSltkh7Go8+1d/sCcakL6jWyiqoQLHbzEEbjvlEfcuHWxiSHt2
-	 8msazQb7DaWgqLn6H3Hf/v003z+jPDuwwe5+b1JogM8tL3ojE4YEEhfb990quRe4n+
-	 G7TZ7iwR2ghbg==
+	b=GfXU9NQjNGhyybai1dlsEZitU+msohH6ZMCQtXRIpajQxV1S5l6EUVGOMGQFyg/o0
+	 i4c8dnP4V4U3ZP5p7JYcWXNU/RL8r/Lp1Fl/eN57VgL+EfK9h7A0yZiXiWTl6qyKMU
+	 saiL1HypgJrY9z1pXJj8z4RIxphQzS7xaA/EO2rK7tkOhh+od9ZhpGIvbJ15+yl1OQ
+	 v8M9cNdFq1Exneq9WVDJW/0kz5Y6qC0EjJq5AEJjmXyYO12bANZwFYEW3UTVv/gHxJ
+	 G0wno8SpJ+r521V603i0HYB+uPKvb6VN98h9M21DRMyw6XZp86DLlEm8uQiYaUKOOt
+	 ruVM3o7GPz0EQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 12/26] netfilter: conntrack: make nf_conntrack_id callable without a module dependency
-Date: Fri, 23 May 2025 15:26:58 +0200
-Message-Id: <20250523132712.458507-13-pablo@netfilter.org>
+Subject: [PATCH net-next 13/26] netfilter: nf_tables: add packets conntrack state to debug trace info
+Date: Fri, 23 May 2025 15:26:59 +0200
+Message-Id: <20250523132712.458507-14-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250523132712.458507-1-pablo@netfilter.org>
 References: <20250523132712.458507-1-pablo@netfilter.org>
@@ -68,64 +68,145 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-While nf_conntrack_id() doesn't need any functionaliy from conntrack, it
-does reside in nf_conntrack_core.c -- callers add a module
-dependency on conntrack.
+Add the minimal relevant info needed for userspace ("nftables monitor
+trace") to provide the conntrack view of the packet:
 
-Followup patch will need to compute the conntrack id from nf_tables_trace.c
-to include it in nf_trace messages emitted to userspace via netlink.
+- state (new, related, established)
+- direction (original, reply)
+- status (e.g., if connection is subject to dnat)
+- id (allows to query ctnetlink for remaining conntrack state info)
 
-I don't want to introduce a module dependency between nf_tables and
-conntrack for this.
+Example:
+trace id a62 inet filter PRE_RAW packet: iif "enp0s3" ether [..]
+  [..]
+trace id a62 inet filter PRE_MANGLE conntrack: ct direction original ct state new ct id 32
+trace id a62 inet filter PRE_MANGLE packet: [..]
+ [..]
+trace id a62 inet filter IN conntrack: ct direction original ct state new ct status dnat-done ct id 32
+ [..]
 
-Since trace is slowpath, the added indirection is ok.
-
-One alternative is to move nf_conntrack_id to the netfilter/core.c,
-but I don't see a compelling reason so far.
+In this case one can see that while NAT is active, the new connection
+isn't subject to a translation.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/netfilter.h         | 1 +
- net/netfilter/nf_conntrack_core.c | 6 ++++++
- 2 files changed, 7 insertions(+)
+ include/uapi/linux/netfilter/nf_tables.h |  8 ++++
+ net/netfilter/nf_tables_trace.c          | 54 +++++++++++++++++++++++-
+ 2 files changed, 61 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 892d12823ed4..20947f2c685b 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -470,6 +470,7 @@ struct nf_ct_hook {
- 	void (*attach)(struct sk_buff *nskb, const struct sk_buff *skb);
- 	void (*set_closing)(struct nf_conntrack *nfct);
- 	int (*confirm)(struct sk_buff *skb);
-+	u32 (*get_id)(const struct nf_conntrack *nfct);
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 7d6bc19a0153..2beb30be2c5f 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1841,6 +1841,10 @@ enum nft_xfrm_keys {
+  * @NFTA_TRACE_MARK: nfmark (NLA_U32)
+  * @NFTA_TRACE_NFPROTO: nf protocol processed (NLA_U32)
+  * @NFTA_TRACE_POLICY: policy that decided fate of packet (NLA_U32)
++ * @NFTA_TRACE_CT_ID: conntrack id (NLA_U32)
++ * @NFTA_TRACE_CT_DIRECTION: packets direction (NLA_U8)
++ * @NFTA_TRACE_CT_STATUS: conntrack status (NLA_U32)
++ * @NFTA_TRACE_CT_STATE: packet state (new, established, ...) (NLA_U32)
+  */
+ enum nft_trace_attributes {
+ 	NFTA_TRACE_UNSPEC,
+@@ -1861,6 +1865,10 @@ enum nft_trace_attributes {
+ 	NFTA_TRACE_NFPROTO,
+ 	NFTA_TRACE_POLICY,
+ 	NFTA_TRACE_PAD,
++	NFTA_TRACE_CT_ID,
++	NFTA_TRACE_CT_DIRECTION,
++	NFTA_TRACE_CT_STATUS,
++	NFTA_TRACE_CT_STATE,
+ 	__NFTA_TRACE_MAX
  };
- extern const struct nf_ct_hook __rcu *nf_ct_hook;
+ #define NFTA_TRACE_MAX (__NFTA_TRACE_MAX - 1)
+diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
+index 580c55268f65..ae3fe87195ab 100644
+--- a/net/netfilter/nf_tables_trace.c
++++ b/net/netfilter/nf_tables_trace.c
+@@ -15,6 +15,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nf_tables.h>
  
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index de8d50af9b5b..201d3c4ec623 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -505,6 +505,11 @@ u32 nf_ct_get_id(const struct nf_conn *ct)
+@@ -90,6 +91,49 @@ static int nf_trace_fill_dev_info(struct sk_buff *nlskb,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(nf_ct_get_id);
  
-+static u32 nf_conntrack_get_id(const struct nf_conntrack *nfct)
++static int nf_trace_fill_ct_info(struct sk_buff *nlskb,
++				 const struct sk_buff *skb)
 +{
-+	return nf_ct_get_id(nf_ct_to_nf_conn(nfct));
++	const struct nf_ct_hook *ct_hook;
++	enum ip_conntrack_info ctinfo;
++	const struct nf_conn *ct;
++	u32 state;
++
++	ct_hook = rcu_dereference(nf_ct_hook);
++	if (!ct_hook)
++		return 0;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct) {
++		if (ctinfo != IP_CT_UNTRACKED) /* not seen by conntrack or invalid */
++			return 0;
++
++		state = NF_CT_STATE_UNTRACKED_BIT;
++	} else {
++		state = NF_CT_STATE_BIT(ctinfo);
++	}
++
++	if (nla_put_be32(nlskb, NFTA_TRACE_CT_STATE, htonl(state)))
++		return -1;
++
++	if (ct) {
++		u32 id = ct_hook->get_id(&ct->ct_general);
++		u32 status = READ_ONCE(ct->status);
++		u8 dir = CTINFO2DIR(ctinfo);
++
++		if (nla_put_u8(nlskb, NFTA_TRACE_CT_DIRECTION, dir))
++			return -1;
++
++		if (nla_put_be32(nlskb, NFTA_TRACE_CT_ID, (__force __be32)id))
++			return -1;
++
++		if (status && nla_put_be32(nlskb, NFTA_TRACE_CT_STATUS, htonl(status)))
++			return -1;
++	}
++
++	return 0;
 +}
 +
- static void
- clean_from_lists(struct nf_conn *ct)
+ static int nf_trace_fill_pkt_info(struct sk_buff *nlskb,
+ 				  const struct nft_pktinfo *pkt)
  {
-@@ -2710,6 +2715,7 @@ static const struct nf_ct_hook nf_conntrack_hook = {
- 	.attach		= nf_conntrack_attach,
- 	.set_closing	= nf_conntrack_set_closing,
- 	.confirm	= __nf_conntrack_confirm,
-+	.get_id		= nf_conntrack_get_id,
- };
+@@ -210,7 +254,11 @@ void nft_trace_notify(const struct nft_pktinfo *pkt,
+ 		nla_total_size(sizeof(__be32)) +	/* trace type */
+ 		nla_total_size(0) +			/* VERDICT, nested */
+ 			nla_total_size(sizeof(u32)) +	/* verdict code */
+-		nla_total_size(sizeof(u32)) +		/* id */
++		nla_total_size(sizeof(u32)) +		/* ct id */
++		nla_total_size(sizeof(u8)) +		/* ct direction */
++		nla_total_size(sizeof(u32)) +		/* ct state */
++		nla_total_size(sizeof(u32)) +		/* ct status */
++		nla_total_size(sizeof(u32)) +		/* trace id */
+ 		nla_total_size(NFT_TRACETYPE_LL_HSIZE) +
+ 		nla_total_size(NFT_TRACETYPE_NETWORK_HSIZE) +
+ 		nla_total_size(NFT_TRACETYPE_TRANSPORT_HSIZE) +
+@@ -291,6 +339,10 @@ void nft_trace_notify(const struct nft_pktinfo *pkt,
  
- void nf_conntrack_init_end(void)
+ 		if (nf_trace_fill_pkt_info(skb, pkt))
+ 			goto nla_put_failure;
++
++		if (nf_trace_fill_ct_info(skb, pkt->skb))
++			goto nla_put_failure;
++
+ 		info->packet_dumped = true;
+ 	}
+ 
 -- 
 2.30.2
 
