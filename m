@@ -1,28 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80A27234971
-	for <netfilter-devel@vger.kernel.org>; Fri, 23 May 2025 12:21:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B05EC234971
+	for <netfilter-devel@vger.kernel.org>; Fri, 23 May 2025 12:21:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748002895; cv=none; b=a1VSIFuHlN0ewS/s9AI2mZgY/lxELGVzsbMFWs5jWbq5kTzgC+wZh97sOm2GuR/0IXXjii4w0KlqJbOeCkpOwuLpgFp69+XrXFp7NW8/pxa/cRaLnNGI0PPHhydOHrXX+yNlKTk/f3Q1qWHpXDukE7AK7ThR+cZeSwniRALx3UI=
+	t=1748002899; cv=none; b=lBy5DGH0qctxLaZsQYT1XpXQPz+Qef9b42nO0jraOjW7ibzcNjx/LMhSoNwRPckQhQL1PHC0I4UnXMAbNBtRhZ98DHFMbVM3yf1++HWbTM2kX1FuJ+Ivhjf3uROeC8iO01QGWpYMOSVOfHTfWx21aeWOZvDxl/oPr5kRQR7VPv8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748002895; c=relaxed/simple;
-	bh=5P7D8nUjVWMVtDm6XklXnxjbK8W1AR1xg40KGrBjhYU=;
+	s=arc-20240116; t=1748002899; c=relaxed/simple;
+	bh=37mgxlcG7eYR4XgrowwrMNc8IE3713CtWJ98rgLNoG4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p7MzrYuLxi+paQe8Qxs7GKLYbM9EgE1S09fZGAZ3BHJJMYzCNJu//yG790glhqS9NjSTCf23QctnqapHbzcyt5EE0nHV8hk3zDkz8hyzf1RKSMQM1pqWsdaOH+HKlYTG/xy1kQZsqLIIkqYAGiNts2W49u3xZpQ/OBRUkan1FxI=
+	 MIME-Version; b=uTe1pBZxwwVNs07iCVmvf2H+M7GmPuy58RkZiZBgpszyix4G5qrNaAXO2M8K5iUvLcQyCCJ0VxXHNAAsqQaOj/phW/a2vGsGy7fNCsDkdXkvrBcFvtagPdYpMRQMEv2Rb26jr9EPcVv1sezeru7Rk3npjnbkITua/59KV0BRLdc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C924260368; Fri, 23 May 2025 14:21:31 +0200 (CEST)
+	id 2E79860371; Fri, 23 May 2025 14:21:36 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: sbrivio@redhat.com,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/3] selftests: netfilter: nft_concat_range.sh: prefer per element counters for testing
-Date: Fri, 23 May 2025 14:20:45 +0200
-Message-ID: <20250523122051.20315-3-fw@strlen.de>
+Subject: [PATCH nf-next 3/3] selftests: netfilter: nft_concat_range.sh: add datapath check for map fill bug
+Date: Fri, 23 May 2025 14:20:46 +0200
+Message-ID: <20250523122051.20315-4-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250523122051.20315-1-fw@strlen.de>
 References: <20250523122051.20315-1-fw@strlen.de>
@@ -34,166 +34,149 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The selftest uses following rule:
-  ... @test counter name "test"
+commit 0935ee6032df ("selftests: netfilter: add test case for recent mismatch bug")
+added a regression check for incorrect initial fill of the result map
+that was fixed with 791a615b7ad2 ("netfilter: nf_set_pipapo: fix initial map fill").
 
-Then sends a packet, then checks if the named counter did increment or
-not.
+The test used 'nft get element', i.e., control plane checks for
+match/nomatch results.
 
-This is fine for the 'no-match' test case: If anything matches the
-counter increments and the test fails as expected.
+The control plane however doesn't use avx2 version, so we need to
+send+match packets.
 
-But for the 'should match' test cases this isn't optimal.
-Consider buggy matching, where the packet matches entry x, but it
-should have matched entry y.
-
-In that case the test would erronously pass.
-
-Rework the selftest to use per-element counters to avoid this.
-
-After sending packet that should have matched entry x, query the
-relevant element via 'nft reset element' and check that its counter
-had incremented.
-
-The 'nomatch' case isn't altered, no entry should match so the named
-counter must be 0, changing it to the per-element counter would then
-pass if another entry matches.
-
-The downside of this change is a slight increase in test run-time by
-a few seconds.
+As the additional packet match/nomatch is slow, don't do this for
+every element added/removed: add and use maybe_send_(no)match
+helpers and use them.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../net/netfilter/nft_concat_range.sh         | 40 ++++++++++++++-----
- 1 file changed, 30 insertions(+), 10 deletions(-)
+ .../net/netfilter/nft_concat_range.sh         | 62 +++++++++++++++++--
+ 1 file changed, 58 insertions(+), 4 deletions(-)
 
 diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-index efea93cf23d4..86b8ce742700 100755
+index 86b8ce742700..cd12b8b5ac0e 100755
 --- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
 +++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-@@ -419,6 +419,7 @@ table inet filter {
- 
- 	set test {
- 		type ${type_spec}
-+		counter
- 		flags interval,timeout
- 	}
- 
-@@ -1158,8 +1159,17 @@ del() {
+@@ -378,7 +378,7 @@ display		net,port,proto
+ type_spec	ipv4_addr . inet_service . inet_proto
+ chain_spec	ip daddr . udp dport . meta l4proto
+ dst		addr4 port proto
+-src
++src		 
+ start		1
+ count		9
+ src_delta	9
+@@ -1269,6 +1269,42 @@ send_nomatch() {
  	fi
  }
  
--# Return packet count from 'test' counter in 'inet filter' table
-+# Return packet count for elem $1 from 'test' counter in 'inet filter' table
- count_packets() {
-+	found=0
-+	for token in $(nft reset element inet filter test "${1}" ); do
-+		[ ${found} -eq 1 ] && echo "${token}" && return
-+		[ "${token}" = "packets" ] && found=1
-+	done
++maybe_send_nomatch() {
++	local elem="$1"
++	local what="$4"
++
++	[ $((RANDOM%20)) -gt 0 ] && return
++
++	dst_addr4="$2"
++	dst_port="$3"
++	send_udp
++
++	if [ "$(count_packets_nomatch)" != "0" ]; then
++		err "Packet to $dst_addr4:$dst_port did match $what"
++		err "$(nft -a list ruleset)"
++		return 1
++	fi
 +}
 +
-+# Return packet count from 'test' counter in 'inet filter' table
-+count_packets_nomatch() {
- 	found=0
- 	for token in $(nft list counter inet filter test); do
- 		[ ${found} -eq 1 ] && echo "${token}" && return
-@@ -1206,6 +1216,10 @@ perf() {
- 
- # Set MAC addresses, send single packet, check that it matches, reset counter
- send_match() {
++maybe_send_match() {
 +	local elem="$1"
++	local what="$4"
 +
-+	shift
++	[ $((RANDOM%20)) -gt 0 ] && return
 +
- 	ip link set veth_a address "$(format_mac "${1}")"
- 	ip -n B link set veth_b address "$(format_mac "${2}")"
- 
-@@ -1216,7 +1230,7 @@ send_match() {
- 		eval src_"$f"=\$\(format_\$f "${2}"\)
- 	done
- 	eval send_\$proto
--	if [ "$(count_packets)" != "1" ]; then
-+	if [ "$(count_packets "$elem")" != "1" ]; then
- 		err "${proto} packet to:"
- 		err "  $(for f in ${dst}; do
- 			 eval format_\$f "${1}"; printf ' '; done)"
-@@ -1242,7 +1256,7 @@ send_nomatch() {
- 		eval src_"$f"=\$\(format_\$f "${2}"\)
- 	done
- 	eval send_\$proto
--	if [ "$(count_packets)" != "0" ]; then
-+	if [ "$(count_packets_nomatch)" != "0" ]; then
- 		err "${proto} packet to:"
- 		err "  $(for f in ${dst}; do
- 			 eval format_\$f "${1}"; printf ' '; done)"
-@@ -1262,6 +1276,8 @@ send_nomatch() {
- test_correctness_main() {
++	dst_addr4="$2"
++	dst_port="$3"
++	send_udp
++
++	if [ "$(count_packets "{ $elem }")" != "1" ]; then
++		err "Packet to $dst_addr4:$dst_port did not match $what"
++		err "$(nft -a list ruleset)"
++		return 1
++	fi
++	nft reset counter inet filter test >/dev/null
++	nft reset element inet filter test "{ $elem }" >/dev/null
++}
++
+ # Correctness test template:
+ # - add ranged element, check that packets match it
+ # - check that packets outside range don't match it
+@@ -1776,22 +1812,34 @@ test_bug_net_port_proto_match() {
  	range_size=1
- 	for i in $(seq "${start}" $((start + count))); do
-+		local elem=""
+ 	for i in $(seq 1 10); do
+ 		for j in $(seq 1 20) ; do
+-			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
++			local dport=$j
 +
- 		end=$((start + range_size))
- 
- 		# Avoid negative or zero-sized port ranges
-@@ -1272,15 +1288,16 @@ test_correctness_main() {
- 		srcstart=$((start + src_delta))
- 		srcend=$((end + src_delta))
- 
--		add "$(format)" || return 1
-+		elem="$(format)"
-+		add "$elem" || return 1
- 		for j in $(seq "$start" $((range_size / 2 + 1)) ${end}); do
--			send_match "${j}" $((j + src_delta)) || return 1
-+			send_match "$elem" "${j}" $((j + src_delta)) || return 1
- 		done
- 		send_nomatch $((end + 1)) $((end + 1 + src_delta)) || return 1
- 
- 		# Delete elements now and then
- 		if [ $((i % 3)) -eq 0 ]; then
--			del "$(format)" || return 1
-+			del "$elem" || return 1
- 			for j in $(seq "$start" \
- 				   $((range_size / 2 + 1)) ${end}); do
- 				send_nomatch "${j}" $((j + src_delta)) \
-@@ -1572,14 +1589,17 @@ test_timeout() {
- 
- 	range_size=1
- 	for i in $(seq "$start" $((start + count))); do
-+		local elem=""
++			elem=$(printf "10.%d.%d.0/24 . %d-%d0 . 6-17 " ${i} ${j} ${dport} "$((dport+1))")
 +
- 		end=$((start + range_size))
- 		srcstart=$((start + src_delta))
- 		srcend=$((end + src_delta))
++			# too slow, do not test all addresses
++			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d1" $((dport+1))) "before add" || return 1
  
--		add "$(format)" || return 1
-+		elem="$(format)"
-+		add "$elem" || return 1
- 
- 		for j in $(seq "$start" $((range_size / 2 + 1)) ${end}); do
--			send_match "${j}" $((j + src_delta)) || return 1
-+			send_match "$elem" "${j}" $((j + src_delta)) || return 1
+ 			nft "add element inet filter test { $elem }" || return 1
++
++			maybe_send_match "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d" $dport) "after add" || return 1
++
+ 			nft "get element inet filter test { $elem }" | grep -q "$elem"
+ 			if [ $? -ne 0 ];then
+ 				local got=$(nft "get element inet filter test { $elem }")
+ 				err "post-add: should have returned $elem but got $got"
+ 				return 1
+ 			fi
++
++			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d1" $((dport+1))) "out-of-range" || return 1
  		done
+ 	done
  
- 		range_size=$((range_size + 1))
-@@ -1737,7 +1757,7 @@ test_bug_reload() {
- 		srcend=$((end + src_delta))
+ 	# recheck after set was filled
+ 	for i in $(seq 1 10); do
+ 		for j in $(seq 1 20) ; do
+-			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
++			local dport=$j
++
++			elem=$(printf "10.%d.%d.0/24 . %d-%d0 . 6-17 " ${i} ${j} ${dport} "$((dport+1))")
  
- 		for j in $(seq "$start" $((range_size / 2 + 1)) ${end}); do
--			send_match "${j}" $((j + src_delta)) || return 1
-+			send_match "$(format)" "${j}" $((j + src_delta)) || return 1
+ 			nft "get element inet filter test { $elem }" | grep -q "$elem"
+ 			if [ $? -ne 0 ];then
+@@ -1799,6 +1847,9 @@ test_bug_net_port_proto_match() {
+ 				err "post-fill: should have returned $elem but got $got"
+ 				return 1
+ 			fi
++
++			maybe_send_match "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d" $dport) "recheck" || return 1
++			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d1" $((dport+1))) "recheck out-of-range" || return 1
  		done
+ 	done
  
- 		range_size=$((range_size + 1))
-@@ -1817,7 +1837,7 @@ test_bug_avx2_mismatch()
- 	dst_addr6="$a2"
- 	send_icmp6
+@@ -1806,9 +1857,10 @@ test_bug_net_port_proto_match() {
+ 	for i in $(seq 1 10); do
+ 		for j in $(seq 1 20) ; do
+ 			local rnd=$((RANDOM%10))
++			local dport=$j
+ 			local got=""
  
--	if [ "$(count_packets)" -gt "0" ]; then
-+	if [ "$(count_packets "{ icmpv6 . $a1 }")" -gt "0" ]; then
- 		err "False match for $a2"
- 		return 1
- 	fi
+-			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
++			elem=$(printf "10.%d.%d.0/24 . %d-%d0 . 6-17 " ${i} ${j} ${dport} "$((dport+1))")
+ 			if [ $rnd -gt 0 ];then
+ 				continue
+ 			fi
+@@ -1819,6 +1871,8 @@ test_bug_net_port_proto_match() {
+ 				err "post-delete: query for $elem returned $got instead of error."
+ 				return 1
+ 			fi
++
++			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d" $dport) "match after deletion" || return 1
+ 		done
+ 	done
+ 
 -- 
 2.49.0
 
