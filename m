@@ -1,160 +1,86 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F01B31C5D7B;
-	Fri, 23 May 2025 07:35:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E74AE1A76BB;
+	Fri, 23 May 2025 07:39:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747985729; cv=none; b=gUnz9l4Rr8hxV0saUDzNkuHT74IqrzMti+1wJ3Qs9hReo79rKGVhxGUinlItACLNFjmpl/E1iZEGsDE7sv/gc1kxObDmDAnZUzpUs/dJLRU6NG4IFJ0mysIS1KHu1fA1BuMAeEbWCfWMs3MgXOVY1F1TfnXy9wEKryNydpLn10U=
+	t=1747985979; cv=none; b=Sfl6kLYKKxQhrR5GXtU9nU4Yqw0ZIP+F6S4iJ2Ni3DPk3BZeyWFriXIt+5FhrceILrd/qaF8XDbf10k7NdcAVYTD+hZ8y1riEHfK7ydZDboqrfraDDPtBhL7/9OPWKX3TsUat3zQDzbsJ0gmavC1Y0YqErKR1XvKO0Bx8/ohfoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747985729; c=relaxed/simple;
-	bh=0XVPY2niVjWpDBO6CEqhrrLx5v8QhRqfDoKXreKcaf4=;
+	s=arc-20240116; t=1747985979; c=relaxed/simple;
+	bh=dpaDvs+AgMclkmomzmiVFMJX8bApNLwyF4LXEwEusNw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BjYkeGX7Hgg1MAH2ASae08I7Z3rb3xVM2ME78Ce806Ez7CjflYQNSMbXl6DQrAZ+p3MwQYRGBAQGOPY76hg18M7MftK5v5w4QuO+cInOHUImcE24YoEGnpI8JfS0qyeXIktskU0BpTJ2zEEY6qxgdzbZLojdO1dAGeV3w0TtQlg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eLcjKhUm; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=nWj7o67/inxkvsYKT8fIIxdaAbach18kABng1Q7xrS2++0o00RLXEekCkw//5ttb1j4/hYqps31ownj0iU/Xi2Y+KHXDdsEIDvS2Sv1nE28VJOAoEgafuLr02PH/pd/pEwgJupNr1XImVjLT4RwTLyFgl+tx1eLoRCX2xxi0Nqo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Leg6UD3G; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oSyaEwac; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eLcjKhUm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C93A2C4CEE9;
-	Fri, 23 May 2025 07:35:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1747985728;
-	bh=0XVPY2niVjWpDBO6CEqhrrLx5v8QhRqfDoKXreKcaf4=;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Leg6UD3G";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oSyaEwac"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 78DE1602B6; Fri, 23 May 2025 09:39:33 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747985973;
+	bh=GAKl6BywfaP8khyBvnatNyM5VJ6j4j3itci1yUWFmJk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eLcjKhUmk10FVcL4jfd42aKFpEbYcfBj5hUuwmDljQE0i3npkMAdRUjd4iflG4cFN
-	 +ftJDukW1HblVABI/25DZe+ZlYehPfgVjJ4fnkrJjW1QldJ1brCL3IRAW9e9Zke8JI
-	 PlgCcSEsAAeweBl3NGZoPxjoxVw3313EhlbFDJJIS4wjoru7X5XbIGotKIdDT94XBP
-	 fwlAn7Gsv08Lo4OMzQJbwhVBzi9c5Z9tzPEtwpPspMYX9HUJtAJ/eeW1SBiGHAlw9t
-	 e9wXCkxEvnRhLKzEl8rIz6N/ZL4WTDXrzSoMD5lLEEd1R/3fLL8eUT+51nsKwyLGV+
-	 zJ/EubuQIUa+w==
-Date: Fri, 23 May 2025 08:35:24 +0100
-From: Simon Horman <horms@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	b=Leg6UD3GuA0Gz58Yo8+K2asPFWfD/liQJOk6AxM9ZFMRWyY+cjE00kRYMrSzU+aqc
+	 D6u74PzqREGebAk+QUC04ewjeSA0ZJLoQr4RWuYQrSRWmjbo/FC0jtn13Qorq1xE9n
+	 /3XzY5MvvbzODhmYmO4spg8Jdn89mfqrEd2fBa0dIb4Mn5Oq0aT9P65sKAXC8ZtyYY
+	 vqgriSDk+3rkdbyNGovY1SyDl3UHRnor5z+vKXhWOQsQOKUbkruuHOcbWP0LcIE0Fe
+	 eOIfhgz4KQafETvO+cBanur79MHq2tZYLksGAnitS8Q0i0Zu04wFkBkmRtJtmNaCEv
+	 0YDrbqFgZCJhg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id F079A602B6;
+	Fri, 23 May 2025 09:39:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1747985972;
+	bh=GAKl6BywfaP8khyBvnatNyM5VJ6j4j3itci1yUWFmJk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=oSyaEwacdvl7+HPNrhto5fE3bBKyXUoNmING/hX8ntMn/kLA2UmzuwVrV9RPwChhc
+	 D7uxth/zVBy3k2Nr+nCqCI1aXLDkUwv9541q3zvkzS4eFd0VYQ9F6vSVBOrf6Hk19E
+	 DXqMmRTtOiygBo4e6D+1n06O0VjJS6losDtm5PegiOQR480mKL+PY4IjmxawwFDlrf
+	 3vv80I1cUv6sZ7aaPNAn20aNQz/aWZwWDJI1wRXcEppl+o+6AgZi1GeZ5zZ3sUxuLF
+	 29h8ypXKK7P5mTNdeMawvUuXT+tODp9hyi8oJRZj6i9Dow/DbBgc5Ca0gLF5DXGTvx
+	 1Zml6UCx9F0Vg==
+Date: Fri, 23 May 2025 09:39:29 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Simon Horman <horms@kernel.org>
 Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
 	edumazet@google.com, fw@strlen.de
 Subject: Re: [PATCH net-next 06/26] netfilter: nf_tables: nft_fib: consistent
  l3mdev handling
-Message-ID: <20250523073524.GR365796@horms.kernel.org>
+Message-ID: <aDAmMUGwlvMoEYE0@calendula>
 References: <20250522165238.378456-1-pablo@netfilter.org>
  <20250522165238.378456-7-pablo@netfilter.org>
+ <20250523073524.GR365796@horms.kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250522165238.378456-7-pablo@netfilter.org>
+In-Reply-To: <20250523073524.GR365796@horms.kernel.org>
 
-On Thu, May 22, 2025 at 06:52:18PM +0200, Pablo Neira Ayuso wrote:
-> From: Florian Westphal <fw@strlen.de>
+On Fri, May 23, 2025 at 08:35:24AM +0100, Simon Horman wrote:
+> On Thu, May 22, 2025 at 06:52:18PM +0200, Pablo Neira Ayuso wrote:
+> > @@ -39,6 +40,21 @@ static inline bool nft_fib_can_skip(const struct nft_pktinfo *pkt)
+> >  	return nft_fib_is_loopback(pkt->skb, indev);
+> >  }
+> >  
+> > +/**
+> > + * nft_fib_l3mdev_get_rcu - return ifindex of l3 master device
 > 
-> fib has two modes:
-> 1. Obtain output device according to source or destination address
-> 2. Obtain the type of the address, e.g. local, unicast, multicast.
+> Hi Pablo,
 > 
-> 'fib daddr type' should return 'local' if the address is configured
-> in this netns or unicast otherwise.
+> I don't mean to hold up progress of this pull request. But it would be nice
+> if at some point the above could be changed to
+> nft_fib_l3mdev_master_ifindex_rcu so it matches the name of the function
+> below that it documents.
 > 
-> 'fib daddr . iif type' should return 'local' if the address is configured
-> on the input interface or unicast otherwise, i.e. more restrictive.
-> 
-> However, if the interface is part of a VRF, then 'fib daddr type'
-> returns unicast even if the address is configured on the incoming
-> interface.
-> 
-> This is broken for both ipv4 and ipv6.
-> 
-> In the ipv4 case, inet_dev_addr_type must only be used if the
-> 'iif' or 'oif' (strict mode) was requested.
-> 
-> Else inet_addr_type_dev_table() needs to be used and the correct
-> dev argument must be passed as well so the correct fib (vrf) table
-> is used.
-> 
-> In the ipv6 case, the bug is similar, without strict mode, dev is NULL
-> so .flowi6_l3mdev will be set to 0.
-> 
-> Add a new 'nft_fib_l3mdev_master_ifindex_rcu()' helper and use that
-> to init the .l3mdev structure member.
-> 
-> For ipv6, use it from nft_fib6_flowi_init() which gets called from
-> both the 'type' and the 'route' mode eval functions.
-> 
-> This provides consistent behaviour for all modes for both ipv4 and ipv6:
-> If strict matching is requested, the input respectively output device
-> of the netfilter hooks is used.
-> 
-> Otherwise, use skb->dev to obtain the l3mdev ifindex.
-> 
-> Without this, most type checks in updated nft_fib.sh selftest fail:
-> 
->   FAIL: did not find veth0 . 10.9.9.1 . local in fibtype4
->   FAIL: did not find veth0 . dead:1::1 . local in fibtype6
->   FAIL: did not find veth0 . dead:9::1 . local in fibtype6
->   FAIL: did not find tvrf . 10.0.1.1 . local in fibtype4
->   FAIL: did not find tvrf . 10.9.9.1 . local in fibtype4
->   FAIL: did not find tvrf . dead:1::1 . local in fibtype6
->   FAIL: did not find tvrf . dead:9::1 . local in fibtype6
->   FAIL: fib expression address types match (iif in vrf)
-> 
-> (fib errounously returns 'unicast' for all of them, even
->  though all of these addresses are local to the vrf).
-> 
-> Fixes: f6d0cbcf09c5 ("netfilter: nf_tables: add fib expression")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/net/netfilter/nft_fib.h   | 16 ++++++++++++++++
->  net/ipv4/netfilter/nft_fib_ipv4.c | 11 +++++++++--
->  net/ipv6/netfilter/nft_fib_ipv6.c |  4 +---
->  3 files changed, 26 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/net/netfilter/nft_fib.h b/include/net/netfilter/nft_fib.h
-> index 6e202ed5e63f..2eea102c6609 100644
-> --- a/include/net/netfilter/nft_fib.h
-> +++ b/include/net/netfilter/nft_fib.h
-> @@ -2,6 +2,7 @@
->  #ifndef _NFT_FIB_H_
->  #define _NFT_FIB_H_
->  
-> +#include <net/l3mdev.h>
->  #include <net/netfilter/nf_tables.h>
->  
->  struct nft_fib {
-> @@ -39,6 +40,21 @@ static inline bool nft_fib_can_skip(const struct nft_pktinfo *pkt)
->  	return nft_fib_is_loopback(pkt->skb, indev);
->  }
->  
-> +/**
-> + * nft_fib_l3mdev_get_rcu - return ifindex of l3 master device
+> Flagged by ./scripts/kernel-doc -none
 
-Hi Pablo,
-
-I don't mean to hold up progress of this pull request. But it would be nice
-if at some point the above could be changed to
-nft_fib_l3mdev_master_ifindex_rcu so it matches the name of the function
-below that it documents.
-
-Flagged by ./scripts/kernel-doc -none
-
-> + * @pkt: pktinfo container passed to nft_fib_eval function
-> + * @iif: input interface, can be NULL
-> + *
-> + * Return: interface index or 0.
-> + */
-> +static inline int nft_fib_l3mdev_master_ifindex_rcu(const struct nft_pktinfo *pkt,
-
-> +						    const struct net_device *iif)
-> +{
-> +	const struct net_device *dev = iif ? iif : pkt->skb->dev;
-> +
-> +	return l3mdev_master_ifindex_rcu(dev);
-> +}
-> +
->  int nft_fib_dump(struct sk_buff *skb, const struct nft_expr *expr, bool reset);
->  int nft_fib_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  		 const struct nlattr * const tb[]);
-
-...
+Thanks for letting me know, I can resubmit the series, let me know.
