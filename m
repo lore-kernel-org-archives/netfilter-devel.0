@@ -1,131 +1,76 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D005F1CEAD6
-	for <netfilter-devel@vger.kernel.org>; Sat, 24 May 2025 13:18:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0625119D09C
+	for <netfilter-devel@vger.kernel.org>; Sun, 25 May 2025 07:58:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748092729; cv=none; b=uTv0NutWN1h2ExWhDShoFq4a3zzQ+4JQF9O55eO/Ndxk5YW+G9RSNsq/BdssicP1f4UPjzsWr6zMvODOVvFpH3gSUzsD4oK9M+V0IXyqsrWhZ49xzoaU7KYmdnGwNhTkGghAQ0TTVuZOpqHysHVRHojGax5poqinueblXL3vbss=
+	t=1748159906; cv=none; b=a//8uQQatSS9Kyw+dJZgAgI6aNxdnRbonIIXzZ1yPDdZALe1liN8fPLAmvI5GOu5ygEfmFWGNQ49rbwWmZ7pdfiX/ywngHcYNKT8Y14TI2WHeFOCz6luQta9Mq/Elwbyrm0B4uk4hkEJ5PgZSW9SwCLwUS+Te42Z1KRwIJ2/qvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748092729; c=relaxed/simple;
-	bh=hoWIPAP+7/T8An5nsfdM7ylDm1DGbtjzzferM8CpnKk=;
+	s=arc-20240116; t=1748159906; c=relaxed/simple;
+	bh=PlARokZZqJrHvoD0+d8Fl4sW557jQZr7bc3lR946PyM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=X4G6Enu4BQRMy3RRHW8N6TiNalkvdyyVfJ1fD0kRfFKSnqNKB3RZIVY707ZB1aeQ2Tz653mzGy/q5J58S6FsBTno50PP1Pe4xwnsEAuza4GgVy1o4gJlL3FqwgLFVMqQHaldORofSthBksNQ/tGXWzxy5tcEPFwg3o6LEbVHUws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=I63mG/wW; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y6ODd2X8rCg8ScfOqOivoutRQhv51DvgxlOUqooMuVzS0mc79e2WNEe9rV2hUusoAWiWTRyWTMsDaV2+HmbXgeaGQndLJE6e0JGdSR/W9kzHwHVB95ME0WAPIUqSvHhDK1Tuc+Q6FTOk7jSRGhdbj9xI3NUJLHA64j+61SZhAKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=h4TQT2qe; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="I63mG/wW"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="h4TQT2qe"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=5ih/EALXV2ZZULbc47nkEbwSJfoDhUUwO/mOpc6/Ds0=; b=I63mG/wWs4cTKrLkusaMqhD5t5
-	uH3L5WmdkIDcd26mAWZZkvFskL7c5gBPoNLT9COiIfETHDIAjHEE6oqGfksK326va6lf0Pe5eU+5y
-	Te+rptpWAzwRI3mJGArxHBH101DTgTXfWn3OgWeXmgDNzKQeW7s8dAYzf2jizJalDf+03SaYioDAF
-	JmfpECozspzVxYEPvrkHQ1gaO2ME60Bo+Pggb6wtqtuYqXpvpPP22g2bDegdTE994rWoo96XijLxH
-	oT4wIMaYhdVL4rqm6M9OHy+oMJ2t95sEYxCNd155UiVtW6psFOgrMFaRC8Boi4H4e6FaS0oAHWfVe
-	ZVt5HF6w==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1uIoR2-004gha-0g;
-	Sat, 24 May 2025 13:57:08 +0100
-Date: Sat, 24 May 2025 13:57:06 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: netfilter-devel@vger.kernel.org
-Cc: Mike Pagano <mpagano@gentoo.org>
-Subject: Re: [PATCH] ipset: Modify pernet_operations check
-Message-ID: <20250524125706.GB2764308@celephais.dreamlands>
-References: <20250523172732.59179-1-mpagano@gentoo.org>
+	bh=7YEP8ws4xeCVuSBKTG8JBBqmyZSr5beLOG756W28cPA=; b=h4TQT2qeP6Lpo5Kwebji7ddPeC
+	+cIGizALubQDeYJU6HNxlLZAFbDuo/tFNA7PU+CTpTp+EItoI5PQo+atc3CPpjnxDCQ8FM+VYtFnr
+	Bzoo0g4wuUoXMWMcZma04b4as0iG1qBcTDvvYVFJN6aTZ/ZyUSv5BIgRivtpofgCk9fqz/yorB/0C
+	/59GXx4NUreuFjxPRZfezVGZs8Ib0GrwBDu4FmT/UMNukTtrVTgtSoCu43TXEqMbcOauUqXF+H787
+	6LPUPP9E0yCN/5oj/KpT/utPyLbCGC3QmqGKim+c68z2TL2BvdRzoe/rWbMyCJCtTQ7j0cF3pmdvJ
+	edRXM32w==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uJ6FK-000000004lb-3XGM;
+	Sun, 25 May 2025 09:58:14 +0200
+Date: Sun, 25 May 2025 09:58:14 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 0/4] Continue upon netlink deserialization failures
+Message-ID: <aDLNlhktZLCtTlBp@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20250521131242.2330-1-phil@nwl.cc>
+ <aC9cVrmOpQKNs1MW@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="cIHp0jFd+C+3Wg8L"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250523172732.59179-1-mpagano@gentoo.org>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+In-Reply-To: <aC9cVrmOpQKNs1MW@calendula>
 
+On Thu, May 22, 2025 at 07:18:14PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, May 21, 2025 at 03:12:38PM +0200, Phil Sutter wrote:
+> > Faced with unexpected values or missing attributes, most of the netlink
+> > deserialization code would complain, drop the nftables object being
+> > constructed and carry on. Some error paths though instead call BUG() or
+> > assert(0) instead. This series eliminates at least the most prominent
+> > ones among those (patches 1 and 3).
+> > 
+> > Patch 4 prevents object deserialization from aborting upon the first one
+> > with unexpected data. If netlink_delinearize_obj() returns NULL, an
+> > error message has been emitted already so just return 0 to the foreach
+> > loop so it continues with the next object.
+> > 
+> > Patch 2 is just preparation work for patch 3.
+> 
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
---cIHp0jFd+C+3Wg8L
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Applied after dropping two explicit newline characters leftover from
+BUG() to netlink_error() conversion.
 
-On 2025-05-23, at 13:26:51 -0400, Mike Pagano wrote:
->Check for 'int \*id' in the pernet_operations struct
->fails for some later versions of kernels as the declaration
->is now 'int * const id'.
->
->Kernel Commit 768e4bb6a75e3c6a034df7c67edac20bd222857e changed
->the variable declaration that ipset uses to ensure presence
->of the pernet ops id.
->
->Modify the pattern match to include both the newer change while
->still supporting the original declaration.
->
->Signed-off-by: Mike Pagano <mpagano@gentoo.org>
->---
-> configure.ac | 2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
->
->diff --git a/configure.ac b/configure.ac
->index b8e9433..faf570b 100644
->--- a/configure.ac
->+++ b/configure.ac
->@@ -401,7 +401,7 @@ fi
->
-> AC_MSG_CHECKING([kernel source for id in struct pernet_operations])
-> if test -f $ksourcedir/include/net/net_namespace.h && \
->-   $AWK '/^struct pernet_operations /,/^}/' $ksourcedir/include/net/net_n=
-amespace.h | $GREP -q 'int \*id;'; then
->+   $AWK '/^struct pernet_operations /,/^}/' $ksourcedir/include/net/net_n=
-amespace.h | $GREP -qE 'int \*id;|int \* const id'; then
-
-Or:
-
-      $AWK '/^struct pernet_operations /,/^}/' $ksourcedir/include/net/net_=
-namespace.h | $GREP -qE 'int \*( const )?id;'; then
-
-> 	AC_MSG_RESULT(yes)
-> 	AC_SUBST(HAVE_NET_OPS_ID, define)
-> else
->--=20
->2.49.0
->
->
-
-J.
-
---cIHp0jFd+C+3Wg8L
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJoMcIbCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmeFzHcq/tvfcSwTj3wnmmCj5rohi511nxhQUR1Ow/1N
-IhYhBGwdtFNj70A3vVbVFymGrAq98QQNAAD12xAAhQAVGUyHmBeNHxaET7L5KAHQ
-+evOBBP6vLcYrFOZUskHdxJ1cLFbFOfzXLXd+nP/8CX8CZLB1+snEtBcFE1zj2w6
-P24TSAS2yIlVcwu8ZHWO9tE5cOvxo9v/mrLwu4TfiFKxoJ4+yBv31ZCZWzZ1UJLp
-3w44ujOMPswTNdJ4E3+mexc/PCbCxvyZxdAJ2GqwmeA/ZKwIvTsQotZG0r89qVXr
-62NVIu0ZdEkyfVpSxL64y5xDy0VMBCVt/RHP29pO8GG3eI6cUpuvVbg+kpimNW8B
-p3iogwB7+Q+4I1x0xV2FfzO0cM3HK3iS5Hx7+F2JyQ9+AVPNiFl/OZLFuBYuW5uu
-zYIkOgQqlnY3LVvY7gtYvqYM6fv2gAfW1mhrfEgKpVf7VR/Hwb0CIE90gOEHdR2W
-mIrxePtxXz6W2IRGx0qe5Cei0VTtpkq6wNlFG4cYpo+tAKvut35g/Axg+gcjlAX8
-D4rBt/AMR+dWB87DGwFtIRxzqdSrLPexjvz9qYlNVsTjb23jCf2WWT8lfuW/8/nW
-YpQV3x5MbexhQpME49CU9UzLvjoh2ek9T0wtGiP6VFBqm6VJMOPNuQho1vHD7hkb
-Yh4e40bYKpdV7+i9x6efSPJAhF3SGHWS2REfZgloQ24G6PsFEWtME9avbikByGQs
-WovSYPb3WEMkb3aLxig=
-=nszM
------END PGP SIGNATURE-----
-
---cIHp0jFd+C+3Wg8L--
+Thanks, Phil
