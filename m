@@ -1,35 +1,45 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EE9F1F9F73;
-	Mon, 26 May 2025 17:10:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F76C1D54FA
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 May 2025 17:19:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748279430; cv=none; b=fzQLwQxRXWBJWyDk3ELsQXoqIVDqlvZLLJ5cV2VfUwsjK+U7QHrVVOyzT9Vc//CAVpG/4Sxw9yYlHtzXlhOmc3Ial5nzedepSKoE1ZDnjRmSz1JolvWl/XgDyGqunc4ATFxw07qi6H5YOhKHVT39lSgLJHhuZbpN2WuR6g5jWj0=
+	t=1748279993; cv=none; b=iHR+R49OlZvWUhBK3BQc/mzRoR3x3AeJNDkYUtJWkqJeU8LrQMYuQrOH2X70Z++bcnZjoboL/706pwskPkjwjDTA9g2+ycp/Xft6xvi1po472LdkHVQOPgz6Im2wJu0LRoLPYJyDrIvd7dB16LH4sk+G+muupzHETpFLyqQfZfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748279430; c=relaxed/simple;
-	bh=c56hYC398RkvcabqIe4ipVU6vYAy+sVHiMui9bPlZHk=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=KoU+/aChW5mWC1nWurkGuBABG+Ejqs9CdFrpFzZwQiT0idSoq//4zO1GqxTJV3TkYcgMGLcLZd0rAI4IBmIvU1DhRXDWGR+qYioJSO5sDKtL5h57ukjXWHt8YThTffwu0y5+8MlgaDLOosUpq355utHVPOpMPoGhileRNIyLHz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HC9WtjLm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748279993; c=relaxed/simple;
+	bh=R0aDnk5DjRrkG5lIG7dVr1NTMbvg+kVWgLCHv3yfZGU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aE61zDdUo/vUSUkRKobnPH/ZZMh6BQx/cbKEBA9m5p82xsex4N83W/rL3A5bvq3d5XJz09z5x2xQdYOz10M2LU8bAlsoe0Q027opQpRHyO/RhTPg/Gvdr9fmObbmIRjvTQsOhZ52mN3KXN+6RcrmMDRl5LSTJje0eeVCfTtdFz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=PUS5xfah; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HC9WtjLm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7975C4CEE7;
-	Mon, 26 May 2025 17:10:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1748279429;
-	bh=c56hYC398RkvcabqIe4ipVU6vYAy+sVHiMui9bPlZHk=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=HC9WtjLmk1xVsMYXBsUthSkKUdVa55bs89QqmmaabcAqt+/PRw3UIvnGp8z8sHs+G
-	 jfaPZ5F4h+erzw7hb6RmYkOhIsGHJfH98IB1IRjGjq+izTinPNQNahnNP8V77tBY3y
-	 zha2+Ddnvj2h8oQtuLdto1CIkiczU7fRG4pvqGs8V4cvvvNXg5EszAln0HBn9QaooH
-	 0PebmMxafsXcnM7qnaG4vpU+6MP4Nn08G1UHV2q8BFmoS/1kxD2k5mFhNMzdJqqewh
-	 bdCw4bdVuDJxS+U32COw3FzANDAdme/3qOOr66Y7j86r197rTSNxesBn9ZRW/zffou
-	 b82cD1IlJYAMQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70DE03805D8E;
-	Mon, 26 May 2025 17:11:05 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="PUS5xfah"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=yx+OcpaxiiRQRQQ+64oDEJC3gIfFFPNNG7/f2DoNT4o=; b=PUS5xfah5by6OG2te1WdMtACXO
+	MzpvwT+0jKaYGzn2aHfoZDa4xyFF9JOP/JqDw+NWzNHIy9YmMHc70VVr8RsYRUkopRCWfB+fg6yvL
+	jpl4wR5QaL3b0RLjXiPCl23RSuanzjzmQ/93sGh1KjX6uub1fYulgC/1+2qgw1pxGGbammA0anS9H
+	DQSscE+8TZCPAjTGwcZJg9h+/4fMgSYErXEcf2cytnMTUjKPkZWlYqQiFe7oe79+7S6Bg8W8+z8jO
+	4mdlB8H71ckq7epP4YpeejNtrqId99NKI5Bee+fO1u+TmgWRXE1v33zjH8+eg4x8933yU+l2QVbu9
+	+IqrWyRA==;
+Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.96)
+	(envelope-from <jeremy@azazel.net>)
+	id 1uJbUK-000rKJ-1H;
+	Mon, 26 May 2025 18:19:48 +0100
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Cc: Slavko <linux@slavino.sk>
+Subject: [PATCH ulogd2 v2 0/4] Add support for logging ARP packets
+Date: Mon, 26 May 2025 18:19:00 +0100
+Message-ID: <20250526171904.1733009-1-jeremy@azazel.net>
+X-Mailer: git-send-email 2.47.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,92 +47,43 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 01/26] selftests: netfilter: nft_concat_range.sh: add
- coverage for 4bit group representation
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <174827946424.985160.18100606742772677450.git-patchwork-notify@kernel.org>
-Date: Mon, 26 May 2025 17:11:04 +0000
-References: <20250523132712.458507-2-pablo@netfilter.org>
-In-Reply-To: <20250523132712.458507-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-Hello:
+Hithero, ulogd has only fully supported handling ARP headers that are present
+in `AF_BRIDGE` packets.  This patch-set adds support for handling ARP packets
+in their own right.
 
-This series was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+* Patch 1 contains a fixes for some minor problems that I spotted while
+  working on this.
+* Patch 2 refactors the IP2* filters to be a bit more efficient.
+* Patches 3 & 4 add support for logging ARP packets.
 
-On Fri, 23 May 2025 15:26:47 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
-> 
-> Pipapo supports a more compact '4 bit group' format that is chosen when
-> the memory needed for the default exceeds a threshold (2mb).
-> 
-> Add coverage for those code paths, the existing tests use small sets that
-> are handled by the default representation.
-> 
-> [...]
+Changes since v1
 
-Here is the summary with links:
-  - [net-next,01/26] selftests: netfilter: nft_concat_range.sh: add coverage for 4bit group representation
-    https://git.kernel.org/netdev/net-next/c/d31c1cafc4a7
-  - [net-next,02/26] netfilter: xtables: support arpt_mark and ipv6 optstrip for iptables-nft only builds
-    https://git.kernel.org/netdev/net-next/c/c38eb2973c18
-  - [net-next,03/26] selftests: netfilter: nft_fib.sh: add 'type' mode tests
-    https://git.kernel.org/netdev/net-next/c/839340f7c7bb
-  - [net-next,04/26] selftests: netfilter: move fib vrf test to nft_fib.sh
-    https://git.kernel.org/netdev/net-next/c/98287045c979
-  - [net-next,05/26] netfilter: nf_tables: nft_fib_ipv6: fix VRF ipv4/ipv6 result discrepancy
-    https://git.kernel.org/netdev/net-next/c/8b53f46eb430
-  - [net-next,06/26] netfilter: nf_tables: nft_fib: consistent l3mdev handling
-    https://git.kernel.org/netdev/net-next/c/9a119669fb19
-  - [net-next,07/26] selftests: netfilter: nft_fib.sh: add type and oif tests with and without VRFs
-    https://git.kernel.org/netdev/net-next/c/996d62ece031
-  - [net-next,08/26] netfilter: nft_tunnel: fix geneve_opt dump
-    https://git.kernel.org/netdev/net-next/c/22a9613de4c2
-  - [net-next,09/26] netfilter: nf_dup{4, 6}: Move duplication check to task_struct
-    https://git.kernel.org/netdev/net-next/c/a1f1acb9c5db
-  - [net-next,10/26] netfilter: nft_inner: Use nested-BH locking for nft_pcpu_tun_ctx
-    https://git.kernel.org/netdev/net-next/c/ba36fada9ab4
-  - [net-next,11/26] netfilter: nf_dup_netdev: Move the recursion counter struct netdev_xmit
-    https://git.kernel.org/netdev/net-next/c/f37ad9127039
-  - [net-next,12/26] netfilter: conntrack: make nf_conntrack_id callable without a module dependency
-    https://git.kernel.org/netdev/net-next/c/90869f43d06d
-  - [net-next,13/26] netfilter: nf_tables: add packets conntrack state to debug trace info
-    https://git.kernel.org/netdev/net-next/c/7e5c6aa67e6f
-  - [net-next,14/26] netfilter: nf_tables: Introduce functions freeing nft_hook objects
-    https://git.kernel.org/netdev/net-next/c/75e20bcdce24
-  - [net-next,15/26] netfilter: nf_tables: Introduce nft_hook_find_ops{,_rcu}()
-    https://git.kernel.org/netdev/net-next/c/e225376d78fb
-  - [net-next,16/26] netfilter: nf_tables: Introduce nft_register_flowtable_ops()
-    https://git.kernel.org/netdev/net-next/c/21aa0a03eb53
-  - [net-next,17/26] netfilter: nf_tables: Pass nf_hook_ops to nft_unregister_flowtable_hook()
-    https://git.kernel.org/netdev/net-next/c/91a089d0569d
-  - [net-next,18/26] netfilter: nf_tables: Have a list of nf_hook_ops in nft_hook
-    https://git.kernel.org/netdev/net-next/c/73319a8ee18b
-  - [net-next,19/26] netfilter: nf_tables: Prepare for handling NETDEV_REGISTER events
-    https://git.kernel.org/netdev/net-next/c/104031ac8980
-  - [net-next,20/26] netfilter: nf_tables: Respect NETDEV_REGISTER events
-    https://git.kernel.org/netdev/net-next/c/a331b78a5525
-  - [net-next,21/26] netfilter: nf_tables: Wrap netdev notifiers
-    https://git.kernel.org/netdev/net-next/c/9669c1105b16
-  - [net-next,22/26] netfilter: nf_tables: Handle NETDEV_CHANGENAME events
-    https://git.kernel.org/netdev/net-next/c/7b4856493d78
-  - [net-next,23/26] netfilter: nf_tables: Sort labels in nft_netdev_hook_alloc()
-    https://git.kernel.org/netdev/net-next/c/6f670935b470
-  - [net-next,24/26] netfilter: nf_tables: Support wildcard netdev hook specs
-    https://git.kernel.org/netdev/net-next/c/6d07a289504a
-  - [net-next,25/26] netfilter: nf_tables: Add notifications for hook changes
-    https://git.kernel.org/netdev/net-next/c/465b9ee0ee7b
-  - [net-next,26/26] selftests: netfilter: Torture nftables netdev hooks
-    https://git.kernel.org/netdev/net-next/c/73db1b5dab6f
+* Patches 1 & 3 from v1 have been merged.
+* Patch 2 from v1 (now patch 1) has been reworked in light of Florian's
+  feed-back to use the size of `struct in6_addr`, rather than `((struct
+  in6_addr){}).s6_addr`.
 
-You are awesome, thank you!
+Jeremy Sowden (4):
+  db, IP2BIN: correct `format_ipv6()` output buffer sizes
+  IP2BIN, IP2HBIN, IP2STR: refactor `interp` call-backs
+  Use `NFPROTO_*` constants for protocol families
+  Add support for logging ARP packets
+
+ filter/raw2packet/ulogd_raw2packet_BASE.c |  11 +-
+ filter/ulogd_filter_IP2BIN.c              | 121 +++++++++++++---------
+ filter/ulogd_filter_IP2HBIN.c             |  86 +++++++++------
+ filter/ulogd_filter_IP2STR.c              |  86 ++++++++-------
+ include/ulogd/ulogd.h                     |  11 +-
+ input/flow/ulogd_inpflow_NFCT.c           |  23 ++--
+ input/packet/ulogd_inppkt_UNIXSOCK.c      |   7 +-
+ util/db.c                                 |   2 +-
+ util/printpkt.c                           |  10 +-
+ 9 files changed, 215 insertions(+), 142 deletions(-)
+
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.47.2
 
