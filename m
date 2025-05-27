@@ -1,224 +1,113 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F6A14C97
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 May 2025 17:19:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DCC61FC0E2
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 May 2025 07:17:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748279994; cv=none; b=k5LpmA854MZBiBZTRcpoILFd+0ymQLc75Y5YTH/d/I5JstMI41epaIoHsE/JAc19gLTayi4vy+7VY5jqnd7lTsTZ1eD43a0OSaQCIEzjKOAENZKG/A9NEks0OXVeRXudySICnVzPbcRFjH7QQT1YXlVghxagfZnQ2VzgTIi0mfc=
+	t=1748330258; cv=none; b=tv+fdWyvPJ9prMGP+KHvrie5IZBpehRUQ6FOWWDy0dlLlweduCY2wbTRrtzJR7M5II0TA0Cga0ORUK4F4bOGjyIAX+7F4SVhcsdiKj+FkQo4RqkJ2C0l1CNGvil+Z1XBQQ+XlfbQy4khct1i67sT5zLcNIwcqiwHquhHXTX8wVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748279994; c=relaxed/simple;
-	bh=gTx7iNh1xwewgZVkBhrV08QSWkJmVA7Ei4My69LAkmk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UrGUVxGl44tFi4e2v3cytMisXZH1UTbbHTSTrX6xmoEYUqMiJQDYsZ1IQZTeU6EU2RnUDG4Pc6/Y8xoqCsFfj7K3TsCMwr4TBe9cTAKcZ6AzSgtd8qorkQvInooDza5jpBZv2gBYnlqnRJbI4H3BTiewx15XR/R+EkZvorQ+X3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=qu6jHehN; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1748330258; c=relaxed/simple;
+	bh=c7fLyJFyUEsXGupJPUcA5deevABmi1JPgUKpiDGU38s=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=rjcu8ZtrrgRNSx1Jwa+mdtkGXLh3W+i6jW6VYKiTzJxTFf+dWG6s+5wgQ5EEojLqHBq5e5KzTZqTOEyIO2ybfSXzA+IdidJ3PqrJtzpk9I0zLIYtC+jf1kypR773bBzWZIJ6oHq6e7w6itgKdtmZFSzLN6toB2Y1eiOgu2hMtRM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DEpe7VGI; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="qu6jHehN"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=RU529esybRaPK6qk3Ng5QvpRG5w9S6/DvYxVU0I5ya8=; b=qu6jHehNUDMfPTS44x2KKFT4hv
-	jcdxxSnQYa28Vx97kOrtOgKicgpHQrQorUoUg33R20q74+Kg9abcmTMFMVMY3wnBWX3j/FBN+AROC
-	6jhdlL7xRxxgbApZTSoATqzrWrivBQDKQl6la4tvwlrdlU+SxfllKx+2ngbbDAKjQo7AbCoq5vfXQ
-	gQCHFIQGAg2/Kw75EyGoQ/cTATn5gqofoB+aBlEIHsP3YdDo9QVsqqGlNWk4WEOC3bJ1dvfyIOlI0
-	qSSYDGyh9ixb9RLMvhbSyZA+al/2pHQnu3rW1k8z/u2LaV3XF1p1n76O368ScLB4v5HLJuS6CJK04
-	PnaufrWQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1uJbUK-000rKJ-1q;
-	Mon, 26 May 2025 18:19:48 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Cc: Slavko <linux@slavino.sk>
-Subject: [PATCH ulogd2 v2 4/4] Add support for logging ARP packets
-Date: Mon, 26 May 2025 18:19:04 +0100
-Message-ID: <20250526171904.1733009-5-jeremy@azazel.net>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250526171904.1733009-1-jeremy@azazel.net>
-References: <20250526171904.1733009-1-jeremy@azazel.net>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DEpe7VGI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1748330255;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=uFoZttK1qFQLLWq/vRTqOPjL4JDl9U9JL7VK0ppo1m8=;
+	b=DEpe7VGIjiW3Gs9XOhpDpJZRe6WUQyUHOPyfKH8PpIE/plFOVyKkLP//pjWWiWeoebUQwb
+	r/z9wrSrk/hMCuXuMPmlE6qOMMVLeYuce4FCPmyT4EuHLimh9eGIfK1BNE7crUNiD/7Ulk
+	5HIqXuKzUQQAPlo1bU6VlCS6zT396uY=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-553-i-5118ywPCu08ZokVwbCNg-1; Tue, 27 May 2025 03:17:33 -0400
+X-MC-Unique: i-5118ywPCu08ZokVwbCNg-1
+X-Mimecast-MFC-AGG-ID: i-5118ywPCu08ZokVwbCNg_1748330252
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-442f90418b0so15435645e9.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 May 2025 00:17:33 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1748330252; x=1748935052;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=uFoZttK1qFQLLWq/vRTqOPjL4JDl9U9JL7VK0ppo1m8=;
+        b=NcnecVjStyAFRNYHu81Tdr6ykdTQ8mikx5ajBc1lJmOI/m030aDnbQtNSaTj4SDg16
+         bKOEQ3Yf9aVkXq/zY56JQe2WHTHSdoOV7IYXKC/xdb3jbFQyer9/ImYzM9lp5lrrquU9
+         1xo13s7w1BUa9xvL5GPevYULPBbsVi52PNgSwROxK2ojqMXu5OugJvdvHGbpkj6loUJc
+         x/kpxuBpN8BiPhPZpKYe9EwTlQoj97qPMWVXYj5ELwF1S2g6NwvdTezjI/434Kj41PeE
+         x7d0MDxBq3d+rlyI4M35JFRmnwDC8fCiGV9HjiNsteftExA+LrmCh/9Qo0rhm3kM5/CK
+         4M/w==
+X-Forwarded-Encrypted: i=1; AJvYcCX4aVJnktnEJ3mpMWPQMpG63aDmw++/8v5NJQP7OlWGBrEntW+ngExyxoRVD1IqJInWkUxYdrF/Ys5sN+aNZsE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzrKHnPHi+rjMK93MACw6DmKGjbY1QU4UwdFyU6bAgtxd8qgsxq
+	LT8w+mPAKggplhlNdG9bMIPuRoCI78LKrnnWr1K1eDK9qp+vhCN3YWeymTw+5N5pm1nafUngTRD
+	8gCx7eQBxAsXfS0oaQVidIcQ/07MN/lYKnGsynawvUOkq4anvHyFWF3mb0+Zz5cGPsN7CJw==
+X-Gm-Gg: ASbGnctZo7A60ieNGdl6TacacBGn5KF16/zAW1uqEzCTJwEdCHg50xUN3tyr6IX+0eM
+	2Phy/PY2V0mTBZin/28AkUikcx6S3XGxZg9scZiYAIEnMppDySiuAGwXg7RdlCGfRy3hqmVa00j
+	T/nCalAVAQQNZpv4dnVQeSLA9mr84rkwrJlpgJ9vHUiElAxOokFqxsQ7DC6/2HgCu5chA5c0UoF
+	1AIQ4vDNlKjUtV5ioCJ7xL889efLdK0OW48mnpfQEO/OcFagwQ3ZfIXMuQ/9B7kne6tfO9nBm4x
+	HNXxUpn/ikFimyeZ0zAdI7Z3/Py/h28JD64nbrqfG+r9mggbMHQokkNiUuM=
+X-Received: by 2002:a05:600c:4e45:b0:442:f4a3:8c5c with SMTP id 5b1f17b1804b1-44c919e13ddmr134348805e9.10.1748330252212;
+        Tue, 27 May 2025 00:17:32 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IE6rjaM4MrEBKpkWOooZj5HtKU+xPTWzAblyNoOT7GHD0DA87EDlFyvauURgtKhnloJkF0iXg==
+X-Received: by 2002:a05:600c:4e45:b0:442:f4a3:8c5c with SMTP id 5b1f17b1804b1-44c919e13ddmr134348585e9.10.1748330251888;
+        Tue, 27 May 2025 00:17:31 -0700 (PDT)
+Received: from ?IPV6:2a0d:3344:2728:e810:827d:a191:aa5f:ba2f? ([2a0d:3344:2728:e810:827d:a191:aa5f:ba2f])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3a4d66a2de7sm6100565f8f.3.2025.05.27.00.17.30
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 27 May 2025 00:17:31 -0700 (PDT)
+Message-ID: <12b16f0b-8ba8-4077-9a13-0bc514e1cd44@redhat.com>
+Date: Tue, 27 May 2025 09:17:30 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 26/26] selftests: netfilter: Torture nftables
+ netdev hooks
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org,
+ Phil Sutter <phil@nwl.cc>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
+References: <20250523132712.458507-1-pablo@netfilter.org>
+ <20250523132712.458507-27-pablo@netfilter.org>
+Content-Language: en-US
+From: Paolo Abeni <pabeni@redhat.com>
+In-Reply-To: <20250523132712.458507-27-pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hithero, ulogd has only fully supported handling ARP headers that are present in
-`NFPROTO_BRIDGE` packets.
+On 5/23/25 3:27 PM, Pablo Neira Ayuso wrote:
+> +ip netns exec $nsr nft -f - <<EOF
+> +table ip t {
+> +	flowtable ft_wild {
+> +		hook ingress priority 0
+> +		devices = { wild* }
+> +	}
+> +}
+> +EOF
 
-Add support for handling ARP packets in their own right.
+The above is causing CI failures:
 
-Reported-by: Slavko <linux@slavino.sk>
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- filter/raw2packet/ulogd_raw2packet_BASE.c |  2 ++
- filter/ulogd_filter_IP2BIN.c              | 24 +++++++++++++++++++++--
- filter/ulogd_filter_IP2HBIN.c             | 23 +++++++++++++++++++++-
- filter/ulogd_filter_IP2STR.c              |  1 +
- util/printpkt.c                           |  3 +++
- 5 files changed, 50 insertions(+), 3 deletions(-)
+# selftests: net/netfilter: nft_interface_stress.sh
+# /dev/stdin:4:15-19: Error: syntax error, unexpected string with a
+trailing asterisk, expecting string or quoted string or '$'
+# devices = { wild* }
+#             ^^^^^
+not ok 1 selftests: net/netfilter: nft_interface_stress.sh # exit=1
 
-diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
-index 4b6096421b71..2c0d16449cf1 100644
---- a/filter/raw2packet/ulogd_raw2packet_BASE.c
-+++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
-@@ -960,6 +960,8 @@ static int _interp_pkt(struct ulogd_pluginstance *pi)
- 		return _interp_ipv6hdr(pi, len);
- 	case NFPROTO_BRIDGE:
- 		return _interp_bridge(pi, len);
-+	case NFPROTO_ARP:
-+		return _interp_arp(pi, len);
- 	}
- 	return ULOGD_IRET_OK;
- }
-diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
-index 9bbeebbb711e..9e6f3a929058 100644
---- a/filter/ulogd_filter_IP2BIN.c
-+++ b/filter/ulogd_filter_IP2BIN.c
-@@ -39,7 +39,9 @@ enum input_keys {
- 	KEY_ORIG_IP_DADDR,
- 	KEY_REPLY_IP_SADDR,
- 	KEY_REPLY_IP_DADDR,
--	MAX_KEY = KEY_REPLY_IP_DADDR,
-+	KEY_ARP_SPA,
-+	KEY_ARP_TPA,
-+	MAX_KEY = KEY_ARP_TPA,
- };
- 
- static struct ulogd_key ip2bin_inp[] = {
-@@ -83,6 +85,16 @@ static struct ulogd_key ip2bin_inp[] = {
- 		.flags	= ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
- 		.name	= "reply.ip.daddr",
- 	},
-+	[KEY_ARP_SPA] = {
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-+		.name = "arp.saddr",
-+	},
-+	[KEY_ARP_TPA] = {
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-+		.name = "arp.daddr",
-+	},
- };
- 
- static struct ulogd_key ip2bin_keys[] = {
-@@ -110,7 +122,14 @@ static struct ulogd_key ip2bin_keys[] = {
- 		.type = ULOGD_RET_RAWSTR,
- 		.name = "reply.ip.daddr.bin",
- 	},
--
-+	{
-+		.type = ULOGD_RET_RAWSTR,
-+		.name = "arp.saddr.bin",
-+	},
-+	{
-+		.type = ULOGD_RET_RAWSTR,
-+		.name = "arp.daddr.bin",
-+	},
- };
- 
- static char ipbin_array[MAX_KEY - START_KEY + 1][FORMAT_IPV6_BUFSZ];
-@@ -150,6 +169,7 @@ static int interp_ip2bin(struct ulogd_pluginstance *pi)
- 		addr_family = AF_INET6;
- 		break;
- 	case NFPROTO_IPV4:
-+	case NFPROTO_ARP:
- 		addr_family = AF_INET;
- 		break;
- 	case NFPROTO_BRIDGE:
-diff --git a/filter/ulogd_filter_IP2HBIN.c b/filter/ulogd_filter_IP2HBIN.c
-index 081b757a6f1a..38306e8406a2 100644
---- a/filter/ulogd_filter_IP2HBIN.c
-+++ b/filter/ulogd_filter_IP2HBIN.c
-@@ -40,7 +40,9 @@ enum input_keys {
- 	KEY_ORIG_IP_DADDR,
- 	KEY_REPLY_IP_SADDR,
- 	KEY_REPLY_IP_DADDR,
--	MAX_KEY = KEY_REPLY_IP_DADDR,
-+	KEY_ARP_SPA,
-+	KEY_ARP_TPA,
-+	MAX_KEY = KEY_ARP_TPA,
- };
- 
- static struct ulogd_key ip2hbin_inp[] = {
-@@ -84,6 +86,16 @@ static struct ulogd_key ip2hbin_inp[] = {
- 		.flags	= ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
- 		.name	= "reply.ip.daddr",
- 	},
-+	[KEY_ARP_SPA] = {
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-+		.name = "arp.saddr",
-+	},
-+	[KEY_ARP_TPA] = {
-+		.type = ULOGD_RET_IPADDR,
-+		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-+		.name = "arp.daddr",
-+	},
- };
- 
- static struct ulogd_key ip2hbin_keys[] = {
-@@ -111,6 +123,14 @@ static struct ulogd_key ip2hbin_keys[] = {
- 		.type = ULOGD_RET_IPADDR,
- 		.name = "reply.ip.hdaddr",
- 	},
-+	{
-+		.type = ULOGD_RET_IPADDR,
-+		.name = "arp.hsaddr",
-+	},
-+	{
-+		.type = ULOGD_RET_IPADDR,
-+		.name = "arp.hdaddr",
-+	},
- };
- 
- static void ip2hbin(struct ulogd_key *inp, int i, struct ulogd_key *outp, int o,
-@@ -140,6 +160,7 @@ static int interp_ip2hbin(struct ulogd_pluginstance *pi)
- 		addr_family = AF_INET6;
- 		break;
- 	case NFPROTO_IPV4:
-+	case NFPROTO_ARP:
- 		addr_family = AF_INET;
- 		break;
- 	case NFPROTO_BRIDGE:
-diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
-index 3d4d6e9dc897..12a376efafe4 100644
---- a/filter/ulogd_filter_IP2STR.c
-+++ b/filter/ulogd_filter_IP2STR.c
-@@ -175,6 +175,7 @@ static int interp_ip2str(struct ulogd_pluginstance *pi)
- 		addr_family = AF_INET6;
- 		break;
- 	case NFPROTO_IPV4:
-+	case NFPROTO_ARP:
- 		addr_family = AF_INET;
- 		break;
- 	case NFPROTO_BRIDGE:
-diff --git a/util/printpkt.c b/util/printpkt.c
-index 2fecd50e233c..93fe4722d63c 100644
---- a/util/printpkt.c
-+++ b/util/printpkt.c
-@@ -467,6 +467,9 @@ int printpkt_print(struct ulogd_key *res, char *buf)
- 	case NFPROTO_BRIDGE:
- 		buf_cur += printpkt_bridge(res, buf_cur);
- 		break;
-+	case NFPROTO_ARP:
-+		buf_cur += printpkt_arp(res, buf_cur);
-+		break;
- 	}
- 
- 	if (pp_is_valid(res, KEY_OOB_UID))
--- 
-2.47.2
+For some reasons (likely PEBKAC here...) I did not catch that before
+merging the PR, please try to follow-up soon. Thanks,
+
+Paolo
 
