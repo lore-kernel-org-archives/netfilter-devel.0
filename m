@@ -1,593 +1,140 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2288E1FFC45
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 May 2025 19:55:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 076A910942
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2025 00:34:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748375756; cv=none; b=UOns1NupD/Try0U5QNNrKXO79Arhfd4Fhks5RIedZ7q4rIR1vd+8O2FSJdBJYbEsQXapodToFvK02dnG4r0irWXVvZIKiPZakcGotMysj4K4pQ7UvCjrhgv2qxGmq9HM/hF198UTbyDbnjYm41nuyG0QUGcgXmfT49VjSLMIteY=
+	t=1748392501; cv=none; b=jo48feO9PmitzltTFZXOvkX/xLCZD+Zfp9sPegpPynhf05sIuPDcJNwNqaSTJN2Q5sVKBLSYxR/GJqfu8JEFlfTySVwGceXQudpDbxbXj4uvCDlBJ7Zl0xV94F+eYpb/dhtN32GTL4pH/AD2gzf+1JLOLuxRm16ICWJm8jnhHOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748375756; c=relaxed/simple;
-	bh=VzHeOHuyQgpS5RVrSQiLFvsvEsSH45NrPppD15lOkZY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NkeGOeRAJDVmWqD8m5Reuk8jj2VySDt5D+hSU60afGpItOq0LmzfyCOuo6Mz38GJDW8jzqrCjigV6XdB7Wvj4F3dAikGLLb67SzT7JlDSnCJ6So+mvzEDbIYN04JC8mA8ZOXkMZzyIpUZkOhOtM9fUBzNXOogz4Tv81aZJH6AEY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=GYXUEcPZ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=kqylwRmV; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=GYXUEcPZ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=kqylwRmV; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="GYXUEcPZ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="kqylwRmV";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="GYXUEcPZ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="kqylwRmV"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 791352118D;
-	Tue, 27 May 2025 19:55:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1748375743; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V2U7OdBUpQXsidFQ46c9lTx51HBgFYUFLOQ4isHGg6I=;
-	b=GYXUEcPZHpjA8lBVN8FYjKv/CIlZ7k10O2ofE4yOqnIUcadV9pmrhAnuyeayMWXixU9H+O
-	uEMTzhBw/JjWcDmJgy/QCzBiTMYiCZ2ej+xLNKMPUZbRqkmZoNmvYOlsd5KdOFF0qXh9cR
-	fxX7kpXEXxLjNUFQGqSrTPeIhqAjaoQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1748375743;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V2U7OdBUpQXsidFQ46c9lTx51HBgFYUFLOQ4isHGg6I=;
-	b=kqylwRmVB43AIFXmcwgb6zFOc42r66n7+4jTH+xNPSUZhZYhswVpxNcHWyHh3Btb9Cq01O
-	9zUwHN/u/mFHVFAw==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1748375743; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V2U7OdBUpQXsidFQ46c9lTx51HBgFYUFLOQ4isHGg6I=;
-	b=GYXUEcPZHpjA8lBVN8FYjKv/CIlZ7k10O2ofE4yOqnIUcadV9pmrhAnuyeayMWXixU9H+O
-	uEMTzhBw/JjWcDmJgy/QCzBiTMYiCZ2ej+xLNKMPUZbRqkmZoNmvYOlsd5KdOFF0qXh9cR
-	fxX7kpXEXxLjNUFQGqSrTPeIhqAjaoQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1748375743;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=V2U7OdBUpQXsidFQ46c9lTx51HBgFYUFLOQ4isHGg6I=;
-	b=kqylwRmVB43AIFXmcwgb6zFOc42r66n7+4jTH+xNPSUZhZYhswVpxNcHWyHh3Btb9Cq01O
-	9zUwHN/u/mFHVFAw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 2FBDF136E0;
-	Tue, 27 May 2025 19:55:43 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id iGVpCL8YNmhJGgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 27 May 2025 19:55:43 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 7/7 nft] tests: add tunnel shell and python tests
-Date: Tue, 27 May 2025 21:54:44 +0200
-Message-ID: <4416bded671aa530d10c72bc49e9375d4ee3d527.1748374810.git.fmancera@suse.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <cover.1748374810.git.fmancera@suse.de>
-References: <cover.1748374810.git.fmancera@suse.de>
+	s=arc-20240116; t=1748392501; c=relaxed/simple;
+	bh=DErBpn7xiN9lUL5OrPPXSDnRBNYClDS0kgG5p6nOrNs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i4yXj7bCqwkd8Q0cnj6EDKR+yeCGdEulPXybii4oWAr5lAJSW2N+u+eQIxChc4ci5j1r0mM7c5rZAgwkOQESUHdU5dlxh7k2DFuz1p8I6ZUk0HuT9dsbad13Vj7pe4fuPLOVdGwLgJPg+mdB5YuKrC+bbzI1rS1k/qMou1xPWcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 1D2CA6043E; Wed, 28 May 2025 02:34:49 +0200 (CEST)
+Date: Wed, 28 May 2025 02:34:10 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH 2/2 libnftnl v2] tunnel: add support to geneve options
+Message-ID: <aDZaAl1r0iWkAePn@strlen.de>
+References: <20250527193420.9860-1-fmancera@suse.de>
+ <20250527193420.9860-2-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-6.80 / 50.00];
-	REPLY(-4.00)[];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[3];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:email,suse.de:mid];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Score: -6.80
-X-Spam-Level: 
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250527193420.9860-2-fmancera@suse.de>
 
-Add tests for tunnel statement and object support. Shell and python
-tests both cover standard nft output and json.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- tests/py/netdev/tunnel.t                      |   7 +
- tests/py/netdev/tunnel.t.json                 |  45 +++++
- tests/py/netdev/tunnel.t.json.payload         |  12 ++
- tests/py/netdev/tunnel.t.payload              |  12 ++
- tests/shell/features/tunnel.nft               |  17 ++
- tests/shell/testcases/sets/0075tunnel_0       |  75 ++++++++
- .../sets/dumps/0075tunnel_0.json-nft          | 171 ++++++++++++++++++
- .../testcases/sets/dumps/0075tunnel_0.nft     |  63 +++++++
- 8 files changed, 402 insertions(+)
- create mode 100644 tests/py/netdev/tunnel.t
- create mode 100644 tests/py/netdev/tunnel.t.json
- create mode 100644 tests/py/netdev/tunnel.t.json.payload
- create mode 100644 tests/py/netdev/tunnel.t.payload
- create mode 100644 tests/shell/features/tunnel.nft
- create mode 100755 tests/shell/testcases/sets/0075tunnel_0
- create mode 100644 tests/shell/testcases/sets/dumps/0075tunnel_0.json-nft
- create mode 100644 tests/shell/testcases/sets/dumps/0075tunnel_0.nft
+Hi Fernando
 
-diff --git a/tests/py/netdev/tunnel.t b/tests/py/netdev/tunnel.t
-new file mode 100644
-index 00000000..920d21ff
---- /dev/null
-+++ b/tests/py/netdev/tunnel.t
-@@ -0,0 +1,7 @@
-+:tunnelchain;type filter hook ingress device lo priority 0
-+
-+*netdev;test-netdev;tunnelchain
-+
-+tunnel path exists;ok
-+tunnel path missing;ok
-+tunnel id 10;ok
-diff --git a/tests/py/netdev/tunnel.t.json b/tests/py/netdev/tunnel.t.json
-new file mode 100644
-index 00000000..3ca877d9
---- /dev/null
-+++ b/tests/py/netdev/tunnel.t.json
-@@ -0,0 +1,45 @@
-+# tunnel path exists
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "tunnel": {
-+                    "key": "path"
-+                }
-+            },
-+            "op": "==",
-+            "right": true
-+        }
-+    }
-+]
-+
-+# tunnel path missing
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "tunnel": {
-+                    "key": "path"
-+                }
-+            },
-+            "op": "==",
-+            "right": false
-+        }
-+    }
-+]
-+
-+# tunnel id 10
-+[
-+    {
-+        "match": {
-+            "left": {
-+                "tunnel": {
-+                    "key": "id"
-+                }
-+            },
-+            "op": "==",
-+            "right": 10
-+        }
-+    }
-+]
-+
-diff --git a/tests/py/netdev/tunnel.t.json.payload b/tests/py/netdev/tunnel.t.json.payload
-new file mode 100644
-index 00000000..df127b6c
---- /dev/null
-+++ b/tests/py/netdev/tunnel.t.json.payload
-@@ -0,0 +1,12 @@
-+# tunnel path exists
-+netdev test-netdev tunnelchain
-+  [ tunnel load path => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+# tunnel path missing
-+netdev test-netdev tunnelchain
-+  [ tunnel load path => reg 1 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+# tunnel id 10
-+netdev test-netdev tunnelchain
-+  [ tunnel load id => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-diff --git a/tests/py/netdev/tunnel.t.payload b/tests/py/netdev/tunnel.t.payload
-new file mode 100644
-index 00000000..df127b6c
---- /dev/null
-+++ b/tests/py/netdev/tunnel.t.payload
-@@ -0,0 +1,12 @@
-+# tunnel path exists
-+netdev test-netdev tunnelchain
-+  [ tunnel load path => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+# tunnel path missing
-+netdev test-netdev tunnelchain
-+  [ tunnel load path => reg 1 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+# tunnel id 10
-+netdev test-netdev tunnelchain
-+  [ tunnel load id => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-diff --git a/tests/shell/features/tunnel.nft b/tests/shell/features/tunnel.nft
-new file mode 100644
-index 00000000..64b2f70b
---- /dev/null
-+++ b/tests/shell/features/tunnel.nft
-@@ -0,0 +1,17 @@
-+# v5.7-rc1~146^2~137^2~26
-+# 925d844696d9 ("netfilter: nft_tunnel: add support for geneve opts")
-+table netdev x {
-+        tunnel y {
-+                id 10
-+                ip saddr 192.168.2.10
-+                ip daddr 192.168.2.11
-+                sport 10
-+                dport 20
-+                ttl 10
-+                geneve {
-+                        class 0x1010 opt-type 0x1 data "0x12345678"
-+                        class 0x2010 opt-type 0x2 data "0x87654321"
-+                        class 0x2020 opt-type 0x3 data "0x87654321abcdeffe"
-+                }
-+        }
-+}
-diff --git a/tests/shell/testcases/sets/0075tunnel_0 b/tests/shell/testcases/sets/0075tunnel_0
-new file mode 100755
-index 00000000..f8a8cf00
---- /dev/null
-+++ b/tests/shell/testcases/sets/0075tunnel_0
-@@ -0,0 +1,75 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_tunnel)
-+
-+# * creating valid named objects
-+# * referencing them from a valid rule
-+
-+RULESET="
-+table netdev x {
-+	tunnel geneve-t {
-+		id 10
-+		ip saddr 192.168.2.10
-+		ip daddr 192.168.2.11
-+		sport 10
-+		dport 10
-+		ttl 10
-+		tos 10
-+		geneve {
-+			class 0x1 opt-type 0x1 data \"0x12345678\"
-+			class 0x1010 opt-type 0x2 data \"0x87654321\"
-+			class 0x2020 opt-type 0x3 data \"0x87654321abcdeffe\"
-+		}
-+	}
-+
-+	tunnel vxlan-t {
-+		id 20
-+		ip saddr 192.168.2.20
-+		ip daddr 192.168.2.21
-+		sport 20
-+		dport 20
-+		ttl 10
-+		tos 10
-+		vxlan {
-+			gbp 200
-+		}
-+	}
-+
-+	tunnel erspan-tv1 {
-+		id 30
-+		ip saddr 192.168.2.30
-+		ip daddr 192.168.2.31
-+		sport 30
-+		dport 30
-+		ttl 10
-+		tos 10
-+		erspan {
-+			version 1
-+			index 5
-+		}
-+	}
-+
-+	tunnel erspan-tv2 {
-+		id 40
-+		ip saddr 192.168.2.40
-+		ip daddr 192.168.2.41
-+		sport 40
-+		dport 40
-+		ttl 10
-+		tos 10
-+		erspan {
-+			version 2
-+			direction ingress
-+			id 10
-+		}
-+	}
-+
-+	chain x {
-+		type filter hook ingress priority 0; policy accept;
-+		tunnel name ip saddr map { 10.141.10.123 : "geneve-t", 10.141.10.124 : "vxlan-t", 10.141.10.125 : "erspan-tv1", 10.141.10.126 : "erspan-tv2" } counter
-+	}
-+}
-+"
-+
-+set -e
-+$NFT -f - <<< "$RULESET"
-diff --git a/tests/shell/testcases/sets/dumps/0075tunnel_0.json-nft b/tests/shell/testcases/sets/dumps/0075tunnel_0.json-nft
-new file mode 100644
-index 00000000..c3a7d522
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0075tunnel_0.json-nft
-@@ -0,0 +1,171 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "netdev",
-+        "name": "x",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "netdev",
-+        "table": "x",
-+        "name": "x",
-+        "handle": 0,
-+        "type": "filter",
-+        "hook": "ingress",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    },
-+    {
-+      "tunnel": {
-+        "family": "netdev",
-+        "name": "geneve-t",
-+        "table": "x",
-+        "handle": 0,
-+        "id": 10,
-+        "src": "192.168.2.10",
-+        "dst": "192.168.2.11",
-+        "sport": 10,
-+        "dport": 10,
-+        "tos": 10,
-+        "ttl": 10,
-+        "type": "geneve",
-+        "tunnel": [
-+          {
-+            "class": 1,
-+            "opt-type": 1,
-+            "data": "0x12345678"
-+          },
-+          {
-+            "class": 4112,
-+            "opt-type": 2,
-+            "data": "0x87654321"
-+          },
-+          {
-+            "class": 8224,
-+            "opt-type": 3,
-+            "data": "0x87654321abcdeffe"
-+          }
-+        ]
-+      }
-+    },
-+    {
-+      "tunnel": {
-+        "family": "netdev",
-+        "name": "vxlan-t",
-+        "table": "x",
-+        "handle": 0,
-+        "id": 20,
-+        "src": "192.168.2.20",
-+        "dst": "192.168.2.21",
-+        "sport": 20,
-+        "dport": 20,
-+        "tos": 10,
-+        "ttl": 10,
-+        "type": "vxlan",
-+        "tunnel": {
-+          "gbp": 200
-+        }
-+      }
-+    },
-+    {
-+      "tunnel": {
-+        "family": "netdev",
-+        "name": "erspan-tv1",
-+        "table": "x",
-+        "handle": 0,
-+        "id": 30,
-+        "src": "192.168.2.30",
-+        "dst": "192.168.2.31",
-+        "sport": 30,
-+        "dport": 30,
-+        "tos": 10,
-+        "ttl": 10,
-+        "type": "erspan",
-+        "tunnel": {
-+          "version": 1,
-+          "index": 5
-+        }
-+      }
-+    },
-+    {
-+      "tunnel": {
-+        "family": "netdev",
-+        "name": "erspan-tv2",
-+        "table": "x",
-+        "handle": 0,
-+        "id": 40,
-+        "src": "192.168.2.40",
-+        "dst": "192.168.2.41",
-+        "sport": 40,
-+        "dport": 40,
-+        "tos": 10,
-+        "ttl": 10,
-+        "type": "erspan",
-+        "tunnel": {
-+          "version": 2,
-+          "direction": "ingress",
-+          "hwid": 10
-+        }
-+      }
-+    },
-+    {
-+      "rule": {
-+        "family": "netdev",
-+        "table": "x",
-+        "chain": "x",
-+        "handle": 0,
-+        "expr": [
-+          {
-+            "tunnel": {
-+              "map": {
-+                "key": {
-+                  "payload": {
-+                    "protocol": "ip",
-+                    "field": "saddr"
-+                  }
-+                },
-+                "data": {
-+                  "set": [
-+                    [
-+                      "10.141.10.123",
-+                      "geneve-t"
-+                    ],
-+                    [
-+                      "10.141.10.124",
-+                      "vxlan-t"
-+                    ],
-+                    [
-+                      "10.141.10.125",
-+                      "erspan-tv1"
-+                    ],
-+                    [
-+                      "10.141.10.126",
-+                      "erspan-tv2"
-+                    ]
-+                  ]
-+                }
-+              }
-+            }
-+          },
-+          {
-+            "counter": {
-+              "packets": 0,
-+              "bytes": 0
-+            }
-+          }
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/sets/dumps/0075tunnel_0.nft b/tests/shell/testcases/sets/dumps/0075tunnel_0.nft
-new file mode 100644
-index 00000000..9969124d
---- /dev/null
-+++ b/tests/shell/testcases/sets/dumps/0075tunnel_0.nft
-@@ -0,0 +1,63 @@
-+table netdev x {
-+	tunnel geneve-t {
-+		id 10
-+		ip saddr 192.168.2.10
-+		ip daddr 192.168.2.11
-+		sport 10
-+		dport 10
-+		tos 10
-+		ttl 10
-+		geneve {
-+			class 0x1 opt-type 0x1 data "0x12345678"
-+			class 0x1010 opt-type 0x2 data "0x87654321"
-+			class 0x2020 opt-type 0x3 data "0x87654321abcdeffe"
-+		}
-+	}
-+
-+	tunnel vxlan-t {
-+		id 20
-+		ip saddr 192.168.2.20
-+		ip daddr 192.168.2.21
-+		sport 20
-+		dport 20
-+		tos 10
-+		ttl 10
-+		vxlan {
-+			gbp 200
-+		}
-+	}
-+
-+	tunnel erspan-tv1 {
-+		id 30
-+		ip saddr 192.168.2.30
-+		ip daddr 192.168.2.31
-+		sport 30
-+		dport 30
-+		tos 10
-+		ttl 10
-+		erspan {
-+			version 1
-+			index 5
-+		}
-+	}
-+
-+	tunnel erspan-tv2 {
-+		id 40
-+		ip saddr 192.168.2.40
-+		ip daddr 192.168.2.41
-+		sport 40
-+		dport 40
-+		tos 10
-+		ttl 10
-+		erspan {
-+			version 2
-+			direction ingress
-+			id 10
-+		}
-+	}
-+
-+	chain x {
-+		type filter hook ingress priority filter; policy accept;
-+		tunnel name ip saddr map { 10.141.10.123 : "geneve-t", 10.141.10.124 : "vxlan-t", 10.141.10.125 : "erspan-tv1", 10.141.10.126 : "erspan-tv2" } counter packets 0 bytes 0
-+	}
-+}
--- 
-2.49.0
+Thanks for working on this, I got inquiries as to nft_tunnel.c
+and how to make use of this stuff...
 
+> diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
+> index 9930355..14a42cd 100644
+> --- a/include/libnftnl/object.h
+> +++ b/include/libnftnl/object.h
+> @@ -117,15 +117,19 @@ enum {
+>  	NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX,
+>  	NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID,
+>  	NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR,
+> +	NFTNL_OBJ_TUNNEL_GENEVE_OPTS,
+
+If every flavour gets its own flag in the tunnel namespace we'll run
+out of u64 in no time.
+
+AFAICS these are mutually exclusive, e.g.
+NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX and NFTNL_OBJ_TUNNEL_VXLAN_GBP cannot
+be active at the same time.
+
+Is there a way to re-use the internal flag namespace depending on the tunnel
+subtype?
+
+Or to have distinct tunnel object types?
+
+object -> tunnel -> {vxlan, erspan, ...} ?
+
+As-is, how is this API supposed to be used?  The internal union seems to
+be asking for trouble later, when e.g. 'getting' NFTNL_OBJ_TUNNEL_GENEVE_OPTS
+on something that was instantiated as vxlan tunnel and fields aliasing to
+unexpected values.
+
+Perhaps the first use of any of the NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX
+etc values in a setter should interally "lock" the object to the given
+subtype?
+
+That might allow to NOT use ->flags for those enum values and instead
+keep track of them via overlapping bits.
+
+We'd need some internal 'enum nft_obj_tunnel_type' that marks which
+part of the union is useable/instantiated so we can reject requests
+to set bits that are not available for the specific tunnel type.
+
+>  	switch (type) {
+>  	case NFTNL_OBJ_TUNNEL_ID:
+> @@ -72,6 +73,15 @@ nftnl_obj_tunnel_set(struct nftnl_obj *e, uint16_t type,
+>  	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR:
+>  		memcpy(&tun->u.tun_erspan.u.v2.dir, data, data_len);
+>  		break;
+> +	case NFTNL_OBJ_TUNNEL_GENEVE_OPTS:
+> +		geneve = malloc(sizeof(struct nftnl_obj_tunnel_geneve));
+
+No null check.  Applies to a few other spots too.
+
+> +		memcpy(geneve, data, data_len);
+
+Hmm, this looks like the API leaks internal data layout from nftables to
+libnftnl and vice versa?  IMO thats a non-starter, sorry.
+
+I see that options are essentially unlimited values, so perhaps nftables
+should build the netlink blob(s) directly, similar to nftnl_udata()?
+
+Pablo, any better idea?
+
+I don't like exposing the struct and also the list abstraction getting
+exposed to libnftnl users.
+
+As-is, there is:
+
+json/bison -> struct tunnel_geneve -> nftnl_obj_set_data(&obj, NFTNL_OBJ_TUNNEL_GENEVE_OPTS, &blob);
+ -> nftnl_obj_tunnel_build -> mnl_attr_put_u16( ...
+
+I think it will be better if we make this internal to nftables and have
+pass-through for the entire geneve blob,i.e.
+
+json/bison -> struct tunnel_geneve ->
+ (re)alloc buffer: mnl_nlmsg_put_header(), mnl_attr_put_u16 -> etc.
+ nftnl_obj_set_data(obj, NFTNL_OBJ_TUNNEL_GENEVE_OPTS, blob) ->
+ nftnl_obj_tunnel_build -> memcpy into NFTA_TUNNEL_KEY_OPTS nest
+ container.
+
+Less elegant but I have a hard time coming up with an api that is
+extensible and doesn't need shared binary structures.
+
+Another option would be to use udata in the frontend and then
+make libnftnl xlate the udata to netlink proper.  But I don't
+like this because a) udata is supposed to be "DO NOT TOUCH"
+and b) it means doubling the work compared to just doing mnl_attr_put()
+calls in nftables.
+
+> +	if (tb[NFTA_TUNNEL_KEY_GENEVE_DATA]) {
+> +		uint32_t len = mnl_attr_get_payload_len(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]);
+> +
+> +		memcpy(geneve->data,
+> +		       mnl_attr_get_payload(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]),
+> +		       len);
+
+This should cap 'len' by sizeof(geneve->data).
+But I'm not sure this deserialization should be done in libnftnl in the
+first place, see above.
