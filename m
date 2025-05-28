@@ -1,105 +1,111 @@
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2507D26A0E0
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2025 13:41:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0528F1F37D3;
+	Wed, 28 May 2025 13:50:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748439721; cv=none; b=dFZugakSs5ebJNdMpflw48Ux9cK7pnbJkzjO4V3VieLB+XuEVxrY0T/EqspU0BqDJE8nQIbjP2fG+/wX7tV3MIr97o+LATJI0jVH+KXzZ+gBCNTc2Xa/pcYbAwmxSFGZSfB3DVQ0FHUR5mCldSLrJ8D3I53rJi/qjdRdgjAKx68=
+	t=1748440231; cv=none; b=ZUpZyjw+e87Ke6TTdfoaGxCVT1y2Ksc86HliN9PdK3F3ddpkAfbo4umMT4ffFyLvueXIZCCI2kf0EJB2y8WF9prt0tmqn6x+ZKDmwNEhd4phxX2Iy5rC1bQmXvpbSdJ0npl48YCEW9vHMHZW1dKoI+sDk7hlIluMfP5LpsQULWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748439721; c=relaxed/simple;
-	bh=q6+NUbSkDfbULFIkQSRxG3LqAFTgY8fsGbQ0EjJoDmg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TkvRW26mpC1PB1FFQXFhhyDi/WUv2q+Z8itqAcpsRgG7Qfvab1apM5Sn4r6xr+q547gLQMr3akX086bu/W6Bs9SSS0a115msXFNrxZQ64j9yFaDjJVf0WKbuVU2QcjJzOIkK+/71ndQz8yE2YGMkOnIOHj+mX6nD2amaM3XuZf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=dvDTI76j; arc=none smtp.client-ip=209.85.160.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1748440231; c=relaxed/simple;
+	bh=Mpg9XUQl59h3pBUPCN3zmB3GaCOs4B75IwcrLW4NqHU=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=dtK0e/1HCGUpw8NUeUtfpNUesPk5z+bFzGM5TsuvcHWVfyL16HVqep9iRg4VsCxo/MPwoae9b/3yXGVjAzlHOAjkGKliXtRO7Lw4LlgwvipQrK1k9gUvdNw2IGwuLoRVLE5UGcNQ/0DDodxhLP+1Z2/woPQh3H5S8SW68hnT1oI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=APQCFQVk; arc=none smtp.client-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="dvDTI76j"
-Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-47677b77725so41399921cf.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2025 06:41:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1748439719; x=1749044519; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=q6+NUbSkDfbULFIkQSRxG3LqAFTgY8fsGbQ0EjJoDmg=;
-        b=dvDTI76jZZGKZmTUy8Wff5m8yyne23JCwucBRkoFbQLgPKmcWzyLZ2j6RrrAgnWDlA
-         Db5GSXJPcEIp1gJIjJmCCAnswBjT7gBApuO25JjYe/9SkA5BSUfPS02mZUwesFAVHmL+
-         mrvM509kQpcIPbIWZPVIWspkkPPA3rxuHJKyloF4yoyc0wrHf8oA325hyPgtI6+n0Uo0
-         qUPjyuJAKbzSwr10pvyQU8OKlKxenOXH7rvszJf1DqxBrBU2ZdhzifhdezlkvRgijtFs
-         CLqEaXxVmkLzvJya9w2F3JcjClKiCSTiyXAgdCTx/qnSD394/bmpLZdVjJPwcdOpAOJK
-         EANw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748439719; x=1749044519;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=q6+NUbSkDfbULFIkQSRxG3LqAFTgY8fsGbQ0EjJoDmg=;
-        b=POhp+RO33dRmiponm1aizl4gYo2RQ+tNt4mqGZVh7FHALgKQBA4lhjtpv115UTU0xC
-         tFsnOO0vkuJ4pcquXGL2+bS+O/dTxTtZ3svv10D1DoNHBuE3XL/QS97WDeUC0Kd4XWZB
-         buQAjqOMkSF8ASXchzYk17cjrlcrdJy5CekPYPBZoJHnCftV/0qSkPo5TGgLzcjAuGvP
-         OQEQ9Ja6G6rytfFJJBbYzwEdSwBK7EDTAekODWT2/cj/bMjl5kiXd6oWNKNuA4B0F0Gp
-         Nh/lcj+Z6FV38Mb2ltpGRENZkoXnExR7kUR4xL6J6W4eBpZ3lG5vokJ1lWYN94Dm46EA
-         Fkwg==
-X-Forwarded-Encrypted: i=1; AJvYcCUHGNu+4ZL0LZc88RjF0VDG5lzG8L2E6VMjU/X1Kzvl/zFp2s7r1y1HGvWZ0Q5/0c7rQH0w1wmYsVDnstzZx+0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwABFnsZTbl5QCbeBEHNP4FJrcTv09WuOLxsh6H3xnKvBnRhPbt
-	UNd9ZBRq6Qq37la2cksHgaQzSrBSMBGInHT+whw1f45TvkEH1hdhc9dhk+AN20P39wAsNZwptb+
-	TfuoAaTnrztFu1WRU6irEC4Mmtp1un5nHFWhVX1AC
-X-Gm-Gg: ASbGncuUqosdZ5wSH1DX0V9fgpxKJWiEQyzHyWqVsYLapcK7HYLDm0++P67Ed+iAWUC
-	DpQ7oHEYiGYQmpPAsxdNdIpeoDTzvWA3g/VjGc8zbyJ805+WFRTOCQCagM8jSyVyk6HsGsGMbVb
-	Hz3vMsqUzPTlFNQ6tZZNX5fPYjdQ7FxdufXGWQn7FhHQ8hj63K48sT6w==
-X-Google-Smtp-Source: AGHT+IFXUSUWOaRqlGgnQsk3Ddxf9ikBISkt0/KlPz6xvIxI0l0YyOvrvNO9ok6mnWdgT9562252wxJ87xj+prWb40Q=
-X-Received: by 2002:a05:622a:5c15:b0:476:add4:d2a9 with SMTP id
- d75a77b69052e-49f46c33b2dmr291076841cf.30.1748439717984; Wed, 28 May 2025
- 06:41:57 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="APQCFQVk"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp0.kfki.hu (Postfix) with ESMTP id E1F8719201A0;
+	Wed, 28 May 2025 15:45:02 +0200 (CEST)
+Authentication-Results: smtp012.wigner.hu (amavis); dkim=pass (1024-bit key)
+ reason="pass (just generated, assumed good)" header.d=blackhole.kfki.hu
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=content-id:mime-version:references
+	:message-id:in-reply-to:from:from:date:date:received:received
+	:received:received; s=20151130; t=1748439901; x=1750254302; bh=h
+	8HpPOKmadZTCE9YZDzfLUVOhtwWReeTJejqPLhcSh0=; b=APQCFQVkqQ4hnav5I
+	QB6OUfiOG26fnJRO2a3/UiISo/Rd/E9cFQvj9Mo6JofAC9UNoIZAQfdKGLgjiASD
+	ZktPvu3kIFP58NkjcTWmUpPswyq+9b0NddrmaVTRd0BnED1mrPhbvKl9GSsSmitQ
+	JfU7eO4ulRul6hMa/fQgdqlspU=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id W5zIGn_boHeP; Wed, 28 May 2025 15:45:01 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 09878192019E;
+	Wed, 28 May 2025 15:45:00 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 90E6C34316A; Wed, 28 May 2025 15:45:00 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 8F5B1343169;
+	Wed, 28 May 2025 15:45:00 +0200 (CEST)
+Date: Wed, 28 May 2025 15:45:00 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Eric Dumazet <edumazet@google.com>
+cc: ying chen <yc1082463@gmail.com>, Florian Westphal <fw@strlen.de>, 
+    pablo@netfilter.org, kadlec@netfilter.org, davem@davemloft.net, 
+    kuba@kernel.org, pabeni@redhat.com, netfilter-devel@vger.kernel.org, 
+    coreteam@netfilter.org, netdev@vger.kernel.org, 
+    linux-kernel@vger.kernel.org
+Subject: Re: [bug report, linux 6.15-rc4] A large number of connections in
+ the SYN_SENT state caused the nf_conntrack table to be full.
+In-Reply-To: <CANn89iLG4mgzHteS7ARwafw-5KscNv7vBD3zM9J6yZwDq+RbcQ@mail.gmail.com>
+Message-ID: <5611b12b-d560-cbb8-1d74-d935f60244dd@blackhole.kfki.hu>
+References: <CAN2Y7hxscai7JuC0fPE8DZ3QOPzO_KsE_AMCuyeTYRQQW_mA2w@mail.gmail.com> <aDcLIh2lPkAWOVCI@strlen.de> <CAN2Y7hzKd+VxWy56q9ad8xwCcHPy5qoEaswZapnF87YkyYMcsA@mail.gmail.com> <CANn89iLG4mgzHteS7ARwafw-5KscNv7vBD3zM9J6yZwDq+RbcQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAN2Y7hxscai7JuC0fPE8DZ3QOPzO_KsE_AMCuyeTYRQQW_mA2w@mail.gmail.com>
- <aDcLIh2lPkAWOVCI@strlen.de> <CAN2Y7hzKd+VxWy56q9ad8xwCcHPy5qoEaswZapnF87YkyYMcsA@mail.gmail.com>
-In-Reply-To: <CAN2Y7hzKd+VxWy56q9ad8xwCcHPy5qoEaswZapnF87YkyYMcsA@mail.gmail.com>
-From: Eric Dumazet <edumazet@google.com>
-Date: Wed, 28 May 2025 06:41:45 -0700
-X-Gm-Features: AX0GCFtlj7sv-EQdf2aW5VpoDTLIYK53zi24E4KIItVmjWV2JQld-StOJ3wEEoo
-Message-ID: <CANn89iLG4mgzHteS7ARwafw-5KscNv7vBD3zM9J6yZwDq+RbcQ@mail.gmail.com>
-Subject: Re: [bug report, linux 6.15-rc4] A large number of connections in the
- SYN_SENT state caused the nf_conntrack table to be full.
-To: ying chen <yc1082463@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org, kadlec@netfilter.org, 
-	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/mixed; boundary="110363376-769770083-1748439818=:6759"
+Content-ID: <c1387642-c4d5-c4ae-a0e2-bda921178228@blackhole.kfki.hu>
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--110363376-769770083-1748439818=:6759
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-ID: <0fe7b6ac-9804-75fc-cbe2-69870eb5e0cf@blackhole.kfki.hu>
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 28, 2025 at 6:26=E2=80=AFAM ying chen <yc1082463@gmail.com> wro=
-te:
->
-> On Wed, May 28, 2025 at 9:10=E2=80=AFPM Florian Westphal <fw@strlen.de> w=
-rote:
-> >
-> > ying chen <yc1082463@gmail.com> wrote:
-> > > Hello all,
-> > >
-> > > I encountered an "nf_conntrack: table full" warning on Linux 6.15-rc4=
-.
-> > > Running cat /proc/net/nf_conntrack showed a large number of
-> > > connections in the SYN_SENT state.
-> > > As is well known, if we attempt to connect to a non-existent port, th=
-e
-> > > system will respond with an RST and then delete the conntrack entry.
-> > > However, when we frequently connect to non-existent ports, the
-> > > conntrack entries are not deleted, eventually causing the nf_conntrac=
-k
-> > > table to fill up.
-> >
-> > Yes, what do you expect to happen?
-> I understand that the conntrack entry should be deleted immediately
-> after receiving the RST reply.
+On Wed, 28 May 2025, Eric Dumazet wrote:
 
-Then it probably hints that you do not receive RST for all your SYN packets=
-.
+> On Wed, May 28, 2025 at 6:26=E2=80=AFAM ying chen <yc1082463@gmail.com>=
+ wrote:
+>>
+>> On Wed, May 28, 2025 at 9:10=E2=80=AFPM Florian Westphal <fw@strlen.de=
+> wrote:
+>>>
+>>> ying chen <yc1082463@gmail.com> wrote:
+>>>> Hello all,
+>>>>
+>>>> I encountered an "nf_conntrack: table full" warning on Linux 6.15-rc=
+4.
+>>>> Running cat /proc/net/nf_conntrack showed a large number of
+>>>> connections in the SYN_SENT state.
+>>>> As is well known, if we attempt to connect to a non-existent port, t=
+he
+>>>> system will respond with an RST and then delete the conntrack entry.
+>>>> However, when we frequently connect to non-existent ports, the
+>>>> conntrack entries are not deleted, eventually causing the nf_conntra=
+ck
+>>>> table to fill up.
+>>>
+>>> Yes, what do you expect to happen?
+>> I understand that the conntrack entry should be deleted immediately
+>> after receiving the RST reply.
+>
+> Then it probably hints that you do not receive RST for all your SYN=20
+> packets.
+
+And Eric has got right: because the states are in SYN_SENT then either th=
+e=20
+RST packets were not received or out of the window or invalid from other=20
+reasons.
+
+Best regards,
+Jozsef
+--110363376-769770083-1748439818=:6759--
