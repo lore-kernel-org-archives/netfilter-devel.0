@@ -1,33 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70EBE18DB03
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2025 10:39:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 538402798FD
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2025 10:53:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748428801; cv=none; b=OJXhKTSY73SqAI53qkjaod/hagyh8pbOYvMJdSwrRd67mhZYHiaRUOe0w06eQQ3jjYOXiwUHP6oSIbM1IQ014chCc+nsddaIWiBQN4HAwvB9ey4GRxf2Ro020Y1lHHcFLmwkP+9JDmazR+LF+j3d7banycgbkSN3aAZlVV2Z/H0=
+	t=1748429615; cv=none; b=fo2jHy5Ay3v5Qd8BTl0hh9ZvMn0aAUwnPEZLly4Y5bEsFTUoKA+ZVOzTnS1FmPBVH+E3QX6JpuTQvX98KuQPIHiLET6fdDDPT12qIe/Bnz/b1uD5S0P9kA/YB+1YOrC6NcJx4m1LjW+VcwNTeX1PwJdKCY53GwPrKCu7D6DPYT4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748428801; c=relaxed/simple;
-	bh=BEGhBgfSVlrHSzht0ONAE3Z2i86EY5wewO9MXys6Kbk=;
+	s=arc-20240116; t=1748429615; c=relaxed/simple;
+	bh=Mz50rk56f650/oMJScmkmhsiPAnXOlQkjUdzuh78Gg0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g+yhTvfkarEGEWO3eVUZ4uJlZevMOZvU7XJjFYTdrc8sTEebHt2hKjsaNHaQBGQTBCzH+kxFPEhAUohQW8A7DnCO6x92/y6G7vH89vzo2HokOhaqgCA1m3mtBpdDZghpL2FXu/BTsmptZ2qXtpOAyHY2KChbWYWjvII/dIthuvc=
+	 Content-Type:Content-Disposition:In-Reply-To; b=kXBgrUmYiHm4vsrpztjPTGKar0uMrOQiUzl/mVFiUDTfWR2nXfVKAemVUnSvgeTRIpBmu8xOoaxb8KwZvQ7kzQPZIjvCL+N3j2kexLr26Y4C6a5PESWeboi9JU0gGympi53pyCMMJCSu5oeIfZl+j8Bc74agHEFN2Ae2mjY03sU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id AE692603EF; Wed, 28 May 2025 12:39:56 +0200 (CEST)
-Date: Wed, 28 May 2025 12:39:18 +0200
+	id D89A0603F8; Wed, 28 May 2025 12:53:30 +0200 (CEST)
+Date: Wed, 28 May 2025 12:52:47 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <ffmancera@riseup.net>
-Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/7 nft] tunnel: add erspan support
-Message-ID: <aDbn1jGWtzM2989n@strlen.de>
-References: <cover.1748374810.git.fmancera@suse.de>
- <ae88d3525c46a523e1b8a0b97450225804033014.1748374810.git.fmancera@suse.de>
- <aDZcyv8zZJh-fpzB@strlen.de>
- <26ea02a2-d1b1-451f-9b1c-f1d27c591b4c@riseup.net>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH 2/2 libnftnl v2] tunnel: add support to geneve options
+Message-ID: <aDbq_18Jv7jRx9SL@strlen.de>
+References: <20250527193420.9860-1-fmancera@suse.de>
+ <20250527193420.9860-2-fmancera@suse.de>
+ <aDZaAl1r0iWkAePn@strlen.de>
+ <7f8d6fea-d4da-4cda-87cc-c5194e36d25e@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -36,84 +34,134 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <26ea02a2-d1b1-451f-9b1c-f1d27c591b4c@riseup.net>
+In-Reply-To: <7f8d6fea-d4da-4cda-87cc-c5194e36d25e@suse.de>
 
-Fernando Fernandez Mancera <ffmancera@riseup.net> wrote:
-> > tunnel erspan y {
-> >                   id 10
-> >                   ip saddr 192.168.2.10
-> >                   ip daddr 192.168.2.11
-> >                   sport 10
-> >                   dport 20
-> >                   ttl 10
-> >                   version 1
-> >                   index 2
-> > }
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> > If every flavour gets its own flag in the tunnel namespace we'll run
+> > out of u64 in no time.
 > > 
-> > Or was the sub-section intentional to cleanly separate the common parts
-> > from the tunnel specific knobs?
+> > AFAICS these are mutually exclusive, e.g.
+> > NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX and NFTNL_OBJ_TUNNEL_VXLAN_GBP cannot
+> > be active at the same time.
 > > 
-> 
-> The sub-section was to cleanly separate it and easily understand what 
-> are the tunnel specific options configured.
-
-Makes sense to me, thanks.
-
-> > In that case, maybe 'tunnel y {
-> > 	...
-> > 	type erspan { ... '?
+> > Is there a way to re-use the internal flag namespace depending on the tunnel
+> > subtype?
 > > 
-> > Or do you think its unecessarily verbose?
+> > Or to have distinct tunnel object types?
 > > 
-> > I think it might be good to make it clear that this is an either-or thing
-> > and multiple 'type' declarations aren't permitted.
+> > object -> tunnel -> {vxlan, erspan, ...} ?
 > > 
 > 
-> IMHO, adding "type erspan {" won't hurt but I thought it was clear 
-> enough. If you think adding the "type" keyword makes it clearer, I can 
-> do it for sure.
+> IMHO, this could be done by providing libnftnl its own object tunnel 
+> API. Although that would require to expose more functions, but tunnel 
+> object could have its own flags field.
+> 
+> In addition, I am afraid that ERSPAN and VXLAN enum fields have been 
+> exposed in a released version so removing them would be a breaking 
+> change. I am not sure whether that is acceptable or not.
 
-I think its fine as long as we never add additional, common subsections.
-Else it will be confusing, e.g. if this is illegal:
+Yep, looks like ERSPAN and VXLAN have to remain in place.
 
-tunnel y {
- id 10
- ip saddr 192.168.2.10
- ip daddr 192.168.2.11
- sport 10
- dport 20
- ttl 10
- erspan {
-  version 1
-  index 2
- }
- vxlan { ..
-}
+> > As-is, how is this API supposed to be used?  The internal union seems to
+> > be asking for trouble later, when e.g. 'getting' NFTNL_OBJ_TUNNEL_GENEVE_OPTS
+> > on something that was instantiated as vxlan tunnel and fields aliasing to
+> > unexpected values.
+> > 
+> > Perhaps the first use of any of the NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX
+> > etc values in a setter should interally "lock" the object to the given
+> > subtype?
+> > 
+> > That might allow to NOT use ->flags for those enum values and instead
+> > keep track of them via overlapping bits.
+> > 
+> > We'd need some internal 'enum nft_obj_tunnel_type' that marks which
+> > part of the union is useable/instantiated so we can reject requests
+> > to set bits that are not available for the specific tunnel type.
+> > 
+> 
+> Yes, that would help but isn't that the reason why the flags field is 
+> there? I mean, currently the same problem would exist with the different 
+> object variants e.g the union of "struct nftnl_obj_*". When trying to 
+> get the attribute we always check that the flag is set.
 
-thats fine.  But if we also allow something like this in the future:
-tunnel y {
- id 10
- ip saddr 192.168.2.10
- ip daddr 192.168.2.11
- sport 10
- dport 20
- ttl 10
- erspan {
-  version 1
-  index 2
- }
- extraops {
-   ...
- }
-}
+Right :-/
 
-Then I think it would be confusing as to what kind of 'nested { bla }'
-are allowed to co-exist and whioch ones are mutually exclusive.
+> >> +		memcpy(geneve, data, data_len);
+> > 
+> > Hmm, this looks like the API leaks internal data layout from nftables to
+> > libnftnl and vice versa?  IMO thats a non-starter, sorry.
+> > 
+> 
+> I agree that exposing the list abstraction to the user is problematic 
+> and shouldn't be done. As you mentioned below, I couldn't come up with a 
+> better API on libnftnl. Thinking about it, we could expose only the 
+> relevant fields by putting them in a isolated struct.
 
-Thats why I mentioned the extra keyword.  But I admit that as-is its
-not necessary.
+Looking at the nftables patches, I think some of what is done there
+should be moved to libnftl, e.g. the $<obj>0->tunnel.type = TUNNEL_GENEVE;
+thing.  I mean, it makes sense to track the type of the object but
+wouldn't it make more sense to do this in libnftnl?
 
-> Please, notice that if more than one specific sub-section is set, the 
-> bison parser will complain.
+Thinking about it some more, I'm not sure if NFT_OBJECT_TUNNEL was a good idea.
 
-Good, thanks for explaining.
+We have:
+  NFT_OBJECT_CT_HELPER
+  NFT_OBJECT_CT_TIMEOUT
+  NFT_OBJECT_CT_EXPECT
+
+What about following that model, e.g.:
+
+#define NFT_OBJECT_TUNNEL_GENEVE	11
+#define NFT_OBJECT_TUNNEL_ERSPAN	12
+...
+
+?
+Pablo, what do you think?  Maybe you tried this before and it wasn't
+good either because of lots of duplication with common tunnel
+attributes?
+
+Back to the geneve option handling, I think it would be best to
+expose all the fields in the struct via deticated setters/getters, i.e.
+from
+
+struct tunnel_geneve {
+       struct list_head        list;
+       uint16_t                geneve_class;
+       uint8_t                 type;
+       uint8_t                 data[NFTNL_TUNNEL_GENEVE_DATA_MAXLEN];
+       uint32_t                data_len;
+};
+
+expose: geneve_class, type, and data.
+
+This could be done by moving some of the nftables code you added to
+libnftnl.
+
+Instead of this in nftables:
+  list_for_each_entry(geneve, &obj->tunnel.geneve_opts, list) {
+        nftnl_obj_set_data(nlo, NFTNL_OBJ_TUNNEL_GENEVE_OPTS,
+                           geneve, sizeof(struct tunnel_geneve));
+        }
+  }
+
+do this (error handling omitted for brevity):
+
+  list_for_each_entry(geneve, &obj->tunnel.geneve_opts, list) {
+	struct nftnl_obj_tunnel_geneve_opts *geneve;
+
+	geneve = nftnl_obj_tunnel_geneve_opts_alloc();
+
+	nftnl_obj_tunnel_geneve_opts_set_u32(geneve, NFT_OBJECT_TUNNEL_GENEVE_OPT_CLASS, geneve->geneve_class);
+	nftnl_obj_tunnel_geneve_opts_set_u32(geneve, NFT_OBJECT_TUNNEL_GENEVE_OPT_TYPE, geneve->geneve_type);
+        nftnl_obj_tunnel_geneve_opts_set_data(geneve, NFT_OBJECT_TUNNEL_GENEVE_OPT_DATA,
+					      geneve->data, geneve->data_len);
+
+        nftnl_obj_tunnel_add_geneve_opts(nlo, geneve);
+
+(nlo/nftnl_tunnel and nftnl_obj_tunnel_geneve_opts would be similar to
+ nftnl_chain vs nftnl_rule).
+
+The major downside is a lot of more API calls that need to be added to
+libnftnl :-(
+
+I don't see any other solutions at this time.
