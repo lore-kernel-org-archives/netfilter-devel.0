@@ -1,48 +1,45 @@
 Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA8A230BE9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA1222DFAA
 	for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2025 20:32:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748550744; cv=none; b=V8E18RHmkrRU2tdv40AppNNNQIaQ8jxd+v62vvgrYYHAElThlUvPETrrGpgzUXz+Ax/fjPRjwt4X+sXQ4miYBuiX184B6mzz0n/f7lt7gx5xPclF0qIjt1izGnyE+LhSx5PpfXJAhwqX27UpxpmW/DcW9qmR9oQCgrByusdDbOM=
+	t=1748550744; cv=none; b=IHX+V9FR377MDMj/LRK4aA1zj8Rh0QoRY1i/nPvMvrDva7ABS20OE8EEONwz4WNa2Ik72Xd6dNiYdVyJGeihvjNVanfDdxhEpb1BbPnXKP8JhOGHFdUIeZgq9+btqFkny8DCA/ynwmDdTbQYh4iJf5/WaExJZM2u7SZdImDRCFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1748550744; c=relaxed/simple;
-	bh=5a3KW2LBqf7ELjvRnBdfAzF+GJkTNEJWAO4qotcO/WU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Cs0oc+cLJ4Eg+gJSqsVpNapZ1d2dx1z2tc3p7tgLB7Bk2QqGlbiaTLjaNe8D/HqkNieL59NxsSbaruhl9OultVoi3vkKxHV/HVggOmCic+GJODy1+5CplcZcX1SM0igzwtzmCyrtFYT0w3KrKBrEfF3P/NyhFBR0QUeQqeMd0Lc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=IqUBJWk3; arc=none smtp.client-ip=35.176.194.208
+	bh=mC8MS7W22ADeV3QlXz0MYTQfKYGC55hRmUGc3UYT3os=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JzcQzGdg/G20yP9ogDadVO+nJVK5xpoUllcM1BYsfEoRGfTgvxjWOd/QHNf3teHD9MsNM9bflGto/pfpMRKchZHVUqXaT/wQUNMJxUFmkYwKgKsxXRKNJcM8GIHbibanFLuWq7ZvZr9m6FHts8yZqzg6FG8pzS+qxPXiuDtthck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=nX6/Tfke; arc=none smtp.client-ip=35.176.194.208
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="IqUBJWk3"
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="nX6/Tfke"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=20220717; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=gyRc5JD5riVfk4X39qMzrWLSQQJsuRlHNONovx+nMto=; b=IqUBJWk39AVCLdGzhXN7qH9A6c
-	HrPM+uPZS5NJX9LtdDi7QCUCUmAeKXTXeWG2A7ACq/J8S+BxiXIfPSUcnNL/ufnxUd/bFLqnTdQpN
-	zKoJ/Pg2OQKM0T3OvoLmBa3jwp5yG+bZ1wsda2pU3VayURgDSwzfvyT74An7RgaVj2zcqbLFquIak
-	QADtGygx25eXC7XAfkjpp0w211l4zWAFEDTs8X5I+cnvhGSvyzbfuBL71oQnN4frh+a/ZN/cJuoJK
-	WeteFlXEwhmfaKGiCvfkPI6eqeRkVI3PuC6H+r7csyATFo6Qxp4uc2v/L86ez2PMw5yH55w/4vj8h
-	VQmXT2QA==;
+	bh=uGesod/RWb0y7pn8h0t+8s9tx1mrmKwq43ll1WgMByk=; b=nX6/Tfker2HYVD3u2FZsgDKqVt
+	CZE3x9C07PgWCQT0Pj7MCh+i4YLV7SEu/9cmOCQmDfep0ze2XB7hrks2633RqN5EE1GLHiXTzd5hl
+	8u7BKVu1Sew+yvrX6SIPaapToYcDadVaj/oGLUO5jfEeR7NcUnffPZO5IduQtDa5wZcqiqODFud74
+	BKgrJSt6x2Wep74aUsP4KsxepDbaxZF6uIMz6ZlZWh2KE7KLIqd1xK87urXhL4EopwHWV/30XEiQU
+	6UAtOAiyKaaJp0kbxbudDHi2W/R7RnZknqq3iJHHRiZ/Od5kmUENLhg/AMYz8yTxuX/NDtw5DKqk4
+	sEW3jEfg==;
 Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
 	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 	(Exim 4.96)
 	(envelope-from <jeremy@azazel.net>)
-	id 1uKjvA-003Dw5-1A;
+	id 1uKjvA-003Dw5-0v;
 	Thu, 29 May 2025 21:32:12 +0100
 From: Jeremy Sowden <jeremy@azazel.net>
 To: Jan Engelhardt <jengelh@inai.de>
 Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons 2/3] xt_pknock: replace obsolete `del_timer`
-Date: Thu, 29 May 2025 21:31:45 +0100
-Message-ID: <20250529203146.2415429-3-jeremy@azazel.net>
+Subject: [PATCH xtables-addons 0/3] Some fixes for v6.15
+Date: Thu, 29 May 2025 21:31:43 +0100
+Message-ID: <20250529203146.2415429-1-jeremy@azazel.net>
 X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250529203146.2415429-1-jeremy@azazel.net>
-References: <20250529203146.2415429-1-jeremy@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,47 +51,20 @@ X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
 X-SA-Exim-Mail-From: jeremy@azazel.net
 X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-`del_timer` was a wrapper around `timer_delete`, and it has been removed in
-v6.15.  Replace it.
+Replace a couple of deprecated things that were removed in v6.15 and bump the
+maximum supported version.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
+Jeremy Sowden (3):
+  build: replace obsolete `EXTRA_CFLAGS`
+  xt_pknock: replace obsolete `del_timer`
+  build: bump max. supported version to 6.15
+
+ configure.ac                  | 2 +-
+ extensions/ACCOUNT/Kbuild     | 2 +-
+ extensions/pknock/Kbuild      | 2 +-
  extensions/pknock/xt_pknock.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/extensions/pknock/xt_pknock.c b/extensions/pknock/xt_pknock.c
-index 29016461db7a..fc488a46849a 100644
---- a/extensions/pknock/xt_pknock.c
-+++ b/extensions/pknock/xt_pknock.c
-@@ -30,6 +30,10 @@
- #include "xt_pknock.h"
- #include "compat_xtables.h"
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
-+#define timer_delete(X) del_timer(X)
-+#endif
-+
- enum status {
- 	ST_INIT = 1,
- 	ST_MATCHING,
-@@ -296,7 +300,7 @@ static const struct proc_ops pknock_proc_ops = {
- static void update_rule_gc_timer(struct xt_pknock_rule *rule)
- {
- 	if (timer_pending(&rule->timer))
--		del_timer(&rule->timer);
-+		timer_delete(&rule->timer);
- 	rule->timer.expires = jiffies + msecs_to_jiffies(gc_expir_time);
- 	add_timer(&rule->timer);
- }
-@@ -517,7 +521,7 @@ remove_rule(struct xt_pknock_mtinfo *info)
- 		remove_proc_entry(info->rule_name, pde);
- 	pr_debug("(D) rule deleted: %s.\n", rule->rule_name);
- 	if (timer_pending(&rule->timer))
--		del_timer(&rule->timer);
-+		timer_delete(&rule->timer);
- 	list_del(&rule->head);
- 	kfree(rule->peer_head);
- 	kfree(rule);
 -- 
 2.47.2
 
