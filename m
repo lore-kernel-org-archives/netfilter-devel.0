@@ -1,90 +1,45 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09C0822A811
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2025 20:48:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF101D63D8
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2025 21:41:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748551709; cv=none; b=KsqOPJnlOpaf/Qdmf6r/apJ1YWHh3JGL0vaQjQioreIGp3W5litqOyGTzn7IB/FTcOe7vOq3eBumekjfqT6MxB456jtQnr6YhdJT9H3TJ7PPpdF+ht1XQvSkEZ4wt96MkXcP90BmK8PiMdwk07eSYzA/ShbwgFZ7fKQMGYn/EVc=
+	t=1748554923; cv=none; b=TskP8fkYIgllqOPpE6xcQtz+OSn7h3FPgWRq5MZi7B6QrmiJCCa8eTRTTxUNx7YNxxGF6LQ3nQKYlC6Ji3LyhnWw2LV3D4wlw09Vzm1cKTl4+ZCzZX2F5i/VYypzt1GGyLBxFpozu1Mvg8KEUPiQjWJpyhd+AJki6vjgGMlBsck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748551709; c=relaxed/simple;
-	bh=SoLgYvEZyQUpw3BVaoiXVxPU7avBJg9p+rAEC45Bi3Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ZVEIebj31LqzwuhPcrsFVwpaQO0s8XRkcoM+wUNXTfcgujsHPEEOr2+d4LWyWQLDliKjP/jeQAcU7F6URdY+mKou7rdOX511vvu701y0HtvtxqQ8KXr4zUeIqd6KB2y7O3YEAfgRWcBUY/bL9m+hX2K+5Ym5mdnX9j7Fc77kCz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=Gmb1T1YG; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Gmb1T1YG"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=dMbYQQd+iFO89L9UgTcUc4hA5Fioz/4IHxUEf6QnOJ4=; b=Gmb1T1YGQRJjuYJPp8UkvqHVao
-	0pozTq3odmX0sRYB2dG9moH0yAKZvkqvpXO86TFTYQ/rQB4XUevxCt/FEcJAYYavFoJI5wm8YF4bu
-	EXXV3Qr5QFmuZgui7dcLyCsHOTUPGwOpG6RchmVY8zEU/4LDctirazmipl0EnWe4XB0NMdX8yvfBq
-	FuOYJMXD2SBB7HS6PxS5WhsmCNSTqyY9NBMThR+kIuveLmqfjQuyVnrg3xY618lVMSkYO9HXhSUC2
-	ptiIr4JuAzTcVvfe8ouiv6OWsOeIxPiuDfNAItyiaDFN8B7dOQm3HwIpucmHc1ge03S9W2l/T8UOq
-	pfiJPMag==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <jeremy@azazel.net>)
-	id 1uKkAr-003E8C-29;
-	Thu, 29 May 2025 21:48:25 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Jan Engelhardt <jengelh@inai.de>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH xtables-addons v2 1/3] build: replace obsolete `EXTRA_CFLAGS`
-Date: Thu, 29 May 2025 21:48:02 +0100
-Message-ID: <20250529204804.2417289-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.47.2
+	s=arc-20240116; t=1748554923; c=relaxed/simple;
+	bh=vdZokMlMZu/owgf1wdgjoHWzTFOrYihJ1i5XauTPMfU=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=oWYMn0qpi7ar0YqlGmWVFqnPEuIFXIiZ2KbJA9H2tH/Rlk2lFAb6RUwRFCfpxb8fQWsuUNMX5uLBrnpC+nLdsJR06NqBH1e1vlVbHpS9iLplzh6Xb17FI9aa4GQuaG/JbRSBsNGyTSX93hVB2A0tLX0K7kMg6MP/tVWsYWFr7gE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id AEE561003D93F2; Thu, 29 May 2025 23:36:17 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id AD2BB1100AFC16;
+	Thu, 29 May 2025 23:36:17 +0200 (CEST)
+Date: Thu, 29 May 2025 23:36:17 +0200 (CEST)
+From: Jan Engelhardt <ej@inai.de>
+To: Jeremy Sowden <jeremy@azazel.net>
+cc: Jan Engelhardt <jengelh@inai.de>, 
+    Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH xtables-addons v2 0/3] Some fixes for v6.15
 In-Reply-To: <20250529204804.2417289-1-jeremy@azazel.net>
+Message-ID: <or242rn3-qo30-351n-8r72-0q1ro27r3p67@vanv.qr>
 References: <20250529204804.2417289-1-jeremy@azazel.net>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=US-ASCII
 
-`EXTRA_CFLAGS` was superseded by `ccflags-y`, introduced in 2007, and it has
-been removed in v6.15.  Replace it.
+On Thursday 2025-05-29 22:48, Jeremy Sowden wrote:
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- extensions/ACCOUNT/Kbuild | 2 +-
- extensions/pknock/Kbuild  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+>Replace a couple of deprecated things that were removed in v6.15 and bump the
+>maximum supported version.
 
-diff --git a/extensions/ACCOUNT/Kbuild b/extensions/ACCOUNT/Kbuild
-index e71e80bb649f..fa3349ab3e54 100644
---- a/extensions/ACCOUNT/Kbuild
-+++ b/extensions/ACCOUNT/Kbuild
-@@ -1,5 +1,5 @@
- # -*- Makefile -*-
- 
--EXTRA_CFLAGS = -I${src}/..
-+ccflags-y += -I${src}/..
- 
- obj-m += xt_ACCOUNT.o
-diff --git a/extensions/pknock/Kbuild b/extensions/pknock/Kbuild
-index 6318ca52a78e..d39eaca4a73a 100644
---- a/extensions/pknock/Kbuild
-+++ b/extensions/pknock/Kbuild
-@@ -1,5 +1,5 @@
- # -*- Makefile -*-
- 
--EXTRA_CFLAGS = -I${src}/..
-+ccflags-y += -I${src}/..
- 
- obj-m += xt_pknock.o
--- 
-2.47.2
-
+So applied.
