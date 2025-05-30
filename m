@@ -1,29 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87A691F4C85
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 May 2025 10:34:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CD0B221D9C
+	for <netfilter-devel@vger.kernel.org>; Fri, 30 May 2025 10:34:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748601264; cv=none; b=Kqv6qAZpJogx2tM/+pqKpHTm/urRknmKklrVMI3/R/G7bLPWS3jr4UnUiC0dQ+8ipaCycASpqwZzAp3rTNYAH85BvGk1R8cQldIzX/b6lzTrMHXbcVqY5aST2Hv4sD6tOdOovmZtmYehJp31n1d2W605uUO1UUxbmd2WAo2zW1k=
+	t=1748601268; cv=none; b=UK2dF/b9GA3mjsJUka6kz/ULq4LUUw6Hrny8mWhZ4qng4zy07OnGd7sVqoJ1PHhf6nLpFSkhlNllMdo3C2Vl2uta8i56HaJXz1SHD4UFzZpD8Le5qovggABZImUq8wwPlT6Prsd9y7e6Al8DnMU+o+m1dWYivevIlilNw7xGMvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748601264; c=relaxed/simple;
-	bh=weqtXhVQtBI8J4Kmv60WccsLoJ9qF2u0wbwPt1CpROs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=smLNaUeVT+ZdVLyy+hMLghfME41bJMthvsDGeqUvzD5eTox/lknYMTO0T8rPqNuFodj9jZhdpDCRT3koqQamKld9xfQlVo/ZXmhJnRuUPaBJVHL32oTZ26h4FRs4Txn5YjJSd+39ncpOOezMGGIFkR9GKlUEsCA1r+7q6G4Pyo0=
+	s=arc-20240116; t=1748601268; c=relaxed/simple;
+	bh=aWVVCYbybSNYxSprfcl0z5KMBV3r7TUgwv7wRnx1znQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Wl6OSN8IiNYTYtizcvORgRSiKgCDd/JWEx/qavBHTfE6WhgEQYez/Mzqw8t7n52J30QkI+BXTb9rfLU44K7sHLuB6WChNkf6hlXENmTs7OFAl6HAVffo3fAhdO2y/po+MqNz4TtTQakP5pNzCqOH3heRAWnUxeHO5dJBpkecfeQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2986E60489; Fri, 30 May 2025 12:34:20 +0200 (CEST)
+	id 816116048A; Fri, 30 May 2025 12:34:24 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Yafang Shao <laoar.shao@gmail.com>,
-	Shaun Brady <brady.1345@gmail.com>
-Subject: [PATCH nf 1/2] netfilter: nf_nat: also check reverse tuple to obtain clashing entry
-Date: Fri, 30 May 2025 12:34:02 +0200
-Message-ID: <20250530103408.3767-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 2/2] selftests: netfilter: nft_nat.sh: add test for reverse clash with nat
+Date: Fri, 30 May 2025 12:34:03 +0200
+Message-ID: <20250530103408.3767-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250530103408.3767-1-fw@strlen.de>
+References: <20250530103408.3767-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,94 +33,136 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The logic added in the blamed commit was supposed to only omit nat source
-port allocation if neither the existing nor the new entry are subject to
-NAT.
+This will fail without the previous bug fix because we erronously
+believe that the clashing entry went way.
 
-However, its not enough to lookup the conntrack based on the proposed
-tuple, we must also check the reverse direction.
+However, the clash exists in the opposite direction due to an
+existing nat mapping:
+ PASS: IP statless for ns2-LgTIuS
+ ERROR: failed to test udp ns1-x4iyOW to ns2-LgTIuS with dnat rule step 2, result: ""
 
-Otherwise there are esoteric cases where the collision is in the reverse
-direction because that colliding connection has a port rewrite, but the
-new entry doesn't.  In this case, we only check the new entry and then
-erronously conclude that no clash exists anymore.
+This is partially adapted from test instructions from the below
+ubuntu tracker.
 
- The existing (udp) tuple is:
-  a:p -> b:P, with nat translation to s:P, i.e. pure daddr rewrite,
-  reverse tuple in conntrack table is s:P -> a:p.
-
-When another UDP packet is sent directly to s, i.e. a:p->s:P, this is
-correctly detected as a colliding entry: tuple is taken by existing reply
-tuple in reverse direction.
-
-But the colliding conntrack is only searched for with unreversed
-direction, and we can't find such entry matching a:p->s:P.
-
-The incorrect conclusion is that the clashing entry has timed out and
-that no port address translation is required.
-
-Such conntrack will then be discarded at nf_confirm time because the
-proposed reverse direction clashes with an existing mapping in the
-conntrack table.
-
-Search for the reverse tuple too, this will then check the NAT bits of
-the colliding entry and triggers port reallocation.
-
-Followp patch extends nft_nat.sh selftest to cover this scenario.
-
-The IPS_SEQ_ADJUST change is also a bug fix:
-Instead of checking for SEQ_ADJ this tested for SEEN_REPLY and ASSURED
-by accident -- _BIT is only for use with the test_bit() API.
-
-This bug has little consequence in practice, because the sequence number
-adjustments are only useful for TCP which doesn't support clash resolution.
-
-The existing test case (conntrack_clash_clash.sh) exercise a race
-condition path (parallel conntrack creation on different CPUs), so
-the colliding entries have neither SEEN_REPLY nor ASSURED set.
-
-Thanks to Yafang Shao and Shaun Brady for an initial investigation
-of this bug.
-
-Fixes: d8f84a9bc7c4 ("netfilter: nf_nat: don't try nat source port reallocation for reverse dir clash")
-Reported-by: Yafang Shao <laoar.shao@gmail.com>
-Reported-by: Shaun Brady <brady.1345@gmail.com>
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1795
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2109889
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_nat_core.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ .../selftests/net/netfilter/nft_nat.sh        | 81 +++++++++++++++++--
+ 1 file changed, 76 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index aad84aabd7f1..f391cd267922 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -248,7 +248,7 @@ static noinline bool
- nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
- 		      const struct nf_conn *ignored_ct)
- {
--	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST_BIT;
-+	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST;
- 	const struct nf_conntrack_tuple_hash *thash;
- 	const struct nf_conntrack_zone *zone;
- 	struct nf_conn *ct;
-@@ -287,8 +287,14 @@ nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
- 	zone = nf_ct_zone(ignored_ct);
+diff --git a/tools/testing/selftests/net/netfilter/nft_nat.sh b/tools/testing/selftests/net/netfilter/nft_nat.sh
+index 9e39de26455f..a954754b99b3 100755
+--- a/tools/testing/selftests/net/netfilter/nft_nat.sh
++++ b/tools/testing/selftests/net/netfilter/nft_nat.sh
+@@ -866,6 +866,24 @@ EOF
+ 	ip netns exec "$ns0" nft delete table $family nat
+ }
  
- 	thash = nf_conntrack_find_get(net, zone, tuple);
--	if (unlikely(!thash)) /* clashing entry went away */
--		return false;
-+	if (unlikely(!thash)) {
-+		struct nf_conntrack_tuple reply;
++file_cmp()
++{
++	local infile="$1"
++	local outfile="$2"
 +
-+		nf_ct_invert_tuple(&reply, tuple);
-+		thash = nf_conntrack_find_get(net, zone, &reply);
-+		if (!thash) /* clashing entry went away */
-+			return false;
-+	}
++	if ! cmp "$infile" "$outfile";then
++		echo -n "Infile "
++		ls -l "$infile"
++		echo -n "Outfile "
++		ls -l "$outfile"
++		echo "ERROR: in and output file mismatch when checking $msg" 1>&1
++		ret=1
++		return 1
++	fi
++
++	return 0
++}
++
+ test_stateless_nat_ip()
+ {
+ 	local lret=0
+@@ -966,11 +984,7 @@ EOF
  
- 	ct = nf_ct_tuplehash_to_ctrack(thash);
+ 	wait
  
+-	if ! cmp "$INFILE" "$OUTFILE";then
+-		ls -l "$INFILE" "$OUTFILE"
+-		echo "ERROR: in and output file mismatch when checking udp with stateless nat" 1>&2
+-		lret=1
+-	fi
++	file_cmp "$INFILE" "$OUTFILE" "udp with stateless nat" || lret=1
+ 
+ 	:> "$OUTFILE"
+ 
+@@ -991,6 +1005,62 @@ EOF
+ 	return $lret
+ }
+ 
++test_dnat_clash()
++{
++	local lret=0
++
++	if ! socat -h > /dev/null 2>&1;then
++		echo "SKIP: Could not run dnat clash test without socat tool"
++		[ $ret -eq 0 ] && ret=$ksft_skip
++		return $ksft_skip
++	fi
++
++ip netns exec "$ns0" nft -f /dev/stdin <<EOF
++flush ruleset
++table ip dnat-test {
++ chain prerouting {
++  type nat hook prerouting priority dstnat; policy accept;
++  ip daddr 10.0.2.1 udp dport 1234 counter dnat to 10.0.1.1:1234
++ }
++}
++EOF
++	if [ $? -ne 0 ]; then
++		echo "SKIP: Could not add dnat rules"
++		[ $ret -eq 0 ] && ret=$ksft_skip
++		return $ksft_skip
++	fi
++
++	local udpdaddr="10.0.2.1"
++	for i in 1 2;do
++		echo "PING $udpdaddr" > "$INFILE"
++		echo "PONG 10.0.1.1 step $i" | ip netns exec "$ns0" timeout 3 socat STDIO UDP4-LISTEN:1234,bind=10.0.1.1 > "$OUTFILE" 2>/dev/null &
++		local lpid=$!
++
++		busywait $BUSYWAIT_TIMEOUT listener_ready "$ns0" 1234 "-u"
++
++		result=$(ip netns exec "$ns1" timeout 3 socat STDIO UDP4-SENDTO:"$udpdaddr:1234,sourceport=4321" < "$INFILE")
++		udpdaddr="10.0.1.1"
++
++		if [ "$result" != "PONG 10.0.1.1 step $i" ] ; then
++			echo "ERROR: failed to test udp $ns1 to $ns2 with dnat rule step $i, result: \"$result\"" 1>&2
++			lret=1
++			ret=1
++		fi
++
++		wait
++
++		file_cmp "$INFILE" "$OUTFILE" "udp dnat step $i" || lret=1
++
++		:> "$OUTFILE"
++	done
++
++	test $lret -eq 0 && echo "PASS: IP dnat clash $ns1:$ns2"
++
++	ip netns exec "$ns0" nft flush ruleset
++
++	return $lret
++}
++
+ # ip netns exec "$ns0" ping -c 1 -q 10.0.$i.99
+ for i in "$ns0" "$ns1" "$ns2" ;do
+ ip netns exec "$i" nft -f /dev/stdin <<EOF
+@@ -1147,6 +1217,7 @@ $test_inet_nat && test_redirect6 inet
+ 
+ test_port_shadowing
+ test_stateless_nat_ip
++test_dnat_clash
+ 
+ if [ $ret -ne 0 ];then
+ 	echo -n "FAIL: "
 -- 
 2.49.0
 
