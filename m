@@ -1,45 +1,123 @@
-Received: from a3.inai.de (a3.inai.de [144.76.212.145])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDF101D63D8
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2025 21:41:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05E7463B9
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2025 23:21:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748554923; cv=none; b=TskP8fkYIgllqOPpE6xcQtz+OSn7h3FPgWRq5MZi7B6QrmiJCCa8eTRTTxUNx7YNxxGF6LQ3nQKYlC6Ji3LyhnWw2LV3D4wlw09Vzm1cKTl4+ZCzZX2F5i/VYypzt1GGyLBxFpozu1Mvg8KEUPiQjWJpyhd+AJki6vjgGMlBsck=
+	t=1748560890; cv=none; b=Q5DSrK2BWnyjeBRR5xWz4b4j8w3mzD4enfvsWrXjL2BqnbME+NWhnt1LmSvVW03G7aGKdTEjNW2qfuKwy9gPIZ+/gpfmXDq5R5ZMIMBrNIKfWyIYdVODzqEWgs29t0rE21CdTqAbTfPceGU5WSB1SjQbKlqRSk0jl0nij+mbTQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748554923; c=relaxed/simple;
-	bh=vdZokMlMZu/owgf1wdgjoHWzTFOrYihJ1i5XauTPMfU=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=oWYMn0qpi7ar0YqlGmWVFqnPEuIFXIiZ2KbJA9H2tH/Rlk2lFAb6RUwRFCfpxb8fQWsuUNMX5uLBrnpC+nLdsJR06NqBH1e1vlVbHpS9iLplzh6Xb17FI9aa4GQuaG/JbRSBsNGyTSX93hVB2A0tLX0K7kMg6MP/tVWsYWFr7gE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
-Received: by a3.inai.de (Postfix, from userid 25121)
-	id AEE561003D93F2; Thu, 29 May 2025 23:36:17 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by a3.inai.de (Postfix) with ESMTP id AD2BB1100AFC16;
-	Thu, 29 May 2025 23:36:17 +0200 (CEST)
-Date: Thu, 29 May 2025 23:36:17 +0200 (CEST)
-From: Jan Engelhardt <ej@inai.de>
-To: Jeremy Sowden <jeremy@azazel.net>
-cc: Jan Engelhardt <jengelh@inai.de>, 
-    Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH xtables-addons v2 0/3] Some fixes for v6.15
-In-Reply-To: <20250529204804.2417289-1-jeremy@azazel.net>
-Message-ID: <or242rn3-qo30-351n-8r72-0q1ro27r3p67@vanv.qr>
-References: <20250529204804.2417289-1-jeremy@azazel.net>
-User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
+	s=arc-20240116; t=1748560890; c=relaxed/simple;
+	bh=w6BKbrmQzNPK+sMOGDMSC04IsxtjLv4NftKTd3xbwaE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fHdlr+9bjGENL4lZINDvE4lmA7wHmjRK39QreCtdK6UJrqfAqMw1LTsBlLsimQSB0JxhmCnkp7pCDkgSh9VOjI1Gp5yUdxWL+sbp0BpyZT95qYN48iybsTrz72Qc0dmQ7AVGITcwEMGVOaCLnrJ4QEc69h3dVjwY/finQsU3L7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id A1FE76048F; Fri, 30 May 2025 01:21:19 +0200 (CEST)
+Date: Fri, 30 May 2025 02:45:20 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Shaun Brady <brady.1345@gmail.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>, pablo@netfilter.org,
+	kadlec@netfilter.org, David Miller <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: Re: [BUG REPORT] netfilter: DNS/SNAT Issue in Kubernetes Environment
+Message-ID: <aDj_oGBSNIUFEZFF@strlen.de>
+References: <CALOAHbBj9_TBOQUEX-4CFK_AHp0v6mRETfCw6uWQ0zYB1sBczQ@mail.gmail.com>
+ <aDeftvfuOufo5kdw@fedora>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aDeftvfuOufo5kdw@fedora>
 
-On Thursday 2025-05-29 22:48, Jeremy Sowden wrote:
+Shaun Brady <brady.1345@gmail.com> wrote:
+> On Wed, May 28, 2025 at 05:03:56PM +0800, Yafang Shao wrote:
+> > diff --git a/net/netfilter/nf_conntrack_core.c
+> > b/net/netfilter/nf_conntrack_core.c
+> > index 7bee5bd22be2..3481e9d333b0 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -1245,9 +1245,9 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+> > 
+> >         chainlen = 0;
+> >         hlist_nulls_for_each_entry(h, n,
+> > &nf_conntrack_hash[reply_hash], hnnode) {
+> > -               if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
+> > -                                   zone, net))
+> > -                       goto out;
+> > +               //if (nf_ct_key_equal(h, &ct->tuplehash[IP_CT_DIR_REPLY].tuple,
+> > +               //                  zone, net))
+> > +               //      goto out;
+> >                 if (chainlen++ > max_chainlen) {
+> >  chaintoolong:
+> >                         NF_CT_STAT_INC(net, chaintoolong);
+> 
+> Forgive me for jumping in with very little information, but on a hunch I
+> tried something.  I applied the above patch to another bug I've been
+> investigating:
+> 
+> https://bugzilla.netfilter.org/show_bug.cgi?id=1795
+> and Ubuntu reference
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2109889
+> 
+> The Ubuntu reproduction steps where easier to follow, so I mimicked
+> them:
+> 
+> # cat add_ip.sh 
+> ip addr add 10.0.1.200/24 dev enp1s0
+> # cat nft.sh 
+> nft -f - <<EOF
+> table ip dnat-test {
+>  chain prerouting {
+>   type nat hook prerouting priority dstnat; policy accept;
+>   ip daddr 10.0.1.200 udp dport 1234 counter dnat to 10.0.1.180:1234
+>  }
+> }
+> EOF
+> # cat listen.sh 
+> echo pong|nc -l -u 10.0.1.180 1234
+> # ./add_ip.sh ; ./nft.sh ; listen.sh (and then just ./listen.sh again)
 
->Replace a couple of deprecated things that were removed in v6.15 and bump the
->maximum supported version.
+We don't have a selftest for this, I'll add one.
 
-So applied.
+Following patch should help, we fail to check for reverse collision
+before concluding we don't need PAT to handle this.
+
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -248,7 +248,7 @@ static noinline bool
+ nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
+ 		      const struct nf_conn *ignored_ct)
+ {
+-	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST_BIT;
++	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST;
+ 	const struct nf_conntrack_tuple_hash *thash;
+ 	const struct nf_conntrack_zone *zone;
+ 	struct nf_conn *ct;
+@@ -287,8 +287,14 @@ nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
+ 	zone = nf_ct_zone(ignored_ct);
+ 
+ 	thash = nf_conntrack_find_get(net, zone, tuple);
+-	if (unlikely(!thash)) /* clashing entry went away */
+-		return false;
++	if (unlikely(!thash)) {
++		struct nf_conntrack_tuple reply;
++
++		nf_ct_invert_tuple(&reply, tuple);
++		thash = nf_conntrack_find_get(net, zone, &reply);
++		if (!thash) /* clashing entry went away */
++			return false;
++	}
+ 
+ 	ct = nf_ct_tuplehash_to_ctrack(thash);
+ 
