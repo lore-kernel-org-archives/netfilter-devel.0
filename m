@@ -1,91 +1,80 @@
-Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [78.32.30.218])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A7DF21A444;
-	Mon,  2 Jun 2025 15:26:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.32.30.218
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67E1C2C3259;
+	Mon,  2 Jun 2025 18:51:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748877973; cv=none; b=nzjirnvz0YJh7cZUsl8P5MOVJJJ3bzoymEX4X5sK4gZm7zvhqv5Q5287uQFapwFMPVh/6vr78yGpvobh6QDippk0V7XkIXYDtNRe+G21kb3KNmgpkfT189iFKJBHSLtrTK2YvxBTyrQqAkqsLa4zSVsBwHkuNWX9S6LUzabzvRk=
+	t=1748890308; cv=none; b=B+adnH40ut+xZdo86W0HveGSpJY4IgKExoyUubdGEL3tsfZGKlxmJSYdXackXH7TQii0i6QYP7i+XBjLslyJ52RYPAJtw3VHkRIdBKCnQ1feqPElpOuJQjwTDiHTsVYkEf7niuZqMXQTyNExIp+hqn/qJ5Y2JvlhaCJTyaDdj3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748877973; c=relaxed/simple;
-	bh=B/rTeYDT4bu9TqlcVS+AMRm0LLhf4oIY9pXCk0xIYWY=;
+	s=arc-20240116; t=1748890308; c=relaxed/simple;
+	bh=USPYj4wNHP10EUrCkd1PRZjBIkNjkOZO1VvwhdupL3o=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WhSOcSaIrtBpDY2s1NsDD74LVRrsFAq7P0K4zS1kEMSnRaoetiWwaBxxv4nr5FghCE51VTiPHKjzvxDDN5555B0IUg18pcoTLIibhdfzNI+Wi0TBC5/fr+GA3dznAaanQz5+LpJ8etl4DS1RQQ8RjgxdZ7N8MM1rmJvyEVqHz7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk; spf=none smtp.mailfrom=armlinux.org.uk; dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b=nocTW5lJ; arc=none smtp.client-ip=78.32.30.218
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=armlinux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=armlinux.org.uk
+	 Content-Type:Content-Disposition:In-Reply-To; b=FcUobQkWGEnUrKsWopb5UhUnvN8Z2ZaIt1NgSrDwL77tpv8I7saIKShAjR+MGZGXMY1VMiRXf8sTHoM6XPwxo/oMc5jdzhBO2n5zidzgX1z6ZAeukTV21RtUwyYDKrHF8PtI5bj+YE2c8bhirz9bn9RlVJ1j9WGGj1IvUD4LZrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r++w5tCr; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZaPzs+b1; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=armlinux.org.uk header.i=@armlinux.org.uk header.b="nocTW5lJ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-	List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=VsmBZUh+vyXv4ku+fzDdFGhVlt45TaS4taDV3PYjBJs=; b=nocTW5lJMQ/TMaA8qaPK4x9xGY
-	YHoLB6m1pNtMbB+bEbBT3ru7jVtGgwGZvuPuGgBT253G23p3UJ5WHYUwS26S9UmPa9E+uG8S65Lxp
-	GFCvWfH4t88+KK4RUBPL48KvgCAUHuXHoI6rfN4XYyHIAu63tdKU7phtVc8bOvBOsWMkJGxoRXWCs
-	jbqQ2DqHn9IRa8f2y8hTgjiqY3qQrA03xW/9y1g8BT5x+suXlKEihGY1Wec0H4D5q2afAdyT+XUuv
-	AYUOV3yQbBY+yxWNOC9lbQ8zTiB40WZ5nP2ReoIqYXljqYIhBiID+mpg1B3ma/Pe1QEpaghq6GeNh
-	ql3M45uA==;
-Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:55524)
-	by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <linux@armlinux.org.uk>)
-	id 1uM72q-00051K-2g;
-	Mon, 02 Jun 2025 16:25:48 +0100
-Received: from linux by shell.armlinux.org.uk with local (Exim 4.96)
-	(envelope-from <linux@shell.armlinux.org.uk>)
-	id 1uM72h-0007i6-0r;
-	Mon, 02 Jun 2025 16:25:39 +0100
-Date: Mon, 2 Jun 2025 16:25:39 +0100
-From: "Russell King (Oracle)" <linux@armlinux.org.uk>
-To: Ilya K <me@0upti.me>
-Cc: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
-	Heiner Kallweit <hkallweit1@gmail.com>,
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r++w5tCr";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZaPzs+b1"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 8FE4E6027C; Mon,  2 Jun 2025 20:51:35 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1748890295;
+	bh=+ulpBVanxH0UrfdRT7Z3xXqskJvgwq1PMNuyqv3rFKk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=r++w5tCrsyC0a80yYeyNnl4Dx8phB/eRfPP9a1kSDpRH+kLwwzcO7FSzpaVGFH6vC
+	 LTMF6s5GOgeb/sgvIsXbVDG8cjixtTqT+1/IJe1Pd6ZOL7/7DBY0PgBWgkSOZ4Pu5T
+	 dpEVch+kG65cX9vDO36tzwhuDNIVxmt/0xFwgIsfkb4zxcu//cWH/e5uQQZA9DtI05
+	 MbLDGdS279SwiROHvRnGY4urvEeSse35q6BYEYCAcr2rwGyvK7YZiWXJy6cCaoQo/z
+	 W8HDY0vTqQ1yaVka1HwL/0K1y+1BV8ICVxxqrql/99uoLjQKCxwelUnrVET5L14yuq
+	 /dKxUDp1pbsUQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id F1D1360272;
+	Mon,  2 Jun 2025 20:51:33 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1748890294;
+	bh=+ulpBVanxH0UrfdRT7Z3xXqskJvgwq1PMNuyqv3rFKk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZaPzs+b1QqA6jKxcE5hzFNLorLXEaKddHhLmTvcQSiujTLXN4W2ztpX9P359Ka3fy
+	 vWLzGubn5+k9iU7buJVVP38Z0ljXqxYsXh/NX0KYj8lXAwPN+4dz4TnQzVHa5T0zD6
+	 gfaorUrQH3z8DsV/VlCIykpHu0JaQnPDCX0fCAOtyT5qLa9SM7V3B0caExeXNij3Ej
+	 TKh4Wkn/CSnElqsvmjWTp4PSgw14jUhc/tCgch7JeQDZ0ERgM8IY5JOmx3oaEdyFbG
+	 jzFK/985KidZ1GsaXGkt2v4oJK7SLTdHXxRwaDp/JqSfBJXv4wfe1dIe+rESk6sFhx
+	 xM97SkuqqCvNg==
+Date: Mon, 2 Jun 2025 20:51:31 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Denis Arefev <arefev@swemel.ru>
+Cc: stable@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
 	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Frank Wunderlich <frank-w@public-files.de>,
-	Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, bridge@lists.linux.dev,
-	linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
- (delayed) phy
-Message-ID: <aD3Cc7gmB2Tev_ul@shell.armlinux.org.uk>
-References: <20250107123615.161095-1-ericwouds@gmail.com>
- <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
- <4b9b2a9a-061b-43ad-b402-a49aee317f41@gmail.com>
- <Z31CJS1YUvPGiEXs@shell.armlinux.org.uk>
- <98234080-946e-4b36-832f-113b185e7bca@gmail.com>
- <Z3-Tz5WdLCat91vm@shell.armlinux.org.uk>
- <9cc913d7-7e5b-4b6c-886c-ca9778c3f970@0upti.me>
- <aD1lRha-enQ9Pw0g@shell.armlinux.org.uk>
- <2894a781-4d4b-4e3c-9f4e-7c1f04122f8a@0upti.me>
+	Jakub Kicinski <kuba@kernel.org>,
+	Fernando Fernandez Mancera <ffmancera@riseup.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lvc-project@linuxtesting.org
+Subject: Re: [PATCH 5.10] netfilter: nft_socket: fix sk refcount leaks
+Message-ID: <aD3ymi8DguYXw7ri@calendula>
+References: <20250602123948.40610-1-arefev@swemel.ru>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <2894a781-4d4b-4e3c-9f4e-7c1f04122f8a@0upti.me>
-Sender: Russell King (Oracle) <linux@armlinux.org.uk>
+In-Reply-To: <20250602123948.40610-1-arefev@swemel.ru>
 
-On Mon, Jun 02, 2025 at 04:00:14PM +0300, Ilya K wrote:
-> That's weird, because I do have all the patches applied. I think this may have been broken by the pcs_inband_caps changes, because without the patch I'm just getting "autoneg setting not compatible with PCS", after which it bails, when it should really reconfigure the MAC instead.
+On Mon, Jun 02, 2025 at 03:39:47PM +0300, Denis Arefev wrote:
+> From: Florian Westphal <fw@strlen.de>             
+> 
+> commit 8b26ff7af8c32cb4148b3e147c52f9e4c695209c upstream.
+> 
+> We must put 'sk' reference before returning.
 
-Please enable phylink and sfp debug (adding #define DEBUG to the top of
-phylink.c and sfp.c, and then send the kernel messages after reproducing
-the issue.
+I have a backport for 5.4 in the queue, I will take care of this.
 
 Thanks.
-
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTP is here! 80Mbps down 10Mbps up. Decent connectivity at last!
