@@ -1,100 +1,95 @@
-Received: from mx.swemel.ru (mx.swemel.ru [95.143.211.150])
+Received: from forward501a.mail.yandex.net (forward501a.mail.yandex.net [178.154.239.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCB8838DD1;
-	Mon,  2 Jun 2025 12:47:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.143.211.150
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0611B221DA0;
+	Mon,  2 Jun 2025 13:08:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.81
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748868466; cv=none; b=SIbV+O6pMdKQjmuWlll6rQx2LrWK3POYfFCzrZ+Y/NgCLu06+bbZcNxmW+SR7cRiq/5hrGxejKFcvwEx1ehaRpt7t1edz6ra6qPWD9QG8dyPCO00Rs1wXjfvyZLBV2kLu04M0cUpWVY71XMkiU8tEscz3j5/s30rFRcxy6HMnaM=
+	t=1748869727; cv=none; b=ZD6cGKTjFrI6QeogsVoCiHkftC24lAnMYX0wlZJ5snmZIxCvMpHmIqsfOz2zGbD0tV6hZiKSExROIMXRURTV8EUYrqcYsYlS3d8nbHmojrocCk0BRuAKGSoAPMSawBBhj6p9jxm0Euhhs7Ii2PuVfcTXQB26Xrj1Qe7SEu0mPsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748868466; c=relaxed/simple;
-	bh=FJkS0QakWU0n6b1qNi8YVrI4yg158AxwuU8g1LMNaos=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hi16V2fhfKvPA1hvx3A01dGwrv5dY1y2KxKCqQM6zwmbIvJUppP27RAYxlrtgpCSGab3iWshuA6p5d/FGvnFaMj92MuJnA3g/sQcctEeT/sXijLCfoCtnA2jqATY47C8r62lrWE6GJPDh+rQCVf83xF49FS1aU0BGEMVoN1fwPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=swemel.ru; spf=pass smtp.mailfrom=swemel.ru; dkim=pass (1024-bit key) header.d=swemel.ru header.i=@swemel.ru header.b=IdN/EfPC; arc=none smtp.client-ip=95.143.211.150
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=swemel.ru
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=swemel.ru
+	s=arc-20240116; t=1748869727; c=relaxed/simple;
+	bh=yTEXqsnUcW3cl5WcXbdMtFzmwUho1rDc7vZsuRYKyXU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=lTfWjxXNz6q98PXo1kFA9yDRzg5MMs0uH9UA7FECSCgeupQ8iu7SjxPeCqjzdYsrg30hfiXy82VGV0iG82mpU4Gj9TpvIgynItNEgM0qLiVqWs1DhXggNP5DT53unxNDhC1xCQ/BNpIztrNnx8NBqxUuLRJKEAbn76scvMgMzZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=0upti.me; spf=pass smtp.mailfrom=0upti.me; dkim=pass (1024-bit key) header.d=0upti.me header.i=@0upti.me header.b=EzcWINEr; arc=none smtp.client-ip=178.154.239.81
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=0upti.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=0upti.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=swemel.ru header.i=@swemel.ru header.b="IdN/EfPC"
-From: Denis Arefev <arefev@swemel.ru>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=swemel.ru; s=mail;
-	t=1748867988;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=G4+VCuBXlY5f39h1spysLYf7MRhFe7y4qDoXMnXq/a4=;
-	b=IdN/EfPCMarjWDnEMXf0bJPqxwCiB6yyV+w7CV6x7Rk5PaNMxdSbZaCCx9ShJgJaT+Oy9N
-	z6KYriMcnW2HBBEiUtA5B0O6kennx6gxzDYMgn1lJxjCBe38DlODCGDJRqcp4UTqlnavhz
-	bA6fG6jk3GTlrOrdaJ1dWZKeMM6pHSw=
-To: stable@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Fernando Fernandez Mancera <ffmancera@riseup.net>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	lvc-project@linuxtesting.org
-Subject: [PATCH 5.10] netfilter: nft_socket: fix sk refcount leaks
-Date: Mon,  2 Jun 2025 15:39:47 +0300
-Message-ID: <20250602123948.40610-1-arefev@swemel.ru>
+	dkim=pass (1024-bit key) header.d=0upti.me header.i=@0upti.me header.b="EzcWINEr"
+Received: from mail-nwsmtp-smtp-production-main-74.iva.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-74.iva.yp-c.yandex.net [IPv6:2a02:6b8:c0c:160e:0:640:a44a:0])
+	by forward501a.mail.yandex.net (Yandex) with ESMTPS id 89D6961677;
+	Mon,  2 Jun 2025 16:00:19 +0300 (MSK)
+Received: by mail-nwsmtp-smtp-production-main-74.iva.yp-c.yandex.net (smtp/Yandex) with ESMTPSA id F0aS6QbLoa60-v1prNre5;
+	Mon, 02 Jun 2025 16:00:18 +0300
+X-Yandex-Fwd: 1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=0upti.me; s=mail;
+	t=1748869218; bh=oZ32ri9UvCA0ZFnxXbOjw3nZYx8ajIN2VWmbh80DLjU=;
+	h=From:In-Reply-To:Cc:Date:References:To:Subject:Message-ID;
+	b=EzcWINEr1YcBsyckPUR3nlN3K+/LMzSaQKkMLqlbcJj6CrPBngXx/eDKc18C6WbJ+
+	 RJztATJ/WAvys8DZNnSxo0MbSn+9ezY18d5m9s1x9LMmcGUTwkR4lIQP67AAm6ZkCd
+	 Gv5gMnOxTZ5Oaa0NtUAkqX5gKrFUfqZi7JSa191U=
+Authentication-Results: mail-nwsmtp-smtp-production-main-74.iva.yp-c.yandex.net; dkim=pass header.i=@0upti.me
+Message-ID: <2894a781-4d4b-4e3c-9f4e-7c1f04122f8a@0upti.me>
+Date: Mon, 2 Jun 2025 16:00:14 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
+ (delayed) phy
+To: "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
+ Heiner Kallweit <hkallweit1@gmail.com>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+ Frank Wunderlich <frank-w@public-files.de>,
+ Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
+References: <20250107123615.161095-1-ericwouds@gmail.com>
+ <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
+ <4b9b2a9a-061b-43ad-b402-a49aee317f41@gmail.com>
+ <Z31CJS1YUvPGiEXs@shell.armlinux.org.uk>
+ <98234080-946e-4b36-832f-113b185e7bca@gmail.com>
+ <Z3-Tz5WdLCat91vm@shell.armlinux.org.uk>
+ <9cc913d7-7e5b-4b6c-886c-ca9778c3f970@0upti.me>
+ <aD1lRha-enQ9Pw0g@shell.armlinux.org.uk>
+Content-Language: en-US
+From: Ilya K <me@0upti.me>
+In-Reply-To: <aD1lRha-enQ9Pw0g@shell.armlinux.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: Florian Westphal <fw@strlen.de>             
+On 2025-06-02 11:48, Russell King (Oracle) wrote:
+> On Mon, Jun 02, 2025 at 10:19:22AM +0300, Ilya K wrote:
+>> On 2025-01-09 12:15, Russell King (Oracle) wrote:
+>>> On Thu, Jan 09, 2025 at 09:56:17AM +0100, Eric Woudstra wrote:
+>>> I'll look at what we can do for this today.
+>> Hey folks, don't really want to necrobump this, but the original hack patch is the only way I can get my weirdo Realtek (noticing a pattern here) GPON modem-on-a-stick to probe at 2500base-x on a BPi-R4. I've actually tracked down the issue myself and wrote basically the same patch first :( Is there anything I can do (with my extremely limited phylink understanding) to help move this forward so other people don't have to suffer like I did?
+> 
+> There were two issues that were identified. The first was that when in
+> 2500Base-X mode, the PCS wasn't reporting link-up. That was addressed
+> by the patch series:
+> 
+> Z4TbR93B-X8A8iHe@shell.armlinux.org.uk
+> 
+> then, the replacement for Eric's patch was:
+> 
+> E1tYhxp-001FHf-Ac@rmk-PC.armlinux.org.uk
+> 
+> So the problem should be solved with these applied, as when the PHY is
+> attached, "changed" will always be true, which is in effect what Eric's
+> patch was doing, but in a cleaner way.
+> 
+> Please confirm that you have all six patches applied.
+> 
 
-commit 8b26ff7af8c32cb4148b3e147c52f9e4c695209c upstream.
+That's weird, because I do have all the patches applied. I think this may have been broken by the pcs_inband_caps changes, because without the patch I'm just getting "autoneg setting not compatible with PCS", after which it bails, when it should really reconfigure the MAC instead.
 
-We must put 'sk' reference before returning.
-
-Fixes: 039b1f4f24ec ("netfilter: nft_socket: fix erroneous socket assignment")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-[Denis: minor fix to resolve merge conflict.]  
-Signed-off-by: Denis Arefev <arefev@swemel.ru> 
----
-Backport fix for CVE-2024-46855
-Link: https://nvd.nist.gov/vuln/detail/CVE-2024-46855
----
- net/netfilter/nft_socket.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
-index 826e5f8c78f3..07e73e50b713 100644
---- a/net/netfilter/nft_socket.c
-+++ b/net/netfilter/nft_socket.c
-@@ -88,13 +88,13 @@ static void nft_socket_eval(const struct nft_expr *expr,
- 			*dest = sk->sk_mark;
- 		} else {
- 			regs->verdict.code = NFT_BREAK;
--			return;
-+			goto out_put_sk;
- 		}
- 		break;
- 	case NFT_SOCKET_WILDCARD:
- 		if (!sk_fullsock(sk)) {
- 			regs->verdict.code = NFT_BREAK;
--			return;
-+			goto out_put_sk;
- 		}
- 		nft_socket_wildcard(pkt, regs, sk, dest);
- 		break;
-@@ -103,6 +103,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
- 		regs->verdict.code = NFT_BREAK;
- 	}
- 
-+out_put_sk:
- 	if (sk != skb->sk)
- 		sock_gen_put(sk);
- }
--- 
-2.43.0
-
+(resending because I replied instead of reply-all by accident)
