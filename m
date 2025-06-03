@@ -1,92 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from forward502d.mail.yandex.net (forward502d.mail.yandex.net [178.154.239.210])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3288280338;
-	Tue,  3 Jun 2025 08:14:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 312D65FB95;
+	Tue,  3 Jun 2025 18:25:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.154.239.210
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748938479; cv=none; b=gybp2XLZrRMXteFXZO/bS8yhceYdkdDRJrPBNWbIq3nPxmxGEPZGAWIiKflBuQu0+RS2UCbrskLFASnqggfTIPKHsSN+Q/PViPjYe9DhRDM4oFc2Wa00cF8buphQRDo4CR2yUCtf3O3DM7Lnxt8jIhNILYn0PV8KyaA2kO0iV/U=
+	t=1748975124; cv=none; b=mKB/BxUpa6iwco3WenfygI0JJHqMQ2upFfUJuuy3oHr09hCBVtat2VwLMvDvbYgu3e59iuAqLt0dHXJ3sVf50xa4fhH8EyJL9ZNcRxSKl6n9f4FEPBLv7gm3Ym7LYt5xFSJLdZbrKd0UKoZAIIaREJG67RYlAeDb0xtcSCz+RVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748938479; c=relaxed/simple;
-	bh=edrs3H0m30rnRHzLmujwAe+hkL/oUXIBfxEUcstqNNc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bOZnZJRg9iZcNqD/iCj68QORuxvptpLJfLteFl63jmZp/tKd3zQh94EqIUDitg1U6R9Wkla0n0qXlvFqTfWrXd7R8tHjF7VHINPsBRBFcLSdVD9LbhgvuHH80rkTp3Qchcj/prhIXTEqySVZRiRruR1Vz+01QByR65D8HEZ+Ihw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EJDWo8Ws; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1748975124; c=relaxed/simple;
+	bh=tBzj3CA4+7TehMQW8dgTuM4sRw0JZHsMeayjCn7V8XI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=RDXibchTcUWvkN0bvvGGis7yvu2kt1UeniZzkETqITdejQHoUmKFgrdb49UUkQ+IYFwAGILJKntdyah+VP9E0HXPtc8F2HqLoYKIYBoKkEO4h47rIxJCeqBprP503zl6gf+5iQAkvfQjYmoSXe5vD2YF3keVfLqw6Hus2+UNYX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=0upti.me; spf=pass smtp.mailfrom=0upti.me; dkim=pass (1024-bit key) header.d=0upti.me header.i=@0upti.me header.b=lfjC88AQ; arc=none smtp.client-ip=178.154.239.210
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=0upti.me
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=0upti.me
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EJDWo8Ws"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FA83C4CEEE;
-	Tue,  3 Jun 2025 08:14:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1748938478;
-	bh=edrs3H0m30rnRHzLmujwAe+hkL/oUXIBfxEUcstqNNc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=EJDWo8WsLy21GQiSOhsfQ832+Vv8nyNPKUJnGnwqxBs3QCcRn9fC3JTcsNakrbQpt
-	 BnyNPUYsix0mmO9FXFAW3i2gqSI0dDOfA70yedVJWsYKb5u+6vzI0OVUC0p/h3p/rM
-	 xvlwIhUy0hlFPrIMFHiIjNwOleb30QIgdr89xDaA3KvryN1pOJvfSoNN3v3UKP5Eu5
-	 evh04U1MmMQgH/dswd5ASrFr1CwvjzZX/u80rf9k68XoP43qnMIyZoBa340zd+HkrE
-	 rsdQjBlfGBd2Xc7owvVCKJXbCDHrGDK4smmTZDYdi6NmjPzBVNBdTBTlO9CvJ363Ft
-	 Q7mWWEXuXgScw==
-Date: Tue, 3 Jun 2025 09:14:34 +0100
-From: Simon Horman <horms@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, fw@strlen.de, kuniyu@amazon.com
-Subject: Re: [PATCH nf-next,v2] netfilter: conntrack: remove DCCP protocol
- support
-Message-ID: <20250603081434.GY1484967@horms.kernel.org>
-References: <20250522145223.198902-1-pablo@netfilter.org>
+	dkim=pass (1024-bit key) header.d=0upti.me header.i=@0upti.me header.b="lfjC88AQ"
+Received: from mail-nwsmtp-smtp-production-main-63.klg.yp-c.yandex.net (mail-nwsmtp-smtp-production-main-63.klg.yp-c.yandex.net [IPv6:2a02:6b8:c42:842f:0:640:b96f:0])
+	by forward502d.mail.yandex.net (Yandex) with ESMTPS id EBB8760C59;
+	Tue,  3 Jun 2025 21:17:25 +0300 (MSK)
+Received: by mail-nwsmtp-smtp-production-main-63.klg.yp-c.yandex.net (smtp/Yandex) with ESMTPSA id LHgCkEULiKo0-pLzcZTYY;
+	Tue, 03 Jun 2025 21:17:24 +0300
+X-Yandex-Fwd: 1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=0upti.me; s=mail;
+	t=1748974644; bh=pOpYljZuYO3T7PKQuPSq6hSLphxMmYBM9c7hIldkB8Q=;
+	h=From:In-Reply-To:Cc:Date:References:To:Subject:Message-ID;
+	b=lfjC88AQLYLUsUJy3b7nRVzevTZKollL8zItXcXC4rgjno4MWLGx6K+HDJLEJW5Rh
+	 YYsmCJsPg7cOuXLi+Dm6HNyLtLYQKa+LofdjRX7bQxnh6dlTW3AwOjaGjOb6PbLec6
+	 iyRtRNFb5eGkXo7L0wJ2J1pBv0BJdWAL954cjgbw=
+Authentication-Results: mail-nwsmtp-smtp-production-main-63.klg.yp-c.yandex.net; dkim=pass header.i=@0upti.me
+Message-ID: <40ac27ab-00f7-4fc4-97ca-f3b519167f5c@0upti.me>
+Date: Tue, 3 Jun 2025 21:17:21 +0300
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250522145223.198902-1-pablo@netfilter.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC net-next] net: phylink: always config mac for
+ (delayed) phy
+To: "Russell King (Oracle)" <linux@armlinux.org.uk>
+Cc: Eric Woudstra <ericwouds@gmail.com>, Andrew Lunn <andrew@lunn.ch>,
+ Heiner Kallweit <hkallweit1@gmail.com>, "David S. Miller"
+ <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Matthias Brugger <matthias.bgg@gmail.com>,
+ AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
+ Frank Wunderlich <frank-w@public-files.de>,
+ Daniel Golle <daniel@makrotopia.org>, netdev@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, bridge@lists.linux.dev,
+ linux-arm-kernel@lists.infradead.org, linux-mediatek@lists.infradead.org
+References: <20250107123615.161095-1-ericwouds@gmail.com>
+ <Z30iUj6DE9-fRp0n@shell.armlinux.org.uk>
+ <4b9b2a9a-061b-43ad-b402-a49aee317f41@gmail.com>
+ <Z31CJS1YUvPGiEXs@shell.armlinux.org.uk>
+ <98234080-946e-4b36-832f-113b185e7bca@gmail.com>
+ <Z3-Tz5WdLCat91vm@shell.armlinux.org.uk>
+ <9cc913d7-7e5b-4b6c-886c-ca9778c3f970@0upti.me>
+ <aD1lRha-enQ9Pw0g@shell.armlinux.org.uk>
+ <2894a781-4d4b-4e3c-9f4e-7c1f04122f8a@0upti.me>
+ <aD3Cc7gmB2Tev_ul@shell.armlinux.org.uk>
+Content-Language: en-US
+From: Ilya K <me@0upti.me>
+In-Reply-To: <aD3Cc7gmB2Tev_ul@shell.armlinux.org.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Thu, May 22, 2025 at 04:52:23PM +0200, Pablo Neira Ayuso wrote:
-> The DCCP socket family has now been removed from this tree, see:
+On 2025-06-02 18:25, Russell King (Oracle) wrote:
+> On Mon, Jun 02, 2025 at 04:00:14PM +0300, Ilya K wrote:
+>> That's weird, because I do have all the patches applied. I think this may have been broken by the pcs_inband_caps changes, because without the patch I'm just getting "autoneg setting not compatible with PCS", after which it bails, when it should really reconfigure the MAC instead.
 > 
->   8bb3212be4b4 ("Merge branch 'net-retire-dccp-socket'")
+> Please enable phylink and sfp debug (adding #define DEBUG to the top of
+> phylink.c and sfp.c, and then send the kernel messages after reproducing
+> the issue.
 > 
-> Remove connection tracking and NAT support for this protocol, this
-> should not pose a problem because no DCCP traffic is expected to be seen
-> on the wire.
+> Thanks.
 > 
-> As for the code for matching on dccp header for iptables and nftables,
-> mark it as deprecated and keep it in place. Ruleset restoration is an
-> atomic operation. Without dccp matching support, an astray match on dccp
-> could break this operation leaving your computer with no policy in
-> place, so let's follow a more conservative approach for matches.
-> 
-> Add CONFIG_NFT_EXTHDR_DCCP which is set to 'n' by default to deprecate
-> dccp extension support. Similarly, label CONFIG_NETFILTER_XT_MATCH_DCCP
-> as deprecated too and also set it to 'n' by default.
-> 
-> Code to match on DCCP protocol from ebtables also remains in place, this
-> is just a few checks on IPPROTO_DCCP from _check() path which is
-> exercised when ruleset is loaded. There is another use of IPPROTO_DCCP
-> from the _check() path in the iptables multiport match. Another check
-> for IPPROTO_DCCP from the packet in the reject target is also removed.
-> 
-> So let's schedule removal of the dccp matching for a second stage, this
-> should not interfer with the dccp retirement since this is only matching
 
-nit: interfere
-
-> on the dccp header.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Eric Dumazet <edumazet@google.com>
-> Cc: Jakub Kicinski <kuba@kernel.org>
-> Cc: Paolo Abeni <pabeni@redhat.com>
-> Cc: Simon Horman <horms@kernel.org>
-> Cc: Kuniyuki Iwashima <kuniyu@amazon.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v2: remove superfluous exception with ct expectation objects.
-
-Reviewed-by: Simon Horman <horms@kernel.org>
-
+OK, somehow it just works normally now, even with the patch reverted. I think I grew a few gray hairs over the last few days. Sorry for the trouble, everyone, I'm off to not touch this thing ever again.
