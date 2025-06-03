@@ -1,80 +1,92 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67E1C2C3259;
-	Mon,  2 Jun 2025 18:51:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3288280338;
+	Tue,  3 Jun 2025 08:14:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748890308; cv=none; b=B+adnH40ut+xZdo86W0HveGSpJY4IgKExoyUubdGEL3tsfZGKlxmJSYdXackXH7TQii0i6QYP7i+XBjLslyJ52RYPAJtw3VHkRIdBKCnQ1feqPElpOuJQjwTDiHTsVYkEf7niuZqMXQTyNExIp+hqn/qJ5Y2JvlhaCJTyaDdj3U=
+	t=1748938479; cv=none; b=gybp2XLZrRMXteFXZO/bS8yhceYdkdDRJrPBNWbIq3nPxmxGEPZGAWIiKflBuQu0+RS2UCbrskLFASnqggfTIPKHsSN+Q/PViPjYe9DhRDM4oFc2Wa00cF8buphQRDo4CR2yUCtf3O3DM7Lnxt8jIhNILYn0PV8KyaA2kO0iV/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748890308; c=relaxed/simple;
-	bh=USPYj4wNHP10EUrCkd1PRZjBIkNjkOZO1VvwhdupL3o=;
+	s=arc-20240116; t=1748938479; c=relaxed/simple;
+	bh=edrs3H0m30rnRHzLmujwAe+hkL/oUXIBfxEUcstqNNc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FcUobQkWGEnUrKsWopb5UhUnvN8Z2ZaIt1NgSrDwL77tpv8I7saIKShAjR+MGZGXMY1VMiRXf8sTHoM6XPwxo/oMc5jdzhBO2n5zidzgX1z6ZAeukTV21RtUwyYDKrHF8PtI5bj+YE2c8bhirz9bn9RlVJ1j9WGGj1IvUD4LZrQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r++w5tCr; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZaPzs+b1; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=bOZnZJRg9iZcNqD/iCj68QORuxvptpLJfLteFl63jmZp/tKd3zQh94EqIUDitg1U6R9Wkla0n0qXlvFqTfWrXd7R8tHjF7VHINPsBRBFcLSdVD9LbhgvuHH80rkTp3Qchcj/prhIXTEqySVZRiRruR1Vz+01QByR65D8HEZ+Ihw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EJDWo8Ws; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r++w5tCr";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZaPzs+b1"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 8FE4E6027C; Mon,  2 Jun 2025 20:51:35 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748890295;
-	bh=+ulpBVanxH0UrfdRT7Z3xXqskJvgwq1PMNuyqv3rFKk=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EJDWo8Ws"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FA83C4CEEE;
+	Tue,  3 Jun 2025 08:14:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1748938478;
+	bh=edrs3H0m30rnRHzLmujwAe+hkL/oUXIBfxEUcstqNNc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=r++w5tCrsyC0a80yYeyNnl4Dx8phB/eRfPP9a1kSDpRH+kLwwzcO7FSzpaVGFH6vC
-	 LTMF6s5GOgeb/sgvIsXbVDG8cjixtTqT+1/IJe1Pd6ZOL7/7DBY0PgBWgkSOZ4Pu5T
-	 dpEVch+kG65cX9vDO36tzwhuDNIVxmt/0xFwgIsfkb4zxcu//cWH/e5uQQZA9DtI05
-	 MbLDGdS279SwiROHvRnGY4urvEeSse35q6BYEYCAcr2rwGyvK7YZiWXJy6cCaoQo/z
-	 W8HDY0vTqQ1yaVka1HwL/0K1y+1BV8ICVxxqrql/99uoLjQKCxwelUnrVET5L14yuq
-	 /dKxUDp1pbsUQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id F1D1360272;
-	Mon,  2 Jun 2025 20:51:33 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1748890294;
-	bh=+ulpBVanxH0UrfdRT7Z3xXqskJvgwq1PMNuyqv3rFKk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZaPzs+b1QqA6jKxcE5hzFNLorLXEaKddHhLmTvcQSiujTLXN4W2ztpX9P359Ka3fy
-	 vWLzGubn5+k9iU7buJVVP38Z0ljXqxYsXh/NX0KYj8lXAwPN+4dz4TnQzVHa5T0zD6
-	 gfaorUrQH3z8DsV/VlCIykpHu0JaQnPDCX0fCAOtyT5qLa9SM7V3B0caExeXNij3Ej
-	 TKh4Wkn/CSnElqsvmjWTp4PSgw14jUhc/tCgch7JeQDZ0ERgM8IY5JOmx3oaEdyFbG
-	 jzFK/985KidZ1GsaXGkt2v4oJK7SLTdHXxRwaDp/JqSfBJXv4wfe1dIe+rESk6sFhx
-	 xM97SkuqqCvNg==
-Date: Mon, 2 Jun 2025 20:51:31 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Denis Arefev <arefev@swemel.ru>
-Cc: stable@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Fernando Fernandez Mancera <ffmancera@riseup.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	lvc-project@linuxtesting.org
-Subject: Re: [PATCH 5.10] netfilter: nft_socket: fix sk refcount leaks
-Message-ID: <aD3ymi8DguYXw7ri@calendula>
-References: <20250602123948.40610-1-arefev@swemel.ru>
+	b=EJDWo8WsLy21GQiSOhsfQ832+Vv8nyNPKUJnGnwqxBs3QCcRn9fC3JTcsNakrbQpt
+	 BnyNPUYsix0mmO9FXFAW3i2gqSI0dDOfA70yedVJWsYKb5u+6vzI0OVUC0p/h3p/rM
+	 xvlwIhUy0hlFPrIMFHiIjNwOleb30QIgdr89xDaA3KvryN1pOJvfSoNN3v3UKP5Eu5
+	 evh04U1MmMQgH/dswd5ASrFr1CwvjzZX/u80rf9k68XoP43qnMIyZoBa340zd+HkrE
+	 rsdQjBlfGBd2Xc7owvVCKJXbCDHrGDK4smmTZDYdi6NmjPzBVNBdTBTlO9CvJ363Ft
+	 Q7mWWEXuXgScw==
+Date: Tue, 3 Jun 2025 09:14:34 +0100
+From: Simon Horman <horms@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@google.com, fw@strlen.de, kuniyu@amazon.com
+Subject: Re: [PATCH nf-next,v2] netfilter: conntrack: remove DCCP protocol
+ support
+Message-ID: <20250603081434.GY1484967@horms.kernel.org>
+References: <20250522145223.198902-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250602123948.40610-1-arefev@swemel.ru>
+In-Reply-To: <20250522145223.198902-1-pablo@netfilter.org>
 
-On Mon, Jun 02, 2025 at 03:39:47PM +0300, Denis Arefev wrote:
-> From: Florian Westphal <fw@strlen.de>             
+On Thu, May 22, 2025 at 04:52:23PM +0200, Pablo Neira Ayuso wrote:
+> The DCCP socket family has now been removed from this tree, see:
 > 
-> commit 8b26ff7af8c32cb4148b3e147c52f9e4c695209c upstream.
+>   8bb3212be4b4 ("Merge branch 'net-retire-dccp-socket'")
 > 
-> We must put 'sk' reference before returning.
+> Remove connection tracking and NAT support for this protocol, this
+> should not pose a problem because no DCCP traffic is expected to be seen
+> on the wire.
+> 
+> As for the code for matching on dccp header for iptables and nftables,
+> mark it as deprecated and keep it in place. Ruleset restoration is an
+> atomic operation. Without dccp matching support, an astray match on dccp
+> could break this operation leaving your computer with no policy in
+> place, so let's follow a more conservative approach for matches.
+> 
+> Add CONFIG_NFT_EXTHDR_DCCP which is set to 'n' by default to deprecate
+> dccp extension support. Similarly, label CONFIG_NETFILTER_XT_MATCH_DCCP
+> as deprecated too and also set it to 'n' by default.
+> 
+> Code to match on DCCP protocol from ebtables also remains in place, this
+> is just a few checks on IPPROTO_DCCP from _check() path which is
+> exercised when ruleset is loaded. There is another use of IPPROTO_DCCP
+> from the _check() path in the iptables multiport match. Another check
+> for IPPROTO_DCCP from the packet in the reject target is also removed.
+> 
+> So let's schedule removal of the dccp matching for a second stage, this
+> should not interfer with the dccp retirement since this is only matching
 
-I have a backport for 5.4 in the queue, I will take care of this.
+nit: interfere
 
-Thanks.
+> on the dccp header.
+> 
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Eric Dumazet <edumazet@google.com>
+> Cc: Jakub Kicinski <kuba@kernel.org>
+> Cc: Paolo Abeni <pabeni@redhat.com>
+> Cc: Simon Horman <horms@kernel.org>
+> Cc: Kuniyuki Iwashima <kuniyu@amazon.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> v2: remove superfluous exception with ct expectation objects.
+
+Reviewed-by: Simon Horman <horms@kernel.org>
+
