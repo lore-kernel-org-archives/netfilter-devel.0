@@ -1,150 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com [209.85.208.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D6C14A2D;
-	Wed,  4 Jun 2025 01:00:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B044517AE11;
+	Wed,  4 Jun 2025 04:27:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748998859; cv=none; b=eC/Jw2ihCfAzsIRqtGmJhwM3GUSAsVpQP8w+SoMKWTA6aoJsuOB57AySG/EGtGz2dyoLObJflLDYzOXx8jGlXvARAFxxE4HQiN2UX88Pnsl+rKKsT+47UL52uyZMAtUzFH2cwyeaapm25TFGSHmtWQgccGX3dCCcV1YGVP3M6T4=
+	t=1749011234; cv=none; b=tgP0Hn4HbQKdIqq6X5/fTgQjR9VWZ1eUGApoJaSuHlVtTf0P9yLCWtz4sQoUfGLuxn81MZk80LTdKKKGY+rR5PidxuTSzAPLxormLkaPMn0hEBQCMfllYf+F6Ifiqvh6cnws6J27tZSViWrkhFwDrGjBATDD3cCZ7bgF6phzdL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748998859; c=relaxed/simple;
-	bh=Jr9MwdDprcQ+Crks6HijpDIg2s9H+OgSY2RNAPf+0JQ=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QJs//mfTkyBzmllpZN+tHDhLzPLhVBPMhSt6hv7HcYlGwb3hsVvIX0ISfWO7Pczb/a/gUcukuCkKlvvBzuhxiVDgQtvHqN4jnu8VR0SevYMeN54Ypehniz78i8b9sJxujLbUvaSALmJ3mQad32D0afVaNEZbOwUOW1qusmPYCdQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QixHk1Oh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1749011234; c=relaxed/simple;
+	bh=1evMnnmMSYJSXg2IXlGewHSViRm7MB6nkSC7LHyLqrc=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=qz9m5QNRmoSv74DH1pw4re8I+0riTT4V3sv1Nz1xKcfGv/yEWR39yQQGLwFFIuXaJ14F7O/lxRr3tuetf/9+8X+MwQ4W5jAjPepYArvz0gVQk8VN/3bGYP/jdeixpWzfHRzIps0M1wwWjcMKDgvm+0A6kfuJ+fHM8zOZYAcV7zI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JaKBp9xK; arc=none smtp.client-ip=209.85.208.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QixHk1Oh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03974C4CEF1;
-	Wed,  4 Jun 2025 01:00:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1748998858;
-	bh=Jr9MwdDprcQ+Crks6HijpDIg2s9H+OgSY2RNAPf+0JQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QixHk1Oh7WrrkGnFBoB2GCP0mmWMDad+OTlNS7PU0fIGdIdwrnsR7bmz0p0ZYshhQ
-	 L0BDK3LsGL3rPLZfTszNpd0mgcwoh2rWxQ+Z6LyZPvnXYcHzgixVLdLNrji/kb/aWl
-	 X3ZYHRNo4DN4SEf2s3CnQZeOATuDtv2ZZsHiVrwxB93muArXc5XEwkoe9WbYn5ejvQ
-	 V44UtyfXFm5dGOqPR6KuC5tdUnsX2R/b5BkV2NRf+kqrzPV/Da9e+XB3RrDKUIxbzY
-	 nykO0JpWu9gaYxK+N/XFFRpZSajYDfpNoBoX0kabkLyNdBjOOuaX6MtBS38yE63cwP
-	 40B/AxsWxqxjA==
-From: Sasha Levin <sashal@kernel.org>
-To: patches@lists.linux.dev,
-	stable@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Stefano Brivio <sbrivio@redhat.com>,
-	Sasha Levin <sashal@kernel.org>,
-	kadlec@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH AUTOSEL 6.12 54/93] netfilter: nft_set_pipapo: clamp maximum map bucket size to INT_MAX
-Date: Tue,  3 Jun 2025 20:58:40 -0400
-Message-Id: <20250604005919.4191884-54-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.5
-In-Reply-To: <20250604005919.4191884-1-sashal@kernel.org>
-References: <20250604005919.4191884-1-sashal@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JaKBp9xK"
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-32aa864e0e9so33210991fa.2;
+        Tue, 03 Jun 2025 21:27:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1749011230; x=1749616030; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=tJuhntjfcXBPQ/m5wkBZugOryuT0atdnE1px3Wo8XlE=;
+        b=JaKBp9xKF1mC4Y4UAgtTdQWu7SaGmepYDc7m0yXfhoieB8hfy8WFrnVonyv5EDA3Fo
+         PXFbH/Q0YWMAA5DKPBUCguYmIVOx+EHToQBO4Iv4hukDuVWQAdOJ9HaaInnEtotzH5KF
+         KtVM3xvLC5rdC9fEpXg06860LuzTz1NK+qJFnA8OfEe7hOlHxSXw2q7jyK+8Bgty0fEn
+         s3uSLM1WVb6VIvU8V0KBrA+hezo4soM5h8o5WQIbqicP7AIXixm/NdhA/UQVtvYQA5Zl
+         T40PUGyxxpC5Uj3OyeCcgZ0NlPdmNKzUaGaMbkx7sjYggre2zEXoI4QF0S6/g92SGp3W
+         F15g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749011230; x=1749616030;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=tJuhntjfcXBPQ/m5wkBZugOryuT0atdnE1px3Wo8XlE=;
+        b=Zq2WiF0y5qRnNNGyHBdrkHZaDVlpUnOAF2eKxw4mwjc4RtOPulVLFcATO9bxd8AG0i
+         w43ZVJlHd+Wy13vL+i8O3B0L/OVeGVAPaPnUuJ/nlk18utkXCsI4g2RRuT0BhptCBn58
+         rNHgooTNz6ZKbx+MMPDDld43m42H9N6bNsMfh+sgj6T1FmYr+Q/IVN6doTZ06c07dgRo
+         wYFEQWONjhnO53AtQM63mh6VeVcT8Z5X5MbgZhBd9HorQ8uFbvzp/7vcd+hpso3JYcFE
+         oEuhSO+n1XaYoF4jNTYWWq6KIO1BfiYvr8UhpcyhEiMQNMYHwbyxC8gwvx3GRs5iU0nx
+         m+rw==
+X-Forwarded-Encrypted: i=1; AJvYcCVXnUHZ/hzB9dQ1c9fvV9Jm7vQvnWQKKnOAYVFG/Sb/xsNLkr0EF9cmdFf7rWLPSDY9zfEoSTcy@vger.kernel.org, AJvYcCVgqH/5FTb2j6dTBdiy1HbqQLtQ6nKuRHCNWx3AxBCl7JfX6N0XSjPkNXPQ2MB0AQd35vWDkDLXpEwNb+s8fJJs@vger.kernel.org, AJvYcCXISU/WZrqpiu2VYH9v1e521+5xsPhPTA9z92CNmZ86yujL/NiGugqslAXQxoXa7mc4ujVUzyyebPLe7VY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNuXJcnSkc99pU1EwkpoqzuAqNtYebIIMX4BIxEcmAAiTPOI+H
+	ELbgyOFTu66itRnoFZ2LKkuHzEcIYfPUsK5vc4D6cYehnp3sZdis+SWO3eKwrpK6/Cyf9ks5pT5
+	2B4RswhCqGFuGNkXcOxVrqeqQHLUqGd3JVHrj
+X-Gm-Gg: ASbGncs1J0v/tTEEKtuKhXz1fqnYKsbY5UbdRHyBNK+8kshySCQKuxO6px8d04sYLFG
+	t7l1mW+MiyZsoxoqmg+UlqJlwKuFstOcdfnoyY3h4oP7K/qZMsWdmUj6+CHoMLSuP7Foi4WMqpK
+	gDslNY5q8wyOkntWsNwyLN/AHexZzOeCCpaGg=
+X-Google-Smtp-Source: AGHT+IFX5jO3COLUJRnQhQyuxD770TZX6dYTmz+LGSVP2ythi3VgcFI6e2i33CEPsfvT9BRa5aEQJyadsG/zb1GL6Jo=
+X-Received: by 2002:a2e:b8ce:0:b0:32a:8101:bc06 with SMTP id
+ 38308e7fff4ca-32ac71d5b06mr3561681fa.9.1749011229566; Tue, 03 Jun 2025
+ 21:27:09 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.12.31
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Luka <luka.2016.cs@gmail.com>
+Date: Wed, 4 Jun 2025 12:26:57 +0800
+X-Gm-Features: AX0GCFtc7TndShEm9CaEvmnN1dDhjQyV6OO5S6NpHrqWWW48tDVqbd_Eigo7-ZY
+Message-ID: <CALm_T+1uP=2cXh3D8eCu8A6URcKLwpy+4wMDaErg_RMNswyCSA@mail.gmail.com>
+Subject: [Bug] kernel panic: Hard LOCKUP at 'net/netfilter/nf_conntrack_core.c'
+ in Linux kernel v6.12
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	"David S. Miller" <davem@davemloft.net>
+Cc: Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Dear Kernel Maintainers,
 
-[ Upstream commit b85e3367a5716ed3662a4fe266525190d2af76df ]
+I am writing to report a potential vulnerability identified in the
+upstream Linux Kernel version v6.12, corresponding to the following
+commit in the mainline repository:
 
-Otherwise, it is possible to hit WARN_ON_ONCE in __kvmalloc_node_noprof()
-when resizing hashtable because __GFP_NOWARN is unset.
+Git Commit:  adc218676eef25575469234709c2d87185ca223a (tag: v6.12)
 
-Similar to:
+This issue was discovered during the testing of the Android 16 AOSP
+kernel, which is based on Linux kernel version 6.12, specifically from
+the AOSP kernel branch:
 
-  b541ba7d1f5a ("netfilter: conntrack: clamp maximum hashtable size to INT_MAX")
+AOSP kernel branch: android16-6.12
+Manifest path: kernel/common.git
+Source URL:  https://android.googlesource.com/kernel/common/+/refs/heads/android16-6.12
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
+Although this kernel branch is used in Android 16 development, its
+base is aligned with the upstream Linux v6.12 release. I observed this
+issue while conducting stability and fuzzing tests on the Android 16
+platform and identified that the root cause lies in the upstream
+codebase.
 
-Based on my analysis of the commit and kernel context, here is my
-assessment: **YES** This commit should be backported to stable kernel
-trees. Here's my extensive analysis: ## Analysis of the Commit **1.
-Nature of the Fix** This commit addresses a kernel warning/crash
-prevention issue in the netfilter nft_set_pipapo subsystem. It adds
-`INT_MAX` bounds checking to prevent oversized `kvmalloc_array()` calls
-in two functions: - `pipapo_realloc_mt()` (line 666): `if (rules_alloc >
-(INT_MAX / sizeof(*new_mt)))` - `pipapo_clone()` (line 1505): `if
-(src->rules_alloc > (INT_MAX / sizeof(*src->mt)))` **2. Root Cause and
-Impact** The commit prevents `WARN_ON_ONCE` triggers in
-`__kvmalloc_node_noprof()` when `__GFP_NOWARN` is unset during kvmalloc
-operations. This is similar to commit `b541ba7d1f5a` which fixed the
-same issue in `nf_conntrack_core.c`. The kernel warning infrastructure
-change in commit `0708a0afe291` ("mm: Consider __GFP_NOWARN flag for
-oversized kvmalloc() calls") made these warnings more prominent and
-exposed this issue. **3. Code Analysis** The changes are minimal and
-surgical: - **pipapo_realloc_mt()**: Adds a single check before
-`kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL_ACCOUNT)` on
-line 669 - **pipapo_clone()**: Adds a single check before
-`kvmalloc_array(src->rules_alloc, sizeof(*src->mt), GFP_KERNEL_ACCOUNT)`
-on line 1508 Both functions return appropriate error codes (`-ENOMEM`)
-when the size limit is exceeded, maintaining existing error handling
-patterns. **4. Risk Assessment - Very Low** - **Minimal code change**:
-Only adds safety checks, doesn't modify core logic - **Fail-safe
-behavior**: Returns error instead of potentially triggering
-warnings/crashes - **Well-established pattern**: Mirrors similar fixes
-in the same subsystem (`nf_conntrack_core.c`, `x_tables.c`) - **No
-functional change**: Normal operations under `INT_MAX` limits are
-unaffected **5. Alignment with Stable Tree Criteria** - ✅ **Fixes
-important bugs**: Prevents kernel warnings and potential system
-instability - ✅ **Small and contained**: Two single-line additions with
-clear bounds checking - ✅ **Minimal regression risk**: Only adds safety
-limits, doesn't change behavior - ✅ **Critical subsystem**: Affects
-netfilter, which is core network filtering infrastructure - ✅ **Clear
-fix pattern**: Follows established pattern from similar commits that
-were backported **6. Comparison with Historical Similar Commits**
-Looking at the provided reference commits, this aligns perfectly with
-commits marked "YES" for backporting: - Similar to "netfilter:
-conntrack: clamp maximum hashtable size to INT_MAX" (Status: YES) -
-Similar to "netfilter: nf_tables: Fix oversized kvmalloc() calls"
-(Status: YES) - Similar to "netfilter: nf_tables: fix out of memory
-error handling" (Status: YES) **7. User Impact** Users with systems that
-trigger large netfilter set allocations would benefit from this fix, as
-it prevents kernel warnings that could indicate system problems and
-potential instability. **Conclusion**: This is a clear, low-risk
-stability fix that prevents kernel warnings in a critical networking
-subsystem. It follows established patterns and should be backported to
-ensure system stability across kernel versions.
 
- net/netfilter/nft_set_pipapo.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Bug Location: gc_worker+0x2a0/0x1024 net/netfilter/nf_conntrack_core.c:1534
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 7be342b495f5f..efbe2f027cab4 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -663,6 +663,9 @@ static int pipapo_realloc_mt(struct nft_pipapo_field *f,
- 	    check_add_overflow(rules, extra, &rules_alloc))
- 		return -EOVERFLOW;
- 
-+	if (rules_alloc > (INT_MAX / sizeof(*new_mt)))
-+		return -ENOMEM;
-+
- 	new_mt = kvmalloc_array(rules_alloc, sizeof(*new_mt), GFP_KERNEL_ACCOUNT);
- 	if (!new_mt)
- 		return -ENOMEM;
-@@ -1469,6 +1472,9 @@ static struct nft_pipapo_match *pipapo_clone(struct nft_pipapo_match *old)
- 		       src->groups * NFT_PIPAPO_BUCKETS(src->bb));
- 
- 		if (src->rules > 0) {
-+			if (src->rules_alloc > (INT_MAX / sizeof(*src->mt)))
-+				goto out_mt;
-+
- 			dst->mt = kvmalloc_array(src->rules_alloc,
- 						 sizeof(*src->mt),
- 						 GFP_KERNEL_ACCOUNT);
--- 
-2.39.5
+Bug Report: https://hastebin.com/share/bupiconuya.bash
 
+Entire Log: https://hastebin.com/share/inunasepaj.less
+
+
+Thank you very much for your time and attention. I sincerely apologize
+that I am currently unable to provide a reproducer for this issue.
+However, I am actively working on reproducing the problem, and I will
+make sure to share any findings or reproducing steps with you as soon
+as they are available.
+
+I greatly appreciate your efforts in maintaining the Linux kernel and
+your attention to this matter.
+
+Best regards,
+Luka
