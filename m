@@ -1,92 +1,95 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.cock.li (mail.cock.li [37.120.193.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 769A71624DD
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Jun 2025 15:40:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CCA181741
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Jun 2025 15:46:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=37.120.193.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749051654; cv=none; b=m5Eb22w/Nr/T9dTE3LKBobSbwkS2LJNF/VTRpCj5QRMA1fWgmj/thoiuv+e1eN1IXtFLH0KZvE7MjA+skiPgSxT20KWC5I8uQVKczjLDcpakILjyiehmjmwcUwu6OYD2edeWopLVK6WcUAFnFRb5OxBOUKfvJ7X9UQHhiFEeUvE=
+	t=1749051975; cv=none; b=oiJr5suP1+PGsfr0O91H6xS+TekfWkrIqxrh+G162qJlMxdCWGl0tFPCiB7Z7gdm6hEdtIbJBp1WhDlC8qsDNKt6p+9n4SB1LoqtileoPN2lAS6cI+DYY6K2VFXQomeLYGLoKlI32EyFvtwo+oUAiYotxaovoEqCW376TTMPEKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749051654; c=relaxed/simple;
-	bh=QzJt+g/egkBYNzSw6YBnyky3nr1aQwOPkaCXsBGqujU=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YElEi7mrHRWaNsh5lZTx3v3GypjJv//U84qoovswQ2Hz9jgKGRJOvbRaUunHBtBHqwIbqqmkXfBpA+8wqx+qzoKqUJJ5TWw+o3nt4SqZ8+jSWFNqWiFxHSZrOxFQDnXfmoCwfcRGTtzJ74lpmoznKSLPaqktUNAluBfPCTU4NLU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=hUyxsE5K; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1749051975; c=relaxed/simple;
+	bh=MhnelzJJ0L4d6RkLRlzDdpuOIbsgHuFNN8w1iOkdTYY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=edCXJqzF7yMidPtI/iSxtrFNg2denZjGiJWnpOJtFm+wMVDkXOEifmyZYggkDFJ0uu35kA+W2ocbQzKdXZKdtqnhoOTJ9MdTl4bedlSIvaol1sG9h/n/VJ7yEaWM/Fx8oglLMgEN0IzXGpXNTwmF4LXHTsjHCM1YmzkLG5hxqFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cock.li; spf=pass smtp.mailfrom=cock.li; dkim=pass (2048-bit key) header.d=cock.li header.i=@cock.li header.b=Iww6wXQC; arc=none smtp.client-ip=37.120.193.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cock.li
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cock.li
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="hUyxsE5K"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ymVcIoC0hGy0ICXUBjGqQ3bEezDOd7N90ffqqitrl7Q=; b=hUyxsE5Kij98Fww+yFZZMy7OE8
-	Nm6SkX6aMIPUXeP9t+FmIE5RSqk5vkirNrk2jA3ZvTE0WgHzjQmIRngYkuWmKRqvWeW5pDr1D3hE7
-	0CADtE4UH+9qaUL7fOUgNaIyuDQ3lm27eui2SapRij19nXbg9iJa4u+ljbQ0XqgQGy/I3dMX1vRpr
-	kF2iFQTjvYI2TPGoj6+tOBOayWw9OHTy2VH4oBJ11HJAV7IfEYITROyoxXvqFFeQ0YlmUrejizRG1
-	0K6TDh31lExwCI3wCR5PIcPI+GrXMJmIFQ+unIutZEN6J7f4KHYAeH0UXbfuOE0ApZzL+oc+qlKr7
-	PNn5LrPg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uMqET-000000005Zk-1J3z;
-	Wed, 04 Jun 2025 17:40:49 +0200
-Date: Wed, 4 Jun 2025 17:40:49 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] json: work around fuzzer-induced assert crashes
-Message-ID: <aEBpAUZBwuQn1Imn@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20250602121254.3469-1-fw@strlen.de>
- <aD87gslgK0kk5qzT@orbyte.nwl.cc>
+	dkim=pass (2048-bit key) header.d=cock.li header.i=@cock.li header.b="Iww6wXQC"
+Date: Wed, 4 Jun 2025 15:46:04 -0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=cock.li; s=mail;
+	t=1749051969; bh=MhnelzJJ0L4d6RkLRlzDdpuOIbsgHuFNN8w1iOkdTYY=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Iww6wXQCueWtfQCO8Gxysednf7zYTekhT+D6JH0rXghClN8N3pAe0+bMvy2LDye9X
+	 Tn7zw3lcI7kFL3NkZTKyl58H09ziQ4lE+Mli6FcuTB5e9ncmGV/ufd6MFTL4368Cs0
+	 KmcAg5YnjbDb5Ov/khC78v+a9yt+rCYVpMbgRprFO0XKO4m+IE40yXcr7wGJY1QYrL
+	 z1YKJaNmOcf53lehqR7B3iuc7UOFygJq9D0r4+tZazy2HiMZcOqcNOw2f1okr9QKnT
+	 ouAILGRLEX+Q99dRG2ZaOtGmC4IhaDe8sO0LtmqWLhCz7H4RtLm6v17pmcIWCt4jwF
+	 Cq4T9AYboVg9g==
+From: Folsk Pratima <folsk0pratima@cock.li>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: Document anonymous chain creation
+Message-ID: <20250604154604.0af22103@folsk0pratima.cock.li>
+In-Reply-To: <aEBPo-EAZA0_OSD7@orbyte.nwl.cc>
+References: <20250604102915.4691ca8e@folsk0pratima.cock.li>
+	<aEBPo-EAZA0_OSD7@orbyte.nwl.cc>
+X-Mailer: Claws Mail 4.3.1 (GTK 3.24.48; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="MP_/9AkpDmBV=aABZqFKUVi9Hg8"
+
+--MP_/9AkpDmBV=aABZqFKUVi9Hg8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <aD87gslgK0kk5qzT@orbyte.nwl.cc>
 
-Hi,
+On Wed, 4 Jun 2025 15:52:35 +0200
+Phil Sutter <phil@nwl.cc> wrote:
+>Did you try requesting a user account?
+Frankly, I do not know how.
 
-On Tue, Jun 03, 2025 at 08:14:26PM +0200, Phil Sutter wrote:
-> On Mon, Jun 02, 2025 at 02:12:49PM +0200, Florian Westphal wrote:
-> > fuzzer can cause assert failures due to json_pack() returning a NULL
-> > value and therefore triggering the assert(out) in __json_pack macro.
-> > 
-> > All instances I saw are due to invalid UTF-8 strings, i.e., table/chain
-> > names with non-text characters in them.
-> 
-> So these odd strings are supported everywhere else and we only fail to
-> format them into JSON? According to the spec[1] this should even support
-> "\uXXXX"-style escapes. Not sure if it helps us, but to me this sounds
-> like a bug in libjansson. Or are these really binary sequences somehow
-> entered into nftables wich jansson's utf8_check_string() identifies as
-> invalid?
-> 
-> > Work around this for now, replace the assert with a plaintext error
-> > message and return NULL instead of abort().
-> 
-> The old code was active with DEBUG builds, only. If undefined, it would
-> just call json_pack() itself. Did you test a non-DEBUG build, too? I
-> wonder if json.c swallows the NULL return or we see at least an error
-> message.
+>you could add the missing documentation to nft man page and submit a
+>patch
+See the attachment.
 
-So for testing purposes, I built a json_pack() wrapper which
-occasionally returns NULL (and does not assert()). This causes almost
-all py testsuite tests to fail, obviously due to JSON dump differences.
+--MP_/9AkpDmBV=aABZqFKUVi9Hg8
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename=0001-document-anonymous-chain-creation.patch
 
-Piping the non-empty ruleset-after.json files into json_pp shows no
-errors, i.e. if we get any JSON output it is valid at least.
+diff --git a/doc/nft.txt b/doc/nft.txt
+index c1bb4997..1be2fbac 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -397,7 +397,8 @@ CHAINS
+ Chains are containers for rules. They exist in two kinds, base chains and
+ regular chains. A base chain is an entry point for packets from the networking
+ stack, a regular chain may be used as jump target and is used for better rule
+-organization.
++organization. Regular chains can be anonymous, see *VERDICT STATEMENT* examples
++for details.
+ 
+ [horizontal]
+ *add*:: Add a new chain in the specified table. When a hook and priority value
+diff --git a/doc/statements.txt b/doc/statements.txt
+index 74af1d1a..384fda51 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -42,6 +42,9 @@ resumes with the next base chain hook, not the rule following the queue verdict.
+ 
+ filter input iif eth0 ip saddr 192.168.0.0/24 jump from_lan
+ filter input iif eth0 drop
++
++# jump and goto statements support anonymous chain creation
++filter input iif "eth0" jump { ip saddr 192.168.0.0/24 drop ; udp dport domain drop ; }
+ -------------------
+ 
+ PAYLOAD STATEMENT
 
-Looking at testout.log of those tests with rc-failed-dump status, I
-don't see error messages related to JSON output. So catching the NULL
-return is definitely necessary, also with non-DEBUG builds. Hence:
-
-Acked-by: Phil Sutter <phil@nwl.cc>
-
-Thanks, Phil
+--MP_/9AkpDmBV=aABZqFKUVi9Hg8--
