@@ -1,72 +1,133 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B2AC6F073
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Jun 2025 17:57:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BD0929A2;
+	Wed,  4 Jun 2025 22:20:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749059859; cv=none; b=DzwTy3Ie54gb1FhxfhKLR+Et2ifGX1IEFYw1AHh+WZMaUcYvDjzb7s4i/6xLfJQw4A03tRQ38ReWTfMtCekJSXDdhSo+HmRHhYa5+3NgfZDjpftJizcQoD5y4PZJRIZ2U7+nmSoFNgzi5TA0z+75igolfb0fZj00Ce+OZEGgyFc=
+	t=1749075637; cv=none; b=GROVQnqlhJPGpcbgpyVpMxOXrqop2tzEYyt5hbZPk2SrK2KsbuasRjcht6elKppiYAMS5SHq1sCboj2PQfXtQI7iIQZNX5e0cQ7KRZ80XsN28L87pBZYe91EzKt7PnjpL6LBdO0KMj82d/y1Q5dUPZSe1J68Y/npKINnrGHEKH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749059859; c=relaxed/simple;
-	bh=Gw6njD/ZW66uDE7doFUXEAofT2gzIHi83sr6NoTYnJ4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RWcWW6TGpbMLHnGSxOYuEa02cqK1EiTGd/GFgAsTIZIRcYxScvPiDT7nuNiwePNXkjr0pAowpAcjnpksFTnUl6+AcNBcB2RUFt0Su3RGLGmXuPEB+BK0Wcy5BkdYfXVbekJkBmL7RdJ+YmTjHE2Lk3ZvtaB9xeRDr+GU6u7nAMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=dxuEo/vs; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1749075637; c=relaxed/simple;
+	bh=DOSmI2IaRVg7WCqkBlxjxSwDieLB68PH7PBr7wnT/Ek=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=JGSEDhGuB/s6vvkxIc8CDw8xYCErqkvTfD1McPIDggmqkLUjnDxZTAJKF1I/VLkPHeZ6bz5WvYkTp/9wEsukaWB2q0ICuMBc5+WX+hLHlXHRCHHfcbWfOuVHv5x/zV4myJJtLXyDBXHqaWnykoO/8eLskovvelaU51mo0U0P0T8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jISIXxtj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TGOu92SO; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="dxuEo/vs"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Gw6njD/ZW66uDE7doFUXEAofT2gzIHi83sr6NoTYnJ4=; b=dxuEo/vs741ratFoxXSZE3ZSkj
-	+FU+G682R/7lpeVGkCgYg1P9COX3+28YEW5Z5u91U9H6XuKgciCGDEEunlWLYnxyz5A2Y2dLrSxsW
-	ujOZzRh2sK2EA/hJD8mdJLHq+6mh6LPceY4bGt2+NI0MTOwdON8u65CPUfRhl0Rje9G3LWWXQ4crm
-	yYrUzugSkuRMmT8cbXLIws+gwsnA228+5p4+lthiR4CM2dhH15E62LjmV4KBq9szCigzo49xbA66h
-	9G858D7aaWfc2PFHGTcIMvvnyt9fAHRx9d/ErJ6jmpkATMKR1zDbRXDZtxwMFAxHvaL/CtRFC26qp
-	ZN4Ne4Cw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uMsMp-000000006qA-1eII;
-	Wed, 04 Jun 2025 19:57:35 +0200
-Date: Wed, 4 Jun 2025 19:57:35 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Folsk Pratima <folsk0pratima@cock.li>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Document anonymous chain creation
-Message-ID: <aECJD4M1VpgGMthC@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Folsk Pratima <folsk0pratima@cock.li>,
-	netfilter-devel@vger.kernel.org
-References: <20250604102915.4691ca8e@folsk0pratima.cock.li>
- <aEBPo-EAZA0_OSD7@orbyte.nwl.cc>
- <20250604154604.0af22103@folsk0pratima.cock.li>
- <aEB5i1l8C8-TK3vJ@orbyte.nwl.cc>
- <20250604173206.75523a86@folsk0pratima.cock.li>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jISIXxtj";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TGOu92SO"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id D288E60287; Thu,  5 Jun 2025 00:20:24 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1749075624;
+	bh=hKHl4xGHN2ZfBaoVSK43zlyrD9LyyJzycHsHtTYcrIU=;
+	h=Date:From:To:Cc:Subject:From;
+	b=jISIXxtjI4dvMFBlvaUyE+COgVp+f8lq94LdWGlX+UWb8N4yZq79468v3Cf7sGYzp
+	 yaTkw12KOaQBuZICCqfopA7G/aEBvDYoFmcrmVje2MiwtphVUA7dtOPKWfWbgrQ/+r
+	 QRoCFnYd4Dq+t0YQSWPtIH7H5Lhq8/p3TzlfYVMBnWXheVUf6UL2f26Hy9rTje2ay+
+	 LnxR52GG69pRfW4P7vKoh79q7/EvWpZkxnpVI9VprPuS0wfZDlMLaBn/sUbsymCPxZ
+	 8if5lCq0O2TMCx2HOp1o7CV11euL73s9xzwgRgrB8TehH3FPoieMrr6o+n+nSCcba+
+	 BnjgCG+DFamvw==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id A149A60280;
+	Thu,  5 Jun 2025 00:20:23 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1749075623;
+	bh=hKHl4xGHN2ZfBaoVSK43zlyrD9LyyJzycHsHtTYcrIU=;
+	h=Date:From:To:Cc:Subject:From;
+	b=TGOu92SObib4os8F4OXMo+wqskcCbuuCqQ1UcljR8XupJz1Mt+Sl8qeoVWM1edjdI
+	 pROjU37ipLAPYUmpej+khrQF+so23s3xPjHbmUdsYFpKttzagUUWG71vtYr7NMvPYU
+	 oP3c7S5FKvnc1Q7k+iThZKTDGdc0WpbDgFq/LALktd2rEjAuc3PvszLd1eehz2p3VN
+	 JMpfH88nvkImOnSO3EoVMUDks8iJHz63Rm7s+O794fVpGIKrq/x5cGmzZKNZmpawDq
+	 IMDs/S/GEvgP9yBr6AJkb5ybVjUP9PZwn5oTRFzYtoseRkEEucj4r7tQZzHS8iKN0c
+	 zpY26qXvp9q7Q==
+Date: Thu, 5 Jun 2025 00:20:21 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: netfilter@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org
+Subject: [ANNOUNCE] knft testing/fuzzer utility for nftables
+Message-ID: <aEDGpWxv26Ac5AAw@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250604173206.75523a86@folsk0pratima.cock.li>
 
-On Wed, Jun 04, 2025 at 05:32:06PM -0000, Folsk Pratima wrote:
-> On Wed, 4 Jun 2025 18:51:23 +0200
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Thanks! I think we need to update the synopsis as well. What do you
-> > think of my extra (attached) to yours?
-> Good. See the attachment for a bit of style improvement. Removed
-> the quotes I put around eth0 to look uniform with the previous
-> examples. Also did not like how 'Note that' sounds, as if anonymous
-> chains are something unimportant or accidental.
+Hi,
 
-ACK! Formally submitted now, will push it out in the next few days
-unless someone complains. Thanks for your input!
+knft is a tool to improve test coverage for the low-level nftables
+kernel API by providing a relatively simple way to define a transaction
+batch with nftables objects without having to mingle with netlink.
+A set of tests 612 test (.t) files are included.
 
-Cheers, Phil
+knft also provides a rudimentary deterministic fuzzer (via -f option)
+along with several fuzzing modes that mangle existing tests in different
+ways to improve coverage for error unwinding paths:
+
+ deltable     \
+ delbasechain  \
+ delchain       \
+ delrule        | - delete object in this batch
+ delset         /
+ delelem       /
+ delobj       /
+ flushset         - flush set
+ dup              - duplicate object
+ reverse-commit   - turn commit into abort
+ reverse-abort    - turn abort into commit
+ table-dormant    - inject table dormant flag
+ table-wakeup     - inject table wake-up flag
+ swap             - swap objects
+ bogus            - inject bogus object to make the transaction fail
+
+To inspect how the selected fuzzing mode mangles the test, you can use
+the -d option to enable debugging along with -c to run it in dry-run
+mode, eg.
+
+ # src/./knft -c -f deltable -d tests/expr/meta/03-mark_ok.t
+ tests/expr/meta/03-mark_ok.t...
+ [FUZZING] tests/expr/meta/03-mark_ok.t (deltable)
+ >>>> fuzz_loop at index 0 in state=0
+ add_table(NFPROTO_IPV4, "test", NULL, NULL, NULL);
+ del_table(NFPROTO_IPV4, "test", NULL);
+ add_chain("test", NULL, NULL, NULL, NULL);
+ add_rule("test", "0x1", NULL, NULL, NULL);
+ meta(NULL, "NFT_REG32_15", "3");
+ cmp("NFT_REG32_15", "0", "ffffffff");
+ commit();
+ <<<< fuzz_loop backtrack STACK limit reached
+ ==== still more tries at index 0 in state=0
+ add_table(NFPROTO_IPV4, "test", NULL, NULL, NULL);
+ add_chain("test", NULL, NULL, NULL, NULL);
+ del_table(NFPROTO_IPV4, "test", NULL);
+ add_rule("test", "0x1", NULL, NULL, NULL);
+ meta(NULL, "NFT_REG32_15", "3");
+ cmp("NFT_REG32_15", "0", "ffffffff");
+ commit();
+ <<<< fuzz_loop backtrack STACK limit reached
+ ...
+
+knft provides a few more options:
+
+-e to display the error reported by the kernel.
+-n to perform test runs without flushing the existing ruleset.
+
+This tool requires libmnl to build and to parse the netlink messages
+that are sent and received by the kernel.
+
+This tool is released under the GPLv2 (or any later) and it is
+available under the netfilter git repositories:
+
+    git clone https://git.netfilter.org/knft
+
+This project is funded through the NGI0 Entrust established by NLnet
+(https://nlnet.nl) with support from the European Commission's Next
+Generation Internet programme.
+
+Happy firewalling.
