@@ -1,133 +1,84 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BD0929A2;
-	Wed,  4 Jun 2025 22:20:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC111DC9BB;
+	Wed,  4 Jun 2025 23:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749075637; cv=none; b=GROVQnqlhJPGpcbgpyVpMxOXrqop2tzEYyt5hbZPk2SrK2KsbuasRjcht6elKppiYAMS5SHq1sCboj2PQfXtQI7iIQZNX5e0cQ7KRZ80XsN28L87pBZYe91EzKt7PnjpL6LBdO0KMj82d/y1Q5dUPZSe1J68Y/npKINnrGHEKH4=
+	t=1749079709; cv=none; b=hl88dUD74hPNzFavSQ3V0Lpq3bOrhulN+JJ7IodUFecd/nDGSeRqm3FGoZFLVzwTvc8zhq9B97oh6ozm+03vSTYSQG7Cy40NwkJfGe90N28pBq7g4v95fRoGC8KcnSSXU+w5ztMChUMPI2KY7wOAH/JIdBIyFfatASfarvKj6jM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749075637; c=relaxed/simple;
-	bh=DOSmI2IaRVg7WCqkBlxjxSwDieLB68PH7PBr7wnT/Ek=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=JGSEDhGuB/s6vvkxIc8CDw8xYCErqkvTfD1McPIDggmqkLUjnDxZTAJKF1I/VLkPHeZ6bz5WvYkTp/9wEsukaWB2q0ICuMBc5+WX+hLHlXHRCHHfcbWfOuVHv5x/zV4myJJtLXyDBXHqaWnykoO/8eLskovvelaU51mo0U0P0T8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jISIXxtj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TGOu92SO; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1749079709; c=relaxed/simple;
+	bh=OSPUNvPDIA1nHg5uaxXSJTAlsvo/lC4UnHXIirwcXwM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=d9SL7gHX2Ani7omeoWOuLfv6V2ZPvs1fJzHC6314OnpeyWmXs8E5TDg0BHAxgVM7IX0WhmhMR2vwfJK7IiMknykBg5M+lNnxddOSD16DOhQTywUnHfQ4cScPVAHcbuRzgwXyt76ZfQTDS/hjzePvqlZcgSDjJvPfOZcAvGiKznc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DDTCqxfb; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZOUMlveb; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jISIXxtj";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TGOu92SO"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DDTCqxfb";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZOUMlveb"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D288E60287; Thu,  5 Jun 2025 00:20:24 +0200 (CEST)
+	id 76CA26074A; Thu,  5 Jun 2025 01:28:24 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749075624;
-	bh=hKHl4xGHN2ZfBaoVSK43zlyrD9LyyJzycHsHtTYcrIU=;
-	h=Date:From:To:Cc:Subject:From;
-	b=jISIXxtjI4dvMFBlvaUyE+COgVp+f8lq94LdWGlX+UWb8N4yZq79468v3Cf7sGYzp
-	 yaTkw12KOaQBuZICCqfopA7G/aEBvDYoFmcrmVje2MiwtphVUA7dtOPKWfWbgrQ/+r
-	 QRoCFnYd4Dq+t0YQSWPtIH7H5Lhq8/p3TzlfYVMBnWXheVUf6UL2f26Hy9rTje2ay+
-	 LnxR52GG69pRfW4P7vKoh79q7/EvWpZkxnpVI9VprPuS0wfZDlMLaBn/sUbsymCPxZ
-	 8if5lCq0O2TMCx2HOp1o7CV11euL73s9xzwgRgrB8TehH3FPoieMrr6o+n+nSCcba+
-	 BnjgCG+DFamvw==
+	s=2025; t=1749079704;
+	bh=YLVRmcN8n2kXOKhPPXv3+o050qohmrb8rJ48A7e1YZA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=DDTCqxfbEYQSUtuRKN/wgLkmw6SWSNzI6cZCYHWJgrTp9nEXmx4GfYJlDXpHmCTmw
+	 g4x2WreNcuUcajjBUWACndUydOMUV/iev5R5hTuyVGdCQxRd2+jO9WHBs+o5TrT67I
+	 J0Wa/rcypzSuxl/T7d+tR/DkBloQK+QTINCDgsaRNrchhNqBD1fIs/ATDacGGcy4BH
+	 z3zaFO1a4ADjV+xAJrndjEt+ONHHcf8asXdus+De/4ZgwZsUsSsHaw0fmSTVaGKrFR
+	 ffCxS+l+NtaVLvXmcB5XVLyEzJ4sivuF5cJ3TfMPiqMcppdtaz0kQXgZKeHVzgxcRq
+	 JRlPob6B5sE4Q==
 X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A149A60280;
-	Thu,  5 Jun 2025 00:20:23 +0200 (CEST)
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id A6CAE60744;
+	Thu,  5 Jun 2025 01:28:23 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749075623;
-	bh=hKHl4xGHN2ZfBaoVSK43zlyrD9LyyJzycHsHtTYcrIU=;
-	h=Date:From:To:Cc:Subject:From;
-	b=TGOu92SObib4os8F4OXMo+wqskcCbuuCqQ1UcljR8XupJz1Mt+Sl8qeoVWM1edjdI
-	 pROjU37ipLAPYUmpej+khrQF+so23s3xPjHbmUdsYFpKttzagUUWG71vtYr7NMvPYU
-	 oP3c7S5FKvnc1Q7k+iThZKTDGdc0WpbDgFq/LALktd2rEjAuc3PvszLd1eehz2p3VN
-	 JMpfH88nvkImOnSO3EoVMUDks8iJHz63Rm7s+O794fVpGIKrq/x5cGmzZKNZmpawDq
-	 IMDs/S/GEvgP9yBr6AJkb5ybVjUP9PZwn5oTRFzYtoseRkEEucj4r7tQZzHS8iKN0c
-	 zpY26qXvp9q7Q==
-Date: Thu, 5 Jun 2025 00:20:21 +0200
+	s=2025; t=1749079703;
+	bh=YLVRmcN8n2kXOKhPPXv3+o050qohmrb8rJ48A7e1YZA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=ZOUMlvebigWTCx6nIUx5zFonv9gzZWW82Yrpyx+b3PrfY0+LrlctVclLrJNFaweoi
+	 cy28b2JUQj9OQMwibru6JNWkDYIPN1z5rUkBrxrcR50KgbRbuHHegICm647na90uZB
+	 MOVrhdOzBq9WsBeOX8hmbWtuy2JVevGzmb7L027zYJW8doCZceDZxHrn0elo9F/lQU
+	 wqJ1RzEakPulqoQdCkYIPhg4WPBvZiNm0S2QOD64TvRrZesKXS58zgmr2blK9ImKo5
+	 +/z2gGOYT4FQpkeU9+0qLX4UaKGtkL30uBqsZFboQ+wFWe64Xe/q0QiP6DRq5C+Oxf
+	 GY55afx8I14XA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: netfilter@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org
-Subject: [ANNOUNCE] knft testing/fuzzer utility for nftables
-Message-ID: <aEDGpWxv26Ac5AAw@calendula>
+Cc: gregkh@linuxfoundation.org,
+	sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH -stable,5.4 0/1] Netfilter fix for -stable
+Date: Thu,  5 Jun 2025 01:28:16 +0200
+Message-Id: <20250604232817.46601-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hi,
+Hi Greg, Sasha,
 
-knft is a tool to improve test coverage for the low-level nftables
-kernel API by providing a relatively simple way to define a transaction
-batch with nftables objects without having to mingle with netlink.
-A set of tests 612 test (.t) files are included.
+This batch contains backported fixes for 6.1 -stable.
 
-knft also provides a rudimentary deterministic fuzzer (via -f option)
-along with several fuzzing modes that mangle existing tests in different
-ways to improve coverage for error unwinding paths:
+The following list shows the backported patch, I am using original commit
+IDs for reference:
 
- deltable     \
- delbasechain  \
- delchain       \
- delrule        | - delete object in this batch
- delset         /
- delelem       /
- delobj       /
- flushset         - flush set
- dup              - duplicate object
- reverse-commit   - turn commit into abort
- reverse-abort    - turn abort into commit
- table-dormant    - inject table dormant flag
- table-wakeup     - inject table wake-up flag
- swap             - swap objects
- bogus            - inject bogus object to make the transaction fail
+1) 039b1f4f24ec ("netfilter: nft_socket: fix erroneous socket assignment")
 
-To inspect how the selected fuzzing mode mangles the test, you can use
-the -d option to enable debugging along with -c to run it in dry-run
-mode, eg.
+   this is to fix a sk memleak.
 
- # src/./knft -c -f deltable -d tests/expr/meta/03-mark_ok.t
- tests/expr/meta/03-mark_ok.t...
- [FUZZING] tests/expr/meta/03-mark_ok.t (deltable)
- >>>> fuzz_loop at index 0 in state=0
- add_table(NFPROTO_IPV4, "test", NULL, NULL, NULL);
- del_table(NFPROTO_IPV4, "test", NULL);
- add_chain("test", NULL, NULL, NULL, NULL);
- add_rule("test", "0x1", NULL, NULL, NULL);
- meta(NULL, "NFT_REG32_15", "3");
- cmp("NFT_REG32_15", "0", "ffffffff");
- commit();
- <<<< fuzz_loop backtrack STACK limit reached
- ==== still more tries at index 0 in state=0
- add_table(NFPROTO_IPV4, "test", NULL, NULL, NULL);
- add_chain("test", NULL, NULL, NULL, NULL);
- del_table(NFPROTO_IPV4, "test", NULL);
- add_rule("test", "0x1", NULL, NULL, NULL);
- meta(NULL, "NFT_REG32_15", "3");
- cmp("NFT_REG32_15", "0", "ffffffff");
- commit();
- <<<< fuzz_loop backtrack STACK limit reached
- ...
+Please, apply,
+Thanks.
 
-knft provides a few more options:
+Florian Westphal (1):
+  netfilter: nft_socket: fix sk refcount leaks
 
--e to display the error reported by the kernel.
--n to perform test runs without flushing the existing ruleset.
+ net/netfilter/nft_socket.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-This tool requires libmnl to build and to parse the netlink messages
-that are sent and received by the kernel.
+-- 
+2.30.2
 
-This tool is released under the GPLv2 (or any later) and it is
-available under the netfilter git repositories:
-
-    git clone https://git.netfilter.org/knft
-
-This project is funded through the NGI0 Entrust established by NLnet
-(https://nlnet.nl) with support from the European Commission's Next
-Generation Internet programme.
-
-Happy firewalling.
