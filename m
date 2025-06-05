@@ -1,26 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4AEA2749E8
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Jun 2025 16:45:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CAF920C03E
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Jun 2025 22:20:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749141907; cv=none; b=ILCjUBvrHqTzvbe6eoIatDYAONHLi9RUMUb9WupnDvokN7Y6MikAEs6G5XpeYepezvst/Iih6Q+Np2z0+7uJj5TCZ7euZkZhgbolMZv4G1MlOa9gSFlnXa3bVg8rcfOXhcpOVsZ7O3me/CM+5ne7g+tFxx3kahMlCYzSSGIqzAk=
+	t=1749162051; cv=none; b=gWSvdJgMzAFsCbuQh755ZZrWptSMTSFbJ2e3+hkq+is7qkSCs/9XXcs+25LfJOTeqFCuRdcjSal4uCjAaLnaICyy+IBjuONEcDgaaaNl6ZQkmGDcWVnQQxiKnWSxm3AHuELelCdGKTTziHsI0izRnLH0rWWdDIBqhi/zBwc7V6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749141907; c=relaxed/simple;
-	bh=52OeyDeZCYyI8SI0Sy3tS+UC208CuHaEd0sy+ell6uc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TlBCnkY1TvTNgakFh54uGKkQfjFvY5VFx5N1ex07GXOWwzPQCXFTWRq5vCCoQPIjQ7WTCtqJiFfxBBJU4QejuAEl1oRLBvcoD3wrvcXoJ/GT3FzFOAb7hexBw6OQUg1rSSyL4CN7h29wU+sWrHRCQhJlBgXaatvy5kQNUiw4VD8=
+	s=arc-20240116; t=1749162051; c=relaxed/simple;
+	bh=sl2skgwPHh6gvI2en7PO/+6Zb9VT4NS/Awdo46Dqxww=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=asdreuXlx6H9zrKQBtM5P02eFBUSKyayw/ZyJ+wiACYdLOoa6K9VV3bC3/PT+vvlLhMz1STJ84wR61SBsoFasNdjgvvMcYBirQEi2hWQcs8QPyYMyy7p8vFj7wIoXpL48uOA8J8UxfpZeH3xojtPwlnfRK+KrEGdwuciH3wx/a0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9C38F60A0A; Thu,  5 Jun 2025 18:45:02 +0200 (CEST)
+	id 275AF60A0A; Fri,  6 Jun 2025 00:20:47 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] src: move BASECHAIN flag toggle to netlink linearize code for device update
-Date: Thu,  5 Jun 2025 18:44:54 +0200
-Message-ID: <20250605164457.32614-1-fw@strlen.de>
+Subject: [nft] mnl: catch bogus expressions before crashing
+Date: Fri,  6 Jun 2025 00:20:28 +0200
+Message-ID: <20250605222039.31719-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,100 +30,50 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The included bogon will crash nft because print side assumes that
-a BASECHAIN flag presence also means that priority expression is
-available.
+We can't recover from errors here, but we can abort with a more
+precise reason than 'segmentation fault', or stack corruptions
+that get caught way later, or not at all.
 
-We can either make the print side conditional or move the BASECHAIN
-setting to the last possible moment.
+expr->value is going to be read, we can't cope with other expression
+types here.
 
-Fixes: a66b5ad9540d ("src: allow for updating devices on existing netdev chain")
+We will copy to stack buffer of IFNAMSIZ size, abort if we would
+overflow.
+
+Check there is a NUL byte present too.
+This is a preemptive patch, I've seen one crash in this area but
+no reproducer yet.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                                      |  3 ---
- src/mnl.c                                           | 13 +++++++++----
- .../testcases/bogons/nft-f/null_ingress_type_crash  |  6 ++++++
- 3 files changed, 15 insertions(+), 7 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
+ src/mnl.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 014ee721cc04..b9a140172b2b 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -6030,9 +6030,6 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
- 	}
- 
- 	if (chain->dev_expr) {
--		if (!(chain->flags & CHAIN_F_BASECHAIN))
--			chain->flags |= CHAIN_F_BASECHAIN;
--
- 		if (chain->handle.family == NFPROTO_NETDEV ||
- 		    (chain->handle.family == NFPROTO_INET &&
- 		     chain->hook.num == NF_INET_INGRESS)) {
 diff --git a/src/mnl.c b/src/mnl.c
-index 6565341fa6e3..9a885ee02739 100644
+index 64b1aaedb84c..6565341fa6e3 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -821,6 +821,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		      unsigned int flags)
- {
- 	struct nftnl_udata_buf *udbuf;
-+	uint32_t chain_flags = 0;
- 	struct nftnl_chain *nlc;
- 	struct nlmsghdr *nlh;
- 	int priority, policy;
-@@ -846,6 +847,10 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 					     nftnl_udata_buf_len(udbuf));
- 			nftnl_udata_buf_free(udbuf);
- 		}
+@@ -732,9 +732,20 @@ static void nft_dev_add(struct nft_dev *dev_array, const struct expr *expr, int
+ 	unsigned int ifname_len;
+ 	char ifname[IFNAMSIZ];
+ 
++	if (expr->etype != EXPR_VALUE)
++		BUG("Must be a value, not %s\n", expr_name(expr));
 +
-+		chain_flags = cmd->chain->flags;
-+		if (cmd->chain->dev_expr)
-+			chain_flags |= CHAIN_F_BASECHAIN;
- 	}
- 
- 	nftnl_chain_set_str(nlc, NFTNL_CHAIN_TABLE, cmd->handle.table.name);
-@@ -866,7 +871,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 	mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, cmd->handle.table.name);
- 	cmd_add_loc(cmd, nlh, &cmd->handle.chain.location);
- 
--	if (!cmd->chain || !(cmd->chain->flags & CHAIN_F_BINDING)) {
-+	if (!(chain_flags & CHAIN_F_BINDING)) {
- 		mnl_attr_put_strz(nlh, NFTA_CHAIN_NAME, cmd->handle.chain.name);
- 	} else {
- 		if (cmd->handle.chain.name)
-@@ -874,8 +879,8 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 					  cmd->handle.chain.name);
- 
- 		mnl_attr_put_u32(nlh, NFTA_CHAIN_ID, htonl(cmd->handle.chain_id));
--		if (cmd->chain->flags)
--			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FLAGS, cmd->chain->flags);
-+		if (chain_flags)
-+			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FLAGS, chain_flags);
- 	}
- 
- 	if (cmd->chain && cmd->chain->policy) {
-@@ -889,7 +894,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 
- 	nftnl_chain_nlmsg_build_payload(nlh, nlc);
- 
--	if (cmd->chain && cmd->chain->flags & CHAIN_F_BASECHAIN) {
-+	if (chain_flags & CHAIN_F_BASECHAIN) {
- 		struct nlattr *nest;
- 
- 		if (cmd->chain->type.str) {
-diff --git a/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash b/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
-new file mode 100644
-index 000000000000..2ed88af24c56
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
-@@ -0,0 +1,6 @@
-+table netdev filter1 {
-+	chain c {
-+		devices = { lo }
-+	}
-+}
-+list ruleset
+ 	ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
+ 	memset(ifname, 0, sizeof(ifname));
++
++	if (ifname_len > sizeof(ifname))
++		BUG("Interface length %u exceeds limit\n", ifname_len);
++
+ 	mpz_export_data(ifname, expr->value, BYTEORDER_HOST_ENDIAN, ifname_len);
++
++	if (strnlen(ifname, IFNAMSIZ) >= IFNAMSIZ)
++		BUG("Interface length %zu exceeds limit, no NUL byte\n", strnlen(ifname, IFNAMSIZ));
++
+ 	dev_array[i].ifname = xstrdup(ifname);
+ 	dev_array[i].location = &expr->location;
+ }
 -- 
 2.49.0
 
