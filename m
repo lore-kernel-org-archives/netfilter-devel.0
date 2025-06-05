@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1753B13AD05;
-	Thu,  5 Jun 2025 08:57:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A366B1FDE39;
+	Thu,  5 Jun 2025 08:57:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749113867; cv=none; b=pxJ8HzJENUHliNJpopSpBmLIzsAoruIGkDJXQeoJvLkTvXh4ieH3TFlBwJEVKSXN7sg4lncztWxyFp+dWJSl2RYsmhcs23z16bnWVj6g3LI+Ry7kmse7VPO3B3nvJlrxgy+0sn1/Sk6DjCX4YSZt4Dbsvp70gACUg68YzMkZvUw=
+	t=1749113868; cv=none; b=ezt1YuuS64411zz8vBuIwt5W04e/NeYyuq1KLXb5X7+51Nbkmo5gnOHT7JY2GC3Rn01imb07fXf0NOEi5/f5E6NyCxBwRNRigirstbem0P9UkAvQuykYM26DL3YE/OuvIC59xymPtCvxca7xe9sp5NPmaszcHhKkRqH8S8tg7fU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749113867; c=relaxed/simple;
-	bh=siDvmvN19kvpcwgGHXBk0D/CmSGzLUXntmUI6Z34X1U=;
+	s=arc-20240116; t=1749113868; c=relaxed/simple;
+	bh=rUWB1w3MckiWZ75rzdtHh+yMItPhW++gUBtsnEb+nOo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=S8YeHxprFUxiCOM2eD94OSqUzfO3OGhDCZQXj+IYYLK0rVSTiv7qR6ognuKtdqZI5Tj/TUz5chUl17DbBEcGW1T9ghLXG/a+ldEkjIe5AgeYN7uJGsawNjjot2TxUWFM0fLVdgh5f8ylq2vx+qJhkHi5uVSVprhD2jOODkP9Pnk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Xk7/pYo3; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oabxxzQO; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=ILQyVIwIaOcaeTNKbK5alEWMHSxcupm7R5ATcoQlsuVgQpoii0V1Y5lRP7WYHajBkN4LpF1smQIJFGxYdGT0Kf48Vs7qa0yzjN7PeLfBUP1tqv+eEBV0kA90aPdjPIR/qZHaHsVrc1v0xnWqjk24XTRo4pHIecTWjRv39Q4avrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SV0+H934; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rAFJr5ae; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Xk7/pYo3";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oabxxzQO"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SV0+H934";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rAFJr5ae"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 6A60760767; Thu,  5 Jun 2025 10:57:43 +0200 (CEST)
+	id 0D60260768; Thu,  5 Jun 2025 10:57:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749113863;
-	bh=npENtcXRMFbFz6uB5OF8n5c0G2GoiIGx0JTR8CVryQ4=;
+	s=2025; t=1749113865;
+	bh=eUnqp5xmR69T0pYIkCKOX1fkLlnWVjQ2gtplRu2xnXQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Xk7/pYo3VVVG+uRi0OfF8SxsAFn9Pfx9DkIZpMTsdFIBfOJPWby5CwKlEbJQSxhIP
-	 iPLZAebRCBLowkFV3FkDZUFYZZ/mfP3EGWtWbL9D6Tl+w4X88fgGyIBA0zlTCwrTwR
-	 8NyEeOx2GLq9HTVLZ1pfx7t1jf1Mn9OqAvlFGot8vfoEeRHaEv7t/FrZZwRdGWiej8
-	 pd5FA6wC6bJLcO4l8YiKDIJJErR7rc0f6rmCA5c/FZHZX+ZylU+5NCZzNlDPwXzpKQ
-	 cAri8eWOSynwb2UzIsRJSA8eXqsdQ4I1z/m+w5yQ/AOEKy4kzjhK1aSlC74b1sZD/s
-	 moboUYBJR7Uzg==
+	b=SV0+H934KDEzRAwF0f2VzuFlixxqXdbEYzygLOEPfRuGD4b5KhHpCD1Njbwu0bXP/
+	 dndpA9gYIK1GvSgtBZ3KF0MdPviKkjkpzWNWaa9lAN9LPxYcH7zNJa0O3MRggjkZ2N
+	 3qs/hfu9mUxugrOywF4FpAJDku/rzwk+E5GK2OnoUbMETHQKOWqHSZvR3j4NIWXDCE
+	 8tOgNgxREo2YetAZzYUzsDbW0EW3G71XpKcjYes/26yW6LDCTK3x1cGeon5znO0dck
+	 xNii6MTGtopq2gS+oBk+dXDVwAc5AnFPEPxu2MkzxAeL9qyeg6Ortaq65NtMC8i4BQ
+	 WDRQjQLkZ0s/Q==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 274CC60753;
+	by mail.netfilter.org (Postfix) with ESMTPSA id DBC016075A;
 	Thu,  5 Jun 2025 10:57:40 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749113860;
-	bh=npENtcXRMFbFz6uB5OF8n5c0G2GoiIGx0JTR8CVryQ4=;
+	s=2025; t=1749113861;
+	bh=eUnqp5xmR69T0pYIkCKOX1fkLlnWVjQ2gtplRu2xnXQ=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=oabxxzQOwX94AFA+Pogfv5kHxfod8uyyOLpqYeh6Hp///GDosUDt2JuS8MXlbyeWE
-	 Q5KnMFV1PsMaMVXoq574pH/M+Srs9VhzBFk0Gs+Bo02TZYCgK5Xh9esNazSgVoOA0Y
-	 b1ysLWZPYVKzcitSXT4veUu/8WrVLbyTZBBnEnccqnVbc60ajxAooih58O0EYcXkH2
-	 lgF3XGM4e/JErr/bnkke1Za5TCWbC/8/Wwct9JT68dsdcivgYzUlfht9b4mwH5WnT2
-	 c3FMLrrp6Qj3Qp4a/61Ly0zzmw1uu4nmQlHFXATu83cYOlKXBAiwe7bgSpa10P5ECJ
-	 G5UeUUbJ+AFMg==
+	b=rAFJr5aeiXUT7e9+bxTpW+jGq0o+VdpXaG3M6J9yX/4gzmiAH4kHhx6FBfcEfBsaC
+	 5M2i3hCnORH9+rpNhHXHiZhXL1r09GYxvFhIS+vBDl2jszKEoJW1KpoeKZQQR305HP
+	 XYj7sxkfo9WCPW1rsSq/E8GkGaXiBlXVPjA2VlZjaWZraofGGSHsO/Jy+TuiuMoJe9
+	 CDlV+0lQFe+60gCLAhN3j948vTGhjKvXJaWsuFQwtEX05jfU90TwtkzwsMrRLkTfAW
+	 2XzIYGs1ohR4E8ekKDYMIa1+t4wdNJNasfaQCF6NmmKmn9hBakccbzROUff1fQf0e8
+	 YY7MILPSN7Oqg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 1/5] netfilter: nf_set_pipapo_avx2: fix initial map fill
-Date: Thu,  5 Jun 2025 10:57:31 +0200
-Message-Id: <20250605085735.52205-2-pablo@netfilter.org>
+Subject: [PATCH net 2/5] selftests: netfilter: nft_concat_range.sh: prefer per element counters for testing
+Date: Thu,  5 Jun 2025 10:57:32 +0200
+Message-Id: <20250605085735.52205-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250605085735.52205-1-pablo@netfilter.org>
 References: <20250605085735.52205-1-pablo@netfilter.org>
@@ -68,61 +68,168 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-If the first field doesn't cover the entire start map, then we must zero
-out the remainder, else we leak those bits into the next match round map.
+The selftest uses following rule:
+  ... @test counter name "test"
 
-The early fix was incomplete and did only fix up the generic C
-implementation.
+Then sends a packet, then checks if the named counter did increment or
+not.
 
-A followup patch adds a test case to nft_concat_range.sh.
+This is fine for the 'no-match' test case: If anything matches the
+counter increments and the test fails as expected.
 
-Fixes: 791a615b7ad2 ("netfilter: nf_set_pipapo: fix initial map fill")
+But for the 'should match' test cases this isn't optimal.
+Consider buggy matching, where the packet matches entry x, but it
+should have matched entry y.
+
+In that case the test would erronously pass.
+
+Rework the selftest to use per-element counters to avoid this.
+
+After sending packet that should have matched entry x, query the
+relevant element via 'nft reset element' and check that its counter
+had incremented.
+
+The 'nomatch' case isn't altered, no entry should match so the named
+counter must be 0, changing it to the per-element counter would then
+pass if another entry matches.
+
+The downside of this change is a slight increase in test run-time by
+a few seconds.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo_avx2.c | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ .../net/netfilter/nft_concat_range.sh         | 40 ++++++++++++++-----
+ 1 file changed, 30 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index c15db28c5ebc..be7c16c79f71 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1113,6 +1113,25 @@ bool nft_pipapo_avx2_estimate(const struct nft_set_desc *desc, u32 features,
- 	return true;
+diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+index efea93cf23d4..86b8ce742700 100755
+--- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
++++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
+@@ -419,6 +419,7 @@ table inet filter {
+ 
+ 	set test {
+ 		type ${type_spec}
++		counter
+ 		flags interval,timeout
+ 	}
+ 
+@@ -1158,8 +1159,17 @@ del() {
+ 	fi
  }
  
-+/**
-+ * pipapo_resmap_init_avx2() - Initialise result map before first use
-+ * @m:		Matching data, including mapping table
-+ * @res_map:	Result map
-+ *
-+ * Like pipapo_resmap_init() but do not set start map bits covered by the first field.
-+ */
-+static inline void pipapo_resmap_init_avx2(const struct nft_pipapo_match *m, unsigned long *res_map)
-+{
-+	const struct nft_pipapo_field *f = m->f;
-+	int i;
-+
-+	/* Starting map doesn't need to be set to all-ones for this implementation,
-+	 * but we do need to zero the remaining bits, if any.
-+	 */
-+	for (i = f->bsize; i < m->bsize_max; i++)
-+		res_map[i] = 0ul;
+-# Return packet count from 'test' counter in 'inet filter' table
++# Return packet count for elem $1 from 'test' counter in 'inet filter' table
+ count_packets() {
++	found=0
++	for token in $(nft reset element inet filter test "${1}" ); do
++		[ ${found} -eq 1 ] && echo "${token}" && return
++		[ "${token}" = "packets" ] && found=1
++	done
 +}
 +
- /**
-  * nft_pipapo_avx2_lookup() - Lookup function for AVX2 implementation
-  * @net:	Network namespace
-@@ -1171,7 +1190,7 @@ bool nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 	res  = scratch->map + (map_index ? m->bsize_max : 0);
- 	fill = scratch->map + (map_index ? 0 : m->bsize_max);
++# Return packet count from 'test' counter in 'inet filter' table
++count_packets_nomatch() {
+ 	found=0
+ 	for token in $(nft list counter inet filter test); do
+ 		[ ${found} -eq 1 ] && echo "${token}" && return
+@@ -1206,6 +1216,10 @@ perf() {
  
--	/* Starting map doesn't need to be set for this implementation */
-+	pipapo_resmap_init_avx2(m, res);
+ # Set MAC addresses, send single packet, check that it matches, reset counter
+ send_match() {
++	local elem="$1"
++
++	shift
++
+ 	ip link set veth_a address "$(format_mac "${1}")"
+ 	ip -n B link set veth_b address "$(format_mac "${2}")"
  
- 	nft_pipapo_avx2_prepare();
+@@ -1216,7 +1230,7 @@ send_match() {
+ 		eval src_"$f"=\$\(format_\$f "${2}"\)
+ 	done
+ 	eval send_\$proto
+-	if [ "$(count_packets)" != "1" ]; then
++	if [ "$(count_packets "$elem")" != "1" ]; then
+ 		err "${proto} packet to:"
+ 		err "  $(for f in ${dst}; do
+ 			 eval format_\$f "${1}"; printf ' '; done)"
+@@ -1242,7 +1256,7 @@ send_nomatch() {
+ 		eval src_"$f"=\$\(format_\$f "${2}"\)
+ 	done
+ 	eval send_\$proto
+-	if [ "$(count_packets)" != "0" ]; then
++	if [ "$(count_packets_nomatch)" != "0" ]; then
+ 		err "${proto} packet to:"
+ 		err "  $(for f in ${dst}; do
+ 			 eval format_\$f "${1}"; printf ' '; done)"
+@@ -1262,6 +1276,8 @@ send_nomatch() {
+ test_correctness_main() {
+ 	range_size=1
+ 	for i in $(seq "${start}" $((start + count))); do
++		local elem=""
++
+ 		end=$((start + range_size))
  
+ 		# Avoid negative or zero-sized port ranges
+@@ -1272,15 +1288,16 @@ test_correctness_main() {
+ 		srcstart=$((start + src_delta))
+ 		srcend=$((end + src_delta))
+ 
+-		add "$(format)" || return 1
++		elem="$(format)"
++		add "$elem" || return 1
+ 		for j in $(seq "$start" $((range_size / 2 + 1)) ${end}); do
+-			send_match "${j}" $((j + src_delta)) || return 1
++			send_match "$elem" "${j}" $((j + src_delta)) || return 1
+ 		done
+ 		send_nomatch $((end + 1)) $((end + 1 + src_delta)) || return 1
+ 
+ 		# Delete elements now and then
+ 		if [ $((i % 3)) -eq 0 ]; then
+-			del "$(format)" || return 1
++			del "$elem" || return 1
+ 			for j in $(seq "$start" \
+ 				   $((range_size / 2 + 1)) ${end}); do
+ 				send_nomatch "${j}" $((j + src_delta)) \
+@@ -1572,14 +1589,17 @@ test_timeout() {
+ 
+ 	range_size=1
+ 	for i in $(seq "$start" $((start + count))); do
++		local elem=""
++
+ 		end=$((start + range_size))
+ 		srcstart=$((start + src_delta))
+ 		srcend=$((end + src_delta))
+ 
+-		add "$(format)" || return 1
++		elem="$(format)"
++		add "$elem" || return 1
+ 
+ 		for j in $(seq "$start" $((range_size / 2 + 1)) ${end}); do
+-			send_match "${j}" $((j + src_delta)) || return 1
++			send_match "$elem" "${j}" $((j + src_delta)) || return 1
+ 		done
+ 
+ 		range_size=$((range_size + 1))
+@@ -1737,7 +1757,7 @@ test_bug_reload() {
+ 		srcend=$((end + src_delta))
+ 
+ 		for j in $(seq "$start" $((range_size / 2 + 1)) ${end}); do
+-			send_match "${j}" $((j + src_delta)) || return 1
++			send_match "$(format)" "${j}" $((j + src_delta)) || return 1
+ 		done
+ 
+ 		range_size=$((range_size + 1))
+@@ -1817,7 +1837,7 @@ test_bug_avx2_mismatch()
+ 	dst_addr6="$a2"
+ 	send_icmp6
+ 
+-	if [ "$(count_packets)" -gt "0" ]; then
++	if [ "$(count_packets "{ icmpv6 . $a1 }")" -gt "0" ]; then
+ 		err "False match for $a2"
+ 		return 1
+ 	fi
 -- 
 2.30.2
 
