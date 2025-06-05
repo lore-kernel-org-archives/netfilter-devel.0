@@ -1,86 +1,79 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F74238FB9;
-	Thu,  5 Jun 2025 13:20:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDEED25E479
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Jun 2025 13:44:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749129602; cv=none; b=al1JGIOibN1KuuOzdkC4GR97gkT9OYaH30H1trL7sL7di9pNtX0qnqklA1UGmEotfk8VRKC34atH0aCw3KQENvEXKXDWZ8zEXYSolrNruJhtcTBtt4mPN7wdO7+4UlxYTZXJcs+5DTCN0z69mTGSsQ2TrRH/WD25dFLGsyHyXdQ=
+	t=1749131051; cv=none; b=JgriesxNEbcAe/VmXh079l/T65r/v64KOER5f7XwSl+VtAnTY2nO3st1GIUNMWEjZ8sL4i8sNe7sDIvmjhZ0tDAf29vj+uG55+WLRWBMk/h7m088Z9RQaJJXt3oFl8Y8jCjm11A+JoIVns/9BF+TMSKoLy1M1k4LcicNa33GSAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749129602; c=relaxed/simple;
-	bh=E7/He3B0xCBq7u7uBhSii0J5lGaeIzae3IWWW9vbH4A=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=fD9iQ6ec9ixtuRISL+aa/TFu7I5QkVA6pvfLl9FLGHrtLcszQadFQgdRbECCCA5egQ1XFdBT5gdk45NZCToSi1Kfmr046qR3nuHtmEZc1ojBp6HqifeAtixnm4p/IyxzrD4kQZbPi4ZTi3t0WkvQBnCD6tY+e+fxcC97eJabhY0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=thiiz6VL; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="thiiz6VL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1209EC4CEE7;
-	Thu,  5 Jun 2025 13:20:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1749129602;
-	bh=E7/He3B0xCBq7u7uBhSii0J5lGaeIzae3IWWW9vbH4A=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=thiiz6VLQXUAUUEsvo1iW8lQigPltvkQwF/NMOP884IZjr67xHl/mWx8FDS85Mqo4
-	 /drmnPgUs94mBAEjMFQuuDm2icSrQnwGEYlJ9A1hKdR+DbU7EArwmnQjK1a/2cUjtb
-	 HIeGASLs1Mb0xMZpRuSus4yshlSBb6vR/oniUrmesL5+b2cjs5Rz+29N5kuT1IIsPe
-	 +ZoVEZGUPRCRWCgi2LuP6d7fFuc/1bHZv3D1ibfrd/40dwMZs353H0Om+RewhmZBdi
-	 9jcNWmFZBY2NpJPp73ukxrJVlofCmhLHC0oKafJsHTLlvd4senUrN9ArWx5opYL2EN
-	 c85/ToT+Cn31w==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33EB238111D8;
-	Thu,  5 Jun 2025 13:20:35 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1749131051; c=relaxed/simple;
+	bh=16gWMVgSPZewX6Y8xxerJNrU3cyE7wNJiWz1TpBb6EY=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nGUymS1SBHjZoZwgaP516FtB+tZ8CxtyGyXqX3PqvLXVGZ+Jdtdz4qhTYMqN/gPF3SgNzApbeTNEMMdUAPjaFtLspVNKw3Cd4Juzy1gLL8WFgZPeRBmruVs9EudoQPnNxwx1iNILk2yvEi296mtbm7FjrNnW0lNkx8NP5XyLK2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9589660A0A; Thu,  5 Jun 2025 15:43:59 +0200 (CEST)
+Date: Thu, 5 Jun 2025 15:43:59 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] json: work around fuzzer-induced assert crashes
+Message-ID: <aEGfHyfzrYV0Fs8B@strlen.de>
+References: <20250602121254.3469-1-fw@strlen.de>
+ <aD87gslgK0kk5qzT@orbyte.nwl.cc>
+ <aEBpAUZBwuQn1Imn@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/5] netfilter: nf_set_pipapo_avx2: fix initial map
- fill
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <174912963400.3069926.17729445468849750891.git-patchwork-notify@kernel.org>
-Date: Thu, 05 Jun 2025 13:20:34 +0000
-References: <20250605085735.52205-2-pablo@netfilter.org>
-In-Reply-To: <20250605085735.52205-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aEBpAUZBwuQn1Imn@orbyte.nwl.cc>
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Thu,  5 Jun 2025 10:57:31 +0200 you wrote:
-> From: Florian Westphal <fw@strlen.de>
+Phil Sutter <phil@nwl.cc> wrote:
+> Hi,
 > 
-> If the first field doesn't cover the entire start map, then we must zero
-> out the remainder, else we leak those bits into the next match round map.
+> On Tue, Jun 03, 2025 at 08:14:26PM +0200, Phil Sutter wrote:
+> > On Mon, Jun 02, 2025 at 02:12:49PM +0200, Florian Westphal wrote:
+> > > fuzzer can cause assert failures due to json_pack() returning a NULL
+> > > value and therefore triggering the assert(out) in __json_pack macro.
+> > > 
+> > > All instances I saw are due to invalid UTF-8 strings, i.e., table/chain
+> > > names with non-text characters in them.
+> > 
+> > So these odd strings are supported everywhere else and we only fail to
+> > format them into JSON? According to the spec[1] this should even support
+> > "\uXXXX"-style escapes. Not sure if it helps us, but to me this sounds
+> > like a bug in libjansson. Or are these really binary sequences somehow
+> > entered into nftables wich jansson's utf8_check_string() identifies as
+> > invalid?
+> > 
+> > > Work around this for now, replace the assert with a plaintext error
+> > > message and return NULL instead of abort().
+> > 
+> > The old code was active with DEBUG builds, only. If undefined, it would
+> > just call json_pack() itself. Did you test a non-DEBUG build, too? I
+> > wonder if json.c swallows the NULL return or we see at least an error
+> > message.
 > 
-> The early fix was incomplete and did only fix up the generic C
-> implementation.
+> So for testing purposes, I built a json_pack() wrapper which
+> occasionally returns NULL (and does not assert()). This causes almost
+> all py testsuite tests to fail, obviously due to JSON dump differences.
 > 
-> [...]
+> Piping the non-empty ruleset-after.json files into json_pp shows no
+> errors, i.e. if we get any JSON output it is valid at least.
+> 
+> Looking at testout.log of those tests with rc-failed-dump status, I
+> don't see error messages related to JSON output. So catching the NULL
+> return is definitely necessary, also with non-DEBUG builds. Hence:
+> 
+> Acked-by: Phil Sutter <phil@nwl.cc>
 
-Here is the summary with links:
-  - [net,1/5] netfilter: nf_set_pipapo_avx2: fix initial map fill
-    https://git.kernel.org/netdev/net/c/ea77c397bff8
-  - [net,2/5] selftests: netfilter: nft_concat_range.sh: prefer per element counters for testing
-    https://git.kernel.org/netdev/net/c/febe7eda74d1
-  - [net,3/5] selftests: netfilter: nft_concat_range.sh: add datapath check for map fill bug
-    https://git.kernel.org/netdev/net/c/38399f2b0fe4
-  - [net,4/5] netfilter: nf_nat: also check reverse tuple to obtain clashing entry
-    https://git.kernel.org/netdev/net/c/50d9ce9679dd
-  - [net,5/5] selftests: netfilter: nft_nat.sh: add test for reverse clash with nat
-    https://git.kernel.org/netdev/net/c/3c3c3248496a
+Thanks.  Meanwhile running the fuzzer again without this change found
+a reproducer, its indeed non utf-8, in this case in a comment.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+I pushed this patch with the added bogon included.
