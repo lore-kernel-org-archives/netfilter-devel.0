@@ -1,79 +1,129 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDEED25E479
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Jun 2025 13:44:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4AEA2749E8
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Jun 2025 16:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749131051; cv=none; b=JgriesxNEbcAe/VmXh079l/T65r/v64KOER5f7XwSl+VtAnTY2nO3st1GIUNMWEjZ8sL4i8sNe7sDIvmjhZ0tDAf29vj+uG55+WLRWBMk/h7m088Z9RQaJJXt3oFl8Y8jCjm11A+JoIVns/9BF+TMSKoLy1M1k4LcicNa33GSAk=
+	t=1749141907; cv=none; b=ILCjUBvrHqTzvbe6eoIatDYAONHLi9RUMUb9WupnDvokN7Y6MikAEs6G5XpeYepezvst/Iih6Q+Np2z0+7uJj5TCZ7euZkZhgbolMZv4G1MlOa9gSFlnXa3bVg8rcfOXhcpOVsZ7O3me/CM+5ne7g+tFxx3kahMlCYzSSGIqzAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749131051; c=relaxed/simple;
-	bh=16gWMVgSPZewX6Y8xxerJNrU3cyE7wNJiWz1TpBb6EY=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=nGUymS1SBHjZoZwgaP516FtB+tZ8CxtyGyXqX3PqvLXVGZ+Jdtdz4qhTYMqN/gPF3SgNzApbeTNEMMdUAPjaFtLspVNKw3Cd4Juzy1gLL8WFgZPeRBmruVs9EudoQPnNxwx1iNILk2yvEi296mtbm7FjrNnW0lNkx8NP5XyLK2M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1749141907; c=relaxed/simple;
+	bh=52OeyDeZCYyI8SI0Sy3tS+UC208CuHaEd0sy+ell6uc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TlBCnkY1TvTNgakFh54uGKkQfjFvY5VFx5N1ex07GXOWwzPQCXFTWRq5vCCoQPIjQ7WTCtqJiFfxBBJU4QejuAEl1oRLBvcoD3wrvcXoJ/GT3FzFOAb7hexBw6OQUg1rSSyL4CN7h29wU+sWrHRCQhJlBgXaatvy5kQNUiw4VD8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9589660A0A; Thu,  5 Jun 2025 15:43:59 +0200 (CEST)
-Date: Thu, 5 Jun 2025 15:43:59 +0200
+	id 9C38F60A0A; Thu,  5 Jun 2025 18:45:02 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] json: work around fuzzer-induced assert crashes
-Message-ID: <aEGfHyfzrYV0Fs8B@strlen.de>
-References: <20250602121254.3469-1-fw@strlen.de>
- <aD87gslgK0kk5qzT@orbyte.nwl.cc>
- <aEBpAUZBwuQn1Imn@orbyte.nwl.cc>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] src: move BASECHAIN flag toggle to netlink linearize code for device update
+Date: Thu,  5 Jun 2025 18:44:54 +0200
+Message-ID: <20250605164457.32614-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aEBpAUZBwuQn1Imn@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-Phil Sutter <phil@nwl.cc> wrote:
-> Hi,
-> 
-> On Tue, Jun 03, 2025 at 08:14:26PM +0200, Phil Sutter wrote:
-> > On Mon, Jun 02, 2025 at 02:12:49PM +0200, Florian Westphal wrote:
-> > > fuzzer can cause assert failures due to json_pack() returning a NULL
-> > > value and therefore triggering the assert(out) in __json_pack macro.
-> > > 
-> > > All instances I saw are due to invalid UTF-8 strings, i.e., table/chain
-> > > names with non-text characters in them.
-> > 
-> > So these odd strings are supported everywhere else and we only fail to
-> > format them into JSON? According to the spec[1] this should even support
-> > "\uXXXX"-style escapes. Not sure if it helps us, but to me this sounds
-> > like a bug in libjansson. Or are these really binary sequences somehow
-> > entered into nftables wich jansson's utf8_check_string() identifies as
-> > invalid?
-> > 
-> > > Work around this for now, replace the assert with a plaintext error
-> > > message and return NULL instead of abort().
-> > 
-> > The old code was active with DEBUG builds, only. If undefined, it would
-> > just call json_pack() itself. Did you test a non-DEBUG build, too? I
-> > wonder if json.c swallows the NULL return or we see at least an error
-> > message.
-> 
-> So for testing purposes, I built a json_pack() wrapper which
-> occasionally returns NULL (and does not assert()). This causes almost
-> all py testsuite tests to fail, obviously due to JSON dump differences.
-> 
-> Piping the non-empty ruleset-after.json files into json_pp shows no
-> errors, i.e. if we get any JSON output it is valid at least.
-> 
-> Looking at testout.log of those tests with rc-failed-dump status, I
-> don't see error messages related to JSON output. So catching the NULL
-> return is definitely necessary, also with non-DEBUG builds. Hence:
-> 
-> Acked-by: Phil Sutter <phil@nwl.cc>
+The included bogon will crash nft because print side assumes that
+a BASECHAIN flag presence also means that priority expression is
+available.
 
-Thanks.  Meanwhile running the fuzzer again without this change found
-a reproducer, its indeed non utf-8, in this case in a comment.
+We can either make the print side conditional or move the BASECHAIN
+setting to the last possible moment.
 
-I pushed this patch with the added bogon included.
+Fixes: a66b5ad9540d ("src: allow for updating devices on existing netdev chain")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c                                      |  3 ---
+ src/mnl.c                                           | 13 +++++++++----
+ .../testcases/bogons/nft-f/null_ingress_type_crash  |  6 ++++++
+ 3 files changed, 15 insertions(+), 7 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 014ee721cc04..b9a140172b2b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -6030,9 +6030,6 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
+ 	}
+ 
+ 	if (chain->dev_expr) {
+-		if (!(chain->flags & CHAIN_F_BASECHAIN))
+-			chain->flags |= CHAIN_F_BASECHAIN;
+-
+ 		if (chain->handle.family == NFPROTO_NETDEV ||
+ 		    (chain->handle.family == NFPROTO_INET &&
+ 		     chain->hook.num == NF_INET_INGRESS)) {
+diff --git a/src/mnl.c b/src/mnl.c
+index 6565341fa6e3..9a885ee02739 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -821,6 +821,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 		      unsigned int flags)
+ {
+ 	struct nftnl_udata_buf *udbuf;
++	uint32_t chain_flags = 0;
+ 	struct nftnl_chain *nlc;
+ 	struct nlmsghdr *nlh;
+ 	int priority, policy;
+@@ -846,6 +847,10 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 					     nftnl_udata_buf_len(udbuf));
+ 			nftnl_udata_buf_free(udbuf);
+ 		}
++
++		chain_flags = cmd->chain->flags;
++		if (cmd->chain->dev_expr)
++			chain_flags |= CHAIN_F_BASECHAIN;
+ 	}
+ 
+ 	nftnl_chain_set_str(nlc, NFTNL_CHAIN_TABLE, cmd->handle.table.name);
+@@ -866,7 +871,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 	mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, cmd->handle.table.name);
+ 	cmd_add_loc(cmd, nlh, &cmd->handle.chain.location);
+ 
+-	if (!cmd->chain || !(cmd->chain->flags & CHAIN_F_BINDING)) {
++	if (!(chain_flags & CHAIN_F_BINDING)) {
+ 		mnl_attr_put_strz(nlh, NFTA_CHAIN_NAME, cmd->handle.chain.name);
+ 	} else {
+ 		if (cmd->handle.chain.name)
+@@ -874,8 +879,8 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 					  cmd->handle.chain.name);
+ 
+ 		mnl_attr_put_u32(nlh, NFTA_CHAIN_ID, htonl(cmd->handle.chain_id));
+-		if (cmd->chain->flags)
+-			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FLAGS, cmd->chain->flags);
++		if (chain_flags)
++			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FLAGS, chain_flags);
+ 	}
+ 
+ 	if (cmd->chain && cmd->chain->policy) {
+@@ -889,7 +894,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
+ 
+ 	nftnl_chain_nlmsg_build_payload(nlh, nlc);
+ 
+-	if (cmd->chain && cmd->chain->flags & CHAIN_F_BASECHAIN) {
++	if (chain_flags & CHAIN_F_BASECHAIN) {
+ 		struct nlattr *nest;
+ 
+ 		if (cmd->chain->type.str) {
+diff --git a/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash b/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
+new file mode 100644
+index 000000000000..2ed88af24c56
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
+@@ -0,0 +1,6 @@
++table netdev filter1 {
++	chain c {
++		devices = { lo }
++	}
++}
++list ruleset
+-- 
+2.49.0
+
