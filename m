@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82DAB20E334;
-	Thu,  5 Jun 2025 08:57:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C3E1FDE39;
+	Thu,  5 Jun 2025 08:57:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749113871; cv=none; b=crJhRtXTuy4BUTrVA0rSxjB1VCHduttgoqOepe38VAfwN/64jLy7uKkvPJMh0JoLEKC1A+/eBPzaxw6cr+Rfuglspmm7cFnrhIZhkq4/TtE1+0Gxl/b6mQD5Pa1YQCoMcPXePp39KqCDJvQlp+6qb8qIfhbrBx2rzdwDM8w3Td8=
+	t=1749113872; cv=none; b=pOnyBGF7oVDS6zZtjek+feEWiPVDWF40/yvUf8dMpECV8GjAl1N3gkYOpDd1FTckqHoTkiLllLGC/k3X6gifyVCDDzRXK5Zep9ozKqDeoV4OapbXv06N2QWRabOyWTBOGzrSngnmdkdjp8Le/Cow/cYwBlU8GFfVr00AoLOKNg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749113871; c=relaxed/simple;
-	bh=3k7loa7FwpD+HksOyDpBuUMBWur1CM0CDn38JzW7abY=;
+	s=arc-20240116; t=1749113872; c=relaxed/simple;
+	bh=5RqsokUFRQ32z562jIvzkISko8/aFy/KIQTCU+9duOI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Cc3Ll0Zc9jWyqMaWQ0xfTUvd4L2oA5RhzLeBQpWJAnn2IPMKdxUW73Ics68ZgNl5AwHjUrxfWHZ6j+PWCgxTAv6SQM2QhI17jaeWfPLsRvITuKTDzUdjRBHqzhObvUNClE6BXQrfssTI3JtQJ1AdlZEsU9MSBOaetbEaveYnvhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bYVfveT5; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EEE64MSM; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=bl0unwB6pPhKuKFaf6DhxQp47QsAnRteezfJOu62HvF5n2251n+6YLPOosq/kDgiqAbGSGPAOaoVsSHtNg2sxPHbmtvofLqOQ2MMKOYcrhuycdb45/elzwpQC7uwCWAA6rWjljy1+iSFwyQDeXpe79cvxcTwjGeXNOFL/u1fSkQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GQIQJQ7K; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tSnoG5np; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bYVfveT5";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EEE64MSM"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GQIQJQ7K";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tSnoG5np"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 9EFCE60753; Thu,  5 Jun 2025 10:57:47 +0200 (CEST)
+	id D73CC60750; Thu,  5 Jun 2025 10:57:48 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749113867;
-	bh=ET9rWgLx8st+2tQyLAgBHdR9XZ9oppxVMy8l4pULz4o=;
+	s=2025; t=1749113868;
+	bh=8aWv+KraxHNACl96bHonmy4FC5YLjhGEng20f4OByjY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bYVfveT5eaPZEk4EX/OLCiJid6OwzEZF0cd34amtKRWoxg3pFg0vBZWMoDrfiJ5/V
-	 oBdndgzalxQ7lsNPCFjqnJnlZPSpz4VPlPE6j/+Qe7SfycQnTI94mtthLbAuNQsquM
-	 AxkbeTKfMwb9DU9SdYv6d0YtzGBhPbaWF6QHgULZSK7Dn8jaw8PE0Umw0MuPwpxBHp
-	 rPsyGx+OaWBHg7cfGynZwX3rvF+VTm9bApMwsBrdwo6u1crqdl9AibtE8KWnZ+m4DS
-	 qjacq4noggUDFWTezoAUkAxoAlGPauSEADpPL1tu8U60SYbW3hiYYNM/t/zhZa2tSv
-	 T1IwqLTD4hDpg==
+	b=GQIQJQ7KmBsHpcE1Lv4Bjw8tB4fhWd8zXhudYvz1po18OK6nmZMVHMzoMcwraoDzf
+	 rPCmlrETMI/jaujcZgaqISjlNHYVlQuaeEjeXofOqqQzYManbYOHkStb2DoOgq98Pu
+	 NPcYUZZQZejiGCbskwDDXctrHRwR4EAjNzZg9wAqgDeJX/nOm90QJwf19MxU5Gr32z
+	 JnYkGeLoFAK4ete+jLrv0sfytYepQoe7LRoZSrB4fFnOz4pbr/EA9+5594RO4Tu5fQ
+	 x4EPNbjlLob+b4/tLNdE49s+5XddBuVaKimLQ0tJgaaGnvdq6THZ4/19in1O5IbbSQ
+	 TQP5vvYAQC+ew==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 853D36075D;
-	Thu,  5 Jun 2025 10:57:41 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2C9FD60750;
+	Thu,  5 Jun 2025 10:57:42 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749113861;
-	bh=ET9rWgLx8st+2tQyLAgBHdR9XZ9oppxVMy8l4pULz4o=;
+	s=2025; t=1749113862;
+	bh=8aWv+KraxHNACl96bHonmy4FC5YLjhGEng20f4OByjY=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EEE64MSMsF4IzCumcpFobGY21UGyyANB0KpLzaioLToYwsKStYi0aRsVJNmAee3Zt
-	 atXHt/Dq2uOEeWlYMpyO1ZU+LJxJ1jZxdlfzX4HkhtTGHSyzeqICLdTV8EzLZMbyjw
-	 +1rY585Fike3j78TM3YG/SQKF6Q0fG10NF/k/8nhl545XBSttleOcwIKYp+lF+3z/c
-	 q1dE37gSdzD7zig7hzysm3f5Q6dTPvtok8Q+udAHfYLMYg7nyAK4ceBhhDfha7TGAC
-	 v+WCFS+XmjE+axEK+KBd7xHI52FtIrCiHEr9dADgWWYX6TuG6A+oC/YJf/cGIgHzuM
-	 aYaM67wKN+MwQ==
+	b=tSnoG5npU15K/0XavvXm4LjVRZ+8cx0E9cMxrOPDPAo0tWfQilBWdWIP620XorHky
+	 GLJqPOyQgHg/HmNO5AVEtpMAgFsFPDkqb1oNMr5iMfDZ/2YKyvIrMLpIcuMSOid8dA
+	 u7KrJBU8D92G08q+5HeA/UJbG0g2dP2oQR1BfL9r18Oor01Id7rhE/KiRgLpkSNDUa
+	 K6KctSZrAzIi+Mm4PBy2pkbF7VpMxXDRpv8RdB6no+nJfdqYgzjC2hwk7b+7ZE1p5R
+	 8r9jJcIvqLvGRR8IWYSDNcZsUEyexedfSd43Z53dOUvxz6mOQQAt60mI6ukwuhars9
+	 IRuG/r/3UUrUA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 3/5] selftests: netfilter: nft_concat_range.sh: add datapath check for map fill bug
-Date: Thu,  5 Jun 2025 10:57:33 +0200
-Message-Id: <20250605085735.52205-4-pablo@netfilter.org>
+Subject: [PATCH net 4/5] netfilter: nf_nat: also check reverse tuple to obtain clashing entry
+Date: Thu,  5 Jun 2025 10:57:34 +0200
+Message-Id: <20250605085735.52205-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250605085735.52205-1-pablo@netfilter.org>
 References: <20250605085735.52205-1-pablo@netfilter.org>
@@ -68,150 +68,95 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-commit 0935ee6032df ("selftests: netfilter: add test case for recent mismatch bug")
-added a regression check for incorrect initial fill of the result map
-that was fixed with 791a615b7ad2 ("netfilter: nf_set_pipapo: fix initial map fill").
+The logic added in the blamed commit was supposed to only omit nat source
+port allocation if neither the existing nor the new entry are subject to
+NAT.
 
-The test used 'nft get element', i.e., control plane checks for
-match/nomatch results.
+However, its not enough to lookup the conntrack based on the proposed
+tuple, we must also check the reverse direction.
 
-The control plane however doesn't use avx2 version, so we need to
-send+match packets.
+Otherwise there are esoteric cases where the collision is in the reverse
+direction because that colliding connection has a port rewrite, but the
+new entry doesn't.  In this case, we only check the new entry and then
+erronously conclude that no clash exists anymore.
 
-As the additional packet match/nomatch is slow, don't do this for
-every element added/removed: add and use maybe_send_(no)match
-helpers and use them.
+ The existing (udp) tuple is:
+  a:p -> b:P, with nat translation to s:P, i.e. pure daddr rewrite,
+  reverse tuple in conntrack table is s:P -> a:p.
 
+When another UDP packet is sent directly to s, i.e. a:p->s:P, this is
+correctly detected as a colliding entry: tuple is taken by existing reply
+tuple in reverse direction.
+
+But the colliding conntrack is only searched for with unreversed
+direction, and we can't find such entry matching a:p->s:P.
+
+The incorrect conclusion is that the clashing entry has timed out and
+that no port address translation is required.
+
+Such conntrack will then be discarded at nf_confirm time because the
+proposed reverse direction clashes with an existing mapping in the
+conntrack table.
+
+Search for the reverse tuple too, this will then check the NAT bits of
+the colliding entry and triggers port reallocation.
+
+Followp patch extends nft_nat.sh selftest to cover this scenario.
+
+The IPS_SEQ_ADJUST change is also a bug fix:
+Instead of checking for SEQ_ADJ this tested for SEEN_REPLY and ASSURED
+by accident -- _BIT is only for use with the test_bit() API.
+
+This bug has little consequence in practice, because the sequence number
+adjustments are only useful for TCP which doesn't support clash resolution.
+
+The existing test case (conntrack_reverse_clash.sh) exercise a race
+condition path (parallel conntrack creation on different CPUs), so
+the colliding entries have neither SEEN_REPLY nor ASSURED set.
+
+Thanks to Yafang Shao and Shaun Brady for an initial investigation
+of this bug.
+
+Fixes: d8f84a9bc7c4 ("netfilter: nf_nat: don't try nat source port reallocation for reverse dir clash")
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1795
+Reported-by: Yafang Shao <laoar.shao@gmail.com>
+Reported-by: Shaun Brady <brady.1345@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Tested-by: Yafang Shao <laoar.shao@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../net/netfilter/nft_concat_range.sh         | 62 +++++++++++++++++--
- 1 file changed, 58 insertions(+), 4 deletions(-)
+ net/netfilter/nf_nat_core.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-index 86b8ce742700..cd12b8b5ac0e 100755
---- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-@@ -378,7 +378,7 @@ display		net,port,proto
- type_spec	ipv4_addr . inet_service . inet_proto
- chain_spec	ip daddr . udp dport . meta l4proto
- dst		addr4 port proto
--src
-+src		 
- start		1
- count		9
- src_delta	9
-@@ -1269,6 +1269,42 @@ send_nomatch() {
- 	fi
- }
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index aad84aabd7f1..f391cd267922 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -248,7 +248,7 @@ static noinline bool
+ nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
+ 		      const struct nf_conn *ignored_ct)
+ {
+-	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST_BIT;
++	static const unsigned long uses_nat = IPS_NAT_MASK | IPS_SEQ_ADJUST;
+ 	const struct nf_conntrack_tuple_hash *thash;
+ 	const struct nf_conntrack_zone *zone;
+ 	struct nf_conn *ct;
+@@ -287,8 +287,14 @@ nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
+ 	zone = nf_ct_zone(ignored_ct);
  
-+maybe_send_nomatch() {
-+	local elem="$1"
-+	local what="$4"
+ 	thash = nf_conntrack_find_get(net, zone, tuple);
+-	if (unlikely(!thash)) /* clashing entry went away */
+-		return false;
++	if (unlikely(!thash)) {
++		struct nf_conntrack_tuple reply;
 +
-+	[ $((RANDOM%20)) -gt 0 ] && return
-+
-+	dst_addr4="$2"
-+	dst_port="$3"
-+	send_udp
-+
-+	if [ "$(count_packets_nomatch)" != "0" ]; then
-+		err "Packet to $dst_addr4:$dst_port did match $what"
-+		err "$(nft -a list ruleset)"
-+		return 1
-+	fi
-+}
-+
-+maybe_send_match() {
-+	local elem="$1"
-+	local what="$4"
-+
-+	[ $((RANDOM%20)) -gt 0 ] && return
-+
-+	dst_addr4="$2"
-+	dst_port="$3"
-+	send_udp
-+
-+	if [ "$(count_packets "{ $elem }")" != "1" ]; then
-+		err "Packet to $dst_addr4:$dst_port did not match $what"
-+		err "$(nft -a list ruleset)"
-+		return 1
-+	fi
-+	nft reset counter inet filter test >/dev/null
-+	nft reset element inet filter test "{ $elem }" >/dev/null
-+}
-+
- # Correctness test template:
- # - add ranged element, check that packets match it
- # - check that packets outside range don't match it
-@@ -1776,22 +1812,34 @@ test_bug_net_port_proto_match() {
- 	range_size=1
- 	for i in $(seq 1 10); do
- 		for j in $(seq 1 20) ; do
--			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
-+			local dport=$j
-+
-+			elem=$(printf "10.%d.%d.0/24 . %d-%d0 . 6-17 " ${i} ${j} ${dport} "$((dport+1))")
-+
-+			# too slow, do not test all addresses
-+			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d1" $((dport+1))) "before add" || return 1
++		nf_ct_invert_tuple(&reply, tuple);
++		thash = nf_conntrack_find_get(net, zone, &reply);
++		if (!thash) /* clashing entry went away */
++			return false;
++	}
  
- 			nft "add element inet filter test { $elem }" || return 1
-+
-+			maybe_send_match "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d" $dport) "after add" || return 1
-+
- 			nft "get element inet filter test { $elem }" | grep -q "$elem"
- 			if [ $? -ne 0 ];then
- 				local got=$(nft "get element inet filter test { $elem }")
- 				err "post-add: should have returned $elem but got $got"
- 				return 1
- 			fi
-+
-+			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d1" $((dport+1))) "out-of-range" || return 1
- 		done
- 	done
- 
- 	# recheck after set was filled
- 	for i in $(seq 1 10); do
- 		for j in $(seq 1 20) ; do
--			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
-+			local dport=$j
-+
-+			elem=$(printf "10.%d.%d.0/24 . %d-%d0 . 6-17 " ${i} ${j} ${dport} "$((dport+1))")
- 
- 			nft "get element inet filter test { $elem }" | grep -q "$elem"
- 			if [ $? -ne 0 ];then
-@@ -1799,6 +1847,9 @@ test_bug_net_port_proto_match() {
- 				err "post-fill: should have returned $elem but got $got"
- 				return 1
- 			fi
-+
-+			maybe_send_match "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d" $dport) "recheck" || return 1
-+			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d1" $((dport+1))) "recheck out-of-range" || return 1
- 		done
- 	done
- 
-@@ -1806,9 +1857,10 @@ test_bug_net_port_proto_match() {
- 	for i in $(seq 1 10); do
- 		for j in $(seq 1 20) ; do
- 			local rnd=$((RANDOM%10))
-+			local dport=$j
- 			local got=""
- 
--			elem=$(printf "10.%d.%d.0/24 . %d1-%d0 . 6-17 " ${i} ${j} ${i} "$((i+1))")
-+			elem=$(printf "10.%d.%d.0/24 . %d-%d0 . 6-17 " ${i} ${j} ${dport} "$((dport+1))")
- 			if [ $rnd -gt 0 ];then
- 				continue
- 			fi
-@@ -1819,6 +1871,8 @@ test_bug_net_port_proto_match() {
- 				err "post-delete: query for $elem returned $got instead of error."
- 				return 1
- 			fi
-+
-+			maybe_send_nomatch "$elem" $(printf "10.%d.%d.1" $i $j) $(printf "%d" $dport) "match after deletion" || return 1
- 		done
- 	done
+ 	ct = nf_ct_tuplehash_to_ctrack(thash);
  
 -- 
 2.30.2
