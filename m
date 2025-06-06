@@ -1,201 +1,130 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2FC62882DC
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Jun 2025 12:13:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB486288C9D
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Jun 2025 13:49:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749211996; cv=none; b=Koqs+CbKUfPMWl589WnD0X4kDV22fmsg7nS4xWTumKtf4PHEl6G0JeMNL7y+kVSaem3uyqNGWDbLDiL+U+52B419clBd8XAyIfBHiMElWlwi4BwmVmRAdXZpD/XocMm5bz0rUAj5zfN0+Wl3We91iOEZRnC2CquQDPRFCaoh7jA=
+	t=1749217771; cv=none; b=DrJsdICs9syIqyvY4DobKFpV61UGoVAeBT1JSdFyEbUAgCA8SaarTm/1ovNjgN3AXtdsSx/tO90n/KGIhI+tmSVZUIDNpu2hOQmsF5JH8CNBMOQctB+RFBGCdT5Iz3MVpukRUxSrDtytteNNiLhx9X8Q/1b8kMkl8wuNOmQ1YkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749211996; c=relaxed/simple;
-	bh=ZVuqmDLKnmHi4/LbdwA3xfJzdC/jbYRZjOCpOa9t7mg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YUSgusSe8t5vtLqOT3w0CB6binEit76artu9hrOwTZAfa3KNPpSC+Ssjk30h5XqTfb7NuSXYH76+IABnNPMHsSu1sIWumXR8Q7hXv5GPvA3hbJbOsKIdIazGYEuWYiVMjDFgyje8HlnzyvT+e78OJWWAU+ORtKzxG4L1eeJq6Iw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1749217771; c=relaxed/simple;
+	bh=Qpm9HUGt+JVm6QdTnS3g3Tb77tkGAK8UvwZrO5nXdO0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gG18bPnohLRm43CoYlhXm0cFEkxxJ3G12CCzrl0zEk2ET/wzYuuzwZHSvNFIIWNjCk21QWd8xqaM/3W5EW1Z1a+qen9jNQ1D8KgKrCwx/wXLPhe3RNJWyGRxU1Azx9z1/wXsTW8xxn9j1LN+jb28dsmpNmdhksoEdGMlMf/e7k4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 0DB4E60708; Fri,  6 Jun 2025 14:13:13 +0200 (CEST)
+	id 45B0D605DD; Fri,  6 Jun 2025 15:49:20 +0200 (CEST)
+Date: Fri, 6 Jun 2025 15:49:19 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft v2 2/2] evaluate: restrict allowed subtypes of concatenations
-Date: Fri,  6 Jun 2025 14:12:37 +0200
-Message-ID: <20250606121303.17247-2-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250606121303.17247-1-fw@strlen.de>
-References: <20250606121303.17247-1-fw@strlen.de>
+To: Yi Chen <yiche@redhat.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] tests: shell: Add a test case for FTP helper combined
+ with NAT.
+Message-ID: <aELx30qiSdDJ40vl@strlen.de>
+References: <20250605103339.719169-1-yiche@redhat.com>
+ <20250605104911.727026-1-yiche@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250605104911.727026-1-yiche@redhat.com>
 
-We need to restrict this, included bogon asserts with:
-BUG: unknown expression type prefix
-nft: src/netlink_linearize.c:940: netlink_gen_expr: Assertion `0' failed.
+Yi Chen <yiche@redhat.com> wrote:
+> This test verifies functionality of the FTP helper,
+> for both passive, active FTP modes,
+> and the functionality of the nf_nat_ftp module.
 
-Prefix expressions are only allowed if the concatenation is used within
-a set element, not when specifying the lookup key.
+Thanks for this test case.
 
-For the former, anything that represents a value is allowed.
-For the latter, only what will generate data (fill a register) is
-permitted.
+Some minor comments below.
 
-At this time we do not have an annotation that tells if the expression
-is on the left hand side (lookup key) or right hand side (set element).
+> diff --git a/tests/shell/features/tcpdump.sh b/tests/shell/features/tcpdump.sh
+> new file mode 100755
+> index 00000000..70df9f68
+> --- /dev/null
+> +++ b/tests/shell/features/tcpdump.sh
+> @@ -0,0 +1,4 @@
+> +#!/bin/sh
+> +
+> +# check whether tcpdump is installed
+> +tcpdump -h >/dev/null 2>&1
 
-Add a new list recursion counter for this. If its 0 then we're building
-the lookup key, if its the latter the concatenation is the RHS part
-of a relational expression and prefix, ranges and so on are allowed.
+Is tcpdump a requirement? AFAICS the dumps are only used
+as a debug aid when something goes wrong?
 
-IOW, we don't really need a recursion counter, another type of annotation
-that would tell if the expression is placed on the left or right hand side
-of another expression would work too.
+> +INFILE=$(mktemp -p /var/ftp/pub/)
 
-v2: explicitly list all 'illegal' expression types instead of
-using a default label for them.
+This directory might not be writeable.
 
-This will raise a compiler warning to remind us to adjust the case
-labels in case a new expression type gets added in the future.
+Can you use a /tmp/ directory?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Resending as per our last discussion.
- WRT. to Pablos comment about changing the logic to only explicitly
- deny whats not allowed and accept the rest, I don't like this and
- prefer the conservative approach of denying everything that isn't
- permitted.
- As a compromise, I replaced the 'default' label of v1 with the
- remaining, not-allowed expressions.  This will at least spot a
- warning when a new expression gets added so it can be classified
- (lhs/rhs safe) accordingly.
+I suggest to do:
 
- I also slightly changed the commit message to say that the counter
- isn't strictly required and just serves as 'is this lhs or rhs'
- indicator.
+WORKDIR=$(mktemp -d)
+mkdir "$WORKDIR/pub"
 
- include/rule.h                                |  1 +
- src/evaluate.c                                | 61 ++++++++++++++++++-
- .../unknown_expression_type_prefix_assert     |  9 +++
- 3 files changed, 70 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
+... and then place all files there.
 
-diff --git a/include/rule.h b/include/rule.h
-index e7e80a41506c..655d6abaf5fa 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -758,6 +758,7 @@ extern void cmd_free(struct cmd *cmd);
- 
- struct eval_recursion {
- 	uint16_t binop;
-+	uint16_t list;
- };
- 
- /**
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 2878a23c24ee..a27c2d0cb2ea 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1642,10 +1642,18 @@ static int list_member_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 	struct expr *next = list_entry((*expr)->list.next, struct expr, list);
- 	int err;
- 
-+	/* should never be hit in practice */
-+	if (ctx->recursion.list >= USHRT_MAX)
-+		return expr_binary_error(ctx->msgs, next, NULL,
-+					 "List limit %u reached ",
-+					 ctx->recursion.list);
-+
-+	ctx->recursion.list++;
- 	assert(*expr != next);
- 	list_del(&(*expr)->list);
- 	err = expr_evaluate(ctx, expr);
- 	list_add_tail(&(*expr)->list, &next->list);
-+	ctx->recursion.list--;
- 	return err;
- }
- 
-@@ -1708,10 +1716,61 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 		if (list_member_evaluate(ctx, &i) < 0)
- 			return -1;
- 
--		if (i->etype == EXPR_SET)
-+		switch (i->etype) {
-+		case EXPR_INVALID:
-+		case __EXPR_MAX:
-+			BUG("Unexpected etype %d", i->etype);
-+			break;
-+		case EXPR_VALUE:
-+		case EXPR_UNARY:
-+		case EXPR_BINOP:
-+		case EXPR_RELATIONAL:
-+		case EXPR_CONCAT:
-+		case EXPR_MAP:
-+		case EXPR_PAYLOAD:
-+		case EXPR_EXTHDR:
-+		case EXPR_META:
-+		case EXPR_RT:
-+		case EXPR_CT:
-+		case EXPR_SET_ELEM:
-+		case EXPR_NUMGEN:
-+		case EXPR_HASH:
-+		case EXPR_FIB:
-+		case EXPR_SOCKET:
-+		case EXPR_OSF:
-+		case EXPR_XFRM:
-+			break;
-+		case EXPR_RANGE:
-+		case EXPR_PREFIX:
-+			/* allowed on RHS (e.g. th dport . mark { 1-65535 . 42 }
-+			 *                                       ~~~~~~~~ allowed
-+			 * but not on LHS (e.g  1-4 . mark { ...}
-+			 *                      ~~~ illegal
-+			 *
-+			 * recursion.list > 0 means that the concatenation is
-+			 * part of another expression, such as EXPR_MAPPING or
-+			 * EXPR_SET_ELEM (is used as RHS).
-+			 */
-+			if (ctx->recursion.list > 0)
-+				break;
-+
-+			return expr_error(ctx->msgs, i,
-+					  "cannot use %s in concatenation",
-+					  expr_name(i));
-+		case EXPR_VERDICT:
-+		case EXPR_SYMBOL:
-+		case EXPR_VARIABLE:
-+		case EXPR_LIST:
-+		case EXPR_SET:
-+		case EXPR_SET_REF:
-+		case EXPR_MAPPING:
-+		case EXPR_SET_ELEM_CATCHALL:
-+		case EXPR_RANGE_VALUE:
-+		case EXPR_RANGE_SYMBOL:
- 			return expr_error(ctx->msgs, i,
- 					  "cannot use %s in concatenation",
- 					  expr_name(i));
-+		}
- 
- 		if (!i->dtype)
- 			return expr_error(ctx->msgs, i,
-diff --git a/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert b/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
-new file mode 100644
-index 000000000000..d7f8526092a5
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/unknown_expression_type_prefix_assert
-@@ -0,0 +1,9 @@
-+table t {
-+	set sc {
-+		type inet_service . ifname
-+	}
-+
-+	chain c {
-+		tcp dport . bla* @sc accept
-+	}
-+}
--- 
-2.49.0
+> +dd if=/dev/urandom of="$INFILE" bs=4096 count=1 2>/dev/null
+> +chmod 755 $INFILE
+> +assert_pass "Prepare the file for FTP transmission"
 
+Including this one
+
+... and this config:
+
+> +cat > ./vsftpd.conf <<-EOF
+> +anonymous_enable=YES
+> +local_enable=YES
+> +connect_from_port_20=YES
+> +listen=NO
+> +listen_ipv6=YES
+> +pam_service_name=vsftpd
+> +background=YES
+> +EOF
+> +ip netns exec $S vsftpd ./vsftpd.conf
+> +sleep 1
+> +ip netns exec $S ss -6ltnp | grep -q '*:21'
+> +assert_pass "start vsftpd server"
+
+So no files are created outside of /tmp.
+
+> +# test passive mode
+> +reload_ruleset
+> +ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${0##*/}.pcap 2> /dev/null & sleep 2
+> +ip netns exec $C curl -s --connect-timeout 5 ftp://[${ip_rc}]:2121${INFILE#/var/ftp} -o $OUTFILE
+> +assert_pass "curl ftp passive mode "
+> +
+> +pkill tcpdump
+
+Can you do this instead?:
+> +ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${0##*/}.pcap 2> /dev/null &
+
+tcpdump_pid=$!
+sleep 2
+...
+kill "$tcpdump_pid"
+
+?
+
+pkill will zap all tcpdump instances.
+Since tests are executed in parallel, it might zap other tcpdump
+instances as well and not just the one spawned by this script.
+
+> +tcpdump -nnr ${0##*/}.pcap src ${ip_rs} and dst ${ip_sr} 2>&1 |grep -q FTP
+
+Not sure why the above is needed.  Isn't the 'cmp' enough to see
+if the ftp xfer worked?
+
+> +assert_pass "assert FTP traffic NATed"
+> +
+> +cmp "$INFILE" "$OUTFILE"
+
+... because if there is a problem with the helper, then the cmp
+ought to fail?
