@@ -1,640 +1,226 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E66AB481CD
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Jun 2025 00:28:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71FE4184F
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Jun 2025 04:05:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749515338; cv=none; b=P5wuBIHVy76C2zLcLOw1C4AJ1lDqvIK9iOaO4bpGL0iO+77pZ+pNkl5bJK3b3rBCy7l/xvz66PjkA89XISR0qNU+nub7mLmDFjVpe/hpGXBrws5TgUuRHQkXnlcBin6ehsRsh49hMXNBa2LTZuCXUwNvldFMhUieygQN/a/p7go=
+	t=1749528349; cv=none; b=KLfyz1TS+Sd+HYIuTceUIsuSy3VnngwJ23HgD9UmzA41QNV9vfLxhgFuzOpWC1Mh6Q6n8G1BqUaj2xQwT2+O7N1asxTZO0ztXNOkLhWNM8nY9N6zi29cjZQ6J4a+euABq1WejIJtJ+yG68lbe8+BKv+b2n8WdtPHLOnb6+OaG24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749515338; c=relaxed/simple;
-	bh=ypKEKFyZ6xHsOkaZxHiXa8lPp7oUupfInQJqH5T/+RU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V0rDKyNDg2j5hSa34ujrKC8jPyH6oBvm6l/z8hJwa4TCItFyj7aMmNQ/LSMsN80XRxlUJ1aN/bmsmK/kZfsIxGkotV9M9NmZ7jh35s2aId39PbhtvFL7f7+lftrEu8o3ishnssjdkElFZWLd2P07yAJOHyIxuLZyWEyLkYsBIxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dKct+Bng; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sp5C1aCA; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1749528349; c=relaxed/simple;
+	bh=Xz8K6l4Pu2EPC5lUZt4DZVl9+ZU96oEVvlIFSmPOGm8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Hf8uG7hrZwAjZz05u+T4gbx/pkRuQ27EoUxJV0dM2WAKxAcibrbugQHbGX64Oks1Y922EoDy2WGYVp4zqJ6LM/JLUjZKjIHIpFMzosSpnS6tXkYPIvF9sR9OTprG2SSwYOs4P9BheKS8EDSUZSTgcf5FyCz+022FG18VigD4maE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Q1fkDYt2; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dKct+Bng";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sp5C1aCA"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id DE92160600; Tue, 10 Jun 2025 02:28:44 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749515324;
-	bh=YpmrEvLzZhJc3pZ8q2+upM9PJIYPcd7NjRh7eQyGemw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dKct+BnghGQpeWgeoRn+Zc5FPMEhQSfy/1PD4rl7xz+D64VNluSb49ANDyHy8BvJE
-	 q7dbqAJQqIrH2v13PX8Hrdlna2v3GUpB+/pVushYFPfwd4BAcaBVYfhC35RcB9Uk3I
-	 QtJpIbHLCpOSqfWcMWfAl6r5Nyx1Fpv3ynxIxxB+oPtdpmdVZKvsIKHokAu5uD7HG/
-	 ZdScxAWkG8E0ju0yBYCym2CyJ7gxur2jhS3H1qo42dW90VCH30nd30KnS9kOGhVUVY
-	 iIKabNChB6vzM7ScT3ourYBhGFLsbPo+F6nEPuDTs+T7uCm79UXp5hZZuwPcElRv0u
-	 djNlROfNpeykw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4AAC9605F7;
-	Tue, 10 Jun 2025 02:28:40 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749515320;
-	bh=YpmrEvLzZhJc3pZ8q2+upM9PJIYPcd7NjRh7eQyGemw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=sp5C1aCAVtQ8gObGVrUaohmsWtgVBjTLrerlf4jiTIQGY2ZusjOlugJhB/VbP6+a/
-	 7jTUSF+AAg9uafP2lqtrMxfAbxAwVqnDpT9iYWlv+1kLwzTYt+2R5YbThapMsaXJe5
-	 hQRrx2ps46u5YJPwEH8K8kGXJeWY4uM4eFV0ZSTSaW2r8Pa70nSxLBZA31zsssOqSk
-	 P8qvVsQeuUccjjvNh4s7vUgtx02P4w/U12D8VjfJsOsp+J8q5rpgSnChx6Uggm8b4R
-	 VvF81s0tFaVw0e/1EoF17Lao2RzBY52IZHZweVnqdZSMdaYc/YZ0CCqo8hbUPAakVJ
-	 Frgh9lo702ZTQ==
-Date: Tue, 10 Jun 2025 02:28:37 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH 2/2 libnftnl v2] tunnel: add support to geneve options
-Message-ID: <aEd8Nfv5Zce1p0FD@calendula>
-References: <20250527193420.9860-1-fmancera@suse.de>
- <20250527193420.9860-2-fmancera@suse.de>
- <aDZaAl1r0iWkAePn@strlen.de>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Q1fkDYt2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1749528346;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YATybFTSWf8UqRijYEI/PntR2EcwOmsrBeey7r9kmWk=;
+	b=Q1fkDYt2qaIxVDs4Q1e7bXoJras+gUWM9CzAC0RI1gvsCqPB4lz733veE98+0FSqJTGEqx
+	8x6exzq1GYm5k2G1ZUhSC77ztXGFAuXewq2x1Z0yOwU8ou5OF9Rvg8Up4RvqGPXYNQanaj
+	+4U0OfBwbBwErFf/rM5g9JjoMBGIkvo=
+Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com
+ [209.85.216.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-433-Pwp-LSMnO-SpjJilZ8Xx1Q-1; Tue, 10 Jun 2025 00:05:43 -0400
+X-MC-Unique: Pwp-LSMnO-SpjJilZ8Xx1Q-1
+X-Mimecast-MFC-AGG-ID: Pwp-LSMnO-SpjJilZ8Xx1Q_1749528342
+Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-313360ce7fcso4213226a91.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Jun 2025 21:05:42 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1749528341; x=1750133141;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=YATybFTSWf8UqRijYEI/PntR2EcwOmsrBeey7r9kmWk=;
+        b=K9o+Q2Q29kPER3WHPf1L6ECkfJCfxRk/uSJGkj4KQooqg7IELxYdzlcpEZDh+VIDes
+         529i2C/X2y2udJwdKPDUVASEVGGcSSiJSfUi4A0Pz+2bxvptzKNfIST2hPNEIlDUnWGV
+         m6RINi+Pm3h9TCyf8mxE9A9QAFcXFBSVfAfX5EnItIxa5lnMtGKdVCfODo/PMFIwLlUw
+         BqNPVuTaU0zyM6HxAzAyLSEsGRxgMqHl4ss2ggClLiA+f3Plmo7lry73PvW/xZKEbWvF
+         n1JgFxJdQrAGyB41VUcdB/c7xHpZ6hNkikjgtmtD7QhrlbanHnKIdiuSzBP7SZwFaoNo
+         QliQ==
+X-Gm-Message-State: AOJu0YzJ+PyThBFWOIZ44w5IEC0sqfQJD0swcUYMVNw11dIKqiDKgbdq
+	/HJG2TThkgKV6g049I7M359GCMaEy5oFUAXHOdSG8cN1IK8V3Y/afCsCVCse2hC8GR8H75IaTK0
+	LOXtk2d70mNcIsHa9QoxsL0Qfj6SoD3ZYZnotkMY70MicBGLzeY4VXsK9TAfQymmUkeuCDdBIyo
+	T2c0bsk4dNo5QzKba8PgpYqcbkEZLT97TTpO/FEBcSFP75Ow0JTynx588=
+X-Gm-Gg: ASbGnctYAs9hP/pxObb5NOPAEjL4PtQGbd9zZNCx8/QeD2Cpx81wt0zL5etLPZGikkm
+	YG7JOV9jrnTlh3IA8ISaowVjID8oGlI79RPZ4ev3KuvxTrgAbz0qcQbA/lmwXDy71Z5r5e/gdL3
+	5hgZ7I
+X-Received: by 2002:a17:90b:1809:b0:313:3f33:6b95 with SMTP id 98e67ed59e1d1-31347409cfdmr24608319a91.16.1749528341411;
+        Mon, 09 Jun 2025 21:05:41 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFOSyDGDyQKnn+sX7GS/djVQQTee6VScfrJ+s4Sj7z1s/TRatL0ScIk5aVAUStU/ck15fmuYlLY/0YrnCnAmvU=
+X-Received: by 2002:a17:90b:1809:b0:313:3f33:6b95 with SMTP id
+ 98e67ed59e1d1-31347409cfdmr24608289a91.16.1749528341054; Mon, 09 Jun 2025
+ 21:05:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="eASaaeUYi2+mvofA"
-Content-Disposition: inline
-In-Reply-To: <aDZaAl1r0iWkAePn@strlen.de>
+References: <20250605103339.719169-1-yiche@redhat.com> <20250609081428.9219-1-yiche@redhat.com>
+ <aEdTln3VvlQNgPXT@strlen.de>
+In-Reply-To: <aEdTln3VvlQNgPXT@strlen.de>
+From: Yi Chen <yiche@redhat.com>
+Date: Tue, 10 Jun 2025 12:05:13 +0800
+X-Gm-Features: AX0GCFt7Q3bLAA6Jf9cEP3RHvuxSsTFOENvtQmo3kzoDcJy1f8hc3NoE3zdbrI8
+Message-ID: <CAJsUoE2oBU-0BvbaKdaHtjUO4+cXaczNMz13iTsPAgJy6wC4CQ@mail.gmail.com>
+Subject: Re: [PATCH v2] tests: shell: Add a test case for FTP helper combined
+ with NAT.
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Indeed, both passive and active mode need to preload the nf_nat_ftp module.
+The patched script passed on my side too.
+Thanks for fixing mistakes in the script!
 
---eASaaeUYi2+mvofA
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+On Tue, Jun 10, 2025 at 5:35=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
+te:
+>
+> Yi Chen <yiche@redhat.com> wrote:
+> > This test verifies functionality of the FTP helper,
+> > for both passive, active FTP modes,
+> > and the functionality of the nf_nat_ftp module.
+>
+> Thanks, I had to apply this delta to make this work for me, can
+> you check that it still passes on your end?
+>
+> I guess nf_nat_ftp module is already loaded on
+> your system, its needed for all tests as the FTP server
+> is on a different address than what the client connectects to.
+>
+> The important changes are:
+>  - load nf_nat_ftp early
+>  - use ${PCAP} for last tcpdump too, local dir isn't writeable
+>    in my virtme-ng setup.
+>
+> Rest is debugging aid/cosmetic.  The curl feature check gets extended
+> to skip in case curl exists but was built with no ftp support.
+>
+> I removed -s flag from curl, this also removes the error messages,
+> if any, which makes it harder to debug.  Its fine to have more
+> information available in case something goes wrong.
+>
+> I now get:
+>   I: [OK]         1/1 tests/shell/testcases/packetpath/nat_ftp
+>
+> No need to resend unless you want to make further enhancements.
+>
+> diff --git a/tests/shell/features/curl.sh b/tests/shell/features/curl.sh
+> --- a/tests/shell/features/curl.sh
+> +++ b/tests/shell/features/curl.sh
+> @@ -1,4 +1,4 @@
+>  #!/bin/sh
+>
+> -# check whether curl is installed
+> -curl -h >/dev/null 2>&1
+> +# check whether curl is installed and supports ftp
+> +curl --version | grep "^Protocols: "| grep -q " ftp"
+> diff --git a/tests/shell/testcases/packetpath/nat_ftp b/tests/shell/testc=
+ases/packetpath/nat_ftp
+> --- a/tests/shell/testcases/packetpath/nat_ftp
+> +++ b/tests/shell/testcases/packetpath/nat_ftp
+> @@ -22,7 +22,10 @@ assert_pass()
+>                 echo "FAIL: ${@}"
+>                 ip netns exec $R nft list ruleset
+>                 tcpdump -nnr ${PCAP}
+> -               ip netns exec $R cat /proc/net/nf_conntrack
+> +               test -r /proc/net/nf_conntrack && ip netns exec $R cat /p=
+roc/net/nf_conntrack
+> +               ip netns exec $R conntrack -S
+> +               ip netns exec $R conntrack -L
+> +               ip netns exec $S ss -nitepal
+>                 exit 1
+>         else
+>                 echo "PASS: ${@}"
+> @@ -43,6 +46,9 @@ PCAP=3D"$WORKDIR/tcpdump.pcap"
+>  mkdir -p $WORKDIR
+>  assert_pass "mkdir $WORKDIR"
+>
+> +modprobe nf_nat_ftp
+> +assert_pass "modprobe nf_nat_ftp. Needed for DNAT of data connection and=
+ active mode PORT change with SNAT"
+> +
+>  ip_sr=3D2001:db8:ffff:22::1
+>  ip_cr=3D2001:db8:ffff:21::2
+>  ip_rs=3D2001:db8:ffff:22::fffe
+> @@ -86,7 +92,7 @@ reload_ruleset()
+>                 chain PRE-dnat {
+>                         type nat hook prerouting priority dstnat; policy =
+accept;
+>                         # Dnat the control connection, data connection wi=
+ll be automaticly NATed.
+> -                       ip6 daddr ${ip_rc} ip6 nexthdr tcp tcp dport 2121=
+ counter dnat ip6 to [${ip_sr}]:21
+> +                       ip6 daddr ${ip_rc} counter ip6 nexthdr tcp tcp dp=
+ort 2121 counter dnat ip6 to [${ip_sr}]:21
+>                 }
+>
+>                 chain PRE-aftnat {
+> @@ -103,7 +109,7 @@ reload_ruleset()
+>
+>                 chain forward {
+>                         type filter hook forward priority filter; policy =
+drop;
+> -                       ip6 daddr ${ip_sr} tcp dport 21 ct state new coun=
+ter accept
+> +                       ip6 daddr ${ip_sr} counter tcp dport 21 ct state =
+new counter accept
+>                         ip6 nexthdr tcp ct state established counter acce=
+pt
+>                         ip6 nexthdr tcp ct state related     counter log =
+accept
+>                 }
+> @@ -142,7 +148,7 @@ reload_ruleset
+>  ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${PCAP} 2> /dev/=
+null &
+>  pid=3D$!
+>  sleep 1
+> -ip netns exec $C curl -s --connect-timeout 5 ftp://[${ip_rc}]:2121/$(bas=
+ename $INFILE) -o $OUTFILE
+> +ip netns exec $C curl --no-progress-meter --connect-timeout 5 ftp://[${i=
+p_rc}]:2121/$(basename $INFILE) -o $OUTFILE
+>  assert_pass "curl ftp passive mode "
+>
+>  cmp "$INFILE" "$OUTFILE"
+> @@ -155,19 +161,17 @@ assert_pass "assert FTP traffic NATed"
+>
+>  # test active mode
+>  reload_ruleset
+> -modprobe nf_nat_ftp
+> -assert_pass "modprobe nf_nat_ftp. Active mode need it to modify the clie=
+nt ip in PORT command under SNAT"
+>
+> -ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${0##*/}.pcap 2>=
+ /dev/null &
+> +ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${PCAP} 2> /dev/=
+null &
+>  pid=3D$!
+> -ip netns exec $C curl -s -P - --connect-timeout 5 ftp://[${ip_rc}]:2121/=
+$(basename $INFILE) -o $OUTFILE
+> +ip netns exec $C curl --no-progress-meter -P - --connect-timeout 5 ftp:/=
+/[${ip_rc}]:2121/$(basename $INFILE) -o $OUTFILE
+>  assert_pass "curl ftp active mode "
+>
+>  cmp "$INFILE" "$OUTFILE"
+>  assert_pass "FTP Active mode: in and output files remain the same when F=
+TP traffic passes through NAT."
+>
+>  kill $pid; sync
+> -tcpdump -nnr ${0##*/}.pcap src ${ip_rs} and dst ${ip_sr} 2>&1 |grep -q F=
+TP
+> +tcpdump -nnr ${PCAP} src ${ip_rs} and dst ${ip_sr} 2>&1 |grep -q FTP
+>  assert_pass "assert FTP traffic NATed"
+>
+>  # trap calls cleanup
+>
 
-Hi,
-
-On Wed, May 28, 2025 at 02:34:10AM +0200, Florian Westphal wrote:
-> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> 
-> Hi Fernando
-> 
-> Thanks for working on this, I got inquiries as to nft_tunnel.c
-> and how to make use of this stuff...
-> 
-> > diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
-> > index 9930355..14a42cd 100644
-> > --- a/include/libnftnl/object.h
-> > +++ b/include/libnftnl/object.h
-> > @@ -117,15 +117,19 @@ enum {
-> >  	NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX,
-> >  	NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID,
-> >  	NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR,
-> > +	NFTNL_OBJ_TUNNEL_GENEVE_OPTS,
-> 
-> If every flavour gets its own flag in the tunnel namespace we'll run
-> out of u64 in no time.
-> 
-> AFAICS these are mutually exclusive, e.g.
-> NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX and NFTNL_OBJ_TUNNEL_VXLAN_GBP cannot
-> be active at the same time.
-> 
-> Is there a way to re-use the internal flag namespace depending on the tunnel
-> subtype?
-> 
-> Or to have distinct tunnel object types?
-> 
-> object -> tunnel -> {vxlan, erspan, ...} ?
-> 
-> As-is, how is this API supposed to be used?  The internal union seems to
-> be asking for trouble later, when e.g. 'getting' NFTNL_OBJ_TUNNEL_GENEVE_OPTS
-> on something that was instantiated as vxlan tunnel and fields aliasing to
-> unexpected values.
-> 
-> Perhaps the first use of any of the NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX
-> etc values in a setter should interally "lock" the object to the given
-> subtype?
-> 
-> That might allow to NOT use ->flags for those enum values and instead
-> keep track of them via overlapping bits.
-> 
-> We'd need some internal 'enum nft_obj_tunnel_type' that marks which
-> part of the union is useable/instantiated so we can reject requests
-> to set bits that are not available for the specific tunnel type.
-> 
-> >  	switch (type) {
-> >  	case NFTNL_OBJ_TUNNEL_ID:
-> > @@ -72,6 +73,15 @@ nftnl_obj_tunnel_set(struct nftnl_obj *e, uint16_t type,
-> >  	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR:
-> >  		memcpy(&tun->u.tun_erspan.u.v2.dir, data, data_len);
-> >  		break;
-> > +	case NFTNL_OBJ_TUNNEL_GENEVE_OPTS:
-> > +		geneve = malloc(sizeof(struct nftnl_obj_tunnel_geneve));
-> 
-> No null check.  Applies to a few other spots too.
-> 
-> > +		memcpy(geneve, data, data_len);
-> 
-> Hmm, this looks like the API leaks internal data layout from nftables to
-> libnftnl and vice versa?  IMO thats a non-starter, sorry.
-> 
-> I see that options are essentially unlimited values, so perhaps nftables
-> should build the netlink blob(s) directly, similar to nftnl_udata()?
-> 
-> Pablo, any better idea?
-
-Maybe this API for tunnel options are proposed in this patch?
-
-Consider this a sketch/proposal, this is compiled tested only.
-
-struct obj_ops also needs a .free interface to release the tunnel
-options object.
-
---eASaaeUYi2+mvofA
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="0001-tunnel-rework-options.patch"
-
-From 56362a22008911873bd8b8a2f55e68406e55e0de Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 10 Jun 2025 01:43:28 +0200
-Subject: [PATCH libnftnl] tunnel: rework options
-
-Only vxlan gbp can work before this patch because
-NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR is off by one in the internal object
-flags.
-
-Replace them by NFTNL_OBJ_TUNNEL_OPTS and add a new opaque
-nftnl_tunnel_opts struct and nftnl_tunnel_opts_set() to set up
-tunnel options.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/libnftnl/object.h |  32 ++++-
- include/obj.h             |  16 +--
- src/obj/tunnel.c          | 275 +++++++++++++++++++++++++++-----------
- 3 files changed, 222 insertions(+), 101 deletions(-)
-
-diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
-index 9930355bb8f0..0331cf7ac5d8 100644
---- a/include/libnftnl/object.h
-+++ b/include/libnftnl/object.h
-@@ -112,14 +112,36 @@ enum {
- 	NFTNL_OBJ_TUNNEL_FLAGS,
- 	NFTNL_OBJ_TUNNEL_TOS,
- 	NFTNL_OBJ_TUNNEL_TTL,
--	NFTNL_OBJ_TUNNEL_VXLAN_GBP,
--	NFTNL_OBJ_TUNNEL_ERSPAN_VERSION,
--	NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX,
--	NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID,
--	NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR,
-+	NFTNL_OBJ_TUNNEL_OPTS,
- 	__NFTNL_OBJ_TUNNEL_MAX,
- };
- 
-+#define NFTNL_TUNNEL_TYPE	0
-+#define NFTNL_TUNNEL_BASE	4
-+
-+enum nftnl_tunnel_type {
-+	NFTNL_TUNNEL_TYPE_VXLAN,
-+	NFTNL_TUNNEL_TYPE_ERSPAN,
-+};
-+
-+enum {
-+	NFTNL_TUNNEL_VXLAN_GBP		= NFTNL_TUNNEL_BASE,
-+	__NFTNL_TUNNEL_VXLAN_MAX,
-+};
-+
-+enum {
-+	NFTNL_TUNNEL_ERSPAN_VERSION	= NFTNL_TUNNEL_BASE,
-+	NFTNL_TUNNEL_ERSPAN_V1_INDEX,
-+	NFTNL_TUNNEL_ERSPAN_V2_HWID,
-+	NFTNL_TUNNEL_ERSPAN_V2_DIR,
-+	__NFTNL_TUNNEL_ERSPAN_MAX,
-+};
-+
-+struct nftnl_tunnel_opts;
-+struct nftnl_tunnel_opts *nftnl_tunnel_opts_alloc(enum nftnl_tunnel_type type);
-+int nftnl_tunnel_opts_set(struct nftnl_tunnel_opts *opts, uint16_t type,
-+			  const void *data, uint32_t data_len);
-+
- enum {
- 	NFTNL_OBJ_SECMARK_CTX	= NFTNL_OBJ_BASE,
- 	__NFTNL_OBJ_SECMARK_MAX,
-diff --git a/include/obj.h b/include/obj.h
-index d2177377860d..5d3c4eced199 100644
---- a/include/obj.h
-+++ b/include/obj.h
-@@ -78,21 +78,7 @@ struct nftnl_obj {
- 			uint32_t	tun_flags;
- 			uint8_t		tun_tos;
- 			uint8_t		tun_ttl;
--			union {
--				struct {
--					uint32_t	gbp;
--				} tun_vxlan;
--				struct {
--					uint32_t	version;
--					union {
--						uint32_t	v1_index;
--						struct {
--							uint8_t	hwid;
--							uint8_t	dir;
--						} v2;
--					} u;
--				} tun_erspan;
--			} u;
-+			struct nftnl_tunnel_opts *tun_opts;
- 		} tunnel;
- 		struct nftnl_obj_secmark {
- 			char		ctx[NFT_SECMARK_CTX_MAXLEN];
-diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
-index 8941e39ffb03..80199928d954 100644
---- a/src/obj/tunnel.c
-+++ b/src/obj/tunnel.c
-@@ -57,20 +57,8 @@ nftnl_obj_tunnel_set(struct nftnl_obj *e, uint16_t type,
- 	case NFTNL_OBJ_TUNNEL_TTL:
- 		memcpy(&tun->tun_ttl, data, data_len);
- 		break;
--	case NFTNL_OBJ_TUNNEL_VXLAN_GBP:
--		memcpy(&tun->u.tun_vxlan.gbp, data, data_len);
--		break;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_VERSION:
--		memcpy(&tun->u.tun_erspan.version, data, data_len);
--		break;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX:
--		memcpy(&tun->u.tun_erspan.u.v1_index, data, data_len);
--		break;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID:
--		memcpy(&tun->u.tun_erspan.u.v2.hwid, data, data_len);
--		break;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR:
--		memcpy(&tun->u.tun_erspan.u.v2.dir, data, data_len);
-+	case NFTNL_OBJ_TUNNEL_OPTS:
-+		memcpy(&tun->tun_opts, data, data_len);
- 		break;
- 	}
- 	return 0;
-@@ -116,21 +104,9 @@ nftnl_obj_tunnel_get(const struct nftnl_obj *e, uint16_t type,
- 	case NFTNL_OBJ_TUNNEL_TTL:
- 		*data_len = sizeof(tun->tun_ttl);
- 		return &tun->tun_ttl;
--	case NFTNL_OBJ_TUNNEL_VXLAN_GBP:
--		*data_len = sizeof(tun->u.tun_vxlan.gbp);
--		return &tun->u.tun_vxlan.gbp;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_VERSION:
--		*data_len = sizeof(tun->u.tun_erspan.version);
--		return &tun->u.tun_erspan.version;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX:
--		*data_len = sizeof(tun->u.tun_erspan.u.v1_index);
--		return &tun->u.tun_erspan.u.v1_index;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID:
--		*data_len = sizeof(tun->u.tun_erspan.u.v2.hwid);
--		return &tun->u.tun_erspan.u.v2.hwid;
--	case NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR:
--		*data_len = sizeof(tun->u.tun_erspan.u.v2.dir);
--		return &tun->u.tun_erspan.u.v2.dir;
-+	case NFTNL_OBJ_TUNNEL_OPTS:
-+		*data_len = sizeof(tun->tun_opts);
-+		return &tun->tun_opts;
- 	}
- 	return NULL;
- }
-@@ -171,11 +147,14 @@ static int nftnl_obj_tunnel_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
- 
-+static void nftnl_tunnel_opts_build(struct nlmsghdr *nlh,
-+				    struct nftnl_tunnel_opts *opts);
-+
- static void
- nftnl_obj_tunnel_build(struct nlmsghdr *nlh, const struct nftnl_obj *e)
- {
- 	struct nftnl_obj_tunnel *tun = nftnl_obj_data(e);
--	struct nlattr *nest, *nest_inner;
-+	struct nlattr *nest;
- 
- 	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_ID))
- 		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ID, htonl(tun->id));
-@@ -212,34 +191,8 @@ nftnl_obj_tunnel_build(struct nlmsghdr *nlh, const struct nftnl_obj *e)
- 		mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_TTL, tun->tun_ttl);
- 	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_FLAGS))
- 		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_FLAGS, htonl(tun->tun_flags));
--	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_VXLAN_GBP)) {
--		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
--		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_VXLAN);
--		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_VXLAN_GBP,
--				 htonl(tun->u.tun_vxlan.gbp));
--		mnl_attr_nest_end(nlh, nest_inner);
--		mnl_attr_nest_end(nlh, nest);
--	}
--	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_VERSION) &&
--	    (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX) ||
--	     (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID) &&
--	      e->flags & (1u << NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR)))) {
--		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
--		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_ERSPAN);
--		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ERSPAN_VERSION,
--				 htonl(tun->u.tun_erspan.version));
--		if (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX))
--			mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX,
--					 htonl(tun->u.tun_erspan.u.v1_index));
--		if (e->flags & (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID))
--			mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_ERSPAN_V2_HWID,
--					tun->u.tun_erspan.u.v2.hwid);
--		if (e->flags & (1u << NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR))
--			mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_ERSPAN_V2_DIR,
--					tun->u.tun_erspan.u.v2.dir);
--		mnl_attr_nest_end(nlh, nest_inner);
--		mnl_attr_nest_end(nlh, nest);
--	}
-+	if (e->flags & (1 << NFTNL_OBJ_TUNNEL_OPTS))
-+		nftnl_tunnel_opts_build(nlh, tun->tun_opts);
- }
- 
- static int nftnl_obj_tunnel_ip_cb(const struct nlattr *attr, void *data)
-@@ -335,6 +288,26 @@ static int nftnl_obj_tunnel_parse_ip6(struct nftnl_obj *e, struct nlattr *attr,
- 	return 0;
- }
- 
-+struct nftnl_tunnel_opts {
-+	enum nftnl_tunnel_type			type;
-+	uint32_t				flags;
-+	union {
-+		struct {
-+			uint32_t		gbp;
-+		} vxlan;
-+		struct {
-+			uint32_t		version;
-+			struct {
-+				uint32_t	index;
-+			} v1;
-+			struct {
-+				uint8_t		hwid;
-+				uint8_t		dir;
-+			} v2;
-+		} erspan;
-+	};
-+};
-+
- static int nftnl_obj_tunnel_vxlan_cb(const struct nlattr *attr, void *data)
- {
- 	const struct nlattr **tb = data;
-@@ -355,8 +328,7 @@ static int nftnl_obj_tunnel_vxlan_cb(const struct nlattr *attr, void *data)
- }
- 
- static int
--nftnl_obj_tunnel_parse_vxlan(struct nftnl_obj *e, struct nlattr *attr,
--			     struct nftnl_obj_tunnel *tun)
-+nftnl_obj_tunnel_parse_vxlan(struct nftnl_tunnel_opts *opts, struct nlattr *attr)
- {
- 	struct nlattr *tb[NFTA_TUNNEL_KEY_VXLAN_MAX + 1] = {};
- 
-@@ -364,9 +336,9 @@ nftnl_obj_tunnel_parse_vxlan(struct nftnl_obj *e, struct nlattr *attr,
- 		return -1;
- 
- 	if (tb[NFTA_TUNNEL_KEY_VXLAN_GBP]) {
--		tun->u.tun_vxlan.gbp =
-+		opts->vxlan.gbp =
- 			ntohl(mnl_attr_get_u32(tb[NFTA_TUNNEL_KEY_VXLAN_GBP]));
--		e->flags |= (1 << NFTNL_OBJ_TUNNEL_VXLAN_GBP);
-+		opts->flags |= (1 << NFTNL_TUNNEL_VXLAN_GBP);
- 	}
- 
- 	return 0;
-@@ -398,8 +370,7 @@ static int nftnl_obj_tunnel_erspan_cb(const struct nlattr *attr, void *data)
- }
- 
- static int
--nftnl_obj_tunnel_parse_erspan(struct nftnl_obj *e, struct nlattr *attr,
--			      struct nftnl_obj_tunnel *tun)
-+nftnl_obj_tunnel_parse_erspan(struct nftnl_tunnel_opts *opts, struct nlattr *attr)
- {
- 	struct nlattr *tb[NFTA_TUNNEL_KEY_ERSPAN_MAX + 1] = {};
- 
-@@ -407,24 +378,24 @@ nftnl_obj_tunnel_parse_erspan(struct nftnl_obj *e, struct nlattr *attr,
- 		return -1;
- 
- 	if (tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]) {
--		tun->u.tun_erspan.version =
-+		opts->erspan.version =
- 			ntohl(mnl_attr_get_u32(tb[NFTA_TUNNEL_KEY_ERSPAN_VERSION]));
--		e->flags |= (1 << NFTNL_OBJ_TUNNEL_ERSPAN_VERSION);
-+		opts->flags |= (1 << NFTNL_TUNNEL_ERSPAN_VERSION);
- 	}
- 	if (tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]) {
--		tun->u.tun_erspan.u.v1_index =
-+		opts->erspan.v1.index =
- 			ntohl(mnl_attr_get_u32(tb[NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX]));
--		e->flags |= (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX);
-+		opts->flags |= (1 << NFTNL_TUNNEL_ERSPAN_V1_INDEX);
- 	}
- 	if (tb[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]) {
--		tun->u.tun_erspan.u.v2.hwid =
-+		opts->erspan.v2.hwid =
- 			mnl_attr_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_V2_HWID]);
--		e->flags |= (1 << NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID);
-+		opts->flags |= (1 << NFTNL_TUNNEL_ERSPAN_V2_HWID);
- 	}
- 	if (tb[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]) {
--		tun->u.tun_erspan.u.v2.dir =
-+		opts->erspan.v2.dir =
- 			mnl_attr_get_u8(tb[NFTA_TUNNEL_KEY_ERSPAN_V2_DIR]);
--		e->flags |= (1u << NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR);
-+		opts->flags |= (1 << NFTNL_TUNNEL_ERSPAN_V2_DIR);
- 	}
- 
- 	return 0;
-@@ -450,22 +421,36 @@ static int nftnl_obj_tunnel_opts_cb(const struct nlattr *attr, void *data)
- 	return MNL_CB_OK;
- }
- 
-+struct nftnl_tunnel_opts *nftnl_tunnel_opts_alloc(enum nftnl_tunnel_type type);
-+
- static int
- nftnl_obj_tunnel_parse_opts(struct nftnl_obj *e, struct nlattr *attr,
- 			    struct nftnl_obj_tunnel *tun)
- {
- 	struct nlattr *tb[NFTA_TUNNEL_KEY_OPTS_MAX + 1] = {};
-+	struct nftnl_tunnel_opts *opts = NULL;
- 	int err = 0;
- 
- 	if (mnl_attr_parse_nested(attr, nftnl_obj_tunnel_opts_cb, tb) < 0)
- 		return -1;
- 
- 	if (tb[NFTA_TUNNEL_KEY_OPTS_VXLAN]) {
--		err = nftnl_obj_tunnel_parse_vxlan(e, tb[NFTA_TUNNEL_KEY_OPTS_VXLAN],
--						   tun);
-+		opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_VXLAN);
-+		if (!opts)
-+			return -1;
-+
-+		err = nftnl_obj_tunnel_parse_vxlan(opts, tb[NFTA_TUNNEL_KEY_OPTS_VXLAN]);
- 	} else if (tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN]) {
--		err = nftnl_obj_tunnel_parse_erspan(e, tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN],
--						    tun);
-+		opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_ERSPAN);
-+		if (!opts)
-+			return -1;
-+
-+		err = nftnl_obj_tunnel_parse_erspan(opts, tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN]);
-+	}
-+
-+	if (opts) {
-+		tun->tun_opts = opts;
-+		e->flags |= (1 << NFTNL_OBJ_TUNNEL_OPTS);
- 	}
- 
- 	return err;
-@@ -532,6 +517,138 @@ static int nftnl_obj_tunnel_snprintf(char *buf, size_t len,
- 	return snprintf(buf, len, "id %u ", tun->id);
- }
- 
-+struct nftnl_tunnel_opts *nftnl_tunnel_opts_alloc(enum nftnl_tunnel_type type)
-+{
-+	struct nftnl_tunnel_opts *opts;
-+
-+	switch (type) {
-+	case NFTNL_TUNNEL_TYPE_VXLAN:
-+	case NFTNL_TUNNEL_TYPE_ERSPAN:
-+		break;
-+	default:
-+		errno = EOPNOTSUPP;
-+		return NULL;
-+	}
-+
-+	opts = calloc(1, sizeof(struct nftnl_tunnel_opts));
-+	if (!opts)
-+		return NULL;
-+
-+	opts->type = type;
-+
-+	return opts;
-+}
-+
-+static int nftnl_tunnel_opts_vxlan_set(struct nftnl_tunnel_opts *opts, uint16_t type,
-+				       const void *data, uint32_t data_len)
-+{
-+	switch (type) {
-+	case NFTNL_TUNNEL_VXLAN_GBP:
-+		memcpy(&opts->vxlan.gbp, data, data_len);
-+		break;
-+	default:
-+		errno = EOPNOTSUPP;
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int nftnl_tunnel_opts_erspan_set(struct nftnl_tunnel_opts *opts, uint16_t type,
-+					const void *data, uint32_t data_len)
-+{
-+	switch (type) {
-+	case NFTNL_TUNNEL_ERSPAN_VERSION:
-+		memcpy(&opts->erspan.version, data, data_len);
-+		break;
-+	case NFTNL_TUNNEL_ERSPAN_V1_INDEX:
-+		memcpy(&opts->erspan.v1.index, data, data_len);
-+		break;
-+	case NFTNL_TUNNEL_ERSPAN_V2_HWID:
-+		memcpy(&opts->erspan.v2.hwid, data, data_len);
-+		break;
-+	case NFTNL_TUNNEL_ERSPAN_V2_DIR:
-+		memcpy(&opts->erspan.v2.dir, data, data_len);
-+		break;
-+	default:
-+		errno = EOPNOTSUPP;
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+int nftnl_tunnel_opts_set(struct nftnl_tunnel_opts *opts, uint16_t type,
-+			  const void *data, uint32_t data_len)
-+{
-+	switch (opts->type) {
-+	case NFTNL_TUNNEL_TYPE_VXLAN:
-+		return nftnl_tunnel_opts_vxlan_set(opts, type, data, data_len);
-+	case NFTNL_TUNNEL_TYPE_ERSPAN:
-+		return nftnl_tunnel_opts_erspan_set(opts, type, data, data_len);
-+	default:
-+		errno = EOPNOTSUPP;
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void nftnl_tunnel_opts_build_vxlan(struct nlmsghdr *nlh,
-+					  struct nftnl_tunnel_opts *opts)
-+{
-+	struct nlattr *nest, *nest_inner;
-+
-+	if (opts->flags & (1 << NFTNL_TUNNEL_VXLAN_GBP)) {
-+		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
-+		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_VXLAN);
-+		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_VXLAN_GBP,
-+				 htonl(opts->vxlan.gbp));
-+		mnl_attr_nest_end(nlh, nest_inner);
-+		mnl_attr_nest_end(nlh, nest);
-+	}
-+}
-+
-+static void nftnl_tunnel_opts_build_erspan(struct nlmsghdr *nlh,
-+					   struct nftnl_tunnel_opts *opts)
-+{
-+	struct nlattr *nest, *nest_inner;
-+
-+	if (opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_VERSION) &&
-+	    (opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_V1_INDEX) ||
-+	     (opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_V2_HWID) &&
-+	      opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_V2_DIR)))) {
-+		nest = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS);
-+		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_ERSPAN);
-+		mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ERSPAN_VERSION,
-+				 htonl(opts->erspan.version));
-+		if (opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_V1_INDEX))
-+			mnl_attr_put_u32(nlh, NFTA_TUNNEL_KEY_ERSPAN_V1_INDEX,
-+					 htonl(opts->erspan.v1.index));
-+		if (opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_V2_HWID))
-+			mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_ERSPAN_V2_HWID,
-+					opts->erspan.v2.hwid);
-+		if (opts->flags & (1 << NFTNL_TUNNEL_ERSPAN_V2_DIR))
-+			mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_ERSPAN_V2_DIR,
-+					opts->erspan.v2.dir);
-+		mnl_attr_nest_end(nlh, nest_inner);
-+		mnl_attr_nest_end(nlh, nest);
-+	}
-+}
-+
-+void nftnl_tunnel_opts_build(struct nlmsghdr *nlh,
-+			     struct nftnl_tunnel_opts *opts)
-+{
-+	switch (opts->type) {
-+	case NFTNL_TUNNEL_TYPE_VXLAN:
-+		nftnl_tunnel_opts_build_vxlan(nlh, opts);
-+		break;
-+	case NFTNL_TUNNEL_TYPE_ERSPAN:
-+		nftnl_tunnel_opts_build_erspan(nlh, opts);
-+		break;
-+	}
-+}
-+
- static struct attr_policy obj_tunnel_attr_policy[__NFTNL_OBJ_TUNNEL_MAX] = {
- 	[NFTNL_OBJ_TUNNEL_ID]		= { .maxlen = sizeof(uint32_t) },
- 	[NFTNL_OBJ_TUNNEL_IPV4_SRC]	= { .maxlen = sizeof(uint32_t) },
-@@ -544,11 +661,7 @@ static struct attr_policy obj_tunnel_attr_policy[__NFTNL_OBJ_TUNNEL_MAX] = {
- 	[NFTNL_OBJ_TUNNEL_FLAGS]	= { .maxlen = sizeof(uint32_t) },
- 	[NFTNL_OBJ_TUNNEL_TOS]		= { .maxlen = sizeof(uint8_t) },
- 	[NFTNL_OBJ_TUNNEL_TTL]		= { .maxlen = sizeof(uint8_t) },
--	[NFTNL_OBJ_TUNNEL_VXLAN_GBP]	= { .maxlen = sizeof(uint32_t) },
--	[NFTNL_OBJ_TUNNEL_ERSPAN_VERSION] = { .maxlen = sizeof(uint32_t) },
--	[NFTNL_OBJ_TUNNEL_ERSPAN_V1_INDEX] = { .maxlen = sizeof(uint32_t) },
--	[NFTNL_OBJ_TUNNEL_ERSPAN_V2_HWID] = { .maxlen = sizeof(uint8_t) },
--	[NFTNL_OBJ_TUNNEL_ERSPAN_V2_DIR] = { .maxlen = sizeof(uint8_t) },
-+	[NFTNL_OBJ_TUNNEL_OPTS]		= { .maxlen = sizeof(struct nftnl_tunnel_opts *) },
- };
- 
- struct obj_ops obj_ops_tunnel = {
--- 
-2.30.2
-
-
---eASaaeUYi2+mvofA--
