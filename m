@@ -1,56 +1,55 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F49325F996
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2025 22:47:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C6052F4318
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2025 22:50:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749682033; cv=none; b=Tl6chcLAioz6rtS6ThJI/Ih567Fu6ER5Ebm21KqQmlZI4C/zP8+mOOxmOudjvznCiIe2DPX4NzUn95aB/Rio89X/hHrpoNQz0x3dbcNpkIeF4Gg6ciGmmTfpPX3QdY6BKe/8etXWK5dChWoE8HyZExmiQpiOYcS8FkJho6xF9QU=
+	t=1749682221; cv=none; b=PSPZb3G8KQD8otNLCz9lK02+Za/0IYQHOdnQWj8tkxI5CSdxLWD/c+xvgiflNYR1fU+CS90dA0P9/dhcWUOGP4kPxiH3lHPDHIx1DznYODI6aGDYp8VGURGrqVtSy4HnIk88yfjjJ0jDfLPybNd6Ogv3NQXhOoENPwwPW33P5Pk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749682033; c=relaxed/simple;
-	bh=1VRo3Gd4VPCcBkDGOPRm+Dpz5v/HLC/OmuDhgZq8M9o=;
+	s=arc-20240116; t=1749682221; c=relaxed/simple;
+	bh=R6bYiMMKEPppCxDsc2dJrL0dsn+Wu8lhYZxFTn5TTFc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ql7Pe1/ln+QAMNtx9cddAkbxrEvL7tHwKHo5xBSZzspd5kWw4E2UNnxaUGhfK8h6eg22zYl4MtQjSlyIJrb9fmZepRb7Fz3uw/T2I2NFkr4NEiwIoISOpQOSBHKNcP/mt4W6v7eJC2dHSNZ+DNeKVRQi4Ax0GgxQZlee5Ru72o8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lMhbxSZK; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=odQByQYO; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=hYFeEt/WcOllWTk/15yH93RMF9JvaMihJJdbU4HRXjPSYIcn4+wqWCKoo/PJTegTqpANdLjst4emTnAJQYmISsNhLF2uemOrj0vvw9cg6BFuAmsE6wBp5EszxnW1pXeE4GvfgelnIohhZaTMPoOELWMB4SLUUX1ToqUnhbtTb1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=N72gIZD0; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=N72gIZD0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lMhbxSZK";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="odQByQYO"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="N72gIZD0";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="N72gIZD0"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 2294E60254; Thu, 12 Jun 2025 00:46:58 +0200 (CEST)
+	id 9C125605EC; Thu, 12 Jun 2025 00:50:15 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749682018;
-	bh=Z/49EZOwoLzl/lxYvPm00nQg6skTRoOfXDsWeToD3e8=;
+	s=2025; t=1749682215;
+	bh=xzMjzo8O5ZThIbA1e2JwPUiiuRsVdRV2y1HDhi9ZEKY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lMhbxSZKZVOxNd8Hu/rCaHIh023edExS44VDK3rp85J27A9/ZfARo2qTLvufBr/U/
-	 rFC00OpOfJ1sD+6ISP7P5hrbe/EjsALxm4eg0plkpYR1DWNY7NV9Ei9QS5rtVj1Fr8
-	 5LsQ4K6vdY7tsTdzzMtEsjiZ8iGZBV6lgdaQV0aLdEgmcU/uSiKku9Is6hQ/oPfpzO
-	 zTdTMQCKC1o9WUnqvASyjUcD0OuQi3OWkkFjd/fHxaORQwe2SKpfD8kv9wns4ies7h
-	 C8vTJlGqC1hZwp0ZqrZI+2pDt/cq3Z3RlqZQ7iUvGtxBZx5PunX9mS6sufNc9sE5mA
-	 IsrKeVEuYbW8Q==
+	b=N72gIZD0lsUVHIKUFh0qsIsVQpDW3VT8CK+/IboqDaqhq2WtUP9Cif0WH6LOELo0Z
+	 khttvAkq3AKybUvd5evQ/Vu3SOhi6iNAwjB53WWmWolg34gWUNicKj75qLGkERMdUU
+	 P0ibmJXYylbbh9sWg7h3rmYwR3FrRqwv/lDxvOTCusBe1psThF6Y/NtjoneqTlV9f6
+	 X/2KiEbegLXksyIhw7Mv8i4wrx4luccXO+8eU7oDWXG4KEbRDWvHNQCAWxING9HBS4
+	 20VIENJ+ZwRIu+Phc8bWBrHYdcKB4ukquXQSomjkE+V4i+TqX4MEj7SmpKV7+TomRc
+	 kL1+2PjVQtGGA==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3FE0A605DE;
-	Thu, 12 Jun 2025 00:46:57 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id EDBE1605E9;
+	Thu, 12 Jun 2025 00:50:14 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749682017;
-	bh=Z/49EZOwoLzl/lxYvPm00nQg6skTRoOfXDsWeToD3e8=;
+	s=2025; t=1749682215;
+	bh=xzMjzo8O5ZThIbA1e2JwPUiiuRsVdRV2y1HDhi9ZEKY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=odQByQYOOHb0hTJW0uZyI83NFz0/M4tY9dpy7EHvl7T7CPWJAmzHsH4A61u7SfJHa
-	 eKAmpEFoZKTAqbSHhgBaz0XUknWZGXRwDPMglDHjB2eqp3rDLZvjmBofc17xgBhKsf
-	 Cm01ksV2SHuYQupKGPqz0HsyleGJNjrL/mc3jM/xZ/yctuDkkyKmodPbPOlC2L/6Mo
-	 xmuno+fXFAA5mabZZlxs+7ovnGyugrBy//AB2xN22flBiEOYAJjmfglbv8afdlCJwL
-	 LLu1JncXPZy1vezY2M6WcYy5p0sdyAHX7y6Qpz/pDrLSN1GmWzxcqNYMJLdC3Yv//+
-	 ZvudYECq9bykA==
-Date: Thu, 12 Jun 2025 00:46:54 +0200
+	b=N72gIZD0lsUVHIKUFh0qsIsVQpDW3VT8CK+/IboqDaqhq2WtUP9Cif0WH6LOELo0Z
+	 khttvAkq3AKybUvd5evQ/Vu3SOhi6iNAwjB53WWmWolg34gWUNicKj75qLGkERMdUU
+	 P0ibmJXYylbbh9sWg7h3rmYwR3FrRqwv/lDxvOTCusBe1psThF6Y/NtjoneqTlV9f6
+	 X/2KiEbegLXksyIhw7Mv8i4wrx4luccXO+8eU7oDWXG4KEbRDWvHNQCAWxING9HBS4
+	 20VIENJ+ZwRIu+Phc8bWBrHYdcKB4ukquXQSomjkE+V4i+TqX4MEj7SmpKV7+TomRc
+	 kL1+2PjVQtGGA==
+Date: Thu, 12 Jun 2025 00:50:12 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: move BASECHAIN flag toggle to netlink linearize
- code for device update
-Message-ID: <aEoHXtMloXwrY1mx@calendula>
-References: <20250605164457.32614-1-fw@strlen.de>
+Subject: Re: [nft] mnl: catch bogus expressions before crashing
+Message-ID: <aEoIJIGoTF4abPtd@calendula>
+References: <20250605222039.31719-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,110 +58,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250605164457.32614-1-fw@strlen.de>
+In-Reply-To: <20250605222039.31719-1-fw@strlen.de>
 
-Hi Florian,
-
-On Thu, Jun 05, 2025 at 06:44:54PM +0200, Florian Westphal wrote:
-> The included bogon will crash nft because print side assumes that
-> a BASECHAIN flag presence also means that priority expression is
-> available.
+On Fri, Jun 06, 2025 at 12:20:28AM +0200, Florian Westphal wrote:
+> We can't recover from errors here, but we can abort with a more
+> precise reason than 'segmentation fault', or stack corruptions
+> that get caught way later, or not at all.
 > 
-> We can either make the print side conditional or move the BASECHAIN
-> setting to the last possible moment.
+> expr->value is going to be read, we can't cope with other expression
+> types here.
+> 
+> We will copy to stack buffer of IFNAMSIZ size, abort if we would
+> overflow.
+> 
+> Check there is a NUL byte present too.
+> This is a preemptive patch, I've seen one crash in this area but
+> no reproducer yet.
 
-I don't remember to have said otherwise before, but I would go for
-adding conditional print on priority in this case.
+I don't see how this can happen yet, but I like this sanity checks.
 
-Thanks.
-
-> Fixes: a66b5ad9540d ("src: allow for updating devices on existing netdev chain")
 > Signed-off-by: Florian Westphal <fw@strlen.de>
+
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
 > ---
->  src/evaluate.c                                      |  3 ---
->  src/mnl.c                                           | 13 +++++++++----
->  .../testcases/bogons/nft-f/null_ingress_type_crash  |  6 ++++++
->  3 files changed, 15 insertions(+), 7 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
+>  src/mnl.c | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
 > 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 014ee721cc04..b9a140172b2b 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -6030,9 +6030,6 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
->  	}
->  
->  	if (chain->dev_expr) {
-> -		if (!(chain->flags & CHAIN_F_BASECHAIN))
-> -			chain->flags |= CHAIN_F_BASECHAIN;
-> -
->  		if (chain->handle.family == NFPROTO_NETDEV ||
->  		    (chain->handle.family == NFPROTO_INET &&
->  		     chain->hook.num == NF_INET_INGRESS)) {
 > diff --git a/src/mnl.c b/src/mnl.c
-> index 6565341fa6e3..9a885ee02739 100644
+> index 64b1aaedb84c..6565341fa6e3 100644
 > --- a/src/mnl.c
 > +++ b/src/mnl.c
-> @@ -821,6 +821,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
->  		      unsigned int flags)
->  {
->  	struct nftnl_udata_buf *udbuf;
-> +	uint32_t chain_flags = 0;
->  	struct nftnl_chain *nlc;
->  	struct nlmsghdr *nlh;
->  	int priority, policy;
-> @@ -846,6 +847,10 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
->  					     nftnl_udata_buf_len(udbuf));
->  			nftnl_udata_buf_free(udbuf);
->  		}
+> @@ -732,9 +732,20 @@ static void nft_dev_add(struct nft_dev *dev_array, const struct expr *expr, int
+>  	unsigned int ifname_len;
+>  	char ifname[IFNAMSIZ];
+>  
+> +	if (expr->etype != EXPR_VALUE)
+> +		BUG("Must be a value, not %s\n", expr_name(expr));
 > +
-> +		chain_flags = cmd->chain->flags;
-> +		if (cmd->chain->dev_expr)
-> +			chain_flags |= CHAIN_F_BASECHAIN;
->  	}
->  
->  	nftnl_chain_set_str(nlc, NFTNL_CHAIN_TABLE, cmd->handle.table.name);
-> @@ -866,7 +871,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
->  	mnl_attr_put_strz(nlh, NFTA_CHAIN_TABLE, cmd->handle.table.name);
->  	cmd_add_loc(cmd, nlh, &cmd->handle.chain.location);
->  
-> -	if (!cmd->chain || !(cmd->chain->flags & CHAIN_F_BINDING)) {
-> +	if (!(chain_flags & CHAIN_F_BINDING)) {
->  		mnl_attr_put_strz(nlh, NFTA_CHAIN_NAME, cmd->handle.chain.name);
->  	} else {
->  		if (cmd->handle.chain.name)
-> @@ -874,8 +879,8 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
->  					  cmd->handle.chain.name);
->  
->  		mnl_attr_put_u32(nlh, NFTA_CHAIN_ID, htonl(cmd->handle.chain_id));
-> -		if (cmd->chain->flags)
-> -			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FLAGS, cmd->chain->flags);
-> +		if (chain_flags)
-> +			nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FLAGS, chain_flags);
->  	}
->  
->  	if (cmd->chain && cmd->chain->policy) {
-> @@ -889,7 +894,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
->  
->  	nftnl_chain_nlmsg_build_payload(nlh, nlc);
->  
-> -	if (cmd->chain && cmd->chain->flags & CHAIN_F_BASECHAIN) {
-> +	if (chain_flags & CHAIN_F_BASECHAIN) {
->  		struct nlattr *nest;
->  
->  		if (cmd->chain->type.str) {
-> diff --git a/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash b/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
-> new file mode 100644
-> index 000000000000..2ed88af24c56
-> --- /dev/null
-> +++ b/tests/shell/testcases/bogons/nft-f/null_ingress_type_crash
-> @@ -0,0 +1,6 @@
-> +table netdev filter1 {
-> +	chain c {
-> +		devices = { lo }
-> +	}
-> +}
-> +list ruleset
+>  	ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
+>  	memset(ifname, 0, sizeof(ifname));
+> +
+> +	if (ifname_len > sizeof(ifname))
+> +		BUG("Interface length %u exceeds limit\n", ifname_len);
+> +
+>  	mpz_export_data(ifname, expr->value, BYTEORDER_HOST_ENDIAN, ifname_len);
+> +
+> +	if (strnlen(ifname, IFNAMSIZ) >= IFNAMSIZ)
+> +		BUG("Interface length %zu exceeds limit, no NUL byte\n", strnlen(ifname, IFNAMSIZ));
+> +
+>  	dev_array[i].ifname = xstrdup(ifname);
+>  	dev_array[i].location = &expr->location;
+>  }
 > -- 
 > 2.49.0
 > 
