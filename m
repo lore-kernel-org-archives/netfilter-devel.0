@@ -1,70 +1,77 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2781A265E
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 20:23:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B629221268
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 21:16:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749759815; cv=none; b=C6R2jcnRsWjQ+8nrLAxx3LcUx75ag3ysboNezBCUxq8VEO7vOSEfrSqAhkqN0HZe1jgQ2d0iVUpl4t2tgGTjI3lDKizttS89E+cl7rciQ9J18Sg85f7S3ke+Eu5mJbS9ZNFTwGue8WMgCN/gU8xsq6+ldhhVMXfalBgllnG1ico=
+	t=1749763002; cv=none; b=hTxdmGCm4j0xSp4pIRbStnDWVC5+uG4o9baFIJDUDIM9YtX2+qeJ4pqoq3B8RsyH5vl+RN2e8SYfaa6iQN3nCauR7v9TXrVOT359swXKC6NLYVywBWTEI2rS33Wg9dHo88pwl2QTbnAK9HJJo7VhWi/z+HI9f33qWVYc75lP5JE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749759815; c=relaxed/simple;
-	bh=dZLmsgxh6Trj92jQPk57F9tCpU4cCM1nDJ18uM/VDO8=;
+	s=arc-20240116; t=1749763002; c=relaxed/simple;
+	bh=PoFSoBrN9sugdYJouoIMH5ECM5cfeGvpONujMvhX2WU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ehtTXmojnda9XvSRtdrZAiomh/ywx5yd0PIZjxcRDfBeiCiYrr9z+eduvQkva+74HH1pFAO/r+gLR+wryNBpxP06Kb2OTHWxB935zHpGl1ocU1lKfIs1qzteB+ERFl7OZR5OxGnclZL1bbV+2wdcID7mahnm34Vcf3DgYZF0nqU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=L7Z9EKeO; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tKm+iv52; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=Oob6uULlsUJUU4fBW9UX4UTDmyuZ9dEc9LYLMpr7CjsDseoKAgVzETFuEnbMiiE5CKgIpnd3s3jFAJj1CzTEKwHh8hKC0U55/Hy5l4Zc1VxQGBgv8BmVeoXOL22zQtTgP6yOdukqs3raHVlQRdXYsb2T7VpE4KZjp9/RcVXORk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=BsByUgUx; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="L7Z9EKeO";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tKm+iv52"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 5CF9A602BF; Thu, 12 Jun 2025 22:23:30 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749759810;
-	bh=64Yf0tuGbdm1Kdj3dxrkQaXUQGSsyMLuwoPWNlBnKPU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=L7Z9EKeOC26TTI7T/eRBY7xtMQiBa7ywD8D+153n6ZBbzvf7qv3vd+UuVXtIWDl0W
-	 tV9r7mDkOfACbvhBuDAeC1HrlNfihx70REVEQDnocblq95Iu0hbmICIA7J+z7A5EmK
-	 7BJYG78glWgwwC7er129FLMYLvN128YEup3deXkSSLaZ6iJb0F2cOhK7+2TehyS80H
-	 ONkgeD9vZvvaF4nLZZEGzFJk1WOQyPrtKdxbGqcUW72GtkoKkHInhDV1saAslXuOg0
-	 b1SbdNiRd9Zp1WBQevU0/g8Tw6qsFflVBvL60apB4KZ9jIbwxRUzoflUkSaN1K8dMW
-	 IikifDKuXydNg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C6EFA602BF;
-	Thu, 12 Jun 2025 22:23:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749759809;
-	bh=64Yf0tuGbdm1Kdj3dxrkQaXUQGSsyMLuwoPWNlBnKPU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tKm+iv52mReUIeYxxE/KmMBG5MIayakQpHmdZgf26mqtUKA7sCR5lXTN+5JVS2NUg
-	 GbmDkYFHNS3PzEzSjHylpS5b08aJIxQ5xXD5oEUaZPvBL6fdO+xe49qFhpuksKtjZC
-	 2XardeeRttxljjj2dzzWbxJcBr3XJ9TRRdnVQSJZueSxIq0QM2gLJG0s58luICRo30
-	 p+FIqP1NFBEJr1QTk2xuuuhuZug/yQh+QdnU55zAMMMR+QxwyG1KXrVksYye/I+YqR
-	 xXFWD5sGsvsBBNfQYLBS0P/7gXbyBqwo5KoYDoKPn6gD6Tf9rSzXCxGCU0ImZDRYmb
-	 XSYvLMoRGrQxg==
-Date: Thu, 12 Jun 2025 22:23:27 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="BsByUgUx"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Hyggos3fvMy0w5EdjyxGfgdK0vVPBjErTyRJREzDGGQ=; b=BsByUgUxKGL7it9tUfb7ilzlb8
+	yStRec0jzAyVBvKfhfEam3/+kE8iZWJ3pT2mX/xmv7abGktVo612huB06jV7Xmo4JkVeH8qTT5oz3
+	36tRavy4tZzLO1LqGq9mmf7VyMmtWy4pYMoz/RJ3w7lYbL4nS+uRXIM953/LqAekNRnHkXl3HrlFF
+	LZny4Ip7eCRGGs9US1lHzragv0cHskPjISfWsuRT1gf9uYFWphFobEnq9pfgB2fY2uXBU9mcxXhd9
+	Sou3s/HytEvrJZJBcWPc3rbb48vPSn1tLkIKgMNW7TUkaNCMR6Ok5bznni+h/DXhjuDVZCVU6JaF1
+	Cw4KvEeQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uPpHq-000000001Hh-0rZS;
+	Thu, 12 Jun 2025 23:16:38 +0200
+Date: Thu, 12 Jun 2025 23:16:38 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] netlink: Avoid crash upon missing
- NFTNL_OBJ_CT_TIMEOUT_ARRAY attribute
-Message-ID: <aEs3P6EGuVNkQbj8@calendula>
-References: <20250612183937.3623-1-phil@nwl.cc>
+Subject: Re: [nft PATCH 0/7] Misc fixes
+Message-ID: <aEtDtmSjcUq3Xwxr@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20250612115218.4066-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250612183937.3623-1-phil@nwl.cc>
+In-Reply-To: <20250612115218.4066-1-phil@nwl.cc>
 
-On Thu, Jun 12, 2025 at 08:36:35PM +0200, Phil Sutter wrote:
-> If missing, the memcpy call ends up reading from address zero.
+On Thu, Jun 12, 2025 at 01:52:11PM +0200, Phil Sutter wrote:
+> Patch 1 is the most relevant one as an upcoming kernel fix will trigger
+> the bug being fixed by it.
 > 
-> Fixes: c7c94802679cd ("src: add ct timeout support")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> Patches 2-5 are related to monitor testsuite, either fixing monitor
+> output or adjusting the test cases.
+> 
+> Patch 6 adjusts the shell testsuite for use with recent kernels (having
+> name-based interface hooks).
+> 
+> Patch 7 is an accidental discovery, probably I missed to add a needed
+> .json.output file when implementing new tests.
+> 
+> Phil Sutter (7):
+>   netlink: Fix for potential crash parsing a flowtable
+>   netlink: Do not allocate a bogus flowtable priority expr
+>   monitor: Correctly print flowtable updates
+>   json: Dump flowtable hook spec only if present
+>   tests: monitor: Fix for single flag array avoidance
+>   tests: shell: Adjust to ifname-based hooks
+>   tests: py: Properly fix JSON equivalents for netdev/reject.t
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Series applied.
