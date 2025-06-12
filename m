@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88F8222333B
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 11:52:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E114223DF6
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 11:52:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749729155; cv=none; b=IQHV1LZ+RCHu1FOMmq898qvyPoOXdpm0TqW7iSAFTxDVuDXh3/WQaZNdBVPLq8QioNwMMp8gVftUVisqMEks/LBmDbCf0LP5sYyGTA6sZlaBnUWwOHya4Q/Gu6xuf5Xn9DFPH9Wx8yWIDfCiAxAY31bdCRv1ftOV7695AVXlmEI=
+	t=1749729155; cv=none; b=ms95/5+f0Kw0q6nFIUeh3p5IKh2La75wvhAQUhaFAftOQUyUuzb/Y0TYuxQwQbQuUGod3Jfunhq7Nuj7Pen756h2q2JZx2ONWGXXeu6CvuDdopoUxgrbOAT3iFrVFBp9qd72QI3z+wuurt+Be4uWyjtXbrN+lQZy3tN9nh0W+Q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1749729155; c=relaxed/simple;
-	bh=q376Wj6Iit2VhI9iaOrAU44MIcdr/NvqI4BYyWdK2Yk=;
+	bh=QNwE+CTyXyQAxfhYB/MX6i+dmcgNxuH+vv70zPeeW9o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kzqN9zZa0YgQEv/hPfbOm09VBh0IX7Ion1TXmrbq4rl6Q/KiThWKlHumC1rhsXK8VRWDfzDFoZoxVVFrV1/jZsZhqDEG6xQuYWo+VgjOElF5sn66JWIFJCnxmpnV4GBzZGJQ+AUgR8nV0X7JtUYQyE3A+8Xa35fSr+ZmUlpQL7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=TR7iQax4; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=oe+jfh/7tMLoD46D11fgns0i1O1b9KfdTiAOglbHEBV0anI230uQmmsyRWuYBg6JM6ekycHLv70cOG02LlYv4iOiuG9ZyjINjDjzS2cLXDfwcRJyyB0w2kwLOfal8iVvd31YCN14vvfnrgKXEd21SUDQbJiV4YJeVK0GR+/6e6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=WAsxIMRH; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="TR7iQax4"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="WAsxIMRH"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=BjyE98AQzDHYhA8rHCExE29MMPQ6nbMBgqMXvtqaOBg=; b=TR7iQax4ubRNFhFFCHRFV6ks4k
-	SJMuFhu6kuonf0BlPWK5yXJCvn8Tpg67MkLxxgEaSgNCpXZRxeAw2m7LguHFtwIwk0JuE3Wbnehb+
-	bYoxVLfGnhb+regKar/70vl7p/Libonw5iA29m5/qAfY2H3jwMwgFSwNELELaI+wgQ7zahWA9p80H
-	TR7wKrTgP16CPP/SmwzdIsJQZXAUX7DRU4XYxxXC96HI4/Y4okoREjxKAubTf5HAtLa+h6hUtj8CR
-	BEiG5+vycNbHA3w1hTsJ3sZ2Mw8xtiwKCWxhjdTlQXrPZdkwWRNHduJz/jWOSmjFu48DJuvO0X7Cy
-	Sm8Rj8sg==;
+	bh=mI6+xxfK1gcXKZaZ7doQsVwTOn4r7FVFvD7U6OdXGEY=; b=WAsxIMRHFttYmIac4EcoeZWy+0
+	0D5z8vtBKzotTPtXy0IktozItx+NzhUD4FbsVBsFMmS72Qm/0xJOVv5n+ycWazlGY5wSN5Dxvso8S
+	N30hE7eDVhtZpN5pULjH6O1q8TzkGOBIDeX/ElGS2R2pmdhps3zOcQcV8or1RNQL5gYTauYB6gxGY
+	cOrSYOMSVNmc2NMAgGHA6xl519ORr5SR41rGU9dlsKaInqVBXJGfuzYgvVNgyj8vLJktAXj4ZHHQR
+	qDpB6TUlbtdpeBdpzMvi0y+4tHoXIvXmeAJ1HwJeInaTJZRPIBdpoZOf6VTwY5yRNelLm55D2mFaT
+	LDcND6Xg==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uPgTv-000000006GL-2xtP;
-	Thu, 12 Jun 2025 13:52:31 +0200
+	id 1uPgTt-000000006Fv-0ozt;
+	Thu, 12 Jun 2025 13:52:29 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 6/7] tests: shell: Adjust to ifname-based hooks
-Date: Thu, 12 Jun 2025 13:52:17 +0200
-Message-ID: <20250612115218.4066-7-phil@nwl.cc>
+Subject: [nft PATCH 5/7] tests: monitor: Fix for single flag array avoidance
+Date: Thu, 12 Jun 2025 13:52:16 +0200
+Message-ID: <20250612115218.4066-6-phil@nwl.cc>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250612115218.4066-1-phil@nwl.cc>
 References: <20250612115218.4066-1-phil@nwl.cc>
@@ -52,145 +52,109 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Interface specs won't disappear anymore upon device removal. Drop them
-manually if kernel has ifname-based hooks.
+Missed to update the JSON monitor expected output.
 
-Also drop transactions/0050rule_1 test entirely: It won't fail anymore
-as the flowtable is accepted despite the non-existent interfaces and
-thus the test as a whole does not work anymore.
-
+Fixes: 6bedb12af1658 ("json: Print single set flag as non-array")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- tests/shell/features/ifname_based_hooks.sh    | 12 ++++++++++++
- .../chains/netdev_chain_dormant_autoremove    |  3 +++
- .../flowtable/0012flowtable_variable_0        |  9 ++++++++-
- tests/shell/testcases/listing/0020flowtable_0 |  8 +++++++-
- tests/shell/testcases/transactions/0050rule_1 | 19 -------------------
- .../transactions/dumps/0050rule_1.json-nft    | 11 -----------
- .../transactions/dumps/0050rule_1.nft         |  0
- 7 files changed, 30 insertions(+), 32 deletions(-)
- create mode 100755 tests/shell/features/ifname_based_hooks.sh
- delete mode 100755 tests/shell/testcases/transactions/0050rule_1
- delete mode 100644 tests/shell/testcases/transactions/dumps/0050rule_1.json-nft
- delete mode 100644 tests/shell/testcases/transactions/dumps/0050rule_1.nft
+ tests/monitor/testcases/map-expr.t            | 2 +-
+ tests/monitor/testcases/set-concat-interval.t | 2 +-
+ tests/monitor/testcases/set-interval.t        | 2 +-
+ tests/monitor/testcases/set-maps.t            | 2 +-
+ tests/monitor/testcases/set-mixed.t           | 2 +-
+ tests/monitor/testcases/set-multiple.t        | 4 ++--
+ tests/monitor/testcases/set-simple.t          | 2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/tests/shell/features/ifname_based_hooks.sh b/tests/shell/features/ifname_based_hooks.sh
-new file mode 100755
-index 0000000000000..cada6956f165b
---- /dev/null
-+++ b/tests/shell/features/ifname_based_hooks.sh
-@@ -0,0 +1,12 @@
-+#!/bin/bash
-+
-+# check if netdev chains survive without a single device
-+
-+unshare -n bash -c "ip link add d0 type dummy; \
-+	$NFT \"table netdev t { \
-+		chain c { \
-+			type filter hook ingress priority 0; devices = { d0 }; \
-+		}; \
-+	}\"; \
-+	ip link del d0; \
-+	$NFT list chain netdev t c"
-diff --git a/tests/shell/testcases/chains/netdev_chain_dormant_autoremove b/tests/shell/testcases/chains/netdev_chain_dormant_autoremove
-index 3093ce25319cf..8455f310445e9 100755
---- a/tests/shell/testcases/chains/netdev_chain_dormant_autoremove
-+++ b/tests/shell/testcases/chains/netdev_chain_dormant_autoremove
-@@ -9,3 +9,6 @@ ip link add dummy1 type dummy
- $NFT add table netdev test { flags dormant\; }
- $NFT add chain netdev test ingress { type filter hook ingress devices = { "dummy0", "dummy1" } priority 0\; policy drop\; }
- ip link del dummy0
-+if [ "$NFT_TEST_HAVE_ifname_based_hooks" = y ]; then
-+	$NFT 'delete chain netdev test ingress { devices = { "dummy0" }; }'
-+fi
-diff --git a/tests/shell/testcases/flowtable/0012flowtable_variable_0 b/tests/shell/testcases/flowtable/0012flowtable_variable_0
-index 9c03820f128e3..ff35548ed8543 100755
---- a/tests/shell/testcases/flowtable/0012flowtable_variable_0
-+++ b/tests/shell/testcases/flowtable/0012flowtable_variable_0
-@@ -4,11 +4,18 @@
+diff --git a/tests/monitor/testcases/map-expr.t b/tests/monitor/testcases/map-expr.t
+index d11ad0ebc0d57..904200418745e 100644
+--- a/tests/monitor/testcases/map-expr.t
++++ b/tests/monitor/testcases/map-expr.t
+@@ -3,4 +3,4 @@ I add table ip t
+ I add map ip t m { typeof meta day . meta hour : verdict; flags interval; counter; }
+ O -
+ J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+-J {"add": {"map": {"family": "ip", "name": "m", "table": "t", "type": {"typeof": {"concat": [{"meta": {"key": "day"}}, {"meta": {"key": "hour"}}]}}, "handle": 0, "map": "verdict", "flags": ["interval"], "stmt": [{"counter": null}]}}}
++J {"add": {"map": {"family": "ip", "name": "m", "table": "t", "type": {"typeof": {"concat": [{"meta": {"key": "day"}}, {"meta": {"key": "hour"}}]}}, "handle": 0, "map": "verdict", "flags": "interval", "stmt": [{"counter": null}]}}}
+diff --git a/tests/monitor/testcases/set-concat-interval.t b/tests/monitor/testcases/set-concat-interval.t
+index 3542b8225ebd1..a42682f503246 100644
+--- a/tests/monitor/testcases/set-concat-interval.t
++++ b/tests/monitor/testcases/set-concat-interval.t
+@@ -10,6 +10,6 @@ I add map ip t s { typeof udp length . @ih,32,32 : verdict; flags interval; elem
+ O add map ip t s { typeof udp length . @ih,32,32 : verdict; flags interval; }
+ O add element ip t s { 20-80 . 0x14 : accept }
+ O add element ip t s { 1-10 . 0xa : drop }
+-J {"add": {"map": {"family": "ip", "name": "s", "table": "t", "type": {"typeof": {"concat": [{"payload": {"protocol": "udp", "field": "length"}}, {"payload": {"base": "ih", "offset": 32, "len": 32}}]}}, "handle": 0, "map": "verdict", "flags": ["interval"]}}}
++J {"add": {"map": {"family": "ip", "name": "s", "table": "t", "type": {"typeof": {"concat": [{"payload": {"protocol": "udp", "field": "length"}}, {"payload": {"base": "ih", "offset": 32, "len": 32}}]}}, "handle": 0, "map": "verdict", "flags": "interval"}}}
+ J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [[{"concat": [{"range": [20, 80]}, 20]}, {"accept": null}]]}}}}
+ J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [[{"concat": [{"range": [1, 10]}, 10]}, {"drop": null}]]}}}}
+diff --git a/tests/monitor/testcases/set-interval.t b/tests/monitor/testcases/set-interval.t
+index 5053c596b3b1b..84cf98c214671 100644
+--- a/tests/monitor/testcases/set-interval.t
++++ b/tests/monitor/testcases/set-interval.t
+@@ -10,7 +10,7 @@ I add set ip t s { type inet_service; flags interval; elements = { 20, 30-40 };
+ O add set ip t s { type inet_service; flags interval; }
+ O add element ip t s { 20 }
+ O add element ip t s { 30-40 }
+-J {"add": {"set": {"family": "ip", "name": "s", "table": "t", "type": "inet_service", "handle": 0, "flags": ["interval"]}}}
++J {"add": {"set": {"family": "ip", "name": "s", "table": "t", "type": "inet_service", "handle": 0, "flags": "interval"}}}
+ J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [20]}}}}
+ J {"add": {"element": {"family": "ip", "table": "t", "name": "s", "elem": {"set": [{"range": [30, 40]}]}}}}
  
- set -e
+diff --git a/tests/monitor/testcases/set-maps.t b/tests/monitor/testcases/set-maps.t
+index acda480d86dbb..aaf332f3caf98 100644
+--- a/tests/monitor/testcases/set-maps.t
++++ b/tests/monitor/testcases/set-maps.t
+@@ -3,7 +3,7 @@ I add table ip t
+ I add map ip t portip { type inet_service: ipv4_addr; flags interval; }
+ O -
+ J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+-J {"add": {"map": {"family": "ip", "name": "portip", "table": "t", "type": "inet_service", "handle": 0, "map": "ipv4_addr", "flags": ["interval"]}}}
++J {"add": {"map": {"family": "ip", "name": "portip", "table": "t", "type": "inet_service", "handle": 0, "map": "ipv4_addr", "flags": "interval"}}}
  
-+ft_deldev() {
-+	$NFT "delete flowtable $1 $2 { devices = { $3 }; }"
-+}
-+
- iface_cleanup() {
- 	ip link del dummy1 &>/dev/null || :
-+	if [ "$NFT_TEST_HAVE_ifname_based_hooks" = y ]; then
-+		ft_deldev filter1 Main_ft1 dummy1
-+		ft_deldev filter2 Main_ft2 dummy1
-+	fi
- }
- trap 'iface_cleanup' EXIT
--iface_cleanup
+ I add element ip t portip { 80-100: 10.0.0.1 }
+ O -
+diff --git a/tests/monitor/testcases/set-mixed.t b/tests/monitor/testcases/set-mixed.t
+index 08c20116de92f..1cf3d38e34a7b 100644
+--- a/tests/monitor/testcases/set-mixed.t
++++ b/tests/monitor/testcases/set-mixed.t
+@@ -4,7 +4,7 @@ I add set ip t portrange { type inet_service; flags interval; }
+ I add set ip t ports { type inet_service; }
+ O -
+ J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+-J {"add": {"set": {"family": "ip", "name": "portrange", "table": "t", "type": "inet_service", "handle": 0, "flags": ["interval"]}}}
++J {"add": {"set": {"family": "ip", "name": "portrange", "table": "t", "type": "inet_service", "handle": 0, "flags": "interval"}}}
+ J {"add": {"set": {"family": "ip", "name": "ports", "table": "t", "type": "inet_service", "handle": 0}}}
  
- ip link add name dummy1 type dummy
+ # make sure concurrent adds work
+diff --git a/tests/monitor/testcases/set-multiple.t b/tests/monitor/testcases/set-multiple.t
+index bd7a6246a46b4..84de98e94d139 100644
+--- a/tests/monitor/testcases/set-multiple.t
++++ b/tests/monitor/testcases/set-multiple.t
+@@ -4,8 +4,8 @@ I add set ip t portrange { type inet_service; flags interval; }
+ I add set ip t portrange2 { type inet_service; flags interval; }
+ O -
+ J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+-J {"add": {"set": {"family": "ip", "name": "portrange", "table": "t", "type": "inet_service", "handle": 0, "flags": ["interval"]}}}
+-J {"add": {"set": {"family": "ip", "name": "portrange2", "table": "t", "type": "inet_service", "handle": 0, "flags": ["interval"]}}}
++J {"add": {"set": {"family": "ip", "name": "portrange", "table": "t", "type": "inet_service", "handle": 0, "flags": "interval"}}}
++J {"add": {"set": {"family": "ip", "name": "portrange2", "table": "t", "type": "inet_service", "handle": 0, "flags": "interval"}}}
  
-diff --git a/tests/shell/testcases/listing/0020flowtable_0 b/tests/shell/testcases/listing/0020flowtable_0
-index 0e89f5dd01393..14b0c909a7eba 100755
---- a/tests/shell/testcases/listing/0020flowtable_0
-+++ b/tests/shell/testcases/listing/0020flowtable_0
-@@ -48,7 +48,13 @@ EXPECTED3="table ip filter {
- iface_cleanup() {
- 	ip link del d0 &>/dev/null || :
- }
--trap 'iface_cleanup' EXIT
-+ft_cleanup() {
-+	if [ "$NFT_TEST_HAVE_ifname_based_hooks" = y ]; then
-+		$NFT 'delete flowtable ip filter f2 { devices = { d0 }; }'
-+		$NFT 'delete flowtable inet filter f2 { devices = { d0 }; }'
-+	fi
-+}
-+trap 'iface_cleanup; ft_cleanup' EXIT
- iface_cleanup
+ # make sure concurrent adds work
+ I add element ip t portrange { 1024-65535 }
+diff --git a/tests/monitor/testcases/set-simple.t b/tests/monitor/testcases/set-simple.t
+index 6853a0ebbb0cb..4bef144875876 100644
+--- a/tests/monitor/testcases/set-simple.t
++++ b/tests/monitor/testcases/set-simple.t
+@@ -3,7 +3,7 @@ I add table ip t
+ I add set ip t portrange { type inet_service; flags interval; }
+ O -
+ J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+-J {"add": {"set": {"family": "ip", "name": "portrange", "table": "t", "type": "inet_service", "handle": 0, "flags": ["interval"]}}}
++J {"add": {"set": {"family": "ip", "name": "portrange", "table": "t", "type": "inet_service", "handle": 0, "flags": "interval"}}}
  
- ip link add d0 type dummy
-diff --git a/tests/shell/testcases/transactions/0050rule_1 b/tests/shell/testcases/transactions/0050rule_1
-deleted file mode 100755
-index 89e5f42fc9f4d..0000000000000
---- a/tests/shell/testcases/transactions/0050rule_1
-+++ /dev/null
-@@ -1,19 +0,0 @@
--#!/bin/bash
--
--set -e
--
--RULESET="table inet filter {
--	flowtable ftable {
--		hook ingress priority 0; devices = { eno1, eno0, x };
--	}
--
--chain forward {
--	type filter hook forward priority 0; policy drop;
--
--	ip protocol { tcp, udp } ct mark and 1 == 1 counter flow add @ftable
--	ip6 nexthdr { tcp, udp } ct mark and 2 == 2 counter flow add @ftable
--	ct mark and 30 == 30 ct state established,related log prefix \"nftables accept: \" level info accept
--	}
--}"
--
--$NFT -f - <<< "$RULESET" >/dev/null || exit 0
-diff --git a/tests/shell/testcases/transactions/dumps/0050rule_1.json-nft b/tests/shell/testcases/transactions/dumps/0050rule_1.json-nft
-deleted file mode 100644
-index 546cc5977db61..0000000000000
---- a/tests/shell/testcases/transactions/dumps/0050rule_1.json-nft
-+++ /dev/null
-@@ -1,11 +0,0 @@
--{
--  "nftables": [
--    {
--      "metainfo": {
--        "version": "VERSION",
--        "release_name": "RELEASE_NAME",
--        "json_schema_version": 1
--      }
--    }
--  ]
--}
-diff --git a/tests/shell/testcases/transactions/dumps/0050rule_1.nft b/tests/shell/testcases/transactions/dumps/0050rule_1.nft
-deleted file mode 100644
-index e69de29bb2d1d..0000000000000
+ # adding some ranges
+ I add element ip t portrange { 1-10 }
 -- 
 2.49.0
 
