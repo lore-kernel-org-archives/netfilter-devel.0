@@ -1,45 +1,45 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 887B1248897
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 18:30:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA2E3198851
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 18:39:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749753042; cv=none; b=RpjcepGy/JJwLbNBfY28H52hpq/FnAfEdgdGZ+RI7lo4HXyxrfXW5fiLekPjWpmy6nZxDefzJaJO9tRPOmFIGlexH4Cme2kwtQSk37YolFLfhIvdOnLScfBbuFvl8o4yve3ZTZ8JvCN71WPJEKKu7ZdNlkTVAREw2BiG4ooL/Ro=
+	t=1749753585; cv=none; b=BXlziRT1jIWKNastG0mK0GZaewNVV1H+iUsiigbKUQFXVNH7lneH6xigQ/OYWgIY5Nl/JjAb07HLYPjsdM36+thSpI8KUq+PuvPwX0TOXQHjsmyXrx/JnYOdz44tjmJq1TYviC69g2p16tE+m2EbP5QBQ9pf+iKLzzghiqe6uI4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749753042; c=relaxed/simple;
-	bh=QmZUMkakphMfxdjv1gwyja+WtGB8/VXLDCOVojpKI9Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pDUEaivwZmfscDCTYuIYcbcRvi4GOh7d6qo0atrA5H5xp04/orgRTOLDiqS+5xYJgYTYe91Uy3fVfQi8w1LRq1/PFxY6BIBlwV5RPXVRiB5Bsi7/lImARBDHTzyk83So0u8qu7+Y+qgZZgQ4LRhpzvH3+uXP6H37fY2y4lSLxNo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Dwh66RHp; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1749753585; c=relaxed/simple;
+	bh=VhPR52H6NKjcoqBofP/uQMulxY22xqa9lqJW0ZZuP3Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=qo7V5tcZeip8LRG1YhtNMtYpnFhCCl+TyK7ek9jwqjSicsbFpNJhq7yqwhnJKsEL2qc2seCli6pKJLDamN6zBHkiMeUllkpjdniQE5izEpSdVOvQ41OWHTshxNvaqZR8tfV5G4SwdqMlFdwQZ8XNBjUWRYtavY0S4glIkyunXFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=gtGo/fAt; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Dwh66RHp"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="gtGo/fAt"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
 	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=zjxQRL9ZyR/6h3p19hA2cUGtGk2b9b/vd4VuyYNb+kU=; b=Dwh66RHptCRfJ/Oq6yyS/Xtunn
-	y2RV8MddPWfSQ4d3XdpAilblAgtt6IKWl7iZWixOPpbuEZihdyQyZtswm/3DVRY/Gbhb6CLkEHz0h
-	zKKYIJqkHYrVke2wQfUzN3hbpktbnjmJPSSxpqWFqZZ79D2VQrp8qIQ4UI0lWZYx65Oa2S9/SKUk7
-	qX8/Y3/wmorExBASM0UtkPK+sv66WWtfKB2LuRLOUp+0VOWNCyZcGdgG+yJRrAT93gWvrYa1+UeWT
-	EkqFbinShuTbvQ1v4u4Es+1i7ZPGdekQuyxk00tUimsskkTnPP1vKXBnyoOfrO+Guqqh38TYuO9f4
-	mV3isv+w==;
+	bh=+YfR84mK/GkGmdjAjprWWHG3eiRPdZwTjLerUhuHJ30=; b=gtGo/fAtFWT6acwvCOFZBbB3AF
+	aQ8UXSfPXPnq9RLJQw5USC3A3cL+7+ILeV7+yzxHDA4AfUTL6hpgWkfRacq+t9ioFvuuWvNozEmHM
+	JnUO4fJqkUGzQB6VixRhwPKU4ns6ypQzHwlZ0e2JA4GtyUjDXylsW/BWJbZgvzTgfPKnfh3ah8J7N
+	2pDKFkRla5mqD8QaxBiWGq9s30cdsjNJmMxFUJMszLoEXXRgzD+LJyyVM0vRcrr+sA0Gjs9MU60dP
+	Ul9rHI5YEDDkE/QSwlQV3nOs4ipHbHmi8dJpaMCIm/1tSekPqg+UPD469+gDbuHrnCvrqfpm+aefd
+	X5cnQDig==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uPmh4-000000006Xy-0M02;
-	Thu, 12 Jun 2025 20:30:30 +0200
+	id 1uPmpy-000000006ja-1HBj;
+	Thu, 12 Jun 2025 20:39:42 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nf-next PATCH v2] netfilter: nf_tables: Fix for extra data in delete notifications
-Date: Thu, 12 Jun 2025 20:30:24 +0200
-Message-ID: <20250612183024.1867-1-phil@nwl.cc>
+Subject: [nft PATCH] netlink: Avoid crash upon missing NFTNL_OBJ_CT_TIMEOUT_ARRAY attribute
+Date: Thu, 12 Jun 2025 20:36:35 +0200
+Message-ID: <20250612183937.3623-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -49,114 +49,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-All routines modified in this patch conditionally return early depending
-on event value (and other criteria, i.e., chain/flowtable updates).
-These checks were defeated by an upfront modification of that variable
-for use in nfnl_msg_put(). Restore functionality by avoiding the
-modification.
+If missing, the memcpy call ends up reading from address zero.
 
-This change is particularly important for user space to distinguish
-between a chain/flowtable update removing a hook and full deletion.
-
-Fixes: 28339b21a365 ("netfilter: nf_tables: do not send complete notification of deletions")
+Fixes: c7c94802679cd ("src: add ct timeout support")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Channeling this through -next despite it being a fix since unpatched
-nft monitor chokes on the shortened delete flowtable notifications.
-
-Changes since v1:
-- User space depends on NFTA_OBJ_TYPE for proper deserialization, do not
-  skip that attribute.
+This is a second bug in netlink delinearization exposed by the "Fix for
+extra data in delete notifications" kernel patch.
 ---
- net/netfilter/nf_tables_api.c | 35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ src/netlink.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8952b50b0224..9bf003797355 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1153,9 +1153,9 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
- {
- 	struct nlmsghdr *nlh;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -2020,9 +2020,9 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- {
- 	struct nlmsghdr *nlh;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -4851,9 +4851,10 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	u32 seq = ctx->seq;
- 	int i;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, ctx->family,
--			   NFNETLINK_V0, nft_base_seq(ctx->net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, ctx->family, NFNETLINK_V0,
-+			   nft_base_seq(ctx->net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -8346,14 +8347,15 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
- {
- 	struct nlmsghdr *nlh;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
- 	if (nla_put_string(skb, NFTA_OBJ_TABLE, table->name) ||
- 	    nla_put_string(skb, NFTA_OBJ_NAME, obj->key.name) ||
-+	    nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
- 	    nla_put_be64(skb, NFTA_OBJ_HANDLE, cpu_to_be64(obj->handle),
- 			 NFTA_OBJ_PAD))
- 		goto nla_put_failure;
-@@ -8363,8 +8365,7 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
- 		return 0;
- 	}
- 
--	if (nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
--	    nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
-+	if (nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
- 	    nft_object_dump(skb, NFTA_OBJ_DATA, obj, reset))
- 		goto nla_put_failure;
- 
-@@ -9391,9 +9392,9 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
- 	struct nft_hook *hook;
- 	struct nlmsghdr *nlh;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
+diff --git a/src/netlink.c b/src/netlink.c
+index be1fefc068bfd..73fe579a477cf 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1769,9 +1769,10 @@ struct obj *netlink_delinearize_obj(struct netlink_ctx *ctx,
+ 		init_list_head(&obj->ct_timeout.timeout_list);
+ 		obj->ct_timeout.l3proto = nftnl_obj_get_u16(nlo, NFTNL_OBJ_CT_TIMEOUT_L3PROTO);
+ 		obj->ct_timeout.l4proto = nftnl_obj_get_u8(nlo, NFTNL_OBJ_CT_TIMEOUT_L4PROTO);
+-		memcpy(obj->ct_timeout.timeout,
+-		       nftnl_obj_get(nlo, NFTNL_OBJ_CT_TIMEOUT_ARRAY),
+-		       NFTNL_CTTIMEOUT_ARRAY_MAX * sizeof(uint32_t));
++		if (nftnl_obj_is_set(nlo, NFTNL_OBJ_CT_TIMEOUT_ARRAY))
++			memcpy(obj->ct_timeout.timeout,
++			       nftnl_obj_get(nlo, NFTNL_OBJ_CT_TIMEOUT_ARRAY),
++			       NFTNL_CTTIMEOUT_ARRAY_MAX * sizeof(uint32_t));
+ 		break;
+ 	case NFT_OBJECT_LIMIT:
+ 		obj->limit.rate =
 -- 
 2.49.0
 
