@@ -1,47 +1,49 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B629221268
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 21:16:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB36189BB0
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 21:16:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749763002; cv=none; b=hTxdmGCm4j0xSp4pIRbStnDWVC5+uG4o9baFIJDUDIM9YtX2+qeJ4pqoq3B8RsyH5vl+RN2e8SYfaa6iQN3nCauR7v9TXrVOT359swXKC6NLYVywBWTEI2rS33Wg9dHo88pwl2QTbnAK9HJJo7VhWi/z+HI9f33qWVYc75lP5JE=
+	t=1749763016; cv=none; b=u0YoDa+W6IlkeLup7iBCAl7fTZ4oiCow6SPUijHF0Gbm+elaaHjxEeojtYO+jZTCxwZvQNOsjh1HEPFcQsL7vW1jhGS3kPoR8WSxq7PKRNmxDa1NrmXgPE3wDyKUvupiqjhqsFgxxPjE7wD+oGqbsytEKZ/D6tU5O6+tMmJPunw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749763002; c=relaxed/simple;
-	bh=PoFSoBrN9sugdYJouoIMH5ECM5cfeGvpONujMvhX2WU=;
+	s=arc-20240116; t=1749763016; c=relaxed/simple;
+	bh=ggwB96CM05mquPKcrZp5zDltq7SP97ShTHqNxD+65SE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Oob6uULlsUJUU4fBW9UX4UTDmyuZ9dEc9LYLMpr7CjsDseoKAgVzETFuEnbMiiE5CKgIpnd3s3jFAJj1CzTEKwHh8hKC0U55/Hy5l4Zc1VxQGBgv8BmVeoXOL22zQtTgP6yOdukqs3raHVlQRdXYsb2T7VpE4KZjp9/RcVXORk4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=BsByUgUx; arc=none smtp.client-ip=151.80.46.58
+	 Content-Type:Content-Disposition:In-Reply-To; b=C7FIV6PR1u6M0W2b8r3qotcoUVYKbl2yFOZzJGO5EJ5NcMyeXuYawPGMa2k8GEWjPYNwtz36VsuMzdJTwLeqxIgjqJKuV2pLGXTKbzVOQOX7eKaMl2aeUknZlqsxeBK4HewH7OyUpVNpI7+NNb3nrsqEAz+PNkxRt2yG1yBfrdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=F+lZU8SU; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="BsByUgUx"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="F+lZU8SU"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Hyggos3fvMy0w5EdjyxGfgdK0vVPBjErTyRJREzDGGQ=; b=BsByUgUxKGL7it9tUfb7ilzlb8
-	yStRec0jzAyVBvKfhfEam3/+kE8iZWJ3pT2mX/xmv7abGktVo612huB06jV7Xmo4JkVeH8qTT5oz3
-	36tRavy4tZzLO1LqGq9mmf7VyMmtWy4pYMoz/RJ3w7lYbL4nS+uRXIM953/LqAekNRnHkXl3HrlFF
-	LZny4Ip7eCRGGs9US1lHzragv0cHskPjISfWsuRT1gf9uYFWphFobEnq9pfgB2fY2uXBU9mcxXhd9
-	Sou3s/HytEvrJZJBcWPc3rbb48vPSn1tLkIKgMNW7TUkaNCMR6Ok5bznni+h/DXhjuDVZCVU6JaF1
-	Cw4KvEeQ==;
+	bh=+D1nKYrEJQVfTt918FE0O+P3rYFeydeKLDwZNF1XERI=; b=F+lZU8SUk5SQvl2Og7hzPpAEF5
+	fb7mFrnNjhVY0JXRcOxMKZLsT/Nj9P5kG+VRS/T/mdGrE1dJx5CHHaBBx+wOxpjuibDZZJ5653LV3
+	xtq8h5EnPlseJZcSEYyBmFs56eivnaF9AmMy8aElvrFcORSsuvq6ZybWVp4AgBccY2ciZ4WNukELq
+	J+jD9x0SbrSwapOB5ylp+kMGpu0Z6p57qOkGZ6sv+g7EDqVcpBeKEGYF0kU37uvZ4zjG8/xRVNtKX
+	IIMVfyP0YHj6MGYv54qldjKu/Yb2GOvzMyVtNVxkXq9v0kuk6QHqyMTYiNSYt5DpOg0c69dWvNGdo
+	asmcIxig==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uPpHq-000000001Hh-0rZS;
-	Thu, 12 Jun 2025 23:16:38 +0200
-Date: Thu, 12 Jun 2025 23:16:38 +0200
+	id 1uPpI5-000000001Hw-0gQY;
+	Thu, 12 Jun 2025 23:16:53 +0200
+Date: Thu, 12 Jun 2025 23:16:53 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/7] Misc fixes
-Message-ID: <aEtDtmSjcUq3Xwxr@orbyte.nwl.cc>
+Subject: Re: [nft PATCH] netlink: Avoid crash upon missing
+ NFTNL_OBJ_CT_TIMEOUT_ARRAY attribute
+Message-ID: <aEtDxQLaANcwAjSq@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-References: <20250612115218.4066-1-phil@nwl.cc>
+References: <20250612183937.3623-1-phil@nwl.cc>
+ <aEs3P6EGuVNkQbj8@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,28 +52,15 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250612115218.4066-1-phil@nwl.cc>
+In-Reply-To: <aEs3P6EGuVNkQbj8@calendula>
 
-On Thu, Jun 12, 2025 at 01:52:11PM +0200, Phil Sutter wrote:
-> Patch 1 is the most relevant one as an upcoming kernel fix will trigger
-> the bug being fixed by it.
+On Thu, Jun 12, 2025 at 10:23:27PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Jun 12, 2025 at 08:36:35PM +0200, Phil Sutter wrote:
+> > If missing, the memcpy call ends up reading from address zero.
+> > 
+> > Fixes: c7c94802679cd ("src: add ct timeout support")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
 > 
-> Patches 2-5 are related to monitor testsuite, either fixing monitor
-> output or adjusting the test cases.
-> 
-> Patch 6 adjusts the shell testsuite for use with recent kernels (having
-> name-based interface hooks).
-> 
-> Patch 7 is an accidental discovery, probably I missed to add a needed
-> .json.output file when implementing new tests.
-> 
-> Phil Sutter (7):
->   netlink: Fix for potential crash parsing a flowtable
->   netlink: Do not allocate a bogus flowtable priority expr
->   monitor: Correctly print flowtable updates
->   json: Dump flowtable hook spec only if present
->   tests: monitor: Fix for single flag array avoidance
->   tests: shell: Adjust to ifname-based hooks
->   tests: py: Properly fix JSON equivalents for netdev/reject.t
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Series applied.
+Patch applied.
