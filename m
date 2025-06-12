@@ -1,84 +1,125 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC6318CC1D
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Jun 2025 19:37:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06E312D1936;
+	Thu, 12 Jun 2025 19:45:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749757070; cv=none; b=PWycpQkhHR/hOJc/INL/ymehDakRrtqIobi1xw5qmBGANCtoZvqUr6AAP92z02/7RLAkauMP/2FJ2zG/4S0oOkGkT/Bg05gC+ScXVUSpFyrSOh7kvB4qsmjP4HuDRvWyoLG211ZH8YVura158hJ7xRXqogd81GpZVsU2boDAMbA=
+	t=1749757507; cv=none; b=pnKVdvZDdsjBk6mtKvvEDYnD7wBiWntr8efv/F/w0zn4mnaRiNtt6pirr1cO/USG79shqClcQgcxIplGq7MnXOi75B4CtXHRfyd8TMcBtV26Q0XMxCpUYfTWXmXmfCcT5CL00qZLifraL0Bk6RJKMBTATY+IdkMqXusfCudBKZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749757070; c=relaxed/simple;
-	bh=6YpfugL/An2lVwi8m0tG0FNfE86jPkiKlY3Bvy19lZA=;
+	s=arc-20240116; t=1749757507; c=relaxed/simple;
+	bh=ZSyFaHs9qAWu5Z65auxBkBVdkKqMd/prx/jlW0lYhyQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=O2bEcBcgP4NFs6Q695NdiPdFCqNYT3cXKbtH8N8KIxULMCU7ieRONXjbZVHtJowx01T2jUpxvHYYrgIqrd38DLupsISBJeMppPFzbn0VDZ3SHWtQlOF/bmU6mGJd0ujoxSDrs2Nv/E8QfW0xPYfPg9otVvQR7rRMyOw1X7EFXus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eIIW+cBi; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rYf+wFCm; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=U6It3MazTy9bahnG16lfPP4Sz2jaVCTk89CLR9bd+qVHQWaGwErn2zESBtAnoQOTWrRnVcj1qJ/ss+jDXM8emmBlqyfQK5CwP0Chf/wTO4DfhMeRsDH4zOuf/cn+SOgIte7WEz41ozCNhfX3BSWRSrJ1rYlRj/CXMPgnjb/v+IU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=I4sQMHxb; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eIIW+cBi";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rYf+wFCm"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 55C9A60564; Thu, 12 Jun 2025 21:37:47 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749757067;
-	bh=ABLmCioMSi+IXhMgUPTeV2W0IZFufmoYrtVtqDCmtak=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eIIW+cBiWxpm4MNP29XFvWJKh9fGWjFF+yXVhIb+w9zNA0+EBjzgGv4C/eaPzCSir
-	 lcnoRCVpzfjkHSixvsxMiZfgP3F5HsmquTnF8KvogR53HFFDUcT0IyJLKDkt9OTDs+
-	 uwzlTRDIbNum67L5ihrzYWSRvTKfEID3mZ1ijnA9wRkdbr82gQd8dQK/O6ugsA/8la
-	 HLPMYCW0JF7VNQgB0pje/2FUPQwpuWuE1vQ7neyjYBrgto2+h1dQbKI/41ugq2bwDc
-	 +vR/03y912bBLTev9/FmSPw+B2CQuh24SxQAHB9ze5sHb7yHA2DDnYrgbGoMAz8zb+
-	 XGhuJZwD0UG/g==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BACC760327;
-	Thu, 12 Jun 2025 21:37:46 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749757066;
-	bh=ABLmCioMSi+IXhMgUPTeV2W0IZFufmoYrtVtqDCmtak=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rYf+wFCmrRPBeopWiFOvZmktCBKbeVe+lrjE4+Zw5OtiyaCe/ATdYjQxV8U8Qb/AE
-	 zhtsi3mUn/blxwQ6GnKYq/xKLlGqMNdZL89yxTKFyl4QGx9noaiFt6XWYYVdEatRSc
-	 a+QS/QzvJOHe4SwykyxEZ725vSUcY5obh2/goKYLYC8MNevzh3Za6dyImMtMNJD3LA
-	 OrDQxapreGT0iKZuXSmwkNnM7Co+vyhQ5jphNFvGoedPl1m5ltcxxI4OJx+jjUpuUh
-	 W5uGJCKboiNlYrcIxyBPXyYK+Oa7aR9BVUxZYMH5qUy4AhiIau7RQhSLOUDv94Rsg5
-	 yMV0T+Rolt00A==
-Date: Thu, 12 Jun 2025 21:37:43 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/7] Misc fixes
-Message-ID: <aEsshy3Re3E6j0XE@calendula>
-References: <20250612115218.4066-1-phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="I4sQMHxb"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=U3iLMIAGg43rdvlU52GFdCY8BaRXiWxZEruT4WgMndQ=; b=I4sQMHxbuRZIO9W/+k4nWZJ5/P
+	s/wXQrjrgaFyFrMVGZvlJpK/8PycTZ4o5tzqJxktZuuzD5VohPlKPZQhKlUXxB/lhprwq5QYwYUnH
+	s/BlyBTcI07vfY9rV3JxZWC8GdlY1HMIuvb9mRQjE1w1zL1WQrukTYpLW9UuJ7HK8xnNClnXHwlUm
+	ujfBg9DZ39HzyaymCq3RCancwy7lplDKCZJn9EIVZFeCBFGFkvCeXyWyMTil/EjyRKrqSNnfD0yOj
+	9GBG+puqXt0K/B+ZLidI5Rk177AWEZBmUm3AP8hsfO3hQckiEogXrzVo+l91Ro+4UMeTMdlznmRk2
+	XSbHUQfw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uPnrB-000000007zd-09cV;
+	Thu, 12 Jun 2025 21:45:01 +0200
+Date: Thu, 12 Jun 2025 21:45:00 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Cc: Klaus Frank <vger.kernel.org@frank.fyi>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Lukas Wunner <lukas@wunner.de>,
+	netfilter@vger.kernel.org,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	netdev@vger.kernel.org
+Subject: Re: Status of native NAT64/NAT46 in Netfilter?
+Message-ID: <aEsuPMEkWHnJvLU9@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Antonio Ojea <antonio.ojea.garcia@gmail.com>,
+	Klaus Frank <vger.kernel.org@frank.fyi>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Lukas Wunner <lukas@wunner.de>,
+	netfilter@vger.kernel.org,
+	Maciej =?utf-8?Q?=C5=BBenczykowski?= <zenczykowski@gmail.com>,
+	netdev@vger.kernel.org
+References: <w7bwjqyae36c6pqhqjmvjcrwtpny6jxjyvxzb2qzt7atjncxd2@gi4xhlyrz27b>
+ <aEqka3uX7tuFced5@orbyte.nwl.cc>
+ <CABhP=tZRP42Dgw9+_vyAx80uPg4V2YFLfbGhpA10WzM46JYTNg@mail.gmail.com>
+ <aErch2cFAJK_yd6M@orbyte.nwl.cc>
+ <CABhP=tbUuJKOq6gusxyfsP4H6b4WrajR_A1=7eFXxfbLg+4Q1w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250612115218.4066-1-phil@nwl.cc>
+In-Reply-To: <CABhP=tbUuJKOq6gusxyfsP4H6b4WrajR_A1=7eFXxfbLg+4Q1w@mail.gmail.com>
 
-On Thu, Jun 12, 2025 at 01:52:11PM +0200, Phil Sutter wrote:
-> Patch 1 is the most relevant one as an upcoming kernel fix will trigger
-> the bug being fixed by it.
+On Thu, Jun 12, 2025 at 08:19:53PM +0200, Antonio Ojea wrote:
+> On Thu, 12 Jun 2025 at 15:56, Phil Sutter <phil@nwl.cc> wrote:
+> >
+> > Hi,
+> >
+> > On Thu, Jun 12, 2025 at 03:34:08PM +0200, Antonio Ojea wrote:
+> > > On Thu, 12 Jun 2025 at 11:57, Phil Sutter <phil@nwl.cc> wrote:
+> > > > On Sun, Jun 08, 2025 at 08:37:10PM +0000, Klaus Frank wrote:
+> > > > > I've been looking through the mailling list archives and couldn't find a clear anser.
+> > > > > So I wanted to ask here what the status of native NAT64/NAT46 support in netfilter is?
 > 
-> Patches 2-5 are related to monitor testsuite, either fixing monitor
-> output or adjusting the test cases.
+> > > we ended doing some "smart hack" , well, really a combination of them
+> > > to provide a nat64 alternative for kubernetes
+> > > https://github.com/kubernetes-sigs/nat64:
+> > > - a virtual dummy interface to "attract" the nat64 traffic with the
+> > > well known prefix
+> > > - ebpf tc filters to do the family conversion using static nat for
+> > > simplicity on the dummy interface
+> > > - and reusing nftables masquerading to avoid to reimplement conntrack
+> >
+> > Oh, interesting! Would you benefit from a native implementation in
+> > nftables?
 > 
-> Patch 6 adjusts the shell testsuite for use with recent kernels (having
-> name-based interface hooks).
+> Indeed we'll benefit a lot, see what we have to do :)
 > 
-> Patch 7 is an accidental discovery, probably I missed to add a needed
-> .json.output file when implementing new tests.
+> > > you can play with it using namespaces (without kubernetes), see
+> > > https://github.com/kubernetes-sigs/nat64/blob/main/tests/integration/e2e.bats
+> > > for kind of selftest environment
+> >
+> > Refusing to look at the code: You didn't take care of the typical NAT
+> > helper users like FTP or SIP, did you?
+> 
+> The current approach does static NAT64 first, switching the IPv6 ips
+> to IPv4 and adapting the IPv4 packet, the "real nat" is done by
+> nftables on the ipv4 family after that, so ... it may work?
 
-Series LGTM: Please keep test 0050_rule1 in place, I would prefer not
-to lose coverage for very old bugs. Please double-check other test
-updates in 6/7.
+That was my approach as well: The incoming IPv6 packet was translated to
+IPv4 with an rfc1918 source address linked to the IPv6 source, then
+MASQUERADE would translate to the external IP.
 
-Aside from that silly nitpick of mine:
+In reverse direction, iptables would use the right IPv6 destination
+address from given rfc1918 destination address.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+The above is a hack which limits the number of IPv6 clients to the size
+of that IPv4 transfer net. Fixing it properly would probably require
+conntrack integration, not sure if going that route is feasible (note
+that I have no clue about conntrack internals).
 
-Thanks
+The actual issue though with protocols like FTP is that they embed IP
+addresses in their headers. Therefore it is not sufficient to swap the
+l3 header and recalculate the TCP checksum, you end up manipulating l7
+headers to keep things going. At least there's prior work in conntrack
+helpers, not sure if that code could be reused or not.
+
+Cheers, Phil
