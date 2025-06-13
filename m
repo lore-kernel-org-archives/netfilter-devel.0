@@ -1,47 +1,31 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D6151A76AE
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Jun 2025 15:40:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3394628D8F5
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Jun 2025 21:41:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749829225; cv=none; b=YxloSucifyV74mQwuk3NtmqOAqEaXoRhCaGY9CSzkouIYMgA2ztghRLEeB4g/WmAxVUFdRabdcUpPpVQ5IDeug/75f2lkSRCWWUw8rOAQkhq7iNT/7Qax8+DVgvUPoqz+soGWeDHA4hVO4xngUNNBZcSwRr/EI5K5J9fuhVAbdg=
+	t=1749850883; cv=none; b=e+WCPUOGOx9ocve3dso7nJoO/faTslv5GjbrYADvFs0HIQFli2tiUA4jf/yVK2Vtz0FhF+IqkxlbCBS461nuESAvjyj8XuCCsIza6cfbFBHkKsNO360KpGRF/lk3oJrFXYZVtzbF9XWQjrPC8XZvFjNc4jenhWTN9zNJVz7pJlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749829225; c=relaxed/simple;
-	bh=JraeLhcpmurukWKYjGVcQbCHkp3it0eoGwoU+dkPSro=;
+	s=arc-20240116; t=1749850883; c=relaxed/simple;
+	bh=ySMnrilvMZdCFabetCjKnurXqDAx/tm2PqDuEXl8Awc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=t6vqkgyi9ihpctrgSb2CPfRg1Fdq0c6pObOdm6U2oIewaCtdB0yfNVURi5pS0IRcxjMQY10OKsmmBHQ0TMnp+Xa4BGRHGN5BLd7bLOe5cDPWs5H2W628K6scT++4/8WsZkHvA4USa8ASUGo2rCD/2wMBS9jfYGMKlKgANwhslFQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=h9AL9dDi; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="h9AL9dDi"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=veuPu81wynLDQeOKfspL6eziAMZsk6CqFKgbszrnZ5A=; b=h9AL9dDi5b9YDzljRuKMhRX3c3
-	/7Wu4kYb9Te/2eN7sYD1wrtuUY4Ay7c4IRAfq1QSnniB6O9QKrFnqSXkToyNgQfAELy2JM11IiuKN
-	EKhCTRH0TSuX5yso/Kb8qGepMJW+bJCClEuZhhjUhWjA8V8GIMq8c4R9ozfCL67rA7iUPx2xKuE/j
-	olY8QxKtDdkYkqOOJGc5yYkaEZbplE7WAM6I5nZ/koKK6P8LqaW5hrRAkB7Qwx2OjcyqvG9akHDkS
-	wgrbmuWzBgcAKTR/gJEDQo/7qI8yZ5ARm4W8pBeCiCdH2rI0J1uBa+elVrlApjX4I2gD0IrJGWhjN
-	gf2QwmuA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uQ6Vw-000000006U5-1piE;
-	Fri, 13 Jun 2025 17:40:20 +0200
-Date: Fri, 13 Jun 2025 17:40:20 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft] evalute: don't BUG on unexpected base datatype
-Message-ID: <aExGZDqWdNgG0_BD@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-References: <20250613144612.67704-1-fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=aqmh+HoFQVDgt2Xp/O0hdhtLYt3pUb8Le9PqrCy0iblcHj3E2DY8wqX/9OyrH53uhAxXAZsP+WfWvlDt14DdK24IpQr58gvGudX7MBzEtOOA9/KKhjcjsNDQSIZnl2qTV3xElCwxeWMNK/+uww8hOaCJ9/Lxa4RgCg9PQfo5l2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id BAB8C612E9; Fri, 13 Jun 2025 23:41:16 +0200 (CEST)
+Date: Fri, 13 Jun 2025 23:41:16 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Christoph Heiss <c.heiss@proxmox.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH conntrack-tools] conntrack: introduce --labelmap option
+ to specify connlabel.conf path
+Message-ID: <aEya_IffeWY8RmKr@strlen.de>
+References: <20250613102742.409820-1-c.heiss@proxmox.com>
+ <aEwXADKlOKotEVRi@strlen.de>
+ <DALEXBLBOPWN.2DL1A7GBBBVQ8@proxmox.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,21 +34,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250613144612.67704-1-fw@strlen.de>
+In-Reply-To: <DALEXBLBOPWN.2DL1A7GBBBVQ8@proxmox.com>
 
-On Fri, Jun 13, 2025 at 04:46:06PM +0200, Florian Westphal wrote:
-> Included bogo will cause a crash but this is the evaluation
-> stage where we can just emit an error instead.
+Christoph Heiss <c.heiss@proxmox.com> wrote:
+> But it's used for indexing into `optflags`, which in turned is used by
+> generic_opt_check().
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  I wonder if we should just replace all BUGs in evaluate.c
->  with expr_error() calls, it avoids constant whack-a-mole.
+> As `--labelmap` can only be used with `--label{-add,-del}` and thus
+> `-L`, `-E`, `-U` and `-D`, this is appropriately reflected in
+> `commands_v_options`.
+> 
+> Based on that, generic_opt_check() will then throw an error/abort if
+> `--labelmap` is used with any other command, e.g.:
+> 
+>   conntrack v1.4.8 (conntrack-tools): Illegal option `--labelmap' with this command
+>   Try `conntrack -h' or 'conntrack --help' for more information.
 
-I guess the expectation was that bison catches these but I fear JSON
-parser has weakened that quite a bit.
+Makes sense, thanks.
 
-I wish libnftables to well-behave in error cases unless critical ones
-like ENOMEM.
+> > Should this exit() if labelmap_path != NULL?
+> 
+> Don't have a strong preference on this, but probably makes sense to
+> abort in case the user ever specifies the option multiple times. I'll
+> add that.
 
-Cheers, Phil
+Thanks!
+
+> Can do that. Will just entail a bit more refactoring around the
+> --label{-add,-del} option parsing, as that relies on an already
+> initialized labelmap.
+
+Right, if this becomes too convoluted then another alternative
+is to error out if the --labelmap option is seen but the initalisation
+was already done with an error message indicating that the labelmap
+option must come first.
