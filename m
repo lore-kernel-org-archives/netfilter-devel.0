@@ -1,53 +1,53 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E8731FA15E
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 10:00:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87AE4263F36
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 10:00:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749981629; cv=none; b=dYiYDFNQ8c8GV+bFBpPr7zc9/M7dYZzLhlR7eBX6QnbY73bzUdh+WTc8RT1Uokwzkhqw0h3Mai2IKIrPrPTa8Kkkc3zcCIUwR3anK0Kt6MZTc+tzDGhFpzZ1urZbyq5u64lbvufgQjgWd6/XThCWrjgUVD6V5o8BBkfdEi4dnoE=
+	t=1749981629; cv=none; b=HNZWLUG0YGr08khrbjsIzFWihuZsLeQcSyd9meDEiwDYamzDEdaN9wSGMqXDkDhmxT16s4xfckD+QiFxCFXF96YRWTg6RT2NVE7X3kj0sCYIbuGZUXHk02wJA08fShQjiVDVfut1KEYPpUhDDdsT4CPozROv+PK9z8zkoYhpH70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1749981629; c=relaxed/simple;
-	bh=bWzqzFQAUN0hRjVKcavTSnmBXkIqTbhNU5lxdetsXI0=;
+	bh=OjeIv9IzR1aF5sSM+dI45pdexUD67HBq98prlMZiFoM=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=MpM4aKfaUEVhPb5RiGLUuFvpg0wpjHHubpJorcPR2h/ZHT3OGllyNRrZ8RUeEWvz+4MbJPfFkBfLcQ58thjBHadK0u9bbsVOA7vavWG05EoSjZgoyB6V0pwTDOgRLYcgw8d/AdWtqk1IYXCoYp2f5/0RYI4EVLS8RuBs4yjNhog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UDFpIDUi; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UDFpIDUi; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=CK2+gDlwXPOpbmxYFV7jiSDgJmEYrBl27xNPzT9jnIKU0T1W1HoryrNvhO3RJDpYazvCA+MK/ENExyv4KxmbBujqYUGyfLNpUSFxT8ABGjossyZWcnWz2uyBdGqa5og+aWV8Cat5Cxu9+X15EmBZbf49OCI0xu+S+W1jRSEFfHk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=aWMBKEHO; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=aWMBKEHO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UDFpIDUi";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UDFpIDUi"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="aWMBKEHO";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="aWMBKEHO"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id E2A31602C1; Sun, 15 Jun 2025 12:00:24 +0200 (CEST)
+	id C1C25602C0; Sun, 15 Jun 2025 12:00:25 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749981624;
-	bh=z6JNrv/goGVBnLxRGtUI7ld0T2y783LiJsQ/kFH3YZI=;
+	s=2025; t=1749981625;
+	bh=iKupuRvdyEni6mylGAC9I2Hzk98i1z17/shiwGSYTEg=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=UDFpIDUiPUCkApUw0pIT6hIBmxumyULPxSB68TPNVT86IWWaIOfikT5nv0sDj4SqN
-	 +EU8HQDWCRkjYn+0fkMzUX8rMjWGdZvKAGjst9zS/WGf4kBcatme2/sGl0hUacZWr7
-	 Bt2ZrFAbAH3aUpz6Pnbj9dgdaySO5qmy2czJ/qwoYQ2VTmpSWmbimSY4epdlVb8eAa
-	 QJsuB3tgka2SI3/tuhDU7nyOXsCMjEWTSBoZ/3/0/SrN6FM0uZ1eIcC5+KJvqPw3bd
-	 YZfPEfYqCXsLkkWInPle5bXHdtI2oXXcvkOpWHp3kily2ItD+WYBn8QFM8gZ9m7awv
-	 ui/o5jwuuC/Hg==
+	b=aWMBKEHOb7E2SsW2NXwL/ssog7XvWMC2C6Qy/Z/mQgTUhBZqxtmQhxmcYj5Zw4o7s
+	 LyXk0eNayHnzoCPEB82WX1tRjIRWKPGRf2S5K0q5zXsC6kizzEK2uM/P13fWmeuoYf
+	 fhqicUGls0ojyXgjkQLSZpAfRxpuMPW3Sc+cHtgdy8H7sYtZaivbrV8wiBR0t4BfTj
+	 TSW4ClmzDNwU3QbG+KlgqIeH6JQBnUtWT97WM6JAx2xcEv158vv+nBqQryoHSfLw2D
+	 hmSLX3Tv0B+g34RzH9DPeBjG9C0I84u3T0cDE4q6JcKmqWygzPv/cjJgPO7Tfi+pUt
+	 Rk04BHTNZucZA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 812A7602BC
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 12:00:24 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 33C70602BC
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 12:00:25 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749981624;
-	bh=z6JNrv/goGVBnLxRGtUI7ld0T2y783LiJsQ/kFH3YZI=;
+	s=2025; t=1749981625;
+	bh=iKupuRvdyEni6mylGAC9I2Hzk98i1z17/shiwGSYTEg=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=UDFpIDUiPUCkApUw0pIT6hIBmxumyULPxSB68TPNVT86IWWaIOfikT5nv0sDj4SqN
-	 +EU8HQDWCRkjYn+0fkMzUX8rMjWGdZvKAGjst9zS/WGf4kBcatme2/sGl0hUacZWr7
-	 Bt2ZrFAbAH3aUpz6Pnbj9dgdaySO5qmy2czJ/qwoYQ2VTmpSWmbimSY4epdlVb8eAa
-	 QJsuB3tgka2SI3/tuhDU7nyOXsCMjEWTSBoZ/3/0/SrN6FM0uZ1eIcC5+KJvqPw3bd
-	 YZfPEfYqCXsLkkWInPle5bXHdtI2oXXcvkOpWHp3kily2ItD+WYBn8QFM8gZ9m7awv
-	 ui/o5jwuuC/Hg==
+	b=aWMBKEHOb7E2SsW2NXwL/ssog7XvWMC2C6Qy/Z/mQgTUhBZqxtmQhxmcYj5Zw4o7s
+	 LyXk0eNayHnzoCPEB82WX1tRjIRWKPGRf2S5K0q5zXsC6kizzEK2uM/P13fWmeuoYf
+	 fhqicUGls0ojyXgjkQLSZpAfRxpuMPW3Sc+cHtgdy8H7sYtZaivbrV8wiBR0t4BfTj
+	 TSW4ClmzDNwU3QbG+KlgqIeH6JQBnUtWT97WM6JAx2xcEv158vv+nBqQryoHSfLw2D
+	 hmSLX3Tv0B+g34RzH9DPeBjG9C0I84u3T0cDE4q6JcKmqWygzPv/cjJgPO7Tfi+pUt
+	 Rk04BHTNZucZA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 2/5] cache: assert name is non-nul when looking up
-Date: Sun, 15 Jun 2025 12:00:16 +0200
-Message-Id: <20250615100019.2988872-3-pablo@netfilter.org>
+Subject: [PATCH nft 4/5] parser_bison: only reset by name is supported by now
+Date: Sun, 15 Jun 2025 12:00:18 +0200
+Message-Id: <20250615100019.2988872-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250615100019.2988872-1-pablo@netfilter.org>
 References: <20250615100019.2988872-1-pablo@netfilter.org>
@@ -59,65 +59,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-{table,chain,set,obj,flowtable}_cache_find() should not be called when
-handles are used
+NFT_MSG_GETSET does not support for handle lookup yet, restrict this to
+reset by name by now.
 
-Fixes: 5ec5c706d993 ("cache: add hashtable cache for table")
+Add a bogon test reported by Florian Westphal.
+
+Fixes: 83e0f4402fb7 ("Implement 'reset {set,map,element}' commands")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/cache.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ src/parser_bison.y                                     | 4 ++--
+ tests/shell/testcases/bogons/nft-f/null_set_name_crash | 2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/null_set_name_crash
 
-diff --git a/src/cache.c b/src/cache.c
-index 3ac819cf68fb..d16052c608d5 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -551,8 +551,7 @@ struct table *table_cache_find(const struct cache *cache,
- 	struct table *table;
- 	uint32_t hash;
- 
--	if (!name)
--		return NULL;
-+	assert(name);
- 
- 	hash = djb_hash(name) % NFT_CACHE_HSIZE;
- 	list_for_each_entry(table, &cache->ht[hash], cache.hlist) {
-@@ -672,6 +671,8 @@ struct chain *chain_cache_find(const struct table *table, const char *name)
- 	struct chain *chain;
- 	uint32_t hash;
- 
-+	assert(name);
-+
- 	hash = djb_hash(name) % NFT_CACHE_HSIZE;
- 	list_for_each_entry(chain, &table->chain_cache.ht[hash], cache.hlist) {
- 		if (!strcmp(chain->handle.chain.name, name))
-@@ -840,6 +841,8 @@ struct set *set_cache_find(const struct table *table, const char *name)
- 	struct set *set;
- 	uint32_t hash;
- 
-+	assert(name);
-+
- 	hash = djb_hash(name) % NFT_CACHE_HSIZE;
- 	list_for_each_entry(set, &table->set_cache.ht[hash], cache.hlist) {
- 		if (!strcmp(set->handle.set.name, name))
-@@ -954,6 +957,8 @@ struct obj *obj_cache_find(const struct table *table, const char *name,
- 	struct obj *obj;
- 	uint32_t hash;
- 
-+	assert(name);
-+
- 	hash = djb_hash(name) % NFT_CACHE_HSIZE;
- 	list_for_each_entry(obj, &table->obj_cache.ht[hash], cache.hlist) {
- 		if (!strcmp(obj->handle.obj.name, name) &&
-@@ -1058,6 +1063,8 @@ struct flowtable *ft_cache_find(const struct table *table, const char *name)
- 	struct flowtable *ft;
- 	uint32_t hash;
- 
-+	assert(name);
-+
- 	hash = djb_hash(name) % NFT_CACHE_HSIZE;
- 	list_for_each_entry(ft, &table->ft_cache.ht[hash], cache.hlist) {
- 		if (!strcmp(ft->handle.flowtable.name, name))
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index ed6a24a15377..87b34293d22c 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1757,11 +1757,11 @@ reset_cmd		:	COUNTERS	list_cmd_spec_any
+ 			{
+ 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_ELEMENTS, &$2, &@$, $3);
+ 			}
+-			|	SET		set_or_id_spec
++			|	SET		set_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_SET, &$2, &@$, NULL);
+ 			}
+-			|	MAP		set_or_id_spec
++			|	MAP		set_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_RESET, CMD_OBJ_MAP, &$2, &@$, NULL);
+ 			}
+diff --git a/tests/shell/testcases/bogons/nft-f/null_set_name_crash b/tests/shell/testcases/bogons/nft-f/null_set_name_crash
+new file mode 100644
+index 000000000000..e5d85b228a84
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/null_set_name_crash
+@@ -0,0 +1,2 @@
++table y { }
++reset set y handle 6
 -- 
 2.30.2
 
