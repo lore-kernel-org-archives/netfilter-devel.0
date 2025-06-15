@@ -1,30 +1,30 @@
 Received: from mail.redfish-solutions.com (mail.redfish-solutions.com [24.116.100.90])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126D158210
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 17:29:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE99F18A6C4
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 17:38:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=24.116.100.90
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750008595; cv=none; b=dAVkxbFiROQXtP78im58XwXkjheFpRUOuEdgre0OTl5uo8r2y9ei75szZgD0NMGfBsswF9tMH5oo8rfnKMHgp14ATMGEz6vb28BwzL1x6ibTgEtA/XE+HnP6bOof/EYIW46n0qI9x6JFoRzUewV/yIdPImydVVWcPw7XJhuUPjg=
+	t=1750009099; cv=none; b=Rys5hbFWtpAjm0pZlhk9+lXmb+F3qtKwBCEzTXrWZ0QGfJWpuxpq88XZW3v3Oj9zpV6Ecr+Yuy99jIzS4NSSRKyLjylKoUz9hkeodQofxo7F708K7VRY7mfeJlKyTiZfY/+XrMIXKKYD68Kf4E3fK8X9WS/MQ5kDs//pGgftxPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750008595; c=relaxed/simple;
-	bh=XK27KbPAJ5otUQX/xpOPR3afBdxnInQg4u+Qi18hJXg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j7fVnthKD7tImrVHtRJY4kRBiXydsa1+pjlX3LJ1ZewPPYpNPZmS+i0+y/0zIqav5rnEzSaCaiSyIxWotauxinrW/JLFsxJ+fK17l6ZB4B4gIxEetiqh7LlrskiylEO7y5vPdVl3LUZLOn7lK2Gh15c6pVSP8oHjDlltE0c/ghc=
+	s=arc-20240116; t=1750009099; c=relaxed/simple;
+	bh=tWQ2zkTqTGE7dRXa+0BZ1mqc2cO/TNbLnXbaEcO6UZo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=esu4D9NluJ/BiMBY6l9m3zm97pnxIV9RKYUTubOb/S/W92mQ80iHTzrn+NqAmaHzrIVXZ8mt9UYchXMKr7JR001yGE4R59OwS+0w5QpaS5uTmPN1uw0T+MUyAbhtV5wJ3KbRAg1vWbgBq9g/z3lSgenDOZSQ1ZQ60wvPtrNnlcc=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=redfish-solutions.com; spf=pass smtp.mailfrom=redfish-solutions.com; arc=none smtp.client-ip=24.116.100.90
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=redfish-solutions.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redfish-solutions.com
 Received: from ubuntu24.redfish-solutions.com (ubuntu24.redfish-solutions.com [192.168.8.33])
 	(authenticated bits=0)
-	by mail.redfish-solutions.com (8.18.1/8.18.1) with ESMTPSA id 55FHTpYr091498
+	by mail.redfish-solutions.com (8.18.1/8.18.1) with ESMTPSA id 55FHQjbN091489
 	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
-	Sun, 15 Jun 2025 11:29:51 -0600
+	Sun, 15 Jun 2025 11:26:45 -0600
 From: "Philip Prindeville" <philipp@redfish-solutions.com>
 To: netfilter-devel@vger.kernel.org
 Cc: Jan Engelhardt <jengelh@inai.de>,
         Philip Prindeville <philipp@redfish-solutions.com>
-Subject: [PATCH v2 1/1] asn: fix missing quiet checks in xt_asn_build
-Date: Sun, 15 Jun 2025 11:29:50 -0600
-Message-ID: <20250615172950.2576738-1-philipp@redfish-solutions.com>
+Subject: [PATCH 1/1] asn: fix missing quiet checks in xt_asn_build
+Date: Sun, 15 Jun 2025 11:26:45 -0600
+Message-ID: <20250615172645.2576637-1-philipp@redfish-solutions.com>
 X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -39,7 +39,9 @@ From: Philip Prindeville <philipp@redfish-solutions.com>
 
 Conceivably someone might want to run a refresh of the ASN database
 from within a script, particularly an unattended script such as a cron
-job. Do not generate summary output in that case.
+job. Do not generate output in that case.
+
+Also, do not send normal (progress) output to STDERR.
 
 Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
 ---
