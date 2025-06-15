@@ -1,102 +1,72 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mail.redfish-solutions.com (mail.redfish-solutions.com [24.116.100.90])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9EB45C0B
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 10:06:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126D158210
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 17:29:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=24.116.100.90
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749981973; cv=none; b=gBQxUeNTz6XlDPebeACV2Yy5j3lBtKew4G6DD8UwcLFYvSJFrx43sVjCLPV/cmNQJdy7D95mU+toPpMLValFpyL6wBrQ6q4R122gGTgekSNxQwntHKnTj1zRe1IYlZasnYBjVJblsPyWPZKnNVT4hb3FObuPOJRIb2VlmYDikN0=
+	t=1750008595; cv=none; b=dAVkxbFiROQXtP78im58XwXkjheFpRUOuEdgre0OTl5uo8r2y9ei75szZgD0NMGfBsswF9tMH5oo8rfnKMHgp14ATMGEz6vb28BwzL1x6ibTgEtA/XE+HnP6bOof/EYIW46n0qI9x6JFoRzUewV/yIdPImydVVWcPw7XJhuUPjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749981973; c=relaxed/simple;
-	bh=k3jAyjqJD40435H/5ipguD0x9ngftQrQS1xxgVCTfNM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sbUApvER2Z4QVW9WTgA4z1NbRKiJ/D+ll3ghVhUUs1OhpkgzEIcTpDtcbkcZi1p/CnhE1BQi//PEjuOrr6FKSD4b6GjADDxEvhbnlsQ2qt1zcdThft7L5MfROx5mVj6l+xejHl9PLZWX1fpCGLxxOhsWZsEwlUWjxAL/CYm3DzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=g8tT/0fa; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=g8tT/0fa; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="g8tT/0fa";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="g8tT/0fa"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id A792B60254; Sun, 15 Jun 2025 12:06:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749981969;
-	bh=VGcidfyxh0jWh9TqgVuF6CsPw02z9FITw4MGTudEseM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g8tT/0faFqBVOe0j6tyRgfR3DXWj4AuMJ5Kg0ZA2ELOfJ+sqtaG8uuAL9k3Fg4oLO
-	 RXMw0qootLlHSct1bujf+Z8gZNwYZL1p8nJAvYx67priAGmquUXU9qtKIglIYbeUe/
-	 rFCTQ6MZuhW7BPLzKfATsWkvvg2RNiFJR814yIz4hh4PhHHnCNEniDzWbyY+vbv30t
-	 3M0feUV4GZoqdOQ386L2CUE6CQoWMIg3dceRS0rkl7tBYgz1/CrSX0ovwNllISDsuN
-	 HQhYK3Zwy3hguG742ZmHq9Zgw+vOR42luYkEbsS6WdBUcHo1ffOCcWBZSQOczVd79I
-	 c5OUk/YKIW+Gw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0A91160254;
-	Sun, 15 Jun 2025 12:06:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749981969;
-	bh=VGcidfyxh0jWh9TqgVuF6CsPw02z9FITw4MGTudEseM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g8tT/0faFqBVOe0j6tyRgfR3DXWj4AuMJ5Kg0ZA2ELOfJ+sqtaG8uuAL9k3Fg4oLO
-	 RXMw0qootLlHSct1bujf+Z8gZNwYZL1p8nJAvYx67priAGmquUXU9qtKIglIYbeUe/
-	 rFCTQ6MZuhW7BPLzKfATsWkvvg2RNiFJR814yIz4hh4PhHHnCNEniDzWbyY+vbv30t
-	 3M0feUV4GZoqdOQ386L2CUE6CQoWMIg3dceRS0rkl7tBYgz1/CrSX0ovwNllISDsuN
-	 HQhYK3Zwy3hguG742ZmHq9Zgw+vOR42luYkEbsS6WdBUcHo1ffOCcWBZSQOczVd79I
-	 c5OUk/YKIW+Gw==
-Date: Sun, 15 Jun 2025 12:06:06 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] evaluate: fix crash when set name is null
-Message-ID: <aE6bDvhyhpIz3paL@calendula>
-References: <20250606104152.7742-1-fw@strlen.de>
- <aEoRbjDUWw6lRyRy@calendula>
+	s=arc-20240116; t=1750008595; c=relaxed/simple;
+	bh=XK27KbPAJ5otUQX/xpOPR3afBdxnInQg4u+Qi18hJXg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j7fVnthKD7tImrVHtRJY4kRBiXydsa1+pjlX3LJ1ZewPPYpNPZmS+i0+y/0zIqav5rnEzSaCaiSyIxWotauxinrW/JLFsxJ+fK17l6ZB4B4gIxEetiqh7LlrskiylEO7y5vPdVl3LUZLOn7lK2Gh15c6pVSP8oHjDlltE0c/ghc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=redfish-solutions.com; spf=pass smtp.mailfrom=redfish-solutions.com; arc=none smtp.client-ip=24.116.100.90
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=redfish-solutions.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redfish-solutions.com
+Received: from ubuntu24.redfish-solutions.com (ubuntu24.redfish-solutions.com [192.168.8.33])
+	(authenticated bits=0)
+	by mail.redfish-solutions.com (8.18.1/8.18.1) with ESMTPSA id 55FHTpYr091498
+	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=NOT);
+	Sun, 15 Jun 2025 11:29:51 -0600
+From: "Philip Prindeville" <philipp@redfish-solutions.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Jan Engelhardt <jengelh@inai.de>,
+        Philip Prindeville <philipp@redfish-solutions.com>
+Subject: [PATCH v2 1/1] asn: fix missing quiet checks in xt_asn_build
+Date: Sun, 15 Jun 2025 11:29:50 -0600
+Message-ID: <20250615172950.2576738-1-philipp@redfish-solutions.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aEoRbjDUWw6lRyRy@calendula>
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.6 on 192.168.8.3
 
-On Thu, Jun 12, 2025 at 01:29:50AM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Jun 06, 2025 at 12:41:49PM +0200, Florian Westphal wrote:
-> > Bogon provides a handle but not a name.
-> 
-> No handle for delete map command:
-> 
->                         |       SET             set_or_id_spec
->                         {
->                                 $$ = cmd_alloc(CMD_DELETE, CMD_OBJ_SET, &$2, &@$, NULL);
->                         }
->                         |       MAP             set_spec
->                                                 ^^^^^^^^
-> 
-> This is incomplete:
-> 
-> f4a34d25f6d5 ("src: list set handle and delete set via set handle")
-> 
-> but this is also lacking handle support:
-> 
-> 745e51d0b8f0 ("evaluate: remove set from cache on delete set command")
-> 
-> Then, reset command parser looks consistent:
-> 
-> 83e0f4402fb7 ("Implement 'reset {set,map,element}' commands")
-> 
-> but cmd_evaluate_reset() calls cmd_evaluate_list() which cannot deal
-> with the handle.
-> 
-> Looking at delete command for other objects, same issue, eg.
-> chain_del_cache() also does not deal with this handle.
-> 
-> I think the way to go is to add another hashtable to look up for
-> object handles, I can post a patch for this purpose.
+From: Philip Prindeville <philipp@redfish-solutions.com>
 
-I started extending userspace to improve support for handles but it
-turns out that kernel is missing a few bits for lookup by handle in
-get/reset commands.
+Conceivably someone might want to run a refresh of the ASN database
+from within a script, particularly an unattended script such as a cron
+job. Do not generate summary output in that case.
 
-So I am only fixing this in a series by now.
+Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
+---
+ asn/xt_asn_build | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/asn/xt_asn_build b/asn/xt_asn_build
+index 63019ca689c56d5c9c686838fc4cc758047887e5..81c4965e572bbc7857a4832e0b80669104fe209f 100755
+--- a/asn/xt_asn_build
++++ b/asn/xt_asn_build
+@@ -12,6 +12,7 @@ use Socket qw(AF_INET AF_INET6 inet_pton);
+ use warnings;
+ use Text::CSV_XS; # or trade for Text::CSV
+ use strict;
++$| = 1;
+ 
+ my $csv = Text::CSV_XS->new({
+ 	allow_whitespace => 1,
+@@ -189,7 +190,7 @@ sub writeASN
+ 	printf "%5u IPv%s ranges for %s\n",
+ 		scalar(@ranges),
+ 		($family == AF_INET ? '4' : '6'),
+-		$asn_number;
++		$asn_number unless ($quiet);
+ 
+ 	my $file = "$target_dir/".$asn_number.".iv".($family == AF_INET ? '4' : '6');
+ 	if (!open($fh, '>', $file)) {
+-- 
+2.43.0
+
