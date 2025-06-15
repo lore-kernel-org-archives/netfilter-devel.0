@@ -1,113 +1,91 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1D01CD15
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 09:47:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07E71B043F
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 10:00:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1749980851; cv=none; b=Id7uHmMN7MWR0Cw+zjq3QxyrskRDAgDL13aji46zU2tdll+fDrTO+0vfQciT+6st/3MboEuREAcnJm5dKfX4gCVZ7VaIw1twVS8m06ISHjyKW9cQoXuvrejVIZHZr3x7JnY2lweB7rM5pznS5FD/f9mti2+GYojDMejeR0mQo5E=
+	t=1749981628; cv=none; b=X57jX3CKnwggRAx1LT186mGQtO+0FNWNBAQADAcPTbXoqNb1uhhWPKD4u6xeo490Eke1ucLdA1PB0DIHGWi8KOsq3gxXkS95Yp0hEz1oIeJy3QDO0NY4oVomrecxG+ShX8DZSBgJAdMIqZY+zuttpenEZwonkIRU9qSzPgh3JV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1749980851; c=relaxed/simple;
-	bh=VmnkZQI0rGFrceSgoh6gjYTFwwj2qYJTXGSTmjnu/T4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sttr3cEhe0Q+CIOl6TQpXUQmYuwvTNd+zP1ArOQzrninMai1zMKLS/Vcx+L3+6WIcCUg2TPh5EM4cCBw4WMr7E9sZ9iiVLGbbdnn9owL1r7ymq5MMWuZESw7GThi21noT2lY0sfY6YpII2Qgh0uHVJDWHAB/jgibFGDcg1ko5c8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rOImxKsI; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rOImxKsI; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1749981628; c=relaxed/simple;
+	bh=/tItMw0W0WbrUUhiD4aoC5641/sQuxbe1x5EvkJlYRM=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=JWT2iqq/QfxXIzQFrhGyRJg6OA8QRG3ouAztOqelAojYntJVBkYeL7JhIDa22sq5K/v3VXdOkNjNt5owEPiDseJsdaZNV5sLrlte45NrRlhYq3xNFSBac/LvgIr6hgyysvNQSV7LjW41selNSkQaCSDXjEHLxgPMt2JmXVezrzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QAGPJocG; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QAGPJocG; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rOImxKsI";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rOImxKsI"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QAGPJocG";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QAGPJocG"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D1FAB602B4; Sun, 15 Jun 2025 11:47:23 +0200 (CEST)
+	id 82F47602BE; Sun, 15 Jun 2025 12:00:23 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749980843;
-	bh=LQ94VPLi1XBsUpb6kLee3DFfpNB7VUGyzN4nkb2X80c=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rOImxKsIm03vVVlNTxk5DZ/yd+9slYm62+jg2zIMBSBcDqZ5g7rkCvnQ4wJrlSShB
-	 6ZpgCN2sO0FYfoadow/uykNV1ikNjo6wGpNfV8P6vdTP76J0TnyIDUAWXN5yaKDq2T
-	 JoXblJdtdf23B4R3I25bCTBcUW52sW0FuUKz9kMEUuAx0wamRVN3oDq4JUrAy26Ok9
-	 wBNdIgv+TeBxC3glrTmsS1mlxGim8jO9lwwWcQBVNphoSklXrClsZYQh6Vmny8nV0H
-	 q2MnzMjUQ6+9SuUidWWSdreW1CZ0hzHmk/1xnEefRnkYJAQgiXDIuSAu1wdK0h6/Qw
-	 5ot/vjlaSd3Xg==
+	s=2025; t=1749981623;
+	bh=MqzQYt0z2KD6Y/MmJ8fknEJnrMBmhvf2Qx6o743SvVQ=;
+	h=From:To:Subject:Date:From;
+	b=QAGPJocGAW9/C/GMRGQSyLMTxuZdwUgV+sTN3QgTyS4mrDbYZ/2PI+LLnXPDLSIcY
+	 YgtIMGxoxkkYL8sM9FNA9/dWu+BE3BSlkpX2X7aW2BMg3XHBUUw70xKprobHK2myzG
+	 UWeBRjOwk+g2vUe6f3wUXEXqHNNK3+Cno3dDh1PCRYxNhFHDfJ0pgZ4bBHlYredN92
+	 cGD22gK0+fOh7gbqxV4Pig1IL44+8DqFOpoiDSH9xxGpnmngKaqBdDEwNW2s9MMWcc
+	 fPJkA7a+iflmVhkLDyqqQ+21psHEnxnW5VUDLVYjoxDgYu3NCTrP85OIcGFtXNbanL
+	 B1VRfMCIgK0rw==
 X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 20FEB602B4;
-	Sun, 15 Jun 2025 11:47:23 +0200 (CEST)
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1C925602BC
+	for <netfilter-devel@vger.kernel.org>; Sun, 15 Jun 2025 12:00:23 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1749980843;
-	bh=LQ94VPLi1XBsUpb6kLee3DFfpNB7VUGyzN4nkb2X80c=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rOImxKsIm03vVVlNTxk5DZ/yd+9slYm62+jg2zIMBSBcDqZ5g7rkCvnQ4wJrlSShB
-	 6ZpgCN2sO0FYfoadow/uykNV1ikNjo6wGpNfV8P6vdTP76J0TnyIDUAWXN5yaKDq2T
-	 JoXblJdtdf23B4R3I25bCTBcUW52sW0FuUKz9kMEUuAx0wamRVN3oDq4JUrAy26Ok9
-	 wBNdIgv+TeBxC3glrTmsS1mlxGim8jO9lwwWcQBVNphoSklXrClsZYQh6Vmny8nV0H
-	 q2MnzMjUQ6+9SuUidWWSdreW1CZ0hzHmk/1xnEefRnkYJAQgiXDIuSAu1wdK0h6/Qw
-	 5ot/vjlaSd3Xg==
-Date: Sun, 15 Jun 2025 11:47:20 +0200
+	s=2025; t=1749981623;
+	bh=MqzQYt0z2KD6Y/MmJ8fknEJnrMBmhvf2Qx6o743SvVQ=;
+	h=From:To:Subject:Date:From;
+	b=QAGPJocGAW9/C/GMRGQSyLMTxuZdwUgV+sTN3QgTyS4mrDbYZ/2PI+LLnXPDLSIcY
+	 YgtIMGxoxkkYL8sM9FNA9/dWu+BE3BSlkpX2X7aW2BMg3XHBUUw70xKprobHK2myzG
+	 UWeBRjOwk+g2vUe6f3wUXEXqHNNK3+Cno3dDh1PCRYxNhFHDfJ0pgZ4bBHlYredN92
+	 cGD22gK0+fOh7gbqxV4Pig1IL44+8DqFOpoiDSH9xxGpnmngKaqBdDEwNW2s9MMWcc
+	 fPJkA7a+iflmVhkLDyqqQ+21psHEnxnW5VUDLVYjoxDgYu3NCTrP85OIcGFtXNbanL
+	 B1VRfMCIgK0rw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 3/7] monitor: Correctly print flowtable updates
-Message-ID: <aE6Wf82Lf09Qo2WK@calendula>
-References: <20250612115218.4066-1-phil@nwl.cc>
- <20250612115218.4066-4-phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 0/5] assorted updates and fixes
+Date: Sun, 15 Jun 2025 12:00:14 +0200
+Message-Id: <20250615100019.2988872-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250612115218.4066-4-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jun 12, 2025 at 01:52:14PM +0200, Phil Sutter wrote:
-> An update deleting a hook from a flowtable was indistinguishable from a
-> flowtable deletion.
+Hi,
 
-tests/monitor fails:
+This batch contains several assorted updates and fixes:
 
---- /tmp/tmp.CxT9laP7kj/tmp.qTOOOcfTUY  2025-06-15 11:44:55.690784518 +0200
-+++ /tmp/tmp.CxT9laP7kj/tmp.JdiYcpuAKK  2025-06-15 11:44:56.337658195 +0200
-@@ -1 +1,2 @@
--delete flowtable ip t ft
-+delete flowtable ip t ft { hook ingress priority 0; devices = { lo }; }
-+# new generation 3 by process 2954068 (nft)
+1) Skip lookup for mistyped names if handle is used.
+2) Assert of non-nul name when {table,chain,obj,flowtable}_cache_find()
+   is used to catch for bugs when handle is used.
+3) Consolidate repetitive cache name hash.
+4) Restrict reset command to use name only because NFT_MSG_GETSET and
+   NFT_MSG_GETSETELEM is missing lookup by handle in the kernel.
+5) Allow to delete a map with handle, for consistency with the existing
+   command to delete a set.
 
-> Fixes: 73a8adfc2432e ("monitor: Recognize flowtable add/del events")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  src/monitor.c | 14 +++++++++-----
->  1 file changed, 9 insertions(+), 5 deletions(-)
-> 
-> diff --git a/src/monitor.c b/src/monitor.c
-> index 4ceff94824432..e3e38c2a12b78 100644
-> --- a/src/monitor.c
-> +++ b/src/monitor.c
-> @@ -577,14 +577,18 @@ static int netlink_events_flowtable_cb(const struct nlmsghdr *nlh, int type,
->  		nft_mon_print(monh, "%s ", cmd);
->  
->  		switch (type) {
-> +		case NFT_MSG_DELFLOWTABLE:
-> +			if (!ft->dev_array_len) {
-> +				nft_mon_print(monh, "flowtable %s %s %s",
-> +					      family,
-> +					      ft->handle.table.name,
-> +					      ft->handle.flowtable.name);
-> +				break;
-> +			}
-> +			/* fall through */
->  		case NFT_MSG_NEWFLOWTABLE:
->  			flowtable_print_plain(ft, &monh->ctx->nft->output);
->  			break;
-> -		case NFT_MSG_DELFLOWTABLE:
-> -			nft_mon_print(monh, "flowtable %s %s %s", family,
-> -				      ft->handle.table.name,
-> -				      ft->handle.flowtable.name);
-> -			break;
->  		}
->  		nft_mon_print(monh, "\n");
->  		break;
-> -- 
-> 2.49.0
-> 
+Pablo Neira Ayuso (5):
+  rule: skip fuzzy lookup if object name is not available
+  cache: assert name is non-nul when looking up
+  cache: pass name to cache_add()
+  parser_bison: only reset by name is supported by now
+  parser_bison: allow delete command with map via handle
+
+ include/cache.h                               |  2 +-
+ src/cache.c                                   | 60 ++++++++-----------
+ src/parser_bison.y                            |  6 +-
+ src/rule.c                                    | 12 ++++
+ .../bogons/nft-f/null_set_name_crash          |  2 +
+ .../testcases/cache/0008_delete_by_handle_0   |  4 ++
+ .../cache/0009_delete_by_handle_incorrect_0   |  1 +
+ 7 files changed, 47 insertions(+), 40 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/null_set_name_crash
+
+-- 
+2.30.2
+
