@@ -1,56 +1,53 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C20261E231E
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2025 21:57:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048D22222AC
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2025 21:57:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750111058; cv=none; b=Obbysg9VSGhsNL5yqNtJeGhRe8Cn1CPcJvuCBeRgIyLn2goIDNqLv1mOrX3xk9DHB+Ufk+uaI5zSLRYq1kXET5JbHYdRnRK4Cpsxi56FmAuCTAJ5zDptcAlPJjaMAg0HFXng9ftZnq0v3cDCip4z7TM1v/+CDnHfNeF2O1R5mgQ=
+	t=1750111058; cv=none; b=UeHcrov0FyUS06BREtdMyioeeHN018J7NuSchAvjcKbPIJdFWPQTiCr6eK9YhOFV7JWhTQARQq9/hCT6ZJ9gSfr58whI5IbYrLDdD9xUO3U1SkSffjDfPyFtPs247F1RUpyRucaeEdlID0BFYNFhHvtLh3/bhNN0C5p/t64yq60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1750111058; c=relaxed/simple;
-	bh=GLeOwD1Qu9cE1RCHe36WrqUhXpSFHHWGnYDg029Nmfk=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=q3qia4bDV1ZmWKHJvI1ack0jPioI5qmlAx7dfHE6ez12hnMc4ynJKZ1anHjWnvKNrIP7fq1q7uNHtg4Fur1Ir5nLrtsYZRnqP6f+DY4f1fNOtNFTVvsKmPsAABGVC9IxdD27Ug2cVtouqElUK3wFZ2mIKm3AwqNSPa7OQ+YejmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RyR+40Pf; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b1BCFUZA; arc=none smtp.client-ip=217.70.190.124
+	bh=mJILJejdca3npoUYA78IMA+qYPa+7fro4DJiOiahH7c=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=otFMw0f3OSFKr2Vm0BJje14sIK+3FLtp7cONPTlbLxGPKUhHqyf0TIsQzvOAJVZCGb2w4cVfb7WnLzp5hZdnnJ1ABry7vv3VK1ZpmyPoXkpGWlyWDCPMLgUo067InrzVhHsPwvWZUu3ubJ3dTWDzIOVQFlzejUJ3O4/LinJqqRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SaBq6McJ; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e6y3NsKO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RyR+40Pf";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b1BCFUZA"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SaBq6McJ";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e6y3NsKO"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 13204603B9; Mon, 16 Jun 2025 23:57:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750111048;
-	bh=yQK1t3cboLBm4F7gN/SOjK0eKuAbsXTwkppW0YXceC4=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=RyR+40Pf7E+hZGIelUlBkiOxTOR/YrSemkSe/PWc8/fZMIEh7PO1QXTKoi/Fevm1E
-	 V0dGtGOTBOqC+EaSlrV0SYb9x7KKodKkWI3ZWv8KtOwTaslcahKsM8iX36ssBMYAcO
-	 pNDqxuVAU2FcwaZRYH37Wl/fbG85WtWt2lHOZRkrUGbsf1Eex4oDKHQ15IjLRyDlkI
-	 2S21P8IZQ7eIzVdJ2m5nQsigu9kT8oEgqirXH6K0Sep3nxEEKLX+XTfda4tbFR3DSK
-	 PP3V4tAdkfMotRImIqaoc79/KteHNTPOUojTTk7DJ+1FZkwOM6W/R0sDEZEg9B7ktd
-	 PNOjITTjA62hw==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A4C2F603B6
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2025 23:57:27 +0200 (CEST)
+	id 0932F603B8; Mon, 16 Jun 2025 23:57:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
 	s=2025; t=1750111047;
-	bh=yQK1t3cboLBm4F7gN/SOjK0eKuAbsXTwkppW0YXceC4=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=b1BCFUZA+yhzo3+N8oExuaCjI5lv6b0E0gT/xzNcvQl4DcATXns4og0wqbuiwYGbE
-	 9artzvctrkyjY9FSD1uxqzAvr9zDGGlDyzZpLM2mkh21TBn4OWd+gTYhMneoqMKdny
-	 SzsWgyYeURTZ5IlQVeUDBOdD9vtOHNm+2Jq8WL23zWYBX1Gismn1lxkJDq6QjMEhUS
-	 NjbjaAokp21c/PQA3NNm0QJ+8UpndynNRvlpigO7wPcLKvJf1x8fOmKMEm7BTxlKiM
-	 /nTmadCEwTMZDoTSg0Cwe866m41f6Ca+NVviwmuMOmLt6/fFE8Y3bISaUWHcMrzuFv
-	 Uh3oAo+ZxLNug==
+	bh=xADV3pSc8+jqGKJnySZn6VuVz7YJ2DAH9A29w7UocSQ=;
+	h=From:To:Subject:Date:From;
+	b=SaBq6McJGBgWjOp2XnZmxjdjszHHFpP4CcYk0DvBDHquPY6u05oW3ZUgnXtpOqPKD
+	 tykTlaNOZzhzLqedW63goQpipZCs8qXKgED/xsGWXhUK/KU0F+3vYixAzyBAc9adDX
+	 8DL63OAyW+e5uRaXL+M9ch8uz1RmHdcL8domb+XQ/s7K5R6WApOw74cxENUH5hFzz7
+	 Dh9xtUHX5Af5Ac7X+pQARqTxsA/Jb8AtK/x5ZqVtzUhFP3DKFLjKukG5mCYEij68cB
+	 LJZ7CmdJYc6meQYe/+ZTl55CxPRuacL84fSD46sPV1YRkzxrdTuKHDd2apS3Pdw+JS
+	 ltkVuE9s/9ohg==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 67800603B6
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2025 23:57:26 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1750111046;
+	bh=xADV3pSc8+jqGKJnySZn6VuVz7YJ2DAH9A29w7UocSQ=;
+	h=From:To:Subject:Date:From;
+	b=e6y3NsKOtx2cCkS6pJUUVEfYwdCLN0cDsE1bIcySVdNjK7TMkXaAmDfAGeU+ov3l4
+	 o4gqiILMKDVpa+k7cBh198rKaze/4Sjov15RavKUDhk+aqFHaU1f9HewZUsPdkdEx8
+	 bau9HZOFMn0kb6tsxG6/GzoCwfSemb6GwzTbMxf65Xyl6hWXnVbqf0T3GNyhVYfGws
+	 KoLg6J/KlUq52ZUbksOZgxxfdgC5+sHu13mvZJARswv7V4fGFjTsSKg1j09ghnL8G+
+	 KLBa32TiDn6A+yo3FPwhVcaigBsrkuQA75725MaLBdTbsG9S300aYaoJuOjhObq0CY
+	 kQOdLvDxVRhhw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 1/3,v2] src: use constant range expression for interval+concatenation sets
-Date: Mon, 16 Jun 2025 23:57:21 +0200
-Message-Id: <20250616215723.608990-2-pablo@netfilter.org>
+Subject: [PATCH nft 0/3] memory reduction in concatenation and maps
+Date: Mon, 16 Jun 2025 23:57:20 +0200
+Message-Id: <20250616215723.608990-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250616215723.608990-1-pablo@netfilter.org>
-References: <20250616215723.608990-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,92 +56,75 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Expand 347039f64509 ("src: add symbol range expression to further
-compact intervals") to use constant range expression for elements with
-concatenation of intervals.
+Hi,
 
-Ruleset with 100k elements of this type:
+This series uses EXPR_RANGE_VALUE in maps to reduce memory usage:
+
+Patch #1 reduces memory footprint in concatenation of intervals,
+with the following 100k example set:
 
  table inet x {
         set y {
                 typeof ip saddr . tcp dport
                 flags interval
                 elements = {
-			0.1.2.0-0.1.2.240 . 0-1,
-			...
-		}
-	}
+                        0.1.2.0-0.1.2.240 . 0-1,
+                        ...				# 100k-1 entries more
+                }
+        }
  }
-
-Memory consumption for this set:
 
 Before: 123.80 Mbytes
 After:   80.19 Mbytes (-35.23%)
 
-This patch keeps the workaround 2fbade3cd990 ("netlink: bogus
-concatenated set ranges with netlink message overrun") in place.
+Patch #2 remove EXPR_F_SINGLETON in EXPR_RANGE_VALUE that is required
+by next patch.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: fix error hint when flags interval is missing in set declaration
+Patch #3 reduces memory footprint in maps.
 
- src/evaluate.c |  5 +++--
- src/netlink.c  | 11 +++++++++++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+With 100k map with concatenations:
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 9c7f23cb080e..b157a9c9d935 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1879,6 +1879,7 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- 		switch (elem->key->etype) {
- 		case EXPR_PREFIX:
- 		case EXPR_RANGE:
-+		case EXPR_RANGE_VALUE:
- 			key = elem->key;
- 			goto err_missing_flag;
- 		case EXPR_CONCAT:
-@@ -1886,6 +1887,7 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- 				switch (key->etype) {
- 				case EXPR_PREFIX:
- 				case EXPR_RANGE:
-+				case EXPR_RANGE_VALUE:
- 					goto err_missing_flag;
- 				default:
- 					break;
-@@ -2366,9 +2368,8 @@ static int expr_evaluate_symbol_range(struct eval_ctx *ctx, struct expr **exprp)
- 	left = range->left;
- 	right = range->right;
- 
--	/* concatenation and maps need more work to use constant_range_expr. */
-+	/* maps need more work to use constant_range_expr. */
- 	if (ctx->set && !set_is_map(ctx->set->flags) &&
--	    set_is_non_concat_range(ctx->set) &&
- 	    left->etype == EXPR_VALUE &&
- 	    right->etype == EXPR_VALUE) {
- 		constant_range = constant_range_expr_alloc(&expr->location,
-diff --git a/src/netlink.c b/src/netlink.c
-index 73fe579a477c..94cf177213fd 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -285,6 +285,17 @@ static int __netlink_gen_concat_key(uint32_t flags, const struct expr *i,
- 			byteorder_switch_expr_value(value, expr);
- 
- 		i = expr;
-+		break;
-+	case EXPR_RANGE_VALUE:
-+		if (flags & EXPR_F_INTERVAL_END)
-+			mpz_init_set(value, i->range.high);
-+		else
-+			mpz_init_set(value, i->range.low);
-+
-+		if (expr_basetype(i)->type == TYPE_INTEGER &&
-+		    i->byteorder == BYTEORDER_HOST_ENDIAN)
-+			byteorder_switch_expr_value(value, i);
-+
- 		break;
- 	case EXPR_PREFIX:
- 		if (flags & EXPR_F_INTERVAL_END) {
+  table inet x {
+         map y {
+                    typeof ip saddr . tcp dport :  ip saddr
+                    flags interval
+                    elements = {
+                        1.0.2.0-1.0.2.240 . 0-2 : 1.0.2.10,
+                        ...
+         }
+  }
+
+Before: 153.6 Mbytes
+After: 108.9 Mbytes (-29.11%)
+
+With 100k map without concatenations:
+
+  table inet x {
+         map y {
+                    typeof ip saddr :  ip saddr
+                    flags interval
+                    elements = {
+                        1.0.2.0-1.0.2.240 : 1.0.2.10,
+                        ...
+         }
+  }
+
+Before: 74.36 Mbytes
+After: 62.39 Mbytes (-16.10%)
+
+This is passing tests/shell.
+
+Pablo Neira Ayuso (3):
+  src: use constant range expression for interval+concatenation sets
+  expression: constant range is not a singleton
+  src: use EXPR_RANGE_VALUE in interval maps
+
+ src/evaluate.c   |  8 ++++---
+ src/expression.c |  2 +-
+ src/netlink.c    | 61 ++++++++++++++++++++++++++++++++++++++++++------
+ src/optimize.c   |  3 +++
+ 4 files changed, 63 insertions(+), 11 deletions(-)
+
 -- 
 2.30.2
 
