@@ -1,125 +1,85 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3288C28C5A9;
-	Tue, 17 Jun 2025 07:00:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B28B42980AF
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Jun 2025 10:21:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750143626; cv=none; b=s+hK5t0Vn9xkJ5Lw8vwQe9vUdtIuNNDpy9sEw50GHKHecRi2KpaMyLRi6iqSlRnZoXJp6K9fJYgw4b+JiH5eBMYE6XDNZjbuEyys0UXjbsZh+CHCBMqlcplhvpZEjdBREk9s6o5NREcTrwxUTABBoM3cCI+RP3HR2GTgLzbZMgQ=
+	t=1750155722; cv=none; b=npEpoTfJJvIxc7LBwsHyWoQeemsJhHUm53ZSQPZHdlPIN0H5OiqO7BRsS6n4BP8C19YaU0efoPq3oorDX6vnZo8z2RJYHX7VqCM/PUS0Pi1pLiQIYtDGMdlZei5JBxxZ71YyKWhaInC91zQP7OfYpDkX+2gpmBS01ELfyivti4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750143626; c=relaxed/simple;
-	bh=EZJG11e4pWpqrTF5AUNg7CFYWOk3WqLPNIo7rSIH9ys=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ja3KrKfH52MNQsUjrWO0p2Nw1GxRC45SvghzYa1lJCrYOS8QrAQEv8wwqyOIrheogfzWfscaDqFiuPe/8V6b1Zod8PT5KA0CHYw0a5lCnUpeHRfX8IK80w8Ht7M00gjEXhDsmNTN8DJeqeNTubS9V9qfMioMlfDTF6BViNxcPSQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TDprnsY6; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1750155722; c=relaxed/simple;
+	bh=LCk6RggxSxDQHs0pcB2ZlnbfTnSqjCvhogxRsW1QA1E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WBLJLp4+ZaeQ+4CvgUR3mD2vYaLfnZeCm4UUBE7W7smEvgVFaJizJV39/ppbJ+PsU1yQ8KF0Navm2A7iGWG/18x8765YHob/UvHoUxyx92FXot8ujYoKtuWsqHeVKKoeh5g/3YNF4iDK7XG2zJEWaVs4g0wlhWesnH82rWfk188=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=RPcXlhqU; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TDprnsY6"
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-acae7e7587dso811931366b.2;
-        Tue, 17 Jun 2025 00:00:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1750143623; x=1750748423; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=SMox0MpwPKygAR/vnpy2GVz1YAIGJ060oJ50J1k9QBo=;
-        b=TDprnsY6W7GflWn0XE6L7pK4wMnG6EfvSvb9cG17EozA36u7COdt2YYzQHTodT1Lr+
-         gnltsEzOHr0eDYuUISJ2H95DyAwDWA4Xpyil+9aNNyGDUWM76Vyvpgquj7cZ2avbpTi6
-         oxUeoeA17hPfV1nnOmJ7HTgX1aaaRKKksKpCQ7Kd2DWfLG52brng+ovwZ4JFdjIV1beH
-         AyDVYO2NBkof1hF1lKkG5uIj1uUrnZMHS37DLrt6jyoJEvm1Lm2jGKrrRhiStmLwiI2s
-         3ZeV5DCc3yWO1oR1/8FJhs3kv9WcB4bneClvvlepUkDeTGLZn+V69yXZi7JoQzj4IixM
-         cbxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750143623; x=1750748423;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=SMox0MpwPKygAR/vnpy2GVz1YAIGJ060oJ50J1k9QBo=;
-        b=DVzDfLNF50oQiw15FKRT9QQEf6o8UMGZAWEOaaTu07b0qnqRDhULvC+7K4OwQpMAzD
-         uSWEB8bC8YwnY0fSjnLOfR8kS/a/HJrKhorSsXTBAK3EQdQoqreikQK8tE+fUVx8yXyX
-         AgeAkvy6c1m9Z2W0+28Y/9uPxe5N6QZiJwFi25XsXgNy+OteJPv52PVs+0vhw3NVwioZ
-         l+o5Uun5I3o6hP4zMA8l4xdc0hQMxHlPxvxSsJr0tQU/9KkAe32z2V2V80RfgrLvXtFm
-         V+bFRCMUeJXxB/Pmz9e6EeHkX18GAlhiF1Z9NfotaCh9KayMQx9CqyPBb0F8mAAJUcUo
-         /6dw==
-X-Forwarded-Encrypted: i=1; AJvYcCVHMFs/xoy6y0Zvf7+ypKJVvjloHk01IWChFDmD5dY5vMbzC3pN64F0h9OT40douU1RUNPpKig=@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywykcqenkh0mVjvE6oaTV/HuNwET0Bxj33BycJ7wT/HrlPyOaAf
-	Bkuq6Ibn2B3MGHIY8ABw05WYYQhPL/bpxgO62UoHRcQmn9ZgkVd5o0de
-X-Gm-Gg: ASbGncsI8sWm5+JRFd8SheP9qKAUFy9+x/V9fE6dqoQZq2zgnaNZD+Sb8TXBhuIBCtv
-	y8pLlrnGp0iq2uNqxIT0hbAFEO8TqPgHwCmPgPH7HS9fjFGC9prybPLEKLA5yrPOYyS5bI4vO7l
-	uSqtCctl+QiQMPOGLBxCGcSpIYjAAoXl+ZkJF8Xljz1HL9YXMLmWM/BibGI3cOTT6mSG1i9K38t
-	eq3rmDRdJ5eMOUYzrogXS8Fp1QCWxnDPvt14JT+TWrstaODh+2RqfzI2KBOF+WSVosuP38qKr7u
-	qNf9tT9cbCGiqB+5Jp/gV0ojD/eW5L+x/Wwrk2s205oVkm5uOl53Y/9aRVJB6BPC575a+Y4CK7t
-	nPB72F8LQx4BCu9I/LNbTmerZKHMf7PzPUVrhrTizIjUnAv+q5FcjWxjK7ZJUTHGrLOikyoe3GF
-	8222PD
-X-Google-Smtp-Source: AGHT+IG/cgpbEdoHbmAHFosZet4Q31av0Fyi15tiHrgYeewEF3HhOE3WMKRoWF0jKeLc8Rstwt9KjA==
-X-Received: by 2002:a17:906:c105:b0:ad9:85d3:e141 with SMTP id a640c23a62f3a-adfad52b9e4mr1177113166b.53.1750143623241;
-        Tue, 17 Jun 2025 00:00:23 -0700 (PDT)
-Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-adec8158d4dsm800843066b.28.2025.06.17.00.00.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Jun 2025 00:00:22 -0700 (PDT)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>
-Cc: netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v3 nf-next 3/3] netfilter: nf_flow_table_ip: don't follow fastpath when marked teardown
-Date: Tue, 17 Jun 2025 09:00:07 +0200
-Message-ID: <20250617070007.23812-4-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.47.1
-In-Reply-To: <20250617070007.23812-1-ericwouds@gmail.com>
-References: <20250617070007.23812-1-ericwouds@gmail.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="RPcXlhqU"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=OYMO/eh3sFOp6sCe7zReViPSxYmMvhzpUMtXH/ZqZPs=; b=RPcXlhqUgDVaE9B0luNlJNZkYr
+	P8quYqZ70Kxhxl6HpwqkG3L8Y+XhorWKrVRt00BXl8N54JnPexiJ7QrUF2ZkogATcFXue+YCQt/jA
+	bEAOgI6QULjrAxv3lPpDHOca+/N1zzlyu012Rt6QaPh2QZ0nE435IM47wgtE/tL9joEevh9g9alRG
+	QM+DtRN/LL4YhbYtvxxJS5LmtKPMa6Kox3HT9Wyl6VT8rRA1ricwuFYd4su/kWVd35F9oKL3qacXo
+	QPY9U3IDiUNO2K2gjRUPe1l+YaRSfixrLDpolEMAdEES9ev4WCFazab4CuS0r/1Goky4KLq6Ie+cT
+	+4jJIuzg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uRTRv-000000002lj-3bbI;
+	Tue, 17 Jun 2025 12:21:52 +0200
+Date: Tue, 17 Jun 2025 12:21:51 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 3/7] monitor: Correctly print flowtable updates
+Message-ID: <aFFBv0XBCWL4dfd_@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20250612115218.4066-1-phil@nwl.cc>
+ <20250612115218.4066-4-phil@nwl.cc>
+ <aE6Wf82Lf09Qo2WK@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aE6Wf82Lf09Qo2WK@calendula>
 
-When a flow is marked for teardown, because the destination is not valid
-any more, the software fastpath may still be in effect and traffic is
-still send to the wrong destination. Change the ip/ipv6 hooks to not use
-the software fastpath for a flow that is marked to be teared down and let
-the packet continue along the normal path.
+Hi Pablo,
 
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
----
- net/netfilter/nf_flow_table_ip.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Sun, Jun 15, 2025 at 11:47:20AM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Jun 12, 2025 at 01:52:14PM +0200, Phil Sutter wrote:
+> > An update deleting a hook from a flowtable was indistinguishable from a
+> > flowtable deletion.
+> 
+> tests/monitor fails:
+> 
+> --- /tmp/tmp.CxT9laP7kj/tmp.qTOOOcfTUY  2025-06-15 11:44:55.690784518 +0200
+> +++ /tmp/tmp.CxT9laP7kj/tmp.JdiYcpuAKK  2025-06-15 11:44:56.337658195 +0200
+> @@ -1 +1,2 @@
+> -delete flowtable ip t ft
+> +delete flowtable ip t ft { hook ingress priority 0; devices = { lo }; }
+> +# new generation 3 by process 2954068 (nft)
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 64a12b9668e7..f9bf2b466ca8 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -542,6 +542,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+		return NF_ACCEPT;
-+
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rtable(tuplehash->tuple.dst_cache);
-@@ -838,6 +841,9 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
- 
-+	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-+		return NF_ACCEPT;
-+
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
--- 
-2.47.1
+Ah crap, this requires the kernel patch 'netfilter: nf_tables:
+Reintroduce shortened deletion notifications'.
 
+I don't see how user space could work around the old kernel behaviour,
+so monitor testsuite will fail for old kernels with either this patch
+applied or as soon as we add a test for a flowtable update removing a
+hook spec.
+
+The only way out I see is to accept the extra data unchecked in monitor
+testsuite, i.e. practically disabling the tests for flowtable deletion
+or updates, which obviously sucks. No idea how to move forward now.
+
+Sorry, Phil
