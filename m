@@ -1,56 +1,80 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B151F2222B6
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2025 21:57:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1420028BAAD;
+	Tue, 17 Jun 2025 06:58:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750111059; cv=none; b=quaGNnHNltpy5cKiDdnYbE9m5H3PXRfiyU0gk8GxJ5l9/fyEsNMybj7IjmYb2tSSPSkfhBfGwAX3IvCOBgC0bknE0LAf+14s1PosOU+Jo97HsmeMX0rdB8EvxbklRtPzkgPxaRk81V4BtLqKAFyMglXX6zG/XMq7h1N1pJowDq0=
+	t=1750143535; cv=none; b=ADnij38RBM/XnEg7voKwLjiYFIeYwbial7zk9q9aq5j0UBr8hhhnsdy+Bs3iWvx80F0FpoSUwdKWi8ICaaVlNkg4mmwnoaUA1wQ/NM6RZw1pJ7yQ8ehEOgNXS2EHhNhctii0nbI87DJfm10ryfljyI+rChhkCg2f61ShEds2i30=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750111059; c=relaxed/simple;
-	bh=we8UGiRT9XfMyfKaBO2YRQ+XXGbp5r7pYOF/IvEaSDs=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=RdTs2SORDA+1QCaJTLu0PvUrgZrLaxLpamPZXTEXRyOR95XdixyXqqY+yWuH/3UtILdZvtG57TUGLH3UoKca9h5nCHfAMYH2gQRTr2xiXS3Ft6B1YR7pbLva4MJF77hrjAM24P7zyTgMqMRJPm8Z2/JArDopDPT1tAMGLAZHPos=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ooRiHvsl; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ooRiHvsl; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1750143535; c=relaxed/simple;
+	bh=NyldArvQ1w/4Y84MUaUrw2GtMMsFi72AmBHahegFWGs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QSR7H3CM52DohLw0WXt1fdc5LRgvGole+Q8nL1R1+1mDUjyLljL3eauLBtIwqpGk6ImXBj11njlEoGZu+2M0Lpehwfr3bSs8dUrhBzALrt5u43+fgvXNhxoR68TIwZvzmP1kMorp1sYLlnKS+FKVR6WrdgjUDaXiJFtf50tLY+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aKQSJBsp; arc=none smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ooRiHvsl";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ooRiHvsl"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id A6D17603BB; Mon, 16 Jun 2025 23:57:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750111049;
-	bh=aGi8by4TFm9Rcp1MdUGiJSvBBDXuBlogC2K+qgtM3TI=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=ooRiHvslIrT2pq/Oqf0MfaWvSIZQu8nfNX3baWttEwbu+7ZU2QBwnQuXHiVD/5BQ9
-	 2zvOxJVy0Ii9WuqeNi+HWIMeUVgziZ2CB2AQClFj0hZFE6cv2UIJvY0vQ8XY8KFjqP
-	 bAazd7+3yTvQc6K3PBnQY0GJAxvFDOFlO4iQQjdu44IwslKqC1n+WOVMjRr/1dUyXw
-	 wk1x5IjdBWMeMe7+bH57m2KuFeQEXan0ztliT54MUC0LKPNSrie0LOWqfILep6ebYy
-	 9476tMcDLXmJRVFn+2gNjUIuy7ba94ylJ+N6vP5H0NOIFLDMFv/tpwsDO/eicVGVGo
-	 YR0Ro/wl3xbDg==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1E129603B7
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2025 23:57:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750111049;
-	bh=aGi8by4TFm9Rcp1MdUGiJSvBBDXuBlogC2K+qgtM3TI=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=ooRiHvslIrT2pq/Oqf0MfaWvSIZQu8nfNX3baWttEwbu+7ZU2QBwnQuXHiVD/5BQ9
-	 2zvOxJVy0Ii9WuqeNi+HWIMeUVgziZ2CB2AQClFj0hZFE6cv2UIJvY0vQ8XY8KFjqP
-	 bAazd7+3yTvQc6K3PBnQY0GJAxvFDOFlO4iQQjdu44IwslKqC1n+WOVMjRr/1dUyXw
-	 wk1x5IjdBWMeMe7+bH57m2KuFeQEXan0ztliT54MUC0LKPNSrie0LOWqfILep6ebYy
-	 9476tMcDLXmJRVFn+2gNjUIuy7ba94ylJ+N6vP5H0NOIFLDMFv/tpwsDO/eicVGVGo
-	 YR0Ro/wl3xbDg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft 3/3] src: use EXPR_RANGE_VALUE in interval maps
-Date: Mon, 16 Jun 2025 23:57:23 +0200
-Message-Id: <20250616215723.608990-4-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250616215723.608990-1-pablo@netfilter.org>
-References: <20250616215723.608990-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aKQSJBsp"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-607b59b447bso9376123a12.1;
+        Mon, 16 Jun 2025 23:58:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1750143532; x=1750748332; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZEHkovM/ftOTKmDVv8tlHJdRjSXgOoZevlav+wL3M/0=;
+        b=aKQSJBspKNdWRnlBW2k+SBjJKKBLZmj126Ruyqy+vPiRpK6hlLuldTBhdEwOh044sp
+         KTGR6opZHQsv+irs8TDMGINbqQ9Q2k+s4bf/hGAPrHLTvAj3AaGXOUZgxgK0VG9+j43n
+         VpiURRQmha9amm00PoZE427J6/tukUrAkQel2Lqr79JYPIt8ip2MK1nQiO7buldoqAP0
+         dYo5ze0uzM4OctyLWzpsGHb0hZyNRvEH+2kqWR9kT3RUCnMvfkU28Mcwf0mrXdI6wIpP
+         TJLlS+mQ7O+0EtsnCfLWSkwWt5tXuh4mhcbqoqVdlFhWkcdl7sFOJT1hwbZwlS+gqxMR
+         aALA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1750143532; x=1750748332;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ZEHkovM/ftOTKmDVv8tlHJdRjSXgOoZevlav+wL3M/0=;
+        b=Zqgpi5teI9uXO6GTP+JzOBzxU4QsLPnkSLVP4SykuSW82H4zo7JdlSgd1MBs0OAiXz
+         te7mydmXEjiQ5DW0KK7sKGeOayzuZHc9sLM8GFFhdqy5NzAEMniBRNPYCkeskGYMWWlv
+         yIDt3wvwhzhxbL9p+6QOdvCdCI4Wcc4ghEVbhi7BrDLInp6kkfDAKwmIBy+k2igZQjk/
+         1gXkiN5DUeW7w9lV86DLyvfFHsYLmu9gAvbxfwp9ITmdXcUpB6tr0xxM1HW8RMDBSK5r
+         IdYLR/WPzErQc85Wo7BssdTcjfjPQfwhQ0/CD0IGZJtvtswm8B3skskytvqqPLjc3iUi
+         PGpw==
+X-Forwarded-Encrypted: i=1; AJvYcCV3tTKXRIdIA6zUb/Aqpe2jUiTkDDokjT0s8R7COeDO/4NIyH6EHwBaunSeaXHpmaQ3k6s5D6g=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwARFvSVeNQY+nC/YzEaiZDtTLP/W55Sloz1+WQPbS72v/dDY0V
+	EOFLkrE3+ryqnz63AbnArdro5Y5GLJJGTl5c0G17+sjECem4O75RbJVC
+X-Gm-Gg: ASbGncuLi6K9uv9mYkHVo0pZ/pWXC8YBKDbAj33wkXA2l6/Czf9WQqcJ44WY0J69czg
+	nl0quPlnF2zLJIoB9dvXfqJWFRxZqfTSw4LeMyH8fyOrx7Y6w32Ii/cmMLiuZFF3e9gRbUlOeLz
+	6zjGgvy0NnKL7A7R030V+fWZl47NN44oi2VciT6FUY26kn9ajbxiXtddqTspHN2YRB0MlgY8wKU
+	3mWYKekfwm/U5cb+pLKsyc4xTN6RH+E2Va+cfssgZzAkRv29x5VTZ0rE8NI5Y6Q82LYwXjw/2vC
+	ypxw2a1ijE/hcrShdB59ZiczwKKoceqxZflos2jgz1T8x0MKJ3O4WsEN1ovW4NDG1/YuP4G2n2L
+	2gDdDhAuOWT+4oGQNQ5rTUN/PHWCz0KboxAoe73c4/b8BZh+I9l+lPdEomulBdhwf/dKdwLfQo+
+	gRDfgA
+X-Google-Smtp-Source: AGHT+IEkEroXt6hnnQAHHBHds3G+bUNLpqeXOk2KWlfIM9C4ys+anUXEcA/XK2csXAWbF2ucdi7ILg==
+X-Received: by 2002:a17:907:868a:b0:ad8:932e:77ba with SMTP id a640c23a62f3a-adfad4181e5mr1163989366b.38.1750143531293;
+        Mon, 16 Jun 2025 23:58:51 -0700 (PDT)
+Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-adec81be674sm811109566b.53.2025.06.16.23.58.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Jun 2025 23:58:50 -0700 (PDT)
+From: Eric Woudstra <ericwouds@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: netfilter-devel@vger.kernel.org,
+	bridge@lists.linux.dev,
+	netdev@vger.kernel.org,
+	Eric Woudstra <ericwouds@gmail.com>
+Subject: [PATCH v12 nf-next 0/2] conntrack: bridge: add double vlan, pppoe and pppoe-in-q
+Date: Tue, 17 Jun 2025 08:58:33 +0200
+Message-ID: <20250617065835.23428-1-ericwouds@gmail.com>
+X-Mailer: git-send-email 2.47.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,202 +83,36 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Remove the restriction on maps to use EXPR_RANGE_VALUE to reduce
-memory consumption.
+Conntrack bridge only tracks untagged and 802.1q.
 
-With 100k map with concatenation:
+To make the bridge-fastpath experience more similar to the
+forward-fastpath experience, add double vlan, pppoe and pppoe-in-q
+tagged packets to bridge conntrack and to bridge filter chain.
 
-  table inet x {
-         map y {
-                    typeof ip saddr . tcp dport :  ip saddr
-                    flags interval
-                    elements = {
-                        1.0.2.0-1.0.2.240 . 0-2 : 1.0.2.10,
-			...
-	 }
-  }
+Changes in v12:
 
-Before: 153.6 Mbytes
-After: 108.9 Mbytes (-29.11%)
+- Only allow tracking this traffic when a conntrack zone is set.
+- nf_ct_bridge_pre(): skb pull/push without touching the checksum,
+   because the pull is always restored with push.
+- nft_do_chain_bridge(): handle the extra header similar to
+   nf_ct_bridge_pre(), using pull/push.
 
-With 100k map without concatenation:
+Changes in v11:
 
-  table inet x {
-         map y {
-                    typeof ip saddr :  ip saddr
-                    flags interval
-                    elements = {
-                        1.0.2.0-1.0.2.240 : 1.0.2.10,
-			...
-	 }
-  }
+- nft_do_chain_bridge(): Proper readout of encapsulated proto.
+- nft_do_chain_bridge(): Use skb_set_network_header() instead of thoff.
+- removed test script, it is now in separate patch.
 
-Before: 74.36 Mbytes
-After: 62.39 Mbytes (-16.10%)
+v10 split from patch-set: bridge-fastpath and related improvements v9
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c |  5 +++--
- src/netlink.c  | 50 +++++++++++++++++++++++++++++++++++++++++++-------
- src/optimize.c |  3 +++
- 3 files changed, 49 insertions(+), 9 deletions(-)
+Eric Woudstra (2):
+  netfilter: bridge: Add conntrack double vlan and pppoe
+  netfilter: nft_chain_filter: Add bridge double vlan and pppoe
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index b157a9c9d935..fac6c657dcbb 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2268,6 +2268,7 @@ static bool data_mapping_has_interval(struct expr *data)
- 	struct expr *i;
- 
- 	if (data->etype == EXPR_RANGE ||
-+	    data->etype == EXPR_RANGE_VALUE ||
- 	    data->etype == EXPR_PREFIX)
- 		return true;
- 
-@@ -2276,6 +2277,7 @@ static bool data_mapping_has_interval(struct expr *data)
- 
- 	list_for_each_entry(i, &data->expressions, list) {
- 		if (i->etype == EXPR_RANGE ||
-+		    i->etype == EXPR_RANGE_VALUE ||
- 		    i->etype == EXPR_PREFIX)
- 			return true;
- 	}
-@@ -2368,8 +2370,7 @@ static int expr_evaluate_symbol_range(struct eval_ctx *ctx, struct expr **exprp)
- 	left = range->left;
- 	right = range->right;
- 
--	/* maps need more work to use constant_range_expr. */
--	if (ctx->set && !set_is_map(ctx->set->flags) &&
-+	if (ctx->set &&
- 	    left->etype == EXPR_VALUE &&
- 	    right->etype == EXPR_VALUE) {
- 		constant_range = constant_range_expr_alloc(&expr->location,
-diff --git a/src/netlink.c b/src/netlink.c
-index 94cf177213fd..c07cbe6a0476 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -217,6 +217,7 @@ struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
- 		case EXPR_VALUE:
- 		case EXPR_RANGE:
- 		case EXPR_PREFIX:
-+		case EXPR_RANGE_VALUE:
- 			nftnl_set_elem_set(nlse, NFTNL_SET_ELEM_DATA,
- 					   nld.value, nld.len);
- 			break;
-@@ -369,29 +370,46 @@ static void netlink_gen_concat_key(const struct expr *expr,
- static int __netlink_gen_concat_data(int end, const struct expr *i,
- 				     unsigned char *data)
- {
-+	mpz_t value;
-+	int ret;
-+
- 	switch (i->etype) {
- 	case EXPR_RANGE:
--		i = end ? i->right : i->left;
-+		if (end)
-+			i = i->right;
-+		else
-+			i = i->left;
-+
-+		mpz_init_set(value, i->value);
-+		break;
-+	case EXPR_RANGE_VALUE:
-+		if (end)
-+			mpz_init_set(value, i->range.high);
-+		else
-+			mpz_init_set(value, i->range.low);
- 		break;
- 	case EXPR_PREFIX:
- 		if (end) {
- 			int count;
--			mpz_t v;
- 
--			mpz_init_bitmask(v, i->len - i->prefix_len);
--			mpz_add(v, i->prefix->value, v);
--			count = netlink_export_pad(data, v, i);
--			mpz_clear(v);
-+			mpz_init_bitmask(value, i->len - i->prefix_len);
-+			mpz_add(value, i->prefix->value, value);
-+			count = netlink_export_pad(data, value, i);
-+			mpz_clear(value);
- 			return count;
- 		}
- 		return netlink_export_pad(data, i->prefix->value, i);
- 	case EXPR_VALUE:
-+		mpz_init_set(value, i->value);
- 		break;
- 	default:
- 		BUG("invalid expression type '%s' in set", expr_ops(i)->name);
- 	}
- 
--	return netlink_export_pad(data, i->value, i);
-+	ret = netlink_export_pad(data, value, i);
-+	mpz_clear(value);
-+
-+	return ret;
- }
- 
- static void __netlink_gen_concat_expand(const struct expr *expr,
-@@ -507,6 +525,22 @@ static void netlink_gen_range(const struct expr *expr,
- 	nft_data_memcpy(nld, data, len);
- }
- 
-+static void netlink_gen_range_value(const struct expr *expr,
-+				    struct nft_data_linearize *nld)
-+{
-+	unsigned int len = (netlink_padded_len(expr->len) / BITS_PER_BYTE) * 2;
-+	unsigned char data[NFT_MAX_EXPR_LEN_BYTES];
-+	unsigned int offset;
-+
-+	if (len > sizeof(data))
-+		BUG("Value export of %u bytes would overflow", len);
-+
-+	memset(data, 0, sizeof(data));
-+	offset = netlink_export_pad(data, expr->range.low, expr);
-+	netlink_export_pad(data + offset, expr->range.high, expr);
-+	nft_data_memcpy(nld, data, len);
-+}
-+
- static void netlink_gen_prefix(const struct expr *expr,
- 			       struct nft_data_linearize *nld)
- {
-@@ -558,6 +592,8 @@ static void __netlink_gen_data(const struct expr *expr,
- 		return netlink_gen_range(expr, data);
- 	case EXPR_PREFIX:
- 		return netlink_gen_prefix(expr, data);
-+	case EXPR_RANGE_VALUE:
-+		return netlink_gen_range_value(expr, data);
- 	default:
- 		BUG("invalid data expression type %s\n", expr_name(expr));
- 	}
-diff --git a/src/optimize.c b/src/optimize.c
-index 5b7b0ab62fbc..89ba0d9dee6a 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -172,6 +172,7 @@ static bool stmt_expr_supported(const struct expr *expr)
- 	case EXPR_SYMBOL:
- 	case EXPR_RANGE_SYMBOL:
- 	case EXPR_RANGE:
-+	case EXPR_RANGE_VALUE:
- 	case EXPR_PREFIX:
- 	case EXPR_SET:
- 	case EXPR_LIST:
-@@ -667,6 +668,7 @@ static void __merge_concat(const struct optimize_ctx *ctx, uint32_t i,
- 			case EXPR_PREFIX:
- 			case EXPR_RANGE_SYMBOL:
- 			case EXPR_RANGE:
-+			case EXPR_RANGE_VALUE:
- 				clone = expr_clone(stmt_a->expr->right);
- 				compound_expr_add(concat, clone);
- 				break;
-@@ -778,6 +780,7 @@ static void build_verdict_map(struct expr *expr, struct stmt *verdict,
- 	case EXPR_PREFIX:
- 	case EXPR_RANGE_SYMBOL:
- 	case EXPR_RANGE:
-+	case EXPR_RANGE_VALUE:
- 	case EXPR_VALUE:
- 	case EXPR_SYMBOL:
- 	case EXPR_CONCAT:
+ net/bridge/netfilter/nf_conntrack_bridge.c | 83 ++++++++++++++++++----
+ net/netfilter/nft_chain_filter.c           | 55 +++++++++++++-
+ 2 files changed, 125 insertions(+), 13 deletions(-)
+
 -- 
-2.30.2
+2.47.1
 
