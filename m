@@ -1,165 +1,81 @@
-Received: from proxmox-new.maurer-it.com (proxmox-new.maurer-it.com [94.136.29.106])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9389A28FFE6
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Jun 2025 10:49:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.136.29.106
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4CAC289812;
+	Tue, 17 Jun 2025 11:34:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750157363; cv=none; b=SMzQAN5Cm8gQU9fjMgiHCfhDPJPHJYquobhcoorJZrbYI5tRx1yTVZOCCuzilRPatkEEvCKMPVRm0QEIdkLk74r38y9VAZ4p8hBjIUUrck0UpxODERSgDsNAloUuB0eMz8TZrP7jcndXXBOH6l5pvzwbWo7RV1u1l/P4NcIfweo=
+	t=1750160061; cv=none; b=MiiEFrGcTc0C6sGMNqu5CPzsoTZGZ5f57vTR0j7HocfIJIDabcoOVQLjpZjZu1QYwj84W21KoS3VSjVndhy9EawI1WMB1X66faxrgCWJv9HSU9RnzH7fdc5zPdWn7hiCcbD0sTF51dMOH3dpR1f3g4tgqHq2vbfIe+LyV+SBTzo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750157363; c=relaxed/simple;
-	bh=PoBO5uXxt5r866iKV/X8Xvw8ObcFs+4E4q9IOf/Fa8g=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Y2Ua+Ntn6TmEJXzcdIWhY2u4SRZOqB4Q7DGXangyhxMfbvrla56jdKpIF7YfpQYCqyFr1pJWHg17inAfkLdFfAAIo7SgJ+Uac0hU+mpcoygWty0K3j3q1bFRir3TwnF6kmrcFK+9v/kwsrPewnpVgVlnu8ThhsNjpnk7L7+NMJ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com; spf=pass smtp.mailfrom=proxmox.com; arc=none smtp.client-ip=94.136.29.106
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=proxmox.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=proxmox.com
-Received: from proxmox-new.maurer-it.com (localhost.localdomain [127.0.0.1])
-	by proxmox-new.maurer-it.com (Proxmox) with ESMTP id 0E13D4605A
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Jun 2025 12:49:13 +0200 (CEST)
-From: Christoph Heiss <c.heiss@proxmox.com>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack-tools v2 1/2] conntrack: move label parsing after argument parsing
-Date: Tue, 17 Jun 2025 12:48:33 +0200
-Message-ID: <20250617104837.939280-2-c.heiss@proxmox.com>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250617104837.939280-1-c.heiss@proxmox.com>
-References: <20250617104837.939280-1-c.heiss@proxmox.com>
+	s=arc-20240116; t=1750160061; c=relaxed/simple;
+	bh=/lJ+FLdCZAFvrJYe9sfXUZLx/0jpBGTUY7hMUsF7QeE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i2B2fP4UBuOL2pWhLuLJf3XTftKcsFcXUhIRc0SyUBPoj9At9qNAQJQw+E3MrGPErpklO245c5UdQh2NsQCg1MXqrK4dVEXX4OfU+ulIKVKTiSg5WtgPCW1r9vu/zLV+CVcufAwph3nvKt1/7xOh6H5ZdiCCnrBDqhUnr8RJwjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QruMvEV3; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QruMvEV3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D2DAC4CEED;
+	Tue, 17 Jun 2025 11:34:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1750160058;
+	bh=/lJ+FLdCZAFvrJYe9sfXUZLx/0jpBGTUY7hMUsF7QeE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=QruMvEV3syp0zvzgTiFlFSn9SohoBKo6YhOBCD9srGiOX5KJl7Dgt7RF8kJXL2tVe
+	 2OubJVUhNO5VhRku1629Pqq0ukJNNi4a+qoLW7n9j6cTBwQPLm822+lJoqDZZGqN2T
+	 nF+W+p1VRr7wArBP0iYXA5ezA0s0fCiz3uepRrFG3SrU2zKKNL8jlu5QBaIGjh/Qdv
+	 ewJuENYg1H03pc4fV5vU0xVnxwDZqiWF/LlqRWhItwG8lCVT3P9xh3TIWqQe/KDPgi
+	 QHO7TmscuQwooCFoZzG3yKk+o27gbwZLBnRUbnX3MqvjABeieqcBC4X0l8dchCIn8K
+	 8gcAnMZw0w5Ww==
+Date: Tue, 17 Jun 2025 12:34:14 +0100
+From: Simon Horman <horms@kernel.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Shuah Khan <shuah@kernel.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Vladimir Oltean <olteanv@gmail.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kselftest@vger.kernel.org
+Subject: Re: [RFC PATCH v2 nf-next] selftests: netfilter: Add
+ bridge_fastpath.sh
+Message-ID: <20250617113414.GI5000@horms.kernel.org>
+References: <20250617065930.23647-1-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250617065930.23647-1-ericwouds@gmail.com>
 
-Instead of parsing directly inline while parsing, put them into a list
-and do it afterwards.
+On Tue, Jun 17, 2025 at 08:59:30AM +0200, Eric Woudstra wrote:
+> Add a script to test various scenarios where a bridge is involved
+> in the fastpath. It runs tests in the forward path, and also in
+> a bridged path.
+> 
+> The setup is similar to a basic home router with multiple lan ports.
+> 
+> It uses 3 pairs of veth-devices. Each or all pairs can be
+> replaced by a pair of real interfaces, interconnected by wire.
+> This is necessary to test the behavior when dealing with
+> dsa ports, foreign (dsa) ports and switchdev userports that support
+> SWITCHDEV_OBJ_ID_PORT_VLAN.
+> 
+> See the head of the script for a detailed description.
+> 
+> Run without arguments to perform all tests on veth-devices.
+> 
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 
-Preparation for introduction a new `--labelmap` option to specify the
-path to the label mapping file.
+Hi Eric,
 
-Signed-off-by: Christoph Heiss <c.heiss@proxmox.com>
----
- src/conntrack.c | 60 ++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 42 insertions(+), 18 deletions(-)
+If this proposal proceeds could you please consider running shellcheck over
+the script and address the warnings it flags produces.
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 2d4e864..b9afd2f 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -122,6 +122,12 @@ struct ct_cmd {
- 	struct ct_tmpl	tmpl;
- };
- 
-+struct ct_label {
-+	struct list_head list;
-+	char *name;
-+	bool is_modify;
-+};
-+
- static int alloc_tmpl_objects(struct ct_tmpl *tmpl)
- {
- 	tmpl->ct = nfct_new();
-@@ -2963,6 +2969,30 @@ static int print_stats(const struct ct_cmd *cmd)
- 	return 0;
- }
- 
-+static void parse_and_merge_labels(struct list_head *labels, struct ct_tmpl *tmpl)
-+{
-+	struct ct_label *l, *next;
-+	list_for_each_entry_safe(l, next, labels, list) {
-+		unsigned int max = parse_label_get_max(l->name);
-+		struct nfct_bitmask *b = nfct_bitmask_new(max);
-+		if (!b)
-+			exit_error(OTHER_PROBLEM, "out of memory");
-+
-+		parse_label(b, l->name);
-+
-+		/* join "-l foo -l bar" into single bitmask object */
-+		if (l->is_modify) {
-+			merge_bitmasks(&tmpl->label_modify, b);
-+		} else {
-+			merge_bitmasks(&tmpl->label, b);
-+		}
-+
-+		list_del(&l->list);
-+		free(l->name);
-+		free(l);
-+	}
-+}
-+
- static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- {
- 	unsigned int type = 0, event_mask = 0, l4flags = 0, status = 0;
-@@ -2973,6 +3003,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 	struct ct_tmpl *tmpl;
- 	int res = 0, partial;
- 	union ct_address ad;
-+	LIST_HEAD(labels);
- 	uint32_t value;
- 	int c, cmd;
- 
-@@ -3088,8 +3119,6 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 		case 'o':
- 			options |= CT_OPT_OUTPUT;
- 			parse_parameter(optarg, &output_mask, PARSE_OUTPUT);
--			if (output_mask & _O_CL)
--				labelmap_init();
- 			if ((output_mask & _O_SAVE) &&
- 			    (output_mask & (_O_EXT |_O_TMS |_O_ID | _O_KTMS | _O_CL | _O_XML)))
- 				exit_error(OTHER_PROBLEM,
-@@ -3162,8 +3191,6 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 		case '>':
- 			options |= opt2type[c];
- 
--			labelmap_init();
--
- 			if ((options & (CT_OPT_DEL_LABEL|CT_OPT_ADD_LABEL)) ==
- 			    (CT_OPT_DEL_LABEL|CT_OPT_ADD_LABEL))
- 				exit_error(OTHER_PROBLEM, "cannot use --label-add and "
-@@ -3176,22 +3203,13 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 				optarg = tmp;
- 			}
- 
--			char *optarg2 = strdup(optarg);
--			unsigned int max = parse_label_get_max(optarg);
--			struct nfct_bitmask * b = nfct_bitmask_new(max);
--			if (!b)
-+			struct ct_label *l = calloc(1, sizeof(*l));
-+			if (!l)
- 				exit_error(OTHER_PROBLEM, "out of memory");
- 
--			parse_label(b, optarg2);
--
--			/* join "-l foo -l bar" into single bitmask object */
--			if (c == 'l') {
--				merge_bitmasks(&tmpl->label, b);
--			} else {
--				merge_bitmasks(&tmpl->label_modify, b);
--			}
--
--			free(optarg2);
-+			l->name = strdup(optarg);
-+			l->is_modify = c == '<' || c == '>';
-+			list_add_tail(&l->list, &labels);
- 			break;
- 		case 'a':
- 			fprintf(stderr, "WARNING: ignoring -%c, "
-@@ -3246,6 +3264,12 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
- 		}
- 	}
- 
-+	/* any of these options (might) use labels */
-+	if ((options & (CT_OPT_LABEL | CT_OPT_ADD_LABEL | CT_OPT_DEL_LABEL)) ||
-+	    ((options & CT_OPT_OUTPUT) && (output_mask & _O_CL))) {
-+		labelmap_init();
-+		parse_and_merge_labels(&labels, tmpl);
-+	}
- 
- 	/* we cannot check this combination with generic_opt_check. */
- 	if (options & CT_OPT_ANY_NAT &&
--- 
-2.49.0
-
-
+A shellcheck test was recently added to NIPA and we'd like to at least
+minimise adding new warnings to the tree.
