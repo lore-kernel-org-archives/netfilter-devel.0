@@ -1,97 +1,86 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f200.google.com (mail-il1-f200.google.com [209.85.166.200])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 945C4132103
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Jun 2025 22:46:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25F0F21B9F2
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2025 08:20:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750286802; cv=none; b=XzHd/FaL79lY+znpZJ9LXDdPsxVKFkRJx61Rjl2Yas9yYr+T/Ib6fBeORb4S4w4gEkmN3UZgZSB0N9/sskBdVLinMnNfzVhbKQgO8dFvJMZQZmdB4vXeiWCbFTdhcb6YrDtFWs4WEOBiLf/Wn+PJfOMA2B2l+isDRoboZ+OGMdQ=
+	t=1750321232; cv=none; b=j/fPu3++2rChB96qbep8VbpKXPZEj/DpkoHElPuuUdxFkbF5WwdccnjgoEwNtqPY9S8TkyS5tiduGfCVPykM9IGzdW0auCOGxUncIgQf+c3V51TLqy37nS7AIaQznUQm2ydOaUcyQu58EcH8q7g46sRuq2khxSYuEIUF7PmHY98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750286802; c=relaxed/simple;
-	bh=mJIypwr/a1upDL1TWAm95RzXJR8sIPs/RbNPEIyIbUI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rerKUuBZRzequWpS+zbd6sfQq6TdhZt2yO1aTdigdwqKt7gbt8qzlU+jSjM5JQUMJoiVGrJnbO5RduW+RqH+id1Ks/eMYjvtdDqxgMc94uPNztnZNS255Qg78GFaim2Z274/vqNEqC60yQ9ii9gMeQ8xMi+pFieaWmE7kZt8weg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 0FAF9612C3; Thu, 19 Jun 2025 00:46:37 +0200 (CEST)
-Date: Thu, 19 Jun 2025 00:46:36 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Yi Chen <yiche@redhat.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] tests: shell: Add a test case to verify the limit
- statement.
-Message-ID: <aFNBzJOssxBN-ck4@strlen.de>
-References: <20250617104128.27188-1-yiche@redhat.com>
+	s=arc-20240116; t=1750321232; c=relaxed/simple;
+	bh=cWBHqkKiS7RP9IZhf0JnGzgpy8YIgcFAm3ITjn3BpzE=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=pPLUfIYH9rRCbLoRXvylKbBHH2t/7CZHVUa4EwM14TH0Ie37a7vVSGEQ2AHocZbPaGlvcmqVNA6dQwi2Hp+D8ek39jxx3HxSZ/FEkmeI8eMaTtEu0z9usueDu3ATjeQBD9LPK/eYaV4pTdeT7xNGBaEElDPvOsjRETeZqkrgrvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.200
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-3ddcf82bb53so4625725ab.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2025 01:20:30 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1750321230; x=1750926030;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Kj47JIn7RotE7ZzkA/g+sSblwgqxbu68sprIKcbjRbo=;
+        b=RBqNe6vkt3p3evMMWvyo/EPU5tSm4p8GmV2rTKjAVtf3c8muEaDaB+jUIi/4JCT6bS
+         EOSg9xGyzEzzjVoAyjieFaQ2w86l8EsF95UxBG8oLTfzEEmQQ6MFUzwj3ezZPm+dzcOZ
+         6YxPNXkCngICxox+NTYA3DewPYFNAn/1FAE7B1RLD5c2/43btPPYd14fKLwsZwiNAAs3
+         zTnmss2LnSnN6MM6HbEHUMbaNhJtxc/xW+T/ZkWRgQnHguWhayqd+CbAJHprwo7ezzj5
+         wNzxgTxIkyEl1qvpyyjdZDLcrvn/RovxR5uTjhVniyrUQQDdbHD2qcMVD8XbL0g6IcCk
+         FiEg==
+X-Forwarded-Encrypted: i=1; AJvYcCXGBC6I+4eCw3s/NNL9nBUrlu8LJ/8SJeXtuWIGFqkzIHDsQX/A49Ziub1qzgKbTKKlWkKZLVEzwaLr263HyzQ=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyaETgmIz679iU/tY56Yqf9z2QRLXXXrxOEawAtdfBRDEmIu9cU
+	xbyhKyrFEN+ztX+wdcapEiC73TaDFwwh5jXRKZ8Dt3flU+yW+MsxjcIvNLUg9rPt6ZHIgIH24hw
+	OhLPkAXWsaDVTmeca3/yBC6v7W39eD4ilHqe2EfrPmdGsZmROlW2qADB8+0M=
+X-Google-Smtp-Source: AGHT+IHekSLhE6eISN7XxCtRns/xqlyr1Tj56eRlcX7tBt2H9/1SWPRiHsc2bTLYO5oi+XCIY9MsM/AbXn4X37PJlgKrThzFHql6
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250617104128.27188-1-yiche@redhat.com>
+X-Received: by 2002:a92:cda8:0:b0:3dc:8b29:30b1 with SMTP id
+ e9e14a558f8ab-3de07d50d7amr207885085ab.14.1750321230259; Thu, 19 Jun 2025
+ 01:20:30 -0700 (PDT)
+Date: Thu, 19 Jun 2025 01:20:30 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6853c84e.050a0220.216029.01cb.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Jun 2025)
+From: syzbot <syzbot+listd62d23e3f9e32ca7ceb0@syzkaller.appspotmail.com>
+To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Yi Chen <yiche@redhat.com> wrote:
-> Signed-off-by: Yi Chen <yiche@redhat.com>
-> ---
->  tests/shell/features/ncat.sh                |   4 +
->  tests/shell/testcases/packetpath/rate_limit | 154 ++++++++++++++++++++
->  2 files changed, 158 insertions(+)
->  create mode 100755 tests/shell/features/ncat.sh
->  create mode 100755 tests/shell/testcases/packetpath/rate_limit
-> 
-> diff --git a/tests/shell/features/ncat.sh b/tests/shell/features/ncat.sh
-> new file mode 100755
-> index 00000000..eb1581ce
-> --- /dev/null
-> +++ b/tests/shell/features/ncat.sh
-> @@ -0,0 +1,4 @@
-> +#!/bin/sh
-> +
-> +# check whether ncat is installed
-> +ncat -h >/dev/null 2>&1
+Hello netfilter maintainers/developers,
 
-Could you convert the test to use socat, which is already
-used by many other tests?
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-> +assert_pass()
-> +{
-> +	local ret=$?
-> +	if [ $ret != 0 ]; then
-> +		echo "FAIL: ${@}"
-> +		exit 1
-> +	else
-> +		echo "PASS: ${@}"
-> +	fi
-> +}
+During the period, 1 new issues were detected and 0 were fixed.
+In total, 10 issues are still open and 185 have already been fixed.
 
-This is now the 3rd copy of this helper.
+Some of the still happening issues:
 
-Maybe its time to add a library/utility file that has these
-functions?
+Ref Crashes Repro Title
+<1> 512     Yes   INFO: rcu detected stall in addrconf_rs_timer (6)
+                  https://syzkaller.appspot.com/bug?extid=fecf8bd19c1f78edb255
+<2> 173     Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<3> 93      Yes   INFO: rcu detected stall in NF_HOOK (2)
+                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+<4> 2       No    WARNING: refcount bug in nf_nat_masq_schedule
+                  https://syzkaller.appspot.com/bug?extid=e178f373ec62758ea18b
 
-test-wrapper.sh could export an environment variable pointing to it, e.g.
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-export NFT_TEST_LIBRARY_FILE="$NFT_TEST_BASEDIR/helpers/lib.sh"
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
 
-or whatever.  Then tests can do
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
 
-. $NFT_TEST_LIBRARY_FILE
-
-and gain these helpers in case they need them.
-
-> +# tcp test
-> +ip netns exec $S ncat -lk 80 > /dev/null & sleep 1
-
-I guess sleep 1 is fine. But maybe its time to add a central
-helper for this wait.
-
-You could submit a patch that adds the helpers/lib.sh file and
-then lifts the "wait_local_port_listen" helper function from
-
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/diff/tools/testing/selftests/net/lib.sh?id=d9d836bfa5e6e255c411733b4b1ce7a1f8346c54
-
-Other than that I think the test looks good, thanks Yi!
+You may send multiple commands in a single email message.
