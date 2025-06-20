@@ -1,53 +1,53 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431BA2E611C
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2025 16:40:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D21532DF3E8
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2025 16:47:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750437637; cv=none; b=T3tKH9IO1/Dozgy1i0cdG0HUSikU3pHIR9tIH3i9SfrveM4Eta5ciMhwSoHyoibj9JKyffoTLl4butyqjigQMh1p+tAdAMCBdI9k3fvdAIL3Kj2dISeLowiPATrlVuGYt6aL/f8tW2txdmpE2CnkeKsNM933SKuk1Gcb+wZ9qM0=
+	t=1750438064; cv=none; b=sGPnWlMJWwzqUwZKrpSj2IYn49GxlXpmDS0Qvm1EgY1bJBwveY89TT3M2MNTE9eBCKIMIjiqMY4HPzBngkj5pe1iIg4laXREhWv+Cr4Ct+L1ByBnoLuXGIfC3sd/fq5t5xxfbGa/KqbjkBbl97QlhSatRB4RUCV/En8UZwhP7iA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750437637; c=relaxed/simple;
+	s=arc-20240116; t=1750438064; c=relaxed/simple;
 	bh=5xZObnCiwuB34iqLVb1nVJvdFDZFpwIWpPYWvFByI1g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YyQ7Pd4XnHvuiSFuZqgUXVRyVxrMsb8T4MZnwzxbZsY+ernIW2v50qBAusjOQaneTslKGBqZPRnUsl2XugJE8xSWRPNHnUxp80MxvW0Dlo3TXOFWKgNIC6Ehny66X+xe9nvLYTXalGjN+bUahEc4yQ8cNFEXqBL/ExAdMQZQuV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ANdYmQ6T; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version; b=NGB8wHj+63SHkTVXI8ysjpbuGm32kCnMaH9rEHFZetrL/H+z/Amr5FVW/IOUAyJCW5PhnITI55WQaUSfcpuw7P4KWsQPe+NWeMBkp+ybFznrelUeU7rhh8MjhUQAs5RRYUvF+aJ8P6/q7AyqHSicwv2kU800eYIToyk4H8nDOp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=eKJR1BW1; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ANdYmQ6T"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eKJR1BW1"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1750437634;
+	s=mimecast20190719; t=1750438062;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
 	bh=h/by31EtfziCQvgYWmEywAEhvgKYYlXWvTMAVPw5/Pc=;
-	b=ANdYmQ6TeMIX43qnj3MS56+SOmHuE7l5bKDEjw5xOPG70INHmlagVL57f+dUZtVVVMyjCn
-	c/7bn3bWGMeSMTUrlhsqhIBlI+NToHZaTR7tkhBEcchxNauY28SFJ3jAuFe0GWTgiDiOCU
-	UtouokKHFNrU4W0YAMRFjc6rojk3i8w=
-Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+	b=eKJR1BW1NlT/zvtdVSp+xL4c/ChqkTbGXY6w+YCLNaQQtbifTlIeNDNIIfDwfIcu4u7uSU
+	xch7IKWZGfbSGr51+BAmHo75tIRqImEQomve+/6eRJk/wIW0bJIeq47n1Gakx8pkuMqdid
+	JpsguLJKFilYxW4sOyDsTOiV8xE2b5A=
+Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
  relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-600-Yzum8BUKNq6P5Wn8Edc_cw-1; Fri,
- 20 Jun 2025 12:40:30 -0400
-X-MC-Unique: Yzum8BUKNq6P5Wn8Edc_cw-1
-X-Mimecast-MFC-AGG-ID: Yzum8BUKNq6P5Wn8Edc_cw_1750437629
-Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-695-EF-gksIHOCCPDkQ4imniDw-1; Fri,
+ 20 Jun 2025 12:47:35 -0400
+X-MC-Unique: EF-gksIHOCCPDkQ4imniDw-1
+X-Mimecast-MFC-AGG-ID: EF-gksIHOCCPDkQ4imniDw_1750438054
+Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 9F48C195608E;
-	Fri, 20 Jun 2025 16:40:29 +0000 (UTC)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id AD6E81800297;
+	Fri, 20 Jun 2025 16:47:34 +0000 (UTC)
 Received: from yiche-laptop.redhat.com (unknown [10.72.112.97])
-	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id C267230001A1;
-	Fri, 20 Jun 2025 16:40:27 +0000 (UTC)
+	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 3066C19560A3;
+	Fri, 20 Jun 2025 16:47:32 +0000 (UTC)
 From: Yi Chen <yiche@redhat.com>
 To: netfilter-devel@vger.kernel.org
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] tests: shell: Verify limit statement with new test case.
-Date: Sat, 21 Jun 2025 00:40:25 +0800
-Message-ID: <20250620164025.49514-1-yiche@redhat.com>
+Subject: [PATCH v2] tests: shell: Verify limit statement with new test case.
+Date: Sat, 21 Jun 2025 00:47:30 +0800
+Message-ID: <20250620164730.50041-1-yiche@redhat.com>
 In-Reply-To: <20250617104128.27188-1-yiche@redhat.com>
 References: <20250617104128.27188-1-yiche@redhat.com>
 Precedence: bulk
@@ -57,7 +57,7 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
 
 1. Add rate_limit test case.
 2. Consolidate frequently used functions in helper/lib.sh
