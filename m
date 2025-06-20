@@ -1,227 +1,131 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6057D30E833
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2025 22:15:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5A962040BF;
+	Fri, 20 Jun 2025 06:54:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750371330; cv=none; b=kDDxNnx6gLJnWJI0AmceB4rhy2WIosS0PRIYNSj8DpqMWcPjTSPLAb38O6xYkyTdtU2QfwO2eYSjvSZ9bd/Pv/swtrkYdx3DjXcVWu0t4jF9ud0sdiCuHy6sszyi2yuPMati70VCnTZgjaZOC4CVpVfITTaDQg277CZRPujEA1o=
+	t=1750402450; cv=none; b=spnvUmZNxX9n6p90odCZyx3NBZ2jZ0SPY+WUtpvFgJz+zO0oFwR+AGAXBs0Q0LMKj81v17mFprBRumiKFE0NMTZaxK3EKBatV3ZielN3Ed0A1Lu7TGPwXZsGTSgbr/j9XavlSnU6NcIVMrQeBYRMRvMmYuqOme5pNWCw+0vI7J0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750371330; c=relaxed/simple;
-	bh=CdObc4DcA9utv6MV+AAQk5MUzNpH7MovuJgCbaoiBXc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g4SdeK4r9h1NxNqsHt+qGP0IY1dMDCe52wkOI8auMbzIIqYfKa21qDokAX+SFDn9+7elrwiny67qANBZ7yAgzqLslA+Ysu+CRqkKxfbFe/hTgBDBc6nVDngsZ1woXdT8ZUNk94Ba8B3dNpUWEE5ZDxj2BilYuntSP8o61a4DJvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MDfHNB6b; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=I8xeU7zK; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1750402450; c=relaxed/simple;
+	bh=lgwENIswP6TC+e9bW4gAogyCy5Hbq7Jl3EakK7exmW4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=pTOWYAKKb5KFj9TeoTzTluZQfy3r2yaQ1Yujr25wJRJEkBFHCcTykzDeTJh0w/KVqZU8/KdG0ZxVDFUBRHjNWCIlQykoXo3UhAx+FSDwx1F141dzd6ltxXMKX+AblnouyjVEn7KLeIE580wUGqfeUFZBieII0g/WBfKV9dwUvY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=ATpenuT8; arc=none smtp.client-ip=148.6.0.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MDfHNB6b";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="I8xeU7zK"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B496860269; Fri, 20 Jun 2025 00:15:17 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750371317;
-	bh=x9dz9/4k63v4QQKUMSyit3kkNQHBNFxN5kmHHFKsK84=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=MDfHNB6bi2wqhdgaVOfSN1Agh4kVBiyyTKZINj1twe3CpQujmeKk+IxYaxJd4Wbni
-	 d/QRLmEF0YlBy21Yk2IgyImkyZVsH7nU43p0FzjutY29WLtgGCM4T2VpSyUpCX08+L
-	 oiiNmPPOuOJyyV6EeysdR03FIF5C74Eas9En6N8wVnGw5EVBWnxz03yACZDKQgGjdz
-	 eTG/1K64OcyweOT/S0hO+dL/yxvFHa84M79okf+4kYXoXEwqkxCmZbtKmtSbbq0AJU
-	 r4dvoZkZMywAeCRT+7cO9Wy5dQSVnQEcP/Ct8xfbiSi0T+d9greWwnzq4fiXVATQeO
-	 MRrUWq/zVNjTA==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 68D7F60255;
-	Fri, 20 Jun 2025 00:15:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750371316;
-	bh=x9dz9/4k63v4QQKUMSyit3kkNQHBNFxN5kmHHFKsK84=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=I8xeU7zKph1ThpGK/n1nyRhcdctjDuDEJPZ11uK/bjv1kOPRpPk5MF5kHFRc094Fr
-	 QhBGCxkSgBnJU1BvIWPtFI6qRXBOpcAEvQ5LwBZ6MFH2J7DG7N9qiFBKLjYHdYVLQs
-	 71IhEFpQQA3zbUO8bcRAaZ5FaL5oKrDVsxSh9cWudZhzrooXVKGw1hPfX8NdRTksDU
-	 r2h2+BevLhUi7wi4YOZSEl551VLrQ3iGAt/ajALp6pDAbJmN1fxbIqBLlYixpZyVCA
-	 CP+rwXKv15FJxEbbzuralYe6I/pywkPGY0ro2IwkD8lVmHth2ORoSu5lkm31icsVGh
-	 K0rO71JNvSXmg==
-Date: Fri, 20 Jun 2025 00:15:14 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Christoph Heiss <c.heiss@proxmox.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH conntrack-tools v2 1/2] conntrack: move label parsing
- after argument parsing
-Message-ID: <aFSL8jORxYEZZrrD@calendula>
-References: <20250617104837.939280-1-c.heiss@proxmox.com>
- <20250617104837.939280-2-c.heiss@proxmox.com>
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="ATpenuT8"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4bNnyW340Jz7s854;
+	Fri, 20 Jun 2025 08:44:35 +0200 (CEST)
+Authentication-Results: smtp012.wigner.hu (amavis); dkim=pass (1024-bit key)
+ reason="pass (just generated, assumed good)" header.d=blackhole.kfki.hu
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1750401873; x=1752216274; bh=qlN0vM/2kA
+	7L+wHurXa4gpLzRVhLapor1sHI9gEcD/I=; b=ATpenuT83DH/8OCovjgncJFnZn
+	sbGTiYEY19FV/JBv5zTJpCOneGOHRgrAgZ8AUBNyLcgiYVsjaA63y31E+35ZuBR+
+	DJC52YRpTh1gilO+bsHhrXmn2lBZ+M6ZWjAqPAa9eDpUefKSxkQr3fnJsdbZ+gPD
+	O5W9ZazMpxMsZExWc=
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id pWl8-2k23QH5; Fri, 20 Jun 2025 08:44:33 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4bNnyT3Z37z7s852;
+	Fri, 20 Jun 2025 08:44:33 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 70FC934316A; Fri, 20 Jun 2025 08:44:33 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 6F6F7343169;
+	Fri, 20 Jun 2025 08:44:33 +0200 (CEST)
+Date: Fri, 20 Jun 2025 08:44:33 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: RubenKelevra <rubenkelevra@gmail.com>
+cc: Jozsef Kadlecsik <kadlec@netfilter.org>, 
+    Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org, 
+    coreteam@netfilter.org, netdev@vger.kernel.org, 
+    linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ipset: fix typo in hash size macro
+In-Reply-To: <20250619151029.97870-1-rubenkelevra@gmail.com>
+Message-ID: <4497e54a-efa0-dcb5-7f37-5de8197b5496@blackhole.kfki.hu>
+References: <20250619151029.97870-1-rubenkelevra@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250617104837.939280-2-c.heiss@proxmox.com>
+Content-Type: multipart/mixed; boundary="110363376-1299534835-1750401873=:6759"
 
-Hi Christoph,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Tue, Jun 17, 2025 at 12:48:33PM +0200, Christoph Heiss wrote:
-> Instead of parsing directly inline while parsing, put them into a list
-> and do it afterwards.
-> 
-> Preparation for introduction a new `--labelmap` option to specify the
-> path to the label mapping file.
+--110363376-1299534835-1750401873=:6759
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-Just a few cosmetic nitpicks on my side.
+Hi,
 
-> Signed-off-by: Christoph Heiss <c.heiss@proxmox.com>
+On Thu, 19 Jun 2025, RubenKelevra wrote:
+
+> Rename IPSET_MIMINAL_HASHSIZE =E2=86=92 IPSET_MINIMAL_HASHSIZE in
+> ip_set_hash_gen.h, matching the header typo-fix. Keep a backward-
+> compat alias in the header for out-of-tree users.
+
+I don't think there's any need to keep a backward-comptibility alias: the=
+=20
+macro is absolutely internal and don't even used outside of this file.
+
+Could you resend your patch without it?
+
+Best regards,
+Jozsef
+
+> Signed-off-by: RubenKelevra <rubenkelevra@gmail.com>
 > ---
->  src/conntrack.c | 60 ++++++++++++++++++++++++++++++++++---------------
->  1 file changed, 42 insertions(+), 18 deletions(-)
-> 
-> diff --git a/src/conntrack.c b/src/conntrack.c
-> index 2d4e864..b9afd2f 100644
-> --- a/src/conntrack.c
-> +++ b/src/conntrack.c
-> @@ -122,6 +122,12 @@ struct ct_cmd {
->  	struct ct_tmpl	tmpl;
->  };
->  
-> +struct ct_label {
-> +	struct list_head list;
-> +	char *name;
-> +	bool is_modify;
-> +};
-> +
->  static int alloc_tmpl_objects(struct ct_tmpl *tmpl)
->  {
->  	tmpl->ct = nfct_new();
-> @@ -2963,6 +2969,30 @@ static int print_stats(const struct ct_cmd *cmd)
->  	return 0;
->  }
->  
-> +static void parse_and_merge_labels(struct list_head *labels, struct ct_tmpl *tmpl)
-> +{
-> +	struct ct_label *l, *next;
-        struct nfct_bitmask *b;
-        unsigned int max;
-
-reverse xmas tree in variable declaration
-
-and line break here after variable declaration block.
-
-I would suggest these variable names:
-
-- label_list instead of labels.
-- label instead of l.
-
-the short variable name 'l' usually makes it harder to search for
-variables in my editor.
-
-> +	list_for_each_entry_safe(l, next, labels, list) {
-> +		unsigned int max = parse_label_get_max(l->name);
-> +		struct nfct_bitmask *b = nfct_bitmask_new(max);
-
-> +		if (!b)
-> +			exit_error(OTHER_PROBLEM, "out of memory");
-> +
-> +		parse_label(b, l->name);
-> +
-> +		/* join "-l foo -l bar" into single bitmask object */
-> +		if (l->is_modify) {
-> +			merge_bitmasks(&tmpl->label_modify, b);
-> +		} else {
-> +			merge_bitmasks(&tmpl->label, b);
-> +		}
-
-For single statement:
-
-		if (l->is_modify)
-			merge_bitmasks(&tmpl->label_modify, b);
-		else
-			merge_bitmasks(&tmpl->label, b);
-
-Just cosmetic stuff, I hope not to bother you and Florian too much
-with this.
-
-> +
-> +		list_del(&l->list);
-> +		free(l->name);
-> +		free(l);
-> +	}
-> +}
-> +
->  static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
->  {
->  	unsigned int type = 0, event_mask = 0, l4flags = 0, status = 0;
-> @@ -2973,6 +3003,7 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
->  	struct ct_tmpl *tmpl;
->  	int res = 0, partial;
->  	union ct_address ad;
-> +	LIST_HEAD(labels);
->  	uint32_t value;
->  	int c, cmd;
->  
-> @@ -3088,8 +3119,6 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
->  		case 'o':
->  			options |= CT_OPT_OUTPUT;
->  			parse_parameter(optarg, &output_mask, PARSE_OUTPUT);
-> -			if (output_mask & _O_CL)
-> -				labelmap_init();
->  			if ((output_mask & _O_SAVE) &&
->  			    (output_mask & (_O_EXT |_O_TMS |_O_ID | _O_KTMS | _O_CL | _O_XML)))
->  				exit_error(OTHER_PROBLEM,
-> @@ -3162,8 +3191,6 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
->  		case '>':
->  			options |= opt2type[c];
->  
-> -			labelmap_init();
-> -
->  			if ((options & (CT_OPT_DEL_LABEL|CT_OPT_ADD_LABEL)) ==
->  			    (CT_OPT_DEL_LABEL|CT_OPT_ADD_LABEL))
->  				exit_error(OTHER_PROBLEM, "cannot use --label-add and "
-> @@ -3176,22 +3203,13 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
->  				optarg = tmp;
->  			}
->  
-> -			char *optarg2 = strdup(optarg);
-> -			unsigned int max = parse_label_get_max(optarg);
-> -			struct nfct_bitmask * b = nfct_bitmask_new(max);
-> -			if (!b)
-> +			struct ct_label *l = calloc(1, sizeof(*l));
-> +			if (!l)
->  				exit_error(OTHER_PROBLEM, "out of memory");
->  
-> -			parse_label(b, optarg2);
-> -
-> -			/* join "-l foo -l bar" into single bitmask object */
-> -			if (c == 'l') {
-> -				merge_bitmasks(&tmpl->label, b);
-> -			} else {
-> -				merge_bitmasks(&tmpl->label_modify, b);
-> -			}
-> -
-> -			free(optarg2);
-> +			l->name = strdup(optarg);
-> +			l->is_modify = c == '<' || c == '>';
-> +			list_add_tail(&l->list, &labels);
->  			break;
->  		case 'a':
->  			fprintf(stderr, "WARNING: ignoring -%c, "
-> @@ -3246,6 +3264,12 @@ static void do_parse(struct ct_cmd *ct_cmd, int argc, char *argv[])
->  		}
->  	}
->  
-> +	/* any of these options (might) use labels */
-> +	if ((options & (CT_OPT_LABEL | CT_OPT_ADD_LABEL | CT_OPT_DEL_LABEL)) ||
-> +	    ((options & CT_OPT_OUTPUT) && (output_mask & _O_CL))) {
-> +		labelmap_init();
-> +		parse_and_merge_labels(&labels, tmpl);
-> +	}
->  
->  	/* we cannot check this combination with generic_opt_check. */
->  	if (options & CT_OPT_ANY_NAT &&
-> -- 
+> include/linux/netfilter/ipset/ip_set_hash.h | 4 +++-
+> net/netfilter/ipset/ip_set_hash_gen.h       | 4 ++--
+> 2 files changed, 5 insertions(+), 3 deletions(-)
+>
+> diff --git a/include/linux/netfilter/ipset/ip_set_hash.h b/include/linu=
+x/netfilter/ipset/ip_set_hash.h
+> index 838abab672af1..4f7ce4eff5815 100644
+> --- a/include/linux/netfilter/ipset/ip_set_hash.h
+> +++ b/include/linux/netfilter/ipset/ip_set_hash.h
+> @@ -6,7 +6,9 @@
+>
+>
+> #define IPSET_DEFAULT_HASHSIZE		1024
+> -#define IPSET_MIMINAL_HASHSIZE		64
+> +#define IPSET_MINIMAL_HASHSIZE		64
+> +/* Legacy alias for the old typo =E2=80=93 keep until v6.1 LTS (EOL: 2=
+027-12-31) */
+> +#define IPSET_MIMINAL_HASHSIZE		IPSET_MINIMAL_HASHSIZE
+> #define IPSET_DEFAULT_MAXELEM		65536
+> #define IPSET_DEFAULT_PROBES		4
+> #define IPSET_DEFAULT_RESIZE		100
+> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipse=
+t/ip_set_hash_gen.h
+> index 5251524b96afa..785d109645fed 100644
+> --- a/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -1543,8 +1543,8 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, stru=
+ct ip_set *set,
+>
+> 	if (tb[IPSET_ATTR_HASHSIZE]) {
+> 		hashsize =3D ip_set_get_h32(tb[IPSET_ATTR_HASHSIZE]);
+> -		if (hashsize < IPSET_MIMINAL_HASHSIZE)
+> -			hashsize =3D IPSET_MIMINAL_HASHSIZE;
+> +		if (hashsize < IPSET_MINIMAL_HASHSIZE)
+> +			hashsize =3D IPSET_MINIMAL_HASHSIZE;
+> 	}
+>
+> 	if (tb[IPSET_ATTR_MAXELEM])
+> --=20
 > 2.49.0
-> 
-> 
-> 
+>
+>
+--110363376-1299534835-1750401873=:6759--
