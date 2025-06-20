@@ -1,114 +1,448 @@
-Received: from mail-wr1-f53.google.com (mail-wr1-f53.google.com [209.85.221.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA99A25F98E
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2025 16:20:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 431BA2E611C
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2025 16:40:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750436414; cv=none; b=ANSjBK0iMUDVQODgsRHiNTRsPmBySY/OkwxY4y4AsJ8rH2/i56vg4M5GdBZFOLiuaYhqnNSscxHcVQ0dzVaDISytxfS8xidFDaLtEkHVmtPvS2vAefPS24ifhpdJzOiA0tH4JWEdMk1BK9N2bVt/H5pTF0kYbkOtZO1s9jvwNMs=
+	t=1750437637; cv=none; b=T3tKH9IO1/Dozgy1i0cdG0HUSikU3pHIR9tIH3i9SfrveM4Eta5ciMhwSoHyoibj9JKyffoTLl4butyqjigQMh1p+tAdAMCBdI9k3fvdAIL3Kj2dISeLowiPATrlVuGYt6aL/f8tW2txdmpE2CnkeKsNM933SKuk1Gcb+wZ9qM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750436414; c=relaxed/simple;
-	bh=HYTOWjDukRZ7ZHMgKqBNidaHm/7rDrH6ltFndm5/Ihw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Qv5RrnlSoDS0ye01HMjIJWC7XCA1WyDi5FocnV4zpZ1NdhLGSd1mhm5HyvDwINuZ4ca7+DuosGWl5L8mhddd00ek/AoQ9th7mhr8vGvv/z2Y031osPcF9y9O5/AZd9LlsrcImoIUvX7D9rhwFU2hZ8fxuJlJdiHd+yMn2K3oL8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=6wind.com; spf=pass smtp.mailfrom=6wind.com; dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b=U/oWL/C8; arc=none smtp.client-ip=209.85.221.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=6wind.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=6wind.com
+	s=arc-20240116; t=1750437637; c=relaxed/simple;
+	bh=5xZObnCiwuB34iqLVb1nVJvdFDZFpwIWpPYWvFByI1g=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YyQ7Pd4XnHvuiSFuZqgUXVRyVxrMsb8T4MZnwzxbZsY+ernIW2v50qBAusjOQaneTslKGBqZPRnUsl2XugJE8xSWRPNHnUxp80MxvW0Dlo3TXOFWKgNIC6Ehny66X+xe9nvLYTXalGjN+bUahEc4yQ8cNFEXqBL/ExAdMQZQuV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ANdYmQ6T; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=6wind.com header.i=@6wind.com header.b="U/oWL/C8"
-Received: by mail-wr1-f53.google.com with SMTP id ffacd0b85a97d-3a4eed70f24so321495f8f.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2025 09:20:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=6wind.com; s=google; t=1750436410; x=1751041210; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:organization:content-language
-         :from:references:cc:to:subject:reply-to:user-agent:mime-version:date
-         :message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=NXttrKxk2yS2jYMSNejp1cO8JOMwcunJDEmJOmX01c0=;
-        b=U/oWL/C8bFbaZLtCilyhwAR7bWSQUhENpYQF3XRmkDDRRUuw0lJ0gHkAXx9FSTJUU3
-         GtjBTiq4wxqQY7iCEhKkHh9sMHPcZ0JrufWCH4PiJXhJ0EZ3UirFj1HjZq3VkbB4yvuh
-         Li8ZHgbIEi/I26ZdL7779ftTJsLOORTfe5Hbz4xbFVxWPsYEjv8/+VoiHnAH3HwF72Hg
-         g9Fu3J1LdaPBUuKkMzbl1ck8GrB7c96T53CqxB1HTjaYeUbTzCCxU5rpRyIzrkLzNIi0
-         cXU3PtNmgQepYldUgf5v0L6RO16ijWESdawAxJcBRR9W2Csq0P4ty+DwHuo8HCGgGWY9
-         rHqA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1750436410; x=1751041210;
-        h=content-transfer-encoding:in-reply-to:organization:content-language
-         :from:references:cc:to:subject:reply-to:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=NXttrKxk2yS2jYMSNejp1cO8JOMwcunJDEmJOmX01c0=;
-        b=EKx11KlaOV+ZMe/VFBiwfXfuQ4pAPAmiaa1U4uY9mxmiarRPjv9vVNzQVrwkmBOLM9
-         jM/5vLKHGR/aRdYS8CIAqxPLKnuz66BR2f4pmrG/CinLcueI8nnrF4m1F9BMzadl22Qz
-         bgaQ1jzXnQcKtC+XQfdFH4u2MkT+Lm06pWkD6ZERWuKrXP4QW51lVc69eQbBFDIWbRZp
-         HSd/Hz0/B5rq0Nd12dwR0D8XqUgWcGcWMHTnV63wf6lS6ow2aT2wSrvwJjZfCUTa7tLN
-         0OV4A0XYhWK1XiJrOLXIxZi3K6mTfE03p+hVYqH3j+xRyU0jOpp5y6Ooy3HN31Vcz7eg
-         PXcg==
-X-Gm-Message-State: AOJu0Yx3AyN256bStiXLCObGqB0mY58BbGUEecu6tbfSf/PgORYcLKXz
-	V/2wFcOaXskL3vFYVIzeeqI8DqR+EyC2rFJUC4g2koLAjWg4feRvQreliW1shicfl2c=
-X-Gm-Gg: ASbGnctTZfdX+45og5mVuXKnkqOMPQH18+wM/q0F0HIgoXszs7W5QaXHMd9j3T1UKe/
-	iLoXNhl7fcXK0TObVR5/66EyIcqGEnl1PRuS60w9FzB5Yw3Zr9inW/hedKh1zWrq8fyfALptIny
-	SbgZRWe0tYEQgKKdysjISqPfH8nrertJbX4LoQsKHoqHOFKvVqaM+2k4G3NsiJqk7n4kl/BQQea
-	DqgTL8k+n6UOA4Ee8OPYkMxVeCfcFqEBIK0fwJdHdNYLTshhwblsfXCiarq48Ln1SkSXu9zXAQ7
-	byyEYkVLe4VrZucFSvlA1TExYRvjtwuLpMCV5LzqEn7LVJPpw+Qv3/1qiKeXm+XcW7kqNklJZIH
-	s9CQYCPh/8/IFnw9QPCmLSTcHaf1+QMymq/7I
-X-Google-Smtp-Source: AGHT+IGkowJ8P5bwuL7sCxZqqQhRiSiWE7pYlaRQ/m3YEL+PQGhAmp5M2JGhffVe+AMarzUPpEXkKQ==
-X-Received: by 2002:a05:600c:3143:b0:439:9c0e:36e6 with SMTP id 5b1f17b1804b1-453658bac2cmr14871855e9.3.1750436410004;
-        Fri, 20 Jun 2025 09:20:10 -0700 (PDT)
-Received: from ?IPV6:2a01:e0a:b41:c160:607e:36cd:ae85:b10? ([2a01:e0a:b41:c160:607e:36cd:ae85:b10])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-453646cb672sm30442825e9.6.2025.06.20.09.20.09
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 20 Jun 2025 09:20:09 -0700 (PDT)
-Message-ID: <ed8f88e7-103a-403b-83ed-c40153e9bef0@6wind.com>
-Date: Fri, 20 Jun 2025 18:20:08 +0200
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ANdYmQ6T"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1750437634;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=h/by31EtfziCQvgYWmEywAEhvgKYYlXWvTMAVPw5/Pc=;
+	b=ANdYmQ6TeMIX43qnj3MS56+SOmHuE7l5bKDEjw5xOPG70INHmlagVL57f+dUZtVVVMyjCn
+	c/7bn3bWGMeSMTUrlhsqhIBlI+NToHZaTR7tkhBEcchxNauY28SFJ3jAuFe0GWTgiDiOCU
+	UtouokKHFNrU4W0YAMRFjc6rojk3i8w=
+Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-600-Yzum8BUKNq6P5Wn8Edc_cw-1; Fri,
+ 20 Jun 2025 12:40:30 -0400
+X-MC-Unique: Yzum8BUKNq6P5Wn8Edc_cw-1
+X-Mimecast-MFC-AGG-ID: Yzum8BUKNq6P5Wn8Edc_cw_1750437629
+Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 9F48C195608E;
+	Fri, 20 Jun 2025 16:40:29 +0000 (UTC)
+Received: from yiche-laptop.redhat.com (unknown [10.72.112.97])
+	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id C267230001A1;
+	Fri, 20 Jun 2025 16:40:27 +0000 (UTC)
+From: Yi Chen <yiche@redhat.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] tests: shell: Verify limit statement with new test case.
+Date: Sat, 21 Jun 2025 00:40:25 +0800
+Message-ID: <20250620164025.49514-1-yiche@redhat.com>
+In-Reply-To: <20250617104128.27188-1-yiche@redhat.com>
+References: <20250617104128.27188-1-yiche@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Reply-To: nicolas.dichtel@6wind.com
-Subject: Re: When routed to VRF, NF _output_ hook is run unexpectedly
-To: Eugene Crosser <crosser@average.org>, netdev@vger.kernel.org
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
- David Ahern <dsahern@kernel.org>, Florian Westphal <fw@strlen.de>,
- Pablo Neira Ayuso <pablo@netfilter.org>
-References: <f55f7161-7ddc-46d1-844e-0f6e92b06dda@average.org>
- <2211ec87-b794-4d74-9d3d-0c54f166efde@6wind.com>
- <7a4c2457-0eb5-43bc-9fb0-400a7ce045f2@average.org>
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Content-Language: en-US
-Organization: 6WIND
-In-Reply-To: <7a4c2457-0eb5-43bc-9fb0-400a7ce045f2@average.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
 
-Le 20/06/2025 à 18:04, Eugene Crosser a écrit :
-> Thanks Nicolas,
-> 
-> On 20/06/2025 16:56, Nicolas Dichtel wrote:
-> 
->>> It is possible, and very useful, to implement "two-stage routing" by
->>> installing a route that points to a VRF device:
->>>
->>>     ip link add vrfNNN type vrf table NNN
->>>     ...
->>>     ip route add xxxxx/yy dev vrfNNN
->>>
->>> however this causes surprising behaviour with relation to netfilter
->>> hooks. Namely, packets taking such path traverse _output_ nftables
->>> chain, with conntracking information reset. So, for example, even
->>> when "notrack" has been set in the prerouting chain, conntrack entries
->>> will still be created. Script attached below demonstrates this behaviour.
->> You can have a look to this commit to better understand this:
->> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8c9c296adfae9
-> 
-> I've seen this commit.
-> My point is that the packets are _not locally generated_ in this case,
-> so it seems wrong to pass them to the _output_ hook, doesn't it?
-They are, from the POV of the vrf. The first route sends packets to the vrf
-device, which acts like a loopback.
+1. Add rate_limit test case.
+2. Consolidate frequently used functions in helper/lib.sh
+3. Introduce NFT_TEST_LIBRARY_FILE variable to source helper/lib.sh in
+   tests.
+4. Replace sleep with wait_local_port_listen().
+5. Other fixes: nft->$NFT; add dumps/*.nodump files
 
+Signed-off-by: Yi Chen <yiche@redhat.com>
+---
+ tests/shell/helpers/lib.sh                    |  51 +++++++
+ tests/shell/helpers/test-wrapper.sh           |   1 +
+ .../testcases/packetpath/dumps/nat_ftp.nodump |   0
+ .../packetpath/dumps/rate_limit.nodump        |   0
+ tests/shell/testcases/packetpath/flowtables   |  32 +---
+ tests/shell/testcases/packetpath/nat_ftp      |  32 ++--
+ tests/shell/testcases/packetpath/rate_limit   | 137 ++++++++++++++++++
+ 7 files changed, 211 insertions(+), 42 deletions(-)
+ create mode 100755 tests/shell/helpers/lib.sh
+ create mode 100644 tests/shell/testcases/packetpath/dumps/nat_ftp.nodump
+ create mode 100644 tests/shell/testcases/packetpath/dumps/rate_limit.nodump
+ create mode 100755 tests/shell/testcases/packetpath/rate_limit
 
-Regards,
-Nicolas
+diff --git a/tests/shell/helpers/lib.sh b/tests/shell/helpers/lib.sh
+new file mode 100755
+index 00000000..4e01c957
+--- /dev/null
++++ b/tests/shell/helpers/lib.sh
+@@ -0,0 +1,51 @@
++#!/bin/bash
++
++# Frequently used functions.
++
++wait_local_port_listen()
++{
++	local listener_ns="${1}"
++	local port="${2}"
++	local protocol="${3}"
++	local pattern
++	local i
++
++	pattern=":$(printf "%04X" "${port}") "
++
++	# for tcp protocol additionally check the socket state
++	[ ${protocol} = "tcp" ] && pattern="${pattern}0A"
++	for i in $(seq 10); do
++		if ip netns exec "${listener_ns}" awk '{print $2" "$4}' \
++		   /proc/net/"${protocol}"* | grep -q "${pattern}"; then
++			break
++		fi
++		sleep 0.1
++	done
++}
++
++assert_pass()
++{
++	local ret=$?
++	if [ $ret != 0 ]; then
++		echo "FAIL: ${@}"
++		if type -t failout; then
++			failout
++		fi
++		exit 1
++	else
++		echo "PASS: ${@}"
++	fi
++}
++assert_fail()
++{
++	local ret=$?
++	if [ $ret == 0 ]; then
++		echo "FAIL: ${@}"
++		if type -t failout; then
++			failout
++		fi
++		exit 1
++	else
++		echo "PASS: ${@}"
++	fi
++}
+diff --git a/tests/shell/helpers/test-wrapper.sh b/tests/shell/helpers/test-wrapper.sh
+index 4a7e8b7b..6ec4e030 100755
+--- a/tests/shell/helpers/test-wrapper.sh
++++ b/tests/shell/helpers/test-wrapper.sh
+@@ -36,6 +36,7 @@ TESTDIR="$(dirname "$TEST")"
+ START_TIME="$(cut -d ' ' -f1 /proc/uptime)"
+ 
+ export TMPDIR="$NFT_TEST_TESTTMPDIR"
++export NFT_TEST_LIBRARY_FILE="$NFT_TEST_BASEDIR/helpers/lib.sh"
+ 
+ CLEANUP_UMOUNT_VAR_RUN=n
+ 
+diff --git a/tests/shell/testcases/packetpath/dumps/nat_ftp.nodump b/tests/shell/testcases/packetpath/dumps/nat_ftp.nodump
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/shell/testcases/packetpath/dumps/rate_limit.nodump b/tests/shell/testcases/packetpath/dumps/rate_limit.nodump
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/shell/testcases/packetpath/flowtables b/tests/shell/testcases/packetpath/flowtables
+index b68c5dd4..01a775a1 100755
+--- a/tests/shell/testcases/packetpath/flowtables
++++ b/tests/shell/testcases/packetpath/flowtables
+@@ -3,6 +3,8 @@
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_socat)
+ # NFT_TEST_SKIP(NFT_TEST_SKIP_slow)
+ 
++. $NFT_TEST_LIBRARY_FILE
++
+ rnd=$(mktemp -u XXXXXXXX)
+ R="flowtable-router-$rnd"
+ C="flowtable-client-$rnd"
+@@ -17,29 +19,10 @@ cleanup()
+ }
+ trap cleanup EXIT
+ 
+-assert_pass()
+-{
+-	local ret=$?
+-	if [ $ret != 0 ]
+-	then
+-		echo "FAIL: ${@}"
+-		ip netns exec $R cat /proc/net/nf_conntrack
+-		exit 1
+-	else
+-		echo "PASS: ${@}"
+-	fi
+-}
+-assert_fail()
++# call back when assert failed
++failout()
+ {
+-	local ret=$?
+-	if [ $ret == 0 ]
+-	then
+-		echo "FAIL: ${@}"
+-		ip netns exec $R cat /proc/net/nf_conntrack
+-		exit 1
+-	else
+-		echo "PASS: ${@}"
+-	fi
++	ip netns exec $R cat /proc/net/nf_conntrack
+ }
+ 
+ ip netns add $R
+@@ -67,7 +50,7 @@ sleep 3
+ ip netns exec $C ping -q -6 2001:db8:ffff:22::1 -c1
+ assert_pass "topo initialization"
+ 
+-ip netns exec $R nft -f - <<EOF
++ip netns exec $R $NFT -f - <<EOF
+ table ip6 filter {
+         flowtable f1 {
+                 hook ingress priority -100
+@@ -100,7 +83,8 @@ assert_pass "set net.netfilter.nf_conntrack_tcp_timeout_established=86400"
+ 
+ # A trick to control the timing to send a packet
+ ip netns exec $S socat TCP6-LISTEN:10001 GOPEN:/tmp/socat-$rnd,ignoreeof &
+-sleep 1
++wait_local_port_listen $S 10001 tcp
++
+ ip netns exec $C socat -b 2048 PIPE:/tmp/pipefile-$rnd 'TCP:[2001:db8:ffff:22::1]:10001' &
+ sleep 1
+ ip netns exec $C echo "send sth" >> /tmp/pipefile-$rnd        ; assert_pass "send a packet"
+diff --git a/tests/shell/testcases/packetpath/nat_ftp b/tests/shell/testcases/packetpath/nat_ftp
+index 327047b8..4b9f6eb0 100755
+--- a/tests/shell/testcases/packetpath/nat_ftp
++++ b/tests/shell/testcases/packetpath/nat_ftp
+@@ -4,6 +4,7 @@
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_curl)
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_vsftpd)
+ 
++. $NFT_TEST_LIBRARY_FILE
+ cleanup()
+ {
+ 	for i in $R $C $S;do
+@@ -14,22 +15,15 @@ cleanup()
+ }
+ trap cleanup EXIT
+ 
+-assert_pass()
++# call back when assert failed
++failout()
+ {
+-	local ret=$?
+-	if [ $ret != 0 ]
+-	then
+-		echo "FAIL: ${@}"
+-		ip netns exec $R nft list ruleset
+-		tcpdump -nnr ${PCAP}
+-		test -r /proc/net/nf_conntrack && ip netns exec $R cat /proc/net/nf_conntrack
+-		ip netns exec $R conntrack -S
+-		ip netns exec $R conntrack -L
+-		ip netns exec $S ss -nitepal
+-		exit 1
+-	else
+-		echo "PASS: ${@}"
+-	fi
++	ip netns exec $R $NFT list ruleset
++	tcpdump -nnr ${PCAP}
++	test -r /proc/net/nf_conntrack && ip netns exec $R cat /proc/net/nf_conntrack
++	ip netns exec $R conntrack -S
++	ip netns exec $R conntrack -L
++	ip netns exec $S ss -nitepal
+ }
+ 
+ rnd=$(mktemp -u XXXXXXXX)
+@@ -82,7 +76,7 @@ assert_pass "topo initialization"
+ reload_ruleset()
+ {
+ 	ip netns exec $R conntrack -F 2> /dev/null
+-	ip netns exec $R nft -f - <<-EOF
++	ip netns exec $R $NFT -f - <<-EOF
+ 	flush ruleset
+ 	table ip6 ftp_helper_nat_test {
+ 		ct helper ftp-standard {
+@@ -138,7 +132,8 @@ pam_service_name=vsftpd
+ background=YES
+ EOF
+ ip netns exec $S vsftpd ${FTPCONF}
+-sleep 1
++wait_local_port_listen $S 21 tcp
++
+ ip netns exec $S ss -6ltnp | grep -q '*:21'
+ assert_pass "start vsftpd server"
+ 
+@@ -147,7 +142,7 @@ assert_pass "start vsftpd server"
+ reload_ruleset
+ ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${PCAP} 2> /dev/null &
+ pid=$!
+-sleep 1
++sleep 0.5
+ ip netns exec $C curl --no-progress-meter --connect-timeout 5 ftp://[${ip_rc}]:2121/$(basename $INFILE) -o $OUTFILE
+ assert_pass "curl ftp passive mode "
+ 
+@@ -164,6 +159,7 @@ reload_ruleset
+ 
+ ip netns exec $S tcpdump -q --immediate-mode -Ui s_r -w ${PCAP} 2> /dev/null &
+ pid=$!
++sleep 0.5
+ ip netns exec $C curl --no-progress-meter -P - --connect-timeout 5 ftp://[${ip_rc}]:2121/$(basename $INFILE) -o $OUTFILE
+ assert_pass "curl ftp active mode "
+ 
+diff --git a/tests/shell/testcases/packetpath/rate_limit b/tests/shell/testcases/packetpath/rate_limit
+new file mode 100755
+index 00000000..84ee5621
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/rate_limit
+@@ -0,0 +1,137 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_socat)
++#
++
++. $NFT_TEST_LIBRARY_FILE
++
++cleanup()
++{
++	for i in $C $S;do
++		kill $(ip netns pid $i) 2>/dev/null
++		ip netns del $i
++	done
++}
++trap cleanup EXIT
++
++rnd=$(mktemp -u XXXXXXXX)
++C="ratelimit-client-$rnd"
++S="ratelimit-server-$rnd"
++
++ip_sc=10.167.1.1
++ip_cs=10.167.1.2
++ip1_cs=10.167.1.3
++
++ip netns add $S
++ip netns add $C
++
++ip link add s_c netns $S type veth peer name c_s netns $C
++ip -net $S link set s_c up
++ip -net $C link set c_s up
++ip -net $S link set lo up
++ip -net $C link set lo up
++ip -net $S addr add ${ip_sc}/24  dev s_c
++ip -net $C addr add ${ip_cs}/24  dev c_s
++ip -net $C addr add ${ip1_cs}/24 dev c_s
++ip netns exec $C ping ${ip_sc} -c1
++assert_pass "topo initialization"
++
++ip netns exec $S $NFT -f - <<EOF
++table ip filter {
++	set icmp1 {
++		type ipv4_addr
++		size 65535
++		flags dynamic,timeout
++	}
++
++	set http1 {
++		type inet_service . ipv4_addr
++		size 65535
++		flags dynamic
++	}
++
++	chain input {
++		type filter hook input priority filter; policy accept;
++		ip protocol icmp counter jump in_icmp
++		ip protocol tcp  counter jump in_tcp
++	}
++	chain in_tcp {
++		iifname "s_c" tcp dport 80 ct state new add @http1 { tcp dport . ip saddr limit rate over 1/minute burst 5 packets } counter reject
++		iifname "s_c" tcp dport 80 counter accept
++	}
++
++	chain in_icmp {
++		iifname "s_c" ip protocol icmp counter update @icmp1 { ip saddr timeout 3s limit rate 1/second burst 5 packets } counter accept
++		iifname "s_c" ip protocol icmp counter reject
++	}
++
++}
++EOF
++assert_pass "Apply ruleset"
++
++# icmp test
++ip netns exec $C ping -W 1 ${ip_sc} -c 5 -f -I ${ip_cs} | grep -q '5 received'
++assert_pass "saddr1, burst 5 accept"
++
++ip netns exec $C ping -W 1 ${ip_sc} -c 5 -f -I ${ip1_cs} | grep -q '5 received'
++assert_pass "saddr2, burst 5 accept"
++
++ip netns exec $C ping -W 1 ${ip_sc} -c 1 -f -I ${ip_cs} | grep -q '1 received'
++assert_fail "saddr1, burst 5 up to limit, reject"
++
++sleep 3
++ip netns exec $C ping -W 1 ${ip_sc} -c 5 -f -I ${ip_cs} | grep -q '5 received'
++assert_pass "saddr1, element timeout,burst 5 pass again"
++
++ip netns exec $C ping -W 1 ${ip_sc} -c 1 -f -I ${ip_cs} | grep -q '1 received'
++assert_fail "saddr1, burst 5 up to limit"
++
++ip netns exec $C ping -W 1 ${ip_sc} -c 6 -i 1 -I ${ip1_cs} | grep -q '6 received'
++assert_pass "saddr2, 6s test, limit rate 1/second accept"
++
++ip netns exec $C ping -W 1 ${ip_sc} -c 4 -f -I ${ip1_cs} | grep -q '4 received'
++assert_pass "saddr2, burst 4 accept"
++
++sleep 2
++ip netns exec $C ping -W 1 ${ip_sc} -c 2 -f -I ${ip1_cs} | grep -q '2 received'
++assert_pass "saddr2, burst 2 sleep 2, accept"
++
++sleep 2
++ip netns exec $C ping -W 1 ${ip_sc} -c 2 -f -I ${ip1_cs} | grep -q '2 received'
++assert_pass "saddr2, burst 2 sleep 2, accept"
++
++ip netns exec $C ping -W 1 ${ip_sc} -c 1 -f -I ${ip1_cs} | grep -q '1 received'
++assert_fail "saddr2, limit rate 1/second up to limit, reject"
++
++
++# tcp test
++ip netns exec $S socat TCP-LISTEN:80,reuseaddr,fork - > /dev/null &
++wait_local_port_listen $S 80 tcp
++
++for port in {1..5};do
++	ip netns exec $C socat -u - TCP:${ip_sc}:80,connect-timeout=1 <<< 'AAA'
++	assert_pass "tcp connection burst 5 accept"
++done
++ip netns exec $C socat -u - TCP:${ip_sc}:80,reuseport,connect-timeout=1 <<< 'AAA'
++assert_fail "tcp connection burst 5 up to limit reject"
++
++ip netns exec $S $NFT flush chain filter in_tcp
++assert_pass result "flush chain"
++
++ip netns exec $S $NFT flush set filter http1
++assert_pass result "flush set"
++
++ip netns exec $S $NFT add rule filter in_tcp iifname s_c tcp dport 80 ct state new add @http1 { tcp dport . ip saddr limit rate over 1/second burst 1 packets} counter reject
++assert_pass result "add rule limit rate over 1/second burst 1"
++ip netns exec $S $NFT add rule filter in_tcp iifname s_c tcp dport 80 counter accept
++
++sleep 1
++ip netns exec $C socat -u - TCP:${ip_sc}:80,reuseport,connect-timeout=1 <<< 'AAA'
++assert_pass result "tcp connection limit rate 1/sec burst 1 accept"
++
++ip netns exec $C socat -u - TCP:${ip_sc}:80,reuseport,connect-timeout=1 <<< 'AAA'
++assert_fail result "tcp connection limit rate 1/sec burst 1 reject"
++
++sleep 1
++ip netns exec $C socat -u - TCP:${ip_sc}:80,reuseport,connect-timeout=1 <<< 'AAA'
++assert_pass result "tcp connection limit rate 1/sec burst 1 accept"
+-- 
+2.49.0
+
