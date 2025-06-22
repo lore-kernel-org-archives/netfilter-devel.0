@@ -1,117 +1,119 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2B4E56A;
-	Sat, 21 Jun 2025 14:54:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B3226AD9
+	for <netfilter-devel@vger.kernel.org>; Sun, 22 Jun 2025 12:56:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750517646; cv=none; b=VJo3PnYorZ+o49RdaRkn7knnRe7ceqV+3EHVziRGhGVxcJUNlhc5F3LNtax5YBXzAoVroyTKWr1A6z0y9rYAgnGQKWRhqB2nHvRsbasffls4RDVK+66Fc/D0JYpO8Ud7WkePMp05wiSnqGv6X3u6al/hvnqXdSjniIL12x6IhI4=
+	t=1750596968; cv=none; b=VOdZAhL+IL0jLCoyb04dxJN2Fxy0U3MB9aqRP6I21rjDGAwDMKLElK+js+2B1E9tN+VCZTfaPB/WesNtTzeG/Xt2EOWFPF1C4rAa37jNY9eUtj4DHkmdlIU7oaZHYUusQfymFBFFHYXFUqDPUlpVo08nVK+PkiQ1W5zecupZ/WU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750517646; c=relaxed/simple;
-	bh=Q8FDZihT0rIgE8dqYjKRtD5Nrn5OypH+gWUtZ6hkqw4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=BcnvKc+yXJiV/ofT9HkFfjNUC4hgukTrwhRFnaiUTrF/sFU/5081C/M43U4eVRYaBsrcEcJm2TbTiW8/6CnyTfO7076bx4dD6KLtm3+usu7ciNbrUnK0OCpODCNok44FH+94IJEUTtZv5Eqn0JHQKIVXbG+1+Tpi11HONEsqhxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 4bPcZb0xXWz3sb80;
-	Sat, 21 Jun 2025 16:45:11 +0200 (CEST)
-X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
-Received: from smtp0.kfki.hu ([127.0.0.1])
- by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id Yr-XXvThqecK; Sat, 21 Jun 2025 16:45:09 +0200 (CEST)
-Received: from mentat.rmki.kfki.hu (unknown [148.6.192.8])
-	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp0.kfki.hu (Postfix) with ESMTPSA id 4bPcZY1q8fz3sb7s;
-	Sat, 21 Jun 2025 16:45:09 +0200 (CEST)
-Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 1C0ED140EA3; Sat, 21 Jun 2025 16:45:09 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 17F4F140184;
-	Sat, 21 Jun 2025 16:45:09 +0200 (CEST)
-Date: Sat, 21 Jun 2025 16:45:09 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: RubenKelevra <rubenkelevra@gmail.com>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org, 
-    coreteam@netfilter.org, netdev@vger.kernel.org, 
-    linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: ipset: fix typo in hash size macro
-In-Reply-To: <20250620092053.180550-1-rubenkelevra@gmail.com>
-Message-ID: <11f4f9cd-e818-099e-b8b2-782608862eb5@netfilter.org>
-References: <20250619151029.97870-1-rubenkelevra@gmail.com> <20250620092053.180550-1-rubenkelevra@gmail.com>
+	s=arc-20240116; t=1750596968; c=relaxed/simple;
+	bh=7FcX4aps5uAN65ZCqxJ5znbPt6GBG+VCVC/7fC29+7E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DvZbqd84rIAUqdvzPBUouKqmuhCGwXj7DbLvCKJo7FfEfVLQFFF8/ifa05Hcou9sB4YTZAZYgvv8byM86S2tdA+/KNepCfIzVXcVEhliPFDBIGFq+NO0bJDqP+10H71un7XmOPDEQP1m6Jvh8Xx9nV1/5rRTWYtwIucs7V7Dzw0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=QHTBhlbZ; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QHTBhlbZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1750596964;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=wkPhzmhO3fimjSYFiRDSk35riXhRcOJkbZJR2iv3G5o=;
+	b=QHTBhlbZ4aMFxIefVrqxqmcAEh0CjGVb3rLBPookItVjgseENvsipf5nRLl+fBydvZf+us
+	D2n/wyDmhWeV/G6zhi/TFz9RTnjxWhzlWdhYog+P1F/vUGzOckClO2bsb5fau4wF8IqY/D
+	cwx5AVstIqfxXVXqYnuOfkfmqbhvrpw=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-43-U_yIzDWeNEWaTksIjxlEwQ-1; Sun,
+ 22 Jun 2025 08:56:00 -0400
+X-MC-Unique: U_yIzDWeNEWaTksIjxlEwQ-1
+X-Mimecast-MFC-AGG-ID: U_yIzDWeNEWaTksIjxlEwQ_1750596960
+Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id CEFBA1956088;
+	Sun, 22 Jun 2025 12:55:59 +0000 (UTC)
+Received: from yiche-laptop.redhat.com (unknown [10.72.116.39])
+	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 04A63180035C;
+	Sun, 22 Jun 2025 12:55:57 +0000 (UTC)
+From: Yi Chen <yiche@redhat.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 1/4] test: shell: Don't use system nft binary
+Date: Sun, 22 Jun 2025 20:55:51 +0800
+Message-ID: <20250622125554.4960-1-yiche@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323329-1275113213-1750517109=:3235"
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Use the defined $NFT variable instead of calling the system nft binary directly.
+Add a nat_ftp.nodump file to avoid the following check-tree.sh error:
+ERR: "tests/shell/testcases/packetpath/nat_ftp" has no "tests/shell/testcases/packetpath/dumps/nat_ftp.{nft,nodump}" file.
 
---8323329-1275113213-1750517109=:3235
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Yi Chen <yiche@redhat.com>
+---
+ tests/shell/testcases/packetpath/dumps/nat_ftp.nodump | 0
+ tests/shell/testcases/packetpath/flowtables           | 4 ++--
+ tests/shell/testcases/packetpath/nat_ftp              | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/nat_ftp.nodump
 
-Hello,
+diff --git a/tests/shell/testcases/packetpath/dumps/nat_ftp.nodump b/tests/shell/testcases/packetpath/dumps/nat_ftp.nodump
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/shell/testcases/packetpath/flowtables b/tests/shell/testcases/packetpath/flowtables
+index b68c5dd4..ab11431f 100755
+--- a/tests/shell/testcases/packetpath/flowtables
++++ b/tests/shell/testcases/packetpath/flowtables
+@@ -67,7 +67,7 @@ sleep 3
+ ip netns exec $C ping -q -6 2001:db8:ffff:22::1 -c1
+ assert_pass "topo initialization"
+ 
+-ip netns exec $R nft -f - <<EOF
++ip netns exec $R $NFT -f - <<EOF
+ table ip6 filter {
+         flowtable f1 {
+                 hook ingress priority -100
+@@ -88,7 +88,7 @@ assert_pass "apply nft ruleset"
+ 
+ if [ ! -r /proc/net/nf_conntrack ]
+ then
+-	echo "E: nf_conntrack unreadable, skipping" >&2	
++	echo "E: nf_conntrack unreadable, skipping" >&2
+ 	exit 77
+ fi
+ 
+diff --git a/tests/shell/testcases/packetpath/nat_ftp b/tests/shell/testcases/packetpath/nat_ftp
+index 327047b8..738bcb98 100755
+--- a/tests/shell/testcases/packetpath/nat_ftp
++++ b/tests/shell/testcases/packetpath/nat_ftp
+@@ -20,7 +20,7 @@ assert_pass()
+ 	if [ $ret != 0 ]
+ 	then
+ 		echo "FAIL: ${@}"
+-		ip netns exec $R nft list ruleset
++		ip netns exec $R $NFT list ruleset
+ 		tcpdump -nnr ${PCAP}
+ 		test -r /proc/net/nf_conntrack && ip netns exec $R cat /proc/net/nf_conntrack
+ 		ip netns exec $R conntrack -S
+@@ -82,7 +82,7 @@ assert_pass "topo initialization"
+ reload_ruleset()
+ {
+ 	ip netns exec $R conntrack -F 2> /dev/null
+-	ip netns exec $R nft -f - <<-EOF
++	ip netns exec $R $NFT -f - <<-EOF
+ 	flush ruleset
+ 	table ip6 ftp_helper_nat_test {
+ 		ct helper ftp-standard {
+-- 
+2.49.0
 
-On Fri, 20 Jun 2025, RubenKelevra wrote:
-
-> Rename IPSET_MIMINAL_HASHSIZE =E2=86=92 IPSET_MINIMAL_HASHSIZE in
-> ip_set_hash_gen.h, matching the header typo-fix.
->=20
-> Signed-off-by: RubenKelevra <rubenkelevra@gmail.com>
-
-Patch is applied in the ipset git tree, thank you.
-
-Best regards,
-Jozsef
-> ---
->  include/linux/netfilter/ipset/ip_set_hash.h | 2 +-
->  net/netfilter/ipset/ip_set_hash_gen.h       | 4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/include/linux/netfilter/ipset/ip_set_hash.h b/include/linu=
-x/netfilter/ipset/ip_set_hash.h
-> index 838abab672af1..56e883661f857 100644
-> --- a/include/linux/netfilter/ipset/ip_set_hash.h
-> +++ b/include/linux/netfilter/ipset/ip_set_hash.h
-> @@ -6,7 +6,7 @@
-> =20
-> =20
->  #define IPSET_DEFAULT_HASHSIZE		1024
-> -#define IPSET_MIMINAL_HASHSIZE		64
-> +#define IPSET_MINIMAL_HASHSIZE		64
->  #define IPSET_DEFAULT_MAXELEM		65536
->  #define IPSET_DEFAULT_PROBES		4
->  #define IPSET_DEFAULT_RESIZE		100
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipse=
-t/ip_set_hash_gen.h
-> index 5251524b96afa..785d109645fed 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -1543,8 +1543,8 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, stru=
-ct ip_set *set,
-> =20
->  	if (tb[IPSET_ATTR_HASHSIZE]) {
->  		hashsize =3D ip_set_get_h32(tb[IPSET_ATTR_HASHSIZE]);
-> -		if (hashsize < IPSET_MIMINAL_HASHSIZE)
-> -			hashsize =3D IPSET_MIMINAL_HASHSIZE;
-> +		if (hashsize < IPSET_MINIMAL_HASHSIZE)
-> +			hashsize =3D IPSET_MINIMAL_HASHSIZE;
->  	}
-> =20
->  	if (tb[IPSET_ATTR_MAXELEM])
-> --=20
-> 2.49.0
->=20
->=20
-
---=20
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef=
-@wigner.hu
-Address: Wigner Research Centre for Physics
-         H-1525 Budapest 114, POB. 49, Hungary
---8323329-1275113213-1750517109=:3235--
