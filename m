@@ -1,26 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DA3C366
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Jun 2025 21:01:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7780C47F4A
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Jun 2025 21:21:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750798900; cv=none; b=krR4NQzcbmFxfBx/kTQQkf5PifOUXMfI3DVzm8fJTX5ZybeyJtrHsc6Drmej0b53EcdcmtjuwNa6R83HYbSob2vzbg/g85LJ8aV3hiHia9H2FE6u7CXcK9HmQUQavyVqKTYgTNK9UBkwYRllZurU8U8ABl0DMbeEoxus+T67x4Y=
+	t=1750800070; cv=none; b=LpdNaxrJG/MNR0VevP7iv9pQ9VgAaKZcQSnfpCnd3bsHMdjZSTv3nTHMBHr5UaVnUbpL7vu0twFmf00lsi5dQbZFnUTrIwoqrYQazh+LaaBfTr6QkDhc/A6EJ4WOBsQJLf9Vz7Aj402HXZL+s0lf07Y38JNy3rBrsh9bqW6eTuA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750798900; c=relaxed/simple;
-	bh=QcQCaxqEXnuk8e2yMQtybtUduiB6FOtB7ERaXy37Ixo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j3+7DbnwBqYI76bs1mVtVSyPl5i9RYIX9WXG5Ney/OCT8YW4r7jFWTE2X5eoTeTDGbcBXi+fzXKWup1Zg+GiTKmzr5ULQiRhz70MPxzhUpCCerRef3kh+Kxye6hKbPvmkN2zmKlSRBd2NrtPMrDC1KzfCm4CZ4WYjH8DBXZJUPc=
+	s=arc-20240116; t=1750800070; c=relaxed/simple;
+	bh=D8SgcCbLvEg7pbZcUKRHTaddiHJzMj2Z7k/nF6e9uNY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OLNWAEf+RRIM5B0Np7jgb5B1bara33flPmJhjNv006afLZgF5LBjAEZfuzvZKZxoJof5AwkUzBxwdfWIsyrB8lAJGYOTs8VO2A0dVXQCkU8U6mrh5f0fIVvRTt0j0BiWoKXt/UHnnXRlNWpj2RRYFQOdvvvQ9sGYFF708aoTzkQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7945F60A73; Tue, 24 Jun 2025 23:01:29 +0200 (CEST)
+	id 733FC61597; Tue, 24 Jun 2025 23:21:06 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: make sure chain jump name comes with a null byte
-Date: Tue, 24 Jun 2025 23:01:13 +0200
-Message-ID: <20250624210118.27029-1-fw@strlen.de>
+Subject: [PATCH nft] evaluate: avoid double-free on error handling of bogus objref maps
+Date: Tue, 24 Jun 2025 23:20:58 +0200
+Message-ID: <20250624212101.18722-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,104 +30,68 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There is a stack oob read access in netlink_gen_chain():
+commit 98c51aaac42b ("evaluate: bail out if anonymous concat set defines a non concat expression")
+clears set->init to avoid a double-free.
 
-	mpz_export_data(chain, expr->chain->value,
-			BYTEORDER_HOST_ENDIAN, len);
-	snprintf(data->chain, NFT_CHAIN_MAXNAMELEN, "%s", chain);
+Extend this to also handle object maps.
+The included bogon triggers a double-free of set->init expression:
 
-There is no guarantee that chain[] is null terminated, so snprintf
-can read past chain[] array.  ASAN report is:
+Error: unqualified type invalid specified in map definition. Try "typeof expression" instead of "type datatype".
+ct helper set ct  saddr map { 1c3:: : "p", dead::beef : "myftp" }
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-AddressSanitizer: stack-buffer-overflow on address 0x7ffff5f00520 at ..
-READ of size 257 at 0x7ffff5f00520 thread T0
-    #0 0x00000032ffb6 in printf_common(void*, char const*, __va_list_tag*) (src/nft+0x32ffb6)
-    #1 0x00000033055d in vsnprintf (src/nft+0x33055d)
-    #2 0x000000332071 in snprintf (src/nft+0x332071)
-    #3 0x0000004eef03 in netlink_gen_chain src/netlink.c:454:2
-    #4 0x0000004eef03 in netlink_gen_verdict src/netlink.c:467:4
-
-Reject chain jumps that exceed 255 characters, which matches the netlink
-policy on the kernel side.
-
-The included reproducer fails without asan too because the kernel will
-reject the too-long chain name. But that happens after the asan detected
-bogus read.
+This might not crash, depending on libc/malloc, but ASAN reports this:
+==17728==ERROR: AddressSanitizer: heap-use-after-free on address 0x50b0000005e8 at ..
+READ of size 4 at 0x50b0000005e8 thread T0
+    #0 0x7f1be3cb7526 in expr_free src/expression.c:87
+    #1 0x7f1be3cbdf29 in map_expr_destroy src/expression.c:1488
+    #2 0x7f1be3cb74d5 in expr_destroy src/expression.c:80
+    #3 0x7f1be3cb75c6 in expr_free src/expression.c:96
+    #4 0x7f1be3d5925e in objref_stmt_destroy src/statement.c:331
+    #5 0x7f1be3d5831f in stmt_free src/statement.c:56
+    #6 0x7f1be3d583c2 in stmt_list_free src/statement.c:66
+    #7 0x7f1be3d42805 in rule_free src/rule.c:495
+    #8 0x7f1be3d48329 in cmd_free src/rule.c:1417
+    #9 0x7f1be3cd2c7c in __nft_run_cmd_from_filename src/libnftables.c:759
+    #10 0x7f1be3cd340c in nft_run_cmd_from_filename src/libnftables.c:847
+    #11 0x55dcde0440be in main src/main.c:535
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                                | 26 +++++++++++++++----
- .../asan_out_of_bounds_read_with_long_chain   |  3 +++
- 2 files changed, 24 insertions(+), 5 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/asan_out_of_bounds_read_with_long_chain
+ src/evaluate.c                                        |  2 +-
+ tests/shell/testcases/bogons/objref_double_free_crash | 10 ++++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+ create mode 100644 tests/shell/testcases/bogons/objref_double_free_crash
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 3c091748f786..699891106cb9 100644
+index 699891106cb9..204796d00800 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -3040,16 +3040,32 @@ static int expr_evaluate_xfrm(struct eval_ctx *ctx, struct expr **exprp)
- 	return expr_evaluate_primary(ctx, exprp);
- }
+@@ -137,7 +137,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 	handle_merge(&set->handle, &ctx->cmd->handle);
  
--static int verdict_validate_chainlen(struct eval_ctx *ctx,
-+static int verdict_validate_chain(struct eval_ctx *ctx,
- 				     struct expr *chain)
- {
--	if (chain->len > NFT_CHAIN_MAXNAMELEN * BITS_PER_BYTE)
-+	char buf[NFT_CHAIN_MAXNAMELEN];
-+	unsigned int len;
-+
-+	len = chain->len / BITS_PER_BYTE;
-+	if (len > NFT_CHAIN_MAXNAMELEN)
- 		return expr_error(ctx->msgs, chain,
- 				  "chain name too long (%u, max %u)",
- 				  chain->len / BITS_PER_BYTE,
- 				  NFT_CHAIN_MAXNAMELEN);
- 
--	return 0;
-+	if (!len)
-+		return expr_error(ctx->msgs, chain,
-+				  "chain name length 0 not allowed");
-+
-+	memset(buf, 0, sizeof(buf));
-+	mpz_export_data(buf, chain->value, BYTEORDER_HOST_ENDIAN, len);
-+
-+	if (strnlen(buf, sizeof(buf)) < sizeof(buf))
-+		return 0;
-+
-+	return expr_error(ctx->msgs, chain,
-+			  "chain name must be smaller than %u",
-+			  NFT_CHAIN_MAXNAMELEN);
- }
- 
- static int expr_evaluate_verdict(struct eval_ctx *ctx, struct expr **exprp)
-@@ -3060,7 +3076,7 @@ static int expr_evaluate_verdict(struct eval_ctx *ctx, struct expr **exprp)
- 	case NFT_GOTO:
- 	case NFT_JUMP:
- 		if (expr->chain->etype == EXPR_VALUE &&
--		    verdict_validate_chainlen(ctx, expr->chain))
-+		    verdict_validate_chain(ctx, expr->chain))
- 			return -1;
- 
- 		break;
-@@ -3296,7 +3312,7 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
- 						  "not a value expression");
- 			}
- 
--			if (verdict_validate_chainlen(ctx, stmt->expr->chain))
-+			if (verdict_validate_chain(ctx, stmt->expr->chain))
- 				return -1;
- 		}
- 		break;
-diff --git a/tests/shell/testcases/bogons/nft-f/asan_out_of_bounds_read_with_long_chain b/tests/shell/testcases/bogons/nft-f/asan_out_of_bounds_read_with_long_chain
+ 	if (set_evaluate(ctx, set) < 0) {
+-		if (set->flags & NFT_SET_MAP)
++		if (set->flags & (NFT_SET_MAP|NFT_SET_OBJECT))
+ 			set->init = NULL;
+ 		set_free(set);
+ 		return NULL;
+diff --git a/tests/shell/testcases/bogons/objref_double_free_crash b/tests/shell/testcases/bogons/objref_double_free_crash
 new file mode 100644
-index 000000000000..e166a0304f75
+index 000000000000..52b0435bfddc
 --- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/asan_out_of_bounds_read_with_long_chain
-@@ -0,0 +1,3 @@
-+add table t
-+add chain t eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-+add rule  t eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee jump   eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
++++ b/tests/shell/testcases/bogons/objref_double_free_crash
+@@ -0,0 +1,10 @@
++table arp test {
++	ct helper myftp {
++		type "ftp" protocol tcp
++		l3proto inet
++	}
++
++	chain y {
++		ct helper set ct  saddr map { 1c3:: : "p", dead::beef : "myftp" }
++	}
++}
 -- 
 2.49.0
 
