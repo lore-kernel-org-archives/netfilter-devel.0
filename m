@@ -1,26 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7780C47F4A
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Jun 2025 21:21:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A804A307483
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Jun 2025 21:47:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750800070; cv=none; b=LpdNaxrJG/MNR0VevP7iv9pQ9VgAaKZcQSnfpCnd3bsHMdjZSTv3nTHMBHr5UaVnUbpL7vu0twFmf00lsi5dQbZFnUTrIwoqrYQazh+LaaBfTr6QkDhc/A6EJ4WOBsQJLf9Vz7Aj402HXZL+s0lf07Y38JNy3rBrsh9bqW6eTuA=
+	t=1750801633; cv=none; b=U6m7LbWt+SIDR3Tm6/It/e6z8Y6aHc03OAmq0skexP80ViHXYQvD49EWXMRoO+r0UxAasBp/xJ7oekNyiU4xqEcS3x81lKgxTx9OmdAHp36bqUX92n1WF9TEIDAs2WB6aLNtAvL8aOA8ovrTJyz+9lu1LiEKGlgtnnhb76XkPTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750800070; c=relaxed/simple;
-	bh=D8SgcCbLvEg7pbZcUKRHTaddiHJzMj2Z7k/nF6e9uNY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OLNWAEf+RRIM5B0Np7jgb5B1bara33flPmJhjNv006afLZgF5LBjAEZfuzvZKZxoJof5AwkUzBxwdfWIsyrB8lAJGYOTs8VO2A0dVXQCkU8U6mrh5f0fIVvRTt0j0BiWoKXt/UHnnXRlNWpj2RRYFQOdvvvQ9sGYFF708aoTzkQ=
+	s=arc-20240116; t=1750801633; c=relaxed/simple;
+	bh=TZPdcAIWeoh1wzj5tCp8CVyqblYyMHlYsjma0YWYH4U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eb+v8LIW9O+S71OwQfZ+soqg/PjS816BHPuDItFoUs3NqOTP76cM295lX5UkXCp0a+jwZaGTGwB8AJv1t6b1HXSY43zUoOIlHMJqPdPyWwSbS8mYyzromGR2glcLbtUYeNJC1j9U4Sp47ktGMrBuLZsV0+JQ+u7Lv0bX6x39Dvw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 733FC61597; Tue, 24 Jun 2025 23:21:06 +0200 (CEST)
+	id 94D1A61597; Tue, 24 Jun 2025 23:47:08 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: avoid double-free on error handling of bogus objref maps
-Date: Tue, 24 Jun 2025 23:20:58 +0200
-Message-ID: <20250624212101.18722-1-fw@strlen.de>
+Subject: [PATCH nft] json: reject too long interface names
+Date: Tue, 24 Jun 2025 23:46:59 +0200
+Message-ID: <20250624214702.25077-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,67 +30,160 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit 98c51aaac42b ("evaluate: bail out if anonymous concat set defines a non concat expression")
-clears set->init to avoid a double-free.
+Blamed commit added a length check on ifnames to the bison parser.
+Unfortunately that wasn't enough, json parser has the same issue.
 
-Extend this to also handle object maps.
-The included bogon triggers a double-free of set->init expression:
+Bogon results in:
+BUG: Interface length 44 exceeds limit
+nft: src/mnl.c:742: nft_dev_add: Assertion `0' failed.
 
-Error: unqualified type invalid specified in map definition. Try "typeof expression" instead of "type datatype".
-ct helper set ct  saddr map { 1c3:: : "p", dead::beef : "myftp" }
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+After patch, included bogon results in:
+Error: Invalid device at index 0. name d2345678999999999999999999999999999999012345 too long
 
-This might not crash, depending on libc/malloc, but ASAN reports this:
-==17728==ERROR: AddressSanitizer: heap-use-after-free on address 0x50b0000005e8 at ..
-READ of size 4 at 0x50b0000005e8 thread T0
-    #0 0x7f1be3cb7526 in expr_free src/expression.c:87
-    #1 0x7f1be3cbdf29 in map_expr_destroy src/expression.c:1488
-    #2 0x7f1be3cb74d5 in expr_destroy src/expression.c:80
-    #3 0x7f1be3cb75c6 in expr_free src/expression.c:96
-    #4 0x7f1be3d5925e in objref_stmt_destroy src/statement.c:331
-    #5 0x7f1be3d5831f in stmt_free src/statement.c:56
-    #6 0x7f1be3d583c2 in stmt_list_free src/statement.c:66
-    #7 0x7f1be3d42805 in rule_free src/rule.c:495
-    #8 0x7f1be3d48329 in cmd_free src/rule.c:1417
-    #9 0x7f1be3cd2c7c in __nft_run_cmd_from_filename src/libnftables.c:759
-    #10 0x7f1be3cd340c in nft_run_cmd_from_filename src/libnftables.c:847
-    #11 0x55dcde0440be in main src/main.c:535
+I intentionally did not extend evaluate.c to catch this, past sentiment
+was that frontends should not send garbage.
 
+I'll send a followup patch to also catch this from eval stage in case there
+are further reports for frontends passing in such long names.
+
+Fixes: fa52bc225806 ("parser: reject zero-length interface names")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                                        |  2 +-
- tests/shell/testcases/bogons/objref_double_free_crash | 10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletion(-)
- create mode 100644 tests/shell/testcases/bogons/objref_double_free_crash
+ src/parser_json.c                             | 17 +++-
+ .../nft-j-f/dev_name_parser_overflow_crash    | 90 +++++++++++++++++++
+ 2 files changed, 105 insertions(+), 2 deletions(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-j-f/dev_name_parser_overflow_crash
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 699891106cb9..204796d00800 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -137,7 +137,7 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
- 	handle_merge(&set->handle, &ctx->cmd->handle);
+diff --git a/src/parser_json.c b/src/parser_json.c
+index e3dd14cda350..3195d529cbbc 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2951,7 +2951,13 @@ static struct expr *json_parse_devs(struct json_ctx *ctx, json_t *root)
+ 	size_t index;
  
- 	if (set_evaluate(ctx, set) < 0) {
--		if (set->flags & NFT_SET_MAP)
-+		if (set->flags & (NFT_SET_MAP|NFT_SET_OBJECT))
- 			set->init = NULL;
- 		set_free(set);
- 		return NULL;
-diff --git a/tests/shell/testcases/bogons/objref_double_free_crash b/tests/shell/testcases/bogons/objref_double_free_crash
-new file mode 100644
-index 000000000000..52b0435bfddc
---- /dev/null
-+++ b/tests/shell/testcases/bogons/objref_double_free_crash
-@@ -0,0 +1,10 @@
-+table arp test {
-+	ct helper myftp {
-+		type "ftp" protocol tcp
-+		l3proto inet
-+	}
+ 	if (!json_unpack(root, "s", &dev)) {
+-		tmp = constant_expr_alloc(int_loc, &string_type,
++		if (strlen(dev) >= IFNAMSIZ) {
++			json_error(ctx, "Device name %s too long", dev);
++			expr_free(expr);
++			return NULL;
++		}
 +
-+	chain y {
-+		ct helper set ct  saddr map { 1c3:: : "p", dead::beef : "myftp" }
-+	}
++		tmp = constant_expr_alloc(int_loc, &ifname_type,
+ 					  BYTEORDER_HOST_ENDIAN,
+ 					  strlen(dev) * BITS_PER_BYTE, dev);
+ 		compound_expr_add(expr, tmp);
+@@ -2969,7 +2975,14 @@ static struct expr *json_parse_devs(struct json_ctx *ctx, json_t *root)
+ 			expr_free(expr);
+ 			return NULL;
+ 		}
+-		tmp = constant_expr_alloc(int_loc, &string_type,
++
++		if (strlen(dev) >= IFNAMSIZ) {
++			json_error(ctx, "Device name %s too long at index %zu", dev, index);
++			expr_free(expr);
++			return NULL;
++		}
++
++		tmp = constant_expr_alloc(int_loc, &ifname_type,
+ 					  BYTEORDER_HOST_ENDIAN,
+ 					  strlen(dev) * BITS_PER_BYTE, dev);
+ 		compound_expr_add(expr, tmp);
+diff --git a/tests/shell/testcases/bogons/nft-j-f/dev_name_parser_overflow_crash b/tests/shell/testcases/bogons/nft-j-f/dev_name_parser_overflow_crash
+new file mode 100644
+index 000000000000..8303c5c1cad9
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-j-f/dev_name_parser_overflow_crash
+@@ -0,0 +1,90 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "netdev",
++        "name": "filter1",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "netdev",
++        "table": "filter1",
++        "name": "Main_Ingress1",
++        "handle": 0,
++        "dev": "lo",
++        "type": "filter",
++        "hook": "ingress",
++        "prio": -500,
++        "policy": "accept"
++      }
++    },
++    {
++      "table": {
++        "family": "netdev",
++        "name": "filter2",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "netdev",
++        "table": "filter2",
++        "name": "Main_Ingress2",
++        "handle": 0,
++        "dev": [
++          "d2345678999999999999999999999999999999012345",
++          "lo"
++        ],
++        "type": "filter",
++        "hook": "ingress",
++        "prio": -500,
++        "policy": "accept"
++      }
++    },
++    {
++      "table": {
++        "family": "netdev",
++        "name": "filter3",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "netdev",
++        "table": "filter3",
++        "name": "Main_Ingress3",
++        "handle": 0,
++        "dev": [
++          "d23456789012345",
++          "lo"
++        ],
++        "type": "filter",
++        "hook": "ingress",
++        "prio": -500,
++        "policy": "accept"
++      }
++    },
++    {
++      "chain": {
++        "family": "netdev",
++        "table": "filter3",
++        "name": "Main_Egress3",
++        "handle": 0,
++        "dev": "lo",
++        "type": "filter",
++        "hook": "egress",
++        "prio": -500,
++        "policy": "accept"
++      }
++    }
++  ]
 +}
 -- 
 2.49.0
