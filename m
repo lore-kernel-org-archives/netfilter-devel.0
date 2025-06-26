@@ -1,134 +1,123 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A124204E
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Jun 2025 21:23:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94589139579
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Jun 2025 00:53:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1750886625; cv=none; b=guytkujIoJKR1RSeOhzCjpIfpJub3vQ+p/3ZUHB2Kcj+J968oxpP2iUgxPEPy+mtB6Eqbyx+Np/AaG3RH9cz6hjDW25JmlVnbitS1L61UQ9Wmw4rmd6LmocCj5eXagXwXgKn4HNIc/ALTUZJPbC0VrmAK4j5FLL8QTX8wKuFr98=
+	t=1750899186; cv=none; b=gCY5fyXkAMXUi+mmqRRaSZMeUG+675NszeXgkWPaFYqwWytsotYcV3U1M9C0rW07C2Lluxm+VC/z75THrmwPgsDcoGnadUd7/qZ+qE5tR4MTTz90NvdaxMJAtQieqDooY0KQi1HI+f2uvpl0ZNFbLISFslADQ8llv8gTNmFj+aw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1750886625; c=relaxed/simple;
-	bh=d2boU+sIwusp16DNGtXpJ+dsTkBPPGiwi5ZXXKHRsJU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZiWNXW2B3/NtzGTvnPySZI9gukm68mFgTt2XVoayo61k4gj2E/i7aLodOyXv0q1fdgDqIyrAwTw54LqMCKrl8YvNuKQJYzxg0tiIoGQtRMXcfuy/dzN6zgJtXv2U9GIdait151LKnQ0QVr3j7G/MSX9xAgrB4MHJcPfLvvM6uLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DCqJsRM2; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RgJVgF4l; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DCqJsRM2";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RgJVgF4l"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 3C3986027C; Wed, 25 Jun 2025 23:23:42 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750886622;
-	bh=KfIEkyEV7TJfWm69qXUaFOVjLJF++K0TzrLYWo2UsNU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DCqJsRM29MJ7PVxON4JZTH53SV9CoLyyjg4myZrzOM923+o3Bntd9l3xhBVwtTj6B
-	 IsfYeh3Qgf3KHL/xyaCAtr1C1aH1lsNgEWqrCiX9q+Et1sUDyb/riilv+B9TK3zWdE
-	 8Hb6uefxEKXf7iF1HkNj3kur1/N0foQZ0cOpikpByXs0sUhFXI3noOMo9u+POK6v1/
-	 s/p5l2HbsTR8Nxikvh7AIOraKKx3gt2vYxPVNB97a8g3ohwIe9ry2cLTM/kiephaYw
-	 y95KxiE23thF7SdupKC8v6iNAT9WwQkfLKe9iRqtKKYojTTaFMbvZYsiPYRwfcefVm
-	 c+7kB8qzSIPaQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 81A056027C;
-	Wed, 25 Jun 2025 23:23:41 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1750886621;
-	bh=KfIEkyEV7TJfWm69qXUaFOVjLJF++K0TzrLYWo2UsNU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=RgJVgF4lMtD30hmag6LutRzzGbBiMRGf8UqpdmLwjhl1d+UhwODGR7JICVE0tXyzx
-	 QRWLj2L+UBQF3yVlRbPI9EFXmJyOGwf2VkTrpSRS7dLVa6k9/5y87RvJht1rnG+Icm
-	 brJkwdF4LsE2J7JjFwhkmTxT5BwzqWo9dSN9c3o2bi1UeZZHzvf0O19fPoKAgtSFoa
-	 VO3y9sDU5m6uPb0Dr6pi9pb26fSA0BVW/sS3SPZupgjPvcBp7QJ2mjZ54GRyUbQxrD
-	 oNAkSoB42hqhsU2id14SzxX961ge0nh7/Ja+M24AOcQhMdR6lZX+WmbWfw5ko5VW4y
-	 wvMQCkRnPmyrg==
-Date: Wed, 25 Jun 2025 23:23:39 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2] evaluate: check that set type is identical before
- merging
-Message-ID: <aFxo2-Y5DcZ4YfEg@calendula>
-References: <20250623193734.8404-1-fw@strlen.de>
+	s=arc-20240116; t=1750899186; c=relaxed/simple;
+	bh=O+HGJpSmd5sc/7Mbk9g0mH7nIDAKopkK+/o/UG72u5U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UFjizyHGQJAHonK4d/1+fV+e8JoKpoksnmOl7WasrOJy6JgfVdmmWwQsuI+yjkRcF/F3bWsmUSBaKZqP725BD6SxsSE8rHdHSCOqazuMUPHxSbWe9MLX5RuhKhopjZkMUSW75nzwdlxtBXSgnUpPHwIUtZ3+WMISWoz6Xu6biRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 21DBA60164; Thu, 26 Jun 2025 02:52:57 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] evaluate: prevent merge of sets with incompatible keys
+Date: Thu, 26 Jun 2025 02:52:48 +0200
+Message-ID: <20250626005250.11833-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250623193734.8404-1-fw@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jun 23, 2025 at 09:37:31PM +0200, Florian Westphal wrote:
-> Reject maps and sets of the same name:
->  BUG: invalid range expression type catch-all set element
->  nft: src/expression.c:1704: range_expr_value_low: Assertion `0' failed.
-> 
-> After:
-> Error: Cannot merge set with existing datamap of same name
->   set z {
->       ^
-> 
-> v2:
-> Pablo points out that we shouldn't merge datamaps (plain value) and objref
-> maps either, catch this too and add another test:
-> 
-> nft --check -f invalid_transcation_merge_map_and_objref_map
-> invalid_transcation_merge_map_and_objref_map:9:13-13: Error: Cannot merge objmap with existing datamap of same name
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  src/evaluate.c                                | 34 +++++++++++++++++--
->  ...pression_type_catch-all_set_element_assert | 18 ++++++++++
->  ...valid_transcation_merge_map_and_objref_map | 13 +++++++
->  3 files changed, 63 insertions(+), 2 deletions(-)
->  create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_range_expression_type_catch-all_set_element_assert
->  create mode 100644 tests/shell/testcases/bogons/nft-f/invalid_transcation_merge_map_and_objref_map
-> 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 783a373b6268..3c091748f786 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -5149,6 +5149,29 @@ static int elems_evaluate(struct eval_ctx *ctx, struct set *set)
->  	return 0;
->  }
->  
-> +static const char *set_type_str(const struct set *set)
-> +{
-> +	if (set_is_datamap(set->flags))
-> +		return "datamap";
-> +
-> +	if (set_is_objmap(set->flags))
-> +		return "objmap";
-> +
-> +	return "set";
-> +}
+Its not enough to check for interval flag, this would assert in interval
+code due to concat being passed to the interval code:
+BUG: unhandled key type 13
 
-"datamap" and "objmap" are internal concepts, users only see "maps"
-from their side.
+After fix:
+same_set_name_but_different_keys_assert:8:6-7: Error: set already exists with
+different datatype (concatenation of (IPv4 address, network interface index) vs
+network interface index)
+        set s4 {
+            ^^
 
-So I would not expose this in the error message.
+This also improves error verbosity when mixing datamap and objref maps:
 
-Maybe you could just say map declarations are different by now. Later more
-accurate error reporting on what is precisely different can be added.
+invalid_transcation_merge_map_and_objref_map:9:13-13:
+Error: map already exists with different datatype (IPv4 address vs string)
 
-Apart from the error report nitpick I don't see anything wrong with
-this patch.
+.. instead of 'Cannot merge map with incompatible existing map of same name'.
+The 'Cannot merge map with incompatible existing map of same name' check
+is kept in place to catch when ruleset contains a set and map with same name
+and same key definition.
 
-> +static bool set_type_compatible(const struct set *set, const struct set *existing_set)
-> +{
-> +	if (set_is_datamap(set->flags))
-> +		return set_is_datamap(existing_set->flags);
-> +
-> +	if (set_is_objmap(set->flags))
-> +		return set_is_objmap(existing_set->flags);
-> +
-> +	assert(!set_is_map(set->flags));
-> +	return !set_is_map(existing_set->flags);
-> +}
-> +
->  static int set_evaluate(struct eval_ctx *ctx, struct set *set)
->  {
->  	struct set *existing_set = NULL;
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Followup to previous
+ '[nft,v2] evaluate: check that set type is identical before merging',
+  it has the welcome side effect to improve error reporting as well.
+
+ src/evaluate.c                                      | 12 ++++++++++++
+ src/intervals.c                                     |  2 +-
+ .../nft-f/same_set_name_but_different_keys_assert   | 13 +++++++++++++
+ 3 files changed, 26 insertions(+), 1 deletion(-)
+ create mode 100644 tests/shell/testcases/bogons/nft-f/same_set_name_but_different_keys_assert
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index fc9d82f73b68..a2d5d7c29514 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -5304,6 +5304,18 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 		if (set_is_interval(set->flags) && !set_is_interval(existing_set->flags))
+ 			return set_error(ctx, set,
+ 					 "existing %s lacks interval flag", type);
++		if (set->data && existing_set->data &&
++		    !datatype_equal(existing_set->data->dtype, set->data->dtype))
++			return set_error(ctx, set,
++					 "%s already exists with different datatype (%s vs %s)",
++					 type, existing_set->data->dtype->desc,
++					 set->data->dtype->desc);
++		if (!datatype_equal(existing_set->key->dtype, set->key->dtype))
++			return set_error(ctx, set,
++					 "%s already exists with different datatype (%s vs %s)",
++					 type, existing_set->key->dtype->desc,
++					 set->key->dtype->desc);
++		/* Catch attempt to merge set and map */
+ 		if (!set_type_compatible(set, existing_set))
+ 			return set_error(ctx, set, "Cannot merge %s with incompatible existing %s of same name",
+ 					type,
+diff --git a/src/intervals.c b/src/intervals.c
+index bf125a0c59d3..e5bbb0384964 100644
+--- a/src/intervals.c
++++ b/src/intervals.c
+@@ -70,7 +70,7 @@ static void setelem_expr_to_range(struct expr *expr)
+ 		expr->key = key;
+ 		break;
+ 	default:
+-		BUG("unhandled key type %d\n", expr->key->etype);
++		BUG("unhandled key type %s\n", expr_name(expr->key));
+ 	}
+ }
+ 
+diff --git a/tests/shell/testcases/bogons/nft-f/same_set_name_but_different_keys_assert b/tests/shell/testcases/bogons/nft-f/same_set_name_but_different_keys_assert
+new file mode 100644
+index 000000000000..8fcfdf5cba03
+--- /dev/null
++++ b/tests/shell/testcases/bogons/nft-f/same_set_name_but_different_keys_assert
+@@ -0,0 +1,13 @@
++table ip t {
++	set s4 {
++		type ipv4_addr . iface_index
++		flags interval
++		elements = { 127.0.0.1 . "lo" }
++	}
++
++	set s4 {
++		type iface_index
++		flags interval
++		elements = { "lo" }
++	}
++}
+-- 
+2.49.0
+
