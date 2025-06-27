@@ -1,87 +1,79 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 979602980BF
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2025 10:58:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 679D51C7005;
+	Fri, 27 Jun 2025 12:45:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751021903; cv=none; b=ql1qu4aY9/SgXznX1YThNfiwSJi71zE1gfOuiZIXtoh6oDUgAgkpwUnNaTNxTSzVXxK7dSwYOFIIkTnSQuVv+YnK958vCfNZYYZD7Wm9LRetHe8LiohdO2aPmMzts33UDP0l9f+/gY5I7BGhOVPEzROPOQxe5s/MRcEdOk3N7RQ=
+	t=1751028350; cv=none; b=F2oypCgff29vJmUtVi4gNpIjtQi4Z0KianVkhjCjyG0EaIy+E9BvNTxkP33i/hjd19YAdEEMnfcJeUX0xcZfhJKvKULonioBQKYKoJmJUMuLA1I7/J6Z1s7oCDWP/pWXiX7I1IQFDgVxcw9MJl9d27hIs/bAziw5Grd3q3/96RU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751021903; c=relaxed/simple;
-	bh=nokczJdNjBeOe5ze5EQmRsffE/70hbbfIGaoQd/8LAs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DSvQS/eCGoaNZ8j8EAyZcqrEx6QKA0YI6dblOqbG3S/WhoE901m9N5gy2+3EojCG6bkEeZmZqrkDkgxd3M7FHiIXVHYqHY1CzrZIoWvYph7t2T1U8uKyek42uOUviEoXNB16s9B7+YS/csVz4w7XT3vHH1Pqb/u7gjpwDBOrbmI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=imXipUDs; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=PYyWBG/0; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1751028350; c=relaxed/simple;
+	bh=CDH1XgxWC08ISud9zCqQ4nm3JL874WqzOudJDF1oB3A=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=PijIgud1erKwAlqhQX7uUrx4dB5P/WNIMXRGknqBFw7Q3XBy3MMW65ezXoZQLREyxEhGRXhhBoCzRB69StP9ufFEz7Z05eekRheV+hMxUMCKKAKnV66ES7OAAh1aloFENLBugk8bRGUEsO4R7GpKBd4+EoC3+mNOwK1DFzGW144=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=P8yiGaRb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="imXipUDs";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="PYyWBG/0"
-Date: Fri, 27 Jun 2025 12:58:18 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1751021899;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gMI2XEketbNhS5bh80KpnDXH13ZRLP9sA5GUJ0OzeUE=;
-	b=imXipUDsNpAJlJe4Vw/pF7qOQ0XbPAKXOgFnS0NjdXxc3XgcDOVnQyOfFf+KErDu3D9lgu
-	+QwUCzYk0nDeXvkvjvdDmGBXIfcrPEI0/btoupKGIX9XsMXvGMRTAI6dJu+dp0DhI3Llhi
-	ea7xSywEw0ufqtILKEpDmDpdYxQVpQF4PMD/iscTyI6TsbZTblY2+5iOFRbyIM6tyLSb17
-	HOLYVFDomJay3+3Q2GsxYoNI+7YRWpPe79UVJWr82fCFfgLrWt0NpaamjaAJadcioEgYFv
-	fj5o6vg/J92nq1Xc2PlUxRNew+ESXfDGlTbxPRwlcpQNJwwXxi9W5f5F9NBbFg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1751021899;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gMI2XEketbNhS5bh80KpnDXH13ZRLP9sA5GUJ0OzeUE=;
-	b=PYyWBG/0qp6EM/mKDZi4/LEQ2ovDKiGYpKiNZEWLhKCTcAZdiXuiJwKVcH0+IfFl1b9pAm
-	3BvHOvd42SqoLGAw==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-rt-devel@lists.linux.dev,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v4] netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
-Message-ID: <20250627105818._VVB4weS@linutronix.de>
-References: <20250404152815.LilZda0r@linutronix.de>
- <Z_5335rrIYsyVq6E@calendula>
- <20250613125052.SdD-4SPS@linutronix.de>
- <aExEJSKtc4sq1MHf@strlen.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="P8yiGaRb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74959C4CEF0;
+	Fri, 27 Jun 2025 12:45:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1751028350;
+	bh=CDH1XgxWC08ISud9zCqQ4nm3JL874WqzOudJDF1oB3A=;
+	h=From:Subject:Date:To:Cc:From;
+	b=P8yiGaRbpDkIa3wD1+x3T0UXUcXO0zIHIi+k78xnfigdC/zEakXc9ZndOSFt8F+JT
+	 aI5nJAjgTyRvUA90n8ZBNjMsiLE0lHDPVHdlAnfIFh9lgHq+2nRsJ/AzFLqzXGRxd6
+	 opgGVsz2aMjdZ3FLP+l7VQN2cKPPfvHv3fQXH4CxZM6LHVmd7sPZ1khhTL29izd0ER
+	 riI/thVpswyufmZ6TKqNlOB7c55v1fJYK730AuFGHQ4D7rvAWWTvtB50sW+e2ruzZ1
+	 dYF+/sFHHGu+f/5nvsiD9TzNe0sIsEW5jLB/tve62noCzjL68auXIMg/apEHan5TRH
+	 zptYvUmDKJb7A==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Subject: [PATCH net-next v2 0/2] Add IPIP flowtable SW acceleratio
+Date: Fri, 27 Jun 2025 14:45:27 +0200
+Message-Id: <20250627-nf-flowtable-ipip-v2-0-c713003ce75b@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aExEJSKtc4sq1MHf@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAGeSXmgC/32NTQ6CMBSEr0Le2pr+SAFX3sOwAPsKLzYtaQlqS
+ O9u5QAuv5nMNzskjIQJrtUOETdKFHwBeargMQ9+QkamMEgua66lYt4y68JrHUZXuoUWJkZlmpG
+ 3husGym6JaOl9OO994ZnSGuLnuNjEL/1n2wQTTLa1qjuNqruI2xOjR3cOcYI+5/wFhwPSJ7MAA
+ AA=
+X-Change-ID: 20250623-nf-flowtable-ipip-1b3d7b08d067
+To: "David S. Miller" <davem@davemloft.net>, 
+ David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Shuah Khan <shuah@kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, linux-kselftest@vger.kernel.org, 
+ Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.2
 
-On 2025-06-13 17:30:45 [+0200], Florian Westphal wrote:
-> Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
-> > I've been rebasing my trees on top of v6.16-rc1 and noticed that this
-> > patch remained (because it still applies). My other nf patches were
-> > dropped because they made it into v6.16-rc1.
-> > 
-> > Did something happen to this one?
-> 
-> It had to be dropped due to fallout in net and bpf CI
-> pipelines.
+Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
+infrastructure.
 
-Oh.
+---
+Changes in v2:
+- Introduce IPIP flowtable selftest
+- Link to v1: https://lore.kernel.org/r/20250623-nf-flowtable-ipip-v1-1-2853596e3941@kernel.org
 
-> There are problems with kconfig settings.
-> 
-> A small subset of this patch has been upstreamed
-> c38eb2973c18 ("netfilter: xtables: support arpt_mark and ipv6 optstrip for iptables-nft only builds").
-> 
-> My plan was to zap some of the backwards-compat kconfig
-> knobs that we have and update various selftest config files,
-> then rebase this and retry.
+---
+Lorenzo Bianconi (2):
+      net: netfilter: Add IPIP flowtable SW acceleration
+      selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selftest
 
-Anything that I can help with?
+ net/ipv4/ipip.c                                    | 21 ++++++++++++
+ net/netfilter/nf_flow_table_ip.c                   | 28 +++++++++++++--
+ .../selftests/net/netfilter/nft_flowtable.sh       | 40 ++++++++++++++++++++++
+ 3 files changed, 87 insertions(+), 2 deletions(-)
+---
+base-commit: 8efa26fcbf8a7f783fd1ce7dd2a409e9b7758df0
+change-id: 20250623-nf-flowtable-ipip-1b3d7b08d067
 
-Sebastian
+Best regards,
+-- 
+Lorenzo Bianconi <lorenzo@kernel.org>
+
