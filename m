@@ -1,253 +1,238 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E2B12E1C79
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2025 14:28:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0883A29C35A;
+	Fri, 27 Jun 2025 15:02:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751034509; cv=none; b=kCW87W5G/4PdopFeXaJGWQT0bqT9QV06Z/VxGlX+ssBTGt17P3pyaD7cZ7347tzbLorQ6I08C/+0mXFiftffbM2lAq2Gmkxzrn8jQyX7QcHWRaG3KZcXXJyA46bACDIulrgxnXG1l6nT7DNmTHsRV24j6uKUtj5J1vN4Nhojo98=
+	t=1751036562; cv=none; b=qCoHR1Jd5vrsBbD0aN8x9iIaFWNbVGyh2GBTTCl448ZVjal/YY0ZXlgWLMyJA+h80GTaCNt2QauWnSOtu91VkwQO5+95ABC7w80wnolmCdaopN3b2q/X+RHOdEVl0yvIZXFKG3v3qVDhHq/Z8uelVSEYhG4BKPp9IqtgTgelZsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751034509; c=relaxed/simple;
-	bh=RU/CzSiUMXAYLaeVlBvB40Ibm79TujQ3TI2MvUzY+qg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R8Qq7CgB5Z4R5jXX94QsjDYKqrnFjMTfCIBctgl9CDzbzZ1/kpbzU2Rqe4dm35bFs0ce1GJnUDsAJwF5pA7k8iZjnKUBMWHzu8TYDZKMnPrexjVRf/qmYxF+HEXrr7+pIum1+C457lc9YCxMI+bFzD29BGwSAlPuNCvH3LADFt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8F194608B7; Fri, 27 Jun 2025 16:28:25 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 4/4] netfilter: nf_conntrack: fix crash due to removal of uninitialised entry
-Date: Fri, 27 Jun 2025 16:27:53 +0200
-Message-ID: <20250627142758.25664-5-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250627142758.25664-1-fw@strlen.de>
-References: <20250627142758.25664-1-fw@strlen.de>
+	s=arc-20240116; t=1751036562; c=relaxed/simple;
+	bh=w+yCshq1AkXfy4TG62/0dF7Z5UjrzjrNi/Pr8M8ehnI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LQafMbqjgWi6poA6aja3CXu/DLMMBIvnz8L+x63sAFWlzJRwMlCh/FERIYT2z50G0u1MAqf3e2vvNX73H9KD/zJMSNNqd/WkZ2SSDFLJb4KGkJb0zQsIyUgsD7sdHwJfaPTp/UqtO2U+XtZEx11k8ZJuoF0LIG8R327p7WE4SVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UF1YQMtS; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=u7DNS3ec; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UF1YQMtS";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="u7DNS3ec"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id B6DD76026B; Fri, 27 Jun 2025 17:02:30 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1751036550;
+	bh=3up0GGkeLjfGH9K3CPQwwnONHBuElUgJFrn89fyMrvo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UF1YQMtSh3F8PdvMtyrPzxuJQAGPhyrJcIIGLhfQCl1OelebSKJ8AA4zsSl6dicGH
+	 MsbDDMFQPWJkq2LP3kSMb88DSXVdHNOKVPotWd1CaZ5FcDOwJYVdr74MkT7RhSoeI8
+	 txoxqdFeVaAKomNrfErgf9ZjyMeDzDFob1SjcEYfV6wjZ4WvcWnb0rv5PFkSVomhJI
+	 dAAxtDWzaFEeygdiGj0iCaFuMgB7JSpcsLf5+OVvtsX1gToGk8gOY0lh0JKvHAXyzQ
+	 qfmThY9JxwCIru5nCrbSfJdo5CEzJf4nV9bdWlEUmu48yAJ4i7JhY0KkKs1ls/tek4
+	 PS152NW/abUgg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id A025760265;
+	Fri, 27 Jun 2025 17:02:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1751036547;
+	bh=3up0GGkeLjfGH9K3CPQwwnONHBuElUgJFrn89fyMrvo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=u7DNS3ecPip3oMYv/xopaI1mRYnKhmKMv5k240A1tzuTh4BUnmTaxfLxrxb52F0eo
+	 UkeINdBbYrljmFJb1pKVXgEtg7aR+1WsmqJ+1Vboi/tgj0JR3Mlcz5YojFopQ+pnm8
+	 6d9cyxaMYmBdlQQfUEa8Zesta/3g0u0to2hCsPpBkZctlToqGIz/X+3y0QtZ3r4p9K
+	 7Stm2lz43BdEnt1hWwQC/TnLgAW3mIVomPAmLEKLIJVmB4vYW7+V2ULTBbaU/hvekE
+	 hkpBI9qwHdmVmsXu7mP1jKVxRWwt1k7yRpCelD5taIOYxOQBMjes4fEbYMEnkHCIvg
+	 EN3853hRAL6aQ==
+Date: Fri, 27 Jun 2025 17:02:25 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH net-next v2 1/2] net: netfilter: Add IPIP flowtable SW
+ acceleration
+Message-ID: <aF6ygRse7xSy949F@calendula>
+References: <20250627-nf-flowtable-ipip-v2-0-c713003ce75b@kernel.org>
+ <20250627-nf-flowtable-ipip-v2-1-c713003ce75b@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250627-nf-flowtable-ipip-v2-1-c713003ce75b@kernel.org>
 
-A crash in conntrack was reported while trying to unlink the conntrack
-entry from the hash bucket list:
-    [exception RIP: __nf_ct_delete_from_lists+172]
-    [..]
- #7 [ff539b5a2b043aa0] nf_ct_delete at ffffffffc124d421 [nf_conntrack]
- #8 [ff539b5a2b043ad0] nf_ct_gc_expired at ffffffffc124d999 [nf_conntrack]
- #9 [ff539b5a2b043ae0] __nf_conntrack_find_get at ffffffffc124efbc [nf_conntrack]
-    [..]
+On Fri, Jun 27, 2025 at 02:45:28PM +0200, Lorenzo Bianconi wrote:
+> Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
+> infrastructure.
+> IPIP SW acceleration can be tested running the following scenario where
+> the traffic is forwarded between two NICs (eth0 and eth1) and an IPIP
+> tunnel is used to access a remote site (using eth1 as the underlay device):
+> 
+> ETH0 -- TUN0 <==> ETH1 -- [IP network] -- TUN1 (192.168.100.2)
+> 
+> $ip addr show
+> 6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+>     link/ether 00:00:22:33:11:55 brd ff:ff:ff:ff:ff:ff
+>     inet 192.168.0.2/24 scope global eth0
+>        valid_lft forever preferred_lft forever
+> 7: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+>     link/ether 00:11:22:33:11:55 brd ff:ff:ff:ff:ff:ff
+>     inet 192.168.1.1/24 scope global eth1
+>        valid_lft forever preferred_lft forever
+> 8: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN group default qlen 1000
+>     link/ipip 192.168.1.1 peer 192.168.1.2
+>     inet 192.168.100.1/24 scope global tun0
+>        valid_lft forever preferred_lft forever
+> 
+> $ip route show
+> default via 192.168.100.2 dev tun0
+> 192.168.0.0/24 dev eth0 proto kernel scope link src 192.168.0.2
+> 192.168.1.0/24 dev eth1 proto kernel scope link src 192.168.1.1
+> 192.168.100.0/24 dev tun0 proto kernel scope link src 192.168.100.1
+> 
+> $nft list ruleset
+> table inet filter {
+>         flowtable ft {
+>                 hook ingress priority filter
+>                 devices = { eth0, eth1 }
+>         }
+> 
+>         chain forward {
+>                 type filter hook forward priority filter; policy accept;
+>                 meta l4proto { tcp, udp } flow add @ft
+>         }
+> }
 
-The nf_conn struct is marked as allocated from slab but appears to be in
-a partially initialised state:
+Is there a proof that this accelerates forwarding?
 
- ct hlist pointer is garbage; looks like the ct hash value
- (hence crash).
- ct->status is equal to IPS_CONFIRMED|IPS_DYING, which is expected
- ct->timeout is 30000 (=30s), which is unexpected.
+> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> ---
+>  net/ipv4/ipip.c                  | 21 +++++++++++++++++++++
+>  net/netfilter/nf_flow_table_ip.c | 28 ++++++++++++++++++++++++++--
+>  2 files changed, 47 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+> index 3e03af073a1ccc3d7597a998a515b6cfdded40b5..05fb1c859170d74009d693bc8513183bdec3ff90 100644
+> --- a/net/ipv4/ipip.c
+> +++ b/net/ipv4/ipip.c
+> @@ -353,6 +353,26 @@ ipip_tunnel_ctl(struct net_device *dev, struct ip_tunnel_parm_kern *p, int cmd)
+>  	return ip_tunnel_ctl(dev, p, cmd);
+>  }
+>  
+> +static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
+> +				  struct net_device_path *path)
+> +{
+> +	struct ip_tunnel *tunnel = netdev_priv(ctx->dev);
+> +	const struct iphdr *tiph = &tunnel->parms.iph;
+> +	struct rtable *rt;
+> +
+> +	rt = ip_route_output(dev_net(ctx->dev), tiph->daddr, 0, 0, 0,
+> +			     RT_SCOPE_UNIVERSE);
+> +	if (IS_ERR(rt))
+> +		return PTR_ERR(rt);
+> +
+> +	path->type = DEV_PATH_ETHERNET;
+> +	path->dev = ctx->dev;
+> +	ctx->dev = rt->dst.dev;
+> +	ip_rt_put(rt);
+>
+> +	return 0;
+> +}
+> +
+>  static const struct net_device_ops ipip_netdev_ops = {
+>  	.ndo_init       = ipip_tunnel_init,
+>  	.ndo_uninit     = ip_tunnel_uninit,
+> @@ -362,6 +382,7 @@ static const struct net_device_ops ipip_netdev_ops = {
+>  	.ndo_get_stats64 = dev_get_tstats64,
+>  	.ndo_get_iflink = ip_tunnel_get_iflink,
+>  	.ndo_tunnel_ctl	= ipip_tunnel_ctl,
+> +	.ndo_fill_forward_path = ipip_fill_forward_path,
+>  };
+>  
+>  #define IPIP_FEATURES (NETIF_F_SG |		\
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> index 8cd4cf7ae21120f1057c4fce5aaca4e3152ae76d..255ed53c11c927549dc87ffc6c399385e3fb68ff 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -277,13 +277,31 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+>  	return NF_STOLEN;
+>  }
+>  
+> +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *size)
+> +{
+> +	struct iphdr *iph;
+> +
+> +	if (!pskb_may_pull(skb, sizeof(*iph)))
+> +		return false;
+> +
+> +	iph = (struct iphdr *)skb_network_header(skb);
+> +	*size = iph->ihl << 2;
+> +
+> +	return iph->protocol == IPPROTO_IPIP;
+> +}
+>
+>  static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+>  				       u32 *offset)
+>  {
+>  	struct vlan_ethhdr *veth;
+>  	__be16 inner_proto;
+> +	u16 size;
+>  
+>  	switch (skb->protocol) {
+> +	case htons(ETH_P_IP):
+> +		if (nf_flow_ip4_encap_proto(skb, &size))
+> +			*offset += size;
 
-Everything else looks like normal udp conntrack entry.  If we ignore
-ct->status and pretend its 0, the entry matches those that are newly
-allocated but not yet inserted into the hash:
-  - ct hlist pointers are overloaded and store/cache the raw tuple hash
-  - ct->timeout matches the relative time expected for a new udp flow
-    rather than the absolute 'jiffies' value.
+This is blindly skipping the outer IP header.
 
-If it were not for the presence of IPS_CONFIRMED,
-__nf_conntrack_find_get() would have skipped the entry.
+> +		return true;
+>  	case htons(ETH_P_8021Q):
+>  		if (!pskb_may_pull(skb, skb_mac_offset(skb) + sizeof(*veth)))
+>  			return false;
+> @@ -310,6 +328,7 @@ static void nf_flow_encap_pop(struct sk_buff *skb,
+>  			      struct flow_offload_tuple_rhash *tuplehash)
+>  {
+>  	struct vlan_hdr *vlan_hdr;
+> +	u16 size;
+>  	int i;
+>  
+>  	for (i = 0; i < tuplehash->tuple.encap_num; i++) {
+> @@ -331,6 +350,12 @@ static void nf_flow_encap_pop(struct sk_buff *skb,
+>  			break;
+>  		}
+>  	}
+> +
+> +	if (skb->protocol == htons(ETH_P_IP) &&
+> +	    nf_flow_ip4_encap_proto(skb, &size)) {
+> +		skb_pull(skb, size);
+> +		skb_reset_network_header(skb);
+> +	}
 
-Theory is that we did hit following race:
+I have a similar patch from 2023, I think I keep somewhere in my trees.
 
-cpu x 			cpu y			cpu z
- found entry E		found entry E
- E is expired		<preemption>
- nf_ct_delete()
- return E to rcu slab
-					init_conntrack
-					E is re-inited,
-					ct->status set to 0
-					reply tuplehash hnnode.pprev
-					stores hash value.
-
-cpu y found E right before it was deleted on cpu x.
-E is now re-inited on cpu z.  cpu y was preempted before
-checking for expiry and/or confirm bit.
-
-					->refcnt set to 1
-					E now owned by skb
-					->timeout set to 30000
-
-If cpu y were to resume now, it would observe E as
-expired but would skip E due to missing CONFIRMED bit.
-
-					nf_conntrack_confirm gets called
-					sets: ct->status |= CONFIRMED
-					This is wrong: E is not yet added
-					to hashtable.
-
-cpu y resumes, it observes E as expired but CONFIRMED:
-			<resumes>
-			nf_ct_expired()
-			 -> yes (ct->timeout is 30s)
-			confirmed bit set.
-
-cpu y will try to delete E from the hashtable:
-			nf_ct_delete() -> set DYING bit
-			__nf_ct_delete_from_lists
-
-Even this scenario doesn't guarantee a crash:
-cpu z still holds the table bucket lock(s) so y blocks:
-
-			wait for spinlock held by z
-
-					CONFIRMED is set but there is no
-					guarantee ct will be added to hash:
-					"chaintoolong" or "clash resolution"
-					logic both skip the insert step.
-					reply hnnode.pprev still stores the
-					hash value.
-
-					unlocks spinlock
-					return NF_DROP
-			<unblocks, then
-			 crashes on hlist_nulls_del_rcu pprev>
-
-In case CPU z does insert the entry into the hashtable, cpu y will unlink
-E again right away but no crash occurs.
-
-Without 'cpu y' race, 'garbage' hlist is of no consequence:
-ct refcnt remains at 1, eventually skb will be free'd and E gets
-destroyed via: nf_conntrack_put -> nf_conntrack_destroy -> nf_ct_destroy.
-
-To resolve this, move the IPS_CONFIRMED assignment after the table
-insertion but before the unlock.
-
-It doesn't matter if other CPUs can observe a newly inserted entry right
-before the CONFIRMED bit was set:
-
-Such event cannot be distinguished from above "E is the old incarnation"
-case: the entry will be skipped.
-
-Also change nf_ct_should_gc() to first check the confirmed bit.
-
-The gc sequence is:
- 1. Check if entry has expired, if not skip to next entry
- 2. Obtain a reference to the expired entry.
- 3. Call nf_ct_should_gc() to double-check step 1.
-
-nf_ct_should_gc() is thus called only for entries that already failed an
-expiry check. After this patch, once the confirmed bit check passes
-ct->timeout has been altered to reflect the absolute 'best before' date
-instead of a relative time.  Step 3 will therefore not remove the entry.
-
-Without this change to nf_ct_should_gc() we could still get this sequence:
-
- 1. Check if entry has expired.
- 2. Obtain a reference.
- 3. Call nf_ct_should_gc() to double-check step 1:
-    4 - entry is still observed as expired
-    5 - meanwhile, ct->timeout is corrected to absolute value on other CPU
-      and confirm bit gets set
-    6 - confirm bit is seen
-    7 - valid entry is removed again
-
-First do check 6), then 4) so the gc expiry check always picks up either
-confirmed bit unset (entry gets skipped) or expiry re-check failure for
-re-inited conntrack objects.
-
-This change cannot be backported to releases before 5.19. Without
-commit 8a75a2c17410 ("netfilter: conntrack: remove unconfirmed list")
-|= IPS_CONFIRMED line cannot be moved without further changes.
-
-Fixes: 1397af5bfd7d ("netfilter: conntrack: remove the percpu dying list")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack.h | 15 +++++++++++++--
- net/netfilter/nf_conntrack_core.c    | 18 ++++++++++++------
- 2 files changed, 25 insertions(+), 8 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 3f02a45773e8..ca26274196b9 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -306,8 +306,19 @@ static inline bool nf_ct_is_expired(const struct nf_conn *ct)
- /* use after obtaining a reference count */
- static inline bool nf_ct_should_gc(const struct nf_conn *ct)
- {
--	return nf_ct_is_expired(ct) && nf_ct_is_confirmed(ct) &&
--	       !nf_ct_is_dying(ct);
-+	if (!nf_ct_is_confirmed(ct))
-+		return false;
-+
-+	/* load ct->timeout after is_confirmed() test.
-+	 * Pairs with __nf_conntrack_confirm() which:
-+	 * 1. Increases ct->timeout value
-+	 * 2. Inserts ct into rcu hlist
-+	 * 3. Sets the confirmed bit
-+	 * 4. Unlocks the hlist lock
-+	 */
-+	smp_acquire__after_ctrl_dep();
-+
-+	return nf_ct_is_expired(ct) && !nf_ct_is_dying(ct);
- }
- 
- #define	NF_CT_DAY	(86400 * HZ)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 201d3c4ec623..442a972a03d7 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1124,6 +1124,7 @@ static int nf_ct_resolve_clash_harder(struct sk_buff *skb, u32 repl_idx)
- 
- 	hlist_nulls_add_head_rcu(&loser_ct->tuplehash[IP_CT_DIR_REPLY].hnnode,
- 				 &nf_conntrack_hash[repl_idx]);
-+	loser_ct->status |= IPS_CONFIRMED;
- 
- 	NF_CT_STAT_INC(net, clash_resolve);
- 	return NF_ACCEPT;
-@@ -1260,8 +1261,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 * user context, else we insert an already 'dead' hash, blocking
- 	 * further use of that particular connection -JM.
- 	 */
--	ct->status |= IPS_CONFIRMED;
--
- 	if (unlikely(nf_ct_is_dying(ct))) {
- 		NF_CT_STAT_INC(net, insert_failed);
- 		goto dying;
-@@ -1293,7 +1292,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 		}
- 	}
- 
--	/* Timer relative to confirmation time, not original
-+	/* Timeout is relative to confirmation time, not original
- 	   setting time, otherwise we'd get timer wrap in
- 	   weird delay cases. */
- 	ct->timeout += nfct_time_stamp;
-@@ -1301,11 +1300,18 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	__nf_conntrack_insert_prepare(ct);
- 
- 	/* Since the lookup is lockless, hash insertion must be done after
--	 * starting the timer and setting the CONFIRMED bit. The RCU barriers
--	 * guarantee that no other CPU can find the conntrack before the above
--	 * stores are visible.
-+	 * setting ct->timeout. The RCU barriers guarantee that no other CPU
-+	 * can find the conntrack before the above stores are visible.
- 	 */
- 	__nf_conntrack_hash_insert(ct, hash, reply_hash);
-+
-+	/* IPS_CONFIRMED unset means 'ct not (yet) in hash', conntrack lookups
-+	 * skip entries that lack this bit.  This happens when a CPU is looking
-+	 * at a stale entry that is being recycled due to SLAB_TYPESAFE_BY_RCU
-+	 * or when another CPU encounters this entry right after the insertion
-+	 * but before the set-confirm-bit below.
-+	 */
-+	ct->status |= IPS_CONFIRMED;
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	local_bh_enable();
- 
--- 
-2.49.0
-
+>  }
+>  
+>  static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+> @@ -357,8 +382,7 @@ nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
+>  {
+>  	struct flow_offload_tuple tuple = {};
+>  
+> -	if (skb->protocol != htons(ETH_P_IP) &&
+> -	    !nf_flow_skb_encap_protocol(skb, htons(ETH_P_IP), &ctx->offset))
+> +	if (!nf_flow_skb_encap_protocol(skb, htons(ETH_P_IP), &ctx->offset))
+>  		return NULL;
+>  
+>  	if (nf_flow_tuple_ip(ctx, skb, &tuple) < 0)
+> 
+> -- 
+> 2.50.0
+> 
