@@ -1,47 +1,82 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74B4A26A0EB
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Jul 2025 21:49:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 634D3218ADC
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Jul 2025 22:13:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751406564; cv=none; b=IrHhy8xA11uU0OBLx/nyYjTxXCDnJ4ZWVtgQUVC/0cV5c1m8rizgcdDF8RY9PxdO98GadveGHl3uxG30cXMYVqxcj93sbQpkw6bJEBUvcpVepO8FNqqzVSQoNLJmgv1auewOTm02weonWoTORyw6aE9QhqSOAJnXI3YpfK/rPNs=
+	t=1751407992; cv=none; b=Dwso+h1DSD52l+9nzxukkSXMOkzOnyBr/fQAs/mXAiDY2F+meOBjLgooCuTFmGPQaipXBgYrjuSWtVJ0bgovih1W9/83ccVeu0y+erC7+eJTicQZc9bXB0YTSIhhhpOx7LTYkIMBnJzQxBqDKLNkkoYSJTwTyfT9g7wGszoxItU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751406564; c=relaxed/simple;
-	bh=0TLlkjo1vRUn+/7UgmjR1+3cj1pWZsDamrT+hmiIkIM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dpe54yFK4WlMxiHJhNW6EWWbB0hlbelP+p+TZyPh7FMUywtWkwCRVbN+9GJdtqVOZQ+jTiznLQYWsl7jdfL7X843mnlpsfXYG/r9XxZdBB50Rs0rfbwWh71j8TCOSPYts9wxW673FU4iI558+P35+5uSDZ5omGP3I4EKXvu90Ng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2AFED604A5; Tue,  1 Jul 2025 23:49:19 +0200 (CEST)
-Date: Tue, 1 Jul 2025 23:49:19 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Sven Auhagen <Sven.Auhagen@belden.com>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: Cannot allocate memory delete table inet filter
-Message-ID: <aGRX3xYlWBxFahbm@strlen.de>
-References: <BY1PR18MB5874110CAFF1ED098D0BC4E7E07BA@BY1PR18MB5874.namprd18.prod.outlook.com>
- <aFwHuT7m7GHtmtSm@strlen.de>
+	s=arc-20240116; t=1751407992; c=relaxed/simple;
+	bh=3JwnaM/UJ6kumdtoZVY5llEeNo1fIH6Y3f9krTVPJ5E=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aq4v/irDzOYiThAHNvOKirUfyiNv3NNvwO+mmnC2pqTiZbOOrhEvDWW3tEB4KF+XkZVoLau9AbdBjfF3E60hVyxV9U9L7RHzr/An3QzqCadqou2dkGHPcNRn0n33NZ7aA0mJzYrhvHGCd/zl470vxI0V+BP7hJRFnVSPSQ9dWQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=g0i5YbCr; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=W2wCKCnr; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="g0i5YbCr";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="W2wCKCnr"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1751407989;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=ORcAEKOAXhqe1UhaME2h4j2Qs3l2C44gW6sWmDaNFDA=;
+	b=g0i5YbCrYzB2/SCaahT1jGucLpHcVL5I+Jz2CowHkF44bvo3LYo9y8ez6Ms6oLVfduenAd
+	uEsyeHOWTfUz9E+emaS1t1G62L4LtqvB3tbVpJ22w4Ei2zMlCTfgYGyeRu962H/xIHG86k
+	9gJi8KxjSInoxEX7uyTRWEj2zx6JTSe9/RKDbG8Vwh7JD7yIX1CJkLJ7SgziX6HqqilDI0
+	9AWLytdbuWY8YKU7DlmoT35DJAOzLlqDGCDKGjbdzyiLQsCDhds+PyfqPplD3VqN1Y5zFM
+	jUNJy2jfrFVvwKbSX3fRdr6U6pvRHB/dfw6+OFhO7egSaEifX9nfx8tRqETH8g==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1751407989;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=ORcAEKOAXhqe1UhaME2h4j2Qs3l2C44gW6sWmDaNFDA=;
+	b=W2wCKCnrhX5i/BI5LbVm5oqwuFslecYrLHj19mXkbf/3IlVZWH6NnwjOBmWb7FkDX8q5VP
+	zsez+2K5055T+VDQ==
+To: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH nf-next 0/3] netfilter: nft_set_pipapo: Use nested-BH locking for nft_pipapo_scratch
+Date: Wed,  2 Jul 2025 00:13:01 +0200
+Message-ID: <20250701221304.3846333-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aFwHuT7m7GHtmtSm@strlen.de>
+Content-Transfer-Encoding: quoted-printable
 
-Florian Westphal <fw@strlen.de> wrote:
-> 1). Leverage what nft_set_pipapo.c is doing and extend
->     this for all sets that could use the same solution.
->     The .walk callback for pipapo doesn't need/use rcu read locks,
->     and could use sleepable allocations.
->     all set types except rhashtable could follow this.
+The pipapo set type uses a per-CPU scratch buffer which is protected
+only by disabling BH. This series reworks the scratch buffer handlingand
+adds nested-BH locking which is only used on PREEMPT_RT.
 
-FWIW I'm exploring a change to nft_set_hash to avoid the rcu read lock
-when calling ->iter() for rhashtable.
+This series requires a reworked __local_lock_nested_bh() which can be
+pulled in via
+  git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git local-lock-for-=
+net
 
-If it works, this would allow to just replace the GFP_ATOMIC with GFP_KERNEL.
+It has been made available so that the netfilter changes can go
+independantly of the TIP tree changes.
+
+Sebastian Andrzej Siewior (3):
+  netfilter: nft_set_pipapo: Store real pointer, adjust later.
+  netfilter: nft_set_pipapo_avx2: Drop the comment regarding protection
+  netfilter: nft_set_pipapo: Use nested-BH locking for
+    nft_pipapo_scratch
+
+ net/netfilter/nft_set_pipapo.c      | 45 +++++++++--------------------
+ net/netfilter/nft_set_pipapo.h      |  6 ++--
+ net/netfilter/nft_set_pipapo_avx2.c | 27 ++++++++---------
+ 3 files changed, 28 insertions(+), 50 deletions(-)
+
+--=20
+2.50.0
+
