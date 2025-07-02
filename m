@@ -1,167 +1,117 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77C3B303DFB
-	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2025 17:47:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A18741D2F42
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Jul 2025 22:39:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751478456; cv=none; b=rdREKNXWwppdOMopOXF8F2lBfKZMkPT0tBZN7JHlyIoMLYrARa7bpbLv2hYKNSBtVZ38S4I61rGzoAoT1BbdAtpG8lCPCplBgY/Y2dedXeVa/51xUw5yqNiQIIsJM8rzydN1ESzItCX3ImfMyGejgLOcCyAXUiuYrTZYHpFJ/jc=
+	t=1751495991; cv=none; b=aL2r47lXB+op+AamZZSCeQtpte6BKFdJIlSWCMRyEjZgINDza6zHxjchzUkat0HPZVcBScYgG/GeeCxcSWcY10fCLIRlXD1BI4xR2JnWbyQZ1pSNHJwxeYNbOthsEj2kEhuI6FZCtaQi6PBlmtWYKheNLxwAG1lwGWABi/upSog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751478456; c=relaxed/simple;
-	bh=eWK0GFVx8XuoPloJ9zILCHXiFtYD6dK68PIRrRhZMqQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BYJgJgo6YVOn3p8RXL6CLgHcdCtsLyIy4fScjgtd1PynRs56x0qEY6ME13l2n3QngGnqcNx27p3PRZfLU1Gezu4U/EJDIP7fHU7nPPFJrfqHt0+KqhLH40BWYrlIWMMLRIK0h8vAeaNfeVicYsIviCtHfYp8dqkZ5Sl5pR/4dp4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=KNAmKq8B; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="KNAmKq8B"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=mtE/laAmxapwFTnIHhFubDwBhd3wH55qQvzymK6BICA=; b=KNAmKq8B9YD0WCrQ08EJhhaR1E
-	D81UKGWdk3vPIY0YwaoU0r1fLbHAy7BK3KCJZsjLEgOnWB1/cn3LBcFptej6+tPSSPWpIeVn/rSvd
-	7SPmMZl1otdaQd1bp3stoeHrzR7Fbkbt5I9eWVkJFUAJvYLyyCa+VBHk8MMQvI281mgRyJycIA9ev
-	wMAWb8iVA9r84N8Tg4pj2NiP2gbz3QW14nNQRMKRz9PSFK2SpQ9FeWH9V7Msj6jIsdO7A0rm95XYz
-	7LSvLj2N99js9XNxjwxx/d864MyNDPY/TAMMzo5MJjIOp03xNmKwLLfEk6O334CLjAqtMhFQ+uPGL
-	lmFQTkVw==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uX1YQ-000000001Wo-35CB;
-	Wed, 02 Jul 2025 19:47:30 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>,
+	s=arc-20240116; t=1751495991; c=relaxed/simple;
+	bh=A3dtXmitFUUSo3yr11qN88j+bWCRTIfub1yy+o7Ai0w=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ovlig1JiBgR8MGam0zBJR/fHW579RvFpnN25CBiUr70inIpRBZQa2Uss2DffDxLe4LkT3XtA5hkHDpDpouvPZa57+6vNS73hGTB1VUbLU7Oqdh1hiTc9qajOjE1TIxH8KVNZdc12TuOZzqZkg464prbU1iQvO5FfJJECVO10Mug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0DF13607AC; Thu,  3 Jul 2025 00:39:40 +0200 (CEST)
+Date: Thu, 3 Jul 2025 00:39:32 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-Subject: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook registration
-Date: Wed,  2 Jul 2025 19:47:25 +0200
-Message-ID: <20250702174725.11371-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
+ registration
+Message-ID: <aGW1JNPtUBb_DDAB@strlen.de>
+References: <20250702174725.11371-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250702174725.11371-1-phil@nwl.cc>
 
-Require user space to set a flag upon flowtable or netdev-family chain
-creation explicitly relaxing the hook registration when it comes to
-non-existent interfaces. For the sake of simplicity, just restore error
-condition if a given hook does not find an interface to bind to, leave
-everyting else in place. Therefore:
+Phil Sutter <phil@nwl.cc> wrote:
+> Require user space to set a flag upon flowtable or netdev-family chain
+> creation explicitly relaxing the hook registration when it comes to
+> non-existent interfaces. For the sake of simplicity, just restore error
+> condition if a given hook does not find an interface to bind to, leave
+> everyting else in place.
 
-- A wildcard interface spec is accepted as long as at least a single
-  interface matches.
-- Dynamic unregistering and re-registering of vanishing/re-appearing
-  interfaces is still happening.
+OK, but then this needs to go in via nf.git and:
 
-Note that this flag is persistent, i.e. included in ruleset dumps. This
-effectively makes it "updatable": User space may create a "name-based"
-flowtable for a non-existent interface, then update the flowtable to
-drop the flag. What should happen then? Right now this is simply
-accepted, even though the flowtable still does not bind to an interface.
+Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- include/uapi/linux/netfilter/nf_tables.h |  9 +++++++--
- net/netfilter/nf_tables_api.c            | 15 ++++++++++++---
- 2 files changed, 19 insertions(+), 5 deletions(-)
+tag.  We shouldn't introduce a "error" -> "no error" -> "error" semantic
+change sequence in kernel releases, i.e. this change is urgent; its now
+(before 6.16 release) or never.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 792836149eca..d08c7fbde1d1 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -219,10 +219,12 @@ enum nft_chain_flags {
- 	NFT_CHAIN_BASE		= (1 << 0),
- 	NFT_CHAIN_HW_OFFLOAD	= (1 << 1),
- 	NFT_CHAIN_BINDING	= (1 << 2),
-+	NFT_CHAIN_NAME_BASED	= (1 << 3),
- };
- #define NFT_CHAIN_FLAGS		(NFT_CHAIN_BASE		| \
- 				 NFT_CHAIN_HW_OFFLOAD	| \
--				 NFT_CHAIN_BINDING)
-+				 NFT_CHAIN_BINDING	| \
-+				 NFT_CHAIN_NAME_BASED)
- 
- /**
-  * enum nft_chain_attributes - nf_tables chain netlink attributes
-@@ -1699,12 +1701,15 @@ enum nft_object_attributes {
-  *
-  * @NFT_FLOWTABLE_HW_OFFLOAD: flowtable hardware offload is enabled
-  * @NFT_FLOWTABLE_COUNTER: enable flow counters
-+ * @NFT_FLOWTABLE_NAME_BASED: relax interface hooks
-  */
- enum nft_flowtable_flags {
- 	NFT_FLOWTABLE_HW_OFFLOAD	= 0x1,
- 	NFT_FLOWTABLE_COUNTER		= 0x2,
-+	NFT_FLOWTABLE_NAME_BASED	= 0x4,
- 	NFT_FLOWTABLE_MASK		= (NFT_FLOWTABLE_HW_OFFLOAD |
--					   NFT_FLOWTABLE_COUNTER)
-+					   NFT_FLOWTABLE_COUNTER |
-+					   NFT_FLOWTABLE_NAME_BASED)
- };
- 
- /**
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8fcc6393be38..5ae736715eec 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2374,7 +2374,8 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
- static int nf_tables_parse_netdev_hooks(struct net *net,
- 					const struct nlattr *attr,
- 					struct list_head *hook_list,
--					struct netlink_ext_ack *extack)
-+					struct netlink_ext_ack *extack,
-+					bool relaxed)
- {
- 	struct nft_hook *hook, *next;
- 	const struct nlattr *tmp;
-@@ -2392,6 +2393,12 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
- 			err = PTR_ERR(hook);
- 			goto err_hook;
- 		}
-+		if (!relaxed && list_empty(&hook->ops_list)) {
-+			NL_SET_BAD_ATTR(extack, tmp);
-+			nft_netdev_hook_free(hook);
-+			err = -ENOENT;
-+			goto err_hook;
-+		}
- 		if (nft_hook_list_find(hook_list, hook)) {
- 			NL_SET_BAD_ATTR(extack, tmp);
- 			nft_netdev_hook_free(hook);
-@@ -2441,7 +2448,8 @@ static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
- 		list_add_tail(&hook->list, hook_list);
- 	} else if (tb[NFTA_HOOK_DEVS]) {
- 		err = nf_tables_parse_netdev_hooks(net, tb[NFTA_HOOK_DEVS],
--						   hook_list, extack);
-+						   hook_list, extack,
-+						   flags & NFT_CHAIN_NAME_BASED);
- 		if (err < 0)
- 			return err;
- 
-@@ -8847,6 +8855,7 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
- 				    struct nft_flowtable *flowtable,
- 				    struct netlink_ext_ack *extack, bool add)
- {
-+	bool relaxed = flowtable->data.flags & NFT_FLOWTABLE_NAME_BASED;
- 	struct nlattr *tb[NFTA_FLOWTABLE_HOOK_MAX + 1];
- 	struct nf_hook_ops *ops;
- 	struct nft_hook *hook;
-@@ -8897,7 +8906,7 @@ static int nft_flowtable_parse_hook(const struct nft_ctx *ctx,
- 		err = nf_tables_parse_netdev_hooks(ctx->net,
- 						   tb[NFTA_FLOWTABLE_HOOK_DEVS],
- 						   &flowtable_hook->list,
--						   extack);
-+						   extack, relaxed);
- 		if (err < 0)
- 			return err;
- 	}
--- 
-2.49.0
+> - A wildcard interface spec is accepted as long as at least a single
+>   interface matches.
 
+Is there a reason for this? Why are they handled differently?
+
+> - Dynamic unregistering and re-registering of vanishing/re-appearing
+>   interfaces is still happening.
+
+You mean, without the flag? AFAIU old behaviour is:
+For netdev chains:
+- auto-removal AND free of device basechain -> no reappearance
+- -ENOENT error on chain add if device name doesn't exist
+For flowtable:
+- device is removed from the list (and list can become empty), flowtable
+  stays 100%, just the device name disappears from the devices list.
+  Doesn't reappear (auto re-added) either.
+- -ENOENT error on flowtable add if even one device doesn't exist
+
+Neither netdev nor flowtable support "foo*" wildcards.
+
+nf.git:
+- netdev basechain kept alive, no freeing, auto-reregister (becomes
+  active again if device with same name reappears).
+  No error if device name doesn't exists -> delayed auto-register
+  instead, including multi-reg for "foo*" case.
+- flowtable: same as old BUT device is auto-(re)added if same name
+  (re)appears.
+- No -ENOENT error on flowtable add, even if no single device existed
+
+Full "foo*" support.
+
+Now (this patch, without new flag):
+- netdev basechain: same as above.
+  But you do get an error if the device name did not exist.
+  Unless it was for "foo*", thats accepted even if no match is found.
+  AFAICS its a userspace/nft change, ie. the new flag is actually
+  provided silently in the "foo*" case?
+- flowtable: same as old BUT device is auto-(re)added if same name
+  (re)appears.
+- -ENOENT error on flowtable add if even one device doesn't exist
+  Except "foo*" case, then its ok even if no match found.
+
+Maybe add a table that explains the old/new/wanted (this patch) behaviours?
+And an explanation/rationale for the new flag?
+
+Is there a concern that users depend on old behaviour?
+If so, why are we only concerned about the "add" behaviour but not the
+auto-reregistering?
+
+Is it to protect users from typos going unnoticed?
+I could imagine "wlp0s20f1" getting misspelled occasionally...
+
+> Note that this flag is persistent, i.e. included in ruleset dumps. This
+> effectively makes it "updatable": User space may create a "name-based"
+> flowtable for a non-existent interface, then update the flowtable to
+> drop the flag. What should happen then? Right now this is simply
+> accepted, even though the flowtable still does not bind to an interface.
+
+AFAIU:
+If we accept off -> On, the flowtable should bind.
+If we accept on -> off, then it looks we should continue to drop devices
+from the list but just stop auto-readding?
+
+If in doubt the flag should not be updateable (hard error), in
+that case we can refine/relax later.
