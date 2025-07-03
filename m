@@ -1,202 +1,99 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2BDF2E7F17;
-	Thu,  3 Jul 2025 14:35:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 688BE29AB05
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jul 2025 20:10:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751553331; cv=none; b=f1osKueSQmtpoomBsWD+AAuG2UwCHwZYHj+WdVFxdtqwaVgmqG6Q50tpptKWsMhShNk8Uicc4bBteGIBjzvKPIui70rUodEjY3dBrLqIaQ93hurIPN2QS8PGlZs1mfAicgaSMNg6ZeAMoNiQ+lTpOu8TPGeh3dcRYVHC9OLoAlo=
+	t=1751573434; cv=none; b=uYskdUHoJ/KMe/LJomEUqR/i3iQH7rmOoedQAlp7A08GiWfZqQKdNv4QPNJex+CbrmHrIz+chLvHPaL28tZyHE+l3UQWocfV+DU8P9RDUxX6eS/3t0IsirnGpb/3f0vhpGjNt1+bQ9lFFfGR3XEm9JftjT2vw7X6KVYxdnDVK9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751553331; c=relaxed/simple;
-	bh=UYKs9e+7rT8OaW3Pom+V6nrry0GZ8fJqGxzsMTbQc0c=;
+	s=arc-20240116; t=1751573434; c=relaxed/simple;
+	bh=xJ2z63JdUsZ/AF42IL1kECDF8LzO/ozTnpXNkQElxBY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aT2pcdjyROh/pDXPA+sZCEhSAwWA/8SZOEWGokWHN+9nt7PoOXV7gp8dCQtTjHPWU01Kxw9QMhVnsmPiRDObiffm3MoMA9HbreDrYQ2Mv+i1vyXuKGtwiOEs4PjApZpOO8ZF2HIkUIYDaK0qNlSXaBzNvUkeM/E3clVkowJBxes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mm7u7nOB; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tki+ADtY; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=BWwHUGxGwUMCGkXZL+DdubtVvghX7YQgGN1yr4DBap9v08Mkzderlk3KsRqCRsYNu/EGbpR9l2mgDY9Sg2/6sO4aFD4WUFWTYwEvVBvZrsMcSXlFdn4DmalT9kNqBxCG2AuUfmAbystIYXjWHqOyUBbflKhjySspR0dbS9mfwdg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AxYijwT8; arc=none smtp.client-ip=192.198.163.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mm7u7nOB";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tki+ADtY"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 4A97560273; Thu,  3 Jul 2025 16:35:27 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1751553327;
-	bh=fML8uwElPkd6qxwr1E07cLSyoYRRPrLAYboPkelEe+I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=mm7u7nOBPNBBYBiE6993cSUDbBTfeLmkvvAOj7FWNOzlZHYLz+7ksyB6Xxg6LdkAZ
-	 DYKhlobwicgYcBZYEu1LZykOo3CathRe1ORJE7oRz7RHS61bDJMrOpUn2F3wVQ9HBD
-	 G8sXjkpwZw4zXPk9DgalJdoNBwu1HKSjzbk+2yntZb9dasvM0EYqkU78ru+WWdQg4h
-	 xoPAO8yxvsXBNO96pfL0fowYbE4VofkpmbbcFTm2EBZfuvVrUWr3fwWR2JJoklVl3v
-	 ZS3DZlK0XGZk3CFYxPLn+jxnu1vIoWm6HNw3ve66ycK4KnVomCkH19LO58LEFbQM/d
-	 NEilgtH+uXbIA==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4098360273;
-	Thu,  3 Jul 2025 16:35:24 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1751553324;
-	bh=fML8uwElPkd6qxwr1E07cLSyoYRRPrLAYboPkelEe+I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tki+ADtYcwDtsXH58SZ70wnGBCZ7PSJdLRaGzN/F54T2k/4XKoFPWQATln6Q+MCw0
-	 IYN+H9i+2zm0Dtj2iA0EWoMNABC3hJfR5PHDG0JWpO4yptou5SfbPvuBmqjVYuiYDS
-	 jxa/1OtlUGWPepr23jrOug7nfNQSSQclQLfZ7oeLoY4rigGS2rsvHz7f/YFI7eqTdO
-	 esXCVf8nzpGJsYdbJTjvrxOYB2eL4PqsvJhDtMvWCYLQCVUEmlEiqV683TnLetAYyu
-	 ezRG5B+ZJXJKmCYZ4nZRPxWOgqaOIJKRV6X5tKlTBz3bHD8WfujK+jMrUCaSXbSl/v
-	 xppGvxlHCGSOg==
-Date: Thu, 3 Jul 2025 16:35:21 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 1/2] net: netfilter: Add IPIP flowtable SW
- acceleration
-Message-ID: <aGaVKWKOKj1a-eG1@calendula>
-References: <20250703-nf-flowtable-ipip-v3-0-880afd319b9f@kernel.org>
- <20250703-nf-flowtable-ipip-v3-1-880afd319b9f@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AxYijwT8"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1751573432; x=1783109432;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=xJ2z63JdUsZ/AF42IL1kECDF8LzO/ozTnpXNkQElxBY=;
+  b=AxYijwT8NTAtOdcMqV9PZjmOsA78c+gbYfordhPN+yC40hc/CWE4zJLT
+   WBwWZEePJH29dsMPxaRJwxBQ/qDHk/qj/fP7ALFdy2f3q1TivZoJ1t34D
+   9MybPNrv2VRJL/8QPIWETX55MYTZ3ExAz+/dBjpKQOo8FiF8FC0jCI6cU
+   ChKELDe7ylGR7B4yHI5fR8t5xs9Yu9axV4BMXvKKKyaQUHJ63kHhYHpsm
+   5bshYpR/RxL4fXBAcTtHnJfDYa43MGANS6ULc6YRdMrgun/jREGZt9xzg
+   fR2EyuX/GQP6AtUtaZTaQ7wxKOHKAngvLkpCr1vtHuYurG2bc30uTXxG/
+   Q==;
+X-CSE-ConnectionGUID: mkK5P/MUQbOeq2q128foCA==
+X-CSE-MsgGUID: AkSrd+iRQKigSmhV3NI0cQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11483"; a="53039458"
+X-IronPort-AV: E=Sophos;i="6.16,285,1744095600"; 
+   d="scan'208";a="53039458"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2025 13:10:32 -0700
+X-CSE-ConnectionGUID: cvITvHHtSK+pP46l91vm5Q==
+X-CSE-MsgGUID: gLMbTGc7TeqQFf+zoan8LA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,285,1744095600"; 
+   d="scan'208";a="159977768"
+Received: from lkp-server01.sh.intel.com (HELO 0b2900756c14) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 03 Jul 2025 13:10:30 -0700
+Received: from kbuild by 0b2900756c14 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1uXQGK-0002yR-1e;
+	Thu, 03 Jul 2025 20:10:28 +0000
+Date: Fri, 4 Jul 2025 04:10:17 +0800
+From: kernel test robot <lkp@intel.com>
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, sbrivio@redhat.com,
+	Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 2/5] netfilter: nft_set: remove one argument from
+ lookup and update functions
+Message-ID: <202507040336.yrd8Mop2-lkp@intel.com>
+References: <20250701185245.31370-3-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250703-nf-flowtable-ipip-v3-1-880afd319b9f@kernel.org>
+In-Reply-To: <20250701185245.31370-3-fw@strlen.de>
 
-On Thu, Jul 03, 2025 at 04:16:02PM +0200, Lorenzo Bianconi wrote:
-> Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
-> infrastructure.
-> IPIP SW acceleration can be tested running the following scenario where
-> the traffic is forwarded between two NICs (eth0 and eth1) and an IPIP
-> tunnel is used to access a remote site (using eth1 as the underlay device):
+Hi Florian,
 
-Question below.
+kernel test robot noticed the following build warnings:
 
-> ETH0 -- TUN0 <==> ETH1 -- [IP network] -- TUN1 (192.168.100.2)
-> 
-> $ip addr show
-> 6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
->     link/ether 00:00:22:33:11:55 brd ff:ff:ff:ff:ff:ff
->     inet 192.168.0.2/24 scope global eth0
->        valid_lft forever preferred_lft forever
-> 7: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
->     link/ether 00:11:22:33:11:55 brd ff:ff:ff:ff:ff:ff
->     inet 192.168.1.1/24 scope global eth1
->        valid_lft forever preferred_lft forever
-> 8: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN group default qlen 1000
->     link/ipip 192.168.1.1 peer 192.168.1.2
->     inet 192.168.100.1/24 scope global tun0
->        valid_lft forever preferred_lft forever
-> 
-> $ip route show
-> default via 192.168.100.2 dev tun0
-> 192.168.0.0/24 dev eth0 proto kernel scope link src 192.168.0.2
-> 192.168.1.0/24 dev eth1 proto kernel scope link src 192.168.1.1
-> 192.168.100.0/24 dev tun0 proto kernel scope link src 192.168.100.1
-> 
-> $nft list ruleset
-> table inet filter {
->         flowtable ft {
->                 hook ingress priority filter
->                 devices = { eth0, eth1 }
->         }
-> 
->         chain forward {
->                 type filter hook forward priority filter; policy accept;
->                 meta l4proto { tcp, udp } flow add @ft
->         }
-> }
-> 
-> Reproducing the scenario described above using veths I got the following
-> results:
-> - TCP stream transmitted into the IPIP tunnel:
->   - net-next:				~41Gbps
->   - net-next + IPIP flowtbale support:	~40Gbps
-                      ^^^^^^^^^
-no gain on tx side.
+[auto build test WARNING on netfilter-nf/main]
+[also build test WARNING on linus/master v6.16-rc4 next-20250703]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-> - TCP stream received from the IPIP tunnel:
->   - net-next:				~35Gbps
->   - net-next + IPIP flowtbale support:	~49Gbps
-> 
-> Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> ---
->  net/ipv4/ipip.c                  | 21 +++++++++++++++++++++
->  net/netfilter/nf_flow_table_ip.c | 34 ++++++++++++++++++++++++++++++++--
->  2 files changed, 53 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-> index 3e03af073a1ccc3d7597a998a515b6cfdded40b5..05fb1c859170d74009d693bc8513183bdec3ff90 100644
-> --- a/net/ipv4/ipip.c
-> +++ b/net/ipv4/ipip.c
-> @@ -353,6 +353,26 @@ ipip_tunnel_ctl(struct net_device *dev, struct ip_tunnel_parm_kern *p, int cmd)
->  	return ip_tunnel_ctl(dev, p, cmd);
->  }
->  
-> +static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
-> +				  struct net_device_path *path)
-> +{
-> +	struct ip_tunnel *tunnel = netdev_priv(ctx->dev);
-> +	const struct iphdr *tiph = &tunnel->parms.iph;
-> +	struct rtable *rt;
-> +
-> +	rt = ip_route_output(dev_net(ctx->dev), tiph->daddr, 0, 0, 0,
-> +			     RT_SCOPE_UNIVERSE);
-> +	if (IS_ERR(rt))
-> +		return PTR_ERR(rt);
-> +
-> +	path->type = DEV_PATH_ETHERNET;
-> +	path->dev = ctx->dev;
-> +	ctx->dev = rt->dst.dev;
-> +	ip_rt_put(rt);
-> +
-> +	return 0;
-> +}
-> +
->  static const struct net_device_ops ipip_netdev_ops = {
->  	.ndo_init       = ipip_tunnel_init,
->  	.ndo_uninit     = ip_tunnel_uninit,
-> @@ -362,6 +382,7 @@ static const struct net_device_ops ipip_netdev_ops = {
->  	.ndo_get_stats64 = dev_get_tstats64,
->  	.ndo_get_iflink = ip_tunnel_get_iflink,
->  	.ndo_tunnel_ctl	= ipip_tunnel_ctl,
-> +	.ndo_fill_forward_path = ipip_fill_forward_path,
->  };
->  
->  #define IPIP_FEATURES (NETIF_F_SG |		\
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> index 8cd4cf7ae21120f1057c4fce5aaca4e3152ae76d..6b55e00b1022f0a2b02d9bfd1bd34bb55c1b83f7 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -277,13 +277,37 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
->  	return NF_STOLEN;
->  }
->  
-> +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *size)
-> +{
-> +	struct iphdr *iph;
-> +
-> +	if (!pskb_may_pull(skb, sizeof(*iph)))
-> +		return false;
-> +
-> +	iph = (struct iphdr *)skb_network_header(skb);
-> +	*size = iph->ihl << 2;
-> +
-> +	if (ip_is_fragment(iph) || unlikely(ip_has_options(*size)))
-> +		return false;
-> +
-> +	if (iph->ttl <= 1)
-> +		return false;
-> +
-> +	return iph->protocol == IPPROTO_IPIP;
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-nft_set_pipapo-remove-unused-arguments/20250702-025433
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20250701185245.31370-3-fw%40strlen.de
+patch subject: [PATCH nf-next 2/5] netfilter: nft_set: remove one argument from lookup and update functions
+config: x86_64-rhel-9.4 (https://download.01.org/0day-ci/archive/20250704/202507040336.yrd8Mop2-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14+deb12u1) 12.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250704/202507040336.yrd8Mop2-lkp@intel.com/reproduce)
 
-Once the flow is in the flowtable, it is possible to inject traffic
-with forged outer IP header, this is only looking at the inner IP
-header.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202507040336.yrd8Mop2-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> Warning: net/netfilter/nft_set_pipapo_avx2.c:1151 Excess function parameter 'ext' description in 'nft_pipapo_avx2_lookup'
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
