@@ -1,54 +1,33 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19819239086
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jul 2025 12:37:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CE592E54A3
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jul 2025 12:39:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751546274; cv=none; b=s450EsBDtFp3PNczrRX+JKMAJCq7GsZ7XluVKY8P68F0U3qW3/jqTJJJbjUijTRhF+SkgnYqI/wbeo8O9Zl0P6M4lfIPhkHsmbi42vYIBjCd+xep2Y3dp4219b5lxchD913uaXd3EPF/ISKwfegj7dcOa0idiSVt+L6/Gq8Bneo=
+	t=1751546393; cv=none; b=TZkFpJrFtu5l5pcdE6TovqvvttqszuNC5fzjD4aSscJ7M9leOEWVZd1NIq3kfC2ipqvgrWMnaE1YQW+KeRNotKfRqTjDVnmbnFjYRv8FiHRz/J0k88wddhfy0kqLoq5t3CA4pBISzwi/NC9AI+LZmm/6xYhQHXJI9sPTyqXeRFY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751546274; c=relaxed/simple;
-	bh=ki9vis1nIp2N1CpH69fzgp73PLenVaFW+BaQmjgEf0s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JGR2MCEsQEc5vHEHYzc9u1O6/muk9Cq2Izl/s1ZCCVGNsYhYPuezN53fBzCmg2ZkH3MYKMy3/ZViziQpk5CMWB4J4Q+lIr/6cOFUxUQhTb0ozHR6kzA4apgu1x7RlGwJYdugjLSxGIbdRpKHZt3NEQekdm/fmwJxXEO1NZfLrqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=DdGs3A4Z; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="DdGs3A4Z"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=1tQSV8SuLTMGeHFju4hAZlra3amjG8wc00WtB7WEhxI=; b=DdGs3A4ZjyF4PwNeejirjNg6T6
-	8MNweSznIsLr0ap7kS9UrfTzNH6LqGGcUGoCH5UeNGGuNAcoDyez47WZDJUMBMcwSa1dkj1cIPwVy
-	xfOBWR3bAwjwOOc2D64XaaCrzEB6PzdDzmmJwjyo5om9rcsRa6nSYY/eoDR4kUVEGRgI7uetkJpzd
-	0K6lCMcz8m/JwJoNs7YAtYcuoFSWyCbIVz7u5bvGdqO3QbeCKRwrlkzkLmj0xtqRqtKJ3Un4tUXcK
-	Z25atPRSQ2Wp5yFziww+t8mJTi3zlSfxGAohV76vUBUQUAFEnDOeyHG70118Ng7W3AZB3sZeEzsId
-	9+RpObVA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uXJCI-000000008F6-1Iqi;
-	Thu, 03 Jul 2025 14:37:50 +0200
-Date: Thu, 3 Jul 2025 14:37:50 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	s=arc-20240116; t=1751546393; c=relaxed/simple;
+	bh=wipIiAt4gMZmpvrcOfI7IJQ3BrV63eYT//2DgKqRI0c=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=CUfsBpRGG/3g6wWJrRusGvdv6NwXN+0UjaZTpQBnB3YAR/wgmVOpX0+cBZFjUUo2jOnVrgv971HSEfEn34vix2k/bov68ZRKs8qr38xiZ8vlEGvo1fhINtnFLQNnQ4AkDN2OiSq8sT8uOV1xPdLBIjxUvoIDa2cvkZ/RC8vpVUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id D454A604A5; Thu,  3 Jul 2025 14:39:48 +0200 (CEST)
+Date: Thu, 3 Jul 2025 14:39:47 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
 Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
  registration
-Message-ID: <aGZ5ni7lcPcz0T9K@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Message-ID: <aGZ6E0k0AyYMiMvp@strlen.de>
 References: <20250702174725.11371-1-phil@nwl.cc>
  <aGW1JNPtUBb_DDAB@strlen.de>
  <aGZZnbgZTXMwo_MS@orbyte.nwl.cc>
  <aGZrD0paQ6IUdnx2@calendula>
- <aGZzAAnDT6a1rdh-@strlen.de>
+ <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -57,101 +36,21 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aGZzAAnDT6a1rdh-@strlen.de>
+In-Reply-To: <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
 
-On Thu, Jul 03, 2025 at 02:09:36PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Oh, right. So a decision whether this is feasible and if, how it should
-> > > behave in detail, is urgent.
-> > 
-> > Downside is that this flag adds more complexity, since there will be
-> > two paths to test (flag on/off).
-> 
-> Right.
-> 
-> > Another concern is having a lot of devices, this is now interating
-> > linearly performing strcmp() to find matches from the control plane
-> > (ie. maybe this slow down time to load ruleset?), IIRC you mentioned
-> > this should not be an issue.
-> 
-> Can you suggest an alternative?
-> 
-> I see the following:
-> 
-> - revert to old behaviour (no search,
->   lookup-by-name), and introduce a new netlink attribute for the 'wildcard
->   name / full-search'.
->   Since thats a big change this requires a revert in nf.git and then a
->   followup change in nf-next to amend this.
-> 
-> - Only search if we have a wildcard.
->   It should be enough to check, from nft_netdev_hook_alloc, if hook->ifname
->   is null-terminated or not. If it is, lookup-by-name, else
->   for_each_netdev search.
-> 
->   Thats assuming that the netlink attributes are encoded as
->   'eth\0' (4 bytes, no wildcard), vs 'eth' (3 bytes, wildcard).
+Phil Sutter <phil@nwl.cc> wrote:
+> personally wouldn't care about as I find it similar to mis-typing an IP
+> address or RHS to an iifname match.
 
-Yes, that's how "wildcards" are implemented. (Hence why a simple
-strncmp() is sufficient.)  When Pablo asked about it, I also realized I
-could keep the lookup-by-name unless manual search was needed. I even
-implemented it but surprisingly couldn't measure a difference. Quoting
-myself from another mail here:
+Good point.  I think if performance isn't an issue then we can go ahead
+without this flag.
 
-| > > Quick follow-up here: To test the above, I created many dummy NICs with
-| > > same prefix and timed creation of a chain with matching wildcard hook
-| > > spec. Failing to measure a significant delay, I increased the number of
-| > > those NICs. Currently I have 10k matching and 10k non-matching NICs and
-| > > still can't measure a slowdown creating that wildcard chain, even with
-| > > 'nft monitor' running in another terminal which reports the added
-| > > interfaces (that's code I haven't submitted yet).
-| >
-| > Are you sure you see no spike in perf record for nft_hook_alloc()?
-| 
-| I don't, flowtable creation is really fast (0.2s with 1k matching NICs),
-| but deleting the same flowtable then takes about 60s. The perf report
-| shows nf_flow_offload_xdp_setup() up high, I suspect the nested loops in
-| nf_flowtable_by_dev_remove() to be the culprit.
-| 
-| Testing a netdev chain instead, both creation and deletion are almost
-| instant (0.16s and 0.26s).
+> If transparency of behaviour is a
+> concern, I'd rather implement GETDEV message type and enable user space
+> to print the list of currently bound interfaces (though it's partially
+> redundant, 'nft list hooks' helps there although it does not show which
+> flowtable/chain "owns" the hook).
 
-> > > Yes, that was the premise upon which I wrote the patch. I didn't intend
-> > > to make the flag toggle between the old interface hooks and the new
-> > > interface name hooks.
-> > 
-> > Mistyped name is another scenario this flag could help.
-> 
-> Regardless of this flag patch one could update nftables userspace to
-> display hints like we do for sets with the new '# count 42' comment
-> annotation.
-> 
-> Something that tells that the hook is subscribed for eth42 but currently
-> not active.
-> 
-> Same with flowtables, something that tells which devices are configured
-> (subscribed) and which devices are used (should likely still display
->  ppp* and not list 4000k ppp1234 :-) ).
-> 
-> Phil, whats your take here?
-
-As suggested in my other reply, I could implement GETDEV request so
-nftables may print either:
-
-| flowtable f {
-| 	hook ingress priority filter
-| 	devices = { eth* (active: eth0, eth1), test1 (inactive) }
-| }
-
-or:
-
-| flowtable f {
-| 	hook ingress priority filter
-| 	devices = { eth*, test1 } # active: eth0, eth1
-| }
-
-The NEWDEV/DELDEV notifications the kernel currently emits will be
-printed by 'nft monitor'. This is still useful despite the above to
-notify user space if a device is bound/unbound at run-time.
-
-Cheers, Phil
+Do we need new query types for this?
+nftables could just query via rtnetlink if the device exists or not
+and then print a hint if its absent.
