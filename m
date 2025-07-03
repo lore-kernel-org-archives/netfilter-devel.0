@@ -1,123 +1,106 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B1A22E7F05;
-	Thu,  3 Jul 2025 14:16:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A8082E8E0A
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jul 2025 14:19:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751552216; cv=none; b=HRecLmNVjtwgPvzvs1U6OM4+6YpZ6jd3eOGXoReERBIfT9VOFfsjQjhAN/cH4YMxtTw/YqsyCQLwY4ALayZueDD5wtoBQdogE6xofMAkW74SReA/vb1HThW90Q+/kq1ktZLdybMDz9MBo3UUHeR8HC8gNOtYMe4bAfOsC50VtIA=
+	t=1751552367; cv=none; b=fG8/mLY3ahoS08tfVBnOy5V1qz4R+VK1dNBSa93/ncnmF0keiqxPa+pf0Ynj6u0ME1/YotllAz1mdXYeTeM6+7uV6bACqf5fDEhwhj3JKtKXv5W35v1Pgy1ZSIa+LBgy50grbfyW9+qVaeCYZyCRFxSwV8j4+ja8mE8+JF1Jdh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751552216; c=relaxed/simple;
-	bh=Z+KvS/dxZP26cr6F6SDuJm7LA9twCDJWcy1WXdpB8xU=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Bq+7K5Oh2111d1MsH6/pL0obG/TqZdvhoximO3S7m8KSysxxWD86uWjLV411rAsT5/g0/IlootyfPwEeQ5mwq5RMlDkCb8kfydwdoJD+KcIwdsGDJC8BprSxiuFk5enrm2bIAxGQXOP3ZjcfX67yrgABs9SleLf6wMp3Uvidd0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KhOJVEuz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1751552367; c=relaxed/simple;
+	bh=NSycXXGKLRcxM0+LYSubaotJ1jDOgCFT6D56IMKicV4=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=b1o1c5ymS+dPb67Stj5xbZxTjlOFICkwcZvJSsoFQpoccO8alzbIWHK8pWHt5RoxUvumaBXR6XpC6d0jq8FXvEZHK4rwkbLsYHekUyXXV9bOLCP9ttozLhbva/06/tCymq3orD5gRsXHyQFTO1zv/te906Qj5W2pfHBP0+DCr6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CTG7roun; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CTG7roun; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KhOJVEuz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43913C4CEED;
-	Thu,  3 Jul 2025 14:16:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1751552215;
-	bh=Z+KvS/dxZP26cr6F6SDuJm7LA9twCDJWcy1WXdpB8xU=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=KhOJVEuznJ1wqT+0SQw4lmkmZ+tr7yk8JaHHmApuIzFPOGyFmlx4ApXr7i7475qdY
-	 k41e3tbCK/y9gSQQJmTl5emyt0WnAS5YgdmB8TLELBu8nJkNL0AEKNZOXR2ZPPl/B8
-	 Gili6xy3GUAbUSbG7scQsC5rQUEQkl+7UUUdw3zKw6AT0Ah2R2/YqJB9nQySOikhyZ
-	 AFSZhN1VlJv3hFthIZg5EbmMrhzrASheUWh+W3Xrd7hQEaRIhMqx6DUSQJPo3pL+W7
-	 8Ko4J0faOZVi2eeVr7abvmHOAj3O7NADOByvtH5BXvoHetvpRgS6q5l86JtMfwoUqB
-	 lUC49pJ7E3dIw==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Thu, 03 Jul 2025 16:16:03 +0200
-Subject: [PATCH nf-next v3 2/2] selftests: netfilter: nft_flowtable.sh: Add
- IPIP flowtable selftest
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CTG7roun";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CTG7roun"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id E198B60293; Thu,  3 Jul 2025 16:19:23 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1751552363;
+	bh=x8rrNBuFHZVcYJIyC+ZCl+86Xr5qOjY6LFN4H1HRsNk=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=CTG7rounfzxwWLpBfZCkPfSmaFl6T93qoz6I4RsbRKVh5tB1jtB2kr0uzL486AyJL
+	 1J+niAuxoItvoUf3KS5ihsrifjeQD5Y8gt/JVmBjUBPj2+sWKoi2F6HT4nb8Pku9Kf
+	 /IOj3rbRy95lXYcT6DFWI6WwqZUtNYT5JqJsQHcEevCE6AdVqxiZ1YfXeNGkyE1klB
+	 WspuC7jaM09LdM//b0D+5LQ4l2vhy9lz2m7THV0FJiexLgHQSbVPzYelwCUwa3i/YT
+	 SkyKtMSCZzq8Djlt/mDwlJ3hGTGqI0Gf8OqKkuQcD6t4sfivpMII6YfhX/jfK34pz/
+	 ooqQyHwPClQEA==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id EBEED6028E;
+	Thu,  3 Jul 2025 16:19:22 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1751552363;
+	bh=x8rrNBuFHZVcYJIyC+ZCl+86Xr5qOjY6LFN4H1HRsNk=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=CTG7rounfzxwWLpBfZCkPfSmaFl6T93qoz6I4RsbRKVh5tB1jtB2kr0uzL486AyJL
+	 1J+niAuxoItvoUf3KS5ihsrifjeQD5Y8gt/JVmBjUBPj2+sWKoi2F6HT4nb8Pku9Kf
+	 /IOj3rbRy95lXYcT6DFWI6WwqZUtNYT5JqJsQHcEevCE6AdVqxiZ1YfXeNGkyE1klB
+	 WspuC7jaM09LdM//b0D+5LQ4l2vhy9lz2m7THV0FJiexLgHQSbVPzYelwCUwa3i/YT
+	 SkyKtMSCZzq8Djlt/mDwlJ3hGTGqI0Gf8OqKkuQcD6t4sfivpMII6YfhX/jfK34pz/
+	 ooqQyHwPClQEA==
+Date: Thu, 3 Jul 2025 16:19:20 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
+ registration
+Message-ID: <aGaRaHoawJ-DbNUl@calendula>
+References: <20250702174725.11371-1-phil@nwl.cc>
+ <aGW1JNPtUBb_DDAB@strlen.de>
+ <aGZZnbgZTXMwo_MS@orbyte.nwl.cc>
+ <aGZrD0paQ6IUdnx2@calendula>
+ <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
+ <aGZ6E0k0AyYMiMvp@strlen.de>
+ <aGZ75G4SVuwkNDb9@orbyte.nwl.cc>
+ <aGZ9jNVIiq9NrUdi@strlen.de>
+ <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250703-nf-flowtable-ipip-v3-2-880afd319b9f@kernel.org>
-References: <20250703-nf-flowtable-ipip-v3-0-880afd319b9f@kernel.org>
-In-Reply-To: <20250703-nf-flowtable-ipip-v3-0-880afd319b9f@kernel.org>
-To: "David S. Miller" <davem@davemloft.net>, 
- David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Shuah Khan <shuah@kernel.org>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- coreteam@netfilter.org, linux-kselftest@vger.kernel.org, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.2
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
 
-Introduce specific selftest for IPIP flowtable SW acceleration in
-nft_flowtable.sh
+On Thu, Jul 03, 2025 at 03:17:06PM +0200, Phil Sutter wrote:
+> On Thu, Jul 03, 2025 at 02:54:36PM +0200, Florian Westphal wrote:
+> > Phil Sutter <phil@nwl.cc> wrote:
+> > > > Do we need new query types for this?
+> > > > nftables could just query via rtnetlink if the device exists or not
+> > > > and then print a hint if its absent.
+> > > 
+> > > Hey, that's a hack! :P
+> > > Under normal circumstances, this should indeed suffice. The ruleset is
+> > > per-netns, so the kernel's view matches nft's. The only downside I see
+> > > is that we would not detect kernel bugs this way, e.g. if a new device
+> > > slipped through and was not bound. Debatable if the GETDEV extra effort
+> > > is justified for this "should not happen" situation, though.
+> > 
+> > Could the info be included in the dump? For this we'd only need a
+> > 'is_empty()' result.  For things like eth*, nft list hooks might be
+> > good enough to spot bugs (e.g., you have 'eth*' subscription, but
+> > eth0 is registed but eth1 isn't but it should be.
+> 
+> That may indeed be a simple solution avoiding to bloat
+> NEWFLOWTABLE/NEWCHAIN messages.
+> 
+> > In any case I think that can be added later.
+> 
+> Right now, NFTA_FLOWTABLE_HOOK_DEVS is just an array of NFTA_DEVICE_NAME
+> attributes. Guess the easiest way would be to introduce
+> NFTA_FLOWTABLE_HOOKLESS_DEVS array of NFTA_DEVICE_NAME attributes, old
+> user space would just ignore that second array.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
- .../selftests/net/netfilter/nft_flowtable.sh       | 40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+That is, new nftables binaries use NFTA_FLOWTABLE_HOOKLESS_DEVS.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index a4ee5496f2a17cedf1ee71214397012c7906650f..d1c9d3eeda2c9874008f9d6de6cabaabea79b9fb 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -519,6 +519,44 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 ""; then
- 	ip netns exec "$nsr1" nft list ruleset
- fi
- 
-+# IPIP tunnel test:
-+# Add IPIP tunnel interfaces and check flowtable acceleration.
-+test_ipip() {
-+if ! ip -net "$nsr1" link add name tun0 type ipip \
-+     local 192.168.10.1 remote 192.168.10.2 >/dev/null;then
-+	echo "SKIP: could not add ipip tunnel"
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
-+	return
-+fi
-+ip -net "$nsr1" link set tun0 up
-+ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
-+ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr2" link add name tun0 type ipip local 192.168.10.2 remote 192.168.10.1
-+ip -net "$nsr2" link set tun0 up
-+ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
-+ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr1" route change default via 192.168.100.2
-+ip -net "$nsr2" route change default via 192.168.100.1
-+ip -net "$ns2" route add default via 10.0.2.1
-+
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
-+
-+if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
-+	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
-+# Restore the previous configuration
-+ip -net "$nsr1" route change default via 192.168.10.2
-+ip -net "$nsr2" route change default via 192.168.10.1
-+ip -net "$ns2" route del default via 10.0.2.1
-+}
-+
- # Another test:
- # Add bridge interface br0 to Router1, with NAT enabled.
- test_bridge() {
-@@ -604,6 +642,8 @@ ip -net "$nsr1" addr add dead:1::1/64 dev veth0 nodad
- ip -net "$nsr1" link set up dev veth0
- }
- 
-+test_ipip
-+
- test_bridge
- 
- KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
+> Pablo, WDYT? Feasible alternative to the feature flag?
 
--- 
-2.50.0
-
+If my understanding is correct, I think this approach will break new
+nft binary with old kernel.
