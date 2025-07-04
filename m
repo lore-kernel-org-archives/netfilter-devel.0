@@ -1,175 +1,97 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0929C22069F;
-	Fri,  4 Jul 2025 19:12:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FFB622FF2E;
+	Fri,  4 Jul 2025 19:39:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751656334; cv=none; b=YDeP0cET7i6gi0k1tIziTquG19C58vgHx4JfnWjFozfHboyBU0iswAhOGxnANhJW6b53OSby3Ymp4W5JFSqNRgbem0QbZOPLtQPYf2KcPYH1N5g7TJeJFcHXxNnKxjQ5SiMFTv8s31ZOaMaWUi8IN9wTc4EjTfwb4m39Eb4/Yj4=
+	t=1751657959; cv=none; b=cYIH0D+I7DHhCpTgExR4RLiFESg83+Lt6ktc9vAIoP/I2k+u7JmGKiDbLL+BSk/o5bXbIsbaTLT1hwqe5keLScpVPm2yxN5au3f1oEKk3TubN7J0QnP56cV1AStB7H8+ZC9EZD2EGYJ4OhrhTgofxH1XeoytZTZlNxdpqfoaZao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751656334; c=relaxed/simple;
-	bh=Q/lrdq2Uikvlke/32oZHP0bIjd+ePE8bpseap/4Mp0c=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qu+iZR2SX9NvraFMPrYBkWdmxdoxwUztNIAfw0zVK1ihtXMBOX8ofeIxwyWcF7cNxQq9AkyU1rkZlS3pGumwr632BWXnGOjCeM9OppibvH4fO8zurPl8R8UJp9onVe2nVhx6McVbml23GRaz4yCzgFM8uVhbq2QHQV7+JWvNyt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H7DHunoC; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H7DHunoC"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-ae0ccfd5ca5so185549366b.3;
-        Fri, 04 Jul 2025 12:12:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751656331; x=1752261131; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=OmZsUY7dpf8eao6+4v2lrJjyeF3MwXa41UKxk0tU7Co=;
-        b=H7DHunoCvkhMAGTJVSfvLGctbG1Cvi0ts8kagKcXjl1uzOfiBr779nZjmt1r1ANcmB
-         tOg4jwrI0Hgvum1EwfUDMcwX7fkqJU0YHBEevp01i0QGZsTnHu1W/dydEo/LJYgc7tBm
-         i8TyovPH7+9Wt9qzwWL/NkZm5azE6t0YQ0hympOjvO6RWcfOAlPZBTUjYDA+l7MtQ6K2
-         ciMrc37jE+4BZtESgU112PqKC/se9j5gqZhaHGTn+Ib/FKZCwCPXmJSC2W88gDpD+vle
-         kATJuhGnxr0SheKbBEQdOyqOgUH7aHxKoQtUBv7qy1ovay9dKkRKs9nHW+66AZgG1IZU
-         KxTw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751656331; x=1752261131;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=OmZsUY7dpf8eao6+4v2lrJjyeF3MwXa41UKxk0tU7Co=;
-        b=GjmgjeMEDT6d7rSrOob5w5Vw5CsefGKjNJT1uYcLEttA1QfX8GYBN2ynC40AGZ27qm
-         cfqP8PszvHm+0I94ylqoOTFgSw6d3R4OhVU4OlGQj6xxcoZXagEv0GijmHSAEq0USIii
-         T5Kaa1QauKHc4yFEkuJmxDJvlofT1XXKN228rsjJQdzU86wT3Zn+mmXcTM+DmcKzEYw0
-         Pn3VvLfdUih2bSFGyLpkmxx8zjSay5SffxU+KyolF4bP7OJw7L7MOJB+QkSIWOZZY4m3
-         3rdFSJmVCJQfxqRiVsjhLo/jPuS7cPWldlq1Q4pe6EOWLjCEsfQ74TYgg3koUFwZqbKj
-         De1Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVkUQG/4mdg4g1m0bOVxTnL3tXYqkS6BY0hqh6ytFnpXi6076XAzaAzZezlE8AGk6SNlDYRdIg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxehTGofULdVv4fe7x1aPY9ciAHn81cQ2QxSmuZJ0+jXeI3Qsnb
-	lFptZh3Q67u4P1C0fuyC4HEBxrcbwCpsD7pxFLpPXeiqIWzjyH6bpkOz
-X-Gm-Gg: ASbGncue5dE8DNHMm+wBK3kkxchsdlu6gTjxp7D5IKTl8FEeLbCyrsb7lznfFEcD5MX
-	oKHmqrOpJSTpBtI3Q3GB2I9BmuKexJMh6P2KH1lSJY4dPcIl8Y7xeGErCRDQpuDuuExIUgpTaWK
-	my9tBQxe77JRJqBK2tlD1EFQ/IUXGWhT2z0O/gP8KB+ioSMao1pG6AMyQAbn/l2a3B3qlaPRUMY
-	TUdOmPJTW0mXErEZrvBReGks1PZ2OV6C/AaUDhibntinxaXPf5q9hrETdTgOLBnh3eAwwxHYo4v
-	9LshXzp9T3GOOPD57fIEkdOYMntNnYvxFAOYH13xh5KCseeV0OtL/aUR9z9Ij40r64ZtB9CW6eU
-	z3MYIvJTb3ROctXR3ZueBKnTpfgQT3QX5Wl7WwBouhax4D+pCQASsIYuv3NrEwOfW9PnWEjxTBp
-	ibGIWD
-X-Google-Smtp-Source: AGHT+IEeXAJoE2Ma43SXkCEuo3RyDIgqb9kmpp3aaYZZQ/WrcATyFVvyLOOnKU6Am6D5hgzbpWQ0+g==
-X-Received: by 2002:a17:907:9485:b0:ae0:ba0f:85af with SMTP id a640c23a62f3a-ae3fe800101mr359646266b.51.1751656331097;
-        Fri, 04 Jul 2025 12:12:11 -0700 (PDT)
-Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae3f6ac5fd7sm219476366b.103.2025.07.04.12.12.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Jul 2025 12:12:10 -0700 (PDT)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	s=arc-20240116; t=1751657959; c=relaxed/simple;
+	bh=lPHtRsVC8ACE7H3Qk0sZVKAmOHVHICOKr2a/g9a9GZ0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y/+lD+4zbOv3dnjhZC2jfeCiI+XDlMbzhKqra9UXHuvis93kxxOdR0R3hgWm3NHujny1af1s1vpTJvZ5NN6DIVZMxMKA4mU8o5BCIiOK4rFWm7sVIJVYulN+CHrSor9hdgAMcIB93Ckyt+LQlI34aTrfQa3cr8QjRdV5/TMewmg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id DA62561260; Fri,  4 Jul 2025 21:39:13 +0200 (CEST)
+Date: Fri, 4 Jul 2025 21:39:13 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	Nikolay Aleksandrov <razor@blackwall.org>,
 	Ido Schimmel <idosch@nvidia.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org,
-	bridge@lists.linux.dev,
-	netdev@vger.kernel.org,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v13 nf-next 3/3] netfilter: nft_chain_filter: Add bridge double vlan and pppoe
-Date: Fri,  4 Jul 2025 21:11:35 +0200
-Message-ID: <20250704191135.1815969-4-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.47.1
-In-Reply-To: <20250704191135.1815969-1-ericwouds@gmail.com>
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux.dev, netdev@vger.kernel.org
+Subject: Re: [PATCH v13 nf-next 1/3] netfilter: utils: nf_checksum(_partial)
+ correct data!=networkheader
+Message-ID: <aGgt4dUF2AsDXzdX@strlen.de>
 References: <20250704191135.1815969-1-ericwouds@gmail.com>
+ <20250704191135.1815969-2-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250704191135.1815969-2-ericwouds@gmail.com>
 
-This adds the capability to evaluate 802.1ad, QinQ, PPPoE and PPPoE-in-Q
-packets in the bridge filter chain.
+Eric Woudstra <ericwouds@gmail.com> wrote:
+> In the conntrack hook it may not always be the case that:
+> skb_network_header(skb) == skb->data.
+> 
+> This is problematic when L4 function nf_conntrack_handle_packet()
+> is accessing L3 data. This function uses thoff and ip_hdr()
+> to finds it's data. But it also calculates the checksum.
+> nf_checksum() and nf_checksum_partial() both use lower skb-checksum
+> functions that are based on using skb->data.
+> 
+> When skb_network_header(skb) != skb->data, adjust accordingly,
+> so that the checksum is calculated correctly.
+> 
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+> ---
+>  net/netfilter/utils.c | 22 ++++++++++++++++------
+>  1 file changed, 16 insertions(+), 6 deletions(-)
+> 
+> diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
+> index 008419db815a..daee035c25b8 100644
+> --- a/net/netfilter/utils.c
+> +++ b/net/netfilter/utils.c
+> @@ -124,16 +124,21 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
+>  		    unsigned int dataoff, u8 protocol,
+>  		    unsigned short family)
+>  {
+> +	unsigned int nhpull = skb_network_header(skb) - skb->data;
+>  	__sum16 csum = 0;
+>  
+> +	if (!pskb_may_pull(skb, nhpull))
+> +		return -ENOMEM;
 
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
----
- net/netfilter/nft_chain_filter.c | 52 +++++++++++++++++++++++++++++++-
- 1 file changed, 51 insertions(+), 1 deletion(-)
+Hmm.  Not sure about this.  We should really audit all conntrack users
+to make sure the network header is in the linear area, i.e.
+ip_hdr() and friends return the right value, even though skb->data !=
+skb_network_header().
 
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index 19a553550c76..8445ddfb9cea 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -232,11 +232,55 @@ nft_do_chain_bridge(void *priv,
- 		    struct sk_buff *skb,
- 		    const struct nf_hook_state *state)
- {
-+	__be16 outer_proto, proto = 0;
- 	struct nft_pktinfo pkt;
-+	int ret, offset = 0;
- 
- 	nft_set_pktinfo(&pkt, skb, state);
- 
- 	switch (eth_hdr(skb)->h_proto) {
-+	case htons(ETH_P_PPP_SES): {
-+		struct ppp_hdr {
-+			struct pppoe_hdr hdr;
-+			__be16 proto;
-+		} *ph;
-+
-+		if (!pskb_may_pull(skb, PPPOE_SES_HLEN))
-+			break;
-+		offset = PPPOE_SES_HLEN;
-+		outer_proto = skb->protocol;
-+		ph = (struct ppp_hdr *)(skb->data);
-+		switch (ph->proto) {
-+		case htons(PPP_IP):
-+			proto = htons(ETH_P_IP);
-+			break;
-+		case htons(PPP_IPV6):
-+			proto = htons(ETH_P_IPV6);
-+			break;
-+		}
-+		skb_set_network_header(skb, offset);
-+		skb->protocol = proto;
-+		break;
-+	}
-+	case htons(ETH_P_8021Q): {
-+		struct vlan_hdr *vhdr;
-+
-+		if (!pskb_may_pull(skb, VLAN_HLEN))
-+			break;
-+		offset = VLAN_HLEN;
-+		outer_proto = skb->protocol;
-+		vhdr = (struct vlan_hdr *)(skb->data);
-+		proto = vhdr->h_vlan_encapsulated_proto;
-+		skb_set_network_header(skb, offset);
-+		skb->protocol = proto;
-+		break;
-+	}
-+	default:
-+		proto = eth_hdr(skb)->h_proto;
-+		break;
-+	}
-+
-+	switch (proto) {
- 	case htons(ETH_P_IP):
- 		nft_set_pktinfo_ipv4_validate(&pkt);
- 		break;
-@@ -248,7 +292,13 @@ nft_do_chain_bridge(void *priv,
- 		break;
- 	}
- 
--	return nft_do_chain(&pkt, priv);
-+	ret = nft_do_chain(&pkt, priv);
-+
-+	if (offset) {
-+		skb_reset_network_header(skb);
-+		skb->protocol = outer_proto;
-+	}
-+	return ret;
- }
- 
- static const struct nft_chain_type nft_chain_filter_bridge = {
--- 
-2.47.1
+Such may_pull, in case of skb->head reallocation, invalidate a pointer
+to e.g. ethernet header in the caller.
 
+No idea if we have callers that do this, I did not check, but such
+"hidden" pulls tend to cause hard to spot bugs.
+
+Maybe use
+       if (WARN_ON_ONCE(skb_pointer_if_linear())
+		return 0;
+
+instead?  That allows to track down any offenders.  Given conntrack
+takes presence of the l3 header in the linear area for granted, I don't
+see how this can ever trigger.  You could also use
+DEBUG_NET_WARN_ON_ONCE if you prefer, given this condition should never
+be true anyway.
