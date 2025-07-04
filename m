@@ -1,196 +1,128 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f48.google.com (mail-qv1-f48.google.com [209.85.219.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65EB221ADB5
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Jul 2025 21:32:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245552594
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 02:36:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751578356; cv=none; b=gVjjjyftP0RQgYy9bPgqU/l40w9ixYVSnu30zhmhx2155P/O5Ov7hUrU6z2G3fA6uWPYdNxklMYn4tvQhUOxPdIrd6f+YoraCLhaQ5HRQQG7/rOkH8DxFXkiGi2i96GtShX8CYr55Ovq/OFEl/P83GJDkUT8xm3UAUgMDTrl76I=
+	t=1751596605; cv=none; b=Y7M2V04VGG/4lU/nyi0pqdyYu0EoL6vqq6leMmKL7VjQEjAntBS8tdJrjlR85KxzVP04P837kM/8Y9SXBy3x2WSmPjRjWNFe1xUPuIS9h3A6ZFPb6hm++ZNAYVOV0f0ID8aFrEs2keV7NtIvkp6BuyboJlbsVQUILMcmMrNgYAY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751578356; c=relaxed/simple;
-	bh=KNRwE3WDNcplEkGRTyNJfcmCtiudU/NI/zJIIesQO2w=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SbtqTpFMvpKbl2V4PPEK8yTrXjLjFFsS8fJsCtWdkyEZ/t2vCGULcvJMLb3HnahNKm7039B6SaduVB+HaEbsb367kEScP8Gw0iEIDzlDOQAdi+G/qg5EnXh1toUmCtfOlIueKRKsSQSBQkTUbRcFvKF21oQJpUDgPHfiw4JmDl4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=u3S/K2Hk; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hsac5Fyf; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1751596605; c=relaxed/simple;
+	bh=nbrv5Em4Z9yh4zF/0JUixgS4/lxl0m27Q6QC1u29PGY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Content-Type; b=uFpEZ0nK9tbUeiGo1SSORCveq7fJw08kCs4VYRzxJ7Q5F1U3gj+VVQ+rabOMDoDNPp7DFz82XYbjKwL+qqQxw3hCxvHH2WOSxy8U6ip7l8rlMSnu7YHpfHd1q6pjYmQ2bUQN/OCnirG43HKfLNWEwH2Jo+yKe15S7ALceGJ2OR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kuCqBXGn; arc=none smtp.client-ip=209.85.219.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="u3S/K2Hk";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hsac5Fyf"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 19104602D6; Thu,  3 Jul 2025 23:32:30 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1751578350;
-	bh=VjDl/77hxBx4IYmBjAhov002DqWOe3rwgA3HCsaTGNI=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=u3S/K2HkqiUQdHmwTyGn0TXUtCEjVvQV2qBeB1dZrxLkF5cj3D99GC3v787/cMGmx
-	 WoJce9OHLLQynap2f83NkjdeNlP+bB3zczPFPzIdI8+RjMX3qKE/3dmWq33wGvDEbP
-	 LwozaNUKqI1a/mPKcX8i43vP8J0bCr7B0LG8y5e4oi0GFmaVFw+YO0dRJj8QdBWSPN
-	 n0Bd6eZQlAAFnPmLGDnwR0uVjGq5/vefJNWwKjP5JUNEtpDe9d+KTm6OY77ZZuc1xO
-	 W06D96h4PEXhpiG/KEMC23ZUx5OBRTAIg/I21CFkufQyQbJupBx+c/etoio3E5cNY2
-	 t08++KukFL3Jw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C354E602D2;
-	Thu,  3 Jul 2025 23:32:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1751578348;
-	bh=VjDl/77hxBx4IYmBjAhov002DqWOe3rwgA3HCsaTGNI=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=hsac5FyftE7WcIY1ybRAZVZgRGKwzrE3i8dFQy2ZtRIEW8hDt5CN4xY9puRcAr2RV
-	 GArRLn7l3jJH15+DgnaSxrbwJ1uckA262QSZzd/8sd76Ld4FXGFnDB068KccAdwmRR
-	 wntSaxm8IBK4uz4UN7JW6Jzzmz6A2ciPUXQNi3fk4huBFJPpptIPzQTspBekaTCSCo
-	 L1a/X9hOqLVY3UgMu9ZvVWz/0GYAEvpXMw6GzXVW0K9uxPu6kDnUS8WbV+7mv4Txa6
-	 /uAkwPIuJmAFOnZ0GJQxdiExIXURqIYsOsEW1kORnltpAKXKCc+N/3XM2euPPwivX1
-	 UDijLsbL7RnXw==
-Date: Thu, 3 Jul 2025 23:32:26 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
- registration
-Message-ID: <aGbu5ugsBY8Bu3Ad@calendula>
-References: <aGW1JNPtUBb_DDAB@strlen.de>
- <aGZZnbgZTXMwo_MS@orbyte.nwl.cc>
- <aGZrD0paQ6IUdnx2@calendula>
- <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
- <aGZ6E0k0AyYMiMvp@strlen.de>
- <aGZ75G4SVuwkNDb9@orbyte.nwl.cc>
- <aGZ9jNVIiq9NrUdi@strlen.de>
- <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
- <aGaRaHoawJ-DbNUl@calendula>
- <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kuCqBXGn"
+Received: by mail-qv1-f48.google.com with SMTP id 6a1803df08f44-6fb01566184so4092846d6.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Jul 2025 19:36:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1751596602; x=1752201402; darn=vger.kernel.org;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=T/MsF3FHNu8DZevB89F0fP1g0u/Fll5IS8rvhtChFsU=;
+        b=kuCqBXGn6tUfexL3QJdiIm1hIS/PEsZAJyqtWo+vF4x2pyJSJkJ2Gh6M42J7Ku2dZl
+         LdegojIj7zBbDbT+SWSXnsLyhCi0F8m3jA178gOC0njajnNszwLZMpoQJbnisXhhrDTc
+         5MHg8nYdWlIvZvf+YH29Bir8HAJDsjR+fk/Nk9/itGrO5kBEebd8quAdhNIK2KrK3kog
+         Ucd4i9VzRwlrAy5YqC/gnmP8c1cJlS/c/1Gn/9XZEXY9QI0jUi1PWd2FTZCgAVmX2Ibc
+         EJTuDBL/9379PErY5ohfGF9bxieub2dMFCstUKrbc3k98yzyf172Lf2XyvgIRaz8G1qV
+         eumA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751596602; x=1752201402;
+        h=content-transfer-encoding:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=T/MsF3FHNu8DZevB89F0fP1g0u/Fll5IS8rvhtChFsU=;
+        b=NCTHbNHfZgM/nke4S4mVwIdhVrz6KWeLAfJ0wW5BGK4TFZGJoleYoI37lJVO67YNXM
+         h4xgIj9jRo6Wn6z/UzJ8dfjaDzEmIqcHrkNA0g2Qs5SMb9htLSI86M3GOuHWrFu4VD2o
+         637n33gKcwOYFM4vfdE/wn0UZOj8TI+ItPVL/EwRxSXZmDbL22iE0tTAbED9/ihSXQjr
+         kNvaS5KTo9pCqA8zPgeaIz4sGcA9OzyYfQ99AGHB9yeZJkv+F0a1dPOvlaE62K6noSXe
+         2Avd8HqKA26CBGsabh3l6SkT6CNCs2sZmQ2tKa4qg84+hobSky2JdWRoNJvGrpHiJV50
+         fJhg==
+X-Forwarded-Encrypted: i=1; AJvYcCVZUrbegbT3Knb0NDtqK+xNgmE/LhAd5oRZchziC7SMwmuj+HJr6TDJa8szlls3k+Db//EGvqTVI7A4zSBg+p8=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxzZfUU327srEuKCEyZkiksMYovSv4LkUvObaRetlOdy1OfVVnm
+	2DfKlhBMi1YTzR1b7STHX95q3q/kjMD04JIeZUqvWjZeBm/SSjZuaMq9ML5EytMeNLnOVI/v4Gl
+	3C9FkK+YJLDJBtBeOz5KSeDsHWKg1nHo=
+X-Gm-Gg: ASbGncsUL23G0zhXkjC+wf48as915mH+oFo94pxmth/rAGrM9pycIRE04NefdO5Nvyd
+	5K4Tpc6stv82qJEQilcIoYwDp6kzOHxAlnlD74keWTgjwRd4ILDm9HCUZafNfpoWrfhU3w4pqiO
+	P8ofPCMuziVJUKYbS0FTfXib/oOF2wpCtvQ1T7UorXgvQ=
+X-Google-Smtp-Source: AGHT+IHW+7CTp1HtZ3uDE9P2WD/dfTGC8aG2yzHXD7tjiAOrM7h7UDnuJfdIt5GSQn3pn79Vv+rWdsMIyFc0VMx9JIw=
+X-Received: by 2002:a05:6214:1bc6:b0:702:b28b:d4c2 with SMTP id
+ 6a1803df08f44-702c6d3a3e0mr10477356d6.17.1751596601934; Thu, 03 Jul 2025
+ 19:36:41 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
+References: <20250703135836.13803-1-dzq.aishenghu0@gmail.com>
+ <aGaN_9hnyR9AdOdT@calendula> <aGaTBm2-wSvSySEN@orbyte.nwl.cc>
+In-Reply-To: <aGaTBm2-wSvSySEN@orbyte.nwl.cc>
+From: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+Date: Fri, 4 Jul 2025 10:36:31 +0800
+X-Gm-Features: Ac12FXyMmKesWnRViUcMG1rpjWjn9APVfgdCD5CMvac7GJDHiKq6fUW4KFjiOqk
+Message-ID: <CAFmV8NcEF7OhmHkjebvLJ+vDR+4KNn7akimiVP4hmYhdnMLJbw@mail.gmail.com>
+Subject: Re: [PATCH nft] tests: py: correct the py utils path in the source tree
+To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+	Zhongqiu Duan <dzq.aishenghu0@gmail.com>, coreteam@netfilter.org, 
+	netfilter-devel@vger.kernel.org, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, Simon Horman <horms@kernel.org>, Jeremy Sowden <jeremy@azazel.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 03, 2025 at 04:33:49PM +0200, Phil Sutter wrote:
-[...]
-> > > Pablo, WDYT? Feasible alternative to the feature flag?
+On Thu, Jul 3, 2025 at 10:26=E2=80=AFPM Phil Sutter <phil@nwl.cc> wrote:
+>
+> Hi,
+>
+> On Thu, Jul 03, 2025 at 04:04:47PM +0200, Pablo Neira Ayuso wrote:
+> > What does it break here? Provide more info.
+> >
+> > On Thu, Jul 03, 2025 at 01:58:36PM +0000, Zhongqiu Duan wrote:
+> > > Fixes: ce443afc2145 ("py: move package source into src directory")
+> > > Signed-off-by: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
+> > > ---
+> > >  tests/py/nft-test.py | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+> > > index c7e55b0c3241..984f2b937a07 100755
+> > > --- a/tests/py/nft-test.py
+> > > +++ b/tests/py/nft-test.py
+> > > @@ -23,7 +23,7 @@ import traceback
+> > >  import tempfile
+> > >
+> > >  TESTS_PATH =3D os.path.dirname(os.path.abspath(__file__))
+> > > -sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/'))
+> > > +sys.path.insert(0, os.path.join(TESTS_PATH, '../../py/src'))
+> > >  os.environ['TZ'] =3D 'UTC-2'
+> > >
+> > >  from nftables import Nftables
+>
+> This is a needed follow-up of commit ce443afc21455 ("py: move
+> package source into src directory") from 2023. Since that change,
+> nft-test.py started using the host's nftables.py instead of the local
+> one. But since nft-test.py passes the local src/.libs/libnftables.so.1
+> as parameter when instantiating the Nftables class, we did nevertheless
+> use the local libnftables.
+>
+> Duan Zhongqiu, could you please point out that it re-enables nft-test.py
+> to load the right nftables.py module in the description? Also, please
+> add:
+>
+> Fixes: ce443afc21455 ("py: move package source into src directory")
+> Reviewed-by: Phil Sutter <phil@nwl.cc>
+>
 
-That is more simple, it puts a bit more pressure on netlink_dump().
-Worst case fully duplicates the information, I think we discussed this
-already.
+Hi Phil,
 
-If my code reading is correct, maximum size of the area to add netlink
-messages in the dump path is SKB_WITH_OVERHEAD(32768) according to
-netlink_recvmsg(), there is a fallback to NLMSG_GOODSIZE when 3-order
-allocation fails.
+Thanks for the detailed description.
+I'll use this information to post v2 later.
 
-In the event path, memory budget is already used up since
-NLMSG_GOODSIZE (4096) even before this proposal because
+Best regards,
+Zhongqiu
 
-256 devices * IFNAMSIZ = 4096
-
-This is beyond the limit.
-
-This can be fixed by splitting the report in two events of NEWCHAIN,
-but if there is another large attribute reaching the worst case, the
-splitting will get more complicated.
-
-With your new attribute, worst case scenario means duplicating _DEVS
-with the same devices.
-
-There is a memory budget for the netlink message, and the ADDCHAIN
-netlink message with the netdev family is already pushing it to the
-limit when *I rised* the maximum to 256 devices per request of a user.
-I can post a patch to reduce it to 128 devices now that your device
-wildcard feature is available.
-
-I regret _DEVS attribute only includes DEV_NAME, it should have been
-possible to add a flag and provide a more efficient representation
-than your proposal.
-
-A possible fugly hack would be to stuffed this information after \0 in
-DEV_NAME, but that would feel like the iptables revision
-infrastructure, better not to go that way.
-
-Maybe all this is not worth to worry and we can assume in 2025 that
-when 3-order allocation fails netlink dump will simply fail? Probably
-this already is right for other existing netlink subsystems.
-
-And this effort is to provide a way for the user to know that the
-device that has been specified has actually registered a hook so the
-chain will see traffic.
-
-So far we only have events via NEWDEV to report new hooks. Maybe
-GETDEV to consult the hooks that are attached to what chains is
-needed? That would solve this usability issue.
-
-But that is _a lot more work_, stuffing more information into the
-ADDCHAIN netlink message is easier. GETDEV means more netlink boiler
-plate code to avoid this simple extra attribute you propose.
-
-GETDEV would be paired with NEWDEV events to determine which device
-the base chain is hooked to.
-
-Maybe it is not for users to know that that dummy* is matching
-_something_ but also they want to know what device is matching such
-pattern for debugging purpose.
-
-It boils down to "should we care to provide facility to allow for more
-instrospection in this box"?
-
-If the answer is "no, what we have is sufficient" then let's not worry
-about mistypes. GETDEV facility would be rarely used, then skip.
-
-If you want to complete this picture, then add GETDEV, because NEWDEV
-events without GETDEV command looks incomplete.
-
-> > If my understanding is correct, I think this approach will break new
-> > nft binary with old kernel.
-> 
-> If not present (old kernel), new nft would assume all device specs
-> matched an interface. I would implement this as comment, something like:
-> "# not bound: ethX, wlan*" which would be missing with old kernels.
-
-If after all this, you decide to go for this approach with the new
-attribute into ADDCHAIN, maybe a more compact representation,
-add ? notation:
-
-table ip x {
-        chain y {
-                type filter hook ingress devices = { "eth*"?, "vlan0"?, "wan1" } priority 0;
-        }
-}
-
-This notation can be removed if -s/--stateless is used and ignored if
-ruleset is loaded and it is more compact.
-
-It feels like we are trying to stuff too much information in the
-existing output, and my ? notation is just trying to find a "smart"
-way to make thing not look bloated. Then, GETDEV comes again and this
-silly notation is really not needed if a more complete view is
-provided.
-
-BTW, note there is one inconsistency that need to be addressed in the
-listing, currently 'devices' does not enclose the names in quotes
-while 'device' does it.
-
-I mean, with device:
-
-table netdev x {
-        chain y {
-                type filter hook ingress device "dummy0" priority filter; policy accept;
-        }
-}
-
-with devices:
-
-table netdev x {
-        chain y {
-                type filter hook ingress devices = { dummy0, dummy1 } priority filter; policy accept;
-        }
-}
-
-It would be great to fix this.
-
-P.S: This still leaves room to discuss if comments are the best way to
-go to display handle and set count, but we can start a new thread to
-discuss this.
+> Thanks, Phil
