@@ -1,199 +1,233 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAE132D46AC
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 12:30:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DCF2D8771
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 12:41:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751632235; cv=none; b=XgIf/E3YInNT9OmQwX84rX4ted1IbKJtHZ7i/qu+1SYKmbXosfc4OO5DHAgL9VFtcOLzZVfVdKF+yOoVZAzL9K3sxPCQzr9uqYIvdFAPjmm5T2nO1bdTfGf4kUz8qg35Nvg5llIlGwdZG1f/p2jj3LhwYXcRs0SIJ2nYilJmf/M=
+	t=1751632873; cv=none; b=anjZm/J7cKyolwzR9A99Uv/iTfUHlwuJqpDB3RGIq7Bv1yYgjqKZF9Yh1wPTUp8UXd0lUn4es8T8MXBmcnROe4BT7aJImYTjgvW7D8nWCqA75O/wq0b5F4mgJO/qQYVm02nqez865HdTBWN2NLrf3UA6hA+l6faUS02whVurv4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751632235; c=relaxed/simple;
-	bh=DuL3NDtNPYZ6gBM703YVDxupzgnIkLx0NzfQancbxkk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Oup2fHtZCkDExwfsTfyZoOf2DKqMv1msPjNP7M9RngEEHebwUHgh1Sy//iRGKBCFTxbDZQOQUL2CAabz/1bjwkbogEe/AXd+ntXp5mhMAW0DLGrvYXTJrVEbJui3nG9yq0PaO5GkLltqffT0vGAmU/DujQRlGU2X9UdPDqmGJaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6F6DA6186E; Fri,  4 Jul 2025 14:30:32 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [nf-next 2/2] netfilter: nf_tables: all transaction allocations can now sleep
-Date: Fri,  4 Jul 2025 14:30:18 +0200
-Message-ID: <20250704123024.59099-3-fw@strlen.de>
-X-Mailer: git-send-email 2.50.0
-In-Reply-To: <20250704123024.59099-1-fw@strlen.de>
-References: <20250704123024.59099-1-fw@strlen.de>
+	s=arc-20240116; t=1751632873; c=relaxed/simple;
+	bh=uK7P7juDd7LvJWxHImGhjOBiNEQ9BnjI6L7udtaC45Q=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=aUtSjkFV3fJFqENxGh/phVNk6m0DSjkpjTRK9lEHn1sV/EZDV6CsjRmxJRlUTDdF45S1Zq/YkuBKqlC57HrfYPflHF9gMMYwms67Cs/o/KLn1SYdhRSyjz+rZDHuoKaf01eJyD8/wrm4+ogLzmdcPE1UHnToAvcADsrJN+HFb4g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=b32+zC9G; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="b32+zC9G"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=uScZcVYpKC8nSswniTYilvGd6DFfR064Xg33zGcY2SA=; b=b32+zC9GPeMLiq6FP7vV3QcIRv
+	jwQkkqgN9El8dYvFHl/QvAslZG/vyJOt47+YnNTBo727rLcfKJ1iYaLHlGkF2dD09t5716LY5jgjs
+	uNM3G04Y/wV13rxBjztBuw0LgaRQaR5nHo+pzi+QG2e25+UIY9TaNxiOhM/gfKWmpDv8SSQry1KSO
+	oniALQy65RzWB5C7JYppV4Kg8MNgZH0XaWdB0oq/S+Fp6o23MESBovoASSBziwQ7GW5qliJqPHVRs
+	pGpQM4bTx5T8vOf7pnXdGL8IC/ti1NSBpijCoBCC0bvW4SItEpdPmPqjaJ/XRjsvM65dsQTA3+cWq
+	c4aT/W3Q==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uXfiw-000000001Fh-05gA;
+	Fri, 04 Jul 2025 14:41:02 +0200
+Date: Fri, 4 Jul 2025 14:41:01 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
+ registration
+Message-ID: <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <aGZZnbgZTXMwo_MS@orbyte.nwl.cc>
+ <aGZrD0paQ6IUdnx2@calendula>
+ <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
+ <aGZ6E0k0AyYMiMvp@strlen.de>
+ <aGZ75G4SVuwkNDb9@orbyte.nwl.cc>
+ <aGZ9jNVIiq9NrUdi@strlen.de>
+ <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
+ <aGaRaHoawJ-DbNUl@calendula>
+ <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
+ <aGbu5ugsBY8Bu3Ad@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aGbu5ugsBY8Bu3Ad@calendula>
 
-Now that nft_setelem_flush is not called with rcu read lock held or
-disabled softinterrupts anymore this can now use GFP_KERNEL too.
+Hi Pablo,
 
-This is the last atomic allocation of transaction elements, so remove
-all gfp_t arguments and the wrapper function.
+On Thu, Jul 03, 2025 at 11:32:26PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Jul 03, 2025 at 04:33:49PM +0200, Phil Sutter wrote:
+> [...]
+> > > > Pablo, WDYT? Feasible alternative to the feature flag?
+> 
+> That is more simple, it puts a bit more pressure on netlink_dump().
+> Worst case fully duplicates the information, I think we discussed this
+> already.
+> 
+> If my code reading is correct, maximum size of the area to add netlink
+> messages in the dump path is SKB_WITH_OVERHEAD(32768) according to
+> netlink_recvmsg(), there is a fallback to NLMSG_GOODSIZE when 3-order
+> allocation fails.
+> 
+> In the event path, memory budget is already used up since
+> NLMSG_GOODSIZE (4096) even before this proposal because
+> 
+> 256 devices * IFNAMSIZ = 4096
+> 
+> This is beyond the limit.
+> 
+> This can be fixed by splitting the report in two events of NEWCHAIN,
+> but if there is another large attribute reaching the worst case, the
+> splitting will get more complicated.
+> 
+> With your new attribute, worst case scenario means duplicating _DEVS
+> with the same devices.
+> 
+> There is a memory budget for the netlink message, and the ADDCHAIN
+> netlink message with the netdev family is already pushing it to the
+> limit when *I rised* the maximum to 256 devices per request of a user.
+> I can post a patch to reduce it to 128 devices now that your device
+> wildcard feature is available.
 
-This makes attempts to delete large sets much more reliable, before
-this was prone to transient memory allocation failures.
+While 128 should suffice for all practical cases (I hope), we could also
+count hooks (empty ones twice) in _fill routines and omit the
+HOOKLESS_DEVS attribute if the number exceeds 256.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 43 +++++++++++++----------------------
- 1 file changed, 16 insertions(+), 27 deletions(-)
+> I regret _DEVS attribute only includes DEV_NAME, it should have been
+> possible to add a flag and provide a more efficient representation
+> than your proposal.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 24c71ecb2179..9615d0a873c9 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -151,12 +151,12 @@ static void nft_ctx_init(struct nft_ctx *ctx,
- 	bitmap_zero(ctx->reg_inited, NFT_REG32_NUM);
- }
- 
--static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
--					     int msg_type, u32 size, gfp_t gfp)
-+static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
-+					 int msg_type, u32 size)
- {
- 	struct nft_trans *trans;
- 
--	trans = kzalloc(size, gfp);
-+	trans = kzalloc(size, GFP_KERNEL);
- 	if (trans == NULL)
- 		return NULL;
- 
-@@ -172,12 +172,6 @@ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
- 	return trans;
- }
- 
--static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
--					 int msg_type, u32 size)
--{
--	return nft_trans_alloc_gfp(ctx, msg_type, size, GFP_KERNEL);
--}
--
- static struct nft_trans_binding *nft_trans_get_binding(struct nft_trans *trans)
- {
- 	switch (trans->msg_type) {
-@@ -442,8 +436,7 @@ static bool nft_trans_collapse_set_elem_allowed(const struct nft_trans_elem *a,
- 
- static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
- 					struct nft_trans_elem *tail,
--					struct nft_trans_elem *trans,
--					gfp_t gfp)
-+					struct nft_trans_elem *trans)
- {
- 	unsigned int nelems, old_nelems = tail->nelems;
- 	struct nft_trans_elem *new_trans;
-@@ -466,7 +459,7 @@ static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
- 	/* krealloc might free tail which invalidates list pointers */
- 	list_del_init(&tail->nft_trans.list);
- 
--	new_trans = krealloc(tail, struct_size(tail, elems, nelems), gfp);
-+	new_trans = krealloc(tail, struct_size(tail, elems, nelems), GFP_KERNEL);
- 	if (!new_trans) {
- 		list_add_tail(&tail->nft_trans.list, &nft_net->commit_list);
- 		return false;
-@@ -484,7 +477,7 @@ static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
- }
- 
- static bool nft_trans_try_collapse(struct nftables_pernet *nft_net,
--				   struct nft_trans *trans, gfp_t gfp)
-+				   struct nft_trans *trans)
- {
- 	struct nft_trans *tail;
- 
-@@ -501,7 +494,7 @@ static bool nft_trans_try_collapse(struct nftables_pernet *nft_net,
- 	case NFT_MSG_DELSETELEM:
- 		return nft_trans_collapse_set_elem(nft_net,
- 						   nft_trans_container_elem(tail),
--						   nft_trans_container_elem(trans), gfp);
-+						   nft_trans_container_elem(trans));
- 	}
- 
- 	return false;
-@@ -537,17 +530,14 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- 	}
- }
- 
--static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans,
--					   gfp_t gfp)
-+static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 
- 	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
- 		     trans->msg_type != NFT_MSG_DELSETELEM);
- 
--	might_alloc(gfp);
--
--	if (nft_trans_try_collapse(nft_net, trans, gfp)) {
-+	if (nft_trans_try_collapse(nft_net, trans)) {
- 		kfree(trans);
- 		return;
- 	}
-@@ -7529,7 +7519,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 						}
- 
- 						ue->priv = elem_priv;
--						nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+						nft_trans_commit_list_add_elem(ctx->net, trans);
- 						goto err_elem_free;
- 					}
- 				}
-@@ -7553,7 +7543,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
- 
- 	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 	return 0;
- 
- err_set_full:
-@@ -7819,7 +7809,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	nft_setelem_data_deactivate(ctx->net, set, elem.priv);
- 
- 	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 	return 0;
- 
- fail_ops:
-@@ -7844,9 +7834,8 @@ static int nft_setelem_flush(const struct nft_ctx *ctx,
- 	if (!nft_set_elem_active(ext, iter->genmask))
- 		return 0;
- 
--	trans = nft_trans_alloc_gfp(ctx, NFT_MSG_DELSETELEM,
--				    struct_size_t(struct nft_trans_elem, elems, 1),
--				    GFP_ATOMIC);
-+	trans = nft_trans_alloc(ctx, NFT_MSG_DELSETELEM,
-+				struct_size_t(struct nft_trans_elem, elems, 1));
- 	if (!trans)
- 		return -ENOMEM;
- 
-@@ -7857,7 +7846,7 @@ static int nft_setelem_flush(const struct nft_ctx *ctx,
- 	nft_trans_elem_set(trans) = set;
- 	nft_trans_container_elem(trans)->nelems = 1;
- 	nft_trans_container_elem(trans)->elems[0].priv = elem_priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_ATOMIC);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 
- 	return 0;
- }
-@@ -7874,7 +7863,7 @@ static int __nft_set_catchall_flush(const struct nft_ctx *ctx,
- 
- 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
- 	nft_trans_container_elem(trans)->elems[0].priv = elem_priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 
- 	return 0;
- }
--- 
-2.50.0
+Yes, these kinds of short-cuts tend to kill the flexibility of the netlink
+format. We could introduce _HOOK_DEVS_NEW but just like with _HOOK_DEV,
+we can't get rid of _HOOK_DEVS in exchange.
 
+> A possible fugly hack would be to stuffed this information after \0 in
+> DEV_NAME, but that would feel like the iptables revision
+> infrastructure, better not to go that way.
+
+ACK.
+
+> Maybe all this is not worth to worry and we can assume in 2025 that
+> when 3-order allocation fails netlink dump will simply fail? Probably
+> this already is right for other existing netlink subsystems.
+> 
+> And this effort is to provide a way for the user to know that the
+> device that has been specified has actually registered a hook so the
+> chain will see traffic.
+
+Please keep in mind we already have 'nft list hooks' which provides
+hints in that direction. It does not show which flowtable/chain actually
+binds to a given device, though.
+
+> So far we only have events via NEWDEV to report new hooks. Maybe
+> GETDEV to consult the hooks that are attached to what chains is
+> needed? That would solve this usability issue.
+> 
+> But that is _a lot more work_, stuffing more information into the
+> ADDCHAIN netlink message is easier. GETDEV means more netlink boiler
+> plate code to avoid this simple extra attribute you propose.
+> 
+> GETDEV would be paired with NEWDEV events to determine which device
+> the base chain is hooked to.
+
+Yes, it is definitely more work than the HOOKLESS_DEVS extra attribute,
+but both user and kernel space would reuse code from NEWDEV event
+support for the new request.
+
+OTOH using it instead of HOOKLESS_DEVS means one more round-trip for
+each flowtable and netdev chain being cached in user space.
+
+> Maybe it is not for users to know that that dummy* is matching
+> _something_ but also they want to know what device is matching such
+> pattern for debugging purpose.
+
+There is^Wwill be also 'nft monitor' helping with that.
+
+> It boils down to "should we care to provide facility to allow for more
+> instrospection in this box"?
+> 
+> If the answer is "no, what we have is sufficient" then let's not worry
+> about mistypes. GETDEV facility would be rarely used, then skip.
+> 
+> If you want to complete this picture, then add GETDEV, because NEWDEV
+> events without GETDEV command looks incomplete.
+
+So you're suggesting to either implement GETDEV now or maybe later but
+not the HOOKLESS_DEVS attribute for it being redundant wrt. GETDEV?
+
+> > > If my understanding is correct, I think this approach will break new
+> > > nft binary with old kernel.
+> > 
+> > If not present (old kernel), new nft would assume all device specs
+> > matched an interface. I would implement this as comment, something like:
+> > "# not bound: ethX, wlan*" which would be missing with old kernels.
+> 
+> If after all this, you decide to go for this approach with the new
+> attribute into ADDCHAIN, maybe a more compact representation,
+> add ? notation:
+> 
+> table ip x {
+>         chain y {
+>                 type filter hook ingress devices = { "eth*"?, "vlan0"?, "wan1" } priority 0;
+>         }
+> }
+> 
+> This notation can be removed if -s/--stateless is used and ignored if
+> ruleset is loaded and it is more compact.
+> 
+> It feels like we are trying to stuff too much information in the
+> existing output, and my ? notation is just trying to find a "smart"
+> way to make thing not look bloated. Then, GETDEV comes again and this
+> silly notation is really not needed if a more complete view is
+> provided.
+
+I prefer the comment format simply because it is easier on the parsers:
+The one in nft is already quite convoluted, anyone trying to parse nft
+output (yes, there's JSON for that but anyway) will likely expect
+comments already.
+
+On top of that, we don't break syntax for older binaries.
+
+> BTW, note there is one inconsistency that need to be addressed in the
+> listing, currently 'devices' does not enclose the names in quotes
+> while 'device' does it.
+> 
+> I mean, with device:
+> 
+> table netdev x {
+>         chain y {
+>                 type filter hook ingress device "dummy0" priority filter; policy accept;
+>         }
+> }
+> 
+> with devices:
+> 
+> table netdev x {
+>         chain y {
+>                 type filter hook ingress devices = { dummy0, dummy1 } priority filter; policy accept;
+>         }
+> }
+> 
+> It would be great to fix this.
+
+We could start by accepting quoted strings there. To not cause too much
+fuss, quotes could be limited to wildcard interface names on output (at
+least for now).
+
+> P.S: This still leaves room to discuss if comments are the best way to
+> go to display handle and set count, but we can start a new thread to
+> discuss this.
+
+My maxim would be to use comments for data which is output only, i.e.
+useless on input.
+
+Cheers, Phil
