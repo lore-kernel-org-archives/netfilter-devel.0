@@ -1,62 +1,62 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A003C34CF5
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 11:40:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6046734CF5
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 11:40:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751629207; cv=none; b=El8xXT+slQbEkMO2kXaAskXi6nMvLhIdzEKo/PbnDqIFh9c2FYWq8z3IdDDq8k8juR6A1O9+kIsaAlfLxQDyehlVZBGzqc71XQ4epAimNgbAAfr3vtUsnWg9YEKXy6ueX7zlOnmPvlQ0OEDBiptUYtRWF/u3QFIkVjWay6D5X3k=
+	t=1751629209; cv=none; b=GXoHKIroQZ5DdadHn6tSft3hfkpK0KbdQTfDhMMYmgoV7JsxKB3Gc2GTXBrELY3pJkZoMr5tJ/44czYVGHwDtYDw5Q1EzJAC9KIKwwFue3AtWIQ35AxpdLP4XmU+qbD1yTPoaPx/U1PhFh58KBocwp6zlIWFL4yrpWWI9NCXXng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751629207; c=relaxed/simple;
-	bh=/i6prCxpLmL+ZvU4a5/M63dBkOo+kEqJenVucxiJ9Tg=;
+	s=arc-20240116; t=1751629209; c=relaxed/simple;
+	bh=aqVoU9d4J3G7eP4gdo3Q4W9TdPPas3QwjOZ6g97ItM4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m4mbHSvE3kNtkiVsEEwds7+FdYL8KZLkKZc9rISif9WML4dZVk/tDqyjVbXwfso9vuwrC8Xt6d6AUbfX3MpJgT2ldWcp3SY0W37iwbpGZyqlWkxXc7hDXGja+7/W7IY+6NLh7OHLEcBVlmYacg5RnTRHsRRPQxr/VfMss474mbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hoj7S/4W; arc=none smtp.client-ip=209.85.214.172
+	 MIME-Version; b=TGlMuGmkd8UE0r4n78gz7OOYb5oa99+7lljUITbJ2HjO7D6e+ONu1HQ9/91GtpZ3RGQ/2COd1enhJ5/nXGCcXJhhOsVG3C7U+O8WR5jrON8aFwsMnpqVMLzvzj2MflIr2yjRF/dd5eBapnqJKHKtNSESK7IciRIYazA2WCVrW1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PjjJhMzh; arc=none smtp.client-ip=209.85.214.174
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hoj7S/4W"
-Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-23c703c471dso17927655ad.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 04 Jul 2025 04:40:05 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PjjJhMzh"
+Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2349f096605so12519615ad.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 04 Jul 2025 04:40:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751629205; x=1752234005; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1751629207; x=1752234007; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=VlYav2b6k8z0Ng/9xdvLPcQJQdMlzmEiQswWGhL3r8U=;
-        b=hoj7S/4WqN6Q1N/attcgtxJMeDEuBdrL0R2gMQjEe4oOMfVuuClhfAGZWkSn7Xk7fk
-         ifOF3N+MPUOi+QGXEwZY+eVng/yBE+Nor28wH23YxzsnLU6vudkT4GwS5tH2SW22jJl0
-         rSLLsYpCE3yg/pmcKrCV635/z/YGMcXKUYWjRYyN/sy8/p5x71eifqT/8pGRMTw3r18C
-         jJ8H4b95okRa+yNRfm0nf2uAWiErCofTmsVYKeuDtl4oEp8RuGSdMJngBMM2kErLqVam
-         60BB3ZAgT45Ys/mMfyCtB2JFB5Gbb99m74noTxkua8G3YEJOedBGsLKgM7JCtUlsrkG1
-         WfNw==
+        bh=eEJtn5CR0QJe9/1YtXXQYKyRHDLdjOwLz/6+gVQ5z6U=;
+        b=PjjJhMzhdHAtbC3maCCzY5IPIJOGxeFJEwJQ9y3tMIyXmCYBfHFjcc/jWx5HIAn2TD
+         GpYUq3B6KA5mRoEtrurixRNfZsGk20cFkrJt2l9oAFAS8yolmHZDY2AU/oR+B0dntSWg
+         MvNXwJiPuOwZrkUKvmMof1PTjMHuP4uOJZnhY5WWqdZhCS+HJojvytf/AJVQ2F8QtG5U
+         w+M4uhDlc6n0J9M8PFZMo6fERdmcCI9t71W3lFdJvrtoonhvE/80HtYwNvn314gXx4UW
+         WOgfYRhT+HTvxzUL256vj9D29GlwXOsez1XwCIOJp4XidDGePk00Pa3XUOqDweCbbCpb
+         gMcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751629205; x=1752234005;
+        d=1e100.net; s=20230601; t=1751629207; x=1752234007;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=VlYav2b6k8z0Ng/9xdvLPcQJQdMlzmEiQswWGhL3r8U=;
-        b=b2SW5ZK8zmAD0v5kMj7a/+xOBPbq3zv+22U9/QHVAS4bCyo/w8wFpNt8UM5R5jFof9
-         RFvXjRWTzopic4CG63gwH3RFWINbZYQFtJXRFkyOg0P0CtyqGqW+jGTtE5mOpFciOHIQ
-         m6elggxV4kJikInX48G3BaT1kKGK7HXzWMJBQBDI9uj6IKmjtpZHh/GT536sBIo5hYDU
-         OaL5kVgOk+HQCvyU9XCuQf+WMO7x8IZqhWXMztLHy1vfwQwJ2Nyebj1dQARcybp0o9Zm
-         ztIcDWoy9/20HF1yoxNB532+n+53ECShtAuP55kQaf6D7R7uV84LASfdYxXhDjUP+HV7
-         b/Cw==
-X-Forwarded-Encrypted: i=1; AJvYcCXXTVb5j8FIjQJ3yN/CoDwc7MaZ6ZsT8p+I9mbSdjXbzrvT7Bylfm3htqGmnBFjCJU12DQDWUK8q+s+rym6ryA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzeT7X5WGsDgvsf/SDmpcFMryRUiwOV39y8LFl3kj2Qa7EiYBWG
-	A0HfsZO+xtSHLkLFhPs7SW7h2YgioVRhMsKobswxnTPRXRcWXOGDVL3+
-X-Gm-Gg: ASbGncv6no4ycLB9zcYyOOimacGxz34PFnu+TDbLWnzCmc1mJzkpboOqNUxGHYosPj8
-	0wmq159wXH8hKmcRnW6uViGUW7c7zVQMFmawYSURYs5kryUpX4Oa8DhVCR/R06Gj9invxwRA6nT
-	Nj/kJf0ONlOLQZLd6nNHuvdz0Z9Ws24t53XvCAoQ/KUmKcWNIoWxIU7cj2Mfh67RihyHdWmr7rg
-	YEBUsyrK6qi++BrRI564aF4xekxy7pnd2JEdwsV77p9BglHPBPWZe4VskQTpSBVZVQWB7iIBZlq
-	WveYc+Kxujek7rKiwLMQIB0wS5J/ahzGpIGT0Befir2nW4lGeisPuxVpcsrvMEbgAA==
-X-Google-Smtp-Source: AGHT+IGmJtymSMpTRWQX6BZpNTLvJPcThe1QjweDPr4/IRD0vOwXwww0dT3agavNqNBUg3ubkXILnw==
-X-Received: by 2002:a17:902:d2c5:b0:236:15b7:62e3 with SMTP id d9443c01a7336-23c858ac240mr36039845ad.9.1751629204829;
-        Fri, 04 Jul 2025 04:40:04 -0700 (PDT)
+        bh=eEJtn5CR0QJe9/1YtXXQYKyRHDLdjOwLz/6+gVQ5z6U=;
+        b=aC8UEzMRyJpQFfMVoTS6Fp1NlER1hKUQ+YXRm7erq6okkXRJe2ym9OuD7L1G6CdzJW
+         9xiIxfh9rx4t4tnB0XhrJliNqDvIRMlaBa6FLy6+SDP78xpHwGob7GJftyY3MBb3Ggrd
+         zRpyrMdpNKGLqalwZsTV/57De2LSAjY+JNMcjqWu3BBBufUesFw1/3RXI0cFZkcYMYJA
+         Fq5W16G+8BB/SBIC3R6sbgqzM57qf8YxAEdxkGoXs+5orZIcKFcyMnl/NA79NaZ1JUwX
+         rx91w8iXo3BR/gyHDc1aPey5DK18rLI6LZXQdm+k3b7mo/NXVyJQ6UHbefm0JqOjRjGP
+         rnqQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWQhjOp25WRlBoDgX0dYtVF7VAs82CHfyRzuhYRdWM8FPvF4M3NGFMajP5qXjR3lYln05HboB4hqqxGMB2F85c=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwelqwP7A8RMDrUMJtnBRB8V4jjmezms9LXVBIxuaH/uVCRzap6
+	t2Wwz/jojguNcEciNrmWP57QO4w9sbMOUnkgQ+k+1CciVOOf95+NmD9UfjxKDA==
+X-Gm-Gg: ASbGncutfnhW2MDOWC4EX78fhFU1pcwFOf/bR41BG0oxJZUAT+8KLKQAKuiUa3fHpWX
+	Nz+aYw7WSMtSk7VNcDaAOVjLg7qY5qgvooiswySxhCLCcvdQ4k7H8a82RGFthEW+VBdJuBIEgY9
+	fT8i37LJ1eU0O6SiDEq58ZEwfxF4NHaF5BhBhiSghj/PAtSltXxeb4eHksHFMeaCgBfbqeA2Tlq
+	Jw/ylPh73e8V6pWPAJX32HYYdYzVonrCzoSzqN5ure8Y0PZ+yRxfvq/x7WG1E5y2umeVBczY6RZ
+	aJgPIjXgaDfZjhIgfzAjlWoWdN0XcIwbkBlwageF8TtZIpDjupCmUpOCaYwTU4AzTA==
+X-Google-Smtp-Source: AGHT+IHzXDSU7YBCQboTcZ0QipGW2/fbRpog/QHHwRDHCfWAGlpyYjZbq8Ol0WBd3GxKrxq4O+DBlQ==
+X-Received: by 2002:a17:902:cf0a:b0:236:6f7b:bf61 with SMTP id d9443c01a7336-23c8755d84amr25522715ad.26.1751629207491;
+        Fri, 04 Jul 2025 04:40:07 -0700 (PDT)
 Received: from localhost.localdomain ([103.114.158.1])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23c8455e74fsm19585365ad.99.2025.07.04.04.40.02
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-23c8455e74fsm19585365ad.99.2025.07.04.04.40.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Jul 2025 04:40:04 -0700 (PDT)
+        Fri, 04 Jul 2025 04:40:07 -0700 (PDT)
 From: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
 To: coreteam@netfilter.org,
 	netfilter-devel@vger.kernel.org
@@ -66,9 +66,9 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Simon Horman <horms@kernel.org>,
 	Fernando Fernandez Mancera <ffmancera@riseup.net>,
 	Zhongqiu Duan <dzq.aishenghu0@gmail.com>
-Subject: [PATCH nft 1/3] src: make the mss and wscale fields optional for synproxy object
-Date: Fri,  4 Jul 2025 11:39:45 +0000
-Message-ID: <20250704113947.676-2-dzq.aishenghu0@gmail.com>
+Subject: [PATCH nft 2/3] src: do not print unnecessary space for the synproxy object
+Date: Fri,  4 Jul 2025 11:39:46 +0000
+Message-ID: <20250704113947.676-3-dzq.aishenghu0@gmail.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20250704113947.676-1-dzq.aishenghu0@gmail.com>
 References: <20250704113947.676-1-dzq.aishenghu0@gmail.com>
@@ -80,181 +80,70 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The mss and wscale fields is optional for synproxy statement, this patch
-to make the same behavior for synproxy object, and also makes the
-timestamp and sack-perm flags no longer order-sensitive.
+If timestamp is not enabled in the synproxy object, an additional space
+will be print before the sack-perm flag.
+
+Before this patch:
+
+table inet t {
+	synproxy s {
+		mss 1460
+		wscale 8
+		 sack-perm
+	}
+}
+
+After this patch:
+
+table inet t {
+	synproxy s {
+		mss 1460
+		wscale 8
+		sack-perm
+	}
+}
 
 Signed-off-by: Zhongqiu Duan <dzq.aishenghu0@gmail.com>
 ---
- src/json.c         |  9 ++++---
- src/parser_bison.y | 63 +++++++++++++++-------------------------------
- src/parser_json.c  | 26 ++++++++++++-------
- 3 files changed, 42 insertions(+), 56 deletions(-)
+ src/rule.c                             | 4 +++-
+ tests/shell/testcases/json/single_flag | 4 ++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/src/json.c b/src/json.c
-index f0430776851c..15ddc4dab790 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -469,10 +469,11 @@ static json_t *obj_print_json(const struct obj *obj)
- 		json_decref(tmp);
- 		break;
- 	case NFT_OBJECT_SYNPROXY:
--		tmp = nft_json_pack("{s:i, s:i}",
--				    "mss", obj->synproxy.mss,
--				    "wscale", obj->synproxy.wscale);
--
-+		tmp = json_object();
-+		if (obj->synproxy.flags & NF_SYNPROXY_OPT_MSS)
-+			json_object_set_new(tmp, "mss", json_integer(obj->synproxy.mss));
-+		if (obj->synproxy.flags & NF_SYNPROXY_OPT_WSCALE)
-+			json_object_set_new(tmp, "wscale", json_integer(obj->synproxy.wscale));
- 		flags = json_array();
- 		if (obj->synproxy.flags & NF_SYNPROXY_OPT_TIMESTAMP)
- 			json_array_append_new(flags, json_string("timestamp"));
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index f9cc909836bc..45f2cb4a11f2 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -964,8 +964,6 @@ int nft_lex(void *, void *, void *);
- %destructor { free_const($$); }	monitor_event
- %type <val>			monitor_object	monitor_format
+diff --git a/src/rule.c b/src/rule.c
+index c0f7570e233c..af3dd39c69d0 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1951,7 +1951,9 @@ static void obj_print_data(const struct obj *obj,
+ 		}
+ 		if (flags & (NF_SYNPROXY_OPT_TIMESTAMP | NF_SYNPROXY_OPT_SACK_PERM)) {
+ 			nft_print(octx, "%s%s%s", opts->nl, opts->tab, opts->tab);
+-			nft_print(octx, "%s %s", ts_str, sack_str);
++			nft_print(octx, "%s%s%s", ts_str,
++				  flags & NF_SYNPROXY_OPT_TIMESTAMP ? " " : "",
++				  sack_str);
+ 		}
+ 		nft_print(octx, "%s", opts->stmt_separator);
+ 		}
+diff --git a/tests/shell/testcases/json/single_flag b/tests/shell/testcases/json/single_flag
+index f0a608ad8412..b8fd96170a33 100755
+--- a/tests/shell/testcases/json/single_flag
++++ b/tests/shell/testcases/json/single_flag
+@@ -157,13 +157,13 @@ STD_SYNPROXY_OBJ_1="table ip t {
+ 	synproxy s {
+ 		mss 1280
+ 		wscale 64
+-		 sack-perm
++		sack-perm
+ 	}
+ }"
+ JSON_SYNPROXY_OBJ_1='{"nftables": [{"table": {"family": "ip", "name": "t", "handle": 0}}, {"synproxy": {"family": "ip", "name": "s", "table": "t", "handle": 0, "mss": 1280, "wscale": 64, "flags": "sack-perm"}}]}'
+ JSON_SYNPROXY_OBJ_1_EQUIV=$(sed 's/\("flags":\) \([^}]*\)/\1 [\2]/' <<< "$JSON_SYNPROXY_OBJ_1")
  
--%type <val>			synproxy_ts	synproxy_sack
--
- %type <expr>			tcp_hdr_expr
- %destructor { expr_free($$); }	tcp_hdr_expr
- %type <val>			tcp_hdr_field
-@@ -2662,7 +2660,7 @@ secmark_block		:	/* empty */	{ $$ = $<obj>-1; }
- synproxy_block		:	/* empty */	{ $$ = $<obj>-1; }
- 			|	synproxy_block	common_block
- 			|	synproxy_block	stmt_separator
--			|	synproxy_block	synproxy_config
-+			|	synproxy_block	synproxy_config_arg
- 			{
- 				$$ = $1;
- 			}
-@@ -3807,58 +3805,37 @@ synproxy_arg		:	MSS	NUM
- 			}
- 			;
+-STD_SYNPROXY_OBJ_2=$(sed 's/ \(sack-perm\)/timestamp \1/' <<< "$STD_SYNPROXY_OBJ_1")
++STD_SYNPROXY_OBJ_2=$(sed 's/\(sack-perm\)/timestamp \1/' <<< "$STD_SYNPROXY_OBJ_1")
+ JSON_SYNPROXY_OBJ_2=$(sed 's/\("flags":\) \("sack-perm"\)/\1 ["timestamp", \2]/' <<< "$JSON_SYNPROXY_OBJ_1")
  
--synproxy_config		:	MSS	NUM	WSCALE	NUM	synproxy_ts	synproxy_sack
-+synproxy_config		:	synproxy_config_arg
- 			{
--				struct synproxy *synproxy;
--				uint32_t flags = 0;
--
--				synproxy = &$<obj>0->synproxy;
--				synproxy->mss = $2;
--				flags |= NF_SYNPROXY_OPT_MSS;
--				synproxy->wscale = $4;
--				flags |= NF_SYNPROXY_OPT_WSCALE;
--				if ($5)
--					flags |= $5;
--				if ($6)
--					flags |= $6;
--				synproxy->flags = flags;
--			}
--			|	MSS	NUM	stmt_separator	WSCALE	NUM	stmt_separator	synproxy_ts	synproxy_sack
--			{
--				struct synproxy *synproxy;
--				uint32_t flags = 0;
--
--				synproxy = &$<obj>0->synproxy;
--				synproxy->mss = $2;
--				flags |= NF_SYNPROXY_OPT_MSS;
--				synproxy->wscale = $5;
--				flags |= NF_SYNPROXY_OPT_WSCALE;
--				if ($7)
--					flags |= $7;
--				if ($8)
--					flags |= $8;
--				synproxy->flags = flags;
-+				$<obj>$	= $<obj>0;
- 			}
-+			|	synproxy_config	synproxy_config_arg
- 			;
- 
--synproxy_obj		:	/* empty */
-+synproxy_config_arg	:	MSS	NUM
- 			{
--				$$ = obj_alloc(&@$);
--				$$->type = NFT_OBJECT_SYNPROXY;
-+				$<obj>0->synproxy.mss = $2;
-+				$<obj>0->synproxy.flags |= NF_SYNPROXY_OPT_MSS;
-+			}
-+			|	WSCALE	NUM
-+			{
-+				$<obj>0->synproxy.wscale = $2;
-+				$<obj>0->synproxy.flags |= NF_SYNPROXY_OPT_WSCALE;
- 			}
--			;
--
--synproxy_ts		:	/* empty */	{ $$ = 0; }
- 			|	TIMESTAMP
- 			{
--				$$ = NF_SYNPROXY_OPT_TIMESTAMP;
-+				$<obj>0->synproxy.flags |= NF_SYNPROXY_OPT_TIMESTAMP;
-+			}
-+			|	SACK_PERM
-+			{
-+				$<obj>0->synproxy.flags |= NF_SYNPROXY_OPT_SACK_PERM;
- 			}
- 			;
- 
--synproxy_sack		:	/* empty */	{ $$ = 0; }
--			|	SACK_PERM
-+synproxy_obj		:	/* empty */
- 			{
--				$$ = NF_SYNPROXY_OPT_SACK_PERM;
-+				$$ = obj_alloc(&@$);
-+				$$->type = NFT_OBJECT_SYNPROXY;
- 			}
- 			;
- 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 08657f2849a5..dc1431e1711c 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3493,7 +3493,7 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- {
- 	const char *family, *tmp, *rate_unit = "packets", *burst_unit = "bytes";
- 	uint32_t l3proto = NFPROTO_UNSPEC;
--	int inv = 0, flags = 0, i, j;
-+	int inv = 0, flags = 0, i;
- 	struct handle h = { 0 };
- 	struct obj *obj;
- 
-@@ -3667,14 +3667,22 @@ static struct cmd *json_parse_cmd_add_object(struct json_ctx *ctx,
- 		break;
- 	case CMD_OBJ_SYNPROXY:
- 		obj->type = NFT_OBJECT_SYNPROXY;
--		if (json_unpack_err(ctx, root, "{s:i, s:i}",
--				    "mss", &i, "wscale", &j))
--			goto err_free_obj;
--
--		obj->synproxy.mss = i;
--		obj->synproxy.wscale = j;
--		obj->synproxy.flags |= NF_SYNPROXY_OPT_MSS;
--		obj->synproxy.flags |= NF_SYNPROXY_OPT_WSCALE;
-+		if (!json_unpack(root, "{s:i}", "mss", &i)) {
-+			if (i < 0) {
-+				json_error(ctx, "Invalid synproxy mss value '%d'", i);
-+				goto err_free_obj;
-+			}
-+			obj->synproxy.mss = i;
-+			obj->synproxy.flags |= NF_SYNPROXY_OPT_MSS;
-+		}
-+		if (!json_unpack(root, "{s:i}", "wscale", &i)) {
-+			if (i < 0) {
-+				json_error(ctx, "Invalid synproxy wscale value '%d'", i);
-+				goto err_free_obj;
-+			}
-+			obj->synproxy.wscale = i;
-+			obj->synproxy.flags |= NF_SYNPROXY_OPT_WSCALE;
-+		}
- 		flags = parse_flags_array(ctx, root, "flags",
- 					  json_parse_synproxy_flag);
- 		if (flags < 0)
+ back_n_forth "$STD_SYNPROXY_OBJ_1" "$JSON_SYNPROXY_OBJ_1"
 -- 
 2.43.0
 
