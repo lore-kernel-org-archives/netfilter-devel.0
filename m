@@ -1,49 +1,38 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3EA563CB
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 13:18:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1053917333F
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2025 14:04:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751635133; cv=none; b=NbVC1NKlhz/FzwW8xHuo2KiQD6/pakgumFJruVLlAnBdm9xqKO4L6oxw3OQWis4QV0f4V8xjkFJjDkM+FFinyeuORqckMushihj3/ziD1qLKSpaIsI215A9zJ4t1WPZX/8M9gQ2TQxfLUxeRUHdDK5xH2gwaszlnWdg5MlEYsa4=
+	t=1751637886; cv=none; b=mqZfzjhi2lze1kNc2lk2uyu5xeGw2dPyts0ZTBTv8MgPrEqYdvTb87vG1NXSPDC/YMB8OXxxAZaHbdSWSOQolE8pNkMTM98GfSDaj0fnYWM6VLWZ/MO4MwngKYnjmJsx3khEJilYouunnYZh2BYQGLyg6lp/5xRxZ0mz1GRDxQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751635133; c=relaxed/simple;
-	bh=07O1Pi3RgTZNT8N4a90EIo5IaC0IjcasCq0IPu172p0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZURcFCSfHNFt2yqP0OkTnyQgL9ZhwebDQ6ufklmBBf+5r9D6SVEmSUzrznaZtGNNfPUJ4DjdLrcilCUOMfJWFqcI5hMa7x3wGSkA5FT/ZX43RSsrPjqYAkMEQ6mreV2FDWG/FOQv5PCZi9wsCpu1x47AA+Gkpmu9JiuQDxesa8s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fsWJXiZg; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fsWJXiZg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Tky4MWd68eUazbG/fUqVLLMcnx5sSCF3FwGq+dgQz9Q=; b=fsWJXiZgpcbG3IQ4LIJ3Uq/ia0
-	bb0ct+hmhzCDbXzJKXoaR94Ex+d/OjWmT+NNM7Ft+U3VfpzVSMsmvDvJxXHYQAb4bGAtpxC2z92n8
-	0YOM53HdnH0/r7uhTSuYD34K8DpBjmlXl8Vmcj9l2cflvXbw/x5G7mzueoaoFhfbL5p0KTVGFWR2u
-	JFxMmiewpMCSXH7DLmo0iHKdAccFQKbcf7rVI0wLGX1j0iy+SgZVkJzlhgIAN1eLFYvV0rm3lH7b0
-	N4zi5Qu/2tdKFDk7+HPHoLkqGcH6jrS8Ta7KiECmEwT7vUDgyEEZDmEpim3q2K2z45/zILDCwhFiW
-	0T5o3PMw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uXgJV-000000001eF-3nW1;
-	Fri, 04 Jul 2025 15:18:49 +0200
-Date: Fri, 4 Jul 2025 15:18:49 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH 0/3] netfilter: nf_tables: Report found devices
- when creating a netdev hook
-Message-ID: <aGfUuYq6bl38KT9S@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+	s=arc-20240116; t=1751637886; c=relaxed/simple;
+	bh=sEqyFtXAGfezK3ML+ekNteol6sytn2PKAUOGUzWsqJ8=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PX4bMxstYcfPVU4oXDiYsH2/o8NeGISWHxMtcu/xkhPZ+ORA7xlXtqpGr33GolHdzaukxkAukWAOivEWfgXAe9kSWeIeUI7xkjeOj2DROTZLQOZukBKV27arpPJIe+YEvwwt012GwWg8/F7jv9E6JtBstJ9S0TgIvK0n2gNIAxU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id B1611607AC; Fri,  4 Jul 2025 16:04:41 +0200 (CEST)
+Date: Fri, 4 Jul 2025 16:04:39 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-References: <20250612133416.18133-1-phil@nwl.cc>
- <aGeKKXVmGjS2YVMu@calendula>
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
+ registration
+Message-ID: <aGffdwjA23MaNgPQ@strlen.de>
+References: <aGZrD0paQ6IUdnx2@calendula>
+ <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
+ <aGZ6E0k0AyYMiMvp@strlen.de>
+ <aGZ75G4SVuwkNDb9@orbyte.nwl.cc>
+ <aGZ9jNVIiq9NrUdi@strlen.de>
+ <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
+ <aGaRaHoawJ-DbNUl@calendula>
+ <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
+ <aGbu5ugsBY8Bu3Ad@calendula>
+ <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,36 +41,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aGeKKXVmGjS2YVMu@calendula>
+In-Reply-To: <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
 
-On Fri, Jul 04, 2025 at 10:00:41AM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Jun 12, 2025 at 03:34:13PM +0200, Phil Sutter wrote:
-> > Previously, NEWDEV/DELDEV notifications were emitted for new/renamed
-> > devices added to a chain or flowtable only. For user space to fully
-> > comprehend which interfaces a hook binds to, these notifications have to
-> > be sent for matching devices at hook creation time, too.
-> > 
-> > This series extends the notify list to support messages for varying
-> > groups so it may be reused by the NFNLGRP_NFT_DEV messages (patch 1),
-> > adjusts the device_notify routines to support enqueueing the message
-> > instead of sending it right away (patch 2) and finally adds extra notify
-> > calls to nf_tables_commit() (patch 3).
-> 
-> Fine with these series, I am preparing a nf-next pull request, I plan
-> to include them.
-> 
-> As this goes ahead in providing NEWDEV/DELDEV events for ruleset
-> updates, I think GETDEV is needed to complete things.
-> 
-> Regarding userspace, I think there only one item remaining to be
-> discussed, which is how to expose device notifications.
-> 
-> I would suggest to add a separated:
-> 
->         monitor devices
+Phil Sutter <phil@nwl.cc> wrote:
+> Please keep in mind we already have 'nft list hooks' which provides
+> hints in that direction. It does not show which flowtable/chain actually
+> binds to a given device, though.
 
-My local tree has "monitor hooks", but it's a trivial change and
-"devices" is probably a more intuitive name for something that enables
-NEWDEV/DELDEV messages. :)
+Its possible to extend it:
+- add NF_HOOK_OP_NFT_FT to enum nf_hook_ops_type
+- add
 
-Thanks, Phil
+static int nfnl_hook_put_nft_ft_info(struct sk_buff *nlskb,
+                                   const struct nfnl_dump_hook_data *ctx,
+                                   unsigned int seq,
+                                   struct nf_flowtable *ft)
+
+to nfnetlink_hook.c
+
+it can use container_of to get to the nft_flowtable struct.
+It might be possibe to share some code with nfnl_hook_put_nft_chain_info
+and reuse some of the same netlink attributes.
+
+- call it from nfnl_hook_dump_one.
+
+I think it would use useful to have, independent of "eth*" support.
