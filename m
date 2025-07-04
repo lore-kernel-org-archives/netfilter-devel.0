@@ -1,62 +1,62 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BAB11DE4DC;
-	Fri,  4 Jul 2025 19:12:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F2661F4CAC;
+	Fri,  4 Jul 2025 19:12:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751656333; cv=none; b=NMvUcCUAuYFUDNDDohu54QXO68Kwiudx0TKWQGKqeqzQZIPZsG8azUES7QGX0bTb5cFCiLl6CsdmjcszLBGz+/jUkZSt7EHI9O4CRgK39sPx4UfeHQsds7k7YLhkhBR5DnSif4AzZ1+mAm1azz4ZgI9xOQUpWKKww6COMLwymvQ=
+	t=1751656334; cv=none; b=bP1SHNZeZq5LrduigdHZgVj6FFJO63suI/MA84HIM8mNTPOhYCo7a+8RxiuBvO0yi9NXm0Wm+v3vEEbd3tRMExQCBWtJqzwzv3DadU/551ZmM+tSlT80OSt9KTSKLkgcN3wwEzVmMoD8OoV/6YQD7+57E5Nny2TlS7kDlVf1XBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751656333; c=relaxed/simple;
-	bh=fvcdIZm57nHeXyPVMFTsLNkqJnF7CdR+EZaQb7/o7S4=;
+	s=arc-20240116; t=1751656334; c=relaxed/simple;
+	bh=igXxmnQ60mmeb6eAscn5xBG3t9Y/o2UhtUwwvQihY68=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=O/S16nbRIpq9IAEEkfseKlx0NmeIsMlbfIMVTMk6oFaWvBD6Os4i1sxm2G8s/6CYxHpNi4dYcvz5/YBC/Yw99JcpzJ79p8YBHi8dPaATRb8M6W9IssSRDjTbyu7Zem4ZMVt6ugXbVTsP9qhrALWyY1XsRjcfvw5lBUUUX1S2TZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TGrqN2SP; arc=none smtp.client-ip=209.85.208.52
+	 MIME-Version; b=RYafKLjqpesF598xyutJa7awG78x5H2bfHLBGrHdUKi99ules8Z2ezdr+lPSlPlTye7wxNeqGE/LfBBaGdwtL7gyVzWsI6qLq9WmuyM8OM+zlC6LlCFcG/ZNQjYY9/3RSUkFVRjMC0Qln+BfDHYgPsy1urfybCDeibp+FpImU28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=euscmM/V; arc=none smtp.client-ip=209.85.208.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TGrqN2SP"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-60780d74c8cso1881278a12.2;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="euscmM/V"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-607cf70b00aso2277886a12.2;
         Fri, 04 Jul 2025 12:12:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20230601; t=1751656330; x=1752261130; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=IXkY2a1ytDNpXrtT0yG/AIElqJZI3+JhPKOh06544zU=;
-        b=TGrqN2SPU+DLKP+0iQppPXTtHrk8q00/vMwdFTTtyGMiJK0PS7klT0Bwr7pzSfPa7l
-         fz1iM1P0LtRaCJBVbUGFRR1i8XW/xJnB0rLnJtJW9RW85MMW9A6svN87K1J1JoGrBZ5Q
-         VYLQF26Aug7OXQO+iNqw7vQZ4YKBM5lWxuICZKjrakBtFaEzPFqNVpXGvR3wFP2jsoPS
-         ba/HZ0kN0Vu15sHry+dqip/3kIIK3FrVNg5bQ4HVq9vtIzTZOo7glKB82qM2HIXpyabc
-         fvdTZeNu+uJ2nrmbnyIs8ttUmmDUhq60LA5SRf358Hei9vr05J0Jghv4Alk7tOvKxLfG
-         Nkog==
+        bh=HHdUFtAdvgJwnXb8RIInEyCi2R2lnW6LihNXT9M7RKI=;
+        b=euscmM/V0Kw0YvXq+ckkDKyIYrSZS3i/ei381zNp7rBSZdkTo5wnt38AM1Q8XAwtWt
+         vUj2ZaKRY3yvfvXlrKWNnMuDl5Sx6W4ddAF8HgjxnuykjeFMwu/Xt2CHthzblSiSqTkx
+         Cu3TPPkoeFgR5EEs1gED3JhhGScriFfQa4tSG9E38MDvx32iHNgkQd/lFaTfqFF9bVOR
+         kca7w9H8BiqmRRbLDYxCEAvan5+3rW3CZIRzc6w/acY/YHwAqFYs1zyohXwrX1BtTfbE
+         +pMIg0H7YqdTIqz7YXNsN1RR4404tvw8qrdB/kDAxgkxx6Snjx1z2uoPN4Qo/xN7WDAv
+         l15g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20230601; t=1751656330; x=1752261130;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=IXkY2a1ytDNpXrtT0yG/AIElqJZI3+JhPKOh06544zU=;
-        b=VXS85cS/ct0zga3JrqnnpembWjvHZwUFFMqWZ4EHayNCjzBf+/zfTh3U0E8fe7XQVr
-         +mvlEmKXfgjHahGcaBDIrKUHOKnNRiTbvJYcPCTb7n/yfJq2ya1umaUXGdGsarq+p4HM
-         2uIoGEi+VCDyJBQtLEIQDz2g1QLPwaK8nuZLsn59/lK5fmxUv28oupAFkmU+80Gq7LVf
-         mkeTVeT7CUrzL3SIlQpUEqSNgf0ttlOOWfRNSUIu31VkJNev0C8WceGZD3Cm7I4RSSTH
-         VGQoHIWedL2T+61td5jedtwxIATJxkUkuwewzoBpZJLSl0JWw48ivJ91QSGlMOVRbd38
-         PVpg==
-X-Forwarded-Encrypted: i=1; AJvYcCXGeWolKB5ilcnAeSQP70bv/SBksLkBvIIttudkF9P9nk2w0tzCrVIfyB+FAJYEHzWxhW1aI+c=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzqWapkO+sAT2kcBwDYfmQGpAkxZMMGihY1SuhFzIlFPMj0X8Ts
-	DCksLGLtCEOr00sUTra2AzOXcjvrqWZ4wDoASUG9/dHAk7YKRH772xq7
-X-Gm-Gg: ASbGncuktDJ7B1JPf6R7AJOPDPPeDWLK0VUSOEttAaRndtEc+suwQ7XBBW5TUjwyWHz
-	WwJN7JcAdU91ehP71J/cntIl7u5Gouk8riI2CALqfldaTQlYHfo+0cDerG9vJ/UM2mVC/drPng+
-	dWaWyjHYugyBpttY1XaCAN9IUb4X5cYvLNLHPnNKKc9ofh1G1cL/e1MjMwAG0jVyRfqh9XXoxr6
-	v0sh+r7MdAtLy3HyLc6NviUx0BnPRH02QTMqW6p+4JgJVS72J//7HoDa1sUc13dJvTzyeHIKSm0
-	M9ercMytqb5cqgrSjLjKqMkk8dVkx3MZGMY95vqdIdSZhAEXqZQaz7GD3NRvtCf8/loAlpOCpeJ
-	TOoVPGZuKG0gbk00JyTloPwaCriNfsBhNmXoi+zcylpDlA8E6Bb/2wRdDhN31xpHaP2OBKZDJMR
-	PKRbydLKEhWKfux2A=
-X-Google-Smtp-Source: AGHT+IHMZLKyR1a71IPIzjjzB/OGEY+8TxYB+dudEBZs9KdUZ7JSsRwaRmRCmFRjDHMFSzaFDUrhGQ==
-X-Received: by 2002:a17:907:7287:b0:adb:23e0:9297 with SMTP id a640c23a62f3a-ae3fe6923b3mr332648966b.17.1751656329451;
-        Fri, 04 Jul 2025 12:12:09 -0700 (PDT)
+        bh=HHdUFtAdvgJwnXb8RIInEyCi2R2lnW6LihNXT9M7RKI=;
+        b=l5Wc8JuM16yOE8JnEyIQtojTt4UO2o/2wi7TL+tPfEGCDjDerEPtuIn/PrVVa4XTVH
+         qjLJ31x/eMm3hzoSlW8B0hej0QlIl2e04In3VuMS9z0WQP3GYiLZY5TjIRZHuPhgDvzF
+         w7ubQ6BwDQK8ybpeD6fY5sgNbM5Z6j6nGNwSOrPKiFfBcre/asnKfLYisP5VeRXm0pZH
+         8PVw9aVZcx1NwUhRydQXwGFd8GpkvBR7BQ9wnTP6ZZwZ3CCJEYIPNgjnFQOLmwprFuQS
+         mtvDrEyDEx5NGJuwM4mMSk/emvme5PROMR3Lk+/hmDc61zxgrUR4KG054nlkg473yVmh
+         j4Sw==
+X-Forwarded-Encrypted: i=1; AJvYcCW0Xp+WCHJ7yjMaDoEtZ2UtkIZwFtUG5u/mPMC8ljQ/wA8WHcQdTrqCRIzH7FOSZvOIqJNIpHk=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyjVKKIoVu4H49DKQGrUG/zDGwD9JQcXUHQoHPL4Gh8+oLkxwVg
+	xGmLZiRUHUegiS6aHL4El6L+avOctCGNQt8pLP3LpsDnKDCx1HEIlLO1
+X-Gm-Gg: ASbGnctSJazZK2by4pukwDFV0it7zA/7kkkLoDvLpURkCB+X7t5kNifcoR2IvWtBnXe
+	vkqqCCFwAhrmWuf4ejMQZupSaboeK8H6MIsw1R8+oPnLvKItYHFGLmt4S3BCpY4HuVkCiW9qPg5
+	wbeigxOoRFDoxfhMS8t77lSXnL17esQpRySnpVBVv+33ceCEB5mt5jo1LyksCFCo8qpewfNYtlF
+	HzLvVCpoZqKDzQkwoyCaLJczzT5as4JhMVbYLqaEitl8Lx4vGU/xx/tvytoRz/p6AkxUBF3etKr
+	DpUiujQMKIN0oN9BKG/M6hUP/qI9ymQ3XsBOXBnsVwm3PufVb3HqRgv8ll3/ykRgwRqupouWl0X
+	jJsEwHoIYJIVGhqIVMcPSn3A8LY9twbIPQdlsyyfV77AKG47EBO3DA86O4gPn58g1v5jfjG/wqY
+	NyE922
+X-Google-Smtp-Source: AGHT+IG28dLEipCl99gk1JhC/6x8fkRr4Ob5eBBDcI3fOD2kfCfsHMZ8G4wUVRKRnRh8VQOftWJa6A==
+X-Received: by 2002:a17:907:394b:b0:ae0:a245:d940 with SMTP id a640c23a62f3a-ae3fbd809b3mr405229966b.51.1751656330251;
+        Fri, 04 Jul 2025 12:12:10 -0700 (PDT)
 Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae3f6ac5fd7sm219476366b.103.2025.07.04.12.12.08
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae3f6ac5fd7sm219476366b.103.2025.07.04.12.12.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
         Fri, 04 Jul 2025 12:12:09 -0700 (PDT)
 From: Eric Woudstra <ericwouds@gmail.com>
@@ -73,9 +73,9 @@ Cc: netfilter-devel@vger.kernel.org,
 	bridge@lists.linux.dev,
 	netdev@vger.kernel.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v13 nf-next 1/3] netfilter: utils: nf_checksum(_partial) correct data!=networkheader
-Date: Fri,  4 Jul 2025 21:11:33 +0200
-Message-ID: <20250704191135.1815969-2-ericwouds@gmail.com>
+Subject: [PATCH v13 nf-next 2/3] netfilter: bridge: Add conntrack double vlan and pppoe
+Date: Fri,  4 Jul 2025 21:11:34 +0200
+Message-ID: <20250704191135.1815969-3-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250704191135.1815969-1-ericwouds@gmail.com>
 References: <20250704191135.1815969-1-ericwouds@gmail.com>
@@ -87,79 +87,144 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In the conntrack hook it may not always be the case that:
-skb_network_header(skb) == skb->data.
-
-This is problematic when L4 function nf_conntrack_handle_packet()
-is accessing L3 data. This function uses thoff and ip_hdr()
-to finds it's data. But it also calculates the checksum.
-nf_checksum() and nf_checksum_partial() both use lower skb-checksum
-functions that are based on using skb->data.
-
-When skb_network_header(skb) != skb->data, adjust accordingly,
-so that the checksum is calculated correctly.
+This adds the capability to conntrack 802.1ad, QinQ, PPPoE and PPPoE-in-Q
+packets that are passing a bridge, only when a conntrack zone is set.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/netfilter/utils.c | 22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ net/bridge/netfilter/nf_conntrack_bridge.c | 88 ++++++++++++++++++----
+ 1 file changed, 72 insertions(+), 16 deletions(-)
 
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 008419db815a..daee035c25b8 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -124,16 +124,21 @@ __sum16 nf_checksum(struct sk_buff *skb, unsigned int hook,
- 		    unsigned int dataoff, u8 protocol,
- 		    unsigned short family)
+diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
+index 6482de4d8750..5fcb1bdf2e31 100644
+--- a/net/bridge/netfilter/nf_conntrack_bridge.c
++++ b/net/bridge/netfilter/nf_conntrack_bridge.c
+@@ -242,53 +242,109 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
  {
-+	unsigned int nhpull = skb_network_header(skb) - skb->data;
- 	__sum16 csum = 0;
+ 	struct nf_hook_state bridge_state = *state;
+ 	enum ip_conntrack_info ctinfo;
++	u32 len, data_len = U32_MAX;
++	int ret, offset = 0;
+ 	struct nf_conn *ct;
+-	u32 len;
+-	int ret;
++	__be16 outer_proto;
  
-+	if (!pskb_may_pull(skb, nhpull))
-+		return -ENOMEM;
-+	__skb_pull(skb, nhpull);
- 	switch (family) {
- 	case AF_INET:
--		csum = nf_ip_checksum(skb, hook, dataoff, protocol);
-+		csum = nf_ip_checksum(skb, hook, dataoff - nhpull, protocol);
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if ((ct && !nf_ct_is_template(ct)) ||
+ 	    ctinfo == IP_CT_UNTRACKED)
+ 		return NF_ACCEPT;
+ 
++	if (ct && nf_ct_zone_id(nf_ct_zone(ct), CTINFO2DIR(ctinfo)) !=
++			NF_CT_DEFAULT_ZONE_ID) {
++		switch (skb->protocol) {
++		case htons(ETH_P_PPP_SES): {
++			struct ppp_hdr {
++				struct pppoe_hdr hdr;
++				__be16 proto;
++			} *ph;
++
++			offset = PPPOE_SES_HLEN;
++			if (!pskb_may_pull(skb, offset))
++				return NF_ACCEPT;
++			outer_proto = skb->protocol;
++			ph = (struct ppp_hdr *)(skb->data);
++			switch (ph->proto) {
++			case htons(PPP_IP):
++				skb->protocol = htons(ETH_P_IP);
++				break;
++			case htons(PPP_IPV6):
++				skb->protocol = htons(ETH_P_IPV6);
++				break;
++			default:
++				nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
++				return NF_ACCEPT;
++			}
++			data_len = ntohs(ph->hdr.length) - 2;
++			skb_set_network_header(skb, offset);
++			break;
++		}
++		case htons(ETH_P_8021Q): {
++			struct vlan_hdr *vhdr;
++
++			offset = VLAN_HLEN;
++			if (!pskb_may_pull(skb, offset))
++				return NF_ACCEPT;
++			outer_proto = skb->protocol;
++			vhdr = (struct vlan_hdr *)(skb->data);
++			skb->protocol = vhdr->h_vlan_encapsulated_proto;
++			data_len = U32_MAX;
++			skb_set_network_header(skb, offset);
++			break;
++		}
++		}
++	}
++
++	ret = NF_ACCEPT;
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_IP):
+-		if (!pskb_may_pull(skb, sizeof(struct iphdr)))
+-			return NF_ACCEPT;
++		if (!pskb_may_pull(skb, offset + sizeof(struct iphdr)))
++			goto do_not_track;
+ 
+ 		len = skb_ip_totlen(skb);
+-		if (pskb_trim_rcsum(skb, len))
+-			return NF_ACCEPT;
++		if (data_len < len)
++			len = data_len;
++		if (pskb_trim_rcsum(skb, len + offset))
++			goto do_not_track;
+ 
+ 		if (nf_ct_br_ip_check(skb))
+-			return NF_ACCEPT;
++			goto do_not_track;
+ 
+ 		bridge_state.pf = NFPROTO_IPV4;
+ 		ret = nf_ct_br_defrag4(skb, &bridge_state);
  		break;
- 	case AF_INET6:
--		csum = nf_ip6_checksum(skb, hook, dataoff, protocol);
-+		csum = nf_ip6_checksum(skb, hook, dataoff - nhpull, protocol);
+ 	case htons(ETH_P_IPV6):
+-		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
+-			return NF_ACCEPT;
++		if (!pskb_may_pull(skb, offset + sizeof(struct ipv6hdr)))
++			goto do_not_track;
+ 
+ 		len = sizeof(struct ipv6hdr) + ntohs(ipv6_hdr(skb)->payload_len);
+-		if (pskb_trim_rcsum(skb, len))
+-			return NF_ACCEPT;
++		if (data_len < len)
++			len = data_len;
++		if (pskb_trim_rcsum(skb, len + offset))
++			goto do_not_track;
+ 
+ 		if (nf_ct_br_ipv6_check(skb))
+-			return NF_ACCEPT;
++			goto do_not_track;
+ 
+ 		bridge_state.pf = NFPROTO_IPV6;
+ 		ret = nf_ct_br_defrag6(skb, &bridge_state);
  		break;
+ 	default:
+ 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
+-		return NF_ACCEPT;
++		goto do_not_track;
  	}
-+	__skb_push(skb, nhpull);
  
- 	return csum;
+-	if (ret != NF_ACCEPT)
+-		return ret;
++	if (ret == NF_ACCEPT)
++		ret = nf_conntrack_in(skb, &bridge_state);
+ 
+-	return nf_conntrack_in(skb, &bridge_state);
++do_not_track:
++	if (offset) {
++		skb_reset_network_header(skb);
++		skb->protocol = outer_proto;
++	}
++	return ret;
  }
-@@ -143,18 +148,23 @@ __sum16 nf_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 			    unsigned int dataoff, unsigned int len,
- 			    u8 protocol, unsigned short family)
- {
-+	unsigned int nhpull = skb_network_header(skb) - skb->data;
- 	__sum16 csum = 0;
  
-+	if (!pskb_may_pull(skb, nhpull))
-+		return -ENOMEM;
-+	__skb_pull(skb, nhpull);
- 	switch (family) {
- 	case AF_INET:
--		csum = nf_ip_checksum_partial(skb, hook, dataoff, len,
--					      protocol);
-+		csum = nf_ip_checksum_partial(skb, hook, dataoff - nhpull,
-+					      len, protocol);
- 		break;
- 	case AF_INET6:
--		csum = nf_ip6_checksum_partial(skb, hook, dataoff, len,
--					       protocol);
-+		csum = nf_ip6_checksum_partial(skb, hook, dataoff - nhpull,
-+					       len, protocol);
- 		break;
- 	}
-+	__skb_push(skb, nhpull);
- 
- 	return csum;
- }
+ static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
 -- 
 2.47.1
 
