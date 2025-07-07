@@ -1,110 +1,107 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85465224B0E
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 19:25:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC46224B0E
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 19:28:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751916358; cv=none; b=awBoHJ6S1GzS1NCj895dsIJurjT6IgyWE2Rt/TUrBnA3tdIq56QVJnArb+pOlxziLemd0ijKxpesYw+PE5WPA24aLJXbLQbGS/O83Z9S188jK8gPtP0vZPgB7Eb4g50TO6fOAo1Ov4ysWGgJKYeZfNovomIK8CTypYuOy3QaZYU=
+	t=1751916515; cv=none; b=Ic3XsxLTDm/jc1Dgjmp/bSqBgSQBti4IWBo/A46fyL08poA9vTKWXCMVebD+hYccIKBfL+iKORYUlRe55Vtn7qWBFcLQZV4oyR/f1UIjZ7bYr15HK0hWN6ohEZ4dQdupIWg8zKnh/e7rbudy06ZxUy5kiwR+daE0jk0k58kblDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751916358; c=relaxed/simple;
-	bh=492LG/9p/2M+9v2et/k432ZzC6cPHqHQcNxS2Py7dBs=;
+	s=arc-20240116; t=1751916515; c=relaxed/simple;
+	bh=T9HJC5JpKVnimhkB+MbdBKuvPy4DArclEB5szoFUkCw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=FCBk4kA7rYNrvUyIubBce0nDX2qgEmEtZiMZn/fFwIjkyIg/giGuIDFgWkaCS4H0tmYkDzojBZum5rSd77ruQS5+S0purIGJOZ0wdNbWI3RUciC9OCgnFBhk08SKmIyydh/u1YUi07enqCgI8SIeALj/sF+6LP7Nfr5+/iKp48U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QlYqNbMy; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KVYZJKq6; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QlYqNbMy";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KVYZJKq6"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 7C1BC60272; Mon,  7 Jul 2025 21:25:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1751916353;
-	bh=sR8E9X5V+tx6B8hofLck1LUhNZDagfxCGqJn1psw1j0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QlYqNbMyB1i3EG7eOzPMda0LR2+TbnVHoubL1RfI93FHFBxA+zJpBsIkRRloolakl
-	 SytHg3f3svfYJG7Uesna2y8lxaTD1TJDFBjKozSgKT9eIjw5Kc3XUyBS6sllpt20dm
-	 GbKmQ2pytVSMSCM4iisB17FFwHokezECxNgBMoHw5jpxncvQM7O/zGvRAnrsJTAJLi
-	 l6MIcQl7dDwWQ8X+C1Ti26RAsomN7S+j9jPgkBFeBZj2P9RYLMzdV2BpRDrMkMF/LR
-	 XRg/u46EGxVueQhu1M4XL5bRMOHX0r7zk6ebH/OEZndjmbYwnWEPsBAVYAXUItbucK
-	 fpmW0WVFnRcsg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A1F9860269;
-	Mon,  7 Jul 2025 21:25:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1751916352;
-	bh=sR8E9X5V+tx6B8hofLck1LUhNZDagfxCGqJn1psw1j0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KVYZJKq6S4zvygsXvXiyGBP3CV2B4HS0ilyZbv/XAs+nsNLkV6x85kkFUjA7Jtf4s
-	 MFbn7vpZHG8n+7iqiTQ4o+HA5ZApy5/usL6CdhimSPIjNv+mQEZCRU6POpFiw1A3ty
-	 WfOz6YLqXt4WJTzNxJq/jjqpJ/Hy07kBtezcwQwQCyHSs65wBwX1bXS4DKjQI3bbK9
-	 uuGNzrLx1KGppkz1ZPx9Lx9tRfHLyF+bu3yIglydPIFyXEpvkUp36JWkREVD9djuwb
-	 txHbu2qiSd7KIdFQd7hQ1WGg7nUfugxmqLhIaA/1O80m+9FjiZajHmuidntwhaxkhK
-	 rQqttswOW3snA==
-Date: Mon, 7 Jul 2025 21:25:50 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
- registration
-Message-ID: <aGwfPqpymU17BFHw@calendula>
-References: <aGZ21NE61B4wdlq8@orbyte.nwl.cc>
- <aGZ6E0k0AyYMiMvp@strlen.de>
- <aGZ75G4SVuwkNDb9@orbyte.nwl.cc>
- <aGZ9jNVIiq9NrUdi@strlen.de>
- <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
- <aGaRaHoawJ-DbNUl@calendula>
- <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
- <aGbu5ugsBY8Bu3Ad@calendula>
- <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
- <aGffdwjA23MaNgPQ@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=E6SE8AQK41yus/pIpI7dF5gw6cV3wvf4+zePcLERfGxkhHY/lu2IUtTH6kMGCW4oYO7tZc4+fSv6bCW/sQ9tUkSYP3Gbq6VCKtrLi/0ejiuh3Rjm/pvvg2K3iqSm0fvnFARmEpjG0m5i0mdFQutGG7ZNJw1y58pttiWN+Qn6iwA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id D9A63604C6; Mon,  7 Jul 2025 21:28:29 +0200 (CEST)
+Date: Mon, 7 Jul 2025 21:28:29 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft 0/2] src: add conntrack information to trace monitor
+ mode
+Message-ID: <aGwf3dCggwBlRKKC@strlen.de>
+References: <20250707094722.2162-1-fw@strlen.de>
+ <aGwZ4MKAhUQWuGiL@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aGffdwjA23MaNgPQ@strlen.de>
+In-Reply-To: <aGwZ4MKAhUQWuGiL@calendula>
 
-On Fri, Jul 04, 2025 at 04:04:39PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Please keep in mind we already have 'nft list hooks' which provides
-> > hints in that direction. It does not show which flowtable/chain actually
-> > binds to a given device, though.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jul 07, 2025 at 11:47:12AM +0200, Florian Westphal wrote:
+> > First patch is a preparation patch that moves the trace code
+> > from netlink.c to the new trace.c file.
+> > 
+> > Second patch adds the ct info to the trace output.
+> > 
+> > This patch exposes the 'clash' bit to userspace.
+> > (Technically its the kernel counterpart).
+> > 
+> > If you dislike this, I can send a kernel patch that removes
+> > the bit before dumping ct status bits to userspace, let me
+> > know.
 > 
-> Its possible to extend it:
-> - add NF_HOOK_OP_NFT_FT to enum nf_hook_ops_type
-> - add
+> If this is intentional, then
 > 
-> static int nfnl_hook_put_nft_ft_info(struct sk_buff *nlskb,
->                                    const struct nfnl_dump_hook_data *ctx,
->                                    unsigned int seq,
->                                    struct nf_flowtable *ft)
+> +             SYMBOL("clash",         IPS_UNTRACKED_BIT),
 > 
-> to nfnetlink_hook.c
-> 
-> it can use container_of to get to the nft_flowtable struct.
-> It might be possibe to share some code with nfnl_hook_put_nft_chain_info
-> and reuse some of the same netlink attributes.
-> 
-> - call it from nfnl_hook_dump_one.
-> 
-> I think it would use useful to have, independent of "eth*" support.
+> hiding clash bit is probably a good idea.
 
-This is a good idea to place this in nfnetlink_hook, that
-infrastructure is for debugging purpose indeed.
+Currently the existence of 'clash' entries are a kernel-internal
+implemenation detail.
 
-If this update is made, I also think it makes sense to remove the
-netlink event notification code for devices, I don't have a use case
-for that code in the new device group other than debugging.
+Neither /proc or ctnetlink exposes them, the dump handlers only
+emit ORIGINAL direction, but the clash entries are only inserted
+into the hashes for the reply tuple.
 
-If Phil's intention is to make code savings, then extending
-nfnetlink_hook and removing the existing device notification group
-make sense to me.
+Hence, they are not visible so far.
+With this change however, a packet that matches a clash entry (reply
+dir), will have skb->_nfct set to a 'clash' entry and so its ct->status
+and ID are exposed to userspace.
 
-User can simply resort to check via dump if a matching hook is
-registered for eth* in nfnetlink_hook.
+This isn't a problem, but it does mean that the IPS_UNTRACKED_BIT is
+set in ct->status.
+
+IPS_UNTRACKED isn't used anymore in the kernel, it has been re-purposed
+to flag the clash entries (IPS_NAT_CLASH_BIT = IPS_UNTRACKED_BIT, but
+the former constant isn't exposed via UAPI).
+
+Thats the reason for this awkward
+
+  SYMBOL("clash",         IPS_UNTRACKED_BIT),
+
+> Just hide it from userspace nftables in this series, later I'd suggest
+> you proceed with the kernel update.
+
+If I remove this line from the patch, then I can skip/ignore the value
+in userspace, e.g.:
+
+diff --git a/src/trace.c b/src/trace.c
+index b270951025b8..b3b2c8fdf1b9 100644
+--- a/src/trace.c
++++ b/src/trace.c
+@@ -264,7 +264,7 @@ static struct expr *trace_alloc_list(const struct datatype *dtype,
+        for (i = 0; i < 32; i++) {
+                uint32_t bitv = v & (1 << i);
+
+-               if (bitv == 0)
++               if (bitv == 0 || i == IPS_UNTRACKED_BIT)
+                        continue;
+
+and remove the IPS_UNTRACKED_BIT from the symbol table.
+
+Then followup with a kernel patch that removes IPS_UNTRACKED_BIT before
+dumping ct->status.
+
+Does that sound ok?
+If so, I'll apply the first patch in this series before resending 2/2.
+
+Thanks!
