@@ -1,32 +1,32 @@
-Received: from out-182.mta0.migadu.com (out-182.mta0.migadu.com [91.218.175.182])
+Received: from out-188.mta1.migadu.com (out-188.mta1.migadu.com [95.215.58.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E22C1D5CF2
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 15:42:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5783E136672
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 15:42:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751902939; cv=none; b=I+H7DChSFQbdtzW61UvLvhqjc2St2Kld0O0DXtV7dlkushPp24H7531m34c23PzwqU5Ls6M0ugbS+itYru5IL6Yjl18bOXS0LN7ACM5rlaKZpNY3SXmTs9Un/KNyV/vS7yTuePOgV4A190/YQxLOo30RLuM05r8JHgaxPY66Hvk=
+	t=1751902969; cv=none; b=UReZ+9VOr1HynAHRwtNjf4G0d0IMWPo0ZU3Dr3kj0xtg2d7nRJUXrucwi8wAaCw4JwnfryW2YzLPbHetLzdPbet3SnAKmsQM6FNphbVPjb9X/pjJiyMTf5wAiaHXCBlIAB7q31dUQ6vZ3ZJODneE6V1/1Uw1jrIzpsiL1PKRb+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751902939; c=relaxed/simple;
-	bh=ugVudOCH1QUE1lgwU5uFhMmaWqGYLvdAJPoGrIVsNCY=;
+	s=arc-20240116; t=1751902969; c=relaxed/simple;
+	bh=SqfaLR8/C5jzJtwP4LoXDHtISetJup6uWVH5ey3lMaw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rjLkrkoqvsqYUcrm4wPPh9LZzUCRq02cCxL8mKmBNL1KqUS0I6KiR4bt5uJcmL6zHHkPhuEtMbeYv22HeD1huO/tBEEvvRqzf1saFUkX3hGQlSOiFqh1iJsHeTsEksXsoDm29crmpJwtBbt/3xVN0VzEU+9YnoUlqr6XpZp+8t8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ZbREFHhr; arc=none smtp.client-ip=91.218.175.182
+	 MIME-Version; b=Tp/O2oeSjlmgrZF4p2svAMqG840sV4WDRw3wpwZSAnYO8pOZXJQa5Tm7Zj2EnKid51r7ag+q75Fl7Sjcbd9K8QtkaXcFHvd/Juvwh3r08kJX6UtVJfdUs+FbFUc37bz7QQNZMPtfU2UkvJQbhpkFjz4m56aUz6S1LGEBzAYF63E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=fpfOk+pE; arc=none smtp.client-ip=95.215.58.188
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ZbREFHhr"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="fpfOk+pE"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1751902932;
+	t=1751902955;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=tMHqMHAxGD1r4fmMDbndGO/4sTwGSp8V807ueJrjmno=;
-	b=ZbREFHhrpkqPz5ufEJ3r8iCI4F5m3Y3LBHfZVE6dnnKBVBdaW9qtEZbR8Kh5mMztKbWyA/
-	Nhn7gqSlZ38NrFbGXZiAUEUMCEoZIVGwelWLFHrKi1F5yFYasIkU0Dg7achKngBC8zOzVE
-	hil14RyrtW3P5AjsREoEBnXA20zRytQ=
+	bh=iCW68eGUYsLpHCGaD0r9aeEIjmFEKVXrBCPoykv6/AU=;
+	b=fpfOk+pE3Xu0/uduDUuQswqEVYAkphuxG9zkQTuQ20f8+J7amE0masEFM2TrTT0y8gfxlk
+	2h/dZGQzyd9cdrNfGWm73HPHDLva6FLy/f38RYmBbvryvPAlWKmG5/2sodMcxNPFCcT+Ya
+	uigL8ivvXJ8cH4V7lao0dTtSrp8/cMc=
 From: Tao Chen <chen.dylane@linux.dev>
 To: ast@kernel.org,
 	daniel@iogearbox.net,
@@ -62,9 +62,9 @@ Cc: bpf@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	Tao Chen <chen.dylane@linux.dev>
-Subject: [PATCH bpf-next 3/6] bpf: Remove attach_type in bpf_sockmap_link
-Date: Mon,  7 Jul 2025 23:39:13 +0800
-Message-ID: <20250707153916.802802-4-chen.dylane@linux.dev>
+Subject: [PATCH bpf-next 4/6] bpf: Remove location field in tcx_link
+Date: Mon,  7 Jul 2025 23:39:14 +0800
+Message-ID: <20250707153916.802802-5-chen.dylane@linux.dev>
 In-Reply-To: <20250707153916.802802-1-chen.dylane@linux.dev>
 References: <20250707153916.802802-1-chen.dylane@linux.dev>
 Precedence: bulk
@@ -76,69 +76,86 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-Use attach_type in bpf_link, and remove it in bpf_sockmap_link.
+Use attach_type in bpf_link to replace the location filed, and
+remove location field in tcx_link.
 
 Signed-off-by: Tao Chen <chen.dylane@linux.dev>
 ---
- net/core/sock_map.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/net/tcx.h |  1 -
+ kernel/bpf/tcx.c  | 13 ++++++-------
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/net/core/sock_map.c b/net/core/sock_map.c
-index fbe9a33ddf1..5947b38e4f8 100644
---- a/net/core/sock_map.c
-+++ b/net/core/sock_map.c
-@@ -1709,7 +1709,6 @@ EXPORT_SYMBOL_GPL(sock_map_close);
- struct sockmap_link {
+diff --git a/include/net/tcx.h b/include/net/tcx.h
+index 5ce0ce9e0c0..23a61af1354 100644
+--- a/include/net/tcx.h
++++ b/include/net/tcx.h
+@@ -20,7 +20,6 @@ struct tcx_entry {
+ struct tcx_link {
  	struct bpf_link link;
- 	struct bpf_map *map;
--	enum bpf_attach_type attach_type;
+ 	struct net_device *dev;
+-	u32 location;
  };
  
- static void sock_map_link_release(struct bpf_link *link)
-@@ -1721,7 +1720,7 @@ static void sock_map_link_release(struct bpf_link *link)
- 		goto out;
+ static inline void tcx_set_ingress(struct sk_buff *skb, bool ingress)
+diff --git a/kernel/bpf/tcx.c b/kernel/bpf/tcx.c
+index e6a14f408d9..efd987ea687 100644
+--- a/kernel/bpf/tcx.c
++++ b/kernel/bpf/tcx.c
+@@ -142,7 +142,7 @@ static int tcx_link_prog_attach(struct bpf_link *link, u32 flags, u32 id_or_fd,
+ 				u64 revision)
+ {
+ 	struct tcx_link *tcx = tcx_link(link);
+-	bool created, ingress = tcx->location == BPF_TCX_INGRESS;
++	bool created, ingress = link->attach_type == BPF_TCX_INGRESS;
+ 	struct bpf_mprog_entry *entry, *entry_new;
+ 	struct net_device *dev = tcx->dev;
+ 	int ret;
+@@ -169,7 +169,7 @@ static int tcx_link_prog_attach(struct bpf_link *link, u32 flags, u32 id_or_fd,
+ static void tcx_link_release(struct bpf_link *link)
+ {
+ 	struct tcx_link *tcx = tcx_link(link);
+-	bool ingress = tcx->location == BPF_TCX_INGRESS;
++	bool ingress = link->attach_type == BPF_TCX_INGRESS;
+ 	struct bpf_mprog_entry *entry, *entry_new;
+ 	struct net_device *dev;
+ 	int ret = 0;
+@@ -204,7 +204,7 @@ static int tcx_link_update(struct bpf_link *link, struct bpf_prog *nprog,
+ 			   struct bpf_prog *oprog)
+ {
+ 	struct tcx_link *tcx = tcx_link(link);
+-	bool ingress = tcx->location == BPF_TCX_INGRESS;
++	bool ingress = link->attach_type == BPF_TCX_INGRESS;
+ 	struct bpf_mprog_entry *entry, *entry_new;
+ 	struct net_device *dev;
+ 	int ret = 0;
+@@ -260,8 +260,8 @@ static void tcx_link_fdinfo(const struct bpf_link *link, struct seq_file *seq)
  
- 	WARN_ON_ONCE(sock_map_prog_update(sockmap_link->map, NULL, link->prog, link,
--					  sockmap_link->attach_type));
-+					  link->attach_type));
+ 	seq_printf(seq, "ifindex:\t%u\n", ifindex);
+ 	seq_printf(seq, "attach_type:\t%u (%s)\n",
+-		   tcx->location,
+-		   tcx->location == BPF_TCX_INGRESS ? "ingress" : "egress");
++		   link->attach_type,
++		   link->attach_type == BPF_TCX_INGRESS ? "ingress" : "egress");
+ }
  
- 	bpf_map_put_with_uref(sockmap_link->map);
- 	sockmap_link->map = NULL;
-@@ -1772,7 +1771,7 @@ static int sock_map_link_update_prog(struct bpf_link *link,
- 	}
+ static int tcx_link_fill_info(const struct bpf_link *link,
+@@ -276,7 +276,7 @@ static int tcx_link_fill_info(const struct bpf_link *link,
+ 	rtnl_unlock();
  
- 	ret = sock_map_prog_link_lookup(sockmap_link->map, &pprog, &plink,
--					sockmap_link->attach_type);
-+					link->attach_type);
- 	if (ret)
- 		goto out;
- 
-@@ -1817,7 +1816,7 @@ static int sock_map_link_fill_info(const struct bpf_link *link,
- 	u32 map_id = sock_map_link_get_map_id(sockmap_link);
- 
- 	info->sockmap.map_id = map_id;
--	info->sockmap.attach_type = sockmap_link->attach_type;
-+	info->sockmap.attach_type = link->attach_type;
+ 	info->tcx.ifindex = ifindex;
+-	info->tcx.attach_type = tcx->location;
++	info->tcx.attach_type = link->attach_type;
  	return 0;
  }
  
-@@ -1828,7 +1827,7 @@ static void sock_map_link_show_fdinfo(const struct bpf_link *link,
- 	u32 map_id = sock_map_link_get_map_id(sockmap_link);
- 
- 	seq_printf(seq, "map_id:\t%u\n", map_id);
--	seq_printf(seq, "attach_type:\t%u\n", sockmap_link->attach_type);
-+	seq_printf(seq, "attach_type:\t%u\n", link->attach_type);
+@@ -303,7 +303,6 @@ static int tcx_link_init(struct tcx_link *tcx,
+ {
+ 	bpf_link_init(&tcx->link, BPF_LINK_TYPE_TCX, &tcx_link_lops, prog,
+ 		      attr->link_create.attach_type);
+-	tcx->location = attr->link_create.attach_type;
+ 	tcx->dev = dev;
+ 	return bpf_link_prime(&tcx->link, link_primer);
  }
- 
- static const struct bpf_link_ops sock_map_link_ops = {
-@@ -1869,7 +1868,6 @@ int sock_map_link_create(const union bpf_attr *attr, struct bpf_prog *prog)
- 	bpf_link_init(&sockmap_link->link, BPF_LINK_TYPE_SOCKMAP, &sock_map_link_ops, prog,
- 		      attach_type);
- 	sockmap_link->map = map;
--	sockmap_link->attach_type = attach_type;
- 
- 	ret = bpf_link_prime(&sockmap_link->link, &link_primer);
- 	if (ret) {
 -- 
 2.48.1
 
