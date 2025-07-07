@@ -1,828 +1,155 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f206.google.com (mail-il1-f206.google.com [209.85.166.206])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13D6D2918D5
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 09:47:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ED942980AC
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 12:41:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.206
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751881662; cv=none; b=FjR3rCzH46Gv8dZKfuldOjD8EOjyo/Ik8PW4d4G3D9h6ITlWYYaz0Wi5ViU01Fo/kxRj442+mConReaWTabTY3rTeOvnZudpFvn29YXA134mGW58w3pbGk1RKMO1n3G9DbQsPX9mB0QyNxzOo/C41cEXXosBc3M0PWZcXdHOti8=
+	t=1751892086; cv=none; b=NdCxO1ENN4+QZgtuhlflzdCAJahiE+UZBysPG6kLKNHOm5M/y+dokNeZz8hEOv3RDQE1XPQJIN+lBAFs6a7CENRIl/zlOzOd29Szhi2B9WbrbmZj1CM/2VbWUd2GGB8U6QmNKcUczcGlVNNjLUqrf0dIKNrTya9Cghu+5v8riHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751881662; c=relaxed/simple;
-	bh=IPkQ2Rd4Amwe6lkbXDzKFLnWRybX9CR7b28IcH3g5P4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tXOxw97SUz1Suex84/YInfMreP3RDOrzeaXQUDECTXu7/xkrlcPw2rNyAUEOXyDTa7UFnujrTyCS6Jo0U6f5J/XE585AJjI3MOV6ae7XfQIvhGWb8NOsrzbWfsQ1c1+sdYytlhRlLzLzALknq33KxhVSulDX6rMkoXqKNBi+0js=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CA9FD60637; Mon,  7 Jul 2025 11:47:32 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/2] src: split monitor trace code into new trace.c
-Date: Mon,  7 Jul 2025 11:47:13 +0200
-Message-ID: <20250707094722.2162-2-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250707094722.2162-1-fw@strlen.de>
-References: <20250707094722.2162-1-fw@strlen.de>
+	s=arc-20240116; t=1751892086; c=relaxed/simple;
+	bh=bj+Odb3qgJDQs2022pS0mtdf26UysnvMaJvSZm3GnYw=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=aIAHZbFTFqWdVNsAiAndmEw8hG2nPYqwVGRdVr2QB++00SqTzqlZLyITAqwNkozgxcNnvhCVTT0bINXtp6CEQJV4yw5Nt5mOk/IXn2mF0/S2jxOvDT4zr8r5Cj5ZcbHerTPF0bjRlkxJEjES7U/gSaJIzZBHfhFqohLJrKRFUCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.206
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f206.google.com with SMTP id e9e14a558f8ab-3ddbec809acso33757505ab.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Jul 2025 05:41:24 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751892083; x=1752496883;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=5UL8DGv3u86BZ2iy7UUrWxmj4dXg/MEAtl5jj3qd+64=;
+        b=JnDYKkKwia6jhdXa+M1dEZebRJPeXk/FL7mQ8atDgU4PrgDZqw7m9lcWvRqRaLjRQ/
+         V0CJRT9qMgFyOFfBB2Jk0jLcX2PfiLbbQETTLIrDDOuj9vRHopioid9TFC1c9v8IqRrI
+         ilLs9S8G8AVzVz7bN7AxgmTJBK5t9gXedp01TKxLVGk6KnV5vy8siNhORl8k+eBB8plU
+         YGOf9thpKSnHQZceAil+yrsp9bOigTseId5OEXv9HtNlS9GZqPaN6uQH4C2kt7B5VosW
+         GPCZNhWaeBQB56Y4uANpKwCr7VMsairxbK9jj2hU2w9Au41dKVa3WV6FKEaxDtBRi7rH
+         e3mw==
+X-Forwarded-Encrypted: i=1; AJvYcCVdi/EHeuKdkyzxZBQI0BsDm1khFFBjSw7zup5B9x+5sTsURbBvIWhKVOkhxhGWhVi6OLa0UM9yzYA5BUdhYSI=@vger.kernel.org
+X-Gm-Message-State: AOJu0YynGcEjbLbzD0wUezykoh+TIp3EeM5OGuZPxnshWsuyJHOTWOCV
+	f6YAR5DV3nVYnZtbiiVYMEnzRmGMmwBCOpermpML6lsM/XKjJMot843AD1lEG+RQD0TzscHHt22
+	X+peXc40hl3y7miDu+w/uwmTBTIRBI1iTOD99WrHm/TcHsMSZMTuplTeAFY0=
+X-Google-Smtp-Source: AGHT+IGX2iLZw64s3HkH71g7lS7g1rKZCKC+sOzM+LLesgWuBX51pg8fZP00pc0h6TNx86q4HBrlUs14QO2DU5fWYU5k8Qinys+P
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:3f10:b0:3df:3bc5:bac1 with SMTP id
+ e9e14a558f8ab-3e13ee8c225mr73500965ab.5.1751892083675; Mon, 07 Jul 2025
+ 05:41:23 -0700 (PDT)
+Date: Mon, 07 Jul 2025 05:41:23 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <686bc073.a00a0220.c7b3.0086.GAE@google.com>
+Subject: [syzbot] [netfilter?] KMSAN: uninit-value in nf_flow_offload_inet_hook
+ (2)
+From: syzbot <syzbot+bf6ed459397e307c3ad2@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Preparation patch to avoid putting more trace functionality into
-netlink.c.
+Hello,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+syzbot found the following issue on:
+
+HEAD commit:    1f988d0788f5 Merge tag 'hid-for-linus-2025070502' of git:/..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=162bef70580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=aa9af7332485152e
+dashboard link: https://syzkaller.appspot.com/bug?extid=bf6ed459397e307c3ad2
+compiler:       Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1433e582580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16a6828c580000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/84da6415798d/disk-1f988d07.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/62abf67637e4/vmlinux-1f988d07.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/0bb719d426ed/bzImage-1f988d07.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+bf6ed459397e307c3ad2@syzkaller.appspotmail.com
+
+=====================================================
+BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x7e4/0x940 net/netfilter/nf_flow_table_inet.c:27
+ nf_flow_offload_inet_hook+0x7e4/0x940 net/netfilter/nf_flow_table_inet.c:27
+ nf_hook_entry_hookfn include/linux/netfilter.h:157 [inline]
+ nf_hook_slow+0xe1/0x3d0 net/netfilter/core.c:623
+ nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
+ nf_ingress net/core/dev.c:5742 [inline]
+ __netif_receive_skb_core+0x4aff/0x70c0 net/core/dev.c:5837
+ __netif_receive_skb_one_core net/core/dev.c:5975 [inline]
+ __netif_receive_skb+0xcc/0xac0 net/core/dev.c:6090
+ netif_receive_skb_internal net/core/dev.c:6176 [inline]
+ netif_receive_skb+0x57/0x630 net/core/dev.c:6235
+ tun_rx_batched+0x1df/0x980 drivers/net/tun.c:1485
+ tun_get_user+0x4ee0/0x6b40 drivers/net/tun.c:1938
+ tun_chr_write_iter+0x3e9/0x5c0 drivers/net/tun.c:1984
+ new_sync_write fs/read_write.c:593 [inline]
+ vfs_write+0xb4b/0x1580 fs/read_write.c:686
+ ksys_write fs/read_write.c:738 [inline]
+ __do_sys_write fs/read_write.c:749 [inline]
+ __se_sys_write fs/read_write.c:746 [inline]
+ __x64_sys_write+0x1fb/0x4d0 fs/read_write.c:746
+ x64_sys_call+0x38c3/0x3db0 arch/x86/include/generated/asm/syscalls_64.h:2
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xd9/0x210 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+Uninit was created at:
+ slab_post_alloc_hook mm/slub.c:4154 [inline]
+ slab_alloc_node mm/slub.c:4197 [inline]
+ kmem_cache_alloc_node_noprof+0x818/0xf00 mm/slub.c:4249
+ kmalloc_reserve+0x13c/0x4b0 net/core/skbuff.c:579
+ __alloc_skb+0x347/0x7d0 net/core/skbuff.c:670
+ alloc_skb include/linux/skbuff.h:1336 [inline]
+ alloc_skb_with_frags+0xc5/0xa60 net/core/skbuff.c:6665
+ sock_alloc_send_pskb+0xad8/0xc70 net/core/sock.c:2999
+ tun_alloc_skb drivers/net/tun.c:1461 [inline]
+ tun_get_user+0x1019/0x6b40 drivers/net/tun.c:1782
+ tun_chr_write_iter+0x3e9/0x5c0 drivers/net/tun.c:1984
+ new_sync_write fs/read_write.c:593 [inline]
+ vfs_write+0xb4b/0x1580 fs/read_write.c:686
+ ksys_write fs/read_write.c:738 [inline]
+ __do_sys_write fs/read_write.c:749 [inline]
+ __se_sys_write fs/read_write.c:746 [inline]
+ __x64_sys_write+0x1fb/0x4d0 fs/read_write.c:746
+ x64_sys_call+0x38c3/0x3db0 arch/x86/include/generated/asm/syscalls_64.h:2
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xd9/0x210 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+CPU: 0 UID: 0 PID: 5890 Comm: syz-executor738 Not tainted 6.16.0-rc4-syzkaller-00324-g1f988d0788f5 #0 PREEMPT(undef) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 05/07/2025
+=====================================================
+
+
 ---
- Makefile.am       |   1 +
- include/netlink.h |   5 -
- include/trace.h   |   8 ++
- src/monitor.c     |   2 +-
- src/netlink.c     | 332 -------------------------------------------
- src/trace.c       | 353 ++++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 363 insertions(+), 338 deletions(-)
- create mode 100644 include/trace.h
- create mode 100644 src/trace.c
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/Makefile.am b/Makefile.am
-index fb64105dda88..ba09e7f0953d 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -220,6 +220,7 @@ src_libnftables_la_SOURCES = \
- 	src/misspell.c \
- 	src/mnl.c \
- 	src/monitor.c \
-+	src/trace.c \
- 	src/netlink.c \
- 	src/netlink_delinearize.c \
- 	src/netlink_linearize.c \
-diff --git a/include/netlink.h b/include/netlink.h
-index c7da6f9e3bcb..2737d5708b29 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -227,11 +227,6 @@ struct ruleset_parse {
- 	struct cmd              *cmd;
- };
- 
--struct nftnl_parse_ctx;
--
--int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
--			    struct netlink_mon_handler *monh);
--
- enum nft_data_types dtype_map_to_kernel(const struct datatype *dtype);
- 
- void netlink_linearize_init(struct netlink_linearize_ctx *lctx,
-diff --git a/include/trace.h b/include/trace.h
-new file mode 100644
-index 000000000000..ebebb47d5c66
---- /dev/null
-+++ b/include/trace.h
-@@ -0,0 +1,8 @@
-+#ifndef NFTABLES_TRACE_H
-+#define NFTABLES_TRACE_H
-+#include <linux/netlink.h>
-+
-+struct netlink_mon_handler;
-+int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
-+			    struct netlink_mon_handler *monh);
-+#endif /* NFTABLES_TRACE_H */
-diff --git a/src/monitor.c b/src/monitor.c
-index e3e38c2a12b7..83977907e266 100644
---- a/src/monitor.c
-+++ b/src/monitor.c
-@@ -16,7 +16,6 @@
- #include <inttypes.h>
- 
- #include <libnftnl/table.h>
--#include <libnftnl/trace.h>
- #include <libnftnl/chain.h>
- #include <libnftnl/expr.h>
- #include <libnftnl/object.h>
-@@ -32,6 +31,7 @@
- #include <nftables.h>
- #include <netlink.h>
- #include <mnl.h>
-+#include <trace.h>
- #include <expression.h>
- #include <statement.h>
- #include <gmputil.h>
-diff --git a/src/netlink.c b/src/netlink.c
-index f3157d9d7f1c..e01cb56c4a4f 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -18,7 +18,6 @@
- #include <inttypes.h>
- 
- #include <libnftnl/table.h>
--#include <libnftnl/trace.h>
- #include <libnftnl/chain.h>
- #include <libnftnl/expr.h>
- #include <libnftnl/object.h>
-@@ -41,7 +40,6 @@
- #include <gmputil.h>
- #include <utils.h>
- #include <erec.h>
--#include <iface.h>
- 
- #define nft_mon_print(monh, ...) nft_print(&monh->ctx->nft->output, __VA_ARGS__)
- 
-@@ -1964,333 +1962,3 @@ int netlink_list_flowtables(struct netlink_ctx *ctx, const struct handle *h)
- 	nftnl_flowtable_list_free(flowtable_cache);
- 	return err;
- }
--
--static void trace_print_hdr(const struct nftnl_trace *nlt,
--			    struct output_ctx *octx)
--{
--	nft_print(octx, "trace id %08x %s ",
--		  nftnl_trace_get_u32(nlt, NFTNL_TRACE_ID),
--		  family2str(nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY)));
--	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_TABLE))
--		nft_print(octx, "%s ",
--			  nftnl_trace_get_str(nlt, NFTNL_TRACE_TABLE));
--	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_CHAIN))
--		nft_print(octx, "%s ",
--			  nftnl_trace_get_str(nlt, NFTNL_TRACE_CHAIN));
--}
--
--static void trace_print_expr(const struct nftnl_trace *nlt, unsigned int attr,
--			     struct expr *lhs, struct output_ctx *octx)
--{
--	struct expr *rhs, *rel;
--	const void *data;
--	uint32_t len;
--
--	data = nftnl_trace_get_data(nlt, attr, &len);
--	rhs  = constant_expr_alloc(&netlink_location,
--				   lhs->dtype, lhs->byteorder,
--				   len * BITS_PER_BYTE, data);
--	rel  = relational_expr_alloc(&netlink_location, OP_EQ, lhs, rhs);
--
--	expr_print(rel, octx);
--	nft_print(octx, " ");
--	expr_free(rel);
--}
--
--static void trace_print_verdict(const struct nftnl_trace *nlt,
--				 struct output_ctx *octx)
--{
--	struct expr *chain_expr = NULL;
--	const char *chain = NULL;
--	unsigned int verdict;
--	struct expr *expr;
--
--	verdict = nftnl_trace_get_u32(nlt, NFTNL_TRACE_VERDICT);
--	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_JUMP_TARGET)) {
--		chain = xstrdup(nftnl_trace_get_str(nlt, NFTNL_TRACE_JUMP_TARGET));
--		chain_expr = constant_expr_alloc(&netlink_location,
--						 &string_type,
--						 BYTEORDER_HOST_ENDIAN,
--						 strlen(chain) * BITS_PER_BYTE,
--						 chain);
--	}
--	expr = verdict_expr_alloc(&netlink_location, verdict, chain_expr);
--
--	nft_print(octx, "verdict ");
--	expr_print(expr, octx);
--	expr_free(expr);
--}
--
--static void trace_print_policy(const struct nftnl_trace *nlt,
--			       struct output_ctx *octx)
--{
--	unsigned int policy;
--	struct expr *expr;
--
--	policy = nftnl_trace_get_u32(nlt, NFTNL_TRACE_POLICY);
--
--	expr = verdict_expr_alloc(&netlink_location, policy, NULL);
--
--	nft_print(octx, "policy ");
--	expr_print(expr, octx);
--	expr_free(expr);
--}
--
--static struct rule *trace_lookup_rule(const struct nftnl_trace *nlt,
--				      uint64_t rule_handle,
--				      struct nft_cache *cache)
--{
--	struct chain *chain;
--	struct table *table;
--	struct handle h;
--
--	h.family = nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY);
--	h.table.name = nftnl_trace_get_str(nlt, NFTNL_TRACE_TABLE);
--	h.chain.name = nftnl_trace_get_str(nlt, NFTNL_TRACE_CHAIN);
--
--	if (!h.table.name)
--		return NULL;
--
--	table = table_cache_find(&cache->table_cache, h.table.name, h.family);
--	if (!table)
--		return NULL;
--
--	chain = chain_cache_find(table, h.chain.name);
--	if (!chain)
--		return NULL;
--
--	return rule_lookup(chain, rule_handle);
--}
--
--static void trace_print_rule(const struct nftnl_trace *nlt,
--			      struct output_ctx *octx, struct nft_cache *cache)
--{
--	uint64_t rule_handle;
--	struct rule *rule;
--
--	rule_handle = nftnl_trace_get_u64(nlt, NFTNL_TRACE_RULE_HANDLE);
--	rule = trace_lookup_rule(nlt, rule_handle, cache);
--
--	trace_print_hdr(nlt, octx);
--
--	if (rule) {
--		nft_print(octx, "rule ");
--		rule_print(rule, octx);
--	} else {
--		nft_print(octx, "unknown rule handle %" PRIu64, rule_handle);
--	}
--
--	nft_print(octx, " (");
--	trace_print_verdict(nlt, octx);
--	nft_print(octx, ")\n");
--}
--
--static void trace_gen_stmts(struct list_head *stmts,
--			    struct proto_ctx *ctx, struct payload_dep_ctx *pctx,
--			    const struct nftnl_trace *nlt, unsigned int attr,
--			    enum proto_bases base)
--{
--	struct list_head unordered = LIST_HEAD_INIT(unordered);
--	struct list_head list;
--	struct expr *rel, *lhs, *rhs, *tmp, *nexpr;
--	struct stmt *stmt;
--	const struct proto_desc *desc;
--	const void *hdr;
--	uint32_t hlen;
--	unsigned int n;
--
--	if (!nftnl_trace_is_set(nlt, attr))
--		return;
--	hdr = nftnl_trace_get_data(nlt, attr, &hlen);
--
--	lhs = payload_expr_alloc(&netlink_location, NULL, 0);
--	payload_init_raw(lhs, base, 0, hlen * BITS_PER_BYTE);
--	rhs = constant_expr_alloc(&netlink_location,
--				  &invalid_type, BYTEORDER_INVALID,
--				  hlen * BITS_PER_BYTE, hdr);
--
--restart:
--	init_list_head(&list);
--	payload_expr_expand(&list, lhs, ctx);
--	expr_free(lhs);
--
--	desc = NULL;
--	list_for_each_entry_safe(lhs, nexpr, &list, list) {
--		if (desc && desc != ctx->protocol[base].desc) {
--			/* Chained protocols */
--			lhs->payload.offset = 0;
--			if (ctx->protocol[base].desc == NULL)
--				break;
--			goto restart;
--		}
--
--		tmp = constant_expr_splice(rhs, lhs->len);
--		expr_set_type(tmp, lhs->dtype, lhs->byteorder);
--		if (tmp->byteorder == BYTEORDER_HOST_ENDIAN)
--			mpz_switch_byteorder(tmp->value, tmp->len / BITS_PER_BYTE);
--
--		/* Skip unknown and filtered expressions */
--		desc = lhs->payload.desc;
--		if (lhs->dtype == &invalid_type ||
--		    lhs->payload.tmpl == &proto_unknown_template ||
--		    desc->checksum_key == payload_hdr_field(lhs) ||
--		    desc->format.filter & (1 << payload_hdr_field(lhs))) {
--			expr_free(lhs);
--			expr_free(tmp);
--			continue;
--		}
--
--		rel  = relational_expr_alloc(&lhs->location, OP_EQ, lhs, tmp);
--		stmt = expr_stmt_alloc(&rel->location, rel);
--		list_add_tail(&stmt->list, &unordered);
--
--		desc = ctx->protocol[base].desc;
--		relational_expr_pctx_update(ctx, rel);
--	}
--
--	expr_free(rhs);
--
--	n = 0;
--next:
--	list_for_each_entry(stmt, &unordered, list) {
--		enum proto_bases b = base;
--
--		rel = stmt->expr;
--		lhs = rel->left;
--
--		/* Move statements to result list in defined order */
--		desc = lhs->payload.desc;
--		if (desc->format.order[n] &&
--		    desc->format.order[n] != payload_hdr_field(lhs))
--			continue;
--
--		list_move_tail(&stmt->list, stmts);
--		n++;
--
--		if (payload_is_stacked(desc, rel))
--			b--;
--
--		/* Don't strip 'icmp type' from payload dump. */
--		if (pctx->icmp_type == 0)
--			payload_dependency_kill(pctx, lhs, ctx->family);
--		if (lhs->flags & EXPR_F_PROTOCOL)
--			payload_dependency_store(pctx, stmt, b);
--
--		goto next;
--	}
--}
--
--static void trace_print_packet(const struct nftnl_trace *nlt,
--			        struct output_ctx *octx)
--{
--	struct list_head stmts = LIST_HEAD_INIT(stmts);
--	const struct proto_desc *ll_desc;
--	struct payload_dep_ctx pctx = {};
--	struct proto_ctx ctx;
--	uint16_t dev_type;
--	uint32_t nfproto;
--	struct stmt *stmt, *next;
--
--	trace_print_hdr(nlt, octx);
--
--	nft_print(octx, "packet: ");
--	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_IIF))
--		trace_print_expr(nlt, NFTNL_TRACE_IIF,
--				 meta_expr_alloc(&netlink_location,
--						 NFT_META_IIF), octx);
--	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_OIF))
--		trace_print_expr(nlt, NFTNL_TRACE_OIF,
--				 meta_expr_alloc(&netlink_location,
--						 NFT_META_OIF), octx);
--
--	proto_ctx_init(&ctx, nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY), 0, false);
--	ll_desc = ctx.protocol[PROTO_BASE_LL_HDR].desc;
--	if ((ll_desc == &proto_inet || ll_desc  == &proto_netdev) &&
--	    nftnl_trace_is_set(nlt, NFTNL_TRACE_NFPROTO)) {
--		nfproto = nftnl_trace_get_u32(nlt, NFTNL_TRACE_NFPROTO);
--
--		proto_ctx_update(&ctx, PROTO_BASE_LL_HDR, &netlink_location, NULL);
--		proto_ctx_update(&ctx, PROTO_BASE_NETWORK_HDR, &netlink_location,
--				 proto_find_upper(ll_desc, nfproto));
--	}
--	if (ctx.protocol[PROTO_BASE_LL_HDR].desc == NULL &&
--	    nftnl_trace_is_set(nlt, NFTNL_TRACE_IIFTYPE)) {
--		dev_type = nftnl_trace_get_u16(nlt, NFTNL_TRACE_IIFTYPE);
--		proto_ctx_update(&ctx, PROTO_BASE_LL_HDR, &netlink_location,
--				 proto_dev_desc(dev_type));
--	}
--
--	trace_gen_stmts(&stmts, &ctx, &pctx, nlt, NFTNL_TRACE_LL_HEADER,
--			PROTO_BASE_LL_HDR);
--	trace_gen_stmts(&stmts, &ctx, &pctx, nlt, NFTNL_TRACE_NETWORK_HEADER,
--			PROTO_BASE_NETWORK_HDR);
--	trace_gen_stmts(&stmts, &ctx, &pctx, nlt, NFTNL_TRACE_TRANSPORT_HEADER,
--			PROTO_BASE_TRANSPORT_HDR);
--
--	list_for_each_entry_safe(stmt, next, &stmts, list) {
--		stmt_print(stmt, octx);
--		nft_print(octx, " ");
--		stmt_free(stmt);
--	}
--	nft_print(octx, "\n");
--}
--
--int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
--			    struct netlink_mon_handler *monh)
--{
--	struct nftnl_trace *nlt;
--
--	assert(type == NFT_MSG_TRACE);
--
--	nlt = nftnl_trace_alloc();
--	if (!nlt)
--		memory_allocation_error();
--
--	if (nftnl_trace_nlmsg_parse(nlh, nlt) < 0)
--		netlink_abi_error();
--
--	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_LL_HEADER) ||
--	    nftnl_trace_is_set(nlt, NFTNL_TRACE_NETWORK_HEADER))
--		trace_print_packet(nlt, &monh->ctx->nft->output);
--
--	switch (nftnl_trace_get_u32(nlt, NFTNL_TRACE_TYPE)) {
--	case NFT_TRACETYPE_RULE:
--		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_RULE_HANDLE))
--			trace_print_rule(nlt, &monh->ctx->nft->output,
--					 &monh->ctx->nft->cache);
--		break;
--	case NFT_TRACETYPE_POLICY:
--		trace_print_hdr(nlt, &monh->ctx->nft->output);
--
--		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_POLICY)) {
--			trace_print_policy(nlt, &monh->ctx->nft->output);
--			nft_mon_print(monh, " ");
--		}
--
--		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_MARK))
--			trace_print_expr(nlt, NFTNL_TRACE_MARK,
--					 meta_expr_alloc(&netlink_location,
--							 NFT_META_MARK),
--					 &monh->ctx->nft->output);
--		nft_mon_print(monh, "\n");
--		break;
--	case NFT_TRACETYPE_RETURN:
--		trace_print_hdr(nlt, &monh->ctx->nft->output);
--
--		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_VERDICT)) {
--			trace_print_verdict(nlt, &monh->ctx->nft->output);
--			nft_mon_print(monh, " ");
--		}
--
--		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_MARK))
--			trace_print_expr(nlt, NFTNL_TRACE_MARK,
--					 meta_expr_alloc(&netlink_location,
--							 NFT_META_MARK),
--					 &monh->ctx->nft->output);
--		nft_mon_print(monh, "\n");
--		break;
--	}
--
--	nftnl_trace_free(nlt);
--	return MNL_CB_OK;
--}
-diff --git a/src/trace.c b/src/trace.c
-new file mode 100644
-index 000000000000..a7cc8ff08251
---- /dev/null
-+++ b/src/trace.c
-@@ -0,0 +1,353 @@
-+#include <nft.h>
-+#include <trace.h>
-+
-+#include <libnftnl/trace.h>
-+
-+#include <errno.h>
-+#include <netinet/in.h>
-+#include <arpa/inet.h>
-+#include <inttypes.h>
-+
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <linux/netfilter.h>
-+
-+#include <nftables.h>
-+#include <mnl.h>
-+#include <parser.h>
-+#include <netlink.h>
-+#include <expression.h>
-+#include <statement.h>
-+#include <utils.h>
-+
-+#define nft_mon_print(monh, ...) nft_print(&monh->ctx->nft->output, __VA_ARGS__)
-+
-+static void trace_print_hdr(const struct nftnl_trace *nlt,
-+			    struct output_ctx *octx)
-+{
-+	nft_print(octx, "trace id %08x %s ",
-+		  nftnl_trace_get_u32(nlt, NFTNL_TRACE_ID),
-+		  family2str(nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY)));
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_TABLE))
-+		nft_print(octx, "%s ",
-+			  nftnl_trace_get_str(nlt, NFTNL_TRACE_TABLE));
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_CHAIN))
-+		nft_print(octx, "%s ",
-+			  nftnl_trace_get_str(nlt, NFTNL_TRACE_CHAIN));
-+}
-+
-+static void trace_print_expr(const struct nftnl_trace *nlt, unsigned int attr,
-+			     struct expr *lhs, struct output_ctx *octx)
-+{
-+	struct expr *rhs, *rel;
-+	const void *data;
-+	uint32_t len;
-+
-+	data = nftnl_trace_get_data(nlt, attr, &len);
-+	rhs  = constant_expr_alloc(&netlink_location,
-+				   lhs->dtype, lhs->byteorder,
-+				   len * BITS_PER_BYTE, data);
-+	rel  = relational_expr_alloc(&netlink_location, OP_EQ, lhs, rhs);
-+
-+	expr_print(rel, octx);
-+	nft_print(octx, " ");
-+	expr_free(rel);
-+}
-+
-+static void trace_print_verdict(const struct nftnl_trace *nlt,
-+				 struct output_ctx *octx)
-+{
-+	struct expr *chain_expr = NULL;
-+	const char *chain = NULL;
-+	unsigned int verdict;
-+	struct expr *expr;
-+
-+	verdict = nftnl_trace_get_u32(nlt, NFTNL_TRACE_VERDICT);
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_JUMP_TARGET)) {
-+		chain = xstrdup(nftnl_trace_get_str(nlt, NFTNL_TRACE_JUMP_TARGET));
-+		chain_expr = constant_expr_alloc(&netlink_location,
-+						 &string_type,
-+						 BYTEORDER_HOST_ENDIAN,
-+						 strlen(chain) * BITS_PER_BYTE,
-+						 chain);
-+	}
-+	expr = verdict_expr_alloc(&netlink_location, verdict, chain_expr);
-+
-+	nft_print(octx, "verdict ");
-+	expr_print(expr, octx);
-+	expr_free(expr);
-+}
-+
-+static void trace_print_policy(const struct nftnl_trace *nlt,
-+			       struct output_ctx *octx)
-+{
-+	unsigned int policy;
-+	struct expr *expr;
-+
-+	policy = nftnl_trace_get_u32(nlt, NFTNL_TRACE_POLICY);
-+
-+	expr = verdict_expr_alloc(&netlink_location, policy, NULL);
-+
-+	nft_print(octx, "policy ");
-+	expr_print(expr, octx);
-+	expr_free(expr);
-+}
-+
-+static struct rule *trace_lookup_rule(const struct nftnl_trace *nlt,
-+				      uint64_t rule_handle,
-+				      struct nft_cache *cache)
-+{
-+	struct chain *chain;
-+	struct table *table;
-+	struct handle h;
-+
-+	h.family = nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY);
-+	h.table.name = nftnl_trace_get_str(nlt, NFTNL_TRACE_TABLE);
-+	h.chain.name = nftnl_trace_get_str(nlt, NFTNL_TRACE_CHAIN);
-+
-+	if (!h.table.name)
-+		return NULL;
-+
-+	table = table_cache_find(&cache->table_cache, h.table.name, h.family);
-+	if (!table)
-+		return NULL;
-+
-+	chain = chain_cache_find(table, h.chain.name);
-+	if (!chain)
-+		return NULL;
-+
-+	return rule_lookup(chain, rule_handle);
-+}
-+
-+static void trace_print_rule(const struct nftnl_trace *nlt,
-+			      struct output_ctx *octx, struct nft_cache *cache)
-+{
-+	uint64_t rule_handle;
-+	struct rule *rule;
-+
-+	rule_handle = nftnl_trace_get_u64(nlt, NFTNL_TRACE_RULE_HANDLE);
-+	rule = trace_lookup_rule(nlt, rule_handle, cache);
-+
-+	trace_print_hdr(nlt, octx);
-+
-+	if (rule) {
-+		nft_print(octx, "rule ");
-+		rule_print(rule, octx);
-+	} else {
-+		nft_print(octx, "unknown rule handle %" PRIu64, rule_handle);
-+	}
-+
-+	nft_print(octx, " (");
-+	trace_print_verdict(nlt, octx);
-+	nft_print(octx, ")\n");
-+}
-+
-+static void trace_gen_stmts(struct list_head *stmts,
-+			    struct proto_ctx *ctx, struct payload_dep_ctx *pctx,
-+			    const struct nftnl_trace *nlt, unsigned int attr,
-+			    enum proto_bases base)
-+{
-+	struct list_head unordered = LIST_HEAD_INIT(unordered);
-+	struct list_head list;
-+	struct expr *rel, *lhs, *rhs, *tmp, *nexpr;
-+	struct stmt *stmt;
-+	const struct proto_desc *desc;
-+	const void *hdr;
-+	uint32_t hlen;
-+	unsigned int n;
-+
-+	if (!nftnl_trace_is_set(nlt, attr))
-+		return;
-+	hdr = nftnl_trace_get_data(nlt, attr, &hlen);
-+
-+	lhs = payload_expr_alloc(&netlink_location, NULL, 0);
-+	payload_init_raw(lhs, base, 0, hlen * BITS_PER_BYTE);
-+	rhs = constant_expr_alloc(&netlink_location,
-+				  &invalid_type, BYTEORDER_INVALID,
-+				  hlen * BITS_PER_BYTE, hdr);
-+
-+restart:
-+	init_list_head(&list);
-+	payload_expr_expand(&list, lhs, ctx);
-+	expr_free(lhs);
-+
-+	desc = NULL;
-+	list_for_each_entry_safe(lhs, nexpr, &list, list) {
-+		if (desc && desc != ctx->protocol[base].desc) {
-+			/* Chained protocols */
-+			lhs->payload.offset = 0;
-+			if (ctx->protocol[base].desc == NULL)
-+				break;
-+			goto restart;
-+		}
-+
-+		tmp = constant_expr_splice(rhs, lhs->len);
-+		expr_set_type(tmp, lhs->dtype, lhs->byteorder);
-+		if (tmp->byteorder == BYTEORDER_HOST_ENDIAN)
-+			mpz_switch_byteorder(tmp->value, tmp->len / BITS_PER_BYTE);
-+
-+		/* Skip unknown and filtered expressions */
-+		desc = lhs->payload.desc;
-+		if (lhs->dtype == &invalid_type ||
-+		    lhs->payload.tmpl == &proto_unknown_template ||
-+		    desc->checksum_key == payload_hdr_field(lhs) ||
-+		    desc->format.filter & (1 << payload_hdr_field(lhs))) {
-+			expr_free(lhs);
-+			expr_free(tmp);
-+			continue;
-+		}
-+
-+		rel  = relational_expr_alloc(&lhs->location, OP_EQ, lhs, tmp);
-+		stmt = expr_stmt_alloc(&rel->location, rel);
-+		list_add_tail(&stmt->list, &unordered);
-+
-+		desc = ctx->protocol[base].desc;
-+		relational_expr_pctx_update(ctx, rel);
-+	}
-+
-+	expr_free(rhs);
-+
-+	n = 0;
-+next:
-+	list_for_each_entry(stmt, &unordered, list) {
-+		enum proto_bases b = base;
-+
-+		rel = stmt->expr;
-+		lhs = rel->left;
-+
-+		/* Move statements to result list in defined order */
-+		desc = lhs->payload.desc;
-+		if (desc->format.order[n] &&
-+		    desc->format.order[n] != payload_hdr_field(lhs))
-+			continue;
-+
-+		list_move_tail(&stmt->list, stmts);
-+		n++;
-+
-+		if (payload_is_stacked(desc, rel))
-+			b--;
-+
-+		/* Don't strip 'icmp type' from payload dump. */
-+		if (pctx->icmp_type == 0)
-+			payload_dependency_kill(pctx, lhs, ctx->family);
-+		if (lhs->flags & EXPR_F_PROTOCOL)
-+			payload_dependency_store(pctx, stmt, b);
-+
-+		goto next;
-+	}
-+}
-+
-+static void trace_print_packet(const struct nftnl_trace *nlt,
-+			        struct output_ctx *octx)
-+{
-+	struct list_head stmts = LIST_HEAD_INIT(stmts);
-+	const struct proto_desc *ll_desc;
-+	struct payload_dep_ctx pctx = {};
-+	struct proto_ctx ctx;
-+	uint16_t dev_type;
-+	uint32_t nfproto;
-+	struct stmt *stmt, *next;
-+
-+	trace_print_hdr(nlt, octx);
-+
-+	nft_print(octx, "packet: ");
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_IIF))
-+		trace_print_expr(nlt, NFTNL_TRACE_IIF,
-+				 meta_expr_alloc(&netlink_location,
-+						 NFT_META_IIF), octx);
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_OIF))
-+		trace_print_expr(nlt, NFTNL_TRACE_OIF,
-+				 meta_expr_alloc(&netlink_location,
-+						 NFT_META_OIF), octx);
-+
-+	proto_ctx_init(&ctx, nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY), 0, false);
-+	ll_desc = ctx.protocol[PROTO_BASE_LL_HDR].desc;
-+	if ((ll_desc == &proto_inet || ll_desc  == &proto_netdev) &&
-+	    nftnl_trace_is_set(nlt, NFTNL_TRACE_NFPROTO)) {
-+		nfproto = nftnl_trace_get_u32(nlt, NFTNL_TRACE_NFPROTO);
-+
-+		proto_ctx_update(&ctx, PROTO_BASE_LL_HDR, &netlink_location, NULL);
-+		proto_ctx_update(&ctx, PROTO_BASE_NETWORK_HDR, &netlink_location,
-+				 proto_find_upper(ll_desc, nfproto));
-+	}
-+	if (ctx.protocol[PROTO_BASE_LL_HDR].desc == NULL &&
-+	    nftnl_trace_is_set(nlt, NFTNL_TRACE_IIFTYPE)) {
-+		dev_type = nftnl_trace_get_u16(nlt, NFTNL_TRACE_IIFTYPE);
-+		proto_ctx_update(&ctx, PROTO_BASE_LL_HDR, &netlink_location,
-+				 proto_dev_desc(dev_type));
-+	}
-+
-+	trace_gen_stmts(&stmts, &ctx, &pctx, nlt, NFTNL_TRACE_LL_HEADER,
-+			PROTO_BASE_LL_HDR);
-+	trace_gen_stmts(&stmts, &ctx, &pctx, nlt, NFTNL_TRACE_NETWORK_HEADER,
-+			PROTO_BASE_NETWORK_HDR);
-+	trace_gen_stmts(&stmts, &ctx, &pctx, nlt, NFTNL_TRACE_TRANSPORT_HEADER,
-+			PROTO_BASE_TRANSPORT_HDR);
-+
-+	list_for_each_entry_safe(stmt, next, &stmts, list) {
-+		stmt_print(stmt, octx);
-+		nft_print(octx, " ");
-+		stmt_free(stmt);
-+	}
-+	nft_print(octx, "\n");
-+}
-+
-+int netlink_events_trace_cb(const struct nlmsghdr *nlh, int type,
-+			    struct netlink_mon_handler *monh)
-+{
-+	struct nftnl_trace *nlt;
-+
-+	assert(type == NFT_MSG_TRACE);
-+
-+	nlt = nftnl_trace_alloc();
-+	if (!nlt)
-+		memory_allocation_error();
-+
-+	if (nftnl_trace_nlmsg_parse(nlh, nlt) < 0)
-+		netlink_abi_error();
-+
-+	if (nftnl_trace_is_set(nlt, NFTNL_TRACE_LL_HEADER) ||
-+	    nftnl_trace_is_set(nlt, NFTNL_TRACE_NETWORK_HEADER))
-+		trace_print_packet(nlt, &monh->ctx->nft->output);
-+
-+	switch (nftnl_trace_get_u32(nlt, NFTNL_TRACE_TYPE)) {
-+	case NFT_TRACETYPE_RULE:
-+		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_RULE_HANDLE))
-+			trace_print_rule(nlt, &monh->ctx->nft->output,
-+					 &monh->ctx->nft->cache);
-+		break;
-+	case NFT_TRACETYPE_POLICY:
-+		trace_print_hdr(nlt, &monh->ctx->nft->output);
-+
-+		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_POLICY)) {
-+			trace_print_policy(nlt, &monh->ctx->nft->output);
-+			nft_mon_print(monh, " ");
-+		}
-+
-+		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_MARK))
-+			trace_print_expr(nlt, NFTNL_TRACE_MARK,
-+					 meta_expr_alloc(&netlink_location,
-+							 NFT_META_MARK),
-+					 &monh->ctx->nft->output);
-+		nft_mon_print(monh, "\n");
-+		break;
-+	case NFT_TRACETYPE_RETURN:
-+		trace_print_hdr(nlt, &monh->ctx->nft->output);
-+
-+		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_VERDICT)) {
-+			trace_print_verdict(nlt, &monh->ctx->nft->output);
-+			nft_mon_print(monh, " ");
-+		}
-+
-+		if (nftnl_trace_is_set(nlt, NFTNL_TRACE_MARK))
-+			trace_print_expr(nlt, NFTNL_TRACE_MARK,
-+					 meta_expr_alloc(&netlink_location,
-+							 NFT_META_MARK),
-+					 &monh->ctx->nft->output);
-+		nft_mon_print(monh, "\n");
-+		break;
-+	}
-+
-+	nftnl_trace_free(nlt);
-+	return MNL_CB_OK;
-+}
--- 
-2.49.0
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
