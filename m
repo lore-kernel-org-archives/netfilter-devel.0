@@ -1,107 +1,228 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC46224B0E
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 19:28:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 391DB205E3E;
+	Mon,  7 Jul 2025 19:58:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751916515; cv=none; b=Ic3XsxLTDm/jc1Dgjmp/bSqBgSQBti4IWBo/A46fyL08poA9vTKWXCMVebD+hYccIKBfL+iKORYUlRe55Vtn7qWBFcLQZV4oyR/f1UIjZ7bYr15HK0hWN6ohEZ4dQdupIWg8zKnh/e7rbudy06ZxUy5kiwR+daE0jk0k58kblDY=
+	t=1751918328; cv=none; b=d5fx+JJxqTQYfotMTsybQHrpt+1BwmCiAnAJopYKqGkA423igeoJ5uvDanD8FUKOmUCHp86Gh39iDeOJsVa86Px528pWd3MrkpRfKaUd4jtSibnNZge5AfkYHQX/kTkEjESac+RORrB+z+Qiukbk0eSNGrJcGxuSTVdlDO72in4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751916515; c=relaxed/simple;
-	bh=T9HJC5JpKVnimhkB+MbdBKuvPy4DArclEB5szoFUkCw=;
+	s=arc-20240116; t=1751918328; c=relaxed/simple;
+	bh=7p5x7LAgsUgsSE1YfhJjfKfkvmkYLNF3apAVCsAf2Gw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=E6SE8AQK41yus/pIpI7dF5gw6cV3wvf4+zePcLERfGxkhHY/lu2IUtTH6kMGCW4oYO7tZc4+fSv6bCW/sQ9tUkSYP3Gbq6VCKtrLi/0ejiuh3Rjm/pvvg2K3iqSm0fvnFARmEpjG0m5i0mdFQutGG7ZNJw1y58pttiWN+Qn6iwA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D9A63604C6; Mon,  7 Jul 2025 21:28:29 +0200 (CEST)
-Date: Mon, 7 Jul 2025 21:28:29 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 0/2] src: add conntrack information to trace monitor
- mode
-Message-ID: <aGwf3dCggwBlRKKC@strlen.de>
-References: <20250707094722.2162-1-fw@strlen.de>
- <aGwZ4MKAhUQWuGiL@calendula>
+	 Content-Type:Content-Disposition:In-Reply-To; b=hcLXlZFuPz3iRkJCJ3mMADZ2YHUc/ZBpaKt+gqU2SjxpAyMNjyWrF7jp65vsfHGhRwskDo1Uxc0mPsZpNu3nCqPDMCxdpbRY07U2mwSxurPUxuQJXINanC4JZ29B7y9JBbeIpuA13zGLaM8khDTEHYA8gN8nAdVYcwZG/G2EV1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QqMJ5wuF; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ruaiSk/E; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QqMJ5wuF";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ruaiSk/E"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 7E1516027A; Mon,  7 Jul 2025 21:58:43 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1751918323;
+	bh=Z6JGrgeMa0Ut+vakwVk4fVEHbzWmty8Z4uN3gkszHTU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=QqMJ5wuFNxDOviSKJDkH3JN5wH+4zWmLVjW5EYwhRDdMTcPybwdgfs41tQTWFYbuU
+	 ITq7AxSOey102KHYJFuNIbaJaeyHZeL8jhdeNmlfSMBCs/BhJzHWHq+oig6HjBcjZl
+	 04UWmrM2uGE2NJ7/B5VOrPUSkRxo7+cmkaIypaLXUHY3ZZ1ZiNk0or6rYFUI9+U86V
+	 o0hweF3JdzGczj0bAmaC8oIUxIjmEGRr3dcegaI4e0iKvpjxnjhT9lvHNGmhKwlpNl
+	 Vsns32PABrzzvAGIBNCDE1WBDOkAIU6MV4GUkBiZQ1mx3yew0QkeuJzMjVikpId8ZM
+	 tCxBuh97RGenA==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 79DF36026F;
+	Mon,  7 Jul 2025 21:58:40 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1751918320;
+	bh=Z6JGrgeMa0Ut+vakwVk4fVEHbzWmty8Z4uN3gkszHTU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ruaiSk/EaiSGO0LELLSQP0cypw5+qcEhst4kuR8Wo7GSvwNj0ZLEJACCOU9fBsw+s
+	 XwUyLxnj66uahEUiuQ4944QUYyXPCo7t8UcxhssERzgwQQFJgIoMi9oWNxpRkl852v
+	 t5lATz1+6HRvH+AK3G2GD1I3cMJ5aStgUrEXuZEaAkyIFwd4T0/yazX+hnEPKuOjRY
+	 LiOmSOYWhV/e9LKf/bpF1GoFaD6D3Ta2ZIa7QoHYkX9mmvcGHQEETaIL1qriW2LYTz
+	 smxJXlpisfsPVU9WefGGPTnh7vschlhT1W1ndFD7DtE2y01aw6K6n9i1d3QYXdLAi/
+	 KqEvuZ4/WYrAg==
+Date: Mon, 7 Jul 2025 21:58:37 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo.bianconi@redhat.com>
+Cc: Lorenzo Bianconi <lorenzo@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v3 1/2] net: netfilter: Add IPIP flowtable SW
+ acceleration
+Message-ID: <aGwm7XrM4YaJREru@calendula>
+References: <20250703-nf-flowtable-ipip-v3-0-880afd319b9f@kernel.org>
+ <20250703-nf-flowtable-ipip-v3-1-880afd319b9f@kernel.org>
+ <aGaVKWKOKj1a-eG1@calendula>
+ <aGfQeF_6c2W1ecrX@lore-desk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aGwZ4MKAhUQWuGiL@calendula>
+In-Reply-To: <aGfQeF_6c2W1ecrX@lore-desk>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Jul 07, 2025 at 11:47:12AM +0200, Florian Westphal wrote:
-> > First patch is a preparation patch that moves the trace code
-> > from netlink.c to the new trace.c file.
+On Fri, Jul 04, 2025 at 03:00:40PM +0200, Lorenzo Bianconi wrote:
+> > On Thu, Jul 03, 2025 at 04:16:02PM +0200, Lorenzo Bianconi wrote:
+> > > Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
+> > > infrastructure.
+> > > IPIP SW acceleration can be tested running the following scenario where
+> > > the traffic is forwarded between two NICs (eth0 and eth1) and an IPIP
+> > > tunnel is used to access a remote site (using eth1 as the underlay device):
 > > 
-> > Second patch adds the ct info to the trace output.
+> > Question below.
 > > 
-> > This patch exposes the 'clash' bit to userspace.
-> > (Technically its the kernel counterpart).
+> > > ETH0 -- TUN0 <==> ETH1 -- [IP network] -- TUN1 (192.168.100.2)
+> > > 
+> > > $ip addr show
+> > > 6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+> > >     link/ether 00:00:22:33:11:55 brd ff:ff:ff:ff:ff:ff
+> > >     inet 192.168.0.2/24 scope global eth0
+> > >        valid_lft forever preferred_lft forever
+> > > 7: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+> > >     link/ether 00:11:22:33:11:55 brd ff:ff:ff:ff:ff:ff
+> > >     inet 192.168.1.1/24 scope global eth1
+> > >        valid_lft forever preferred_lft forever
+> > > 8: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN group default qlen 1000
+> > >     link/ipip 192.168.1.1 peer 192.168.1.2
+> > >     inet 192.168.100.1/24 scope global tun0
+> > >        valid_lft forever preferred_lft forever
+> > > 
+> > > $ip route show
+> > > default via 192.168.100.2 dev tun0
+> > > 192.168.0.0/24 dev eth0 proto kernel scope link src 192.168.0.2
+> > > 192.168.1.0/24 dev eth1 proto kernel scope link src 192.168.1.1
+> > > 192.168.100.0/24 dev tun0 proto kernel scope link src 192.168.100.1
+> > > 
+> > > $nft list ruleset
+> > > table inet filter {
+> > >         flowtable ft {
+> > >                 hook ingress priority filter
+> > >                 devices = { eth0, eth1 }
+> > >         }
+> > > 
+> > >         chain forward {
+> > >                 type filter hook forward priority filter; policy accept;
+> > >                 meta l4proto { tcp, udp } flow add @ft
+> > >         }
+> > > }
+> > > 
+> > > Reproducing the scenario described above using veths I got the following
+> > > results:
+> > > - TCP stream transmitted into the IPIP tunnel:
+> > >   - net-next:				~41Gbps
+> > >   - net-next + IPIP flowtbale support:	~40Gbps
+> >                       ^^^^^^^^^
+> > no gain on tx side.
+> 
+> In this case the IPIP flowtable acceleration is effective just on the ACKs
+> packets so I guess it is expected we have ~ the same results. The real gain is
+> when the TCP stream is from the tunnel net_device to the NIC one.
+
+That is, only rx side follows the flowtable datapath.
+
+> > > - TCP stream received from the IPIP tunnel:
+> > >   - net-next:				~35Gbps
+> > >   - net-next + IPIP flowtbale support:	~49Gbps
+> > > 
+> > > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+> > > ---
+> > >  net/ipv4/ipip.c                  | 21 +++++++++++++++++++++
+> > >  net/netfilter/nf_flow_table_ip.c | 34 ++++++++++++++++++++++++++++++++--
+> > >  2 files changed, 53 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
+> > > index 3e03af073a1ccc3d7597a998a515b6cfdded40b5..05fb1c859170d74009d693bc8513183bdec3ff90 100644
+> > > --- a/net/ipv4/ipip.c
+> > > +++ b/net/ipv4/ipip.c
+> > > @@ -353,6 +353,26 @@ ipip_tunnel_ctl(struct net_device *dev, struct ip_tunnel_parm_kern *p, int cmd)
+> > >  	return ip_tunnel_ctl(dev, p, cmd);
+> > >  }
+> > >  
+> > > +static int ipip_fill_forward_path(struct net_device_path_ctx *ctx,
+> > > +				  struct net_device_path *path)
+> > > +{
+> > > +	struct ip_tunnel *tunnel = netdev_priv(ctx->dev);
+> > > +	const struct iphdr *tiph = &tunnel->parms.iph;
+> > > +	struct rtable *rt;
+> > > +
+> > > +	rt = ip_route_output(dev_net(ctx->dev), tiph->daddr, 0, 0, 0,
+> > > +			     RT_SCOPE_UNIVERSE);
+> > > +	if (IS_ERR(rt))
+> > > +		return PTR_ERR(rt);
+> > > +
+> > > +	path->type = DEV_PATH_ETHERNET;
+> > > +	path->dev = ctx->dev;
+> > > +	ctx->dev = rt->dst.dev;
+> > > +	ip_rt_put(rt);
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > >  static const struct net_device_ops ipip_netdev_ops = {
+> > >  	.ndo_init       = ipip_tunnel_init,
+> > >  	.ndo_uninit     = ip_tunnel_uninit,
+> > > @@ -362,6 +382,7 @@ static const struct net_device_ops ipip_netdev_ops = {
+> > >  	.ndo_get_stats64 = dev_get_tstats64,
+> > >  	.ndo_get_iflink = ip_tunnel_get_iflink,
+> > >  	.ndo_tunnel_ctl	= ipip_tunnel_ctl,
+> > > +	.ndo_fill_forward_path = ipip_fill_forward_path,
+> > >  };
+> > >  
+> > >  #define IPIP_FEATURES (NETIF_F_SG |		\
+> > > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> > > index 8cd4cf7ae21120f1057c4fce5aaca4e3152ae76d..6b55e00b1022f0a2b02d9bfd1bd34bb55c1b83f7 100644
+> > > --- a/net/netfilter/nf_flow_table_ip.c
+> > > +++ b/net/netfilter/nf_flow_table_ip.c
+> > > @@ -277,13 +277,37 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+> > >  	return NF_STOLEN;
+> > >  }
+> > >  
+> > > +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *size)
+> > > +{
+> > > +	struct iphdr *iph;
+> > > +
+> > > +	if (!pskb_may_pull(skb, sizeof(*iph)))
+> > > +		return false;
+> > > +
+> > > +	iph = (struct iphdr *)skb_network_header(skb);
+> > > +	*size = iph->ihl << 2;
+> > > +
+> > > +	if (ip_is_fragment(iph) || unlikely(ip_has_options(*size)))
+> > > +		return false;
+> > > +
+> > > +	if (iph->ttl <= 1)
+> > > +		return false;
+> > > +
+> > > +	return iph->protocol == IPPROTO_IPIP;
 > > 
-> > If you dislike this, I can send a kernel patch that removes
-> > the bit before dumping ct status bits to userspace, let me
-> > know.
 > 
-> If this is intentional, then
+> what kind of sanity checks are we supposed to perform? Something similar to
+> what we have in ip_rcv_core()?
+
+I am not referring to sanity checks.
+
+VLAN/PPP ID (layer 2 encapsulation) is part of the lookup in the
+flowtable, why IPIP (layer 3 tunnel) does not get the same handling?
+
+> > Once the flow is in the flowtable, it is possible to inject traffic
+> > with forged outer IP header, this is only looking at the inner IP
+> > header.
 > 
-> +             SYMBOL("clash",         IPS_UNTRACKED_BIT),
-> 
-> hiding clash bit is probably a good idea.
+> what is the difference with the plain IP/TCP use-case?
 
-Currently the existence of 'clash' entries are a kernel-internal
-implemenation detail.
-
-Neither /proc or ctnetlink exposes them, the dump handlers only
-emit ORIGINAL direction, but the clash entries are only inserted
-into the hashes for the reply tuple.
-
-Hence, they are not visible so far.
-With this change however, a packet that matches a clash entry (reply
-dir), will have skb->_nfct set to a 'clash' entry and so its ct->status
-and ID are exposed to userspace.
-
-This isn't a problem, but it does mean that the IPS_UNTRACKED_BIT is
-set in ct->status.
-
-IPS_UNTRACKED isn't used anymore in the kernel, it has been re-purposed
-to flag the clash entries (IPS_NAT_CLASH_BIT = IPS_UNTRACKED_BIT, but
-the former constant isn't exposed via UAPI).
-
-Thats the reason for this awkward
-
-  SYMBOL("clash",         IPS_UNTRACKED_BIT),
-
-> Just hide it from userspace nftables in this series, later I'd suggest
-> you proceed with the kernel update.
-
-If I remove this line from the patch, then I can skip/ignore the value
-in userspace, e.g.:
-
-diff --git a/src/trace.c b/src/trace.c
-index b270951025b8..b3b2c8fdf1b9 100644
---- a/src/trace.c
-+++ b/src/trace.c
-@@ -264,7 +264,7 @@ static struct expr *trace_alloc_list(const struct datatype *dtype,
-        for (i = 0; i < 32; i++) {
-                uint32_t bitv = v & (1 << i);
-
--               if (bitv == 0)
-+               if (bitv == 0 || i == IPS_UNTRACKED_BIT)
-                        continue;
-
-and remove the IPS_UNTRACKED_BIT from the symbol table.
-
-Then followup with a kernel patch that removes IPS_UNTRACKED_BIT before
-dumping ct->status.
-
-Does that sound ok?
-If so, I'll apply the first patch in this series before resending 2/2.
-
-Thanks!
+Not referring to the generic packet forging scenario. I refer to the
+scenario that would allow to forward packets for any IPIP outer header
+given the inner header finds a matching in the flowtable. I think that
+needs to be sorted out.
