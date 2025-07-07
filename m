@@ -1,116 +1,122 @@
-Received: from mail-qv1-f74.google.com (mail-qv1-f74.google.com [209.85.219.74])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-185.mta0.migadu.com (out-185.mta0.migadu.com [91.218.175.185])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91E44194094
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 12:45:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58DA11E230E
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Jul 2025 15:41:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751892322; cv=none; b=HL9eZoHZ+/r1wql0cTMuiWXLe1S3OPW/dHw6XQUfyjIQL84Q+qT8wXvz8ZtzleP+QsIEBXPqZk9MpS2y9MemUYtWV0GvwnBrZjseQv9qSudbo8Y+kpAjAcrLl4cGuWxqTETn1uXof0XWe3uX6d/eZvMmdyKnnNQBNegCGG7SBPY=
+	t=1751902883; cv=none; b=slvITvL7L9WrVvJ3zIDT/pNYeHGbS9T7IPovIXMQgAx+h49SN/HICiZ6UeHTWak03q62e1f9c2HZU5NxTtUZeZD1mb318fzGE+eC8+d5co8hSYcgYreqphN7Ab9TNZuhmDuUPudB2+JkRGwQ05xOVP221Wf9EmDej41DbOejLaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751892322; c=relaxed/simple;
-	bh=mAb87fXBGDVXDZ0JPirJNsxeZkkIXHxmpepCDDLlLls=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=iDpfLgeZkd7lF5v8JZAxXwDNo71tKaarEO7glEeqxglmtkvNQZs5/TtScGLET/PFy+a/Nm/5E1YQ2gOtUTMriIyAaj9ybJaFDS/Gnr2/JjyVPpzT5mfcRx57Z+yQ/pJfzlOFe9zXYm8oqcDMeev8AKT7VLRC7+pZIl3Prdj0vAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=VewM37dd; arc=none smtp.client-ip=209.85.219.74
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
+	s=arc-20240116; t=1751902883; c=relaxed/simple;
+	bh=ePOPubuWj17eRi0sYt5gn5zhUwG2cej8IddcFeCTXXM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Ce9AiQp+jjdTafVksCjumUAAdVCKGh9iCbkpm/1EfqumfUsAOYIhTBo5DLK5GI9FzE8u5fIsnHRoVmblNyxXPlnZeV0N6ccocrw/12dxPmLscW56xlWuOHDSQybhh46RL6a5j7s1f/jXd7mps2b+OZqUV0E1uLnoy3DmwR+e31A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Yr0XVWux; arc=none smtp.client-ip=91.218.175.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="VewM37dd"
-Received: by mail-qv1-f74.google.com with SMTP id 6a1803df08f44-6fb3bb94b5cso56688876d6.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Jul 2025 05:45:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1751892319; x=1752497119; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=Mx/au/ucpX1Q+GazmfVIyz7+AbuT93/bgT+tTi6UiYM=;
-        b=VewM37dd0vv6DdBU1I8mrXgS/1sEObB4vBJKV7Yxuy2mpbxf3Lm6MQzk8DKHLXnSrG
-         LWF35I+cca67QYk6QDEu4G81CLKDkkVZTvELwYDD+sCvuTdWM9sGMqhGrUwQlAUA/JHo
-         lsncmqCfXgF89ozcuSTZZSkzO1164bdZ6UW3uowc81Nl/v2/OaeQVdIYYECCHs6550Pc
-         F2nZqyNeEpr49gjUQFKzpg3WVD6xl9yO0UVs6uFMaZUSDRcdeOIRrgUEAjP1YxfOP0/O
-         cneFX8lbYT1QQlQxLIsFZJiwYTxST8j4P+vChIlGM/BOI7nKRX/VnI4vMiMNRWCi3YRW
-         xR2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751892319; x=1752497119;
-        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Mx/au/ucpX1Q+GazmfVIyz7+AbuT93/bgT+tTi6UiYM=;
-        b=BadW9Sq69aspatCRS3s5jqTBgudQEzetyP1uUti/MUp2BYK0t7Vunz9m2BAeAEeOKw
-         bIJ0G7YZ0mgpWNp5edKxNEaDd/09/TkxM36Q3sYDTnSPgUf1XKelEMC3l/6DPokN3kPb
-         xepaHycRsNf5IpOyW/vwj8SbIQzCTQ88KxDFS7QUJWYeyP20qr/CnaZ+TrGaWSMI4KmA
-         cSb3VX8krGHvUQARZ2RdrCfOJC8Yodg0nP6LMXEs4Tvnsf8JecS7RtEUs6WRduklIjU2
-         nNgX39XlpkPK6LRhKDz8IV0fP0iAVRdnbOiErFtPLQvmfLz9dN5u1NJQLBqNeRAqDupF
-         Bqfw==
-X-Forwarded-Encrypted: i=1; AJvYcCXLCFS5SIUT/6r5weS8yt//PRPXQ7tWh/43E7PIFQS/MSshY7g0vcjyRVC6hBGW6S6AUI4Y4vvUCKuiA8T0bHo=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyYRTg08GWB+ruDwwpw6jSvBrr4l7w750q44v6Acy1vrVupp7QL
-	MzFRalaDDZJc1XvmsN/B4TbQ6vZEewwxw1+BbrsjWJdEWTent0J4hmUNy5NMhbaHmNVxKhxPIHZ
-	1MGlGac0Xc/fszw==
-X-Google-Smtp-Source: AGHT+IGbAx51UxKP3h0/ZliZVJ6ft5RP8SjqFxTr0zzXn/91aFTd+6YP5jLXtKyBp3vrcziylQJL0dHHNladxw==
-X-Received: from qvbmw8.prod.google.com ([2002:a05:6214:33c8:b0:6fd:74e5:26b1])
- (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:6214:5d0f:b0:6fd:609d:e924 with SMTP id 6a1803df08f44-702d16b5b13mr153633826d6.36.1751892319483;
- Mon, 07 Jul 2025 05:45:19 -0700 (PDT)
-Date: Mon,  7 Jul 2025 12:45:17 +0000
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Yr0XVWux"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1751902869;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=q3RrQWA0hl2m0Jg5mJm6780LOhvTRsObdRFSzyTIGtE=;
+	b=Yr0XVWuxfD334RtnfP0rxbc+BWxrdqSYqtRltclNSQJe/WG7/ZAUAZLPOgQonXSIf4O+zi
+	wPVs1mBAUazhpSsbztZiS7Vy3GfvHYgBMk2/BCsd/u0L258ep/8V8if24dVPYCtugI+bqE
+	7JRo1lDd8eyvUhNFvmxoanDff6hGxyk=
+From: Tao Chen <chen.dylane@linux.dev>
+To: ast@kernel.org,
+	daniel@iogearbox.net,
+	john.fastabend@gmail.com,
+	andrii@kernel.org,
+	martin.lau@linux.dev,
+	eddyz87@gmail.com,
+	song@kernel.org,
+	yonghong.song@linux.dev,
+	kpsingh@kernel.org,
+	sdf@fomichev.me,
+	haoluo@google.com,
+	jolsa@kernel.org,
+	mattbobrowski@google.com,
+	rostedt@goodmis.org,
+	mhiramat@kernel.org,
+	mathieu.desnoyers@efficios.com,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	kuniyu@amazon.com,
+	willemb@google.com,
+	jakub@cloudflare.com,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	hawk@kernel.org
+Cc: bpf@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	Tao Chen <chen.dylane@linux.dev>
+Subject: [PATCH bpf-next 0/6] Move attach_type into bpf_link
+Date: Mon,  7 Jul 2025 23:39:10 +0800
+Message-ID: <20250707153916.802802-1-chen.dylane@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-X-Mailer: git-send-email 2.50.0.727.gbf7dc18ff4-goog
-Message-ID: <20250707124517.614489-1-edumazet@google.com>
-Subject: [PATCH net] netfilter: flowtable: account for Ethernet header in nf_flow_pppoe_proto()
-From: Eric Dumazet <edumazet@google.com>
-To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, eric.dumazet@gmail.com, 
-	Eric Dumazet <edumazet@google.com>, syzbot+bf6ed459397e307c3ad2@syzkaller.appspotmail.com
-Content-Type: text/plain; charset="UTF-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-syzbot found a potential access to uninit-value in nf_flow_pppoe_proto()
+Andrii suggested moving the attach_type into bpf_link, the previous discussion
+is as follows:
+https://lore.kernel.org/bpf/CAEf4BzY7TZRjxpCJM-+LYgEqe23YFj5Uv3isb7gat2-HU4OSng@mail.gmail.com
 
-Blamed commit forgot the Ethernet header.
+patch1 add attach_type in bpf_link, and pass it to bpf_link_init, which
+will init the attach_type field.
 
-BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x7e4/0x940 net/netfilter/nf_flow_table_inet.c:27
-  nf_flow_offload_inet_hook+0x7e4/0x940 net/netfilter/nf_flow_table_inet.c:27
-  nf_hook_entry_hookfn include/linux/netfilter.h:157 [inline]
-  nf_hook_slow+0xe1/0x3d0 net/netfilter/core.c:623
-  nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline]
-  nf_ingress net/core/dev.c:5742 [inline]
-  __netif_receive_skb_core+0x4aff/0x70c0 net/core/dev.c:5837
-  __netif_receive_skb_one_core net/core/dev.c:5975 [inline]
-  __netif_receive_skb+0xcc/0xac0 net/core/dev.c:6090
-  netif_receive_skb_internal net/core/dev.c:6176 [inline]
-  netif_receive_skb+0x57/0x630 net/core/dev.c:6235
-  tun_rx_batched+0x1df/0x980 drivers/net/tun.c:1485
-  tun_get_user+0x4ee0/0x6b40 drivers/net/tun.c:1938
-  tun_chr_write_iter+0x3e9/0x5c0 drivers/net/tun.c:1984
-  new_sync_write fs/read_write.c:593 [inline]
-  vfs_write+0xb4b/0x1580 fs/read_write.c:686
-  ksys_write fs/read_write.c:738 [inline]
-  __do_sys_write fs/read_write.c:749 [inline]
+patch2-6 remove the attach_type in struct bpf_xx_link, update the info
+with bpf_link attach_type.
 
-Reported-by: syzbot+bf6ed459397e307c3ad2@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/netdev/686bc073.a00a0220.c7b3.0086.GAE@google.com/T/#u
-Fixes: 87b3593bed18 ("netfilter: flowtable: validate pppoe header")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- include/net/netfilter/nf_flow_table.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+There are some functions finally call bpf_link_init but do not have bpf_attr
+from user or do not need to init attach_type from user like bpf_raw_tracepoint_open,
+now use prog->expected_attach_type to init attach_type.
 
-diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
-index d711642e78b57c75043e94bf00b782398e5f3621..c003cd194fa2ae40545a196fcc74e83c2868b113 100644
---- a/include/net/netfilter/nf_flow_table.h
-+++ b/include/net/netfilter/nf_flow_table.h
-@@ -370,7 +370,7 @@ static inline __be16 __nf_flow_pppoe_proto(const struct sk_buff *skb)
- 
- static inline bool nf_flow_pppoe_proto(struct sk_buff *skb, __be16 *inner_proto)
- {
--	if (!pskb_may_pull(skb, PPPOE_SES_HLEN))
-+	if (!pskb_may_pull(skb, ETH_HLEN + PPPOE_SES_HLEN))
- 		return false;
- 
- 	*inner_proto = __nf_flow_pppoe_proto(skb);
+bpf_struct_ops_map_update_elem
+bpf_raw_tracepoint_open
+bpf_struct_ops_test_run
+
+Feedback of any kind is welcome, thanks.
+
+Tao Chen (6):
+  bpf: Add attach_type in bpf_link
+  bpf: Remove attach_type in bpf_cgroup_link
+  bpf: Remove attach_type in bpf_sockmap_link
+  bpf: Remove location field in tcx_link
+  bpf: Remove attach_type in bpf_netns_link
+  bpf: Remove attach_type in bpf_tracing_link
+
+ include/linux/bpf-cgroup.h     |  1 -
+ include/linux/bpf.h            | 18 +++++++++------
+ include/net/tcx.h              |  1 -
+ kernel/bpf/bpf_iter.c          |  3 ++-
+ kernel/bpf/bpf_struct_ops.c    |  5 +++--
+ kernel/bpf/cgroup.c            | 17 +++++++--------
+ kernel/bpf/net_namespace.c     |  8 +++----
+ kernel/bpf/syscall.c           | 40 ++++++++++++++++++++--------------
+ kernel/bpf/tcx.c               | 16 +++++++-------
+ kernel/bpf/trampoline.c        | 10 +++++----
+ kernel/trace/bpf_trace.c       |  4 ++--
+ net/bpf/bpf_dummy_struct_ops.c |  3 ++-
+ net/core/dev.c                 |  3 ++-
+ net/core/sock_map.c            | 13 +++++------
+ net/netfilter/nf_bpf_link.c    |  3 ++-
+ 15 files changed, 79 insertions(+), 66 deletions(-)
+
 -- 
-2.50.0.727.gbf7dc18ff4-goog
+2.48.1
 
