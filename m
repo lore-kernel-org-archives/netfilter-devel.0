@@ -1,73 +1,47 @@
-Received: from out-171.mta1.migadu.com (out-171.mta1.migadu.com [95.215.58.171])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9B212BE7CB;
-	Tue,  8 Jul 2025 08:25:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D2B7283CBD
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Jul 2025 13:04:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751963116; cv=none; b=ePdT9w7+eeeSwUd3wcKbfCYdkcrs9o9TFAeeUSjkWAGlydtGcz74VFaZ7AL1n6cOmhUv4XD/AcqqoMFVBLeCRBwgBTkdNzEeovW51x+5UzpP7HfyZjo8UISq/IYFJxVc7avnTL+X7kYU5NgqC9KJFO6QQYkRDppqBGXtrlIHiYA=
+	t=1751979858; cv=none; b=VScm3aOTYCuPIOEDNHL0qOVQTao0E0SwU33WDXEYupc+1fWxin3wGdNQvnv7U8meCYY3sKUSx5tZs8VqX4vbHoSH19Iwpf2uwzrhpGS+MLAB84mejpKwcd6rADf1mVv+EXWtw+FNO6Qw8Rd2hNsRqGcmF/CX59izLn4xTGBjN8s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751963116; c=relaxed/simple;
-	bh=36z0UV8fxJObKtRYSJiLD5FflrpuclUu7P1ftcfJG7w=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p3xOSRPJ5AQiwi/kuN97B9Zrr/bt2sN6FE2yJu22Wpx7WqyFTZ11u/7gC+mPEs4pH2+mIlklC228FqnT3PXtQr0a38l7sRSU9Dgzp2e9FIraFpJ1hKyQTMbmpKJmRQFXHyKKd3O/MiOQRnSAydD4Wr3D6yndmWgQBjlFdyf3F20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=knWrRcv7; arc=none smtp.client-ip=95.215.58.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1751979858; c=relaxed/simple;
+	bh=G01e6JEF7oe0KeCZmAHaayFXADlHCf+hZTXqbNv64fo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Y41pmArGdzkEHd+C6F9cLA3YR0ruupJ4pHFNECUeUl7ftWA1HHYieTJHqwHjy02qTDufLsrJx/z5BQn3hCpdrtA7HsIrOJhIeNSh+WQhtCm8FByX2W225ylq7MQToYgSKUH0V/l6v6433Utr4ak5oqKXT0arnJNjTbENg+zjsyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=KyfqPiWm; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="knWrRcv7"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1751963111;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ip1HWxxpZVZ+acPGUerAZmLvMn8cqD2ZX+zb9hEbz8s=;
-	b=knWrRcv7Z7+L5As1/5NxH5ItPaZ+LRdPXOKO/dwrpe5PJ4vUBaDrx2UxZ1fxJl1tf0V7J1
-	FjEUePFz7wmdUD+x1sYOgDRO0mKLwo+7zP9kKw5tIC5WvizHEKAQ4k6a/Le5SmWQ7s+IZO
-	0ty+PKg4IQchW8b+zmUrFy0zoAi9OJM=
-From: Tao Chen <chen.dylane@linux.dev>
-To: daniel@iogearbox.net,
-	razor@blackwall.org,
-	andrew+netdev@lunn.ch,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	ast@kernel.org,
-	andrii@kernel.org,
-	martin.lau@linux.dev,
-	eddyz87@gmail.com,
-	song@kernel.org,
-	yonghong.song@linux.dev,
-	john.fastabend@gmail.com,
-	kpsingh@kernel.org,
-	sdf@fomichev.me,
-	haoluo@google.com,
-	jolsa@kernel.org,
-	mattbobrowski@google.com,
-	rostedt@goodmis.org,
-	mhiramat@kernel.org,
-	mathieu.desnoyers@efficios.com,
-	horms@kernel.org,
-	willemb@google.com,
-	jakub@cloudflare.com,
-	pablo@netfilter.org,
-	kadlec@netfilter.org,
-	hawk@kernel.org
-Cc: bpf@vger.kernel.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-trace-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	Tao Chen <chen.dylane@linux.dev>
-Subject: [PATCH bpf-next v2 7/7] netkit: Remove location field in netkit_link
-Date: Tue,  8 Jul 2025 16:22:28 +0800
-Message-ID: <20250708082228.824766-8-chen.dylane@linux.dev>
-In-Reply-To: <20250708082228.824766-1-chen.dylane@linux.dev>
-References: <20250708082228.824766-1-chen.dylane@linux.dev>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="KyfqPiWm"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=hc7mCcbLrRWjJwCSr/SfVDfRCSEPSBRuMyfKBb2+xSk=; b=KyfqPiWmNr8PEliXy82+voHRYs
+	uTQTmo21GbV87SKJusyc4MdFqDHpwPi65SMfiBX4m7KxwGDCqCOilJzYwo+Koxu3Z+7XQ3D691eUW
+	VoZdTQ8jBr30nDOW71Wd1daEFOWMNiFuM5mxQvNohISk505wLYS2PZmZAf+/s+47QqV21g93AmwEK
+	7npOvKngcIvHwgWY7F7Pj3FQR7oBAdDOWV4E6ymq2dDRHAm3ie7QXBHc8lEsVdCCDjLPGD/kPKQsf
+	gDEx4vYOxaDp0HfOWOrKd5SZIxLsugXIh2mwZVQfEvk5feun26TqfUoRNR3WA8OEQoHAgsg0Pn9YP
+	ZCXvS8Sw==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uZ7zT-000000002o3-2YEM;
+	Tue, 08 Jul 2025 15:04:07 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: [nf-next PATCH 1/2] netfilter: nfnetlink: New NFNLA_HOOK_INFO_DESC helper
+Date: Tue,  8 Jul 2025 15:04:01 +0200
+Message-ID: <20250708130402.16291-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -75,56 +49,92 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-Use attach_type in bpf_link to replace the location field, and
-remove location field in netkit_link.
+Introduce a helper routine adding the nested attribute for use by a
+second caller later.
 
-Signed-off-by: Tao Chen <chen.dylane@linux.dev>
+Note how this introduces cancelling of 'nest2' for categorical reasons.
+Since always followed by cancelling of the outer 'nest', it is
+technically not needed.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- drivers/net/netkit.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ net/netfilter/nfnetlink_hook.c | 47 ++++++++++++++++++----------------
+ 1 file changed, 25 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/net/netkit.c b/drivers/net/netkit.c
-index 5928c99eac7..492be60f2e7 100644
---- a/drivers/net/netkit.c
-+++ b/drivers/net/netkit.c
-@@ -32,7 +32,6 @@ struct netkit {
- struct netkit_link {
- 	struct bpf_link link;
- 	struct net_device *dev;
--	u32 location;
- };
- 
- static __always_inline int
-@@ -733,8 +732,8 @@ static void netkit_link_fdinfo(const struct bpf_link *link, struct seq_file *seq
- 
- 	seq_printf(seq, "ifindex:\t%u\n", ifindex);
- 	seq_printf(seq, "attach_type:\t%u (%s)\n",
--		   nkl->location,
--		   nkl->location == BPF_NETKIT_PRIMARY ? "primary" : "peer");
-+		   link->attach_type,
-+		   link->attach_type == BPF_NETKIT_PRIMARY ? "primary" : "peer");
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index ade8ee1988b1..cd4056527ede 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -109,13 +109,30 @@ static int nfnl_hook_put_bpf_prog_info(struct sk_buff *nlskb,
+ 	return -EMSGSIZE;
  }
  
- static int netkit_link_fill_info(const struct bpf_link *link,
-@@ -749,7 +748,7 @@ static int netkit_link_fill_info(const struct bpf_link *link,
- 	rtnl_unlock();
- 
- 	info->netkit.ifindex = ifindex;
--	info->netkit.attach_type = nkl->location;
-+	info->netkit.attach_type = link->attach_type;
- 	return 0;
- }
- 
-@@ -776,7 +775,6 @@ static int netkit_link_init(struct netkit_link *nkl,
++static int nfnl_hook_put_nft_info_desc(struct sk_buff *nlskb, const char *tname,
++				       const char *name, u8 family)
++{
++	struct nlattr *nest;
++
++	nest = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
++	if (!nest ||
++	    nla_put_string(nlskb, NFNLA_CHAIN_TABLE, tname) ||
++	    nla_put_string(nlskb, NFNLA_CHAIN_NAME, name) ||
++	    nla_put_u8(nlskb, NFNLA_CHAIN_FAMILY, family)) {
++		nla_nest_cancel(nlskb, nest);
++		return -EMSGSIZE;
++	}
++	nla_nest_end(nlskb, nest);
++	return 0;
++}
++
+ static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
+ 					const struct nfnl_dump_hook_data *ctx,
+ 					unsigned int seq,
+ 					struct nft_chain *chain)
  {
- 	bpf_link_init(&nkl->link, BPF_LINK_TYPE_NETKIT,
- 		      &netkit_link_lops, prog, attr->link_create.attach_type);
--	nkl->location = attr->link_create.attach_type;
- 	nkl->dev = dev;
- 	return bpf_link_prime(&nkl->link, link_primer);
+ 	struct net *net = sock_net(nlskb->sk);
+-	struct nlattr *nest, *nest2;
++	struct nlattr *nest;
+ 	int ret = 0;
+ 
+ 	if (WARN_ON_ONCE(!chain))
+@@ -128,29 +145,15 @@ static int nfnl_hook_put_nft_chain_info(struct sk_buff *nlskb,
+ 	if (!nest)
+ 		return -EMSGSIZE;
+ 
+-	nest2 = nla_nest_start(nlskb, NFNLA_HOOK_INFO_DESC);
+-	if (!nest2)
+-		goto cancel_nest;
+-
+-	ret = nla_put_string(nlskb, NFNLA_CHAIN_TABLE, chain->table->name);
+-	if (ret)
+-		goto cancel_nest;
+-
+-	ret = nla_put_string(nlskb, NFNLA_CHAIN_NAME, chain->name);
+-	if (ret)
+-		goto cancel_nest;
+-
+-	ret = nla_put_u8(nlskb, NFNLA_CHAIN_FAMILY, chain->table->family);
+-	if (ret)
+-		goto cancel_nest;
++	ret = nfnl_hook_put_nft_info_desc(nlskb, chain->table->name,
++					  chain->name, chain->table->family);
++	if (ret) {
++		nla_nest_cancel(nlskb, nest);
++		return ret;
++	}
+ 
+-	nla_nest_end(nlskb, nest2);
+ 	nla_nest_end(nlskb, nest);
+-	return ret;
+-
+-cancel_nest:
+-	nla_nest_cancel(nlskb, nest);
+-	return -EMSGSIZE;
++	return 0;
  }
+ 
+ static int nfnl_hook_dump_one(struct sk_buff *nlskb,
 -- 
-2.48.1
+2.49.0
 
