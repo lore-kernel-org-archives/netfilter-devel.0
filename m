@@ -1,64 +1,64 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1BD2E091A;
-	Tue,  8 Jul 2025 15:12:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCDB12E093E;
+	Tue,  8 Jul 2025 15:12:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751987550; cv=none; b=RuRuHBhfrbwVAq4PVkkMExNMCEnXu70YpLDTOM1TZnpih+qIqc1htDlCqlBJGHARElxNCrKPb07RGW6lHqqAmilUbLS8DJTavvxBNTtEFXJFSAjMXJn+M8PdqNs99KVUzhVGNbjdQij9PAJ/BzJqXyDJRUx8IgF+7kcmxyESXdc=
+	t=1751987551; cv=none; b=A4Op7Std2PBnbTUqWz+5pAnapVMVCgaqKv+eA7neFlYwZsOO8g2JPA3PLiWp+b1Eb3L8Js0vDd9zhn6+pglHcgLvd4OARsOBAP3apyzfjwtnHpVJq8NK6Z+7IATupvWrKxsXaCC6cmV6dLWKxLVvcHLmJVQJlOU79g+BBx2Ujuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751987550; c=relaxed/simple;
-	bh=1EGeNMcKEoAS6plzFdAvSLnrC7CBK/RtieKjFgE4p+0=;
+	s=arc-20240116; t=1751987551; c=relaxed/simple;
+	bh=Tp1Bz8yUu3aS2rr8dOstQpb0hyvWmmXi1gc2V+SaRL4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FhbL0PiEuSO/8U4fZRxcb2mGE1oc0bRkwJ9yASmM7Abat/qEm5JtwdsukEoiFvH9u40NGHZpiuUHC5gEakCkrBaHlndpPVIMWhLCVJVW8BddhgOLzrY6BuAJsgcF8fHMv54Uan4DXa42HIItkoMPcLkm0l8bIUL0MofrKQBjzfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=B6sGpwn9; arc=none smtp.client-ip=209.85.218.44
+	 MIME-Version; b=ATpRlgSD3lLJK3o+Byvmr/F1kDP4QY5fJekR1QnqAKXi2W46bKCXk1EPva3iLknPhs7lBhBEnBn0QJBhXYvMPBV9cWuYjAAVw36JGk/dPPWu76LmlP1WETDdj4G3DYfmzuxMycGp78t34tmpS70mpTENCbMQ+VXvOSPEYrssUJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VffpZKe3; arc=none smtp.client-ip=209.85.218.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B6sGpwn9"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-ae401ebcbc4so736945366b.1;
-        Tue, 08 Jul 2025 08:12:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VffpZKe3"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-ae04d3d63e6so752130066b.2;
+        Tue, 08 Jul 2025 08:12:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1751987547; x=1752592347; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1751987548; x=1752592348; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=tOzzS6CGyYck17Ilz06ZcjMy829mvTI6FpgNABmXetM=;
-        b=B6sGpwn9CT6zU01BJkWXt2l8dvAa+071Rc0mO9vjcEmKTxfb2mWqTmANIYYPVUZkVE
-         lwQYDk9RZyAXpHVzNkHNODtpLtM+Ep8vCgu2AlDhwIsvGwdktSOA5/jY5GmqhKcSSoRD
-         qDq3NCs6im7ddsoL4ZuzzSDiej4qkHKi/tj1XGxz9XztluRi1ExawVAtKEXraQprnVJE
-         EaZ4V36LA0LOVDpOWzg8dxUiRvwwDl2+O2WpapqKdMiluf4FNk4yDErViQflCgAIDy4g
-         mDSGOLJwqHirlz7LSorO37UwEotRScaIMLeztCjjpADfnOQDavhRB/xWx8j5nifpT9bK
-         c7og==
+        bh=YAUBR/u+RT3eCuaRQRZ/Ht0agoAR4js0pHVirBrIafo=;
+        b=VffpZKe3sIcFw9ZGhoYAGo/gefP06C7zwHA6FZ9U/RTuWaW/80mBBLr2Rr2kY4HbfE
+         ZeCh/TogPDMrB0gaSPqaig/88ipiGvvrFMTBWQA/mLhryUzintCpkd7068/Bm+Qt+4ks
+         C4XsUtm7r4SomP01OaaNLgqg22CC+PHSNewyySCSQld9Mo/VXN2GMEgJNcZQ6321DvIa
+         UcZahslwFdYc6aOcg0zXQz9OZGXWGvgGoVpwaRhgtQBleiscmrLw2rpTbO51cJsW/yxt
+         4vzaxSyxZbhWw22stwSSNhDkwjkNSZstSal3GS3D1xPe31jMxXc6nCeSKglte2b345hc
+         wN2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1751987547; x=1752592347;
+        d=1e100.net; s=20230601; t=1751987548; x=1752592348;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=tOzzS6CGyYck17Ilz06ZcjMy829mvTI6FpgNABmXetM=;
-        b=XiD/HBiasf9wNBVJjnDAA6Dk3BoGHFG9d8l+wyZno+VxMprhmGvf0ftzj5RR6IQszd
-         n8C8BrLngbFRQcsGPyCOyUiv1fqfhf1AgQO9zXA9NOFOIljae0F2+gF5Nyex7uvgBIv+
-         oNDqSVhd3CZ1E6ae4ma8u0ISra1sDlkLT/pPBNrXru8J0W/M9ILucxiYs2kfB1AYo2Tl
-         NqXRYH6YZRuGHEI2iERoG/EF7tzUgS1y4GDrX4MQ/yoDQAun+B+P1jstnfSLEUEb7v9m
-         edwy4LD4LTVDUxNBiO7W2MxlbnH/ea2S+MKLWnK09dglFOaa8/fgDdjV+mEzCKdlDb83
-         7pZg==
-X-Forwarded-Encrypted: i=1; AJvYcCWdBoYNSVE7FbKGdJszsgHdLl9qA0BnsJZpn4Fjb7hO0Zwc7YBSsszFEJ8RDNcbB79dVdZLj5U=@vger.kernel.org
-X-Gm-Message-State: AOJu0YycTlvP37ro6j0nim2cOSdiIQhe3AbIgHnYw9cLubDxut9cLFJq
-	/FFtTJD+GOYzoARQv+VkZCZqIMLs8EweDLbRKKBN2nGdGpoyx7RsGkRc
-X-Gm-Gg: ASbGnctWfNehUIdQVlWsa2uV068fYS/mTD6TT9r/rUqDYwzOUWw+cX1uPPcqlWnIr/x
-	OxOWU32nwx3RfGfOtHBXQ90gNmNSskF1lth/6Y9wk9pVfpzzHKrVP1RnhtIzH+60ms1pHlXVP5P
-	1j6H890cRCY3HR0c99nnVk0DOf4UTFOCcUWMoVYWh1jBtR0tqyEZm+T1TNB5jQ2Qm24YY9J/EjN
-	uVT/ZzxaJ78fsl4OEl0FHE1jLtY30oCG89un++z1Mau7dZRS4njALCbWGz0ui8vC34hNHwLK29Z
-	XNqognzMOK8uXn8AlKqinACgmT04G6W3PF0mzv4eLcMkhg90cV6zTgDpvu8jU+dcT9xlRTUwudI
-	jet8yhSyYfVFJko7sXODbeeolvapT8Mylc44Uesbx2rK3rIQGdA7XGeuUWrt7/iRicyw32JJX6I
-	K4bd13
-X-Google-Smtp-Source: AGHT+IEJAWtzd09MByxZZBm7YIZpblH/PVFUkia/DbtlWbWHUGuRi5Lu7PnQgzWaBu0x7eNmOZ7RAQ==
-X-Received: by 2002:a17:906:28d6:b0:ae3:cd73:efbc with SMTP id a640c23a62f3a-ae6b021b6c3mr325082766b.46.1751987546429;
-        Tue, 08 Jul 2025 08:12:26 -0700 (PDT)
+        bh=YAUBR/u+RT3eCuaRQRZ/Ht0agoAR4js0pHVirBrIafo=;
+        b=jyjan9MGwhVYpnqhAUjHrGoNb/Y4JPLDHeUy01jBBYTwqPRs9LnbnERuwZ0PqLa895
+         26QGsbpoztJ7JAiL+g0veoXWZfCl2t4r34RaF4HZA0ACsCySCpFBbnbsy4SAIOxFxdZ/
+         Ddy+u6GyqZLVQVZfrMdlZm9i+/OxIceiLA6mTyNFUT7RTdOwniH52EibIccl6gtT8J4t
+         F2m3gViKLBSVcY7y4oUwEq0qh3U0hqGxUPOLe522XsVd7UWhlcjKjo8FUTUb7ScAWTsJ
+         JiFTZvRmQfTGw2suVLZ3YS+rz0exkl6ntI2shpSlMS3LxRur7OtejoAlGnivXb8qaWmL
+         bsgg==
+X-Forwarded-Encrypted: i=1; AJvYcCVluoU9dpQixlb1DZR+xjsiPpc4pynORW5hJQwGFC050VTfBLjELSD48b2g+DDLKH3G6TIwWHg=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyQxRmslrj2cnrr3kYX4LPjxsJan1MHwlwCy3PkP3KgHaRGlOEv
+	Fkmxhqy2J+feau/TrmhAXUZf1yG0a0zxJFPFqyMmwRDTBFr1FClQ0N1c
+X-Gm-Gg: ASbGncvBYvhvIRmnv90X86Mo2ds/0FAiWonkpDivofvpxbZGbLUpSirJOW6O8XB0PxE
+	QVXDcOtfF3H3Uh6BKyOv2dBnYQq3Dl5riKvhSokrpuFJFUiKH/e2ZCOrji5BaiEORqanMDQca4h
+	exUYmXWha8RIltmIh4/xBXitkVogZOWJFXE/rj8kHefFFyjHEY2ucY5q3MSYuxcyi4EFwGwBA7M
+	vjgsmzbHuo8vuwpLJuajMPfQKSR1ZIGzKXF37rWHN9TIrJkaBXVepuXED8mnPQMJSzP/mbKtymN
+	k6J8K6hEYHLY4P3likKUjlCypCJGw5cj3OfvGMIN0ndSfe4x7f7AS0MT5+JdQFIq7AIa467aijd
+	auB6w2PKc1cm/RiLGhKBo1Ts7FYb7o6kKmdjtxP7FWdF7wpVdkIcxScRsIegPLCY6nDCgn6bDjA
+	AFOrBf
+X-Google-Smtp-Source: AGHT+IEv3oJ4Ui33L0KLof0NPPSG/UhfK4myNPOGcqm1VFqUfy96pX7vQ+1OxM6f0rlFUOuQBD3tVw==
+X-Received: by 2002:a17:906:6206:b0:ae3:cf41:b93b with SMTP id a640c23a62f3a-ae3fbd50f83mr1632665766b.41.1751987547316;
+        Tue, 08 Jul 2025 08:12:27 -0700 (PDT)
 Received: from localhost.localdomain (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae3f6b02a23sm907596766b.112.2025.07.08.08.12.25
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae3f6b02a23sm907596766b.112.2025.07.08.08.12.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Jul 2025 08:12:26 -0700 (PDT)
+        Tue, 08 Jul 2025 08:12:27 -0700 (PDT)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Jozsef Kadlecsik <kadlec@netfilter.org>,
@@ -73,9 +73,9 @@ Cc: netfilter-devel@vger.kernel.org,
 	bridge@lists.linux.dev,
 	netdev@vger.kernel.org,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v14 nf-next 2/3] netfilter: bridge: Add conntrack double vlan and pppoe
-Date: Tue,  8 Jul 2025 17:12:08 +0200
-Message-ID: <20250708151209.2006140-3-ericwouds@gmail.com>
+Subject: [PATCH v14 nf-next 3/3] netfilter: nft_chain_filter: Add bridge double vlan and pppoe
+Date: Tue,  8 Jul 2025 17:12:09 +0200
+Message-ID: <20250708151209.2006140-4-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <20250708151209.2006140-1-ericwouds@gmail.com>
 References: <20250708151209.2006140-1-ericwouds@gmail.com>
@@ -87,144 +87,96 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This adds the capability to conntrack 802.1ad, QinQ, PPPoE and PPPoE-in-Q
-packets that are passing a bridge, only when a conntrack zone is set.
+This adds the capability to evaluate 802.1ad, QinQ, PPPoE and PPPoE-in-Q
+packets in the bridge filter chain.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/bridge/netfilter/nf_conntrack_bridge.c | 88 ++++++++++++++++++----
- 1 file changed, 72 insertions(+), 16 deletions(-)
+ net/netfilter/nft_chain_filter.c | 59 +++++++++++++++++++++++++++++++-
+ 1 file changed, 58 insertions(+), 1 deletion(-)
 
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 6482de4d8750..ccfe1df5e92e 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -242,53 +242,109 @@ static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index 846d48ba8965..1d09015a64d6 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -232,11 +232,62 @@ nft_do_chain_bridge(void *priv,
+ 		    struct sk_buff *skb,
+ 		    const struct nf_hook_state *state)
  {
- 	struct nf_hook_state bridge_state = *state;
- 	enum ip_conntrack_info ctinfo;
-+	u32 len, data_len = U32_MAX;
++	__be16 outer_proto, proto = 0;
+ 	struct nft_pktinfo pkt;
 +	int ret, offset = 0;
- 	struct nf_conn *ct;
--	u32 len;
--	int ret;
-+	__be16 outer_proto;
  
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if ((ct && !nf_ct_is_template(ct)) ||
- 	    ctinfo == IP_CT_UNTRACKED)
- 		return NF_ACCEPT;
+ 	nft_set_pktinfo(&pkt, skb, state);
  
-+	if (ct && nf_ct_zone_id(nf_ct_zone(ct), CTINFO2DIR(ctinfo)) !=
-+			NF_CT_DEFAULT_ZONE_ID) {
-+		switch (skb->protocol) {
-+		case htons(ETH_P_PPP_SES): {
-+			struct ppp_hdr {
-+				struct pppoe_hdr hdr;
-+				__be16 proto;
-+			} *ph;
+ 	switch (eth_hdr(skb)->h_proto) {
++	case htons(ETH_P_PPP_SES): {
++		struct ppp_hdr {
++			struct pppoe_hdr hdr;
++			__be16 proto;
++		} *ph;
 +
++		if (!pskb_may_pull(skb, PPPOE_SES_HLEN))
++			break;
++		ph = (struct ppp_hdr *)(skb->data);
++		switch (ph->proto) {
++		case htons(PPP_IP):
 +			offset = PPPOE_SES_HLEN;
-+			if (!pskb_may_pull(skb, offset))
-+				return NF_ACCEPT;
 +			outer_proto = skb->protocol;
-+			ph = (struct ppp_hdr *)(skb->data);
-+			switch (ph->proto) {
-+			case htons(PPP_IP):
-+				skb->protocol = htons(ETH_P_IP);
-+				break;
-+			case htons(PPP_IPV6):
-+				skb->protocol = htons(ETH_P_IPV6);
-+				break;
-+			default:
-+				nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
-+				return NF_ACCEPT;
-+			}
-+			data_len = ntohs(ph->hdr.length) - 2;
++			proto = htons(ETH_P_IP);
 +			skb_set_network_header(skb, offset);
++			skb->protocol = proto;
++			break;
++		case htons(PPP_IPV6):
++			offset = PPPOE_SES_HLEN;
++			outer_proto = skb->protocol;
++			proto = htons(ETH_P_IPV6);
++			skb_set_network_header(skb, offset);
++			skb->protocol = proto;
++			break;
++		default:
++			proto = eth_hdr(skb)->h_proto;
 +			break;
 +		}
-+		case htons(ETH_P_8021Q): {
-+			struct vlan_hdr *vhdr;
++		break;
++	}
++	case htons(ETH_P_8021Q): {
++		struct vlan_hdr *vhdr;
 +
-+			offset = VLAN_HLEN;
-+			if (!pskb_may_pull(skb, offset))
-+				return NF_ACCEPT;
-+			outer_proto = skb->protocol;
-+			vhdr = (struct vlan_hdr *)(skb->data);
-+			skb->protocol = vhdr->h_vlan_encapsulated_proto;
-+			data_len = U32_MAX;
-+			skb_set_network_header(skb, offset);
++		if (!pskb_may_pull(skb, VLAN_HLEN))
 +			break;
-+		}
-+		}
++		vhdr = (struct vlan_hdr *)(skb->data);
++		offset = VLAN_HLEN;
++		outer_proto = skb->protocol;
++		proto = vhdr->h_vlan_encapsulated_proto;
++		skb_set_network_header(skb, offset);
++		skb->protocol = proto;
++		break;
++	}
++	default:
++		proto = eth_hdr(skb)->h_proto;
++		break;
 +	}
 +
-+	ret = NF_ACCEPT;
- 	switch (skb->protocol) {
++	switch (proto) {
  	case htons(ETH_P_IP):
--		if (!pskb_may_pull(skb, sizeof(struct iphdr)))
--			return NF_ACCEPT;
-+		if (!pskb_may_pull(skb, offset + sizeof(struct iphdr)))
-+			goto do_not_track;
- 
- 		len = skb_ip_totlen(skb);
--		if (pskb_trim_rcsum(skb, len))
--			return NF_ACCEPT;
-+		if (data_len < len)
-+			len = data_len;
-+		if (pskb_trim_rcsum(skb, offset + len))
-+			goto do_not_track;
- 
- 		if (nf_ct_br_ip_check(skb))
--			return NF_ACCEPT;
-+			goto do_not_track;
- 
- 		bridge_state.pf = NFPROTO_IPV4;
- 		ret = nf_ct_br_defrag4(skb, &bridge_state);
+ 		nft_set_pktinfo_ipv4_validate(&pkt);
  		break;
- 	case htons(ETH_P_IPV6):
--		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
--			return NF_ACCEPT;
-+		if (!pskb_may_pull(skb, offset + sizeof(struct ipv6hdr)))
-+			goto do_not_track;
- 
- 		len = sizeof(struct ipv6hdr) + ntohs(ipv6_hdr(skb)->payload_len);
--		if (pskb_trim_rcsum(skb, len))
--			return NF_ACCEPT;
-+		if (data_len < len)
-+			len = data_len;
-+		if (pskb_trim_rcsum(skb, offset + len))
-+			goto do_not_track;
- 
- 		if (nf_ct_br_ipv6_check(skb))
--			return NF_ACCEPT;
-+			goto do_not_track;
- 
- 		bridge_state.pf = NFPROTO_IPV6;
- 		ret = nf_ct_br_defrag6(skb, &bridge_state);
+@@ -248,7 +299,13 @@ nft_do_chain_bridge(void *priv,
  		break;
- 	default:
- 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
--		return NF_ACCEPT;
-+		goto do_not_track;
  	}
  
--	if (ret != NF_ACCEPT)
--		return ret;
-+	if (ret == NF_ACCEPT)
-+		ret = nf_conntrack_in(skb, &bridge_state);
- 
--	return nf_conntrack_in(skb, &bridge_state);
-+do_not_track:
-+	if (offset) {
+-	return nft_do_chain(&pkt, priv);
++	ret = nft_do_chain(&pkt, priv);
++
++	if (offset && ret == NF_ACCEPT) {
 +		skb_reset_network_header(skb);
 +		skb->protocol = outer_proto;
 +	}
 +	return ret;
  }
  
- static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
+ static const struct nft_chain_type nft_chain_filter_bridge = {
 -- 
 2.47.1
 
