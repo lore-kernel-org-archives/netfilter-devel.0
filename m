@@ -1,32 +1,32 @@
-Received: from out-170.mta1.migadu.com (out-170.mta1.migadu.com [95.215.58.170])
+Received: from out-171.mta1.migadu.com (out-171.mta1.migadu.com [95.215.58.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47DC721C179
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Jul 2025 08:24:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9B212BE7CB;
+	Tue,  8 Jul 2025 08:25:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1751963094; cv=none; b=Mj9zNV9JNPfTclvwjb5McT1pSfx4xEICvvCKIa+0RYfo4CAxT9qCxZkvmnAE+Bi8ulfVziLFUv07Mq8O/tLIF2oeJeH5rwR2UkFfJo+/AD3TB/aNm0Gm2nYKj9T3vbG4aaPY4RtYU34EYuTh7675JtuIoxw3ZT6mmXhxgv/l/ow=
+	t=1751963116; cv=none; b=ePdT9w7+eeeSwUd3wcKbfCYdkcrs9o9TFAeeUSjkWAGlydtGcz74VFaZ7AL1n6cOmhUv4XD/AcqqoMFVBLeCRBwgBTkdNzEeovW51x+5UzpP7HfyZjo8UISq/IYFJxVc7avnTL+X7kYU5NgqC9KJFO6QQYkRDppqBGXtrlIHiYA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1751963094; c=relaxed/simple;
-	bh=7JjTGV2EjX+W7UtcP012g5rTZpgzgtn1ezb7Y2UDimQ=;
+	s=arc-20240116; t=1751963116; c=relaxed/simple;
+	bh=36z0UV8fxJObKtRYSJiLD5FflrpuclUu7P1ftcfJG7w=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=S7oW0XZe+3woveEZdW7D5hUDEzemkLpfVTho2EexHiNkGG5EDWRY2twj2sXpVjJjawiwwbqlsTXkDSB2W8rP5oyjrg1TuVt9/GMiZT2lZ1Q3tpVyDpMOka1Z0lmTHPAYtcgo1L5kh+K4Jw8av3d0RBcEM55sB865/NEd1umnZKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=e+ioOouY; arc=none smtp.client-ip=95.215.58.170
+	 MIME-Version; b=p3xOSRPJ5AQiwi/kuN97B9Zrr/bt2sN6FE2yJu22Wpx7WqyFTZ11u/7gC+mPEs4pH2+mIlklC228FqnT3PXtQr0a38l7sRSU9Dgzp2e9FIraFpJ1hKyQTMbmpKJmRQFXHyKKd3O/MiOQRnSAydD4Wr3D6yndmWgQBjlFdyf3F20=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=knWrRcv7; arc=none smtp.client-ip=95.215.58.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="e+ioOouY"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="knWrRcv7"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1751963090;
+	t=1751963111;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=bDpmQYuK0vQauknx7TQlfoEHnUsAxwnLcxPxoWYrPKA=;
-	b=e+ioOouYOXEplqIeQivOxGf3u/ImKXBV5yb8qC2XIu9Vmxk8to3d7fp4+7Fn50/KyRbXIn
-	WZuJ0Dw6nHKbwchzZDCvWoM+oq3qRBxQxsV/2MmRPAouZ5dvJ2GD017diXsDgCv1QQgzeD
-	ceNRhomsBUElQO+DJFqSdoHqr0vvzXc=
+	bh=ip1HWxxpZVZ+acPGUerAZmLvMn8cqD2ZX+zb9hEbz8s=;
+	b=knWrRcv7Z7+L5As1/5NxH5ItPaZ+LRdPXOKO/dwrpe5PJ4vUBaDrx2UxZ1fxJl1tf0V7J1
+	FjEUePFz7wmdUD+x1sYOgDRO0mKLwo+7zP9kKw5tIC5WvizHEKAQ4k6a/Le5SmWQ7s+IZO
+	0ty+PKg4IQchW8b+zmUrFy0zoAi9OJM=
 From: Tao Chen <chen.dylane@linux.dev>
 To: daniel@iogearbox.net,
 	razor@blackwall.org,
@@ -63,9 +63,9 @@ Cc: bpf@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	Tao Chen <chen.dylane@linux.dev>
-Subject: [PATCH bpf-next v2 6/7] bpf: Remove attach_type in bpf_tracing_link
-Date: Tue,  8 Jul 2025 16:22:27 +0800
-Message-ID: <20250708082228.824766-7-chen.dylane@linux.dev>
+Subject: [PATCH bpf-next v2 7/7] netkit: Remove location field in netkit_link
+Date: Tue,  8 Jul 2025 16:22:28 +0800
+Message-ID: <20250708082228.824766-8-chen.dylane@linux.dev>
 In-Reply-To: <20250708082228.824766-1-chen.dylane@linux.dev>
 References: <20250708082228.824766-1-chen.dylane@linux.dev>
 Precedence: bulk
@@ -77,56 +77,54 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Migadu-Flow: FLOW_OUT
 
-Use attach_type in bpf_link, and remove it in bpf_tracing_link.
+Use attach_type in bpf_link to replace the location field, and
+remove location field in netkit_link.
 
 Signed-off-by: Tao Chen <chen.dylane@linux.dev>
 ---
- include/linux/bpf.h  | 1 -
- kernel/bpf/syscall.c | 5 ++---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/net/netkit.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/bpf.h b/include/linux/bpf.h
-index 12a965362de..9c4ed6b372b 100644
---- a/include/linux/bpf.h
-+++ b/include/linux/bpf.h
-@@ -1783,7 +1783,6 @@ struct bpf_shim_tramp_link {
- 
- struct bpf_tracing_link {
- 	struct bpf_tramp_link link;
--	enum bpf_attach_type attach_type;
- 	struct bpf_trampoline *trampoline;
- 	struct bpf_prog *tgt_prog;
+diff --git a/drivers/net/netkit.c b/drivers/net/netkit.c
+index 5928c99eac7..492be60f2e7 100644
+--- a/drivers/net/netkit.c
++++ b/drivers/net/netkit.c
+@@ -32,7 +32,6 @@ struct netkit {
+ struct netkit_link {
+ 	struct bpf_link link;
+ 	struct net_device *dev;
+-	u32 location;
  };
-diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
-index 14883b3040a..bed523bf92c 100644
---- a/kernel/bpf/syscall.c
-+++ b/kernel/bpf/syscall.c
-@@ -3414,7 +3414,7 @@ static void bpf_tracing_link_show_fdinfo(const struct bpf_link *link,
- 		   "target_obj_id:\t%u\n"
- 		   "target_btf_id:\t%u\n"
- 		   "cookie:\t%llu\n",
--		   tr_link->attach_type,
+ 
+ static __always_inline int
+@@ -733,8 +732,8 @@ static void netkit_link_fdinfo(const struct bpf_link *link, struct seq_file *seq
+ 
+ 	seq_printf(seq, "ifindex:\t%u\n", ifindex);
+ 	seq_printf(seq, "attach_type:\t%u (%s)\n",
+-		   nkl->location,
+-		   nkl->location == BPF_NETKIT_PRIMARY ? "primary" : "peer");
 +		   link->attach_type,
- 		   target_obj_id,
- 		   target_btf_id,
- 		   tr_link->link.cookie);
-@@ -3426,7 +3426,7 @@ static int bpf_tracing_link_fill_link_info(const struct bpf_link *link,
- 	struct bpf_tracing_link *tr_link =
- 		container_of(link, struct bpf_tracing_link, link.link);
++		   link->attach_type == BPF_NETKIT_PRIMARY ? "primary" : "peer");
+ }
  
--	info->tracing.attach_type = tr_link->attach_type;
-+	info->tracing.attach_type = link->attach_type;
- 	info->tracing.cookie = tr_link->link.cookie;
- 	bpf_trampoline_unpack_key(tr_link->trampoline->key,
- 				  &info->tracing.target_obj_id,
-@@ -3516,7 +3516,6 @@ static int bpf_tracing_prog_attach(struct bpf_prog *prog,
- 	bpf_link_init(&link->link.link, BPF_LINK_TYPE_TRACING,
- 		      &bpf_tracing_link_lops, prog, attach_type);
+ static int netkit_link_fill_info(const struct bpf_link *link,
+@@ -749,7 +748,7 @@ static int netkit_link_fill_info(const struct bpf_link *link,
+ 	rtnl_unlock();
  
--	link->attach_type = prog->expected_attach_type;
- 	link->link.cookie = bpf_cookie;
+ 	info->netkit.ifindex = ifindex;
+-	info->netkit.attach_type = nkl->location;
++	info->netkit.attach_type = link->attach_type;
+ 	return 0;
+ }
  
- 	mutex_lock(&prog->aux->dst_mutex);
+@@ -776,7 +775,6 @@ static int netkit_link_init(struct netkit_link *nkl,
+ {
+ 	bpf_link_init(&nkl->link, BPF_LINK_TYPE_NETKIT,
+ 		      &netkit_link_lops, prog, attr->link_create.attach_type);
+-	nkl->location = attr->link_create.attach_type;
+ 	nkl->dev = dev;
+ 	return bpf_link_prime(&nkl->link, link_primer);
+ }
 -- 
 2.48.1
 
