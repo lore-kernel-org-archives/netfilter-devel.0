@@ -1,27 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF4B2222D7
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Jul 2025 17:05:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EEC321B9C0
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Jul 2025 17:05:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752080745; cv=none; b=b0ku1bJEmRC0D3DCCi+oUH9vrHSlbAXVIYF9PUYstM8wNqYjuCA68rDBoUmLA3jxKgnPxB2zSbBB2TVvPxO5HmXyGjslkPT5Lz+uD4iPPidIPBA7D5/Bc/3KVpDNV4JXJ6GHe7zEYHwHvTSsOriODgQ0bLoGBqv7/j1+rnOMiLI=
+	t=1752080751; cv=none; b=qeTFv/GrOssm9972gro/4IX/K/NLICQAcCjjSOtUpUuih7pblFGNoXBT/T5LUHQpkG02M2SVHHvpFowc5+6A67b0enzV6RJ3YxGJ2BrV1YTIgMpxR5GpxQ/Bz7dOPnZvxEmmDHiedj9FfMpocKgh1RnbydfZDGtBIk3vs/+mgM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752080745; c=relaxed/simple;
-	bh=/gM8fqghao6/V7aF2Hrgd3ljwAe7P+ykdXuy+oTx5OM=;
+	s=arc-20240116; t=1752080751; c=relaxed/simple;
+	bh=mbAS40pVCmvC4RamUroi2ScnXOssNX0BnUsHjIPmYxQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=D36n26vncAbmxSJpFFf3J/TP6YFDT+tv0VAi0mWFvVA6y0hP0TD9Rv0s0ArYP08J3CEsa/u6hyLlaYT7g5ItZ/IcFUtwYBJBALrrOJKHc8iEhuFWE/lm/r+uAS6y+TCC22nA3fhSHqD3tz9vzHn0yjQq2m+cQVHtqhUDBqvweew=
+	 MIME-Version; b=SuXuK5Uw4VKRNdwe9jeX4RZOFfQk0R8RUCDhuZMkjA0XSVfrKVJ0UIbn4oGUnBzufR3fqznSaJlEjCQqazTT3eWzlAaYOCbjqWDsqha7xKSzWHHQKRqkhpr7R0zUJSBjvx83OuPeTwXQ2SYf5NMLEJTZ3dqSHjF+oexhNalXIeA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 02241607AC; Wed,  9 Jul 2025 19:05:40 +0200 (CEST)
+	id 7A53C61031; Wed,  9 Jul 2025 19:05:45 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2 3/5] netfilter: nft_set: remove indirection from update API call
-Date: Wed,  9 Jul 2025 19:05:14 +0200
-Message-ID: <20250709170521.11778-4-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Stefano Brivio <sbrivio@redhat.com>
+Subject: [PATCH nf-next v2 4/5] netfilter: nft_set_pipapo: merge pipapo_get/lookup
+Date: Wed,  9 Jul 2025 19:05:15 +0200
+Message-ID: <20250709170521.11778-5-fw@strlen.de>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250709170521.11778-1-fw@strlen.de>
 References: <20250709170521.11778-1-fw@strlen.de>
@@ -33,112 +34,319 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This stems from a time when sets and nft_dynset resided in different kernel
-modules.  We can replace this with a direct call.
+The matching algorithm has implemented thrice:
+1. data path lookup, generic version
+2. data path lookup, avx2 version
+3. control plane lookup
 
-We could even remove both ->update and ->delete, given its only
-supported by rhashtable, but on the off-chance we'll see runtime
-add/delete for other types or a new set type keep that as-is for now.
+Merge 1 and 3 by refactoring pipapo_get as a common helper, then make
+nft_pipapo_lookup and nft_pipapo_get both call the common helper.
+
+Aside from the code savings this has the benefit that we no longer allocate
+temporary scratch maps for each control plane get and insertion operation.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 ---
- v2: no changes.
+ v2: Fix comments/slight rewording
+     remove one TODO, I've a pending patch to fix this up so its not
+     too useful.
 
- include/net/netfilter/nf_tables.h      | 4 ----
- include/net/netfilter/nf_tables_core.h | 3 +++
- net/netfilter/nft_dynset.c             | 9 ++++-----
- net/netfilter/nft_set_hash.c           | 4 +---
- net/netfilter/nft_set_pipapo_avx2.c    | 1 -
- 5 files changed, 8 insertions(+), 13 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 188 ++++++++++-----------------------
+ 1 file changed, 58 insertions(+), 130 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2da886716adc..a4f254e8b3c9 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -464,10 +464,6 @@ struct nft_set_ops {
- 						  const u32 *key);
- 	const struct nft_set_ext *	(*update)(struct nft_set *set,
- 						  const u32 *key,
--						  struct nft_elem_priv *
--							(*new)(struct nft_set *,
--							       const struct nft_expr *,
--							       struct nft_regs *),
- 						  const struct nft_expr *expr,
- 						  struct nft_regs *regs);
- 	bool				(*delete)(const struct nft_set *set,
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 6a52fb97b844..6c2f483d9828 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -188,4 +188,7 @@ void nft_objref_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 		     const struct nft_pktinfo *pkt);
- void nft_objref_map_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 			 const struct nft_pktinfo *pkt);
-+struct nft_elem_priv *nft_dynset_new(struct nft_set *set,
-+				     const struct nft_expr *expr,
-+				     struct nft_regs *regs);
- #endif /* _NET_NF_TABLES_CORE_H */
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index e24493d9e776..7807d8129664 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -44,9 +44,9 @@ static int nft_dynset_expr_setup(const struct nft_dynset *priv,
- 	return 0;
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 36a4de11995b..528e9af3ad89 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -397,35 +397,36 @@ int pipapo_refill(unsigned long *map, unsigned int len, unsigned int rules,
  }
  
--static struct nft_elem_priv *nft_dynset_new(struct nft_set *set,
--					    const struct nft_expr *expr,
--					    struct nft_regs *regs)
-+struct nft_elem_priv *nft_dynset_new(struct nft_set *set,
-+				     const struct nft_expr *expr,
-+				     struct nft_regs *regs)
+ /**
+- * nft_pipapo_lookup() - Lookup function
+- * @net:	Network namespace
+- * @set:	nftables API set representation
+- * @key:	nftables API element representation containing key data
+- * @ext:	nftables API extension pointer, filled with matching reference
++ * pipapo_get() - Get matching element reference given key data
++ * @m:		storage containing the set elements
++ * @data:	Key data to be matched against existing elements
++ * @genmask:	If set, check that element is active in given genmask
++ * @tstamp:	timestamp to check for expired elements
+  *
+  * For more details, see DOC: Theory of Operation.
+  *
+- * Return: true on match, false otherwise.
++ * This is the main lookup function.  It matches key data against either
++ * the working match set or the uncommitted copy, depending on what the
++ * caller passed to us.
++ * nft_pipapo_get (lookup from userspace/control plane) and nft_pipapo_lookup
++ * (datapath lookup) pass the active copy.
++ * The insertion path will pass the uncommitted working copy.
++ *
++ * Return: pointer to &struct nft_pipapo_elem on match, NULL otherwise.
+  */
+-const struct nft_set_ext *
+-nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+-		  const u32 *key)
++static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
++					  const u8 *data, u8 genmask,
++					  u64 tstamp)
  {
- 	const struct nft_dynset *priv = nft_expr_priv(expr);
- 	struct nft_set_ext *ext;
-@@ -91,8 +91,7 @@ void nft_dynset_eval(const struct nft_expr *expr,
- 		return;
- 	}
+-	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct nft_pipapo_scratch *scratch;
+ 	unsigned long *res_map, *fill_map;
+-	u8 genmask = nft_genmask_cur(net);
+-	const struct nft_pipapo_match *m;
+ 	const struct nft_pipapo_field *f;
+-	const u8 *rp = (const u8 *)key;
+ 	bool map_index;
+ 	int i;
  
--	ext = set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
--			     expr, regs);
-+	ext = set->ops->update(set, &regs->data[priv->sreg_key], expr, regs);
- 	if (ext) {
- 		if (priv->op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_TIMEOUT) &&
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 9903c737c9f0..266d0c637225 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -123,8 +123,6 @@ nft_rhash_get(const struct net *net, const struct nft_set *set,
+ 	local_bh_disable();
  
- static const struct nft_set_ext *
- nft_rhash_update(struct nft_set *set, const u32 *key,
--		 struct nft_elem_priv *(*new)(struct nft_set *, const struct nft_expr *,
--		 struct nft_regs *regs),
- 		 const struct nft_expr *expr, struct nft_regs *regs)
- {
- 	struct nft_rhash *priv = nft_set_priv(set);
-@@ -141,7 +139,7 @@ nft_rhash_update(struct nft_set *set, const u32 *key,
- 	if (he != NULL)
+-	m = rcu_dereference(priv->match);
+-
+-	if (unlikely(!m || !*raw_cpu_ptr(m->scratch)))
++	if (unlikely(!raw_cpu_ptr(m->scratch)))
  		goto out;
  
--	elem_priv = new(set, expr, regs);
-+	elem_priv = nft_dynset_new(set, expr, regs);
- 	if (!elem_priv)
- 		goto err1;
+ 	scratch = *raw_cpu_ptr(m->scratch);
+@@ -445,12 +446,12 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ 		 * packet bytes value, then AND bucket value
+ 		 */
+ 		if (likely(f->bb == 8))
+-			pipapo_and_field_buckets_8bit(f, res_map, rp);
++			pipapo_and_field_buckets_8bit(f, res_map, data);
+ 		else
+-			pipapo_and_field_buckets_4bit(f, res_map, rp);
++			pipapo_and_field_buckets_4bit(f, res_map, data);
+ 		NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4;
  
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 6c441e2dc8af..db5d367e43c4 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1137,7 +1137,6 @@ static inline void pipapo_resmap_init_avx2(const struct nft_pipapo_match *m, uns
-  * @net:	Network namespace
+-		rp += f->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f);
++		data += f->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f);
+ 
+ 		/* Now populate the bitmap for the next field, unless this is
+ 		 * the last field, in which case return the matched 'ext'
+@@ -470,11 +471,11 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ 		}
+ 
+ 		if (last) {
+-			const struct nft_set_ext *ext;
++			struct nft_pipapo_elem *e;
+ 
+-			ext = &f->mt[b].e->ext;
+-			if (unlikely(nft_set_elem_expired(ext) ||
+-				     !nft_set_elem_active(ext, genmask)))
++			e = f->mt[b].e;
++			if (unlikely(__nft_set_elem_expired(&e->ext, tstamp) ||
++				     !nft_set_elem_active(&e->ext, genmask)))
+ 				goto next_match;
+ 
+ 			/* Last field: we're just returning the key without
+@@ -484,8 +485,7 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ 			 */
+ 			scratch->map_index = map_index;
+ 			local_bh_enable();
+-
+-			return ext;
++			return e;
+ 		}
+ 
+ 		/* Swap bitmap indices: res_map is the initial bitmap for the
+@@ -495,7 +495,7 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ 		map_index = !map_index;
+ 		swap(res_map, fill_map);
+ 
+-		rp += NFT_PIPAPO_GROUPS_PADDING(f);
++		data += NFT_PIPAPO_GROUPS_PADDING(f);
+ 	}
+ 
+ out:
+@@ -504,99 +504,29 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ }
+ 
+ /**
+- * pipapo_get() - Get matching element reference given key data
+- * @m:		storage containing active/existing elements
+- * @data:	Key data to be matched against existing elements
+- * @genmask:	If set, check that element is active in given genmask
+- * @tstamp:	timestamp to check for expired elements
+- * @gfp:	the type of memory to allocate (see kmalloc).
++ * nft_pipapo_lookup() - Dataplane fronted for main lookup function
++ * @net:	Network namespace
++ * @set:	nftables API set representation
++ * @key:	pointer to nft registers containing key data
+  *
+- * This is essentially the same as the lookup function, except that it matches
+- * key data against the uncommitted copy and doesn't use preallocated maps for
+- * bitmap results.
++ * This function is called from the data path.  It will search for
++ * an element matching the given key in the current active copy.
+  *
+- * Return: pointer to &struct nft_pipapo_elem on match, error pointer otherwise.
++ * Return: ntables API extension pointer or NULL if no match.
+  */
+-static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
+-					  const u8 *data, u8 genmask,
+-					  u64 tstamp, gfp_t gfp)
++const struct nft_set_ext *
++nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
++		  const u32 *key)
+ {
+-	struct nft_pipapo_elem *ret = ERR_PTR(-ENOENT);
+-	unsigned long *res_map, *fill_map = NULL;
+-	const struct nft_pipapo_field *f;
+-	int i;
+-
+-	if (m->bsize_max == 0)
+-		return ret;
+-
+-	res_map = kmalloc_array(m->bsize_max, sizeof(*res_map), gfp);
+-	if (!res_map) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto out;
+-	}
+-
+-	fill_map = kcalloc(m->bsize_max, sizeof(*res_map), gfp);
+-	if (!fill_map) {
+-		ret = ERR_PTR(-ENOMEM);
+-		goto out;
+-	}
+-
+-	pipapo_resmap_init(m, res_map);
+-
+-	nft_pipapo_for_each_field(f, i, m) {
+-		bool last = i == m->field_count - 1;
+-		int b;
+-
+-		/* For each bit group: select lookup table bucket depending on
+-		 * packet bytes value, then AND bucket value
+-		 */
+-		if (f->bb == 8)
+-			pipapo_and_field_buckets_8bit(f, res_map, data);
+-		else if (f->bb == 4)
+-			pipapo_and_field_buckets_4bit(f, res_map, data);
+-		else
+-			BUG();
+-
+-		data += f->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f);
+-
+-		/* Now populate the bitmap for the next field, unless this is
+-		 * the last field, in which case return the matched 'ext'
+-		 * pointer if any.
+-		 *
+-		 * Now res_map contains the matching bitmap, and fill_map is the
+-		 * bitmap for the next field.
+-		 */
+-next_match:
+-		b = pipapo_refill(res_map, f->bsize, f->rules, fill_map, f->mt,
+-				  last);
+-		if (b < 0)
+-			goto out;
+-
+-		if (last) {
+-			if (__nft_set_elem_expired(&f->mt[b].e->ext, tstamp))
+-				goto next_match;
+-			if ((genmask &&
+-			     !nft_set_elem_active(&f->mt[b].e->ext, genmask)))
+-				goto next_match;
+-
+-			ret = f->mt[b].e;
+-			goto out;
+-		}
+-
+-		data += NFT_PIPAPO_GROUPS_PADDING(f);
++	struct nft_pipapo *priv = nft_set_priv(set);
++	u8 genmask = nft_genmask_cur(net);
++	const struct nft_pipapo_match *m;
++	const struct nft_pipapo_elem *e;
+ 
+-		/* Swap bitmap indices: fill_map will be the initial bitmap for
+-		 * the next field (i.e. the new res_map), and res_map is
+-		 * guaranteed to be all-zeroes at this point, ready to be filled
+-		 * according to the next mapping table.
+-		 */
+-		swap(res_map, fill_map);
+-	}
++	m = rcu_dereference(priv->match);
++	e = pipapo_get(m, (const u8 *)key, genmask, get_jiffies_64());
+ 
+-out:
+-	kfree(fill_map);
+-	kfree(res_map);
+-	return ret;
++	return e ? &e->ext : NULL;
+ }
+ 
+ /**
+@@ -605,6 +535,11 @@ static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
   * @set:	nftables API set representation
-  * @key:	nftables API element representation containing key data
-- * @ext:	nftables API extension pointer, filled with matching reference
-  *
-  * For more details, see DOC: Theory of Operation in nft_set_pipapo.c.
-  *
+  * @elem:	nftables API element representation containing key data
+  * @flags:	Unused
++ *
++ * This function is called from the control plane path under
++ * RCU read lock.
++ *
++ * Return: set element private pointer or ERR_PTR(-ENOENT).
+  */
+ static struct nft_elem_priv *
+ nft_pipapo_get(const struct net *net, const struct nft_set *set,
+@@ -615,10 +550,9 @@ nft_pipapo_get(const struct net *net, const struct nft_set *set,
+ 	struct nft_pipapo_elem *e;
+ 
+ 	e = pipapo_get(m, (const u8 *)elem->key.val.data,
+-		       nft_genmask_cur(net), get_jiffies_64(),
+-		       GFP_ATOMIC);
+-	if (IS_ERR(e))
+-		return ERR_CAST(e);
++		       nft_genmask_cur(net), get_jiffies_64());
++	if (!e)
++		return ERR_PTR(-ENOENT);
+ 
+ 	return &e->priv;
+ }
+@@ -1344,8 +1278,8 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 	else
+ 		end = start;
+ 
+-	dup = pipapo_get(m, start, genmask, tstamp, GFP_KERNEL);
+-	if (!IS_ERR(dup)) {
++	dup = pipapo_get(m, start, genmask, tstamp);
++	if (dup) {
+ 		/* Check if we already have the same exact entry */
+ 		const struct nft_data *dup_key, *dup_end;
+ 
+@@ -1364,15 +1298,9 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 		return -ENOTEMPTY;
+ 	}
+ 
+-	if (PTR_ERR(dup) == -ENOENT) {
+-		/* Look for partially overlapping entries */
+-		dup = pipapo_get(m, end, nft_genmask_next(net), tstamp,
+-				 GFP_KERNEL);
+-	}
+-
+-	if (PTR_ERR(dup) != -ENOENT) {
+-		if (IS_ERR(dup))
+-			return PTR_ERR(dup);
++	/* Look for partially overlapping entries */
++	dup = pipapo_get(m, end, nft_genmask_next(net), tstamp);
++	if (dup) {
+ 		*elem_priv = &dup->priv;
+ 		return -ENOTEMPTY;
+ 	}
+@@ -1914,8 +1842,8 @@ nft_pipapo_deactivate(const struct net *net, const struct nft_set *set,
+ 		return NULL;
+ 
+ 	e = pipapo_get(m, (const u8 *)elem->key.val.data,
+-		       nft_genmask_next(net), nft_net_tstamp(net), GFP_KERNEL);
+-	if (IS_ERR(e))
++		       nft_genmask_next(net), nft_net_tstamp(net));
++	if (!e)
+ 		return NULL;
+ 
+ 	nft_set_elem_change_active(net, set, &e->ext);
 -- 
 2.49.0
 
