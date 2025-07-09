@@ -1,79 +1,123 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail-4323.protonmail.ch (mail-4323.protonmail.ch [185.70.43.23])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 487C42222D7
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Jul 2025 17:05:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A65ED21C161
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Jul 2025 18:39:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.23
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752080752; cv=none; b=AzOg9f0UVISpPR1qHVwd8uTOQx5Ut95cF0WXFJMU5HfF6IwRhE273dj5DZH5Dt00a3y9ybI3WqDzQYvW/GU8Q9mm/5Q0F93+18rnRtTG3s1nG8EhLnz/up4k54BVxwcK1PeMmoGkXNDwnVv3lU41SJrX4oUNnEiIDX4tZ1tW7w0=
+	t=1752086382; cv=none; b=bcfAHIdGXiGhJQBJPVtuipZPALuZHHk0THO+arj3cfmXLgILxoNBOpRhMA7AUiAPjuyC2+rOTCIjED4Gv2HwDatNAeHM2azzB9SB+D1Ss3bBomtixg5vPbobzsx2m7Mtaui4mdVZ0quFf+Uae806oQrJCm8sY44/xywHLpPXa5c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752080752; c=relaxed/simple;
-	bh=BDuE83xRSoNCo9ufCCsTJPHCkArKxAzxESnrbmA9C1Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s8QZNmPQcjVsQva57l0KvNvXUEJguUTdalrZFyKA7/ShPsLEgy9QHyay5yqHdvPrffiRwGoifwyZKzrfHeHupBJFoSSlwpGMJ52uZHU07d1pfGulgHrgcNV25fM3ONAUTfr/RA7nbRYK/aYF6WTtOecx/ueoqF+OWgH7JQYpz4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CE2FE60BCB; Wed,  9 Jul 2025 19:05:49 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Stefano Brivio <sbrivio@redhat.com>
-Subject: [PATCH nf-next v2 5/5] netfilter: nft_set_pipapo: prefer kvmalloc for scratch maps
-Date: Wed,  9 Jul 2025 19:05:16 +0200
-Message-ID: <20250709170521.11778-6-fw@strlen.de>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250709170521.11778-1-fw@strlen.de>
-References: <20250709170521.11778-1-fw@strlen.de>
+	s=arc-20240116; t=1752086382; c=relaxed/simple;
+	bh=Fji6DNE7UjFCPkG+IxzWnQQFtdW0Iq4Je2nw5U+DEPE=;
+	h=Date:To:From:Subject:Message-ID:MIME-Version:Content-Type; b=Os7YnfRHj7rqRx1a+t/zjk5cTlA4a5unCeyz7kOoljmYfv5L+w4qMCtcW1/HrEqd7ItrDds4eKUQNzpAJaOJ/IRCoxdNtYkrCNkMwA13wUjTgcAiEPzCVbc4G9UHCSKxb32MMV71AfM4WR5DZ1CiEBPhuP6iM9g1zwkzgg/hN60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=xavierclaude.be; spf=pass smtp.mailfrom=xavierclaude.be; dkim=pass (2048-bit key) header.d=xavierclaude.be header.i=@xavierclaude.be header.b=K3JkQ4/Q; arc=none smtp.client-ip=185.70.43.23
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=xavierclaude.be
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=xavierclaude.be
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=xavierclaude.be header.i=@xavierclaude.be header.b="K3JkQ4/Q"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=xavierclaude.be;
+	s=protonmail3; t=1752086367; x=1752345567;
+	bh=oYzM4axQ/DE02Zub7YW8wdvHsEmXmKtihYyDXyOFdt0=;
+	h=Date:To:From:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=K3JkQ4/QscaGMCclR566IgmDWMYy3Ou8/HwPiZ4TBwio6LRsjbCaZ2+sRkslwMcn3
+	 8zk3gGBGS0Ix5T561RqoNtcgU1NCpsMv9s6p2v/AbFjclRyb0myfbAq47YohuGR05K
+	 5uyJitfS4440LcZ4MUSlxaZ1OyfNjFESnKVNhrIxKeD7CDPb31kv0ZGeapAsdd4xLi
+	 vQrpd6RfmvfTa9OyaBIfZurvk7QCsE+f45DF/lwrh8JifwTm3yMNrjqai1jCXIB81A
+	 3wfmgXQ1V4cq1zDYVmsHMIhUtCoTonFTikRCAUTTkhKcjOzxXmWPS9Jrk51giRoYTw
+	 4xC7sYJnD2OVQ==
+Date: Wed, 09 Jul 2025 18:39:20 +0000
+To: netfilter-devel@vger.kernel.org
+From: Xavier Claude <contact@xavierclaude.be>
+Subject: [PATCH conntrack-tools] Typo in contrackd-conf manpage
+Message-ID: <3365321.aeNJFYEL58@kashyyk>
+Feedback-ID: 36077759:user:proton
+X-Pm-Message-ID: a97bf635b5407e40ca6a12a90d59ce6bff75185a
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-The scratchmap size depends on the number of elements in the set.
-For huge sets, each scratch map can easily require very large
-allocations, e.g. for 100k entries each scratch map will require
-close to 64kbyte of memory.
+Hello,
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+I've found a few typos in the conntrackd.conf.5 manpage.
+I hope it's the right mailing list for this kind of  report.
+-- >8 --
+
+Fixes some small typos on the conf file manpage. Acknowledegement is not a =
+typo
+per se, but I've uniformized the spelling to use the same everywhere.
+
+Signed-off-by: Xavier Claude <contact@xavierclaude.be>
 ---
- no changes.
+ conntrackd.conf.5 | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
- net/netfilter/nft_set_pipapo.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+diff --git a/conntrackd.conf.5 b/conntrackd.conf.5
+index 50d7b98..fbb75e3 100644
+--- a/conntrackd.conf.5
++++ b/conntrackd.conf.5
+@@ -84,7 +84,7 @@ In this synchronization mode you may configure=20
+\fBResendQueueSize\fP,
+ .TP
+ .BI "ResendQueueSize <value>"
+ Size of the resend queue (in objects). This is the maximum number of objec=
+ts
+-that can be stored waiting to be confirmed via acknoledgment.
++that can be stored waiting to be confirmed via acknowledgment.
+ If you keep this value low, the daemon will have less chances to recover
+ state-changes under message omission. On the other hand, if you keep this=
+=20
+value
+ high, the daemon will consume more memory to store dead objects.
+@@ -120,8 +120,8 @@ Default is 60 seconds.
+=20
+ .TP
+ .BI "ACKWindowSize <value>"
+-Set the acknowledgement window size. If you decrease this value, the numbe=
+r=20
+of
+-acknowlegdments increases. More acknowledgments means more overhead as
++Set the acknowledgment window size. If you decrease this value, the number=
+ of
++acknowledgments increases. More acknowledgments means more overhead as
+ \fBconntrackd(8)\fP has to handle more control messages. On the other hand=
+,=20
+if
+ you increase this value, the resend queue gets more populated. This result=
+s=20
+in
+ more overhead in the queue releasing.
+@@ -334,7 +334,7 @@ fault-tolerance. In case of doubt, use it.
+ This section indicates to \fBconntrackd(8)\fP to use UDP as transport
+ mechanism between nodes of the firewall cluster.
+=20
+-As in the \fBMulticast\fP configuration, you may especify several fail-ove=
+r
++As in the \fBMulticast\fP configuration, you may specify several fail-over
+ dedicated links using the \fIDefault\fP keyword.
+=20
+ Example:
+@@ -407,7 +407,7 @@ If you combine this transport with the \fBNOTRACK\fP mo=
+de,=20
+it becomes reliable.
+ The TCP transport protocol can be configured in exactly the same way as
+ the \fBUDP\fP transport protocol.
+=20
+-As in the \fBMulticast\fP configuration, you may especify several fail-ove=
+r
++As in the \fBMulticast\fP configuration, you may specify several fail-over
+ dedicated links using the \fIDefault\fP keyword.
+=20
+ Example:
+--=20
+2.50.0
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 528e9af3ad89..4eda3633c75e 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1152,7 +1152,7 @@ static void pipapo_free_scratch(const struct nft_pipapo_match *m, unsigned int c
- 
- 	mem = s;
- 	mem -= s->align_off;
--	kfree(mem);
-+	kvfree(mem);
- }
- 
- /**
-@@ -1173,10 +1173,9 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 		void *scratch_aligned;
- 		u32 align_off;
- #endif
--		scratch = kzalloc_node(struct_size(scratch, map,
--						   bsize_max * 2) +
--				       NFT_PIPAPO_ALIGN_HEADROOM,
--				       GFP_KERNEL_ACCOUNT, cpu_to_node(i));
-+		scratch = kvzalloc_node(struct_size(scratch, map, bsize_max * 2) +
-+					NFT_PIPAPO_ALIGN_HEADROOM,
-+					GFP_KERNEL_ACCOUNT, cpu_to_node(i));
- 		if (!scratch) {
- 			/* On failure, there's no need to undo previous
- 			 * allocations: this means that some scratch maps have
--- 
-2.49.0
+
+
+
 
