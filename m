@@ -1,157 +1,105 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14CF6241CB2
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Jul 2025 22:43:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBC2524169E;
+	Wed,  9 Jul 2025 23:08:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752100994; cv=none; b=WrqWCHQvaZMN+2TiW0ACSHl7Dql8BURabS9QBGiu87ryrprseNLXpAN+k7v+2e93ylP53VF9KTYktBxHNXJEYQdQqnMFVc8ehgEk5q9E3vzCpFJrRSWbrIotxqnxOCmoL93op3jqv80mi+v8yTxRAqYpw8P7OP6Ed+9JL8x0WAA=
+	t=1752102490; cv=none; b=WnIsnNSiu2SuwD7nICr9IkAQRgUEfxJlF697UW95K+xqDJs8ReE19MOlwWD/QkyLIlIISWouUEyxoEgxyOmSA/TG3oExZLfD6qmv3YsyaW84PfC0nN+7i9/yajxRB/T+ikKqOoOOQ2gYTgu+r4jVhzmNo3bTokys75Z+giALzgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752100994; c=relaxed/simple;
-	bh=NoE8h3olPCfGj4q/dfkiV31VbcBv1DI90Zef9TttsRo=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eZPoTBGktivA0lBnSX14NeEPsa9FLsAb4d9KqkTqpU2asrdUJAgUXYk4XcfzJi83/EH8r1VTazaJ/7KzS8UAgile2soGobMGG+UX1UcnJgruSO/y4KYx/6zTxFx8aZHXbCIfoK+mY+aVXNfg9ffLac+KtftKu2XI07TWKAlhFCA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iqsdItf8; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oclgqTAl; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iqsdItf8";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oclgqTAl"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B405F60289; Thu, 10 Jul 2025 00:43:07 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752100987;
-	bh=R8F+L/rTAALKIXS/lfLPKVppmVSzhjIVHt74KTIH0bA=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=iqsdItf8u03aYjW4GqQG8aKuM2SX5oBNnqYw+boZaqSS53I0EJoEn0QZ7z+w+2FLZ
-	 RSdeUs/fQg2dgkeEVM3RLxf3KVXhfK8SH7J3dlNeVrlNlL/L/tXokN9CUWQuC7Hkf/
-	 tXYeOCyrJsTDAoPNMbXwCd9kY2mgfUIhAlLFpr6P62Gt7iW9kgL56Por+RsIJ7sRAw
-	 //Archhxg27wI08ZiFmZLBKf4qqwRFGhfedElRMsKuqFgxj5XCt5KN+oORg5KaFzjj
-	 XWMi2mzGzPJE/DvkbpqwGxiHrBsWp4S4cn3Kkb1X7YzYcJgvm7rJ4yCa19/Z9s3F5W
-	 MYrus1vipfkzA==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8950860285;
-	Thu, 10 Jul 2025 00:43:06 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752100986;
-	bh=R8F+L/rTAALKIXS/lfLPKVppmVSzhjIVHt74KTIH0bA=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=oclgqTAlPNjpNDvtkL5cnZTFiXvxPfzS8T+/Ibaetto1KPQ6DeNGaCArDZmsQt2Ss
-	 yz2vxzr7BsnMnjt1UHrAcydCWAUuvKV0jX2kMwo8BBlcQ8qoL//7v5d7W4kbjW13cE
-	 FmZkrHOHP7MYec7G9mQRWxrBHnWIOkJ4aEDvPYdkVfG46YWL3RlrhbGou6iEl8OcEl
-	 sqMzUHY6R0q/y/h6+MuPVTFjUaypMA7aEo1PQ+CpqYKiwSMaafLqp8Tq51PRMrrXFw
-	 v5WYzve77y6lFMit2fjZLtHaePoQpsR5wB2mPJxAra75IXyBb8WcuADSBy8bvM+XZ/
-	 CqrInnsqJlLow==
-Date: Thu, 10 Jul 2025 00:43:03 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
- registration
-Message-ID: <aG7wd6ALR7kXb1fl@calendula>
-References: <aGZ75G4SVuwkNDb9@orbyte.nwl.cc>
- <aGZ9jNVIiq9NrUdi@strlen.de>
- <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
- <aGaRaHoawJ-DbNUl@calendula>
- <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
- <aGbu5ugsBY8Bu3Ad@calendula>
- <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
- <aGffdwjA23MaNgPQ@strlen.de>
- <aGwfPqpymU17BFHw@calendula>
- <aG0tdPnwKitQWYA6@orbyte.nwl.cc>
+	s=arc-20240116; t=1752102490; c=relaxed/simple;
+	bh=lN+HdSs+M71XVyqCjYsxfW2xQ/2suTkluOOvdlfVMyk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=V8h0t7i0RjAInQyfxZZ0dO+qNIwJUPPFsXn2GmCz385OZWBhsjOOr3jtuQWTnU+BJm1PLsYIZTbnFzUuYv7JwaO8ViXQFlbn6XI2W5IKoOchhkIix4TEngBt+PZu96B6043vPfLb3I6fNLKNoOYLJ63CPsP93f4MTfKncQ7veIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id A7A35607AC; Thu, 10 Jul 2025 01:08:05 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: netfilter@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>,
+	pavelpribylov01@gmail.com
+Subject: [PATCH nft] doc: expand on gc-interval, size and a few other set/map keywords
+Date: Thu, 10 Jul 2025 01:07:52 +0200
+Message-ID: <20250709230800.30997-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.0
+In-Reply-To: <CANnZF1bKkHctvnpG6JnhtMpUzj6FC5crn1bDqt+eq-G_+mR_Eg@mail.gmail.com>
+References: <CANnZF1bKkHctvnpG6JnhtMpUzj6FC5crn1bDqt+eq-G_+mR_Eg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aG0tdPnwKitQWYA6@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-Hi Phil,
+Reported-by: <pavelpribylov01@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ doc/nft.txt | 27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-On Tue, Jul 08, 2025 at 04:38:44PM +0200, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Mon, Jul 07, 2025 at 09:25:50PM +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Jul 04, 2025 at 04:04:39PM +0200, Florian Westphal wrote:
-> > > Phil Sutter <phil@nwl.cc> wrote:
-> > > > Please keep in mind we already have 'nft list hooks' which provides
-> > > > hints in that direction. It does not show which flowtable/chain actually
-> > > > binds to a given device, though.
-> > > 
-> > > Its possible to extend it:
-> > > - add NF_HOOK_OP_NFT_FT to enum nf_hook_ops_type
-> > > - add
-> > > 
-> > > static int nfnl_hook_put_nft_ft_info(struct sk_buff *nlskb,
-> > >                                    const struct nfnl_dump_hook_data *ctx,
-> > >                                    unsigned int seq,
-> > >                                    struct nf_flowtable *ft)
-> > > 
-> > > to nfnetlink_hook.c
-> > > 
-> > > it can use container_of to get to the nft_flowtable struct.
-> > > It might be possibe to share some code with nfnl_hook_put_nft_chain_info
-> > > and reuse some of the same netlink attributes.
-> > > 
-> > > - call it from nfnl_hook_dump_one.
-> > > 
-> > > I think it would use useful to have, independent of "eth*" support.
-> > 
-> > This is a good idea to place this in nfnetlink_hook, that
-> > infrastructure is for debugging purpose indeed.
-> > 
-> > If this update is made, I also think it makes sense to remove the
-> > netlink event notification code for devices, I don't have a use case
-> > for that code in the new device group other than debugging.
-> > 
-> > If Phil's intention is to make code savings, then extending
-> > nfnetlink_hook and removing the existing device notification group
-> > make sense to me.
-> > 
-> > User can simply resort to check via dump if a matching hook is
-> > registered for eth* in nfnetlink_hook.
-> 
-> What is the downside of having it? Are you concerned about the need to
-> maintain it or something else (as well)?
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 1be2fbac05c1..8712981943d7 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -596,6 +596,8 @@ Sets are element containers of a user-defined data type, they are uniquely
+ identified by a user-defined name and attached to tables. Their behaviour can
+ be tuned with the flags that can be specified at set creation time.
+ 
++See Set and Map flags below for more details.
++
+ [horizontal]
+ *add*:: Add a new set in the specified table. See the Set specification table below for more information about how to specify properties of a set.
+ *delete*:: Delete the specified set.
+@@ -636,6 +638,27 @@ string: performance [default], memory
+ automatic merge of adjacent/overlapping set elements (only for interval sets) |
+ |=================
+ 
++The *gc-interval* doesn't affect element timeout, but it does affect memory reclaim.
++A large set that rarely has elements that time out can use a higher (less frequent) garbage
++collection to save cpu time, whereas sets that see many updates with short-lived elements
++will benefit from a lower interval.
++Lower intervals ensure the set stays below its maximum size.
++Internally, a timed-out entry stays around until it is removed by the garbage collector, which
++also decrements the sets element count.
++This also means that it is possible to have a set that can not accept more elements, even
++if all elements timed out, if the *gc-interval* is set too large.
++
++The *size* defines the upper limit of the amount of elements that the set can support.
++Mandatory for sets that are added to from the ruleset with the *add* and *update* keywords.
++Providing the *size* keyword for sets that are only added to via *nft add element* allows for
++a more compact (memory conserving) set implementation selection, but it is not required.
++
++The optional *policy* keyword can be used to request a more memory-conserving set implementation.
++
++*auto-merge* instructs the nftables frontend to merge adjacent and overlapping ranges.
++Example: When the set contains range *1.2.3.1-1.2.3.4*, then adding element *1.2.3.2* has no
++effect.  Adding *1.2.3.5* changes the existing range to cover *1.2.3.1-1.2.3.5*.
++Without this flag, *1.2.3.2* can not be added and *1.2.3.5* is inserted as a new entry.
+ 
+ MAPS
+ -----
+@@ -684,6 +707,8 @@ If a required flag is missing, the ruleset might still work, as
+ nftables will auto-enable features if it can infer this from the ruleset.
+ This may not work for all cases, however, so it is recommended to
+ specify all required features in the set/map definition manually.
++Also, some features are mutually exclusive.  For example, it is not possible
++for a set to support intervals and insertion from the packet path.
+ 
+ .Set and Map flags
+ [options="header"]
+@@ -691,7 +716,7 @@ specify all required features in the set/map definition manually.
+ |Flag		| Description
+ |constant	| Set contents will never change after creation
+ |dynamic	| Set must support updates from the packet path with the *add*, *update* or *delete* keywords.
+-|interval	| Set must be able to store intervals (ranges)
++|interval	| Set must be able to store intervals (ranges). Cannot be combined with the *dynamic* flag.
+ |timeout	| Set must support element timeouts (auto-removal of elements once they expire).
+ |=================
+ 
+-- 
+2.49.0
 
-I was considering that nfnetlink_hook is a better fit for this
-purpose, these event notifications that report new devices could come
-from net/netfilter/core.c instead. That is, nf_register_net_hook() and
-nf_tables_unregister_hook().
-
-You also mentioned you originally used this syntax:
-
-        nft monitor hooks
-
-which, after Florian's suggestion, made me think all this belongs to
-nfnetlink_hook.
-
-This would avoid an asymmetry in the API. At this moment, new device
-hooks are reported via nftables, but listing will be retrieved via
-nfnetlink_hook.
-
-This would also provide a generic infrastructure to report hook
-registration and unregistration, as a side effect.
-
-If you accept this suggestion, it is a matter of:
-
-#1 revert the patch in nf.git for the incomplete event notification
-   (you have three more patches pending for nf-next to complete this
-    for control plane notifications).
-#2 add event notifications to net/netfilter/core.c and nfnetlink_hook.
-
-Only -rc kernels have been release containing the incomplete device
-event notification. It is a bit late to revert to be honest, but
-better late than never. This infrastructure is triggering more debate
-than expected.
-
-And that would be more work on your pile to respin, which is always a
-hard sell.
-
-> I had extended the monitor testsuite to assert correct behaviour wrt.
-> adding/removing devices. Implementing this is in a shell test is
-> trivial, but still work to be done. :)
