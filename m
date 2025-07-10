@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7AAF539A;
-	Thu, 10 Jul 2025 00:46:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 268B87262D;
+	Thu, 10 Jul 2025 00:46:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752108416; cv=none; b=AnGkayfmA5euliwmqT4D5lctk/CdXCA5aJcydkOUv2tlIRkFoRUfeZtAJYvDLpOVFtM/018Ujxb0g8qiMBkIQ9DXt/zwfrQPzDjGe7gDjXR4B7YatYhL3jFUENMZK4vP3YE6hCCt1ZOveYMxvTQlEIDrB5C0lpFS3VEE6u3/TNc=
+	t=1752108421; cv=none; b=G/xXfjs4iBS2mP5JO3oTf5cPnuZ+Z4Bp3UiUmIAE7VJa/BOFoTxOJ7NckmliOTOvj3rIzyOJMa9IUxcQJB3WJJcRlWQy9U36sA41WZcYNY0bH9iodA2ThgXo1LVoYvBJeDnCYwi/9nS4QXDsgvaaYDoZ4qkRKxwAJRTfPzf+r4c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752108416; c=relaxed/simple;
-	bh=5V6bxhbPGq2EpcDd31XfHxY2VgucdOO6Ajsc/FdThhg=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=D9kyEcCDcFxUmf+EuvCiO3MEhYk6IJs5HKc9WrYXFnVSoRNIQ0jFikIWqs0mClWzuNUev9fXogyfXJEwgSbfjxCGzCcHb0zwqadfZRJxL+Y38sU+vg3/pWSiIKVUEXuMY2itsvXLU9FYpPxk04pSsuEgSypWOYlE6/gBPI9J/5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fVS/+UmG; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cr7ZXFW/; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1752108421; c=relaxed/simple;
+	bh=AfN9kKPzTh6zpRwhraV+8HJN1AbuZRgWnqOvC8oHbr8=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Ynmq2AmzYLGpeVLxAkDjLMoMk7s9yjtBO2ln4Xj7XN8V15L1r6x/4OznmsX2ip3Lgvc3chLMsKFUJURz6uD9N2dDIz/UIgGgfy3dAo1JXf2N5X3gb1Od5/EXXspUDPl5gc1u4D8Gb89Y4WYIQcOGqoHOh+HM9yFQ8XiZGrTLeXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gi4Y3XXo; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DCjYcxLc; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fVS/+UmG";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cr7ZXFW/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gi4Y3XXo";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DCjYcxLc"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id CC2346026D; Thu, 10 Jul 2025 02:46:45 +0200 (CEST)
+	id 6B4F760278; Thu, 10 Jul 2025 02:46:57 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752108405;
-	bh=B02sd/QFPkWoSluT7FOA8q0klkfukff4RZJThynUksQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=fVS/+UmGKfuukl6Smit3NX8YhzO6mfULly8I5uM0tQrF0XjlmZMnIScPWRoQsiD8J
-	 CYCL5GPgOdKTHDG8Nre/KsLh8eUyAbJEdvNzwyB3ms2Zemrmfqlw6luciIUxYI/YmW
-	 SQbNhre5HiFPWbmCISPhhcES3CnZ047fkLQg6FKhVoiQz37+I/2UYkjwF6Z/hopeVq
-	 Hivl2BFzGowoMOCieckE6SdQI2fiqiJpM7tuUZaTI74C8v71tYLN0+bfcZj8Ss+yXp
-	 oi2p84DV75mRmqCDN/QB5YeT01x3JwSoOUYmrjFvNoSOfmmvrq1wPlaJwcd8l5nSci
-	 Wha/zS5oQ6k7w==
+	s=2025; t=1752108417;
+	bh=utT2vFiUqfbtA27EyqsqOvZGp9lymE9EUZx5GT5pjDQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=gi4Y3XXoEiv5lK0S9LXUpPrbltu+JUu883feNyqQtvp7/GEpxPlqhS8nCNSS1chOs
+	 8Hog/BWAP90nE33zeJLeCT7cLDfiQ6WNO1DM4lVzrS16HxyebNZshMrHlilSEEou/r
+	 k9maveTpNmQO71JDeCpu2uOAop1sKL4XsiwHKY00HwZP/ahkOSHJahd/cgYpOibpg4
+	 CSwxVUyhD4o6bG+6l8Wxy8Vsg1ZO7oujlRgGIYpu/XLviogX9e0+vg4FIOk778H9EI
+	 P8Er4ZPREXhbNvY6EC2VYD/BCABnDJ8mdqqWNSqO36EbzKXLSyWf06Luo2TM31hT/l
+	 iSCqKWhSPWlig==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BB8456026D;
-	Thu, 10 Jul 2025 02:46:42 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 31C6B60272;
+	Thu, 10 Jul 2025 02:46:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752108403;
-	bh=B02sd/QFPkWoSluT7FOA8q0klkfukff4RZJThynUksQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=cr7ZXFW/7BTW9aBeA3+rBWC/Pzc6TP3Ng0cvrx+xDLvdUjkQ71ymTU+sDS2eq5B+w
-	 B4uYKoRtOy18V8CnDiTTG0mb+uWPqoHozzfpDoFDt954A6sx4Zc8ABEBFil5etNNd4
-	 QIw6HIb/mR8dVT58oAkYwS3pMsVikffVs3o+A6iEkEzbrofEsV21WQ8EYg/h1uKUsY
-	 /eF44d4A68CB6jZAf97SBYXGXupI46x+V8iVCKKB9kDmPw9/p4ygRw0qS4fASPIG6B
-	 8KLy7dzDG31ylvQZMya9M7jMZIcIayMVjHZQqnYZRebhva+9sS5uPU+JY4VsCW/aNN
-	 l3hYmzqywiRPA==
+	s=2025; t=1752108405;
+	bh=utT2vFiUqfbtA27EyqsqOvZGp9lymE9EUZx5GT5pjDQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=DCjYcxLc9n05+GMunqGonjfJhvUY9Wp1+Bg9ZuYPq8PWDxSstiH4Oc212H9i+Jev0
+	 elLNBPXpnZnrYXtM7iLCMl5f9YnQ32vRduQNG+h6/CSPmzXjMPBIbqiwP4ZTqC0wxj
+	 Ku8ApMh+h+v3rPnHFB415LCd6OkpJop9WIrVuwx/yKSXaA7h9gcMAiF6XvqjvoEaME
+	 Ocvf6RemQ9BV0XLorI96o8FEs5X4Q7FesDTNnCd4M3vCX/mynhWDXYbfmjQTFka08B
+	 k7xlAZneh+8Q4l5fKX1xcRCdVE6o713KhTScyc+NyYC5tZ35HmZ2GaloFS2kGQcad1
+	 LBtxD9kqcWaPw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 0/4] Netfilter updates for net-next
-Date: Thu, 10 Jul 2025 02:46:35 +0200
-Message-Id: <20250710004639.2849930-1-pablo@netfilter.org>
+Subject: [PATCH net-next 2/4] netfilter: nf_tables: Drop dead code from fill_*_info routines
+Date: Thu, 10 Jul 2025 02:46:37 +0200
+Message-Id: <20250710004639.2849930-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250710004639.2849930-1-pablo@netfilter.org>
+References: <20250710004639.2849930-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,102 +66,86 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Phil Sutter <phil@nwl.cc>
 
-The following series contains an initial small batch of Netfilter
-updates for net-next:
+This practically reverts commit 28339b21a365 ("netfilter: nf_tables: do
+not send complete notification of deletions"): The feature was never
+effective, due to prior modification of 'event' variable the conditional
+early return never happened.
 
-1) Remove DCCP conntrack support, keep DCCP matches around in order to
-   avoid breakage when loading ruleset, add Kconfig to wrap the code
-   so it can be disabled by distributors.
+User space also relies upon the current behaviour, so better reintroduce
+the shortened deletion notifications once it is fixed.
 
-2) Remove buggy code aiming at shrinking netlink deletion event, then
-   re-add it correctly in another patch. This is to prevent -stable to
-   pick up on a fix that breaks old userspace. From Phil Sutter.
+Fixes: 28339b21a365 ("netfilter: nf_tables: do not send complete notification of deletions")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/netfilter/nf_tables_api.c | 25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-3) Missing WARN_ON_ONCE() to check for lockdep_commit_lock_is_held()
-   to uncover bugs. From Fedor Pchelkin.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 24c71ecb2179..e1dfa12ce2b1 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1165,11 +1165,6 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_TABLE_PAD))
+ 		goto nla_put_failure;
+ 
+-	if (event == NFT_MSG_DELTABLE) {
+-		nlmsg_end(skb, nlh);
+-		return 0;
+-	}
+-
+ 	if (nla_put_be32(skb, NFTA_TABLE_FLAGS,
+ 			 htonl(table->flags & NFT_TABLE_F_MASK)))
+ 		goto nla_put_failure;
+@@ -2028,11 +2023,6 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_CHAIN_PAD))
+ 		goto nla_put_failure;
+ 
+-	if (event == NFT_MSG_DELCHAIN && !hook_list) {
+-		nlmsg_end(skb, nlh);
+-		return 0;
+-	}
+-
+ 	if (nft_is_base_chain(chain)) {
+ 		const struct nft_base_chain *basechain = nft_base_chain(chain);
+ 		struct nft_stats __percpu *stats;
+@@ -4859,11 +4849,6 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			 NFTA_SET_PAD))
+ 		goto nla_put_failure;
+ 
+-	if (event == NFT_MSG_DELSET) {
+-		nlmsg_end(skb, nlh);
+-		return 0;
+-	}
+-
+ 	if (set->flags != 0)
+ 		if (nla_put_be32(skb, NFTA_SET_FLAGS, htonl(set->flags)))
+ 			goto nla_put_failure;
+@@ -8350,11 +8335,6 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_OBJ_PAD))
+ 		goto nla_put_failure;
+ 
+-	if (event == NFT_MSG_DELOBJ) {
+-		nlmsg_end(skb, nlh);
+-		return 0;
+-	}
+-
+ 	if (nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
+ 	    nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
+ 	    nft_object_dump(skb, NFTA_OBJ_DATA, obj, reset))
+@@ -9394,11 +9374,6 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
+ 			 NFTA_FLOWTABLE_PAD))
+ 		goto nla_put_failure;
+ 
+-	if (event == NFT_MSG_DELFLOWTABLE && !hook_list) {
+-		nlmsg_end(skb, nlh);
+-		return 0;
+-	}
+-
+ 	if (nla_put_be32(skb, NFTA_FLOWTABLE_USE, htonl(flowtable->use)) ||
+ 	    nla_put_be32(skb, NFTA_FLOWTABLE_FLAGS, htonl(flowtable->data.flags)))
+ 		goto nla_put_failure;
+-- 
+2.30.2
 
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-07-10
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 8b98f34ce1d8c520403362cb785231f9898eb3ff:
-
-  net: ipv6: Fix spelling mistake (2025-07-02 15:42:29 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-07-10
-
-for you to fetch changes up to 4fb15cea66043006a89269af77209a2703c961fd:
-
-  netfilter: nf_tables: adjust lockdep assertions handling (2025-07-10 00:47:18 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-07-10
-
-----------------------------------------------------------------
-Fedor Pchelkin (1):
-      netfilter: nf_tables: adjust lockdep assertions handling
-
-Pablo Neira Ayuso (1):
-      netfilter: conntrack: remove DCCP protocol support
-
-Phil Sutter (2):
-      netfilter: nf_tables: Drop dead code from fill_*_info routines
-      netfilter: nf_tables: Reintroduce shortened deletion notifications
-
- Documentation/networking/nf_conntrack-sysctl.rst |   1 -
- arch/arm/configs/omap2plus_defconfig             |   1 -
- arch/loongarch/configs/loongson3_defconfig       |   1 -
- arch/m68k/configs/amiga_defconfig                |   1 -
- arch/m68k/configs/apollo_defconfig               |   1 -
- arch/m68k/configs/atari_defconfig                |   1 -
- arch/m68k/configs/bvme6000_defconfig             |   1 -
- arch/m68k/configs/hp300_defconfig                |   1 -
- arch/m68k/configs/mac_defconfig                  |   1 -
- arch/m68k/configs/multi_defconfig                |   1 -
- arch/m68k/configs/mvme147_defconfig              |   1 -
- arch/m68k/configs/mvme16x_defconfig              |   1 -
- arch/m68k/configs/q40_defconfig                  |   1 -
- arch/m68k/configs/sun3_defconfig                 |   1 -
- arch/m68k/configs/sun3x_defconfig                |   1 -
- arch/mips/configs/fuloong2e_defconfig            |   1 -
- arch/mips/configs/ip22_defconfig                 |   1 -
- arch/mips/configs/loongson2k_defconfig           |   1 -
- arch/mips/configs/loongson3_defconfig            |   1 -
- arch/mips/configs/malta_defconfig                |   1 -
- arch/mips/configs/malta_kvm_defconfig            |   1 -
- arch/mips/configs/maltaup_xpa_defconfig          |   1 -
- arch/mips/configs/rb532_defconfig                |   1 -
- arch/mips/configs/rm200_defconfig                |   1 -
- arch/powerpc/configs/cell_defconfig              |   1 -
- arch/s390/configs/debug_defconfig                |   1 -
- arch/s390/configs/defconfig                      |   1 -
- arch/sh/configs/titan_defconfig                  |   1 -
- include/linux/netfilter/nf_conntrack_dccp.h      |  38 --
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h   |   3 -
- include/net/netfilter/nf_conntrack.h             |   2 -
- include/net/netfilter/nf_conntrack_l4proto.h     |  13 -
- include/net/netfilter/nf_reject.h                |   1 -
- include/net/netns/conntrack.h                    |  13 -
- net/netfilter/Kconfig                            |  20 +-
- net/netfilter/Makefile                           |   1 -
- net/netfilter/nf_conntrack_core.c                |   8 -
- net/netfilter/nf_conntrack_netlink.c             |   1 -
- net/netfilter/nf_conntrack_proto.c               |   6 -
- net/netfilter/nf_conntrack_proto_dccp.c          | 826 -----------------------
- net/netfilter/nf_conntrack_standalone.c          |  92 ---
- net/netfilter/nf_nat_core.c                      |   6 -
- net/netfilter/nf_nat_proto.c                     |  43 --
- net/netfilter/nf_tables_api.c                    |  56 +-
- net/netfilter/nfnetlink_cttimeout.c              |   5 -
- net/netfilter/nft_exthdr.c                       |   8 +
- 46 files changed, 48 insertions(+), 1122 deletions(-)
- delete mode 100644 include/linux/netfilter/nf_conntrack_dccp.h
- delete mode 100644 net/netfilter/nf_conntrack_proto_dccp.c
