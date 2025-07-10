@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B059826B77D;
-	Thu, 10 Jul 2025 01:07:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E101DF49;
+	Thu, 10 Jul 2025 01:07:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752109650; cv=none; b=osbtWZhOFUNROAfT7nTarQqCZAWaEOwdknd1N5eWhuO0F/rQk2ybf6dN6gvEa2J+g9Bg3XPsqNRs3yVM5uaFyziRSg+3wKKoPLkPCPpQmTabWMtjIKyMeSJY1Du4n6SlsSxofiEsVdoLYD3pl73/pmG+WlHHi4/sbiJG6GSMR5s=
+	t=1752109651; cv=none; b=QJip4gISvzuimEthowI0KXy3KDyPu2DsdEfx6I30Tbz0h6P3k2gVJTcJ5cXj0TxdG/UsLWORlfReaibEDpZtpIyF/K/PjXJhDjVYf0jD+FPqmpKxPOvLuM6hJ55GOMpVE1s3HL/VscUvw5Tcqsv22Loyf4hnTJCTal9p+yLlnfo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752109650; c=relaxed/simple;
-	bh=WUv1MLhhZuwQWbHcj9S2YtTKkQBIsVHdjGDNa0rYQxY=;
+	s=arc-20240116; t=1752109651; c=relaxed/simple;
+	bh=RDC3j8wGaOOVJWPCP/Po/uZHOXWzsP5h47eggFQ38d8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=IVZtANjmj6ThwUzxEIFARuDLUcciY7QZI0RUZd/vvkiP+QInZC8STTSOImD8lUPmiPcPLS/ITXnBk5JAZ7KEjM6KAgn7kBadlcB/zWofbmIB4yLEMWkeJn7eMA8ag5cy7SkesRqWBRi0SKbSVf8E7vwo5wbxz9s7vxqym9WzKXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZEXdd1Oz; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lZNuM8f5; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=QttxAjk8vqAb3ctgO3snBrUyy/c8EcgG5jeJmyYYHrBfOBCqDGqjiJAGQmAqJPVfljZ0uNhkvFQ6YyraOJgiyieFViI37kPcpumGuRX8wcgjn/3m5AqZJYC7Vbvl2vFlPHfwc4uC1u3DHZ4MtkrSQ4oK+sTB+fYkBQbU/mwkHVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YFZoVoAR; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Lo34gOy0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZEXdd1Oz";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lZNuM8f5"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YFZoVoAR";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Lo34gOy0"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 41FED60264; Thu, 10 Jul 2025 03:07:27 +0200 (CEST)
+	id 4CEF160269; Thu, 10 Jul 2025 03:07:28 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752109647;
-	bh=GKZdliCnw/Bfm/u7rgRx4qzG/5+ko+ccBjo/KQ/NQ2s=;
+	s=2025; t=1752109648;
+	bh=VBHd4INkEeZodi67wtmxuJtMNEHdOSY0kUfPkxfgEcs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ZEXdd1Oz6YqL/PNF/rh39UgsH3PGRBUS6ta3yflJKJJICpaj+4asVBcxjNo5DXvER
-	 KIc67zLsWny7oB/yPpLEk/HNwzo4/VKqPz6fN+d+eWOgns+jDhGkGR9e+1iD4umiuU
-	 Fcxc66qikrPJh9pGV6goHvcNE+l2Zfpoe2CbLApJs8yQxS4Sg1EbWilTboBQaJ9ZpG
-	 pAdN4FcFV0J9kNXW5zXukAFf6SfjV66QBz0o+jE5P2FUsOELibUR526CJwuH76xXlT
-	 cpgedUfyK3fOE0JW7tH7QrvpmnndfVsXjYpQ1V8hEJR97S5mHLbF80KPR1iB5QuXH4
-	 q3SxfrD4EniVw==
+	b=YFZoVoARj48ZcLcjI6mB+ot3t56bm9xh/aI0bJMsg5LVDMw0H80m+gmFAm44TvVZ4
+	 7BeYcS122X5pyf2r3zTLgxM1fxZk7lrRlvoEyMW0QAU3J8xIpQMDB0dS9q4IL//EM/
+	 OiyARM0jNl/S8R2WRZ1LsWZb/8DjYs7r3GUyUamAlWrtP0Dr1mgiR+51AmcFYte/kM
+	 xzhWwkLs60zsrRjpAM0G4JWNBP5zAn8z1QSdGnDwExWdugl+fX0sFgaTm/URLFS50j
+	 uZG54q9GOLmXMjUeGuzIvd3zNeR13kWrGTWt3K4gtAZ3WHdvZd0Cdbo6BFySZBIzvh
+	 cCPiLQvFunvIQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 418EA60254;
-	Thu, 10 Jul 2025 03:07:13 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0F62E60255;
+	Thu, 10 Jul 2025 03:07:14 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752109633;
-	bh=GKZdliCnw/Bfm/u7rgRx4qzG/5+ko+ccBjo/KQ/NQ2s=;
+	s=2025; t=1752109634;
+	bh=VBHd4INkEeZodi67wtmxuJtMNEHdOSY0kUfPkxfgEcs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lZNuM8f50q4TW45Z+hgSgxvcJewOOrD6BULXQ8o/8ow7dEOcQ6CxJqQ4GlFnV1G+k
-	 cbRGhR7MFWVWqwchA+f3+SqudPBZQulBT4UMwuPLwI0zNdSPb2k+e5oSxjQB0b6JO0
-	 y9aUIHb8Z5ZnP7jzUPd4EO9mnQ4stecZW8gsGK84Mwk2TOnLMTy3S3KWaemYya5u3n
-	 HlaOBemXcaP+3IbOzAQcj2xV5P2YpvvIWcNqrV9tgXhR9sR1uHUfWyfJOPAT3FUNPC
-	 eXANCGSEPKiP3gk4gU0aBbzjpi8ADa0eadfMA/PxRyms0M7EfwTo5jl8EqN0JHQtiA
-	 CzFxHZLPG+lVA==
+	b=Lo34gOy0Ub7A3YzzVlNM8zTRkFlvNhC8DBS2BlqfsEhQsdmpgKghc6u4FK5tMnr8S
+	 9mxwril79/pEf5572tDa7WGVMBd1KWHduy2YP2q8q+17lCpgpfJhhHFZaPZMQEivsO
+	 daNE381IOJ05DGtkeAG04p43lm9+/x+ujofTJWJOtaWPNFMoffzeBGWMYFAOTuTDRd
+	 JGKiaKt3FL5JW/WdbbEq0GzVOH5E+75bfnRZUc8bRocl6WgfWerFti6KM3OLqq9gix
+	 kMCVWNOHpHtinarcsb/vO3uevRQtshvM9xeQoPXBqBEaEN5qSA8q/K2/o8ZoEEdLCM
+	 lg2WY5LBzIvFg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 3/4] netfilter: nf_tables: Reintroduce shortened deletion notifications
-Date: Thu, 10 Jul 2025 03:07:05 +0200
-Message-Id: <20250710010706.2861281-4-pablo@netfilter.org>
+Subject: [PATCH net-next 4/4] netfilter: nf_tables: adjust lockdep assertions handling
+Date: Thu, 10 Jul 2025 03:07:06 +0200
+Message-Id: <20250710010706.2861281-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250710010706.2861281-1-pablo@netfilter.org>
 References: <20250710010706.2861281-1-pablo@netfilter.org>
@@ -66,166 +66,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Phil Sutter <phil@nwl.cc>
+From: Fedor Pchelkin <pchelkin@ispras.ru>
 
-Restore commit 28339b21a365 ("netfilter: nf_tables: do not send complete
-notification of deletions") and fix it:
+It's needed to check the return value of lockdep_commit_lock_is_held(),
+otherwise there's no point in this assertion as it doesn't print any
+debug information on itself.
 
-- Avoid upfront modification of 'event' variable so the conditionals
-  become effective.
-- Always include NFTA_OBJ_TYPE attribute in object notifications, user
-  space requires it for proper deserialisation.
-- Catch DESTROY events, too.
+Found by Linux Verification Center (linuxtesting.org) with Svace static
+analysis tool.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Fixes: b04df3da1b5c ("netfilter: nf_tables: do not defer rule destruction via call_rcu")
+Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
+Acked-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 67 ++++++++++++++++++++++++++---------
- 1 file changed, 50 insertions(+), 17 deletions(-)
+ net/netfilter/nf_tables_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e1dfa12ce2b1..4ec117b31611 100644
+index 4ec117b31611..620824a56a55 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -1153,9 +1153,9 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
+@@ -4042,7 +4042,7 @@ void nf_tables_rule_destroy(const struct nft_ctx *ctx, struct nft_rule *rule)
+ /* can only be used if rule is no longer visible to dumps */
+ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *rule)
  {
- 	struct nlmsghdr *nlh;
+-	lockdep_commit_lock_is_held(ctx->net);
++	WARN_ON_ONCE(!lockdep_commit_lock_is_held(ctx->net));
  
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -1165,6 +1165,12 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
- 			 NFTA_TABLE_PAD))
- 		goto nla_put_failure;
- 
-+	if (event == NFT_MSG_DELTABLE ||
-+	    event == NFT_MSG_DESTROYTABLE) {
-+		nlmsg_end(skb, nlh);
-+		return 0;
-+	}
-+
- 	if (nla_put_be32(skb, NFTA_TABLE_FLAGS,
- 			 htonl(table->flags & NFT_TABLE_F_MASK)))
- 		goto nla_put_failure;
-@@ -2011,9 +2017,9 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
+ 	nft_rule_expr_deactivate(ctx, rule, NFT_TRANS_RELEASE);
+ 	nf_tables_rule_destroy(ctx, rule);
+@@ -5864,7 +5864,7 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 			      struct nft_set_binding *binding,
+ 			      enum nft_trans_phase phase)
  {
- 	struct nlmsghdr *nlh;
+-	lockdep_commit_lock_is_held(ctx->net);
++	WARN_ON_ONCE(!lockdep_commit_lock_is_held(ctx->net));
  
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -2023,6 +2029,13 @@ static int nf_tables_fill_chain_info(struct sk_buff *skb, struct net *net,
- 			 NFTA_CHAIN_PAD))
- 		goto nla_put_failure;
- 
-+	if (!hook_list &&
-+	    (event == NFT_MSG_DELCHAIN ||
-+	     event == NFT_MSG_DESTROYCHAIN)) {
-+		nlmsg_end(skb, nlh);
-+		return 0;
-+	}
-+
- 	if (nft_is_base_chain(chain)) {
- 		const struct nft_base_chain *basechain = nft_base_chain(chain);
- 		struct nft_stats __percpu *stats;
-@@ -4835,9 +4848,10 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 	u32 seq = ctx->seq;
- 	int i;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, ctx->family,
--			   NFNETLINK_V0, nft_base_seq(ctx->net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, ctx->family, NFNETLINK_V0,
-+			   nft_base_seq(ctx->net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -4849,6 +4863,12 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 			 NFTA_SET_PAD))
- 		goto nla_put_failure;
- 
-+	if (event == NFT_MSG_DELSET ||
-+	    event == NFT_MSG_DESTROYSET) {
-+		nlmsg_end(skb, nlh);
-+		return 0;
-+	}
-+
- 	if (set->flags != 0)
- 		if (nla_put_be32(skb, NFTA_SET_FLAGS, htonl(set->flags)))
- 			goto nla_put_failure;
-@@ -8323,20 +8343,26 @@ static int nf_tables_fill_obj_info(struct sk_buff *skb, struct net *net,
- {
- 	struct nlmsghdr *nlh;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
- 	if (nla_put_string(skb, NFTA_OBJ_TABLE, table->name) ||
- 	    nla_put_string(skb, NFTA_OBJ_NAME, obj->key.name) ||
-+	    nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
- 	    nla_put_be64(skb, NFTA_OBJ_HANDLE, cpu_to_be64(obj->handle),
- 			 NFTA_OBJ_PAD))
- 		goto nla_put_failure;
- 
--	if (nla_put_be32(skb, NFTA_OBJ_TYPE, htonl(obj->ops->type->type)) ||
--	    nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
-+	if (event == NFT_MSG_DELOBJ ||
-+	    event == NFT_MSG_DESTROYOBJ) {
-+		nlmsg_end(skb, nlh);
-+		return 0;
-+	}
-+
-+	if (nla_put_be32(skb, NFTA_OBJ_USE, htonl(obj->use)) ||
- 	    nft_object_dump(skb, NFTA_OBJ_DATA, obj, reset))
- 		goto nla_put_failure;
- 
-@@ -9362,9 +9388,9 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
- 	struct nft_hook *hook;
- 	struct nlmsghdr *nlh;
- 
--	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
--	nlh = nfnl_msg_put(skb, portid, seq, event, flags, family,
--			   NFNETLINK_V0, nft_base_seq(net));
-+	nlh = nfnl_msg_put(skb, portid, seq,
-+			   nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event),
-+			   flags, family, NFNETLINK_V0, nft_base_seq(net));
- 	if (!nlh)
- 		goto nla_put_failure;
- 
-@@ -9374,6 +9400,13 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
- 			 NFTA_FLOWTABLE_PAD))
- 		goto nla_put_failure;
- 
-+	if (!hook_list &&
-+	    (event == NFT_MSG_DELFLOWTABLE ||
-+	     event == NFT_MSG_DESTROYFLOWTABLE)) {
-+		nlmsg_end(skb, nlh);
-+		return 0;
-+	}
-+
- 	if (nla_put_be32(skb, NFTA_FLOWTABLE_USE, htonl(flowtable->use)) ||
- 	    nla_put_be32(skb, NFTA_FLOWTABLE_FLAGS, htonl(flowtable->data.flags)))
- 		goto nla_put_failure;
+ 	switch (phase) {
+ 	case NFT_TRANS_PREPARE_ERROR:
 -- 
 2.30.2
 
