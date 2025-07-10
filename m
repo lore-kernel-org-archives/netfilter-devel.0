@@ -1,224 +1,233 @@
-Received: from sonic316-23.consmr.mail.ne1.yahoo.com (sonic316-23.consmr.mail.ne1.yahoo.com [66.163.187.149])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD2B6273D91
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jul 2025 16:12:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=66.163.187.149
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA2D2AE6D
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jul 2025 16:47:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752163942; cv=none; b=jfTK5vzvMZcGY+ISfHFiTxFUiAqeZud/J4s/ZKmpsYGvoBEtU8WnuHEHrs4qYEbDw1przqpTuUbLvgpdUkbhbWgL0X023/equM3a80BbzxVhSlSEoWrgTX85ukZXx33tCNruSGPDsCHFSY1/qlJGabWgdZ3rt7XiFvDyr3c2U3w=
+	t=1752166063; cv=none; b=g0rrdOAL5h1Q1jPg8aEcHbjvbJjIibYJvEzHB4HndtcIOiqvfqfGxyQGJ0NROlxVY5WwOAQKYgo3S0hTxbiJFoF1FGvZa4+fcQdGQnpYb8KxPxfE/Ou4wM1u87SaH/++JXcQ+eNGVsh8Lc3dqHvyGWdnsuhV5/Og7HSb9euWLtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752163942; c=relaxed/simple;
-	bh=XFDhcou09pvznFPyrCm/1OlwNlqpk8zme0te+EB4oBs=;
-	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type:
-	 References; b=k3sVR+qOpYmaN8pK6/b9FK2ouhm4cboVEsQBfhV8PnFL6prZ/J5csbfzNgDVtj7PzqHya5ktu3ugbZpAHfjfChC+hmEsVM9PqQet6dfHDStItiJUBFfog4XtUtyZS3OL2BkcGSWCsSU9bdf4vre6S/aznpsI6yI7oIDPo7xWOV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sbcglobal.net; spf=pass smtp.mailfrom=sbcglobal.net; dkim=pass (2048-bit key) header.d=sbcglobal.net header.i=@sbcglobal.net header.b=B8bqqLp8; arc=none smtp.client-ip=66.163.187.149
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sbcglobal.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sbcglobal.net
+	s=arc-20240116; t=1752166063; c=relaxed/simple;
+	bh=BgCzZMZ+SFkasHdnbCNnTguL7kNSFCYOfo5Kkd0qSTw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MG/1GkNJcTe8d3oS0ufmcBehVsXr2nCwmJdmgBRExRSNphvljwjAOK0EUUJ1M6ro04GYJ8Keimx8/3x7DKrArvECjS/4w1+93oUGQH59a6D9gJeIwNYsfcJjM3vkjDhT1u0JlltWZ9EqJujm4zHL7JfRs71SJXRUsDEvFMrRiyg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=YtIkDMds; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sbcglobal.net header.i=@sbcglobal.net header.b="B8bqqLp8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sbcglobal.net; s=s2048; t=1752163939; bh=ow77Cg0QUK9dzwXWo2fXPYuIrzUfxeD5gvCHOq327Gg=; h=Date:To:From:Subject:References:From:Subject:Reply-To; b=B8bqqLp8TRDTiqftxsf/r8NTof9BO58PIMzrTx2vGxLZ6/qzpPfCzMRvkaEHcuoVT1fJZb0RqIz9JLXtk/uFI0Y4jXVjhMPR5Js8I+d1p5apP0ONr3mKe+8ORa4avPZUJmQywwBDbvVs7sAtxa0nVzj1vEtZ4NG3QzI2CIcIhYhKWrEP+svhSv5MyFVPc6fxG7Z+SlLMeDmQos8DufFsPxZXRHfb4W2Lx2Mmi9FmbZNscjkjeDz3firvIlfqN2DvJSablt+S1FcCTRyVgf2Yuj9I4C7MUiqAQQEGgbj4a15D1oiz1/2XPSeR1f0gL9bybybKK4r8+/BhL29fdVBKgQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1752163939; bh=4cFbND9KGXy1OAfFCA7iDYbVSuKyd624vH3F87nndha=; h=X-Sonic-MF:Date:To:From:Subject:From:Subject; b=tz7bonGD5+Dzk5jBSX+yF1u1JHTqjVKTget1m4jgq5+xn06jnN8pd0EGeGVY/WCf2NDUIHDHcCg9RytUcr6w8Fovq/DlKgiNVSDg2taD3iPrn6zadc2gkOK6p+Nw0AdI8b28xmTO5OKzVPjhVbwdDzmYJ3Z6SJb+uV8FV/STZy0cLR4U/EziJNuiTg9gIMryJubS3cLSNq1b5YX2i4Z47MuHU+7TOGeWNlKxQ1CdHZvmP2s7Y0hLuIbe4xbAYx34sh9dtqiqvUpXSkJDadlNFAk6KVvWT5/0pDchhIUoqy5vNblz15JMPmKt4/jWmWL9YHokXESZmnccDkpMzrQHHg==
-X-YMail-OSG: JOpGJL4VM1l9vtsHVrj9so5IdLC8QKf3vWyNnEhp6ThEWLax7uBRoe0vfgV1_qM
- uGDLToHgcRYYVSUxB.8yNbI2RPBo_oX5Nze0_8tV4d2QOzOyldvHUgPYNeRIC_0JHcaABuI5X3Da
- ZtZJoiFLW8mtdND6S9WJT0JRkQf725VeIZOtJHG7R5SvGiyON5gCfgH6MQG.bzrSekzNAX7a3nV9
- f.aTtKaVR0VGVwk8_3fnMZpF9j4Dl8r7q6LABtJHwlGDPYsxcoTssLgpwdtxmVLPBMc4TpcPFN0w
- 7.usW1AV9H8RiJKp1PHpipOwlFp86_Va5V5lVSlxX2c0QNH8Kjimxo2Is4FP1ocIBzsmhKBNjDY4
- 0tqoPMetIBsosnO22sUzXlPEtaLrCX4pWUupwdnjEVDWFfabmNqDDcFg1D8zDgk1Mn7YPsfxG9A5
- TrmlLObhitB5mI0N8zbUs6mnpXpFg0x.7loGqUkqlRv0yL2eO1dzZqMfv2bP8U1W1qxMlaOfmWfU
- mr27dJId5YxSLxreqq0E7cdjgxhvexICLLKZOdDx.cX4CeQGPK5hOfiHNwUgCmZGzUy_INaa0GV0
- uIgVCQZbc1WY7RNnBo0zhDPmQbqSrePYe2VcT.rIwOROreHm8rZI4tLTgfM63xc3dHD5E7xx9Ee6
- 7xcmYAJ5MMx7IrWe3WibV5.AJeqSTUrQuRaJ_eKAGaQU6chBeysCkYXFfsAmtmhbVLh0Z7PlAsR4
- KueE36HIA3Hzh11fn2Bau40mCSCvieb7bhUj9I6zOfsXENh957M6Uug4_qwPoF5L0hO.F2.TTv3Z
- 6Q5LBzpsTBpdMWCmJ8HQVfo_mNilXhrLoQpXeoXv.p78T_ZSUZLK4j78K.XhSysdKTODjpL752lT
- ejsKUxW_wWh_8Q36cN0iepljhlEaG.8_PPtGe7SP.zm8G8ExfO0B3GJcoWYqBfxezrzSKlpzjhYv
- YGVB35d2rYav7wpGSYRF7lrJk1kigh5N7jZ9Cx9G5Jd7.Fx4yL9go3zjEJ2.XfTCARs7.TrOPd7l
- KicFlI7eV41j1j9lVWLN4dA3vgnZosCJQvXD4OAOipmLE5P9nlSlVDaeTvAqZpisQD5Jyi4ZYudQ
- jGj5FfKFiJBKOlcMqMScPTmR2ejA9LydT03VIoed2RPJbmUnzhd35xjjz520bRUcKfgtZ2AFrXGQ
- uUPwMqn2eW3laXsJUPe490GSJTbUzzILQFFC4yi0doN_k3kJESoQARC7Hpfxdb.xdzxRbGqFBv0r
- EQPmhOnX1H04g9Z0N9bZ4dTtMGEBJA5slO81nazjBmu5MHXXNN.syZhG1n5EBlP_Q4sD8i34Ged8
- wMc9KdKHUvN6vVhUBuVFt50Wb6akiPM2WDDL37RDZY_8sWwZrJewsfSAeiamToxtl596yt9An8o2
- aSiydj_4Q9iho2jJfvg957bMZKoKtTlaF.0Xywu4Prd38skJ4DqH0sSwCU1oqXQObQ06uAjD2iuU
- 3U.9LX3RpE4JDOByTunMuYj0FFhRp.a.BiyusiWmRgLmO6wvSqWqM2LP70jFV5SgHkYPWVDtjq03
- dwQg3hVJ9c6oW8eO76los5flpT9yTOiomor0jmvY5aF4OZRFajrxWN3.2h14wqGATkzc0Ie0n5ap
- ggjliWxmQZ_yIv4p6cW75iRZPu22iMJROpv2obQNLE8DctA_M2f6qaxfOgzV2jEzoXYE7Y72SaUT
- aY2MMYK5r_VrZhqBsuxO2fg7EIueVotPEGfBobKWyy.cY44ZBvi4egLNFJLk2mgd1ap.4LWH9FJ5
- lsBTD2AS152dyja1VswumSuDfTmPzwjgym4CzZxE_TMl5LxEhTjYl.B0vVkHb1Aandt3PXU6S.tn
- CWwmhnxpsIskOrBq7KILq3LQv1A7du49NriX9.ORSJt0zhYobjidD3iebxxKoFUj52uHn5AKGxnF
- Tz6k6KehgDahCyiDpJ5LRPVjsg8gcqtZ_NqDP71ONiFYfqZ76vw7ZJz7zFR9ZojFFddgHMIMqqWG
- ycGntAWrg2ne62J8PYMVqsYmL_q2.oDbdkmkr8PCHTMzUCTuyhlAEnP4kSFXvIgwucyK.2_kpct_
- Edj9Li9jBDidXTqTSIjNsqLARjBx_fzSTYES3Cu_6FltLLufHDTN1JkObjg9hTSEkfq8_OlaufOy
- AUyjYk7iPsnNX4nQGCSvuDYkduA.BVzBiOTgjXmSSNj3NAjeKcj4r.axJ9e8ArfUAvlD0LpWg9f_
- kEK0PMpgcjCc6_wKhlWwe2DqlSsqdp6Nr.b_ytT_HO9GHhFPY4vlFfQS7qy6wd69x1KC_rrcAXky
- e
-X-Sonic-MF: <s.egbert@sbcglobal.net>
-X-Sonic-ID: 43cd0594-b7f2-4b5f-8f6c-90c4af94925f
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic316.consmr.mail.ne1.yahoo.com with HTTP; Thu, 10 Jul 2025 16:12:19 +0000
-Received: by hermes--production-ne1-9495dc4d7-27szc (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID cf3c17d05e241d32189ba537a65597b5;
-          Thu, 10 Jul 2025 16:02:08 +0000 (UTC)
-Message-ID: <d4da5872-f209-4517-abae-903143b016f3@sbcglobal.net>
-Date: Thu, 10 Jul 2025 11:02:07 -0500
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="YtIkDMds"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=CZtw/t6JHJzsuHxg1vVQ8ZDhjhPIgQuxLiUzvOFOwQU=; b=YtIkDMdsXZzd7W318EuU/V6yOr
+	Nd8rm7ttnbteG2qcw3k3iTg+dbVIBU7M6fqRy+RdK8dukEKhdDDZeFvnGVaBaEqs50eU8Tx0awwVP
+	JFILoA4T76Av8gELbpRxNr6QtYbCukTFuunz0099xSMc1wrg/Bjv9gJfQfh56N1+TyhYO46aAw7YF
+	FB7kYUNd5bQ2wi19I20clKSrhtxuYSNclQCI3k9oK6kLd3ezqKB+qRwGz6T/27Zfx643y9jcXYgWj
+	O3doycOoHbTreViD75iG4t4v1Rd20RGLAVnJCZrDPuJQd/NY7hTRiY5/dJwBEFJa7AY9lSQ4igHEQ
+	F8o/NpCQ==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uZuQs-0000000054t-2WvX;
+	Thu, 10 Jul 2025 18:47:38 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>
+Subject: [nf PATCH] Revert "netfilter: nf_tables: Add notifications for hook changes"
+Date: Thu, 10 Jul 2025 18:43:42 +0200
+Message-ID: <20250710164342.29952-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To: netfilter-devel@vger.kernel.org
-From: S Egbert <s.egbert@sbcglobal.net>
-Subject: add_cmd non-terminal symbol in Bison parser needs to go on a diet
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-References: <d4da5872-f209-4517-abae-903143b016f3.ref@sbcglobal.net>
-X-Mailer: WebService/1.1.24149 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
+Content-Transfer-Encoding: 8bit
 
-After perusing the entire Netfilter syntax tree in preparation for 
-autocompletion, I've made a preliminary analysis that 'add_cmd' 
-non-terminal symbol is in need of a reduction into a smaller parser element.
+This reverts commit 465b9ee0ee7bc268d7f261356afd6c4262e48d82.
 
-For those needing a diagram, I've posted the XHTML file of Netfilter 
-railroad diagram in:
+Such notifications fit better into core or nfnetlink_hook code,
+following the NFNL_MSG_HOOK_GET message format.
 
-  
-https://github.com/egberts/vim-nftables/blob/master/doc/nftables-railroad-chart.xhtml
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/net/netfilter/nf_tables.h        |  5 --
+ include/uapi/linux/netfilter/nf_tables.h | 10 ----
+ include/uapi/linux/netfilter/nfnetlink.h |  2 -
+ net/netfilter/nf_tables_api.c            | 59 ------------------------
+ net/netfilter/nfnetlink.c                |  1 -
+ net/netfilter/nft_chain_filter.c         |  2 -
+ 6 files changed, 79 deletions(-)
 
-The railroad chart of Netfilter 'nft' CLI needs to be viewed using a web 
-browser as GitHub website doesn't render a standalone XHTML file, but 
-you can view it locally and nicely using a 'file:///' in the URL box.
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index e4d8e451e935..5e49619ae49c 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1142,11 +1142,6 @@ int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set);
+ int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
+ void nf_tables_unbind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
+ 
+-struct nft_hook;
+-void nf_tables_chain_device_notify(const struct nft_chain *chain,
+-				   const struct nft_hook *hook,
+-				   const struct net_device *dev, int event);
+-
+ enum nft_chain_types {
+ 	NFT_CHAIN_T_DEFAULT = 0,
+ 	NFT_CHAIN_T_ROUTE,
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 518ba144544c..2beb30be2c5f 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -142,8 +142,6 @@ enum nf_tables_msg_types {
+ 	NFT_MSG_DESTROYOBJ,
+ 	NFT_MSG_DESTROYFLOWTABLE,
+ 	NFT_MSG_GETSETELEM_RESET,
+-	NFT_MSG_NEWDEV,
+-	NFT_MSG_DELDEV,
+ 	NFT_MSG_MAX,
+ };
+ 
+@@ -1786,18 +1784,10 @@ enum nft_synproxy_attributes {
+  * enum nft_device_attributes - nf_tables device netlink attributes
+  *
+  * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
+- * @NFTA_DEVICE_TABLE: table containing the flowtable or chain hooking into the device (NLA_STRING)
+- * @NFTA_DEVICE_FLOWTABLE: flowtable hooking into the device (NLA_STRING)
+- * @NFTA_DEVICE_CHAIN: chain hooking into the device (NLA_STRING)
+- * @NFTA_DEVICE_SPEC: hook spec matching the device (NLA_STRING)
+  */
+ enum nft_devices_attributes {
+ 	NFTA_DEVICE_UNSPEC,
+ 	NFTA_DEVICE_NAME,
+-	NFTA_DEVICE_TABLE,
+-	NFTA_DEVICE_FLOWTABLE,
+-	NFTA_DEVICE_CHAIN,
+-	NFTA_DEVICE_SPEC,
+ 	__NFTA_DEVICE_MAX
+ };
+ #define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
+diff --git a/include/uapi/linux/netfilter/nfnetlink.h b/include/uapi/linux/netfilter/nfnetlink.h
+index 50d807af2649..6cd58cd2a6f0 100644
+--- a/include/uapi/linux/netfilter/nfnetlink.h
++++ b/include/uapi/linux/netfilter/nfnetlink.h
+@@ -25,8 +25,6 @@ enum nfnetlink_groups {
+ #define NFNLGRP_ACCT_QUOTA		NFNLGRP_ACCT_QUOTA
+ 	NFNLGRP_NFTRACE,
+ #define NFNLGRP_NFTRACE			NFNLGRP_NFTRACE
+-	NFNLGRP_NFT_DEV,
+-#define NFNLGRP_NFT_DEV			NFNLGRP_NFT_DEV
+ 	__NFNLGRP_MAX,
+ };
+ #define NFNLGRP_MAX	(__NFNLGRP_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 24c71ecb2179..a7240736f98e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -9686,64 +9686,6 @@ struct nf_hook_ops *nft_hook_find_ops_rcu(const struct nft_hook *hook,
+ }
+ EXPORT_SYMBOL_GPL(nft_hook_find_ops_rcu);
+ 
+-static void
+-nf_tables_device_notify(const struct nft_table *table, int attr,
+-			const char *name, const struct nft_hook *hook,
+-			const struct net_device *dev, int event)
+-{
+-	struct net *net = dev_net(dev);
+-	struct nlmsghdr *nlh;
+-	struct sk_buff *skb;
+-	u16 flags = 0;
+-
+-	if (!nfnetlink_has_listeners(net, NFNLGRP_NFT_DEV))
+-		return;
+-
+-	skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+-	if (!skb)
+-		goto err;
+-
+-	event = event == NETDEV_REGISTER ? NFT_MSG_NEWDEV : NFT_MSG_DELDEV;
+-	event = nfnl_msg_type(NFNL_SUBSYS_NFTABLES, event);
+-	nlh = nfnl_msg_put(skb, 0, 0, event, flags, table->family,
+-			   NFNETLINK_V0, nft_base_seq(net));
+-	if (!nlh)
+-		goto err;
+-
+-	if (nla_put_string(skb, NFTA_DEVICE_TABLE, table->name) ||
+-	    nla_put_string(skb, attr, name) ||
+-	    nla_put(skb, NFTA_DEVICE_SPEC, hook->ifnamelen, hook->ifname) ||
+-	    nla_put_string(skb, NFTA_DEVICE_NAME, dev->name))
+-		goto err;
+-
+-	nlmsg_end(skb, nlh);
+-	nfnetlink_send(skb, net, 0, NFNLGRP_NFT_DEV,
+-		       nlmsg_report(nlh), GFP_KERNEL);
+-	return;
+-err:
+-	if (skb)
+-		kfree_skb(skb);
+-	nfnetlink_set_err(net, 0, NFNLGRP_NFT_DEV, -ENOBUFS);
+-}
+-
+-void
+-nf_tables_chain_device_notify(const struct nft_chain *chain,
+-			      const struct nft_hook *hook,
+-			      const struct net_device *dev, int event)
+-{
+-	nf_tables_device_notify(chain->table, NFTA_DEVICE_CHAIN,
+-				chain->name, hook, dev, event);
+-}
+-
+-static void
+-nf_tables_flowtable_device_notify(const struct nft_flowtable *ft,
+-				  const struct nft_hook *hook,
+-				  const struct net_device *dev, int event)
+-{
+-	nf_tables_device_notify(ft->table, NFTA_DEVICE_FLOWTABLE,
+-				ft->name, hook, dev, event);
+-}
+-
+ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
+ 			       struct nft_flowtable *flowtable, bool changename)
+ {
+@@ -9791,7 +9733,6 @@ static int nft_flowtable_event(unsigned long event, struct net_device *dev,
+ 			list_add_tail_rcu(&ops->list, &hook->ops_list);
+ 			break;
+ 		}
+-		nf_tables_flowtable_device_notify(flowtable, hook, dev, event);
+ 		break;
+ 	}
+ 	return 0;
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index ac77fc21632d..e598a2a252b0 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -86,7 +86,6 @@ static const int nfnl_group2type[NFNLGRP_MAX+1] = {
+ 	[NFNLGRP_NFTABLES]		= NFNL_SUBSYS_NFTABLES,
+ 	[NFNLGRP_ACCT_QUOTA]		= NFNL_SUBSYS_ACCT,
+ 	[NFNLGRP_NFTRACE]		= NFNL_SUBSYS_NFTABLES,
+-	[NFNLGRP_NFT_DEV]		= NFNL_SUBSYS_NFTABLES,
+ };
+ 
+ static struct nfnl_net *nfnl_pernet(struct net *net)
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index 846d48ba8965..b16185e9a6dd 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -363,8 +363,6 @@ static int nft_netdev_event(unsigned long event, struct net_device *dev,
+ 			list_add_tail_rcu(&ops->list, &hook->ops_list);
+ 			break;
+ 		}
+-		nf_tables_chain_device_notify(&basechain->chain,
+-					      hook, dev, event);
+ 		break;
+ 	}
+ 	return 0;
+-- 
+2.49.0
 
-
-The current 'add_cmd' symbol in Netfilter Bison (src/parser_bison.c) 
-comprises of the following required first (1st) token symbols:
-
-   table
-   chain
-   rule
-     ip
-     ip6
-     inet
-     arp
-     bridge
-     netdev
-     <table_id>
-   set
-   map
-   flowtable
-   element
-   counter
-   quota
-   ct
-   limit
-   secmark
-   synproxy
-
-The current 'add_cmd' parser is supporting some keywords that the 'nft' 
-CLI tool does not support.  This also interferes with any planned 
-autocompletion effort.
-
-
-An updated 'add_cmd' non-terminal symbol could be updated to match the 
-current 'nft' CLI tool:
-
-new_add_cmd
-
-   table
-   chain
-   rule
-     ip
-     ip6
-     inet
-     arp
-     bridge
-     netdev
-     <table_id>
-
-What remains unchanged is the 'table_block' element (that is inside the
-
-     table [ <family_spec_explicit> ] <table_id> <chain_id>
-         {
-             table_block
-         };
-
-which would already covered the basic usage with the following starting 
-token symbols:
-
-     create
-       chain
-       rule
-         ip
-         ip6
-         inet
-         arp
-         bridge
-         netdev
-         <table_id>
-       set
-       map
-       flowtable
-       element
-       counter
-       quota
-       ct
-       limit
-       secmark
-       synproxy
-
-The 'create_cmd' non-terminal symbol would already cover the remaining 
-for creation needs of Netfilter:
-
-     create
-       table
-       chain
-       set
-       map
-       flowtable
-       element
-       counter
-       quota
-       ct
-       limit
-       secmark
-       synproxy
-
-
-This would accelerate ANY autocompletion greatly for our ideal 
-multi-context multi-token manner, as well as a JSON outputter.
-
-If the above proves to be ideal, then the true first/starting token list 
-would be covered by the 'line' and 'base_cmd' (and otherwise indicated):
-
-   chain
-   rule
-     ip
-     ip6
-     inet
-     arp
-     bridge
-     netdev
-     <table_identifier>
-   replace
-   create
-   insert
-   delete
-   get
-   list
-   reset
-   flush
-   rename
-   import
-   export
-   monitor
-   describe
-   destroy
-   include (common_block)
-   define (common_block)
-   redefine (common_block)
-   undefine (common_block)
-   error (common_block)
-   ';' (stmt_separator)
-   '\n' (stmt_separator)
-
-Always looking for a better way ...
-
-S Egbert
