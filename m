@@ -1,28 +1,57 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C37391C84D9
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 10:27:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D36C32192E3
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 12:19:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752229675; cv=none; b=DmdzpQraM0AVb5kg6+wTmFLNafFCGVQ5CMVRH1o9ncYrnP2h7HwW71xwYMmuUBiwQbeBTb9hjovbVT2Nc2qoFDsUpiF0VhA6oo8mh3c0hVd5AYFYqgG48JcQ7yxKer7FLK7nhu8K65LMvDTzF87/3vCQn2QFccZbGOe88lum4g8=
+	t=1752236351; cv=none; b=IQHflIo8BbVAxOHQvi0GhK/xOwKMv0zE3yAdxCOq0QCPwMhBm1Vtpt9CIWWzePD9+Of6ykcIms+J1lVo9auYOIHwtzWo+2KvGRV69cqiQ2mppZQfFC7tP0JdlUSIWMAdKxaTMZhWzNqrkVM1WDmw+mcaEvoXuFQH6oPzCGh1+mI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752229675; c=relaxed/simple;
-	bh=t+I9dFrTuVQsV4QFf1vrLxyzuCL+RE6tC08kV7wDJKo=;
+	s=arc-20240116; t=1752236351; c=relaxed/simple;
+	bh=szpW2Mm0jDBS6HcUOjL/jqsLe9sBKPNBZYxd65VV2sE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qMEqfLsBkcV/Ybm7HbSo2nxADNh/9OHAAaA7DMxyYO4xbeYmw1m5BmZnoiwm/bCpG3727iNbOA8NclYQC7RWVYX+ooaxxcKCYVGRfUaoJ/5NhfLWxKUQk4ifT+fWPq/oa+XNiHPwD2k89h0mdKlyEwOJb6cauliMGCgHGnGDQv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 57A8A604C6; Fri, 11 Jul 2025 12:27:45 +0200 (CEST)
-Date: Fri, 11 Jul 2025 12:27:45 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Shaun Brady <brady.1345@gmail.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Feedback on variable sized set elements
-Message-ID: <aHDnIS1iaBKtxove@strlen.de>
-References: <aHCFaArfREnXjy5Y@fedora>
+	 Content-Type:Content-Disposition:In-Reply-To; b=EU9XshrgbPOusoJ6VdJ4p+S3uAhA0UrflIjZKj3GQohoPXDIRuRZGookT6X+5as3aaBCU7FQ94txBv1FuK8uYIuWkCPm3QSpg45VZp3HpwKWV3ZB5EiR8BIyFptu/UdUNOfqPZY+AWELFSdZ6dgxXuzKrmOauTXHD89CuE57mDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=kDFsjU1E; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="kDFsjU1E"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=sybZ++CT5tA1qaeHWj/5CR+wMi1KmRRrMqYxzq9TUKk=; b=kDFsjU1EBZPgfOL5atDQBPW6zF
+	1cC2bWdzQpsrLynzKdJ/+MXtNudGM092w/xQYT3vvwhuPJ5t2qJlEdLJCIm8StWtxGdNTGrgSBgGQ
+	iLx4e5FwenLP51tsSTO5UyfrjuQFTFNXI7V/dPgms7cDoFaLMzmw+0/Ymu3TNMYKud87eibTR3TnH
+	xb97qv9Uvevbi3j2KS3xwcMQXUuU0i8wD8Ontfh8iC7guAetdTZ5oBeB04ssUnr14xcvPXCQ8A43A
+	5nfb88vWbbjbjBSAaSA3P/7TTyxS6ZBw+Dk0SHqIfUfrh65u2lYCnx+Cp5rplTv3nvgODRosFoSHe
+	j0/APs/Q==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uaCiW-0000000026O-1hJI;
+	Fri, 11 Jul 2025 14:19:04 +0200
+Date: Fri, 11 Jul 2025 14:19:04 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
+ registration
+Message-ID: <aHEBOFfIk3B2bxxr@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <aGZ9jNVIiq9NrUdi@strlen.de>
+ <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
+ <aGaRaHoawJ-DbNUl@calendula>
+ <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
+ <aGbu5ugsBY8Bu3Ad@calendula>
+ <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
+ <aGffdwjA23MaNgPQ@strlen.de>
+ <aGwfPqpymU17BFHw@calendula>
+ <aG0tdPnwKitQWYA6@orbyte.nwl.cc>
+ <aG7wd6ALR7kXb1fl@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,84 +60,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aHCFaArfREnXjy5Y@fedora>
+In-Reply-To: <aG7wd6ALR7kXb1fl@calendula>
 
-Shaun Brady <brady.1345@gmail.com> wrote:
-> I'm sure I bit off more than I could chew, but I attempted to write a proof of
-> concept patch to add a new set type, inet_addr, which would allow elements of
-> both ipv4_addr and ipv6_addr types.
+Pablo,
 
-Why?  This is hard, the kernel has no notion of data types.
-
-> Something to the tune of:
+On Thu, Jul 10, 2025 at 12:43:03AM +0200, Pablo Neira Ayuso wrote:
+[...]
+> If you accept this suggestion, it is a matter of:
 > 
-> nft add set inet filter set_inet {type inet_addr\;}
-> nft add element inet filter set_inet { 10.0.1.195, 10.0.1.200, 10.0.1.201, 2001:db8::8a2e:370:7334 }
+> #1 revert the patch in nf.git for the incomplete event notification
+>    (you have three more patches pending for nf-next to complete this
+>     for control plane notifications).
+> #2 add event notifications to net/netfilter/core.c and nfnetlink_hook.
 
-How would this work with ranges or concatenations?
+Since Florian wondered whether I am wasting my time with a quick attempt
+at #2, could you please confirm/deny whether this is a requirement for
+the default to name-based interface hooks or does the 'list hooks'
+extension satisfy the need for user space traceability?
 
-> Figuring most of this would be implemented in the nft userland, I started
-> there, and was able to successfully get a new set type that allowed v4
-> addresses OR v6 addresses, depending on how I defined the datasize of
-> inet_addr (4 bytes or 16 bytes).
-> 
-> When leaving inet_addr size at the required (for both v4 and v6) 16 bytes
-> netlink would return EINVAL when adding v4 addresses to the set. We found in
-> nft_value_init:
-> 
->                 if (len != desc->len)
->                         return -EINVAL;
-> 
-> with len being the nlattr (the v4 address) and desc being the nft_set_desc. 4 != 16.
-> My questions:
-> 
-> 1) Is this feature interesting enough to pursue (given what would have to be
-> done to make it work (see next question))?  The set type only makes sense in
-> inet tables (I think...) and even then, would roughly be syntactic sugar for
-> what could be done (more efficiently) with two sets of the base protocols. But
-> hey, nice things make nice tools?
-
-I don't see how its doable.  The lookup key fed to the set lookup
-function via nft_lookup.c has a fixed size.
-
-From kernel point of view, its an array of u32 of a given size dictated
-by the sets key length.
-
-> 2) (assuming #1) I believe we would have to put a condition to check the set
-> type versus the nlattr type, and allow a size difference on
-> set(inet_addr)/set_elem(ipv4_addr) (I don't know if that has any
-> ramifications).
-
-The kernel doesn't know what an ipv4 or ipv6 address is.
-It only knows the total key size.  In case of nft_set_pipapo.c its also
-told the sizes of the individual subkeys. (e.g. ipv4_addr .
-inet_service -> 4 . 4, ipv6_addr . ip_protocol -> 16 . 4).
-
-Maybe it would be possble to xlate ipv4 addresses to ipv6 mapped
-addresses, but that would still require expansion in userland, because
-
-ip saddr @foo
-ip6 saddr @foo
-
-cannot work.  We'd need to rewrite it to something like
-meta nfproto ipv4 {
-	reg32_1 = 0xffffffff
-	reg32_2 = 0xffffffff
-	reg32_3 = 0xffffffff
-	reg32_4 = ip saddr
-	lookup @foo sreg32_1
-}
-meta nfproto ipv6 ip6 saddr @foo
-
-I don't think its worth the pain.  Also because then ipv4 becomes
-indistinguishable from on-wire mapped addresses.
-
-> Another possible approach would be to create an API to transmit valid size
-> types for a set type from userland. We would still need to ID the set type,
-> and that has the above problems of set.ktype.
-
-There are different sets, yes, but none of these sets support a
-particular data type.  They don't know what that is, the datatype is a
-userspace thing and its only stored in the kernel so that 'nft list
-ruleset' and friends know how to pretty-print the octet soups stored in
-the set.  Its not related to matching.
+Thanks, Phil
