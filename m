@@ -1,78 +1,130 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8A86149E17;
-	Fri, 11 Jul 2025 01:49:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28EA4A59
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 03:30:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752198594; cv=none; b=so25raNXLwjCqOH5ohf1PIYDicDHkDDMn229eF+zTLnJOKGoxM8F+5t91DigLfum80Tuc0cZW8no1EpZ/yTNZZrKIBT2Au8EASDiJ7oEk9DMphzDDmwmX3CK1rHjrQ6PdUr2OprhmeJRwzzuwEckkl4eGSV8r4nsJYyXDVe23Sg=
+	t=1752204653; cv=none; b=nYoS61pxVY0FKENidKk12zoy9YR73EqCs7rivflGPFeG2/jjCOMpQgaDkleOs6rovUotqsfnLG2CWU3ANIPAoGuUt2oyimgkX2A2bxujDfvGpYvZWh2Ee23eKPqp9Tfh/gYpB16UUztkyQxsPvx18DIm74s01Ta6+Xw68MPa10Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752198594; c=relaxed/simple;
-	bh=6qdlX+BArxzatPjQKfku5qGPnlaIjLLeDt7xiA3QmwY=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=jL4eu6EcR/i8lT7E8RJJT3rFDLXMBIKifPPwnXmQANJOoKojK9S9SzMHBYt+CukM0Hz+ZScB1nxdWjP+YM6KuvGaTxcvYJ9W/qqiaTWCWw5eMEjbxC0uqY60ZxVwrZ32usODFz2dv+wBjm9FAs4pIbip9QwrO3dBVrUdUpsU7u4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lx6Fyup6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752204653; c=relaxed/simple;
+	bh=5B3KVRKxlNOvfdRPGUYCL0U4zWsWv0/b8k6FAcPTDq8=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=PxKwRDBLBzqTJbexu3M7uyTb22LLdVTB53RE9JgXCwhOrONh4b2HlrmaT2GVqjRtnMsld3WqOGD+AIjOrvmuko55eWfO5H4CM1hPPXfqFg6VR6QI9uIcIcWhwtH0xFu/wH2ar8pNyXbBFrnzNjrsJRFXGzd3UX4BDxmLFjtn7Fk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NoyAAZZQ; arc=none smtp.client-ip=209.85.222.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lx6Fyup6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C022C4CEF7;
-	Fri, 11 Jul 2025 01:49:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752198594;
-	bh=6qdlX+BArxzatPjQKfku5qGPnlaIjLLeDt7xiA3QmwY=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=Lx6Fyup6U4MyU75HXSHYuxNbqjdp7+c5+oWfmgAJizHNBV3/WRvWMIAx6IMyCYU7X
-	 d+yLugnDK2WOFyrQ2Io3eyysxtKOk1tExeqFwJEDEiF8kQzTPb4cgKkH0GRYALw/7A
-	 JWaGFQp+3mWnIdlrSfmAUEZAG9qjTyyT/W2PV5wiSLioPx64kk49C3dVPCoR94qw7h
-	 ppp0sCpjdB5c1OzFKvs/rC1p7dV1tYARLfUlF/FRHGyne86QYxw2jCGCwr+4UU1Kr0
-	 wS4OM1/XQ7E+4tuoSsyts5CMEeoOX4DTuks0zwnMGDaRjVhwpNsoifF8PeHWbP8Cof
-	 pil0arMjkWcCA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADCF8383B266;
-	Fri, 11 Jul 2025 01:50:17 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NoyAAZZQ"
+Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-7d5d0ea6c8dso134570585a.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Jul 2025 20:30:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1752204651; x=1752809451; darn=vger.kernel.org;
+        h=content-disposition:mime-version:message-id:subject:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=HD4quT5XOTzJKTW55PVxldWC0doc3CvSqHiOgXxu5nk=;
+        b=NoyAAZZQbMfHkaaLuoDKQEYzkGMubYZ2sNfbxAfxbPTLUKqjuCi+kTopycLBvj8x1s
+         oM37EhWHJbaRZrQRqIWuVzA/HOkC/Z8Q5SEBkltZes1SvMrgxBbMtDis1Zznct7z1cxA
+         1ZDD8LelrMZ1nvh5LRat3RsRwCGP8mWBeF4PjtM1yM0RimDylUg4DDdjHC7/TPn2twuT
+         hvhvTi408qff4C6nwhyVfpL795OvMY28lsvxL5Wchp3UX1ps8RI6jQxektjYL2WVvk9e
+         hqOHUUWa2kaRUzxnKftJFQZFOphp/Ah95iWfQD24HqqjPhm0r5hcYTQmHfs4ay8JoAG0
+         bX/A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752204651; x=1752809451;
+        h=content-disposition:mime-version:message-id:subject:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=HD4quT5XOTzJKTW55PVxldWC0doc3CvSqHiOgXxu5nk=;
+        b=BI1irbjJHrwNTjVlmx9KSTw2hwgQ2CRYYveyMO//20msGDjCFhHldna5O6yhXq4hnD
+         9CaZcwIc4TM5eM1JaQ1EivyKF2/HIQQeHSo5cJn8GL5JUxrNOKOvNFKxwYXoaYFN5yYJ
+         fkPbBBcU7L/OF+IB9EzkoRYyl/sWWTITVj2eSbfFLVxRCBcDnSP9el/vVulRBSYKSWPm
+         iMaXhQGE78uITJCX2UmN6plesH2vkE9XK+TH8KAi3FMYNph5N3Wn+s606ZGm4ux2z5oy
+         1FHc+YkChVYctrldAbiwEgG4tW+ubDsVyCwgcIA+yglg75w5rI+WTKTeidjf/6u2mZsF
+         TSTw==
+X-Gm-Message-State: AOJu0Yxs3GONBjxzaWVPmiRjKa5sz77I/Uo20MzrTNJ6flhx0Z8g7zd3
+	75E6H5XiYfAsRrxACr4D1XhRLgjnijOlE/44wRDYyl0GvRz2dRUzVRzLS6jseA==
+X-Gm-Gg: ASbGnctijn+CfYig03wALp69Ff/T1C6LA0U4s1s2De5SWLpeWJELXajg2Ywckeh9rEc
+	ENPmLAU3xWT2AktLlTQTc4tHj89WVLw2zJGn50FhAlou7WYMaBLH14IBBBTGvFYQbOW+sSicoU2
+	tC/AhpCaT2u7afi2F2BITA8ol3Ml3oYGRsT2OcUCMevGTGbyY555fBsTfmgSqNcItCL4MISWuTM
+	o1Gufmg8031Y2olI7ksq/Ux74kXEY49kyAnbVQAYWr/aW60S/8zbw068RMv/Ob1w79wvyF8BJW2
+	ctk4k51fC3uXnY2+7nz6tQ37P/EExALb1KEwwJyfx4gNcSMsFizxBuhw4Tsmv8f+IRfc1InVMO/
+	NgHr4D04n/C9GxfNY1aFWUWIDZx4hN2SoBkgGhApScP0U58v/G4Afhls=
+X-Google-Smtp-Source: AGHT+IH6eFrnPgWYUFq1kysRUx7WPrbBpMSwxMdUNyhwLrVQdLeoiO4ORLPw9wXopnno5/E41kuXhA==
+X-Received: by 2002:a05:620a:708e:b0:7d2:27b0:29ce with SMTP id af79cd13be357-7de04eba412mr270911285a.16.1752204650692;
+        Thu, 10 Jul 2025 20:30:50 -0700 (PDT)
+Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7dcdbb1dca2sm176079085a.16.2025.07.10.20.30.49
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Jul 2025 20:30:50 -0700 (PDT)
+Date: Thu, 10 Jul 2025 23:30:48 -0400
+From: Shaun Brady <brady.1345@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Subject: Feedback on variable sized set elements
+Message-ID: <aHCFaArfREnXjy5Y@fedora>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/4] netfilter: conntrack: remove DCCP protocol
- support
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <175219861629.1732536.14715819729944005611.git-patchwork-notify@kernel.org>
-Date: Fri, 11 Jul 2025 01:50:16 +0000
-References: <20250710010706.2861281-2-pablo@netfilter.org>
-In-Reply-To: <20250710010706.2861281-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hello:
+Hello,
 
-This patch was applied to netdev/net-next.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
+This email is mostly for education purposes.
 
-On Thu, 10 Jul 2025 03:07:03 +0200 you wrote:
-> The DCCP socket family has now been removed from this tree, see:
-> 
->   8bb3212be4b4 ("Merge branch 'net-retire-dccp-socket'")
-> 
-> Remove connection tracking and NAT support for this protocol, this
-> should not pose a problem because no DCCP traffic is expected to be seen
-> on the wire.
-> 
-> [...]
+I'm sure I bit off more than I could chew, but I attempted to write a proof of
+concept patch to add a new set type, inet_addr, which would allow elements of
+both ipv4_addr and ipv6_addr types.
 
-Here is the summary with links:
-  - [net-next,1/4] netfilter: conntrack: remove DCCP protocol support
-    https://git.kernel.org/netdev/net-next/c/fd72f265bb00
+Something to the tune of:
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+nft add set inet filter set_inet {type inet_addr\;}
+nft add element inet filter set_inet { 10.0.1.195, 10.0.1.200, 10.0.1.201, 2001:db8::8a2e:370:7334 }
+
+Figuring most of this would be implemented in the nft userland, I started
+there, and was able to successfully get a new set type that allowed v4
+addresses OR v6 addresses, depending on how I defined the datasize of
+inet_addr (4 bytes or 16 bytes).
+
+When leaving inet_addr size at the required (for both v4 and v6) 16 bytes
+netlink would return EINVAL when adding v4 addresses to the set. We found in
+nft_value_init:
+
+                if (len != desc->len)
+                        return -EINVAL;
+
+with len being the nlattr (the v4 address) and desc being the nft_set_desc. 4 != 16.
 
 
+My questions:
+
+1) Is this feature interesting enough to pursue (given what would have to be
+done to make it work (see next question))?  The set type only makes sense in
+inet tables (I think...) and even then, would roughly be syntactic sugar for
+what could be done (more efficiently) with two sets of the base protocols. But
+hey, nice things make nice tools?
+
+
+2) (assuming #1) I believe we would have to put a condition to check the set
+type versus the nlattr type, and allow a size difference on
+set(inet_addr)/set_elem(ipv4_addr) (I don't know if that has any
+ramifications).
+
+I found set.ktype, but that is indicated to be unused in the kernel, and
+comes from userland any way, so I don't believe it can be reliably used
+to map to a set type.
+
+Another possible approach would be to create an API to transmit valid size
+types for a set type from userland. We would still need to ID the set type,
+and that has the above problems of set.ktype.
+
+Do either of these approaches make sense and secondly do either seem tenable?
+Are there other obvious paths forward to deal with variable set element sizes?
+
+
+Thanks!
+
+
+SB
