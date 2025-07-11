@@ -1,66 +1,28 @@
-Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28EA4A59
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 03:30:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C37391C84D9
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 10:27:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752204653; cv=none; b=nYoS61pxVY0FKENidKk12zoy9YR73EqCs7rivflGPFeG2/jjCOMpQgaDkleOs6rovUotqsfnLG2CWU3ANIPAoGuUt2oyimgkX2A2bxujDfvGpYvZWh2Ee23eKPqp9Tfh/gYpB16UUztkyQxsPvx18DIm74s01Ta6+Xw68MPa10Y=
+	t=1752229675; cv=none; b=DmdzpQraM0AVb5kg6+wTmFLNafFCGVQ5CMVRH1o9ncYrnP2h7HwW71xwYMmuUBiwQbeBTb9hjovbVT2Nc2qoFDsUpiF0VhA6oo8mh3c0hVd5AYFYqgG48JcQ7yxKer7FLK7nhu8K65LMvDTzF87/3vCQn2QFccZbGOe88lum4g8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752204653; c=relaxed/simple;
-	bh=5B3KVRKxlNOvfdRPGUYCL0U4zWsWv0/b8k6FAcPTDq8=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=PxKwRDBLBzqTJbexu3M7uyTb22LLdVTB53RE9JgXCwhOrONh4b2HlrmaT2GVqjRtnMsld3WqOGD+AIjOrvmuko55eWfO5H4CM1hPPXfqFg6VR6QI9uIcIcWhwtH0xFu/wH2ar8pNyXbBFrnzNjrsJRFXGzd3UX4BDxmLFjtn7Fk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NoyAAZZQ; arc=none smtp.client-ip=209.85.222.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NoyAAZZQ"
-Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-7d5d0ea6c8dso134570585a.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Jul 2025 20:30:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752204651; x=1752809451; darn=vger.kernel.org;
-        h=content-disposition:mime-version:message-id:subject:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=HD4quT5XOTzJKTW55PVxldWC0doc3CvSqHiOgXxu5nk=;
-        b=NoyAAZZQbMfHkaaLuoDKQEYzkGMubYZ2sNfbxAfxbPTLUKqjuCi+kTopycLBvj8x1s
-         oM37EhWHJbaRZrQRqIWuVzA/HOkC/Z8Q5SEBkltZes1SvMrgxBbMtDis1Zznct7z1cxA
-         1ZDD8LelrMZ1nvh5LRat3RsRwCGP8mWBeF4PjtM1yM0RimDylUg4DDdjHC7/TPn2twuT
-         hvhvTi408qff4C6nwhyVfpL795OvMY28lsvxL5Wchp3UX1ps8RI6jQxektjYL2WVvk9e
-         hqOHUUWa2kaRUzxnKftJFQZFOphp/Ah95iWfQD24HqqjPhm0r5hcYTQmHfs4ay8JoAG0
-         bX/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752204651; x=1752809451;
-        h=content-disposition:mime-version:message-id:subject:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=HD4quT5XOTzJKTW55PVxldWC0doc3CvSqHiOgXxu5nk=;
-        b=BI1irbjJHrwNTjVlmx9KSTw2hwgQ2CRYYveyMO//20msGDjCFhHldna5O6yhXq4hnD
-         9CaZcwIc4TM5eM1JaQ1EivyKF2/HIQQeHSo5cJn8GL5JUxrNOKOvNFKxwYXoaYFN5yYJ
-         fkPbBBcU7L/OF+IB9EzkoRYyl/sWWTITVj2eSbfFLVxRCBcDnSP9el/vVulRBSYKSWPm
-         iMaXhQGE78uITJCX2UmN6plesH2vkE9XK+TH8KAi3FMYNph5N3Wn+s606ZGm4ux2z5oy
-         1FHc+YkChVYctrldAbiwEgG4tW+ubDsVyCwgcIA+yglg75w5rI+WTKTeidjf/6u2mZsF
-         TSTw==
-X-Gm-Message-State: AOJu0Yxs3GONBjxzaWVPmiRjKa5sz77I/Uo20MzrTNJ6flhx0Z8g7zd3
-	75E6H5XiYfAsRrxACr4D1XhRLgjnijOlE/44wRDYyl0GvRz2dRUzVRzLS6jseA==
-X-Gm-Gg: ASbGnctijn+CfYig03wALp69Ff/T1C6LA0U4s1s2De5SWLpeWJELXajg2Ywckeh9rEc
-	ENPmLAU3xWT2AktLlTQTc4tHj89WVLw2zJGn50FhAlou7WYMaBLH14IBBBTGvFYQbOW+sSicoU2
-	tC/AhpCaT2u7afi2F2BITA8ol3Ml3oYGRsT2OcUCMevGTGbyY555fBsTfmgSqNcItCL4MISWuTM
-	o1Gufmg8031Y2olI7ksq/Ux74kXEY49kyAnbVQAYWr/aW60S/8zbw068RMv/Ob1w79wvyF8BJW2
-	ctk4k51fC3uXnY2+7nz6tQ37P/EExALb1KEwwJyfx4gNcSMsFizxBuhw4Tsmv8f+IRfc1InVMO/
-	NgHr4D04n/C9GxfNY1aFWUWIDZx4hN2SoBkgGhApScP0U58v/G4Afhls=
-X-Google-Smtp-Source: AGHT+IH6eFrnPgWYUFq1kysRUx7WPrbBpMSwxMdUNyhwLrVQdLeoiO4ORLPw9wXopnno5/E41kuXhA==
-X-Received: by 2002:a05:620a:708e:b0:7d2:27b0:29ce with SMTP id af79cd13be357-7de04eba412mr270911285a.16.1752204650692;
-        Thu, 10 Jul 2025 20:30:50 -0700 (PDT)
-Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-7dcdbb1dca2sm176079085a.16.2025.07.10.20.30.49
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Jul 2025 20:30:50 -0700 (PDT)
-Date: Thu, 10 Jul 2025 23:30:48 -0400
-From: Shaun Brady <brady.1345@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Subject: Feedback on variable sized set elements
-Message-ID: <aHCFaArfREnXjy5Y@fedora>
+	s=arc-20240116; t=1752229675; c=relaxed/simple;
+	bh=t+I9dFrTuVQsV4QFf1vrLxyzuCL+RE6tC08kV7wDJKo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qMEqfLsBkcV/Ybm7HbSo2nxADNh/9OHAAaA7DMxyYO4xbeYmw1m5BmZnoiwm/bCpG3727iNbOA8NclYQC7RWVYX+ooaxxcKCYVGRfUaoJ/5NhfLWxKUQk4ifT+fWPq/oa+XNiHPwD2k89h0mdKlyEwOJb6cauliMGCgHGnGDQv0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 57A8A604C6; Fri, 11 Jul 2025 12:27:45 +0200 (CEST)
+Date: Fri, 11 Jul 2025 12:27:45 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Shaun Brady <brady.1345@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: Feedback on variable sized set elements
+Message-ID: <aHDnIS1iaBKtxove@strlen.de>
+References: <aHCFaArfREnXjy5Y@fedora>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,62 +31,84 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <aHCFaArfREnXjy5Y@fedora>
 
-Hello,
+Shaun Brady <brady.1345@gmail.com> wrote:
+> I'm sure I bit off more than I could chew, but I attempted to write a proof of
+> concept patch to add a new set type, inet_addr, which would allow elements of
+> both ipv4_addr and ipv6_addr types.
 
-This email is mostly for education purposes.
+Why?  This is hard, the kernel has no notion of data types.
 
-I'm sure I bit off more than I could chew, but I attempted to write a proof of
-concept patch to add a new set type, inet_addr, which would allow elements of
-both ipv4_addr and ipv6_addr types.
+> Something to the tune of:
+> 
+> nft add set inet filter set_inet {type inet_addr\;}
+> nft add element inet filter set_inet { 10.0.1.195, 10.0.1.200, 10.0.1.201, 2001:db8::8a2e:370:7334 }
 
-Something to the tune of:
+How would this work with ranges or concatenations?
 
-nft add set inet filter set_inet {type inet_addr\;}
-nft add element inet filter set_inet { 10.0.1.195, 10.0.1.200, 10.0.1.201, 2001:db8::8a2e:370:7334 }
+> Figuring most of this would be implemented in the nft userland, I started
+> there, and was able to successfully get a new set type that allowed v4
+> addresses OR v6 addresses, depending on how I defined the datasize of
+> inet_addr (4 bytes or 16 bytes).
+> 
+> When leaving inet_addr size at the required (for both v4 and v6) 16 bytes
+> netlink would return EINVAL when adding v4 addresses to the set. We found in
+> nft_value_init:
+> 
+>                 if (len != desc->len)
+>                         return -EINVAL;
+> 
+> with len being the nlattr (the v4 address) and desc being the nft_set_desc. 4 != 16.
+> My questions:
+> 
+> 1) Is this feature interesting enough to pursue (given what would have to be
+> done to make it work (see next question))?  The set type only makes sense in
+> inet tables (I think...) and even then, would roughly be syntactic sugar for
+> what could be done (more efficiently) with two sets of the base protocols. But
+> hey, nice things make nice tools?
 
-Figuring most of this would be implemented in the nft userland, I started
-there, and was able to successfully get a new set type that allowed v4
-addresses OR v6 addresses, depending on how I defined the datasize of
-inet_addr (4 bytes or 16 bytes).
+I don't see how its doable.  The lookup key fed to the set lookup
+function via nft_lookup.c has a fixed size.
 
-When leaving inet_addr size at the required (for both v4 and v6) 16 bytes
-netlink would return EINVAL when adding v4 addresses to the set. We found in
-nft_value_init:
+From kernel point of view, its an array of u32 of a given size dictated
+by the sets key length.
 
-                if (len != desc->len)
-                        return -EINVAL;
+> 2) (assuming #1) I believe we would have to put a condition to check the set
+> type versus the nlattr type, and allow a size difference on
+> set(inet_addr)/set_elem(ipv4_addr) (I don't know if that has any
+> ramifications).
 
-with len being the nlattr (the v4 address) and desc being the nft_set_desc. 4 != 16.
+The kernel doesn't know what an ipv4 or ipv6 address is.
+It only knows the total key size.  In case of nft_set_pipapo.c its also
+told the sizes of the individual subkeys. (e.g. ipv4_addr .
+inet_service -> 4 . 4, ipv6_addr . ip_protocol -> 16 . 4).
 
+Maybe it would be possble to xlate ipv4 addresses to ipv6 mapped
+addresses, but that would still require expansion in userland, because
 
-My questions:
+ip saddr @foo
+ip6 saddr @foo
 
-1) Is this feature interesting enough to pursue (given what would have to be
-done to make it work (see next question))?  The set type only makes sense in
-inet tables (I think...) and even then, would roughly be syntactic sugar for
-what could be done (more efficiently) with two sets of the base protocols. But
-hey, nice things make nice tools?
+cannot work.  We'd need to rewrite it to something like
+meta nfproto ipv4 {
+	reg32_1 = 0xffffffff
+	reg32_2 = 0xffffffff
+	reg32_3 = 0xffffffff
+	reg32_4 = ip saddr
+	lookup @foo sreg32_1
+}
+meta nfproto ipv6 ip6 saddr @foo
 
+I don't think its worth the pain.  Also because then ipv4 becomes
+indistinguishable from on-wire mapped addresses.
 
-2) (assuming #1) I believe we would have to put a condition to check the set
-type versus the nlattr type, and allow a size difference on
-set(inet_addr)/set_elem(ipv4_addr) (I don't know if that has any
-ramifications).
+> Another possible approach would be to create an API to transmit valid size
+> types for a set type from userland. We would still need to ID the set type,
+> and that has the above problems of set.ktype.
 
-I found set.ktype, but that is indicated to be unused in the kernel, and
-comes from userland any way, so I don't believe it can be reliably used
-to map to a set type.
-
-Another possible approach would be to create an API to transmit valid size
-types for a set type from userland. We would still need to ID the set type,
-and that has the above problems of set.ktype.
-
-Do either of these approaches make sense and secondly do either seem tenable?
-Are there other obvious paths forward to deal with variable set element sizes?
-
-
-Thanks!
-
-
-SB
+There are different sets, yes, but none of these sets support a
+particular data type.  They don't know what that is, the datatype is a
+userspace thing and its only stored in the kernel so that 'nft list
+ruleset' and friends know how to pretty-print the octet soups stored in
+the set.  Its not related to matching.
