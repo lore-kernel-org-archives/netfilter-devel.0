@@ -1,95 +1,96 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A58D621CC5D;
-	Fri, 11 Jul 2025 14:14:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD81E2EAB75
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 14:53:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752243301; cv=none; b=K46CAssK8OfP3wkaObNr1CUhQytkMeuhsgkKWhdV7K++qouJHQyaVXYJYL88KrbAq2kG5ph6d/2TegbH/BhKb2NPu1yxfeeIJsbmy3F7O81yxH8RhbCQqRmSRhf15GDJowFco41a+IZaG4J42S8NA/KnP6gKrfo4zxk0ARBF7jM=
+	t=1752245591; cv=none; b=k3mQMklwKPBDaWACij2gad2DOpmHP+zG8ti9JefUBPhpD0PnMN4Fda1SVOO3xvMfCYG/wBdlBBhgmJezw8t9m31IlaHxG03muc8mAVCHQ7jOCdRDuwwTq8kAYEvcZqEmRQTFcZYG/ZELYEsCdOwmb24kd7/Fj0rcM8kf4+e4TCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752243301; c=relaxed/simple;
-	bh=J4zwpd/8rB1eaPcaJ7oYgBhhKfRnc+cZeXtOOWcnmJw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cpcZrAUd9ByUdpvk8yG5Mji/m0bUuR8qo7v1edzckOdLCDChJcNbnaGEGqzNlDiaCMzzVX75SmnwPaolNykolXQFitxQI6iUqbSbeeu0OU8P0CU1YeZnPM6d6Y9dPLi2GJu9KdqjCdm0M2n8EEtLzUclrQbSv2WWDGDiS7ZWHeY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E03F96057E; Fri, 11 Jul 2025 16:14:57 +0200 (CEST)
-Date: Fri, 11 Jul 2025 16:14:57 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org
-Subject: Re: [PATCH v14 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
- double vlan and pppoe
-Message-ID: <aHEcYTQ2hK1GWlpG@strlen.de>
-References: <20250708151209.2006140-1-ericwouds@gmail.com>
- <20250708151209.2006140-4-ericwouds@gmail.com>
- <aG2Vfqd779sIK1eL@strlen.de>
- <6e12178f-e5f8-4202-948b-bdc421d5a361@gmail.com>
+	s=arc-20240116; t=1752245591; c=relaxed/simple;
+	bh=aoayK+d7FaYLuiApZZ6pRIG3bGSfp+rtGpe2r3EX3b4=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P7dEuEyl+soP42Obd/9C4YAMIq2gXr+PlYqlFuD/NgJkeiLnYHVyc/qlMfPHx0BgIXNYrkXnV9RXbldUEcaTSG1nfskvLc7g4p1v10hH7RjPffUJbzmEXlaYLEPYBhckHj5Nj7ijZbNhOf2of2Ujjv/zKsjmZs7gzA5OsVzdC2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=id4PHTRO; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tnKOQT7n; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="id4PHTRO";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tnKOQT7n"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 6509F60264; Fri, 11 Jul 2025 16:52:59 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1752245579;
+	bh=ktCjFepDI20F80TDAX26kNGt5l6U5hULJcoiUwCKY/Q=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=id4PHTROBex333hpEXhgoeZHjGPa4VdYAm8/hlNu5LIuizqxPNZOex3qB6L+ihYp5
+	 sqfC4+bU9pnk5Vp9hJP5fT3P1JV1tujQ/CW5B2o/aAie2Y30bBbV5nq/NHeniUOqUl
+	 1Sv+11rYm/JMH+iqIkwcWdkOQKRQD8EjX2jkDEW4dAfsbDOEb3th+HYmDGmlkbFkZI
+	 gSUIIEQ0t7z+S5lclbU9nltIE+0DEsiStSYyMdo3WURv/7XGdmTmT65xuh5M7HFbns
+	 jjhlQ4ZrIo3OtSZcshImN1XA9ka8xr+doRS/hqWeTY3LIoPOSq1iu/X3/r7ARTnX/O
+	 F90sA6WtQpTVw==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8D0D260253;
+	Fri, 11 Jul 2025 16:52:58 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1752245578;
+	bh=ktCjFepDI20F80TDAX26kNGt5l6U5hULJcoiUwCKY/Q=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=tnKOQT7nAQ9UrmNVQNaW5SduaIsWU/lJm01EYeNWM5dIVXJ/95XiK+gkfHCaWtBvR
+	 tQ/++Dhp+12GhFTgL1Shy68CvxlHbQ5EZ/odgMnhD7EoWxr6oXe4/x1Vrw6i1GwE+T
+	 ogD0/FxUOtNaDwWhQmfykqC3NgUDPpawJ5bruOjeYz376lPMJ2c6dsKyyKXhdhHaEX
+	 oxIBnIptGoZACqjMrMTtesBJ8PGNMnOoF38b11zWHy/4F6voqWH6I1S5SqgfYYjWT1
+	 1XvXwtrcf74dMTNjwxZVv3bvb3X5lriQoLtiJcldqg4kuCmGcZvHAtsuyRpqeaJZ5l
+	 zrwcyxhdjZEXw==
+Date: Fri, 11 Jul 2025 16:52:55 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
+ registration
+Message-ID: <aHElR53iOsae5qK3@calendula>
+References: <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
+ <aGaRaHoawJ-DbNUl@calendula>
+ <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
+ <aGbu5ugsBY8Bu3Ad@calendula>
+ <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
+ <aGffdwjA23MaNgPQ@strlen.de>
+ <aGwfPqpymU17BFHw@calendula>
+ <aG0tdPnwKitQWYA6@orbyte.nwl.cc>
+ <aG7wd6ALR7kXb1fl@calendula>
+ <aHEBOFfIk3B2bxxr@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <6e12178f-e5f8-4202-948b-bdc421d5a361@gmail.com>
+In-Reply-To: <aHEBOFfIk3B2bxxr@orbyte.nwl.cc>
 
-Eric Woudstra <ericwouds@gmail.com> wrote:
+On Fri, Jul 11, 2025 at 02:19:04PM +0200, Phil Sutter wrote:
+> Pablo,
+> 
+> On Thu, Jul 10, 2025 at 12:43:03AM +0200, Pablo Neira Ayuso wrote:
+> [...]
+> > If you accept this suggestion, it is a matter of:
+> > 
+> > #1 revert the patch in nf.git for the incomplete event notification
+> >    (you have three more patches pending for nf-next to complete this
+> >     for control plane notifications).
+> > #2 add event notifications to net/netfilter/core.c and nfnetlink_hook.
+> 
+> Since Florian wondered whether I am wasting my time with a quick attempt
+> at #2, could you please confirm/deny whether this is a requirement for
+> the default to name-based interface hooks or does the 'list hooks'
+> extension satisfy the need for user space traceability?
 
-[ skb->protocl munging ]
+For me, listing is just fine for debugging.
 
-> But in nft_do_chain_bridge() it is needed in the case of matching 'ip
-> saddr', 'ip daddr', 'ip6 saddr' or 'ip6 daddr'. I suspect all ip/ip6
-> matches are suffering.
+If there is a need to track hook updates via events, then
+nfnetlink_hook can be extended later.
 
-Thats because of implicit dependency insertion on userspace side:
-# ip saddr 1.2.3.4 counter ip daddr 3.4.5.6
-bridge test-bridge input
-  [ meta load protocol => reg 1 ]
-  [ cmp eq reg 1 0x00000008 ]
-  [ payload load 4b @ network header + 12 => reg 1 ]
-  ...
-
-So, if userspace would NOT do that it would 'just work'.
-
-Pablo, whats your take on this?
-We currently don't have a 'nhproto' field in nft_pktinfo
-and there is no space to add one.
-
-We could say that things work as expected, and that
- ip saddr 1.2.3.4
-
-should not magically match packets in e.g. pppoe encap.
-I suspect it will start to work if you force it to match in pppoe, e.g.
-ether type 0x8864 ip saddr ...
-
-so nft won't silently add the skb->protocol dependency.
-
-Its not a technical issue but about how matching is supposed to work
-in a bridge.
-
-If its supposed to work automatically we need to either:
-1. munge skb->protocol in kernel, even tough its wrong (we don't strip
-   the l2 headers).
-2. record the real l3 protocol somewhere and make it accessible, then
-   fix the dependency generation in userspace to use the 'new way' (meta
-   l3proto)?
-3. change the dependency generation to something else.
-   But what? 'ether type ip' won't work either for 8021ad etc.
-   'ip version' can't be used for arp.
-
-> I haven't found where yet, but It seems nft is checking skb->protocol,
-> before it tries to match the ip(6) saddr/daddr.
-
-Yes, userspace inserts this, see 'nft --debug=netlink add rule bridge ..'
+So I am not asking for this, I thought you needed both listing and
+events, that is why I suggest to add events to nfnetlink_hook.
