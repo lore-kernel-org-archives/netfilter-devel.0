@@ -1,57 +1,48 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD81E2EAB75
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 14:53:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE30021C186
+	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 16:39:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752245591; cv=none; b=k3mQMklwKPBDaWACij2gad2DOpmHP+zG8ti9JefUBPhpD0PnMN4Fda1SVOO3xvMfCYG/wBdlBBhgmJezw8t9m31IlaHxG03muc8mAVCHQ7jOCdRDuwwTq8kAYEvcZqEmRQTFcZYG/ZELYEsCdOwmb24kd7/Fj0rcM8kf4+e4TCQ=
+	t=1752252001; cv=none; b=gik9i+Lw9KsxQLsaxCIRLysWXPER6Hi1KmAuTuIWjRIpV8Sg1VQZTOYjrH88fDKkSkAJwo67zfFAoyFB4Q9ZzJ6Kt9vDpndefLSFuPErK16lc4iAZQnzuCc8avuDPPXH1afHR/xsNp0yL8qsDKpwWqmg+TFVQ2A1Mh1eBgrufhg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752245591; c=relaxed/simple;
-	bh=aoayK+d7FaYLuiApZZ6pRIG3bGSfp+rtGpe2r3EX3b4=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=P7dEuEyl+soP42Obd/9C4YAMIq2gXr+PlYqlFuD/NgJkeiLnYHVyc/qlMfPHx0BgIXNYrkXnV9RXbldUEcaTSG1nfskvLc7g4p1v10hH7RjPffUJbzmEXlaYLEPYBhckHj5Nj7ijZbNhOf2of2Ujjv/zKsjmZs7gzA5OsVzdC2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=id4PHTRO; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tnKOQT7n; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1752252001; c=relaxed/simple;
+	bh=zE0NGmDduKh4wbTN/TPr0dgsfBP2HT4gIeEhGPf8tBw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YdI+RAwo45cV2K3KFLYDco3YBFXRCpO8dpH5Uec996ndxZ/G8TbyzhqPUtgfOKiBUEGNfJJ7A51yfMOEP99d934iguHk0m+JM7Qu4oqGkH+vzAz6dw+EZLRcSxyFchNK0On+p2/bVi7R4UErMRxfPjOhW0x1Bd+X55MgwgSD8Ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=I5QtZVM7; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="id4PHTRO";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tnKOQT7n"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 6509F60264; Fri, 11 Jul 2025 16:52:59 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752245579;
-	bh=ktCjFepDI20F80TDAX26kNGt5l6U5hULJcoiUwCKY/Q=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=id4PHTROBex333hpEXhgoeZHjGPa4VdYAm8/hlNu5LIuizqxPNZOex3qB6L+ihYp5
-	 sqfC4+bU9pnk5Vp9hJP5fT3P1JV1tujQ/CW5B2o/aAie2Y30bBbV5nq/NHeniUOqUl
-	 1Sv+11rYm/JMH+iqIkwcWdkOQKRQD8EjX2jkDEW4dAfsbDOEb3th+HYmDGmlkbFkZI
-	 gSUIIEQ0t7z+S5lclbU9nltIE+0DEsiStSYyMdo3WURv/7XGdmTmT65xuh5M7HFbns
-	 jjhlQ4ZrIo3OtSZcshImN1XA9ka8xr+doRS/hqWeTY3LIoPOSq1iu/X3/r7ARTnX/O
-	 F90sA6WtQpTVw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8D0D260253;
-	Fri, 11 Jul 2025 16:52:58 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752245578;
-	bh=ktCjFepDI20F80TDAX26kNGt5l6U5hULJcoiUwCKY/Q=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=tnKOQT7nAQ9UrmNVQNaW5SduaIsWU/lJm01EYeNWM5dIVXJ/95XiK+gkfHCaWtBvR
-	 tQ/++Dhp+12GhFTgL1Shy68CvxlHbQ5EZ/odgMnhD7EoWxr6oXe4/x1Vrw6i1GwE+T
-	 ogD0/FxUOtNaDwWhQmfykqC3NgUDPpawJ5bruOjeYz376lPMJ2c6dsKyyKXhdhHaEX
-	 oxIBnIptGoZACqjMrMTtesBJ8PGNMnOoF38b11zWHy/4F6voqWH6I1S5SqgfYYjWT1
-	 1XvXwtrcf74dMTNjwxZVv3bvb3X5lriQoLtiJcldqg4kuCmGcZvHAtsuyRpqeaJZ5l
-	 zrwcyxhdjZEXw==
-Date: Fri, 11 Jul 2025 16:52:55 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="I5QtZVM7"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=KR9MReex/aRY6JpmCdckeFIYxH9zdXv+4m1YYGA7jlk=; b=I5QtZVM7VyHKPDp1KeuhRDfPKF
+	zDNrZC7hoFMhUHw4LIIPFvJ+MI/GzmVBqipJ3UKMtIpOmyXsIid9EdSULTFz1s9MBnxrMRUgUuS4Z
+	LsCDd4z8/aBJzL/z9oUpquuvD8UudYCn0XFIZQ3igrFuGSfHnQ9hiUXW+cXuhD1eb9X7E4YTEaG+A
+	krZooSVhgvp435tAPHi4oGO5bzCYhnaPU4moh69FVnKZOgDryfGePaB5U1y6YrT6g860pri8Y6Tnf
+	kRAhihf/tCJf69dqA6JGd/4Am4Xk3sI11GOUc+4SDG7v5wYc8dcOhVbECnww2ec7FRg268hnyhzYJ
+	1VXqHKtQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uaGms-0000000019c-0wBE;
+	Fri, 11 Jul 2025 18:39:50 +0200
+Date: Fri, 11 Jul 2025 18:39:50 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 Subject: Re: [nf-next RFC] netfilter: nf_tables: Feature ifname-based hook
  registration
-Message-ID: <aHElR53iOsae5qK3@calendula>
-References: <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
- <aGaRaHoawJ-DbNUl@calendula>
+Message-ID: <aHE-VmyBPBejy0GP@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <aGaRaHoawJ-DbNUl@calendula>
  <aGaUzVUf_-xbowvO@orbyte.nwl.cc>
  <aGbu5ugsBY8Bu3Ad@calendula>
  <aGfL3Q2huYeiOH1O@orbyte.nwl.cc>
@@ -60,37 +51,47 @@ References: <aGaC0vHnoIEz8sTc@orbyte.nwl.cc>
  <aG0tdPnwKitQWYA6@orbyte.nwl.cc>
  <aG7wd6ALR7kXb1fl@calendula>
  <aHEBOFfIk3B2bxxr@orbyte.nwl.cc>
+ <aHElR53iOsae5qK3@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aHEBOFfIk3B2bxxr@orbyte.nwl.cc>
+In-Reply-To: <aHElR53iOsae5qK3@calendula>
 
-On Fri, Jul 11, 2025 at 02:19:04PM +0200, Phil Sutter wrote:
-> Pablo,
-> 
-> On Thu, Jul 10, 2025 at 12:43:03AM +0200, Pablo Neira Ayuso wrote:
-> [...]
-> > If you accept this suggestion, it is a matter of:
+On Fri, Jul 11, 2025 at 04:52:55PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Jul 11, 2025 at 02:19:04PM +0200, Phil Sutter wrote:
+> > Pablo,
 > > 
-> > #1 revert the patch in nf.git for the incomplete event notification
-> >    (you have three more patches pending for nf-next to complete this
-> >     for control plane notifications).
-> > #2 add event notifications to net/netfilter/core.c and nfnetlink_hook.
+> > On Thu, Jul 10, 2025 at 12:43:03AM +0200, Pablo Neira Ayuso wrote:
+> > [...]
+> > > If you accept this suggestion, it is a matter of:
+> > > 
+> > > #1 revert the patch in nf.git for the incomplete event notification
+> > >    (you have three more patches pending for nf-next to complete this
+> > >     for control plane notifications).
+> > > #2 add event notifications to net/netfilter/core.c and nfnetlink_hook.
+> > 
+> > Since Florian wondered whether I am wasting my time with a quick attempt
+> > at #2, could you please confirm/deny whether this is a requirement for
+> > the default to name-based interface hooks or does the 'list hooks'
+> > extension satisfy the need for user space traceability?
 > 
-> Since Florian wondered whether I am wasting my time with a quick attempt
-> at #2, could you please confirm/deny whether this is a requirement for
-> the default to name-based interface hooks or does the 'list hooks'
-> extension satisfy the need for user space traceability?
+> For me, listing is just fine for debugging.
+> 
+> If there is a need to track hook updates via events, then
+> nfnetlink_hook can be extended later.
 
-For me, listing is just fine for debugging.
+OK, cool!
 
-If there is a need to track hook updates via events, then
-nfnetlink_hook can be extended later.
+> So I am not asking for this, I thought you needed both listing and
+> events, that is why I suggest to add events to nfnetlink_hook.
 
-So I am not asking for this, I thought you needed both listing and
-events, that is why I suggest to add events to nfnetlink_hook.
+Just to be sure I wrote shell test case asserting correct device
+reg/dereg using 'nft list hooks' tool, works just fine. So let's skip
+notifications for now.
+
+Thanks, Phil
