@@ -1,112 +1,145 @@
-Received: from mail-qv1-f54.google.com (mail-qv1-f54.google.com [209.85.219.54])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C79AD1E231F
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Jul 2025 02:43:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B96652FB2;
+	Sat, 12 Jul 2025 10:08:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752288226; cv=none; b=BBYNhFmJ+Q+TEMFAmXrt8LWCvhvXrXsh3DhZ52VSFB1cZWlz2pJMM2DXvd1wqaVyVnUShXkM2OUJeWxzyxiX9p91z/GR61NBxnU/AcsCS9wn+yisbV4ehG8RGfoGRdo4plnZ9MrOommPoJclSEZBWbs+bxO0Du+SZOUhCyOMt2I=
+	t=1752314935; cv=none; b=swNPkdRyvtel+Z5Qko47pUDtEXPaK5+w5w2BaptqesvZcA9JTw0IHV81TTGQPnkzehvGd3fqPwkXCXEeEnhbuuJiMe1heMOKFJ6Usj4jCXj2smee/SGxg/fDujhCrfJr/uKp1H6QxsDui6qhsYZmVA5SOro25MRl00E0wB0+acc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752288226; c=relaxed/simple;
-	bh=oP4tRB1jYDbNoYgtFXAx0ycDlGjJZlKovYqVWSsnAqY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Tl+B7YVaZg/tXBbN2WKoc43i7drtBs0aR3cxi++RQKtioEyWnndOT07g4s1a+w2Xxr8nllNqWb1SURElk4UrW3HkfqESZEwF5gVM9OLmqAw0ko8lA/Kkpr1rsNck9aZU3+Oo7/3A58ewatXYHpjtDJ1ajyWS8IOwut6GXVcFaME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H7FQdbLb; arc=none smtp.client-ip=209.85.219.54
+	s=arc-20240116; t=1752314935; c=relaxed/simple;
+	bh=/7FhxhUKRdXLcCpht0SasLliMovD6ZI97aLJBeweMEc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Q8rGzj5TFBXgHXVZ2c5egGvzkUAYAc6a4RWSP2xyLoYwD2xJVVGtJpI8gyYNGP8MRsMwmSDBij+vwIZ6T65u0fieJnEAytVcC32t1Jax4yjR/MduEbPveY8O/Ph/5vYQkm3rk7AdGI6+t5xM0FPFGVt/kicHdPbEg1wfZv023GI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jcAw5h89; arc=none smtp.client-ip=209.85.208.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H7FQdbLb"
-Received: by mail-qv1-f54.google.com with SMTP id 6a1803df08f44-6fadb9a0325so23827986d6.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Jul 2025 19:43:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jcAw5h89"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-6077dea37easo5199714a12.3;
+        Sat, 12 Jul 2025 03:08:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752288224; x=1752893024; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=5E+NhQ02ihJ44y+QxitNhkNbAC8svUB/aItl0OmOtdE=;
-        b=H7FQdbLbo3vtY84EMnqgIF6UPYMZ3XpM8iSgOtLQHAOTi33v0LqCjFgKPInOt3cv2S
-         uvHfm0CiU4Ey31gyCldhF3ClYgOwR9F8EXlJUqCMzIqwn7DTUl66FYqA8BDfravgLuIu
-         oEqRuvtjL78LPtUKbME1cGFGmxwMf0ewHiWQyLhKKxXI6+c+0FCQOuIudh+punwAL0KE
-         UirdEdTQopfXc/IzERlev1JxMThKDy3hpVQc7FvMPJibUBhfy87BdaNfNLCEMwnTZrWT
-         fqSlKYTy7GfHo64By78YS8BgDypKUai6ediKM9HZH+EurV2nISDbFiOqZ9fmuz/e2uu7
-         j9Yg==
+        d=gmail.com; s=20230601; t=1752314932; x=1752919732; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=X+eJO7lZ+aUO3GREvLxb2HdalOKZ6MnXGDlkmXm5ze4=;
+        b=jcAw5h89TGusaOxZyaNLEfcc8ARrk0rFKjfPkMXBTK+BsVJQJm0VfQKhXWXYNNCsbr
+         syzlwZUvzs+tHFPIMjYEEVdd7DM+9gMpLIR+3lNStjxYPmmAwudBlQ0DgCDOu1pKrWy7
+         RskuTAbgtzSddFQdDpkw4Mgqdtzwdjg7nYF2f0llBQmDPtsMjwrQtAQwyINIgztOOH1z
+         YCe46mdlxhxTKTbiymJWI/MaLxCFMggFo66DGR78qeeBIWiGw0t27DbusoKCNkyDJ69C
+         9yMWUWxncpT5Z4m7TI32iED4o/94AitUTL3VXHofoQAI/KgXK5hMVNOpEDRuwRPFmpmT
+         2nYQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752288224; x=1752893024;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5E+NhQ02ihJ44y+QxitNhkNbAC8svUB/aItl0OmOtdE=;
-        b=sOR8w/0e2xMr5TUlrHkFROVSLEoTlHVfTea8/Ov0eP5kaE8WIy37zS7Hf8agnRiabY
-         zitAThBDqDzHmjqk6cePXTLCTZleim86xrRYr2sJaZY/HZT6Lt/IdD4YLAIcyvh3R1io
-         JYOigNMGaSQkzT25mekMxiJdIeMyNPdmmogF2cYVhLfEZzKTozw3joAyijd8OcEWhsNH
-         9HB8cIhuyyQMSZfR48SCCTWfqasGnjYqfXTCLi4zMb9VlawigzjXy0Xm/OY9paTDYX/X
-         D1K0Bxwo2WbcvnVg7Lwu27z4iXFMkA3q0NsAkShtOBGFVW1kY6d/Aa9WojHMEJi37O6d
-         rhBg==
-X-Gm-Message-State: AOJu0YyTnxq7rGcMX1bOgou7NdM7F+TT36Bd7OPwpm+vUoOKAV8K3mnW
-	M3HveLw5kdGbp1es8BiEnwuiT/4yWQ333JoESVkXj9Y6+JZHZ95JJv46QRM2qw==
-X-Gm-Gg: ASbGncujZ9tvFd0YYPzkC4L6RTeytUZIcJD2gSK+skDlbBJZRL/33dSruwX02RBN8xe
-	Z7ptsHo9T3scvjewVoehVP3cz9TbBGso+iSH9pgJKb+n9j9niBr3nWs/hmEsHvtL9LKxWS3GTH3
-	n3k4HY6z9jNY7MKNih//4V4H44QA6hieYgeebPJMKSE+J6YuyxQpjL8yZcYs4xR/wxd8fA/HeMM
-	tSbrN7aiXbwdFo8QfWmPDC1r+QlBFSMKQWQ5q4M9BVHqebuhP/nEyYC87G4wlDAH8XcNcl3AWag
-	uxhiYq4lT0FT18OcdeMSRY4VKvLxX9/5cMGXjIFTgvyI2L9ucDirrwKl/WxXGUuzU3v/FBN1iHl
-	vFvfUiOcCnee8zE7rF07oiRqolkv+MdmJmjFS/ETGzb2JQh3AsmAMYm1keG7trXD7EQ==
-X-Google-Smtp-Source: AGHT+IFVmQK9E5+2DCBUjn97btnpbgRud95y17Dv2v3+pk/RuabffKqIdqg+upJb8o4UHEkuewdS8Q==
-X-Received: by 2002:a05:6214:cc2:b0:704:7dfc:f56e with SMTP id 6a1803df08f44-704a3613b4dmr98592106d6.18.1752288223540;
-        Fri, 11 Jul 2025 19:43:43 -0700 (PDT)
-Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-70498090248sm25323896d6.90.2025.07.11.19.43.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Jul 2025 19:43:43 -0700 (PDT)
-Date: Fri, 11 Jul 2025 22:43:41 -0400
-From: Shaun Brady <brady.1345@gmail.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: Feedback on variable sized set elements
-Message-ID: <aHHL3ZYi65GHx0CI@fedora>
-References: <aHCFaArfREnXjy5Y@fedora>
- <aHDnIS1iaBKtxove@strlen.de>
+        d=1e100.net; s=20230601; t=1752314932; x=1752919732;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=X+eJO7lZ+aUO3GREvLxb2HdalOKZ6MnXGDlkmXm5ze4=;
+        b=Yl78XXKQleQTjXXAofx8jAuUui1I/2gIpIdDaURdloMSmSkz6Ins3N3RcdasYRyPoN
+         sPYTybu/AJhOvrquN/9WH2pYvdTYz297InoqhNJj9smAuwYzidrw/PEY8nBnFMBqW4st
+         cM49/XnTSEJWjQofF7m5SkwL7DtpHrcqdKKjk2xkPd7UiNTU4XtH6rUWrMNgpQueVw7h
+         plp8XLiLueMND1wevlsJuwCzNePwfkXyLHSkL7Id00Bo8fZd937tfyGEixmbUXyNhzec
+         sI6SgOaZmnQIOGN33gSqKhuNtQLPpfLiX0SjO1h+kaavCEr2RJon5z+wA6fvh6GL7St6
+         avEg==
+X-Forwarded-Encrypted: i=1; AJvYcCV52cXC9oViNF1LqrK8JDHMSDodxhbLq8m5rbj4uTfWRR19+IkedASjvV5P33uigSv88yNHEPA=@vger.kernel.org, AJvYcCXQTd5XTXy/mGgiiYrMagvl8gjjQA0m1k+LACvJphHQpzb5K1GaFICeYj5ungbZc+xjZMAdvZxNn2cMBZuwBo0f@vger.kernel.org
+X-Gm-Message-State: AOJu0YwbNn1EB6EWC2DJ+9DXzNn27161M7tHdMs9OL4SiQNLnfO18lef
+	AWthu+G4xRCkjEZfLQi8jLWrmkG4pV/3EWefYsSRps8Rq/USnHEBvdGq
+X-Gm-Gg: ASbGnctjhzHz45kgKu3tPbQeF/LvLevQOLNEz3LC3l1lO3mX+XnaS4OnOFu36gcwQ4o
+	K8iRhOyDjZJrpYg2hZIRzNo2BZMrMWRKJdFC3xfI9YpMn389FP/pM+FoGpMftgTxNc/wyJA1uvF
+	pmpaIordccaqx0FTKUo7JRQJmQNvxgO9hYVw1qJ+kV566cL0K29cbbdlEzjga688VAO4E1l3P+k
+	HgaBjcMaAs/P8Sc0g3DLsnQWDr3A+9mqB5jD7kAMLaDwwPyaIuD9xRTdAnWpaw1l2m6DM7ZqbAi
+	VO9LL5OZTGCux81NzDr3AQr/dzjudHo0BVZL+iSP8LggzS7vnizIPL5Za9gRSpMTIpvvVTixx50
+	iIcOzcuLCoy5WteGod8SECD2lqcUCQYOFyQgKlIKqsMD92xGybJcEOFxTYfGBY/Qz5m5bkWiHvS
+	/hlsPoFDiEU9/ysEGEHvBNliKfn8M2/e7iwfdIwoktdBvMktkfJWWac3dLgFvKExn9pHU70maX
+X-Google-Smtp-Source: AGHT+IFIOLuDKv6c9RfzlcBDtf/CyOztjAQJPRECB+fyUnEIdhY9dn3XgfrqLeSDdWwQTsjQTwhhrQ==
+X-Received: by 2002:a17:907:6d0f:b0:ae3:c968:370 with SMTP id a640c23a62f3a-ae6fcb67267mr675808666b.59.1752314931597;
+        Sat, 12 Jul 2025 03:08:51 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ae6e82df594sm458235066b.159.2025.07.12.03.08.50
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 12 Jul 2025 03:08:51 -0700 (PDT)
+Message-ID: <5db98a41-37b5-41f9-8a57-f143cc0eb39b@gmail.com>
+Date: Sat, 12 Jul 2025 12:08:50 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aHDnIS1iaBKtxove@strlen.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v14 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
+ double vlan and pppoe
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>,
+ Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+ bridge@lists.linux.dev, netdev@vger.kernel.org
+References: <20250708151209.2006140-1-ericwouds@gmail.com>
+ <20250708151209.2006140-4-ericwouds@gmail.com> <aG2Vfqd779sIK1eL@strlen.de>
+ <6e12178f-e5f8-4202-948b-bdc421d5a361@gmail.com> <aHEcYTQ2hK1GWlpG@strlen.de>
+Content-Language: en-US
+From: Eric Woudstra <ericwouds@gmail.com>
+In-Reply-To: <aHEcYTQ2hK1GWlpG@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 11, 2025 at 12:27:45PM +0200, Florian Westphal wrote:
+
+
+On 7/11/25 4:14 PM, Florian Westphal wrote:
+> Eric Woudstra <ericwouds@gmail.com> wrote:
 > 
-> Why?  This is hard, the kernel has no notion of data types.
+> [ skb->protocl munging ]
 > 
+>> But in nft_do_chain_bridge() it is needed in the case of matching 'ip
+>> saddr', 'ip daddr', 'ip6 saddr' or 'ip6 daddr'. I suspect all ip/ip6
+>> matches are suffering.
+> 
+> Thats because of implicit dependency insertion on userspace side:
+> # ip saddr 1.2.3.4 counter ip daddr 3.4.5.6
+> bridge test-bridge input
+>   [ meta load protocol => reg 1 ]
+>   [ cmp eq reg 1 0x00000008 ]
+>   [ payload load 4b @ network header + 12 => reg 1 ]
+>   ...
+> 
+> So, if userspace would NOT do that it would 'just work'.
+> 
+> Pablo, whats your take on this?
+> We currently don't have a 'nhproto' field in nft_pktinfo
+> and there is no space to add one.
+> 
+> We could say that things work as expected, and that
+>  ip saddr 1.2.3.4
+> 
+> should not magically match packets in e.g. pppoe encap.
+> I suspect it will start to work if you force it to match in pppoe, e.g.
+> ether type 0x8864 ip saddr ...
+> 
+> so nft won't silently add the skb->protocol dependency.
+> 
+> Its not a technical issue but about how matching is supposed to work
+> in a bridge.
+> 
+> If its supposed to work automatically we need to either:
+> 1. munge skb->protocol in kernel, even tough its wrong (we don't strip
+>    the l2 headers).
+> 2. record the real l3 protocol somewhere and make it accessible, then
+>    fix the dependency generation in userspace to use the 'new way' (meta
+>    l3proto)?
+> 3. change the dependency generation to something else.
+>    But what? 'ether type ip' won't work either for 8021ad etc.
+>    'ip version' can't be used for arp.
 
-I speculated I could contain things up in userland, but as you
-stated, the kernel got involved (would need to be aware of the change).
-
-If the ask is more philosophical, it would have been for educational
-purposes.
+Is using 'meta nfproto ipv4' instead an option? This looks at
+pkt->state->pf, which holds the correct value, not at skb->protcol.
 
 > 
-> The kernel doesn't know what an ipv4 or ipv6 address is.
-> It only knows the total key size.
-
-This became clear, and clear that I wasn't missing anything. Further,
-it indicated my thinking was swimming upstream from a design goal of
-netfilter, so to hear you conclude with ...
+>> I haven't found where yet, but It seems nft is checking skb->protocol,
+>> before it tries to match the ip(6) saddr/daddr.
 > 
-> ...I don't think its worth the pain.  Also because then ipv4 becomes
-> indistinguishable from on-wire mapped addresses.
-> 
+> Yes, userspace inserts this, see 'nft --debug=netlink add rule bridge ..'
 
-... is mostly what I needed.
-
-
-Thank you for taking the time to answer my open ended inquiries,
-especially when no real code was presented.
-
-I'll find something new to chew on shortly!
-
-
-Thanks!
-
-
-SB
