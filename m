@@ -1,55 +1,56 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BB20131E2D
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Jul 2025 13:52:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67744131E2D
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Jul 2025 13:53:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752501173; cv=none; b=FDKSWzVHUPRksAhrTW6mN5gPuPzKc9+2Qd/XsN3NvTLmhYgS/xmVdYuc8FR0Db5dvEbz1p3j4Rb4slzpz+1aabKPCJA2f/8e7dRCtap5k+Ene0OxRaQWCAtPa7k8hyEHSJKP/xyZtlSUaj206rr0oXBt0O+/CRoRVRxGMSP1WVo=
+	t=1752501204; cv=none; b=OdY3uTcnF8L8FDzaNkRIewKNBgKI34XmnMhC3dBkOWEmPQDF8gtH7nwaC++OFamiiLv0pm7E51Cvbsca7ikJKs/0AycBP32jQxskGHQz+jTjITcKGuyGBIyzUfaaMmF8vmEudmQXlKqpAoghLh9hV0+bnDeUwiq3fbIg96Qa70U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752501173; c=relaxed/simple;
-	bh=KQrQ/DsZS82qUfBWPW/nIIn8F9UpgcBbZ6rh+2/XByE=;
+	s=arc-20240116; t=1752501204; c=relaxed/simple;
+	bh=aiEsCaIR9rDb/zvzkXqBRjYn8EFBIm1RgnS95vVuQts=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Un0AlI7ENacqzrNJzuIMPTrWsIeDhyYJtgL8EI9J5WglZN+bzmgPcjJ8GDXNAbpZnRTMm0tiyL2cPBz5j63LDgzkFg2LsvO92PqdtFfX9MIBEt9GY5xY5x6p/q3MCwIqVlN8vHod3mjcHQ0GPJj/8EXUG4a05jwGx0ieUGyigMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t31duhRS; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t31duhRS; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=kMCK3W8e+ITmlVoJRAWdBK/cZHTy+hL62773PUmTFlXD3Ega1gz2Rd8aNJe3/5CApfzRMp3m9n61IC9A0ZKV43awAKxP6YFuyutZvVpMfImotUa4FAsKDKkBY2EBAA/EwbWyuIGc4Onz0KDYOKNdoux3xdNAJM2qg6u8RmjrAhA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CpFA/4J4; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CpFA/4J4; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t31duhRS";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t31duhRS"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CpFA/4J4";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CpFA/4J4"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id A2C2A60263; Mon, 14 Jul 2025 15:52:50 +0200 (CEST)
+	id E21626026F; Mon, 14 Jul 2025 15:53:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752501170;
-	bh=Wg/lC7WP5qzUgGvjiFmlsdLLp0lbKuUihYyZGVSnPpE=;
+	s=2025; t=1752501197;
+	bh=1vI5q22LD8ou6Ki4rG/IZyO2scUS97j1OKB7c6Sq9WY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=t31duhRS5l6CLzck6fcMBnfZJtLKxmy2JgeFtluxb5Yi2wGlLeKpAED4khlIojxNY
-	 LF1q/QX6mbdC1r1R9Z5WUjhI/fBOvjkHx5x1y02m0yBh+2v1mo5E45Jywuwyjkae3c
-	 +102GuZZTBfwMGX3yoON6MowyhWP7AlsYWcupAleBgT8fW1s1fzERDcwU9j0hIHg+4
-	 5KhpXZd2j5vsjROGfn9E/f0dD0eVqFWccUpdW0ihk6SfzPGhLhrJe5/xQhlu16vdOy
-	 JpcL4x6DHi8FTeasZBKfKW/Gjy5Sc/bv5gCD6ICQGNS0Ub5mhGT7tmC8Ha7WHFKPBL
-	 CE5/2VwVnQw2g==
+	b=CpFA/4J47xdHU9Kek/lRGI+5lbopDn/XWA4tN9PWUwtAUDB4F7fPctdBdiude0xKP
+	 2s57hK8tcHy6GwKt+OiellYtyKaUoimWfvC03R0MuKmBObl9X9JS3qh3+2Fe42D610
+	 ArHvaRqGC0NYMRdt2avQH0EdXSsXgfJeH7CDyMjPxSzv80ydfUseBnc7QadSBYrfkX
+	 rU7SVWQeOoaiWDha1Oxis1vdrLaMHLD/8LKZpWsJ4fLpj+DUogwB7WdDO66m4dAhhh
+	 7Rlr0CqqudVSCKyJYC7Lx2qxnGMg75OVvYAGIEg832LX8yu/VHOSCQB78bqL2kvNdk
+	 dFRdIWzitFpPg==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 23A9260254;
-	Mon, 14 Jul 2025 15:52:50 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 13B5960265;
+	Mon, 14 Jul 2025 15:53:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752501170;
-	bh=Wg/lC7WP5qzUgGvjiFmlsdLLp0lbKuUihYyZGVSnPpE=;
+	s=2025; t=1752501197;
+	bh=1vI5q22LD8ou6Ki4rG/IZyO2scUS97j1OKB7c6Sq9WY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=t31duhRS5l6CLzck6fcMBnfZJtLKxmy2JgeFtluxb5Yi2wGlLeKpAED4khlIojxNY
-	 LF1q/QX6mbdC1r1R9Z5WUjhI/fBOvjkHx5x1y02m0yBh+2v1mo5E45Jywuwyjkae3c
-	 +102GuZZTBfwMGX3yoON6MowyhWP7AlsYWcupAleBgT8fW1s1fzERDcwU9j0hIHg+4
-	 5KhpXZd2j5vsjROGfn9E/f0dD0eVqFWccUpdW0ihk6SfzPGhLhrJe5/xQhlu16vdOy
-	 JpcL4x6DHi8FTeasZBKfKW/Gjy5Sc/bv5gCD6ICQGNS0Ub5mhGT7tmC8Ha7WHFKPBL
-	 CE5/2VwVnQw2g==
-Date: Mon, 14 Jul 2025 15:52:47 +0200
+	b=CpFA/4J47xdHU9Kek/lRGI+5lbopDn/XWA4tN9PWUwtAUDB4F7fPctdBdiude0xKP
+	 2s57hK8tcHy6GwKt+OiellYtyKaUoimWfvC03R0MuKmBObl9X9JS3qh3+2Fe42D610
+	 ArHvaRqGC0NYMRdt2avQH0EdXSsXgfJeH7CDyMjPxSzv80ydfUseBnc7QadSBYrfkX
+	 rU7SVWQeOoaiWDha1Oxis1vdrLaMHLD/8LKZpWsJ4fLpj+DUogwB7WdDO66m4dAhhh
+	 7Rlr0CqqudVSCKyJYC7Lx2qxnGMg75OVvYAGIEg832LX8yu/VHOSCQB78bqL2kvNdk
+	 dFRdIWzitFpPg==
+Date: Mon, 14 Jul 2025 15:53:14 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nf_tables: hide clash bit from userspace
-Message-ID: <aHULrxlyOK03bBtF@calendula>
-References: <20250707203247.25155-1-fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [nf PATCH] Revert "netfilter: nf_tables: Add notifications for
+ hook changes"
+Message-ID: <aHULyreZ4KBd_gto@calendula>
+References: <20250710164342.29952-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,16 +59,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250707203247.25155-1-fw@strlen.de>
+In-Reply-To: <20250710164342.29952-1-phil@nwl.cc>
 
-On Mon, Jul 07, 2025 at 10:32:44PM +0200, Florian Westphal wrote:
-> Its a kernel implementation detail, at least at this time:
+On Thu, Jul 10, 2025 at 06:43:42PM +0200, Phil Sutter wrote:
+> This reverts commit 465b9ee0ee7bc268d7f261356afd6c4262e48d82.
 > 
-> We can later decide to revert this patch if there is a compelling
-> reason, but then we should also remove the ifdef that prevents exposure
-> of ip_conntrack_status enum IPS_NAT_CLASH value in the uapi header.
-> 
-> Clash entries are not included in dumps (true for both old /proc
-> and ctnetlink) either.  So for now exlude the clash bit when dumping.
+> Such notifications fit better into core or nfnetlink_hook code,
+> following the NFNL_MSG_HOOK_GET message format.
 
 Applied to nf.git, thanks
