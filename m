@@ -1,111 +1,123 @@
-Received: from mail-io1-f78.google.com (mail-io1-f78.google.com [209.85.166.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68791DE2BF
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 20:55:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA492BE64E
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 22:09:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752612933; cv=none; b=jRjzgNMDx5S6piwWfCdLek6ofzHFkOGxIqkDH8qA1Pf9WKx89UHT9pIVF4A7xDeVcAMRalfjE0BQfn6tSxgXHYsX/xJJHoDCfjzTyKUPFtngedlEHYldzD/6RIVvceH+IJrMLH6dhee1kUYK3ppq5O6tJD9rjgBo+IY2LsXdD+A=
+	t=1752617367; cv=none; b=Cjp3B03Bo/DS45W4O1HKW8mrl829hxR600CRR+chwSYZCpZKfotSSQE/RdfFtZK18b1NxcZXbTgQdHAme8BuvrXhy5xh+jDZJGfmUEHEyMX216KXBo/u94uF7h4+a1RvICzYY4uFFfljMD3U4KxvuS+LWTXEfmDloPQZuiFL1Z4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752612933; c=relaxed/simple;
-	bh=9CNoR++wDZH7NsfjU8OM+KHOVHW57lf73ByuG1G6U60=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=aBcROjYxHJy2wa21xISGPMNWDvbr20SxVS3iFtle+EACaxKDGUVpFn/jxVJLR6TF+9mkq9eXalZH2KuUm3L/t46jsfgHssyOZULU/ixSvt3u0OwU25if1oGqv3jAWAm6D9+C6OOGyA6quVZY9cd0+3o2Ef9leLGKxcvvg3e1hCk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f78.google.com with SMTP id ca18e2360f4ac-86d01ff56ebso1023208339f.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 13:55:31 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752612931; x=1753217731;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=5vHveuGolym5EQhvmtNqG6g0knqcjvQnZGLJgsJjMjQ=;
-        b=FTHamiFSIN/9JLvqpTlInGDGj8Ik4M8VWiFSD7Jld6fbaFfAOP2ZLXStjnY9NbTtlH
-         cnecpaTOsugNGwA5aRB9SkH5TYx8ozW3rWNGYYZuq3SvUIXFSt1VS1sK9OVJmi8ayFCU
-         uwQ+o8hSEMYmgmBbrRC/QSWJTGXvXloCjyQEa/gT/yMxz2tfglQWOqljTDTUoHf+Jt/U
-         kf+vxkmoYkiNo+u9bqmy5p4nXcx+G1lBYNDCxiHI5kPXzUaRuE43FfsNm4z4GcPG2PXy
-         +Bn+l01TiKoJ5xuV+J7Eq9jm7PdRVy3SUUjhiRHH3bdeMUOZ+dZpQReJ/fulyyQIf7TQ
-         /BCg==
-X-Forwarded-Encrypted: i=1; AJvYcCUpnoId3Scn5UCxABuvn5iYrRt2VHUkgXlN+9BQX4T4xqSz7l16Y6/XTQ8zrQk6i6cOPT5Uyl5yqOdDA6xq5lA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyTNmV0GFei3Cy9O4b8+/e+7bj9dlpXag5Y0Clux6uGthXfaIrs
-	aBUNgGXg3ci2PB4u4lym05JJySR1nwWznMX+L3FyYxahUtsYQKxm//5DkzOm8e0WbJV7xZjzCht
-	bZxkn6AQGbAei8GUVTb/G7uJyIB5d+FhGojnyaYeUfW2n3qEPuZbyxMgb54Y=
-X-Google-Smtp-Source: AGHT+IH41fXInBQhUVFmEC3BYpBSmFe7XYx0t5+7O+tY1xbSuO+MoSFA7uJ2u4Qx5gs1goSDakuSQ0X0NWold4XDloeyf2ZNnLbF
+	s=arc-20240116; t=1752617367; c=relaxed/simple;
+	bh=pWueEUjr4p/JEzXsOvt+NGEmQWMny5LRASOWEbdRuXA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Anz4QOlYFZEujZgQoIO0k/n9b0XMnYuugHiOHJEKA1IajTWhYqQxCxnqEkd5mK3qUmxYmi1Dvlg8eanh92R9L+PF8yuOI5OGYWmEjLmscTDfOREpyTmtJKsPraLVqt85XOTCP8q8A2BWWi3HBv3QnU7F5aojoK/0RR8BC3qs25E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JzPS4PeJ; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ltc7y/ho; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JzPS4PeJ";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ltc7y/ho"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 80A75602AB; Wed, 16 Jul 2025 00:09:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1752617355;
+	bh=6oEtjOvp1dLKCnfNXAv3t7jKL9Vu2TQAxiSKQYBsM4s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JzPS4PeJaWXwk9FuRj4KraX7EaGjWXhRp0g8DDrwaqFQjADHa3/RIRVspjVCA+82/
+	 XwDice9r7VKQz/FGDg8/fpb5ROe31jE9bgqZEuokoclevdohqU5JGEbX+C74I4U5nt
+	 lXf/i481Kt4qQ1vohNFch7P7P97AhuWDx8IW1zy2O2KhMJ7nKJnbA8sHi5zCAGzT5b
+	 87sC/obqK6C8LG0vTt+zsIlBMNLyGd/t9Cy2dVTkK8ZWT0esk/qwDFS8WdJgAcef21
+	 YEQo3gMDWDaAlIcWuXfw+uitGX/R9LNbHBeWdnvbZnf9BDUL6hQJyfMvOduMjSzsDm
+	 9OL9MlKq4kf4A==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id CE9F7602AB;
+	Wed, 16 Jul 2025 00:09:13 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1752617354;
+	bh=6oEtjOvp1dLKCnfNXAv3t7jKL9Vu2TQAxiSKQYBsM4s=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ltc7y/hoz6dBEThf7YkvL/eGs6AtjuCiSjaeWa3akiSSJoUP8BuS7I6Ze2CkMF+cj
+	 EvzEdBUAh1YegpHy/raa9TT69n32kS05qXlvMU7YMyu0paatw8sj2k+HDrz9u0oaCV
+	 qnrzOqAfLs0VI0bO5TJLe5bk22YKhQ/cpVGskj/Ts+s2l+jsV6Z60EzGZf1pJroRdJ
+	 z927OXjniB5fhIieWvQ3B/XWV8csvhm0n9xxeJkTgnHFrM0tqvkkYt3EouBlGXn+yg
+	 x1fP+SaiEohDIbpzVcwMHc4qLVBJ/n6Td91E5lJct+vB/Yru/24jk7efp4/Oy6wZm7
+	 bAu03N3DlrVYw==
+Date: Wed, 16 Jul 2025 00:09:10 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 4/4] netfilter: nf_conntrack: fix crash due to removal
+ of uninitialised entry
+Message-ID: <aHbRhj-NW3frJt0v@calendula>
+References: <20250627142758.25664-1-fw@strlen.de>
+ <20250627142758.25664-5-fw@strlen.de>
+ <aGaLwPfOwyEFmh7w@calendula>
+ <aGaR_xFIrY6pwY2b@strlen.de>
+ <aHULbUHBCM4bUw8e@calendula>
+ <aHUV8-hd1RbiupaC@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6602:3f0b:b0:85b:3c49:8811 with SMTP id
- ca18e2360f4ac-879c0842721mr125977339f.4.1752612930955; Tue, 15 Jul 2025
- 13:55:30 -0700 (PDT)
-Date: Tue, 15 Jul 2025 13:55:30 -0700
-In-Reply-To: <676d25b2.050a0220.2f3838.0464.GAE@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6876c042.a00a0220.3af5df.0009.GAE@google.com>
-Subject: Re: [syzbot] [net?] INFO: task hung in inet_rtm_newaddr
-From: syzbot <syzbot+adeb8550754921fece20@syzkaller.appspotmail.com>
-To: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com, 
-	horms@kernel.org, jhs@mojatatu.com, jiri@resnulli.us, kadlec@netfilter.org, 
-	kuba@kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com, vinicius.gomes@intel.com, 
-	xiyou.wangcong@gmail.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aHUV8-hd1RbiupaC@strlen.de>
 
-syzbot has found a reproducer for the following issue on:
+On Mon, Jul 14, 2025 at 04:36:35PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Thu, Jul 03, 2025 at 04:21:51PM +0200, Florian Westphal wrote:
+> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > > Thanks for the description, this scenario is esoteric.
+> > > > 
+> > > > Is this bug fully reproducible?
+> > > 
+> > > No.  Unicorn.  Only happened once.
+> > > Everything is based off reading the backtrace and vmcore.
+> > 
+> > I guess this needs a chaos money to trigger this bug. Else, can we try to catch this unicorn again?
+> 
+> I would not hold my breath.  But I don't see anything that prevents the
+> race described in 4/4, and all the things match in the vmcore, including
+> increment of clash resolution counter.  If you think its too perfect
+> then ok, we can keep 4/4 back until someone else reports this problem
+> again.
 
-HEAD commit:    0be23810e32e Add linux-next specific files for 20250714
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=17c3e98c580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=adc3ea2bfe31343b
-dashboard link: https://syzkaller.appspot.com/bug?extid=adeb8550754921fece20
-compiler:       Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16d1098c580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=116b08f0580000
+Hm, I think your sequence is possible, it is the SLAB_TYPESAFE_BY_RCU rule
+that allows for this to occur.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/13b5be5048fe/disk-0be23810.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/3d2b3b2ceddf/vmlinux-0be23810.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/c7e5fbf3efa6/bzImage-0be23810.xz
+Could this rare sequence still happen?
 
-The issue was bisected to:
+cpu x                   cpu y                   cpu z
+ found entry E          found entry E
+ E is expired           <preemption>
+ nf_ct_delete()
+ return E to rcu slab
+                                        init_conntrack
+                                        <preemption>     NOTE: ct->status not yet set to zero
 
-commit 5a781ccbd19e4664babcbe4b4ead7aa2b9283d22
-Author: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Date:   Sat Sep 29 00:59:43 2018 +0000
+cpu y resumes, it observes E as expired but CONFIRMED:
+                        <resumes>
+                        nf_ct_expired()
+                         -> yes (ct->timeout is 30s)
+                        confirmed bit set.
 
-    tc: Add support for configuring the taprio scheduler
+> > I would push 1/4 and 3/4 to nf.git to start with. Unless you are 100% sure this fix is needed.
+> 
+> 3/4 needs 2/4 present as well.  I can then resend 4/4 then with the
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10de9adf980000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=12de9adf980000
-console output: https://syzkaller.appspot.com/x/log.txt?x=14de9adf980000
+Right, I accidentally skipped that test, it should be also included.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+adeb8550754921fece20@syzkaller.appspotmail.com
-Fixes: 5a781ccbd19e ("tc: Add support for configuring the taprio scheduler")
+> > > - ct->status |= IPS_CONFIRMED;
+> > > + smp_mb__before_atomic();
+> > > + set_bit(IPS_CONFIRMED_BIT, &ct->status) ?
+> 
+> change.
 
-INFO: task syz-executor:6015 blocked for more than 143 seconds.
-      Not tainted 6.16.0-rc6-next-20250714-syzkaller #0
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-task:syz-executor    state:D stack:26920 pid:6015  tgid:6015  ppid:1      task_flags:0x400140 flags:0x00004006
-Call Trace:
- <TASK>
- context_switch kernel/sched/core.c:5314 [inline]
- __schedule+0x16f5/0x4d00 kernel/sched/core.c:6697
- __schedule_loop kernel/sched/core.c:6775 [inline]
- schedule+0x165/0x360 kernel/sched/core.c:6790
- schedule_preempt_disabled+0x13/0x30 kernel/sched/core.c:6847
- __mutex_lock_common kernel/locking/mutex.c:679 [inline]
- __mutex_lock+0x724/0xe80 kernel/locking/mutex.c:747
- rtnl_net_lock include/linux/rtnetlink.h:130 [inline]
- inet_rtm_newaddr+0x3b0/0x18b0 net/ipv4/devinet.c:979
+If the status bit is used to synchronize the different threads,
+I agree this needs to be set_bit(). But I am not sure yet this is
+sufficient yet.
 
-
----
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+Thanks.
