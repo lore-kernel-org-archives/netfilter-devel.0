@@ -1,297 +1,111 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f78.google.com (mail-io1-f78.google.com [209.85.166.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63FAA21B9E2
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 15:15:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B68791DE2BF
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 20:55:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752592548; cv=none; b=tXKcbjc5y5jRzUjZUdjmQp3LGsc4Itso1jfRnT0ZenfOsgxl/3gmiw+Oc2otSMq+DZMVA1ITUnayTOTtVHZorUraj7TtIpK6QtWyg66v62yZdCOsLBcij3RzNr5AfDKx37xQoZGkG6jX8JJDbTMDuQJ2rzQQ+C3y0HtRMkqSpGM=
+	t=1752612933; cv=none; b=jRjzgNMDx5S6piwWfCdLek6ofzHFkOGxIqkDH8qA1Pf9WKx89UHT9pIVF4A7xDeVcAMRalfjE0BQfn6tSxgXHYsX/xJJHoDCfjzTyKUPFtngedlEHYldzD/6RIVvceH+IJrMLH6dhee1kUYK3ppq5O6tJD9rjgBo+IY2LsXdD+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752592548; c=relaxed/simple;
-	bh=/POxvzE7ekkcmKwFzXLyu6swkD/pFuO5Xw18XJERNzY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=AsGKHjfCyx0GIjNuV5jNc88+pfvRDnyqFPvVIM/8SDnFjYTpe98VeWVp+hCx7BviyNZRyWpuA/dA18+V8ruVXK89Nr09SCj73h69khln/CBfesE/KbngvoRmV0dM+xN/mDnTvEnK4gu1htzoA6JokQYmVkK+SZgT27ZHZibhTyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=mf+NzKqY; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="mf+NzKqY"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Ar38TXeXFP3/Kd65anADIPvlA8btPJXyQSQiGki5TFg=; b=mf+NzKqY/A63GOYLP9pXSiaboi
-	iXRm6QCheN5BmUFdVSQj8HbQypNLxRQ+3w58xSnqkROQy7T9zRVNARzVZ/05UVHobyH6Izdr4/5mK
-	IABANFsRUynvjZc5ybx+ilnTI87pq852xK5aGecLBRKPp6Qc3ghbiwOuGXLSuOnkqCojyOU0aebN4
-	/UflgMLpVkA9Q2NBkOipbqOOgJ0DNbsitp2XONQ3oTT4bkDaEGZo4vGIluXrjqGteJ84HcbyQX1ha
-	oLLQqme96U/vea4Wj7EPXxIwFjSvIkCcQtTWJGaXzoRjEUoJZVb/ghn5cFQIf1daAu2tlATLaBoja
-	BIb2x9Eg==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ubhNg-000000003BV-3J0L;
-	Tue, 15 Jul 2025 17:15:44 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v2 3/3] tests: shell: Test ifname-based hooks
-Date: Tue, 15 Jul 2025 17:15:38 +0200
-Message-ID: <20250715151538.14882-4-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250715151538.14882-1-phil@nwl.cc>
-References: <20250715151538.14882-1-phil@nwl.cc>
+	s=arc-20240116; t=1752612933; c=relaxed/simple;
+	bh=9CNoR++wDZH7NsfjU8OM+KHOVHW57lf73ByuG1G6U60=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=aBcROjYxHJy2wa21xISGPMNWDvbr20SxVS3iFtle+EACaxKDGUVpFn/jxVJLR6TF+9mkq9eXalZH2KuUm3L/t46jsfgHssyOZULU/ixSvt3u0OwU25if1oGqv3jAWAm6D9+C6OOGyA6quVZY9cd0+3o2Ef9leLGKxcvvg3e1hCk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f78.google.com with SMTP id ca18e2360f4ac-86d01ff56ebso1023208339f.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 13:55:31 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1752612931; x=1753217731;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=5vHveuGolym5EQhvmtNqG6g0knqcjvQnZGLJgsJjMjQ=;
+        b=FTHamiFSIN/9JLvqpTlInGDGj8Ik4M8VWiFSD7Jld6fbaFfAOP2ZLXStjnY9NbTtlH
+         cnecpaTOsugNGwA5aRB9SkH5TYx8ozW3rWNGYYZuq3SvUIXFSt1VS1sK9OVJmi8ayFCU
+         uwQ+o8hSEMYmgmBbrRC/QSWJTGXvXloCjyQEa/gT/yMxz2tfglQWOqljTDTUoHf+Jt/U
+         kf+vxkmoYkiNo+u9bqmy5p4nXcx+G1lBYNDCxiHI5kPXzUaRuE43FfsNm4z4GcPG2PXy
+         +Bn+l01TiKoJ5xuV+J7Eq9jm7PdRVy3SUUjhiRHH3bdeMUOZ+dZpQReJ/fulyyQIf7TQ
+         /BCg==
+X-Forwarded-Encrypted: i=1; AJvYcCUpnoId3Scn5UCxABuvn5iYrRt2VHUkgXlN+9BQX4T4xqSz7l16Y6/XTQ8zrQk6i6cOPT5Uyl5yqOdDA6xq5lA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyTNmV0GFei3Cy9O4b8+/e+7bj9dlpXag5Y0Clux6uGthXfaIrs
+	aBUNgGXg3ci2PB4u4lym05JJySR1nwWznMX+L3FyYxahUtsYQKxm//5DkzOm8e0WbJV7xZjzCht
+	bZxkn6AQGbAei8GUVTb/G7uJyIB5d+FhGojnyaYeUfW2n3qEPuZbyxMgb54Y=
+X-Google-Smtp-Source: AGHT+IH41fXInBQhUVFmEC3BYpBSmFe7XYx0t5+7O+tY1xbSuO+MoSFA7uJ2u4Qx5gs1goSDakuSQ0X0NWold4XDloeyf2ZNnLbF
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6602:3f0b:b0:85b:3c49:8811 with SMTP id
+ ca18e2360f4ac-879c0842721mr125977339f.4.1752612930955; Tue, 15 Jul 2025
+ 13:55:30 -0700 (PDT)
+Date: Tue, 15 Jul 2025 13:55:30 -0700
+In-Reply-To: <676d25b2.050a0220.2f3838.0464.GAE@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <6876c042.a00a0220.3af5df.0009.GAE@google.com>
+Subject: Re: [syzbot] [net?] INFO: task hung in inet_rtm_newaddr
+From: syzbot <syzbot+adeb8550754921fece20@syzkaller.appspotmail.com>
+To: davem@davemloft.net, dsahern@kernel.org, edumazet@google.com, 
+	horms@kernel.org, jhs@mojatatu.com, jiri@resnulli.us, kadlec@netfilter.org, 
+	kuba@kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com, vinicius.gomes@intel.com, 
+	xiyou.wangcong@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 
-Assert that:
-- Non-matching interface specs are accepted
-- Existing interfaces are hooked into upon flowtable/chain creation
-- A new device matching the spec is hooked into immediately
-- No stale hooks remain in 'nft list hooks' output
-- Wildcard hooks basically work
+syzbot has found a reproducer for the following issue on:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+HEAD commit:    0be23810e32e Add linux-next specific files for 20250714
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=17c3e98c580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=adc3ea2bfe31343b
+dashboard link: https://syzkaller.appspot.com/bug?extid=adeb8550754921fece20
+compiler:       Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16d1098c580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=116b08f0580000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/13b5be5048fe/disk-0be23810.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/3d2b3b2ceddf/vmlinux-0be23810.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/c7e5fbf3efa6/bzImage-0be23810.xz
+
+The issue was bisected to:
+
+commit 5a781ccbd19e4664babcbe4b4ead7aa2b9283d22
+Author: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Date:   Sat Sep 29 00:59:43 2018 +0000
+
+    tc: Add support for configuring the taprio scheduler
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=10de9adf980000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=12de9adf980000
+console output: https://syzkaller.appspot.com/x/log.txt?x=14de9adf980000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+adeb8550754921fece20@syzkaller.appspotmail.com
+Fixes: 5a781ccbd19e ("tc: Add support for configuring the taprio scheduler")
+
+INFO: task syz-executor:6015 blocked for more than 143 seconds.
+      Not tainted 6.16.0-rc6-next-20250714-syzkaller #0
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz-executor    state:D stack:26920 pid:6015  tgid:6015  ppid:1      task_flags:0x400140 flags:0x00004006
+Call Trace:
+ <TASK>
+ context_switch kernel/sched/core.c:5314 [inline]
+ __schedule+0x16f5/0x4d00 kernel/sched/core.c:6697
+ __schedule_loop kernel/sched/core.c:6775 [inline]
+ schedule+0x165/0x360 kernel/sched/core.c:6790
+ schedule_preempt_disabled+0x13/0x30 kernel/sched/core.c:6847
+ __mutex_lock_common kernel/locking/mutex.c:679 [inline]
+ __mutex_lock+0x724/0xe80 kernel/locking/mutex.c:747
+ rtnl_net_lock include/linux/rtnetlink.h:130 [inline]
+ inet_rtm_newaddr+0x3b0/0x18b0 net/ipv4/devinet.c:979
+
+
 ---
- .../features/list_hooks_flowtable_info.sh     |  7 +++
- .../netdev_chain_name_based_hook_0.json-nft   | 34 ++++++++++++++
- .../dumps/netdev_chain_name_based_hook_0.nft  |  5 +++
- .../chains/netdev_chain_name_based_hook_0     | 44 ++++++++++++++++++
- .../testcases/flowtable/0016name_based_hook_0 | 45 +++++++++++++++++++
- .../dumps/0016name_based_hook_0.json-nft      | 32 +++++++++++++
- .../flowtable/dumps/0016name_based_hook_0.nft |  6 +++
- 7 files changed, 173 insertions(+)
- create mode 100755 tests/shell/features/list_hooks_flowtable_info.sh
- create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
- create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
- create mode 100755 tests/shell/testcases/chains/netdev_chain_name_based_hook_0
- create mode 100755 tests/shell/testcases/flowtable/0016name_based_hook_0
- create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
- create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
-
-diff --git a/tests/shell/features/list_hooks_flowtable_info.sh b/tests/shell/features/list_hooks_flowtable_info.sh
-new file mode 100755
-index 0000000000000..58bc57e040959
---- /dev/null
-+++ b/tests/shell/features/list_hooks_flowtable_info.sh
-@@ -0,0 +1,7 @@
-+#!/bin/sh
-+
-+# check for flowtable info in 'list hooks' output
-+
-+unshare -n bash -c " \
-+$NFT \"table inet t { flowtable ft { hook ingress priority 0; devices = { lo }; }; }\"; \
-+$NFT list hooks netdev device lo | grep -q flowtable\ inet\ t\ ft"
-diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
-new file mode 100644
-index 0000000000000..00706271e96a4
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
-@@ -0,0 +1,34 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "netdev",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "netdev",
-+        "table": "t",
-+        "name": "c",
-+        "handle": 0,
-+        "dev": [
-+          "foo*",
-+          "lo"
-+        ],
-+        "type": "filter",
-+        "hook": "ingress",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
-new file mode 100644
-index 0000000000000..ac5acacd12e6d
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
-@@ -0,0 +1,5 @@
-+table netdev t {
-+	chain c {
-+		type filter hook ingress devices = { "foo*", "lo" } priority filter; policy accept;
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/netdev_chain_name_based_hook_0 b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
-new file mode 100755
-index 0000000000000..8a8a601784084
---- /dev/null
-+++ b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
-@@ -0,0 +1,44 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
-+
-+cspec=' chain netdev t c '
-+$NFT add table netdev t
-+$NFT add $cspec '{ type filter hook ingress priority 0; devices = { lo, foo* }; }'
-+$NFT list hooks netdev device lo | grep -q "$cspec" || {
-+	echo "Existing device lo not hooked into chain as expected"
-+	exit 1
-+}
-+
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 1 ]] || {
-+	echo "Chain hooks into more than just lo"
-+	exit 2
-+}
-+
-+ip link add foo1 type dummy
-+$NFT list hooks netdev device foo1 | grep -q "$cspec" || {
-+	echo "Chain did not hook into new device foo1"
-+	exit 3
-+}
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 2 ]] || {
-+	echo "Chain expected to hook into exactly two devices"
-+	exit 4
-+}
-+
-+ip link del foo1
-+$NFT list hooks netdev device foo1 | grep -q "$cspec" && {
-+	echo "Chain still hooks into removed device foo1"
-+	exit 5
-+}
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 1 ]] || {
-+	echo "Chain expected to hook into just lo"
-+	exit 6
-+}
-+
-+for ((i = 0; i < 100; i++)); do
-+	ip link add foo$i type dummy
-+done
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 101 ]] || {
-+	echo "Chain did not hook into all 100 new devices"
-+	exit 7
-+}
-diff --git a/tests/shell/testcases/flowtable/0016name_based_hook_0 b/tests/shell/testcases/flowtable/0016name_based_hook_0
-new file mode 100755
-index 0000000000000..9a55596027158
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/0016name_based_hook_0
-@@ -0,0 +1,45 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_list_hooks_flowtable_info)
-+
-+ftspec=' flowtable ip t ft '
-+$NFT add table t
-+$NFT add $ftspec '{ hook ingress priority 0; devices = { lo, foo* }; }'
-+$NFT list hooks netdev device lo | grep -q "$ftspec" || {
-+	echo "Existing device lo not hooked into flowtable as expected"
-+	exit 1
-+}
-+
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 1 ]] || {
-+	echo "Flowtable hooks into more than just lo"
-+	exit 2
-+}
-+
-+ip link add foo1 type dummy
-+$NFT list hooks netdev device foo1 | grep -q "$ftspec" || {
-+	echo "Flowtable did not hook into new device foo1"
-+	exit 3
-+}
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 2 ]] || {
-+	echo "Flowtable expected to hook into exactly two devices"
-+	exit 4
-+}
-+
-+ip link del foo1
-+$NFT list hooks netdev device foo1 | grep -q "$ftspec" && {
-+	echo "Flowtable still hooks into removed device foo1"
-+	exit 5
-+}
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 1 ]] || {
-+	echo "Flowtable expected to hook into just lo"
-+	exit 6
-+}
-+
-+for ((i = 0; i < 100; i++)); do
-+	ip link add foo$i type dummy
-+done
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 101 ]] || {
-+	echo "Flowtable did not hook into all 100 new devices"
-+	exit 7
-+}
-diff --git a/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
-new file mode 100644
-index 0000000000000..93e263323ff95
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
-@@ -0,0 +1,32 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "flowtable": {
-+        "family": "ip",
-+        "name": "ft",
-+        "table": "t",
-+        "handle": 0,
-+        "hook": "ingress",
-+        "prio": 0,
-+        "dev": [
-+          "foo*",
-+          "lo"
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
-new file mode 100644
-index 0000000000000..b4810664a956f
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	flowtable ft {
-+		hook ingress priority filter
-+		devices = { "foo*", "lo" }
-+	}
-+}
--- 
-2.49.0
-
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
