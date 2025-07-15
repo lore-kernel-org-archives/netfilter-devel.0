@@ -1,275 +1,282 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBEDC204098;
-	Mon, 14 Jul 2025 19:06:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF4422D46CB
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2025 09:19:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752520015; cv=none; b=dH80Vc+bZ85DclrgGZiWEZgGmx2PAtmWpltFRklsvLYoKsGzSNgqlGp/ui8ycallsYQvJTIcmGRpZ45Zw+u8VIls68LDmXO9ATZRxPUhB7xeFvZhR5hbgAWQ7LgzZ6n2rq6xWb/ypgZat1ZBsW4KjyMkCeMjvHRuc9YdB0b30JU=
+	t=1752571168; cv=none; b=pZvrGgC+zZPPYXoCcLPWgI+uZ0OhB2xVGKeFVd8c63KlOv1KfZR5S6RpbkppYb5i/yPXhyAvF4I/D78M1rRjS1HJYeTTfs/EvNhibycV9BtsLc6+yDZLZOVAM7y70OitCb6uNGLEPeLQRimD4OwGNoUqZvj9dAsLz8SFD2I/aXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752520015; c=relaxed/simple;
-	bh=bXi7xFaFhppvbglAowkQSJ3ZXqcZp2byV6iBG4JAZ+0=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WnRL70y1N0NYh4MJ3UWjJYUh1MCSi5ndUhsk6sw34AK7bgqlnXfMTNZeGQXaCCbbK6AVaujYe5hqq97bihijjvc8pqPtm8ppvEJ6u2w3QwIqBtkGd3dMBjpEZ1T+yHlWPBaJ1KpjySKTkcOcqtWePewRIZPrVX5YM5qng01lm3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZVxaT53g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1752571168; c=relaxed/simple;
+	bh=qG6wLU8i+JF7xYGEzWmCOWXLWIkgkhZv8DlWRXXrG3Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=qDH/JIBtwNU5MXu33eTHQpubi/LiMiu53CwmJoHK5g/fQuRchsGqMzTwSm4J7fZ00fvNb1FSPoIiE5fFiuJLCJnkfGS1v+kE+6rK4RzArQErbG0j4BS5+mmjSjH4wFFCeuyWC7C3qijUDvjzCWmYJ9UafuImMLoAPhBpXt65gfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=eTZNG8k6; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZVxaT53g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5693FC4CEED;
-	Mon, 14 Jul 2025 19:06:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1752520014;
-	bh=bXi7xFaFhppvbglAowkQSJ3ZXqcZp2byV6iBG4JAZ+0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZVxaT53gtwibGmn4+2BUMuECpmIcX2u7iAxNms7G+9q9pt+ciGIVQGUD1csabRSSp
-	 Booozpv0p25DFuWMzZp5gNJBPxzmGoNMfH36P48J2kvyB3G4sZ66fCYxHPOC52CUe3
-	 wSg81oO+NNuhh1OQHP/haYEypBtcSDeOdeOOCUNHc0d/FTk6uWm1e3NJwtITVPA7rn
-	 +mMvk16BeMSRApSqAUR1Vp2ysl7SzapJiHJWv6jbUsM1YSswPHEl4HxuycFIlyrBZN
-	 D03/F4fgz6iJ4ZkqfAZHeMazvRpmCaiEJxG9ApZeM86vcybhQAwINHx7wKYrE5nJ4u
-	 2IOnJmKxEilJQ==
-Date: Mon, 14 Jul 2025 21:06:52 +0200
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Lorenzo Bianconi <lorenzo.bianconi@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Shuah Khan <shuah@kernel.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v3 1/2] net: netfilter: Add IPIP flowtable SW
- acceleration
-Message-ID: <aHVVTHLh-3uKZG9o@lore-desk>
-References: <20250703-nf-flowtable-ipip-v3-0-880afd319b9f@kernel.org>
- <20250703-nf-flowtable-ipip-v3-1-880afd319b9f@kernel.org>
- <aGaVKWKOKj1a-eG1@calendula>
- <aGfQeF_6c2W1ecrX@lore-desk>
- <aGwm7XrM4YaJREru@calendula>
- <aGzPoAKjq8mZGOn2@lore-desk>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eTZNG8k6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1752571165;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=R5Zo3Qz+/JSqrIqZ0VGhTLm3hexFeESuMhYi9NRfon8=;
+	b=eTZNG8k6Mqlx5+9lsw4FejzlbUEFSVQxMc4UKc6u1Jaesxd33T1uTGmb2BcFhval8wLavo
+	OMq45qt0wex95A8HKm0QR81X6/qMWQpF/1UPyWA0Dvckcld6c0pEoNlx4yJg3yUJqpKKFX
+	4TPcxTloW8HRAWH4nMsq03WVNxNi+X8=
+Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-644--cOHXMiGOdOXjfxu4GqDYg-1; Tue,
+ 15 Jul 2025 05:19:22 -0400
+X-MC-Unique: -cOHXMiGOdOXjfxu4GqDYg-1
+X-Mimecast-MFC-AGG-ID: -cOHXMiGOdOXjfxu4GqDYg_1752571161
+Received: from mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.111])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 3217B1800290;
+	Tue, 15 Jul 2025 09:19:21 +0000 (UTC)
+Received: from yiche-laptop.redhat.com (unknown [10.72.116.100])
+	by mx-prod-int-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 0763318046C3;
+	Tue, 15 Jul 2025 09:19:18 +0000 (UTC)
+From: Yi Chen <yiche@redhat.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH] tests: shell: add type route chain test case
+Date: Tue, 15 Jul 2025 17:19:13 +0800
+Message-ID: <20250715091916.24403-1-yiche@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="xy3PuCG39z8GcYvn"
-Content-Disposition: inline
-In-Reply-To: <aGzPoAKjq8mZGOn2@lore-desk>
+Content-Type: text/plain; charset=y
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.111
 
+This test case verifies the functionality of nft type route chain
+when used with policy routing based on dscp and fwmark.
 
---xy3PuCG39z8GcYvn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Yi Chen <yiche@redhat.com>
+---
+ .../packetpath/dumps/type_route_chain.nodump  |   0
+ .../testcases/packetpath/type_route_chain     | 201 ++++++++++++++++++
+ 2 files changed, 201 insertions(+)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/type_route_chain.nodump
+ create mode 100755 tests/shell/testcases/packetpath/type_route_chain
 
-> On Jul 07, Pablo Neira Ayuso wrote:
-> > On Fri, Jul 04, 2025 at 03:00:40PM +0200, Lorenzo Bianconi wrote:
-> > > > On Thu, Jul 03, 2025 at 04:16:02PM +0200, Lorenzo Bianconi wrote:
-> > > > > Introduce SW acceleration for IPIP tunnels in the netfilter flowt=
-able
-> > > > > infrastructure.
-> > > > > IPIP SW acceleration can be tested running the following scenario=
- where
-> > > > > the traffic is forwarded between two NICs (eth0 and eth1) and an =
-IPIP
-> > > > > tunnel is used to access a remote site (using eth1 as the underla=
-y device):
-> > > >=20
-> > > > Question below.
-> > > >=20
-> > > > > ETH0 -- TUN0 <=3D=3D> ETH1 -- [IP network] -- TUN1 (192.168.100.2)
-> > > > >=20
-> > > > > $ip addr show
-> > > > > 6: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue=
- state UP group default qlen 1000
-> > > > >     link/ether 00:00:22:33:11:55 brd ff:ff:ff:ff:ff:ff
-> > > > >     inet 192.168.0.2/24 scope global eth0
-> > > > >        valid_lft forever preferred_lft forever
-> > > > > 7: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue=
- state UP group default qlen 1000
-> > > > >     link/ether 00:11:22:33:11:55 brd ff:ff:ff:ff:ff:ff
-> > > > >     inet 192.168.1.1/24 scope global eth1
-> > > > >        valid_lft forever preferred_lft forever
-> > > > > 8: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqu=
-eue state UNKNOWN group default qlen 1000
-> > > > >     link/ipip 192.168.1.1 peer 192.168.1.2
-> > > > >     inet 192.168.100.1/24 scope global tun0
-> > > > >        valid_lft forever preferred_lft forever
-> > > > >=20
-> > > > > $ip route show
-> > > > > default via 192.168.100.2 dev tun0
-> > > > > 192.168.0.0/24 dev eth0 proto kernel scope link src 192.168.0.2
-> > > > > 192.168.1.0/24 dev eth1 proto kernel scope link src 192.168.1.1
-> > > > > 192.168.100.0/24 dev tun0 proto kernel scope link src 192.168.100=
-=2E1
-> > > > >=20
-> > > > > $nft list ruleset
-> > > > > table inet filter {
-> > > > >         flowtable ft {
-> > > > >                 hook ingress priority filter
-> > > > >                 devices =3D { eth0, eth1 }
-> > > > >         }
-> > > > >=20
-> > > > >         chain forward {
-> > > > >                 type filter hook forward priority filter; policy =
-accept;
-> > > > >                 meta l4proto { tcp, udp } flow add @ft
-> > > > >         }
-> > > > > }
-> > > > >=20
-> > > > > Reproducing the scenario described above using veths I got the fo=
-llowing
-> > > > > results:
-> > > > > - TCP stream transmitted into the IPIP tunnel:
-> > > > >   - net-next:				~41Gbps
-> > > > >   - net-next + IPIP flowtbale support:	~40Gbps
-> > > >                       ^^^^^^^^^
-> > > > no gain on tx side.
-> > >=20
-> > > In this case the IPIP flowtable acceleration is effective just on the=
- ACKs
-> > > packets so I guess it is expected we have ~ the same results. The rea=
-l gain is
-> > > when the TCP stream is from the tunnel net_device to the NIC one.
-> >=20
-> > That is, only rx side follows the flowtable datapath.
-> >=20
-> > > > > - TCP stream received from the IPIP tunnel:
-> > > > >   - net-next:				~35Gbps
-> > > > >   - net-next + IPIP flowtbale support:	~49Gbps
-> > > > >=20
-> > > > > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> > > > > ---
-> > > > >  net/ipv4/ipip.c                  | 21 +++++++++++++++++++++
-> > > > >  net/netfilter/nf_flow_table_ip.c | 34 ++++++++++++++++++++++++++=
-++++++--
-> > > > >  2 files changed, 53 insertions(+), 2 deletions(-)
-> > > > >=20
-> > > > > diff --git a/net/ipv4/ipip.c b/net/ipv4/ipip.c
-> > > > > index 3e03af073a1ccc3d7597a998a515b6cfdded40b5..05fb1c859170d7400=
-9d693bc8513183bdec3ff90 100644
-> > > > > --- a/net/ipv4/ipip.c
-> > > > > +++ b/net/ipv4/ipip.c
-> > > > > @@ -353,6 +353,26 @@ ipip_tunnel_ctl(struct net_device *dev, stru=
-ct ip_tunnel_parm_kern *p, int cmd)
-> > > > >  	return ip_tunnel_ctl(dev, p, cmd);
-> > > > >  }
-> > > > > =20
-> > > > > +static int ipip_fill_forward_path(struct net_device_path_ctx *ct=
-x,
-> > > > > +				  struct net_device_path *path)
-> > > > > +{
-> > > > > +	struct ip_tunnel *tunnel =3D netdev_priv(ctx->dev);
-> > > > > +	const struct iphdr *tiph =3D &tunnel->parms.iph;
-> > > > > +	struct rtable *rt;
-> > > > > +
-> > > > > +	rt =3D ip_route_output(dev_net(ctx->dev), tiph->daddr, 0, 0, 0,
-> > > > > +			     RT_SCOPE_UNIVERSE);
-> > > > > +	if (IS_ERR(rt))
-> > > > > +		return PTR_ERR(rt);
-> > > > > +
-> > > > > +	path->type =3D DEV_PATH_ETHERNET;
-> > > > > +	path->dev =3D ctx->dev;
-> > > > > +	ctx->dev =3D rt->dst.dev;
-> > > > > +	ip_rt_put(rt);
-> > > > > +
-> > > > > +	return 0;
-> > > > > +}
-> > > > > +
-> > > > >  static const struct net_device_ops ipip_netdev_ops =3D {
-> > > > >  	.ndo_init       =3D ipip_tunnel_init,
-> > > > >  	.ndo_uninit     =3D ip_tunnel_uninit,
-> > > > > @@ -362,6 +382,7 @@ static const struct net_device_ops ipip_netde=
-v_ops =3D {
-> > > > >  	.ndo_get_stats64 =3D dev_get_tstats64,
-> > > > >  	.ndo_get_iflink =3D ip_tunnel_get_iflink,
-> > > > >  	.ndo_tunnel_ctl	=3D ipip_tunnel_ctl,
-> > > > > +	.ndo_fill_forward_path =3D ipip_fill_forward_path,
-> > > > >  };
-> > > > > =20
-> > > > >  #define IPIP_FEATURES (NETIF_F_SG |		\
-> > > > > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_=
-flow_table_ip.c
-> > > > > index 8cd4cf7ae21120f1057c4fce5aaca4e3152ae76d..6b55e00b1022f0a2b=
-02d9bfd1bd34bb55c1b83f7 100644
-> > > > > --- a/net/netfilter/nf_flow_table_ip.c
-> > > > > +++ b/net/netfilter/nf_flow_table_ip.c
-> > > > > @@ -277,13 +277,37 @@ static unsigned int nf_flow_xmit_xfrm(struc=
-t sk_buff *skb,
-> > > > >  	return NF_STOLEN;
-> > > > >  }
-> > > > > =20
-> > > > > +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *si=
-ze)
-> > > > > +{
-> > > > > +	struct iphdr *iph;
-> > > > > +
-> > > > > +	if (!pskb_may_pull(skb, sizeof(*iph)))
-> > > > > +		return false;
-> > > > > +
-> > > > > +	iph =3D (struct iphdr *)skb_network_header(skb);
-> > > > > +	*size =3D iph->ihl << 2;
-> > > > > +
-> > > > > +	if (ip_is_fragment(iph) || unlikely(ip_has_options(*size)))
-> > > > > +		return false;
-> > > > > +
-> > > > > +	if (iph->ttl <=3D 1)
-> > > > > +		return false;
-> > > > > +
-> > > > > +	return iph->protocol =3D=3D IPPROTO_IPIP;
-> > > >=20
-> > >=20
-> > > what kind of sanity checks are we supposed to perform? Something simi=
-lar to
-> > > what we have in ip_rcv_core()?
-> >=20
-> > I am not referring to sanity checks.
-> >=20
-> > VLAN/PPP ID (layer 2 encapsulation) is part of the lookup in the
-> > flowtable, why IPIP (layer 3 tunnel) does not get the same handling?
->=20
-> ack, right. Do you have any suggestion about what field (or combination
-> of fields) we can use from the outer IP header similar to the VLAN/PPP
-> encapsulation?
+diff --git a/tests/shell/testcases/packetpath/dumps/type_route_chain.nodump b/tests/shell/testcases/packetpath/dumps/type_route_chain.nodump
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/shell/testcases/packetpath/type_route_chain b/tests/shell/testcases/packetpath/type_route_chain
+new file mode 100755
+index 00000000..b4052fd9
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/type_route_chain
+@@ -0,0 +1,201 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_tcpdump)
++
++. $NFT_TEST_LIBRARY_FILE
++
++cleanup()
++{
++	for i in $C $S $R1 $R2 $B0 $B1;do
++		kill $(ip netns pid $i) 2>/dev/null
++		ip netns del $i
++	done
++	rm -rf $WORKDIR
++}
++trap cleanup EXIT
++
++#     r1_ route1 r1_
++#      │          │
++# s_──br0        br1──c_
++#      │          │
++#     r2_ route2 r2_
++
++rnd=$(mktemp -u XXXXXXXX)
++C="route-type-chain-client-$rnd"
++S="route-type-chain-server-$rnd"
++R1="route-type-chain-route1-$rnd"
++R2="route-type-chain-route2-$rnd"
++B0="route-type-chain-bridge0-$rnd"
++B1="route-type-chain-bridge1-$rnd"
++WORKDIR="/tmp/route-type-chain-$rnd"
++
++umask 022
++mkdir -p "$WORKDIR"
++assert_pass "mkdir $WORKDIR"
++
++ip netns add $S
++ip netns add $C
++ip netns add $R1
++ip netns add $R2
++ip netns add $B0
++ip netns add $B1
++
++ip -net $S  link set lo up
++ip -net $C  link set lo up
++ip -net $R1 link set lo up
++ip -net $R2 link set lo up
++ip -net $B0 link set lo up
++ip -net $B1 link set lo up
++
++ip -n $B0 link add br0 up type bridge
++ip -n $B1 link add br1 up type bridge
++
++ip link add s_br0  up netns $S  type veth peer name br0_s  netns $B0
++ip link add c_br1  up netns $C  type veth peer name br1_c  netns $B1
++ip link add r1_br0 up netns $R1 type veth peer name br0_r1 netns $B0
++ip link add r1_br1 up netns $R1 type veth peer name br1_r1 netns $B1
++ip link add r2_br0 up netns $R2 type veth peer name br0_r2 netns $B0
++ip link add r2_br1 up netns $R2 type veth peer name br1_r2 netns $B1
++
++ip -n $B0 link set br0_s  up master br0
++ip -n $B0 link set br0_r1 up master br0
++ip -n $B0 link set br0_r2 up master br0
++ip -n $B1 link set br1_c  up master br1
++ip -n $B1 link set br1_r1 up master br1
++ip -n $B1 link set br1_r2 up master br1
++
++ip6_s_br0=2000::1
++ip6_r1_br0=2000::a
++ip6_r2_br0=2000::b
++ip6_c_br1=2001::1
++ip6_r1_br1=2001::a
++ip6_r2_br1=2001::b
++
++ip netns exec $R1 sysctl -wq net.ipv6.conf.all.forwarding=1
++ip netns exec $R2 sysctl -wq net.ipv6.conf.all.forwarding=1
++
++ip -n $S  addr add ${ip6_s_br0}/64  dev s_br0  nodad
++ip -n $C  addr add ${ip6_c_br1}/64  dev c_br1  nodad
++ip -n $R1 addr add ${ip6_r1_br0}/64 dev r1_br0 nodad
++ip -n $R1 addr add ${ip6_r1_br1}/64 dev r1_br1 nodad
++ip -n $R2 addr add ${ip6_r2_br0}/64 dev r2_br0 nodad
++ip -n $R2 addr add ${ip6_r2_br1}/64 dev r2_br1 nodad
++
++ip -n $S route add default via ${ip6_r1_br0} dev s_br0
++ip -n $C route add default via ${ip6_r1_br1} dev c_br1
++
++ip4_s_br0=192.168.0.1
++ip4_r1_br0=192.168.0.254
++ip4_r2_br0=192.168.0.253
++ip4_c_br1=192.168.1.1
++ip4_r1_br1=192.168.1.254
++ip4_r2_br1=192.168.1.253
++
++ip netns exec $R1 sysctl -wq net.ipv4.conf.all.forwarding=1
++ip netns exec $R2 sysctl -wq net.ipv4.conf.all.forwarding=1
++
++ip -n $S  addr add ${ip4_s_br0}/24  dev s_br0
++ip -n $C  addr add ${ip4_c_br1}/24  dev c_br1
++ip -n $R1 addr add ${ip4_r1_br0}/24 dev r1_br0
++ip -n $R1 addr add ${ip4_r1_br1}/24 dev r1_br1
++ip -n $R2 addr add ${ip4_r2_br0}/24 dev r2_br0
++ip -n $R2 addr add ${ip4_r2_br1}/24 dev r2_br1
++
++ip -n $S route add default via ${ip4_r1_br0} dev s_br0
++ip -n $C route add default via ${ip4_r1_br1} dev c_br1
++
++ip netns exec $C ping -W 10 ${ip4_s_br0} -c2 > /dev/null
++assert_pass "topo ipv4 initialization"
++ip netns exec $C ping -W 10 ${ip6_s_br0} -c2 > /dev/null
++assert_pass "topo ipv6 initialization"
++
++check_icmp_in_r1()
++{
++	local dst_addr="$1"
++	local PCAP="${WORKDIR}/$(mktemp -u XXXX).pcap"
++	ip netns exec $R1 tcpdump --immediate-mode -Ui r1_br0 -w ${PCAP} 2>/dev/null &
++	local pid=$!
++	ip netns exec $C ping -W 1 ${dst_addr} -c2 > /dev/null
++	assert_pass "ping pass"
++
++	kill $pid; sync
++	tcpdump -nr ${PCAP} 2> /dev/null| grep -q "echo request"
++	assert_fail "echo request should be routed to r2"
++
++	ip netns exec $R1 tcpdump -nr ${PCAP} 2> /dev/null | grep -q "echo reply"
++	assert_pass "echo relpy was observed"
++}
++
++echo -e "\nTest ipv6 dscp reroute"
++# The last two bits of the DSCP field are reserved for ECN.
++# So nft dscp set 0x02 becomes 0x08 after a left shift by 2,
++# which matches ip rule dsfield 0x08.
++ip -6 -n $C route add default via ${ip6_r2_br1} dev c_br1 table 100
++ip -6 -n $C rule add dsfield 0x08 pref 1010 table 100
++assert_pass "Add ipv6 dscp policy routing rule"
++ip netns exec $C nft -f - <<-EOF
++table inet outgoing {
++	chain output_route {
++		type route hook output priority filter; policy accept;
++		icmpv6 type echo-request ip6 dscp set 0x02 counter
++	}
++}
++EOF
++assert_pass "Restore nft ruleset"
++check_icmp_in_r1 ${ip6_s_br0}
++ip -6 -n $C rule del dsfield 0x08 pref 1010 table 100
++ip -6 -n $C route del default via ${ip6_r2_br1} dev c_br1 table 100
++
++
++echo -e "\nTest ipv4 dscp reroute"
++ip -n $C route add default via ${ip4_r2_br1} dev c_br1 table 100
++ip -n $C rule add dsfield 0x08 pref 1010 table 100
++assert_pass "Add ipv4 dscp policy routing rule"
++ip netns exec $C nft -f - <<-EOF
++table inet outgoing {
++	chain output_route {
++		type route hook output priority filter; policy accept;
++		icmp type echo-request ip dscp set 0x02 counter
++	}
++}
++EOF
++assert_pass "Restore nft ruleset"
++check_icmp_in_r1 ${ip4_s_br0}
++ip -n $C rule del dsfield 0x08 pref 1010 table 100
++ip -n $C route del default via ${ip4_r2_br1} dev c_br1 table 100
++
++
++echo -e "\nTest ipv4 fwmark reroute"
++ip -n $C route add default via ${ip4_r2_br1} dev c_br1 table 100
++ip -n $C rule add fwmark 0x0100 lookup 100
++assert_pass "Add ipv4 fwmark policy routing rule"
++ip netns exec $C nft -f - <<-EOF
++table inet outgoing {
++	chain output_route {
++		type route hook output priority filter; policy accept;
++		icmp type echo-request meta mark set 0x0100 counter
++	}
++}
++EOF
++assert_pass "Restore nft ruleset"
++check_icmp_in_r1 ${ip4_s_br0}
++ip -n $C rule del fwmark 0x0100 lookup 100
++ip -n $C route del default via ${ip4_r2_br1} dev c_br1 table 100
++
++
++echo -e "\nTest ipv6 fwmark reroute"
++ip -6 -n $C route add default via ${ip6_r2_br1} dev c_br1 table 100
++ip -6 -n $C rule add fwmark 0x0100 lookup 100
++assert_pass "Add ipv6 fwmark policy routing rule"
++ip netns exec $C nft -f - <<-EOF
++table inet outgoing {
++	chain output_route {
++		type route hook output priority filter; policy accept;
++		icmpv6 type echo-request meta mark set 0x0100 counter
++	}
++}
++EOF
++assert_pass "Restore nft ruleset"
++check_icmp_in_r1 ${ip6_s_br0}
++ip -6 -n $C rule del fwmark 0x0100 lookup 100
++ip -6 -n $C route del default via ${ip6_r2_br1} dev c_br1 table 100
+-- 
+2.50.0
 
-What about a hash computed over some of the outer IP header fields? (e.g IP
-saddr and daddr).
-
-Regards,
-Lorenzo
-
->=20
-> >=20
-> > > > Once the flow is in the flowtable, it is possible to inject traffic
-> > > > with forged outer IP header, this is only looking at the inner IP
-> > > > header.
-> > >=20
-> > > what is the difference with the plain IP/TCP use-case?
-> >=20
-> > Not referring to the generic packet forging scenario. I refer to the
-> > scenario that would allow to forward packets for any IPIP outer header
-> > given the inner header finds a matching in the flowtable. I think that
-> > needs to be sorted out.
->=20
-> ack.
->=20
-> Regards,
-> Lorenzo
-
-
-
---xy3PuCG39z8GcYvn
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaHVVTAAKCRA6cBh0uS2t
-rC98AQC7S+NaP6yVNKU/pR+A3WiTGmiGV9CxZRTM+geLl4u1twD/dzAgLlo9iDM9
-b3FmkFWDCuc4xi2m08lf5RJZFwg9ZQY=
-=q+lU
------END PGP SIGNATURE-----
-
---xy3PuCG39z8GcYvn--
