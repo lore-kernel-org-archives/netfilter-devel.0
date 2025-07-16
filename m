@@ -1,47 +1,50 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0147B2F530F
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Jul 2025 12:40:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D26142F5313
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Jul 2025 12:40:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752669630; cv=none; b=pBRed/zBMWDkaC89fXABVfCWKEeNRfJ3fyZ+qXeTHRYV0PxhxTeJ5qwm+dPxVeC1I13YLymtiJ7ycj4xHeJLE2lldfcfLQ+esd9c/mlSZI643iihUcETY4oPdOl+++SbIQq7E9U/HazRjQWb2TR0ADJltN+x/mV7hn9Zen1CUI8=
+	t=1752669630; cv=none; b=FZvpDvBHTtwNHiYU2QYjmVb30stFHlBlbJr823LuJmbmssSWuzMbsACJrkq3S7HyJ7AONzlaYlPoGtzBPkGnDVLLd2NnDefMGEP9yEbxDhTWzvszc8wh5B6gdebdH+1xtNrH9wm8OFpDlAnHQxbmvXLa/8Po0csP/vZfs8Hbwvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1752669630; c=relaxed/simple;
-	bh=D5YG85f+qsPyV8mCeNP9lHp9xQG5dW7SoV6xiF9hz3s=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XJgDWeu5YJhVVzCA+XtuYVXM4tssFa0HzpJbChCf26ziZIeZIxXSjhYhxXKCXfGKKwcsoj6Xl5iQZb7Gr+XH+BxFCkZEcKfDTNNCzZUNTjE8jR20CpSsHi1+LAl2ZJnKiiNUTfjLykbkXg+P+sGEMxHBWuvqs4E9vOO+xBZXBYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Ed6BYiPg; arc=none smtp.client-ip=151.80.46.58
+	bh=eCYnUuIt7+n6Yu5/pYcYewFhU1L2fOCf9J4ZDp7tz5Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BlOmsNE8Y65KprcTCY5PQvc6P6d0xifTr33lKZjqEJliJ8m/Avj9tqvcDqOHxHQzSE7lorQ30/dDag3iv/Mc+B/B+064rFIzQjwGepK3DZOHIoOVilV/yoTuo7BdZVobVw1okTrp3xleZw/TaCtGNxyaocpvIxy7P8oM7FsomS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=jkE3f7+S; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Ed6BYiPg"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="jkE3f7+S"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=4FDwGDn9YxHX1gm6w2y9L2D+FutD1v5DYeyYsih0KxE=; b=Ed6BYiPgGdAdlQDTAX5UOENQ/y
-	XN3oTqrbNPU/Wz/yIqCTzNG5xlJGXMFnLiVHncw07+a1i1pDfbRhtJ84GYVnujQHnK4i384lgbYxo
-	L9/cP1jhDLX0oHe+ywXhSzNfIAdjyQN+71Prr3FsHz+RTLu8XWW2ofJE2wbWTX9rPnCcXLT/FVk0s
-	sVQSedNPuenexejO05n0PBR4J2OygjR4alfhEQofjy9fjPg/lROfSLVdmXv+l+3ZF3p0lXPPGhJXg
-	VfgoCRD7jdkB+MCDmzmCDtHQsN9s5jqrzIYcsuKFC36A15ADed6vJ/tXIcw2R4iiQrLarNwjcFbmh
-	aHWTN0Eg==;
+	bh=6uH9pQRtMohezTyaWwiSCgAp29GCske8iWBqPNM2dC4=; b=jkE3f7+S1z+fB66B9ZnGtLlhH3
+	03B9SEhejaPAMCaDzxXANCedYyc3wQfyvFoH0epDeVNQySsE8bFcXl2uMgHuNt0qc+xVizscYPFjW
+	9igk9rz/tA849SB+1oX2lp9N0XB6oPcCDG/10Mt4UtvPHN9RD6TEWQafeZBkE1UNeYObqWYjYy4Kh
+	nGOIbT76c+PT7caT6bDCKBvZLMW+at00zGStGLFgdu3n/T9SUpqU1Nn/RftcJaIvq/sP9S5284CBU
+	8Yih63g8I7T/dboMJ5lWBXYokVfh0ZDjVOJ9Acnr9mD14h9kd/VqbiMTTGcK/t9qxbzu6SobcAY9J
+	1gn32K9w==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uc1Qw-00000000447-1DCj;
-	Wed, 16 Jul 2025 14:40:26 +0200
+	id 1uc1Qx-0000000044J-1It1;
+	Wed, 16 Jul 2025 14:40:27 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: Florian Westphal <fw@strlen.de>,
 	netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v3 0/4] Support wildcard netdev hooks
-Date: Wed, 16 Jul 2025 14:40:16 +0200
-Message-ID: <20250716124020.5447-1-phil@nwl.cc>
+Subject: [nft PATCH v3 2/4] mnl: Support simple wildcards in netdev hooks
+Date: Wed, 16 Jul 2025 14:40:18 +0200
+Message-ID: <20250716124020.5447-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250716124020.5447-1-phil@nwl.cc>
+References: <20250716124020.5447-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,44 +53,79 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
+When building NFTA_FLOWTABLE_HOOK_DEVS, NFTA_HOOK_DEV or NFTA_HOOK_DEVS
+attributes, detect trailing asterisks in interface names and reduce
+attribute length accordingly. Kernel will use strncmp(), effectively
+performing a prefix search this way.
+
+Deserialization (i.e., appending asterisk to interface names which don't
+include a trailing nul-char) happens in libnftnl.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
 Changes since v2:
-- New patch 1 fixing for excessive mnl_attr_nest_end() calls
-- Introduce a helper function in patch 2 which also sanity-checks an
-  array index - this is a copy of libnftnl's function for the same
-  purpose, but we rather get rid of the dupicated calling code instead
-  of exposing (and thus maintaining in future) the function from
-  libnftnl
+- Introduce mnl_attr_put_ifname() to perform the conditional
+  mnl_attr_put() parameter adjustment
+- Sanity-check array index in above function to avoid out-of-bounds
+  access
+---
+ src/mnl.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-This is the remaining needed code change to support wildcard hook specs.
-Patch 4 also adds shell test cases to cover the functionality. The
-flowtable variant is skipped if 'nft list hooks' does not provide
-flowtable information as this requires NFNL_HOOK_TYPE_NFT_FLOWTABLE in
-kernel.
-
-Phil Sutter (4):
-  mnl: Call mnl_attr_nest_end() just once
-  mnl: Support simple wildcards in netdev hooks
-  parser_bison: Accept ASTERISK_STRING in flowtable_expr_member
-  tests: shell: Test ifname-based hooks
-
- src/mnl.c                                     | 22 ++++++---
- src/parser_bison.y                            | 11 +----
- .../features/list_hooks_flowtable_info.sh     |  7 +++
- .../netdev_chain_name_based_hook_0.json-nft   | 34 ++++++++++++++
- .../dumps/netdev_chain_name_based_hook_0.nft  |  5 +++
- .../chains/netdev_chain_name_based_hook_0     | 44 ++++++++++++++++++
- .../testcases/flowtable/0016name_based_hook_0 | 45 +++++++++++++++++++
- .../dumps/0016name_based_hook_0.json-nft      | 32 +++++++++++++
- .../flowtable/dumps/0016name_based_hook_0.nft |  6 +++
- 9 files changed, 191 insertions(+), 15 deletions(-)
- create mode 100755 tests/shell/features/list_hooks_flowtable_info.sh
- create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
- create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
- create mode 100755 tests/shell/testcases/chains/netdev_chain_name_based_hook_0
- create mode 100755 tests/shell/testcases/flowtable/0016name_based_hook_0
- create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
- create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
-
+diff --git a/src/mnl.c b/src/mnl.c
+index 43229f2498e55..8ec4ef40d2761 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -795,6 +795,17 @@ static void nft_dev_array_free(const struct nft_dev *dev_array)
+ 	free_const(dev_array);
+ }
+ 
++static void mnl_attr_put_ifname(struct nlmsghdr *nlh,
++				int attr, const char *ifname)
++{
++	int len = strlen(ifname) + 1;
++
++	if (len >= 2 && ifname[len - 2] == '*')
++		len -= 2;
++
++	mnl_attr_put(nlh, attr, len, ifname);
++}
++
+ static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
+ {
+ 	const struct expr *dev_expr = cmd->chain->dev_expr;
+@@ -805,12 +816,13 @@ static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
+ 	dev_array = nft_dev_array(dev_expr, &num_devs);
+ 	if (num_devs == 1) {
+ 		cmd_add_loc(cmd, nlh, dev_array[0].location);
+-		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, dev_array[0].ifname);
++		mnl_attr_put_ifname(nlh, NFTA_HOOK_DEV, dev_array[0].ifname);
+ 	} else {
+ 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
+ 		for (i = 0; i < num_devs; i++) {
+ 			cmd_add_loc(cmd, nlh, dev_array[i].location);
+-			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
++			mnl_attr_put_ifname(nlh, NFTA_DEVICE_NAME,
++					    dev_array[i].ifname);
+ 		}
+ 		mnl_attr_nest_end(nlh, nest_dev);
+ 	}
+@@ -2085,13 +2097,13 @@ static void mnl_nft_ft_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
+ 	const struct expr *dev_expr = cmd->flowtable->dev_expr;
+ 	const struct nft_dev *dev_array;
+ 	struct nlattr *nest_dev;
+-	int i, num_devs= 0;
++	int i, num_devs = 0;
+ 
+ 	dev_array = nft_dev_array(dev_expr, &num_devs);
+ 	nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
+ 	for (i = 0; i < num_devs; i++) {
+ 		cmd_add_loc(cmd, nlh, dev_array[i].location);
+-		mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
++		mnl_attr_put_ifname(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
+ 	}
+ 
+ 	mnl_attr_nest_end(nlh, nest_dev);
 -- 
 2.49.0
 
