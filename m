@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9BCB28B3F8;
-	Thu, 17 Jul 2025 09:51:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C37FB291C24;
+	Thu, 17 Jul 2025 09:51:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752745899; cv=none; b=FU4bVn1SGV+e28m4SK1CNQ2p0is1Qv07F/vGlRExTahMG0Td/qzrhs7ZEF6RDQARM9JjCdFssxUyxAdu/SO7uo8/hlFmBuFVKJG0e6iHqnXzhH2I11xQYbD5RMFlDMevidxE2dYn6h3uubkDpUa+529bwl4Dw2ttt7IkxEYhPmc=
+	t=1752745900; cv=none; b=to2QP76E26CwBQLm/ZhWbyLSDtc7FNr9/fwtb+YJPbu8bxTJdDI2YmkDyLk20SAEEVBErinfc90nNztYGWa6FyLNHjGv31Vl+d2QjMK21AwCPwYXwLMu3cSFxxNyc9oHdPhYwUGrd9p0UO2+on2RDlhJvZmnPngg38LLqdwJnMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752745899; c=relaxed/simple;
-	bh=WtnybkwodSajCbtbb9Pn/1XbTgRj88tSievYzNnCtP4=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=bybo+OBNns7UTVDH6JdJyYg5gw03gbwMXvduZdAjHEqXT3OvDq1kNej74sVlhsDcw4hungw/ra3AyQvrirxwmlOWUZvTAFek8WBRwrOn//suGHIaXsld9xMtvT3E9TDLXfZ8ggfmdUQs7wjkANdVlypf3gCfwk4d7SS/IwOg/3c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Wo4hWISE; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Cy7H138B; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1752745900; c=relaxed/simple;
+	bh=vcFrRw+JJwS2Z62r5aHR2T4DTVavwdN54vki0QR3MnA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=PFblAAcX7tzpqILLcgVsiToWlGAJmbQvdbimJXjFlRzOGgjKbAYS9thvpNPPwtZWGUCgdq57k1qKqAk8YGGBN4GjTsOAXSTdMiyFuDwiFx38sSudV0YnxsJLnoa65IdvyZ+xGIc/S7J5Gzw6rKGHCdp1uY2fuuV0GC7UgOc4gDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cywUveKx; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hd9Mu5fT; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Wo4hWISE";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Cy7H138B"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cywUveKx";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hd9Mu5fT"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id E79B5602B5; Thu, 17 Jul 2025 11:51:27 +0200 (CEST)
+	id 32E32602C0; Thu, 17 Jul 2025 11:51:36 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752745887;
-	bh=RcnMvOQNPMK7IxiXge45OKtQXiHJTPDtjW4C6hGbAYQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Wo4hWISEyAqPz3oNY+lHcpqYBgsdbuhSxmMlnYjvSjRLl5+kVJ7D6F7XmFOLkSQv2
-	 v+DiV5F+C3SzOxCn2n38jGXtKRoq1jKy3hrWSUulTceXkSycN95w9AORxHQJS0NGya
-	 Y7InAAo5wEydv6FVxj4YQcmXTJdOLPDRidjBgRsXYnC7pWVtHS4Pmr7KGl/kWEeABd
-	 I8H9sfwowYrcctfJgchM/DlGtmKyDZcU6GHgvqPE0LoZsWMRTkT2bQTy3SeIn02TN+
-	 LsBiXt2RJy72lrseQ8n6uovUrgN8aaAfwVNIPQ31Jm1tooT/u26iFP78DDZEW9JfPV
-	 AlummIhGpWYgw==
+	s=2025; t=1752745896;
+	bh=TkRlGddvebogkFT2YYs6CD7A3WUzs9z/9tWRdjZTD2s=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=cywUveKxx9jLikNLpcaqnmsY0HfLGsmNjsGf+Y3eJOT59Z2g8fnsEeJ6q5RW2bM7S
+	 iKcD8X5K/RjcrrvBU6LsMyxJyQ4FZNwxd5xDp4mw1uZXE9ZtDMzLQnUD8Vl+RMNyLI
+	 AyHa3u+dMJ11koVpL1C0SdBBn80aFs/m7d+1Bl8buIzK7uYmDMrncmybPR10SLIepG
+	 QIFpUJGnbSXZjQJHWx3KFrbcgE0DdnmBFL1U/Ad+h7aBPv3bGztjSn+U6Q75D5ubky
+	 jo2P9kzWnOxk4rojPZmJDBXBG/I59CsrMjrd8XqxyEM6HtWj7kDAv+sREwkaYDXwLy
+	 fNp6zHzvseBRw==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E5AE4602AD;
-	Thu, 17 Jul 2025 11:51:25 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D2433602B0;
+	Thu, 17 Jul 2025 11:51:30 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1752745886;
-	bh=RcnMvOQNPMK7IxiXge45OKtQXiHJTPDtjW4C6hGbAYQ=;
-	h=From:To:Cc:Subject:Date:From;
-	b=Cy7H138BR/0/H61o/r8Z3zuFxnDDsdKEBw1XpzWDyAFehNijBSp4ZAz97bOFLL/uw
-	 cLvUcUPyF5YyoCYExa9ag36UaE5EBY6iam2r4U4xZ/V1wHpW0rdiEwrtXw9uNBN/p7
-	 vbNBVvgpg9gqeda24GcsmZHN7lQQb75vgyUzpbRebq4ZFYNhwDgM4nuLGSW278jiP5
-	 xDevWdQEZYwz/1SZJlzVJdAhjFbPv3buDke1r45fW3u7HD3XQPA31oNE/U7Ge+2VhB
-	 VY6jcrI/XoO1vIlWhATJPeX03zLxs7L0IVZZsf/TfuuBqxUvwA+CE+l2RXnAqBtSOy
-	 mzgQj4ueBU8Iw==
+	s=2025; t=1752745891;
+	bh=TkRlGddvebogkFT2YYs6CD7A3WUzs9z/9tWRdjZTD2s=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=hd9Mu5fT2lcOIPdJ6WqXD/qEGw/scCnHSprAiAdNy8rJ3hTygNg3Regz4G1Fp4Ncw
+	 QwR5y481hmlZdKB4HNpVzApzDdbwrGU8L1iNeKO0Um9P32r6jj3zKXaguaCCjiQPHo
+	 AoBjhzR6XOklVg/ulj1O8UbVdfS5zyp/78fAMwc8g4VeiJOVZutnaICaISFowfR6qu
+	 K6bSDJK1ALEMTuzDxUF7sXhXSWORr67Ptfj3LeAx2lLXePHMf3pvVaOrj8d9imErFy
+	 n/uErjn8r+SqcWoRVL1AjZVkf5BHm5pbjcMBcKkz5pW/db6GDiVG5aN8dISzWQCd8y
+	 OEUy4QVFc+M1Q==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 0/7] Netfilter fixes for net
-Date: Thu, 17 Jul 2025 11:51:15 +0200
-Message-Id: <20250717095122.32086-1-pablo@netfilter.org>
+Subject: [PATCH net 3/7] selftests: netfilter: conntrack_resize.sh: also use udpclash tool
+Date: Thu, 17 Jul 2025 11:51:18 +0200
+Message-Id: <20250717095122.32086-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20250717095122.32086-1-pablo@netfilter.org>
+References: <20250717095122.32086-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,74 +66,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following batch contains Netfilter fixes for net:
+Previous patch added a new clash resolution test case.
+Also use this during conntrack resize stress test in addition
+to icmp ping flood.
 
-1) Three patches to enhance conntrack selftests for resize and clash
-   resolution, from Florian Westphal.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../selftests/net/netfilter/conntrack_resize.sh | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-2) Expand nft_concat_range.sh selftest to improve coverage from error
-   path, from Florian Westphal.
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_resize.sh b/tools/testing/selftests/net/netfilter/conntrack_resize.sh
+index aa1ba07eaf50..788cd56ea4a0 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_resize.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_resize.sh
+@@ -177,6 +177,22 @@ EOF
+ 	done
+ }
+ 
++ct_udpclash()
++{
++	local ns="$1"
++	local duration="$2"
++	local now=$(date +%s)
++	local end=$((now + duration))
++
++	[ -x udpclash ] || return
++
++        while [ $now -lt $end ]; do
++		ip netns exec "$ns" ./udpclash 127.0.0.1 $((RANDOM%65536)) > /dev/null 2>&1
++
++		now=$(date +%s)
++	done
++}
++
+ # dump to /dev/null.  We don't want dumps to cause infinite loops
+ # or use-after-free even when conntrack table is altered while dumps
+ # are in progress.
+@@ -267,6 +283,7 @@ insert_flood()
+ 
+ 	ct_pingflood "$n" "$timeout" "floodresize" &
+ 	ct_udpflood "$n" "$timeout" &
++	ct_udpclash "$n" "$timeout" &
+ 
+ 	insert_ctnetlink "$n" "$r" &
+ 	ctflush "$n" "$timeout" &
+-- 
+2.39.5
 
-3) Hide clash bit to userspace from netlink dumps until there is a
-   good reason to expose, from Florian Westphal.
-
-4) Revert notification for device registration/unregistration for
-   nftables basechains and flowtables, we decided to go for a better
-   way to handle this through the nfnetlink_hook infrastructure which
-   will come via nf-next, patch from Phil Sutter.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-07-17
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 7727ec1523d7973defa1dff8f9c0aad288d04008:
-
-  net: emaclite: Fix missing pointer increment in aligned_read() (2025-07-11 16:37:06 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-07-17
-
-for you to fetch changes up to 2d72afb340657f03f7261e9243b44457a9228ac7:
-
-  netfilter: nf_conntrack: fix crash due to removal of uninitialised entry (2025-07-17 11:23:33 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-07-17
-
-----------------------------------------------------------------
-Florian Westphal (6):
-      selftests: netfilter: conntrack_resize.sh: extend resize test
-      selftests: netfilter: add conntrack clash resolution test case
-      selftests: netfilter: conntrack_resize.sh: also use udpclash tool
-      selftests: netfilter: nft_concat_range.sh: send packets to empty set
-      netfilter: nf_tables: hide clash bit from userspace
-      netfilter: nf_conntrack: fix crash due to removal of uninitialised entry
-
-Phil Sutter (1):
-      Revert "netfilter: nf_tables: Add notifications for hook changes"
-
- include/net/netfilter/nf_conntrack.h               |  15 +-
- include/net/netfilter/nf_tables.h                  |   5 -
- include/uapi/linux/netfilter/nf_tables.h           |  10 --
- include/uapi/linux/netfilter/nfnetlink.h           |   2 -
- net/netfilter/nf_conntrack_core.c                  |  26 ++-
- net/netfilter/nf_tables_api.c                      |  59 -------
- net/netfilter/nf_tables_trace.c                    |   3 +
- net/netfilter/nfnetlink.c                          |   1 -
- net/netfilter/nft_chain_filter.c                   |   2 -
- tools/testing/selftests/net/netfilter/.gitignore   |   1 +
- tools/testing/selftests/net/netfilter/Makefile     |   3 +
- .../selftests/net/netfilter/conntrack_clash.sh     | 175 +++++++++++++++++++++
- .../selftests/net/netfilter/conntrack_resize.sh    |  97 +++++++++++-
- .../selftests/net/netfilter/nft_concat_range.sh    |   3 +
- tools/testing/selftests/net/netfilter/udpclash.c   | 158 +++++++++++++++++++
- 15 files changed, 468 insertions(+), 92 deletions(-)
- create mode 100755 tools/testing/selftests/net/netfilter/conntrack_clash.sh
- create mode 100644 tools/testing/selftests/net/netfilter/udpclash.c
