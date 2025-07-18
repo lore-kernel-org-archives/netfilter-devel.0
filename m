@@ -1,46 +1,50 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from out-170.mta1.migadu.com (out-170.mta1.migadu.com [95.215.58.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11DA812E7E
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Jul 2025 16:00:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41B972E6D3A
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Jul 2025 17:30:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752854447; cv=none; b=f4PVmnTiaeu/kuVPKEY/zh5xj05L/moCsM3qkdna0j+lFdudfnTNI2m3HC6bxO4+8dOmU7oRXB44GZ3gut3Djvlar6gVF3rANrIe/pS82jfPUpUAnVY3raz0gW8yNBXDnNoJU49/sjWZV4kwu8X5Fmfj2/gKpPT201Q9VRMS4Jk=
+	t=1752859820; cv=none; b=GRNJxZ0ryVMmQ6xjp1zagFI0HFZZkV2OTOdysfM59OyqDzcAV+Hz6D4Ir+BXz+AMa3OlDPndmyEO0KP/4XJJR0KjJQV0i6yYsPOBFjPHYltMYjyDD++LMl9Z9zHp1CadoBPnIc0IfZTS0TYHBmJUb9C1yc3cnC2x2CaA9m4Dyr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752854447; c=relaxed/simple;
-	bh=wZcPPd0gXpr5901EJWgmc2Tn2ykHvcxZQFz9jaCkHtY=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ONcwTX4SWXtvaqKuxUI3LZmV36U05Zuh0RZLtgSsIPQiJgGE+29sBGq1gLEiv6o+0JQnqUqcIkDE618EKb0a3OpBTJQJTbtRVtBH4yqAvkkXbWEZTmHbsf9ReDh5ow3OUvXmqSAlJJbrHnRLPu8gZGYecWXNZUe3VzAkXSg+DCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Y58Izgix; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1752859820; c=relaxed/simple;
+	bh=GQJLQRp6wR0E+oqpeGWe0eJScNcdbrpnD/j+pa2qtoQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ANliglW9C0bVFMTWyVfckr8JeQkxx+ARRAvMu9PXAaXgu8+8mNgdzfKfQMHDQt2URC3uBBx8ktLliXn1MlqbwDXjL69hCtKcVke2CChPH5wju9U85PGOe4PrJ+J6rSOF4NT6yBHda9BeHdI2CvKKJgFDlKXlBttHrrgGGLg8UdI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=k0GOq3HM; arc=none smtp.client-ip=95.215.58.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Y58Izgix"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=FRbUbiP1crv4chKQVi+guCswKb23FP9C4i1OEutq1ng=; b=Y58Izgixi2ETVwu1eS28/2XoUU
-	PT8+WKhi2SGD8MA/OXq0vWHOiV4Ay8Z83uxpIvF+YpZt6Afcq4swvdGPgEobd3TdCC/+8gsGyYnrE
-	FEGBXEdTmV31KBPyWW5zmHc9RjoL5tY47O7ldNHLBTwrNhW0Lxp7ynJuHCJgUA6zWO6m7KK7EUVsb
-	hN0oWK643vlSo6S9lSNgO9yV5A6cc4AMqykxP4ySGKJa/StFYhvocuPP7O89+9y1m6hPuMIXllwfU
-	/56e/cOGFeat9kX7DiDT+B4gcdbgd8ZwBU0WA6ZLP2ryP2BMNqQwtxgpn4JZmfGfiGe+aqe7BiUSE
-	XHDnQycQ==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ucnVl-0000000085T-2JKR
-	for netfilter-devel@vger.kernel.org;
-	Fri, 18 Jul 2025 18:00:37 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] libxtables: Promote xtopt_esize_by_type() as xtopt_psize getter
-Date: Fri, 18 Jul 2025 18:00:32 +0200
-Message-ID: <20250718160032.30444-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="k0GOq3HM"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1752859805;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=1qNW6csArfqmL300w4UUL/cdLHtMm0ChRs8zkgA/5EY=;
+	b=k0GOq3HMzK2rMNk0WPSsnkw0v6KgzeZJpVIY0KFoItiQFHfyO2gYKKzUrOBTSi/1qAB4n0
+	06nZbzAWABvX058GHIhY9OSBAraTDmur1xnU8V/YVlCydg+d57fA0TYHfXcwc0QnRicM45
+	XirXGlR2J6/vWK55FY2fyCvxfmyTNBg=
+From: Tao Chen <chen.dylane@linux.dev>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	ast@kernel.org,
+	fw@strlen.de
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	bpf@vger.kernel.org,
+	Tao Chen <chen.dylane@linux.dev>,
+	syzbot+92c5daf9a23f04ccfc99@syzkaller.appspotmail.com
+Subject: [PATCH bpf-next] netfilter: bpf: Disable migrate before bpf_prog run
+Date: Sat, 19 Jul 2025 01:27:46 +0800
+Message-ID: <20250718172746.1268813-1-chen.dylane@linux.dev>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,67 +52,92 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-Apart from supporting range-types, this getter is convenient to sanitize
-array out of bounds access. Use it in xtables_option_metavalidate() to
-simplify the code a bit.
+syzkaller reported an issue:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+BUG: assuming non migratable context at ./include/linux/filter.h:703
+in_atomic(): 0, irqs_disabled(): 0, migration_disabled() 0 pid: 5829, name: sshd-session
+3 locks held by sshd-session/5829:
+ #0: ffff88807b4e4218 (sk_lock-AF_INET){+.+.}-{0:0}, at: lock_sock include/net/sock.h:1667 [inline]
+ #0: ffff88807b4e4218 (sk_lock-AF_INET){+.+.}-{0:0}, at: tcp_sendmsg+0x20/0x50 net/ipv4/tcp.c:1395
+ #1: ffffffff8e5c4e00 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:331 [inline]
+ #1: ffffffff8e5c4e00 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:841 [inline]
+ #1: ffffffff8e5c4e00 (rcu_read_lock){....}-{1:3}, at: __ip_queue_xmit+0x69/0x26c0 net/ipv4/ip_output.c:470
+ #2: ffffffff8e5c4e00 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:331 [inline]
+ #2: ffffffff8e5c4e00 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:841 [inline]
+ #2: ffffffff8e5c4e00 (rcu_read_lock){....}-{1:3}, at: nf_hook+0xb2/0x680 include/linux/netfilter.h:241
+CPU: 0 UID: 0 PID: 5829 Comm: sshd-session Not tainted 6.16.0-rc6-syzkaller-00002-g155a3c003e55 #0 PREEMPT(full)
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x16c/0x1f0 lib/dump_stack.c:120
+ __cant_migrate kernel/sched/core.c:8860 [inline]
+ __cant_migrate+0x1c7/0x250 kernel/sched/core.c:8834
+ __bpf_prog_run include/linux/filter.h:703 [inline]
+ bpf_prog_run include/linux/filter.h:725 [inline]
+ nf_hook_run_bpf+0x83/0x1e0 net/netfilter/nf_bpf_link.c:20
+ nf_hook_entry_hookfn include/linux/netfilter.h:157 [inline]
+ nf_hook_slow+0xbb/0x200 net/netfilter/core.c:623
+ nf_hook+0x370/0x680 include/linux/netfilter.h:272
+ NF_HOOK_COND include/linux/netfilter.h:305 [inline]
+ ip_output+0x1bc/0x2a0 net/ipv4/ip_output.c:433
+ dst_output include/net/dst.h:459 [inline]
+ ip_local_out net/ipv4/ip_output.c:129 [inline]
+ __ip_queue_xmit+0x1d7d/0x26c0 net/ipv4/ip_output.c:527
+ __tcp_transmit_skb+0x2686/0x3e90 net/ipv4/tcp_output.c:1479
+ tcp_transmit_skb net/ipv4/tcp_output.c:1497 [inline]
+ tcp_write_xmit+0x1274/0x84e0 net/ipv4/tcp_output.c:2838
+ __tcp_push_pending_frames+0xaf/0x390 net/ipv4/tcp_output.c:3021
+ tcp_push+0x225/0x700 net/ipv4/tcp.c:759
+ tcp_sendmsg_locked+0x1870/0x42b0 net/ipv4/tcp.c:1359
+ tcp_sendmsg+0x2e/0x50 net/ipv4/tcp.c:1396
+ inet_sendmsg+0xb9/0x140 net/ipv4/af_inet.c:851
+ sock_sendmsg_nosec net/socket.c:712 [inline]
+ __sock_sendmsg net/socket.c:727 [inline]
+ sock_write_iter+0x4aa/0x5b0 net/socket.c:1131
+ new_sync_write fs/read_write.c:593 [inline]
+ vfs_write+0x6c7/0x1150 fs/read_write.c:686
+ ksys_write+0x1f8/0x250 fs/read_write.c:738
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xcd/0x4c0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7
+
+The cant_migrate() check in __bpf_prog_run requires to disable
+migrate before running the bpf_prog, it seems that migrate is
+not disabled in the above execution path.
+
+Fixes: fd9c663b9ad6 ("bpf: minimal support for programs hooked into netfilter framework")
+Reported-by: syzbot+92c5daf9a23f04ccfc99@syzkaller.appspotmail.com
+Signed-off-by: Tao Chen <chen.dylane@linux.dev>
 ---
- libxtables/xtoptions.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ net/netfilter/nf_bpf_link.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
-index 64d6599af904b..ecaea4ec16cc9 100644
---- a/libxtables/xtoptions.c
-+++ b/libxtables/xtoptions.c
-@@ -145,8 +145,11 @@ static size_t xtopt_esize_by_type(enum xt_option_type type)
- 	case XTTYPE_UINT64RC:
- 		return xtopt_psize[XTTYPE_UINT64];
- 	default:
--		return xtopt_psize[type];
-+		break;
- 	}
-+	if (type < ARRAY_SIZE(xtopt_psize))
-+		return xtopt_psize[type];
-+	return 0;
- }
- 
- static uint64_t htonll(uint64_t val)
-@@ -886,6 +889,8 @@ void xtables_option_parse(struct xt_option_call *cb)
- void xtables_option_metavalidate(const char *name,
- 				 const struct xt_option_entry *entry)
+diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
+index a054d3b216d..b6ed1b844cc 100644
+--- a/net/netfilter/nf_bpf_link.c
++++ b/net/netfilter/nf_bpf_link.c
+@@ -11,13 +11,18 @@
+ static unsigned int nf_hook_run_bpf(void *bpf_prog, struct sk_buff *skb,
+ 				    const struct nf_hook_state *s)
  {
-+	size_t psize;
++	u32 ret;
+ 	const struct bpf_prog *prog = bpf_prog;
+ 	struct bpf_nf_ctx ctx = {
+ 		.state = s,
+ 		.skb = skb,
+ 	};
+ 
+-	return bpf_prog_run(prog, &ctx);
++	migrate_disable();
++	ret = bpf_prog_run(prog, &ctx);
++	migrate_enable();
 +
- 	for (; entry->name != NULL; ++entry) {
- 		if (entry->id >= CHAR_BIT * sizeof(unsigned int) ||
- 		    entry->id >= XT_OPTION_OFFSET_SCALE)
-@@ -900,19 +905,18 @@ void xtables_option_metavalidate(const char *name,
- 					"Oversight?", name, entry->name);
- 			continue;
- 		}
--		if (entry->type >= ARRAY_SIZE(xtopt_psize) ||
--		    xtopt_psize[entry->type] == 0)
-+
-+		psize = xtopt_esize_by_type(entry->type);
-+		if (!psize)
- 			xt_params->exit_err(OTHER_PROBLEM,
- 				"%s: entry type of option \"--%s\" cannot be "
- 				"combined with XTOPT_PUT\n",
- 				name, entry->name);
--		if (xtopt_psize[entry->type] != -1 &&
--		    xtopt_psize[entry->type] != entry->size)
-+		else if (psize != -1 && psize != entry->size)
- 			xt_params->exit_err(OTHER_PROBLEM,
- 				"%s: option \"--%s\" points to a memory block "
- 				"of wrong size (expected %zu, got %zu)\n",
--				name, entry->name,
--				xtopt_psize[entry->type], entry->size);
-+				name, entry->name, psize, entry->size);
- 	}
++	return ret;
  }
  
+ struct bpf_nf_link {
 -- 
-2.49.0
+2.48.1
 
