@@ -1,80 +1,116 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F001210942;
-	Fri, 18 Jul 2025 11:28:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DE402D97BF;
+	Fri, 18 Jul 2025 13:14:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752838116; cv=none; b=dWJm6NGCl7gwfC7H43+ydRmsmCaD9sHAaptuYIfEXAyvGPCLdrbrJprN0dR5chQGS8/PZ92CKdVbobdcXICLWRxlEPbiJ3hu5aqfXbUTULGDLwOPYsYqq8gbn/OK+XORJ9jEF/qmm6j0U2OFOV3EKPxB9cmmPHQBny8iqiGTttw=
+	t=1752844487; cv=none; b=h6Ga/MPGVy7WMiK3vi4q/RtQdsfb1KGfwi3RwCGuh+N33hRQZCtmRuRfYNUxSmi8CWFZUEd/Yq7uqf+KeyyLBp0tF8TXRIG4coE4A9d8tJoV0PzygP1RIEZn3r45EITyJ4QhWPfaDUWzggRQmlTxMtPCpCXvlYXipPBWsXN0BmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752838116; c=relaxed/simple;
-	bh=UdfgYmxgbbQPgJz6TBepSGeCZJFYhos4mqQ6v8IJ8zc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qIgSr+RMS/waitDy/bgphNI1X0JdmXMnufrASB44DAf8qJEVe9Hp6Am8VkpdqeVuxhLXO6u9vNB0Q4btFq2jRQV+ofYzzrS6WtedmjORY17rW/EK2ja+R6a3gVaoUV+RxgtnGIf+eEbWh7ZDPDBvlB5A52TR9uzykbPtBw29Z90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1752844487; c=relaxed/simple;
+	bh=QJteQ+5eRDz1+rk7uv7ooyYDq5YsRmtWEikCtrmCTzI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Z1DE76/ko/eGk8XHzviELf3M4SEqN7l43WimpppZzHhurW2Z6lWiVne8W3QaOcGmwU7m+cjU00D+l4VRMsU2g0AEEvA4IEW7zGBiDK9+jVjhW1xlfP9BhPmBkdRY9tOKembJZqcSZFVWevBWqAxXTVeRfsQLiUsfIIc9yPvaJbQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 78C1460528; Fri, 18 Jul 2025 13:28:31 +0200 (CEST)
+	id D914C60528; Fri, 18 Jul 2025 15:14:37 +0200 (CEST)
+Date: Fri, 18 Jul 2025 15:14:32 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: syzkaller-bugs@googlegroups.com,
-	<netdev@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>,
-	syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
-Subject: [PATCH nf] netfilter: xt_nfacct: don't assume acct name is null-terminated
-Date: Fri, 18 Jul 2025 13:27:13 +0200
-Message-ID: <20250718112735.16188-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
-In-Reply-To: <68799e14.a00a0220.3af5df.0025.GAE@google.com>
-References: <68799e14.a00a0220.3af5df.0025.GAE@google.com>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v4 1/2] net: netfilter: Add IPIP flowtable SW
+ acceleration
+Message-ID: <aHpIuOiEaoewEQxm@strlen.de>
+References: <20250718-nf-flowtable-ipip-v4-0-f8bb1c18b986@kernel.org>
+ <20250718-nf-flowtable-ipip-v4-1-f8bb1c18b986@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250718-nf-flowtable-ipip-v4-1-f8bb1c18b986@kernel.org>
 
-BUG: KASAN: slab-out-of-bounds in .. lib/vsprintf.c:721
-Read of size 1 at addr ffff88801eac95c8 by task syz-executor183/5851
-[..]
- string+0x231/0x2b0 lib/vsprintf.c:721
- vsnprintf+0x739/0xf00 lib/vsprintf.c:2874
- [..]
- nfacct_mt_checkentry+0xd2/0xe0 net/netfilter/xt_nfacct.c:41
- xt_check_match+0x3d1/0xab0 net/netfilter/x_tables.c:523
+Lorenzo Bianconi <lorenzo@kernel.org> wrote:
+> +	path->type = DEV_PATH_IPENCAP;
+> +	path->dev = ctx->dev;
+> +	path->encap.proto = htons(ETH_P_IP);
+> +	path->encap.id = jhash_3words(ntohl(tiph->saddr), ntohl(tiph->daddr),
+> +				      IPPROTO_IPIP, 0);
 
-nfnl_acct_find_get() handles non-null input, but the error
-printk relied on its presence.
+I think it would be better to have a helper.  Else I think this needs a
+comment that explains it must be kept in sync with nf_flow_tuple_encap().
 
-Reported-by: syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=4ff165b9251e4d295690
-Tested-by: syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
-Fixes: ceb98d03eac5 ("netfilter: xtables: add nfacct match to support extended accounting")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Probably apply to nf-next instead due to late stage and this not
- being a big deal.
+Or use __ipv4_addr_hash(tiph->saddr, (__force __u32)tiph->daddr).
+(loses IPPROTO_IPIP though).
 
- net/netfilter/xt_nfacct.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> @@ -165,6 +166,19 @@ static void nf_flow_tuple_encap(struct sk_buff *skb,
+>  		tuple->encap[i].id = ntohs(phdr->sid);
+>  		tuple->encap[i].proto = skb->protocol;
+>  		break;
+> +	case htons(ETH_P_IP):
+> +		if (!pskb_may_pull(skb, sizeof(*iph)))
+> +			break;
 
-diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
-index 7c6bf1c16813..0ca1cdfc4095 100644
---- a/net/netfilter/xt_nfacct.c
-+++ b/net/netfilter/xt_nfacct.c
-@@ -38,8 +38,8 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
- 
- 	nfacct = nfnl_acct_find_get(par->net, info->name);
- 	if (nfacct == NULL) {
--		pr_info_ratelimited("accounting object `%s' does not exists\n",
--				    info->name);
-+		pr_info_ratelimited("accounting object `%.*s' does not exist\n",
-+				    NFACCT_NAME_MAX, info->name);
- 		return -ENOENT;
- 	}
- 	info->nfacct = nfacct;
--- 
-2.49.1
+Is this needed?  Caller does:
 
+        if (!pskb_may_pull(skb, thoff + ctx->hdrsize))
+                return -1;
+
+and then populates the inner header:
+        iph = (struct iphdr *)(skb_network_header(skb) + ctx->offset);
+	tuple->src_v4.s_addr    = iph->saddr;
+
+
+.... so I think this can rely on the outer header being available
+via skb_network_header().
+
+> +		tuple->encap[i].proto = htons(ETH_P_IP);
+> +		tuple->encap[i].id = jhash_3words(ntohl(iph->daddr),
+> +						  ntohl(iph->saddr),
+> +						  IPPROTO_IPIP, 0);
+
+See above, I think this desevers a helper or a comment, or both.
+
+> +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *size)
+> +{
+> +	struct iphdr *iph;
+> +
+> +	if (!pskb_may_pull(skb, sizeof(*iph)))
+> +		return false;
+
+Nit: I think this could be 2 * sizeof() and a comment that we will
+also need the inner ip header later, might save one reallocation.
+
+> +	iph = (struct iphdr *)skb_network_header(skb);
+> +	*size = iph->ihl << 2;
+
+I think this should be sanity tested vs. sizeof(iph).
+
+> +
+>  static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+>  				       u32 *offset)
+>  {
+>  	struct vlan_ethhdr *veth;
+>  	__be16 inner_proto;
+> +	u16 size;
+>  
+>  	switch (skb->protocol) {
+> +	case htons(ETH_P_IP):
+> +		if (nf_flow_ip4_encap_proto(skb, &size))
+> +			*offset += size;
+
+Nit: return nf_flow_ip4_encap_proto(skb, &offset) ?
