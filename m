@@ -1,116 +1,114 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DE402D97BF;
-	Fri, 18 Jul 2025 13:14:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11DA812E7E
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Jul 2025 16:00:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752844487; cv=none; b=h6Ga/MPGVy7WMiK3vi4q/RtQdsfb1KGfwi3RwCGuh+N33hRQZCtmRuRfYNUxSmi8CWFZUEd/Yq7uqf+KeyyLBp0tF8TXRIG4coE4A9d8tJoV0PzygP1RIEZn3r45EITyJ4QhWPfaDUWzggRQmlTxMtPCpCXvlYXipPBWsXN0BmA=
+	t=1752854447; cv=none; b=f4PVmnTiaeu/kuVPKEY/zh5xj05L/moCsM3qkdna0j+lFdudfnTNI2m3HC6bxO4+8dOmU7oRXB44GZ3gut3Djvlar6gVF3rANrIe/pS82jfPUpUAnVY3raz0gW8yNBXDnNoJU49/sjWZV4kwu8X5Fmfj2/gKpPT201Q9VRMS4Jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752844487; c=relaxed/simple;
-	bh=QJteQ+5eRDz1+rk7uv7ooyYDq5YsRmtWEikCtrmCTzI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z1DE76/ko/eGk8XHzviELf3M4SEqN7l43WimpppZzHhurW2Z6lWiVne8W3QaOcGmwU7m+cjU00D+l4VRMsU2g0AEEvA4IEW7zGBiDK9+jVjhW1xlfP9BhPmBkdRY9tOKembJZqcSZFVWevBWqAxXTVeRfsQLiUsfIIc9yPvaJbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D914C60528; Fri, 18 Jul 2025 15:14:37 +0200 (CEST)
-Date: Fri, 18 Jul 2025 15:14:32 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v4 1/2] net: netfilter: Add IPIP flowtable SW
- acceleration
-Message-ID: <aHpIuOiEaoewEQxm@strlen.de>
-References: <20250718-nf-flowtable-ipip-v4-0-f8bb1c18b986@kernel.org>
- <20250718-nf-flowtable-ipip-v4-1-f8bb1c18b986@kernel.org>
+	s=arc-20240116; t=1752854447; c=relaxed/simple;
+	bh=wZcPPd0gXpr5901EJWgmc2Tn2ykHvcxZQFz9jaCkHtY=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ONcwTX4SWXtvaqKuxUI3LZmV36U05Zuh0RZLtgSsIPQiJgGE+29sBGq1gLEiv6o+0JQnqUqcIkDE618EKb0a3OpBTJQJTbtRVtBH4yqAvkkXbWEZTmHbsf9ReDh5ow3OUvXmqSAlJJbrHnRLPu8gZGYecWXNZUe3VzAkXSg+DCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Y58Izgix; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Y58Izgix"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=FRbUbiP1crv4chKQVi+guCswKb23FP9C4i1OEutq1ng=; b=Y58Izgixi2ETVwu1eS28/2XoUU
+	PT8+WKhi2SGD8MA/OXq0vWHOiV4Ay8Z83uxpIvF+YpZt6Afcq4swvdGPgEobd3TdCC/+8gsGyYnrE
+	FEGBXEdTmV31KBPyWW5zmHc9RjoL5tY47O7ldNHLBTwrNhW0Lxp7ynJuHCJgUA6zWO6m7KK7EUVsb
+	hN0oWK643vlSo6S9lSNgO9yV5A6cc4AMqykxP4ySGKJa/StFYhvocuPP7O89+9y1m6hPuMIXllwfU
+	/56e/cOGFeat9kX7DiDT+B4gcdbgd8ZwBU0WA6ZLP2ryP2BMNqQwtxgpn4JZmfGfiGe+aqe7BiUSE
+	XHDnQycQ==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1ucnVl-0000000085T-2JKR
+	for netfilter-devel@vger.kernel.org;
+	Fri, 18 Jul 2025 18:00:37 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH] libxtables: Promote xtopt_esize_by_type() as xtopt_psize getter
+Date: Fri, 18 Jul 2025 18:00:32 +0200
+Message-ID: <20250718160032.30444-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250718-nf-flowtable-ipip-v4-1-f8bb1c18b986@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-Lorenzo Bianconi <lorenzo@kernel.org> wrote:
-> +	path->type = DEV_PATH_IPENCAP;
-> +	path->dev = ctx->dev;
-> +	path->encap.proto = htons(ETH_P_IP);
-> +	path->encap.id = jhash_3words(ntohl(tiph->saddr), ntohl(tiph->daddr),
-> +				      IPPROTO_IPIP, 0);
+Apart from supporting range-types, this getter is convenient to sanitize
+array out of bounds access. Use it in xtables_option_metavalidate() to
+simplify the code a bit.
 
-I think it would be better to have a helper.  Else I think this needs a
-comment that explains it must be kept in sync with nf_flow_tuple_encap().
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ libxtables/xtoptions.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-Or use __ipv4_addr_hash(tiph->saddr, (__force __u32)tiph->daddr).
-(loses IPPROTO_IPIP though).
+diff --git a/libxtables/xtoptions.c b/libxtables/xtoptions.c
+index 64d6599af904b..ecaea4ec16cc9 100644
+--- a/libxtables/xtoptions.c
++++ b/libxtables/xtoptions.c
+@@ -145,8 +145,11 @@ static size_t xtopt_esize_by_type(enum xt_option_type type)
+ 	case XTTYPE_UINT64RC:
+ 		return xtopt_psize[XTTYPE_UINT64];
+ 	default:
+-		return xtopt_psize[type];
++		break;
+ 	}
++	if (type < ARRAY_SIZE(xtopt_psize))
++		return xtopt_psize[type];
++	return 0;
+ }
+ 
+ static uint64_t htonll(uint64_t val)
+@@ -886,6 +889,8 @@ void xtables_option_parse(struct xt_option_call *cb)
+ void xtables_option_metavalidate(const char *name,
+ 				 const struct xt_option_entry *entry)
+ {
++	size_t psize;
++
+ 	for (; entry->name != NULL; ++entry) {
+ 		if (entry->id >= CHAR_BIT * sizeof(unsigned int) ||
+ 		    entry->id >= XT_OPTION_OFFSET_SCALE)
+@@ -900,19 +905,18 @@ void xtables_option_metavalidate(const char *name,
+ 					"Oversight?", name, entry->name);
+ 			continue;
+ 		}
+-		if (entry->type >= ARRAY_SIZE(xtopt_psize) ||
+-		    xtopt_psize[entry->type] == 0)
++
++		psize = xtopt_esize_by_type(entry->type);
++		if (!psize)
+ 			xt_params->exit_err(OTHER_PROBLEM,
+ 				"%s: entry type of option \"--%s\" cannot be "
+ 				"combined with XTOPT_PUT\n",
+ 				name, entry->name);
+-		if (xtopt_psize[entry->type] != -1 &&
+-		    xtopt_psize[entry->type] != entry->size)
++		else if (psize != -1 && psize != entry->size)
+ 			xt_params->exit_err(OTHER_PROBLEM,
+ 				"%s: option \"--%s\" points to a memory block "
+ 				"of wrong size (expected %zu, got %zu)\n",
+-				name, entry->name,
+-				xtopt_psize[entry->type], entry->size);
++				name, entry->name, psize, entry->size);
+ 	}
+ }
+ 
+-- 
+2.49.0
 
-> @@ -165,6 +166,19 @@ static void nf_flow_tuple_encap(struct sk_buff *skb,
->  		tuple->encap[i].id = ntohs(phdr->sid);
->  		tuple->encap[i].proto = skb->protocol;
->  		break;
-> +	case htons(ETH_P_IP):
-> +		if (!pskb_may_pull(skb, sizeof(*iph)))
-> +			break;
-
-Is this needed?  Caller does:
-
-        if (!pskb_may_pull(skb, thoff + ctx->hdrsize))
-                return -1;
-
-and then populates the inner header:
-        iph = (struct iphdr *)(skb_network_header(skb) + ctx->offset);
-	tuple->src_v4.s_addr    = iph->saddr;
-
-
-.... so I think this can rely on the outer header being available
-via skb_network_header().
-
-> +		tuple->encap[i].proto = htons(ETH_P_IP);
-> +		tuple->encap[i].id = jhash_3words(ntohl(iph->daddr),
-> +						  ntohl(iph->saddr),
-> +						  IPPROTO_IPIP, 0);
-
-See above, I think this desevers a helper or a comment, or both.
-
-> +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *size)
-> +{
-> +	struct iphdr *iph;
-> +
-> +	if (!pskb_may_pull(skb, sizeof(*iph)))
-> +		return false;
-
-Nit: I think this could be 2 * sizeof() and a comment that we will
-also need the inner ip header later, might save one reallocation.
-
-> +	iph = (struct iphdr *)skb_network_header(skb);
-> +	*size = iph->ihl << 2;
-
-I think this should be sanity tested vs. sizeof(iph).
-
-> +
->  static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
->  				       u32 *offset)
->  {
->  	struct vlan_ethhdr *veth;
->  	__be16 inner_proto;
-> +	u16 size;
->  
->  	switch (skb->protocol) {
-> +	case htons(ETH_P_IP):
-> +		if (nf_flow_ip4_encap_proto(skb, &size))
-> +			*offset += size;
-
-Nit: return nf_flow_ip4_encap_proto(skb, &offset) ?
