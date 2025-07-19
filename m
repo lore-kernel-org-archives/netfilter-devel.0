@@ -1,95 +1,58 @@
-Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3796C1E0DD8;
-	Fri, 18 Jul 2025 18:25:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8049328689B
+	for <netfilter-devel@vger.kernel.org>; Sat, 19 Jul 2025 15:24:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1752863149; cv=none; b=aAoZTSKvpdSo+f+KF27GJCnIVpTeLH8SU+ahZYGXa8UdZ9mrO1kSoIWCHi1oRG1jinhlstzv9rMyytZ0qdLgdQUuWjVQ1kiU5y/+kXdCyEkgrrc3HvWB+2b8af3KX/4O3JMbaRG2bckZAUv3alLHZ4HJGiyguaL+HRP9WF/Gyh4=
+	t=1752938663; cv=none; b=pDShXQQNyQrFojT0aia4ne1Cf40q01FUyi8yD4vg8jKY7T9k3R5NHe6q6v/PgujTWAT+8goRbRnp+Iuj9Hdh8KXIHMJVF/DS3VcCpxu9uzy/Gmp5foBkqpIXnseDi1s+2fFw+iNy1w9GWdZmdB1VGjz6PspK5g1LY4yPNpiN5wY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1752863149; c=relaxed/simple;
-	bh=7rQ/ySqdp7CI20/9emKDXbsHMq5q6rgQBXDslMGiurw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=TDSgY2btbYxTbFpLM9yWvCR5GGH04upuTjTNjlvEiSA8dQypRLL02VzloOw9l7hQ8QfRij53OlAlhGXmyFkOB5amT+huCsjjwBB7/iLiCRRXkH8GmtIpQgtZ+uDUusbWZKBXf0quWRI/UI8KEGqTb0NXr2CJsZfr+wJDBXECJz8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eWap06Kh; arc=none smtp.client-ip=209.85.128.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eWap06Kh"
-Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-4561607166aso18865325e9.2;
-        Fri, 18 Jul 2025 11:25:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1752863146; x=1753467946; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=7rQ/ySqdp7CI20/9emKDXbsHMq5q6rgQBXDslMGiurw=;
-        b=eWap06KhZPKQ1mQLri3yo3sI5wZzoAdh3WJzo9ZCUujR5w5Ga8TTcSyaCRvdpsh2q1
-         S2PAhEdqNE0ty6O1yzQmbU9PPQXyXgFQk/z0otb4xrSTGR7uPN6iPspaa7nWm2dOEXxp
-         4JbRD728FmJdbGvXivAO06GhjlWgEabIl5os1mEAJC2SQDcwcaHxUZcj5JXFqjU9WvxW
-         JNxuNwC9cANbHlL/e01S7aRSFVaOCcg/eOlVWiI+DBtaAVa8kUhaHNT0+74JT7VkHVsf
-         ILSpUCRR0LBbQ7GRZ6EjIqs8IzByg37bGNLoYUwDU0JRWycm+JzXviOU+JRSpQsxtWrz
-         CYXg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1752863146; x=1753467946;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=7rQ/ySqdp7CI20/9emKDXbsHMq5q6rgQBXDslMGiurw=;
-        b=W8jYsMlKyEZNjelYQqmvRqS/mjerCpnbpUsvsFQnSsUTQfFmNH8QeNdHJLZX9km2Q1
-         06LBmIEl+yMAuj8covXQjW3VBvs/sCk7gm+AfgYd8kzwTau17wysmPQhbvwZcOFdTSjs
-         uKjzsgti4Zh50y8yCDVwV2jsK1MRFukoDraHx7By/kWJczwVsrRN8eDghW01NJXxyy0J
-         ZDQfx5HCkUSQ9WgOLAfn1sUMMSnkA5fhJwXvDXz/OpX2IvpPiD+t69dkc7O98ghzJIiF
-         CHL43ig7JBzbKIjrvbsbDr6JYFJLAs2M2op1h6u2OFvDUUT2QGyKOtspsLP0JCm94YSG
-         NztA==
-X-Forwarded-Encrypted: i=1; AJvYcCV7XPc8plBkiyVSn436SP5HhW69WzWa1Atw/HvkpMPj6NT/8wEYzaD2ohQTlxeJuXRVzTSmC+ae++o1g1xB1d82@vger.kernel.org, AJvYcCVEyOMK9+GoUEizE6xvuQ/wsps50Muxcduh05Hh22shMNfChUCFbtvg0Y9KIrT3hp0+7b0=@vger.kernel.org, AJvYcCVtppmJLVrhaxNwzUHJcBu76K9szBkLNzsiaub1KqPQ7wQvN1RX9hB1HOm6r5Qws5gSWkr7L5qa9kEDgIdV@vger.kernel.org, AJvYcCWOGAG5FrLiNpNchPKKPL7cIc38luZgvZnc+nl9A6J3505KUu+W++9DfFbZ3u1eKekG9IGOewAB@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzp6xL5sct5nnGw6rL/4g4J4OEpGKwe8CXMq+KFzcmF9D6BU7hg
-	GnJjVsr27wAKGsxsevdSuJ1+Bqct03nnECiD2wMqEsMIt3pislRrV5Tfn4fSSLrSZoUqzQZ5gY8
-	mffIstVxgA7fATHlr1q+BgRLOiAtYXBc=
-X-Gm-Gg: ASbGncvSuYGtz7aA01NDqO1vTchQE7BHZj7eXAGitrIM64f0Oxlx+XAKENm0XO7bKyE
-	h6A+BA0fA7+w+Z9YOdGCQDVt4FbDc/uFWgHxxXNOvmTz7ggOvuRyG/q6wRjmk4uNtBj1kk+i0Di
-	yRU4sbnHmNlUcRGlreTNELZC0oL31cO9VKsoXFi+Zlwqei/Vu93Lq6wBrnTqdHLDQ7xdp7Zf3Mm
-	cGGGRA+xWPhK1BxuwYyilkoJuZNklH8LfFp
-X-Google-Smtp-Source: AGHT+IEe4rj1cW9cX4tVDm5QTOkimSR766TO9ryjwmojDYGSFepqUgth1+KYXDyOSr1QiZC81Iruk3BcAZ5BEq/lmlY=
-X-Received: by 2002:a05:600c:699a:b0:43c:ec4c:25b4 with SMTP id
- 5b1f17b1804b1-45636ba6679mr91367775e9.10.1752863146237; Fri, 18 Jul 2025
- 11:25:46 -0700 (PDT)
+	s=arc-20240116; t=1752938663; c=relaxed/simple;
+	bh=eGCKScYok8gpe23cRP9fizAm2myiF6KtyX1+vXbURNM=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dAQ7ioKWFslhCXE717Rp2bIZD29uMN7Jh1fxpdMp+g6oa2JUtg9ckIhwnjQeA0WBpky/7bdr3378AA2LuWeCph8+vhtMin/SpGX+lu9+LaqI2HIsdGvictyDGSgwcD2Gg9WCapRXFKgm66BxvmVUK4Tm3HwlRMjvXvBJTY7dYOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 3EBFF60491; Sat, 19 Jul 2025 17:24:11 +0200 (CEST)
+Date: Sat, 19 Jul 2025 17:24:10 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	shankerwangmiao@gmail.com, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables v2] extensions: libebt_redirect: prevent
+ translation
+Message-ID: <aHu4moCviA27DpXO@strlen.de>
+References: <20250717-xlat-ebt-redir-v2-1-74fe39757369@gmail.com>
+ <aHjmETYGg4UtDdSf@lemonverbena>
+ <aHjrV-YUot_fKToY@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250718172746.1268813-1-chen.dylane@linux.dev>
-In-Reply-To: <20250718172746.1268813-1-chen.dylane@linux.dev>
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Fri, 18 Jul 2025 11:25:35 -0700
-X-Gm-Features: Ac12FXyHvw3SskVaxW4s7-ZTUmg2xXrOApp_s7xLqMkcj0CshSbgMR2_GlhJyOk
-Message-ID: <CAADnVQKMVJ_2SMcm0hvg2GDc-RPVU7GVAWRqbSdGn2ZtwUbUng@mail.gmail.com>
-Subject: Re: [PATCH bpf-next] netfilter: bpf: Disable migrate before bpf_prog run
-To: Tao Chen <chen.dylane@linux.dev>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
-	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Alexei Starovoitov <ast@kernel.org>, Florian Westphal <fw@strlen.de>, 
-	netfilter-devel <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org, 
-	Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, 
-	bpf <bpf@vger.kernel.org>, syzbot+92c5daf9a23f04ccfc99@syzkaller.appspotmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aHjrV-YUot_fKToY@orbyte.nwl.cc>
 
-On Fri, Jul 18, 2025 at 10:30=E2=80=AFAM Tao Chen <chen.dylane@linux.dev> w=
-rote:
->
->
-> The cant_migrate() check in __bpf_prog_run requires to disable
-> migrate before running the bpf_prog, it seems that migrate is
-> not disabled in the above execution path.
+Phil Sutter <phil@nwl.cc> wrote:
+> > ebtables-translate -t nat -A PREROUTING -d de:ad:00:00:be:ef -j redirect
+> > nft 'add rule bridge nat PREROUTING ether daddr de:ad:00:00:be:ef \
+> >         counter meta pkttype set host ether daddr set meta ibrhwdr accept'
+> 
+> Now in broute table, ebt_redirect.ko sets the ether daddr of the packet
+> to that of the incoming interface, i.e. the bridge port not the bridge
+> itself. We'll need an extension for that, too right?
 
-bpf@vger mailing list exists, so that developers
-read it and participate in the community.
+Yes, but i don't think the broute feature is that relevant given the lack
+of requests for support in nftables.  Most want to make the packet
+enter the bridge input path and not pretend that the bridge didn't exist
+in the first place.
 
-https://lore.kernel.org/bpf/20250717185837.1073456-1-kuniyu@google.com/
+> I guess just
+> calling 'redirect' verdict will manipulate the IP header as well which
+> we don't want
 
---
-pw-bot: cr
+Can you point me to the code that alters the IP header?  I can't find
+anything.
