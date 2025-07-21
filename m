@@ -1,124 +1,169 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C586115530C;
-	Mon, 21 Jul 2025 21:24:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11B55242D89;
+	Mon, 21 Jul 2025 22:37:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753133051; cv=none; b=umZH9c4cMdjaIxukuRDP97s8R12Skl90fBD5poSA2ANPydnt3WSXruN/ludo4dmMyz3SV5k3cos6WeeKaRSg/i0g9GAF7YI4fpuhYUTfh4Hnq23utIX/MVXwCXFrrdPaxAo4dEgHtU22BSDQ/EgjoYfHChafDPip6cx9JF/xuZg=
+	t=1753137435; cv=none; b=ZJyOKapGlEnYkDKN1dXL+P7EEP2GzER2QiaAYey8o6O0rCOmgIZwRzSDZjiqA5/caDun2K7qpHw8IbI753+17N2u6XhwpImlFVAf2xVSZ5oIFQFxSe/yf8v8jjdVmPVulBiK/YaLARi8H1jWJooo+6UJZrhoySLwcs/jcxcoyhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753133051; c=relaxed/simple;
-	bh=sEjviTPRhYqGP5Y8/0bVLkQrZaSsat98TC4r3HprGO4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ClcZr+sCe5Wv7aAFXFJJ/bxUyBdoHVFOK4K94MLdJkyThZ2B58gSgWImwPPq6Kf8U9gGAWR8xvP2Q85ucaSRmi0qaqkoVCQRbbM32eQlutzFN1ZzcOmjOdxyKxPqVA9Dh2eP/tptTKSIcl0F72sOYHlj9VEib2M2XYsk5wVZO5s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eS3ZRP5V; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eS3ZRP5V"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31029C4CEED;
-	Mon, 21 Jul 2025 21:24:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1753133051;
-	bh=sEjviTPRhYqGP5Y8/0bVLkQrZaSsat98TC4r3HprGO4=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=eS3ZRP5VuL1f3ENZR0CLErw67WCY3JKZSPanNvtSDJSGjVj7QVk9aDgBmTQPlxELr
-	 IxtiFZCkVgmY+8lPq9+qGAxfqfsbhuzsXSE6IZAL3sCcwXSDWswA59mHE7hqN+Ot11
-	 BTC2PyXAy22jBCC82mwLs06fkrxrjBHm0ln/hUmbygcRN44rxIq/9bYm63bSAW5YJ6
-	 Ya3TwgxS6DyJfF3bh6DbP6CxFehStHG+o6biioRYjAckrGtTLpVDGppWRJTOy6vX7b
-	 T9Ei1eek3auIDkurVzzOlBk7Fec4ZCjGo7mZmwxwWIe31fCRNhEvQm3I2sv/dz7d8J
-	 NU+Nzj44Vx5xA==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Mon, 21 Jul 2025 23:23:36 +0200
-Subject: [PATCH nf-next v5 2/2] selftests: netfilter: nft_flowtable.sh: Add
- IPIP flowtable selftest
+	s=arc-20240116; t=1753137435; c=relaxed/simple;
+	bh=rakyVmC8acBtMLGlf8GJCt3AzwSf5tFyHzeVS9O573o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ixvVDgbeBZjgPhdOiNNWjhu5HPCPgk3FEtw8EWxFogRnvCVFXF5gUCHgPQo29YTJIORO/N21f8O5EM+Ou9XRN0DdA0SFip/VH9W0fS5qKjBl/4MZoPnEqxgNgSLQYHs6dmzrUl5OJSmPkT1pEmRRdpZ/zzyK7zhzGJEqEO89Vy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9C432604C6; Tue, 22 Jul 2025 00:37:10 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: <netfilter-devel@vger.kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 net] selftests: netfilter: tone-down conntrack clash test
+Date: Tue, 22 Jul 2025 00:36:49 +0200
+Message-ID: <20250721223652.6956-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250721-nf-flowtable-ipip-v5-2-0865af9e58c6@kernel.org>
-References: <20250721-nf-flowtable-ipip-v5-0-0865af9e58c6@kernel.org>
-In-Reply-To: <20250721-nf-flowtable-ipip-v5-0-0865af9e58c6@kernel.org>
-To: "David S. Miller" <davem@davemloft.net>, 
- David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Shuah Khan <shuah@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org, 
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- linux-kselftest@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.2
+Content-Transfer-Encoding: 8bit
 
-Introduce specific selftest for IPIP flowtable SW acceleration in
-nft_flowtable.sh
+The test is supposed to observe that the 'clash_resolve' stat counter
+incremented (i.e., the code path was covered).
+This check was incorrect, 'conntrack -S' needs to be called in the
+revevant namespace, not the initial netns.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+The clash resolution logic in conntrack is only exercised when multiple
+packets with the same udp quadruple race. Depending on kernel config,
+number of CPUs, scheduling policy etc.  this might not trigger even
+after several retries.  Thus the script eventually returns SKIP if the
+retry count is exceeded.
+
+The udpclash tool with also exit with a failure if it did not observe
+the expected number of replies.
+
+In the script, make a note of this but do not fail anymore, just check if
+the clash resolution logic triggered after all.
+
+Remove the 'single-core' test: while unlikely, with preemptible kernel it
+should be possible to also trigger clash resolution logic.
+
+With this change the test will either SKIP or pass.
+
+Hard error could be restored later once its clear whats going on, so
+also dump 'conntrack -S' when some packets went missing to see if
+conntrack dropped them on insert.
+
+Fixes: 78a588363587 ("selftests: netfilter: add conntrack clash resolution test case")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/nft_flowtable.sh       | 40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ Change since v1:
+  - leave udpclash tool as-is, relax script error handling instead
+  - fix commit message to mention the conntrack -S bug fix
+  - get rid of the single-cpu shortcut
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index a4ee5496f2a17cedf1ee71214397012c7906650f..d1c9d3eeda2c9874008f9d6de6cabaabea79b9fb 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -519,6 +519,44 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 ""; then
- 	ip netns exec "$nsr1" nft list ruleset
- fi
+ .../net/netfilter/conntrack_clash.sh          | 45 +++++++++----------
+ 1 file changed, 22 insertions(+), 23 deletions(-)
+
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_clash.sh b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
+index 3712c1b9b38b..606a43a60f73 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_clash.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
+@@ -93,32 +93,28 @@ ping_test()
+ run_one_clash_test()
+ {
+ 	local ns="$1"
+-	local daddr="$2"
+-	local dport="$3"
++	local ctns="$2"
++	local daddr="$3"
++	local dport="$4"
+ 	local entries
+ 	local cre
  
-+# IPIP tunnel test:
-+# Add IPIP tunnel interfaces and check flowtable acceleration.
-+test_ipip() {
-+if ! ip -net "$nsr1" link add name tun0 type ipip \
-+     local 192.168.10.1 remote 192.168.10.2 >/dev/null;then
-+	echo "SKIP: could not add ipip tunnel"
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
-+	return
-+fi
-+ip -net "$nsr1" link set tun0 up
-+ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
-+ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
+ 	if ! ip netns exec "$ns" ./udpclash $daddr $dport;then
+-		echo "FAIL: did not receive expected number of replies for $daddr:$dport"
+-		ret=1
+-		return 1
++		echo "INFO: did not receive expected number of replies for $daddr:$dport"
++		ip netns exec "$ctns" conntrack -S
++		# don't fail: check if clash resolution triggered after all.
+ 	fi
+ 
+-	entries=$(conntrack -S | wc -l)
+-	cre=$(conntrack -S | grep -v "clash_resolve=0" | wc -l)
++	entries=$(ip netns exec "$ctns" conntrack -S | wc -l)
++	cre=$(ip netns exec "$ctns" conntrack -S | grep "clash_resolve=0" | wc -l)
+ 
+-	if [ "$cre" -ne "$entries" ] ;then
++	if [ "$cre" -ne "$entries" ];then
+ 		clash_resolution_active=1
+ 		return 0
+ 	fi
+ 
+-	# 1 cpu -> parallel insertion impossible
+-	if [ "$entries" -eq 1 ]; then
+-		return 0
+-	fi
+-
+-	# not a failure: clash resolution logic did not trigger, but all replies
+-	# were received.  With right timing, xmit completed sequentially and
++	# not a failure: clash resolution logic did not trigger.
++	# With right timing, xmit completed sequentially and
+ 	# no parallel insertion occurs.
+ 	return $ksft_skip
+ }
+@@ -126,20 +122,23 @@ run_one_clash_test()
+ run_clash_test()
+ {
+ 	local ns="$1"
+-	local daddr="$2"
+-	local dport="$3"
++	local ctns="$2"
++	local daddr="$3"
++	local dport="$4"
++	local softerr=0
+ 
+ 	for i in $(seq 1 10);do
+-		run_one_clash_test "$ns" "$daddr" "$dport"
++		run_one_clash_test "$ns" "$ctns" "$daddr" "$dport"
+ 		local rv=$?
+ 		if [ $rv -eq 0 ];then
+ 			echo "PASS: clash resolution test for $daddr:$dport on attempt $i"
+ 			return 0
+-		elif [ $rv -eq 1 ];then
+-			echo "FAIL: clash resolution test for $daddr:$dport on attempt $i"
+-			return 1
++		elif [ $rv -eq $ksft_skip ]; then
++			softerr=1
+ 		fi
+ 	done
 +
-+ip -net "$nsr2" link add name tun0 type ipip local 192.168.10.2 remote 192.168.10.1
-+ip -net "$nsr2" link set tun0 up
-+ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
-+ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr1" route change default via 192.168.100.2
-+ip -net "$nsr2" route change default via 192.168.100.1
-+ip -net "$ns2" route add default via 10.0.2.1
-+
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
-+
-+if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
-+	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
-+# Restore the previous configuration
-+ip -net "$nsr1" route change default via 192.168.10.2
-+ip -net "$nsr2" route change default via 192.168.10.1
-+ip -net "$ns2" route del default via 10.0.2.1
-+}
-+
- # Another test:
- # Add bridge interface br0 to Router1, with NAT enabled.
- test_bridge() {
-@@ -604,6 +642,8 @@ ip -net "$nsr1" addr add dead:1::1/64 dev veth0 nodad
- ip -net "$nsr1" link set up dev veth0
++	[ $softerr -eq 1 ] && echo "SKIP: clash resolution for $daddr:$dport did not trigger"
  }
  
-+test_ipip
-+
- test_bridge
+ ip link add veth0 netns "$nsclient1" type veth peer name veth0 netns "$nsrouter"
+@@ -161,11 +160,11 @@ spawn_servers "$nsclient2"
  
- KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
-
+ # exercise clash resolution with nat:
+ # nsrouter is supposed to dnat to 10.0.2.1:900{0,1,2,3}.
+-run_clash_test "$nsclient1" 10.0.1.99 "$dport"
++run_clash_test "$nsclient1" "$nsrouter" 10.0.1.99 "$dport"
+ 
+ # exercise clash resolution without nat.
+ load_simple_ruleset "$nsclient2"
+-run_clash_test "$nsclient2" 127.0.0.1 9001
++run_clash_test "$nsclient2" "$nsclient2" 127.0.0.1 9001
+ 
+ if [ $clash_resolution_active -eq 0 ];then
+ 	[ "$ret" -eq 0 ] && ret=$ksft_skip
 -- 
-2.50.1
+2.49.1
 
