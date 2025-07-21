@@ -1,141 +1,83 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B39382C158A
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2025 11:36:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE0E11F3FC8;
+	Mon, 21 Jul 2025 11:51:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753097777; cv=none; b=eOmV48Tcbsn+GAWd+1JggY5c7LlkJbrIPljgIu6ckQMAvy0muN4SRL9XncfkjWFJLxhrPv8QMd2EDzcXguhfbbgzC9wdjgTpp3XuP9m+yUI3u8D0VQdRityRtW7JdAgYnCF1+PS0l8u/H7DKnf4WeXL+rMAAcm/lWb7TcpeN3fI=
+	t=1753098695; cv=none; b=Klkwfiq193c4IaneJJFvVXx6mARNO5Vbw3+0+aSaptag7GdCaP7PTSDojcf/cQZnyYhPshwsOC3CkGxJRZJJF+J4xllWeQcB1XIRPdc/JhDCUCzIytM60ZT+hqN2RCvoXe7720J8iovX6TnsEjZraxO+416Y6M86JDZoj5BH6/4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753097777; c=relaxed/simple;
-	bh=rh/npJhlg2aieL8kkLbmbbB+LTcppHXcshts5ThPe3U=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fYdt3y/sLbQwDLprNzBvnhr2M2qQNa56vHOZs8Uun+P9CSHoAXtvvWMcdIvSM418vzYMyfB+c/kpig7cAgCFdj/6dxJUfmV3fVJlfY/GooFzKwkKLpmB6DJvz2GDyxmkJep/ry4OKqvglLmZLrh7I3f9uArKsQb3eb+X3EjVTWI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1753098695; c=relaxed/simple;
+	bh=Ldn+g9EYoDgYP1LhUy+9Y9Yf4nkPXjUDVS6bUCP6LiE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=NAQ54X7eKqsCooxt7zUqFIOtgrzeUrezvQDhyuy1jKckXIMxW1WJ6Ay6Cmw/tjNs7IERqP5Qor3jcGTaAldCp2jwdB3ZNCrjX8SOYLK39Fy6ykPROk6YmSakT6wcDulbDxd64i4P9xDWJ33akn3jSTSubIdadoy3lIS2mVIM6/Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 258AA60329; Mon, 21 Jul 2025 13:36:13 +0200 (CEST)
+	id CF9F460555; Mon, 21 Jul 2025 13:51:29 +0200 (CEST)
+Date: Mon, 21 Jul 2025 13:51:29 +0200
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] parser_json: fix assert due to empty interface name
-Date: Mon, 21 Jul 2025 13:36:03 +0200
-Message-ID: <20250721113607.11522-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v4 1/2] net: netfilter: Add IPIP flowtable SW
+ acceleration
+Message-ID: <aH4pwa2PmzwRvMA5@strlen.de>
+References: <20250718-nf-flowtable-ipip-v4-0-f8bb1c18b986@kernel.org>
+ <20250718-nf-flowtable-ipip-v4-1-f8bb1c18b986@kernel.org>
+ <aHpIuOiEaoewEQxm@strlen.de>
+ <aH4NNppbRppZojYO@lore-desk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aH4NNppbRppZojYO@lore-desk>
 
-Before:
-nft: src/mnl.c:744: nft_dev_add: Assertion `ifname_len > 0' failed.
+Lorenzo Bianconi <lorenzo@kernel.org> wrote:
+> > Lorenzo Bianconi <lorenzo@kernel.org> wrote:
+> > > +static bool nf_flow_ip4_encap_proto(struct sk_buff *skb, u16 *size)
+> > > +{
+> > > +	struct iphdr *iph;
+> > > +
+> > > +	if (!pskb_may_pull(skb, sizeof(*iph)))
+> > > +		return false;
+> > 
+> > Nit: I think this could be 2 * sizeof() and a comment that we will
+> > also need the inner ip header later, might save one reallocation.
+> 
+> nf_flow_ip4_encap_proto() is used even for plain IP traffic but I guess we can
+> assume the IP payload is at least 20B, right?
 
-After:
-internal:0:0-0: Error: empty interface name
+Oh, right, I missed that.  But even if we have a.g. ip header with icmp
+header, then the postconditions are the same, no?
 
-Bison checks this upfront, do same in json.
+as-is:
+pskb_may_pull -> ok, then iph->protocol == IPPROTO_IPIP -> return false
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/parser_json.c                             | 34 +++++++++++++------
- .../mnl_nft_dev_add_ifname_len_0_assert       | 19 +++++++++++
- 2 files changed, 42 insertions(+), 11 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-j-f/mnl_nft_dev_add_ifname_len_0_assert
+with 2*iph:
+pskb_may_pull -> return false
 
-diff --git a/src/parser_json.c b/src/parser_json.c
-index a6f142c68756..be0de69837d8 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -2959,6 +2959,25 @@ static struct expr *parse_policy(const char *policy)
- 				   sizeof(int) * BITS_PER_BYTE, &policy_num);
- }
- 
-+static struct expr *ifname_expr_alloc(struct json_ctx *ctx,
-+				      const char *name)
-+{
-+	size_t length = strlen(name);
-+
-+	if (length == 0) {
-+		json_error(ctx, "empty interface name");
-+		return NULL;
-+	}
-+
-+	if (length >= IFNAMSIZ) {
-+		json_error(ctx, "Device name %s too long", name);
-+		return NULL;
-+	}
-+
-+	return constant_expr_alloc(int_loc, &ifname_type, BYTEORDER_HOST_ENDIAN,
-+				   length * BITS_PER_BYTE, name);
-+}
-+
- static struct expr *json_parse_devs(struct json_ctx *ctx, json_t *root)
- {
- 	struct expr *tmp, *expr = compound_expr_alloc(int_loc, EXPR_LIST);
-@@ -2967,15 +2986,12 @@ static struct expr *json_parse_devs(struct json_ctx *ctx, json_t *root)
- 	size_t index;
- 
- 	if (!json_unpack(root, "s", &dev)) {
--		if (strlen(dev) >= IFNAMSIZ) {
--			json_error(ctx, "Device name %s too long", dev);
-+		tmp = ifname_expr_alloc(ctx, dev);
-+		if (!tmp) {
- 			expr_free(expr);
- 			return NULL;
- 		}
- 
--		tmp = constant_expr_alloc(int_loc, &ifname_type,
--					  BYTEORDER_HOST_ENDIAN,
--					  strlen(dev) * BITS_PER_BYTE, dev);
- 		compound_expr_add(expr, tmp);
- 		return expr;
- 	}
-@@ -2992,15 +3008,11 @@ static struct expr *json_parse_devs(struct json_ctx *ctx, json_t *root)
- 			return NULL;
- 		}
- 
--		if (strlen(dev) >= IFNAMSIZ) {
--			json_error(ctx, "Device name %s too long at index %zu", dev, index);
-+		tmp = ifname_expr_alloc(ctx, dev);
-+		if (!tmp) {
- 			expr_free(expr);
- 			return NULL;
- 		}
--
--		tmp = constant_expr_alloc(int_loc, &ifname_type,
--					  BYTEORDER_HOST_ENDIAN,
--					  strlen(dev) * BITS_PER_BYTE, dev);
- 		compound_expr_add(expr, tmp);
- 	}
- 	return expr;
-diff --git a/tests/shell/testcases/bogons/nft-j-f/mnl_nft_dev_add_ifname_len_0_assert b/tests/shell/testcases/bogons/nft-j-f/mnl_nft_dev_add_ifname_len_0_assert
-new file mode 100644
-index 000000000000..3be394c1fee8
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-j-f/mnl_nft_dev_add_ifname_len_0_assert
-@@ -0,0 +1,19 @@
-+{
-+  "nftables": [
-+    {
-+  "table": { "family": "netdev", "name": "test", "ha": 0,
-+    "flags": "dormant"   } },
-+{
-+  "chain": {
-+    "family": "netdev",
-+    "table": "test",
-+"name": "ingress",
-+    "le": 0,
-+"dev": "", "ha": 0,
-+    "flags": "dormy1", "type": "fi",
-+    "hook": "ingress",
-+    "prio": 0, "policy": "drop"
-+  }
-+    }
-+  ]
-+}
--- 
-2.49.1
+... but I'll leave it up to you, if you prefer pskb_may_pull(skb, sizeof(*iph)))
+for clarity then lets keep it as-is.
 
+> > > +	iph = (struct iphdr *)skb_network_header(skb);
+> > > +	*size = iph->ihl << 2;
+> > 
+> > I think this should be sanity tested vs. sizeof(iph).
+> 
+> I guess this is already done in ip_has_options(), agree?
+
+Indeed it is!  Nevermind then :-)
