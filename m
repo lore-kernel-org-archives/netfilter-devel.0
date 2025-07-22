@@ -1,56 +1,55 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01E7D2F5B
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Jul 2025 02:11:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 812DD33062
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Jul 2025 02:47:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753150307; cv=none; b=Sk8TYfCGcMZmPuO1Q+KT7F6xSKg2ohY4ngjOHxQZ/pMyZ2LF6jzJXxOPJo0ukzYEilfGYYNrF6iJUpM0YfXfvMcxTX9FxqlPEvgoC2rMJyH6+1GiVfBaQ7hSvBbP71HlVV0GJIixBaTKzI4NF8uGZjGUBfa33bOlMUR7uO+W+ms=
+	t=1753152430; cv=none; b=UvQQD12zPhbBFakuEU9dN/8EE7wMZSXgwvT+FS0PfDGLd4ItrqquqpCHXoxqUDlDbAbIw5AlgbrP/63/yXEMceLQnQzH+nsDliih6wZClBlmkFioSytmkVJWvt9k9y2I9ojlRGf83NG70ABXXXp8xNoWGvU8NArHys1M6Crt5uQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753150307; c=relaxed/simple;
-	bh=oI18GF1TAUrPOgUk7c4GukenoGl2WQL5PACGV4OEznE=;
+	s=arc-20240116; t=1753152430; c=relaxed/simple;
+	bh=lnn0CxLWd/VzXlpXwZKcWwtkTjXI9PfI9gbJcEUmwFg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mc6DACY58vP94zuhPbixoPAzhRZLmq7B44oYH30If49uCDpItSAwHwI2eKok4y8P5YGmWBmdmizulPInYunwLA7jTz6X7kqCYXXDSMltC5EsyajJ2TIH+sG1zY/2jTncBlcAZhgyANLq9FNVtlot40GFTsOEoLEfRy9uAoscQB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WQLFYdTA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oR3kmY+a; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=kE1k51iFQZ+U51Snr4LEX74DKz05iWfWwOi5gUkg4XJzeYY8gKi977+dwMtyx7zu3RMGYeUtSdyKnx45qmY9OI+qGYcevtWdC1XRn7bYsYWy+fuFGKM5biQbiErm/MmJVBX/SdeqOAQSas5A/Sj1q/SUqPqCJQDp9Jd8/ftPun4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wK7Ak52g; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dBNfkijT; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WQLFYdTA";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oR3kmY+a"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wK7Ak52g";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dBNfkijT"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 38E6D60281; Tue, 22 Jul 2025 04:11:42 +0200 (CEST)
+	id B8C8560276; Tue, 22 Jul 2025 04:47:05 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753150302;
-	bh=bOCz1iCV4aO+jL2msnJia8iL3WWQthoNZ4jAUWFpASA=;
+	s=2025; t=1753152425;
+	bh=T7kFgd8ieeOc7w179kRbA67XxjeIq5F8PkdMGwSJLk0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=WQLFYdTAcvhGvhewueihHr/Rnap1WQh65nJjnRxBcebEnJd4D+XHUz+aNGJRD4olZ
-	 vU1xvGoOY9G3pPClzvFMd/u4soXo35C/pWsy86i4RMMBu9i7TcpbZL4zZofWC2sRdY
-	 WQo2h9ZIkBOBBVoa4gKAweV7AxzIKiT8W73F2m53iBKTvLEUe1j9uCxA33qcESBWHp
-	 2iUzG44fPTyPQRvCJ2UxExImWkIPsTQn5l/IJhVPBZotmBpndf5l4SONOZQSUPp7hp
-	 CTcq6HseiOnLbSeKD8E+WkuQwecrzFoj9g0vUlWQZeJsMTUMG+lQf1nSbBldv5Y7OM
-	 WYUI6vT777b0g==
+	b=wK7Ak52gHraHVF63EjKb+WD5sytaurjB/eKymMi/PqOeXx9PMsiT+sjQrYM9tFjfi
+	 8aoXqYLiYxmwPAsgAu7h4QCmqFEMmRkMYUUeNjkTk/no+6XLUpsnrfLACYA/LOL7X9
+	 QRnDjlR3NBgrEGi5IRMhRivjP0tzmJHgV0XJZLzKJVU5PS0Wm8XSZ547JF/YUshe58
+	 k06ElQWqY7snjUphRbr/Qub0yTOrOgAa8warbOQD6WKTFmN2K3CbGvwZo3HpHdN802
+	 N9fiLAHsgx75KaG4IUZI2J84xs8H6iAczd5oX1tKnx567eMKhzsihKATLMq0mLNuDZ
+	 MJKTdfeTvoUKw==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6263260281;
-	Tue, 22 Jul 2025 04:11:40 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2B01D6026E;
+	Tue, 22 Jul 2025 04:47:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753150300;
-	bh=bOCz1iCV4aO+jL2msnJia8iL3WWQthoNZ4jAUWFpASA=;
+	s=2025; t=1753152424;
+	bh=T7kFgd8ieeOc7w179kRbA67XxjeIq5F8PkdMGwSJLk0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oR3kmY+aXdMIza35B4Oz1oKVWoae2L3wamk/U0O8nUa6BX1N91L0urqzp0u8QSC08
-	 8lYo8JTSsXI5WtoUSsCCGabUn8JlbJTW3zwlxs65zjzObrnAIH4KwfGj0rH0ts/Nc6
-	 VlZtjaR6YKYjjICgTTIiys4UhSopaaXce1hN2DQ7bLZMNYhPaLqvF9AC+UF7AirOzc
-	 hgcIafq351HxtHelTJSuArDRgfBVZhmgZ8ZcuMzfaWBdmQZR7UCN2QcyYAnbgSqjhB
-	 FCxxVNiJ4OjQkT55PsKBpUxbmglEWjPLbS5Pqmhky/HdW08AG3eIee9Y1Y/E8Ua++G
-	 FQuswXupEvHYg==
-Date: Tue, 22 Jul 2025 04:11:36 +0200
+	b=dBNfkijTYlYeOx9gWVJ4/OzSqph9oaHCqTaJI8zIiememNx3orr0i9HA6y1RTn9cX
+	 tfgng/r0aGq5HBmW6o5fbnxXPkPkFEfSmLsqIwClgQ7ZpZVBnWGMmZpHp7/+aw0XJS
+	 iR2pioUy7Bb45lwbwlneeWjdlFob+5/E3kZgBJFWJIIxauYspKP6lgC2zxU+0G8am/
+	 w5ceasvJ+pXIdG3SUbUVTdebE5I8ZqiIULFQMw94IttdC9BD06NlDx3mzeEiErCgSf
+	 AcigveOgc97u1rJVWIrlFqJT+X3GFaDhNBzlWl7Peepy/oEJjFggdCQG7/jwEVMpXY
+	 uhIcAwbyfqJ2A==
+Date: Tue, 22 Jul 2025 04:46:59 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Shaun Brady <brady.1345@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, ppwaskie@kernel.org, fw@strlen.de
-Subject: Re: [PATCH v5 1/2] netfilter: nf_tables: Implement jump limit for
- nft_table_validate
-Message-ID: <aH7zWPAVRV8_1ehk@calendula>
-References: <20250520030842.3072235-1-brady.1345@gmail.com>
+To: Phil Sutter <phil@nwl.cc>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH] utils: Add helpers for interface name wildcards
+Message-ID: <aH77oyMqwmO3x3V9@calendula>
+References: <20250716132209.20372-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,146 +58,175 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250520030842.3072235-1-brady.1345@gmail.com>
+In-Reply-To: <20250716132209.20372-1-phil@nwl.cc>
 
-On Mon, May 19, 2025 at 11:08:41PM -0400, Shaun Brady wrote:
-[...]
-> @@ -4039,14 +4049,62 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
->  }
->  EXPORT_SYMBOL_GPL(nft_chain_validate);
+Hi Phil,
+
+On Wed, Jul 16, 2025 at 03:22:06PM +0200, Phil Sutter wrote:
+> Support simple (suffix) wildcards in NFTNL_CHAIN_DEV(ICES) and
+> NFTA_FLOWTABLE_HOOK_DEVS identified by non-NUL-terminated strings. Add
+> helpers converting to and from the human-readable asterisk-suffix
+> notation.
+
+We spent some time discussing scenarios where host and container could
+use different userspace versions (older vs. newer).
+
+In this case, newer version will send a string without the trailing
+null character to the kernel. Then, the older version will just
+_crash_ when parsing the netlink message from the kernel because it
+expects a string that is nul-terminated (and we cannot fix an old
+libnftnl library... it is not possible to fix the past, but it is
+better if you can just deal with it).
+
+I suggest you maybe pass the * at the end of the string to the kernel
+so nft_netdev_hook_alloc() can just handle this special case and we
+always have a nul-terminated string? There is ifnamelen which does in
+the kernel what you need to compare the strings, while ifname can
+still contain the *.
+
+Worth a fix? Not much time ahead, but we are still in -rc7.
+
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+> Changes since v3:
+> - Use uint16_t for 'attr' parameter and size_t for internal 'len'
+>   variable
+> - nftnl_attr_get_ifname to return allocated buffer, 'attr' parameter may
+>   be const
+> 
+> Changes since v2:
+> - Use 'nftnl' prefix for introduced helpers
+> - Forward-declare struct nlattr to avoid extra include in utils.h
+> - Sanity-check array indexes to avoid out-of-bounds access
+> ---
+>  include/utils.h |  6 ++++++
+>  src/chain.c     |  8 +++++---
+>  src/flowtable.c |  2 +-
+>  src/str_array.c |  2 +-
+>  src/utils.c     | 31 +++++++++++++++++++++++++++++++
+>  5 files changed, 44 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/utils.h b/include/utils.h
+> index 247d99d19dd7f..f232e7e2f3dd7 100644
+> --- a/include/utils.h
+> +++ b/include/utils.h
+> @@ -83,4 +83,10 @@ int nftnl_fprintf(FILE *fpconst, const void *obj, uint32_t cmd, uint32_t type,
+>  int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
+>  		       uint16_t attr, const void *data, uint32_t data_len);
 >  
-> -static int nft_table_validate(struct net *net, const struct nft_table *table)
-> +/** nft_families_inc_jump - Determine if tables should add to the total jump
-> + * count for a netns.
-> + *
-> + * @table: table of interest
-> + * @sibling_table: a 'sibling' table to compare against
-> + *
-> + * Compare attributes of the tables to determine if the sibling tables
-> + * total_jump_count should be added to the working context (done by caller).
-> + * Mostly concerned with family compatibilities, but also identifying equality
-> + * (a tables own addition will be recalculated soon).
-> + *
-> + * Ex: v4 tables do not apply to v6 packets
-> + */
-> +static bool nft_families_inc_jump(struct nft_table *table, struct nft_table *sibling_table)
-> +{
-
-I think we mentioned about NFPROTO_BRIDGE here too.
-
-> +	/* Invert parameters to on require one test for two cases (the reverse) */
-> +	if (sibling_table->family > table->family) /* include/uapi/linux/netfilter.h */
-> +		return nft_families_inc_jump(sibling_table, table);
+> +struct nlattr;
 > +
-> +	/* We found ourselves; don't add current jump count (will be counted dynamically) */
-> +	if (sibling_table == table)
-> +		return false;
+> +void nftnl_attr_put_ifname(struct nlmsghdr *nlh,
+> +			   uint16_t attr, const char *ifname);
+> +char *nftnl_attr_get_ifname(const struct nlattr *attr);
 > +
-> +	switch (table->family) {
-> +	case NFPROTO_IPV4:
-> +		if (sibling_table->family == NFPROTO_IPV6)
-> +			return false;
-> +		break;
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +static int nft_table_validate(struct net *net, struct nft_table *table)
-
-This function is called from abort path too. I suspect total_jump_count
-for this table will not be OK in such case. And this selftest does cover
-many cases.
-
->  {
->  	struct nft_chain *chain;
-> +	struct nftables_pernet *nft_net;
->  	struct nft_ctx ctx = {
->  		.net	= net,
->  		.family	= table->family,
-> +		.total_jump_count = 0,
->  	};
->  	int err;
-> +	u32 total_jumps_before_validate;
-> +	struct nft_table *sibling_table;
-> +
-> +	nft_net = nft_pernet(net);
-> +
-> +	if (!net_eq(net, &init_net)) {
-> +		list_for_each_entry(sibling_table, &nft_net->tables, list) {
-> +			if(nft_families_inc_jump(table, sibling_table))
-                          ^
-                  coding style
-
-> +				ctx.total_jump_count += sibling_table->total_jump_count;
-> +		}
-> +	}
-> +
-> +	total_jumps_before_validate = ctx.total_jump_count;
+>  #endif
+> diff --git a/src/chain.c b/src/chain.c
+> index 895108cddad51..b401526c367fb 100644
+> --- a/src/chain.c
+> +++ b/src/chain.c
+> @@ -457,14 +457,14 @@ void nftnl_chain_nlmsg_build_payload(struct nlmsghdr *nlh, const struct nftnl_ch
+>  		mnl_attr_put_u32(nlh, NFTA_HOOK_PRIORITY, htonl(c->prio));
 >  
->  	list_for_each_entry(chain, &table->chains, list) {
->  		if (!nft_is_base_chain(chain))
-> @@ -4060,6 +4118,8 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
->  		cond_resched();
+>  	if (c->flags & (1 << NFTNL_CHAIN_DEV))
+> -		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, c->dev);
+> +		nftnl_attr_put_ifname(nlh, NFTA_HOOK_DEV, c->dev);
+>  	else if (c->flags & (1 << NFTNL_CHAIN_DEVICES)) {
+>  		struct nlattr *nest_dev;
+>  		const char *dev;
+>  
+>  		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
+>  		nftnl_str_array_foreach(dev, &c->dev_array, i)
+> -			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
+> +			nftnl_attr_put_ifname(nlh, NFTA_DEVICE_NAME, dev);
+>  		mnl_attr_nest_end(nlh, nest_dev);
 >  	}
 >  
-> +	table->total_jump_count = ctx.total_jump_count - total_jumps_before_validate;
+> @@ -648,7 +648,9 @@ static int nftnl_chain_parse_hook(struct nlattr *attr, struct nftnl_chain *c)
+>  		c->flags |= (1 << NFTNL_CHAIN_PRIO);
+>  	}
+>  	if (tb[NFTA_HOOK_DEV]) {
+> -		c->dev = strdup(mnl_attr_get_str(tb[NFTA_HOOK_DEV]));
+> +		if (c->flags & (1 << NFTNL_CHAIN_DEV))
+> +			xfree(c->dev);
+> +		c->dev = nftnl_attr_get_ifname(tb[NFTA_HOOK_DEV]);
+>  		if (!c->dev)
+>  			return -1;
+>  		c->flags |= (1 << NFTNL_CHAIN_DEV);
+> diff --git a/src/flowtable.c b/src/flowtable.c
+> index fbbe0a866368d..006d50743e78a 100644
+> --- a/src/flowtable.c
+> +++ b/src/flowtable.c
+> @@ -299,7 +299,7 @@ void nftnl_flowtable_nlmsg_build_payload(struct nlmsghdr *nlh,
+>  
+>  		nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
+>  		nftnl_str_array_foreach(dev, &c->dev_array, i)
+> -			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev);
+> +			nftnl_attr_put_ifname(nlh, NFTA_DEVICE_NAME, dev);
+>  		mnl_attr_nest_end(nlh, nest_dev);
+>  	}
+>  
+> diff --git a/src/str_array.c b/src/str_array.c
+> index 5669c6154d394..02501c0cbdd79 100644
+> --- a/src/str_array.c
+> +++ b/src/str_array.c
+> @@ -56,7 +56,7 @@ int nftnl_parse_devs(struct nftnl_str_array *sa, const struct nlattr *nest)
+>  		return -1;
+>  
+>  	mnl_attr_for_each_nested(attr, nest) {
+> -		sa->array[sa->len] = strdup(mnl_attr_get_str(attr));
+> +		sa->array[sa->len] = nftnl_attr_get_ifname(attr);
+>  		if (!sa->array[sa->len]) {
+>  			nftnl_str_array_clear(sa);
+>  			return -1;
+> diff --git a/src/utils.c b/src/utils.c
+> index 5f2c5bff7c650..2a8669c6242b7 100644
+> --- a/src/utils.c
+> +++ b/src/utils.c
+> @@ -13,8 +13,11 @@
+>  #include <errno.h>
+>  #include <inttypes.h>
+>  
+> +#include <libmnl/libmnl.h>
 > +
+>  #include <libnftnl/common.h>
+>  
+> +#include <linux/if.h>
+>  #include <linux/netfilter.h>
+>  #include <linux/netfilter/nf_tables.h>
+>  
+> @@ -146,3 +149,31 @@ int nftnl_set_str_attr(const char **dptr, uint32_t *flags,
+>  	*flags |= (1 << attr);
 >  	return 0;
 >  }
->  
-> @@ -4084,6 +4144,7 @@ int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
->  	case NFT_JUMP:
->  	case NFT_GOTO:
->  		pctx->level++;
-> +		pctx->total_jump_count++;
->  		err = nft_chain_validate(ctx, data->verdict.chain);
->  		if (err < 0)
->  			return err;
-> @@ -11916,6 +11977,59 @@ static struct notifier_block nft_nl_notifier = {
->  	.notifier_call  = nft_rcv_nl_event,
->  };
->  
-> +#ifdef CONFIG_SYSCTL
-> +static struct ctl_table nf_limit_control_sysctl_table[] = {
-> +	{
-> +		.procname	= "nf_max_table_jumps_netns",
-> +		.data		= &init_net.nf.nf_max_table_jumps_netns,
-> +		.maxlen		= sizeof(init_net.nf.nf_max_table_jumps_netns),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec,
-> +	},
-> +};
 > +
-> +static int netfilter_limit_control_sysctl_init(struct net *net)
+> +void nftnl_attr_put_ifname(struct nlmsghdr *nlh,
+> +			   uint16_t attr, const char *ifname)
 > +{
-> +	struct ctl_table *tbl;
+> +	size_t len = strlen(ifname) + 1;
 > +
-> +	net->nf.nf_max_table_jumps_netns = NFT_DEFAULT_MAX_TABLE_JUMPS;
-> +	tbl = nf_limit_control_sysctl_table;
-> +	if (!net_eq(net, &init_net)) {
-> +		tbl = kmemdup(tbl, sizeof(nf_limit_control_sysctl_table), GFP_KERNEL);
-
-Not checking error:
-
-                if (!tbl)
-                        ...
-
-> +		tbl->data = &net->nf.nf_max_table_jumps_netns;
-> +		if (net->user_ns != &init_user_ns)
-> +			tbl->mode &= ~0222;
-> +	}
+> +	if (len >= 2 && ifname[len - 2] == '*')
+> +		len -= 2;
 > +
-> +	net->nf.nf_limit_control_dir_header = register_net_sysctl_sz(
-> +		net, "net/netfilter", tbl, ARRAY_SIZE(nf_limit_control_sysctl_table));
-> +
-> +	if (!net->nf.nf_limit_control_dir_header)
-> +		goto err_alloc;
-> +
-> +	return 0;
-> +
-> +err_alloc:
-> +	if (tbl != nf_limit_control_sysctl_table)
-> +		kfree(tbl);
-> +	return -ENOMEM;
+> +	mnl_attr_put(nlh, attr, len, ifname);
 > +}
+> +
+> +char *nftnl_attr_get_ifname(const struct nlattr *attr)
+> +{
+> +	size_t slen = mnl_attr_get_payload_len(attr);
+> +	const char *dev = mnl_attr_get_str(attr);
+> +	char buf[IFNAMSIZ];
+> +
+> +	if (slen > 0 && dev[slen - 1] == '\0')
+> +		return strdup(dev);
+> +
+> +	if (slen > IFNAMSIZ - 2)
+> +		slen = IFNAMSIZ - 2;
+> +
+> +	memcpy(buf, dev, slen);
+> +	memcpy(buf + slen, "*\0", 2);
+> +	return strdup(buf);
+> +}
+> -- 
+> 2.49.0
+> 
