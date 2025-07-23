@@ -1,151 +1,102 @@
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
+Received: from sg-1-34.ptr.blmpb.com (sg-1-34.ptr.blmpb.com [118.26.132.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93DA51F4628
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Jul 2025 03:19:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B2926E158
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Jul 2025 06:43:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=118.26.132.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753240771; cv=none; b=loF9uEE0RpwcNXE+vp4JeV8aoLZVsL2NpkMnPmALLJqrej4zhLdR7UK9A4hK7Yee+f8MNQpVbYzit+MVi+lhD022iu0YqKZXF/cDaK0lT2TuEmi5aDY0oyjdMJuL0VL1r+c1fFNJ8MxbEaFwwGoWGuzVKJl3UFD/tuhmtIC6Hio=
+	t=1753253044; cv=none; b=F95V3WYCIbNdpis80TeEyNxysabjYINUkL1HMW6Rn6+fYao+cOqGjbxT64XbKHC0ssf5ttNelFVycihn5UHafIiFN71nr/cnmwaqVGPpvdaWy/veISg9/Wj8lRgtoz4RfZizg2aKARwWJrDQJSXYC3Wcgz97ov0H7SsiD5iovqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753240771; c=relaxed/simple;
-	bh=N46QWE4lfp0Q1wkje5Xg/9N3rcuBiyxd/h+dfWprieY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=s3M1MvN1nUy2aoA6RSbM8Tc0DsIlDwaeBzPwInweig1wkfi+23cJqHltG2DV153Ifx3lf9Mk5tY2tNU5etRu/RN8Yvb9GlrX9JCdimIC2hnscezVnDzk5mDJF0EXdh33bLe+ZqpYmHWDQ7moQconIRuKhJ9o7jkc+UFWyRqrowg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l0jC2kHm; arc=none smtp.client-ip=209.85.219.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1753253044; c=relaxed/simple;
+	bh=LJ2lQwU8X8H/QKiwz6yUSfxX4NYqibZ3YZ1Uy2oITiU=;
+	h=Subject:Mime-Version:Date:Message-Id:From:To:Content-Type; b=sY41aChcUc7hbMrwHVlBDZxrzefvsQqF/mOCbDxUhMGOUzW7xcNCdZSIUughWtRlRwdWdFHM0nBPAAf9HYn0ySrRsoa/iex1XoGkur+iw+Puk4PuVRiuJ7T1e+UCBYVCm9263G3oq/BZA4zE9FsezCxq0ysE/lU5+8OTIk66XX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zslab.cn; spf=pass smtp.mailfrom=zslab.cn; dkim=pass (2048-bit key) header.d=zslab.cn header.i=@zslab.cn header.b=j0tqEHr0; arc=none smtp.client-ip=118.26.132.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zslab.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zslab.cn
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l0jC2kHm"
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-702cbfe860cso50942786d6.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Jul 2025 20:19:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1753240768; x=1753845568; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=LBoIATc/sSYEjG25jwii/Wq0FXunHHPWLW1xRO6r6ps=;
-        b=l0jC2kHmZEJkdnYICgQ8xPBT7Hx9ddIDsV6ug25chhSCYoyYVZ/XcJgHl7vFgqC2ws
-         NkfEolvY3OOCMZSht7/cmefe/GLH4KJSk5bh26GBc6grVBFL/3AvB6j3ieAJNIohdCKC
-         M5QT/v5+9wtl13XplozMG230PK2JbegCGBwcpHLaBaDEL0a0C2iSCoIHEoGC6gU1N2ax
-         uFRoMRDb9TqqJ1zDNi+2FyYDSa8I1NcoRmng3i1/sCoxuOwWOmUvRFRm+DI0u8v1ktKp
-         Ss9biMLOup8+rrAnvhapDYGiZDKkxxek5c/++m629kPfEYLU54pJublLocznl+qS2gCs
-         Ybnw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753240768; x=1753845568;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=LBoIATc/sSYEjG25jwii/Wq0FXunHHPWLW1xRO6r6ps=;
-        b=iodYd7QmmOm8uwojKGrP7WDVY/T+Ps3a4pqOWS9MezSTaKW8VlAktazXFq9NepkSPa
-         NpgD8pqhsVR0/uXXXExxWeh3PIHPzJGaAw51jEJJvHfXoWEQ3No/ES2wkXjaIWIGyQku
-         lzSHrwKiXwhbruOhcSQBEqsPY97hEQDEEnEFMkVsPV97TCAVuJUfo5KpJVa+KGhbSUX/
-         eXCFxzkSQavM8cxYoX0OecCt0Rn6JgpdauxkpqnUruUX+nwmjgT8WMIk2iRXZhwMNGnr
-         V7pPzYJAQQ4kck4yAkaLNBlaD0KlzDzo9tfH+hAHJtISpCmZy8sCeAerHbEYMiRoI/rT
-         RxCA==
-X-Gm-Message-State: AOJu0YytefK7T91Ml1k+SF7gXjW6TmR0kV2D8WbzPoJK1BohsJe72oon
-	6hjOiKcUPniwdGM43UiUF0A2mzsWcAGt95wyLlTOZxBOsbhCYAMo5Zp50tTFQA==
-X-Gm-Gg: ASbGncuiQd/SQpuJt5SvCcZzY45RmFapibgf0dd/i5T7SwY33vwZt5QgAM82gtqQoYX
-	xROWF+COSKsH3ovuv2iyhW7Vpuu4XRMAp9GEMDQZ5eeyFpxtr2Ir27UvbIuh83qMb9RyvBP2jHC
-	IqymDzeuzKQwX8ycUutmkwyf45ik69zADEOmMnevWLptB4WPcmktl49GZjWyUw1CTevhUOpyRxN
-	PbXzU1CCK743jhiGaaspMYunYcN2utSj0LRiTN1iktn7sr5dIZLqu7IZJxneQmA/1aQg5DTOVwG
-	/QUWUTwhyNmixlW5oNn17cu8SXHRRRJfGJ3pL4Wi4weAXIqF3NouyoqAklj0RfWY/B9zNXCl2yk
-	G0EWiiaST3712BpmEe6X0Z8JS0GlXAsELar9l/HmJfhjE+S19jRYW2kfSJN7cSMqUXA==
-X-Google-Smtp-Source: AGHT+IEBajDRMI/ETVaWLU+3Gwq6zwo10FPyWjGjVcxr/ImSCJX93sgVAJIkH867c1O9oOWkuFN8vg==
-X-Received: by 2002:a05:6214:1949:b0:700:bce1:495a with SMTP id 6a1803df08f44-707004b32f1mr22226056d6.1.1753240768345;
-        Tue, 22 Jul 2025 20:19:28 -0700 (PDT)
-Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-7051b8bb8b5sm60538796d6.6.2025.07.22.20.19.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 22 Jul 2025 20:19:27 -0700 (PDT)
-Date: Tue, 22 Jul 2025 23:19:26 -0400
-From: Shaun Brady <brady.1345@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, ppwaskie@kernel.org, fw@strlen.de
-Subject: Re: [PATCH v5 1/2] netfilter: nf_tables: Implement jump limit for
- nft_table_validate
-Message-ID: <aIBUvgd9skYlzqEC@fedora>
-References: <20250520030842.3072235-1-brady.1345@gmail.com>
- <aH7zWPAVRV8_1ehk@calendula>
+	dkim=pass (2048-bit key) header.d=zslab.cn header.i=@zslab.cn header.b="j0tqEHr0"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ s=feishu2503270945; d=zslab.cn; t=1753253024; h=from:subject:
+ mime-version:from:date:message-id:subject:to:cc:reply-to:content-type:
+ mime-version:in-reply-to:message-id;
+ bh=Xn74i0Kv3pKizZeE30vonKzcSyEbH1Ys9lNQXoS4524=;
+ b=j0tqEHr0Ru0ZUcnzve6h91T62WDpLe4/XxEsdgT12UN1p+07FIiimHICf62L+ngiZElpjJ
+ bfbjSX2zdkD7RLDLh7UE5+UbeUrE//I8r7lVx1tc3L9YejWqIenqKI05ejaXbmE7CaYpts
+ DIEEEbxVoknmighkHp7ddRwN7POyiBEc0/wRfEsxlF/7v4vNzkTNK9iWRgEggpb7DjstZA
+ QOg4chxNLlgi/8zlvYDXaXv6shKTajLU+eccUmVWNHZG8/oafNTikdw1kqWSvQFZ3nxV1d
+ 5yDHS21W1U2d0IOQKQ55HRJvu1XWJeJo24sS/51BYcMegJySunMwh9F7BCmoGg==
+Subject: Subject: [nftables] Bug: dup rule fails to modify MAC address on netdev/ingress hook
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aH7zWPAVRV8_1ehk@calendula>
+Mime-Version: 1.0
+X-Lms-Return-Path: <lba+26880849f+2f7940+vger.kernel.org+zs@zslab.cn>
+Date: Wed, 23 Jul 2025 14:43:40 +0800
+Message-Id: <2025072314434064423510@zslab.cn>
+X-Has-Attach: no
+From: "zs@zslab.cn" <zs@zslab.cn>
+X-Guid: 96A081B9-6152-4CBE-85C8-F958F96391C5
+X-Mailer: Foxmail 7.2.25.398[cn]
+X-Original-From: "zs@zslab.cn" <zs@zslab.cn>
+Content-Transfer-Encoding: 7bit
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Received: from KLMIT ([58.205.191.254]) by smtp.feishu.cn with ESMTPS; Wed, 23 Jul 2025 14:43:42 +0800
+X-Priority: 3
 
-On Tue, Jul 22, 2025 at 04:11:36AM +0200, Pablo Neira Ayuso wrote:
-> On Mon, May 19, 2025 at 11:08:41PM -0400, Shaun Brady wrote:
-> > +static bool nft_families_inc_jump(struct nft_table *table, struct nft_table *sibling_table)
-> > +{
-> 
-> I think we mentioned about NFPROTO_BRIDGE here too.
-> 
+Hello netfilter/nftables developers,
 
-NFPROTO_BRIDGE was indeed brought up, which brought us to the current
-implementation of nft_families_inc_jump.
+I've encountered a potential bug in nftables behavior when using the `dup` statement in the netdev/ingress hook to modify the destination MAC address. The issue only occurs when a single rule is defined, but works correctly when two identical rules are added.
 
+### Environment:
+- OS: openEuler 24.03 LTS-SP2
+- Kernel: 6.6.0-98.0.0.103.oe2403sp2.x86_64
+- nftables versions tested: v1.0.8 and v1.1.3
+- Interfaces: gretap10 (ingress hook), output to eth2
 
----- excerpt ----
-> Maybe it is better to have a global limit for all tables, regardless
-> the family, in a non-init-netns?
+### Steps to Reproduce:
+nft add table netdev mirror_nogre
+nft add chain netdev mirror_nogre ingress \
+    '{ type filter hook ingress device "gretap10" priority 0; }'
+nft insert rule netdev mirror_nogre ingress position 0 \
+    dup to eth2 ether daddr set BC:24:11:C0:CE:EB
 
-Looks like it would be simpler.
+Observe with:
+tcpdump -ni eth2 -e
 
-The only cases where processing is disjunct is ipv4 vs. ipv6.
+### Observed Behavior:
+- With one rule: MAC address is not modified (remains original)
+- With two identical rules: MAC is correctly set to `bc:24:11:c0:ce:eb`
 
----- /excerpt ----
+### Expected Behavior:
+A single `dup` rule should duplicate and modify the MAC address.
 
-The current implementation includes all tables which are not:
-1) the same table we're working with (tbl == other_tbl) (self)
-2) tables where the protocol is tbl.family = v4, other_tbl.family = v6
-(and vice versa)
+### Ruleset Example (working case with 2 rules):
+table netdev mirror_nogre {
+chain ingress {
+type filter hook ingress device "gretap10" priority filter;
+policy accept;
+dup to "eth2" ether daddr set bc:24:11:c0:ce:eb
+dup to "eth2" ether daddr set bc:24:11:c0:ce:eb
+}
+}
 
-I believe from this jumps from NFPROTO_BRIDGE to high protocols will be
-counted.
+### Suspected Cause:
+There may be a bug in how `dup` and action statements (like `ether daddr set`) are handled in netdev/ingress hook when only one rule exists.
 
-> > +
-> > +static int nft_table_validate(struct net *net, struct nft_table *table)
-> 
-> This function is called from abort path too. I suspect total_jump_count
-> for this table will not be OK in such case. And this selftest does cover
-> many cases.
-
-The abort case is something I did not consider.  Would
-nft_table_validate be called after a transaction rollback, and thusly a
-likely set of tables that previously validated successfully?
-
-Another potential save is that I don't update nft_table.total_jump_count
-until after a successful validation of the table.
-
-I might ask, how is the abort state different for validation, or is the
-abort state when someone literally kills an update (and thus would be a
-rollback?)?
-
-Would a test case that attempts to demonstrate safety of the value
-suffice?
-
-> 
-> > +			if(nft_families_inc_jump(table, sibling_table))
->                           ^
->                   coding style
-
-I see it (or really, don't).  Will fix in v6.
-
-> 
-> > +	if (!net_eq(net, &init_net)) {
-> > +		tbl = kmemdup(tbl, sizeof(nf_limit_control_sysctl_table), GFP_KERNEL);
-> 
-> Not checking error:
-> 
->                 if (!tbl)
->                         ...
-
-Good catch.  I think I can jump down to the same err_alloc label below.
+Best regards,
+Zhang Sheng
+Email: zs@zslab.cn
 
 
-Thanks for the feedback!
 
 
-SB
+
+
+--------------
+
+
+
+zs@zslab.cn
