@@ -1,60 +1,55 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C51DF19A;
-	Wed, 23 Jul 2025 01:02:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5145F4A1A
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Jul 2025 01:14:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753232542; cv=none; b=MStCXtx1xxLwc96vUg8jWYnDeGGZDzekITCsg0fQ+ajKZfS8U1y3hH3aevjvI9knm7JWtnV9YzodtCXnZtQg9zlkh3L4M/JmuVhlhL2X9QZFV7ufFcz9U3G1XWo0qeNunSmc+y1pIzA87FutG/fvvFwe/zBBm22gMXlFzKUyzH8=
+	t=1753233260; cv=none; b=Psqhlx7wYMn3oiqj7pbPbu5PPZFPcAq69CVMwjdff8rycQtNjnOD5TfS8QVhe07Sn+2GapSCJecT4Pon2eonD4GesNdIPavfjk1TWNc3U1VuqZXY5PUt9yrBEFr9XOV00Em/pBIYLm3rY/CxhANLR4MHNQiPZEgLwzi41tZb1jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753232542; c=relaxed/simple;
-	bh=vr7pD0YXRwAScuGrHCqezmW3XIU4AIHJ6JEseENsoCg=;
+	s=arc-20240116; t=1753233260; c=relaxed/simple;
+	bh=WwPMdf1ZK2At6prB5+4fq/UtZMQvE/ArVa1+Tr+MiJc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cdYQUi+mif88XGtfiGNl0rs7Uw75wZlIiw8VfyzFJe6C98UQZDMSzpw4niicsBKWJDNNlk6obXEkRjIDhXB+Xw+Z8nDos9HdV89VmGmYzKKw7tXUVMmVIJjijLAL4WSRmZrwYBp20jmsxpRlPiJHW9qnRFP0xzqnmfBw+XGEMtk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=piNnvYcZ; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RjYIICVa; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=kSxO4usgqSCWXZo/ybVkAEaoHWid6Mt7ehl8+brkVcVLfvJss8gZ0SgmmRme7ksi48puNoKtTc3hjcwfLVkSE8yCYLAL1dAdP/TOvuiCDo7U3sLxRD4YjTwx0XTYH5vv02vVMLEmVG2XN7pKYOS5PondVo7WFC0eIYT9sqlmlhc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j31g/adN; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j31g/adN; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="piNnvYcZ";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RjYIICVa"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j31g/adN";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j31g/adN"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 95B2660286; Wed, 23 Jul 2025 03:02:16 +0200 (CEST)
+	id A19DA60276; Wed, 23 Jul 2025 03:14:16 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753232536;
-	bh=EdBX1broglTSvzLe9lwy2ZswEClbQ77newzg7SsGALQ=;
+	s=2025; t=1753233256;
+	bh=DinyTYXiVCxiMIib2PM3NI2goWKphIf2lNiHn6rKN4s=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=piNnvYcZVGZjhbwkbgC5IpM+efqJQIz/dU+UVB9X6ILYWi5OfISmkKd+f3+UaNMhx
-	 +xlXTPBQqplY30YBtm+qMvmZWdTpYuRu3Bv6V1cdrsLxFiR2DNcUERr16XX3tdmC1l
-	 bB8NtZ+w7zDLRtg+U4jqQLTd62NQYkWOzPn/yJGToXoO0Xy5xDpnL2V7wk/2riHL74
-	 /EfPESziNiN27aGwntYYA5aBx4XsC5Bno8qHyOWFImoJeiNzXJ+GOYQ0Pu1xBdl76k
-	 LzaIalKxgd/PagVss9cCqEqxurK38FBWDo33WYgMKTD9LtDmb9YVpN3VKs63/eobre
-	 O6DwK6OZa6rbw==
+	b=j31g/adNKR14t1n+qnEokEy+DMluaaTSPBFoqe/hJpY1qOF3x70n7qc+Ju6fvl1Bl
+	 MTuAjgKpdnnJ1s9ihMUlDOkMD9ifwDQOJw+Y9aGzAxz20DDbSuoLkI0YgkZseWl2qz
+	 EEgft/BgLAb+0r69+koqnLSVWr8N8u0QyO0e+lyAfDXjsD801INdEzX93cggA5uIxo
+	 zaZm/LkGtDSoLrQgpacaL5uuenowXri/5nJ6lghsbVX6wf5DblFgrchUKjwvFWRVWM
+	 5QjLDHPKgzV/NcsTAdVDSUai6Q4GFKrCN9LTXET9+aPkIiwQKYZSiCx5VrbBG6fFI8
+	 VZ51Ds5HcVAYw==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4636A6027B;
-	Wed, 23 Jul 2025 03:02:13 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id AB1236026C;
+	Wed, 23 Jul 2025 03:14:15 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753232533;
-	bh=EdBX1broglTSvzLe9lwy2ZswEClbQ77newzg7SsGALQ=;
+	s=2025; t=1753233256;
+	bh=DinyTYXiVCxiMIib2PM3NI2goWKphIf2lNiHn6rKN4s=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=RjYIICVaotgq0vkIS+QNcJYDP7fcYp3/qKFToB+eVy255pard5wDrJkbncSN3mLXi
-	 7e3o+XK43GHZd+yicBqVyPG3L9wRO/zgGoX4k3L/UxBsbeEQ2gTs0gXxLAnv/V/b5s
-	 3H1bFZuMiCNzSLuxts9mcjxyA5uPTZm0N3NkMsvwEalkbX+rLLGMPzRnLL+MypH5xx
-	 Fm8yXJ837xbnZDRF+zF1lB79YVoc2MUk6icDi+P4+tnsdOB/J8z5bXRr2PBn1NWM0B
-	 7jjWPKdFdrAzvqJtpOY/fKyRsXZgCnnydtA1uyZsS7PfWlMZ37IAt+phsUfGThars5
-	 HZun9V/hJwpVg==
-Date: Wed, 23 Jul 2025 03:02:09 +0200
+	b=j31g/adNKR14t1n+qnEokEy+DMluaaTSPBFoqe/hJpY1qOF3x70n7qc+Ju6fvl1Bl
+	 MTuAjgKpdnnJ1s9ihMUlDOkMD9ifwDQOJw+Y9aGzAxz20DDbSuoLkI0YgkZseWl2qz
+	 EEgft/BgLAb+0r69+koqnLSVWr8N8u0QyO0e+lyAfDXjsD801INdEzX93cggA5uIxo
+	 zaZm/LkGtDSoLrQgpacaL5uuenowXri/5nJ6lghsbVX6wf5DblFgrchUKjwvFWRVWM
+	 5QjLDHPKgzV/NcsTAdVDSUai6Q4GFKrCN9LTXET9+aPkIiwQKYZSiCx5VrbBG6fFI8
+	 VZ51Ds5HcVAYw==
+Date: Wed, 23 Jul 2025 03:14:11 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: lvxiafei <xiafei_xupt@163.com>
-Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org,
-	linux-kernel@vger.kernel.org, lvxiafei@sensetime.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com, fw@strlen.de
-Subject: Re: [PATCH V2] netfilter: nf_conntrack: table full detailed log
-Message-ID: <aIA0kYa1oi6YPQX8@calendula>
-References: <20250508081313.57914-1-xiafei_xupt@163.com>
- <20250522091954.47067-1-xiafei_xupt@163.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v2 0/5] netfilter: nft_set updates
+Message-ID: <aIA3Y3OjzhZ_hQVD@calendula>
+References: <20250709170521.11778-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,41 +58,33 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250522091954.47067-1-xiafei_xupt@163.com>
+In-Reply-To: <20250709170521.11778-1-fw@strlen.de>
 
-On Thu, May 22, 2025 at 05:19:54PM +0800, lvxiafei wrote:
-> From: lvxiafei <lvxiafei@sensetime.com>
+Hi Florian,
+
+On Wed, Jul 09, 2025 at 07:05:11PM +0200, Florian Westphal wrote:
+> v2: minor kdoc updates.  I copied Stefanos RvB tags.
 > 
-> Add the netns field in the "nf_conntrack: table full,
-> dropping packet" log to help locate the specific netns
-> when the table is full.
+> This series serves as preparation to make pipapos avx2 functions
+> available from the control plane.
 > 
-> Signed-off-by: lvxiafei <lvxiafei@sensetime.com>
-> ---
->  net/netfilter/nf_conntrack_core.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+> First patch removes a few unused arguments.
+> Second and third patch simplify some of the set api functions.
+
+Although it is a bit lengthy, I like this simplification.
+
+> The fourth patch is the main change, it removes the control-plane
+> only C implementation of the pipapo lookup algorithm.
 > 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 7f8b245e287a..47036a9d4acc 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -1659,7 +1659,11 @@ __nf_conntrack_alloc(struct net *net,
->  			if (!conntrack_gc_work.early_drop)
->  				conntrack_gc_work.early_drop = true;
->  			atomic_dec(&cnet->count);
-> -			net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
-> +			if (net == &init_net)
-> +				net_warn_ratelimited("nf_conntrack: table full, dropping packet\n");
-> +			else
-> +				net_warn_ratelimited("nf_conntrack: table full in netns %u, dropping packet\n",
-> +						     net->ns.inum);
+> The last patch allows the scratch maps to be backed by vmalloc.
 
-This is slightly better, but it still does not say what packet has
-been dropped, right?
+This clashes with:
 
-Probably a similar approach to nf_tcp_log_invalid() would better here.
+  netfilter: nft_set_pipapo: Use nested-BH locking for nft_pipapo_scratch
 
-Thus, nf_log infrastructure could be used as logging hub.
+https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=463248
 
-Logging the packet probably provides more context information than
-simply logging the netns inode number.
+It seems you and Sebastian have been working on the same area at the
+same time.
+
+Do you have a preference on how to proceed with this clash?
