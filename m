@@ -1,34 +1,33 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25E0D2C15B4;
-	Thu, 24 Jul 2025 15:26:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A7A22A808
+	for <netfilter-devel@vger.kernel.org>; Thu, 24 Jul 2025 22:06:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753370803; cv=none; b=qkHw6nw35dee06ipOaJKPPLr8GUD5FJc9/Yp7DeCk5+xjiOzhLAUtKBtv9tUVEnVxegt3Y3wfbuSzIqCbZX0wvrXt637YIDrJu3TF6WOQ/HE2+DqHX+K97r2OHcTQvayU2ltKJjQMcXBFr+eqw+JFOMnFI8ajno8qRCpQT259f0=
+	t=1753394801; cv=none; b=hhPlEa5ivoTQKqm3M+1h/zSSXcUb4JwOJP/bgWY+9xd39lPuvkPswc5M63Kb1vUJZ8v77+dfruFVHMAsFwLbOLIlTiwLa/KPu92UJW2Krv6mxa4XXJf1eHkLMlcyTZ66N+j0CRBIJiWVyAlh93J7xmhSHVsMwY1U2mZL/ufk8ZY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753370803; c=relaxed/simple;
-	bh=KPoofKIu8ZQ5Tba3M7ex7oVjXffaPCWYYdd/YIvtyfk=;
+	s=arc-20240116; t=1753394801; c=relaxed/simple;
+	bh=V0peJ6URUvypiKYqOVDJDVn6YD+1dTgKcg/FUhtRQ+w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LUr6CVAXo5qteLArWs93FWPNZhxD46Ji5llCELlsp9UWlRhaxPSoeekyxE1FWJqY4W0RMmB+PL64U4/oYOdkdKAnHFijF0/nbazEf1ECPn6w3d5nxGo+u5qQA/6jxFTD6pfce2BjdaFU/4xQjHqLjukSFvlYguz19UQBKK9GqoU=
+	 Content-Type:Content-Disposition:In-Reply-To; b=rkg52wi8llxPi1AoVInTGIcQpb0PmKCrpI1yUCbrV0TBAIPsiHo4Nezz5nME+qgOJ+iDB+b48DLcaN83khG/lNIKJsQnl5TEHTtvGRnosrpQnuvKMfjvY4cJQyHOKzUiuXcMqkZ2Kv4cnHl0t54N9GyTPUuHiaspdvM9A6DIksk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D3539602B1; Thu, 24 Jul 2025 17:26:38 +0200 (CEST)
-Date: Thu, 24 Jul 2025 17:26:33 +0200
+	id 44DE96048A; Fri, 25 Jul 2025 00:06:37 +0200 (CEST)
+Date: Fri, 25 Jul 2025 00:06:36 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: lvxiafei <xiafei_xupt@163.com>, coreteam@netfilter.org,
-	davem@davemloft.net, edumazet@google.com, horms@kernel.org,
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com
-Subject: Re: [PATCH V2] netfilter: nf_conntrack: table full detailed log
-Message-ID: <aIJQqacIH7jAzoEa@strlen.de>
-References: <20250508081313.57914-1-xiafei_xupt@163.com>
- <20250522091954.47067-1-xiafei_xupt@163.com>
- <aIA0kYa1oi6YPQX8@calendula>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH nf-next 0/3] netfilter: nft_set_pipapo: Use nested-BH
+ locking for nft_pipapo_scratch
+Message-ID: <aIKubJyzokB9-_rx@strlen.de>
+References: <20250701221304.3846333-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,21 +36,18 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aIA0kYa1oi6YPQX8@calendula>
+In-Reply-To: <20250701221304.3846333-1-bigeasy@linutronix.de>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > +				net_warn_ratelimited("nf_conntrack: table full in netns %u, dropping packet\n",
-> > +						     net->ns.inum);
+Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+> The pipapo set type uses a per-CPU scratch buffer which is protected
+> only by disabling BH. This series reworks the scratch buffer handlingand
+> adds nested-BH locking which is only used on PREEMPT_RT.
 > 
-> This is slightly better, but it still does not say what packet has
-> been dropped, right?
-> 
-> Probably a similar approach to nf_tcp_log_invalid() would better here.
->
-> Thus, nf_log infrastructure could be used as logging hub.
-> 
-> Logging the packet probably provides more context information than
-> simply logging the netns inode number.
+> This series requires a reworked __local_lock_nested_bh() which can be
+> pulled in via
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git local-lock-for-net
 
-Hmm, the conntrack table is full, and packet creates a new flow.
-What would logging the packet tell us what the printk message doesn't?
+Whats your plan here?  This commit is neither in nf-next nor net-next,
+so applying your series breaks the build.
+
+Which trees do you intend your series to go through?
