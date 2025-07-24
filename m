@@ -1,67 +1,78 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A66B1D7E4A
-	for <netfilter-devel@vger.kernel.org>; Wed, 23 Jul 2025 18:16:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BD313D521;
+	Thu, 24 Jul 2025 02:09:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753294605; cv=none; b=srDQUpkZPk6DcHHjlEnKu+Ip0TMSDSKp5+u7m351ZSs41hqklpR4zanNBOehlwONnTZgeonRKPMOfqKuA5N6wgVy099iuQHxWnt/vo63y7ylI3UFRgOxqDZzbuyQYEyKF1ZpHzqawV4dvQJe8UxOE8QjLkFWQD6OtSv9CraYne0=
+	t=1753322988; cv=none; b=XS4VPazQQn4o/f5vletwAX5SrjiiY9tFsG63L8QhuzJQssH38MoU5jw1kRFxx45ZcfCSoC1ZQAZjA46nfOZPX7ErN672KEkr0j/JnhPCOa5/WmkGVhbH7Oxj98w7StzMGLIamIYvpfizdaCISF68XLZs8W1T+A0rlg1OJuZ6AlA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753294605; c=relaxed/simple;
-	bh=PgXUfjyVPAsVbF8yCgMaa8ISJ4G3/6XrnNIMyLG81+U=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lGRHAtDvqPNsLj4t618y4nss4CLMOLYdG7+ak2libE24vbJT0TQsPgfYo24h6cdqNP1q3wa3T5vlsr7EaMf6+wcGZfzfyOF5OHtasrQTaCwVaEVESc4PB8NQsSSssaGsZzulxijaUOZQpIKl4UsciV0TAnPNCsmAQ//4CdI8xAg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9BC806035A; Wed, 23 Jul 2025 20:16:39 +0200 (CEST)
-Date: Wed, 23 Jul 2025 20:16:39 +0200
-From: Florian Westphal <fw@strlen.de>
-To: "zs@zslab.cn" <zs@zslab.cn>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: Subject: [nftables] Bug: dup rule fails to modify MAC address on
- netdev/ingress hook
-Message-ID: <aIEnB7ijcw_-mzjd@strlen.de>
-References: <2025072314434064423510@zslab.cn>
+	s=arc-20240116; t=1753322988; c=relaxed/simple;
+	bh=IY0X8qF9frVmQ0mysB6HXRZVHRrwqh0aGs9rdhilhjM=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=hbP6eL9u9iIsapz1PEYaFy9kmG1PuMIeUx7IN80RRMsIsGiKdb9tAni+RNn79/u5qv5MMEqzD1hNT7lPRZb0zMJwCciEgl0sUV0om9h+kmHoCi7tfQg+SLZLZliQuUDVzBOzaPvJYw40xLdLlH7u58WnhDorRSPP6eDp7zU0nEo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fAbCZRdH; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fAbCZRdH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A42EAC4CEE7;
+	Thu, 24 Jul 2025 02:09:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1753322987;
+	bh=IY0X8qF9frVmQ0mysB6HXRZVHRrwqh0aGs9rdhilhjM=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=fAbCZRdHpuC+Uw2SxMKx44+sBHaq0UyB36fSazojmGTDij9MGZghXJUsqv8zv+hHt
+	 1gInTbb0mtFRM1dEUCnFWWhPnn6Rzbk7jGMul4XvWfBuKTciqFsnjYAr/hpFJmdlAt
+	 v1xo4Ol4EWdDFz6RaUyk+BcZbrJ1RrtFovs+/PM5U26MPMubfxZ2gsOsLI8KaHzOSX
+	 gAfUbpb7CBHC2jpVvrYZsI5rmcMM9H6jrusNvv5GhcUHUIAMn0gScDRrTfuDmxQH+B
+	 DtBGQjyS3pXOMNqseh4UO76DUzztyLrpO+RSZSXYjbdVdla2ZcZ1eMcO7K9hdAIVNm
+	 wfq2qBDjE+96w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EACA2383BF4E;
+	Thu, 24 Jul 2025 02:10:06 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2025072314434064423510@zslab.cn>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 bpf] bpf: Disable migration in nf_hook_run_bpf().
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <175332300576.1847444.11963207848328088857.git-patchwork-notify@kernel.org>
+Date: Thu, 24 Jul 2025 02:10:05 +0000
+References: <20250722224041.112292-1-kuniyu@google.com>
+In-Reply-To: <20250722224041.112292-1-kuniyu@google.com>
+To: Kuniyuki Iwashima <kuniyu@google.com>
+Cc: ast@kernel.org, daniel@iogearbox.net, andrii@kernel.org, dxu@dxuuu.xyz,
+ pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, kuni1840@gmail.com,
+ bpf@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ syzbot+40f772d37250b6d10efc@syzkaller.appspotmail.com
 
-zs@zslab.cn <zs@zslab.cn> wrote:
-> Hello netfilter/nftables developers,
+Hello:
+
+This patch was applied to bpf/bpf-next.git (net)
+by Martin KaFai Lau <martin.lau@kernel.org>:
+
+On Tue, 22 Jul 2025 22:40:37 +0000 you wrote:
+> syzbot reported that the netfilter bpf prog can be called without
+> migration disabled in xmit path.
 > 
-> I've encountered a potential bug in nftables behavior when using the `dup` statement in the netdev/ingress hook to modify the destination MAC address. The issue only occurs when a single rule is defined, but works correctly when two identical rules are added.
+> Then the assertion in __bpf_prog_run() fails, triggering the splat
+> below. [0]
 > 
-> ### Environment:
-> - OS: openEuler 24.03 LTS-SP2
-> - Kernel: 6.6.0-98.0.0.103.oe2403sp2.x86_64
-> - nftables versions tested: v1.0.8 and v1.1.3
-> - Interfaces: gretap10 (ingress hook), output to eth2
+> Let's use bpf_prog_run_pin_on_cpu() in nf_hook_run_bpf().
 > 
-> ### Steps to Reproduce:
-> nft add table netdev mirror_nogre
-> nft add chain netdev mirror_nogre ingress \
->     '{ type filter hook ingress device "gretap10" priority 0; }'
-> nft insert rule netdev mirror_nogre ingress position 0 \
->     dup to eth2 ether daddr set BC:24:11:C0:CE:EB
+> [...]
 
-This sets the mac address of the original packet, not the duplicated
-one.
+Here is the summary with links:
+  - [v2,bpf] bpf: Disable migration in nf_hook_run_bpf().
+    https://git.kernel.org/bpf/bpf-next/c/17ce3e5949bc
 
-> dup to "eth2" ether daddr set bc:24:11:c0:ce:eb
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-This makes a clone and sends it via eth2.
-Then it changes the ether daddr of the original packet.
 
-> dup to "eth2" ether daddr set bc:24:11:c0:ce:eb
-
-This makes a clone of the (now modified) original packet and sends it
-via eth2, then alters the daddr again (to the same, already altered
-value).
