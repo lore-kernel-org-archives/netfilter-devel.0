@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D488E2EF2B5;
-	Fri, 25 Jul 2025 17:04:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD2642EE5F6;
+	Fri, 25 Jul 2025 17:04:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753463068; cv=none; b=sgMgDkd4SA72kASc63tuDThx0sRPxjbCJWPSsXRmRN9xQ/6asPAyr08HMvS1eWmhjqZ696sgjr789xCcEKw/byA7/UxXxipIKjrMsPSL/9YT0efte2MxLQOS8kr5pmAIaTTSMjrw1sXHp1BJToZ6TEDYzJ7cjVQjkWB8LWiRcR0=
+	t=1753463069; cv=none; b=UgIgotLcn3/2JcEJ9Rum4HxggqJhuNsnIuVccWi7X43Y9UvRK8eCwh2DWy3AIUdKHj6X8Jds8azMQz1KumSo/XO/+qvm7Enuiao2PG5zH1LEr7ABzci+ahQBYOoI0AQpKWFSAIcJmdpj/XPYEoUNV00hh65yhKYTEevhKhiBbxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753463068; c=relaxed/simple;
-	bh=YrtjrX84KfgvPoByGatJSq6cGQrDDGeydVQhBwuKXU8=;
+	s=arc-20240116; t=1753463069; c=relaxed/simple;
+	bh=ZhoNoHyUgV3GHucQx+0+Z9LqrvMJs4W9VLtkPHFke1k=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=Ur/9P5l0QrMD0JtAiN1oPTiuWybOYS7IzqlGAmGnhY78cwubk7CkFq3K0Bgh8YFxMv6PPCyChO8351E/ZQd4K4/+7quhWU0IDqtEhtDGX4c7PfUCimUYA72aZjcOMhLppAVp8ho+S+CaaZ1quhjy4sCjoFmrRcDJvf1w2XoBf6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rxLe4/Fm; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UWIPPJf0; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=L1XyNZofmoziOdBUiIRNI/rkeOgFU4CN6QtewZAr0Z3ITFs2wSLy/z8gnkNKiD95FI6tUD/idGgOielsq15Q4cvpvXykNcWIwcDIoG616SnB9brnAdOIT8YyB+Weia4scIaGWOr4fGmbiaHcWRdGRCShgZiI9o9numVFrRHF2cg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=s/XOw/m2; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eUxAINk5; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rxLe4/Fm";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UWIPPJf0"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="s/XOw/m2";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eUxAINk5"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 60CA460285; Fri, 25 Jul 2025 19:04:25 +0200 (CEST)
+	id 5F3306026E; Fri, 25 Jul 2025 19:04:26 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463065;
-	bh=4S0ARwWIUkkblDff655F6VZtGiitOAJw66FoeE/WBwM=;
+	s=2025; t=1753463066;
+	bh=dVUWRuMfhGHxNyHtHyj+PtEuk3sfGozhXLH8NpTODwE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=rxLe4/Fmsv6kLfxmggrxGJqKQj0afG9uF2lwBp5Yyy9f88DZgy02qAoJPqeQChKou
-	 6rbOirFnumtUn01x5TXbKe56zazfzgoGlD7gkERzcme+gYGxC/H32nx6KrKbcyhDED
-	 A2XtnmQ9VhgKzfwXrQce986B9h6vrvQ70Ti2uOxNsETkago/+QivlSUJM6eCNoQrHR
-	 3m84yWB7zmK4rI0YqntQLDpwvz7bBpkdXJs1Z6C7THjyB41PaWQWef3Mc1B5qYnXHc
-	 RXcug/+CXiYp0DP+05tJNB1qBsgTCwmVniYTTZCdRSP7Mv8MCpH80Pte0N2uIMogKh
-	 ME1NVm4xvdIow==
+	b=s/XOw/m2f2jzVzUkl5ybvPtmKGZ62WO4mxK2vYkXvJyOCMHJqiC7wJtp/zwMFqvdM
+	 GNzBJFWQCv/d2lBNNsPZSFLu74cLl8SqWJnRZDVcqpvoljg241EiaQXZN/DY1nbAE4
+	 kCu06nPaoXHQkvKvPRFBuu5EjwXUXFqFjQuffbOc0+fsJYRtDYrNAYyprjjhp1+KuN
+	 xEmX7WRUIK50/ymxriXDiFcfb/enaJaFYXKo7W4DyXiSQLay2lk9UepsOXjaPKsr/N
+	 oQmrEMZytr/9kXDzFbfoLUEN9q5K3/NGMbjHIx6y0hcKxF8XIruYvqgcyUo9zBNMPT
+	 uSmbQtd1I8n5w==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 93FB460279;
-	Fri, 25 Jul 2025 19:04:16 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 667616026E;
+	Fri, 25 Jul 2025 19:04:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463057;
-	bh=4S0ARwWIUkkblDff655F6VZtGiitOAJw66FoeE/WBwM=;
+	s=2025; t=1753463059;
+	bh=dVUWRuMfhGHxNyHtHyj+PtEuk3sfGozhXLH8NpTODwE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=UWIPPJf02HL4cyqTTc56EFTVjHGtXDKRoUoKv3oXaA+bambr1JdONhBVQemyVJbbQ
-	 XEHeMqq38OVNJhLK70V0TBRfmsrNFJ29ejVVnCow2CgJVmH48/hNfKbVJZdh0gVDTW
-	 /zXThVfHHYGv+QIvHrms9ZrRjfkuemWAEDJ6bxbPKbD32YZLqIcGLrbpqV2RrcYxEt
-	 mwKjflBVQsJognF3/2tEkS4LE5Hij3jyJlUFeCSURwTxcwjmIdOt/XefifmW+o2yvy
-	 sVgOEDG71LP0aLvi3Vz3F5mJxdRZiqpcoHqNtSQgg2IGVHV8IaQk0Gq11eCY4YDi+R
-	 X+GKrOTkR87gw==
+	b=eUxAINk5JpA1gS3KW/crdroD+PCz6IXKhZN8C9/OPhxC4jvKu1dVg+C7JgQhZwCNc
+	 Nmq0rpK2oO1imVq4pvYtuMGDCrw5VrauD+AFp7XTnVPqOD/i/r3fwjZAhi/kXN/zFG
+	 c5lks+A92Io9CEHhE2dFu6crM/sSjMTnicpgVJIDgqdi4in4NICYNEnVkzs2UlrNzN
+	 kMtXESK2OyzyUA8VBV56ImC3UEFZFqNiRBfcyppwIBToO3NRbrhhn9v86+BwBpMxN8
+	 57rVh4jbAQbqynZ6YEITJDHYbFkxLXQMH9ARN6uu/yL0sLnyvL14BeaYy7dQPwhHaA
+	 nBFCPUMpV0Lvw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 16/19] netfilter: nft_set_pipapo: prefer kvmalloc for scratch maps
-Date: Fri, 25 Jul 2025 19:03:37 +0200
-Message-Id: <20250725170340.21327-17-pablo@netfilter.org>
+Subject: [PATCH net-next 17/19] netfilter: xt_nfacct: don't assume acct name is null-terminated
+Date: Fri, 25 Jul 2025 19:03:38 +0200
+Message-Id: <20250725170340.21327-18-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250725170340.21327-1-pablo@netfilter.org>
 References: <20250725170340.21327-1-pablo@netfilter.org>
@@ -68,45 +68,43 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-The scratchmap size depends on the number of elements in the set.
-For huge sets, each scratch map can easily require very large
-allocations, e.g. for 100k entries each scratch map will require
-close to 64kbyte of memory.
+BUG: KASAN: slab-out-of-bounds in .. lib/vsprintf.c:721
+Read of size 1 at addr ffff88801eac95c8 by task syz-executor183/5851
+[..]
+ string+0x231/0x2b0 lib/vsprintf.c:721
+ vsnprintf+0x739/0xf00 lib/vsprintf.c:2874
+ [..]
+ nfacct_mt_checkentry+0xd2/0xe0 net/netfilter/xt_nfacct.c:41
+ xt_check_match+0x3d1/0xab0 net/netfilter/x_tables.c:523
 
+nfnl_acct_find_get() handles non-null input, but the error
+printk relied on its presence.
+
+Reported-by: syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=4ff165b9251e4d295690
+Tested-by: syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
+Fixes: ceb98d03eac5 ("netfilter: xtables: add nfacct match to support extended accounting")
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_set_pipapo.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ net/netfilter/xt_nfacct.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 28e67c4d7132..1a19649c2851 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1152,7 +1152,7 @@ static void pipapo_free_scratch(const struct nft_pipapo_match *m, unsigned int c
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index 7c6bf1c16813..0ca1cdfc4095 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -38,8 +38,8 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
  
- 	mem = s;
- 	mem -= s->align_off;
--	kfree(mem);
-+	kvfree(mem);
- }
- 
- /**
-@@ -1173,10 +1173,9 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 		void *scratch_aligned;
- 		u32 align_off;
- #endif
--		scratch = kzalloc_node(struct_size(scratch, map,
--						   bsize_max * 2) +
--				       NFT_PIPAPO_ALIGN_HEADROOM,
--				       GFP_KERNEL_ACCOUNT, cpu_to_node(i));
-+		scratch = kvzalloc_node(struct_size(scratch, map, bsize_max * 2) +
-+					NFT_PIPAPO_ALIGN_HEADROOM,
-+					GFP_KERNEL_ACCOUNT, cpu_to_node(i));
- 		if (!scratch) {
- 			/* On failure, there's no need to undo previous
- 			 * allocations: this means that some scratch maps have
+ 	nfacct = nfnl_acct_find_get(par->net, info->name);
+ 	if (nfacct == NULL) {
+-		pr_info_ratelimited("accounting object `%s' does not exists\n",
+-				    info->name);
++		pr_info_ratelimited("accounting object `%.*s' does not exist\n",
++				    NFACCT_NAME_MAX, info->name);
+ 		return -ENOENT;
+ 	}
+ 	info->nfacct = nfacct;
 -- 
 2.30.2
 
