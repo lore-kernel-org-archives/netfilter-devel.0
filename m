@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3913B46B5;
-	Fri, 25 Jul 2025 17:03:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32E942EF9A2;
+	Fri, 25 Jul 2025 17:03:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753463035; cv=none; b=YAydADhlcR16+7UsV310TyylxULvJP/r7IEsgKtiMFZvmzw4NHK+UUoCQQDz5pCMHhSW8IQuZ9O8ND/VgVWaW7RvZRBHQSloXCyBNlaxOtiiMBkQuljvxLamfvzNcQBMwX2RWbtd2Me1GzajaP96ZMa3T/sCjeTCPfaEgomugss=
+	t=1753463036; cv=none; b=dN8sQOUF93P1Z1iC5LV1PBeMY3Y8W9XCrIXW+QGPivwUnnRbYgevK+KDMYjmRgK56RTFyR22VRYSg22KrMEGhmsGR/6br5uRRN91hXTOVh4ALY8ktYt6HuTUcAAc6yhyv9GLldZWquSzrV7ezKgq1+Y0lygVqaBwGy3k6cWCXNQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753463035; c=relaxed/simple;
-	bh=ohLT75059uY/AALwRcHjjDg4CsZT5MlxmL2DqAeSVWk=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=YrY20lZCXmyOJkFBmL/xRMXRGpl2bez9sSX2YbUW6GLe5/mF+14Jf/Z9dsxcDBbVhi1aa1wcfHn6l5pZVBVxjgFW3esBTfoY4B4TdtDUMK8Ej9VolmdfDYyOdHnIwNPIN6nfq/zcFMD1IrI8xf6QHkBuFWpsBGKQ+B4R3ujmtuY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gskrLaKA; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hml2n8RJ; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1753463036; c=relaxed/simple;
+	bh=Ms1RC8rHM1QXjTyFECBwd9yL+I6Y/lkZjPtzkPVjj6k=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=i08l9oX9HZ/ptYHJmflCBXRAA4X62txtufxUeac7VU/3ODqc9D2UOPwPQDhOYvxUS/sOxk8wpa0A8yUJsI+DpKZKRV++CrAsv9bt4nQXidgNUuY5LIOODeEjr+MbmyzuieX1Uq8Uzw3X924WhTgMXHi/yKCm+5JieKkys8zQKHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CwrVNQOD; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OT5wgzGu; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gskrLaKA";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hml2n8RJ"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CwrVNQOD";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OT5wgzGu"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 1836D6026E; Fri, 25 Jul 2025 19:03:49 +0200 (CEST)
+	id 9E3E96027E; Fri, 25 Jul 2025 19:03:53 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463029;
-	bh=5L4NlS16LsmZC/48mEt/E095/99vKHK3eKXGP8snIYA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=gskrLaKAHMebbo5j85wKt2YzRH3EhBYVClduHzpbgOEAXOodSJ3u3uwtEsbwnka5e
-	 fGuQ2IKD9+jeR7YyTFjPojB6W8kt8o0/1RBFUg7Xosz/gn3oy6wjhEvdQq0xnhRtf7
-	 Wiu3/0yj3IR+s9v43+CkdhIGphMIk7bLW941RMocOuR0q14/vSUCMz3GJbCF0E4cdk
-	 T2YZIxLapuNc6hJqM1XPMw4b0Jn4UElPC3r+Kr4RcNGDbeckWaqfz3MaRFmCYoZi2c
-	 Hnd/q6kn73foQ7osl2gXyU7x3iYlXzWDms7nGXmvGFdorMAxkEfxtz+TWAwNxQe+5o
-	 2q4OjFXP0WdDQ==
+	s=2025; t=1753463033;
+	bh=5zJ892qt1l0+0uxWQTmVO8QzsG5iP93tYVgZ528UBZg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=CwrVNQODNStqJ5xCkMkBKmS0/sXt6uyYQuahNHUjPu1yO7HhZgb62leGx88XolpWq
+	 m5laPN3jwdB64oeAkG2vZKj1Mc48BVFHV7EYfXLQBEoD0YQh6qeyG6T30scCUmbUz5
+	 yBAutwW5noohm1h0CERpwSSOez2+Y2hdQ8M76iDEp+8AiiYmh+N7PZUralJ8sFbAmf
+	 pYB2XYkWZdr43lOnBgAW1m1kf/GquwU9+Qkxu+tSHDmvY1AiistwhGaR07Mo7aO7zj
+	 exjwbcoSpnZuHwNrS8K9j11hIYFS2Xvol+YPqq77lK7XG6ZT87fM6ROBgwpI6ySc91
+	 Oz9i01sqUfwEQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6F4EE6026E;
-	Fri, 25 Jul 2025 19:03:45 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5201560279;
+	Fri, 25 Jul 2025 19:03:50 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463026;
-	bh=5L4NlS16LsmZC/48mEt/E095/99vKHK3eKXGP8snIYA=;
-	h=From:To:Cc:Subject:Date:From;
-	b=hml2n8RJWdkqi/5nq5TAzBmVDFTq7b9d7twehsDPem5HEXDplCm3F6dgV+9eZivRo
-	 12FzZZUhhlmEpONdgwg84JdiGC02/ldv73jb0Y0NfWTp4n0LbPu7zqxvuKATxelSoR
-	 7DWO8Yz4HrFRUR/zGRVypTVvk7olcQY7Ikp5TVrnTsgiN97cId9Eo5TaQYg9pFm1GV
-	 yX4CQ6+3dDk4clG7+Rmczhk3A/VUUyMHP9A0fuhxwtj6zW5M4RI4y2ZBW/ZkQHH9mP
-	 UMQIPcidMKr7T846GZPjJUlyIDYnhv0LMV9dwwlKZLUxZMOFb7/1B1Refgqrr6rKSS
-	 qLqRe7hRPorxw==
+	s=2025; t=1753463031;
+	bh=5zJ892qt1l0+0uxWQTmVO8QzsG5iP93tYVgZ528UBZg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=OT5wgzGuOoJd0lQ4kuQuK9fu38iascjDfOMfrFzTW9PV9wuhRFhwJ1RnH9jb/m7uC
+	 +SSSkUGKLKvbGbKIQYa/RjrY2cjxEsaHfTMIqdWoq3KgAh2JZ1uTJ0zdZLMTv6xU0P
+	 Lf6JOCf4UjpsOgmJXJVu0c90tv1aFNRd6ngUWDCjnyyea4F/I19UjrHc4yjfvELzks
+	 sLJWXxKRlS6tqR0d1996biNOG34XKvq/0AiOIgAC841/Izhk2vmyHeVXfl7xVN/LiN
+	 +M+y8XKyR0mgB9bobYDpSlciC1cCafU+1MMoelAHv7LdCpAnKXR9/4XVsWouTursQg
+	 EnYAJQ5H5SSzg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 00/19] Netfilter/IPVS updates for net-next
-Date: Fri, 25 Jul 2025 19:03:21 +0200
-Message-Id: <20250725170340.21327-1-pablo@netfilter.org>
+Subject: [PATCH net-next 02/19] netfilter: load nf_log_syslog on enabling nf_conntrack_log_invalid
+Date: Fri, 25 Jul 2025 19:03:23 +0200
+Message-Id: <20250725170340.21327-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250725170340.21327-1-pablo@netfilter.org>
+References: <20250725170340.21327-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,145 +66,126 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Lance Yang <lance.yang@linux.dev>
 
-The following series contains Netfilter/IPVS updates for net-next:
+When no logger is registered, nf_conntrack_log_invalid fails to log invalid
+packets, leaving users unaware of actual invalid traffic. Improve this by
+loading nf_log_syslog, similar to how 'iptables -I FORWARD 1 -m conntrack
+--ctstate INVALID -j LOG' triggers it.
 
-1) Display netns inode in conntrack table full log, from lvxiafei.
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Zi Li <zi.li@linux.dev>
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_log.h          |  3 +++
+ net/netfilter/nf_conntrack_standalone.c | 26 ++++++++++++++++++++++++-
+ net/netfilter/nf_log.c                  | 26 +++++++++++++++++++++++++
+ 3 files changed, 54 insertions(+), 1 deletion(-)
 
-2) Autoload nf_log_syslog in case no logging backend is available,
-   from Lance Yang.
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index e55eedc84ed7..00506792a06d 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -59,6 +59,9 @@ extern int sysctl_nf_log_all_netns;
+ int nf_log_register(u_int8_t pf, struct nf_logger *logger);
+ void nf_log_unregister(struct nf_logger *logger);
+ 
++/* Check if any logger is registered for a given protocol family. */
++bool nf_log_is_registered(u_int8_t pf);
++
+ int nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger);
+ void nf_log_unset(struct net *net, const struct nf_logger *logger);
+ 
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 829f60496008..9b8b10a85233 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -14,6 +14,7 @@
+ #include <linux/sysctl.h>
+ #endif
+ 
++#include <net/netfilter/nf_log.h>
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+@@ -555,6 +556,29 @@ nf_conntrack_hash_sysctl(const struct ctl_table *table, int write,
+ 	return ret;
+ }
+ 
++static int
++nf_conntrack_log_invalid_sysctl(const struct ctl_table *table, int write,
++				void *buffer, size_t *lenp, loff_t *ppos)
++{
++	int ret, i;
++
++	ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
++	if (ret < 0 || !write)
++		return ret;
++
++	if (*(u8 *)table->data == 0)
++		return ret;
++
++	/* Load nf_log_syslog only if no logger is currently registered */
++	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
++		if (nf_log_is_registered(i))
++			return ret;
++	}
++	request_module("%s", "nf_log_syslog");
++
++	return ret;
++}
++
+ static struct ctl_table_header *nf_ct_netfilter_header;
+ 
+ enum nf_ct_sysctl_index {
+@@ -651,7 +675,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.data		= &init_net.ct.sysctl_log_invalid,
+ 		.maxlen		= sizeof(u8),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dou8vec_minmax,
++		.proc_handler	= nf_conntrack_log_invalid_sysctl,
+ 	},
+ 	[NF_SYSCTL_CT_EXPECT_MAX] = {
+ 		.procname	= "nf_conntrack_expect_max",
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 6dd0de33eebd..74cef8bf554c 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -125,6 +125,32 @@ void nf_log_unregister(struct nf_logger *logger)
+ }
+ EXPORT_SYMBOL(nf_log_unregister);
+ 
++/**
++ * nf_log_is_registered - Check if any logger is registered for a given
++ * protocol family.
++ *
++ * @pf: Protocol family
++ *
++ * Returns: true if at least one logger is active for @pf, false otherwise.
++ */
++bool nf_log_is_registered(u_int8_t pf)
++{
++	int i;
++
++	if (pf >= NFPROTO_NUMPROTO) {
++		WARN_ON_ONCE(1);
++		return false;
++	}
++
++	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
++		if (rcu_access_pointer(loggers[pf][i]))
++			return true;
++	}
++
++	return false;
++}
++EXPORT_SYMBOL(nf_log_is_registered);
++
+ int nf_log_bind_pf(struct net *net, u_int8_t pf,
+ 		   const struct nf_logger *logger)
+ {
+-- 
+2.30.2
 
-3) Three patches to remove unused functions in x_tables, nf_tables and
-   conntrack. From Yue Haibing.
-
-4) Exclude LEGACY TABLES on PREEMPT_RT: Add NETFILTER_XTABLES_LEGACY
-   to exclude xtables legacy infrastructure.
-
-5) Restore selftests by toggling NETFILTER_XTABLES_LEGACY where needed.
-   From Florian Westphal.
-
-6) Use CONFIG_INET_SCTP_DIAG in tools/testing/selftests/net/netfilter/config,
-   from Sebastian Andrzej Siewior.
-
-7) Use timer_delete in comment in IPVS codebase, from WangYuli.
-
-8) Dump flowtable information in nfnetlink_hook, this includes an initial
-   patch to consolidate common code in helper function, from Phil Sutter.
-
-9) Remove unused arguments in nft_pipapo set backend, from Florian Westphal.
-
-10) Return nft_set_ext instead of boolean in set lookup function,
-    from Florian Westphal.
-
-11) Remove indirection in dynamic set infrastructure, also from Florian.
-
-12) Consolidate pipapo_get/lookup, from Florian.
-
-13) Use kvmalloc in nft_pipapop, from Florian Westphal.
-
-14) syzbot reports slab-out-of-bounds in xt_nfacct log message,
-    fix from Florian Westphal.
-
-15) Ignored tainted kernels in selftest nft_interface_stress.sh,
-    from Phil Sutter.
-
-16) Fix IPVS selftest by disabling rp_filter with ipip tunnel device,
-    from Yi Chen.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-07-25
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit faa60990a5414e5a1957adc9434ca0e804ad700b:
-
-  Merge branch 'selftests-drv-net-fix-and-improve-command-requirement-checking' (2025-07-24 18:52:03 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-07-25
-
-for you to fetch changes up to 8b4a1a46e84a17f5d6fde5c506cc6bb141a24772:
-
-  selftests: netfilter: ipvs.sh: Explicity disable rp_filter on interface tunl0 (2025-07-25 18:41:04 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-07-25
-
-----------------------------------------------------------------
-Florian Westphal (7):
-      selftests: net: Enable legacy netfilter legacy options.
-      netfilter: nft_set_pipapo: remove unused arguments
-      netfilter: nft_set: remove one argument from lookup and update functions
-      netfilter: nft_set: remove indirection from update API call
-      netfilter: nft_set_pipapo: merge pipapo_get/lookup
-      netfilter: nft_set_pipapo: prefer kvmalloc for scratch maps
-      netfilter: xt_nfacct: don't assume acct name is null-terminated
-
-Lance Yang (1):
-      netfilter: load nf_log_syslog on enabling nf_conntrack_log_invalid
-
-Pablo Neira Ayuso (1):
-      netfilter: Exclude LEGACY TABLES on PREEMPT_RT.
-
-Phil Sutter (3):
-      netfilter: nfnetlink: New NFNLA_HOOK_INFO_DESC helper
-      netfilter: nfnetlink_hook: Dump flowtable info
-      selftests: netfilter: Ignore tainted kernels in interface stress test
-
-Sebastian Andrzej Siewior (1):
-      selftests: netfilter: Enable CONFIG_INET_SCTP_DIAG
-
-WangYuli (1):
-      ipvs: Rename del_timer in comment in ip_vs_conn_expire_now()
-
-Yi Chen (1):
-      selftests: netfilter: ipvs.sh: Explicity disable rp_filter on interface tunl0
-
-Yue Haibing (3):
-      netfilter: x_tables: Remove unused functions xt_{in|out}name()
-      netfilter: nf_tables: Remove unused nft_reduce_is_readonly()
-      netfilter: conntrack: Remove unused net in nf_conntrack_double_lock()
-
-lvxiafei (1):
-      netfilter: conntrack: table full detailed log
-
- include/linux/netfilter.h                          |   1 +
- include/linux/netfilter/x_tables.h                 |  10 -
- include/net/netfilter/nf_log.h                     |   3 +
- include/net/netfilter/nf_tables.h                  |  19 +-
- include/net/netfilter/nf_tables_core.h             |  50 +++--
- include/uapi/linux/netfilter/nfnetlink_hook.h      |   2 +
- net/bridge/netfilter/Kconfig                       |  10 +-
- net/ipv4/netfilter/Kconfig                         |  24 +--
- net/ipv6/netfilter/Kconfig                         |  19 +-
- net/netfilter/Kconfig                              |  10 +
- net/netfilter/ipvs/ip_vs_conn.c                    |   2 +-
- net/netfilter/nf_conntrack_core.c                  |  16 +-
- net/netfilter/nf_conntrack_standalone.c            |  26 ++-
- net/netfilter/nf_log.c                             |  26 +++
- net/netfilter/nf_tables_api.c                      |  24 +--
- net/netfilter/nfnetlink_hook.c                     |  76 ++++++--
- net/netfilter/nft_dynset.c                         |  10 +-
- net/netfilter/nft_lookup.c                         |  27 +--
- net/netfilter/nft_objref.c                         |   5 +-
- net/netfilter/nft_set_bitmap.c                     |  11 +-
- net/netfilter/nft_set_hash.c                       |  54 +++---
- net/netfilter/nft_set_pipapo.c                     | 204 +++++++--------------
- net/netfilter/nft_set_pipapo_avx2.c                |  26 +--
- net/netfilter/nft_set_rbtree.c                     |  40 ++--
- net/netfilter/x_tables.c                           |  16 +-
- net/netfilter/xt_nfacct.c                          |   4 +-
- tools/testing/selftests/bpf/config                 |   1 +
- tools/testing/selftests/hid/config.common          |   1 +
- tools/testing/selftests/net/config                 |  11 ++
- tools/testing/selftests/net/mptcp/config           |   2 +
- tools/testing/selftests/net/netfilter/config       |   7 +-
- tools/testing/selftests/net/netfilter/ipvs.sh      |   4 +-
- .../net/netfilter/nft_interface_stress.sh          |   5 +-
- .../testing/selftests/wireguard/qemu/kernel.config |   4 +
- 34 files changed, 402 insertions(+), 348 deletions(-)
