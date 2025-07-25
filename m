@@ -1,63 +1,83 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E00982EFD86;
-	Fri, 25 Jul 2025 17:04:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69C02253B73;
+	Fri, 25 Jul 2025 18:55:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753463071; cv=none; b=l0pI0wvBce08xlCtcW0SaojIjRJ8UeXbmJr44x1KRDXOtMaHRKIBYXydvFoPkrwShYB3KzU4EIRML3ohVocoYCwCBPb58QRHVGbwHHpZYef7foXPj1X1q6mVnjBKLZX0uMJNJuHL0YdTXUesj7uNeDuTvLQfNCGJncoTTCm9TFg=
+	t=1753469752; cv=none; b=NvX4eQOAKKelJ99sBahpHkLViwyTxzRY/7okto40k/k68k5haPF2mc4CGA85LvYCpMyLDP7wNy1NydNON/uXA8t5dOtEEitdvKcASvtmlRzDrPdcapT9j9q2xwxJwqgZIf69QW5TOozqHzlx5vbKM9Ta7fBvD5MUXhIsW3BuR0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753463071; c=relaxed/simple;
-	bh=saTvY1xNV9odBTdpzYotFCX6xkjzZJMxHYHlN0zSC0c=;
+	s=arc-20240116; t=1753469752; c=relaxed/simple;
+	bh=5HnD127U0RmA5g8wzB91LQ8/iHNULtd2J9wpjP1AADM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pcRTzVaojVgC3Ha3+n0jUEx/J+T5P3c7qQLDcXblDMXMZCOJUs+S+PIWwgf69mhQSxJzC7Ay1IathjDw2P7fNwzjSUqy8+F+OGrPPs1qCjZ/33EeQccVzXo71s9XfpuxP/8psm8hgSRWZFBDlikBsXXSYpAisKrJePd/sbIOU14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Iz7HYyd5; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j9Ni0yOj; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 MIME-Version; b=cMlPf7jfbXtswsGmk1uX5tknQiAtjDR5zb5Qu0tjIVNBAJUtjs74OP5iHOcW83AGaaaXO8/AIJ02DmcQFzjle7lBP6yndo/B2U6YEmUBJIe46LsxfRnXH+OOKkNDFibZ41WAVThhINym2Fg870l3+CKbhfNgwGuJrg/7Os4FbyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gOz3Fljf; arc=none smtp.client-ip=209.85.221.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Iz7HYyd5";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j9Ni0yOj"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id AB02A60287; Fri, 25 Jul 2025 19:04:28 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463068;
-	bh=2nSk3/XWL9Gu8qwfao7/VodiDG0CLkG0nflCVUDCe8w=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Iz7HYyd5th4k5q8L2d1veF/O1Z+4tsa6+ufkJNsgB98rzATftiavY+0hRkB4zNJKi
-	 tmro32dYiqTJBb3cW8/rEJwLkmJqz0mgjdnCY3zHVyvO+jIVHfNMXE+6S9IU9J0TGk
-	 F7faFeMuG/oBDOR/TnEN9DHWP7PvexhHMhQQBq0qNo1RlOUAe60H4PB7bghg//LX5a
-	 CDA5IPXitviAxKz1huNPMM0BHw1jHvX6aJy3Zjo7ssyjZJ98XBMD5jpXzbQOly2kDN
-	 cmCI8NRktsO/EaJuHPgBQDpcYleeCa6W1sZtDEP98S5GXd00xxwH1A998Pe8uIgii2
-	 Lh//+slZvbs3g==
-X-Spam-Level: 
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2FD5860273;
-	Fri, 25 Jul 2025 19:04:22 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463063;
-	bh=2nSk3/XWL9Gu8qwfao7/VodiDG0CLkG0nflCVUDCe8w=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=j9Ni0yOjnVYi2l39HeXaD3KOzAYCR8CLFC5FIxsFUG9yW3uUysMMs4NbrEaGuzedO
-	 kd/8i2/03Jw89/TnaVKUOOINYA4hbWnDh+FGiLKk0OpZIud2mYvRyyiCusTgff/mK2
-	 LoJNkGfSlw7e7D4G6Z2nzEoM2/lncitpASjDM2CXRFu+V0pykS97YefWL0agGP8IG4
-	 EcMYl+kSpf8J6TGyCnoYZqGJa68wgPNOCZMAxE/ZIMfLsXyubdlqv+aHeJqxTayrUK
-	 P/I7PULhyWkQVPm7fAhIKNuukYKg7JD9c393ww9V5fXMECiyvqf8+gLfI92hoivhcT
-	 R3ENoArPavZYg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gOz3Fljf"
+Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-3a531fcaa05so1206845f8f.3;
+        Fri, 25 Jul 2025 11:55:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1753469749; x=1754074549; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=QN8SNAy5oXUGH45bNgGGBgKxJGcEdXKsduzRGIoDvck=;
+        b=gOz3FljfU0542IaPbtnf536mwiUU88aSwgpm86upLdTEcRu4XTeG8nSyndFKPtz3Gh
+         4EqlP4fPGfhb+8trgmXnqm+6VB30Y8XUqO/vfYcejuMplEr74F7cW+S3URT2+QVQkxE2
+         HsBwFMUc0wEZ+46eC2S/DfOpdW/jLF/XjP+4JYI6EjBTziIlUI+S4qUDtG64EXcyGe0q
+         M25JV3UQQnRSrQV8il7Rmthxlys9w9PgWTbfcVdR1gz8YSOB5Ig7AbkE5XPtntzPp8Qu
+         UnNncB1VjaqOradJ/+5b1KAmAh7tsrG/pXOCPb6xm0z0V5zSgv1MULfyfx8YxYFl6Wid
+         uC8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1753469749; x=1754074549;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=QN8SNAy5oXUGH45bNgGGBgKxJGcEdXKsduzRGIoDvck=;
+        b=FBCtnmBtNVWFVsHgqT3Ahop1W3q3dCYsRyFRCGO2vbs6zITUC/eQpVGvoYlhZB35Oz
+         OGmLVIZ++IS/SFdUdLY5tGEaiu7FP4ISikO4z+P5MVZF/k+U+BZqzRYuUApKD/tO0EgJ
+         RVhmTrd+bNQnxkl3SpKtoU1/yEqNngrlsSnq1sH4AHsHDDj8aae/mDMJJVz2uq9CeZTy
+         Zd+VvI73ogA97ThjKbZwVqFE/cQ27nG5kHVKp3gAbYsS98Aygzc8dOn28LH8xtPZv+/d
+         3HNvgrJf5bB/k2CoE9gMBT0WEhUE+o1gxy+z0YfYAHmcATxTm4A/9wXWNtejlgu9Ih6f
+         D93w==
+X-Forwarded-Encrypted: i=1; AJvYcCULw3oYVvU6fYwtZdpo81Q4Aa32sIB4x+cp7g6VQGD62rRf1iiLk9jPIe6ntDUSNW5xqps=@vger.kernel.org, AJvYcCUWtUA+VsoH6je57jHn7mOEtQlxOQOr8sjK84v2PtqO+FNEZBl/ZoqkGu/K7dXCZ6KX6qPjgcDN@vger.kernel.org, AJvYcCUiitufd7B5CG7nmBzj6v1a1/yO/nqHtnLAVS12jtQe1GNcKLeP9iCjElDbSIV+/ON71iyNhNl3iFptLNeq5JnS@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx8C5s3lPeu8+14mo6VyjhrhrVOBLBJ1qshmBf1F84oYGzP4/0t
+	vg0P7TYWKRDpNppsKn/qGghiEoUtz0MrkLvHhNokAeiZzm+nrk2fQ5r/
+X-Gm-Gg: ASbGncsi7RtzKE7ZiMzhCvqwe7obFg1mQAy8CovQvpffzIj/ZNIeP7pW4BwUTYEaO6a
+	bXySH/1Jt2cyHSbqvCAyatWhdBthWJAWNpE2Aip/ql9R5Jn6sswfDRyda1oZRfDBuFGwAT6d8Fc
+	mfHSyvTxaULWO/TpIE09XW4BXLTWp4B4NOaVs58wkb+3cqV2PmqI9TDCr1bR0F4xfnO/271Hjlx
+	o2dN9lvGpfMvK4/m9ys5tmLnraso4ZIrRH6FBX8pq12g8s7Gy95sMynWsM75gIlGKIKYelDghcC
+	PbPFWTO273k7Jl3/2fRAMt2eFqZisw4bMRMeR52eEZBZduQamBRJNqP17pMDE04Y51h8l6N5YNF
+	0hlDbDobSyE+zAbaFxu6UjkylvOtJ1q9JjnFlCPD/ue3BfyU9
+X-Google-Smtp-Source: AGHT+IH7JrVyK74x0ht78/X//xpkjNUu0tiNgYO+/jnaE1TcftRn8Hn0ZS0fmaAksMvWAZVrshvyNA==
+X-Received: by 2002:a05:6000:2889:b0:3a8:6262:e78 with SMTP id ffacd0b85a97d-3b77663e8f5mr2305234f8f.37.1753469748390;
+        Fri, 25 Jul 2025 11:55:48 -0700 (PDT)
+Received: from mtardy-friendly-lvh-runner.c.cilium-dev.internal ([2600:1900:4010:1a8::])
+        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-3b778eb276esm607743f8f.6.2025.07.25.11.55.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 25 Jul 2025 11:55:47 -0700 (PDT)
+From: Mahe Tardy <mahe.tardy@gmail.com>
+To: alexei.starovoitov@gmail.com
+Cc: andrii@kernel.org,
+	ast@kernel.org,
+	bpf@vger.kernel.org,
+	daniel@iogearbox.net,
+	john.fastabend@gmail.com,
+	mahe.tardy@gmail.com,
+	martin.lau@linux.dev,
 	fw@strlen.de,
-	horms@kernel.org
-Subject: [PATCH net-next 19/19] selftests: netfilter: ipvs.sh: Explicity disable rp_filter on interface tunl0
-Date: Fri, 25 Jul 2025 19:03:40 +0200
-Message-Id: <20250725170340.21327-20-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20250725170340.21327-1-pablo@netfilter.org>
-References: <20250725170340.21327-1-pablo@netfilter.org>
+	netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org,
+	netdev@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [PATCH bpf-next v1 0/4] bpf: add icmp_send_unreach kfunc
+Date: Fri, 25 Jul 2025 18:53:38 +0000
+Message-Id: <20250725185342.262067-1-mahe.tardy@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <CAADnVQKq_-=N7eJoup6AqFngoocT+D02NF0md_3mi2Vcrw09nQ@mail.gmail.com>
+References: <CAADnVQKq_-=N7eJoup6AqFngoocT+D02NF0md_3mi2Vcrw09nQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -66,58 +86,65 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Yi Chen <yiche@redhat.com>
+Hello,
 
-Although setup_ns() set net.ipv4.conf.default.rp_filter=0,
-loading certain module such as ipip will automatically create a tunl0 interface
-in all netns including new created ones. In the script, this is before than
-default.rp_filter=0 applied, as a result tunl0.rp_filter remains set to 1
-which causes the test report FAIL when ipip module is preloaded.
+This is v2 of adding the icmp_send_unreach kfunc, as suggested during
+LSF/MM/BPF 2025[^1]. The goal is to allow cgroup_skb programs to
+actively reject east-west traffic, similarly to what is possible to do
+with netfilter reject target.
 
-Before fix:
-Testing DR mode...
-Testing NAT mode...
-Testing Tunnel mode...
-ipvs.sh: FAIL
+The first step to implement this is using ICMP control messages, with
+the ICMP_DEST_UNREACH type with various code ICMP_NET_UNREACH,
+ICMP_HOST_UNREACH, ICMP_PROT_UNREACH, etc. This is easier to implement
+than a TCP RST reply and will already hint the client TCP stack to abort
+the connection and not retry extensively.
 
-After fix:
-Testing DR mode...
-Testing NAT mode...
-Testing Tunnel mode...
-ipvs.sh: PASS
+Note that this is different than the sock_destroy kfunc, that along
+calls tcp_abort and thus sends a reset, destroying the underlying
+socket.
 
-Fixes: 7c8b89ec506e ("selftests: netfilter: remove rp_filter configuration")
-Signed-off-by: Yi Chen <yiche@redhat.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- tools/testing/selftests/net/netfilter/ipvs.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Caveats of this kfunc design are that a cgroup_skb program can call this
+function N times, thus send N ICMP unreach control messages and that the
+program can return from the BPF filter with SK_PASS leading to a
+potential confusing situation where the TCP connection was established
+while the client received ICMP_DEST_UNREACH messages.
 
-diff --git a/tools/testing/selftests/net/netfilter/ipvs.sh b/tools/testing/selftests/net/netfilter/ipvs.sh
-index 6af2ea3ad6b8..9c9d5b38ab71 100755
---- a/tools/testing/selftests/net/netfilter/ipvs.sh
-+++ b/tools/testing/selftests/net/netfilter/ipvs.sh
-@@ -151,7 +151,7 @@ test_nat() {
- test_tun() {
- 	ip netns exec "${ns0}" ip route add "${vip_v4}" via "${gip_v4}" dev br0
- 
--	ip netns exec "${ns1}" modprobe -q ipip
-+	modprobe -q ipip
- 	ip netns exec "${ns1}" ip link set tunl0 up
- 	ip netns exec "${ns1}" sysctl -qw net.ipv4.ip_forward=0
- 	ip netns exec "${ns1}" sysctl -qw net.ipv4.conf.all.send_redirects=0
-@@ -160,10 +160,10 @@ test_tun() {
- 	ip netns exec "${ns1}" ipvsadm -a -i -t "${vip_v4}:${port}" -r ${rip_v4}:${port}
- 	ip netns exec "${ns1}" ip addr add ${vip_v4}/32 dev lo:1
- 
--	ip netns exec "${ns2}" modprobe -q ipip
- 	ip netns exec "${ns2}" ip link set tunl0 up
- 	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.arp_ignore=1
- 	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.all.arp_announce=2
-+	ip netns exec "${ns2}" sysctl -qw net.ipv4.conf.tunl0.rp_filter=0
- 	ip netns exec "${ns2}" ip addr add "${vip_v4}/32" dev lo:1
- 
- 	test_service
--- 
-2.30.2
+Another more sophisticated design idea would be for the kfunc to set the
+kernel to send an ICMP_HOST_UNREACH control message with the appropriate
+code when the cgroup_skb program terminates with SK_DROP. Creating a new
+'SK_REJECT' return code for cgroup_skb program was generally rejected
+and would be too limited for other program types support.
+
+We should bear in mind that we want to add a TCP reset kfunc next and
+also could extend this kfunc to other program types if wanted.
+
+v2 updates:
+- fix a build error from a missing function call rename;
+- avoid changing return line in bpf_kfunc_init;
+- return SK_DROP from the kfunc (similarly to bpf_redirect);
+- check the return value in the selftest.
+
+[^1]: https://lwn.net/Articles/1022034/
+
+Mahe Tardy (4):
+  net: move netfilter nf_reject_fill_skb_dst to core ipv4
+  net: move netfilter nf_reject6_fill_skb_dst to core ipv6
+  bpf: add bpf_icmp_send_unreach cgroup_skb kfunc
+  selftests/bpf: add icmp_send_unreach kfunc tests
+
+ include/net/ip6_route.h                       |  2 +
+ include/net/route.h                           |  1 +
+ net/core/filter.c                             | 59 +++++++++++
+ net/ipv4/netfilter/nf_reject_ipv4.c           | 19 +---
+ net/ipv4/route.c                              | 15 +++
+ net/ipv6/netfilter/nf_reject_ipv6.c           | 17 +---
+ net/ipv6/route.c                              | 18 ++++
+ .../bpf/prog_tests/icmp_send_unreach_kfunc.c  | 99 +++++++++++++++++++
+ .../selftests/bpf/progs/icmp_send_unreach.c   | 36 +++++++
+ 9 files changed, 233 insertions(+), 33 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/icmp_send_unreach_kfunc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/icmp_send_unreach.c
+
+--
+2.34.1
 
