@@ -1,105 +1,106 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF7FF9E8
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jul 2025 00:24:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 345B52D3734;
+	Fri, 25 Jul 2025 09:55:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753403049; cv=none; b=IYkpHhf895CozrO3p0/0/yovikKEUFDnhWVusFnITaG+mhjgT4p6PFIACPu7cF4EI2vySlfIOZjbOR2HQrSX2ATskg4Ww0dc5vq21zMqoYRTm1kMHRSo0Vhd4bbHHrA84b9QWhOXIbBrI2AMILNS0Fs/Uwy19GHihzA9TZLGbEY=
+	t=1753437351; cv=none; b=rPl9G8niT/+A1jHaYX4tcjgZiLgXiR0sG7vNqaR+sUw6KxZC9t0KRex/6tUHBp8lfPiC6ZgMyi3GVG14Igvv9M34XupSlPbP4RQVzze53i7WLMuOAG3aE+RdE2pFOc07hb9oLGVnjW8Eb5Whhvi+XAKeuktRTHPWtNQUGGPJo2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753403049; c=relaxed/simple;
-	bh=tTft6jyuVN83Riu4c3LpgFyc+eHhfPURFAGELRXIDB0=;
+	s=arc-20240116; t=1753437351; c=relaxed/simple;
+	bh=obxzbRARWp61SAgr4OuGSyuQbiBqYc6yJPDRw1+VWFM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NfH1DMplxKQuZVBUc/3nsvswFTL0aC3gXCuxGD9fw7froMlfsXIKOLWwAMqNpgG6VPBKkRurnGO9oSfKxHfvJvrdBX/72r0J/lbS42NGr9BHGX6zzClwiLEOEeudtjp/sC+w98gEf7C6hA8Vc0rLR7aHGToXK8s6uJLAslsrQ3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id F30C0604EE; Fri, 25 Jul 2025 02:24:04 +0200 (CEST)
-Date: Fri, 25 Jul 2025 02:24:04 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
- resistant to memory pressure
-Message-ID: <aILOpGOJhR5xQCrc@strlen.de>
-References: <20250704123024.59099-1-fw@strlen.de>
- <aIK_aSCR67ge5q7s@calendula>
+	 Content-Type:Content-Disposition:In-Reply-To; b=asX8DGEkU6R6qrIaeC/pwnMWCDGcmXmRNsDog1l7WTX/ZZ+vko1mdH54QcVG1s+ryURDZTWH5U1i2zRDDSLZ8AIRn5nMpIkyMY/6qV3dP/70Rptg+q1ZZImXxRaDKzXvd5YUjh7mAVUuj9NZEw02JUhZ9K99KoLO0HP6ZlsNK/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RW9yXgut; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JnidZ9xa; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RW9yXgut";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JnidZ9xa"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 1C41460272; Fri, 25 Jul 2025 11:55:41 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753437341;
+	bh=UynE9Asxg2hIcZ+zLWqbX0Hja+9AhIsgeadpl92uNQ0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=RW9yXgutzmmpvsQ2npdmWr33e7Oi5h/NwPgf782L6PTblPuuaRoL86pNIuL4gF5o5
+	 Yxay7k+3cbFOVvcC8gsG84GpEl3/ItwVPZXEETdSQIPjUI+vhcg54XsIXs+wWGFWoZ
+	 lh3muGxpndKamr9+StUXd9She/o3bp2gKPjXmiQDEr3h2TnuzEtwQBEHrk5n1myy7y
+	 s2HZk1+j4f1xJloeE6YaHd4YEY5n+EHdd37LqR9cPNQqsrbHj2Ou/P4MTDtmAPIInF
+	 MUixzLD/U3KtPHR8yxrSKpgvcd81gBD5FW2uRt2oy2RmgjCvXp3u5p5040v0ZluBg0
+	 4Izs8QqWkIbHg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id C028660251;
+	Fri, 25 Jul 2025 11:55:37 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753437338;
+	bh=UynE9Asxg2hIcZ+zLWqbX0Hja+9AhIsgeadpl92uNQ0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JnidZ9xaZ29WUBKCefYXULw6SHvmz/xszjzq11DjCpkyzU5WXlQasxad7LSe96eKR
+	 jiECGQUVZDIVJEPUm30qQAf3+73yH8xDdXzl/m3IH0M4bdyyBlZDe+z8vnD3B3XZeJ
+	 E9kKlUF70d0RPiJBUylFFoL+KO3ZKnsJE1NjS9ycxwjPEwtqdgcp95ZLmZV7ZCByJg
+	 iYR+t2vLkSfhiBfMZZODOdm10ykakiKwyZ/lJzqjyPIH9Fj04hbtMLv67OqtykDOPH
+	 9RfwCJ7C0lpItbkkDrH43CsEw5190KXIeRA3bGBPhFgwq/2aqyLVvZLSibSfOI+Hl+
+	 ajAHw+hvAxvWw==
+Date: Fri, 25 Jul 2025 11:55:34 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: lvxiafei <xiafei_xupt@163.com>, coreteam@netfilter.org,
+	davem@davemloft.net, edumazet@google.com, horms@kernel.org,
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
+	lvxiafei@sensetime.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com
+Subject: Re: [PATCH V2] netfilter: nf_conntrack: table full detailed log
+Message-ID: <aINUlqscselprHTd@calendula>
+References: <20250508081313.57914-1-xiafei_xupt@163.com>
+ <20250522091954.47067-1-xiafei_xupt@163.com>
+ <aIA0kYa1oi6YPQX8@calendula>
+ <aIJQqacIH7jAzoEa@strlen.de>
+ <aILC8COcZTQsj6sG@calendula>
+ <aILH9Z_C3V7BH6of@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aIK_aSCR67ge5q7s@calendula>
+In-Reply-To: <aILH9Z_C3V7BH6of@strlen.de>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Jul 04, 2025 at 02:30:16PM +0200, Florian Westphal wrote:
-> > Removal of many set elements, e.g. during set flush or ruleset
-> > deletion, can sometimes fail due to memory pressure.
-> > Reduce likelyhood of this happening and enable sleeping allocations
-> > for this.
+On Fri, Jul 25, 2025 at 01:55:33AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > I was thinking, does the packet logging exposes already the
+> > net->ns.inum? IIUC the goal is to find what netns is dropping what
+> > packet and the reason for the packet drop, not only in this case but
+> > in every case, to ease finding the needle in the stack. If so, then it
+> > probably makes sense to consolidate this around nf_log()
+> > infrastructure.
 > 
-> I am exploring to skip the allocation of the transaction objects for
-> this case. This needs a closer look to deal with batches like:
+> No, it doesn't.  It also depends on the backend:
+> for syslog, nothing will be logged unless nf_log_all_netns sysctl is
+> enabled.
 > 
->  delelem + flush set + abort
->  flush set + del set + abort
+> For nflog, it is logged, to the relevant namespaces ulogd, or not in
+> case that netns doesn't have ulogd running.
 > 
-> Special care need to be taken to avoid restoring the state of the
-> element twice on abort.
-
-Its possible to defer the flush to until after we've reached the
-point of no return.
-
-But I was worried about delete/add from datapath, since it can
-happen in parallel.
-
-Also, I think for:
-flush set x + delelem x y
-
-You get an error, as the flush marks the element as invalid in
-the new generation. Can we handle this with a flag
-in nft_set, that disallows all del elem operations on
-the set after a flush was seen?
-
-And, is that safe from a backwards-compat point of view?
-I tought the answer was: no.
-Maybe we can turn delsetelem after flush into a no-op
-in case the element existed.  Not sure.
-
-Which then means that we either can't do it, or
-need to make sure that the "del elem x" is always
-handled before the flush-set.
-
-For maps it becomes even more problematic as we
-would elide the deactivate step on chains.
-
-And given walk isn't stable for rhashtable at the
-moment, I don't think we can rely on "two walks" scheme.
-
-Right now its fine because even if elements get inserted
-during or after the delset operation has done the walk+deactivate,
-those elements are not on the transaction list so we don't run into
-trouble on abort and always undo only what the walk placed on the
-transaction log.
-
-> This would allow to save the memory allocation entirely, as well as
-> speeding up the transaction handling.
-
-Sure, it sounds tempting to pursue this.
-
-> From userspace, the idea would be to print this event:
+> For syslog one could extend nf_log_dump_packet_common() but I'm not sure
+> how forgiving existing log parsers are when this gets additional
+> field.
 > 
->         flush set inet x y
+> Also, would (in case we use this for the "table full" condition), should
+> this log unconditionally or does it need a new sysctl?
 > 
-> to skip a large burst of events when a set is flushed.
+> Does it need auto-ratelimit (probably yes, its called during packet
+> flood so we dont want to flood syslog/ulog)?
 
-I think thats fine.
+Yes, such extension would need to answer these questions.
 
-> Is this worth to be pursued?
+> > Anyway, maybe I'm overdoing, I'll be fine with this approach if you
+> > consider it good enough to improve the situation.
+> 
+> I think its better than current state of affairs since it at least
+> allows to figure out which netns is experiencing this.
 
-Yes, but I am not sure it is doable without
-breaking some existing behaviour.
+Thanks for explaining, let's take this patch as is then.
