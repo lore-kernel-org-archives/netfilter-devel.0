@@ -1,36 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0247E23C8A4;
-	Thu, 24 Jul 2025 23:55:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF7FF9E8
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jul 2025 00:24:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753401341; cv=none; b=kzMC0WVSLR1Catc0fpZFJhXejcfMXoO1SRcr/OjrxvKUD+HBu5jwOzblymQhaMCNaqrocLieM3Ow6JyW/q6l2k/pJWA0njs5b7nZ8J3L6ntk4ErQRrMqJAUtzPZf5Engl9Fgdpqr2y7Z3NyyAN8n/cwFmNQ5X/AI5HXQOI/s/kE=
+	t=1753403049; cv=none; b=IYkpHhf895CozrO3p0/0/yovikKEUFDnhWVusFnITaG+mhjgT4p6PFIACPu7cF4EI2vySlfIOZjbOR2HQrSX2ATskg4Ww0dc5vq21zMqoYRTm1kMHRSo0Vhd4bbHHrA84b9QWhOXIbBrI2AMILNS0Fs/Uwy19GHihzA9TZLGbEY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753401341; c=relaxed/simple;
-	bh=B8/xWsVXmLVaoRd2gJdOohJQeynBFS1JDH0og+AClgw=;
+	s=arc-20240116; t=1753403049; c=relaxed/simple;
+	bh=tTft6jyuVN83Riu4c3LpgFyc+eHhfPURFAGELRXIDB0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RG4VIl5OKVbo5t8MCLBSFem0UN1u0bsfR0QP1M0sDSK4dCxus7jBWFx9/6oaMoxB0Ysh+Rd7OEpseKLCPx2rmbjpmDN0aB0W9Nyj9V8txiWKrOgD0NNS0MRPVgWcvVlsOuI/u4zcBbfy5POtXLgl6XYhfIz7ZCOnu2CEpLXoZQw=
+	 Content-Type:Content-Disposition:In-Reply-To; b=NfH1DMplxKQuZVBUc/3nsvswFTL0aC3gXCuxGD9fw7froMlfsXIKOLWwAMqNpgG6VPBKkRurnGO9oSfKxHfvJvrdBX/72r0J/lbS42NGr9BHGX6zzClwiLEOEeudtjp/sC+w98gEf7C6hA8Vc0rLR7aHGToXK8s6uJLAslsrQ3g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B0999602B2; Fri, 25 Jul 2025 01:55:33 +0200 (CEST)
-Date: Fri, 25 Jul 2025 01:55:33 +0200
+	id F30C0604EE; Fri, 25 Jul 2025 02:24:04 +0200 (CEST)
+Date: Fri, 25 Jul 2025 02:24:04 +0200
 From: Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: lvxiafei <xiafei_xupt@163.com>, coreteam@netfilter.org,
-	davem@davemloft.net, edumazet@google.com, horms@kernel.org,
-	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
-	lvxiafei@sensetime.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com
-Subject: Re: [PATCH V2] netfilter: nf_conntrack: table full detailed log
-Message-ID: <aILH9Z_C3V7BH6of@strlen.de>
-References: <20250508081313.57914-1-xiafei_xupt@163.com>
- <20250522091954.47067-1-xiafei_xupt@163.com>
- <aIA0kYa1oi6YPQX8@calendula>
- <aIJQqacIH7jAzoEa@strlen.de>
- <aILC8COcZTQsj6sG@calendula>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
+ resistant to memory pressure
+Message-ID: <aILOpGOJhR5xQCrc@strlen.de>
+References: <20250704123024.59099-1-fw@strlen.de>
+ <aIK_aSCR67ge5q7s@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -39,35 +33,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aILC8COcZTQsj6sG@calendula>
+In-Reply-To: <aIK_aSCR67ge5q7s@calendula>
 
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I was thinking, does the packet logging exposes already the
-> net->ns.inum? IIUC the goal is to find what netns is dropping what
-> packet and the reason for the packet drop, not only in this case but
-> in every case, to ease finding the needle in the stack. If so, then it
-> probably makes sense to consolidate this around nf_log()
-> infrastructure.
+> On Fri, Jul 04, 2025 at 02:30:16PM +0200, Florian Westphal wrote:
+> > Removal of many set elements, e.g. during set flush or ruleset
+> > deletion, can sometimes fail due to memory pressure.
+> > Reduce likelyhood of this happening and enable sleeping allocations
+> > for this.
+> 
+> I am exploring to skip the allocation of the transaction objects for
+> this case. This needs a closer look to deal with batches like:
+> 
+>  delelem + flush set + abort
+>  flush set + del set + abort
+> 
+> Special care need to be taken to avoid restoring the state of the
+> element twice on abort.
 
-No, it doesn't.  It also depends on the backend:
-for syslog, nothing will be logged unless nf_log_all_netns sysctl is
-enabled.
+Its possible to defer the flush to until after we've reached the
+point of no return.
 
-For nflog, it is logged, to the relevant namespaces ulogd, or not in
-case that netns doesn't have ulogd running.
+But I was worried about delete/add from datapath, since it can
+happen in parallel.
 
-For syslog one could extend nf_log_dump_packet_common() but I'm not sure
-how forgiving existing log parsers are when this gets additional
-field.
+Also, I think for:
+flush set x + delelem x y
 
-Also, would (in case we use this for the "table full" condition), should
-this log unconditionally or does it need a new sysctl?
+You get an error, as the flush marks the element as invalid in
+the new generation. Can we handle this with a flag
+in nft_set, that disallows all del elem operations on
+the set after a flush was seen?
 
-Does it need auto-ratelimit (probably yes, its called during packet
-flood so we dont want to flood syslog/ulog)?
+And, is that safe from a backwards-compat point of view?
+I tought the answer was: no.
+Maybe we can turn delsetelem after flush into a no-op
+in case the element existed.  Not sure.
 
-> Anyway, maybe I'm overdoing, I'll be fine with this approach if you
-> consider it good enough to improve the situation.
+Which then means that we either can't do it, or
+need to make sure that the "del elem x" is always
+handled before the flush-set.
 
-I think its better than current state of affairs since it at least
-allows to figure out which netns is experiencing this.
+For maps it becomes even more problematic as we
+would elide the deactivate step on chains.
+
+And given walk isn't stable for rhashtable at the
+moment, I don't think we can rely on "two walks" scheme.
+
+Right now its fine because even if elements get inserted
+during or after the delset operation has done the walk+deactivate,
+those elements are not on the transaction list so we don't run into
+trouble on abort and always undo only what the walk placed on the
+transaction log.
+
+> This would allow to save the memory allocation entirely, as well as
+> speeding up the transaction handling.
+
+Sure, it sounds tempting to pursue this.
+
+> From userspace, the idea would be to print this event:
+> 
+>         flush set inet x y
+> 
+> to skip a large burst of events when a set is flushed.
+
+I think thats fine.
+
+> Is this worth to be pursued?
+
+Yes, but I am not sure it is doable without
+breaking some existing behaviour.
