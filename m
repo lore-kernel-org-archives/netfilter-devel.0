@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32E942EF9A2;
-	Fri, 25 Jul 2025 17:03:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411772EF9C2;
+	Fri, 25 Jul 2025 17:03:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753463036; cv=none; b=dN8sQOUF93P1Z1iC5LV1PBeMY3Y8W9XCrIXW+QGPivwUnnRbYgevK+KDMYjmRgK56RTFyR22VRYSg22KrMEGhmsGR/6br5uRRN91hXTOVh4ALY8ktYt6HuTUcAAc6yhyv9GLldZWquSzrV7ezKgq1+Y0lygVqaBwGy3k6cWCXNQ=
+	t=1753463038; cv=none; b=Pvhwsk94F0XEqxj5Oqgt8ivIssbC7AaUWvC0bYgeZ2mCKIcCLyubaV4o9jCg/HfRkUolJGSHPOmZGkwygYSsbMCP4XQv85U2IylCRizaL4v0z9AE0EIxiE73fjnVJNE7zisPNuzx60Wu36ml/zVpgfCJNILp9HY5Mj1Bo+e2oGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753463036; c=relaxed/simple;
-	bh=Ms1RC8rHM1QXjTyFECBwd9yL+I6Y/lkZjPtzkPVjj6k=;
+	s=arc-20240116; t=1753463038; c=relaxed/simple;
+	bh=ZUtfGbXNT3Z/Jl+Doqb5fLd3GRcC3PlUEBhMRbHbBqo=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=i08l9oX9HZ/ptYHJmflCBXRAA4X62txtufxUeac7VU/3ODqc9D2UOPwPQDhOYvxUS/sOxk8wpa0A8yUJsI+DpKZKRV++CrAsv9bt4nQXidgNUuY5LIOODeEjr+MbmyzuieX1Uq8Uzw3X924WhTgMXHi/yKCm+5JieKkys8zQKHs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CwrVNQOD; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OT5wgzGu; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=sd9oXSAG6eNBEN6arSGp/sUSaS3a1xKlb5a+7UQwr3oG64YEj8GZKUWjTCLNxxbi/QnxvGWTyeYXJxkkxFnMNQpiw7QGwvbwM0VpItzEW0ljG2rgL6lduD8T9qLAkiSpC3pbJDJ9GJBMZRaSQ0udGUOAKnRgkoyh0oqUAOG26KA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=R9e2Ap9/; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W5J8t+fB; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CwrVNQOD";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OT5wgzGu"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="R9e2Ap9/";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W5J8t+fB"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 9E3E96027E; Fri, 25 Jul 2025 19:03:53 +0200 (CEST)
+	id B5F436027B; Fri, 25 Jul 2025 19:03:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463033;
-	bh=5zJ892qt1l0+0uxWQTmVO8QzsG5iP93tYVgZ528UBZg=;
+	s=2025; t=1753463034;
+	bh=HsMCTgfneNwflWl1j0F7tqAw5vJdRrvG8x25QGJXqHI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CwrVNQODNStqJ5xCkMkBKmS0/sXt6uyYQuahNHUjPu1yO7HhZgb62leGx88XolpWq
-	 m5laPN3jwdB64oeAkG2vZKj1Mc48BVFHV7EYfXLQBEoD0YQh6qeyG6T30scCUmbUz5
-	 yBAutwW5noohm1h0CERpwSSOez2+Y2hdQ8M76iDEp+8AiiYmh+N7PZUralJ8sFbAmf
-	 pYB2XYkWZdr43lOnBgAW1m1kf/GquwU9+Qkxu+tSHDmvY1AiistwhGaR07Mo7aO7zj
-	 exjwbcoSpnZuHwNrS8K9j11hIYFS2Xvol+YPqq77lK7XG6ZT87fM6ROBgwpI6ySc91
-	 Oz9i01sqUfwEQ==
+	b=R9e2Ap9/krz6jMAkRMVzPLG8guqvVZhaaayQFs96HXmvv7Ps2MC5i4Xj1AbBaDmqz
+	 CEeUR97jsNbmEN3VtHcR2iYhsKwLJzIbTSLqannJRKyCHlSOHyRXA42x72n5jq3PSs
+	 V6knv+YmC09Q+wG71V8tzFaRJGCz/9PV3Jj0QOHJ/iGAqnrK+IME8RjPs5/TkH15VF
+	 Jt/dcpJFZqjRW/nOx8+1UpS194vL1/gCg5STO4+EpmFTiFqfV9hgoXpJJOJmzwE5Z+
+	 PSuhuGxwYMFE4DQjGuNUlHwueDltdUZCrIK/Mpan7EsfNOiwO0oWrEttCtXY8Pf7Uv
+	 Hqcvzy9brDSxA==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5201560279;
-	Fri, 25 Jul 2025 19:03:50 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2B2596027C;
+	Fri, 25 Jul 2025 19:03:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463031;
-	bh=5zJ892qt1l0+0uxWQTmVO8QzsG5iP93tYVgZ528UBZg=;
+	s=2025; t=1753463033;
+	bh=HsMCTgfneNwflWl1j0F7tqAw5vJdRrvG8x25QGJXqHI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=OT5wgzGuOoJd0lQ4kuQuK9fu38iascjDfOMfrFzTW9PV9wuhRFhwJ1RnH9jb/m7uC
-	 +SSSkUGKLKvbGbKIQYa/RjrY2cjxEsaHfTMIqdWoq3KgAh2JZ1uTJ0zdZLMTv6xU0P
-	 Lf6JOCf4UjpsOgmJXJVu0c90tv1aFNRd6ngUWDCjnyyea4F/I19UjrHc4yjfvELzks
-	 sLJWXxKRlS6tqR0d1996biNOG34XKvq/0AiOIgAC841/Izhk2vmyHeVXfl7xVN/LiN
-	 +M+y8XKyR0mgB9bobYDpSlciC1cCafU+1MMoelAHv7LdCpAnKXR9/4XVsWouTursQg
-	 EnYAJQ5H5SSzg==
+	b=W5J8t+fBHqLqMonL+U7HTbsKSq6wQy6drP7kamS0ffEZoL2ywnRPcMswxyyLxNu96
+	 c/vXnfdotyiL0qRlCCuYPjGOw3XhGhnMGFZMquzCxaf5KYKrBXeggZ2vsHWLnzyVXq
+	 1OlVv2NGTjHnhRAtyUlPIsajN95jsxXNVbIyHf7iblfO32i70FZoWiowVMpuXW+xEk
+	 D/1CTjBJZOC2FoFBYQyu9fQ9HuBMI9y5FIMY3bJRBJImifMqTAZfk28t/aCLl+pHCK
+	 uPectrpsWyjrdJzwD8RrrnPuG+YeWL4nM9vQteteWXFYaps1OaFhuy/O3EE7lyh207
+	 2d+6lfCcfQhHg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 02/19] netfilter: load nf_log_syslog on enabling nf_conntrack_log_invalid
-Date: Fri, 25 Jul 2025 19:03:23 +0200
-Message-Id: <20250725170340.21327-3-pablo@netfilter.org>
+Subject: [PATCH net-next 03/19] netfilter: x_tables: Remove unused functions xt_{in|out}name()
+Date: Fri, 25 Jul 2025 19:03:24 +0200
+Message-Id: <20250725170340.21327-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250725170340.21327-1-pablo@netfilter.org>
 References: <20250725170340.21327-1-pablo@netfilter.org>
@@ -66,126 +66,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Lance Yang <lance.yang@linux.dev>
+From: Yue Haibing <yuehaibing@huawei.com>
 
-When no logger is registered, nf_conntrack_log_invalid fails to log invalid
-packets, leaving users unaware of actual invalid traffic. Improve this by
-loading nf_log_syslog, similar to how 'iptables -I FORWARD 1 -m conntrack
---ctstate INVALID -j LOG' triggers it.
+Since commit 2173c519d5e9 ("audit: normalize NETFILTER_PKT")
+these are unused, so can be removed.
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Zi Li <zi.li@linux.dev>
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_log.h          |  3 +++
- net/netfilter/nf_conntrack_standalone.c | 26 ++++++++++++++++++++++++-
- net/netfilter/nf_log.c                  | 26 +++++++++++++++++++++++++
- 3 files changed, 54 insertions(+), 1 deletion(-)
+ include/linux/netfilter/x_tables.h | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index e55eedc84ed7..00506792a06d 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -59,6 +59,9 @@ extern int sysctl_nf_log_all_netns;
- int nf_log_register(u_int8_t pf, struct nf_logger *logger);
- void nf_log_unregister(struct nf_logger *logger);
- 
-+/* Check if any logger is registered for a given protocol family. */
-+bool nf_log_is_registered(u_int8_t pf);
-+
- int nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger);
- void nf_log_unset(struct net *net, const struct nf_logger *logger);
- 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 829f60496008..9b8b10a85233 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -14,6 +14,7 @@
- #include <linux/sysctl.h>
- #endif
- 
-+#include <net/netfilter/nf_log.h>
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
-@@ -555,6 +556,29 @@ nf_conntrack_hash_sysctl(const struct ctl_table *table, int write,
- 	return ret;
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index f39f688d7285..77c778d84d4c 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -51,21 +51,11 @@ static inline struct net_device *xt_in(const struct xt_action_param *par)
+ 	return par->state->in;
  }
  
-+static int
-+nf_conntrack_log_invalid_sysctl(const struct ctl_table *table, int write,
-+				void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int ret, i;
-+
-+	ret = proc_dou8vec_minmax(table, write, buffer, lenp, ppos);
-+	if (ret < 0 || !write)
-+		return ret;
-+
-+	if (*(u8 *)table->data == 0)
-+		return ret;
-+
-+	/* Load nf_log_syslog only if no logger is currently registered */
-+	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
-+		if (nf_log_is_registered(i))
-+			return ret;
-+	}
-+	request_module("%s", "nf_log_syslog");
-+
-+	return ret;
-+}
-+
- static struct ctl_table_header *nf_ct_netfilter_header;
- 
- enum nf_ct_sysctl_index {
-@@ -651,7 +675,7 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 		.data		= &init_net.ct.sysctl_log_invalid,
- 		.maxlen		= sizeof(u8),
- 		.mode		= 0644,
--		.proc_handler	= proc_dou8vec_minmax,
-+		.proc_handler	= nf_conntrack_log_invalid_sysctl,
- 	},
- 	[NF_SYSCTL_CT_EXPECT_MAX] = {
- 		.procname	= "nf_conntrack_expect_max",
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 6dd0de33eebd..74cef8bf554c 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -125,6 +125,32 @@ void nf_log_unregister(struct nf_logger *logger)
- }
- EXPORT_SYMBOL(nf_log_unregister);
- 
-+/**
-+ * nf_log_is_registered - Check if any logger is registered for a given
-+ * protocol family.
-+ *
-+ * @pf: Protocol family
-+ *
-+ * Returns: true if at least one logger is active for @pf, false otherwise.
-+ */
-+bool nf_log_is_registered(u_int8_t pf)
-+{
-+	int i;
-+
-+	if (pf >= NFPROTO_NUMPROTO) {
-+		WARN_ON_ONCE(1);
-+		return false;
-+	}
-+
-+	for (i = 0; i < NF_LOG_TYPE_MAX; i++) {
-+		if (rcu_access_pointer(loggers[pf][i]))
-+			return true;
-+	}
-+
-+	return false;
-+}
-+EXPORT_SYMBOL(nf_log_is_registered);
-+
- int nf_log_bind_pf(struct net *net, u_int8_t pf,
- 		   const struct nf_logger *logger)
+-static inline const char *xt_inname(const struct xt_action_param *par)
+-{
+-	return par->state->in->name;
+-}
+-
+ static inline struct net_device *xt_out(const struct xt_action_param *par)
  {
+ 	return par->state->out;
+ }
+ 
+-static inline const char *xt_outname(const struct xt_action_param *par)
+-{
+-	return par->state->out->name;
+-}
+-
+ static inline unsigned int xt_hooknum(const struct xt_action_param *par)
+ {
+ 	return par->state->hook;
 -- 
 2.30.2
 
