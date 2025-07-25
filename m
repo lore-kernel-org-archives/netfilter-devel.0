@@ -1,84 +1,46 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 789EC253925;
-	Fri, 25 Jul 2025 18:55:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48A432E3719
+	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jul 2025 21:47:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753469755; cv=none; b=huwoESkf8LrHGdSPxJBRZFWThL/+F+zTRq+EmvI/CqpSA3NlP5akb22etATPCD7C6hLg7Mc2BEs1o8fHgi9Twsz7rzLKYk10HVomg95P1lvlyowlaZfhM/698mGgoiRpVQ3gNYFWINTTjOOpRxYlsMw08mf/b8X7Sji2bZhLYGA=
+	t=1753480052; cv=none; b=Uz3pHJLgt3X34z40XSSjWfG1krmKkQsfYLdmJRRUv4qY+9s+H4Ht+Uv1L+61d4/oCLHzmcqpD6l4BKAA9G0Y0aRQrBODkLUQdw0amwSxCmTpO9cXBiMb3F6gWwHkJ2uwOtxIAQEto9+MyTPUM8WdzIXAi5VYaV6WJBRXMm9HwnQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753469755; c=relaxed/simple;
-	bh=4xXFPYbVAQVFYaiedRqz4YnnUv/G+c2nHre6wAx2+cA=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rKVZQlznqT0iWdNuGVfPXe0ZPQpD0PB2S8tgYWhJKEL41t7iDK788OChUMzoG2cLETmuA3eYfAphZ0FVeaUh87X0H095AnzRWQavTzqtgb5J3ANMqfPxDzGWJSCoUn4vnaR3mNOmm/CsxYMp3613chUOu+AXxqkCLs0Qd+pHAYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iXYnFyH8; arc=none smtp.client-ip=209.85.221.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1753480052; c=relaxed/simple;
+	bh=rFwifNLq1m2MIgMACO+mM6ZZU5gsFc45HBb/c44OeQ4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LaX/0lznbxAND3dDlgxm+IDB4lhIGMF1OTohoSxxQw6pY3/NCi6xQIDZw2FlTLcHYcUd0XxOYZ4Vf8x2se6HBh+XJCwoUpytoYQNy+4gs96/7JX7W9yxxhuc1n7MKOggJRwQNYQ5V7EALMRSMPJgQNIPVRBPWWm6MQoCUAeP6rM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZBAUe3il; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iXYnFyH8"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-3b77377858bso1603876f8f.3;
-        Fri, 25 Jul 2025 11:55:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1753469751; x=1754074551; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=l+P1pO0VcptRLVWqzHA93r4jnwUEPVrrjiHiUMAaRCc=;
-        b=iXYnFyH8XnkOP+iwBa/itUiDVEX15HerRWnhlG7wJhpuHQgj5EvX58OJjoYOlXZZvG
-         3JJOd5ljMPgXmyaOWRB/0uu0DYt3KE54B0p0Xyv23ageh1KGCEIF1QZaFGW7TyBrwnx1
-         uAYY1hVkDrycVjI7a792JzYubPi9W/HCX2J9u3O0vFlnn9tFkXx03Fv+9HwR9Bj9nHWI
-         2cu1VfgOp6qR7dabihtDKyriXp1EKr1nfGJN/b+Eto1X8PVcE2B4eduQcdAT32ekgvA+
-         k/olR32AVg8vfuvKkLZ5tOkC1xwk9uMmzoLqltn7WeiYjngnQq1oxdcqigjckkgSFR85
-         7WIA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753469751; x=1754074551;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=l+P1pO0VcptRLVWqzHA93r4jnwUEPVrrjiHiUMAaRCc=;
-        b=uVjdnkFzYYF88QVVsLvtCWQm15s3qB5kjmWYgs2XhgOGDdANAgKCxseiFMVnX8Nzal
-         4Ig7QB0At//7edrdv8FfmYjORntTFEC6Y9j1g6zcgsdReIoTugku0D9UzJfQbFduUx2Z
-         K5GXSVZhna8sFstX0rf8d+ZqI/JOVF6tYjcR45HaJfRN55UEEfrMhPMKMeFexZSRt8hr
-         +FhW8RTbjBKMkAamKYRxhpBSlwDtE6U9vc7/h6XL1ONWDDBoQFEb77mKUX10tt0pfpRh
-         ckXBTq1p5NLjyDyUIxsSXRhP/nXIRRO1k39m8vAMVBnbyPseb0qOkAw7X6mptKATrvLj
-         C9DQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU/JaLnYbm3cfCxUAPdhvGSIJvhFGV2Eg31SVuuu5c8FbGtYj2AzAZPZrq1r9TN7ce/kqnIfWFW@vger.kernel.org, AJvYcCUMuOky3y8zbyPt1G4KfIM01rCASWtQYJ6XNbHV3m4DzjuoY+CrQpcf1hrX2j7roS2zUCDp6pL3IRpwwEkVazYK@vger.kernel.org, AJvYcCVcmB9IrgmWrolTI9ydWgINUMgRYgebhKsZQQ71R19NKUnv8D1Sk8lap7pzOfwrN0lax3s=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwqNWJNxQmcma3Xao1T/vb+IsezDDmRv5MVS0xTvQNShiYdHQkS
-	F/VGaBssIhWDHAupHPHv7IvLWX7D9/XevqTA1Mb/wkddNZY7/FaTDaGH
-X-Gm-Gg: ASbGnctUBkRvQj9ZHbsn6gWRfNIYQweMMh80UCTam9AgSqdgAsEabmb837JiF+x4Mro
-	xokC+CItG8rTuNPsj+i9q3hxQfAB6MBGTqYacXmNkVG2LLOx6sa1NWqyOiDD8JVUJ5zc/JZkYvk
-	5DJaeKx/noyogcf3oNd+bhrNJLyZ1sw9hGDEdwthuCEhPXxSGSJbTkxVr2cgPO4zXmk1FLDlkvZ
-	wDKrVE5idMysCBJyHkYGJJ34sw/oCTBM2klui7JjVgXvpcwV7o/VsrARdkaciVa+vrqR/CMQlT9
-	N0yOwlLpmXWvl8F9gPLIAFTyfVyuCo94k6gPq7eHR79pd3BWh3kti5srrh3KiNNXH1OPSDXL4Rd
-	DBsZFOkQwZ6qnfwH8YEPtze9RPXFXW1t6TA7UfYkSNF0e5el7
-X-Google-Smtp-Source: AGHT+IH+qzbRUHgyZsobUO5oGyd5H2byoQchDyRA1NkLzNzhINe34lRZ+Qtx9ADULkVGsA8uBqTczA==
-X-Received: by 2002:a5d:5f48:0:b0:3b5:f177:30a7 with SMTP id ffacd0b85a97d-3b7767339e3mr2526546f8f.16.1753469750690;
-        Fri, 25 Jul 2025 11:55:50 -0700 (PDT)
-Received: from mtardy-friendly-lvh-runner.c.cilium-dev.internal ([2600:1900:4010:1a8::])
-        by smtp.googlemail.com with ESMTPSA id ffacd0b85a97d-3b778eb276esm607743f8f.6.2025.07.25.11.55.50
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 25 Jul 2025 11:55:50 -0700 (PDT)
-From: Mahe Tardy <mahe.tardy@gmail.com>
-To: alexei.starovoitov@gmail.com
-Cc: andrii@kernel.org,
-	ast@kernel.org,
-	bpf@vger.kernel.org,
-	daniel@iogearbox.net,
-	john.fastabend@gmail.com,
-	mahe.tardy@gmail.com,
-	martin.lau@linux.dev,
-	fw@strlen.de,
-	netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org,
-	netdev@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: [PATCH bpf-next v2 4/4] selftests/bpf: add icmp_send_unreach kfunc tests
-Date: Fri, 25 Jul 2025 18:53:42 +0000
-Message-Id: <20250725185342.262067-5-mahe.tardy@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250725185342.262067-1-mahe.tardy@gmail.com>
-References: <CAADnVQKq_-=N7eJoup6AqFngoocT+D02NF0md_3mi2Vcrw09nQ@mail.gmail.com>
- <20250725185342.262067-1-mahe.tardy@gmail.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZBAUe3il"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=fYf2sc+sDAZhQkMMECSyxr7MZBVxvLK9hyxbWu8t6Mc=; b=ZBAUe3ilNjgBZx8y55KKAV1Jtu
+	oGW67J1fAcLcjvF/0MYsWTYGZwUXBsWgiycwpszQUE5Q6I6ZQr4Lsheu1flcwRdk9AjSKo25jJlRK
+	yZ91HYtUvFTMXiEi2Uj3BzK3seDqYIzbaXLPzcUaOgcU6l6tligo6i0Prf6H9Y6PZmGilYuWlEDKL
+	WOzzWTvvAI5Q6ET/5YxTTVrjYDMvYnyNRNyLxurWmu0VQL0SWLmr93Yt0tMNJocDmmsCO8B3Ivxsv
+	sXuMr9ualhy1zYed5YeTxs8p+acyeYGUKDDGiherxadfvuOreIIogDSNyAvBHHtanpDLH+HabwLMp
+	Qf7itgzQ==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1ufPwD-000000004EE-1AaS;
+	Fri, 25 Jul 2025 23:26:45 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] evaluate: Fix for 'meta hour' ranges spanning date boundaries
+Date: Fri, 25 Jul 2025 23:26:40 +0200
+Message-ID: <20250725212640.26537-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -87,173 +49,377 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This test opens a server and client, attach a cgroup_skb program on
-egress and calls the icmp_send_unreach function from the client egress
-so that an ICMP unreach control message is sent back to the client.
-It then fetches the message from the error queue to confirm the correct
-ICMP unreach code has been sent.
+Introduction of EXPR_RANGE_SYMBOL type inadvertently disabled sanitizing
+of meta hour ranges where the lower boundary has a higher value than the
+upper boundary. This may happen outside of user control due to the fact
+that given ranges are converted to UTC which is the kernel's native
+timezone.
 
-Note that the BPF program returns SK_PASS to let the connection being
-established to finish the test cases quicker. Otherwise, you have to
-wait for the TCP three-way handshake to timeout in the kernel and
-retrieve the errno translated from the unreach code set by the ICMP
-control message.
+Restore the conditional match and op inversion by matching on the new
+RHS expression type and also expand it so values are comparable. Since
+this replaces the whole range expression, make it replace the
+relational's RHS entirely.
 
-Signed-off-by: Mahe Tardy <mahe.tardy@gmail.com>
+While at it extend testsuites to cover these corner-cases.
+
+Fixes: 347039f64509e ("src: add symbol range expression to further compact intervals")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .../bpf/prog_tests/icmp_send_unreach_kfunc.c  | 99 +++++++++++++++++++
- .../selftests/bpf/progs/icmp_send_unreach.c   | 36 +++++++
- 2 files changed, 135 insertions(+)
- create mode 100644 tools/testing/selftests/bpf/prog_tests/icmp_send_unreach_kfunc.c
- create mode 100644 tools/testing/selftests/bpf/progs/icmp_send_unreach.c
+ src/evaluate.c                          |  25 +++--
+ tests/py/any/meta.t                     |   6 ++
+ tests/py/any/meta.t.json                | 123 ++++++++++++++++++++++++
+ tests/py/any/meta.t.json.output         |  66 +++++++++++++
+ tests/py/any/meta.t.payload             |  38 ++++++++
+ tests/shell/testcases/listing/meta_time |  11 +++
+ 6 files changed, 262 insertions(+), 7 deletions(-)
 
-diff --git a/tools/testing/selftests/bpf/prog_tests/icmp_send_unreach_kfunc.c b/tools/testing/selftests/bpf/prog_tests/icmp_send_unreach_kfunc.c
-new file mode 100644
-index 000000000000..414c1ed8ced3
---- /dev/null
-+++ b/tools/testing/selftests/bpf/prog_tests/icmp_send_unreach_kfunc.c
-@@ -0,0 +1,99 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <test_progs.h>
-+#include <network_helpers.h>
-+#include <linux/errqueue.h>
-+#include "icmp_send_unreach.skel.h"
-+
-+#define TIMEOUT_MS 1000
-+#define SRV_PORT 54321
-+
-+#define ICMP_DEST_UNREACH 3
-+
-+#define ICMP_FRAG_NEEDED 4
-+#define NR_ICMP_UNREACH 15
-+
-+static void read_icmp_errqueue(int sockfd, int expected_code)
-+{
-+	ssize_t n;
-+	struct sock_extended_err *sock_err;
-+	struct cmsghdr *cm;
-+	char ctrl_buf[512];
-+	struct msghdr msg = {
-+		.msg_control = ctrl_buf,
-+		.msg_controllen = sizeof(ctrl_buf),
-+	};
-+
-+	n = recvmsg(sockfd, &msg, MSG_ERRQUEUE);
-+	if (!ASSERT_GE(n, 0, "recvmsg_errqueue"))
-+		return;
-+
-+	for (cm = CMSG_FIRSTHDR(&msg); cm; cm = CMSG_NXTHDR(&msg, cm)) {
-+		if (!ASSERT_EQ(cm->cmsg_level, IPPROTO_IP, "cmsg_type") ||
-+		    !ASSERT_EQ(cm->cmsg_type, IP_RECVERR, "cmsg_level"))
-+			continue;
-+
-+		sock_err = (struct sock_extended_err *)CMSG_DATA(cm);
-+
-+		if (!ASSERT_EQ(sock_err->ee_origin, SO_EE_ORIGIN_ICMP,
-+			       "sock_err_origin_icmp"))
-+			return;
-+		if (!ASSERT_EQ(sock_err->ee_type, ICMP_DEST_UNREACH,
-+			       "sock_err_type_dest_unreach"))
-+			return;
-+		ASSERT_EQ(sock_err->ee_code, expected_code, "sock_err_code");
-+	}
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 9c90590860585..b67c81f01c0e2 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2421,10 +2421,9 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
+ 	return 0;
+ }
+ 
+-static int expr_evaluate_symbol_range(struct eval_ctx *ctx, struct expr **exprp)
++static struct expr *symbol_range_expand(struct expr *expr)
+ {
+-	struct expr *left, *right, *range, *constant_range;
+-	struct expr *expr = *exprp;
++	struct expr *left, *right;
+ 
+ 	/* expand to symbol and range expressions to consolidate evaluation. */
+ 	left = symbol_expr_alloc(&expr->location, expr->symtype,
+@@ -2433,7 +2432,16 @@ static int expr_evaluate_symbol_range(struct eval_ctx *ctx, struct expr **exprp)
+ 	right = symbol_expr_alloc(&expr->location, expr->symtype,
+ 				  (struct scope *)expr->scope,
+ 				  expr->identifier_range[1]);
+-	range = range_expr_alloc(&expr->location, left, right);
++	return range_expr_alloc(&expr->location, left, right);
 +}
 +
-+void test_icmp_send_unreach_kfunc(void)
++static int expr_evaluate_symbol_range(struct eval_ctx *ctx, struct expr **exprp)
 +{
-+	struct icmp_send_unreach *skel;
-+	int cgroup_fd = -1, client_fd = 1, srv_fd = -1;
-+	int *code;
++	struct expr *left, *right, *range, *constant_range;
++	struct expr *expr = *exprp;
 +
-+	skel = icmp_send_unreach__open_and_load();
-+	if (!ASSERT_OK_PTR(skel, "skel_open"))
-+		goto cleanup;
++	/* expand to symbol and range expressions to consolidate evaluation. */
++	range = symbol_range_expand(expr);
+ 
+ 	if (expr_evaluate(ctx, &range) < 0) {
+ 		expr_free(range);
+@@ -2772,12 +2780,15 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 
+ 	pctx = eval_proto_ctx(ctx);
+ 
+-	if (rel->right->etype == EXPR_RANGE && lhs_is_meta_hour(rel->left)) {
+-		ret = __expr_evaluate_range(ctx, &rel->right);
++	if (lhs_is_meta_hour(rel->left) &&
++	    rel->right->etype == EXPR_RANGE_SYMBOL) {
++		range = symbol_range_expand(rel->right);
++		ret = __expr_evaluate_range(ctx, &range);
+ 		if (ret)
+ 			return ret;
+ 
+-		range = rel->right;
++		expr_free(rel->right);
++		rel->right = range;
+ 
+ 		/*
+ 		 * We may need to do this for proper cross-day ranges,
+diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
+index 3f0ef121a8c03..0d0c268636705 100644
+--- a/tests/py/any/meta.t
++++ b/tests/py/any/meta.t
+@@ -218,6 +218,12 @@ meta hour "17:00:00" drop;ok;meta hour "17:00" drop
+ meta hour "17:00:01" drop;ok
+ meta hour "00:00" drop;ok
+ meta hour "00:01" drop;ok
++meta hour "01:01" drop;ok
++meta hour "02:02" drop;ok
++meta hour "03:03" drop;ok
++meta hour "00:00"-"02:02" drop;ok
++meta hour "01:01"-"03:03" drop;ok
++meta hour "02:02"-"04:04" drop;ok
+ time < "2022-07-01 11:00:00" accept;ok;meta time < "2022-07-01 11:00:00" accept
+ time > "2022-07-01 11:00:00" accept;ok;meta time > "2022-07-01 11:00:00" accept
+ 
+diff --git a/tests/py/any/meta.t.json b/tests/py/any/meta.t.json
+index 65590388bb80d..b11aae86396c9 100644
+--- a/tests/py/any/meta.t.json
++++ b/tests/py/any/meta.t.json
+@@ -2723,6 +2723,129 @@
+     }
+ ]
+ 
++# meta hour "01:01" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": "01:01"
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+	cgroup_fd = test__join_cgroup("/icmp_send_unreach_cgroup");
-+	if (!ASSERT_GE(cgroup_fd, 0, "join_cgroup"))
-+		goto cleanup;
++# meta hour "02:02" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": "02:02"
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+	skel->links.egress =
-+		bpf_program__attach_cgroup(skel->progs.egress, cgroup_fd);
-+	if (!ASSERT_OK_PTR(skel->links.egress, "prog_attach_cgroup"))
-+		goto cleanup;
++# meta hour "03:03" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": "03:03"
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+	code = &skel->bss->unreach_code;
++# meta hour "00:00"-"02:02" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": {
++		"range": [
++		    "00:00",
++		    "02:02"
++		]
++	    }
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+	for (*code = 0; *code <= NR_ICMP_UNREACH; (*code)++) {
-+		// The TCP stack reacts differently when asking for
-+		// fragmentation, let's ignore it for now
-+		if (*code == ICMP_FRAG_NEEDED)
-+			continue;
++# meta hour "01:01"-"03:03" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": {
++		"range": [
++		    "01:01",
++		    "03:03"
++		]
++            }
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+		skel->bss->kfunc_ret = -1;
++# meta hour "02:02"-"04:04" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": {
++                "range": [
++                    "02:02",
++                    "04:04"
++                ]
++            }
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+		srv_fd = start_server(AF_INET, SOCK_STREAM, "127.0.0.1",
-+				      SRV_PORT, TIMEOUT_MS);
-+		if (!ASSERT_GE(srv_fd, 0, "start_server"))
-+			goto for_cleanup;
+ # time < "2022-07-01 11:00:00" accept
+ [
+     {
+diff --git a/tests/py/any/meta.t.json.output b/tests/py/any/meta.t.json.output
+index d46935dee513d..ecb211335b576 100644
+--- a/tests/py/any/meta.t.json.output
++++ b/tests/py/any/meta.t.json.output
+@@ -646,3 +646,69 @@
+     }
+ ]
+ 
++# meta hour "00:00"-"02:02" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": {
++                "set": [
++                    {
++                        "range": [
++                            "02:00",
++                            "02:02"
++                        ]
++                    },
++                    {
++                        "range": [
++                            "00:00",
++                            "02:00"
++                        ]
++                    }
++                ]
++            }
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+		client_fd = socket(AF_INET, SOCK_STREAM, 0);
-+		ASSERT_GE(client_fd, 0, "client_socket");
++# meta hour "01:01"-"03:03" drop
++[
++    {
++        "match": {
++            "left": {
++                "meta": {
++                    "key": "hour"
++                }
++            },
++            "op": "==",
++            "right": {
++                "set": [
++                    {
++                        "range": [
++                            "02:00",
++                            "03:03"
++                        ]
++                    },
++                    {
++                        "range": [
++                            "01:01",
++                            "02:00"
++                        ]
++                    }
++                ]
++            }
++        }
++    },
++    {
++        "drop": null
++    }
++]
 +
-+		client_fd = connect_to_fd(srv_fd, 0);
-+		if (!ASSERT_GE(client_fd, 0, "client_connect"))
-+			goto for_cleanup;
+diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
+index 52c3efa84eb5d..2abb44ea2e868 100644
+--- a/tests/py/any/meta.t.payload
++++ b/tests/py/any/meta.t.payload
+@@ -1052,6 +1052,44 @@ ip meta-test input
+   [ cmp eq reg 1 0x0001359c ]
+   [ immediate reg 0 drop ]
+ 
++# meta hour "01:01" drop
++ip test-ip4 input
++  [ meta load hour => reg 1 ]
++  [ cmp eq reg 1 0x000143ac ]
++  [ immediate reg 0 drop ]
 +
-+		read_icmp_errqueue(client_fd, *code);
++# meta hour "02:02" drop
++ip test-ip4 input
++  [ meta load hour => reg 1 ]
++  [ cmp eq reg 1 0x00000078 ]
++  [ immediate reg 0 drop ]
 +
-+		ASSERT_EQ(skel->bss->kfunc_ret, SK_DROP, "kfunc_ret");
-+for_cleanup:
-+		close(client_fd);
-+		close(srv_fd);
-+	}
++# meta hour "03:03" drop
++ip test-ip4 input
++  [ meta load hour => reg 1 ]
++  [ cmp eq reg 1 0x00000ec4 ]
++  [ immediate reg 0 drop ]
 +
-+cleanup:
-+	icmp_send_unreach__destroy(skel);
-+	close(cgroup_fd);
-+}
-diff --git a/tools/testing/selftests/bpf/progs/icmp_send_unreach.c b/tools/testing/selftests/bpf/progs/icmp_send_unreach.c
-new file mode 100644
-index 000000000000..15783e5d1d65
---- /dev/null
-+++ b/tools/testing/selftests/bpf/progs/icmp_send_unreach.c
-@@ -0,0 +1,36 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include "vmlinux.h"
-+#include <bpf/bpf_helpers.h>
-+#include <bpf/bpf_endian.h>
++# meta hour "00:00"-"02:02" drop
++  [ meta load hour => reg 1 ]
++  [ byteorder reg 1 = hton(reg 1, 4, 4) ]
++  [ range neq reg 1 0x78000000 0x60350100 ]
++  [ immediate reg 0 drop ]
 +
-+char LICENSE[] SEC("license") = "Dual BSD/GPL";
++# meta hour "01:01"-"03:03" drop
++ip test-ip4 input
++  [ meta load hour => reg 1 ]
++  [ byteorder reg 1 = hton(reg 1, 4, 4) ]
++  [ range neq reg 1 0xc40e0000 0xac430100 ]
++  [ immediate reg 0 drop ]
 +
-+int unreach_code = 0;
-+int kfunc_ret = 0;
++# meta hour "02:02"-"04:04" drop
++ip test-ip4 input
++  [ meta load hour => reg 1 ]
++  [ byteorder reg 1 = hton(reg 1, 4, 4) ]
++  [ range eq reg 1 0x78000000 0x101d0000 ]
++  [ immediate reg 0 drop ]
 +
-+#define SERVER_PORT 54321
-+#define SERVER_IP 0x7F000001
+ # time < "2022-07-01 11:00:00" accept
+ ip test-ip4 input
+   [ meta load time => reg 1 ]
+diff --git a/tests/shell/testcases/listing/meta_time b/tests/shell/testcases/listing/meta_time
+index 96a9d5570fd14..61314a99c6498 100755
+--- a/tests/shell/testcases/listing/meta_time
++++ b/tests/shell/testcases/listing/meta_time
+@@ -65,3 +65,14 @@ printf "\t\tmeta hour \"%02d:%02d\"-\"%02d:%02d\"\n" 5 0 16 0 >> "$TMP1"
+ printf "\t\tmeta hour \"%02d:%02d\"-\"%02d:%02d\"\n" 6 0 17 0 >> "$TMP1"
+ 
+ check_decode EADT
 +
-+SEC("cgroup_skb/egress")
-+int egress(struct __sk_buff *skb)
-+{
-+	void *data = (void *)(long)skb->data;
-+	void *data_end = (void *)(long)skb->data_end;
-+	struct iphdr *iph;
-+	struct tcphdr *tcph;
++$NFT flush chain t c
++TZ=UTC-2 $NFT add rule t c meta hour "00:00"-"01:00"
++TZ=UTC-2 $NFT add rule t c meta hour "00:00"-"03:00"
++TZ=UTC-2 $NFT add rule t c meta hour "01:00"-"04:00"
 +
-+	iph = data;
-+	if ((void *)(iph + 1) > data_end || iph->version != 4 ||
-+	    iph->protocol != IPPROTO_TCP || iph->daddr != bpf_htonl(SERVER_IP))
-+		return SK_PASS;
++printf "\t\tmeta hour \"%02d:%02d\"-\"%02d:%02d\"\n" 0 0 1 0 > "$TMP1"
++printf "\t\tmeta hour { \"02:00\"-\"03:00\", \"00:00\"-\"02:00\" }\n" >> "$TMP1"
++printf "\t\tmeta hour { \"02:00\"-\"04:00\", \"01:00\"-\"02:00\" }\n" >> "$TMP1"
 +
-+	tcph = (void *)iph + iph->ihl * 4;
-+	if ((void *)(tcph + 1) > data_end ||
-+	    tcph->dest != bpf_htons(SERVER_PORT))
-+		return SK_PASS;
-+
-+	kfunc_ret = bpf_icmp_send_unreach(skb, unreach_code);
-+
-+	/* returns SK_PASS to execute the test case quicker */
-+	return SK_PASS;
-+}
---
-2.34.1
++check_decode UTC-2
+-- 
+2.49.0
 
