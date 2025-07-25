@@ -1,48 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD2642EE5F6;
-	Fri, 25 Jul 2025 17:04:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F396D2EFD84;
+	Fri, 25 Jul 2025 17:04:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753463069; cv=none; b=UgIgotLcn3/2JcEJ9Rum4HxggqJhuNsnIuVccWi7X43Y9UvRK8eCwh2DWy3AIUdKHj6X8Jds8azMQz1KumSo/XO/+qvm7Enuiao2PG5zH1LEr7ABzci+ahQBYOoI0AQpKWFSAIcJmdpj/XPYEoUNV00hh65yhKYTEevhKhiBbxA=
+	t=1753463070; cv=none; b=MhIaThe9yW/DukyXZL08v+YCDWl9KmFwddgGomXygxEOZ6HRq2BbzrYklmT58ON0858ctTOb2zB3rP6COr0JGBS8yzNJD9AB2OOIesk6icTmvA1ZGtCGAxjYav8qnJICCs43B4LddDtiaFDrTKVVttPG/MwgcLBK8WfYZ3gGOxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753463069; c=relaxed/simple;
-	bh=ZhoNoHyUgV3GHucQx+0+Z9LqrvMJs4W9VLtkPHFke1k=;
+	s=arc-20240116; t=1753463070; c=relaxed/simple;
+	bh=MvtH8oKf087cTSZ5q4iB+GqBbKsp39ZnUfk+VCZterc=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=L1XyNZofmoziOdBUiIRNI/rkeOgFU4CN6QtewZAr0Z3ITFs2wSLy/z8gnkNKiD95FI6tUD/idGgOielsq15Q4cvpvXykNcWIwcDIoG616SnB9brnAdOIT8YyB+Weia4scIaGWOr4fGmbiaHcWRdGRCShgZiI9o9numVFrRHF2cg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=s/XOw/m2; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eUxAINk5; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=peMrK52GpTf+dTC6UAhT7dttx36DUESRSLr1Ff/I6bqZNilzk8XKKgCthdZGhuhYpBY/hOxqaDqpvmhYe2KjYZn0pri1i8obsSkKj1vlClRdFf9vSmunK4UuDtukbtbYWE+WFWh/0mK7491UwaFgxSJCTzkU/3Hup03mFBqJW94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pA0Rnf+D; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XDqLOXUq; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="s/XOw/m2";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eUxAINk5"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pA0Rnf+D";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XDqLOXUq"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 5F3306026E; Fri, 25 Jul 2025 19:04:26 +0200 (CEST)
+	id 973BD60289; Fri, 25 Jul 2025 19:04:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463066;
-	bh=dVUWRuMfhGHxNyHtHyj+PtEuk3sfGozhXLH8NpTODwE=;
+	s=2025; t=1753463067;
+	bh=jByCPyWJ5BfM48/VjjBSe77goW0f0PzFnuHNkPzB4Ac=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=s/XOw/m2f2jzVzUkl5ybvPtmKGZ62WO4mxK2vYkXvJyOCMHJqiC7wJtp/zwMFqvdM
-	 GNzBJFWQCv/d2lBNNsPZSFLu74cLl8SqWJnRZDVcqpvoljg241EiaQXZN/DY1nbAE4
-	 kCu06nPaoXHQkvKvPRFBuu5EjwXUXFqFjQuffbOc0+fsJYRtDYrNAYyprjjhp1+KuN
-	 xEmX7WRUIK50/ymxriXDiFcfb/enaJaFYXKo7W4DyXiSQLay2lk9UepsOXjaPKsr/N
-	 oQmrEMZytr/9kXDzFbfoLUEN9q5K3/NGMbjHIx6y0hcKxF8XIruYvqgcyUo9zBNMPT
-	 uSmbQtd1I8n5w==
+	b=pA0Rnf+DjhIqgijHPAKcCZfJfHcuzACROJVk7/oZZXmh78jGkod4S3EA5IG3ACgZb
+	 ZN5hluFLXl7Q3HiEaQIrRPsvdKrvWST5o8Z322o59ts9vFb81FM7qrXM2vc0DqaT1V
+	 kN6n0UslerYQL43C8SQwPGwL2YHNORkqRKIbqhtuokawaTq3orDrDLZ1KrMgsqoA4L
+	 No6pD/Jww079VNB+Juz6G7cdbOI2zjJiEMkkL+8ZtFJiCiMxMVHYWbupc2iE6RKoe+
+	 N3ZcGJJYrCcgSVMAnk3+0M49iqi521SbHdOjWx7iopckVqkNolxBIozEF77peL5uF7
+	 th2UV+vdVy3Dg==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 667616026E;
-	Fri, 25 Jul 2025 19:04:18 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2947960283;
+	Fri, 25 Jul 2025 19:04:20 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753463059;
-	bh=dVUWRuMfhGHxNyHtHyj+PtEuk3sfGozhXLH8NpTODwE=;
+	s=2025; t=1753463061;
+	bh=jByCPyWJ5BfM48/VjjBSe77goW0f0PzFnuHNkPzB4Ac=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=eUxAINk5JpA1gS3KW/crdroD+PCz6IXKhZN8C9/OPhxC4jvKu1dVg+C7JgQhZwCNc
-	 Nmq0rpK2oO1imVq4pvYtuMGDCrw5VrauD+AFp7XTnVPqOD/i/r3fwjZAhi/kXN/zFG
-	 c5lks+A92Io9CEHhE2dFu6crM/sSjMTnicpgVJIDgqdi4in4NICYNEnVkzs2UlrNzN
-	 kMtXESK2OyzyUA8VBV56ImC3UEFZFqNiRBfcyppwIBToO3NRbrhhn9v86+BwBpMxN8
-	 57rVh4jbAQbqynZ6YEITJDHYbFkxLXQMH9ARN6uu/yL0sLnyvL14BeaYy7dQPwhHaA
-	 nBFCPUMpV0Lvw==
+	b=XDqLOXUq7xH4PBh63oYJkNSZCfhi6PgYPxdR4Pf4/ieIwC8zg8KI7rl78MoAme9Il
+	 Cw4dIAwI3F1uCfiE8d16MOyohCnBmjZMdL6iSw4PA2J2LPxWl5FEawI4d5sqeNv4K4
+	 yr7chUdWbBCIVPpg4AGf6ADoYAU3kWRlaeKnfy7wRKd0OsVVq6he4JRJrB+zir0col
+	 xAdK9dcGMJ81AIQSG+qA1MKJbtfdh36fbtG3/0nNL3dEhddeo5l8gQ0D2WhwYAeHMC
+	 1gSiLH8xMBdJz0L/xlW51nTUZp8LBt992NRAW74PuSOUTwy6130BqIkgLghyOjI4GQ
+	 1VLw4u2f7mCLw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -52,9 +52,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net-next 17/19] netfilter: xt_nfacct: don't assume acct name is null-terminated
-Date: Fri, 25 Jul 2025 19:03:38 +0200
-Message-Id: <20250725170340.21327-18-pablo@netfilter.org>
+Subject: [PATCH net-next 18/19] selftests: netfilter: Ignore tainted kernels in interface stress test
+Date: Fri, 25 Jul 2025 19:03:39 +0200
+Message-Id: <20250725170340.21327-19-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250725170340.21327-1-pablo@netfilter.org>
 References: <20250725170340.21327-1-pablo@netfilter.org>
@@ -66,45 +66,41 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Phil Sutter <phil@nwl.cc>
 
-BUG: KASAN: slab-out-of-bounds in .. lib/vsprintf.c:721
-Read of size 1 at addr ffff88801eac95c8 by task syz-executor183/5851
-[..]
- string+0x231/0x2b0 lib/vsprintf.c:721
- vsnprintf+0x739/0xf00 lib/vsprintf.c:2874
- [..]
- nfacct_mt_checkentry+0xd2/0xe0 net/netfilter/xt_nfacct.c:41
- xt_check_match+0x3d1/0xab0 net/netfilter/x_tables.c:523
+Complain about kernel taint value only if it wasn't set at start
+already.
 
-nfnl_acct_find_get() handles non-null input, but the error
-printk relied on its presence.
-
-Reported-by: syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=4ff165b9251e4d295690
-Tested-by: syzbot+4ff165b9251e4d295690@syzkaller.appspotmail.com
-Fixes: ceb98d03eac5 ("netfilter: xtables: add nfacct match to support extended accounting")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 73db1b5dab6f ("selftests: netfilter: Torture nftables netdev hooks")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_nfacct.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .../testing/selftests/net/netfilter/nft_interface_stress.sh  | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
-index 7c6bf1c16813..0ca1cdfc4095 100644
---- a/net/netfilter/xt_nfacct.c
-+++ b/net/netfilter/xt_nfacct.c
-@@ -38,8 +38,8 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+diff --git a/tools/testing/selftests/net/netfilter/nft_interface_stress.sh b/tools/testing/selftests/net/netfilter/nft_interface_stress.sh
+index 5ff7be9daeee..c0fffaa6dbd9 100755
+--- a/tools/testing/selftests/net/netfilter/nft_interface_stress.sh
++++ b/tools/testing/selftests/net/netfilter/nft_interface_stress.sh
+@@ -10,6 +10,8 @@ source lib.sh
+ checktool "nft --version" "run test without nft tool"
+ checktool "iperf3 --version" "run test without iperf3 tool"
  
- 	nfacct = nfnl_acct_find_get(par->net, info->name);
- 	if (nfacct == NULL) {
--		pr_info_ratelimited("accounting object `%s' does not exists\n",
--				    info->name);
-+		pr_info_ratelimited("accounting object `%.*s' does not exist\n",
-+				    NFACCT_NAME_MAX, info->name);
- 		return -ENOENT;
- 	}
- 	info->nfacct = nfacct;
++read kernel_tainted < /proc/sys/kernel/tainted
++
+ # how many seconds to torture the kernel?
+ # default to 80% of max run time but don't exceed 48s
+ TEST_RUNTIME=$((${kselftest_timeout:-60} * 8 / 10))
+@@ -135,7 +137,8 @@ else
+ 	wait
+ fi
+ 
+-[[ $(</proc/sys/kernel/tainted) -eq 0 ]] || {
++
++[[ $kernel_tainted -eq 0 && $(</proc/sys/kernel/tainted) -ne 0 ]] && {
+ 	echo "FAIL: Kernel is tainted!"
+ 	exit $ksft_fail
+ }
 -- 
 2.30.2
 
