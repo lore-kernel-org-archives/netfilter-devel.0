@@ -1,218 +1,155 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FA5D22D7B1
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2025 07:17:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78CB92571B0;
+	Mon, 28 Jul 2025 09:44:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753687054; cv=none; b=ZWxhIRVpJhaj8UZGsxpbVIOytx4TYVa1up9Wu+b6hVOttLZrydF7qXU/gA2OHicy6kKWA/1t3iCvT02r/I5SPThO8W80bpzgGmdriKt6UgwO5dyESKJby5Yqq9EgvXQOcey6oV6qsr1uV8B89ADDCk5YjVo66HtX2Ikkfd78yTc=
+	t=1753695844; cv=none; b=lPGK/ZXnBJxfoWmfstSsJU/KWFH70TMioje45YQIlIGw62ooJ18E6rv2AFwLpwB+cqEsMsUoPEKjO1twzFYQ7Oy+3dDPY0X8vRBttMrkLX1WwgxPOkS40dpnnN5NfJeYnSpU95H99uxjHHljCy3jseAh9yWnJicpSTVX7iIVrZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753687054; c=relaxed/simple;
-	bh=FI8rHfaFKuwN+SfXXor/B3kscyjTORxXZ54WjeZWqEw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Wmgo20wqIh+4z9JniXciTVSxoURA6Qeju1y1JdtEEA+XK9/bYdwdVZIgUQXrFyZK7SDtIm5pFT66QpikX+b0j8m39FNvPKa7gFdj3bWOa6UDkXXZ7uNjmaXoHOGOHIDNpNy0RF5AX0GPeio45Ofxody0V1UNCVVVkN3L9Jedg/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Bgu/Hmh3; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1753695844; c=relaxed/simple;
+	bh=QwvRXzFZogKebxw5m6w84tCyPvrj+Mj2jXrz70Fx9zU=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=JlrwaKEiH3j/8noVb+cjyQfWrL1WbnRBzYrIMoSCOmOSi1RbRJINoZ6cvvv1qrxihhc6OPStaYpsdnn6pf6yKbmXkCmRh19g4PNmodas5Lz2OV11uvikJe/04/NDSrbKfgbTvO3FwKbCKD+yu/YzHFx0c/IQIb+9xGALinzeNI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ORYZUtll; arc=none smtp.client-ip=209.85.128.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Bgu/Hmh3"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1753687052; x=1785223052;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=FI8rHfaFKuwN+SfXXor/B3kscyjTORxXZ54WjeZWqEw=;
-  b=Bgu/Hmh3CDc0Dt85GCxJSgJKK0Z+THavePoIOjLomfiqbZTIt0W3yZGm
-   Fk67KJ6DTcAcak+Vw9PytqfqI0igLTRSB/GukGtcnsLPm6EG/lOgwG41d
-   yeQDMhlqtZ5n4UcM2ZipQx/Tp4fVhr0UeMXX3E36iqLrcvRUYLDssu429
-   k0NYLa5M8pFMEiWZf76oVmorrdRgHouNSPv7scCgwk47DF+4e3R8J9Z0X
-   oGSWBXacjS3lWhI4ftuFB+zc6VfUV2UMExHusDzj/+WefR4Zo3KwkZFaU
-   0R03jQUbwQHet2ffbTiqCz6soLBNSkJd0ZSWWha0A14q2Dm4hmiUgpDzX
-   w==;
-X-CSE-ConnectionGUID: eNCJI1HXRimugz97USor/w==
-X-CSE-MsgGUID: tV7kFnQkSRCCbuEUjW1tHQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11504"; a="81372878"
-X-IronPort-AV: E=Sophos;i="6.16,339,1744095600"; 
-   d="scan'208";a="81372878"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jul 2025 00:17:32 -0700
-X-CSE-ConnectionGUID: Y3m4DNQeTWupRqRDmqZYaA==
-X-CSE-MsgGUID: Z7N+HkB7Tpev1VQOovkcgw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,339,1744095600"; 
-   d="scan'208";a="166820928"
-Received: from lkp-server01.sh.intel.com (HELO 160750d4a34c) ([10.239.97.150])
-  by orviesa004.jf.intel.com with ESMTP; 28 Jul 2025 00:17:29 -0700
-Received: from kbuild by 160750d4a34c with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1ugI6x-0000I7-1P;
-	Mon, 28 Jul 2025 07:17:27 +0000
-Date: Mon, 28 Jul 2025 15:17:18 +0800
-From: kernel test robot <lkp@intel.com>
-To: Shaun Brady <brady.1345@gmail.com>, netfilter-devel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, ppwaskie@kernel.org, fw@strlen.de,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ORYZUtll"
+Received: by mail-wm1-f47.google.com with SMTP id 5b1f17b1804b1-45619d70c72so37892915e9.0;
+        Mon, 28 Jul 2025 02:44:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1753695841; x=1754300641; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=DpZDkIwSNXAkfznm1ocUN63CgTKXhTTLgm3bOfdy+mQ=;
+        b=ORYZUtllT5ji0QwzjdGjfcEUkkz1a0r5ngyWUXrq0RMg+jsZFGAZxe2niKlLHbAXSZ
+         poLeIQeC0EfD29IEJXxOuoqiKORbyx6Oc6uQMdDdg9aSeD7y2XiH6QBjjNxAx1QICZBr
+         cg5smCCDmCTYb4EsLpbZuFetYbIDPZJRsTw5+EF+HxuUVfhKM9ibBsdkt1uSGTHjfC/q
+         7tz1IJAqvdFSspZsr8kqcnkDXufpdMH07a0OU33WpmzcP+AZmHfoLg3WmOu4mR+Ug6HM
+         RUKiM7KVEmlZJYIwC9Y7+vit5FxDLvCJxQcGEtEX+Dii0J6j3o3MDYm/ZyBC/NrX+pWM
+         DDKQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1753695841; x=1754300641;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=DpZDkIwSNXAkfznm1ocUN63CgTKXhTTLgm3bOfdy+mQ=;
+        b=PA709fgoPJX6UKOkTOMkHUDPE2WiV6k6rFUtbMcDaeRQ+7wanm3lEU9OT1JUN7uqoh
+         HSZMljndlSoEPU9yQvJnHgJvyzbomIEVTNB2QAc1aC+mmq16WvAJD1XK2ZYtK1XnUjzE
+         zqG/CuoO0N0Drs++vAwGuTSN6b6Z/O1hg5R6gWbfhgWGLAjgXZomQVo83mJvn7pSubxK
+         spK2ZeZv+VjgtVkf66I3DsnRg6RxoRIr8gJ56+lHGiU2TEZBWnKQxvjxSwT6BcIeirT3
+         /jNJbrJfdtChnCAc63CkMZRcPUK/VcRenl+s59lu9BjNxfrgh9v+cs6UlM2hr/YJUJQH
+         noPw==
+X-Forwarded-Encrypted: i=1; AJvYcCUOl31/WcrRAjYEaWsdZqTw07b/iXbtcQ01Hxf4a64iNpqSaModVY1BbvTnun812+Pbljo=@vger.kernel.org, AJvYcCUT5CQrvKKmi2hQDaQFtJ8zLDmuVmTXRakL8yaVN8zHGx3budD1nmkSy3fjABIozrA07d6pDcFq4yCY87qK/0SA@vger.kernel.org, AJvYcCV4yFvw11d1Lq6q788kp0fKvqNAjIzJC1v+Ca7TC5lqGuXbVl9oXAoyV0f8QPZyBHhIvp3sB/DJ@vger.kernel.org
+X-Gm-Message-State: AOJu0YxFC0NZze0vVaraqAA5WeVIX9bKhHYdNAOoyk0BONzGGmmKi5dp
+	UOGGQ2tU92Qyx4AwIDGGcBYMihTt+YmI8ZkS5mDqI0IiarDVL9l+kTNs
+X-Gm-Gg: ASbGncsGsMp+U2Q5q8FvxQhmmJ2FtwWp3hyhvOCCPapmuaFp1yHdoj/ijqJf/Rh6zQa
+	52bPTzcNEJyftjFaGC9Eimu2h8ljSr8BVz7SunJXXIWB4D0s9QoSYVg4+ztbeuo89wIg94ztrka
+	oJIoRyTdaMHPFC9lZ9jj/vq2i9/W5y21SthniKyErQd1Ig5WGUwPawSmSJuH/muy7YUtclZSQyL
+	uqmPSjRU03MxusqDSpY5SmfvbWsCoZNJhsQdZ+a7xf+fzDBWSayAmzef/T0cWn0qV5biMfoZ5F2
+	+YdZloujIGCQqvN+ZypQbBwCCEGzXMyFW+uff0E8tk6G0Lyh/rRihPQ1E0TUvZq1NyNQAtefM6w
+	jIO14GnFlT3LCnvQqkRpyJ0v89ddjM5i7l7cHJD7azr6EfBLUbTSWhB1kQRY=
+X-Google-Smtp-Source: AGHT+IG5YcJv7gRPiLUXWoPYJT12uySQOIVS9lPTpxptOjBAj2UVXqoD1tWPU/3FVsEas2UhJ6xBsQ==
+X-Received: by 2002:a05:600c:8882:b0:456:1146:5c01 with SMTP id 5b1f17b1804b1-458705801acmr86122455e9.12.1753695840650;
+        Mon, 28 Jul 2025 02:44:00 -0700 (PDT)
+Received: from mtardy-friendly-lvh-runner.c.cilium-dev.internal ([2600:1900:4010:1a8::])
+        by smtp.googlemail.com with ESMTPSA id 5b1f17b1804b1-458705bcbfbsm153422725e9.16.2025.07.28.02.43.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 28 Jul 2025 02:43:59 -0700 (PDT)
+From: Mahe Tardy <mahe.tardy@gmail.com>
+To: lkp@intel.com
+Cc: alexei.starovoitov@gmail.com,
+	andrii@kernel.org,
+	ast@kernel.org,
+	bpf@vger.kernel.org,
+	coreteam@netfilter.org,
+	daniel@iogearbox.net,
+	fw@strlen.de,
+	john.fastabend@gmail.com,
+	mahe.tardy@gmail.com,
+	martin.lau@linux.dev,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	oe-kbuild-all@lists.linux.dev,
 	pablo@netfilter.org
-Subject: Re: [PATCH v6 1/2] netfilter: nf_tables: Implement jump limit for
- nft_table_validate
-Message-ID: <202507281408.4TSYx6Hl-lkp@intel.com>
-References: <20250728040315.1014454-1-brady.1345@gmail.com>
+Subject: [PATCH bpf-next v3 0/4] bpf: add icmp_send_unreach kfunc
+Date: Mon, 28 Jul 2025 09:43:41 +0000
+Message-Id: <20250728094345.46132-1-mahe.tardy@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <202507270940.kXGmRbg5-lkp@intel.com>
+References: <202507270940.kXGmRbg5-lkp@intel.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250728040315.1014454-1-brady.1345@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Shaun,
+Hello,
 
-kernel test robot noticed the following build warnings:
+This is v3 of adding the icmp_send_unreach kfunc, as suggested during
+LSF/MM/BPF 2025[^1]. The goal is to allow cgroup_skb programs to
+actively reject east-west traffic, similarly to what is possible to do
+with netfilter reject target.
 
-[auto build test WARNING on netfilter-nf/main]
-[also build test WARNING on linus/master v6.16 next-20250725]
-[cannot apply to nf-next/master horms-ipvs/master]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+The first step to implement this is using ICMP control messages, with
+the ICMP_DEST_UNREACH type with various code ICMP_NET_UNREACH,
+ICMP_HOST_UNREACH, ICMP_PROT_UNREACH, etc. This is easier to implement
+than a TCP RST reply and will already hint the client TCP stack to abort
+the connection and not retry extensively.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Shaun-Brady/Add-test-for-nft_max_table_jumps_netns-sysctl/20250728-120528
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20250728040315.1014454-1-brady.1345%40gmail.com
-patch subject: [PATCH v6 1/2] netfilter: nf_tables: Implement jump limit for nft_table_validate
-config: csky-randconfig-001-20250728 (https://download.01.org/0day-ci/archive/20250728/202507281408.4TSYx6Hl-lkp@intel.com/config)
-compiler: csky-linux-gcc (GCC) 10.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250728/202507281408.4TSYx6Hl-lkp@intel.com/reproduce)
+Note that this is different than the sock_destroy kfunc, that along
+calls tcp_abort and thus sends a reset, destroying the underlying
+socket.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202507281408.4TSYx6Hl-lkp@intel.com/
+Caveats of this kfunc design are that a cgroup_skb program can call this
+function N times, thus send N ICMP unreach control messages and that the
+program can return from the BPF filter with SK_PASS leading to a
+potential confusing situation where the TCP connection was established
+while the client received ICMP_DEST_UNREACH messages.
 
-All warnings (new ones prefixed by >>):
+Another more sophisticated design idea would be for the kfunc to set the
+kernel to send an ICMP_HOST_UNREACH control message with the appropriate
+code when the cgroup_skb program terminates with SK_DROP. Creating a new
+'SK_REJECT' return code for cgroup_skb program was generally rejected
+and would be too limited for other program types support.
 
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from fs/nfs/localio.c:15:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
+We should bear in mind that we want to add a TCP reset kfunc next and
+also could extend this kfunc to other program types if wanted.
+
+v2 updates:
+- fix a build error from a missing function call rename;
+- avoid changing return line in bpf_kfunc_init;
+- return SK_DROP from the kfunc (similarly to bpf_redirect);
+- check the return value in the selftest.
+
+v3 update:
+- fix an undefined reference build error.
+
+[^1]: https://lwn.net/Articles/1022034/
+
+Mahe Tardy (4):
+  net: move netfilter nf_reject_fill_skb_dst to core ipv4
+  net: move netfilter nf_reject6_fill_skb_dst to core ipv6
+  bpf: add bpf_icmp_send_unreach cgroup_skb kfunc
+  selftests/bpf: add icmp_send_unreach kfunc tests
+
+ include/net/ip6_route.h                       |  2 +
+ include/net/route.h                           |  1 +
+ net/core/filter.c                             | 61 ++++++++++++
+ net/ipv4/netfilter/nf_reject_ipv4.c           | 19 +---
+ net/ipv4/route.c                              | 15 +++
+ net/ipv6/netfilter/nf_reject_ipv6.c           | 17 +---
+ net/ipv6/route.c                              | 18 ++++
+ .../bpf/prog_tests/icmp_send_unreach_kfunc.c  | 99 +++++++++++++++++++
+ .../selftests/bpf/progs/icmp_send_unreach.c   | 36 +++++++
+ 9 files changed, 235 insertions(+), 33 deletions(-)
+ create mode 100644 tools/testing/selftests/bpf/prog_tests/icmp_send_unreach_kfunc.c
+ create mode 100644 tools/testing/selftests/bpf/progs/icmp_send_unreach.c
+
 --
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from include/linux/sunrpc/msg_prot.h:205,
-                    from include/linux/sunrpc/clnt.h:19,
-                    from fs/nfs/nfs4proc.c:45:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
-   fs/nfs/nfs4proc.c: In function 'nfs4_proc_create_session':
-   fs/nfs/nfs4proc.c:9534:12: warning: variable 'ptr' set but not used [-Wunused-but-set-variable]
-    9534 |  unsigned *ptr;
-         |            ^~~
---
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from include/linux/sunrpc/msg_prot.h:205,
-                    from include/linux/sunrpc/auth.h:14,
-                    from include/linux/nfs_fs.h:31,
-                    from fs/nfs/flexfilelayout/flexfilelayout.c:10:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
-   fs/nfs/flexfilelayout/flexfilelayout.c: In function 'ff_layout_io_track_ds_error':
-   fs/nfs/flexfilelayout/flexfilelayout.c:1312:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
-    1312 |  int err;
-         |      ^~~
---
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from include/linux/sunrpc/msg_prot.h:205,
-                    from include/linux/sunrpc/auth.h:14,
-                    from include/linux/nfs_fs.h:31,
-                    from fs/nfs/flexfilelayout/flexfilelayoutdev.c:10:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
-   fs/nfs/flexfilelayout/flexfilelayoutdev.c: In function 'nfs4_ff_alloc_deviceid_node':
-   fs/nfs/flexfilelayout/flexfilelayoutdev.c:56:9: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
-      56 |  int i, ret = -ENOMEM;
-         |         ^~~
---
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from include/linux/sunrpc/msg_prot.h:205,
-                    from include/linux/sunrpc/clnt.h:19,
-                    from nfs4proc.c:45:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
-   nfs4proc.c: In function 'nfs4_proc_create_session':
-   nfs4proc.c:9534:12: warning: variable 'ptr' set but not used [-Wunused-but-set-variable]
-    9534 |  unsigned *ptr;
-         |            ^~~
---
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from include/linux/sunrpc/msg_prot.h:205,
-                    from include/linux/sunrpc/auth.h:14,
-                    from include/linux/nfs_fs.h:31,
-                    from flexfilelayout/flexfilelayout.c:10:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
-   flexfilelayout/flexfilelayout.c: In function 'ff_layout_io_track_ds_error':
-   flexfilelayout/flexfilelayout.c:1312:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
-    1312 |  int err;
-         |      ^~~
---
-   In file included from include/net/net_namespace.h:25,
-                    from include/linux/inet.h:42,
-                    from include/linux/sunrpc/msg_prot.h:205,
-                    from include/linux/sunrpc/auth.h:14,
-                    from include/linux/nfs_fs.h:31,
-                    from flexfilelayout/flexfilelayoutdev.c:10:
->> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
-      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
-         |  ^~~
-   flexfilelayout/flexfilelayoutdev.c: In function 'nfs4_ff_alloc_deviceid_node':
-   flexfilelayout/flexfilelayoutdev.c:56:9: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
-      56 |  int i, ret = -ENOMEM;
-         |         ^~~
+2.34.1
 
-
-vim +/unused +37 include/net/netns/netfilter.h
-
-    10	
-    11	struct netns_nf {
-    12	#if defined CONFIG_PROC_FS
-    13		struct proc_dir_entry *proc_netfilter;
-    14	#endif
-    15		const struct nf_logger __rcu *nf_loggers[NFPROTO_NUMPROTO];
-    16	#ifdef CONFIG_SYSCTL
-    17		struct ctl_table_header *nf_log_dir_header;
-    18		struct ctl_table_header *nf_limit_control_dir_header;
-    19	#ifdef CONFIG_LWTUNNEL
-    20		struct ctl_table_header *nf_lwtnl_dir_header;
-    21	#endif
-    22	#endif
-    23		struct nf_hook_entries __rcu *hooks_ipv4[NF_INET_NUMHOOKS];
-    24		struct nf_hook_entries __rcu *hooks_ipv6[NF_INET_NUMHOOKS];
-    25	#ifdef CONFIG_NETFILTER_FAMILY_ARP
-    26		struct nf_hook_entries __rcu *hooks_arp[NF_ARP_NUMHOOKS];
-    27	#endif
-    28	#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
-    29		struct nf_hook_entries __rcu *hooks_bridge[NF_INET_NUMHOOKS];
-    30	#endif
-    31	#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-    32		unsigned int defrag_ipv4_users;
-    33	#endif
-    34	#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-    35		unsigned int defrag_ipv6_users;
-    36	#endif
-  > 37		u32 nf_max_table_jumps_netns __maybe_unused;
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
