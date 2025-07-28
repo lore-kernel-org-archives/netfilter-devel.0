@@ -1,65 +1,34 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2940521D585;
-	Mon, 28 Jul 2025 20:10:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E0C1A23B1
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2025 21:28:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753733440; cv=none; b=Dn3Nevhx/3QRsTZBwUUr+LcNBfw3iQyZ2ox88eDFpgcZZ/7loBCqPH01OXzttQWV5hMJ5sN4z0EdrC1CRrEnO+uFuJt+qQC6OVvDHVbORH+ejEL4cqn1DTIwEcMOP9HRmkvYqfYzPh04Xp7xPjBQFHD+YxtEDxpNMRDHLA8xH18=
+	t=1753738141; cv=none; b=HMk7g+aoq4VtyWa1f3iHxoEkG8XbGDBSTdeg6cL/x+RLXV3IPHXY8Ebs1rCFf4zJpnQ+xtZxfhoFmO5yc12VOSCATIbCbjl6TtstugnENAr7OCtnwhudtywe6d62np0/8YrLdvUEku1dwQysk2PdfhhlEOWjfdoVK1RbhwFXV2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753733440; c=relaxed/simple;
-	bh=9czKtzndhU42pjVNgVo1eafEPoqJB+ePVk974yb3RR4=;
+	s=arc-20240116; t=1753738141; c=relaxed/simple;
+	bh=xkUDyEAknglelpWx562Dol/FTwX1PnBo+/Y0HGchmVU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tqM6PIZtA6/P+DvtlMh+NdTzYB1XF6GRtWg66E+M0NJtRGBrszgAgrmMAjhaSWOXCwD9sKs/q9RxQBNPjG9xz58lj+m6p0ejEFAeikA+R8WnuvLSWyBSGCLJ/7yE1qxnyrxB1gRkgFBQeHpIyb2M+0PwELkkGYjWTYHuJ5SjSlY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VRJH+neC; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VRJH+neC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1753733440; x=1785269440;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=9czKtzndhU42pjVNgVo1eafEPoqJB+ePVk974yb3RR4=;
-  b=VRJH+neCm/jdZfrFNXEtxhdUk7x1pCCN+qMF3+iay5ytN/FZzKEixa5c
-   m1uKt7I/fPCVzuiHqjb/TFyatpftpCU1BWrYAki7rXZ0EUPpMMG90d2sq
-   KLk5yhm5QL+XMY1N+Dy3WuJUEAiYq4kEkzb173I5ejyCDGr4Zc+/SBrYQ
-   Xuf1UESD9E7DulEcT0PPQTdXqHPpwOC+DQ7gL6GrOJo3mPANJAUn0sECS
-   qvI9n4WcrUXY5AgUcCZw4dy4Y9IqzUQgpj6xBuUtLY8EydSbc7Iv9bink
-   6xccJOTRTkzISsW2Vcsx5nDUkaiQlgey7+4qJWIu61X8O/UmZwvuYg87a
-   A==;
-X-CSE-ConnectionGUID: FgxpGzJOTO2EZghrs2iLqQ==
-X-CSE-MsgGUID: uX6sfd7nQAODhESO0XY1mg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11505"; a="67427113"
-X-IronPort-AV: E=Sophos;i="6.16,339,1744095600"; 
-   d="scan'208";a="67427113"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jul 2025 13:10:39 -0700
-X-CSE-ConnectionGUID: MDD9vg80Q7OmTCQyFXuKsA==
-X-CSE-MsgGUID: hSQTySyvSj2GjI1iB8bC9Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.16,339,1744095600"; 
-   d="scan'208";a="162856915"
-Received: from lkp-server01.sh.intel.com (HELO 160750d4a34c) ([10.239.97.150])
-  by orviesa008.jf.intel.com with ESMTP; 28 Jul 2025 13:10:35 -0700
-Received: from kbuild by 160750d4a34c with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1ugUB6-0000jP-30;
-	Mon, 28 Jul 2025 20:10:32 +0000
-Date: Tue, 29 Jul 2025 04:10:26 +0800
-From: kernel test robot <lkp@intel.com>
-To: Mahe Tardy <mahe.tardy@gmail.com>, lkp@intel.com
-Cc: oe-kbuild-all@lists.linux.dev, alexei.starovoitov@gmail.com,
-	andrii@kernel.org, ast@kernel.org, bpf@vger.kernel.org,
-	coreteam@netfilter.org, daniel@iogearbox.net, fw@strlen.de,
-	john.fastabend@gmail.com, mahe.tardy@gmail.com,
-	martin.lau@linux.dev, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Subject: Re: [PATCH bpf-next v3 3/4] bpf: add bpf_icmp_send_unreach
- cgroup_skb kfunc
-Message-ID: <202507290356.HyFMR3K0-lkp@intel.com>
-References: <20250728094345.46132-4-mahe.tardy@gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=pcDE8yf/Q6s05SwQzT51okBxbf9FfQFZDOX7zjgYcrHlVG5ApdCFQyXtL/pDCJJx+4Cd8XLmEnLJcYn2oL8GQIBoceZggEdeNwje45i82hHs5GaqDO5WiANv6Ic8lnSyKxoBpYI8CPAAxksTsNUiT22NquKqSUstVzP4T9vfOMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 43A93605E6; Mon, 28 Jul 2025 23:28:51 +0200 (CEST)
+Date: Mon, 28 Jul 2025 23:28:50 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
+ resistant to memory pressure
+Message-ID: <aIfrktUYzla8f9dw@strlen.de>
+References: <20250704123024.59099-1-fw@strlen.de>
+ <aIK_aSCR67ge5q7s@calendula>
+ <aILOpGOJhR5xQCrc@strlen.de>
+ <aINYGACMGoNL77Ct@calendula>
+ <aINnTy_Ifu66N8dp@strlen.de>
+ <aIOcq2sdP17aYgAE@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -68,33 +37,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250728094345.46132-4-mahe.tardy@gmail.com>
+In-Reply-To: <aIOcq2sdP17aYgAE@calendula>
 
-Hi Mahe,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Yes, u32 flush_id (or trans_id) needs to be added, then set
+> transaction id incrementally.
 
-kernel test robot noticed the following build errors:
+Not enough, unfortunately.
 
-[auto build test ERROR on bpf-next/master]
+The key difference between flush (delete all elements) and delset
+(remove the set and all elements) is that the set itself gets detached
+from the dataplane.  Then, when elements get free'd, we can just iterate
+the set and free all elements, they are all unreachable from the
+dataplane.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Mahe-Tardy/net-move-netfilter-nf_reject_fill_skb_dst-to-core-ipv4/20250728-174736
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git master
-patch link:    https://lore.kernel.org/r/20250728094345.46132-4-mahe.tardy%40gmail.com
-patch subject: [PATCH bpf-next v3 3/4] bpf: add bpf_icmp_send_unreach cgroup_skb kfunc
-config: s390-randconfig-001-20250729 (https://download.01.org/0day-ci/archive/20250729/202507290356.HyFMR3K0-lkp@intel.com/config)
-compiler: s390-linux-gcc (GCC) 8.5.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250729/202507290356.HyFMR3K0-lkp@intel.com/reproduce)
+But in case of a flush, thats not the case, releasing the elements will
+cause use-after-free.  Current DELSETELEM method unlinks the elements
+from the set, links them to the DELSETELEM transactional container.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202507290356.HyFMR3K0-lkp@intel.com/
+Then, on abort they get re-linked to the set, or, in case of commit,
+they can be free'd after the final synchronize_rcu().
 
-All errors (new ones prefixed by >>):
+That leaves two options:
+1.  Use the first patchset, that makes delsetelem allocations sleepable.
+2.  Add a pointer + and id to nft_set_ext.
 
-   s390-linux-ld: net/core/filter.o: in function `bpf_icmp_send_unreach':
-   filter.c:(.text+0xf7b8): undefined reference to `ip_route_reply_fetch_dst'
->> s390-linux-ld: filter.c:(.text+0xf7ea): undefined reference to `__icmp_send'
+The drawback of 2) is the added mem cost for every set eleemnt (first
+patch series only forces it for rhashtable).
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+The major upside however is that DELSETELEM transaction objects are
+simplified a lot, the to-be-deleted elements could be linked to it by
+the then-always-available nft_set_ext pointer, i.e., each DELSETELEM
+transaction object can take an arbitrary number of elements.
+
+Unless you disagree, I will go for 2).
+This will also allow to remove the krealloc() compaction for DELSETELEM,
+so it should be a net code-removal patch.
+
+Another option might be to replace a flush with delset+newset
+internally, but this will get tricky because the set/map still being
+referenced by other rules, we'd have to fixup the ruleset internally to
+use the new/empty set while still being able to roll back.
+
+Proably too tricky / hard to get right, but I'll check it anyway.
