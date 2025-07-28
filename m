@@ -1,70 +1,61 @@
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96E9E1DFE26
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2025 04:13:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FA5D22D7B1
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2025 07:17:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753676017; cv=none; b=dSGiAH4McXE301bOuR7k0tdEcO1bNnbasmWSBbqN9FWAKZY1mmmWx/sONAx/xR9aO1oTiJtanuAVuowgcjCtSGTBYcnnlOngPgnQmXy0erCu5dVX063xTGGaZzYJhDYUsL2k7SlgWsF056bVrbZQLZI8zOd8n/L8zs6a6ZvGMBM=
+	t=1753687054; cv=none; b=ZWxhIRVpJhaj8UZGsxpbVIOytx4TYVa1up9Wu+b6hVOttLZrydF7qXU/gA2OHicy6kKWA/1t3iCvT02r/I5SPThO8W80bpzgGmdriKt6UgwO5dyESKJby5Yqq9EgvXQOcey6oV6qsr1uV8B89ADDCk5YjVo66HtX2Ikkfd78yTc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753676017; c=relaxed/simple;
-	bh=fNfU/keZ1onWD+VqeVOo7T2p/U2G+cVeyiWbFF4A9fI=;
+	s=arc-20240116; t=1753687054; c=relaxed/simple;
+	bh=FI8rHfaFKuwN+SfXXor/B3kscyjTORxXZ54WjeZWqEw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=okAMF27NSZe75SEEE9U0wO7XhdN1qb6JvBqYR2+84v/rA5a/6MKaHuER3V+mDDMC3nMBYWM84rXaH6y8V1lfsiPu4aGsINAtE6k5n6P1/GRGDdVprTnjNME90/Idq6eZKrJtAFu6dbmgZMERltIGT6EkGTeIg7srMO9y2uzwIAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R244QhZT; arc=none smtp.client-ip=209.85.160.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Wmgo20wqIh+4z9JniXciTVSxoURA6Qeju1y1JdtEEA+XK9/bYdwdVZIgUQXrFyZK7SDtIm5pFT66QpikX+b0j8m39FNvPKa7gFdj3bWOa6UDkXXZ7uNjmaXoHOGOHIDNpNy0RF5AX0GPeio45Ofxody0V1UNCVVVkN3L9Jedg/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Bgu/Hmh3; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R244QhZT"
-Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-4ab6b3e8386so42508681cf.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Jul 2025 21:13:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1753676014; x=1754280814; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=jTAJQkchRGvmmjR4kkge95z0weV8RYa+PjNBS+woa5k=;
-        b=R244QhZT/fIuntYm1ixPTtHGWnACfu0jdMTzbpVcgBye9xfxACXJ9GMn3m4iEJ05nF
-         cZVWl9vgTTfzKnUZl7XoBK9EtGE0xWiM5NjhdqqPKxDuFYzQ/lTIr/Qi01F63meWL8B/
-         0OVI451LWZ6cqSfRbZOYH6QtQ5KHqGa3qH4jOYJWq+xK0lqXh2zbqbLAydNVqc/Cehfr
-         bPFgdWvI6Fi7BcBu5jm3TCpkecTYCcdqnkzOt+8KoN6ViXlQQCV9TVJ0XwHgwzaDbswp
-         2cnvhFiVWY8iiplA15DulSKCNXcs3LjnBWQ3FDeN8R5/dOCXCdBZau02qKls/LQ4qTs7
-         H1LQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753676014; x=1754280814;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jTAJQkchRGvmmjR4kkge95z0weV8RYa+PjNBS+woa5k=;
-        b=sQ3fErAhbyX4PBIoZAPoUTULuwNgeWs0Krl23T0aHXT+oO34nOHXTh4/p27tTQ77QP
-         2THIpzSFnafKxJwqgomBx/zVsTT8wAf/0+OXn/Z61dnsiJD1glAnw9WA+Q6lPGVpBqZ+
-         zxT7eaU4GINLUXActUEMSGlO7PETawCoGv4Jz7vrn3DXXqBdvNJaf6P8j8BwAfAv3e5x
-         dDUF7/MMr7j30UpNnLvybkWa26JAkdn+yYShGSINcIwwV9TPJRU0YtR3A+sSyoEMLGQb
-         fw9sFm2CelJC+B1JzRM4hDDge/8JeCusJHsCgVKrJfOKI/JRi/b2Sa07QVGvufP742or
-         xkVw==
-X-Gm-Message-State: AOJu0YwucO7mA0dZ/DNJ6QfkONgowrQNR5N4ZL7INpShTPcN167I8GMy
-	DkDhgLGHOk0drIOEV1/e1myt/V54OFw/opEzWZcFdwnpxMGYmq3tyAEECpAl7A==
-X-Gm-Gg: ASbGnctVw9bpJ3hCapa7p4ugmfco5mjK9lx6eoLvBFe+BgyFGrPI2CLVTB6zzB8rCAd
-	OHrNxSI213vrEmjdj5sRzU042EZm4XtFhHw8XvFbSIeR4qzXUcm/15HrqnjC+NlG3ea9atdNeRN
-	xx7sSu6vqlKjBk+ZFq6RGPH8v/BjAKLt3SyFrUTFS5vp9wOrLbl5UlLGjEDFLiuRKbA0K0tiRV5
-	3m7pzBwviAOEM9BHvqwg5Y1LsMIIYyOFtYGdhQgTMWvvScWKH1Wiugs2zJvFSXIjKlFQY5HwF+Z
-	KKdMh1d7nFddmWI88H8Wzpm311XESfSMyg34FSQG4WvlMPVr2nxJ5xsLN5TZ9Kvk4EWb/5FLbe3
-	xPq+LBnwa6juXyRllEXQgSVn+G7aIRuv07fwYSw2ZolC+X2zRyPE2evS2vgmGbCcyqg==
-X-Google-Smtp-Source: AGHT+IGX7ZmgcvkY4jghbgNimJj9MR0ho1zEWajaW+DsEF4Pnctbrsv7eu5sLcokZrSOQ80GAvsv6g==
-X-Received: by 2002:ac8:58d2:0:b0:4ab:608f:6d0e with SMTP id d75a77b69052e-4ae8ef7569dmr118391951cf.22.1753676014319;
-        Sun, 27 Jul 2025 21:13:34 -0700 (PDT)
-Received: from fedora (syn-075-188-033-214.res.spectrum.com. [75.188.33.214])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4ae98dcd600sm30875411cf.0.2025.07.27.21.13.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Jul 2025 21:13:33 -0700 (PDT)
-Date: Mon, 28 Jul 2025 00:13:32 -0400
-From: Shaun Brady <brady.1345@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, ppwaskie@kernel.org, fw@strlen.de
-Subject: Re: [PATCH v5 1/2] netfilter: nf_tables: Implement jump limit for
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Bgu/Hmh3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1753687052; x=1785223052;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=FI8rHfaFKuwN+SfXXor/B3kscyjTORxXZ54WjeZWqEw=;
+  b=Bgu/Hmh3CDc0Dt85GCxJSgJKK0Z+THavePoIOjLomfiqbZTIt0W3yZGm
+   Fk67KJ6DTcAcak+Vw9PytqfqI0igLTRSB/GukGtcnsLPm6EG/lOgwG41d
+   yeQDMhlqtZ5n4UcM2ZipQx/Tp4fVhr0UeMXX3E36iqLrcvRUYLDssu429
+   k0NYLa5M8pFMEiWZf76oVmorrdRgHouNSPv7scCgwk47DF+4e3R8J9Z0X
+   oGSWBXacjS3lWhI4ftuFB+zc6VfUV2UMExHusDzj/+WefR4Zo3KwkZFaU
+   0R03jQUbwQHet2ffbTiqCz6soLBNSkJd0ZSWWha0A14q2Dm4hmiUgpDzX
+   w==;
+X-CSE-ConnectionGUID: eNCJI1HXRimugz97USor/w==
+X-CSE-MsgGUID: tV7kFnQkSRCCbuEUjW1tHQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11504"; a="81372878"
+X-IronPort-AV: E=Sophos;i="6.16,339,1744095600"; 
+   d="scan'208";a="81372878"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jul 2025 00:17:32 -0700
+X-CSE-ConnectionGUID: Y3m4DNQeTWupRqRDmqZYaA==
+X-CSE-MsgGUID: Z7N+HkB7Tpev1VQOovkcgw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.16,339,1744095600"; 
+   d="scan'208";a="166820928"
+Received: from lkp-server01.sh.intel.com (HELO 160750d4a34c) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 28 Jul 2025 00:17:29 -0700
+Received: from kbuild by 160750d4a34c with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1ugI6x-0000I7-1P;
+	Mon, 28 Jul 2025 07:17:27 +0000
+Date: Mon, 28 Jul 2025 15:17:18 +0800
+From: kernel test robot <lkp@intel.com>
+To: Shaun Brady <brady.1345@gmail.com>, netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, ppwaskie@kernel.org, fw@strlen.de,
+	pablo@netfilter.org
+Subject: Re: [PATCH v6 1/2] netfilter: nf_tables: Implement jump limit for
  nft_table_validate
-Message-ID: <aIb47BFO38UZGGWI@fedora>
-References: <20250520030842.3072235-1-brady.1345@gmail.com>
- <aH7zWPAVRV8_1ehk@calendula>
+Message-ID: <202507281408.4TSYx6Hl-lkp@intel.com>
+References: <20250728040315.1014454-1-brady.1345@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -73,31 +64,155 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aH7zWPAVRV8_1ehk@calendula>
+In-Reply-To: <20250728040315.1014454-1-brady.1345@gmail.com>
 
-On Tue, Jul 22, 2025 at 04:11:36AM +0200, Pablo Neira Ayuso wrote:
-> 
-> This function is called from abort path too. I suspect total_jump_count
-> for this table will not be OK in such case. And this selftest does cover
-> many cases.
-> 
+Hi Shaun,
 
-Your suspicion was correct.  It took a bit to run over the abort path
-that used validation (I think it would just be userland sending abort),
-but it looked like it updated the total before the roll back.
+kernel test robot noticed the following build warnings:
 
-My solution was to send in the abort state, and when
-action != NFNL_ABORT_VALIDATE, we don't update the totals.
+[auto build test WARNING on netfilter-nf/main]
+[also build test WARNING on linus/master v6.16 next-20250725]
+[cannot apply to nf-next/master horms-ipvs/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Another alternative would be to just run validate again at the end of
-the abort (after the rollback), but that seemed wrong to do the costly
-validate twice.
+url:    https://github.com/intel-lab-lkp/linux/commits/Shaun-Brady/Add-test-for-nft_max_table_jumps_netns-sysctl/20250728-120528
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20250728040315.1014454-1-brady.1345%40gmail.com
+patch subject: [PATCH v6 1/2] netfilter: nf_tables: Implement jump limit for nft_table_validate
+config: csky-randconfig-001-20250728 (https://download.01.org/0day-ci/archive/20250728/202507281408.4TSYx6Hl-lkp@intel.com/config)
+compiler: csky-linux-gcc (GCC) 10.5.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250728/202507281408.4TSYx6Hl-lkp@intel.com/reproduce)
 
-See v6 patch (just sent) that also addresses your other feedback.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202507281408.4TSYx6Hl-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from fs/nfs/localio.c:15:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+--
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from include/linux/sunrpc/msg_prot.h:205,
+                    from include/linux/sunrpc/clnt.h:19,
+                    from fs/nfs/nfs4proc.c:45:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+   fs/nfs/nfs4proc.c: In function 'nfs4_proc_create_session':
+   fs/nfs/nfs4proc.c:9534:12: warning: variable 'ptr' set but not used [-Wunused-but-set-variable]
+    9534 |  unsigned *ptr;
+         |            ^~~
+--
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from include/linux/sunrpc/msg_prot.h:205,
+                    from include/linux/sunrpc/auth.h:14,
+                    from include/linux/nfs_fs.h:31,
+                    from fs/nfs/flexfilelayout/flexfilelayout.c:10:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+   fs/nfs/flexfilelayout/flexfilelayout.c: In function 'ff_layout_io_track_ds_error':
+   fs/nfs/flexfilelayout/flexfilelayout.c:1312:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
+    1312 |  int err;
+         |      ^~~
+--
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from include/linux/sunrpc/msg_prot.h:205,
+                    from include/linux/sunrpc/auth.h:14,
+                    from include/linux/nfs_fs.h:31,
+                    from fs/nfs/flexfilelayout/flexfilelayoutdev.c:10:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+   fs/nfs/flexfilelayout/flexfilelayoutdev.c: In function 'nfs4_ff_alloc_deviceid_node':
+   fs/nfs/flexfilelayout/flexfilelayoutdev.c:56:9: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+      56 |  int i, ret = -ENOMEM;
+         |         ^~~
+--
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from include/linux/sunrpc/msg_prot.h:205,
+                    from include/linux/sunrpc/clnt.h:19,
+                    from nfs4proc.c:45:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+   nfs4proc.c: In function 'nfs4_proc_create_session':
+   nfs4proc.c:9534:12: warning: variable 'ptr' set but not used [-Wunused-but-set-variable]
+    9534 |  unsigned *ptr;
+         |            ^~~
+--
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from include/linux/sunrpc/msg_prot.h:205,
+                    from include/linux/sunrpc/auth.h:14,
+                    from include/linux/nfs_fs.h:31,
+                    from flexfilelayout/flexfilelayout.c:10:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+   flexfilelayout/flexfilelayout.c: In function 'ff_layout_io_track_ds_error':
+   flexfilelayout/flexfilelayout.c:1312:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
+    1312 |  int err;
+         |      ^~~
+--
+   In file included from include/net/net_namespace.h:25,
+                    from include/linux/inet.h:42,
+                    from include/linux/sunrpc/msg_prot.h:205,
+                    from include/linux/sunrpc/auth.h:14,
+                    from include/linux/nfs_fs.h:31,
+                    from flexfilelayout/flexfilelayoutdev.c:10:
+>> include/net/netns/netfilter.h:37:2: warning: 'unused' attribute ignored [-Wattributes]
+      37 |  u32 nf_max_table_jumps_netns __maybe_unused;
+         |  ^~~
+   flexfilelayout/flexfilelayoutdev.c: In function 'nfs4_ff_alloc_deviceid_node':
+   flexfilelayout/flexfilelayoutdev.c:56:9: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+      56 |  int i, ret = -ENOMEM;
+         |         ^~~
 
 
+vim +/unused +37 include/net/netns/netfilter.h
 
-Thanks!
+    10	
+    11	struct netns_nf {
+    12	#if defined CONFIG_PROC_FS
+    13		struct proc_dir_entry *proc_netfilter;
+    14	#endif
+    15		const struct nf_logger __rcu *nf_loggers[NFPROTO_NUMPROTO];
+    16	#ifdef CONFIG_SYSCTL
+    17		struct ctl_table_header *nf_log_dir_header;
+    18		struct ctl_table_header *nf_limit_control_dir_header;
+    19	#ifdef CONFIG_LWTUNNEL
+    20		struct ctl_table_header *nf_lwtnl_dir_header;
+    21	#endif
+    22	#endif
+    23		struct nf_hook_entries __rcu *hooks_ipv4[NF_INET_NUMHOOKS];
+    24		struct nf_hook_entries __rcu *hooks_ipv6[NF_INET_NUMHOOKS];
+    25	#ifdef CONFIG_NETFILTER_FAMILY_ARP
+    26		struct nf_hook_entries __rcu *hooks_arp[NF_ARP_NUMHOOKS];
+    27	#endif
+    28	#ifdef CONFIG_NETFILTER_FAMILY_BRIDGE
+    29		struct nf_hook_entries __rcu *hooks_bridge[NF_INET_NUMHOOKS];
+    30	#endif
+    31	#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+    32		unsigned int defrag_ipv4_users;
+    33	#endif
+    34	#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+    35		unsigned int defrag_ipv6_users;
+    36	#endif
+  > 37		u32 nf_max_table_jumps_netns __maybe_unused;
 
-
-SB
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
