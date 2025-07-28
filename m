@@ -1,98 +1,54 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE54F2260C
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2025 23:36:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A84C23496F
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Jul 2025 23:47:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753745785; cv=none; b=R9Uuf1SyZ83gkvMemdEj289AAeJaIEYvfdA4TFHPD1ywGyb10YbwxZlJ0ll3pCLpgA4ZGCIG70rZM2nRt52Y0emAGTWgT/QNAkerlUZt2YaSumr9CFUdbI6hlOGuq7OmvanlF7hVxjssAOYMaWj1gLAUp3q2ijS49cf8NOt3duE=
+	t=1753746477; cv=none; b=sl8VNXOudzH8o7V5fs72DDWxsdxLNOnXVJh5y3qT3FFqnaTlwPGZgHjRgC523hcE2JQvxeTLStvBh6fRNyiDte0XkvJF053UNsYi7beyEaSsqwS60JVsijQYE9zo+vpWyu5qUid2JDM+POsZEZ6CLfBn8hKwVKw6VkiXPsbndKo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753745785; c=relaxed/simple;
-	bh=oOo1Lm+D2hmbVuGHAHZ2SDeyUOaAADVcdcUDgYsBK2A=;
+	s=arc-20240116; t=1753746477; c=relaxed/simple;
+	bh=VSsjHFjxJ7T5X01Wd/kxxHvD1ovL+Ou5r1fXJc874Zs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UWMnijaw7O7moIcWtlrpadU+Y+r+aQ7P6WWOq58zfChYlJv3DdWfGUGChAYg2jo7l9eFWW/WW8I+FFaYEL2aiQOrlu8ioTn7hiSTzXDf/LpVLqdPWQSooNGFJvSKoZAdjQ7+3LZ5HGF74M05EJy55HvOOODdoMy5Yf40b6zDA+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lt3/U8S4; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lt3/U8S4; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lt3/U8S4";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lt3/U8S4"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D08FD602E2; Tue, 29 Jul 2025 01:36:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753745773;
-	bh=lzpktPnJ+d5glNyO1IDLYxQvvRnrnVCp1wkAXLI4w7o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lt3/U8S4mbjSptd1rHbnPzK/B/fDFrukcHUba8h4U3Jb0PsPzNxoLf/sLs2T+50lF
-	 JyM7ntAvdIR68i4+wxlJ4QKJ9Hr+IYut5og3uD82C+uIcpRzy1CX6VUifOTagQ5SQ1
-	 qsSUtFRTgzGB9yQWLRX8R/rN+c86sxX5Ol9NVQ1tIXyG0/Ofp+3nyMB5+1pfeauGcn
-	 PcI3NEOjAoabVJkxxlooDrnlNK4yzLUqYZ2vZZ6yVMdmQXeEONyfQONAtlYxfnzw/c
-	 3M0u4Z2/gTsXs1urS4SB+lbrXQMm6F/ANdS0RO4ZJTW9I3enbLcCGFy3rT2JOZm1Ja
-	 cMdfEV8ufCwTw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0055C602E2;
-	Tue, 29 Jul 2025 01:36:12 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753745773;
-	bh=lzpktPnJ+d5glNyO1IDLYxQvvRnrnVCp1wkAXLI4w7o=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lt3/U8S4mbjSptd1rHbnPzK/B/fDFrukcHUba8h4U3Jb0PsPzNxoLf/sLs2T+50lF
-	 JyM7ntAvdIR68i4+wxlJ4QKJ9Hr+IYut5og3uD82C+uIcpRzy1CX6VUifOTagQ5SQ1
-	 qsSUtFRTgzGB9yQWLRX8R/rN+c86sxX5Ol9NVQ1tIXyG0/Ofp+3nyMB5+1pfeauGcn
-	 PcI3NEOjAoabVJkxxlooDrnlNK4yzLUqYZ2vZZ6yVMdmQXeEONyfQONAtlYxfnzw/c
-	 3M0u4Z2/gTsXs1urS4SB+lbrXQMm6F/ANdS0RO4ZJTW9I3enbLcCGFy3rT2JOZm1Ja
-	 cMdfEV8ufCwTw==
-Date: Tue, 29 Jul 2025 01:36:08 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] evaluate: Fix for 'meta hour' ranges spanning date
- boundaries
-Message-ID: <aIgJUFPS2z6F_sCn@calendula>
-References: <20250725212640.26537-1-phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=LwfBUp34TvHoDoE+QTZ+B8bg7L93u2GqBF9CdkelRALpAtu9vrTlqngRCjYKaT5kdbNodsoMpLjDsQk5UaL8SoMYrya+/BAG6ok5LDXfe0r93Tpw7zVULHIp+A46kGI57pBw+xIb+ghrRqOHS4aQhPYsWE6yIvnhPtln9Pcqp2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id D123B605E6; Tue, 29 Jul 2025 01:47:52 +0200 (CEST)
+Date: Tue, 29 Jul 2025 01:47:52 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Dan Moulding <dan@danm.net>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	regressions@lists.linux.dev
+Subject: Re: [REGRESSION] v6.16 system hangs (bisected to nf_conntrack fix)
+Message-ID: <aIgMKCuhag2snagZ@strlen.de>
+References: <20250728232506.7170-1-dan@danm.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250725212640.26537-1-phil@nwl.cc>
+In-Reply-To: <20250728232506.7170-1-dan@danm.net>
 
-On Fri, Jul 25, 2025 at 11:26:40PM +0200, Phil Sutter wrote:
-> Introduction of EXPR_RANGE_SYMBOL type inadvertently disabled sanitizing
-> of meta hour ranges where the lower boundary has a higher value than the
-> upper boundary. This may happen outside of user control due to the fact
-> that given ranges are converted to UTC which is the kernel's native
-> timezone.
+Dan Moulding <dan@danm.net> wrote:
+> Hello netfilter folks,
 > 
-> Restore the conditional match and op inversion by matching on the new
-> RHS expression type and also expand it so values are comparable. Since
-> this replaces the whole range expression, make it replace the
-> relational's RHS entirely.
+> Since v6.16-rc7 I've been hitting a vexing system hang (no kernel
+> panic is being produced that I can see). I did not have this problem
+> when running rc6. I first noticed it the morning after upgrading to
+> rc7. I found the machine unresponsive. Checking logs after restarting
+> it, I could see it had been in the middle of being backed up by an
+> rsync-based backup system. This same sequence repeated the following
+> day.
 
-Thanks, I suspect this bug is related to this recent ticket:
+Bah.  Can't see the problem.  Can you partial-revert and see what
+happens?
 
-https://bugzilla.netfilter.org/show_bug.cgi?id=1805
+E.g. only revert the changes to net/netfilter/nf_conntrack_core.c
+and keep nf_ct_resolve_clash_harder().
 
-> While at it extend testsuites to cover these corner-cases.
-
-Thanks for improving coverage for this.
-
-> Fixes: 347039f64509e ("src: add symbol range expression to further compact intervals")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-> @@ -2772,12 +2780,15 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
->  
->  	pctx = eval_proto_ctx(ctx);
->  
-> -	if (rel->right->etype == EXPR_RANGE && lhs_is_meta_hour(rel->left)) {
-> -		ret = __expr_evaluate_range(ctx, &rel->right);
-> +	if (lhs_is_meta_hour(rel->left) &&
-> +	    rel->right->etype == EXPR_RANGE_SYMBOL) {
-
-Side note, thanks for reversing this check.
+Is this x86?
