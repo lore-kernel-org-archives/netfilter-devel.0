@@ -1,103 +1,131 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9C981758B
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2025 13:04:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65C0028A405;
+	Tue, 29 Jul 2025 15:29:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753794299; cv=none; b=nofydYspUzoAJqVFAqaWIhLL/ADdevBVotF4nmS1Sgrv+hthHBp+Socb7R5uSj9y5Y++VdjTKt4EQUbFtmsIoxQ00K45bKK3FzXrBOh5UUCTCWwNYK7fnjqbXVr7mIkssJ5dssvzi4IHOYYTppu4aFfQL1DBrzYax/e7LCrt5Q8=
+	t=1753802968; cv=none; b=ZnV1VG7niVM32ZIvwTM+owDvixRWX4cpGr7zOeaq+mxVSb+NiQZKZCQxFjZeTPDa2EzjpGLR/QMKbxMFO+6of/L6tgo1ckqeA5H2uRX4LbLPBajpxS0gpu8eeCDxryhcwsZEQ93mL4a+Fz1Iut7e+/Z8vB0D/nt/dZB3c0NdzAc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753794299; c=relaxed/simple;
-	bh=RJR9vMX4OPQGe8I0/V9mpUSiGAP94l0MKhZU2hfnCHw=;
+	s=arc-20240116; t=1753802968; c=relaxed/simple;
+	bh=xxJsnFkL43N4gvsKYxn3Jpm39ZvmFN4y4FXxHD0s1j8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MTjf+59uHqrR6Kg52fzpGXOeTZkf2qZjQcRq7Q8mWn3NvN0dCH2wiUGaY1zunj7IPDdU/e9j6gusfFoNgDdywLApXkObtmfwuzBEwcqnvmnv4gmLS3/qx1hlN8Oh8gdDgcfRi9OsyV7L89QyAFT/Sz5ZxcyUceLYNjF50Y72a0k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=aZCV/xja; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=YULTZKcZ9iKzvpxMGZiMpu+NWDyOLRH9tIx3plxYJgi+rh+3/FA7AC7/gEnf35rWlACqGHtfwJkBIf+ZtRbPYaXi1+hUOi9QntuqMAPK8F+iJ4vbWdQ1mLs7ZxPitoRoGabLyvgYsm7so/NQeHbgatkf+eqeRRCPA2RqTtI/qU0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fhg8m2cc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="aZCV/xja"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=GDWVs0cAN065VICiB/h/oRMKzoHNGD7erTvrD8mjAvs=; b=aZCV/xja7hBUgvZjd/tq/rk/HU
-	jV9HQmtwIRws3jXx4Zen/dz26N0jxRUw/dbUR0JF6JGKnZs6teWRtwH60z6j5ZqqfUDn34cA5Q/1Q
-	pnA+Mlet3bSjL4wi+C7QtctaZ0M1zlCcU72zl95X6XByJiXftmlyOjqs/Yr4RVHwhNciS6Z8wUjGw
-	ayfeLLDYQobqkWoGKdC2iD+jqevR70w/jT4hh1VRXS0O7CJlYPfN8JqVaqhXILLCfkP9DXOfqSVT8
-	x02hP5lKUWwzMiUQ6+jn+XvQHTIJ+4aBb9AMFCCX1arfqzdGICOWWVuqHYO9sulu2SqDbmx2Jrj+h
-	bMz/zfVQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ugk0f-000000007vE-1qJ8;
-	Tue, 29 Jul 2025 15:04:49 +0200
-Date: Tue, 29 Jul 2025 15:04:49 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] evaluate: Fix for 'meta hour' ranges spanning date
- boundaries
-Message-ID: <aIjG8SAreSnvpXAF@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fhg8m2cc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A60C4CEF4;
+	Tue, 29 Jul 2025 15:29:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1753802968;
+	bh=xxJsnFkL43N4gvsKYxn3Jpm39ZvmFN4y4FXxHD0s1j8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=fhg8m2ccRle5izyw+Pebyy8XLFm8J8y7MzXTOmHMTpbNpLrmZKHDbt3jGLyyL6hUy
+	 qmNsOHPt/u4qhiIujQ3LGECqQ7eH/0kOEHYTWvDlwRDWAFQK1833LjaYpukr3a+eWk
+	 pDS+AaiIOxaLayOLAuXu68C0kiutRA0cFJElYONEORcIMNijLuzuAMfsEsdC1uEhvq
+	 sHvPvuMBkgUr9okjoBsWQtvRGNt6VT+IhMenhwvpqGZ6FM0RqcxUBL1nu0dbXtmcIz
+	 ZMsXKprBidYA6V3LFDkt1AK9tNp+xYq97GeSWMgapP7GUlOIrP+4zlWdX8PLiufJyM
+	 Oz8vNUX3Nj+bQ==
+Date: Tue, 29 Jul 2025 17:29:25 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20250725212640.26537-1-phil@nwl.cc>
- <aIgJUFPS2z6F_sCn@calendula>
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v5 0/2] Add IPIP flowtable SW acceleratio
+Message-ID: <aIjo1azEuq2k3s2w@lore-desk>
+References: <20250721-nf-flowtable-ipip-v5-0-0865af9e58c6@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="wliClyFhrAlVdtZr"
+Content-Disposition: inline
+In-Reply-To: <20250721-nf-flowtable-ipip-v5-0-0865af9e58c6@kernel.org>
+
+
+--wliClyFhrAlVdtZr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aIgJUFPS2z6F_sCn@calendula>
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 29, 2025 at 01:36:08AM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Jul 25, 2025 at 11:26:40PM +0200, Phil Sutter wrote:
-> > Introduction of EXPR_RANGE_SYMBOL type inadvertently disabled sanitizing
-> > of meta hour ranges where the lower boundary has a higher value than the
-> > upper boundary. This may happen outside of user control due to the fact
-> > that given ranges are converted to UTC which is the kernel's native
-> > timezone.
-> > 
-> > Restore the conditional match and op inversion by matching on the new
-> > RHS expression type and also expand it so values are comparable. Since
-> > this replaces the whole range expression, make it replace the
-> > relational's RHS entirely.
-> 
-> Thanks, I suspect this bug is related to this recent ticket:
-> 
-> https://bugzilla.netfilter.org/show_bug.cgi?id=1805
+> Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
+> infrastructure.
 
-Ah yes, I forgot the "Closes:" tag, sorry!
+Hi Pablo,
 
-> > While at it extend testsuites to cover these corner-cases.
-> 
-> Thanks for improving coverage for this.
+do you have any update on v5?
 
-Above ticket also mentions how "23:59:60" is accepted when "24:00" is
-not. I'll send a v2 which describes the expected values in nft.8 to
-cover for this oddity in strptime() implementation.
+Regards,
+Lorenzo
 
-> > Fixes: 347039f64509e ("src: add symbol range expression to further compact intervals")
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> 
-> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> > @@ -2772,12 +2780,15 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
-> >  
-> >  	pctx = eval_proto_ctx(ctx);
-> >  
-> > -	if (rel->right->etype == EXPR_RANGE && lhs_is_meta_hour(rel->left)) {
-> > -		ret = __expr_evaluate_range(ctx, &rel->right);
-> > +	if (lhs_is_meta_hour(rel->left) &&
-> > +	    rel->right->etype == EXPR_RANGE_SYMBOL) {
-> 
-> Side note, thanks for reversing this check.
+>=20
+> ---
+> Changes in v5:
+> - Rely on __ipv4_addr_hash() to compute the hash used as encap ID
+> - Remove unnecessary pskb_may_pull() in nf_flow_tuple_encap()
+> - Add nf_flow_ip4_ecanp_pop utility routine
+> - Link to v4: https://lore.kernel.org/r/20250718-nf-flowtable-ipip-v4-0-f=
+8bb1c18b986@kernel.org
+>=20
+> Changes in v4:
+> - Use the hash value of the saddr, daddr and protocol of outer IP header =
+as
+>   encapsulation id.
+> - Link to v3: https://lore.kernel.org/r/20250703-nf-flowtable-ipip-v3-0-8=
+80afd319b9f@kernel.org
+>=20
+> Changes in v3:
+> - Add outer IP header sanity checks
+> - target nf-next tree instead of net-next
+> - Link to v2: https://lore.kernel.org/r/20250627-nf-flowtable-ipip-v2-0-c=
+713003ce75b@kernel.org
+>=20
+> Changes in v2:
+> - Introduce IPIP flowtable selftest
+> - Link to v1: https://lore.kernel.org/r/20250623-nf-flowtable-ipip-v1-1-2=
+853596e3941@kernel.org
+>=20
+> ---
+> Lorenzo Bianconi (2):
+>       net: netfilter: Add IPIP flowtable SW acceleration
+>       selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selftest
+>=20
+>  include/linux/netdevice.h                          |  1 +
+>  net/ipv4/ipip.c                                    | 28 +++++++++++
+>  net/netfilter/nf_flow_table_ip.c                   | 56 ++++++++++++++++=
++++++-
+>  net/netfilter/nft_flow_offload.c                   |  1 +
+>  .../selftests/net/netfilter/nft_flowtable.sh       | 40 ++++++++++++++++
+>  5 files changed, 124 insertions(+), 2 deletions(-)
+> ---
+> base-commit: dd500e4aecf25e48e874ca7628697969df679493
+> change-id: 20250623-nf-flowtable-ipip-1b3d7b08d067
+>=20
+> Best regards,
+> --=20
+> Lorenzo Bianconi <lorenzo@kernel.org>
+>=20
 
-I did it merely because consecutive lines being longer than the former
-ones seem more readable to me. What do you like about it? :)
+--wliClyFhrAlVdtZr
+Content-Type: application/pgp-signature; name=signature.asc
 
-Thanks, Phil
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaIjo1QAKCRA6cBh0uS2t
+rEZKAP9waCIeFskcd91V3BlMVy1kJ7IFq2HU3fTU2vt5OAiijAEAxd/13g03R/+K
+s1Igt7AHCEne3kn+9rX1BBu4DHPfDw0=
+=4M+O
+-----END PGP SIGNATURE-----
+
+--wliClyFhrAlVdtZr--
