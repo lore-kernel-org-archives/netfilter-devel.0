@@ -1,192 +1,93 @@
-Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25C32882D3;
-	Tue, 29 Jul 2025 10:06:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5241B22539E
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2025 10:27:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753783593; cv=none; b=aRZhgVcjvglP33j9iafaSJe3Mx88OmfRCLqoZSt5QIW2YXPfvSmRsTwIMI3lqOQXd+Wh8UCDM2y5gnCSuNrYaTQB6SexUq/yOasGHWr6ucFL3laO7jxisKcIAMESEP+iaQW6IMGVvRcnCT3f52FlwmPFnLdXeOexkvStbSc6Rmw=
+	t=1753784875; cv=none; b=H1KijtPpm/WkRe1iu61QRIedgzXQbCtzoaUK10jmJOrQAcCdVPYAPJfXavcF/9sUaWAT/golxdfRRnClS1w1kkdc0ZRUFKdU59K5RFe2cxfOrnITryLE+tYKTaxpIowhVCOkvctYcKY4rL2OGTxWEVCGo16pCku3NWWolmWRQPk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753783593; c=relaxed/simple;
-	bh=rwqc6ZdOVfKMgpH/GvJTRTBI/ETqCD8YkIwHBPZ0kR8=;
+	s=arc-20240116; t=1753784875; c=relaxed/simple;
+	bh=d3xBrTsll6YdFTfmDeqyp/E5mN/hxyWN2tWku5kYQ2c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=p31gMVS+Z7JmlL82AOi7JB2pDj8NGX0r8bmV3AMujXAEmBtKAoqgWiCU5dKEh2Au38ZGxPSTIZCcRNIszPktjPsongNWxMiPopI8b5aYFB4CQQ5wkk2NBk3kOkhn/UVScfHQKq/Uq6fH4HtkqhWylDCxvAaR5WaNv35myGeyHFk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MWQEf1Kw; arc=none smtp.client-ip=209.85.128.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=r3JhveAPc2Cz9o1hVMFrjREfVPQFE4l/IWudHm4w71Svo3cc3uTCgiVA9Uy91SXJOK0WclrOQeNKwlBZEvfWtTxkQXBPlJBqAF9Aw8aiwVc0b4wds3FrYugxeT1f0dOg3mVgtcDjD6Cgc9PFArmibg3OhlDo2i2EpJZRWLgYONY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BoVzB6+c; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iws1J7Ja; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MWQEf1Kw"
-Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-455fdfb5d04so29122675e9.2;
-        Tue, 29 Jul 2025 03:06:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1753783590; x=1754388390; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=mdXN7Iex4BK1HyIVUk7Q0aYT6k4ehYGtHeixZxZQAkM=;
-        b=MWQEf1Kw7Gg+D7rJsmFUaYrOfIpyQkl1hf897eIBHrKk6YlSH8nAw2xZ81zhgmZhWd
-         GS1fhhqo9mWjYOEeNE1qHp2dfltAAS69wQskv1QSqXRhZgF1HDq0eG1nAJEe6f77D1NU
-         5rpIIl5OixumfMy0CjvSECLPObfOLt9iktGrKDTPQexwAX1xUNXjllva5ONnLGFncqp2
-         tueRrUSX5+fbMv1YoTYPeqv1nX7G7Tmxub1Lby7IOe+plmCZYXskT1Nr6oAeCaijrMJM
-         CuyPoQRBxmATsxzMfBXkLxO8tE1zKBNNCk8tAh/rfibfTT3+AbpatxXKQiTBDDlHF57V
-         zIiw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753783590; x=1754388390;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mdXN7Iex4BK1HyIVUk7Q0aYT6k4ehYGtHeixZxZQAkM=;
-        b=SjMQPVJUCGIxKdpFoWMiNNLwOUAyPwgWv02UmnFV19uB/jvgAOwMPeaZKfWHiZHvbY
-         aETuVH4xdfKTo4jHO3OzT6SoksMJFe+Ce5zaoLJ+nGl9OKL0IEXdCnVEPV9c/+ikcIGp
-         lWUcLoymVQu8d/CN1G5+MNqBxcC+Cmt9RFFjsfwREqx2Z1Sb+9da1b9QMcJODlgRC2Zs
-         75vEA4/wLlNzu4Pf8eronl3CSYB3RZTMR3DoE2sgEVNmZYvsM9KGkR7xqUd/5zEerbqX
-         rzCZW5yME6qtJ2b0NnfJqpRRtUYZ6KC2zViNUE6TyF8BqBBQyDf/ezgbIqzvIz0aOL5W
-         yDHQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUckcoMB8zjqqXGIKR2kwBuO+CdOLNwclbDiL4jTFAKxuh+Co9OE3M3KNB4u8qTOvkBiS2EixLLILbQfjvuZ3ri@vger.kernel.org, AJvYcCUgxOV3KAdQ/kL4ZU9yYkxDJIt/jvxDBTi3sxE8hAAqIPeKNPJ0ULJgEDfbOzJQ8F/r1gZFYGvi@vger.kernel.org, AJvYcCWaT/W5088Qt/ChDMDc9qiaTrkHh7XVLqiw+WFrAjWYOMRazca53THF8J9631aCp05i4ho=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzztwyAYW37B5RUSGYtImc7vXbMXqMPjyvK3Fx/W3Fy7cGHsk+O
-	eSieFnmhtVlEek8CXfTC2WSRMdu+aBlD9nfyEBETiaovd66Qre720+op
-X-Gm-Gg: ASbGnctPNcmNB1zPXNfSlH8WUCZR8HaQZsb0UGX14yH5Pr2hxBQVbtrJWTjGEmodsBM
-	12X8zdtch57PCOIHUa2BpsX5VGdF3FgnF+8skV6z2QTJUXwn11f/WC/aROQ48GXr49b1oWIJt44
-	QyAeilbVYvvUiwipNvpP+gOEOeD0n1kGDjr9iV2+3hbki6AVQPWC+XQlV/6NGDGXQNKr48oef94
-	z3RxafSbSq9PbrX9gb8glmPLWwsqmE20MEI1K2EHy1Eo1rPJO0I88IYREp3dwIKkNtREVqJReLc
-	3jl10ftYLUrmeCtT7kq8S2to1rwQjAjddFUoxJrWL3qQ6O0pgmGDQbiPfFPIA9dL47pomv8I4Ae
-	BIQvRh4LHeomOY7KC+D+dT69LIscW6BB2CqPgRPBTIGl01ZxXnAN30aw=
-X-Google-Smtp-Source: AGHT+IFpV/5AQ7Le9es/B08A2PqUmoRpsyrCJrzXn4belGHLzurWA4MhsXCXoDQ9TRT225Ganr19WA==
-X-Received: by 2002:a05:600c:4749:b0:456:1e4a:bb5b with SMTP id 5b1f17b1804b1-458765551c5mr111140555e9.32.1753783590072;
-        Tue, 29 Jul 2025 03:06:30 -0700 (PDT)
-Received: from gmail.com (deskosmtp.auranext.com. [195.134.167.217])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4587272b405sm167860195e9.19.2025.07.29.03.06.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Jul 2025 03:06:29 -0700 (PDT)
-Date: Tue, 29 Jul 2025 12:06:26 +0200
-From: Mahe Tardy <mahe.tardy@gmail.com>
-To: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: alexei.starovoitov@gmail.com, andrii@kernel.org, ast@kernel.org,
-	bpf@vger.kernel.org, coreteam@netfilter.org, daniel@iogearbox.net,
-	fw@strlen.de, john.fastabend@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, oe-kbuild-all@lists.linux.dev,
-	pablo@netfilter.org, lkp@intel.com
-Subject: Re: [PATCH bpf-next v3 3/4] bpf: add bpf_icmp_send_unreach
- cgroup_skb kfunc
-Message-ID: <aIidIq2EM--Ugp6f@gmail.com>
-References: <202507270940.kXGmRbg5-lkp@intel.com>
- <20250728094345.46132-1-mahe.tardy@gmail.com>
- <20250728094345.46132-4-mahe.tardy@gmail.com>
- <b3f25e61-7b0c-4576-baae-9b498c3b8748@linux.dev>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BoVzB6+c";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iws1J7Ja"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 74F256026D; Tue, 29 Jul 2025 12:27:50 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753784870;
+	bh=44hrAerCTmi66PVEJLbJqP5hzxJEtgYFZJJXOEE6Gk0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=BoVzB6+cckAE7XDni6Kddbb4KWNdIJ+d1B4e7LEDeRytaLB/PGE1E5t7S/McQi9LS
+	 voJ4MJ7wRH6o83YQzJIVHQv8lZ5t2uG1eq0H3XUfTRQjIExIQhbjADpZ9PjArX0hL+
+	 T4bSzJ056u8dWjnWdPDECCEPcVE0s+CzDKbodUcJOJOet/eR3SzpKiXpQC1R0pgPcD
+	 bxo4EUBYw+warr33baLPM4SCzfIPCqnGIXqklLNKJC3VbMbrfEVpFb+u5bswL+vNx0
+	 o0lvPogab80ZXIe/LUFh+gXaGaDbN+7F6U0FpioHpLjJMQ6/4+KyFaw4xKL+cTXDgl
+	 aAzgAccHYk5VA==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 851FD60265;
+	Tue, 29 Jul 2025 12:27:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753784869;
+	bh=44hrAerCTmi66PVEJLbJqP5hzxJEtgYFZJJXOEE6Gk0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=iws1J7Jah0Lwm2wCX9P5nFL8iBj0TEBpv3SQnmqcFqrt1o4jscTSAf8KaLKgO7pjD
+	 hAQzVP6ZgwY6TDuG4bfuKJoYjGHfY31KeGXpOOQcEyF3UJfIa9ohseoST23mvWRQGu
+	 StaDqXaG6hn1RbpRlJ0PlOdZMO5HP9MTW2Gw9j000nf2exLGiop14JjIIexRumCbUP
+	 LoxXVD5eey9C/LJvaDALNiehsm4ARYX5OVDyAeY0KRSuG8tgTnNQNrBStQsSMXlQva
+	 RdusMvoA0ykT/UHFpLsaJcWRDdUeKh1ppc0COvVeYXMKxfcaqS6oHqXBKcLJaY+vca
+	 lh6avB9bEDGAQ==
+Date: Tue, 29 Jul 2025 12:27:46 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
+ resistant to memory pressure
+Message-ID: <aIiiIohMBjyfqT3e@calendula>
+References: <20250704123024.59099-1-fw@strlen.de>
+ <aIK_aSCR67ge5q7s@calendula>
+ <aILOpGOJhR5xQCrc@strlen.de>
+ <aINYGACMGoNL77Ct@calendula>
+ <aINnTy_Ifu66N8dp@strlen.de>
+ <aIOcq2sdP17aYgAE@calendula>
+ <aIfrktUYzla8f9dw@strlen.de>
+ <6f32ec06-31bf-f765-5fae-5525336900c5@blackhole.kfki.hu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <b3f25e61-7b0c-4576-baae-9b498c3b8748@linux.dev>
+In-Reply-To: <6f32ec06-31bf-f765-5fae-5525336900c5@blackhole.kfki.hu>
 
-On Mon, Jul 28, 2025 at 06:05:26PM -0700, Martin KaFai Lau wrote:
-> On 7/28/25 2:43 AM, Mahe Tardy wrote:
-> > This is needed in the context of Tetragon to provide improved feedback
-> > (in contrast to just dropping packets) to east-west traffic when blocked
-> > by policies using cgroup_skb programs.
-> > 
-> > This reuse concepts from netfilter reject target codepath with the
-> > differences that:
-> > * Packets are cloned since the BPF user can still return SK_PASS from
-> >    the cgroup_skb progs and the current skb need to stay untouched
-> 
-> This needs more details. Which field(s) of the skb are changed by the kfunc,
-> the skb_dst_set in ip[6]_route_reply_fetch_dst() and/or the code path in the
-> icmp[v6]_send() ?
+Hi Jozsef,
 
-Okay I can add that: "ip[6]_route_reply_fetch_dst set the dst of the skb
-by using the saddr as a daddr and routing it", I don't think
-icmp[v6]_send touches the skb?
+On Tue, Jul 29, 2025 at 09:22:46AM +0200, Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> On Mon, 28 Jul 2025, Florian Westphal wrote:
+> 
+> > Another option might be to replace a flush with delset+newset
+> > internally, but this will get tricky because the set/map still being
+> > referenced by other rules, we'd have to fixup the ruleset internally to
+> > use the new/empty set while still being able to roll back.
+> 
+> If "data" of struct nft_set would be a pointer to an allocated memory area,
+> then there'd be no need to fixup the references in the rules: it would be
+> enough to create-delete the data part. (All non-static, set data related
+> attributes could be move to the "data" as well, like nelems, ndeact.) But
+> it'd mean a serious redesign.
 
-> 
-> >    (cgroup_skb hooks only allow read-only skb payload).
-> > * Since cgroup_skb programs are called late in the stack, checksums do
-> >    not need to be computed or verified, and IPv4 fragmentation does not
-> >    need to be checked (ip_local_deliver should take care of that
-> >    earlier).
-> > 
-> > Signed-off-by: Mahe Tardy <mahe.tardy@gmail.com>
-> > ---
-> >   net/core/filter.c | 61 +++++++++++++++++++++++++++++++++++++++++++++++
-> >   1 file changed, 61 insertions(+)
-> > 
-> > diff --git a/net/core/filter.c b/net/core/filter.c
-> > index 7a72f766aacf..050872324575 100644
-> > --- a/net/core/filter.c
-> > +++ b/net/core/filter.c
-> > @@ -85,6 +85,10 @@
-> >   #include <linux/un.h>
-> >   #include <net/xdp_sock_drv.h>
-> >   #include <net/inet_dscp.h>
-> > +#include <linux/icmp.h>
-> > +#include <net/icmp.h>
-> > +#include <net/route.h>
-> > +#include <net/ip6_route.h>
-> > 
-> >   #include "dev.h"
-> > 
-> > @@ -12148,6 +12152,53 @@ __bpf_kfunc int bpf_sock_ops_enable_tx_tstamp(struct bpf_sock_ops_kern *skops,
-> >   	return 0;
-> >   }
-> > 
-> > +__bpf_kfunc int bpf_icmp_send_unreach(struct __sk_buff *__skb, int code)
-> > +{
-> > +	struct sk_buff *skb = (struct sk_buff *)__skb;
-> > +	struct sk_buff *nskb;
-> > +
-> > +	switch (skb->protocol) {
-> > +	case htons(ETH_P_IP):
-> > +		if (code < 0 || code > NR_ICMP_UNREACH)
-> > +			return -EINVAL;
-> > +
-> > +		nskb = skb_clone(skb, GFP_ATOMIC);
-> > +		if (!nskb)
-> > +			return -ENOMEM;
-> > +
-> > +		if (ip_route_reply_fetch_dst(nskb) < 0) {
-> > +			kfree_skb(nskb);
-> > +			return -EHOSTUNREACH;
-> > +		}
-> > +
-> > +		icmp_send(nskb, ICMP_DEST_UNREACH, code, 0);
-> > +		kfree_skb(nskb);
-> > +		break;
-> > +#if IS_ENABLED(CONFIG_IPV6)
-> > +	case htons(ETH_P_IPV6):
-> > +		if (code < 0 || code > ICMPV6_REJECT_ROUTE)
-> > +			return -EINVAL;
-> > +
-> > +		nskb = skb_clone(skb, GFP_ATOMIC);
-> > +		if (!nskb)
-> > +			return -ENOMEM;
-> > +
-> > +		if (ip6_route_reply_fetch_dst(nskb) < 0) {
-> 
-> From a very quick look at icmpv6_send(), it does its own route lookup. I
-> haven't looked at the v4 yet.
-> 
-> I am likely missing some details. Can you explain why it needs to do a
-> lookup before calling icmpv6_send()?
-
-From my understanding, I need to do this to invert the daddr with the
-saddr to send the unreach message back to the sender.
-
-> 
-> > +			kfree_skb(nskb);
-> > +			return -EHOSTUNREACH;
-> > +		}
-> > +
-> > +		icmpv6_send(nskb, ICMPV6_DEST_UNREACH, code, 0);
-> > +		kfree_skb(nskb);
-> > +		break;
-> > +#endif
-> > +	default:
-> > +		return -EPROTONOSUPPORT;
-> > +	}
-> > +
-> > +	return SK_DROP;
-> > +}
-> > +
+refcounting on object is needed to detect deletion of chains that are
+still in used, rule refer to chains either via direct jump/goto or via
+verdict map. When handling the transaction batch is needed to know
+what can be deleted or not.
