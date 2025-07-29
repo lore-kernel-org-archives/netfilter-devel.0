@@ -1,63 +1,122 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55972254841
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2025 11:37:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4354C287277;
+	Tue, 29 Jul 2025 12:07:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753789044; cv=none; b=rP0tP8Dt413C3bj31EwZac7J0D7QJ0K6WVqqDgmvR9lIeMZl3tFTuHEGKrMekQf6uq+7q3aftjLkcLuPaycle9LAFTOTqC8qzg5G252qDcTPYfPL8EM6ubMVGJNBjpeHZvv/j8rSC5W+6OFMzAdo5M8DoeJS+Oik3GRbONsoC8E=
+	t=1753790829; cv=none; b=tgjWgOwIytiAmxIIz03q/Sf34CbYgio2MHf8Zna3K17YsiaZw09hqhnRA/hlomrdbPGXpZw1wAEaCwKoZV3Zo5c1BDTWkOsjkf6SLxo43JWKypHuumjc0P/ygQ3dQyYqubRAjXgYoZcq522+AV5vHjNEPkkvThXONJgL4eyVV98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753789044; c=relaxed/simple;
-	bh=nddSbrN0baJVIUZ2LnHRYUaZpZiawQExMlHXHBqYzho=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Tg10lJpDuYqCC9wX7jOhb0+1JTWJ4K31PtU1IZfSyarqZLDZLFMj6gC8Eo/BPw2OlldrePOuMwZic5JFgAqxTT8n8+NUixbF3amTrOlq78JICQh4o0A9CgvCo47VYZ0utxzbEU2uKEZS39dnWD3Ii+7KZICkhmOWxTC9KuZ9er4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 136BF604EE; Tue, 29 Jul 2025 13:37:20 +0200 (CEST)
-Date: Tue, 29 Jul 2025 13:37:19 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
- resistant to memory pressure
-Message-ID: <aIiyVnDlbDTMRqB-@strlen.de>
-References: <20250704123024.59099-1-fw@strlen.de>
- <aIK_aSCR67ge5q7s@calendula>
- <aILOpGOJhR5xQCrc@strlen.de>
- <aINYGACMGoNL77Ct@calendula>
- <aINnTy_Ifu66N8dp@strlen.de>
- <aIOcq2sdP17aYgAE@calendula>
- <aIfrktUYzla8f9dw@strlen.de>
- <aIikwxU686KFto35@calendula>
+	s=arc-20240116; t=1753790829; c=relaxed/simple;
+	bh=7YhtsUEU1Up/r8idYFYHePWpNtdtgVuOvjGPjk66O9k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=svjE+eGFAGoKZxaEfIDE0OKTOsbMas5SRuv6/CL0UeE25TEFH06U3mC1ZagBKXzbH4dJSgaX8JXYFnEZhGrMtzyZrIDUEg486Edk05qzSW4LndO7ltDoieJqj2RD9MShbzb5edwBVXjCq4h/gVItJWpttTEE1MNVvq7GTLcrVCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HYhxrXq8; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HYhxrXq8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7FF2C4CEEF;
+	Tue, 29 Jul 2025 12:07:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1753790828;
+	bh=7YhtsUEU1Up/r8idYFYHePWpNtdtgVuOvjGPjk66O9k=;
+	h=From:To:Cc:Subject:Date:From;
+	b=HYhxrXq8f+ZyZnoclNb7lMWL9rVhw1Lw7bthITUu8d0Mqq/7T6wvJfuVynYrcEwOn
+	 uBAgwwaMAk3CX3biGmSp2Hn2c/qk/EOPKExYC1W00mLi037bzmvyLkKqODTpjZvlCW
+	 hhY/kDaKxPSfikpH1BY+7/UNvmKcKWvpPLDgtLYcvXAIJgsVzGAEENQOy3743uumVk
+	 gM6hmK2epBu/P57wATnd+Syfrsj7nb4A+D1New1QqTnLZIT1BT1RfVwLA+sO5SQUTJ
+	 EKAxP/K8owqPpk3pTdh+Whm029jmnsM5vkt3EBRyNQ3WBTNYlbUcLCxvnCngQOExYL
+	 Tfimp8/hkddsg==
+From: Frederic Weisbecker <frederic@kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Frederic Weisbecker <frederic@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [PATCH net] ipvs: Fix estimator kthreads preferred affinity
+Date: Tue, 29 Jul 2025 14:06:59 +0200
+Message-ID: <20250729120659.201095-1-frederic@kernel.org>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aIikwxU686KFto35@calendula>
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> DELSETELEM does not unlink elements from set in the preparation phase,
-> instead elements are marked as inactive in the next generation but
-> they still remain linked to the set. These elements are removed from
-> the set from either the commit/abort phase.
-> 
-> - flush should skip elements that are already inactive
-> - flush should not work on deleted sets.
-> - flush command (elements are marked as inactive) then delete set
->   skips those elements that are inactive. So abort path can unwind
->   accordingly using the transaction id marker what I am proposing.
+The estimator kthreads' affinity are defined by sysctl overwritten
+preferences and applied through a plain call to the scheduler's affinity
+API.
 
-Yes, that part works, but we still need to kfree the elements after unlink.
+However since the introduction of managed kthreads preferred affinity,
+such a practice shortcuts the kthreads core code which eventually
+overwrites the target to the default unbound affinity.
 
-When commit phase does the unlink, the element becomes unreachable from
-the set.  At this time, the DELSETELEM object keeps a pointer to the
-unlinked elements, and that allows us to kfree after synchronize_rcu
-from the worker.  If we don't want DELSETELEM for flush, we need to
-provide the address to free by other means, e.g. stick a pointer into
-struct nft_set_ext.
+Fix this with using the appropriate kthread's API which will carry the
+desired affinity and maintain it across CPU hotplug events and CPU
+isolation constraints.
+
+Fixes: d1a89197589c ("kthread: Default affine kthread to its preferred NUMA node")
+Signed-off-by: Frederic Weisbecker <frederic@kernel.org>
+---
+ include/net/ip_vs.h            | 13 +++++++++++++
+ net/netfilter/ipvs/ip_vs_est.c |  3 ++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index ff406ef4fd4a..29a36709e7f3 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -1163,6 +1163,14 @@ static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
+ 		return housekeeping_cpumask(HK_TYPE_KTHREAD);
+ }
+ 
++static inline const struct cpumask *sysctl_est_preferred_cpulist(struct netns_ipvs *ipvs)
++{
++	if (ipvs->est_cpulist_valid)
++		return ipvs->sysctl_est_cpulist;
++	else
++		return NULL;
++}
++
+ static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
+ {
+ 	return ipvs->sysctl_est_nice;
+@@ -1270,6 +1278,11 @@ static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
+ 	return housekeeping_cpumask(HK_TYPE_KTHREAD);
+ }
+ 
++static inline const struct cpumask *sysctl_est_preferred_cpulist(struct netns_ipvs *ipvs)
++{
++	return NULL;
++}
++
+ static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
+ {
+ 	return IPVS_EST_NICE;
+diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+index f821ad2e19b3..15049b826732 100644
+--- a/net/netfilter/ipvs/ip_vs_est.c
++++ b/net/netfilter/ipvs/ip_vs_est.c
+@@ -265,7 +265,8 @@ int ip_vs_est_kthread_start(struct netns_ipvs *ipvs,
+ 	}
+ 
+ 	set_user_nice(kd->task, sysctl_est_nice(ipvs));
+-	set_cpus_allowed_ptr(kd->task, sysctl_est_cpulist(ipvs));
++	if (sysctl_est_preferred_cpulist(ipvs))
++		kthread_affine_preferred(kd->task, sysctl_est_preferred_cpulist(ipvs));
+ 
+ 	pr_info("starting estimator thread %d...\n", kd->id);
+ 	wake_up_process(kd->task);
+-- 
+2.48.1
+
