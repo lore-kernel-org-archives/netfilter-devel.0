@@ -1,132 +1,95 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EE891E2848
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2025 10:39:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D9C781749
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2025 10:58:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753785549; cv=none; b=VBzJeraxRdDi7ijkaTVV7ac2Lk97Toc/43Cn5qZKGyQQ/aBA4kkAOalo0C/0oDlfbfg39hfsF8lQ0l2VWDyp9dZOqoM8g+f3YLSvaK1d+qxh02UIy/x9IKb12SZYmn63JrCmaniZKzm3ulVXbSkOL9x1n5ObRDfUNp7ZFu7oYLg=
+	t=1753786693; cv=none; b=nkrIjwZuqxxzuo+Laeqo2OgCdphJinGFExOKex/XiX2NfkkMZA3bPz/CgFEY2Xeozp2naebEvIx7lfrG0ab9myNT5rpasn4oSbEmOnC96u+yA1N5ho9qQVPx7aKlaBWmdoUNSkbW5vPyA3JALXrOrDFhlyzbtyiN6ieJb6l2XC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753785549; c=relaxed/simple;
-	bh=wpkq7MpL8FalAwkEdw3HU7b7V92AYh6hJOB+LKX56h8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Lj1axP9aMTkf7wviQZ9LgGHo9gIagzsjGfdYvaTXWmab5X30id6PoSvxobE6yvSi7IhifSa4aDs+rWsiu+Vb0Z3bAZG8O7ldpaQzRqu2PW+YcPJlpzrkkR93DF7GyJDiAE9AiiT8saX+JjZ8t2je6OPE9ivpT2oQH+cOzxq2O1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AKKWUCWC; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SIMA4QYf; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1753786693; c=relaxed/simple;
+	bh=cGe+1BbMrUgjaCpRTVIgXj/cLzGTUPxmxiidsUWJMT4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=g3Izm+EePAxqwGiAypQkhRIrnGrTDirBUn63gV2yMzUFIVbET0tyTlo8SvhhbtSzqVPPbGaqKF//YTxepkngrJ04fp10W5yFGM8MCdYjq/puyv5hSTQf+OqWSygwWqCBHjvtSxglomPpZkSfqQn1kU54OsxKvIdb019c1M+4Tl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=WKZQU+LG; arc=none smtp.client-ip=148.6.0.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AKKWUCWC";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SIMA4QYf"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 3F3D76026F; Tue, 29 Jul 2025 12:39:04 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753785544;
-	bh=1zx3NjVh42fM4usRmOqWMiEbewRhnQIAFdMMcNrZxbA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=AKKWUCWCea8BFOn1SG9t0IX2WtjDSbU4VBA1Dgz+yCDB3r2TsB5OCrEzTwF3v8fW8
-	 slvRh9WKLrSKqQtaHMa/dM3+3WTugxz4BKVM7mGP/29HVh2yZEwKpB3fo/1slGPD3m
-	 XFKCsINCpF/jb05YgfQza6gE5WO8wG49bg4tkvjaOlS5kmZ5vKzQ+UOzLYMhsO58Vn
-	 bWXKVK15QdaZTuWSvCpgPbOciEc9nOOg0FTVu9GkAGPjPhVvkrkIDTVUd6/2OsKEFW
-	 I55CkN0ION8Zqpvt3/eyiskOhJcrX68j/x/kG0X4ON5BwNDOEBTZwn74XXi3L9oNQM
-	 T9KilxdJCB4/A==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 31B986026F;
-	Tue, 29 Jul 2025 12:39:03 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753785543;
-	bh=1zx3NjVh42fM4usRmOqWMiEbewRhnQIAFdMMcNrZxbA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=SIMA4QYfmPZmdkp7t23kcQC8bTdI/LRr+erlE8gDZumIpQbTPdY+JZ73VC1k5elj3
-	 wlXVuiiFt2QFGg/YH4IdZEPZrYD7pXjk2vSMpDUESUzgYsKnbxhkn5PZ/2XqSR4ht0
-	 DfXpMHKNSZYblmx5sBB0StTGfxv81VXY9BgbKfbeVoFDQE+Nag4JgGBg+oE8KKHbp9
-	 /vpuU4BueipSRwpJQtDB6mvRqMnI6jxRlzp8iJy1JQqljSQE+sO8Vnvzgr1jEe/r/H
-	 vqaX9kblok8fB/GBjQJVSuBb7B48xIlxP2tQJuo3SN0DLyitEh6fLR3HBzVeqv+gAO
-	 mA2DbjFy8Vjlg==
-Date: Tue, 29 Jul 2025 12:38:59 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
- resistant to memory pressure
-Message-ID: <aIikwxU686KFto35@calendula>
-References: <20250704123024.59099-1-fw@strlen.de>
- <aIK_aSCR67ge5q7s@calendula>
- <aILOpGOJhR5xQCrc@strlen.de>
- <aINYGACMGoNL77Ct@calendula>
- <aINnTy_Ifu66N8dp@strlen.de>
- <aIOcq2sdP17aYgAE@calendula>
- <aIfrktUYzla8f9dw@strlen.de>
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="WKZQU+LG"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4brsZM2HKlz3sb7m;
+	Tue, 29 Jul 2025 12:50:35 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:message-id
+	:in-reply-to:from:from:date:date:received:received:received
+	:received; s=20151130; t=1753786233; x=1755600634; bh=X45dDCN0AV
+	HuHEfHmSRCxlzflECI1KRo01KuAYgGmIo=; b=WKZQU+LGYyKhynKZA3kKXDrB0Q
+	xwfn5TM8JanIY+ZfBv+qjCFB9ltxO7RowL36fFC2oIZapjeLUtq8JwKvr8NTOlPj
+	Ml0QazCNq1UTOR6RgswNqO7qb/mcnXPR7VjlnvoqvJM7MYZ71eTGaUaZDFXkrAYO
+	q2fKswpy/a+mIdhAE=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id z1G5k0avpRkT; Tue, 29 Jul 2025 12:50:33 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4brsZK2g7Hz3sb7j;
+	Tue, 29 Jul 2025 12:50:33 +0200 (CEST)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 563C634316A; Tue, 29 Jul 2025 12:50:33 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by blackhole.kfki.hu (Postfix) with ESMTP id 54616343169;
+	Tue, 29 Jul 2025 12:50:33 +0200 (CEST)
+Date: Tue, 29 Jul 2025 12:50:33 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+cc: Florian Westphal <fw@strlen.de>, 
+    netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more resistant
+ to memory pressure
+In-Reply-To: <aIiiIohMBjyfqT3e@calendula>
+Message-ID: <ad1c9fc2-456e-9766-a2cb-352c2437207d@blackhole.kfki.hu>
+References: <20250704123024.59099-1-fw@strlen.de> <aIK_aSCR67ge5q7s@calendula> <aILOpGOJhR5xQCrc@strlen.de> <aINYGACMGoNL77Ct@calendula> <aINnTy_Ifu66N8dp@strlen.de> <aIOcq2sdP17aYgAE@calendula> <aIfrktUYzla8f9dw@strlen.de> <6f32ec06-31bf-f765-5fae-5525336900c5@blackhole.kfki.hu>
+ <aIiiIohMBjyfqT3e@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aIfrktUYzla8f9dw@strlen.de>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 
-On Mon, Jul 28, 2025 at 11:28:50PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Yes, u32 flush_id (or trans_id) needs to be added, then set
-> > transaction id incrementally.
-> 
-> Not enough, unfortunately.
-> 
-> The key difference between flush (delete all elements) and delset
-> (remove the set and all elements) is that the set itself gets detached
-> from the dataplane.  Then, when elements get free'd, we can just iterate
-> the set and free all elements, they are all unreachable from the
-> dataplane.
-> 
-> But in case of a flush, thats not the case, releasing the elements will
-> cause use-after-free.  Current DELSETELEM method unlinks the elements
-> from the set, links them to the DELSETELEM transactional container.
+Hi Pablo,
 
-DELSETELEM does not unlink elements from set in the preparation phase,
-instead elements are marked as inactive in the next generation but
-they still remain linked to the set. These elements are removed from
-the set from either the commit/abort phase.
+On Tue, 29 Jul 2025, Pablo Neira Ayuso wrote:
 
-- flush should skip elements that are already inactive
-- flush should not work on deleted sets.
-- flush command (elements are marked as inactive) then delete set
-  skips those elements that are inactive. So abort path can unwind
-  accordingly using the transaction id marker what I am proposing.
+> On Tue, Jul 29, 2025 at 09:22:46AM +0200, Jozsef Kadlecsik wrote:
+>> Hi,
+>>
+>> On Mon, 28 Jul 2025, Florian Westphal wrote:
+>>
+>>> Another option might be to replace a flush with delset+newset
+>>> internally, but this will get tricky because the set/map still being
+>>> referenced by other rules, we'd have to fixup the ruleset internally to
+>>> use the new/empty set while still being able to roll back.
+>>
+>> If "data" of struct nft_set would be a pointer to an allocated memory area,
+>> then there'd be no need to fixup the references in the rules: it would be
+>> enough to create-delete the data part. (All non-static, set data related
+>> attributes could be move to the "data" as well, like nelems, ndeact.) But
+>> it'd mean a serious redesign.
+>
+> refcounting on object is needed to detect deletion of chains that are 
+> still in used, rule refer to chains either via direct jump/goto or via 
+> verdict map. When handling the transaction batch is needed to know what 
+> can be deleted or not.
 
-I think the key is that no two different transaction release the same
-object, hence the need for the transaction id for the flush command to
-differentiate between delete set and flush set commands.
+The private set data part of struct nft_set contains anything which is 
+directly referenced from rules, maps? What I wanted to suggest is to keep 
+the set structure part which is referenced/pointed to from rules, etc.
+intact but separate the private set data part so that it could be handled 
+independently.
 
-I can take a look next week to see if all this is practical,
-otherwise...
+[It seems I miss something.]
 
-> Then, on abort they get re-linked to the set, or, in case of commit,
-> they can be free'd after the final synchronize_rcu().
-> 
-> That leaves two options:
-> 1.  Use the first patchset, that makes delsetelem allocations sleepable.
-> 2.  Add a pointer + and id to nft_set_ext.
-> 
-> The drawback of 2) is the added mem cost for every set eleemnt (first
-> patch series only forces it for rhashtable).
-> 
-> The major upside however is that DELSETELEM transaction objects are
-> simplified a lot, the to-be-deleted elements could be linked to it by
-> the then-always-available nft_set_ext pointer, i.e., each DELSETELEM
-> transaction object can take an arbitrary number of elements.
-> 
-> Unless you disagree, I will go for 2).
-> This will also allow to remove the krealloc() compaction for DELSETELEM,
-> so it should be a net code-removal patch.
-> 
-> Another option might be to replace a flush with delset+newset
-> internally, but this will get tricky because the set/map still being
-> referenced by other rules, we'd have to fixup the ruleset internally to
-> use the new/empty set while still being able to roll back.
-> 
-> Proably too tricky / hard to get right, but I'll check it anyway.
-
-... if I don't find a way or I'm too slow, we can take your series in
-the next merge window as is.
+Best regards,
+Jozsef
