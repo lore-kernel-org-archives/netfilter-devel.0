@@ -1,162 +1,97 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C430825291C;
-	Wed, 30 Jul 2025 10:35:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98D232D9491
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jul 2025 16:16:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753871711; cv=none; b=gMoDSYC8JT1Lya/kr7ZVqQV2WyB4DRHJDAovMUx98Zh3Hzp++nhV+3X5LoprFVSMzO+NTdYBfscueiCWJr7P/STISVq8AN+aSUBIh0uIsGJI1LAsbKur8wFtOAbQsFA3Zs6bj4K3G/RFAee36S1QcLOfj/lc2z+pJhA3vRFHSNM=
+	t=1753892203; cv=none; b=RCccG4HDrBVj0dhB/NyQHI5Qn4wASGIEGFz/3BZP2OPpm1x0i+UrBg/RqvGAra4hRY0zZjKutbMt+odQKyNpqGo/544n5MWIxb7MA937aq4C/ra+0dQEH/eir1J+df1mvQ2jGlpAidvmBwX/3JMQDZNqOJBFRD4rY+KZ/XnK604=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753871711; c=relaxed/simple;
-	bh=VCDnaWwQb4IAWf4f+Mw7mY5/oXqtwhIoiFyzW/Is5/w=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=QuzOFczZD4rt6Zbgu0v2xV4Yh6vmQkAgt/JPsTVPNhH7zBR1Imo8YpWpj2RFUeV6x1178DDmEFrvqujlTOpczwQd7bHyrlzMbjPK7/Z8doPDCBysVak/jm3x8LGUDJVRnUIoGNYA+ldOcakEQW5G04xxNuHUOTZOqAeRYKQJDuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=kmEFE8z6; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1753892203; c=relaxed/simple;
+	bh=kFwDbuRnNGTdM4smispM7H+pwJo2vW9jsH7tOtWEJAU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YmZagXNfKiXYMMjvRQMCmrgnDNzB/DdkFvk04g3lqzzeUxKn3vshSyC4YBJYrokMoQ9LZVkza490YAabEmapUlHD2yuR0yGElz4rJo6Hh3Vw02VyvQO4zpSOlQrYoy9Dq1ZcmlnAH2jZYX/oFFPIaw/LoOELXLq4wHFbt9L/F+w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UtoSf+BB; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Z8R7/VO6; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="kmEFE8z6"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id CA5FD23FB2;
-	Wed, 30 Jul 2025 13:28:32 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=g1Z644tULtzZVidxSZOSdrcdRORvDM8i8A0Fz0op/zY=; b=kmEFE8z6yVyT
-	VXkPRtMg/Gi7DjbDcK8+jQTCLGBQvLJMsMA92xpS3N73gcwTn/1VK6++r+YyEXCd
-	Zs4ru/CfYdOZFa8jTE3DhWtuKecEiHR1bMgBdVdnyeOjnMfjk+ZgmF1MjcfSS0UB
-	2rRqrGemEQH6QTAwjg3z0C2ZcJZJPui3VmpHwV2jcUytF+MzdhBrr+GHnuhS2Mw4
-	j1scDhXyc5cCtqo8Y/SRGwWsQBG3vms0mJC0ZRl6DLUSXgFDHwGUG8hqLt6JrbQS
-	APriImgzogsc3tlMEOn6Lk+G87BWr6F98k3H0taTueIZCa8V+S22lCzDbS16Rifc
-	hF8MTB7DPlG8efSfjwAuCJohLw27bNsv1NVvpLNPZwH6uiPU+ZCe/WtHhrvMvjon
-	otOQyHcca7g1dnLNTPmK0BJ5eBnbMafLqxbwNz5dPc6MyUSnFj8iSqZWBWAUTlHm
-	FdWfRVF42Jf++qad/Hrvc7kfmk0YI1+AjPFmRJQcuETbX/udt2T9pKqg5H1xZCRT
-	P++Bp1OFhGwwPk+l9eRf9SHmQZTq+DRgydboMSMsJJN2lsCej9QFtiKgAo9K1+MF
-	OhOUMH01vSIC7l8SO4Kup+ye6ovEdTAarpnzgHNdjz7loM4BWPl7LDe0wVqL5o6e
-	zD0ia0vvYexecfpQBm/Gbw0ZvYN1hvM=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 30 Jul 2025 13:28:31 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7C13D64D5C;
-	Wed, 30 Jul 2025 13:28:30 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 56UASGpa011444;
-	Wed, 30 Jul 2025 13:28:17 +0300
-Date: Wed, 30 Jul 2025 13:28:16 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Frederic Weisbecker <frederic@kernel.org>
-cc: LKML <linux-kernel@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        David Ahern <dsahern@kernel.org>, Simon Horman <horms@verge.net.au>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH v2 net] ipvs: Fix estimator kthreads preferred affinity
-In-Reply-To: <20250729122611.247368-1-frederic@kernel.org>
-Message-ID: <2d915ef6-46eb-7487-f235-6b6688e68c58@ssi.bg>
-References: <20250729122611.247368-1-frederic@kernel.org>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UtoSf+BB";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Z8R7/VO6"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 2BD356027B; Wed, 30 Jul 2025 18:16:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753892191;
+	bh=Lzq6EBg+OeK/kU9SkIuABvcEdHxIF/pd4NX4znM8GsA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=UtoSf+BBVJhxbhxTvwQGDo2FRqzj9QZDDuElCwwfK4X8O0Mjpl23nhlMD+50sJvYc
+	 qhAcNONE8yn4F5q1SV7b6dULaxIJtGJVi7pjZNKLLfS6vVrJpxadXlXJ0Lq2OS1iuv
+	 yldQEy+UDDMNDHXY9gUblERKPWyP1q49kgz3NvNTaMuK7+qnZ8WLqwKcDTdTWmEieq
+	 ptgEa0adWlVZZRtNEqeHuVau8yheG/ksXq3YlfX9sDk2sdh626lXPUqEX6SFv30c7l
+	 o5EcRuFP7FnH9srN+bEvaQhFoHjpXn15GUNmag885Q11bRELLhLU2oHZbylAk9ynet
+	 rI72TWWhkCxDw==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 646806027B;
+	Wed, 30 Jul 2025 18:16:29 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753892189;
+	bh=Lzq6EBg+OeK/kU9SkIuABvcEdHxIF/pd4NX4znM8GsA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Z8R7/VO6cD+T2VcRUArsx5E/9A8vzJ+5KYK+iRdaEhAyDcGb0Q/vWoTi6RjWNUl1J
+	 xVDa5FiaelJwv3rc75QEY/UenRi4k7tmaktMrCEh5XBY6Z9VwVeUrArfil38F6qihR
+	 P8h3LylU9Re0R0hus9Gi+BCXJEOY5KIHdsEZ2p1P8L7j9xCoygtDFpdUMHo+rvZJDx
+	 hcoBekzg8tL6BbngavlNk+FkuWi9fDjqK1o/OStLL1eH5NuEBdkZoozK3oQobRe8EX
+	 8j7B1h9rOdGSyx30xfQntyvTTfUksLIvYm6QYVjztVhfNVwlsxNSyKSseA6ybi53cg
+	 eBRkMTg1DES3Q==
+Date: Wed, 30 Jul 2025 18:16:25 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
+ resistant to memory pressure
+Message-ID: <aIpFWePr6BfCuKgo@calendula>
+References: <20250704123024.59099-1-fw@strlen.de>
+ <aIK_aSCR67ge5q7s@calendula>
+ <aILOpGOJhR5xQCrc@strlen.de>
+ <aINYGACMGoNL77Ct@calendula>
+ <aINnTy_Ifu66N8dp@strlen.de>
+ <aIOcq2sdP17aYgAE@calendula>
+ <aIfrktUYzla8f9dw@strlen.de>
+ <aIikwxU686KFto35@calendula>
+ <aIiyVnDlbDTMRqB-@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aIiyVnDlbDTMRqB-@strlen.de>
 
-
-	Hello,
-
-On Tue, 29 Jul 2025, Frederic Weisbecker wrote:
-
-> The estimator kthreads' affinity are defined by sysctl overwritten
-> preferences and applied through a plain call to the scheduler's affinity
-> API.
+On Tue, Jul 29, 2025 at 01:37:19PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > DELSETELEM does not unlink elements from set in the preparation phase,
+> > instead elements are marked as inactive in the next generation but
+> > they still remain linked to the set. These elements are removed from
+> > the set from either the commit/abort phase.
+> > 
+> > - flush should skip elements that are already inactive
+> > - flush should not work on deleted sets.
+> > - flush command (elements are marked as inactive) then delete set
+> >   skips those elements that are inactive. So abort path can unwind
+> >   accordingly using the transaction id marker what I am proposing.
 > 
-> However since the introduction of managed kthreads preferred affinity,
-> such a practice shortcuts the kthreads core code which eventually
-> overwrites the target to the default unbound affinity.
+> Yes, that part works, but we still need to kfree the elements after unlink.
 > 
-> Fix this with using the appropriate kthread's API.
-> 
-> Fixes: d1a89197589c ("kthread: Default affine kthread to its preferred NUMA node")
-> Signed-off-by: Frederic Weisbecker <frederic@kernel.org>
+> When commit phase does the unlink, the element becomes unreachable from
+> the set.  At this time, the DELSETELEM object keeps a pointer to the
+> unlinked elements, and that allows us to kfree after synchronize_rcu
+> from the worker.  If we don't want DELSETELEM for flush, we need to
+> provide the address to free by other means, e.g. stick a pointer into
+> struct nft_set_ext.
 
-	Looks good to me for the nf tree, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  include/net/ip_vs.h            | 13 +++++++++++++
->  kernel/kthread.c               |  1 +
->  net/netfilter/ipvs/ip_vs_est.c |  3 ++-
->  3 files changed, 16 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index ff406ef4fd4a..29a36709e7f3 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -1163,6 +1163,14 @@ static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
->  		return housekeeping_cpumask(HK_TYPE_KTHREAD);
->  }
->  
-> +static inline const struct cpumask *sysctl_est_preferred_cpulist(struct netns_ipvs *ipvs)
-> +{
-> +	if (ipvs->est_cpulist_valid)
-> +		return ipvs->sysctl_est_cpulist;
-> +	else
-> +		return NULL;
-> +}
-> +
->  static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
->  {
->  	return ipvs->sysctl_est_nice;
-> @@ -1270,6 +1278,11 @@ static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
->  	return housekeeping_cpumask(HK_TYPE_KTHREAD);
->  }
->  
-> +static inline const struct cpumask *sysctl_est_preferred_cpulist(struct netns_ipvs *ipvs)
-> +{
-> +	return NULL;
-> +}
-> +
->  static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
->  {
->  	return IPVS_EST_NICE;
-> diff --git a/kernel/kthread.c b/kernel/kthread.c
-> index 85e29b250107..adf06196b844 100644
-> --- a/kernel/kthread.c
-> +++ b/kernel/kthread.c
-> @@ -899,6 +899,7 @@ int kthread_affine_preferred(struct task_struct *p, const struct cpumask *mask)
->  
->  	return ret;
->  }
-> +EXPORT_SYMBOL_GPL(kthread_affine_preferred);
->  
->  static int kthreads_update_affinity(bool force)
->  {
-> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-> index f821ad2e19b3..15049b826732 100644
-> --- a/net/netfilter/ipvs/ip_vs_est.c
-> +++ b/net/netfilter/ipvs/ip_vs_est.c
-> @@ -265,7 +265,8 @@ int ip_vs_est_kthread_start(struct netns_ipvs *ipvs,
->  	}
->  
->  	set_user_nice(kd->task, sysctl_est_nice(ipvs));
-> -	set_cpus_allowed_ptr(kd->task, sysctl_est_cpulist(ipvs));
-> +	if (sysctl_est_preferred_cpulist(ipvs))
-> +		kthread_affine_preferred(kd->task, sysctl_est_preferred_cpulist(ipvs));
->  
->  	pr_info("starting estimator thread %d...\n", kd->id);
->  	wake_up_process(kd->task);
-> -- 
-> 2.48.1
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+For the commit phase, I suggest to add a list of dying elements to the
+transaction object. After unlinking the element from the (internal)
+set data structure, add it to this transaction dying list so it
+remains reachable to be released after the rcu grace period.
