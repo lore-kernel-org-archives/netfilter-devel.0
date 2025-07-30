@@ -1,143 +1,162 @@
-Received: from mail-io1-f78.google.com (mail-io1-f78.google.com [209.85.166.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34F0F19CD13
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jul 2025 05:30:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.78
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C430825291C;
+	Wed, 30 Jul 2025 10:35:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753853429; cv=none; b=klHnUqEhM/Kk2kUQ4xKtYaU76p2KvUbuDrKTPiYic9mlRlnM4djXDeRwqfSAcfTF1swysVT4jbYHgN9YAqsAgbUKP21FY3E7IfCVHHksrYgpsOYztbzr6ZjJr49BVQQbQXtN8c9oJwOxRM++O51aRfgCNipZrdAfjNiemJLNwoM=
+	t=1753871711; cv=none; b=gMoDSYC8JT1Lya/kr7ZVqQV2WyB4DRHJDAovMUx98Zh3Hzp++nhV+3X5LoprFVSMzO+NTdYBfscueiCWJr7P/STISVq8AN+aSUBIh0uIsGJI1LAsbKur8wFtOAbQsFA3Zs6bj4K3G/RFAee36S1QcLOfj/lc2z+pJhA3vRFHSNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753853429; c=relaxed/simple;
-	bh=SWXjA3T0iZABKRIwmCf5Uzft+ycSIlMkdD+XTW84w/o=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=V/MTA9kLcHR485zJQBXkZ4R0KeESqzT9RTetY4e4GrPZM8N7GFuladbxYLbGgdwS7uuPxC7Q8n5fvdaS0/PU7l4jUzg0pSVxfghYo4xtd4jLdbarZdkPSc/MQQ6A33rjjeJS+ElQAVYpX8iSw4TMIW/+0bykO4Icl/u3PUQVwBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.78
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f78.google.com with SMTP id ca18e2360f4ac-87c33c0b62eso572652139f.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Jul 2025 22:30:28 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1753853427; x=1754458227;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=eu7fGBCIzOPa9YHCMscfdaivYVWI9C4AstnrKLseCYE=;
-        b=tD2syInD8eAP/SHnkxxW7Qxbpyw/q2wlH9Qqa6EO1MAXrg23Grd5i8kaxWp6LRyQE1
-         sBxSEBKWVguMoX2vAaGJ3LJzz/cQd0D1yGmLhSdUrjaXQTLAGZ8fvhHz0pWjQXsTijqf
-         z1la6qUz7RBsypFscvbRe4SU62cC6DlvsfaWmtILMdA1bBHS4zQu72rgDQBxUQfI9+2y
-         Q76fgyKPxIs1hlszAS3UZVzoZ3EHo/i0SJP3XLdBkTb3dCBSdnWjdzOoK3DbQdDahVGB
-         n42f5FNtXGleE6twe2qOT3J/IrmtONKv3QkUdVlbX1eZhhMSzpcVlTvlfVZPFPA16aAy
-         GDLA==
-X-Forwarded-Encrypted: i=1; AJvYcCWJe+lMdERPxdMSoCvBXagTQMIQjLqmXPrzvxzr6m3es5FsDJ4kNBZmvUAqGIq8/swPm+tHwI3CVcAX5cdAaW4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxcH6sTSRfcNrW0QGkvPMmb80KrW+jhxlZvBXW+bbkc3GUCwFo3
-	iVyL6JmnO7TC0rxFJlWx7S2tK1TA1cw8aV9VLS60BOSINepgFBIyhg6xIACCAFeXfaXYMNUXxBb
-	8PNofLAdugEpy7Dk5vv06ehQTOH/4kQmUrts4gFAZHCjIYky+M1l/GUGaQYo=
-X-Google-Smtp-Source: AGHT+IGbEBXcBVdHTDiadmIrdZtqg/YJT1t5jbW5zXbtps0IXePdqO8BBqN40v43mfu3JJrTWicRPG+91/LmheYL2272IcmGFJuQ
+	s=arc-20240116; t=1753871711; c=relaxed/simple;
+	bh=VCDnaWwQb4IAWf4f+Mw7mY5/oXqtwhIoiFyzW/Is5/w=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=QuzOFczZD4rt6Zbgu0v2xV4Yh6vmQkAgt/JPsTVPNhH7zBR1Imo8YpWpj2RFUeV6x1178DDmEFrvqujlTOpczwQd7bHyrlzMbjPK7/Z8doPDCBysVak/jm3x8LGUDJVRnUIoGNYA+ldOcakEQW5G04xxNuHUOTZOqAeRYKQJDuE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=kmEFE8z6; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="kmEFE8z6"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id CA5FD23FB2;
+	Wed, 30 Jul 2025 13:28:32 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=g1Z644tULtzZVidxSZOSdrcdRORvDM8i8A0Fz0op/zY=; b=kmEFE8z6yVyT
+	VXkPRtMg/Gi7DjbDcK8+jQTCLGBQvLJMsMA92xpS3N73gcwTn/1VK6++r+YyEXCd
+	Zs4ru/CfYdOZFa8jTE3DhWtuKecEiHR1bMgBdVdnyeOjnMfjk+ZgmF1MjcfSS0UB
+	2rRqrGemEQH6QTAwjg3z0C2ZcJZJPui3VmpHwV2jcUytF+MzdhBrr+GHnuhS2Mw4
+	j1scDhXyc5cCtqo8Y/SRGwWsQBG3vms0mJC0ZRl6DLUSXgFDHwGUG8hqLt6JrbQS
+	APriImgzogsc3tlMEOn6Lk+G87BWr6F98k3H0taTueIZCa8V+S22lCzDbS16Rifc
+	hF8MTB7DPlG8efSfjwAuCJohLw27bNsv1NVvpLNPZwH6uiPU+ZCe/WtHhrvMvjon
+	otOQyHcca7g1dnLNTPmK0BJ5eBnbMafLqxbwNz5dPc6MyUSnFj8iSqZWBWAUTlHm
+	FdWfRVF42Jf++qad/Hrvc7kfmk0YI1+AjPFmRJQcuETbX/udt2T9pKqg5H1xZCRT
+	P++Bp1OFhGwwPk+l9eRf9SHmQZTq+DRgydboMSMsJJN2lsCej9QFtiKgAo9K1+MF
+	OhOUMH01vSIC7l8SO4Kup+ye6ovEdTAarpnzgHNdjz7loM4BWPl7LDe0wVqL5o6e
+	zD0ia0vvYexecfpQBm/Gbw0ZvYN1hvM=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 30 Jul 2025 13:28:31 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 7C13D64D5C;
+	Wed, 30 Jul 2025 13:28:30 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 56UASGpa011444;
+	Wed, 30 Jul 2025 13:28:17 +0300
+Date: Wed, 30 Jul 2025 13:28:16 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Frederic Weisbecker <frederic@kernel.org>
+cc: LKML <linux-kernel@vger.kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        David Ahern <dsahern@kernel.org>, Simon Horman <horms@verge.net.au>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>, netdev@vger.kernel.org,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org
+Subject: Re: [PATCH v2 net] ipvs: Fix estimator kthreads preferred affinity
+In-Reply-To: <20250729122611.247368-1-frederic@kernel.org>
+Message-ID: <2d915ef6-46eb-7487-f235-6b6688e68c58@ssi.bg>
+References: <20250729122611.247368-1-frederic@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6602:1592:b0:85d:b054:6eb9 with SMTP id
- ca18e2360f4ac-88138b04598mr386025539f.14.1753853427267; Tue, 29 Jul 2025
- 22:30:27 -0700 (PDT)
-Date: Tue, 29 Jul 2025 22:30:27 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6889adf3.050a0220.5d226.0002.GAE@google.com>
-Subject: [syzbot] [netfilter?] WARNING in __nf_unregister_net_hook (9)
-From: syzbot <syzbot+78ac1e46d2966eb70fda@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-
-Hello,
-
-syzbot found the following issue on:
-
-HEAD commit:    9312ee76490d octeontx2-af: use unsigned int as iterator fo..
-git tree:       net-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=114b88a2580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4b71a7f00d74e4f3
-dashboard link: https://syzkaller.appspot.com/bug?extid=78ac1e46d2966eb70fda
-compiler:       Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
-
-Unfortunately, I don't have any reproducer for this issue yet.
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/b381ecf9ad30/disk-9312ee76.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/ebd0e7846e92/vmlinux-9312ee76.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/b9c68d721e9c/bzImage-9312ee76.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+78ac1e46d2966eb70fda@syzkaller.appspotmail.com
-
-x_tables: ip6_tables: mh match: only valid for protocol 135
-------------[ cut here ]------------
-hook not found, pf 10 num 1
-WARNING: CPU: 0 PID: 7813 at net/netfilter/core.c:514 __nf_unregister_net_hook+0x30a/0x700 net/netfilter/core.c:514
-Modules linked in:
-CPU: 0 UID: 0 PID: 7813 Comm: syz.1.502 Not tainted 6.16.0-rc7-syzkaller-01904-g9312ee76490d #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/12/2025
-RIP: 0010:__nf_unregister_net_hook+0x30a/0x700 net/netfilter/core.c:514
-Code: 58 59 ef 05 01 90 48 8b 44 24 10 0f b6 04 28 84 c0 0f 85 e3 03 00 00 41 8b 17 48 c7 c7 60 8f 98 8c 44 89 ee e8 07 46 e7 f7 90 <0f> 0b 90 90 e9 d8 01 00 00 e8 98 bf d3 01 89 c3 31 ff 89 c6 e8 1d
-RSP: 0018:ffffc9000e8a7768 EFLAGS: 00010246
-RAX: d399e8c7c2db4300 RBX: ffff8880688c2400 RCX: ffff88802c435a00
-RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000002
-RBP: dffffc0000000000 R08: 0000000000000003 R09: 0000000000000004
-R10: dffffc0000000000 R11: fffffbfff1bfaa6c R12: ffff888029a72440
-R13: 000000000000000a R14: ffff888029a736c0 R15: ffffffff8c9a21fc
-FS:  00007f5152aa66c0(0000) GS:ffff888125c12000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 000000110c34c54a CR3: 0000000027c74000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- nf_unregister_net_hook net/netfilter/core.c:-1 [inline]
- nf_unregister_net_hooks+0xcb/0x140 net/netfilter/core.c:610
- synproxy_tg6_destroy+0x58/0xb0 net/ipv6/netfilter/ip6t_SYNPROXY.c:94
- cleanup_entry+0x265/0x320 net/ipv6/netfilter/ip6_tables.c:669
- translate_table+0x1e5f/0x2040 net/ipv6/netfilter/ip6_tables.c:744
- do_replace net/ipv6/netfilter/ip6_tables.c:1154 [inline]
- do_ip6t_set_ctl+0x970/0xce0 net/ipv6/netfilter/ip6_tables.c:1644
- nf_setsockopt+0x26f/0x290 net/netfilter/nf_sockopt.c:101
- do_sock_setsockopt+0x179/0x1b0 net/socket.c:2344
- __sys_setsockopt net/socket.c:2369 [inline]
- __do_sys_setsockopt net/socket.c:2375 [inline]
- __se_sys_setsockopt net/socket.c:2372 [inline]
- __x64_sys_setsockopt+0x13f/0x1b0 net/socket.c:2372
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f5151b8e9a9
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f5152aa6038 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-RAX: ffffffffffffffda RBX: 00007f5151db6080 RCX: 00007f5151b8e9a9
-RDX: 0000000000000040 RSI: 0000000000000029 RDI: 000000000000000d
-RBP: 00007f5151c10d69 R08: 0000000000000470 R09: 0000000000000000
-R10: 0000200000000480 R11: 0000000000000246 R12: 0000000000000000
-R13: 0000000000000000 R14: 00007f5151db6080 R15: 00007ffc85b4e498
- </TASK>
+Content-Type: text/plain; charset=US-ASCII
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+	Hello,
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+On Tue, 29 Jul 2025, Frederic Weisbecker wrote:
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+> The estimator kthreads' affinity are defined by sysctl overwritten
+> preferences and applied through a plain call to the scheduler's affinity
+> API.
+> 
+> However since the introduction of managed kthreads preferred affinity,
+> such a practice shortcuts the kthreads core code which eventually
+> overwrites the target to the default unbound affinity.
+> 
+> Fix this with using the appropriate kthread's API.
+> 
+> Fixes: d1a89197589c ("kthread: Default affine kthread to its preferred NUMA node")
+> Signed-off-by: Frederic Weisbecker <frederic@kernel.org>
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+	Looks good to me for the nf tree, thanks!
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
-If you want to undo deduplication, reply with:
-#syz undup
+> ---
+>  include/net/ip_vs.h            | 13 +++++++++++++
+>  kernel/kthread.c               |  1 +
+>  net/netfilter/ipvs/ip_vs_est.c |  3 ++-
+>  3 files changed, 16 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> index ff406ef4fd4a..29a36709e7f3 100644
+> --- a/include/net/ip_vs.h
+> +++ b/include/net/ip_vs.h
+> @@ -1163,6 +1163,14 @@ static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
+>  		return housekeeping_cpumask(HK_TYPE_KTHREAD);
+>  }
+>  
+> +static inline const struct cpumask *sysctl_est_preferred_cpulist(struct netns_ipvs *ipvs)
+> +{
+> +	if (ipvs->est_cpulist_valid)
+> +		return ipvs->sysctl_est_cpulist;
+> +	else
+> +		return NULL;
+> +}
+> +
+>  static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
+>  {
+>  	return ipvs->sysctl_est_nice;
+> @@ -1270,6 +1278,11 @@ static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
+>  	return housekeeping_cpumask(HK_TYPE_KTHREAD);
+>  }
+>  
+> +static inline const struct cpumask *sysctl_est_preferred_cpulist(struct netns_ipvs *ipvs)
+> +{
+> +	return NULL;
+> +}
+> +
+>  static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
+>  {
+>  	return IPVS_EST_NICE;
+> diff --git a/kernel/kthread.c b/kernel/kthread.c
+> index 85e29b250107..adf06196b844 100644
+> --- a/kernel/kthread.c
+> +++ b/kernel/kthread.c
+> @@ -899,6 +899,7 @@ int kthread_affine_preferred(struct task_struct *p, const struct cpumask *mask)
+>  
+>  	return ret;
+>  }
+> +EXPORT_SYMBOL_GPL(kthread_affine_preferred);
+>  
+>  static int kthreads_update_affinity(bool force)
+>  {
+> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+> index f821ad2e19b3..15049b826732 100644
+> --- a/net/netfilter/ipvs/ip_vs_est.c
+> +++ b/net/netfilter/ipvs/ip_vs_est.c
+> @@ -265,7 +265,8 @@ int ip_vs_est_kthread_start(struct netns_ipvs *ipvs,
+>  	}
+>  
+>  	set_user_nice(kd->task, sysctl_est_nice(ipvs));
+> -	set_cpus_allowed_ptr(kd->task, sysctl_est_cpulist(ipvs));
+> +	if (sysctl_est_preferred_cpulist(ipvs))
+> +		kthread_affine_preferred(kd->task, sysctl_est_preferred_cpulist(ipvs));
+>  
+>  	pr_info("starting estimator thread %d...\n", kd->id);
+>  	wake_up_process(kd->task);
+> -- 
+> 2.48.1
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
