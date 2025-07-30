@@ -1,78 +1,140 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFB79173
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jul 2025 17:27:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B88872E3711;
+	Wed, 30 Jul 2025 21:45:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753896471; cv=none; b=dzjetzJWW0QTeYLTBOXXBJ1QDgL6CzweEvh6iUeowy7q0NbmUlGCYlMovkF8qQE5EmTM2w+YlyHr1uEyc97VRk54I0hLI20ML7G/BY6xCsIFEqdQ7JXGhmt+T0MmxaZZMUR8RBvAGXkSHNX0z81bwmXXLHMY6zS9Q09r+0KLg/M=
+	t=1753911944; cv=none; b=VceBGxtfqMXxv+mzneTfVc/PZf6osu7xcIfszF2lt9ZFOoLOBHc6t+GR6GpqeFGUyCYZYtCUdpMLX+dep5TYz99yjcp//YFE0K9EjOvJFhkVxsROyIF/c8zLPFSm0vRJ6p+2HhO97hpYL/cUQUFjB7eczlWpIZ81Qah+R4z7cg4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753896471; c=relaxed/simple;
-	bh=1k2X/34eMggpi71wkip5bMeLWY94L59V21mXg9zDXp8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=M3eWbtHgjaIKmirRiRb7yt+Bi0MV8Ok8YqM9MNxVk52A7juI93pYv2Bx4kJeLLqHjFYYe3VJW9hDQCNjV6/FsbHpe6eIZ1IoDKbwM4IrauYOmntFPBL5HrSxoI0MzO7Su+u3BBOqGK6xdAUC5x+Je6BoLvu0G5oLn26WA/O+A08=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=W5xuofs9; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kwhIohjm; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1753911944; c=relaxed/simple;
+	bh=Y92YzVx0S6qzMTvUYIZsDyuNk7AZBf+dBkZeWeD2ETk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=iNFJqNW1PybCpLxF3kUz9UHJnpdqrhjnXQaZhcBUzcaxsIZO4EaUgRH+FMFosVys2Daj5BM4M4AqB7wJgLOcuvLwxHL5SKBqlZnCZghtj7EKrg8erUIkZjG+ZRFm1GYAzMDNguHR00VMtaJGkxh0H9q2A4gq4ZvRYpZEvEazsMw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Ir5aMzbG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="W5xuofs9";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kwhIohjm"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 33BC260265; Wed, 30 Jul 2025 19:27:47 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753896467;
-	bh=Y2KNSsJTj07sLsuyOX5JKz/OUDph9pq4U1nbY26Ur3E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=W5xuofs9ZHq9Ry1VGaJfhfm7fQqWvYzqxZOQwWdF7pRCH2eqTduJXjKi0qlo/jaiv
-	 M7rGMYaPu2pYfmEFfXh/Re/rWGsSwzDBmMlgKU4ClhV7EU0G76jeG89R5F2LpBw6vt
-	 hGojBnXtYd65jWtuxukeJoP+JG6FtBa/yZGc8FFdDkKu917CmotwWPlFML2VvcJ1T0
-	 YR1wZJtwX9v3FUjLi+JAumPpG1zyUEjqhWFeNHkWzqQPjCvc68NAuee+T2qu04uif3
-	 KQK5XFXazosqy+Z4bCjJo3h8IGkmqtnygjzJuffLlzjI3SjaDXuQ/elbvyre88AoIV
-	 /ZwU2tBMVVotg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 8ABEE60262;
-	Wed, 30 Jul 2025 19:27:46 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1753896466;
-	bh=Y2KNSsJTj07sLsuyOX5JKz/OUDph9pq4U1nbY26Ur3E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kwhIohjmPuxOHsLiEJz9tcH5k4q9JvRy3VzzZq6iZeqgxIKJpfdutZR+24agKb5Rs
-	 hNmyFrdejDf3TcSzwxDxm24caAlRKtHI6g+aoHmtqEttGE8m9J9X33IcPdx21dddjv
-	 Ac+oN3plz0xjYdoTzpAPpttr0NUcX5SfWhxx32I5UfcTyTktEUrC4eW58HLcmpMKWQ
-	 LOUWIBNIyfkX78nxJgNUCTp3oZyUkB9Nk2KQqW6S3zlN4jdRe8nMYJNMMoVDDI1QVr
-	 zvqVr05wlNXA8MGgVMYp2fu89K+SMYV21FSIH8tkrQw4dNdfLZOTBaQWvIrLQAkodU
-	 F+aOo09GMkA6Q==
-Date: Wed, 30 Jul 2025 19:27:43 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2 0/3] evaluate: Fix for 'meta hour' ranges spanning
- date boundaries
-Message-ID: <aIpWD5dIrJuahsx1@calendula>
-References: <20250729161832.6450-1-phil@nwl.cc>
- <aIpKnp91SvTCTI30@calendula>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Ir5aMzbG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD8A3C4CEE3;
+	Wed, 30 Jul 2025 21:45:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1753911944;
+	bh=Y92YzVx0S6qzMTvUYIZsDyuNk7AZBf+dBkZeWeD2ETk=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Ir5aMzbGzMa/CQUN7Ury5S5+qORKlY61LlQcnpDusGKHVBBa8/iJKWiUsKgbrLACu
+	 Ka9PuAsMHHuk9lslUGAI6PCkQX4Jz0E6PYIxucFgr3rzUkdc3K4ov3nZvDCPgVxCD1
+	 Uc3QemOx2chhNr+8914HYMHm4u5gBIisFJ3s141DIeNU+PoO4/Rt/HcOvAeTNSqOgt
+	 NxnZ/R6yjv5DFsb5jZvs3xcQcq31JsP8UldJUIeCyplXZ27q7HcR68QmzUm7qv/AFz
+	 XwXa06h/BemjAJpoo59U/sDXDdvaNY5VEns5rco6WyeA9WIn10/J5OnesqXe3kc0ZP
+	 GfhIX1EpYhAtA==
+From: Arnd Bergmann <arnd@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	David Ahern <dsahern@kernel.org>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Simon Horman <horms@kernel.org>,
+	Breno Leitao <leitao@debian.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	bridge@lists.linux.dev,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] netfilter: add back NETFILTER_XTABLES dependencies
+Date: Wed, 30 Jul 2025 23:45:32 +0200
+Message-Id: <20250730214538.466973-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.39.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aIpKnp91SvTCTI30@calendula>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Jul 30, 2025 at 06:38:54PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Jul 29, 2025 at 06:18:29PM +0200, Phil Sutter wrote:
-> > Kernel's timezone is UTC, so 'meta hour' returns seconds since UTC start
-> > of day. To mach against this, user space has to convert the RHS value
-> > given in local timezone into UTC. With ranges (e.g. 9:00-17:00),
-> > depending on the local timezone, these may span midnight in UTC (e.g.
-> > 23:00-7:00) and thus need to be converted into a proper range again
-> > (e.g. 7:00-23:00, inverted). Since nftables commit 347039f64509e ("src:
-> > add symbol range expression to further compact intervals"), this
-> > conversion was broken.
-> 
-> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arnd Bergmann <arnd@arndb.de>
 
-Sorry, I found an issue in 3/3.
+Some Kconfig symbols were changed to depend on the 'bool' symbol
+NETFILTER_XTABLES_LEGACY, which means they can now be set to built-in
+when the xtables code itself is in a loadable module:
+
+x86_64-linux-ld: vmlinux.o: in function `arpt_unregister_table_pre_exit':
+(.text+0x1831987): undefined reference to `xt_find_table'
+x86_64-linux-ld: vmlinux.o: in function `get_info.constprop.0':
+arp_tables.c:(.text+0x1831aab): undefined reference to `xt_request_find_table_lock'
+x86_64-linux-ld: arp_tables.c:(.text+0x1831bea): undefined reference to `xt_table_unlock'
+x86_64-linux-ld: vmlinux.o: in function `do_arpt_get_ctl':
+arp_tables.c:(.text+0x183205d): undefined reference to `xt_find_table_lock'
+x86_64-linux-ld: arp_tables.c:(.text+0x18320c1): undefined reference to `xt_table_unlock'
+x86_64-linux-ld: arp_tables.c:(.text+0x183219a): undefined reference to `xt_recseq'
+
+Change these to depend on both NETFILTER_XTABLES and
+NETFILTER_XTABLES_LEGACY.
+
+Fixes: 9fce66583f06 ("netfilter: Exclude LEGACY TABLES on PREEMPT_RT.")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ net/bridge/netfilter/Kconfig | 1 +
+ net/ipv4/netfilter/Kconfig   | 3 +++
+ net/ipv6/netfilter/Kconfig   | 1 +
+ 3 files changed, 5 insertions(+)
+
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index 60f28e4fb5c0..4fd5a6ea26b4 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -43,6 +43,7 @@ config NF_CONNTRACK_BRIDGE
+ config BRIDGE_NF_EBTABLES_LEGACY
+ 	tristate "Legacy EBTABLES support"
+ 	depends on BRIDGE && NETFILTER_XTABLES_LEGACY
++	depends on NETFILTER_XTABLES
+ 	default	n
+ 	help
+ 	 Legacy ebtables packet/frame classifier.
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 2c438b140e88..7dc9772fe2d8 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -14,6 +14,7 @@ config NF_DEFRAG_IPV4
+ config IP_NF_IPTABLES_LEGACY
+ 	tristate "Legacy IP tables support"
+ 	depends on NETFILTER_XTABLES_LEGACY
++	depends on NETFILTER_XTABLES
+ 	default	m if NETFILTER_XTABLES_LEGACY
+ 	help
+ 	  iptables is a legacy packet classifier.
+@@ -326,6 +327,7 @@ endif # IP_NF_IPTABLES
+ config IP_NF_ARPTABLES
+ 	tristate "Legacy ARPTABLES support"
+ 	depends on NETFILTER_XTABLES_LEGACY
++	depends on NETFILTER_XTABLES
+ 	default	n
+ 	help
+ 	  arptables is a legacy packet classifier.
+@@ -343,6 +345,7 @@ config IP_NF_ARPFILTER
+ 	select IP_NF_ARPTABLES
+ 	select NETFILTER_FAMILY_ARP
+ 	depends on NETFILTER_XTABLES_LEGACY
++	depends on NETFILTER_XTABLES
+ 	help
+ 	  ARP packet filtering defines a table `filter', which has a series of
+ 	  rules for simple ARP packet filtering at local input and
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 276860f65baa..81daf82ddc2d 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -10,6 +10,7 @@ menu "IPv6: Netfilter Configuration"
+ config IP6_NF_IPTABLES_LEGACY
+ 	tristate "Legacy IP6 tables support"
+ 	depends on INET && IPV6 && NETFILTER_XTABLES_LEGACY
++	depends on NETFILTER_XTABLES
+ 	default	m if NETFILTER_XTABLES_LEGACY
+ 	help
+ 	  ip6tables is a legacy packet classifier.
+-- 
+2.39.5
+
