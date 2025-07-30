@@ -1,83 +1,74 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6851A2D6638
-	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jul 2025 16:35:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DC4C2DC339
+	for <netfilter-devel@vger.kernel.org>; Wed, 30 Jul 2025 16:39:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1753893332; cv=none; b=sDECamtxuLsv18FHSZ/7c+KMA4si9aQAr0HIIZU9t6nBuaq6Bk15JfDRohDIJNHPeeErdopp7vrqH/TuNJugiL9sXWag5iy4kTNqW/R4XrOAu9A2/kUbeLuD6jBsqk/xyWxbjXffDlayugI9UsRTi0X2XJXpzO+tlOJvQW+GnXY=
+	t=1753893544; cv=none; b=jFnZ1WOcA+cx43dkejdo8aEmsufqN9vWeQ1p6pRYDhzT12YuQm1OPshr0gfCjWjCSq+5tm+TIFV4cAK36eOE/dbiTOWrH6ygmB3Ed8018hKxziBwfIcD0NX//zpTcsKpwd5NhffLlVYmq/2OUaOatA0PQZx11dJTYAAslq5Wstk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1753893332; c=relaxed/simple;
-	bh=6Rx5bCk0GBzKv3jiGxdoUSJNJ+IcX+VKB4kqJbtSBCg=;
+	s=arc-20240116; t=1753893544; c=relaxed/simple;
+	bh=UnBizYXCRauTuYc6BTFNs8W2U+/ys9UNeLu8yYXh/zc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JUIzNqgsAZnqmgLc7NJuy23BPcYWsRr54RQujYHochIz6LjRjSeNy6NHJniEU4D7v354/aN5+Gu6T1jIz6ReB/Vh7UEIFnBqbaGJlgl9QuoA/jZ2nDfrnRPDFznPnZhvKLmTOAHI096nhXWbRK0H7PMIMj0e7DVemUV9f7CZYCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3CD016035A; Wed, 30 Jul 2025 18:35:21 +0200 (CEST)
-Date: Wed, 30 Jul 2025 18:35:20 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
- resistant to memory pressure
-Message-ID: <aIpJur3wIzswyaAe@strlen.de>
-References: <20250704123024.59099-1-fw@strlen.de>
- <aIK_aSCR67ge5q7s@calendula>
- <aILOpGOJhR5xQCrc@strlen.de>
- <aINYGACMGoNL77Ct@calendula>
- <aINnTy_Ifu66N8dp@strlen.de>
- <aIOcq2sdP17aYgAE@calendula>
- <aIfrktUYzla8f9dw@strlen.de>
- <aIikwxU686KFto35@calendula>
- <aIiyVnDlbDTMRqB-@strlen.de>
- <aIpFWePr6BfCuKgo@calendula>
+	 Content-Type:Content-Disposition:In-Reply-To; b=enfXY4kZrYBWmux7uueTb0k0N7PuXRDyg6+uOa0I4NsnEuLoPYVY/ZQViHzqJIaucFMo7dyHJLA4Ma+rZcGfOM8CmSbmkrbPcaXJxXpCwt1htXvgT9ahvXSjcHWGJR1JC012N78YFdvxwPgwefBQTGLpnIkcBWPrah68hI82DvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Bq7uh0+A; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=T58Ie79w; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Bq7uh0+A";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="T58Ie79w"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 5FB5760255; Wed, 30 Jul 2025 18:38:59 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753893539;
+	bh=UnBizYXCRauTuYc6BTFNs8W2U+/ys9UNeLu8yYXh/zc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Bq7uh0+AIvQLixIE8ubBB/Fy2sEP0n2ikN7E9jkNLtdVPGbtaVxM43I7MRpjDacbm
+	 aUJ/BH/x4XLuOi7j/8nJJQYegvd9vTwfaoTwCfTNmUKkmea+QnxzlEbS0tx5ycV7cv
+	 ms4RLfAs4uXD4MSL8+v+3Axz4Rvl8XU2u1I8qtSW13HJR64d6TIb0ON221Mgm+18Od
+	 t9zfzyi+zo9zIYfxD9gqt9kfRq63jaeJT4n/orORBaY2gOtyb/wU+pm34JjxSIJBoc
+	 HJi5iBMWYK5LwWXC/EkcFskJcH/ZUPJzFU0yFdvaXeef4+UM+iTBiTCNXmiGLxl1Sx
+	 DJJhRtIO0yjew==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9DDA060255;
+	Wed, 30 Jul 2025 18:38:58 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1753893538;
+	bh=UnBizYXCRauTuYc6BTFNs8W2U+/ys9UNeLu8yYXh/zc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=T58Ie79w20w4RV4G3fCO/myRLglvqQEKZfuWKYlZy+02RtgkfDRuTBP/UDdYLJCpd
+	 ua6Hjd3noy09SSvmEik46tTuwg6bD9P3rIrpc5BRioAACre9b62jcMQB79JN8yAinN
+	 AOL/0tAYyTjaRstIEUiwJ++rMNAom5Muhx1N+ug+t1ezBAcK6YOMVFnxbGs6reDTcD
+	 y5/pKmrfL/Jx6pItPOd24UZLRlZGLG4XPjWlD3c+TuxR0Xsz0OerXKkAaWd2XOkMfq
+	 CowIoEb3jM9XaCIJZ9ubtHvaw88YQkgpjG3G2JZ0j66FHodwsMNZAP1QSivIbH11cK
+	 WX0JBY1VtkbBQ==
+Date: Wed, 30 Jul 2025 18:38:54 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v2 0/3] evaluate: Fix for 'meta hour' ranges spanning
+ date boundaries
+Message-ID: <aIpKnp91SvTCTI30@calendula>
+References: <20250729161832.6450-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aIpFWePr6BfCuKgo@calendula>
+In-Reply-To: <20250729161832.6450-1-phil@nwl.cc>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Yes, that part works, but we still need to kfree the elements after unlink.
-> > 
-> > When commit phase does the unlink, the element becomes unreachable from
-> > the set.  At this time, the DELSETELEM object keeps a pointer to the
-> > unlinked elements, and that allows us to kfree after synchronize_rcu
-> > from the worker.  If we don't want DELSETELEM for flush, we need to
-> > provide the address to free by other means, e.g. stick a pointer into
-> > struct nft_set_ext.
-> 
-> For the commit phase, I suggest to add a list of dying elements to the
-> transaction object. After unlinking the element from the (internal)
-> set data structure, add it to this transaction dying list so it
-> remains reachable to be released after the rcu grace period.
+On Tue, Jul 29, 2025 at 06:18:29PM +0200, Phil Sutter wrote:
+> Kernel's timezone is UTC, so 'meta hour' returns seconds since UTC start
+> of day. To mach against this, user space has to convert the RHS value
+> given in local timezone into UTC. With ranges (e.g. 9:00-17:00),
+> depending on the local timezone, these may span midnight in UTC (e.g.
+> 23:00-7:00) and thus need to be converted into a proper range again
+> (e.g. 7:00-23:00, inverted). Since nftables commit 347039f64509e ("src:
+> add symbol range expression to further compact intervals"), this
+> conversion was broken.
 
-Thats what I meant by 'stick a pointer into struct nft_set_ext'.
-Its awkward but I should be able to get the priv pointer back
-by doing the inverse of nft_set_elem_ext().
-
-The cleaner solution would be to turn nft_elem_priv into a
-'nft_elem_common', place a hlist_node into that and then
-use container_of().  But its too much code churn for my
-liking.
-
-So I'll extend each set element with a pointer and
-add a removed_elements hlist_head to struct nft_trans_elem.
-
-The transacion id isn't needed I think once that list exist:
-it provides the needed info to undo previous operations
-without the need to walk the set again.
-
-We can probably even rework struct nft_trans_elem to always use
-this pointer, even for inserts, and only use the 
-
-struct nft_trans_one_elem       elems[]
-
-member for elements that we update (no add or removal).
-But thats something for a later time.
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
