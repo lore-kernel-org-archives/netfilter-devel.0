@@ -1,297 +1,192 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25142797B5
-	for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2025 22:29:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A77C1E2858
+	for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2025 22:54:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754001002; cv=none; b=C3/Xwi2EIIiDZQraixUe/zGyCJ3QXPTnquJMyiojd85WeeR1fAJEy57ZFFwL3GS59eWtWfGX1bGj6RL3z9BxjzzQWepbG60Fusa6f5oQhcrPo/42ikvYSCvBQFpoMnOU44+vRWcZIenUAP+82PZ2EFjjdZ/xFt/4jbOg9hz0woA=
+	t=1754002479; cv=none; b=spxheMllHJ//I/fuMgZmv+4SaJeveSehBPR4eepGjL2kYrejBih9sBmz0bWYI1lYXC45ZzajDT8CyydtvzxSIt05mJfd+xxfX4qm8AvgDmBe6Aw06nYdQo9uzvAg2A2iDacqRZeJTGlHHWXuyjvwpOHHHuhTSQYXnLkyOmwb/DM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754001002; c=relaxed/simple;
-	bh=/POxvzE7ekkcmKwFzXLyu6swkD/pFuO5Xw18XJERNzY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=B/CHm3TLQeOFBPSCIEeyd3fWdeqd0lPbIJ7BmzhEcHOots5b2SGd9QVKp4UGwiC/JAVrf73fjInnIZFWavUZhuMkrB56kd05Ki62PGlxRjmRDZfzITVw5m9CI3BVASqdjSCeD1BbJLfoY2W3BmkbVITqNAGLTqTVJosMtP3yujM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=WFHTcPDQ; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1754002479; c=relaxed/simple;
+	bh=DyxPOMTFkPzGm2J3s73iW2hpHyl3Sdo4kR6MVxPwyl4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=V/7vCMLAuo2SkDR448S3xJizfQXSgUuDFLQBh81k53Meo/97h2xxjuJb9CJNOVCagLlBwrnMy78IV3L1MwJB6RV6+CxT2XTm2IFRBecNApZA92aZEBlyB1wdne3f2ltWeOaxmJsgNN5+1Xdan+nLWtCb9J+CdRgZsf/S60jZ8DE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=PfmjshRI; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="WFHTcPDQ"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="PfmjshRI"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Ar38TXeXFP3/Kd65anADIPvlA8btPJXyQSQiGki5TFg=; b=WFHTcPDQNzwLltFml6ONoriDdG
-	fnKxth/Kx3JQ1wEl6NsIxOAPfkDaxH+L9NMrgJ/GzkZck3zC4Hv1AVg7e1ODN/MtFyVidsqfhTW5G
-	h/ZmGAPzvBeP1ExgjUCXh4Mh3Q4Bm3x630RMJdgDX/CEpd9GjAPdLEMgNtxHkNenOjeF0G5zysM4g
-	RCTvFXD2h5oG/3RQR/UMbIfiYv+DN2ifBN7sEvpEZ6nktdS+s2Pam85iI4XsZW9HPba7FUV2K4FOc
-	kWwv+UKPVHDLJE7D/lIREODdijG/ipnBepKy7WR6TFqZ3lEg0ORsCtqyISAA87zom69Mcf5IdVe2N
-	dNB17KHg==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	bh=xaZEU3NynuraRejHCrs3F2mEMeV6FF9T1eLntBDMQMM=; b=PfmjshRIfj7STE8yx5h5CVVuO6
+	A++iGKCBgLtIotfP162kfD5KycpTUorXPCkUX3ro+OdGjhY5BjR2kjB8CUHNzzRcKGg32YPGTF7Rj
+	/2SedMl/mrKlsRYLeKP4G8HwHT0sJTgGyvkaGd2+OXsYIroGqiMwi1w/Zk7bZoLogqyQzcxEIYkpc
+	rC3Fv6atRP+EuEIw30bN8yDwAM+dZDaH1x0vz77F8ggBxWSdGj8iuDHcFgBRw8RVhcNRFRH/ddr+1
+	MWbNhnaPH8OGsXgv1Ray3xGoq3O358QZ8agFEgEzy3ocM+H9WEv+wFktp2o1K3POMIB1S9uVmeEc/
+	0AI5Utyw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uhbmZ-000000003M7-3hlC;
-	Fri, 01 Aug 2025 00:29:51 +0200
+	id 1uhcAT-000000005N2-1L0r;
+	Fri, 01 Aug 2025 00:54:33 +0200
+Date: Fri, 1 Aug 2025 00:54:33 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v5 3/3] tests: shell: Test ifname-based hooks
-Date: Fri,  1 Aug 2025 00:29:45 +0200
-Message-ID: <20250731222945.27611-4-phil@nwl.cc>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250731222945.27611-1-phil@nwl.cc>
-References: <20250731222945.27611-1-phil@nwl.cc>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next RFC] netfilter: nf_tables: Introduce
+ NFTA_DEVICE_WILDCARD
+Message-ID: <aIv0KVmxfpX5QQoy@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20250724221150.10502-1-phil@nwl.cc>
+ <aIOe6gUjXTXwR2Nv@calendula>
+ <aIP8UIYPzLokNbWq@orbyte.nwl.cc>
+ <aIgWKhR0RQwKMK3p@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aIgWKhR0RQwKMK3p@calendula>
 
-Assert that:
-- Non-matching interface specs are accepted
-- Existing interfaces are hooked into upon flowtable/chain creation
-- A new device matching the spec is hooked into immediately
-- No stale hooks remain in 'nft list hooks' output
-- Wildcard hooks basically work
+On Tue, Jul 29, 2025 at 02:30:54AM +0200, Pablo Neira Ayuso wrote:
+> Hi Phil,
+> 
+> On Fri, Jul 25, 2025 at 11:51:12PM +0200, Phil Sutter wrote:
+> > Hi Pablo,
+> > 
+> > On Fri, Jul 25, 2025 at 05:12:42PM +0200, Pablo Neira Ayuso wrote:
+> > > On Fri, Jul 25, 2025 at 12:00:31AM +0200, Phil Sutter wrote:
+> > > > On netlink receive side, this attribute is just another name for
+> > > > NFTA_DEVICE_NAME and handled equally. It enables user space to detect
+> > > > lack of wildcard interface spec support as older kernels will reject it.
+> > > > 
+> > > > On netlink send side, it is used for wildcard interface specs to avoid
+> > > > confusing or even crashing old user space with non NUL-terminated
+> > > > strings in attributes which are expected to be NUL-terminated.
+> > > 
+> > > This looks good to me.
+> > > 
+> > > > Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
+> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > > ---
+> > > > While this works, I wonder if it should be named NFTA_DEVICE_PREFIX
+> > > > instead and contain NUL-terminated strings just like NFTA_DEVICE_NAME.
+> > > > Kernel-internally I would continue using strncmp() and hook->ifnamelen,
+> > > > but handling in user space might be simpler.
+> > > 
+> > > Pick the name you like.
+> > 
+> > Ah, it's not just about the name. The initial version using
+> > NFTA_DEVICE_NAME for both, distinction of wildcards from regular
+> > names came from missing '\0' terminator. With distinct attribute types,
+> > this is not needed anymore. I guess it's more user (space) friendly to
+> > include the NUL-char in wildcards as well, right?
+> 
+> Yes. In practise, you can put anything over netlink (someone decided
+> to sending strings, not even TLVs)...
+> 
+> But two different types provides clear semantics, no need to peek on
+> the value to know what to do.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- .../features/list_hooks_flowtable_info.sh     |  7 +++
- .../netdev_chain_name_based_hook_0.json-nft   | 34 ++++++++++++++
- .../dumps/netdev_chain_name_based_hook_0.nft  |  5 +++
- .../chains/netdev_chain_name_based_hook_0     | 44 ++++++++++++++++++
- .../testcases/flowtable/0016name_based_hook_0 | 45 +++++++++++++++++++
- .../dumps/0016name_based_hook_0.json-nft      | 32 +++++++++++++
- .../flowtable/dumps/0016name_based_hook_0.nft |  6 +++
- 7 files changed, 173 insertions(+)
- create mode 100755 tests/shell/features/list_hooks_flowtable_info.sh
- create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
- create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
- create mode 100755 tests/shell/testcases/chains/netdev_chain_name_based_hook_0
- create mode 100755 tests/shell/testcases/flowtable/0016name_based_hook_0
- create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
- create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
+ACK.
 
-diff --git a/tests/shell/features/list_hooks_flowtable_info.sh b/tests/shell/features/list_hooks_flowtable_info.sh
-new file mode 100755
-index 0000000000000..58bc57e040959
---- /dev/null
-+++ b/tests/shell/features/list_hooks_flowtable_info.sh
-@@ -0,0 +1,7 @@
-+#!/bin/sh
-+
-+# check for flowtable info in 'list hooks' output
-+
-+unshare -n bash -c " \
-+$NFT \"table inet t { flowtable ft { hook ingress priority 0; devices = { lo }; }; }\"; \
-+$NFT list hooks netdev device lo | grep -q flowtable\ inet\ t\ ft"
-diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
-new file mode 100644
-index 0000000000000..00706271e96a4
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
-@@ -0,0 +1,34 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "netdev",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "chain": {
-+        "family": "netdev",
-+        "table": "t",
-+        "name": "c",
-+        "handle": 0,
-+        "dev": [
-+          "foo*",
-+          "lo"
-+        ],
-+        "type": "filter",
-+        "hook": "ingress",
-+        "prio": 0,
-+        "policy": "accept"
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
-new file mode 100644
-index 0000000000000..ac5acacd12e6d
---- /dev/null
-+++ b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
-@@ -0,0 +1,5 @@
-+table netdev t {
-+	chain c {
-+		type filter hook ingress devices = { "foo*", "lo" } priority filter; policy accept;
-+	}
-+}
-diff --git a/tests/shell/testcases/chains/netdev_chain_name_based_hook_0 b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
-new file mode 100755
-index 0000000000000..8a8a601784084
---- /dev/null
-+++ b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
-@@ -0,0 +1,44 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
-+
-+cspec=' chain netdev t c '
-+$NFT add table netdev t
-+$NFT add $cspec '{ type filter hook ingress priority 0; devices = { lo, foo* }; }'
-+$NFT list hooks netdev device lo | grep -q "$cspec" || {
-+	echo "Existing device lo not hooked into chain as expected"
-+	exit 1
-+}
-+
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 1 ]] || {
-+	echo "Chain hooks into more than just lo"
-+	exit 2
-+}
-+
-+ip link add foo1 type dummy
-+$NFT list hooks netdev device foo1 | grep -q "$cspec" || {
-+	echo "Chain did not hook into new device foo1"
-+	exit 3
-+}
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 2 ]] || {
-+	echo "Chain expected to hook into exactly two devices"
-+	exit 4
-+}
-+
-+ip link del foo1
-+$NFT list hooks netdev device foo1 | grep -q "$cspec" && {
-+	echo "Chain still hooks into removed device foo1"
-+	exit 5
-+}
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 1 ]] || {
-+	echo "Chain expected to hook into just lo"
-+	exit 6
-+}
-+
-+for ((i = 0; i < 100; i++)); do
-+	ip link add foo$i type dummy
-+done
-+[[ $($NFT list hooks | grep -c "$cspec") -eq 101 ]] || {
-+	echo "Chain did not hook into all 100 new devices"
-+	exit 7
-+}
-diff --git a/tests/shell/testcases/flowtable/0016name_based_hook_0 b/tests/shell/testcases/flowtable/0016name_based_hook_0
-new file mode 100755
-index 0000000000000..9a55596027158
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/0016name_based_hook_0
-@@ -0,0 +1,45 @@
-+#!/bin/bash
-+
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
-+# NFT_TEST_REQUIRES(NFT_TEST_HAVE_list_hooks_flowtable_info)
-+
-+ftspec=' flowtable ip t ft '
-+$NFT add table t
-+$NFT add $ftspec '{ hook ingress priority 0; devices = { lo, foo* }; }'
-+$NFT list hooks netdev device lo | grep -q "$ftspec" || {
-+	echo "Existing device lo not hooked into flowtable as expected"
-+	exit 1
-+}
-+
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 1 ]] || {
-+	echo "Flowtable hooks into more than just lo"
-+	exit 2
-+}
-+
-+ip link add foo1 type dummy
-+$NFT list hooks netdev device foo1 | grep -q "$ftspec" || {
-+	echo "Flowtable did not hook into new device foo1"
-+	exit 3
-+}
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 2 ]] || {
-+	echo "Flowtable expected to hook into exactly two devices"
-+	exit 4
-+}
-+
-+ip link del foo1
-+$NFT list hooks netdev device foo1 | grep -q "$ftspec" && {
-+	echo "Flowtable still hooks into removed device foo1"
-+	exit 5
-+}
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 1 ]] || {
-+	echo "Flowtable expected to hook into just lo"
-+	exit 6
-+}
-+
-+for ((i = 0; i < 100; i++)); do
-+	ip link add foo$i type dummy
-+done
-+[[ $($NFT list hooks | grep -c "$ftspec") -eq 101 ]] || {
-+	echo "Flowtable did not hook into all 100 new devices"
-+	exit 7
-+}
-diff --git a/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
-new file mode 100644
-index 0000000000000..93e263323ff95
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
-@@ -0,0 +1,32 @@
-+{
-+  "nftables": [
-+    {
-+      "metainfo": {
-+        "version": "VERSION",
-+        "release_name": "RELEASE_NAME",
-+        "json_schema_version": 1
-+      }
-+    },
-+    {
-+      "table": {
-+        "family": "ip",
-+        "name": "t",
-+        "handle": 0
-+      }
-+    },
-+    {
-+      "flowtable": {
-+        "family": "ip",
-+        "name": "ft",
-+        "table": "t",
-+        "handle": 0,
-+        "hook": "ingress",
-+        "prio": 0,
-+        "dev": [
-+          "foo*",
-+          "lo"
-+        ]
-+      }
-+    }
-+  ]
-+}
-diff --git a/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
-new file mode 100644
-index 0000000000000..b4810664a956f
---- /dev/null
-+++ b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
-@@ -0,0 +1,6 @@
-+table ip t {
-+	flowtable ft {
-+		hook ingress priority filter
-+		devices = { "foo*", "lo" }
-+	}
-+}
--- 
-2.49.0
+> > > > A downside of this approach is that we mix NFTA_DEVICE_NAME and
+> > > > NFTA_DEVICE_WILDCARD attributes in NFTA_FLOWTABLE_HOOK_DEVS and
+> > > > NFTA_HOOK_DEVS nested attributes, even though old user space will reject
+> > > > the whole thing and not just take the known attributes and ignore the
+> > > > rest.
+> > > 
+> > > Old userspace is just ignoring the unknown attribute?
+> > 
+> > Attribute parser in libnftnl will abort if it finds an attribute with
+> > type other than NFTA_DEVICE_NAME nested in NFTA_HOOK_DEVS (or the
+> > flowtable equivalent). So old userspace will refuse to parse the data,
+> > but not crash at least.
+> 
+> Please, fix it so we can do better in the future.
+> 
+> > > I think upside is good enough to follow this approach: new userspace
+> > > version with old kernel bails out with EINVAL, so it is easy to see
+> > > that feature is unsupported.
+> > 
+> > ACK, it is definitely much more sane than before!
+> 
+> OK.
+> 
+> I suggest you formally submit this for nf.git including userspace
+> patches? Then, request it to be included in -stable. We probably have
+> to skip including this userspace code in the next 1.1.4 release.
+> Unless anyone have a better proposal to handle this. I'm sorry I did
+> not bring up this issue sooner.
 
+The Fixes: tag will suffice for -stable, correct?
+
+I don't see why we have to hold back user space. There was no support
+for these wildcards in nft tool yet, so probably nothing relies upon the
+old (i.e., non-NUL-terminated strings in NFTA_DEVICE_NAME) behaviour
+yet. Even if something does, the kernel (with my patch applied) will
+treat it sanely as non-wildcard.
+
+Updated user space facing a kernel prior to my patch will detect lack of
+wildcard support, even if the kernel would support it (via
+non-NUL-terminated string in NFTA_DEVICE_NAME).
+
+Am I missing your point?
+
+> > > As for netlink attributes coming from the kernel, we can just review
+> > > the existing userspace parsing side and see what we can do better in
+> > > that regard.
+> > 
+> > We could introduce a "NFTA_DEVICE_NAME_NEW" which may hold wildcards or
+> > a regular name (thereby keeping the NUL-char distinction mentioned
+> > above) and at some point drop NFTA_DEVICE_NAME. Basically a merge
+> > strategy to upgrade NFTA_DEVICE_NAME to support also wildcards, but I'm
+> > not sure how long this transition period will take. At least it would
+> > never crash old user space, but "merely" become incompatible to it at
+> > some point.
+> 
+> I don't think it is worth, as for old user space, IMO the only
+> reasonable thing we can do is:
+> 
+> - do not crash.
+
+With NFTA_DEVICE_PREFIX, old user space will stop parsing the netlink
+message (nftnl_{chain,flowtable}_nlmsg_parse() will return -1). Given
+the limited control, this is almost ideal behaviour.
+
+> - highlight that old user space is skipping unknown stuff.
+
+I sent an RFC implementing Florian's suggested solution to detect
+potential problems a few months ago but didn't get a reply:
+
+Subject: [nft RFC] table: Embed creating nft version into userdata
+Message-ID: <20250512210321.29032-1-phil@nwl.cc>
+
+Maybe putting "PATCH" in the prefix would have provoked feedback? :D
+Could you please have a look? I think it is quite unintrusive and
+probably the most reliable way of letting users know something may be
+odd in the output they're seeing.
+
+> Other than that, we would have to explore a generic way to print raw
+> attributes, then extend the parser to allow this, which I am not
+> convinced yet it is worth the effort.
+
+This may work for error reporting/debug output in libnftnl, but I doubt
+exposing the opaque data in nft output to make it survive a
+save'n'restore is doable.
+
+Maybe we could add versions to netlink messages so user space knows if
+it will understand all content or not. This could even allow users to
+specify a max version to use on command line and nft would reject any
+input requiring a larger version. Of course this means tracking "version
+requirements" of expressions and other features.
+
+Cheers, Phil
