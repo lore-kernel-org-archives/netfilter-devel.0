@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E258C2798FF
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25142797B5
 	for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2025 22:29:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754001001; cv=none; b=NbJdtTeqd6+bKmGuik8JMy13bD4giOk6AKokxErB5w6mClVCQvpdH7+UTsKLwFqXbHIs+dFcdDk+wAZXp1gqKjYs0+OSR0+Z1WW2T6J26AcWz4077BQB0VqnHSBxy2GoECt1SbEhLo2Zx+BOqe2Z4weIEAokS4+o8H4UaUItH8Y=
+	t=1754001002; cv=none; b=C3/Xwi2EIIiDZQraixUe/zGyCJ3QXPTnquJMyiojd85WeeR1fAJEy57ZFFwL3GS59eWtWfGX1bGj6RL3z9BxjzzQWepbG60Fusa6f5oQhcrPo/42ikvYSCvBQFpoMnOU44+vRWcZIenUAP+82PZ2EFjjdZ/xFt/4jbOg9hz0woA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754001001; c=relaxed/simple;
-	bh=VZ97hkrSIdy4IMmHVp9/TBCWQfU0VUZXRQDErlJ+Feg=;
+	s=arc-20240116; t=1754001002; c=relaxed/simple;
+	bh=/POxvzE7ekkcmKwFzXLyu6swkD/pFuO5Xw18XJERNzY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gJp0HnDVd1+gEycXQK63Mlrtwb+nvVRtI2JqRX31c7nkBDuZZ58hOgtLwx+nP3m6TTJE9u935b2+ysh9X3sTqiqT/3ZlZTdjnnJ0rWTeD+fKYYZey9dr652AsdQ+Zi3YyMwYQ9qLn2UQG7QqTXxKb3la/PWMAMXL3ssk1LVi3a4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=UiiwQ0HV; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=B/CHm3TLQeOFBPSCIEeyd3fWdeqd0lPbIJ7BmzhEcHOots5b2SGd9QVKp4UGwiC/JAVrf73fjInnIZFWavUZhuMkrB56kd05Ki62PGlxRjmRDZfzITVw5m9CI3BVASqdjSCeD1BbJLfoY2W3BmkbVITqNAGLTqTVJosMtP3yujM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=WFHTcPDQ; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="UiiwQ0HV"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="WFHTcPDQ"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=SvzZbMJFFlCXXr9xTU3FeZkH0eSdszHYuGGV+wfcb/Q=; b=UiiwQ0HVcpPzO7wIiA+4/i8gAe
-	mz7ffw5MWNaJ0hzs4QTCev027KGv1ebdaHrhFym5MbTXjUTp9wF8AWu+bGxL3IsQylxhRwFdooFa1
-	Z7QXmM0/eMvRk1PCqwoNiq5TSl4H3Lyfr4hiLsnKaZc/lxAKzJv+PB+aJbFRVlWvHPRwErI8tbXp3
-	AFdapw0xrBX24ZW84Ob7JK076PRcMVUbISnFka3xvwCTwIdJ5pKvx0z9u1rqkqS1/YAiqet3YviJp
-	5kkn7uGHbG9aHUNZMCB8tM2tj9oqDgehoOLQFMDKoR5CK8vwYykBEgvsSuu/UDnrV7cBGhztJAVkg
-	LcFhLvKQ==;
+	bh=Ar38TXeXFP3/Kd65anADIPvlA8btPJXyQSQiGki5TFg=; b=WFHTcPDQNzwLltFml6ONoriDdG
+	fnKxth/Kx3JQ1wEl6NsIxOAPfkDaxH+L9NMrgJ/GzkZck3zC4Hv1AVg7e1ODN/MtFyVidsqfhTW5G
+	h/ZmGAPzvBeP1ExgjUCXh4Mh3Q4Bm3x630RMJdgDX/CEpd9GjAPdLEMgNtxHkNenOjeF0G5zysM4g
+	RCTvFXD2h5oG/3RQR/UMbIfiYv+DN2ifBN7sEvpEZ6nktdS+s2Pam85iI4XsZW9HPba7FUV2K4FOc
+	kWwv+UKPVHDLJE7D/lIREODdijG/ipnBepKy7WR6TFqZ3lEg0ORsCtqyISAA87zom69Mcf5IdVe2N
+	dNB17KHg==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uhbma-000000003MC-1nCI;
-	Fri, 01 Aug 2025 00:29:52 +0200
+	id 1uhbmZ-000000003M7-3hlC;
+	Fri, 01 Aug 2025 00:29:51 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v5 1/3] mnl: Support simple wildcards in netdev hooks
-Date: Fri,  1 Aug 2025 00:29:43 +0200
-Message-ID: <20250731222945.27611-2-phil@nwl.cc>
+Subject: [nft PATCH v5 3/3] tests: shell: Test ifname-based hooks
+Date: Fri,  1 Aug 2025 00:29:45 +0200
+Message-ID: <20250731222945.27611-4-phil@nwl.cc>
 X-Mailer: git-send-email 2.49.0
 In-Reply-To: <20250731222945.27611-1-phil@nwl.cc>
 References: <20250731222945.27611-1-phil@nwl.cc>
@@ -52,112 +52,246 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When building NFTA_{FLOWTABLE_,}HOOK_DEVS attributes, detect trailing
-asterisks in interface names and transmit the leading part in a
-NFTA_DEVICE_PREFIX attribute.
-
-Deserialization (i.e., appending asterisk to interface prefixes returned
-in NFTA_DEVICE_PREFIX atributes happens in libnftnl.
+Assert that:
+- Non-matching interface specs are accepted
+- Existing interfaces are hooked into upon flowtable/chain creation
+- A new device matching the spec is hooked into immediately
+- No stale hooks remain in 'nft list hooks' output
+- Wildcard hooks basically work
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v4:
-- Introduce and use NFTA_DEVICE_PREFIX which contains a NUL-terminated
-  string as well but signals the kernel to interpret it as a prefix to
-  match interfaces on.
-- Do not send wildcards in NFTA_HOOK_DEV: On one hand, the kernel can't
-  detect them anymore since they are NUL-terminated as well. On the
-  other, it would defeat the purpose of having NFTA_DEVICE_PREFIX, which
-  is to not crash old user space.
+ .../features/list_hooks_flowtable_info.sh     |  7 +++
+ .../netdev_chain_name_based_hook_0.json-nft   | 34 ++++++++++++++
+ .../dumps/netdev_chain_name_based_hook_0.nft  |  5 +++
+ .../chains/netdev_chain_name_based_hook_0     | 44 ++++++++++++++++++
+ .../testcases/flowtable/0016name_based_hook_0 | 45 +++++++++++++++++++
+ .../dumps/0016name_based_hook_0.json-nft      | 32 +++++++++++++
+ .../flowtable/dumps/0016name_based_hook_0.nft |  6 +++
+ 7 files changed, 173 insertions(+)
+ create mode 100755 tests/shell/features/list_hooks_flowtable_info.sh
+ create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
+ create mode 100644 tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
+ create mode 100755 tests/shell/testcases/chains/netdev_chain_name_based_hook_0
+ create mode 100755 tests/shell/testcases/flowtable/0016name_based_hook_0
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
+ create mode 100644 tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
 
-Changes since v3:
-- Use uint16_t for 'attr' parameter and size_t for 'len' variable
-- Use mnl_nft_ prefix for the helper function
-
-Changes since v2:
-- Introduce mnl_attr_put_ifname() to perform the conditional
-  mnl_attr_put() parameter adjustment
-- Sanity-check array index in above function to avoid out-of-bounds
-  access
----
- include/linux/netfilter/nf_tables.h |  2 ++
- src/mnl.c                           | 26 +++++++++++++++++++++++---
- 2 files changed, 25 insertions(+), 3 deletions(-)
-
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index f57963e89fd16..b38d4780ae8c8 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -1774,10 +1774,12 @@ enum nft_synproxy_attributes {
-  * enum nft_device_attributes - nf_tables device netlink attributes
-  *
-  * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
-+ * @NFTA_DEVICE_PREFIX: device name prefix, a simple wildcard (NLA_STRING)
-  */
- enum nft_devices_attributes {
- 	NFTA_DEVICE_UNSPEC,
- 	NFTA_DEVICE_NAME,
-+	NFTA_DEVICE_PREFIX,
- 	__NFTA_DEVICE_MAX
- };
- #define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
-diff --git a/src/mnl.c b/src/mnl.c
-index 43229f2498e55..b532b8ff00c1e 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -795,6 +795,26 @@ static void nft_dev_array_free(const struct nft_dev *dev_array)
- 	free_const(dev_array);
- }
- 
-+static bool is_wildcard_str(const char *str)
-+{
-+	size_t len = strlen(str);
+diff --git a/tests/shell/features/list_hooks_flowtable_info.sh b/tests/shell/features/list_hooks_flowtable_info.sh
+new file mode 100755
+index 0000000000000..58bc57e040959
+--- /dev/null
++++ b/tests/shell/features/list_hooks_flowtable_info.sh
+@@ -0,0 +1,7 @@
++#!/bin/sh
 +
-+	if (len < 1 || str[len - 1] != '*')
-+		return false;
-+	if (len < 2 || str[len - 2] != '\\')
-+		return true;
-+	/* XXX: ignore backslash escaping for now */
-+	return false;
++# check for flowtable info in 'list hooks' output
++
++unshare -n bash -c " \
++$NFT \"table inet t { flowtable ft { hook ingress priority 0; devices = { lo }; }; }\"; \
++$NFT list hooks netdev device lo | grep -q flowtable\ inet\ t\ ft"
+diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
+new file mode 100644
+index 0000000000000..00706271e96a4
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.json-nft
+@@ -0,0 +1,34 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "netdev",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "netdev",
++        "table": "t",
++        "name": "c",
++        "handle": 0,
++        "dev": [
++          "foo*",
++          "lo"
++        ],
++        "type": "filter",
++        "hook": "ingress",
++        "prio": 0,
++        "policy": "accept"
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
+new file mode 100644
+index 0000000000000..ac5acacd12e6d
+--- /dev/null
++++ b/tests/shell/testcases/chains/dumps/netdev_chain_name_based_hook_0.nft
+@@ -0,0 +1,5 @@
++table netdev t {
++	chain c {
++		type filter hook ingress devices = { "foo*", "lo" } priority filter; policy accept;
++	}
++}
+diff --git a/tests/shell/testcases/chains/netdev_chain_name_based_hook_0 b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
+new file mode 100755
+index 0000000000000..8a8a601784084
+--- /dev/null
++++ b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
+@@ -0,0 +1,44 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
++
++cspec=' chain netdev t c '
++$NFT add table netdev t
++$NFT add $cspec '{ type filter hook ingress priority 0; devices = { lo, foo* }; }'
++$NFT list hooks netdev device lo | grep -q "$cspec" || {
++	echo "Existing device lo not hooked into chain as expected"
++	exit 1
 +}
 +
-+static void mnl_nft_attr_put_ifname(struct nlmsghdr *nlh, const char *ifname)
-+{
-+	uint16_t attr = is_wildcard_str(ifname) ?
-+			NFTA_DEVICE_PREFIX : NFTA_DEVICE_NAME;
-+
-+	mnl_attr_put_strz(nlh, attr, ifname);
++[[ $($NFT list hooks | grep -c "$cspec") -eq 1 ]] || {
++	echo "Chain hooks into more than just lo"
++	exit 2
 +}
 +
- static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- {
- 	const struct expr *dev_expr = cmd->chain->dev_expr;
-@@ -803,14 +823,14 @@ static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- 	int i, num_devs = 0;
- 
- 	dev_array = nft_dev_array(dev_expr, &num_devs);
--	if (num_devs == 1) {
-+	if (num_devs == 1 && !is_wildcard_str(dev_array[0].ifname)) {
- 		cmd_add_loc(cmd, nlh, dev_array[0].location);
- 		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, dev_array[0].ifname);
- 	} else {
- 		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
- 		for (i = 0; i < num_devs; i++) {
- 			cmd_add_loc(cmd, nlh, dev_array[i].location);
--			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
-+			mnl_nft_attr_put_ifname(nlh, dev_array[i].ifname);
- 		}
- 		mnl_attr_nest_end(nlh, nest_dev);
- 	}
-@@ -2091,7 +2111,7 @@ static void mnl_nft_ft_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
- 	nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
- 	for (i = 0; i < num_devs; i++) {
- 		cmd_add_loc(cmd, nlh, dev_array[i].location);
--		mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
-+		mnl_nft_attr_put_ifname(nlh, dev_array[i].ifname);
- 	}
- 
- 	mnl_attr_nest_end(nlh, nest_dev);
++ip link add foo1 type dummy
++$NFT list hooks netdev device foo1 | grep -q "$cspec" || {
++	echo "Chain did not hook into new device foo1"
++	exit 3
++}
++[[ $($NFT list hooks | grep -c "$cspec") -eq 2 ]] || {
++	echo "Chain expected to hook into exactly two devices"
++	exit 4
++}
++
++ip link del foo1
++$NFT list hooks netdev device foo1 | grep -q "$cspec" && {
++	echo "Chain still hooks into removed device foo1"
++	exit 5
++}
++[[ $($NFT list hooks | grep -c "$cspec") -eq 1 ]] || {
++	echo "Chain expected to hook into just lo"
++	exit 6
++}
++
++for ((i = 0; i < 100; i++)); do
++	ip link add foo$i type dummy
++done
++[[ $($NFT list hooks | grep -c "$cspec") -eq 101 ]] || {
++	echo "Chain did not hook into all 100 new devices"
++	exit 7
++}
+diff --git a/tests/shell/testcases/flowtable/0016name_based_hook_0 b/tests/shell/testcases/flowtable/0016name_based_hook_0
+new file mode 100755
+index 0000000000000..9a55596027158
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/0016name_based_hook_0
+@@ -0,0 +1,45 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_list_hooks_flowtable_info)
++
++ftspec=' flowtable ip t ft '
++$NFT add table t
++$NFT add $ftspec '{ hook ingress priority 0; devices = { lo, foo* }; }'
++$NFT list hooks netdev device lo | grep -q "$ftspec" || {
++	echo "Existing device lo not hooked into flowtable as expected"
++	exit 1
++}
++
++[[ $($NFT list hooks | grep -c "$ftspec") -eq 1 ]] || {
++	echo "Flowtable hooks into more than just lo"
++	exit 2
++}
++
++ip link add foo1 type dummy
++$NFT list hooks netdev device foo1 | grep -q "$ftspec" || {
++	echo "Flowtable did not hook into new device foo1"
++	exit 3
++}
++[[ $($NFT list hooks | grep -c "$ftspec") -eq 2 ]] || {
++	echo "Flowtable expected to hook into exactly two devices"
++	exit 4
++}
++
++ip link del foo1
++$NFT list hooks netdev device foo1 | grep -q "$ftspec" && {
++	echo "Flowtable still hooks into removed device foo1"
++	exit 5
++}
++[[ $($NFT list hooks | grep -c "$ftspec") -eq 1 ]] || {
++	echo "Flowtable expected to hook into just lo"
++	exit 6
++}
++
++for ((i = 0; i < 100; i++)); do
++	ip link add foo$i type dummy
++done
++[[ $($NFT list hooks | grep -c "$ftspec") -eq 101 ]] || {
++	echo "Flowtable did not hook into all 100 new devices"
++	exit 7
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
+new file mode 100644
+index 0000000000000..93e263323ff95
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.json-nft
+@@ -0,0 +1,32 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "ip",
++        "name": "t",
++        "handle": 0
++      }
++    },
++    {
++      "flowtable": {
++        "family": "ip",
++        "name": "ft",
++        "table": "t",
++        "handle": 0,
++        "hook": "ingress",
++        "prio": 0,
++        "dev": [
++          "foo*",
++          "lo"
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
+new file mode 100644
+index 0000000000000..b4810664a956f
+--- /dev/null
++++ b/tests/shell/testcases/flowtable/dumps/0016name_based_hook_0.nft
+@@ -0,0 +1,6 @@
++table ip t {
++	flowtable ft {
++		hook ingress priority filter
++		devices = { "foo*", "lo" }
++	}
++}
 -- 
 2.49.0
 
