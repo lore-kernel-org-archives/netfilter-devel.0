@@ -1,153 +1,74 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from out-182.mta0.migadu.com (out-182.mta0.migadu.com [91.218.175.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914F22737E2
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Aug 2025 15:25:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3B7D26C39B
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Aug 2025 15:52:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754061937; cv=none; b=b9j3PpctS61eB9fjcxJJ5TXOJ8dlx13iRYrUs/EZlvD4EYadrX8maUbHGNZcidup7ebQBShQ8Z06xrOtJuPBjrm+RUBl2YcXRVjwEqa9iGSYv9Qp+6OwhJRCkp6BLj+xDEFcGjCycRLkl/4Oc22WuAlwNfhtboR6pI9wX+Y4/E8=
+	t=1754063581; cv=none; b=YNECFCKgBPxCfEkJNmHytN0nhY7zOgiMYy/Bg1ImSYYDDAdjl2JojsPRM7e9PnlbKOFROU+36qQTG4fpPWhhKelN+8fgizwolxtXT8KJzxzcI6uMyoKVxbPxLHbncfYkSDIHcmIuTgoLO6Aq8u49vYIQ81fv8e/xYw7jJei10Vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754061937; c=relaxed/simple;
-	bh=3DqFxqhWbaOBh3ACNFn+PQngEV2YCWeZoK5unYmhnoI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=q8xW8PDpWoh937BTcA5bEKm+fhBIXZx8Xp9iOY2cXMWdRry2wCqfI6YUPlFo6CUGDo6Z0ij174mFM5TUcGXHHyrGEH8+K08k3nvnjN9wH8xcONWrcP0vWKUfKa9grsozqUW6xfnKhwYKNjiscFr8FIzt6CUhgrSYiWxdLQI3BVk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 303F4602A8; Fri,  1 Aug 2025 17:25:28 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 1/2] netfilter: ctnetlink: fix refcount leak on table dump
-Date: Fri,  1 Aug 2025 17:25:08 +0200
-Message-ID: <20250801152515.20172-2-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
-In-Reply-To: <20250801152515.20172-1-fw@strlen.de>
-References: <20250801152515.20172-1-fw@strlen.de>
+	s=arc-20240116; t=1754063581; c=relaxed/simple;
+	bh=IKhSviFqFxKNZXODGWt6Q8u8jf/2SZ7NuDp4KJ6OSIo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=EmAvskeIoFjru5c4dAPSBm53rS2RRwTjiIkipQ+16DwrV30prByg0jbE5/gcQ/zIZbf/MDVMtjepkjw0DHQWJqVNI1dv/JeDJnFxjahtvQpa7rRoTWuoUSRBjGnaR5HpbOGpc8hFOCLxdsKCBedUieH4WbT+skUcKAkAMGOXdP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=GSFZ+xlk; arc=none smtp.client-ip=91.218.175.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="GSFZ+xlk"
+Message-ID: <a8e756ca-e9f7-4c56-bd39-3f71e4be9528@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1754063577;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IKhSviFqFxKNZXODGWt6Q8u8jf/2SZ7NuDp4KJ6OSIo=;
+	b=GSFZ+xlk/ppOyrzb+KtX2+Rh5mlxxkSu162KzpeMYyG1bk7qI5SgH/k7kgS4oGKMhNA8jC
+	7DkE58bC3fOtkVwTxtok27M8y/FcoaKSYH1jv3a5uLXQcv7Po5n4liL0mq0v5GaOt/sf+2
+	+EJMZKbwdytdYo0BEuT/iJyg7cFvg04=
+Date: Fri, 1 Aug 2025 08:52:48 -0700
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH bpf 1/4] bpf: Check flow_dissector ctx accesses are
+ aligned
+Content-Language: en-GB
+To: Paul Chaignon <paul.chaignon@gmail.com>, bpf@vger.kernel.org
+Cc: Alexei Starovoitov <ast@kernel.org>,
+ Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>,
+ Eduard Zingerman <eddyz87@gmail.com>, Martin KaFai Lau
+ <martin.lau@linux.dev>, netfilter-devel@vger.kernel.org,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Petar Penkov <ppenkov@google.com>,
+ Florian Westphal <fw@strlen.de>
+References: <cc1b036be484c99be45eddf48bd78cc6f72839b1.1754039605.git.paul.chaignon@gmail.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Yonghong Song <yonghong.song@linux.dev>
+In-Reply-To: <cc1b036be484c99be45eddf48bd78cc6f72839b1.1754039605.git.paul.chaignon@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Migadu-Flow: FLOW_OUT
 
-There is a reference count leak in ctnetlink_dump_table():
-      if (res < 0) {
-                nf_conntrack_get(&ct->ct_general); // HERE
-                cb->args[1] = (unsigned long)ct;
-                ...
 
-While its very unlikely, its possible that ct == last.
-If this happens, then the refcount of ct was already incremented.
-This 2nd increment is never undone.
 
-This prevents the conntrack object from being released, which in turn
-keeps prevents cnet->count from dropping back to 0.
+On 8/1/25 2:47 AM, Paul Chaignon wrote:
+> flow_dissector_is_valid_access doesn't check that the context access is
+> aligned. As a consequence, an unaligned access within one of the exposed
+> field is considered valid and later rejected by
+> flow_dissector_convert_ctx_access when we try to convert it.
+>
+> The later rejection is problematic because it's reported as a verifier
+> bug with a kernel warning and doesn't point to the right instruction in
+> verifier logs.
+>
+> Fixes: d58e468b1112 ("flow_dissector: implements flow dissector BPF hook")
+> Reported-by: syzbot+ccac90e482b2a81d74aa@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=ccac90e482b2a81d74aa
+> Signed-off-by: Paul Chaignon <paul.chaignon@gmail.com>
 
-This will then block the netns dismantle (or conntrack rmmod) as
-nf_conntrack_cleanup_net_list() will wait forever.
-
-This can be reproduced by running conntrack_resize.sh selftest in a loop.
-It takes ~20 minutes for me on a preemptible kernel on average before
-I see a runaway kworker spinning in nf_conntrack_cleanup_net_list.
-
-One fix would to change this to:
-        if (res < 0) {
-		if (ct != last)
-	                nf_conntrack_get(&ct->ct_general);
-
-But this reference counting isn't needed in the first place.
-We can just store a cookie value instead.
-
-A followup patch will do the same for ctnetlink_exp_dump_table,
-it looks to me as if this has the same problem and like
-ctnetlink_dump_table, we only need a 'skip hint', not the actual
-object so we can apply the same cookie strategy there as well.
-
-Fixes: d205dc40798d ("[NETFILTER]: ctnetlink: fix deadlock in table dumping")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_netlink.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 2cc0fde23344..5fdcae45e0bc 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -884,8 +884,6 @@ ctnetlink_conntrack_event(unsigned int events, const struct nf_ct_event *item)
- 
- static int ctnetlink_done(struct netlink_callback *cb)
- {
--	if (cb->args[1])
--		nf_ct_put((struct nf_conn *)cb->args[1]);
- 	kfree(cb->data);
- 	return 0;
- }
-@@ -1208,19 +1206,26 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
- 	return 0;
- }
- 
-+static unsigned long ctnetlink_get_id(const struct nf_conn *ct)
-+{
-+	unsigned long id = nf_ct_get_id(ct);
-+
-+	return id ? id : 1;
-+}
-+
- static int
- ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- {
- 	unsigned int flags = cb->data ? NLM_F_DUMP_FILTERED : 0;
- 	struct net *net = sock_net(skb->sk);
--	struct nf_conn *ct, *last;
-+	unsigned long last_id = cb->args[1];
- 	struct nf_conntrack_tuple_hash *h;
- 	struct hlist_nulls_node *n;
- 	struct nf_conn *nf_ct_evict[8];
-+	struct nf_conn *ct;
- 	int res, i;
- 	spinlock_t *lockp;
- 
--	last = (struct nf_conn *)cb->args[1];
- 	i = 0;
- 
- 	local_bh_disable();
-@@ -1257,7 +1262,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 				continue;
- 
- 			if (cb->args[1]) {
--				if (ct != last)
-+				if (ctnetlink_get_id(ct) != last_id)
- 					continue;
- 				cb->args[1] = 0;
- 			}
-@@ -1270,8 +1275,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 					    NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
- 					    ct, true, flags);
- 			if (res < 0) {
--				nf_conntrack_get(&ct->ct_general);
--				cb->args[1] = (unsigned long)ct;
-+				cb->args[1] = ctnetlink_get_id(ct);
- 				spin_unlock(lockp);
- 				goto out;
- 			}
-@@ -1284,12 +1288,10 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	}
- out:
- 	local_bh_enable();
--	if (last) {
-+	if (last_id) {
- 		/* nf ct hash resize happened, now clear the leftover. */
--		if ((struct nf_conn *)cb->args[1] == last)
-+		if (cb->args[1] == last_id)
- 			cb->args[1] = 0;
--
--		nf_ct_put(last);
- 	}
- 
- 	while (i) {
--- 
-2.49.1
+Acked-by: Yonghong Song <yonghong.song@linux.dev>
 
