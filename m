@@ -1,27 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 848AE272E51
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Aug 2025 15:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 914F22737E2
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Aug 2025 15:25:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754061936; cv=none; b=QQeAm2q1Zw1H6+y346dgjDFpyVroG+jOvJ49C9nAXKNjhayyR4inoooV6U5Edi8XDj1lya974gdc68ZN3aBRssyidYZkn4dXW/sVJEvRJv8mbjhp2fCumPMKBGpImhV9kABXQVne8g6GvLNfQ5DfdOMhDRJphLN+Cqn2WWW+ggI=
+	t=1754061937; cv=none; b=b9j3PpctS61eB9fjcxJJ5TXOJ8dlx13iRYrUs/EZlvD4EYadrX8maUbHGNZcidup7ebQBShQ8Z06xrOtJuPBjrm+RUBl2YcXRVjwEqa9iGSYv9Qp+6OwhJRCkp6BLj+xDEFcGjCycRLkl/4Oc22WuAlwNfhtboR6pI9wX+Y4/E8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754061936; c=relaxed/simple;
-	bh=UWAX124Vd531CQ5ml2nv5r6hCzzf0z0I2THnO/LtseY=;
+	s=arc-20240116; t=1754061937; c=relaxed/simple;
+	bh=3DqFxqhWbaOBh3ACNFn+PQngEV2YCWeZoK5unYmhnoI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Cr+/lohBawCwJSM5EKMFoWEodVhzG/XXJxw5wAdOf8OUM23H/swHMwo/OsnwVNqsGKKqqRlniT0w+AnLvVPSe2YNwMqACFqYzLi9F3Qv7DkPdmYFiR6Zuuds0ygeZ8BzNN/1J8KgRwfTHNAR4kdQvNeZClx4nl0F8TppduWz51Y=
+	 MIME-Version; b=q8xW8PDpWoh937BTcA5bEKm+fhBIXZx8Xp9iOY2cXMWdRry2wCqfI6YUPlFo6CUGDo6Z0ij174mFM5TUcGXHHyrGEH8+K08k3nvnjN9wH8xcONWrcP0vWKUfKa9grsozqUW6xfnKhwYKNjiscFr8FIzt6CUhgrSYiWxdLQI3BVk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8996C602B2; Fri,  1 Aug 2025 17:25:32 +0200 (CEST)
+	id 303F4602A8; Fri,  1 Aug 2025 17:25:28 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 2/2] netfilter: ctnetlink: remove refcounting in expectation dumpers
-Date: Fri,  1 Aug 2025 17:25:09 +0200
-Message-ID: <20250801152515.20172-3-fw@strlen.de>
+Subject: [PATCH nf 1/2] netfilter: ctnetlink: fix refcount leak on table dump
+Date: Fri,  1 Aug 2025 17:25:08 +0200
+Message-ID: <20250801152515.20172-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250801152515.20172-1-fw@strlen.de>
 References: <20250801152515.20172-1-fw@strlen.de>
@@ -33,156 +33,121 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Same pattern as previous patch: do not keep the expectation object
-alive via refcount, only store a cookie value and then use that
-as the skip hint for dump resumption.
+There is a reference count leak in ctnetlink_dump_table():
+      if (res < 0) {
+                nf_conntrack_get(&ct->ct_general); // HERE
+                cb->args[1] = (unsigned long)ct;
+                ...
 
-AFAICS this has the same issue as the one resolved in the conntrack
-dumper, when we do
-  if (!refcount_inc_not_zero(&exp->use))
+While its very unlikely, its possible that ct == last.
+If this happens, then the refcount of ct was already incremented.
+This 2nd increment is never undone.
 
-to increment the refcount, there is a chance that exp == last, which
-causes a double-increment of the refcount and subsequent memory leak.
+This prevents the conntrack object from being released, which in turn
+keeps prevents cnet->count from dropping back to 0.
 
-Fixes: cf6994c2b981 ("[NETFILTER]: nf_conntrack_netlink: sync expectation dumping with conntrack table dumping")
-Fixes: e844a928431f ("netfilter: ctnetlink: allow to dump expectation per master conntrack")
+This will then block the netns dismantle (or conntrack rmmod) as
+nf_conntrack_cleanup_net_list() will wait forever.
+
+This can be reproduced by running conntrack_resize.sh selftest in a loop.
+It takes ~20 minutes for me on a preemptible kernel on average before
+I see a runaway kworker spinning in nf_conntrack_cleanup_net_list.
+
+One fix would to change this to:
+        if (res < 0) {
+		if (ct != last)
+	                nf_conntrack_get(&ct->ct_general);
+
+But this reference counting isn't needed in the first place.
+We can just store a cookie value instead.
+
+A followup patch will do the same for ctnetlink_exp_dump_table,
+it looks to me as if this has the same problem and like
+ctnetlink_dump_table, we only need a 'skip hint', not the actual
+object so we can apply the same cookie strategy there as well.
+
+Fixes: d205dc40798d ("[NETFILTER]: ctnetlink: fix deadlock in table dumping")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_netlink.c | 41 ++++++++++++----------------
- 1 file changed, 17 insertions(+), 24 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5fdcae45e0bc..cbe42c987136 100644
+index 2cc0fde23344..5fdcae45e0bc 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3171,23 +3171,27 @@ ctnetlink_expect_event(unsigned int events, const struct nf_exp_event *item)
- 	return 0;
- }
- #endif
--static int ctnetlink_exp_done(struct netlink_callback *cb)
-+
-+static unsigned long ctnetlink_exp_id(const struct nf_conntrack_expect *exp)
+@@ -884,8 +884,6 @@ ctnetlink_conntrack_event(unsigned int events, const struct nf_ct_event *item)
+ 
+ static int ctnetlink_done(struct netlink_callback *cb)
  {
 -	if (cb->args[1])
--		nf_ct_expect_put((struct nf_conntrack_expect *)cb->args[1]);
--	return 0;
-+	unsigned long id = (unsigned long)exp;
-+
-+	id += nf_ct_get_id(exp->master);
-+	id += exp->class;
-+
-+	return id ? id : 1;
+-		nf_ct_put((struct nf_conn *)cb->args[1]);
+ 	kfree(cb->data);
+ 	return 0;
+ }
+@@ -1208,19 +1206,26 @@ static int ctnetlink_filter_match(struct nf_conn *ct, void *data)
+ 	return 0;
  }
  
++static unsigned long ctnetlink_get_id(const struct nf_conn *ct)
++{
++	unsigned long id = nf_ct_get_id(ct);
++
++	return id ? id : 1;
++}
++
  static int
- ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
  {
-+	unsigned long last_id = cb->args[1];
+ 	unsigned int flags = cb->data ? NLM_F_DUMP_FILTERED : 0;
  	struct net *net = sock_net(skb->sk);
--	struct nf_conntrack_expect *exp, *last;
- 	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
- 	u_int8_t l3proto = nfmsg->nfgen_family;
-+	struct nf_conntrack_expect *exp;
+-	struct nf_conn *ct, *last;
++	unsigned long last_id = cb->args[1];
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct hlist_nulls_node *n;
+ 	struct nf_conn *nf_ct_evict[8];
++	struct nf_conn *ct;
+ 	int res, i;
+ 	spinlock_t *lockp;
  
- 	rcu_read_lock();
--	last = (struct nf_conntrack_expect *)cb->args[1];
- 	for (; cb->args[0] < nf_ct_expect_hsize; cb->args[0]++) {
- restart:
- 		hlist_for_each_entry_rcu(exp, &nf_ct_expect_hash[cb->args[0]],
-@@ -3199,7 +3203,7 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+-	last = (struct nf_conn *)cb->args[1];
+ 	i = 0;
+ 
+ 	local_bh_disable();
+@@ -1257,7 +1262,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
  				continue;
  
  			if (cb->args[1]) {
--				if (exp != last)
-+				if (ctnetlink_exp_id(exp) != last_id)
+-				if (ct != last)
++				if (ctnetlink_get_id(ct) != last_id)
  					continue;
  				cb->args[1] = 0;
  			}
-@@ -3208,9 +3212,7 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 						    cb->nlh->nlmsg_seq,
- 						    IPCTNL_MSG_EXP_NEW,
- 						    exp) < 0) {
--				if (!refcount_inc_not_zero(&exp->use))
--					continue;
--				cb->args[1] = (unsigned long)exp;
-+				cb->args[1] = ctnetlink_exp_id(exp);
+@@ -1270,8 +1275,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 					    NFNL_MSG_TYPE(cb->nlh->nlmsg_type),
+ 					    ct, true, flags);
+ 			if (res < 0) {
+-				nf_conntrack_get(&ct->ct_general);
+-				cb->args[1] = (unsigned long)ct;
++				cb->args[1] = ctnetlink_get_id(ct);
+ 				spin_unlock(lockp);
  				goto out;
  			}
- 		}
-@@ -3221,32 +3223,30 @@ ctnetlink_exp_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+@@ -1284,12 +1288,10 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
  	}
  out:
- 	rcu_read_unlock();
--	if (last)
--		nf_ct_expect_put(last);
--
- 	return skb->len;
- }
- 
- static int
- ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- {
--	struct nf_conntrack_expect *exp, *last;
- 	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
- 	struct nf_conn *ct = cb->data;
- 	struct nf_conn_help *help = nfct_help(ct);
- 	u_int8_t l3proto = nfmsg->nfgen_family;
-+	unsigned long last_id = cb->args[1];
-+	struct nf_conntrack_expect *exp;
- 
- 	if (cb->args[0])
- 		return 0;
- 
- 	rcu_read_lock();
--	last = (struct nf_conntrack_expect *)cb->args[1];
-+
- restart:
- 	hlist_for_each_entry_rcu(exp, &help->expectations, lnode) {
- 		if (l3proto && exp->tuple.src.l3num != l3proto)
- 			continue;
- 		if (cb->args[1]) {
--			if (exp != last)
-+			if (ctnetlink_exp_id(exp) != last_id)
- 				continue;
+ 	local_bh_enable();
+-	if (last) {
++	if (last_id) {
+ 		/* nf ct hash resize happened, now clear the leftover. */
+-		if ((struct nf_conn *)cb->args[1] == last)
++		if (cb->args[1] == last_id)
  			cb->args[1] = 0;
- 		}
-@@ -3254,9 +3254,7 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 					    cb->nlh->nlmsg_seq,
- 					    IPCTNL_MSG_EXP_NEW,
- 					    exp) < 0) {
--			if (!refcount_inc_not_zero(&exp->use))
--				continue;
--			cb->args[1] = (unsigned long)exp;
-+			cb->args[1] = ctnetlink_exp_id(exp);
- 			goto out;
- 		}
- 	}
-@@ -3267,9 +3265,6 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	cb->args[0] = 1;
- out:
- 	rcu_read_unlock();
--	if (last)
--		nf_ct_expect_put(last);
 -
- 	return skb->len;
- }
+-		nf_ct_put(last);
+ 	}
  
-@@ -3288,7 +3283,6 @@ static int ctnetlink_dump_exp_ct(struct net *net, struct sock *ctnl,
- 	struct nf_conntrack_zone zone;
- 	struct netlink_dump_control c = {
- 		.dump = ctnetlink_exp_ct_dump_table,
--		.done = ctnetlink_exp_done,
- 	};
- 
- 	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_MASTER,
-@@ -3338,7 +3332,6 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
- 		else {
- 			struct netlink_dump_control c = {
- 				.dump = ctnetlink_exp_dump_table,
--				.done = ctnetlink_exp_done,
- 			};
- 			return netlink_dump_start(info->sk, skb, info->nlh, &c);
- 		}
+ 	while (i) {
 -- 
 2.49.1
 
