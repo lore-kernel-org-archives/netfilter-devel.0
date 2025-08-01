@@ -1,147 +1,116 @@
-Received: from mail-wr1-f46.google.com (mail-wr1-f46.google.com [209.85.221.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E97F21CFF6;
-	Fri,  1 Aug 2025 09:49:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 222E721FF46
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Aug 2025 10:53:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754041789; cv=none; b=cS8kuSZrkCIQ/RLk65JVlWX49bamfm1FRGcpqw2ZWd3yl/IfhMoaUJOKC3vvbq31t2phwEubM4oG6RleUhmL+5W+oidvht9wJn1XwmnIeGRUqxypkD612s9wrqGFKKFOjiQ9a6KVKmwVvn0cm+3uu7u7v1CcCL4pG4JRI3Czfr4=
+	t=1754045589; cv=none; b=JCy9OeuRe4NUTQNaRh3nGky46vwdhKq8x1bK4xAFaQ3vDCslTVRNypyyxlWp1NSc/YMpRFfSG9H7+TV9ILa8C4GNeNkKIw48BwSnk2MH+PrfFfufznD7SqSSaSvXdC1YsCRfLCz4ap+zdIDBxz6jzn8n0iBkmc7JzeZDwmoFLeI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754041789; c=relaxed/simple;
-	bh=c/tG3bP1ARseY+CvWaETujBFzqKimimtj1odzFpCk40=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BnE8tQOa3V94W+yUmuup1gDo6MYOwpWTe4XWyks//BrEXwM5MqXnMwGtTm9efLYqZ+8fX78fo23uFDUFTf1yjUVCpvm1R1x2DDL0oG/sxItHg6NLr1j8qI65MGnEhr3skSyLm2++jEGC3AJTtwxmWql2LK3Re+m8krPmjYgUSWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=B1rMQ+MH; arc=none smtp.client-ip=209.85.221.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1754045589; c=relaxed/simple;
+	bh=pS7n5NTLFWuaIjmlDOFE+/mrMqHAkeZagjMQYx7MIec=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=KU2vWD0Wm65TjFgmTAceB/LClquUbhwql/E0E0W5ES1IRDzvRpJVUQEC++l8e3QGjHMEdFQvgbTfxWeKwt0ErJCszLTce9RYYRlkjE+hSvr+3r58F/pZKl/pl/my2ccCEYs5KyyETNTSQl9yNGbEgE8L3rhRGOhK5yV3E94eooI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EBNqGPbe; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B1rMQ+MH"
-Received: by mail-wr1-f46.google.com with SMTP id ffacd0b85a97d-3b7823559a5so1093905f8f.0;
-        Fri, 01 Aug 2025 02:49:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1754041787; x=1754646587; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=pBYUYFf8RokWYQAqgv0u10DCwfMf7bpXeUdEu1cvJx4=;
-        b=B1rMQ+MHQd/Zye5Xlu4iaV6wAotdBBvAobiP7doWeJ1Icz4Oqo4H96BE4YhUjpMjtF
-         aUk14QcC8StHYmK9Xio4rLlY41x98tzOHV+wWYvhK3IFmhB0+FKPgwL3sAz+iRJdAzpn
-         GjRXktT/gKFdiD7nzG8I09EfuC5rL55qokeNChHTTA5TfOpNb008hMRKQ50JZlb4EJeT
-         LUSH85dVyaFln3hHXPBL1nfeiVy1pl4RMkfIBP/PvSzB24Kgrgq+WGFEGzO0mOQGXb3U
-         UXSGyxtdzNLSLythMn9VCmt/Fco9MOggJO+aQ6G20Md313hyyBriv3IOGbfCoynCOkbQ
-         gdAQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754041787; x=1754646587;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=pBYUYFf8RokWYQAqgv0u10DCwfMf7bpXeUdEu1cvJx4=;
-        b=OLsYOCzcA/7MLcIwhYffrXBEUBJvZOQhkVgrkqw7SovhSr/ajam4nn8DxxRtx85vht
-         lJ1uA95tvBskYbqFxfd4rweSYg1hZ7/KOc1P50v9hjlojyGLOYKDRfdXSAG+eAiqAKMt
-         vvk956fIsYqSH2PK5vXYcegEYGoqafpwWdq2oEgCCMkeNY4mHuhBA8AF2l3ElXQIfG/P
-         2IPj9B2cPLnO/5ZfdibL8x9O9yF1kIfQ/JOOBtyZOhT5OjsCVNOj/WB6kEiPxpUs7Ox8
-         0JjTjAGV8jbehxqWK14o03qjkbvCzta8P9M89DdoucdPSbYACTaWhbAPmW+KtmCJkxWe
-         dzeg==
-X-Forwarded-Encrypted: i=1; AJvYcCXFwGjfFGoZrDKdeFejIyoV4U526NNDV93JxsyY6/nDfq2wiPZ7pKpfbtGsLyLV7Bjt4B1oxQKsSMGnajq07mg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwSErM0Odu8nAEh3pqHI6eex0WTREJHX93j05YY2OCZg4GNYm2N
-	VT3X62iJ7Y0nKD4uTdngvNgzfDub7E0j+v4q+OO77rSpgjiCqc3v1C+kwbun4mC4
-X-Gm-Gg: ASbGncuPjKIe6VqPSTcZE6RShMYRXKdR6HI4SDGWHA5u8P9dcbGzdpIhhWF56gDxz3b
-	wH66RfYIO26lDxcYhISJwS//riIw8QvcGd4zg03VvmOYhxA9roEtRgvHv5ZW1wDMjOdpfgFkoN9
-	1gVFuSTRj6wLDeogDezoLEC/pyWuzHOy8vq6J+1ZnAiyLO/i+lKrE5zZHfUurj/Q6tvnNWtW6us
-	q6yq/yEKQaqdPV9QdIWQIJZW4VGdSQF5szF9vYY0jrtyxTObLPJEIYaGaomdIYwXnXsNGkytWGG
-	z040Z4jYD89l9yO2U/FRj9GbG+X803vwAzfjWDhAmYSSsJueuYL3nxKtYna3s0CQyhVkzGkBEvw
-	Hg2hdrpsfo4b2eMfGToNVrS4hav4wo5Lm1EAFvLR3eA43Pnw1SAiqkkk8QObmitiN4Zp314AEkv
-	fyYtplFR7GmUWqdAjPcNU=
-X-Google-Smtp-Source: AGHT+IEBMkWhBClv/g4OsRfmcfct2j5hDjcYSxf7rwvS6/c9CFMCPAB06NUvYaaTa8yqdoqONWbbKQ==
-X-Received: by 2002:a05:6000:2508:b0:3b7:75dd:f373 with SMTP id ffacd0b85a97d-3b794fe4d89mr9070037f8f.5.1754041786579;
-        Fri, 01 Aug 2025 02:49:46 -0700 (PDT)
-Received: from mail.gmail.com (2a01cb0889497e000cb332f63428a027.ipv6.abo.wanadoo.fr. [2a01:cb08:8949:7e00:cb3:32f6:3428:a027])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-4589ee62336sm58611215e9.29.2025.08.01.02.49.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 01 Aug 2025 02:49:46 -0700 (PDT)
-Date: Fri, 1 Aug 2025 11:49:44 +0200
-From: Paul Chaignon <paul.chaignon@gmail.com>
-To: bpf@vger.kernel.org
-Cc: Alexei Starovoitov <ast@kernel.org>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Petar Penkov <ppenkov@google.com>, Florian Westphal <fw@strlen.de>
-Subject: [PATCH bpf 4/4] selftests/bpf: Test for unaligned flow_dissector ctx
- access
-Message-ID: <bf014046ddcf41677fb8b98d150c14027e9fddba.1754039605.git.paul.chaignon@gmail.com>
-References: <cc1b036be484c99be45eddf48bd78cc6f72839b1.1754039605.git.paul.chaignon@gmail.com>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EBNqGPbe"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=GmXbF6WKsQzyB9hS54ZO/1J8tBxn1hi3uuoY2/WYIno=; b=EBNqGPbe/2rfgtSHHrtUd8yXMB
+	qnxO51Wx0K+Gj7C/INdN9Ca/VTkaQwFkwyFtgI53lgpbWMEm2er1KPS4RY7pgx5P8ZevHQoRfIwFt
+	g6rAyES/+Zjy0jQlbxU9aWTha1gogiqEkBK89BE49aAfWqkbtRdbewqx4nnk3hG+h9Y4xNNz6Fxc4
+	TEXFLON8ixZltKlYeGk4CZh3OT8WAJh72BPw1ufpVCgdCwKuICMQlXGxAqcNz14QvYcV+O2Y1GtfZ
+	DOyJ5LcGIxun+EIAZ1ZqxkHqtoXZ6ya7yzlEMsdLZkomHU9ixJa2xAQf75e5H7UIU0Ebpc8wAd45y
+	cK7QEaug==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uhnNn-000000002UZ-3OX7
+	for netfilter-devel@vger.kernel.org;
+	Fri, 01 Aug 2025 12:53:03 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] doc: nft.8: Minor NAT STATEMENTS section review
+Date: Fri,  1 Aug 2025 12:52:58 +0200
+Message-ID: <20250801105258.2396-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.49.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cc1b036be484c99be45eddf48bd78cc6f72839b1.1754039605.git.paul.chaignon@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-This patch adds tests for two context fields where unaligned accesses
-were not properly rejected.
+Synopsis insinuates an IP address argument is mandatory in snat/dnat
+statements although specifying ports alone is perfectly fine. Adjust it
+accordingly and add a paragraph briefly describing the behaviour.
 
-Note the new macro is similar to the existing narrow_load macro, but we
-need a different description and access offset. Combining the two
-macros into one is probably doable but I don't think it would help
-readability.
+While at it, update the redirect statement description with more
+relevant examples, the current one is wrong: To *only* alter the
+destination port, dnat statement must be used, not redirect.
 
-vmlinux.h is included in place of bpf.h so we have the definition of
-struct bpf_nf_ctx.
-
-Signed-off-by: Paul Chaignon <paul.chaignon@gmail.com>
+Fixes: 6908a677ba04c ("nft.8: Enhance NAT documentation")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- .../selftests/bpf/progs/verifier_ctx.c        | 23 ++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ doc/statements.txt | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/tools/testing/selftests/bpf/progs/verifier_ctx.c b/tools/testing/selftests/bpf/progs/verifier_ctx.c
-index 0450840c92d9..424463094760 100644
---- a/tools/testing/selftests/bpf/progs/verifier_ctx.c
-+++ b/tools/testing/selftests/bpf/progs/verifier_ctx.c
-@@ -1,10 +1,12 @@
- // SPDX-License-Identifier: GPL-2.0
- /* Converted from tools/testing/selftests/bpf/verifier/ctx.c */
+diff --git a/doc/statements.txt b/doc/statements.txt
+index f9460dd7fa77f..4aeb0a731fd90 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -412,11 +412,12 @@ NAT STATEMENTS
+ ~~~~~~~~~~~~~~
+ [verse]
+ ____
+-*snat* [[*ip* | *ip6*] [ *prefix* ] *to*] 'ADDR_SPEC' [*:*'PORT_SPEC'] ['FLAGS']
+-*dnat* [[*ip* | *ip6*] [ *prefix* ] *to*] 'ADDR_SPEC' [*:*'PORT_SPEC'] ['FLAGS']
++*snat* [[*ip* | *ip6*] [ *prefix* ] *to*] 'TARGET_SPEC' ['FLAGS']
++*dnat* [[*ip* | *ip6*] [ *prefix* ] *to*] 'TARGET_SPEC' ['FLAGS']
+ *masquerade* [*to :*'PORT_SPEC'] ['FLAGS']
+ *redirect* [*to :*'PORT_SPEC'] ['FLAGS']
  
--#include <linux/bpf.h>
-+#include "vmlinux.h"
- #include <bpf/bpf_helpers.h>
- #include "bpf_misc.h"
++'TARGET_SPEC' := 'ADDR_SPEC' | ['ADDR_SPEC'] *:*'PORT_SPEC'
+ 'ADDR_SPEC' := 'address' | 'address' *-* 'address'
+ 'PORT_SPEC' := 'port' | 'port' *-* 'port'
  
-+#define sizeof_field(TYPE, MEMBER) sizeof((((TYPE *)0)->MEMBER))
-+
- SEC("tc")
- __description("context stores via BPF_ATOMIC")
- __failure __msg("BPF_ATOMIC stores into R1 ctx is not allowed")
-@@ -243,4 +245,23 @@ narrow_load("sockops", bpf_sock_ops, skb_data);
- narrow_load("sockops", bpf_sock_ops, skb_data_end);
- narrow_load("sockops", bpf_sock_ops, skb_hwtstamp);
+@@ -426,11 +427,11 @@ ____
  
-+#define unaligned_access(type, ctx, field)					\
-+	SEC(type)								\
-+	__description("unaligned access on field " #field " of " #ctx)		\
-+	__failure __msg("invalid bpf_context access")				\
-+	__naked void unaligned_ctx_access_##ctx##field(void)			\
-+	{									\
-+		asm volatile ("							\
-+		r1 = *(u%[size] *)(r1 + %[off]);				\
-+		r0 = 0;								\
-+		exit;"								\
-+		:								\
-+		: __imm_const(size, sizeof_field(struct ctx, field) * 8),	\
-+		  __imm_const(off, offsetof(struct ctx, field) + 1)		\
-+		: __clobber_all);						\
-+	}
+ The nat statements are only valid from nat chain types. +
+ 
+-The *snat* and *masquerade* statements specify that the source address of the
++The *snat* and *masquerade* statements specify that the source address/port of the
+ packet should be modified. While *snat* is only valid in the postrouting and
+ input chains, *masquerade* makes sense only in postrouting. The dnat and
+ redirect statements are only valid in the prerouting and output chains, they
+-specify that the destination address of the packet should be modified. You can
++specify that the destination address/port of the packet should be modified. You can
+ use non-base chains which are called from base chains of nat chain type too.
+ All future packets in this connection will also be mangled, and rules should
+ cease being examined.
+@@ -440,8 +441,12 @@ outgoing interface's IP address to translate to. It is particularly useful on
+ gateways with dynamic (public) IP addresses.
+ 
+ The *redirect* statement is a special form of dnat which always translates the
+-destination address to the local host's one. It comes in handy if one only wants
+-to alter the destination port of incoming traffic on different interfaces.
++destination address to the local host's one. It comes in handy to intercept
++traffic passing a router and feeding it to a locally running daemon, e.g. when
++building a transparent proxy or application-layer gateway.
 +
-+unaligned_access("flow_dissector", __sk_buff, data);
-+unaligned_access("netfilter", bpf_nf_ctx, skb);
-+
- char _license[] SEC("license") = "GPL";
++For 'TARGET_SPEC', one may specify addresses, ports, or both. If no address or
++no port is specified, the respective packet header field remains unchanged.
+ 
+ When used in the inet family (available with kernel 5.2), the dnat and snat
+ statements require the use of the ip and ip6 keyword in case an address is
 -- 
-2.43.0
+2.49.0
 
