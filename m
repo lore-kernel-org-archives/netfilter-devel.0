@@ -1,103 +1,117 @@
-Received: from out-189.mta0.migadu.com (out-189.mta0.migadu.com [91.218.175.189])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F044424C68D
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Aug 2025 10:43:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.189
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D6483283FEE;
+	Tue,  5 Aug 2025 15:43:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.140.110.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754304221; cv=none; b=NPSHoI+FpTfy8WRJO3wfLGEO3SAeLP8s04Lx4289rvXrzrnWdHhpY9gIkMlQ6kX9DMHeBPGDmZ2pXzL21pSQn2Lzgem+P26ghQ6EiA0s6DlsZMkewlvC55Q7YMCgbkI8k5IcCXx2VF0wA1UlOzELrEJnWTVEMM1jF5Up/zDnErE=
+	t=1754408592; cv=none; b=K/6HZj5zP4v+QcDmOwiACiW/Te1qmDL/PJTHr9zP+fXQypgqlK5lXf/ScpkamlBCHCuviX67+QPXrCDsVuOHmorEQGw7aLN7rUbZsbQ+/E5SCawUpZNT7i4p8PyuCdtGKZZgiPjeBY2WBFCN07hMoYinJbabK/X/02Yt2A7k0t4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754304221; c=relaxed/simple;
-	bh=LB96+Di3hQ5fF0sNfSgu5Q5TIk/SywkEtrDB5PxcLII=;
+	s=arc-20240116; t=1754408592; c=relaxed/simple;
+	bh=BfL2RjEcyCaLn9HxlnC8b4yC/2qDp9kmpyofEFBavas=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jslTQVjA1swp1d/CLB0YxYXbu/L1unN69xjI2KPthG09Ue7W2qo/paDvhCK7Tzr75db7gC7hoHyrp8Wr5yjSnzZrvZez8L1cGFvTaatzCVVOBAI4BA2RYwwATrjpha8icSpbJl5nYuuQRT+NEm29JsuzZSaZmrwDZKGZ6gLg8pw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=eksKNcVu; arc=none smtp.client-ip=91.218.175.189
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="eksKNcVu"
-Message-ID: <db583c33-3726-487c-a58f-d57f9a7c5b9c@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1754304204;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=OoNroIT4bEA4dsp0NfXJH1mI1a/u9RF3xG7r3lDLIMQ=;
-	b=eksKNcVutLIW4IP3WdZEebZ1zO+hbJYr8F/8QM5wvvzWy3nTBtAcYlSdSyuJtSP4BWgMHl
-	t0EEosaOTTAkfLs5BxlcQBuqNn1jYWHXUTfAOF5Uh84zkC4klw5TYUTXDDOCXF8k4BMoRD
-	zjNKwHkH4A0xr0TEG3njz4mkDb5CxUU=
-Date: Mon, 4 Aug 2025 18:43:16 +0800
+	 In-Reply-To:Content-Type; b=c+di4YFzpJ94DBVUFcmMs28kOloDrPK/9BRxuYGvJppgIVZlGstDFw+FyUhojF8SvwpIoSY8nEuhNKOBZVd5KQn6MiH9QTNt44JGROIH/NY2IVUzGtSuExF3gvWFzl3DrGqiGYRWNI2b/bB5qw2++PlAYBZpbMA/L7cXQ8Vqopk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com; spf=pass smtp.mailfrom=arm.com; arc=none smtp.client-ip=217.140.110.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arm.com
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 21BF61424;
+	Tue,  5 Aug 2025 08:43:01 -0700 (PDT)
+Received: from [10.1.26.194] (unknown [10.1.26.194])
+	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id B84653F673;
+	Tue,  5 Aug 2025 08:43:07 -0700 (PDT)
+Message-ID: <81bdc56d-a3da-4fc4-b2d0-2561b4d96723@arm.com>
+Date: Tue, 5 Aug 2025 16:43:06 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH net-next] netfilter: clean up returns in
- nf_conntrack_log_invalid_sysctl()
-Content-Language: en-US
-To: Dan Carpenter <dan.carpenter@linaro.org>,
- Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org,
- kernel-janitors@vger.kernel.org
-References: <aJCM48RFXO6hjgGm@stanley.mountain>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Lance Yang <lance.yang@linux.dev>
-In-Reply-To: <aJCM48RFXO6hjgGm@stanley.mountain>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 06/19] netfilter: Exclude LEGACY TABLES on
+ PREEMPT_RT.
+Content-Language: en-GB
+To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, edumazet@google.com, fw@strlen.de, horms@kernel.org,
+ Aishwarya Rambhadran <Aishwarya.Rambhadran@arm.com>
+References: <20250725170340.21327-1-pablo@netfilter.org>
+ <20250725170340.21327-7-pablo@netfilter.org>
+From: Ryan Roberts <ryan.roberts@arm.com>
+In-Reply-To: <20250725170340.21327-7-pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
 
+Hi Pablo,
 
-
-On 2025/8/4 18:35, Dan Carpenter wrote:
-> Smatch complains that these look like error paths with missing error
-> codes, especially the one where we return if nf_log_is_registered() is
-> true:
+On 25/07/2025 18:03, Pablo Neira Ayuso wrote:
+> The seqcount xt_recseq is used to synchronize the replacement of
+> xt_table::private in xt_replace_table() against all readers such as
+> ipt_do_table()
 > 
->      net/netfilter/nf_conntrack_standalone.c:575 nf_conntrack_log_invalid_sysctl()
->      warn: missing error code? 'ret'
+> To ensure that there is only one writer, the writing side disables
+> bottom halves. The sequence counter can be acquired recursively. Only the
+> first invocation modifies the sequence counter (signaling that a writer
+> is in progress) while the following (recursive) writer does not modify
+> the counter.
+> The lack of a proper locking mechanism for the sequence counter can lead
+> to live lock on PREEMPT_RT if the high prior reader preempts the
+> writer. Additionally if the per-CPU lock on PREEMPT_RT is removed from
+> local_bh_disable() then there is no synchronisation for the per-CPU
+> sequence counter.
 > 
-> In fact, all these return zero deliberately.  Change them to return a
-> literal instead which helps readability as well as silencing the warning.
+> The affected code is "just" the legacy netfilter code which is replaced
+> by "netfilter tables". That code can be disabled without sacrificing
+> functionality because everything is provided by the newer
+> implementation. This will only requires the usage of the "-nft" tools
+> instead of the "-legacy" ones.
+> The long term plan is to remove the legacy code so lets accelerate the
+> progress.
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-
-LGTM, feel free to add:
-
-Acked-by: Lance Yang <lance.yang@linux.dev>
-
+> Relax dependencies on iptables legacy, replace select with depends on,
+> this should cause no harm to existing kernel configs and users can still
+> toggle IP{6}_NF_IPTABLES_LEGACY in any case.
+> Make EBTABLES_LEGACY, IPTABLES_LEGACY and ARPTABLES depend on
+> NETFILTER_XTABLES_LEGACY. Hide xt_recseq and its users,
+> xt_register_table() and xt_percpu_counter_alloc() behind
+> NETFILTER_XTABLES_LEGACY. Let NETFILTER_XTABLES_LEGACY depend on
+> !PREEMPT_RT.
+> 
+> This will break selftest expecing the legacy options enabled and will be
+> addressed in a following patch.
+> 
+> Co-developed-by: Florian Westphal <fw@strlen.de>
+> Co-developed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
->   net/netfilter/nf_conntrack_standalone.c | 6 +++---
->   1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-> index 9b8b10a85233..1f14ef0436c6 100644
-> --- a/net/netfilter/nf_conntrack_standalone.c
-> +++ b/net/netfilter/nf_conntrack_standalone.c
-> @@ -567,16 +567,16 @@ nf_conntrack_log_invalid_sysctl(const struct ctl_table *table, int write,
->   		return ret;
->   
->   	if (*(u8 *)table->data == 0)
-> -		return ret;
-> +		return 0;
->   
->   	/* Load nf_log_syslog only if no logger is currently registered */
->   	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
->   		if (nf_log_is_registered(i))
-> -			return ret;
-> +			return 0;
->   	}
->   	request_module("%s", "nf_log_syslog");
->   
-> -	return ret;
-> +	return 0;
->   }
->   
->   static struct ctl_table_header *nf_ct_netfilter_header;
+>  net/bridge/netfilter/Kconfig | 10 +++++-----
+>  net/ipv4/netfilter/Kconfig   | 24 ++++++++++++------------
+>  net/ipv6/netfilter/Kconfig   | 19 +++++++++----------
+>  net/netfilter/Kconfig        | 10 ++++++++++
+>  net/netfilter/x_tables.c     | 16 +++++++++++-----
+>  5 files changed, 47 insertions(+), 32 deletions(-)
+
+[...]
+
+> +config NETFILTER_XTABLES_LEGACY
+> +	bool "Netfilter legacy tables support"
+> +	depends on !PREEMPT_RT
+> +	help
+> +	  Say Y here if you still require support for legacy tables. This is
+> +	  required by the legacy tools (iptables-legacy) and is not needed if
+> +	  you use iptables over nftables (iptables-nft).
+> +	  Legacy support is not limited to IP, it also includes EBTABLES and
+> +	  ARPTABLES.
+> +
+
+This has caused some minor pain for me using Docker on Ubuntu 22.04, which I
+guess is still using iptables-legacy. I've had to debug why Docker has stopped
+working and eventually ended here. Explcitly enabling NETFILTER_XTABLES_LEGACY
+solved the problem.
+
+I thought I'd try my luck at convincing you to default this to enabled for
+!PREEMPT_RT to save others from such issues?
+
+Thanks,
+Ryan
 
