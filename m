@@ -1,47 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CFFA27876E;
-	Thu,  7 Aug 2025 11:30:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 631BF23815D;
+	Thu,  7 Aug 2025 11:30:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754566205; cv=none; b=a1IOw1RP92zsGQFPCFQjlWwQHb7bjYan5YwB1j4WJosDeXVLnqI/+T7ajkNvpR8SIwgiFJaGg/uI65IhlYgdHUMEBbMFATmhrl0Tm/5pl+vGBEYsIWgLqtYMr9mXu3KAIAYAaYEdfZMMcWVKYq8YezR26VMz463dWsWhmL+khn8=
+	t=1754566213; cv=none; b=PAvHv/GM15MQNIyoPqN3bHBH+kYYVzPbEzlh6BU7s1O4JHqf0BWP3JbiTpNQucLtuunsZUReKtm60smuRfGlEUs7Yj2SE29Qtb+QqIsrM7KcY6zfdZP6hSUH8yPc4sZBzNdcZCqRRR/7QRhaTtgrS/pwXxgrGV9jJLRG6I1Eev8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754566205; c=relaxed/simple;
-	bh=qFmLI1J0kGNOCGzVj56Pnm+N8xInvd97RkgeH7diB8o=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=hAAGnrmqXhctXFYgSwdSn/pATOOf1N0hnJQ5ixvU2y3yZYDTSiJsGRHWfyhGu/DQcTf31gJk6iHzQPdD3vT0hySU4F2ep1RyqN+Of+leuXC4aVjj0P61TFN14DEicxCo14aY0cw6cIHPvD9MuNUMnUv8h1TQUiJGGJDpex6XPbM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=chE/wCp9; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iHZgL8d9; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1754566213; c=relaxed/simple;
+	bh=8JNuS3s5jd69NTTu4pz0zehGPJtFt9vh7lXeyA5l73s=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=o/oFN5YKB2iARKsvsD6ybrxKEn2D8FCZdn4SS/fLLKdB2IEge6qdQ21EpBWvcqt5FQ1FEQ6tyirI8IMJ2Nmn3fAoVVCpB05Yw+YeFMdRuDIoOk6J7vjtaDFwo8f8tFpC42nEz+ySPH2vGTUPCzADi8PYf5OSDTFgvBPcKuw4/Ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lZXNB7s3; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sbfzS44e; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="chE/wCp9";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iHZgL8d9"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lZXNB7s3";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sbfzS44e"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 753BB60A3D; Thu,  7 Aug 2025 13:29:55 +0200 (CEST)
+	id C326F602AF; Thu,  7 Aug 2025 13:29:56 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1754566195;
-	bh=gTc5kOzGjljs+wVP/Ll+gPx0NFqpkq/G/0V6KS8kic4=;
-	h=From:To:Cc:Subject:Date:From;
-	b=chE/wCp9FhgLjTtzjecX8SW1tqjy/F5oolb+FHZPf2SyN6d9RNMGXVKmroOKKlZYq
-	 vdifWbRwSqGFJCg8+zBRKpTf8/h8h/y6Fwi+d3OhtRG/JtPaGmzdx7ff3+k0hW55DR
-	 mB5N1L4BDykb6AC2vaLt8pU/c5I58o2MWGrvmZ9OAIVI6IDlsDGiZRv2Fu8IxKmGFF
-	 oPKlEOkU47b1U1jBxHe0DmsHrWo8+jzPxR2vdLmbwRTn1Up0XkpGjm5rjkbmhgtgnb
-	 PuMfFHM0G44cWRgjFH1TNEhlAuB0UMZfZdmRy5I4ZNftiXg40wlbwSMR3Y30W4kbgh
-	 +mfKT7R3AOSrQ==
+	s=2025; t=1754566196;
+	bh=gYhKnsz9HbJb3X1VcQvcORTM0jWKKObsXn18zpl2+DA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=lZXNB7s3AqXK9M94iFXOFrp9uKUrELqAN0tFo2UYkDVgR46jcS6Xd2Q2gDA3Z6out
+	 7XI3mUE4+5Fblsg/KOyMQN4Z3sr6e7fo5+vaUV2uNzvAaC/g2t01GCQiG4YPx/E09Y
+	 rUqABpiyvCgekGVZlUmKk4Q5wHPVElPe5En3oMaZaprbt52+QwaXTXaZkbJTOIBG6C
+	 3aDZBCjRPLyzyG3T+5uiuTql4iG65Qp4ZNHTTleLemtG1eBJEp7Xu0rkPN9ewQ0p1V
+	 jXxVJrG7nGBbecnoZkUBzGKdGkN2m9zXim5OB5E+g+pXnYsB6kGS145mG3JU5UEpO3
+	 FNI7YzHJBpSOw==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EFF8060A3D;
-	Thu,  7 Aug 2025 13:29:52 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 39C9460A49;
+	Thu,  7 Aug 2025 13:29:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1754566193;
-	bh=gTc5kOzGjljs+wVP/Ll+gPx0NFqpkq/G/0V6KS8kic4=;
-	h=From:To:Cc:Subject:Date:From;
-	b=iHZgL8d9hvwPjanlbbQ02WENZ3flAu/ke5XUrRuvLB5OLUalSv0QxL2ExFcEqzxke
-	 8yyqdFzkYE53Yg5ar4OpLYdCralxIYDqUdErUIhyit8hHhG2vcQiWP1vj1g9yvP48A
-	 TolaSZZMy0TSqgEZ96BLkk0h5rUScXiypfcJGcYHgGGUcqa1wCbaw9eh7PYI2UGBkl
-	 XwmVRSl8JJTdwWxAoh0kBA4qG/ke/R25TnHfnKT9FJ6TVzlt5EVDoB8m+27k2hSV2o
-	 fr7ThaNo528Vd9HW8q+JrERf8VtmhDq9VmpO/Iq9ZnlLrSC82QBvUnutaXz1gjtydi
-	 N0SyRfN5rl96g==
+	s=2025; t=1754566194;
+	bh=gYhKnsz9HbJb3X1VcQvcORTM0jWKKObsXn18zpl2+DA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=sbfzS44egTLeRbxf7ZMVwq0KAh/Vc+ZfRnp91owZ+JPXvPzgqpQVkw3lU/CbUka9q
+	 gBtnQQXdlaBhFzuO1xmmvmV4jvLTE195ub7XH7pc3nleAjf/yd945HP6EdDyfSnX9e
+	 qplFb7BygOwgmQSFgPzD03xNkXru5pI81110mmC/UwI7IQDeMdVD/1EAe7CyYwi7MX
+	 /LfZ+h9BCCAr6joRvaO2qoLVi1h7BcXEkgyWNUknKMTkWu2pa6EKXEljVpvT+HQjWi
+	 AKCYU1YzlLEAE9TlTiLMq8qWvMstgktsFxr6piJAK+r0huYBXwvsZqgqzImcRv57c9
+	 OHyzk/JH9anIA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -51,10 +52,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 0/7] Netfilter fixes for net
-Date: Thu,  7 Aug 2025 13:29:41 +0200
-Message-Id: <20250807112948.1400523-1-pablo@netfilter.org>
+Subject: [PATCH net 1/7] MAINTAINERS: resurrect my netfilter maintainer entry
+Date: Thu,  7 Aug 2025 13:29:42 +0200
+Message-Id: <20250807112948.1400523-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250807112948.1400523-1-pablo@netfilter.org>
+References: <20250807112948.1400523-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -63,73 +66,30 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-The following patchset contains Netfilter fixes for net:
+This reverts commit b5048d27872a9734d142540ea23c3e897e47e05c.
+Its been more than a year, hope my motivation lasts a bit longer than
+last time :-)
 
-1) Reinstantiate Florian Westphal as a Netfilter maintainer.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-2) Depend on both NETFILTER_XTABLES and NETFILTER_XTABLES_LEGACY,
-   from Arnd Bergmann.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b968bc6959d1..cd9415702b28 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17313,6 +17313,7 @@ F:	drivers/net/ethernet/neterion/
+ NETFILTER
+ M:	Pablo Neira Ayuso <pablo@netfilter.org>
+ M:	Jozsef Kadlecsik <kadlec@netfilter.org>
++M:	Florian Westphal <fw@strlen.de>
+ L:	netfilter-devel@vger.kernel.org
+ L:	coreteam@netfilter.org
+ S:	Maintained
+-- 
+2.30.2
 
-3) Use id to annotate last conntrack/expectation visited to resume
-   netlink dump, patches from Florian Westphal.
-
-4) Fix bogus element in nft_pipapo avx2 lookup, introduced in
-   the last nf-next batch of updates, also from Florian.
-
-5) Return 0 instead of recycling ret variable in
-   nf_conntrack_log_invalid_sysctl(), introduced in the last
-   nf-next batch of updates, from Dan Carpenter.
-
-6) Fix WARN_ON_ONCE triggered by syzbot with larger cgroup level
-   in nft_socket.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-08-07
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit d942fe13f72bec92f6c689fbd74c5ec38228c16a:
-
-  net: ti: icssg-prueth: Fix skb handling for XDP_PASS (2025-08-05 18:03:33 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-08-07
-
-for you to fetch changes up to 1dee968d22eaeb3eede70df513ab3f8dd1712e3e:
-
-  netfilter: nft_socket: remove WARN_ON_ONCE with huge level value (2025-08-07 13:19:26 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 25-08-07
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      netfilter: add back NETFILTER_XTABLES dependencies
-
-Dan Carpenter (1):
-      netfilter: conntrack: clean up returns in nf_conntrack_log_invalid_sysctl()
-
-Florian Westphal (4):
-      MAINTAINERS: resurrect my netfilter maintainer entry
-      netfilter: ctnetlink: fix refcount leak on table dump
-      netfilter: ctnetlink: remove refcounting in expectation dumpers
-      netfilter: nft_set_pipapo: don't return bogus extension pointer
-
-Pablo Neira Ayuso (1):
-      netfilter: nft_socket: remove WARN_ON_ONCE with huge level value
-
- MAINTAINERS                             |  1 +
- net/bridge/netfilter/Kconfig            |  1 +
- net/ipv4/netfilter/Kconfig              |  3 ++
- net/ipv6/netfilter/Kconfig              |  1 +
- net/netfilter/nf_conntrack_netlink.c    | 65 +++++++++++++++------------------
- net/netfilter/nf_conntrack_standalone.c |  6 +--
- net/netfilter/nft_set_pipapo_avx2.c     | 12 +++---
- net/netfilter/nft_socket.c              |  2 +-
- 8 files changed, 46 insertions(+), 45 deletions(-)
