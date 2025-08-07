@@ -1,86 +1,95 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A441E32CF
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Aug 2025 11:14:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422CA266EFC
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Aug 2025 11:29:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754565300; cv=none; b=awOIBslBmftlMUoXwa8gfxwvqb+RGXHMvRv0k5HXxS4ZNLkPnhkxH+Ukf0HS/oz5NfzHhf62LVM/itD5ikF13Z212ZftkuyUEb5kPA/fACz8/Y4SAbik9Hvwz3L+TrAmqwO8KC46lNXNE/w6A3EXU++H4FmWuZKx8913LMceKws=
+	t=1754566196; cv=none; b=b2qVfZiFedAWvxqPH1sY8DKw2siT7GaD3KwZY3XR4574B23zNcD5GQDZFTOs31vfMlIIyH6UgiqKuorG1vPZhJemYHbKYHS1t9ZsH5FBGNoEtNDnhfN6ZjeWi2pKglNk+Dz+HAt7k3elBDf45IvvX4D5CncG/nnqVJNbhpgpxGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754565300; c=relaxed/simple;
-	bh=zb572mMGynRAjLBLmBtGqZuSOiRZ43YKHq3bS8wxnJ0=;
+	s=arc-20240116; t=1754566196; c=relaxed/simple;
+	bh=ZMWBe7ewN1kggr+FKq2gDPa1aAUts3ZlEjYkekHSgfM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=syUUtemV+YyvTZeuE4JbuIDM/umSNIh5P/LRPzNFYt7czEb5Uc6T+6nSb3whxa2WEm+1uF7Olj4itL/+JBBVL2i8LoQnTK/ZhkQAU1bd3GD4kVUqKOzWdVqiFLkhyJztW6ta6MduC8IKLL6gQ/6z72S9pKk4eMWj3utbLuxn7/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=upYuA1G3; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=upYuA1G3; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="upYuA1G3";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="upYuA1G3"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 8B595605F3; Thu,  7 Aug 2025 13:14:56 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1754565296;
-	bh=NEfdj4PAFxbjpfZQW7WJIN7qNjDTMJwZL+w6AQu4m00=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=upYuA1G3i/QSz57Y5mrZBxfOpispNFi6+p2wFrrUzHe58ZUubNoeNlmEF2lJuBWKT
-	 bVhHoTWOVLTgkbFlwTbH1ycumuks1K74eu4wkbLU7LJ9eqTgfnyt5tkov12+yZZtvv
-	 Sy6P2otkeTNI+r9lmedYYP3CVaaBnqfhYRLlglL75xZZmADUkTNNX7xVLfqq8n0k66
-	 5dn3YEJTTZO+I+HaUE+kf7Ihc5vW0qQU2kAxmVWfioXtQyBXYy4Z3ugT7NwNclMg2S
-	 LnD1FaCpy5wBxO1JDpn9fvKEi6j+4C4dvjvhl7p6khUW5izLJExxEnUPykgdOPHIIu
-	 leDYKSBcZ3GEg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E1BB160289;
-	Thu,  7 Aug 2025 13:14:55 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1754565296;
-	bh=NEfdj4PAFxbjpfZQW7WJIN7qNjDTMJwZL+w6AQu4m00=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=upYuA1G3i/QSz57Y5mrZBxfOpispNFi6+p2wFrrUzHe58ZUubNoeNlmEF2lJuBWKT
-	 bVhHoTWOVLTgkbFlwTbH1ycumuks1K74eu4wkbLU7LJ9eqTgfnyt5tkov12+yZZtvv
-	 Sy6P2otkeTNI+r9lmedYYP3CVaaBnqfhYRLlglL75xZZmADUkTNNX7xVLfqq8n0k66
-	 5dn3YEJTTZO+I+HaUE+kf7Ihc5vW0qQU2kAxmVWfioXtQyBXYy4Z3ugT7NwNclMg2S
-	 LnD1FaCpy5wBxO1JDpn9fvKEi6j+4C4dvjvhl7p6khUW5izLJExxEnUPykgdOPHIIu
-	 leDYKSBcZ3GEg==
-Date: Thu, 7 Aug 2025 13:14:53 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=siZsMLX9fzsgxoDEToW83byhVp6HQ8eM1w59Y6p8hxddWRkc6OV9LYWE03++IEYogJwe7YnMqiBa9hAOa5dsjYnhmLVKARI2ZDU9ryNTQu6+hppoNg1moge8hYojLzRw4x9DAeOxSpvCKVOQn5m2AA+vSdHOld0QRqxOTQlDzL4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 6EC4060532; Thu,  7 Aug 2025 13:29:51 +0200 (CEST)
+Date: Thu, 7 Aug 2025 13:29:51 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf] netfilter: nft_socket: remove WARN_ON_ONCE with giant
- cgroup tree
-Message-ID: <aJSKrfLfML1CEYLk@calendula>
-References: <20250807100516.1380006-1-pablo@netfilter.org>
- <aJSBzdY6FvFHvhZ9@strlen.de>
+Subject: Re: [PATCH nf 1/2] netfilter: ctnetlink: fix refcount leak on table
+ dump
+Message-ID: <aJSOLzS5WJU1U8ys@strlen.de>
+References: <20250801152515.20172-1-fw@strlen.de>
+ <20250801152515.20172-2-fw@strlen.de>
+ <aJSGlBD36tgRNWpT@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aJSBzdY6FvFHvhZ9@strlen.de>
+In-Reply-To: <aJSGlBD36tgRNWpT@calendula>
 
-On Thu, Aug 07, 2025 at 12:37:08PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > syzbot managed to reach this WARN_ON_ONCE with a giant cgroup tree,
-> > remove it.
-> > 
-> >   WARNING: CPU: 0 PID: 5853 at net/netfilter/nft_socket.c:220 nft_socket_init+0x2f4/0x3d0 net/netfilter/nft_socket.c:220
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Aug 01, 2025 at 05:25:08PM +0200, Florian Westphal wrote:
+> > There is a reference count leak in ctnetlink_dump_table():
+> >       if (res < 0) {
+> >                 nf_conntrack_get(&ct->ct_general); // HERE
+> >                 cb->args[1] = (unsigned long)ct;
+> >                 ...
+>                   goto out;
 > 
-> I looked at the repro and as far as i could see it just passes
-> a large NFTA_SOCKET_LEVEL attribute value.
+> >
+> > While its very unlikely, its possible that ct == last.
 > 
-> I'd propose:
+> out:
+>         ...
+>         if (last) {
+>                 /* nf ct hash resize happened, now clear the leftover. */
+>                 if ((struct nf_conn *)cb->args[1] == last) {
+>                         cb->args[1] = 0;
+>                 }
 > 
-> syzbot managed to reach this WARN_ON_ONCE by passing a huge level
-> value, remove it.
+>                 nf_ct_put(last);
+>         }
+> 
+> I think problem was introduced here:
+> 
+>   fefa92679dbe ("netfilter: ctnetlink: fix incorrect nf_ct_put during hash resize")
 
-I guess it is both, huge level value and giant cgroup tree.
+I think you'r right, the 'clear the leftover' is only correct if
+we hit cb->args[0] >= htable_size condition.
+OTOH reverting it gives the problem that commit fixed.
 
-Anyway, I take this description.
+So I think that this code is just way too complicated,
+i have no idea why this ever used reference counts, they do not buy
+anything but headaches.
 
-> Patch is correct though.
+> cookie is indeed safer approach.
 > 
-> Acked-by: Florian Westphal <fw@strlen.de>
+> IIRC, the concern is that cookie could result in providing a bogus
+> conntrack listing due to object recycling, which is more likely to
+> happen with SLAB_TYPESAFE_BY_RCU.
+
+Maybe, but even if this code would just store the address, the probability
+of a recycle happening in such a way that a conntrack oject happens to be
+stored, and then on next dump got re-added at exactly this slot is
+almost 0.
+
+And even if it would have been, the worst that can happen is that we
+dump another entry a second time.  /proc code uses to walk the entire
+table from start, counting dumped-entries and I'm not aware of 'dup'
+complaints.
+
+> Then, it should be very unlikely that such recycling that leads to
+> picking up from the wrong conntrack object because two conntrack
+> objects in the same memory spot will have different id.
+
+Yes, it considers the tuples for the hash too, so its exteremly
+unlikely for a recycle to result in same u32 hash value.
