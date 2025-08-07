@@ -1,95 +1,135 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 422CA266EFC
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Aug 2025 11:29:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CFFA27876E;
+	Thu,  7 Aug 2025 11:30:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754566196; cv=none; b=b2qVfZiFedAWvxqPH1sY8DKw2siT7GaD3KwZY3XR4574B23zNcD5GQDZFTOs31vfMlIIyH6UgiqKuorG1vPZhJemYHbKYHS1t9ZsH5FBGNoEtNDnhfN6ZjeWi2pKglNk+Dz+HAt7k3elBDf45IvvX4D5CncG/nnqVJNbhpgpxGA=
+	t=1754566205; cv=none; b=a1IOw1RP92zsGQFPCFQjlWwQHb7bjYan5YwB1j4WJosDeXVLnqI/+T7ajkNvpR8SIwgiFJaGg/uI65IhlYgdHUMEBbMFATmhrl0Tm/5pl+vGBEYsIWgLqtYMr9mXu3KAIAYAaYEdfZMMcWVKYq8YezR26VMz463dWsWhmL+khn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754566196; c=relaxed/simple;
-	bh=ZMWBe7ewN1kggr+FKq2gDPa1aAUts3ZlEjYkekHSgfM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=siZsMLX9fzsgxoDEToW83byhVp6HQ8eM1w59Y6p8hxddWRkc6OV9LYWE03++IEYogJwe7YnMqiBa9hAOa5dsjYnhmLVKARI2ZDU9ryNTQu6+hppoNg1moge8hYojLzRw4x9DAeOxSpvCKVOQn5m2AA+vSdHOld0QRqxOTQlDzL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6EC4060532; Thu,  7 Aug 2025 13:29:51 +0200 (CEST)
-Date: Thu, 7 Aug 2025 13:29:51 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf 1/2] netfilter: ctnetlink: fix refcount leak on table
- dump
-Message-ID: <aJSOLzS5WJU1U8ys@strlen.de>
-References: <20250801152515.20172-1-fw@strlen.de>
- <20250801152515.20172-2-fw@strlen.de>
- <aJSGlBD36tgRNWpT@calendula>
+	s=arc-20240116; t=1754566205; c=relaxed/simple;
+	bh=qFmLI1J0kGNOCGzVj56Pnm+N8xInvd97RkgeH7diB8o=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=hAAGnrmqXhctXFYgSwdSn/pATOOf1N0hnJQ5ixvU2y3yZYDTSiJsGRHWfyhGu/DQcTf31gJk6iHzQPdD3vT0hySU4F2ep1RyqN+Of+leuXC4aVjj0P61TFN14DEicxCo14aY0cw6cIHPvD9MuNUMnUv8h1TQUiJGGJDpex6XPbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=chE/wCp9; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=iHZgL8d9; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="chE/wCp9";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="iHZgL8d9"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 753BB60A3D; Thu,  7 Aug 2025 13:29:55 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1754566195;
+	bh=gTc5kOzGjljs+wVP/Ll+gPx0NFqpkq/G/0V6KS8kic4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=chE/wCp9FhgLjTtzjecX8SW1tqjy/F5oolb+FHZPf2SyN6d9RNMGXVKmroOKKlZYq
+	 vdifWbRwSqGFJCg8+zBRKpTf8/h8h/y6Fwi+d3OhtRG/JtPaGmzdx7ff3+k0hW55DR
+	 mB5N1L4BDykb6AC2vaLt8pU/c5I58o2MWGrvmZ9OAIVI6IDlsDGiZRv2Fu8IxKmGFF
+	 oPKlEOkU47b1U1jBxHe0DmsHrWo8+jzPxR2vdLmbwRTn1Up0XkpGjm5rjkbmhgtgnb
+	 PuMfFHM0G44cWRgjFH1TNEhlAuB0UMZfZdmRy5I4ZNftiXg40wlbwSMR3Y30W4kbgh
+	 +mfKT7R3AOSrQ==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id EFF8060A3D;
+	Thu,  7 Aug 2025 13:29:52 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1754566193;
+	bh=gTc5kOzGjljs+wVP/Ll+gPx0NFqpkq/G/0V6KS8kic4=;
+	h=From:To:Cc:Subject:Date:From;
+	b=iHZgL8d9hvwPjanlbbQ02WENZ3flAu/ke5XUrRuvLB5OLUalSv0QxL2ExFcEqzxke
+	 8yyqdFzkYE53Yg5ar4OpLYdCralxIYDqUdErUIhyit8hHhG2vcQiWP1vj1g9yvP48A
+	 TolaSZZMy0TSqgEZ96BLkk0h5rUScXiypfcJGcYHgGGUcqa1wCbaw9eh7PYI2UGBkl
+	 XwmVRSl8JJTdwWxAoh0kBA4qG/ke/R25TnHfnKT9FJ6TVzlt5EVDoB8m+27k2hSV2o
+	 fr7ThaNo528Vd9HW8q+JrERf8VtmhDq9VmpO/Iq9ZnlLrSC82QBvUnutaXz1gjtydi
+	 N0SyRfN5rl96g==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net 0/7] Netfilter fixes for net
+Date: Thu,  7 Aug 2025 13:29:41 +0200
+Message-Id: <20250807112948.1400523-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aJSGlBD36tgRNWpT@calendula>
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Fri, Aug 01, 2025 at 05:25:08PM +0200, Florian Westphal wrote:
-> > There is a reference count leak in ctnetlink_dump_table():
-> >       if (res < 0) {
-> >                 nf_conntrack_get(&ct->ct_general); // HERE
-> >                 cb->args[1] = (unsigned long)ct;
-> >                 ...
->                   goto out;
-> 
-> >
-> > While its very unlikely, its possible that ct == last.
-> 
-> out:
->         ...
->         if (last) {
->                 /* nf ct hash resize happened, now clear the leftover. */
->                 if ((struct nf_conn *)cb->args[1] == last) {
->                         cb->args[1] = 0;
->                 }
-> 
->                 nf_ct_put(last);
->         }
-> 
-> I think problem was introduced here:
-> 
->   fefa92679dbe ("netfilter: ctnetlink: fix incorrect nf_ct_put during hash resize")
+Hi,
 
-I think you'r right, the 'clear the leftover' is only correct if
-we hit cb->args[0] >= htable_size condition.
-OTOH reverting it gives the problem that commit fixed.
+The following patchset contains Netfilter fixes for net:
 
-So I think that this code is just way too complicated,
-i have no idea why this ever used reference counts, they do not buy
-anything but headaches.
+1) Reinstantiate Florian Westphal as a Netfilter maintainer.
 
-> cookie is indeed safer approach.
-> 
-> IIRC, the concern is that cookie could result in providing a bogus
-> conntrack listing due to object recycling, which is more likely to
-> happen with SLAB_TYPESAFE_BY_RCU.
+2) Depend on both NETFILTER_XTABLES and NETFILTER_XTABLES_LEGACY,
+   from Arnd Bergmann.
 
-Maybe, but even if this code would just store the address, the probability
-of a recycle happening in such a way that a conntrack oject happens to be
-stored, and then on next dump got re-added at exactly this slot is
-almost 0.
+3) Use id to annotate last conntrack/expectation visited to resume
+   netlink dump, patches from Florian Westphal.
 
-And even if it would have been, the worst that can happen is that we
-dump another entry a second time.  /proc code uses to walk the entire
-table from start, counting dumped-entries and I'm not aware of 'dup'
-complaints.
+4) Fix bogus element in nft_pipapo avx2 lookup, introduced in
+   the last nf-next batch of updates, also from Florian.
 
-> Then, it should be very unlikely that such recycling that leads to
-> picking up from the wrong conntrack object because two conntrack
-> objects in the same memory spot will have different id.
+5) Return 0 instead of recycling ret variable in
+   nf_conntrack_log_invalid_sysctl(), introduced in the last
+   nf-next batch of updates, from Dan Carpenter.
 
-Yes, it considers the tuples for the hash too, so its exteremly
-unlikely for a recycle to result in same u32 hash value.
+6) Fix WARN_ON_ONCE triggered by syzbot with larger cgroup level
+   in nft_socket.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-08-07
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit d942fe13f72bec92f6c689fbd74c5ec38228c16a:
+
+  net: ti: icssg-prueth: Fix skb handling for XDP_PASS (2025-08-05 18:03:33 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-08-07
+
+for you to fetch changes up to 1dee968d22eaeb3eede70df513ab3f8dd1712e3e:
+
+  netfilter: nft_socket: remove WARN_ON_ONCE with huge level value (2025-08-07 13:19:26 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 25-08-07
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      netfilter: add back NETFILTER_XTABLES dependencies
+
+Dan Carpenter (1):
+      netfilter: conntrack: clean up returns in nf_conntrack_log_invalid_sysctl()
+
+Florian Westphal (4):
+      MAINTAINERS: resurrect my netfilter maintainer entry
+      netfilter: ctnetlink: fix refcount leak on table dump
+      netfilter: ctnetlink: remove refcounting in expectation dumpers
+      netfilter: nft_set_pipapo: don't return bogus extension pointer
+
+Pablo Neira Ayuso (1):
+      netfilter: nft_socket: remove WARN_ON_ONCE with huge level value
+
+ MAINTAINERS                             |  1 +
+ net/bridge/netfilter/Kconfig            |  1 +
+ net/ipv4/netfilter/Kconfig              |  3 ++
+ net/ipv6/netfilter/Kconfig              |  1 +
+ net/netfilter/nf_conntrack_netlink.c    | 65 +++++++++++++++------------------
+ net/netfilter/nf_conntrack_standalone.c |  6 +--
+ net/netfilter/nft_set_pipapo_avx2.c     | 12 +++---
+ net/netfilter/nft_socket.c              |  2 +-
+ 8 files changed, 46 insertions(+), 45 deletions(-)
