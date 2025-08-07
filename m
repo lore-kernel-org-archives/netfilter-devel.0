@@ -1,68 +1,132 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7F125A2AE
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Aug 2025 10:51:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01EBB2A1CF
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Aug 2025 10:57:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754563907; cv=none; b=mE4YG2olkRPIoKGKPggJ4IBuTCjFcY0AROIcDHfFpap18XYJCRwQrmf1ysxAr4qG7hpaDV/Ad59KwoJgcl0vmjP8TjaQlpQ/sbI4VjFsMqkz1FJnY31JSJQV22J/lwVqPJF9GClNPClZk9/XhW5NpYHrscdLenis5Yz2V8UUsbY=
+	t=1754564252; cv=none; b=LrXVsqERzlWkw/uvdK5LvPZ5QwHV8fiXRv0xQJNrdHEJfCoNn/lOjLWxzQC0V4CoQ+emuyRzd2Z8Ra8fQ4Qv8HkiFo4R5YogV46KjS+1RPQcm+qZv2wK1TLMq7FWdrXdLYF57x5PEeEEsOsMLgwsxbqcemNmuR2OzBqjul6zckA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754563907; c=relaxed/simple;
-	bh=f9hcYkPvEhdVuAZVVC2J087YjujL90s7Vsdz+8V4LMw=;
+	s=arc-20240116; t=1754564252; c=relaxed/simple;
+	bh=XdA21fINN4x7YaOZPWWsezbUSG2aSud6HV17/2z+bAw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=p+CWJQKiqFZUyIbWmio4mYAOofhUd1ytk+ufY7xvXvjsZvWSB9wBPhUFxK851CmYEis/jijrt3e0CiDIQOspQY7szQxMR88TDEeie3NHY5pR2vFzbQwu3nGeEbG9vfNxOUSIBB8bC81Zfg50TWLO6s/2Q1iGN9n1/Ls7fzWkPc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Nc9KpB/h; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=bQIlgkJ7OhVqOWwVgmliDaiCa5Krpn9PcjTOpRNAYrI8qJ/XwnOQXbn9BGUUcG8J550see7kP7LIRP/cGLILWC+XpO0teqOiponMlWJQKSLzBz8qOQn58QbBsQlfPNWBjTFFuZOBvN4eqONVKg5VChIgFbqNLJFPVbUkPRSk1LU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GDjy8f/T; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fKpjYfc9; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Nc9KpB/h"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=vg7Cs9zlHYwRYgHnVb8Z93u135vrYPhPkjuydbijs/g=; b=Nc9KpB/hFHGkhw+b5B9UkxDI8V
-	Jw7K9dnVOQSzRk9e9j5dDgfey9pR1K7LS0/3H19BwUcOUcwt1rADPgVl41k9i6Jn4uDyvUqbStGIg
-	hST327u3hlCPJ/g4fu45v61iZOcaf+Qs5oh+yBRkWfHNprYX2LBWaJxqt+S0RCEqyy5f+D7fG+5hc
-	GLUJo4qXSDKmW3a1BC/XfQ6rruvXcFikt1BSLVm+pokLfOBP4XIg+Mg0NfNHYbjbXJXK0qAysUKAe
-	NTQUtQizyGG1bYxQVeWg9164xbqaLDAjQlEj7zbqvVMgfabWvOBBK2exF8NNPHgsduQ7CZxX3iGJJ
-	LXtjCwtg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ujyDl-000000003Av-1jnO;
-	Thu, 07 Aug 2025 12:51:41 +0200
-Date: Thu, 7 Aug 2025 12:51:41 +0200
-From: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GDjy8f/T";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fKpjYfc9"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 5B3B060A80; Thu,  7 Aug 2025 12:57:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1754564248;
+	bh=5CcqnI9kdM1nnrTgT4rNcwO9znGed53Kme+vPVoYQkg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=GDjy8f/TPg3lEw4cPyZwoPRLhwIlnSGOI6hjWJBeGjnqUFkV3Pgszg39+rcKxU/GO
+	 Qh1U6L9+6dPCGgCrMYJytiEJHziMmgbGrnmpXVfLFL6ImEI7Go5zbzuKGlHePv3YFg
+	 VFt7D4ZLiOi8xXbhTZ7/8eGZAhf7NesQxuvPJeJ7ZUTyj6MQBPFpdzxfm0nVCZJRak
+	 jCnWffxNm80UlTTip0axRWZhX1s5Gy3UjQGYSCjJEYReEyO36yAqywtAXJIxUr9F5N
+	 U2rGNFoG25NMBmkIaoHLsq97oFqm5oX/VLH0+y3eov5v3QmrEuPrytutLODHkm8wri
+	 ITqPTp9FGj48Q==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9C0FB60A80;
+	Thu,  7 Aug 2025 12:57:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1754564247;
+	bh=5CcqnI9kdM1nnrTgT4rNcwO9znGed53Kme+vPVoYQkg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=fKpjYfc9B6cynZm4+S6ZWiCLVDKpFvl9KjESmkO7y01msq+W9LKJf0tRji6fUrJQP
+	 r/t/WN6Hej0Q7Wgi45AjMsbgGNbiRwHp/QDlrTfSnL7HGdika23hJbaHpkK9A3hzgl
+	 uTq4ONvvT+fdsa6HmxElcjzi2tQ52Q8y3Bl4Sx+Ip4XGpaq72uWU72MUOaeAk7v00W
+	 CKvE6XTzxu8LVAHX6/YosD1JLLtnQcsTKF5RNEQahQQUC9CAujkIo18Jp3U/7Mh29O
+	 fyc3D43I1TxWd1YBYL+zoqc2zV/CMHsrSzY9xLFQtOiPj1Gk0N0hBnKdKK8SINLyQy
+	 J/Y0aQiUWmBEA==
+Date: Thu, 7 Aug 2025 12:57:24 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
-Subject: Re: [nft PATCH] tests: shell: Fix packetpath/rate_limit for old socat
-Message-ID: <aJSFPWo9dS30np-7@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
-References: <20250806143814.4003-1-phil@nwl.cc>
- <aJSCM58M4KUlq0vc@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf 1/2] netfilter: ctnetlink: fix refcount leak on table
+ dump
+Message-ID: <aJSGlBD36tgRNWpT@calendula>
+References: <20250801152515.20172-1-fw@strlen.de>
+ <20250801152515.20172-2-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aJSCM58M4KUlq0vc@strlen.de>
+In-Reply-To: <20250801152515.20172-2-fw@strlen.de>
 
-On Thu, Aug 07, 2025 at 12:38:43PM +0200, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > The test would spuriously fail on RHEL9 due to the penultimate socat
-> > call exiting 0 despite the connection being expected to fail. Florian
-> > writes:
+Hi Florian,
+
+On Fri, Aug 01, 2025 at 05:25:08PM +0200, Florian Westphal wrote:
+> There is a reference count leak in ctnetlink_dump_table():
+>       if (res < 0) {
+>                 nf_conntrack_get(&ct->ct_general); // HERE
+>                 cb->args[1] = (unsigned long)ct;
+>                 ...
+                  goto out;
+
+>
+> While its very unlikely, its possible that ct == last.
+
+out:
+        ...
+        if (last) {
+                /* nf ct hash resize happened, now clear the leftover. */
+                if ((struct nf_conn *)cb->args[1] == last) {
+                        cb->args[1] = 0;
+                }
+
+                nf_ct_put(last);
+        }
+
+I think problem was introduced here:
+
+  fefa92679dbe ("netfilter: ctnetlink: fix incorrect nf_ct_put during hash resize")
+
+> If this happens, then the refcount of ct was already incremented.
+> This 2nd increment is never undone.
 > 
-> Thanks for sending a patch.  Please push it out.
+> This prevents the conntrack object from being released, which in turn
+> keeps prevents cnet->count from dropping back to 0.
+> 
+> This will then block the netns dismantle (or conntrack rmmod) as
+> nf_conntrack_cleanup_net_list() will wait forever.
+> 
+> This can be reproduced by running conntrack_resize.sh selftest in a loop.
+> It takes ~20 minutes for me on a preemptible kernel on average before
+> I see a runaway kworker spinning in nf_conntrack_cleanup_net_list.
+> 
+> One fix would to change this to:
+>         if (res < 0) {
+> 		if (ct != last)
+> 	                nf_conntrack_get(&ct->ct_general);
+> 
+> But this reference counting isn't needed in the first place.
+> We can just store a cookie value instead.
 
-You're welcome, thanks for your analysis!
+cookie is indeed safer approach.
 
-Patch applied.
+IIRC, the concern is that cookie could result in providing a bogus
+conntrack listing due to object recycling, which is more likely to
+happen with SLAB_TYPESAFE_BY_RCU.
+
+nf_ct_get_id() is adding using a random seed to generate the conntrack
+id:
+
+u32 nf_ct_get_id(const struct nf_conn *ct)
+{
+        static siphash_aligned_key_t ct_id_seed;
+        unsigned long a, b, c, d;
+
+        net_get_random_once(&ct_id_seed, sizeof(ct_id_seed));
+
+Then, it should be very unlikely that such recycling that leads to
+picking up from the wrong conntrack object because two conntrack
+objects in the same memory spot will have different id.
