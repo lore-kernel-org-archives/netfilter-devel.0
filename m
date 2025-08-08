@@ -1,80 +1,91 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C861280CC9;
-	Fri,  8 Aug 2025 15:39:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0692C1F1317;
+	Fri,  8 Aug 2025 18:50:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754667550; cv=none; b=cynSkA0gp/2fgrrPXHm6Uj21kHqI66Jx/JrCiM8oKmo56AFRptB/IkDTi0BY7xJdy6SPlzPF19S0Mv5vfQ8R8XoXMWxV1EwqcM7lVkklEJzzcpQ5FJ7g/YRixt+rmNVpQUPTBE4rhLuaTjdVz6s0NJqZWq8S2djrDH/NjPtBew8=
+	t=1754679003; cv=none; b=O7mwodBp0LZf3aSqxwBfYEncSWbn79EGoRDL2jTanggQC2zmNRdAU3/x5N3kt7LkYGyNY3Cp1nK3vTyAigzAqy5oKeTG2pXVIWrYSGnBwieAWhM1n0hOgdPBa1lx5Z+H2eo6/PCwcJrq66KTQ3tPBF5w6yLWtkjx18uV0iWydaM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754667550; c=relaxed/simple;
-	bh=bIfL0e33u6RYdNWrpITQqISLujvJoxHnREtwk8aHqbE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Q3V3ag96ouP57GafwU99sWkyjroHBh6B9mginNy31LkDPX9RSIA20VmyEpowNIwX3lY1KnQWLphp6gHLEZSSuWDwoFBMO1EH3+kP7lkzlZ125nXOvyzRrNNjG3U140AXFR98EQOFhbkzAj2vZv9j7wEH4e3B8H4Yv3Izc+MXs7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=mUC9qPhl; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=3HfHauUy; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1754679003; c=relaxed/simple;
+	bh=fnWtwW0wfggDVHKFx3Huq8TZ0yT+EucVO8J2pjU5PBI=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=c+tTm3DwTHBeKHu6nRXY0yBUt5G3DeBZYTelVrXn2PtzHGBKTp3oU6ORIrEdmJxy4JuhkHkpy8VXDMJKgvrYgKKxTibX0tJ8bhRlQIElRezhetLGujTxGp/X72ScmJtdz5EHQi17kVjOVcqPoDQlDNVNsF1h9BQH5+05r0MNkHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I/fWEduk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="mUC9qPhl";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="3HfHauUy"
-Date: Fri, 8 Aug 2025 17:39:06 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1754667547;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=MO9f4MyIZ7JsV7rRadUC7f84AZf503KjnGQDkkRi5fs=;
-	b=mUC9qPhlKkHv37BV5ZUzYipclNAHAHwTaT1NIGd4pfk83RA+NPmCNYimyBPMS69apGm0Wd
-	zQD8VXT1CfAvrgzfsBwzqxDLoL5KDDz89xoB/9cc1ycEnmzUQoIuzud2vdsM2pIoQv9EP/
-	4eQYRzX570oeiIgkGXdUPBKRuHkc0yLOEBllg1reqshSE4kwyGEP1rBuYuTE62mB80tfj0
-	NtfsEimSxvLhV8PUN0VSn0PmlToPCAgN+I4nCm1dh/Ug2BrdLoILQzU/S7biB3Xjum2yhQ
-	sqnSGSzj8P4lLnphDJz+B9yLtHykQQQUH6/qSDxva0h9rZNXF2ozY6JdRhWFIQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1754667547;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=MO9f4MyIZ7JsV7rRadUC7f84AZf503KjnGQDkkRi5fs=;
-	b=3HfHauUyUbb7KnMQ8vxfyNJmQCSsdY7tI2DB4qaHpysLRl7ZYA6cJyY95rz6LYFn8HTwhq
-	BAsN13+5h5d8EKBg==
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	Linux Next Mailing List <linux-next@vger.kernel.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: linux-next: Tree for Jul 29 (net/ipv4/netfilter/arp_tables.o)
-Message-ID: <20250808153906.ykBfYLLA@linutronix.de>
-References: <20250729153510.3781ac91@canb.auug.org.au>
- <a54d3f69-fb7d-48b0-9dea-4ff9a3fb70d1@infradead.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I/fWEduk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82180C4CEED;
+	Fri,  8 Aug 2025 18:50:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1754679002;
+	bh=fnWtwW0wfggDVHKFx3Huq8TZ0yT+EucVO8J2pjU5PBI=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=I/fWEdukJ+XYaeB0+zkq4tqb4/3xPDsdmSCxzfqdw4shrPTrhSXwCKmLsxIZq9qky
+	 IRrielCw40h/vX+NKnm4qeQdau+1vd0uXlWkTAFzvhmAAn+eASHaLO1iaRslg/e3ML
+	 NA8/yMJ1DzAsV/BRNA/Ye/acorOyBFXM0waMJSR6JXktY49tdiOOVkWGSmtHN0K0/4
+	 v6+2yP4AbtBiJem5cgkPvk4ckd2Jw5PomXqoEmqXiRGupuXaddy5udaNocEUBAVu5v
+	 1n9WCAwD/d+JR70fOCrYcY3JaZAJLGOqqzIFUJsDKsnIFHq3ruCoVn1ttb5uHfQkl/
+	 FPe5qwpDvs9mQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EAF20383BF5A;
+	Fri,  8 Aug 2025 18:50:16 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <a54d3f69-fb7d-48b0-9dea-4ff9a3fb70d1@infradead.org>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 1/7] MAINTAINERS: resurrect my netfilter maintainer
+ entry
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <175467901577.231968.2283299992667493309.git-patchwork-notify@kernel.org>
+Date: Fri, 08 Aug 2025 18:50:15 +0000
+References: <20250807112948.1400523-2-pablo@netfilter.org>
+In-Reply-To: <20250807112948.1400523-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
-On 2025-07-29 17:26:02 [-0700], Randy Dunlap wrote:
-> 
-> 
-> On 7/28/25 10:35 PM, Stephen Rothwell wrote:
-> > Hi all,
-> > 
-> > Changes since 20250728:
-> > 
-> 
-> on i386, when
-> CONFIG_NETFILTER_XTABLES=m
-> CONFIG_IP_NF_ARPTABLES=y
-> 
-> ld: net/ipv4/netfilter/arp_tables.o: in function `xt_write_recseq_begin':
+Hello:
 
- 25a8b88f000c3 ("netfilter: add back NETFILTER_XTABLES dependencies")
- https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git/commit/?h=for-netdev-nf-25-08-07&id=25a8b88f000c33a1d580c317e93e40b953dc2fa5
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-Sebastian
+On Thu,  7 Aug 2025 13:29:42 +0200 you wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> This reverts commit b5048d27872a9734d142540ea23c3e897e47e05c.
+> Its been more than a year, hope my motivation lasts a bit longer than
+> last time :-)
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> [...]
+
+Here is the summary with links:
+  - [net,1/7] MAINTAINERS: resurrect my netfilter maintainer entry
+    https://git.kernel.org/netdev/net/c/f752adfaf5f7
+  - [net,2/7] netfilter: add back NETFILTER_XTABLES dependencies
+    https://git.kernel.org/netdev/net/c/25a8b88f000c
+  - [net,3/7] netfilter: ctnetlink: fix refcount leak on table dump
+    https://git.kernel.org/netdev/net/c/de788b2e6227
+  - [net,4/7] netfilter: ctnetlink: remove refcounting in expectation dumpers
+    https://git.kernel.org/netdev/net/c/1492e3dcb2be
+  - [net,5/7] netfilter: nft_set_pipapo: don't return bogus extension pointer
+    https://git.kernel.org/netdev/net/c/c8a7c2c60818
+  - [net,6/7] netfilter: conntrack: clean up returns in nf_conntrack_log_invalid_sysctl()
+    https://git.kernel.org/netdev/net/c/f54186df806f
+  - [net,7/7] netfilter: nft_socket: remove WARN_ON_ONCE with huge level value
+    https://git.kernel.org/netdev/net/c/1dee968d22ea
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
