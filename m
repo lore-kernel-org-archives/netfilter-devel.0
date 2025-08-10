@@ -1,91 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f172.google.com (mail-il1-f172.google.com [209.85.166.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0692C1F1317;
-	Fri,  8 Aug 2025 18:50:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50B2242049;
+	Sun, 10 Aug 2025 20:09:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754679003; cv=none; b=O7mwodBp0LZf3aSqxwBfYEncSWbn79EGoRDL2jTanggQC2zmNRdAU3/x5N3kt7LkYGyNY3Cp1nK3vTyAigzAqy5oKeTG2pXVIWrYSGnBwieAWhM1n0hOgdPBa1lx5Z+H2eo6/PCwcJrq66KTQ3tPBF5w6yLWtkjx18uV0iWydaM=
+	t=1754856561; cv=none; b=VzID+G5OuyI/jVqUsxGBMZcVnCk153kSxdPfuCbXgQazAEB7+W14842jwhhV4hbNzd153cUrMH0XklOiHyApVvZ0LMtIIF5biCQWN+MXZMVRykygGO96wTKxIBL26aMXCy/U10Uq8t1kw0V8jDsQr1osihoKq05gTwPFHy3b8qg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754679003; c=relaxed/simple;
-	bh=fnWtwW0wfggDVHKFx3Huq8TZ0yT+EucVO8J2pjU5PBI=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=c+tTm3DwTHBeKHu6nRXY0yBUt5G3DeBZYTelVrXn2PtzHGBKTp3oU6ORIrEdmJxy4JuhkHkpy8VXDMJKgvrYgKKxTibX0tJ8bhRlQIElRezhetLGujTxGp/X72ScmJtdz5EHQi17kVjOVcqPoDQlDNVNsF1h9BQH5+05r0MNkHM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=I/fWEduk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1754856561; c=relaxed/simple;
+	bh=TJOTMGDzepfJi/+Mv/d7FMhhFjNe7ZBrEUUAV6TOgx8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=W1aaYcw3KAgI+T+Ci+vdM+xNgI6Aoe+0Uy0EOd8ZgTQEZVomlyK/au4uYN3gsIvDBLNuid9kzBN0Z/IY4nSO/UTlpYVnTAPfn1LDrJxBWlS4OjqEza8goya0iz7p3PL1QTm+rsP9znt8bYdCD8Q51wQlESK8WqcQ3L2AlYrkkNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BInkjcK7; arc=none smtp.client-ip=209.85.166.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="I/fWEduk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82180C4CEED;
-	Fri,  8 Aug 2025 18:50:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1754679002;
-	bh=fnWtwW0wfggDVHKFx3Huq8TZ0yT+EucVO8J2pjU5PBI=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=I/fWEdukJ+XYaeB0+zkq4tqb4/3xPDsdmSCxzfqdw4shrPTrhSXwCKmLsxIZq9qky
-	 IRrielCw40h/vX+NKnm4qeQdau+1vd0uXlWkTAFzvhmAAn+eASHaLO1iaRslg/e3ML
-	 NA8/yMJ1DzAsV/BRNA/Ye/acorOyBFXM0waMJSR6JXktY49tdiOOVkWGSmtHN0K0/4
-	 v6+2yP4AbtBiJem5cgkPvk4ckd2Jw5PomXqoEmqXiRGupuXaddy5udaNocEUBAVu5v
-	 1n9WCAwD/d+JR70fOCrYcY3JaZAJLGOqqzIFUJsDKsnIFHq3ruCoVn1ttb5uHfQkl/
-	 FPe5qwpDvs9mQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EAF20383BF5A;
-	Fri,  8 Aug 2025 18:50:16 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BInkjcK7"
+Received: by mail-il1-f172.google.com with SMTP id e9e14a558f8ab-3e51dc20af6so39548355ab.0;
+        Sun, 10 Aug 2025 13:09:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1754856559; x=1755461359; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=TJOTMGDzepfJi/+Mv/d7FMhhFjNe7ZBrEUUAV6TOgx8=;
+        b=BInkjcK7OpfK61qpYYKG4TxJcp9K+CGndlzPiFr33VcS4CMUPWqTB2mn5npJdm9LSm
+         GM2bzqOs/aCSz5NakDhQrzBrmXjum27s3AtB+LUt0D+lp8CT8PlIrHq2lqqm/UMGIZ0V
+         xIViWPQ5hE9d5TyK4AuLS0NF2kX2PlimnwrL1S3dXTSOtAGN+3Q8G98vtBy8takS4pzQ
+         cmOoywUu1LKz3UFdvfHTSv9oiLe7k0KNxBc2ApjB47RQJfozjkUJIf/YyIbNthgfUFu/
+         IAMBEErXxeQ2yfwW1ZEcC2eufKcnV1hiN+LbFZfWyMzwEMuK4TiY6qkILLA+PJxRsfQa
+         MVQQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754856559; x=1755461359;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=TJOTMGDzepfJi/+Mv/d7FMhhFjNe7ZBrEUUAV6TOgx8=;
+        b=CHJip2ss5qcuUPrhgClhdmHKpAUkq6uuknxwui7BkxcTSiFSjnp7jZwoU52ztg0W0t
+         TAB/S18ZXe86QnsrRBlr95oKykKlfSaA3PwdgFDsTsn7JVFGnj8XxidlQbXDVrtM4suT
+         wS6vTXkSnqiqQpkn+iF6BkzYzXM7WeD7iXEX/RZl3/mt9WN628rA1y/ViGUi2QrUB846
+         VGDhqwhK591FuB4/ZoHJPuhzhexf/JuAp2qkMY0kASk2sE+1KJzPNeU1VF/E5RMI5i1Q
+         QGyjWStRVScyL0oHuqMFwGZsKgo1p7LwzKT2qXJjKoHOVYqpLOEiUBWx9C3XNG/dBhiI
+         9CXw==
+X-Forwarded-Encrypted: i=1; AJvYcCU4EDmKhYbZ0oE4mbco5ULivCF5AOqFBVLHqNhV8WMICtsYQEn6d0dOxTd6+td+PDeQKYIcOWzl6qDyfBLPMdW+@vger.kernel.org, AJvYcCUws44CVyhzNj/m6uOpAfE+FLqfbNsjwBQhCXozHYaWHlps1umyrzOEpDLed6rYdhjoYn5MXMY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyWlFvNRKXFJ+xwzejS1hw9TEaKQcMrxbiniEaLY8SETTH+PBwc
+	eGBU52lLUToRXqvSX6UVAVwnJL0R+zn5p9jN0P2yFM2J9eXDjK13vfvmlm2CZ08CI0siq6q7xwM
+	x+iXGhHiJMYzFoG4z8OuTe8llya9ua64=
+X-Gm-Gg: ASbGncuD9vzaS39aKuhVyCyP0JojPMh6ZArFmUUSOYvl/hHkSq2BDAFT1jdziRrVHaW
+	UlSgRrlcqpG6HyQMNpz7Yg7NRFeoVShUpm2nE0nHGfbzYU8vO8KCnohxWNMpr30062giOiOK4gf
+	XDr/I12Riw+uPCaPUzW8JFnDTueKQm9KIX+DgZZOmdHZhjyIZqzWa23ic5nNJ+Fhk8Tg3xLUItP
+	ombAQ==
+X-Google-Smtp-Source: AGHT+IGwfDWckglxUhLCF/fClE8+DawINTnviN0EYShtXypJR3bDTibLWawRrQCoG18XLzsqTc8zZlDuFqMNhmdPZTQ=
+X-Received: by 2002:a05:6e02:4803:b0:3e5:4002:e827 with SMTP id
+ e9e14a558f8ab-3e54002eab1mr113519745ab.6.1754856559260; Sun, 10 Aug 2025
+ 13:09:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/7] MAINTAINERS: resurrect my netfilter maintainer
- entry
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <175467901577.231968.2283299992667493309.git-patchwork-notify@kernel.org>
-Date: Fri, 08 Aug 2025 18:50:15 +0000
-References: <20250807112948.1400523-2-pablo@netfilter.org>
-In-Reply-To: <20250807112948.1400523-2-pablo@netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, fw@strlen.de, horms@kernel.org
+References: <20250807112948.1400523-1-pablo@netfilter.org> <20250807112948.1400523-2-pablo@netfilter.org>
+ <CANn89iL1=5ykpHXZtp0_J-oUbd7pJQTDL__JDaJR-JbiQDkCPQ@mail.gmail.com> <20250807182428.GN61519@horms.kernel.org>
+In-Reply-To: <20250807182428.GN61519@horms.kernel.org>
+From: Antonio Ojea <antonio.ojea.garcia@gmail.com>
+Date: Sun, 10 Aug 2025 22:08:43 +0200
+X-Gm-Features: Ac12FXyr8HUMyyUALTEQ_S2ZQTqlVgmX33sF3zQE0waMH_DIswA_kutWFOWww_E
+Message-ID: <CABhP=tYWMVvVoMoAzCYnPZAyCHavojy1cBBf6G-jd5=ivzm4TA@mail.gmail.com>
+Subject: Re: [PATCH net 1/7] MAINTAINERS: resurrect my netfilter maintainer entry
+To: Simon Horman <horms@kernel.org>
+Cc: Eric Dumazet <edumazet@google.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+	netfilter-devel@vger.kernel.org, davem@davemloft.net, netdev@vger.kernel.org, 
+	kuba@kernel.org, pabeni@redhat.com, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Pablo Neira Ayuso <pablo@netfilter.org>:
-
-On Thu,  7 Aug 2025 13:29:42 +0200 you wrote:
 > From: Florian Westphal <fw@strlen.de>
-> 
+>
 > This reverts commit b5048d27872a9734d142540ea23c3e897e47e05c.
 > Its been more than a year, hope my motivation lasts a bit longer than
 > last time :-)
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> [...]
 
-Here is the summary with links:
-  - [net,1/7] MAINTAINERS: resurrect my netfilter maintainer entry
-    https://git.kernel.org/netdev/net/c/f752adfaf5f7
-  - [net,2/7] netfilter: add back NETFILTER_XTABLES dependencies
-    https://git.kernel.org/netdev/net/c/25a8b88f000c
-  - [net,3/7] netfilter: ctnetlink: fix refcount leak on table dump
-    https://git.kernel.org/netdev/net/c/de788b2e6227
-  - [net,4/7] netfilter: ctnetlink: remove refcounting in expectation dumpers
-    https://git.kernel.org/netdev/net/c/1492e3dcb2be
-  - [net,5/7] netfilter: nft_set_pipapo: don't return bogus extension pointer
-    https://git.kernel.org/netdev/net/c/c8a7c2c60818
-  - [net,6/7] netfilter: conntrack: clean up returns in nf_conntrack_log_invalid_sysctl()
-    https://git.kernel.org/netdev/net/c/f54186df806f
-  - [net,7/7] netfilter: nft_socket: remove WARN_ON_ONCE with huge level value
-    https://git.kernel.org/netdev/net/c/1dee968d22ea
-
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+This is fantastic news !
