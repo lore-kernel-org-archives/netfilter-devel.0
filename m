@@ -1,67 +1,70 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14AD78C9C
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2025 10:31:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06E601DEFE6
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2025 18:28:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754908293; cv=none; b=HvDjszki3w6kftci4+h/i/hJ+/s9JA8gzcGQyIJVRydl+jiN/aGgpqRSLP0y1QDoPodtkNM6oMf28oODCWdFyr226unKRTPn6/9K1URu1J7tp3XSkjoeibduC9kSx/ZKDZgkKFAU8Uosp52VCxUgMHXVGDMWCREf0ndY8OzLxgA=
+	t=1754936897; cv=none; b=WetBuheO50S9epTJxXqMLAHEe9zUhZ7JPnCk6Hx3lG/D/LLSt7CAnq1t/ZKIM7XD9A1+8E51o6b9w4Eed2t+8ulcD2M94OWVu7legOmEdeRbJc6/poJbXeRwvgczgHrfD0gpnJdvle3yRsfZgqZiRATxmf7zPGTjwyzfe/KAaKw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754908293; c=relaxed/simple;
-	bh=QOl4Q+iNdDmR3CLmeSe+qR1iv4dsUUzWSBPzuzTwOYc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AeZCcuZxXwMiAb7sH0txqrlHToB8qxycXzfh134jw0q628pmj6blFc7Q/BDNJJZxO+LVIDpgMFWKcgYeNSpg/Er7TjDJZOhPvLlheZ/DU44e0yB3GMtf1026o+WW/KoUJd1S/EYnGOzOlhc6W7qxR3wWz1Rpp2IEnPLR77Tm0d4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 50B25601B0; Mon, 11 Aug 2025 12:31:29 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nft_set_pipapo: fix null deref for empty set
-Date: Mon, 11 Aug 2025 12:31:04 +0200
-Message-ID: <20250811103118.15299-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
+	s=arc-20240116; t=1754936897; c=relaxed/simple;
+	bh=2hNIV8GwND/zvKakbt0eh/aKwL4fXDeXmhZC/IpzRXo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FEjp9+ivWx2zI8rhauRMQCpUkpmnpvyjUFGBcwPodNyFHWwb5IjEZBmq8UQ/w5Rmig5qIp/m0Hsc/s8QU7djxPGjbIQE+lndoNY00bWC7MuioGBtgXeGoxP0bP8ppMqO76ARgdSzsl2QE81SJBn7yZfp3gpAKJzWogrucinoZiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=utlFqBQw; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=utlFqBQw; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="utlFqBQw";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="utlFqBQw"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 7BF2D6069C; Mon, 11 Aug 2025 20:28:06 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1754936886;
+	bh=bA3X0GZXkFc5x1bzSyi8Nzw4vZLAMekL8tLmPi3ozPE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=utlFqBQwLQ5gcnRxcFgFdtbSPoE7gg8z2DFzODo+FJEbOv5+74snjt1BzneTzEDmB
+	 jSyo1qUv5ILMEBoDFeZBz+Fb77NhCxJOmtYwZ1A9tURz3wTuaUpSH/1lUijE2ruFEB
+	 rk2FrG0VrFk1GbKrxdT+Vk7ZC3P7fed+d0PkrXtNJ0bOethT73t67gUvL8FyiJzYHb
+	 KMvtVvb+HFravwqT74EZI6LhDeR4gQroazzCudVEqrY30lfrXgVp6zAwgu0lWiBHpG
+	 R5HF/i5diuce/pU5VCm+qf5UHKSO3A8f5mmdVJe39o/mVjZNUoZ48zCtVpMsJnaheU
+	 u0En8gb4MdknA==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DE9746069C;
+	Mon, 11 Aug 2025 20:28:05 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1754936886;
+	bh=bA3X0GZXkFc5x1bzSyi8Nzw4vZLAMekL8tLmPi3ozPE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=utlFqBQwLQ5gcnRxcFgFdtbSPoE7gg8z2DFzODo+FJEbOv5+74snjt1BzneTzEDmB
+	 jSyo1qUv5ILMEBoDFeZBz+Fb77NhCxJOmtYwZ1A9tURz3wTuaUpSH/1lUijE2ruFEB
+	 rk2FrG0VrFk1GbKrxdT+Vk7ZC3P7fed+d0PkrXtNJ0bOethT73t67gUvL8FyiJzYHb
+	 KMvtVvb+HFravwqT74EZI6LhDeR4gQroazzCudVEqrY30lfrXgVp6zAwgu0lWiBHpG
+	 R5HF/i5diuce/pU5VCm+qf5UHKSO3A8f5mmdVJe39o/mVjZNUoZ48zCtVpMsJnaheU
+	 u0En8gb4MdknA==
+Date: Mon, 11 Aug 2025 20:28:03 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] tests: py: revert dccp python tests
+Message-ID: <aJo2M9qb6hNvUGyX@calendula>
+References: <20250811092510.5744-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250811092510.5744-1-fw@strlen.de>
 
-Blamed commit broke the check for a null scratch map:
-  -  if (unlikely(!m || !*raw_cpu_ptr(m->scratch)))
-  +  if (unlikely(!raw_cpu_ptr(m->scratch)))
+On Mon, Aug 11, 2025 at 11:25:06AM +0200, Florian Westphal wrote:
+> These fail for kernels with 'CONFIG_NFT_EXTHDR_DCCP is not set', remove
+> the tests in anticipation of a future removal from both kernel and
+> nftables.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-This should have been "if (!*raw_ ...)".
-Use the pattern of the avx2 version which is more readable.
-
-This can only be reproduced if avx2 support isn't available.
-
-Fixes: d8d871a35ca9 ("netfilter: nft_set_pipapo: merge pipapo_get/lookup")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_pipapo.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 1a19649c2851..601dd5ed0e0c 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -426,10 +426,9 @@ static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
- 
- 	local_bh_disable();
- 
--	if (unlikely(!raw_cpu_ptr(m->scratch)))
--		goto out;
--
- 	scratch = *raw_cpu_ptr(m->scratch);
-+	if (!scratch)
-+		goto out;
- 
- 	map_index = scratch->map_index;
- 
--- 
-2.49.1
-
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
