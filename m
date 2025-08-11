@@ -1,82 +1,133 @@
-Received: from mail-il1-f172.google.com (mail-il1-f172.google.com [209.85.166.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50B2242049;
-	Sun, 10 Aug 2025 20:09:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A149C3D561
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2025 09:30:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754856561; cv=none; b=VzID+G5OuyI/jVqUsxGBMZcVnCk153kSxdPfuCbXgQazAEB7+W14842jwhhV4hbNzd153cUrMH0XklOiHyApVvZ0LMtIIF5biCQWN+MXZMVRykygGO96wTKxIBL26aMXCy/U10Uq8t1kw0V8jDsQr1osihoKq05gTwPFHy3b8qg=
+	t=1754904649; cv=none; b=dKxky5kbMHm9Km+BECVDB/ZQA2F3nsRZ/olUV8qSElPivCr8JVOXMSpOm2fanNpTHqLOiBnExwo/g+fmVh7UWzZdverdD2mxl27wtCghw4p4c3VfTzotygBk9wIkPOh/h+jbmb8ye/VFTdxjIHqTvAIeq7j/Ly0MVV0Z4+ZbcCQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754856561; c=relaxed/simple;
-	bh=TJOTMGDzepfJi/+Mv/d7FMhhFjNe7ZBrEUUAV6TOgx8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=W1aaYcw3KAgI+T+Ci+vdM+xNgI6Aoe+0Uy0EOd8ZgTQEZVomlyK/au4uYN3gsIvDBLNuid9kzBN0Z/IY4nSO/UTlpYVnTAPfn1LDrJxBWlS4OjqEza8goya0iz7p3PL1QTm+rsP9znt8bYdCD8Q51wQlESK8WqcQ3L2AlYrkkNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BInkjcK7; arc=none smtp.client-ip=209.85.166.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BInkjcK7"
-Received: by mail-il1-f172.google.com with SMTP id e9e14a558f8ab-3e51dc20af6so39548355ab.0;
-        Sun, 10 Aug 2025 13:09:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1754856559; x=1755461359; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=TJOTMGDzepfJi/+Mv/d7FMhhFjNe7ZBrEUUAV6TOgx8=;
-        b=BInkjcK7OpfK61qpYYKG4TxJcp9K+CGndlzPiFr33VcS4CMUPWqTB2mn5npJdm9LSm
-         GM2bzqOs/aCSz5NakDhQrzBrmXjum27s3AtB+LUt0D+lp8CT8PlIrHq2lqqm/UMGIZ0V
-         xIViWPQ5hE9d5TyK4AuLS0NF2kX2PlimnwrL1S3dXTSOtAGN+3Q8G98vtBy8takS4pzQ
-         cmOoywUu1LKz3UFdvfHTSv9oiLe7k0KNxBc2ApjB47RQJfozjkUJIf/YyIbNthgfUFu/
-         IAMBEErXxeQ2yfwW1ZEcC2eufKcnV1hiN+LbFZfWyMzwEMuK4TiY6qkILLA+PJxRsfQa
-         MVQQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1754856559; x=1755461359;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=TJOTMGDzepfJi/+Mv/d7FMhhFjNe7ZBrEUUAV6TOgx8=;
-        b=CHJip2ss5qcuUPrhgClhdmHKpAUkq6uuknxwui7BkxcTSiFSjnp7jZwoU52ztg0W0t
-         TAB/S18ZXe86QnsrRBlr95oKykKlfSaA3PwdgFDsTsn7JVFGnj8XxidlQbXDVrtM4suT
-         wS6vTXkSnqiqQpkn+iF6BkzYzXM7WeD7iXEX/RZl3/mt9WN628rA1y/ViGUi2QrUB846
-         VGDhqwhK591FuB4/ZoHJPuhzhexf/JuAp2qkMY0kASk2sE+1KJzPNeU1VF/E5RMI5i1Q
-         QGyjWStRVScyL0oHuqMFwGZsKgo1p7LwzKT2qXJjKoHOVYqpLOEiUBWx9C3XNG/dBhiI
-         9CXw==
-X-Forwarded-Encrypted: i=1; AJvYcCU4EDmKhYbZ0oE4mbco5ULivCF5AOqFBVLHqNhV8WMICtsYQEn6d0dOxTd6+td+PDeQKYIcOWzl6qDyfBLPMdW+@vger.kernel.org, AJvYcCUws44CVyhzNj/m6uOpAfE+FLqfbNsjwBQhCXozHYaWHlps1umyrzOEpDLed6rYdhjoYn5MXMY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyWlFvNRKXFJ+xwzejS1hw9TEaKQcMrxbiniEaLY8SETTH+PBwc
-	eGBU52lLUToRXqvSX6UVAVwnJL0R+zn5p9jN0P2yFM2J9eXDjK13vfvmlm2CZ08CI0siq6q7xwM
-	x+iXGhHiJMYzFoG4z8OuTe8llya9ua64=
-X-Gm-Gg: ASbGncuD9vzaS39aKuhVyCyP0JojPMh6ZArFmUUSOYvl/hHkSq2BDAFT1jdziRrVHaW
-	UlSgRrlcqpG6HyQMNpz7Yg7NRFeoVShUpm2nE0nHGfbzYU8vO8KCnohxWNMpr30062giOiOK4gf
-	XDr/I12Riw+uPCaPUzW8JFnDTueKQm9KIX+DgZZOmdHZhjyIZqzWa23ic5nNJ+Fhk8Tg3xLUItP
-	ombAQ==
-X-Google-Smtp-Source: AGHT+IGwfDWckglxUhLCF/fClE8+DawINTnviN0EYShtXypJR3bDTibLWawRrQCoG18XLzsqTc8zZlDuFqMNhmdPZTQ=
-X-Received: by 2002:a05:6e02:4803:b0:3e5:4002:e827 with SMTP id
- e9e14a558f8ab-3e54002eab1mr113519745ab.6.1754856559260; Sun, 10 Aug 2025
- 13:09:19 -0700 (PDT)
+	s=arc-20240116; t=1754904649; c=relaxed/simple;
+	bh=UaFav3XJa//PxeV1+tMVAlx053cKuMwdB/O/EU9AkZs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=riZaRJi0MhO3MvISOv33ICAjRRhcdHR3iNkUCzpziwLLwdadnJbMJos+tXhtJR44+3qTtYISjoK1HPLv7vCamomykCZzCLqOQQcGtsHegt3sETuUi0RqWthDeIjm2D6uxQiNNtXpm+8C7yt19nZAYDrP+FrTfp3svMI+N4jOAzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 482D9601B0; Mon, 11 Aug 2025 11:25:18 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: py: revert dccp python tests
+Date: Mon, 11 Aug 2025 11:25:06 +0200
+Message-ID: <20250811092510.5744-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250807112948.1400523-1-pablo@netfilter.org> <20250807112948.1400523-2-pablo@netfilter.org>
- <CANn89iL1=5ykpHXZtp0_J-oUbd7pJQTDL__JDaJR-JbiQDkCPQ@mail.gmail.com> <20250807182428.GN61519@horms.kernel.org>
-In-Reply-To: <20250807182428.GN61519@horms.kernel.org>
-From: Antonio Ojea <antonio.ojea.garcia@gmail.com>
-Date: Sun, 10 Aug 2025 22:08:43 +0200
-X-Gm-Features: Ac12FXyr8HUMyyUALTEQ_S2ZQTqlVgmX33sF3zQE0waMH_DIswA_kutWFOWww_E
-Message-ID: <CABhP=tYWMVvVoMoAzCYnPZAyCHavojy1cBBf6G-jd5=ivzm4TA@mail.gmail.com>
-Subject: Re: [PATCH net 1/7] MAINTAINERS: resurrect my netfilter maintainer entry
-To: Simon Horman <horms@kernel.org>
-Cc: Eric Dumazet <edumazet@google.com>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	netfilter-devel@vger.kernel.org, davem@davemloft.net, netdev@vger.kernel.org, 
-	kuba@kernel.org, pabeni@redhat.com, fw@strlen.de
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-> From: Florian Westphal <fw@strlen.de>
->
-> This reverts commit b5048d27872a9734d142540ea23c3e897e47e05c.
-> Its been more than a year, hope my motivation lasts a bit longer than
-> last time :-)
+These fail for kernels with 'CONFIG_NFT_EXTHDR_DCCP is not set', remove
+the tests in anticipation of a future removal from both kernel and
+nftables.
 
-This is fantastic news !
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/py/inet/dccp.t         |  5 ----
+ tests/py/inet/dccp.t.json    | 44 ------------------------------------
+ tests/py/inet/dccp.t.payload | 14 ------------
+ 3 files changed, 63 deletions(-)
+
+diff --git a/tests/py/inet/dccp.t b/tests/py/inet/dccp.t
+index 99cddbe77c5b..90142f53254e 100644
+--- a/tests/py/inet/dccp.t
++++ b/tests/py/inet/dccp.t
+@@ -23,8 +23,3 @@ dccp type {request, response, data, ack, dataack, closereq, close, reset, sync,
+ dccp type != {request, response, data, ack, dataack, closereq, close, reset, sync, syncack};ok
+ dccp type request;ok
+ dccp type != request;ok
+-
+-dccp option 0 exists;ok
+-dccp option 43 missing;ok
+-dccp option 255 exists;ok
+-dccp option 256 exists;fail
+diff --git a/tests/py/inet/dccp.t.json b/tests/py/inet/dccp.t.json
+index 9f47e97b8711..806ef5eefca3 100644
+--- a/tests/py/inet/dccp.t.json
++++ b/tests/py/inet/dccp.t.json
+@@ -230,47 +230,3 @@
+     }
+ ]
+ 
+-# dccp option 0 exists
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "dccp option": {
+-                    "type": 0
+-                }
+-            },
+-            "op": "==",
+-            "right": true
+-        }
+-    }
+-]
+-
+-# dccp option 43 missing
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "dccp option": {
+-                    "type": 43
+-                }
+-            },
+-            "op": "==",
+-            "right": false
+-        }
+-    }
+-]
+-
+-# dccp option 255 exists
+-[
+-    {
+-        "match": {
+-            "left": {
+-                "dccp option": {
+-                    "type": 255
+-                }
+-            },
+-            "op": "==",
+-            "right": true
+-        }
+-    }
+-]
+diff --git a/tests/py/inet/dccp.t.payload b/tests/py/inet/dccp.t.payload
+index 7cb9721c1cd8..b5edfa5daed9 100644
+--- a/tests/py/inet/dccp.t.payload
++++ b/tests/py/inet/dccp.t.payload
+@@ -97,17 +97,3 @@ inet test-inet input
+   [ bitwise reg 1 = ( reg 1 & 0x0000001e ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000000 ]
+ 
+-# dccp option 0 exists
+-ip test-inet input
+-  [ exthdr load 1b @ 0 + 0 present => reg 1 ]
+-  [ cmp eq reg 1 0x00000001 ]
+-
+-# dccp option 43 missing
+-ip test-inet input
+-  [ exthdr load 1b @ 43 + 0 present => reg 1 ]
+-  [ cmp eq reg 1 0x00000000 ]
+-
+-# dccp option 255 exists
+-ip test-inet input
+-  [ exthdr load 1b @ 255 + 0 present => reg 1 ]
+-  [ cmp eq reg 1 0x00000001 ]
+-- 
+2.49.1
+
