@@ -1,26 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A149C3D561
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2025 09:30:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A14AD78C9C
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2025 10:31:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754904649; cv=none; b=dKxky5kbMHm9Km+BECVDB/ZQA2F3nsRZ/olUV8qSElPivCr8JVOXMSpOm2fanNpTHqLOiBnExwo/g+fmVh7UWzZdverdD2mxl27wtCghw4p4c3VfTzotygBk9wIkPOh/h+jbmb8ye/VFTdxjIHqTvAIeq7j/Ly0MVV0Z4+ZbcCQ=
+	t=1754908293; cv=none; b=HvDjszki3w6kftci4+h/i/hJ+/s9JA8gzcGQyIJVRydl+jiN/aGgpqRSLP0y1QDoPodtkNM6oMf28oODCWdFyr226unKRTPn6/9K1URu1J7tp3XSkjoeibduC9kSx/ZKDZgkKFAU8Uosp52VCxUgMHXVGDMWCREf0ndY8OzLxgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754904649; c=relaxed/simple;
-	bh=UaFav3XJa//PxeV1+tMVAlx053cKuMwdB/O/EU9AkZs=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=riZaRJi0MhO3MvISOv33ICAjRRhcdHR3iNkUCzpziwLLwdadnJbMJos+tXhtJR44+3qTtYISjoK1HPLv7vCamomykCZzCLqOQQcGtsHegt3sETuUi0RqWthDeIjm2D6uxQiNNtXpm+8C7yt19nZAYDrP+FrTfp3svMI+N4jOAzw=
+	s=arc-20240116; t=1754908293; c=relaxed/simple;
+	bh=QOl4Q+iNdDmR3CLmeSe+qR1iv4dsUUzWSBPzuzTwOYc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AeZCcuZxXwMiAb7sH0txqrlHToB8qxycXzfh134jw0q628pmj6blFc7Q/BDNJJZxO+LVIDpgMFWKcgYeNSpg/Er7TjDJZOhPvLlheZ/DU44e0yB3GMtf1026o+WW/KoUJd1S/EYnGOzOlhc6W7qxR3wWz1Rpp2IEnPLR77Tm0d4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 482D9601B0; Mon, 11 Aug 2025 11:25:18 +0200 (CEST)
+	id 50B25601B0; Mon, 11 Aug 2025 12:31:29 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: py: revert dccp python tests
-Date: Mon, 11 Aug 2025 11:25:06 +0200
-Message-ID: <20250811092510.5744-1-fw@strlen.de>
+Subject: [PATCH nf] netfilter: nft_set_pipapo: fix null deref for empty set
+Date: Mon, 11 Aug 2025 12:31:04 +0200
+Message-ID: <20250811103118.15299-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,104 +30,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-These fail for kernels with 'CONFIG_NFT_EXTHDR_DCCP is not set', remove
-the tests in anticipation of a future removal from both kernel and
-nftables.
+Blamed commit broke the check for a null scratch map:
+  -  if (unlikely(!m || !*raw_cpu_ptr(m->scratch)))
+  +  if (unlikely(!raw_cpu_ptr(m->scratch)))
 
+This should have been "if (!*raw_ ...)".
+Use the pattern of the avx2 version which is more readable.
+
+This can only be reproduced if avx2 support isn't available.
+
+Fixes: d8d871a35ca9 ("netfilter: nft_set_pipapo: merge pipapo_get/lookup")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/inet/dccp.t         |  5 ----
- tests/py/inet/dccp.t.json    | 44 ------------------------------------
- tests/py/inet/dccp.t.payload | 14 ------------
- 3 files changed, 63 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/tests/py/inet/dccp.t b/tests/py/inet/dccp.t
-index 99cddbe77c5b..90142f53254e 100644
---- a/tests/py/inet/dccp.t
-+++ b/tests/py/inet/dccp.t
-@@ -23,8 +23,3 @@ dccp type {request, response, data, ack, dataack, closereq, close, reset, sync,
- dccp type != {request, response, data, ack, dataack, closereq, close, reset, sync, syncack};ok
- dccp type request;ok
- dccp type != request;ok
--
--dccp option 0 exists;ok
--dccp option 43 missing;ok
--dccp option 255 exists;ok
--dccp option 256 exists;fail
-diff --git a/tests/py/inet/dccp.t.json b/tests/py/inet/dccp.t.json
-index 9f47e97b8711..806ef5eefca3 100644
---- a/tests/py/inet/dccp.t.json
-+++ b/tests/py/inet/dccp.t.json
-@@ -230,47 +230,3 @@
-     }
- ]
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 1a19649c2851..601dd5ed0e0c 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -426,10 +426,9 @@ static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
  
--# dccp option 0 exists
--[
--    {
--        "match": {
--            "left": {
--                "dccp option": {
--                    "type": 0
--                }
--            },
--            "op": "==",
--            "right": true
--        }
--    }
--]
--
--# dccp option 43 missing
--[
--    {
--        "match": {
--            "left": {
--                "dccp option": {
--                    "type": 43
--                }
--            },
--            "op": "==",
--            "right": false
--        }
--    }
--]
--
--# dccp option 255 exists
--[
--    {
--        "match": {
--            "left": {
--                "dccp option": {
--                    "type": 255
--                }
--            },
--            "op": "==",
--            "right": true
--        }
--    }
--]
-diff --git a/tests/py/inet/dccp.t.payload b/tests/py/inet/dccp.t.payload
-index 7cb9721c1cd8..b5edfa5daed9 100644
---- a/tests/py/inet/dccp.t.payload
-+++ b/tests/py/inet/dccp.t.payload
-@@ -97,17 +97,3 @@ inet test-inet input
-   [ bitwise reg 1 = ( reg 1 & 0x0000001e ) ^ 0x00000000 ]
-   [ cmp neq reg 1 0x00000000 ]
+ 	local_bh_disable();
  
--# dccp option 0 exists
--ip test-inet input
--  [ exthdr load 1b @ 0 + 0 present => reg 1 ]
--  [ cmp eq reg 1 0x00000001 ]
+-	if (unlikely(!raw_cpu_ptr(m->scratch)))
+-		goto out;
 -
--# dccp option 43 missing
--ip test-inet input
--  [ exthdr load 1b @ 43 + 0 present => reg 1 ]
--  [ cmp eq reg 1 0x00000000 ]
--
--# dccp option 255 exists
--ip test-inet input
--  [ exthdr load 1b @ 255 + 0 present => reg 1 ]
--  [ cmp eq reg 1 0x00000001 ]
+ 	scratch = *raw_cpu_ptr(m->scratch);
++	if (!scratch)
++		goto out;
+ 
+ 	map_index = scratch->map_index;
+ 
 -- 
 2.49.1
 
