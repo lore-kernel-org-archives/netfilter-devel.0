@@ -1,49 +1,49 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BCBB2F8BC4;
-	Tue, 12 Aug 2025 15:52:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6BD2F8BD8;
+	Tue, 12 Aug 2025 15:52:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755013970; cv=none; b=nKyED6qyX8k6hpz4XTXsyJqU89ao4+vEDsj5ExalxcoTDXhVSJjgTB09Pa6N2RfX3ffFf1q1C1SoC78+YLGJP8/aZ5P5fc6GsQmaFOdjddOFj518KEb4r14aL8bVZFJ3TVJG7/UWNVA02k7WtJ6HUPHElNPxphFzPtbWPXrmLWY=
+	t=1755013970; cv=none; b=c3YYqtgM4l1WrnNJkDsKF1fXAbJkfcarMNBDWNZre4QsFvfnM1/NwecBo6EKDg+rm1pb+oNZcycNa9YkvL2ebhA4PgJdQ2ivdwF19y22PGaUx9ntpup+/Aff8jLDWJphBMj6mcD7KIsCTDlsSk8nseJprW4LIFt6rT2ZRyG4KRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1755013970; c=relaxed/simple;
-	bh=vvOHe9u+/zNDaZKxeW2eoRXHJCvHl2v5R/bFdM2LQis=;
+	bh=Y6yt61AOmS8VLZtjJ1BuuUWNqePIcTOn+4ook9c6mRM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ifyF6LZySsez7NO35/TTWV/yHxjo333NXEfQ05gVXIQ+6bS+5p3HnDSvCLIKr8ZhCBp4Zxi2UQfjY3QJuFPwjkd1oI4isvwj169Qo4hRhHcbiaOU2dpWN4PPBGDiihjsZxLvucl3qNy7Q2qfMvQUr5WpNLiIe6bHSqsvfGebJd8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.214.171
+	 MIME-Version; b=NQ+8hspQe6Kr6XSUWsBH20H8Rle1YXSDHgj5G/g1MyfZLQ4WUqlrNFEdnNtR5CrsOj0wU6SDMMm9mRjMqsg2QJs+1hx/Rbd+XyYkOVYHuaARLE4U7QJ99m6EATBSOdIgB1mIqUo4Da9xarFyXefnJUZXZoQBG5sOyjbyyBXu+bA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.180
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-24306318aeeso5098455ad.1;
-        Tue, 12 Aug 2025 08:52:48 -0700 (PDT)
+Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-76bed310fa1so4853850b3a.2;
+        Tue, 12 Aug 2025 08:52:49 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755013968; x=1755618768;
+        d=1e100.net; s=20230601; t=1755013969; x=1755618769;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=5xhittB1Z3BFmPBedtymhQdJl4mLRLMPRy6NV0jWS1k=;
-        b=VXU6sli/wmPCSRLf36NwMDbfAGGjy82gw+e/OpYski5x3Tj7/5FPPEj86hTKFP6KaJ
-         qOyOZXgwY6cxiv/5n0TdtKEJsf7Bec5BVFACOFXDe1PT2bClFy0b5vXmWBiUTphV41j4
-         Nx/ph3BZhSnemDay7rz7pjF6O71QylZ2AoGWejpI0soCyq//kQgmge2i9PZ6SpVdUfzs
-         ZVGtXvheeXr+OpK0j8orOWiHM51ZdHe3NX/EEJuUhU36940xExbNMtKq1Y1BgihhJuR+
-         MKR89pM20cVcTKZZzRQ56owuilwV1TDHqCW5wG5VFM8S2C/Ib3yB+nQ2k3VO9yroNPZA
-         RQJw==
-X-Forwarded-Encrypted: i=1; AJvYcCWKVeeAUmaO4r9GFN4fNLjNZpsj2dDgzVf1iUn3hbZyiGVwX7Zs4wWml9edGpY0QwIbXMKtT4l3vAxAaCw=@vger.kernel.org, AJvYcCXVIvwAFiCTUiJOQFA7bMYooASWQeJ4fNKIl//FsED+cG0f03RIzTljA74PgiRNepCekGJoBuVW1GOxFq3wHUUk@vger.kernel.org
-X-Gm-Message-State: AOJu0YwsW/exyKQs3xs1KzW41ZW3cjSG+Ntbc7aY+ANPW13tV5ris6VU
-	C+8PDZ77ZosTt5nb/clqZQrJQ9OqqFlZQ3pLkZ2S5zRU/HOqAXCweajV6JWh
-X-Gm-Gg: ASbGncu8RL44rEN7876vKN3wlpe0vEQ7at/y69avMPLCPvkzP7exq5YCPqHo5fl797f
-	jwxF6n7OcYTwkrMHrMWZK/AE0HRW0qucwRgPbhKFm3vvwyE+6CBj5q7QV4AlVi80xhlRPd3ARVT
-	oSBwVGvBX0Y7XEwTyLHy4GX0GWFxy4RgMunDOUekaVpPXkiQkfV/aAqdvmKEWLA5+oJ0y41mM6U
-	zBJ5mjx6YQWAfwYuy9x5zwtg8sezO951+nZ0GpH0UUeCVLm0cdBNacx7S6TMShRHeJ+Yzn6zDaA
-	UQkqRELv/kELSsf3PRVi3ti/lNSoW2ip0w46t1cUG/xL6jb0leJ/mbSkw/8UDoQ600gAl7vbN9r
-	8BauRoT24mJuz6poh2mT2obpNo7TD+rzwweoBZIdSK6jwK3j8KUnirgUEgY8=
-X-Google-Smtp-Source: AGHT+IFoG9C56EZHwN/MxrzFFA3UJZXB7gFcizSUrt7Y/XjCXBdEhjPeu8ZIdfLSs1+cGeiDc4xfCg==
-X-Received: by 2002:a17:903:1aac:b0:243:3da:17bb with SMTP id d9443c01a7336-2430c10d63fmr3177625ad.32.1755013967516;
-        Tue, 12 Aug 2025 08:52:47 -0700 (PDT)
+        bh=qmQTgKFXI0yRI1h+Wuwej2H5g2T+K6OFKy/n9+ooPsI=;
+        b=rkhiSYqB3SRqv63VXadYYzCCKq5om3JlN2SgnrKTmr47HNpFkS51eQOaWJ4XE53M1N
+         o0/9mgCpwsFiCjwPoVhXfbZ3FZDexfBiCpSJ62wYGZPmvjUt1TYme18U5F8ES2929UEC
+         C04t7uvUPyH0cWvzS0QU8JMXiFITdhuXEWsiy/usvYqn+hUAltGoquYwG9KidQVcUu4o
+         5Ts0rYmsUD7nQxNj9LAsLbBKy+NjCSgvAeJm1znoKkRZm/koCCqgohzt8j6kX/w3GMj9
+         UMyOHqvqxyDnkpUsz1Y/RK1wBbOfr8cHUkm2jmU+jF4GhOsQL9iciRvo9U8XQ3skvmy/
+         D+FQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUoDFgyT76x68VYZXa3oJEnYVpmI+HpzuB3yoivc1Lk0kX8yOMR4RPVsFTRk6bjpUz/IGPejSoShEOrw1gZojfK@vger.kernel.org, AJvYcCVkdkClJC8Xd9d2ZUQatB2Uq01jOfZTQoYkydR+M/mmOiI3oWU9ioRUfVPtT2+ZQPaE9GXzCmPKVkNX6H8=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxOsEW4U7/m4FeY5f7+t7gKCX37GKSBQN+RTEfpTUlfLgQ90yLG
+	ljGc5JFBQTexY1Hl/pZ0eYEFuTSB8KgJh10HTonFgauYUYwxWkH5mW9JJ6qv
+X-Gm-Gg: ASbGnct1QIDYRsnI+NHBEHXwfuzx/Bo/eJTmexX3Aa063TAh7MBkBK/6a0MTY97Aoty
+	fB0bevkX43OhESpRZKmp+PiMqxu20HDSZssxlF8YMiv6sp0svWsd4DZS2Zz3lTeButiPyE61Mf8
+	tf8sdvX1bMzRwhzoulz7O0yp6fxIyfF8WSKWlSCCogNKP3yMgqntNN6C5kMWSqFnKXnoVwQAc0N
+	PwQVMACEWVWALROwqPZXIrzfhXMVSePqR3OGggyJxJmL/gq9jR7TdPs6UzeZNVzRTwk2tu6VK9d
+	sKGxGOF/P/CN23kwz7V6VPovN5wg8K5B4fnt/OZ04UzpEy9ej14EzRZKMvexcb65w5NFkgLeBnj
+	LmB56poo4bulqUTFtqnzAzh9Q9n/woE3Jndsx+UAKArROAy0tgK9qBmGTX/4=
+X-Google-Smtp-Source: AGHT+IGJSjbc3JsMK2uU2uNHTgltCW9hcJeoyzvVY/wYRm8KIQ5ucZ82mLJT2TdzcjIEdgViuEX/LA==
+X-Received: by 2002:a17:902:c94f:b0:23f:f983:5ca1 with SMTP id d9443c01a7336-2430c01c8f1mr2953545ad.12.1755013968571;
+        Tue, 12 Aug 2025 08:52:48 -0700 (PDT)
 Received: from localhost (c-73-158-218-242.hsd1.ca.comcast.net. [73.158.218.242])
-        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-241e899b4adsm304377985ad.132.2025.08.12.08.52.47
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-241e899d347sm300038675ad.140.2025.08.12.08.52.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 Aug 2025 08:52:47 -0700 (PDT)
+        Tue, 12 Aug 2025 08:52:48 -0700 (PDT)
 From: Stanislav Fomichev <sdf@fomichev.me>
 To: netdev@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -66,9 +66,9 @@ Cc: davem@davemloft.net,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	herbert@gondor.apana.org.au
-Subject: [PATCH net-next 1/7] net: Add skb_dst_reset and skb_dst_restore
-Date: Tue, 12 Aug 2025 08:52:39 -0700
-Message-ID: <20250812155245.507012-2-sdf@fomichev.me>
+Subject: [PATCH net-next 2/7] xfrm: Switch to skb_dst_reset to clear dst_entry
+Date: Tue, 12 Aug 2025 08:52:40 -0700
+Message-ID: <20250812155245.507012-3-sdf@fomichev.me>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20250812155245.507012-1-sdf@fomichev.me>
 References: <20250812155245.507012-1-sdf@fomichev.me>
@@ -81,60 +81,41 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
 Going forward skb_dst_set will assert that skb dst_entry
-is empty during skb_dst_set to prevent potential leaks. There
-are few places that still manually manage dst_entry not using
-the helpers. Convert them to the following new helpers:
-- skb_dst_reset that resets dst_entry and returns previous dst_entry
-  value
-- skb_dst_restore that restores dst_entry previously reset via skb_dst_restore
+is empty during skb_dst_set. skb_dst_reset is added to reset
+existing entry without doing refcnt. Switch to skb_dst_reset
+in __xfrm_route_forward and add a comment on why it's safe
+to skip skb_dst_restore.
 
 Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
 ---
- include/linux/skbuff.h | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ net/xfrm/xfrm_policy.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 14b923ddb6df..8240e0826204 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -1159,6 +1159,37 @@ static inline struct dst_entry *skb_dst(const struct sk_buff *skb)
- 	return (struct dst_entry *)(skb->_skb_refdst & SKB_DST_PTRMASK);
- }
+diff --git a/net/xfrm/xfrm_policy.c b/net/xfrm/xfrm_policy.c
+index c5035a9bc3bb..a5ffe26b64d5 100644
+--- a/net/xfrm/xfrm_policy.c
++++ b/net/xfrm/xfrm_policy.c
+@@ -3881,12 +3881,18 @@ int __xfrm_route_forward(struct sk_buff *skb, unsigned short family)
+ 	}
  
-+/**
-+ * skb_dst_reset() - return current dst_entry value and clear it
-+ * @skb: buffer
-+ *
-+ * Resets skb dst_entry without adjusting its reference count. Useful in
-+ * cases where dst_entry needs to be temporarily reset and restored.
-+ * Note that the returned value cannot be used directly because it
-+ * might contain SKB_DST_NOREF bit.
-+ *
-+ * When in doubt, prefer skb_dst_drop() over skb_dst_reset() to correctly
-+ * handle dst_entry reference counting.
-+ *
-+ * Returns: original skb dst_entry.
-+ */
-+static inline unsigned long skb_dst_reset(struct sk_buff *skb)
-+{
-+	unsigned long refdst = skb->_skb_refdst;
+ 	skb_dst_force(skb);
+-	if (!skb_dst(skb)) {
++	dst = skb_dst(skb);
++	if (!dst) {
+ 		XFRM_INC_STATS(net, LINUX_MIB_XFRMFWDHDRERROR);
+ 		return 0;
+ 	}
+ 
+-	dst = xfrm_lookup(net, skb_dst(skb), &fl, NULL, XFRM_LOOKUP_QUEUE);
++	/* ignore return value from skb_dst_reset, xfrm_lookup takes
++	 * care of dropping the refcnt if needed.
++	 */
++	skb_dst_reset(skb);
 +
-+	skb->_skb_refdst = 0;
-+	return refdst;
-+}
-+
-+/**
-+ * skb_dst_restore() - restore skb dst_entry saved via skb_dst_reset
-+ * @skb: buffer
-+ */
-+static inline void skb_dst_restore(struct sk_buff *skb, unsigned long refdst)
-+{
-+	skb->_skb_refdst = refdst;
-+}
-+
- /**
-  * skb_dst_set - sets skb dst
-  * @skb: buffer
++	dst = xfrm_lookup(net, dst, &fl, NULL, XFRM_LOOKUP_QUEUE);
+ 	if (IS_ERR(dst)) {
+ 		res = 0;
+ 		dst = NULL;
 -- 
 2.50.1
 
