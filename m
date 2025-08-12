@@ -1,49 +1,49 @@
-Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 809092F7466;
-	Tue, 12 Aug 2025 15:52:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A19A13093B7;
+	Tue, 12 Aug 2025 15:52:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755013974; cv=none; b=SBVrZBX11AhBZkJ1JUlOhvCL/1uWkCEAOk+WQntumph4uN8sE6CxUAwWaxbVIGcQ3WqD5knVy49d3WYaTWkhdAuqUG0ag9dRUfRj/YvYmH38vHyOm1MABP6TqZ4/TloYVlXCkwwGGMxWdN9ecQPRPEkZrsgEH6fQwUe/g8OaG/s=
+	t=1755013975; cv=none; b=ajXUnYgfm7emKjEmg5LaCLeLLZfwVhJmE323uwtZU2IT2fCtVzT9u3RVsa8VeNsTb5GGIuoCF2mNayCPcB5VkKpyeAsOt+y0mxJA3yf7dHlk12qD5GRlYdtbov+hUx7cwKL08nDFB+Fh3uID/SfprpB+9Y7FuWr1gvNmXaq5u3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755013974; c=relaxed/simple;
-	bh=H8Qm7sDR6sFfmMhYO70q6TApPQXnFgsGJ5LF44w2Ni0=;
+	s=arc-20240116; t=1755013975; c=relaxed/simple;
+	bh=n0sQUuKqf3jLXpNCjqUW24KyPE8yGVDwJlEFI3R/YWo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=HJGOeoARqSiHP8CxK00DHo+3ZUxvSiXQSFXExjWGHfn2bc3MPS1CvWPXrVojU0Q1c990bJ8gyBGaTVp9t+RoK+m7ff7ij7qNxQSt8yIG8eTXSRDSRNs8GPObMRXttnndt6zBwe2Kr+7047eqZocGIAvvuQC+aQz4aJTMuMnZKRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.172
+	 MIME-Version; b=qFpZWsFjDa9uf9R8Y9teUOM46+EzGquw+Ro7BF9FezP2kdAYIOF04dDF6eqHiQYlxgL083sG605+IUOeYPmsvLxPGqzAFuy+G/8WrkH7VHIyOl6ErhArEnqIO/qAfaVUqKa+EBpZy5IvB6aVlRQ80lUiqn3LDP1OED0+5s4shQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-76858e9e48aso4979739b3a.2;
-        Tue, 12 Aug 2025 08:52:52 -0700 (PDT)
+Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-76bed310fa1so4853914b3a.2;
+        Tue, 12 Aug 2025 08:52:53 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755013972; x=1755618772;
+        d=1e100.net; s=20230601; t=1755013973; x=1755618773;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=hw6APkuisRn1IO+Yq90b/XIN4JEuOM+T0XNRQV/DOFA=;
-        b=r+CrILgIT4vpCrlMy/9JfpzS07jLENdKpo9xxG+yoMc+uOWnpKnVf3Cu5XQy0vzdJc
-         QYO0oIPED3RnjX9Q8B/8BEC6BfQXHhMfSLe9tv3MQWP3+ntv7P2TX1HCV1CijLME5tHs
-         IEASTvxjua8bnGVvYxFxPoMBF2hFGHo/xtu0Dd8ZIH+Ne5Ghjf/+5gl51Sr0NxwEdFmV
-         XqW8r5u9QJ29BmBYVuZEMceVUkrBrOPy+ZLvI1kMyV1n0foucCl13AWWiB9jYG/hkkFP
-         TNcyoovvsDiUPU5w2DPRUBdSKqcEVT+L4vHsDVLYBUQbx7Em762s/8AeOu+BLtvusjoI
-         FgNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVssFLqx4VFrEr28GuMEd1pGIDDNGDkwYHpGkFxlT32d55/hO/DdNtrzXI+esSJDpp639w4fJVZ4Eqm9Ag=@vger.kernel.org, AJvYcCW5w4JQaNzLPPa0WV+PzaIDbWKNIhg2cMFzLyGvmZ1y6O5ArqGM3JaW9vQV0VyCJrBFomITCVKhgbRbq29YYBsm@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy+dLAhqnfdjZpbXjQH6D8+btod5j6D+R630u++MS9rlm1BAOVx
-	9z2AD3V9yc6QHa8VsLtUdexSs479c4mGpTmo/qrqwFgKME3X9+LveTeIG2oA
-X-Gm-Gg: ASbGncvWaR9Z1XGuBDCjEeg/kXis4a2cCjDz+Xfs1X+2+iNNx0mAQEgD1F/xA6vdT93
-	l3hX1nFmWKehKAkOe8CWJDwBfX6rE2wq90LpU/L0TFUXQ2DCUV39lV6IVK95cXe50BWwni8JNlP
-	nBWrBb2fZ8AMR43M1/qa8o9cFO4/gomM4kE40wtAtjL4qgX8aaKbQVwXgzuyFSLevtNLpPZbe1M
-	IOYHOnPlMLFXhU3cC6OKVEzwE8tOmqRW8AaHWg7sZp8YJBqiIU1Krq/K5hpaNraxliWQE7L1cva
-	3P842rtM9GwCjZFQyfHe8ISpBuZis0W38MPvckqd1Xv2A9Oi1TCnNQ5xG6EDIC2Jp7Gc8dKljQ0
-	jDO4JEP6XdBQNH68zgGhRgTw7FUAzNxGA7UAQTqCt1CEYMAJNcru73TGJtew=
-X-Google-Smtp-Source: AGHT+IE9mqitrJgp0ti2dNmcFeTLvil3ZhGhwEi8BPipsrW15PJbfSzyXxpXrXvlwLEBV343ULlwnA==
-X-Received: by 2002:a05:6a20:72a6:b0:240:1f14:f6a0 with SMTP id adf61e73a8af0-2409a97167cmr6622771637.25.1755013971622;
-        Tue, 12 Aug 2025 08:52:51 -0700 (PDT)
+        bh=dZz85zxG1Fdx2Dk3+7K6+fby+2lWmdMlXym1/uID5+g=;
+        b=tYzbO33YSCGHMb7VV+rCVtUBBZChkv3FDyRoUMS5YA/55ihbUoX58t5STVYoyJ3yF6
+         mexMdFyagSDyic1dmWb2WjpdvTqXyzFGQX17fFFv192+77l9IZEsCpYVEkWRg6jUscLp
+         mR0mh7odkzgO/d2yWn4Dh/3H1ZkqbxBntDQPyJdzLr9ebExN7XQCiXPWYo75wGlZv5+M
+         EgJTUeuErmWzvW2QHKoCaH+DBNFkEhwllgfVXHqx6dJN9wvJGKPaazgZy/BbCAiwLs+S
+         mlNPSSozZV1yyg2fginMjRCgjKEwtXl1n7G8tNgu5ansPCkNmOEVZidSEPplQGyoPmwS
+         h0rQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVQMunbWqYwWCeRri/lzeCMU4GN4M4WI7f7110LqSJ2htUfYqJrfnLcvqrPJQYsV4amJCqznGCnqbbDX9yxOD29@vger.kernel.org, AJvYcCWTylQjfjuJf8uILJJJV14nx3W+iqLUqx9W5l3mCUsL2rkyln+rirVVt/8I/T9GM0WrcOt+1PKgfwOCXrs=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxrr09dFHGPAER7mmXtnoAoQMvnWvrryO6kcZP/YgnpkJPZStHY
+	BzXI0fKoBwlLMOm/DYuM1nTbPF7SKAq4GyIHZsSg1RstezTMZzCpU0Wj/KpK
+X-Gm-Gg: ASbGncukl/qF8b+79NzuP9OAHlJY2dtXxOCxw8h+TYKmSZSnpiDAL/hLhZJgbElukDX
+	Q7bSjnk1F2uXx0AHQ7BEHPt9A9BqRv5ce6XR2lzAb8CB/Rr3JLkSfwge4gsFk1nlNH1YAA75rn5
+	HD/YykkEAcO8vP3pdpHvi/wokuWbZJaSwWYxr4WxvbIFzko5KvRxXdeVDhO3DVNh6+DHlWW/lBl
+	WJDxnRZvlE1xVYlOWAN7tauGdG+gF+BjYz4Bb6JzImPwklbVO8laXIFRnWfJqUDOUR2yeaxQ3ad
+	XmhOtMYPa+6q1Kx6JrcLaAY0RNgQSzpUDv80hvmwrviNa23+xJmhaWK86MQ351rnCc4trli91xh
+	LWeBP5usSlwkx9Ux02V3WDe2NAFkhMOOZRPfAqaoKRJ3i7vbriVy701/Tc08=
+X-Google-Smtp-Source: AGHT+IEO5Z5M/KtjpW0VLb1+nruS8V4gTPoqbW8FOI4fKlCjaJC6j7Dcr7qiVY+6B9jvyJru9WYgYw==
+X-Received: by 2002:a17:902:da8c:b0:242:a3fa:edb4 with SMTP id d9443c01a7336-2430c133180mr2455155ad.44.1755013972729;
+        Tue, 12 Aug 2025 08:52:52 -0700 (PDT)
 Received: from localhost (c-73-158-218-242.hsd1.ca.comcast.net. [73.158.218.242])
-        by smtp.gmail.com with UTF8SMTPSA id 41be03b00d2f7-b428ca11a67sm12235295a12.53.2025.08.12.08.52.51
+        by smtp.gmail.com with UTF8SMTPSA id d9443c01a7336-241e899a81fsm302235345ad.120.2025.08.12.08.52.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 Aug 2025 08:52:51 -0700 (PDT)
+        Tue, 12 Aug 2025 08:52:52 -0700 (PDT)
 From: Stanislav Fomichev <sdf@fomichev.me>
 To: netdev@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -66,9 +66,9 @@ Cc: davem@davemloft.net,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	herbert@gondor.apana.org.au
-Subject: [PATCH net-next 5/7] staging: octeon: Convert to skb_dst_drop
-Date: Tue, 12 Aug 2025 08:52:43 -0700
-Message-ID: <20250812155245.507012-6-sdf@fomichev.me>
+Subject: [PATCH net-next 6/7] chtls: Convert to skb_dst_reset
+Date: Tue, 12 Aug 2025 08:52:44 -0700
+Message-ID: <20250812155245.507012-7-sdf@fomichev.me>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20250812155245.507012-1-sdf@fomichev.me>
 References: <20250812155245.507012-1-sdf@fomichev.me>
@@ -80,28 +80,102 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Instead of doing dst_release and skb_dst_set, do skb_dst_drop which
-should do the right thing.
+Going forward skb_dst_set will assert that skb dst_entry
+is empty during skb_dst_set. skb_dst_reset is added to reset
+existing entry without doing refcnt. Chelsio driver is
+doing extra dst management via skb_dst_set(NULL). Replace
+these calls with skb_dst_reset.
 
 Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
 ---
- drivers/staging/octeon/ethernet-tx.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ .../ethernet/chelsio/inline_crypto/chtls/chtls_cm.c    | 10 +++++-----
+ .../ethernet/chelsio/inline_crypto/chtls/chtls_cm.h    |  4 ++--
+ .../ethernet/chelsio/inline_crypto/chtls/chtls_io.c    |  2 +-
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/octeon/ethernet-tx.c b/drivers/staging/octeon/ethernet-tx.c
-index 261f8dbdc382..0ba240e634a1 100644
---- a/drivers/staging/octeon/ethernet-tx.c
-+++ b/drivers/staging/octeon/ethernet-tx.c
-@@ -346,8 +346,7 @@ netdev_tx_t cvm_oct_xmit(struct sk_buff *skb, struct net_device *dev)
- 	 * The skbuff will be reused without ever being freed. We must
- 	 * cleanup a bunch of core things.
- 	 */
--	dst_release(skb_dst(skb));
+diff --git a/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.c b/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.c
+index 6f6525983130..b333da3b21bf 100644
+--- a/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.c
++++ b/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.c
+@@ -171,7 +171,7 @@ static void chtls_purge_receive_queue(struct sock *sk)
+ 	struct sk_buff *skb;
+ 
+ 	while ((skb = __skb_dequeue(&sk->sk_receive_queue)) != NULL) {
+-		skb_dst_set(skb, (void *)NULL);
++		skb_dst_reset(skb);
+ 		kfree_skb(skb);
+ 	}
+ }
+@@ -194,7 +194,7 @@ static void chtls_purge_recv_queue(struct sock *sk)
+ 	struct sk_buff *skb;
+ 
+ 	while ((skb = __skb_dequeue(&tlsk->sk_recv_queue)) != NULL) {
+-		skb_dst_set(skb, NULL);
++		skb_dst_reset(skb);
+ 		kfree_skb(skb);
+ 	}
+ }
+@@ -1734,7 +1734,7 @@ static int chtls_rx_data(struct chtls_dev *cdev, struct sk_buff *skb)
+ 		pr_err("can't find conn. for hwtid %u.\n", hwtid);
+ 		return -EINVAL;
+ 	}
 -	skb_dst_set(skb, NULL);
-+	skb_dst_drop(skb);
- 	skb_ext_reset(skb);
- 	nf_reset_ct(skb);
- 	skb_reset_redirect(skb);
++	skb_dst_reset(skb);
+ 	process_cpl_msg(chtls_recv_data, sk, skb);
+ 	return 0;
+ }
+@@ -1786,7 +1786,7 @@ static int chtls_rx_pdu(struct chtls_dev *cdev, struct sk_buff *skb)
+ 		pr_err("can't find conn. for hwtid %u.\n", hwtid);
+ 		return -EINVAL;
+ 	}
+-	skb_dst_set(skb, NULL);
++	skb_dst_reset(skb);
+ 	process_cpl_msg(chtls_recv_pdu, sk, skb);
+ 	return 0;
+ }
+@@ -1855,7 +1855,7 @@ static int chtls_rx_cmp(struct chtls_dev *cdev, struct sk_buff *skb)
+ 		pr_err("can't find conn. for hwtid %u.\n", hwtid);
+ 		return -EINVAL;
+ 	}
+-	skb_dst_set(skb, NULL);
++	skb_dst_reset(skb);
+ 	process_cpl_msg(chtls_rx_hdr, sk, skb);
+ 
+ 	return 0;
+diff --git a/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.h b/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.h
+index f61ca657601c..4ca919925455 100644
+--- a/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.h
++++ b/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_cm.h
+@@ -171,14 +171,14 @@ static inline void chtls_set_req_addr(struct request_sock *oreq,
+ 
+ static inline void chtls_free_skb(struct sock *sk, struct sk_buff *skb)
+ {
+-	skb_dst_set(skb, NULL);
++	skb_dst_reset(skb);
+ 	__skb_unlink(skb, &sk->sk_receive_queue);
+ 	__kfree_skb(skb);
+ }
+ 
+ static inline void chtls_kfree_skb(struct sock *sk, struct sk_buff *skb)
+ {
+-	skb_dst_set(skb, NULL);
++	skb_dst_reset(skb);
+ 	__skb_unlink(skb, &sk->sk_receive_queue);
+ 	kfree_skb(skb);
+ }
+diff --git a/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_io.c b/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_io.c
+index 465fa8077964..85e4d90efd5b 100644
+--- a/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_io.c
++++ b/drivers/net/ethernet/chelsio/inline_crypto/chtls/chtls_io.c
+@@ -1434,7 +1434,7 @@ static int chtls_pt_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 		continue;
+ found_ok_skb:
+ 		if (!skb->len) {
+-			skb_dst_set(skb, NULL);
++			skb_dst_reset(skb);
+ 			__skb_unlink(skb, &sk->sk_receive_queue);
+ 			kfree_skb(skb);
+ 
 -- 
 2.50.1
 
