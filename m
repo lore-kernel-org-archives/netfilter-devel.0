@@ -1,325 +1,118 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D92A212D7C
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2025 18:58:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0988A2C3265
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Aug 2025 07:51:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754938739; cv=none; b=F3fR4EjBvIKi61P/DnUYZROAQPndDKgszXJmFVMZiBbERloZC1frmFhQVRtPKiCIH8YI1DGy72BuoR0CaWOki+SIU7gLqe/4bzwH/GyQaMzN7ZBkciyJyEqGbdVrMAUIKeDRhEcUj824CCfYyfSFbNFEQtn478NoP5dN8bt6NtA=
+	t=1754985067; cv=none; b=ARF9XBgm3Ea76swyMvLZmFTrPb1LLt+tHJ722RMS9SFJ28KNV/d+jtLqQxRIH1q0irmw/sj6t737qb92GHFsAMddcxO6b7WgjDamONtI7s98B0sGYfPE3D1Wfw+9EegNAzy7UZNH7lFJ+hvwRipAKRgnxFQ0aL4j3HuQaZlL+XA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754938739; c=relaxed/simple;
-	bh=JwGhSUrIq84I6MRdoGyBtASrY2kr1cuIUItWwnNAaQM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BL5kJSNkCw7kmi2tjSG7MYuXiETL+th7pwYeiNlWqxSH/RU0jwbY8ZISKZamiQDYO6P9hKCZ7GozYezx0HaSB2ok2s4Mk+DQR17QFDrFvsgPTJ1jAldjV3QqFcL8p/Y3US51dLu+kqdAWzTM0CaDFiALIpX3hY1vdY0rt/qTGvs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Xd5iCj+R; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vaptwmfR; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1754985067; c=relaxed/simple;
+	bh=6FcqwIFbYDR7SR+Vnwf1iscwwu1oh82gRRHzaKm0EX0=;
+	h=Message-ID:Date:MIME-Version:To:Cc:From:Subject:Content-Type; b=ci8Pru42K8pJfhJ0fYRR5Lq71GLoJOvvAAbyccVcZxLGV60fqLyDe+MlFDfRqazmwc9Z2+UA4tBSwYTppDgfy05E4rCYpG1xF9sCBwB6tfSaM7kzOwuZiiK5KWD4ylLhNhKyB+Z/jdG1IPzv1BDODtdiQVCYDa6CNeTWphWQs8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=b6NAbyhi; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Xd5iCj+R";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vaptwmfR"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 916F660708; Mon, 11 Aug 2025 20:58:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1754938733;
-	bh=bF2AQorscEbaQ9OmmKTwBiczWJxQ5ThQSLF4rwuNpWU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Xd5iCj+RNFWqyqjpQoXlY25w367mc49+yr4U5VOYQN+xJ3QYcnO8UHP9Miw1dhuFQ
-	 /yQgk0X5XB5ek/8AGOnpI3ZRL92V/FP4iavrQQohZEDzRZiDSSiTq4PAZuwIh6hHQp
-	 UVCmF6V54FZdA5b2PnyeRLAzVFp+sWk4bdcqVETJl+wOM9R5UkaL0BwucYJSPietHm
-	 HY2zm2Nwm30eJCRmXCRLCSdFPsPm+0vi4uDUoXk8d2LdG1n+FLoNVx1wIDZecDgA7P
-	 7tNV4fGRLVVwQkQksRrLwfNmqhAv+6vHb/H8xHawGD/1gTVAQhS3ovF+VowO2Uxi0H
-	 j20isdDGR3YOA==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3EB1F60705;
-	Mon, 11 Aug 2025 20:58:51 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1754938731;
-	bh=bF2AQorscEbaQ9OmmKTwBiczWJxQ5ThQSLF4rwuNpWU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=vaptwmfR4mvsAIIHzdE3xGkvRQGdcRB8qTKNlLOnAaPlbSa9gCUP1s/7AlVPl4i8U
-	 PKL8AK9DvCpPdIf+F3Jhw108GKV92WFn6YLoO+b69I6yDKt6lyZ4OeKmBIyRD9Pjcm
-	 6jmDee0udZJV771I+z9ki6scHeorG3Ihl6oom8oEiSEjzMQw+bi8DuEi+rWsRkKEYD
-	 0yXt6Ha0+/piedPfzj/mGIG2PK0woN3w+ZTOpQEUgPx7Z4MXun/BNmdgNnZkw819nW
-	 GMq10nL37bXhzuuds4wvPvV9IIc1dscA7FXBkhJXPxL1mdXXtpk7Z4A/OOK/JNB+Wr
-	 26V1lAs5K40JA==
-Date: Mon, 11 Aug 2025 20:58:48 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Dan Winship <danwinship@redhat.com>
-Subject: Re: [nft PATCH] table: Embed creating nft version into userdata
-Message-ID: <aJo9aH0KUxB67dRU@calendula>
-References: <20250808124624.30768-1-phil@nwl.cc>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b6NAbyhi"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1754985065;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=l0TOi3NsfzGGG2ydlG14RKfRoWrXPVBirqvc7jxpA/s=;
+	b=b6NAbyhiBdC9JackNSVUCnPQS3ffVRa5aEtLueK0LW5JlePxnC6T3s7C2QKlJUjsJ9foKG
+	ErXuchDBtHJHbIrncC9LrIpYnCwGxw2BhFDfbzCJdEHDpQPhrMn4mO2vyVzjJETeHLQysF
+	2UpbEhse9fMLuzEhyr9Ppfvion6xr2A=
+Received: from mail-qk1-f197.google.com (mail-qk1-f197.google.com
+ [209.85.222.197]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-212-mUubDZ0ePRScWaR2rDYoRQ-1; Tue, 12 Aug 2025 03:51:03 -0400
+X-MC-Unique: mUubDZ0ePRScWaR2rDYoRQ-1
+X-Mimecast-MFC-AGG-ID: mUubDZ0ePRScWaR2rDYoRQ_1754985063
+Received: by mail-qk1-f197.google.com with SMTP id af79cd13be357-7e826e0d7abso1067495085a.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Aug 2025 00:51:03 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1754985063; x=1755589863;
+        h=content-transfer-encoding:subject:from:cc:to:content-language
+         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=l0TOi3NsfzGGG2ydlG14RKfRoWrXPVBirqvc7jxpA/s=;
+        b=Q5xruODDv5TjEN8846uhOXTYAlolpDxVa2gb0AWoGDxNCrXn5UxpnwUVUVwwkvSKlw
+         XWu0dTiLN1XMXmAM6lHYsVnYV3vI0O4doOBQMIZNJopwChlhnheeD4k7DnMyVrC0/Omg
+         mg9jE5CgL9ILzx1Ti7SXDaIf4QohU7+45gg88f4Z1Fqli7Hyqf0SxLYJBthaB57w0SGM
+         1XX6O65ws8NSAqB2m9qohh4s5ko7kS6xJL2kqZoGNflcwKStyAecWc2wnOTBplSUyIGB
+         OLK8sSnAO+vwz5Iyy+KgZZ3Pw5rF8mqqApzzg6f1Ff4aVHFF9fDYHsihr/2iURarUCrp
+         AZcg==
+X-Forwarded-Encrypted: i=1; AJvYcCW7ZZLbnoJnGJ27Wofntp+xxEXrOy3UTJIipXH5axqJZYVC6bFSHMGrVk5yMQBxmtQCQRNDSetHe/XJUzKVpyY=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw+1cvkgM6dN0lF6y0TS/Kpho29AL0PdG21JWO1FS8ZMwXMht57
+	r4iARCqNkrPDvNKMr2/Zd2/l83HNLZ9VjFCeQhc+KQHGKXJ43czx8/jOpjKip29Q1dJBnQL2b+O
+	sobcqLFn+jCMa1HqIXVhc7N6Vfk9JGihqhmkzZLdwLQZu2zLETl4dk1begg4ktsM9zBpCIQ==
+X-Gm-Gg: ASbGnct+5OIB4sSPw+6WjYFSZQ4x17ivgG7mnfwb05hfBIJLpijOHbtBrT3MIER2ggO
+	TCyAm6rkuvIxKnw7ffxpgYdLjgdKWB47VaLzEDaHMiGiMHSQAb5WIX6ctfhrImJhpLc/NTFCnDb
+	l1GZVs87c1KpnBTpd0HY2zbYbbdqSuNuYE+5ny8ZRcqKjQeViOxFOKhmdqG/YIqwERBVMrNZtiT
+	9N6UC5s55rCTyG7aR9rs7VMdJmHM5bsji9WFsTXPB+pr3ERlyhx3vvhfkO7buhndcyQYH8Zr2sz
+	rOxF80iFjj0PNM6o5EemmOFkmzMj8hZtLr2fmjdOgSE=
+X-Received: by 2002:a05:620a:440b:b0:7e8:2c04:140f with SMTP id af79cd13be357-7e85880b848mr380958685a.14.1754985062598;
+        Tue, 12 Aug 2025 00:51:02 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFUbrxFfx8sd2v6OC8+o0ciYcjY42jBqu+ZlCnCG2eVlRZMAQbB0VdkiXLS9g6iS/ke0yILRQ==
+X-Received: by 2002:a05:620a:440b:b0:7e8:2c04:140f with SMTP id af79cd13be357-7e85880b848mr380957085a.14.1754985062096;
+        Tue, 12 Aug 2025 00:51:02 -0700 (PDT)
+Received: from [192.168.0.115] ([212.105.149.252])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7e83515176dsm659068485a.44.2025.08.12.00.51.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 12 Aug 2025 00:51:01 -0700 (PDT)
+Message-ID: <766e4508-aaba-4cdc-92b4-e116e52ae13b@redhat.com>
+Date: Tue, 12 Aug 2025 09:50:59 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250808124624.30768-1-phil@nwl.cc>
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+ netfilter-devel@vger.kernel.org, Jakub Kicinski <kuba@kernel.org>
+From: Paolo Abeni <pabeni@redhat.com>
+Subject: nft_flowtable.sh selftest failures
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Hi Phil,
+Hi,
 
-Thanks for your patch, comments below.
+the mentioned self test failed in the last 2 CI iterations, on both
+metal and debug build, with the following output:
 
-On Fri, Aug 08, 2025 at 02:46:18PM +0200, Phil Sutter wrote:
-> Upon listing a table which was created by a newer version of nftables,
-> warn about the potentially incomplete content.
-> 
-> Suggested-by: Florian Westphal <fw@strlen.de>
-> Cc: Dan Winship <danwinship@redhat.com>
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
-> Changes since RFC:
-> - Change NFTNL_UDATA_TABLE_NFTVER content from string (PACKAGE_VERSION)
->   to 12Byte binary data consisting of:
->   - the version 3-tuple
->   - a stable release number specified at configure-time
->   - the build time in seconds since epoch (a 64bit value - could scrap
->     some bytes, but maybe worth leaving some space)
-> ---
->  .gitignore     |  1 +
->  Makefile.am    |  3 +++
->  configure.ac   | 22 ++++++++++++++++++++++
->  include/nft.h  |  2 ++
->  include/rule.h |  1 +
->  src/mnl.c      | 19 +++++++++++++------
->  src/netlink.c  | 23 ++++++++++++++++++++++-
->  src/rule.c     |  4 ++++
->  8 files changed, 68 insertions(+), 7 deletions(-)
-> 
-> diff --git a/.gitignore b/.gitignore
-> index a62e31f31c6b5..1e3bc5146b2f1 100644
-> --- a/.gitignore
-> +++ b/.gitignore
-> @@ -14,6 +14,7 @@ autom4te.cache
->  build-aux/
->  libnftables.pc
->  libtool
-> +nftversion.h
->  
->  # cscope files
->  /cscope.*
-> diff --git a/Makefile.am b/Makefile.am
-> index b5580b5451fca..ca6af2e393bed 100644
-> --- a/Makefile.am
-> +++ b/Makefile.am
-> @@ -33,6 +33,7 @@ sbin_PROGRAMS =
->  check_PROGRAMS =
->  dist_man_MANS =
->  CLEANFILES =
-> +DISTCLEANFILES =
->  
->  ###############################################################################
->  
-> @@ -106,6 +107,8 @@ noinst_HEADERS = \
->  	\
->  	$(NULL)
->  
-> +DISTCLEANFILES += nftversion.h
-> +
->  ###############################################################################
->  
->  AM_CPPFLAGS = \
-> diff --git a/configure.ac b/configure.ac
-> index 550913ef04964..2c68c2b8e0560 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -114,6 +114,28 @@ AC_CHECK_DECLS([getprotobyname_r, getprotobynumber_r, getservbyport_r], [], [],
->  #include <netdb.h>
->  ]])
->  
-> +AC_ARG_WITH([stable-release], [AS_HELP_STRING([--with-stable-release],
-> +            [Stable release number])],
-> +            [], [with_stable_release=0])
-> +AC_CONFIG_COMMANDS([stable_release],
-> +                   [STABLE_RELEASE=$stable_release],
-> +                   [stable_release=$with_stable_release])
-> +AC_CONFIG_COMMANDS([nftversion.h], [
-> +(
-> +	echo "static char nftversion[[]] = {"
-> +	echo "	${VERSION}," | tr '.' ','
-> +	echo "	${STABLE_RELEASE},"
-> +	for ((i = 56; i >= 0; i-= 8)); do
-> +		echo "	((uint64_t)MAKE_STAMP >> $i) & 0xff,"
-> +	done
-> +	echo "};"
-> +) >nftversion.h
-> +])
-> +# Current date should be fetched exactly once per build,
-> +# so have 'make' call date and pass the value to every 'gcc' call
-> +AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
-> +CFLAGS="${CFLAGS} -DMAKE_STAMP=\${MAKE_STAMP}"
-> +
->  AC_CONFIG_FILES([					\
->  		Makefile				\
->  		libnftables.pc				\
-> diff --git a/include/nft.h b/include/nft.h
-> index a2d62dbf4808a..b406a68ffeb18 100644
-> --- a/include/nft.h
-> +++ b/include/nft.h
-> @@ -15,4 +15,6 @@
->   * something we frequently need to do and it's intentional. */
->  #define free_const(ptr) free((void *)(ptr))
->  
-> +#define NFTNL_UDATA_TABLE_NFTVER 1
+# PASS: flow offload for ns1/ns2 with dnat and pmtu discovery ns1 <- ns2
+# Error: Requested AUTH algorithm not found.
+# Error: Requested AUTH algorithm not found.
+# Error: Requested AUTH algorithm not found.
+# Error: Requested AUTH algorithm not found.
+# FAIL: file mismatch for ns1 -> ns2
+# -rw------- 1 root root 2097152 Aug 11 20:23 /tmp/tmp.x1oVr3mu0P
+# -rw------- 1 root root 0 Aug 11 20:23 /tmp/tmp.77gElv9oit
+# FAIL: file mismatch for ns1 <- ns2
+# -rw------- 1 root root 2097152 Aug 11 20:23 /tmp/tmp.x1oVr3mu0P
+# -rw------- 1 root root 0 Aug 11 20:23 /tmp/tmp.ogDiTh8ZXf
+# FAIL: ipsec tunnel mode for ns1/ns2
 
-Better define this in libnftnl?
+see, i.e.:
+https://netdev-3.bots.linux.dev/vmksft-nf/results/249461/14-nft-flowtable-sh/
 
-libnftnl$ git grep NFTNL_UDATA_TABLE_COMMENT
-include/libnftnl/udata.h:       NFTNL_UDATA_TABLE_COMMENT,
+I don't see relevant patches landing in the relevant builds, I suspect
+the relevant kernel config knob (CONFIG_CRYPTO_SHA1 ?) was always
+missing in the ST config, pulled in by NIPA due to some CI setup tweak
+possibly changed recently (Jakub could possibly have a better idea/view
+about the latter). Could you please have a look?
 
->  #endif /* NFTABLES_NFT_H */
-> diff --git a/include/rule.h b/include/rule.h
-> index 470ae10754ba5..319f9c39f1107 100644
-> --- a/include/rule.h
-> +++ b/include/rule.h
-> @@ -170,6 +170,7 @@ struct table {
->  	uint32_t		owner;
->  	const char		*comment;
->  	bool			has_xt_stmts;
-> +	bool			is_from_future;
->  };
->  
->  extern struct table *table_alloc(void);
-> diff --git a/src/mnl.c b/src/mnl.c
-> index 43229f2498e55..67ec60a6fee00 100644
-> --- a/src/mnl.c
-> +++ b/src/mnl.c
-> @@ -10,6 +10,7 @@
->  
->  #include <nft.h>
->  #include <iface.h>
-> +#include <nftversion.h>
->  
->  #include <libmnl/libmnl.h>
->  #include <libnftnl/common.h>
-> @@ -1074,24 +1075,30 @@ int mnl_nft_table_add(struct netlink_ctx *ctx, struct cmd *cmd,
->  	if (nlt == NULL)
->  		memory_allocation_error();
->  
-> +	udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
-> +	if (!udbuf)
-> +		memory_allocation_error();
-> +
->  	nftnl_table_set_u32(nlt, NFTNL_TABLE_FAMILY, cmd->handle.family);
->  	if (cmd->table) {
->  		nftnl_table_set_u32(nlt, NFTNL_TABLE_FLAGS, cmd->table->flags);
->  
->  		if (cmd->table->comment) {
-> -			udbuf = nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
-> -			if (!udbuf)
-> -				memory_allocation_error();
->  			if (!nftnl_udata_put_strz(udbuf, NFTNL_UDATA_TABLE_COMMENT, cmd->table->comment))
->  				memory_allocation_error();
-> -			nftnl_table_set_data(nlt, NFTNL_TABLE_USERDATA, nftnl_udata_buf_data(udbuf),
-> -					     nftnl_udata_buf_len(udbuf));
+NIPA generates the kernel config and the kernel build itself with
+something alike:
 
-I suggest two separated TLVs, one for version and another for build time.
+rm -f .config
+vng --build  --config tools/testing/selftests/net/forwarding/config
 
-> -			nftnl_udata_buf_free(udbuf);
->  		}
->  	} else {
->  		nftnl_table_set_u32(nlt, NFTNL_TABLE_FLAGS, 0);
->  	}
->  
-> +	if (!nftnl_udata_put(udbuf, NFTNL_UDATA_TABLE_NFTVER,
-> +			     sizeof(nftversion), nftversion))
-> +		memory_allocation_error();
-> +	nftnl_table_set_data(nlt, NFTNL_TABLE_USERDATA,
-> +			     nftnl_udata_buf_data(udbuf),
-> +			     nftnl_udata_buf_len(udbuf));
-> +	nftnl_udata_buf_free(udbuf);
-> +
->  	nlh = nftnl_nlmsg_build_hdr(nftnl_batch_buffer(ctx->batch),
->  				    NFT_MSG_NEWTABLE,
->  				    cmd->handle.family,
-> diff --git a/src/netlink.c b/src/netlink.c
-> index 94cbcbfc6c094..97a49c08b1e82 100644
-> --- a/src/netlink.c
-> +++ b/src/netlink.c
-> @@ -10,6 +10,7 @@
->   */
->  
->  #include <nft.h>
-> +#include <nftversion.h>
->  
->  #include <errno.h>
->  #include <libmnl/libmnl.h>
-> @@ -799,6 +800,10 @@ static int table_parse_udata_cb(const struct nftnl_udata *attr, void *data)
->  			if (value[len - 1] != '\0')
->  				return -1;
->  			break;
-> +		case NFTNL_UDATA_TABLE_NFTVER:
-> +			if (len != sizeof(nftversion))
-> +				return -1;
-> +			break;
->  		default:
->  			return 0;
->  	}
-> @@ -806,10 +811,23 @@ static int table_parse_udata_cb(const struct nftnl_udata *attr, void *data)
->  	return 0;
->  }
->  
-> +static int version_cmp(const struct nftnl_udata *ud)
-> +{
-> +	const char *udbuf = nftnl_udata_get(ud);
-> +	size_t i;
-> +
-> +	/* udbuf length checked by table_parse_udata_cb() */
-> +	for (i = 0; i < sizeof(nftversion); i++) {
-> +		if (nftversion[i] != udbuf[i])
-> +			return nftversion[i] - udbuf[i];
-> +	}
+/P
 
-Interesting trick.
-
-> +	return 0;
-> +}
-> +
->  struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
->  					const struct nftnl_table *nlt)
->  {
-> -	const struct nftnl_udata *ud[NFTNL_UDATA_TABLE_MAX + 1] = {};
-> +	const struct nftnl_udata *ud[NFTNL_UDATA_TABLE_MAX + 2] = {};
->  	struct table *table;
->  	const char *udata;
->  	uint32_t ulen;
-> @@ -830,6 +848,9 @@ struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
->  		}
->  		if (ud[NFTNL_UDATA_TABLE_COMMENT])
->  			table->comment = xstrdup(nftnl_udata_get(ud[NFTNL_UDATA_TABLE_COMMENT]));
-> +		if (ud[NFTNL_UDATA_TABLE_NFTVER] &&
-> +		    version_cmp(ud[NFTNL_UDATA_TABLE_NFTVER]) < 0)
-> +			table->is_from_future = true;
->  	}
->  
->  	return table;
-> diff --git a/src/rule.c b/src/rule.c
-> index 0ad948ea87f2f..fd69c622cfe75 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -1298,6 +1298,10 @@ static void table_print(const struct table *table, struct output_ctx *octx)
->  		fprintf(octx->error_fp,
->  			"# Warning: table %s %s is managed by iptables-nft, do not touch!\n",
->  			family, table->handle.table.name);
-> +	if (table->is_from_future)
-> +		fprintf(octx->error_fp,
-> +			"# Warning: table %s %s was created by a newer version of nftables, content may be incomplete!\n",
-
-+			"# Warning: this table %s %s was created by a newer version of nftables? Content may be incomplete!\n",
-
-Maybe rise it as a question? This is just an indication, I was
-considering you could write a program to push anything in the userdata
-area. But not a deal breaker if you prefer this sentence.
-
-> +			family, table->handle.table.name);
->  
->  	nft_print(octx, "table %s %s {", family, table->handle.table.name);
->  	if (nft_output_handle(octx) || table->flags & TABLE_F_OWNER)
-> -- 
-> 2.49.0
-> 
