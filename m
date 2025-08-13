@@ -1,77 +1,54 @@
-Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D605230E83B;
-	Tue, 12 Aug 2025 15:52:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B9FC14E2F2
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Aug 2025 00:39:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755013976; cv=none; b=vF3QrtqzFDySJIabitlo5aI3xYX5kf2t1MCoIxHa8JrPpbCGMn9gwiYeVrNjbKsS7I+7YSwktgxLIsyIvjmEKHPZ/wVatnvzodPseeutV3vy6v8hpniQnVpz6RTu8lfM274/cONLHQ7M8yIFdMzm7SbVdUe/d8744DCovCu2ljQ=
+	t=1755045545; cv=none; b=oMPQPdIVy0EyTU6RbLMvM5ATgK2mOb/v9Vdc52lPr629PYzB/JpI+mRhUqb7HxLtKextx2Aa+zyb/sd7CFo1fxpnCgUUjq+oIlLSpT/dZu2x05b0djgi6myxMJUNCaTrtmBlrAI6R0wep4s5Fdzoa0FWyKpCvsQEYB4Kd4N1+oI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755013976; c=relaxed/simple;
-	bh=jmLedCN4R2YU+yGCxHz2Yf4utVRQz3r3OsmD+iWWE6Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mDZ56vJFp32x6GREUUSxBj1STS34esan2eZKbrGsJ0WQUQMhOSpE9ZTh8eKeaVU2nUZNwq1EDWb8BKiD+U+6Hr+FQmFF9ExOvojKSiba9zlHMQ9pZOmsYlJ3Tr3yX+SNAMMJLv4hAhzIx51eJB2t7ODjwmuH1bdXzDCWr+9SEVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.210.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=fomichev.me
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Received: by mail-pf1-f175.google.com with SMTP id d2e1a72fcca58-76a3818eb9bso5273621b3a.3;
-        Tue, 12 Aug 2025 08:52:54 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755013974; x=1755618774;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=K1U24j3avMI496lsvK/FFAte0M6oHVilfdD7GVgxXmw=;
-        b=wi5rmb4uxG0+uYszwPxIdBOlJGp+r2QFTGHAMQDkqAN2/akDzQ4Hc/B5iGIBmDbxUq
-         k7ZJOoKKr9xTfLcuC1gorlOILpYynI2q0eaCGLFu0BNCChB6jiI1OtvZcAxkpSrEBgbJ
-         rHmAQvMab5nyw1DPGWkZWz/SyZLkDXk3+u8N/ECPtsTqHskKwEXTF8GSf50M6prSLlF5
-         8ULZCVA6tpcEJ89MBKpCQXLxCb06mHTcvL17EoQ5oPBzh8Q5VAUzZTa2oPStC79N4m38
-         bz4v/P7AthGqY0O6E7A0FiDSn8DRbo5aXmvZgB5IrhAt9VLOEqvRBmCtorCbLZs81YGk
-         JBqw==
-X-Forwarded-Encrypted: i=1; AJvYcCVVGUheAv5zK8/uhiN1XFiuF3/7q5+SZZZPwMgxIBz+XJ1QRhvOUejyH5sWclrPHU8D9KSKtlqI3XwFi3zALhfe@vger.kernel.org, AJvYcCXqT4rDqwDK7VVwFFu36sTXMOpEJ8zSYuPO/cmlyW/sNEomO2Ncomgu1Bm+ALlxSco8okBIL+Xy6Lfv4hs=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz9sbmAzlq9t1K3pDL9g+A1ppl6FWeGPWMW1ynrkMyUqQY37D6Z
-	Fe8yb+is4FXlCELpCel6oRtXRlph/qArXXePInIst4/SyIo0BK42vkAdpTj3
-X-Gm-Gg: ASbGncuH9uQwglzV9pB7GwOyZmMTWe+d2B5phBuP83jhqxmJYDfKKE6Ae0TOeAWnoqM
-	qbZzRRFKrMAcXIeN0W5VidlpoL8y3lhx7QrMsaQvB75eEdfyd/upZFvm4fELX5JLtTMnhustAQK
-	saEj/4o8zdliZ+GpCEqPBcP93NmxBk4q2wBD9hwlmuaYLV3wvh3SfAbx8P2soeo8jjql/Lr4hj9
-	Re+jsMm3dgeapkHuPRzDP4ru9T1lnVZjBet5Ap+Xc6+j4W9pBiApiCzOJO6yGACVKVlSHfdSucv
-	2auSqtUYuGIlNfYx3VezUAGOjCm+vQi2qDEr4U0ki8Z6EYZp0e0Cjfo+4r02yVziuAhMrMm1mBa
-	zBVYY5G3pObNPUWbev5rQSg7zQyNtPPGzWUwbqHaV2guQJFmFnTfuprPshrU=
-X-Google-Smtp-Source: AGHT+IFUKvjZ3Rba9MvqVnh8vH8eFopfwTUPgEOJxRTkNbViqfPFICyo8rbbnicPKgPRyQnCxRtE3g==
-X-Received: by 2002:aa7:88c8:0:b0:748:e1e4:71de with SMTP id d2e1a72fcca58-76e1fdb0881mr36267b3a.14.1755013973774;
-        Tue, 12 Aug 2025 08:52:53 -0700 (PDT)
-Received: from localhost (c-73-158-218-242.hsd1.ca.comcast.net. [73.158.218.242])
-        by smtp.gmail.com with UTF8SMTPSA id d2e1a72fcca58-76bccfbd98csm29585074b3a.67.2025.08.12.08.52.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 12 Aug 2025 08:52:53 -0700 (PDT)
-From: Stanislav Fomichev <sdf@fomichev.me>
-To: netdev@vger.kernel.org
-Cc: davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	ayush.sawal@chelsio.com,
-	andrew+netdev@lunn.ch,
-	gregkh@linuxfoundation.org,
-	horms@kernel.org,
-	dsahern@kernel.org,
-	pablo@netfilter.org,
-	kadlec@netfilter.org,
-	steffen.klassert@secunet.com,
-	sdf@fomichev.me,
-	mhal@rbox.co,
-	abhishektamboli9@gmail.com,
-	linux-kernel@vger.kernel.org,
-	linux-staging@lists.linux.dev,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	herbert@gondor.apana.org.au
-Subject: [PATCH net-next 7/7] net: Add skb_dst_check_unset
-Date: Tue, 12 Aug 2025 08:52:45 -0700
-Message-ID: <20250812155245.507012-8-sdf@fomichev.me>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20250812155245.507012-1-sdf@fomichev.me>
-References: <20250812155245.507012-1-sdf@fomichev.me>
+	s=arc-20240116; t=1755045545; c=relaxed/simple;
+	bh=OT4He51kLmnVAGjDRfGuWLOCwhNKtYnOQp+LqP8UEmE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=MmabzAs/GMMKt8AWfJ+g8jLPVTZx3MXMBfCJNWU4EqR7mvgtmIK4Ut++IdtQJ73ZGesOs91SrRlJoo+kyCAh25SWcwUxIIu4DUOKnpUXqmQNojdjeM6qWGvKyx7nWf6rP72sYIP6rb6sFauHaC85DhDC+Sv4WeRMHU7vE0fLpxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dgO7ALiz; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YO9m70T+; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dgO7ALiz";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YO9m70T+"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 4778E6074A; Wed, 13 Aug 2025 02:38:55 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1755045535;
+	bh=YhyaWYy+LafZ60sDFWxPIYBV+qLQHO7rKNgbCkBdTkc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dgO7ALiz7pEEip54fdE5PjIYPt8sAPr0UblhVtUeaX4O+mNa4ogQFSubTw19rP6H8
+	 uQxBeeXnJ3gO8fRUvHzXn96syiWjaAqxep5fqL65nLGgH/250LsCx0lkZNy7t8LCLi
+	 jv7Z41RYJ/iziEg+uexXlVj61TLcASLmBOzIxK4P6Au6BNBmIGorHGOL9Ac1+KutpN
+	 qVMWghjbI6ESovR2ZCdCxNodgWC5V/BcnHDgQlqZqmZo2cBREvN0ranKBBF2RKwSCV
+	 aN4VSGHY0rPzEisBVtcwNY9taS6pnt5mN7pFjnbcfCDyrnx4Oj8yXqFYKNjJqeIoix
+	 LTisawTx7idew==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5F77D6074A;
+	Wed, 13 Aug 2025 02:38:54 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1755045534;
+	bh=YhyaWYy+LafZ60sDFWxPIYBV+qLQHO7rKNgbCkBdTkc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=YO9m70T+IjtWWz72HBH3jETOHoL38tRwz90oyjbOFz7r+4ljIgJRVHfXqr6cIWBFf
+	 3cH2uz+hyI52q80n+1yoOB7TrIESZuhrkIMsu/Lz630NNcbxJiHW1yaRzlAbNv/rhZ
+	 s/Re8sxW7iU0Xh5pGyVUKn+2uRxc5aHBH5PpJhF9dVl/WbrNT+Dha+m4eGatnYPJXm
+	 BLrlXGayjXLPcPz/anpCw9gntIlzaPMHg36+gqyMeBVAlDUQxWcuvm8nQliLBXztLK
+	 pW2JS/9/6s6A6QmdkZ24/QwomXUjepFlvXnTIVlN7DGs9jmRJkcfP3xLmyQG4lRSPE
+	 VwTl8oANemChw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf] netfilter: nf_tables: reject duplicate device on updates
+Date: Wed, 13 Aug 2025 02:38:50 +0200
+Message-Id: <20250813003850.1360-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -80,55 +57,90 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-To prevent dst_entry leaks, add warning when the non-NULL dst_entry
-is rewritten.
+A chain/flowtable update with duplicated devices in the same batch is
+possible. Unfortunately, netdev event path only removes the first
+device that is found, leaving unregistered the hook of the duplicated
+device.
 
-Signed-off-by: Stanislav Fomichev <sdf@fomichev.me>
+Check if a duplicated device exists in the transaction batch, bail out
+with EEXIST in such case.
+
+WARNING is hit when unregistering the hook:
+
+ [49042.221275] WARNING: CPU: 4 PID: 8425 at net/netfilter/core.c:340 nf_hook_entry_head+0xaa/0x150
+ [49042.221375] CPU: 4 UID: 0 PID: 8425 Comm: nft Tainted: G S                  6.16.0+ #170 PREEMPT(full)
+ [...]
+ [49042.221382] RIP: 0010:nf_hook_entry_head+0xaa/0x150
+
+Fixes: 78d9f48f7f44 ("netfilter: nf_tables: add devices to existing flowtable")
+Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/skbuff.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ net/netfilter/nf_tables_api.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 8240e0826204..2f9dac54d627 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -1159,6 +1159,12 @@ static inline struct dst_entry *skb_dst(const struct sk_buff *skb)
- 	return (struct dst_entry *)(skb->_skb_refdst & SKB_DST_PTRMASK);
- }
- 
-+static inline void skb_dst_check_unset(struct sk_buff *skb)
-+{
-+	DEBUG_NET_WARN_ON_ONCE((skb->_skb_refdst & SKB_DST_PTRMASK) &&
-+			       !(skb->_skb_refdst & SKB_DST_NOREF));
-+}
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 13d0ed9d1895..58c5425d61c2 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2803,6 +2803,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 	struct nft_chain *chain = ctx->chain;
+ 	struct nft_chain_hook hook = {};
+ 	struct nft_stats __percpu *stats = NULL;
++	struct nftables_pernet *nft_net;
+ 	struct nft_hook *h, *next;
+ 	struct nf_hook_ops *ops;
+ 	struct nft_trans *trans;
+@@ -2845,6 +2846,20 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 				if (nft_hook_list_find(&basechain->hook_list, h)) {
+ 					list_del(&h->list);
+ 					nft_netdev_hook_free(h);
++					continue;
++				}
 +
- /**
-  * skb_dst_reset() - return current dst_entry value and clear it
-  * @skb: buffer
-@@ -1187,6 +1193,7 @@ static inline unsigned long skb_dst_reset(struct sk_buff *skb)
-  */
- static inline void skb_dst_restore(struct sk_buff *skb, unsigned long refdst)
++				nft_net = nft_pernet(ctx->net);
++				list_for_each_entry(trans, &nft_net->commit_list, list) {
++					if (trans->msg_type != NFT_MSG_NEWCHAIN ||
++					    trans->table != ctx->table ||
++					    !nft_trans_chain_update(trans))
++						continue;
++
++					if (nft_hook_list_find(&nft_trans_chain_hooks(trans), h)) {
++						nft_chain_release_hook(&hook);
++						return -EEXIST;
++					}
+ 				}
+ 			}
+ 		} else {
+@@ -9060,6 +9075,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
  {
-+	skb_dst_check_unset(skb);
- 	skb->_skb_refdst = refdst;
- }
+ 	const struct nlattr * const *nla = ctx->nla;
+ 	struct nft_flowtable_hook flowtable_hook;
++	struct nftables_pernet *nft_net;
+ 	struct nft_hook *hook, *next;
+ 	struct nf_hook_ops *ops;
+ 	struct nft_trans *trans;
+@@ -9076,6 +9092,20 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 		if (nft_hook_list_find(&flowtable->hook_list, hook)) {
+ 			list_del(&hook->list);
+ 			nft_netdev_hook_free(hook);
++			continue;
++		}
++
++		nft_net = nft_pernet(ctx->net);
++		list_for_each_entry(trans, &nft_net->commit_list, list) {
++			if (trans->msg_type != NFT_MSG_NEWFLOWTABLE ||
++			    trans->table != ctx->table ||
++			    !nft_trans_flowtable_update(trans))
++				continue;
++
++			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook)) {
++				err = -EEXIST;
++				goto err_flowtable_update_hook;
++			}
+ 		}
+ 	}
  
-@@ -1200,6 +1207,7 @@ static inline void skb_dst_restore(struct sk_buff *skb, unsigned long refdst)
-  */
- static inline void skb_dst_set(struct sk_buff *skb, struct dst_entry *dst)
- {
-+	skb_dst_check_unset(skb);
- 	skb->slow_gro |= !!dst;
- 	skb->_skb_refdst = (unsigned long)dst;
- }
-@@ -1216,6 +1224,7 @@ static inline void skb_dst_set(struct sk_buff *skb, struct dst_entry *dst)
-  */
- static inline void skb_dst_set_noref(struct sk_buff *skb, struct dst_entry *dst)
- {
-+	skb_dst_check_unset(skb);
- 	WARN_ON(!rcu_read_lock_held() && !rcu_read_lock_bh_held());
- 	skb->slow_gro |= !!dst;
- 	skb->_skb_refdst = (unsigned long)dst | SKB_DST_NOREF;
 -- 
-2.50.1
+2.30.2
 
