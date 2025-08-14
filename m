@@ -1,123 +1,356 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0539F241679;
-	Thu, 14 Aug 2025 06:27:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
+Received: from localhost.localdomain (203.red-83-63-38.staticip.rima-tde.net [83.63.38.203])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 16F0D2EA472
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Aug 2025 10:58:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.63.38.203
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755152840; cv=none; b=rdlpG3f2NiujerHEheK3fH9g2JaO6SdTPSlbngwz4/+saX02JcxN6bD+jTjb2gdwfms/EFDEkw7P1ot8rN94YbsSTzeFl8Yyqv9vkPUH79LLlbul76agiixUqdbJcVnl3WNfkLCHsvG+dy/ZAQX4XOgoBot6rBdUqq+6JxgdrEU=
+	t=1755169132; cv=none; b=BksnYJZyeAIT1LortiJLLcfvqX7FIpD5y8TIoy+/aKkq10oNp/d3VbFAEuAzaM1zbIVt2BCpUEVYoq1ilkfmQi63YwfiBafVpq2BKHmjSjpj3NbLfepYc7R10zjBgU2wjCdnajLSxxfmsOHZljrd+X1CkNgvqcj9XtwX4cdVNe4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755152840; c=relaxed/simple;
-	bh=7C2qXLNIBZ6eia/1W6IjTf5fHo1xJNSXNElLkOznFdA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LdGlSJ8qS6XvDMc0kCcM3SoxKSWWT6TCuoettU8jL0KjS5OdiRyt56/5WbgDg/rPZfiZz2gjEp1xDW3nFSj46k+bDGyomMRZ667rdZiMgbXqNAPgHWsUUVJ3dQf6hDs94RdcpAWQXOJ+SfXYgfJXvfI06PMw4rUt+oR+hMetQ3M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nG0ijTwW; arc=none smtp.client-ip=198.175.65.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nG0ijTwW"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1755152838; x=1786688838;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=7C2qXLNIBZ6eia/1W6IjTf5fHo1xJNSXNElLkOznFdA=;
-  b=nG0ijTwWIozueZP9L1dLEdEj6bSsUmpJeKZFXe5pnhzdx3Y5LffuETXP
-   o+MNrQjodDPSurM3Yh02el26tQ2Ia6wyqh/pdJW4q0S9mvwvR5N5Ifz+v
-   onTd+EJ1TdMkXt7NS57S0zk/g5eSINU7Syn8B5gf0nyajPeJWgYoz2AH0
-   tEyYIQ2sCSBjDsQuQg/f2IMkuF+QBYV7JXyT7yZJuD0HUV7j9/tWZi5RF
-   QjZUI4TyCjAZIbGfLHWarbXECJOaqAWp3MB7vUwhbIcVtddcjkSbWo6mn
-   Y+/2TP16LfISZhZg6JpWoB2H2Bv9xXQ1x6TYDMbFAkZ2+quzpMs88lG5x
-   A==;
-X-CSE-ConnectionGUID: E4/ikvMLSnGU8JBc3+sdjw==
-X-CSE-MsgGUID: E11o1Kc+TuerEgkGhSKd+g==
-X-IronPort-AV: E=McAfee;i="6800,10657,11520"; a="57327894"
-X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
-   d="scan'208";a="57327894"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2025 23:27:11 -0700
-X-CSE-ConnectionGUID: Zk7z/qHCTD2YF91fhOt6KQ==
-X-CSE-MsgGUID: 17rxyqDiSZSzZwKelRmI3w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.17,287,1747724400"; 
-   d="scan'208";a="197536124"
-Received: from lkp-server02.sh.intel.com (HELO 4ea60e6ab079) ([10.239.97.151])
-  by fmviesa001.fm.intel.com with ESMTP; 13 Aug 2025 23:27:08 -0700
-Received: from kbuild by 4ea60e6ab079 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1umRQY-000AeS-0E;
-	Thu, 14 Aug 2025 06:27:06 +0000
-Date: Thu, 14 Aug 2025 14:26:26 +0800
-From: kernel test robot <lkp@intel.com>
-To: Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: oe-kbuild-all@lists.linux.dev, netdev@vger.kernel.org,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] netfilter: nft_payload: Use csum_replace4()
- instead of opencoding
-Message-ID: <202508141336.K6vIBjy1-lkp@intel.com>
-References: <e98467a942d65d2dc45dcf8ff809b43d4a3769eb.1754992552.git.christophe.leroy@csgroup.eu>
+	s=arc-20240116; t=1755169132; c=relaxed/simple;
+	bh=TkmMhjQaBqGpvK9r2+RW44QLZTh/8wngYVP47LIRFBM=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=M2yEU/6FJMVx7/mqpXuGWPUPYw6t7GcaLinoLZBaaNaRjRKYrD4Dr166JI0JDDsk7qpccyJhantuYA7XDhErxkawJ9WHEXqc3/R+h6ZNvMRSaBK0qJ0JOH849tzjw+qh6rFAgoHeQClCoPNDnDmxPk4epd6wv8z9yyli/SH5xVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=suse.de; spf=none smtp.mailfrom=localhost.localdomain; arc=none smtp.client-ip=83.63.38.203
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=localhost.localdomain
+Received: by localhost.localdomain (Postfix, from userid 1000)
+	id B8064202A1B3; Thu, 14 Aug 2025 12:58:49 +0200 (CEST)
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH 2/2 libnftnl v3] tunnel: add support to geneve options
+Date: Thu, 14 Aug 2025 12:58:32 +0200
+Message-ID: <20250814105832.5286-2-fmancera@suse.de>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20250814105832.5286-1-fmancera@suse.de>
+References: <20250814105832.5286-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e98467a942d65d2dc45dcf8ff809b43d4a3769eb.1754992552.git.christophe.leroy@csgroup.eu>
+Content-Transfer-Encoding: 8bit
 
-Hi Christophe,
+In addition, modifies the netlink parsing to loop through the nested
+array of NFTA_TUNNEL_KEY_OPTS.
 
-kernel test robot noticed the following build warnings:
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+ include/libnftnl/object.h |   9 +++
+ src/obj/tunnel.c          | 166 +++++++++++++++++++++++++++++++++-----
+ 2 files changed, 156 insertions(+), 19 deletions(-)
 
-[auto build test WARNING on net-next/main]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Christophe-Leroy/netfilter-nft_payload-Use-csum_replace4-instead-of-opencoding/20250812-183440
-base:   net-next/main
-patch link:    https://lore.kernel.org/r/e98467a942d65d2dc45dcf8ff809b43d4a3769eb.1754992552.git.christophe.leroy%40csgroup.eu
-patch subject: [PATCH net-next] netfilter: nft_payload: Use csum_replace4() instead of opencoding
-config: x86_64-randconfig-122-20250814 (https://download.01.org/0day-ci/archive/20250814/202508141336.K6vIBjy1-lkp@intel.com/config)
-compiler: gcc-12 (Debian 12.2.0-14+deb12u1) 12.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250814/202508141336.K6vIBjy1-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202508141336.K6vIBjy1-lkp@intel.com/
-
-sparse warnings: (new ones prefixed by >>)
->> net/netfilter/nft_payload.c:687:28: sparse: sparse: incorrect type in argument 2 (different base types) @@     expected restricted __be32 [usertype] from @@     got restricted __wsum [usertype] fsum @@
-   net/netfilter/nft_payload.c:687:28: sparse:     expected restricted __be32 [usertype] from
-   net/netfilter/nft_payload.c:687:28: sparse:     got restricted __wsum [usertype] fsum
->> net/netfilter/nft_payload.c:687:34: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be32 [usertype] to @@     got restricted __wsum [usertype] tsum @@
-   net/netfilter/nft_payload.c:687:34: sparse:     expected restricted __be32 [usertype] to
-   net/netfilter/nft_payload.c:687:34: sparse:     got restricted __wsum [usertype] tsum
->> net/netfilter/nft_payload.c:687:28: sparse: sparse: incorrect type in argument 2 (different base types) @@     expected restricted __be32 [usertype] from @@     got restricted __wsum [usertype] fsum @@
-   net/netfilter/nft_payload.c:687:28: sparse:     expected restricted __be32 [usertype] from
-   net/netfilter/nft_payload.c:687:28: sparse:     got restricted __wsum [usertype] fsum
->> net/netfilter/nft_payload.c:687:34: sparse: sparse: incorrect type in argument 3 (different base types) @@     expected restricted __be32 [usertype] to @@     got restricted __wsum [usertype] tsum @@
-   net/netfilter/nft_payload.c:687:34: sparse:     expected restricted __be32 [usertype] to
-   net/netfilter/nft_payload.c:687:34: sparse:     got restricted __wsum [usertype] tsum
-
-vim +687 net/netfilter/nft_payload.c
-
-   684	
-   685	static inline void nft_csum_replace(__sum16 *sum, __wsum fsum, __wsum tsum)
-   686	{
- > 687		csum_replace4(sum, fsum, tsum);
-   688		if (*sum == 0)
-   689			*sum = CSUM_MANGLED_0;
-   690	}
-   691	
-
+diff --git a/include/libnftnl/object.h b/include/libnftnl/object.h
+index 6d0aab0..490e8b4 100644
+--- a/include/libnftnl/object.h
++++ b/include/libnftnl/object.h
+@@ -119,9 +119,12 @@ enum {
+ #define NFTNL_TUNNEL_TYPE	0
+ #define NFTNL_TUNNEL_BASE	4
+ 
++#define NFTNL_TUNNEL_GENEVE_DATA_MAXLEN		127
++
+ enum nftnl_tunnel_type {
+ 	NFTNL_TUNNEL_TYPE_VXLAN,
+ 	NFTNL_TUNNEL_TYPE_ERSPAN,
++	NFTNL_TUNNEL_TYPE_GENEVE,
+ };
+ 
+ enum {
+@@ -137,6 +140,12 @@ enum {
+ 	__NFTNL_TUNNEL_ERSPAN_MAX,
+ };
+ 
++enum {
++	NFTNL_TUNNEL_GENEVE_CLASS	= NFTNL_TUNNEL_BASE,
++	NFTNL_TUNNEL_GENEVE_TYPE,
++	NFTNL_TUNNEL_GENEVE_DATA,
++};
++
+ struct nftnl_tunnel_opt;
+ struct nftnl_tunnel_opts;
+ 
+diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
+index 4e3c16b..c21599c 100644
+--- a/src/obj/tunnel.c
++++ b/src/obj/tunnel.c
+@@ -308,6 +308,12 @@ struct nftnl_tunnel_opt {
+ 				uint8_t		dir;
+ 			} v2;
+ 		} erspan;
++		struct {
++			uint16_t	geneve_class;
++			uint8_t		type;
++			uint8_t		data[NFTNL_TUNNEL_GENEVE_DATA_MAXLEN];
++			uint32_t	data_len;
++		} geneve;
+ 	};
+ };
+ 
+@@ -358,12 +364,15 @@ nftnl_tunnel_opt_get_data(const struct nftnl_tunnel_opt *ne,
+ 	case NFTNL_TUNNEL_TYPE_GENEVE:
+ 		switch (attr) {
+ 			case NFTNL_TUNNEL_GENEVE_CLASS:
++				*data_len = sizeof(uint16_t);
+ 				return &ne->geneve.geneve_class;
+ 			break;
+ 			case NFTNL_TUNNEL_GENEVE_TYPE:
++				*data_len = sizeof(uint8_t);
+ 				return &ne->geneve.type;
+ 			break;
+ 			case NFTNL_TUNNEL_GENEVE_DATA:
++				*data_len = ne->geneve.data_len;
+ 				return &ne->geneve.data;
+ 			break;
+ 		}
+@@ -541,18 +550,25 @@ nftnl_obj_tunnel_parse_erspan(struct nftnl_tunnel_opts *opts, struct nlattr *att
+ 	return 0;
+ }
+ 
+-static int nftnl_obj_tunnel_opts_cb(const struct nlattr *attr, void *data)
++static int nftnl_obj_tunnel_geneve_cb(const struct nlattr *attr, void *data)
+ {
+ 	const struct nlattr **tb = data;
+ 	int type = mnl_attr_get_type(attr);
+ 
+-	if (mnl_attr_type_valid(attr, NFTA_TUNNEL_KEY_OPTS_MAX) < 0)
++	if (mnl_attr_type_valid(attr, NFTA_TUNNEL_KEY_GENEVE_MAX) < 0)
+ 		return MNL_CB_OK;
+ 
+ 	switch (type) {
+-	case NFTA_TUNNEL_KEY_OPTS_VXLAN:
+-	case NFTA_TUNNEL_KEY_OPTS_ERSPAN:
+-		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
++	case NFTA_TUNNEL_KEY_GENEVE_CLASS:
++		if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0)
++			abi_breakage();
++		break;
++	case NFTA_TUNNEL_KEY_GENEVE_TYPE:
++		if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0)
++			abi_breakage();
++		break;
++	case NFTA_TUNNEL_KEY_GENEVE_DATA:
++		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0)
+ 			abi_breakage();
+ 		break;
+ 	}
+@@ -561,31 +577,85 @@ static int nftnl_obj_tunnel_opts_cb(const struct nlattr *attr, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
++static int
++nftnl_obj_tunnel_parse_geneve(struct nftnl_tunnel_opts *opts, struct nlattr *attr)
++{
++	struct nlattr *tb[NFTA_TUNNEL_KEY_GENEVE_MAX + 1] = {};
++	struct nftnl_tunnel_opt *opt;
++
++	if (mnl_attr_parse_nested(attr, nftnl_obj_tunnel_geneve_cb, tb) < 0)
++		return -1;
++
++	opt = nftnl_tunnel_opt_alloc(NFTNL_TUNNEL_TYPE_GENEVE);
++	if (!opt)
++		return -1;
++
++	if (tb[NFTA_TUNNEL_KEY_GENEVE_CLASS]) {
++		opt->geneve.geneve_class =
++			ntohs(mnl_attr_get_u16(tb[NFTA_TUNNEL_KEY_GENEVE_CLASS]));
++		opt->flags |= (1 << NFTNL_TUNNEL_GENEVE_CLASS);
++	}
++
++	if (tb[NFTA_TUNNEL_KEY_GENEVE_TYPE]) {
++		opt->geneve.type =
++			mnl_attr_get_u8(tb[NFTA_TUNNEL_KEY_GENEVE_TYPE]);
++		opt->flags |= (1 << NFTNL_TUNNEL_GENEVE_TYPE);
++	}
++
++	if (tb[NFTA_TUNNEL_KEY_GENEVE_DATA]) {
++		uint32_t len = mnl_attr_get_payload_len(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]);
++
++		memcpy(opt->geneve.data,
++		       mnl_attr_get_payload(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]),
++		       len);
++		opt->geneve.data_len = len;
++		opt->flags |= (1 << NFTNL_TUNNEL_GENEVE_DATA);
++	}
++
++	list_add_tail(&opt->list, &opts->opts_list);
++
++	return 0;
++}
++
+ struct nftnl_tunnel_opts *nftnl_tunnel_opts_alloc(enum nftnl_tunnel_type type);
+ 
+ static int
+-nftnl_obj_tunnel_parse_opts(struct nftnl_obj *e, struct nlattr *attr,
++nftnl_obj_tunnel_parse_opts(struct nftnl_obj *e, struct nlattr *nest,
+ 			    struct nftnl_obj_tunnel *tun)
+ {
+-	struct nlattr *tb[NFTA_TUNNEL_KEY_OPTS_MAX + 1] = {};
++	struct nlattr *attr;
+ 	struct nftnl_tunnel_opts *opts = NULL;
+ 	int err = 0;
+ 
+-	if (mnl_attr_parse_nested(attr, nftnl_obj_tunnel_opts_cb, tb) < 0)
+-		return -1;
++	mnl_attr_for_each_nested(attr, nest) {
++		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
++			abi_breakage();
+ 
+-	if (tb[NFTA_TUNNEL_KEY_OPTS_VXLAN]) {
+-		opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_VXLAN);
+-		if (!opts)
+-			return -1;
++		switch(mnl_attr_get_type(attr)) {
++			case NFTA_TUNNEL_KEY_OPTS_VXLAN:
++				opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_VXLAN);
++				if (!opts)
++					return -1;
+ 
+-		err = nftnl_obj_tunnel_parse_vxlan(opts, tb[NFTA_TUNNEL_KEY_OPTS_VXLAN]);
+-	} else if (tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN]) {
+-		opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_ERSPAN);
+-		if (!opts)
+-			return -1;
++				err = nftnl_obj_tunnel_parse_vxlan(opts, attr);
++			break;
++			case NFTA_TUNNEL_KEY_OPTS_ERSPAN:
++				opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_ERSPAN);
++				if (!opts)
++					return -1;
+ 
+-		err = nftnl_obj_tunnel_parse_erspan(opts, tb[NFTA_TUNNEL_KEY_OPTS_ERSPAN]);
++				err = nftnl_obj_tunnel_parse_erspan(opts, attr);
++			break;
++			case NFTA_TUNNEL_KEY_OPTS_GENEVE:
++				if (!opts)
++					opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_GENEVE);
++
++				if (!opts)
++					return -1;
++
++				err = nftnl_obj_tunnel_parse_geneve(opts, attr);
++			break;
++		}
+ 	}
+ 
+ 	if (opts) {
+@@ -665,6 +735,7 @@ struct nftnl_tunnel_opts *nftnl_tunnel_opts_alloc(enum nftnl_tunnel_type type)
+ 	switch (type) {
+ 	case NFTNL_TUNNEL_TYPE_VXLAN:
+ 	case NFTNL_TUNNEL_TYPE_ERSPAN:
++	case NFTNL_TUNNEL_TYPE_GENEVE:
+ 		break;
+ 	default:
+ 		errno = EOPNOTSUPP;
+@@ -698,6 +769,8 @@ int nftnl_tunnel_opts_add(struct nftnl_tunnel_opts *opts,
+ 			return -1;
+ 		}
+ 		break;
++	case NFTNL_TUNNEL_TYPE_GENEVE:
++		break;
+ 	default:
+ 		errno = EOPNOTSUPP;
+ 		return -1;
+@@ -717,6 +790,7 @@ void nftnl_tunnel_opts_free(struct nftnl_tunnel_opts *opts)
+ 		switch(opts->type) {
+ 		case NFTNL_TUNNEL_TYPE_VXLAN:
+ 		case NFTNL_TUNNEL_TYPE_ERSPAN:
++		case NFTNL_TUNNEL_TYPE_GENEVE:
+ 			list_del(&opt->list);
+ 			xfree(opt);
+ 			break;
+@@ -732,6 +806,7 @@ struct nftnl_tunnel_opt *nftnl_tunnel_opt_alloc(enum nftnl_tunnel_type type)
+ 	switch (type) {
+ 	case NFTNL_TUNNEL_TYPE_VXLAN:
+ 	case NFTNL_TUNNEL_TYPE_ERSPAN:
++	case NFTNL_TUNNEL_TYPE_GENEVE:
+ 		break;
+ 	default:
+ 		errno = EOPNOTSUPP;
+@@ -790,6 +865,34 @@ static int nftnl_tunnel_opt_erspan_set(struct nftnl_tunnel_opt *opt, uint16_t ty
+ 	return 0;
+ }
+ 
++static int nftnl_tunnel_opt_geneve_set(struct nftnl_tunnel_opt *opt, uint16_t type,
++				       const void *data, uint32_t data_len)
++{
++	switch(type) {
++	case NFTNL_TUNNEL_GENEVE_CLASS:
++		memcpy(&opt->geneve.geneve_class, data, data_len);
++		break;
++	case NFTNL_TUNNEL_GENEVE_TYPE:
++		memcpy(&opt->geneve.type, data, data_len);
++		break;
++	case NFTNL_TUNNEL_GENEVE_DATA:
++		if (data_len > NFTNL_TUNNEL_GENEVE_DATA_MAXLEN) {
++			errno = EINVAL;
++			return -1;
++		}
++		memcpy(&opt->geneve.data, data, data_len);
++		opt->geneve.data_len = data_len;
++		break;
++	default:
++		errno = EOPNOTSUPP;
++		return -1;
++	}
++
++	opt->flags |= (1 << type);
++
++	return 0;
++}
++
+ EXPORT_SYMBOL(nftnl_tunnel_opt_set);
+ int nftnl_tunnel_opt_set(struct nftnl_tunnel_opt *opt, uint16_t type,
+ 			 const void *data, uint32_t data_len)
+@@ -799,6 +902,8 @@ int nftnl_tunnel_opt_set(struct nftnl_tunnel_opt *opt, uint16_t type,
+ 		return nftnl_tunnel_opt_vxlan_set(opt, type, data, data_len);
+ 	case NFTNL_TUNNEL_TYPE_ERSPAN:
+ 		return nftnl_tunnel_opt_erspan_set(opt, type, data, data_len);
++	case NFTNL_TUNNEL_TYPE_GENEVE:
++		return nftnl_tunnel_opt_geneve_set(opt, type, data, data_len);
+ 	default:
+ 		errno = EOPNOTSUPP;
+ 		return -1;
+@@ -845,6 +950,26 @@ static void nftnl_tunnel_opt_build_erspan(struct nlmsghdr *nlh,
+ 	}
+ }
+ 
++static void nftnl_tunnel_opt_build_geneve(struct nlmsghdr *nlh,
++					  const struct nftnl_tunnel_opt *opt)
++{
++	struct nlattr *nest_inner;
++
++	if (opt->flags & (1 << NFTNL_TUNNEL_GENEVE_CLASS) &&
++	    opt->flags & (1 << NFTNL_TUNNEL_GENEVE_TYPE) &&
++	    opt->flags & (1 << NFTNL_TUNNEL_GENEVE_DATA)) {
++		nest_inner = mnl_attr_nest_start(nlh, NFTA_TUNNEL_KEY_OPTS_GENEVE);
++		mnl_attr_put_u16(nlh, NFTA_TUNNEL_KEY_GENEVE_CLASS,
++				 htons(opt->geneve.geneve_class));
++		mnl_attr_put_u8(nlh, NFTA_TUNNEL_KEY_GENEVE_TYPE,
++				opt->geneve.type);
++		mnl_attr_put(nlh, NFTA_TUNNEL_KEY_GENEVE_DATA,
++			     opt->geneve.data_len,
++			     opt->geneve.data);
++		mnl_attr_nest_end(nlh, nest_inner);
++	}
++}
++
+ void nftnl_tunnel_opts_build(struct nlmsghdr *nlh,
+ 			     struct nftnl_tunnel_opts *opts)
+ {
+@@ -861,6 +986,9 @@ void nftnl_tunnel_opts_build(struct nlmsghdr *nlh,
+ 		case NFTNL_TUNNEL_TYPE_ERSPAN:
+ 			nftnl_tunnel_opt_build_erspan(nlh, opt);
+ 			break;
++		case NFTNL_TUNNEL_TYPE_GENEVE:
++			nftnl_tunnel_opt_build_geneve(nlh, opt);
++			break;
+ 		}
+ 	}
+ 	mnl_attr_nest_end(nlh, nest);
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.50.1
+
