@@ -1,193 +1,124 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2A4AAD2C;
-	Fri, 15 Aug 2025 00:18:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C04BB22A1C5
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2025 03:49:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755217126; cv=none; b=oJj7v5bgOeIySRkOdTlzXjrIraBOIaucFYF0qs3PDxvlyy/YYN1yc3fyPgmhZ+xVw7aIHp/9oMzR23kSZpoeDr86dydg2DZ3u4DMWukr+Z9kTj/A4w9MtmVQILgGF8IDS7B8DtTuttsKNtN68auqLwVNK+zVp8BtU9zIYNmALC0=
+	t=1755229767; cv=none; b=p92qoIpSO+qQpWQvuC4so0Hdk/r5Os9vETwsuvm7zD06PiMP9ogx7sur/mueYrpzfYsBTTg1Xe8do7u08ICRDLstPeFqY0o4AwRMHMXx1oVpY5cS6YNwg9lqkfncNjQlJqtS/tQeetOEM38PkzSCHVK+daW2tQUXYPU85JYKsFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755217126; c=relaxed/simple;
-	bh=YSHQ0nHVRPFsB93Dabwiu8ozEATJ/8Mr0PnXcpCB98s=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=uvkhhDFAQda5cdgEGqIp8WaFNkgFhLATKhSFTQ86XwTd56a7vRJIo5/oAkjsPvgwwmXtdoQDrsDHalqTKQ733TewL8JzgVwDzahCiPivB0YX74qiDSHfmwSGml3Y40XwFTxvJjTAU3oWJd4knCZlV74jgYN8jIDopH2ocHRm0K4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WFexyq4o; arc=none smtp.client-ip=209.85.214.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1755229767; c=relaxed/simple;
+	bh=l4iplhoglaXFKgg0/GPISAxQBnSA5jM1Eg/0eFalrP0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=C+KM7byDOuL4NhsVpiEJbQ83CxVV8tjKSoEUPKg1ge/m1MP4pFhYy8jvDmiFxZ40QeArf6S7klFORBPQdzdr4S9Oum9ZxiWM4eAF9E8YOmsAXGJvmHrmuJlfmogGz8Fw6Izjhp+oarJltMaFh1Ccj+T5F8Ncp5XLSM5L6XGs+NY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ZBDpe+Fq; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WFexyq4o"
-Received: by mail-pl1-f179.google.com with SMTP id d9443c01a7336-2445806c2ddso12760205ad.1;
-        Thu, 14 Aug 2025 17:18:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1755217124; x=1755821924; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=VHJYqmfxyB1ZtjnaSlG3/Xthq2PX+hi9aHfPk8z27kw=;
-        b=WFexyq4oXTNdVCrZZiWbVQWICwor/oZkoM5a+veKqbKqwurJx7uhZ1lYL7puFPtM97
-         T9rvtKBJAsYbiHPn63d3J5+bbBiw3JOkp2I5WjT65ulmhzGK7EPEuPIluAK96iDejfhv
-         V2zPkZOtGQJTbHBBVMZWjBWl4Pwh2CJmtMfswCXNMjjAr13b7E8NqO6PpeUZkbigKcoU
-         KCx41nRvW9HWFqPnSbMqwTM+3kzZD/gCo404E1fvkLfi33sR6GkzSP8tpcwhRB/jGulr
-         CrQI7Hy6dkYHh94XLaJXUeZxntwpyC4mGACMvVe2w2BJWsbrQngtjjNb2jxDouVocTW6
-         N1kA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755217124; x=1755821924;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=VHJYqmfxyB1ZtjnaSlG3/Xthq2PX+hi9aHfPk8z27kw=;
-        b=fv/h0ZocVsAzylqVdIiVCJm7Njf9CO019WUyVyf9YCGzUOtnpykH48Aav8HJdBlE6f
-         t4SSn8CLHdNrgjKfBd51EKcfDT6DAu/jdBHPx8sEpynKgwiScaJlojXyVFBuWFj8RyFZ
-         Xg/ZrJkZtOcYpLGVoEDpvvJ/CEOcc7E8F3SsfMx2ypHzgX7ayK/QB6ZXqptCCoiVBoYt
-         KudqcbL3QKThCHiEJN6vAl1sHVrP9/eSLeIrBdLQRc0QGzGiaNKj49fBSOwA5ACbFZ7x
-         Uki4GpRVrst+npYdau/uS34yFRg/I05X0iMwLrRcnAfaVKNYLBOzFwJarsJ3nZptbLEg
-         Kz5w==
-X-Forwarded-Encrypted: i=1; AJvYcCUgsoaZJDIKYGuq2Q0DHSy5umr7lfOGavRJnrK4/oJjDZ7yjktXO7NcY6rhIYsjGOiSHwQvW42d@vger.kernel.org, AJvYcCV4waBbTfD4Kkdkk1wnxhUSzyamXEVXdNwXaBz8niylaEdA1hyX3tPda6NrdXoXPReb4pfHbUjP/tMEt30=@vger.kernel.org, AJvYcCXLZjodCsSgcUl8tE8iPs1zu3sq8ChXlADdwlsC9A+Cbed9JXOF+UMfQJzc/fQXBVAWkdnDsxtNUrc0AmBbLb3w@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx7/w21cXwyEVBgu190U6EzyxA9H1Z/4kYLIzhuN13gmeGj9bNW
-	LLv3CqJoEzQg21bP+qLPQdoNNPEm/vN2vejvp+i8IZatxaJu0CtjrVq35nSHUjk/2aY=
-X-Gm-Gg: ASbGncu7B24+ECxypbG1xrmTpi2ibcWRBw3zgypmr3tllKzAmXxAUwJ9KS9aRUwYFFT
-	F44g6BfJ0Rw3WKTbb3FhR+2BP57aPdzgcSC1fjI3xgz9zerEvKCHtmT0p8F1SLkyeNIkFxGoklR
-	5CFu2oQnUdfTp94GnB4v/a/dGPxSVJuToiAadL7vs2vyv/fokyR+NR10Um1eHprpNUl4JA7XU4n
-	KB1tDlAfnWPhXZ2XyrZBtVV25aNPTRCr6SZLZExYDxzjlXLO/BWo+Ujzo43lAMN3TR8g6XMjg9I
-	AeXb11/kPnwlDBOBj6kt8ucmr05XIXq87X5EbXBUb7MTAfjaw5UaUG/jKUFd/hubthmsn6EEY62
-	dtmFvQ7WvT99kd6t2ipeqSw7Hvw64yx2i7ms/k2ty3Q==
-X-Google-Smtp-Source: AGHT+IFxzhdphiJBS2G/UPMPzKz6foyjIJZMPLW6JxLo23pShrslemm4KTOWFETkoXre0puhmLRAcQ==
-X-Received: by 2002:a17:902:c947:b0:240:aa0:1584 with SMTP id d9443c01a7336-2446d8db8f0mr2125065ad.38.1755217123642;
-        Thu, 14 Aug 2025 17:18:43 -0700 (PDT)
-Received: from soham-laptop.. ([103.182.158.111])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2446d5a451esm700745ad.165.2025.08.14.17.18.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 14 Aug 2025 17:18:43 -0700 (PDT)
-From: Soham Metha <sohammetha01@gmail.com>
-To: linux-kselftest@vger.kernel.org
-Cc: shuah@kernel.org,
-	skhan@linuxfoundation.org,
-	linux-kernel-mentees@lists.linuxfoundation.org,
-	linux-kernel@vger.kernel.org,
-	Soham Metha <sohammetha01@gmail.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org
-Subject: [PATCH 2/6] setftests: net: netfilter: fix spelling mistakes in output
-Date: Fri, 15 Aug 2025 05:47:59 +0530
-Message-Id: <20250815001803.112924-1-sohammetha01@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250815000859.112169-1-sohammetha01@gmail.com>
-References: <20250815000859.112169-1-sohammetha01@gmail.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZBDpe+Fq"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1755229766; x=1786765766;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=l4iplhoglaXFKgg0/GPISAxQBnSA5jM1Eg/0eFalrP0=;
+  b=ZBDpe+FqNiGiYOEnX+XvQi3zoDNjQRZfvreDilqs461iLr6Nlu+mvkso
+   DwoBU/6vSetgimbVwivmjJBvVzRANLCai2u1eufzmLOJa9m3B66LNotmD
+   nCGUnV84uGeTTnF/i5eQ5VzTyTh8LuilQnCpqeDdYqep5zvVhcM/4hgdW
+   DGaCATsx33iYO5DXy6P+avIssLhFUDw/d8/SEME5Lp5mFAvIGLqyHLrT4
+   QtSFeZO6LvCjBNdERT94+pdrHoJMrMAO19foQvzcda8gy2Nitd598Wasg
+   LfHWkIrHO8zckXwRANfDxtkz/rTGwrKPDTi1PLb61ukj7VEavI5JtnZoJ
+   g==;
+X-CSE-ConnectionGUID: GSW9LRurSb26lScU2wzsFw==
+X-CSE-MsgGUID: 5yWzq7W4T9S+k7O5Oyz+0A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11522"; a="68642023"
+X-IronPort-AV: E=Sophos;i="6.17,290,1747724400"; 
+   d="scan'208";a="68642023"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2025 20:49:25 -0700
+X-CSE-ConnectionGUID: EXUlgcz4QfeBkRBTKTot6g==
+X-CSE-MsgGUID: NmJGOVEjQqOMaByOkMKOkA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.17,290,1747724400"; 
+   d="scan'208";a="172257323"
+Received: from lkp-server02.sh.intel.com (HELO 4ea60e6ab079) ([10.239.97.151])
+  by orviesa005.jf.intel.com with ESMTP; 14 Aug 2025 20:49:24 -0700
+Received: from kbuild by 4ea60e6ab079 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1umlRD-000BWS-1w;
+	Fri, 15 Aug 2025 03:49:11 +0000
+Date: Fri, 15 Aug 2025 11:47:50 +0800
+From: kernel test robot <lkp@intel.com>
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: ctnetlink: remove refcounting in
+ dying list dumping
+Message-ID: <202508151104.eDVcRAdD-lkp@intel.com>
+References: <20250814162307.26029-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250814162307.26029-1-fw@strlen.de>
 
-found/fixed following typos
+Hi Florian,
 
-- add add -> add
-- cannnot -> cannot
-- fowarded -> forwarded
+kernel test robot noticed the following build warnings:
 
-in `tools/testing/selftests/net/netfilter/nft_nat.sh`
+[auto build test WARNING on netfilter-nf/main]
+[also build test WARNING on linus/master v6.17-rc1 next-20250814]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Signed-off-by: Soham Metha <sohammetha01@gmail.com>
----
- .../testing/selftests/net/netfilter/nft_nat.sh | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/netfilter-ctnetlink-remove-refcounting-in-dying-list-dumping/20250815-003116
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20250814162307.26029-1-fw%40strlen.de
+patch subject: [PATCH nf-next] netfilter: ctnetlink: remove refcounting in dying list dumping
+config: hexagon-randconfig-001-20250815 (https://download.01.org/0day-ci/archive/20250815/202508151104.eDVcRAdD-lkp@intel.com/config)
+compiler: clang version 22.0.0git (https://github.com/llvm/llvm-project 3769ce013be2879bf0b329c14a16f5cb766f26ce)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250815/202508151104.eDVcRAdD-lkp@intel.com/reproduce)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_nat.sh b/tools/testing/selftests/net/netfilter/nft_nat.sh
-index a954754b99b3..44a8fdf5c19c 100755
---- a/tools/testing/selftests/net/netfilter/nft_nat.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_nat.sh
-@@ -164,7 +164,7 @@ table $family nat {
- }
- EOF
- 	if [ $? -ne 0 ]; then
--		echo "SKIP: Could not add add $family dnat hook"
-+		echo "SKIP: Could not add $family dnat hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -239,7 +239,7 @@ EOF
- 			test_inet_nat=false
- 			return $ksft_skip
- 		fi
--		echo "SKIP: Could not add add $family dnat hook"
-+		echo "SKIP: Could not add $family dnat hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -418,7 +418,7 @@ table $family nat {
- }
- EOF
- 	if [ $? -ne 0 ]; then
--		echo "SKIP: Could not add add $family masquerade hook"
-+		echo "SKIP: Could not add $family masquerade hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -509,7 +509,7 @@ table $family nat {
- }
- EOF
- 	if [ $? -ne 0 ]; then
--		echo "SKIP: Could not add add $family masquerade hook"
-+		echo "SKIP: Could not add $family masquerade hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -569,7 +569,7 @@ test_redirect6()
- 	ip netns exec "$ns0" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- 
- 	if ! ip netns exec "$ns2" ping -q -c 1 dead:1::99 > /dev/null;then
--		echo "ERROR: cannnot ping $ns1 from $ns2 via ipv6"
-+		echo "ERROR: cannot ping $ns1 from $ns2 via ipv6"
- 		lret=1
- 	fi
- 
-@@ -598,7 +598,7 @@ table $family nat {
- }
- EOF
- 	if [ $? -ne 0 ]; then
--		echo "SKIP: Could not add add $family redirect hook"
-+		echo "SKIP: Could not add $family redirect hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -673,7 +673,7 @@ table $family nat {
- }
- EOF
- 	if [ $? -ne 0 ]; then
--		echo "SKIP: Could not add add $family redirect hook"
-+		echo "SKIP: Could not add $family redirect hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -844,7 +844,7 @@ table $family nat {
- }
- EOF
- 	if [ $? -ne 0 ]; then
--		echo "SKIP: Could not add add $family masquerade hook"
-+		echo "SKIP: Could not add $family masquerade hook"
- 		return $ksft_skip
- 	fi
- 
-@@ -859,7 +859,7 @@ EOF
- 	# from router:service bypass connection tracking.
- 	test_port_shadow_notrack "$family"
- 
--	# test nat based mitigation: fowarded packets coming from service port
-+	# test nat based mitigation: forwarded packets coming from service port
- 	# are masqueraded with random highport.
- 	test_port_shadow_pat "$family"
- 
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202508151104.eDVcRAdD-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> net/netfilter/nf_conntrack_netlink.c:1785:16: warning: unused variable 'last_id' [-Wunused-variable]
+    1785 |         unsigned long last_id = ctx->last_id;
+         |                       ^~~~~~~
+   1 warning generated.
+
+
+vim +/last_id +1785 net/netfilter/nf_conntrack_netlink.c
+
+  1780	
+  1781	static int
+  1782	ctnetlink_dump_dying(struct sk_buff *skb, struct netlink_callback *cb)
+  1783	{
+  1784		struct ctnetlink_list_dump_ctx *ctx = (void *)cb->ctx;
+> 1785		unsigned long last_id = ctx->last_id;
+  1786	#ifdef CONFIG_NF_CONNTRACK_EVENTS
+  1787		const struct net *net = sock_net(skb->sk);
+  1788		struct nf_conntrack_net_ecache *ecache_net;
+  1789		struct nf_conntrack_tuple_hash *h;
+  1790		struct hlist_nulls_node *n;
+  1791	#endif
+  1792	
+  1793		if (ctx->done)
+  1794			return 0;
+  1795	
+  1796		ctx->last_id = 0;
+  1797	
+
 -- 
-2.34.1
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
