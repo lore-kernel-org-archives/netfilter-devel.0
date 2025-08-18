@@ -1,22 +1,22 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 629172765C4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 715AF2765E6
 	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 11:02:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755514940; cv=none; b=PbYq8oCWXLI7smIQbx9bj0Ewc0Y3quX/Qb2axnNvRfN4sR5ivkc6YunP9Jm5i3A5haNkK50VeRF/qZ79LrGLpqWGLrnUE2jflgDwzRd4K80PLqtTv8fmj5hdSH5LmGVr6tJSXVSrbRdfBbD6YP4tNbGHaTfGZTgU5ZHdyZDiOHI=
+	t=1755514941; cv=none; b=JJkdKSwopkGarvYQlQUat6aJxIp7zS1IvuAx/93ZYwFGy8+kEwncwb1z4id57PlgUM9GsO0Nvsa41BKGpAA1PnbPxZAs+a2ovh6UjCIUhBrGLagLTyvghOMZUz6vS9pUfXaHx3IGN/lrsac23h+dVHXNQyIc2G1ivl6BIdpOpng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755514940; c=relaxed/simple;
-	bh=NhqX7kq7EHdqPg0QMoqxHKq4dvNwf+xo4ZpIYKHkyVY=;
+	s=arc-20240116; t=1755514941; c=relaxed/simple;
+	bh=5UA3b8NBfZBqdneIyRPewYTo/RHw0HOzdU8VFJq8OF8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nEVOKbiXHA+/A5NAAo5D+3sr2UWLDtiJjSi2pYqTgUO35K7BYLpz9zNNAhWU1SOTLocyMuPeaChnEm8FJZhLJ29os9+rANLRPMdNxmxJ52JGI7etS/opaSlytHtpPtPGAtIMJl+9UFBOrrIJA5KYWFtjeW4MeYtpiwROTotTy8U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=StHlSBI2; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=viCm3laH; arc=none smtp.client-ip=193.142.43.55
+	 MIME-Version; b=s54tYkLSCVdRVYwbfrumPMoLsCf9SVnB4jA6lwiT6f7MmbAmHNCgNGZ8s3WkIBvlgndRA5Nl2qWmGkgvglzc758GMURxi0bmldJTeJkwYaRoTxzByaIiThK4pZPR/tzySgpfE9MMxpFnTxAMVAeHxyhMO6pBisHfwT8fUgWJup8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=0KEReYfb; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=axKc2cft; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="StHlSBI2";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="viCm3laH"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="0KEReYfb";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="axKc2cft"
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
 	s=2020; t=1755514937;
@@ -24,21 +24,21 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=QACceNJ33DbSTXtO0ygCmjIrEznRf/pYwB6JFuxkBKA=;
-	b=StHlSBI2HLaFjLrnCVTF6k9L9VCLSud0dZOpsA1eqJvt1GuHpu41y2F2oui6/29h0/Kd2A
-	jYVgN38byzWlD+f7pffMmDhfCSDo9R9NJxah2B1YNN2WuQxvAC3v7e8sxsMrKwV+J3KWNn
-	cT9OMcqlbDW4R5VQK8zTT94uWImAxeo0OZCMJ7F5M6aMqMD8Rzni0HW8D68t6+HMqZ5t6i
-	A0n7XxHirJ8/J/OO5mXFlosRBvu0JbShWZLf9ti9aqNx3U+ago4JvXzqvs8q7fOvCz7sMh
-	wfNBYGC4jtH52uJgG/OiNa1stp6nqX85X8VZULjYsACFx9/nEV+CkmpuqJQZKQ==
+	bh=uhZeEzrq6qOCRGlpOw8HyLUMa+Cbt1wucJZ4tGWRfDk=;
+	b=0KEReYfbsuB/fNBdx4Tmy8w2F0nuU2W44gBg+1LvpH5qTh8dusiDOkZSOycHanUIpI1IIF
+	/4ymjmCnerf7ZZT5tO3OOg91ZTa/XmIC60YD3CTFLONbch8dIGUSCRufshd7cT3iw54FE9
+	+s1KJtZbDa3dp2z6wMpk3DiiY59QlL9jKdpleWDM/zhoYhMQS8bkgaoO9dgbsxmycHa7Bb
+	nxQxDr3NhvWBD+YR1E7qrXWlBlR+HXSc/1bvt4l+Rdb7mquOkrcIUKnRvspc5Wk032pCsJ
+	7cC8R1Rdw1QctVWoCQ57ZHVRwzFRuBdFdkbJAf/LT15+P6Diuv1I0rlBRPEunw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
 	s=2020e; t=1755514937;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=QACceNJ33DbSTXtO0ygCmjIrEznRf/pYwB6JFuxkBKA=;
-	b=viCm3laHPqv1vfPsb3FILgf0r7mn6oUPMLuz1BaI/e4cFKkMeeCXHYknlgghdCrf2H1EDN
-	B0FCAphSRYblJ5Bg==
+	bh=uhZeEzrq6qOCRGlpOw8HyLUMa+Cbt1wucJZ4tGWRfDk=;
+	b=axKc2cft2fRJq65qLthodLjI+wxUJ48aqyy0sARbW8dBJRz2kUa1Tl/y3vu23OCvaZEqmG
+	e2svnaxatB0jD0DQ==
 To: netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
 	linux-rt-devel@lists.linux.dev
@@ -47,9 +47,9 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH nft-testing v3 1/2] netfilter: nft_set_pipapo*: Move FPU handling to pipapo_get_avx2()
-Date: Mon, 18 Aug 2025 13:02:12 +0200
-Message-ID: <20250818110213.1319982-2-bigeasy@linutronix.de>
+Subject: [PATCH nft-testing v3 2/2] netfilter: nft_set_pipapo: Use nested-BH locking for nft_pipapo_scratch
+Date: Mon, 18 Aug 2025 13:02:13 +0200
+Message-ID: <20250818110213.1319982-3-bigeasy@linutronix.de>
 In-Reply-To: <20250818110213.1319982-1-bigeasy@linutronix.de>
 References: <20250818110213.1319982-1-bigeasy@linutronix.de>
 Precedence: bulk
@@ -60,95 +60,123 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-Move kernel_fpu_begin_mask()/ _end() to pipapo_get_avx2() where it is
-required.
-This is a preparation for adding local_lock_t to struct
-nft_pipapo_scratch in order to protect the __map pointer. The lock can
-not be acquired in preemption disabled context which is what
-kernel_fpu_begin*() does.
+nft_pipapo_scratch is a per-CPU variable and relies on disabled BH for
+its locking. Without per-CPU locking in local_bh_disable() on PREEMPT_RT
+this data structure requires explicit locking.
+
+Add a local_lock_t to the data structure and use local_lock_nested_bh() for
+locking. This change adds only lockdep coverage and does not alter the
+functional behaviour for !PREEMPT_RT.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---
- net/netfilter/nft_set_pipapo.c      |  2 --
- net/netfilter/nft_set_pipapo_avx2.c | 15 +++++++++------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ net/netfilter/nft_set_pipapo.c      | 5 +++++
+ net/netfilter/nft_set_pipapo.h      | 1 +
+ net/netfilter/nft_set_pipapo_avx2.c | 4 ++++
+ 3 files changed, 10 insertions(+)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 515eb64bff9f8..1a1ba0b47696e 100644
+index 1a1ba0b47696e..e7c28b009b9a7 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -528,9 +528,7 @@ static struct nft_pipapo_elem *pipapo_get(const struct =
-nft_pipapo_match *m,
- #if defined(CONFIG_X86_64) && !defined(CONFIG_UML)
- 	if (boot_cpu_has(X86_FEATURE_AVX2) && boot_cpu_has(X86_FEATURE_AVX) &&
- 	    irq_fpu_usable()) {
--		kernel_fpu_begin_mask(0);
- 		e =3D pipapo_get_avx2(m, data, genmask, tstamp);
--		kernel_fpu_end();
- 		local_bh_enable();
- 		return e;
+@@ -429,6 +429,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const st=
+ruct nft_pipapo_match *m,
+ 	scratch =3D *raw_cpu_ptr(m->scratch);
+ 	if (unlikely(!scratch))
+ 		goto out;
++	__local_lock_nested_bh(&scratch->bh_lock);
+=20
+ 	map_index =3D scratch->map_index;
+=20
+@@ -465,6 +466,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const st=
+ruct nft_pipapo_match *m,
+ 				  last);
+ 		if (b < 0) {
+ 			scratch->map_index =3D map_index;
++			__local_unlock_nested_bh(&scratch->bh_lock);
+ 			local_bh_enable();
+=20
+ 			return NULL;
+@@ -484,6 +486,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const st=
+ruct nft_pipapo_match *m,
+ 			 * *next* bitmap (not initial) for the next packet.
+ 			 */
+ 			scratch->map_index =3D map_index;
++			__local_unlock_nested_bh(&scratch->bh_lock);
+ 			local_bh_enable();
+ 			return e;
+ 		}
+@@ -498,6 +501,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const st=
+ruct nft_pipapo_match *m,
+ 		data +=3D NFT_PIPAPO_GROUPS_PADDING(f);
  	}
+=20
++	__local_unlock_nested_bh(&scratch->bh_lock);
+ out:
+ 	local_bh_enable();
+ 	return NULL;
+@@ -1215,6 +1219,7 @@ static int pipapo_realloc_scratch(struct nft_pipapo_m=
+atch *clone,
+ 		}
+=20
+ 		pipapo_free_scratch(clone, i);
++		local_lock_init(&scratch->bh_lock);
+ 		*per_cpu_ptr(clone->scratch, i) =3D scratch;
+ 	}
+=20
+diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
+index 3655aa41fa949..4d9addea854c4 100644
+--- a/net/netfilter/nft_set_pipapo.h
++++ b/net/netfilter/nft_set_pipapo.h
+@@ -129,6 +129,7 @@ struct nft_pipapo_field {
+  * @__map:	store partial matching results during lookup
+  */
+ struct nft_pipapo_scratch {
++	local_lock_t bh_lock;
+ 	u8 map_index;
+ 	unsigned long __map[];
+ };
 diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pi=
 papo_avx2.c
-index a584ffff73769..951868a904a25 100644
+index 951868a904a25..8270a95c8ca27 100644
 --- a/net/netfilter/nft_set_pipapo_avx2.c
 +++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1170,6 +1170,12 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct=
- nft_pipapo_match *m,
-=20
- 	pipapo_resmap_init_avx2(m, res);
-=20
-+	/* Note that we don't need a valid MXCSR state for any of the
-+	 * operations we use here, so pass 0 as mask and spare a LDMXCSR
-+	 * instruction.
-+	 */
-+	kernel_fpu_begin_mask(0);
-+
- 	nft_pipapo_avx2_prepare();
-=20
- next_match:
-@@ -1221,6 +1227,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
+@@ -1163,6 +1163,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
 nft_pipapo_match *m,
+ 	if (unlikely(!scratch))
+ 		return NULL;
 =20
++	__local_lock_nested_bh(&scratch->bh_lock);
+ 	map_index =3D scratch->map_index;
+ 	map =3D NFT_PIPAPO_LT_ALIGN(&scratch->__map[0]);
+ 	res  =3D map + (map_index ? m->bsize_max : 0);
+@@ -1228,6 +1229,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
+nft_pipapo_match *m,
  		if (ret < 0) {
  			scratch->map_index =3D map_index;
-+			kernel_fpu_end();
+ 			kernel_fpu_end();
++			__local_unlock_nested_bh(&scratch->bh_lock);
  			return NULL;
  		}
 =20
-@@ -1233,6 +1240,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
+@@ -1241,6 +1243,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
 nft_pipapo_match *m,
- 				goto next_match;
 =20
  			scratch->map_index =3D map_index;
-+			kernel_fpu_end();
+ 			kernel_fpu_end();
++			__local_unlock_nested_bh(&scratch->bh_lock);
  			return e;
  		}
 =20
-@@ -1241,6 +1249,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
+@@ -1250,6 +1253,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct =
 nft_pipapo_match *m,
- 		data +=3D NFT_PIPAPO_GROUPS_PADDED_SIZE(f);
  	}
 =20
-+	kernel_fpu_end();
+ 	kernel_fpu_end();
++	__local_unlock_nested_bh(&scratch->bh_lock);
  	return NULL;
  }
 =20
-@@ -1280,13 +1289,7 @@ nft_pipapo_avx2_lookup(const struct net *net, const =
-struct nft_set *set,
-=20
- 	m =3D rcu_dereference(priv->match);
-=20
--	/* Note that we don't need a valid MXCSR state for any of the
--	 * operations we use here, so pass 0 as mask and spare a LDMXCSR
--	 * instruction.
--	 */
--	kernel_fpu_begin_mask(0);
- 	e =3D pipapo_get_avx2(m, rp, genmask, get_jiffies_64());
--	kernel_fpu_end();
- 	local_bh_enable();
-=20
- 	return e ? &e->ext : NULL;
 --=20
 2.50.1
 
