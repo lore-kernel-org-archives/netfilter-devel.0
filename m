@@ -1,49 +1,33 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E336325F7A5
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 21:07:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FD32185A8
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 21:41:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755551260; cv=none; b=VLjn5ti9jzsSiwPv8S1UNZWENrQeazxGZnOYsYbOTdkytyunjrDkUmd3vV95duZ1ol5xglfgOm+ihr3kE8WAPv4/fMJfGKk6Bg3nuDCr9DTxQI9K1+KtoECea7rR8usWpoEZWCgPcPtKpINyAqQTgX1RYxNFbjkKFSq+wE0x4hM=
+	t=1755553274; cv=none; b=jjYlAucDShZngkzng6zx4h5B0kO3osbqXJUMOYp44DS5IlseAZhMHnfN5KhtgCKNbqpGhqCO+nKADf8v3eoHDBSg0Fc3UGMqqbJGwyMgstlEkuLYkqDdVgUSe+MEmxNdyhwvhjLasHCpydKoe8LC30fbpvP04cOKhBnB/10c+50=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755551260; c=relaxed/simple;
-	bh=Z/H9Jpz3mbJtr7eD+4MpyhMwTzrRajXzhA6a+FSEroA=;
+	s=arc-20240116; t=1755553274; c=relaxed/simple;
+	bh=do7/r72+9PVdPlWr0C0irtg8mvCsSRygZPbaPnpglNI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Jf4+DOlp2kSg/qlB6tOTrtyAK9fxvJcIAb6ItTAC3Yj8Bt6wyUkH0ZOcqxJQ+sFSH472Q8ZPXXEy3pHhgo/ICwtWHTRCfpEoW9tOFtmzYTUtmjUDZRJh/Hhg915JaDEFwPZB8qnzvLwSGg8tjoyLU/cQlxSvzNCUWNl2kJssfuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=a/6nOoH/; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="a/6nOoH/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=91BBlSYG8kA+Avnq9B9sC4CZ12cKghnWfppk46U1qZ8=; b=a/6nOoH/YL4L2rXQL7qrB3xdVz
-	q/gDpCokxf6Tudt/DlJvgkzvv/12o2SIDYNmcXlQwE9sXNft07ovtU1a4hp/eR1YTMjB20P+ELgSt
-	0D34a6tPL8taF0prS1sMEryfWRf/BopSUGVcm7aX6WEPEa/bqjaNbqcUmcW7VkvLn8AmpW8D7PYQg
-	mf+055h+krO/i7ReXuXb2qo1Pl97x8fEjPfuBRZatyXDtfbqgxWNEiL/MDTqf0uLELevNcupGzzx3
-	sVQVWoYxQq31Qa+ly9m3U/E4yRtiCu2/+YwfxdrzObMmzB87vvOqfm55hftemHSh2/2E8oeGr4E4O
-	XRnmtnIg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uo74o-000000008FZ-2C88;
-	Mon, 18 Aug 2025 23:07:34 +0200
-Date: Mon, 18 Aug 2025 23:07:34 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=phnR+QLz+7BXtWb/S3VRxeMNDI9ZvVaJL7kTgTCcsFYzKdRwEETRgYV2/UBo37tcjxOm6CtD0S3bOTQjXeIErOfswWyaYzIX8DLCb+sh3gYLCLNS4onxIUfDOUtphSBV2zWUK+fcpjLrzLW/RwupoPv0ldkYfbMkTlmTjD8giPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 2F31960242; Mon, 18 Aug 2025 23:41:09 +0200 (CEST)
+Date: Mon, 18 Aug 2025 23:41:08 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Stefano Brivio <sbrivio@redhat.com>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 00/14] json: Do not reduce single-item arrays on
- output
-Message-ID: <aKOWFj5sjJNySsde@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20250813170549.27880-1-phil@nwl.cc>
- <aKM1tbmVvbzoDUqx@calendula>
+Subject: Re: [PATCH nf-next 2/2] netfilter: nft_set_pipapo: use avx2
+ algorithm for insertions too
+Message-ID: <aKOd9GYEljvmWcUU@strlen.de>
+References: <20250815143702.17272-1-fw@strlen.de>
+ <20250815143702.17272-3-fw@strlen.de>
+ <20250818183227.28dfa525@elisabeth>
+ <aKNv_lcbE6kMtqws@strlen.de>
+ <20250818205605.3cf49465@elisabeth>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,39 +36,14 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aKM1tbmVvbzoDUqx@calendula>
+In-Reply-To: <20250818205605.3cf49465@elisabeth>
 
-On Mon, Aug 18, 2025 at 04:16:21PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Aug 13, 2025 at 07:05:35PM +0200, Phil Sutter wrote:
-> > This series consists of noise (patches 1-13 and most of patch 14) with a
-> > bit of signal in patch 14. This is because the relatively simple
-> > adjustment to JSON output requires minor adjustments to many stored JSON
-> > dumps in shell test suite and stored JSON output in py test suite. While
-> > doing this, I noticed some dups and stale entries in py test suite. To
-> > clean things up first, I ran tests/py/tools/test-sanitizer.sh, fixed the
-> > warnings and sorted the changes into fixes for the respective commits.
+Stefano Brivio <sbrivio@redhat.com> wrote:
+> I think that would just make it... hidden. I'd rather leave it like it
+> is.
 > 
-> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 
-Series applied, thanks!
-
-> I will follow up with a patch to partially revert the fib check change
-> for JSON too.
-
-Hmm. That one seems like a sensible change and not just a simplification
-of output. I guess if we take this approach seriously, we should agree
-on (and communicate) an upgrade path for JSON output. In detail (from
-the top of my head):
-
-1) What changes are considered compatible (and which not)
-2) In which situations are incompatible changes acceptable
-3) How to inform users of the incompatible change
-
-I'd suggest something like:
-
-1) Additions only, no changes of property values or names
-2) Critical bug fixes or new (major?) versions
-3) Bump JSON_SCHEMA_VERSION? Or is the "version" property in "metainfo"
-   sufficient if bumped anyway?
-
-Cheers, Phil
+Thanks.  For the record, I did fix up the various typos in the
+comments meanwhile, I'll retain your reviewed-by tag as i did
+not make code changes.
