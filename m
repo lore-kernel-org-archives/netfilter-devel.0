@@ -1,124 +1,121 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488BE30DD13;
-	Mon, 18 Aug 2025 09:08:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC628275AE3
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 09:11:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755508107; cv=none; b=TJoRfn4n7x/1jesCvVVFVAqAjexLZDd/MgTy8qAIekWd+/qXZebhMYnshB4hXuNJrOx1wJPIk17NityRW4SG0aEbF2KpwFGMTbpfDmAXePE2FCP+5WEI7gDKlya2PgQcGNV7IumHLrinb7vyMe+mo+Us0uoXz2TaW5zdoqrzodw=
+	t=1755508298; cv=none; b=uwKE8YnHDRiLVwkK4LgeR/bbdKUxRPovQgHtHav88stIkKuXjqSP8PRrp1x297yGf4BA9WCGzxlx0V2TBklXHnttG9L7sHPnQWW4CBPvYWA7lOb8PpNzDgYyUB7VahI8ku9iypgJ5zeaY7j1wOsB8S7yZ9T9/OdBt378YiJtBy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755508107; c=relaxed/simple;
-	bh=sEjviTPRhYqGP5Y8/0bVLkQrZaSsat98TC4r3HprGO4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=uDLnAQtj6WRvI5hEx40z/1KjkNrP9nQ8Pr+jdOfLslBuOHaWXa1fhX489hTgJA3DAM5xZcxH+9WGta57RwStb3fsh32fsFZn3/5kqYDYhEOnB5MHTlr2mIkWNfx+vnF6w3jyKE2P4dluceBpPH1CkPyrRIfTI3mRuUpRavZ5FR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sO7VKKYX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755508298; c=relaxed/simple;
+	bh=7EE6Cx1EdtNBr2e4Z0pGYJxS8mqU0ECM+YB3EL6JEI4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PEyABmoLCthFaggd/9QqDr8M0A8qetEGW44RNa56EAEmM8WigIsXaJZOO0w7cNmsSXjEM7bvU5RThFCz+GUkMIZpAjqdoM+J5tTTtcXVrjY1qZVNJDExY4tISYfYrVjbJjSsUMQyZyGh6VJFdqiTizhwsvy9NX+2rZzKTvn1840=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=JLaj8Svb; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=GqRXQM7a; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sO7VKKYX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66478C4CEEB;
-	Mon, 18 Aug 2025 09:08:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755508106;
-	bh=sEjviTPRhYqGP5Y8/0bVLkQrZaSsat98TC4r3HprGO4=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=sO7VKKYXEgCCrKA7UhDgHUhEK+pY+o0QLKoSaakjTSE47or7nlZ7vkHmIOyD1z5MK
-	 Ifiq1B2JEmdk6nz6W3JKevN+2elv+/dvaE5yKlDU5P/b/8TB63oteFyb94ofoU/ATJ
-	 R0ieqJOCS1Mh21BGGthR7gHX0UBoSSXyH113XdZ2pi8NpQseTvk/FyeZZ2Z+CO7x/h
-	 1XEzczjYhvn/uEYP/sZ61EMI+mKOVCrYhQr2GdUhgl5N51mrRdFTDgbktg8ZjgPeex
-	 Fkd7MtxKLibza9w7qxAxcLVk7neoj7sbV/Xiw3IPyyNGPFhady0B3PCmeYjmGsKPMk
-	 5mn4SpEDW1xpg==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Mon, 18 Aug 2025 11:07:34 +0200
-Subject: [PATCH nf-next v6 2/2] selftests: netfilter: nft_flowtable.sh: Add
- IPIP flowtable selftest
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="JLaj8Svb";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="GqRXQM7a"
+Date: Mon, 18 Aug 2025 11:11:33 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1755508294;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kAmqsEjsQLHYInjhnfoG2Vo6BPf63dCTM6lKiQLf8us=;
+	b=JLaj8SvbyEOjebRoQ+hKZUIrNsPEH2CVnFkI4X2o+M84n+hAXveFnojTCORN9foR/v0ckP
+	qoYEIQziZZXgIRiYJEMaEx+3t0BOnffmo0w6/Flj03E35cogcEp87zX/Is3q6ghEcBnpPC
+	YiyZOZTXofaA2Qq48VGPOOzRQovnLpzMv/aF3uzvs77Rr/bbqxYqbIzbf0PfiJvS8fXOrA
+	ffDjvq6zUBOBf+j/+H8KTuNku7OJ+5V7qw1dDgug/Am/P5DgKpkMhg9RunyrxhWgPjZJyv
+	pkKx2g/rY0xUOeOVHvpYe5K9aW2vK57jRdiWthbm5CbmAQBF1qBlx09Pwl+sPw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1755508294;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kAmqsEjsQLHYInjhnfoG2Vo6BPf63dCTM6lKiQLf8us=;
+	b=GqRXQM7aaKIB9fevVk+InbsS5UyWyxP5WejfV/I/bupgRly6vtYzrEcTD0ZvSkhQV4kZR1
+	IxVCCgN218uf5ECA==
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH nf-next v2 3/3] netfilter: nft_set_pipapo: Use nested-BH
+ locking for nft_pipapo_scratch
+Message-ID: <20250818091133.YJHx2Qmu@linutronix.de>
+References: <20250815160937.1192748-1-bigeasy@linutronix.de>
+ <20250815160937.1192748-4-bigeasy@linutronix.de>
+ <aKCU6GGY05WO3p_7@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250818-nf-flowtable-ipip-v6-2-eda90442739c@kernel.org>
-References: <20250818-nf-flowtable-ipip-v6-0-eda90442739c@kernel.org>
-In-Reply-To: <20250818-nf-flowtable-ipip-v6-0-eda90442739c@kernel.org>
-To: "David S. Miller" <davem@davemloft.net>, 
- David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Shuah Khan <shuah@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org, 
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- linux-kselftest@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.2
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aKCU6GGY05WO3p_7@strlen.de>
 
-Introduce specific selftest for IPIP flowtable SW acceleration in
-nft_flowtable.sh
+On 2025-08-16 16:25:44 [+0200], Florian Westphal wrote:
+> Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+> > @@ -1170,20 +1170,18 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+> >  	}
+> >  
+> >  	m = rcu_dereference(priv->match);
+> > -
+> > +	scratch = *raw_cpu_ptr(m->scratch);
+> > +	if (unlikely(!scratch)) {
+> > +		local_bh_enable();
+> > +		return false;
+> 
+> The function has been changed upstream to return a pointer.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
- .../selftests/net/netfilter/nft_flowtable.sh       | 40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+Sorry. Missed that and gcc didn't do much of complaining.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index a4ee5496f2a17cedf1ee71214397012c7906650f..d1c9d3eeda2c9874008f9d6de6cabaabea79b9fb 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -519,6 +519,44 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 ""; then
- 	ip netns exec "$nsr1" nft list ruleset
- fi
- 
-+# IPIP tunnel test:
-+# Add IPIP tunnel interfaces and check flowtable acceleration.
-+test_ipip() {
-+if ! ip -net "$nsr1" link add name tun0 type ipip \
-+     local 192.168.10.1 remote 192.168.10.2 >/dev/null;then
-+	echo "SKIP: could not add ipip tunnel"
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
-+	return
-+fi
-+ip -net "$nsr1" link set tun0 up
-+ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
-+ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr2" link add name tun0 type ipip local 192.168.10.2 remote 192.168.10.1
-+ip -net "$nsr2" link set tun0 up
-+ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
-+ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr1" route change default via 192.168.100.2
-+ip -net "$nsr2" route change default via 192.168.100.1
-+ip -net "$ns2" route add default via 10.0.2.1
-+
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
-+
-+if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
-+	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
-+# Restore the previous configuration
-+ip -net "$nsr1" route change default via 192.168.10.2
-+ip -net "$nsr2" route change default via 192.168.10.1
-+ip -net "$ns2" route del default via 10.0.2.1
-+}
-+
- # Another test:
- # Add bridge interface br0 to Router1, with NAT enabled.
- test_bridge() {
-@@ -604,6 +642,8 @@ ip -net "$nsr1" addr add dead:1::1/64 dev veth0 nodad
- ip -net "$nsr1" link set up dev veth0
- }
- 
-+test_ipip
-+
- test_bridge
- 
- KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
+> > +	}
+> > +	__local_lock_nested_bh(&scratch->bh_lock);
+> >  	/* Note that we don't need a valid MXCSR state for any of the
+> >  	 * operations we use here, so pass 0 as mask and spare a LDMXCSR
+> >  	 * instruction.
+> >  	 */
+> >  	kernel_fpu_begin_mask(0);
+> 
+> Not sure this is correct.  If RT allows to migrate in BH before
+> the local lock is taken, then the if (unlikely(!irq_fpu_usable()))
+> check needs to be done after the local lock was taken, no?
 
--- 
-2.50.1
+Looking at this again, that irq_fpu_usable() itself looks slightly
+placed at the wrong spot. It should be
+|	if (!irq_fpu_usable())
+|		return fallback_variant(); 
+|	local_bh_disable();
 
+The reason is that if you expect calls from hardirq context then you
+shouldn't disable BH. Lockdep enabled kernels should complain in this
+case. But then this is networking and I would expect everything here
+should be injected via NAPI/ softirq (either via driver's NAPI or
+backlog's).
+
+But back to your question: This is usually called from softirq so the
+thread can't migrate to another CPU. If this would have been called from
+process context then it could migrate to another CPU. However everything
+that would block the FPU needs to disable BH (preemption on RT) so that
+a tasks does not migrate there while the FPU is blocked.
+
+> I will place a pending pipapo change in the nf-next:testing
+> branch shortly in case you need to resend.
+> 
+> If its fine as-is, I can also rebase the pending pipapo_avx2 patches.
+> 
+> Let me know.
+
+I've just started rebasing this patch on top of the testing branch. I
+see that you moved that code a bit around. I can't acquire the
+local_lock_t within kernel_fpu_begin(). I would need to move this back
+to pipapo_get_avx2().
+
+Sebastian
