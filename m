@@ -1,54 +1,52 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6A2275B1D;
-	Mon, 18 Aug 2025 10:56:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF382765C2
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 11:02:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755514622; cv=none; b=n+xCBsewRiDIRqT06iaaioF962iiKyQWIHEUnVWxcAsY7Bg01706NN/ZsoAMWB2q6Ngpf2GpJ4wVhyLVTzLVANWiKFjFnMa/SyPxKF2FMjQU1a9bR8ZH/XS4b2sWF6p8ROsqEYvRH4A3gB1cUqjcZb+KKHr+WFXA1kaAN4OCL+E=
+	t=1755514940; cv=none; b=uEb+R7cD8tewQcnr+iSE4ZrL/qDtpA1sCZPdGDhaZqym4ms+Bcaq4llKN9qtm7ERZKD6MvgKlU2w8IXxhsNcu6rxlM2W3wnvHCL7GWozpOmz5QFlTdwcE5ARyIe3x8Sb8ZQpyy6lca3m1T5fPrs7rrlinUd+CI+UMTXcev+1sVk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755514622; c=relaxed/simple;
-	bh=2w+EuXC/u8IFg9jA7o7kqWSy53CjQy5oq5noneEIrJ8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bJ2RMXKKhtHvIkyaF5pmPkYKyOIYsxguuJDwu3iqgHUJnQTvHSDYXmKpkCSM/Ts87fE+tAyOO1cxeZThIX4XkN0C7JIQrIKHF8K+M3hPHdN0lPKHuCFwVKYnqggzdCu5E5uARoHuI3ylfFDNe3F8tPHrqEFsn//JvxgrQPH4BvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=M9dAqPvr; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1755514940; c=relaxed/simple;
+	bh=L7DA7DmrRFoFkqNgrgchXI4eLdMP5rncHq4S6jVAJ5Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=cwlT/fMpSwOYsSqCBGEuTcU6LkI1c8q6gcsdtbr8hQp/7WQqn6U6TAmZ4LjUZ1FnKC/h/p6svXpUlQeLXn/9gd6JbjDy9pZxh05xoYstdbG9ZNLbK5EN/O4WWXH/LTOYVjoxrm0phTtgEsc7V+lqb4jYTAnAg5BetAdA80a3XDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=1TPtC+ix; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=Mt2k0/7W; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="M9dAqPvr"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=h9WHAFB/RGgGKVIByINwvuyekvUFaG5ctKYRf81tJDo=; b=M9dAqPvr3u2gj5uo/AYom+dfop
-	FhVtQVRbBUJ2D7+d3fuvtZV1aAhSH3rcuYx+pkF8Fs5uVxKg/C+iIwRnla/lATfqtYJg/s0N2lVud
-	S9IBWtok30UYLJ53v6rHb0ZDSDUf0/as7ja/+2ueNzmDSNz+9gfqFOegPfz+0Cxz4MLfh7oxHi+7c
-	wX77fA8hQEZKr3o4J/K7J9OsGwpD9W89l/3KshUwZOiGPnZTt+42wYm7YxIG975rhky18FJkMj8Ol
-	7X1c5rYWNMWG5M38x03qgeUmezhVZInaTujPobu5Hb8xeegsvl9Pyx2H0IoXaZWekvqAYIqzoeUsz
-	gMKuII5w==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1unxXs-000000003R7-1iFi;
-	Mon, 18 Aug 2025 12:56:56 +0200
-Date: Mon, 18 Aug 2025 12:56:56 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-modules@vger.kernel.org, Yi Chen <yiche@redhat.com>,
-	netdev@vger.kernel.org
-Subject: Re: modprobe returns 0 upon -EEXIST from insmod
-Message-ID: <aKMG-LqLs3yaBDiJ@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-modules@vger.kernel.org, Yi Chen <yiche@redhat.com>,
-	netdev@vger.kernel.org
-References: <aKEVQhJpRdiZSliu@orbyte.nwl.cc>
- <8a87656d-577a-4d0a-85b1-5fd17d0346fe@csgroup.eu>
- <aKLzsAX14ybEjHfJ@orbyte.nwl.cc>
- <edfed2af-8b4d-4afb-b999-5c46b7d46fba@csgroup.eu>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="1TPtC+ix";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="Mt2k0/7W"
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1755514937;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=S4YWN3QJev/isMbAsgFhDSIaXyNM4p5tqig8ROVw3Lw=;
+	b=1TPtC+ix3JydGJIAOddZkLWK9FDY0vJ4VC5h2Sd7zVkpJlTQfB8X2MfuzOeVIWNQdTTFLG
+	d0xavlS/ZepP4PskI7jwvVkyEriY0gmZnMKXTbiaAZQfFoQWKqNhvzstiHor+bSQwgiD19
+	RqTrDcVclGB19shYCrcBGxGl20gcrhDI5zjh1quFZd3N+NpBxmK5VzEAxTDlfWT5cA5kkh
+	zUgmcZnuUmqp7k9ht+x516WNyGn0DdT7TuESNkNyPUARo9Xu07K6xhpJ7TfIXLd/3ZUD1f
+	fHbj6lHu7+dBA5YHqhjPfwlKBVKg+iylbWvuaGRTCPsuVKBHJ/p5mI0oI0nc+w==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1755514937;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=S4YWN3QJev/isMbAsgFhDSIaXyNM4p5tqig8ROVw3Lw=;
+	b=Mt2k0/7W8l1AoeconGEVUoom99OQ3339/BZFMq54/uSUTtT7b49hbtZwP2/sCIqS69wfh4
+	29n5Vfakmdu3yEDA==
+To: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH nft-testing v3 0/2] netfilter: nft_set_pipapo: Use nested-BH locking for nft_pipapo_scratch
+Date: Mon, 18 Aug 2025 13:02:11 +0200
+Message-ID: <20250818110213.1319982-1-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -56,68 +54,31 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <edfed2af-8b4d-4afb-b999-5c46b7d46fba@csgroup.eu>
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 18, 2025 at 12:07:18PM +0200, Christophe Leroy wrote:
-> [+ Netfilter lists]
-> 
-> Hi Phil
-> 
-> Le 18/08/2025 à 11:34, Phil Sutter a écrit :
-> > [Vous ne recevez pas souvent de courriers de phil@nwl.cc. Découvrez pourquoi ceci est important à https://aka.ms/LearnAboutSenderIdentification ]
-> > 
-> > Hi Christophe,
-> > 
-> > On Sun, Aug 17, 2025 at 05:54:27PM +0200, Christophe Leroy wrote:
-> >> Le 17/08/2025 à 01:33, Phil Sutter a écrit :
-> >>> [Vous ne recevez pas souvent de courriers de phil@nwl.cc. D?couvrez pourquoi ceci est important ? https://aka.ms/LearnAboutSenderIdentification ]
-> >>>
-> >>> Hi,
-> >>>
-> >>> I admittedly didn't fully analyze the cause, but on my system a call to:
-> >>>
-> >>> # insmod /lib/module/$(uname -r)/kernel/net/netfilter/nf_conntrack_ftp.ko
-> >>>
-> >>> fails with -EEXIST (due to a previous call to 'nfct add helper ftp inet
-> >>> tcp'). A call to:
-> >>>
-> >>> # modprobe nf_conntrack_ftp
-> >>>
-> >>> though returns 0 even though module loading fails. Is there a bug in
-> >>> modprobe error status handling?
-> >>>
-> >>
-> >> Read the man page : https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Flinux.die.net%2Fman%2F8%2Fmodprobe&data=05%7C02%7Cchristophe.leroy%40csgroup.eu%7C34b49eb3d0544fc683e608ddde3a75b2%7C8b87af7d86474dc78df45f69a2011bb5%7C0%7C0%7C638911064858807750%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=%2F70LV37Zb%2FNeiBV59y9rvkLGh0xsqga08Nl3c5%2BVU5I%3D&reserved=0
-> >>
-> >> In the man page I see:
-> >>
-> >>              Normally, modprobe will succeed (and do nothing) if told to
-> >> insert a module which is already present or to remove a module which
-> >> isn't present.
-> > 
-> > This is not a case of already inserted module, it is not loaded before
-> > the call to modprobe. It is the module_init callback
-> > nf_conntrack_ftp_init() which returns -EEXIST it received from
-> > nf_conntrack_helpers_register().
-> > 
-> > Can't user space distinguish the two causes of -EEXIST? Or in other
-> > words, is use of -EEXIST in module_init callbacks problematic?
-> 
-> So if I understand correctly the load fails because it is in conflict 
-> with another module ?
+The pipapo set type uses a per-CPU scratch buffer which is protected
+only by disabling BH. This series adds nested-BH locking which is only
+used on PREEMPT_RT.
 
-Yes, it tries to signal that there is already a conntrack helper for
-FTP. It is a stub redirecting to an implementation in user space, but
-that's just details.
+v2=E2=80=A6v3: https://lore.kernel.org/all/20250815160937.1192748-1-bigeasy=
+@linutronix.de
+     - dropped applied patches while rebasing to nf-testing
+     - move kernel_fpu_begin() to one place so the locks need to be
+       added in spot.
+=20
+v1=E2=80=A6v2: https://lore.kernel.org/all/20250701221304.3846333-1-bigeasy=
+@linutronix.de
+     - rebase on top of nf-next.
 
-> Then I think the error returned by nf_conntrack_helpers_register() 
-> shouldn't be EEXIST but probably EBUSY.
+Sebastian Andrzej Siewior (2):
+  netfilter: nft_set_pipapo*: Move FPU handling to pipapo_get_avx2()
+  netfilter: nft_set_pipapo: Use nested-BH locking for
+    nft_pipapo_scratch
 
-Sounds good! We could at least adjust the module_init callback return
-code from EEXIST to EBUSY so the change has minimal impact.
+ net/netfilter/nft_set_pipapo.c      |  7 +++++--
+ net/netfilter/nft_set_pipapo.h      |  1 +
+ net/netfilter/nft_set_pipapo_avx2.c | 19 +++++++++++++------
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
-Thanks for your help, Christophe!
-
-Cheers, Phil
+--=20
+2.50.1
