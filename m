@@ -1,118 +1,90 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66908272807
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 18:56:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E336325F7A5
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 21:07:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755543372; cv=none; b=Zemjb7a00CLHm/S/O4XjKlc44EcJ5Z88eWPzqOk9sRuvhn//sgNXtLK3Z6RGAzCCKbQhW5P2nb8aYRZsf1NaS547pba8pk/Yx8fbSEcf6GICv1/ggZTH7WUxh8p9usAlgMjgf8NKih8JvfR3jHG6Ia2yE08z4bv2CKfwOrpb1KU=
+	t=1755551260; cv=none; b=VLjn5ti9jzsSiwPv8S1UNZWENrQeazxGZnOYsYbOTdkytyunjrDkUmd3vV95duZ1ol5xglfgOm+ihr3kE8WAPv4/fMJfGKk6Bg3nuDCr9DTxQI9K1+KtoECea7rR8usWpoEZWCgPcPtKpINyAqQTgX1RYxNFbjkKFSq+wE0x4hM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755543372; c=relaxed/simple;
-	bh=WQPfWV9RsjW54pdiLa0gNn3y05kdz7zTcjxEiKHz73w=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gmyWKkWshnzrnaYGjFxurbMmCQYbMix7fJkTLD9eIsi9/YNCHgLUJ/MIF6INiKrX8eKyB6POcAPozFwq6WroNNm79ONeMXOlxnQlOrAZHzLAnepAUg9YioZBgIuN5YtLT+Bx6ajUsLmGqu6llCqsq5LgHbfvsauNcfH2Yxo4FiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Y/COwijI; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1755551260; c=relaxed/simple;
+	bh=Z/H9Jpz3mbJtr7eD+4MpyhMwTzrRajXzhA6a+FSEroA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Jf4+DOlp2kSg/qlB6tOTrtyAK9fxvJcIAb6ItTAC3Yj8Bt6wyUkH0ZOcqxJQ+sFSH472Q8ZPXXEy3pHhgo/ICwtWHTRCfpEoW9tOFtmzYTUtmjUDZRJh/Hhg915JaDEFwPZB8qnzvLwSGg8tjoyLU/cQlxSvzNCUWNl2kJssfuU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=a/6nOoH/; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Y/COwijI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1755543370;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kekjQDWSmqTEBhPDzSV7nug6S3j8pgVGHUyR2svlDnI=;
-	b=Y/COwijIWwvWhtWJq2/OiVRiE2RERvV0cnfqzFJtlX6ysRV3lBx/IkVjaG2c252xDh4oYI
-	Wk7frzpUsv9x1rBlrQhmAd4PZTOUlBG6q4YE38sb9L8HQ0UlQIDBT902XerR/RFoeHvpBl
-	PkoC7ymv3mezlWKyDniksiuTnIR1j1U=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-550-2etiwKbRNCaIx0wEWm4KrA-1; Mon, 18 Aug 2025 14:56:08 -0400
-X-MC-Unique: 2etiwKbRNCaIx0wEWm4KrA-1
-X-Mimecast-MFC-AGG-ID: 2etiwKbRNCaIx0wEWm4KrA_1755543368
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-45a1b0514a5so19802985e9.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Aug 2025 11:56:08 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755543367; x=1756148167;
-        h=content-transfer-encoding:mime-version:organization:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=kekjQDWSmqTEBhPDzSV7nug6S3j8pgVGHUyR2svlDnI=;
-        b=WbIvGIHxiaN2c739aIkyrXhQgiclqjOr644RgJBIGj5vpUHGWg2nu6fl6S2TUVEIgc
-         n9Z5ZHGwCvxQhxvoqLnwaO5+XV2hNI0Q+IO21nfMmiaVU2XyG62uxTj7T9a/3jX6LiNp
-         uZtG1cZv5mJnOhpdwLrSQpzEpHuz/4o55MYskSsogEPNWJDke+hVJADTC7n+siIS2Yut
-         GRkbEC7gEwlsaw0JLdh/byXhL0Qc5yMxcYBwcIYeYjgSFw0XDqrJa6JqjoeOHgL2Rhh9
-         talh/o44g4HXdtbis6mXVhQmo0CRANvpeL7K1JtINtSfI8zqzfL0mDDImNFad7OWpAMz
-         JaLQ==
-X-Gm-Message-State: AOJu0YzEU0C6MniGNe0QT+oOLOih3rVH+tSv/mVtRk49gm8jMd+NvuHa
-	4iYeG1zix2CMGdyUicyroayFS0ZmTdZ7gt9jMnwflEG6khesoosGYGmvDIz5sQLjuwRjUmdoL/h
-	71FZngxtn7niHs0y/8EFYt+nDUzfZuNnOGIKifV74dbrHPxo2T5IbobZn0CsnrlX68F12Pw==
-X-Gm-Gg: ASbGnctcxiuIQFEKhQPbDhZitKQp5v3oSAlerD2jLGfK3puSd4C5ySriSU0YhqtB+1e
-	J1znuj46KWuVPPrU5UTaNbcGCWJAyI9TfEU/pAGAEIaLwMM3jWlhEEoUB6SSRg7PpA1zGfJ4hiQ
-	ZSwv0kGSE1c7jZUt+N1Iy7kHCtNPcGFklOHquAvE1nxPujlSwlzdg85/4DT8LKIDpZ8cjbEe3+U
-	uP+fZwBLRyf7XVuD6wxkJuv4UOtTfwfGc8cTfPNzY2pmyX0wDFPToMPCp3EBFewoxlE+ZNAn7Ih
-	9W3E6yPFNpizAu3KGYSfRKHTk5gb4CSpYfbzi+5GKsYeGe0HtgI=
-X-Received: by 2002:a05:600c:4447:b0:456:3b21:ad1e with SMTP id 5b1f17b1804b1-45b43660ea2mr1132155e9.17.1755543367538;
-        Mon, 18 Aug 2025 11:56:07 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHShsY2OoQ3daRQdf8+95cj0aoxkpc3d8VIll8Kg+xf3QCoFea6yKiqmroexrb7GYuexuroLQ==
-X-Received: by 2002:a05:600c:4447:b0:456:3b21:ad1e with SMTP id 5b1f17b1804b1-45b43660ea2mr1132005e9.17.1755543367156;
-        Mon, 18 Aug 2025 11:56:07 -0700 (PDT)
-Received: from maya.myfinge.rs (ifcgrfdd.trafficplex.cloud. [2a10:fc81:a806:d6a9::1])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45a1b793f37sm112570475e9.2.2025.08.18.11.56.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Aug 2025 11:56:06 -0700 (PDT)
-Date: Mon, 18 Aug 2025 20:56:05 +0200
-From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="a/6nOoH/"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=91BBlSYG8kA+Avnq9B9sC4CZ12cKghnWfppk46U1qZ8=; b=a/6nOoH/YL4L2rXQL7qrB3xdVz
+	q/gDpCokxf6Tudt/DlJvgkzvv/12o2SIDYNmcXlQwE9sXNft07ovtU1a4hp/eR1YTMjB20P+ELgSt
+	0D34a6tPL8taF0prS1sMEryfWRf/BopSUGVcm7aX6WEPEa/bqjaNbqcUmcW7VkvLn8AmpW8D7PYQg
+	mf+055h+krO/i7ReXuXb2qo1Pl97x8fEjPfuBRZatyXDtfbqgxWNEiL/MDTqf0uLELevNcupGzzx3
+	sVQVWoYxQq31Qa+ly9m3U/E4yRtiCu2/+YwfxdrzObMmzB87vvOqfm55hftemHSh2/2E8oeGr4E4O
+	XRnmtnIg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uo74o-000000008FZ-2C88;
+	Mon, 18 Aug 2025 23:07:34 +0200
+Date: Mon, 18 Aug 2025 23:07:34 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 2/2] netfilter: nft_set_pipapo: use avx2
- algorithm for insertions too
-Message-ID: <20250818205605.3cf49465@elisabeth>
-In-Reply-To: <aKNv_lcbE6kMtqws@strlen.de>
-References: <20250815143702.17272-1-fw@strlen.de>
-	<20250815143702.17272-3-fw@strlen.de>
-	<20250818183227.28dfa525@elisabeth>
-	<aKNv_lcbE6kMtqws@strlen.de>
-Organization: Red Hat
-X-Mailer: Claws Mail 4.2.0 (GTK 3.24.49; x86_64-pc-linux-gnu)
+Subject: Re: [nft PATCH 00/14] json: Do not reduce single-item arrays on
+ output
+Message-ID: <aKOWFj5sjJNySsde@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20250813170549.27880-1-phil@nwl.cc>
+ <aKM1tbmVvbzoDUqx@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aKM1tbmVvbzoDUqx@calendula>
 
-On Mon, 18 Aug 2025 20:25:02 +0200
-Florian Westphal <fw@strlen.de> wrote:
-
-> Stefano Brivio <sbrivio@redhat.com> wrote:
-> > > +static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
-> > > +					  const u8 *data, u8 genmask,
-> > > +					  u64 tstamp)
-> > > +{
-> > > +	struct nft_pipapo_elem *e;
-> > > +
-> > > +	local_bh_disable();
-> > > +
-> > > +#if defined(CONFIG_X86_64) && !defined(CONFIG_UML)
-> > > +	if (boot_cpu_has(X86_FEATURE_AVX2) && boot_cpu_has(X86_FEATURE_AVX) &&  
-> > 
-> > I don't have any straightforward idea on how to avoid introducing AVX2
-> > stuff (even if compiled out) in the generic function, which we had
-> > managed to avoid so far. I don't think it's a big deal, though.  
+On Mon, Aug 18, 2025 at 04:16:21PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Aug 13, 2025 at 07:05:35PM +0200, Phil Sutter wrote:
+> > This series consists of noise (patches 1-13 and most of patch 14) with a
+> > bit of signal in patch 14. This is because the relatively simple
+> > adjustment to JSON output requires minor adjustments to many stored JSON
+> > dumps in shell test suite and stored JSON output in py test suite. While
+> > doing this, I noticed some dups and stale entries in py test suite. To
+> > clean things up first, I ran tests/py/tools/test-sanitizer.sh, fixed the
+> > warnings and sorted the changes into fixes for the respective commits.
 > 
-> It could be hidden away in a static inline helper if that makes it more
-> acceptable.
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I think that would just make it... hidden. I'd rather leave it like it
-is.
+Series applied, thanks!
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+> I will follow up with a patch to partially revert the fib check change
+> for JSON too.
 
--- 
-Stefano
+Hmm. That one seems like a sensible change and not just a simplification
+of output. I guess if we take this approach seriously, we should agree
+on (and communicate) an upgrade path for JSON output. In detail (from
+the top of my head):
 
+1) What changes are considered compatible (and which not)
+2) In which situations are incompatible changes acceptable
+3) How to inform users of the incompatible change
+
+I'd suggest something like:
+
+1) Additions only, no changes of property values or names
+2) Critical bug fixes or new (major?) versions
+3) Bump JSON_SCHEMA_VERSION? Or is the "version" property in "metainfo"
+   sufficient if bumped anyway?
+
+Cheers, Phil
