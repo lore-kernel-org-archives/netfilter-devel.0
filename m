@@ -1,173 +1,127 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16C312C181
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2025 15:57:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD94D1C84A0;
+	Tue, 19 Aug 2025 18:17:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755619079; cv=none; b=IqUl19iFcIpADAY4ZFZ8qCXGY3hUlcl8dF3WMJJbk//m2ZwAyBlknIQRsLcAIEIv5DCysAIjzNVzxSiXMF6CitXKitRp2vYe29VJFFjI6cpLRx6Y1gE6zZteMfSbX9BDUE86Gs0UZtPx6iEkBWkm5Bfpk8G6NM/lETzTTlsHrZ0=
+	t=1755627444; cv=none; b=gNyYZKdPxmuYnYaowJw8o38e56sa5taTZt7ztlmv9I9Vs7s128U5vrirA+wGBdPxvRcyQitQPG5HYJOLwIV6CMWkYSGKisT4CJifGGlszVN5zd6EwWeyDEB+Quu5QagpWmjGP5TUZE3EftD3slgE1ZjAHgMUOnVyE4R0SQNEu14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755619079; c=relaxed/simple;
-	bh=AbFxkZ80Q1aC8vTxvSAjWID3IciTsiIZ2Hes1rPJsvo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WZlrNMkXwCPH9LFtd8jSMI3alC5RFH2YBLAUuSC1fe2w5IOTZaBq81UnGeQCjqxu8b2f0oZkY57QcnGd3RVY95py3hpZBq1BYBXeOKNfNw+uema+SLKt1eibq0PMlnz4ma8TpGar4AX8O7j5YNxwieUg+8gEAn808fc5CSVoUEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=tfVZnoSq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BIzXZaFm; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=tfVZnoSq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=BIzXZaFm; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1755627444; c=relaxed/simple;
+	bh=fw5zSk4ebcWH3nnV9+5Gv/duEEdUZT8E3lwrDEugyxQ=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Y3nFavTHPjaRlMvkYjcfeaxrMA6s4V7hzVJibThgxcLJlAsnX5pfFjy+4lJJUG8sgVwtnqJhceZR92oY6dZYA5zLXC1vzN8URTqPzHSQuX0hx2F1Za25pGCWYFNLWSCKlyhZg8VhpA3MPB4aY11xZgE+fPWk5JQ7CFG4TJ/+sWo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QlwkgNmZ; arc=none smtp.client-ip=209.85.210.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="tfVZnoSq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BIzXZaFm";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="tfVZnoSq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="BIzXZaFm"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 312A5211D3;
-	Tue, 19 Aug 2025 15:57:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1755619076; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=B7HBaTgakamglFMjV9xzU67TDRzIGA8XbYDXB/tVqXc=;
-	b=tfVZnoSqIyPMwHsxXl4Ov1kq9y0bU22jgH1ka8qrlxpliBMyKf6f78qAckSUAAHNr5uva9
-	NxAlP03e2X6ifPlw3qy/B8gD7YhLs9jGmdaP4DT5z3iA429ZSbK1+T9mSX/4Zi1yAWTXMX
-	9+p9jeYfJ4xPlLgF4JzrqtXQyOVcy7s=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1755619076;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=B7HBaTgakamglFMjV9xzU67TDRzIGA8XbYDXB/tVqXc=;
-	b=BIzXZaFmJae7OCVORi0Xg7dFn1lcVn/3nIhsSTCv7/7bglO7FRgv4b5u0QFy9vCXDE+I9V
-	7nAqpdxVVzhgUdCw==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=tfVZnoSq;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=BIzXZaFm
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1755619076; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=B7HBaTgakamglFMjV9xzU67TDRzIGA8XbYDXB/tVqXc=;
-	b=tfVZnoSqIyPMwHsxXl4Ov1kq9y0bU22jgH1ka8qrlxpliBMyKf6f78qAckSUAAHNr5uva9
-	NxAlP03e2X6ifPlw3qy/B8gD7YhLs9jGmdaP4DT5z3iA429ZSbK1+T9mSX/4Zi1yAWTXMX
-	9+p9jeYfJ4xPlLgF4JzrqtXQyOVcy7s=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1755619076;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=B7HBaTgakamglFMjV9xzU67TDRzIGA8XbYDXB/tVqXc=;
-	b=BIzXZaFmJae7OCVORi0Xg7dFn1lcVn/3nIhsSTCv7/7bglO7FRgv4b5u0QFy9vCXDE+I9V
-	7nAqpdxVVzhgUdCw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E195313686;
-	Tue, 19 Aug 2025 15:57:55 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id WoAINAOfpGgNZAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 19 Aug 2025 15:57:55 +0000
-Message-ID: <bdddcdd0-e8d8-4c8c-96e0-c18878e348ca@suse.de>
-Date: Tue, 19 Aug 2025 17:57:55 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QlwkgNmZ"
+Received: by mail-pf1-f180.google.com with SMTP id d2e1a72fcca58-76e2ea6ccb7so4213055b3a.2;
+        Tue, 19 Aug 2025 11:17:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1755627442; x=1756232242; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=rTvnrNpZQcFuNJogx1bSbEwyysM3Ecd+iaaHw5T3QnU=;
+        b=QlwkgNmZ6Dnf4XPNrhqcjiabHa4vBpZVDP/3f25J6/NFQ+972NaHgoOxPN5Ggbe1Us
+         wVhHj+yoi6CKTArwalWrWveDsCRRC1zTPEzOq/qrpFl0z/OPWNL0AO3fo1o9AFqNvsYP
+         k0Vajp07zdCKgzSSAPJ/WgIDb9gYOiVSB6LHy/p6NqRuD/lFKmmPf3wiC5WHq37d5WBF
+         Vs3Dowu1IsUI5CP0eVQ5JS9u7vONRRm3r2CFrPUgy226YpwaOmsLjGTKDs+6GbV/aQ5C
+         u+3Ddl7gKFk0u3IJheHH2eq2MtPAx/i2Cxcage+sUqhhgdgegji9hH5h9A5Er91h4G/C
+         OBLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1755627442; x=1756232242;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=rTvnrNpZQcFuNJogx1bSbEwyysM3Ecd+iaaHw5T3QnU=;
+        b=WUlpqZokPwqgdBEzMva2ZMTbEjgoXymXwHknZjGX4nnnK1qMOWZtNnVzkLIUbi5TuX
+         I83DiWkeAvuVb3ORnrnFH+M7HxpSqfFa5pVL+fC68iFaw7GITXfTXpYhdMK8xbE5ArkE
+         tedjct6q540LO9DPlRBBoCds+Oy/29c6JKhHSfRlo+ECNpFQIxqRy6MEhlg3Hm5iiTsr
+         rtftfAS+/nrFIUTG1+hMt8FmFCOXoCbHaYkJ3lKmH3wZH8hwDdqtNK7Kx0YfMjC3VbYL
+         3UYJIMEjmaRKXJAaN7cfVm2dP/9JK58zSTW4XqecLUoid0TsGr/W5PNx4JN4JhzXE68O
+         JJ1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXndv3kJHNETcsicIXK3Mkj+RfLwF8QDAoVgNmyVBlTfS33JHCkTqBEN+MT1l2dScgLoEAwj6yO/RiSWYo=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxWGINPARKqCUmVOBZNxGLOClmwbZ3mDZS6A5mv8M2dX4iD3WWO
+	/nv1gd1raGMbjtFiHw0plqxEsd/hOk72l2uNbl6MvMphPZvuUVatwPPbyC/ASw==
+X-Gm-Gg: ASbGncuQ2c6qjkRsUCRF+rsO9cbqW4qGYFI/tCk54CCxontrSbQ8oO4duOENI1YMPSj
+	9oI+GAVP461GMRwosgmzXCFZQF59KHXy26U4MGkOUv/CvCwxNE6Kf5wgve9Ei4AX/INE0f3LHms
+	kiFza57hDm/LEL/+AiB0rPjF9VgXfvt8UxuwMC88jV7zmWitTb+aoGHu1lVuO9tI6/nT9a47Hq9
+	Dbl3Bk9UhemYLnAWU1hvDaO97XUaDJ9zFAjY5PoUWHrzEVFmccR0urafGVV0+OGYOXeevAfWbHz
+	41bhSWR0yuFZE62I1jKJlJeegkrpSlZM01FVlfyIJqi0m0MS5I38qqjyE5Zo861BJzNI87IoXQx
+	34lMsDFytdWzFdBYm0DnXuKNHX4HUSFmo
+X-Google-Smtp-Source: AGHT+IH1GuQ2bh13jv12/nnH98pVSnTfL7rLhIuk6x6vKioGJbAmFPIOgkwSX0Fjli/AK36MVgdOOQ==
+X-Received: by 2002:a05:6a20:7351:b0:234:4b39:182c with SMTP id adf61e73a8af0-2431b9ac277mr421016637.38.1755627441840;
+        Tue, 19 Aug 2025 11:17:21 -0700 (PDT)
+Received: from localhost.localdomain ([173.214.130.2])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b47640d3e3fsm282598a12.56.2025.08.19.11.17.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 19 Aug 2025 11:17:21 -0700 (PDT)
+From: Qingjie Xing <xqjcool@gmail.com>
+To: netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org,
+	Qingjie Xing <xqjcool@gmail.com>
+Subject: [PATCH] netfilter: conntrack: drop expectations before freeing templates
+Date: Tue, 19 Aug 2025 11:17:18 -0700
+Message-Id: <20250819181718.2130606-1-xqjcool@gmail.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 1/7 nft v2] src: add tunnel template support
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de
-References: <20250814110450.5434-1-fmancera@suse.de>
- <aKRybNzVyFOC7oCB@calendula>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <aKRybNzVyFOC7oCB@calendula>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Rspamd-Queue-Id: 312A5211D3
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FROM_HAS_DN(0.00)[];
-	DKIM_TRACE(0.00)[suse.de:+];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCPT_COUNT_THREE(0.00)[4];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Score: -4.51
+Content-Transfer-Encoding: 8bit
 
+When deleting an xt_CT rule, its per-rule template conntrack is freed via
+nf_ct_destroy() -> nf_ct_tmpl_free(). If an expectation was created with
+that template as its master, the expectation's timeout/flush later calls
+nf_ct_unlink_expect_report() and dereferences exp->master, which now points
+to freed memory, leading to a NULL/poison deref and crash.
 
+Move nf_ct_remove_expectations(ct) before the template early-return in
+nf_ct_destroy() so that any expectations attached to a template are removed
+(and their timers cancelled) before the template's extensions are torn down.
 
-On 8/19/25 2:47 PM, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> I made a changes to this series and push it out to the 'tunnel' branch
-> under the nftables tree.
-> 
-> I added IPv6 support to this 1/7 patch.
-> 
-> However:
-> 
-> [PATCH 6/7] tunnel: add tunnel object and statement json support
-> 
-> still needs to be adjusted to also support IPv6.
-> 
-> I can see JSON representation uses "src" and "dst" as keys.
-> 
-> It is better to have keys that uniquely identify the datatype, I would
-> suggest:
-> 
-> "ip saddr"
-> "ip6 saddr"
-> 
-> (similar to ct expression)
-> 
-> or
-> 
-> "src-ipv4"
-> "src-ipv6"
-> 
+Signed-off-by: Qingjie Xing <xqjcool@gmail.com>
+---
+ net/netfilter/nf_conntrack_core.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Hi Pablo,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 344f88295976..7f6b95404907 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -577,6 +577,13 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
+ 
+ 	WARN_ON(refcount_read(&nfct->use) != 0);
+ 
++	/* Expectations will have been removed in clean_from_lists,
++	 * except TFTP can create an expectation on the first packet,
++	 * before connection is in the list, so we need to clean here,
++	 * too.
++	 */
++	nf_ct_remove_expectations(ct);
++
+ 	if (unlikely(nf_ct_is_template(ct))) {
+ 		nf_ct_tmpl_free(ct);
+ 		return;
+@@ -585,13 +592,6 @@ void nf_ct_destroy(struct nf_conntrack *nfct)
+ 	if (unlikely(nf_ct_protonum(ct) == IPPROTO_GRE))
+ 		destroy_gre_conntrack(ct);
+ 
+-	/* Expectations will have been removed in clean_from_lists,
+-	 * except TFTP can create an expectation on the first packet,
+-	 * before connection is in the list, so we need to clean here,
+-	 * too.
+-	 */
+-	nf_ct_remove_expectations(ct);
+-
+ 	if (ct->master)
+ 		nf_ct_put(ct->master);
+ 
 
-I would prefer the latter options "src-ipv4" and "src-ipv6" mainly 
-because adding spaces to keys in a JSON should be avoided.
-
-I am sending a v3 with the requested changes, thank you!
-
-> else, anything you consider better for this.
-> 
-> I think this is the only remaining issue in this series IMO.
-> 
-> If you follow up, patch based your work on the two branches that I
-> have pushed out for libnftnl and nftables.
-> 
-> Thanks.
+base-commit: 01792bc3e5bdafa171dd83c7073f00e7de93a653
+-- 
+2.25.1
 
