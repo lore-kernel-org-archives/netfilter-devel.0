@@ -1,65 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E03635334D
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2025 22:24:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F6203054C5
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2025 22:25:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755642248; cv=none; b=fUO1RywmTUce1slJYbLvQN6fKdAl4CmXC/yaJhab95WxDkdAx3Ow6JoxsaxVQERM4RmmUtfmcfhcgt2ef8vo7XQrFo0j2sceG6kd6Bx/lJL3Y8o91oJlxDJq4xYmvuR8BWwRAwiAaHNuNi4itRLJ043JKodWhlZU8jneWk505Xo=
+	t=1755642341; cv=none; b=Ru36UWh++NHWSaGHSYQ2bzcoYmQAnTqfbvttuQ/gxAoFFilii0PiAJo/IwBJWa9WICC1wriepiQMi9DOugcxvfWtLjLFmxCPJ7wwRZOikQlf9fTLk6Y+V4FBRTJ8YYVfkKzSYWN7NoRB0ed0mNa8mxz8MMh74Lshk7uERxWi9+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755642248; c=relaxed/simple;
-	bh=X5V3PRNEFYDb7rJI44vv9NHjWVYbXS+eUwTcdCbplxA=;
+	s=arc-20240116; t=1755642341; c=relaxed/simple;
+	bh=6rp71pwhnjXX37l30DhpaOsHylLtxgCJml8NF95wBmw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=eChTcuNVym02okXLKQWAkjx0VbUkXDTr+WQaLePglFdW4KO/P1xM2gjI7Te4qEe4bD2ozxH8m9BfAQHg8BmkslcToC1LRyhgP/9ofx6DRvVUJ3aP2tPAw0mu3VGVNVDtlJ0/Axl7F1p2NuKBqhcMOSkVEEdVG7Ko+KnGBbS5pPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qpb4YpiR; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qpb4YpiR; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=Pjkzw5L42UAZAvkePqAbQ7EX/JEiVh1wN1CgmydI2Nxv5Btx+K3GUBwShhCgoy2sXST5YPbYM+/oJGnno+D3yCFzl8kRQIkv4TrC6rKjSU1KghTRHEBfQBgffGoBXXqhHdi0UGrp6oEgIjoj9V1X8vop/uIaUZEhArTLmSczKgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kITl7f0J; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CrFZwmSo; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qpb4YpiR";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qpb4YpiR"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kITl7f0J";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CrFZwmSo"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D5D2E6027B; Wed, 20 Aug 2025 00:24:01 +0200 (CEST)
+	id 6EEE06028B; Wed, 20 Aug 2025 00:25:36 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1755642241;
-	bh=Nt6Ltvn2ZA+VOcq80wwmCWTdX3pf8X2M02tEzxVoAIk=;
+	s=2025; t=1755642336;
+	bh=mFFeTXF9Kk3ql28XMq5nSSB+8FNY9C0TT7daDCXDjrs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qpb4YpiRXv3ojbRlnYxHGsIdYvr13Wq3kr6D+SxVw0XX33XQ9vhkghDpCzER1GERk
-	 ZHBVlazUNQWKPU0reghrchrNEYv77IokKBidw5PBgsu8kuq8le6GdHWc4tLKceBH6k
-	 Ni1stjO7L8l196C0AbaONzd5KXMClEr7+L4vRqdeG5LCqcX0mZ+cAK2KfelwGP5+9f
-	 v9cygzkGJGJvKtPLGKhMKeelpZdmzQNY/6SrTp1BtAI9/6STDPwfF8zvjSqzlPdnA8
-	 4tMe4UImOp12yE1CN8EtK+IvQZwbvfbZegU1+NbuyJVPVAlcq+h4lQWmy2Chvd+mhN
-	 EI4TKmC7UH5Sg==
+	b=kITl7f0JGpjal35nxOqnt4tCChwA94VjDoeUw843C7L8lI+C85tiKZpSz6rAyhqgL
+	 vOB+OkXAaOA+g5RRnP1Pwpl9y3SSmkSgEJoKueJD2ZGAYb6Vu1zjOqufQsYMdvSn3l
+	 PYUO7zh57y33MB2et/8m7BY7x3FOaVfCM4pWBauvMYwNL+zBz97h/080HAX/wQrqIf
+	 7siYN5BPmSMCulQvxqoLLUaeAGXkkgsYM1sMh/J2VPKNnnYDXy+HmhEsDCWTqOiU5W
+	 m/MCIwud3ejUxgjG1rHqwYl/bOYo3duGu8+zoajsuNuEei5b0K3hmj1hypDm80R/sB
+	 Q0T5Y65FXtlGQ==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1902A6027A;
-	Wed, 20 Aug 2025 00:24:01 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2BC0660281;
+	Wed, 20 Aug 2025 00:25:35 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1755642241;
-	bh=Nt6Ltvn2ZA+VOcq80wwmCWTdX3pf8X2M02tEzxVoAIk=;
+	s=2025; t=1755642335;
+	bh=mFFeTXF9Kk3ql28XMq5nSSB+8FNY9C0TT7daDCXDjrs=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qpb4YpiRXv3ojbRlnYxHGsIdYvr13Wq3kr6D+SxVw0XX33XQ9vhkghDpCzER1GERk
-	 ZHBVlazUNQWKPU0reghrchrNEYv77IokKBidw5PBgsu8kuq8le6GdHWc4tLKceBH6k
-	 Ni1stjO7L8l196C0AbaONzd5KXMClEr7+L4vRqdeG5LCqcX0mZ+cAK2KfelwGP5+9f
-	 v9cygzkGJGJvKtPLGKhMKeelpZdmzQNY/6SrTp1BtAI9/6STDPwfF8zvjSqzlPdnA8
-	 4tMe4UImOp12yE1CN8EtK+IvQZwbvfbZegU1+NbuyJVPVAlcq+h4lQWmy2Chvd+mhN
-	 EI4TKmC7UH5Sg==
-Date: Wed, 20 Aug 2025 00:23:58 +0200
+	b=CrFZwmSojJB3lhUrN2oy7/V0TXCZXP1ym20f6nHtZxIvUpO2c8rS+0Cytr7+fe2yk
+	 9FdjIDWvUCT04XtxhCfHLUdmk3A8FmYpOsISy26ddyBEsiI0Zl+Z3PRvWI2rLVDG9K
+	 kPhOtP/WmhX4oIa3mniwc74/lkMEKJ9GrTPo/6HVe0wsm7t2qj71JS6LVy2Rki1gRE
+	 d96S/0izL2+QSmVUknGX8wsuhrK8Bzc+vzyiqH99g4HWP2doYvYraYZ0/37UqUzaSt
+	 R6JGBKfzpKqp9yEz67BSTAR93ssSaqtjKb+tPWt8D9jJ93qmLNi6HiI4aBvMH+8zds
+	 SYP+zbIXPOe4Q==
+Date: Wed, 20 Aug 2025 00:25:32 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
- resistant to memory pressure
-Message-ID: <aKT5fjEqDmQPdFFy@calendula>
-References: <aILOpGOJhR5xQCrc@strlen.de>
- <aINYGACMGoNL77Ct@calendula>
- <aINnTy_Ifu66N8dp@strlen.de>
- <aIOcq2sdP17aYgAE@calendula>
- <aIfrktUYzla8f9dw@strlen.de>
- <aIikwxU686KFto35@calendula>
- <aIiyVnDlbDTMRqB-@strlen.de>
- <aIpFWePr6BfCuKgo@calendula>
- <aIpJur3wIzswyaAe@strlen.de>
- <aKTMMmGdaURKNLou@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de
+Subject: Re: [PATCH 1/7 nft v2] src: add tunnel template support
+Message-ID: <aKT53LQQPlWg_LJO@calendula>
+References: <20250814110450.5434-1-fmancera@suse.de>
+ <aKRybNzVyFOC7oCB@calendula>
+ <bdddcdd0-e8d8-4c8c-96e0-c18878e348ca@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -68,64 +60,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aKTMMmGdaURKNLou@strlen.de>
+In-Reply-To: <bdddcdd0-e8d8-4c8c-96e0-c18878e348ca@suse.de>
 
-On Tue, Aug 19, 2025 at 09:10:42PM +0200, Florian Westphal wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > > For the commit phase, I suggest to add a list of dying elements to the
-> > > transaction object. After unlinking the element from the (internal)
-> > > set data structure, add it to this transaction dying list so it
-> > > remains reachable to be released after the rcu grace period.
-> > 
-> > Thats what I meant by 'stick a pointer into struct nft_set_ext'.
-> > Its awkward but I should be able to get the priv pointer back
-> > by doing the inverse of nft_set_elem_ext().
-> > 
-> > The cleaner solution would be to turn nft_elem_priv into a
-> > 'nft_elem_common', place a hlist_node into that and then
-> > use container_of().  But its too much code churn for my
-> > liking.
-> > 
-> > So I'll extend each set element with a pointer and
-> > add a removed_elements hlist_head to struct nft_trans_elem.
-> > 
-> > The transacion id isn't needed I think once that list exist:
-> > it provides the needed info to undo previous operations
-> > without the need to walk the set again.
-> > 
-> > We can probably even rework struct nft_trans_elem to always use
-> > this pointer, even for inserts, and only use the 
-> > 
-> > struct nft_trans_one_elem       elems[]
-> > 
-> > member for elements that we update (no add or removal).
-> > But thats something for a later time.
+On Tue, Aug 19, 2025 at 05:57:55PM +0200, Fernando Fernandez Mancera wrote:
 > 
-> This doesn't work.
-> NEWSETELEM cannot (re)use the same list node as DELSETELEM.
 > 
-> Reason is that a set flush will also flush elements
-> added in the same batch.
+> On 8/19/25 2:47 PM, Pablo Neira Ayuso wrote:
+> > Hi,
+> > 
+> > I made a changes to this series and push it out to the 'tunnel' branch
+> > under the nftables tree.
+> > 
+> > I added IPv6 support to this 1/7 patch.
+> > 
+> > However:
+> > 
+> > [PATCH 6/7] tunnel: add tunnel object and statement json support
+> > 
+> > still needs to be adjusted to also support IPv6.
+> > 
+> > I can see JSON representation uses "src" and "dst" as keys.
+> > 
+> > It is better to have keys that uniquely identify the datatype, I would
+> > suggest:
+> > 
+> > "ip saddr"
+> > "ip6 saddr"
+> > 
+> > (similar to ct expression)
+> > 
+> > or
+> > 
+> > "src-ipv4"
+> > "src-ipv6"
+> > 
 > 
-> But if NEWSETELEM uses a list (instead of priv pointer
-> as we do now), then at the time of the set flush, the
-> encountered element is already on a NEWSETELEM trans_elem list.
+> Hi Pablo,
 > 
-> I'll try doing:
+> I would prefer the latter options "src-ipv4" and "src-ipv6" mainly because
+> adding spaces to keys in a JSON should be avoided.
 > 
->  struct nft_set_ext {
->         u8      genmask;
->         u8      offset[NFT_SET_EXT_NUM];
-> +       struct llist_node trans_list_new;
-> +       struct llist_node trans_list_del;
->         char    data[];
-> 
-> to avoid this problem.
+> I am sending a v3 with the requested changes, thank you!
 
-Hm, I think this is not looking good.
-
-I am considering it is better to take your patch by now, then postpone
-explore further memory consumption reduction at a later stage.
-
-Thanks for addressing my suggestion, let me know if you prefer this
-path, I apologize for delaying your original proposal.
+OK, thanks.
