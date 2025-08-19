@@ -1,30 +1,38 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3DE520B80B;
-	Tue, 19 Aug 2025 18:27:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A179D26D4DA
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2025 19:10:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755628063; cv=none; b=Gof/1MI+3gaaUlRTzG2OApPX1kbBv9Ev2aqM2q9OU1OTlKA0eW4ZyWAtqLStb3lq6xqh3yg6gfGoso4pU0+DYJaBc6jS60VehAQ9+1m+IvLTqcLZNk7heZkHvwd7nwZYNV3eYOD7EqXLm8/bZM7DtvcCQichmuvh+U7Bp/xhheQ=
+	t=1755630646; cv=none; b=DE4ygqWCtrpcOhcookax07vCurhJUKazLgeFybgoTMOmTxDOctrTZBksD6vSrJN3JlPszqZ95WGJSX5GyxpQ6DM89twU8a4WxTYELFqqmXtNXlDH31ggPYQVMgwQXUbhaftBmVFccCIqshofu9FTzYwiHWTNjrZs5+yWtlweLJw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755628063; c=relaxed/simple;
-	bh=3Fh2wX/RVQYzJdGZtXLIcZseCPOAtwgVM8iDZDfPSIs=;
+	s=arc-20240116; t=1755630646; c=relaxed/simple;
+	bh=P+rNgaM6W0ecl6zMj5Ekxvfh1Ir1jSElGXHvXtZAC+I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qO6rA/1QdRKJTzYKYF/n7qmbuoKwjFBboSEmLyUnuiI0tLDQX1hQJrETQ289MStpFycAty16OZipNmMFABQ8g+/8GIAyxxFLtaapl1JePDx0gDJG6P8yLjP0TNouRFGb3eetCS5DRqBsXkCFLMUgzRczOBGhWCNy0HRDLPL/3FE=
+	 Content-Type:Content-Disposition:In-Reply-To; b=lR/r4AyHZ7MIYmhj0tgoS7xjFkR5aZYO4A9kALH93rseo4Jx8gPM0eXSiDokGuKt3ItoRdqneZCeeA70PLuApJ1hlnkrEPcBCFmx+GW4llq2SuY0xtHYRhuJ0EYYFc40mROxPwNIRzQ7wwiK6chJ2S28ZhxvIMMI8r1lONgtfVA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6E2DC60329; Tue, 19 Aug 2025 20:27:38 +0200 (CEST)
-Date: Tue, 19 Aug 2025 20:27:33 +0200
+	id ADD8B602AA; Tue, 19 Aug 2025 21:10:42 +0200 (CEST)
+Date: Tue, 19 Aug 2025 21:10:42 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Qingjie Xing <xqjcool@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: conntrack: drop expectations before freeing
- templates
-Message-ID: <aKTCFTQy1dVo-Ucy@strlen.de>
-References: <20250819181718.2130606-1-xqjcool@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [nf-next 0/2] netfilter: nf_tables: make set flush more
+ resistant to memory pressure
+Message-ID: <aKTMMmGdaURKNLou@strlen.de>
+References: <aIK_aSCR67ge5q7s@calendula>
+ <aILOpGOJhR5xQCrc@strlen.de>
+ <aINYGACMGoNL77Ct@calendula>
+ <aINnTy_Ifu66N8dp@strlen.de>
+ <aIOcq2sdP17aYgAE@calendula>
+ <aIfrktUYzla8f9dw@strlen.de>
+ <aIikwxU686KFto35@calendula>
+ <aIiyVnDlbDTMRqB-@strlen.de>
+ <aIpFWePr6BfCuKgo@calendula>
+ <aIpJur3wIzswyaAe@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,12 +41,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250819181718.2130606-1-xqjcool@gmail.com>
+In-Reply-To: <aIpJur3wIzswyaAe@strlen.de>
 
-Qingjie Xing <xqjcool@gmail.com> wrote:
-> When deleting an xt_CT rule, its per-rule template conntrack is freed via
-> nf_ct_destroy() -> nf_ct_tmpl_free(). If an expectation was created with
-> that template as its master, 
+Florian Westphal <fw@strlen.de> wrote:
+> > For the commit phase, I suggest to add a list of dying elements to the
+> > transaction object. After unlinking the element from the (internal)
+> > set data structure, add it to this transaction dying list so it
+> > remains reachable to be released after the rcu grace period.
+> 
+> Thats what I meant by 'stick a pointer into struct nft_set_ext'.
+> Its awkward but I should be able to get the priv pointer back
+> by doing the inverse of nft_set_elem_ext().
+> 
+> The cleaner solution would be to turn nft_elem_priv into a
+> 'nft_elem_common', place a hlist_node into that and then
+> use container_of().  But its too much code churn for my
+> liking.
+> 
+> So I'll extend each set element with a pointer and
+> add a removed_elements hlist_head to struct nft_trans_elem.
+> 
+> The transacion id isn't needed I think once that list exist:
+> it provides the needed info to undo previous operations
+> without the need to walk the set again.
+> 
+> We can probably even rework struct nft_trans_elem to always use
+> this pointer, even for inserts, and only use the 
+> 
+> struct nft_trans_one_elem       elems[]
+> 
+> member for elements that we update (no add or removal).
+> But thats something for a later time.
 
-Uhm.  How can that happen?  A template isn't a connection, so it should
-not be able to create an expectation.
+This doesn't work.
+NEWSETELEM cannot (re)use the same list node as DELSETELEM.
+
+Reason is that a set flush will also flush elements
+added in the same batch.
+
+But if NEWSETELEM uses a list (instead of priv pointer
+as we do now), then at the time of the set flush, the
+encountered element is already on a NEWSETELEM trans_elem list.
+
+I'll try doing:
+
+ struct nft_set_ext {
+        u8      genmask;
+        u8      offset[NFT_SET_EXT_NUM];
++       struct llist_node trans_list_new;
++       struct llist_node trans_list_del;
+        char    data[];
+
+to avoid this problem.
