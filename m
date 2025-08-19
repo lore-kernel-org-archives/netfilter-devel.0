@@ -1,98 +1,59 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4658034AAE5
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2025 13:00:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D1D52192E4
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2025 14:47:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755608402; cv=none; b=g+LHE955P+zifxTU64TU+B91CTizkKGnUKsWWN35RckR8Vp9XIK8QZWg2xp/XFWBtwFOduYL4ySHNaQakv/t8EhmojMaC9loC0fRppnZUn6oeEFO3qkhunHwid4arJKaWchsUqGOz0dyBnwzQ+uTE3NsLr+HWvsoGZhuIFi9rgM=
+	t=1755614838; cv=none; b=DgrEgsuqH86R3bml8JImq1X1svas/HaJruzQVVJtBfc6T1xIkb450Y6Xh9+dLo+sWfwuOB+o3cMJ+b2X4rNrI0aAnV/4wavoB+MUBoVNttFBDUfjb7LPgqyH9sM3zZ61w7XH63PZJiCBjEkbdoD2uyHWCufG6PjNZIt3QCfxHmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755608402; c=relaxed/simple;
-	bh=U008D6yWMfR+8RcVczdsL2UwXvzqRii4jG4VuOUITLc=;
+	s=arc-20240116; t=1755614838; c=relaxed/simple;
+	bh=17M6EULljlhkBDQlSZLXdNRocqjqw//WqssRraxakAg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=M+8g0paEP5r1uUZNaWU2yjMPAAkCbJ0St+zHRk6/FcoR+e0jPL9a2YBFEBSKK7A7UKWB3FLWHGz1YCTn4pMooJeMgcMFUIVXdSRH1WXvyK9495drsRQuY+my5+Ezxudl4BUOqnkQmsSppn/iqfrt6ma7cCCisL09cVpfyQ2/dV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D2zj2+3u; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D2zj2+3u; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D2zj2+3u";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D2zj2+3u"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 7AB596027E; Tue, 19 Aug 2025 14:59:58 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1755608398;
-	bh=0VPGAbwl4mzmcS0Z2T5djcanrgQQj9Iq8BY3VXfqKHo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=D2zj2+3u0ZRJvS6uK9tkQyb50y1KzOHF6J4yyryXdf73YoPRLbwBvlyteqXw2Zw19
-	 Puy53w8Ejdz78a7ckZnj4NlzHcErUMqLZBM5/8a5fjEutCVaL1YRx445J4ArgxhUmQ
-	 m5AF4M6G90L1+38Qx0CUvvqlA+rFalNUYgA8whKxj47h+VOcoslCUugDzyIbZgMCYL
-	 WSbNPY3JD103Qo2XyBfXMDN/L1M83wqrkP+eGlfQ/3Pv2o38TTVYwmvlRe7UK7civW
-	 vpjjtSF1+/PkCSbqQPiDokvcd5ao5rSUDsFqXPdXvQ8VED6cVd+G8orGllEyYYhPhe
-	 AVcexpkQXAf8Q==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CEE206027E;
-	Tue, 19 Aug 2025 14:59:57 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1755608398;
-	bh=0VPGAbwl4mzmcS0Z2T5djcanrgQQj9Iq8BY3VXfqKHo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=D2zj2+3u0ZRJvS6uK9tkQyb50y1KzOHF6J4yyryXdf73YoPRLbwBvlyteqXw2Zw19
-	 Puy53w8Ejdz78a7ckZnj4NlzHcErUMqLZBM5/8a5fjEutCVaL1YRx445J4ArgxhUmQ
-	 m5AF4M6G90L1+38Qx0CUvvqlA+rFalNUYgA8whKxj47h+VOcoslCUugDzyIbZgMCYL
-	 WSbNPY3JD103Qo2XyBfXMDN/L1M83wqrkP+eGlfQ/3Pv2o38TTVYwmvlRe7UK7civW
-	 vpjjtSF1+/PkCSbqQPiDokvcd5ao5rSUDsFqXPdXvQ8VED6cVd+G8orGllEyYYhPhe
-	 AVcexpkQXAf8Q==
-Date: Tue, 19 Aug 2025 14:59:55 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] src: fix memory leak in anon chain error handling
-Message-ID: <aKR1S8woWjmfz_OT@calendula>
-References: <20250724102205.4663-1-fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=qQ5ATj5h5r1gXQKgblAfak9FwsFv/fO4hONdzIzkgkF7BWyZ5uA5427V2oinVg/2+tnTvEZhL/z+Qb6k7aBnWPXZ8mTNrQjVJ7Mibt4NRB2fV5HKFa9MzldYGjYHP3SlDmQq6Ks2snSlHHxTY+KjBsnc5JRmeRhW5hu8H8un08g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 62085602AA; Tue, 19 Aug 2025 16:47:08 +0200 (CEST)
+Date: Tue, 19 Aug 2025 16:47:08 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-rt-devel@lists.linux.dev,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH nft-testing v3 1/2] netfilter: nft_set_pipapo*: Move FPU
+ handling to pipapo_get_avx2()
+Message-ID: <aKSObG_ih5HqGzrK@strlen.de>
+References: <20250818110213.1319982-1-bigeasy@linutronix.de>
+ <20250818110213.1319982-2-bigeasy@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250724102205.4663-1-fw@strlen.de>
+In-Reply-To: <20250818110213.1319982-2-bigeasy@linutronix.de>
 
-On Thu, Jul 24, 2025 at 12:22:02PM +0200, Florian Westphal wrote:
-> chain_stmt_destroy is called from bison destructor, but it turns out
-> this function won't free the associated chain.
-> 
-> There is no memory leak when bison can parse the input because the chain
-> statement evaluation step queues the embedded anon chain via cmd_alloc.
-> Then, a later cmd_free() releases the chain and the embedded statements.
-> 
-> In case of a parser error, the evaluation step is never reached and the
-> chain object leaks, e.g. in
-> 
->   foo bar jump { return }
-> 
-> Bison calls the right destructor but the anonon chain and all
-> statements/expressions in it are not released:
-> 
-> HEAP SUMMARY:
->     in use at exit: 1,136 bytes in 4 blocks
->   total heap usage: 98 allocs, 94 frees, 840,255 bytes allocated
-> 
-> 1,136 (568 direct, 568 indirect) bytes in 1 blocks are definitely lost in loss record 4 of 4
->    at: calloc (vg_replace_malloc.c:1675)
->    by: xzalloc (in libnftables.so.1.1.0)
->    by: chain_alloc (in libnftables.so.1.1.0)
->    by: nft_parse (in libnftables.so.1.1.0)
->    by: __nft_run_cmd_from_filename (in libnftables.so.1.1.0)
->    by: nft_run_cmd_from_filename (in libnftables.so.1.1.0)
-> 
-> To resolve this, make chain_stmt_destroy also release the embedded
-> chain.  This in turn requires chain refcount increases whenever a chain
-> is assocated with a chain statement, else we get double-free of the
-> chain.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Sebastian Andrzej Siewior <bigeasy@linutronix.de> wrote:
+> Move kernel_fpu_begin_mask()/ _end() to pipapo_get_avx2() where it is
+> required.
+> This is a preparation for adding local_lock_t to struct
+> nft_pipapo_scratch in order to protect the __map pointer. The lock can
+> not be acquired in preemption disabled context which is what
+> kernel_fpu_begin*() does.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+FYI, I ended up squashing this commit into
+'netfilter: nft_set_pipapo: use avx2 algorithm for insertions too'.
+
+This way there is no forth-and-back-again.
+I added your SoB tag to the commit and a brief note that this
+collapse happened.
+
+Result is in nf-next:testing if you want to take a look.
+There are no code changes to the previous incarnation of the branch,
+only a few spelling fixes in some comments.
