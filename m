@@ -1,110 +1,84 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f72.google.com (mail-io1-f72.google.com [209.85.166.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9C9D1D5146;
-	Wed, 20 Aug 2025 04:33:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955292D877C
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 08:11:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755664390; cv=none; b=pJ/+Kukuoy9NYaoK9D2l0XVCOgxV9mP9WYVixfnCErlkvuJu3GincR5TaP42yhIzM08HCoQYphEOh4B5oGWbGZ8+VSz+AeO4wGB9qMDTe1EL2gUueQhoQlA7OPnGRZkFzPrJFCspl39CvhzzFCpaAhnCixKvSO1jkpdQuV238JM=
+	t=1755677499; cv=none; b=kw2c9SwGwxQBLwNd+eMjhHVk4+hM0qVoJiEyJL7/Bs14MK7qPntNO0KyS5nX4GXdgfw4LgWFsQes7b73EwIDYKSM25UYxuceJtAPwt3wR1JMgqDNIgf9HTKBmYLcqbtUE/50/sf9KbQ6cRTpmdU7T5dqlnPwJl6I6pPyyimHwCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755664390; c=relaxed/simple;
-	bh=+sZR4pVtM4D1/iCNqe2AY2fiLorrX6QjbH8YFnC4x6M=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=u1Vt6Up7/iS7ConEURuAo0tur+j/vNeB/YkpZQnD8nEBL2r9o1dxB3TkPEOLg82Ef09b8Mf9S6TAJz/rDgCw1Ihz4B2mobZXAPHsv3SDcWpw+J5ZfrpBaiKBoPDAHCgc9g0ffYyP9PaomMtQD1v5R9v1OiavGZSJ5081UCxkLnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.174])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4c6D7N27WvztT3D;
-	Wed, 20 Aug 2025 12:32:00 +0800 (CST)
-Received: from dggpemf500016.china.huawei.com (unknown [7.185.36.197])
-	by mail.maildlp.com (Postfix) with ESMTPS id 463181402C4;
-	Wed, 20 Aug 2025 12:32:59 +0800 (CST)
-Received: from huawei.com (10.175.104.170) by dggpemf500016.china.huawei.com
- (7.185.36.197) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 20 Aug
- 2025 12:32:57 +0800
-From: Wang Liang <wangliang74@huawei.com>
-To: <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-	<razor@blackwall.org>, <idosch@nvidia.com>, <davem@davemloft.net>,
-	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
-	<horms@kernel.org>
-CC: <yuehaibing@huawei.com>, <zhangchangzhong@huawei.com>,
-	<wangliang74@huawei.com>, <netfilter-devel@vger.kernel.org>,
-	<coreteam@netfilter.org>, <bridge@lists.linux.dev>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>
-Subject: [PATCH net] netfilter: br_netfilter: reread nf_conn from skb after confirm()
-Date: Wed, 20 Aug 2025 12:33:29 +0800
-Message-ID: <20250820043329.2902014-1-wangliang74@huawei.com>
-X-Mailer: git-send-email 2.33.0
+	s=arc-20240116; t=1755677499; c=relaxed/simple;
+	bh=V2ORPdLKdyIF6IEfPL3tmlEaAeXzXJCqBpmsLyhacgY=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=osw4Ulm74dnG1PnHayIGNQJ0ZDv1xWdWbWkGRCJW4bqQIBIYWyHkKahqkE2ABAiHN/2oi1q/LYi7pzwGOBeli82/6OESHrkIGPl0a+i5nLgM5EwJyMT+c64OPR/vdoOF1dnFNJPYwJ+Lp7yxkuFSPDfpFuSMK37BkVubfRTO43E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f72.google.com with SMTP id ca18e2360f4ac-88432d88f64so1707132439f.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 01:11:36 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1755677495; x=1756282295;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=yfbB1FSHiw6P4C31LBsKWDW7GmtJlZq19wObesXeHDo=;
+        b=GI2mtvQA74pAZdgI2kuRx66SCNptdrEgz7aS8TZgdkh3MinaRo+G6fxqbNgFUB+lIK
+         KKtdi380q/Wnc4l3E4qgimrzhXJgZWUbfhVuSsm2JIKCf2hhZbhlVK1jqymxNCNM88Tx
+         lcBJnMhMCVBSpeuoFOkJo4qViosipV0nlVr1SrpLCyK8DDVcU4QgIbkPXEnT+rneYoyR
+         xjYyUTj2TQ480386ITRC0J4EGrg6+yDHtVJv+4WyDxreaEZTQVS2fClfNX7JaujrV5th
+         JTXZErGl8gYaHQYbTiEdvp0NzlOmMqim8P0VqPn5vbpIob1TZKPHvjX/n8WtsElXLqQl
+         9Wtg==
+X-Forwarded-Encrypted: i=1; AJvYcCXeoVzGP3y8qO6Mn9Vi4ARWBwuhzuD1+sVJZFNremRyb9X7293lIwdmxBVQAfeAfhiODsVfocrlVhkMPQV92Zc=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwExpKKnxoSn40tgzcfqdkocbt8N7ZoZdHsu0LidrakHy2RcT4v
+	n+ka1VdQAqhOwv58ETA3h8cbgGwAMRtkPwMRGsxjS/3jDFma53qJqGzUrGQuxI8p3DKC3VYgY0j
+	owQ3S55e0hk6NlrSDrQft9A6ygudwSGt6ZZpl2s/JsoA6UORgoybr7q9cb/o=
+X-Google-Smtp-Source: AGHT+IHnRF+BVNV37CIIil93Du05nxMCfrOSZyzGWdOXk9nJ995NrsrdEI3T3s9GiJy67Kvuu4cXP2vILSqqRV705ZzYbnkNZ5za
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
- dggpemf500016.china.huawei.com (7.185.36.197)
+X-Received: by 2002:a05:6e02:2511:b0:3e5:50a5:a7ef with SMTP id
+ e9e14a558f8ab-3e67ca7243amr37639535ab.15.1755677495685; Wed, 20 Aug 2025
+ 01:11:35 -0700 (PDT)
+Date: Wed, 20 Aug 2025 01:11:35 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <68a58337.050a0220.1b2f6c.000b.GAE@google.com>
+Subject: [syzbot] Monthly netfilter report (Aug 2025)
+From: syzbot <syzbot+list9abda43ae935f9073c3e@syzkaller.appspotmail.com>
+To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Previous commit 2d72afb34065 ("netfilter: nf_conntrack: fix crash due to
-removal of uninitialised entry") move the IPS_CONFIRMED assignment after
-the hash table insertion.
+Hello netfilter maintainers/developers,
 
-When send a broadcast packet to a tap device, which was added to a bridge,
-br_nf_local_in() is called to confirm the conntrack. If another conntrack
-with the same hash value is added to the hash table, which can be
-triggered by a normal packet to a non-bridge device, the below warning
-may happen.
+This is a 31-day syzbot report for the netfilter subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/netfilter
 
-  ------------[ cut here ]------------
-  WARNING: CPU: 1 PID: 96 at net/bridge/br_netfilter_hooks.c:632 br_nf_local_in+0x168/0x200
-  CPU: 1 UID: 0 PID: 96 Comm: tap_send Not tainted 6.17.0-rc2-dirty #44 PREEMPT(voluntary)
-  RIP: 0010:br_nf_local_in+0x168/0x200
-  Call Trace:
-   <TASK>
-   nf_hook_slow+0x3e/0xf0
-   br_pass_frame_up+0x103/0x180
-   br_handle_frame_finish+0x2de/0x5b0
-   br_nf_hook_thresh+0xc0/0x120
-   br_nf_pre_routing_finish+0x168/0x3a0
-   br_nf_pre_routing+0x237/0x5e0
-   br_handle_frame+0x1ec/0x3c0
-   __netif_receive_skb_core+0x225/0x1210
-   __netif_receive_skb_one_core+0x37/0xa0
-   netif_receive_skb+0x36/0x160
-   tun_get_user+0xa54/0x10c0
-   tun_chr_write_iter+0x65/0xb0
-   vfs_write+0x305/0x410
-   ksys_write+0x60/0xd0
-   do_syscall_64+0xa4/0x260
-   entry_SYSCALL_64_after_hwframe+0x77/0x7f
-   </TASK>
-  ---[ end trace 0000000000000000 ]---
+During the period, 1 new issues were detected and 2 were fixed.
+In total, 10 issues are still open and 191 have already been fixed.
 
-To solve the hash conflict, nf_ct_resolve_clash() try to merge the
-conntracks, and update skb->_nfct. However, br_nf_local_in() still use the
-old ct from local variable 'nfct' after confirm(), which leads to this
-issue. Fix it by rereading nfct from skb.
+Some of the still happening issues:
 
-Fixes: 62e7151ae3eb ("netfilter: bridge: confirm multicast packets before passing them up the stack")
-Signed-off-by: Wang Liang <wangliang74@huawei.com>
+Ref Crashes Repro Title
+<1> 552     No    KMSAN: uninit-value in __schedule (5)
+                  https://syzkaller.appspot.com/bug?extid=28bdcfc1dab2ffa279a5
+<2> 203     Yes   INFO: rcu detected stall in gc_worker (3)
+                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
+<3> 104     Yes   INFO: rcu detected stall in NF_HOOK (2)
+                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+
 ---
- net/bridge/br_netfilter_hooks.c | 1 +
- 1 file changed, 1 insertion(+)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 94cbe967d1c1..55b1b7dcb609 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -626,6 +626,7 @@ static unsigned int br_nf_local_in(void *priv,
- 		break;
- 	}
- 
-+	nfct = skb_nfct(skb);
- 	ct = container_of(nfct, struct nf_conn, ct_general);
- 	WARN_ON_ONCE(!nf_ct_is_confirmed(ct));
- 
--- 
-2.33.0
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
 
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
