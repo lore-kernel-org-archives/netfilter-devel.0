@@ -1,93 +1,106 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AD0D2EBDE0;
-	Wed, 20 Aug 2025 11:31:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D55C304BD8
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 12:26:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755689511; cv=none; b=BQSrvbHw05NuyCtwmtbm/Ek1S5CS12IRj4Pw7mxc3jgf9HxwNy/Oxm1CCgMLArCrxwin41pkdrVL0c9hqs3XGI/enmKr0zpXyakEAzjDpjs9T6CJnbT639KBdZfaRToHSOF6toZHJ2NKvmgyZbk7lAeP3iOfe/lqh2kUay4kLWU=
+	t=1755692785; cv=none; b=So2qVj8VLqoC95zA291qZBmAbxGsrBrPKGcWlc/AIooNbJj5hufT8IfOcwaJcH12wMOV0AAPUYg4lW83Vau3AGh8DYHVOHdIPfKk0UbrFsHu7rsd908VvQJdCnhlSxKJXDYhF2UXjc41hPs+R4DDqqbGWDlIgFMgedGW4vaO4M4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755689511; c=relaxed/simple;
-	bh=klfgj4WdEOsavVwBNUw+UR7Xf33AREIENyMxTC80kgU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dMtZlaH0mWABaAroiWOtPwtCNDKbYWGKSaEIJZXT5m7ZSUUDYVNWyhq+7xq0z8vM9pAaHg6s13EgSr4brfPeFKQJqmNl4Sbev4GTLU85cPmA0PAK+3m+k/XF7lQd1n6NixyY2Ry9Fe1GhbyS5VAS9Y78RdWW6I6QARu6/BtV+rA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D5EE160242; Wed, 20 Aug 2025 13:31:46 +0200 (CEST)
-Date: Wed, 20 Aug 2025 13:31:46 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Wang Liang <wangliang74@huawei.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, razor@blackwall.org,
-	idosch@nvidia.com, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
-	yuehaibing@huawei.com, zhangchangzhong@huawei.com,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: br_netfilter: reread nf_conn from skb
- after confirm()
-Message-ID: <aKWyImI9qxi6GDIF@strlen.de>
-References: <20250820043329.2902014-1-wangliang74@huawei.com>
+	s=arc-20240116; t=1755692785; c=relaxed/simple;
+	bh=aCAwcWBNfeS9AY5lWI7DnShbRb+QKlak3PiZWvEkUzQ=;
+	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=lYhQL4F7YO8khgyMfPEj7wOXglLnwGIqSF1sjTh1SLKnKPTZ+hgGHODliBK4iDXLFuN/DB/Hu1Vrvsw+niMtx26StPHQbiZcOZFpcTKtf8udg2WxrZ111W3bdYces9NKzREnRFRa/sRRWXVLv9yu58wfKIj+zpaLYWiaI0Crugc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Luy1bpcy; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=I+ShEclG; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Luy1bpcy";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="I+ShEclG"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 5678A605E5; Wed, 20 Aug 2025 14:26:15 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1755692775;
+	bh=NzbtKPOzhv2Wq9pdfaAzqlbEEXc06OcV8MgBIPQKwLM=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=Luy1bpcymgz1M4qnVnnQ3sd8h5Vu3wmGhSQXHaTXvMl3sLEa8ETZalpCKghXYC2tB
+	 Ilk1YAYF/zJZ2ZwyRAWmWVMlIOzaltrRQTtUIFNvR2MD6lnp8qWOzTm5cS4LqmbT/+
+	 fBrDHVM6KFYVr7kzE6e0DFJNtN0bK2ODYYwOQV5E9AgI5+yNc5PcOOSs2b2Qw2Dw/t
+	 fXcHdvwtSTL1wTwcz+L5VT7/rwWtXS1aKoU88Atk4mE+fnkEvSNjEUBUmPG/0IaDN+
+	 rDoxxFhl3M+FuBYktDSegveJH3hsiq6RR8zbkdmlUlAU3uI1OLeZygaU6oWfMd0xO/
+	 W0jKTQhSWk+xA==
+X-Spam-Level: 
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id AFBF1605E2
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 14:26:14 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1755692774;
+	bh=NzbtKPOzhv2Wq9pdfaAzqlbEEXc06OcV8MgBIPQKwLM=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=I+ShEclGo+Bz0FmqN2x9bagyidg4fkPAGFDH+M6zCL8cL7U4xaU6Rlq1HyxUoZ8u4
+	 95sEXXCDT3EMy08KkbJlUs4IT4zIykwpJZnsUr+3uFxA7WnhB/MkrRFOusjj9GHQMQ
+	 NYadjUsGBYxMI6KJazEy3yliCW2zP3nAwejiK6UTC5mEBOGDfkKF492CNS/KOYFuIi
+	 uPUUxKjn9khiqzrTHL1zqwsE0EsVUtgy3OA7SwqLM7Q37RQCwsAdlp/Xr1FDIaumeH
+	 dwPlD6g2G6i3cwWbGLC6dRPE72zDyc9zJbHr2zjSUEs/92c7yFZku7GW/cSVcr3t7M
+	 0eDKTHqBZzvFA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 2/2] tests: shell: coverage for simple verdict map merger
+Date: Wed, 20 Aug 2025 14:26:09 +0200
+Message-Id: <20250820122609.1790954-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250820122609.1790954-1-pablo@netfilter.org>
+References: <20250820122609.1790954-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250820043329.2902014-1-wangliang74@huawei.com>
+Content-Transfer-Encoding: 8bit
 
-Wang Liang <wangliang74@huawei.com> wrote:
-> Previous commit 2d72afb34065 ("netfilter: nf_conntrack: fix crash due to
-> removal of uninitialised entry") move the IPS_CONFIRMED assignment after
-> the hash table insertion.
+Add a testcase to cover for merging two rules into verdict map, added by
 
-How is that related to this change?
-As you write below, the bug came in with 62e7151ae3eb.
+  345d9260f7fe ("optimize: merge several selectors with different verdict into verdict map").
 
-> To solve the hash conflict, nf_ct_resolve_clash() try to merge the
-> conntracks, and update skb->_nfct. However, br_nf_local_in() still use the
-> old ct from local variable 'nfct' after confirm(), which leads to this
-> issue. Fix it by rereading nfct from skb.
-> 
-> Fixes: 62e7151ae3eb ("netfilter: bridge: confirm multicast packets before passing them up the stack")
-> Signed-off-by: Wang Liang <wangliang74@huawei.com>
-> ---
->  net/bridge/br_netfilter_hooks.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-> index 94cbe967d1c1..55b1b7dcb609 100644
-> --- a/net/bridge/br_netfilter_hooks.c
-> +++ b/net/bridge/br_netfilter_hooks.c
-> @@ -626,6 +626,7 @@ static unsigned int br_nf_local_in(void *priv,
->  		break;
->  	}
->  
-> +	nfct = skb_nfct(skb);
->  	ct = container_of(nfct, struct nf_conn, ct_general);
->  	WARN_ON_ONCE(!nf_ct_is_confirmed(ct));
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../testcases/optimizations/dumps/merge_vmap.nft    |  5 +++++
+ tests/shell/testcases/optimizations/merge_vmap      | 13 +++++++++++++
+ 2 files changed, 18 insertions(+)
+ create mode 100644 tests/shell/testcases/optimizations/dumps/merge_vmap.nft
+ create mode 100644 tests/shell/testcases/optimizations/merge_vmap
 
-There is a second bug here, confirm can return NF_DROP and
-nfct will be NULL.
+diff --git a/tests/shell/testcases/optimizations/dumps/merge_vmap.nft b/tests/shell/testcases/optimizations/dumps/merge_vmap.nft
+new file mode 100644
+index 000000000000..2c2535264135
+--- /dev/null
++++ b/tests/shell/testcases/optimizations/dumps/merge_vmap.nft
+@@ -0,0 +1,5 @@
++table ip x {
++	chain y {
++		ip saddr . ip daddr vmap { 1.1.1.1 . 2.2.2.2 : accept, 2.2.2.2 . 3.3.3.3 : drop }
++	}
++}
+diff --git a/tests/shell/testcases/optimizations/merge_vmap b/tests/shell/testcases/optimizations/merge_vmap
+new file mode 100644
+index 000000000000..5d4454cd7e2a
+--- /dev/null
++++ b/tests/shell/testcases/optimizations/merge_vmap
+@@ -0,0 +1,13 @@
++#!/bin/bash
++
++set -e
++
++RULESET="table ip x {
++	chain y {
++		ip saddr 1.1.1.1 ip daddr 2.2.2.2 accept
++		ip saddr 2.2.2.2 ip daddr 3.3.3.3 drop
++	}
++}"
++
++# check that optimizer output displays vmap in the listing
++$NFT -o -f - <<< $RULESET 2>&1 | grep vmap
+-- 
+2.30.2
 
-Can you make this change too? (or something similar)?
-
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 94cbe967d1c1..69b7b7c7565e 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -619,8 +619,9 @@ static unsigned int br_nf_local_in(void *priv,
-        nf_bridge_pull_encap_header(skb);
-        ret = ct_hook->confirm(skb);
-        switch (ret & NF_VERDICT_MASK) {
-+       case NF_DROP:
-        case NF_STOLEN:
--               return NF_STOLEN;
-+               return ret;
-
-
-nfct reload seems correct, thanks for catching this.
