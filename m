@@ -1,35 +1,41 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5B2A26D4FB;
-	Wed, 20 Aug 2025 03:11:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9C9D1D5146;
+	Wed, 20 Aug 2025 04:33:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755659503; cv=none; b=t0D0sG5VXlYe2btJJL0BmiKunQCaGjQXv6YIe1tXcAaIcHkKZNOJvcP6cPmHf0Z24GQiU4IP/Fb1vjulR20F7Xebt6gMeJeemPAdmREdJtFwCz2XRmXfeqelgYfUGgMN86A5vS/QKgXynAts0u5WrNVEkJkm5MQZeJpgRDU+lDQ=
+	t=1755664390; cv=none; b=pJ/+Kukuoy9NYaoK9D2l0XVCOgxV9mP9WYVixfnCErlkvuJu3GincR5TaP42yhIzM08HCoQYphEOh4B5oGWbGZ8+VSz+AeO4wGB9qMDTe1EL2gUueQhoQlA7OPnGRZkFzPrJFCspl39CvhzzFCpaAhnCixKvSO1jkpdQuV238JM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755659503; c=relaxed/simple;
-	bh=9s/5VxVNdQxhkf/qAlrxc4K30roBXgIz6GG233jUOfM=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=d+vZxDakOLUXABIpejPW+fuvAkBd3aCCfEc+lEkd4HrkUzYk9LhJnXOf4uJX4ToOLwMoXGDR2Wg0n//K5vJaWdDrHQSbK5Ni4hD9DFvTNzzdPLfsiD8QWQZFIzHCLX8L1qKJmqg/SuOfTovm9+xiR1ah0yXCZJVcYMhDlQDGzzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hU+5giPO; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hU+5giPO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 791F1C16AAE;
-	Wed, 20 Aug 2025 03:11:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755659502;
-	bh=9s/5VxVNdQxhkf/qAlrxc4K30roBXgIz6GG233jUOfM=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=hU+5giPOHyRNrJ2yyY8g7D/72PTQZXTjInkrdHqY7AJlQJ0qxrfxxdEmG+emAfm3a
-	 qRHkXMCFfMuJ3xLXtwJTxAxexzWYRRfxr7PqWOOJVda0FfyO4BV0iUvBC4kBb+BRIe
-	 BHzxlrkOyXoJhTaigxiZyVINCJD9Qzce99z3j8A9nzGq0LrQ6b7VnjwLZBP+MGqWAz
-	 cFMCOIX0xdBapFlj8OeFEeG0nZQWMtBQYt/I4JIQnXLr1Zry6V2dC3ifNyhwOgTxiK
-	 Ed7l91MTtAY1A5okA4kfVC9TOXrI5yXD9GIly7bTSkxwN8uuXpKUXgBnEGUPOESR+P
-	 Re+peDXhUQTgA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 70D74383BF58;
-	Wed, 20 Aug 2025 03:11:53 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1755664390; c=relaxed/simple;
+	bh=+sZR4pVtM4D1/iCNqe2AY2fiLorrX6QjbH8YFnC4x6M=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=u1Vt6Up7/iS7ConEURuAo0tur+j/vNeB/YkpZQnD8nEBL2r9o1dxB3TkPEOLg82Ef09b8Mf9S6TAJz/rDgCw1Ihz4B2mobZXAPHsv3SDcWpw+J5ZfrpBaiKBoPDAHCgc9g0ffYyP9PaomMtQD1v5R9v1OiavGZSJ5081UCxkLnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.174])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4c6D7N27WvztT3D;
+	Wed, 20 Aug 2025 12:32:00 +0800 (CST)
+Received: from dggpemf500016.china.huawei.com (unknown [7.185.36.197])
+	by mail.maildlp.com (Postfix) with ESMTPS id 463181402C4;
+	Wed, 20 Aug 2025 12:32:59 +0800 (CST)
+Received: from huawei.com (10.175.104.170) by dggpemf500016.china.huawei.com
+ (7.185.36.197) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Wed, 20 Aug
+ 2025 12:32:57 +0800
+From: Wang Liang <wangliang74@huawei.com>
+To: <pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
+	<razor@blackwall.org>, <idosch@nvidia.com>, <davem@davemloft.net>,
+	<edumazet@google.com>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<horms@kernel.org>
+CC: <yuehaibing@huawei.com>, <zhangchangzhong@huawei.com>,
+	<wangliang74@huawei.com>, <netfilter-devel@vger.kernel.org>,
+	<coreteam@netfilter.org>, <bridge@lists.linux.dev>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [PATCH net] netfilter: br_netfilter: reread nf_conn from skb after confirm()
+Date: Wed, 20 Aug 2025 12:33:29 +0800
+Message-ID: <20250820043329.2902014-1-wangliang74@huawei.com>
+X-Mailer: git-send-email 2.33.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,59 +43,68 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next v2 0/7] net: Convert to skb_dstref_steal and
- skb_dstref_restore
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <175565951224.3753798.14794372578854364006.git-patchwork-notify@kernel.org>
-Date: Wed, 20 Aug 2025 03:11:52 +0000
-References: <20250818154032.3173645-1-sdf@fomichev.me>
-In-Reply-To: <20250818154032.3173645-1-sdf@fomichev.me>
-To: Stanislav Fomichev <sdf@fomichev.me>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, edumazet@google.com,
- kuba@kernel.org, pabeni@redhat.com, ayush.sawal@chelsio.com,
- andrew+netdev@lunn.ch, gregkh@linuxfoundation.org, horms@kernel.org,
- dsahern@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
- steffen.klassert@secunet.com, mhal@rbox.co, abhishektamboli9@gmail.com,
- linux-kernel@vger.kernel.org, linux-staging@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- herbert@gondor.apana.org.au
+Content-Type: text/plain
+X-ClientProxiedBy: kwepems100001.china.huawei.com (7.221.188.238) To
+ dggpemf500016.china.huawei.com (7.185.36.197)
 
-Hello:
+Previous commit 2d72afb34065 ("netfilter: nf_conntrack: fix crash due to
+removal of uninitialised entry") move the IPS_CONFIRMED assignment after
+the hash table insertion.
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+When send a broadcast packet to a tap device, which was added to a bridge,
+br_nf_local_in() is called to confirm the conntrack. If another conntrack
+with the same hash value is added to the hash table, which can be
+triggered by a normal packet to a non-bridge device, the below warning
+may happen.
 
-On Mon, 18 Aug 2025 08:40:25 -0700 you wrote:
-> To diagnose and prevent issues similar to [0], emit warning
-> (CONFIG_DEBUG_NET) from skb_dst_set and skb_dst_set_noref when
-> overwriting non-null reference-counted entry. Two new helpers
-> are added to handle special cases where the entry needs to be
-> reset and restored: skb_dstref_steal/skb_dstref_restore. The bulk of
-> the patches in the series converts manual _skb_refst manipulations
-> to these new helpers.
-> 
-> [...]
+  ------------[ cut here ]------------
+  WARNING: CPU: 1 PID: 96 at net/bridge/br_netfilter_hooks.c:632 br_nf_local_in+0x168/0x200
+  CPU: 1 UID: 0 PID: 96 Comm: tap_send Not tainted 6.17.0-rc2-dirty #44 PREEMPT(voluntary)
+  RIP: 0010:br_nf_local_in+0x168/0x200
+  Call Trace:
+   <TASK>
+   nf_hook_slow+0x3e/0xf0
+   br_pass_frame_up+0x103/0x180
+   br_handle_frame_finish+0x2de/0x5b0
+   br_nf_hook_thresh+0xc0/0x120
+   br_nf_pre_routing_finish+0x168/0x3a0
+   br_nf_pre_routing+0x237/0x5e0
+   br_handle_frame+0x1ec/0x3c0
+   __netif_receive_skb_core+0x225/0x1210
+   __netif_receive_skb_one_core+0x37/0xa0
+   netif_receive_skb+0x36/0x160
+   tun_get_user+0xa54/0x10c0
+   tun_chr_write_iter+0x65/0xb0
+   vfs_write+0x305/0x410
+   ksys_write+0x60/0xd0
+   do_syscall_64+0xa4/0x260
+   entry_SYSCALL_64_after_hwframe+0x77/0x7f
+   </TASK>
+  ---[ end trace 0000000000000000 ]---
 
-Here is the summary with links:
-  - [net-next,v2,1/7] net: Add skb_dstref_steal and skb_dstref_restore
-    https://git.kernel.org/netdev/net-next/c/c3f0c02997c7
-  - [net-next,v2,2/7] xfrm: Switch to skb_dstref_steal to clear dst_entry
-    https://git.kernel.org/netdev/net-next/c/c829aab21ed5
-  - [net-next,v2,3/7] netfilter: Switch to skb_dstref_steal to clear dst_entry
-    https://git.kernel.org/netdev/net-next/c/15488d4d8dc1
-  - [net-next,v2,4/7] net: Switch to skb_dstref_steal/skb_dstref_restore for ip_route_input callers
-    https://git.kernel.org/netdev/net-next/c/e97e6a1830dd
-  - [net-next,v2,5/7] staging: octeon: Convert to skb_dst_drop
-    https://git.kernel.org/netdev/net-next/c/da3b9d493ba2
-  - [net-next,v2,6/7] chtls: Convert to skb_dst_reset
-    https://git.kernel.org/netdev/net-next/c/3e31075a1194
-  - [net-next,v2,7/7] net: Add skb_dst_check_unset
-    https://git.kernel.org/netdev/net-next/c/a890348adcc9
+To solve the hash conflict, nf_ct_resolve_clash() try to merge the
+conntracks, and update skb->_nfct. However, br_nf_local_in() still use the
+old ct from local variable 'nfct' after confirm(), which leads to this
+issue. Fix it by rereading nfct from skb.
 
-You are awesome, thank you!
+Fixes: 62e7151ae3eb ("netfilter: bridge: confirm multicast packets before passing them up the stack")
+Signed-off-by: Wang Liang <wangliang74@huawei.com>
+---
+ net/bridge/br_netfilter_hooks.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 94cbe967d1c1..55b1b7dcb609 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -626,6 +626,7 @@ static unsigned int br_nf_local_in(void *priv,
+ 		break;
+ 	}
+ 
++	nfct = skb_nfct(skb);
+ 	ct = container_of(nfct, struct nf_conn, ct_general);
+ 	WARN_ON_ONCE(!nf_ct_is_confirmed(ct));
+ 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.33.0
 
