@@ -1,67 +1,86 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF46635335A;
-	Wed, 20 Aug 2025 00:24:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71644A01;
+	Wed, 20 Aug 2025 00:58:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755649456; cv=none; b=CyKtB9monIZhGCYnjQF1w6Rvwt6o6uSDxHh5Ath1TO2bXZk2MFjcy3pE69ECqrZDkmSLm7Prvz2+HIibFY4oahXZ8BwR2Q6ANi/z3WIN1TNFDa1K8VrCw8DOSNQJnwFFZ/uSklXtX/oKWBPJ4t93Su2h/ohA+sNPQci6PMxXHHE=
+	t=1755651524; cv=none; b=JOR06J2fN8XurhJ+Ix0wRXH465UAJIn5SNgyVfEmiccn/broE8dtUF214CMbTwDFgvl3ICA83VU/75oWP0mv8IGRCf1QsAKnVgcFU/wOeOEtOVqEpDurG9enoi+ZhrC9VyQnrPMEEaW9kH/mJeYqF0PrN2ao08CdP1e4/15XKkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755649456; c=relaxed/simple;
-	bh=VOnp+I7EggjylKUeMhz7MG70tAy33IjQHjNKQKjZYVg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ooA9lK2C4OLES/34vIgdCrvHwbDD0iQp93uNOpDc3kwF2f8GFqRx08cSNIV6n6vggex08upsClDTwFfuiwyGrGlVLtuidGWKhXj2FZ4SaiDVbbyrQ/T8swArBdjXcYmsBzCuvGZd/oFpk31m7YrGvG898erF767bRYYsWZiiqco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9383760329; Wed, 20 Aug 2025 02:24:11 +0200 (CEST)
-Date: Wed, 20 Aug 2025 02:24:11 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Qingjie Xing <xqjcool@gmail.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: conntrack: drop expectations before freeing
- templates
-Message-ID: <aKUVqxJVrGgRJZA4@strlen.de>
-References: <aKTCFTQy1dVo-Ucy@strlen.de>
- <20250819232417.2337655-1-xqjcool@gmail.com>
- <aKUUBsFYBYOu2xu-@strlen.de>
+	s=arc-20240116; t=1755651524; c=relaxed/simple;
+	bh=/349ALdsu4QBDpaXh3U9xGpGjsaL10DyieyEXYkgeSs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=A3GHpsObI6Avogv4hII/FFtvCTUoJJIn/9TgNQDCvUrqrreHXMnAWn5xcTaJypQRLERr+cdSXunLndFC4KWr2mMBN5BEm2saVIThWbL5G6GzOl7qT7UYJ1CUP+FvGUX60YtoSbV2hLDKdtEACyoQ6B7Rc/LR9dtZ9Jl5FV3KZOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ATcMYPB4; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ATcMYPB4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C0EBC4CEF1;
+	Wed, 20 Aug 2025 00:58:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755651524;
+	bh=/349ALdsu4QBDpaXh3U9xGpGjsaL10DyieyEXYkgeSs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=ATcMYPB4KRqpAleWMOvmhVlKcZdpONku/9K5sCzlADLVRkrdf8ogJh/7c7DS54K/S
+	 hXXXPomJ5r75cKXxwktrQ6MS8n8rrRuyoUDHi+vlZQv/Jkqtzo5dbq5/1GlEq478LL
+	 NxnpRAanHm0IArifUsELU0TWiFoCRPv2PZfrbcRufy8PrJ2I7GljRiE37EOvT5JdXj
+	 eFtjm6dbsXqMFn8GRYrzuRyZ+xpzZWFkLj9riYSST9PhSVzX7CjJcBJ+2TSX1bTAhc
+	 wwOQ2mx4dTS0CzcqTkHG7qszkhsW2iCtyLdVa5WjDgmsppMQOhgCoU2OESbOU2IMv6
+	 GursPn9kkxY8Q==
+Date: Tue, 19 Aug 2025 17:58:42 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Aleksandr Nogikh <nogikh@google.com>
+Cc: syzbot ci <syzbot+ci77a5caa9fce14315@syzkaller.appspotmail.com>,
+ abhishektamboli9@gmail.com, andrew@lunn.ch, ayush.sawal@chelsio.com,
+ coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
+ edumazet@google.com, fw@strlen.de, gregkh@linuxfoundation.org,
+ herbert@gondor.apana.org.au, horms@kernel.org, kadlec@netfilter.org,
+ linux-kernel@vger.kernel.org, linux-staging@lists.linux.dev, mhal@rbox.co,
+ netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+ pablo@netfilter.org, sdf@fomichev.me, steffen.klassert@secunet.com,
+ syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot ci] Re: net: Convert to skb_dstref_steal and
+ skb_dstref_restore
+Message-ID: <20250819175842.7edaf8a5@kernel.org>
+In-Reply-To: <68a49b30.050a0220.e29e5.00c8.GAE@google.com>
+References: <20250818154032.3173645-1-sdf@fomichev.me>
+	<68a49b30.050a0220.e29e5.00c8.GAE@google.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <aKUUBsFYBYOu2xu-@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Florian Westphal <fw@strlen.de> wrote:
-> Qingjie Xing <xqjcool@gmail.com> wrote:
-> > With an iptables-configured TFTP helper in place, a UDP packet 
-> > (10.65.41.36:1069 → 10.65.36.2:69, TFTP RRQ) triggered creation of an expectation.
-> > Later, iptables changes removed the rule’s per-rule template nf_conn. 
-> > When the expectation’s timer expired, nf_ct_unlink_expect_report() 
-> > ran and dereferenced the freed master, causing a crash.
+On Tue, 19 Aug 2025 08:41:36 -0700 syzbot ci wrote:
+> syzbot ci has tested the following series
 > 
-> Sorry, I do not see the problem.
-> A template should never be listed as exp->master.
+> [v2] net: Convert to skb_dstref_steal and skb_dstref_restore
+> https://lore.kernel.org/all/20250818154032.3173645-1-sdf@fomichev.me
+> * [PATCH net-next v2 1/7] net: Add skb_dstref_steal and skb_dstref_restore
+> * [PATCH net-next v2 2/7] xfrm: Switch to skb_dstref_steal to clear dst_entry
+> * [PATCH net-next v2 3/7] netfilter: Switch to skb_dstref_steal to clear dst_entry
+> * [PATCH net-next v2 4/7] net: Switch to skb_dstref_steal/skb_dstref_restore for ip_route_input callers
+> * [PATCH net-next v2 5/7] staging: octeon: Convert to skb_dst_drop
+> * [PATCH net-next v2 6/7] chtls: Convert to skb_dst_reset
+> * [PATCH net-next v2 7/7] net: Add skb_dst_check_unset
+
+> ***
 > 
-> Can you make a reproducer/selftest for this bug?
-> 
-> I worry we paper over a different bug.
+> If these findings have caused you to resend the series or submit a
+> separate fix, please add the following tag to your commit message:
+> Tested-by: syzbot@syzkaller.appspotmail.com
 
-Or maybe this will provide a clue (not even compile tested).
+Hi Aleksandr!
 
-@@ -299,6 +302,9 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- {
-        struct nf_conntrack_expect *new;
+Could we do something about this Tested-by: tag?
+Since the syzbot CI reports are sent in reply to a series patchwork and
+other tooling will think that syzbot is sending it's Tested-by tag for
+this series.
 
-+       if (WARN_ON_ONCE(nf_ct_is_template(me)))
-+               return NULL;
-+
-        new = kmem_cache_alloc(nf_ct_expect_cachep, GFP_ATOMIC);
-        if (!new)
+In some cases we know that the issues found are unrelated, or rather
+expect them to be fixed separately.
 
+Could we perhaps indent the tag with a couple of spaces? Not 100% sure
+but I _think_ most tools will match the tags only from start of line.
