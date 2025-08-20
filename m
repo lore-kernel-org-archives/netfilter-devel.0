@@ -1,135 +1,91 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9DE02EE26B
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 15:45:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC7242E62B4;
+	Wed, 20 Aug 2025 16:01:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755704752; cv=none; b=Hcfud9Rhs+UW67XxjCLh2jxXP8XHKcssYIbc8DqI1dxE3LkStN90YELYEnUf7DkRRNzvtMvUpBH9VArt88bAIAoT0LH81JvXL9liwQiWV1K0MdtFAdHQBgxHxSJ7XYCVlSm1/BNYrAYQCGh/vTy1KsVqaCmhEHBl4OAh+d8Rwnw=
+	t=1755705682; cv=none; b=rGUMT8hUSmPjEE5CXkdFLeyeoJYJ4scudwxsY5H0AR9obZwl+K+q7TGNgko62K2vx4B0azgxBQ5iRQbuS1NKGaHwHElRiY6yrRYOSKy86w2og24n9Iz+/JhSMoVB3JLl/9bgQHHToE7IwirlTtquuhzQvqeKPeAtMgJNQy1Lbd0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755704752; c=relaxed/simple;
-	bh=PF7834m2zmBGeYNYT92AdeweVy9hXj/FOYFfPOv3ciI=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=WBYsEX63bD5J2zTjEbe9AVwD3fIIt7smtrgV91Shr5yIAqH5fzDvjeyfQ+t3EKgkI1YuQ+O/dxbw0CE+jaCVdaoj1+B/VUlBL5vj5jeXl0frbbLSMD3jATVfFwtiAacwKGGjkCu/Uh8Yd5LTAgGvV+GiuoYGwMHCpl4+pQzv0/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SglFcrPp; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1755705682; c=relaxed/simple;
+	bh=wpY5/xr0Or/2wJ0S0TufDbrIupEsqisK4z2vqka6EOI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FQRUL1DBhZWJHh4LSIdrhVbe8IZGeEtooq3fIlQvr8xR1CzGUp5e6wDwbgIaIW3/YUf7VJ0Xcfd4ix8erv9bYA5HMZc1g8/pv3nAzlJRJaP+pvXEnwgA0cmQLZoHvxo+yLjyq32RVhk/2+z/ToRNiXWr7RvRf7HNEPlYWLG5S+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=fRr4xsLl; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=NcFeJ7nv; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SglFcrPp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1755704749;
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="fRr4xsLl";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="NcFeJ7nv"
+Date: Wed, 20 Aug 2025 18:01:14 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1755705676;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=MaIQl8sxIrb95R4ZFBO0Jfm8W4+5z/KA412HXcZp9KM=;
-	b=SglFcrPpzgDK6BYa4iXbnLpWSFuJMe+NaorZ2C51JhmWdGi/JdPb59vkqy2sMNUSVfG44z
-	gKtLVJ6BimJ36rnHx1MqeM7f4kLiOKgSwcp0ojXXsvI7d9AETP49lTlmUbOxILwsR27VUU
-	fM1bJeEgG8yR6rIu3xzwZZJa1qNkuXs=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-660-rqrmZ3J_OwyHZ0_X3655SA-1; Wed, 20 Aug 2025 11:45:48 -0400
-X-MC-Unique: rqrmZ3J_OwyHZ0_X3655SA-1
-X-Mimecast-MFC-AGG-ID: rqrmZ3J_OwyHZ0_X3655SA_1755704747
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3b9edf34ad0so29971f8f.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 08:45:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755704747; x=1756309547;
-        h=content-transfer-encoding:mime-version:organization:references
-         :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=MaIQl8sxIrb95R4ZFBO0Jfm8W4+5z/KA412HXcZp9KM=;
-        b=dADaZtbYPiFNVZ0dY+f5E9dNiKJUN2pamKB0TKfmNcTODmb2umzdNKsPgLY9kYeV+f
-         4mWd146m/PLl5V1iRXZWhBOX0Ol7cz7HO+lBKVi0HA+gBYqr4guwZ43WS5AnHlqEknkX
-         Ug+cmCRq+PZbK7+Y7c+jY2/JzWtlCZ8e3DV1mLM1IKSWF92LThYxxIgDJuZPKZRasNlT
-         NHAh7M1V2PJ2D0a2TQxtf6BUKiVqI1pIqHP3yJfWDNyPSyTC7tRi7MPXP7pwp2zntD3U
-         2h95rC3Jc7eqnEtxYjuG0lb9ldaLdYishNnJ3ZI5Llx/iw6qUbvvYZz6U872vmuCFJ9t
-         D2Iw==
-X-Forwarded-Encrypted: i=1; AJvYcCUHltArFEY8ZW60iC22jgJBh/oQRYxmwfO5jOe608qgHle15jcmAGnEBqAKlPRDSzV2qHxdO8hbyMIRjF/3Dns=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yza1vOSUoP5NquZN66QXuSH4fL5kzar9sFmH8ym4iulvEUlmTyX
-	euOa+hOjkPLE96kJOlUJwYsMjab3nxeOIKfgyX/FgPjB7TxDGVMxAIEDHXPoQYE2S557ZYlvoOX
-	ox70SiS89kMy1hCSZuhHWkVjpasqIB0zwURAvx/6auaWiPkQsyHVOOhAErPXLd5PPEZ7QZQ==
-X-Gm-Gg: ASbGncvo7Tq/P8Z7PMxfzJbF5LWihEcg6ysNSW9WJ3UVVdB0KmTTbWZ3MBVTtyqEqq7
-	QJCdnXXpW1L1bEhIMKk5f5MjeFAJfkDotUkhVkcjORFHi/KrZyCtmytZ1ctLtyTbtdq3n7ySSMg
-	n/6WIwa09eygFpwQdDPRdBy1z8w8jiu/1MR9YF8NVwI+h1WviQdjqGoXkq8/Fg6V77Mw0OaIbcX
-	9aOhe4Vl5AxWat+JU+TZwfOFEN4LMA/pbnuwxEEgFkp+xk5cnlvKDlKCI44dycCn5i+SUF8pL/z
-	AhsMWDx1m9hMORKWhvU+0H3MAclKineTcK+txv9ydn//FbYGgNlDuzXzAcHXk0nepzp/
-X-Received: by 2002:a05:6000:420d:b0:3b9:1d32:cf4a with SMTP id ffacd0b85a97d-3c32e6fe728mr2870326f8f.44.1755704747133;
-        Wed, 20 Aug 2025 08:45:47 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEft7cxfwgnuC9fvgTvhd5Lg5v+e3eJCWb3Fa4JXUDbgyRD6cxdCOQrdQIX6hHvos7uCBDKZQ==
-X-Received: by 2002:a05:6000:420d:b0:3b9:1d32:cf4a with SMTP id ffacd0b85a97d-3c32e6fe728mr2870305f8f.44.1755704746638;
-        Wed, 20 Aug 2025 08:45:46 -0700 (PDT)
-Received: from maya.myfinge.rs (ifcgrfdd.trafficplex.cloud. [176.103.220.4])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3c07487a009sm8151635f8f.11.2025.08.20.08.45.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 Aug 2025 08:45:46 -0700 (PDT)
-Date: Wed, 20 Aug 2025 17:45:45 +0200
-From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, "David S.
- Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub
- Kicinski <kuba@kernel.org>, <netfilter-devel@vger.kernel.org>,
- pablo@netfilter.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: Re: [PATCH net-next 4/6] netfilter: nft_set_pipapo: use avx2
- algorithm for insertions too
-Message-ID: <20250820174545.398b2373@elisabeth>
-In-Reply-To: <20250820144738.24250-5-fw@strlen.de>
+	bh=kKUzIIiQ88EZtHaua0or7dWZ09bA6MxiSU3FX1Da/Ow=;
+	b=fRr4xsLlR/uNZOKRQ3RU/O8fwZNkHT1Ne++39yHepmkwpyQJ3TcLxfj4rlutD2LxQ9HI97
+	c7v1Ymrm7NKtidUzC6aDew/2hWVTXAl4iweqLuftvNul3eOJ1u62Ju77HrcxEwsNy4p7/h
+	dtXevpnlMe01jKZoIn+4i9JByCOvazcZXdyeAjmfAswzCVc0S+Vh4ug6VXh1IB5AvZTD+2
+	tK4dOhyk3Z2+VtNtBIjJmDSgk9HApLhvm0n9q2bt9ysvhX7JUizxQZnUIH3o5iTXepD3nY
+	DAhFqY8N58WDrph25T3V1pAyxXwkGgJKvnrdGGPrcskMs8YZ3Bs7WCIRrxCanw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1755705676;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kKUzIIiQ88EZtHaua0or7dWZ09bA6MxiSU3FX1Da/Ow=;
+	b=NcFeJ7nvBRJ5IMYCH6L/yzDaDPdHpy7Ph7FMugBL/tpvDK9/6uMA2G2+7PqGBLIB+/lTXd
+	OMojDG/e1e5dM/AQ==
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Stefano Brivio <sbrivio@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org
+Subject: Re: [PATCH net-next 5/6] netfilter: nft_set_pipapo: Store real
+ pointer, adjust later.
+Message-ID: <20250820160114.LI90UJWx@linutronix.de>
 References: <20250820144738.24250-1-fw@strlen.de>
-	<20250820144738.24250-5-fw@strlen.de>
-Organization: Red Hat
-X-Mailer: Claws Mail 4.2.0 (GTK 3.24.49; x86_64-pc-linux-gnu)
+ <20250820144738.24250-6-fw@strlen.de>
+ <20250820174401.5addbfc1@elisabeth>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250820174401.5addbfc1@elisabeth>
 
-On Wed, 20 Aug 2025 16:47:36 +0200
-Florian Westphal <fw@strlen.de> wrote:
+On 2025-08-20 17:44:01 [+0200], Stefano Brivio wrote:
+> On Wed, 20 Aug 2025 16:47:37 +0200
+> Florian Westphal <fw@strlen.de> wrote:
+> 
+> > From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> > 
+> > The struct nft_pipapo_scratch is allocated, then aligned to the required
+> > alignment and difference (in bytes) is then saved in align_off. The
+> > aligned pointer is used later.
+> > While this works, it gets complicated with all the extra checks if
+> > all member before map are larger than the required alignment.
+> > 
+> > Instead of saving the aligned pointer, just save the returned pointer
+> > and align the map pointer in nft_pipapo_lookup() before using it. The
+> > alignment later on shouldn't be that expensive.
+> 
+> The cost of doing the alignment later was the very reason why I added
+> this whole dance in the first place though. Did you check packet
+> matching rates before and after this?
 
-> Always prefer the avx2 implementation if its available.
-> This greatly improves insertion performance (each insertion
-> checks if the new element would overlap with an existing one):
-> 
-> time nft -f - <<EOF
-> table ip pipapo {
-> 	set s {
-> 		typeof ip saddr . tcp dport
-> 		flags interval
-> 		size 800000
-> 		elements = { 10.1.1.1 - 10.1.1.4 . 3996,
-> [.. 800k entries elided .. ]
-> 
-> before:
-> real    1m55.993s
-> user    0m2.505s
-> sys     1m53.296s
-> 
-> after:
-> real    0m42.586s
-> user    0m2.554s
-> sys     0m39.811s
-> 
-> Fold patch from Sebastian:
-> 
-> kernel_fpu_begin_mask()/ _end() remains in pipapo_get_avx2() where it is
-> required.
-> 
-> A followup patch will add local_lock_t to struct nft_pipapo_scratch in
-> order to protect the map pointer. The lock can not be acquired in
-> preemption disabled context which is what kernel_fpu_begin*() does.
-> 
-> Link: https://lore.kernel.org/netfilter-devel/20250818110213.1319982-2-bigeasy@linutronix.de/
-> Co-developed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+how? There was something under selftest which I used to ensure it still
+works.
+On x86 it should be two additional opcodes (and + lea) and that might be
+interleaved. Do you remember a rule of thumb of your improvement?
+As far as I remember the alignment code expects that the "hole" at the
+begin does not exceed a certain size and the lock there exceeds it.
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
-
--- 
-Stefano
-
+Sebastian
