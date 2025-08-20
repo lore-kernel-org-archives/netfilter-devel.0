@@ -1,84 +1,82 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B89F280325
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 15:44:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9DE02EE26B
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 15:45:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755704649; cv=none; b=otXGL6+bKTmITSMeij3RZEMTbAe4J1zbP+/TxHdd8hNCpudyQNEBcsYu1Lu8naj8Miar97dXGtoidovQb1pSqdp+JXaG2SS/NRXfoddAJHvdXM8GhqTA0wEvg0Mb/Zv0mcYAZTOUTtkWNew0apPI85ko1olGUsqusha3dLeQHU4=
+	t=1755704752; cv=none; b=Hcfud9Rhs+UW67XxjCLh2jxXP8XHKcssYIbc8DqI1dxE3LkStN90YELYEnUf7DkRRNzvtMvUpBH9VArt88bAIAoT0LH81JvXL9liwQiWV1K0MdtFAdHQBgxHxSJ7XYCVlSm1/BNYrAYQCGh/vTy1KsVqaCmhEHBl4OAh+d8Rwnw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755704649; c=relaxed/simple;
-	bh=95yC15JbWppqU8jyo2fHbeAS3d+H0Gix7rRJptRWZtM=;
+	s=arc-20240116; t=1755704752; c=relaxed/simple;
+	bh=PF7834m2zmBGeYNYT92AdeweVy9hXj/FOYFfPOv3ciI=;
 	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Z/A4HRlKFZBl1hC6p58KSxncggReg7CxJmz52okrX3B8OZv6qKU8w0zH/fNpM14Aq394OpfFgGdjn+wDGQ7agegcrdo+kCnaxvFDAFHWFhtKlh5w5lkP2wQ7LZnUD8SxSvF5lN83baMVoa/r8n6th1xE93oMQz69GI7T7/Fcoyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Uo6DfEnJ; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version:Content-Type; b=WBYsEX63bD5J2zTjEbe9AVwD3fIIt7smtrgV91Shr5yIAqH5fzDvjeyfQ+t3EKgkI1YuQ+O/dxbw0CE+jaCVdaoj1+B/VUlBL5vj5jeXl0frbbLSMD3jATVfFwtiAacwKGGjkCu/Uh8Yd5LTAgGvV+GiuoYGwMHCpl4+pQzv0/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SglFcrPp; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Uo6DfEnJ"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SglFcrPp"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1755704647;
+	s=mimecast20190719; t=1755704749;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=CZTdOUMLElInOZa8jWVy+Dw5UJB8zui244DoqjKy0s0=;
-	b=Uo6DfEnJdbhQcoH+ghQXLjF0uiogjSUIXS72VM1piO9sbxlm7v15B0NSf/Xw2k/opHjxQV
-	pIjtLKqQrtKC+XnJ4RVHf9M0uLvuWkcA0AE5/F/d/B3euQt0kTH3RGgab2hq//YQh0uUNB
-	onCh/Q/bezXtSWvRE2tIBju3V7M7AkA=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=MaIQl8sxIrb95R4ZFBO0Jfm8W4+5z/KA412HXcZp9KM=;
+	b=SglFcrPpzgDK6BYa4iXbnLpWSFuJMe+NaorZ2C51JhmWdGi/JdPb59vkqy2sMNUSVfG44z
+	gKtLVJ6BimJ36rnHx1MqeM7f4kLiOKgSwcp0ojXXsvI7d9AETP49lTlmUbOxILwsR27VUU
+	fM1bJeEgG8yR6rIu3xzwZZJa1qNkuXs=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-634-Mr164auyMzapD2VW5wnsMQ-1; Wed, 20 Aug 2025 11:44:05 -0400
-X-MC-Unique: Mr164auyMzapD2VW5wnsMQ-1
-X-Mimecast-MFC-AGG-ID: Mr164auyMzapD2VW5wnsMQ_1755704644
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-45a28ff4793so20989915e9.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 08:44:05 -0700 (PDT)
+ us-mta-660-rqrmZ3J_OwyHZ0_X3655SA-1; Wed, 20 Aug 2025 11:45:48 -0400
+X-MC-Unique: rqrmZ3J_OwyHZ0_X3655SA-1
+X-Mimecast-MFC-AGG-ID: rqrmZ3J_OwyHZ0_X3655SA_1755704747
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3b9edf34ad0so29971f8f.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 08:45:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755704644; x=1756309444;
+        d=1e100.net; s=20230601; t=1755704747; x=1756309547;
         h=content-transfer-encoding:mime-version:organization:references
          :in-reply-to:message-id:subject:cc:to:from:date:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=CZTdOUMLElInOZa8jWVy+Dw5UJB8zui244DoqjKy0s0=;
-        b=cRBc10Euet2YyNvvw7YphV+lI880cHgOO8NbG2TEF4KWH1tCV7M3/zbb5qXcZIhsRP
-         TOdp7OiyKM/mcu2gAoYEthJOwoHh3G6+PrI+U68azTVmd8NE1MERyQl6gg4U6nfHIWgI
-         0ledrZLIu2v+XleOa2VrtdNRLexPWJoPfwGi+qN+Q9alq8Nrgpg4dgQfD7sjWp+1CfSm
-         lqz4wpb3m+gmijyc/NiuA6KDBCNGsXFWwLTRiSvEPS9yEMp12KTwLYm8po+l1F2cl3mN
-         AKkv3EqIgvTGJFa6e1tH/lhWoWFThOwvROc5si5oJKXSoCmBq1LMoKn9+1oJbb4JGh7z
-         cXqA==
-X-Forwarded-Encrypted: i=1; AJvYcCUHBnZ2gaYzDmldDy7VTo6iaXkHvBaFt/wlubu+ZRmjnpOdek9XGutttQ1n03Ow3O8mlrSCR99B60AYEfJwd8Y=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzymTedaNz09IrxLCpnjOTk2eE/Axl3SpC3LBZQPEUPZ8+1thq5
-	1KDpECf7thVU+ivVw6bVlGaGYQYEFWh9Ys3J0Wad/4gX9mBnjNV4kZsvSCK65z4Tj69dS4DHDme
-	KkUWhrayL404rhAdWk6U+lh8bN9nCzeAx2KbpQoTQckS7z+gAZUQgm8xQS6U/CHfiyx/2579kA1
-	40uQ==
-X-Gm-Gg: ASbGncuWLav23F8doePRnM3nEmSR6ArrLlqUYpqGjfG8Mf74CMjhhdHfIFq+xBpyYwW
-	xrPey58fnU7WQ9xPiTOXzu9expdgwkQui689z7SBTFnFiiNZaU+QG/suLKlWQEiKWcjha2pfTq0
-	CDxyF0LHdN6nN7b5yKdGBTY0v/voeD9qU8zq0J8Wd/up1D9ZRWS+fSsLXx7r+oFimln+DaaTjzU
-	ujqvB02K081/HvAhGibEZnPacfK922gLXsPpS9Oh3uLR3ApuHrCG8XlEhRkbVkIEYEph9/AW5LV
-	8kWdWJTJWNS5f3B3z1nEefPB6Z0Mq1iRNE0V2um3RCc3ndEvKLwujjgU3X1YX1jtv1cW
-X-Received: by 2002:a05:600c:8b4b:b0:456:24aa:9586 with SMTP id 5b1f17b1804b1-45b479f7d79mr29730325e9.21.1755704643873;
-        Wed, 20 Aug 2025 08:44:03 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHQEQmzCV1NTmYWg14hpuYZBLWhYM2bdzJEG/AeqxOARbHWDkqg2ZXpbF4adP2mEM4l9ToKqA==
-X-Received: by 2002:a05:600c:8b4b:b0:456:24aa:9586 with SMTP id 5b1f17b1804b1-45b479f7d79mr29730055e9.21.1755704643410;
-        Wed, 20 Aug 2025 08:44:03 -0700 (PDT)
+        bh=MaIQl8sxIrb95R4ZFBO0Jfm8W4+5z/KA412HXcZp9KM=;
+        b=dADaZtbYPiFNVZ0dY+f5E9dNiKJUN2pamKB0TKfmNcTODmb2umzdNKsPgLY9kYeV+f
+         4mWd146m/PLl5V1iRXZWhBOX0Ol7cz7HO+lBKVi0HA+gBYqr4guwZ43WS5AnHlqEknkX
+         Ug+cmCRq+PZbK7+Y7c+jY2/JzWtlCZ8e3DV1mLM1IKSWF92LThYxxIgDJuZPKZRasNlT
+         NHAh7M1V2PJ2D0a2TQxtf6BUKiVqI1pIqHP3yJfWDNyPSyTC7tRi7MPXP7pwp2zntD3U
+         2h95rC3Jc7eqnEtxYjuG0lb9ldaLdYishNnJ3ZI5Llx/iw6qUbvvYZz6U872vmuCFJ9t
+         D2Iw==
+X-Forwarded-Encrypted: i=1; AJvYcCUHltArFEY8ZW60iC22jgJBh/oQRYxmwfO5jOe608qgHle15jcmAGnEBqAKlPRDSzV2qHxdO8hbyMIRjF/3Dns=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yza1vOSUoP5NquZN66QXuSH4fL5kzar9sFmH8ym4iulvEUlmTyX
+	euOa+hOjkPLE96kJOlUJwYsMjab3nxeOIKfgyX/FgPjB7TxDGVMxAIEDHXPoQYE2S557ZYlvoOX
+	ox70SiS89kMy1hCSZuhHWkVjpasqIB0zwURAvx/6auaWiPkQsyHVOOhAErPXLd5PPEZ7QZQ==
+X-Gm-Gg: ASbGncvo7Tq/P8Z7PMxfzJbF5LWihEcg6ysNSW9WJ3UVVdB0KmTTbWZ3MBVTtyqEqq7
+	QJCdnXXpW1L1bEhIMKk5f5MjeFAJfkDotUkhVkcjORFHi/KrZyCtmytZ1ctLtyTbtdq3n7ySSMg
+	n/6WIwa09eygFpwQdDPRdBy1z8w8jiu/1MR9YF8NVwI+h1WviQdjqGoXkq8/Fg6V77Mw0OaIbcX
+	9aOhe4Vl5AxWat+JU+TZwfOFEN4LMA/pbnuwxEEgFkp+xk5cnlvKDlKCI44dycCn5i+SUF8pL/z
+	AhsMWDx1m9hMORKWhvU+0H3MAclKineTcK+txv9ydn//FbYGgNlDuzXzAcHXk0nepzp/
+X-Received: by 2002:a05:6000:420d:b0:3b9:1d32:cf4a with SMTP id ffacd0b85a97d-3c32e6fe728mr2870326f8f.44.1755704747133;
+        Wed, 20 Aug 2025 08:45:47 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEft7cxfwgnuC9fvgTvhd5Lg5v+e3eJCWb3Fa4JXUDbgyRD6cxdCOQrdQIX6hHvos7uCBDKZQ==
+X-Received: by 2002:a05:6000:420d:b0:3b9:1d32:cf4a with SMTP id ffacd0b85a97d-3c32e6fe728mr2870305f8f.44.1755704746638;
+        Wed, 20 Aug 2025 08:45:46 -0700 (PDT)
 Received: from maya.myfinge.rs (ifcgrfdd.trafficplex.cloud. [176.103.220.4])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45b47c90cc4sm41236355e9.16.2025.08.20.08.44.02
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3c07487a009sm8151635f8f.11.2025.08.20.08.45.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 20 Aug 2025 08:44:02 -0700 (PDT)
-Date: Wed, 20 Aug 2025 17:44:01 +0200
+        Wed, 20 Aug 2025 08:45:46 -0700 (PDT)
+Date: Wed, 20 Aug 2025 17:45:45 +0200
 From: Stefano Brivio <sbrivio@redhat.com>
-To: Florian Westphal <fw@strlen.de>, Sebastian Andrzej Siewior
- <bigeasy@linutronix.de>
+To: Florian Westphal <fw@strlen.de>
 Cc: <netdev@vger.kernel.org>, Paolo Abeni <pabeni@redhat.com>, "David S.
  Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub
  Kicinski <kuba@kernel.org>, <netfilter-devel@vger.kernel.org>,
- pablo@netfilter.org
-Subject: Re: [PATCH net-next 5/6] netfilter: nft_set_pipapo: Store real
- pointer, adjust later.
-Message-ID: <20250820174401.5addbfc1@elisabeth>
-In-Reply-To: <20250820144738.24250-6-fw@strlen.de>
+ pablo@netfilter.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: Re: [PATCH net-next 4/6] netfilter: nft_set_pipapo: use avx2
+ algorithm for insertions too
+Message-ID: <20250820174545.398b2373@elisabeth>
+In-Reply-To: <20250820144738.24250-5-fw@strlen.de>
 References: <20250820144738.24250-1-fw@strlen.de>
-	<20250820144738.24250-6-fw@strlen.de>
+	<20250820144738.24250-5-fw@strlen.de>
 Organization: Red Hat
 X-Mailer: Claws Mail 4.2.0 (GTK 3.24.49; x86_64-pc-linux-gnu)
 Precedence: bulk
@@ -90,24 +88,47 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Wed, 20 Aug 2025 16:47:37 +0200
+On Wed, 20 Aug 2025 16:47:36 +0200
 Florian Westphal <fw@strlen.de> wrote:
 
-> From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Always prefer the avx2 implementation if its available.
+> This greatly improves insertion performance (each insertion
+> checks if the new element would overlap with an existing one):
 > 
-> The struct nft_pipapo_scratch is allocated, then aligned to the required
-> alignment and difference (in bytes) is then saved in align_off. The
-> aligned pointer is used later.
-> While this works, it gets complicated with all the extra checks if
-> all member before map are larger than the required alignment.
+> time nft -f - <<EOF
+> table ip pipapo {
+> 	set s {
+> 		typeof ip saddr . tcp dport
+> 		flags interval
+> 		size 800000
+> 		elements = { 10.1.1.1 - 10.1.1.4 . 3996,
+> [.. 800k entries elided .. ]
 > 
-> Instead of saving the aligned pointer, just save the returned pointer
-> and align the map pointer in nft_pipapo_lookup() before using it. The
-> alignment later on shouldn't be that expensive.
+> before:
+> real    1m55.993s
+> user    0m2.505s
+> sys     1m53.296s
+> 
+> after:
+> real    0m42.586s
+> user    0m2.554s
+> sys     0m39.811s
+> 
+> Fold patch from Sebastian:
+> 
+> kernel_fpu_begin_mask()/ _end() remains in pipapo_get_avx2() where it is
+> required.
+> 
+> A followup patch will add local_lock_t to struct nft_pipapo_scratch in
+> order to protect the map pointer. The lock can not be acquired in
+> preemption disabled context which is what kernel_fpu_begin*() does.
+> 
+> Link: https://lore.kernel.org/netfilter-devel/20250818110213.1319982-2-bigeasy@linutronix.de/
+> Co-developed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-The cost of doing the alignment later was the very reason why I added
-this whole dance in the first place though. Did you check packet
-matching rates before and after this?
+Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 
 -- 
 Stefano
