@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF86A309DB5;
-	Wed, 20 Aug 2025 14:47:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02EBF2DE1E6;
+	Wed, 20 Aug 2025 14:48:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755701279; cv=none; b=iPSSpAzY8FPMqI6kWb5NCSq7eqjBqpFVkXMAtM7FZ56WRuEaWDSsKC2187KFUAArX3ZMbNlyEtP8O/h8sXSy9VE76llFoTzzO0X2SGdUMvrsZ5BbOEkAF9Y7VbqZ36vW/soF2H+QaKWN0g+iFOzOVwJu/bd6ofiXVEM9BvGFyUc=
+	t=1755701283; cv=none; b=M5ymb8A4b+rkj/6CUi/Kmv6GgQL9Tgf+t+tLHn+JVJX44yM+/o2XLz0MS0zJty4VUL65ifFVCveG9nsVKuy2HyoUOeYoeaizwdh2Xu/c6Ds/d83ddYLSisNsyMSWnno7kHs65TQLfdyv/mHW9rHg+/H5e4s+ZYZVNEI59RBnWLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755701279; c=relaxed/simple;
-	bh=NnDXyZQZlzNEvEQDjUzEBQMzommh/cqXJJjeQMEm0/Y=;
+	s=arc-20240116; t=1755701283; c=relaxed/simple;
+	bh=e/XcA+nEeJoUl4siT+YAXV78xmDatUIkwvCs9HGTG1k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WPgxe0Uode6rkWIeTucFMenn3kEcSJHOv8OCFcTKsMOK4oVdtOuil0BLI5JJ3Lkh3yaUoRSu8kihY1soZLTOAJ/02ed4/5OhngHBNiupj+jm5ZCGmDS2UufwAQNvZ1Jr6Lu2jhU889mIz1+t5U+nwdjqllRdRfXzmMClrualSsY=
+	 MIME-Version; b=ND4yj3Ve2xxKlGjXJktLV3SyRNqpsk0iEaRJs+eL4jTZ8hs4ycVQFSrAf/nlyGfQpZSyIB01wFpUU0oGHJedROd2Q2feQfGqsH0/bPs9MfgrNaVMf715z9wip0LGYStvEU/Rsa3kBYcPz/OWw5FViZv4kVVsjPp9/WoCd+OKAL0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CF24C602F8; Wed, 20 Aug 2025 16:47:55 +0200 (CEST)
+	id 34909602F8; Wed, 20 Aug 2025 16:48:00 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,10 +24,10 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org,
-	Stefano Brivio <sbrivio@redhat.com>
-Subject: [PATCH net-next 3/6] netfilter: nft_set_pipapo_avx2: split lookup function in two parts
-Date: Wed, 20 Aug 2025 16:47:35 +0200
-Message-ID: <20250820144738.24250-4-fw@strlen.de>
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: [PATCH net-next 4/6] netfilter: nft_set_pipapo: use avx2 algorithm for insertions too
+Date: Wed, 20 Aug 2025 16:47:36 +0200
+Message-ID: <20250820144738.24250-5-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250820144738.24250-1-fw@strlen.de>
 References: <20250820144738.24250-1-fw@strlen.de>
@@ -39,217 +39,168 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Split the main avx2 lookup function into a helper.
+Always prefer the avx2 implementation if its available.
+This greatly improves insertion performance (each insertion
+checks if the new element would overlap with an existing one):
 
-This is a preparation patch: followup change will use the new helper
-from the insertion path if possible.  This greatly improves insertion
-performance when avx2 is supported.
+time nft -f - <<EOF
+table ip pipapo {
+	set s {
+		typeof ip saddr . tcp dport
+		flags interval
+		size 800000
+		elements = { 10.1.1.1 - 10.1.1.4 . 3996,
+[.. 800k entries elided .. ]
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+before:
+real    1m55.993s
+user    0m2.505s
+sys     1m53.296s
+
+after:
+real    0m42.586s
+user    0m2.554s
+sys     0m39.811s
+
+Fold patch from Sebastian:
+
+kernel_fpu_begin_mask()/ _end() remains in pipapo_get_avx2() where it is
+required.
+
+A followup patch will add local_lock_t to struct nft_pipapo_scratch in
+order to protect the map pointer. The lock can not be acquired in
+preemption disabled context which is what kernel_fpu_begin*() does.
+
+Link: https://lore.kernel.org/netfilter-devel/20250818110213.1319982-2-bigeasy@linutronix.de/
+Co-developed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_pipapo_avx2.c | 126 +++++++++++++++++-----------
- 1 file changed, 77 insertions(+), 49 deletions(-)
+ net/netfilter/nft_set_pipapo.c      | 45 +++++++++++++++++++++++++----
+ net/netfilter/nft_set_pipapo_avx2.c |  8 ++---
+ net/netfilter/nft_set_pipapo_avx2.h |  4 +++
+ 3 files changed, 48 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index fc734a8545b4..994a2ad2d9b1 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1133,56 +1133,35 @@ static inline void pipapo_resmap_init_avx2(const struct nft_pipapo_match *m, uns
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 9a10251228fd..7ed9c5f0e233 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -397,7 +397,7 @@ int pipapo_refill(unsigned long *map, unsigned int len, unsigned int rules,
  }
  
  /**
-- * nft_pipapo_avx2_lookup() - Lookup function for AVX2 implementation
-- * @net:	Network namespace
-- * @set:	nftables API set representation
-- * @key:	nftables API element representation containing key data
-+ * pipapo_get_avx2() - Lookup function for AVX2 implementation
+- * pipapo_get() - Get matching element reference given key data
++ * pipapo_get_slow() - Get matching element reference given key data
+  * @m:		storage containing the set elements
+  * @data:	Key data to be matched against existing elements
+  * @genmask:	If set, check that element is active in given genmask
+@@ -414,9 +414,9 @@ int pipapo_refill(unsigned long *map, unsigned int len, unsigned int rules,
+  *
+  * Return: pointer to &struct nft_pipapo_elem on match, NULL otherwise.
+  */
+-static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
+-					  const u8 *data, u8 genmask,
+-					  u64 tstamp)
++static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
++					       const u8 *data, u8 genmask,
++					       u64 tstamp)
+ {
+ 	struct nft_pipapo_scratch *scratch;
+ 	unsigned long *res_map, *fill_map;
+@@ -502,6 +502,41 @@ static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
+ 	return NULL;
+ }
+ 
++/**
++ * pipapo_get() - Get matching element reference given key data
 + * @m:		Storage containing the set elements
 + * @data:	Key data to be matched against existing elements
 + * @genmask:	If set, check that element is active in given genmask
 + * @tstamp:	Timestamp to check for expired elements
-  *
-  * For more details, see DOC: Theory of Operation in nft_set_pipapo.c.
-  *
-  * This implementation exploits the repetitive characteristic of the algorithm
-  * to provide a fast, vectorised version using the AVX2 SIMD instruction set.
-  *
-- * Return: true on match, false otherwise.
-+ * The caller must check that the FPU is usable.
-+ * This function must be called with BH disabled.
++ *
++ * This is a dispatcher function, either calling out the generic C
++ * implementation or, if available, the AVX2 one.
++ * This helper is only called from the control plane, with either RCU
++ * read lock or transaction mutex held.
 + *
 + * Return: pointer to &struct nft_pipapo_elem on match, NULL otherwise.
-  */
--const struct nft_set_ext *
--nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
--		       const u32 *key)
-+static struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
-+					       const u8 *data, u8 genmask,
-+					       u64 tstamp)
- {
--	struct nft_pipapo *priv = nft_set_priv(set);
--	const struct nft_set_ext *ext = NULL;
- 	struct nft_pipapo_scratch *scratch;
--	u8 genmask = nft_genmask_cur(net);
--	const struct nft_pipapo_match *m;
- 	const struct nft_pipapo_field *f;
--	const u8 *rp = (const u8 *)key;
- 	unsigned long *res, *fill;
- 	bool map_index;
- 	int i;
- 
--	local_bh_disable();
--
--	if (unlikely(!irq_fpu_usable())) {
--		ext = nft_pipapo_lookup(net, set, key);
--
--		local_bh_enable();
--		return ext;
--	}
--
--	m = rcu_dereference(priv->match);
--
--	/* Note that we don't need a valid MXCSR state for any of the
--	 * operations we use here, so pass 0 as mask and spare a LDMXCSR
--	 * instruction.
--	 */
--	kernel_fpu_begin_mask(0);
--
- 	scratch = *raw_cpu_ptr(m->scratch);
--	if (unlikely(!scratch)) {
--		kernel_fpu_end();
--		local_bh_enable();
-+	if (unlikely(!scratch))
- 		return NULL;
--	}
- 
- 	map_index = scratch->map_index;
- 
-@@ -1191,6 +1170,12 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 
- 	pipapo_resmap_init_avx2(m, res);
- 
-+	/* Note that we don't need a valid MXCSR state for any of the
-+	 * operations we use here, so pass 0 as mask and spare a LDMXCSR
-+	 * instruction.
-+	 */
-+	kernel_fpu_begin_mask(0);
-+
- 	nft_pipapo_avx2_prepare();
- 
- next_match:
-@@ -1200,7 +1185,7 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 
- #define NFT_SET_PIPAPO_AVX2_LOOKUP(b, n)				\
- 		(ret = nft_pipapo_avx2_lookup_##b##b_##n(res, fill, f,	\
--							 ret, rp,	\
-+							 ret, data,	\
- 							 first, last))
- 
- 		if (likely(f->bb == 8)) {
-@@ -1216,7 +1201,7 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 				NFT_SET_PIPAPO_AVX2_LOOKUP(8, 16);
- 			} else {
- 				ret = nft_pipapo_avx2_lookup_slow(m, res, fill, f,
--								  ret, rp,
-+								  ret, data,
- 								  first, last);
- 			}
- 		} else {
-@@ -1232,7 +1217,7 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 				NFT_SET_PIPAPO_AVX2_LOOKUP(4, 32);
- 			} else {
- 				ret = nft_pipapo_avx2_lookup_slow(m, res, fill, f,
--								  ret, rp,
-+								  ret, data,
- 								  first, last);
- 			}
- 		}
-@@ -1240,29 +1225,72 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
- 
- #undef NFT_SET_PIPAPO_AVX2_LOOKUP
- 
--		if (ret < 0)
--			goto out;
-+		if (ret < 0) {
-+			scratch->map_index = map_index;
-+			kernel_fpu_end();
-+			return NULL;
-+		}
- 
- 		if (last) {
--			const struct nft_set_ext *e = &f->mt[ret].e->ext;
-+			struct nft_pipapo_elem *e;
- 
--			if (unlikely(nft_set_elem_expired(e) ||
--				     !nft_set_elem_active(e, genmask)))
-+			e = f->mt[ret].e;
-+			if (unlikely(__nft_set_elem_expired(&e->ext, tstamp) ||
-+				     !nft_set_elem_active(&e->ext, genmask)))
- 				goto next_match;
- 
--			ext = e;
--			goto out;
-+			scratch->map_index = map_index;
-+			kernel_fpu_end();
-+			return e;
- 		}
- 
-+		map_index = !map_index;
- 		swap(res, fill);
--		rp += NFT_PIPAPO_GROUPS_PADDED_SIZE(f);
-+		data += NFT_PIPAPO_GROUPS_PADDED_SIZE(f);
- 	}
- 
--out:
--	if (i % 2)
--		scratch->map_index = !map_index;
- 	kernel_fpu_end();
-+	return NULL;
-+}
-+
-+/**
-+ * nft_pipapo_avx2_lookup() - Dataplane frontend for AVX2 implementation
-+ * @net:	Network namespace
-+ * @set:	nftables API set representation
-+ * @key:	nftables API element representation containing key data
-+ *
-+ * This function is called from the data path.  It will search for
-+ * an element matching the given key in the current active copy using
-+ * the AVX2 routines if the fpu is usable or fall back to the generic
-+ * implementation of the algorithm otherwise.
-+ *
-+ * Return: nftables API extension pointer or NULL if no match.
 + */
-+const struct nft_set_ext *
-+nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
-+		       const u32 *key)
++static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
++					  const u8 *data, u8 genmask,
++					  u64 tstamp)
 +{
-+	struct nft_pipapo *priv = nft_set_priv(set);
-+	u8 genmask = nft_genmask_cur(net);
-+	const struct nft_pipapo_match *m;
-+	const u8 *rp = (const u8 *)key;
-+	const struct nft_pipapo_elem *e;
++	struct nft_pipapo_elem *e;
 +
 +	local_bh_disable();
 +
-+	if (unlikely(!irq_fpu_usable())) {
-+		const struct nft_set_ext *ext;
-+
-+		ext = nft_pipapo_lookup(net, set, key);
-+
++#if defined(CONFIG_X86_64) && !defined(CONFIG_UML)
++	if (boot_cpu_has(X86_FEATURE_AVX2) && boot_cpu_has(X86_FEATURE_AVX) &&
++	    irq_fpu_usable()) {
++		e = pipapo_get_avx2(m, data, genmask, tstamp);
 +		local_bh_enable();
-+		return ext;
++		return e;
 +	}
++#endif
++	e = pipapo_get_slow(m, data, genmask, tstamp);
++	local_bh_enable();
++	return e;
++}
 +
-+	m = rcu_dereference(priv->match);
-+
-+	e = pipapo_get_avx2(m, rp, genmask, get_jiffies_64());
- 	local_bh_enable();
+ /**
+  * nft_pipapo_lookup() - Dataplane fronted for main lookup function
+  * @net:	Network namespace
+@@ -523,7 +558,7 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+ 	const struct nft_pipapo_elem *e;
  
--	return ext;
-+	return e ? &e->ext : NULL;
+ 	m = rcu_dereference(priv->match);
+-	e = pipapo_get(m, (const u8 *)key, genmask, get_jiffies_64());
++	e = pipapo_get_slow(m, (const u8 *)key, genmask, get_jiffies_64());
+ 
+ 	return e ? &e->ext : NULL;
  }
+diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
+index 994a2ad2d9b1..028c11724b42 100644
+--- a/net/netfilter/nft_set_pipapo_avx2.c
++++ b/net/netfilter/nft_set_pipapo_avx2.c
+@@ -1149,9 +1149,9 @@ static inline void pipapo_resmap_init_avx2(const struct nft_pipapo_match *m, uns
+  *
+  * Return: pointer to &struct nft_pipapo_elem on match, NULL otherwise.
+  */
+-static struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+-					       const u8 *data, u8 genmask,
+-					       u64 tstamp)
++struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
++					const u8 *data, u8 genmask,
++					u64 tstamp)
+ {
+ 	struct nft_pipapo_scratch *scratch;
+ 	const struct nft_pipapo_field *f;
+@@ -1261,7 +1261,7 @@ static struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+  *
+  * This function is called from the data path.  It will search for
+  * an element matching the given key in the current active copy using
+- * the AVX2 routines if the fpu is usable or fall back to the generic
++ * the AVX2 routines if the FPU is usable or fall back to the generic
+  * implementation of the algorithm otherwise.
+  *
+  * Return: nftables API extension pointer or NULL if no match.
+diff --git a/net/netfilter/nft_set_pipapo_avx2.h b/net/netfilter/nft_set_pipapo_avx2.h
+index dbb6aaca8a7a..c2999b63da3f 100644
+--- a/net/netfilter/nft_set_pipapo_avx2.h
++++ b/net/netfilter/nft_set_pipapo_avx2.h
+@@ -5,8 +5,12 @@
+ #include <asm/fpu/xstate.h>
+ #define NFT_PIPAPO_ALIGN	(XSAVE_YMM_SIZE / BITS_PER_BYTE)
+ 
++struct nft_pipapo_match;
+ bool nft_pipapo_avx2_estimate(const struct nft_set_desc *desc, u32 features,
+ 			      struct nft_set_estimate *est);
++struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
++					const u8 *data, u8 genmask,
++					u64 tstamp);
+ #endif /* defined(CONFIG_X86_64) && !defined(CONFIG_UML) */
+ 
+ #endif /* _NFT_SET_PIPAPO_AVX2_H */
 -- 
 2.49.1
 
