@@ -1,84 +1,139 @@
-Received: from mail-io1-f72.google.com (mail-io1-f72.google.com [209.85.166.72])
+Received: from mail-pg1-f181.google.com (mail-pg1-f181.google.com [209.85.215.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 955292D877C
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 08:11:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA5C713C3F6
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 10:46:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755677499; cv=none; b=kw2c9SwGwxQBLwNd+eMjhHVk4+hM0qVoJiEyJL7/Bs14MK7qPntNO0KyS5nX4GXdgfw4LgWFsQes7b73EwIDYKSM25UYxuceJtAPwt3wR1JMgqDNIgf9HTKBmYLcqbtUE/50/sf9KbQ6cRTpmdU7T5dqlnPwJl6I6pPyyimHwCA=
+	t=1755686767; cv=none; b=mKez+s4ENW5aaR++2brgt5ycaClLpG38zNk19CbV6iIJri8UWF3L8mSBIY9z+Y/8jPogfPjld4IOpIXJREVBNZPX2KTMYiTu7pEdedDS0cwpiUW9Cj9kSnX5nMGJYs0SYbMbJ6uut5NnVDtFQdTmXA3RqwRgpKFv4p3D5Ndf+sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755677499; c=relaxed/simple;
-	bh=V2ORPdLKdyIF6IEfPL3tmlEaAeXzXJCqBpmsLyhacgY=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=osw4Ulm74dnG1PnHayIGNQJ0ZDv1xWdWbWkGRCJW4bqQIBIYWyHkKahqkE2ABAiHN/2oi1q/LYi7pzwGOBeli82/6OESHrkIGPl0a+i5nLgM5EwJyMT+c64OPR/vdoOF1dnFNJPYwJ+Lp7yxkuFSPDfpFuSMK37BkVubfRTO43E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f72.google.com with SMTP id ca18e2360f4ac-88432d88f64so1707132439f.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 01:11:36 -0700 (PDT)
+	s=arc-20240116; t=1755686767; c=relaxed/simple;
+	bh=3Me8tP3A/Dq4n2o7fv0IO64KsodsWLaH93wYg8ejh9A=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=PC5Qq0+gW6mWftcvSPDe0BvOpF06SKtG0EyRhbhUtbGX5MtLquEWW9F/aCnTY2NsrTLlNZgO0z+ncaficLdCAhLX9tsnkWJGQiub1Moop+rVET7zTgxoJA46rICHuQRSLI0/w7odxOOjHkUvvE9ia6LESRuymCjLLbfpH5zWdhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Co8OJWgA; arc=none smtp.client-ip=209.85.215.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Co8OJWgA"
+Received: by mail-pg1-f181.google.com with SMTP id 41be03b00d2f7-b472fd93b4aso4066517a12.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 03:46:04 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1755686764; x=1756291564; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3Me8tP3A/Dq4n2o7fv0IO64KsodsWLaH93wYg8ejh9A=;
+        b=Co8OJWgAcDrYJ0CyrTpBTa4QFaWJA/UXQ60iKWZvaB+48GWb7YDZkuqYINSGkm0uIh
+         ZYXB/1/0Tox4yTgl7PAOB5auKESusYPvX7nPMjjVhmW52s1AVNACCbtT13QaRXH38FhC
+         xZYMsIUNP3rnX9lupsBneDOUUij6WTTuNR0vjOk3bTlCFKHfKLLo4Se+Zk0Az2jZPKYZ
+         89qwkceSJ63MV0U52UZGugtikzmhBleYxT5X46BJ95PXkC5HrytFkEEuhgi1L6/2wsWk
+         8Ax1EW8XLAMY2muWjJvXyU5aW83Oo3g47JQIHVj+U42VncmORoQQi0GFxmFGkSvAvwok
+         JpgA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1755677495; x=1756282295;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=yfbB1FSHiw6P4C31LBsKWDW7GmtJlZq19wObesXeHDo=;
-        b=GI2mtvQA74pAZdgI2kuRx66SCNptdrEgz7aS8TZgdkh3MinaRo+G6fxqbNgFUB+lIK
-         KKtdi380q/Wnc4l3E4qgimrzhXJgZWUbfhVuSsm2JIKCf2hhZbhlVK1jqymxNCNM88Tx
-         lcBJnMhMCVBSpeuoFOkJo4qViosipV0nlVr1SrpLCyK8DDVcU4QgIbkPXEnT+rneYoyR
-         xjYyUTj2TQ480386ITRC0J4EGrg6+yDHtVJv+4WyDxreaEZTQVS2fClfNX7JaujrV5th
-         JTXZErGl8gYaHQYbTiEdvp0NzlOmMqim8P0VqPn5vbpIob1TZKPHvjX/n8WtsElXLqQl
-         9Wtg==
-X-Forwarded-Encrypted: i=1; AJvYcCXeoVzGP3y8qO6Mn9Vi4ARWBwuhzuD1+sVJZFNremRyb9X7293lIwdmxBVQAfeAfhiODsVfocrlVhkMPQV92Zc=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwExpKKnxoSn40tgzcfqdkocbt8N7ZoZdHsu0LidrakHy2RcT4v
-	n+ka1VdQAqhOwv58ETA3h8cbgGwAMRtkPwMRGsxjS/3jDFma53qJqGzUrGQuxI8p3DKC3VYgY0j
-	owQ3S55e0hk6NlrSDrQft9A6ygudwSGt6ZZpl2s/JsoA6UORgoybr7q9cb/o=
-X-Google-Smtp-Source: AGHT+IHnRF+BVNV37CIIil93Du05nxMCfrOSZyzGWdOXk9nJ995NrsrdEI3T3s9GiJy67Kvuu4cXP2vILSqqRV705ZzYbnkNZ5za
+        d=1e100.net; s=20230601; t=1755686764; x=1756291564;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=3Me8tP3A/Dq4n2o7fv0IO64KsodsWLaH93wYg8ejh9A=;
+        b=vOftIvNSJfDRlXTirNDALIGtqMO6z8rx8NmDjrY4PD9VRxGtRFXILFFLLxcZupJ9yF
+         zfqCLPHgBtYFOAUq5pHqvfD/E64bEuqjYdvn8oH4Bpg5QeF117/8HsItcqjq5u8SJgjd
+         uwQgpZcdVEgQJ4Qxepp2yyaVAbqMnwLynkb+t4jSBA5MeyWDQqiWqRJ6H/li5Ser2Gj9
+         prEGboPy3a89n/MJPUrib53RUFrwrFUdo9fyTNtVpk3ldu/oQAM6EV7pMsyfB6TG60xv
+         SHS5pDGsMHoc4h2FBJ1ve5tomHK+QVa8s3bB5J5v1OttBWFpLYoAUkSj+Bmiu4lAlKg3
+         ByCg==
+X-Forwarded-Encrypted: i=1; AJvYcCVVuAPcadTGi8AdcPkid1pic05YQfhAQuxHYtImmExVOozJmZl3FIwbnm10QrzjL9vXfqJ7rAgZytneDfGyd/Y=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxE17SSSTaAm2oIWxJ4qqSU0V2q8ttnE4jR3abpvCxkT/bQ2uJM
+	x91NKtBwvi/FRZNMtLMpPmGjqHuEWiMh/JczkoK4j3PCBKdVBMIz6LTBVTDTjAvnFqRy8bBmRLi
+	E2SB5MlnbhlfGq0PRYmAWvCTOSydfCsQBX8GhFu8e
+X-Gm-Gg: ASbGnculucum8Lc7wBHrSTPvwAA1QHnYietOgI5998HkbCjmnzqpdC/XSfzrRvo3oPg
+	qNfHV0HHL0sViSe2iQXEFWuUrG7/PE2ZGIXhP+M1Eoql5FHahCWlVne1RlmT008njjhO0ABLnv7
+	Z1q8GIpF4Ab6SCrwkD4GzvPE2cAIGNME9e3U5gUUujb4IudgubWkIk3t29t2g55zqfPNZ1htYE2
+	svgqI3wqbM3VcnrHJkJADIIYLbUEK68wbJSX06MIx0o7JhdtoZqzzE=
+X-Google-Smtp-Source: AGHT+IEKtl2lrK5/2y4ZHW8BdiMqTimWqMJrLgdgwZdhWnnQOIhxftCfwBi0pC/VAlu+Wj78IDSFaxfyMArkbO0q10c=
+X-Received: by 2002:a17:902:cecc:b0:23f:e2e0:f89b with SMTP id
+ d9443c01a7336-245ef0bf919mr29929205ad.3.1755686763672; Wed, 20 Aug 2025
+ 03:46:03 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:2511:b0:3e5:50a5:a7ef with SMTP id
- e9e14a558f8ab-3e67ca7243amr37639535ab.15.1755677495685; Wed, 20 Aug 2025
- 01:11:35 -0700 (PDT)
-Date: Wed, 20 Aug 2025 01:11:35 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <68a58337.050a0220.1b2f6c.000b.GAE@google.com>
-Subject: [syzbot] Monthly netfilter report (Aug 2025)
-From: syzbot <syzbot+list9abda43ae935f9073c3e@syzkaller.appspotmail.com>
-To: kadlec@netfilter.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
+References: <20250818154032.3173645-1-sdf@fomichev.me> <68a49b30.050a0220.e29e5.00c8.GAE@google.com>
+ <20250819175842.7edaf8a5@kernel.org>
+In-Reply-To: <20250819175842.7edaf8a5@kernel.org>
+From: Aleksandr Nogikh <nogikh@google.com>
+Date: Wed, 20 Aug 2025 12:45:52 +0200
+X-Gm-Features: Ac12FXzOW9XPurRHcsWYD8YIbcfeKfyX5uwi588A3HEp9L6p1uEzyk061ngsuoE
+Message-ID: <CANp29Y4g6kzpsjis4=rUjhfg=BPMiR9Jk68z=NT0MeDyJS7CaQ@mail.gmail.com>
+Subject: Re: [syzbot ci] Re: net: Convert to skb_dstref_steal and skb_dstref_restore
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: syzbot ci <syzbot+ci77a5caa9fce14315@syzkaller.appspotmail.com>, 
+	abhishektamboli9@gmail.com, andrew@lunn.ch, ayush.sawal@chelsio.com, 
+	coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org, 
+	edumazet@google.com, fw@strlen.de, gregkh@linuxfoundation.org, 
+	herbert@gondor.apana.org.au, horms@kernel.org, kadlec@netfilter.org, 
+	linux-kernel@vger.kernel.org, linux-staging@lists.linux.dev, mhal@rbox.co, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, sdf@fomichev.me, steffen.klassert@secunet.com, 
+	syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello netfilter maintainers/developers,
+Hi Jakub,
 
-This is a 31-day syzbot report for the netfilter subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/netfilter
+Thanks for the heads-up!
+I didn't even think that this tag could pose problems for other
+automatic tools :)
 
-During the period, 1 new issues were detected and 2 were fixed.
-In total, 10 issues are still open and 191 have already been fixed.
+On Wed, Aug 20, 2025 at 2:58=E2=80=AFAM Jakub Kicinski <kuba@kernel.org> wr=
+ote:
+>
+> On Tue, 19 Aug 2025 08:41:36 -0700 syzbot ci wrote:
+> > syzbot ci has tested the following series
+> >
+> > [v2] net: Convert to skb_dstref_steal and skb_dstref_restore
+> > https://lore.kernel.org/all/20250818154032.3173645-1-sdf@fomichev.me
+> > * [PATCH net-next v2 1/7] net: Add skb_dstref_steal and skb_dstref_rest=
+ore
+> > * [PATCH net-next v2 2/7] xfrm: Switch to skb_dstref_steal to clear dst=
+_entry
+> > * [PATCH net-next v2 3/7] netfilter: Switch to skb_dstref_steal to clea=
+r dst_entry
+> > * [PATCH net-next v2 4/7] net: Switch to skb_dstref_steal/skb_dstref_re=
+store for ip_route_input callers
+> > * [PATCH net-next v2 5/7] staging: octeon: Convert to skb_dst_drop
+> > * [PATCH net-next v2 6/7] chtls: Convert to skb_dst_reset
+> > * [PATCH net-next v2 7/7] net: Add skb_dst_check_unset
+>
+> > ***
+> >
+> > If these findings have caused you to resend the series or submit a
+> > separate fix, please add the following tag to your commit message:
+> > Tested-by: syzbot@syzkaller.appspotmail.com
+>
+> Hi Aleksandr!
+>
+> Could we do something about this Tested-by: tag?
+> Since the syzbot CI reports are sent in reply to a series patchwork and
+> other tooling will think that syzbot is sending it's Tested-by tag for
+> this series.
+>
+> In some cases we know that the issues found are unrelated, or rather
+> expect them to be fixed separately.
 
-Some of the still happening issues:
+FWIW if you notice the reported issues that are completely unrelated,
+please let me know.
 
-Ref Crashes Repro Title
-<1> 552     No    KMSAN: uninit-value in __schedule (5)
-                  https://syzkaller.appspot.com/bug?extid=28bdcfc1dab2ffa279a5
-<2> 203     Yes   INFO: rcu detected stall in gc_worker (3)
-                  https://syzkaller.appspot.com/bug?extid=eec403943a2a2455adaa
-<3> 104     Yes   INFO: rcu detected stall in NF_HOOK (2)
-                  https://syzkaller.appspot.com/bug?extid=34c2df040c6cfa15fdfe
+>
+> Could we perhaps indent the tag with a couple of spaces? Not 100% sure
+> but I _think_ most tools will match the tags only from start of line.
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Sure, that sounds like a very simple solution.
+I've adjusted the email template - now there are several leading
+whitespaces on the tag line. I hope it will help (otherwise we'll see
+what else can be done).
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
-
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
+--=20
+Aleksandr
