@@ -1,73 +1,83 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3194922126D
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 12:44:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE522DE718
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2025 13:06:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755693895; cv=none; b=kglcF7cB/8tuaGfO4/VO0NdlGy7pZESaGTmSMrjtkFvFbI2YRYNJ9K+QQCXl6muICMnn0yIlKMIgz6njHDH3b850+SyWE9Nnjv71vOKZ5p0vdqigeE61Q/orfJTt33Rphk9U+w+YyA3+b4nR0/xvCWAnQVaG/S7/PiScxXqH8HE=
+	t=1755695199; cv=none; b=MGe32Bfds0GDqsp/qXeNrDXO9dWJKmkYDFQKAZCvZc8r7e9uwW3hpApyKUh//fAdVeJnIMbE1bQ8Aq23Hc0XDf++q0WFphPlAMRbIMv71EaHri0xbiozRZl9hdeXDcPSoAKb0z9lRz2jv/m4t7/Yj+B3Meywb3Xks5RbR1LbzAE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755693895; c=relaxed/simple;
-	bh=QF8etbJ6NpR72ej8/fDZhVQYt0GyA3wJuXLKgTWZ6G0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Tfd1vXLd+9ELXNjZjIZXNmxt7qtVUYwUDEtEnYYpJowxImoW/RNffBd8s90jasH97GDT2jsUhb+Ys5q6PZhTOfli8GE/9qXGyZQOzzGklj0P1MyprIs4HOgN9/gziXhv4/vvE+M3dGteE5l0YEuUZ4h0dtp5OZCO8QQKqlIH5xk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 19BEA601EB; Wed, 20 Aug 2025 14:44:52 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] mnl: silence compiler warning
-Date: Wed, 20 Aug 2025 14:44:43 +0200
-Message-ID: <20250820124447.31695-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
+	s=arc-20240116; t=1755695199; c=relaxed/simple;
+	bh=SvwKu/QLFDa5EXngRGh9NZ/rrNpNqJbINPZGPTkwGt4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WR0470wL4CfMh71mxCYXxAZC9uj+HaactV4L3HjXGv0drs12lgFbBoJ99Vwi7xC3bYlDnQijjLD55EfSnFhn2gy6MiHLqueOFxduYgmE3gOUilJboGB2r2uwyZMQep6NxKepeNndTCp+239bSJVPbxz3cecm990S/MlJuZzaWJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nGlhO6EW; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gcdhR1JF; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nGlhO6EW";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gcdhR1JF"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 36BCA6026E; Wed, 20 Aug 2025 15:06:35 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1755695195;
+	bh=2hFDx36p8MVrxOvrxJYrFwD3SLziXBVAcvHNfdeC1uI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nGlhO6EWA8J4HzHY3GPK7JfHO9D037SuS9g9vs+2ncRw6j1rcg292kGLMPTiD26Tt
+	 yB0k81+ig9Jb6Q8JXlp6oUyJ0ucXzi4yJw9Dt2bYmfJJya+xu0F0H8pGpb+48zGtFC
+	 h/7NAeEswQQ0n8937Jb8lYJfNKDH3X6s1azi7+F2V/yhKoTzo325BjDG8BuOS5iuky
+	 0WonZIykr9BClsxL87ZlznoDpKe8AlFrnf88JDgPPE9e7wbA8M1kIilkXqDVZv0PfY
+	 0B2Ef7D/xR7YPD5jDA3HDYhi6YRwPXp9zkB1NsjOs3BiY1EkyICJUBw0dVSzqtKoZu
+	 8ubIBCZcEh73A==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1E9DF6026E;
+	Wed, 20 Aug 2025 15:06:34 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1755695194;
+	bh=2hFDx36p8MVrxOvrxJYrFwD3SLziXBVAcvHNfdeC1uI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=gcdhR1JFa5F0zt5ZCL5Pg8L0NdMM4uBuOiOr47pzr/IggYvnbnNkn+OFOMNJltOVp
+	 umKgiiUS0FZcsGUqVZpEZSogtoWKn62IO3eeyJLyZjqpkQFdxjZ8fRCiBsjJTOwKQG
+	 bD8KqeZ+ZLKRElKXTE8lY4f6OvtN8paihQ4HXracR50iTuhLEvQH9tqZ4agotjtNwL
+	 Rq6SANyGmmiRK2e8yr+Pa65TrvlTLyOSepB3PjE/TLadK/rgZtXE7d3VkDx/XdhUGo
+	 6/yeQmaYk0RJCrrXRe0ZhAPTGK6XzNQxCxxy6wbjoJAz3RPBDto3kDQ2QM8u/VYn9b
+	 vSD6Zst8PN/6g==
+Date: Wed, 20 Aug 2025 15:06:31 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org, phil@nwl.cc, eric@garver.life
+Subject: Re: [nftables PATCH v3] tools: add a systemd unit for static rulesets
+Message-ID: <aKXIV7dEmZUfXE5O@calendula>
+References: <20250417145055.2700920-1-jengelh@inai.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20250417145055.2700920-1-jengelh@inai.de>
 
-gcc 14.3.0 reports this:
+On Thu, Apr 17, 2025 at 04:48:33PM +0200, Jan Engelhardt wrote:
+> There is a customer request (bugreport) for wanting to trivially load a ruleset
+> from a well-known location on boot, forwarded to me by M. Gerstner. A systemd
+> service unit is hereby added to provide that functionality. This is based on
+> various distributions attempting to do same, for example,
+> 
+> https://src.fedoraproject.org/rpms/nftables/tree/rawhide
+> https://gitlab.alpinelinux.org/alpine/aports/-/blob/master/main/nftables/nftables.initd
+> https://gitlab.archlinux.org/archlinux/packaging/packages/nftables
+> 
+> ---
+> v2->v3:
+>  * ExecStart uses `nft flush ruleset`
+>  * flush command thus no longer needed in the .nft file,
+>    which allows for just redirecting `nft list` output
+>  * Manpage mentions `nft list ... >main.nft`
 
-src/mnl.c: In function 'mnl_nft_chain_add':
-src/mnl.c:916:25: warning: 'nest' may be used uninitialized [-Wmaybe-uninitialized]
-  916 |                         mnl_attr_nest_end(nlh, nest);
+Applied, thanks.
 
-I guess its because compiler can't know that the conditions cannot change
-in-between and assumes nest_end() can be called without nest_start().
-
-Fixes: 01277922fede ("src: ensure chain policy evaluation when specified")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/mnl.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/src/mnl.c b/src/mnl.c
-index ceb43b06690c..6684029606e5 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -890,7 +890,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 	nftnl_chain_nlmsg_build_payload(nlh, nlc);
- 
- 	if (cmd->chain && cmd->chain->flags & CHAIN_F_BASECHAIN) {
--		struct nlattr *nest;
-+		struct nlattr *nest = NULL;
- 
- 		if (cmd->chain->type.str) {
- 			cmd_add_loc(cmd, nlh, &cmd->chain->type.loc);
-@@ -911,8 +911,7 @@ int mnl_nft_chain_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		if (cmd->chain && cmd->chain->dev_expr)
- 			mnl_nft_chain_devs_build(nlh, cmd);
- 
--		if (cmd->chain->type.str ||
--		    (cmd->chain && cmd->chain->dev_expr))
-+		if (nest)
- 			mnl_attr_nest_end(nlh, nest);
- 	}
- 
--- 
-2.49.1
-
+I made a small change to display ${unitdir} path in the ./configure
+log, to provide a hint to users that systemd unit file is being added.
