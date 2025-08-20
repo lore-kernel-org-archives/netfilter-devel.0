@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F5AD311C12;
-	Wed, 20 Aug 2025 14:48:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9313032038B;
+	Wed, 20 Aug 2025 14:48:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755701287; cv=none; b=omWC9jxlvxv4vk4hhJO+Vtukc+DnHra74kGGdexR/+Gt1gMFZshVSNAB3wHii6R1AijJUSgbJOMiOkLEJ3BSKwLsjL1Zh+gLSf71dXmgVruDgVTToINS1fU1oVesFAOkU6pbPgOBF10XeAv5abDWKXW+8iG9ca2QTRvmSyqXGSk=
+	t=1755701292; cv=none; b=hTrFDTSdBF8lhKDGA7gkobTJKciI1+GVlQ5U++gprdxiIgaZV3MeMX3yxW133GQZjhJ3Qin/+T8PVAiOokN4NEPYZ14n6cSsFEfyHupXV4thEP3q0LUu8odcG6H5oV8G+lM+cEQYnvCM1fx3K0zlnOOuw6/Uim2Dv4ydAkGsb+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755701287; c=relaxed/simple;
-	bh=Tfa4ajUqWEo/qlkPhmGHygx2w2HpXBdINsWYSk0rER8=;
+	s=arc-20240116; t=1755701292; c=relaxed/simple;
+	bh=YiuIDOwjE3BwdsCu4j/KS7wWOUl+0ozv1nVq4n8Mw2I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=B2B7jD6LsbmllyvjLrB8VUFhlwQy1UePceMiy0cE1rkFt3oc8ygtlLQiv6fsaDPjcH9RuAgCMVdhMuGt+cvd7tl+e0bUAu2jNy6P81h8SdfO33QZRtID9g8it5C/hop0Vtg0YjRCNibZjWHsdjDQv2or6ZALNC75+ttDup0z45A=
+	 MIME-Version; b=UgHisXb2iyY2CVVsaSMxmfaWVW8Jj9xABpyzxJsaf6N8ymL4zwaYujxptG3aKhUerwEex56xvZX+ag0rtpfncm2cECJ12sBzCUjxF8uhEA3cdywy5gR0uZ66u5Tt8vlWFaOpeJwatR5n7Ba4V2leChnnM8GmgVQ0sYbGEop/d6k=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 86B2F603CA; Wed, 20 Aug 2025 16:48:04 +0200 (CEST)
+	id DEDBA603CA; Wed, 20 Aug 2025 16:48:08 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -25,9 +25,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org,
 	Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: [PATCH net-next 5/6] netfilter: nft_set_pipapo: Store real pointer, adjust later.
-Date: Wed, 20 Aug 2025 16:47:37 +0200
-Message-ID: <20250820144738.24250-6-fw@strlen.de>
+Subject: [PATCH net-next 6/6] netfilter: nft_set_pipapo: Use nested-BH locking for nft_pipapo_scratch
+Date: Wed, 20 Aug 2025 16:47:38 +0200
+Message-ID: <20250820144738.24250-7-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250820144738.24250-1-fw@strlen.de>
 References: <20250820144738.24250-1-fw@strlen.de>
@@ -41,159 +41,118 @@ Content-Transfer-Encoding: 8bit
 
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 
-The struct nft_pipapo_scratch is allocated, then aligned to the required
-alignment and difference (in bytes) is then saved in align_off. The
-aligned pointer is used later.
-While this works, it gets complicated with all the extra checks if
-all member before map are larger than the required alignment.
+nft_pipapo_scratch is a per-CPU variable and relies on disabled BH for
+its locking. Without per-CPU locking in local_bh_disable() on PREEMPT_RT
+this data structure requires explicit locking.
 
-Instead of saving the aligned pointer, just save the returned pointer
-and align the map pointer in nft_pipapo_lookup() before using it. The
-alignment later on shouldn't be that expensive. With this change, the
-align_off can be removed and the pointer can be passed to kfree() as is.
+Add a local_lock_t to the data structure and use local_lock_nested_bh() for
+locking. This change adds only lockdep coverage and does not alter the
+functional behaviour for !PREEMPT_RT.
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_pipapo.c      | 40 ++++++-----------------------
- net/netfilter/nft_set_pipapo.h      |  6 ++---
- net/netfilter/nft_set_pipapo_avx2.c |  8 +++---
- 3 files changed, 14 insertions(+), 40 deletions(-)
+ net/netfilter/nft_set_pipapo.c      | 5 +++++
+ net/netfilter/nft_set_pipapo.h      | 2 ++
+ net/netfilter/nft_set_pipapo_avx2.c | 4 ++++
+ 3 files changed, 11 insertions(+)
 
 diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 7ed9c5f0e233..96b7539f5506 100644
+index 96b7539f5506..b385cfcf886f 100644
 --- a/net/netfilter/nft_set_pipapo.c
 +++ b/net/netfilter/nft_set_pipapo.c
-@@ -418,8 +418,8 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
- 					       const u8 *data, u8 genmask,
- 					       u64 tstamp)
- {
-+	unsigned long *res_map, *fill_map, *map;
- 	struct nft_pipapo_scratch *scratch;
--	unsigned long *res_map, *fill_map;
- 	const struct nft_pipapo_field *f;
- 	bool map_index;
- 	int i;
-@@ -432,8 +432,9 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+@@ -429,6 +429,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+ 	scratch = *raw_cpu_ptr(m->scratch);
+ 	if (unlikely(!scratch))
+ 		goto out;
++	__local_lock_nested_bh(&scratch->bh_lock);
  
  	map_index = scratch->map_index;
  
--	res_map  = scratch->map + (map_index ? m->bsize_max : 0);
--	fill_map = scratch->map + (map_index ? 0 : m->bsize_max);
-+	map = NFT_PIPAPO_LT_ALIGN(&scratch->__map[0]);
-+	res_map  = map + (map_index ? m->bsize_max : 0);
-+	fill_map = map + (map_index ? 0 : m->bsize_max);
+@@ -465,6 +466,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+ 				  last);
+ 		if (b < 0) {
+ 			scratch->map_index = map_index;
++			__local_unlock_nested_bh(&scratch->bh_lock);
+ 			local_bh_enable();
  
- 	pipapo_resmap_init(m, res_map);
+ 			return NULL;
+@@ -484,6 +486,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+ 			 * *next* bitmap (not initial) for the next packet.
+ 			 */
+ 			scratch->map_index = map_index;
++			__local_unlock_nested_bh(&scratch->bh_lock);
+ 			local_bh_enable();
+ 			return e;
+ 		}
+@@ -498,6 +501,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+ 		data += NFT_PIPAPO_GROUPS_PADDING(f);
+ 	}
  
-@@ -1171,22 +1172,17 @@ static void pipapo_map(struct nft_pipapo_match *m,
- }
- 
- /**
-- * pipapo_free_scratch() - Free per-CPU map at original (not aligned) address
-+ * pipapo_free_scratch() - Free per-CPU map at original address
-  * @m:		Matching data
-  * @cpu:	CPU number
-  */
- static void pipapo_free_scratch(const struct nft_pipapo_match *m, unsigned int cpu)
- {
- 	struct nft_pipapo_scratch *s;
--	void *mem;
- 
- 	s = *per_cpu_ptr(m->scratch, cpu);
--	if (!s)
--		return;
- 
--	mem = s;
--	mem -= s->align_off;
--	kvfree(mem);
-+	kvfree(s);
- }
- 
- /**
-@@ -1203,11 +1199,8 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
- 
- 	for_each_possible_cpu(i) {
- 		struct nft_pipapo_scratch *scratch;
--#ifdef NFT_PIPAPO_ALIGN
--		void *scratch_aligned;
--		u32 align_off;
--#endif
--		scratch = kvzalloc_node(struct_size(scratch, map, bsize_max * 2) +
-+
-+		scratch = kvzalloc_node(struct_size(scratch, __map, bsize_max * 2) +
- 					NFT_PIPAPO_ALIGN_HEADROOM,
- 					GFP_KERNEL_ACCOUNT, cpu_to_node(i));
- 		if (!scratch) {
-@@ -1222,23 +1215,6 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
++	__local_unlock_nested_bh(&scratch->bh_lock);
+ out:
+ 	local_bh_enable();
+ 	return NULL;
+@@ -1215,6 +1219,7 @@ static int pipapo_realloc_scratch(struct nft_pipapo_match *clone,
  		}
  
  		pipapo_free_scratch(clone, i);
--
--#ifdef NFT_PIPAPO_ALIGN
--		/* Align &scratch->map (not the struct itself): the extra
--		 * %NFT_PIPAPO_ALIGN_HEADROOM bytes passed to kzalloc_node()
--		 * above guarantee we can waste up to those bytes in order
--		 * to align the map field regardless of its offset within
--		 * the struct.
--		 */
--		BUILD_BUG_ON(offsetof(struct nft_pipapo_scratch, map) > NFT_PIPAPO_ALIGN_HEADROOM);
--
--		scratch_aligned = NFT_PIPAPO_LT_ALIGN(&scratch->map);
--		scratch_aligned -= offsetof(struct nft_pipapo_scratch, map);
--		align_off = scratch_aligned - (void *)scratch;
--
--		scratch = scratch_aligned;
--		scratch->align_off = align_off;
--#endif
++		local_lock_init(&scratch->bh_lock);
  		*per_cpu_ptr(clone->scratch, i) = scratch;
  	}
  
 diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
-index 4a2ff85ce1c4..e10cdbaa65d8 100644
+index e10cdbaa65d8..eaab422aa56a 100644
 --- a/net/netfilter/nft_set_pipapo.h
 +++ b/net/netfilter/nft_set_pipapo.h
-@@ -125,13 +125,11 @@ struct nft_pipapo_field {
+@@ -124,10 +124,12 @@ struct nft_pipapo_field {
+ 
  /**
   * struct nft_pipapo_scratch - percpu data used for lookup and matching
++ * @bh_lock:    PREEMPT_RT local spinlock
   * @map_index:	Current working bitmap index, toggled between field matches
-- * @align_off:	Offset to get the originally allocated address
-- * @map:	store partial matching results during lookup
-+ * @__map:	store partial matching results during lookup
+  * @__map:	store partial matching results during lookup
   */
  struct nft_pipapo_scratch {
++	local_lock_t bh_lock;
  	u8 map_index;
--	u32 align_off;
--	unsigned long map[];
-+	unsigned long __map[];
+ 	unsigned long __map[];
  };
- 
- /**
 diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 028c11724b42..f0d8c796d731 100644
+index f0d8c796d731..29326f3fcaf3 100644
 --- a/net/netfilter/nft_set_pipapo_avx2.c
 +++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1155,7 +1155,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
- {
- 	struct nft_pipapo_scratch *scratch;
- 	const struct nft_pipapo_field *f;
--	unsigned long *res, *fill;
-+	unsigned long *res, *fill, *map;
- 	bool map_index;
- 	int i;
- 
-@@ -1164,9 +1164,9 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+@@ -1163,6 +1163,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+ 	if (unlikely(!scratch))
  		return NULL;
  
++	__local_lock_nested_bh(&scratch->bh_lock);
  	map_index = scratch->map_index;
--
--	res  = scratch->map + (map_index ? m->bsize_max : 0);
--	fill = scratch->map + (map_index ? 0 : m->bsize_max);
-+	map = NFT_PIPAPO_LT_ALIGN(&scratch->__map[0]);
-+	res  = map + (map_index ? m->bsize_max : 0);
-+	fill = map + (map_index ? 0 : m->bsize_max);
+ 	map = NFT_PIPAPO_LT_ALIGN(&scratch->__map[0]);
+ 	res  = map + (map_index ? m->bsize_max : 0);
+@@ -1228,6 +1229,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+ 		if (ret < 0) {
+ 			scratch->map_index = map_index;
+ 			kernel_fpu_end();
++			__local_unlock_nested_bh(&scratch->bh_lock);
+ 			return NULL;
+ 		}
  
- 	pipapo_resmap_init_avx2(m, res);
+@@ -1241,6 +1243,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+ 
+ 			scratch->map_index = map_index;
+ 			kernel_fpu_end();
++			__local_unlock_nested_bh(&scratch->bh_lock);
+ 			return e;
+ 		}
+ 
+@@ -1250,6 +1253,7 @@ struct nft_pipapo_elem *pipapo_get_avx2(const struct nft_pipapo_match *m,
+ 	}
+ 
+ 	kernel_fpu_end();
++	__local_unlock_nested_bh(&scratch->bh_lock);
+ 	return NULL;
+ }
  
 -- 
 2.49.1
