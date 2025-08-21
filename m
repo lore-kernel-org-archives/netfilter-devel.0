@@ -1,53 +1,53 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5542F4A05
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 09:23:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C6D92F5318
+	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 09:23:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755768228; cv=none; b=J+UBOFKlCuTeGeJdBhwHjlYwL16CeyLe6K53gh/xye5aJMSsIuLB05VbuR579yQgRl6ppBr2eRMX9SlRGCfsSMmO/aDPi/z+ILS85evw63idDUlzJarSpSBk+DaNSGHz+vWjlefNgMgQyQ/bpvoDUVI1F7pbpux5rKVwkPcS0jA=
+	t=1755768229; cv=none; b=X2pRZDHMIP8qG0NEC/vdM/T1GwAe/hW2kjAKpCeA/PCwAec5oT2g+mut79g91REGGVsBELGNckP7mBDZZ9AvLux3yTBD/Q3qRftZqr5+AgTiXW3cH0eEW6gsT5OfGzf5YLWDTpOLdoRae3SnKTZR9fQt4lbd2aU6UM4Pw46FLGo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755768228; c=relaxed/simple;
-	bh=09BF0Eqje71/guueKIpzE9RlkfCWVgzHL85mAUx5fDs=;
+	s=arc-20240116; t=1755768229; c=relaxed/simple;
+	bh=fCvyWfXjslqzLeY7mfQAxOlrhrk6Bt6X2tkAFXgH39Y=;
 	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=HwJ2QhgTckKYVwB9nH909+hYVI9tZ+1V68F9ZcJlv3cXE3Be2+T8643UYvjRHhr0g6Q05aD2TTA4eUGLMXer4+JRAiEVhA9vzyjBJgG4/vmQQL8CQgZNK2g7Vsm4GiHttYENXzk3cMpzRyxj0502Z2oZozGzlZE3zYlXtPAl15o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M4oWLKV2; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=M4oWLKV2; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=Js4w/OgC4MBQ01D9NGUjpXnzgbrFFXZYIpmhqUXP10NL100UWzhr5S9rPFL8UsfbuV7XgzPOPgyA6JeDzZ8KPqofGNXtBksOUDSXDlyoHS2qRVVtZ39N9QwT6lcscCuLqHrbF+WiaXrZyS7HMy8KRj0d1OoO8rw/wj7f88LZRe4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=d9XMQVdx; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=d9XMQVdx; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M4oWLKV2";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="M4oWLKV2"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="d9XMQVdx";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="d9XMQVdx"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id C2856602B4; Thu, 21 Aug 2025 11:23:44 +0200 (CEST)
+	id CF345602AE; Thu, 21 Aug 2025 11:23:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1755768224;
-	bh=tJdYotht4wmWQaJCWjW9mLJyT7Z9+fAdTK0FwWBca2E=;
+	s=2025; t=1755768225;
+	bh=ojue7r2oe+aUGK2s3fB/fucoIQy4RFKB0c9CCABIu4Y=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=M4oWLKV2Ve1IMhhvqCxTvhEAf7voLhtOMGUphLXwc6kLlYMhbjqap6fiico1CAruZ
-	 0SRMIqhmeX8ANbXrgpfGC6aPQALDvUSU88ATCv3vAay+yLQ1pHoUZUuIDamdgiRyHg
-	 fMmu5i3i4vKHdqfOzl/O/dtWRuMzCGUOWu2t1iKsLQUweq4nuqxUZQr7b5397A7lvw
-	 whhIOujkMwcjPRSIcfZs5q8n7AlLMxyMpxhqu5X73LogqhbqsOsCIeewQwkCw+HuvW
-	 oU00DZEyhwsWOhIHiTR7OgryQ40Vka+DcG7fN08ip0WClUjUQoDd7SQNbNMA3v1soO
-	 0q3X4QZSVGLKA==
+	b=d9XMQVdxV6yXqgB+T+GHHIBUgLziEnYXYzctzMp0I2vgTqWWMQuyRAGc6yVlGlv+r
+	 /S1jaZ9Tlvfk3zRUsowCLLcd98TF3eQVjyutIVgHHrt6vWIrPN/iI1oXvVxtdQD9ia
+	 8okmUi/gNufA0zYl0RGcDF3FKxBJ1j/1o/L5fOx+Pk6VXf8Y5m02xkJZmC1QkXOfw7
+	 2TFAeMY+em6BAVfyZB04CUkeF6RF9VNLw3X4QQAGcvYjQ43O3CnlrGRuiRS8guCvq/
+	 DJ5GnLP7HXoECp63jKS0vPqYIX7keVusUr5r5Jza93T63vTeyoVa+vJ//GMLLJ907N
+	 OmcVDx+3lg8NQ==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6D873602AB
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 11:23:44 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0973B602AB
+	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 11:23:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1755768224;
-	bh=tJdYotht4wmWQaJCWjW9mLJyT7Z9+fAdTK0FwWBca2E=;
+	s=2025; t=1755768225;
+	bh=ojue7r2oe+aUGK2s3fB/fucoIQy4RFKB0c9CCABIu4Y=;
 	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=M4oWLKV2Ve1IMhhvqCxTvhEAf7voLhtOMGUphLXwc6kLlYMhbjqap6fiico1CAruZ
-	 0SRMIqhmeX8ANbXrgpfGC6aPQALDvUSU88ATCv3vAay+yLQ1pHoUZUuIDamdgiRyHg
-	 fMmu5i3i4vKHdqfOzl/O/dtWRuMzCGUOWu2t1iKsLQUweq4nuqxUZQr7b5397A7lvw
-	 whhIOujkMwcjPRSIcfZs5q8n7AlLMxyMpxhqu5X73LogqhbqsOsCIeewQwkCw+HuvW
-	 oU00DZEyhwsWOhIHiTR7OgryQ40Vka+DcG7fN08ip0WClUjUQoDd7SQNbNMA3v1soO
-	 0q3X4QZSVGLKA==
+	b=d9XMQVdxV6yXqgB+T+GHHIBUgLziEnYXYzctzMp0I2vgTqWWMQuyRAGc6yVlGlv+r
+	 /S1jaZ9Tlvfk3zRUsowCLLcd98TF3eQVjyutIVgHHrt6vWIrPN/iI1oXvVxtdQD9ia
+	 8okmUi/gNufA0zYl0RGcDF3FKxBJ1j/1o/L5fOx+Pk6VXf8Y5m02xkJZmC1QkXOfw7
+	 2TFAeMY+em6BAVfyZB04CUkeF6RF9VNLw3X4QQAGcvYjQ43O3CnlrGRuiRS8guCvq/
+	 DJ5GnLP7HXoECp63jKS0vPqYIX7keVusUr5r5Jza93T63vTeyoVa+vJ//GMLLJ907N
+	 OmcVDx+3lg8NQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2 10/11] expression: replace compound_expr_print() by type safe function
-Date: Thu, 21 Aug 2025 11:23:29 +0200
-Message-Id: <20250821092330.2739989-11-pablo@netfilter.org>
+Subject: [PATCH nft,v2 11/11] src: replace compound_expr_alloc() by type safe function
+Date: Thu, 21 Aug 2025 11:23:30 +0200
+Message-Id: <20250821092330.2739989-12-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20250821092330.2739989-1-pablo@netfilter.org>
 References: <20250821092330.2739989-1-pablo@netfilter.org>
@@ -59,70 +59,158 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace compound_expr_print() by {list,set,concat}_expr_print() to
+Replace compound_expr_alloc() by {set,list,concat}_expr_alloc() to
 validate expression type.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/expression.c | 31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ include/expression.h |  2 --
+ src/evaluate.c       |  2 +-
+ src/expression.c     | 30 ++++++++++++++++--------------
+ src/parser_bison.y   |  8 ++++----
+ src/parser_json.c    |  2 +-
+ 5 files changed, 22 insertions(+), 22 deletions(-)
 
+diff --git a/include/expression.h b/include/expression.h
+index 198ead603da6..650063bd0e9e 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -517,8 +517,6 @@ extern struct expr *range_expr_alloc(const struct location *loc,
+ 				     struct expr *low, struct expr *high);
+ struct expr *range_expr_to_prefix(struct expr *range);
+ 
+-extern struct expr *compound_expr_alloc(const struct location *loc,
+-					enum expr_types etypes);
+ extern void list_expr_sort(struct list_head *head);
+ extern void list_splice_sorted(struct list_head *list, struct list_head *head);
+ 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index fc9177d3a91e..f4420866bf22 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -5475,7 +5475,7 @@ static struct expr *expr_set_to_list(struct eval_ctx *ctx, struct expr *dev_expr
+ 
+ 	loc = dev_expr->location;
+ 	expr_free(dev_expr);
+-	dev_expr = compound_expr_alloc(&loc, EXPR_LIST);
++	dev_expr = list_expr_alloc(&loc);
+ 	list_splice_init(&tmp, &expr_list(dev_expr)->expressions);
+ 
+ 	return dev_expr;
 diff --git a/src/expression.c b/src/expression.c
-index 8d604fba265e..c0ab5d5598f2 100644
+index c0ab5d5598f2..c0d644249a71 100644
 --- a/src/expression.c
 +++ b/src/expression.c
-@@ -1027,19 +1027,6 @@ struct expr *compound_expr_alloc(const struct location *loc,
+@@ -1016,17 +1016,6 @@ struct expr *range_expr_alloc(const struct location *loc,
  	return expr;
  }
  
--static void compound_expr_print(const struct expr *expr, const char *delim,
--				 struct output_ctx *octx)
+-struct expr *compound_expr_alloc(const struct location *loc,
+-				 enum expr_types etype)
 -{
--	const struct expr *i;
--	const char *d = "";
+-	struct expr *expr;
 -
--	list_for_each_entry(i, &expr->expr_set.expressions, list) {
--		nft_print(octx, "%s", d);
--		expr_print(i, octx);
--		d = delim;
--	}
+-	expr = expr_alloc(loc, etype, &invalid_type, BYTEORDER_INVALID, 0);
+-	/* same layout for EXPR_CONCAT, EXPR_SET and EXPR_LIST. */
+-	init_list_head(&expr->expr_set.expressions);
+-	return expr;
 -}
 -
  static void concat_expr_destroy(struct expr *expr)
  {
  	struct expr *i, *next;
-@@ -1050,7 +1037,14 @@ static void concat_expr_destroy(struct expr *expr)
+@@ -1219,7 +1208,12 @@ static const struct expr_ops concat_expr_ops = {
  
- static void concat_expr_print(const struct expr *expr, struct output_ctx *octx)
+ struct expr *concat_expr_alloc(const struct location *loc)
  {
--	compound_expr_print(expr, " . ", octx);
-+	const struct expr *i;
-+	const char *d = "";
+-	return compound_expr_alloc(loc, EXPR_CONCAT);
++	struct expr *expr;
 +
-+	list_for_each_entry(i, &expr_concat(expr)->expressions, list) {
-+		nft_print(octx, "%s", d);
-+		expr_print(i, octx);
-+		d = " . ";
-+	}
++	expr = expr_alloc(loc, EXPR_CONCAT, &invalid_type, BYTEORDER_INVALID, 0);
++	init_list_head(&expr_concat(expr)->expressions);
++
++	return expr;
  }
  
- static void concat_expr_clone(struct expr *new, const struct expr *expr)
-@@ -1244,7 +1238,14 @@ void concat_expr_remove(struct expr *concat, struct expr *expr)
+ void concat_expr_add(struct expr *concat, struct expr *item)
+@@ -1276,7 +1270,12 @@ static const struct expr_ops list_expr_ops = {
  
- static void list_expr_print(const struct expr *expr, struct output_ctx *octx)
+ struct expr *list_expr_alloc(const struct location *loc)
  {
--	compound_expr_print(expr, ",", octx);
-+	const struct expr *i;
-+	const char *d = "";
+-	return compound_expr_alloc(loc, EXPR_LIST);
++	struct expr *expr;
 +
-+	list_for_each_entry(i, &expr_list(expr)->expressions, list) {
-+		nft_print(octx, "%s", d);
-+		expr_print(i, octx);
-+		d = ",";
-+	}
++	expr = expr_alloc(loc, EXPR_LIST, &invalid_type, BYTEORDER_INVALID, 0);
++	init_list_head(&expr_list(expr)->expressions);
++
++	return expr;
  }
  
- static void list_expr_clone(struct expr *new, const struct expr *expr)
+ void list_expr_add(struct expr *expr, struct expr *item)
+@@ -1427,7 +1426,10 @@ static const struct expr_ops set_expr_ops = {
+ 
+ struct expr *set_expr_alloc(const struct location *loc, const struct set *set)
+ {
+-	struct expr *set_expr = compound_expr_alloc(loc, EXPR_SET);
++	struct expr *set_expr;
++
++	set_expr = expr_alloc(loc, EXPR_SET, &invalid_type, BYTEORDER_INVALID, 0);
++	init_list_head(&expr_set(set_expr)->expressions);
+ 
+ 	if (!set)
+ 		return set_expr;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 6d4eb98f3b5a..9fd2ab9e7117 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2462,7 +2462,7 @@ flowtable_expr		:	'{'	flowtable_list_expr	'}'
+ 
+ flowtable_list_expr	:	flowtable_expr_member
+ 			{
+-				$$ = compound_expr_alloc(&@$, EXPR_LIST);
++				$$ = list_expr_alloc(&@$);
+ 				list_expr_add($$, $1);
+ 			}
+ 			|	flowtable_list_expr	COMMA	flowtable_expr_member
+@@ -2801,14 +2801,14 @@ dev_spec		:	DEVICE	string
+ 				if (!expr)
+ 					YYERROR;
+ 
+-				$$ = compound_expr_alloc(&@$, EXPR_LIST);
++				$$ = list_expr_alloc(&@$);
+ 				list_expr_add($$, expr);
+ 
+ 			}
+ 			|	DEVICE	variable_expr
+ 			{
+ 				datatype_set($2->sym->expr, &ifname_type);
+-				$$ = compound_expr_alloc(&@$, EXPR_LIST);
++				$$ = list_expr_alloc(&@$);
+ 				list_expr_add($$, $2);
+ 			}
+ 			|	DEVICES		'='	flowtable_expr
+@@ -4697,7 +4697,7 @@ set_rhs_expr		:	concat_rhs_expr
+ 
+ initializer_expr	:	rhs_expr
+ 			|	list_rhs_expr
+-			|	'{' '}'		{ $$ = compound_expr_alloc(&@$, EXPR_SET); }
++			|	'{' '}'		{ $$ = set_expr_alloc(&@$, NULL); }
+ 			|	DASH	NUM
+ 			{
+ 				int32_t num = -$2;
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 17e13ebe4458..cff27a764a9e 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -2990,7 +2990,7 @@ static struct expr *ifname_expr_alloc(struct json_ctx *ctx,
+ 
+ static struct expr *json_parse_devs(struct json_ctx *ctx, json_t *root)
+ {
+-	struct expr *tmp, *expr = compound_expr_alloc(int_loc, EXPR_LIST);
++	struct expr *tmp, *expr = list_expr_alloc(int_loc);
+ 	const char *dev;
+ 	json_t *value;
+ 	size_t index;
 -- 
 2.30.2
 
