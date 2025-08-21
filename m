@@ -1,44 +1,76 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBDA32EC57A
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 14:22:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1262253359;
+	Thu, 21 Aug 2025 14:47:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755786159; cv=none; b=TNUSfRCkXU9aVNJyepFC4sud7w3pZPCOuTtQ3hbaRnRW3hAc+B+6j48HQ0tZmA4azSOuCjQyGNSYWed9SVwZgh+0LW9REgRSzum8c+dbWbEt5T7P9Prm9O1YAe2avUeRlHNWo8vrBl6wDBlWMgMFANLGd46x7GqzP1UmBD9GO6U=
+	t=1755787647; cv=none; b=b1KWSE6naVroOrgO21Qw6Rd1/hQKYxSJV0sB30FtPt/62qNYEwTnNcHVrm14nVOOz71DqGvSZ5xQIVA1g/J7qE1cCOWyIWda62gMWQKKnC/je9JNa/HyXBdMeHPjrzZ53JwZadf+V99DYVZ0NXxKceWBhb8/SXYXsojCowlPfOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755786159; c=relaxed/simple;
-	bh=I3NdaYBI+Vn2oMhKnb6VR4sk9ZdOItm8Wbt9tbmL3nk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c0YRKNGBhhgEsr0ZFYdE6IVNLwGobbwHHD5z4CvxeIq/UDCALHBE1jylMUexiZYLdJt9A95DX8YUPZbu2ma3sihTJehKajLNuspTdeREfATy1WizK5FDyJKpYJYE0Xcpn1eaezsMxmJdm19YxpWuO1SbQOlIj9vkPmEQzC7sJV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9940360298; Thu, 21 Aug 2025 16:22:34 +0200 (CEST)
-Date: Thu, 21 Aug 2025 16:22:34 +0200
-From: Florian Westphal <fw@strlen.de>
-To: =?utf-8?Q?=C5=81ukasz?= Stelmach <l.stelmach@samsung.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [iptables PATCH] extensions: man: Add a note about
- route_localnet sysctl
-Message-ID: <aKcrqtU4HvTgO__C@strlen.de>
-References: <CGME20250821103945eucas1p211e02560c0125f4f0eddae86798b9a01@eucas1p2.samsung.com>
- <20250821103918.1855788-1-l.stelmach@samsung.com>
+	s=arc-20240116; t=1755787647; c=relaxed/simple;
+	bh=69Jw2Jxys8t4+vWvpxm0TD+lT6lPUWlfyE3Zxx1THZU=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=e2DA9cw6Ilhghj5vQs5uDJa2FdE/XZ34E8Fqfk8TkEdoo0/m4JO7ppPko1wXWlgieE2WFxCQqIC4oXGwuqE1VJvKSuPwOcCbEoUw1wpqtID/cQVUfcRnrKnIQrOiAlmiwvDjzoNkEi7MBgThaw8RE2Olw5rxP7b31Dj9EgKfC1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NVc1vezA; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NVc1vezA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06F4AC4CEEB;
+	Thu, 21 Aug 2025 14:47:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1755787647;
+	bh=69Jw2Jxys8t4+vWvpxm0TD+lT6lPUWlfyE3Zxx1THZU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=NVc1vezArIbFmWA7MMJqwJdUrhYsIVgot/A1Ix0h6TbcXDxZokYCmbYcMZmAKn1mq
+	 ONz9+M1rkyXufz16BEasYGh7kHJ3l9hPQMzAKXdh5UYi1YHBzyUFJBh5SmCSr9EZcS
+	 pTbr+xGfviJ10Wh45M53HQt4E3U9dXuCXsd+3Obur8klpRbAaY3E3Qj/MqNaPBjpHz
+	 IZKZYkk4fs+LZNRYlLswiBjQPbmpL0mdofleyAsrJs5l09Ti292FxbA2cd0a+ae67V
+	 B3Xv7Npr2l72cdJkn/n490ZrIe9uLbyp7VrRp7c3dRXrzp4mhc/Yz775mo9dxwANLx
+	 ujzI/hbYR85Ag==
+Date: Thu, 21 Aug 2025 07:47:26 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org, Paolo Abeni
+ <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: nf_reject: don't leak dst refcount for
+ loopback packets
+Message-ID: <20250821074726.7cc3f294@kernel.org>
+In-Reply-To: <aKXV_3J4iDkhQ06R@strlen.de>
+References: <20250820123707.10671-1-fw@strlen.de>
+	<aKXKpE35H7KBzdBa@calendula>
+	<aKXLsoLkSdnEU_at@calendula>
+	<aKXV_3J4iDkhQ06R@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20250821103918.1855788-1-l.stelmach@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Łukasz Stelmach <l.stelmach@samsung.com> wrote:
-> See ip_route_input_slow() in net/ipv4/route.c in the Linux
-> kernel sources.
+On Wed, 20 Aug 2025 16:04:47 +0200 Florian Westphal wrote:
+> > > Quick question: does inconditional route lookup work for br_netfilter?  
+> > 
+> > Never mind, it should be fine, the fake dst get attached to the skb.  
+> 
+> Good point, this changes behaviour for br_netfilter case, we no
+> longer call nf_reject_fill_skb_dst() then due to the fake dst.
+> 
+> I don't think br_netfilter is supposed to do anything (iptables
+> -j REJECT doesn't work in PRE_ROUTING), and we should not encourage
+> use of br_netfilter with nftables.
+> 
+> What about adding a followup patch, targetting nf, that adds:
+> 
+> if (hook == NF_INET_PRE_ROUTING && nf_bridge_info_exists(oldskb))
+> 	return;
+> 
+> ?
+> 
+> After all, there is no guarantee that we have the needed routing
+> info on a bridge in the first place.
 
-Applied.
+Pablo, are you okay with that plan? Would be great to ship this to
+Linus and therefore net-next today, given the checks recently added
+there..
