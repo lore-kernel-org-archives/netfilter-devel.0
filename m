@@ -1,28 +1,28 @@
 Received: from localhost.localdomain (203.red-83-63-38.staticip.rima-tde.net [83.63.38.203])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 978322E7F21
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 09:13:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id D39C22D837E
+	for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2025 09:13:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.63.38.203
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755767604; cv=none; b=A1M0aDVIydxifs23rJya78mLyOZ8uYwZmIM6fxhrGGPujdEUKTrPADoFRb0umXWdleZvbC52CiICs6vkgQTBGIy8PseAH8RaEi0YaEHz+50u+PNNvvTEg5KldDty+m78RtEY/wWgJaSg+bi0eVnkvqz7htvS9m9tu2Zq0Bs0UL4=
+	t=1755767604; cv=none; b=tI53Vhy7NNqKYJCH1ON6vAgCE9hKgHgQGfOSZzmFmXLgok/cH9PwPAObctZvl2b3aerhM6CGFkjEGs6zETVHhIaHy280eps2aGD4pBQZT3OTBw/LOifRnvQeOz+TPat0nBk9GFE/16ldDg64s3q6YSxn83FZ2mreKfLNMZ/8mD0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1755767604; c=relaxed/simple;
-	bh=t7pDFHPJCv/ds0GlkbIcTA/6hopS8WoOACCDE3l4SHc=;
+	bh=u9Hh+BY0hs0WPZ98pV9pYjyHQF+zmLqPV8odHb8fSz8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eg3J4bLQJoJkTSO6XgXWnzMcF5TOtmjCJhXlOQG5lX3f+j/YLewDj1rkHQGygKbQUDnxNbjaBbVq9IndaAFVIIPRdKE+tTDA/PiAJyDjLObgW4e7Kx5E4VQf6KFeWUb5w2j8vI3RqTmLk+gad3/QMadI4MjkvoP5nj1OoEYt/9s=
+	 MIME-Version; b=lLcoRyQxJfwTgzL8LCyjmourDf5dfqoXuDiAO+zBUhsBYHfJSv6apQ2ZpIEKZ+1bcvhmJ+UVtJLg+xKVbQQ0ZGjUWW0GCIownwCWXKihkNHDAgsuAm+LSAygelPucMKcQKVvVuUHHfdxoLfOgwFTbYB/bUPzi67qHafN/dj8dVU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=suse.de; spf=none smtp.mailfrom=localhost.localdomain; arc=none smtp.client-ip=83.63.38.203
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=localhost.localdomain
 Received: by localhost.localdomain (Postfix, from userid 1000)
-	id 65DFB2165AFB; Thu, 21 Aug 2025 11:13:21 +0200 (CEST)
+	id B961F2165AF9; Thu, 21 Aug 2025 11:13:20 +0200 (CEST)
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
 	pablo@netfilter.org,
 	fw@strlen.de,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 5/7 nft v3] tunnel: add geneve support
-Date: Thu, 21 Aug 2025 11:13:00 +0200
-Message-ID: <20250821091302.9032-5-fmancera@suse.de>
+Subject: [PATCH 4/7 nft v3] tunnel: add vxlan support
+Date: Thu, 21 Aug 2025 11:12:59 +0200
+Message-ID: <20250821091302.9032-4-fmancera@suse.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20250821091302.9032-1-fmancera@suse.de>
 References: <20250821091302.9032-1-fmancera@suse.de>
@@ -34,9 +34,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-
-This patch extends the tunnel metadata object to define geneve tunnel
+This patch extends the tunnel metadata object to define vxlan tunnel
 specific configurations:
 
 table netdev x {
@@ -47,10 +45,8 @@ table netdev x {
 		sport 10
 		dport 20
 		ttl 10
-		geneve {
-			class 0x1010 opt-type 0x1 data "0x12345678"
-			class 0x1020 opt-type 0x2 data "0x87654321"
-			class 0x2020 opt-type 0x3 data "0x87654321abcdeffe"
+		vxlan {
+			gbp 200
 		}
 	}
 }
@@ -60,303 +56,171 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v3: rebased
 ---
- include/rule.h     | 14 ++++++++++
- src/mnl.c          | 25 +++++++++++++++++
- src/netlink.c      | 29 ++++++++++++++++++++
- src/parser_bison.y | 43 ++++++++++++++++++++++++++++-
- src/rule.c         | 67 ++++++++++++++++++++++++++++++++++++++++++++++
- src/scanner.l      |  3 +++
- 6 files changed, 180 insertions(+), 1 deletion(-)
+ include/rule.h     |  4 ++++
+ src/mnl.c          | 16 ++++++++++++++++
+ src/netlink.c      |  7 +++++++
+ src/parser_bison.y | 28 +++++++++++++++++++++++++++-
+ src/rule.c         | 10 ++++++++++
+ src/scanner.l      |  1 +
+ 6 files changed, 65 insertions(+), 1 deletion(-)
 
 diff --git a/include/rule.h b/include/rule.h
-index c52af2c4..498a88bf 100644
+index 71e9a07e..c52af2c4 100644
 --- a/include/rule.h
 +++ b/include/rule.h
-@@ -496,6 +496,15 @@ enum tunnel_type {
+@@ -495,6 +495,7 @@ struct secmark {
+ enum tunnel_type {
  	TUNNEL_UNSPEC = 0,
  	TUNNEL_ERSPAN,
- 	TUNNEL_VXLAN,
-+	TUNNEL_GENEVE,
-+};
-+
-+struct tunnel_geneve {
-+	struct list_head	list;
-+	uint16_t		geneve_class;
-+	uint8_t			type;
-+	uint8_t			data[NFTNL_TUNNEL_GENEVE_DATA_MAXLEN];
-+	uint32_t		data_len;
++	TUNNEL_VXLAN,
  };
  
  struct tunnel {
-@@ -521,9 +530,14 @@ struct tunnel {
- 		struct {
- 			uint32_t	gbp;
- 		} vxlan;
-+		struct list_head	geneve_opts;
+@@ -517,6 +518,9 @@ struct tunnel {
+ 				uint8_t		hwid;
+ 			} v2;
+ 		} erspan;
++		struct {
++			uint32_t	gbp;
++		} vxlan;
  	};
  };
  
-+int tunnel_geneve_data_str2array(const char *hexstr,
-+				 uint8_t *out_data,
-+				 uint32_t *out_len);
-+
- /**
-  * struct obj - nftables stateful object statement
-  *
 diff --git a/src/mnl.c b/src/mnl.c
-index c0aadf59..108d6e55 100644
+index 3762b6f9..c0aadf59 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -1527,6 +1527,31 @@ static void obj_tunnel_add_opts(struct nftnl_obj *nlo, struct tunnel *tunnel)
- 		nftnl_tunnel_opts_add(opts, opt);
- 		nftnl_obj_set_data(nlo, NFTNL_OBJ_TUNNEL_OPTS, &opts, sizeof(struct nftnl_tunnel_opts *));
- 		break;
-+	case TUNNEL_GENEVE:
-+		struct tunnel_geneve *geneve;
-+
-+		opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_GENEVE);
+@@ -1508,6 +1508,22 @@ static void obj_tunnel_add_opts(struct nftnl_obj *nlo, struct tunnel *tunnel)
+ 			break;
+ 		}
+ 
++		nftnl_tunnel_opts_add(opts, opt);
++		nftnl_obj_set_data(nlo, NFTNL_OBJ_TUNNEL_OPTS, &opts, sizeof(struct nftnl_tunnel_opts *));
++		break;
++	case TUNNEL_VXLAN:
++		opts = nftnl_tunnel_opts_alloc(NFTNL_TUNNEL_TYPE_VXLAN);
 +		if (!opts)
 +			memory_allocation_error();
 +
-+		list_for_each_entry(geneve, &tunnel->geneve_opts, list) {
-+			opt = nftnl_tunnel_opt_alloc(NFTNL_TUNNEL_TYPE_GENEVE);
-+			if (!opt)
-+				memory_allocation_error();
-+
-+			nftnl_tunnel_opt_set(opt,
-+					     NFTNL_TUNNEL_GENEVE_TYPE,
-+					     &geneve->type, sizeof(geneve->type));
-+			nftnl_tunnel_opt_set(opt,
-+					     NFTNL_TUNNEL_GENEVE_CLASS,
-+					     &geneve->geneve_class, sizeof(geneve->geneve_class));
-+			nftnl_tunnel_opt_set(opt,
-+					     NFTNL_TUNNEL_GENEVE_DATA,
-+					     &geneve->data, geneve->data_len);
-+			nftnl_tunnel_opts_add(opts, opt);
-+		}
-+		nftnl_obj_set_data(nlo, NFTNL_OBJ_TUNNEL_OPTS, &opts, sizeof(struct nftnl_tunnel_opts *));
-+		break;
- 	case TUNNEL_UNSPEC:
- 		break;
- 	}
-diff --git a/src/netlink.c b/src/netlink.c
-index e132362b..5bae3b82 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1843,6 +1843,35 @@ static int tunnel_parse_opt_cb(struct nftnl_tunnel_opt *opt, void *data) {
- 			obj->tunnel.vxlan.gbp = nftnl_tunnel_opt_get_u32(opt, NFTNL_TUNNEL_VXLAN_GBP);
- 		}
- 		break;
-+	case NFTNL_TUNNEL_TYPE_GENEVE:
-+		struct tunnel_geneve *geneve;
-+		const void *data;
-+
-+		if (!obj->tunnel.type) {
-+			init_list_head(&obj->tunnel.geneve_opts);
-+			obj->tunnel.type = TUNNEL_GENEVE;
-+		}
-+
-+		geneve = xmalloc(sizeof(struct tunnel_geneve));
-+		if (!geneve)
++		opt = nftnl_tunnel_opt_alloc(NFTNL_TUNNEL_TYPE_VXLAN);
++		if (!opt)
 +			memory_allocation_error();
 +
-+		if (nftnl_tunnel_opt_get_flags(opt) & (1 << NFTNL_TUNNEL_GENEVE_TYPE))
-+			geneve->type = nftnl_tunnel_opt_get_u8(opt, NFTNL_TUNNEL_GENEVE_TYPE);
++		nftnl_tunnel_opt_set(opt, NFTNL_TUNNEL_VXLAN_GBP,
++				     &tunnel->vxlan.gbp,
++				     sizeof(tunnel->vxlan.gbp));
 +
-+		if (nftnl_tunnel_opt_get_flags(opt) & (1 << NFTNL_TUNNEL_GENEVE_CLASS))
-+			geneve->geneve_class = nftnl_tunnel_opt_get_u16(opt, NFTNL_TUNNEL_GENEVE_CLASS);
-+
-+		if (nftnl_tunnel_opt_get_flags(opt) & (1 << NFTNL_TUNNEL_GENEVE_DATA)) {
-+			data = nftnl_tunnel_opt_get_data(opt, NFTNL_TUNNEL_GENEVE_DATA,
-+							 &geneve->data_len);
-+			if (!data)
-+				return -1;
-+			memcpy(&geneve->data, data, geneve->data_len);
+ 		nftnl_tunnel_opts_add(opts, opt);
+ 		nftnl_obj_set_data(nlo, NFTNL_OBJ_TUNNEL_OPTS, &opts, sizeof(struct nftnl_tunnel_opts *));
+ 		break;
+diff --git a/src/netlink.c b/src/netlink.c
+index 4ef88402..e132362b 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1836,6 +1836,13 @@ static int tunnel_parse_opt_cb(struct nftnl_tunnel_opt *opt, void *data) {
+ 							NFTNL_TUNNEL_ERSPAN_V2_DIR);
+ 		}
+ 		break;
++	case NFTNL_TUNNEL_TYPE_VXLAN:
++		obj->tunnel.type = TUNNEL_VXLAN;
++		if (nftnl_tunnel_opt_get_flags(opt) & (1 << NFTNL_TUNNEL_VXLAN_GBP)) {
++			obj->tunnel.type = TUNNEL_VXLAN;
++			obj->tunnel.vxlan.gbp = nftnl_tunnel_opt_get_u32(opt, NFTNL_TUNNEL_VXLAN_GBP);
 +		}
-+
-+		list_add_tail(&geneve->list, &obj->tunnel.geneve_opts);
 +		break;
  	default:
  		break;
  	}
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index ca93a658..13eb6027 100644
+index 08d75dbb..ca93a658 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -613,6 +613,8 @@ int nft_lex(void *, void *, void *);
+@@ -612,6 +612,7 @@ int nft_lex(void *, void *, void *);
+ %token ERSPAN			"erspan"
  %token EGRESS			"egress"
  %token INGRESS			"ingress"
- %token GBP			"gbp"
-+%token CLASS			"class"
-+%token OPTTYPE			"opt-type"
++%token GBP			"gbp"
  
  %token COUNTERS			"counters"
  %token QUOTAS			"quotas"
-@@ -771,7 +773,7 @@ int nft_lex(void *, void *, void *);
+@@ -770,7 +771,7 @@ int nft_lex(void *, void *, void *);
  %type <flowtable>		flowtable_block_alloc flowtable_block
  %destructor { flowtable_free($$); }	flowtable_block_alloc
  
--%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block ct_timeout_block ct_expect_block limit_block secmark_block synproxy_block tunnel_block erspan_block erspan_block_alloc vxlan_block vxlan_block_alloc
-+%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block ct_timeout_block ct_expect_block limit_block secmark_block synproxy_block tunnel_block erspan_block erspan_block_alloc vxlan_block vxlan_block_alloc geneve_block geneve_block_alloc
+-%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block ct_timeout_block ct_expect_block limit_block secmark_block synproxy_block tunnel_block erspan_block erspan_block_alloc
++%type <obj>			obj_block_alloc counter_block quota_block ct_helper_block ct_timeout_block ct_expect_block limit_block secmark_block synproxy_block tunnel_block erspan_block erspan_block_alloc vxlan_block vxlan_block_alloc
  %destructor { obj_free($$); }	obj_block_alloc
  
  %type <list>			stmt_list stateful_stmt_list set_elem_stmt_list
-@@ -5012,6 +5014,44 @@ erspan_config		:	HDRVERSION	NUM
+@@ -5011,6 +5012,27 @@ erspan_config		:	HDRVERSION	NUM
  			}
  			;
  
-+geneve_block		:	/* empty */	{ $$ = $<obj>-1; }
-+			|	geneve_block	common_block
-+			|	geneve_block	stmt_separator
-+			|	geneve_block	geneve_config	stmt_separator
++vxlan_block		:	/* empty */	{ $$ = $<obj>-1; }
++			|	vxlan_block	common_block
++			|	vxlan_block	stmt_separator
++			|	vxlan_block	vxlan_config	stmt_separator
 +			{
 +				$$ = $1;
 +			}
 +			;
 +
-+geneve_block_alloc	:	/* empty */
++vxlan_block_alloc	:	/* empty */
 +			{
 +				$$ = $<obj>-1;
 +			}
 +			;
 +
-+geneve_config		:	CLASS	NUM	OPTTYPE	NUM	DATA	string
++vxlan_config		:	GBP	NUM
 +			{
-+				struct tunnel_geneve *geneve;
-+
-+				geneve = xmalloc(sizeof(struct tunnel_geneve));
-+				geneve->geneve_class = $2;
-+				geneve->type = $4;
-+				if (tunnel_geneve_data_str2array($6, geneve->data, &geneve->data_len)) {
-+					erec_queue(error(&@6, "Invalid data array %s\n", $6), state->msgs);
-+					free_const($6);
-+					free(geneve);
-+					YYERROR;
-+				}
-+
-+				if (!$<obj>0->tunnel.type) {
-+					$<obj>0->tunnel.type = TUNNEL_GENEVE;
-+					init_list_head(&$<obj>0->tunnel.geneve_opts);
-+				}
-+				list_add_tail(&geneve->list, &$<obj>0->tunnel.geneve_opts);
-+				free_const($6);
++				$<obj>0->tunnel.vxlan.gbp = $2;
 +			}
 +			;
 +
- vxlan_block		:	/* empty */	{ $$ = $<obj>-1; }
- 			|	vxlan_block	common_block
- 			|	vxlan_block	stmt_separator
-@@ -5081,6 +5121,7 @@ tunnel_config		:	ID	NUM
+ tunnel_config		:	ID	NUM
  			{
- 				$<obj>0->tunnel.type = TUNNEL_VXLAN;
+ 				$<obj>0->tunnel.id = $2;
+@@ -5055,6 +5077,10 @@ tunnel_config		:	ID	NUM
+ 			{
+ 				$<obj>0->tunnel.type = TUNNEL_ERSPAN;
  			}
-+			|	GENEVE	geneve_block_alloc '{' geneve_block '}'
++			|	VXLAN	vxlan_block_alloc '{' vxlan_block '}'
++			{
++				$<obj>0->tunnel.type = TUNNEL_VXLAN;
++			}
  			;
  
  tunnel_block		:	/* empty */	{ $$ = $<obj>-1; }
 diff --git a/src/rule.c b/src/rule.c
-index 0450851c..e6216bca 100644
+index 2557f4cc..0450851c 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -1707,6 +1707,14 @@ void obj_free(struct obj *obj)
- 	case NFT_OBJECT_TUNNEL:
- 		expr_free(obj->tunnel.src);
- 		expr_free(obj->tunnel.dst);
-+		if (obj->tunnel.type == TUNNEL_GENEVE) {
-+			struct tunnel_geneve *geneve, *next;
-+
-+			list_for_each_entry_safe(geneve, next, &obj->tunnel.geneve_opts, list) {
-+				list_del(&geneve->list);
-+				free(geneve);
-+			}
-+		}
- 		break;
- 	default:
- 		break;
-@@ -1787,6 +1795,44 @@ static const char *synproxy_timestamp_to_str(const uint32_t flags)
-         return "";
- }
- 
-+int tunnel_geneve_data_str2array(const char *hexstr,
-+				 uint8_t *out_data,
-+				 uint32_t *out_len)
-+{
-+	char bytestr[3] = {0};
-+	size_t len;
-+
-+	if (hexstr[0] == '0' && (hexstr[1] == 'x' || hexstr[1] == 'X'))
-+		hexstr += 2;
-+	else
-+		return -1;
-+
-+	len = strlen(hexstr);
-+	if (len % 4 != 0)
-+		return -1;
-+
-+	len = len / 2;
-+	if (len > NFTNL_TUNNEL_GENEVE_DATA_MAXLEN)
-+		return -1;
-+
-+	for (size_t i = 0; i < len; i++) {
-+		uint32_t value;
-+		char *endptr;
-+
-+		bytestr[0] = hexstr[i * 2];
-+		bytestr[1] = hexstr[i * 2 + 1];
-+
-+		value = strtoul(bytestr, &endptr, 16);
-+		if (*endptr != '\0')
-+			return -1;
-+
-+		out_data[i] = (uint8_t) value;
-+	}
-+	*out_len = (uint8_t) len;
-+
-+	return 0;
-+}
-+
- static void obj_print_comment(const struct obj *obj,
- 			      struct print_fmt_options *opts,
- 			      struct output_ctx *octx)
-@@ -2053,6 +2099,27 @@ static void obj_print_data(const struct obj *obj,
+@@ -2043,6 +2043,16 @@ static void obj_print_data(const struct obj *obj,
+ 			}
  			nft_print(octx, "%s%s%s}",
  				  opts->nl, opts->tab, opts->tab);
- 			break;
-+		case TUNNEL_GENEVE:
-+			struct tunnel_geneve *geneve;
-+
-+			nft_print(octx, "%s%s%sgeneve {", opts->nl, opts->tab, opts->tab);
-+			list_for_each_entry(geneve, &obj->tunnel.geneve_opts, list) {
-+				char data_str[256];
-+				int offset = 0;
-+
-+				for (uint32_t i = 0; i < geneve->data_len; i++) {
-+					offset += snprintf(data_str + offset,
-+							   geneve->data_len,
-+							   "%x",
-+							   geneve->data[i]);
-+				}
-+				nft_print(octx, "%s%s%s%sclass 0x%x opt-type 0x%x data \"0x%s\"",
-+					  opts->nl, opts->tab, opts->tab, opts->tab,
-+					  geneve->geneve_class, geneve->type, data_str);
-+
-+			}
-+			nft_print(octx, "%s%s%s}", opts->nl, opts->tab, opts->tab);
++			break;
++		case TUNNEL_VXLAN:
++			nft_print(octx, "%s%s%svxlan {",
++				  opts->nl, opts->tab, opts->tab);
++			nft_print(octx, "%s%s%s%sgbp %u",
++				  opts->nl, opts->tab, opts->tab, opts->tab,
++				  obj->tunnel.vxlan.gbp);
++			nft_print(octx, "%s%s%s}",
++				  opts->nl, opts->tab, opts->tab);
 +			break;
  		default:
  			break;
  		}
 diff --git a/src/scanner.l b/src/scanner.l
-index 74ebca3b..8085c93b 100644
+index 9695d710..74ebca3b 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -828,6 +828,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+@@ -827,6 +827,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 	"egress"		{ return EGRESS; }
  	"ingress"		{ return INGRESS; }
  	"path"			{ return PATH; }
- 	"gbp"			{ return GBP; }
-+	"class"			{ return CLASS; }
-+	"opt-type"		{ return OPTTYPE; }
-+	"data"			{ return DATA; }
++	"gbp"			{ return GBP; }
  }
  
  "notrack"		{ return NOTRACK; }
