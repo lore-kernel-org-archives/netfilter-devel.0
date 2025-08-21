@@ -1,76 +1,83 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1262253359;
-	Thu, 21 Aug 2025 14:47:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C0BF1DFCE;
+	Thu, 21 Aug 2025 17:19:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755787647; cv=none; b=b1KWSE6naVroOrgO21Qw6Rd1/hQKYxSJV0sB30FtPt/62qNYEwTnNcHVrm14nVOOz71DqGvSZ5xQIVA1g/J7qE1cCOWyIWda62gMWQKKnC/je9JNa/HyXBdMeHPjrzZ53JwZadf+V99DYVZ0NXxKceWBhb8/SXYXsojCowlPfOY=
+	t=1755796798; cv=none; b=eBYHdbscJcz8bAoLDq8rtd1LQgcwXakMbupnT1VkdwaHCLS804XcOM5Xkk8Y15OQiUL2wluEHKr/IfcaLkFrkBwBUhVfkZotJ6PrN/LBO1qW2O374XZhUM58GSco002Zycsu43G25sPqsNo7gdkK26AWlgDmAduoe8vF0RGgrI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755787647; c=relaxed/simple;
-	bh=69Jw2Jxys8t4+vWvpxm0TD+lT6lPUWlfyE3Zxx1THZU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=e2DA9cw6Ilhghj5vQs5uDJa2FdE/XZ34E8Fqfk8TkEdoo0/m4JO7ppPko1wXWlgieE2WFxCQqIC4oXGwuqE1VJvKSuPwOcCbEoUw1wpqtID/cQVUfcRnrKnIQrOiAlmiwvDjzoNkEi7MBgThaw8RE2Olw5rxP7b31Dj9EgKfC1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NVc1vezA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1755796798; c=relaxed/simple;
+	bh=srJorbUHKfSOi1LHnSkKnV8R63yQ/pJFq1r03NxyH20=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=cjXsQUa29X0NlyT2xLrKj7Q6pMyU6fKI0xLiF7etTUoq44qddAr26vMm2LE1eXuQPMrMUQ+MZFsyAPgDcr+apOwfspi02EyuCWYvvugGPS6YuIDzxzBz1EcwqPuAocf8YVB+MPyLTi4b7p4EIK+WjAvWW6HuoEEP+Dq9hdVUXJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=k2XyAQtJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NVc1vezA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06F4AC4CEEB;
-	Thu, 21 Aug 2025 14:47:26 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="k2XyAQtJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B43B2C4CEEB;
+	Thu, 21 Aug 2025 17:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755787647;
-	bh=69Jw2Jxys8t4+vWvpxm0TD+lT6lPUWlfyE3Zxx1THZU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=NVc1vezArIbFmWA7MMJqwJdUrhYsIVgot/A1Ix0h6TbcXDxZokYCmbYcMZmAKn1mq
-	 ONz9+M1rkyXufz16BEasYGh7kHJ3l9hPQMzAKXdh5UYi1YHBzyUFJBh5SmCSr9EZcS
-	 pTbr+xGfviJ10Wh45M53HQt4E3U9dXuCXsd+3Obur8klpRbAaY3E3Qj/MqNaPBjpHz
-	 IZKZYkk4fs+LZNRYlLswiBjQPbmpL0mdofleyAsrJs5l09Ti292FxbA2cd0a+ae67V
-	 B3Xv7Npr2l72cdJkn/n490ZrIe9uLbyp7VrRp7c3dRXrzp4mhc/Yz775mo9dxwANLx
-	 ujzI/hbYR85Ag==
-Date: Thu, 21 Aug 2025 07:47:26 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org, Paolo Abeni
- <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: nf_reject: don't leak dst refcount for
- loopback packets
-Message-ID: <20250821074726.7cc3f294@kernel.org>
-In-Reply-To: <aKXV_3J4iDkhQ06R@strlen.de>
-References: <20250820123707.10671-1-fw@strlen.de>
-	<aKXKpE35H7KBzdBa@calendula>
-	<aKXLsoLkSdnEU_at@calendula>
-	<aKXV_3J4iDkhQ06R@strlen.de>
+	s=k20201202; t=1755796796;
+	bh=srJorbUHKfSOi1LHnSkKnV8R63yQ/pJFq1r03NxyH20=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=k2XyAQtJoRyhI7mW4or3koFKnvUNj8bARuVPU3XZHa53GQ9Z6xXHdo31KgVfHnWdp
+	 nAMdWHhmNeS/dG0f2QKTHfl4n79R6GIWjDLt3b4Ht80H8sOxA73gJ4Wrjf0vIKxZ3L
+	 Lhmoc5g/YuZ9IN3Sf9Tc7KbXxwDKYV4Je9CTqqkobQRuUSJ+tPWCjeaIz4r+4Tm4Sv
+	 NDcHGzt+MLW6DaX+yTMD2gYVwxupr6ehm+1rGnkS35Rg93Z7LQx/QRZzgp60QAbB8O
+	 4JzO4ZeAwHIKX8aDdd01EA45ruRnxDxTHls42NdGQ3UGTrsTnl5xwgg51pa7xQfS8i
+	 YfTljyD/Uyjew==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33C15383BF5B;
+	Thu, 21 Aug 2025 17:20:07 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net] netfilter: nf_reject: don't leak dst refcount for
+ loopback packets
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <175579680600.1120781.8221767043922846856.git-patchwork-notify@kernel.org>
+Date: Thu, 21 Aug 2025 17:20:06 +0000
+References: <20250820123707.10671-1-fw@strlen.de>
+In-Reply-To: <20250820123707.10671-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-On Wed, 20 Aug 2025 16:04:47 +0200 Florian Westphal wrote:
-> > > Quick question: does inconditional route lookup work for br_netfilter?  
-> > 
-> > Never mind, it should be fine, the fake dst get attached to the skb.  
-> 
-> Good point, this changes behaviour for br_netfilter case, we no
-> longer call nf_reject_fill_skb_dst() then due to the fake dst.
-> 
-> I don't think br_netfilter is supposed to do anything (iptables
-> -j REJECT doesn't work in PRE_ROUTING), and we should not encourage
-> use of br_netfilter with nftables.
-> 
-> What about adding a followup patch, targetting nf, that adds:
-> 
-> if (hook == NF_INET_PRE_ROUTING && nf_bridge_info_exists(oldskb))
-> 	return;
-> 
-> ?
-> 
-> After all, there is no guarantee that we have the needed routing
-> info on a bridge in the first place.
+Hello:
 
-Pablo, are you okay with that plan? Would be great to ship this to
-Linus and therefore net-next today, given the checks recently added
-there..
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Wed, 20 Aug 2025 14:37:07 +0200 you wrote:
+> recent patches to add a WARN() when replacing skb dst entry found an
+> old bug:
+> 
+> WARNING: include/linux/skbuff.h:1165 skb_dst_check_unset include/linux/skbuff.h:1164 [inline]
+> WARNING: include/linux/skbuff.h:1165 skb_dst_set include/linux/skbuff.h:1210 [inline]
+> WARNING: include/linux/skbuff.h:1165 nf_reject_fill_skb_dst+0x2a4/0x330 net/ipv4/netfilter/nf_reject_ipv4.c:234
+> [..]
+> Call Trace:
+>  nf_send_unreach+0x17b/0x6e0 net/ipv4/netfilter/nf_reject_ipv4.c:325
+>  nft_reject_inet_eval+0x4bc/0x690 net/netfilter/nft_reject_inet.c:27
+>  expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
+>  ..
+> 
+> [...]
+
+Here is the summary with links:
+  - [net] netfilter: nf_reject: don't leak dst refcount for loopback packets
+    https://git.kernel.org/netdev/net/c/91a79b792204
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
