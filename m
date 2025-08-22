@@ -1,88 +1,96 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4CF9249EB;
-	Fri, 22 Aug 2025 00:30:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D21D20EB;
+	Fri, 22 Aug 2025 01:08:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.189
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755822620; cv=none; b=bezjh5bBjmTkM250N1WfTiDYZnXgdjTvGpVguNSbBapJ0QKV+rAhI/NpZpFZNPo1eP0aZ+Uu7E1t6gkOQzvFGGqy0lV0XKYo+KNq08tt7ED6rLiRusBspz9jWUdfcc0sJf/hBIoOuaIaaXihMbEMHGfuuyxZNf4kPcNY56EpYhI=
+	t=1755824935; cv=none; b=FzqtVWhijToEIg8WvSjkGXU0g3FXR2OIkrcYh9FZmXxgPtWWYJ8vaFNlE5Sf56e6g/aNB+r5wcq+jlS9S/9sys8zO1mSR1LSSlttq0nfxLNDCoEy1ZUYR2MMQCRZw0mfWYsC8eGnY8a8Vs0uFSqecRSq0iJodilavIYLmAsTI0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755822620; c=relaxed/simple;
-	bh=oCu+21hpHHRslBrIc9JKmXmCaImpZ5fj5kM0iwWiGWM=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=fi+CQOggoINgFuvEDxIJS3h40coAa/sf2Pq13mnypD9uwIuwKOA8GFKnKgXd4jgYgqqe4qxFODSfbi+HCg9hJx4Fb6Ubk+W2AZ3RwHKB53u4OuQsHDhHZgfn9aQrqoukWc4auRiDRMoU0XZgexNfI6qELSRpfMbHuEHIhK9Wz8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kvk0UQ8/; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kvk0UQ8/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58AD6C4CEEB;
-	Fri, 22 Aug 2025 00:30:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1755822620;
-	bh=oCu+21hpHHRslBrIc9JKmXmCaImpZ5fj5kM0iwWiGWM=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=kvk0UQ8/hI97OnJtaK61IEwaZgF48NpOXH5+UN/Wo6o/wIABG3Zm721wcOV9+X0hl
-	 EeR/DJSydgo/7KLdVkvLolFdB2IgHS4gDc/lOAt6zuKcIxD7mPp2XnaY65nflFBK/w
-	 nMEYL57PSZwq8HNYdk9YWapSYpNWtcamRIwt6JZVO5h7tTgSzIyQ9tuHkYhSHcaO9H
-	 O4NwtOUf/VQShYixxmxUM1be39PitpRQUP+Yf8JaR9S4EqdAx8HfSLYsXWkvjFVszR
-	 rZxa0sqHeuchYZiox+ORrdWWCrDsH3oCQbse96wHQdpiMFIhG5Hxc7FQPCuDyQwa3N
-	 wg5U3KP2Dhf2A==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id ADF2B383BF68;
-	Fri, 22 Aug 2025 00:30:30 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1755824935; c=relaxed/simple;
+	bh=mhtMjMM8sl4QM2j/204rTXTQo3Dig9BevZ/k5TmelaU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type; b=NRwsWGjLFMhaTwDrkSQRi3DIWrJnSjBzW05W+P/wNj7243KOcPQr1HObjnuHrjFlEc1895i6/4VKT2OQubNv+5Y1xrK9hhsXIn0qK4PdrwQRWNDyM4or82SyFZnqgwZTQD1v8fUU+dHxwdLvRRGC7hyhVcS4hv9ifg3EdaDt07U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.189
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.194])
+	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4c7MQz1hH0zdcS5;
+	Fri, 22 Aug 2025 09:04:27 +0800 (CST)
+Received: from dggpemf500016.china.huawei.com (unknown [7.185.36.197])
+	by mail.maildlp.com (Postfix) with ESMTPS id ED3CF140257;
+	Fri, 22 Aug 2025 09:08:50 +0800 (CST)
+Received: from [10.174.176.70] (10.174.176.70) by
+ dggpemf500016.china.huawei.com (7.185.36.197) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1544.11; Fri, 22 Aug 2025 09:08:49 +0800
+Message-ID: <9f576014-c54f-44d4-a8aa-ddfafeb7a310@huawei.com>
+Date: Fri, 22 Aug 2025 09:08:47 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net-next 1/6] netfilter: ctnetlink: remove refcounting in
- dying list dumping
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <175582262950.1251664.18196776225165187942.git-patchwork-notify@kernel.org>
-Date: Fri, 22 Aug 2025 00:30:29 +0000
-References: <20250820144738.24250-2-fw@strlen.de>
-In-Reply-To: <20250820144738.24250-2-fw@strlen.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net] netfilter: br_netfilter: reread nf_conn from skb
+ after confirm()
 To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+CC: <pablo@netfilter.org>, <kadlec@netfilter.org>, <razor@blackwall.org>,
+	<idosch@nvidia.com>, <davem@davemloft.net>, <edumazet@google.com>,
+	<kuba@kernel.org>, <pabeni@redhat.com>, <horms@kernel.org>,
+	<yuehaibing@huawei.com>, <zhangchangzhong@huawei.com>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<bridge@lists.linux.dev>, <netdev@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+References: <20250820043329.2902014-1-wangliang74@huawei.com>
+ <aKWyImI9qxi6GDIF@strlen.de>
+ <80706fff-ca22-45f5-ac0b-ff84e1ba6a8b@huawei.com>
+ <aKbDZWHNf4_Nktsm@strlen.de>
+From: Wang Liang <wangliang74@huawei.com>
+In-Reply-To: <aKbDZWHNf4_Nktsm@strlen.de>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: kwepems200001.china.huawei.com (7.221.188.67) To
+ dggpemf500016.china.huawei.com (7.185.36.197)
 
-Hello:
 
-This series was applied to netdev/net-next.git (main)
-by Florian Westphal <fw@strlen.de>:
+在 2025/8/21 14:57, Florian Westphal 写道:
+> Wang Liang <wangliang74@huawei.com> wrote:
+>> 在 2025/8/20 19:31, Florian Westphal 写道:
+>>> Wang Liang <wangliang74@huawei.com> wrote:
+>>>> Previous commit 2d72afb34065 ("netfilter: nf_conntrack: fix crash due to
+>>>> removal of uninitialised entry") move the IPS_CONFIRMED assignment after
+>>>> the hash table insertion.
+>>> How is that related to this change?
+>>> As you write below, the bug came in with 62e7151ae3eb.
+>> Before the commit 2d72afb34065, __nf_conntrack_confirm() set
+>> 'ct->status |= IPS_CONFIRMED;' before check hash, the warning will not
+>> happen, so I put it here.
+> Oh, right, the problem was concealed before this.
+>
+>>> There is a second bug here, confirm can return NF_DROP and
+>>> nfct will be NULL.
+>> Thanks for your suggestion!
+>>
+>> Do you mean that ct may be deleted in confirm and return NF_DROP, so we can
+>> not visit it in br_nf_local_in() and need to add 'case NF_DROP:' here?
+>>
+>> I cannot find somewhere set skb->_nfct to NULL and return NF_DROP. Can you
+>> give some hints?
+> You are right, skb->_nfct isn't set to NULL in case NF_DROP is returned.
+> However, the warning will trigger as we did not insert the conntrack
+> entry in that case.
+>
+> I suggest to remove the warning, I don't think it buys anything.
+>
+> Thanks.
 
-On Wed, 20 Aug 2025 16:47:33 +0200 you wrote:
-> There is no need to keep the object alive via refcount, use a cookie and
-> then use that as the skip hint for dump resumption.
-> 
-> Unlike the two earlier, similar patches in this file, this is a cleanup
-> without intended side effects.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> 
-> [...]
 
-Here is the summary with links:
-  - [net-next,1/6] netfilter: ctnetlink: remove refcounting in dying list dumping
-    https://git.kernel.org/netdev/net-next/c/08d07f25fd5e
-  - [net-next,2/6] netfilter: nft_set_pipapo_avx2: Drop the comment regarding protection
-    https://git.kernel.org/netdev/net-next/c/d11b26402a33
-  - [net-next,3/6] netfilter: nft_set_pipapo_avx2: split lookup function in two parts
-    https://git.kernel.org/netdev/net-next/c/416e53e39516
-  - [net-next,4/6] netfilter: nft_set_pipapo: use avx2 algorithm for insertions too
-    https://git.kernel.org/netdev/net-next/c/84c1da7b38d9
-  - [net-next,5/6] netfilter: nft_set_pipapo: Store real pointer, adjust later.
-    https://git.kernel.org/netdev/net-next/c/6aa67d5706f0
-  - [net-next,6/6] netfilter: nft_set_pipapo: Use nested-BH locking for nft_pipapo_scratch
-    https://git.kernel.org/netdev/net-next/c/456010c8b99e
+Yes, remove the warning is a good a choice. I will remove the two lines in
+v2 patch later, please check it.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+------
+Best regards
+Wang Liang
 
