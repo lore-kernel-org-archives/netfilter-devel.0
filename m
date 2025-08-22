@@ -1,37 +1,28 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 151A130E0F2;
-	Fri, 22 Aug 2025 14:47:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F266E2367DF
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Aug 2025 15:53:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.27.42.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755874050; cv=none; b=cfZkyY6hqMlcgKCmxOJx0I9QQBlDm/QzSbhXyMcysW7HFlIUtjMEd7kF70tCYWznIeEgmUAij7EZOPEXWlcey/+XHDi1jflEs4w8QP9TsXhEqNAb/Llr+vseD4zIKN+5UxP493Hrm/Scm0V3OVxwllzMUhDNg53DcU+hAvFv5dg=
+	t=1755878004; cv=none; b=CK/oDZ/oMJrmqJRpBJkK7mnf75KJJH7EhxcnKCDHlPL3PXYfRwNy2ZvCnDB2kGJEioBtNnLq1KkqCcA41OVfX88U4gMhtV1yw8+PvsG7/l8JdMk59T74pWmpzA/BmoXMDc6wGNpRFy8rznG3/x02jsbXx1xbMu6azGiWsnjsVmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755874050; c=relaxed/simple;
-	bh=wKNI6RveS+eUCF19EV1LKOh2J2GXzBq/8dHhdjIJcvI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vwa4mH94Ccm1n84YCiqakExFGGWCsE80VZwu7KawXSNIR3fLpvoWIV433vG7Cmb9J3C/wiaCvoZ4+oqH0rAWXHkf03W5/wGdeLUoa04PvX2sKUVJ21y2EcKSO1VnR+JyY1vetC0a8q2ZmgCjjOmQbHJak//VwlQ8iOuv4T6bytY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id A39B56032B; Fri, 22 Aug 2025 16:47:25 +0200 (CEST)
-Date: Fri, 22 Aug 2025 16:47:25 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: Wang Liang <wangliang74@huawei.com>, pablo@netfilter.org,
-	kadlec@netfilter.org, razor@blackwall.org, idosch@nvidia.com,
-	davem@davemloft.net, edumazet@google.com, pabeni@redhat.com,
-	horms@kernel.org, yuehaibing@huawei.com, zhangchangzhong@huawei.com,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v2] netfilter: br_netfilter: do not check confirmed
- bit in br_nf_local_in() after confirm
-Message-ID: <aKiC_fDXK0Ln7-oM@strlen.de>
-References: <20250822035219.3047748-1-wangliang74@huawei.com>
- <aKghV0FQDXa0qodb@strlen.de>
- <20250822071330.4168f0db@kernel.org>
+	s=arc-20240116; t=1755878004; c=relaxed/simple;
+	bh=i9Egau1/qUTodPEEUXGKM3N9AujI11stn6UNnbB5pk0=;
+	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=Gu2k5PLv3d7d7q3aAAgQJ3AkWOPBg6DMZ3JYO2g/7ZvzUZJGo5r2WZ24iJQrqD2f2SVey+93+EKVgZsQpmKUafVZRVl6UYNjKDd3+n5LUvXeZCINNi1LwoeFWNIOBme5GJyMV1Suk7t98Qbyvp31FqQtsPDs0OGNOApkdqjH7/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=paupiland.net; spf=pass smtp.mailfrom=paupiland.net; arc=none smtp.client-ip=212.27.42.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=paupiland.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paupiland.net
+Received: from askadice.com (unknown [82.65.66.232])
+	(Authenticated sender: pmsmtplog3@free.fr)
+	by smtp3-g21.free.fr (Postfix) with ESMTPSA id 1BA7613F8D5
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Aug 2025 17:53:10 +0200 (CEST)
+Date: Fri, 22 Aug 2025 17:52:39 +0200
+From: Pierre =?iso-8859-1?Q?Mazi=E8re?= <star+netfilterdevelml@paupiland.net>
+To: netfilter-devel@vger.kernel.org
+Subject: [ipset] Can't resolve domain names containing an hyphen "-"
+Message-ID: <20250822155239.GA30578@askadice.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,11 +31,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250822071330.4168f0db@kernel.org>
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> Unrelated, but while I have you -- nft_flowtable.sh is one of the most
-> flake-atious test for netdev CI currently :( Could you TAL whenever you
-> have some spare cycles?
+Hello,
 
-I'll look into it on monday.
+I might have found a bug in ipset domain name resolving code:
+
+
+--------------------------------------------------------------
+# ipset create testset hash:ip
+# ipset add testset hyphen-containing.example.com
+ipset v7.2x: Syntax error: cannot parse hyphen: resolving to IPv4 address failed
+----------------------------------------------------------------
+
+This is the output of ipset 7.22 in an up-to-date debian testing system as well
+as of 7.24 directly compiled from the git repository.
+
+The issue seems to be located in the parse_ipaddr function of
+lib/parse.c: the function attempts to find if the string pointed by the str 
+argument is a range of IPs containing IPSET_RANGE_SEPARATOR defined in 
+include/libipset/parse.h as "-".
+If IPSET_RANGE_SEPARATOR is found, it is replaced by '\0' which results
+in the truncation of the string pointed by the str argument.
+If the string is a domain name then the subsequent attempt to resolve it
+fails because it is incomplete compared to what was passed initially to
+the parse_ipaddr function.
+
+I don't have any understanding of what is done before or after
+this step. Therefore, if you consider this report as valid, I'll leave
+to the relevant developer the task to fix this issue in the most secure
+and appropriate way.
+
+Many thanks to all involved developers and non developers for their work on 
+this very important set of tools that is netfilter !
+
+Pierre
+
