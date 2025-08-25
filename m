@@ -1,45 +1,48 @@
 Received: from mail.sgstbr.de (mail.sgstbr.de [94.130.16.203])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE515275AF0;
-	Mon, 25 Aug 2025 20:23:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4B7535965;
+	Mon, 25 Aug 2025 20:38:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.130.16.203
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756153423; cv=none; b=bPzvO35weBvgXHrK/kMkG8ahhVGpiE9vLMzYy0Qv5li4FBvX4GlZKYtVO5SWM3BDBVxbRlhZUQUmzV9DvgwMrHngQ3oCJTTzSIKugmzfxkYj9GCODqEpMMdMm1xWZyBfeTyfKCRO9V15I+p5hm4O6OTaWzE8+mfwOJos8tFLOGc=
+	t=1756154316; cv=none; b=GGIpGOOi9wT06lmBvnbdPvAM/cD4xhH5ok+uBbhmHcwi4s5bLKSg/MBeBbjD4piPcv6DlQttA5+IpJjj3pgNxWtnALEciR9M4p7LbmywUPDNrqoZ9KI6Mry/h5BDnuPEYXnoReERHZygFqcNVf3jo3gawM0PxATeDHMOzfCmdwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756153423; c=relaxed/simple;
-	bh=9gF0dd0h2XiWBlQmIm+2msy2NXr1BAnnfR1pZBMu59k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=aMJdKikoEtiKWZP/srnQVOtq+3WmkF66OoHX/btq/lToGmdP0fjUERX3NrOKKKZXBbMVEO0Jl3rpvs3wZxopU9Db0Y57uIC6Gf2xqZXVT2kRl200oRnsUViHL/ObMMQPuWrD4sHThyYHOajR0zzTFVeAyQi3Qcg30xVYXBO2Kzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=blaese.de; spf=pass smtp.mailfrom=blaese.de; dkim=pass (2048-bit key) header.d=blaese.de header.i=@blaese.de header.b=twSachDG; arc=none smtp.client-ip=94.130.16.203
+	s=arc-20240116; t=1756154316; c=relaxed/simple;
+	bh=W13+6u4LQTAWAcuSSKawj+MWvwHUUfX5cEqIGcLDZBY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ZdneqM+YvYx3gWUQTtsZJfthqhaBZLvgTuvw1hfQc/QXquuzIBylsO3hl0YCIDbtC8IQgcDQo3Vy6K7Ses9qbLpN9C/Na5tDFj2KYr4wiXDDYNmZjQg+w+Pk1ZnMOW2j+T5WBjKkQPDQyWokjAGP3e7VkRnZ61f0OLmYpoANusM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=blaese.de; spf=pass smtp.mailfrom=blaese.de; dkim=pass (2048-bit key) header.d=blaese.de header.i=@blaese.de header.b=UeXw7fEV; arc=none smtp.client-ip=94.130.16.203
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=blaese.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blaese.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=blaese.de header.i=@blaese.de header.b="twSachDG"
+	dkim=pass (2048-bit key) header.d=blaese.de header.i=@blaese.de header.b="UeXw7fEV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=blaese.de; s=201803;
-	t=1756153104; bh=2dbN+/ubPjTAEansV5KOQruQjh4gtBDJqjkiYUH6VmY=;
-	h=From:To:Subject:Date:From;
-	b=twSachDGXs/dS1XbwuMpFXiRbU8PnlATvugfGPD5vUbDkhSdKlTcgOUPjSe6tTVu3
-	 gnxS81toOkO4wS0DijkzPonGdCoCOMBBqvKH4g0FK1fCuQL2k9RcPMm1B00fTr0lSz
-	 6mIyhBz2IPdMge2LUHaifMEI6ObS1pegm/9EZov1/Uvjq40kTXU7lJjaLw/rCx9OeM
-	 T2SrqKoUErQzo38uOCwEDhEJvZWDk87QfZ2DwdDNmVDGWNL339CFhhZmVxnon/cMki
-	 3t8ksCEJp3l/iolF803G1GwLs4sU2C7xIxhcrMgqTU3g0GUHJHEwBPYjqtnc1s/9OM
-	 XR3X22o+5NsVg==
+	t=1756154312; bh=ZS2UruvdxdddcUS6w+USGX/o4ohUJXVdBYJWX+wqSqc=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=UeXw7fEV2p5aldUqJs9isTusuCqlCcoX0sTpZEeKGwY2QB6KOJ5+HhA7LYxo9GIu6
+	 e4TqQ3klRGV2CrUU4LgeK7mVjq0WE6VuiYXtPPg1pDl7/CCrSIyBDQl0sUm5n9X3zG
+	 utpqUMKBfmbgRPo5rQDrhyWpP4eGiv4SACryl9u5vDPWnpDLb3DXedgbegDs4TBUgZ
+	 XiZpOp2cnnrAo0SH1BTvbrHC1LXNu1ngfsj2kOB4aVLnZtOYL2v6sKYioP/zyIckfM
+	 ftB0qAESkFOO28R4Y8716Zu2F80O6OE2Ml3d/a51Dvoo94iWncofYzzNT2Q0+zPsIu
+	 cPVT9ADGkIB0A==
 Received: from fbl-xps (p200300cd3f1e76004353a7342282dcba.dip0.t-ipconnect.de [IPv6:2003:cd:3f1e:7600:4353:a734:2282:dcba])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: fabian@blaese.de)
-	by mail.sgstbr.de (Postfix) with ESMTPSA id 756B924B485;
-	Mon, 25 Aug 2025 22:18:23 +0200 (CEST)
+	by mail.sgstbr.de (Postfix) with ESMTPSA id B363E24B485;
+	Mon, 25 Aug 2025 22:38:31 +0200 (CEST)
 From: =?UTF-8?q?Fabian=20Bl=C3=A4se?= <fabian@blaese.de>
 To: netdev@vger.kernel.org
 Cc: netfilter-devel@vger.kernel.org,
 	=?UTF-8?q?Fabian=20Bl=C3=A4se?= <fabian@blaese.de>,
 	"Jason A. Donenfeld" <Jason@zx2c4.com>
-Subject: [PATCH] icmp: fix icmp_ndo_send address translation for reply direction
-Date: Mon, 25 Aug 2025 22:17:17 +0200
-Message-ID: <20250825201717.3217045-1-fabian@blaese.de>
+Subject: [PATCH v2] icmp: fix icmp_ndo_send address translation for reply direction
+Date: Mon, 25 Aug 2025 22:38:26 +0200
+Message-ID: <20250825203826.3231093-1-fabian@blaese.de>
 X-Mailer: git-send-email 2.50.1
+In-Reply-To: <20250825201717.3217045-1-fabian@blaese.de>
+References: <20250825201717.3217045-1-fabian@blaese.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -79,8 +82,12 @@ Fixes: 0b41713b6066 ("icmp: introduce helper for nat'd source address in network
 Signed-off-by: Fabian Bläse <fabian@blaese.de>
 Cc: Jason A. Donenfeld <Jason@zx2c4.com>
 ---
- net/ipv4/icmp.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+Changes v1->v2:
+- Implement fix for ICMPv6 as well
+---
+ net/ipv4/icmp.c     | 14 ++++++++++++--
+ net/ipv6/ip6_icmp.c | 14 ++++++++++++--
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
 diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
 index 2ffe73ea644f..a4fb0bc7c4cf 100644
@@ -113,6 +120,38 @@ index 2ffe73ea644f..a4fb0bc7c4cf 100644
 +	}
  	__icmp_send(skb_in, type, code, info, &opts);
  	ip_hdr(skb_in)->saddr = orig_ip;
+ out:
+diff --git a/net/ipv6/ip6_icmp.c b/net/ipv6/ip6_icmp.c
+index 9e3574880cb0..c6078694311c 100644
+--- a/net/ipv6/ip6_icmp.c
++++ b/net/ipv6/ip6_icmp.c
+@@ -58,7 +58,13 @@ void icmpv6_ndo_send(struct sk_buff *skb_in, u8 type, u8 code, __u32 info)
+ 	struct nf_conn *ct;
+ 
+ 	ct = nf_ct_get(skb_in, &ctinfo);
+-	if (!ct || !(ct->status & IPS_SRC_NAT)) {
++	if (!ct) {
++		__icmpv6_send(skb_in, type, code, info, &parm);
++		return;
++	}
++
++	if ( !(ct->status & IPS_SRC_NAT && CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)
++		&& !(ct->status & IPS_DST_NAT && CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY)) {
+ 		__icmpv6_send(skb_in, type, code, info, &parm);
+ 		return;
+ 	}
+@@ -73,7 +79,11 @@ void icmpv6_ndo_send(struct sk_buff *skb_in, u8 type, u8 code, __u32 info)
+ 		goto out;
+ 
+ 	orig_ip = ipv6_hdr(skb_in)->saddr;
+-	ipv6_hdr(skb_in)->saddr = ct->tuplehash[0].tuple.src.u3.in6;
++	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) {
++		ipv6_hdr(skb_in)->saddr = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.in6;
++	} else {
++		ipv6_hdr(skb_in)->saddr = ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.in6;
++	}
+ 	__icmpv6_send(skb_in, type, code, info, &parm);
+ 	ipv6_hdr(skb_in)->saddr = orig_ip;
  out:
 -- 
 2.50.1
