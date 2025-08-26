@@ -1,52 +1,52 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA51143ABC
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 09:19:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D86B22F6593
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 09:36:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756199980; cv=none; b=EgiBCo8RMhyHBXq7ZouJUhRzGkBbDn37vMKa3Xm3sWKtnARFllitmfQoWInWF+OOca0wzTgTH9XPLBae5nKahmprcmPqPgw1wjmhb4xbDZqnsuGQL6s75FUeW+8kl/GaPHAmOkjQyi09z+rHvVPiAVlMJhPTjORr8qUTXWjN7oY=
+	t=1756201002; cv=none; b=TLPUl3Aia7JJNWARaR2fsGZ/oOD9yCc8DLrHVAVGPf7jfBW2C8hDoqneqIq75MfFkwLOoO6MQR8TP70G0ogZFQ4Z0y1m0i6grdkMdQL/oygpRy2A0bIjk+1S5wS1njpro+gAUphfAb3T+o/3yBItayev1mjbPefKdGFQgdai7gM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756199980; c=relaxed/simple;
-	bh=5V2bxHsGn2KnsdZHW21gWHysBfRwVeGmUcKuoQVVD7o=;
-	h=From:To:Subject:Date:Message-Id:MIME-Version; b=EwEpGcC8TCI3luURJjlBuLXQ6BWqj4hljqdpNCjwQfKkREIebbLTRtOFUa4QxKGMmSAmZ0NHxFReW/YFWgganE2cV9kGMXfur3UgILFT39z+CmnXiDtA6D6lnrqE1rNYEPub+7R88ZaOCfQTz4Ashq7+XEuncamnvDZ4Nb6fP2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jvmGAP1s; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jvmGAP1s; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1756201002; c=relaxed/simple;
+	bh=DOfkJxDn5JPKZzkS/fqffL23zREofkqhdCFO3ZUD1/Y=;
+	h=From:To:Subject:Date:Message-Id:MIME-Version; b=WtXhEOGysPjvlcbrUo3cRXHqp2VJZfd3yhyaLoxTsZkXyZ/rIuVHYjdDOTj4DLPXbgKg6WGix7hpLeoMHZK5m7JnVaTYwZNo1+VJgVfb3Aq1VU0fBchggX4Gd5B4Kb8W3lIELO4+zbiYllKFcgoUbF83tKxDIfoYfYWyUeO+yJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dkxW7b23; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dkxW7b23; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jvmGAP1s";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jvmGAP1s"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dkxW7b23";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dkxW7b23"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id E69DD60281; Tue, 26 Aug 2025 11:19:34 +0200 (CEST)
+	id 534F66026E; Tue, 26 Aug 2025 11:36:38 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756199974;
-	bh=h4Mk9d2lJx0T54Vf9Jm7gqzXcpuO1Y2VPDyGU9yUqds=;
+	s=2025; t=1756200998;
+	bh=xPveC13T3CFZSWp9+QMER56TKvlABkDOC8wAxMG1UPU=;
 	h=From:To:Subject:Date:From;
-	b=jvmGAP1sey0SROm2ua7tPWtshVWohNejnMjHJvvIfCImXQbacQNSniQ10TmKyLBRF
-	 r2/xQz3eStwj8RF0mEtifeZtbDSHGrC/mI4b+980v8BzxB4AFSeiotH9CKSoWxlo/p
-	 KxmrK+zbwwE5qI4v55sqKcUuKWNY2XiYVh5kHLGyVQu2tiRRlzfKb5sFqvEPoswXSF
-	 SUjC+KJ0OIgzQZbbc1/WIRTjYbrS0Y+543Q5RXFSn4v5JBi3Acr08W5w7RVPun/Z7q
-	 dI2nBKV3qyfUqFl1xg70foealfDeJrgTCDJR+9IstU3XCA7oOzR2uToR4mbmFsDbke
-	 0hiQMAfL6ZvsQ==
+	b=dkxW7b23ZuKcspbhys4rW9I0atJ43WdwDjgfRW8XWZ9cgPVmpOEHV4xfYapsxGEUb
+	 MciceqJS0xSgvRV5XplmirOm9KnQ8loCfbF8FyEEKw3m7w0YG+iNXng7cxVss6FJrO
+	 DgAMSA3UnyaaCKgvHS3GREufK0MII5TVgbe8Y68grMF89XyDy/F1twggkIeQmHpXHc
+	 uwGhCOtsGlBZtERjNsdMOKewfVzGZhXwRMHB1pTb2CxYg2icDtghK1KVXEDgBabLgZ
+	 TNxpgywwpoZ400Am4o4kDE4hUBCmtCCVO8pBIvVD3nHjofAtaf9UtcTgTF1qLOdZbt
+	 +BZRmBcf4Zizw==
 X-Spam-Level: 
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6A9656027F
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 11:19:34 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id E46846026C
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 11:36:37 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756199974;
-	bh=h4Mk9d2lJx0T54Vf9Jm7gqzXcpuO1Y2VPDyGU9yUqds=;
+	s=2025; t=1756200998;
+	bh=xPveC13T3CFZSWp9+QMER56TKvlABkDOC8wAxMG1UPU=;
 	h=From:To:Subject:Date:From;
-	b=jvmGAP1sey0SROm2ua7tPWtshVWohNejnMjHJvvIfCImXQbacQNSniQ10TmKyLBRF
-	 r2/xQz3eStwj8RF0mEtifeZtbDSHGrC/mI4b+980v8BzxB4AFSeiotH9CKSoWxlo/p
-	 KxmrK+zbwwE5qI4v55sqKcUuKWNY2XiYVh5kHLGyVQu2tiRRlzfKb5sFqvEPoswXSF
-	 SUjC+KJ0OIgzQZbbc1/WIRTjYbrS0Y+543Q5RXFSn4v5JBi3Acr08W5w7RVPun/Z7q
-	 dI2nBKV3qyfUqFl1xg70foealfDeJrgTCDJR+9IstU3XCA7oOzR2uToR4mbmFsDbke
-	 0hiQMAfL6ZvsQ==
+	b=dkxW7b23ZuKcspbhys4rW9I0atJ43WdwDjgfRW8XWZ9cgPVmpOEHV4xfYapsxGEUb
+	 MciceqJS0xSgvRV5XplmirOm9KnQ8loCfbF8FyEEKw3m7w0YG+iNXng7cxVss6FJrO
+	 DgAMSA3UnyaaCKgvHS3GREufK0MII5TVgbe8Y68grMF89XyDy/F1twggkIeQmHpXHc
+	 uwGhCOtsGlBZtERjNsdMOKewfVzGZhXwRMHB1pTb2CxYg2icDtghK1KVXEDgBabLgZ
+	 TNxpgywwpoZ400Am4o4kDE4hUBCmtCCVO8pBIvVD3nHjofAtaf9UtcTgTF1qLOdZbt
+	 +BZRmBcf4Zizw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nft,v2] mnl: continue on ENOBUFS errors when processing batch
-Date: Tue, 26 Aug 2025 11:19:30 +0200
-Message-Id: <20250826091930.357582-1-pablo@netfilter.org>
+Subject: [PATCH nft,v3] mnl: continue on ENOBUFS errors when processing batch
+Date: Tue, 26 Aug 2025 11:36:33 +0200
+Message-Id: <20250826093633.525032-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -106,27 +106,25 @@ ruleset.nft:2367:7-18: Error: Could not process rule: No such file or directory
 Fixes: a72315d2bad4 ("src: add rule batching support")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/mnl.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+v3: consolidate check, simply skip ENOBUFS for batch.
+
+ src/mnl.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/src/mnl.c b/src/mnl.c
-index 6684029606e5..4595b5aea11d 100644
+index 6684029606e5..934e5d4e79ee 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -449,8 +449,11 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list,
+@@ -449,7 +449,8 @@ int mnl_batch_talk(struct netlink_ctx *ctx, struct list_head *err_list,
  			break;
  
  		ret = mnl_socket_recvfrom(nl, rcv_buf, sizeof(rcv_buf));
 -		if (ret == -1)
--			return -1;
-+		if (ret == -1) {
-+			/* Too many errors, not all errors are displayed. */
-+			if (errno != ENOBUFS)
-+				return -1;
-+		}
++		/* ENOBUFS means too many errors, not all errors are displayed. */
++		if (ret == -1 && errno != ENOBUFS)
+ 			return -1;
  
  		/* Continue on error, make sure we get all acknowledgments */
- 		ret = mnl_cb_run2(rcv_buf, ret, 0, portid,
 -- 
 2.30.2
 
