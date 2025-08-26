@@ -1,54 +1,46 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452FE30CD82
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 19:41:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0872A2F60D5
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 21:07:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756237298; cv=none; b=NDoJkFhcF/xiCrs9z/o59WSfRB893ZKnmzjErVlXIEC+3VqiZ9Q/lvX8/aneIQCIvDnI+PjmGshlkqoG0luvYCnkUjQ/eJr+dX3/PfZ6rbkAzUS6ggcFpQZdTM/OOdUK2khmCwiEixtl80+W8rB0aYHuo0gvdtGthVHMOW79Abk=
+	t=1756242477; cv=none; b=n1M9cu4aash0gn4vP/LKPnezajoPbbh4UNX8y7mBf33JD5xwLacIkfSOGo5ZeFjbiwskFYCWZgsZTy9hnjmoIewojEYmyaGDlpEEsVUEgaGifo67ChQ5eK0r1gx7PvgfO/EM7PQVxS1Uh8NNoaVVui7M/3xZWmKwxr3Q0ZeyMsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756237298; c=relaxed/simple;
-	bh=4qJe6U6YI2QeK4QcxRsnDl0BKmHTWyQokGmxcFcnYNA=;
+	s=arc-20240116; t=1756242477; c=relaxed/simple;
+	bh=OD1vgJ1leWk/A2+XjcpJobmgDkQ05eH4kljDyjTpxvU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PcZicOr/QMmVuoUN0XYCd7xykvT+Xtk/FrSsfdt7PXGTalnnyr3XGERcEVFmWJcjm4K7Cm+6TkEF9oAWRHT4LvGTd3fRgLfBnzqqEfAVsO8UoDHSIS5j4QeJmrZVs/dp/NQXi4Mys0atiw5nG1++VzUaPi43co4Y32HZ8DqpGcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=As5b8FD1; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=fL+Sr63Z; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=uxOHzyCq3oR0uBmSQuXI35a2bGtvWl9wwKhpGIe0p7v27PSrAzqxBYJts1r96LtZXHs/UlgpEGqZpWBrOqJkS9UukQ7KbeN2ZGBXD07ASk7aQVjNu/EHPZKbF+cDUN881mK+o69M7kcwOl+2x179LOGQXagwRmkplE8HLgjxn2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=gbRdds1g; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="As5b8FD1";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="fL+Sr63Z"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id CF8F660264; Tue, 26 Aug 2025 21:41:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756237291;
-	bh=kQO0Zlz7qucBd7XITTEqOoXQjf2DoEbntbLUl8akyo4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=As5b8FD1DITFfQeLAd76ghs0XL4zPg80aDB47rkpmiSvJRIxx/Cm5P+xpsBzfu+yB
-	 vNcOAvg+Bzlpt49lXT6qZdYGd5Okq9GKznr9cTz6sUdS3eXcDdNZux32oyfo+zVnoq
-	 NQP7nKor8IfHYpIvFcpn2q/WmJhwtniJKiucOlrzOlCZoFN/s9lvNEtSgp+7BvjYI7
-	 QNbIr8QOZ/SeOYtN9S6xQpVwrpaPj462lU+N4L7Ezh0n193E8pjsaanwFS4nORA8xg
-	 ERQsVpyPV3/1krWpLyBQqapvJgP19CfaaQ3PPLuhsXI3H4pLdu0uT/3qrTUV9f+zCG
-	 1hA6XAvSPIiIA==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A3AA660255;
-	Tue, 26 Aug 2025 21:41:30 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756237290;
-	bh=kQO0Zlz7qucBd7XITTEqOoXQjf2DoEbntbLUl8akyo4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=fL+Sr63ZDiWQzdZtM8bFIEZTzc8yr+BmRAyVLMpIvI5ocvllnfW+0wL90ZvHbn9yB
-	 RkkMLOL8xh1gpfFVNDDpHBRu9/jzimIGnuBES8TssmPJks+D0D/tgtvnjh8JQBTopc
-	 LwRn1wbp/WlusZImhK7SD+CBmSAu196iQ4T9+LQwVyol2OnoKynu4Hkc+nm4GnFtw7
-	 992+9gZx4jH7v8jQPjUmqEK0pRUSA8HjMOo/hR5U+S/kmrHu5hc1JhOiRtOmwUlLy4
-	 k1SXIY8+2KN+3Fy1fkN9LvtdXhOuK6REWCbXge2N2RfNlVRk8gnO1rLJfTkKlLQv41
-	 8pD/jfauquIJA==
-Date: Tue, 26 Aug 2025 21:41:27 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="gbRdds1g"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=uv4+CgXwoIm2uXDn4TdRn7QNQKXbO2CP+kXot2RXMkA=; b=gbRdds1gHT2IB9jxZlay+lY+bm
+	hglV/l7YRbmZw9FDeu5XgyaKmexl8UDKvcuO4briF95bvQhRIm/rliy07pDUKrE2zjDvDS3UefFU5
+	a54n+0/QRKofLfi+MBjBVL0erTJaRlybAXwvwBovwNZxbJtDSoyUYPOaHFkSIRodKx1PeYvOK2Wxs
+	eqVZVVZ5vVaFq/BvThMvw0upz0HGmRWPhmE0fbfca1fQt9uOcuz06xY0iJxBu4CJUnawdX6BQOu9u
+	fPGAR8Bu0zt+DGnc1RNZe7WP6+flsJOJhEjgZSkKnYl0wbNukiKWFXWsXUf9Lx4W52A4UpfjeElJs
+	l1ui5sdw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1ur0tU-000000008NI-37Wa;
+	Tue, 26 Aug 2025 23:07:52 +0200
+Date: Tue, 26 Aug 2025 23:07:52 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 Subject: Re: [nft PATCH] Makefile: Fix for 'make distcheck'
-Message-ID: <aK4N56uzuIWgBiG5@calendula>
+Message-ID: <aK4iKKoikzRgiTJq@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 References: <20250826170643.3362-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -56,7 +48,7 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20250826170643.3362-1-phil@nwl.cc>
 
@@ -67,6 +59,4 @@ On Tue, Aug 26, 2025 at 07:06:43PM +0200, Phil Sutter wrote:
 > Fixes: c4b17cf830510 ("tools: add a systemd unit for static rulesets")
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Thanks
+Patch applied.
