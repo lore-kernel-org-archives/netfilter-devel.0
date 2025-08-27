@@ -1,174 +1,135 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9337030CD85;
-	Wed, 27 Aug 2025 21:32:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3BE30DD14;
+	Wed, 27 Aug 2025 21:38:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756330332; cv=none; b=G3QmFK3/SDVHx9DF7hKuYni8EPAq1gXGFQVPkwOlqKifbfjemflJmQ3ogbC7wY0ehsKc5XrktvWD1GLfLKyi4+FWne1ppSU5VR0CN6it/dhxA+RLHt0fVytaOxncRuVQnVMRh/wRzv7DTIureXO7TQnTyYbLUkiXV5cXZtTO4aU=
+	t=1756330730; cv=none; b=R8nSe/AEuIDYrkWUWIROGFRJyRuSuu+lHb2kheivHzwbBm97PJwbeptmxgULOtyYxddcvSinjYf0SoaSFW8LBMXtU38s5Sijw3LPcqZuM537DIjxsAgqHj+clPqNmk+1Uzq/K+XrhDNXgZi8fe14NRIiCZupTghryMcuY691PS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756330332; c=relaxed/simple;
-	bh=fPktTsvc+5rj6kVjcZ9RgUjeMGnA6cFBiR+ev0o78gc=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=biGQogrGf+72ssbotUK5s6lcgEUsrTceyEk0aMQbM7eHfTvFuubSkowllGf+4FVi/KfzatmjsbsyMFtltK4GIwQdu0CWmuXkQeqXv2NYbtc3z9o2Am974uriWrUSUD9q8zkSPXZPrs19verFuWh2WuE2jG+eIuvtOFugylC4hvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pEC9ybAt; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KjHzhC49; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1756330730; c=relaxed/simple;
+	bh=p5bHqFMfdYWypgdwX2ndTsW60HZCWq5xOpxYn3CdyDs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i1d+V5E2MigrqAf+xb9b9macEc+z83f6FtRqUwmz5bBcLrmPRpdBdcXQ/xkHXVnYD/KCKs3wBBnsVCMaPVgSqiRqLqldFtqhUUaxtsz2RwC2/ehAjaviec5M90WNr9yN+vcp6QXpVN2ByYvaD6UkR/enHPQ7ZE0BbybjjYMyLk0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MgiDHpTK; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=HD+PWB3I; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pEC9ybAt";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KjHzhC49"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MgiDHpTK";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="HD+PWB3I"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 1512560288; Wed, 27 Aug 2025 23:32:08 +0200 (CEST)
+	id 901A4607B4; Wed, 27 Aug 2025 23:38:46 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756330328;
-	bh=0ELUVWyjP4IjrZ67OFFVa2EqcuCxlf48GkN8m243Uzg=;
-	h=Date:From:To:Cc:Subject:From;
-	b=pEC9ybAtC5xUiBaKTWfcUHR6BCLwodruuYZZjNKwXxulLMOjfQB1bOU02fXW+u0ru
-	 EobdPZzu1nQ+EtHEJ/MFk6CA+lxzhAUOPZbGct7ptd4nCFDNl761B1ySEUse7JoIsX
-	 zvLovr/s8BhLjI8ykwKn0ZCIG5BhFJ1AJqQdZumF6JWEICVVUBaW8bHlpZrVe/BrU9
-	 PVcFmYQO5kkTNkF24MrBJfkjRHKIAjs4tISm1w+WlPZ5mopzxSmxi2tXVOfXB/w770
-	 qHqIALXBUm9F3y+wfoQhetU5CWlF46qIOJpWwYsLjMzSthy9CTLfb3EWzm7Vgd4jbN
-	 BQVFcMXRDPufw==
+	s=2025; t=1756330726;
+	bh=VC1X2cnylbEpt7B0aqU/bdmAhdb5uGGW2wGYvucZSfo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=MgiDHpTKA6eVpUe6xtBaGt97zvJCwTMvtGyolpfUqDwPj3QL5KbCag+vXhzhI8NJ3
+	 o2wKyVsAimsGNyuG5eMzt8CStDn9U5WIGZ78iQuzIvdBQOFNrfx2q7bnyCgHcJsVLX
+	 NHUW20isqHMjboLNLIkXxm7ckjrQORqMYSVuR1MbuzXXUWDigjlwq1TAoMQ21od56C
+	 f4TDWyG6JUlvWDA0sangfhQEEpwLRrM9j8AVgC3SqNqBbRgr5igZ2sBAxYpd6U8Omg
+	 p8PeaKdpHUxiJXlbAP2g5bikZUY7qVbfKJzAxd7fVO46GmKEJT2NVl/nAI7WcgZft8
+	 /omZ1ekpzcglQ==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D3EA36027E;
-	Wed, 27 Aug 2025 23:32:06 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2037A602AC;
+	Wed, 27 Aug 2025 23:37:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756330327;
-	bh=0ELUVWyjP4IjrZ67OFFVa2EqcuCxlf48GkN8m243Uzg=;
-	h=Date:From:To:Cc:Subject:From;
-	b=KjHzhC49hBG47Dw7cJVsn0SFff/BOD57X9gkjKfkkgCMUniA1g/hwqK5j/bcvkfNJ
-	 cftobgT0mDF6Yrn0THASH/F70wJiCEccCTyEbnC/pHd+l+5deBpKkKoa0ttTm5fZYw
-	 RTmL/xtYOpkjK5sf24Eex8Do3glRmgQ2bVKQ+QabGnzAdHaqV65yw4DIb0oc4gFxfd
-	 BpNaH+uf7risnyExFhJ3RjeFg5sGUep2S9avLVSoXQ+RZ+qOoIRgXIdcaE+3gba5dt
-	 aLwz32R60OG/nXNiRU49/DtwQ0vL0FV2OeAI735fCKHoGj4lvWlk0d1FRuXhzcaQdz
-	 hI02jAu/9kWmw==
-Date: Wed, 27 Aug 2025 23:32:04 +0200
+	s=2025; t=1756330628;
+	bh=VC1X2cnylbEpt7B0aqU/bdmAhdb5uGGW2wGYvucZSfo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=HD+PWB3Itnjki9qdOXq/cXfn0rwNMpqMWZW+y6+oAxfgTGdc0RXaQVtte60/6asfU
+	 VL+Ye7HPfgi7GpamFMCaBIOVtzXixI+AYy3FYc69pjSgDyjFqczV9YkikNuV5heFIL
+	 V/tudDNXWHCTwGa8W6XWj63j6HW30ShX9J8ytUJKsYlqhxvGinUWwizbRChTSlu4Ja
+	 p4vcdSYx/q4GZEpBxbi7PWRYYINB01RoNK1jkKrg1xJ48UpPcyQVs9Qmba8XVeXGci
+	 bnwt2gSXj/wQzA7niaWHCec20+szHrKcOKi5pmNSrla9iVmlp1iKeJs66rBkJLaU7L
+	 eDujie/P0XxFQ==
+Date: Wed, 27 Aug 2025 23:37:05 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net,
-	netdev@vger.kernel.org
-Subject: [ANNOUNCE] nftables 1.1.5 release
-Message-ID: <aK95VLv5qvd-RbGf@calendula>
+To: Zhang Tengfei <zhtfdev@gmail.com>
+Cc: ja@ssi.bg, coreteam@netfilter.org, davem@davemloft.net,
+	dsahern@kernel.org, edumazet@google.com, fw@strlen.de,
+	horms@verge.net.au, kadlec@netfilter.org, kuba@kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+Subject: Re:
+Message-ID: <aK96gZBMvbJ73e_e@calendula>
+References: <2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg>
+ <20250827144337.34792-1-zhtfdev@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="KvBgT5VujLnxGQF8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-
---KvBgT5VujLnxGQF8
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+In-Reply-To: <20250827144337.34792-1-zhtfdev@gmail.com>
 
-Hi!
+On Wed, Aug 27, 2025 at 10:43:42PM +0800, Zhang Tengfei wrote:
+> Hi everyone,
+> 
+> Here is the v2 patch that incorporates the feedback.
 
-The Netfilter project proudly presents:
+Patch without subject will not fly too far, I'm afraid you will have
+to resubmit. One more comment below.
 
-        nftables 1.1.5
+> Many thanks to Julian for his thorough review and for providing 
+> the detailed plan for this new version, and thanks to Florian 
+> and Eric for suggestions.
+> 
+> Subject: [PATCH v2] net/netfilter/ipvs: Use READ_ONCE/WRITE_ONCE for
+>  ipvs->enable
+> 
+> KCSAN reported a data-race on the `ipvs->enable` flag, which is
+> written in the control path and read concurrently from many other
+> contexts.
+> 
+> Following a suggestion by Julian, this patch fixes the race by
+> converting all accesses to use `WRITE_ONCE()/READ_ONCE()`.
+> This lightweight approach ensures atomic access and acts as a
+> compiler barrier, preventing unsafe optimizations where the flag
+> is checked in loops (e.g., in ip_vs_est.c).
+> 
+> Additionally, the now-obsolete `enable` checks in the fast path
+> hooks (`ip_vs_in_hook`, `ip_vs_out_hook`, `ip_vs_forward_icmp`)
+> are removed. These are unnecessary since commit 857ca89711de
+> ("ipvs: register hooks only with services").
+> 
+> Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
+> Suggested-by: Julian Anastasov <ja@ssi.bg>
+> Link: https://lore.kernel.org/lvs-devel/2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg/
+> Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
+> 
+> ---
+> v2:
+> - Switched from atomic_t to the suggested READ_ONCE()/WRITE_ONCE().
+> - Removed obsolete checks from the packet processing hooks.
+> - Polished commit message based on feedback.
+> ---
+>  net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+>  net/netfilter/ipvs/ip_vs_core.c | 11 ++++-------
+>  net/netfilter/ipvs/ip_vs_ctl.c  |  6 +++---
+>  net/netfilter/ipvs/ip_vs_est.c  | 16 ++++++++--------
+>  4 files changed, 17 insertions(+), 20 deletions(-)
+[...]
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index c7a8a08b7..5ea7ab8bf 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1353,9 +1353,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+>  	if (unlikely(!skb_dst(skb)))
+>  		return NF_ACCEPT;
+>  
+> -	if (!ipvs->enable)
+> -		return NF_ACCEPT;
 
-This release contains fixes:
+Patch does say why is this going away? If you think this is not
+necessary, then make a separated patch and example why this is needed?
 
-- Fix regressions in JSON ruleset listing, restore set flags to display
-  single item with array:
+Thanks
 
-    -                    "flags": "interval"
-    +                    "flags": ["interval"]
-
-  ... and use "oif" result type instead of the new check for simple
-  matching on fib:
-
-    -                    "result": "check"
-    +                    "result": "oif"
-
-  to restore third party JSON parsers.
-
-- Add new --with-unitdir=PATH option for ./configure to install the
-  nftables systemd unit file. If PATH is not specified, then auto-detect
-  systemd unit path. Check man(8) nftables.service for more information.
-
-- Fix misleading "No buffer space available" error when kernel reports
-  too many errors back to userspace.
-
-... and a handful more of small fixes.
-
-See changelog for more details (attached to this email).
-
-You can download this new release from:
-
-https://www.netfilter.org/projects/nftables/downloads.html
-https://www.netfilter.org/pub/nftables/
-
-To build the code, libnftnl >= 1.3.0 and libmnl >= 1.0.4 are required:
-
-* https://netfilter.org/projects/libnftnl/index.html
-* https://netfilter.org/projects/libmnl/index.html
-
-Visit our wikipage for user documentation at:
-
-* https://wiki.nftables.org
-
-For the manpage reference, check man(8) nft.
-
-In case of bugs and feature requests, file them via:
-
-* https://bugzilla.netfilter.org
-
-Happy firewalling.
-
---KvBgT5VujLnxGQF8
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename="changes-nftables-1.1.5.txt"
-Content-Transfer-Encoding: 8bit
-
-Florian Westphal (6):
-      tests: py: revert dccp python tests
-      tests: shell: update comment to name the right commit.
-      evaluate: check XOR RHS operand is a constant value
-      tests: shell: add parser and packetpath test
-      src: fix memory leak in anon chain error handling
-      mnl: silence compiler warning
-
-Jan Engelhardt (1):
-      tools: add a systemd unit for static rulesets
-
-Pablo Neira Ayuso (8):
-      segtree: incorrect type when aggregating concatenated set ranges
-      src: ensure chain policy evaluation when specified
-      fib: restore JSON output for relational expressions
-      tests: shell: cover sets as set elems evaluation
-      tests: shell: coverage for simple verdict map merger
-      mnl: continue on ENOBUFS errors when processing batch
-      build: disable --with-unitdir by default
-      build: Bump version to 1.1.5
-
-Phil Sutter (19):
-      tests: shell: Fix packetpath/rate_limit for old socat
-      src: netlink: netlink_delinearize_table() may return NULL
-      tests: py: Drop duplicate test in any/meta.t
-      tests: py: Drop stale entries since redundant test case removal
-      tests: py: Drop stale payload from any/rawpayload.t.payload
-      tests: py: Drop duplicate test from inet/geneve.t
-      tests: py: Drop duplicate test from inet/gre.t
-      tests: py: Drop duplicate test from inet/gretap.t
-      tests: py: Drop stale entry from inet/tcp.t.json
-      tests: py: Drop duplicate test from inet/vxlan.t
-      tests: py: Drop redundant payloads for ip/ip.t
-      tests: py: Drop stale entry from ip/snat.t.json
-      tests: py: Drop stale entries from ip6/{ct,meta}.t.json
-      tests: py: Drop stale entry from ip/snat.t.payload
-      tests: py: Fix tests added for 'icmpv6 taddr' support
-      json: Do not reduce single-item arrays on output
-      tests: monitor: Fix for flag arrays in JSON output
-      trace: Fix for memleak in trace_alloc_list() error path
-      Makefile: Fix for 'make distcheck'
-
-Łukasz Stelmach (1):
-      doc: Add a note about route_localnet sysctl
-
-
---KvBgT5VujLnxGQF8--
+>  	ip_vs_fill_iph_skb(af, skb, false, &iph);
+>  #ifdef CONFIG_IP_VS_IPV6
+>  	if (af == AF_INET6) {
