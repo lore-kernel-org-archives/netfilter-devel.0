@@ -1,62 +1,134 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0872A2F60D5
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Aug 2025 21:07:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47B892D5C6A;
+	Wed, 27 Aug 2025 06:49:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756242477; cv=none; b=n1M9cu4aash0gn4vP/LKPnezajoPbbh4UNX8y7mBf33JD5xwLacIkfSOGo5ZeFjbiwskFYCWZgsZTy9hnjmoIewojEYmyaGDlpEEsVUEgaGifo67ChQ5eK0r1gx7PvgfO/EM7PQVxS1Uh8NNoaVVui7M/3xZWmKwxr3Q0ZeyMsM=
+	t=1756277348; cv=none; b=NdLWH0bc78HjZsC/7p18qVbOQPlX400snrOo9F4Hp5mjaPFpTGmnk+lArckYEDfIIY1FYdFYoBs0HAJAAJcAxhDsANXWCOKbFIVkVgBfmMWDhyFXWf9oZawVq2xMDeb3uBRCxZhF5avoNJWE7h0RsR0Dm+5yzPFXkMz77xAgIt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756242477; c=relaxed/simple;
-	bh=OD1vgJ1leWk/A2+XjcpJobmgDkQ05eH4kljDyjTpxvU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uxOHzyCq3oR0uBmSQuXI35a2bGtvWl9wwKhpGIe0p7v27PSrAzqxBYJts1r96LtZXHs/UlgpEGqZpWBrOqJkS9UukQ7KbeN2ZGBXD07ASk7aQVjNu/EHPZKbF+cDUN881mK+o69M7kcwOl+2x179LOGQXagwRmkplE8HLgjxn2g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=gbRdds1g; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1756277348; c=relaxed/simple;
+	bh=ZDJ9qya7W2eNFQ9JLr3trKiiPrcYJLqo4npzCihza3o=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=iSNCvdeeSt97ZnThhK9AnrKQWipeyfnWStqsaWkTlc4r3Vh5U8vAzAkekWqJGCfZOp+UEM/G9hVQWqzC57yI73HCwq3bo5+GbtLx1o0iKsF6SaSHu8xKkWyB37gpFVWVIJoj5p7XdQG+diVcip6andD28/s8njtDPe3ujOFD6pA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=hnVoE6lT; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="gbRdds1g"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=uv4+CgXwoIm2uXDn4TdRn7QNQKXbO2CP+kXot2RXMkA=; b=gbRdds1gHT2IB9jxZlay+lY+bm
-	hglV/l7YRbmZw9FDeu5XgyaKmexl8UDKvcuO4briF95bvQhRIm/rliy07pDUKrE2zjDvDS3UefFU5
-	a54n+0/QRKofLfi+MBjBVL0erTJaRlybAXwvwBovwNZxbJtDSoyUYPOaHFkSIRodKx1PeYvOK2Wxs
-	eqVZVVZ5vVaFq/BvThMvw0upz0HGmRWPhmE0fbfca1fQt9uOcuz06xY0iJxBu4CJUnawdX6BQOu9u
-	fPGAR8Bu0zt+DGnc1RNZe7WP6+flsJOJhEjgZSkKnYl0wbNukiKWFXWsXUf9Lx4W52A4UpfjeElJs
-	l1ui5sdw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1ur0tU-000000008NI-37Wa;
-	Tue, 26 Aug 2025 23:07:52 +0200
-Date: Tue, 26 Aug 2025 23:07:52 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] Makefile: Fix for 'make distcheck'
-Message-ID: <aK4iKKoikzRgiTJq@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20250826170643.3362-1-phil@nwl.cc>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="hnVoE6lT"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id EBF6023FF2;
+	Wed, 27 Aug 2025 09:49:00 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=ldqgjxlwsXSiyb3bVgSob5ZK1Wuh4zfY+yYX7oVbV+I=; b=hnVoE6lT/itF
+	ypIgxDMz1KxQY6yATn0lUAUY5wRDskTzoUUNwolytdYZ7Uh4YCSV8YDhErY2nrWn
+	VprpQEJGgC+su5vC0RMH2yyCMQbFSvUZE2tu2FIZSgy8ccy12EjBWIKp5HbcC59V
+	5UdBE3CvJcV8nnmMQGu9qhUA3qCHtgwihhhmd8Co5hGe9Xei7Gcv+mJOrUc48cIG
+	wC/gWOSg1J5Twg7IKr9GJq7g0S10NVgTRVEyfNlDzLzDhUjB+85LLiG5lZCnfGac
+	XQfg6xMJPMsdytC97J+x4dj5fgrEsS0rFs39752I01Y+pGL64uJ7z+P9sexyKtGd
+	x6zUvMU7eXTpjEjHDQVsezjVH6j81o7KvGJu04cwLkB6dup6cjXZAuROtaEG/yTn
+	wiP2qHI2hsC0jSEzgmybLE/O+WrQb0EB9iGJ8MaXnSlGoKoAqnWKZs6GUEBIyZlz
+	GsMAShlOx8cpUQ7R10g/gjOued2EkKU9sRUvjnTtNGCz2nBpaTGVJLUN8ep6HTEs
+	CKAJ6ZXLw437yRbMcX2yJZZebwy4EvHp+3kmiB+YlFsMDcnt5bIAHht19jH4Eqr4
+	p6OMt0kG02UKyrNMI6yGcDrB3KqeMRNFaGEUr+rIC356UM9YSt3W3xsRbxMbh+XB
+	ULtprqWBlT2GW15MygFtL+46QXm4qg4=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 27 Aug 2025 09:48:59 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id A899765A10;
+	Wed, 27 Aug 2025 09:48:57 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 57R6mixv009832;
+	Wed, 27 Aug 2025 09:48:45 +0300
+Date: Wed, 27 Aug 2025 09:48:44 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Zhang Tengfei <zhtfdev@gmail.com>
+cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+        coreteam@netfilter.org,
+        syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+Subject: Re: [PATCH] net/netfilter/ipvs: Fix data-race in ip_vs_add_service
+ / ip_vs_out_hook
+In-Reply-To: <20250826133104.212975-1-zhtfdev@gmail.com>
+Message-ID: <2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg>
+References: <20250826133104.212975-1-zhtfdev@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250826170643.3362-1-phil@nwl.cc>
+Content-Type: text/plain; charset=US-ASCII
 
-On Tue, Aug 26, 2025 at 07:06:43PM +0200, Phil Sutter wrote:
-> Make sure the files in tools/ are added to the tarball and that the
-> created nftables.service file is removed upon 'make clean'.
+
+	Hello,
+
+On Tue, 26 Aug 2025, Zhang Tengfei wrote:
+
+> A data-race was detected by KCSAN between ip_vs_add_service() which
+> acts as a writer, and ip_vs_out_hook() which acts as a reader. This
+> can lead to unpredictable behavior and crashes. One observed symptom
+> is the "no destination available" error when processing packets.
 > 
-> Fixes: c4b17cf830510 ("tools: add a systemd unit for static rulesets")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> The race occurs on the `enable` flag within the `netns_ipvs`
+> struct. This flag was being written in the configuration path without
+> any protection, while concurrently being read in the packet processing
+> path. This lack of synchronization means a reader on one CPU could see a
+> partially initialized service, leading to incorrect behavior.
+> 
+> To fix this, convert the `enable` flag from a plain integer to an
+> atomic_t. This ensures that all reads and writes to the flag are atomic.
+> More importantly, using atomic_set() and atomic_read() provides the
+> necessary memory barriers to guarantee that changes to other fields of
+> the service are visible to the reader CPU before the service is marked
+> as enabled.
+> 
+> Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
+> Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
+> ---
+>  include/net/ip_vs.h             |  2 +-
+>  net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+>  net/netfilter/ipvs/ip_vs_core.c | 10 +++++-----
+>  net/netfilter/ipvs/ip_vs_ctl.c  |  6 +++---
+>  net/netfilter/ipvs/ip_vs_est.c  | 16 ++++++++--------
+>  5 files changed, 19 insertions(+), 19 deletions(-)
+> 
 
-Patch applied.
+> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+> index 15049b826732..c5aa2660de92 100644
+> --- a/net/netfilter/ipvs/ip_vs_est.c
+> +++ b/net/netfilter/ipvs/ip_vs_est.c
+...
+> @@ -757,7 +757,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
+>  	mutex_lock(&ipvs->est_mutex);
+>  	for (id = 1; id < ipvs->est_kt_count; id++) {
+>  		/* netns clean up started, abort */
+> -		if (!ipvs->enable)
+> +		if (!atomic_read(&ipvs->enable))
+>  			goto unlock2;
+
+	It is a simple flag but as it is checked in loops
+in a few places in ip_vs_est.c, lets use READ_ONCE/WRITE_ONCE as
+suggested by Florian and Eric. The 3 checks in hooks in ip_vs_core.c
+can be simply removed: in ip_vs_out_hook, ip_vs_in_hook and
+ip_vs_forward_icmp. We can see enable=0 in rare cases which is
+not fatal. It is a flying packet in two possible cases:
+
+1. after hooks are registered but before the flag is set
+2. after the hooks are unregistered on cleanup_net
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
