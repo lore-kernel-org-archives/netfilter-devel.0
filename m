@@ -1,310 +1,150 @@
-Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.sgstbr.de (mail.sgstbr.de [94.130.16.203])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D1A24886A;
-	Wed, 27 Aug 2025 14:58:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93FE52F0671;
+	Wed, 27 Aug 2025 17:12:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=94.130.16.203
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756306703; cv=none; b=j5+/Kif3j3DyiFVcArgldDggGLMl8MBCVpGc3w7+y0LpQs5ZzGf3kC9hEsAsi4RzbeTClaMaJ2cMEpXjuHy/xoay5nfEa1+/lV4aNkj939Vo+v7Dyq544Av0c95RmkrhQOUMaDQOjNyWn4rI6bq00k07DbrgEHFivEsclA3hh80=
+	t=1756314756; cv=none; b=vFk5rGb3vxcKyJP7rIdk3kAebcQNc86YuYv16Y66N4/3jVXMxbY+hLgI8fQ5oJKICwZYfb/J8scok5ZTxexksiMyDB9gbF0Zm/eHa58x62adUa3/vX/gnT1UjwhqFLIls865Ydwi3JodIafb5WeEgfK0W06xzxMrITj1eMFunZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756306703; c=relaxed/simple;
-	bh=ckxWfz1FBdft4yaVHOd+eVzD1AoKGlBbZM+qXxo97Ls=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=uxZNewEU47p/OfhETYMZ5U3i29hM7lBk0RIiqLI6QIqGw6cavDnpWpVeEoFpJFwjqlVlt6XFVvFP7PYP20kxLjvWf8SGYvto8FlRCZy/z8NQtgnDx9ahl1MAoPRtgPBvejrPk8KwJQJr0vcWTByXPPF9m0K56K32fFTYtiEAWTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NmvOFqy9; arc=none smtp.client-ip=209.85.210.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1756314756; c=relaxed/simple;
+	bh=txdx1s8qFjy7bZfp6A8JGTnYvXtIPXGL5WG4K4rhisU=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:References:
+	 In-Reply-To:Content-Type; b=NDYpxQcrK5ypyijzpuIiaT/S9TceRuAOKlMEWBu6GVZjuS7DK8JRcOQNFsPCzMZf2A+ObioupdbpPenh4Pl82+ZiE9LZb3tj5tmsoykgPudMf/6FJlNDsP//zxJ2xwWipVewykLwRqEbF7YCFQVR+pZ+fieXA/bnwWW/Fxhj01o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=blaese.de; spf=pass smtp.mailfrom=blaese.de; dkim=pass (2048-bit key) header.d=blaese.de header.i=@blaese.de header.b=NpZ8pKvV; arc=none smtp.client-ip=94.130.16.203
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=blaese.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blaese.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NmvOFqy9"
-Received: by mail-pf1-f179.google.com with SMTP id d2e1a72fcca58-771f3f89952so901565b3a.0;
-        Wed, 27 Aug 2025 07:58:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1756306701; x=1756911501; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=a6gxieyBUng5G94gfeOtxq/ZcvffE+TWMQLvYcXqjN8=;
-        b=NmvOFqy9FgPehDXY/axm5UTZX1tXD/itXP9PZhV6x/tUMebMNnnO6YyTlDSpp0TmUE
-         G01toSTnEu+pf+noqZDfLsh8Q+BovQC7qVJ3UVW2+MaCKCioC1EGdhZhPGnasYM8TPEP
-         fsedsxv1UrEC4qisfvC+15vNhyj2LNSu/+ga+raezBgntzTX+S/TLn4ngizRMGuu76YF
-         AccRW7XeRutPSX3pNesBe7e75jsFm9rChspB5zVBW13S5xqGzguhNvDHr7IvSjEt3xQt
-         ktOPxnzLUlgnOcpeEfi3NHapKH5ZEqpnAnhnexy4nuIZ4+6s3110TzImV68hsko+vhfo
-         64nw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756306701; x=1756911501;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=a6gxieyBUng5G94gfeOtxq/ZcvffE+TWMQLvYcXqjN8=;
-        b=NC1Iijvgt0bWZ1euW7EzXQ4EmV+eAuDQGzzHFIO67vsxTVhxu7aN9XAkd9HGEfnx7b
-         kv3ZaPKA5WwxlpeiE6RZf9XjKdCe/wWUIwAYfTFtLufywCjnjpUVOum537huzc3sYDXU
-         QVpN9pze9MlEIfdrL20lP2xzPgNxVZo2+oPlJ8TC8vZLQVOGMPh498TlpXDN1TZxBogr
-         K6mFXCgpsVxbDVD0nhi118qTwEVUGJlESNbyLhw9pqvzqtY33WJ9/ByZHDIQP0ziMzw7
-         5jALorXloq/01xUs2eGWAAGlRmoWJ5FeAXz/8eHty4fKhIOKr+jhWzmDSOlLh1DOB7Vd
-         I0JA==
-X-Forwarded-Encrypted: i=1; AJvYcCUz5JtuZwHUe5Sy39uEESjHVpQb07w8mvi6ve0Lu6xF9f0ip3ByO9hEFeiPzIv10OuOFND4dNIFvp/ndSaDORhW@vger.kernel.org, AJvYcCWcuqQheisUTxYpn5DH2T7lGr3agmLHC3L1mtd8QnKx4p0DEAPJc2cGLNyOcpMJR58dUCg6HdzgqEM=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxntPc4xvHuoAr5I1WfNGMIfQLOI3pC+ZdyEmWwozlJeKi4BEfY
-	dANPoMlLHNaxjmugVjHRPq/0+A/OTDtF9kFwPuaR5+kTw0287DPJnfa8
-X-Gm-Gg: ASbGncsy91Cm+UBEm6VNSIkufYlUH48/Pw60/dQiKI2DEoyINzTnz8298A26NnIKGXp
-	W64nxJ8FzllLNe7d1kyIJoz6OTMRBeVOlFNZ1FIyk6Lxvb7jAfow20ztwCyiSaZPYMmEWmBP4vM
-	5XhitKKfezsdFSBzW9PmlArlqt5aLE85wCp2LWhi94p8wZTb16i7FItD/eIn1V8WG/OKx/B2QKd
-	MrKrDNW8wTpcEZgkpsqjPH0lAAiU9qJRecUwmFrVwh0mI6uwDSyNNAK2qT1SaTMvbdEFWXcqHbA
-	W8kWacDrdDHTrz6lWMT4TnwywQz3MjO1QEnMts46I1nxZy+5BXltKykdBky5ZW/iE85Oj5jUwA5
-	BYfvVihsETiTvCWHOvLvNE57iWsG/YfVKEo+PMlRr
-X-Google-Smtp-Source: AGHT+IEV3VfkMhxXKfttT7vMJwOim7l0/oAS6zgZslfZOE4hBHdypQSZJzjFrn45nrefyf5xRq5RDQ==
-X-Received: by 2002:a05:6a00:39a8:b0:771:1b70:2d1d with SMTP id d2e1a72fcca58-771fc296d88mr7008559b3a.6.1756306700598;
-        Wed, 27 Aug 2025 07:58:20 -0700 (PDT)
-Received: from DESKTOP-EOHBD4V.localdomain ([180.110.79.182])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-771e6535272sm8044249b3a.24.2025.08.27.07.58.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Aug 2025 07:58:20 -0700 (PDT)
-From: Zhang Tengfei <zhtfdev@gmail.com>
-To: ja@ssi.bg
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	dsahern@kernel.org,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@verge.net.au,
-	kadlec@netfilter.org,
-	kuba@kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	syzbot+1651b5234028c294c339@syzkaller.appspotmail.com,
-	zhtfdev@gmail.com
-Subject: 
-Date: Wed, 27 Aug 2025 22:43:42 +0800
-Message-Id: <20250827144337.34792-1-zhtfdev@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg>
-References: <2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg>
+	dkim=pass (2048-bit key) header.d=blaese.de header.i=@blaese.de header.b="NpZ8pKvV"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=blaese.de; s=201803;
+	t=1756314743; bh=w3BdMIdi4mu9DyHfL8aSx5oylHchPpBewyakd30mWLQ=;
+	h=Date:From:Subject:To:References:In-Reply-To:From;
+	b=NpZ8pKvVCFxkJMlRixFVcLXUzjnRGo8w0dVLdGIJBMjrgSQIOzY3FQB//q91IToh/
+	 SyYc4jvc7vkC2e+foi0G/zzwAOIfnGynoKsZNFvlqSU5OlBDanmbPnWsBYAKg/eMC0
+	 AzPrebvWm8ePzreYUA2Kc8kfACRryB8j6XjZenPLE5sZeszEPb0ShXAnxxa3SwIq7N
+	 cPSF1bS9EDioqr9caUID6FV3Sn3Fa0dZarrrMg+QI11mb2MIM7NXdnlUEu1sBiRalp
+	 6qWhFGsa9/paWfjMzM/pxlj78uRGVC3lhRIXufwpbh7mshK1nimN+qiZRiSUa9MOdw
+	 YraZHV3/Pe6Fg==
+Received: from [IPV6:2a0b:f4c0:c8:6d:77a2:ec00:2663:dfdb] (2a0b.f4c0.00c8.006d.77a2.ec00.2663.dfdb.rdns.f3netze.de [IPv6:2a0b:f4c0:c8:6d:77a2:ec00:2663:dfdb])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: fabian@blaese.de)
+	by mail.sgstbr.de (Postfix) with ESMTPSA id 5E16F24B485;
+	Wed, 27 Aug 2025 19:12:22 +0200 (CEST)
+Message-ID: <e1bf6193-d075-4593-81ef-99e8b93a4f74@blaese.de>
+Date: Wed, 27 Aug 2025 19:12:19 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+From: =?UTF-8?Q?Fabian_Bl=C3=A4se?= <fabian@blaese.de>
+Subject: Re: [PATCH v2] icmp: fix icmp_ndo_send address translation for reply
+ direction
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ "Jason A. Donenfeld" <Jason@zx2c4.com>
+References: <20250825201717.3217045-1-fabian@blaese.de>
+ <20250825203826.3231093-1-fabian@blaese.de> <aK7KYr5D7bD3OcHb@strlen.de>
+Content-Language: de-DE, en-US
+Autocrypt: addr=fabian@blaese.de; keydata=
+ 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
+In-Reply-To: <aK7KYr5D7bD3OcHb@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-Hi everyone,
+On 27.08.25 11:05, Florian Westphal wrote:
+> If the connection isn't subject to snat, why to we need to mangle the
+> source address in the first place?
+It is not limited to SNAT/MASQUERADE.
+DNAT also affects which source address should be used, depending on the packet
+direction.
 
-Here is the v2 patch that incorporates the feedback.
+With DNAT, the *destination* of the original direction is changed.
+In the reply direction, this becomes the *source* address.
 
-Many thanks to Julian for his thorough review and for providing 
-the detailed plan for this new version, and thanks to Florian 
-and Eric for suggestions.
+So reply packets of a DNAT connection are effectively subject to source address
+translation. If icmp_ndo_send doesn’t account for this, rate limiting breaks,
+which is exactly the problem this function was meant to solve.
 
-Subject: [PATCH v2] net/netfilter/ipvs: Use READ_ONCE/WRITE_ONCE for
- ipvs->enable
+> Don't understand this either.  Why these checks?
+> AFAICS you can keep the original check in place, and then:
+> 
+> replace this
+>>  	orig_ip = ip_hdr(skb_in)->saddr;
+>> -	ip_hdr(skb_in)->saddr = ct->tuplehash[0].tuple.src.u3.ip;
+> 
+> ... with ...
+You are right: the code can be simplified. I'm not sure show this slipped through.
+I will send an updated patch with this change — thanks for the suggestion.
+However, the old check (IPS_SRC_NAT only) cannot be kept, because:
+- Reply packets of a DNAT connection also need handling.
+- Reply packets of a pure SNAT connection don’t need it, but replacing the
+   address is a no-op in that case (tuple == skb address).
 
-KCSAN reported a data-race on the `ipvs->enable` flag, which is
-written in the control path and read concurrently from many other
-contexts.
+To avoid unnecessary translations, I suggested the direction-specific checks.
+Another option is to simplify them to:
 
-Following a suggestion by Julian, this patch fixes the race by
-converting all accesses to use `WRITE_ONCE()/READ_ONCE()`.
-This lightweight approach ensures atomic access and acts as a
-compiler barrier, preventing unsafe optimizations where the flag
-is checked in loops (e.g., in ip_vs_est.c).
+     if (!(ct->status & IPS_NAT_MASK)) { … }
 
-Additionally, the now-obsolete `enable` checks in the fast path
-hooks (`ip_vs_in_hook`, `ip_vs_out_hook`, `ip_vs_forward_icmp`)
-are removed. These are unnecessary since commit 857ca89711de
-("ipvs: register hooks only with services").
+This ensures we only ever touch connections with NAT, while keeping the code
+straightforward.
 
-Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
-Suggested-by: Julian Anastasov <ja@ssi.bg>
-Link: https://lore.kernel.org/lvs-devel/2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg/
-Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
+> Without dnat, the reply tuple saddr == original tuple daddr.
+> 
+> With dnat, its the dnat targets' address (i.e., the real destination
+> the client is talking to).
+Yes, exactly.
 
----
-v2:
-- Switched from atomic_t to the suggested READ_ONCE()/WRITE_ONCE().
-- Removed obsolete checks from the packet processing hooks.
-- Polished commit message based on feedback.
----
- net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
- net/netfilter/ipvs/ip_vs_core.c | 11 ++++-------
- net/netfilter/ipvs/ip_vs_ctl.c  |  6 +++---
- net/netfilter/ipvs/ip_vs_est.c  | 16 ++++++++--------
- 4 files changed, 17 insertions(+), 20 deletions(-)
+> If you are worried about "dnat to", then please update the commit
+> message, which only mentions masquerade/snat.
+Correct — the change not only fixes SNAT-in-reply handling, but also adds
+proper handling for DNAT in the reply direction, which was missing entirely.
+I will update the commit message to reflect this.
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 965f3c8e5..37ebb0cb6 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -885,7 +885,7 @@ static void ip_vs_conn_expire(struct timer_list *t)
- 			 * conntrack cleanup for the net.
- 			 */
- 			smp_rmb();
--			if (ipvs->enable)
-+			if (READ_ONCE(ipvs->enable))
- 				ip_vs_conn_drop_conntrack(cp);
- 		}
- 
-@@ -1439,7 +1439,7 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
- 		cond_resched_rcu();
- 
- 		/* netns clean up started, abort delayed work */
--		if (!ipvs->enable)
-+		if (!READ_ONCE(ipvs->enable))
- 			break;
- 	}
- 	rcu_read_unlock();
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index c7a8a08b7..5ea7ab8bf 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1353,9 +1353,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
- 	if (unlikely(!skb_dst(skb)))
- 		return NF_ACCEPT;
- 
--	if (!ipvs->enable)
--		return NF_ACCEPT;
--
- 	ip_vs_fill_iph_skb(af, skb, false, &iph);
- #ifdef CONFIG_IP_VS_IPV6
- 	if (af == AF_INET6) {
-@@ -1940,7 +1937,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
- 		return NF_ACCEPT;
- 	}
- 	/* ipvs enabled in this netns ? */
--	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
-+	if (unlikely(sysctl_backup_only(ipvs)))
- 		return NF_ACCEPT;
- 
- 	ip_vs_fill_iph_skb(af, skb, false, &iph);
-@@ -2108,7 +2105,7 @@ ip_vs_forward_icmp(void *priv, struct sk_buff *skb,
- 	int r;
- 
- 	/* ipvs enabled in this netns ? */
--	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
-+	if (unlikely(sysctl_backup_only(ipvs)))
- 		return NF_ACCEPT;
- 
- 	if (state->pf == NFPROTO_IPV4) {
-@@ -2295,7 +2292,7 @@ static int __net_init __ip_vs_init(struct net *net)
- 		return -ENOMEM;
- 
- 	/* Hold the beast until a service is registered */
--	ipvs->enable = 0;
-+	WRITE_ONCE(ipvs->enable, 0);
- 	ipvs->net = net;
- 	/* Counters used for creating unique names */
- 	ipvs->gen = atomic_read(&ipvs_netns_cnt);
-@@ -2367,7 +2364,7 @@ static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
- 		ipvs = net_ipvs(net);
- 		ip_vs_unregister_hooks(ipvs, AF_INET);
- 		ip_vs_unregister_hooks(ipvs, AF_INET6);
--		ipvs->enable = 0;	/* Disable packet reception */
-+		WRITE_ONCE(ipvs->enable, 0);	/* Disable packet reception */
- 		smp_wmb();
- 		ip_vs_sync_net_cleanup(ipvs);
- 	}
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 6a6fc4478..4c8fa22be 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -256,7 +256,7 @@ static void est_reload_work_handler(struct work_struct *work)
- 		struct ip_vs_est_kt_data *kd = ipvs->est_kt_arr[id];
- 
- 		/* netns clean up started, abort delayed work */
--		if (!ipvs->enable)
-+		if (!READ_ONCE(ipvs->enable))
- 			goto unlock;
- 		if (!kd)
- 			continue;
-@@ -1483,9 +1483,9 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 
- 	*svc_p = svc;
- 
--	if (!ipvs->enable) {
-+	if (!READ_ONCE(ipvs->enable)) {
- 		/* Now there is a service - full throttle */
--		ipvs->enable = 1;
-+		WRITE_ONCE(ipvs->enable, 1);
- 
- 		/* Start estimation for first time */
- 		ip_vs_est_reload_start(ipvs);
-diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-index 15049b826..93a925f1e 100644
---- a/net/netfilter/ipvs/ip_vs_est.c
-+++ b/net/netfilter/ipvs/ip_vs_est.c
-@@ -231,7 +231,7 @@ static int ip_vs_estimation_kthread(void *data)
- void ip_vs_est_reload_start(struct netns_ipvs *ipvs)
- {
- 	/* Ignore reloads before first service is added */
--	if (!ipvs->enable)
-+	if (!READ_ONCE(ipvs->enable))
- 		return;
- 	ip_vs_est_stopped_recalc(ipvs);
- 	/* Bump the kthread configuration genid */
-@@ -306,7 +306,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
- 	int i;
- 
- 	if ((unsigned long)ipvs->est_kt_count >= ipvs->est_max_threads &&
--	    ipvs->enable && ipvs->est_max_threads)
-+	    READ_ONCE(ipvs->enable) && ipvs->est_max_threads)
- 		return -EINVAL;
- 
- 	mutex_lock(&ipvs->est_mutex);
-@@ -343,7 +343,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
- 	}
- 
- 	/* Start kthread tasks only when services are present */
--	if (ipvs->enable && !ip_vs_est_stopped(ipvs)) {
-+	if (READ_ONCE(ipvs->enable) && !ip_vs_est_stopped(ipvs)) {
- 		ret = ip_vs_est_kthread_start(ipvs, kd);
- 		if (ret < 0)
- 			goto out;
-@@ -486,7 +486,7 @@ int ip_vs_start_estimator(struct netns_ipvs *ipvs, struct ip_vs_stats *stats)
- 	struct ip_vs_estimator *est = &stats->est;
- 	int ret;
- 
--	if (!ipvs->est_max_threads && ipvs->enable)
-+	if (!ipvs->est_max_threads && READ_ONCE(ipvs->enable))
- 		ipvs->est_max_threads = ip_vs_est_max_threads(ipvs);
- 
- 	est->ktid = -1;
-@@ -663,7 +663,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
- 			/* Wait for cpufreq frequency transition */
- 			wait_event_idle_timeout(wq, kthread_should_stop(),
- 						HZ / 50);
--			if (!ipvs->enable || kthread_should_stop())
-+			if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
- 				goto stop;
- 		}
- 
-@@ -681,7 +681,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
- 		rcu_read_unlock();
- 		local_bh_enable();
- 
--		if (!ipvs->enable || kthread_should_stop())
-+		if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
- 			goto stop;
- 		cond_resched();
- 
-@@ -757,7 +757,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
- 	mutex_lock(&ipvs->est_mutex);
- 	for (id = 1; id < ipvs->est_kt_count; id++) {
- 		/* netns clean up started, abort */
--		if (!ipvs->enable)
-+		if (!READ_ONCE(ipvs->enable))
- 			goto unlock2;
- 		kd = ipvs->est_kt_arr[id];
- 		if (!kd)
-@@ -787,7 +787,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
- 	id = ipvs->est_kt_count;
- 
- next_kt:
--	if (!ipvs->enable || kthread_should_stop())
-+	if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
- 		goto unlock;
- 	id--;
- 	if (id < 0)
--- 
-2.34.1
-
+Best regards,
+Fabian
