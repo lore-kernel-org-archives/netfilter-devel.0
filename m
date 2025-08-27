@@ -1,71 +1,87 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 819E81C5496;
-	Wed, 27 Aug 2025 10:48:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA2AD86348
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 12:22:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756291705; cv=none; b=QHkkj9TV8ZdYGTVxSs2GB3/KXF0qFT/5rLrQju2UdfRfxEIxfyN4GN44eBVml08PuULbDAbxfARaFce2HXyAVn7DApR/5LLBzJrnqtLUSeXUUWJZgCt/NfzsY+PD7dbIobEi30KjtFXg66sWogBmIfTQnMZ+GdGXX3x3TQjOUVQ=
+	t=1756297368; cv=none; b=n/a+LRwnPypbvjYp8oPpuXNtRe9JWAlhrYHS5zQ3bdNErs4UF8L+CMdtFYE6ZZ0PXas4Zh0e3NtKzyRmUmlYOlUvSY5cKZhe0GpEWxTDTOsK+v/axSwnmVCixtUSznIv5u/+w5k5joDToQ7h4HtuhZiWqzOvvTRdP4j95txzlzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756291705; c=relaxed/simple;
-	bh=DMYmWN61KVuMj6xHJA0q9m7MIXo+ETDqqJfxsWK/v8Y=;
+	s=arc-20240116; t=1756297368; c=relaxed/simple;
+	bh=h640VnS7FHl9XJxipO+DRjDAoH5LfBWpKwN0X61GoEE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Ci1WY3uqfcOGrGcFVh+4sI4S0BFm341SVCJN+f9dcnw5gPe2CDHqUEpweai/fxmoyfJPG3R9jSzGdfcRSrhxpwPUqdNHFJp2YRUYwmT1wtRwge9I1vvjEUywUVrZldZGIr1QHbohbNLZ4GcirXc5DUDwZd/xDnqncM89OH7L/Wc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eIN265ez; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=WVrbnA+K3AVzw45lWJ//9H6RllE2NArZjXegxBXZG62Ed7RZkaHK0ll6O4doPApS3zrUeNp7B118w7JtxYxqQgP9a/7/8EAurqB6nNkjNbofNDWx7OUuXHoC8W04MIeDeTDpjwSBLJ8YdtY2NT19Akm/lSyoR6CuJUfB+Sytn2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=eRCRbf3X; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=hIJuCrwK; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eIN265ez"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25E99C4CEEB;
-	Wed, 27 Aug 2025 10:48:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1756291705;
-	bh=DMYmWN61KVuMj6xHJA0q9m7MIXo+ETDqqJfxsWK/v8Y=;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="eRCRbf3X";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="hIJuCrwK"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 1A7E960265; Wed, 27 Aug 2025 14:22:36 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1756297356;
+	bh=1zzkIwDK9FcJK/mXFo9Nu8PRwVjlq0r30n5DnbQ4bAQ=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=eIN265ezV7OiJZQP/8z192KwoDESRoFkVRGNGA9a/STF00PtCzS/5OHXgbs8/YI4k
-	 1j2bJeEK2rotLlJMMzkgAggFhG0pkNrctucTijjgb/mRZER84h5oI2upOK/LuVQhjB
-	 ypFdsAEMranyGAlnpm3nkx193EoYlhjViFh1nbgAtQlni2Jb6BgT6bT1dPQuPspNZd
-	 rG6NmjxasuowJzzKr6QNndOyGsQM4DKTHt4JzwyKU50Nlieb2Ii1X9GVETzxB2zZEM
-	 rncuCk3QASYaan4UHD6pvL+Y41xzTdOWCzEKDzIUdwi+GmBkf1uAPPlG3gdeleKEJP
-	 8HwDep3xAjQzg==
-Date: Wed, 27 Aug 2025 11:48:19 +0100
-From: Simon Horman <horms@kernel.org>
-To: Frederic Weisbecker <frederic@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>, Julian Anastasov <ja@ssi.bg>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: Re: [PATCH net] ipvs: Fix estimator kthreads preferred affinity
-Message-ID: <20250827104819.GA26074@horms.kernel.org>
-References: <20250729120659.201095-1-frederic@kernel.org>
+	b=eRCRbf3XothIyA844p3AVD9P8RwCz4qkFpxwwo3vGNyodStoFzhInOiFH/t7nkn02
+	 /eGqYis3f4Hf/dZp/B3/qG29zW/9FNGqACbDsYlOswsgXVuVzHf2kEJvk2adc3hAYn
+	 50Yk8O8oBHgjGYbHnwQP2LdsU6fG6Qhidv0aH8zxcouEKvjSbs1sMSFCRy7W6OMfoP
+	 2+wvJA3b71otbzwWGPvwfRLNnktMlpRJ5Ube2cjL12QBZqnceZKyudfZ1972CwKpT1
+	 ne8rBs8iXTuMr+UkQjAzR6u7VPT+9vd1VUyNkAKzJN6U3Tw+tOS5k7gmOoauyorsQ1
+	 3MkHu9gu68+Og==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 2F23360254;
+	Wed, 27 Aug 2025 14:22:35 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1756297355;
+	bh=1zzkIwDK9FcJK/mXFo9Nu8PRwVjlq0r30n5DnbQ4bAQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=hIJuCrwK1pQfgKTLquk84XEAFeIK77QEZHtHOc5nipDGFaDlInaw94K/Gwk7ektft
+	 NN1UJQuPdF5yfrCRVgdov5uBpwkW/FzAv7VbcnboiFhNcGcTViYaFUiked7d4G3drQ
+	 Magrjcb91Bx8hnbR2UDjth7uHMuretp+/At7Szu6rSzJt4aJYx/A8WiB2LIC+GmjRc
+	 IRBSofSaINcFIQ5bQq9I+DHViBsFfu7M8Wd1Oj0qW1Qg+nyZZK5BSTexzaEjo1Wqpg
+	 9qMKHyS3h+jeuOIX2oiRqwokoE5p0hPvei1ZtShvqz0NzdIicFsdx1ld8UYfjpg5XS
+	 3tqKYqmfQmGAw==
+Date: Wed, 27 Aug 2025 14:22:32 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Jan Engelhardt <ej@inai.de>
+Subject: Re: [nft PATCH] Makefile: Fix for 'make distcheck'
+Message-ID: <aK74iFRHm3WTCEbq@calendula>
+References: <20250826170643.3362-1-phil@nwl.cc>
+ <aK4N56uzuIWgBiG5@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250729120659.201095-1-frederic@kernel.org>
+In-Reply-To: <aK4N56uzuIWgBiG5@calendula>
 
-On Tue, Jul 29, 2025 at 02:06:59PM +0200, Frederic Weisbecker wrote:
-> The estimator kthreads' affinity are defined by sysctl overwritten
-> preferences and applied through a plain call to the scheduler's affinity
-> API.
+On Tue, Aug 26, 2025 at 09:41:27PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 26, 2025 at 07:06:43PM +0200, Phil Sutter wrote:
+> > Make sure the files in tools/ are added to the tarball and that the
+> > created nftables.service file is removed upon 'make clean'.
+> > 
+> > Fixes: c4b17cf830510 ("tools: add a systemd unit for static rulesets")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
 > 
-> However since the introduction of managed kthreads preferred affinity,
-> such a practice shortcuts the kthreads core code which eventually
-> overwrites the target to the default unbound affinity.
-> 
-> Fix this with using the appropriate kthread's API which will carry the
-> desired affinity and maintain it across CPU hotplug events and CPU
-> isolation constraints.
-> 
-> Fixes: d1a89197589c ("kthread: Default affine kthread to its preferred NUMA node")
-> Signed-off-by: Frederic Weisbecker <frederic@kernel.org>
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Acked-by: Simon Horman <horms@kernel.org>
+I was preparing the release, however, this fix is not enough.
 
+When I run:
+
+        make distcheck
+
+ /usr/bin/mkdir -p '/lib/systemd/system'
+ /usr/bin/install -c -m 644 tools/nftables.service '/lib/systemd/system'
+/usr/bin/install: cannot create regular file '/lib/systemd/system/nftables.service': Permission denied
+
+This is not regarding the _inst directory, ie. nftables-x.y.z/_inst/
+that make distcheck creates as non-root.
+
+This needs a fix.
