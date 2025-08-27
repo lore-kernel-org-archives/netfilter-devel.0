@@ -1,99 +1,152 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7D6230F944;
-	Wed, 27 Aug 2025 22:52:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC6F2586C7
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 23:08:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756335124; cv=none; b=KZbu/iyMae0a2dheMNp8cX5OgijPTz/gTXnGJ+gEMPfPiJv3z9hr48Z41HLXncoJIr/wzrgANiqSG1f1/fyVHHLx2bFG1D1l64AJ3s5+3fDFZaZE4TclOvjUirLx9x+/xMJsmcDdJsnY5fSozAYtp2jUxYUZu5qdawYuC2RZ2A4=
+	t=1756336113; cv=none; b=Y516JTY/UDKiYQZrB+dfj70IMXg0T18H1oWUVsXQajR3o5GvuAsFbViQ6swQYCaZ7zSR4RYqRym7Zn2+cGLQLXwAIXT0d2pxyGszKhRa5bxvAqILonagdFdX1NHTY2VfeaOP0zTY4XoHXkXTTZb8kyMnW5lLt/O99yCjo12yUDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756335124; c=relaxed/simple;
-	bh=Uij0BhfOj+0ZidIGXIhukTZtp+Ut7e/aX0rtiSEevNc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=EC1Cgla8X05do1NOEoNK2D1/F0H/aoe+jgVzBEbkKAAjU9+QHyqjIS0mb8ZkQ+S3VRodPF5f27nUHjuetXlFN0Vka+iViimYXe68T7AxN3hpZ1rRBtkQvZtBzXfGeOxrDqeNS6cGyivuRoHU+4KnKaJbIyFzFSR0lg03/s5nh2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NG6IQqkw; arc=none smtp.client-ip=209.85.214.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1756336113; c=relaxed/simple;
+	bh=hHzDB0vNk8YNZMVevmPnoV/65XubLHsoHIZRB1PSmVE=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZT9sZO4xnIpfNmyHMAUEDNJaFBuZeaPqDkUoAlgnNnCJz+CMYkXcHvJ4O/mlhAcGqz4bscqAi9xfQOOp+nxn5sfO36zggxCq/gukWULK8EW3WH2J94k/dCiUNPSq+IfkeHEXykdplApC4VP9T6BSbsWsmlohFjVIah83cQW8Its=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=b7zdiciX; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Z1W+bzS+; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NG6IQqkw"
-Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-246ef40cf93so3746125ad.0;
-        Wed, 27 Aug 2025 15:52:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1756335122; x=1756939922; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Uij0BhfOj+0ZidIGXIhukTZtp+Ut7e/aX0rtiSEevNc=;
-        b=NG6IQqkwtW9TTdIlXdDF0h5212OG52qDVrW46uR0jft4tYMiHwuuC3JX5AGPrBbhA2
-         9i4Fz8c7QPGNAb1HxFeMayfMSUqattGUaw64i7arE1b/1MJ7aMZYxfL9slr7bXN1LXRl
-         vrZJUJTmsxDYnh+QbPytQHDeqc1GbEleEcyrVCOUhJMCf30sdXLKe1qcAgaeoiw9ulti
-         pD/AVd5G6W6Mo/QqartGkDm8t83dKzeuEVPuGlQwqa8zjKlbKqKEROZ1NFxsV/umPhkW
-         Xj0oMFTcOl+wIZy+aC3OMskYgb4vQoJxeI6j+uqw6D3X6cwPTBCi81K3p0BsDSCGGezo
-         Hj1w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756335122; x=1756939922;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Uij0BhfOj+0ZidIGXIhukTZtp+Ut7e/aX0rtiSEevNc=;
-        b=AS9iceYV2O8/gfYdxE2yW7jBiedC8D8qhUqGKiW4+w675IYVO5PY5CQpjUSeRtIM8Q
-         H+S0sl6hw0qjpONRrvK0tO6St/VoyL0AlGwIU23SBTgno1cx3EIcJVOM7/KAclHo4pVJ
-         ol7B5+nkhf/hlPwT5r0AjzAS3w1+wIJyZOPUhZ7qyHA97F2Hv3J6J7Z9GsYByAmQa50u
-         Nzd26lEmutyNB4nZs7HgUnEyxoH/4RXjFXS1HQ4i7sm0PSy+OA7njlWe93RjGCeE3mZU
-         Odk1inr0j3pamP5uKKCXmrBROJgsfS3RgccDjn8clAXkcf6L5Rtrp/XUixXilfBonwHs
-         pWxg==
-X-Forwarded-Encrypted: i=1; AJvYcCU5/jxc/zBtzCK1H2EK3s6AKsbXxSATMp01jpHQGTCoywHNEL7Xxi2TqmnOeKRG3Dq3WvRYaTbr5YN4us45Qd3q@vger.kernel.org, AJvYcCWbOPofAPX1rihS8T8ujpqsVPCt8D1HE4kHQYlRZW0dklY2R2X9zrSFoJJv4+veAgFPNjFhVYP5Kiw=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwmfA/JbzZLkGTL3N4wtQ0bD65ORlLle0rbUNB5SgWW2sHKBaSP
-	APJrSLX8kbTk5ecKWtsyfzo0RiG8cM8W512Ahp25+k+nhecyW518UlMa
-X-Gm-Gg: ASbGncv0jV94DUc4nXvGHBbzyLh9QzFofM3Bb5jiBr69yJ/Kk8Nv0bcyLuK0I4z9aET
-	rjY5S4RDIYoVgVC1JzJLjMPuzD4ETtGTDoePibhpNxtUiGUiV5gDZc4g1962YjY9NwOHBEpI+/i
-	LB3tdHe9IpZnmvRMWu2a2BrMu2mWYJhIZBFs/yHLlV/WpSUGzznahfTs08iXwPUQo9VjcWCe5g1
-	UlDJtyk6MPOcv+3mW1lBnvX3zFfqCfL2pSSZDu4j8+CMp6RhgcNk+DcZONYLO4Rx0hLu/hjH57J
-	5ACiVKYwuO5JnSkkIKiY8EteBA3r8LoUVERacgg7OD2akAK7gkDZn9GhrSDeu0TRhM6FjOM7HCD
-	77qikvKFNCAykLw8I2NYr6Pzj/mDSTZogCpz02qzpcgxmKmZBc6g=
-X-Google-Smtp-Source: AGHT+IHrVZuXjFa4lr5nFs4J6rEpTZ8Se3Vmi5RGE+6GXLQ+ei9Z9L7HolzM3L4ip5iP1jXxzEvhag==
-X-Received: by 2002:a17:903:244b:b0:246:cc56:39e5 with SMTP id d9443c01a7336-246cc563f19mr170170815ad.17.1756335121960;
-        Wed, 27 Aug 2025 15:52:01 -0700 (PDT)
-Received: from DESKTOP-EOHBD4V.localdomain ([180.110.79.182])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2467a6f5489sm125908415ad.144.2025.08.27.15.51.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 27 Aug 2025 15:52:01 -0700 (PDT)
-From: Zhang Tengfei <zhtfdev@gmail.com>
-To: zhtfdev@gmail.com
-Cc: coreteam@netfilter.org,
-	davem@davemloft.net,
-	dsahern@kernel.org,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@verge.net.au,
-	ja@ssi.bg,
-	kadlec@netfilter.org,
-	kuba@kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com,
-	pablo@netfilter.org,
-	syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
-Subject: Re: [PATCH v2] net/netfilter/ipvs: Use READ_ONCE/WRITE_ONCE for ipvs->enable
-Date: Thu, 28 Aug 2025 06:51:55 +0800
-Message-Id: <20250827225155.4935-1-zhtfdev@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250827223322.4896-1-zhtfdev@gmail.com>
-References: <20250827223322.4896-1-zhtfdev@gmail.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="b7zdiciX";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Z1W+bzS+"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 848C76069E; Thu, 28 Aug 2025 01:08:29 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1756336109;
+	bh=I7UYfeRT4IVP+qA+Ocipk7Ipb/ETbQuSp0d56IpwJEM=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=b7zdiciXD9EDX5zaqw8/BBVSzgYC1g8AyfIFoC1g+Ao54L/HrTpdYEBifv/8TfgkL
+	 B7fNQOZFoA73JQKA/Y+TftVi1HqSuRysGPvLSC2pNhEN1TZ9haVeeZxMmSX9ZZCVFs
+	 wZ/K3Vqb5bj0yucrG1b+GGqEDyHzlWZSVhGyG571QXlm24aTgc62Rs8H8btMciX8Ph
+	 YCFiCe0sn7vCHyqj0n1//irOZTeAZx/N7U76Bv02mE7xT06tONsr3+T9sAXHOQmXfG
+	 CTcUn0EfoXJqlfyWJ4ObWEHOFErReBXz4JM1oVcUzAvCLkHz7RHQvKT139bhsBvZxA
+	 wVBxvyi66I33A==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id ACA3560641;
+	Thu, 28 Aug 2025 01:08:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1756336108;
+	bh=I7UYfeRT4IVP+qA+Ocipk7Ipb/ETbQuSp0d56IpwJEM=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=Z1W+bzS+6p9FJ8okHAG5uL8RtQ8AeZLBEn+0+GpXOcPAs8hixQWvtup+KNHp7SFZd
+	 p7E8V6CSdSxYBQXIETOi5dJ94mE5B2BtQHVKNkIpW0d9IPb/tDi/d4nm1opbJfsQeb
+	 aYwSqwg6AYM3qES3/p91rmButT+i9Th1g8TbNnGP7Lj45dsTjhRKsEiXox03x9WsNG
+	 n2b4Lj+pvByyMB/Gxsd0QlpT7azHIDwXF0PzvUZwLarcXuJ0557poqlj1Zq1Bt74zL
+	 IiC4omBY1zNC61OlBVRxwvi9T7kdEzyB8a7T3yDvn3PGSg1m0knXJRSKuHOAg4jaYI
+	 Ujmzk5Mt31dtQ==
+Date: Thu, 28 Aug 2025 01:08:26 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 6/6] Makefile: Enable support for 'make check'
+Message-ID: <aK-P6gvGB-sSKYj8@calendula>
+References: <20250801161105.24823-1-phil@nwl.cc>
+ <20250801161105.24823-7-phil@nwl.cc>
+ <aJOLPp-1TWYfGCQF@calendula>
+ <aJSTLfOz4v-DgQVz@orbyte.nwl.cc>
+ <aJSYlVUF9NzKL4FD@calendula>
+ <aJSkbu8fZsAqoBTf@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aJSkbu8fZsAqoBTf@orbyte.nwl.cc>
 
-Hi everyone,
+On Thu, Aug 07, 2025 at 03:04:46PM +0200, Phil Sutter wrote:
+> On Thu, Aug 07, 2025 at 02:14:13PM +0200, Pablo Neira Ayuso wrote:
+> > On Thu, Aug 07, 2025 at 01:51:09PM +0200, Phil Sutter wrote:
+> > > On Wed, Aug 06, 2025 at 07:05:02PM +0200, Pablo Neira Ayuso wrote:
+> > > > On Fri, Aug 01, 2025 at 06:11:05PM +0200, Phil Sutter wrote:
+> > > > > Add the various testsuite runners to TESTS variable and have make call
+> > > > > them with RUN_FULL_TESTSUITE=1 env var.
+> > > > > 
+> > > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > > > ---
+> > > > >  Makefile.am | 6 ++++++
+> > > > >  1 file changed, 6 insertions(+)
+> > > > > 
+> > > > > diff --git a/Makefile.am b/Makefile.am
+> > > > > index ba09e7f0953d5..4fb75b85a5d59 100644
+> > > > > --- a/Makefile.am
+> > > > > +++ b/Makefile.am
+> > > > > @@ -409,5 +409,11 @@ EXTRA_DIST += \
+> > > > >  	tests \
+> > > > >  	$(NULL)
+> > > > >  
+> > > > > +AM_TESTS_ENVIRONMENT = RUN_FULL_TESTSUITE=1; export RUN_FULL_TESTSUITE;
+> > > > 
+> > > > I use make distcheck to build the tarballs.
+> > > > 
+> > > > I would prefer not to run the tests at the time of the release
+> > > > process, I always do this before release, but I prefer not to inline
+> > > > this to the release process.
+> > > 
+> > > Oh, good to know. Running just 'make dist' is no option for you?
+> > 
+> > I can just modify the script to do so, no idea on the implications.
+> 
+> There is more to distcheck than just the 'make check' call, so it's
+> definitely worth doing it. The best option might be to run 'make
+> distcheck' before the release for a complete test run and only 'make
+> dist' during the release process. Though this requires to run 'make
+> distcheck' as root, not sure if that is a good idea.
 
-My apologies for the noise and confusion with the multiple v2 submissions.
-I sent a malformed reply earlier with no subject.
+Hm, I prefer not to run make distcheck as root.
 
-This patch in *this* thread is the correct and final version for review.
-Please disregard the previous malformed email.
+> > Or wait for one more hour for the test run to finish during the
+> > release process.
+> 
+> Does not seem feasible, especially for a redundant test run you're not
+> interested in. It also implies that you're creating the distribution on
+> a system which is able to pass (or skip) all tests, which may not be the
+> case.
 
-Many thanks to Pablo Neira Ayuso for pointing out the formatting error.
+Yes.
+
+> > > BTW: There is the same situation with iptables, though if called as
+> > > unprivileged user there is only the xlate test suite which runs (and
+> > > quickly finishes).
+> > > 
+> > > > Maybe we can make this work this way?
+> > > > 
+> > > >   export RUN_FULL_TESTSUITE=1; make check
+> > > > 
+> > > > so make check is no-op without this variable?
+> > > > 
+> > > > Does this make sense to you?
+> > > 
+> > > It seems odd to enable 'make check' only to disable it again, but
+> > > there's still added value in it.
+> > > 
+> > > I'm currently looking into distcheck-hook and DISTCHECK_CONFIGURE_FLAGS
+> > > in order to identify the caller to 'make check' call.
+> > > 
+> > > An alternative would be to drop fake root functionality from shell
+> > > test suite, then it would skip just like all the other test suites if run
+> > > as non-root (assuming you don't run 'make distcheck' as root).
+> > 
+> > Looking at the current release script I have, it all runs as non-root.
+> > 
+> > Maybe simply as a run-all.sh under nftables/tests/?
+> 
+> Also an option, yes. Or a custom 'make testrun' or so.
+
+'make testrun' sounds nicer than my run-it-all shell script proposal,
+it would be nice to have a short summary at the test run not to scroll
+up to find each individual test result. And I think 'make testrun'
+should continue on errors so it is also useful for testing patches
+under development.
+
+Thanks.
