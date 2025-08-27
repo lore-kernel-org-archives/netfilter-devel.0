@@ -1,70 +1,99 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF7CE6FC5
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 22:48:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7D6230F944;
+	Wed, 27 Aug 2025 22:52:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756334892; cv=none; b=u60R2kwkxOIYGEgAV+mrV/jtKUiWZ7d9qsx5ujc08zo8cgPlkLqlg+CFguGlsZ1901Urd4G2pwx63Q33ssg/J5zCGWXkGMukqe2PtWfJk++OImSVyLHhd3kNk2ElTXL7EBmUzKmkudhZx1MPbML6P6Kqn95EX7F7ieZ1z3rcijI=
+	t=1756335124; cv=none; b=KZbu/iyMae0a2dheMNp8cX5OgijPTz/gTXnGJ+gEMPfPiJv3z9hr48Z41HLXncoJIr/wzrgANiqSG1f1/fyVHHLx2bFG1D1l64AJ3s5+3fDFZaZE4TclOvjUirLx9x+/xMJsmcDdJsnY5fSozAYtp2jUxYUZu5qdawYuC2RZ2A4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756334892; c=relaxed/simple;
-	bh=Z6VmhIniThUlk94KyCUA97Xli1jK+QcKG89vea0Skek=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sxJRwTFFRaearIOLuL77XC6CkuDEz1WxxFBJo3bYMbrJz7Q2wQHZ6q5kDQJSr+iSBhNNNO9LJpx60i1u4bBkaQkJxzDAYnTdNTJa/2/Rj0zgquBpNfRJ2hvkUmm2FBuxTQ2ea2gAK6Q8fkqQQx6esPinx4gPici7ZnPX7gUmFls=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Qzf3hn3q; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lFqXULkn; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1756335124; c=relaxed/simple;
+	bh=Uij0BhfOj+0ZidIGXIhukTZtp+Ut7e/aX0rtiSEevNc=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=EC1Cgla8X05do1NOEoNK2D1/F0H/aoe+jgVzBEbkKAAjU9+QHyqjIS0mb8ZkQ+S3VRodPF5f27nUHjuetXlFN0Vka+iViimYXe68T7AxN3hpZ1rRBtkQvZtBzXfGeOxrDqeNS6cGyivuRoHU+4KnKaJbIyFzFSR0lg03/s5nh2U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NG6IQqkw; arc=none smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Qzf3hn3q";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lFqXULkn"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 4526760745; Thu, 28 Aug 2025 00:48:08 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756334888;
-	bh=yvS2CdxZxYGO2RyyXWMvM0jJkzhIkWHXb7vOn8u1INA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Qzf3hn3qHeuDfZ7tsUIM7lgCDx38iiszcyYZevjRAhN1TtlUb69san38qTyEA246I
-	 sxJkp+I+oNJ9TQ8hjAoWcUkpHPAvhw/xTm2Avam/SUyLnKmYI1wjM2/cBpAm9ejXxF
-	 34xSidjdtDF8sp+ZQSLQjSHh+rjoAMrZwVsrLNn6bZaplTe9kFkf1RxV3tLBZpdc7n
-	 tmbywAlbx81qIOi9peJo7pLMU8y+msnBm/rQS6KUH3IaegZA3mBxmNKB5mfce53DOU
-	 WLuVmL4h/woJla7LDPWHU5DuFtsAerT4dHZrpYngoy7rIyiTVU2nKcGN5vtPL0WpaY
-	 pK6JV6UDwoe1w==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C29656071F;
-	Thu, 28 Aug 2025 00:48:07 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756334887;
-	bh=yvS2CdxZxYGO2RyyXWMvM0jJkzhIkWHXb7vOn8u1INA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lFqXULkncs/vOkq73AQ9XJXfKzPhriT/lATk3G1Xy1DeEXU3ES7T4cv6EdCq+h5V+
-	 K05/HsMYhX1P5xOT/+gJBPvvcw7Nk2FlsGkqL14UEpNM0ln/jnZ9w8H1t+Nj/oMySK
-	 7+5EpqZ91lmnAudmkxpqZ6Wx2L1aP7FyZ6LjvN2KNX22MZ8AE9ezlO9sezAoB4DwT/
-	 QVjQYFdbf5oZv1EUwVwayDsg7LJXK4jvm+A5C/jhRF1nD/D2s0dbQFVFOylg8VsWaM
-	 yPuVJuzAGKKKkCgJ+r9WE8pxzUHt5OXuedsibzl0KfK2f7622JvrBVZMgDSogq7PsW
-	 l6FHcYmgtx9vg==
-Date: Thu, 28 Aug 2025 00:48:05 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH] udata: Introduce NFTNL_UDATA_TABLE_NFT{VER,BLD}
-Message-ID: <aK-LJaptoYyZhmbe@calendula>
-References: <20250813170703.28510-1-phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NG6IQqkw"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-246ef40cf93so3746125ad.0;
+        Wed, 27 Aug 2025 15:52:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1756335122; x=1756939922; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Uij0BhfOj+0ZidIGXIhukTZtp+Ut7e/aX0rtiSEevNc=;
+        b=NG6IQqkwtW9TTdIlXdDF0h5212OG52qDVrW46uR0jft4tYMiHwuuC3JX5AGPrBbhA2
+         9i4Fz8c7QPGNAb1HxFeMayfMSUqattGUaw64i7arE1b/1MJ7aMZYxfL9slr7bXN1LXRl
+         vrZJUJTmsxDYnh+QbPytQHDeqc1GbEleEcyrVCOUhJMCf30sdXLKe1qcAgaeoiw9ulti
+         pD/AVd5G6W6Mo/QqartGkDm8t83dKzeuEVPuGlQwqa8zjKlbKqKEROZ1NFxsV/umPhkW
+         Xj0oMFTcOl+wIZy+aC3OMskYgb4vQoJxeI6j+uqw6D3X6cwPTBCi81K3p0BsDSCGGezo
+         Hj1w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756335122; x=1756939922;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Uij0BhfOj+0ZidIGXIhukTZtp+Ut7e/aX0rtiSEevNc=;
+        b=AS9iceYV2O8/gfYdxE2yW7jBiedC8D8qhUqGKiW4+w675IYVO5PY5CQpjUSeRtIM8Q
+         H+S0sl6hw0qjpONRrvK0tO6St/VoyL0AlGwIU23SBTgno1cx3EIcJVOM7/KAclHo4pVJ
+         ol7B5+nkhf/hlPwT5r0AjzAS3w1+wIJyZOPUhZ7qyHA97F2Hv3J6J7Z9GsYByAmQa50u
+         Nzd26lEmutyNB4nZs7HgUnEyxoH/4RXjFXS1HQ4i7sm0PSy+OA7njlWe93RjGCeE3mZU
+         Odk1inr0j3pamP5uKKCXmrBROJgsfS3RgccDjn8clAXkcf6L5Rtrp/XUixXilfBonwHs
+         pWxg==
+X-Forwarded-Encrypted: i=1; AJvYcCU5/jxc/zBtzCK1H2EK3s6AKsbXxSATMp01jpHQGTCoywHNEL7Xxi2TqmnOeKRG3Dq3WvRYaTbr5YN4us45Qd3q@vger.kernel.org, AJvYcCWbOPofAPX1rihS8T8ujpqsVPCt8D1HE4kHQYlRZW0dklY2R2X9zrSFoJJv4+veAgFPNjFhVYP5Kiw=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwmfA/JbzZLkGTL3N4wtQ0bD65ORlLle0rbUNB5SgWW2sHKBaSP
+	APJrSLX8kbTk5ecKWtsyfzo0RiG8cM8W512Ahp25+k+nhecyW518UlMa
+X-Gm-Gg: ASbGncv0jV94DUc4nXvGHBbzyLh9QzFofM3Bb5jiBr69yJ/Kk8Nv0bcyLuK0I4z9aET
+	rjY5S4RDIYoVgVC1JzJLjMPuzD4ETtGTDoePibhpNxtUiGUiV5gDZc4g1962YjY9NwOHBEpI+/i
+	LB3tdHe9IpZnmvRMWu2a2BrMu2mWYJhIZBFs/yHLlV/WpSUGzznahfTs08iXwPUQo9VjcWCe5g1
+	UlDJtyk6MPOcv+3mW1lBnvX3zFfqCfL2pSSZDu4j8+CMp6RhgcNk+DcZONYLO4Rx0hLu/hjH57J
+	5ACiVKYwuO5JnSkkIKiY8EteBA3r8LoUVERacgg7OD2akAK7gkDZn9GhrSDeu0TRhM6FjOM7HCD
+	77qikvKFNCAykLw8I2NYr6Pzj/mDSTZogCpz02qzpcgxmKmZBc6g=
+X-Google-Smtp-Source: AGHT+IHrVZuXjFa4lr5nFs4J6rEpTZ8Se3Vmi5RGE+6GXLQ+ei9Z9L7HolzM3L4ip5iP1jXxzEvhag==
+X-Received: by 2002:a17:903:244b:b0:246:cc56:39e5 with SMTP id d9443c01a7336-246cc563f19mr170170815ad.17.1756335121960;
+        Wed, 27 Aug 2025 15:52:01 -0700 (PDT)
+Received: from DESKTOP-EOHBD4V.localdomain ([180.110.79.182])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2467a6f5489sm125908415ad.144.2025.08.27.15.51.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 Aug 2025 15:52:01 -0700 (PDT)
+From: Zhang Tengfei <zhtfdev@gmail.com>
+To: zhtfdev@gmail.com
+Cc: coreteam@netfilter.org,
+	davem@davemloft.net,
+	dsahern@kernel.org,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@verge.net.au,
+	ja@ssi.bg,
+	kadlec@netfilter.org,
+	kuba@kernel.org,
+	lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com,
+	pablo@netfilter.org,
+	syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+Subject: Re: [PATCH v2] net/netfilter/ipvs: Use READ_ONCE/WRITE_ONCE for ipvs->enable
+Date: Thu, 28 Aug 2025 06:51:55 +0800
+Message-Id: <20250827225155.4935-1-zhtfdev@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20250827223322.4896-1-zhtfdev@gmail.com>
+References: <20250827223322.4896-1-zhtfdev@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20250813170703.28510-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Aug 13, 2025 at 07:07:03PM +0200, Phil Sutter wrote:
-> Register these table udata types here to avoid accidental overlaps.
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+Hi everyone,
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+My apologies for the noise and confusion with the multiple v2 submissions.
+I sent a malformed reply earlier with no subject.
 
-Thanks.
+This patch in *this* thread is the correct and final version for review.
+Please disregard the previous malformed email.
+
+Many thanks to Pablo Neira Ayuso for pointing out the formatting error.
