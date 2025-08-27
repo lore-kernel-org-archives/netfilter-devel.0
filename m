@@ -1,80 +1,117 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 396032F0671
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 17:12:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE97728C84C
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 17:17:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756314772; cv=none; b=j3tgc5z8bF29awTv9ZOupMnSpDdkw0LGbsJ+yCrnQXQ6M14KfXKvKsZs2QGgwA1h+eTtualVUICHQErwXzNGephbWOHs4esWx2zo6IE/iCnb/cHFNpBpW24eqrgHP0olONVe0hTBoQoJSS4YaDfSRzthrwqFMRR0Nh8VjE3+pTk=
+	t=1756315070; cv=none; b=H9IGToxodcdoYxnM76AnQn6+ZPxH8Gh7iUD3wQecjqIOLVr1xwt+Pkiew35QyJmjDgMjLdDmaVl8K9sXUhIELxZdTcIxRebY7BYgU0nXmLbRJxwT7vKs7nExyrNS4mcI2o4Faw90WHXgeKx4HsINnCGel52WiF2jETJLVlSRClw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756314772; c=relaxed/simple;
-	bh=ZWogo6P6XewIVL/kBzbMWVvqadBYKy2VRfLH5laLl2U=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=aojxftZgCbvd8UpC/NryRvKkyG4n7EMhIqwlE/M2/7lZqLC+t87RH5oKbHRM7Y38LMqYO/IljAui5CZYW+VxPKvBq0w67+gqtINO3pelBxvQoEI44IYni+GonQGkz6vREbxrID2JApzgzj1qAY7JbQn/6eCI8leV2gxu5Mm3d6c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1756315070; c=relaxed/simple;
+	bh=fcNUNXHuMGIuC1xJwApMmQ9doYwbBRLeLAFu1ZGbtWQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sj9hCZj8MmKg381CR7dvdMQ+lBeR39iCM6bNAK8Hw7gl39tAAp6ezAOqsk1VC+L8fQDLemyPbnBasVKlA2GiQIGklh8BkBZax6G0S3wWkqZ8XWagWGzg63tAHPcJdvFNfYSR3LyT7H2k/XwdRLCn9f8pE7ujwr7D7FjkQrqejZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6AC8760224; Wed, 27 Aug 2025 19:12:41 +0200 (CEST)
-Date: Wed, 27 Aug 2025 19:12:36 +0200
+	id 7BD9060224; Wed, 27 Aug 2025 19:17:46 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Subject: nftables monitor json mode is broken
-Message-ID: <aK88hFryFONk4a6P@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Yi Chen <yiche@redhat.com>
+Subject: [PATCH nf] selftests: netfilter: fix udpclash tool hang
+Date: Wed, 27 Aug 2025 19:17:32 +0200
+Message-ID: <20250827171736.7513-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hi,
+Yi Chen reports that 'udpclash' loops forever depending on compiler
+(and optimization level used); while (x == 1) gets optimized into
+for (;;).  Switch to stdatomic to prevent this.
 
-as subject says, 'nft monitor -j' is broken.
-Example:
+While at it, also run it under timeout(1) and fix the resize script
+to not ignore the timeout passed as second parameter to insert_flood.
 
-./run-tests.sh -j testcases/object.t
-monitor: running tests from file object.t
-monitor output differs!
---- /tmp/tmp.emU4zIN8UT/tmp.C4TeyO6xYk  2025-08-27 19:05:08.039619097 +0200
-+++ /tmp/tmp.emU4zIN8UT/tmp.jBOL3aIrp5  2025-08-27 19:05:09.062551248 +0200
-@@ -1 +1 @@
--{"delete": {"quota": {"family": "ip", "name": "q", "table": "t", "handle": 0, "bytes": 26214400, "used": 0, "inv": false}}}
-+{"delete": {"quota": {"family": "ip", "name": "q", "table": "t", "handle": 0, "bytes": 0, "used": 0, "inv": false}}}
-monitor output differs!
---- /tmp/tmp.emU4zIN8UT/tmp.C4TeyO6xYk  2025-08-27 19:05:10.095619097 +0200
-+++ /tmp/tmp.emU4zIN8UT/tmp.Guz55knY19  2025-08-27 19:05:11.117393075 +0200
-@@ -1 +1 @@
--{"delete": {"limit": {"family": "ip", "name": "l", "table": "t", "handle": 0, "rate": 1, "per": "second", "burst": 5}}}
-+{"delete": {"limit": {"family": "ip", "name": "l", "table": "t", "handle": 0, "rate": 0, "per": "error"}}}
+Reported-by: Yi Chen <yiche@redhat.com>
+Suggested-by: Yi Chen <yiche@redhat.com>
+Fixes: 78a588363587 ("selftests: netfilter: add conntrack clash resolution test case")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tools/testing/selftests/net/netfilter/conntrack_clash.sh  | 2 +-
+ tools/testing/selftests/net/netfilter/conntrack_resize.sh | 5 +++--
+ tools/testing/selftests/net/netfilter/udpclash.c          | 3 ++-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-I did notice this weeks ago but thought it was a problem on my end
-and then didn't have time to investigate closer.
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_clash.sh b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
+index 606a43a60f73..7fc6c5dbd551 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_clash.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
+@@ -99,7 +99,7 @@ run_one_clash_test()
+ 	local entries
+ 	local cre
+ 
+-	if ! ip netns exec "$ns" ./udpclash $daddr $dport;then
++	if ! ip netns exec "$ns" timeout 30 ./udpclash $daddr $dport;then
+ 		echo "INFO: did not receive expected number of replies for $daddr:$dport"
+ 		ip netns exec "$ctns" conntrack -S
+ 		# don't fail: check if clash resolution triggered after all.
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_resize.sh b/tools/testing/selftests/net/netfilter/conntrack_resize.sh
+index 788cd56ea4a0..615fe3c6f405 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_resize.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_resize.sh
+@@ -187,7 +187,7 @@ ct_udpclash()
+ 	[ -x udpclash ] || return
+ 
+         while [ $now -lt $end ]; do
+-		ip netns exec "$ns" ./udpclash 127.0.0.1 $((RANDOM%65536)) > /dev/null 2>&1
++		ip netns exec "$ns" timeout 30 ./udpclash 127.0.0.1 $((RANDOM%65536)) > /dev/null 2>&1
+ 
+ 		now=$(date +%s)
+ 	done
+@@ -277,6 +277,7 @@ check_taint()
+ insert_flood()
+ {
+ 	local n="$1"
++	local timeout="$2"
+ 	local r=0
+ 
+ 	r=$((RANDOM%$insert_count))
+@@ -302,7 +303,7 @@ test_floodresize_all()
+ 	read tainted_then < /proc/sys/kernel/tainted
+ 
+ 	for n in "$nsclient1" "$nsclient2";do
+-		insert_flood "$n" &
++		insert_flood "$n" "$timeout" &
+ 	done
+ 
+ 	# resize table constantly while flood/insert/dump/flushs
+diff --git a/tools/testing/selftests/net/netfilter/udpclash.c b/tools/testing/selftests/net/netfilter/udpclash.c
+index 85c7b906ad08..0a3b8890b530 100644
+--- a/tools/testing/selftests/net/netfilter/udpclash.c
++++ b/tools/testing/selftests/net/netfilter/udpclash.c
+@@ -14,6 +14,7 @@
+  *  ed07d9a021df ("netfilter: nf_conntrack: resolve clash for matching conntracks")
+  *  6a757c07e51f ("netfilter: conntrack: allow insertion of clashing entries")
+  */
++#include <stdatomic.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <stdlib.h>
+@@ -29,7 +30,7 @@ struct thread_args {
+ 	int sockfd;
+ };
+ 
+-static int wait = 1;
++static atomic_int wait = ATOMIC_VAR_INIT(1);
+ 
+ static void *thread_main(void *varg)
+ {
+-- 
+2.49.1
 
-But its in fact broken on kernel side, since
-
-netfilter: nf_tables: Reintroduce shortened deletion notifications
-
-In short, unlike the normal output, json output wants to dump
-everything, but the notifications no longer include the extra data, just
-the bare minimum to identify the object being deleted.
-
-As noone has complained so far I am inclinded to delete the
-tests and rip out json support from monitor mode, it seems noone
-uses it or even runs the tests for it.
-
-Alternatives i see are:
-1. implement a cache and query it
-2. rework the json mode to be forgiving as to what is set
-   and what isn't in the object.
-
-Object here also means any object reported in any delete kind,
-not just NFT_MSG_DELOBJ.  This applies to set elements etc. too,
-json expects the full info, but the kernel notifications no longer
-provide this.
-
-Alternative options?
-
-Thanks.
