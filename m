@@ -1,56 +1,55 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 616293112DC
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 22:46:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF7CE6FC5
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 22:48:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756334821; cv=none; b=IzB+afKwyxk7mGA+Vy6QG4M5ADkFxanqFGsOa1ht1Tm6ykP+GF/mDTwXUU+3XgaLcvteY/j++jdjZRGaN/r9TdAr5VHPGD5V1u7dAvdQK39LRxSbmt798xqAcQVjxh8QMl9KLiKWUUGTjoQMhceIPS8UWcMVhSDDNknsM77w0CE=
+	t=1756334892; cv=none; b=u60R2kwkxOIYGEgAV+mrV/jtKUiWZ7d9qsx5ujc08zo8cgPlkLqlg+CFguGlsZ1901Urd4G2pwx63Q33ssg/J5zCGWXkGMukqe2PtWfJk++OImSVyLHhd3kNk2ElTXL7EBmUzKmkudhZx1MPbML6P6Kqn95EX7F7ieZ1z3rcijI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756334821; c=relaxed/simple;
-	bh=MLvG8AMH1i03UuDITBH4BwazKhE9Es2SfG2MZwviVM4=;
+	s=arc-20240116; t=1756334892; c=relaxed/simple;
+	bh=Z6VmhIniThUlk94KyCUA97Xli1jK+QcKG89vea0Skek=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jiPwZLq42T4t2I7HbtC5cr38ESR5xe4MPsz+GyYhODiCnxt6mPePzTTkJTxiCyNMcanUBikFTp8ob6CAI2IWrA7el5pO+F5gxk98feVfhS1TZPZclUHiA2Qb2Do/yWsjwNu7p/XPlALDP/C5CnOjKMaJ65XQ/XDtXlGRbnBGvqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JoxjJvfw; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JoxjJvfw; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=sxJRwTFFRaearIOLuL77XC6CkuDEz1WxxFBJo3bYMbrJz7Q2wQHZ6q5kDQJSr+iSBhNNNO9LJpx60i1u4bBkaQkJxzDAYnTdNTJa/2/Rj0zgquBpNfRJ2hvkUmm2FBuxTQ2ea2gAK6Q8fkqQQx6esPinx4gPici7ZnPX7gUmFls=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Qzf3hn3q; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lFqXULkn; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JoxjJvfw";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JoxjJvfw"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Qzf3hn3q";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lFqXULkn"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id D908860602; Thu, 28 Aug 2025 00:46:57 +0200 (CEST)
+	id 4526760745; Thu, 28 Aug 2025 00:48:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756334817;
-	bh=Up035gXgOS6I3qdEJuNiV3TiJLRi4DhTwUkEuRXFJsU=;
+	s=2025; t=1756334888;
+	bh=yvS2CdxZxYGO2RyyXWMvM0jJkzhIkWHXb7vOn8u1INA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=JoxjJvfweocgNAgeYu+Or+5/I12dnO8mImQAo0yBpRvBeHGXXjDEdIH/DLM8+aqZr
-	 cDLz+8BPTXz851zRJie3YjIDDlewwZSyiwIqjDyCtCTxf4l+dyz5Lt4YVm6lxxSiqE
-	 TZ51wtEyFAlQxPVHaXRyYgIi/yDoNbHUkkhJ7vZJjYoZH+ypD/McPWbxAw6yLhUGrT
-	 IUkx2v/qr8j6qg5WqJAcdbItWBaMHOQyeM9Tn5Y78vX5xsycBJDnehRCcmrBmJkkW5
-	 6KKeElkIk37kgmTO7M4LVye/kCJ9xNntjIv5eGlHfF4a/N60MuIVOjMMobDpg6C9lr
-	 +4bVfmDk+dhug==
+	b=Qzf3hn3qHeuDfZ7tsUIM7lgCDx38iiszcyYZevjRAhN1TtlUb69san38qTyEA246I
+	 sxJkp+I+oNJ9TQ8hjAoWcUkpHPAvhw/xTm2Avam/SUyLnKmYI1wjM2/cBpAm9ejXxF
+	 34xSidjdtDF8sp+ZQSLQjSHh+rjoAMrZwVsrLNn6bZaplTe9kFkf1RxV3tLBZpdc7n
+	 tmbywAlbx81qIOi9peJo7pLMU8y+msnBm/rQS6KUH3IaegZA3mBxmNKB5mfce53DOU
+	 WLuVmL4h/woJla7LDPWHU5DuFtsAerT4dHZrpYngoy7rIyiTVU2nKcGN5vtPL0WpaY
+	 pK6JV6UDwoe1w==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id ECBF360602;
-	Thu, 28 Aug 2025 00:46:56 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C29656071F;
+	Thu, 28 Aug 2025 00:48:07 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756334817;
-	bh=Up035gXgOS6I3qdEJuNiV3TiJLRi4DhTwUkEuRXFJsU=;
+	s=2025; t=1756334887;
+	bh=yvS2CdxZxYGO2RyyXWMvM0jJkzhIkWHXb7vOn8u1INA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=JoxjJvfweocgNAgeYu+Or+5/I12dnO8mImQAo0yBpRvBeHGXXjDEdIH/DLM8+aqZr
-	 cDLz+8BPTXz851zRJie3YjIDDlewwZSyiwIqjDyCtCTxf4l+dyz5Lt4YVm6lxxSiqE
-	 TZ51wtEyFAlQxPVHaXRyYgIi/yDoNbHUkkhJ7vZJjYoZH+ypD/McPWbxAw6yLhUGrT
-	 IUkx2v/qr8j6qg5WqJAcdbItWBaMHOQyeM9Tn5Y78vX5xsycBJDnehRCcmrBmJkkW5
-	 6KKeElkIk37kgmTO7M4LVye/kCJ9xNntjIv5eGlHfF4a/N60MuIVOjMMobDpg6C9lr
-	 +4bVfmDk+dhug==
-Date: Thu, 28 Aug 2025 00:46:54 +0200
+	b=lFqXULkncs/vOkq73AQ9XJXfKzPhriT/lATk3G1Xy1DeEXU3ES7T4cv6EdCq+h5V+
+	 K05/HsMYhX1P5xOT/+gJBPvvcw7Nk2FlsGkqL14UEpNM0ln/jnZ9w8H1t+Nj/oMySK
+	 7+5EpqZ91lmnAudmkxpqZ6Wx2L1aP7FyZ6LjvN2KNX22MZ8AE9ezlO9sezAoB4DwT/
+	 QVjQYFdbf5oZv1EUwVwayDsg7LJXK4jvm+A5C/jhRF1nD/D2s0dbQFVFOylg8VsWaM
+	 yPuVJuzAGKKKkCgJ+r9WE8pxzUHt5OXuedsibzl0KfK2f7622JvrBVZMgDSogq7PsW
+	 l6FHcYmgtx9vg==
+Date: Thu, 28 Aug 2025 00:48:05 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Dan Winship <danwinship@redhat.com>
-Subject: Re: [nft PATCH] table: Embed creating nft version into userdata
-Message-ID: <aK-K3qn6spM6O5eV@calendula>
-References: <20250813170833.28585-1-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH] udata: Introduce NFTNL_UDATA_TABLE_NFT{VER,BLD}
+Message-ID: <aK-LJaptoYyZhmbe@calendula>
+References: <20250813170703.28510-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,19 +58,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250813170833.28585-1-phil@nwl.cc>
+In-Reply-To: <20250813170703.28510-1-phil@nwl.cc>
 
-Hi Phil,
-
-On Wed, Aug 13, 2025 at 07:07:19PM +0200, Phil Sutter wrote:
-> Upon listing a table which was created by a newer version of nftables,
-> warn about the potentially incomplete content.
+On Wed, Aug 13, 2025 at 07:07:03PM +0200, Phil Sutter wrote:
+> Register these table udata types here to avoid accidental overlaps.
 > 
-> Suggested-by: Florian Westphal <fw@strlen.de>
-> Cc: Dan Winship <danwinship@redhat.com>
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
-
-Just rebase this and apply, it clashes with my update for --unitdir.
 
 Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
