@@ -1,55 +1,58 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B189F2E1C63
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 22:27:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9577E4438B
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2025 22:34:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756333675; cv=none; b=UwxnrRJ/jpothJPQV7ketILBBw8CBLkHgj005JcRqiw2CMcaQ9Xa/7SqvW0Khpw4ukeVuTRebmK3oFcddkwe8YMlWd7pHKVgZ5KCCXcuXfHz7WEIcEFOSf7JrjNxr1lUERiVsZBwmt6L3v6OX37npzlbaC9XtYfetfftMMLGY1c=
+	t=1756334062; cv=none; b=r9lHV0R07btVJi/QFINpdxS7hg7WDlsxMZmnDoH73wxUqMdsMEjoeTiHzuJAm9XOE2bpPZJ8cMGZqgBFrPTpPRQ5oyMQOj3PVll9qWhPNIXRukewcYwuqUgZDh5lCdAJ2ic5z0F1llx3r7VmwDUQy28eAk8GVHX7EptRYyB0dw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756333675; c=relaxed/simple;
-	bh=vnH6U9DwerIXSp4Go+bMv8kGVbe4xDWlleuxrE8CVvg=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h8bdnWgPBw77dE4aRCLTX3Ihz+O+pPCTPH36pen8GlBY4w6xpzDAjUhWWidhyR1vLLTE35Y8Cwe1wO11oTnvi+j6FSjWFHDHkv5vgzdpCHcjD7Y/riwAvuhBtzhsthtWBnqhjWAu+aAdYdlvl+CJVdRhc+DqRHcapZWHu+yMnZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UaY7lx/V; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RZ+rgAvt; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1756334062; c=relaxed/simple;
+	bh=tQSlb7O6f2mPIaCXhP6G+aYk7pHQ7HNfbutUWSpS780=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QZFCniITAhKdXik1T9KuuNiessh9lIcdjX9Cf5MzvliBam25my1CTxeGnyP9ToM4pkgVXgrqEkt1qlqZYrMdGMw8qOXaTCUMI+K2X3CAL7TrkJP/CKDyWvBpPflzmu+TPvV42VyKYPFCv4dIw8nCxTTlbSRcQHyqex+QA4BJRnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pYhKwC9w; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=G8IMROwv; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UaY7lx/V";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RZ+rgAvt"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pYhKwC9w";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="G8IMROwv"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 330AB607AA; Thu, 28 Aug 2025 00:27:52 +0200 (CEST)
+	id BDE5D607B4; Thu, 28 Aug 2025 00:34:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756333672;
-	bh=jDE3qV/Df3rH+CMkJuYsGDNcmQ5jhy3/PQWlc7yjhFQ=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=UaY7lx/V7P1/yfCIpK/BXmGPv2uGOsqh72/JwcaVRIjP+Ku6s6rH75MkEHP5izk/X
-	 HYmB2ESMXahoJt2axBfgOEK7t8xbfuCDc/8+JJ9LagHP7159CVvGMOOZYGSwCuwPIu
-	 pP6lX7mM9f5xtXie7Mdh3CF79ehgihcXtUYpZqWPo62YXzNFKSOyWbjg+iei02r/Gj
-	 Z47il3YnGunYuoJ/RjUJONgH8hTtZpNtB9BGc7Fdxg60NFwknk0WUSmTSdtqwHGyam
-	 Ww2tQKTOldQEqoRLIJKu6FWa/WTgGO75YB3+9gXF3OMFgaMa3ybsVUrrjn9AE8xcbl
-	 FPvpzWiusBSIA==
+	s=2025; t=1756334058;
+	bh=YQTdlFPkumEjHBosU9sUmPwkPNReiRH3Xawc1ZcWHX4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=pYhKwC9wDWO1LqX0uhX81CdWHV8ljHuSqswMqiWpZtpbdSEb70dHNrjNeQ7IJ3DVg
+	 IMnd58PbhoZiIU0MyHhUJdkoDb+xb6NQsDzMwynIMNaYDJIGJZbFGjyLhDfO9x8WbZ
+	 AJqb85mHoSS57WtR7PnuXJ3f+QlhIXlOqkBvNMOlfo2I3hjSuN3BqKPNjxrVpd6m1w
+	 bjPG1XF2v4Y6p8TUfL6yuEnyl4J+uFiXWrYec66licsrlJybeFQwb7MTKjAbc0RPdI
+	 Tu0hVgpDeJqWKFn72PT05ZM+pc2O8JZLepAifEPCEksSWgFTn5iQwBucFjtIOLUWXD
+	 pZ92LXt5nx4YQ==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C9157607A6
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Aug 2025 00:27:51 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6C449607B0;
+	Thu, 28 Aug 2025 00:34:17 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756333671;
-	bh=jDE3qV/Df3rH+CMkJuYsGDNcmQ5jhy3/PQWlc7yjhFQ=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=RZ+rgAvtOTTO1KpWBJSIcO2dym5wmmtnjKv58KDtkaC/eu/4/hFa2HGvOR1svcu7F
-	 aexTF8aLZgTQvzcXzT+5rNOccjcNG9/tIHjNf81L+Sguc5zqCHshurJMnva42A6XgS
-	 WYlmh+dYy3V85RLOK6m2MfkdfnDSJDsRQNqZUaVz5gWRzhQmFtB1hj70GLzzfW/ugE
-	 fJcx3h+xNPi3aIz45k8Ihic5C0l7EAAkVRq9mvBE/O5On7JptUvt8JiZeeF7uzZAh/
-	 tuvqOhelW9ZOhq4+3hUTGBxvE2ODZELxLFmrNZf0otn3+mVm6zfCfDYwEmqA6mJCLp
-	 NXKPAT3Af2gjQ==
-Date: Thu, 28 Aug 2025 00:27:48 +0200
+	s=2025; t=1756334057;
+	bh=YQTdlFPkumEjHBosU9sUmPwkPNReiRH3Xawc1ZcWHX4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=G8IMROwvNCb79Ig2SzIU7E0WqY9OfYErm/kbMSlMxwWK3FJytwsCl61NyCa1BGBtw
+	 v6uOTQaYmY91yy08wEZsKU4H9fUwZcw0r7VAvFjgTerPPYoLLrs6XG0k82O2RM+DRG
+	 WVB66UPgsyJLliw1BP8yBcXb+1FAVVDJctMIJOCYuCWixes0G+nuVysIU+UmZHAU0a
+	 lv1pO2VmlTb/gr/xgp7c1mdMZvhp0Zv17n+j1Ggl4C04oOE1Vhzn5LTYoAB/TfHqzp
+	 LHl3g4DpFRP7Th/So78JEL9DZhxsp7IJxxnmd545hgnUhfuYYumhHTNMnixfMfKUMv
+	 N4v+WF1dSYj6Q==
+Date: Thu, 28 Aug 2025 00:34:15 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft 1/2] evaluate: simplify set to list normalisation for
- device expressions
-Message-ID: <aK-GZBnHa6xhtmIt@calendula>
-References: <20250821091741.2739718-1-pablo@netfilter.org>
+To: Yi Chen <yiche@redhat.com>
+Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org,
+	fw@strlen.de
+Subject: Re: [conntrack-tools PATCH] nfct: helper: Extend error message for
+ EEXIST
+Message-ID: <aK-H5xydGbsYIvBU@calendula>
+References: <20250815155750.21583-1-phil@nwl.cc>
+ <CAJsUoE2zCJYSvm9_=784BtH26GsRDJGBTn8930wW4ZSU8nTjYA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,25 +61,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250821091741.2739718-1-pablo@netfilter.org>
+In-Reply-To: <CAJsUoE2zCJYSvm9_=784BtH26GsRDJGBTn8930wW4ZSU8nTjYA@mail.gmail.com>
 
-On Thu, Aug 21, 2025 at 11:17:40AM +0200, Pablo Neira Ayuso wrote:
-> When evaluating the list of devices, two expressions are possible:
+On Mon, Aug 18, 2025 at 11:47:08AM +0800, Yi Chen wrote:
+> This patch adds a hint when:
 > 
-> - EXPR_LIST, which is the expected expression type to store the list of
->   chain/flowtable devices.
+> # modprobe nf_conntrack_ftp
+> # nfct helper del ftp inet tcp
+> # nfct helper add ftp inet tcp
+> *nfct v1.4.8: netlink error: File exists*
 > 
-> - EXPR_SET, in case that a variable is used to express the device list.
->   This is because it is not possible to know if the variable defines
->   set elements or devices. Since sets are more common, EXPR_SET is used.
-> 
-> In the latter case, this list expressed as EXPR_SET gets translated to
-> EXPR_LIST. Before such translation, the EXPR_VARIABLE is evaluated,
-> therefore all variables are gone and only EXPR_SET_ELEM are possible in
-> expr_set_to_list().
-> 
-> Remove the EXPR_VALUE and EXPR_VARIABLE cases in expr_set_to_list()
-> since those are never seen. Add BUG() in case any other expressions than
-> EXPR_SET_ELEM is seen.
+> or other type of helper.
 
-Applied this series too.
+This patch changes EEXIST by EBUSY:
+
+  https://patchwork.ozlabs.org/project/netfilter-devel/patch/20250818112220.26641-1-phil@nwl.cc/
+
+This userspace patch is not very useful after this.
+
+So maybe a follow up fix to retain EEXIST for nfnetlink_cthelper in
+the kernel is needed?
+
+I mean, return EEXIST in nfnetlink_cthelper but EBUSY in case of
+insmod, ie. add a bool insmod flag to the helper register/unregister
+functions to return EBUSY for insmod and EEXIST for
+nfnetlink_cthelper.
