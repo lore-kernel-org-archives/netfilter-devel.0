@@ -1,59 +1,59 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58701208994
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Aug 2025 11:56:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E93DF30CDA5;
+	Thu, 28 Aug 2025 12:00:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756382215; cv=none; b=p2nMJNueasHMzfcjFM0HlZsB/5FW+vfGMOBt1efDQ/DBzaLe+L9b3hdC0vZnLO43in5rHMn1k2oR2SABQywBLOAPTOHHCDUKf4qt4F9g/B8kY7BP408I0qv8SMP9lfx6fh2y12d9YLwE9TYhWJrHFkesVwy5+PEMTKn2ZbnXE5I=
+	t=1756382433; cv=none; b=ahlbY8kQVxGDxzh/L3KoDP0+epyMGCVZI2ECzGFSKm28l3uVUl6aUJULIngQIJbxYk5EEf202cPgVprn5DIEPyDG6ag5HzWE3gbO86V3ixYS6qloJjj2k47ICgH++ReoFgSNZ5uIoYReRNC1nNfxL7XZ5Un6q4s0kJkPYFvvJv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756382215; c=relaxed/simple;
-	bh=73rJmY5fnMCY8LviToXMwK8glxevgYYU6C/NJ7zp61g=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c1m/3nK14yLSqvAeC+TN36baZ0rVCLSv4sQlFfmImOWo9901BwcNdqPNhU8VUcCreNIuxVRHudCBmpXDXGoLuNYXSd//7qSTq+53CSv7sKae5/7cNjWHGLhToHH6WT28eSG2u/U/gJCtGEVbvfzZXUSq6kfgsJYWHamWpFNk5cY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=EUaCeJse; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WiHmCEZY; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1756382433; c=relaxed/simple;
+	bh=3fBYa02GGUyO5ZDt61o9vUhK73n+F3lSgJu64QvsnXI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=m2lnFmq8agbeUjMR9KkDdQtiVER2HMBZQBFngf8SOjEtbj8QSmhG2LXT+eGrAdfAYoLvDLH4OQX3q4QW588Mh8Tp+6+SfYLGvktjNxtogzUy8e7U2mmHCIuGMIBgoHlTAWffplAEJu1hFzJklJYlIxPttZXgbUV+L7vZcudEawY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CIQpT33d; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cPq2RHEx; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="EUaCeJse";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WiHmCEZY"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CIQpT33d";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cPq2RHEx"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 2DA1360624; Thu, 28 Aug 2025 13:56:49 +0200 (CEST)
+	id C5C2060634; Thu, 28 Aug 2025 14:00:28 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756382209;
-	bh=QPs4N6oXwUmlvrG5BjlcYo6CDe9mhvf5ft460/O28sg=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=EUaCeJseHyIpMf7zRHqHcA0OeG2yz0qnVkpP+oQYKavjHxGh97hnrLoR5j7y3KsrU
-	 fi45XbUOt4wAL6x2X5Egg/brjRGgJ9PhUSUQYS0xUh3R+OS7chHHeLBecMVeLJoMeh
-	 WjSyipAr5QJExu4+5SSLHj4cWO77WqM51CoIz+6tSUDSQsaIryxMMX0FjCMrab/hP/
-	 rgvP2QCbBOKqPuPhMTcK3OIvkF0vT3832RgxaFxAEtkXA6FAU9ebbSxBLSS4PFvE8E
-	 KNi66IEMRzeKGLWCZro9vWnMo/6MrtrWO6mpWbIYCes6qbKkCqNIdUnBjLdBSD3GfR
-	 5Sto5jWH6rTMA==
+	s=2025; t=1756382428;
+	bh=HjVj7tasxLhD6OPcmErYYrA4srC7AUHm5WpZ8Ny4Ypg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=CIQpT33dxG6R2o9f1k0nXR+NCvncJrYPJyXalMOTTA6Slpb7IxoFZ4IAeKao7BlZV
+	 r2iscAtcelM4iJ/ptmSe5J+M6dX2Kby+0DXqrom2lE7sGetgJ0fejPdDkdqBJjHd1y
+	 XMSJXfgwJqHUOo4O3a2zhFVoAU+UrJYHdnl3nYGe/hABUqG5ZUunPI62LLO8DSt9TR
+	 9HupeC+M94tDjd6z9bBqae8+cYtBewy3fkhVBTeTjdcr+eqEIPDUiSQpr0gmJsmcMV
+	 ozIWBYenLhwjmwqtXCVpYQELuaJuGEWLDXFPBT265ov0B5LC1vdU/sbQO0v+v4Sf47
+	 Po+5z08LdryBA==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 27B1E60624;
-	Thu, 28 Aug 2025 13:56:47 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4E92D60624;
+	Thu, 28 Aug 2025 14:00:27 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756382207;
-	bh=QPs4N6oXwUmlvrG5BjlcYo6CDe9mhvf5ft460/O28sg=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=WiHmCEZY+/UBuvz07DqtXZWT2byj3uTMajtyNUuhRDad8F59VnUlH3s//hSUJFGIu
-	 SXtkTuCcwxf255tKdo47vN+Xb7vszuC2XCLGlp6ITSIiygi9mOmfR7sQQAsW8QUjIY
-	 E9iiCfXONeALZ0OlNMEMSUZz5peKmZQ7LqoIqws/K8f6tZMggDOWMhrjMi6QaTyENJ
-	 SsD+ngzQTQ1YVmAJwmL2coMuDy2im0o8FjYa73eg9cyjXt64tCtjBLNisV+0Co1w2E
-	 YuAUtceYJZcRPcSKsMLXgjotm/S0ZjI+BxlXOyW1aHqoyneWV13v+BedsZMX5rpG/g
-	 nlm9LRlvRSR9w==
-Date: Thu, 28 Aug 2025 13:56:45 +0200
+	s=2025; t=1756382427;
+	bh=HjVj7tasxLhD6OPcmErYYrA4srC7AUHm5WpZ8Ny4Ypg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=cPq2RHExwCNHNURhY2TlTaji4JsiAAf1EFAe8WjchAtczc0dr0SpekkjlSo81u848
+	 mzsjBkQFBFgnnQCRWH5HbCD0MWLiwNQT26qS2irjhLVztD+zaS5WfcXjSjqUJDJeHi
+	 A5pQ2CtJaNmEeiDufI1/g2GX9/NCgN721af2TMaQr9N9jjPP5XJzp6/6g6GuGWPQmT
+	 Gv7N/ymP1RSqKzzwT1hKW4G/XckNgnVCZLSKtbURum9IavPPMBEnIH3ReDrtK2AzBY
+	 El32MEaz5MNoonONuEHg8nnXp0S1/rE4vxscJQVk5o97OLSUNFB/BG0NxFUKMdgIgc
+	 Ko9IYo66MYsbg==
+Date: Thu, 28 Aug 2025 14:00:24 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, Yi Chen <yiche@redhat.com>,
-	netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [conntrack-tools PATCH] nfct: helper: Extend error message for
- EEXIST
-Message-ID: <aLBD_Ur0qeT9yLbz@calendula>
-References: <20250815155750.21583-1-phil@nwl.cc>
- <CAJsUoE2zCJYSvm9_=784BtH26GsRDJGBTn8930wW4ZSU8nTjYA@mail.gmail.com>
- <aK-H5xydGbsYIvBU@calendula>
- <aLA3pp6yXJjdEjjl@orbyte.nwl.cc>
+To: Fabian =?utf-8?B?QmzDpHNl?= <fabian@blaese.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	"Jason A. Donenfeld" <Jason@zx2c4.com>,
+	Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3] icmp: fix icmp_ndo_send address translation for reply
+ direction
+Message-ID: <aLBE2Ee7pUBzUupH@calendula>
+References: <20250825203826.3231093-1-fabian@blaese.de>
+ <20250828091435.161962-1-fabian@blaese.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -62,49 +62,120 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aLA3pp6yXJjdEjjl@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20250828091435.161962-1-fabian@blaese.de>
 
-On Thu, Aug 28, 2025 at 01:04:06PM +0200, Phil Sutter wrote:
-> On Thu, Aug 28, 2025 at 12:34:15AM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Aug 18, 2025 at 11:47:08AM +0800, Yi Chen wrote:
-> > > This patch adds a hint when:
-> > > 
-> > > # modprobe nf_conntrack_ftp
-> > > # nfct helper del ftp inet tcp
-> > > # nfct helper add ftp inet tcp
-> > > *nfct v1.4.8: netlink error: File exists*
-> > > 
-> > > or other type of helper.
-> > 
-> > This patch changes EEXIST by EBUSY:
-> > 
-> >   https://patchwork.ozlabs.org/project/netfilter-devel/patch/20250818112220.26641-1-phil@nwl.cc/
-> > 
-> > This userspace patch is not very useful after this.
+On Thu, Aug 28, 2025 at 11:14:35AM +0200, Fabian Bläse wrote:
+> The icmp_ndo_send function was originally introduced to ensure proper
+> rate limiting when icmp_send is called by a network device driver,
+> where the packet's source address may have already been transformed
+> by SNAT.
 > 
-> Oh! I missed that nfnl_cthelper_create() also just passes through the
-> return code from nf_conntrack_helper_register().
+> However, the original implementation only considers the
+> IP_CT_DIR_ORIGINAL direction for SNAT and always replaced the packet's
+> source address with that of the original-direction tuple. This causes
+> two problems:
 > 
-> > So maybe a follow up fix to retain EEXIST for nfnetlink_cthelper in
-> > the kernel is needed?
-> > 
-> > I mean, return EEXIST in nfnetlink_cthelper but EBUSY in case of
-> > insmod, ie. add a bool insmod flag to the helper register/unregister
-> > functions to return EBUSY for insmod and EEXIST for
-> > nfnetlink_cthelper.
+> 1. For SNAT:
+>    Reply-direction packets were incorrectly translated using the source
+>    address of the CT original direction, even though no translation is
+>    required.
 > 
-> Do we need to retain the old return code?
+> 2. For DNAT:
+>    Reply-direction packets were not handled at all. In DNAT, the original
+>    direction's destination is translated. Therefore, in the reply
+>    direction the source address must be set to the reply-direction
+>    source, so rate limiting works as intended.
+> 
+> Fix this by using the connection direction to select the correct tuple
+> for source address translation, and adjust the pre-checks to handle
+> reply-direction packets in case of DNAT.
+> 
+> Additionally, wrap the `ct->status` access in READ_ONCE(). This avoids
+> possible KCSAN reports about concurrent updates to `ct->status`.
 
-I have change return codes in the past myself, when I considered error
-reported to userspace was misleading, but I heard once it is a good
-practise not to change them as a general rule.
+I think such concurrent update cannot not happen, NAT bits are only
+set for the first packet of a connection, which sets up the nat
+configuration, so READ_ONCE() can go away.
 
-> I would just update the patch to print the message for EBUSY instead
-> of EEXIST.
+Florian?
 
-It is OK, I could not find any code in conntrackd running in helper
-mode than relies on this error code. The only case that I can think of
-is combining old kernel with new userspace defeats the purpose of this
-patch.
-
-Maybe it is not worth the effort to bother about this, judge yourself.
+> Fixes: 0b41713b6066 ("icmp: introduce helper for nat'd source address in network device context")
+> 
+> Signed-off-by: Fabian Bläse <fabian@blaese.de>
+> Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+> Cc: Florian Westphal <fw@strlen.de>
+> ---
+> Changes v1->v2:
+> - Implement fix for ICMPv6 as well
+> 
+> Changes v2->v3:
+> - Collapse conditional tuple selection into a single direction lookup [Florian]
+> - Always apply source address translation if IPS_NAT_MASK is set [Florian]
+> - Wrap ct->status in READ_ONCE()
+> - Add a clearer explanation of the behaviour change for DNAT
+> ---
+>  net/ipv4/icmp.c     | 6 ++++--
+>  net/ipv6/ip6_icmp.c | 6 ++++--
+>  2 files changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/ipv4/icmp.c b/net/ipv4/icmp.c
+> index 2ffe73ea644f..c48c572f024d 100644
+> --- a/net/ipv4/icmp.c
+> +++ b/net/ipv4/icmp.c
+> @@ -799,11 +799,12 @@ void icmp_ndo_send(struct sk_buff *skb_in, int type, int code, __be32 info)
+>  	struct sk_buff *cloned_skb = NULL;
+>  	struct ip_options opts = { 0 };
+>  	enum ip_conntrack_info ctinfo;
+> +	enum ip_conntrack_dir dir;
+>  	struct nf_conn *ct;
+>  	__be32 orig_ip;
+>  
+>  	ct = nf_ct_get(skb_in, &ctinfo);
+> -	if (!ct || !(ct->status & IPS_SRC_NAT)) {
+> +	if (!ct || !(READ_ONCE(ct->status) & IPS_NAT_MASK)) {
+>  		__icmp_send(skb_in, type, code, info, &opts);
+>  		return;
+>  	}
+> @@ -818,7 +819,8 @@ void icmp_ndo_send(struct sk_buff *skb_in, int type, int code, __be32 info)
+>  		goto out;
+>  
+>  	orig_ip = ip_hdr(skb_in)->saddr;
+> -	ip_hdr(skb_in)->saddr = ct->tuplehash[0].tuple.src.u3.ip;
+> +	dir = CTINFO2DIR(ctinfo);
+> +	ip_hdr(skb_in)->saddr = ct->tuplehash[dir].tuple.src.u3.ip;
+>  	__icmp_send(skb_in, type, code, info, &opts);
+>  	ip_hdr(skb_in)->saddr = orig_ip;
+>  out:
+> diff --git a/net/ipv6/ip6_icmp.c b/net/ipv6/ip6_icmp.c
+> index 9e3574880cb0..233914b63bdb 100644
+> --- a/net/ipv6/ip6_icmp.c
+> +++ b/net/ipv6/ip6_icmp.c
+> @@ -54,11 +54,12 @@ void icmpv6_ndo_send(struct sk_buff *skb_in, u8 type, u8 code, __u32 info)
+>  	struct inet6_skb_parm parm = { 0 };
+>  	struct sk_buff *cloned_skb = NULL;
+>  	enum ip_conntrack_info ctinfo;
+> +	enum ip_conntrack_dir dir;
+>  	struct in6_addr orig_ip;
+>  	struct nf_conn *ct;
+>  
+>  	ct = nf_ct_get(skb_in, &ctinfo);
+> -	if (!ct || !(ct->status & IPS_SRC_NAT)) {
+> +	if (!ct || !(READ_ONCE(ct->status) & IPS_NAT_MASK)) {
+>  		__icmpv6_send(skb_in, type, code, info, &parm);
+>  		return;
+>  	}
+> @@ -73,7 +74,8 @@ void icmpv6_ndo_send(struct sk_buff *skb_in, u8 type, u8 code, __u32 info)
+>  		goto out;
+>  
+>  	orig_ip = ipv6_hdr(skb_in)->saddr;
+> -	ipv6_hdr(skb_in)->saddr = ct->tuplehash[0].tuple.src.u3.in6;
+> +	dir = CTINFO2DIR(ctinfo);
+> +	ipv6_hdr(skb_in)->saddr = ct->tuplehash[dir].tuple.src.u3.in6;
+>  	__icmpv6_send(skb_in, type, code, info, &parm);
+>  	ipv6_hdr(skb_in)->saddr = orig_ip;
+>  out:
+> -- 
+> 2.51.0
+> 
+> 
