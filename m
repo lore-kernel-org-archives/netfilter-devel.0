@@ -1,105 +1,113 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1812303C88
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Aug 2025 12:27:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE43C222575
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Aug 2025 12:30:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756384051; cv=none; b=pGDelpFUGF1aNvOdGkL3oOIHnFsyYcMZWEQWCXPA2kL3kxqhKycuS0RosmYGqRxcfCtYGFlF74L3H0x8HFF3w7pjn1XoDxUaDmsY1syxz3pjmJUaKOuLK0a9qeyVCOTPlRh8SwP16ksSgbyz+vRj6NL5PMTQRs7gqdasWzs4Idk=
+	t=1756384258; cv=none; b=a/avW0Hc1iqRxAiXPqK4OYMrUvGexo1EOol/f3+LJy9WXNMjdUBdJGbeNgZfB6gba7ZqsUkrA9HTrbxOoKoaRtGPsxv6zKIwqjzFK2ypBgGVDXmRsTN6s2eyLTpgC+45ePY9GwtStwGhf4iIHunV4eNr3rtHn5AWV48puvySj3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756384051; c=relaxed/simple;
-	bh=4V7AIDYQTb6v/9kwau9V5s4nGN4Wv5WjI3+gEE995yo=;
+	s=arc-20240116; t=1756384258; c=relaxed/simple;
+	bh=wZQSCn6gUwGt05fcY8u/XdsVYipKtHIvS3T/9CF1TBU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WOIw/+5XJbRSy+ktr0d050Rf3qkn9Iy99rXhgZLO03esem6mM6GwerYrhzJnAlxS/x7Mz6UJTtPrkB3SC/+Of7GnMYD2x/KycxFnSg2PPIjjTM+bAvcgOkX1Ro83zQJAf0NyL/+LcEbHMFT9D+CkR0PxP4EnwyXmRY2eIrokVHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=c5pUg9OF; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QnSC6s9o; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=OhUX/fKB/AX9nn+zYSZXV3hKrbDmCZdBE70nveZqrTAkCta2j/1ZgWyDNYyOw7l0daw8aHz5qLsCpJS5X/BxKv3fRZDTAZUqMpl1RaOkLdzhOkwxIl12EOsaGuJODZtkOAhx9T4KC5btIfQ6hVZz+NssgLB5LJjR0V/edn+MfOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=CXwkek3P; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="c5pUg9OF";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QnSC6s9o"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 51BED60701; Thu, 28 Aug 2025 14:27:21 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756384041;
-	bh=7+iRtM0/quz5Bs6AqaYL6E0KKgfkg5Mw41rNwfpun9k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=c5pUg9OFhJnRzJbR8FXcPDxxw3hKp1/mpdxYBfAjQBIYtLxIk2VSNQv0vih7ur8Ef
-	 7aLIAyvEdhXW5BnX7GZMQlKSiRdXIiJtjnvFtB6ZorzdgZnOfqcOcpTAL5X5NcXvus
-	 1ibMBMmH7GmfsK7Dw/21xJt1GSA9Lx5z2lqu6pTZH7UnOKWgSiJFi+uiTe28xGOwLf
-	 Hg2UuCX3mseVCoZo0cH5vDa+DQ/FMaqTkynQcTDswZjR0/HIUQhqyfaNqBVT1iP7vb
-	 3YtlVOIP0mEplpwficDtvAjN1Mrn41riT5xBTMnT0+wG5N5GKIUe7LH4RsBr+YLiBU
-	 wPWbLgTrbjOKQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A7A25606FE;
-	Thu, 28 Aug 2025 14:27:20 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756384040;
-	bh=7+iRtM0/quz5Bs6AqaYL6E0KKgfkg5Mw41rNwfpun9k=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QnSC6s9oUGqLHT9+sxEu3j/w0ummX1tZucJgd2kWxZrwwswVb3qP1knOp0TC1F3Fd
-	 AB3dMb2zkiS78mNwHyp71l4sXYkbrAObWsgwIIjorfmy4WaeVo7HOyL7cJlpdfnUQH
-	 cPolCGb9iaF5VSSDVkB918SSZIys4F+WxrZqVAa5I1pJ4/5Zv+OQgh4rNOBjmBc0y2
-	 7zcHW1lTdGcJJH9sdSRrwoO/vJb9HGLrtuNWK28qs/K6lzjgvbGqF3jokjlClDc4ps
-	 imy4zYjfjsoKq/pUC+AmouZeStvAegp97WkAotyY9KXU2Psd/H6cyZpxJQVrGHasGA
-	 Y3wtiunkgxBOg==
-Date: Thu, 28 Aug 2025 14:27:17 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: nftables monitor json mode is broken
-Message-ID: <aLBLJW9qwTSjlLZW@calendula>
-References: <aK88hFryFONk4a6P@strlen.de>
- <aK9MRw-hiudD_tEK@calendula>
- <aK9QXz16DjYjEWkH@calendula>
- <aLAhaqBWKt5wyWZ6@strlen.de>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="CXwkek3P"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=W0uzPgTGTcoX2ADv9txEk21hcn6DyMg++gE7smhYiYQ=; b=CXwkek3Pr70wLKD5NpblyRQGVC
+	na7eOlo7K+2MIjz2w02iZn8j+XDMFCSmxwFm++ini/m/c2gbMtUv/Go6Sz3s4bJk7kzJU+MCChgOA
+	HAa2mk0FRiPrxIlw2x2m5gtHm/omC2u5kt90Crc8+uHbjZh/NtSyPElyV9aVFuL9ZgkWO81cbx9O6
+	qvlJeD5P+0ISGS80jtvwXOBaCKYnkTpsPQ6gNV5C3PfRq3a+pmOdInpqcOujfSUw/T4iHRyKmSrvN
+	kAkWyYOggK+s2ftVKIWajkLEMWnoxh/m2FlvxvkSP5apE5uznZNri9TvX7ZYkGDrolcbgoEyDRslK
+	Ojmg9fnA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1urbmH-000000006z7-2jWS;
+	Thu, 28 Aug 2025 14:30:53 +0200
+Date: Thu, 28 Aug 2025 14:30:53 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Yi Chen <yiche@redhat.com>, netfilter-devel@vger.kernel.org,
+	fw@strlen.de
+Subject: Re: [conntrack-tools PATCH] nfct: helper: Extend error message for
+ EEXIST
+Message-ID: <aLBL_W7eNXTTePwb@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Yi Chen <yiche@redhat.com>,
+	netfilter-devel@vger.kernel.org, fw@strlen.de
+References: <20250815155750.21583-1-phil@nwl.cc>
+ <CAJsUoE2zCJYSvm9_=784BtH26GsRDJGBTn8930wW4ZSU8nTjYA@mail.gmail.com>
+ <aK-H5xydGbsYIvBU@calendula>
+ <aLA3pp6yXJjdEjjl@orbyte.nwl.cc>
+ <aLBD_Ur0qeT9yLbz@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aLAhaqBWKt5wyWZ6@strlen.de>
+In-Reply-To: <aLBD_Ur0qeT9yLbz@calendula>
 
-On Thu, Aug 28, 2025 at 11:29:14AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > Why? Is unfixable to consider this?
+On Thu, Aug 28, 2025 at 01:56:45PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Aug 28, 2025 at 01:04:06PM +0200, Phil Sutter wrote:
+> > On Thu, Aug 28, 2025 at 12:34:15AM +0200, Pablo Neira Ayuso wrote:
+> > > On Mon, Aug 18, 2025 at 11:47:08AM +0800, Yi Chen wrote:
+> > > > This patch adds a hint when:
+> > > > 
+> > > > # modprobe nf_conntrack_ftp
+> > > > # nfct helper del ftp inet tcp
+> > > > # nfct helper add ftp inet tcp
+> > > > *nfct v1.4.8: netlink error: File exists*
+> > > > 
+> > > > or other type of helper.
+> > > 
+> > > This patch changes EEXIST by EBUSY:
+> > > 
+> > >   https://patchwork.ozlabs.org/project/netfilter-devel/patch/20250818112220.26641-1-phil@nwl.cc/
+> > > 
+> > > This userspace patch is not very useful after this.
+> > 
+> > Oh! I missed that nfnl_cthelper_create() also just passes through the
+> > return code from nf_conntrack_helper_register().
+> > 
+> > > So maybe a follow up fix to retain EEXIST for nfnetlink_cthelper in
+> > > the kernel is needed?
+> > > 
+> > > I mean, return EEXIST in nfnetlink_cthelper but EBUSY in case of
+> > > insmod, ie. add a bool insmod flag to the helper register/unregister
+> > > functions to return EBUSY for insmod and EEXIST for
+> > > nfnetlink_cthelper.
+> > 
+> > Do we need to retain the old return code?
 > 
-> I'm not sure.
+> I have change return codes in the past myself, when I considered error
+> reported to userspace was misleading, but I heard once it is a good
+> practise not to change them as a general rule.
 > 
-> It depends on several factors:
-> 1. Do we have users of the json monitor mode?
-> 2. Can they cope with *partial* info?
->    For non-json, the user will be a human and they
->    can the delete messages will have enough info to
->    correlate it with the corresponding add messages.
->    But for automated robots consuming json? Dunno.
-> 3. Is the burden of correlating the delete info
->    with the full information about the deleted object
->    on the nft monitor -j side or the consumer of the
->    (Then incomplete) json info?
+> > I would just update the patch to print the message for EBUSY instead
+> > of EEXIST.
+> 
+> It is OK, I could not find any code in conntrackd running in helper
+> mode than relies on this error code. The only case that I can think of
+> is combining old kernel with new userspace defeats the purpose of this
+> patch.
 
-I don't think json output should diverge from the native monitor mode,
-which only displays the partial information.
+Yes, with old kernels new user space behaviour is same as old user space
+(so at least not a degradation).
 
-Then, for stateful objects such as counters, maybe there is a usecase
-to display this in the delete object events, but then native nftables
-monitor should display the same behaviour.
+> Maybe it is not worth the effort to bother about this, judge yourself.
 
-> > this is a relatively large rework, I started some code but is
-> > incomplete, including rule caching to deal with runtime incremental
-> > updates.
-> 
-> Thanks Pablo.
-> 
-> > I think it should be better to fix what we have then look pick back on
-> > the rework at some point.
-> 
-> I also prefer repair to "nuke it".
-> But I dislike the idea of spending time on something that is not
-> used in practice.
+The EBUSY return is consistent with insmod/modprobe return code, so I'd
+keep it like this.
 
-I don't find a good reason to cripple json to make it less capable
-than the native representation.
+Thanks, Phil
