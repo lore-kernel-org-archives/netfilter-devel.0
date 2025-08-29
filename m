@@ -1,29 +1,70 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f180.google.com (mail-lj1-f180.google.com [209.85.208.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8581B2EACEF
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Aug 2025 23:50:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B976713AC1
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Aug 2025 06:50:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756425020; cv=none; b=KtLSKg0EhvmPhqlojLVDZIaX4i1hKdO7zwAz2R3+iZkeKLnSVsKBoTKRq5rm0cHs1HvsylBa+kv9HaHMmTFiwkIkPKEo3Rw8JCrd+25cDQcokIguDjUyNK8rs1Al015Hm5ITdsRE2V0dZerznUJAHGW+HUaLxYaH3TKWoFTFqN4=
+	t=1756450256; cv=none; b=O5aChsXMB8zRke5GsTTw+8GBsdAwyQnGyApIIHSFMmDU+2uZ6RUJhQSBurM1ee/rkv/Kl+YwKLWIKxlsAvJgMmysZZUg2esx+ZHLCfxOiZrKwhafHXCQ+rUirgOh8wsBLXvevedGmr/zgSZCyeOsWMX0JOYrewh5BSmlLOfRURo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756425020; c=relaxed/simple;
-	bh=gvCWCn/r7BTKekiL7O9n4UbjmFd4dl8QdR0mcHHdvGQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QjLE1UNcB9U6vetRPgeSRmYOP3vGDXgZfEfCJU+Sl5GZJi4cy8n/6tRfGvE9CKCUjMX2KlOiYOZktqkUpVdazG7uAhKMG58xEAWDlR0vMHbmusL2YtDCpTxdjFH3RTBnTuXzHkG/TXL6OUUiK5hZoyCioZMhQHu0S39McMZPc0U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8108760555; Fri, 29 Aug 2025 01:50:16 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-	Stefano Brivio <sbrivio@redhat.com>
-Subject: [PATCH nf-next] netfilter: nft_set_pipapo: remove redundant test for avx feature bit
-Date: Fri, 29 Aug 2025 01:50:05 +0200
-Message-ID: <20250828235008.23351-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
+	s=arc-20240116; t=1756450256; c=relaxed/simple;
+	bh=lohsmysJSeD1DzUAZ+GjNFAhL2lFYLR2NrOdCdIGwTM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Ll7GxnV0oMmJRYyCqWVt7OAhQvyStUZBPtv6H7chP+uX+gAESqdBvzWoiQUZFjsJiOmq44Ge9KKxx5QIAQxyiyXHzSbkSs+13eXrqTUOnIic/wOiHdxOhxUWy7WAr+WOZ3fTtHKitkQ3tCe9U2Llxr/iJyty95+HPNGmJ/JLl/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gGNGBl7k; arc=none smtp.client-ip=209.85.208.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gGNGBl7k"
+Received: by mail-lj1-f180.google.com with SMTP id 38308e7fff4ca-33685e3b16aso13261751fa.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Aug 2025 23:50:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1756450252; x=1757055052; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Q4bv9XpJPRyW4PIPg5BanTpAyhiBzzJ4kfKB2EmS6yA=;
+        b=gGNGBl7k+V7jVxitG0yZzQ43ps02cuecrqtB02SwHtti3rRkGXbWSYavdMvU9WPEv0
+         9uMS4XGrvwlwRoxCv7N/5BdqW0lh8W4uon0BFjujj/8jWY1UaYKETZdA+oZpTDqtjpWw
+         rvQ27nDvXhk/zqkzXk7SPVzH1ipfe8BHaLD8dzAtE+yREEQgJVZrDXadnmuyPVsyGZ7M
+         89JvQXzIknkZOG9iHPp7gI1jFEaZH5WywA+aCcYo78pMIPU/T8f548yrYV9nDFz2kulB
+         za/VCzePmFjCubc9ZphyVDiPTwsy4eyWsE+QDDdbVKJ2CnTd9Bq8sXSjzK+xfLSW5mEC
+         6Igg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756450252; x=1757055052;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Q4bv9XpJPRyW4PIPg5BanTpAyhiBzzJ4kfKB2EmS6yA=;
+        b=gv1REnxg05gts70tCaMZ1OyWJWtoDQHzTZ+O5lbapPt4S/EXroyOteXeeyhndUX6JP
+         0rgDeRnllFdRMivf2W87Dy44LMu3Zz5UdWUcf3Dmg4l6cTdnRLF3jrK27dHeS10GjFC0
+         AVoPX9QCrq24BNj4Hd+f/2bqoHrHzIwBZ10+EwG2Ucr0k6T+61FfGZLhY6Ndp0BCYNxC
+         +dnw6BGUOXLL2Qwnk2lh/VZm+Lvwd/WjHKKxYLi/3rJkO1J26HQWlXtxU+KhZeZU/WR6
+         gaAUyDedB3mUwmMO1CFqe8ohg0xOjAr+6GdlbJdd9pIw4sa6xTRomiIpKj58Zo9rhPSZ
+         ydhQ==
+X-Gm-Message-State: AOJu0YzpYe5dYQjY9dT/wuIhossAg1ZCYnwKfiqRfgNozNRimnA69Ig5
+	bMXCURa8AKaOLaU/nV8pbMUtS+5NxslCSCSXUF/AD0MQ8xaS7Z+Ci3UqHzg5zXC/+bc=
+X-Gm-Gg: ASbGncvuMy9dyrqoD+CaSadbsLGFTMrRvUT7hFm2NuS9KkkEOppyUCu5Jm5dBdK0YSI
+	NbPaa5+1FrKzT67nCaHjcJBBHW+CWF1S/AP2jy/ZXsR80TmdI2SLVGEXWUoaZum74JuLmMc98YQ
+	BtA6u+50wxMUWJM5UHDXcU+Sii2mXCYc03U70GymuGPALT4BsoGRng1NgamWv/BpP1lKbgBqva6
+	lN1IhTkDtmsWuzfqSIN2eJ6Nf/3Z8gX1HuJe0XRMGsjOnVrdRGL4ZE55tljdFn/XYbA/Lk3EvvZ
+	vb1X+ZkGbUZiSIz1Bcoub6bEbXfAcmkqZo7NV9H72rV6rfepgit7YDh69147Y1gNAHn6YZAonh6
+	8HoxrVOFfezkv/K4tGzkm73P6yIOBdZJAXK4gmDwc3KNRp2aUZs0ADwWAEq2Y25uLMmPYUVlyM6
+	nnraGVKxRoOW5oing/Da910Vo2kmAWc8WtGn8SlDw=
+X-Google-Smtp-Source: AGHT+IEitkqBBUlO9gDjRL4vH70BRNxeEkp9jhhWrBW9XMaio50YmhL/AmhtB7Z4ZYw3Ck1PjltuHg==
+X-Received: by 2002:a05:651c:20ce:10b0:335:40e6:d066 with SMTP id 38308e7fff4ca-33650feeb2cmr51370131fa.45.1756450252353;
+        Thu, 28 Aug 2025 23:50:52 -0700 (PDT)
+Received: from localhost.localdomain ([2001:464e:6820:0:4bef:9480:233:512])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-55f6770d931sm390085e87.39.2025.08.28.23.50.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 Aug 2025 23:50:51 -0700 (PDT)
+From: Nikolaos Gkarlis <nickgarlis@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	Nikolaos Gkarlis <nickgarlis@gmail.com>
+Subject: [PATCH] netfilter: nft_ct: reject ambiguous conntrack expressions in inet tables
+Date: Fri, 29 Aug 2025 08:50:11 +0200
+Message-Id: <20250829065011.12936-1-nickgarlis@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,46 +73,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Sebastian points out that avx2 depends on avx, see check_cpufeature_deps()
-in arch/x86/kernel/cpu/cpuid-deps.c:
-avx2 feature bit will be cleared when avx isn't available.
+The kernel accepts netlink messages using the legacy NFT_CT_SRC,
+NFT_CT_DST keys in inet tables, creating ambiguous conntrack expressions
+that cannot be properly evaluated during packet processing.
 
-No functional change intended.
+When NFPROTO_INET is used with NFT_CT_SRC, NFT_CT_DST the register size
+calculation defaults to IPv6 (16 bytes) regardless of the actual packet
+family.
 
-Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This causes two issues:
+1. For IPv4 packets, only 4 bytes contain valid address data while 12
+   bytes contain uninitialized memory during comparison.
+2. nft userspace cannot properly display these rules ([invalid type]).
+
+The bug is not reproducible through standard nft commands, which
+properly use NFT_CT_SRC_IP(6), NFT_CT_DST_IP(6) keys instead.
+
+Fix by rejecting such expressions with EAFNOSUPPORT when used in inet
+tables.
+
+Signed-off-by: Nikolaos Gkarlis <nickgarlis@gmail.com>
 ---
- net/netfilter/nft_set_pipapo.c      | 2 +-
- net/netfilter/nft_set_pipapo_avx2.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+As an example, packets from 192.0.2.1 (0xc0000201) would also match
+rules filtering on c000:201:: (0xc0000201000000000000000000000000),
+which is likely unintended. To my knowledge, the keys NFT_CT_SRC and
+NFT_CT_DST were never officially used by nft userspace, so I assume
+rejecting them should be safe. I have tested this change and it appears
+to work as expected.
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index b385cfcf886f..415be47e0407 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -530,7 +530,7 @@ static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
- 	local_bh_disable();
- 
- #if defined(CONFIG_X86_64) && !defined(CONFIG_UML)
--	if (boot_cpu_has(X86_FEATURE_AVX2) && boot_cpu_has(X86_FEATURE_AVX) &&
-+	if (boot_cpu_has(X86_FEATURE_AVX2) &&
- 	    irq_fpu_usable()) {
- 		e = pipapo_get_avx2(m, data, genmask, tstamp);
- 		local_bh_enable();
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 29326f3fcaf3..7559306d0aed 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -1099,7 +1099,7 @@ bool nft_pipapo_avx2_estimate(const struct nft_set_desc *desc, u32 features,
- 	    desc->field_count < NFT_PIPAPO_MIN_FIELDS)
- 		return false;
- 
--	if (!boot_cpu_has(X86_FEATURE_AVX2) || !boot_cpu_has(X86_FEATURE_AVX))
-+	if (!boot_cpu_has(X86_FEATURE_AVX2))
- 		return false;
- 
- 	est->size = pipapo_estimate_size(desc);
+ net/netfilter/nft_ct.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index d526e69a2..23ce90975 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -439,7 +439,6 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 					   src.u3.ip);
+ 			break;
+ 		case NFPROTO_IPV6:
+-		case NFPROTO_INET:
+ 			len = sizeof_field(struct nf_conntrack_tuple,
+ 					   src.u3.ip6);
+ 			break;
 -- 
-2.49.1
+2.34.1
 
