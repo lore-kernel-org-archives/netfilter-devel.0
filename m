@@ -1,49 +1,27 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55E7E3203A9
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Aug 2025 14:25:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94E5831CA73
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Aug 2025 15:01:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756477527; cv=none; b=Ned/4NGEXhulaCep92T8+0MzpbH9sLLUkfS4/JzANZL9Rk2nsJumTZ4/F2V4J7I4aZR8Q0ExgPEfIuVFFckCP4SMBjmZaxB3H/F7y4z6JRBWKchxnHqsc0d4rzzK51oTpgqRgIGyNsCmD43fFJEnOy+W07DuthmrpQXGwsMj4RM=
+	t=1756479676; cv=none; b=PmnlIkCm3VSerbd+LFXYpMTpq4lZJqbNHnGttfQyWSMaaijEkeuea4UEIUMxnhJl4g6qIbzzIrpGF4VhGc4KnZgLgrJ2yk7u+GsTPqnWPlCoXt5sGScy45GA3NBnrGcDG6moDCgG10fKW9AiRplLzNy0Hpb0qKmmH7NixmhK7SM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756477527; c=relaxed/simple;
-	bh=imiHlq1j4o+CWLWDH+CsKPALPOl09uOX500kXkMWkg0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=FSfayOeugGBw05d6X4ohrH2vxb8KekQg8QudcCdJnnFQrEpBrL8u9RCB0fN2QMS2pjCAAjGXyMSiBueCNUOCVpWi6WN+wqR6QQgA91uJYznLoHPnmK+pzyqYE9Csiqmhqmt24EkZnASHCTVVpVC4D93PK59r5BtGJBwDzHqr3Ww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=YMK2Ld8R; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="YMK2Ld8R"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=pL398BB5niwHiG+HMpus11qjNciovvz1ZvqZqKxM4+E=; b=YMK2Ld8RTcwPJzD/JoGv1oJa5H
-	w3PqbE3BePX+1JFpdtXnf9JIszl/3TY4N2l/+YNnOeZFYInEGUDyXPaekXSk2pIHRCGsQw9ywhF74
-	S5rlfK3tifQyZP1ppTFa++CNzdyUFg2RtIWVsBMM7zYxkMqshpceL+eyeebmELberckMg/AwC90Nb
-	pyzU4+GD8rPvSpRX4R7mDQaHixmy8Wgjucpuyb/Q62AUnYJQ/LC/hsKZsHWul6aoCzkdpS8WG8yji
-	4yI5aK+cDip826od9bJNX5SXh3WOPP0el3Ihq07ajuPe0YEB2veX4X8H94/w0p+EpzAv5MaL1Eks1
-	xUPPkaeA==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1us02d-0000000073T-2gn4;
-	Fri, 29 Aug 2025 16:25:23 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 5/5] tests: monitor: Extend testcases a bit
-Date: Fri, 29 Aug 2025 16:25:13 +0200
-Message-ID: <20250829142513.4608-6-phil@nwl.cc>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20250829142513.4608-1-phil@nwl.cc>
-References: <20250829142513.4608-1-phil@nwl.cc>
+	s=arc-20240116; t=1756479676; c=relaxed/simple;
+	bh=/NyPCYHf27bdEQpt/sqcbHlzPL7BJBilJAsPHqcFe9U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=THTaYpthpxMfU/Fj+qtZR5K/yz443Qu5I84qYGy+3vjFnONPPAPnMk5+zhwngf7YBfICkI/EAFl4IkH94EQZyXfFPBsnS0CFAfdIaSL7sQE3q8Tq1QxXgOQ2tZzIEZLdzxXjzo4cDz+cKcFaxpCPRxQyYdzERlHa4THqkuApbTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id B3791601EB; Fri, 29 Aug 2025 17:01:12 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nf_reject: don't reply to icmp error messages
+Date: Fri, 29 Aug 2025 17:01:02 +0200
+Message-ID: <20250829150106.18249-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,109 +30,122 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Try to cover for reduced table and chain deletion notifications by
-creating them with data which is omitted by the kernel during deletion.
+tcp reject code won't reply to a tcp reset.
 
-Also try to expose the difference in reported flowtable hook deletion
-vs. flowtable deletion.
+But the icmp reject 'netdev' family versions will reply to icmp
+dst-unreach errors, unlike icmp_send() and icmp6_send() which are used
+by the inet family implementation (and internally by the REJECT target).
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Check for the icmp(6) type and do not respond if its an unreachable error.
+
+Without this, something like 'ip protocol icmp reject', when used
+in a netdev chain attached to 'lo', cause a packet loop.
+
+Same for two hosts that both use such a rule: each error packet
+will be replied to.
+
+Such situation persist until the (bogus) rule is amended to ratelimit or
+checks the icmp type before the reject statement.
+
+As the inet versions don't do this make the netdev ones follow along.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/monitor/testcases/chain.t            | 41 ++++++++++++++++++++++
- tests/monitor/testcases/flowtable-simple.t | 12 +++++++
- tests/monitor/testcases/table.t            | 15 ++++++++
- 3 files changed, 68 insertions(+)
- create mode 100644 tests/monitor/testcases/chain.t
- create mode 100644 tests/monitor/testcases/table.t
+ net/ipv4/netfilter/nf_reject_ipv4.c | 25 ++++++++++++++++++++++++
+ net/ipv6/netfilter/nf_reject_ipv6.c | 30 +++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+)
 
-diff --git a/tests/monitor/testcases/chain.t b/tests/monitor/testcases/chain.t
-new file mode 100644
-index 0000000000000..975ccf1d33919
---- /dev/null
-+++ b/tests/monitor/testcases/chain.t
-@@ -0,0 +1,41 @@
-+I add table inet t
-+O -
-+J {"add": {"table": {"family": "inet", "name": "t", "handle": 0}}}
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 05631abe3f0d..fae4aa4a5f09 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -80,6 +80,27 @@ struct sk_buff *nf_reject_skb_v4_tcp_reset(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_reject_skb_v4_tcp_reset);
+ 
++static bool nf_skb_is_icmp_unreach(const struct sk_buff *skb)
++{
++	const struct iphdr *iph = ip_hdr(skb);
++	u8 *tp, _type;
++	int thoff;
 +
-+I add chain inet t c
-+O -
-+J {"add": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0}}}
++	if (iph->protocol != IPPROTO_ICMP)
++		return false;
 +
-+I delete chain inet t c
-+O -
-+J {"delete": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0}}}
++	thoff = skb_network_offset(skb) + sizeof(*iph);
 +
-+I add chain inet t c { type filter hook input priority filter; }
-+O add chain inet t c { type filter hook input priority 0; policy accept; }
-+J {"add": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0, "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}}}
++	tp = skb_header_pointer(skb,
++				thoff + offsetof(struct icmphdr, type),
++				sizeof(_type), &_type);
 +
-+I delete chain inet t c
-+O -
-+J {"delete": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0}}}
++	if (!tp)
++		return false;
 +
-+I add chain inet t c { type filter hook ingress priority filter; devices = { "lo" }; }
-+O add chain inet t c { type filter hook ingress devices = { "lo" } priority 0; policy accept; }
-+J {"add": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0, "dev": "lo", "type": "filter", "hook": "ingress", "prio": 0, "policy": "accept"}}}
++	return *tp == ICMP_DEST_UNREACH;
++}
 +
-+I delete chain inet t c
-+O -
-+J {"delete": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0}}}
+ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 					 struct sk_buff *oldskb,
+ 					 const struct net_device *dev,
+@@ -100,6 +121,10 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
+ 		return NULL;
+ 
++	/* don't reply to ICMP_DEST_UNREACH with ICMP_DEST_UNREACH. */
++	if (nf_skb_is_icmp_unreach(oldskb))
++		return NULL;
 +
-+I add chain inet t c { type filter hook ingress priority filter; devices = { "eth1", "lo" }; }
-+O add chain inet t c { type filter hook ingress devices = { "eth1", "lo" } priority 0; policy accept; }
-+J {"add": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0, "dev": ["eth1", "lo"], "type": "filter", "hook": "ingress", "prio": 0, "policy": "accept"}}}
+ 	/* RFC says return as much as we can without exceeding 576 bytes. */
+ 	len = min_t(unsigned int, 536, oldskb->len);
+ 
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 6b022449f867..ef5b7e85cffa 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -104,6 +104,32 @@ struct sk_buff *nf_reject_skb_v6_tcp_reset(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_reject_skb_v6_tcp_reset);
+ 
++static bool nf_skb_is_icmp6_unreach(const struct sk_buff *skb)
++{
++	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	u8 proto = ip6h->nexthdr;
++	u8 _type, *tp;
++	int thoff;
++	__be16 fo;
 +
-+I delete chain inet t c { type filter hook ingress priority filter; devices = { "eth1" }; }
-+O delete chain inet t c { type filter hook ingress devices = { "eth1" } priority 0; policy accept; }
-+J {"delete": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0, "dev": "eth1", "type": "filter", "hook": "ingress", "prio": 0, "policy": "accept"}}}
++	thoff = ipv6_skip_exthdr(skb, ((u8 *)(ip6h + 1) - skb->data), &proto, &fo);
 +
-+I delete chain inet t c
-+O -
-+J {"delete": {"chain": {"family": "inet", "table": "t", "name": "c", "handle": 0}}}
++	if (thoff < 0 || thoff >= skb->len || fo != 0)
++		return false;
 +
++	if (proto != IPPROTO_ICMPV6)
++		return false;
 +
-diff --git a/tests/monitor/testcases/flowtable-simple.t b/tests/monitor/testcases/flowtable-simple.t
-index 11254c51fcab7..e1889ae5d0076 100644
---- a/tests/monitor/testcases/flowtable-simple.t
-+++ b/tests/monitor/testcases/flowtable-simple.t
-@@ -8,3 +8,15 @@ J {"add": {"flowtable": {"family": "ip", "name": "ft", "table": "t", "handle": 0
- I delete flowtable ip t ft
- O -
- J {"delete": {"flowtable": {"family": "ip", "name": "ft", "table": "t", "handle": 0}}}
++	tp = skb_header_pointer(skb,
++				thoff + offsetof(struct icmp6hdr, icmp6_type),
++				sizeof(_type), &_type);
 +
-+I add flowtable ip t ft { hook ingress priority 0; devices = { "eth1", "lo" }; }
-+O -
-+J {"add": {"flowtable": {"family": "ip", "name": "ft", "table": "t", "handle": 0, "hook": "ingress", "prio": 0, "dev": ["eth1", "lo"]}}}
++	if (!tp)
++		return false;
 +
-+I delete flowtable ip t ft { hook ingress priority 0; devices = { "eth1" }; }
-+O -
-+J {"delete": {"flowtable": {"family": "ip", "name": "ft", "table": "t", "handle": 0, "hook": "ingress", "prio": 0, "dev": "eth1"}}}
++	return *tp == ICMPV6_DEST_UNREACH;
++}
 +
-+I delete flowtable ip t ft
-+O -
-+J {"delete": {"flowtable": {"family": "ip", "name": "ft", "table": "t", "handle": 0}}}
-diff --git a/tests/monitor/testcases/table.t b/tests/monitor/testcases/table.t
-new file mode 100644
-index 0000000000000..35a0f510436dc
---- /dev/null
-+++ b/tests/monitor/testcases/table.t
-@@ -0,0 +1,15 @@
-+I add table ip t
-+O -
-+J {"add": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+ struct sk_buff *nf_reject_skb_v6_unreach(struct net *net,
+ 					 struct sk_buff *oldskb,
+ 					 const struct net_device *dev,
+@@ -117,6 +143,10 @@ struct sk_buff *nf_reject_skb_v6_unreach(struct net *net,
+ 	if (!nf_reject_ip6hdr_validate(oldskb))
+ 		return NULL;
+ 
++	/* Don't reply to ICMPV6_DEST_UNREACH with ICMPV6_DEST_UNREACH */
++	if (nf_skb_is_icmp6_unreach(oldskb))
++		return NULL;
 +
-+I delete table ip t
-+O -
-+J {"delete": {"table": {"family": "ip", "name": "t", "handle": 0}}}
-+
-+I add table ip t { comment "foo bar"; flags dormant; }
-+O add table ip t { flags dormant; }
-+J {"add": {"table": {"family": "ip", "name": "t", "handle": 0, "flags": ["dormant"], "comment": "foo bar"}}}
-+
-+I delete table ip t
-+O -
-+J {"delete": {"table": {"family": "ip", "name": "t", "handle": 0}}}
+ 	/* Include "As much of invoking packet as possible without the ICMPv6
+ 	 * packet exceeding the minimum IPv6 MTU" in the ICMP payload.
+ 	 */
 -- 
-2.51.0
+2.49.1
 
