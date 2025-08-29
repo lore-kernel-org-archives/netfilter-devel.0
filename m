@@ -1,203 +1,92 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f178.google.com (mail-il1-f178.google.com [209.85.166.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F226A3A1DB
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Aug 2025 16:27:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32237261B8F
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Aug 2025 21:59:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756484838; cv=none; b=OtxD3khAMNOwYzWlwqA8JsKdiAUp2jNfaIJNFWp4eP5V/ALnvLPHRAojGhBQSz73e3R848WheCoZ9PODL8UOgIcrSRKwPbg+fsba6WFyst6uu0wTU/q34kFh9Tzgp6SKzN0fPdDDc44R+CfwtsWGB33vtcnjOuJerah4uPL/YXg=
+	t=1756504772; cv=none; b=TYzoGVJ/9HbMtayFaWFlfngFYiPuIsqGfHlZRI2NrP19rdl7FeSq++F8YFD9JNKgSeRT17OCbbfTlciWPcJ+skR06xQ1msRV4bko64LoP6f+Ya+kA8+rn0JuqLlCUu8uSpzeB/CWlHFMQPqbYLlEJU4pG7EJnWlr9wyQYFFMawQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756484838; c=relaxed/simple;
-	bh=gIfGebOiuxmlVSRX9vAzaPgsFyFJdMHkNfCrtTp91AE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gil0zhDSWpWbyaKD19o23clVFMjTm7Dq/ZkIdCl2NnbQel+7l7a6PPMlD+3UWiaJMdl8PToSaMkWYT/sTC94odPE6+GVk1da9pJPkd/Ovy59bcLoI9G1kuM7Ai2vSMz0pa0E/WjpJBqvQ3C8iiTMQQ8VhKN1R5K4WvBTCDWj3II=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=NGBxX+RG; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1756504772; c=relaxed/simple;
+	bh=6guUlSEO2P5sITDKKs4imT0rY0qanON0FwrZD1w0t8E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=tQRLkYVFg6ktrT+UOOoGFpEZk/QEJ+x1DrTKU36ly0GqAcUO6Tm7u+9odoHnQ4wmrwESj15W9Qxlr9EhG1qx4OFUagVJ4Qvmjf9LDKl3RPWQftdf8jdDXTABehPfQtR69lO1HWoH1r5JlIYKb+LXiURWA1pVXqCgj1yGq894plw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WIjrRA0w; arc=none smtp.client-ip=209.85.166.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="NGBxX+RG"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=CjkmvX4Zdi9AhzuHG/4zKDRiTk9b7g8rYotKyFFHZW4=; b=NGBxX+RGrGy0/rWw8TEsFXYT3/
-	+xBzJ05Og7i5q61TV5wI/WT/mit4Gs3y3mEPPQkmvrIYOynLr2n9/9m8MjZMYivqsDBxXMyS5oZyS
-	KvbRo+Wg8TLG9ba6RyDthetR7C4fBwqGFIVGW9fNVSSHLcPM/CqJvlpXk8KigkUUEwb3c5F9xA4aR
-	7h+Npcr0IabCE5noOYYki0M2eW7o09gRHpGDoKOOJ3U2V4Jur1T/LuHhUcVgZJfJTyJ/zt8MNjJQT
-	4HWdckyI0R5Xzqs7n6Z3lVwkB0wXNWuDFtyn4NBNkcFE/UyetrxvCL+f+DjQ1Rk1T748TXaA2k7nc
-	rKD9YQfA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae] helo=azazel.net)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1us1Ga-0000000AmFM-166z;
-	Fri, 29 Aug 2025 16:43:52 +0100
-Date: Fri, 29 Aug 2025 16:43:50 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] build: disable --with-unitdir by default
-Message-ID: <20250829154350.GE3204340@azazel.net>
-References: <20250827140214.645245-1-pablo@netfilter.org>
- <aK8aN4h2XsLnTdT6@calendula>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WIjrRA0w"
+Received: by mail-il1-f178.google.com with SMTP id e9e14a558f8ab-3f33ecb34c0so6192785ab.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 29 Aug 2025 14:59:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1756504770; x=1757109570; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=6guUlSEO2P5sITDKKs4imT0rY0qanON0FwrZD1w0t8E=;
+        b=WIjrRA0wGgbBw5TDirmTWPFxNhJ9UGA1l77/mUlzINM2t1XmNC1ZrV2Fa9CGstTFMC
+         7OUZBvFGylAxoh/CKxfYB5FBsJeUi9QpNBXkUcBAo2yMsw1V5qM4OKTK9j00GVp1xl1+
+         qovUSo6KPoIyhSuqR2k2UAwF0r+z3HxNxpX2lDzeBf/Ntj8POZkTnu9549DX6/oVlmnU
+         g0qTMhQq+Q1SYc8gF5WRlwTf68ajgqIw+MhvvfFJXPGvaaElQ//JQ77IqQplXgys/80S
+         FY7NSUXOb/nCQtSzH/HvruGHQCa3L4Wa9k8G3b/LLabYc2Q5PP+FNGKtQVhpg8Lzpj6u
+         oX3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756504770; x=1757109570;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=6guUlSEO2P5sITDKKs4imT0rY0qanON0FwrZD1w0t8E=;
+        b=k4V1txKoDzMKYtn+M4NqLucxT3T75x3Mp0KFe4SmePXfq4BWpHj9oS1pdSPlOk5uZ7
+         tvnSMAY9ccp84QBLw5XGfOn1Nk07xmROTlH2H9LYNrZz1MvBG6fDI/7tqIH1lZQfdP7L
+         sStIOnTyqUuvu4S9OpixIGIdvmp02I3236ltF278wwW9dnpmhCKq7NDrV8P6w0lGFRIl
+         EYYcz8gi9jz4DXYn34P5AM53Vu+QDF9hZtbhoMaAD01MqQAnY5CMcIfSxH4d/G2WN5dW
+         S5bicF6Smlgpf+cgFmKUoWap2l1MAX+9Rd7fjh+qUba1uOMx1NUyLUO8XROX7PLfS7El
+         kflg==
+X-Gm-Message-State: AOJu0Yy0a6jd13qmi6T9y7IzyttrBkg8gZ6PbFl26Iq17YOA6C5weImB
+	VaHb/Ey3q+PhloJ2nkBpjvxepcfCXAKV4opConqTXhXqY2JdMbhaVCho/wGf32iAjKTP7f1KRVN
+	f27iI8S2sjid1t1AJ+2gxtEqHiujoDL7uCp2UGsfzjg==
+X-Gm-Gg: ASbGncu4yZ2F6qSMBrLv7X8UjD2vqTNVTUzNMTMwtKprhBQq/Uj8lXGGl4AFOh0r20R
+	yceiSDKVQ1PfJahDqZ39D8gIiD22QIkCEKawb5F75aMFlsLxrV0lnNMwkXlQtIk75H6djUu7itf
+	ZJ1WPddYY8g8N46eHMVVhd1Cfl2htRB9tsW+3UA8vKUlx6EwqXFoKrHHNP96U+lGcoPLOrhUiLC
+	uQUzweZiQ8CnNrlf8d7bV6IctvumQWBp+NlBdrLmSRpoM99iyQ5FvWEqRMhZiLOMX9C2W+E29LZ
+	waMHzeSQ5r+MrUcnG6rNXHuBhp8bK4VoyQ==
+X-Google-Smtp-Source: AGHT+IHd3rJB8m00IdCqqsAFLVRyaGHrbUHrZz7ahAn64HGp88dsNKb3crJFUxH2Q9vROjzMqq8q3CUQbRBX+tGcgHg=
+X-Received: by 2002:a05:6e02:144a:b0:3ed:6502:abc5 with SMTP id
+ e9e14a558f8ab-3f401beb543mr3006005ab.21.1756504770171; Fri, 29 Aug 2025
+ 14:59:30 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="8R2wIVrB9l97S81a"
-Content-Disposition: inline
-In-Reply-To: <aK8aN4h2XsLnTdT6@calendula>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
-
-
---8R2wIVrB9l97S81a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+References: <20250829065011.12936-1-nickgarlis@gmail.com> <aLHCe9QAViNEtwPi@strlen.de>
+In-Reply-To: <aLHCe9QAViNEtwPi@strlen.de>
+From: Nick Garlis <nickgarlis@gmail.com>
+Date: Fri, 29 Aug 2025 23:59:19 +0200
+X-Gm-Features: Ac12FXyArVCVmUtgvZ7iaZSEvD1TvL_mprKRu7DPrnA8YM-03PvxZv9XqCYStpE
+Message-ID: <CA+jwDRkVb-qQq-PeYSF5HtLqTi9TTydrQh_OQF7tijiQ=Rh6iA@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: nft_ct: reject ambiguous conntrack expressions
+ in inet tables
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On 2025-08-27, at 16:46:15 +0200, Pablo Neira Ayuso wrote:
-> Cc'ing Phil, Jan.
->=20
-> Excuse me my terse proposal description.
->=20
-> Extension: This is an alternative patch to disable --with-unitdir by
-> default, to address distcheck issue.
->=20
-> I wonder also if this is a more conservative approach, this should
-> integrate more seamlessly into existing pipelines while allowing
-> distributors to opt-in to use this.
->=20
-> But maybe I'm worrying too much and it is just fine to change defaults
-> for downstream packagers.
+On Fri, Aug 29, 2025 at 5:08=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
+te:
+> It breaks nftables .py tests:
+>
+> tests/py/nft-test.py
+> inet/rt.t: OK
+> inet/ct.t: ERROR: line 7: add rule inet test-inet input meta nfproto ipv4=
+ ct original saddr 1.2.3.4: This rule should not have failed.
+> inet/ct.t: OK
 
-The upshot of this is that the service file is not installed by default, but
-the related man-page and the example main.nft still are.  Gueesing this is =
-an
-oversight?  If so, I will send a patch.
+Apologies, I didn=E2=80=99t run the nftables Python tests.
+Thanks for pointing me in the right direction.
 
-J.
-
-> On Wed, Aug 27, 2025 at 04:02:14PM +0200, Pablo Neira Ayuso wrote:
-> > Same behaviour as in the original patch:
-> >=20
-> >   --with-unitdir	auto-detects the systemd unit path.
-> >   --with-unitdir=3DPATH	uses the PATH
-> >=20
-> > no --with-unitdir does not install the systemd unit path.
-> >=20
-> > INSTALL description looks fine for what this does.
-> >=20
-> > While at this, extend tests/build/ to cover for this new option.
-> >=20
-> > Fixes: c4b17cf830510 ("tools: add a systemd unit for static rulesets")
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  configure.ac             | 29 +++++++++++++++++++++--------
-> >  tests/build/run-tests.sh |  2 +-
-> >  2 files changed, 22 insertions(+), 9 deletions(-)
-> >=20
-> > diff --git a/configure.ac b/configure.ac
-> > index 42708c9f2470..3a751cb054b9 100644
-> > --- a/configure.ac
-> > +++ b/configure.ac
-> > @@ -115,15 +115,22 @@ AC_CHECK_DECLS([getprotobyname_r, getprotobynumbe=
-r_r, getservbyport_r], [], [],
-> >  ]])
-> > =20
-> >  AC_ARG_WITH([unitdir],
-> > -	[AS_HELP_STRING([--with-unitdir=3DPATH], [Path to systemd service uni=
-t directory])],
-> > -	[unitdir=3D"$withval"],
-> > +	[AS_HELP_STRING([--with-unitdir[=3DPATH]],
-> > +	[Path to systemd service unit directory, or omit PATH to auto-detect]=
-)],
-> >  	[
-> > -		unitdir=3D$("$PKG_CONFIG" systemd --variable systemdsystemunitdir 2>=
-/dev/null)
-> > -		AS_IF([test -z "$unitdir"], [unitdir=3D'${prefix}/lib/systemd/system=
-'])
-> > -	])
-> > +		if test "x$withval" =3D "xyes"; then
-> > +			unitdir=3D$($PKG_CONFIG --variable=3Dsystemdsystemunitdir systemd 2=
->/dev/null)
-> > +			AS_IF([test -z "$unitdir"], [unitdir=3D'${prefix}/lib/systemd/syste=
-m'])
-> > +		elif test "x$withval" =3D "xno"; then
-> > +			unitdir=3D""
-> > +		else
-> > +			unitdir=3D"$withval"
-> > +		fi
-> > +	],
-> > +	[unitdir=3D""]
-> > +)
-> >  AC_SUBST([unitdir])
-> > =20
-> > -
-> >  AC_CONFIG_FILES([					\
-> >  		Makefile				\
-> >  		libnftables.pc				\
-> > @@ -137,5 +144,11 @@ nft configuration:
-> >    use mini-gmp:			${with_mini_gmp}
-> >    enable man page:              ${enable_man_doc}
-> >    libxtables support:		${with_xtables}
-> > -  json output support:          ${with_json}
-> > -  systemd unit:			${unitdir}"
-> > +  json output support:          ${with_json}"
-> > +
-> > +if test "x$unitdir" !=3D "x"; then
-> > +AC_SUBST([unitdir])
-> > +echo "  systemd unit:                 ${unitdir}"
-> > +else
-> > +echo "  systemd unit:                 no"
-> > +fi
-> > diff --git a/tests/build/run-tests.sh b/tests/build/run-tests.sh
-> > index 916df2e2fa8e..1d32d5d8afcb 100755
-> > --- a/tests/build/run-tests.sh
-> > +++ b/tests/build/run-tests.sh
-> > @@ -3,7 +3,7 @@
-> >  log_file=3D"$(pwd)/tests.log"
-> >  dir=3D../..
-> >  argument=3D( --without-cli --with-cli=3Dlinenoise --with-cli=3Deditlin=
-e --enable-debug --with-mini-gmp
-> > -	   --enable-man-doc --with-xtables --with-json)
-> > +	   --enable-man-doc --with-xtables --with-json --with-unitdir --with-=
-unidir=3D/lib/systemd/system)
-> >  ok=3D0
-> >  failed=3D0
-> > =20
-> > --=20
-> > 2.30.2
-> >=20
-> >=20
->=20
-
---8R2wIVrB9l97S81a
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJoscq2CRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmcv2R3kGYf4+LWiFbVGD7Kr3Egvq8Pne8/lcr8FjmqE
-wBYhBGwdtFNj70A3vVbVFymGrAq98QQNAABBZw//W4sLXQyytCKPbRKWuG52TjaI
-scXYVSmeT8sBfhnMh294RTerc4QfhXkfQ+2vIWgjN778c3kC4xMDH4Ak+iDPU9dZ
-YiaE+LLhlWmjGcS1AOyz8IUqyWTzrQK21pSXOB39GORcvImxxMiEkfi2/g30QvWe
-Hi8LvNppKiuMayfdmM+ILtYVU2CecE8eo28cwxNMlgVEXrSqCAvIVXAmul6ja9KQ
-gMEesyCTrFvKptyIzY/QHrmK8x6RjUZdT1sCHsiKdnB+yptglcSbQeE1n/8gIswB
-g9NwK61h5NiqMsHn/nOxHkxjRHfEEU8xfD3JvJEN/gq6Z0XSrqljKtaN3uTbgCK0
-2OeC4/EG/sI2f8r/2NVLw8Xh6QztrpR02+WvWP5WV2/EcMGLTdScMrmgI1iQ8QES
-X4rYZ4x0wlzZnmfixK0jluJkFBW+UNZcK/0Wbcat6NF3VSz9LvdyNNFhPaxBRZ3w
-ETSducIkqOuE+l3+3zT3VVJR7sVKT5CoaYDJTpPTZ4sqRcnME0fIOg6dZIdGYrF/
-3DUGAyDEYdVoJPHwjxwJHi7HQNSwfkmtd4/xXMx6N8p5n564rxEzfRQMtKwI1eUx
-bVFErFnNc9Yikc1MW6jUbXje4Ddl26eaTEFYvhAv4wmTQCo5O7PP16zzV8bBaOTW
-w1j3pozkvtbwvlNqnEI=
-=GCEB
------END PGP SIGNATURE-----
-
---8R2wIVrB9l97S81a--
+It seems I mistakenly assumed that NFT_CT_SRC and NFT_CT_DST were never
+used in inet tables. I=E2=80=99ll look into this further and try to come up=
+ with
+a better approach.
