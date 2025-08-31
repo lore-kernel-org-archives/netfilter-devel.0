@@ -1,90 +1,126 @@
-Received: from outbound.mr.icloud.com (p-west2-cluster1-host7-snip4-10.eps.apple.com [57.103.68.93])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B387F274B4D
-	for <netfilter-devel@vger.kernel.org>; Sat, 30 Aug 2025 03:48:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=57.103.68.93
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 771B817993;
+	Sun, 31 Aug 2025 13:01:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756525701; cv=none; b=k07X8/0bYhSZQ/VPRclvwl0IdM5OVU4aBn4hVCoJRq4ZzaUgH4Apf2YwHqamTPiYs8k3qNoFKbD4J8KraGicMIA//wLJDyNotrDAZN6nttYrVSbfG5/wsLa/srFdkfX88ekqzC2Neoht2x7fLRnFfLDUS52o/eAuttbzvnxE3tc=
+	t=1756645315; cv=none; b=t/FrLyuxMib17LUO2CsEuJF794+0mqXWK5xwI6tc1Ha6XXiiREJzgC4aZKu0o1PnNr9aLxu8vj39R8wckecg+57EUyjdK/qKjOED5J3qm3lUieJOE9Suf/h+palbpgJrtN3sbDJYV77JTdRYQxvOsBInV3r4Duy4g3SdjnhswAA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756525701; c=relaxed/simple;
-	bh=FOudgFaUN4+RYtclLs66v502bIhTG7ys3GkfBveCWMw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=s/WhNoDPu1QcG4QrkXbeZyG62CjsSzBe6s/tZ/ejqyL6+F2OXRZc4vn8UlewjmpPR06L/SAVH1cdwzh04n2FFgUG1X0tMsbIt8Kb41oolta759upeetoABoIAOXwGMa8Q4/Oy4+XWw01NelclRVtjqig0dQCsXU9KfxQClzeQ8o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=danm.net; spf=pass smtp.mailfrom=danm.net; dkim=pass (2048-bit key) header.d=danm.net header.i=@danm.net header.b=hnZVNs/k; arc=none smtp.client-ip=57.103.68.93
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=danm.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=danm.net
+	s=arc-20240116; t=1756645315; c=relaxed/simple;
+	bh=hLFF4WN8hk7nZWPCu4/90Ce5a43DJKgQDKAD+d5Qp8k=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=sAmAIKZPa8QZng2qG7uMrB/4ilx33srM1D+79REpM6np2KJZZewWyULYd8BIrGDaRHBZMXjm7PS4yul91GqyrpiaZbBu+DunVt4EhuHUMTyTEZi73MkBfyLFadywl3DjupJ4MmognaRaoyp9LUko7/g8jBdOInFdaTJvkYRxRNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=BcJYU9yg; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=danm.net header.i=@danm.net header.b="hnZVNs/k"
-Received: from outbound.mr.icloud.com (unknown [127.0.0.2])
-	by p00-icloudmta-asmtp-us-west-2a-60-percent-4 (Postfix) with ESMTPS id E95441801934;
-	Sat, 30 Aug 2025 03:48:17 +0000 (UTC)
-Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=danm.net; s=sig1; bh=FOudgFaUN4+RYtclLs66v502bIhTG7ys3GkfBveCWMw=; h=From:To:Subject:Date:Message-ID:MIME-Version:x-icloud-hme; b=hnZVNs/keTMfdxXyeDYxUPCtC7zwFuuW3mcnOuS+MO+xT4E7b1XxR4PzP8QD3z38OFbitweRmGP/gCld0brPvMDJtFROfK1qV3SWWoYYe2xntHmIN9XHhP19QmgcdDBR0a4oqoqUOWg0Ns9D43fJ6tGnIUqMoHRdJz1P8eO3vP2gwryWocqWt36XeBNzRr1dtjZNWzkfChxLgkIEuDtCRTj+dEnxL9dcgAQfB6u3k8G6YRVdt4CxcZxnwnF0wjePe51Kp0XvnyKoSRB74euOseTWRpMNRR6kKft+BmNa+40nmN3QhUbdOFbrgFQQq0BE3fCNuIs5t5TNcS+Yx8Q+8w==
-mail-alias-created-date: 1632196724000
-Received: from hitch.danm.net (mr-asmtp-me-k8s.p00.prod.me.com [17.57.152.38])
-	by p00-icloudmta-asmtp-us-west-2a-60-percent-4 (Postfix) with ESMTPSA id 64B06180093A;
-	Sat, 30 Aug 2025 03:48:17 +0000 (UTC)
-From: Dan Moulding <dan@danm.net>
-To: dan@danm.net
-Cc: fw@strlen.de,
-	netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org,
-	regressions@lists.linux.dev
-Subject: Re: [REGRESSION] v6.16 system hangs (bisected to nf_conntrack fix)
-Date: Fri, 29 Aug 2025 21:48:10 -0600
-Message-ID: <20250830034810.11329-1-dan@danm.net>
-X-Mailer: git-send-email 2.49.1
-In-Reply-To: <20250731194901.7156-1-dan@danm.net>
-References: <20250731194901.7156-1-dan@danm.net>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="BcJYU9yg"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 583D624001;
+	Sun, 31 Aug 2025 16:01:42 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=NsjH5C8ipA5ojAw0RMExDUIHr3+XPfORIVJkrWZpODE=; b=BcJYU9ygPcGl
+	lQZX58JBwvnc32PyEy2OxvVs9/FRabxDIreb0XolU1pNwaW1vFpTaiqMUXfH3I/g
+	i6xEhRRTc14/PV9PpU7TU547PAFNuYsS0nxjVl6cVH+6SQOKTEd1Nx6RoYXQbg4N
+	iUGYH8zNPO0pLX3xaF6YeR0w0kACRBQbs3bHvvZO07QskuCBRNrQNyxNOwY/xYKY
+	Fs4x65KyxfWtdVfahmWceEQIXp5OGs+AsZQpKC4JNGoJRPiO3JYQV3LEuANZJBP5
+	UNQw13p3KKdiORV9Gj+n3P/GBtiHvBWf19RnvJlXjRDLmUL/COQYrCnDsOkOrSBp
+	yQIED1iKXcf7kcBdLii0uP8ZOXIw9JiBd/SsX1K93nDJwlKmgMNkMSSxiCnEuPgB
+	gCR2mexHDcl7NV/mVxBg4X5u4zyduEf1I/9TZY5YiWARi5305VfkvqXSWPC0EM6P
+	ne6DGsYsmypiCRTsaz2cIHKSv+L1oEIo04iIvOGYh/puoL+p7pDTPHMvAJ2Pzn00
+	LhZ5rqfLFadesVD2E6pUjt8dnBiCmAerSB+QxAmLDNxEGuYNCbpvxErSjFWzsQZ0
+	YVd7kngMQnaRO/jDS3ijUEWminS8gnyhtiXsPHLenmy8UbyvTThh4q2hsI2cbO48
+	XMutImFOjWWOeDp1vc4jENmMqZ5fKio=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Sun, 31 Aug 2025 16:01:41 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id C621C6512A;
+	Sun, 31 Aug 2025 16:01:38 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 57VD1L3T032845;
+	Sun, 31 Aug 2025 16:01:22 +0300
+Date: Sun, 31 Aug 2025 16:01:21 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Zhang Tengfei <zhtfdev@gmail.com>
+cc: coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
+        edumazet@google.com, fw@strlen.de, horms@verge.net.au,
+        kadlec@netfilter.org, kuba@kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+        pablo@netfilter.org,
+        syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+Subject: Re: [PATCH v2] net/netfilter/ipvs: Use READ_ONCE/WRITE_ONCE for
+ ipvs->enable
+In-Reply-To: <20250827223322.4896-1-zhtfdev@gmail.com>
+Message-ID: <3a737b68-5a80-845d-ff36-6a1926b792a0@ssi.bg>
+References: <2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg> <20250827223322.4896-1-zhtfdev@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-Spam-Details-Enc: AW1haW4tMjUwODMwMDAzNCBTYWx0ZWRfXxHv/Q687OtTg
- EBbCaU6PY70Q68Mmgnd/R+c6Dq3DNLbA0bYZnxiw3tWMCvNj+QxZE6QOXX0fVM84FDPB9lOQmuQ
- 1vMghOnZ0apuWVIvjmTSwxoeYuQXPxXRl2p5izzShWwRz5ZTY7ysjs+bjRMepbTZRE4wwDEcvvj
- ycaBWvbXbmq7yyXLcsN63hpNRHQDM18dC0TOQVJHXYMGoNgioIrpIsC2oIrGOjbmPwr1NONVWCZ
- hcxUGBW7yUDn6hK3o5fQ1XdPIKTK+EfdGcKN3mqo0R0yRFK3asFmgvJoVnlmN5FEu2fmQRl/Q=
-X-Proofpoint-ORIG-GUID: 0Lzy3LkLkYncDHfWmxp0BJigzyMxeq5W
-X-Proofpoint-GUID: 0Lzy3LkLkYncDHfWmxp0BJigzyMxeq5W
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1099,Hydra:6.1.9,FMLib:17.12.80.40
- definitions=2025-08-30_01,2025-08-28_01,2025-03-28_01
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0
- adultscore=0 clxscore=1030 mlxlogscore=999 suspectscore=0 spamscore=0
- malwarescore=0 bulkscore=0 mlxscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.22.0-2506270000 definitions=main-2508300034
-X-JNJ: AAAAAAABtn6g/vv7+efLQjznGwtFDG4n5wGJnILq2dDXuxW78iYdMFcGjgGOv4o+qWN3AitbJApOc3YkW+kUQb0XaM3PWjrgYgip6hWtcfbWeJaromxuCd/GgIxdhb8yP9+aeNpvywPxHf4h5ltsx5NJwl4c9ivyCcDFkieYHdTUIWAwrIbl7P6xPAm4172RhWFp7JHFe7FTdCFxp2GvHdckRbtxWO6etetPIVKtPLw0r9WSdyM2PnBBxWAB3jaksyQtPAusOZXbBtFQ+jJRNJC/Xs6sAa/lj193eKuaCihPnELnxy+QkI/Li9DCeXEvGqGIsz6qQBfQxv91TipyCnx9qpxarL/26fwEXWTnQrMbSlzTJkGWwXlPkSZU5zhXFzKnFljo2EPyPYMACC1gYUke9l3ufLLjhvFYMKg1GufKlnTZ0gxwVww/r4VkmzNtHb3xxlN0yGEOUKP3sRgdLykvksDHfMn3ImeNEp5ZkrAyBEDaiX6H7eiW81xFcKdMnwK6WV6eWqVymmQbH4qwRSfiKb4QkHMUvjyJ7A05QPvDtklMWdUCKKjCA6SvkrS7aUGUr2XnkpkIP/qH0oQBP8Bq7v4R82PFCswFnmH3n9sJxpRXkZRaCKGhLQ==
+Content-Type: text/plain; charset=US-ASCII
 
-> For some reason, I can no longer reproduce the problem in new kernels
-> that I build. I can still reproduce it in the kernels that I built
-> last week. But if I build a new one, from the same commit as I was
-> able to reproduce it from before, the new kernel build can't reproduce
-> it. I didn't change anything (like compiler version) since. So I'm
-> stumped.
 
-Well, I finally figured out why I couldn't reproduce the problem in
-some builds. It turns out structure layout randomization was affecting
-whether there was a bug or not. So every build I did had a chance of
-not having the bug. This also led my bisection effort down the wrong
-path and wrongly indicated that this nf_conntrack fix was the first
-bad commit (and also by pure chance of randstruct made it look like
-the problem went away when the change was reverted).
+	Hello,
 
-Now that I know that it's a randstruct problem, I was able to use a
-"known bad" randstruct.seed to reliably make reproducible builds that
-always have the bug, and this time correctly bisected it to a problem
-in compression code in the cpypto API[1]. netfilter had nothing to do
-with it. nf_conntrack is exonerated :)
+On Thu, 28 Aug 2025, Zhang Tengfei wrote:
 
-So, Florian, sorry for taking up some of your valuable cycles on this
-wild goose chase. But thank you for your attention and quick responses.
+> KCSAN reported a data-race on the `ipvs->enable` flag, which is
+> written in the control path and read concurrently from many other
+> contexts.
+> 
+> Following a suggestion by Julian, this patch fixes the race by
+> converting all accesses to use `WRITE_ONCE()/READ_ONCE()`.
+> This lightweight approach ensures atomic access and acts as a
+> compiler barrier, preventing unsafe optimizations where the flag
+> is checked in loops (e.g., in ip_vs_est.c).
+> 
+> Additionally, the `enable` checks in the fast-path hooks
+> (`ip_vs_in_hook`, `ip_vs_out_hook`, `ip_vs_forward_icmp`) are
+> removed. They are considered unnecessary because the `enable=0`
 
-Cheers,
+	It was good idea to mention about the 857ca89711de
+commit here as in the previous v2 version. You can even add
+it as Fixes tag as suggested here:
 
--- Dan
+scripts/checkpatch.pl --strict /tmp/file.patch
 
-[1] https://lore.kernel.org/linux-crypto/20250830032839.11005-1-dan@danm.net/T/#t
+	As for the Subject line, you probably can use
+[PATCH v3 nf-next] ipvs: Use READ_ONCE/WRITE_ONCE for ipvs->enable
+to specify the desired target tree ('nf-next' or 'nf' if such
+data-race needs it).
+
+	As for the patch code, it looks ok.
+
+> condition they check for can only occur in two rare and non-fatal
+> scenarios: 1) after hooks are registered but before the flag is set,
+> and 2) after hooks are unregistered on cleanup_net. In the worst
+> case, a single packet might be mishandled (e.g., dropped), which
+> does not lead to a system crash or data corruption. Adding a check
+> in the performance-critical fast-path to handle this harmless
+> condition is not a worthwhile trade-off.
+> 
+> Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
+> Suggested-by: Julian Anastasov <ja@ssi.bg>
+> Link: https://lore.kernel.org/lvs-devel/2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg/
+> Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
+> 
+> ---
+> v2:
+> - Switched from atomic_t to the suggested READ_ONCE()/WRITE_ONCE().
+> - Removed obsolete checks from the packet processing hooks.
+> - Polished commit message based on feedback from maintainers.
+
+...
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
+
