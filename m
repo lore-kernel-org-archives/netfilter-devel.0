@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3732EE610;
-	Mon,  1 Sep 2025 08:09:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7E12EF647;
+	Mon,  1 Sep 2025 08:09:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756714148; cv=none; b=i9MLNxaTIaWJ0m80xVMNYs/LTRI61BkvDJPVlYETDC3XeOpBxxZH6YQG+AuYtoMD6B6WgJSeDvUrjbLQDNs/KpFNnjmTkwKjc9itWqDIQ/q+gRLKuAi3xqXk5lYKHdnDJQ+moah0ErlT4A4zyMJuLB7rLjoYDnrZTEZ19EORu3w=
+	t=1756714152; cv=none; b=TlNsy3vcMGzATdontBYbOxfUrvZEqSoQTMAs7dv/BXV+EetYRYUmBnrgDcwcpt7Exf9RUPwrqE3GKCpGBzX097JUyNkuHMh8w4/Hn87ljZ8HRXS0HW+VmtekxNHGquNjH1W7f9QqXX3hDtVi5Vx+zsfqdiOD+Qgh4oBXoJkRhqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756714148; c=relaxed/simple;
-	bh=NYiUV2s2HPmhx0oNKpe1UVnTAXA516vHuspNYekUCYM=;
+	s=arc-20240116; t=1756714152; c=relaxed/simple;
+	bh=JfPL21ohprPfrn5SL9nV8qYNl1rGABPc7jFJJaKe1Tw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=OqiplTIdNlbXPixQo4qKRrzttKIMUIeSg023iX/IL1uOnmhqfPwWNivfUz2h4WZir2Mmtr9LegYlolWoy+yrzDDLpLe5accJKRFzbIm9BXUCHSuMi2HkLclhNVbP96oWVvDm6mzvq8+4KrospwArmx/pKFnxUwZmLdLrhWtX64c=
+	 MIME-Version; b=mYzchlMxqDuggfLykdcftvW1dzo27I/hlMYIw7PTD7mxskjPmYrx2xNX+h0MBpvPAAda3TWuSpsYSMt/efjfl3ew483/AI1nIMmcgpN03YprHAd3Dot1bQ8jMyOy7XJ8CfanR/etbYJXe0NkAKsEP0ZC47rtj+gkOKCfKm46jKA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id DAD80605E6; Mon,  1 Sep 2025 10:09:04 +0200 (CEST)
+	id 5287F60F59; Mon,  1 Sep 2025 10:09:09 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 4/8] netfilter: nf_tables: all transaction allocations can now sleep
-Date: Mon,  1 Sep 2025 10:08:38 +0200
-Message-ID: <20250901080843.1468-5-fw@strlen.de>
+Subject: [PATCH net-next 5/8] netfilter: nf_tables: Introduce NFTA_DEVICE_PREFIX
+Date: Mon,  1 Sep 2025 10:08:39 +0200
+Message-ID: <20250901080843.1468-6-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250901080843.1468-1-fw@strlen.de>
 References: <20250901080843.1468-1-fw@strlen.de>
@@ -38,172 +38,158 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Now that nft_setelem_flush is not called with rcu read lock held or
-disabled softinterrupts anymore this can now use GFP_KERNEL too.
+From: Phil Sutter <phil@nwl.cc>
 
-This is the last atomic allocation of transaction elements, so remove
-all gfp_t arguments and the wrapper function.
+This new attribute is supposed to be used instead of NFTA_DEVICE_NAME
+for simple wildcard interface specs. It holds a NUL-terminated string
+representing an interface name prefix to match on.
 
-This makes attempts to delete large sets much more reliable, before
-this was prone to transient memory allocation failures.
+While kernel code to distinguish full names from prefixes in
+NFTA_DEVICE_NAME is simpler than this solution, reusing the existing
+attribute with different semantics leads to confusion between different
+versions of kernel and user space though:
 
+* With old kernels, wildcards submitted by user space are accepted yet
+  silently treated as regular names.
+* With old user space, wildcards submitted by kernel may cause crashes
+  since libnftnl expects NUL-termination when there is none.
+
+Using a distinct attribute type sanitizes these situations as the
+receiving part detects and rejects the unexpected attribute nested in
+*_HOOK_DEVS attributes.
+
+Fixes: 6d07a289504a ("netfilter: nf_tables: Support wildcard netdev hook specs")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 47 ++++++++++++++---------------------
- 1 file changed, 19 insertions(+), 28 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c            | 42 +++++++++++++++++-------
+ 2 files changed, 33 insertions(+), 11 deletions(-)
 
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 2beb30be2c5f..8e0eb832bc01 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1784,10 +1784,12 @@ enum nft_synproxy_attributes {
+  * enum nft_device_attributes - nf_tables device netlink attributes
+  *
+  * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
++ * @NFTA_DEVICE_PREFIX: device name prefix, a simple wildcard (NLA_STRING)
+  */
+ enum nft_devices_attributes {
+ 	NFTA_DEVICE_UNSPEC,
+ 	NFTA_DEVICE_NAME,
++	NFTA_DEVICE_PREFIX,
+ 	__NFTA_DEVICE_MAX
+ };
+ #define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 58c5425d61c2..54519b3d2868 100644
+index 54519b3d2868..68e273d8821a 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -151,12 +151,12 @@ static void nft_ctx_init(struct nft_ctx *ctx,
- 	bitmap_zero(ctx->reg_inited, NFT_REG32_NUM);
+@@ -1951,6 +1951,18 @@ static int nft_dump_stats(struct sk_buff *skb, struct nft_stats __percpu *stats)
+ 	return -ENOSPC;
  }
  
--static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
--					     int msg_type, u32 size, gfp_t gfp)
-+static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
-+					 int msg_type, u32 size)
- {
- 	struct nft_trans *trans;
++static bool hook_is_prefix(struct nft_hook *hook)
++{
++	return strlen(hook->ifname) >= hook->ifnamelen;
++}
++
++static int nft_nla_put_hook_dev(struct sk_buff *skb, struct nft_hook *hook)
++{
++	int attr = hook_is_prefix(hook) ? NFTA_DEVICE_PREFIX : NFTA_DEVICE_NAME;
++
++	return nla_put_string(skb, attr, hook->ifname);
++}
++
+ static int nft_dump_basechain_hook(struct sk_buff *skb,
+ 				   const struct net *net, int family,
+ 				   const struct nft_base_chain *basechain,
+@@ -1982,16 +1994,15 @@ static int nft_dump_basechain_hook(struct sk_buff *skb,
+ 			if (!first)
+ 				first = hook;
  
--	trans = kzalloc(size, gfp);
-+	trans = kzalloc(size, GFP_KERNEL);
- 	if (trans == NULL)
- 		return NULL;
+-			if (nla_put(skb, NFTA_DEVICE_NAME,
+-				    hook->ifnamelen, hook->ifname))
++			if (nft_nla_put_hook_dev(skb, hook))
+ 				goto nla_put_failure;
+ 			n++;
+ 		}
+ 		nla_nest_end(skb, nest_devs);
  
-@@ -172,12 +172,6 @@ static struct nft_trans *nft_trans_alloc_gfp(const struct nft_ctx *ctx,
- 	return trans;
- }
- 
--static struct nft_trans *nft_trans_alloc(const struct nft_ctx *ctx,
--					 int msg_type, u32 size)
--{
--	return nft_trans_alloc_gfp(ctx, msg_type, size, GFP_KERNEL);
--}
--
- static struct nft_trans_binding *nft_trans_get_binding(struct nft_trans *trans)
- {
- 	switch (trans->msg_type) {
-@@ -442,8 +436,7 @@ static bool nft_trans_collapse_set_elem_allowed(const struct nft_trans_elem *a,
- 
- static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
- 					struct nft_trans_elem *tail,
--					struct nft_trans_elem *trans,
--					gfp_t gfp)
-+					struct nft_trans_elem *trans)
- {
- 	unsigned int nelems, old_nelems = tail->nelems;
- 	struct nft_trans_elem *new_trans;
-@@ -466,9 +459,11 @@ static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
- 	/* krealloc might free tail which invalidates list pointers */
- 	list_del_init(&tail->nft_trans.list);
- 
--	new_trans = krealloc(tail, struct_size(tail, elems, nelems), gfp);
-+	new_trans = krealloc(tail, struct_size(tail, elems, nelems),
-+			     GFP_KERNEL);
- 	if (!new_trans) {
--		list_add_tail(&tail->nft_trans.list, &nft_net->commit_list);
-+		list_add_tail(&tail->nft_trans.list,
-+			      &nft_net->commit_list);
- 		return false;
+ 		if (n == 1 &&
+-		    nla_put(skb, NFTA_HOOK_DEV,
+-			    first->ifnamelen, first->ifname))
++		    !hook_is_prefix(first) &&
++		    nla_put_string(skb, NFTA_HOOK_DEV, first->ifname))
+ 			goto nla_put_failure;
  	}
- 
-@@ -484,7 +479,7 @@ static bool nft_trans_collapse_set_elem(struct nftables_pernet *nft_net,
+ 	nla_nest_end(skb, nest);
+@@ -2302,7 +2313,8 @@ void nf_tables_chain_destroy(struct nft_chain *chain)
  }
  
- static bool nft_trans_try_collapse(struct nftables_pernet *nft_net,
--				   struct nft_trans *trans, gfp_t gfp)
-+				   struct nft_trans *trans)
+ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+-					      const struct nlattr *attr)
++					      const struct nlattr *attr,
++					      bool prefix)
  {
- 	struct nft_trans *tail;
+ 	struct nf_hook_ops *ops;
+ 	struct net_device *dev;
+@@ -2319,7 +2331,8 @@ static struct nft_hook *nft_netdev_hook_alloc(struct net *net,
+ 	if (err < 0)
+ 		goto err_hook_free;
  
-@@ -501,7 +496,7 @@ static bool nft_trans_try_collapse(struct nftables_pernet *nft_net,
- 	case NFT_MSG_DELSETELEM:
- 		return nft_trans_collapse_set_elem(nft_net,
- 						   nft_trans_container_elem(tail),
--						   nft_trans_container_elem(trans), gfp);
-+						   nft_trans_container_elem(trans));
+-	hook->ifnamelen = nla_len(attr);
++	/* include the terminating NUL-char when comparing non-prefixes */
++	hook->ifnamelen = strlen(hook->ifname) + !prefix;
+ 
+ 	/* nf_tables_netdev_event() is called under rtnl_mutex, this is
+ 	 * indirectly serializing all the other holders of the commit_mutex with
+@@ -2366,14 +2379,22 @@ static int nf_tables_parse_netdev_hooks(struct net *net,
+ 	struct nft_hook *hook, *next;
+ 	const struct nlattr *tmp;
+ 	int rem, n = 0, err;
++	bool prefix;
+ 
+ 	nla_for_each_nested(tmp, attr, rem) {
+-		if (nla_type(tmp) != NFTA_DEVICE_NAME) {
++		switch (nla_type(tmp)) {
++		case NFTA_DEVICE_NAME:
++			prefix = false;
++			break;
++		case NFTA_DEVICE_PREFIX:
++			prefix = true;
++			break;
++		default:
+ 			err = -EINVAL;
+ 			goto err_hook;
+ 		}
+ 
+-		hook = nft_netdev_hook_alloc(net, tmp);
++		hook = nft_netdev_hook_alloc(net, tmp, prefix);
+ 		if (IS_ERR(hook)) {
+ 			NL_SET_BAD_ATTR(extack, tmp);
+ 			err = PTR_ERR(hook);
+@@ -2419,7 +2440,7 @@ static int nft_chain_parse_netdev(struct net *net, struct nlattr *tb[],
+ 	int err;
+ 
+ 	if (tb[NFTA_HOOK_DEV]) {
+-		hook = nft_netdev_hook_alloc(net, tb[NFTA_HOOK_DEV]);
++		hook = nft_netdev_hook_alloc(net, tb[NFTA_HOOK_DEV], false);
+ 		if (IS_ERR(hook)) {
+ 			NL_SET_BAD_ATTR(extack, tb[NFTA_HOOK_DEV]);
+ 			return PTR_ERR(hook);
+@@ -9449,8 +9470,7 @@ static int nf_tables_fill_flowtable_info(struct sk_buff *skb, struct net *net,
+ 
+ 	list_for_each_entry_rcu(hook, hook_list, list,
+ 				lockdep_commit_lock_is_held(net)) {
+-		if (nla_put(skb, NFTA_DEVICE_NAME,
+-			    hook->ifnamelen, hook->ifname))
++		if (nft_nla_put_hook_dev(skb, hook))
+ 			goto nla_put_failure;
  	}
- 
- 	return false;
-@@ -537,17 +532,14 @@ static void nft_trans_commit_list_add_tail(struct net *net, struct nft_trans *tr
- 	}
- }
- 
--static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans,
--					   gfp_t gfp)
-+static void nft_trans_commit_list_add_elem(struct net *net, struct nft_trans *trans)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
- 
- 	WARN_ON_ONCE(trans->msg_type != NFT_MSG_NEWSETELEM &&
- 		     trans->msg_type != NFT_MSG_DELSETELEM);
- 
--	might_alloc(gfp);
--
--	if (nft_trans_try_collapse(nft_net, trans, gfp)) {
-+	if (nft_trans_try_collapse(nft_net, trans)) {
- 		kfree(trans);
- 		return;
- 	}
-@@ -7549,7 +7541,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 						}
- 
- 						ue->priv = elem_priv;
--						nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+						nft_trans_commit_list_add_elem(ctx->net, trans);
- 						goto err_elem_free;
- 					}
- 				}
-@@ -7573,7 +7565,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	}
- 
- 	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 	return 0;
- 
- err_set_full:
-@@ -7839,7 +7831,7 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	nft_setelem_data_deactivate(ctx->net, set, elem.priv);
- 
- 	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 	return 0;
- 
- fail_ops:
-@@ -7864,9 +7856,8 @@ static int nft_setelem_flush(const struct nft_ctx *ctx,
- 	if (!nft_set_elem_active(ext, iter->genmask))
- 		return 0;
- 
--	trans = nft_trans_alloc_gfp(ctx, NFT_MSG_DELSETELEM,
--				    struct_size_t(struct nft_trans_elem, elems, 1),
--				    GFP_ATOMIC);
-+	trans = nft_trans_alloc(ctx, NFT_MSG_DELSETELEM,
-+				struct_size_t(struct nft_trans_elem, elems, 1));
- 	if (!trans)
- 		return -ENOMEM;
- 
-@@ -7877,7 +7868,7 @@ static int nft_setelem_flush(const struct nft_ctx *ctx,
- 	nft_trans_elem_set(trans) = set;
- 	nft_trans_container_elem(trans)->nelems = 1;
- 	nft_trans_container_elem(trans)->elems[0].priv = elem_priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_ATOMIC);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 
- 	return 0;
- }
-@@ -7894,7 +7885,7 @@ static int __nft_set_catchall_flush(const struct nft_ctx *ctx,
- 
- 	nft_setelem_data_deactivate(ctx->net, set, elem_priv);
- 	nft_trans_container_elem(trans)->elems[0].priv = elem_priv;
--	nft_trans_commit_list_add_elem(ctx->net, trans, GFP_KERNEL);
-+	nft_trans_commit_list_add_elem(ctx->net, trans);
- 
- 	return 0;
- }
+ 	nla_nest_end(skb, nest_devs);
 -- 
 2.49.1
 
