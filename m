@@ -1,30 +1,36 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47D7C3054E6
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Sep 2025 12:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FE5E213E7A;
+	Tue,  2 Sep 2025 12:32:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756814939; cv=none; b=qxl1G1ZaYVdjkDrkBuNXk+H+yYWeAxoyy3yEcZug3TZPDdaArbvCniAJLARHZrFe2KW4UK8qVcMISavBVlKB/hUoTADuyrQCxdH96i4CfP0KNMLtflVM58d/twCwGJeaKOcc/Kt5Qjp1jvdrYy4iDWNGGKSpzXjD3mxix4ZE/MU=
+	t=1756816345; cv=none; b=QTZEKR2S62E1lnbPi1V4SrfJSqyzxclU991vCk5aE5Y/SsLU/gzWBLUua7YqAAMZWNY/2YMgDaqi80txe0T2MrwGZjZeOkNAjiKInqVwWNH47x4knsDLx4w5egWUl0DJB5thrQPUzEWZuDDoz52Efq4wKmyVbP1s7R0WMooqK1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756814939; c=relaxed/simple;
-	bh=sQELTW10CahVWQTN/AjIk8GF5XTUPSGqNxINTdbSBBI=;
+	s=arc-20240116; t=1756816345; c=relaxed/simple;
+	bh=eQAdZ+NLRZ9XrY3caOR7K8Dw227PpScMR3T8gTOyt8k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h9cwkki1ZIlqFNYl9OtPFGAycaaP/GZu9/Nt7IOjxezxj71n1bYstuRs/CTWbO3ddqsE+LlQQhz7q7beOF5KMG1KssqRCwvehi9SHqw+Uk934BwlYjryErTqk/7ouVbLNXhA5mCfoFG857uTWaU35msZ1/SGouVhg1IZZi7wkbo=
+	 Content-Type:Content-Disposition:In-Reply-To; b=S7V04glX/X2mKkf+9JO9Wp5ywSO6hLv1eYmI50t/apnirEd8Y5PMKCHGG+nR7XRjNeF+JyBXRe4FWv6VZIzlpx/pZCwCnB/l1i3wnkq65TcPb2MZ78kg1CJ7JC1eHYO2wuYZUzUUZ4f0Z7bzyuiXzR9xfEjTyoATY5J538R9Q3k=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3230C606DC; Tue,  2 Sep 2025 14:08:55 +0200 (CEST)
-Date: Tue, 2 Sep 2025 14:08:54 +0200
+	id 20556606DC; Tue,  2 Sep 2025 14:32:21 +0200 (CEST)
+Date: Tue, 2 Sep 2025 14:32:20 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	pablo@netfilter.org
-Subject: Re: [PATCH nf-next] netfilter: nft_meta_bridge: introduce
- NFT_META_BRI_IIFHWADDR support
-Message-ID: <aLbeVpmjrPCPUiYH@strlen.de>
-References: <20250902112808.5139-1-fmancera@suse.de>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH v3 nf-next 0/3] flow offload teardown when layer 2 roaming
+Message-ID: <aLbj1IjZ1Lb37rYu@strlen.de>
+References: <20250617070007.23812-1-ericwouds@gmail.com>
+ <0452a9ce-72f4-41c1-b71a-a444d490fd97@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -33,44 +39,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250902112808.5139-1-fmancera@suse.de>
+In-Reply-To: <0452a9ce-72f4-41c1-b71a-a444d490fd97@gmail.com>
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> Expose the input bridge interface ethernet address so it can be used to
-> redirect the packet to the receiving physical device for processing.
+Eric Woudstra <ericwouds@gmail.com> wrote:
+> > Changes in v3:
+> > - static nf_flow_table_switchdev_nb.
+> > 
+> > Changes in v2:
+> > - Unchanged, only tags RFC net-next to PATCH nf-next.
+> > 
+> > Eric Woudstra (3):
+> >   netfilter: flow: Add bridge_vid member
+> >   netfilter: nf_flow_table_core: teardown direct xmit when destination
+> >     changed
+> >   netfilter: nf_flow_table_ip: don't follow fastpath when marked
+> >     teardown
+> > 
+> >  include/net/netfilter/nf_flow_table.h |  2 +
+> >  net/netfilter/nf_flow_table_core.c    | 66 +++++++++++++++++++++++++++
+> >  net/netfilter/nf_flow_table_ip.c      |  6 +++
+> >  net/netfilter/nft_flow_offload.c      |  3 ++
+> >  4 files changed, 77 insertions(+)
+> > 
 > 
-> Tested with nft command line tool.
-> 
-> table bridge nat {
-> 	chain PREROUTING {
-> 		type filter hook prerouting priority 0; policy accept;
-> 		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr accept
-> 	}
-> }
-> 
-> Joint work with Pablo Neira.
+> What is the status of this patch-set? Is it still being considered to be
+> applied? Should I re-submit it? Anything I can do, please let me know.
 
-Sorry for crashing the party.
+Its marked as 'Changes Requested' in patchwork but I see no feedback
+on patchwork or lore archives.
 
-Can you check if its enough to use the mac address of the port (rather
-than the bridge address)?
+Pablo, do you have any objections to this patchset?
 
-i.e. add veth0,1 to br0 like this:
-
-        br0
-a -> [ veth0|veth1 ] -> b
-
-Then check br0 address.
-If br0 has address of veth1, then try to redirect
-redirect by setting a rule like 'ether daddr set <*veth0 address*>
-
-AFAICS the bridge FDB should treat this as local, just as if one would
-have used the bridges mac address.
-
-If it works i think it would be better to place a 'fetch device mac
-address' in nft_meta rather than this ibrhwdr in bridge meta, because
-the former is more generic, even though I don't have a use case other
-than bridge-to-local redirects.
-
-That said, if it doesn't work or the ibrhwdr has another advantage
-I'm missing then I'm fine with this patch.
+AFAICS this is ok and I'd apply this patchset.
