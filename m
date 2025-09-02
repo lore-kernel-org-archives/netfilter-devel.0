@@ -1,58 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 600EF304BA0
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Sep 2025 14:37:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FB731E0FD
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Sep 2025 14:44:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756823875; cv=none; b=jMWhuWDb9fCK2KblM0CDn+iqBAsP3m9G5zYjP/Ahn/7W9ggtRAmMBh7arS2qSaWYvXabL9rgKapHPN5mJXOrGGfV0Pf3wEpPx+38QXfNfuDAJZ5eD2QWc9/11vOWk2F6mEqg94dSIkL85TX42tuJfDfQLfvO6qRpO7Ky9NsTiqE=
+	t=1756824246; cv=none; b=Sme1liwGs/DyN0SHerR8xkDk8F5+rDsOabR+u5Sl62sExrPrJJ+ucU92CPMCdz5rTH2uObFnkFSlr5RYcpxrbI9VCjTn69WM25/RM1ZhLhcZWtkOlabrsYnmb9y9d6mi5mQkFk+s1LGaNLUoLA90LLYknT9/N0fRPTSDiTb6IV8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756823875; c=relaxed/simple;
-	bh=3ZKLs5lNQAAnA1ovHMHVbgua37RXyYhGLCd1SGojITQ=;
+	s=arc-20240116; t=1756824246; c=relaxed/simple;
+	bh=1Ut/CMAUvDoycdiRZ5/HI3s1ndU0S1BcwxQphjSjS+g=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WpiM26qYu4FWeuTRO3EqTnVfLIcpofXh6Bwa02WqurjDP4VXL4Vux8bUHN9sJA4jGtYRHAwrFpzSS2ym9ENQVTSu+MZu80injojq4JQ7m934pDNJT/etT3YlzlDFyksr/Bil7jjF6h1tO/ulN6bHuYj61Kez9PJmZpHpc7SFlIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YeJrrqkz; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Nkpdrq5h; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=SRzKDEqOk3s3M5r7yVTItMp593jRlrGfSbyYxmkeSwQopugOY5jL/yz/fPwx9mPAPWJ9AsiHIehC+KlL7rUIQkycKNeTfwO87LFZLlspnlsUtirifl7fJzHF3pBhf7/536oeA00odzd7OY3haAOKQ/I6M5m7K/Nz58q8dEd2qp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LynAU+/I; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LynAU+/I; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YeJrrqkz";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Nkpdrq5h"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LynAU+/I";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LynAU+/I"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 0903A606F0; Tue,  2 Sep 2025 16:37:50 +0200 (CEST)
+	id A2F23606FE; Tue,  2 Sep 2025 16:44:02 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756823870;
-	bh=RG9mm+5z8h0X2xgAdwuhYjpGwOndHea6cOzGsu/UCg8=;
+	s=2025; t=1756824242;
+	bh=Wzkdh8b9ZUCw6ttQ4ojcVLbBNWxkYX23/Gd6sOcK5F0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=YeJrrqkz7YYq3q5gYYKWY87aJ0PFSaeuqDX0XzcyZxbqP5SnemC4A5FWk2zo5xVJ6
-	 p99yRHkPrwHAyJCBPvPAdYXaa7pKqHNEjKCscYxtYtfu5taA+6Ode1OJZt+f7DSTRL
-	 8d3C8eFg1CQ04nfcW4Cdfx0xcL08jdeSPeTfRj48yrZD7ou6CuHo3lIu0e1aZSHp4u
-	 qXybAtUp4T4xdFRW/MFGexcvn7jLSxKLUyhV/kawaElChyD1NMs8MdXp5FxJJK4tOg
-	 pa5He7T/RiX5BAgX1NzhJSkhrK6k1c3DHI8W9QXMxtp0c3DKhTulSJMIv2iR++z8A1
-	 9ni6BkdIUg3pA==
+	b=LynAU+/IvnAIbMqHvaCBbvuKuX/VFCWfqLpvXIzC7y9TRpDs60Ra0Z70tLPTw9amQ
+	 sd2T49Gx82j6YqK5HfMOMPc49MrHElHigmLl+sK+p+UPEXRejpqRuuvxAPutPbeK6q
+	 nraj27zm3l/l7SuMyVa6MQO8jdOYjoJ/+Mge5feTnj/nFca6SGk3Sb35wKHfGONcF9
+	 Ukeb5cIrl1g7UnRHD+WUAtaFezho4HCCwOvVgS1svAplS31D+zuHmIHBCOoF+dchrB
+	 hB3EoowYPE3qk7W/MYFOwORJLraxAW/JCENFztyHNnXKxfSIYkhlC06IFLyr6+jF78
+	 nCmKHuwRRxO7Q==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 95E63606F0;
-	Tue,  2 Sep 2025 16:37:48 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D9A55606FE;
+	Tue,  2 Sep 2025 16:44:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756823868;
-	bh=RG9mm+5z8h0X2xgAdwuhYjpGwOndHea6cOzGsu/UCg8=;
+	s=2025; t=1756824242;
+	bh=Wzkdh8b9ZUCw6ttQ4ojcVLbBNWxkYX23/Gd6sOcK5F0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Nkpdrq5hqJsY7C7DBrqTwnBuCdButnXGy4Zkf5kK3+EW3gX5/So1x8V035zztGiyz
-	 a2yhNN3mETmoMkGlPeBu8qaFyNzQCAuaKjM52sKHeQesmEJheLB8+Mp3OGgEch0heq
-	 xtfzcsDLzTBA+DZS2qdujmhMFxLSVP57SZPs8kliBKam0CuhCBI4XrLlM47jl0oL3w
-	 rwsZdxzGTo91VTUAwCOq+J9nfgDdZbfTS1WZUH//kalMupXRDIJTNoi2EGaTf99VDf
-	 honmyNDrr+9HICkRAV4U834f/I8iZT8C6UkA1R/ZHwthVoxSk3SRG72nPi0OnoXUU1
-	 ixPqoH9YxM5zw==
-Date: Tue, 2 Sep 2025 16:37:46 +0200
+	b=LynAU+/IvnAIbMqHvaCBbvuKuX/VFCWfqLpvXIzC7y9TRpDs60Ra0Z70tLPTw9amQ
+	 sd2T49Gx82j6YqK5HfMOMPc49MrHElHigmLl+sK+p+UPEXRejpqRuuvxAPutPbeK6q
+	 nraj27zm3l/l7SuMyVa6MQO8jdOYjoJ/+Mge5feTnj/nFca6SGk3Sb35wKHfGONcF9
+	 Ukeb5cIrl1g7UnRHD+WUAtaFezho4HCCwOvVgS1svAplS31D+zuHmIHBCOoF+dchrB
+	 hB3EoowYPE3qk7W/MYFOwORJLraxAW/JCENFztyHNnXKxfSIYkhlC06IFLyr6+jF78
+	 nCmKHuwRRxO7Q==
+Date: Tue, 2 Sep 2025 16:43:59 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH nf-next] netfilter: nft_meta_bridge: introduce
- NFT_META_BRI_IIFHWADDR support
-Message-ID: <aLcBOhmSNhXrCLIh@calendula>
-References: <20250902112808.5139-1-fmancera@suse.de>
- <aLbeVpmjrPCPUiYH@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v2 2/7] tests: monitor: Support running all tests in
+ one go
+Message-ID: <aLcCr2YxUkRFH6UH@calendula>
+References: <20250829155203.29000-1-phil@nwl.cc>
+ <20250829155203.29000-3-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -61,53 +60,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aLbeVpmjrPCPUiYH@strlen.de>
+In-Reply-To: <20250829155203.29000-3-phil@nwl.cc>
 
-On Tue, Sep 02, 2025 at 02:08:54PM +0200, Florian Westphal wrote:
-> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> > Expose the input bridge interface ethernet address so it can be used to
-> > redirect the packet to the receiving physical device for processing.
-> > 
-> > Tested with nft command line tool.
-> > 
-> > table bridge nat {
-> > 	chain PREROUTING {
-> > 		type filter hook prerouting priority 0; policy accept;
-> > 		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr accept
-> > 	}
-> > }
-> > 
-> > Joint work with Pablo Neira.
-> 
-> Sorry for crashing the party.
-> 
-> Can you check if its enough to use the mac address of the port (rather
-> than the bridge address)?
-> 
-> i.e. add veth0,1 to br0 like this:
-> 
->         br0
-> a -> [ veth0|veth1 ] -> b
-> 
-> Then check br0 address.
-> If br0 has address of veth1, then try to redirect
-> redirect by setting a rule like 'ether daddr set <*veth0 address*>
-> 
-> AFAICS the bridge FDB should treat this as local, just as if one would
-> have used the bridges mac address.
+On Fri, Aug 29, 2025 at 05:51:58PM +0200, Phil Sutter wrote:
+> Detect RUN_FULL_TESTSUITE env variable set by automake and do an
+> "unattended" full testrun.
 
-That sounds more generic if it works, yes.
+This test is so small that I think it is better to enable both modes:
+w/json and w/o json by default.
 
-This patch was just mocking the existing behaviour in
-net/bridge/netfilter/ebt_redirect.c for this case.
-
-> If it works i think it would be better to place a 'fetch device mac
-> address' in nft_meta rather than this ibrhwdr in bridge meta, because
-> the former is more generic, even though I don't have a use case other
-> than bridge-to-local redirects.
->
-> That said, if it doesn't work or the ibrhwdr has another advantage
-> I'm missing then I'm fine with this patch.
-
-Unknown to me, but I am fine with reviewing the existing approach and
-understand why this bridge redirect was done like this back in 1999.
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  tests/monitor/run-tests.sh | 23 ++++++++++++++++-------
+>  1 file changed, 16 insertions(+), 7 deletions(-)
+> 
+> diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
+> index 969afe249201b..b8589344a9732 100755
+> --- a/tests/monitor/run-tests.sh
+> +++ b/tests/monitor/run-tests.sh
+> @@ -58,7 +58,7 @@ json_output_filter() { # (filename)
+>  monitor_run_test() {
+>  	monitor_output=$(mktemp -p $testdir)
+>  	monitor_args=""
+> -	$test_json && monitor_args="vm json"
+> +	$json_mode && monitor_args="vm json"
+>  	local rc=0
+>  
+>  	$nft -nn monitor $monitor_args >$monitor_output &
+> @@ -77,7 +77,7 @@ monitor_run_test() {
+>  	sleep 0.5
+>  	kill $monitor_pid
+>  	wait >/dev/null 2>&1
+> -	$test_json && json_output_filter $monitor_output
+> +	$json_mode && json_output_filter $monitor_output
+>  	mydiff -q $monitor_output $output_file >/dev/null 2>&1
+>  	if [[ $rc == 0 && $? != 0 ]]; then
+>  		err "monitor output differs!"
+> @@ -156,20 +156,29 @@ while [ -n "$1" ]; do
+>  	esac
+>  done
+>  
+> -if $test_json; then
+> -	variants="monitor"
+> +if [[ $RUN_FULL_TESTSUITE == 1 ]]; then
+> +	variants="monitor_json monitor echo"
+> +elif $test_json; then
+> +	variants="monitor_json"
+>  else
+>  	variants="monitor echo"
+>  fi
+>  
+>  rc=0
+>  for variant in $variants; do
+> +	orig_variant=$variant
+> +	if [[ $variant =~ .*_json ]]; then
+> +		variant=${variant%_json}
+> +		json_mode=true
+> +	else
+> +		json_mode=false
+> +	fi
+>  	run_test=${variant}_run_test
+>  	output_append=${variant}_output_append
+>  
+>  	for testcase in ${testcases:-testcases/*.t}; do
+>  		filename=$(basename $testcase)
+> -		echo "$variant: running tests from file $filename"
+> +		echo "$orig_variant: running tests from file $filename"
+>  		rc_start=$rc
+>  
+>  		# files are like this:
+> @@ -194,11 +203,11 @@ for variant in $variants; do
+>  				;;
+>  			O)
+>  				input_complete=true
+> -				$test_json || $output_append "$line"
+> +				$json_mode || $output_append "$line"
+>  				;;
+>  			J)
+>  				input_complete=true
+> -				$test_json && $output_append "$line"
+> +				$json_mode && $output_append "$line"
+>  				;;
+>  			'#'|'')
+>  				# ignore comments and empty lines
+> -- 
+> 2.51.0
+> 
