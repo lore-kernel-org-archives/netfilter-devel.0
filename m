@@ -1,121 +1,148 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41D912DC32D
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Sep 2025 13:03:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 145F730E852;
+	Tue,  2 Sep 2025 13:18:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756818191; cv=none; b=qb3eOSkf0T2ENXe2DJnskkP/G1rvmcK7/yPW29JV1UpVIz3/9x+6KpQjn55/S8btG4DTKtOCCp4EOib0aymJx50mIxSUDIgofO1nEu+EaIBjDgOJv3QJ9rmdgYrelu9ZMEOjTDg1DGwV/t7dPJBMgVCqWbHKRfeTQRp6vpwDqks=
+	t=1756819115; cv=none; b=CMdVhw4AyTTyWsbv7yxBqc+9ZD16G3lkntd9gJvf6rgvhUfXBUdC9RzEMCoMrlA+xf9iI3kBvU4U8SAwWuK9HJ0Yv8UZoq4mqllV+QMCFYb6PzaH5e+CyJAR3pV9FEIuB2DPpmqFwdMRU08bhfxYLZDR0bNJgyadC4dZ2EDdwJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756818191; c=relaxed/simple;
-	bh=uIQOOOowz4CN1rhTTJCbXQVsq6MAI3mbDvWnQhC9OPU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=AgWngeb2HPLYWCWYOnmMLbqQ4ZZUH+DQ3i6ppTvoqVnf0XcoXmrOsfP7H9YgW/xROuTT/EI910tkJseWVyqQ9nRDopWg3W9dzhQnG3jg2SfbzhNSVXNQNYMbRQSJWduJ+PFZmALthFxjnfO0dt4J4jwRgjG9kG/o4AASRdL2p5U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Lr4Fpuxd; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Lr4Fpuxd"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1756818189;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FqKOZ77CDWS20D6kmfLQTPPlNJdRjsyD/W9G47iuzwE=;
-	b=Lr4FpuxdFZoozDp9V6YVtLdAEd3QsHYCD2n1S3xlbNG+CJ1/5Nftc8zfU0NA3T+0uwgzrA
-	MqZ0YorpHBG/L+CBlQjCRqyGHGKl2SQV4c82EQmwVQzvK3On7MU04QqqCRpKSXxMz6hMgx
-	6aXADpJn7Zjqm/RlXyFQlDjlo5ByzSo=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-644-t2mT55XAMCevnwJNMZnqEw-1; Tue, 02 Sep 2025 09:03:07 -0400
-X-MC-Unique: t2mT55XAMCevnwJNMZnqEw-1
-X-Mimecast-MFC-AGG-ID: t2mT55XAMCevnwJNMZnqEw_1756818186
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3cceb92ea73so3127467f8f.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Sep 2025 06:03:06 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756818186; x=1757422986;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=FqKOZ77CDWS20D6kmfLQTPPlNJdRjsyD/W9G47iuzwE=;
-        b=D4S3ktyed+SZmwJN0gnqaPktVfBq0Kl5XXedL19zGN6t30g1hvvb+99+1P1n6GxsrH
-         DLbZq8pAnuXlhYPugl3TKdtpkcNsJuNuuCH/+hpKZN1DzhxfeG2CeP+46RU2QP7puQhv
-         6TsFzYbcMIK8+1SvIpyHMBmAnsMdp8Ioc63or+DUnlh+lo1p8lr2oBfjCNsITyq4wJ8P
-         9Tul8rBTsCs4t0Mm+htH/bXe0HDC8sdfDTXL/GXs/oEciNnfBp6CVnInyVMOpbvP6S9A
-         hUZmqDfXqWT9LHpQX0/jaz2wvhtYDATjRlFw2v8mYZAaP75wGI7zavQd65pBnf1gNjEw
-         ud+Q==
-X-Forwarded-Encrypted: i=1; AJvYcCX3ADrs98fXjJ5+ssRMloeRrAWOEXn/81bdTPlsGLcOfk2ZnEpcXOsPLn6+Ybnu6YW1urWiqDsuc7u7UhHfm/c=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy9jSEZgEjHtKr6X/X84eE395XvgBB6g79BPWloJX7MjjMlL+Y+
-	BQ9uuGind/zE3ITlL5LMN48Rod38oo9hfRxQjLzZvEYIZIXTvYhU/nNENuaLhI/abGfQVI5Lewq
-	S5O47zccYvc1K0gTELIUtS+abQIcoXAERzeVKsW9Ayx7TZVAi5qyLkW6gx+9iztI6hcUBpw==
-X-Gm-Gg: ASbGncvvsKf0OKI5jwRDEWgVqz/e3xqTQDMADJzH1+yWZjkiuA5LM1BKviEviCLZk5O
-	DPkejEuoGUKEXuGVafUlsD/A3pdx+JkbPxxkoX/Fe4kNXrkXNhG5zZKqBncMNnWFvmkl8RiRQt/
-	IskGncwtmyuxMepJjEA5bgUcHdcUexlFrV+kotBdPOWlHKSwcuu00hRvDdPikaWj0sKuAk956Bx
-	GjdO9GD78M5+KVKHDp6Wxuc7W1Ci4EeZxcg/cKv64OkCinwtz5rAVjvk7w6S+UZ2Zq7F6p/bJI9
-	c/Pk8qhCOVoqyMkswMDZDEiyhusku6tUvRPpBkAja2We/kPd9ec1SrD55a6+qw5th/jepEbz0W9
-	AONTzag8Rstw=
-X-Received: by 2002:a05:6000:1788:b0:3d9:70cc:6dd2 with SMTP id ffacd0b85a97d-3d970cc6fe7mr2689082f8f.40.1756818185543;
-        Tue, 02 Sep 2025 06:03:05 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IE0SOySbfKyKJPc+bfs6kR2/ZvH7s2l/8gDpjVSDxCI98orw6qI9d9Ef04CuWtGtZyJJaoVdw==
-X-Received: by 2002:a05:6000:1788:b0:3d9:70cc:6dd2 with SMTP id ffacd0b85a97d-3d970cc6fe7mr2689045f8f.40.1756818184939;
-        Tue, 02 Sep 2025 06:03:04 -0700 (PDT)
-Received: from ?IPV6:2a0d:3344:2712:7e00:6083:48d1:630a:25ae? ([2a0d:3344:2712:7e00:6083:48d1:630a:25ae])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3d66b013b7dsm8838574f8f.28.2025.09.02.06.03.03
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 02 Sep 2025 06:03:04 -0700 (PDT)
-Message-ID: <e7665da6-5aa3-401f-ba1f-b2905f9821b5@redhat.com>
-Date: Tue, 2 Sep 2025 15:03:03 +0200
+	s=arc-20240116; t=1756819115; c=relaxed/simple;
+	bh=wcXHNkBQtrgjmA0wflq1a15s3Jy/DqxokYOrMmypoVM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BNiw4E2+bq/YUwrO+xTpmJ57cKDNokmWFwi9Y4e9b2hv7ZqDiLDw51aXwf0J7ql0NnKAlGxwruBofJXG0+dyftUUSGy/zYkohK23tTiPFiD3o+vYHQAaVVF3c5ceJsFwTmi1MQYbjHr4LkW04GJXxC5n6LWvkANDYsvk64yM2/o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 4BC8F606DC; Tue,  2 Sep 2025 15:18:31 +0200 (CEST)
+Date: Tue, 2 Sep 2025 15:18:26 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux.dev, netdev@vger.kernel.org
+Subject: Re: [PATCH v14 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
+ double vlan and pppoe
+Message-ID: <aLbuokOe9zcN27sd@strlen.de>
+References: <20250708151209.2006140-1-ericwouds@gmail.com>
+ <20250708151209.2006140-4-ericwouds@gmail.com>
+ <aG2Vfqd779sIK1eL@strlen.de>
+ <6e12178f-e5f8-4202-948b-bdc421d5a361@gmail.com>
+ <aHEcYTQ2hK1GWlpG@strlen.de>
+ <2d207282-69da-401e-b637-c12f67552d8d@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net-next 5/8] netfilter: nf_tables: Introduce
- NFTA_DEVICE_PREFIX
-To: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- netfilter-devel@vger.kernel.org
-References: <20250901080843.1468-1-fw@strlen.de>
- <20250901080843.1468-6-fw@strlen.de> <20250901134602.53aaef6b@kernel.org>
- <aLYMWajRCGWVxAHk@calendula> <aLY0hh8aBWJpluMI@strlen.de>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <aLY0hh8aBWJpluMI@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2d207282-69da-401e-b637-c12f67552d8d@gmail.com>
 
-On 9/2/25 2:04 AM, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> On Mon, Sep 01, 2025 at 01:46:02PM -0700, Jakub Kicinski wrote:
->>> Why is this not targeting net? The sooner we adjust the uAPI the better.
-> 
-> I considered it a new feature rather than a bug fix:
-> 
-> Userspace can't rely on the existing api because kernels before
-> 6.16 don't special-case the names provided, and nftables doesn't
-> make use of the 6.16 "accident" (the attempt to re-use the existing
-> device name attribute for this).
-> 
-> The corresponding userspace changes (v4 uses the new attribute)
-> haven't been merged yet.
-> 
-> But sure, getting rid of the "accident" faster makes sense,
-> thanks for suggesting this.
-> 
->> I think there were doubts that was possible at this stage.
->> But I agree, it is a bit late but better fix it there.
-> 
-> Alright, I'll send a new nf-next PR with this one dropped in a few hours
-> and a separate nf.git PR with this patch included.
+Eric Woudstra <ericwouds@gmail.com> wrote:
+> > Thats because of implicit dependency insertion on userspace side:
+> > # ip saddr 1.2.3.4 counter ip daddr 3.4.5.6
+> > bridge test-bridge input
+> >   [ meta load protocol => reg 1 ]
+> >   [ cmp eq reg 1 0x00000008 ]
+> >   [ payload load 4b @ network header + 12 => reg 1 ]
+> >   ...
+> > 
+> > So, if userspace would NOT do that it would 'just work'.
+> > 
+> > Pablo, whats your take on this?
+> > We currently don't have a 'nhproto' field in nft_pktinfo
+> > and there is no space to add one.
+> > 
+> > We could say that things work as expected, and that
+> >  ip saddr 1.2.3.4
+> > 
+> > should not magically match packets in e.g. pppoe encap.
 
-I agree that this latter option is preferable.
+FTR, I think 'ip saddr 1.2.3.4' (standalone with no other info),
+should NOT match inside a random l2 tunnel.
 
-Thanks,
+> > I suspect it will start to work if you force it to match in pppoe, e.g.
+> > ether type 0x8864 ip saddr ...
+> > 
+> > so nft won't silently add the skb->protocol dependency.
+> > 
+> > Its not a technical issue but about how matching is supposed to work
+> > in a bridge.
+> > 
+> > If its supposed to work automatically we need to either:
+> > 1. munge skb->protocol in kernel, even tough its wrong (we don't strip
+> >    the l2 headers).
+> > 2. record the real l3 protocol somewhere and make it accessible, then
+> >    fix the dependency generation in userspace to use the 'new way' (meta
+> >    l3proto)?
+> > 3. change the dependency generation to something else.
+> >    But what? 'ether type ip' won't work either for 8021ad etc.
+> >    'ip version' can't be used for arp.
+> > 
+> 
+> Hi Florian,
+> 
+> Did you get any information on how to handle this issue?
 
-Paolo
+Did you check if you can get it to match if you add the relevant
+l3 dependency in the rule?
 
+I don't think we should (or can) change how the rules get evaluated by
+making 'ip saddr' match on other l2 tunnel protocols by default.
+
+It is even incompatible with any exiting rulesets, consider e.g.
+"ip daddr 1.2.3.4 drop" on a bridge, now this address becomes
+unreachable but it works before your patch (if the address is found in
+e.g. pppoe header).
+
+'ip/ip6' should work as expected as long as userspace provides
+the correct ether type and dependencies.
+
+I.e., what this patch adds as C code should work if being provided
+as part of the rule.
+
+What might make sense is to add the ppp(oe) header to src/proto.c
+in nftables so users that want to match the header following ppp
+one don't have to use raw payload match syntax.
+
+What might also make sense is to either add a way to force a call
+to nft_set_pktinfo_ipv4_validate() from the ruleset, or take your
+patch but WITHOUT the skb->protocol munging.
+
+However, due to the number of possible l2 header chain combinations
+I'm not sure we should bother with trying to add all of them.
+
+I worry we would end up turning nft_do_chain_bridge() preamble or
+nft_set_pktinfo() into some kind of l2 packet dissector.
+
+Maybe one way forward is to introduce
+
+	NFT_META_BRI_INET_VALIDATE
+
+nft add rule ... meta inet validate ...
+(just an idea, come up with better names...)
+
+We'd have to add NFT_PKTINFO_L3PROTO flag to
+include/net/netfilter/nf_tables.h.
+(or, alternatively NFT_PKTINFO_UNSPEC).
+
+Then, set this flag in struct nft_pktinfo, from
+nft_set_pktinfo_ipv4|6_validate (or from nft_set_pktinfo_unspec).
+
+NFT_META_BRI_INET_VALIDATE, would call nft_set_pktinfo_ipv4_validate
+or nft_set_pktinfo_ipv6_validate depending on iph->version and set
+NFT_BREAK verdict if the flag is still absent.
+
+**USERSPACE IS RESPONSIBLE** to prevent arp packets from entering
+this expression. If they do, then header validation should fail
+but there would be an off-chance that the garbage is also a valid
+ipv4 or ipv6 packet.
