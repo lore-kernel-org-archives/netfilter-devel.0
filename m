@@ -1,20 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1285331E102;
-	Tue,  2 Sep 2025 13:35:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59660304BA9;
+	Tue,  2 Sep 2025 13:36:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756820157; cv=none; b=lN3VBV5MKiYLOwmJRtBNRqexZ0kvCJI1gDBT08gpHip7tYsHyVnycmMQXKf0+V7H5Eec8YQuXOMznC7lh/zSB7rXBoBOoA6R4WqAvVP3LcyM2VIhtec21v/im/JHd6u6eHYiTru6KGfv2KK9FfHZz19FogVnfyJGb8Ch/6/ySIs=
+	t=1756820162; cv=none; b=YmiHK2fHAGaS/ZslfJI6tlWKYrif9mNuKcUa0ZLv0jPhOGJTXaMo8zsRkApeQqz9vs14wM65g2zmoCe2nxTn0oKR6uR9/Xz8A6IOJDiDFhBsj6n8HHzt+JGtd+S0s80fhirN0PwcNzCGthuEZ9MyHYr1phcJclueAp/nJVC4yv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756820157; c=relaxed/simple;
-	bh=AQnTmEdaOCpQw2USGrT5sDgjoLpNoOja1NImeuyWf5g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nRXLQa3vX+Ve0p/H6bPVFZ8w1OsFrFes5xArUSpSKlCk1YtR9Jb0n/m/G03rocy52zrtuUdKLdYF8RVylcno5DaMvIKUQbpYEQoHrLlwCBKtsQRAd/fC9c/m4GKD497GuhgxFdWntAhANLxOPv8cz2CTQJaK13TVuQQDgPmsjGM=
+	s=arc-20240116; t=1756820162; c=relaxed/simple;
+	bh=0et1aHMOWnBJzLATWZZg7R4aNnNXoFaC85mkJbFfzH8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Qy1nn7DTYILl7gSCfG9aViYwbHLQryo2bTCRp95F+cYDBVwJmErURiOJ2dSniX3wc13mle8ZOfN1/+F5fp0QUvFqcKfdVRgttuHedKkfsskJvvoKXPjAAxv84ML20zZs4kBnhfEhP0euZ67ljpHXM4/W19Y3281klIYMslD4nfM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E85E660298; Tue,  2 Sep 2025 15:35:53 +0200 (CEST)
+	id 506A160298; Tue,  2 Sep 2025 15:35:58 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -23,10 +24,12 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH v2 net-next 0/7] netfilter: updates for net-next
-Date: Tue,  2 Sep 2025 15:35:42 +0200
-Message-ID: <20250902133549.15945-1-fw@strlen.de>
+Subject: [PATCH v2 net-next 1/7] netfilter: ebtables: Use vmalloc_array() to improve code
+Date: Tue,  2 Sep 2025 15:35:43 +0200
+Message-ID: <20250902133549.15945-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
+In-Reply-To: <20250902133549.15945-1-fw@strlen.de>
+References: <20250902133549.15945-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,66 +38,72 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v2: drop patch 5, to be routed via net tree. No other changes.
+From: Qianfeng Rong <rongqianfeng@vivo.com>
 
-Hi,
+Remove array_size() calls and replace vmalloc() with vmalloc_array() to
+simplify the code.  vmalloc_array() is also optimized better, uses fewer
+instructions, and handles overflow more concisely[1].
 
-The following patchset contains Netfilter fixes for *net-next*:
+[1]: https://lore.kernel.org/lkml/abc66ec5-85a4-47e1-9759-2f60ab111971@vivo.com/
+Signed-off-by: Qianfeng Rong <rongqianfeng@vivo.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/netfilter/ebtables.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-1) prefer vmalloc_array in ebtables, from  Qianfeng Rong.
-2) Use csum_replace4 instead of open-coding it, from Christophe Leroy.
-3+4) Get rid of GFP_ATOMIC in transaction object allocations, those
-     cause silly failures with large sets under memory pressure, from
-     myself.
-5) Remove test for AVX cpu feature in nftables pipapo set type,
-   testing for AVX2 feature is sufficient.
-6) Unexport a few function in nf_reject infra: no external callers.
-7) Extend payload offset to u16, this was restricted to values <=255
-   so far, from Fernando Fernandez Mancera.
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 3e67d4aff419..5697e3949a36 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -920,8 +920,8 @@ static int translate_table(struct net *net, const char *name,
+ 		 * if an error occurs
+ 		 */
+ 		newinfo->chainstack =
+-			vmalloc(array_size(nr_cpu_ids,
+-					   sizeof(*(newinfo->chainstack))));
++			vmalloc_array(nr_cpu_ids,
++				      sizeof(*(newinfo->chainstack)));
+ 		if (!newinfo->chainstack)
+ 			return -ENOMEM;
+ 		for_each_possible_cpu(i) {
+@@ -938,7 +938,7 @@ static int translate_table(struct net *net, const char *name,
+ 			}
+ 		}
+ 
+-		cl_s = vmalloc(array_size(udc_cnt, sizeof(*cl_s)));
++		cl_s = vmalloc_array(udc_cnt, sizeof(*cl_s));
+ 		if (!cl_s)
+ 			return -ENOMEM;
+ 		i = 0; /* the i'th udc */
+@@ -1018,8 +1018,8 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
+ 	 * the check on the size is done later, when we have the lock
+ 	 */
+ 	if (repl->num_counters) {
+-		unsigned long size = repl->num_counters * sizeof(*counterstmp);
+-		counterstmp = vmalloc(size);
++		counterstmp = vmalloc_array(repl->num_counters,
++					    sizeof(*counterstmp));
+ 		if (!counterstmp)
+ 			return -ENOMEM;
+ 	}
+@@ -1386,7 +1386,7 @@ static int do_update_counters(struct net *net, const char *name,
+ 	if (num_counters == 0)
+ 		return -EINVAL;
+ 
+-	tmp = vmalloc(array_size(num_counters, sizeof(*tmp)));
++	tmp = vmalloc_array(num_counters, sizeof(*tmp));
+ 	if (!tmp)
+ 		return -ENOMEM;
+ 
+@@ -1526,7 +1526,7 @@ static int copy_counters_to_user(struct ebt_table *t,
+ 	if (num_counters != nentries)
+ 		return -EINVAL;
+ 
+-	counterstmp = vmalloc(array_size(nentries, sizeof(*counterstmp)));
++	counterstmp = vmalloc_array(nentries, sizeof(*counterstmp));
+ 	if (!counterstmp)
+ 		return -ENOMEM;
+ 
+-- 
+2.49.1
 
-Please, pull these changes from:
-The following changes since commit cd8a4cfa6bb43a441901e82f5c222dddc75a18a3:
-
-  Merge branch 'e-switch-vport-sharing-delegation' (2025-09-02 15:18:19 +0200)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-09-02
-
-for you to fetch changes up to 077dc4a275790b09e8a2ce80822ba8970e9dfb99:
-
-  netfilter: nft_payload: extend offset to 65535 bytes (2025-09-02 15:28:18 +0200)
-
-----------------------------------------------------------------
-netfilter pull request nf-next-25-09-02
-
-----------------------------------------------------------------
-Christophe Leroy (1):
-      netfilter: nft_payload: Use csum_replace4() instead of opencoding
-
-Fernando Fernandez Mancera (1):
-      netfilter: nft_payload: extend offset to 65535 bytes
-
-Florian Westphal (4):
-      netfilter: nf_tables: allow iter callbacks to sleep
-      netfilter: nf_tables: all transaction allocations can now sleep
-      netfilter: nft_set_pipapo: remove redundant test for avx feature bit
-      netfilter: nf_reject: remove unneeded exports
-
-Qianfeng Rong (1):
-      netfilter: ebtables: Use vmalloc_array() to improve code
-
- include/net/netfilter/ipv4/nf_reject.h |   8 ---
- include/net/netfilter/ipv6/nf_reject.h |  10 ----
- include/net/netfilter/nf_tables.h      |   2 +
- include/net/netfilter/nf_tables_core.h |   2 +-
- net/bridge/netfilter/ebtables.c        |  14 ++---
- net/ipv4/netfilter/nf_reject_ipv4.c    |  27 +++++----
- net/ipv6/netfilter/nf_reject_ipv6.c    |  37 ++++++++----
- net/netfilter/nf_tables_api.c          |  47 +++++++---------
- net/netfilter/nft_payload.c            |  20 ++++---
- net/netfilter/nft_set_hash.c           | 100 ++++++++++++++++++++++++++++++++-
- net/netfilter/nft_set_pipapo.c         |   3 +-
- net/netfilter/nft_set_pipapo_avx2.c    |   2 +-
- net/netfilter/nft_set_rbtree.c         |  35 +++++++++---
- 13 files changed, 209 insertions(+), 98 deletions(-)
