@@ -1,67 +1,67 @@
-Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D54220311;
-	Tue,  2 Sep 2025 08:48:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 712CB32F77A;
+	Tue,  2 Sep 2025 08:58:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756802940; cv=none; b=bQooFym3rdXIimzuZfEl4GhRi507mRuBJHnLBQ99Z2vg+GvW5b5RRgfJAhW4zVsx/iT8cIQ8R6qBDk+LgonBtZg8ftIZcw+qcEkY2rKFT1s8nLIurW/5uV3a+V4IpSMOnSLgzEqQej5ZVv+dc7nhP9WoAMd5op4wRy2eUVMpr+8=
+	t=1756803520; cv=none; b=pGA4AzrKE/gYCrISg+FIwV+rhYShjgp4VHBxDsvLA8uctv4Fz2hJWGhvIQZckI+qA3UCokEXZGqia+lkMoSvsvc9YxNk2IGOI6gAGcXN0lnf1+P45Oe4RD0/wNHC5+E+RplaCrRAsfYF7NXTQU7l7u1GLD3wPS+RO9p9Y/l01Ew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756802940; c=relaxed/simple;
-	bh=2wVL7DUI0EjgOovlyJtaHodUa4Nb7PkMiJ+oBK/yrAs=;
+	s=arc-20240116; t=1756803520; c=relaxed/simple;
+	bh=dizvaM5uk2SJgstG2UirBvrVwGWAlHlo4y3eTJfrs5A=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=S+cjIveC6fwZluZZf+JnWD1vJybUQAm0UIBAg0CoFgbceUVJ5mO1RHOreUzfLKdnMrH/Uqam7R4GaBbR/j+HIzjv7EGAXDvYQIiAdRp0Ml3seVrHvXrVdcQqVVQ5eh6qa7uBkjbbtPNHEF+tRSQbdrFLBgTkFpeAXnyoJberh5I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PwcoTwou; arc=none smtp.client-ip=209.85.208.46
+	 In-Reply-To:Content-Type; b=cKU+WphEtuqVztGZSprEFdgQDyAMvscmAujDWES5DIY2ArXDEMICRrolargnKLyiNlKGEIUhehIdZ5oCNCpwUwBtvcQfsKhSCxCwakeKAss4Rh5K66LMTjt6rwjKTq/XBTFgvk2oVJ18N84jmOQmvnA1RNRL+6qQF73dJFzoQmY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PtflrD5S; arc=none smtp.client-ip=209.85.208.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PwcoTwou"
-Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-61cb9e039d9so10219720a12.1;
-        Tue, 02 Sep 2025 01:48:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PtflrD5S"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6188b72b7caso5353104a12.2;
+        Tue, 02 Sep 2025 01:58:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1756802937; x=1757407737; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1756803517; x=1757408317; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:content-language:from
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=3u4DU53ZStZI8TtGH19n60e9se0poMcUbUdRTXQJkNU=;
-        b=PwcoTwouuBAxJ/9VaD99VzHWxeWd72OPupu9EG/wTmW1P1N7XCw9hFeJoAjpTyRGjJ
-         UoBDQDIR3zY8mbwNDkuZr1+q9hkVqds5VhyZKt0rBskVIoBN2uAVgsDQ3eCZe1l32tI1
-         6O8EoQITLciNdDcKjO0M6atJqYz/Gu48vja1944IPIfDTOCBSJ3hwaVhfuR+9CCUxiW8
-         brrXdqbtD1uU4Uad5JUbAgAR/9YREsil4jjBz/83qrr1otqhJXwvdxk6bWYT6VhLRS1A
-         GCnxyIHC7RwSMDAVDQePLX+4h/ywmNEv2Lrx8eP45CsRGLi6J7qb/MhSw5O+dx30BrDS
-         3ONA==
+        bh=4dCGUyt+U1QgwMoGg5yBau3t/Jwvtm0t7+SYOZenbnU=;
+        b=PtflrD5SjxD91+V8r5r/cc06ePDheYkZOs8ETrOeEzH6YwnTsZETOiGqZeWHDRRz9e
+         b0KyRR9yXM2NWHwhCLQI62T5DY/LTu9NB9frD9iX/p5JeEkwC8aQn2mMsQeNQTVWL+qS
+         gx5yI2EhFBo4+D7cQMaw7GT+mwUAOOFkLHVY2ibqte7ImMlFICW7U4zDd7t6DSXovVN6
+         qD9CSzJT+5RLgs0snzWSkbfT2agpMLPTYXcy32YeBGFTRF7on39972ibsibqnt+eZn1U
+         Nq1C+9q36PUXSiGZqoNHHT9QjFdv2yZya0M+BPCkGY6/blp1+27bT/wC1xXEhjzxfSCu
+         IMPA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756802937; x=1757407737;
+        d=1e100.net; s=20230601; t=1756803517; x=1757408317;
         h=content-transfer-encoding:in-reply-to:content-language:from
          :references:cc:to:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=3u4DU53ZStZI8TtGH19n60e9se0poMcUbUdRTXQJkNU=;
-        b=FJe+MTQIOSpsPAb09n9JDMw8LKS3FWq+oGDhCq38ZS59UUGv0AhHQ3zRMOX0lnRj7o
-         wumtQWg+Vqk7y+G9kqwtKw2z6E6jnmUn8nPoEHtz55BQwrG2dmvQAGP9k9z3xw40t6/0
-         j9XwZ6ZpItSOf7ValYS98JVUvqCX454MRnynVu4zs2fXND9isozywh+AC23/mQ2Nsrkq
-         XrR7OTyxO7WPBNI5k/RsATt22fz2+/YE1I2HjRZJ6qOqQDBsFtYjcYU9gu0fVYexyg6A
-         GNczkRTnkn9ZVGeFnHsUie5CeDEv/HX4t2o/BqSnk7gY7B2+S8Zz3+FisFGapZQ6Iv6i
-         9fAA==
-X-Forwarded-Encrypted: i=1; AJvYcCVqSneZabwU/hednqqjGNCEe1BIm3TDmHmz2Q4wTiqDC2yAOE3Uyadi80HzB/iqZiZo2P8SzGJogDOQH2wedCSD@vger.kernel.org, AJvYcCWPShB/wFDoiqZVNBBoy9HoTzMW6e8/5Z4ZWpFmRG4S+a7PAysFNya5o1+RhyVktBsafuPHKOA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwT0qd3iqVjIiibL4xO0X/rNnZuIa+f3621V+58XWN5YBQxuh5N
-	rcEq68aFrQ6DbTXR94VEyhvKgVHscKFKCTRTM3IYIHqL7Y2FlAfGkxeJ
-X-Gm-Gg: ASbGncswQrsimnX1UmJ8YWDRbnbttJqtkLFfzMl3k+Jry5TvFTgVf/zLdVGtK9Wq61O
-	uLsNR3BLYOjgX4PeokAYiN5wpEw4B//nfqEc+dhnhm9StaTgx+mztHcIbwNQdH52fAbqnXWk/2n
-	qzHiaDlpVkuy2S11CXblH8qQMzGcqDstPTwonPbWsJhvbQvW76cfP3YGBGgM23GsnpbZ42OU1Bd
-	7kr68JjIu9bjspq0B0WQcWYmTjihjraGisYRVlz58MkSSXQ9h32hbF5Jwo8tu9KJhO1HwSrY1cr
-	IX1bwNhExChkcUqDcF2BokUfj1CGSuawrsZhBR1gQdpBfTRbC9sZHJ86NPdmVX1oWeGTj4v1pOE
-	0O2hAEY/dwEwgnRIkva8FCRe8SEq4CU+CTEJ329ZBNeNc1OSiDF0M0q9FJQWzwlNhO1ULga2oKr
-	OZrUpPwBFzEJIJPFAbQRfmXEgEg4e5DXeVPs+OmB+n9aw5pp5sA2XGrmmRbLbjcGDDw9qFZkqjm
-	HjeOxttWeA5Ys6He9WOMjp3n4oz8sTh0HZ73OLwLVNzCFYhM3khuw==
-X-Google-Smtp-Source: AGHT+IGnk+M6JtRt1++JxUrcqAy/3+2qIzpIG/SKfC/t/CmkS+op4CWifCvXgv07BmglGVSJS50K7g==
-X-Received: by 2002:a05:6402:4414:b0:61d:3dad:228d with SMTP id 4fb4d7f45d1cf-61d3dad22c7mr8400226a12.13.1756802937232;
-        Tue, 02 Sep 2025 01:48:57 -0700 (PDT)
+        bh=4dCGUyt+U1QgwMoGg5yBau3t/Jwvtm0t7+SYOZenbnU=;
+        b=i0Fehs+n1XGEPK1bec7Evq4kFzSg6LGOZjMT1r0GSoEklCtnVEBdaig2u5DpV6cKq/
+         v/dDHCQkrhyifrhO6IQV5a/z9s8brxRD+OWtzS1WlhK7pKDMnK+ux3dMSj9MfC2COT8D
+         RRJIKCxdbibhipgfYjdBN3Y3T2j/UCRsgmcqleqzeZBuW+/rIBoVAxvZvZzcDn1fJuk1
+         9yfE83mcqMT5Ahzi8Otiq3YdZGye67crqyLEH/Gbhf1Pbo00QR9TiAAWdB7jGw/punhi
+         oZr3QU/XZFCp+G4aeUHX/snr2A2rwlwQumJSu/EXEq8sWW8ivgi8xOjQK05HBvHwK4NV
+         HpTQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXEi56QNSrk3XTpZqzMS7r94UJns5Grx3xxBE3jF2aG0CxwT2dPhHMFQbzeyH95p8k5aPdFM60=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy0OwWkjaZFERRP57MTg6yqvoFLuDU+Hqbt2+a2EEN+lwqCH582
+	7e2CSlDlB0ZQ1MpMhRO2kYFA38IsEKCuExZTs06yBAfNIXnghpbNE2ex81eOMuKO
+X-Gm-Gg: ASbGncvmovCKnK0t86y9pGhCmavP5joPZIDtWiBMX1eOo4GeyUeSO3zlchmM5HFm8Rt
+	lg7S5ToSfIkY+s9nUjsPNFCJrBFAWf1RR9heQEZAeaMqcoZ+zum18R7kMVasGZG7fc7dSsDeUDy
+	VCj4WqXslm5nA0VBm7i/okoXKwUUW5K1nOt3FZ8okOBUU9Y07zu0Sf53NbNA5hkGC9Fi+1wDlhK
+	YBDIyI5M9qD3JHdy/VJvZ3AcIzcorCKA3PiXsYL/O/0H0k0BI+gaOsqOWNwwQvUNAOxVwk+QP/8
+	Th/5YX3i/DoeFJeMei7MyCK5JUahPUt92px2kCFWU/m0vzVkjsgvCY53+IzCWLFwW5ZXFmPqqZS
+	CjwRC14Jbj/nzgsgvHStwyV9bMOM7J8p6JAt3gtpgvjP7uRBUsDfz+fBUi5YJ+qW4XxgrElKiji
+	k7FhRmZyOBmrEPP27/4/krR1lgwUA2d2SelFJUW4zOFXi+DHXAh/4NHGKgDHNt5n19+gsi5r4rX
+	91GenZYkTzlBu+NnZb7w/JAtG8WLt80
+X-Google-Smtp-Source: AGHT+IE8fBIeXLjARXQ6XXgP0mt5QaZ7s4jK/a/+B0S9yuq5XhkUWOZAWDjHcpck8qGCj4MzG+me0A==
+X-Received: by 2002:a17:907:fdc1:b0:afe:b878:a175 with SMTP id a640c23a62f3a-b01d97a0c24mr1150988066b.46.1756803516509;
+        Tue, 02 Sep 2025 01:58:36 -0700 (PDT)
 Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-61cfc1c7dfesm9141306a12.7.2025.09.02.01.48.55
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b042fcae867sm404456166b.58.2025.09.02.01.58.35
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 02 Sep 2025 01:48:56 -0700 (PDT)
-Message-ID: <2d207282-69da-401e-b637-c12f67552d8d@gmail.com>
-Date: Tue, 2 Sep 2025 10:48:55 +0200
+        Tue, 02 Sep 2025 01:58:36 -0700 (PDT)
+Message-ID: <0452a9ce-72f4-41c1-b71a-a444d490fd97@gmail.com>
+Date: Tue, 2 Sep 2025 10:58:35 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,79 +69,57 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v14 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
- double vlan and pppoe
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Subject: Re: [PATCH v3 nf-next 0/3] flow offload teardown when layer 2 roaming
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
  Jozsef Kadlecsik <kadlec@netfilter.org>,
- Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
  "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
  Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
- bridge@lists.linux.dev, netdev@vger.kernel.org
-References: <20250708151209.2006140-1-ericwouds@gmail.com>
- <20250708151209.2006140-4-ericwouds@gmail.com> <aG2Vfqd779sIK1eL@strlen.de>
- <6e12178f-e5f8-4202-948b-bdc421d5a361@gmail.com> <aHEcYTQ2hK1GWlpG@strlen.de>
+ Simon Horman <horms@kernel.org>, Nikolay Aleksandrov <razor@blackwall.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+References: <20250617070007.23812-1-ericwouds@gmail.com>
 From: Eric Woudstra <ericwouds@gmail.com>
 Content-Language: en-US
-In-Reply-To: <aHEcYTQ2hK1GWlpG@strlen.de>
+X-Priority: 5 (Lowest)
+In-Reply-To: <20250617070007.23812-1-ericwouds@gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 7/11/25 4:14 PM, Florian Westphal wrote:
-> Eric Woudstra <ericwouds@gmail.com> wrote:
+On 6/17/25 9:00 AM, Eric Woudstra wrote:
+> This patch-set can be reviewed separately from my submissions concerning
+> the bridge-fastpath.
 > 
-> [ skb->protocl munging ]
+> In case of a bridge in the forward-fastpath or bridge-fastpath the fdb is
+> used to create the tuple. In case of roaming at layer 2 level, for example
+> 802.11r, the destination device is changed in the fdb. The destination
+> device of a direct transmitting tuple is no longer valid and traffic is
+> send to the wrong destination. Also the hardware offloaded fastpath is not
+> valid anymore.
 > 
->> But in nft_do_chain_bridge() it is needed in the case of matching 'ip
->> saddr', 'ip daddr', 'ip6 saddr' or 'ip6 daddr'. I suspect all ip/ip6
->> matches are suffering.
+> This flowentry needs to be torn down asap. Also make sure that the flow
+> entry is not being used, when marked for teardown.
 > 
-> Thats because of implicit dependency insertion on userspace side:
-> # ip saddr 1.2.3.4 counter ip daddr 3.4.5.6
-> bridge test-bridge input
->   [ meta load protocol => reg 1 ]
->   [ cmp eq reg 1 0x00000008 ]
->   [ payload load 4b @ network header + 12 => reg 1 ]
->   ...
+> Changes in v3:
+> - static nf_flow_table_switchdev_nb.
 > 
-> So, if userspace would NOT do that it would 'just work'.
+> Changes in v2:
+> - Unchanged, only tags RFC net-next to PATCH nf-next.
 > 
-> Pablo, whats your take on this?
-> We currently don't have a 'nhproto' field in nft_pktinfo
-> and there is no space to add one.
+> Eric Woudstra (3):
+>   netfilter: flow: Add bridge_vid member
+>   netfilter: nf_flow_table_core: teardown direct xmit when destination
+>     changed
+>   netfilter: nf_flow_table_ip: don't follow fastpath when marked
+>     teardown
 > 
-> We could say that things work as expected, and that
->  ip saddr 1.2.3.4
-> 
-> should not magically match packets in e.g. pppoe encap.
-> I suspect it will start to work if you force it to match in pppoe, e.g.
-> ether type 0x8864 ip saddr ...
-> 
-> so nft won't silently add the skb->protocol dependency.
-> 
-> Its not a technical issue but about how matching is supposed to work
-> in a bridge.
-> 
-> If its supposed to work automatically we need to either:
-> 1. munge skb->protocol in kernel, even tough its wrong (we don't strip
->    the l2 headers).
-> 2. record the real l3 protocol somewhere and make it accessible, then
->    fix the dependency generation in userspace to use the 'new way' (meta
->    l3proto)?
-> 3. change the dependency generation to something else.
->    But what? 'ether type ip' won't work either for 8021ad etc.
->    'ip version' can't be used for arp.
+>  include/net/netfilter/nf_flow_table.h |  2 +
+>  net/netfilter/nf_flow_table_core.c    | 66 +++++++++++++++++++++++++++
+>  net/netfilter/nf_flow_table_ip.c      |  6 +++
+>  net/netfilter/nft_flow_offload.c      |  3 ++
+>  4 files changed, 77 insertions(+)
 > 
 
-Hi Florian,
-
-Did you get any information on how to handle this issue?
-
->> I haven't found where yet, but It seems nft is checking skb->protocol,
->> before it tries to match the ip(6) saddr/daddr.
-> 
-> Yes, userspace inserts this, see 'nft --debug=netlink add rule bridge ..'
+What is the status of this patch-set? Is it still being considered to be
+applied? Should I re-submit it? Anything I can do, please let me know.
 
