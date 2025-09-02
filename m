@@ -1,56 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01DD22417F2
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Sep 2025 14:45:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2934B2E0917
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Sep 2025 15:33:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756824353; cv=none; b=MOe0Bm4X3NUTha87woQhKguDwplgOraox20jE54J5BdPA1Z7Cr2iOZwNsAIMxbtGGTNAO+W96x/Z6Gyv9QgrEc7JMT7Wa7Hz1wturCw5+Vv5CYLJ5FXE7nZ4xsKLTvfztXmnnHY2BT0bOWvt7JjSu3T3WewVUbiT8LvTgA90JvI=
+	t=1756827221; cv=none; b=aYW0dwIkuSgNtGoCMQTECR/2jrGkVQtAZycus34PC5SkMzmP18zAJj6+g0s/7m6LxS5aQFqA0MIBeM3AvwD6pgAXv27Fc9WCEJXPSvKUpiT+zu0kOMgkEjnHI2W6+ixq3g1kOb9viEMXeTyd1s0xtdUOcJxMq6Gf7S+UT5fcSBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756824353; c=relaxed/simple;
-	bh=biRJlKlb81XoyudLR3aHqnq7GEKKyEWcNJSK6akobqo=;
+	s=arc-20240116; t=1756827221; c=relaxed/simple;
+	bh=lLCbMlza5ROMMbbePQDk/andc/Y60ckqpOqfg4Z+xRY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bRiJJ7tyxn+VWGvvAS1ia7V+2qvBHOLyq/F5wxkgvjV7rmb8FzZmn99k8PWJR++ceOex2tpjso5ryXXb8vn1PwmkZaoCK5YTws0wyidInYbmG9MsWZulLdc1ncj2H0kSikQ08J/WJAXgoYPe6D0aNT7IXjmkm3cYBi6MIxkajQw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DxyXGqi8; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qLuuuVfv; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=P16elzQiFE6PwZisPtXc79CPB7U7jWB3TMQUqdDoN6+lcnJ3nzC++3jZPv4pCodS/dzeJT9MNsNgwYeotyJf2ptetZhf/TIH5JqAnK3tzdwcuZqYqqOgtZLf/oWQDwUxognl9NGA89AHEPN7H6QJ61IYdvnGDs+ud+GlOpK27VI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LuzVSPVy; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LuzVSPVy; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DxyXGqi8";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qLuuuVfv"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LuzVSPVy";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LuzVSPVy"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 2490D60712; Tue,  2 Sep 2025 16:45:49 +0200 (CEST)
+	id A0768608C9; Tue,  2 Sep 2025 17:33:37 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756824349;
-	bh=LC/wttymgYXLSAtJE94wi3jR4TlFcontajVTYcp0j6k=;
+	s=2025; t=1756827217;
+	bh=jdzgY4yVOTQ9QBjw4p7/1cYgRNHZSNtGqzvhcRUuMX8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DxyXGqi8dhlDp5/aeSznbq79jlJ05adwy61Ccs/fe3Qe1shIoLRPTdLbfQX+++CfQ
-	 xMLL5aejnLR+qIPv1q9gAshxi9jcSQcOnippqrwDHB/S0OkHPXjJMVzq9OZfFwuCnh
-	 /rWNEhz8SwfyoLnN2a2lYA4Wu6hHz1Rd6v9e2Yjp2XdSuHITEiqD0npr+T4J5eoJOj
-	 TXSeRSWr0v+UAnvnVJP5KaCKPr6OPyYDVayL2bklwKXuxbH7FScv4746GNFgz3rW90
-	 PA0Nn0UvqpFT1NmxdiXUkFsYtrlJN5jZ3MkvtBnp4wwjTiOdf9tU+HJOVm5a4n9RYw
-	 TXinQYYzpeLyg==
+	b=LuzVSPVyOkmUGofsFzKUV+Go+p+tgATMYYVyKL4Us0MO70k4CscOVGwZ1MUzX4zqS
+	 R2RfXEesd6sn4oRFc2rHBv8++m/KqqkD6l2gXfHiNWfR2scZSo8V9Lwaorxz6WA8ps
+	 t6450IWgkhde4RVQkF2/6jEW1gOjHhxRm0274vtAU8KXtxdyY/arY2+34JIQG1COAj
+	 J+WvqM9+eC2uy9b9FNe0Rvl0aw3qEDsdbYWivGSJrcpwWfMNAMF9wWmbaXo6cUZ0uY
+	 2wDHqLQpViNdeaZfXGlpDk7N5hlZN2MlxTw5oUTyWDeq81lLRqbc1Oo5bKtJ0cESv3
+	 iJtUvIxVfJUlw==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3B2DF60712;
-	Tue,  2 Sep 2025 16:45:46 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 12E27608C6;
+	Tue,  2 Sep 2025 17:33:37 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756824346;
-	bh=LC/wttymgYXLSAtJE94wi3jR4TlFcontajVTYcp0j6k=;
+	s=2025; t=1756827217;
+	bh=jdzgY4yVOTQ9QBjw4p7/1cYgRNHZSNtGqzvhcRUuMX8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qLuuuVfvxtc8cnzWdGvb/4zFbveL/iQOAh+aqY7JYhRWzcjcUnwFoSFr+psMC1DCh
-	 3V3cxtyp38dzLNRojSyptO71n+oyRPcFdUao9O/2mK1HF+UM4zAwJNp+8H+6PEECGS
-	 2QbpIwcAf+hGVaiKHQt5AnDg8FSabBnmiuyiCTh9Fy52K5ltywQxdyaEPyb49n1xQD
-	 M5c8/0mS5jBJehKC/mQLhGvRIdo76dwDIbxWym+GcQfBv2Os5ayUkIW1FtSesg/k74
-	 9eqlZx6TR2OZLNYI10mq/wj7HAuvAXASifjztaCtnU0l2f4UR18xseTQ86BkBLFAHA
-	 V1nU9gefrTZFA==
-Date: Tue, 2 Sep 2025 16:45:43 +0200
+	b=LuzVSPVyOkmUGofsFzKUV+Go+p+tgATMYYVyKL4Us0MO70k4CscOVGwZ1MUzX4zqS
+	 R2RfXEesd6sn4oRFc2rHBv8++m/KqqkD6l2gXfHiNWfR2scZSo8V9Lwaorxz6WA8ps
+	 t6450IWgkhde4RVQkF2/6jEW1gOjHhxRm0274vtAU8KXtxdyY/arY2+34JIQG1COAj
+	 J+WvqM9+eC2uy9b9FNe0Rvl0aw3qEDsdbYWivGSJrcpwWfMNAMF9wWmbaXo6cUZ0uY
+	 2wDHqLQpViNdeaZfXGlpDk7N5hlZN2MlxTw5oUTyWDeq81lLRqbc1Oo5bKtJ0cESv3
+	 iJtUvIxVfJUlw==
+Date: Tue, 2 Sep 2025 17:33:34 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Phil Sutter <phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2 7/7] Makefile: Enable support for 'make check'
-Message-ID: <aLcDF_OEWQ5KmkZr@calendula>
+Subject: Re: [nft PATCH v2 3/7] tests: py: Set default options based on
+ RUN_FULL_TESTSUITE
+Message-ID: <aLcOTrTUs5D95pKN@calendula>
 References: <20250829155203.29000-1-phil@nwl.cc>
- <20250829155203.29000-8-phil@nwl.cc>
+ <20250829155203.29000-4-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,78 +60,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250829155203.29000-8-phil@nwl.cc>
+In-Reply-To: <20250829155203.29000-4-phil@nwl.cc>
 
-On Fri, Aug 29, 2025 at 05:52:03PM +0200, Phil Sutter wrote:
-> Add the various testsuite runners to TESTS variable and have make call
-> them with RUN_FULL_TESTSUITE=1 env var.
-
-Given you add a env var for every test, would you instead use
-distcheck-hook: in Makefile.am to short circuit the test run and
-display SKIPPED?
-
-> Most of the test suites require privileged execution, 'make distcheck'
-> usually doesn't and probably shouldn't. Assuming the latter is used
-> during the release process, it may even not run on a machine which is up
-> to date enough to generate meaningful test suite results. Hence spare
-> the release process from the likely pointless delay imposed by 'make
-> check' by keeping TESTS variable empty when in a distcheck environment.
+On Fri, Aug 29, 2025 at 05:51:59PM +0200, Phil Sutter wrote:
+> Automake is supposed to set this for a full testrun.
 > 
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
 > ---
-> Changes since v1:
-> - Add an internal configure option set by the distcheck target when
->   building the project
-> - Have this configure option define BUILD_DISTCHECK automake variable
-> - Leave TESTS empty if BUILD_DISTCHECK is set to avoid test suite runs
->   with 'make distcheck'
-> ---
->  Makefile.am  | 10 ++++++++++
->  configure.ac |  5 +++++
->  2 files changed, 15 insertions(+)
+>  tests/py/nft-test.py | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/Makefile.am b/Makefile.am
-> index 5190a49ae69f1..f65e8d51b501e 100644
-> --- a/Makefile.am
-> +++ b/Makefile.am
-> @@ -23,6 +23,7 @@ libnftables_LIBVERSION = 2:0:1
->  ###############################################################################
+> diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
+> index 78f3fa9b27df7..52be394c1975a 100755
+> --- a/tests/py/nft-test.py
+> +++ b/tests/py/nft-test.py
+> @@ -1517,6 +1517,13 @@ def set_delete_elements(set_element, set_name, table, filename=None,
+>      signal.signal(signal.SIGINT, signal_handler)
+>      signal.signal(signal.SIGTERM, signal_handler)
 >  
->  ACLOCAL_AMFLAGS = -I m4
-> +AM_DISTCHECK_CONFIGURE_FLAGS = --enable-distcheck
->  
->  EXTRA_DIST =
->  BUILT_SOURCES =
-> @@ -429,3 +430,12 @@ doc_DATA = files/nftables/main.nft
->  tools/nftables.service: tools/nftables.service.in ${top_builddir}/config.status
->  	${AM_V_GEN}${MKDIR_P} tools
->  	${AM_V_at}sed -e 's|@''sbindir''@|${sbindir}|g;s|@''pkgsysconfdir''@|${pkgsysconfdir}|g' <${srcdir}/tools/nftables.service.in >$@
-> +
-> +AM_TESTS_ENVIRONMENT = RUN_FULL_TESTSUITE=1; export RUN_FULL_TESTSUITE;
-> +if !BUILD_DISTCHECK
-> +TESTS = tests/build/run-tests.sh \
-> +	tests/json_echo/run-test.py \
-> +	tests/monitor/run-tests.sh \
-> +	tests/py/nft-test.py \
-> +	tests/shell/run-tests.sh
-> +endif
-> diff --git a/configure.ac b/configure.ac
-> index da16a6e257c91..8073d4d8193e2 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -155,6 +155,11 @@ AC_CONFIG_COMMANDS([nftversion.h], [
->  AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
->  CFLAGS="${CFLAGS} -DMAKE_STAMP=\${MAKE_STAMP}"
->  
-> +AC_ARG_ENABLE([distcheck],
-> +	      AS_HELP_STRING([--enable-distcheck], [Build for distcheck]),
-> +	      [enable_distcheck=yes], [])
-> +AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
-> +
->  AC_CONFIG_FILES([					\
->  		Makefile				\
->  		libnftables.pc				\
-> -- 
-> 2.51.0
-> 
-> 
+> +    try:
+> +        if os.environ["RUN_FULL_TESTSUITE"] != 0:
+> +            enable_json_option = True
+> +            enable_json_schema = True
+> +    except KeyError:
+> +        pass
+
+I would revisit options for tests to:
+
+1) Run all tests by default, ie. native syntax and json.
+2) Add options to run native syntax (-pick-one-here) and json test only (-j).
+
+Option 1) (default) will be fine for make check... and CI in general.
+Option 2) will be only useful for development, for troubleshooting
+broken tests.
+
+Then, add the env variable to shortcircuit tests with distcheck-hook:
