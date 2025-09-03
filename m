@@ -1,301 +1,235 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 499221D7E4A;
-	Wed,  3 Sep 2025 17:31:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC4D32C336
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2025 17:47:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756920705; cv=none; b=soYsDT8bLH1gJB4Oh/8tFxHa2+P3Oy/Ae+1J7ew6o9KPu7EXNP4rmzqNql3SPwKAvJX7FEAGegiNTgLYVR3q4QheOeMymJAZS3h0rQy1rKSJM2XtYDpGdDFnQfbkckUbvrUZ6TXE/YBzhcYfgZs4y/pOFc/t02nSsbGij6lGc7o=
+	t=1756921625; cv=none; b=jprXCSq/f8ZkR5p24k3W3e5MYhLv9XQSMdDycgFa8gQfunkt6ThZ2/xCxY8VBUIE78k8B/dH5IBLQLXJ39ooQLQ1XFuSvmqwfWS4/x4sZrUAdmCIPYUSlovV0c2TcJu/t8A9yQ4sfXbmzJNyRHgTlF37Jd1ItP2TKwAlJG+kBL8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756920705; c=relaxed/simple;
-	bh=MGDuGU/WgXkaUhODXaDaVYiIi64R8bWyI3/qcxxAYEo=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=Ecvs9S3ceXzGA5CzW6P5AHYFVJXyGn4Y49H3n7YMcqKcknRY5WptWm1jihqMAbB2/OInzdutvUZmct3oJHX6CNOZKf02kw0VhwiyS0VIKc8nPz/hbMau+SX3edq7GTvQqxBelvEWuKtQ2ohs8HFrSeCgMARXcJ4ZRRT0elkjin8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=vAtJ1TEO; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="vAtJ1TEO"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 65EDE24007;
-	Wed,  3 Sep 2025 20:31:32 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=nPMh+2z3FdOgu+OB9tsiaQgbNXDUOZFqm8+7DccePVc=; b=vAtJ1TEO/tsF
-	OnF33kodrVcuBsljHk/rm6jPwo0owkYumJ56+HylN4yjJY8VtYv4xMAH1N0OeEQx
-	v0hQvmUFFEMfLdDIgoeF83fqezSpsTKjLUmsNLdYshTMf28Wvm60oFwNfHKVaYe6
-	QmREdB8QWveKBvYaQ38nA3NIwr71AKkfVdV2DdZ/nunmFeLuDGR+yhiA7bxG9XXI
-	3bQgNOfKjx2hvXM00ttihAtEzbPV846RtoKTz0rD+xZDiINoX0xDjwpPGKkrWQaj
-	xKzFttE40jUTWqZ22DsjBfD31Ky8x0KmmwquyQiUkFXXVcg7d1/x+u3/3oJZ5hY8
-	izlop+H2boSCdSzkuTbjd6ahB5W1kUYICBieq6OcFZg+jjT9lU+hQJ4JG8/ptsjg
-	DuxDFHE3/zg+ukDwSGQ7st8ymY4CXfqYkpOOyh5Hf8+wnctIDGdwrTsl4YbBiuvR
-	siY+/pfRdlu+8bkJarpM9WXZiy64S304sNBAHkyX2u9+h3lc1Dq5e9AxRqoaBrfz
-	DNK8VsYXpstJHBM457uj3A3EB8k3U27nLBkNTuU2aqodMDvv6/gGRcsQwESj1AO8
-	kO/FhE2T3RKS9/Brv6MKtJXFqfKyp2is7OAFA/CWYeqw4wyLqhp+xEKfXTxi5fVV
-	ewb9f126nehhszDeUBjPt2rVT0vZRck=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed,  3 Sep 2025 20:31:30 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 3360C602E2;
-	Wed,  3 Sep 2025 20:31:27 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 583HVMnx058850;
-	Wed, 3 Sep 2025 20:31:23 +0300
-Date: Wed, 3 Sep 2025 20:31:22 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Zhang Tengfei <zhtfdev@gmail.com>
-cc: coreteam@netfilter.org, davem@davemloft.net, dsahern@kernel.org,
-        edumazet@google.com, fw@strlen.de, horms@verge.net.au,
-        kadlec@netfilter.org, kuba@kernel.org, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, pabeni@redhat.com,
-        pablo@netfilter.org,
-        syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
-Subject: Re: [PATCH v3 nf-next] ipvs: Use READ_ONCE/WRITE_ONCE for
- ipvs->enable
-In-Reply-To: <20250901134653.1308-1-zhtfdev@gmail.com>
-Message-ID: <e8c59883-4f65-a07a-220c-ff2a5960d80e@ssi.bg>
-References: <3a737b68-5a80-845d-ff36-6a1926b792a0@ssi.bg> <20250901134653.1308-1-zhtfdev@gmail.com>
+	s=arc-20240116; t=1756921625; c=relaxed/simple;
+	bh=TdVE6NuXlt4KLM1ST2Qq7DiBIQrps4g0l1xaUaMNICY=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
+	 Content-Type; b=Vsp1RukV6YvucsjSBdVyrVNRrlXRXSBlug7KAxXmHcOfVhdPYrRj64B6dEC223F05Ha062m8UZDJrE5xVhuLlYP2R/Ydj4uY++OhIvPImmGaDbknxLaeH8+ZnLiblcQcMg2j8QPICDRsK3iN+GFLtATzxMH6kWRdkGS8s0VO3zA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-3f321907716so15765455ab.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Sep 2025 10:47:03 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1756921623; x=1757526423;
+        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=LqcMjvd0CpZBWnqhKsVwjjgs+ri8agbdZqsKqlh8gmw=;
+        b=TQBYkoBB4rLTS/3UvhE3xIX7h9n4DDRih0+5vJJeKUdGKmqS+isBDsCv8m3sz1+Ccb
+         X/uYMqOkbzRReQtcVgaWm+LwAVrR4bwunLfX510c0WGWWUq3MEDfmK8xJRS6J+5srl/4
+         dngv3MilyVCm9zQuBMuGo+gZu201u/VJf+jDNwPyMAFhaXznw1ZNxl3b343Am1onSGmO
+         0yJb8ibkjpNmjX+FINzkntlwYrug4l7hnpNJq8KtB4JncUOrD5XdreFBI1jAFsEcaYh6
+         b+X0qNe6LDJyzGV0Iv2JOVwnD1UfcfUn17iJ9pcOtaZWgwY/1Zt7J7rJUydvBfAlhyEu
+         1AEQ==
+X-Forwarded-Encrypted: i=1; AJvYcCX1dekSIhJEMYSQgSbtewD/Xl/sRDDsD6duNEEfOewfrZsv5NZKXlrZkGN/9+Fv6LRy87qFAcjFQGdf1mEhB6c=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyZSOxxzImtXiK75QWFWbP3aeD2oAodxj57oFpN63QVq+hv64M8
+	YOpwekW/GjV+iCB4jqYjMce6z5ogvuiFBDTwJ417Dun2QBtg1b5KkNfFuMP6NsX9666G5pI8+35
+	NQ4Yaq85B9m3pb/A46ZrtiY6MUsb2D5pex1dMVbdk6EsnXAADiYQpMxy7/sg=
+X-Google-Smtp-Source: AGHT+IGfsN7JS7dAm/WE2FEEXElHpRiHHgQusZpk6EhsbwrrIc7vWFkYDF7NCAJFRI4ROG8pwPr1ATuxr5jT5shl7eiuJdgFZ08r
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+X-Received: by 2002:a05:6e02:4711:b0:3f6:5b66:b5cd with SMTP id
+ e9e14a558f8ab-3f65b66c0b8mr87986645ab.6.1756921622680; Wed, 03 Sep 2025
+ 10:47:02 -0700 (PDT)
+Date: Wed, 03 Sep 2025 10:47:02 -0700
+In-Reply-To: <20250902215433.75568-1-nickgarlis@gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <68b87f16.050a0220.3db4df.01fc.GAE@google.com>
+Subject: [syzbot ci] Re: netfilter: nft_ct: reject ambiguous conntrack
+ expressions in inet tables
+From: syzbot ci <syzbot+ci86bf0c7d9e28d066@syzkaller.appspotmail.com>
+To: fw@strlen.de, netfilter-devel@vger.kernel.org, nickgarlis@gmail.com, 
+	pablo@netfilter.org
+Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+
+syzbot ci has tested the following series
+
+[v2] netfilter: nft_ct: reject ambiguous conntrack expressions in inet tables
+https://lore.kernel.org/all/20250902215433.75568-1-nickgarlis@gmail.com
+* [PATCH v2] netfilter: nft_ct: reject ambiguous conntrack expressions in inet tables
+
+and found the following issue:
+KASAN: slab-out-of-bounds Write in nft_meta_inner_init
+
+Full report is available here:
+https://ci.syzbot.org/series/d9b8905e-8e5d-42de-8b7a-56fc81572df6
+
+***
+
+KASAN: slab-out-of-bounds Write in nft_meta_inner_init
+
+tree:      nf-next
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf-next.git
+base:      864ecc4a6dade82d3f70eab43dad0e277aa6fc78
+arch:      amd64
+compiler:  Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+config:    https://ci.syzbot.org/builds/b1146649-3f67-48cb-975c-62829433c8c5/config
+C repro:   https://ci.syzbot.org/findings/d1f93a73-6b38-4a3b-9232-e80dea47a810/c_repro
+syz repro: https://ci.syzbot.org/findings/d1f93a73-6b38-4a3b-9232-e80dea47a810/syz_repro
+
+==================================================================
+BUG: KASAN: slab-out-of-bounds in nft_meta_inner_init+0x1a7/0x1d0 net/netfilter/nft_meta.c:844
+Write of size 1 at addr ffff88810d9f5a40 by task syz.0.17/5997
+
+CPU: 1 UID: 0 PID: 5997 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x189/0x250 lib/dump_stack.c:120
+ print_address_description mm/kasan/report.c:378 [inline]
+ print_report+0xca/0x240 mm/kasan/report.c:482
+ kasan_report+0x118/0x150 mm/kasan/report.c:595
+ nft_meta_inner_init+0x1a7/0x1d0 net/netfilter/nft_meta.c:844
+ nft_inner_init+0x534/0x630 net/netfilter/nft_inner.c:388
+ nf_tables_newexpr net/netfilter/nf_tables_api.c:3513 [inline]
+ nf_tables_newrule+0x17b0/0x28a0 net/netfilter/nf_tables_api.c:4346
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:524 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:647 [inline]
+ nfnetlink_rcv+0x1132/0x2520 net/netfilter/nfnetlink.c:665
+ netlink_unicast_kernel net/netlink/af_netlink.c:1320 [inline]
+ netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1346
+ netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1896
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ __sock_sendmsg+0x21c/0x270 net/socket.c:729
+ ____sys_sendmsg+0x505/0x830 net/socket.c:2614
+ ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2668
+ __sys_sendmsg net/socket.c:2700 [inline]
+ __do_sys_sendmsg net/socket.c:2705 [inline]
+ __se_sys_sendmsg net/socket.c:2703 [inline]
+ __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2703
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f2d6c18ebe9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff1c4d5e58 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f2d6c3c5fa0 RCX: 00007f2d6c18ebe9
+RDX: 0000000000000000 RSI: 0000200000000000 RDI: 0000000000000003
+RBP: 00007f2d6c211e19 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f2d6c3c5fa0 R14: 00007f2d6c3c5fa0 R15: 0000000000000003
+ </TASK>
+
+Allocated by task 5997:
+ kasan_save_stack mm/kasan/common.c:47 [inline]
+ kasan_save_track+0x3e/0x80 mm/kasan/common.c:68
+ poison_kmalloc_redzone mm/kasan/common.c:388 [inline]
+ __kasan_kmalloc+0x93/0xb0 mm/kasan/common.c:405
+ kasan_kmalloc include/linux/kasan.h:260 [inline]
+ __do_kmalloc_node mm/slub.c:4365 [inline]
+ __kmalloc_noprof+0x27a/0x4f0 mm/slub.c:4377
+ kmalloc_noprof include/linux/slab.h:909 [inline]
+ kzalloc_noprof include/linux/slab.h:1039 [inline]
+ nf_tables_newrule+0x1503/0x28a0 net/netfilter/nf_tables_api.c:4328
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:524 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:647 [inline]
+ nfnetlink_rcv+0x1132/0x2520 net/netfilter/nfnetlink.c:665
+ netlink_unicast_kernel net/netlink/af_netlink.c:1320 [inline]
+ netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1346
+ netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1896
+ sock_sendmsg_nosec net/socket.c:714 [inline]
+ __sock_sendmsg+0x21c/0x270 net/socket.c:729
+ ____sys_sendmsg+0x505/0x830 net/socket.c:2614
+ ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2668
+ __sys_sendmsg net/socket.c:2700 [inline]
+ __do_sys_sendmsg net/socket.c:2705 [inline]
+ __se_sys_sendmsg net/socket.c:2703 [inline]
+ __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2703
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+The buggy address belongs to the object at ffff88810d9f5a00
+ which belongs to the cache kmalloc-cg-64 of size 64
+The buggy address is located 0 bytes to the right of
+ allocated 64-byte region [ffff88810d9f5a00, ffff88810d9f5a40)
+
+The buggy address belongs to the physical page:
+page: refcount:0 mapcount:0 mapping:0000000000000000 index:0xffff88810d9f5880 pfn:0x10d9f5
+memcg:ffff88810dfc9601
+flags: 0x57ff00000000000(node=1|zone=2|lastcpupid=0x7ff)
+page_type: f5(slab)
+raw: 057ff00000000000 ffff88801a449c80 ffffea0000f4b500 0000000000000002
+raw: ffff88810d9f5880 000000008020001e 00000000f5000000 ffff88810dfc9601
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 0, migratetype Unmovable, gfp_mask 0x52cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP), pid 5917, tgid 5917 (syz-executor), ts 70404800919, free_ts 68893144552
+ set_page_owner include/linux/page_owner.h:32 [inline]
+ post_alloc_hook+0x240/0x2a0 mm/page_alloc.c:1851
+ prep_new_page mm/page_alloc.c:1859 [inline]
+ get_page_from_freelist+0x21e4/0x22c0 mm/page_alloc.c:3858
+ __alloc_frozen_pages_noprof+0x181/0x370 mm/page_alloc.c:5148
+ alloc_pages_mpol+0x232/0x4a0 mm/mempolicy.c:2416
+ alloc_slab_page mm/slub.c:2487 [inline]
+ allocate_slab+0x8a/0x370 mm/slub.c:2655
+ new_slab mm/slub.c:2709 [inline]
+ ___slab_alloc+0xbeb/0x1410 mm/slub.c:3891
+ __slab_alloc mm/slub.c:3981 [inline]
+ __slab_alloc_node mm/slub.c:4056 [inline]
+ slab_alloc_node mm/slub.c:4217 [inline]
+ __do_kmalloc_node mm/slub.c:4364 [inline]
+ __kvmalloc_node_noprof+0x429/0x5f0 mm/slub.c:5052
+ alloc_netdev_mqs+0xc7c/0x11b0 net/core/dev.c:11944
+ ip6_tnl_init_net+0x104/0x3b0 net/ipv6/ip6_tunnel.c:2292
+ ops_init+0x35c/0x5c0 net/core/net_namespace.c:136
+ setup_net+0x10c/0x320 net/core/net_namespace.c:438
+ copy_net_ns+0x31b/0x4d0 net/core/net_namespace.c:570
+ create_new_namespaces+0x3f3/0x720 kernel/nsproxy.c:110
+ unshare_nsproxy_namespaces+0x11c/0x170 kernel/nsproxy.c:218
+ ksys_unshare+0x4c8/0x8c0 kernel/fork.c:3127
+ __do_sys_unshare kernel/fork.c:3198 [inline]
+ __se_sys_unshare kernel/fork.c:3196 [inline]
+ __x64_sys_unshare+0x38/0x50 kernel/fork.c:3196
+page last free pid 976 tgid 976 stack trace:
+ reset_page_owner include/linux/page_owner.h:25 [inline]
+ free_pages_prepare mm/page_alloc.c:1395 [inline]
+ __free_frozen_pages+0xbc4/0xd30 mm/page_alloc.c:2895
+ kasan_depopulate_vmalloc_pte+0x74/0xa0 mm/kasan/shadow.c:472
+ apply_to_pte_range mm/memory.c:3015 [inline]
+ apply_to_pmd_range mm/memory.c:3059 [inline]
+ apply_to_pud_range mm/memory.c:3095 [inline]
+ apply_to_p4d_range mm/memory.c:3131 [inline]
+ __apply_to_page_range+0xb92/0x1380 mm/memory.c:3167
+ kasan_release_vmalloc+0xa2/0xd0 mm/kasan/shadow.c:593
+ kasan_release_vmalloc_node mm/vmalloc.c:2249 [inline]
+ purge_vmap_node+0x214/0x8f0 mm/vmalloc.c:2266
+ __purge_vmap_area_lazy+0x7a4/0xb40 mm/vmalloc.c:2356
+ drain_vmap_area_work+0x27/0x40 mm/vmalloc.c:2390
+ process_one_work kernel/workqueue.c:3236 [inline]
+ process_scheduled_works+0xae1/0x17b0 kernel/workqueue.c:3319
+ worker_thread+0x8a0/0xda0 kernel/workqueue.c:3400
+ kthread+0x711/0x8a0 kernel/kthread.c:463
+ ret_from_fork+0x3fc/0x770 arch/x86/kernel/process.c:148
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+
+Memory state around the buggy address:
+ ffff88810d9f5900: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
+ ffff88810d9f5980: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
+>ffff88810d9f5a00: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+                                           ^
+ ffff88810d9f5a80: fa fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+ ffff88810d9f5b00: fa fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+==================================================================
 
 
-	Hello,
+***
 
-On Mon, 1 Sep 2025, Zhang Tengfei wrote:
+If these findings have caused you to resend the series or submit a
+separate fix, please add the following tag to your commit message:
+  Tested-by: syzbot@syzkaller.appspotmail.com
 
-> KCSAN reported a data-race on the `ipvs->enable` flag, which is
-> written in the control path and read concurrently from many other
-> contexts.
-> 
-> Following a suggestion by Julian, this patch fixes the race by
-> converting all accesses to use `WRITE_ONCE()/READ_ONCE()`.
-> This lightweight approach ensures atomic access and acts as a
-> compiler barrier, preventing unsafe optimizations where the flag
-> is checked in loops (e.g., in ip_vs_est.c).
-> 
-> Additionally, the `enable` checks in the fast-path hooks
-> (`ip_vs_in_hook`, `ip_vs_out_hook`, `ip_vs_forward_icmp`) are
-> removed. These are unnecessary since commit 857ca89711de
-> ("ipvs: register hooks only with services"). The `enable=0`
-> condition they check for can only occur in two rare and non-fatal
-> scenarios: 1) after hooks are registered but before the flag is set,
-> and 2) after hooks are unregistered on cleanup_net. In the worst
-> case, a single packet might be mishandled (e.g., dropped), which
-> does not lead to a system crash or data corruption. Adding a check
-> in the performance-critical fast-path to handle this harmless
-> condition is not a worthwhile trade-off.
-> 
-> Fixes: 857ca89711de ("ipvs: register hooks only with services")
-> Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
-> Suggested-by: Julian Anastasov <ja@ssi.bg>
-> Link: https://lore.kernel.org/lvs-devel/2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg/
-> Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
-
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
-> v3:
-> - Restore reference to commit 857ca89711de in commit message.
-> - Add corresponding Fixes tag.
-> v2:
-> - Switched from atomic_t to the suggested READ_ONCE()/WRITE_ONCE().
-> - Removed obsolete checks from the packet processing hooks.
-> - Polished commit message based on feedback from maintainers.
-> ---
->  net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
->  net/netfilter/ipvs/ip_vs_core.c | 11 ++++-------
->  net/netfilter/ipvs/ip_vs_ctl.c  |  6 +++---
->  net/netfilter/ipvs/ip_vs_est.c  | 16 ++++++++--------
->  4 files changed, 17 insertions(+), 20 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> index 965f3c8e508..37ebb0cb62b 100644
-> --- a/net/netfilter/ipvs/ip_vs_conn.c
-> +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> @@ -885,7 +885,7 @@ static void ip_vs_conn_expire(struct timer_list *t)
->  			 * conntrack cleanup for the net.
->  			 */
->  			smp_rmb();
-> -			if (ipvs->enable)
-> +			if (READ_ONCE(ipvs->enable))
->  				ip_vs_conn_drop_conntrack(cp);
->  		}
->  
-> @@ -1439,7 +1439,7 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
->  		cond_resched_rcu();
->  
->  		/* netns clean up started, abort delayed work */
-> -		if (!ipvs->enable)
-> +		if (!READ_ONCE(ipvs->enable))
->  			break;
->  	}
->  	rcu_read_unlock();
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index c7a8a08b730..5ea7ab8bf4d 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1353,9 +1353,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
->  	if (unlikely(!skb_dst(skb)))
->  		return NF_ACCEPT;
->  
-> -	if (!ipvs->enable)
-> -		return NF_ACCEPT;
-> -
->  	ip_vs_fill_iph_skb(af, skb, false, &iph);
->  #ifdef CONFIG_IP_VS_IPV6
->  	if (af == AF_INET6) {
-> @@ -1940,7 +1937,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
->  		return NF_ACCEPT;
->  	}
->  	/* ipvs enabled in this netns ? */
-> -	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
-> +	if (unlikely(sysctl_backup_only(ipvs)))
->  		return NF_ACCEPT;
->  
->  	ip_vs_fill_iph_skb(af, skb, false, &iph);
-> @@ -2108,7 +2105,7 @@ ip_vs_forward_icmp(void *priv, struct sk_buff *skb,
->  	int r;
->  
->  	/* ipvs enabled in this netns ? */
-> -	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
-> +	if (unlikely(sysctl_backup_only(ipvs)))
->  		return NF_ACCEPT;
->  
->  	if (state->pf == NFPROTO_IPV4) {
-> @@ -2295,7 +2292,7 @@ static int __net_init __ip_vs_init(struct net *net)
->  		return -ENOMEM;
->  
->  	/* Hold the beast until a service is registered */
-> -	ipvs->enable = 0;
-> +	WRITE_ONCE(ipvs->enable, 0);
->  	ipvs->net = net;
->  	/* Counters used for creating unique names */
->  	ipvs->gen = atomic_read(&ipvs_netns_cnt);
-> @@ -2367,7 +2364,7 @@ static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
->  		ipvs = net_ipvs(net);
->  		ip_vs_unregister_hooks(ipvs, AF_INET);
->  		ip_vs_unregister_hooks(ipvs, AF_INET6);
-> -		ipvs->enable = 0;	/* Disable packet reception */
-> +		WRITE_ONCE(ipvs->enable, 0);	/* Disable packet reception */
->  		smp_wmb();
->  		ip_vs_sync_net_cleanup(ipvs);
->  	}
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 6a6fc447853..4c8fa22be88 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -256,7 +256,7 @@ static void est_reload_work_handler(struct work_struct *work)
->  		struct ip_vs_est_kt_data *kd = ipvs->est_kt_arr[id];
->  
->  		/* netns clean up started, abort delayed work */
-> -		if (!ipvs->enable)
-> +		if (!READ_ONCE(ipvs->enable))
->  			goto unlock;
->  		if (!kd)
->  			continue;
-> @@ -1483,9 +1483,9 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
->  
->  	*svc_p = svc;
->  
-> -	if (!ipvs->enable) {
-> +	if (!READ_ONCE(ipvs->enable)) {
->  		/* Now there is a service - full throttle */
-> -		ipvs->enable = 1;
-> +		WRITE_ONCE(ipvs->enable, 1);
->  
->  		/* Start estimation for first time */
->  		ip_vs_est_reload_start(ipvs);
-> diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-> index 15049b82673..93a925f1ed9 100644
-> --- a/net/netfilter/ipvs/ip_vs_est.c
-> +++ b/net/netfilter/ipvs/ip_vs_est.c
-> @@ -231,7 +231,7 @@ static int ip_vs_estimation_kthread(void *data)
->  void ip_vs_est_reload_start(struct netns_ipvs *ipvs)
->  {
->  	/* Ignore reloads before first service is added */
-> -	if (!ipvs->enable)
-> +	if (!READ_ONCE(ipvs->enable))
->  		return;
->  	ip_vs_est_stopped_recalc(ipvs);
->  	/* Bump the kthread configuration genid */
-> @@ -306,7 +306,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
->  	int i;
->  
->  	if ((unsigned long)ipvs->est_kt_count >= ipvs->est_max_threads &&
-> -	    ipvs->enable && ipvs->est_max_threads)
-> +	    READ_ONCE(ipvs->enable) && ipvs->est_max_threads)
->  		return -EINVAL;
->  
->  	mutex_lock(&ipvs->est_mutex);
-> @@ -343,7 +343,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
->  	}
->  
->  	/* Start kthread tasks only when services are present */
-> -	if (ipvs->enable && !ip_vs_est_stopped(ipvs)) {
-> +	if (READ_ONCE(ipvs->enable) && !ip_vs_est_stopped(ipvs)) {
->  		ret = ip_vs_est_kthread_start(ipvs, kd);
->  		if (ret < 0)
->  			goto out;
-> @@ -486,7 +486,7 @@ int ip_vs_start_estimator(struct netns_ipvs *ipvs, struct ip_vs_stats *stats)
->  	struct ip_vs_estimator *est = &stats->est;
->  	int ret;
->  
-> -	if (!ipvs->est_max_threads && ipvs->enable)
-> +	if (!ipvs->est_max_threads && READ_ONCE(ipvs->enable))
->  		ipvs->est_max_threads = ip_vs_est_max_threads(ipvs);
->  
->  	est->ktid = -1;
-> @@ -663,7 +663,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
->  			/* Wait for cpufreq frequency transition */
->  			wait_event_idle_timeout(wq, kthread_should_stop(),
->  						HZ / 50);
-> -			if (!ipvs->enable || kthread_should_stop())
-> +			if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
->  				goto stop;
->  		}
->  
-> @@ -681,7 +681,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
->  		rcu_read_unlock();
->  		local_bh_enable();
->  
-> -		if (!ipvs->enable || kthread_should_stop())
-> +		if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
->  			goto stop;
->  		cond_resched();
->  
-> @@ -757,7 +757,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
->  	mutex_lock(&ipvs->est_mutex);
->  	for (id = 1; id < ipvs->est_kt_count; id++) {
->  		/* netns clean up started, abort */
-> -		if (!ipvs->enable)
-> +		if (!READ_ONCE(ipvs->enable))
->  			goto unlock2;
->  		kd = ipvs->est_kt_arr[id];
->  		if (!kd)
-> @@ -787,7 +787,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
->  	id = ipvs->est_kt_count;
->  
->  next_kt:
-> -	if (!ipvs->enable || kthread_should_stop())
-> +	if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
->  		goto unlock;
->  	id--;
->  	if (id < 0)
-> -- 
-> 2.34.1
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+---
+This report is generated by a bot. It may contain errors.
+syzbot ci engineers can be reached at syzkaller@googlegroups.com.
