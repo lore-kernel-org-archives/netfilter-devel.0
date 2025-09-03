@@ -1,57 +1,60 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA4BB1CEAC2
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2025 10:31:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFA822EB5AF
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2025 10:34:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756895496; cv=none; b=K+bbDMRb/+RiWxesaFUvACctjQNyTn391stGCrqJytAHpqKC958mIq8UrVldyha6MxcC3FU/Zwqqe6lGKH4Fu5tQqVkSDPaTAuMTA8q0kys5K+xnRdlCWYU2jDfIyf2PTAAhSb2b3howKxzxfOobgnIq0aGJQMo/1sWyfXr+ays=
+	t=1756895657; cv=none; b=RwLCpyro8QS6t6L2ldaeiVYfgeIQ+sGPdafrIZ/P+D0+Nv3M8AAS7imCg7UKy/v4aHAklnHor9DwigDn0trRGOHvk6MTeZSULZit9N9TI+BdN53nGzgRccKzHaNf3Toro97ogr3nV9gxuIlIXTwmyXq95R34Hi3T4PsghsqQ4aI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756895496; c=relaxed/simple;
-	bh=jXkReWTIRMYB2+mCrNkjCsoxZLlP5E5IPrsyTO92wOM=;
+	s=arc-20240116; t=1756895657; c=relaxed/simple;
+	bh=zRMSho8Vm8drw45K26uP52DrElaAiIBvwwY3XxJzWho=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Wx+YLtBdylqme5vlvlgFTyh0k8xGv68YDOmOtuA9zQrRqU8gBru6oeF05PMsz5p4gofRXDoRWH9yXncKRGoBb+mhZAUXoAERw1wCdR9cZEnIH5ln9xr7sDRSkClPvu8O2RIp3UjgO+98P8dkpPxbcyeM+njqdxNglqAHs3nw/5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FlRA7Ct4; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OI/Y+lqY; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=jk+Bmw74cEG4hWZAIVyei0K2ilzFJPKJRDzrmrw1TDCMvEmn78YEK/uDkFwVr0U1A66mRsyMcRxF9Ua1iYUxI5pSrm3RoKnJJicVN4+qVMrcc4HFrMtSOb9w/E7+DeJ7fdU9HG2O68aDKU9SvoqfJZ2CAR+GiwEnfsk3SELrr2A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=UYzEQ4w6; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XJqFQjid; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FlRA7Ct4";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OI/Y+lqY"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="UYzEQ4w6";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XJqFQjid"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id B04DF606FF; Wed,  3 Sep 2025 12:31:23 +0200 (CEST)
+	id 1503660718; Wed,  3 Sep 2025 12:34:13 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756895483;
-	bh=wSDZ7YOb205sud5aR0EC16VOilazP7E3KCamVxxIfwU=;
+	s=2025; t=1756895653;
+	bh=swDfE20rSGAECdBsXPpBnk9JgSrtg8uX1bY5BzeM5n4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=FlRA7Ct4ahTYKFkS4C5Yhw4S8D1SjKPFu6GBr82GrZ872QUsmQMmATCiJ+Dd2LHit
-	 3QhNQ0/v5G87aHb6ktBw+o03KEHxbRuBQDkKU8s2SvnmDJxROI1pn+NC5wtdzrmEqL
-	 b2AjpIsQDWcjI6UXCDA3D1SoDKFvi+kchBsg0t6FGNXJRXuctuyuopdfMfASuYCvzb
-	 EOsTzy8/BR5X4Fj1tSEezLvjMds0qJXDnzSUpx7dR50+9JiRe9/8/Ka7NuJAMRimga
-	 I26lgNq4fL76D1Ote6WY6uETJdAVjQp9aOzA10cUzU0UXGWjq8VWmvedUtFAa+h2FD
-	 cijT8egmWzVCA==
+	b=UYzEQ4w6aA/lzMQl+nDBCl/V9ANq6YwV9iPywcH7DsUnA2/8wHQvJsb4qZ1Dr0dze
+	 Ym2QfumvZaB/Fg99OdXhU4/zMC6bEyl54+VDAghAOa+CEvkdGwYATSxTAlRK370aZY
+	 fyGkLnefw7zp23pUvdrDZbSFmT9eWKaJI7epaqbdnTuHyZAvgytWrCekdYXtfcrbms
+	 0xO3nbWbqZZYlH/YX0F0gYHfjfhojZZQOvdRuLbYg4aZM47qNzFt7JVoR5p53QxDGu
+	 VeI/jyfklC8xFI4PyKoPwzpzduA2COpteiBgzGAUWGVqeFQG+/qWSkWDkiNb3p+3Lx
+	 rBbxY7pz45Jlw==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id BB34E606F0;
-	Wed,  3 Sep 2025 12:31:22 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 63F466070D;
+	Wed,  3 Sep 2025 12:34:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756895482;
-	bh=wSDZ7YOb205sud5aR0EC16VOilazP7E3KCamVxxIfwU=;
+	s=2025; t=1756895652;
+	bh=swDfE20rSGAECdBsXPpBnk9JgSrtg8uX1bY5BzeM5n4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=OI/Y+lqYYzwymQk6J9ozpnnTi2ok/k1MJ3/yUIQGoyD7NDarkzd6IqGqtgLTlvpu9
-	 j4HCP0Ri4uUSBQ/RyBbJ9cyEDCstKfg9MNDpH754GLLDWmlZMvZDoVTEo1Ts3cPa4G
-	 h5i7I8AJ9e+LqUxMsl4vKoJrG1Z5zaK6QGpXP5ovNEZPf18JE77Q+yHFArToO9uBUt
-	 60IMkg/StX1k0AaAermcc0xlsUXWcFLQpE3c5kfjaOqXrJfDOjgfPa1IDN3drSzfxi
-	 SEewtaesccloxS4ip6h9BMy6SRsl9OF4/Ktn032S1wluifRybQGyHWa9DhEtctyYwT
-	 2bC+oMULkZuPw==
-Date: Wed, 3 Sep 2025 12:31:20 +0200
+	b=XJqFQjidiow7aZ6TgJrEE/MTPJQ3MhjGHgAo7tESZV57nGoECXusxvYj3eqHgLBBX
+	 UUAatjku4EY3qHyo2SCDhuKV9fOW01ErujTCoQDXfqLGD+ISSFI0m6rBG3vRUbj6rj
+	 fHBXBUbMqQIxE89sFYOq1W0KJ7iTz+HOMh19AAVLde6u51yj2gypYaVRr9xQ7Gl/gO
+	 AVaU11PBJaxSy9OmdJ8MwAnwsCrDmVSu1hG6BCe+ZRaAE0VHYjlY74TP6qnj7TR6LO
+	 8MC7ie4ogxvA43LkCACFdrQ6GC534Ep2Sb2AxxADI1CT+KD5yFlB+7dWaf3ubGYeLx
+	 frhlpyxlHoCkw==
+Date: Wed, 3 Sep 2025 12:34:09 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Nikolaos Gkarlis <nickgarlis@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Florian Westphal <fw@strlen.de>
+Cc: Nick Garlis <nickgarlis@gmail.com>, netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH v2] netfilter: nft_ct: reject ambiguous conntrack
  expressions in inet tables
-Message-ID: <aLgY-O5Oj-ZjhZJS@calendula>
+Message-ID: <aLgZoVg-lIffgWI-@calendula>
 References: <CA+jwDRkVb-qQq-PeYSF5HtLqTi9TTydrQh_OQF7tijiQ=Rh6iA@mail.gmail.com>
  <20250902215433.75568-1-nickgarlis@gmail.com>
+ <aLdt7XRHLBtgPlwA@strlen.de>
+ <CA+jwDR=zv++WiiGXTjp3pMrev2UPxx9KY1Y-bCFxDbOV7uvjbQ@mail.gmail.com>
+ <aLgUyGSwIBjFPh82@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -60,39 +63,18 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250902215433.75568-1-nickgarlis@gmail.com>
+In-Reply-To: <aLgUyGSwIBjFPh82@strlen.de>
 
-On Tue, Sep 02, 2025 at 11:54:33PM +0200, Nikolaos Gkarlis wrote:
-> The kernel allows netlink messages that use the legacy NFT_CT_SRC and
-> NFT_CT_DST keys in inet tables without an accompanying nft_meta
-> expression specifying NFT_META_NFPROTO. This results in ambiguous
-> conntrack expressions that cannot be reliably evaluated during packet
-> processing.
-> 
-> When that happens, the register size calculation defaults to IPv6 (16
-> bytes) regardless of the actual packet family.
-> 
-> This causes two issues:
-> 1. For IPv4 packets, only 4 bytes contain valid address data while 12
->    bytes contain uninitialized memory during comparison.
-> 2. nft userspace cannot properly display these rules ([invalid type]).
-> 
-> The bug is not reproducible through standard nft commands, which use
-> NFT_CT_SRC_IP(6) and NFT_CT_DST_IP(6) keys when NFT_META_NFPROTO is
-> not defined.
-> 
-> Fix by adding a pointer to the parent nft_rule in nft_expr, allowing
-> iteration over preceding expressions to ensure that an nft_meta with
-> NFT_META_NFPROTO has been defined.
+On Wed, Sep 03, 2025 at 12:13:38PM +0200, Florian Westphal wrote:
+[...]
+> You could submit a patch for nftables userspace to no longer
+> emit NFT_CT_SRC/DST, I think there is no need to support kernels < 4.17
+> anymore.
 
-I think it is easier to work around this from userspace by translating
-NFT_CT_SRC to NFT_CT_SRC_{IPV4,IPV6} by peeking the datatype at the
-rhs of the relational.
+Yes. Better to fix this from userspace.
 
-NFT_CT_{SRC,DST} only works with relational expression, they are
-broken with sets, that's why NFT_CT_SRC_{IPV4,IPV6} was introduced
-(which works with both relational expressions and sets).
-
-IIRC, I removed documentation for this syntax time ago with the
-expectation, it seems someone found it and it is buggy with
-NFPROTO_INET as you describe.
+linux-stable-5.4$ git grep NFT_CT_DST_IP include/
+include/uapi/linux/netfilter/nf_tables.h: * @NFT_CT_DST_IP: conntrack layer 3 protocol destination (IPv4 address)
+include/uapi/linux/netfilter/nf_tables.h: * @NFT_CT_DST_IP6: conntrack layer 3 protocol destination (IPv6 address)
+include/uapi/linux/netfilter/nf_tables.h:       NFT_CT_DST_IP,
+include/uapi/linux/netfilter/nf_tables.h:       NFT_CT_DST_IP6,
