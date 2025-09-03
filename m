@@ -1,235 +1,308 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC4D32C336
-	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2025 17:47:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F35D320A01
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2025 17:58:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756921625; cv=none; b=jprXCSq/f8ZkR5p24k3W3e5MYhLv9XQSMdDycgFa8gQfunkt6ThZ2/xCxY8VBUIE78k8B/dH5IBLQLXJ39ooQLQ1XFuSvmqwfWS4/x4sZrUAdmCIPYUSlovV0c2TcJu/t8A9yQ4sfXbmzJNyRHgTlF37Jd1ItP2TKwAlJG+kBL8=
+	t=1756922284; cv=none; b=p/33XV+/dJsAUK87CxkfH/EvzBDK7er6PYyRXJzkGw/Zc23d1DVe/T+xZBOMA9hSkfsdkfII521ljEY2Fg4FPRQ05jXh8SgN4TQYkhvz1dXYrGo1Z4uO/6I4n5qgSlfHu7AY0UCoTR0EUbgNp4d1MV8+K2iXXFxaBwWGyaNwg/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756921625; c=relaxed/simple;
-	bh=TdVE6NuXlt4KLM1ST2Qq7DiBIQrps4g0l1xaUaMNICY=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
-	 Content-Type; b=Vsp1RukV6YvucsjSBdVyrVNRrlXRXSBlug7KAxXmHcOfVhdPYrRj64B6dEC223F05Ha062m8UZDJrE5xVhuLlYP2R/Ydj4uY++OhIvPImmGaDbknxLaeH8+ZnLiblcQcMg2j8QPICDRsK3iN+GFLtATzxMH6kWRdkGS8s0VO3zA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-3f321907716so15765455ab.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 03 Sep 2025 10:47:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1756921623; x=1757526423;
-        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=LqcMjvd0CpZBWnqhKsVwjjgs+ri8agbdZqsKqlh8gmw=;
-        b=TQBYkoBB4rLTS/3UvhE3xIX7h9n4DDRih0+5vJJeKUdGKmqS+isBDsCv8m3sz1+Ccb
-         X/uYMqOkbzRReQtcVgaWm+LwAVrR4bwunLfX510c0WGWWUq3MEDfmK8xJRS6J+5srl/4
-         dngv3MilyVCm9zQuBMuGo+gZu201u/VJf+jDNwPyMAFhaXznw1ZNxl3b343Am1onSGmO
-         0yJb8ibkjpNmjX+FINzkntlwYrug4l7hnpNJq8KtB4JncUOrD5XdreFBI1jAFsEcaYh6
-         b+X0qNe6LDJyzGV0Iv2JOVwnD1UfcfUn17iJ9pcOtaZWgwY/1Zt7J7rJUydvBfAlhyEu
-         1AEQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX1dekSIhJEMYSQgSbtewD/Xl/sRDDsD6duNEEfOewfrZsv5NZKXlrZkGN/9+Fv6LRy87qFAcjFQGdf1mEhB6c=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyZSOxxzImtXiK75QWFWbP3aeD2oAodxj57oFpN63QVq+hv64M8
-	YOpwekW/GjV+iCB4jqYjMce6z5ogvuiFBDTwJ417Dun2QBtg1b5KkNfFuMP6NsX9666G5pI8+35
-	NQ4Yaq85B9m3pb/A46ZrtiY6MUsb2D5pex1dMVbdk6EsnXAADiYQpMxy7/sg=
-X-Google-Smtp-Source: AGHT+IGfsN7JS7dAm/WE2FEEXElHpRiHHgQusZpk6EhsbwrrIc7vWFkYDF7NCAJFRI4ROG8pwPr1ATuxr5jT5shl7eiuJdgFZ08r
+	s=arc-20240116; t=1756922284; c=relaxed/simple;
+	bh=Nbd3yiR1w7Bgn+FuSaSletYR7gYfuJY7LY9x5Xqtj+0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FsRnGbCEFKKsaSFbW/ttvyVBECyNmqrztLI1k1W52YTrdkLa04K9hAz7QmX0tG11CoGLnKCqgYltrTW7cspBK0n2aXRCYoNQuTdUrJcCzdf+7RHLPUnu8yt2HR7nHz2UbSfOsGm1ScCmq1/QnTMeX++6XtsUZV40p8NQwl4xTjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=cpcAa38i; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cpcAa38i"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1756922283; x=1788458283;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Nbd3yiR1w7Bgn+FuSaSletYR7gYfuJY7LY9x5Xqtj+0=;
+  b=cpcAa38ilk8wf4S5DhZE1RNT4CYL26NAXaqbpB4Ho77QVVrkYvyPxOPR
+   xcdGj2hzqsSrxL2KX6OmBBh17TkPS6m0rRHTEnQ87m/UUgkluHuI9FNl+
+   j7/g+/79+vf2BFp97RpgFzVKTWEQhujrPd93H0FjlJEk2fFbu/mqi3WHT
+   itT7dABFGOclkgwASBuLLoeW2sysGfem0R0Wce12dZmQX0d8/29WEODC5
+   qle66c9Gj53H8ManwvJZRPw1pCiUH+9te093gBV9dGMWaYkTfA2AKCzfq
+   6U5A/imNpleksq4vKG/F0r2f9b+QLtwlC2jah0L14bE8RpGdCuEbUw+i6
+   g==;
+X-CSE-ConnectionGUID: bKmksy/3RZu8pYDW04xSnw==
+X-CSE-MsgGUID: zSvX1qykQyaIcuAVvG3bHg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11542"; a="63069291"
+X-IronPort-AV: E=Sophos;i="6.18,236,1751266800"; 
+   d="scan'208";a="63069291"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2025 10:57:59 -0700
+X-CSE-ConnectionGUID: MkUafq2YTXCbSo7grNs7kw==
+X-CSE-MsgGUID: ne87HntxQOKiZpWz3WdhSw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.18,236,1751266800"; 
+   d="scan'208";a="176021621"
+Received: from lkp-server02.sh.intel.com (HELO 06ba48ef64e9) ([10.239.97.151])
+  by fmviesa005.fm.intel.com with ESMTP; 03 Sep 2025 10:57:57 -0700
+Received: from kbuild by 06ba48ef64e9 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1utrk2-0004GZ-2J;
+	Wed, 03 Sep 2025 17:57:54 +0000
+Date: Thu, 4 Sep 2025 01:56:58 +0800
+From: kernel test robot <lkp@intel.com>
+To: Nikolaos Gkarlis <nickgarlis@gmail.com>,
+	netfilter-devel@vger.kernel.org
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	pablo@netfilter.org, fw@strlen.de,
+	Nikolaos Gkarlis <nickgarlis@gmail.com>
+Subject: Re: [PATCH v2] netfilter: nft_ct: reject ambiguous conntrack
+ expressions in inet tables
+Message-ID: <202509040107.KmDmcM3p-lkp@intel.com>
+References: <20250902215433.75568-1-nickgarlis@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:4711:b0:3f6:5b66:b5cd with SMTP id
- e9e14a558f8ab-3f65b66c0b8mr87986645ab.6.1756921622680; Wed, 03 Sep 2025
- 10:47:02 -0700 (PDT)
-Date: Wed, 03 Sep 2025 10:47:02 -0700
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <20250902215433.75568-1-nickgarlis@gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <68b87f16.050a0220.3db4df.01fc.GAE@google.com>
-Subject: [syzbot ci] Re: netfilter: nft_ct: reject ambiguous conntrack
- expressions in inet tables
-From: syzbot ci <syzbot+ci86bf0c7d9e28d066@syzkaller.appspotmail.com>
-To: fw@strlen.de, netfilter-devel@vger.kernel.org, nickgarlis@gmail.com, 
-	pablo@netfilter.org
-Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
 
-syzbot ci has tested the following series
+Hi Nikolaos,
 
-[v2] netfilter: nft_ct: reject ambiguous conntrack expressions in inet tables
-https://lore.kernel.org/all/20250902215433.75568-1-nickgarlis@gmail.com
-* [PATCH v2] netfilter: nft_ct: reject ambiguous conntrack expressions in inet tables
+kernel test robot noticed the following build errors:
 
-and found the following issue:
-KASAN: slab-out-of-bounds Write in nft_meta_inner_init
+[auto build test ERROR on netfilter-nf/main]
+[also build test ERROR on horms-ipvs/master linus/master v6.17-rc4 next-20250903]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Full report is available here:
-https://ci.syzbot.org/series/d9b8905e-8e5d-42de-8b7a-56fc81572df6
+url:    https://github.com/intel-lab-lkp/linux/commits/Nikolaos-Gkarlis/netfilter-nft_ct-reject-ambiguous-conntrack-expressions-in-inet-tables/20250903-055737
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20250902215433.75568-1-nickgarlis%40gmail.com
+patch subject: [PATCH v2] netfilter: nft_ct: reject ambiguous conntrack expressions in inet tables
+config: hexagon-allmodconfig (https://download.01.org/0day-ci/archive/20250904/202509040107.KmDmcM3p-lkp@intel.com/config)
+compiler: clang version 17.0.6 (https://github.com/llvm/llvm-project 6009708b4367171ccdbf4b5905cb6a803753fe18)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20250904/202509040107.KmDmcM3p-lkp@intel.com/reproduce)
 
-***
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202509040107.KmDmcM3p-lkp@intel.com/
 
-KASAN: slab-out-of-bounds Write in nft_meta_inner_init
+All errors (new ones prefixed by >>):
 
-tree:      nf-next
-URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf-next.git
-base:      864ecc4a6dade82d3f70eab43dad0e277aa6fc78
-arch:      amd64
-compiler:  Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
-config:    https://ci.syzbot.org/builds/b1146649-3f67-48cb-975c-62829433c8c5/config
-C repro:   https://ci.syzbot.org/findings/d1f93a73-6b38-4a3b-9232-e80dea47a810/c_repro
-syz repro: https://ci.syzbot.org/findings/d1f93a73-6b38-4a3b-9232-e80dea47a810/syz_repro
-
-==================================================================
-BUG: KASAN: slab-out-of-bounds in nft_meta_inner_init+0x1a7/0x1d0 net/netfilter/nft_meta.c:844
-Write of size 1 at addr ffff88810d9f5a40 by task syz.0.17/5997
-
-CPU: 1 UID: 0 PID: 5997 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
-Call Trace:
- <TASK>
- dump_stack_lvl+0x189/0x250 lib/dump_stack.c:120
- print_address_description mm/kasan/report.c:378 [inline]
- print_report+0xca/0x240 mm/kasan/report.c:482
- kasan_report+0x118/0x150 mm/kasan/report.c:595
- nft_meta_inner_init+0x1a7/0x1d0 net/netfilter/nft_meta.c:844
- nft_inner_init+0x534/0x630 net/netfilter/nft_inner.c:388
- nf_tables_newexpr net/netfilter/nf_tables_api.c:3513 [inline]
- nf_tables_newrule+0x17b0/0x28a0 net/netfilter/nf_tables_api.c:4346
- nfnetlink_rcv_batch net/netfilter/nfnetlink.c:524 [inline]
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:647 [inline]
- nfnetlink_rcv+0x1132/0x2520 net/netfilter/nfnetlink.c:665
- netlink_unicast_kernel net/netlink/af_netlink.c:1320 [inline]
- netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1346
- netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1896
- sock_sendmsg_nosec net/socket.c:714 [inline]
- __sock_sendmsg+0x21c/0x270 net/socket.c:729
- ____sys_sendmsg+0x505/0x830 net/socket.c:2614
- ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2668
- __sys_sendmsg net/socket.c:2700 [inline]
- __do_sys_sendmsg net/socket.c:2705 [inline]
- __se_sys_sendmsg net/socket.c:2703 [inline]
- __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2703
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7f2d6c18ebe9
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fff1c4d5e58 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007f2d6c3c5fa0 RCX: 00007f2d6c18ebe9
-RDX: 0000000000000000 RSI: 0000200000000000 RDI: 0000000000000003
-RBP: 00007f2d6c211e19 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007f2d6c3c5fa0 R14: 00007f2d6c3c5fa0 R15: 0000000000000003
- </TASK>
-
-Allocated by task 5997:
- kasan_save_stack mm/kasan/common.c:47 [inline]
- kasan_save_track+0x3e/0x80 mm/kasan/common.c:68
- poison_kmalloc_redzone mm/kasan/common.c:388 [inline]
- __kasan_kmalloc+0x93/0xb0 mm/kasan/common.c:405
- kasan_kmalloc include/linux/kasan.h:260 [inline]
- __do_kmalloc_node mm/slub.c:4365 [inline]
- __kmalloc_noprof+0x27a/0x4f0 mm/slub.c:4377
- kmalloc_noprof include/linux/slab.h:909 [inline]
- kzalloc_noprof include/linux/slab.h:1039 [inline]
- nf_tables_newrule+0x1503/0x28a0 net/netfilter/nf_tables_api.c:4328
- nfnetlink_rcv_batch net/netfilter/nfnetlink.c:524 [inline]
- nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:647 [inline]
- nfnetlink_rcv+0x1132/0x2520 net/netfilter/nfnetlink.c:665
- netlink_unicast_kernel net/netlink/af_netlink.c:1320 [inline]
- netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1346
- netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1896
- sock_sendmsg_nosec net/socket.c:714 [inline]
- __sock_sendmsg+0x21c/0x270 net/socket.c:729
- ____sys_sendmsg+0x505/0x830 net/socket.c:2614
- ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2668
- __sys_sendmsg net/socket.c:2700 [inline]
- __do_sys_sendmsg net/socket.c:2705 [inline]
- __se_sys_sendmsg net/socket.c:2703 [inline]
- __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2703
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-The buggy address belongs to the object at ffff88810d9f5a00
- which belongs to the cache kmalloc-cg-64 of size 64
-The buggy address is located 0 bytes to the right of
- allocated 64-byte region [ffff88810d9f5a00, ffff88810d9f5a40)
-
-The buggy address belongs to the physical page:
-page: refcount:0 mapcount:0 mapping:0000000000000000 index:0xffff88810d9f5880 pfn:0x10d9f5
-memcg:ffff88810dfc9601
-flags: 0x57ff00000000000(node=1|zone=2|lastcpupid=0x7ff)
-page_type: f5(slab)
-raw: 057ff00000000000 ffff88801a449c80 ffffea0000f4b500 0000000000000002
-raw: ffff88810d9f5880 000000008020001e 00000000f5000000 ffff88810dfc9601
-page dumped because: kasan: bad access detected
-page_owner tracks the page as allocated
-page last allocated via order 0, migratetype Unmovable, gfp_mask 0x52cc0(GFP_KERNEL|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP), pid 5917, tgid 5917 (syz-executor), ts 70404800919, free_ts 68893144552
- set_page_owner include/linux/page_owner.h:32 [inline]
- post_alloc_hook+0x240/0x2a0 mm/page_alloc.c:1851
- prep_new_page mm/page_alloc.c:1859 [inline]
- get_page_from_freelist+0x21e4/0x22c0 mm/page_alloc.c:3858
- __alloc_frozen_pages_noprof+0x181/0x370 mm/page_alloc.c:5148
- alloc_pages_mpol+0x232/0x4a0 mm/mempolicy.c:2416
- alloc_slab_page mm/slub.c:2487 [inline]
- allocate_slab+0x8a/0x370 mm/slub.c:2655
- new_slab mm/slub.c:2709 [inline]
- ___slab_alloc+0xbeb/0x1410 mm/slub.c:3891
- __slab_alloc mm/slub.c:3981 [inline]
- __slab_alloc_node mm/slub.c:4056 [inline]
- slab_alloc_node mm/slub.c:4217 [inline]
- __do_kmalloc_node mm/slub.c:4364 [inline]
- __kvmalloc_node_noprof+0x429/0x5f0 mm/slub.c:5052
- alloc_netdev_mqs+0xc7c/0x11b0 net/core/dev.c:11944
- ip6_tnl_init_net+0x104/0x3b0 net/ipv6/ip6_tunnel.c:2292
- ops_init+0x35c/0x5c0 net/core/net_namespace.c:136
- setup_net+0x10c/0x320 net/core/net_namespace.c:438
- copy_net_ns+0x31b/0x4d0 net/core/net_namespace.c:570
- create_new_namespaces+0x3f3/0x720 kernel/nsproxy.c:110
- unshare_nsproxy_namespaces+0x11c/0x170 kernel/nsproxy.c:218
- ksys_unshare+0x4c8/0x8c0 kernel/fork.c:3127
- __do_sys_unshare kernel/fork.c:3198 [inline]
- __se_sys_unshare kernel/fork.c:3196 [inline]
- __x64_sys_unshare+0x38/0x50 kernel/fork.c:3196
-page last free pid 976 tgid 976 stack trace:
- reset_page_owner include/linux/page_owner.h:25 [inline]
- free_pages_prepare mm/page_alloc.c:1395 [inline]
- __free_frozen_pages+0xbc4/0xd30 mm/page_alloc.c:2895
- kasan_depopulate_vmalloc_pte+0x74/0xa0 mm/kasan/shadow.c:472
- apply_to_pte_range mm/memory.c:3015 [inline]
- apply_to_pmd_range mm/memory.c:3059 [inline]
- apply_to_pud_range mm/memory.c:3095 [inline]
- apply_to_p4d_range mm/memory.c:3131 [inline]
- __apply_to_page_range+0xb92/0x1380 mm/memory.c:3167
- kasan_release_vmalloc+0xa2/0xd0 mm/kasan/shadow.c:593
- kasan_release_vmalloc_node mm/vmalloc.c:2249 [inline]
- purge_vmap_node+0x214/0x8f0 mm/vmalloc.c:2266
- __purge_vmap_area_lazy+0x7a4/0xb40 mm/vmalloc.c:2356
- drain_vmap_area_work+0x27/0x40 mm/vmalloc.c:2390
- process_one_work kernel/workqueue.c:3236 [inline]
- process_scheduled_works+0xae1/0x17b0 kernel/workqueue.c:3319
- worker_thread+0x8a0/0xda0 kernel/workqueue.c:3400
- kthread+0x711/0x8a0 kernel/kthread.c:463
- ret_from_fork+0x3fc/0x770 arch/x86/kernel/process.c:148
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
-
-Memory state around the buggy address:
- ffff88810d9f5900: 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc
- ffff88810d9f5980: 00 00 00 00 00 00 fc fc fc fc fc fc fc fc fc fc
->ffff88810d9f5a00: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
-                                           ^
- ffff88810d9f5a80: fa fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
- ffff88810d9f5b00: fa fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
-==================================================================
+>> net/netfilter/nft_ct.c:444:4: error: expected expression
+     444 |                         const struct nft_expr *curr, *last;
+         |                         ^
+>> net/netfilter/nft_ct.c:449:27: error: use of undeclared identifier 'curr'
+     449 |                         nft_rule_for_each_expr(curr, last, expr->rule) {
+         |                                                ^
+>> net/netfilter/nft_ct.c:449:33: error: use of undeclared identifier 'last'
+     449 |                         nft_rule_for_each_expr(curr, last, expr->rule) {
+         |                                                      ^
+>> net/netfilter/nft_ct.c:449:27: error: use of undeclared identifier 'curr'
+     449 |                         nft_rule_for_each_expr(curr, last, expr->rule) {
+         |                                                ^
+>> net/netfilter/nft_ct.c:449:33: error: use of undeclared identifier 'last'
+     449 |                         nft_rule_for_each_expr(curr, last, expr->rule) {
+         |                                                      ^
+>> net/netfilter/nft_ct.c:449:27: error: use of undeclared identifier 'curr'
+     449 |                         nft_rule_for_each_expr(curr, last, expr->rule) {
+         |                                                ^
+>> net/netfilter/nft_ct.c:449:27: error: use of undeclared identifier 'curr'; did you mean 'err'?
+     449 |                         nft_rule_for_each_expr(curr, last, expr->rule) {
+         |                                                ^~~~
+         |                                                err
+   include/net/netfilter/nf_tables.h:1064:30: note: expanded from macro 'nft_rule_for_each_expr'
+    1064 |              (expr) = nft_expr_next(expr))
+         |                                     ^
+   net/netfilter/nft_ct.c:389:6: note: 'err' declared here
+     389 |         int err;
+         |             ^
+   net/netfilter/nft_ct.c:450:9: error: use of undeclared identifier 'curr'; did you mean 'err'?
+     450 |                                 if (curr == expr)
+         |                                     ^~~~
+         |                                     err
+   net/netfilter/nft_ct.c:389:6: note: 'err' declared here
+     389 |         int err;
+         |             ^
+   net/netfilter/nft_ct.c:453:9: error: use of undeclared identifier 'curr'
+     453 |                                 if (curr->ops == &nft_meta_get_ops) {
+         |                                     ^
+   net/netfilter/nft_ct.c:454:50: error: use of undeclared identifier 'curr'; did you mean 'err'?
+     454 |                                         const struct nft_meta *meta = nft_expr_priv(curr);
+         |                                                                                     ^~~~
+         |                                                                                     err
+   net/netfilter/nft_ct.c:389:6: note: 'err' declared here
+     389 |         int err;
+         |             ^
+   10 errors generated.
 
 
-***
+vim +444 net/netfilter/nft_ct.c
 
-If these findings have caused you to resend the series or submit a
-separate fix, please add the following tag to your commit message:
-  Tested-by: syzbot@syzkaller.appspotmail.com
+   382	
+   383	static int nft_ct_get_init(const struct nft_ctx *ctx,
+   384				   const struct nft_expr *expr,
+   385				   const struct nlattr * const tb[])
+   386	{
+   387		struct nft_ct *priv = nft_expr_priv(expr);
+   388		unsigned int len;
+   389		int err;
+   390	
+   391		priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
+   392		priv->dir = IP_CT_DIR_MAX;
+   393		switch (priv->key) {
+   394		case NFT_CT_DIRECTION:
+   395			if (tb[NFTA_CT_DIRECTION] != NULL)
+   396				return -EINVAL;
+   397			len = sizeof(u8);
+   398			break;
+   399		case NFT_CT_STATE:
+   400		case NFT_CT_STATUS:
+   401	#ifdef CONFIG_NF_CONNTRACK_MARK
+   402		case NFT_CT_MARK:
+   403	#endif
+   404	#ifdef CONFIG_NF_CONNTRACK_SECMARK
+   405		case NFT_CT_SECMARK:
+   406	#endif
+   407		case NFT_CT_EXPIRATION:
+   408			if (tb[NFTA_CT_DIRECTION] != NULL)
+   409				return -EINVAL;
+   410			len = sizeof(u32);
+   411			break;
+   412	#ifdef CONFIG_NF_CONNTRACK_LABELS
+   413		case NFT_CT_LABELS:
+   414			if (tb[NFTA_CT_DIRECTION] != NULL)
+   415				return -EINVAL;
+   416			len = NF_CT_LABELS_MAX_SIZE;
+   417			break;
+   418	#endif
+   419		case NFT_CT_HELPER:
+   420			if (tb[NFTA_CT_DIRECTION] != NULL)
+   421				return -EINVAL;
+   422			len = NF_CT_HELPER_NAME_LEN;
+   423			break;
+   424	
+   425		case NFT_CT_L3PROTOCOL:
+   426		case NFT_CT_PROTOCOL:
+   427			/* For compatibility, do not report error if NFTA_CT_DIRECTION
+   428			 * attribute is specified.
+   429			 */
+   430			len = sizeof(u8);
+   431			break;
+   432		case NFT_CT_SRC:
+   433		case NFT_CT_DST:
+   434			if (tb[NFTA_CT_DIRECTION] == NULL)
+   435				return -EINVAL;
+   436	
+   437			switch (ctx->family) {
+   438			case NFPROTO_IPV4:
+   439				len = sizeof_field(struct nf_conntrack_tuple,
+   440						   src.u3.ip);
+   441				break;
+   442			case NFPROTO_IPV6:
+   443			case NFPROTO_INET:
+ > 444				const struct nft_expr *curr, *last;
+   445				bool meta_nfproto = false;
+   446				if (!expr->rule)
+   447					return -EINVAL;
+   448	
+ > 449				nft_rule_for_each_expr(curr, last, expr->rule) {
+   450					if (curr == expr)
+   451						break;
+   452	
+   453					if (curr->ops == &nft_meta_get_ops) {
+   454						const struct nft_meta *meta = nft_expr_priv(curr);
+   455						if (meta->key == NFT_META_NFPROTO) {
+   456							meta_nfproto = true;
+   457							break;
+   458						}
+   459					}
+   460				}
+   461				if (!meta_nfproto)
+   462					return -EINVAL;
+   463	
+   464				len = sizeof_field(struct nf_conntrack_tuple,
+   465						   src.u3.ip6);
+   466				break;
+   467			default:
+   468				return -EAFNOSUPPORT;
+   469			}
+   470			break;
+   471		case NFT_CT_SRC_IP:
+   472		case NFT_CT_DST_IP:
+   473			if (tb[NFTA_CT_DIRECTION] == NULL)
+   474				return -EINVAL;
+   475	
+   476			len = sizeof_field(struct nf_conntrack_tuple, src.u3.ip);
+   477			break;
+   478		case NFT_CT_SRC_IP6:
+   479		case NFT_CT_DST_IP6:
+   480			if (tb[NFTA_CT_DIRECTION] == NULL)
+   481				return -EINVAL;
+   482	
+   483			len = sizeof_field(struct nf_conntrack_tuple, src.u3.ip6);
+   484			break;
+   485		case NFT_CT_PROTO_SRC:
+   486		case NFT_CT_PROTO_DST:
+   487			if (tb[NFTA_CT_DIRECTION] == NULL)
+   488				return -EINVAL;
+   489			len = sizeof_field(struct nf_conntrack_tuple, src.u.all);
+   490			break;
+   491		case NFT_CT_BYTES:
+   492		case NFT_CT_PKTS:
+   493		case NFT_CT_AVGPKT:
+   494			len = sizeof(u64);
+   495			break;
+   496	#ifdef CONFIG_NF_CONNTRACK_ZONES
+   497		case NFT_CT_ZONE:
+   498			len = sizeof(u16);
+   499			break;
+   500	#endif
+   501		case NFT_CT_ID:
+   502			if (tb[NFTA_CT_DIRECTION])
+   503				return -EINVAL;
+   504	
+   505			len = sizeof(u32);
+   506			break;
+   507		default:
+   508			return -EOPNOTSUPP;
+   509		}
+   510	
+   511		if (tb[NFTA_CT_DIRECTION] != NULL) {
+   512			priv->dir = nla_get_u8(tb[NFTA_CT_DIRECTION]);
+   513			switch (priv->dir) {
+   514			case IP_CT_DIR_ORIGINAL:
+   515			case IP_CT_DIR_REPLY:
+   516				break;
+   517			default:
+   518				return -EINVAL;
+   519			}
+   520		}
+   521	
+   522		priv->len = len;
+   523		err = nft_parse_register_store(ctx, tb[NFTA_CT_DREG], &priv->dreg, NULL,
+   524					       NFT_DATA_VALUE, len);
+   525		if (err < 0)
+   526			return err;
+   527	
+   528		err = nf_ct_netns_get(ctx->net, ctx->family);
+   529		if (err < 0)
+   530			return err;
+   531	
+   532		if (priv->key == NFT_CT_BYTES ||
+   533		    priv->key == NFT_CT_PKTS  ||
+   534		    priv->key == NFT_CT_AVGPKT)
+   535			nf_ct_set_acct(ctx->net, true);
+   536	
+   537		return 0;
+   538	}
+   539	
 
----
-This report is generated by a bot. It may contain errors.
-syzbot ci engineers can be reached at syzkaller@googlegroups.com.
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
