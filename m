@@ -1,49 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77DCA320CB4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D59233126B3
 	for <netfilter-devel@vger.kernel.org>; Wed,  3 Sep 2025 17:23:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756920192; cv=none; b=UowRX7EYnZ7pVQAWFMElAFK9YZ9jSH0+fa3/7zFeDco+olN5GX4aBAh5HVGfTwnhVxL8/kT1+G1xjnQNkUzvTbr4VHOD2Z1PutxIp+gn/2TXIqnKSobkErwhYw/V/TI90dc7hW8FDsQ3nWjm2nD0ruDgkovk57nd9oUJi31NcIc=
+	t=1756920193; cv=none; b=NadwdxBgMadTkDsbpEy2aAv3bHW3iKS3KhMG2C7ZarAKx9N8vjK6xd6qehqY2WsM+yrroLKBEna/uv1NCWXWgdyN9DNgapryDIuyUywkosQizaTbkVka9YBl1Ql0Erk6LHJ4c7CjBzokILeBxlEB1D7j6+Hvmrn9ScPEDJsvQ7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756920192; c=relaxed/simple;
-	bh=G1s8YKjpVJDexxg4cwVe0LWrVo0wMH6wEeHxO3/sgO8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YS9tjHDt8VOBX5Hl0aQDAXGivTbQ1XP1gDLEtZwYy69YGjWt91zI5L3fqqrWn7FUad5ctXtydiQbHQ5RJJZDrdEkC0CkCAadywEV19DCpI8aKETUUXs2dMvoB17Iam+KxzaF0AAINywAkMXZfBjYSWhy39Eswjv7D4eX+j2Mv7Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=nFdgESvk; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1756920193; c=relaxed/simple;
+	bh=9xF/Ei6V1dXLEzuqf2BFQ/XgLcWyhHmidFDr9JjqmV8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=hjgEnfeak5NOjZfiKVU8ChZZaU7SPDZfaTgktCUhrxeF6+miBb3QmTQb5QHAw+M8NJtmfpOD02FTflRzH9IYVei/3gXW9dr3yZ6xWGdcAPoxjnZvhFs0B41qefC6hf/ZdzA7hm4JG7q5DcYcSktVJ9E0jEWRVCpQL2bt5sakTk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=BlLPHAba; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="nFdgESvk"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="BlLPHAba"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=dohgV1GYfcv9QvcHIw0mDO8AjDRtXjpBIzUPSX4Mp6U=; b=nFdgESvk1JWDWF9HglDYCUck0f
-	mlBovSQo7KaIIB7bXj+TfohQjfWphfzBgJ+GIZ4BojXUS0jxeINfUCbaJOsKFigE6TkwRLixk2TO+
-	25nU7bVKQoGWlrz0DPnRvP3s/CmhJF19Vn0L00HdMJkPwHm56GexMDMjO9vnsuwuV0SSfD2usA6nF
-	0tBE42Y/pR8DOqzeR3h/gFgjfaZItL6kiRgu+H5aKWxR3JTaFiFsjLF+Z5Qgls5lUQlYFN9uoKqle
-	TUnrR+k8J2OfMcbkax31l7mDWjmxaTW00N9fT1g7Z2/nQZkE/JbHEF0YCjPawp4K4cL4nCFyS54IL
-	Ozebm09A==;
+	bh=8IPg8mLBoucpKxczK35FJaOmla0Uo7drdVHt5k4FgO8=; b=BlLPHAbadeviN5PXFId+J5FEvr
+	aHnBAK8nw/0h6K4jRIydDyzha4lm4i3ajgxAwPgXONEGpf2InVhsepXB5iLfT1cYqShEJ4AAwWfd0
+	r2SYG3/MZigu7ec9WmE6sd/yxSqnWefswtBbni5zYPclm1Z1YCxh8tjlwdwEJDLlFIqTcdHzQlKNT
+	MWhk7NoDBC3riOY73pxrxK+aFsmRkayDZgqlyFUo+AIH3UGhvowitCdSus31WbaxInzf4e5QUWw7B
+	eBYVjX65o569UQW3aUjXnOrE6lMbYortEDU1AllEieHbHcgGGb2MZD50NKWfWNyE8QFagA7RF86oS
+	D8Ej2EAg==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1utrCP-0000000080m-3qeR;
-	Wed, 03 Sep 2025 19:23:09 +0200
+	id 1utrCQ-0000000080t-1fiS;
+	Wed, 03 Sep 2025 19:23:10 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v3 03/11] tests: monitor: Test JSON echo mode as well
-Date: Wed,  3 Sep 2025 19:22:51 +0200
-Message-ID: <20250903172259.26266-4-phil@nwl.cc>
+Subject: [nft PATCH v3 00/11] Run all test suites via 'make check'
+Date: Wed,  3 Sep 2025 19:22:48 +0200
+Message-ID: <20250903172259.26266-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20250903172259.26266-1-phil@nwl.cc>
-References: <20250903172259.26266-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,78 +49,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Reuse the expected JSON monitor output for --echo testing as it is
-supposed to be "identical" - apart from formatting differences. To match
-lines of commands (monitor output) against a single line of JSON object
-(echo output), join the former's lines and drop the surrounding object
-in the latter since this seems to be the simplest way.
+Help me (and maybe others) to not occasionally forget to run this or
+that test suite in this or that mode:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/monitor/run-tests.sh | 27 +++++++++++++++++++--------
- 1 file changed, 19 insertions(+), 8 deletions(-)
+Have test suites execute all variants by default (patches 5 and 6),
+make sure their exit codes
+match Automake expectations (patch 7) and register them with Automake
+(patch 11). Also fix for running 'make check' as non-root (patches 8 and
+9) and calling build test suite from outside its directory (patch 10).
 
-diff --git a/tests/monitor/run-tests.sh b/tests/monitor/run-tests.sh
-index 4cbdee587f47c..38c20adb1dc61 100755
---- a/tests/monitor/run-tests.sh
-+++ b/tests/monitor/run-tests.sh
-@@ -52,7 +52,7 @@ echo_output_append() {
- 		grep '^\(add\|replace\|insert\)' $command_file >>$output_file
- 		return
- 	}
--	[[ "$*" =~ ^(add|replace|insert) ]] && echo "$*" >>$output_file
-+	[[ "$*" =~ ^(\{\")?(add|replace|insert) ]] && echo "$*" >>$output_file
- }
- json_output_filter() { # (filename)
- 	# unify handle values
-@@ -96,16 +96,32 @@ monitor_run_test() {
- 
- echo_run_test() {
- 	echo_output=$(mktemp -p $testdir)
-+	echo_args="-nn -e"
-+	$test_json && echo_args+=" -j"
- 	local rc=0
- 
- 	$debug && {
- 		echo "command file:"
- 		cat $command_file
- 	}
--	$nft -nn -e -f - <$command_file >$echo_output || {
-+	$nft $echo_args -f - <$command_file >$echo_output || {
- 		err "nft command failed!"
- 		rc=1
- 	}
-+	if $test_json; then
-+		# Extract commands from the surrounding JSON object
-+		sed -i -e 's/^{"nftables": \[//' -e 's/\]}$//' $echo_output
-+		json_output_filter $echo_output
-+
-+		# Replace newlines by ", " in output file
-+		readarray -t output_file_lines <$output_file
-+		sep=""
-+		for ((i = 0; i < ${#output_file_lines[*]}; i++)); do
-+			printf "${sep}${output_file_lines[$i]}"
-+			sep=", "
-+		done >$output_file
-+		[ $i -gt 0 ] && echo "" >>$output_file
-+	fi
- 	mydiff -q $echo_output $output_file >/dev/null 2>&1
- 	if [[ $rc == 0 && $? != 0 ]]; then
- 		err "echo output differs!"
-@@ -159,12 +175,7 @@ while [ -n "$1" ]; do
- 	esac
- done
- 
--if $test_json; then
--	variants="monitor"
--else
--	variants="monitor echo"
--fi
--
-+variants="monitor echo"
- rc=0
- for variant in $variants; do
- 	run_test=${variant}_run_test
+The first four patches are fallout from enabling all variants by default
+in monitor test suite, which includes implementing previously missing
+JSON echo testing.
+
+Changes since v2:
+- Drop the need for RUN_FULL_TESTSUITE env var by making the "all
+  variants" mode the default in all test suites
+- Implement JSON echo testing into monitor test suite, stored JSON
+  output matches echo output after minor adjustment
+
+Changes since v1:
+- Also integrate build test suite
+- Populate TESTS variable only for non-distcheck builds, so 'make
+  distcheck' does not run any test suite
+
+Phil Sutter (11):
+  tests: monitor: Label diffs to help users
+  tests: monitor: Fix regex collecting expected echo output
+  tests: monitor: Test JSON echo mode as well
+  tests: monitor: Extend debug output a bit
+  tests: monitor: Excercise all syntaxes and variants by default
+  tests: py: Enable JSON and JSON schema by default
+  tests: Prepare exit codes for automake
+  tests: json_echo: Skip if run as non-root
+  tests: shell: Skip packetpath/nat_ftp in fake root env
+  tests: build: Do not assume caller's CWD
+  Makefile: Enable support for 'make check'
+
+ Makefile.am                              |   9 ++
+ configure.ac                             |   5 +
+ tests/build/run-tests.sh                 |   2 +
+ tests/json_echo/run-test.py              |   4 +
+ tests/monitor/run-tests.sh               | 182 ++++++++++++++---------
+ tests/py/nft-test.py                     |  28 ++--
+ tests/shell/run-tests.sh                 |   2 +-
+ tests/shell/testcases/packetpath/nat_ftp |   3 +
+ 8 files changed, 155 insertions(+), 80 deletions(-)
+
 -- 
 2.51.0
 
