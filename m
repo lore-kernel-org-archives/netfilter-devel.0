@@ -1,58 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E702D47EB
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 16:56:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E55B212576
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 16:57:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757004975; cv=none; b=ZGL+GE4Ur3mfubzh+j0fyfuD8i3MikIUm7hBBgw+VACYt3ySQxhV8yLw3/Uf0kPokeS4JGzfFhbxuO1bLlDoFuzF8HyopBOLxemDs+nx8MYO1z9FNDwDhNA9gCB39UepPE7VqQHTtOkMdJiKiAo9wqNh1brNRfpZWc6vG91iFHs=
+	t=1757005080; cv=none; b=unmwY/UGpUEvHedNOOp6i+yelEWlS2Bqi3DkuTGWftk1v8nAYZaUnC9n48nMdCuQAa2BrFKsgCv+IXfoISx7+NmUSvC6YG6M6/kw3uHXvhgE3II/OwR7xzQRtH9BkpWpmZCtjNMNvJVhr27rCrLCCY31vzk0KeiNNAOil09n6xs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757004975; c=relaxed/simple;
-	bh=uUF16qQKSKUyRCA8Q1JjxQi9rRlHjKMc35fFXf5cp88=;
+	s=arc-20240116; t=1757005080; c=relaxed/simple;
+	bh=SELMW7bbNKdn7YmxrIYpgmP99sLCnWd7MmNlP6YjmQg=;
 	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OAXI47KTqRkMAFpY7XK+NJHE3kDSD3X+awbSiK3b6NuSSUc6wk2Q5ZK2DpyKCZHVXJt3gdigASPaPcRfjQWrj249CFdglKGXuNS0c14unbVde2GQ4TQbqErU1YkNLl5uZ3TXV5q00TbFVeF44QOejgC4hfl10NJ3Sw3aIcNXMYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S3ENjaI+; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S3ENjaI+; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=mN6ZLf8ntI53VPY0iWTXyEr2ePFv7goIXd+uz28mpNLgMgDffm5LYXirN0cbV9tsj4DdOFrfOIUKQxWewPVriv7eD44k66IyUEZRvvJxqq3tiRmLmhtPwVZT3KEzDpJL+sg3F3DUtltz/up+Hyf6U6miyMfzygK1HFuJ0HVZC8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r6PBOfE+; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wIetcLpX; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S3ENjaI+";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S3ENjaI+"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r6PBOfE+";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wIetcLpX"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id CB2F660735; Thu,  4 Sep 2025 18:56:10 +0200 (CEST)
+	id 7AAE0608B9; Thu,  4 Sep 2025 18:57:55 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757004970;
-	bh=qCnn4EEXcdUAUnrbJGuFj/Bl74L+xKXWymN9H8OutrQ=;
+	s=2025; t=1757005075;
+	bh=hCW1RPXji+zf4iq4yJ1x3in/uJMzAJG3nJjuUFgeD/U=;
 	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=S3ENjaI+vWcV7jcDAY9U4933N6KqbQ9BoxLuwU68GEvYT7lSbvWeh+A8u9T+oPI0p
-	 FSOSZ8zoz+RbqRM2WliJnzHquUcPRcS27l70jd1pdWQC0sJ+euhVWLqSx+PX+uuy8O
-	 /nz7WJoEmUyLPCKaXPK7nhHgi/Sm26rzpnMzorNpuo9g8v4Y3ArUelKXmRXZ1WJ7K5
-	 SLpUSqkTO7qo/zuJJInBvpoAyeeMj5PHEuoJ5nR8r5+nI077f6LeCP+CEz+YLxJfz8
-	 dbaKY2eCQMBw3aFS+cQW8RK90n0NtXf8c5+pVJYRHjkcpxkKxrWRvAr+PTdoCsjvUQ
-	 l27Om8Q6MUEAQ==
+	b=r6PBOfE+tlnB+YInTCEERdw67LSm3yKzsh0gvN4zXMuK7ZmFWkcbMWn4oBH9mL6oZ
+	 vOgcmhLjORosNFLxW7GJb2Y6HoWIwfEJ8L+9AN/JtRNS2lzvMHXXesibt7AaH8uhwX
+	 R1RWEQJ096jUiLrcZcAscYqEuQhZX1btw0YX7RrapQ7QOBamgPDH7CtcZCjxFDyRpl
+	 YIpxLZJxorzrGw5N7B511PH3IW7JiPMzkd+CghT08laFv2YIw4NpJHgv+AG6nXdwyt
+	 n28ZAoOTzyeD2aH3l5mU0tDCwzKzX1eW68aXkg6TcJN08WSiaDHCtrUscbtHZWAzYc
+	 tsCn0/bX3V9Vw==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3266760731;
-	Thu,  4 Sep 2025 18:56:10 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id AFA84608B9;
+	Thu,  4 Sep 2025 18:57:54 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757004970;
-	bh=qCnn4EEXcdUAUnrbJGuFj/Bl74L+xKXWymN9H8OutrQ=;
+	s=2025; t=1757005074;
+	bh=hCW1RPXji+zf4iq4yJ1x3in/uJMzAJG3nJjuUFgeD/U=;
 	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=S3ENjaI+vWcV7jcDAY9U4933N6KqbQ9BoxLuwU68GEvYT7lSbvWeh+A8u9T+oPI0p
-	 FSOSZ8zoz+RbqRM2WliJnzHquUcPRcS27l70jd1pdWQC0sJ+euhVWLqSx+PX+uuy8O
-	 /nz7WJoEmUyLPCKaXPK7nhHgi/Sm26rzpnMzorNpuo9g8v4Y3ArUelKXmRXZ1WJ7K5
-	 SLpUSqkTO7qo/zuJJInBvpoAyeeMj5PHEuoJ5nR8r5+nI077f6LeCP+CEz+YLxJfz8
-	 dbaKY2eCQMBw3aFS+cQW8RK90n0NtXf8c5+pVJYRHjkcpxkKxrWRvAr+PTdoCsjvUQ
-	 l27Om8Q6MUEAQ==
-Date: Thu, 4 Sep 2025 18:56:08 +0200
+	b=wIetcLpXuJGQWQRldoJntiswmFPvgjHXxYTAf7EmzzuAGTNE7wdsRH3G9DZjD1Zu0
+	 /SwuFGwsuX/Eh+u5cbzhNj+psefi3ziHtdvnlxp7Z+/aKB8ZIa/qeuC+tbbjo9lY6y
+	 7loj54ajY6NJX1mGLLXlmwUDTZC7SFKeSmzUyhuco6zaCxiXMnqViE0Wop3qjvxOxq
+	 s+zRr0Ln9CyhqrqBSZT+SEbT7hYyI3K+gmHvMnqeoZoHRxfrv5Amv6FzW3ZTNqU9K3
+	 jfrF0v1CPnDd+5LPTDLRDkyeoL1IqHhEqax+SjxQeVLdWwvIh4ukfLU94Bi9kCwOLD
+	 nbiBZs2L9wwpg==
+Date: Thu, 4 Sep 2025 18:57:52 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v4 2/8] tests: py: Enable JSON and JSON schema by
- default
-Message-ID: <aLnEqJBm6tNK4IrQ@calendula>
-References: <20250904152454.13054-1-phil@nwl.cc>
- <20250904152454.13054-3-phil@nwl.cc>
- <aLmwcg4B6JwfqQfR@calendula>
- <aLm6kp0mJfge4_Me@orbyte.nwl.cc>
+Subject: Re: [nft PATCH v3 11/11] Makefile: Enable support for 'make check'
+Message-ID: <aLnFEDmuqOckePL8@calendula>
+References: <20250903172259.26266-1-phil@nwl.cc>
+ <20250903172259.26266-12-phil@nwl.cc>
+ <aLmvS0buvv-vFyPx@calendula>
+ <aLm8pkZu0r1hrlUf@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -61,55 +60,74 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aLm6kp0mJfge4_Me@orbyte.nwl.cc>
+In-Reply-To: <aLm8pkZu0r1hrlUf@orbyte.nwl.cc>
 
-On Thu, Sep 04, 2025 at 06:13:06PM +0200, Phil Sutter wrote:
-> On Thu, Sep 04, 2025 at 05:29:54PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Sep 04, 2025 at 05:24:48PM +0200, Phil Sutter wrote:
-> > > Introduce -J/--disable-json and -S/--no-schema to explicitly disable
-> > > them if desired.
-> > > 
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > ---
-> > >  tests/py/nft-test.py | 16 ++++++++++++----
-> > >  1 file changed, 12 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-> > > index 984f2b937a077..12c6174b01257 100755
-> > > --- a/tests/py/nft-test.py
-> > > +++ b/tests/py/nft-test.py
-> > > @@ -1488,7 +1488,11 @@ def set_delete_elements(set_element, set_name, table, filename=None,
+On Thu, Sep 04, 2025 at 06:21:59PM +0200, Phil Sutter wrote:
+> On Thu, Sep 04, 2025 at 05:24:59PM +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Sep 03, 2025 at 07:22:59PM +0200, Phil Sutter wrote:
+> [...]
+> > > diff --git a/Makefile.am b/Makefile.am
+> > > index 5190a49ae69f1..9112faa2d5c04 100644
+> > > --- a/Makefile.am
+> > > +++ b/Makefile.am
+> > > @@ -23,6 +23,7 @@ libnftables_LIBVERSION = 2:0:1
+> > >  ###############################################################################
 > > >  
-> > >      parser.add_argument('-j', '--enable-json', action='store_true',
-> > >                          dest='enable_json',
-> > > -                        help='test JSON functionality as well')
-> > > +                        help='test JSON functionality as well (default)')
+> > >  ACLOCAL_AMFLAGS = -I m4
+> > > +AM_DISTCHECK_CONFIGURE_FLAGS = --enable-distcheck
+> > >  
+> > >  EXTRA_DIST =
+> > >  BUILT_SOURCES =
+> > > @@ -429,3 +430,11 @@ doc_DATA = files/nftables/main.nft
+> > >  tools/nftables.service: tools/nftables.service.in ${top_builddir}/config.status
+> > >  	${AM_V_GEN}${MKDIR_P} tools
+> > >  	${AM_V_at}sed -e 's|@''sbindir''@|${sbindir}|g;s|@''pkgsysconfdir''@|${pkgsysconfdir}|g' <${srcdir}/tools/nftables.service.in >$@
 > > > +
-> > > +    parser.add_argument('-J', '--disable-json', action='store_true',
-> > > +                        dest='disable_json',
-> > > +                        help='Do not test JSON functionality as well')
+> > > +if !BUILD_DISTCHECK
+> > > +TESTS = tests/build/run-tests.sh \
+> > > +	tests/json_echo/run-test.py \
+> > > +	tests/monitor/run-tests.sh \
+> > > +	tests/py/nft-test.py \
+> > > +	tests/shell/run-tests.sh
+> > > +endif
+> > > diff --git a/configure.ac b/configure.ac
+> > > index da16a6e257c91..8073d4d8193e2 100644
+> > > --- a/configure.ac
+> > > +++ b/configure.ac
+> > > @@ -155,6 +155,11 @@ AC_CONFIG_COMMANDS([nftversion.h], [
+> > >  AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
+> > >  CFLAGS="${CFLAGS} -DMAKE_STAMP=\${MAKE_STAMP}"
+> > >  
+> > > +AC_ARG_ENABLE([distcheck],
+> > > +	      AS_HELP_STRING([--enable-distcheck], [Build for distcheck]),
+> > > +	      [enable_distcheck=yes], [])
+> > > +AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
 > > 
-> > Would it be possible to have common options to the different tests?
-> > 
-> > 1/8 uses -s and -j.
-> > 
-> > I am not sure we have to worry about breaking backward for test
-> > syntax, we only run this.
+> > Oh no, with distcheck-hook: this is a lot cleaner.
 > 
-> It's a bit of a mess with nft-test.py as it always performs standard
-> syntax testing and JSON syntax is an add-on one may enable (or not). So
-> to test JSON only, I'd have to refactor the ~300 lines long rule_add()
-> function. Not the worst thing to do, but much more work than "just"
-> having --enable-json being the default.
+> Hmm, I really don't see how it could be used for this purpose: It is
+> called before starting the VPATH build, here's an excerpt:
+> 
+> | mkdir nftables-1.1.5/_build nftables-1.1.5/_build/sub nftables-1.1.5/_inst
+> | chmod a-w nftables-1.1.5
+> | test -d nftables-1.1.5/_build || exit 0; \
+> | dc_install_base=`CDPATH="${ZSH_VERSION+.}:" && cd nftables-1.1.5/_inst && pwd | sed -e 's,^[^:\\/]:[\\/],/,'` \
+> |   && dc_destdir="${TMPDIR-/tmp}/am-dc-$$/" \
+> |   && make  distcheck-hook \
+> |   && am__cwd=`pwd` \
+> |   && CDPATH="${ZSH_VERSION+.}:" && cd nftables-1.1.5/_build/sub \
+> |   && ../../configure \
+> |       --enable-distcheck \
+> |          \
+> |       --srcdir=../.. --prefix="$dc_install_base" \
+> |   && make  \
+> |   && make  dvi \
+> |   && make  check \
+> 
+> So by the time distcheck-hook runs, there is no Makefile(.in) I could
+> modify, only the top-level ones (which are tracked in git). What am I
+> missing here?
 
-Oh, I see, so this is:
+distcheck-hook: could set a env var so test just print a [SKIP].
 
-* no -j, then only standard is tested.
-* -j, both standard and json are tested.
-
-Maybe more simple is to reverse this logic, ie.
-
-* no -j, then both standard and json syntax are tested.
-* -s, only standard is tested.
-
-Does this help?
+Similar to your previous approach with the env var, but logic reversed.
