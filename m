@@ -1,56 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCFF72459D4
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 15:16:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D4A9C8F0
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 15:20:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756998994; cv=none; b=VG/FqK2usvR1okxiht9KMM4Rv6P5RwLWXlnL1As71eVMcvP5J8JwuNwPsqODtm5R6TT5TGqXPMJj+bMCzvS/Vt3yO2MYObPD4r2lq1rSwOmEgx9k0SBu+nXD1CFoMjfosQF1vLy6i1seJZ1Abin9S1ncs1K1kALjNmcgz+6M/S4=
+	t=1756999257; cv=none; b=FL4o9o064LLuEb78K4e2Eltf/Zkq4y2dSk/oZxA2bYi1QXZqCU6qf0iWdm8T2yoU9QDidauEZzxuxFzwufgODhIfQpqNWo9+wmFgZt9ykUmP/zsBx91Ymv1yvC0MDb1JIKEv9YD70wJde7ze730Sc0YuVhvYO9rGWEwgnT9p3N8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756998994; c=relaxed/simple;
-	bh=m8X22b1oQjR0E1q/dBsbZnVHRrxP/bwHQColl9cJOj4=;
+	s=arc-20240116; t=1756999257; c=relaxed/simple;
+	bh=o0x73UvHGz8MEhyEbKd0m/JWTODClsc97zK2z8XEsIU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZPRCAyUxQWDp1mJ8BzSukLfu9vzD4UN6GjvjMBCvCcpnZ84GFdegVzvZ9c08deddonvjeJ6KXH6P3IrWuA3snA7nmsE50G62dTxI4J1a7lv1IsV3cGfnpQ08+VX5GBo/bxoXCOpl6s6pFnC006nQrIahFSSiBCvUPk6ECTEm6D0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=t3gTw66C; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tB7HcQJz; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=n/bF6j+oEi5iDJloBESiIZKCiahs6205NfbMqfYU7/PSZExBJHWZaGo744gj1gF7chZgoOEzcACdOAUJXXr7O/NWDZb7i9Hw47rKN3oFwGravu46h22aemB0ULaRRjRL91bj46Emwjfk9LAix9wTBQwxFFlmSrA93mjdG/NP2YQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VBLL8MrR; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ONkD/OFd; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="t3gTw66C";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tB7HcQJz"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VBLL8MrR";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ONkD/OFd"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 3705B6080E; Thu,  4 Sep 2025 17:16:23 +0200 (CEST)
+	id 5129C608D2; Thu,  4 Sep 2025 17:20:53 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756998983;
-	bh=MwmTjEPsgBfo5EjlVSgZwuV8ieElvfSYjmyF+t58EeY=;
+	s=2025; t=1756999253;
+	bh=fuUVLdJhGvaQSAWGgyhqHCMu9hMWmmhfo+QCLSWoTlo=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=t3gTw66ChOuu9WfMd7ZtgnkzMxcJOeMsslbppymOUsRMlj/Qau/TGTOQ6ICrccrdc
-	 8Wc0PLfOTSdo/KHS3knxQCzjhwsc2/ZSe3CBKEaVxpaSuGDbP1o8V38q6stLx+BO32
-	 9B1qV56cwv5dc5I2ILDuOJ9E1D0Qg3gH+Td8GEh6Ya+rvRWPaJhtIXNk3+eyHKfUtM
-	 +fqfI/sCdjODfxL2hBioYTPHj9CbTPF6AVebweW6SPIALf+8FRJF3b+LtbnwTCdWxn
-	 dYq6Itdq+lVkmZ1doeAWHKD6/TbyxwHiEfGFqvX1EWck3TpeIdr44gCpsu0i2njFoj
-	 FqPPRNgswizcQ==
+	b=VBLL8MrRRerOflF+/Lvcp64CJuvEEIqnq1Gn3HyqIi130bu2NFTw/tKMKGQ1jn6z8
+	 jzTu4+t3ZcX3ZBA3HG8tX7ufF4svsFCyKBgpjq0fH1jD72sN0tuIHuBOja9z7Af/AX
+	 pDhqanhrWnEjiBbJMoMkEQJfgyaMyMF2pusvm7+CnVgi7KV0znUGTMGUXM+5pqq0Iz
+	 nETknJtiu+e+4BMKzuXJdEJGjxghMpxMzjuZBX/mnuZ8vvz4Pd/64PF7VVHbY09+yH
+	 ivqJXJ7vuLa19jSuQwynZpv4IiesH2oH+gp4GUxXj0IfycBqf7io9dBjICe3ETCwT+
+	 mKIOmh1RnaxxA==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 4EF6D6080E;
-	Thu,  4 Sep 2025 17:16:22 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 88C96608D0;
+	Thu,  4 Sep 2025 17:20:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1756998982;
-	bh=MwmTjEPsgBfo5EjlVSgZwuV8ieElvfSYjmyF+t58EeY=;
+	s=2025; t=1756999252;
+	bh=fuUVLdJhGvaQSAWGgyhqHCMu9hMWmmhfo+QCLSWoTlo=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tB7HcQJzqQeVK2L479J9fiO8qBekzPn2zsLcFqnpFoClbXZYxi77uMOPY2AyPMecJ
-	 oZ1fnv9cKYfBxMR875LlrbnsU3r7Eo60FPa9paV8qPbfCTtMp/Ki1QBjAvE0dTJIB3
-	 MVSwZRUVQBva6cNP5nlUmgwucwM3cgYcu5rWKXjhwX4jvZhYxyMlmF4HLcdIQ2luQ0
-	 yb5Ml7jvA7PwFvdm9CPXWEY5CcyvzFI9a+jJWtDzVKnfWL0UZ3cwo3bYhH6vRvKPNQ
-	 k0YluwehsJa0wOYFO1JOcQ9J0cq1ManPsPEutH/P654DNreq2A7BjPxhZg2KTv/9Uy
-	 ecpU7KzrXxYVQ==
-Date: Thu, 4 Sep 2025 17:16:19 +0200
+	b=ONkD/OFd+S3PmhY1P6ikwTxUBr/Gwu24gJ3tgc7vXWDePB7WFPK7c/TjnKejxmt9g
+	 KfwGFL23QCrpFXlV/JLyx/T/LV59wuzoHqdOlDYpeLI9VZZ1j9W3OjzX9dEK+ByTt/
+	 p/AdO9Ws4a9dcexnSfT9bMW2z/MLdPWn4fToOViFv44kUtzxSr2udxhf6OucrA5uzQ
+	 W+gjA3/yyXkGmzjBBqepIBLcnHMKjgmAbAqXDDoSxdU8wJlaSA7xiQOBWgcD3ns7dJ
+	 PwUZ74ufdIx5uM+dEv9KyIDEVHjsBvCZdICE7WaB4zrW0erFauUXIUxvEQEgoipEGJ
+	 gKmyIwf2vLmVg==
+Date: Thu, 4 Sep 2025 17:20:50 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Phil Sutter <phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v5 1/3] mnl: Support simple wildcards in netdev hooks
-Message-ID: <aLmtQ47BLcj5AC11@calendula>
+Subject: Re: [nft PATCH v5 2/3] parser_bison: Accept ASTERISK_STRING in
+ flowtable_expr_member
+Message-ID: <aLmuUveL_X-grotG@calendula>
 References: <20250731222945.27611-1-phil@nwl.cc>
- <20250731222945.27611-2-phil@nwl.cc>
+ <20250731222945.27611-3-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -59,122 +60,104 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20250731222945.27611-2-phil@nwl.cc>
+In-Reply-To: <20250731222945.27611-3-phil@nwl.cc>
 
 Hi Phil,
 
-NFTA_DEVICE_PREFIX is now available in net.git, let's pick up on this.
-
-On Fri, Aug 01, 2025 at 12:29:43AM +0200, Phil Sutter wrote:
-> When building NFTA_{FLOWTABLE_,}HOOK_DEVS attributes, detect trailing
-> asterisks in interface names and transmit the leading part in a
-> NFTA_DEVICE_PREFIX attribute.
-> 
-> Deserialization (i.e., appending asterisk to interface prefixes returned
-> in NFTA_DEVICE_PREFIX atributes happens in libnftnl.
+On Fri, Aug 01, 2025 at 12:29:44AM +0200, Phil Sutter wrote:
+> All clauses are identical, so instead of adding a third one for
+> ASTERISK_STRING, use a single one for 'string' (which combines all three
+> variants).
 > 
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
 > ---
-> Changes since v4:
-> - Introduce and use NFTA_DEVICE_PREFIX which contains a NUL-terminated
->   string as well but signals the kernel to interpret it as a prefix to
->   match interfaces on.
-> - Do not send wildcards in NFTA_HOOK_DEV: On one hand, the kernel can't
->   detect them anymore since they are NUL-terminated as well. On the
->   other, it would defeat the purpose of having NFTA_DEVICE_PREFIX, which
->   is to not crash old user space.
-> 
 > Changes since v3:
-> - Use uint16_t for 'attr' parameter and size_t for 'len' variable
-> - Use mnl_nft_ prefix for the helper function
-> 
-> Changes since v2:
-> - Introduce mnl_attr_put_ifname() to perform the conditional
->   mnl_attr_put() parameter adjustment
-> - Sanity-check array index in above function to avoid out-of-bounds
->   access
+> - Cover interface wildcards in nft.8
 > ---
->  include/linux/netfilter/nf_tables.h |  2 ++
->  src/mnl.c                           | 26 +++++++++++++++++++++++---
->  2 files changed, 25 insertions(+), 3 deletions(-)
+>  doc/nft.txt        | 30 ++++++++++++++++++++++++++----
+>  src/parser_bison.y | 11 +----------
+>  2 files changed, 27 insertions(+), 14 deletions(-)
 > 
-> diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-> index f57963e89fd16..b38d4780ae8c8 100644
-> --- a/include/linux/netfilter/nf_tables.h
-> +++ b/include/linux/netfilter/nf_tables.h
-> @@ -1774,10 +1774,12 @@ enum nft_synproxy_attributes {
->   * enum nft_device_attributes - nf_tables device netlink attributes
->   *
->   * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
-> + * @NFTA_DEVICE_PREFIX: device name prefix, a simple wildcard (NLA_STRING)
->   */
->  enum nft_devices_attributes {
->  	NFTA_DEVICE_UNSPEC,
->  	NFTA_DEVICE_NAME,
-> +	NFTA_DEVICE_PREFIX,
->  	__NFTA_DEVICE_MAX
->  };
->  #define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
-> diff --git a/src/mnl.c b/src/mnl.c
-> index 43229f2498e55..b532b8ff00c1e 100644
-> --- a/src/mnl.c
-> +++ b/src/mnl.c
-> @@ -795,6 +795,26 @@ static void nft_dev_array_free(const struct nft_dev *dev_array)
->  	free_const(dev_array);
->  }
+> diff --git a/doc/nft.txt b/doc/nft.txt
+> index 8712981943d78..42cdd38a27b67 100644
+> --- a/doc/nft.txt
+> +++ b/doc/nft.txt
+> @@ -387,13 +387,19 @@ add table inet mytable
+>  CHAINS
+>  ------
+>  [verse]
+> -{*add* | *create*} *chain* ['family'] 'table' 'chain' [*{ type* 'type' *hook* 'hook' [*device* 'device'] *priority* 'priority' *;* [*policy* 'policy' *;*] [*comment* 'comment' *;*] *}*]
+> +____
+> +{*add* | *create*} *chain* ['family'] 'table' 'chain' [*{ type* 'type' *hook* 'hook' ['DEVICE'] *priority* 'priority' *;* [*policy* 'policy' *;*] [*comment* 'comment' *;*] *}*]
+>  {*delete* | *destroy* | *list* | *flush*} *chain* ['family'] 'table' 'chain'
+>  *list chains* ['family']
+>  *delete chain* ['family'] 'table' *handle* 'handle'
+>  *destroy chain* ['family'] 'table' *handle* 'handle'
+>  *rename chain* ['family'] 'table' 'chain' 'newname'
 >  
-> +static bool is_wildcard_str(const char *str)
-> +{
-> +	size_t len = strlen(str);
+> +'DEVICE' := {*device* 'DEVICE_NAME' | *devices = {* 'DEVICE_LIST' *}*}
+> +'DEVICE_LIST' := 'DEVICE_NAME' [*,* 'DEVICE_LIST']
+> +'DEVICE_NAME' := 'string' | 'string'***
+> +____
 > +
-> +	if (len < 1 || str[len - 1] != '*')
-> +		return false;
-> +	if (len < 2 || str[len - 2] != '\\')
-> +		return true;
-> +	/* XXX: ignore backslash escaping for now */
+>  Chains are containers for rules. They exist in two kinds, base chains and
+>  regular chains. A base chain is an entry point for packets from the networking
+>  stack, a regular chain may be used as jump target and is used for better rule
+> @@ -436,7 +442,7 @@ Apart from the special cases illustrated above (e.g. *nat* type not supporting
+>  
+>  * The netdev family supports merely two combinations, namely *filter* type with
+>    *ingress* hook and *filter* type with *egress* hook. Base chains in this
+> -  family also require the *device* parameter to be present since they exist per
+> +  family also require the 'DEVICE' parameter to be present since they exist per
+>    interface only.
+>  * The arp family supports only the *input* and *output* hooks, both in chains of type
+>    *filter*.
+> @@ -449,7 +455,13 @@ Apart from the special cases illustrated above (e.g. *nat* type not supporting
+>  The *device* parameter accepts a network interface name as a string, and is
+>  required when adding a base chain that filters traffic on the ingress or
+>  egress hooks. Any ingress or egress chains will only filter traffic from the
+> -interface specified in the *device* parameter.
+> +interface specified in the *device* parameter. The same base chain may be used
+> +for multiple devices by using the *devices* parameter instead.
+> +
+> +With newer kernels there is also basic support for wildcards in 'DEVICE_NAME'
+> +by specifying an asterisk suffix. The chain will apply to all interfaces
+> +matching the given prefix. Use the *list hooks* command to see the current
+> +status.
 
-Is this comment here still valid?
+Maybe explain here too that newer kernels also allow to pre-register a
+match on unexisting devices (specify version), while old kernel fail
+with ENOENT?
 
-> +	return false;
-> +}
-> +
-> +static void mnl_nft_attr_put_ifname(struct nlmsghdr *nlh, const char *ifname)
-> +{
-> +	uint16_t attr = is_wildcard_str(ifname) ?
-> +			NFTA_DEVICE_PREFIX : NFTA_DEVICE_NAME;
-> +
-> +	mnl_attr_put_strz(nlh, attr, ifname);
-> +}
-> +
->  static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
->  {
->  	const struct expr *dev_expr = cmd->chain->dev_expr;
-> @@ -803,14 +823,14 @@ static void mnl_nft_chain_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
->  	int i, num_devs = 0;
+>  The *priority* parameter accepts a signed integer value or a standard priority
+>  name which specifies the order in which chains with the same *hook* value are
+> @@ -763,11 +775,16 @@ per element comment field
+>  FLOWTABLES
+>  -----------
+>  [verse]
+> -{*add* | *create*} *flowtable* ['family'] 'table' 'flowtable' *{ hook* 'hook' *priority* 'priority' *; devices = {* 'device'[*,* ...] *} ; }*
+> +____
+> +{*add* | *create*} *flowtable* ['family'] 'table' 'flowtable' *{ hook* 'hook' *priority* 'priority' *; devices = {* 'DEVICE_LIST' *} ; }*
+>  *list flowtables* ['family'] ['table']
+>  {*delete* | *destroy* | *list*} *flowtable* ['family'] 'table' 'flowtable'
+>  *delete* *flowtable* ['family'] 'table' *handle* 'handle'
 >  
->  	dev_array = nft_dev_array(dev_expr, &num_devs);
-> -	if (num_devs == 1) {
-> +	if (num_devs == 1 && !is_wildcard_str(dev_array[0].ifname)) {
->  		cmd_add_loc(cmd, nlh, dev_array[0].location);
->  		mnl_attr_put_strz(nlh, NFTA_HOOK_DEV, dev_array[0].ifname);
->  	} else {
->  		nest_dev = mnl_attr_nest_start(nlh, NFTA_HOOK_DEVS);
->  		for (i = 0; i < num_devs; i++) {
->  			cmd_add_loc(cmd, nlh, dev_array[i].location);
-> -			mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
-> +			mnl_nft_attr_put_ifname(nlh, dev_array[i].ifname);
->  		}
->  		mnl_attr_nest_end(nlh, nest_dev);
->  	}
-> @@ -2091,7 +2111,7 @@ static void mnl_nft_ft_devs_build(struct nlmsghdr *nlh, struct cmd *cmd)
->  	nest_dev = mnl_attr_nest_start(nlh, NFTA_FLOWTABLE_HOOK_DEVS);
->  	for (i = 0; i < num_devs; i++) {
->  		cmd_add_loc(cmd, nlh, dev_array[i].location);
-> -		mnl_attr_put_strz(nlh, NFTA_DEVICE_NAME, dev_array[i].ifname);
-> +		mnl_nft_attr_put_ifname(nlh, dev_array[i].ifname);
->  	}
+> +'DEVICE_LIST' := 'DEVICE_NAME' [*,* 'DEVICE_LIST']
+> +'DEVICE_NAME' := 'string' | 'string'***
+> +____
+> +
+>  Flowtables allow you to accelerate packet forwarding in software. Flowtables
+>  entries are represented through a tuple that is composed of the input interface,
+>  source and destination address, source and destination port; and layer 3/4
+> @@ -786,6 +803,11 @@ The *priority* can be a signed integer or *filter* which stands for 0. Addition
+>  and subtraction can be used to set relative priority, e.g. filter + 5 equals to
+>  5.
 >  
->  	mnl_attr_nest_end(nlh, nest_dev);
-> -- 
-> 2.49.0
-> 
+> +With newer kernels there is basic support for wildcards in 'DEVICE_LIST' by
+> +specifying an asterisk suffix. The flowtable will apply to all interfaces
+> +matching the given prefix. Use the *list hooks* command to see the current
+> +status.
+
+                                                        ... to see the
+hooks that are that registered per device that match on the wildcard
+device.
