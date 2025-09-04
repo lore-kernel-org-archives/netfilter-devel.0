@@ -1,50 +1,49 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48BB22264BA
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 16:13:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E3F3163
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 16:22:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757002390; cv=none; b=CDDWcWipwIo+GY5zAgtCRVOLh64MkKwEkObDOQpLwM5H2W4IBPhiM8WG+2kzpvfSceGXATXt/WItFFqzg7UmkbvQip4z+USDkyKJNyv5pWHrjxDaLlu6S9rEg9kATKYIsoCSKX+3oNKYKcqzO9aHJrjAESCbYK/et6u/petMP1s=
+	t=1757002923; cv=none; b=YdUdSCbvtPBe9ZUgfb5bYJDOlxrjPg9qOyQ8t00kPxNqb1AJ+OtdJCzQYRpXxL/z4NeCEwKKNIq/327FCKqqWLQAZfJlihKhbgchjOEIY9h9EIZ4IsBhCAUMgr0undZnC2lDYybtq487gxqLZ+tlu0XR5mLt88VensmwioN+DRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757002390; c=relaxed/simple;
-	bh=EfbSakiE+SCdhsNQiZC+joDHf/xCx0pU8xoavoMK9VM=;
+	s=arc-20240116; t=1757002923; c=relaxed/simple;
+	bh=OEJjwRjFrBqf7QHkcjRViliHRVp7qaoMYlmsMPhsAp8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=setKFECU8f1YUKwNEdqwnL5KGnjpjCMgYN+Sxa3GZMAWQkDE0xXXjebAVNp/AvWXb7bwJN40LCcPNpLXfazEch2sFPEsXcruMXxJMjF6s606qDY1RtwxO0Kck7RwAqbrEqfLMxGgUzkTnoUiQr1D0EAOfQBUwtqlRXyavXY1T78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=GhzS38rK; arc=none smtp.client-ip=151.80.46.58
+	 Content-Type:Content-Disposition:In-Reply-To; b=NNK+w/mraauGTKbgLbLh3dYRw2ul6ScUA1FUeVDqEtPuHWXhMHKCoR7LiXH8G7Rq76lH+ySJAHpyPjqMw8uV5gyLilTfOyXWYbVibzIqRJEavHb4nSFVbL6bP+FOoR5t1iDMaDgwuHoOlJJjR09kZVxw6r/6vlG2tippnoOQrUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=FOT7F/7s; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="GhzS38rK"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="FOT7F/7s"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
 	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=ep+wP4oUnWldvKFlPIQgWfod23qQiz1z2O9zaxYcIKs=; b=GhzS38rKx/lj55NkvRLBNsKZhr
-	SLfF7um2yITvX2N/Y9sC2eRfilmUa3e2Jdc7MN51MR9B4vhfcT1olVrcgpATPi4HjxNvAr+IK/iLT
-	dJ38v7e7eVGgBd/TZfHfo7HdUvjb/Q3IHaMkHlgBEos0ZqxIeCnL4S+/mAWwmUORjeTbj0r4shJSq
-	0petT+ZxgYWJTz2J3INPmgvDZvlM37EsZ2vJ0zNFKBBifMtaUP+DXXsjf5eE2mx4R1R+YPVr7pZYa
-	VetuTodQKCxKMEP1pjiM5pEXTTShYDo51Q5ueUJ13l/MI3W5ySE+9uffbfiovNP7txK7HQ2nIa5a3
-	teHVpiFA==;
+	bh=1BOiLrZRDfS+r4HXDjWJYprYN9UEix2wgKGp80ricz8=; b=FOT7F/7sYvdTr1T4utwJIDfrz6
+	LxCfP7N59GLTBRHwVeQiNedP3Pt7HloslLWQx4xHNMws8/Kox+LPQnPm6CWUTa3YmjT5TVqh1eg5r
+	BSDO/nO5cbFkGKrvZxp5ry2ffjM7Nrt26jZ7GtdLi30FUO0C+yMuyBB4robGq11GrIqkfkyz3vpGS
+	COqsH2MTRq9johOk1Fn205j08omIPnzrOZCafL3xsBBe/rKWkEcmC7bZf2bgEqhJC7wv1kSK+9ONR
+	1gB1IaD72KDrFDxKFzitR+3+qLjgHrbUV7pYlU5yLU6W12VQ42l9I1Slnk9Sf1tTFmGn5d4+56hGe
+	i6n5vwAQ==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1uuCaA-00000000179-293X;
-	Thu, 04 Sep 2025 18:13:06 +0200
-Date: Thu, 4 Sep 2025 18:13:06 +0200
+	id 1uuCil-000000004mH-0glr;
+	Thu, 04 Sep 2025 18:21:59 +0200
+Date: Thu, 4 Sep 2025 18:21:59 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v4 2/8] tests: py: Enable JSON and JSON schema by
- default
-Message-ID: <aLm6kp0mJfge4_Me@orbyte.nwl.cc>
+Subject: Re: [nft PATCH v3 11/11] Makefile: Enable support for 'make check'
+Message-ID: <aLm8pkZu0r1hrlUf@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-References: <20250904152454.13054-1-phil@nwl.cc>
- <20250904152454.13054-3-phil@nwl.cc>
- <aLmwcg4B6JwfqQfR@calendula>
+References: <20250903172259.26266-1-phil@nwl.cc>
+ <20250903172259.26266-12-phil@nwl.cc>
+ <aLmvS0buvv-vFyPx@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,44 +52,71 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aLmwcg4B6JwfqQfR@calendula>
+In-Reply-To: <aLmvS0buvv-vFyPx@calendula>
 
-On Thu, Sep 04, 2025 at 05:29:54PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Sep 04, 2025 at 05:24:48PM +0200, Phil Sutter wrote:
-> > Introduce -J/--disable-json and -S/--no-schema to explicitly disable
-> > them if desired.
-> > 
-> > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > ---
-> >  tests/py/nft-test.py | 16 ++++++++++++----
-> >  1 file changed, 12 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-> > index 984f2b937a077..12c6174b01257 100755
-> > --- a/tests/py/nft-test.py
-> > +++ b/tests/py/nft-test.py
-> > @@ -1488,7 +1488,11 @@ def set_delete_elements(set_element, set_name, table, filename=None,
+On Thu, Sep 04, 2025 at 05:24:59PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 03, 2025 at 07:22:59PM +0200, Phil Sutter wrote:
+[...]
+> > diff --git a/Makefile.am b/Makefile.am
+> > index 5190a49ae69f1..9112faa2d5c04 100644
+> > --- a/Makefile.am
+> > +++ b/Makefile.am
+> > @@ -23,6 +23,7 @@ libnftables_LIBVERSION = 2:0:1
+> >  ###############################################################################
 > >  
-> >      parser.add_argument('-j', '--enable-json', action='store_true',
-> >                          dest='enable_json',
-> > -                        help='test JSON functionality as well')
-> > +                        help='test JSON functionality as well (default)')
+> >  ACLOCAL_AMFLAGS = -I m4
+> > +AM_DISTCHECK_CONFIGURE_FLAGS = --enable-distcheck
+> >  
+> >  EXTRA_DIST =
+> >  BUILT_SOURCES =
+> > @@ -429,3 +430,11 @@ doc_DATA = files/nftables/main.nft
+> >  tools/nftables.service: tools/nftables.service.in ${top_builddir}/config.status
+> >  	${AM_V_GEN}${MKDIR_P} tools
+> >  	${AM_V_at}sed -e 's|@''sbindir''@|${sbindir}|g;s|@''pkgsysconfdir''@|${pkgsysconfdir}|g' <${srcdir}/tools/nftables.service.in >$@
 > > +
-> > +    parser.add_argument('-J', '--disable-json', action='store_true',
-> > +                        dest='disable_json',
-> > +                        help='Do not test JSON functionality as well')
+> > +if !BUILD_DISTCHECK
+> > +TESTS = tests/build/run-tests.sh \
+> > +	tests/json_echo/run-test.py \
+> > +	tests/monitor/run-tests.sh \
+> > +	tests/py/nft-test.py \
+> > +	tests/shell/run-tests.sh
+> > +endif
+> > diff --git a/configure.ac b/configure.ac
+> > index da16a6e257c91..8073d4d8193e2 100644
+> > --- a/configure.ac
+> > +++ b/configure.ac
+> > @@ -155,6 +155,11 @@ AC_CONFIG_COMMANDS([nftversion.h], [
+> >  AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
+> >  CFLAGS="${CFLAGS} -DMAKE_STAMP=\${MAKE_STAMP}"
+> >  
+> > +AC_ARG_ENABLE([distcheck],
+> > +	      AS_HELP_STRING([--enable-distcheck], [Build for distcheck]),
+> > +	      [enable_distcheck=yes], [])
+> > +AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
 > 
-> Would it be possible to have common options to the different tests?
-> 
-> 1/8 uses -s and -j.
-> 
-> I am not sure we have to worry about breaking backward for test
-> syntax, we only run this.
+> Oh no, with distcheck-hook: this is a lot cleaner.
 
-It's a bit of a mess with nft-test.py as it always performs standard
-syntax testing and JSON syntax is an add-on one may enable (or not). So
-to test JSON only, I'd have to refactor the ~300 lines long rule_add()
-function. Not the worst thing to do, but much more work than "just"
-having --enable-json being the default.
+Hmm, I really don't see how it could be used for this purpose: It is
+called before starting the VPATH build, here's an excerpt:
+
+| mkdir nftables-1.1.5/_build nftables-1.1.5/_build/sub nftables-1.1.5/_inst
+| chmod a-w nftables-1.1.5
+| test -d nftables-1.1.5/_build || exit 0; \
+| dc_install_base=`CDPATH="${ZSH_VERSION+.}:" && cd nftables-1.1.5/_inst && pwd | sed -e 's,^[^:\\/]:[\\/],/,'` \
+|   && dc_destdir="${TMPDIR-/tmp}/am-dc-$$/" \
+|   && make  distcheck-hook \
+|   && am__cwd=`pwd` \
+|   && CDPATH="${ZSH_VERSION+.}:" && cd nftables-1.1.5/_build/sub \
+|   && ../../configure \
+|       --enable-distcheck \
+|          \
+|       --srcdir=../.. --prefix="$dc_install_base" \
+|   && make  \
+|   && make  dvi \
+|   && make  check \
+
+So by the time distcheck-hook runs, there is no Makefile(.in) I could
+modify, only the top-level ones (which are tracked in git). What am I
+missing here?
 
 Cheers, Phil
