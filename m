@@ -1,78 +1,89 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C47D3126C5;
-	Thu,  4 Sep 2025 14:40:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C6602367DC
+	for <netfilter-devel@vger.kernel.org>; Thu,  4 Sep 2025 15:15:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756996830; cv=none; b=myd9+usurfKY29Ct6R+JIT2EbbT6SVxkB7tOIlREmD/nZKUToBbMnXspMc7SFxgrCVxfVD+sZyPWV80Nxk5vwvdPbEaOBIY9FlMn8FVj2VfPIkXnPmv03EyGwwg+irN1J14aGTg/e3nLOxlQ3UiHVtYj3GATYzt4HEMSS7RcaiY=
+	t=1756998945; cv=none; b=KAVAo429I1Ap5BWg5dDOjmCkPWo9ghIE7xR2rP7Mc+GeKfN6xx38sCTwiPi/F65RvwIhEjacyuBd24xkKEIeiX9icsUtNqzn2bzjmeC+eREz4fwdOaH3ynkqRG+0Ok7NSAAYcBmEDVHZOClqkytq2CrFWycxptndVAT4anL2J6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756996830; c=relaxed/simple;
-	bh=zLL5RYX12tQnydPFucGhVNmYZb5bvJKkl4lN7Q+TVhE=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=unDzZa9FH+cUwbo8jogLIJnHX0X3NgJV+65ZwYmPuIGcjl47TEo0oLcptb9x+dYTupVwAk1KGxLkVpo0DCroPqXGH8EH5Mz+TvN0r1IYT0CLcxDrPOdO8L1Ws+1b8i2XtoZ9QdlojkOCp/B+ZaniCTncbkpfudK9pAhzq80PzQI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Bi9gj1bo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1756998945; c=relaxed/simple;
+	bh=vvUQyotZBAxswRQEyf3tqzvhHzDXv/oVsvPOly4Fe9k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=FUAmMTkhvw/Pe5B4OCANuJRC2r00wx6tD+sl+kXMDsnsM2BAR1HcuvlKgSAnF9lTI7gJeyG3cYbq704Ie+TVyu5qEvjQeMSd2xb4zAR6Y0CZCk0PfzTgOj6jMEsBpA0YwD3Pi6THV6khEtR7u8MPXfURFFiYWllRuKbwhcpNTu8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=iRXf+JDS; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Bi9gj1bo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FF3FC4CEF0;
-	Thu,  4 Sep 2025 14:40:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1756996830;
-	bh=zLL5RYX12tQnydPFucGhVNmYZb5bvJKkl4lN7Q+TVhE=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=Bi9gj1bo9iUHSAEGZUBP9o/Hh2sK1uU1Z3bSyQve9bWypS97Vlbom1L5Dtfrq4qx0
-	 tY1sv7BFudG8xS9LRjCeTUdYeQrDahPvCa58ZljQWuuFm2loB1Y7qyFGomYt7CyEaV
-	 Xnff6fVuhavNza104DDlGF+jx4+Ud62qqpla0h27uQxVCRKC6aZtE4oIGN7H7Uztl9
-	 sRvYe3SEIj/sVHH2LbYe02Zu3SsQHvGP/vQhubeY1ygZ/+C2YhBet6awOPHIdqO91p
-	 OTvVFD9sVg+Rol+5qKIC1iLgb2Ij7ViO145VgoCTbkL7EAILJieUgkhiza0KzniZyo
-	 JD3gQWBHRtymg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 34AC8383BF69;
-	Thu,  4 Sep 2025 14:40:36 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="iRXf+JDS"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=PBA02jHpKlHFeLMs76cg0ElnuYBRxjrOiyIITNKOPO8=; b=iRXf+JDS6uELRTr6N0DYU+5WQM
+	HvhJjh5M8ZgkhE6C2JhFi94hWVHw3lqqmJ7tz65p3mJI/EvVayRlQfT661IMtb2G3gLqQr3v/VkHd
+	LYEO15bjMTeL65r5m/PKlCrHGWn8XXVMst7wvSJig2XOvHqPfQFW7kPfk79pgGEHSPoCBs4vT2RYV
+	xc+fJ0UL6zys4HaSaxUhzfawwzfFa4ExIFTjT7zwtIVT7FbZWJJqZuBU1JzaLi5LaXOus6mQba6g3
+	TfduT2YCbJswnxoIPOjBGnXGlWbuK+QefvI1xGYB4sb/viltmoUi/bbDnj55ETbmpPbVpaISBo+Ts
+	RkQWuing==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uuBgZ-000000001Mw-406u;
+	Thu, 04 Sep 2025 17:15:40 +0200
+Date: Thu, 4 Sep 2025 17:15:39 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v3 00/11] Run all test suites via 'make check'
+Message-ID: <aLmtG3euLlPaGbZ6@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20250903172259.26266-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH v2 net 1/2] selftests: netfilter: fix udpclash tool hang
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <175699683476.1834386.17488693717476628261.git-patchwork-notify@kernel.org>
-Date: Thu, 04 Sep 2025 14:40:34 +0000
-References: <20250904072548.3267-2-fw@strlen.de>
-In-Reply-To: <20250904072548.3267-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250903172259.26266-1-phil@nwl.cc>
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
-
-On Thu,  4 Sep 2025 09:25:47 +0200 you wrote:
-> Yi Chen reports that 'udpclash' loops forever depending on compiler
-> (and optimization level used); while (x == 1) gets optimized into
-> for (;;).  Add volatile qualifier to avoid that.
+On Wed, Sep 03, 2025 at 07:22:48PM +0200, Phil Sutter wrote:
+> Help me (and maybe others) to not occasionally forget to run this or
+> that test suite in this or that mode:
 > 
-> While at it, also run it under timeout(1) and fix the resize script
-> to not ignore the timeout passed as second parameter to insert_flood.
+> Have test suites execute all variants by default (patches 5 and 6),
+> make sure their exit codes
+> match Automake expectations (patch 7) and register them with Automake
+> (patch 11). Also fix for running 'make check' as non-root (patches 8 and
+> 9) and calling build test suite from outside its directory (patch 10).
 > 
-> [...]
+> The first four patches are fallout from enabling all variants by default
+> in monitor test suite, which includes implementing previously missing
+> JSON echo testing.
+> 
+> Changes since v2:
+> - Drop the need for RUN_FULL_TESTSUITE env var by making the "all
+>   variants" mode the default in all test suites
+> - Implement JSON echo testing into monitor test suite, stored JSON
+>   output matches echo output after minor adjustment
+> 
+> Changes since v1:
+> - Also integrate build test suite
+> - Populate TESTS variable only for non-distcheck builds, so 'make
+>   distcheck' does not run any test suite
+> 
+> Phil Sutter (11):
+>   tests: monitor: Label diffs to help users
+>   tests: monitor: Fix regex collecting expected echo output
+>   tests: monitor: Test JSON echo mode as well
+>   tests: monitor: Extend debug output a bit
 
-Here is the summary with links:
-  - [v2,net,1/2] selftests: netfilter: fix udpclash tool hang
-    https://git.kernel.org/netdev/net/c/661a4f307fe0
-  - [v2,net,2/2] netfilter: nf_tables: Introduce NFTA_DEVICE_PREFIX
-    https://git.kernel.org/netdev/net/c/4039ce7ef404
+Applied these four patches as they are pretty harmless and not related
+to the remaining series.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
-
+Cheers, Phil
