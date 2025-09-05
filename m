@@ -1,153 +1,109 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC00C3594B
-	for <netfilter-devel@vger.kernel.org>; Fri,  5 Sep 2025 11:20:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 077A62F7AC6
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Sep 2025 15:36:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757071260; cv=none; b=CbVheR+wWIE7+76V0xSA/ZMwni60zEkoTl4/wulHKgUz8x7V17/iVGieSiNmcz+Ia0BMOBQmJ71mTPRS03HvDNdAMCiioCrULH/usj/Dp4yVTAgqjCxARPQCMgdZ4O1YMxVpK/6kxDhNc9TvH2D7p7BUPSAstYExt6DzEtkfSUY=
+	t=1757086607; cv=none; b=RoPbyajDJWE44bEySj3cpNFKj+SMHzCVrctfq7AiYAMu6cLn7KT2qNp5a4m+0fbuFjg0v9Fp9+5w68UxtS0MGJewYuPcttjNK/WKzUQ2LWAdaI8KV/E/OC6yl9QWecoJolf30EjScois78v4qdA39Hg7qZrpyWQaL1YJySfYfwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757071260; c=relaxed/simple;
-	bh=Wo0nMUVo3GF6wK9yIhDg6GTUUTqmKjcgo+WSMuKwA+A=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=S9sth5J6ZwOiXQLs+BGSeHnjBmD+YqBTq64tJ/JEJjHYwiJdIReM87+AgaYiQ6JOAcXSSE1AWfdJv03PZeWiXD3NSJ7q8/A8kl5xtQzD3+oTPd0IFX8zsB4233PeTk2Ktd2Tgnmx04s5/xCM5geBcLDY5FFxJ6injZGfRz+af34=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KWMrRARN; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lSOpC4uj; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1757086607; c=relaxed/simple;
+	bh=8VNV010fMA1ARqWqz5y/dFLrhvb7XuMgtaBFX7XzPTo=;
+	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=b0b4xc2jUmUZkoGvxS9LWNWLrsMN8ikT8dN+N7QRrL/EKeX1ClmaDe7omAhoAd0L8Vg4P6Ou3v/ODHiT7I+7ySxcFowg4V2ZQrRDaQMBvzeS3mFvupjJlVVfJf2D4IkfJBjJ//Ls8OjwGO4ajqANcP1elhEQ2r5cz2mOXJ53v5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=o8AYt/Tw; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Vkf0siJ6; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KWMrRARN";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lSOpC4uj"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="o8AYt/Tw";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Vkf0siJ6"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 90734607CE; Fri,  5 Sep 2025 13:20:52 +0200 (CEST)
+	id 39FBF608B8; Fri,  5 Sep 2025 17:36:40 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757071252;
-	bh=w2J8zG5Nha2j2Tenbf9P40UfmdU5WXoaXYpTx75DH+0=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=KWMrRARNr+AotTCeGjss4wvUXel4gtqvL6hiN5EfQE+zjFkQI2fdc7AI9TeOvUJ3C
-	 DoSMuxcO1rS/j9GKcl2ifUaB0el98naOFGbdV6XiCzDRTRNN596leFLw+yKSXOU1z5
-	 8uaFCBzmgOcbgZ1+VMuUtL/ksQJf18m8GMGtv75WwHDUbzGDX2zCRNrI4EI1ynuXDQ
-	 BSFRbxyTyOwdQwZ3PnGr+FN4s55f81v7UmEPB+AJMe2/suFf0h31wklY+z/qCegEn/
-	 rXaOltJNGFuNIuPw8XmlXPtuGGNwtmhaQgj2l7bil6bRrIjxCCuvi1JuY07YjU/8Tr
-	 u/AjFbRqR8pVg==
+	s=2025; t=1757086600;
+	bh=PDIObA/9MB+tlm2XMOPPadw8P/Ph17uXz6GxsGCeiLg=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=o8AYt/TwohpmVUlNGYVGXzh5YxvmwD5t9mDokJSXQZyyWtBAbtz/NmY0fw1scm8Fy
+	 2x7mijuwcNAqw+2VtDuUzJJh0xFbmytQjzyoOZEYOw9a/ONFwZpGolhsXJrQYLVdEZ
+	 L8oasnI5risacOQOultO+w+x9O1o2GhrwDvOaE2KqdBHDyLu3AHG3g0AU8fpMofCPG
+	 kecPvnKyO0OOkuMfq3TVgonCueco3LivtgB5Vj8W0qMSYwv+MBpHU/9/kBgQ0rtLXK
+	 C1vQIyfhoUG0ecz1EqbCeAIYlEe1Krq7SybKEnc3eUYFNQUt7NlvmFHvDPWVue3vjE
+	 4Jp9uciq6FGVA==
 X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C1C6E607CE;
-	Fri,  5 Sep 2025 13:20:51 +0200 (CEST)
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 4C8F7608D5
+	for <netfilter-devel@vger.kernel.org>; Fri,  5 Sep 2025 17:36:38 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757071251;
-	bh=w2J8zG5Nha2j2Tenbf9P40UfmdU5WXoaXYpTx75DH+0=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=lSOpC4ujewwwsIs8MnA+FkBdBUHGljF3NLWkq0uUG24WrVhHYfcdHB29dM8g2NcS+
-	 BnwEnRlW9XqUAIzR1j2G+rQllZm1I4Csdp2a9ZSp0dPjbC2D3VNPqe8ra8WXg/3Icd
-	 Uq74jo3n5dx4YZ8w8mmZMkQFbY91oyFpGGrwENHWX5QzS8G4z/uMPL8VqjfgBkARbn
-	 ENvvVMGmA1UgPh/+ARKQ2A36nZuNtdo4KsTdSj5887n4zsVBvjrMjS21GAv1oO6iV1
-	 6UuZUVLFCPiUCnbiLZPyxBwTY7MfcCztWeHm5EXGm9xOtUe3kbkkEzKHuzrph97rZW
-	 fcee/4iKW3HHw==
-Date: Fri, 5 Sep 2025 13:20:49 +0200
+	s=2025; t=1757086598;
+	bh=PDIObA/9MB+tlm2XMOPPadw8P/Ph17uXz6GxsGCeiLg=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=Vkf0siJ6nIm2ltksud5CgWe0Ou06GbVNdB2JvtpbEbbcTUqMS0jHLY588hK2GkjwB
+	 tyHZpD0HubUUrKoaQ9Y1LugaiQMOD85zgMGMEwPMBRk6QPNRoiW2EKXlIY8DIUe86P
+	 w+FrDl7R38+woD8X31WNCTnMA7zZeddDtCExXQgGfLyTQGWZCZbsHbOartd/pzTz8S
+	 9jTKM99TSkGAZd2poyVbH4q+EIMXti0JustFbva6zhH8eQsYWSMcBQQ5EqVad2H3Bw
+	 neCaXQr0Wf0DlWpjC5C9HEDfENEyQ7lsEy6spQeOoA3r/Cd//8t/pEBAI3QGR0Q0pq
+	 Esb5PoMOVsidQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v5 1/3] mnl: Support simple wildcards in netdev hooks
-Message-ID: <aLrHkcJzyPxcbxBw@calendula>
-References: <20250731222945.27611-1-phil@nwl.cc>
- <20250731222945.27611-2-phil@nwl.cc>
- <aLmtQ47BLcj5AC11@calendula>
- <aLoSUDgiZxbaulty@orbyte.nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 6/7] segtree: rename set_elem_add() to set_elem_expr_add()
+Date: Fri,  5 Sep 2025 17:36:26 +0200
+Message-Id: <20250905153627.1315405-7-pablo@netfilter.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20250905153627.1315405-1-pablo@netfilter.org>
+References: <20250905153627.1315405-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aLoSUDgiZxbaulty@orbyte.nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Fri, Sep 05, 2025 at 12:27:28AM +0200, Phil Sutter wrote:
-> On Thu, Sep 04, 2025 at 05:16:19PM +0200, Pablo Neira Ayuso wrote:
-> > Hi Phil,
-> > 
-> > NFTA_DEVICE_PREFIX is now available in net.git, let's pick up on this.
-> > 
-> > On Fri, Aug 01, 2025 at 12:29:43AM +0200, Phil Sutter wrote:
-> > > When building NFTA_{FLOWTABLE_,}HOOK_DEVS attributes, detect trailing
-> > > asterisks in interface names and transmit the leading part in a
-> > > NFTA_DEVICE_PREFIX attribute.
-> > > 
-> > > Deserialization (i.e., appending asterisk to interface prefixes returned
-> > > in NFTA_DEVICE_PREFIX atributes happens in libnftnl.
-> > > 
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > ---
-> > > Changes since v4:
-> > > - Introduce and use NFTA_DEVICE_PREFIX which contains a NUL-terminated
-> > >   string as well but signals the kernel to interpret it as a prefix to
-> > >   match interfaces on.
-> > > - Do not send wildcards in NFTA_HOOK_DEV: On one hand, the kernel can't
-> > >   detect them anymore since they are NUL-terminated as well. On the
-> > >   other, it would defeat the purpose of having NFTA_DEVICE_PREFIX, which
-> > >   is to not crash old user space.
-> > > 
-> > > Changes since v3:
-> > > - Use uint16_t for 'attr' parameter and size_t for 'len' variable
-> > > - Use mnl_nft_ prefix for the helper function
-> > > 
-> > > Changes since v2:
-> > > - Introduce mnl_attr_put_ifname() to perform the conditional
-> > >   mnl_attr_put() parameter adjustment
-> > > - Sanity-check array index in above function to avoid out-of-bounds
-> > >   access
-> > > ---
-> > >  include/linux/netfilter/nf_tables.h |  2 ++
-> > >  src/mnl.c                           | 26 +++++++++++++++++++++++---
-> > >  2 files changed, 25 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-> > > index f57963e89fd16..b38d4780ae8c8 100644
-> > > --- a/include/linux/netfilter/nf_tables.h
-> > > +++ b/include/linux/netfilter/nf_tables.h
-> > > @@ -1774,10 +1774,12 @@ enum nft_synproxy_attributes {
-> > >   * enum nft_device_attributes - nf_tables device netlink attributes
-> > >   *
-> > >   * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
-> > > + * @NFTA_DEVICE_PREFIX: device name prefix, a simple wildcard (NLA_STRING)
-> > >   */
-> > >  enum nft_devices_attributes {
-> > >  	NFTA_DEVICE_UNSPEC,
-> > >  	NFTA_DEVICE_NAME,
-> > > +	NFTA_DEVICE_PREFIX,
-> > >  	__NFTA_DEVICE_MAX
-> > >  };
-> > >  #define NFTA_DEVICE_MAX		(__NFTA_DEVICE_MAX - 1)
-> > > diff --git a/src/mnl.c b/src/mnl.c
-> > > index 43229f2498e55..b532b8ff00c1e 100644
-> > > --- a/src/mnl.c
-> > > +++ b/src/mnl.c
-> > > @@ -795,6 +795,26 @@ static void nft_dev_array_free(const struct nft_dev *dev_array)
-> > >  	free_const(dev_array);
-> > >  }
-> > >  
-> > > +static bool is_wildcard_str(const char *str)
-> > > +{
-> > > +	size_t len = strlen(str);
-> > > +
-> > > +	if (len < 1 || str[len - 1] != '*')
-> > > +		return false;
-> > > +	if (len < 2 || str[len - 2] != '\\')
-> > > +		return true;
-> > > +	/* XXX: ignore backslash escaping for now */
-> > 
-> > Is this comment here still valid?
-> 
-> Yes, sadly. The above covers for eth* and eth\* but not for eth\\* since
-> a proper solution didn't quickly come to mind which avoids playing
-> whack-a-mole. (E.g., does eth\\\\\\* escape the wildcard or not?)
-> 
-> Guess I could just count the number of backslashes immediately preceding
-> the asterisk and return true if the sum is odd?
+---
+ src/segtree.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Thanks for explaining the comment, this supports eth* and eth\* which
-is sufficient at this stage.
+diff --git a/src/segtree.c b/src/segtree.c
+index f95a7ce1c8a8..f9dddaa99176 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -53,8 +53,8 @@ static void interval_expr_copy(struct expr *dst, struct expr *src)
+ 	list_splice_init(&src->stmt_list, &dst->stmt_list);
+ }
+ 
+-static void set_elem_add(const struct set *set, struct expr *init, mpz_t value,
+-			 uint32_t flags, enum byteorder byteorder)
++static void set_elem_expr_add(const struct set *set, struct expr *init,
++			      mpz_t value, uint32_t flags, enum byteorder byteorder)
+ {
+ 	struct expr *expr;
+ 
+@@ -84,8 +84,8 @@ struct expr *get_set_intervals(const struct set *set, const struct expr *init)
+ 
+ 		switch (i->key->etype) {
+ 		case EXPR_VALUE:
+-			set_elem_add(set, new_init, i->key->value,
+-				     i->flags, byteorder);
++			set_elem_expr_add(set, new_init, i->key->value,
++					  i->flags, byteorder);
+ 			break;
+ 		case EXPR_CONCAT:
+ 			set_expr_add(new_init, expr_clone(i));
+@@ -97,11 +97,11 @@ struct expr *get_set_intervals(const struct set *set, const struct expr *init)
+ 			break;
+ 		default:
+ 			range_expr_value_low(low, i);
+-			set_elem_add(set, new_init, low, 0, i->byteorder);
++			set_elem_expr_add(set, new_init, low, 0, i->byteorder);
+ 			range_expr_value_high(high, i);
+ 			mpz_add_ui(high, high, 1);
+-			set_elem_add(set, new_init, high,
+-				     EXPR_F_INTERVAL_END, i->byteorder);
++			set_elem_expr_add(set, new_init, high,
++					  EXPR_F_INTERVAL_END, i->byteorder);
+ 			break;
+ 		}
+ 	}
+-- 
+2.30.2
 
-For this series:
-
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
