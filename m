@@ -1,95 +1,83 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0A492DE6ED;
-	Mon,  8 Sep 2025 21:06:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 522B71DDC3F;
+	Mon,  8 Sep 2025 21:56:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757365582; cv=none; b=MSmp4Uldi4mWxtMechxxwrJXj+2yTu/z0Ccj33PGIJXQH09/Z+RjZ1r1gWjJMAfsWFmykoOO+CjLyf51dV1nfX5czd9OUAqTHWsAh4oTebjt4D3BWlYh3XoVqNd5mmY0N8ojLFe35/PRuIzB0ZGld/RAbWbPDrS1LXegXinGyY0=
+	t=1757368631; cv=none; b=AHAkAbyAE//a2M/LzMYW3LFqU5/VeTy7PHpHhVnr5bcm5pnL9GQdyfN8p+nfkj38fUHXtH2iqSCgkPRoQQiNA4qETXIvgCU0tz9M7u91l7hxHNH7IQZz5abpwxXv3aMOKLoHv30eJwHuH6EQoxxqmmbPk96qSOQDY3J6j9izO3o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757365582; c=relaxed/simple;
-	bh=skMd7msa/+1SKj63XnhhBq4ol3lcANpfSVnZq7Mzbcc=;
+	s=arc-20240116; t=1757368631; c=relaxed/simple;
+	bh=fW54aRAXirLB0eQdaAbwHD8trBvXi9bedluXmPGVKIE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f51PKuNvM9XD1LcsyfCRCnqvBTShO6jS8vuDROGHD4IpzuhQNnoQTRyNAfS5Ky2562XQmcL7KypoesYEf5X8WzvlNAvzyOB5E5e6y0L8ykwG2OI6jlhygu2Y61FJa3mrvLGWw2SMFJRhy9T4F5NgmZCVqNy4lp1N86NxhMoVOvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IVEOjJEo; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=TptDO3T1; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IVEOjJEo";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="TptDO3T1"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 6BB0E602C3; Mon,  8 Sep 2025 23:06:16 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757365576;
-	bh=10XXWkBGzx4kz8xLsmRTsu71MTe4Hm/S5vyY8l5rJdg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=IVEOjJEopylyIxT3wo3yC4QoRtsoyuu6mb/dfzaDNWVCvP1kVJaNqIhWStjtUZehQ
-	 WPNEAp5O23c4p3k+5CY7vrt/PRF5YRl8ffztrAbCEdn17PHVVRVNCPkjcm8oSqACnt
-	 zwaKCsiq3zCy00TOJ/SmLhMAFc5SvsIrkLt6QGRm9M6H/RchMDQ7D+ONNsY2V8PHYP
-	 3w8FQKLLO5guPOnsV+c9r8Ivco1KIy6GB4Fmr3qGQoSqNRXjqGvDKrZKJIKRINl5vq
-	 6SoG4oYYjMWt+kpjtJIIKGRgUcf2mdmXyPQnuQNmSYTs9XhfpZ6cciF2U197sTtAK1
-	 BH+ao4A3QECog==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1DEB1602C3;
-	Mon,  8 Sep 2025 23:06:14 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757365574;
-	bh=10XXWkBGzx4kz8xLsmRTsu71MTe4Hm/S5vyY8l5rJdg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=TptDO3T1M5DJ3qdCsnFn5z2+apdieQ6PPcMlI6BV+XzUskl7fGvprQyRINEmSOC6y
-	 XNfVhebUjSe29mvc40hcEzM3Tf45rtMSM2yGckoRgKg+goPDnqNcIjoMNHlLExwvar
-	 VAoyGZ8yvp/s9BQv19wIJ+NAaBcMAuUGWZx9XLTEve7Md7tPh6V54HaDogbqZMKoJQ
-	 7nVLN2L7QlQ3Z7ZSFKwjAvbKW3bq9dMrDAf/RXfq614w1NNerZBOVI/Rys+BxX2Hnu
-	 8MuwMMeYBzjZLkpoqcP+PRl6S7wR6WUE524QXjXSstTQbeAtdUammZr1Omdnd1+bn9
-	 FzndmVGityOaQ==
-Date: Mon, 8 Sep 2025 23:06:11 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=PLfxUulbRIWRh/OS0yCl5w51DGePDZ96lc6+9RhYXtG3fvXWyZqWCw58827uFzqh/Hru9Je5vPmKNcExSgxPOvXRdYTQji8NUcMHi/Cp0Lo4laZVupqL1tdFxCBYtmFFcVKVKfNtU1mTm12YwaVWZ3GSB5h/7NOivT+Z2jvoun0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id DD1AD601EB; Mon,  8 Sep 2025 23:56:54 +0200 (CEST)
+Date: Mon, 8 Sep 2025 23:56:54 +0200
+From: Florian Westphal <fw@strlen.de>
 To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
 	Simon Horman <horms@kernel.org>,
 	Nikolay Aleksandrov <razor@blackwall.org>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH v3 nf-next 3/3] netfilter: nf_flow_table_ip: don't follow
- fastpath when marked teardown
-Message-ID: <aL9FQ47keDNxygQw@calendula>
+Subject: Re: [PATCH v3 nf-next 2/3] netfilter: nf_flow_table_core: teardown
+ direct xmit when destination changed
+Message-ID: <aL9RJtdQJr7t5Z_K@strlen.de>
 References: <20250617070007.23812-1-ericwouds@gmail.com>
- <20250617070007.23812-4-ericwouds@gmail.com>
+ <20250617070007.23812-3-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250617070007.23812-4-ericwouds@gmail.com>
+In-Reply-To: <20250617070007.23812-3-ericwouds@gmail.com>
 
-On Tue, Jun 17, 2025 at 09:00:07AM +0200, Eric Woudstra wrote:
-> When a flow is marked for teardown, because the destination is not valid
-> any more, the software fastpath may still be in effect and traffic is
-> still send to the wrong destination. Change the ip/ipv6 hooks to not use
-> the software fastpath for a flow that is marked to be teared down and let
-> the packet continue along the normal path.
-> 
-> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
-> ---
->  net/netfilter/nf_flow_table_ip.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-> index 64a12b9668e7..f9bf2b466ca8 100644
-> --- a/net/netfilter/nf_flow_table_ip.c
-> +++ b/net/netfilter/nf_flow_table_ip.c
-> @@ -542,6 +542,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
->  	dir = tuplehash->tuple.dir;
->  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
->  
-> +	if (test_bit(NF_FLOW_TEARDOWN, &flow->flags))
-> +		return NF_ACCEPT;
+Eric Woudstra <ericwouds@gmail.com> wrote:
+> +static int nf_flow_table_switchdev_event(struct notifier_block *unused,
+> +					 unsigned long event, void *ptr)
+> +{
+> +	struct switchdev_notifier_fdb_info *fdb_info;
+> +	struct nf_flowtable *flowtable;
+> +	struct flow_cleanup_data cud;
+> +
+> +	if (event != SWITCHDEV_FDB_DEL_TO_DEVICE)
+> +		return NOTIFY_DONE;
+> +
+> +	fdb_info = ptr;
+> +	cud.addr = fdb_info->addr;
+> +	cud.vid = fdb_info->vid;
+> +	cud.ifindex = fdb_info->info.dev->ifindex;
+> +
+> +	mutex_lock(&flowtable_lock);
 
-nf_flow_offload_lookup() already checks for this bit, I don't a
-benefit from this re-check.
+Please always test your patches with lockdep enabled,
+this doesn't work.  Switchdev notifiers are atomic.
+
+BUG: sleeping function called from invalid context at kernel/locking/mutex.c:575
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 1570, name: kworker/u32:8
+preempt_count: 201, expected: 0
+RCU nest depth: 1, expected: 0
+6 locks held by kworker/u32:8/1570:
+ #0: ffff88810032b948 ((wq_completion)netns){+.+.}-{0:0}, at: process_scheduled_works+0x8d7/0x1460
+ #1: ffffc900021e7ba0 (net_cleanup_work){+.+.}-{0:0}, at: process_scheduled_works+0x912/0x1460
+ #2: ffffffff848d1eb0 (pernet_ops_rwsem){++++}-{4:4}, at: cleanup_net+0xf8/0x7b0
+ #3: ffffffff848de6e8 (rtnl_mutex){+.+.}-{4:4}, at: ops_undo_list+0x270/0x860
+ #4: ffff88811f1f8bd8 (&br->hash_lock){+...}-{3:3}, at: br_fdb_delete_by_port+0x3b/0x290
+ #5: ffffffff8457a800 (rcu_read_lock){....}-{1:3}, at: atomic_notifier_call_chain+0x27/0x150
+Workqueue: netns cleanup_net
+Call Trace:
+ __mutex_lock+0xf5/0x14f0
+  nf_flow_table_switchdev_event+0x104/0x270
+ atomic_notifier_call_chain+0xc5/0x150
+ br_switchdev_fdb_notify+0x2b2/0x330
+...
