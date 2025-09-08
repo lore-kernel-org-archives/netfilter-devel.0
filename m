@@ -1,83 +1,89 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 522B71DDC3F;
-	Mon,  8 Sep 2025 21:56:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE041DDC3F
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Sep 2025 22:19:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757368631; cv=none; b=AHAkAbyAE//a2M/LzMYW3LFqU5/VeTy7PHpHhVnr5bcm5pnL9GQdyfN8p+nfkj38fUHXtH2iqSCgkPRoQQiNA4qETXIvgCU0tz9M7u91l7hxHNH7IQZz5abpwxXv3aMOKLoHv30eJwHuH6EQoxxqmmbPk96qSOQDY3J6j9izO3o=
+	t=1757369965; cv=none; b=rrt6ptVqJ8UIScfQG0SbPa0TJSMXSp+zL5zjz6SlxjPavgdxhHj2+yT//Z/vbwDHlDMRTvQAIZcYiI5TfuoAHXHXoZ/3UQQv70C0Lq3S7RgJhubZX6Lf1WFIUYCTwXOYPuutUXnGe7X3Vn5WZPjg4drKb0VIfSDkPLXE2XGoiQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757368631; c=relaxed/simple;
-	bh=fW54aRAXirLB0eQdaAbwHD8trBvXi9bedluXmPGVKIE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PLfxUulbRIWRh/OS0yCl5w51DGePDZ96lc6+9RhYXtG3fvXWyZqWCw58827uFzqh/Hru9Je5vPmKNcExSgxPOvXRdYTQji8NUcMHi/Cp0Lo4laZVupqL1tdFxCBYtmFFcVKVKfNtU1mTm12YwaVWZ3GSB5h/7NOivT+Z2jvoun0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id DD1AD601EB; Mon,  8 Sep 2025 23:56:54 +0200 (CEST)
-Date: Mon, 8 Sep 2025 23:56:54 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH v3 nf-next 2/3] netfilter: nf_flow_table_core: teardown
- direct xmit when destination changed
-Message-ID: <aL9RJtdQJr7t5Z_K@strlen.de>
-References: <20250617070007.23812-1-ericwouds@gmail.com>
- <20250617070007.23812-3-ericwouds@gmail.com>
+	s=arc-20240116; t=1757369965; c=relaxed/simple;
+	bh=FzJ2BNYDZU7yA+0akbo7wNXsNdMdzbVhlsYI7go0A0Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=dyEAlisQ0cOsK03ia7c8p/m84FC2VwrejRn40FsdgG+z3tt2xz98a6dAsZrJeMIb8ypDdUwdvdl5AJrU31rYWdaRCMIPe5oHDJLRNSCa2Dq1XlE/Pg4uJJMB52oXPRZz/5f0nFvG2OTKti+vzwoCHDbvNpAETLle+bSPOCdYb7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=g/s+5wKC; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="g/s+5wKC"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=k2aYStaDGcY/K+LM5/3f9sparn3eV3PhYRxYeuR9QLE=; b=g/s+5wKCl56oH2D2kL/DFDmo3N
+	iaEdehhvVVK21IBjGJNn4ELs6ZaTLMG0NyAzFuMOeD+We16pBp4cnVB8VwZ9g6aVWbA3rE6VQICHe
+	Fybg/UP/po1qU2nmYfxp0L4KQdQW8R9ZEnU6oFa4/Yq7OZML51ymkO6ISK+vI254CM6WBYLul+xXD
+	UyMqx4IfJ7HfacRBWgkcJ5k81evg5iMI6yePFnlZs1nlm1EhWhTf0JLfDZk9GPRQNehtX3lFTZoZw
+	H1MbrwqPAYq5XWfqMJGt7Wr6KJXAXVBoVeqrwL+QZSmvMtMTUcUs3lzgvpvLCqnCzuZA74b6tYOid
+	MLAEyKrg==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uvkCg-0000000012M-2YXS;
+	Tue, 09 Sep 2025 00:19:14 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] Makefile: Fix for 'make CFLAGS=...'
+Date: Tue,  9 Sep 2025 00:19:09 +0200
+Message-ID: <20250908221909.31384-1-phil@nwl.cc>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250617070007.23812-3-ericwouds@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-Eric Woudstra <ericwouds@gmail.com> wrote:
-> +static int nf_flow_table_switchdev_event(struct notifier_block *unused,
-> +					 unsigned long event, void *ptr)
-> +{
-> +	struct switchdev_notifier_fdb_info *fdb_info;
-> +	struct nf_flowtable *flowtable;
-> +	struct flow_cleanup_data cud;
-> +
-> +	if (event != SWITCHDEV_FDB_DEL_TO_DEVICE)
-> +		return NOTIFY_DONE;
-> +
-> +	fdb_info = ptr;
-> +	cud.addr = fdb_info->addr;
-> +	cud.vid = fdb_info->vid;
-> +	cud.ifindex = fdb_info->info.dev->ifindex;
-> +
-> +	mutex_lock(&flowtable_lock);
+Appending to CFLAGS from configure.ac like this was too naive, passing
+custom CFLAGS in make arguments overwrites it. Extend AM_CFLAGS instead.
 
-Please always test your patches with lockdep enabled,
-this doesn't work.  Switchdev notifiers are atomic.
+Fixes: 64c07e38f0494 ("table: Embed creating nft version into userdata")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ Makefile.am  | 2 ++
+ configure.ac | 1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-BUG: sleeping function called from invalid context at kernel/locking/mutex.c:575
-in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 1570, name: kworker/u32:8
-preempt_count: 201, expected: 0
-RCU nest depth: 1, expected: 0
-6 locks held by kworker/u32:8/1570:
- #0: ffff88810032b948 ((wq_completion)netns){+.+.}-{0:0}, at: process_scheduled_works+0x8d7/0x1460
- #1: ffffc900021e7ba0 (net_cleanup_work){+.+.}-{0:0}, at: process_scheduled_works+0x912/0x1460
- #2: ffffffff848d1eb0 (pernet_ops_rwsem){++++}-{4:4}, at: cleanup_net+0xf8/0x7b0
- #3: ffffffff848de6e8 (rtnl_mutex){+.+.}-{4:4}, at: ops_undo_list+0x270/0x860
- #4: ffff88811f1f8bd8 (&br->hash_lock){+...}-{3:3}, at: br_fdb_delete_by_port+0x3b/0x290
- #5: ffffffff8457a800 (rcu_read_lock){....}-{1:3}, at: atomic_notifier_call_chain+0x27/0x150
-Workqueue: netns cleanup_net
-Call Trace:
- __mutex_lock+0xf5/0x14f0
-  nf_flow_table_switchdev_event+0x104/0x270
- atomic_notifier_call_chain+0xc5/0x150
- br_switchdev_fdb_notify+0x2b2/0x330
-...
+diff --git a/Makefile.am b/Makefile.am
+index 5190a49ae69f1..3e3f1e61092bb 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -156,6 +156,8 @@ AM_CFLAGS = \
+ 	\
+ 	$(GCC_FVISIBILITY_HIDDEN) \
+ 	\
++	-DMAKE_STAMP=$(MAKE_STAMP) \
++	\
+ 	$(NULL)
+ 
+ AM_YFLAGS = -d -Wno-yacc
+diff --git a/configure.ac b/configure.ac
+index da16a6e257c91..3517ea041f7ea 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -153,7 +153,6 @@ AC_CONFIG_COMMANDS([nftversion.h], [
+ # Current date should be fetched exactly once per build,
+ # so have 'make' call date and pass the value to every 'gcc' call
+ AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
+-CFLAGS="${CFLAGS} -DMAKE_STAMP=\${MAKE_STAMP}"
+ 
+ AC_CONFIG_FILES([					\
+ 		Makefile				\
+-- 
+2.51.0
+
