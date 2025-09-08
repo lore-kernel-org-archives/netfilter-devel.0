@@ -1,84 +1,93 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp21.cstnet.cn [159.226.251.21])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5350222568
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Sep 2025 12:07:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E3919D8A8
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Sep 2025 14:09:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=159.226.251.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757333233; cv=none; b=rT8xhj6TTwi56x/m0U2BKf/SL9WoPRAUgzi0XI34lX+kcfDFCKJXVqHk8gh0Zd375fnCDVEx3JI1QzIt8GXllrfq+UBVwPPlq0XkbZ1hzulO1yYgH0F9UQ5ttgAIFKoJW0pLfNiOrJBPOTfZ55xoy2qXg5JSWq6t5473jtcpHNI=
+	t=1757340568; cv=none; b=n/mFsMhn+kECw0yAFywjalTt2ytLkPvYz5nNZv1ChY+293eWDKvI9OFfkDDWFrk31XME25fRNvX8ofJIFXQLuhQJV/t53ig05uMw7bNNyXzJOMJ5pUY1whXGSGjKZxpUHpnxai/lJhCspNFd8e/tIzxb5KmolTNQ9vOs1A625eE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757333233; c=relaxed/simple;
-	bh=j1KFSoMl/+eoDOn7jKFDU0xcNWchCeekqnkPXMVgGec=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=hhF8M4xjUKSq/gT2/K/sfH8Oz1iWRXek47avDNiPcCys7IlY5MUhpirn2yYABjGR9m1hFLhgACjzfkuHlgpN5SyiCTi9rm4ICRSWeobTS8/NWI9k3L2MF+bi6bWSWbslSI2eE31mMU9ASnushmL/WJta2p0Hcqqem7bpEMpJLsw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tXTuTd8D; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tXTuTd8D; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tXTuTd8D";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tXTuTd8D"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id E289260740; Mon,  8 Sep 2025 14:07:08 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757333228;
-	bh=dlyDMoGLuhZva6GFVarEuoTMLqq/odKeBUDB7v6OW1w=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tXTuTd8DKEWyEz6EJyKXqOfmcnYmxcJZQdn5edkA9m7m3iQvQL+r1wKWMDuFjdoeX
-	 ho2PvX22Hor56XrmkECCtd5kh2Em4nB0BMYNtkzP2fWge0K8lOKAaMcFB7KWLIHdoB
-	 W4nSC7HgOakmMAUJh5v8/+KscXLqjXPZZAxp+6eJDeBzwHHZRCh15YcA7Hfski3CC/
-	 YPs4nvgrAW6DN3YHVtskPVX+x+fVaszr5tZoQ2E511I7nFeQuGsrjAG/Dd2NxPjPio
-	 aVsCHzMzCLrc5k/3DfEBJwRIljE/P9Evv2/b670ySJkJVFmI81EoEBvX5XcF9gDD4a
-	 2sTgzxDszWrrA==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id DCF8160740;
-	Mon,  8 Sep 2025 14:07:07 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757333228;
-	bh=dlyDMoGLuhZva6GFVarEuoTMLqq/odKeBUDB7v6OW1w=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tXTuTd8DKEWyEz6EJyKXqOfmcnYmxcJZQdn5edkA9m7m3iQvQL+r1wKWMDuFjdoeX
-	 ho2PvX22Hor56XrmkECCtd5kh2Em4nB0BMYNtkzP2fWge0K8lOKAaMcFB7KWLIHdoB
-	 W4nSC7HgOakmMAUJh5v8/+KscXLqjXPZZAxp+6eJDeBzwHHZRCh15YcA7Hfski3CC/
-	 YPs4nvgrAW6DN3YHVtskPVX+x+fVaszr5tZoQ2E511I7nFeQuGsrjAG/Dd2NxPjPio
-	 aVsCHzMzCLrc5k/3DfEBJwRIljE/P9Evv2/b670ySJkJVFmI81EoEBvX5XcF9gDD4a
-	 2sTgzxDszWrrA==
-Date: Mon, 8 Sep 2025 14:07:05 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Dan Winship <danwinship@redhat.com>
-Subject: Re: [nft PATCH] table: Embed creating nft version into userdata
-Message-ID: <aL7G6aI4M74hgS8Z@calendula>
-References: <20250813170833.28585-1-phil@nwl.cc>
- <aL7GEObOxcH1z4Rb@calendula>
+	s=arc-20240116; t=1757340568; c=relaxed/simple;
+	bh=BN2YeYIkkKLE8mrSfRQwT7PH6JFxUqWXibOqgxEPVxY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=UywmT1ahJZNfb5OvJ15Z+2aMW2rvBQV/ulQhUNPYHhSmC3lruHQICmpLdsbWd+Pa8QlxggRREa//3PsD4SeWWReMYr48wpPvL/zKLW4hSZZoqBqi57MzAGno6FkqWVUX5EyyJOcXihYrQtkOARPhId8Cr8MZsXItdEISMr9Ialw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iie.ac.cn; spf=pass smtp.mailfrom=iie.ac.cn; arc=none smtp.client-ip=159.226.251.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=iie.ac.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=iie.ac.cn
+Received: from localhost.localdomain (unknown [159.226.95.28])
+	by APP-01 (Coremail) with SMTP id qwCowACH4aN4475oXXesAQ--.24801S2;
+	Mon, 08 Sep 2025 22:08:57 +0800 (CST)
+From: Chen Yufeng <chenyufeng@iie.ac.cn>
+To: pablo@netfilter.org
+Cc: kadlec@netfilter.org,
+	fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	Chen Yufeng <chenyufeng@iie.ac.cn>
+Subject: [PATCH] netfilter: Set expressions out of range in nft_add_set_elem()
+Date: Mon,  8 Sep 2025 22:08:44 +0800
+Message-ID: <20250908140844.1197-1-chenyufeng@iie.ac.cn>
+X-Mailer: git-send-email 2.43.0.windows.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aL7GEObOxcH1z4Rb@calendula>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:qwCowACH4aN4475oXXesAQ--.24801S2
+X-Coremail-Antispam: 1UD129KBjvdXoWrZryrZw47KryDur18Gw17Jrb_yoWktwb_Ca
+	s3t3ykGFWrJF92kayDGr4Fyr1fW3y8ur1rWF92gr4fXFyUGr4jkFWkuF13A3WUW3yDJwn5
+	Xw1q9w13GrZIkjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUbsxFF20E14v26r1j6r4UM7CY07I20VC2zVCF04k26cxKx2IYs7xG
+	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
+	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Jr0_
+	Gr1l84ACjcxK6I8E87Iv67AKxVWxJr0_GcWl84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s
+	0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xII
+	jxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr
+	1lF7xvr2IYc2Ij64vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxkF7I0En4kS14v26r12
+	6r1DMxkIecxEwVAFwVW5XwCF04k20xvY0x0EwIxGrwCFx2IqxVCFs4IE7xkEbVWUJVW8Jw
+	C20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAF
+	wI0_JF0_Jw1lIxkGc2Ij64vIr41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjx
+	v20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2
+	jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0x
+	ZFpf9x0JU-6p9UUUUU=
+X-CM-SenderInfo: xfkh05xxih0wo6llvhldfou0/1tbiBgwTEmi+sgWVmwAAsk
 
-On Mon, Sep 08, 2025 at 02:03:51PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Aug 13, 2025 at 07:07:19PM +0200, Phil Sutter wrote:
-> > Upon listing a table which was created by a newer version of nftables,
-> > warn about the potentially incomplete content.
-> 
-> Compilation breaks for me here:
-> 
-> In file included from src/netlink.c:13:
-> ./nftversion.h:6:20: error: 'MAKE_STAMP' undeclared here (not in a function)
->     6 |         ((uint64_t)MAKE_STAMP >> 56) & 0xff,
->       |                    ^~~~~~~~~~
+The number of `expr` expressions provided by userspace may exceed the 
+declared set expressions, potentially leading to errors or undefined behavior. 
+This patch addresses the issue by validating whether i exceeds 
+set->num_exprs.
 
-It breaks when I compile with:
+This patch is inspired by commit 3701cd390fd7("netfilter: nf_tables: 
+ bail out on mismatching dynset and set expressions").
 
-make V=1 CFLAGS+="-fsanitize=address -fsanitize=undefined" -j 16
+Signed-off-by: Chen Yufeng <chenyufeng@iie.ac.cn>
+---
+ net/netfilter/nf_tables_api.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-which I usually do, including valgrind runs, to catch for memory
-issues.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 58c5425d61c2..958a7c8b0b4c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7338,9 +7338,15 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			expr_array[i] = expr;
+ 			num_exprs++;
+ 
+-			if (set->num_exprs && expr->ops != set->exprs[i]->ops) {
+-				err = -EOPNOTSUPP;
+-				goto err_set_elem_expr;
++			if (set->num_exprs) {
++				if (i >= set->num_exprs) {
++					err = -EINVAL;
++					goto err_set_elem_expr;
++				}
++				if (expr->ops != set->exprs[i]->ops) {
++					err = -EOPNOTSUPP;
++					goto err_set_elem_expr;
++				}
+ 			}
+ 			i++;
+ 		}
+-- 
+2.34.1
 
-Could you look into restoring this? Thanks!
