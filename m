@@ -1,163 +1,153 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f207.google.com (mail-il1-f207.google.com [209.85.166.207])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD2391CAB3
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Sep 2025 23:48:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBAB92FFDC4
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Sep 2025 05:13:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757375329; cv=none; b=QOcCgd9K5laF68SaPvxUB9RaFaFHGc+8PiUqPftA6pFr19YYV101sawvqoA2jxZtvholVk5bU7JRkvgfIfm6ux5PQhbX81K56+CGagpiS03/qUNiePkyJEDVQ6AkGbCdbNLfzsXXBZst0GVh5SY6pO4ovmEOFZMAZJtH5gd0tGA=
+	t=1757394814; cv=none; b=HAXsu7lAvFrVIppBcdTRsPVoXEJzpoVB1tpLXPrQFQ/9o9pgI7VmvDjeSxtux2V+e7LgF8aBa6BKGBcicoU70eFSWvvCTYQggaoOrUZC45NfWWCQj7eWuLLBJdV7UK6HPm5zHoyOah4g1D5mfJ//QAjgjN4jAt4qz10Ne6LVsWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757375329; c=relaxed/simple;
-	bh=GBGYc/sN7ptwIfhJcBlle/unOW70NibtMzDhtlBdxR4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QgN61Szhn65QG1FxVaUKukaUq3aHFZEdzpznVSOYdis/Ow+hvIuxzN/SrUZYy8PdAQKiG8rQhMYOKfQ+bCsp09f9JICn5cnQ4YuwRkT9Y/NyeUV4Erk4hkdMlXyplkjrgKD7Q35HsSsL6AT2252kOSp7wF1NqChNU929Lsfv2/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qHFnXE5Z; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qHFnXE5Z"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=DxQceq06cuyzTXFoT1DTrQXLG/pzpqAE05OTOXQkW34=; b=qHFnXE5ZHaVKwQO7OeNtQPqvry
-	7yywwFBEXv7Ksl4v3GrOhcnDIjbsNYjHZ3Slmyqyc9RS4Q3Zmmb5s+8jdLpwlPyfglJT6riZVDRqw
-	o/1oMQUaRTZwc8RvzNMowlDepO1Z7K5TF5/CS31DfiF0fNJdxjwGHHhHIolg15X9thZkVcU4GIgFP
-	ag7DON4gCVtRijtMMBVqps1rBaI00WLARv+efvkUkQG482tN8khFNBdpUd8ExUnNwJeyjg6gzAZLH
-	ZwVHC6HQvErvewdUKXap4ilOMzjI6AA4nrYkhZ4BnR5U0DhnAOO6wV8PEG66lFphioSua3gx5NmFk
-	9ztkVIAA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uvlbI-000000006U6-25Pj;
-	Tue, 09 Sep 2025 01:48:44 +0200
-Date: Tue, 9 Sep 2025 01:48:44 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 3/5] mnl: Allow for updating devices on existing inet
- ingress hook chains
-Message-ID: <aL9rXH0n2RIYeqzl@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20250829142513.4608-1-phil@nwl.cc>
- <20250829142513.4608-4-phil@nwl.cc>
- <aL6v70HMECk3feny@calendula>
- <aL63bN5qs5ej_pTn@calendula>
+	s=arc-20240116; t=1757394814; c=relaxed/simple;
+	bh=qHBwNJiEIrhAZSsXUk5F3O1/3DlTmok1+B3EGO2k+9o=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=UMPTFB2aoiIwe3RgYougZ5MwcwVkFSn81UP0Fds3Ke0KUWOBlVtQxg4v0OBz39g7c0NngLZPzQqZwLUZ861nidIi/8aursj0QpJ+DLtRhEXdGt3CAzlG2JtwGlU9xCvZALnLfdSqOhJ1pyUCxMGSsYBbkz8ITAR4K7IrMGSZ8Yk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f207.google.com with SMTP id e9e14a558f8ab-40856fed6a6so25633465ab.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Sep 2025 22:13:32 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1757394812; x=1757999612;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=H5peZDX8n96leXmY4994Qh1nagNgXKKzgkojoG9FJrE=;
+        b=ListWPB1CAPrZKtl/sKa1vSDgGcneG7iLHV1hwCBr6k5nAOdT+NjnTn38ixMSymQX6
+         N+F4OkWevyPGUK3SbD4q3XTT6h/J4hgFxAOKcMzSJLzIZ2TYCvVcmAu92PH+/T7Ctv+T
+         c8XRlkCEjxbnVl3lG94JLD1H/SmiJzBpuKupm697eAYoXk4AC11ywAZvjrsNU+nLrVkw
+         aaLIsM6yDMCcFLATMPO/9q9npTHTvCe0PryL11wBIXVYOfGISv5YWnk4gnRFCM7zAkBp
+         yGDkJM/CMbGP8ZhNoM+UOgpVXj9LbFu1FZqFE5y80vIDShfJ840NKG2rjZ6xY4nClwYv
+         VMWg==
+X-Forwarded-Encrypted: i=1; AJvYcCVmrqVtsWuccapENPzQ8ykuAD05CwZBsY1C1iTyOIiZNI5SBx6uZ+cGjZiqe34TS3nW7ge7q9gL5CtwFNS6sxc=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyWdz9lZgDP1GUrTNENu0JtO+ixoslCsCAi/GHu207tzxcOlqXg
+	fVvlMZZWLlhWB1OgKUxFPj0hdgFU6Ejl2VEEeDWqfTcLFkMcIAO3df4EiRgFwgTRfWTXC5TcMzX
+	hUxqAoQDLwoIzXTSnwzk6M7lIO2ZRJFqKG3VBxCDPm59v3vly2FH+DksUYCk=
+X-Google-Smtp-Source: AGHT+IHzavfrAlBXO5FpzJmMgsLXa1kd+8/ge+pWP6Ec0BswrfdfQswCRq5zCRd1BnH+AP3XtF7CkkYzPn9lcZCV0VwzcSMz9IZ6
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aL63bN5qs5ej_pTn@calendula>
+X-Received: by 2002:a05:6e02:218e:b0:3f0:40fd:9d1c with SMTP id
+ e9e14a558f8ab-3fd7f6657bdmr151260385ab.9.1757394811938; Mon, 08 Sep 2025
+ 22:13:31 -0700 (PDT)
+Date: Mon, 08 Sep 2025 22:13:31 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <68bfb77b.a00a0220.eb3d.003f.GAE@google.com>
+Subject: [syzbot] [bridge?] [netfilter?] WARNING in br_nf_local_in
+From: syzbot <syzbot+aa8e2b2bfec0dd8e7e81@syzkaller.appspotmail.com>
+To: bridge@lists.linux.dev, coreteam@netfilter.org, davem@davemloft.net, 
+	edumazet@google.com, fw@strlen.de, horms@kernel.org, idosch@nvidia.com, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, razor@blackwall.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Sep 08, 2025 at 01:01:00PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Sep 08, 2025 at 12:29:03PM +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Aug 29, 2025 at 04:25:11PM +0200, Phil Sutter wrote:
-> > > Complete commit a66b5ad9540dd ("src: allow for updating devices on
-> > > existing netdev chain") in supporting inet family ingress hook chains as
-> > > well. The kernel does already but nft has to add a proper hooknum
-> > > attribute to pass the checks.
-> > > 
-> > > The hook.num field has to be initialized from hook.name using
-> > > str2hooknum(), which is part of chain evaluation. Calling
-> > > chain_evaluate() just for that purpose is a bit over the top, but the
-> > > hook name lookup may fail and performing chain evaluation for delete
-> > > command as well fits more into the code layout than duplicating parts of
-> > > it in mnl_nft_chain_del() or elsewhere. Just avoid the
-> > > chain_cache_find() call as its assert() triggers when deleting by
-> > > handle and also don't add to be deleted chains to cache.
-> > > 
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > ---
-> > >  src/evaluate.c | 6 ++++--
-> > >  src/mnl.c      | 2 ++
-> > >  2 files changed, 6 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/src/evaluate.c b/src/evaluate.c
-> > > index b7e4f71fdfbc9..db4ac18f1dc9f 100644
-> > > --- a/src/evaluate.c
-> > > +++ b/src/evaluate.c
-> > > @@ -5758,7 +5758,9 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
-> > >  		return table_not_found(ctx);
-> > >  
-> > >  	if (chain == NULL) {
-> > > -		if (!chain_cache_find(table, ctx->cmd->handle.chain.name)) {
-> > > +		if (ctx->cmd->op != CMD_DELETE &&
-> > > +		    ctx->cmd->op != CMD_DESTROY &&
-> > > +		    !chain_cache_find(table, ctx->cmd->handle.chain.name)) {
-> > >  			chain = chain_alloc();
-> > >  			handle_merge(&chain->handle, &ctx->cmd->handle);
-> > >  			chain_cache_add(chain, table);
-> > > @@ -6070,7 +6072,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
-> > >  		return 0;
-> > >  	case CMD_OBJ_CHAIN:
-> > >  		chain_del_cache(ctx, cmd);
-> > > -		return 0;
-> > > +		return chain_evaluate(ctx, cmd->chain);
-> > 
-> > Maybe fix this to perform chain_del_cache() after chain_evaluate()?
+Hello,
 
-I agree, side-effects of reusing chain_evaluate() for deletion are not
-worth it.
+syzbot found the following issue on:
 
-> > ie.
-> > 
-> >                 if (chain_evaluate(ctx, cmd->chain) < 0)
-> >                         return -1;
-> > 
-> >                 chain_del_cache(ctx, cmd);
-> 
-> My suggestion won't work.
-> 
-> Maybe add a specific chain_del_evaluate(), see untested patch attached.
+HEAD commit:    08b06c30a445 Merge tag 'v6.17-rc4-ksmbd-fix' of git://git...
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=12e3087c580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=b7511150b112b9c3
+dashboard link: https://syzkaller.appspot.com/bug?extid=aa8e2b2bfec0dd8e7e81
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
 
-Since we only need a proper value in chain->hook.num, a more minimal
-version is fine:
+Unfortunately, I don't have any reproducer for this issue yet.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index b7e4f71fdfbc9..8cecbe09de01c 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -5992,6 +5992,22 @@ static void chain_del_cache(struct eval_ctx *ctx, struct cmd *cmd)
-        chain_free(chain);
- }
- 
-+static int chain_del_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
-+{
-+       struct chain *chain = cmd->chain;
-+
-+       if (chain && chain->flags & CHAIN_F_BASECHAIN && chain->hook.name) {
-+               chain->hook.num = str2hooknum(chain->handle.family,
-+                                             chain->hook.name);
-+               if (chain->hook.num == NF_INET_NUMHOOKS)
-+                       return __stmt_binary_error(ctx, &chain->hook.loc, NULL,
-+                                                  "The %s family does not support this hook",
-+                                                  family2str(chain->handle.family));
-+       }
-+       chain_del_cache(ctx, cmd);
-+       return 0;
-+}
-+
- static void set_del_cache(struct eval_ctx *ctx, struct cmd *cmd)
- {
-        struct table *table;
-@@ -6069,8 +6085,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
-        case CMD_OBJ_RULE:
-                return 0;
-        case CMD_OBJ_CHAIN:
--               chain_del_cache(ctx, cmd);
--               return 0;
-+               return chain_del_evaluate(ctx, cmd);
-        case CMD_OBJ_TABLE:
-                table_del_cache(ctx, cmd);
-                return 0;
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-08b06c30.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/0e152fe53de2/vmlinux-08b06c30.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/5a1bd9f48488/bzImage-08b06c30.xz
 
-Fine with you?
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+aa8e2b2bfec0dd8e7e81@syzkaller.appspotmail.com
 
-Cheers, Phil
+------------[ cut here ]------------
+WARNING: CPU: 3 PID: 8841 at net/bridge/br_netfilter_hooks.c:630 br_nf_local_in+0x714/0x7f0 net/bridge/br_netfilter_hooks.c:630
+Modules linked in:
+CPU: 3 UID: 0 PID: 8841 Comm: syz.0.801 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:br_nf_local_in+0x714/0x7f0 net/bridge/br_netfilter_hooks.c:630
+Code: 12 f7 4b f7 90 0f 0b 90 e9 e1 fb ff ff e8 04 f7 4b f7 be 03 00 00 00 48 89 ef e8 87 e8 73 fa e9 39 fa ff ff e8 ed f6 4b f7 90 <0f> 0b 90 e9 dc fd ff ff 4c 89 f7 e8 2c 56 b2 f7 e9 48 f9 ff ff 4c
+RSP: 0018:ffffc9000500efc0 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff8a6f9520
+RDX: ffff8880255b4880 RSI: ffffffff8a6f9743 RDI: 0000000000000001
+RBP: ffff88803a6b2900 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000008
+R13: ffff88803a6b29c0 R14: 0000000000000000 R15: ffff88803608d874
+FS:  00007faf552176c0(0000) GS:ffff8880d69b8000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007faf55216f98 CR3: 000000001fa82000 CR4: 0000000000352ef0
+Call Trace:
+ <TASK>
+ nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
+ nf_hook_slow+0xbe/0x200 net/netfilter/core.c:623
+ nf_hook.constprop.0+0x3e7/0x6b0 include/linux/netfilter.h:273
+ NF_HOOK include/linux/netfilter.h:316 [inline]
+ br_pass_frame_up+0x307/0x490 net/bridge/br_input.c:70
+ br_handle_frame_finish+0xf5a/0x1ca0 net/bridge/br_input.c:227
+ br_nf_hook_thresh+0x307/0x410 net/bridge/br_netfilter_hooks.c:1170
+ br_nf_pre_routing_finish+0x8a1/0x1810 net/bridge/br_netfilter_hooks.c:425
+ NF_HOOK include/linux/netfilter.h:318 [inline]
+ NF_HOOK include/linux/netfilter.h:312 [inline]
+ br_nf_pre_routing+0xf7b/0x15b0 net/bridge/br_netfilter_hooks.c:534
+ nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
+ nf_hook_bridge_pre net/bridge/br_input.c:283 [inline]
+ br_handle_frame+0xad5/0x14b0 net/bridge/br_input.c:434
+ __netif_receive_skb_core.constprop.0+0xa22/0x48c0 net/core/dev.c:5878
+ __netif_receive_skb_one_core+0xb0/0x1e0 net/core/dev.c:5989
+ __netif_receive_skb+0x1d/0x160 net/core/dev.c:6104
+ netif_receive_skb_internal net/core/dev.c:6190 [inline]
+ netif_receive_skb+0x137/0x7b0 net/core/dev.c:6249
+ tun_rx_batched.isra.0+0x3ee/0x740 drivers/net/tun.c:1509
+ tun_get_user+0x28e4/0x3ce0 drivers/net/tun.c:1950
+ tun_chr_write_iter+0xdc/0x210 drivers/net/tun.c:1996
+ new_sync_write fs/read_write.c:593 [inline]
+ vfs_write+0x7d3/0x11d0 fs/read_write.c:686
+ ksys_write+0x12a/0x250 fs/read_write.c:738
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xcd/0x4c0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7faf5438d69f
+Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 f9 92 02 00 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 4c 93 02 00 48
+RSP: 002b:00007faf55217000 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007faf545c5fa0 RCX: 00007faf5438d69f
+RDX: 000000000000002a RSI: 0000200000000000 RDI: 00000000000000c8
+RBP: 00007faf54411e19 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000000000002a R11: 0000000000000293 R12: 0000000000000000
+R13: 00007faf545c6038 R14: 00007faf545c5fa0 R15: 00007fffb9e76588
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
