@@ -1,134 +1,172 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60F87285CBB;
-	Tue,  9 Sep 2025 09:17:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F030E28D82A
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Sep 2025 09:17:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757409459; cv=none; b=Gt00/PD6oPVwch6O6RK12gc9PZVu83m3HP7MBXMjhJghivNA+LyKKVoRaIdbSNvrCTeSNvHTuxvPg5v8PxSX20hunQoiWurq5eBQVQQXvLG/Qh4C65YZBG6FTNHEItgYeSt89t9+VdcEEQZ0ytF0IS91yYxzWymoE3MOj67pLxs=
+	t=1757409482; cv=none; b=mdChshfPylEYibE5+bNQFH9C99SLk/4gZ+ABIRpmWttOX4Zk0A3QyjUaMkCKfPl8UrTvIhpE0bR322WG/Pwd5EPFo+hli9cdo/5+DaJhWwl4Gnu1yRAHDvmwH+of8rl3GMC5Y9n8BwIHG4d+eu5nNeaZTnyZ0vWpqPBh3gBwRuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757409459; c=relaxed/simple;
-	bh=IslIkKU+Rjs6YxP9rj6x3SrZ3vjFO+B3Wb8sbTWyDBM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=KmEezjMGvoy+iqzIfa+XJ8swmF6N4Ij39crZZM0DhpvyZjxIkM0iY3nzAKjhb3NGfYyB2GXg8/DOCLzVxjRLuMMkDkY9NnUPw82zkYn+z1CeFNwbSxZehWK7mnMpWNSXc/W4ODoH+H+4quXVmf0hMfutNuxF/vZhrN649vflD0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VX2UcdQ5; arc=none smtp.client-ip=209.85.218.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1757409482; c=relaxed/simple;
+	bh=gYRoGS/3sF2wprdlXEo52E2SF603kIiqlHAI8Y50IME=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qbt6QKMh0X80PGoDXsv+r+GJEuu0hvDfH/YZryaknFH+4yR0+vkp4EaLjm/GPaFTkxj20HCmWIyRfMh69hGJsvKmja9vy4dCEsLPFnNnaS/TPgWV1dnzIzzD00mCQMxeDe9GBnwa1rwr0IFeozODDzBFpWLc3YTHSj/7CS4q/CU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=I88TgZO0; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OH51dhEu; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VX2UcdQ5"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-b0411b83aafso881550166b.1;
-        Tue, 09 Sep 2025 02:17:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1757409456; x=1758014256; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=RfbsNx4Ej0BLDskNnIJhjW/8RtalgNanAogt81Ea4Yg=;
-        b=VX2UcdQ53kibktuwGcXsz4TG5Zw7Utu0wHBj7sK0ZrGPUdAmtqnO82tEoJZHgu+ro/
-         GhSYkcbyDejv1SDBAEj4uhmFsYcbzQPtJR5BqnsDoOhrY6rETzxqz+CQ7Fl0mz8NVB5F
-         uA+EuQDnMreAU5zge0qSjgCY/ZXTZhPflf36iw+BxHJgCqUmEp5kU/ZZo1D2FHWIeAvQ
-         20V0aT7YWHwUVEh1ThobNJmbCvSA68AXemYTZyrxITw23cIkLBMrBcX9mvcwjZWLNIQT
-         bz4DNpqHtJKgCY87zzTJieSSzLK8hLuGZCCSypVQBzD0cUCLdVLh3IDKWEBGx9ixwAC7
-         RBjw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757409456; x=1758014256;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=RfbsNx4Ej0BLDskNnIJhjW/8RtalgNanAogt81Ea4Yg=;
-        b=cTic7VcjADs32GpUWpLm4Q/Sg+OKT/ixHXKwsp/NLGxH0q5CCNktgbj4unj/+QX1n4
-         d3b/K+JlZ4jjt28yC2YfiJlSsGl6irS9cNusrhf3wdV5folzYysxlvi4mW8Crj1KS+jG
-         B5+nitglkAQ8Sa0QDjEjyJUe1mT2ocLJtSmFXPyRl0U3a/2ji+5UUTqylOJB/1dK0elF
-         59ZbpPTFBCwyQtVKHG6gvmRlLh1ZNtsEEDupLw8x6u9N1s8DLWMp0xahKrqMyxnSIGVl
-         EeOLkrySM6S2fzemrwZomLeuoRc3JARieWKdK6aZitLB2xeAhkH+dmHTdtJiI94DNYd+
-         L7hA==
-X-Forwarded-Encrypted: i=1; AJvYcCUl6rSCQnE5y8DrB5oWfhgJV8v9X2BLW3yEnYZHnIAZRzPLxHmd6mVLMAKYLKVmkYxtdHLI8GVRQ1E0jGpEHRVH@vger.kernel.org, AJvYcCXOkThB4pCzpEDdFCLPB5RZPQBUODAL+zYl+AQ8fIhR8QFJ5yr8Gkh5nWgATtQTD+jAMjM/uYk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzHUCzjktt/6UU5UbWUG+wd3+rDW56/vnqYk3IoXrUXtceUyUNG
-	Jpx9E7d40EkcK30XPx6wfKpXwB39dlHLaV7Gu/Gqw+CCeISKmxNz0D6B
-X-Gm-Gg: ASbGncvOmRWnjrLVWYYVCIbCdKHn8CKaZs+NRSWHWj7ge9C+AXR6Hje04CyclMNAHyY
-	B51azbbgx0t5Z9en801RznraCXKRbWJgCxQWjbTGhDvXsUhTjx1pj0g7aOEz58F0rzLVZrXv3Tr
-	RONAxrslJy99kvn3TYtH28OhVsIkNrUpXuY8oEske3KCIV8mh194F57YW+ljkB8lkwcw1keexs5
-	DqjJMsnpJR/yFzQpEhwfjbK6I2LKF0B5zo/AXDQSphgqm8es/3UNnltJ4fjR42PDwqawUenz/C7
-	IK904gNyWLSDT81hVKsV2r6Mv4q/ozIjKqYXxkpZ3a+R8QDP1GyG+W6qpJ0bzw8Wo5H08t/mH4R
-	hYkqGvUFS2G7El8kqdVSTrblI2XF9QZDcDO/uDzSuL9mybJVFNg58c1LAJzjapRVrcp3gUWTL3z
-	AtPozEVCvuK7Te06SeeUjHesjWB4086CBtPZ9Gt9bHWsZCr8GQJ0tRa7cYyvjIvyd7MQpfZzWhc
-	+rfsaMcyEu1j3r+TueUPwpJ8FffbvOUwmDI4/jdDICKnhZyPf278g==
-X-Google-Smtp-Source: AGHT+IE/jQZDFMcQ7ZjTIQ0R6zDdXt1M25FWMQrxtYZGtY8aZZ0XMyUZqgcncvmNU5vjzg8lOByEVA==
-X-Received: by 2002:a17:907:98d:b0:af9:8438:de48 with SMTP id a640c23a62f3a-b04b1737677mr1226832366b.48.1757409455477;
-        Tue, 09 Sep 2025 02:17:35 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-aff0d9b1b53sm2546820066b.96.2025.09.09.02.17.34
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 09 Sep 2025 02:17:34 -0700 (PDT)
-Message-ID: <49a5ae30-2fc7-4695-829f-1eb5b041aeaa@gmail.com>
-Date: Tue, 9 Sep 2025 11:17:33 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="I88TgZO0";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OH51dhEu"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id F2EDD608E8; Tue,  9 Sep 2025 11:17:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1757409470;
+	bh=E+7pNfyMpqmQJM5yoy17rGzKpaEjxqCewnskUV+KnZc=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=I88TgZO02PIMDyl9zaw2kA9JYDTKKBean6iaSNGtkD+ltckEj1YS4Pb8BNo5Kv8DK
+	 1z+AGuVXARVIt/W8yxTqkl9u87U5M2uRvzevgE8ukajhIWJBlotKmonvWQknK1jI66
+	 fUPqjPvtYbyHY1erCy6qKlcQ31CmVumof9ndZo1mjr6gUDi4ORu77Zg3SMOqosgwGd
+	 3/KgWzID7Si14ljUiurrwRIOfvXhuoICTqaO/ihsCGw9cAFjtKcJ8e21TJFrFx3JpB
+	 3UxqPth/PFYfeV0ataTrLs43WeeuvOieYJ34MVP9Vd1dtF8QcwsOaysTz4Eyfpj7Q3
+	 Ol1CYCqFeV8fQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 19D84608E5;
+	Tue,  9 Sep 2025 11:17:49 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1757409469;
+	bh=E+7pNfyMpqmQJM5yoy17rGzKpaEjxqCewnskUV+KnZc=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=OH51dhEuTKfVyiEPMz/1RydCqyFO6a7TuMEbYaUEidDFHwgi+hGlhxpIbHAO5guXS
+	 6IgXYfcQKTKhImK1N3y9jCbYaHpdiStyHtRruDDIZVmE1Ygl89Wa4qxRy4nZuFQwpF
+	 ofwQENwA3Otkb+/L+TtuW48NzujP2ljebRbr/A1Kl4aTOx7yQxQQlnxNHWSS6YIIi3
+	 8grM39PzVVqK8kqs5Ki4HE5SoxRuV/K6h6bd7yWfJl/NdLousriUCyAd73Ku2D5NPy
+	 fOOUwJUJ6Yn/rkkZlIoeGbWWS2HXxBUlkEszB63ktEocmLIqL/17DSiVpt0VURj/y0
+	 IR/L6Y9CAHTfQ==
+Date: Tue, 9 Sep 2025 11:17:46 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 3/5] mnl: Allow for updating devices on existing inet
+ ingress hook chains
+Message-ID: <aL_wukm2NAeK5DGh@calendula>
+References: <20250829142513.4608-1-phil@nwl.cc>
+ <20250829142513.4608-4-phil@nwl.cc>
+ <aL6v70HMECk3feny@calendula>
+ <aL63bN5qs5ej_pTn@calendula>
+ <aL9rXH0n2RIYeqzl@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v14 nf-next 2/3] netfilter: bridge: Add conntrack double
- vlan and pppoe
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>,
- Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
- bridge@lists.linux.dev, netdev@vger.kernel.org
-References: <20250708151209.2006140-1-ericwouds@gmail.com>
- <20250708151209.2006140-3-ericwouds@gmail.com> <aLyjgj5CP5KIvUdl@strlen.de>
-From: Eric Woudstra <ericwouds@gmail.com>
-Content-Language: en-US
-In-Reply-To: <aLyjgj5CP5KIvUdl@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aL9rXH0n2RIYeqzl@orbyte.nwl.cc>
 
-
-
-On 9/6/25 11:11 PM, Florian Westphal wrote:
-> Eric Woudstra <ericwouds@gmail.com> wrote:
->>  	enum ip_conntrack_info ctinfo;
->> +	u32 len, data_len = U32_MAX;
->> +	int ret, offset = 0;
->>  	struct nf_conn *ct;
->> -	u32 len;
->> -	int ret;
->> +	__be16 outer_proto;
->>  
->>  	ct = nf_ct_get(skb, &ctinfo);
->>  	if ((ct && !nf_ct_is_template(ct)) ||
->>  	    ctinfo == IP_CT_UNTRACKED)
->>  		return NF_ACCEPT;
->>  
->> +	if (ct && nf_ct_zone_id(nf_ct_zone(ct), CTINFO2DIR(ctinfo)) !=
->> +			NF_CT_DEFAULT_ZONE_ID) {
->> +		switch (skb->protocol) {
->> +		case htons(ETH_P_PPP_SES): {
->> +			struct ppp_hdr {
->> +				struct pppoe_hdr hdr;
->> +				__be16 proto;
->> +			} *ph;
->> +
+On Tue, Sep 09, 2025 at 01:48:44AM +0200, Phil Sutter wrote:
+> On Mon, Sep 08, 2025 at 01:01:00PM +0200, Pablo Neira Ayuso wrote:
+> > On Mon, Sep 08, 2025 at 12:29:03PM +0200, Pablo Neira Ayuso wrote:
+> > > On Fri, Aug 29, 2025 at 04:25:11PM +0200, Phil Sutter wrote:
+> > > > Complete commit a66b5ad9540dd ("src: allow for updating devices on
+> > > > existing netdev chain") in supporting inet family ingress hook chains as
+> > > > well. The kernel does already but nft has to add a proper hooknum
+> > > > attribute to pass the checks.
+> > > > 
+> > > > The hook.num field has to be initialized from hook.name using
+> > > > str2hooknum(), which is part of chain evaluation. Calling
+> > > > chain_evaluate() just for that purpose is a bit over the top, but the
+> > > > hook name lookup may fail and performing chain evaluation for delete
+> > > > command as well fits more into the code layout than duplicating parts of
+> > > > it in mnl_nft_chain_del() or elsewhere. Just avoid the
+> > > > chain_cache_find() call as its assert() triggers when deleting by
+> > > > handle and also don't add to be deleted chains to cache.
+> > > > 
+> > > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > > ---
+> > > >  src/evaluate.c | 6 ++++--
+> > > >  src/mnl.c      | 2 ++
+> > > >  2 files changed, 6 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/src/evaluate.c b/src/evaluate.c
+> > > > index b7e4f71fdfbc9..db4ac18f1dc9f 100644
+> > > > --- a/src/evaluate.c
+> > > > +++ b/src/evaluate.c
+> > > > @@ -5758,7 +5758,9 @@ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
+> > > >  		return table_not_found(ctx);
+> > > >  
+> > > >  	if (chain == NULL) {
+> > > > -		if (!chain_cache_find(table, ctx->cmd->handle.chain.name)) {
+> > > > +		if (ctx->cmd->op != CMD_DELETE &&
+> > > > +		    ctx->cmd->op != CMD_DESTROY &&
+> > > > +		    !chain_cache_find(table, ctx->cmd->handle.chain.name)) {
+> > > >  			chain = chain_alloc();
+> > > >  			handle_merge(&chain->handle, &ctx->cmd->handle);
+> > > >  			chain_cache_add(chain, table);
+> > > > @@ -6070,7 +6072,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+> > > >  		return 0;
+> > > >  	case CMD_OBJ_CHAIN:
+> > > >  		chain_del_cache(ctx, cmd);
+> > > > -		return 0;
+> > > > +		return chain_evaluate(ctx, cmd->chain);
+> > > 
+> > > Maybe fix this to perform chain_del_cache() after chain_evaluate()?
 > 
-> This function is getting too long, please move this to a helper
-> function.
+> I agree, side-effects of reusing chain_evaluate() for deletion are not
+> worth it.
+> 
+> > > ie.
+> > > 
+> > >                 if (chain_evaluate(ctx, cmd->chain) < 0)
+> > >                         return -1;
+> > > 
+> > >                 chain_del_cache(ctx, cmd);
+> > 
+> > My suggestion won't work.
+> > 
+> > Maybe add a specific chain_del_evaluate(), see untested patch attached.
+> 
+> Since we only need a proper value in chain->hook.num, a more minimal
+> version is fine:
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index b7e4f71fdfbc9..8cecbe09de01c 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -5992,6 +5992,22 @@ static void chain_del_cache(struct eval_ctx *ctx, struct cmd *cmd)
+>         chain_free(chain);
+>  }
+>  
+> +static int chain_del_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
+> +{
+> +       struct chain *chain = cmd->chain;
+> +
+> +       if (chain && chain->flags & CHAIN_F_BASECHAIN && chain->hook.name) {
+> +               chain->hook.num = str2hooknum(chain->handle.family,
+> +                                             chain->hook.name);
+> +               if (chain->hook.num == NF_INET_NUMHOOKS)
+> +                       return __stmt_binary_error(ctx, &chain->hook.loc, NULL,
+> +                                                  "The %s family does not support this hook",
+> +                                                  family2str(chain->handle.family));
+> +       }
+> +       chain_del_cache(ctx, cmd);
+> +       return 0;
+> +}
+> +
+>  static void set_del_cache(struct eval_ctx *ctx, struct cmd *cmd)
+>  {
+>         struct table *table;
+> @@ -6069,8 +6085,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+>         case CMD_OBJ_RULE:
+>                 return 0;
+>         case CMD_OBJ_CHAIN:
+> -               chain_del_cache(ctx, cmd);
+> -               return 0;
+> +               return chain_del_evaluate(ctx, cmd);
+>         case CMD_OBJ_TABLE:
+>                 table_del_cache(ctx, cmd);
+>                 return 0;
+> 
+> Fine with you?
 
-Ok. At the end of nf_ct_bridge_pre() I've added:
-
->> +	if (offset && ret == NF_ACCEPT)
->> +		skb_reset_network_header(skb);
-
-to reset the network header, only when it had been changed.
-
-Do you want this helper to return the offset, so it can be used here?
-Or do you think it is more clean to always reset the network header like so:
-
-	if (ret == NF_ACCEPT)
-		skb_reset_network_header(skb);
-
-(Same question for nft_do_chain_bridge())
-
+Yes, thanks!
