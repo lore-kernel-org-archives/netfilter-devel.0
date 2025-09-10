@@ -1,125 +1,259 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA67313295;
-	Wed, 10 Sep 2025 09:39:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A541B2D2487;
+	Wed, 10 Sep 2025 19:03:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757497167; cv=none; b=mtNlRzt5WTOuSUu+fZp+IJfE9yKd4uDe05gI0M7+sdbVbAFDa6syBOCJYUK1g6lhxthHSGZo34TAPBRm4PoGX8rmKl+O2PyMXn0aNwOpmL17zc8Q9mLIu5cCXajBa18CqJZ0lNLIKjU771FxpgkR6qMvc3OnBrCLg67P5kaSOCk=
+	t=1757530997; cv=none; b=bw0HM649ANX5jSYiqS1CSlQKKwYkcrb3s6Zgcl4nn7hdRDHG3SvWktunyyj3gS3L0uU49kebAWhKPvMd1IzLPxqFlsMvxXmi6SbJCtQl0iyCK7ODOFn2r0p3isOpKWH0nv3/r0EOGXSwVJgY2aZgFRQ4TtfZ81kmGFZtAvv+QQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757497167; c=relaxed/simple;
-	bh=zTFxX1dpzU75gVQTHXC020MPra4QqYog6g5AI98AKe4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=mn7Zlc87vIrQPfkuUPyjRUb2yK3Su4gKvGME3oMKQDCpXbGXVqz0+nDvOwCiYbeDRC6etRl+tRa7339bZV1T7TtW5+aiO0ErnE1z7aRxuFxn8Ky3zpdlS7Vvq0ZqQIAhZu37o//7/4vzWO5StmerVnkxrOz8MnViquzEEAbV/y8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=u3CoKjJJ; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="u3CoKjJJ"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id BEAEE2054A;
-	Wed, 10 Sep 2025 12:39:21 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=7V7Dfe/CZwaAIY8UKFxBZElMW1h1SHQgs67YmIaOWW4=; b=u3CoKjJJ0snP
-	Zu1+opb9aOixXBRd93/J9Ko6EYp8VC9cn203lpmjETMERu+x4VUawr5Hw2WV4sqn
-	QkCOddugVRn4bj1ioUTCpJjO4yeY4z+DUGQLSTXfeF3G13QV9+7fV7LX3nnyDMdX
-	7OMh2k+LMX1Y+NZ4A4RK1e15PYKbt9aSkqdWcsHkJ1kByTzKvo3/c90dNwT7TdJA
-	SfaqOBcLxASdnvA8Plx5+HlIso2veIEskRTg6NVrV3SAXat+Laeqdb1n2Yu0VkOV
-	LsRexVhRkOR0Xe5NZyqsj6bYDbWXW/jnK+dcnMH/1A6Ugf5sKPJoOgaakOBe1NI9
-	aPouQ9ec5uh2YZWwArbMrPaeOTRV599GoZXC0Ot345EN43am3U2gjL+feGXB7e18
-	bCvIURBcG8WlQXK8s4ENY3E9QlQTdEp0epe3yEe8ogpikClGZ/tVPqTg3ANRriOU
-	UvGCvz/4AepWKQQrBhs5fenZIiFMQVRKSmZrR2Hta6wB+pKIrinEXC9agP2jse8v
-	xdhc8RJ+6XuKTH1xc2+c4S2/tnj7yZ+y2C+KaciJNqlCWfOXLqW6MMUBpt3+3PT6
-	iIPA9dAuUu39qiCNdWwc68PK8VV0DFxY+Rk7Lv+3LcpzVSFx2+fVY3BOCqMOAgcx
-	a8jyUBLMMdK+DKa72Kuq59uW3f48h9Q=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 10 Sep 2025 12:39:21 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id B513C60F04;
-	Wed, 10 Sep 2025 12:39:18 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 58A9d7dP015831;
-	Wed, 10 Sep 2025 12:39:07 +0300
-Date: Wed, 10 Sep 2025 12:39:07 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Slavin Liu <slavin452@gmail.com>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        Florian Westphal <fw@strlen.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, lvs-devel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] ipvs: Check ipvs->enable before unregistration in
- __ip_vs_ftp_exit()
-In-Reply-To: <20250909212113.481-1-slavin452@gmail.com>
-Message-ID: <5d3aae32-1c81-05fb-f210-29ec864c4f6d@ssi.bg>
-References: <20250909212113.481-1-slavin452@gmail.com>
+	s=arc-20240116; t=1757530997; c=relaxed/simple;
+	bh=n2GqUuAT44gsq2aUAeyZaYZyCY9N/hEHenq4xDPp9kE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nfj08lNzIF/0BAGO3QIktgLwu6Ila2CpC/yl96+d3vqQ54qckuhb8maBsACwoJeuPUT6FWXvMKB69JL78kz7UMPz4iCeGWZVIpqW4wDfOLvHuhBMMD211yaofBqHqn392CBNchYKimyhYG458BsqiepDz59mCbdZ8Fb6EVGYHKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id B054360532; Wed, 10 Sep 2025 21:03:12 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net 0/7] netfilter: updates for net
+Date: Wed, 10 Sep 2025 21:03:01 +0200
+Message-ID: <20250910190308.13356-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
-	Hello,
+The following patchset contains Netfilter fixes for *net*:
 
-On Wed, 10 Sep 2025, Slavin Liu wrote:
+WARNING: This results in a conflict on net -> net-next merge.
+Merge resolution walkthrough is at the end of this cover letter, see
+MERGE WALKTHROUGH.
 
-> On netns cleanup path, before unregistration in __ip_vs_ftp_exit(),
-> there could still be existing conns with valid cp->app.
-> 
-> Suggested by Julian, this patch fixes this issue by checking ipvs->enable 
-> to ensure the right order of cleanup:
-> 1. Set ipvs->enable to 0 in ipvs_core_dev_ops->exit_batch()
-> 2. Skip app unregistration in ip_vs_ftp_ops->exit() by 
-> 	checking ipvs->enable
-> 3. Flush all conns in ipvs_core_ops->exit_batch()
-> 4. Unregister all apps in ipvs_core_ops->exit_batch()
-> 
-> Access ipvs->enable by READ_ONCE to avoid concurrency issue.
-> 
-> Suggested-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Slavin Liu <slavin452@gmail.com>
-> ---
->  net/netfilter/ipvs/ip_vs_ftp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-> index d8a284999544..d3e2f7798bf3 100644
-> --- a/net/netfilter/ipvs/ip_vs_ftp.c
-> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-> @@ -605,7 +605,7 @@ static void __ip_vs_ftp_exit(struct net *net)
->  {
->  	struct netns_ipvs *ipvs = net_ipvs(net);
->  
-> -	if (!ipvs)
-> +	if (!ipvs || !READ_ONCE(ipvs->enable))
+  Merge branch 'mptcp-misc-fixes-for-v6-17-rc6' (2025-09-09 18:39:55 -0700)
 
-	Ops, I forgot that ipvs->enable is set later when
-service is added. May be we have to add some new global flag
-for this in ip_vs_ftp.c:
+are available in the Git repository at:
 
-static bool removing;
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-09-10-v2
 
-	We will set it in ip_vs_ftp_exit() before calling
-unregister_pernet_subsys() and the above check will become:
+for you to fetch changes up to 37a9675e61a2a2a721a28043ffdf2c8ec81eba37:
 
-	if (!ipvs || !removing)
+  MAINTAINERS: add Phil as netfilter reviewer (2025-09-10 20:32:46 +0200)
 
-	Also, we have to add Fixes tag, this looks the
-one that starts to remove apps from netns exit handler:
+First patch adds a lockdep annotation for a false-positive splat.
+Last patch adds formal reviewer tag for Phil Sutter to MAINTAINERS.
 
-Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
+Rest of the patches resolve spurious false negative results during set
+lookups while another CPU is processing a transaction.
 
-Regards
+This has been broken at least since v4.18 when an unconditional
+synchronize_rcu call was removed from the commit phase of nf_tables.
 
---
-Julian Anastasov <ja@ssi.bg>
+Quoting from Stefan Hanreichs original report:
 
+ It seems like we've found an issue with atomicity when reloading
+ nftables rulesets. Sometimes there is a small window where rules
+ containing sets do not seem to apply to incoming traffic, due to the set
+ apparently being empty for a short amount of time when flushing / adding
+ elements.
+
+Exanple ruleset:
+table ip filter {
+  set match {
+    type ipv4_addr
+    flags interval
+    elements = { 0.0.0.0-192.168.2.19, 192.168.2.21-255.255.255.255 }
+  }
+
+  chain pre {
+    type filter hook prerouting priority filter; policy accept;
+    ip saddr @match accept
+    counter comment "must never match"
+  }
+}
+
+Reproducer transaction:
+while true:
+nft -f -<<EOF
+ flush set ip filter match
+ create element ip filter match { \
+    0.0.0.0-192.168.2.19, 192.168.2.21-255.255.255.255 }
+EOF
+done
+
+Then create traffic. to/from e.g. 192.168.2.1 to 192.168.3.10.
+Once in a while the counter will increment even though the
+'ip saddr @match' rule should have accepted the packet.
+
+See individual patches for details.
+
+Thanks to Stefan Hanreich for an initial description and reproducer for
+this bug and to Pablo Neira Ayuso for reviewing earlier iterations of
+the patchset.
+
+Florian Westphal (7):
+  netfilter: nft_set_bitmap: fix lockdep splat due to missing annotation
+  netfilter: nft_set_pipapo: don't check genbit from packetpath lookups
+  netfilter: nft_set_rbtree: continue traversal if element is inactive
+  netfilter: nf_tables: place base_seq in struct net
+  netfilter: nf_tables: make nft_set_do_lookup available unconditionally
+  netfilter: nf_tables: restart set lookup on base_seq change
+  MAINTAINERS: add Phil as netfilter reviewer
+
+ MAINTAINERS                            |  1 +
+ include/net/netfilter/nf_tables.h      |  1 -
+ include/net/netfilter/nf_tables_core.h | 10 +---
+ include/net/netns/nftables.h           |  1 +
+ net/netfilter/nf_tables_api.c          | 66 +++++++++++++-------------
+ net/netfilter/nft_lookup.c             | 46 ++++++++++++++++--
+ net/netfilter/nft_set_bitmap.c         |  3 +-
+ net/netfilter/nft_set_pipapo.c         | 20 +++++++-
+ net/netfilter/nft_set_pipapo_avx2.c    |  4 +-
+ net/netfilter/nft_set_rbtree.c         |  6 +--
+ 10 files changed, 103 insertions(+), 55 deletions(-)
+
+MERGE WALKTHROUGH:
+
+When merging this to net-next, you should see following:
+
+CONFLICT (content): Merge conflict in net/netfilter/nft_set_pipapo.c
+CONFLICT (content): Merge conflict in net/netfilter/nft_set_pipapo_avx2.c
+
+Instructions for net/netfilter/nft_set_pipapo.c:
+
+@@@ -562,7 -539,7 +578,11 @@@ nft_pipapo_lookup(const struct net *net
+        const struct nft_pipapo_elem *e;
+  
+        m = rcu_dereference(priv->match);
+++<<<<<<< HEAD
+ +      e = pipapo_get_slow(m, (const u8 *)key, genmask, get_jiffies_64());
+++=======
++       e = pipapo_get(m, (const u8 *)key, NFT_GENMASK_ANY, get_jiffies_64());
+++>>>>>>> 352fd037254683c940630a6c5c8aa8c8ca38ae88
+  
+        return e ? &e->ext : NULL;
+  }
+
+Take the HEAD chunk, with 'genmask' replaced by NFT_GENMASK_ANY, i.e.:
+
+e = pipapo_get_slow(m, (const u8 *)key, NFT_GENMASK_ANY, get_jiffies_64());
+
+Instructions for net/netfilter/nft_set_pipapo_avx2.c:
+
+++<<<<<<< HEAD
+++=======
++       const struct nft_pipapo_match *m;
+++>>>>>>> 352fd037254683c940630a6c5c8aa8c8ca38ae88
+
+Take the HEAD chunk, i.e. delete 'const struct nft_pipapo_match *m;':
+In -next, this is passed as function argument.
+
+++<<<<<<< HEAD
+ +              if (ret < 0) {
+ +                      scratch->map_index = map_index;
+ +                      kernel_fpu_end();
+ +                      __local_unlock_nested_bh(&scratch->bh_lock);
+ +                      return NULL;
+++=======
++               if (ret < 0)
++                       goto out;
++ 
++               if (last) {
++                       const struct nft_set_ext *e = &f->mt[ret].e->ext;
++ 
++                       if (unlikely(nft_set_elem_expired(e)))
++                               goto next_match;
++ 
++                       ext = e;
++                       goto out;
+++>>>>>>> 352fd037254683c940630a6c5c8aa8c8ca38ae88
+
+Take the HEAD chunk and discard the other; including if (last) { branch.
+
+Then, in nft_pipapo_avx2_lookup(), make this change:
+
+@@ -1274,9 +1273,8 @@
+ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+                       const u32 *key)
+ {
+        struct nft_pipapo *priv = nft_set_priv(set);
+-       u8 genmask = nft_genmask_cur(net);
+        const struct nft_pipapo_match *m;
+        const u8 *rp = (const u8 *)key;
+        const struct nft_pipapo_elem *e;
+
+@@ -1292,9 +1290,9 @@
+        }
+
+        m = rcu_dereference(priv->match);
+
+-       e = pipapo_get_avx2(m, rp, genmask, get_jiffies_64());
++       e = pipapo_get_avx2(m, rp, NFT_GENMASK_ANY, get_jiffies_64());
+        local_bh_enable();
+
+        return e ? &e->ext : NULL;
+
+After this change, you are done.
+The expected diff vs the net-next main branch in these two files is:
+
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -549,6 +549,23 @@ static struct nft_pipapo_elem *pipapo_get(const struct nft_pipapo_match *m,
+  *
+  * This function is called from the data path.  It will search for
+  * an element matching the given key in the current active copy.
++ * Unlike other set types, this uses NFT_GENMASK_ANY instead of
++ * nft_genmask_cur().
+[trimmed rest of comment]
+  *
+  * Return: ntables API extension pointer or NULL if no match.
+  */
+@@ -557,12 +574,11 @@ nft_pipapo_lookup(const struct net *net, const struct nft_set *set,
+                  const u32 *key)
+ {
+        struct nft_pipapo *priv = nft_set_priv(set);
+-       u8 genmask = nft_genmask_cur(net);
+        const struct nft_pipapo_match *m;
+        const struct nft_pipapo_elem *e;
+
+        m = rcu_dereference(priv->match);
+-       e = pipapo_get_slow(m, (const u8 *)key, genmask, get_jiffies_64());
++       e = pipapo_get_slow(m, (const u8 *)key, NFT_GENMASK_ANY, get_jiffies_64());
+
+        return e ? &e->ext : NULL;
+ }
+
+--- a/net/netfilter/nft_set_pipapo_avx2.c
++++ b/net/netfilter/nft_set_pipapo_avx2.c
+@@ -1275,7 +1275,6 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+                       const u32 *key)
+ {
+        struct nft_pipapo *priv = nft_set_priv(set);
+-       u8 genmask = nft_genmask_cur(net);
+        const struct nft_pipapo_match *m;
+        const u8 *rp = (const u8 *)key;
+        const struct nft_pipapo_elem *e;
+@@ -1293,7 +1292,7 @@ nft_pipapo_avx2_lookup(const struct net *net, const struct nft_set *set,
+
+        m = rcu_dereference(priv->match);
+
+-       e = pipapo_get_avx2(m, rp, genmask, get_jiffies_64());
++       e = pipapo_get_avx2(m, rp, NFT_GENMASK_ANY, get_jiffies_64());
+        local_bh_enable();
+
+        return e ? &e->ext : NULL;
+-- 
+2.49.1
