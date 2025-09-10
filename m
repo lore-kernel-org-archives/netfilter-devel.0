@@ -1,174 +1,125 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F2130FF06
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Sep 2025 08:03:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FA67313295;
+	Wed, 10 Sep 2025 09:39:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757491415; cv=none; b=ckJGIPJLsZq3NMnJk3ZJEwgVtbcooxioszqwHL4lbanC9HQkXE9tWznC1fFy6OHYLoyKWvadGr/FW3VSLNNBaKMTJTiNmJd2mhIxbNewvWrAzlMiH8hKMIGHDQ1MWR6pVLjB8TBEG0WG44pX/M+S+rJl5pOEBc4/oO9J993roY8=
+	t=1757497167; cv=none; b=mtNlRzt5WTOuSUu+fZp+IJfE9yKd4uDe05gI0M7+sdbVbAFDa6syBOCJYUK1g6lhxthHSGZo34TAPBRm4PoGX8rmKl+O2PyMXn0aNwOpmL17zc8Q9mLIu5cCXajBa18CqJZ0lNLIKjU771FxpgkR6qMvc3OnBrCLg67P5kaSOCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757491415; c=relaxed/simple;
-	bh=RLVnQUiq68/pymlC5PdzVOBwittqtpJWl9fn1ZF5iUE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QpJj3qtai7QTqRj5Sy+XSwCmZfZsoqPeVqjRaTn/cM2+pkFfgAhf/sA8PnV3KLaexIymSACF1iYFgYRR/V71oMbD3JdTRrGj5BqUWk2pEhPIGAiNk5eav1fM/34XdSpQLPDHel4bSfui0W85XhM+xc0pGdKhYTGKeXqxWiDKtWg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8BCEB6061A; Wed, 10 Sep 2025 10:03:31 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: s.hanreich@proxmox.com,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 5/5] netfilter: nf_tables: restart set lookup on base_seq change
-Date: Wed, 10 Sep 2025 10:02:22 +0200
-Message-ID: <20250910080227.11174-6-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
-In-Reply-To: <20250910080227.11174-1-fw@strlen.de>
-References: <20250910080227.11174-1-fw@strlen.de>
+	s=arc-20240116; t=1757497167; c=relaxed/simple;
+	bh=zTFxX1dpzU75gVQTHXC020MPra4QqYog6g5AI98AKe4=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=mn7Zlc87vIrQPfkuUPyjRUb2yK3Su4gKvGME3oMKQDCpXbGXVqz0+nDvOwCiYbeDRC6etRl+tRa7339bZV1T7TtW5+aiO0ErnE1z7aRxuFxn8Ky3zpdlS7Vvq0ZqQIAhZu37o//7/4vzWO5StmerVnkxrOz8MnViquzEEAbV/y8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=u3CoKjJJ; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="u3CoKjJJ"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id BEAEE2054A;
+	Wed, 10 Sep 2025 12:39:21 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=7V7Dfe/CZwaAIY8UKFxBZElMW1h1SHQgs67YmIaOWW4=; b=u3CoKjJJ0snP
+	Zu1+opb9aOixXBRd93/J9Ko6EYp8VC9cn203lpmjETMERu+x4VUawr5Hw2WV4sqn
+	QkCOddugVRn4bj1ioUTCpJjO4yeY4z+DUGQLSTXfeF3G13QV9+7fV7LX3nnyDMdX
+	7OMh2k+LMX1Y+NZ4A4RK1e15PYKbt9aSkqdWcsHkJ1kByTzKvo3/c90dNwT7TdJA
+	SfaqOBcLxASdnvA8Plx5+HlIso2veIEskRTg6NVrV3SAXat+Laeqdb1n2Yu0VkOV
+	LsRexVhRkOR0Xe5NZyqsj6bYDbWXW/jnK+dcnMH/1A6Ugf5sKPJoOgaakOBe1NI9
+	aPouQ9ec5uh2YZWwArbMrPaeOTRV599GoZXC0Ot345EN43am3U2gjL+feGXB7e18
+	bCvIURBcG8WlQXK8s4ENY3E9QlQTdEp0epe3yEe8ogpikClGZ/tVPqTg3ANRriOU
+	UvGCvz/4AepWKQQrBhs5fenZIiFMQVRKSmZrR2Hta6wB+pKIrinEXC9agP2jse8v
+	xdhc8RJ+6XuKTH1xc2+c4S2/tnj7yZ+y2C+KaciJNqlCWfOXLqW6MMUBpt3+3PT6
+	iIPA9dAuUu39qiCNdWwc68PK8VV0DFxY+Rk7Lv+3LcpzVSFx2+fVY3BOCqMOAgcx
+	a8jyUBLMMdK+DKa72Kuq59uW3f48h9Q=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Wed, 10 Sep 2025 12:39:21 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id B513C60F04;
+	Wed, 10 Sep 2025 12:39:18 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 58A9d7dP015831;
+	Wed, 10 Sep 2025 12:39:07 +0300
+Date: Wed, 10 Sep 2025 12:39:07 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Slavin Liu <slavin452@gmail.com>
+cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        Jozsef Kadlecsik <kadlec@netfilter.org>,
+        Florian Westphal <fw@strlen.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, lvs-devel@vger.kernel.org,
+        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] ipvs: Check ipvs->enable before unregistration in
+ __ip_vs_ftp_exit()
+In-Reply-To: <20250909212113.481-1-slavin452@gmail.com>
+Message-ID: <5d3aae32-1c81-05fb-f210-29ec864c4f6d@ssi.bg>
+References: <20250909212113.481-1-slavin452@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-The hash, hash_fast, rhash and bitwise sets may indicate no result even
-though a matching element exists during a short time window while other
-cpu is finalizing the transaction.
 
-This happens when the hash lookup/bitwise lookup function has picked up
-the old genbit, right before it was toggled by nf_tables_commit(), but
-then the same cpu managed to unlink the matching old element from the
-hash table:
+	Hello,
 
-cpu0					cpu1
-  has added new elements to clone
-  has marked elements as being
-  inactive in new generation
-					perform lookup in the set
-  enters commit phase:
-					A) observes old genbit
-   increments base_seq
-I) increments the genbit
-II) removes old element from the set
-					B) finds matching element
-					C) returns no match: found
-					element is not valid in old
-					generation
+On Wed, 10 Sep 2025, Slavin Liu wrote:
 
-					Next lookup observes new genbit and
-					finds matching e2.
+> On netns cleanup path, before unregistration in __ip_vs_ftp_exit(),
+> there could still be existing conns with valid cp->app.
+> 
+> Suggested by Julian, this patch fixes this issue by checking ipvs->enable 
+> to ensure the right order of cleanup:
+> 1. Set ipvs->enable to 0 in ipvs_core_dev_ops->exit_batch()
+> 2. Skip app unregistration in ip_vs_ftp_ops->exit() by 
+> 	checking ipvs->enable
+> 3. Flush all conns in ipvs_core_ops->exit_batch()
+> 4. Unregister all apps in ipvs_core_ops->exit_batch()
+> 
+> Access ipvs->enable by READ_ONCE to avoid concurrency issue.
+> 
+> Suggested-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Slavin Liu <slavin452@gmail.com>
+> ---
+>  net/netfilter/ipvs/ip_vs_ftp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
+> index d8a284999544..d3e2f7798bf3 100644
+> --- a/net/netfilter/ipvs/ip_vs_ftp.c
+> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
+> @@ -605,7 +605,7 @@ static void __ip_vs_ftp_exit(struct net *net)
+>  {
+>  	struct netns_ipvs *ipvs = net_ipvs(net);
+>  
+> -	if (!ipvs)
+> +	if (!ipvs || !READ_ONCE(ipvs->enable))
 
-Consider a packet matching element e1, e2.
+	Ops, I forgot that ipvs->enable is set later when
+service is added. May be we have to add some new global flag
+for this in ip_vs_ftp.c:
 
-cpu0 processes following transaction:
-1. remove e1
-2. adds e2, which has same key as e1.
+static bool removing;
 
-P matches both e1 and e2.  Therefore, cpu1 should always find a match
-for P. Due to above race, this is not the case:
+	We will set it in ip_vs_ftp_exit() before calling
+unregister_pernet_subsys() and the above check will become:
 
-cpu1 observed the old genbit.  e2 will not be considered once it is found.
-The element e1 is not found anymore if cpu0 managed to unlink it from the
-hlist before cpu1 found it during list traversal.
+	if (!ipvs || !removing)
 
-The situation only occurs for a brief time period, lookups happening
-after I) observe new genbit and return e2.
+	Also, we have to add Fixes tag, this looks the
+one that starts to remove apps from netns exit handler:
 
-This problem exists in all set types except nft_set_pipapo, so fix it once
-in nft_lookup rather than each set ops individually.
+Fixes: 61b1ab4583e2 ("IPVS: netns, add basic init per netns.")
 
-Sample the base sequence counter, which gets incremented right before the
-genbit is changed.
+Regards
 
-Then, if no match is found, retry the lookup if the base sequence was
-altered in between.
-
-If the base sequence hasn't changed:
- - No update took place: no-match result is expected.
-   This is the common case.  or:
- - nf_tables_commit() hasn't progressed to genbit update yet.
-   Old elements were still visible and nomatch result is expected, or:
- - nf_tables_commit updated the genbit:
-   We picked up the new base_seq, so the lookup function also picked
-   up the new genbit, no-match result is expected.
-
-If the old genbit was observed, then nft_lookup also picked up the old
-base_seq: nft_lookup_should_retry() returns true and relookup is performed
-in the new generation.
-
-Thanks to Pablo Neira Ayuso for reviewing an earlier version of this
-patchset, for suggesting re-use of existing base_seq and placement of
-the restart loop in nft_set_do_lookup().
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c |  3 ++-
- net/netfilter/nft_lookup.c    | 31 ++++++++++++++++++++++++++++++-
- 2 files changed, 32 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9518b50695ba..c3c73411c40c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -10973,7 +10973,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 	while (++base_seq == 0)
- 		;
- 
--	WRITE_ONCE(net->nft.base_seq, base_seq);
-+	/* pairs with smp_load_acquire in nft_lookup_eval */
-+	smp_store_release(&net->nft.base_seq, base_seq);
- 
- 	gc_seq = nft_gc_seq_begin(nft_net);
- 
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 2c6909bf1b40..58c5b14889c4 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -55,11 +55,40 @@ __nft_set_do_lookup(const struct net *net, const struct nft_set *set,
- 	return set->ops->lookup(net, set, key);
- }
- 
-+static unsigned int nft_base_seq(const struct net *net)
-+{
-+	/* pairs with smp_store_release() in nf_tables_commit() */
-+	return smp_load_acquire(&net->nft.base_seq);
-+}
-+
-+static bool nft_lookup_should_retry(const struct net *net, unsigned int seq)
-+{
-+	return unlikely(seq != nft_base_seq(net));
-+}
-+
- const struct nft_set_ext *
- nft_set_do_lookup(const struct net *net, const struct nft_set *set,
- 		  const u32 *key)
- {
--	return __nft_set_do_lookup(net, set, key);
-+	const struct nft_set_ext *ext;
-+	unsigned int base_seq;
-+
-+	do {
-+		base_seq = nft_base_seq(net);
-+
-+		ext = __nft_set_do_lookup(net, set, key);
-+		if (ext)
-+			break;
-+		/* No match?  There is a small chance that lookup was
-+		 * performed in the old generation, but nf_tables_commit()
-+		 * already unlinked a (matching) element.
-+		 *
-+		 * We need to repeat the lookup to make sure that we didn't
-+		 * miss a matching element in the new generation.
-+		 */
-+	} while (nft_lookup_should_retry(net, base_seq));
-+
-+	return ext;
- }
- EXPORT_SYMBOL_GPL(nft_set_do_lookup);
- 
--- 
-2.49.1
+--
+Julian Anastasov <ja@ssi.bg>
 
