@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD482340DAB;
-	Thu, 11 Sep 2025 14:38:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ECFD33CEAA;
+	Thu, 11 Sep 2025 14:38:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757601518; cv=none; b=SwiZpO2AUc88UsyOJDU2npMI3PInyjUz1Zjr+BXIG2jxBHVregVRTtofKbBLXFu2GVfWsJoegzzTbC4XR+qMlJd8JgCtrHFQJF1+/AzzqWxUy1b8laH2fVmUxfzYQc8hMzs77OeAhRtVd8T8pDYBWSJh0sko2oxfYyhHwKfoI8c=
+	t=1757601520; cv=none; b=pkuDekUHpNrs5k1+MpgsNZ2r4elCf1BqgPcgHz/ZTa4wevACnGYGhHvnJ0QN1FF7B5nXJzXdqEYaeZX22mqCuEB7e637msM1hjI7Ox8GDPvD71Gr7PRuS/6vNc025XHFoUpQqJsdpNMOwzg/ClD0VBXqX4AUjEraeKXi+T4whD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757601518; c=relaxed/simple;
-	bh=0GKBcWnoMkmGgI6KSrz2yAfXdWpuS9nTro7aEOdcQyE=;
+	s=arc-20240116; t=1757601520; c=relaxed/simple;
+	bh=SpTw2QQNaO5WQFOnE1ckCnU2ny1LNEJziXyn+y0USgY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LrnRL6T6yK2iNmooJGm8QH7B8tWzhheBP3Afa8jpPE3k64CPN1+VPHoPv40bmliK53XWBcoXTdeL8bPhjwhdzbA+KdCHAm794v98NyIf72b6+/VXty0S/s2Yz2F45qMOHoiqu3LhkEIyyb4wYddD0+jTqkRBuDzf1vq8nkNYbWQ=
+	 MIME-Version; b=Iy+fvgsPztGd2/UGh1j/8XNBfP8JX+U1SPmkEVJfl/JYty3QSR3zU1nysTBceJHgHVJ5+9t+euWXA8vF/37r7COnui1p0F8tVLoxRaKxMy7iPI+vyOKkrJb224AB19SwLo3f9ASfwaGfrEGgZZsPUNC+RNjMbju650ZVtsvrRnA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 732796014E; Thu, 11 Sep 2025 16:38:32 +0200 (CEST)
+	id CB66C60326; Thu, 11 Sep 2025 16:38:36 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 2/5] netfilter: ipset: Remove unused htable_bits in macro ahash_region
-Date: Thu, 11 Sep 2025 16:38:16 +0200
-Message-ID: <20250911143819.14753-3-fw@strlen.de>
+Subject: [PATCH net-next 3/5] netfilter: nft_meta_bridge: introduce NFT_META_BRI_IIFHWADDR support
+Date: Thu, 11 Sep 2025 16:38:17 +0200
+Message-ID: <20250911143819.14753-4-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250911143819.14753-1-fw@strlen.de>
 References: <20250911143819.14753-1-fw@strlen.de>
@@ -38,63 +38,85 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zhen Ni <zhen.ni@easystack.cn>
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-Since the ahash_region() macro was redefined to calculate the region
-index solely from HTABLE_REGION_BITS, the htable_bits parameter became
-unused.
+Expose the input bridge interface ethernet address so it can be used to
+redirect the packet to the receiving physical device for processing.
 
-Remove the unused htable_bits argument and its call sites, simplifying
-the code without changing semantics.
+Tested with nft command line tool.
 
-Fixes: 8478a729c046 ("netfilter: ipset: fix region locking in hash types")
-Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-Reviewed-by: Phil Sutter <phil@nwl.cc>
+table bridge nat {
+	chain PREROUTING {
+		type filter hook prerouting priority 0; policy accept;
+		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr accept
+	}
+}
+
+Joint work with Pablo Neira.
+
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/bridge/netfilter/nft_meta_bridge.c   | 11 +++++++++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 5251524b96af..5e4453e9ef8e 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -63,7 +63,7 @@ struct hbucket {
- 		: jhash_size((htable_bits) - HTABLE_REGION_BITS))
- #define ahash_sizeof_regions(htable_bits)		\
- 	(ahash_numof_locks(htable_bits) * sizeof(struct ip_set_region))
--#define ahash_region(n, htable_bits)		\
-+#define ahash_region(n)		\
- 	((n) / jhash_size(HTABLE_REGION_BITS))
- #define ahash_bucket_start(h,  htable_bits)	\
- 	((htable_bits) < HTABLE_REGION_BITS ? 0	\
-@@ -702,7 +702,7 @@ mtype_resize(struct ip_set *set, bool retried)
- #endif
- 				key = HKEY(data, h->initval, htable_bits);
- 				m = __ipset_dereference(hbucket(t, key));
--				nr = ahash_region(key, htable_bits);
-+				nr = ahash_region(key);
- 				if (!m) {
- 					m = kzalloc(sizeof(*m) +
- 					    AHASH_INIT_SIZE * dsize,
-@@ -852,7 +852,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh(h->table);
- 	key = HKEY(value, h->initval, t->htable_bits);
--	r = ahash_region(key, t->htable_bits);
-+	r = ahash_region(key);
- 	atomic_inc(&t->uref);
- 	elements = t->hregion[r].elements;
- 	maxelem = t->maxelem;
-@@ -1050,7 +1050,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	rcu_read_lock_bh();
- 	t = rcu_dereference_bh(h->table);
- 	key = HKEY(value, h->initval, t->htable_bits);
--	r = ahash_region(key, t->htable_bits);
-+	r = ahash_region(key);
- 	atomic_inc(&t->uref);
- 	rcu_read_unlock_bh();
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 8e0eb832bc01..7c0c915f0306 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -959,6 +959,7 @@ enum nft_exthdr_attributes {
+  * @NFT_META_SDIF: slave device interface index
+  * @NFT_META_SDIFNAME: slave device interface name
+  * @NFT_META_BRI_BROUTE: packet br_netfilter_broute bit
++ * @NFT_META_BRI_IIFHWADDR: packet input bridge interface ethernet address
+  */
+ enum nft_meta_keys {
+ 	NFT_META_LEN,
+@@ -999,6 +1000,7 @@ enum nft_meta_keys {
+ 	NFT_META_SDIFNAME,
+ 	NFT_META_BRI_BROUTE,
+ 	__NFT_META_IIFTYPE,
++	NFT_META_BRI_IIFHWADDR,
+ };
  
+ /**
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 5adced1e7d0c..b7af36bbd306 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -59,6 +59,13 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		nft_reg_store_be16(dest, htons(p_proto));
+ 		return;
+ 	}
++	case NFT_META_BRI_IIFHWADDR:
++		br_dev = nft_meta_get_bridge(in);
++		if (!br_dev)
++			goto err;
++
++		memcpy(dest, br_dev->dev_addr, ETH_ALEN);
++		return;
+ 	default:
+ 		return nft_meta_get_eval(expr, regs, pkt);
+ 	}
+@@ -86,6 +93,9 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
+ 	case NFT_META_BRI_IIFVPROTO:
+ 		len = sizeof(u16);
+ 		break;
++	case NFT_META_BRI_IIFHWADDR:
++		len = ETH_ALEN;
++		break;
+ 	default:
+ 		return nft_meta_get_init(ctx, expr, tb);
+ 	}
+@@ -175,6 +185,7 @@ static int nft_meta_bridge_set_validate(const struct nft_ctx *ctx,
+ 
+ 	switch (priv->key) {
+ 	case NFT_META_BRI_BROUTE:
++	case NFT_META_BRI_IIFHWADDR:
+ 		hooks = 1 << NF_BR_PRE_ROUTING;
+ 		break;
+ 	default:
 -- 
 2.49.1
 
