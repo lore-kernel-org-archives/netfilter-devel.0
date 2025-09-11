@@ -1,84 +1,69 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23FF1215767
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2025 14:20:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA7B433CE97
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2025 14:34:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757600461; cv=none; b=qkXfcLquCIpKxD0te/wcUKMzVM65Kvh/p9ZTbc1imecI7D2mqOGqL+5jTg9MjJMpcC0KOutyXcaEM3Qd49jS+vZv9tT+ODHb6swMJA4c4UiGsvIMbCiEphvbF0YIurRA+tIyZKBFamrxYieoTpebwJjpB9bzaivoCkGyRMYW7Yo=
+	t=1757601244; cv=none; b=MlzCuK43M5Y0Ogrrl18RGjJc6lSDqhxm8imlp9Qhu6gUAVPCPxhbiyBOO4E2+oSvmYwxXT9SPznJycoxKVDx0bVVWPERSGfZ7zy0lzbBMaPDGrA2koQ5WE6ToLXe3KhUVLU/KLhMNQthnpHU4CnmN4XB9uKlUbWBKAmhG7boD5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757600461; c=relaxed/simple;
-	bh=IgVkdCKumcwfLOpctzcRbieRUoIXKbj1Vjha1iCc1DU=;
+	s=arc-20240116; t=1757601244; c=relaxed/simple;
+	bh=Db3f24x4LXSns/tExkNMybqimtPp9eqWk9Da73nkvac=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=izVVvHwa0BIZxV0nUZ+AA/yVMEa3/+/c6QACDK+bKf3nReuMa/sA2OFs+UNoUUJRc5iUEJNV2SyAbAaL/Oy3wwL7SBmqOUCuIsj8R5dgq6zVPlAGA6NFAvSdXve2amSbnvK8FHIuScKpZZ85ih8UvaqRzQakfsnB1PP3YAma548=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mqgJLtbH; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oYMRLic7; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mqgJLtbH";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oYMRLic7"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id AEF32607DC; Thu, 11 Sep 2025 16:20:54 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757600454;
-	bh=NZToLWN7iAxOXfMrESbHCU7AICjhKVN0HfFltt5bV9s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=mqgJLtbHKTm8bALte3YITbqMV3STbFSMasZSeUcxpxgJr9M9Hs3Mmrb2bICEKcbQK
-	 k8vbcOZWBUOl+bcMJdW98TODpUIcT59Ob+nXG0if03udea0iAUf9G8hXdxB61mxCh8
-	 YSzstrOJuJg9NOkdV6DIUgsrgnPLsbiX5/qCM4UW4l20TfQEAJNzfzHc8xTfSkQgsv
-	 1CUxs2Mg/TewEIgFzbirLq+IMIcJkxHFcHQMuOxDEt06QEeghgpIFogEo4EERufB4A
-	 XINtrkltE/KHTAzAw7xu90tZILK87cFsiz3HulsiegcLJQuqplEZlvj0nnxq9Tla7F
-	 4Xu69nb8juWxQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 980AE607D8;
-	Thu, 11 Sep 2025 16:20:53 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757600453;
-	bh=NZToLWN7iAxOXfMrESbHCU7AICjhKVN0HfFltt5bV9s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oYMRLic77MwpvngZj9/5aw7DYYFFrRkrvLvgc2mT0q5jqGmAVsn7vvfkzy4PmfQLN
-	 l8GrS73hQH2cQNpl9O0lkZMcT486H4Tvbn+ddc30CaFB1HdnpLwOe5y/9KXYax+4U3
-	 aqfIADXPgVbLdDZtas9fkQ/DDNBr3HCvnJGFhor7cqJeiyAnGRIPodsjR5RRyLiTid
-	 NOlwmXMWKcCPLgKYpEUTvhV4hGLysv9j47kYyzqm2owzWVSiGGClCHFVnU1NpiVuSI
-	 J5RWz1Kc9wR+yGNRNz5D/DbNagsHifg/HNyJJJiB71o5Fq6nuIxHa/bjyv91UgSGNk
-	 q1yK3XMU0Hciw==
-Date: Thu, 11 Sep 2025 16:20:51 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=D/3Z6HZlMncxB/6Sgo0eYkOvSWkRSmHZNPhj3WJMahmBOvK5SWWfsdA4jjbDtgu3CgRW3ex7KvSDNnR+dfxQv31UAOMo4Zcu0uQsj2iqwHyZsnVGtmZddsPbgBV6tCSIz26A3zl+2aPdol986VayLt1UHpXJn3fEvx88Sjb/3ck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 2732A6031F; Thu, 11 Sep 2025 16:33:59 +0200 (CEST)
+Date: Thu, 11 Sep 2025 16:33:58 +0200
+From: Florian Westphal <fw@strlen.de>
 To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
-Subject: Re: [nft PATCH] fib: Fix for existence check on Big Endian
-Message-ID: <aMLaw30XihPy0Moc@calendula>
-References: <20250909204948.17757-1-phil@nwl.cc>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl RFC] data_reg: Improve data reg value printing
+Message-ID: <aMLdxyxGNYsSP5c2@strlen.de>
+References: <20250911141503.17828-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250909204948.17757-1-phil@nwl.cc>
+In-Reply-To: <20250911141503.17828-1-phil@nwl.cc>
 
-On Tue, Sep 09, 2025 at 10:49:48PM +0200, Phil Sutter wrote:
-> Adjust the expression size to 1B so cmp expression value is correct.
-> Without this, the rule 'fib saddr . iif check exists' generates
-> following byte code on BE:
+Phil Sutter <phil@nwl.cc> wrote:
+> The old code printing each field with data as u32 value is problematic
+> in two ways:
 > 
-> |  [ fib saddr . iif oif present => reg 1 ]
-> |  [ cmp eq reg 1 0x00000001 ]
+> A) Field values are printed in host byte order which may not be correct
+>    and output for identical data will divert between machines of
+>    different Endianness.
 > 
-> Though with NFTA_FIB_F_PRESENT flag set, nft_fib.ko writes to the first
-> byte of reg 1 only (using nft_reg_store8()). With this patch in place,
-> byte code is correct:
+> B) The actual data length is not clearly readable from given output.
 > 
-> |  [ fib saddr . iif oif present => reg 1 ]
-> |  [ cmp eq reg 1 0x01000000 ]
+> This patch won't entirely fix for (A) given that data may be in host
+> byte order but it solves for the common case of matching against packet
+> data.
+
+Can you provide an example diff and a diffstat for the expected fallout in
+nftables?
+
+> Fixing for (B) is crucial to see what's happening beneath the bonnet.
+> The new output will show exactly what is used e.g. by a cmp expression.
 > 
-> Fixes: f686a17eafa0b ("fib: Support existence check")
-> Cc: Yi Chen <yiche@redhat.com>
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+> This change will affect practically all stored payload dumps in nftables
+> test suite. I have an alternative version which prints "full" reg fields
+> as before and uses the byte-by-byte printing only for the remainder (if
+> any). This would largely reduce the churn in stored payload dumps, but
+> also make this less useful.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+I think that if we want it then one big code-churn commit would be
+better than multiple smaller ones.
 
-Thanks.
+The inability to see the width of the compare operation is bad
+for debugging so I would prefer to change it.
