@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 604EA33CEAA;
-	Thu, 11 Sep 2025 14:38:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07BC33CEAA;
+	Thu, 11 Sep 2025 14:38:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757601525; cv=none; b=F4sAaznEPKUOqnM1yd3S2ch08qr0jObbeesKKcpWXA3YffWtfdKS4D55nuepkyFcer9GzIyY6mTrnEBM9OJy+qwacg5X1Gk+rqGR1IdH9lvs5F9PFhk6HkyOwRsTMK7BMqBxTGRJkytbhFJ5kS1BHeQZnlL0zJYQ69jdaHmADoA=
+	t=1757601528; cv=none; b=svAPMBgHi0rNF0L4fLclxOk+w2jRkfGSAvCWyX3YkYbwhXEea74U02GizYrV20+6JRk0en30EZv9YZu0HG7ky/PdSrU6W83XBMoQFnwud711P19ZTwKgBI8jrn+nJyWdten77lUwvDCqXIO/MGXYiGaB5Vlb1AFPzM6kWwTqS7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757601525; c=relaxed/simple;
-	bh=lVEjAAjpvGT/aK1HNksftYXVt8udTBmcPOjQofsFC48=;
+	s=arc-20240116; t=1757601528; c=relaxed/simple;
+	bh=/NyPCYHf27bdEQpt/sqcbHlzPL7BJBilJAsPHqcFe9U=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=HtoH7jg6gsXLi55PGTkI5T7qyxHv45kWL/OTW0qr2mJurAMEf833Mx8qdbRyQQClI1f4iPD94j+s1t/CBp50nViylQyh+sBmf/97/ebbOrtvV9HwYiUxVzc3hBrFWA7nVJxqMecMAOyRGJSeJanu/y1FjeeQHr6cF7gCM1X/klk=
+	 MIME-Version; b=nY8997G+b0y5x0rV7DUkqoQHp4jEKwiKM2w+fSvcfz0By5eWjnq1Zi3huCW3p1uhK4c8ylNApf9EImroUi16vLqxCxG8nae2N3ebxBaEfqOciItBsbKNeL1CiDcrz5UpbnMiqMtFHaS7OA/w8tD6oD4jyusc6wSUeuiYTSlISU8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 32F7160104; Thu, 11 Sep 2025 16:38:41 +0200 (CEST)
+	id 896F960326; Thu, 11 Sep 2025 16:38:45 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 4/5] ipvs: Use READ_ONCE/WRITE_ONCE for ipvs->enable
-Date: Thu, 11 Sep 2025 16:38:18 +0200
-Message-ID: <20250911143819.14753-5-fw@strlen.de>
+Subject: [PATCH net-next 5/5] netfilter: nf_reject: don't reply to icmp error messages
+Date: Thu, 11 Sep 2025 16:38:19 +0200
+Message-ID: <20250911143819.14753-6-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250911143819.14753-1-fw@strlen.de>
 References: <20250911143819.14753-1-fw@strlen.de>
@@ -38,218 +38,122 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zhang Tengfei <zhtfdev@gmail.com>
+tcp reject code won't reply to a tcp reset.
 
-KCSAN reported a data-race on the `ipvs->enable` flag, which is
-written in the control path and read concurrently from many other
-contexts.
+But the icmp reject 'netdev' family versions will reply to icmp
+dst-unreach errors, unlike icmp_send() and icmp6_send() which are used
+by the inet family implementation (and internally by the REJECT target).
 
-Following a suggestion by Julian, this patch fixes the race by
-converting all accesses to use `WRITE_ONCE()/READ_ONCE()`.
-This lightweight approach ensures atomic access and acts as a
-compiler barrier, preventing unsafe optimizations where the flag
-is checked in loops (e.g., in ip_vs_est.c).
+Check for the icmp(6) type and do not respond if its an unreachable error.
 
-Additionally, the `enable` checks in the fast-path hooks
-(`ip_vs_in_hook`, `ip_vs_out_hook`, `ip_vs_forward_icmp`) are
-removed. These are unnecessary since commit 857ca89711de
-("ipvs: register hooks only with services"). The `enable=0`
-condition they check for can only occur in two rare and non-fatal
-scenarios: 1) after hooks are registered but before the flag is set,
-and 2) after hooks are unregistered on cleanup_net. In the worst
-case, a single packet might be mishandled (e.g., dropped), which
-does not lead to a system crash or data corruption. Adding a check
-in the performance-critical fast-path to handle this harmless
-condition is not a worthwhile trade-off.
+Without this, something like 'ip protocol icmp reject', when used
+in a netdev chain attached to 'lo', cause a packet loop.
 
-Fixes: 857ca89711de ("ipvs: register hooks only with services")
-Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
-Suggested-by: Julian Anastasov <ja@ssi.bg>
-Link: https://lore.kernel.org/lvs-devel/2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg/
-Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Same for two hosts that both use such a rule: each error packet
+will be replied to.
+
+Such situation persist until the (bogus) rule is amended to ratelimit or
+checks the icmp type before the reject statement.
+
+As the inet versions don't do this make the netdev ones follow along.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
- net/netfilter/ipvs/ip_vs_core.c | 11 ++++-------
- net/netfilter/ipvs/ip_vs_ctl.c  |  6 +++---
- net/netfilter/ipvs/ip_vs_est.c  | 16 ++++++++--------
- 4 files changed, 17 insertions(+), 20 deletions(-)
+ net/ipv4/netfilter/nf_reject_ipv4.c | 25 ++++++++++++++++++++++++
+ net/ipv6/netfilter/nf_reject_ipv6.c | 30 +++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 965f3c8e5089..37ebb0cb62b8 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -885,7 +885,7 @@ static void ip_vs_conn_expire(struct timer_list *t)
- 			 * conntrack cleanup for the net.
- 			 */
- 			smp_rmb();
--			if (ipvs->enable)
-+			if (READ_ONCE(ipvs->enable))
- 				ip_vs_conn_drop_conntrack(cp);
- 		}
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 05631abe3f0d..fae4aa4a5f09 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -80,6 +80,27 @@ struct sk_buff *nf_reject_skb_v4_tcp_reset(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_reject_skb_v4_tcp_reset);
  
-@@ -1439,7 +1439,7 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
- 		cond_resched_rcu();
++static bool nf_skb_is_icmp_unreach(const struct sk_buff *skb)
++{
++	const struct iphdr *iph = ip_hdr(skb);
++	u8 *tp, _type;
++	int thoff;
++
++	if (iph->protocol != IPPROTO_ICMP)
++		return false;
++
++	thoff = skb_network_offset(skb) + sizeof(*iph);
++
++	tp = skb_header_pointer(skb,
++				thoff + offsetof(struct icmphdr, type),
++				sizeof(_type), &_type);
++
++	if (!tp)
++		return false;
++
++	return *tp == ICMP_DEST_UNREACH;
++}
++
+ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 					 struct sk_buff *oldskb,
+ 					 const struct net_device *dev,
+@@ -100,6 +121,10 @@ struct sk_buff *nf_reject_skb_v4_unreach(struct net *net,
+ 	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
+ 		return NULL;
  
- 		/* netns clean up started, abort delayed work */
--		if (!ipvs->enable)
-+		if (!READ_ONCE(ipvs->enable))
- 			break;
- 	}
- 	rcu_read_unlock();
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index c7a8a08b7308..5ea7ab8bf4dc 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1353,9 +1353,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
- 	if (unlikely(!skb_dst(skb)))
- 		return NF_ACCEPT;
++	/* don't reply to ICMP_DEST_UNREACH with ICMP_DEST_UNREACH. */
++	if (nf_skb_is_icmp_unreach(oldskb))
++		return NULL;
++
+ 	/* RFC says return as much as we can without exceeding 576 bytes. */
+ 	len = min_t(unsigned int, 536, oldskb->len);
  
--	if (!ipvs->enable)
--		return NF_ACCEPT;
--
- 	ip_vs_fill_iph_skb(af, skb, false, &iph);
- #ifdef CONFIG_IP_VS_IPV6
- 	if (af == AF_INET6) {
-@@ -1940,7 +1937,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
- 		return NF_ACCEPT;
- 	}
- 	/* ipvs enabled in this netns ? */
--	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
-+	if (unlikely(sysctl_backup_only(ipvs)))
- 		return NF_ACCEPT;
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 6b022449f867..ef5b7e85cffa 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -104,6 +104,32 @@ struct sk_buff *nf_reject_skb_v6_tcp_reset(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_reject_skb_v6_tcp_reset);
  
- 	ip_vs_fill_iph_skb(af, skb, false, &iph);
-@@ -2108,7 +2105,7 @@ ip_vs_forward_icmp(void *priv, struct sk_buff *skb,
- 	int r;
++static bool nf_skb_is_icmp6_unreach(const struct sk_buff *skb)
++{
++	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	u8 proto = ip6h->nexthdr;
++	u8 _type, *tp;
++	int thoff;
++	__be16 fo;
++
++	thoff = ipv6_skip_exthdr(skb, ((u8 *)(ip6h + 1) - skb->data), &proto, &fo);
++
++	if (thoff < 0 || thoff >= skb->len || fo != 0)
++		return false;
++
++	if (proto != IPPROTO_ICMPV6)
++		return false;
++
++	tp = skb_header_pointer(skb,
++				thoff + offsetof(struct icmp6hdr, icmp6_type),
++				sizeof(_type), &_type);
++
++	if (!tp)
++		return false;
++
++	return *tp == ICMPV6_DEST_UNREACH;
++}
++
+ struct sk_buff *nf_reject_skb_v6_unreach(struct net *net,
+ 					 struct sk_buff *oldskb,
+ 					 const struct net_device *dev,
+@@ -117,6 +143,10 @@ struct sk_buff *nf_reject_skb_v6_unreach(struct net *net,
+ 	if (!nf_reject_ip6hdr_validate(oldskb))
+ 		return NULL;
  
- 	/* ipvs enabled in this netns ? */
--	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
-+	if (unlikely(sysctl_backup_only(ipvs)))
- 		return NF_ACCEPT;
- 
- 	if (state->pf == NFPROTO_IPV4) {
-@@ -2295,7 +2292,7 @@ static int __net_init __ip_vs_init(struct net *net)
- 		return -ENOMEM;
- 
- 	/* Hold the beast until a service is registered */
--	ipvs->enable = 0;
-+	WRITE_ONCE(ipvs->enable, 0);
- 	ipvs->net = net;
- 	/* Counters used for creating unique names */
- 	ipvs->gen = atomic_read(&ipvs_netns_cnt);
-@@ -2367,7 +2364,7 @@ static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
- 		ipvs = net_ipvs(net);
- 		ip_vs_unregister_hooks(ipvs, AF_INET);
- 		ip_vs_unregister_hooks(ipvs, AF_INET6);
--		ipvs->enable = 0;	/* Disable packet reception */
-+		WRITE_ONCE(ipvs->enable, 0);	/* Disable packet reception */
- 		smp_wmb();
- 		ip_vs_sync_net_cleanup(ipvs);
- 	}
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 6a6fc4478533..4c8fa22be88a 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -256,7 +256,7 @@ static void est_reload_work_handler(struct work_struct *work)
- 		struct ip_vs_est_kt_data *kd = ipvs->est_kt_arr[id];
- 
- 		/* netns clean up started, abort delayed work */
--		if (!ipvs->enable)
-+		if (!READ_ONCE(ipvs->enable))
- 			goto unlock;
- 		if (!kd)
- 			continue;
-@@ -1483,9 +1483,9 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
- 
- 	*svc_p = svc;
- 
--	if (!ipvs->enable) {
-+	if (!READ_ONCE(ipvs->enable)) {
- 		/* Now there is a service - full throttle */
--		ipvs->enable = 1;
-+		WRITE_ONCE(ipvs->enable, 1);
- 
- 		/* Start estimation for first time */
- 		ip_vs_est_reload_start(ipvs);
-diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
-index 15049b826732..93a925f1ed9b 100644
---- a/net/netfilter/ipvs/ip_vs_est.c
-+++ b/net/netfilter/ipvs/ip_vs_est.c
-@@ -231,7 +231,7 @@ static int ip_vs_estimation_kthread(void *data)
- void ip_vs_est_reload_start(struct netns_ipvs *ipvs)
- {
- 	/* Ignore reloads before first service is added */
--	if (!ipvs->enable)
-+	if (!READ_ONCE(ipvs->enable))
- 		return;
- 	ip_vs_est_stopped_recalc(ipvs);
- 	/* Bump the kthread configuration genid */
-@@ -306,7 +306,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
- 	int i;
- 
- 	if ((unsigned long)ipvs->est_kt_count >= ipvs->est_max_threads &&
--	    ipvs->enable && ipvs->est_max_threads)
-+	    READ_ONCE(ipvs->enable) && ipvs->est_max_threads)
- 		return -EINVAL;
- 
- 	mutex_lock(&ipvs->est_mutex);
-@@ -343,7 +343,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
- 	}
- 
- 	/* Start kthread tasks only when services are present */
--	if (ipvs->enable && !ip_vs_est_stopped(ipvs)) {
-+	if (READ_ONCE(ipvs->enable) && !ip_vs_est_stopped(ipvs)) {
- 		ret = ip_vs_est_kthread_start(ipvs, kd);
- 		if (ret < 0)
- 			goto out;
-@@ -486,7 +486,7 @@ int ip_vs_start_estimator(struct netns_ipvs *ipvs, struct ip_vs_stats *stats)
- 	struct ip_vs_estimator *est = &stats->est;
- 	int ret;
- 
--	if (!ipvs->est_max_threads && ipvs->enable)
-+	if (!ipvs->est_max_threads && READ_ONCE(ipvs->enable))
- 		ipvs->est_max_threads = ip_vs_est_max_threads(ipvs);
- 
- 	est->ktid = -1;
-@@ -663,7 +663,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
- 			/* Wait for cpufreq frequency transition */
- 			wait_event_idle_timeout(wq, kthread_should_stop(),
- 						HZ / 50);
--			if (!ipvs->enable || kthread_should_stop())
-+			if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
- 				goto stop;
- 		}
- 
-@@ -681,7 +681,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
- 		rcu_read_unlock();
- 		local_bh_enable();
- 
--		if (!ipvs->enable || kthread_should_stop())
-+		if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
- 			goto stop;
- 		cond_resched();
- 
-@@ -757,7 +757,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
- 	mutex_lock(&ipvs->est_mutex);
- 	for (id = 1; id < ipvs->est_kt_count; id++) {
- 		/* netns clean up started, abort */
--		if (!ipvs->enable)
-+		if (!READ_ONCE(ipvs->enable))
- 			goto unlock2;
- 		kd = ipvs->est_kt_arr[id];
- 		if (!kd)
-@@ -787,7 +787,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
- 	id = ipvs->est_kt_count;
- 
- next_kt:
--	if (!ipvs->enable || kthread_should_stop())
-+	if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
- 		goto unlock;
- 	id--;
- 	if (id < 0)
++	/* Don't reply to ICMPV6_DEST_UNREACH with ICMPV6_DEST_UNREACH */
++	if (nf_skb_is_icmp6_unreach(oldskb))
++		return NULL;
++
+ 	/* Include "As much of invoking packet as possible without the ICMPv6
+ 	 * packet exceeding the minimum IPv6 MTU" in the ICMP payload.
+ 	 */
 -- 
 2.49.1
 
