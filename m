@@ -1,230 +1,119 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 879B42EB86D
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2025 09:50:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B852C23BD02
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2025 10:19:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757584224; cv=none; b=qJR/mXa+dezpQ7Z8TIXQXGaN3OQhf7OWI14y+jzC0uumIhEoDGlg7t2POyXtqmhfXUhOCddMX2fhJveuLc0vJJEGoLJrg6GBAtPnZmamVMK2rhC1ToxuLyuygc9C9FSvdHViYYUqcYZIPIX1br2hWHxqzMXxsZbaXrbHv+LN1AA=
+	t=1757585963; cv=none; b=CqCqE25kVuV8e8DpiIZSA/wjwdMTkNacwmOXyczH9qp+YKMCWI2dYGaaW7CdxFkQQaa7MHfXWApRJy+Ti/pKNdUB6lN1fY4ANvbBI/epIQ5hvsnzyRuoe1sZWkovvnb+qV6xWK3Dv1xIQwNq/14ERHY0wXvPBcyTZEBSrPWYCwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757584224; c=relaxed/simple;
-	bh=BHNwajLwmMvaEID1Y0XJJoS5qKgnGsykwzlYGqqezek=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=aTVIUoJotJMItsrWDiRurPdA88ExCmxz6r47zMUdQpBDNF7cE8s6RwajV96QIzolUs+Ea53gJ1O2EoS7iwEX0nXM2j3nKrBVKPWAvysHJ6wswBWFao7C1lewX/uMgGluz+ODIhx8YctkLCr2TMhNRSOfSublXxAfw0mUl04yeUw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7584C60324; Thu, 11 Sep 2025 11:50:14 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nf-next v2 defer] netfilter: nft_byteorder: remove multi-register support
-Date: Thu, 11 Sep 2025 11:50:00 +0200
-Message-ID: <20250911095009.22744-1-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
+	s=arc-20240116; t=1757585963; c=relaxed/simple;
+	bh=L7xrR/t9DSbKgPbgsqHdwFXhHUwsocqwCZAa3d7uci0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TJVuCjr/Yg7kNsufP91vJKJjUSqXVPXM6dItXubyBRDmVNV3ok/BP2xGGq0FpmtGPNaOamT/cIYCPag4krWa/wb0GdLVAyq3mpFcup5vFgioBdPn5OC4uRsE8cAAFPLu//lkH8m6xbYn9358CZOVog0PUq/mf0eYID/wa1szC7s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=AaBkw7UP; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="AaBkw7UP"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=ggS1rNWHcBDuenSwmV7ppcBLGtUurkX/8q/2fXTuDHg=; b=AaBkw7UPKtEdG6ZLMX4TTdFy50
+	vceWE3f6FM+szbaTY37nAwieUL4Son70o9yDSgFqednlDQeZ60K5XknQypYnepHlvcMQP6oVgi6ID
+	8djWBjgZe3HoD13UobWWL8XLPbvyqn8WzHaED14RnMBoTlcJLecno/Rin6w8v14ebfhYCC3ZyQD3t
+	kC0XEgBvCmmFCPi3u3yX29vB+ym13NkDgu1Oz7TuVfWr0J3nZTbPEz5thb3ag5RV6ZBRlHuxNsyOL
+	EBJusMSJiNSh44mXHDCTOz7wiDDzeMDf8eppFelBJSt7vusNTB/7DgFH8VyVK5+TRT9mJvwYmd+0G
+	eVQo/VwQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uweOT-0000000016s-1VAv;
+	Thu, 11 Sep 2025 12:19:10 +0200
+Date: Thu, 11 Sep 2025 12:19:09 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
+Subject: Re: [nft PATCH] fib: Fix for existence check on Big Endian
+Message-ID: <aMKiGuWVLC6H3S_j@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
+References: <20250909204948.17757-1-phil@nwl.cc>
+ <aMCdSDWhxCJM_kjY@calendula>
+ <aMCuzr9SaA--RG3f@orbyte.nwl.cc>
+ <aMKE04zkMk9Ysmn3@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <aMKE04zkMk9Ysmn3@calendula>
 
-64bit byteorder conversion is broken when several registers need to be
-converted because the source register array advances in steps for 4 bytes
-instead of 8:
+On Thu, Sep 11, 2025 at 10:14:11AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 10, 2025 at 12:48:46AM +0200, Phil Sutter wrote:
+> > Hi Pablo,
+> > 
+> > On Tue, Sep 09, 2025 at 11:34:00PM +0200, Pablo Neira Ayuso wrote:
+> > > On Tue, Sep 09, 2025 at 10:49:48PM +0200, Phil Sutter wrote:
+> > > > Adjust the expression size to 1B so cmp expression value is correct.
+> > > > Without this, the rule 'fib saddr . iif check exists' generates
+> > > > following byte code on BE:
+> > > > 
+> > > > |  [ fib saddr . iif oif present => reg 1 ]
+> > > > |  [ cmp eq reg 1 0x00000001 ]
+> > > > 
+> > > > Though with NFTA_FIB_F_PRESENT flag set, nft_fib.ko writes to the first
+> > > > byte of reg 1 only (using nft_reg_store8()). With this patch in place,
+> > > > byte code is correct:
+> > > > 
+> > > > |  [ fib saddr . iif oif present => reg 1 ]
+> > > > |  [ cmp eq reg 1 0x01000000 ]
+> > > 
+> > > Is this a generic issue of boolean that is using 1 bit?
+> > > 
+> > > const struct datatype boolean_type = {
+> > >         .type           = TYPE_BOOLEAN,
+> > >         .name           = "boolean",
+> > >         .desc           = "boolean type",
+> > >         .size           = 1,
+> > 
+> > Maybe, yes: I compared fib existence checks to exthdr ones in order to
+> > find the bug. With exthdr, we know in parser already that it is an
+> > existence check (see exthdr_exists_expr rule in parser_bison.y). If so,
+> > exthdr expression is allocated with type 1 which is (assumed to be) the
+> > NEXTHDR field in all extension headers. This field has
+> > inet_protocol_type, which is size 8b.
+> > 
+> > Via expr_ctx::len, RHS will then be adjusted to 8b size (see 'expr->len =
+> > masklen' in expr_evaluate_integer()).
+> > 
+> > IIRC, LHS defines the RHS size in relationals. I am not sure if we may
+> > sanely reverse this rule if RHS is a boolean_type.
+> 
+> Probably this fix is more generic, see untested patch.
 
-  for (i = ...
-      src64 = nft_reg_load64(&src[i]);
-                             ~~~~~ u32 *src
-      nft_reg_store64(&dst64[i],
+> diff --git a/src/datatype.c b/src/datatype.c
+> index f347010f4a1a..2d39239316a6 100644
+> --- a/src/datatype.c
+> +++ b/src/datatype.c
+> @@ -1581,7 +1581,7 @@ const struct datatype boolean_type = {
+>  	.type		= TYPE_BOOLEAN,
+>  	.name		= "boolean",
+>  	.desc		= "boolean type",
+> -	.size		= 1,
+> +	.size		= BITS_PER_BYTE,
+>  	.parse		= boolean_type_parse,
+>  	.basetype	= &integer_type,
+>  	.sym_tbl	= &boolean_tbl,
 
-Remove the multi-register support, it has other issues as well:
+This does not make a difference. Since the fib expr::len remains at
+value 32, the cmp payload will be 32 bits as well with the first three
+bytes being zero on BE irrespective of RHS value.
 
-Pablo points out that commit
-caf3ef7468f7 ("netfilter: nf_tables: prevent OOB access in nft_byteorder_eval")
-alters semantics: before the loop operated on registers, i.e.
- for ( ... )
-   dst32[i] = htons((u16)src32[i])
-
- .. but after the patch it will operate on bytes, which makes this
- useless to convert e.g. concatenations, which store each compound
- in its own register.
-
-Multi-convert of u32 has one theoretical application:
-
-ct mark . meta mark . tcp dport @intervalset
-
-Because ct mark and meta mark are host byte order, use with
-intervals has to convert the byteorder for ct/meta mark value
-to network byte order (bigendian).
-
-nftables emits this:
- [ meta load mark => reg 1 ]
- [ byteorder reg 1 = hton(reg 1, 4, 4) ]
- [ ct load mark => reg 9 ]
- [ byteorder reg 9 = hton(reg 9, 4, 4) ]
- ...
-
-I.e. two separate calls.  Theoretically it could be changed to do:
- [ meta load mark => reg 1 ]
- [ ct load mark => reg 9 ]
- [ byteorder reg 1 = htonl(reg 1, 4, 8) ]
- ...
-
-But then all it would take to change the set to
-meta mark . tcp dport . ct mark
-
-... and we'd be back to two "byteorder" calls. IOW, support to
-convert a range of registers is both dysfunctional and dubious.
-
-Simplify this: remove the feature.
-
-Pablo Neira Ayuso points out that nftables before 1.1.0 can generate
-incorrect byteorder conversions, see 9fe58952c45a,
-"evaluate: skip byteorder conversion for selector smaller than 2 bytes"
-in nftables.git).  Affected rulesets fail to load with this change and
-old userspace due to 'len != size' check.
-
-Fixes: c301f0981fdd ("netfilter: nf_tables: fix pointer math issue in nft_byteorder_eval()")
-Cc: <stable+noautosel@kernel.org> # may break rule load with old nftables versions
-Reported-by: Michal Kubecek <mkubecek@suse.cz>
-Link: https://lore.kernel.org/netfilter-devel/20240206104336.ctigqpkunom2ufmn@lion.mk-sys.cz/
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Sending this for the patchwork backlog so I don't forget about it.
- I think its still too early for this round due to above backwards
- compat issue.
-
- net/netfilter/nft_byteorder.c | 52 ++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 31 deletions(-)
-
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index af9206a3afd1..8dbd918ef5a2 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -19,7 +19,6 @@ struct nft_byteorder {
- 	u8			sreg;
- 	u8			dreg;
- 	enum nft_byteorder_ops	op:8;
--	u8			len;
- 	u8			size;
- };
- 
-@@ -28,13 +27,8 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 			const struct nft_pktinfo *pkt)
- {
- 	const struct nft_byteorder *priv = nft_expr_priv(expr);
--	u32 *src = &regs->data[priv->sreg];
-+	const u32 *src = &regs->data[priv->sreg];
- 	u32 *dst = &regs->data[priv->dreg];
--	u16 *s16, *d16;
--	unsigned int i;
--
--	s16 = (void *)src;
--	d16 = (void *)dst;
- 
- 	switch (priv->size) {
- 	case 8: {
-@@ -43,18 +37,14 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
--			for (i = 0; i < priv->len / 8; i++) {
--				src64 = nft_reg_load64(&src[i]);
--				nft_reg_store64(&dst64[i],
--						be64_to_cpu((__force __be64)src64));
--			}
-+			src64 = nft_reg_load64(src);
-+
-+			nft_reg_store64(dst64, be64_to_cpu((__force __be64)src64));
- 			break;
- 		case NFT_BYTEORDER_HTON:
--			for (i = 0; i < priv->len / 8; i++) {
--				src64 = (__force __u64)
--					cpu_to_be64(nft_reg_load64(&src[i]));
--				nft_reg_store64(&dst64[i], src64);
--			}
-+			src64 = (__force __u64)cpu_to_be64(nft_reg_load64(src));
-+
-+			nft_reg_store64(dst64, src64);
- 			break;
- 		}
- 		break;
-@@ -62,24 +52,20 @@ void nft_byteorder_eval(const struct nft_expr *expr,
- 	case 4:
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
--			for (i = 0; i < priv->len / 4; i++)
--				dst[i] = ntohl((__force __be32)src[i]);
-+			*dst = ntohl((__force __be32)*src);
- 			break;
- 		case NFT_BYTEORDER_HTON:
--			for (i = 0; i < priv->len / 4; i++)
--				dst[i] = (__force __u32)htonl(src[i]);
-+			*dst = (__force __u32)htonl(*src);
- 			break;
- 		}
- 		break;
- 	case 2:
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
--			for (i = 0; i < priv->len / 2; i++)
--				d16[i] = ntohs((__force __be16)s16[i]);
-+			nft_reg_store16(dst, ntohs(nft_reg_load_be16(src)));
- 			break;
- 		case NFT_BYTEORDER_HTON:
--			for (i = 0; i < priv->len / 2; i++)
--				d16[i] = (__force __u16)htons(s16[i]);
-+			nft_reg_store_be16(dst, htons(nft_reg_load16(src)));
- 			break;
- 		}
- 		break;
-@@ -137,16 +123,18 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	priv->len = len;
-+	/* no longer support multi-reg conversions */
-+	if (len != size)
-+		return -EOPNOTSUPP;
- 
- 	err = nft_parse_register_load(ctx, tb[NFTA_BYTEORDER_SREG], &priv->sreg,
--				      priv->len);
-+				      len);
- 	if (err < 0)
- 		return err;
- 
- 	return nft_parse_register_store(ctx, tb[NFTA_BYTEORDER_DREG],
- 					&priv->dreg, NULL, NFT_DATA_VALUE,
--					priv->len);
-+					len);
- }
- 
- static int nft_byteorder_dump(struct sk_buff *skb,
-@@ -160,10 +148,11 @@ static int nft_byteorder_dump(struct sk_buff *skb,
- 		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_BYTEORDER_OP, htonl(priv->op)))
- 		goto nla_put_failure;
--	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->len)))
--		goto nla_put_failure;
- 	if (nla_put_be32(skb, NFTA_BYTEORDER_SIZE, htonl(priv->size)))
- 		goto nla_put_failure;
-+	/* compatibility for old userspace which permitted size != len */
-+	if (nla_put_be32(skb, NFTA_BYTEORDER_LEN, htonl(priv->size)))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
-@@ -175,7 +164,8 @@ static bool nft_byteorder_reduce(struct nft_regs_track *track,
- {
- 	struct nft_byteorder *priv = nft_expr_priv(expr);
- 
--	nft_reg_track_cancel(track, priv->dreg, priv->len);
-+	/* warning: relies on NFTA_BYTEORDER_SIZE == BYTEORDER_LEN */
-+	nft_reg_track_cancel(track, priv->dreg, priv->size);
- 
- 	return false;
- }
--- 
-2.49.1
-
+Cheers, Phil
