@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04849214A8B;
-	Thu, 11 Sep 2025 14:38:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD482340DAB;
+	Thu, 11 Sep 2025 14:38:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757601511; cv=none; b=p0M9GHKEdmADzQNytKgUazADkxzEy+rhUXJcGXpKJJ93tgbMRZ1qZ27+VMQFY2E4s3LzuFp/jOa6zTQSxhwiFWCTmv7yONyUbuJFxtcLGHaC/VhEDGQJFM8WIyNmikRi3iK2WEOp55vI1ukGlFHoy3lRF6olNETRbpUFQxd0FZM=
+	t=1757601518; cv=none; b=SwiZpO2AUc88UsyOJDU2npMI3PInyjUz1Zjr+BXIG2jxBHVregVRTtofKbBLXFu2GVfWsJoegzzTbC4XR+qMlJd8JgCtrHFQJF1+/AzzqWxUy1b8laH2fVmUxfzYQc8hMzs77OeAhRtVd8T8pDYBWSJh0sko2oxfYyhHwKfoI8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757601511; c=relaxed/simple;
-	bh=FSnIpU6ZCAXqQ8bL/82fDks9DVR6kr4M84ujrVqiLLM=;
+	s=arc-20240116; t=1757601518; c=relaxed/simple;
+	bh=0GKBcWnoMkmGgI6KSrz2yAfXdWpuS9nTro7aEOdcQyE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VOkpnwKGewUOle0VOThSNNMHM/kX+mZicWYdTNi6F2WpPvQ6wQgWv2oMeitlDRec7SUR3QCrvk6/8ALZB41iKxz4i0IM0xHnVCepkQ9JmLnXA9oZZ4ckw893OxPlWHIBvOejvrgxx8bsv1/lxmUHN0qzFI7wq7UULh08tI0tqoU=
+	 MIME-Version; b=LrnRL6T6yK2iNmooJGm8QH7B8tWzhheBP3Afa8jpPE3k64CPN1+VPHoPv40bmliK53XWBcoXTdeL8bPhjwhdzbA+KdCHAm794v98NyIf72b6+/VXty0S/s2Yz2F45qMOHoiqu3LhkEIyyb4wYddD0+jTqkRBuDzf1vq8nkNYbWQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 18DDE60326; Thu, 11 Sep 2025 16:38:28 +0200 (CEST)
+	id 732796014E; Thu, 11 Sep 2025 16:38:32 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 1/5] selftest:net: fixed spelling mistakes
-Date: Thu, 11 Sep 2025 16:38:15 +0200
-Message-ID: <20250911143819.14753-2-fw@strlen.de>
+Subject: [PATCH net-next 2/5] netfilter: ipset: Remove unused htable_bits in macro ahash_region
+Date: Thu, 11 Sep 2025 16:38:16 +0200
+Message-ID: <20250911143819.14753-3-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250911143819.14753-1-fw@strlen.de>
 References: <20250911143819.14753-1-fw@strlen.de>
@@ -38,39 +38,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Andres Urian Florez <andres.emb.sys@gmail.com>
+From: Zhen Ni <zhen.ni@easystack.cn>
 
-Fixed spelling errors in test_redirect6() error message and
-test_port_shadowing() comments
+Since the ahash_region() macro was redefined to calculate the region
+index solely from HTABLE_REGION_BITS, the htable_bits parameter became
+unused.
 
-Signed-off-by: Andres Urian Florez <andres.emb.sys@gmail.com>
-Reviewed-by: Hangbin Liu <liuhangbin@gmail.com>
+Remove the unused htable_bits argument and its call sites, simplifying
+the code without changing semantics.
+
+Fixes: 8478a729c046 ("netfilter: ipset: fix region locking in hash types")
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+Reviewed-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tools/testing/selftests/net/netfilter/nft_nat.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_nat.sh b/tools/testing/selftests/net/netfilter/nft_nat.sh
-index a954754b99b3..b3ec2d0a3f56 100755
---- a/tools/testing/selftests/net/netfilter/nft_nat.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_nat.sh
-@@ -569,7 +569,7 @@ test_redirect6()
- 	ip netns exec "$ns0" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
- 
- 	if ! ip netns exec "$ns2" ping -q -c 1 dead:1::99 > /dev/null;then
--		echo "ERROR: cannnot ping $ns1 from $ns2 via ipv6"
-+		echo "ERROR: cannot ping $ns1 from $ns2 via ipv6"
- 		lret=1
- 	fi
- 
-@@ -859,7 +859,7 @@ EOF
- 	# from router:service bypass connection tracking.
- 	test_port_shadow_notrack "$family"
- 
--	# test nat based mitigation: fowarded packets coming from service port
-+	# test nat based mitigation: forwarded packets coming from service port
- 	# are masqueraded with random highport.
- 	test_port_shadow_pat "$family"
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 5251524b96af..5e4453e9ef8e 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -63,7 +63,7 @@ struct hbucket {
+ 		: jhash_size((htable_bits) - HTABLE_REGION_BITS))
+ #define ahash_sizeof_regions(htable_bits)		\
+ 	(ahash_numof_locks(htable_bits) * sizeof(struct ip_set_region))
+-#define ahash_region(n, htable_bits)		\
++#define ahash_region(n)		\
+ 	((n) / jhash_size(HTABLE_REGION_BITS))
+ #define ahash_bucket_start(h,  htable_bits)	\
+ 	((htable_bits) < HTABLE_REGION_BITS ? 0	\
+@@ -702,7 +702,7 @@ mtype_resize(struct ip_set *set, bool retried)
+ #endif
+ 				key = HKEY(data, h->initval, htable_bits);
+ 				m = __ipset_dereference(hbucket(t, key));
+-				nr = ahash_region(key, htable_bits);
++				nr = ahash_region(key);
+ 				if (!m) {
+ 					m = kzalloc(sizeof(*m) +
+ 					    AHASH_INIT_SIZE * dsize,
+@@ -852,7 +852,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	rcu_read_lock_bh();
+ 	t = rcu_dereference_bh(h->table);
+ 	key = HKEY(value, h->initval, t->htable_bits);
+-	r = ahash_region(key, t->htable_bits);
++	r = ahash_region(key);
+ 	atomic_inc(&t->uref);
+ 	elements = t->hregion[r].elements;
+ 	maxelem = t->maxelem;
+@@ -1050,7 +1050,7 @@ mtype_del(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	rcu_read_lock_bh();
+ 	t = rcu_dereference_bh(h->table);
+ 	key = HKEY(value, h->initval, t->htable_bits);
+-	r = ahash_region(key, t->htable_bits);
++	r = ahash_region(key);
+ 	atomic_inc(&t->uref);
+ 	rcu_read_unlock_bh();
  
 -- 
 2.49.1
