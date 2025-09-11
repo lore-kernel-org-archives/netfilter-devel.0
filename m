@@ -1,119 +1,44 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B852C23BD02
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2025 10:19:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCD178F7D
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2025 11:02:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757585963; cv=none; b=CqCqE25kVuV8e8DpiIZSA/wjwdMTkNacwmOXyczH9qp+YKMCWI2dYGaaW7CdxFkQQaa7MHfXWApRJy+Ti/pKNdUB6lN1fY4ANvbBI/epIQ5hvsnzyRuoe1sZWkovvnb+qV6xWK3Dv1xIQwNq/14ERHY0wXvPBcyTZEBSrPWYCwI=
+	t=1757588577; cv=none; b=LNZM48DIDrRLdMVJxPsvKyEqP8+IAFjBvhgOD/yw7qqJ9Wb7httA4LIQ/i8A/8f5DNP7olPqRMuul043q2aBiRL2cPU2Uyjuw40bdIc+hI17EWZLVmSZq9qfDkTI86C4vlr3HSKaqUybazAQc3XuUQVg2yAlLBiad3ZYRnVrx4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757585963; c=relaxed/simple;
-	bh=L7xrR/t9DSbKgPbgsqHdwFXhHUwsocqwCZAa3d7uci0=;
+	s=arc-20240116; t=1757588577; c=relaxed/simple;
+	bh=eb1Z+f3Rhom1M9/pmdlOOzsLzYMUOfVwBNfqxQ9MzTM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TJVuCjr/Yg7kNsufP91vJKJjUSqXVPXM6dItXubyBRDmVNV3ok/BP2xGGq0FpmtGPNaOamT/cIYCPag4krWa/wb0GdLVAyq3mpFcup5vFgioBdPn5OC4uRsE8cAAFPLu//lkH8m6xbYn9358CZOVog0PUq/mf0eYID/wa1szC7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=AaBkw7UP; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="AaBkw7UP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ggS1rNWHcBDuenSwmV7ppcBLGtUurkX/8q/2fXTuDHg=; b=AaBkw7UPKtEdG6ZLMX4TTdFy50
-	vceWE3f6FM+szbaTY37nAwieUL4Son70o9yDSgFqednlDQeZ60K5XknQypYnepHlvcMQP6oVgi6ID
-	8djWBjgZe3HoD13UobWWL8XLPbvyqn8WzHaED14RnMBoTlcJLecno/Rin6w8v14ebfhYCC3ZyQD3t
-	kC0XEgBvCmmFCPi3u3yX29vB+ym13NkDgu1Oz7TuVfWr0J3nZTbPEz5thb3ag5RV6ZBRlHuxNsyOL
-	EBJusMSJiNSh44mXHDCTOz7wiDDzeMDf8eppFelBJSt7vusNTB/7DgFH8VyVK5+TRT9mJvwYmd+0G
-	eVQo/VwQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uweOT-0000000016s-1VAv;
-	Thu, 11 Sep 2025 12:19:10 +0200
-Date: Thu, 11 Sep 2025 12:19:09 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
-Subject: Re: [nft PATCH] fib: Fix for existence check on Big Endian
-Message-ID: <aMKiGuWVLC6H3S_j@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Yi Chen <yiche@redhat.com>
-References: <20250909204948.17757-1-phil@nwl.cc>
- <aMCdSDWhxCJM_kjY@calendula>
- <aMCuzr9SaA--RG3f@orbyte.nwl.cc>
- <aMKE04zkMk9Ysmn3@calendula>
+	 Content-Type:Content-Disposition:In-Reply-To; b=J2cduko3aUFhZkpTLef6drUtkvkl3VGG/KBN8SHAFbTuodzd+81YgF1rf57gJdtXKt6KK1oH5+8TichSTpqfNOHCeFSRyvEMX1EDiowQ9/zqBS3iHLfC4+yuizbmdfyXYgPvFDnRz+bI5p3MrroRQcL1cUgq+jJG1nmEyErwWXQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id F264660324; Thu, 11 Sep 2025 13:02:51 +0200 (CEST)
+Date: Thu, 11 Sep 2025 13:02:51 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Gabriel Goller <g.goller@proxmox.com>
+Cc: netfilter-devel@vger.kernel.org, s.hanreich@proxmox.com
+Subject: Re: [PATCH nf 0/5] netfilter: nf_tables: fix false negative lookups
+ with ongoing transaction
+Message-ID: <aMKsW_EURxAiBAOB@strlen.de>
+References: <20250910080227.11174-1-fw@strlen.de>
+ <v3tlcx4h44yh2a4lac5lx643o6a7cvneyokojx5y7znll4nfmj@xmw57s4u3hnt>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aMKE04zkMk9Ysmn3@calendula>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <v3tlcx4h44yh2a4lac5lx643o6a7cvneyokojx5y7znll4nfmj@xmw57s4u3hnt>
 
-On Thu, Sep 11, 2025 at 10:14:11AM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Sep 10, 2025 at 12:48:46AM +0200, Phil Sutter wrote:
-> > Hi Pablo,
-> > 
-> > On Tue, Sep 09, 2025 at 11:34:00PM +0200, Pablo Neira Ayuso wrote:
-> > > On Tue, Sep 09, 2025 at 10:49:48PM +0200, Phil Sutter wrote:
-> > > > Adjust the expression size to 1B so cmp expression value is correct.
-> > > > Without this, the rule 'fib saddr . iif check exists' generates
-> > > > following byte code on BE:
-> > > > 
-> > > > |  [ fib saddr . iif oif present => reg 1 ]
-> > > > |  [ cmp eq reg 1 0x00000001 ]
-> > > > 
-> > > > Though with NFTA_FIB_F_PRESENT flag set, nft_fib.ko writes to the first
-> > > > byte of reg 1 only (using nft_reg_store8()). With this patch in place,
-> > > > byte code is correct:
-> > > > 
-> > > > |  [ fib saddr . iif oif present => reg 1 ]
-> > > > |  [ cmp eq reg 1 0x01000000 ]
-> > > 
-> > > Is this a generic issue of boolean that is using 1 bit?
-> > > 
-> > > const struct datatype boolean_type = {
-> > >         .type           = TYPE_BOOLEAN,
-> > >         .name           = "boolean",
-> > >         .desc           = "boolean type",
-> > >         .size           = 1,
-> > 
-> > Maybe, yes: I compared fib existence checks to exthdr ones in order to
-> > find the bug. With exthdr, we know in parser already that it is an
-> > existence check (see exthdr_exists_expr rule in parser_bison.y). If so,
-> > exthdr expression is allocated with type 1 which is (assumed to be) the
-> > NEXTHDR field in all extension headers. This field has
-> > inet_protocol_type, which is size 8b.
-> > 
-> > Via expr_ctx::len, RHS will then be adjusted to 8b size (see 'expr->len =
-> > masklen' in expr_evaluate_integer()).
-> > 
-> > IIRC, LHS defines the RHS size in relationals. I am not sure if we may
-> > sanely reverse this rule if RHS is a boolean_type.
-> 
-> Probably this fix is more generic, see untested patch.
+Gabriel Goller <g.goller@proxmox.com> wrote:
+> I tested this fix using Stefan Hanreich’s reproducer on the latest
+> master branch. The bug was resolved, and I didn't see anything out
+> of the ordinary.
 
-> diff --git a/src/datatype.c b/src/datatype.c
-> index f347010f4a1a..2d39239316a6 100644
-> --- a/src/datatype.c
-> +++ b/src/datatype.c
-> @@ -1581,7 +1581,7 @@ const struct datatype boolean_type = {
->  	.type		= TYPE_BOOLEAN,
->  	.name		= "boolean",
->  	.desc		= "boolean type",
-> -	.size		= 1,
-> +	.size		= BITS_PER_BYTE,
->  	.parse		= boolean_type_parse,
->  	.basetype	= &integer_type,
->  	.sym_tbl	= &boolean_tbl,
-
-This does not make a difference. Since the fib expr::len remains at
-value 32, the cmp payload will be 32 bits as well with the first three
-bytes being zero on BE irrespective of RHS value.
-
-Cheers, Phil
+Thanks for testing!
