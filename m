@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ECFD33CEAA;
-	Thu, 11 Sep 2025 14:38:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 604EA33CEAA;
+	Thu, 11 Sep 2025 14:38:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757601520; cv=none; b=pkuDekUHpNrs5k1+MpgsNZ2r4elCf1BqgPcgHz/ZTa4wevACnGYGhHvnJ0QN1FF7B5nXJzXdqEYaeZX22mqCuEB7e637msM1hjI7Ox8GDPvD71Gr7PRuS/6vNc025XHFoUpQqJsdpNMOwzg/ClD0VBXqX4AUjEraeKXi+T4whD8=
+	t=1757601525; cv=none; b=F4sAaznEPKUOqnM1yd3S2ch08qr0jObbeesKKcpWXA3YffWtfdKS4D55nuepkyFcer9GzIyY6mTrnEBM9OJy+qwacg5X1Gk+rqGR1IdH9lvs5F9PFhk6HkyOwRsTMK7BMqBxTGRJkytbhFJ5kS1BHeQZnlL0zJYQ69jdaHmADoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757601520; c=relaxed/simple;
-	bh=SpTw2QQNaO5WQFOnE1ckCnU2ny1LNEJziXyn+y0USgY=;
+	s=arc-20240116; t=1757601525; c=relaxed/simple;
+	bh=lVEjAAjpvGT/aK1HNksftYXVt8udTBmcPOjQofsFC48=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Iy+fvgsPztGd2/UGh1j/8XNBfP8JX+U1SPmkEVJfl/JYty3QSR3zU1nysTBceJHgHVJ5+9t+euWXA8vF/37r7COnui1p0F8tVLoxRaKxMy7iPI+vyOKkrJb224AB19SwLo3f9ASfwaGfrEGgZZsPUNC+RNjMbju650ZVtsvrRnA=
+	 MIME-Version; b=HtoH7jg6gsXLi55PGTkI5T7qyxHv45kWL/OTW0qr2mJurAMEf833Mx8qdbRyQQClI1f4iPD94j+s1t/CBp50nViylQyh+sBmf/97/ebbOrtvV9HwYiUxVzc3hBrFWA7nVJxqMecMAOyRGJSeJanu/y1FjeeQHr6cF7gCM1X/klk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CB66C60326; Thu, 11 Sep 2025 16:38:36 +0200 (CEST)
+	id 32F7160104; Thu, 11 Sep 2025 16:38:41 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 3/5] netfilter: nft_meta_bridge: introduce NFT_META_BRI_IIFHWADDR support
-Date: Thu, 11 Sep 2025 16:38:17 +0200
-Message-ID: <20250911143819.14753-4-fw@strlen.de>
+Subject: [PATCH net-next 4/5] ipvs: Use READ_ONCE/WRITE_ONCE for ipvs->enable
+Date: Thu, 11 Sep 2025 16:38:18 +0200
+Message-ID: <20250911143819.14753-5-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 In-Reply-To: <20250911143819.14753-1-fw@strlen.de>
 References: <20250911143819.14753-1-fw@strlen.de>
@@ -38,85 +38,218 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
+From: Zhang Tengfei <zhtfdev@gmail.com>
 
-Expose the input bridge interface ethernet address so it can be used to
-redirect the packet to the receiving physical device for processing.
+KCSAN reported a data-race on the `ipvs->enable` flag, which is
+written in the control path and read concurrently from many other
+contexts.
 
-Tested with nft command line tool.
+Following a suggestion by Julian, this patch fixes the race by
+converting all accesses to use `WRITE_ONCE()/READ_ONCE()`.
+This lightweight approach ensures atomic access and acts as a
+compiler barrier, preventing unsafe optimizations where the flag
+is checked in loops (e.g., in ip_vs_est.c).
 
-table bridge nat {
-	chain PREROUTING {
-		type filter hook prerouting priority 0; policy accept;
-		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr accept
-	}
-}
+Additionally, the `enable` checks in the fast-path hooks
+(`ip_vs_in_hook`, `ip_vs_out_hook`, `ip_vs_forward_icmp`) are
+removed. These are unnecessary since commit 857ca89711de
+("ipvs: register hooks only with services"). The `enable=0`
+condition they check for can only occur in two rare and non-fatal
+scenarios: 1) after hooks are registered but before the flag is set,
+and 2) after hooks are unregistered on cleanup_net. In the worst
+case, a single packet might be mishandled (e.g., dropped), which
+does not lead to a system crash or data corruption. Adding a check
+in the performance-critical fast-path to handle this harmless
+condition is not a worthwhile trade-off.
 
-Joint work with Pablo Neira.
-
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Fixes: 857ca89711de ("ipvs: register hooks only with services")
+Reported-by: syzbot+1651b5234028c294c339@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=1651b5234028c294c339
+Suggested-by: Julian Anastasov <ja@ssi.bg>
+Link: https://lore.kernel.org/lvs-devel/2189fc62-e51e-78c9-d1de-d35b8e3657e3@ssi.bg/
+Signed-off-by: Zhang Tengfei <zhtfdev@gmail.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/bridge/netfilter/nft_meta_bridge.c   | 11 +++++++++++
- 2 files changed, 13 insertions(+)
+ net/netfilter/ipvs/ip_vs_conn.c |  4 ++--
+ net/netfilter/ipvs/ip_vs_core.c | 11 ++++-------
+ net/netfilter/ipvs/ip_vs_ctl.c  |  6 +++---
+ net/netfilter/ipvs/ip_vs_est.c  | 16 ++++++++--------
+ 4 files changed, 17 insertions(+), 20 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 8e0eb832bc01..7c0c915f0306 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -959,6 +959,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_SDIF: slave device interface index
-  * @NFT_META_SDIFNAME: slave device interface name
-  * @NFT_META_BRI_BROUTE: packet br_netfilter_broute bit
-+ * @NFT_META_BRI_IIFHWADDR: packet input bridge interface ethernet address
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -999,6 +1000,7 @@ enum nft_meta_keys {
- 	NFT_META_SDIFNAME,
- 	NFT_META_BRI_BROUTE,
- 	__NFT_META_IIFTYPE,
-+	NFT_META_BRI_IIFHWADDR,
- };
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index 965f3c8e5089..37ebb0cb62b8 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -885,7 +885,7 @@ static void ip_vs_conn_expire(struct timer_list *t)
+ 			 * conntrack cleanup for the net.
+ 			 */
+ 			smp_rmb();
+-			if (ipvs->enable)
++			if (READ_ONCE(ipvs->enable))
+ 				ip_vs_conn_drop_conntrack(cp);
+ 		}
  
- /**
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index 5adced1e7d0c..b7af36bbd306 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -59,6 +59,13 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
- 		nft_reg_store_be16(dest, htons(p_proto));
+@@ -1439,7 +1439,7 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
+ 		cond_resched_rcu();
+ 
+ 		/* netns clean up started, abort delayed work */
+-		if (!ipvs->enable)
++		if (!READ_ONCE(ipvs->enable))
+ 			break;
+ 	}
+ 	rcu_read_unlock();
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index c7a8a08b7308..5ea7ab8bf4dc 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1353,9 +1353,6 @@ ip_vs_out_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *stat
+ 	if (unlikely(!skb_dst(skb)))
+ 		return NF_ACCEPT;
+ 
+-	if (!ipvs->enable)
+-		return NF_ACCEPT;
+-
+ 	ip_vs_fill_iph_skb(af, skb, false, &iph);
+ #ifdef CONFIG_IP_VS_IPV6
+ 	if (af == AF_INET6) {
+@@ -1940,7 +1937,7 @@ ip_vs_in_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state
+ 		return NF_ACCEPT;
+ 	}
+ 	/* ipvs enabled in this netns ? */
+-	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
++	if (unlikely(sysctl_backup_only(ipvs)))
+ 		return NF_ACCEPT;
+ 
+ 	ip_vs_fill_iph_skb(af, skb, false, &iph);
+@@ -2108,7 +2105,7 @@ ip_vs_forward_icmp(void *priv, struct sk_buff *skb,
+ 	int r;
+ 
+ 	/* ipvs enabled in this netns ? */
+-	if (unlikely(sysctl_backup_only(ipvs) || !ipvs->enable))
++	if (unlikely(sysctl_backup_only(ipvs)))
+ 		return NF_ACCEPT;
+ 
+ 	if (state->pf == NFPROTO_IPV4) {
+@@ -2295,7 +2292,7 @@ static int __net_init __ip_vs_init(struct net *net)
+ 		return -ENOMEM;
+ 
+ 	/* Hold the beast until a service is registered */
+-	ipvs->enable = 0;
++	WRITE_ONCE(ipvs->enable, 0);
+ 	ipvs->net = net;
+ 	/* Counters used for creating unique names */
+ 	ipvs->gen = atomic_read(&ipvs_netns_cnt);
+@@ -2367,7 +2364,7 @@ static void __net_exit __ip_vs_dev_cleanup_batch(struct list_head *net_list)
+ 		ipvs = net_ipvs(net);
+ 		ip_vs_unregister_hooks(ipvs, AF_INET);
+ 		ip_vs_unregister_hooks(ipvs, AF_INET6);
+-		ipvs->enable = 0;	/* Disable packet reception */
++		WRITE_ONCE(ipvs->enable, 0);	/* Disable packet reception */
+ 		smp_wmb();
+ 		ip_vs_sync_net_cleanup(ipvs);
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 6a6fc4478533..4c8fa22be88a 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -256,7 +256,7 @@ static void est_reload_work_handler(struct work_struct *work)
+ 		struct ip_vs_est_kt_data *kd = ipvs->est_kt_arr[id];
+ 
+ 		/* netns clean up started, abort delayed work */
+-		if (!ipvs->enable)
++		if (!READ_ONCE(ipvs->enable))
+ 			goto unlock;
+ 		if (!kd)
+ 			continue;
+@@ -1483,9 +1483,9 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 
+ 	*svc_p = svc;
+ 
+-	if (!ipvs->enable) {
++	if (!READ_ONCE(ipvs->enable)) {
+ 		/* Now there is a service - full throttle */
+-		ipvs->enable = 1;
++		WRITE_ONCE(ipvs->enable, 1);
+ 
+ 		/* Start estimation for first time */
+ 		ip_vs_est_reload_start(ipvs);
+diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+index 15049b826732..93a925f1ed9b 100644
+--- a/net/netfilter/ipvs/ip_vs_est.c
++++ b/net/netfilter/ipvs/ip_vs_est.c
+@@ -231,7 +231,7 @@ static int ip_vs_estimation_kthread(void *data)
+ void ip_vs_est_reload_start(struct netns_ipvs *ipvs)
+ {
+ 	/* Ignore reloads before first service is added */
+-	if (!ipvs->enable)
++	if (!READ_ONCE(ipvs->enable))
  		return;
- 	}
-+	case NFT_META_BRI_IIFHWADDR:
-+		br_dev = nft_meta_get_bridge(in);
-+		if (!br_dev)
-+			goto err;
-+
-+		memcpy(dest, br_dev->dev_addr, ETH_ALEN);
-+		return;
- 	default:
- 		return nft_meta_get_eval(expr, regs, pkt);
- 	}
-@@ -86,6 +93,9 @@ static int nft_meta_bridge_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_BRI_IIFVPROTO:
- 		len = sizeof(u16);
- 		break;
-+	case NFT_META_BRI_IIFHWADDR:
-+		len = ETH_ALEN;
-+		break;
- 	default:
- 		return nft_meta_get_init(ctx, expr, tb);
- 	}
-@@ -175,6 +185,7 @@ static int nft_meta_bridge_set_validate(const struct nft_ctx *ctx,
+ 	ip_vs_est_stopped_recalc(ipvs);
+ 	/* Bump the kthread configuration genid */
+@@ -306,7 +306,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
+ 	int i;
  
- 	switch (priv->key) {
- 	case NFT_META_BRI_BROUTE:
-+	case NFT_META_BRI_IIFHWADDR:
- 		hooks = 1 << NF_BR_PRE_ROUTING;
- 		break;
- 	default:
+ 	if ((unsigned long)ipvs->est_kt_count >= ipvs->est_max_threads &&
+-	    ipvs->enable && ipvs->est_max_threads)
++	    READ_ONCE(ipvs->enable) && ipvs->est_max_threads)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&ipvs->est_mutex);
+@@ -343,7 +343,7 @@ static int ip_vs_est_add_kthread(struct netns_ipvs *ipvs)
+ 	}
+ 
+ 	/* Start kthread tasks only when services are present */
+-	if (ipvs->enable && !ip_vs_est_stopped(ipvs)) {
++	if (READ_ONCE(ipvs->enable) && !ip_vs_est_stopped(ipvs)) {
+ 		ret = ip_vs_est_kthread_start(ipvs, kd);
+ 		if (ret < 0)
+ 			goto out;
+@@ -486,7 +486,7 @@ int ip_vs_start_estimator(struct netns_ipvs *ipvs, struct ip_vs_stats *stats)
+ 	struct ip_vs_estimator *est = &stats->est;
+ 	int ret;
+ 
+-	if (!ipvs->est_max_threads && ipvs->enable)
++	if (!ipvs->est_max_threads && READ_ONCE(ipvs->enable))
+ 		ipvs->est_max_threads = ip_vs_est_max_threads(ipvs);
+ 
+ 	est->ktid = -1;
+@@ -663,7 +663,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
+ 			/* Wait for cpufreq frequency transition */
+ 			wait_event_idle_timeout(wq, kthread_should_stop(),
+ 						HZ / 50);
+-			if (!ipvs->enable || kthread_should_stop())
++			if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
+ 				goto stop;
+ 		}
+ 
+@@ -681,7 +681,7 @@ static int ip_vs_est_calc_limits(struct netns_ipvs *ipvs, int *chain_max)
+ 		rcu_read_unlock();
+ 		local_bh_enable();
+ 
+-		if (!ipvs->enable || kthread_should_stop())
++		if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
+ 			goto stop;
+ 		cond_resched();
+ 
+@@ -757,7 +757,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
+ 	mutex_lock(&ipvs->est_mutex);
+ 	for (id = 1; id < ipvs->est_kt_count; id++) {
+ 		/* netns clean up started, abort */
+-		if (!ipvs->enable)
++		if (!READ_ONCE(ipvs->enable))
+ 			goto unlock2;
+ 		kd = ipvs->est_kt_arr[id];
+ 		if (!kd)
+@@ -787,7 +787,7 @@ static void ip_vs_est_calc_phase(struct netns_ipvs *ipvs)
+ 	id = ipvs->est_kt_count;
+ 
+ next_kt:
+-	if (!ipvs->enable || kthread_should_stop())
++	if (!READ_ONCE(ipvs->enable) || kthread_should_stop())
+ 		goto unlock;
+ 	id--;
+ 	if (id < 0)
 -- 
 2.49.1
 
