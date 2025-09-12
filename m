@@ -1,123 +1,171 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F5E301015
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Sep 2025 13:20:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01B107B3E1
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Sep 2025 16:31:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757683220; cv=none; b=A6wWMDoLXzRy1vHwcFKut65X0Iow9Ioo6zols5jfFf/KtW2CmkjLKcho3CRzLnHVGaSbpAIyTIJkyzPbJk+DjLywoDrmFlsm6r2jN03i3EzAl8EowXio3TCkRMf9S0017DIRTTlDj/GPGF2TJeMjV/PQKaBRV8U7x3RmeJw9AXc=
+	t=1757694710; cv=none; b=a+AdgqNxuWjkG7gdWIu4oBV4ZRcNBVqKrTZu2mN8OV8pbwYTtZFSt7KFCcEt2LSZb3jxNEXJTo1HXV21bHfPXoAlS5tSMAdTUu4y9s0rj4xMFTkHDkHl2x8S8BnuHnxlAdSOKDQiPZm6vo4/qkZdMrEEOIrEQC6KRXJEHQoAvTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757683220; c=relaxed/simple;
-	bh=25krmPZ0mlB/9yegug7TJHkWmqY4UfCa1VLDcDntb3o=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Wnj8KdHyAwPCV2alvgybB374Ej4AxfhhEsJ8nj/4Wm1JyJpurPP9ZotrBeG6nSyODng9VgHmfY6ZIv/o61TBiaRzAWCw4N5KYmMoaFiog4RkFiA7lMQWfcC93Kswm4d3JZuhIR3QytJSn3qpc1uy/achQY/CnjbCn4kcQ4+h+EY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9268060324; Fri, 12 Sep 2025 15:20:16 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Stefano Brivio <sbrivio@redhat.com>
-Subject: [PATCH RFC nf-next 2/2] selftests: netfilter: nft_concat_range.sh: add check for double-create bug
-Date: Fri, 12 Sep 2025 15:20:00 +0200
-Message-ID: <20250912132004.7925-2-fw@strlen.de>
-X-Mailer: git-send-email 2.49.1
-In-Reply-To: <20250912132004.7925-1-fw@strlen.de>
-References: <20250912132004.7925-1-fw@strlen.de>
+	s=arc-20240116; t=1757694710; c=relaxed/simple;
+	bh=9ihUSfzSFkwLShWje0yO2srPckLAAToJdNnr5Y0SusM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JqyAlOmfKnM+q6DkFa3cM8W1FmFj0RTpWUNCytGU6tsT4ksN/teKZTCMparDONpWnebtARhD5aSE+a3potFA43OZDKO7x2QnYoUDlNi0aF8MnFpIsWJ3isp5zSNAl4PuGSNb0Jt5BewSg1fBWcJLUI0ZIzqNXuo+5SVV4s8qDRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H9eqaYZs; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H9eqaYZs"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-45decc9e83eso20128835e9.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Sep 2025 09:31:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1757694707; x=1758299507; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=UtKuOJb160u4mrJLBMsiqKEZV9s8rb8J9qjSnxTlACY=;
+        b=H9eqaYZsV/SEKfw+wGD3shjT9uPhaD2GpRZrWX1FwxMVksRLBVvueSGYixtC5Gv+gZ
+         6mDOIsNVcLpxmVn+zeq3rlg5od84xJXerX5EMTUr2IoA+h3HndRWVmVzjg1MwF0nd9/1
+         on+ah4fk8mgjyPYqRtDabi2KUdgeVgkcvssgPH4kdemXfanXM9R6ORipFx3k6M8oQzA5
+         f6W66NWpef6en3LosJMPvUVpfTQh5fIZNE4n36Y8p6wb9fPRpnDhuwt0V8BpyImLH5Cb
+         kv1W/db8YIsQnwHGr7T2BVDXmAsFGPCQi5X1UdDbqGU32467ctLx8GF8YpT//AnJzJyF
+         ASxA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1757694707; x=1758299507;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=UtKuOJb160u4mrJLBMsiqKEZV9s8rb8J9qjSnxTlACY=;
+        b=SA8WL3vQNBtrCYIJ1Yfi96q5PJaevq1DyQlVrapa67wantocp71f34lMerqRURt4fr
+         48LgFhcmnn/OjOhGla5VsLID3DhJidJ+FqwUZlyzk3buWHKQ2N0ChXdNNfy+Is0QwHCj
+         KPkN9lHYh8o8LJAqop1B5D1tTKpuY9M0ynPu0ZoeIA2YcE2aNE9jjpsZVNIbSBb5GhZw
+         ASh52hYcz0PAonx01VaL3/RSxH2B9NrH5sm4npX+bIcwH2dyT3ynsp45AiCyQNm61KFO
+         aSUuKEVI0agbNJ+TRP5NHYiLoosJBlJxmtEXvTuum4OxEweKrtcx8EZynJUU5oMOIz+m
+         RqVg==
+X-Forwarded-Encrypted: i=1; AJvYcCXDx8/Dh6699tcYLtXiVf46J5wvbVMGAsWsjz15Dug9D2wlMR7x0KrYJKsNTkdqyPoA5aw8cg8KsHrM601PqMs=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyY1JvT2gousHeHfhNnPmLYo6AufZkKf2bdmvnEa3mqsnRl7u2p
+	C5IdnEgyozxlZAaZplYVFYS6PBsVK+mMF8yIirL4ZUDLMaYAoDQMjQ4D
+X-Gm-Gg: ASbGncuZRHRdAmOkx/pLemWB9rqShZANY2AvWhQjyp/dm3UOYsRpJAsUE9lOngvU6tb
+	BwI62qRAgYVA+EC38W2jo3VnMwNbYyS9rLzSCWHGolgMQB4PbDnwMKzqbgvcT7xXWQyqBmeqKRS
+	LjHxk4RLUPjs1Yz6Oj3tVCnvQTd5fev/k+xRTP7k/V4j1z+a6awIzxy0+5gZLzgXy5EKNCO+Yd9
+	fYQ9VOsiELTcYJsTSCiHGLMdU+IbU+xrWGs8Sl2uSAvx5wj1yrNzkPxJdP9nfQh1DkLPspnDppi
+	j2ePU9VWtqAcNzCgyRy09ei3nW36x6V76yo1IqtjNpJO/DQgdl2AJ+rE68z64Qbb7ZOqz72ZOL8
+	94AYqhkvUoBTWG3HqJodhXG9zUw3jaQLRUihaKcKvsRaKIuG69otEOdOoL4bdSd8h
+X-Google-Smtp-Source: AGHT+IHIRSdEBgoLi0Q0DuZdQBqEeXcgKeXdgViwtka9Vqo2HBpKPmSlfWNGtBJ9utLxGObmeSXi0A==
+X-Received: by 2002:a05:6000:3101:b0:3ca:3206:29f with SMTP id ffacd0b85a97d-3e765a2d9f1mr3941616f8f.40.1757694707074;
+        Fri, 12 Sep 2025 09:31:47 -0700 (PDT)
+Received: from elad-pc.lan ([2a0d:6fc2:68d0:5700:2165:4513:68b5:3f5b])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45e037d638dsm64844795e9.22.2025.09.12.09.31.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 12 Sep 2025 09:31:46 -0700 (PDT)
+From: Elad Yifee <eladwf@gmail.com>
+To: 
+Cc: eladwf@gmail.com,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH net-next RFC] netfilter: flowtable: add CT metadata action for nft flowtables
+Date: Fri, 12 Sep 2025 19:30:35 +0300
+Message-ID: <20250912163043.329233-1-eladwf@gmail.com>
+X-Mailer: git-send-email 2.48.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Add a test case for bug resolved with:
-'netfilter: nft_set_pipapo_avx2: fix skip of expired entries'.
+When offloading a flow via the default nft flowtable path,
+append a FLOW_ACTION_CT_METADATA action if the flow is associated with a conntrack entry.
+We do this in both IPv4 and IPv6 route action builders, after NAT mangles and before redirect.
+This mirrors net/sched/act_ct.c’s tcf_ct_flow_table_add_action_meta() so drivers that already
+parse FLOW_ACTION_CT_METADATA from TC offloads can reuse the same logic for nft flowtables.
 
-It passes on nf.git (it uses the generic/C version for insertion
-duplicate check) but fails on unpatched nf-next if AVX2 is supported:
-
-  cannot create same element twice      0s                        [FAIL]
-Could create element twice in same transaction
-table inet filter { # handle 8
-[..]
-  elements = { 1.2.3.4 . 1.2.4.1 counter packets 0 bytes 0,
-               1.2.4.1 . 1.2.3.4 counter packets 0 bytes 0,
-               1.2.3.4 . 1.2.4.1 counter packets 0 bytes 0,
-               1.2.4.1 . 1.2.3.4 counter packets 0 bytes 0 }
-
-Cc: Stefano Brivio <sbrivio@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Elad Yifee <eladwf@gmail.com>
 ---
- .../net/netfilter/nft_concat_range.sh         | 38 ++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ net/netfilter/nf_flow_table_offload.c | 38 +++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-index 20e76b395c85..4d4d5004684c 100755
---- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-@@ -29,7 +29,7 @@ TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
-        net6_port_net6_port net_port_mac_proto_net"
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index e06bc36f49fe..bccae4052319 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -12,6 +12,7 @@
+ #include <net/netfilter/nf_conntrack_acct.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
++#include <net/netfilter/nf_conntrack_labels.h>
  
- # Reported bugs, also described by TYPE_ variables below
--BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch"
-+BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch doublecreate"
- 
- # List of possible paths to pktgen script from kernel tree for performance tests
- PKTGEN_SCRIPT_PATHS="
-@@ -408,6 +408,18 @@ perf_duration	0
- "
- 
- 
-+TYPE_doublecreate="
-+display		cannot create same element twice
-+type_spec	ipv4_addr . ipv4_addr
-+chain_spec	ip saddr . ip daddr
-+dst		addr4
-+proto		icmp
-+
-+race_repeat	0
-+
-+perf_duration	0
-+"
-+
- # Set template for all tests, types and rules are filled in depending on test
- set_template='
- flush ruleset
-@@ -1900,6 +1912,30 @@ test_bug_avx2_mismatch()
- 	fi
+ static struct workqueue_struct *nf_flow_offload_add_wq;
+ static struct workqueue_struct *nf_flow_offload_del_wq;
+@@ -679,6 +680,41 @@ nf_flow_rule_route_common(struct net *net, const struct flow_offload *flow,
+ 	return 0;
  }
  
-+test_bug_doublecreate()
++static void flow_offload_add_ct_metadata(const struct flow_offload *flow,
++					 enum flow_offload_tuple_dir dir,
++					 struct nf_flow_rule *flow_rule)
 +{
-+	local elements="1.2.3.4 . 1.2.4.1, 1.2.4.1 . 1.2.3.4"
-+	local ret=1
++	struct nf_conn *ct = flow->ct;
++	struct flow_action_entry *entry;
++#if IS_ENABLED(CONFIG_NF_CONNTRACK_LABELS)
++	u32 *dst_labels;
++	struct nf_conn_labels *labels;
++#endif
 +
-+	setup veth send_"${proto}" set || return ${ksft_skip}
++	if (!ct)
++		return;
 +
-+	nft add element inet filter test "{ $elements }"
-+nft -f - <<EOF 2>/dev/null
-+flush set inet filter test
-+create element inet filter test { $elements }
-+create element inet filter test { $elements }
-+EOF
-+	ret=$?
++	entry = flow_action_entry_next(flow_rule);
++	entry->id = FLOW_ACTION_CT_METADATA;
 +
-+	if [ $ret -eq 0 ];then
-+		err "Could create element twice in same transaction"
-+		err "$(nft -a list ruleset)"
-+		return 1
-+	fi
++#if IS_ENABLED(CONFIG_NF_CONNTRACK_MARK)
++	entry->ct_metadata.mark = READ_ONCE(ct->mark);
++#endif
 +
-+	return 0
++	entry->ct_metadata.orig_dir = (dir == FLOW_OFFLOAD_DIR_ORIGINAL);
++
++#if IS_ENABLED(CONFIG_NF_CONNTRACK_LABELS)
++	dst_labels = entry->ct_metadata.labels;
++	labels = nf_ct_labels_find(ct);
++	if (labels)
++		memcpy(dst_labels, labels->bits, NF_CT_LABELS_MAX_SIZE);
++	else
++		memset(dst_labels, 0, NF_CT_LABELS_MAX_SIZE);
++#else
++	memset(entry->ct_metadata.labels, 0, NF_CT_LABELS_MAX_SIZE);
++#endif
 +}
 +
- test_reported_issues() {
- 	eval test_bug_"${subtest}"
- }
+ int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
+ 			    enum flow_offload_tuple_dir dir,
+ 			    struct nf_flow_rule *flow_rule)
+@@ -698,6 +734,7 @@ int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
+ 	    test_bit(NF_FLOW_DNAT, &flow->flags))
+ 		flow_offload_ipv4_checksum(net, flow, flow_rule);
+ 
++	flow_offload_add_ct_metadata(flow, dir, flow_rule);
+ 	flow_offload_redirect(net, flow, dir, flow_rule);
+ 
+ 	return 0;
+@@ -720,6 +757,7 @@ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
+ 		flow_offload_port_dnat(net, flow, dir, flow_rule);
+ 	}
+ 
++	flow_offload_add_ct_metadata(flow, dir, flow_rule);
+ 	flow_offload_redirect(net, flow, dir, flow_rule);
+ 
+ 	return 0;
 -- 
-2.49.1
+2.48.1
 
