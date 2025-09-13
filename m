@@ -1,171 +1,86 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01B107B3E1
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Sep 2025 16:31:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37DBABA34;
+	Sat, 13 Sep 2025 00:10:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757694710; cv=none; b=a+AdgqNxuWjkG7gdWIu4oBV4ZRcNBVqKrTZu2mN8OV8pbwYTtZFSt7KFCcEt2LSZb3jxNEXJTo1HXV21bHfPXoAlS5tSMAdTUu4y9s0rj4xMFTkHDkHl2x8S8BnuHnxlAdSOKDQiPZm6vo4/qkZdMrEEOIrEQC6KRXJEHQoAvTE=
+	t=1757722213; cv=none; b=MaBpjK2sS9JhVkO1xLDPgiTrL/cMJiGFJFSnmpM0fBvw6lNadouqK9x7uIMkPgIm/kmMzW6GW6Rn3j6dDwLJAv5NNANZCRGeGWdasHBIbwc9mTOYJzMrMW2o3IBhc4k5o/zZ7uatIcrdIgF/fmT0GWO2+Qfqhu8HyL1Ir+qEhHQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757694710; c=relaxed/simple;
-	bh=9ihUSfzSFkwLShWje0yO2srPckLAAToJdNnr5Y0SusM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=JqyAlOmfKnM+q6DkFa3cM8W1FmFj0RTpWUNCytGU6tsT4ksN/teKZTCMparDONpWnebtARhD5aSE+a3potFA43OZDKO7x2QnYoUDlNi0aF8MnFpIsWJ3isp5zSNAl4PuGSNb0Jt5BewSg1fBWcJLUI0ZIzqNXuo+5SVV4s8qDRc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H9eqaYZs; arc=none smtp.client-ip=209.85.128.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1757722213; c=relaxed/simple;
+	bh=rEBOCoBIkMyXvnVvbZwDIljs+0e5DTU8VaRVxDExesA=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=pjVnl5PM8It5bW6oEfiFLKOsXqbR/k4UWA4G7kuFKOnAaLDetBAqMoDZEiPVQJP8lvnPzE1GxDO/Nl6oUD1WxUi7kPLTFycjzWXFavWH2AE1yw01Wv/l1PlYUc3ocBk2b8MoDaZ0csihgHtFXunujAnMhXG3SK0vu5jv/73UZpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=G5VYBuLc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H9eqaYZs"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-45decc9e83eso20128835e9.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Sep 2025 09:31:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1757694707; x=1758299507; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=UtKuOJb160u4mrJLBMsiqKEZV9s8rb8J9qjSnxTlACY=;
-        b=H9eqaYZsV/SEKfw+wGD3shjT9uPhaD2GpRZrWX1FwxMVksRLBVvueSGYixtC5Gv+gZ
-         6mDOIsNVcLpxmVn+zeq3rlg5od84xJXerX5EMTUr2IoA+h3HndRWVmVzjg1MwF0nd9/1
-         on+ah4fk8mgjyPYqRtDabi2KUdgeVgkcvssgPH4kdemXfanXM9R6ORipFx3k6M8oQzA5
-         f6W66NWpef6en3LosJMPvUVpfTQh5fIZNE4n36Y8p6wb9fPRpnDhuwt0V8BpyImLH5Cb
-         kv1W/db8YIsQnwHGr7T2BVDXmAsFGPCQi5X1UdDbqGU32467ctLx8GF8YpT//AnJzJyF
-         ASxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1757694707; x=1758299507;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=UtKuOJb160u4mrJLBMsiqKEZV9s8rb8J9qjSnxTlACY=;
-        b=SA8WL3vQNBtrCYIJ1Yfi96q5PJaevq1DyQlVrapa67wantocp71f34lMerqRURt4fr
-         48LgFhcmnn/OjOhGla5VsLID3DhJidJ+FqwUZlyzk3buWHKQ2N0ChXdNNfy+Is0QwHCj
-         KPkN9lHYh8o8LJAqop1B5D1tTKpuY9M0ynPu0ZoeIA2YcE2aNE9jjpsZVNIbSBb5GhZw
-         ASh52hYcz0PAonx01VaL3/RSxH2B9NrH5sm4npX+bIcwH2dyT3ynsp45AiCyQNm61KFO
-         aSUuKEVI0agbNJ+TRP5NHYiLoosJBlJxmtEXvTuum4OxEweKrtcx8EZynJUU5oMOIz+m
-         RqVg==
-X-Forwarded-Encrypted: i=1; AJvYcCXDx8/Dh6699tcYLtXiVf46J5wvbVMGAsWsjz15Dug9D2wlMR7x0KrYJKsNTkdqyPoA5aw8cg8KsHrM601PqMs=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyY1JvT2gousHeHfhNnPmLYo6AufZkKf2bdmvnEa3mqsnRl7u2p
-	C5IdnEgyozxlZAaZplYVFYS6PBsVK+mMF8yIirL4ZUDLMaYAoDQMjQ4D
-X-Gm-Gg: ASbGncuZRHRdAmOkx/pLemWB9rqShZANY2AvWhQjyp/dm3UOYsRpJAsUE9lOngvU6tb
-	BwI62qRAgYVA+EC38W2jo3VnMwNbYyS9rLzSCWHGolgMQB4PbDnwMKzqbgvcT7xXWQyqBmeqKRS
-	LjHxk4RLUPjs1Yz6Oj3tVCnvQTd5fev/k+xRTP7k/V4j1z+a6awIzxy0+5gZLzgXy5EKNCO+Yd9
-	fYQ9VOsiELTcYJsTSCiHGLMdU+IbU+xrWGs8Sl2uSAvx5wj1yrNzkPxJdP9nfQh1DkLPspnDppi
-	j2ePU9VWtqAcNzCgyRy09ei3nW36x6V76yo1IqtjNpJO/DQgdl2AJ+rE68z64Qbb7ZOqz72ZOL8
-	94AYqhkvUoBTWG3HqJodhXG9zUw3jaQLRUihaKcKvsRaKIuG69otEOdOoL4bdSd8h
-X-Google-Smtp-Source: AGHT+IHIRSdEBgoLi0Q0DuZdQBqEeXcgKeXdgViwtka9Vqo2HBpKPmSlfWNGtBJ9utLxGObmeSXi0A==
-X-Received: by 2002:a05:6000:3101:b0:3ca:3206:29f with SMTP id ffacd0b85a97d-3e765a2d9f1mr3941616f8f.40.1757694707074;
-        Fri, 12 Sep 2025 09:31:47 -0700 (PDT)
-Received: from elad-pc.lan ([2a0d:6fc2:68d0:5700:2165:4513:68b5:3f5b])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-45e037d638dsm64844795e9.22.2025.09.12.09.31.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 12 Sep 2025 09:31:46 -0700 (PDT)
-From: Elad Yifee <eladwf@gmail.com>
-To: 
-Cc: eladwf@gmail.com,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH net-next RFC] netfilter: flowtable: add CT metadata action for nft flowtables
-Date: Fri, 12 Sep 2025 19:30:35 +0300
-Message-ID: <20250912163043.329233-1-eladwf@gmail.com>
-X-Mailer: git-send-email 2.48.1
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="G5VYBuLc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE420C4CEF8;
+	Sat, 13 Sep 2025 00:10:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1757722212;
+	bh=rEBOCoBIkMyXvnVvbZwDIljs+0e5DTU8VaRVxDExesA=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=G5VYBuLcDyDl2n46M0LpHOgXgtxFTUxFLnJSrqSExV1SrmrIczeX6l3pp7Xznrc45
+	 tnEERfDVIlXzNwGMJolBK16cOothL3mJXoo+r6oxZOr2pe7du9Yh4oVsciOl7rneRt
+	 aMGNsEVzQCacFKUD0arI+pAqOHFaJoE9S+4CkOK7hhb9qVnILv4ZGc6zYwxvWhAHET
+	 v/SlgDT/cFWi95JRf4LOsNCW/pwVANTwGxuYenLbCl+gzG9OvRxNENqIV0woIyjLsY
+	 xFQB2LWmMpO3E+Zq12ksO6fFx69O+733o3QYfAKKiWXPDYaaRO2EdawQX5otimyM6F
+	 aBdfS3DUV9c5w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33CEA383BF4E;
+	Sat, 13 Sep 2025 00:10:16 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/5] selftest:net: fixed spelling mistakes
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <175772221475.3109205.13117121412963824859.git-patchwork-notify@kernel.org>
+Date: Sat, 13 Sep 2025 00:10:14 +0000
+References: <20250911143819.14753-2-fw@strlen.de>
+In-Reply-To: <20250911143819.14753-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-When offloading a flow via the default nft flowtable path,
-append a FLOW_ACTION_CT_METADATA action if the flow is associated with a conntrack entry.
-We do this in both IPv4 and IPv6 route action builders, after NAT mangles and before redirect.
-This mirrors net/sched/act_ct.c’s tcf_ct_flow_table_add_action_meta() so drivers that already
-parse FLOW_ACTION_CT_METADATA from TC offloads can reuse the same logic for nft flowtables.
+Hello:
 
-Signed-off-by: Elad Yifee <eladwf@gmail.com>
----
- net/netfilter/nf_flow_table_offload.c | 38 +++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index e06bc36f49fe..bccae4052319 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -12,6 +12,7 @@
- #include <net/netfilter/nf_conntrack_acct.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
-+#include <net/netfilter/nf_conntrack_labels.h>
- 
- static struct workqueue_struct *nf_flow_offload_add_wq;
- static struct workqueue_struct *nf_flow_offload_del_wq;
-@@ -679,6 +680,41 @@ nf_flow_rule_route_common(struct net *net, const struct flow_offload *flow,
- 	return 0;
- }
- 
-+static void flow_offload_add_ct_metadata(const struct flow_offload *flow,
-+					 enum flow_offload_tuple_dir dir,
-+					 struct nf_flow_rule *flow_rule)
-+{
-+	struct nf_conn *ct = flow->ct;
-+	struct flow_action_entry *entry;
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_LABELS)
-+	u32 *dst_labels;
-+	struct nf_conn_labels *labels;
-+#endif
-+
-+	if (!ct)
-+		return;
-+
-+	entry = flow_action_entry_next(flow_rule);
-+	entry->id = FLOW_ACTION_CT_METADATA;
-+
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_MARK)
-+	entry->ct_metadata.mark = READ_ONCE(ct->mark);
-+#endif
-+
-+	entry->ct_metadata.orig_dir = (dir == FLOW_OFFLOAD_DIR_ORIGINAL);
-+
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK_LABELS)
-+	dst_labels = entry->ct_metadata.labels;
-+	labels = nf_ct_labels_find(ct);
-+	if (labels)
-+		memcpy(dst_labels, labels->bits, NF_CT_LABELS_MAX_SIZE);
-+	else
-+		memset(dst_labels, 0, NF_CT_LABELS_MAX_SIZE);
-+#else
-+	memset(entry->ct_metadata.labels, 0, NF_CT_LABELS_MAX_SIZE);
-+#endif
-+}
-+
- int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
- 			    enum flow_offload_tuple_dir dir,
- 			    struct nf_flow_rule *flow_rule)
-@@ -698,6 +734,7 @@ int nf_flow_rule_route_ipv4(struct net *net, struct flow_offload *flow,
- 	    test_bit(NF_FLOW_DNAT, &flow->flags))
- 		flow_offload_ipv4_checksum(net, flow, flow_rule);
- 
-+	flow_offload_add_ct_metadata(flow, dir, flow_rule);
- 	flow_offload_redirect(net, flow, dir, flow_rule);
- 
- 	return 0;
-@@ -720,6 +757,7 @@ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
- 		flow_offload_port_dnat(net, flow, dir, flow_rule);
- 	}
- 
-+	flow_offload_add_ct_metadata(flow, dir, flow_rule);
- 	flow_offload_redirect(net, flow, dir, flow_rule);
- 
- 	return 0;
+On Thu, 11 Sep 2025 16:38:15 +0200 you wrote:
+> From: Andres Urian Florez <andres.emb.sys@gmail.com>
+> 
+> Fixed spelling errors in test_redirect6() error message and
+> test_port_shadowing() comments
+> 
+> Signed-off-by: Andres Urian Florez <andres.emb.sys@gmail.com>
+> Reviewed-by: Hangbin Liu <liuhangbin@gmail.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,1/5] selftest:net: fixed spelling mistakes
+    https://git.kernel.org/netdev/net-next/c/496a6ed8405e
+  - [net-next,2/5] netfilter: ipset: Remove unused htable_bits in macro ahash_region
+    https://git.kernel.org/netdev/net-next/c/ba941796d7cd
+  - [net-next,3/5] netfilter: nft_meta_bridge: introduce NFT_META_BRI_IIFHWADDR support
+    https://git.kernel.org/netdev/net-next/c/cbd2257dc96e
+  - [net-next,4/5] ipvs: Use READ_ONCE/WRITE_ONCE for ipvs->enable
+    https://git.kernel.org/netdev/net-next/c/944b6b216c03
+  - [net-next,5/5] netfilter: nf_reject: don't reply to icmp error messages
+    https://git.kernel.org/netdev/net-next/c/db99b2f2b3e2
+
+You are awesome, thank you!
 -- 
-2.48.1
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
