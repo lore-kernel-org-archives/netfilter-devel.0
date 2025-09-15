@@ -1,83 +1,92 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DDBC1D432D
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Sep 2025 21:19:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B322B242D66
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Sep 2025 22:16:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757971174; cv=none; b=j7r42E+GqGhsCY/ESLgxZGVeZtSNReF+M6bscYzCvSPqyyoHyXWSLowVkGZ8PtUUrRHjNkpg1Y+tbRMSn76fHHMhb9cDiAbeF5MuuiavT8sVRpYPeZZQkh81cH/yGFHOWe8yzf3R6Cge07+2bew9JXx3ZNVRyf3coOPXCTymwyo=
+	t=1757974614; cv=none; b=n1Eswniz7smdXOsPxSLrSyN5raW+shrgyFDXr/nFwnItn10CHu22VwPDEIaMb1wknP0XOx+ActexjSxWNk6UhA3pPSc6TN/9WJuHwtmytw2ujtk5ZIaCCIES1tO8nTomOni4kPakDmlg381jWIItS8/AExnXt9ATW/JgpucPzFo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757971174; c=relaxed/simple;
-	bh=3lgmxg7ZE+SfCE9nPeIzJbhAduBdD6AHuUMTFqX8cAg=;
+	s=arc-20240116; t=1757974614; c=relaxed/simple;
+	bh=YDjbzXGuEr8rmy9CcdcbyULJpGIlWW+Ro+CdC+iIy/g=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RguAR8c4lvKK8lQAdDVO32UTsInm3jBzPV+U4VblKotuwz8Z7IwwNKrD4B/q/xm6waOc+SKuXNyhhoAvPMwSLr5ZXIOIbuvqilBpxhSkCQKdN9PUsD6/+WB4tbLXJeIVvmtGuXTB5lnyx862hVy0DCxzvXXvbh5f1+Sm1YLQ+z4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LGw8qz7B; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=WCMmxIrM; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=ebj14bORDRdrBJapQbSmVdl+3Ytil65eyJLVKEu9fhgd2w2EMwLoY8pUo1pngCxyq6mobV7KcEEbWL6setKSNbnronXYjo94W+orHCHAHr4NMohqLUWXG5/5W0BbSPeB8YU6XZQQmWPgopX7q6ZsbBuLQ5Pbm2NcyBcUEz5OuB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fuhuLGyk; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LGw8qz7B";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="WCMmxIrM"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 43FEC60264; Mon, 15 Sep 2025 23:19:30 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757971170;
-	bh=5XHQLQ7b2Z336m3dDcHKbXBH+FhO4w1lwClR5ghswK0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LGw8qz7BkDRpuCqi7wszFLNBfEOnWgkyo/XLopP8pwlE36cSm1C3YmENg+id5UaoE
-	 Iei0fAee9bHWyPT22mff6cVzujsSVNDiBTzgbU9p3VrImfydKsKjVwEgT4HfYMy0Qw
-	 B17YQaZc4DLLzDIq6yOwc9aHBgMF/4swR39CBMBV4YA2AjW5G75ZZGjX1p2dD/OEe7
-	 31FVXvltecpbeUTyZu5G6CJKJdC4lTMzcXHfaGXIW6Fys1Ic5LLcJCf2Y9DZbmPogQ
-	 6lwLv0WzNZDV3BT5/rYC5wdHRenoQB6rYxjn3gvmhWK2+NiBdyNRa6S5qDB0SROPsF
-	 oFwdnIzM2j1AQ==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6D5CA60253;
-	Mon, 15 Sep 2025 23:19:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1757971169;
-	bh=5XHQLQ7b2Z336m3dDcHKbXBH+FhO4w1lwClR5ghswK0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=WCMmxIrMzIdz+kW9Jd1FBUGt9thLSJkCk/aisGDIO/pkMBSanx3tJctMHsutCMELZ
-	 yclLi19iJd0C8wPa10j/XgefoF+nFZZxfl8fTvMxCKurzD3ULZqWJJqKoxKB/7ljbi
-	 dFjtpdktmbsECWJHVlBjGA68gnyhM8fa9j4WbvjDc9wufzYfen/y2ecjhQ7xbifG/B
-	 KBInO5XcjRw99+1Cn/XBrau1b0DKkJx7b2Dh0YUAhB5NbMqZf4X9/t63enM6q1wuM2
-	 s9XSES8+cLj/JLZL6hL2uAOTaJJ9C3e5iA/21/bXoFnplcTZRplkw2InmpmqN2x2fz
-	 CX9eJ8Q1ZwT/w==
-Date: Mon, 15 Sep 2025 23:19:27 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fuhuLGyk"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=uwvBGQud2x3QqoITRnOeH7tEJWuFFxBfsVfueePM9mc=; b=fuhuLGykyC/qWMID0cu+vtqSyP
+	fauWSEpSq4BwHZihlOw6U03pGIKAOThXFXWbhMSLln227ZJwEUObSmNI/4gCiPjWl+ZWyX+EArmsR
+	lZcGRXlfV2tgUdKWmoIxoowTBHb0TvR2ELyTXEU5sLJeXuU07yO9qY6gi0IKs1s4duuCa7iOkilWl
+	cOYywf7R+D/3N4E7XoJLwLfw1t0MFuge6g50numpZeqVv4OLHQPV3rKBnwhXeRhEEvO10WR5RACDg
+	ZXQYg7oYvZfIzNodH/M0Rt3nkvSrmSGJLM4NQKqlQmSYQpJ0QMSNnO5euwAffOOHSbHIbrD28nbCJ
+	e0UW06DQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1uyHV4-000000001q1-0tWx;
+	Tue, 16 Sep 2025 00:16:42 +0200
+Date: Tue, 16 Sep 2025 00:16:42 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 Subject: Re: [libnftnl RFC] data_reg: Improve data reg value printing
-Message-ID: <aMiC3xCrX_8T8rxe@calendula>
+Message-ID: <aMiQSi-ASbcAE5CL@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 References: <20250911141503.17828-1-phil@nwl.cc>
+ <aMiC3xCrX_8T8rxe@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250911141503.17828-1-phil@nwl.cc>
+In-Reply-To: <aMiC3xCrX_8T8rxe@calendula>
 
-Hi Phil,
+Hi Pablo,
 
-On Thu, Sep 11, 2025 at 04:11:45PM +0200, Phil Sutter wrote:
-> The old code printing each field with data as u32 value is problematic
-> in two ways:
+On Mon, Sep 15, 2025 at 11:19:27PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Sep 11, 2025 at 04:11:45PM +0200, Phil Sutter wrote:
+> > The old code printing each field with data as u32 value is problematic
+> > in two ways:
+> > 
+> > A) Field values are printed in host byte order which may not be correct
+> >    and output for identical data will divert between machines of
+> >    different Endianness.
+> > 
+> > B) The actual data length is not clearly readable from given output.
+> > 
+> > This patch won't entirely fix for (A) given that data may be in host
+> > byte order but it solves for the common case of matching against packet
+> > data.
+> > 
+> > Fixing for (B) is crucial to see what's happening beneath the bonnet.
+> > The new output will show exactly what is used e.g. by a cmp expression.
 > 
-> A) Field values are printed in host byte order which may not be correct
->    and output for identical data will divert between machines of
->    different Endianness.
-> 
-> B) The actual data length is not clearly readable from given output.
-> 
-> This patch won't entirely fix for (A) given that data may be in host
-> byte order but it solves for the common case of matching against packet
-> data.
-> 
-> Fixing for (B) is crucial to see what's happening beneath the bonnet.
-> The new output will show exactly what is used e.g. by a cmp expression.
+> Could you fix this from libnftables? ie. add print functions that have
+> access to the byteorder, so print can do accordingly.
 
-Could you fix this from libnftables? ie. add print functions that have
-access to the byteorder, so print can do accordingly.
+You mean replacing nftnl_expr_fprintf() and all per-expr callbacks
+entirely? I guess this exposes lots of libnftnl internals to
+libnftables.
+
+IIRC, the last approach from 2020 was to communicate LHS byteorder to
+RHS in libnftnl internally and in addition to that annotate sets with
+element byteorder info (which is not entirely trivial due to
+concatenations of data with varying byteorder.
+
+I don't get the code in my old branches anymore, though. Maybe if I read
+up on our past mails. Or maybe we just retry from scratch with a fresh
+mind. :)
+
+Cheers, Phil
