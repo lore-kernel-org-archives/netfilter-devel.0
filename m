@@ -1,46 +1,27 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B322B242D66
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Sep 2025 22:16:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 542C828689A
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Sep 2025 12:08:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1757974614; cv=none; b=n1Eswniz7smdXOsPxSLrSyN5raW+shrgyFDXr/nFwnItn10CHu22VwPDEIaMb1wknP0XOx+ActexjSxWNk6UhA3pPSc6TN/9WJuHwtmytw2ujtk5ZIaCCIES1tO8nTomOni4kPakDmlg381jWIItS8/AExnXt9ATW/JgpucPzFo=
+	t=1758024489; cv=none; b=LyMyfVLUUG8m9bI/VOAAYEuKT1YrGQ27XikC9p2Oqh4ACCgMB57k/y2x6BESI0ubakxY2VfruwfjPayUffQzzoWVrLhRoezkNLelb/ygmuTyQ9Qj6xjciwKvVcWiFLoKX64ZZPP/yiWNDtrcp034cNWvJFvKXFWZkruVnmRIH+M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1757974614; c=relaxed/simple;
-	bh=YDjbzXGuEr8rmy9CcdcbyULJpGIlWW+Ro+CdC+iIy/g=;
+	s=arc-20240116; t=1758024489; c=relaxed/simple;
+	bh=NiMPoLe6TdXjKRaVImMWth7M0n5+C5b7kQYyTukt+Sk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ebj14bORDRdrBJapQbSmVdl+3Ytil65eyJLVKEu9fhgd2w2EMwLoY8pUo1pngCxyq6mobV7KcEEbWL6setKSNbnronXYjo94W+orHCHAHr4NMohqLUWXG5/5W0BbSPeB8YU6XZQQmWPgopX7q6ZsbBuLQ5Pbm2NcyBcUEz5OuB4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fuhuLGyk; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fuhuLGyk"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=uwvBGQud2x3QqoITRnOeH7tEJWuFFxBfsVfueePM9mc=; b=fuhuLGykyC/qWMID0cu+vtqSyP
-	fauWSEpSq4BwHZihlOw6U03pGIKAOThXFXWbhMSLln227ZJwEUObSmNI/4gCiPjWl+ZWyX+EArmsR
-	lZcGRXlfV2tgUdKWmoIxoowTBHb0TvR2ELyTXEU5sLJeXuU07yO9qY6gi0IKs1s4duuCa7iOkilWl
-	cOYywf7R+D/3N4E7XoJLwLfw1t0MFuge6g50numpZeqVv4OLHQPV3rKBnwhXeRhEEvO10WR5RACDg
-	ZXQYg7oYvZfIzNodH/M0Rt3nkvSrmSGJLM4NQKqlQmSYQpJ0QMSNnO5euwAffOOHSbHIbrD28nbCJ
-	e0UW06DQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1uyHV4-000000001q1-0tWx;
-	Tue, 16 Sep 2025 00:16:42 +0200
-Date: Tue, 16 Sep 2025 00:16:42 +0200
-From: Phil Sutter <phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=ASDHRGozFU74epDO0m6YeRod+gp9bHPgoqCLsVupLeEhk3OIiEALK/sJ6YWWsWolFfvAeOHs5RKIwYUzSuVVJD7l2Sv7+OqXIjWQbx3iioGlbi1RyCEuvLKcZsPYsDH5yKYk8U1uXOywvsEKQtE4iwW+GvxSH8ff9oQh+xsiLK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 11FE560308; Tue, 16 Sep 2025 14:08:04 +0200 (CEST)
+Date: Tue, 16 Sep 2025 14:08:03 +0200
+From: Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
 Subject: Re: [libnftnl RFC] data_reg: Improve data reg value printing
-Message-ID: <aMiQSi-ASbcAE5CL@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Message-ID: <aMlTI4-QYkkwgTEX@strlen.de>
 References: <20250911141503.17828-1-phil@nwl.cc>
  <aMiC3xCrX_8T8rxe@calendula>
 Precedence: bulk
@@ -53,9 +34,9 @@ Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <aMiC3xCrX_8T8rxe@calendula>
 
-Hi Pablo,
-
-On Mon, Sep 15, 2025 at 11:19:27PM +0200, Pablo Neira Ayuso wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Phil,
+> 
 > On Thu, Sep 11, 2025 at 04:11:45PM +0200, Phil Sutter wrote:
 > > The old code printing each field with data as u32 value is problematic
 > > in two ways:
@@ -76,17 +57,11 @@ On Mon, Sep 15, 2025 at 11:19:27PM +0200, Pablo Neira Ayuso wrote:
 > Could you fix this from libnftables? ie. add print functions that have
 > access to the byteorder, so print can do accordingly.
 
-You mean replacing nftnl_expr_fprintf() and all per-expr callbacks
-entirely? I guess this exposes lots of libnftnl internals to
-libnftables.
+FWIW I prefer this patch.
 
-IIRC, the last approach from 2020 was to communicate LHS byteorder to
-RHS in libnftnl internally and in addition to that annotate sets with
-element byteorder info (which is not entirely trivial due to
-concatenations of data with varying byteorder.
-
-I don't get the code in my old branches anymore, though. Maybe if I read
-up on our past mails. Or maybe we just retry from scratch with a fresh
-mind. :)
-
-Cheers, Phil
+While it would be possible to move all printing to libnftables (and
+as you point out it has more information available wrt. to the data
+types involved, esp. byteorder), I think that printing the data
+byte-wise rather than per u32 word is sufficient for debugging a wide
+range of bugs.  In particular it will expose the true size of the
+immediate/rhs value.
