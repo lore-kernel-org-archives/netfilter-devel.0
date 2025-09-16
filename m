@@ -1,98 +1,485 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 928193016E6
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Sep 2025 16:49:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21D1F2FFFAA
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Sep 2025 16:54:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758041389; cv=none; b=FgdZBWtqzDSRl9n2lsLkutxrxVkc+PXCxL8DCOqhOl+TRM6aP+wrTmR+0HULnhVpAkLMJKeJyl+sAs8IearlbJf1jVLuWSJ9yL90tZgsBwFVPMenkACkxA2PwOkBs4M3KLIVOX62ZwYiDRcFi0H6fuahJDHqJDJoR4n4zPujiYM=
+	t=1758041656; cv=none; b=Jwc17KPkrB0NtXv2crOK97mgFMchiYaG6UT/SNC5ETmqWGUJIn+DAwu5HfFuYvs5ezyBQ37XPf+0a8hUi+56L4gqujEw5rWXVnyTOCJ0esHFoqwzUC9JrZNAl2wJbzChEWh22F+SQXmbGM8iwEu8QKKWXDbHBncrNj1knMNwQ4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758041389; c=relaxed/simple;
-	bh=TwcfabmK9WC+2NnCZx+uDvKHL+px3+cu4KrnzhiY1uY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 Cc:Content-Type; b=fkFCuSVH82NDe5KIGzHdHAZ9gzoFwkz1b6tEDjclToiF65241wZXGVpZ+7C4RZbfhtA821zRenKS9sGgvmSbhtb+6GdDo+SwdD3AGxt8kgNLcLraLxvgDO6MyYruGUG+5vTDyNKIHYyqHSN+6ez2cjd4we6Yjg/p+aYMT7GZzMQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cTMvh5Bi; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cTMvh5Bi"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-45f29e5e89bso35416235e9.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Sep 2025 09:49:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1758041386; x=1758646186; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TwcfabmK9WC+2NnCZx+uDvKHL+px3+cu4KrnzhiY1uY=;
-        b=cTMvh5BiZAQT7XxuqXQALlC0nPbDxLSNPWLLTD6SDCVaPRvLnG1dPSdFZkIaf80UTT
-         FZ7dKG3/4W0ASBzyTsgRAxvJWGT+xJnMT4qllBWWu4xnhxHKQr+exMN8pqlMyzDhVThA
-         C9mKynrDNjxMka4Xw4BITjSzRZCxh3YNIc6JKlh/3nzoLtnifA0nVZMhrr0tJL6MgXjx
-         +PhO5nrvR4A787I7o0Jh+WVTZUQYbHNAQppxq3YdBKe/5MItN/GcosBy3awlf2+JIdph
-         qjxJ5RDKwdCYcBHxO40afUcVR1tsdopQVgEBdy/Yui9JYqjWLD/oQlfnB2h37GsqfjgS
-         m/dQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1758041386; x=1758646186;
-        h=content-transfer-encoding:cc:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=TwcfabmK9WC+2NnCZx+uDvKHL+px3+cu4KrnzhiY1uY=;
-        b=gSbJgZMNlEs2CvqEWdZyPEuce5gKDKrVLuErxYVJlEtr5NWsmNBJ9H17CjaBhb5O9U
-         pGiv+D8lRj9mt7Tt8ws122Jb7Z3Onk/Dse/4v1wRMjeyIyLHu0w09x4Sh2ysiOR7MRXM
-         2Ane5RbWghft0rSIz/VW3AE2JAeCeE/86MT2VNKi8vA6qwuuw0w+A3lHE0iGnItUDkOw
-         Ryhpg8KHpjHS80ubueBGCREnqEDAYK/FEYazjxR9dr2kmGGP07ZVEkpqwKpZ857u9XaT
-         6w33svvrQ2fBd+MP/n/TAvFu5mxhcGFgwqYcBlxGAyNUx3aPTLZ2836C6BEV7Qzk7IDP
-         VYYA==
-X-Forwarded-Encrypted: i=1; AJvYcCX4OosUo1G+A5cgNLSgN3qHnePhW/IR78XDY1ppEUOj4xk0SdjD331eq0chh6vilatTZHcKX48CgsDSMisQEGM=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy0a7ccRCaKIvpxqEZ8sO1hw357WjZfJOtPj+S0dahgo9qqnszf
-	EV61Kzj+qJMBfx10ruB+UbLeCXjjF6GTfKJOLbQA7tfiFs7rrZtTAQ0Mtegrt8IJ2mRsTIUmfJs
-	Bw+oOv8+StOJru7q9ifnYWHAW015BaYM=
-X-Gm-Gg: ASbGncvnY71R8IRstfS+Yt4LDmKyU4VvFA8SYQDjnOf9F9e1hPJADdFOg2XdVkh/ACc
-	/bHZ/GoJKyWGy3MyZTPJG1qxHK6mOo5BVWAEWIFMzxf7APJvMm8AZ8wLuEoDND4YoIlwurAi1cR
-	h23YbTQUjn+fsKCe50THXA2AOJkxMi3Dq5zCekEu+ue6vdhff+Jj2ugCyCyO7lQZ75IVYPOCutd
-	awp3lvRFMRQr0+OsJQrcsmCjvgL5bBGp1+i6V2W4GBgfldrsa7xzHiy+O4S9ZJetrRSU3BEP54s
-	CTgC5Ec=
-X-Received: by 2002:a05:6000:144e:b0:3ec:25d2:2bdf with SMTP id
- ffacd0b85a97d-3ec25d22d48mt4512324f8f.27.1758041385551; Tue, 16 Sep 2025
- 09:49:45 -0700 (PDT)
+	s=arc-20240116; t=1758041656; c=relaxed/simple;
+	bh=5TqN/7u78V5c6WJvB8S+ya7dVQrWEYuxDmqvo0fp7qc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=b72zpj/krjJu1GuTvfmuBdlotZkqwk3LlrAiI36TKLrFUUdEEnvDeTJ3lCPuT21XyMPwJtNLoamehz7Yp3fP44yp+b8tpwD1RbXxMEOGzoAIfRt8KFRLwkmX0eU7gQJw2Yadr2R+D+y0bQkyr9pUmdV0bxW2fdn6iB6svrRKS70=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id BF3F960308; Tue, 16 Sep 2025 18:54:11 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] tests: shell: add regression tests for set flush+add bugs
+Date: Tue, 16 Sep 2025 18:52:53 +0200
+Message-ID: <20250916165255.15356-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250912163043.329233-1-eladwf@gmail.com>
-In-Reply-To: <20250912163043.329233-1-eladwf@gmail.com>
-From: Elad Yifee <eladwf@gmail.com>
-Date: Tue, 16 Sep 2025 19:49:34 +0300
-X-Gm-Features: AS18NWCrlr2QeaCB--5yANKThME9nJo6aat3FBzn5_cxJNe5mTnDqX1wNE37gpE
-Message-ID: <CA+SN3sp6ZidPXhZnP0E4KQyt95pp_-M9h2MMwLozObp9JH-8LQ@mail.gmail.com>
-Subject: Re: [PATCH net-next RFC] netfilter: flowtable: add CT metadata action
- for nft flowtables
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi all,
+Create a helper file to:
+1. create client <-> router <-> server topology
+2. floodping from client to server
+3. add a chain + set that contains both client and server
+   addresses
+4. a control counter that should never match
+5. then, flush the set (not the ruleset) and re-add the
+   addresses in one transaction
 
-One caveat: this change will cause some existing drivers to start
-returning -EOPNOTSUPP, since they walk the action list and treat any
-unknown action as fatal in their default switch. In other words, adding
-CT metadata unconditionally would break offload in those drivers until
-they are updated.
+Report failure when counter had a match.
 
-Follow-up patches will therefore be needed to make drivers either parse
-or safely ignore FLOW_ACTION_CT_METADATA. Because this action is only
-advisory, it should be harmless for drivers that don=E2=80=99t use it to si=
-mply
-accept and no-op it.
+The test cases for the set types are done in separate files to take
+advantage of run-tests.sh parallelization.
 
-Just flagging this up front: the core patch by itself will break some
-drivers, and additional work is required to make them tolerant of the
-new metadata.
+The expected behavior is that every ping packet is matched by the set.
+The packet path should either match the old state, right before flush,
+or the new state, after re-add.
 
-Thanks,
-Elad
+As the flushed addresses are re-added in the same transaction we must
+not observe in-limbo state where existing elements are deactivated but
+new elements are not found.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ NB: This still fails on nf-next when AVX2 is available
+ for the pipapo test case due to thinko, NFT_GENMASK_ANY
+ has to be replaced with 0 to get the effect the (wrong)
+ fix wanted.
+
+ .../helpers/set_flush_add_atomic_helpers      | 223 ++++++++++++++++++
+ .../dumps/set_flush_add_atomic_bitmap.nodump  |   0
+ .../dumps/set_flush_add_atomic_hash.nodump    |   0
+ .../set_flush_add_atomic_hash_fast.nodump     |   0
+ .../dumps/set_flush_add_atomic_pipapo.nodump  |   0
+ .../dumps/set_flush_add_atomic_rbtree.nodump  |   0
+ .../dumps/set_flush_add_atomic_rhash.nodump   |   0
+ .../packetpath/set_flush_add_atomic_bitmap    |  18 ++
+ .../packetpath/set_flush_add_atomic_hash      |  18 ++
+ .../packetpath/set_flush_add_atomic_hash_fast |  18 ++
+ .../packetpath/set_flush_add_atomic_pipapo    |  20 ++
+ .../packetpath/set_flush_add_atomic_rbtree    |  18 ++
+ .../packetpath/set_flush_add_atomic_rhash     |  18 ++
+ 13 files changed, 333 insertions(+)
+ create mode 100644 tests/shell/helpers/set_flush_add_atomic_helpers
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_bitmap.nodump
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_hash.nodump
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_hash_fast.nodump
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_pipapo.nodump
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_rbtree.nodump
+ create mode 100644 tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_rhash.nodump
+ create mode 100755 tests/shell/testcases/packetpath/set_flush_add_atomic_bitmap
+ create mode 100755 tests/shell/testcases/packetpath/set_flush_add_atomic_hash
+ create mode 100755 tests/shell/testcases/packetpath/set_flush_add_atomic_hash_fast
+ create mode 100755 tests/shell/testcases/packetpath/set_flush_add_atomic_pipapo
+ create mode 100755 tests/shell/testcases/packetpath/set_flush_add_atomic_rbtree
+ create mode 100755 tests/shell/testcases/packetpath/set_flush_add_atomic_rhash
+
+diff --git a/tests/shell/helpers/set_flush_add_atomic_helpers b/tests/shell/helpers/set_flush_add_atomic_helpers
+new file mode 100644
+index 000000000000..fe895e98169b
+--- /dev/null
++++ b/tests/shell/helpers/set_flush_add_atomic_helpers
+@@ -0,0 +1,223 @@
++# Test skeleton for kernel fixes:
++# b2f742c846ca netfilter: nf_tables: restart set lookup on base_seq change
++# a60f7bf4a152 netfilter: nft_set_rbtree: continue traversal if element is inactive
++# .. and related patches.
++#
++# Generate traffic and then flush the set contents and replace
++# them with the same matching entries.
++#
++# Fail when a packet gets through.
++
++# global variables:
++# R, S, C (network namespaces).
++# ip_s (server address)
++
++# helpers:
++# set_flush_add_atomic_cleanup
++# set_flush_add_create_topo
++# set_flush_add_atomic_run_test
++
++[ -z "$TIMEOUT" ] && TIMEOUT=30
++
++set_flush_add_atomic_cleanup()
++{
++	local tmp="$1"
++	local i
++
++	rm -f "$tmp"
++
++	ip netns exec $R $NFT --debug netlink list ruleset
++
++	for i in $C $S $R;do
++		kill $(ip netns pid $i) 2>/dev/null
++		ip netns del $i
++	done
++}
++
++check_counter()
++{
++	local tmp="$1"
++	local then="$2"
++
++	if ip netns exec $R $NFT list chain ip filter block-spoofed | grep -q 'counter packets 0 bytes 0'; then
++		return 0
++	fi
++
++	local now=$(date +%s)
++	echo "$0 failed counter check after $((now-then))s"
++
++	rm -f "$tmp"
++	kill $(ip netns pid $C) 2>/dev/null
++	return 1
++}
++
++load_ruleset()
++{
++	local type="$1"
++	local flags="$2"
++	local elements="$3"
++	local expr="$4"
++
++ip netns exec $R $NFT -f - <<EOF
++table ip filter {
++  set match {
++    type $type
++    $flags
++    elements = { $elements }
++  }
++
++  set bogon {
++     type ipv4_addr . ipv4_addr . icmp_type
++     flags dynamic
++     size 8
++     timeout 5m
++  }
++
++  chain block-spoofed {
++    type filter hook prerouting priority filter; policy accept;
++    $expr @match accept
++    counter add @bogon { ip saddr . ip daddr . icmp type } comment "must not match"
++  }
++}
++EOF
++}
++
++reload_set()
++{
++	local tmp="$1"
++	local elements="$2"
++
++	while [ -f "$tmp" ]; do
++ip netns exec $R $NFT -f - <<EOF
++flush set ip filter match
++create element ip filter match { $elements }
++EOF
++		if [ $? -ne 0 ];then
++			echo "reload of set failed unexpectedly"
++			rm -f "$tmp"
++			exit 1
++		fi
++
++	done
++}
++
++monitor_counter()
++{
++	local tmp="$1"
++	local then="$2"
++
++	while [ -f "$tmp" ]; do
++		sleep 1
++		check_counter "$tmp" "$then" || return 1
++	done
++
++	return 0
++}
++
++wait_for_timeout()
++{
++	local tmp="$1"
++	local rc=0
++
++	local then=$(date +%s)
++	local end=$((then+TIMEOUT))
++
++	while [ -f "$tmp" ];do
++		local now=$(date +%s)
++		[ "$now" -ge "$end" ] && break
++		sleep 1
++	done
++
++	test -f "$tmp" || rc=1
++	rm -f "$tmp"
++
++	return $rc
++}
++
++set_flush_add_create_topo()
++{
++	local test="$1"
++	local ip_r1=192.168.2.1
++	local ip_r2=192.168.3.1
++	# global
++	ip_c=192.168.2.30
++	ip_s=192.168.3.10
++
++	rnd=$(mktemp -u XXXXXXXX)
++	C="$test-client-$rnd"
++	R="$test-router-$rnd"
++	S="$test-server-$rnd"
++
++	ip netns add $S
++	ip netns add $R
++	ip netns add $C
++
++	ip link add veth0 netns $S type veth peer name rs netns $R
++	ip link add veth0 netns $C type veth peer name rc netns $R
++
++	ip -net $S link set veth0 up
++	ip -net $C link set veth0 up
++	ip -net $R link set rs up
++	ip -net $R link set rc up
++	ip -net $S link set lo up
++	ip -net $C link set lo up
++	ip -net $R link set lo up
++
++	for n in $S $R $C;do
++		ip netns exec $n sysctl -q net.ipv4.conf.all.rp_filter=0
++	done
++
++	ip netns exec $R sysctl -q net.ipv4.ip_forward=1
++
++	ip -net $S addr add ${ip_s}/24  dev veth0
++	ip -net $C addr add ${ip_c}/24  dev veth0
++	ip -net $R addr add ${ip_r1}/24 dev rc
++	ip -net $R addr add ${ip_r2}/24 dev rs
++
++	ip -net $C route add default via ${ip_r1} dev veth0
++	ip -net $S route add default via ${ip_r2} dev veth0
++
++	ip netns exec $S ping -q -c 1 -i 0.1 ${ip_c} || exit 1
++	ip netns exec $C ping -q -c 1 -i 0.1 ${ip_s} || exit 2
++}
++
++start_ping_flood()
++{
++	for i in $(seq 1 4);do
++		timeout $TIMEOUT ip netns exec $C ping -W 0.00001 -l 200 -q -f ${ip_s} &
++	done
++
++	wait
++}
++
++set_flush_add_atomic_run_test()
++{
++	local tmp="$1"
++	local type="$2"
++	local flags="$3"
++	local elements="$4"
++	local expr="$5"
++
++	local then=$(date +%s)
++	local now=$(date +%s)
++
++	load_ruleset "$type" "$flags" "$elements" "$expr"
++
++	# sanity check, counter must be 0, no parallel set flush/elem add yet.
++	check_counter "$tmp" "$then" || exit 3
++
++	start_ping_flood &
++
++	reload_set "$tmp" "$elements" &
++
++	monitor_counter "$tmp" "$then" &
++
++	wait_for_timeout "$tmp" || return 1
++	wait
++
++	check_counter "$tmp" "$then" || return 1
++
++	local now=$(date +%s)
++	echo "$0 test took $((now-then))s"
++	return 0
++}
+diff --git a/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_bitmap.nodump b/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_bitmap.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_hash.nodump b/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_hash.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_hash_fast.nodump b/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_hash_fast.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_pipapo.nodump b/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_pipapo.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_rbtree.nodump b/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_rbtree.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_rhash.nodump b/tests/shell/testcases/packetpath/dumps/set_flush_add_atomic_rhash.nodump
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/tests/shell/testcases/packetpath/set_flush_add_atomic_bitmap b/tests/shell/testcases/packetpath/set_flush_add_atomic_bitmap
+new file mode 100755
+index 000000000000..65fc71fc6d8e
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/set_flush_add_atomic_bitmap
+@@ -0,0 +1,18 @@
++#!/bin/bash
++
++. $NFT_TEST_BASEDIR/helpers/set_flush_add_atomic_helpers
++
++tmp=$(mktemp)
++
++cleanup()
++{
++	set_flush_add_atomic_cleanup "$tmp"
++}
++
++trap cleanup EXIT
++
++set_flush_add_create_topo "bitmap"
++
++set_flush_add_atomic_run_test "$tmp" "icmp_type" "" "echo-reply, echo-request" "icmp type" || exit 1
++
++exit 0
+diff --git a/tests/shell/testcases/packetpath/set_flush_add_atomic_hash b/tests/shell/testcases/packetpath/set_flush_add_atomic_hash
+new file mode 100755
+index 000000000000..6f14ce10f157
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/set_flush_add_atomic_hash
+@@ -0,0 +1,18 @@
++#!/bin/bash
++
++. $NFT_TEST_BASEDIR/helpers/set_flush_add_atomic_helpers
++
++tmp=$(mktemp)
++
++cleanup()
++{
++	set_flush_add_atomic_cleanup "$tmp"
++}
++
++trap cleanup EXIT
++
++set_flush_add_create_topo "hash"
++
++set_flush_add_atomic_run_test "$tmp" "ipv4_addr . ipv4_addr" "size 2" "$ip_c . $ip_s, $ip_s . $ip_c" "ip saddr . ip daddr" || exit 1
++
++exit 0
+diff --git a/tests/shell/testcases/packetpath/set_flush_add_atomic_hash_fast b/tests/shell/testcases/packetpath/set_flush_add_atomic_hash_fast
+new file mode 100755
+index 000000000000..12858d876104
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/set_flush_add_atomic_hash_fast
+@@ -0,0 +1,18 @@
++#!/bin/bash
++
++. $NFT_TEST_BASEDIR/helpers/set_flush_add_atomic_helpers
++
++tmp=$(mktemp)
++
++cleanup()
++{
++	set_flush_add_atomic_cleanup "$tmp"
++}
++
++trap cleanup EXIT
++
++set_flush_add_create_topo "hash_fast"
++
++set_flush_add_atomic_run_test "$tmp" "ipv4_addr" "size 2" "$ip_c, $ip_s" "ip saddr" || exit 1
++
++exit 0
+diff --git a/tests/shell/testcases/packetpath/set_flush_add_atomic_pipapo b/tests/shell/testcases/packetpath/set_flush_add_atomic_pipapo
+new file mode 100755
+index 000000000000..5d6b39f6f614
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/set_flush_add_atomic_pipapo
+@@ -0,0 +1,20 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_pipapo)
++
++. $NFT_TEST_BASEDIR/helpers/set_flush_add_atomic_helpers
++
++tmp=$(mktemp)
++
++cleanup()
++{
++	set_flush_add_atomic_cleanup "$tmp"
++}
++
++trap cleanup EXIT
++
++set_flush_add_create_topo "pipapo"
++
++set_flush_add_atomic_run_test "$tmp" "ipv4_addr . ipv4_addr" "flags interval" "$ip_c . $ip_s, $ip_s . $ip_c" "ip saddr . ip daddr" || exit 1
++
++exit 0
+diff --git a/tests/shell/testcases/packetpath/set_flush_add_atomic_rbtree b/tests/shell/testcases/packetpath/set_flush_add_atomic_rbtree
+new file mode 100755
+index 000000000000..c5cef3cc6c9e
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/set_flush_add_atomic_rbtree
+@@ -0,0 +1,18 @@
++#!/bin/bash
++
++. $NFT_TEST_BASEDIR/helpers/set_flush_add_atomic_helpers
++
++tmp=$(mktemp)
++
++cleanup()
++{
++	set_flush_add_atomic_cleanup "$tmp"
++}
++
++trap cleanup EXIT
++
++set_flush_add_create_topo "rbtree"
++
++set_flush_add_atomic_run_test "$tmp" "ipv4_addr" "flags interval" "0.0.0.0-192.168.2.19, 192.168.2.21-255.255.255.255" "ip saddr" || exit 1
++
++exit 0
+diff --git a/tests/shell/testcases/packetpath/set_flush_add_atomic_rhash b/tests/shell/testcases/packetpath/set_flush_add_atomic_rhash
+new file mode 100755
+index 000000000000..185d8e7612dd
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/set_flush_add_atomic_rhash
+@@ -0,0 +1,18 @@
++#!/bin/bash
++
++. $NFT_TEST_BASEDIR/helpers/set_flush_add_atomic_helpers
++
++tmp=$(mktemp)
++
++cleanup()
++{
++	set_flush_add_atomic_cleanup "$tmp"
++}
++
++trap cleanup EXIT
++
++set_flush_add_create_topo "rhash"
++
++set_flush_add_atomic_run_test "$tmp" "ipv4_addr" "flags dynamic" "$ip_c, $ip_s" "ip saddr" || exit 1
++
++exit 0
+-- 
+2.49.1
+
