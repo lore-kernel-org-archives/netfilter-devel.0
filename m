@@ -1,179 +1,270 @@
-Received: from mail-il1-f207.google.com (mail-il1-f207.google.com [209.85.166.207])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fra-out-004.esa.eu-central-1.outbound.mail-perimeter.amazon.com (fra-out-004.esa.eu-central-1.outbound.mail-perimeter.amazon.com [3.74.81.189])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7888D30CB43
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Sep 2025 15:34:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.207
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEEDC2ECE85;
+	Fri, 19 Sep 2025 10:18:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=3.74.81.189
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758209674; cv=none; b=Oqz3BPe/4+rDNOEtiylXvhQBTShMfBTJ4N86wOURBn4tOcLPp+0GR2eYoWLxU97incDivnidZeTiRAT/nSPq/AI2jn/GHhT35E6kQ8gLb77wYF3qMlUB82PJNW1Gtoav3RVE3FEqOaJRQmsO5Hn5tMuMXthiM2s5mNuxnPsX5yQ=
+	t=1758277096; cv=none; b=nKI50IrBS4Kx+3gmTVJigXM8JLNghJHaWOrrNkLSEOFRFpuMoVjXrC8Gf6wRIDdp3U82MVLMtgJx2XBon+5rhLqkGtHm++bVlHdnqjjY0P8fH7OHWz6z8DDlJZazZz4fxwLQrWJ1738jZ7KqCbPnOze3O/DC3uBFLKvNpshyjhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758209674; c=relaxed/simple;
-	bh=ExErPFUcQ4a8T+RxsqEky4yXipaiLcZSok6s4LPISVE=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=LtUe9bmiMqtDeaX8UL2VlMRqOHfNRc+GGDpP489ubyGlFah1I6iaLH51KZwWmhSaPuz6l3y/h2J3u1gcyL1rU0G4Mkb8ymxtZxcr+UMUot5z5sYQXZbfPwK2E9tPTmvVXmVjlCRg7MriOyU4g0MKPZ+lNM7eeur0fgychi8GPp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f207.google.com with SMTP id e9e14a558f8ab-4247f4fda63so5012605ab.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Sep 2025 08:34:32 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1758209672; x=1758814472;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=0sduD65NO8lJm33fZ2TP23ShQk8DTdU3PV6L6EWySPQ=;
-        b=eyZRFyh2KeZ9exCU5c1ybFRWke9qRVvIVofDVwxVykKNl/sWlovZwVYI9V022/iW0f
-         vWy6peL/1CYhRSuSD7+Sp8aO+rsT2kS/KWI277YWclw3fbZZpYXWv3pfo4aBHpv9Iyy2
-         1yem4FSZrj6/TW1LKtbKk/BjoN/InjIbM9wNCWs4F/ZholEW+zm9eND9yI8d7cZNBCgb
-         EcoEQyN3kyq7PopwcUJ+srV3RmiS73Y4LLpgnwEZH0lNLoqIqOULXyZuQ8Oc8SWYQqiT
-         9PE6PYDLOtNpe0VBn9Y0xcjwCAT93EoPB0cIBubZ3o6I0Qt25mNEthizXVcDnnXxrsnR
-         tOdA==
-X-Forwarded-Encrypted: i=1; AJvYcCXSP9Gbz/zqU17aznHBx4I7Xe5X+hCVJPYP7cMebDkKaE2JsrGTqFzDjMwtiMQ2u37jyuuhlqTxiyLIztUVG/A=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzz3PvleqsxGJ8ZNVChR9NfRP3UPfahzCOqrwGKzYnt7peGM0wA
-	Eab7zReNgEuCNoeQxcI72W+7jPhD3t4tJE8LMxM0bbsEv6d0Zuv3CCfJn0yTPlfz6keUBCkIH3C
-	YjxyTkgL4ZJJs+B9om3QqfBvfvHojoSWSKWikWa64vN+VtD55/kpS+WQsfXU=
-X-Google-Smtp-Source: AGHT+IGzmonCIrGacu/t403kscfOxmaNaHB2fXBBLB7Otoq57cCCrMcGqXwCUewG4xqYr0tv5+DoZVvHaXYaOYrGW1GTz9zgoEW5
+	s=arc-20240116; t=1758277096; c=relaxed/simple;
+	bh=YJdsYm70lqmrjZhD7jBaV8cdfUCAbDW2tpB1Od6r91s=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=DV5HPFwZzEqcW5TVIkpvyWdQy6q+0ypsClB6hMR+ftQ9BgO9CVWUGqfVZ7/ZZD0ZoEXX7Hc+gpsG+sn7M6OT0KrlCGSN3kD0vUiNpdo6Y7xP9v55rjUHyfQF2mJzmP752GlLh1gO05IRAbCQXoXtmOlJfC9WZkwwjId/kb/7fvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=fjL8z8mj; arc=none smtp.client-ip=3.74.81.189
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="fjL8z8mj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1758277094; x=1789813094;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=BxXd7aLvDai7evuJPWIvJpLyCQkjko3tn6jQCrrWhJk=;
+  b=fjL8z8mj0eMIoChdIs8U9FiBsNbuQUiVVPlT3zrMd2QY4qshSQGFLsCZ
+   I3RvurginN0A0zChNMESd2d9w8s3xOy5oVmh614EDqw2yBhb/QmmcPOe3
+   wAAtuxQ+v2eRIjVuLFIedVBHsV3Rb12raStNei1WJf2DEDd/aHXHZhmeN
+   a76yJ5Nd+Gk7nlpcDtvLOt5sY92VddMIhaXr5b8MVqqxkEyG5Fzb9cBYs
+   NZ2BX/TzsOfyqIh85A+I7sEL6a70FKGDlX46GqPiXZuw3OnvDWvZsHlvS
+   OHWNraZNTBCZiIHocmYMS/MclFB/5eIGDNbYlGQCbqgvw6N7wcVazh2wF
+   A==;
+X-CSE-ConnectionGUID: jIqyC7qOQMmU/YsQW+R8ug==
+X-CSE-MsgGUID: YteI4yn4Q++iTijrRm1r6A==
+X-IronPort-AV: E=Sophos;i="6.18,277,1751241600"; 
+   d="scan'208";a="2367150"
+Received: from ip-10-6-6-97.eu-central-1.compute.internal (HELO smtpout.naws.eu-central-1.prod.farcaster.email.amazon.dev) ([10.6.6.97])
+  by internal-fra-out-004.esa.eu-central-1.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2025 10:18:03 +0000
+Received: from EX19MTAEUA001.ant.amazon.com [54.240.197.233:23074]
+ by smtpin.naws.eu-central-1.prod.farcaster.email.amazon.dev [10.0.8.212:2525] with esmtp (Farcaster)
+ id 74144341-cb99-482b-a66c-2682d68c7588; Fri, 19 Sep 2025 10:18:03 +0000 (UTC)
+X-Farcaster-Flow-ID: 74144341-cb99-482b-a66c-2682d68c7588
+Received: from EX19D018EUA004.ant.amazon.com (10.252.50.85) by
+ EX19MTAEUA001.ant.amazon.com (10.252.50.192) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20;
+ Fri, 19 Sep 2025 10:18:02 +0000
+Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
+ (172.19.116.181) by EX19D018EUA004.ant.amazon.com (10.252.50.85) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20; Fri, 19 Sep 2025
+ 10:17:34 +0000
+From: Eliav Farber <farbere@amazon.com>
+To: <linux@armlinux.org.uk>, <jdike@addtoit.com>, <richard@nod.at>,
+	<anton.ivanov@cambridgegreys.com>, <dave.hansen@linux.intel.com>,
+	<luto@kernel.org>, <peterz@infradead.org>, <tglx@linutronix.de>,
+	<mingo@redhat.com>, <bp@alien8.de>, <x86@kernel.org>, <hpa@zytor.com>,
+	<tony.luck@intel.com>, <qiuxu.zhuo@intel.com>, <mchehab@kernel.org>,
+	<james.morse@arm.com>, <rric@kernel.org>, <harry.wentland@amd.com>,
+	<sunpeng.li@amd.com>, <alexander.deucher@amd.com>,
+	<christian.koenig@amd.com>, <airlied@linux.ie>, <daniel@ffwll.ch>,
+	<evan.quan@amd.com>, <james.qian.wang@arm.com>, <liviu.dudau@arm.com>,
+	<mihail.atanassov@arm.com>, <brian.starkey@arm.com>,
+	<maarten.lankhorst@linux.intel.com>, <mripard@kernel.org>,
+	<tzimmermann@suse.de>, <robdclark@gmail.com>, <sean@poorly.run>,
+	<jdelvare@suse.com>, <linux@roeck-us.net>, <fery@cypress.com>,
+	<dmitry.torokhov@gmail.com>, <agk@redhat.com>, <snitzer@redhat.com>,
+	<dm-devel@redhat.com>, <rajur@chelsio.com>, <davem@davemloft.net>,
+	<kuba@kernel.org>, <peppe.cavallaro@st.com>, <alexandre.torgue@st.com>,
+	<joabreu@synopsys.com>, <mcoquelin.stm32@gmail.com>, <malattia@linux.it>,
+	<hdegoede@redhat.com>, <mgross@linux.intel.com>, <intel-linux-scu@intel.com>,
+	<artur.paszkiewicz@intel.com>, <jejb@linux.ibm.com>,
+	<martin.petersen@oracle.com>, <sakari.ailus@linux.intel.com>,
+	<gregkh@linuxfoundation.org>, <clm@fb.com>, <josef@toxicpanda.com>,
+	<dsterba@suse.com>, <jack@suse.com>, <tytso@mit.edu>,
+	<adilger.kernel@dilger.ca>, <dushistov@mail.ru>,
+	<luc.vanoostenryck@gmail.com>, <rostedt@goodmis.org>, <pmladek@suse.com>,
+	<sergey.senozhatsky@gmail.com>, <andriy.shevchenko@linux.intel.com>,
+	<linux@rasmusvillemoes.dk>, <minchan@kernel.org>, <ngupta@vflare.org>,
+	<akpm@linux-foundation.org>, <kuznet@ms2.inr.ac.ru>,
+	<yoshfuji@linux-ipv6.org>, <pablo@netfilter.org>, <kadlec@netfilter.org>,
+	<fw@strlen.de>, <jmaloy@redhat.com>, <ying.xue@windriver.com>,
+	<willy@infradead.org>, <farbere@amazon.com>, <sashal@kernel.org>,
+	<ruanjinjie@huawei.com>, <David.Laight@ACULAB.COM>,
+	<herve.codina@bootlin.com>, <Jason@zx2c4.com>, <bvanassche@acm.org>,
+	<keescook@chromium.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-um@lists.infradead.org>,
+	<linux-edac@vger.kernel.org>, <amd-gfx@lists.freedesktop.org>,
+	<dri-devel@lists.freedesktop.org>, <linux-arm-msm@vger.kernel.org>,
+	<freedreno@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+	<linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <linux-stm32@st-md-mailman.stormreply.com>,
+	<platform-driver-x86@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
+	<linux-staging@lists.linux.dev>, <linux-btrfs@vger.kernel.org>,
+	<linux-ext4@vger.kernel.org>, <linux-sparse@vger.kernel.org>,
+	<linux-mm@kvack.org>, <netfilter-devel@vger.kernel.org>,
+	<coreteam@netfilter.org>, <tipc-discussion@lists.sourceforge.net>,
+	<stable@vger.kernel.org>
+CC: <jonnyc@amazon.com>
+Subject: [PATCH 00/27 5.10.y] Backport minmax.h updates from v6.17-rc6
+Date: Fri, 19 Sep 2025 10:17:00 +0000
+Message-ID: <20250919101727.16152-1-farbere@amazon.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:380b:b0:424:8061:dec0 with SMTP id
- e9e14a558f8ab-42481922c60mr64725ab.7.1758209671557; Thu, 18 Sep 2025 08:34:31
- -0700 (PDT)
-Date: Thu, 18 Sep 2025 08:34:31 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <68cc2687.050a0220.139b6.0004.GAE@google.com>
-Subject: [syzbot] [netfilter?] general protection fault in nft_fib6_eval (2)
-From: syzbot <syzbot+109521837481c8e96ea5@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D043UWC001.ant.amazon.com (10.13.139.202) To
+ EX19D018EUA004.ant.amazon.com (10.252.50.85)
 
-Hello,
+This series includes a total of 27 patches, to align minmax.h of
+v5.15.y with v6.17-rc6.
 
-syzbot found the following issue on:
+The set consists of 24 commits that directly update minmax.h:
+1) 92d23c6e9415 ("overflow, tracing: Define the is_signed_type() macro
+   once")
+2) 5efcecd9a3b1 ("minmax: sanity check constant bounds when clamping")
+3) 2122e2a4efc2 ("minmax: clamp more efficiently by avoiding extra
+   comparison")
+4) f9bff0e31881 ("minmax: add in_range() macro")
+5) c952c748c7a9 ("minmax: Introduce {min,max}_array()")
+6) 5e57418a2031 ("minmax: deduplicate __unconst_integer_typeof()")
+7) f6e9d38f8eb0 ("minmax: fix header inclusions")
+8) d03eba99f5bf ("minmax: allow min()/max()/clamp() if the arguments
+   have the same signedness.")
+9) f4b84b2ff851 ("minmax: fix indentation of __cmp_once() and
+   __clamp_once()")
+10) 4ead534fba42 ("minmax: allow comparisons of 'int' against 'unsigned
+    char/short'")
+11) 867046cc7027 ("minmax: relax check to allow comparison between
+    unsigned arguments and signed constants")
+12) 3a7e02c040b1 ("minmax: avoid overly complicated constant
+    expressions in VM code")
+14) 017fa3e89187 ("minmax: simplify and clarify min_t()/max_t()
+    implementation")
+15) 1a251f52cfdc ("minmax: make generic MIN() and MAX() macros
+    available everywhere")
+18) dc1c8034e31b ("minmax: simplify min()/max()/clamp()
+    implementation")
+19) 22f546873149 ("minmax: improve macro expansion and type
+    checking")
+20) 21b136cc63d2 ("minmax: fix up min3() and max3() too")
+21) 71ee9b16251e ("minmax.h: add whitespace around operators and after
+    commas")
+22) 10666e992048 ("minmax.h: update some comments")
+23) b280bb27a9f7 ("minmax.h: reduce the #define expansion of min(),
+    max() and clamp()")
+24) a5743f32baec ("minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi
+    test in clamp()")
+25) c3939872ee4a ("minmax.h: move all the clamp() definitions after the
+    min/max() ones")
+26) 495bba17cdf9 ("minmax.h: simplify the variants of clamp()")
+27) 2b97aaf74ed5 ("minmax.h: remove some #defines that are only
+    expanded once")
 
-HEAD commit:    01792bc3e5bd net: ti: icssg-prueth: Fix HSR and switch off..
-git tree:       net
-console output: https://syzkaller.appspot.com/x/log.txt?x=108ec3bc580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=c321f33e4545e2a1
-dashboard link: https://syzkaller.appspot.com/bug?extid=109521837481c8e96ea5
-compiler:       Debian clang version 20.1.7 (++20250616065708+6146a88f6049-1~exp1~20250616065826.132), Debian LLD 20.1.7
+2 prerequisite commits that adjust users of MIN and MAX macros (to
+prevent compilation issues):
+13) 4477b39c32fd ("minmax: add a few more MIN_T/MAX_T users")
+17) cb04e8b1d2f2 ("minmax: don't use max() in situations that want a C
+    constant expression")
 
-Unfortunately, I don't have any reproducer for this issue yet.
+1 additional commit introduced to resolve a build failures during the
+backport:
+16) lib: zstd: drop local MIN/MAX macros in favor of generic ones
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/deae9487bd6c/disk-01792bc3.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/1bb0140fd491/vmlinux-01792bc3.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/bd9ec803c379/bzImage-01792bc3.xz
+The primary motivation is to bring in commit (8).
+In mainline, this change allows min()/max()/clamp() to accept mixed
+argument types when both share the same signedness.
+Backported patches to v5.10.y that use such forms trigger compiler
+warnings, which in turn cause build failures when -Werror is enabled.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+109521837481c8e96ea5@syzkaller.appspotmail.com
+Originaly I aligned 5.10.y to 5.15.y, but David Laight commented that I
+need to pick up the later changes (from Linus) as well.
 
-Oops: general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] SMP KASAN PTI
-KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
-CPU: 0 UID: 0 PID: 8151 Comm: syz.2.634 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/12/2025
-RIP: 0010:nft_fib6_eval+0x7cd/0xc20 net/ipv6/netfilter/nft_fib_ipv6.c:-1
-Code: 4c 89 f3 48 81 c3 d8 00 00 00 48 89 d8 48 c1 e8 03 42 80 3c 20 00 74 08 48 89 df e8 8d df dd f7 48 8b 1b 48 89 d8 48 c1 e8 03 <42> 80 3c 20 00 74 08 48 89 df e8 74 df dd f7 48 8b 3b 48 8b 5c 24
-RSP: 0018:ffffc9001c59f000 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000002
-RDX: ffff88802fcabc00 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffffc9001c59f1d0 R08: ffffffff8fa37e37 R09: 1ffffffff1f46fc6
-R10: dffffc0000000000 R11: fffffbfff1f46fc7 R12: dffffc0000000000
-R13: ffffc9001c59f0f0 R14: ffff88807f6db500 R15: ffff88807f6db560
-FS:  00007faeb51596c0(0000) GS:ffff888125c1b000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f7baea82f98 CR3: 000000007e12a000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- expr_call_ops_eval net/netfilter/nf_tables_core.c:237 [inline]
- nft_do_chain+0x409/0x1920 net/netfilter/nf_tables_core.c:285
- nft_do_chain_inet+0x25d/0x340 net/netfilter/nft_chain_filter.c:161
- nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
- nf_hook_slow+0xc2/0x220 net/netfilter/core.c:623
- nf_hook include/linux/netfilter.h:273 [inline]
- NF_HOOK+0x206/0x3a0 include/linux/netfilter.h:316
- __netif_receive_skb_one_core net/core/dev.c:5991 [inline]
- __netif_receive_skb+0xd3/0x380 net/core/dev.c:6104
- netif_receive_skb_internal net/core/dev.c:6190 [inline]
- netif_receive_skb+0x1cb/0x790 net/core/dev.c:6249
- tun_rx_batched+0x1b9/0x730 drivers/net/tun.c:1485
- tun_get_user+0x2aa2/0x3e20 drivers/net/tun.c:1950
- tun_chr_write_iter+0x113/0x200 drivers/net/tun.c:1996
- new_sync_write fs/read_write.c:593 [inline]
- vfs_write+0x5c9/0xb30 fs/read_write.c:686
- ksys_write+0x145/0x250 fs/read_write.c:738
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xfa/0x3b0 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7faeb438d69f
-Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 f9 92 02 00 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 4c 93 02 00 48
-RSP: 002b:00007faeb5159000 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007faeb45b5fa0 RCX: 00007faeb438d69f
-RDX: 0000000000000046 RSI: 0000200000000b00 RDI: 00000000000000c8
-RBP: 00007faeb4411e19 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000046 R11: 0000000000000293 R12: 0000000000000000
-R13: 00007faeb45b6038 R14: 00007faeb45b5fa0 R15: 00007ffcdc4d36a8
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-RIP: 0010:nft_fib6_eval+0x7cd/0xc20 net/ipv6/netfilter/nft_fib_ipv6.c:-1
-Code: 4c 89 f3 48 81 c3 d8 00 00 00 48 89 d8 48 c1 e8 03 42 80 3c 20 00 74 08 48 89 df e8 8d df dd f7 48 8b 1b 48 89 d8 48 c1 e8 03 <42> 80 3c 20 00 74 08 48 89 df e8 74 df dd f7 48 8b 3b 48 8b 5c 24
-RSP: 0018:ffffc9001c59f000 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000002
-RDX: ffff88802fcabc00 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffffc9001c59f1d0 R08: ffffffff8fa37e37 R09: 1ffffffff1f46fc6
-R10: dffffc0000000000 R11: fffffbfff1f46fc7 R12: dffffc0000000000
-R13: ffffc9001c59f0f0 R14: ffff88807f6db500 R15: ffff88807f6db560
-FS:  00007faeb51596c0(0000) GS:ffff888125c1b000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f7baea82f98 CR3: 000000007e12a000 CR4: 00000000003526f0
-----------------
-Code disassembly (best guess):
-   0:	4c 89 f3             	mov    %r14,%rbx
-   3:	48 81 c3 d8 00 00 00 	add    $0xd8,%rbx
-   a:	48 89 d8             	mov    %rbx,%rax
-   d:	48 c1 e8 03          	shr    $0x3,%rax
-  11:	42 80 3c 20 00       	cmpb   $0x0,(%rax,%r12,1)
-  16:	74 08                	je     0x20
-  18:	48 89 df             	mov    %rbx,%rdi
-  1b:	e8 8d df dd f7       	call   0xf7dddfad
-  20:	48 8b 1b             	mov    (%rbx),%rbx
-  23:	48 89 d8             	mov    %rbx,%rax
-  26:	48 c1 e8 03          	shr    $0x3,%rax
-* 2a:	42 80 3c 20 00       	cmpb   $0x0,(%rax,%r12,1) <-- trapping instruction
-  2f:	74 08                	je     0x39
-  31:	48 89 df             	mov    %rbx,%rdi
-  34:	e8 74 df dd f7       	call   0xf7dddfad
-  39:	48 8b 3b             	mov    (%rbx),%rdi
-  3c:	48                   	rex.W
-  3d:	8b                   	.byte 0x8b
-  3e:	5c                   	pop    %rsp
-  3f:	24                   	.byte 0x24
+Andy Shevchenko (2):
+  minmax: deduplicate __unconst_integer_typeof()
+  minmax: fix header inclusions
 
+Bart Van Assche (1):
+  overflow, tracing: Define the is_signed_type() macro once
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+David Laight (11):
+  minmax: allow min()/max()/clamp() if the arguments have the same
+    signedness.
+  minmax: fix indentation of __cmp_once() and __clamp_once()
+  minmax: allow comparisons of 'int' against 'unsigned char/short'
+  minmax: relax check to allow comparison between unsigned arguments and
+    signed constants
+  minmax.h: add whitespace around operators and after commas
+  minmax.h: update some comments
+  minmax.h: reduce the #define expansion of min(), max() and clamp()
+  minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+  minmax.h: move all the clamp() definitions after the min/max() ones
+  minmax.h: simplify the variants of clamp()
+  minmax.h: remove some #defines that are only expanded once
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+Eliav Farber (1):
+  lib: zstd: drop local MIN/MAX macros in favor of generic ones
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+Herve Codina (1):
+  minmax: Introduce {min,max}_array()
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+Jason A. Donenfeld (2):
+  minmax: sanity check constant bounds when clamping
+  minmax: clamp more efficiently by avoiding extra comparison
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
+Linus Torvalds (8):
+  minmax: avoid overly complicated constant expressions in VM code
+  minmax: add a few more MIN_T/MAX_T users
+  minmax: simplify and clarify min_t()/max_t() implementation
+  minmax: make generic MIN() and MAX() macros available everywhere
+  minmax: don't use max() in situations that want a C constant
+    expression
+  minmax: simplify min()/max()/clamp() implementation
+  minmax: improve macro expansion and type checking
+  minmax: fix up min3() and max3() too
 
-If you want to undo deduplication, reply with:
-#syz undup
+Matthew Wilcox (Oracle) (1):
+  minmax: add in_range() macro
+
+ arch/arm/mm/pageattr.c                        |   6 +-
+ arch/um/drivers/mconsole_user.c               |   2 +
+ arch/x86/mm/pgtable.c                         |   2 +-
+ drivers/edac/sb_edac.c                        |   4 +-
+ drivers/edac/skx_common.h                     |   1 -
+ .../drm/amd/display/modules/hdcp/hdcp_ddc.c   |   2 +
+ .../drm/amd/pm/powerplay/hwmgr/ppevvmath.h    |  14 +-
+ .../drm/arm/display/include/malidp_utils.h    |   2 +-
+ .../display/komeda/komeda_pipeline_state.c    |  24 +-
+ drivers/gpu/drm/drm_color_mgmt.c              |   2 +-
+ drivers/gpu/drm/msm/adreno/a6xx_gmu.c         |   6 -
+ drivers/gpu/drm/radeon/evergreen_cs.c         |   2 +
+ drivers/hwmon/adt7475.c                       |  24 +-
+ drivers/input/touchscreen/cyttsp4_core.c      |   2 +-
+ drivers/md/dm-integrity.c                     |   2 +-
+ drivers/media/dvb-frontends/stv0367_priv.h    |   3 +
+ .../net/ethernet/chelsio/cxgb3/cxgb3_main.c   |  18 +-
+ .../net/ethernet/stmicro/stmmac/stmmac_main.c |   2 +-
+ drivers/net/fjes/fjes_main.c                  |   4 +-
+ drivers/nfc/pn544/i2c.c                       |   2 -
+ drivers/platform/x86/sony-laptop.c            |   1 -
+ drivers/scsi/isci/init.c                      |   6 +-
+ .../pci/hive_isp_css_include/math_support.h   |   5 -
+ fs/btrfs/misc.h                               |   2 -
+ fs/btrfs/tree-checker.c                       |   2 +-
+ fs/ext2/balloc.c                              |   2 -
+ fs/ext4/ext4.h                                |   2 -
+ fs/ufs/util.h                                 |   6 -
+ include/linux/compiler.h                      |  15 +
+ include/linux/minmax.h                        | 267 ++++++++++++++----
+ include/linux/overflow.h                      |   1 -
+ include/linux/trace_events.h                  |   2 -
+ kernel/trace/preemptirq_delay_test.c          |   2 -
+ lib/btree.c                                   |   1 -
+ lib/decompress_unlzma.c                       |   2 +
+ lib/logic_pio.c                               |   3 -
+ lib/vsprintf.c                                |   2 +-
+ lib/zstd/zstd_internal.h                      |   2 -
+ mm/zsmalloc.c                                 |   1 -
+ net/ipv4/proc.c                               |   2 +-
+ net/ipv6/proc.c                               |   2 +-
+ net/netfilter/nf_nat_core.c                   |   6 +-
+ net/tipc/core.h                               |   2 +-
+ net/tipc/link.c                               |  10 +-
+ 44 files changed, 306 insertions(+), 164 deletions(-)
+
+-- 
+2.47.3
+
