@@ -1,159 +1,301 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-wm1-f48.google.com (mail-wm1-f48.google.com [209.85.128.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE4F12153EA
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Sep 2025 12:41:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 699472D46A9
+	for <netfilter-devel@vger.kernel.org>; Sat, 20 Sep 2025 10:21:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758285677; cv=none; b=EBGOcy4R2VcAH2dmrPxvl046iP7Gy7bCyZxZ5XXQpY5XoE4ew+yPQvBk3X+/5s+iQUkDmGMmBlTAF34cd4y99SDba4Bel4vhRC3UXixdWyB9WeHETPwzt3ZXVlmCpeF4AHxEggOn+V67cvEbPGYJ4JXxdbmueFoB/vQ2Fl+3K2M=
+	t=1758363691; cv=none; b=H0G3qHwIpKD0j6A+cDCEYFEueWWQXMBSkLYou0OIwBdIyBjqUfu6PCf9io/ziP+xlxp68KI188LFCI8AlC//U4HAZnE/BXtYxc7cvokHGIld4GMEReF5pJnflvz+hynYdUPn1WLAz18ioHykpBGg3sOL16dQf+e9+IhSAYJwo6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758285677; c=relaxed/simple;
-	bh=sMuBMgsQDsUZVR/6l+Fo4a0xLYop1eFcSm4g05qqYug=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pv69xRDfrmVUVRrTM0aBJceqabJ/hJY2kAzH5sIsUX41HV4SryoV5CVevBjY7IHeZLeXMilfZV3deVF3ixqDDyTZ+qYN6BFS5iMsra7cutTjzuc3aiCTzoSO5W8JpjdSxhNyk4JJTMVxmDMV57ncDo9DQoh/VosF6/4lCoxvqgc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=MqGo2qpZ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=kEyZ/HF4; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=MqGo2qpZ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=kEyZ/HF4; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1758363691; c=relaxed/simple;
+	bh=NeUWLUvwC6kW9VyfKYx42FFXe0IA1wZCOhU/BXYAKwI=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=oVXwIOiDxC3HjsfhV0Ve68mGullLdlPpyj1hIhgkB+9/BO6hRoTZqnNOYRlv4HMNUYPg7uKEsmHSyyavgWh2BhFdLLW81bjf7cPwtVk5gvtm5DCE/eLWCFmDTS2TCtU9auWVQuLiURMdxkPoy9Xe5QX2KIOC8BSi+UYXP0Ujh0U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=R/7euhNL; arc=none smtp.client-ip=209.85.128.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="MqGo2qpZ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="kEyZ/HF4";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="MqGo2qpZ";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="kEyZ/HF4"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 249FC336B6;
-	Fri, 19 Sep 2025 12:41:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758285674; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=AQ3VKdk5xDGOA+RczIZ6a3QZglMva0tGYAlnkazTX/4=;
-	b=MqGo2qpZST1+3gnj6q/EicejFj+w44RGYwjEGxQFIZeGwbW+02g4o4coU/PUV5wRpuv5I4
-	4Pao0ZXImeBhGmYAtALaiQ2jo03W5nXw9F6aSsyo9hCG8v8kGJ1M9YGZAHia6YpfXKku0t
-	c9OlExld2hcgZVdtydnKuQPhE/JAKFE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758285674;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=AQ3VKdk5xDGOA+RczIZ6a3QZglMva0tGYAlnkazTX/4=;
-	b=kEyZ/HF4ckasB9/k69Y2jEDozvGN1dgXEwBlKNhECxlxJARX7fJwzzF/2JRbYBPbqwhK1k
-	+IwKAaEAupAVQ2DA==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=MqGo2qpZ;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="kEyZ/HF4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758285674; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=AQ3VKdk5xDGOA+RczIZ6a3QZglMva0tGYAlnkazTX/4=;
-	b=MqGo2qpZST1+3gnj6q/EicejFj+w44RGYwjEGxQFIZeGwbW+02g4o4coU/PUV5wRpuv5I4
-	4Pao0ZXImeBhGmYAtALaiQ2jo03W5nXw9F6aSsyo9hCG8v8kGJ1M9YGZAHia6YpfXKku0t
-	c9OlExld2hcgZVdtydnKuQPhE/JAKFE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758285674;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=AQ3VKdk5xDGOA+RczIZ6a3QZglMva0tGYAlnkazTX/4=;
-	b=kEyZ/HF4ckasB9/k69Y2jEDozvGN1dgXEwBlKNhECxlxJARX7fJwzzF/2JRbYBPbqwhK1k
-	+IwKAaEAupAVQ2DA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C0FF313A39;
-	Fri, 19 Sep 2025 12:41:13 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id z0xOLGlPzWhTfwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 19 Sep 2025 12:41:13 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	donald.hunter@gmail.com,
-	kuba@kernel.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf] netfilter: nfnetlink: reset nlh pointer during batch replay
-Date: Fri, 19 Sep 2025 14:40:43 +0200
-Message-ID: <20250919124043.18452-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="R/7euhNL"
+Received: by mail-wm1-f48.google.com with SMTP id 5b1f17b1804b1-45f2313dd86so25142155e9.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 20 Sep 2025 03:21:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1758363686; x=1758968486; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=P0vYXtUQVOuP2mhoWd4ropfz+61/nK8dVG+VKmZf9qg=;
+        b=R/7euhNLFeNlzmaUZ+Phoi0Q88Um1/yPfSkGC3G2sFF8md/oqJcr43+2FV+9UmZ2Dk
+         SUnKvAzbGiMrGaYgJR97ThDsbv3pKQfcEILZgylruuHbwAgK1ibJB3U9tn1aPxbYXcK1
+         MyRhovHH6tj9EMTzJqrblnvCmVfWpPYmKtlRwrM4k2sJZEX5nejonCqSjRQvEZ+qH5zA
+         DZ8wgDnOm8GaSljL3BUhgkod1l54KOPFjRhr/NVlywP8mhfKqtfasB/gPB/yUR4l9gOU
+         cdSyKg0V831oaRBDwypFkfc9dJHAFm8Nx1QoZlRSq09uBR4nwN02T4sdmyv+CMFSoURH
+         KYog==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758363686; x=1758968486;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=P0vYXtUQVOuP2mhoWd4ropfz+61/nK8dVG+VKmZf9qg=;
+        b=nYcuaJ43b4xgRd9f0dLgzs37bBU9FvwDm6pTsglDmQup8ALvOg8t9ywQm3mRQFg+BH
+         slOV1yiCLb0tuYTjPd0QgjpWg8VtYpsWNjP2p53owbtJyuWm9P4SJYPlABYCgN0DECPm
+         5on5zuASp9aqZPNjJcV4/UOOYPg7vT7wyIX7RC/7UkRhOMPr9U3lfR9T4EAwz2Pl8l/v
+         mUPK2+sPu/SQIc170rE5ICVu8UToXvLKtgVNq2pY7+cdm2K9k6JnASU3CIxqC2MmD7tg
+         l+WaAnHGWGXNo8oKdKkBbZ6g9X4nToCM0i1DVIUTWuRA1L59++1CUPOEZ+49rUx5AMxm
+         smHQ==
+X-Forwarded-Encrypted: i=1; AJvYcCW2F1V9QTNWiUofL67Rc41bo3nLoQ7V9oQ+bTvoc0RDvDQ+R9aJ4ZmihOTjW2luTDMiffSmuGdGMJSZiHCi7LI=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwlUdBVA5M3DOdxVynXyFaSqNBKjvqbyvzPzPrB0RresgQbxTE7
+	qfpMtGKYcK68/Iv+NKRBGrxtAHUVpnEDtfSeuJyXYlQIKCL5d2e0RH3g
+X-Gm-Gg: ASbGncseYw8Gb0jZF96MoA1DGyKUjy8WXfjucDjc9Iu46o5tzwEU9OgL/DR8JD6FVZY
+	m3RGJpu+daWxK/ZSt8DWfsrYXb5IilfCgPNtTjPhKplcmg6hIvON9uKd3XcPuVxYy99xIBHrmDk
+	mQJ7sYHFjtmFBzzIJFTLjDufsh67K4/L13I5ieprWftL9xLs43ZrYLH0Nn1/d6xH8NHPu7kFj7f
+	JnFzM1ESvLXTnfwO1jtY2Fro4jbpYEMwgFAxhPlDwAPrYKNswy2pT0MeezYUaQP+UQGLJBLeWRK
+	uDvmO6cRZMQQELBO0x6uZDUYDOK3Li9Sjc5AVU4/22lFjTlvBS+/Bq0yVS4FBtQR4p8LRWsfHX1
+	0yA+06U36CkZdR76S/9KOvAzKgyWQf1NvyqbJF90W6eWWjA5Yw2AQ9P3ZdhsB
+X-Google-Smtp-Source: AGHT+IFiz+7GSgFF/mIUUp0ndfipkNQ39jr+2XK+PXUAveDTslyL1Wu67txaLfdop4/qCEdAg/m1vQ==
+X-Received: by 2002:a05:600c:c8f:b0:45f:2919:5e6c with SMTP id 5b1f17b1804b1-467e6f37d8dmr76782405e9.16.1758363685327;
+        Sat, 20 Sep 2025 03:21:25 -0700 (PDT)
+Received: from pumpkin (82-69-66-36.dsl.in-addr.zen.co.uk. [82.69.66.36])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3f0e28c83d6sm5624389f8f.56.2025.09.20.03.21.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 20 Sep 2025 03:21:25 -0700 (PDT)
+Date: Sat, 20 Sep 2025 11:21:22 +0100
+From: David Laight <david.laight.linux@gmail.com>
+To: Christian =?UTF-8?B?S8O2bmln?= <christian.koenig@amd.com>
+Cc: linux@armlinux.org.uk, jdike@addtoit.com,
+ anton.ivanov@cambridgegreys.com, dave.hansen@linux.intel.com,
+ peterz@infradead.org, tglx@linutronix.de, x86@kernel.org, hpa@zytor.com,
+ tony.luck@intel.com, qiuxu.zhuo@intel.com, mchehab@kernel.org,
+ james.morse@arm.com, rric@kernel.org, harry.wentland@amd.com,
+ sunpeng.li@amd.com, alexander.deucher@amd.com, airlied@linux.ie,
+ daniel@ffwll.ch, evan.quan@amd.com, james.qian.wang@arm.com,
+ liviu.dudau@arm.com, mihail.atanassov@arm.com, brian.starkey@arm.com,
+ maarten.lankhorst@linux.intel.com, mripard@kernel.org, tzimmermann@suse.de,
+ robdclark@gmail.com, sean@poorly.run, dmitry.torokhov@gmail.com,
+ agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com, rajur@chelsio.com,
+ davem@davemloft.net, kuba@kernel.org, peppe.cavallaro@st.com,
+ alexandre.torgue@st.com, joabreu@synopsys.com, mcoquelin.stm32@gmail.com,
+ malattia@linux.it, hdegoede@redhat.com, mgross@linux.intel.com,
+ intel-linux-scu@intel.com, artur.paszkiewicz@intel.com, jejb@linux.ibm.com,
+ martin.petersen@oracle.com, sakari.ailus@linux.intel.com,
+ gregkh@linuxfoundation.org, dushistov@mail.ru, luc.vanoostenryck@gmail.com,
+ rostedt@goodmis.org, pmladek@suse.com, sergey.senozhatsky@gmail.com,
+ andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
+ akpm@linux-foundation.org, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org,
+ pablo@netfilter.org, kadlec@netfilter.org, jmaloy@redhat.com,
+ ying.xue@windriver.com, willy@infradead.org, sashal@kernel.org,
+ ruanjinjie@huawei.com, David.Laight@ACULAB.COM, herve.codina@bootlin.com,
+ Jason@zx2c4.com, bvanassche@acm.org, keescook@chromium.org,
+ linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+ linux-um@lists.infradead.org, linux-edac@vger.kernel.org,
+ amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+ linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org,
+ linux-hwmon@vger.kernel.org, linux-input@vger.kernel.org,
+ linux-media@vger.kernel.org, netdev@vger.kernel.org,
+ linux-stm32@st-md-mailman.stormreply.com,
+ platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org,
+ linux-staging@lists.linux.dev, linux-btrfs@vger.kernel.org,
+ linux-ext4@vger.kernel.org, linux-sparse@vger.kernel.org,
+ linux-mm@kvack.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, tipc-discussion@lists.sourceforge.net,
+ stable@vger.kernel.org, jonnyc@amazon.com
+Subject: Re: [PATCH 00/27 5.10.y] Backport minmax.h updates from v6.17-rc6
+Message-ID: <20250920111904.6d9ecb17@pumpkin>
+In-Reply-To: <184ce83f-0063-43a0-a1c8-da23c5d03cf7@amd.com>
+References: <20250919101727.16152-1-farbere@amazon.com>
+	<184ce83f-0063-43a0-a1c8-da23c5d03cf7@amd.com>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; arm-unknown-linux-gnueabihf)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-1.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	SUSPICIOUS_RECIPS(1.50)[];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	ARC_NA(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	FREEMAIL_CC(0.00)[netfilter.org,gmail.com,kernel.org,suse.de];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[5];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim,suse.de:email];
-	TAGGED_RCPT(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
-	DKIM_TRACE(0.00)[suse.de:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com]
-X-Spam-Flag: NO
-X-Spam-Level: 
-X-Rspamd-Queue-Id: 249FC336B6
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Score: -1.51
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-During a batch replay, the nlh pointer is not reset until the parsing of
-the commands. Since commit bf2ac490d28c ("netfilter: nfnetlink: Handle
-ACK flags for batch messages") that is problematic as the condition to
-add an ACK for batch begin will evaluate to true even if NLM_F_ACK
-wasn't used for batch begin message.
+On Fri, 19 Sep 2025 14:11:37 +0200
+Christian K=C3=B6nig <christian.koenig@amd.com> wrote:
 
-If there is an error during the command processing, netlink is sending
-an ACK despite that. This misleads userspace tools which think that the
-return code was 0. Reset the nlh pointer to the original one when a
-replay is triggered.
+> On 19.09.25 12:17, Eliav Farber wrote:
+> > This series includes a total of 27 patches, to align minmax.h of
+> > v5.15.y with v6.17-rc6.
+> >=20
+> > The set consists of 24 commits that directly update minmax.h:
+> > 1) 92d23c6e9415 ("overflow, tracing: Define the is_signed_type() macro
+> >    once")
+> > 2) 5efcecd9a3b1 ("minmax: sanity check constant bounds when clamping")
+> > 3) 2122e2a4efc2 ("minmax: clamp more efficiently by avoiding extra
+> >    comparison")
+> > 4) f9bff0e31881 ("minmax: add in_range() macro")
+> > 5) c952c748c7a9 ("minmax: Introduce {min,max}_array()")
+> > 6) 5e57418a2031 ("minmax: deduplicate __unconst_integer_typeof()")
+> > 7) f6e9d38f8eb0 ("minmax: fix header inclusions")
+> > 8) d03eba99f5bf ("minmax: allow min()/max()/clamp() if the arguments
+> >    have the same signedness.")
+> > 9) f4b84b2ff851 ("minmax: fix indentation of __cmp_once() and
+> >    __clamp_once()")
+> > 10) 4ead534fba42 ("minmax: allow comparisons of 'int' against 'unsigned
+> >     char/short'")
+> > 11) 867046cc7027 ("minmax: relax check to allow comparison between
+> >     unsigned arguments and signed constants")
+> > 12) 3a7e02c040b1 ("minmax: avoid overly complicated constant
+> >     expressions in VM code")
+> > 14) 017fa3e89187 ("minmax: simplify and clarify min_t()/max_t()
+> >     implementation")
+> > 15) 1a251f52cfdc ("minmax: make generic MIN() and MAX() macros
+> >     available everywhere")
+> > 18) dc1c8034e31b ("minmax: simplify min()/max()/clamp()
+> >     implementation")
+> > 19) 22f546873149 ("minmax: improve macro expansion and type
+> >     checking")
+> > 20) 21b136cc63d2 ("minmax: fix up min3() and max3() too")
+> > 21) 71ee9b16251e ("minmax.h: add whitespace around operators and after
+> >     commas")
+> > 22) 10666e992048 ("minmax.h: update some comments")
+> > 23) b280bb27a9f7 ("minmax.h: reduce the #define expansion of min(),
+> >     max() and clamp()")
+> > 24) a5743f32baec ("minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi
+> >     test in clamp()")
+> > 25) c3939872ee4a ("minmax.h: move all the clamp() definitions after the
+> >     min/max() ones")
+> > 26) 495bba17cdf9 ("minmax.h: simplify the variants of clamp()")
+> > 27) 2b97aaf74ed5 ("minmax.h: remove some #defines that are only
+> >     expanded once")
+> >=20
+> > 2 prerequisite commits that adjust users of MIN and MAX macros (to
+> > prevent compilation issues):
+> > 13) 4477b39c32fd ("minmax: add a few more MIN_T/MAX_T users")
+> > 17) cb04e8b1d2f2 ("minmax: don't use max() in situations that want a C
+> >     constant expression")
+> >=20
+> > 1 additional commit introduced to resolve a build failures during the
+> > backport:
+> > 16) lib: zstd: drop local MIN/MAX macros in favor of generic ones
+> >=20
+> > The primary motivation is to bring in commit (8).
+> > In mainline, this change allows min()/max()/clamp() to accept mixed
+> > argument types when both share the same signedness.
+> > Backported patches to v5.10.y that use such forms trigger compiler
+> > warnings, which in turn cause build failures when -Werror is enabled.
+> >=20
+> > Originaly I aligned 5.10.y to 5.15.y, but David Laight commented that I
+> > need to pick up the later changes (from Linus) as well.
+> >=20
+> > Andy Shevchenko (2):
+> >   minmax: deduplicate __unconst_integer_typeof()
+> >   minmax: fix header inclusions
+> >=20
+> > Bart Van Assche (1):
+> >   overflow, tracing: Define the is_signed_type() macro once
+> >=20
+> > David Laight (11):
+> >   minmax: allow min()/max()/clamp() if the arguments have the same
+> >     signedness.
+> >   minmax: fix indentation of __cmp_once() and __clamp_once()
+> >   minmax: allow comparisons of 'int' against 'unsigned char/short'
+> >   minmax: relax check to allow comparison between unsigned arguments and
+> >     signed constants
+> >   minmax.h: add whitespace around operators and after commas
+> >   minmax.h: update some comments
+> >   minmax.h: reduce the #define expansion of min(), max() and clamp()
+> >   minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+> >   minmax.h: move all the clamp() definitions after the min/max() ones
+> >   minmax.h: simplify the variants of clamp()
+> >   minmax.h: remove some #defines that are only expanded once
+> >=20
+> > Eliav Farber (1):
+> >   lib: zstd: drop local MIN/MAX macros in favor of generic ones
+> >=20
+> > Herve Codina (1):
+> >   minmax: Introduce {min,max}_array()
+> >=20
+> > Jason A. Donenfeld (2):
+> >   minmax: sanity check constant bounds when clamping
+> >   minmax: clamp more efficiently by avoiding extra comparison
+> >=20
+> > Linus Torvalds (8):
+> >   minmax: avoid overly complicated constant expressions in VM code
+> >   minmax: add a few more MIN_T/MAX_T users
+> >   minmax: simplify and clarify min_t()/max_t() implementation
+> >   minmax: make generic MIN() and MAX() macros available everywhere
+> >   minmax: don't use max() in situations that want a C constant
+> >     expression
+> >   minmax: simplify min()/max()/clamp() implementation
+> >   minmax: improve macro expansion and type checking
+> >   minmax: fix up min3() and max3() too
+> >=20
+> > Matthew Wilcox (Oracle) (1):
+> >   minmax: add in_range() macro
+> >=20
+> >  arch/arm/mm/pageattr.c                        |   6 +-
+> >  arch/um/drivers/mconsole_user.c               |   2 +
+> >  arch/x86/mm/pgtable.c                         |   2 +- =20
+>=20
+> >  drivers/edac/sb_edac.c                        |   4 +-
+> >  drivers/edac/skx_common.h                     |   1 -
+> >  .../drm/amd/display/modules/hdcp/hdcp_ddc.c   |   2 +
+> >  .../drm/amd/pm/powerplay/hwmgr/ppevvmath.h    |  14 +-
+> >  .../drm/arm/display/include/malidp_utils.h    |   2 +-
+> >  .../display/komeda/komeda_pipeline_state.c    |  24 +-
+> >  drivers/gpu/drm/drm_color_mgmt.c              |   2 +-
+> >  drivers/gpu/drm/msm/adreno/a6xx_gmu.c         |   6 -
+> >  drivers/gpu/drm/radeon/evergreen_cs.c         |   2 +
+> >  drivers/hwmon/adt7475.c                       |  24 +-
+> >  drivers/input/touchscreen/cyttsp4_core.c      |   2 +-
+> >  drivers/md/dm-integrity.c                     |   2 +-
+> >  drivers/media/dvb-frontends/stv0367_priv.h    |   3 +
+> >  .../net/ethernet/chelsio/cxgb3/cxgb3_main.c   |  18 +-
+> >  .../net/ethernet/stmicro/stmmac/stmmac_main.c |   2 +-
+> >  drivers/net/fjes/fjes_main.c                  |   4 +-
+> >  drivers/nfc/pn544/i2c.c                       |   2 -
+> >  drivers/platform/x86/sony-laptop.c            |   1 -
+> >  drivers/scsi/isci/init.c                      |   6 +- =20
+>=20
+> I do see the value to backport the infrastructure, but why are driver spe=
+cific changes backported as well?
 
-Fixes: bf2ac490d28c ("netfilter: nfnetlink: Handle ACK flags for batch messages")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- net/netfilter/nfnetlink.c | 2 ++
- 1 file changed, 2 insertions(+)
+They will be about removing local definitions of MIN() and MAX() freeing
+them up for simple implementations (usable as constant initialisers) and th=
+en
+using them in places where the compound statements in min() and max() can't
+be used.
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index e598a2a252b0..811d02b4c4f7 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -376,6 +376,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	const struct nfnetlink_subsystem *ss;
- 	const struct nfnl_callback *nc;
- 	struct netlink_ext_ack extack;
-+	struct nlmsghdr *onlh = nlh;
- 	LIST_HEAD(err_list);
- 	u32 status;
- 	int err;
-@@ -386,6 +387,7 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	status = 0;
- replay_abort:
- 	skb = netlink_skb_clone(oskb, GFP_KERNEL);
-+	nlh = onlh;
- 	if (!skb)
- 		return netlink_ack(oskb, nlh, -ENOMEM, NULL);
- 
--- 
-2.51.0
+Linus did all those changes - so he didn't have to wait for the maintainers
+to apply the changes (etc).
+
+	David
+=20
+>=20
+> I mean the changes are most likely correct but also not valuable in anywa=
+y as bug fix.
+>=20
+> Regards,
+> Christian.
+>=20
+> >  .../pci/hive_isp_css_include/math_support.h   |   5 -
+> >  fs/btrfs/misc.h                               |   2 -
+> >  fs/btrfs/tree-checker.c                       |   2 +-
+> >  fs/ext2/balloc.c                              |   2 -
+> >  fs/ext4/ext4.h                                |   2 -
+> >  fs/ufs/util.h                                 |   6 -
+> >  include/linux/compiler.h                      |  15 +
+> >  include/linux/minmax.h                        | 267 ++++++++++++++----
+> >  include/linux/overflow.h                      |   1 -
+> >  include/linux/trace_events.h                  |   2 -
+> >  kernel/trace/preemptirq_delay_test.c          |   2 -
+> >  lib/btree.c                                   |   1 -
+> >  lib/decompress_unlzma.c                       |   2 +
+> >  lib/logic_pio.c                               |   3 -
+> >  lib/vsprintf.c                                |   2 +-
+> >  lib/zstd/zstd_internal.h                      |   2 -
+> >  mm/zsmalloc.c                                 |   1 -
+> >  net/ipv4/proc.c                               |   2 +-
+> >  net/ipv6/proc.c                               |   2 +-
+> >  net/netfilter/nf_nat_core.c                   |   6 +-
+> >  net/tipc/core.h                               |   2 +-
+> >  net/tipc/link.c                               |  10 +-
+> >  44 files changed, 306 insertions(+), 164 deletions(-)
+> >  =20
+>=20
+>=20
 
