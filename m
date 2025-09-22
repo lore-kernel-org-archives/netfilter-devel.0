@@ -1,158 +1,149 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f174.google.com (mail-qt1-f174.google.com [209.85.160.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31C23176F2
-	for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2025 20:09:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2A9C25A33A
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2025 21:13:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758571799; cv=none; b=IG04PxeimfmD7SK8u4Fdrc0t3Mpa8yPpCKz562yrN0cpdTJJm5U0KR9MtIdc6UpUMdlOVlgpSqT4ec6PhDQlVba69WZiaceZq5fw11kFUCOYJBJuuRJUBDN94657BOFaDlMJsHf0YUek5lpa2MY2RemITetaiMpm/GkPrK53LRA=
+	t=1758575591; cv=none; b=ezCaOQztk+yBYEcJV+igifuJnEg01ysnRtEAoFtYHOU3IZKaIrZY7MhygYcGKT0B8VXDtk0juVIScR2flTe9HnacSxirc31L1EuiRMhtK7TsBfTBjdzmfZXDalp3mmQ6G0CBebs8X384X1rSBK1xJlaCR4gD9281yrCWOb3B23s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758571799; c=relaxed/simple;
-	bh=96yc8lr8zpTTnNLo+57UwK0ZN6gWSNcoPPMe554q/80=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=R6vb9kzNmI9d4E8uYFZ4hRZgcCjWMCoHdfY8qBCxJZofOyFGMaSpHwjK6875Q9G0oyLxGtqPtVbk5KfWu3due7g97ZqalNMpppVYMoZlbAJlhBBpoqzOUpAX8Tjkg0tVMzJub4tnXSDs9IREYOFLqURaFUy+53xq81c7wXjAzN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=SSZMeOT2; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1758575591; c=relaxed/simple;
+	bh=5nYmtllGAhnb0awO7jb0e2Q28ODUSeoaxn4f2xlaPSc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=m8yQ+0f50KlktT/QVfa6QevlJqoMQMDqPKnZcvAAPz1BsVgU16la2PkLjuMCNQ9ls+a/keaJ/8fmlV57eJN3bqO7GpqJ4gpPDZdnouLx4ldI7pAAUEhhTgE+C54/LMzaTFFbuWdrAZOQJngiy0Q9KACsxE0O0BFpbde6ERG4sBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=jXXs/9P2; arc=none smtp.client-ip=209.85.160.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SSZMeOT2"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1758571796;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=xMy9+5cJFf4QAOot9A0fSaZyvFYitQlYRC/JRAHzUU8=;
-	b=SSZMeOT2y+hRg1l/qA9L0kFm4uIVDI2gcNYKx7BCH0wZmiZlZXbLjlqHBE4wi2jX5DjLS9
-	MhLYW500IBA+PcG/HBIuV3t9+GRDlM33xpUxyzbrZQH7MTCBD4Y+GKC9VfzAoh/KLx0Jiy
-	FkvxdqK5pXQib6RedJq3AB6GAjqiRhY=
-Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-673-RCZSE8ExNDun-yru0aRLLA-1; Mon,
- 22 Sep 2025 16:09:53 -0400
-X-MC-Unique: RCZSE8ExNDun-yru0aRLLA-1
-X-Mimecast-MFC-AGG-ID: RCZSE8ExNDun-yru0aRLLA_1758571791
-Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 131E119560AE;
-	Mon, 22 Sep 2025 20:09:51 +0000 (UTC)
-Received: from wsxc.redhat.com (unknown [10.96.134.33])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 9F8A41956045;
-	Mon, 22 Sep 2025 20:09:46 +0000 (UTC)
-From: Ricardo Robaina <rrobaina@redhat.com>
-To: audit@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Cc: paul@paul-moore.com,
-	eparis@redhat.com,
-	pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de,
-	Ricardo Robaina <rrobaina@redhat.com>
-Subject: [PATCH v1] audit: include source and destination ports to NETFILTER_PKT
-Date: Mon, 22 Sep 2025 17:09:42 -0300
-Message-ID: <20250922200942.1534414-1-rrobaina@redhat.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="jXXs/9P2"
+Received: by mail-qt1-f174.google.com with SMTP id d75a77b69052e-4b61161c30fso40262141cf.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2025 14:13:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1758575588; x=1759180388; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zEsovu3oZESlhX5Jz4J0hLzBSRyfD9rtZS172hR4u5c=;
+        b=jXXs/9P2HkMHJI1yo8hz1UjOO1Q2SsxOsf0GDbBVkZI6ypOWkmfaP0RzIxLYVFU+Yn
+         f4XX5qxG18WPKv46CyytcPsWKpWOvnNvLc18kwL64v+NQpDtNBGHVQT2X8i0adigHSY9
+         FNfhs946dYZ64a10iuwzvjMYuzgvMI1qSS8gyq/Ibf5jhZFxLqahAqRzmQ/LtpikTyHl
+         VjObsHmO8K0bjgxRlzbYygjoFs9mNG+49U/mn+LYy8dbpaUyDhCx7ztomqfNb2wxfNN2
+         uesvmdga0Wh9i1YuyVUUjOz47vOgjFa3DAUNgYojEPUxOenohp/rROXnSmY7Z9obIYxw
+         m/rQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758575588; x=1759180388;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zEsovu3oZESlhX5Jz4J0hLzBSRyfD9rtZS172hR4u5c=;
+        b=BOMAixEcPgIFz7BJmapvx3rsKhQk2rt73PZcFBzIG/hIX5/BnEXf18qYy2Lq7otQAm
+         UEHMcruq6m4UtMYD0OokQ1jxBkzrFSZ9Q3qXNcyrqK/Ic9e1jTz6fAtk0tlkuBHWF6Os
+         FHjPaQ2OvoCSjzQp+87fQlHsl/xO9PvjhwuhqwKydFzSYc05tcNwx47GQwnr0xr3eRJA
+         X6P4ZoSC5hlewfXs+vuN9yp1onX5w1Nkurb6NTQJldPcvFEKbIrtLAxSMslq0ix2d60u
+         JeadVujcEqf+n7VP6WqetIRBMe5l8Mww4mZzMF1FoxaTpXmnkGLTioB2ZBwrYKmG57PB
+         vj7w==
+X-Forwarded-Encrypted: i=1; AJvYcCXf2UC2zy/poasCJpWabcx5gatZ5MDPkOWxoyrOxNFjhcZH2yZAbcVhpCwz6tdvBKmNd6pFIjyZO8CVsI3c6T0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxkfMFkQ69xCiAHmE8VQ/8CNRAodTOFwUEVsuBwOrRyHr341Spk
+	pFAyw1DFDqk9kkHtelRcw9K16+Um7yQNxviKuoyhnv5rqBCec4tEiX2xCLZo0HxWaQpiUbCAlV/
+	i4LmAEfQ87RYlv6EXRz4dbKVU/Mw+n8QW8L4iMSdG
+X-Gm-Gg: ASbGncuD/0ruWtDaSYhfpLfuI9n5PC7I7bekyKlTdJFUIw6es41iEG8tPy84QbuCrNT
+	cgJ1V8wc0JAA7xdi89NT55wfVejLTXFG0SAk1T+c25g6bQcHlVQDDOHfc9DYe6Gc14R+h6nxJqq
+	7ZiT4EsBjCnmpUIIA1pj80oYoiuRznJqR0QOVzS2XP0RyiS1VvIureaAstkTd+Of/OiBj9DxeTX
+	tw97BE=
+X-Google-Smtp-Source: AGHT+IFOkInq54LGgN9MBihJi22pHNNfcp/jaI8lGmqg1owNQ9Fe2LgHA1i2G81dAprInLWEJoUWSLD05co99TykTR8=
+X-Received: by 2002:a05:622a:f:b0:4b7:b1cb:5bd8 with SMTP id
+ d75a77b69052e-4d372a3a633mr3487491cf.73.1758575588247; Mon, 22 Sep 2025
+ 14:13:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
+References: <20250922194819.182809-1-d-tatianin@yandex-team.ru> <20250922194819.182809-2-d-tatianin@yandex-team.ru>
+In-Reply-To: <20250922194819.182809-2-d-tatianin@yandex-team.ru>
+From: Eric Dumazet <edumazet@google.com>
+Date: Mon, 22 Sep 2025 14:12:57 -0700
+X-Gm-Features: AS18NWBPo_cBZCPlO-PBo6K89_XzA7B4cPtbYpYgjXD_e43PNvxeaVox88UED2g
+Message-ID: <CANn89i+GoVZLcdHxuf33HpmgyPNKxGqEjXGpi=XiB-QOsAG52A@mail.gmail.com>
+Subject: Re: [PATCH 1/3] netfilter/x_tables: go back to using vmalloc for xt_table_info
+To: Daniil Tatianin <d-tatianin@yandex-team.ru>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
+	David Ahern <dsahern@kernel.org>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-NETFILTER_PKT records show both source and destination
-addresses, in addition to the associated networking protocol.
-However, it lacks the ports information, which is often
-valuable for troubleshooting.
+On Mon, Sep 22, 2025 at 12:48=E2=80=AFPM Daniil Tatianin
+<d-tatianin@yandex-team.ru> wrote:
+>
+> This code previously always used vmalloc for anything above
+> PAGE_ALLOC_COSTLY_ORDER, but this logic was changed in
+> commit eacd86ca3b036 ("net/netfilter/x_tables.c: use kvmalloc() in xt_all=
+oc_table_info()").
+>
+> The commit that changed it did so because "xt_alloc_table_info()
+> basically opencodes kvmalloc()", which is not actually what it was
+> doing. kvmalloc() does not attempt to go directly to vmalloc if the
+> order the caller is trying to allocate is "expensive", instead it only
+> uses vmalloc as a fallback in case the buddy allocator is not able to
+> fullfill the request.
+>
+> The difference between the two is actually huge in case the system is
+> under memory pressure and has no free pages of a large order. Before the
+> change to kvmalloc we wouldn't even try going to the buddy allocator for
+> large orders, but now we would force it to try to find a page of the
+> required order by waking up kswapd/kcompactd and dropping reclaimable mem=
+ory
+> for no reason at all to satisfy our huge order allocation that could easi=
+ly
+> exist within vmalloc'ed memory instead.
 
-This patch adds both source and destination port numbers,
-'sport' and 'dport' respectively, only to tcp/udp-related
-NETFILTER_PKT records.
+This would hint at an issue with kvmalloc(), why not fixing it, instead
+of trying to fix all its users ?
 
- # ./audit-testsuite/tests/netfilter_pkt/test &> /dev/null
- # ausearch -i -m netfilter_pkt |tail -n12
- type=NETFILTER_PKT ... saddr=127.0.0.1 daddr=127.0.0.1 proto=icmp
- ----
- type=NETFILTER_PKT ... saddr=::1 daddr=::1 proto=ipv6-icmp
- ----
- type=NETFILTER_PKT ... daddr=127.0.0.1 proto=udp sport=38173 dport=42424
- ----
- type=NETFILTER_PKT ... daddr=::1 proto=udp sport=56852 dport=42424
- ----
- type=NETFILTER_PKT ... daddr=127.0.0.1 proto=tcp sport=57022 dport=42424
- ----
- type=NETFILTER_PKT ... daddr=::1 proto=tcp sport=50810 dport=42424
+There was a time where PAGE_ALLOC_COSTLY_ORDER was used.
 
-Link: https://github.com/linux-audit/audit-kernel/issues/162
-Signed-off-by: Ricardo Robaina <rrobaina@redhat.com>
----
- net/netfilter/xt_AUDIT.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
-index b6a015aee0ce..96a18675d468 100644
---- a/net/netfilter/xt_AUDIT.c
-+++ b/net/netfilter/xt_AUDIT.c
-@@ -32,6 +32,7 @@ static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
- {
- 	struct iphdr _iph;
- 	const struct iphdr *ih;
-+	__be16 dport, sport;
- 
- 	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
- 	if (!ih)
-@@ -40,6 +41,19 @@ static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
- 	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
- 			 &ih->saddr, &ih->daddr, ih->protocol);
- 
-+	switch (ih->protocol) {
-+	case IPPROTO_TCP:
-+		sport = tcp_hdr(skb)->source;
-+		dport = tcp_hdr(skb)->dest;
-+		break;
-+	case IPPROTO_UDP:
-+		sport = udp_hdr(skb)->source;
-+		dport = udp_hdr(skb)->dest;
-+	}
-+
-+	if (ih->protocol == IPPROTO_TCP || ih->protocol == IPPROTO_UDP)
-+		audit_log_format(ab, " sport=%hu dport=%hu", ntohs(sport), ntohs(dport));
-+
- 	return true;
- }
- 
-@@ -48,7 +62,7 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
- 	struct ipv6hdr _ip6h;
- 	const struct ipv6hdr *ih;
- 	u8 nexthdr;
--	__be16 frag_off;
-+	__be16 frag_off, dport, sport;
- 
- 	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_ip6h), &_ip6h);
- 	if (!ih)
-@@ -60,6 +74,19 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
- 	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
- 			 &ih->saddr, &ih->daddr, nexthdr);
- 
-+	switch (ih->nexthdr) {
-+	case IPPROTO_TCP:
-+		sport = tcp_hdr(skb)->source;
-+		dport = tcp_hdr(skb)->dest;
-+		break;
-+	case IPPROTO_UDP:
-+		sport = udp_hdr(skb)->source;
-+		dport = udp_hdr(skb)->dest;
-+	}
-+
-+	if (ih->nexthdr == IPPROTO_TCP || ih->nexthdr == IPPROTO_UDP)
-+		audit_log_format(ab, " sport=%hu dport=%hu", ntohs(sport), ntohs(dport));
-+
- 	return true;
- }
- 
--- 
-2.51.0
 
+>
+> Revert the change to always call vmalloc, since this code doesn't really
+> benefit from contiguous physical memory, and the size it allocates is
+> directly dictated by the userspace-passed table buffer thus allowing it t=
+o
+> torture the buddy allocator by carefully crafting a huge table that fits
+> right at the maximum available memory order on the system.
+>
+> Signed-off-by: Daniil Tatianin <d-tatianin@yandex-team.ru>
+> ---
+>  net/netfilter/x_tables.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index 90b7630421c4..c98f4b05d79d 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -1190,7 +1190,7 @@ struct xt_table_info *xt_alloc_table_info(unsigned =
+int size)
+>         if (sz < sizeof(*info) || sz >=3D XT_MAX_TABLE_SIZE)
+>                 return NULL;
+>
+> -       info =3D kvmalloc(sz, GFP_KERNEL_ACCOUNT);
+> +       info =3D __vmalloc(sz, GFP_KERNEL_ACCOUNT);
+>         if (!info)
+>                 return NULL;
+>
+> @@ -1210,7 +1210,7 @@ void xt_free_table_info(struct xt_table_info *info)
+>                 kvfree(info->jumpstack);
+>         }
+>
+> -       kvfree(info);
+> +       vfree(info);
+>  }
+>  EXPORT_SYMBOL(xt_free_table_info);
+>
+> --
+> 2.34.1
+>
