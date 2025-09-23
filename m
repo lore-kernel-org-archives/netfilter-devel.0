@@ -1,122 +1,117 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E80026B2C8
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 16:34:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C7E1D90C8
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 17:34:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758645277; cv=none; b=uWXOxjLD0aU0IhEe8wqbV8Z92GQiqQuD35X8BlPCPmbPyQJ/YU9sVZaB7yFfBuQo4d3o0fPvA0g9zOz/3wZzqalsmXVMKKJ4g8UfD8lnOazeo7a+3s5wj/sd2XCRcGHj7G2PvmrLX4gV3neH44KVAalrDh3ncOFnqtNrwZ3RFko=
+	t=1758648901; cv=none; b=fDpdP7r/soRIfCoE6QA4Pdhug4ER/iOLUY7Msi4RfZ71kLJ0cojLfOTtKnpqOt703LiQxNjkqptgdvnPnFFZtnyE5PIcFFAx9zqepDczcCYIwzT4HiVQxxJic0ci6+RN3vktNVJ3nIt64MEoYfnonR3w+XSSfyt3M72M5mZiyNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758645277; c=relaxed/simple;
-	bh=C1S0iBx0Ky6AC/BEtcB13EWEKziIgw8Xg+uPnoCqw+I=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=T+2uSWkByCVg8YL1sM+FJrbaBcG5MSOrlxorExOpxB6J2C5eB6NSCniJTT936vgzRnUIqwxTbY4QRxgs0mjA4mJ+JPYDYQTMlkRqvC74ux0DIOqP9o6CWQm6hkEWBhh74U9AkIzYufUN+pnEHqxyWveB9ycejJYlm8MSZJSJ9bM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 1A335618CB; Tue, 23 Sep 2025 18:34:32 +0200 (CEST)
-Date: Tue, 23 Sep 2025 18:34:31 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	pablo@netfilter.org
-Subject: Re: [PATCH RFC nf-next] netfilter: nf_tables: add math expression
- support
-Message-ID: <aNLMF2CdcCKWi4cI@strlen.de>
-References: <20250923152452.3618-1-fmancera@suse.de>
+	s=arc-20240116; t=1758648901; c=relaxed/simple;
+	bh=kiHYOV5tKHdiZHaewEhed9KwrpNMOwErNX95ewTe0bM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=UEViEJrU3Wdr4j7a0SQKTQ7UDGqe2zLNgElZIttEtwbHUDXxRLxNC8WlnTi1pF3sGw4aRjjLuZMJXw8T3DAQ6w915a4rqlbtvK3EcYQ3GXxUQk23GFC/V/MPRq8+k4SDdSThrXTAjyc7ynkSLwEBEEaI5kQA85OTVGsuIvvWhD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=FsTv/OnG; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FsTv/OnG"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1758648898;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=SeHg931zRHI47gvkNWZ7vE3F3NuZSRm6Ea8fb1/M8s0=;
+	b=FsTv/OnGFfYnKtrmwXQsGDlMNsp1Lw9A/McovHcXDgaousDMPddt7poO47OtM1L7nKyesc
+	smkJx1DmuN+qnT56Yd4mBl/YPQVplsOWU6Xc6TbOl+wsEFHf9njNKTgnXrbMQ7Z/AVKbAh
+	QgSYO/fyfsvUu2fcV+c3c2ZpSf+Li/0=
+Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
+ [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-536-jvqJCW5uMmeDUDoaZxYm6Q-1; Tue, 23 Sep 2025 13:34:55 -0400
+X-MC-Unique: jvqJCW5uMmeDUDoaZxYm6Q-1
+X-Mimecast-MFC-AGG-ID: jvqJCW5uMmeDUDoaZxYm6Q_1758648894
+Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-b04a8ae1409so575446266b.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 10:34:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1758648894; x=1759253694;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=SeHg931zRHI47gvkNWZ7vE3F3NuZSRm6Ea8fb1/M8s0=;
+        b=RUzB4d+P3omoXQss1KOfymoA1jf/gdPQIlB0C+I42bW0fUdZc5FAiQJQJ2VR21VbVL
+         r/7mgyezWmF4lFGSK8FnM0EeugORSLLOkjCvMsSztTsHLxj2102CrQIg9uvGKieFkwrD
+         YTBqrsEpgdmVg4iA3bVVNe5pENeVwMnLJWejv47t1MuWQZxgiMtWSzX57khrbMKKhRdH
+         mtuGDVE7FEyw+Kgdz373usq00kmGISdk4/4ltfLzbQzpDnAzRzBkhCxjWry9npheqM6P
+         mm+6DmxKu8Yd+BJqLDhj71W3p69qAyocwaRt7Tyk5SAeIND7gFjWYt8eWd+9R+S8+9gG
+         ZXbQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXgM8gzkCM4wwACWK+ARAUqHWaEjSiJIBn+E/qJTbaKHFQIVrE/XejLPgY2JGdwEjpyPk100pd5iewWKjItO+4=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw4JD8tOdFXBmr/qwbnDCcimaFKvrj+6b4G00Npa3IrK9aiouy3
+	nZ3skHJf9BNo0b312dbNJIJhLr6XT7oe5FEThJ659CvzNq0jy8Lc/F8LcXLwZQ0alHF+0LR3hHx
+	xmdgZZuj901MmLXCLjrrZeC6y0qwbqzCkcqvb8cx4V+80S6f80ppnARcE4k/E4ntKg90gnn81BS
+	5lDYuA9ErS9RSV2zjwSAqwFj2RP3U1bS6X2ENbrFlGktKq
+X-Gm-Gg: ASbGncvHGZdqka3XXlqN0qy2rGq1BvHtPN1MMieLpzhvLHirajcasdj3hdUbcpXzQUl
+	5ogNZoz00KgeDgHdIKWTLYE0uWkOLWpJhnaKNg/J7dj162Otk/4fX2cNPxAeAvlS+kht6O7ZQEY
+	iA+C+24Cov5gi5pby7B2Q7KCm1uzQRwve+onLyCju4Xto64FuRHU55Cw==
+X-Received: by 2002:a17:906:9fcd:b0:b04:20c0:b1fd with SMTP id a640c23a62f3a-b302ae300ccmr331462266b.36.1758648894492;
+        Tue, 23 Sep 2025 10:34:54 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHq4BfWe8HxueShfdYzigmJ/VAJwF1XeJgNJ2hPk2d7C/yE2zIEX4Wl+YrY9HIBKFihHiry//0x0vN++dsU+uY=
+X-Received: by 2002:a17:906:9fcd:b0:b04:20c0:b1fd with SMTP id
+ a640c23a62f3a-b302ae300ccmr331460766b.36.1758648894113; Tue, 23 Sep 2025
+ 10:34:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20250923152452.3618-1-fmancera@suse.de>
+References: <20250922200942.1534414-1-rrobaina@redhat.com> <p4866orr-o8nn-6550-89o7-s3s12s27732q@vanv.qr>
+In-Reply-To: <p4866orr-o8nn-6550-89o7-s3s12s27732q@vanv.qr>
+From: Ricardo Robaina <rrobaina@redhat.com>
+Date: Tue, 23 Sep 2025 14:34:42 -0300
+X-Gm-Features: AS18NWBWOHf8rNDBSAWfxx9RxHlA_lLobyIxEA9zXAn2_ywMPGOuRbJS6DmvJVs
+Message-ID: <CAABTaaDaOu631q+BVa+tzDJdH62+HXO-s0FT_to6VyvyLi-JCQ@mail.gmail.com>
+Subject: Re: [PATCH v1] audit: include source and destination ports to NETFILTER_PKT
+To: Jan Engelhardt <ej@inai.de>
+Cc: audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, paul@paul-moore.com, 
+	eparis@redhat.com, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> Historically, users have requested support for increasing and decreasing
-> TTL value in nftables in order to migrate from iptables.
+On Mon, Sep 22, 2025 at 8:29=E2=80=AFPM Jan Engelhardt <ej@inai.de> wrote:
+>
+>
+> On Monday 2025-09-22 22:09, Ricardo Robaina wrote:
+>
+> >NETFILTER_PKT records show both source and destination
+> >addresses, in addition to the associated networking protocol.
+> >However, it lacks the ports information, which is often
+> >valuable for troubleshooting.
+> >
+> >+      switch (ih->protocol) {
+> >+      case IPPROTO_TCP:
+> >+              sport =3D tcp_hdr(skb)->source;
+> >+              dport =3D tcp_hdr(skb)->dest;
+> >+              break;
+> >+      case IPPROTO_UDP:
+> >+              sport =3D udp_hdr(skb)->source;
+> >+              dport =3D udp_hdr(skb)->dest;
+> >+      }
+>
+> Should be easy enough to add the cases for UDPLITE,
+> SCTP and DCCP, right?
+>
 
-Right.
+Thanks for reviewing this patch, Jan.
 
-> In addition, it takes into account the byteorder of the value
-> stored in the source register, so there is no need to do a byteorder
-> conversion before and after the math expression.
+Yes, it should. I assume it=E2=80=99s safe to use udp_hdr() for the UDP-Lit=
+e
+case as well, right?
 
-Why?  Any particular reason for this?
+It seems DCCP has been retired by commit 2a63dd0edf38 (=E2=80=9Cnet: Retire
+DCCP socket.=E2=80=9D). I=E2=80=99ll work on a V2, adding cases for both UD=
+P-Lite and
+SCTP.
 
-I would have expected to have ntf insert the needed byteorder
-conversions.
-
-> The math expression intends to be flexible enough in case it needs to be
-> extended in the future, e.g implement bitfields operations. For this
-> reason, the length of the data is indicated in bits instead of bytes.
-
-Not so sure.  We already have nft_bitwise. Or what bitfield operations
-are you considering?
-
-You mean 'add' to a non-byte part, like e.g. as in iph->ihl?
-
-> Payload set operations sometimes need 16 bits for checksum
-> recalculation. Even it is a 8 bit operation, 16 bits are loaded in the
-> source register. Handle such cases applying a bitmask when operating
-> with 8 bits length.
-> 
-> As a last detail, nft_math prevents overflow of the field. If the value
-> is already at its limit, do nothing.
-
-Should it set NFT_BREAK?
-
-> table mangle inet flags 0 use 1 handle 5
-> inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
-> inet mangle output 2
->   [ payload load 2b @ network header + 8 => reg 1 ]
->   [ math math 8 bits host reg 1 + 1 => 1]
->   [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-
-Thanks for including these examples.
-You can drop the 'math' from the snprintf callback in libnftnl to avoid
-this 'math math'.
-
-I assume this says 'host' because its limited to 8 bits?
-
-> +	/* For payload set if checksum needs to be adjusted 16 bits are stored
-> +	 * in the source register instead of 8. Therefore, use a bitmask to
-> +	 * operate with the less significant byte. */
-
-I don't think this works.  You don't know if the add should be done
-on the less significant byte order the MSB one.
-
-(If you do... how?)
-
-AFAICS you need to add support for a displacement
-offset inside the register to support this (or I should write:
-work-around-align-fetch-mangling ...)
-
-> +static int nft_math_init(const struct nft_ctx *ctx,
-> +			 const struct nft_expr *expr,
-> +			 const struct nlattr * const tb[])
-> +{
-> +	struct nft_math *priv = nft_expr_priv(expr);
-> +	int err;
-> +
-> +	if (tb[NFTA_MATH_SREG] == NULL ||
-> +	    tb[NFTA_MATH_DREG] == NULL ||
-> +	    tb[NFTA_MATH_LEN] == NULL ||
-> +	    tb[NFTA_MATH_OP] == NULL ||
-> +	    tb[NFTA_MATH_BYTEORDER] == NULL)
-> +		return -EINVAL;
-
-> +	priv->op = nla_get_u8(tb[NFTA_MATH_OP]);
-
-Can you make it NLA_U32?  NLA_U8 doesn't buy anything except
-limiting us to 255 supported options (i don't see a use case
-for ever having so many, but if we ever have we don't need new OP32
-attribute).
-
-I wonder if we really want this as a module, it seems rather small.
-
-I would also be open to just extending bitwise expression with this
-inc/dec, both bitwise & math expr do register manipulations.
