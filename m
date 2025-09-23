@@ -1,181 +1,527 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A978322DC3
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 12:23:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D443A41
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 15:25:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758630188; cv=none; b=A3ruKmFwxQSxEcqeKVMkGIjXOKrm/1tf5L9AlpBjygFo1hMR7De5Hzv3fQmC8MnRHY4PhNeaTW1p8ZMkzoU3YUFEIls9DjjihJJBUscK2H6X9p9ZSgAFubU4MVSQ/dAHM/byTZz71t9mfSAzvXHqwuhwiklYeVhdKYMwZl1rtGM=
+	t=1758641125; cv=none; b=DoO0U1KiTJAQQbiPfBgKDG9Osz3PkSeIm9CR49Iy3htsQS79PE46kkvvfBT3u74QuevJ3cBjNY/0yvm6Jwcw4LnuUlZAi+gC0Upxo5wdCr1TfqYxRfJ8mTdeGaNoY/yDH8BYS3fAn8ucfuQtrrmYZZqP1OI9Zu10T4zbmqc4z7A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758630188; c=relaxed/simple;
-	bh=BFGnLkTyxG5CWj434DyaihpV1L3IRvyU9N1P1Uas47s=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=bV1HyLmhTzABF5hlyxSE6NYtOZVq/1Isr63JxKLg+IvxYJnry4bRPBhRHHP63H4oiL9bX7b5h79wvPUcjH0ftLL48lf9s7ZbxKOaNOSIiz+G2mFnuo5NXPSjNZ35gQAkvVQsPemIT9lL9izMXKgbryvLdxQnEoykIN+7tuzLPx0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=LY41MA3X; arc=none smtp.client-ip=209.85.160.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1758641125; c=relaxed/simple;
+	bh=EslFBfevB3fs7bl04h6FFk/InN45s5NDPv2rcuou79Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Cj1AnDeJ8p14uoi2Ix9a2yAryTk1UGzVxKMnM6yJb4ZulKfHfMa/Pp//SuA8/zXjrFk/X1iGQvM4rsxlKmsRFeZpWyf9L3iu0MZnJrM+q+0zbAiciGtiMin5zyadnL2Gc4EVuapn1chhWI/x51Isr3t759o67vvJL2JvyiDnta8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ThXK4RNC; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=0KlkPO3U; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ThXK4RNC; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=0KlkPO3U; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="LY41MA3X"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4b61161dd37so35916191cf.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 05:23:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1758630185; x=1759234985; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RYw72GHSIaVFNAW7nyagklGsuEGPDFWwsCJHXkPOGuQ=;
-        b=LY41MA3Xjgt1LSvyIMnym91lq+Jv9Ck0EL5UWx2WgStqqpD7/tib32nECZuyNw2mFx
-         i8IUlUy929Kj5i+d9FW7N8VQPY/P24TYhYFKwtxq2ND6iRECFTuIrvFnZGwzkWzdNMyn
-         92YUrZmrDA/uIjgiuvDQaJ+UzfluRoTbboOdQUjOQbE0bkYrCNB9EKcBdojszmK96N7w
-         NiyVrS7xD7q1B/J7Ke5hyqcK7kOyjL79rTLk0DpaTggPmHVUx6+mtEEdhXCxsxEH2b/H
-         ZJaEVxdLVAsFtmQPH1TPs7f8RooNcsX8iJaHIqMhf1TDC69rQKq74WPY6koeW9viwiTu
-         vVjg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1758630185; x=1759234985;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=RYw72GHSIaVFNAW7nyagklGsuEGPDFWwsCJHXkPOGuQ=;
-        b=Oawgd/MGQ4YMmv1R9XnVX0ijsGoLgMv42ZljwnwADRhE7Z5FRQdNZuSXAbyebN1mws
-         6oLjSER0vUfDyiCCpKiYGenVjkXjWn4w9YTCYNLABN4NhlwDSqye1DbeJuRSz/m7KgzB
-         WfKHaljJSpBvyaD1ZDdViDJNjGTlRvDezjlD/Hr0wunWdtf+nBK1913f+wzgFk5/rikg
-         5XY82r1avZRvZT553srNcK9kea2++RiW1NsfWg5SWdHXuvsg+CDY5cYEraRyU0yTluZ7
-         ypOffYI/l6Gs36g58YRqMGhE4HLkHWNp0CwiMmEKHplxQfVuphH+Vq/CK+yWL+d7F6VJ
-         g8xg==
-X-Forwarded-Encrypted: i=1; AJvYcCXigRHnAywrlXmiijGveWxjHooMTiVHFH8a9B0IUO1OJaIHMlikf5ZTQ8gIHULeJwgAVaDbwHQusivDcNgkI04=@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywrq4tdHsDOYYjGRvju9u7cfYtkiRXitrKH4lSP5hvzxr7SlY0M
-	dFKxZi5zGgtimWKh29y1eUuBGHzVvQfWtdgYGUamiTNTY8O2DZZ7Pf5+XR5yIUNTIOESAUZRU3F
-	QcFmhtX+chBwReXitkNtqSTz6Ghs4GOD10yTn/jNh
-X-Gm-Gg: ASbGncuHB7q+AIZ07CNI9ZHK7GFixENtGhW4U/93fbiyVxpgp11GJGjm/t30KgYSPgN
-	uMzRwRobSI/urDUXN7uyTPUEAxdYiUW3nMfdGqsoGMWM40JhwkfYFysKa5igeGJynsQuFt8b8Fk
-	wE5cQruoEMXyOy2vXQ8LL6ZktVZZoVCNL58ZTyq+YeYrcpbb3yIoOzv4VfB82u5chLsQ6E+f43f
-	aT+6CrbyCBKME9Trouq1Ief
-X-Google-Smtp-Source: AGHT+IGrYM8VhDBIAtWE43v7Xjqcz7XbiOUMkh1bakAOuayQn0Wv4K6UIIEuTrU/vgHY/Ua3HMXnzBUdkjKU0pZUwSs=
-X-Received: by 2002:ac8:5a41:0:b0:4b7:aa52:a710 with SMTP id
- d75a77b69052e-4d372f06fedmr22809391cf.80.1758630184946; Tue, 23 Sep 2025
- 05:23:04 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ThXK4RNC";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0KlkPO3U";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ThXK4RNC";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0KlkPO3U"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 6D58021D39;
+	Tue, 23 Sep 2025 15:25:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758641121; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=LHTpB7ULOqxjA11K+WAQLLc4e5yvpGyaYGE0wqbFHL4=;
+	b=ThXK4RNC/XT0L+C5o7+ZnvVtUcyzXTUgjcKAM4+AM9BURpwwaB2AFRPYbcF2pC91r6/xjw
+	EuMMKFE3BRGn+b5CB+wzTenHXncgBgKZp756Dp8rw57SFe4uTS9MVkB7ojBoFmE9grxR4l
+	gcf8Rk3cN90IO1mV6UrAiINSokAxM9k=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758641121;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=LHTpB7ULOqxjA11K+WAQLLc4e5yvpGyaYGE0wqbFHL4=;
+	b=0KlkPO3UAGWyP+0KSJ7JAZ2HIprDm8utE4W6OeAwUh9bkBFqA/doMXhhcQEPTC02ogZGC4
+	ECVqEGYZGthN2HBw==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=ThXK4RNC;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=0KlkPO3U
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758641121; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=LHTpB7ULOqxjA11K+WAQLLc4e5yvpGyaYGE0wqbFHL4=;
+	b=ThXK4RNC/XT0L+C5o7+ZnvVtUcyzXTUgjcKAM4+AM9BURpwwaB2AFRPYbcF2pC91r6/xjw
+	EuMMKFE3BRGn+b5CB+wzTenHXncgBgKZp756Dp8rw57SFe4uTS9MVkB7ojBoFmE9grxR4l
+	gcf8Rk3cN90IO1mV6UrAiINSokAxM9k=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758641121;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=LHTpB7ULOqxjA11K+WAQLLc4e5yvpGyaYGE0wqbFHL4=;
+	b=0KlkPO3UAGWyP+0KSJ7JAZ2HIprDm8utE4W6OeAwUh9bkBFqA/doMXhhcQEPTC02ogZGC4
+	ECVqEGYZGthN2HBw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 221CD1388C;
+	Tue, 23 Sep 2025 15:25:21 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id R3qTBeG70mgPWQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 23 Sep 2025 15:25:21 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH RFC nf-next] netfilter: nf_tables: add math expression support
+Date: Tue, 23 Sep 2025 17:24:52 +0200
+Message-ID: <20250923152452.3618-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250922194819.182809-1-d-tatianin@yandex-team.ru>
- <20250922194819.182809-2-d-tatianin@yandex-team.ru> <CANn89i+GoVZLcdHxuf33HpmgyPNKxGqEjXGpi=XiB-QOsAG52A@mail.gmail.com>
- <5f1ff52a-d2c2-40de-b00c-661b75c18dc7@yandex-team.ru> <aNKGWZSxY9RC0VWS@strlen.de>
- <348f209e-89bc-4289-aaf9-e57437e31b0d@yandex-team.ru>
-In-Reply-To: <348f209e-89bc-4289-aaf9-e57437e31b0d@yandex-team.ru>
-From: Eric Dumazet <edumazet@google.com>
-Date: Tue, 23 Sep 2025 05:22:53 -0700
-X-Gm-Features: AS18NWCUlsVncWRX_rIi2JXd1cRtLKWu7ITQJaelz93wkMzIZ5RXOIaaUsfTDD0
-Message-ID: <CANn89iKDXXjf-OFu+oAYfKp9WOdq4v=HBWpFn=7HRNUCy_9RFg@mail.gmail.com>
-Subject: Re: [PATCH 1/3] netfilter/x_tables: go back to using vmalloc for xt_table_info
-To: Daniil Tatianin <d-tatianin@yandex-team.ru>
-Cc: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>, 
-	"David S. Miller" <davem@davemloft.net>, David Ahern <dsahern@kernel.org>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCPT_COUNT_THREE(0.00)[4];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim,suse.de:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Spam-Flag: NO
+X-Spam-Level: 
+X-Rspamd-Queue-Id: 6D58021D39
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Score: -3.01
 
-On Tue, Sep 23, 2025 at 5:04=E2=80=AFAM Daniil Tatianin
-<d-tatianin@yandex-team.ru> wrote:
->
-> On 9/23/25 2:36 PM, Florian Westphal wrote:
->
-> > Daniil Tatianin <d-tatianin@yandex-team.ru> wrote:
-> >>> On Mon, Sep 22, 2025 at 12:48=E2=80=AFPM Daniil Tatianin
-> >>> <d-tatianin@yandex-team.ru> wrote:
-> >>>> This code previously always used vmalloc for anything above
-> >>>> PAGE_ALLOC_COSTLY_ORDER, but this logic was changed in
-> >>>> commit eacd86ca3b036 ("net/netfilter/x_tables.c: use kvmalloc() in x=
-t_alloc_table_info()").
-> >>>>
-> >>>> The commit that changed it did so because "xt_alloc_table_info()
-> >>>> basically opencodes kvmalloc()", which is not actually what it was
-> >>>> doing. kvmalloc() does not attempt to go directly to vmalloc if the
-> >>>> order the caller is trying to allocate is "expensive", instead it on=
-ly
-> >>>> uses vmalloc as a fallback in case the buddy allocator is not able t=
-o
-> >>>> fullfill the request.
-> >>>>
-> >>>> The difference between the two is actually huge in case the system i=
-s
-> >>>> under memory pressure and has no free pages of a large order. Before=
- the
-> >>>> change to kvmalloc we wouldn't even try going to the buddy allocator=
- for
-> >>>> large orders, but now we would force it to try to find a page of the
-> >>>> required order by waking up kswapd/kcompactd and dropping reclaimabl=
-e memory
-> >>>> for no reason at all to satisfy our huge order allocation that could=
- easily
-> >>>> exist within vmalloc'ed memory instead.
-> >>> This would hint at an issue with kvmalloc(), why not fixing it, inste=
-ad
-> >>> of trying to fix all its users ?
-> > I agree with Eric.  There is nothing special in xtables compared to
-> > kvmalloc usage elsewhere in the stack.  Why "fix" xtables and not e.g.
-> > rhashtable?
-> >
-> > Please work with mm hackers to improve the situation for your use case.
-> >
-> > Maybe its enough to raise __GFP_NORETRY in kmalloc_gfp_adjust() if size
-> > results in >=3D PAGE_ALLOC_COSTLY_ORDER allocation.
->
-> Thanks for your reply! Perhaps this is the way to go, although this
-> might have
-> much broader implications since there are tons of other callers to take
-> into account.
->
-> I'm not sure whether rhashtable's size also directly depends on user
-> input, I was only
-> aware of x_table since this is the case we ran into specifically.
->
-> >
-> >> Thanks for the quick reply! From my understanding, there is a lot of
-> >> callers of kvmalloc
-> >> who do indeed benefit from the physical memory being contiguous, becau=
-se
-> >> it is then
-> >> used for hardware DMA etc., so I'm not sure that would be feasible.
-> > How can that work?  kvmalloc won't make vmalloc backed memory
-> > physically contiguous.
->
-> The allocated physical memory won't be contiguous only for fallback
-> cases (which should be rare),
-> I assume in that case the hardware operation may end up being more
-> expensive with larger scatter-gather
-> lists etc. So most of the time such code can take optimized paths for
-> fully contiguous memory. This is not
-> the case for x_tables etc.
+Historically, users have requested support for increasing and decreasing
+TTL value in nftables in order to migrate from iptables.
 
-At least some years ago, we were seeing a performance difference.
+Following the nftables spirit of flexible and multipurpose expressions,
+this patch introduces "nft_math" expression. This expression allows to
+increase and decrease u32, u16 and u8 values stored in the nftables
+registers. In addition, it takes into account the byteorder of the value
+stored in the source register, so there is no need to do a byteorder
+conversion before and after the math expression.
 
-x_tables data is often read sequentially, I do not know if modern
-cpus hardware prefetches use TLB (virtual space). I do not know
-if they can span a 4K page, even if physically contiguous.
+The math expression intends to be flexible enough in case it needs to be
+extended in the future, e.g implement bitfields operations. For this
+reason, the length of the data is indicated in bits instead of bytes.
 
+Payload set operations sometimes need 16 bits for checksum
+recalculation. Even it is a 8 bit operation, 16 bits are loaded in the
+source register. Handle such cases applying a bitmask when operating
+with 8 bits length.
 
-Some context :
+As a last detail, nft_math prevents overflow of the field. If the value
+is already at its limit, do nothing.
 
-commit 6c5ab6511f718c3fb19bcc3f78a90b0e0b601675
-Author: Michal Hocko <mhocko@suse.com>
-Date:   Mon May 8 15:57:15 2017 -0700
+This implementation comes with a libnftnl patch that allows the user to
+generate the following example bytecodes:
 
-    mm: support __GFP_REPEAT in kvmalloc_node for >32kB
+- Bytecode to increase the TTL of a packet
 
-    vhost code uses __GFP_REPEAT when allocating vhost_virtqueue resp.
-    vhost_vsock because it would really like to prefer kmalloc to the
-    vmalloc fallback - see 23cc5a991c7a ("vhost-net: extend device
-    allocation to vmalloc") for more context.  Michael Tsirkin has also
-    noted:
+table mangle inet flags 0 use 1 handle 5
+inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
+inet mangle output 2
+  [ payload load 2b @ network header + 8 => reg 1 ]
+  [ math math 8 bits host reg 1 + 1 => 1]
+  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
 
-commit 23cc5a991c7a9fb7e6d6550e65cee4f4173111c5
-Author: Michael S. Tsirkin <mst@redhat.com>
-Date:   Wed Jan 23 21:46:47 2013 +0100
+- Bytecode to decrease the TTL of a packet
 
-    vhost-net: extend device allocation to vmalloc
+table mangle inet flags 0 use 1 handle 7
+inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
+inet mangle output 2
+  [ payload load 2b @ network header + 8 => reg 1 ]
+  [ math math 8 bits host reg 1 - 1 => 1]
+  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
+
+- Bytecode to increase the meta mark of a packet
+
+table mangle inet flags 0 use 1 handle 6
+inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
+inet mangle output 2
+  [ meta load mark => reg 1 ]
+  [ math math 32 bits host reg 1 + 1 => 1]
+  [ meta set mark with reg 1 ]
+
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  34 +++
+ net/netfilter/Kconfig                    |   7 +
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_math.c                 | 267 +++++++++++++++++++++++
+ 4 files changed, 309 insertions(+)
+ create mode 100644 net/netfilter/nft_math.c
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 7c0c915f0306..d5ec110ede81 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -2015,4 +2015,38 @@ enum nft_tunnel_attributes {
+ };
+ #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
+ 
++/**
++ * enum nft_math_attributes - nftables math expression netlink attributes
++ *
++ * @NFTA_MATH_SREG: source register (NLA_U32: nft_registers)
++ * @NFTA_MATH_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_MATH_OP: operation to be performed (NLA_U8)
++ * @NFTA_MATH_LEN: value length in bits (NLA_U8)
++ * @NFTA_MATH_BYTEORDER: byteorder of the value passed to the SREG (NLA_U8)
++ */
++enum nft_math_attributes {
++	NFTA_MATH_UNSPEC,
++	NFTA_MATH_SREG,
++	NFTA_MATH_DREG,
++	NFTA_MATH_OP,
++	NFTA_MATH_LEN,
++	NFTA_MATH_BYTEORDER,
++	__NFTA_MATH_MAX,
++};
++#define NFTA_MATH_MAX (__NFTA_MATH_MAX - 1)
++
++enum nft_math_op {
++	NFT_MATH_OP_INC,
++	NFT_MATH_OP_DEC,
++	__NFT_MATH_OP_MAX,
++};
++#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
++
++enum nft_math_byteorder {
++	NFT_MATH_BYTEORDER_HOST,
++	NFT_MATH_BYTEORDER_BIG,
++	__NFT_MATH_BYTEORDER_MAX,
++};
++#define NFT_MATH_BYTEORDER_MAX (__NFT_MATH_BYTEORDER_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 6cdc994fdc8a..4cb4fdaedb49 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -671,6 +671,13 @@ config NFT_SYNPROXY
+ 	  server. This allows to avoid conntrack and server resource usage
+ 	  during SYN-flood attacks.
+ 
++config NFT_MATH
++	tristate "Netfilter nf_tables math expression support"
++	depends on NETFILTER_ADVANCED
++	help
++	  The math expression allows performing mathematical operations like
++	  increase, to packet fields.
++
+ if NF_TABLES_NETDEV
+ 
+ config NF_DUP_NETDEV
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index e43e20f529f8..bd560aa50ebf 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -131,6 +131,7 @@ obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
+ obj-$(CONFIG_NFT_TPROXY)	+= nft_tproxy.o
+ obj-$(CONFIG_NFT_XFRM)		+= nft_xfrm.o
+ obj-$(CONFIG_NFT_SYNPROXY)	+= nft_synproxy.o
++obj-$(CONFIG_NFT_MATH)		+= nft_math.o
+ 
+ obj-$(CONFIG_NFT_NAT)		+= nft_chain_nat.o
+ 
+diff --git a/net/netfilter/nft_math.c b/net/netfilter/nft_math.c
+new file mode 100644
+index 000000000000..fe2d1c6a8fbf
+--- /dev/null
++++ b/net/netfilter/nft_math.c
+@@ -0,0 +1,267 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <net/netlink.h>
++#include <net/netfilter/nf_tables.h>
++#include <linux/netfilter/nf_tables.h>
++
++struct nft_math {
++	u8		 	sreg;
++	u8		 	dreg;
++	u8		 	len;
++	enum nft_math_op	op;
++	enum nft_math_byteorder byteorder;
++};
++
++static const struct nla_policy nft_math_policy[NFTA_MATH_MAX + 1] = {
++	[NFTA_MATH_SREG]	= { .type = NLA_U32 },
++	[NFTA_MATH_DREG]	= { .type = NLA_U32 },
++	[NFTA_MATH_OP]		= { .type = NLA_U8 },
++	[NFTA_MATH_LEN]		= NLA_POLICY_MIN(NLA_U8, 8),
++	[NFTA_MATH_BYTEORDER]	= { .type = NLA_U8 },
++};
++
++static void nft_math_eval_u8(uint32_t *src, uint32_t *dst,
++			      const struct nft_math *priv)
++{
++	u8 tmp;
++
++	/* For payload set if checksum needs to be adjusted 16 bits are stored
++	 * in the source register instead of 8. Therefore, use a bitmask to
++	 * operate with the less significant byte. */
++	switch (priv->op) {
++	case NFT_MATH_OP_INC:
++		tmp = *src & 0xff;
++		if (tmp != U8_MAX) {
++			tmp++;
++			*dst = (*src & ~0xff) | tmp;
++		} else {
++			*dst = *src;
++		}
++		break;
++	case NFT_MATH_OP_DEC:
++		tmp = *src & 0xff;
++		if (tmp != 0) {
++			tmp--;
++			*dst = (*src & ~0xff) | tmp;
++		} else {
++			*dst = *src;
++		}
++		break;
++	default:
++		break;
++	}
++}
++
++static void nft_math_eval_u16(uint32_t *src, uint32_t *dst,
++			      const struct nft_math *priv)
++{
++	u16 tmp;
++
++	switch (priv->op) {
++	case NFT_MATH_OP_INC:
++		switch (priv->byteorder) {
++		case NFT_MATH_BYTEORDER_HOST:
++			tmp = nft_reg_load16(src);
++			if (tmp != U16_MAX)
++				tmp++;
++			nft_reg_store16(dst, tmp);
++			break;
++		case NFT_MATH_BYTEORDER_BIG:
++			tmp = ntohs(nft_reg_load_be16(src));
++			if (tmp != U16_MAX)
++				tmp++;
++			nft_reg_store_be16(dst, htons(tmp));
++			break;
++		default:
++			break;
++		}
++		break;
++	case NFT_MATH_OP_DEC:
++		switch (priv->byteorder) {
++		case NFT_MATH_BYTEORDER_HOST:
++			tmp = nft_reg_load16(src);
++			if (tmp != 0)
++				tmp--;
++			nft_reg_store16(dst, tmp);
++			break;
++		case NFT_MATH_BYTEORDER_BIG:
++			tmp = ntohs(nft_reg_load_be16(src));
++			if (tmp != 0)
++				tmp--;
++			nft_reg_store_be16(dst, htons(tmp));
++			break;
++		default:
++			break;
++		}
++		break;
++	default:
++		break;
++	}
++}
++
++static void nft_math_eval_u32(uint32_t *src, uint32_t *dst,
++			      const struct nft_math *priv)
++{
++	u32 tmp;
++
++	switch (priv->op) {
++	case NFT_MATH_OP_INC:
++		switch (priv->byteorder) {
++		case NFT_MATH_BYTEORDER_HOST:
++			if (*src != U32_MAX)
++				*dst = *src + 1;
++			else
++				*dst = *src;
++			break;
++		case NFT_MATH_BYTEORDER_BIG:
++			tmp = ntohl(*src);
++			if (tmp != U32_MAX)
++				tmp++;
++			*dst = (__force __u32)htonl(tmp);
++			break;
++		default:
++			break;
++		}
++		break;
++	case NFT_MATH_OP_DEC:
++		switch (priv->byteorder) {
++		case NFT_MATH_BYTEORDER_HOST:
++			if (*src != 0)
++				*dst = *src - 1;
++			break;
++		case NFT_MATH_BYTEORDER_BIG:
++			tmp = ntohl(*src);
++			if (tmp != 0)
++				tmp--;
++			*dst = (__force __u32)htonl(tmp);
++			break;
++		default:
++			break;
++		}
++		break;
++	default:
++		break;
++	}
++}
++
++static void nft_math_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs,
++			  const struct nft_pktinfo *pkt)
++{
++	const struct nft_math *priv = nft_expr_priv(expr);
++	u32 *src = &regs->data[priv->sreg];
++	u32 *dst = &regs->data[priv->dreg];
++
++	switch (priv->len) {
++	case 8:
++		nft_math_eval_u8(src, dst, priv);
++		break;
++	case 16:
++		nft_math_eval_u16(src, dst, priv);
++		break;
++	case 32:
++		nft_math_eval_u32(src, dst, priv);
++		break;
++	default:
++		break;
++	}
++}
++
++static int nft_math_init(const struct nft_ctx *ctx,
++			 const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_math *priv = nft_expr_priv(expr);
++	int err;
++
++	if (tb[NFTA_MATH_SREG] == NULL ||
++	    tb[NFTA_MATH_DREG] == NULL ||
++	    tb[NFTA_MATH_LEN] == NULL ||
++	    tb[NFTA_MATH_OP] == NULL ||
++	    tb[NFTA_MATH_BYTEORDER] == NULL)
++		return -EINVAL;
++
++	priv->op = nla_get_u8(tb[NFTA_MATH_OP]);
++	priv->byteorder = nla_get_u8(tb[NFTA_MATH_BYTEORDER]);
++	priv->len = nla_get_u8(tb[NFTA_MATH_LEN]);
++
++	if (priv->byteorder > NFT_MATH_BYTEORDER_MAX)
++		return -EINVAL;
++
++	if (priv->op > NFT_MATH_OP_MAX)
++		return -EOPNOTSUPP;
++
++	switch (priv->len) {
++	case 8:
++	case 16:
++	case 32:
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
++				      priv->len / BITS_PER_BYTE);
++	if (err < 0)
++		return err;
++
++	return nft_parse_register_store(ctx, tb[NFTA_MATH_DREG],
++					&priv->dreg, NULL, NFT_DATA_VALUE,
++					priv->len / BITS_PER_BYTE);
++}
++
++static int nft_math_dump(struct sk_buff *skb,
++			 const struct nft_expr *expr, bool reset)
++{
++	const struct nft_math *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_MATH_SREG, priv->sreg))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_MATH_DREG, priv->dreg))
++		goto nla_put_failure;
++	if (nla_put_u8(skb, NFTA_MATH_LEN, priv->len))
++		goto nla_put_failure;
++	if (nla_put_u8(skb, NFTA_MATH_OP, priv->op))
++		goto nla_put_failure;
++	if (nla_put_u8(skb, NFTA_MATH_BYTEORDER, priv->byteorder))
++		goto nla_put_failure;
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_math_type;
++static const struct nft_expr_ops nft_math_op = {
++	.eval		= nft_math_eval,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_math)),
++	.init		= nft_math_init,
++	.dump		= nft_math_dump,
++	.type		= &nft_math_type,
++};
++
++static struct nft_expr_type nft_math_type __read_mostly = {
++	.ops		= &nft_math_op,
++	.name		= "math",
++	.owner		= THIS_MODULE,
++	.policy		= nft_math_policy,
++	.maxattr	= NFTA_MATH_MAX,
++};
++
++static int __init nft_math_module_init(void)
++{
++	return nft_register_expr(&nft_math_type);
++}
++
++static void __exit nft_math_module_exit(void)
++{
++	return nft_unregister_expr(&nft_math_type);
++}
++
++module_init(nft_math_module_init);
++module_exit(nft_math_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Fernando Fernandez Mancera <fmancera@suse.de>");
++MODULE_ALIAS_NFT_EXPR("math");
++MODULE_DESCRIPTION("nftables math support to operate with values");
+-- 
+2.51.0
+
