@@ -1,195 +1,104 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90799200BA1
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Sep 2025 09:17:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F0C32046BA;
+	Wed, 24 Sep 2025 14:07:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758705439; cv=none; b=hLQ54w4ZGIMQKpDMp2nGy5ZPinJPDOdwEJUboE1IvwQMxcFbwnTYstJLocKTgbYX173qmKxqZr+L9MgoV+t61HbwRznTIsmufVuqmnbbfCydY7OzJk5mr/h3OdUqQ2FE9YCI56iLH1prKnn0sWKVIP27Hcg6cec34VBWztr3v+Y=
+	t=1758722829; cv=none; b=XixkdFath3DuFQjbixHCBIpunjZjvQst/XXi0lHS8C+gR7SgOxZ9MkaEPqTVX0ZbwG0ytNI3L8dVKzsd3qgdmfQI+Ojv6VlHtQgstlxc8NJDN0dG/vj3q+JUrcdEtWb7IPRrxm/oSahiwyzvMOMSH/xYwVwLZ1xf4o/ILm7yodI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758705439; c=relaxed/simple;
-	bh=FhCZVLJfn4h3dEcG2Vx3oHB/Hkv0AWDMVOjX7G/eZN4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=cac1eO8ENIYrtcoZpBZUeXHAwdyptv5/VVoGcdZ2TVQ+ZfwqgVymAnYlZM47yRzzt70zQemQiABK8++4hG2jRhaiqF0xWi9Sqc9xyP7iBXyEtR9fYMNSzK4wEltWSvhgfPeBqswtEdWrOaqF8CxOTYWRIbPv+7OB2u/L17ayzCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=bWgl3FJt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cpsYr6dH; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=bWgl3FJt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cpsYr6dH; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="bWgl3FJt";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cpsYr6dH";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="bWgl3FJt";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cpsYr6dH"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 0FAD82174F;
-	Wed, 24 Sep 2025 09:17:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758705429; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jHxcGIjtYsmcaAJLUU0J2x+V0hALG0YD6JgdeBmD5CY=;
-	b=bWgl3FJtbdlPSoSBJOsk8XTpVh4zm37PiE6kidfkPu9mNQ80cA+J6fYooCb9L/RgBCWNx5
-	Q0fh3bttxMCkHa9pcT+nNQUVemyTSJP6+/bcHS9bzWGm7dJXFVNDvCtbEDi+CV2LyoTmHJ
-	9DuFjVQwzQPS/Gn7wNOMKWa84kxazQw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758705429;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jHxcGIjtYsmcaAJLUU0J2x+V0hALG0YD6JgdeBmD5CY=;
-	b=cpsYr6dHQWqWz56uW2w28ZkmXED9fzhrjQ+Ja/bvyD8yYiu5CWgrlxv5MX0x1u0BMIRV0L
-	q8XZUBFZWe7oRoAA==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=bWgl3FJt;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=cpsYr6dH
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758705429; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jHxcGIjtYsmcaAJLUU0J2x+V0hALG0YD6JgdeBmD5CY=;
-	b=bWgl3FJtbdlPSoSBJOsk8XTpVh4zm37PiE6kidfkPu9mNQ80cA+J6fYooCb9L/RgBCWNx5
-	Q0fh3bttxMCkHa9pcT+nNQUVemyTSJP6+/bcHS9bzWGm7dJXFVNDvCtbEDi+CV2LyoTmHJ
-	9DuFjVQwzQPS/Gn7wNOMKWa84kxazQw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758705429;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jHxcGIjtYsmcaAJLUU0J2x+V0hALG0YD6JgdeBmD5CY=;
-	b=cpsYr6dHQWqWz56uW2w28ZkmXED9fzhrjQ+Ja/bvyD8yYiu5CWgrlxv5MX0x1u0BMIRV0L
-	q8XZUBFZWe7oRoAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B837813A61;
-	Wed, 24 Sep 2025 09:17:08 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id mwIWKhS302iZEQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 24 Sep 2025 09:17:08 +0000
-Message-ID: <2763497d-12f9-451c-ba32-554723467998@suse.de>
-Date: Wed, 24 Sep 2025 11:17:04 +0200
+	s=arc-20240116; t=1758722829; c=relaxed/simple;
+	bh=xX4Po4T1MGFBREqf1YLXCv22GMwmVSmWzSin8ykR3lE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZmhYWUN2T4GwmssmLYdexLLDCvf0NtyWRK7MkXV5gNITXHZL0q/chNMlFWVx/lcT3W3hiqgB2E2FCD2yiFdN2aBazeiEe68yzbNrNqJ5OR6jJiOMuoiuuV/RcSX2tn97T5gG0uIqWd5HwiOGMABAtGe4TRUGXBH5Cg44sd+OZjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 3E732601C9; Wed, 24 Sep 2025 16:07:04 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net-next 0/6] netfilter: fixes for net-next
+Date: Wed, 24 Sep 2025 16:06:48 +0200
+Message-ID: <20250924140654.10210-1-fw@strlen.de>
+X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH RFC nf-next] netfilter: nf_tables: add math expression
- support
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- pablo@netfilter.org
-References: <20250923152452.3618-1-fmancera@suse.de>
- <aNLMF2CdcCKWi4cI@strlen.de> <19498e76-bd17-4e63-9144-8cff9874d3da@suse.de>
- <aNLf4Uj9Faye2fTu@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <aNLf4Uj9Faye2fTu@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_TLS_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[4];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Spam-Flag: NO
-X-Spam-Level: 
-X-Rspamd-Queue-Id: 0FAD82174F
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Rspamd-Action: no action
-X-Spam-Score: -4.51
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
+The following patchset contains Netfilter fixes for *net-next*:
 
-On 9/23/25 7:58 PM, Florian Westphal wrote:
-> [..] 
->>> AFAICS you need to add support for a displacement
->>> offset inside the register to support this (or I should write:
->>> work-around-align-fetch-mangling ...)
-> 
-> [..]
-> 
->> What would be the best way to implement this? A pure bit offset
->> (NFT_MATH_OFFSET) or a bitmask (NFT_MATH_BITMASK)?
-> 
-> Bitmask would allow to remove MATH_LEN, correct?
-> 
-> Users that want pure U8 increment can do 0xff000000
-> resp.  0x000000ff.
-> 
-> Same for U16.  So I'd say a mask would be better.
-> 
+These fixes target next because the bug is either not severe or has
+existed for so long that there is no reason to cram them in at the last
+minute.
 
-Well, I would prefer to keep the MATH_LEN in order to keep this flexible 
-in the future for bitfield math operations unless we discard them 
-completely.
+1) Fix IPVS ftp unregistering during netns cleanup, broken since netns
+   support was introduced in 2011 in the 2.6.39 kernel.
+   From Slavin Liu.
+2) nfnetlink must reset the 'nlh' pointer back to the original
+   address when a batch is replayed, else we emit bogus ACK messages
+   and conceal real errno from userspace.  From Fernando Fernandez Mancera.
+   This was broken since 6.10.
 
-Anyway, I also prefer the bitmask approach.
+3) Recent fix for nftables 'pipapo' set type was incomplete, it only
+   made things work for the AVX2 version of the algorithm.
 
->>> Can you make it NLA_U32?  NLA_U8 doesn't buy anything except
->>> limiting us to 255 supported options (i don't see a use case
->>> for ever having so many, but if we ever have we don't need new OP32
->>> attribute).
->>
->> Sure, no problems about that. Also NFTA_MATH_LEN? I do not see a U32
->> bits operation happening in the future tho.
-> 
-> Yes, good question.  Due to netlink padding neither u8 nor u16 saves
-> space in the message encoding.  I'll leave it up to you, I don't see
-> 2**32 math len making any sense.
-> 
->> By default I thought that a module made sense.. but it is true it is
->> "general" purpose code and small. I don't really mind.
->>
->>> I would also be open to just extending bitwise expression with this
->>> inc/dec, both bitwise & math expr do register manipulations.
->>
->> While both do register manipulation, I do not think they fit together
->> from a user perspective. Especially if we extend the number of math
->> operations in the future.
-> 
-> Users don't interact with the expressions directly.
-> But I understand your point.
-> 
+4) Testing revealed another problem with avx2 version that results in
+   out-of-bounds read access, this bug always existed since feature was
+   added in 5.7 kernel.  This also comes with a selftest update.
 
-Nft command line tool users do not interact with the expression directly 
-but libnftnl users do. I have found some users using custom C programs 
-to configure rules with libnftnl.
+Last fix resolves a long-standing bug (since 4.9) in conntrack /proc
+interface:
+Decrease skip count when we reap an expired entry during dump.
+As-is we erronously elide one conntrack entry from dump for every expired
+entry seen.  From Eric Dumazet.
 
-It is not common of course, but I think it is good to keep them on mind.
+Please, pull these changes from:
+The following changes since commit dc1dea796b197aba2c3cae25bfef45f4b3ad46fe:
 
-Thanks for all this feedback Florian!
+  tcp: Remove stale locking comment for TFO. (2025-09-23 18:21:36 -0700)
 
-> Pablo, whats your take?
-> 
+are available in the Git repository at:
 
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-09-24
+
+for you to fetch changes up to c5ba345b2d358b07cc4f07253ba1ada73e77d586:
+
+  netfilter: nf_conntrack: do not skip entries in /proc/net/nf_conntrack (2025-09-24 11:50:28 +0200)
+
+----------------------------------------------------------------
+netfilter pull request nf-next-25-09-24
+
+----------------------------------------------------------------
+Eric Dumazet (1):
+      netfilter: nf_conntrack: do not skip entries in /proc/net/nf_conntrack
+
+Fernando Fernandez Mancera (1):
+      netfilter: nfnetlink: reset nlh pointer during batch replay
+
+Florian Westphal (3):
+      netfilter: nft_set_pipapo: use 0 genmask for packetpath lookups
+      netfilter: nft_set_pipapo_avx2: fix skip of expired entries
+      selftests: netfilter: nft_concat_range.sh: add check for double-create bug
+
+Slavin Liu (1):
+      ipvs: Defer ip_vs_ftp unregister during netns cleanup
+
+ net/netfilter/ipvs/ip_vs_ftp.c                     |  4 +-
+ net/netfilter/nf_conntrack_standalone.c            |  3 ++
+ net/netfilter/nfnetlink.c                          |  2 +
+ net/netfilter/nft_set_pipapo.c                     |  9 ++--
+ net/netfilter/nft_set_pipapo_avx2.c                |  9 ++--
+ .../selftests/net/netfilter/nft_concat_range.sh    | 56 +++++++++++++++++++++-
+ 6 files changed, 73 insertions(+), 10 deletions(-)
