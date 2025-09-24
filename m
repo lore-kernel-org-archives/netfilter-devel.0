@@ -1,105 +1,145 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5CAD27E066;
-	Wed, 24 Sep 2025 22:51:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 865681552FD
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Sep 2025 22:57:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758754278; cv=none; b=OeoAxb1g+1PC3icPJhZ51DZerxtIUysYXaE+YMjn9lmBV1Ax36Q/hV2zdzbiylHY1LMqcJUb5JX98H0abowXWdA9ACh/rypDlKBQbIbtivJnYY92FozBWjm8wF3IqBanMnwE8OtyUjdPv6Gl3aq03ZV8zUcSUnta1uOg7IbJSEs=
+	t=1758754674; cv=none; b=WiQaM4GXsJPH4Y61a/drRoAmLWeVJy0wmm1Pd1DzMw+1p9h8dH8pXdtiA5vfjF2M4nbdGTV8QRTTLilVcBGk7fbXyZZtFQrGZpcIDzrR3RyrDE+NAtJIJvGsc8tQYwU/Ah4YGP4c9+k+Nr8tBw5Qdf9fFabcY1okIW1uaoFepy0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758754278; c=relaxed/simple;
-	bh=h83iygs2s9Ldl3h7B7pFWbWQJHVrhWeWQeGcW05NHaE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qTDQEJnJ/ZhwUlF8fnaHor9jf8aZ3+wu0L0P2MRB7GS18SvjHXKmYPu373OJHSelIxtNJmt2BamzLFfptt0i3HSXEQgVv/yuIPeeuCfAZNVV2TMjHvyz/5FqZicwzHL4gMSFTj6LHLxbCImbJ8NA6kE12EbrkrIy0XINNRbg4NI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LvTaCmAj; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DOI+ZmiX; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1758754674; c=relaxed/simple;
+	bh=0Tro1s+a26/sKy2o1715pp2LM3OYQV3tcVMG/CLReNw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=g1/BHiaNzkmzpVKGwvXOX2bwuK2X+OfKEqwMtISTcgYu9bvMGZytYX/XpcXKZQSVF6POrzsj74UqRxUmmRWX4SoUmCtQse4dTnBG9famZ4u8av3HKVj8Cnf2dZsFH5dyjJnFZiR8YYYWotj9RjmSyAxrK2SkQLDtx86QC03xub4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=A4of2wyo; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=y8BwQFgn; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=A4of2wyo; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=y8BwQFgn; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LvTaCmAj";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DOI+ZmiX"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 1E82360279; Thu, 25 Sep 2025 00:51:13 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1758754273;
-	bh=9wVF5HzDtmu1OxUD7YMD/AGvt/7TIpkUXfx7yqLSTbc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LvTaCmAjq+XGwhNuFsAfAv7lWiQ6oG2RXVnEyXkyZFg5/ZzGs/p+9dHqSLbYDe8W3
-	 Jh8W7lZmc/cjp3KQ0wuI6lOmZZeXlpf2nNP66MffMQtqHn7UdYTQzZz6akuteE3xk3
-	 OnZURmegY3v49GsdfhOmSpYEu9Yl1vXIh92yNNu9AA5UEuqEZ+3gRsyzieS/xMja96
-	 3mFF3nof5Vrlejd0jnpYwyccDP+k5RPmMEbx9wPq8rvaKiKsj47g2fV0q26BJyuTlJ
-	 X/NyIHOZhGXzfEmfZZYH7eB4JkrSe9avi4xszWk+Br6EWjSn8qE2+ZfvAN7N/aADFn
-	 OnByCDX6OnY+A==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D72BF60262;
-	Thu, 25 Sep 2025 00:51:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1758754269;
-	bh=9wVF5HzDtmu1OxUD7YMD/AGvt/7TIpkUXfx7yqLSTbc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DOI+ZmiXU3AkYTL0/N3fDBqzp70sfzB1ct7EQFd+i7h6tZrmN8D4kyDd0NlgbqESh
-	 6uLXMijdd9xW8CdWfmN3UupoXwDDebrQ/7Xstu1eXta2+WTgYT7gt27GTHbJRuqxIF
-	 KN/jEKI5ps5Eb2CMVNufIPJktFqR3h5lkKE7dn5x6EqYqQYSCuBuazD0oIMWQpAibG
-	 SvQhTtk/Blvtv9IhLV5wD/M2ftmg0VX4bWxYN++uFj/5WlDiw3FHIPb0zVjTONYbBp
-	 Lizek8QtZ0jYOHxE6rgXlpUSxzqY0LXu9+m9zQwVo7EmJgvl1ffEL+fTwL3xRca+o1
-	 dWxG0YXogPJfg==
-Date: Thu, 25 Sep 2025 00:51:07 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Elad Yifee <eladwf@gmail.com>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next RFC] netfilter: flowtable: add CT metadata
- action for nft flowtables
-Message-ID: <aNR12z5OQzsC0yKl@calendula>
-References: <20250912163043.329233-1-eladwf@gmail.com>
- <CA+SN3sp6ZidPXhZnP0E4KQyt95pp_-M9h2MMwLozObp9JH-8LQ@mail.gmail.com>
- <aMnnKsqCGw5JFVrD@calendula>
- <CA+SN3srpbVBK10-PtOcikSphYDRf1WwWjS0d+R76-qCouAV2rQ@mail.gmail.com>
- <aMpuwRiqBtG7ps30@calendula>
- <CA+SN3spZ7Q4zqpgiDbdE5T7pb8PWceUf5bGH+oHLEz6XhT9H+g@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="A4of2wyo";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="y8BwQFgn";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="A4of2wyo";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="y8BwQFgn"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 9CC093F32B;
+	Wed, 24 Sep 2025 22:57:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758754670; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ExO6Av5GCOnGHT6HrUI05Cz90BMebJot8wQ1XFtOdZU=;
+	b=A4of2wyoNAkEZpY54N/DTJh+87O4SVxGqvfAKDJe5R7yQ6rIiOX1jHUrl0nOfyoZGYvqc1
+	J3Z0hRXPJxtCjN6LC65AhtqysmkmirP2NLq+O8ywHVZynZzg3dkWwkYsvyvDa6RQYoyrru
+	iYSUWGJ+/KqQG/x1zX0jWEOIRyWbxlw=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758754670;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ExO6Av5GCOnGHT6HrUI05Cz90BMebJot8wQ1XFtOdZU=;
+	b=y8BwQFgnm+A4ODzJdx455W3VT1BGhcndNo5dgdniJVVZHRmFht2QThe8ITD1BPVT5UaQfL
+	SS/OE2QcQJjBPfAw==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758754670; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ExO6Av5GCOnGHT6HrUI05Cz90BMebJot8wQ1XFtOdZU=;
+	b=A4of2wyoNAkEZpY54N/DTJh+87O4SVxGqvfAKDJe5R7yQ6rIiOX1jHUrl0nOfyoZGYvqc1
+	J3Z0hRXPJxtCjN6LC65AhtqysmkmirP2NLq+O8ywHVZynZzg3dkWwkYsvyvDa6RQYoyrru
+	iYSUWGJ+/KqQG/x1zX0jWEOIRyWbxlw=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758754670;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ExO6Av5GCOnGHT6HrUI05Cz90BMebJot8wQ1XFtOdZU=;
+	b=y8BwQFgnm+A4ODzJdx455W3VT1BGhcndNo5dgdniJVVZHRmFht2QThe8ITD1BPVT5UaQfL
+	SS/OE2QcQJjBPfAw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 6BFB213A61;
+	Wed, 24 Sep 2025 22:57:50 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id tTC4F2531Gh8IQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 24 Sep 2025 22:57:50 +0000
+Message-ID: <9a19b12e-d838-485d-8c12-73a3b39f1af2@suse.de>
+Date: Thu, 25 Sep 2025 00:57:37 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CA+SN3spZ7Q4zqpgiDbdE5T7pb8PWceUf5bGH+oHLEz6XhT9H+g@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH net-next 0/6] netfilter: fixes for net-next
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+References: <20250924140654.10210-1-fw@strlen.de> <aNRwvW4KV1Wmly0y@calendula>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <aNRwvW4KV1Wmly0y@calendula>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
+	MIME_GOOD(-0.10)[text/plain];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	ARC_NA(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_TLS_ALL(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_COUNT_TWO(0.00)[2];
+	MID_RHS_MATCH_FROM(0.00)[];
+	TO_DN_SOME(0.00)[]
+X-Spam-Flag: NO
+X-Spam-Level: 
+X-Spam-Score: -4.30
 
-On Wed, Sep 17, 2025 at 08:33:49PM +0300, Elad Yifee wrote:
-> On Wed, Sep 17, 2025 at 11:18 AM Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Just to make sure we are on the same page: Software plane has to match
-> > the capabilities of the hardware offload plan, new features must work
-> > first in the software plane, then extend the hardware offload plane to
-> > support it.
+
+
+On 9/25/25 12:29 AM, Pablo Neira Ayuso wrote:
+> Trimming Cc:
 > 
-> Thanks - I see what you meant now.
+> On Wed, Sep 24, 2025 at 04:06:48PM +0200, Florian Westphal wrote:
+>> Hi,
+>>
+>> The following patchset contains Netfilter fixes for *net-next*:
+>>
+>> These fixes target next because the bug is either not severe or has
+>> existed for so long that there is no reason to cram them in at the last
+>> minute.
+>>
+>> 1) Fix IPVS ftp unregistering during netns cleanup, broken since netns
+>>     support was introduced in 2011 in the 2.6.39 kernel.
+>>     From Slavin Liu.
+>> 2) nfnetlink must reset the 'nlh' pointer back to the original
+>>     address when a batch is replayed, else we emit bogus ACK messages
+>>     and conceal real errno from userspace.  From Fernando Fernandez Mancera.
+>>     This was broken since 6.10.
 > 
-> This isn’t a new feature that needs to be implemented in software
-> first. We’re not introducing new user semantics, matches, or actions
-> in nft/TC. no datapath changes (including the flowtable software
-> offload fast path). The change only surfaces existing CT state
-> (mark/labels/dir) as FLOW_ACTION_CT_METADATA at the hardware offload
-> boundary so drivers can use it for per-flow QoS, or simply ignore it.
->
-> When a flow stays in software, behavior remains exactly as today,
-> software QoS continues to use existing tools (nft/TC setting
-> skb->priority/mark, qdiscs, etc.). There’s no SW-HW mismatch
-> introduced here.
+> Side note: nftables userspace does not use this feature. This is used
+> by a tool that is not in the netfilter.org repositories, to my
+> knowledged.
+> 
 
-You have to show me there is no mismatch.
-
-This is exposing the current ct mark/label to your hardware, the
-flowtable infrastructure (the software representation) makes no use of
-this information from the flowtable datapath, can you explain how you
-plan to use this?
-
-Thanks.
+Yes, that is right. It was found in an external tool using libnftnl 
+directly. FWIW, the libnftnl examples also uses the NLM_F_ACK for the 
+messages containing data as new rule, chain, table..
