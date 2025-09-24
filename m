@@ -1,95 +1,106 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+Received: from mail-qk1-f202.google.com (mail-qk1-f202.google.com [209.85.222.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67F431DF72C
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 20:11:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C4026B2C8
+	for <netfilter-devel@vger.kernel.org>; Wed, 24 Sep 2025 07:27:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758658305; cv=none; b=WLOnNPIic3RFYwsgpojK+LvzE+Yn7UtZnEBOvl3SUXzDdueb3IX2ORAyMEWBGzCPv+VXDFaXjZraPQzQ7EFavRduDRydG7uC7BG8Ovvrf/pbq10lZbAH5rMROimFKVHk5HPRL+NlzmerTDyJgSZHPfalobQPSCL6Yu34m/GhOdk=
+	t=1758698835; cv=none; b=lHQTw7djnwKdmPkq57EiX/5GkH1PxmkBH14wLF0PmCnCuN1xkG3qikjpXdZ+9d2jkfgUwhjdKzu34GyfcN4T1JhfpT6o+DCTS5+JZC0fWNrttGSmabe3ysUtu4RkYN3RGwbp/qxF82GWcmkA4o0RRvJh9/BWpPC21EipFCTz5Fo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758658305; c=relaxed/simple;
-	bh=JTP+YEG1q5M0peS7PLFW88111RMYmHr0walTvZYiwtk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AL+DoURdiolbkOeu7GaNtulf8HQvw70dunbLdaTaAsyHBXETiGyWKDf2axtgELZ4Aa8mDJxZ9DOdLx43D1uHV34AFo8eXAg/0ULoZy2xTgDloc5mERKB0kBaOaiAKfAO2p36BNgBTEnF+R9yMitHI+wAus3n5pLx+2sIChcChKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=FbT1835m; arc=none smtp.client-ip=209.85.216.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1758698835; c=relaxed/simple;
+	bh=YNphk3mB4ivfNu3QKEs10XGiMwMxpi1YPo4dtv7YWgw=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=h6Ew+vphCexDd542hzBnjN1jtdBAHS9HFFrmb5gKyInx/s8GW0taL9Fz9bcj+aMFy2hZnkcAer3dE9auvuhSqPgXHdpE97afREYKhrotTVsasYmK5YqKz/zAOeT7k4FKCJZLbji0fe0HBCrdnc2TOGz8yYbUCGJUOWTgSyp6S9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=ohyQTZ3q; arc=none smtp.client-ip=209.85.222.202
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="FbT1835m"
-Received: by mail-pj1-f45.google.com with SMTP id 98e67ed59e1d1-3307de086d8so5351049a91.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2025 13:11:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ohyQTZ3q"
+Received: by mail-qk1-f202.google.com with SMTP id af79cd13be357-8589058c59bso43023485a.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Sep 2025 00:27:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1758658304; x=1759263104; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oUa4pObT86h1jy2D2nCUjbk/1KGY1/f7404WMtXBXxs=;
-        b=FbT1835mijmeaAO7VocKZXUr/Q6icQEosDqYzGJhWdi9A0CqCqjxDYES3BkFKmnjex
-         x5FcFRkD3x9ARqqa8dUjPYi26bvgQ8MLdbZRXi1vd3GUgq8HA2fhmcQf3TbU0ORlyazR
-         SNyzQEqw0tUjN3cZ6EpXrGA58nRfNn972erTw4sMiWe/s3j/F2BsEYGMMtPHB5ijdVES
-         G82xQP1PTAOKnwPvti1P8tq/JblgcOYqgd5866I0BeEk/az/GEfwKyItp1Z2qI5jx7M1
-         ZGPT/SfM7Rqt0M89mVfw2Bw/tJu+4KiDF+eUcFlYfJmJCBnaoAEqbo9bSMh4tVyPEZQ+
-         85MA==
+        d=google.com; s=20230601; t=1758698831; x=1759303631; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=6K5fm+QUCrwoVlxEjRVdfqv7MdLli6zI+B4E/bRgTXA=;
+        b=ohyQTZ3q2fraYCAMhNK3QabeQtpo8SHjb+wiVksTOG3j+P6RcrUpKXRP+OeQj9Axf1
+         E9mUrgSV2BGuoMtP3N+wOLqX9rMJDMOBAzivKwZ+q1cdqniESFmbLVKXKiKdva90nq9w
+         lcqyzBtBfqKyvLogZ6Af925AgM2IHhYPu0j3PGccqVGhG6zywo1QOGRjv/LmyAt5H7g5
+         NBlmPDpn8ue9R8qf6Z2W+Lxx/fr3NNZL+0YbWGxGQIJ8tuPbRgxxt8AUCb866gJOie3D
+         PgJpzzpHUYlnY1QHzvrOunkbQjvFasE3ZFeD8uQ5awquqYKiCQfACn40lD0PBb3uxYp4
+         2B+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1758658304; x=1759263104;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oUa4pObT86h1jy2D2nCUjbk/1KGY1/f7404WMtXBXxs=;
-        b=RZZ/KVsDzzlzWtOvxi4BhX5meZgfY2GvBnjHMaPAvIvUgV5KqEIPEYXGYi4vDFWXPu
-         IOpQ39hHijWz8aLa+UDkPRTyrFV3binUZ6YFWoS+8dpPmJ7dVmcfFIm0yR5FGrSjiwcu
-         x6vyh6IhXAIrFTltAdSLUs+yGwDCt+XnNn+iQc/XF2/Gtrr4Pk/glkjR8JEW1KOuGa40
-         F4X1kaig0RtFubMWoaYyPx0CYrNiS5fBxv++KqkYnoLgm9UbC11Mlyjhg4C5xX04p9LH
-         ejc+UDDtDEp1bWjQfBRJoN4t3g6Pxrs1tQiQFWyj5s3z3hIjCCeojQgfH+cQIJACQbQd
-         mIOQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWwoBpi+tFmMSJN6diuriFNabf9L/l+qDXL2hWoQjIeQWZC6iOJhYSmsfifRGW1InixZ+/x+7suXbYkQ0Rd05I=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwWKmkVyEHfa99CLqiE9iwJKiLbDstSZesfM46Z6vQZklQVZOuy
-	9cK3ihiBKhDSTfHHLKecenaCtvW5I6sD2vHIiEOwGEc6M+2bckmTv69COvkw/mMlwNn7JZ0YcGm
-	RU2/2FJdNeCkkY1d65t7U2AKkHZiJu00sIkRAr5w6
-X-Gm-Gg: ASbGnctcq++5Et4lrvcUcR4nZIK2CbMQC1qvMxf4b8xuHhHjvnEmKzReBiICpRKX0Q4
-	Inv8PGLVrGEu7+Sq8jmVxmY76ltRmlcycRy8h5iMwnN2yb3xLWhTC1NBXOvHmmyI2dplUIsyUCy
-	ghd8pRlmmUG3UazNex1mu4LWg4xkbcMz2lL9Kofu5TpfWEJAgy32s0S9/+QEKa3m+OP8iQm8c23
-	ofBhU8=
-X-Google-Smtp-Source: AGHT+IFfr973oj/4RM14CnqVmiX2e4PE3O74vfP5owIc23SKETKDt7jPpQDpXbNLtGzX165ba6mvtEDFXWf/gKTzrCI=
-X-Received: by 2002:a17:90b:2e8d:b0:32e:d015:777b with SMTP id
- 98e67ed59e1d1-332a96fd52fmr4559524a91.18.1758658303649; Tue, 23 Sep 2025
- 13:11:43 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1758698831; x=1759303631;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=6K5fm+QUCrwoVlxEjRVdfqv7MdLli6zI+B4E/bRgTXA=;
+        b=LLn0DPYAqkkHDHB0bltZcI66DAMTQGuv/0L+m2VYkogtnBZef0O/Z8r2EioBoYTyrH
+         73SJHCiiq4AUaXlJ1czpZkUQWhv695kf7F4ya3MO9/NYhiXEspRnK9qJ95ydKWrS5KTY
+         Y9kcFmV8/10jAb6YDokA8tC0dUxOD49a6FRIb3MIZ0LX8GtFoKVbSLt8IW/PZHKoe35b
+         AeVxKfYFVJdTwWdhZYHG+xYnU4N4JVlCngRVv/XT5fO9ORBUfsdvLryTvfTsQ83TBsNe
+         r1cpewvqBN+p2jA+K4BeBGNB05DBaUDA8k1PIpjlkoOTAvHT51gvjRZoRBfegHk996Rs
+         tWDA==
+X-Forwarded-Encrypted: i=1; AJvYcCXnVPyGTLMGGd8+CTeLRx/gR7nhSDKSNxBHe+tbRvx8Hfwfv9DE4U9yYe9lX0zse07ZgiEA3WxyLvBSQfrlWdo=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzjVkgzFtrH2BNDQ8GsOC9g2ABjw8uEXS1woYAUKYKjjGMZtx7A
+	iDLTcDxU5FjNQ7xzsSGYav5dtlMgkzrV/ZpRQ0I5GmarbGKbbKo/okoSzXndIO2/Ki78ViUuyfH
+	NG6tDG6zJevmBoQ==
+X-Google-Smtp-Source: AGHT+IHbInjHcu8+g2yR5s/vHlw8EvDs5k3IxMOhdo2jXUPw2zbEl2OhrziWz6q5iYS5mQWH4t6sJSc2lQWqVA==
+X-Received: from qknqj10.prod.google.com ([2002:a05:620a:880a:b0:84f:d9a2:d24d])
+ (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:620a:4627:b0:84d:9f49:6898 with SMTP id af79cd13be357-85173700769mr688877485a.61.1758698831223;
+ Wed, 24 Sep 2025 00:27:11 -0700 (PDT)
+Date: Wed, 24 Sep 2025 07:27:09 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20250922200942.1534414-1-rrobaina@redhat.com> <p4866orr-o8nn-6550-89o7-s3s12s27732q@vanv.qr>
- <CAABTaaDaOu631q+BVa+tzDJdH62+HXO-s0FT_to6VyvyLi-JCQ@mail.gmail.com> <aNLcbUp5518F_GWL@strlen.de>
-In-Reply-To: <aNLcbUp5518F_GWL@strlen.de>
-From: Paul Moore <paul@paul-moore.com>
-Date: Tue, 23 Sep 2025 16:11:32 -0400
-X-Gm-Features: AS18NWAxG3daqHqw7bG2TIx-RGmTbVgn4C6ruCnGJ7CCWQmmYWHkT-7bWgCbXHA
-Message-ID: <CAHC9VhSJGas4uUivmOvncyTcC-UZkdqcqkVKPzDAQL8oGkSr-g@mail.gmail.com>
-Subject: Re: [PATCH v1] audit: include source and destination ports to NETFILTER_PKT
-To: Florian Westphal <fw@strlen.de>
-Cc: Ricardo Robaina <rrobaina@redhat.com>, Jan Engelhardt <ej@inai.de>, audit@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, eparis@redhat.com, pablo@netfilter.org, 
-	kadlec@netfilter.org
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.51.0.534.gc79095c0ca-goog
+Message-ID: <20250924072709.2891285-1-edumazet@google.com>
+Subject: [PATCH nf] netfilter: nf_conntrack: do not skip entries in /proc/net/nf_conntrack
+From: Eric Dumazet <edumazet@google.com>
+To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, eric.dumazet@gmail.com, 
+	Eric Dumazet <edumazet@google.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 23, 2025 at 1:44=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
-te:
-> Ricardo Robaina <rrobaina@redhat.com> wrote:
-> > It seems DCCP has been retired by commit 2a63dd0edf38 (=E2=80=9Cnet: Re=
-tire
-> > DCCP socket.=E2=80=9D). I=E2=80=99ll work on a V2, adding cases for bot=
-h UDP-Lite and
-> > SCTP.
->
-> Thanks.  This will also need a formal ack from audit maintainers.
+ct_seq_show() has an opportunistic garbage collector :
 
-It's in my queue, but considering we're at -rc7 this is a few notches
-down on my priority list as this isn't something I would consider for
-the upcoming merge window.
+if (nf_ct_should_gc(ct)) {
+    nf_ct_kill(ct);
+    goto release;
+}
 
---=20
-paul-moore.com
+So if one nf_conn is killed there, next time ct_get_next() runs,
+we skip the following item in the bucket, even if it should have
+been displayed if gc did not take place.
+
+We can decrement st->skip_elems to tell ct_get_next() one of the items
+was removed from the chain.
+
+Fixes: 58e207e4983d ("netfilter: evict stale entries when user reads /proc/net/nf_conntrack")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+---
+ net/netfilter/nf_conntrack_standalone.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 1f14ef0436c65fccc8e64956a105d5473e21b55e..708b79380f047f32aa8e6047c52c807b4019f2b9 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -317,6 +317,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	smp_acquire__after_ctrl_dep();
+ 
+ 	if (nf_ct_should_gc(ct)) {
++		struct ct_iter_state *st = s->private;
++
++		st->skip_elems--;
+ 		nf_ct_kill(ct);
+ 		goto release;
+ 	}
+-- 
+2.51.0.534.gc79095c0ca-goog
+
