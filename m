@@ -1,149 +1,128 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from dragonfly.birch.relay.mailchannels.net (dragonfly.birch.relay.mailchannels.net [23.83.209.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89B5F35940
-	for <netfilter-devel@vger.kernel.org>; Thu, 25 Sep 2025 20:33:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758832420; cv=none; b=f4kGgMIO4K6NsqDR7+dppeGyW9LqvDbC5gDrlwkpRy63stzcyQiLMLcX3q2J7aveobU510LMeGdbmGAjAUA6YxC0EV6aOLN2OKR1NVqpCFZqwsujaxLU9ZB9mzvawsWilWsXXKJvPkbKMfPKlWqxfUe4pv8BVUEr8ubeHSqeriw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758832420; c=relaxed/simple;
-	bh=UOAVtFlpx6vH1XlIrfzqAd00f5q8Fw5p8fJybaSFHTY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lCUlCyP9szoJe1ucQYQjIvoAlhB7w4O6O6UuXVTEJtvUEPPs+7ReEl0s5n+4An6GmhA2A4KdSRGxQdBb7+YCCfITTHx+Zi+RoaPLGL+lHMvDE1fVxbdulOpBsPrXxUIEz1V/8ESjIU2uhcoQDN+fsIpBoFvv9T3TmeT2gFb6Gx8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=SmJg6QOS; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="SmJg6QOS"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=gKyhv1K5M8tunUKnZQ3Cp0j0+ySVVlXFxxq983GsBhQ=; b=SmJg6QOSvRUrBMiqVQ3xWBUTDc
-	WJc16V8efR4wvbbXEJAmSWT2K+MTtlG+WonPOadBPAAUuKdQGbYwx9SAlDJISqA17EPlVuyoFkiKi
-	7cDaQGO9GfCj4aX9RGjem4tehTp4MdtU2j68Ux1A9SRyMFXtb5LrCpR2W7sUzu5w9uJzZLGPRoLJj
-	K5XUAkAwfNGxW23T22a5ttLC/pChtnCA3yn7pVoFzwzf0fTKjo8B9/nhAYYwIkvqEByikhERQfLvk
-	hhWGq5UNPgJIB1tNA088wj4fVSJwfYF72cpQjY7fdcDly77Yk1caURy4exhiq2UzA+0MR2VDBaAzg
-	G4YlFO+g==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D3731E8B8
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Sep 2025 20:37:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.209.51
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1758832664; cv=pass; b=qNC69/FlkER9LPHJmIdD71tVhUluk6dSBP3cCpPk5UWU1U/SCCcV4a6E+rIOen5G2Z4iWIvgGWY9MFa6eY9/RZZq4rGWoNV9cr7qdFloky+pxV9mGZ6czBWG7nu0RQq0kFKcKMXFO5vtgMBoQZ8G/ciE8mU7IZcFfkH4sKhE410=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1758832664; c=relaxed/simple;
+	bh=ThYqmhBhQY6doCWOpE+r6bRiGYBtHoWn/7pZetw/bTw=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=AJxUYpCykxo+poct+a+ZTPgHsCbpJXpWGi8HQabE5r++d7JbygIkhuPxskrIbKEohzw2yuZYfj41cr3i52Qcx4l+RKVctmpjxW5Ws+z+KE0FVJNWAuP9kD37DWGmMaT0dBYs8NAdUsJe3zQRNTv4bNiijAhCqOSKWYN/3Kz9J4c=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.209.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id DD61D7C24CF;
+	Thu, 25 Sep 2025 20:37:35 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (trex-blue-3.trex.outbound.svc.cluster.local [100.112.37.226])
+	(Authenticated sender: instrampxe0y3a)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 0ECD67C2433;
+	Thu, 25 Sep 2025 20:37:34 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1758832655; a=rsa-sha256;
+	cv=none;
+	b=I+ltoESIZ8Dr/JIrAHnVLbJMxQhmfScn7zFHklb4R3jasxBhnlF38KXPbIOJmocutfQ8A2
+	l0fLpeUd54agTSU2Li8Ic6Lbuk9MAZN6FMgpilypSNKzAaMJ+lamjU/+VkQEoD3gTg12DN
+	fl9GC14pPAU8E/Fd8ZmR3+uRoiXcyyo/i/SyVta/wJmNzaIvNUI1DymwufZ8dcq5EW+NrC
+	hktCXJlAXOsCGa9JirugbzFveOfBoea1PIG7+viKPVx0wKfMZ591imaRB4pF0kdYtuOFAA
+	CsqY8VrrmK5CSPCITJIFPjGQ4Cxntj+gP/xrJitXPgMwET/j+uTqRVnjuj1gjA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1758832655;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XwhWFA8xsli417lby4fTshQ8kJOA3zI5fDHo37DunYo=;
+	b=52fq7DKJ5oQH4sWjCF1Se2xO041WQctEPDqoxc0jO6B+QB1j9T+w9zBqDRqQWM3xHdGZE3
+	n7NnI0O4d6HuouuJ7K/CCtRX94HqIWlIyfsXAwYE/F7ZU6YXjriKShrs3UokhGELR7vnAh
+	AR8dv5Dck+WvUCcyNGE6+DXv84Z5McDaImDmRgaBcwY3H3Hf775PK22T5b8Sg0YoQLWOcP
+	cGG44wuAo7x5ahYHICr37YRTu28HIiED0GwAeD6amET5/FZ5C3ivFWmCDL2S4/MFQeV5Qt
+	6g9qUsEkbc2YUkBav896QnlBAKm8hbopCTHoWcL0Cw9ZvoJ8JiUzX8tPF2JEkQ==
+ARC-Authentication-Results: i=1;
+	rspamd-598fd7dc44-cxztd;
+	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
+X-MailChannels-Auth-Id: instrampxe0y3a
+X-Shade-Gusty: 54063e9667a8f12e_1758832655737_1684470064
+X-MC-Loop-Signature: 1758832655737:154925852
+X-MC-Ingress-Time: 1758832655737
+Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
+ [3.69.87.180])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.112.37.226 (trex/7.1.3);
+	Thu, 25 Sep 2025 20:37:35 +0000
+Received: from [79.127.207.161] (port=64741 helo=[10.2.0.2])
+	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1v1s8M-00000001QW9-2nFt;
-	Thu, 25 Sep 2025 21:00:06 +0100
-Date: Thu, 25 Sep 2025 21:00:05 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: netfilter-devel@vger.kernel.org
-Cc: Christoph Anton Mitterer <calestyo@scientia.org>
-Subject: Re: bug: nft include with includedir path with globs loads files
- twice
-Message-ID: <20250925200005.GB6365@celephais.dreamlands>
-References: <500beefd7481a43c4068469300e07ca3769a064e.camel@scientia.org>
+	(envelope-from <calestyo@scientia.org>)
+	id 1v1sid-0000000AebP-2ZBa;
+	Thu, 25 Sep 2025 20:37:33 +0000
+Message-ID: <3c7ddca7029fa04baa2402d895f3a594a6480a3a.camel@scientia.org>
+Subject: Re: nft manpage/wiki issues and improvement ideas
+From: Christoph Anton Mitterer <calestyo@scientia.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Date: Thu, 25 Sep 2025 22:37:32 +0200
+In-Reply-To: <aNTwsMd8wSe4aKmz@calendula>
+References: <6bb455009ebd3a2fe17581dfa74addc9186f33ea.camel@scientia.org>
+	 <aNTwsMd8wSe4aKmz@calendula>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-3 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="OVNPRaLKuQOm9yao"
-Content-Disposition: inline
-In-Reply-To: <500beefd7481a43c4068469300e07ca3769a064e.camel@scientia.org>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+X-AuthUser: calestyo@scientia.org
 
-
---OVNPRaLKuQOm9yao
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 2025-09-24, at 22:23:11 +0200, Christoph Anton Mitterer wrote:
-> Hey.
+On Thu, 2025-09-25 at 09:35 +0200, Pablo Neira Ayuso wrote:
+> > 1) Non-documentation issue, could however be a downstream bug:
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 # nft describe icmpv6 code
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 payload expression, datatype icmpv6_code=
+ (icmpv6 code)
+> > (basetype integer), 8 bits
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 # nft describe icmp code
+> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 payload expression, datatype icmp_code (=
+icmp code) (basetype
+> > integer), 8 bits
+> > =C2=A0=C2=A0=20
+> > =C2=A0=C2=A0 produce no (code) output as of at least v1.1.5.
+> > =C2=A0=C2=A0 That still worked in older versions.
 >=20
-> With:
->    # nft -v
->    nftables v1.1.5 (Commodore Bullmoose #6)
-> from Debian sid which uses a default include dir of:
->    # nft -h | grep includepath
->      -I, --includepath <directory>   Add <directory> to the paths searche=
-d for include files. Default is: /etc
->=20
->=20
-> And e.g.:
-> /etc/nftables.conf
->    #!/usr/sbin/nft -f
->   =20
->    flush ruleset
->   =20
->    table inet filter {
->    	chain input {
->    		type filter hook input priority filter
->    		ct state {established,related} accept
->    	}
->    }
->   =20
->    include "nftables/rules.d/*.nft"
->=20
-> and:
-> /etc/nftables/rules.d/x.nft:
->    table inet filter {
->            chain bla {
->                    type filter hook input priority filter
->                    ip daddr 1.1.1.1 drop
->            }
->    }
-> and no other files in rules.d... nft seem to somehow include x.nft
-> twice:
->=20
-> # nft -f /etc/nftables.conf; nft list ruleset
-> table inet filter {
-> 	chain input {
-> 		type filter hook input priority filter; policy accept;
-> 		ct state { established, related } accept
-> 	}
->=20
-> 	chain bla {
-> 		type filter hook input priority filter; policy accept;
-> 		ip daddr 1.1.1.1 drop
-> 		ip daddr 1.1.1.1 drop
-> 	}
-> }
->=20
-> If I change the include to "nftables/rules.d/x.nft" or to
-> "/etc/nftables/rules.d/*.nft"... it works (i.e. only one ip daddr
-> 1.1.1.1 drop).
+> What do you mean by no output?
 
-There is a Debian bug report related to this:
+Well, if I do it with nft v1.0.9 I get:
+$ nft describe icmp code
+payload expression, datatype icmp_code (icmp code) (basetype integer), 8 bi=
+ts
 
-  https://bugs.debian.org/1112512
+pre-defined symbolic constants (in decimal):
+	net-unreachable               	                   0
+	host-unreachable              	                   1
+	prot-unreachable              	                   2
+	port-unreachable              	                   3
+	net-prohibited                	                   9
+	host-prohibited               	                  10
+	admin-prohibited              	                  13
+	frag-needed                   	                   4
 
-J.
+i.e. the codes are listed.
+But on my Debian I merely get:
+# nft describe icmp code
+payload expression, datatype icmp_code (icmp code) (basetype integer),
+8 bits
+#
 
---OVNPRaLKuQOm9yao
-Content-Type: application/pgp-signature; name="signature.asc"
+(it does however work on Debian, for describe icmp type).
 
------BEGIN PGP SIGNATURE-----
 
-wsG7BAABCgBvBYJo1Z8kCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmda54q3Du3mdXzFHAJvoOrj7QJEm/7Qe/g9Zi3wBkEh
-IhYhBGwdtFNj70A3vVbVFymGrAq98QQNAABArg//cPgBi1nQcyMS921mZ5evyWZA
-5VhYTNX5TApbPouBNonBrqQDxehxkmQZlQLKxfve/6x6ydgu/Zktm/v3obSUqWYw
-pAl1ZrYy9u1ULpj3pk1SLf2yFWOdTz8Zp6cF8LELzl/FaNGXr5p+7jlGDzGfLg5v
-/WWdhsYgw1mhnyWm8rY3FJPKCb2SR2ftdnDEH/ViP5dtt+RGbXZ9LzhO7WifL7Jg
-ptlObo0AzWNU0U2dCEEE5eI4siuNy+ErJPAZ3mcMgt9+IAnBIybRvToL2Yh6PLJh
-4tgDkbG2/DEk7j8Ghl2j72uQaUe7tqQVdup/x0/mRQT2RgXZJyNOEpICAbbdITMV
-9zzMRoq3GtzVsjqQ24N6kKTVZAScbsrSkaJP0hugM7zAEW3iX5ECSBldqIm0yuJO
-+5w2HzvaXOR8/PfL9FOBW5yGsOYR2wBcLMjQzf0Brx46H+w0IQ+JZKFS1u92++IA
-/FLcH6soPX1+bPX8eRzqrCDWPB+z3KOLEMZmmbZybasU+Ze/z1/0gSWdasSiugnp
-KKQquq9V0EEVe3pb61iXlpJqmGEkdGTIlCdj2qhZL9MjGE2bJdzf0XwMdX3wtzEz
-DlpksIorT06R3xH/xC333cfCXK1yqxm/EwNFD8ae3TjTh1qKBYLOj/WmUpnch0Ni
-qR9x9hXwJY6gfJhsaq0=
-=f+gn
------END PGP SIGNATURE-----
-
---OVNPRaLKuQOm9yao--
+Cheers,
+Chris.
