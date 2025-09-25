@@ -1,180 +1,174 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90742282F1
-	for <netfilter-devel@vger.kernel.org>; Thu, 25 Sep 2025 12:36:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64854271479
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Sep 2025 13:42:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758803784; cv=none; b=T5ST8FBt8/GRP37AWnAPwTkgAusoUj3WFpbiMI/uKeDyV8dM6lkV3AXK3LTTatMK9Mhf/8seKcJcAqwwvcX2g8Oeedxj6tW/tSWKuYyNTDGRnTKrmAnjiM/rxY57E52zD0AAB7kNtiMCe+sJS942+fv1n4KDfl80h+MZ8NsPtKA=
+	t=1758807740; cv=none; b=hXi5YFygfRmrt/lRVUXqxbuqUbEanDykBJxR3cyibq1BD/oXNMAsC2xCecNluhWkUkBRFgi1Aw87cUydwPfcbexQK0pWB0g3ghipQYu6PPuJJGl3PegUJKoFMpZp0pLtYSypcQXcMkSlyoYSjCfgHPDihjlrY3XmkNBxXapdwAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758803784; c=relaxed/simple;
-	bh=b0UKCTgvMKf8QBiMJFrUQvWjNCQlFYecjCkeQCWkqoM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=PtzXMGqCnwcYGsIEtZ+1OCy35BaFJGrL1o99f2tyi/fy+GCR8hbwm5nINtjVc6qKV1j7hE/hLRwBoBrGQKAWiJCo0ahD3K1OLfoGFTn4/6xkFvLGTqOMXxa3VeNQDTrJN0xC9s3NA/fn85EU84RnIy7kMp8yChpnmRhTodRgMtI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sib8i1hm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=v0mb2Eam; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=sib8i1hm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=v0mb2Eam; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1758807740; c=relaxed/simple;
+	bh=sPuyYm1C4sHaTPsabJ3pDG8Xk8pUeu54NQrBF163+mY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=gjPO0cE0nu5x837OQ72Xuah+3SlSJrSVzl02izOBqgFBz9nBrYgCa8YoQuXIC53VMqC5zsFLnGxLDwytI7q9xCun4LCdVGUIKehBFVWthgSODwBsSzC2Lq+3zwVVBpfn8uhxAfEkogOa43WNvv1aeK87lbE/vbBErMjDyMg/dGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=cfx6MqY2; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sib8i1hm";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="v0mb2Eam";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="sib8i1hm";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="v0mb2Eam"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cfx6MqY2"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1758807737;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=8vHsJwdUMBe/dp6r1dI75OkJ9Hs0OM9rJATtz7xS340=;
+	b=cfx6MqY2pKtB6vsf6cEXtdEdeItpvyRfEuf1cYowo39uBE97IHrcVoho7Q7DjLNAcvbD6n
+	r1QM6UWayMwxYm+mOHis1ULMS29Ed5yO3csYJyXisMa8fE4uu9OgIIYU1dlIntmenrFxZl
+	3CZ5dAhsl/oOMWX+FtW0VDUNDq6hEwk=
+Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-551-PqtUKMjWMh-Xzk6R6qSUNQ-1; Thu,
+ 25 Sep 2025 09:42:12 -0400
+X-MC-Unique: PqtUKMjWMh-Xzk6R6qSUNQ-1
+X-Mimecast-MFC-AGG-ID: PqtUKMjWMh-Xzk6R6qSUNQ_1758807725
+Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 8819C6AFDF;
-	Thu, 25 Sep 2025 12:36:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758803780; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RUkMOpfvxeJDazlACABnQQYaYYxfhEKw4bPs0o7UKpE=;
-	b=sib8i1hm841uBPdtcxpAyzSM6Nu0LT5KmUTCvOsQKFU9O7V2EWnzk2iZCESZSL35rC2Ib6
-	vVvKjFrfsblbMUe3P+xF2fdi5pQymwjRUcH6UZVwJgfpYrfi0Bb5RBJQEM+K2C7+5LjQ7S
-	hXTXlOx0mthbPqyj0gULJsoSS1pYmwk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758803780;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RUkMOpfvxeJDazlACABnQQYaYYxfhEKw4bPs0o7UKpE=;
-	b=v0mb2Eamlo4YfzrbeFj9k/slXfuQ2BPwhc2iZOtqsG8QQU70nd2Xg0D+lpfrF9+/+ov8Ft
-	RW91GrbNZh+3hWBA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1758803780; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RUkMOpfvxeJDazlACABnQQYaYYxfhEKw4bPs0o7UKpE=;
-	b=sib8i1hm841uBPdtcxpAyzSM6Nu0LT5KmUTCvOsQKFU9O7V2EWnzk2iZCESZSL35rC2Ib6
-	vVvKjFrfsblbMUe3P+xF2fdi5pQymwjRUcH6UZVwJgfpYrfi0Bb5RBJQEM+K2C7+5LjQ7S
-	hXTXlOx0mthbPqyj0gULJsoSS1pYmwk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1758803780;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RUkMOpfvxeJDazlACABnQQYaYYxfhEKw4bPs0o7UKpE=;
-	b=v0mb2Eamlo4YfzrbeFj9k/slXfuQ2BPwhc2iZOtqsG8QQU70nd2Xg0D+lpfrF9+/+ov8Ft
-	RW91GrbNZh+3hWBA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5C8E9132C9;
-	Thu, 25 Sep 2025 12:36:20 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id ptt/E0Q31WgMHAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 25 Sep 2025 12:36:20 +0000
-Message-ID: <e19bafc0-61c9-47af-afb6-15f886cc4d37@suse.de>
-Date: Thu, 25 Sep 2025 14:36:15 +0200
+	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 508D51800284;
+	Thu, 25 Sep 2025 13:42:04 +0000 (UTC)
+Received: from wsxc.redhat.com (unknown [10.96.134.29])
+	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id AA1F7300021A;
+	Thu, 25 Sep 2025 13:41:59 +0000 (UTC)
+From: Ricardo Robaina <rrobaina@redhat.com>
+To: audit@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Cc: paul@paul-moore.com,
+	eparis@redhat.com,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	ej@inai.de,
+	Ricardo Robaina <rrobaina@redhat.com>
+Subject: [PATCH v2] audit: include source and destination ports to NETFILTER_PKT
+Date: Thu, 25 Sep 2025 10:41:56 -0300
+Message-ID: <20250925134156.1948142-1-rrobaina@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: bug: nft -n still shows "resolved" values for iif and oif
-To: Christoph Anton Mitterer <calestyo@scientia.org>,
- netfilter-devel@vger.kernel.org
-References: <f2c46dc450b3223834cd837882877f892b234491.camel@scientia.org>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <f2c46dc450b3223834cd837882877f892b234491.camel@scientia.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
 
+NETFILTER_PKT records show both source and destination
+addresses, in addition to the associated networking protocol.
+However, it lacks the ports information, which is often
+valuable for troubleshooting.
 
+This patch adds both source and destination port numbers,
+'sport' and 'dport' respectively, to TCP, UDP, UDP-Lite and
+SCTP-related NETFILTER_PKT records.
 
-On 9/24/25 11:48 PM, Christoph Anton Mitterer wrote:
-> Hey.
-> 
-> E.g.:
-> # nft list ruleset
-> table inet filter {
-> 	chain input {
-> 		type filter hook input priority filter; policy drop;
-> 		ct state { established, related } accept
-> 		iif "eth0" accept
-> 	}
-> }
-> #  nft -n list ruleset
-> table inet filter {
-> 	chain input {
-> 		type filter hook input priority 0; policy drop;
-> 		ct state { 0x2, 0x4 } accept
-> 		iif "eth0" accept
-> 	}
-> }
-> 
-> 
-> IMO especially for iif/oif, which hardcode the iface ID rather than
-> name, it would IMO be rather important to show the real value (that is
-> the ID) and not the resolved one... so that users aren't tricked into
-> some false sense (when they should actually use [io]ifname.
-> 
+ type=NETFILTER_PKT ... saddr=127.0.0.1 daddr=127.0.0.1 proto=icmp
+ type=NETFILTER_PKT ... saddr=::1 daddr=::1 proto=ipv6-icmp
+ type=NETFILTER_PKT ... daddr=127.0.0.1 proto=udp sport=38173 dport=42424
+ type=NETFILTER_PKT ... daddr=::1 proto=udp sport=56852 dport=42424
+ type=NETFILTER_PKT ... daddr=127.0.0.1 proto=tcp sport=57022 dport=42424
+ type=NETFILTER_PKT ... daddr=::1 proto=tcp sport=50810 dport=42424
+ type=NETFILTER_PKT ... daddr=127.0.0.1 proto=sctp sport=54944 dport=42424
+ type=NETFILTER_PKT ... daddr=::1 proto=sctp sport=57963 dport=42424
 
-Hi,
+Link: https://github.com/linux-audit/audit-kernel/issues/162
+Signed-off-by: Ricardo Robaina <rrobaina@redhat.com>
+---
+ net/netfilter/xt_AUDIT.c | 42 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-AFAICS, the current -n is just a combination of '--numeric-priority 
---numeric-protocol --numeric-time'. Although, the message displayed when 
-using --help is misleading.
-
--n, --numeric                   Print fully numerical output.
-
-I propose two changes:
-
-1. Adjust the description when doing --help
-2. Introduce a new "--numeric-interface" which prevents resolving iif or 
-oif.
-
-Another possible solution could be to use --numeric to do not resolve 
-iif/oif but then it would mean we should not resolve ANYTHING as "Print 
-fully numerical output." mentions.
-
-What do you think? I can send a patch and test it.
-
-Thanks,
-Fernando.
-
-> Maybe one could however always resolv it for lo, if that is truly
-> always ID 1, as I've been told.
-> 
-> 
-> Thanks,
-> Chris.
-> 
-> 
-> [0] https://lore.kernel.org/netfilter/aNPhP63SyX2ofE92@strlen.de/T/#m15841db7bf5bb588483fdd3576d70af7a71f5555
-> 
+diff --git a/net/netfilter/xt_AUDIT.c b/net/netfilter/xt_AUDIT.c
+index b6a015aee0ce..9fc8a5429fa9 100644
+--- a/net/netfilter/xt_AUDIT.c
++++ b/net/netfilter/xt_AUDIT.c
+@@ -19,6 +19,7 @@
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <net/ipv6.h>
+ #include <net/ip.h>
++#include <linux/sctp.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Thomas Graf <tgraf@redhat.com>");
+@@ -32,6 +33,7 @@ static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+ {
+ 	struct iphdr _iph;
+ 	const struct iphdr *ih;
++	__be16 dport, sport;
+ 
+ 	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
+ 	if (!ih)
+@@ -40,6 +42,25 @@ static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
+ 	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
+ 			 &ih->saddr, &ih->daddr, ih->protocol);
+ 
++	switch (ih->protocol) {
++	case IPPROTO_TCP:
++		sport = tcp_hdr(skb)->source;
++		dport = tcp_hdr(skb)->dest;
++		break;
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		sport = udp_hdr(skb)->source;
++		dport = udp_hdr(skb)->dest;
++		break;
++	case IPPROTO_SCTP:
++		sport = sctp_hdr(skb)->source;
++		dport = sctp_hdr(skb)->dest;
++	}
++
++	if (ih->protocol == IPPROTO_TCP || ih->protocol == IPPROTO_UDP ||
++	    ih->protocol == IPPROTO_UDPLITE || ih->protocol == IPPROTO_SCTP)
++		audit_log_format(ab, " sport=%hu dport=%hu", ntohs(sport), ntohs(dport));
++
+ 	return true;
+ }
+ 
+@@ -48,7 +69,7 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
+ 	struct ipv6hdr _ip6h;
+ 	const struct ipv6hdr *ih;
+ 	u8 nexthdr;
+-	__be16 frag_off;
++	__be16 frag_off, dport, sport;
+ 
+ 	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_ip6h), &_ip6h);
+ 	if (!ih)
+@@ -60,6 +81,25 @@ static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
+ 	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
+ 			 &ih->saddr, &ih->daddr, nexthdr);
+ 
++	switch (ih->nexthdr) {
++	case IPPROTO_TCP:
++		sport = tcp_hdr(skb)->source;
++		dport = tcp_hdr(skb)->dest;
++		break;
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		sport = udp_hdr(skb)->source;
++		dport = udp_hdr(skb)->dest;
++		break;
++	case IPPROTO_SCTP:
++		sport = sctp_hdr(skb)->source;
++		dport = sctp_hdr(skb)->dest;
++	}
++
++	if (ih->nexthdr == IPPROTO_TCP || ih->nexthdr == IPPROTO_UDP ||
++	    ih->nexthdr == IPPROTO_UDPLITE || ih->nexthdr == IPPROTO_SCTP)
++		audit_log_format(ab, " sport=%hu dport=%hu", ntohs(sport), ntohs(dport));
++
+ 	return true;
+ }
+ 
+-- 
+2.51.0
 
