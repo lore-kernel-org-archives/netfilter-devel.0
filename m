@@ -1,134 +1,196 @@
-Received: from bongo.cedar.relay.mailchannels.net (bongo.cedar.relay.mailchannels.net [23.83.210.21])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 983A12773E6
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Sep 2025 05:41:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.210.21
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758865277; cv=pass; b=JisJNEKP3xBtWnji/CWZmQq7nJBKmi2mMXOPjLaV0LXxxjx6t76HvJjBXuwTY3CfZAjOqNczE4GGjdokoyQ8G+aXSsyecsE3wzxdQwT7Zd7232JLF/TFjhzH6rbgMl1kTaAsIjtLSHdmfIo4mfHDr6R5RUMsjQO/uYG62X0HjoA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758865277; c=relaxed/simple;
-	bh=2SRiYzUbpudE99dU0Th5u+1gHCeLxQVqy2jmoNyRocw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=YPvSBR0tFS4JayHF0OMER+dn45F5zfmEt3GUiDip2ojo1FywwGSH3S9dZRpq21U5+RQWssW3QdVlW5620VMAWkGzaW8VyGMrpH/9xTYIxZF19vtpznLg4SE8UGxPSTJCjwYSGne/FGJJ0SPJigKrJwVQSjb7VGh6bl8DsegTtRg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.210.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
-X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 1E3407C133A;
-	Fri, 26 Sep 2025 02:11:48 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-blue-5.trex.outbound.svc.cluster.local [100.108.153.55])
-	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 4D0097C128C;
-	Fri, 26 Sep 2025 02:11:47 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1758852707; a=rsa-sha256;
-	cv=none;
-	b=eQPq+UXehGQL6tw9+M3DyqIsPNuqxRqABAMlqFp2+TmsePAz31gUXHs7BJG7UXy4BS1tkO
-	TVYKqk/DUDsWxwGhuJ8kmB/7MaexTGtL/UNPgF4YHg8lM/nAKP9q/P1WS3udeU6RwFMF6e
-	+wr4v536SttYFy1ah4grVBkUCBxDRIRu0LckTmeHmVfIZ2dZ/5ZngAHiB0NLLigPca/TvX
-	X7vBzTzhw/dfzB8aXNtzO2RxM+ZTMq0CTAXQUveeXuOuC0cndLp0UrckXbs6F0wv2vBliG
-	zGQBP1hC4REN+GOop/OmjBIA48QwgPLT9xmtCrPI3O5TY0nICk2vWZrv5nYxcw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1758852707;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD0702EF673
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Sep 2025 10:27:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1758882443; cv=none; b=H9BNliOCiOUbqB7CjMWzM2iRrFdwNttq+LspPN7/eDYU28sXgZnSz4Qt/oI2LdqFrfupl/M0R50CmDwAyJpmJlfi/UPQojZcR7GpLA+AlWeTUUacIGLGGYX1/7s66coUS5oQRC1j8UQTwWM/7CmXxanLJgQ0/oqJ+fXZdQsdTUM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1758882443; c=relaxed/simple;
+	bh=sK0qPmf5GVSYjnPz+iq1tckidYnZ2B6E2Djx9JEbB6g=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=BjQsRr37+pck0TTzqChKwgvAmacemqlk7CiODzVojstX492D0tCA4cOUTE5pQnRj0RtjLscsN2EcIo5infad8CmiMEXAkhq+E2UpghNAp38QDYoJI3MWGINw3Uu/gS8Lav9MMg1T8YpKMma7EGFnxYHrUnXb04I4Z2L08NWuHj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=JTv3juLe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=iIrQ9Co2; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=JTv3juLe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=iIrQ9Co2; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="JTv3juLe";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="iIrQ9Co2";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="JTv3juLe";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="iIrQ9Co2"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id C384C240A4;
+	Fri, 26 Sep 2025 10:27:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758882438; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=wf84udpeOIJEPi8MXZZiEeKz+65S9cLYGZfV2Pyq/C8=;
-	b=n9/JQvDk1qBwCqwGwg3fa33q9Wqbe8Ot2s9bseVNRsvwvSRRFC+oBcApVRLhtCJHyPJTp+
-	HjUjKxv2XldODeihTVJPaHrYJ5VnOUOqAiuk22c7Tm3QQow/1TTuqJMPU2OJI9sKpD5xNE
-	8PVp/lu65A1nW4sY2BJXZWYoIB1N0csUPyHTLSnKYGpiNIkD00RY2/buvw49qkw0FpF3HS
-	XOYi4vZDSFVNJkLdOu2qo5ZJdH3mokx+QDnBN6uKMoyBdU4YC99QCU+cY/v8VTWkjEmEdU
-	dEzQL+MRBKkbJ10DK6Xs8rEsV3dk9xijuLE3ZaLUlG/GDpeyh2bLgdsIt1e87w==
-ARC-Authentication-Results: i=1;
-	rspamd-598fd7dc44-cxztd;
-	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
-X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
-X-MC-Relay: Good
-X-MC-Copy: stored-urls
-X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
-X-MailChannels-Auth-Id: instrampxe0y3a
-X-Stretch-Sponge: 3e55a67a3afa0a79_1758852707971_2666459902
-X-MC-Loop-Signature: 1758852707971:4154793598
-X-MC-Ingress-Time: 1758852707971
-Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
- [3.69.87.180])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.108.153.55 (trex/7.1.3);
-	Fri, 26 Sep 2025 02:11:47 +0000
-Received: from [79.127.207.161] (port=55103 helo=heisenberg.scientia.org)
-	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <calestyo@scientia.org>)
-	id 1v1xw3-0000000CeCg-3ze7;
-	Fri, 26 Sep 2025 02:11:45 +0000
-Received: by heisenberg.scientia.org (Postfix, from userid 1000)
-	id 916A455FB514; Fri, 26 Sep 2025 04:11:44 +0200 (CEST)
-From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/7] =?UTF-8?q?doc:=20minor=20improvements=20with=20respec?= =?UTF-8?q?t=20to=20the=20term=20=E2=80=9Cruleset=E2=80=9D?=
-Date: Fri, 26 Sep 2025 03:52:45 +0200
-Message-ID: <20250926021136.757769-4-mail@christoph.anton.mitterer.name>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20250926021136.757769-1-mail@christoph.anton.mitterer.name>
-References: <aNTwsMd8wSe4aKmz@calendula>
- <20250926021136.757769-1-mail@christoph.anton.mitterer.name>
+	bh=ulHV9pM7nHJ9FjCDp02DBwVDyH6TR8zv5clWBYZgER8=;
+	b=JTv3juLebDsSNgtp6YZ6hH/t7Dvgx/kwN8cPMCXfQIHxdap5ZeMDuvejXS8Aj9H1IE2jfV
+	CZhwRGxE1it+DcmOCs7mHtXZcRZJ5u75bpJVETnPJVKjeY49rKN58rr1qdHb1oQElg9Yft
+	CpeB4tDzCd7a6W5rz/GiOnukGrYJDwI=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758882438;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ulHV9pM7nHJ9FjCDp02DBwVDyH6TR8zv5clWBYZgER8=;
+	b=iIrQ9Co22Lxj5et3kqwEsJAnSTOwIoICXaa6PcPPj+1zMakxGggHXWFlrfPP4oiRpUYMXk
+	kuInVZBo6637PMAQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=JTv3juLe;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=iIrQ9Co2
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1758882438; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ulHV9pM7nHJ9FjCDp02DBwVDyH6TR8zv5clWBYZgER8=;
+	b=JTv3juLebDsSNgtp6YZ6hH/t7Dvgx/kwN8cPMCXfQIHxdap5ZeMDuvejXS8Aj9H1IE2jfV
+	CZhwRGxE1it+DcmOCs7mHtXZcRZJ5u75bpJVETnPJVKjeY49rKN58rr1qdHb1oQElg9Yft
+	CpeB4tDzCd7a6W5rz/GiOnukGrYJDwI=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1758882438;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ulHV9pM7nHJ9FjCDp02DBwVDyH6TR8zv5clWBYZgER8=;
+	b=iIrQ9Co22Lxj5et3kqwEsJAnSTOwIoICXaa6PcPPj+1zMakxGggHXWFlrfPP4oiRpUYMXk
+	kuInVZBo6637PMAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 912601373E;
+	Fri, 26 Sep 2025 10:27:18 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id CQXcIIZq1mh9HQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 26 Sep 2025 10:27:18 +0000
+Message-ID: <6dae9b49-e2e3-4e62-abe7-e46cc2176435@suse.de>
+Date: Fri, 26 Sep 2025 12:27:13 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-AuthUser: calestyo@scientia.org
+User-Agent: Mozilla Thunderbird
+Subject: Re: bug: nft -n still shows "resolved" values for iif and oif
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Christoph Anton Mitterer <calestyo@scientia.org>,
+ netfilter-devel@vger.kernel.org
+References: <f2c46dc450b3223834cd837882877f892b234491.camel@scientia.org>
+ <e19bafc0-61c9-47af-afb6-15f886cc4d37@suse.de> <aNVMqSlTNkGFRoPR@calendula>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <aNVMqSlTNkGFRoPR@calendula>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	ARC_NA(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Spam-Flag: NO
+X-Spam-Level: 
+X-Rspamd-Queue-Id: C384C240A4
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Score: -4.51
 
-Statements are elements of rules. Non-terminal statement are in particular
-passive with respect to their rules (and thus automatically with respect to the
-whole ruleset).
 
-In “Continue ruleset evaluation”, it’s not necessary to mention the ruleset as
-it’s obvious that the evaluation of the current chain will be continued.
 
-Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
----
- doc/nft.txt        | 6 +++---
- doc/statements.txt | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+On 9/25/25 4:07 PM, Pablo Neira Ayuso wrote:
+> On Thu, Sep 25, 2025 at 02:36:15PM +0200, Fernando Fernandez Mancera wrote:
+>>
+>>
+>> On 9/24/25 11:48 PM, Christoph Anton Mitterer wrote:
+>>> Hey.
+>>>
+>>> E.g.:
+>>> # nft list ruleset
+>>> table inet filter {
+>>> 	chain input {
+>>> 		type filter hook input priority filter; policy drop;
+>>> 		ct state { established, related } accept
+>>> 		iif "eth0" accept
+>>> 	}
+>>> }
+>>> #  nft -n list ruleset
+>>> table inet filter {
+>>> 	chain input {
+>>> 		type filter hook input priority 0; policy drop;
+>>> 		ct state { 0x2, 0x4 } accept
+>>> 		iif "eth0" accept
+>>> 	}
+>>> }
+>>>
+>>>
+>>> IMO especially for iif/oif, which hardcode the iface ID rather than
+>>> name, it would IMO be rather important to show the real value (that is
+>>> the ID) and not the resolved one... so that users aren't tricked into
+>>> some false sense (when they should actually use [io]ifname.
+>>>
+>>
+>> Hi,
+>>
+>> AFAICS, the current -n is just a combination of '--numeric-priority
+>> --numeric-protocol --numeric-time'. Although, the message displayed when
+>> using --help is misleading.
+>>
+>> -n, --numeric                   Print fully numerical output.
+>>
+>> I propose two changes:
+>>
+>> 1. Adjust the description when doing --help
+>> 2. Introduce a new "--numeric-interface" which prevents resolving iif or
+>> oif.
+> 
+> I wonder if there is a use-case for this.
+> 
+>> Another possible solution could be to use --numeric to do not resolve
+>> iif/oif but then it would mean we should not resolve ANYTHING as "Print
+>> fully numerical output." mentions.
+>>
+>> What do you think? I can send a patch and test it.
+> 
+> It would good to check if there are more datatypes that are hiding a
+> number value behind to decide what to do with -n/--numeric.
+> 
 
-diff --git a/doc/nft.txt b/doc/nft.txt
-index c7d8500d..f52b7fef 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -910,9 +910,9 @@ actions, such as logging, rejecting a packet, etc. +
- Statements exist in two kinds. Terminal statements unconditionally terminate
- evaluation of the current rule, non-terminal statements either only
- conditionally or never terminate evaluation of the current rule, in other words,
--they are passive from the ruleset evaluation perspective. There can be an
--arbitrary amount of non-terminal statements in a rule, but only a single
--terminal statement as the final statement.
-+they are passive from the rule evaluation perspective. There can be an arbitrary
-+amount of non-terminal statements in a rule, but only a single terminal
-+statement as the final statement.
- 
- include::statements.txt[]
- 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index b085b3ab..bddbf12f 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -41,7 +41,7 @@ evaluated anymore for the packet.
- *queue*:: Terminate ruleset evaluation and queue the packet to userspace.
- Userspace must provide a drop or accept verdict.  In case of accept, processing
- resumes with the next base chain hook, not the rule following the queue verdict.
--*continue*:: Continue ruleset evaluation with the next rule. This
-+*continue*:: Continue evaluation with the next rule. This
-  is the default behaviour in case a rule issues no verdict.
- *return*:: In a regular chain that was called via *jump*, end evaluation of that
-  chain and return to the calling chain, continuing evaluation there at the rule
--- 
-2.51.0
+After inspecting the different datatypes:
 
+- verdict (I do not think it makes sense to not resolve this one)
+- tchandle (it resolves TC_H_ROOT and TC_H_UNSPEC)
+- iif/oif
+- ct_label (I think this isn't useful in numeric value)
+
+I do not think there is an use-case for --numeric-interface other than 
+just showing the id configured. Maybe we can honor the description of 
+--numeric and handle iif/oif and tchandle when using it?
