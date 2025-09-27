@@ -1,87 +1,61 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D80F828695
-	for <netfilter-devel@vger.kernel.org>; Sat, 27 Sep 2025 15:11:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B1B02BDC0C
+	for <netfilter-devel@vger.kernel.org>; Sat, 27 Sep 2025 16:07:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758985870; cv=none; b=sryj84PCg/wFOq3Tkmy+CHaQlcixfP0Opwq1bjhUnETdmN9NC21zp5/el1b+3MB/TtG/2fuXdBS0OHWCC5SUoJvq9hzkq00XXRc+WMjyreSnpyl7x6tJr73q+GDxFLH9cudWSYSL+3b14IO3sqT/cLrreJFVislQ+TaBSK1Ka1w=
+	t=1758989231; cv=none; b=nXwa7lRg9dkr/sTxnAAaDD2XXA7RoR9egZlYZjrJ6oJDfo2pilzKNAHMS98wLeom13p2rbVRofLUVcEvRIS6AkxcPEmjpUxxuTjta/pHFyniYcrqcC5TuymUMVLxxBtUCRUsnjDXSdOTnprhG8yQUVTFkTRzFwTvQiNTXiJQMDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758985870; c=relaxed/simple;
-	bh=M2BEHGk8UzVcnwY0UR9BIcWIBYbBCTHwV1R8Chv5RTk=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=Tdx0HkbGoK8/+9s85PoG+NOvXrMUeFo3z50w0QoRW4HhoYwAgCwoy0nxSKWw+kMoLFVtAe+EXJS9N5ibmTGTKku/AMyGgr2L4Yk8BN+YOw/dmQHJgA5eNGMZN9fK+wVjWN6Xx+xA5xtX2R/0RkDMZSRvNjceqIKrfyIiHC+QqXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=ee0cssS9; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1758989231; c=relaxed/simple;
+	bh=wnfmHJlJ70W8+AW5lRw7CxAoVR/869ID+pWSQXjS3w8=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=UUa3h4M2azMgTbnh45m0unGl/wPIgJj3V/XDYgfxfoRB6dD0CDa+xviiSZsBGXmBqxefX0h4cbkyY/6ZsiVJLg5wrwFwHJaGsgVUWfyc2f+Vg2U3d+X9Nt6hhK4PLVXHjP2YLZdT+6R+br37PTuQShBP0Ysa6Xn3y+0r0PANPcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cpNUjKzc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="ee0cssS9"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Type:MIME-Version:Message-ID:Subject:To:From:Date:
-	Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=M2BEHGk8UzVcnwY0UR9BIcWIBYbBCTHwV1R8Chv5RTk=; b=ee0cssS9Q1lfQP8898POV0ZtRt
-	tXqGnm67hQ97rza1aN6GXN+KpVMATSNzhLJ5x5Swy+IJhmSBzcEoer9vv60eG/Hc6j2zc6+hYpC42
-	9Emg/XFMgy/QBtN1KGNV0Amip2MnabMlBk7I7KiX3gEOYUEZy2ZgPH/giYTAomQjDRCBaT+i1/L8h
-	MfMjL9cGcqVhzAYxDtv/zWokoPRic6Qt1IC+jxyXk1N1qPmbbdXCrnTprP00wAWTaAmkxi5wiZ4A1
-	mo55x9N+ejDmcpFgEDcHcdcHurSHzh634KpgXrHemf7fxtWrJbujzVhqW0cC40he896QhD+Sanm0N
-	ubjxRtlw==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1v2WZb-00000002p1a-3WFz
-	for netfilter-devel@vger.kernel.org;
-	Sat, 27 Sep 2025 16:10:55 +0100
-Date: Sat, 27 Sep 2025 16:10:54 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Bugzilla down
-Message-ID: <20250927151054.GA2784745@celephais.dreamlands>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cpNUjKzc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 849B2C4CEE7;
+	Sat, 27 Sep 2025 16:07:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1758989230;
+	bh=wnfmHJlJ70W8+AW5lRw7CxAoVR/869ID+pWSQXjS3w8=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=cpNUjKzcsydjg9AEv7v9aG+PuOcKTRzK99I0VoOcUr2osdHxFCSqqxCofflNTESMI
+	 FxwHR8YAjq8+BUX1XZmuIQoMlPO3dQSQBCFUkIac4n5cZVFCb1eKr5jHmjiU7bE7QD
+	 /HHA+/P1jNDHNteRN73Vk3az3dJcxYaTPdJ1g96HuGd1D2qzYkjb38UmvNIgT4jFqQ
+	 8/473LOciTabo46BnFD6LJSCWz/D0fltVYcmaOtvug1AY8I4Y+1kWPm1nVtflbtTdy
+	 E/rX7HG50DbN8GClx9vWTXPj5MYqD+kJzAvR9MNZpxSC7hChINmMw/C009rCchCTx0
+	 7QnL86FrZG19A==
+Date: Sat, 27 Sep 2025 09:07:09 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [TEST] nf_nat_edemux.sh flakes
+Message-ID: <20250927090709.0b3cd783@kernel.org>
+In-Reply-To: <aNfAv4Nkq_j9FlJS@strlen.de>
+References: <20250926163318.40d1a502@kernel.org>
+	<aNfAv4Nkq_j9FlJS@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="SsAYcT/ORVPtQLX+"
-Content-Disposition: inline
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Sat, 27 Sep 2025 12:47:27 +0200 Florian Westphal wrote:
+> Jakub Kicinski <kuba@kernel.org> wrote:
+> > nf_nat_edemux.sh started flaking in NIPA quite a bit more around a week ago.
+> > 
+> > https://netdev.bots.linux.dev/contest.html?pass=0&test=nf-nat-edemux-sh&ld_cnt=400  
+> 
+> Weird, I don't recall changes in nat engine.
+> I'll have a look sometime next week.
 
---SsAYcT/ORVPtQLX+
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+Thanks! Sometimes tests flip from flaking to not flaking after we pull
+from Linus after Thursday's PR. There's probably an intelligent
+explanation to this but it eludes me :$
 
-Getting connection refused from bugzilla.n.o.
-
-J.
-
---SsAYcT/ORVPtQLX+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJo1/5zCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmdPfSzvValJPBFeyUTvChH3C16SYr7eB5Bjamx9FQmc
-oRYhBGwdtFNj70A3vVbVFymGrAq98QQNAABMXA//fI46mBX5s7opCcYsEUlWE+vX
-+awCTMAdW53dprCiXkbULrMqh12vfb1bJ09NwhRFRJ4HuEqlcRyqW5LjXccW4Qlr
-7K/pGIVsodUn96Y4YGhuOk/xB2R7C+G2/rMHk6oYoawpM2Giz5ZE7yc3kganZVK6
-FnLS/gmllFjRH6u2jgr7ecHBsukOL13GB1pmxI0zN9D5katYsTFU1RscDVtTp9Pw
-fqJPoiyWNkF0k+Lej8X8oBymMYJy7sd0iyUyLtW47+q6HTEsRJSJioEht43OYSTo
-rjjPzq22QFylx31+xAupdH0kF2onbQDUYGyv5chLB6NNVknO4i/GrBDYrZ4awgyZ
-x6O50ZxEh4+qu4GlRNmu4fdvMKorQ6UqKRu5R1z1pejqA37bFK285wa+oz1qd7WQ
-UiPt2MeAr/2dC5Wkd834FpYC8b9bphUtL67zDBSNqQhxJQFuJnXP0K4juSCXHKFv
-2F9Ap0DmbEV1LV0pCGUfJDIBGY9wSRu18jTv5y3ELqNNEvM95aWxM+Hx5XoAHHml
-PMVih/tH+dMP8BWaZKzpeTB8OFgP+8CW9eQw31VlIRr+iF7qfUHXBJERO3MaysFa
-PhYhT6DxVwLT9cOCSV+ekiisLuF5e+nD0MJ0pFiobLOamGdZhDT5Yf82t6LVtpsE
-xUfotn3pRxRw1ZzESCU=
-=PxmT
------END PGP SIGNATURE-----
-
---SsAYcT/ORVPtQLX+--
+While you're looking, nft-fib-sh also flakes occasionally:
+https://netdev.bots.linux.dev/contest.html?pass=0&executor=vmksft-nf-dbg&test=nft-fib-sh
