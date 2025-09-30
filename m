@@ -1,38 +1,48 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4177628506B;
-	Tue, 30 Sep 2025 19:19:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 518171F03F3
+	for <netfilter-devel@vger.kernel.org>; Tue, 30 Sep 2025 21:06:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759259960; cv=none; b=owLkDvuNmTlTqJvGYmG2r/CqWEZ5EXj/kegH72fOWLF2y5qh0lY1FQw0kshNO2t9HUZmfZf2MbEfFnAL5Oy7x3H+QEylmYsVjjodujHBV5dvl4cFI6ncrRdNnl0xDYgu48nSyBcWZUwkqoWuMIHRD0wLIMV+uosKLZy7XIZUdvQ=
+	t=1759266383; cv=none; b=ENOtK7uMOaqUX5pWP3hFj2gm8ngfqCULiLBGXHeDqQ2zF5wy684gNUIR2clq4Pw1QI3l1nlQN9DAupLoUpTxGkiy1cFyGzvOzlMgzMt6IxZegCg6aCquyLmMGPrprIqMrBgXVdAhs3oMpIZF3z694a+Gzq+ZkQKhhh3uGGD9dYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759259960; c=relaxed/simple;
-	bh=9MtwccQzyG79EXlHNlxXv9sOrdush53tWJ37W4IynnY=;
+	s=arc-20240116; t=1759266383; c=relaxed/simple;
+	bh=TOs+fzqwbq1f6u6SdTUVdvzuVwq+r0vrUbwu6hyvWM8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MyspokJVOmDUfAl63iUR24/rjI0fdhvywg/B15fOTUF2TiIEIoRDijSfDk+tDlz6j+KxKR+aAzwvfIKlIBlgQDXoInmCyCkZ8nlvubB/LDX4mrAwXY5VA8uscwOKIIOESuTbmEpeEJPynxvANdZm7o9XZ6trhUZYqpK7hbPhaok=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D29D460326; Tue, 30 Sep 2025 21:19:14 +0200 (CEST)
-Date: Tue, 30 Sep 2025 21:19:14 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Vladimir Oltean <olteanv@gmail.com>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [RFC PATCH v3 nf-next] selftests: netfilter: Add
- bridge_fastpath.sh
-Message-ID: <aNwtMiC22yOAO4Y6@strlen.de>
-References: <20250925183341.115008-1-ericwouds@gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=QSE1N7lJ0MwosGa9lZ8l2OLgI6Q/RpQNiOX5FFCmoIuDkGYWG3a3f6HXadKGNUz1PiuXoQmt/GqwHaqh5X10wfR+ztcsn6NPG3nspoNb09ABG2n7RN5MOkS/sgPj172jLUN3aygpvO4noWNx372A+QI/kZ+jJjCvqjOdKVRlr8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=MYzBAyeF; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="MYzBAyeF"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Zto61LRpiCQeHDD4MbytBLgPJKHBb1Vw5xu9lpWE1aQ=; b=MYzBAyeFnvDIDAd71a4Cubsm2m
+	rc0Blvaybe2yW9XSwEVNURBR/mxVlsmqFT0S9Hc9rjv4+lGDHm5wdBnRv+zm3Dksw4iR9G5nEgXaL
+	gPLsWVsbGvurVJlJYwlBqJ4+zYsQCmabUnFi4DKI7gHM8BMxltcq3eDhdoIjgFiyakhaelnnDTtgO
+	7aTNQAkxE6ysICta4AbjyjmJlxFP0LrtXgMcVhttowW/B+AaaSAzovm2zts4XFMftvamjj9pjREuK
+	S+m6kQjDM2qZGC4no6yAvVgWP3Pai22g2zK8Wpv1Zx1Ys/wk74XO47h0qPnpA8+xbu4YAJSXLblQS
+	EFP/AdLw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1v3hY9-000000000UQ-3Aq0;
+	Tue, 30 Sep 2025 23:06:17 +0200
+Date: Tue, 30 Sep 2025 23:06:17 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH v4] utils: Add helpers for interface name
+ wildcards
+Message-ID: <aNxGSUjprdnHadCD@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20250731221756.24340-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,47 +51,13 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20250925183341.115008-1-ericwouds@gmail.com>
+In-Reply-To: <20250731221756.24340-1-phil@nwl.cc>
 
-Eric Woudstra <ericwouds@gmail.com> wrote:
-> Add a script to test various scenarios where a bridge is involved
-> in the fastpath. It runs tests in the forward path, and also in
-> a bridged path.
+On Fri, Aug 01, 2025 at 12:17:48AM +0200, Phil Sutter wrote:
+> Support simple (suffix) wildcards in NFTNL_{CHAIN,FLOWTABLE}_DEVICES
+> identified by NFTA_DEVICE_PREFIX attribute. Add helpers converting to
+> and from the human-readable asterisk-suffix notation.
+> 
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Why is this still an RFC, what is missing to appy this?
-
-Also:
-
-PASS:  forward,        without vlan-device, without vlan encap, client1, without fastpath
-
-net/bridge/br_private.h:1627 suspicious rcu_dereference_protected() usage!
-
-other info that might help us debug this:
-
-rcu_scheduler_active = 2, debug_locks = 1
-7 locks held by socat/410:
- #0: ffff88800d7a9c90 (sk_lock-AF_INET){+.+.}-{0:0}, at: inet_stream_connect+0x43/0xa0
- #1: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: __ip_queue_xmit+0x62/0x1830
- #2: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: ip_output+0x57/0x3c0
- #3: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: ip_finish_output2+0x263/0x17d0
- #4: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: process_backlog+0x38a/0x14b0
- #5: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: netif_receive_skb_internal+0x83/0x330
- #6: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: nf_hook.constprop.0+0x8a/0x440
-
-stack backtrace:
-CPU: 0 UID: 0 PID: 410 Comm: socat Not tainted 6.17.0-rc7-virtme #1 PREEMPT(full)
-Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
-Call Trace:
- <IRQ>
- dump_stack_lvl+0x6f/0xb0
- lockdep_rcu_suspicious.cold+0x4f/0xb1
- br_vlan_fill_forward_path_pvid+0x32c/0x410 [bridge]
- br_fill_forward_path+0x7a/0x4d0 [bridge]
- ...
-
-I did not see a mention of this, nor a bug fix.
-
-Its a pre-existing bug, br_vlan_fill_forward_path_pvid uses
-br_vlan_group() instead of _rcu version.
-
-Will you send a patch for this?
+Patch applied.
