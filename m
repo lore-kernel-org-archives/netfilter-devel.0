@@ -1,104 +1,42 @@
-Received: from truschnigg.info (truschnigg.info [78.41.115.137])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D2F972617
-	for <netfilter-devel@vger.kernel.org>; Tue, 30 Sep 2025 18:08:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=78.41.115.137
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EEFB285077
+	for <netfilter-devel@vger.kernel.org>; Tue, 30 Sep 2025 19:13:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759255718; cv=none; b=TDvahf8PEfjObVTx0DdgQ9l4o3KW5iHmx67zk0NvLvSCWIrSq37g/wxt4/o0crq0kqNF8Bqkecce+3Pj+05INY0a93H74ZAcu6ClZRQewVpkrIWMfrXR67jQjgl76P0z8Eu4LjpeYIaxkb93Lj9W7Vnn3K4Y4xSw63vBEjsmouY=
+	t=1759259632; cv=none; b=Z/aKG6gXLx6hh9RKHYMPZmCfSmVL+D2++d9jZWXDF5IzQtjWwIhrV0Mb/l69oi62zVnZ+P6uyQSi4o2RCB3rWe7p1ySZZGlDGfIyZfsGgAjN5EiFUfY76wtRT+2zhbdZtn4+bZYI6UV4M5nmQ22nt02KwJd9BSgoZRZ79qRMwjM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759255718; c=relaxed/simple;
-	bh=gu0dR83a6XXAca9dtZOcylvWaErWaHExoxBfy3Vzx7A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qt42uzchURoomy72d8cMUzrRJZOztTmrPghzNQEvzmJMk5sHhTymjcHYLuEJDq6HCH+VkRKrGqPTLvo+BVE+rXNDbdS0EA8y3PJ5QEpcF+LfsvNnjqiT1NNFYPXBPO4vBNF24W7mIdUzGZl1I9qAm7uzTOJG5gmUgIxKMlcUbu8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=truschnigg.info; spf=pass smtp.mailfrom=truschnigg.info; dkim=pass (2048-bit key) header.d=truschnigg.info header.i=@truschnigg.info header.b=HmniHRcC; arc=none smtp.client-ip=78.41.115.137
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=truschnigg.info
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=truschnigg.info
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=truschnigg.info header.i=@truschnigg.info header.b="HmniHRcC"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=truschnigg.info;
-	s=m22; t=1759255708;
-	bh=gu0dR83a6XXAca9dtZOcylvWaErWaHExoxBfy3Vzx7A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:Reply-To:From;
-	b=HmniHRcCY6u9/f4gkHaNxS934sDhAJkG44Ia9qbjjaSY6cQaAh2RGyyxd4XCilta6
-	 AOgsWu6PdXorLkrDg5kdDEHvZ9uiXtaTZFykmbctEkmt4MCRBXfrpn7jqgx/KrhBTi
-	 s4mRMTQiC33zEG592CLzJbud1Js3rrxKC78oHdpCryBd8YeoGqNMigblSA5q0nxiPe
-	 9TrZdw5Pv1lBbtA0auO49znYWUmwNyxmdRT8i32vXZJ4ErpbPDjfc1kL/WLJ5PhCDu
-	 iL/68IPn8j7hU2NNrv9xq6DJ6llCc/qj1Xbbp3TTNHyd0G/DpIZwG0a2yM6YT7xRHn
-	 2RYI4RpPI/91w==
-Received: from ryzealot.forensik.justiz.gv.at (unknown [IPv6:2a02:1748:fafe:cf3f:526d:1663:49ad:7fac])
-	by truschnigg.info (Postfix) with ESMTPSA id B30D13F2B8;
-	Tue, 30 Sep 2025 18:08:28 +0000 (UTC)
-From: Johannes Truschnigg <johannes@truschnigg.info>
-To: netfilter-devel@vger.kernel.org
-Cc: Johannes Truschnigg <johannes@truschnigg.info>
-Subject: [PATCH v2] Don't shell out for getting current date and table names
-Date: Tue, 30 Sep 2025 20:06:16 +0200
-Message-ID: <20250930180809.2095030-2-johannes@truschnigg.info>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20250930180809.2095030-1-johannes@truschnigg.info>
+	s=arc-20240116; t=1759259632; c=relaxed/simple;
+	bh=qBJaV6bzIfsI7ai4V8G3TP63MeHUNCPczOapLTlz4+s=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=G3QMF9l6zPChsiIBPOxX7tKk09+kbLhiRdYR3Y+846tgOixpvGjrF18KNaKmRJElWUrQSDOHtIqdCxy9MS88oIV3FE5SnpiO8pDNpmYxLlTwABbp6TcGdeAFd2Qo/ne4SMN5fMcabkLrpMroHZaHOkhOOpFQaBxv/5fbFShUKb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 21C3260326; Tue, 30 Sep 2025 21:13:48 +0200 (CEST)
+Date: Tue, 30 Sep 2025 21:13:47 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Johannes Truschnigg <johannes@truschnigg.info>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] Don't shell out for getting current date and table
+ names
+Message-ID: <aNwr6_ROH8e5IeSv@strlen.de>
 References: <aNuvKZN9WM8bVRkn@strlen.de>
  <20250930180809.2095030-1-johannes@truschnigg.info>
-Reply-To: Johannes Truschnigg <johannes@truschnigg.info>
+ <20250930180809.2095030-2-johannes@truschnigg.info>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20250930180809.2095030-2-johannes@truschnigg.info>
 
-Also use a sane timestamp format (ISO 8601) in the output.
+Johannes Truschnigg <johannes@truschnigg.info> wrote:
+> Also use a sane timestamp format (ISO 8601) in the output.
 
-Signed-off-by: Johannes Truschnigg <johannes@truschnigg.info>
----
- ebtables-save.in | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
-
-diff --git a/ebtables-save.in b/ebtables-save.in
-index 17924a2..4438050 100644
---- a/ebtables-save.in
-+++ b/ebtables-save.in
-@@ -7,11 +7,14 @@
- # It can be used to store active configuration to /etc/sysconfig/ebtables
- 
- use strict;
-+use POSIX qw(strftime);
- my $table;
- my $ebtables = "@sbindir@/ebtables";
- my $cnt = "";
--my $version = "1.0";
-+my $version = "1.1";
- my $table_name;
-+my $modulesfh;
-+my @tables;
- 
- # ========================================================
- # Process filter table
-@@ -50,11 +53,21 @@ sub process_table {
- # ========================================================
- 
- unless (-x $ebtables) { exit -1 };
--print "# Generated by ebtables-save v$version (legacy) on " . `date`;
-+
-+open $modulesfh, '<', '/proc/modules' or die "Failed to open /proc/modules: $!";
-+while( my $line = <$modulesfh>) {
-+    if($line =~ /^ebtable_([^ ]+)/) {
-+        push @tables, $1;
-+    }
-+}
-+close $modulesfh;
-+
-+printf("# Generated by ebtables-save v$version (legacy) on %s\n", strftime("%a %FT%TZ", gmtime));
- if (defined($ENV{'EBTABLES_SAVE_COUNTER'}) && $ENV{'EBTABLES_SAVE_COUNTER'} eq "yes") {
-     $cnt = "--Lc";
- }
--foreach $table_name (split("\n", `grep -E '^ebtable_' /proc/modules | cut -f1 -d' ' | sed s/ebtable_//`)) {
-+
-+foreach $table_name (@tables) {
-     $table =`$ebtables -t $table_name -L $cnt`;
-     unless ($? == 0) { print $table; exit -1 };
-     &process_table($table);
--- 
-2.51.0
-
+Applied, thanks.
