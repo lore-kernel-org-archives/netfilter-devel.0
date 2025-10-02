@@ -1,68 +1,68 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35D602FB61B
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Oct 2025 11:19:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C344D30FC2D
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Oct 2025 11:21:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759403976; cv=none; b=qIx4RZ0kqkB3j1ajaB75f+ZJ/4wtnO1mu/UlJfYPiHyWf+yroh+NXvCWdrm1LmcjMgDF3nYP1h2IEjme/S3sQWHw7TGpFpNm2l4H/ToSuJRbyNLt0NEIWjFF21MGnm7pLilSLCsJUWF8WsrruuzO3CLunukoKgeXYSYU5xx8x8g=
+	t=1759404096; cv=none; b=bc/Qjss1EcIorgnMVuA7SBmu6/NZRkLbCFjARG6glpbT1/4sYeJ35ensBpQIbD713UZKZCiTQ+IK31mYJVXFjUS9AaTyMwfeI2C1c68HoIgRN5E9YUB3MaMJGHiF+674/rQ8FkguxWNSjhoU8jtNpPM10QIxjI9XFW095+rO2UI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759403976; c=relaxed/simple;
-	bh=jnW0WHk1GTDuFbQivtHLAaEF0gM8WzI1319yM1qoIno=;
+	s=arc-20240116; t=1759404096; c=relaxed/simple;
+	bh=3cxRSFnxztdEl/3oe3MZqyfMjZ9kLl6iWNxsJEA9qnw=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Xe5WfsIkdSWx9k/sKqkKC2kxIpesDmJnNiFAnCkUKVlR2zZ3yw2nR0e3Wf003I44dfHNlAq3RqXIuwjixC7Nt21YvfrTokOmQk72oPhTAR87ut5uHafaH5ww81FI/XSRjQ0AQmuDo03cERPA0jmp6NNPoW+zvN5/Ot4LGYvTgQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=openvpn.net; spf=pass smtp.mailfrom=openvpn.com; dkim=pass (2048-bit key) header.d=openvpn.net header.i=@openvpn.net header.b=AmxaJkEs; arc=none smtp.client-ip=209.85.128.52
+	 In-Reply-To:Content-Type; b=W7m3qeFVQOLlhAEJCHFSD9P6IeVGc06EdVo3gwvAzoZZz4H3hzTxxYkyRadfT4UnhW1H7KENnJ8SGj71aDpZJexc6trmILVSFFZl7xbvQedCv5RhAxwd9kWQZ5yhAZ4XjnKv8MHmNSF8UrGtyl9nCl72APKtGA/+k8ao94RmZBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=openvpn.net; spf=pass smtp.mailfrom=openvpn.com; dkim=pass (2048-bit key) header.d=openvpn.net header.i=@openvpn.net header.b=C0l0h4hj; arc=none smtp.client-ip=209.85.221.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=openvpn.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=openvpn.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=openvpn.net header.i=@openvpn.net header.b="AmxaJkEs"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-46e42fa08e4so7654445e9.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Oct 2025 04:19:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=openvpn.net header.i=@openvpn.net header.b="C0l0h4hj"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-3ee13baf2e1so605268f8f.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Oct 2025 04:21:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=openvpn.net; s=google; t=1759403972; x=1760008772; darn=vger.kernel.org;
+        d=openvpn.net; s=google; t=1759404093; x=1760008893; darn=vger.kernel.org;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZMea/o0YACa6PU/JEYi87hdh+Mb0Ql/ZIbRjPDYQCy0=;
-        b=AmxaJkEs4l95ZNxAlfGCdR6U4Qb1+3E+OITVy0MqWgXeSbYgrmaMrIseG/6ETUUh/S
-         7ukXxb+DLQ2hozO3oH7zS1N6LEkwZpRLXWThI3zhxpcY8aiFZuqCsoDgMv6rpaZrPzO+
-         DUsJAUqgCxXeJdPzAv1wXfQ/ArT1p2LjI67lo0egegC0RzzjP0fclubmErZpE8t1lSuD
-         mmdIVAGzU38pJx4GQr5HZcLshzFN6qBYtAzw4MK+Qdi1/TsfX9DILEhVCWn/6lrlXt7t
-         LlUNSv/SVl/ImnwfGI9zAIWEdypg7Qx7tKL94iGMLlXi+MxlaREGYEjNQvDfYRscWUGh
-         1kVg==
+        bh=esegZxLK+U9QQi38ZxjBs00HRaUbGD3FZCXde5Cjxmo=;
+        b=C0l0h4hjCBWvZNRD/PrT79yQ8iTIJKY+t6c1b8RuAGfpBm1gHPhjSZFbPhilWfRges
+         usgC6lJ5afzqFQvhVPPftd5HtT0WlKxth8wi9rJtARxScTI68PZuqP504IFtsIXphpk/
+         8ocwGXjugBUvaUxvsyRCZV1ZJG7bdn76Sr1f8l32lIWY9UCltur8zSw9ptYqr1VRTUL9
+         j4UMT0fdJtnjlBQdqn70C+LW0GdXzKlFgn5frkadwCpi+31crs71RWT5do86Go3B5Wql
+         cEp6H4DdUuOV8vQIi1dJJa7UokBaov6MHpORqoKr6lnE7NKGJqgFK7OgazPlMi9j97BV
+         ueXg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1759403972; x=1760008772;
+        d=1e100.net; s=20230601; t=1759404093; x=1760008893;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
          :content-language:references:cc:to:subject:user-agent:mime-version
          :date:message-id:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ZMea/o0YACa6PU/JEYi87hdh+Mb0Ql/ZIbRjPDYQCy0=;
-        b=cTb3sAHvi5166LCZdlTr86tgyAiAZiF+Qc6W0LNwVGkiTFt5nZsVJQuhnJAhNZ5l67
-         nUu2GC5IIYey4LcDCIHNk/RwADm+Y02hoaaKKPAN6UERpAKXP9EGuuGNgZJI+0gNBv1J
-         ZfFrNTqRfhoggTGlNvBq9OMiKu+LCjujQ4hvXmZ33/lbyyTZ/ThJocvfKsS4rCBzCgAN
-         846BeQ7hCQXjnlDDBZZ3OWvlLAFkxuxmkpq7w3B1ll9cRpHfJGvUbUmjbXw7PIoW3T2/
-         +6Y89SC21QVBcmUaUhAB8njUxSY9zJYVZVP5br7BE/kvcU1JZCncqcIWCjV26J8a0I8j
-         HwSw==
-X-Forwarded-Encrypted: i=1; AJvYcCWSgAbmMwv+MU0I/pjVSvzyPL39f6ArEkBbrEGyxBTAglrKdxax1uIihHYraATKzZHL1lTTWXpCN71Sh7zTCus=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx2RcOfIyMe+IOAgH5dIq24dUC/V+BQhWioP7fkd+BlgW9/mczd
-	+ueoY+wHWSeJ0/plcI0LUMA2Y5jOiUCPP4JzJwln5vqkncGxGb+HmTdqXkM65yYZV2l3t53CLTO
-	HidIeIF8qCJDb/N3GLKoEL4DDG/eU5Dz663i0jPUK7Wql06rG4kts/bWXwxQwBM4=
-X-Gm-Gg: ASbGncsGnipG6Pe6+ive+o8nqdK/CvQeAWqQQyWVg+o7pdrT7odkOPv56w4wXPPeh3+
-	hCdEUrryWQRr/qstKfkgq1r1FOn8+fY4SR7y1X/aPD9IAjZs0wPOHMUNJwfb9jcR/1qWdRsOa0P
-	P44HsuYxMdHcO1+/jXLYsstyrpveYOwNvsKIR7xekH7r9LYHw8GnN+KaMSsQ32qmY+TsK0oy7f0
-	QnerfDAl7uF/+MqetROcVmw/SxFa1rDge5EBiYQ74OctkrrNLB1Gh2uyaiYdO91F5lIEt3G/vLN
-	P4WHf7IG8GCnu1qNS0isnI1PeDAuh0SEhE28Bxy6wKYEm1bnB1NTP9rsGStyhBEcYioZsRYCcSM
-	0mSwHb7dqZ0V07p/lACGtWfdMXO52IKVbdFTdIzUq90o03xEBfyO9Pq3pLDK2/xCB2PHhJTiTLr
-	B6ZQgbYz/o9Q==
-X-Google-Smtp-Source: AGHT+IFHjRrAgQahzC7e/Z+ad8H1shbYDsTGKyNANpwhGEYiMDTuEHKQ8Zb9f1126LzKrRHkTxhI0g==
-X-Received: by 2002:a05:600c:8884:b0:46e:652e:16a1 with SMTP id 5b1f17b1804b1-46e652e1dc5mr30118425e9.7.1759403972475;
-        Thu, 02 Oct 2025 04:19:32 -0700 (PDT)
+        bh=esegZxLK+U9QQi38ZxjBs00HRaUbGD3FZCXde5Cjxmo=;
+        b=redUrZAfjaQmsZ2Gfr0l3ksnCNPBLAHlAMbiptq161W5hQpB5vP9I4h3ghmEWpkrHv
+         1mN147JZ95jxSIP/oo5SWSEZdonVV/F/XFG5vQICDEUftMpD2nWPb02opwhBndSQH9Ns
+         mG9sUOajckXVVmB7FtkXjYGtzakaWowcfL9EEWobimiv1mKDVi8V+ARkLu8YtKJ+7C/m
+         RPBw7tWFsi1VsiuxG6o7MttZPAynGJqFFVbKKFfDD0YYHY1BU4+GA9jcNttYvCGrb3y5
+         qOJXKPyjsVJhWxv0iPoZfTfWJLkGQbunc8L79KxsCcBPvKb2V0OcNjkHUnGkGa6iEJdj
+         G1iA==
+X-Forwarded-Encrypted: i=1; AJvYcCX9trTAW/XGe9hhhtDWlDgfErLQCyXHJOAfDgfjL4H237tjDME2qrf1W5qQUDTdBJoFQ1rl2vGAa3OKKNar64Q=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzVGvAHRLOddjreSGy7r8bSoYgv99Lkrm1iDPpq0go+IxC8NMMq
+	ze9QA2rSFHoIjkFhgPtV42JtHFd+2p0fcpoSEIwAgOiPd+tDnbh/TzNf99ksep3fMNDRz8Gi4iL
+	t2KTvFjQIlWW/sXnKbW2J7GyZwWP/oT6skjCPocrCK/I4oMF158y2h/OCt9R0p3Y=
+X-Gm-Gg: ASbGncu2ZPSzAAPYdpRX6nNrvL+W7KJWVMXCD237KQpDmwHj2QZwIxYHIr5xVsovpnR
+	yexrvRK5DS0b9g52fNzcHNwPtrRAiOVfSrd1gNm4CD054uBvnqSec40wq8hRQTJpYYlVAUI0HeF
+	+enEt9B4vVZ8PW+4IkDg1i29uZxwXUiEtqqaKZXPXlY8h2QCcS1WxHy2YNPwEEQQsOCIpUZ9fXx
+	134q+bABsWIBchwYYiLFEpJWyaIv9oB2LBx+aKtCfoxmJEAElxCmduSURAMRjYeEqsouq4+My/Q
+	ig64YQlR3SWiJaZmVPH/FUMYraLfpKtU8Xzq6e8aX6BI8KPsziXfENZ/c7Ovc3Ag5aYikydFKmz
+	POrw3J9NZ8TyuIDbBTXiGaKV2SNkJf5WncqWvv59jVBJQu68WVxwqMyJ2yFlc8LE7oFYKcTa7wr
+	bGrCKsv1Y15Q==
+X-Google-Smtp-Source: AGHT+IGTNHfoolP7+ES6We+KAQbTbUt0PMziY5xH2uTnyMl7liaQQ0xnKzGrdwuUKABeYW6vjPRNyQ==
+X-Received: by 2002:a05:6000:400a:b0:3e5:394d:10bb with SMTP id ffacd0b85a97d-4255780b19cmr4417882f8f.41.1759404093053;
+        Thu, 02 Oct 2025 04:21:33 -0700 (PDT)
 Received: from ?IPV6:2001:67c:2fbc:1:9bfe:b0f3:b629:60c8? ([2001:67c:2fbc:1:9bfe:b0f3:b629:60c8])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-46e693bd8bfsm30851485e9.11.2025.10.02.04.19.30
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4255d8e970esm3214763f8f.35.2025.10.02.04.21.31
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 02 Oct 2025 04:19:31 -0700 (PDT)
-Message-ID: <4099a03a-22ab-48e1-85ff-c8b7d0288e70@openvpn.net>
-Date: Thu, 2 Oct 2025 13:19:30 +0200
+        Thu, 02 Oct 2025 04:21:32 -0700 (PDT)
+Message-ID: <8aac2981-4c90-45d3-841a-1447aca3931f@openvpn.net>
+Date: Thu, 2 Oct 2025 13:21:31 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -70,17 +70,18 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net] selftests: net: sort configs
+Subject: Re: [PATCH net] selftests: net: unify the Makefile formats
 To: Jakub Kicinski <kuba@kernel.org>, davem@davemloft.net
 Cc: netdev@vger.kernel.org, edumazet@google.com, pabeni@redhat.com,
- andrew+netdev@lunn.ch, horms@kernel.org, jv@jvosburgh.net, shuah@kernel.org,
- kuniyu@google.com, matttbe@kernel.org, martineau@kernel.org,
- geliang@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
- phil@nwl.cc, sd@queasysnail.net, razor@blackwall.org, idosch@nvidia.com,
- yongwang@nvidia.com, jiri@resnulli.us, danishanwar@ti.com,
+ andrew+netdev@lunn.ch, horms@kernel.org, shuah@kernel.org, jv@jvosburgh.net,
+ olteanv@gmail.com, jiri@resnulli.us, mst@redhat.com, jasowang@redhat.com,
+ xuanzhuo@linux.alibaba.com, eperezma@redhat.com, kuniyu@google.com,
+ matttbe@kernel.org, martineau@kernel.org, pablo@netfilter.org,
+ kadlec@netfilter.org, fw@strlen.de, allison.henderson@oracle.com,
+ petrm@nvidia.com, razor@blackwall.org, idosch@nvidia.com,
  linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
  netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-References: <20251002015245.3209033-1-kuba@kernel.org>
+References: <20251002013034.3176961-1-kuba@kernel.org>
 Content-Language: en-US
 From: Antonio Quartulli <antonio@openvpn.net>
 Autocrypt: addr=antonio@openvpn.net; keydata=
@@ -119,19 +120,30 @@ Autocrypt: addr=antonio@openvpn.net; keydata=
  gg9NWuSR3XNVOui/0JRVx4qd3SnsnwsuF5xy+fD0ocYBLuksVmHa4FsJq9113Or2fM+10t1m
  yBIZwIDEBLu9zxGUYLenla/gHde+UnSs+mycN0sya9ahOBTG/57k7w/aQLc=
 Organization: OpenVPN Inc.
-In-Reply-To: <20251002015245.3209033-1-kuba@kernel.org>
+In-Reply-To: <20251002013034.3176961-1-kuba@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 02/10/2025 03:52, Jakub Kicinski wrote:
-> Sort config files for networking selftests. This should help us
-> avoid merge conflicts between net and net-next. patchwork check
-> will be added to prevent new issues.
+On 02/10/2025 03:30, Jakub Kicinski wrote:
+> We get a significant number of conflicts between net and net-next
+> because of selftests Makefile changes. People tend to append new
+> test cases at the end of the Makefile when there's no clear sort
+> order. Sort all networking selftests Makefiles, use the following
+> format:
+> 
+>   VAR_NAME := \
+> 	 entry1 \
+> 	 entry2 \
+> 	 entry3 \
+>   # end of VAR_NAME
+> 
+> Some Makefiles are already pretty close to this.
 > 
 > Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
-Acked-by: Antonio Quartulli <antonio@openvpn.net>
+for the ovpn bits:
 
+Acked-by: Antonio Quartulli <antonio@openvpn.net>
 
 -- 
 Antonio Quartulli
