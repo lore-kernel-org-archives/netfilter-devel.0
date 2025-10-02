@@ -1,80 +1,68 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A183B30CDBD
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Oct 2025 11:04:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35D602FB61B
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Oct 2025 11:19:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759403056; cv=none; b=EO/Gr46B0XFg5OqIFfl3MHIu+YQfzqsHB5tp6jdpp2AkAtecVc+/omva0uPHpbjXWXFoF1WiBApa+ZMBrVoo5T1WLN5QiA3LZgbYtzd95WLHnr80OLaOvSYrT7aPK+4ILDNCAkaoAtNjqsPnfzNk3FB/a5SuN2KyQZOzGdf8zn8=
+	t=1759403976; cv=none; b=qIx4RZ0kqkB3j1ajaB75f+ZJ/4wtnO1mu/UlJfYPiHyWf+yroh+NXvCWdrm1LmcjMgDF3nYP1h2IEjme/S3sQWHw7TGpFpNm2l4H/ToSuJRbyNLt0NEIWjFF21MGnm7pLilSLCsJUWF8WsrruuzO3CLunukoKgeXYSYU5xx8x8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759403056; c=relaxed/simple;
-	bh=Qaa1AymTCUhemI/cxPY3cNYfmqs01GfeyGDpkPqtgoo=;
+	s=arc-20240116; t=1759403976; c=relaxed/simple;
+	bh=jnW0WHk1GTDuFbQivtHLAaEF0gM8WzI1319yM1qoIno=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=lEWAjAZVY6nmG4yHmcwA8zcroG4R/vI0/tDJrff0hBQRYFuDEO09VLQlaPogNsRAWtEajptnQBzfJDEeIGvg/FIktgewGIBBq1nAnHe7c20r72WgozFORar0jY0HywuyD/Mxdzp05poIbxjTWIyq9nHQ7zv0UBqKCIIR6vUI0Eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=IVpv5383; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JBhYhGuk; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=IVpv5383; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=JBhYhGuk; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	 In-Reply-To:Content-Type; b=Xe5WfsIkdSWx9k/sKqkKC2kxIpesDmJnNiFAnCkUKVlR2zZ3yw2nR0e3Wf003I44dfHNlAq3RqXIuwjixC7Nt21YvfrTokOmQk72oPhTAR87ut5uHafaH5ww81FI/XSRjQ0AQmuDo03cERPA0jmp6NNPoW+zvN5/Ot4LGYvTgQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=openvpn.net; spf=pass smtp.mailfrom=openvpn.com; dkim=pass (2048-bit key) header.d=openvpn.net header.i=@openvpn.net header.b=AmxaJkEs; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=openvpn.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=openvpn.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="IVpv5383";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JBhYhGuk";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="IVpv5383";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JBhYhGuk"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 6487C337EA;
-	Thu,  2 Oct 2025 11:04:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1759403052; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1qDNyLiaYpZ7hGwz7pVLY0Z5gLc726hBV4XVNB6Jxqc=;
-	b=IVpv5383qK1ImJkgpg0LGDlKxhQrOsdhjkYEIb3Bfze2LDZeVJaCZUkF4BXLoIQxu3+pXx
-	yff0nDPmpothmAyMtxRmozvALOEondYxePBZu1PiKczlNhhzyKk1H0fYemsD24t9MLw39R
-	+NT0Qth/hGOUjNGMhQcHwTLvtNCNc5Y=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1759403052;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1qDNyLiaYpZ7hGwz7pVLY0Z5gLc726hBV4XVNB6Jxqc=;
-	b=JBhYhGukuKalTt/E4EohJWpf88w65kHOho4gXAFJZj+uSZYJCOaOetZXk81lxv/f1nq+ZT
-	l5vQqM1m015e+/AQ==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1759403052; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1qDNyLiaYpZ7hGwz7pVLY0Z5gLc726hBV4XVNB6Jxqc=;
-	b=IVpv5383qK1ImJkgpg0LGDlKxhQrOsdhjkYEIb3Bfze2LDZeVJaCZUkF4BXLoIQxu3+pXx
-	yff0nDPmpothmAyMtxRmozvALOEondYxePBZu1PiKczlNhhzyKk1H0fYemsD24t9MLw39R
-	+NT0Qth/hGOUjNGMhQcHwTLvtNCNc5Y=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1759403052;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1qDNyLiaYpZ7hGwz7pVLY0Z5gLc726hBV4XVNB6Jxqc=;
-	b=JBhYhGukuKalTt/E4EohJWpf88w65kHOho4gXAFJZj+uSZYJCOaOetZXk81lxv/f1nq+ZT
-	l5vQqM1m015e+/AQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1F36D13990;
-	Thu,  2 Oct 2025 11:04:12 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id uFh/BCxc3mi6DAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 02 Oct 2025 11:04:12 +0000
-Message-ID: <0adc0cbc-bf68-4b6a-a91a-6ec06af46c2e@suse.de>
-Date: Thu, 2 Oct 2025 13:03:59 +0200
+	dkim=pass (2048-bit key) header.d=openvpn.net header.i=@openvpn.net header.b="AmxaJkEs"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-46e42fa08e4so7654445e9.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Oct 2025 04:19:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=openvpn.net; s=google; t=1759403972; x=1760008772; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZMea/o0YACa6PU/JEYi87hdh+Mb0Ql/ZIbRjPDYQCy0=;
+        b=AmxaJkEs4l95ZNxAlfGCdR6U4Qb1+3E+OITVy0MqWgXeSbYgrmaMrIseG/6ETUUh/S
+         7ukXxb+DLQ2hozO3oH7zS1N6LEkwZpRLXWThI3zhxpcY8aiFZuqCsoDgMv6rpaZrPzO+
+         DUsJAUqgCxXeJdPzAv1wXfQ/ArT1p2LjI67lo0egegC0RzzjP0fclubmErZpE8t1lSuD
+         mmdIVAGzU38pJx4GQr5HZcLshzFN6qBYtAzw4MK+Qdi1/TsfX9DILEhVCWn/6lrlXt7t
+         LlUNSv/SVl/ImnwfGI9zAIWEdypg7Qx7tKL94iGMLlXi+MxlaREGYEjNQvDfYRscWUGh
+         1kVg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1759403972; x=1760008772;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ZMea/o0YACa6PU/JEYi87hdh+Mb0Ql/ZIbRjPDYQCy0=;
+        b=cTb3sAHvi5166LCZdlTr86tgyAiAZiF+Qc6W0LNwVGkiTFt5nZsVJQuhnJAhNZ5l67
+         nUu2GC5IIYey4LcDCIHNk/RwADm+Y02hoaaKKPAN6UERpAKXP9EGuuGNgZJI+0gNBv1J
+         ZfFrNTqRfhoggTGlNvBq9OMiKu+LCjujQ4hvXmZ33/lbyyTZ/ThJocvfKsS4rCBzCgAN
+         846BeQ7hCQXjnlDDBZZ3OWvlLAFkxuxmkpq7w3B1ll9cRpHfJGvUbUmjbXw7PIoW3T2/
+         +6Y89SC21QVBcmUaUhAB8njUxSY9zJYVZVP5br7BE/kvcU1JZCncqcIWCjV26J8a0I8j
+         HwSw==
+X-Forwarded-Encrypted: i=1; AJvYcCWSgAbmMwv+MU0I/pjVSvzyPL39f6ArEkBbrEGyxBTAglrKdxax1uIihHYraATKzZHL1lTTWXpCN71Sh7zTCus=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx2RcOfIyMe+IOAgH5dIq24dUC/V+BQhWioP7fkd+BlgW9/mczd
+	+ueoY+wHWSeJ0/plcI0LUMA2Y5jOiUCPP4JzJwln5vqkncGxGb+HmTdqXkM65yYZV2l3t53CLTO
+	HidIeIF8qCJDb/N3GLKoEL4DDG/eU5Dz663i0jPUK7Wql06rG4kts/bWXwxQwBM4=
+X-Gm-Gg: ASbGncsGnipG6Pe6+ive+o8nqdK/CvQeAWqQQyWVg+o7pdrT7odkOPv56w4wXPPeh3+
+	hCdEUrryWQRr/qstKfkgq1r1FOn8+fY4SR7y1X/aPD9IAjZs0wPOHMUNJwfb9jcR/1qWdRsOa0P
+	P44HsuYxMdHcO1+/jXLYsstyrpveYOwNvsKIR7xekH7r9LYHw8GnN+KaMSsQ32qmY+TsK0oy7f0
+	QnerfDAl7uF/+MqetROcVmw/SxFa1rDge5EBiYQ74OctkrrNLB1Gh2uyaiYdO91F5lIEt3G/vLN
+	P4WHf7IG8GCnu1qNS0isnI1PeDAuh0SEhE28Bxy6wKYEm1bnB1NTP9rsGStyhBEcYioZsRYCcSM
+	0mSwHb7dqZ0V07p/lACGtWfdMXO52IKVbdFTdIzUq90o03xEBfyO9Pq3pLDK2/xCB2PHhJTiTLr
+	B6ZQgbYz/o9Q==
+X-Google-Smtp-Source: AGHT+IFHjRrAgQahzC7e/Z+ad8H1shbYDsTGKyNANpwhGEYiMDTuEHKQ8Zb9f1126LzKrRHkTxhI0g==
+X-Received: by 2002:a05:600c:8884:b0:46e:652e:16a1 with SMTP id 5b1f17b1804b1-46e652e1dc5mr30118425e9.7.1759403972475;
+        Thu, 02 Oct 2025 04:19:32 -0700 (PDT)
+Received: from ?IPV6:2001:67c:2fbc:1:9bfe:b0f3:b629:60c8? ([2001:67c:2fbc:1:9bfe:b0f3:b629:60c8])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-46e693bd8bfsm30851485e9.11.2025.10.02.04.19.30
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 02 Oct 2025 04:19:31 -0700 (PDT)
+Message-ID: <4099a03a-22ab-48e1-85ff-c8b7d0288e70@openvpn.net>
+Date: Thu, 2 Oct 2025 13:19:30 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,61 +70,70 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] netfilter: nfnetlink: always ACK batch end if requested
-To: Nikolaos Gkarlis <nickgarlis@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de
-References: <20251001211503.2120993-1-nickgarlis@gmail.com>
- <4814384f-5fe2-491d-9424-7a0aebbbda1d@suse.de>
- <CA+jwDRkBHxwz7xHUAdYi1OZ9mtEski4VJ=gtyByritjRAiStmQ@mail.gmail.com>
+Subject: Re: [PATCH net] selftests: net: sort configs
+To: Jakub Kicinski <kuba@kernel.org>, davem@davemloft.net
+Cc: netdev@vger.kernel.org, edumazet@google.com, pabeni@redhat.com,
+ andrew+netdev@lunn.ch, horms@kernel.org, jv@jvosburgh.net, shuah@kernel.org,
+ kuniyu@google.com, matttbe@kernel.org, martineau@kernel.org,
+ geliang@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
+ phil@nwl.cc, sd@queasysnail.net, razor@blackwall.org, idosch@nvidia.com,
+ yongwang@nvidia.com, jiri@resnulli.us, danishanwar@ti.com,
+ linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+References: <20251002015245.3209033-1-kuba@kernel.org>
 Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <CA+jwDRkBHxwz7xHUAdYi1OZ9mtEski4VJ=gtyByritjRAiStmQ@mail.gmail.com>
+From: Antonio Quartulli <antonio@openvpn.net>
+Autocrypt: addr=antonio@openvpn.net; keydata=
+ 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
+Organization: OpenVPN Inc.
+In-Reply-To: <20251002015245.3209033-1-kuba@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	FREEMAIL_TO(0.00)[gmail.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[4];
-	RCVD_TLS_ALL(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
 
-
-
-On 10/2/25 12:41 PM, Nikolaos Gkarlis wrote:
-> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+On 02/10/2025 03:52, Jakub Kicinski wrote:
+> Sort config files for networking selftests. This should help us
+> avoid merge conflicts between net and net-next. patchwork check
+> will be added to prevent new issues.
 > 
->> e.g for a batch formatted like (BATCH_BEGIN|NFT_MSG_NEWRULE + NLM_F_ACK)
->> - nfnetlink would send two ACKs while it should be only one. Granted it
->> won't configure anything but it would be still misleading.
->>
->> What about this?
->>
-> 
-> Thanks ! I was a bit unsure on whether the status should also be checked.
-> This seems to work with my test.
+> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
-Just a nit, the commit should also have a Fixes tag IMHO.
+Acked-by: Antonio Quartulli <antonio@openvpn.net>
 
-Fixes: bf2ac490d28c ("netfilter: nfnetlink: Handle ACK flags for batch 
-messages")
 
-Thanks!
+-- 
+Antonio Quartulli
+OpenVPN Inc.
 
