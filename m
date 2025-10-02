@@ -1,64 +1,28 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8ED22D5939;
-	Thu,  2 Oct 2025 10:09:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5D6A309DA5
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Oct 2025 10:10:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759399794; cv=none; b=s1JcnLolloKi27MYjZPgQVzFVnU0BVRL72WwdKgvG5QyHts5dr6JhigE6AmlDYbCxtxDTF22Lex/PnAnuBwLDm0c5DhGFkPLqkdtJuw7fS54t7mjfRHvF/LEQDoRVEYo3QQYO4cBPRPLr20Xb2IVyP8tOUhxTq3J9bSwc1G8clw=
+	t=1759399805; cv=none; b=uOqEu/vSgQPTCJn0EMplKVklRFfLnBcMroZF/goi0aFwzj57o4vhN9GQieTZA9x/+QMA7Ad3Bm5sbZ+GCHnjL2z/d63ujBuqi7nqdXKpajxXruHgmX5KwoHAXg4aKQWcsOE1smZlnv82VHWyHAEn8T5J52kWRXxlFyM/Di7Cgqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759399794; c=relaxed/simple;
-	bh=aWuPMAxochyezlEMrYGn3mLzqwHBPe1+qLQ8BngueOs=;
+	s=arc-20240116; t=1759399805; c=relaxed/simple;
+	bh=sEyL1PNm0TGm1sjpd2hF2gjtbaJdksw31TICdgCtYPM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dyP7OubNFsQHGBSLPn57k4eUxC87FfaPlX40jBnsGhzDqOaWIQ0eIfyYXRAsqh4DtQcQJV0hV0KNhwTM7Q79sjGFwCvoiHDFPfXoJIKmK6iZWdHwLasGX4ntHA1mJDJ0O/VJRlUjGnIMK2kAQ2ofX2t7t+0lN+AG9Ucz4oM6DdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=n8R9O5J2; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="n8R9O5J2"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=jAtBxARjbGAiZyrHvaZ2gbnrgfqQIv/7WsirpJP41Us=; b=n8R9O5J2/CITXU7WTgFgfG5cg3
-	UZoZfPY2A42m3qn53E1U02M/5bEA72JevtjeS74clRDxgU71ODbTPqwY3MrWu32iqcj+sY49XIJZy
-	9l+jQ3z800fPxm2penBSa4Irb/iH0nGOcrjwx3jXfcgqIiEdDjBDtvXGGH/WUlg98OVTufULktEI8
-	VayjyLnON2JpSwa0JU69d8EVYejAMnHYdCPM8hUpwCBsuQO6ACoQ1My38uXan/9oU82Lkjkx7psyw
-	JURriAxC5RvFX+bKxSRWuIm2jAHxWpYKR093VxmlsVmBft85sKoU9yDstamikeXOtL7sqTvySh/cV
-	viNTXcUg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1v4GFm-000000000BL-11iW;
-	Thu, 02 Oct 2025 12:09:38 +0200
-Date: Thu, 2 Oct 2025 12:09:38 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Jakub Kicinski <kuba@kernel.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
-	pabeni@redhat.com, andrew+netdev@lunn.ch, horms@kernel.org,
-	jv@jvosburgh.net, shuah@kernel.org, kuniyu@google.com,
-	matttbe@kernel.org, martineau@kernel.org, geliang@kernel.org,
-	pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
-	antonio@openvpn.net, sd@queasysnail.net, razor@blackwall.org,
-	idosch@nvidia.com, yongwang@nvidia.com, jiri@resnulli.us,
-	danishanwar@ti.com, linux-kselftest@vger.kernel.org,
-	mptcp@lists.linux.dev, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: Re: [PATCH net] selftests: net: sort configs
-Message-ID: <aN5PYtHSdp4XIWtO@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Jakub Kicinski <kuba@kernel.org>, davem@davemloft.net,
-	netdev@vger.kernel.org, edumazet@google.com, pabeni@redhat.com,
-	andrew+netdev@lunn.ch, horms@kernel.org, jv@jvosburgh.net,
-	shuah@kernel.org, kuniyu@google.com, matttbe@kernel.org,
-	martineau@kernel.org, geliang@kernel.org, pablo@netfilter.org,
-	kadlec@netfilter.org, fw@strlen.de, antonio@openvpn.net,
-	sd@queasysnail.net, razor@blackwall.org, idosch@nvidia.com,
-	yongwang@nvidia.com, jiri@resnulli.us, danishanwar@ti.com,
-	linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-References: <20251002015245.3209033-1-kuba@kernel.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=VG+CQ4tR4C7puwxdnD6kciG/sgEASphtquTENQaaYDadRAuUDv0nQXc5uCm8aNdblyhhCQzDHBje419E5+q4dbyAijUFnuV+ve5fIBYES8g794izSHA2dwdMmQL/wej8I3wTcRtfwWnmgFZn7GkXrucmGqrd2ZpVb4SXiLNXhjU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id B24726032B; Thu,  2 Oct 2025 12:10:00 +0200 (CEST)
+Date: Thu, 2 Oct 2025 12:10:00 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Nikolaos Gkarlis <nickgarlis@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Subject: Re: [PATCH] netfilter: nfnetlink: always ACK batch end if requested
+Message-ID: <aN5PeGA1yLdlxuea@strlen.de>
+References: <20251001211503.2120993-1-nickgarlis@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -67,22 +31,16 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251002015245.3209033-1-kuba@kernel.org>
+In-Reply-To: <20251001211503.2120993-1-nickgarlis@gmail.com>
 
-Hi,
+Nikolaos Gkarlis <nickgarlis@gmail.com> wrote:
+> I have tested this change with my userspace application and it
+> seems to resolve the "problem". However, I am not sure if there
+> is a suitable place to add a regression test, since AFAIK nft
+> userspace does not currently use this feature. I would be happy
+> to contribute a test if you could point me to the right place.
 
-On Wed, Oct 01, 2025 at 06:52:45PM -0700, Jakub Kicinski wrote:
-> Sort config files for networking selftests. This should help us
-> avoid merge conflicts between net and net-next. patchwork check
-> will be added to prevent new issues.
+You could add a nfnetlink selftest to:
+tools/testing/selftests/net/netfilter
 
-The patch does not apply to my net/main (at daa26ea63c6) for unclear
-reasons, though I verified that it does neither add nor remove lines by:
 
-diff -u \
-  <(sed -n 's/^-\(CONFIG_.*\)/\1/p' /tmp/sort.patch | sort) \
-  <(sed -n 's/^+\(CONFIG_.*\)/\1/p' /tmp/sort.patch | sort)
-
-> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-
-Acked-by: Phil Sutter <phil@nwl.cc>
