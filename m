@@ -1,138 +1,83 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f174.google.com (mail-il1-f174.google.com [209.85.166.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88EEF309F1A;
-	Thu,  2 Oct 2025 10:38:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AC2230B522
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Oct 2025 10:41:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759401496; cv=none; b=nQ6dGAqrbgQnJvWcsBJj/Hc2noNYpi2CuiRkaf/Alomvktcl1eZ1nkKFuxcfCiGxsagQSQys20YH5b2LEeNcar5VOFTok/h7ZlZzDEKnmcwuLWJGJBN1cYHaoitqgjyBau2dMOZbwIhj4jD8Dsr7xcqlzUXkTcgv9YzqSHGd//E=
+	t=1759401707; cv=none; b=Y/8Zwys9AQTfXIz2DmYXDy0hVQSSxqcAwW4Ps9AisTkHr4BBJ96t+Y59cSiC9GmETIrIENHglYby00uI6WPxD6rFXv9vQ0Etg80Xag/NVIAraqkwep4o97cbkxY4EH3CsqBLKS/gknBrW3PYDI+Xte0SFxhD3iqnaziQZRWFKXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759401496; c=relaxed/simple;
-	bh=KeI5d3+2YnPmPIXcc3sgPV7o/PR5eznfYdX4qgEWfpY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:Cc:
-	 In-Reply-To:Content-Type; b=afqxysMJMnFRjhyKs7qhvHvJRIC1Q5GOb0F2jy2wKdCmtC+o0A/qgf01IBWLc9egTLlP3K0X7oKKJ9qmQnfgXcl3evMTIBiW24ay/w7CAGRa7FF8mp0QY/dmRvFOnVG9reZL0ZtmKSTEY0Q5pcQ7peLjzFt3RKQXjwBqn1ZykQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oRUM9uDv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759401707; c=relaxed/simple;
+	bh=GBB3MweM2y0FiQUvyPP+jasw0WO+a4fpN9rrJ489bcI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=a8fLw+UlLDNDjKfulO3GmN8WZ9Z2Q6b02KIPy+LZyFGtS7BPzHomk5WVl0l6qb0NrTlkcIZ/rw/eyDksgUlit/onoYHOh/svucKMB3s7P+ijsI2tgaFvSiDWdJc7Fhv3vfSfnVrcBVR9JhVZ8r/oGsJRaW2unzU1Md9ELYZtQTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=b7IBblZJ; arc=none smtp.client-ip=209.85.166.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oRUM9uDv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6D87C4CEFB;
-	Thu,  2 Oct 2025 10:38:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1759401496;
-	bh=KeI5d3+2YnPmPIXcc3sgPV7o/PR5eznfYdX4qgEWfpY=;
-	h=Date:Subject:To:References:From:Cc:In-Reply-To:From;
-	b=oRUM9uDvMl0lwASI/FMj2EeOhvffB6fLjwXw+MNDQSQRzEayz/lFKHXmnmBsbN9oY
-	 vBk+cEyb9pBLsF0Xb/b1xqFaBxd7DKUU6OliEGHBh/3/QDhvC+6bIM6D+g/HVYhQj5
-	 OrjI1ELyOM55Ae6nRil9vsqzyKadrrILO7NBIxdQ7I8jbMO/BXkw/NtV7PYyZURD7C
-	 O0+Ayal7iWjcGCGaUh4E7eT9nI3QKSmi01mVSnLjyroHA2BmPnO8t7F0GrDiruuWB/
-	 3YPPj4eD6/3+IlUv+vhidowQmsknNyBb8midDZ42hjRSXVcK++FKOAfVp0F5s4oFSx
-	 fKIzYJd8PLzwg==
-Message-ID: <c9120afa-7054-4e76-9727-1cac3f027a90@kernel.org>
-Date: Thu, 2 Oct 2025 12:38:05 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="b7IBblZJ"
+Received: by mail-il1-f174.google.com with SMTP id e9e14a558f8ab-42e2c336adcso1527425ab.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Oct 2025 03:41:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1759401705; x=1760006505; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=GBB3MweM2y0FiQUvyPP+jasw0WO+a4fpN9rrJ489bcI=;
+        b=b7IBblZJXQEEL8Ze1g4eb7d8y92EsgyvJ3m4VWHAy/B56Le1LKchdELRwoNOloivzi
+         Cenkbt8SwKpVxmTPAYXNoKHHXrWPIMYt0b3tKlqvQrSJfM5F5WWo22hrV7S0ePf4L50R
+         BiJ6XZfE1LRyrGKFJmy9c+Spme+gUf0+sDd0Wq6G65UX4JtF5kmZuE7jsPklspbgl9ZN
+         NCdPddLYECr7an/0guQEJotOIPr8DQLDJQ3KYgB9xC0NzE9d9F1dg7ac+7qdM5wdHiGC
+         a/WiynxQT/GEKpUGFXm7C6dZGxK0jzqz0Ku2QjJMju8tTpOchbVQ/tDY/9No1ynMqBi1
+         hOEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1759401705; x=1760006505;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=GBB3MweM2y0FiQUvyPP+jasw0WO+a4fpN9rrJ489bcI=;
+        b=QiMn7iV5xLFTbnixVQ7w9ZtjV+HKQmSreedZR6eHkYlwrS3oJU9ebYbRmrccdZeOrw
+         lYiBT7ZyYDU4+WKKmItFLPCDTIyRwnL7eOyGnU90R7Rsz3ecYZ4G8U0NCJmCJN73tGGh
+         FXu8Br4Vre774bD1bAh7eofhQEBB/39pUA68n2XjWTuxw+2HFn+A5e3Z3PyrEjEADoiH
+         KluXnaRSEWfW/KMccQr3Sps4fxGaz7nmJ7JXKdCNJuKTXhvSMRRCn+u5ndpbvX0yPG8T
+         aXQzCNXSBvCfy0F7FCdWaHZwy0cu0vmmbPcgXk4VQhGSwoyLZwcEM0hHHZoQ81pfzMam
+         ZX1A==
+X-Gm-Message-State: AOJu0Yw21pHklgCpIMXLNMW2f0moObqfek2n+sc5JRHDk9EmWxE+bJ4b
+	cuvIfA7zwJP3wmio/BzL1fSthmg/10MzIcXr676g1dpt6iwSAwL4yPV2o8G0bCP7FLlZdNwID/e
+	eP28k6gdLqb6VxCf3P1zvP6Ovtum/Zu0=
+X-Gm-Gg: ASbGncvbOv67nUUmtnH1yUMDCITl1fxnDf4lfT03It8ngMSjkQXQYeECYYF9fx6D697
+	Jj0Q4eL3eSJ0MzY7vdsmADVMScZGQciag2JsSKhUYtlk5f5ycgduIeBIJVdmt1pf+IS8Fguo8OP
+	gZtFs3qX4xMIFDXpbTOnlt44tvky3qyJ8Ul9Txjm99/rzf7huzENyn/ic1YbF7XXHe/YDpyZK7+
+	wlGbq2V5jRHCIrYvcDezvfWS9l2E9voLP745lC48BcSNIkaYy4/4zBF+QrCIExaTZfzHDjfsa+s
+	l50S8PArVd2xEMTkEFWWvN75JefC+N0MuDwmOgYOmTKDj/o=
+X-Google-Smtp-Source: AGHT+IEaVvjCXd6q4+Atbb14Lru69Zwm4qzshbdz0dV+nweE0G41GvhLyfom6Qjx6WhqmF2N+rTrlmLZUEW/ec5b3Cw=
+X-Received: by 2002:a05:6e02:1787:b0:425:8857:6e3c with SMTP id
+ e9e14a558f8ab-42d81612c21mr87659605ab.11.1759401704975; Thu, 02 Oct 2025
+ 03:41:44 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH net] selftests: net: sort configs
-Content-Language: en-GB, fr-BE
-To: Phil Sutter <phil@nwl.cc>, Jakub Kicinski <kuba@kernel.org>
-References: <20251002015245.3209033-1-kuba@kernel.org>
- <aN5PYtHSdp4XIWtO@orbyte.nwl.cc>
-From: Matthieu Baerts <matttbe@kernel.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
- pabeni@redhat.com, andrew+netdev@lunn.ch, horms@kernel.org,
- jv@jvosburgh.net, shuah@kernel.org, kuniyu@google.com, martineau@kernel.org,
- geliang@kernel.org, pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de,
- antonio@openvpn.net, sd@queasysnail.net, razor@blackwall.org,
- idosch@nvidia.com, yongwang@nvidia.com, jiri@resnulli.us,
- danishanwar@ti.com, linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Autocrypt: addr=matttbe@kernel.org; keydata=
- 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
- lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
-Organization: NGI0 Core
-In-Reply-To: <aN5PYtHSdp4XIWtO@orbyte.nwl.cc>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20251001211503.2120993-1-nickgarlis@gmail.com> <4814384f-5fe2-491d-9424-7a0aebbbda1d@suse.de>
+In-Reply-To: <4814384f-5fe2-491d-9424-7a0aebbbda1d@suse.de>
+From: Nikolaos Gkarlis <nickgarlis@gmail.com>
+Date: Thu, 2 Oct 2025 12:41:34 +0200
+X-Gm-Features: AS18NWDoBYSDpkAPiXUrJTv0HdqqtrheW80itS72DfdrXfI73PdltxUFeL866gM
+Message-ID: <CA+jwDRkBHxwz7xHUAdYi1OZ9mtEski4VJ=gtyByritjRAiStmQ@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: nfnetlink: always ACK batch end if requested
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Phil, Jakub,
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
 
-On 02/10/2025 12:09, Phil Sutter wrote:
-> Hi,
-> 
-> On Wed, Oct 01, 2025 at 06:52:45PM -0700, Jakub Kicinski wrote:
->> Sort config files for networking selftests. This should help us
->> avoid merge conflicts between net and net-next. patchwork check
->> will be added to prevent new issues.
-> 
-> The patch does not apply to my net/main (at daa26ea63c6) for unclear
-> reasons,
+> e.g for a batch formatted like (BATCH_BEGIN|NFT_MSG_NEWRULE + NLM_F_ACK)
+> - nfnetlink would send two ACKs while it should be only one. Granted it
+> won't configure anything but it would be still misleading.
+>
+> What about this?
+>
 
-Same for me, but I can apply it on top of net-next.
-
-> though I verified that it does neither add nor remove lines by:
-> 
-> diff -u \
->   <(sed -n 's/^-\(CONFIG_.*\)/\1/p' /tmp/sort.patch | sort) \
->   <(sed -n 's/^+\(CONFIG_.*\)/\1/p' /tmp/sort.patch | sort)
-
-Thanks for having checked this!
-
->> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
-> 
-> Acked-by: Phil Sutter <phil@nwl.cc>
-
-Thank you for having sorted these files to reduce future conflicts
-between net and net-next! (Hopefully this will not cause too much
-troubles when backporting some patches to stable versions, but I guess
-this should be rare here with these config files.)
-
-Acked-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
-
-Cheers,
-Matt
--- 
-Sponsored by the NGI0 Core fund.
-
+Thanks ! I was a bit unsure on whether the status should also be checked.
+This seems to work with my test.
