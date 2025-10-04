@@ -1,40 +1,33 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0DBC1E0DCB;
-	Sat,  4 Oct 2025 12:19:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8270919B5A7
+	for <netfilter-devel@vger.kernel.org>; Sat,  4 Oct 2025 12:26:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759580356; cv=none; b=A/a2pFcX2Fsz+DHR6sU0cMczsMouXdwINFGxHj8aH9MDVVRTl4ZQ5ORS8MAo6fiMjcMDuQo/KpniIobJ11hgv6zEONJa2GtJ9+lhZswsh+px7w90/g1zvHwAhbKUbcu+dpnAjg9euBTny/bdU1O3CjeebBgIKV2adxFLc+EEh9c=
+	t=1759580795; cv=none; b=s2fjkrfT4XgEcrzJ7QX/0w+tGrGFRXPIaEhjlqXdKmJ+wRcWRMn5hwhXzas8iLzJ9Jf7jYBAxpcQ+QAHmW1wE9Z036rTXdSRFCRW4XwPUItUldIBXNmdlZLu/0kZhQ/o8g9vaabwHE43HMKIdiWtPhxfmrcM36uUtrTuN+vpNnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759580356; c=relaxed/simple;
-	bh=kOYbZUZU6CdVybM0QIN6kMmBHcqS8AEfDCHW9NbqSwA=;
+	s=arc-20240116; t=1759580795; c=relaxed/simple;
+	bh=vVwfjzj1/SkP7WRq2a0x9tllg84SJiLDa/qc1+fCFQg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GbswKfP8Fgv6v5MNrLqaaIZxaKEOgloiJ2FF6z5ykXLqY/yFk4SXdcK/qefc0LagteKmMffnZwBdVMOTozoo69goiZiBG/gwmDthfpEhMGQACUpNyKtUQQePbqTVxg1PqX4x3w6XIZxxqJ3J5iHh6ULPct2zjmqDFT8aSUG9rd8=
+	 Content-Type:Content-Disposition:In-Reply-To; b=QXhFXU6m5jZLlXAW8BNnowg37VmDSdbEgDYjrFFakj9mrmCI4/OKzEwsdq6jAf22DwnK7xOMvqoT/mJ+ySaYXtg6dVB+x+casjAwns/yWEHC9v/pdJjxnXs4I8D/xj73YLAKm1Ew3pKi1ImNu55knlXYWsx3D5QvHu1hk1HznoA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8BD6B6011D; Sat,  4 Oct 2025 14:19:11 +0200 (CEST)
-Date: Sat, 4 Oct 2025 14:19:07 +0200
+	id 5350F60326; Sat,  4 Oct 2025 14:26:30 +0200 (CEST)
+Date: Sat, 4 Oct 2025 14:26:26 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, Shuah Khan <shuah@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Vladimir Oltean <olteanv@gmail.com>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [RFC PATCH v3 nf-next] selftests: netfilter: Add
- bridge_fastpath.sh
-Message-ID: <aOEQu2fgvx1GlrAA@strlen.de>
-References: <20250925183341.115008-1-ericwouds@gmail.com>
- <aNwtMiC22yOAO4Y6@strlen.de>
- <be179c64-8c14-4f38-bab2-4597afc63341@gmail.com>
+To: Nikolaos Gkarlis <nickgarlis@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fmancera@suse.de
+Subject: Re: [PATCH v2 2/2] selftests: netfilter: add nfnetlink ACK handling
+ tests
+Message-ID: <aOEScmNyuP_k_YsU@strlen.de>
+References: <0adc0cbc-bf68-4b6a-a91a-6ec06af46c2e@suse.de>
+ <20251004092655.237888-1-nickgarlis@gmail.com>
+ <20251004092655.237888-3-nickgarlis@gmail.com>
+ <aOD7IaLqduE9k0om@strlen.de>
+ <CA+jwDR=0riXXHig1wcq4BjbGDUngksrUTxdgJgD4S8PUqAvO=A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,24 +36,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <be179c64-8c14-4f38-bab2-4597afc63341@gmail.com>
+In-Reply-To: <CA+jwDR=0riXXHig1wcq4BjbGDUngksrUTxdgJgD4S8PUqAvO=A@mail.gmail.com>
 
-Eric Woudstra <ericwouds@gmail.com> wrote:
-> Changes in the patchset "conntrack: bridge: add double vlan, pppoe and
-> pppoe-in-q" has lead to changes in this script. I'm waiting for that
-> patch-set is to be accepted. Then I will send this script without the
-> rfc tag.
+Nikolaos Gkarlis <nickgarlis@gmail.com> wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+> > Can you drop the shell wrapper and just call unshare(CLONE_NEWNET) from the
+> > fixture setup function?
+> 
+> Yes, I can do that. However, I am wondering about cleanup both
+> before and after the tests, as well as ensuring that the nft_ct
+> module is not loaded prior to execution.
 
-Can you send this script standalone?  You can extend it along with the
-feature patches.
+Is this to exercise replay path?
+Perhaps add a comment to the subtest that depends on this.
 
-> > Its a pre-existing bug, br_vlan_fill_forward_path_pvid uses
-> > br_vlan_group() instead of _rcu version.
-> > 
-> > Will you send a patch for this?
-> I had this as part of an upcoming patch-set, but I will remove it from
-> there and send it as a separate patch. I assume this can go to nf
-> instead of nf-next, as it is a bugfix?
+I don't see the need for this otherwise.
 
-Yes, standalone fix for nf, with "Fies" tag pointing at the patch
-that introduced this bug.
+What happens when nft_ct is builtin?  The test should not fail
+in that case.
+
+> Should these steps be
+> included in the program, or do we assume that the tests will
+> always run on a clean system with no modules already loaded?
+
+No, if you need nft_ct to not be loaded then the rmmod has to
+be used, but there is no guarantee it will work, e.g. because
+nft_ct is builtin or because its in use.
