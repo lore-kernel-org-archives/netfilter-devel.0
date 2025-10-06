@@ -1,82 +1,85 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED0219ABD8;
-	Mon,  6 Oct 2025 17:30:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 092F9226D14;
+	Mon,  6 Oct 2025 20:34:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759771816; cv=none; b=qLGUYh5XXSCXrC4bh2ukFsETlZ0PclEmgyd9ef1e0cc4heVu/5CpOMjNZbYxXY9sUPLASrMTH7Nr68i7NF+nXCVfUjX6/PB5hGjIZP6Vx9j2ZQBxKmlLnCp/RrvYRCOqT7jNfIaGpndUtGMXB7UjrNz3AgZBlWBsKHUOFK4hMMQ=
+	t=1759782882; cv=none; b=YAfDjJUGuTYWR88Q0O/hopTRAgUEQq21PZ5o1s7ys6K6SML+uwnv4b8vL+6ZIFwlf/uqT7hIkfM6VFgjrQlkTfOZ1oZ2YyWEgwbDad6i365UUs3qjbm0ppvaj4JdybeY42/H/pR3T4ImqKpZzdC5GYPDh0FE5MBfuaD9PQhOIRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759771816; c=relaxed/simple;
-	bh=rWN6jto2RHp+3FusQV0xt+2Au+Nnsz5tLgY5xTBytlM=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=pQem9i+E7Q1yHZjxcdNFlBK/s3ynfx0iVoyNg3ozZ9ac0m1wkx4qBf5qor8y/YiPwUWGzUWuQMJgm7t7XSM0SfImv8KbSKhJLdiYYZ1Omxb26Btn10gzXwVoWrQmG0yGCA3XYGkMYriPUmqTcBiiMs8mhld6/72NWSLhmnD4VSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gxEdPzaa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1759782882; c=relaxed/simple;
+	bh=d+y6omQk0t67tX/0s0nTa0zg+8eiPBRJp5qGjl+9eR4=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=EZivMo0lCwCBlp4s0FOLhC2+yDSOnZ+lwPT2WgrY/llBoDq/4njEK/ljnVEhTUfewD2VtoEVqkK48zHlbO3sZo4AbfG7muXWG+EBNZXBdXmOS6eQBvsbiOVrBqxgmpP6CJVUpwDByfHpxGJufms/zQDWLTO83cEpCWjVVJ4Wtw8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tFncaIqP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gxEdPzaa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BBF9C4CEF5;
-	Mon,  6 Oct 2025 17:30:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tFncaIqP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D5C1C4CEF5;
+	Mon,  6 Oct 2025 20:34:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1759771814;
-	bh=rWN6jto2RHp+3FusQV0xt+2Au+Nnsz5tLgY5xTBytlM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=gxEdPzaaYpi98i/RUy5nqwFo5gHyjKethtBdLCNHcu6zg4/DpWjAnn0CvUPskipQO
-	 CoBEr9yWw/MGvrefx/TuHX0BzFQVFNA0UcSL0yLzYo6Ar8oDqWzi9i3vgPnb2SO/Kt
-	 ST7SBqMCW/t9pWuYRY45/umve1Mq5FFMab5/95fVAiB/dbJ2MxeID7ZPxHavXVYzsw
-	 mFoJhKKkDr9vaGoXlKN09uQT8loxrk/FdrZoeuZ4QpleRT7MFaAEpO4bT69YenTtyJ
-	 emoIrlcJbv+eECHr2P1LiW12WqkHh4MB3+9yzxDFEwI0gsYj1PqJgoUifPF9RCpXfU
-	 rb/mdQqB+di+w==
-Date: Mon, 6 Oct 2025 10:30:12 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Petr Machata <petrm@nvidia.com>
-Cc: <davem@davemloft.net>, <netdev@vger.kernel.org>, <edumazet@google.com>,
- <pabeni@redhat.com>, <andrew+netdev@lunn.ch>, <horms@kernel.org>, "Antonio
- Quartulli" <antonio@openvpn.net>, "Matthieu Baerts (NGI0)"
- <matttbe@kernel.org>, Allison Henderson <allison.henderson@oracle.com>,
- <shuah@kernel.org>, <jv@jvosburgh.net>, <olteanv@gmail.com>,
- <jiri@resnulli.us>, <mst@redhat.com>, <jasowang@redhat.com>,
- <xuanzhuo@linux.alibaba.com>, <eperezma@redhat.com>, <kuniyu@google.com>,
- <martineau@kernel.org>, <pablo@netfilter.org>, <kadlec@netfilter.org>,
- <fw@strlen.de>, <razor@blackwall.org>, <idosch@nvidia.com>,
- <linux-kselftest@vger.kernel.org>, <mptcp@lists.linux.dev>,
- <netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-Subject: Re: [PATCH net v2] selftests: net: unify the Makefile formats
-Message-ID: <20251006103012.0493a4b4@kernel.org>
-In-Reply-To: <87o6qkcnol.fsf@nvidia.com>
-References: <20251003210127.1021918-1-kuba@kernel.org>
-	<87o6qkcnol.fsf@nvidia.com>
+	s=k20201202; t=1759782881;
+	bh=d+y6omQk0t67tX/0s0nTa0zg+8eiPBRJp5qGjl+9eR4=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=tFncaIqPIbKIR1EH8d7lKTAUDLkPpsXRz5lJlXkAMODPVsRFAZKh/n1jTXa0rWrwB
+	 klVi7DuqOhkRFWPEzlvvNABZZeBLKFqc5ZzD6VupCYVrakbB2BERykS828bHrOYyfn
+	 zpSwjYNYHgUoRfpm3jvVSjPaxGn07hyYa5V2vXonA09EzvndR029apYw1FRGBcx4C2
+	 yzthcuz3Wx84VTABIsygz+I3NFXO+beYg9VTBLkioNPvaz4z7SrnIRVUOUwr3rGP+o
+	 Enacn2nH7BUyWrWuzUfYqOoZHywO+V4JnbRsMvu05fLY8j31vRrZ/D4TG6LX918+D9
+	 bo2suM1Lek9nA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 33BA339D0C1B;
+	Mon,  6 Oct 2025 20:34:31 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net repost] selftests: net: sort configs
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <175978286999.1522677.4107409489422965360.git-patchwork-notify@kernel.org>
+Date: Mon, 06 Oct 2025 20:34:29 +0000
+References: <20251003205736.1019673-1-kuba@kernel.org>
+In-Reply-To: <20251003205736.1019673-1-kuba@kernel.org>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
+ pabeni@redhat.com, andrew+netdev@lunn.ch, horms@kernel.org, phil@nwl.cc,
+ matttbe@kernel.org, fw@strlen.de, antonio@openvpn.net, jv@jvosburgh.net,
+ shuah@kernel.org, kuniyu@google.com, martineau@kernel.org,
+ geliang@kernel.org, pablo@netfilter.org, kadlec@netfilter.org,
+ sd@queasysnail.net, razor@blackwall.org, idosch@nvidia.com,
+ yongwang@nvidia.com, jiri@resnulli.us, danishanwar@ti.com,
+ linux-kselftest@vger.kernel.org, mptcp@lists.linux.dev,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 
-On Mon, 6 Oct 2025 11:40:59 +0200 Petr Machata wrote:
-> > We get a significant number of conflicts between net and net-next
-> > because of selftests Makefile changes. People tend to append new
-> > test cases at the end of the Makefile when there's no clear sort
-> > order. Sort all networking selftests Makefiles, use the following
-> > format:  
+Hello:
+
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Fri,  3 Oct 2025 13:57:36 -0700 you wrote:
+> Sort config files for networking selftests. This should help us
+> avoid merge conflicts between net and net-next. patchwork check
+> will be added to prevent new issues.
 > 
-> If we see weird errors in CI, it might be because tests now run in a
-> different order and previously masked missed cleanups are now exposed.
-
-Yes, sorry. I enabled the check before merging this so there's probably
-some transient false positives. Which is fine, the pw checks are for
-maintainers? :)
-
-> > diff --git a/tools/testing/selftests/drivers/net/dsa/Makefile b/tools/testing/selftests/drivers/net/dsa/Makefile
-> > index cd6817fe5be6..699e3565d735 100644
-> > --- a/tools/testing/selftests/drivers/net/dsa/Makefile
-> > +++ b/tools/testing/selftests/drivers/net/dsa/Makefile
-> > @@ -9,11 +9,13 @@ TEST_PROGS = bridge_locked_port.sh \  
+> Acked-by: Phil Sutter <phil@nwl.cc>
+> Acked-by: Matthieu Baerts (NGI0) <matttbe@kernel.org>
+> Acked-by: Florian Westphal <fw@strlen.de>
+> Acked-by: Antonio Quartulli <antonio@openvpn.net>
+> Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 > 
-> This should have the header converted as well:
-> 
-> TEST_PROGS := \
-> 	bridge_locked_port.sh \
+> [...]
 
-Ack, let me fix when applying.
+Here is the summary with links:
+  - [net,repost] selftests: net: sort configs
+    https://git.kernel.org/netdev/net/c/2aa74c625897
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
