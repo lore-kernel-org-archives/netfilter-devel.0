@@ -1,55 +1,55 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35BED165F16
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Oct 2025 11:08:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B144921A94F
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Oct 2025 11:09:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759835341; cv=none; b=V8QsJyd5szgzjfd0mlWEbi7SdkRIh4e8yVMVR5voMb9ZlNHdxsUrpUnn/Nc0reW+zCTqqcCodm6XL0cMES62sAokErRTHLrlyRHqF0Yt4vV+WYQj7XVd49Cqgnwm4TXErpQTPo9MoMRafVLINa8Ms8LvWDbFx+Tj4VwCDkDf3aM=
+	t=1759835373; cv=none; b=B0zjMDfAFTAjBi8tYtr3RGUkqM+nBfH7BxdhIIg/5xiQt3xpDqVyd/E/1ueAPQK2zPQmyYfLauvgD/LRxkygP47g0BKSI21uVvE6C44wEVPZRLYMLk8HySzABrcboLmWutDxMtWEOl+aOj6zW+enWRedff8jyNLhnHO2CWgOTAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759835341; c=relaxed/simple;
-	bh=T8tp7rCSkC9p4zVC+y2XqpIuakrTRrtzO2vo8q36c4g=;
+	s=arc-20240116; t=1759835373; c=relaxed/simple;
+	bh=reVgwGWVl5aaP30KEaO9v46ZE4/x3kmeQqH/e7ogNN8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=i0/7/PIu6LE8Qi1VHojVIvbBxAirJEOw2qjsE9bWfq75jvaJSQiF0XPKZjr1r6LnlKHn6oPiv9SPp8LdQw/TR7MIgs0cBGeMuCgCBid6UD45CoYt6BAuQdFQiC5g2GBDzs3jkXsz++cbgs4VvBmQY1TBQLtc6PT4GxvnU8/zCGQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=A15+X+rN; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=A15+X+rN; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=KdRtoW9ZFIVmzhQU2c/nYOV3wiNTYvMkbPL0VM8Pm4tD/ZUL1Xs/ybEfh3TPq90hVSahLTmxLV6gboZTiXu9JqQpK115xCgl2vo/P5TWyrbo5QUo1d/Ju5IbGZmbjdeeSNwbHaXUaa59+HNRPh4eFDFj7oGCec/7Z04swR+7OdM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=wHEo9Fpg; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZXl0454O; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="A15+X+rN";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="A15+X+rN"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="wHEo9Fpg";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZXl0454O"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id A07FC60269; Tue,  7 Oct 2025 13:08:58 +0200 (CEST)
+	id 2CAD66026D; Tue,  7 Oct 2025 13:09:30 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1759835338;
-	bh=N0gxvovFgzQpcnFjQ1q0IPss4eIWcbPnEOft5DAae68=;
+	s=2025; t=1759835370;
+	bh=Nj/bMRvIhaoU2Y4maCAjpb9amInmQYFBJ01LHZ3VVZE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=A15+X+rNNI1FvzpJuCTNAVVhFGLaSug+ROppWSxnJ2WuffYg0PKQvHv0dsOiv7HOS
-	 4oLLvcM+5cvQCEtxz594ZfpnKncH85OlUR5WIvWFqmYHtJupFOmSERyoMAPIAurBHT
-	 vE/oK5zXgfgBRcvNuvs51KkbxqQ0N3zZpu8aWgWyIqgFa+CuzMor+6qxwOb2sJWOg9
-	 HFEzFyCPEWt4iG2lbneb7wtqb6rg5xj30hS12/bNm/i+PzeIWBT4sHykBZvT+8HxZv
-	 HOdPinyNzHQBt0MCrhWhqzdo8gexJlqU66oPgZiyDnwj4KmgoyxfNAkr7xpFF3jHZT
-	 moJ4qiXy5iyog==
+	b=wHEo9FpgDnUQ6NHWxjbgCwJ2s5sjbxRwbyT6naUwLY0TfQpbGcStV1nEGzQgbtQCH
+	 ErZOIJfDfeGMfaA+zGVUsqTHpGvG4SF/cwje/qFfVOidegXPGSiWL4E3C9vg9xJ76M
+	 jBSZB/dTDxPmdHFjtmB0v00UdL2t7jdPQN0lV/8bRnDU5dFVkKEP2BmKJjMcTB9yDE
+	 DBFumANBz73MzemdHdK0XJ9dqnmeZh6OXoScxW7v1/9Pt7bzIAJnmzlB2A0hhG5I63
+	 /l3VcnF6Cc+0H+2e/FoEC8nERFxsttk7j6lT15fPx+x/17Xa8ajswkBQ6k8fNacDps
+	 hj+TtipDSVvOw==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1C47160255;
-	Tue,  7 Oct 2025 13:08:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id A710160269;
+	Tue,  7 Oct 2025 13:09:29 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1759835338;
-	bh=N0gxvovFgzQpcnFjQ1q0IPss4eIWcbPnEOft5DAae68=;
+	s=2025; t=1759835369;
+	bh=Nj/bMRvIhaoU2Y4maCAjpb9amInmQYFBJ01LHZ3VVZE=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=A15+X+rNNI1FvzpJuCTNAVVhFGLaSug+ROppWSxnJ2WuffYg0PKQvHv0dsOiv7HOS
-	 4oLLvcM+5cvQCEtxz594ZfpnKncH85OlUR5WIvWFqmYHtJupFOmSERyoMAPIAurBHT
-	 vE/oK5zXgfgBRcvNuvs51KkbxqQ0N3zZpu8aWgWyIqgFa+CuzMor+6qxwOb2sJWOg9
-	 HFEzFyCPEWt4iG2lbneb7wtqb6rg5xj30hS12/bNm/i+PzeIWBT4sHykBZvT+8HxZv
-	 HOdPinyNzHQBt0MCrhWhqzdo8gexJlqU66oPgZiyDnwj4KmgoyxfNAkr7xpFF3jHZT
-	 moJ4qiXy5iyog==
-Date: Tue, 7 Oct 2025 13:08:55 +0200
+	b=ZXl0454OxwQT4vxXdageXDCgzN9CPHzeLDrdlO2E1iIFLsinvmzEUMpcKaq4wdUi9
+	 CSnUIlNflQ9baADN/3+97ojJJKhyraWj/1hAzmdXPOYngowx0Q1lJqq7qy4QEeiHUn
+	 +TVIlQxvxHpDbrLWXHRVsuWRMnBOj1a3ffvozt9Z6foerIXUPC6IHh0L2HknwPMRal
+	 hDoqrnFLhKMErXTw1nTqKWWRM9d399U5CFv65dZpUEK2wR2hRUok8iGExHF4ReR37J
+	 +jhaogJQlwZdSZpQe7HIb0+qAeFxMzIi/v9kqwU24FTryoSxMF12mGajJYDaE6rsCT
+	 VwEXb8mRBQXpA==
+Date: Tue, 7 Oct 2025 13:09:27 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] tests: py: must use input, not output
-Message-ID: <aOT0xy0PhC_vbIIN@calendula>
-References: <20251007104852.3892-1-fw@strlen.de>
+Subject: Re: [PATCH nft] src: tunnel: handle tunnel delete command
+Message-ID: <aOT051MR-o9cClt3@calendula>
+References: <20251007110634.5143-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -58,19 +58,12 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20251007104852.3892-1-fw@strlen.de>
+In-Reply-To: <20251007110634.5143-1-fw@strlen.de>
 
-On Tue, Oct 07, 2025 at 12:48:49PM +0200, Florian Westphal wrote:
-> synproxy must never be used in output rules, doing so results in kernel
-> crash due to infinite recursive calls back to nf_hook_slow() for the
-> emitted reply packet.
+On Tue, Oct 07, 2025 at 01:06:31PM +0200, Florian Westphal wrote:
+> 'delete tunnel foo bar' causes nft to bug out.
 > 
-> Up until recently kernel lacked this validation, and now that the kernel
-> rejects this the test fails.  Use input to make this pass again.
-> 
-> A new test to ensure we reject synproxy in ouput should be added
-> in the near future.
-> 
+> Fixes: 35d9c77c5745 ("src: add tunnel template support")
 > Signed-off-by: Florian Westphal <fw@strlen.de>
 
 Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
