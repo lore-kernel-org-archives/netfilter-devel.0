@@ -1,143 +1,130 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2101FAC4B
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Oct 2025 09:49:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CBA72580D7;
+	Tue,  7 Oct 2025 10:00:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759830558; cv=none; b=TEM933WgroM+FwnLVqRNzgwoDcYCRzh8stF15cMVV5nNZBFjsEAaoSdK8BFe4hPNjnelZKofvWCN3h3npjNEU8ylE0e85LgZe/dUJPS68CB7Cz8VWAW3ASvUujM/jqBwTTJAii5PcjL+FGEmk2gpiKXxOiJhINAvaD0A4yNEttY=
+	t=1759831246; cv=none; b=tISvq0Tj/UEVQzBGbo9OGvKmaeATff9GKp1hHVEIL62E3X92EnQohvLRa02Qji4mM8LJy0+GcjBt3iC9e8TG7Y8bgJibYmercMpnGmUX6oFV5BgREneazUJE56A/uEqnQ0mnWSSDVDF0+0yY9vDDQnlk6Z2gXQ6TjNWsRMevRTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759830558; c=relaxed/simple;
-	bh=ANui7nSl/Xkn2ryxgPBWTRhh5bFK2D731iJyqedJeoI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=AOtcbb3QyCMNfutQMhieuvYZwscYENqfa68YJvJqYQim8f0TOEnMdJI0UmQniHFC518JzYE95hAh/1tadqOGcq17KJ2sAAZ0IohWwO0bY4gSAgEyldtRQYla9y9V+mG/dTcvt9xzuioVDl0m1ZyaX9KSJZ5mxC03ZrWJthrF7+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Kk0mX2po; arc=none smtp.client-ip=209.85.218.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1759831246; c=relaxed/simple;
+	bh=/N816RB/jyoXeTKM1FbuTDdvx0MvuDTOOLpRyfiHmS0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PeR8IC5M5Q/t+eKICNIFRsrtJNegXlfsRE5Nps+cmf6IEuiYIQJHepq56n9fQfLuD5GWf3qFbr+BszC6SKWZKdPy/P5/e7NRuJy1TpWCLcSTHdW08kSt4z59CwstMTUFvKPuITEQFcXdLi+5TCS2rGzhwIkNRHJvDRxgidrnNBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZpdBgjAe; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SV1Brclz; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kk0mX2po"
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-b3c2c748bc8so878859966b.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Oct 2025 02:49:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1759830555; x=1760435355; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=0ueLJVSJGp+dH7ceTx92kybEsYvh5wShqzWyQZKOf6c=;
-        b=Kk0mX2poGQA2CWwjSFblfgjNFKZBEagFMVfqQLdG0MdzCAszip7pWWdYxUR5DgxtFT
-         JBG6g/vSM6XKV8WCQhD06GaLdYmODIIW/lbzhkPwuTMVFaMNUB1rsRySjga9FThcPXZ3
-         xLwKXo3GectAcbOEtSGBoPwjlZFGGIz3gIkPYiaw1/Gsdra4Ld2pllhPSNWeDjSPUPE/
-         l5fdNCXTCt3wYVfZ0vweXq+e1fGEzuB0GVGk800OypkBo5+DO1inBFXVMjElVGqEyJy9
-         ZAUdFMc/s8haZOHH0Z5LnHs39sKOjvGub5u2qf0TGXBVJN1lWb3sZbquU2UyfsjS5I+G
-         AzWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1759830555; x=1760435355;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=0ueLJVSJGp+dH7ceTx92kybEsYvh5wShqzWyQZKOf6c=;
-        b=hBfTlPgsPAbkiJQmy7jc3X0ztmou3YNMgIJVvvtvhn8/9PZ7d/cqidQu4VcUvEgG5i
-         J7dgvslV9jpgJFilePylj0K8p0FmBQk9W5KpBiljZh81sdwopJ/YBDaHwjB+5htQbUU3
-         zp42znxGHPtwoearDIgenE4DJa/yfdqDjeIp+SqVnW3e2HYlcaLmXWHK8/Q2hWVyUoyy
-         wBO69kgbc2pVm/K1hijxzH4XDZMlaF3T0NyrlEayEa8xjKqw7hRjSKdbBpXBgCUg14Pz
-         ONLDmpJBQfQYI6M3Mn/FC1r2slvsikB9jG2nV5hP5PIc9+r9mggCuKTWdPAr5qtV3Sre
-         N6Lg==
-X-Forwarded-Encrypted: i=1; AJvYcCVmkKpX/PcEGut+tPBL6qmjcJyYPTfG2kr50Vy0i80A2gxEujwTPEtKs7xD26ovcvz6EEuiSlNw4vrg6ayXUyw=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxxPzQTk4Hqhi0rWNTFDcKMn1HNdaWWBUvsZdF0BXMBnjAENHGL
-	KeBrrQG6BLzyiYlPlrPihXVNNnuzmkZkFC2S4i46fwHOACDTbpn46S5f
-X-Gm-Gg: ASbGncu86vFFJVfDkdWvYxjJ6HeTPp1HK3BLLSA2ROqer5rvpgice6rJioCVx1Tx26y
-	OmPMG/oZBYAc0pVss1XcaaGAPrdm9iP05J3F+wkVG70dAInoiFc06rkfs8QQNjPy0eeZE7msqKP
-	NtRg39dUeVrwpRpViM+xcWmq0Ty49FYysFus6VcDV9s6CSl76yDpSiLeQVz3oAAUfgCFh7aOqkB
-	VvOiiVy+glq9sbpPlPNUwfB57kU47d2I+sFZBHc82OvuowFXQYqaS+NeQzDp27YYlKROYK89OzA
-	+Epex34qyhjUiWR7ofCiLBi+4VLynbo+sXKce9gCX4ggP6VeE1PzezTKsl1DJ4zJ3zzEn8Ua4+4
-	M0wcciYPsenwHP7ccIqaMrHHykqdpsReDQaB46ToUu3Ogv2TM3lNARYXTOKK3/OwgUFAWNAwdFi
-	dk6kaod6dP/qs0ArSJ4R8vkMEa5hRgLthJqVXMSTANVIAosFwxUPAWQ1vsGdsHms+B21dGBLGwf
-	zGeUXHtGruF0JvpIvYyIIGg
-X-Google-Smtp-Source: AGHT+IHdNBmo5UGL2aStNRTSljzwJlK0kWlaY3a8GMcFcknx+xKS+ZYnKBtQkBIZn2wOkHQpRft7Cg==
-X-Received: by 2002:a17:907:d78a:b0:b3e:babd:f257 with SMTP id a640c23a62f3a-b49c1d60ce8mr2043921466b.10.1759830554682;
-        Tue, 07 Oct 2025 02:49:14 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b486a177c9csm1357244066b.89.2025.10.07.02.49.13
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 07 Oct 2025 02:49:14 -0700 (PDT)
-Message-ID: <5b332473-b552-489c-acd6-d0b67a1df098@gmail.com>
-Date: Tue, 7 Oct 2025 11:49:13 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZpdBgjAe";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SV1Brclz"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id BD39860262; Tue,  7 Oct 2025 12:00:40 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1759831240;
+	bh=pR1Or/eOAJgtO9nK0tvnWTdub8ddzTZrCYYQdvDphMA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZpdBgjAepRfVpx9dUDTFQI+mzf+zURbrj4qV0n/icjk0f/3fhKwkX2qmybvucIP/J
+	 zu5Dj7BmJd/sVnSd3FHAb77B5fs4uo4I9Jg2emoPSm1ZgLjvg9u2Y370KFFRlmoR1r
+	 S8oR2TAJK8xERWDVUxn2ASrdNIxTmbHaueIOZWVvFNn8ZbBseaYRXEYY8bZbrN8Nip
+	 Eu2jmlLyQb6NDCcuo5rrEyh/jNiO3zDvvaGKhuhSKMqnxyWBMXM0+mnua292vxTXbS
+	 Zl8fctoBpbQujNMARj1O6N6yYwKlYpErkEJCa/sInsfZYO/cCxCA33JrtmemIseWGj
+	 sYsTXbtBCspiQ==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id BCE3660262;
+	Tue,  7 Oct 2025 12:00:37 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1759831237;
+	bh=pR1Or/eOAJgtO9nK0tvnWTdub8ddzTZrCYYQdvDphMA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=SV1BrclzCWTOyNwcQ1sgdJSr76iLgNG78LapI6XxZ9eBgfEULVtMdMYy11UfdGTbF
+	 pwxx1h0VF8I+an64jtiAlH0gcdGtvm15epmwj3gK8C1hjKRYEzjNjW2OnTkS+aotlt
+	 ybdNr+sjxakCtUGy8N0z74oJqJ6xCFDSWBFPv3+SdJjKe+vbPPm6HIsGHr6NBiYLLe
+	 QI9CM7xu8i0HdF7iGbEUcmu2Q/2H5iK1bzW9+j5MdvyRFRAckPIqfRiSimVmWUnSHf
+	 vNF1j+0CbXPx48uAfrAh6O8F7drbN9hCBkLImSedjDgr9UJQd3aYQLj/ZJYtpg2uG0
+	 CK5CDLCbaGpag==
+Date: Tue, 7 Oct 2025 12:00:35 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, Felix Fietkau <nbd@nbd.name>,
+	bridge@lists.linux.dev, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v1 nf] bridge: br_vlan_fill_forward_path_pvid: use
+ br_vlan_group_rcu()
+Message-ID: <aOTkw72FGwaOZcz7@calendula>
+References: <20251007081501.6358-1-ericwouds@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 nf-next 2/2] netfilter: nf_flow_table_core: teardown
- direct xmit when destination changed
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
- Jozsef Kadlecsik <kadlec@netfilter.org>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, Nikolay Aleksandrov <razor@blackwall.org>,
- netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-References: <20250925182623.114045-1-ericwouds@gmail.com>
- <20250925182623.114045-3-ericwouds@gmail.com> <aN4v1DB2S-AWTXAR@strlen.de>
-From: Eric Woudstra <ericwouds@gmail.com>
-Content-Language: en-US
-In-Reply-To: <aN4v1DB2S-AWTXAR@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20251007081501.6358-1-ericwouds@gmail.com>
 
+On Tue, Oct 07, 2025 at 10:15:01AM +0200, Eric Woudstra wrote:
+> Bug: br_vlan_fill_forward_path_pvid uses br_vlan_group() instead of
+> br_vlan_group_rcu(). Correct this bug.
+> 
+> Fixes: bcf2766b1377 ("net: bridge: resolve forwarding path for VLAN tag actions in bridge devices")
+> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 
+Patch looks good.
 
-On 10/2/25 9:55 AM, Florian Westphal wrote:
-> Eric Woudstra <ericwouds@gmail.com> wrote:
->> +static void nf_flow_table_do_cleanup_addr(struct nf_flowtable *flow_table,
->> +					  struct flow_offload *flow, void *data)
->> +{
->> +	struct flow_cleanup_data *cud = data;
->> +
->> +	if ((flow->tuplehash[0].tuple.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT &&
->> +	     flow->tuplehash[0].tuple.out.ifidx == cud->ifindex &&
->> +	     flow->tuplehash[0].tuple.out.bridge_vid == cud->vid &&
->> +	     ether_addr_equal(flow->tuplehash[0].tuple.out.h_dest, cud->addr)) ||
->> +	    (flow->tuplehash[1].tuple.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT &&
->> +	     flow->tuplehash[1].tuple.out.ifidx == cud->ifindex &&
->> +	     flow->tuplehash[1].tuple.out.bridge_vid == cud->vid &&
->> +	     ether_addr_equal(flow->tuplehash[1].tuple.out.h_dest, cud->addr))) {
-> 
-> I think it would be better to have a helper for this, so
-> it boils down to:
-> if (__nf_flow_table_do_cleanup_addr(flow->tuplehash[0]) ||
->     __nf_flow_table_do_cleanup_addr(flow->tuplehash[1]))
-> 
-> (thats assuming we can go forward with the full walk.)
-> 
->> +static int nf_flow_table_switchdev_event(struct notifier_block *unused,
->> +					 unsigned long event, void *ptr)
->> +{
->> +	struct flow_switchdev_event_work *switchdev_work;
->> +	struct switchdev_notifier_fdb_info *fdb_info;
->> +
->> +	if (event != SWITCHDEV_FDB_DEL_TO_DEVICE)
->> +		return NOTIFY_DONE;
->> +
->> +	switchdev_work = kzalloc(sizeof(*switchdev_work), GFP_ATOMIC);
->> +	if (WARN_ON(!switchdev_work))
->> +		return NOTIFY_BAD;
-> 
-> No WARN_ON here.  GFP_ATOMIC can fail, which then gives a splat.
-> But there is nothing that could be done about it for either reporter
-> or developer.
-> 
-> So, how much of a problem is this?
-> If its fine to ignore the notification, then remove the WARN_ON.
-> If its not ok, then you have to explore alternatives that do not depend
-> on successful allocation.
-> 
-> Can the invalided output port be detected from packet path similar to
-> how stale dsts get handled?
+dev_fill_forward_path() is assumed to run under RCU.
 
-The flow needs to be torn down, when a wifi-client moves to another
-bridge-port. Both old and new bridge-ports themselves are unchanged.
-And in case of the flow being hardware offloaded, the flow also needs to
-be torn down.
-
+> ---
+> 
+> Also see the debugging info send by Florian in mailing:
+> "[RFC PATCH v3 nf-next] selftests: netfilter: Add bridge_fastpath.sh"
+> 
+> net/bridge/br_private.h:1627 suspicious rcu_dereference_protected() usage!
+> 
+> other info that might help us debug this:
+> 
+> rcu_scheduler_active = 2, debug_locks = 1
+> 7 locks held by socat/410:
+>  #0: ffff88800d7a9c90 (sk_lock-AF_INET){+.+.}-{0:0}, at: inet_stream_connect+0x43/0xa0
+>  #1: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: __ip_queue_xmit+0x62/0x1830
+>  #2: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: ip_output+0x57/0x3c0
+>  #3: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: ip_finish_output2+0x263/0x17d0
+>  #4: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: process_backlog+0x38a/0x14b0
+>  #5: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: netif_receive_skb_internal+0x83/0x330
+>  #6: ffffffff9a779900 (rcu_read_lock){....}-{1:3}, at: nf_hook.constprop.0+0x8a/0x440
+> 
+> stack backtrace:
+> CPU: 0 UID: 0 PID: 410 Comm: socat Not tainted 6.17.0-rc7-virtme #1 PREEMPT(full)
+> Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+> Call Trace:
+>  <IRQ>
+>  dump_stack_lvl+0x6f/0xb0
+>  lockdep_rcu_suspicious.cold+0x4f/0xb1
+>  br_vlan_fill_forward_path_pvid+0x32c/0x410 [bridge]
+>  br_fill_forward_path+0x7a/0x4d0 [bridge]
+>  ...
+> 
+>  net/bridge/br_vlan.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/bridge/br_vlan.c b/net/bridge/br_vlan.c
+> index 939a3aa78d5c..54993a05037c 100644
+> --- a/net/bridge/br_vlan.c
+> +++ b/net/bridge/br_vlan.c
+> @@ -1455,7 +1455,7 @@ void br_vlan_fill_forward_path_pvid(struct net_bridge *br,
+>  	if (!br_opt_get(br, BROPT_VLAN_ENABLED))
+>  		return;
+>  
+> -	vg = br_vlan_group(br);
+> +	vg = br_vlan_group_rcu(br);
+>  
+>  	if (idx >= 0 &&
+>  	    ctx->vlan[idx].proto == br->vlan_proto) {
+> -- 
+> 2.50.0
+> 
