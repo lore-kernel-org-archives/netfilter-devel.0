@@ -1,26 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F99E13C914
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Oct 2025 20:27:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D85023BD1A
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Oct 2025 20:28:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759868835; cv=none; b=TrdGGUVBmYLl6FdFGcu9WuEnCGxxPwqOX1V7aN5gU9+y0vsX+UwVRaMrXf3geySZy2Z3Q6S9U+XzG/TPhz56PI0F5z7Xuk3Gwxs5GRawiw5Ri4oV7nh9YG34gS+Q5fk8zCwy8dxoYfMtHGXwUAU9EAivVxUdidKS/U0nu9gN1xg=
+	t=1759868928; cv=none; b=nqnL8jMnF6u/zhQQcdKKjRKg8RQChTagkDvq0heseEDLPHzysrJ9KF0KWM6Qi3NAyTVZc9UKD2uzFltgmSPiooy4tQGqNP6meo6dClq3mlbJNuQL7dSqMscruwnG4nHl9FSARNf7CqldreZk8Wz4IlxuloobdfFvwH1kQjZ2Z5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759868835; c=relaxed/simple;
-	bh=FS0S6ekBRjHwmMnCwhLRyN4D+U8VQNC2VDIKV3TzhrE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OYYYAV8vd8ub65fddJ7eVBclmjJy1LW6sgbinKGBboXDsNx/5ARRIMcXbVnT/m4mkZuwOJRqbXhPgMBiY1YiyQtlFfajN4VAWtCBY5gQglBqHNC7Hh6fIrUk+l9NceRZYivBLDEM7vF/asfBXcCZ3RVT3WwRBSrhJWCA75AGJOQ=
+	s=arc-20240116; t=1759868928; c=relaxed/simple;
+	bh=YezXjkvtD31xLCsozvOr9O6ePNAtZobsN3MFzVOAtII=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=H5WGfba6UM5Mb/kD+1ZwbJOr5XvGinRObwAbZ0aHTetLDKsfd20KgZKRSIVMae0fyyr3o5CPme/Mto/fptuPpRSq1v017ZM5+S2xHwW/xR6GSb5wsQSReekOSYvNIilwnXjxGMPZjFxPtDZ8HvRoaxGoQELndc36W5xbbn/qezI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C386A60299; Tue,  7 Oct 2025 22:27:04 +0200 (CEST)
+	id 5313C60299; Tue,  7 Oct 2025 22:28:33 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] tests: shell: type_route_chain: use in-tree nftables, not system-wide one
-Date: Tue,  7 Oct 2025 22:26:51 +0200
-Message-ID: <20251007202655.23599-1-fw@strlen.de>
+Subject: [PATCH nft] tests: shell: fix name based checks with CONFIG_NF_TABLES=y
+Date: Tue,  7 Oct 2025 22:28:23 +0200
+Message-ID: <20251007202827.23737-1-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,53 +30,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Switch this to $NFT, which contains the locally-compiled binary.
+Don't include a trailing space, its only there if nftables is a module:
+
+  hook ingress device foo2 {
+     0000000000 chain netdev t c [nf_tables]
+  }
+
+with CONFIG_NF_TABLES=y, this gets listed as:
+'0000000000 chain netdev t c\n'.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/shell/testcases/packetpath/type_route_chain | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tests/shell/testcases/chains/netdev_chain_name_based_hook_0 | 2 +-
+ tests/shell/testcases/flowtable/0016name_based_hook_0       | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tests/shell/testcases/packetpath/type_route_chain b/tests/shell/testcases/packetpath/type_route_chain
-index b4052fd90393..6459451d48b5 100755
---- a/tests/shell/testcases/packetpath/type_route_chain
-+++ b/tests/shell/testcases/packetpath/type_route_chain
-@@ -133,7 +133,7 @@ echo -e "\nTest ipv6 dscp reroute"
- ip -6 -n $C route add default via ${ip6_r2_br1} dev c_br1 table 100
- ip -6 -n $C rule add dsfield 0x08 pref 1010 table 100
- assert_pass "Add ipv6 dscp policy routing rule"
--ip netns exec $C nft -f - <<-EOF
-+ip netns exec $C $NFT -f - <<-EOF
- table inet outgoing {
- 	chain output_route {
- 		type route hook output priority filter; policy accept;
-@@ -151,7 +151,7 @@ echo -e "\nTest ipv4 dscp reroute"
- ip -n $C route add default via ${ip4_r2_br1} dev c_br1 table 100
- ip -n $C rule add dsfield 0x08 pref 1010 table 100
- assert_pass "Add ipv4 dscp policy routing rule"
--ip netns exec $C nft -f - <<-EOF
-+ip netns exec $C $NFT -f - <<-EOF
- table inet outgoing {
- 	chain output_route {
- 		type route hook output priority filter; policy accept;
-@@ -169,7 +169,7 @@ echo -e "\nTest ipv4 fwmark reroute"
- ip -n $C route add default via ${ip4_r2_br1} dev c_br1 table 100
- ip -n $C rule add fwmark 0x0100 lookup 100
- assert_pass "Add ipv4 fwmark policy routing rule"
--ip netns exec $C nft -f - <<-EOF
-+ip netns exec $C $NFT -f - <<-EOF
- table inet outgoing {
- 	chain output_route {
- 		type route hook output priority filter; policy accept;
-@@ -187,7 +187,7 @@ echo -e "\nTest ipv6 fwmark reroute"
- ip -6 -n $C route add default via ${ip6_r2_br1} dev c_br1 table 100
- ip -6 -n $C rule add fwmark 0x0100 lookup 100
- assert_pass "Add ipv6 fwmark policy routing rule"
--ip netns exec $C nft -f - <<-EOF
-+ip netns exec $C $NFT -f - <<-EOF
- table inet outgoing {
- 	chain output_route {
- 		type route hook output priority filter; policy accept;
+diff --git a/tests/shell/testcases/chains/netdev_chain_name_based_hook_0 b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
+index 8a8a60178408..2e37b23a410a 100755
+--- a/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
++++ b/tests/shell/testcases/chains/netdev_chain_name_based_hook_0
+@@ -2,7 +2,7 @@
+ 
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
+ 
+-cspec=' chain netdev t c '
++cspec=' chain netdev t c'
+ $NFT add table netdev t
+ $NFT add $cspec '{ type filter hook ingress priority 0; devices = { lo, foo* }; }'
+ $NFT list hooks netdev device lo | grep -q "$cspec" || {
+diff --git a/tests/shell/testcases/flowtable/0016name_based_hook_0 b/tests/shell/testcases/flowtable/0016name_based_hook_0
+index 9a5559602715..19135b7e33cf 100755
+--- a/tests/shell/testcases/flowtable/0016name_based_hook_0
++++ b/tests/shell/testcases/flowtable/0016name_based_hook_0
+@@ -3,7 +3,7 @@
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_ifname_based_hooks)
+ # NFT_TEST_REQUIRES(NFT_TEST_HAVE_list_hooks_flowtable_info)
+ 
+-ftspec=' flowtable ip t ft '
++ftspec=' flowtable ip t ft'
+ $NFT add table t
+ $NFT add $ftspec '{ hook ingress priority 0; devices = { lo, foo* }; }'
+ $NFT list hooks netdev device lo | grep -q "$ftspec" || {
 -- 
 2.49.1
 
