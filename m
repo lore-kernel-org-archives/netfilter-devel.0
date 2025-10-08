@@ -1,191 +1,116 @@
-Received: from pdx-out-010.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-010.esa.us-west-2.outbound.mail-perimeter.amazon.com [52.12.53.23])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF4512FD7A7;
-	Wed,  8 Oct 2025 15:35:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.12.53.23
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97AFE63B9
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Oct 2025 21:01:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759937739; cv=none; b=oAUyECiUOIR0Gj0zTxNjfO3KiPqdQy1CUUGkTl4bit2WZbHjmHy+DTUg03upICoNwGZ7Z+k2Pfns9xrd4sGKQ1pdIQ5kw09JKF0AISHQHZ0h1N7G+Bb8IumkPlrt368YBxI1/D0kTofVp7Qnrv1S+O3kStiLtTboRMgvX6721uE=
+	t=1759957318; cv=none; b=i98SbqrRisEbgcWnQWX6W+exvZwt0go6+hQCNcMxbkYSEkwPim2+Ln6lukFEMbk6aIOR/cyLh5IMH87R2v/Q2AnPl8WydApJub1mr3mcWmBpZYntQKsluj5FnuXOxiXvsHFV8VpvTg9qJ/1bn6DQD4nr6qLrog2bP1g9dtgn48Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759937739; c=relaxed/simple;
-	bh=V2L3IilwofpV6SrsfVTvut5ipDXkokIOm+dTBT4i7eQ=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=tBYrY89q0c3mGEZg6x4AdA00N5Sm1cO6DZp95oGR6zx0RYNsg5RGkCwzkLZ4yMEqvsJAu6I5Rjnzj3EHeKp+TPdGuOYw25fToPZHLi71Q58g9Az1yjQtS/PrO3rVO0KwJWJ7pJD2rTSi0tFugKSszq1Zk+39vStN+VXgM1tOTFs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=N2qfZelM; arc=none smtp.client-ip=52.12.53.23
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+	s=arc-20240116; t=1759957318; c=relaxed/simple;
+	bh=yjoG0nWHeJ/l0oPz3dHC9ZcV6U456US62dWQwfyxvQY=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=R5xQVkhINWAahdK5YgSSEhYtIkZEEoBEg5DSkndmwiGT15Via/KzoMT1mKP9XRxZ9YOAfx9r5BGCyQvgk/qhz76ZxiDIrpMrp+O99D/CadSOr8Z2dkzmFYJ7FaHQE2aLpon68/ODuXafFl8wsyhjYkUm1pRekOJ+sgKniySRwhc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ee2WYsd1; arc=none smtp.client-ip=209.85.222.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="N2qfZelM"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ee2WYsd1"
+Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-875d55217a5so25218385a.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Oct 2025 14:01:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
-  t=1759937737; x=1791473737;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=k0dUe76w+6n5/NfsPbyefGVCom+xh3GGcFcV3Olhmks=;
-  b=N2qfZelMt7jwppptReH5RJjvLCAq/b1xUidl0CPU0Jqs9jNAU3oMFvB9
-   XYCZdeHegjtZW/9XGw/3HUhrp+yq6EAvzU6sYt8/fK9EVwmrSvRq21SRk
-   prqQkmq+gGIlkZz6INpg5ORldB3fmTgFPpCCXqNXDmlRRlquoLq9MKWsP
-   yZgTngtkf9dwOXU/mZxmw7V0MgJpLWy/T6ygeYDI42YS55Cc+DnARBUnI
-   BGYgpx02EFU10P1sE5xYiEFez+kjhdOIf7lWCrPzIjLLXHT/ZEPDHlvOC
-   VkTVVcI3OmX/zpBsRGH/sD87HOfAnJl+gAqhSgcxm0KjcwIoExm5b91OJ
-   w==;
-X-CSE-ConnectionGUID: b75d3iYwTRuB7tX10Wtizg==
-X-CSE-MsgGUID: Px2S2wuYSNWDoNTkGsZEDg==
-X-IronPort-AV: E=Sophos;i="6.19,213,1754956800"; 
-   d="scan'208";a="4410969"
-Received: from ip-10-5-12-219.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.12.219])
-  by internal-pdx-out-010.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Oct 2025 15:35:35 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [10.0.7.35:3268]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.15.171:2525] with esmtp (Farcaster)
- id b6cae892-4a8e-4639-abaf-f3ab0bbe7767; Wed, 8 Oct 2025 15:35:35 +0000 (UTC)
-X-Farcaster-Flow-ID: b6cae892-4a8e-4639-abaf-f3ab0bbe7767
-Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
- EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20;
- Wed, 8 Oct 2025 15:35:34 +0000
-Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
- (172.19.116.181) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20; Wed, 8 Oct 2025
- 15:35:20 +0000
-From: Eliav Farber <farbere@amazon.com>
-To: <gregkh@linuxfoundation.org>, <jdike@addtoit.com>, <richard@nod.at>,
-	<anton.ivanov@cambridgegreys.com>, <dave.hansen@linux.intel.com>,
-	<luto@kernel.org>, <peterz@infradead.org>, <tglx@linutronix.de>,
-	<mingo@redhat.com>, <bp@alien8.de>, <x86@kernel.org>, <hpa@zytor.com>,
-	<tony.luck@intel.com>, <qiuxu.zhuo@intel.com>, <james.morse@arm.com>,
-	<rric@kernel.org>, <airlied@linux.ie>, <daniel@ffwll.ch>,
-	<maarten.lankhorst@linux.intel.com>, <mripard@kernel.org>,
-	<tzimmermann@suse.de>, <robdclark@gmail.com>, <sean@poorly.run>,
-	<jdelvare@suse.com>, <linux@roeck-us.net>, <linus.walleij@linaro.org>,
-	<dmitry.torokhov@gmail.com>, <maz@kernel.org>, <wens@csie.org>,
-	<jernej.skrabec@gmail.com>, <agk@redhat.com>, <snitzer@redhat.com>,
-	<dm-devel@redhat.com>, <davem@davemloft.net>, <kuba@kernel.org>,
-	<mcoquelin.stm32@gmail.com>, <krzysztof.kozlowski@canonical.com>,
-	<malattia@linux.it>, <hdegoede@redhat.com>, <mgross@linux.intel.com>,
-	<jejb@linux.ibm.com>, <martin.petersen@oracle.com>,
-	<sakari.ailus@linux.intel.com>, <clm@fb.com>, <josef@toxicpanda.com>,
-	<dsterba@suse.com>, <jack@suse.com>, <tytso@mit.edu>,
-	<adilger.kernel@dilger.ca>, <dushistov@mail.ru>,
-	<luc.vanoostenryck@gmail.com>, <rostedt@goodmis.org>, <pmladek@suse.com>,
-	<senozhatsky@chromium.org>, <andriy.shevchenko@linux.intel.com>,
-	<linux@rasmusvillemoes.dk>, <minchan@kernel.org>, <ngupta@vflare.org>,
-	<akpm@linux-foundation.org>, <yoshfuji@linux-ipv6.org>, <dsahern@kernel.org>,
-	<pablo@netfilter.org>, <kadlec@netfilter.org>, <fw@strlen.de>,
-	<jmaloy@redhat.com>, <ying.xue@windriver.com>, <shuah@kernel.org>,
-	<willy@infradead.org>, <farbere@amazon.com>, <sashal@kernel.org>,
-	<quic_akhilpo@quicinc.com>, <ruanjinjie@huawei.com>,
-	<David.Laight@ACULAB.COM>, <herve.codina@bootlin.com>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-kernel@vger.kernel.org>,
-	<linux-um@lists.infradead.org>, <linux-edac@vger.kernel.org>,
-	<amd-gfx@lists.freedesktop.org>, <dri-devel@lists.freedesktop.org>,
-	<linux-arm-msm@vger.kernel.org>, <freedreno@lists.freedesktop.org>,
-	<linux-hwmon@vger.kernel.org>, <linux-input@vger.kernel.org>,
-	<linux-sunxi@lists.linux.dev>, <linux-media@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <linux-stm32@st-md-mailman.stormreply.com>,
-	<platform-driver-x86@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
-	<linux-staging@lists.linux.dev>, <linux-btrfs@vger.kernel.org>,
-	<linux-ext4@vger.kernel.org>, <linux-sparse@vger.kernel.org>,
-	<linux-mm@kvack.org>, <netfilter-devel@vger.kernel.org>,
-	<coreteam@netfilter.org>, <tipc-discussion@lists.sourceforge.net>,
-	<linux-kselftest@vger.kernel.org>, <stable@vger.kernel.org>
-CC: Arnd Bergmann <arnd@kernel.org>, Christoph Hellwig <hch@infradead.org>,
-	Dan Carpenter <dan.carpenter@linaro.org>, "Jason A. Donenfeld"
-	<Jason@zx2c4.com>, Jens Axboe <axboe@kernel.dk>, Lorenzo Stoakes
-	<lorenzo.stoakes@oracle.com>, Mateusz Guzik <mjguzik@gmail.com>, "Pedro
- Falcato" <pedro.falcato@gmail.com>
-Subject: [PATCH v3 19/19 5.15.y] minmax.h: remove some #defines that are only expanded once
-Date: Wed, 8 Oct 2025 15:29:44 +0000
-Message-ID: <20251008152946.29285-20-farbere@amazon.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20251008152946.29285-1-farbere@amazon.com>
-References: <20251008152946.29285-1-farbere@amazon.com>
+        d=gmail.com; s=20230601; t=1759957315; x=1760562115; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=60OsxgD4U9FITiBGJ6QPC9fN3MgqA/5HjaHm2BMKSsY=;
+        b=Ee2WYsd1iERfe+ZdTTDX9fqhBTz+L9agOTBqbod3JaIkWIRVnpSoG5t85vYuaYc81y
+         0ZB2UGRaRNpaiUsTWIbAvelkz1ge8Az1typxxLC5h7OIrrnhgz9e8XGKcUVR0gyg688S
+         PdPKVqa4Bk41v2ujqPClwtdw3FTlU3tFMGrI+4OEtYBgPNINUGlfUe3G3/fYChMRvH1k
+         OpHgGzYzDVUMYNJc9oWmFYFtmqsofSFCFTR4PijoYD2hMFzWerUqQDUFeKWqp408+lZV
+         Jw0assOVp+8QQP5uVaXLXwCSuTETwT6cvBrgHHGcBjGStGIOZPKOYxJFMczV+aevxb43
+         w1Tw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1759957315; x=1760562115;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:subject:cc:to:from:date:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=60OsxgD4U9FITiBGJ6QPC9fN3MgqA/5HjaHm2BMKSsY=;
+        b=LF6B+sIrkk+r9J837Cw9wYc7zuXQTjDyiv+8/6M5zM4CZTnj/3eVUN+0pbQWwrAHXw
+         2haDphtvsXLUaUb+tcfcBVZl9CwgpeBtOPjNq91NiVH3gxNlLksuMaWm6ExGiDD3G4E/
+         5piH8tLXMJVN2o2kBe0ukpH/vZjt5u/BYfsSRRVvqeCgfoXGypfLhBN4tdcGwh+UxAKM
+         crzGVeWo7Yi465Mf+JnN+lDIRuJ0vCN+CGsX7wUFiH7XeyyZnEqnU3ilZ/wcQ6Pfz/N7
+         wDewpuVWfJ4UozUFY2dc4jTp9ts3/Es7gbCvPrw602bOweiDqZQhnp6fykagwyxQNJSK
+         MzWg==
+X-Gm-Message-State: AOJu0Yy6QYR7F1XIASMMivsvJzplRFiLj44l8br8qzHTHCF1rxjhKKGW
+	m0oCIqWJ27QDFS/Ez+bfX+AYNH3E+883Bi9Wl/DoVqLolMgdJgATpnP7
+X-Gm-Gg: ASbGncvpzOpvSc0R425oiUPWfBw0Dz8ntzpQ97tbiFk0jwXwh0gaozVmlLCIo2/tBIE
+	kwGcUMTSa/kUH/OQWbhEtoAjufQhCDE/T5jNaNLZRPAy9QOXiyrgqKtpIas/OE0z4gECFBwajvx
+	/ZByfDhFBmfLeUJtw02KbXekL4zUEYhoqikKrbUfaiks6IHuSAgPgj9Lf0l0Cd0Qxa7NuZZMHwJ
+	FC/mSKGUJrNI5IFtUWujAMG3J5UJEtEiNBR6Nptn5WxWJ06I80+5yExWlzxr00YC3CR2HvqtSxX
+	lU+CgYiFUOiZudeB81Ebn39EVXLB1rZ47xhd1KzJ5xLqvt43jJH3j/NmAJwu/21Hzx+eTwlcuLJ
+	XO0LZB9Nwdrgx8PMTRot6j6cfb2sPyFwHPg+jdORK
+X-Google-Smtp-Source: AGHT+IFundR4DNjz1TylTGwjxQCRlhfiy1A4aJPyVFzJHYA29dK6doqpqaD+FLMAxUw77WR7GbKBmg==
+X-Received: by 2002:a05:620a:29c1:b0:863:ff43:bc26 with SMTP id af79cd13be357-88355a5397bmr881523185a.73.1759957315312;
+        Wed, 08 Oct 2025 14:01:55 -0700 (PDT)
+Received: from playground ([204.111.226.76])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8849f9ad8f2sm68424685a.20.2025.10.08.14.01.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 08 Oct 2025 14:01:54 -0700 (PDT)
+Date: Wed, 8 Oct 2025 17:01:52 -0400
+From: <imnozi@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Subject: Re: nf-ct-list and nf-exp-delete
+Message-ID: <20251008170152.7d8e13c0@playground>
+In-Reply-To: <aOZP-v75f5yMTdrk@calendula>
+References: <20251007051508.049e8821@playground>
+	<aOT1NhYSS65KwwJD@calendula>
+	<20251007184531.73f3404d@playground>
+	<aOZP-v75f5yMTdrk@calendula>
+X-Mailer: Claws Mail 4.1.1 (GTK 3.24.38; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-ClientProxiedBy: EX19D036UWC004.ant.amazon.com (10.13.139.205) To
- EX19D001UWA001.ant.amazon.com (10.13.138.214)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-From: David Laight <David.Laight@ACULAB.COM>
+On Wed, 8 Oct 2025 13:50:18 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-[ Upstream commit 2b97aaf74ed534fb838d09867d09a3ca5d795208 ]
+> On Tue, Oct 07, 2025 at 06:45:31PM -0400, imnozi@gmail.com wrote:
+> > On Tue, 7 Oct 2025 13:10:46 +0200
+> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >   
+> > > On Tue, Oct 07, 2025 at 05:15:08AM -0400, imnozi@gmail.com wrote:  
+> > > > [iptables v1.8.7; old, but it's what I have.]
+> > > > 
+> > > > Why does 'nf-exp-delete -i [id]' *not* remove remove some conntrack entries even after being told to remove them multiple times? It deletes most entries for my purposes (if condition is met, delete conntrack entry and block the IP using ipset). Blocked IPs are DROPped on internet side, and RESET and REJECTed on the internal side. But from time to time, I see ESTABLISHED conns that don't get (can't be) deleted.  
+> > > 
+> > > nf-exp-delete -i [id] ????  
+> > 
+> > Given:
+> > ----
+> > # nf-ct-list --tcp-state=ESTABLISHED --reply-src=10.X.X.2 -f details
+> > tcp ESTABLISHED 188.132.249.148:57992 -> 204.111.X.X:443 10.X.X.2:443 <- 188.132.249.148:57992 mark 17488 
+> >     id 0xf016f3da family inet refcnt 1 timeout 10m 17s <ASSURED,DNAT>
+> > ----
+> > 
+> > then:
+> > ----
+> > nf-exp-delete -i 0xf016f3da
+> > ----
+> > usually removes that entry from conntrack. In my experience, some entries are not, and cannot be, removed without drastic measures that would interrupt firewall operations.  
+> 
+> Where are these tools in the git netfilter.org repository ?
+> 
+> And how does this relate to iptables v1.8.7 as you claim ?
 
-The bodies of __signed_type_use() and __unsigned_type_use() are much the
-same size as their names - so put the bodies in the only line that expands
-them.
+Sorry. My mistake. They are from the libnl package.
 
-Similarly __signed_type() is defined separately for 64bit and then used
-exactly once just below.
+Please disregard.
 
-Change the test for __signed_type from CONFIG_64BIT to one based on gcc
-defined macros so that the code is valid if it gets used outside of a
-kernel build.
-
-Link: https://lkml.kernel.org/r/9386d1ebb8974fbabbed2635160c3975@AcuMS.aculab.com
-Signed-off-by: David Laight <david.laight@aculab.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Carpenter <dan.carpenter@linaro.org>
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Eliav Farber <farbere@amazon.com>
----
- include/linux/minmax.h | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
-
-diff --git a/include/linux/minmax.h b/include/linux/minmax.h
-index 2bbdd5b5e07e..eaaf5c008e4d 100644
---- a/include/linux/minmax.h
-+++ b/include/linux/minmax.h
-@@ -46,10 +46,8 @@
-  * comparison, and these expressions only need to be careful to not cause
-  * warnings for pointer use.
-  */
--#define __signed_type_use(ux) (2 + __is_nonneg(ux))
--#define __unsigned_type_use(ux) (1 + 2 * (sizeof(ux) < 4))
- #define __sign_use(ux) (is_signed_type(typeof(ux)) ? \
--	__signed_type_use(ux) : __unsigned_type_use(ux))
-+	(2 + __is_nonneg(ux)) : (1 + 2 * (sizeof(ux) < 4)))
- 
- /*
-  * Check whether a signed value is always non-negative.
-@@ -57,7 +55,7 @@
-  * A cast is needed to avoid any warnings from values that aren't signed
-  * integer types (in which case the result doesn't matter).
-  *
-- * On 64-bit any integer or pointer type can safely be cast to 'long'.
-+ * On 64-bit any integer or pointer type can safely be cast to 'long long'.
-  * But on 32-bit we need to avoid warnings about casting pointers to integers
-  * of different sizes without truncating 64-bit values so 'long' or 'long long'
-  * must be used depending on the size of the value.
-@@ -66,12 +64,12 @@
-  * them, but we do not use s128 types in the kernel (we do use 'u128',
-  * but they are handled by the !is_signed_type() case).
-  */
--#ifdef CONFIG_64BIT
--  #define __signed_type(ux) long
-+#if __SIZEOF_POINTER__ == __SIZEOF_LONG_LONG__
-+#define __is_nonneg(ux) statically_true((long long)(ux) >= 0)
- #else
--  #define __signed_type(ux) typeof(__builtin_choose_expr(sizeof(ux) > 4, 1LL, 1L))
-+#define __is_nonneg(ux) statically_true( \
-+	(typeof(__builtin_choose_expr(sizeof(ux) > 4, 1LL, 1L)))(ux) >= 0)
- #endif
--#define __is_nonneg(ux) statically_true((__signed_type(ux))(ux) >= 0)
- 
- #define __types_ok(ux, uy) \
- 	(__sign_use(ux) & __sign_use(uy))
--- 
-2.47.3
-
+N
