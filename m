@@ -1,20 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B42A2512C8;
-	Wed,  8 Oct 2025 12:59:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E90726CE07;
+	Wed,  8 Oct 2025 12:59:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759928391; cv=none; b=iAaCu0wMpF9hVxrkyVxnP1wV8V6p2lwJTwurH/9OY9aegr3tRK+fGeyQ3JlZTGr93tsFfiyffu6o6WEG+e1m8HyvwW2oZUliH7+VXjkWRZI5EDakLC2ikYFvaw7vgddkGnr4cPxDNQUU4MyNKxf6h8IxrsL/nvj8vowvQVN1qLw=
+	t=1759928395; cv=none; b=Y422kAGq/fpA8SIb1/ZYDDNOmP/oFGnTDFPL+IBt/GNj5nd253HAhwcUvzZfP7QUAnDDUpr8MtfdheCLLsZZd25acHZ0TpGhwhSEzSKi5bfP6Zk5Pj804ZgXohyXnUDgUyq4AxRw0q3FnvV6GzsvRL4EDBH8WuIb23xzWIKy67k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759928391; c=relaxed/simple;
-	bh=RCXBj4j70WAEuAw7p4BCz+eX/3JJaO+E/7fc7KpQLkY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NpDe6F8hwBNBqijSKm5N5WzuuuoMWmWGCDULmxe74bBGAdlYPt7oXfr0ShMAOjLeVBLVz3gyMnhl9I1rlsHPe9Cd9PVwnBj9UwTZb4OPWMnqFea4G1BhaPcVe0iZtGHrjRK03bet2mdhgbT6UrWf0Jfrz2gt1CKvoEeFL2Msv4A=
+	s=arc-20240116; t=1759928395; c=relaxed/simple;
+	bh=yWO99/d8EoLPqWM1cGMW9x0Dwe6pjhvIfrsXVa81Ebs=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=nK7uVC1L3o6Ipg2REEznwnkEKZ1qRXw1RMJEyvT3zpxlg+zdXFDdu32C4m1lLUwLyUy/YcaaOD8atF2K7DFWzKMaqjp4oS4TVOnOL9/k9U8VIKJs7CaqvQFW9k2RzTRt6DNWavtVQEPFnUL1dN4SRnQOixrILgiMemnY5nPWKkQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 25E2A602F8; Wed,  8 Oct 2025 14:59:47 +0200 (CEST)
+	id 7E4A860321; Wed,  8 Oct 2025 14:59:51 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -23,10 +24,12 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 0/4] netfilter: updates for net
-Date: Wed,  8 Oct 2025 14:59:38 +0200
-Message-ID: <20251008125942.25056-1-fw@strlen.de>
+Subject: [PATCH net 1/4] netfilter: nft_objref: validate objref and objrefmap expressions
+Date: Wed,  8 Oct 2025 14:59:39 +0200
+Message-ID: <20251008125942.25056-2-fw@strlen.de>
 X-Mailer: git-send-email 2.49.1
+In-Reply-To: <20251008125942.25056-1-fw@strlen.de>
+References: <20251008125942.25056-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,47 +38,125 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The following patchset contains Netfilter fixes for *net*:
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-1) Fix crash (call recursion) when nftables synproxy extension is used
-   in an object map.  When this feature was added in v5.4 the required
-   hook call validation was forgotten.
-   Fix from Fernando Fernandez Mancera.
-2) bridge br_vlan_fill_forward_path_pvid uses incorrect
-   rcu_dereference_protected(); we only have rcu read lock but not
-   RTNL.  Fix from Eric Woudstra.
+Referencing a synproxy stateful object from OUTPUT hook causes kernel
+crash due to infinite recursive calls:
 
-Last two patches address flakes in two existing selftests.
+BUG: TASK stack guard page was hit at 000000008bda5b8c (stack is 000000003ab1c4a5..00000000494d8b12)
+[...]
+Call Trace:
+ __find_rr_leaf+0x99/0x230
+ fib6_table_lookup+0x13b/0x2d0
+ ip6_pol_route+0xa4/0x400
+ fib6_rule_lookup+0x156/0x240
+ ip6_route_output_flags+0xc6/0x150
+ __nf_ip6_route+0x23/0x50
+ synproxy_send_tcp_ipv6+0x106/0x200
+ synproxy_send_client_synack_ipv6+0x1aa/0x1f0
+ nft_synproxy_do_eval+0x263/0x310
+ nft_do_chain+0x5a8/0x5f0 [nf_tables
+ nft_do_chain_inet+0x98/0x110
+ nf_hook_slow+0x43/0xc0
+ __ip6_local_out+0xf0/0x170
+ ip6_local_out+0x17/0x70
+ synproxy_send_tcp_ipv6+0x1a2/0x200
+ synproxy_send_client_synack_ipv6+0x1aa/0x1f0
+[...]
 
-Please, pull these changes from:
-The following changes since commit 2c95a756e0cfc19af6d0b32b0c6cf3bada334998:
+Implement objref and objrefmap expression validate functions.
 
-  net: pse-pd: tps23881: Fix current measurement scaling (2025-10-07 18:30:53 -0700)
+Currently, only NFT_OBJECT_SYNPROXY object type requires validation.
+This will also handle a jump to a chain using a synproxy object from the
+OUTPUT hook.
 
-are available in the Git repository at:
+Now when trying to reference a synproxy object in the OUTPUT hook, nft
+will produce the following error:
 
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-25-10-08
+synproxy_crash.nft: Error: Could not process rule: Operation not supported
+  synproxy name mysynproxy
+  ^^^^^^^^^^^^^^^^^^^^^^^^
 
-for you to fetch changes up to e84945bdc619ed4243ba4298dbb8ca2062026474:
+Fixes: ee394f96ad75 ("netfilter: nft_synproxy: add synproxy stateful object support")
+Reported-by: Georg Pfuetzenreuter <georg.pfuetzenreuter@suse.com>
+Closes: https://bugzilla.suse.com/1250237
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nft_objref.c | 39 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-  selftests: netfilter: query conntrack state to check for port clash resolution (2025-10-08 13:17:31 +0200)
+diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+index 8ee66a86c3bc..1a62e384766a 100644
+--- a/net/netfilter/nft_objref.c
++++ b/net/netfilter/nft_objref.c
+@@ -22,6 +22,35 @@ void nft_objref_eval(const struct nft_expr *expr,
+ 	obj->ops->eval(obj, regs, pkt);
+ }
+ 
++static int nft_objref_validate_obj_type(const struct nft_ctx *ctx, u32 type)
++{
++	unsigned int hooks;
++
++	switch (type) {
++	case NFT_OBJECT_SYNPROXY:
++		if (ctx->family != NFPROTO_IPV4 &&
++		    ctx->family != NFPROTO_IPV6 &&
++		    ctx->family != NFPROTO_INET)
++			return -EOPNOTSUPP;
++
++		hooks = (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD);
++
++		return nft_chain_validate_hooks(ctx->chain, hooks);
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static int nft_objref_validate(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
++{
++	struct nft_object *obj = nft_objref_priv(expr);
++
++	return nft_objref_validate_obj_type(ctx, obj->ops->type->type);
++}
++
+ static int nft_objref_init(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr,
+ 			   const struct nlattr * const tb[])
+@@ -93,6 +122,7 @@ static const struct nft_expr_ops nft_objref_ops = {
+ 	.activate	= nft_objref_activate,
+ 	.deactivate	= nft_objref_deactivate,
+ 	.dump		= nft_objref_dump,
++	.validate	= nft_objref_validate,
+ 	.reduce		= NFT_REDUCE_READONLY,
+ };
+ 
+@@ -197,6 +227,14 @@ static void nft_objref_map_destroy(const struct nft_ctx *ctx,
+ 	nf_tables_destroy_set(ctx, priv->set);
+ }
+ 
++static int nft_objref_map_validate(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr)
++{
++	const struct nft_objref_map *priv = nft_expr_priv(expr);
++
++	return nft_objref_validate_obj_type(ctx, priv->set->objtype);
++}
++
+ static const struct nft_expr_ops nft_objref_map_ops = {
+ 	.type		= &nft_objref_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_objref_map)),
+@@ -206,6 +244,7 @@ static const struct nft_expr_ops nft_objref_map_ops = {
+ 	.deactivate	= nft_objref_map_deactivate,
+ 	.destroy	= nft_objref_map_destroy,
+ 	.dump		= nft_objref_map_dump,
++	.validate	= nft_objref_map_validate,
+ 	.reduce		= NFT_REDUCE_READONLY,
+ };
+ 
+-- 
+2.49.1
 
-----------------------------------------------------------------
-netfilter pull request nf-25-10-08
-
-----------------------------------------------------------------
-Eric Woudstra (1):
-      bridge: br_vlan_fill_forward_path_pvid: use br_vlan_group_rcu()
-
-Fernando Fernandez Mancera (1):
-      netfilter: nft_objref: validate objref and objrefmap expressions
-
-Florian Westphal (2):
-      selftests: netfilter: nft_fib.sh: fix spurious test failures
-      selftests: netfilter: query conntrack state to check for port clash resolution
-
- net/bridge/br_vlan.c                               |  2 +-
- net/netfilter/nft_objref.c                         | 39 +++++++++++++++
- .../selftests/net/netfilter/nf_nat_edemux.sh       | 58 +++++++++++++++-------
- tools/testing/selftests/net/netfilter/nft_fib.sh   | 13 +++--
- 4 files changed, 89 insertions(+), 23 deletions(-)
