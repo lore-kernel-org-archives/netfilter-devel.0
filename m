@@ -1,175 +1,68 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C09221D87
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Oct 2025 11:33:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15DEF2F7AC1
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Oct 2025 12:14:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759923227; cv=none; b=mhEbw7JXl5s3SOEwW9Oancq49U3oZSBwUQ9Ie8YOdW8ALRs4q9vZzUafOCFVG0KA7ToJL7pWXjOFtqFCaLVWUErL5RdJa957AX8IW6rk/Pc7/HoBwl44yymeAdU5XS8DMq2cant1QW5c51zkKDcRjVyRFpT8NjuNSjX7LSQXKSw=
+	t=1759925674; cv=none; b=GCU408nWnOT+QkCTtQMOGZ9bDPvYmriwuZo4nWcHmqT+2jNYcVOyiPn+/odGaux/ydRCDhZ1o/FZsI+1oH6ToQrTynB9dngl2UxYwGwckAwT3V4MxkTe8Uoj1NU6kWRdcKvWzH9/aZhNsaRDy7Lq5NlPvPz0SgJeiZ6dfZUpXQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759923227; c=relaxed/simple;
-	bh=2Z9/zfu3EDfdGKjkpJusFhZdSwVpEj2Sa3ULIp4I7f0=;
+	s=arc-20240116; t=1759925674; c=relaxed/simple;
+	bh=vjhDQVYga+g0YBWJ/p14m6Z1QNbbzJBRbTSNCmMUss0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h9T2pye2wniEgX/325W4TLUgREY/a1MzNkpG8FFXPJRH9TtGTosaU1Slmq5M+pH3HoJrrTzf12NAayo9PIVjb0WVdsMx9YBfi2EYkDDop5pFA45qDbHxhstXTLcQEuv2tuumA7juJ1OhHBLpjHBvjfl7UZin4/m09fw1pqfXFoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=H/lXfhMx; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SEBCLDVS; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=cTzn6tgV6OXEiyaBT/Qdk6KD/Y8l6WqyRzjx0fZSkRmYGoj0jcRg68KFhNdp42enUlcuDqwGlSmf29K2AmPH54cG+RFKIe3yi2WyCuKBuJI8zCdO2+WwpohUBYywTAgw4KSf+/zZPp3cDzbUVcoHm6YZll918JGvbMvR+OFa5eU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZrxiG/08; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="H/lXfhMx";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SEBCLDVS"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 116A56026B; Wed,  8 Oct 2025 13:33:43 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1759923223;
-	bh=WNwFxbIdGXJW1lMZclmO/btPEqzB7EMDDruafq3UcnA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=H/lXfhMxUAT9pzEM1q3KFjr3itjIAB0oSGgji6jvb4+f1VUZvX/ytH61DidTgxvZB
-	 ljivUDnI6SYqo3xxifUt76vlYiWjDt3mJ06a4xTrY/4bn9R/MBD12PNFapjGM0/40z
-	 FnkvYk9tHMgiJOmhY4601Gd2zG1IjxxetkQEFu7lVlAibeaH3gymreqjYUGzrvn5n3
-	 C9Md1K+ibR6h3vwH13iim+zDgl40mXV+0pw62WYVNYalgeeptWt4hvwF0bALxydPg9
-	 ltJE9h/jXk3UPWAUTXgAoxqEUvb+GKgogtGZxwO9sowSp24p1o/JjYEMTK7fUG/1Rt
-	 6YutZhjwThuTw==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D77D760253;
-	Wed,  8 Oct 2025 13:33:41 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1759923222;
-	bh=WNwFxbIdGXJW1lMZclmO/btPEqzB7EMDDruafq3UcnA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=SEBCLDVSJ/j3hIfmG9LXuyShhdjOa+ulAxDdeXLLvNgVxGa421hrX6veuLe5++z1I
-	 FijK5IwGnkZ8BEae3CZATgfMoG5I0PihRzUIO/rej+bb+bVAsHR+zMAqTv+zvZ13qn
-	 PrnDuOTcvLekaRFU+FmCHcIitiDu7UOXlOSJcRvz6BNg2PukN1G1ViDsoWn4WXkYnB
-	 kn0FJg9BaXaIKtnp1z2oUAFaXr5uBZHiCSKibX0DI7TgMTxnvk+vAnPUODNZ/UTwVG
-	 R/40N93s1+fbTIDOOeX9OGxQqFv/K3pFm2r+vvov6GFSUbVgXuulHEkKU/69fIk4qg
-	 yCbRDc4jvjl3A==
-Date: Wed, 8 Oct 2025 13:33:38 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Nikolaos Gkarlis <nickgarlis@gmail.com>,
-	netfilter-devel@vger.kernel.org, donald.hunter@gmail.com
-Subject: Re: [PATCH] netfilter: nfnetlink: always ACK batch end if requested
-Message-ID: <aOZMEsspSF3HBBpx@calendula>
-References: <20251001211503.2120993-1-nickgarlis@gmail.com>
- <aOV47lZj6Quc3P0o@calendula>
- <aOYSmp_RQcnfXGDw@strlen.de>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZrxiG/08"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=Cfwf2BaT3nWWxgvy3uR0D0pLRPt/jKc8gmTDTIcO7ZM=; b=ZrxiG/08YqvAo/Wv7jj5zc7CoE
+	z6R6+mbjWxlqHw+v93/g5hE87wx5n3vKFQ66UC5fUt8N07EUmNWAo/tWyBGArVzwjT8TaA4+e0I3w
+	LxuO7riZW4j0F8uVUfmqf32KXcf1qXno0+BpyjSbRz+Ndr7YFchdNsoGpXdjls+GfVDqpwZbjE2Fx
+	HR+EVTh1NlePZ76j0/r7D/rHvXiV6M2xX0BjRymmgycrHBnxIzPyS5+RP8O6fxuJVYqn7dHCPb3Xl
+	OTnIF2ZQAuQXOK5QPYif/iXxVJfLMPuYzVrKreXhSTJY0ztN0yoNdh1c/s/o/oAa89gGDTgeXVFXt
+	gh1P7A4Q==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1v6T3s-000000006HJ-0cs5;
+	Wed, 08 Oct 2025 14:14:28 +0200
+Date: Wed, 8 Oct 2025 14:14:28 +0200
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] mnl: Drop asterisk from end of NFTA_DEVICE_PREFIX
+ strings
+Message-ID: <aOZVpMCm23XKryRm@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20251007155707.340-1-phil@nwl.cc>
+ <aOWI3X4pXUGkLjZo@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aOYSmp_RQcnfXGDw@strlen.de>
+In-Reply-To: <aOWI3X4pXUGkLjZo@calendula>
 
-On Wed, Oct 08, 2025 at 09:28:26AM +0200, Florian Westphal wrote:
-> [ Cc Donald Hunter ]
-> 
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Oct 01, 2025 at 11:15:03PM +0200, Nikolaos Gkarlis wrote:
-> > > Before ACKs were introduced for batch begin and batch end messages,
-> > > userspace expected to receive the same number of ACKs as it sent,
-> > > unless a fatal error occurred.
+On Tue, Oct 07, 2025 at 11:40:45PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Oct 07, 2025 at 05:55:17PM +0200, Phil Sutter wrote:
+> > The asterisk left in place becomes part of the prefix by accident and is thus
+> > both included when matching interface names as well as dumped back to user
+> > space.
 > > 
-> > Regarding bf2ac490d28c, I don't understand why one needs an ack for
-> > _BEGIN message. Maybe, an ack for END message might make sense when
-> > BATCH_DONE is reached so you get a confirmation that the batch has
-> > been fully processed, however...
+> > Fixes: c31e887504a90 ("mnl: Support simple wildcards in netdev hooks")
+> > Signed-off-by: Phil Sutter <phil@nwl.cc>
 > 
-> ... which (BATCH_DONE reached) would be made moot by this proposed
-> patch, as we would ACK it even if its not reached anymore.
+> Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Yes, I am inclined not to add more features to bf2ac490d28c (and
-follow up fixes patches that came with it).
-
-> > I suspect the author of bf2ac490d28c is making wrong assumptions on
-> > the number of acknowledgements that are going to be received by
-> > userspace.
-> > 
-> > Let's just forget about this bf2ac490d28c for a moment, a quick summary:
-> > 
-> > #1 If you don't set NLM_F_ACK in your netlink messages in the batch
-> >    (this is what netfilter's userspace does): then errors result in
-> >    acknowledgement. But ENOBUFS is still possible: this means your batch
-> >    has resulted in too many acknowledment messages (errors) filling up
-> >    the userspace netlink socket buffer.
-> > #2 If you set NLM_F_ACK in your netlink messages in the batch:
-> >    You get one acknowledgement for each message in the batch, with a
-> >    sufficiently large batch, this may overrun the userspace socket
-> >    buffer (ENOBUFS), then maybe the kernel was successful to fully
-> >    process the transaction but some of those acks get lost.
-> 
-> Right, 1:1 relationship between messages and ACKs is only there for
-> theoretical infinite receive buffer which makes this feature rather limited
-> for batched case.
-
-Exactly.
-
-> > In this particular case, where batching several netlink messages in
-> > one single send(), userspace will not process the acknowledments
-> > messages in the userspace socket buffer until the batch is complete.
-> 
-> OK, from what I gather you'd like for
-> "netfilter: nfnetlink: always ACK batch end if requested"
-> to not be applied.
-
-I think this at least needs more discussion, I think we are now
-understanding the implications of bf2ac490d28c.
-
-> I would still like to apply the nfnetlink selftest however (even
-> if it has to be trimmed/modified), because it does catch the issue
-> fixed by Fernando
->  [ 09efbac953f6 ("netfilter: nfnetlink: reset nlh pointer during batch replay") ]:
-> 
-> ok 1 nfnetlink_batch.simple_batch
-> #  RUN           nfnetlink_batch.module_load ...
-> # nfnetlink.c:239:module_load:[seq=1759907514] ACK
-> # nfnetlink.c:239:module_load:[seq=1759907512] ACK
-> # nfnetlink.c:244:module_load:Out of order ack: seq 1759907512 after 1759907514
-> # nfnetlink.c:239:module_load:[seq=1759907513] ACK
-> # nfnetlink.c:239:module_load:[seq=1759907514] ACK
-> # nfnetlink.c:239:module_load:[seq=1759907515] ACK
-> # nfnetlink.c:254:module_load:Expected 0 (0) == out_of_order (1)
-> # module_load: Test terminated by assertion
-> #          FAIL  nfnetlink_batch.module_load
-> 
-> If the decision is that there should NOT be an ACK for the BATCH_END if
-> there was an error, then the test only needs minor adjustment:
-> 
-> -       // Expect 5 acks: batch_begin, table, invalid_table(error), chain, batch_end
-> -       validate_res(self->nl, seq - 5, 5, _metadata);
-> +       // Expect 4 acks: batch_begin, table, invalid_table(error), chain
-> +       validate_res(self->nl, seq - 4, 4, _metadata);
->
-> So, what is the 'more useful' behaviour?  Choices are all equally bad:
-> 
-> 1. If we want to always include it, it might not be there due to
->    -ENOBUFS, which will always happen if the batch was large (triggers
->    too many acks).
-
-Yes.
-
-> 2. If we only include it on success, it might not be there for the
->    same reason, so absence doesn't imply failure.
-
-Yes.
-
-> HOWEVER, if the batch was small enough then 2) gives slightly more
-> useable feedback in the sense that the entire batch was processed.
-
-Yes.
-
-I think Nikolaos pointed out that _BEGIN+NLM_F_ACK could actually
-provide an indication, with the assumption that the netlink userspace
-queue is going to be empty because it will be the first
-acknowledgement...
-
-> So I am leaning towards not applying the nfnetlink patch but applying
-> the (adjusted) test case.
-> 
-> Other takes?
-
-Yes, I would start with this approach you propose, then keep
-discussing if it makes sense to keep extending bf2ac490d28c or leave
-it as is.
+Patch applied, thanks!
