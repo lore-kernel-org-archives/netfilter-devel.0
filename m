@@ -1,57 +1,57 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D41A19D082
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Oct 2025 11:09:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78D92F6168
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Oct 2025 11:11:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759921762; cv=none; b=LUtUr9R7EUMAnDGSoSQAfEZeDQqyFx3vcpL4NGbjforXGvZEpW1n652t5x9gT0IqfNOpgFs5N5kadqX/NlcX0ffDw3L7gfqQxIUOfbERhLXS84jCsSqfl6Jqx6Eph6sAGnq4gKfsTuRJ0Bp15qB+vQVOT1BNhjnzUqnPKLtPZ+o=
+	t=1759921899; cv=none; b=tptQ5CF42+Y0blOaTYAQj5SfUJiAepPnYawG9FBUGqYXfNw1pEIVNPHXMygeCJtAl9QGDyPXv7CxS4iCCfZcXRKBAqDSR8v/YDV7G3Jf0f7tgcaIPeapBpdOOcIFu+0CuduckRH3cLaSD1+plPBOWxvAKCRUeEkfF7eaZpnLWqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759921762; c=relaxed/simple;
-	bh=lvYJaeIuxMAPG7h0s/Fwg/EWbRpquvji8fs0PYaFqR4=;
+	s=arc-20240116; t=1759921899; c=relaxed/simple;
+	bh=HpejdlKSzzsCBsa+jDJxbMoGxbVbScuWE1f+zgq1g+Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dM9v/BGwVuWbI59+sHM8xPCOFL+goe9yYAJeuqP6fRajKKVxRqmBtaYQp7GmBW6Wfvt3r3jShY+V+XHFVL7ShQv4KYTGdH6yhaONrFVlSaVzucoKfomr2V/zPeOHjlVNM/FrG5pQR842w3W82YmU2So0+3aBlKKh0+cYpv1vczs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jNavNaPg; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qG+qApIk; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=HqIo0kSaYXhLEyq4+9nj6PYOWMV1tc8WFrB2uyCQBNNUrXptA5ydAhlmDlnE+DMR83vvVIWGPgErl6JyoEqssamOPypOd6FLWnXaTXmNPhSCS9eh2HvN44ByMqDoENtanLVvCXDkmT88yg/1YtgYQZsLwsVZ1WFe9yNY6WHwVhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=QO6S8lsM; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LdFFFc0t; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jNavNaPg";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qG+qApIk"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="QO6S8lsM";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LdFFFc0t"
 Received: by mail.netfilter.org (Postfix, from userid 109)
-	id A1E89602AF; Wed,  8 Oct 2025 13:09:09 +0200 (CEST)
+	id 269366026E; Wed,  8 Oct 2025 13:11:34 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1759921749;
-	bh=xsi8efyUcv2RCuBiDqmzr/1gdQAqfgaGkBfJg7pR8ns=;
+	s=2025; t=1759921894;
+	bh=na6GIwEMpyonhw+vZGG0HzNF61v1qk5iQA3Ux/bODhY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jNavNaPgngjTsOzwG3qLVbLDho4D2fV1tB3/yeIZxUH0QNPxQ/IH3NLkUEYjXK9UW
-	 DEwXPw28R5FobxrxkKo7jWX48FB0tb2MYGCGaylflCMx/WTkJDjYD+vkaeIx3bYjps
-	 a35vNLyMBEDFVtfXA71WErz27JaUQeNdjylVPAQifk18GpZ73RCQ3SfdsyTB+X1hWb
-	 npAfpauNKRmN8vmHiI3f8xrd6ripifuOK1ASgPfjX3Jnbd4dync719Vd5G7CHLm1D9
-	 bObPNuOhUTibh/JVksGPOCaj29sCviubgCgDPTg33j2b2hbVDLyOcR1S3TlKxdw5UV
-	 AHiT9D2Z83RiA==
+	b=QO6S8lsM8vm9zZH2dg64MvIUK/slbTf8m2nqeX8n97KqmHNsLl2qdEQyLv3AWq1Sk
+	 gmXvuf1ulgVZRMm8dUjZjjB/luYTrevzRuPMx2FWiF+3e+XhA2h/sGGpeaz3WeoH47
+	 bqnEUwydLZnYH/J+MykbUT1CMC7HDYqGFTFOPxMn76hBzMuRj7I9rHOsuvZnDN9gP5
+	 B4dEONAGwcep2fsVvA5bPugE4TZPM22xMN0Vc+z3ej9lY3US/dx8I2GYO/6ExMpeUn
+	 KdIJ7MKX16Xi8xPFLzXh8rRQR/vqZ8asDy/r/P1ezsUeC1cOqQ7/HXTKzEFKpYT7p0
+	 eVQP/EiLqSDTA==
 X-Spam-Level: 
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 45987602AB;
-	Wed,  8 Oct 2025 13:09:07 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5A70460262;
+	Wed,  8 Oct 2025 13:11:31 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1759921747;
-	bh=xsi8efyUcv2RCuBiDqmzr/1gdQAqfgaGkBfJg7pR8ns=;
+	s=2025; t=1759921891;
+	bh=na6GIwEMpyonhw+vZGG0HzNF61v1qk5iQA3Ux/bODhY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qG+qApIkNdIfFywmY/hcJgdWqonak00WBOypiDXdBnGj7Z07Atk+ZuR0a95EL5NOa
-	 f5R9SQgR10Q28Uo8cq/7GmQw0JVQI7j0S4T7mHAgH5NcIjSa1MP6RclmKyj/6qC4Te
-	 QRwgN+6szIH2RIcBnhMPHPQ4iurfd5p43roa6IZMcn+kYzy4TPzwcOFQX2S8TeSTVh
-	 DE09nfDit4KvBByS8DGgt55E9hKWnp7ZQsMnhiZTLfIU1JkomGKpQc+Vp7Yh8JAIdP
-	 WWczIUKsH1E5fh0J+13O+9hKO40IlzO6ouwJAi/ViKOhG9lnLr1S/ogeefaiJznEtO
-	 68px5qWjuidTg==
-Date: Wed, 8 Oct 2025 13:09:04 +0200
+	b=LdFFFc0tqd1O3e7Y/J+vM6MoXVe1fDxN+ZaqFcho2QFhCNqeuwAYdDVvrSiVcK5LN
+	 cGSsJXtE9MzHWMUUNIgplE0gkgwQ8n/lDkAi6lXUwuer3c0qDUiUkzGdLXThRmUtJd
+	 lS2aC3/3e2VBArk1PY/jNG+lHOA4V4vug4lnirdYYMCvRxrkrAWuALddkXesF4ctDv
+	 Ex5ABdbsejHXglGwzau9kyS4lKfkl6fpIiZFdGiSNWuqAHiS5CoVmKF5dCW7IigcsJ
+	 IlMz8rboyCxjYInKBpNXnoE0NXg+MzJuYRHgzqMncqztHKOzYc9UGowJKcRDVsOZuT
+	 xgV6BwwqawtTA==
+Date: Wed, 8 Oct 2025 13:11:29 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Nikolaos Gkarlis <nickgarlis@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH] netfilter: nfnetlink: always ACK batch end if requested
-Message-ID: <aOZGUPMwr5aHm66x@calendula>
-References: <20251001211503.2120993-1-nickgarlis@gmail.com>
- <aOV47lZj6Quc3P0o@calendula>
- <CA+jwDR=hSYD76Z_3tdJTn6ZKkU+U9ZKESh3YUXDNHkvcDbJHsw@mail.gmail.com>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
+	Georg Pfuetzenreuter <georg.pfuetzenreuter@suse.com>
+Subject: Re: [PATCH nf v2] netfilter: nft_objref: validate objref and
+ objrefmap expressions
+Message-ID: <aOZG4TEch18WK7mQ@calendula>
+References: <20251008100816.8526-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -60,130 +60,134 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CA+jwDR=hSYD76Z_3tdJTn6ZKkU+U9ZKESh3YUXDNHkvcDbJHsw@mail.gmail.com>
+In-Reply-To: <20251008100816.8526-1-fmancera@suse.de>
 
-Hi,
-
-On Wed, Oct 08, 2025 at 10:41:05AM +0200, Nikolaos Gkarlis wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Regarding bf2ac490d28c, I don't understand why one needs an ack for
-> > _BEGIN message. Maybe, an ack for END message might make sense when
-> > BATCH_DONE is reached so you get a confirmation that the batch has
-> > been fully processed, however...
+On Wed, Oct 08, 2025 at 12:08:16PM +0200, Fernando Fernandez Mancera wrote:
+> Referencing a synproxy stateful object from OUTPUT hook causes kernel
+> crash due to infinite recursive calls:
 > 
-> _BEGIN might be excessive, but as you said, I do think _END could be
-> useful in the way you describe.
+> BUG: TASK stack guard page was hit at 000000008bda5b8c (stack is 000000003ab1c4a5..00000000494d8b12)
+> [...]
+> Call Trace:
+>  __find_rr_leaf+0x99/0x230
+>  fib6_table_lookup+0x13b/0x2d0
+>  ip6_pol_route+0xa4/0x400
+>  fib6_rule_lookup+0x156/0x240
+>  ip6_route_output_flags+0xc6/0x150
+>  __nf_ip6_route+0x23/0x50
+>  synproxy_send_tcp_ipv6+0x106/0x200
+>  synproxy_send_client_synack_ipv6+0x1aa/0x1f0
+>  nft_synproxy_do_eval+0x263/0x310
+>  nft_do_chain+0x5a8/0x5f0 [nf_tables
+>  nft_do_chain_inet+0x98/0x110
+>  nf_hook_slow+0x43/0xc0
+>  __ip6_local_out+0xf0/0x170
+>  ip6_local_out+0x17/0x70
+>  synproxy_send_tcp_ipv6+0x1a2/0x200
+>  synproxy_send_client_synack_ipv6+0x1aa/0x1f0
+> [...]
 > 
-> My assumption is that the author of 1bf2ac490d28c aims to standardize
-> the behavior while also allowing some flexibility in what flags are
-> sent. If someone tried to use those flags in a creative way that
-> deviates from what nft userspace expects, they might run into
-> difficulties handling the responses correctly.
-
-I think the author of 1bf2ac490d28c is using it for a testing tool
-that sends very small batches (only few commands at a time). In that
-case, considering the default socket buffer size, the acknowledment is
-going to fit into the userspace netlink socket buffer.
-
-> > I suspect the author of bf2ac490d28c is making wrong assumptions on
-> > the number of acknowledgements that are going to be received by
-> > userspace.
+> Implement objref and objrefmap expression validate functions.
 > 
-> That could very well be the case. As you said, you’re not always
-> guaranteed to receive the same number of ACKs.
+> Currently, only NFT_OBJECT_SYNPROXY object type requires validation.
+> This will also handle a jump to a chain using a synproxy object from the
+> OUTPUT hook.
 > 
-> I’m aware of the ENOBUFS error. Personally, I see it as a “fatal” or
-> “delivery” error, which should tell userspace that no more messages
-> are coming.
-
-In netlink, ENOBUFS is not "fatal", it means messages got lost, but
-there are still messages in the netlink socket buffer to be processed,
-ie. the netlink messages before the overrun are still in place, but
-the messages that could not fit in into the socket buffer has been
-dropped.
-
-nfnetlink handles a batch in two stages:
-
-1) Process every netlink message in the batch, if either netlink
-   message triggers an error or NLM_F_ACK is set on, then enqueue
-   an error to the list.
-
-2) If batch was successfully processed, iterate over the list of
-   errors and create the netlink acknowledgement messages that is
-   stores in the userspace netlink socket buffer.
-
-Since this is a batch of netlink messages, acknowledgement either
-triggered by explicit NLM_F_ACK or by errors may overrun the netlink
-socket buffer.
-
-> Similar to EPERM which I have a test case for.
-
-EPERM is indeed fatal.
-
-> It might not be the best approach, since one could argue such errors
-> might also occur for individual batch commands. Still, now that I
-> think about it, not receiving a _BEGIN message could indicate that
-> the error is indeed fatal.
-
-I think I see your point.
-
-Acknowledgement for _BEGIN will be likely in the netlink socket
-buffer, because it is the first message to be acknowledged, but _END
-is the last one to be processed, so it could get lost if many
-acknowledgements before have been queued to the userspace netlink
-socket buffer (leading to overrun).
-
-It seems with 1bf2ac490d28c, an acknowledgement with _BEGIN can be an
-indication of successfully handling a batch in the way you describe.
-
-> Receiving an error about an invalid command isn’t necessarily a
-> delivery failure (unlike ENOBUFS), and I’d still expect to get the
-> entire message back, including the ACK. Otherwise, how would userspace
-> know that it has read all messages and drained the buffer?
-
-For this nfnetlink batching, use select() to poll for pending messages
-to process, and make no assumptions on how many messages you receive.
-
-> You could argue that userspace should bail on the first error it
-> receives, but if I’m not mistaken, the kernel will still send an error
-> for any subsequent invalid command, meaning the buffer isn’t being
-> drained again.
-
-If you open, send then batch, process response, then close. Lazy
-approach that consist of bailing out on the first error is OK. The
-close call on the socket implicitly cleans up the ignored pending
-error messages in the socket buffer.
-
-But if you keep the socket open for several batches, with the approach
-you describe, then unprocessed netlink error messages will pile up on
-the socket buffer. If you do not do any sort of sequence tracking,
-then you application process old pending errors as new, libmnl handles
-this with EILSEQ.
-
-All these netlink subtle details are not easy to follow :).
-
-> > Netlink is a unreliable transport protocol, there are mechanisms to
-> > make it "more reliable" but message loss (particularly in the
-> > kernel -> userspace direction) is still possible.
+> Now when trying to reference a synproxy object in the OUTPUT hook, nft
+> will produce the following error:
 > 
-> Is it unreliable mainly because of those corner cases, or are there
-> other factors to consider as well?
+> synproxy_crash.nft: Error: Could not process rule: Operation not supported
+>   synproxy name mysynproxy
+>   ^^^^^^^^^^^^^^^^^^^^^^^^
+> 
+> Fixes: ee394f96ad75 ("netfilter: nft_synproxy: add synproxy stateful object support")
+> Reported-by: Georg Pfuetzenreuter <georg.pfuetzenreuter@suse.com>
+> Closes: https://bugzilla.suse.com/1250237
+> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
-As for netlink batching, which is supported in other classic netlink
-subsystems, this acknowledgement overrun issue exists, I am referring
-to the scenario where you add several netlink messages to the buffer
-and send() them to the kernel.
+Thanks Fernando, this looks simpler.
 
-As for nfnetlink, it is a bit special in that it has begin and end
-messages because this is needed for the transaction semantics (to
-implement a dryrun to test if incremental ruleset update is OK).
+Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-1bf2ac490d28c added the handling for NLM_F_ACK which I left it
-unspecified at the time.
+One day, if there are more objects that need validation, it should be
+possible to add a .validate interface to objects, but I prefer this
+approach because it will be easier to backport.
 
-Netlink can be also used for event delivery to userspace, ENOBUFS can
-also happen in that case, but that is a different scenario.
-
-TBH, I am trying to remember the details, I don't talk about Netlink
-very often.
+> ---
+>  net/netfilter/nft_objref.c | 39 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 39 insertions(+)
+> 
+> diff --git a/net/netfilter/nft_objref.c b/net/netfilter/nft_objref.c
+> index 8ee66a86c3bc..1a62e384766a 100644
+> --- a/net/netfilter/nft_objref.c
+> +++ b/net/netfilter/nft_objref.c
+> @@ -22,6 +22,35 @@ void nft_objref_eval(const struct nft_expr *expr,
+>  	obj->ops->eval(obj, regs, pkt);
+>  }
+>  
+> +static int nft_objref_validate_obj_type(const struct nft_ctx *ctx, u32 type)
+> +{
+> +	unsigned int hooks;
+> +
+> +	switch (type) {
+> +	case NFT_OBJECT_SYNPROXY:
+> +		if (ctx->family != NFPROTO_IPV4 &&
+> +		    ctx->family != NFPROTO_IPV6 &&
+> +		    ctx->family != NFPROTO_INET)
+> +			return -EOPNOTSUPP;
+> +
+> +		hooks = (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD);
+> +
+> +		return nft_chain_validate_hooks(ctx->chain, hooks);
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int nft_objref_validate(const struct nft_ctx *ctx,
+> +			       const struct nft_expr *expr)
+> +{
+> +	struct nft_object *obj = nft_objref_priv(expr);
+> +
+> +	return nft_objref_validate_obj_type(ctx, obj->ops->type->type);
+> +}
+> +
+>  static int nft_objref_init(const struct nft_ctx *ctx,
+>  			   const struct nft_expr *expr,
+>  			   const struct nlattr * const tb[])
+> @@ -93,6 +122,7 @@ static const struct nft_expr_ops nft_objref_ops = {
+>  	.activate	= nft_objref_activate,
+>  	.deactivate	= nft_objref_deactivate,
+>  	.dump		= nft_objref_dump,
+> +	.validate	= nft_objref_validate,
+>  	.reduce		= NFT_REDUCE_READONLY,
+>  };
+>  
+> @@ -197,6 +227,14 @@ static void nft_objref_map_destroy(const struct nft_ctx *ctx,
+>  	nf_tables_destroy_set(ctx, priv->set);
+>  }
+>  
+> +static int nft_objref_map_validate(const struct nft_ctx *ctx,
+> +				   const struct nft_expr *expr)
+> +{
+> +	const struct nft_objref_map *priv = nft_expr_priv(expr);
+> +
+> +	return nft_objref_validate_obj_type(ctx, priv->set->objtype);
+> +}
+> +
+>  static const struct nft_expr_ops nft_objref_map_ops = {
+>  	.type		= &nft_objref_type,
+>  	.size		= NFT_EXPR_SIZE(sizeof(struct nft_objref_map)),
+> @@ -206,6 +244,7 @@ static const struct nft_expr_ops nft_objref_map_ops = {
+>  	.deactivate	= nft_objref_map_deactivate,
+>  	.destroy	= nft_objref_map_destroy,
+>  	.dump		= nft_objref_map_dump,
+> +	.validate	= nft_objref_map_validate,
+>  	.reduce		= NFT_REDUCE_READONLY,
+>  };
+>  
+> -- 
+> 2.51.0
+> 
