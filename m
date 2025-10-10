@@ -1,142 +1,167 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail-24426.protonmail.ch (mail-24426.protonmail.ch [109.224.244.26])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4111822DF9E
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Oct 2025 12:47:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F37FC42AA3
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Oct 2025 21:16:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.26
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760100426; cv=none; b=GiFp6WCcI7lkKShl4fkgCgPRP57pCK5MXkXM+jLqGRMfPaMTfO/lqfSaCBgfhSbi+WvR4rhZyDSnYeIVQ8aSD4kT34ZHn1YVWTfRhmqoCoBjTE5icwFaFINwUst+COFtIGgG8rxSaTyq2XcgE5E6fajm0V4EhNR6yEFn39a7cPg=
+	t=1760131013; cv=none; b=O3PzZ4+VuEUMYMpc8jAr4PrO1Dsz1cJvaD2MKBbOa+wd15RBPCTXxayN183vsgnJXTb7F/kNJx7AXyNbP4QzSHuZmUGPb4jHGm3ob6y2w/+ZWYt5py7acDRzbOv9OqIECaOEj3LfjUfAjX6bwKOpKLAie+PINkn5kmvLibDjrDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760100426; c=relaxed/simple;
-	bh=qkK8I1YguBnVQS/8CTTVCeBe9tV+wQUrB+MQpCwNN/s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YYetdZ39RKp8Sxer+hLd8Zj3bedjbnqA7PGjtfl8dg9kN9mnLyp5SKUI3FkYmxpM5t9hFHp/eS8ie7Caxw67l86RJHnekzj1JothiF0lu3VNV/7nyKmMYr82t1HOFw+t8uL+5yRB7vfIQriEdK72cgQYYHWecXwLqMyS7XSupkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 4AC1C61830; Fri, 10 Oct 2025 14:46:56 +0200 (CEST)
-Date: Fri, 10 Oct 2025 14:46:56 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH nft] tests: shell: add packetpath test for meta ibrhwdr
-Message-ID: <aOkAQFrmZzKs_2X2@strlen.de>
-References: <20251009162439.4232-1-fmancera@suse.de>
+	s=arc-20240116; t=1760131013; c=relaxed/simple;
+	bh=4M9RgFdC3r+/fyxCuEQ2okJbynrygynqjwDLbz3cF4E=;
+	h=Date:To:From:Subject:Message-ID:MIME-Version:Content-Type; b=r4aGHoZ6tWmvVe6SMYZohD4fIkxFEJHwAIaKQqYJTdAXFCNfbBAllei5OWv3H5ygvLm1Yf1nEt1scytY+puCX7OgF6NhcDCR/IxHciiivggvimgZXJ9JL3okGVAWsc2gJxYua59/VyUSKDLN2tJXDM4JSSUUPH0RAPBDzRSaxlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=zDwCWVFZ; arc=none smtp.client-ip=109.224.244.26
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="zDwCWVFZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1760131003; x=1760390203;
+	bh=OJ2G/9W1C4mnwA05N3ZcP5ByfjOvCm4w8F58UHA93dk=;
+	h=Date:To:From:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=zDwCWVFZrCzXkk7ikrdOm0Q5ZGR2/Io/dxbIOXg4TjM/c1gx3DO8dcqAX4mEKa/tt
+	 ET195OTgjaSHKOIwMW0iu7O18m7RKFX64ZFgp2VbxlGjuMqHOnelfqOcjiuu8NmQh+
+	 J629/QKWumcCyKzlZd768ul5ct7pVavOlxhOq1y7g6NQSfVg0s0nsYnDiqFNxACC1l
+	 HO9ShmmuDCkueZzA/lySA7oqLqTJzXmr6Lzji9EPNuH1aHVi9+OJgkpj1G23qngrWn
+	 NJm7SHWKUlKmjbnPIH8poPJ9dK9M7r2oOQp2fSjOJqNVrziP3xFLJg8f9X4sK/UMJU
+	 ws91jXJaNUqHg==
+Date: Fri, 10 Oct 2025 21:16:38 +0000
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+From: "Remy D. Farley" <one-d-wide@protonmail.com>
+Subject: iptables: zero dereference parsing bitwise operations
+Message-ID: <s5LZtLzqFmQhlD4mtmgcKbrgkfQ-X7k7vvg7s7XnXHekGJSKOMyOdmoiONo7MzuLVqYTFPntt74igf8Q0ERSPy5R9f8L1EfwrhOZbs_nhO8=@protonmail.com>
+Feedback-ID: 59017272:user:proton
+X-Pm-Message-ID: 5ff8867e02e487a2fa9bbcc0740898afb5f4d787
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251009162439.4232-1-fmancera@suse.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> The test checks that the packets are processed by the bridge device and
-> not forwarded.
+While messing around with manually encoding nftables expressions, I noticed
+that iptables binary v1.8.11 segfaults with -L and -D <chain> options, if
+there's a rule containing a bitwise operation of a type other than
+mask-and-xor. As I understand, iptables and nft tools only generate rules w=
+ith
+mask-xor, though the kernel seems to happily accept other types as well.
 
-OK, I think it would make sense to also check that we can do something
-useful with the packet.
 
-> +
-> +ip -net "$ns1" link set veth0 up
-> +ip -net "$ns2" link set veth0 up
-> +ip -net "$ns3" link set veth1 up
-> +ip -net "$ns2" link set veth1 up
-> +ip -net "$ns2" link set br0 up
-> +
-> +ip -net "$ns1" addr add 10.1.1.10/24 dev veth0
-> +ip -net "$ns3" addr add 10.1.1.20/24 dev veth1
-> +
-> +ip netns exec "$ns2" $NFT -f /dev/stdin <<"EOF"
-> +table bridge nat {
-> +	chain PREROUTING {
-> +		type filter hook prerouting priority 0; policy accept;
-> +		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr
+For the reference:
 
-While this indeed is enough to check the bridge 'redirect to input'
-maybe it would make sense to also check that we can do something useful
-with it?
+> /**
+>  * enum nft_bitwise_ops - nf_tables bitwise operations
+>  *
+>  * @NFT_BITWISE_MASK_XOR: mask-and-xor operation used to implement NOT, A=
+ND, OR
+>  *                        and XOR boolean operations
+>  * @NFT_BITWISE_LSHIFT: left-shift operation          \
+>  * @NFT_BITWISE_RSHIFT: right-shift operation         |
+>  * @NFT_BITWISE_AND: and operation                    | These all seem af=
+fected
+>  * @NFT_BITWISE_OR: or operation                      |
+>  * @NFT_BITWISE_XOR: xor operation                    /
+>  */
 
-The bridge has no ip address, so I don't really see the point why anyone
-would redirect the packet locally to begin with.
 
-> +table bridge donotprocess {
-> +	chain FORWARD {
-> +		type filter hook forward priority 0; policy accept;
-> +		ip protocol icmp ether saddr da:d3:00:01:02:03 counter
-> +	}
-> +}
-> +EOF
-> +
-> +ip netns exec "$ns1" ping -c 1 10.1.1.20 || true
-> +
-> +set +e
-> +
-> +ip netns exec "$ns2" $NFT list table bridge process | grep 'counter packets 0'
-> +if [ $? -eq 0 ]
-> +then
-> +	exit 1
+Hooking up a debugger, it looks like nft_parse_bitwise() doesn't check type=
+ of
+a bitwise operation, nor validate that it's attributes being used are prese=
+nt.
 
-I think it would be nice to display WHERE its failing so that someone
-looking at testout.log doesn't have to re-run with added "set -x" or "echo
-failed at".
 
-To give some ideas (this isn't fleshed out):
+From iptables/nft-ruleparse.c:
 
-diff --git a/tests/shell/testcases/packetpath/bridge_pass_up b/tests/shell/testcases/packetpath/bridge_pass_up
---- a/tests/shell/testcases/packetpath/bridge_pass_up
-+++ b/tests/shell/testcases/packetpath/bridge_pass_up
-@@ -38,14 +38,18 @@ ip -net "$ns3" link set veth1 up
- ip -net "$ns2" link set veth1 up
- ip -net "$ns2" link set br0 up
- 
-+ip netns exec "$ns2" sysctl -q net.ipv4.ip_forward=1
-+
- ip -net "$ns1" addr add 10.1.1.10/24 dev veth0
- ip -net "$ns3" addr add 10.1.1.20/24 dev veth1
-+ip -net "$ns2" addr add 10.1.1.1/24 dev br0
- 
- ip netns exec "$ns2" $NFT -f /dev/stdin <<"EOF"
- table bridge nat {
- 	chain PREROUTING {
- 		type filter hook prerouting priority 0; policy accept;
--		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr
-+		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr meta mark set 1
- 	}
- }
- 
-@@ -62,9 +66,19 @@ table bridge donotprocess {
- 		ip protocol icmp ether saddr da:d3:00:01:02:03 counter
- 	}
- }
-+
-+table ip process {
-+	chain FORWARD {
-+		type filter hook forward priority 0; policy accept;
-+		ip protocol icmp mark 1 counter
-+	}
-+
-+}
- EOF
+> static void nft_parse_bitwise(struct nft_xt_ctx *ctx, struct nftnl_expr *=
+e)
+> {
+>   [...]
+>
+>   data =3D nftnl_expr_get(e, NFTNL_EXPR_BITWISE_XOR, &len); // <-- this a=
+ttribute may not be present
+>=20
+>   if (len > sizeof(dreg->bitwise.xor)) {
+>     ctx->errmsg =3D "bitwise xor too large";
+>     return;
+>   }
+>=20
+>   memcpy(dreg->bitwise.xor, data, len); // <-- zero dereference happens h=
+ere
+>
+>   data =3D nftnl_expr_get(e, NFTNL_EXPR_BITWISE_MASK, &len);
+>  =20
+>   if (len > sizeof(dreg->bitwise.mask)) {
+>   =09ctx->errmsg =3D "bitwise mask too large";
+>   =09return;
+>   }
+>  =20
+>   memcpy(dreg->bitwise.mask, data, len);
+>  =20
+>   dreg->bitwise.set =3D true;
+>
+> }
 
-ALTERNATIVELY one could check INPUT instead (no fwd sysctl)
-by also doing 'ip daddr set 10.1.1.1' in bridge or ip prerouting
-and then checking if the packet made it to the ip input hook.
 
-I only ever saw 3 cases of this 'bridge hijacking' implemented
-via meta ibrhwdr:
+The bug can be reproduced with a rule created using newrule operation that
+looks something like this:
 
-1. Push packets up to mangle them via NAT.  In most cases
-people did this with br_netfilter + iptables, but it would be nice
-to make sure we have a working alternative to that thing.
 
-2. Push packet to local host/application, e.g. for TPROXY intercept.
-3. Push packet to local host for forwarding/policy routing.
-
-I think that 'it arrived in ip input or forwarding'
-would be good because then the above (tproxy, nat, etc. should "just work").
-
-But if you think checking bridge input is enough, thats fine.
+> OpNewruleDoRequest {
+>   Table: "filter",
+>   Chain: "example-chain",
+>   Expressions: ExprListAttrs {
+>     Elem: ExprAttrs {
+>       Name: "payload",
+>       Data: Payload(
+>         ExprPayloadAttrs {
+>           Dreg: 1 [Reg1],
+>           Base: 1 [NetworkHeader],
+>           Offset: 12,
+>           Len: 4,
+>         },
+>       ),
+>     },
+>     Elem: ExprAttrs {
+>       Name: "bitwise",
+>       Data: Bitwise(
+>         ExprBitwiseAttrs {
+>           Sreg: 1,
+>           Dreg: 1,
+>           Len: 4,
+>           Op: 3 [And],
+>           Data: DataAttrs {
+>             Value: [ 255, 255, 255, 0 ],
+>           },
+>         },
+>       ),
+>     },
+>     Elem: ExprAttrs {
+>       Name: "cmp",
+>       Data: Cmp(
+>         ExprCmpAttrs {
+>           Sreg: 1,
+>           Op: 0 [Eq],
+>           Data: DataAttrs {
+>             Value: [ 1, 2, 3, 0 ],
+>           },
+>         },
+>       ),
+>     },
+>     Elem: ExprAttrs {
+>       Name: "immediate",
+>       Data: Immediate(
+>         ExprImmediateAttrs {
+>           Dreg: 0,
+>           Data: DataAttrs {
+>             Verdict: VerdictAttrs {
+>               Code: 1 [Accept],
+>             },
+>           },
+>         },
+>       ),
+>     },
+>   },
+> },
