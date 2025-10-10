@@ -1,51 +1,51 @@
-Received: from serval.cherry.relay.mailchannels.net (serval.cherry.relay.mailchannels.net [23.83.223.163])
+Received: from buffalo.tulip.relay.mailchannels.net (buffalo.tulip.relay.mailchannels.net [23.83.218.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9AE62367D7
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Oct 2025 23:07:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.163
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E18AC27A468
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Oct 2025 23:15:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.24
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760137624; cv=pass; b=CN3+4y8S97tWlB9V1j6b+EQoymiMh7jxfgovEow7rwsIvskk0Jddo8Q3kxm1ZJeTByBMPtMfmnmhlCUEjHUi6dMRvCUciS1I8NY8FmsA+c3u5RVcHDkW840BmLicn0tvua9PbLDDujedKSiABZVQEODFQjrLEkUiJ4lVbs/iI0Q=
+	t=1760138159; cv=pass; b=cB02PVDU5heMj7fRCTaujRQKiWh4j/kDJXRQCRuVpAF04SPcgG3Cf695sa8iAgoQWXDGaQ0M7uePpDIA4epVPRIwhiM557mdC4BBQgBNB5U+unckhQenmZ9rL4/juBwhsfjlG/aOlB2au9rIDZ/b2DtQXAdfO1BnwHI72Nyoe08=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760137624; c=relaxed/simple;
-	bh=IrNF6JegBiRDF0y+03k2wvzOnUqUlwnUg9JEM4Ze33o=;
+	s=arc-20240116; t=1760138159; c=relaxed/simple;
+	bh=xyY/PyuO17JbJr77UvIfjWDskSvS2FnlLgxcgkfls5Y=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=OA9JNQjycOLG3eeshzR0salDOO64z4/ckucglKvA/jUgJyVlg79/zacFV5MHJk0bQlqEt5ClBDmwdbSuSr34qexyJQoOySPgcMPVZmPicvBWQ/s9HEnAa4PMBDd+B+Z8DUZ2Ip37n9dV2aBix/j/xvkujHNk8Yt4iCEgE0hd6W4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=P7/s0xfI reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.223.163
+	 Content-Type:MIME-Version; b=EI8b2v62Qqgov4Q5fEjplixdWKsSTnx0ezT8EVnId28wywkQi1pxULYiukfNZ1d3LJ7FGKN+B44jLb6syL9uDFVeLPPMwrWsbeKT4OlCN9Z8+VNf3pBd9d3vcZ5NIeKlb3ZWFZXseY+9Mpf+PzTK7vatLWgOxBPUEXKjzJVhLA0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=M6m1kcHV reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.24
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="P7/s0xfI"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="M6m1kcHV"
 X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id ABE57360ADE;
-	Fri, 10 Oct 2025 23:06:55 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-green-0.trex.outbound.svc.cluster.local [100.117.100.69])
+	by relay.mailchannels.net (Postfix) with ESMTP id 926A68A13EC;
+	Fri, 10 Oct 2025 23:07:19 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-113-91-253.trex-nlb.outbound.svc.cluster.local [100.113.91.253])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id D06A5360CF0;
-	Fri, 10 Oct 2025 23:06:54 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1760137615; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 8DA338A03F4;
+	Fri, 10 Oct 2025 23:07:18 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1760137639; a=rsa-sha256;
 	cv=none;
-	b=gcYD8lZDh6WrqtjXbinYAxH7mMWte+xvU+u7BODmjNedVfNvCZli8E/HAVVPvrDjrnX5Of
-	nx1sAWz+jXcqOH9eybdFppN/VC0wN2rCqInzHmJwlf0eMti1kp6KHMJfFlDLSh2biLWtAj
-	PObqE7rixOXeKWV9sDrLetzb3WZ+CLJiB+6rbUTYPXWof/j3PiW3xkDZWJydhRoYiVFnW6
-	3vHV5GyC8GIKh6hOMVwR2Pa921Rl0Lnrs3TjiJBmI0LWzC0ggcGWL+OT9NpoHPRq59uHcb
-	j9GqnPQ+se1NnJsv6XIfv90ZF5iU2LATYMxpmBjpT5/1c4xsZO3+WniiVm6KXQ==
+	b=J5oo3+/siAcp6vV6AUkqKFckknuzDjerC/CwnuBnVvop3rroquOVASu0yq7SctdDFl837g
+	BywaydhKoQGyVdS4OFNAOXMnEa96C3K40o/Ra5WMaxKXwJSCMDYhG5/fe4S1YXt/3CeCkG
+	IlcsF9CfpZ5MkCtMi9PiZSxHUUMbrEQm6O42JmEN/JyJmgIah5bF5kZJnrXIOPJCGeeOw6
+	ItlCCGCJ+6ozDCcmRfexapuFDkpIg7raqwFyvLkw/wZJxnjrg3dHP5mvxS9Kq3+msECfeW
+	78TcZAyMJa+ibR9z6LSNXObJCFH6Dh7u4OtXtN+H0R6gBXXiRSupjp0krQU2Gw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1760137615;
+	s=arc-2022; t=1760137639;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=rgEuM8PPP6dP4N3SDWbPmM2Nn96kK5oJYd90uomSscA=;
-	b=nxryLG5kFp3IYUws4aIw3XeJb3qC0htIJnDszFcqmWU5LXK9VUnH3DaKMPUVYmSg7AVQwn
-	UOTS0fhw4d52CJDi47BxZjDp3b2o9EQeSB29Pd5meq5mrUfP/6Zu5ddQOJOPNxONDhWc+S
-	xDV77NAzNqp7SrJ2vJHYBQc4VXswR59r51MYaY6p3lgKk+BOxO8msHyDf6uALK5kVwOFX3
-	SXIPwREV+IRGqg+jnEQPSL9aavTQoZ1HpNZET7OwLG7tRoBLQKQYVoJnGnMBYertyKNcQ1
-	9bI+2es3ZuW2e8OxIoyR7EABSbdsCez/0uRp4EY4tkghNka99ucNH4a2eljapQ==
+	bh=/QZE6Z+01ETaNo31T7ZJoZxnkir05lV5ZXPrCCIMBYo=;
+	b=5+aIP8s49xTrRVdVNPWZGwNxQnafgen0/isnjRCOTGQ99wUTGY0T6yqa46nfDSrQQDlVlP
+	s+FIC66Ub7e/kTGRO0kigy3wadvXXf6oydP8+1GdJqNauxegly6kUAo/35bhEic9/g8QMx
+	P9cVJ8pSykRPANWYmwbxRuuQcMcrcZ+/MzNNrKikoAhE+vbOlXm5TXugkPg/RQ2PhySB/W
+	lXiKdkeLXqrvuKOFwISoVTLQfF/z8NQz/FAev2qqh5HPCr+g8pxZBpU26XJC36M4GJGrq2
+	IgQbDGgAW4Pf2635puN2dBpxhR2vatREK1VSDoP3/ZnE03ANWcteiMXfoDz9ug==
 ARC-Authentication-Results: i=1;
-	rspamd-668c7f7ff9-w2q82;
+	rspamd-668c7f7ff9-dj9kz;
 	auth=pass smtp.auth=instrampxe0y3a
  smtp.mailfrom=mail@christoph.anton.mitterer.name
 X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
@@ -53,45 +53,44 @@ X-MC-Relay: Neutral
 X-MailChannels-SenderId:
  instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Name-Madly: 5f10291268df9ef1_1760137615529_2713415843
-X-MC-Loop-Signature: 1760137615529:2781847222
-X-MC-Ingress-Time: 1760137615528
+X-Average-Fearful: 3939fc4c13d6bb18_1760137639411_614368084
+X-MC-Loop-Signature: 1760137639411:3391761481
+X-MC-Ingress-Time: 1760137639411
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.117.100.69 (trex/7.1.3);
-	Fri, 10 Oct 2025 23:06:55 +0000
+	by 100.113.91.253 (trex/7.1.3);
+	Fri, 10 Oct 2025 23:07:19 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
 	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
 	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=rgEuM8PPP6dP4N3SDWbPmM2Nn96kK5oJYd90uomSscA=; b=P7/s0xfIyhy3
-	qMYxcAD+eMacWz/llYdxN9LtU9yTM8o6SOUi71Lq/xFPpoA4u3EsFFoxG3vRtGFxsQgqN8AoJDaub
-	ROn75jjaiyulFF85qyQXRvLoPlhikBC3fIMc3sHawExjCAU1z1ra/AfXQfLd38/bGQ312p+ZD0yb+
-	NGJXz6282Bh00Lz2nC7Cs5niFZfHc3AcH3NzwHxP5vlyFH7Gq2vQnjiLbjW+VEVsvceQeBImoFfzW
-	UjHgtQxkIOLWRIHHPJhUmHPrYguMkqcBNuK5na+eh067bzVuU/aaXBSvtvGys1p/UrPejOsCgCT0U
-	699Nu2nU16WImGjIbXNNUQ==;
-Received: from [212.104.214.84] (port=4585 helo=[10.2.0.2])
+	List-Archive; bh=/QZE6Z+01ETaNo31T7ZJoZxnkir05lV5ZXPrCCIMBYo=; b=M6m1kcHVGE0S
+	PuPjTsYIejMZDr4Ys7qSgCm1WYxmU2KvXCTbt+foOLMxEnKE3w3V2hjArKA2ygNXsSqE21UnG9re6
+	FBZ7Z0iZglO4zViJq0eUvdKCRWJcU2cI+fYU3lBPkDcP7D+v0O/1uRozfQw+2R9QlUZ1qAIZse8n0
+	ac4kAHl/pm5nBxMNFK6+NFPxyhhD0evTxDjoR2veLQaTnA1QCqDkA7nVjBADQSBikC7GVQb6is/2A
+	C0MHrfVICIBm32BhXFIerhAUmU+IamX3PIbB/S7/KLCEM7ZN4xZZvvuNUc1T0cLsaluTmzNEGK2mN
+	xYEOwpv7v2PaFBPWcreSqg==;
+Received: from [212.104.214.84] (port=38749 helo=[10.2.0.2])
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <mail@christoph.anton.mitterer.name>)
-	id 1v7MCN-00000009LmM-2cgd;
-	Fri, 10 Oct 2025 23:06:53 +0000
-Message-ID: <533b405b3a540527f2f0716fe4a24b6c53863634.camel@christoph.anton.mitterer.name>
-Subject: Re: [PATCH 2/7] doc: fix/improve documentation of verdicts
+	id 1v7MCl-00000009Lsy-0Dy8;
+	Fri, 10 Oct 2025 23:07:16 +0000
+Message-ID: <a9790d0ae61fda6405d32e26a533cd4283aeb0b4.camel@christoph.anton.mitterer.name>
+Subject: Re: [PATCH 4/7] doc: add overall description of the ruleset
+ evaluation
 From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 11 Oct 2025 01:06:51 +0200
-In-Reply-To: <aN6YkhJxliaNw2u2@strlen.de>
+Date: Sat, 11 Oct 2025 01:07:15 +0200
+In-Reply-To: <aNvECxpxlsYS7Noy@strlen.de>
 References: <aNTwsMd8wSe4aKmz@calendula>
-	 <20250926021136.757769-1-mail@christoph.anton.mitterer.name>
-	 <20250926021136.757769-3-mail@christoph.anton.mitterer.name>
-	 <aNu1-kwUzXGXyNLJ@strlen.de>
-	 <38e6a25fd2d311e2f33b1881542a9ce7b8a8473d.camel@christoph.anton.mitterer.name>
-	 <aN6YkhJxliaNw2u2@strlen.de>
+			 <20250926021136.757769-1-mail@christoph.anton.mitterer.name>
+			 <20250926021136.757769-5-mail@christoph.anton.mitterer.name>
+			 <aNvECxpxlsYS7Noy@strlen.de>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.56.2-5 
@@ -106,227 +105,351 @@ X-AuthUser: mail@christoph.anton.mitterer.name
 Hey.
 
 
-On Thu, 2025-10-02 at 17:21 +0200, Florian Westphal wrote:
-> > What's IMO important from the user PoV is that for example at a
-> > sentence like:
-> > > *accept* and *drop*/*reject* are absolute verdicts, which
-> > > immediately
-> > > terminate the evaluation of the current rule, i.e. even any later
-> > > statements of the current rule won=E2=80=99t get executed
+Sorry for the delay... but I've been travelling to some science
+conference.
+
+
+On Tue, 2025-09-30 at 13:50 +0200, Florian Westphal wrote:
+> > +=C2=A0 various ICMP types and are sysctl options lik
 >=20
-> Why not shorten it to "accept/drop/reject immediately terminate ..."
+> Minor typo, 'like'.
 
-I solved that a bit different now, please have a look whether that's
-fine for you.
+Thx for catching.
 
 
+> > +=C2=A0 `net.ipv{4,6}.conf.*.forwarding` or `net.ipv4.conf.*.rp_filter`=
+.
+> > +* With respect to the evaluation tables don=E2=80=99t matter at all an=
+d
+> > are not known by
+> > +=C2=A0 netfilter.
+> > +=C2=A0 They=E2=80=99re merely used to structure the ruleset.
 >=20
-> > I'm not sure how much we win, by differentiating between these two,
-> > and
-> > even if we do so, how shall we call things like reject? "verdict
-> > like
-> > statements"? "statements that imply a verdict"?
+> 'evaluation ordering'?=C2=A0 Tables do matter in the sense that you can't
+> have any chains without them.
+
+What would you think about merely adding a "," after "evaluation"?
+"Evaluation ordering" could be understood as implicitly meaning that it
+doesn't have an effect on the ordering of the evaluations, but might
+still have some other effect (from netfilter's PoV).
+
+
+> > +* Packets traverse the network stack and at various hooks they=E2=80=
+=99re
+> > evaluated by
+> > +=C2=A0 any base chains attached to these hooks.
 >=20
-> What about "terminal statements"?
-> This is already used in the man page in several places.
+> Maybe add the hook names here?=C2=A0 (preouting, input, and so on).
+> Or a reference to this topic.
 
-Hmm. Personally, I think "terminal" is a bit confusing, at least for
-beginners, because we have termination on multiple levels:
-- Termination of a rule and (AFAICS) then also always of the respective
-  base chain and any regular chains called by that.
-  As e.g. done by accept.
-- Termination of the overall ruleset evaluation.
-  As e.g. done by drop, reject (by implying drop).
+I've added a reference to the ADDRESS_FAMILIES chapter.
 
-From how I understood your explanation, the "terminating" is not an
-inherent property of e.g. reject itself, but rather of drop/accept,
-whereas the inherent property of reject is, that it implies a drop (at
-the end).
+One may argue now whether this defeats the purpose of the summary
+chapter, if one has again to look things up somewhere else.
 
-So I'd have now gone the way to describe reject/synproxy and the NAT
-statements as implying a verdict and further explaining that they thus
-act like verdicts.
-Further, giving, some concrete examples (like that reject also
-completely ends ruleset evaluation, as drop does - which I think is
-important).
+I have no strong opinion in this case, but I would say that a user
+realises quite soon what hooks are (in particular input/output/forward
+are probably well known)... so I don't think it's necessary to explain
+here *what* they are,... but it's good to give a reference to the full
+list, so that a reader can cross check whether some foobar term he
+stumbled over is actually a hook or not.
 
 
-> >=20
-> > Is there a complete list of all these which are verdict-like and
-> > what
-> > verdict they actually imply?
+> > +* For each hook, the attached chains are evaluated in order of
+> > their priorities
+> > +=C2=A0 (with chains with lower priority values being evaluated before
+> > those with
+> > +=C2=A0 higher values and the order of chains with the same value being
+> > undefined).
 >=20
-> No.
+> It took me a sec to parse this, maybe:
 >=20
-> net/bridge/netfilter/nft_reject_bridge.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0 regs->verdict.code =3D
-> NF_DROP;
-> net/ipv4/netfilter/nft_reject_ipv4.c:=C2=A0=C2=A0 regs->verdict.code =3D =
-NF_DROP;
-> net/ipv6/netfilter/nft_reject_ipv6.c:=C2=A0=C2=A0 regs->verdict.code =3D =
-NF_DROP;
-> net/netfilter/nft_reject_inet.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0 regs->verdict.code =3D NF_DROP;
-> net/netfilter/nft_reject_netdev.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 regs->ve=
-rdict.code =3D NF_DROP;
+> ... higher values.=C2=A0 The order of chains with identical priorities is
+> undefined.
 >=20
-> These are "obvious", reject is a fancier drop.
->=20
-> net/netfilter/nft_compat.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0 regs->verdict.code =3D
-> NF_ACCEPT;
-> net/netfilter/nft_compat.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0 regs->verdict.code =3D NF_DROP;
->=20
-> irrelevant for nftables
->=20
-> net/netfilter/nft_connlimit.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0 regs->verdict.code =3D NF_DROP;
->=20
-> Error handling only
->=20
-> net/netfilter/nft_ct.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 regs->verdict.code =3D NF_=
-DROP;
-> net/netfilter/nft_ct.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 r=
-egs->verdict.code =3D NF_DROP;
-> net/netfilter/nft_exthdr.c:=C2=A0=C2=A0=C2=A0=C2=A0 regs->verdict.code =
-=3D NF_DROP;
-> net/netfilter/nft_fib_inet.c:=C2=A0=C2=A0 regs->verdict.code =3D NF_DROP;
->=20
-> Same, only errors
->=20
-> net/netfilter/nft_fwd_netdev.c: regs->verdict.code =3D NF_STOLEN;
->=20
-> Terminal (packet is redirected)
->=20
-> net/netfilter/nft_synproxy.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 regs->ve=
-rdict.code =3D
-> NF_DROP;
-> net/netfilter/nft_synproxy.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 regs->ve=
-rdict.code =3D
-> NF_STOLEN;
-> net/netfilter/nft_synproxy.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0 regs->verdict.code =3D NF_DROP;
-> net/netfilter/nft_synproxy.c:=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0 regs->verdict.code =3D
-> NF_STOLEN;
->=20
-> Also terminal, 3whs packets are dropped resp. stolen
-> for further processing.
+> (or similar).
 
-As far as I understood this:
-- the NAT statements imply accept (and can later be overruled)
-- reject implies drop
-- synprxy implies drop
-  Not sure what stolen does... since it doesn't seem to appear at
-  all=C2=A0in nftables, I merely wrote now, that it implies drop.
-  Please correct as needed.
-- the others don't even show up in nftables?
+Also disliked that sentence when I wrote it,... but found nothing
+better where I could keep it in parentheses.
+I removed those now and made two proper sentences.
+
+Also made an analogous change in patch 1 of this series.
 
 
-Btw, one further question that just popped up:
-In the VERDICTS section, accept/drop are described as "absolute", which
-at this point I describe in my patch as:
-> which immediately terminate the
-> evaluation of the current rule, i.e. even any later statements of the
-> current
-> rule won=E2=80=99t get executed.
-
-a) Does the term "absolute" really just mean "ends the current rule" or
-=C2=A0  does it mean additionally mean "and the current base chain and any
-   regular ones called from that?
-   Cause my current wording, would rather imply it means only the
-   former (while the actual verdicts are still described as also
-   causing the latter).
-b) Are jump/goto/return/queue/etc. i.e. all those which *DON'T* imply a
-   accept or drop also absolute? I presume not, if the term also
-   means "end current base/regular chains".
-   But even if not, do these verdicts (jump/goto/return/queue/etc.)
-   still cause the current rule to be ended?
-   like in:
-      jump counter
-   vs
-      counter jump
-
-   Even with continue?
-
-Cause then I need to update that in another iteration of the patch
-series.
-
-
-> Yes, I think an example would be prudent, it is probably simpler
-> to unstand rather than describing the mechanism.
-
-I've changed things now as follows:
-- In the VERDICTS section, I keep things rather "abstract" and focused
-  on the respectve verdict that we're just explaining.
-  So examples will be in the evaluation summary chapter rather than
-  there.
-  Also e.g. at jump/goto it's *not* explained how the return position
-  is determined... this is instead done at the return verdict.
-  But what I do at jump is, describing what happens if there's an
-  absolute verdict and if there's no verdict at all (i.e. the implicit
-  return).
-  Hope that split up makes kinda sense.
-
-  goto I really describe as exactly jump, just without storing the
-  position.
-- I also reordered the verdicts to an IMO more reasonable order, in
-  particular, continue and queue are IMO the least interesting ones for
-  most users.
-- In the summary chapter I give examples and describe it a bit more
-  human readable.
- =20
-
-> > But rather *if* there's nowhere to return to (like when it's called
-> > from a base-chain) *then* the policy is applied, right!?
+> > +* An *accept* verdict (including an implict one via the base
+> > chain=E2=80=99s policy,
+> > +=C2=A0 even if caused in certain cases by a *return* verdict) ends the
+> > evaluation of
+> > +=C2=A0 the current base chain and any regular chains called from that.
+> > +=C2=A0 It accepts the packet only with respect to the current base
+> > chain, which does
+> > +=C2=A0 not mean that the packet is ultimately accepted.
 >=20
-> Yes.
+> Maybe: 'It accepts the packet only with respect to the current base
+> chain.'=C2=A0 The rest is already made clear by your next sentence:
 
-I did that now in the VERDICTS section and there in the return
-statement.
-What I do not explicitly mention is that the policy is also applied
-when there *is* one last position to pop on the call stack, but when
-there's no rule after that (i.e. the jump was the last rule in a base
-chain).
-But I kinda hope that it's obvious that this then also applies.
-
-In principle that should perhaps be mentioned where policies are
-explained (and of course in the summary chapter, too).
-Or what would you think?
+done
 
 
-> >=20
-> > As far as I understand it now:
-> > =C2=A0 base --jump--> regularA --goto--> regularB
-> > then at the end of regularB or if return is called in it, while I
-> > don't
-> > return to regularA, I actually will return to the jump position in
-> > base, right?
->=20
-> Yes, rules in "regularB" are evaluated as if they would reside in
-> regularA, it resumes in the base chain.
->=20
-> > Similar in:
-> > =C2=A0 base --jump--> regularA --jump--> regularB --goto--> regularC
-> > I will not return to regularB, but will return to the jump position
-> > of
-> > regularA and then to that of base, right?
->=20
-> Yes.
->=20
-> > Very open for opinions, but I do think with that semantics it
-> > actually
-> > might be best to describe things with a call stack an give some
-> > examples.
->=20
-> Yes, I think examples are best here.
+> > +=C2=A0 Any other base chain (or regular chain called by such) with a
+> > higher priority
+> > +=C2=A0 of the same hook as well as any other base chain (or regular
+> > chain called by
+> > +=C2=A0 such) of any later hook may still utlimately *deny*/*reject* th=
+e
+> > packet with
+>  ~~~~~~~ ultimately, but i'd just
+>  remove this word.
 
-I've added a number of examples to the summary chapter.
+I thought it might help to reiterate that drop - unlike accept - is in
+fact ultimate, ... in particular to point out, that it can't be
+overridden by a later accept in another chain.
+
+Have merely fixed the typo for now, waiting for further feedback,
+whether I shall remove it altogether.
+
+> please avoid 'deny' and use 'drop' everywhere.=C2=A0 In this case,
+> .. may still drop the packet.
+
+Mistakenly used... must have mixed up drop and deny at some point. O:-)
+
+
+> > +=C2=A0 Thus and merely from netfilter=E2=80=99s point of view, a packe=
+t is only
+> > accepted if
+> > +=C2=A0 none of the chains (regardless of their tables) that are
+> > attached to any of
+> > +=C2=A0 the respectively relevant hooks issues a *deny*/*reject* verdic=
+t
+> > (be it
+> > +=C2=A0 explicitly or implicitly by policy) and if there=E2=80=99s at l=
+east on
+> > *accept*
+> > +=C2=A0 verdict (be it explicitly or implicitly by policy).
+>=20
+> I'm not sure if the last part is needed as there is no such thing as
+> a
+> base chain without a policy, so i would simplify this to:
+>=20
+> Thus a packet is only accepted if no chain or rule issues a drop
+> verdict, including chain policies.
+
+In principle yes, but that's IMO already "quite some" conclusions that
+a novice reader would need to draw, i.e. the combination of:
+- no drops by any mean
+plus
+- all chains have a policy
+plus
+- policy is any of drop/accept
+thus, there must be at least one accept, if nothing drops.
+
+In teaching, which this chapter is in principle meant for, I'd rather
+keep things as simple as possible not requiring the reader to draw
+implicit conclusions.
+
+I changed it however a bit to make it more clear that "at least one
+accept" is already implied by "nothing drops".
+If you still want it to removed, just tell.
+
+
+> > +=C2=A0 In that, the ordering of the various base chains per hook via
+> > their priorities
+> > +=C2=A0 matters (with respect to the packets utlimate fate) only in so
+> > far, if any of
+> > +=C2=A0 then would modify the packet or its meta data and that has an
+> > influence on the
+> > +=C2=A0 verdicts =E2=80=93 if not, the ordering shouldn=E2=80=99t matte=
+r (except for
+> > performance).
+>=20
+> I'm not sure about this paragraph.=C2=A0 While its correct, base chains
+> and
+> their priorities still have effects, e.g. if ip defragmentation has
+> taken place or not.=C2=A0 I think the previous paragraph is clear enough
+> wrt.
+> packet acceptance.
+
+What I wanted to say with that paragraph was effectively:
+
+The ordering of chains via priorities, doesn't matter with respect to
+whether a packet is ultimately accepted or dropped.
+Except of course, an earlier chain modifies something on the packet,
+which no longer causes it to be dropped/accepted.
+
+While that is of course a logical conclusion from the earlier text, I
+think it's nevertheless good to have it explicitly mentioned.
+
+E.g. when I transitioned to nftables and looked at what fail2ban does
+when using its nftables backend, I was first a bit puzzled when I saw
+that it uses a chain priority of -1.
+At a first glance I thought +1 would be better so that my normal filter
+table could "fast-accept" e.g. all related,established packets and
+traversing the (potentially long) fail2ban chain would be short-cut.
+
+Of course I then realised that this is not really how it works, and
+short-circuiting is only possibly via drop/reject/etc..
+
+
+> > +* A *drop*/*reject* verdict (including an implict one via the base
+> > chain=E2=80=99s
+> > +=C2=A0 policy even if caused in certain cases by a *return* verdict)
+> > immediately ends
+> > +=C2=A0 the evaluation of the whole ruleset and ultimately drops/reject=
+s
+> > the packet.
+> > +=C2=A0 Unlike with an *accept* verdict, no further chains of any hook
+> > and regardless
+> > +=C2=A0 of their table get evaluated and it=E2=80=99s therefore not pos=
+sible to
+> > have an
+> > +=C2=A0 *drop*/*reject* verdict overturned.
+>=20
+> As noted elsewhere, reject is just a more fancy drop, it should not
+> be
+> mentioned here.
+
+I've reworked the integration of *reject* and verdict-like statements
+everywhere.
+In some places, like the one here where I describe drop, I still
+mention them, though less prominent.
+Simply because I think it's helpful if people get told at the important
+places, that reject/etc. effectively behave like drop (by internally
+issuing it).
+
+Just have a look whether you're fine with the way I did it, and if you
+still think it should be changed, we can of course reiterate.
+
+
+> > +=C2=A0 Thus, if any base chain uses drop as it=E2=80=99s policy, the s=
+ame base
+> > chain or any
+> > +=C2=A0 regular chain directly or indirectly called by it must accept a
+> > packet or it
+> > +=C2=A0 is ensured to be ultimately dropped by it.
+>=20
+> Can that be reduced to something like:
+>=20
+> Thus, base chains that use 'policy drop' must contain at least one
+> accept rule or
+> must call another chain with an accept rule to avoid blocking all
+> traffic.
+
+That seems a bit imprecise to me?
+
+The sections describe things from the view of a single packet, but
+you're now referring to all traffic?
+Also, "must contain/call with"... isn't really exactly true, is it?! I
+mean the intention may just be to do that.
+
+
+> > +* A *jump* verdict causes evaluation to continue at the first rule
+> > of the
+> > +=C2=A0 regular chain it calls. Called chains must be of the same table
+> > and cannot be
+> > +=C2=A0 base chains.
+>=20
+> 'must reside in same table'?
+
+"reside" feels also awkward. What about "belong to" or "be from" (which
+I'd have chosen now)?
+
+
+> > +=C2=A0 If no other verdict is issued in the called chain and if all
+> > rules of that
+>=20
+> .. chain... ?
+
+I've completely changed that part, so this is gone anyway.
+
+
+> > +=C2=A0 have been evaluated, evaluation will continue with the next rul=
+e
+> > after the
+> > +=C2=A0 calling rule of the calling chain.
+> > +=C2=A0 That is, reaching the end of the called chain causes a =E2=80=
+=9Cjump
+> > back to the
+> > +=C2=A0 calling chain=E2=80=9D respectively an implicit *return* verdic=
+t.
+>=20
+> Yes, this is why there is sometimes a reference to the call stack /
+> or
+> chain stack.
+>=20
+> 'jump' makes a 'where am I' note, 'goto' doesn't.
+
+I think I'm described that now correctly.
+Same with respect to your other comments, that were about my wrong
+description of how the returning from jump/goto works.
+
+Please check :-)
+
+
+> > +* All verdicts described above (that is: *accept*, *drop*,
+> > *reject*, *jump*,
+> > +=C2=A0 *goto* and *return*) also end the evaluation of any later
+> > statements in their
+> > +=C2=A0 respective rules (or even cause an error when loadin such rules=
+)
+> > with the
+> > +=C2=A0 exception of the `comment` statement.
+>=20
+> Why mention the comment statement here?
+>=20
+> Comment is special, its not a statement from the evaluation
+> perspective. It tells the kernel to allocate some extra space to
+> store the comment data, the interpreter doesn't know its there.
+
+Well, we've just described in that text, that any later statements will
+be ignored.
+A user doesn't really know whether or not comment is special and since
+it's actually not just a comment with respect to the nftables rules
+files, but really stored in the kernel memory - as you say - ... it's
+IMO not really obvious whether this happens e.g. in a rule like:
+   drop comment "bar"
+
+The mentioning of "comment" (which btw. I've changed now slightly) is
+to explain just this - i.e. comment is *not* ignored, even if after the
+terminal statement.
+
+I could explain that with an example like:
+> drop comment "foo"
+>is the same as
+> comment "foo" drop
+
+but I thought that's overkill... if no, just tell me.
+
+
+
+> > +=C2=A0 That is, for example in `=E2=80=A6 counter accept` the `counter=
+`
+> > statement is
+> > +=C2=A0 processed, but in `=E2=80=A6 accept counter` it is not.
+>=20
+> I think this was already mentioned
+
+It's already mentioned, but only in the VERDICTS chapter. So I think it
+should be re-iterated in the summary chapter.
+
+> , also, nft should already be
+> informing the user that the rule has unreachable trailing statements.
+
+This actually might be a valid reason to remove it, but:
+
+- Is this really enforced in all cases (or are there some statements
+  where nftables would ignore it but not error out)
+- Could that behaviour (of nftables) ever change? Like by adding a
+  --only-warn-on-ignored-statements option?
+  In that case, we should IMO leave it in.
+- What about beyond-the-nftables-utility?
+  E.g. if someone uses libnftnl or nftables from python... would it
+  still be guaranteed to error out? Cause if that's only a mechanism in
+  the utility, we should IMO still describe the true behaviour (of
+  ignoring such statements) because users likely use the nft manpage
+  for their education.
 
 
 Thanks,
 Chris.
+
+PS: v2 of the patch series will follow in a few minutes.
