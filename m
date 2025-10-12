@@ -1,67 +1,89 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B24118BC3B
-	for <netfilter-devel@vger.kernel.org>; Sun, 12 Oct 2025 16:47:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from smtpfb1-g21.free.fr (smtpfb1-g21.free.fr [212.27.42.9])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 377ED2343B6
+	for <netfilter-devel@vger.kernel.org>; Sun, 12 Oct 2025 21:00:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.27.42.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760287625; cv=none; b=tw2pev4Ju+r4lfAjQowjJW5QdrFCEMO1+e/ETy6p+bDx9g3FW3mqxsefE8YNClRfcgDNXpCb1GX/q9bmujfXEV/lHHYBNz5M23pkq/cWR0mGKFScE728ZDI0gYIjRP/HoVKJ4a7HlrG5CoS51uE5tpOa++g8Gil056Tc9Pl8WU8=
+	t=1760302806; cv=none; b=R0iLluAxyZL97v5kR+mCUTx4JufmZ3bjyhGWaO2pw4mmWYPxPkWQXMCmyyXbHD/oNo/ZQiUyFbbsNEEpCmKwleQm+goUHfs1HZkLAXw4bXZ51c/rWdPk0hZtlTqXAAM11KqBBiKgG/jd9yAQ+LSWZUu2OW3KWYLJUp6VjhxWcyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760287625; c=relaxed/simple;
-	bh=MNErUi96tKSbHFaKNycN2N/zV5lFcGNeVslZSD7EeFA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Q+/krg8lEvhepmENOLUBgAWFpDT0w62oScPWVGOxN2P1CJ5sEz5h1K12uV15zP6f71yUfogMhMgZsDC6ZVqHwtDG31yYPrHEZT/VNp+ALmJ4b2zcN0ooA6ehJc54WpyKEnEARo9MJ04cGI40AHgD3hxCUHI7ewHcjtJ3onP7KUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6F5E760329; Sun, 12 Oct 2025 18:46:52 +0200 (CEST)
-Date: Sun, 12 Oct 2025 18:46:51 +0200
-From: Florian Westphal <fw@strlen.de>
-To: "Remy D. Farley" <one-d-wide@protonmail.com>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: iptables: zero dereference parsing bitwise operations
-Message-ID: <aOvbe_ljSWP7ruJc@strlen.de>
-References: <s5LZtLzqFmQhlD4mtmgcKbrgkfQ-X7k7vvg7s7XnXHekGJSKOMyOdmoiONo7MzuLVqYTFPntt74igf8Q0ERSPy5R9f8L1EfwrhOZbs_nhO8=@protonmail.com>
- <aOpigXfhOrj02Qa5@strlen.de>
- <e2mf5Q5IBD50dFQcvIXCNkQCKwghz-hLmCunP33gaZy33srxWrQKdcL1J3GKA8a0H05T6p4kZGFpR910g7JBZusbg_AmEZKPD1UvW_mEheQ=@protonmail.com>
+	s=arc-20240116; t=1760302806; c=relaxed/simple;
+	bh=EdRTsQHlz0s3B2bNaorLiuNzxgXKgNQmmva2s+eHj10=;
+	h=Date:From:To:Message-ID:Subject:MIME-Version:Content-Type; b=ayZj5BiqWKK9J7vC9xEW6n8YU/H0vhO9oSXTk0BmVhj1DFa+YNs1teDobL4gfVaEyRRGA3b1WpSgZp9mHrDWmOhxyAkoqXXSQwfuB//EZtpAQxXQYfPf2WIzRXSxLrXyrzX1p9DlCvzdj6/l+Modqa9iOfWiD4WFbFAZ2kery1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=free.fr; spf=pass smtp.mailfrom=free.fr; dkim=pass (2048-bit key) header.d=free.fr header.i=@free.fr header.b=rp+f7Fna; arc=none smtp.client-ip=212.27.42.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=free.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=free.fr
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=free.fr header.i=@free.fr header.b="rp+f7Fna"
+Received: from smtp1-g21.free.fr (smtp1-g21.free.fr [212.27.42.1])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 8AA1DDF8872
+	for <netfilter-devel@vger.kernel.org>; Sun, 12 Oct 2025 22:59:53 +0200 (CEST)
+Received: from zimbra62-e11.priv.proxad.net (unknown [172.20.243.212])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id A66C7B00539
+	for <netfilter-devel@vger.kernel.org>; Sun, 12 Oct 2025 22:59:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=free.fr;
+	s=smtp-20201208; t=1760302786;
+	bh=EdRTsQHlz0s3B2bNaorLiuNzxgXKgNQmmva2s+eHj10=;
+	h=Date:From:To:Subject:From;
+	b=rp+f7Fna8rmypB0AjR1AvkT1NP9SjgFgfJH6pFv2FzNwQTCSPGGafAXHABPasyJOD
+	 9W+cYMGrbP6Fh0KNpn57ANWgKtLe5YFaBGUR1SXnKTRu6nf5B5yzif+bn1jISa/pIY
+	 Dz5OeiuH7ZyaTB8Lr8BFBa791x4khJRBSkHIoUb9LIee5jTL7NSrMzfOXoDnLuiYYo
+	 mHUd/w82pWRUmqDp+Bv/18kF+bhhXbhRgM4xr4tivNZnwA9MD9Ce9zcacbPr5X7Mke
+	 iRq1z/iESYcbLRDJXCw01+QLMCvoOa0FHh58951aWLoMVxmUwAtzrNxqSOb0mpIqRd
+	 X5KTYEeOTtnkw==
+Date: Sun, 12 Oct 2025 22:59:46 +0200 (CEST)
+From: "Antoine C." <acalando@free.fr>
+To: netfilter-devel@vger.kernel.org
+Message-ID: <2093285391.1388199126.1760302786604.JavaMail.root@zimbra62-e11.priv.proxad.net>
+Subject: bug report: MAC src + protocol optiomization failing with 802.1Q
+ frames
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e2mf5Q5IBD50dFQcvIXCNkQCKwghz-hLmCunP33gaZy33srxWrQKdcL1J3GKA8a0H05T6p4kZGFpR910g7JBZusbg_AmEZKPD1UvW_mEheQ=@protonmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+X-Mailer: Zimbra 7.2.0-GA2598 (zclient/7.2.0-GA2598)
+X-Authenticated-User: acalando@free.fr
 
-Remy D. Farley <one-d-wide@protonmail.com> wrote:
-> > > While messing around with manually encoding nftables expressions, I noticed
-> > > that iptables binary v1.8.11 segfaults with -L and -D <chain> options, if
-> > > there's a rule containing a bitwise operation of a type other than
-> > > mask-and-xor. As I understand, iptables and nft tools only generate rules with
-> > > mask-xor, though the kernel seems to happily accept other types as well.
-> > 
-> > 
-> > No, nftables supports this, but iptables does not.
-> 
-> 
-> Hmm, when I run `nft list ruleset` it terminates successfully, but it does
-> report some errors at the end if the rule from the example is present.
+Hello,
 
-That just means nft dissector can't make sense of whatever your program
-is doing.
+Following the mails I sent on the user mailing list, it seems that
+there is a bug occurring with the first rule below (the second is
+fine):
 
-> > netlink: Error: Invalid source register 0
+# nft list table netdev t
+table netdev t {
+        chain c {
+              ether saddr aa:bb:cc:dd:00:38 ip saddr 192.168.140.56 \
+log prefix "--tests 1&2 --"
+              ip saddr 192.168.140.56 ether saddr aa:bb:cc:dd:00:38 \
+log prefix "--tests 2&1 --"
+        }
+}
 
-Hmm, I am not sure why kernel accepted this in first place,
-or maybe a different bug in libnftnl.
+It is translated this way:
+netdev t c
+  [ meta load iiftype => reg 1 ]
+  [ cmp eq reg 1 0x00000001 ]
+  [ payload load 8b @ link header + 6 => reg 1 ]
+  [ cmp eq reg 1 0xddccbbaa 0x00083800 ]
+  [ payload load 4b @ network header + 12 => reg 1 ]
+  [ cmp eq reg 1 0x388ca8c0 ]
+  [ log prefix --tests 1&2 -- ]
 
-> Sure. I think it's fine for now to just check for the operation type and
-> error with something like "unsupported bitwise operation", like seems to be the
-> case with nft tool, since this issue appears to be extremely uncommon, if it
-> hasn't been spotted before.
+The MAC source and the protocol are loaded at the same time
+then checked... but with an 802.1Q packet, it is actually 
+wrong: the ethertype will be 0x8100 and the protocol (here 
+IPv4, 0x0800), will be 4 bytes further. And it that case,
+the second test above will succeed because the protocol 
+is loaded independently.
 
-Yes.
+I just tested with latest versions of libmnl/libnftnl/nft 
+and I get the same behavior.
 
-You can also extend nft_is_expr_compatible() so it will exit right away.
+The mail on the netfilter-user ML:
+https://marc.info/?l=netfilter&m=176011821517829
+
+Regards,
+Antoine
