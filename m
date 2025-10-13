@@ -1,97 +1,95 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97685259CA5
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 18:08:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F8E2D3204
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 18:48:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760378896; cv=none; b=TjwApAbtcJZmjnG/CdUFSG1qp3hzDLQZVtLrvwSOaEFfZACoop4wXdhpBUpAi0fCGI4QtaxlLXDXWu7Q5Z28XsyKxmszq0JWrxAEYvDN0QpKzA3sXGAyj2aF2T/oslKdSZ3g4HZBcJyd0AVSHC8EHqab+Mb4anQLOhWNxE6KzMk=
+	t=1760381308; cv=none; b=jpMDPbDYRN/j0kGUskydlj92Um9DSqcuCEyNHji6oKGofM3WgYuxC9hg6uAVvK/pxQcG7iA+f/p4y9z3IWnnJj6LLSzOWdgh/VrEaO1X7CHECw9FU+1yH2atG8IpbkQD13ox3fCGvAkw4aN9Gju5f56wEaciyO29xb4VM0nW2mk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760378896; c=relaxed/simple;
-	bh=hk5OVtzUI/3IZIHbx/d7uO7ZuMyUzshxUVc4jzJGI8s=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=i8WhcvufQBfc6tJOBdtFosUtn/csr5m1d7daLrHF/a5xodvJEWWxU2cm1pIanJal9f5ZNf//1cwAp2uYm954iGGT37/VtIGEtaRYj7I7NRH7NahfL8hXb9XT+W0fGczQ81ZrEe1xzLepUreAo8qcwlJ01Nndu1dwluoEx1LdH3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; arc=none smtp.client-ip=148.6.0.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4cllT83gB2zGFDLn;
-	Mon, 13 Oct 2025 19:58:36 +0200 (CEST)
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id Ii-N55pWCSAn; Mon, 13 Oct 2025 19:58:34 +0200 (CEST)
-Received: from mentat.rmki.kfki.hu (77-234-80-199.pool.digikabel.hu [77.234.80.199])
-	(Authenticated sender: kadlecsik.jozsef@wigner.hu)
-	by smtp1.kfki.hu (Postfix) with ESMTPSA id 4cllT64B06zGFDLk;
-	Mon, 13 Oct 2025 19:58:34 +0200 (CEST)
-Received: by mentat.rmki.kfki.hu (Postfix, from userid 1000)
-	id 64FF41405B6; Mon, 13 Oct 2025 19:58:34 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by mentat.rmki.kfki.hu (Postfix) with ESMTP id 60A10140539;
-	Mon, 13 Oct 2025 19:58:34 +0200 (CEST)
-Date: Mon, 13 Oct 2025 19:58:34 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@netfilter.org>
-To: Ata Yardimci <atayardimci97@gmail.com>
-cc: netfilter-devel@vger.kernel.org
-Subject: Re: [libipset] lifetime & reuse of context from ipset_init()
-In-Reply-To: <CAGE3PDpNxA6eY_0Eo9Hj7anxtE9QMhAi3FUT5QONLvXnZ0Xk9Q@mail.gmail.com>
-Message-ID: <bc3a9ae7-5c95-8fe0-b7d2-2dadff0d64ef@netfilter.org>
-References: <CAGE3PDpNxA6eY_0Eo9Hj7anxtE9QMhAi3FUT5QONLvXnZ0Xk9Q@mail.gmail.com>
+	s=arc-20240116; t=1760381308; c=relaxed/simple;
+	bh=0rjtWRe2ST6POuoVWc9sVVBCjY+IxQXjMhFHkJnDz0M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EUCLHTkbKsl6ws0d3pdvQr7Tmx+P4VZRqwxStkwlZpD3lOzCVJuCE90mwodjqR6eDHRbBWYpbXHrS87Mh2GMlJJub+U/QubyGgPCCQ9XcHPfqUO0OuTX3rDPz6IUL0cf94UM2hNluguA+up4pJJIGUiRFHqg89e7dNt+2w3Y1UU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=I7eXGvwx; arc=none smtp.client-ip=209.85.216.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="I7eXGvwx"
+Received: by mail-pj1-f51.google.com with SMTP id 98e67ed59e1d1-32ee4817c43so3627585a91.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 11:48:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1760381306; x=1760986106; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=0rjtWRe2ST6POuoVWc9sVVBCjY+IxQXjMhFHkJnDz0M=;
+        b=I7eXGvwxsC9hd9WQ1Js9QJyZUabM2yER12oZD+qn1NjgichCUT2g+6nGxWXuqDv3pr
+         VEeYuRItnOYaC3dMwsa12db6OFBJkz2Fcod0h0jCAjNO9GBdUxHDXPB+zdPckVGInnII
+         5wYyom4zoGgZBMrlncvCTOcA93V2CX63mdmHDZjHHuuJs9vw5E9f5Mn2meaXMK+dSYry
+         hrrmBsAustQFhwO3qoglOfoDdasDf/1TKSt5kJZLvetAOQk/ia9fhIeMP1Zd//a1RmE8
+         uNbAGqhNRJ3FySpcoDF0ZaitR8PEXw1nhVuvXKSvPLbuzuGu8Rkg6PRwPlle/VmZZPDx
+         QgGA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760381306; x=1760986106;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=0rjtWRe2ST6POuoVWc9sVVBCjY+IxQXjMhFHkJnDz0M=;
+        b=Ue+ugQhHpRsmBWQFqj5YFjuwszO+FEyycsuNhJQB+fmgFR+dzQT14xAW1mhvm7f9qT
+         IDr9BYDjA637RLbMfQiW+LZDZhhsE6Nhkal6tRK7OMqlPCd8RBDNUCt1tFwsCe3kl5Vr
+         D7dSK0KPX+r7t5F0UQcdgyBJiAGGmTh7AZgr0O6dmhEqOlNI8sNpse6WKH7iWdFYCZIg
+         sY8lzW3L9B5rjKvFMshSrpbTTLscsjnTHWGsrOyXplghfEj7mhEVKBViGUDIlpwVoqqc
+         iQwzQB/8xt6HlhK9Kg0BhRhXhvnk2ecCdO9CMJD6zLkmc04VRgTf/6Q51lrOK79GuqWa
+         SmWg==
+X-Forwarded-Encrypted: i=1; AJvYcCUCqlulSN9HpMl5PQTH28Wqw85ImyUytTDhaz+3VQurB9z/Vzc7SCbBT4qXEFYbMyRzvqDBFDC/wDke2hE2HgY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzjumiWP3Z9uoHFnBItNvjcBkF8ZvswWiOmqKzeFjdo/TyOoSls
+	DTz/Wnu/cFjpmniRoLHsg/NalXfx1Ut3LYnaVUL8JbPo2M2EgzQh4t4lNzvUSboNm0/9tcpJTgq
+	LIvpBCBikmRwAaC9lpbg/Ynh3jPWbixnt8EhuNdN0
+X-Gm-Gg: ASbGnctJsNpxAq/3M9k31c2BJkKT9dmTjihnQihVMapMVVTk+bv4L7WjbfCPfEsbK/T
+	P+XkDKPQj+DwEs8g1wS1yufvPiUZIgwG1kyt8N7khGIUch1y4/Oau7PlqKiguKJtSLHIPtThdgW
+	Fq8oXqWx7p/afPRoZgc2vCk528WhW5nkpvCtOimiskuD6+7ZAwm1+43sWe2OW6BOEhAaGkCmELQ
+	eGc61FfrVRHOSAt4GPyn9YOnscPmnq+4JCM
+X-Google-Smtp-Source: AGHT+IGZN58oraJKYOel3htu345mI+OrYGHA9s9qA4axG5xZODKhYm0YNJs/VRer0wpLSUpLTcJwFs9Oclh2FLyAP1g=
+X-Received: by 2002:a17:90b:37cf:b0:335:2d25:7a7a with SMTP id
+ 98e67ed59e1d1-339edaadd9bmr33999353a91.10.1760381306209; Mon, 13 Oct 2025
+ 11:48:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-X-deepspam: ham 1%
+References: <20250926193035.2158860-1-rrobaina@redhat.com> <aNfAKjRGXNUoSxQV@strlen.de>
+ <CAABTaaDc_1N90BQP5mEHCoBEX5KkS=cyHV0FnY9H3deEbc7_Xw@mail.gmail.com>
+In-Reply-To: <CAABTaaDc_1N90BQP5mEHCoBEX5KkS=cyHV0FnY9H3deEbc7_Xw@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Mon, 13 Oct 2025 14:48:14 -0400
+X-Gm-Features: AS18NWADP04PjUwD5Bh9EaCBl6eZqSpZ9M9cNZXWZbUAMAyKy1WbW4DhJu7OJ44
+Message-ID: <CAHC9VhR+U3c_tH11wgQceov5aP_PwjPEX6bjCaowZ5Kcwv71rA@mail.gmail.com>
+Subject: Re: [PATCH v3] audit: include source and destination ports to NETFILTER_PKT
+To: Ricardo Robaina <rrobaina@redhat.com>
+Cc: Florian Westphal <fw@strlen.de>, audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, eparis@redhat.com, 
+	pablo@netfilter.org, kadlec@netfilter.org, ej@inai.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Fri, Oct 3, 2025 at 11:43=E2=80=AFAM Ricardo Robaina <rrobaina@redhat.co=
+m> wrote:
+> On Sat, Sep 27, 2025 at 7:45=E2=80=AFAM Florian Westphal <fw@strlen.de> w=
+rote:
+> > Ricardo Robaina <rrobaina@redhat.com> wrote:
 
-On Mon, 13 Oct 2025, Ata Yardimci wrote:
+...
 
-> I am using libipset in an application that continuously keeps the ipset 
-> context active and accepts events from outside to issue commands to 
-> ipset, this way I avoid opening a new process for each task.
-> 
-> I supplied modified error function pointers to ipset_custom_printf to 
-> avoid the exit() call after an error, to keep the process running. 
-> Mostly it runs fine, I tested it with many basic commands.
-> 
-> However I also encountered various problems during my tests, some of 
-> which I may report as a bug, others, I have to ask about the intended 
-> usage instructions first.
-> 
-> My questions are,
-> 1-) Does this library aim to support executing many ipset commands 
-> without exiting the process? (I guess it does but the exit() in 
-> default_custom_error confused me)
+> > Maybe Paul would be open to adding something like audit_log_packet() to
+> > kernel/audit.c and then have xt_AUDIT.c and nft_log.c just call the
+> > common helper.
+>
+> It sounds like a good idea to me. What do you think, Paul?
 
-Yes, it is supposed to send as many commands as required.
+Seems like a good idea to me too.
 
-> 2-) If it does, are you supposed to reinit the ipset context after each 
-> error?
-
-Yes, because errors are assumed to be fatal: it is hard to judge whether 
-the error means a failure to enforce a firewall policy or not. Therefore 
-the safer approach is used: the human must decide about how to fix it.
- 
-> In my tests, I found the library to be quite usable for issuing many 
-> ipset commands with the same context even after errors, but needed some 
-> tweaks like resetting the output buffers after an error, or handling an 
-> extra packet arriving at the Netlink channel and such.
-> 
-> According to the reply, I will understand which of these I should approach
-> as a bug or intended behavior.
-
-Please send your bugreports, better use the netfilter bugzilla. There can 
-be easily bugs in libipset which simply didn't occur while used by ipset 
-itself.
-
-Best regards,
-Jozsef
--- 
-E-mail : kadlec@netfilter.org, kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.hu
-Address: Wigner Research Centre for Physics
-         H-1525 Budapest 114, POB. 49, Hungary
+--=20
+paul-moore.com
