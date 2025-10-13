@@ -1,60 +1,207 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail-4319.protonmail.ch (mail-4319.protonmail.ch [185.70.43.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4426E2FF650;
-	Mon, 13 Oct 2025 10:18:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5927247299
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 11:43:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.70.43.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760350735; cv=none; b=WGtumaahmMczBISbypxtE2vc61RfupKI/PEfNIHAYxJpha5lEOmoBm3aMJl6KWGMMOjmghtBQC1kDK6BNVtneYo1btJ2BSKQh65r0xEKChK1USZhsZH9MCdj7s6yRd2ErJ1I0e/ZXATLdOVut6RESxPyvpDKTjN3kp+dxPRphAU=
+	t=1760355806; cv=none; b=srwVtLuecLWUGQAJJ+974bO29uRe71FP60vhYDLqkoWV0HMchiAFy0/vGfZgrmK+bxTgjfTEHyG0hAc2V2Xc4/5PadQbY3c2bWU0M93gOLhCnKKYRSfbeVXZniUpg4KZhcz6Nmey0RCyA1BkKAvm36nOyKGKh2cn+d2TWas5hCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760350735; c=relaxed/simple;
-	bh=Fl245tHyo2NourQS+BjUBp1+4uEs2rcZLFCGOrm7tPY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z+naopoly9GXtPcy0JvL2UXDxQ6YOorzmavNSeu24CUPiK4DaM//XdeAV57MjowaP5EGGnZ5Wh+056IgsK5HeoQeYVaik1l39iVXlQGeNMvpvCKAmGjQVcHdTyPQ0B+2g5nCtoYj5JPcQ0htT06tkVn0xfKa+enXdjgmV7HLDNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=EaYStjdI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1760355806; c=relaxed/simple;
+	bh=7XFndQBWbFH+1vXczjhj4YBkt4eFFpI8KjZYZnLXgKY=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KqlsVBu2ElRY4k1hEnrOr+kwyPaiQRScc0+oDX2buybjRCszDE7HBu9Z6ilRqZ5e/9MES4DdHW9k0bYSdD1s3OU6FSJDq2EoDYMlB+xFasmDiQyHyyQaj8Xm2oHfOTCyr9rzhG+ge+b119zOdbJkLvGe6qli2ngOSM8KlSNi8bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=xIPmrNoW; arc=none smtp.client-ip=185.70.43.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="EaYStjdI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80699C4CEF8;
-	Mon, 13 Oct 2025 10:18:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1760350734;
-	bh=Fl245tHyo2NourQS+BjUBp1+4uEs2rcZLFCGOrm7tPY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=EaYStjdIGnmmuK/R8r2BmMocOJRkIu51vtBVXslVz05+yjSOMuhjR+VQycc0Pypjb
-	 MtDB+Nm2iqw5IoX8TOZz6xLV7cwGqdAi7J3Jx2Scr1OJxgnUjc0iTOAxVz1lFEEEV9
-	 U8dWFpsBWZYfp53SrbYrxLQBKcaQb57uQb+NXjek=
-Date: Mon, 13 Oct 2025 12:18:52 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Slavin Liu <slavin452@gmail.com>
-Cc: stable@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
-	Florian Westphal <fw@strlen.de>, Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
-Subject: Re: Backport request for commit 134121bfd99a ("ipvs: Defer ip_vs_ftp
- unregister during netns cleanup")
-Message-ID: <2025101332-banked-marrow-4f56@gregkh>
-References: <20251013093449.465-1-slavin452@gmail.com>
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="xIPmrNoW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1760355796; x=1760614996;
+	bh=8JJp9dms0CpZDt7el6FeqIk3uz1Vw+qsDzd6yp9QHXk=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=xIPmrNoWl0SPY50WmtJq2crhL4TeeKyT8D6cRtTptc8CA33r0j0vmULduWuuT8wHn
+	 aAnoWIw8aiaE6bDsdt2iulTLv7UwvsrR+p7LOh7w8Hxn/nw5e0afS38A51+HRGz5GH
+	 EIz55aYnDJsEFsUKvhYc8r+HlEN5gn8Lw+lfYPZ8Zumi5c0z5V565eSOys6YvlmNiE
+	 Tsd5mZYg4H9yuA1CQDPcdo43h34PQXGgITTc1Z1wfiPD8gegf8cyARqig9f/tPyVir
+	 5QgQTjMrVxeXEA4JL2ivy1abl35cudIHAxrqpkbcQm5I9pHpbe7kYqsL2w/bFqa0Sb
+	 kNvuOhLzF3rOg==
+Date: Mon, 13 Oct 2025 11:43:11 +0000
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+From: "Remy D. Farley" <one-d-wide@protonmail.com>
+Cc: Florian Westphal <fw@strlen.de>, "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: Re: iptables: zero dereference parsing bitwise operations
+Message-ID: <c0jUt9xXxfO6o8KmFHUCZKJYW1bArw2X3KSLyVn39yv9-LiFW46XF0vnsPVV-QXkempUYu7kwzNsmG9rHM-65QjnqZ-mdz94Es2EPKbjbHI=@protonmail.com>
+In-Reply-To: <dae7551c-c18e-46ea-b490-1b7310a40195@suse.de>
+References: <s5LZtLzqFmQhlD4mtmgcKbrgkfQ-X7k7vvg7s7XnXHekGJSKOMyOdmoiONo7MzuLVqYTFPntt74igf8Q0ERSPy5R9f8L1EfwrhOZbs_nhO8=@protonmail.com> <aOpigXfhOrj02Qa5@strlen.de> <e2mf5Q5IBD50dFQcvIXCNkQCKwghz-hLmCunP33gaZy33srxWrQKdcL1J3GKA8a0H05T6p4kZGFpR910g7JBZusbg_AmEZKPD1UvW_mEheQ=@protonmail.com> <dae7551c-c18e-46ea-b490-1b7310a40195@suse.de>
+Feedback-ID: 59017272:user:proton
+X-Pm-Message-ID: 263c8dd0cabfd75f97b5e976c36a136150bfbcb7
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251013093449.465-1-slavin452@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 13, 2025 at 05:34:49PM +0800, Slavin Liu wrote:
-> Hi,
-> 
-> I would like to request backporting 134121bfd99a ("ipvs: Defer ip_vs_ftp 
-> unregister during netns cleanup") to all LTS kernels.
-> 
-> This fixes a UAF vulnerability in IPVS that was introduced since v2.6.39, and 
-> the patch applies cleanly to the LTS kernels.
+On Monday, October 13th, 2025 at 09:04, Fernando Fernandez Mancera <fmancer=
+a@suse.de> wrote:
 
-It's already queued up for all of the next stable releases.
+> Hi Remy, could you share the full output of:
+>=20
+> 'nft --debug=3Dnetlink list ruleset'
+>=20
+> This will allow me to understand what is the generated bytecode and an
+> easy way to reproduce this with libnftnl. I am happy to investigate/fix
+> this on the nft/libnftnl/kernel side :)
 
-thanks,
 
-greg k-h
+Hi Fernando,
+
+Not sure if it worth investigating, but here you go.
+
+
+> $ nft --debug=3Dnetlink list ruleset
+> table ip filter {
+> }
+> table ip6 filter {
+> }
+> table ip mangle {
+> }
+> table ip6 mangle {
+> }
+
+
+> $ fish example.fish
+> [null, null, null]
+
+
+> $ nft --debug=3Dnetlink list ruleset
+> ip filter example-chain 565
+>   [ payload load 4b @ network header + 12 =3D> reg 1 ]
+>   [ bitwise reg 1 =3D ( reg 1 | 0x00ffffff ) ]
+>   [ cmp eq reg 1 0x00030201 ]
+>   [ immediate reg 0 accept ]
+> table ip filter {
+>         chain example-chain {
+>                 accept
+>         }
+> }
+> table ip6 filter {
+> }
+> table ip mangle {
+> }
+> table ip6 mangle {
+> }
+> netlink: Error: Invalid source register 0
+> reg 1 =3D ( reg 1 | 0x00ffffff )=20
+> netlink: Error: Bitwise expression has no right-hand expression
+> reg 1 =3D ( reg 1 | 0x00ffffff )=20
+> netlink: Error: Relational expression has no left hand side
+> eq reg 1 0x00030201=20
+
+
+> $ iptables -L
+> Chain INPUT (policy ACCEPT)
+> target     prot opt source               destination
+>=20
+> Chain FORWARD (policy ACCEPT)
+> target     prot opt source               destination
+>=20
+> Chain OUTPUT (policy ACCEPT)
+> target     prot opt source               destination
+>=20
+> Chain example-chain (0 references)
+> target     prot opt source               destination
+> Error: bitwise xor too large
+> iptables v1.8.11 (nf_tables): Parsing nftables rule failed
+> Perhaps iptables or your kernel needs to be upgraded.
+
+
+Note that variable `len` in nft_parse_bitwise() is uninitialized prior to
+checking the length, so this time iptables happen to error with "bitwise xo=
+r
+too large" instead of crashing :D
+
+
+> $ cat example.fish
+> iptables -N example-chain
+>=20
+> ./tools/net/ynl/pyynl/cli.py \
+>     --spec Documentation/netlink/specs/nftables.yaml \
+>     --do getgen --json "{}" \
+>     --output-json \
+>     | jq ".id" \
+>     | read genid
+>=20
+> ./tools/net/ynl/pyynl/cli.py \
+>     --spec Documentation/netlink/specs/nftables.yaml \
+>     --multi batch-begin '{"genid": '"$genid"', "res-id": 10}' \
+>     --creat --append --multi newrule '
+>       {
+>         "nfgen-family": 2,
+>         "table": "filter",
+>         "chain": "example-chain",
+>         "expressions": {
+>           "elem": [
+>             {
+>               "name": "payload",
+>               "data": {
+>                 "dreg": 1,
+>                 "base": 1,
+>                 "offset": 12,
+>                 "len": 4
+>               }
+>             },
+>             {
+>               "name": "bitwise",
+>               "data": {
+>                 "sreg": 1,
+>                 "dreg": 1,
+>                 "len": 4,
+>                 "op": 4,
+>                 "data": {
+>                   "value": [
+>                     255,
+>                     255,
+>                     255,
+>                     0
+>                   ]
+>                 }
+>               }
+>             },
+>             {
+>               "name": "cmp",
+>               "data": {
+>                 "sreg": 1,
+>                 "op": 0,
+>                 "data": {
+>                   "value": [
+>                     1,
+>                     2,
+>                     3,
+>                     0
+>                   ]
+>                 }
+>               }
+>             },
+>             {
+>               "name": "immediate",
+>               "data": {
+>                 "dreg": 0,
+>                 "data": {
+>                   "verdict": {
+>                     "code": 1
+>                   }
+>                 }
+>               }
+>             }
+>           ]
+>         }
+>       }
+>     ' \
+>     --multi batch-end '{}' \
+>     --output-json
