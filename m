@@ -1,118 +1,144 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5ECD1C860E
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 19:11:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7367F25F78F
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 19:19:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760382699; cv=none; b=YoQ+qbw8vtg7VJbZGmulB3JeTObz08MPczeC4ODyErSXaNCdxPn8e7+wrXyJc96pIxP3e0BnQCIdyBN8WRKCDNYGJVuZZNvWrOsEpm1gKUW/zjNdUA5KD6RIfAq/xOM+6amRcf2djcJPtWNwLLXulFBRJpUE4DLHJmm2dJcFBKQ=
+	t=1760383187; cv=none; b=uNUMA/dN7DrQjhs1HWN/OAgcplPFCNF9iLGOEhLE06t+bOli48t2ynWxvqnbx1sMhlxuEAQ3L0Mwzn/vXXnrYQOUNQmLlIg975QNrf/4h+Vrmy/3aj89P08BJjlNPMwEzZjCfN02XR4npIuVPKkKU2RMjM1dSf8y+2SjGDBzKX4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760382699; c=relaxed/simple;
-	bh=YnqDhTt+IrtlvAL/Hrj549WY1No/n/MTQkCaJCyZ/Ys=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ejgirWQ+wLVoUu1jcGbYXipnSAD5qCQ4LcPX+X0ds1lhpwXUsM2PEERFhGkPBd1DLCLRjfipzcgyrvq2WAgoIzhtGSQKoh6lE8M5QMJfHRbsYRk/MTI12CFtDiRvGcbWmXtUEvaEJrCwuT14fGbLnhWPYX7qOyTnyyUJs1yB63w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=EeDev8C+; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1760383187; c=relaxed/simple;
+	bh=yMr3OubLVB8+MaN+h6EsHa1j67prdJlZqqSYD5jVeJM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YIriLx5/db+AFO/9BuL6nCY+1GHFeXR+pI7BoPRqy1jnqvzSi3oMdDpMpyJOEDa5ngu0R78o9/EQlIKHImbSIcbkZNPmrAxCkxSixM0/79J9VzjRYYM/aw4ggCHPpye/p9WiGk6KE6h2DmaYQddvJq1QLr1Q5IsByIZxcAiTGak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ocyMfkoJ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=L3ouhsjg; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ocyMfkoJ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=L3ouhsjg; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EeDev8C+"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1760382696;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ocyMfkoJ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="L3ouhsjg";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ocyMfkoJ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="L3ouhsjg"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7407C1F44F;
+	Mon, 13 Oct 2025 19:19:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1760383183; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=YnqDhTt+IrtlvAL/Hrj549WY1No/n/MTQkCaJCyZ/Ys=;
-	b=EeDev8C+Y/20DMPw4RzUtsJJefcaR1uWjBffIKXeCyHnCChLi1tPI5wRRx39ynxHhW7tHS
-	jXOAanz9arQnexCdukHSjkHSda8vXWy3Fblf+Q2u4hP81wKNfeDmqKrvMi2U2qQ+JIc5Cj
-	wq5FkFF802tJJAzWNoVfyYxEPFcuJrY=
-Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
- [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-551-utUzOE2DPlWPlh-wKf_zCQ-1; Mon, 13 Oct 2025 15:11:35 -0400
-X-MC-Unique: utUzOE2DPlWPlh-wKf_zCQ-1
-X-Mimecast-MFC-AGG-ID: utUzOE2DPlWPlh-wKf_zCQ_1760382694
-Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-b3cbee9769fso612710366b.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 12:11:34 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760382694; x=1760987494;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=YnqDhTt+IrtlvAL/Hrj549WY1No/n/MTQkCaJCyZ/Ys=;
-        b=YMmUOtW35Zqu6fPZq0aufVVoKaR5ZTMNbrjIbq546q1bgQZQAKVa44L4Y7gFnJ/YmR
-         U5qSr5Vb3cLg45xvH4apsQFRr4ekoQFwIBvryQQ4ddebIs4MTwtVhaslCLwi8XcbnP8p
-         5rQqxBWyKbOz0bHKsTE9QYvVAFkv7US1N3tV1rH5M+j0sSQp0Lq53gTQLWkSFmsMIj/b
-         k1xrXZL3mH9brkGmb4o+ZiloVFdcKxYY+/eeaKGuSkpwPhipkOBO+smctY/D9QNMj9SZ
-         y7iZdcXNRc8Xlp2h4uBVE2nlpGBjrRanPUmlF3NMgkxjExiM1o+FYO0qrw3PqZKTThrN
-         8mCQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVyztebD2GeAWhLC2mBt/C8VquFl5s7Isto6FDbqhyM2CLY/6HCp/FZzO2Cr9cO3xAVxQT96I6P+4EZt6mB5PA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyirHy+TWCFf0k+cP32mr1FTkwP2hhho+EA1ksmX0TWDanr57lI
-	+OKg8foaelqFcz7Ke8tXFjwZ6VFr+HlW29u4u024Ddj746o6VGJ+qTg2MhM/SEJFSSv+IpbUPPG
-	WuYt4ycRD+s2b80sJlkyCMwh0HSKhy7Q4UReGc0rk3VWQHgaBaPoSVlLBvlHpY6LGjtC8BZqZPf
-	1VN1Td9HtVB08WNyPc2/l+GtnxYUI9Dg5qKgI42t9fUj2j
-X-Gm-Gg: ASbGnctWoG81GY4WqEOR+7EcH5I8ZIpQJ8LfRyVhlcd7J14mAJkj8k8yYgS49uKeehG
-	iU6uqsok1IS2QyCpAh7voTQU7RedeCab6bSLj0I6ewl+iddd6HWZffsnmL6O0qZ4Vz2IatLmggC
-	P210qnOgZQWJSse1Hj+3VmMbgz/CPp6bYsdbWV5DeKDfTuu+bGCmYXBQ==
-X-Received: by 2002:a17:907:7f0b:b0:b46:31be:e8fe with SMTP id a640c23a62f3a-b50aa48c4f0mr2434553166b.11.1760382693338;
-        Mon, 13 Oct 2025 12:11:33 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHdZSlJjUKGUyEQeXbLsv9VheuVhvq3shA+CFJRXSerqAlSqVOk9p/8bvz3PxsEytGYzwrMZIP2BUftmKkR2Ws=
-X-Received: by 2002:a17:907:7f0b:b0:b46:31be:e8fe with SMTP id
- a640c23a62f3a-b50aa48c4f0mr2434545466b.11.1760382692352; Mon, 13 Oct 2025
- 12:11:32 -0700 (PDT)
+	bh=p5/7yz0yfYw2dCoQPjIkY2oxToRfgQJNHeeCRXsVUQQ=;
+	b=ocyMfkoJnaKoX/LC4W5FGk+GHDuYZTL0/zpaObw/6xzoQdsMbsWsVFJYIRSpMiaXaKYNBN
+	QWcne4QLS/WX7pImACWOCSP8x6f5U6GLUnafdVYsd76t4dZIb78o4/cIOZve7LxAKZg5XS
+	B5ZBCUEyvb0q5dg03bbVa0To7ksH+vU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1760383183;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=p5/7yz0yfYw2dCoQPjIkY2oxToRfgQJNHeeCRXsVUQQ=;
+	b=L3ouhsjgJqKCe5P/KdErQG/JlQLkMLHd6NO1JWzykyb1YNBskePg42Hm8qWREZGev2Exkp
+	/aBamOYcNnB1uuBw==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=ocyMfkoJ;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=L3ouhsjg
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1760383183; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=p5/7yz0yfYw2dCoQPjIkY2oxToRfgQJNHeeCRXsVUQQ=;
+	b=ocyMfkoJnaKoX/LC4W5FGk+GHDuYZTL0/zpaObw/6xzoQdsMbsWsVFJYIRSpMiaXaKYNBN
+	QWcne4QLS/WX7pImACWOCSP8x6f5U6GLUnafdVYsd76t4dZIb78o4/cIOZve7LxAKZg5XS
+	B5ZBCUEyvb0q5dg03bbVa0To7ksH+vU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1760383183;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=p5/7yz0yfYw2dCoQPjIkY2oxToRfgQJNHeeCRXsVUQQ=;
+	b=L3ouhsjgJqKCe5P/KdErQG/JlQLkMLHd6NO1JWzykyb1YNBskePg42Hm8qWREZGev2Exkp
+	/aBamOYcNnB1uuBw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 3D60A1374A;
+	Mon, 13 Oct 2025 19:19:43 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id U3rkC89Q7Wh+NAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 13 Oct 2025 19:19:43 +0000
+Message-ID: <7600f08e-bedf-4f92-99b8-751f4a096243@suse.de>
+Date: Mon, 13 Oct 2025 21:19:34 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250926193035.2158860-1-rrobaina@redhat.com> <aNfAKjRGXNUoSxQV@strlen.de>
- <CAABTaaDc_1N90BQP5mEHCoBEX5KkS=cyHV0FnY9H3deEbc7_Xw@mail.gmail.com>
- <CAHC9VhR+U3c_tH11wgQceov5aP_PwjPEX6bjCaowZ5Kcwv71rA@mail.gmail.com> <CAHC9VhR-EXz-w6QeX7NfyyO7B3KUXTnz-Jjhd=xbD9UpXnqr+w@mail.gmail.com>
-In-Reply-To: <CAHC9VhR-EXz-w6QeX7NfyyO7B3KUXTnz-Jjhd=xbD9UpXnqr+w@mail.gmail.com>
-From: Ricardo Robaina <rrobaina@redhat.com>
-Date: Mon, 13 Oct 2025 16:11:20 -0300
-X-Gm-Features: AS18NWBRpmVXsqMwV5PkEQwwAsDGsJpwgtFtU7bYTbHsTAe-yKFLi7W40fQv0tM
-Message-ID: <CAABTaaBO2KBujB=bqvyumO2xW=JCxKP0hc87myqcLF3pbxSorA@mail.gmail.com>
-Subject: Re: [PATCH v3] audit: include source and destination ports to NETFILTER_PKT
-To: Paul Moore <paul@paul-moore.com>
-Cc: Florian Westphal <fw@strlen.de>, audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, eparis@redhat.com, 
-	pablo@netfilter.org, kadlec@netfilter.org, ej@inai.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [nftables PATCH] doc: fix tcpdump example
+To: georg@syscid.com, netfilter-devel@vger.kernel.org
+Cc: Georg Pfuetzenreuter <mail@georg-pfuetzenreuter.net>
+References: <20251013171730.1447005-2-georg@syscid.com>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20251013171730.1447005-2-georg@syscid.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 7407C1F44F
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[99.98%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	ARC_NA(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	FROM_HAS_DN(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCPT_COUNT_THREE(0.00)[3];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,suse.de:dkim]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -4.51
+X-Spam-Level: 
 
-On Mon, Oct 13, 2025 at 3:51=E2=80=AFPM Paul Moore <paul@paul-moore.com> wr=
-ote:
->
-> On Mon, Oct 13, 2025 at 2:48=E2=80=AFPM Paul Moore <paul@paul-moore.com> =
-wrote:
-> > On Fri, Oct 3, 2025 at 11:43=E2=80=AFAM Ricardo Robaina <rrobaina@redha=
-t.com> wrote:
-> > > On Sat, Sep 27, 2025 at 7:45=E2=80=AFAM Florian Westphal <fw@strlen.d=
-e> wrote:
-> > > > Ricardo Robaina <rrobaina@redhat.com> wrote:
-> >
-> > ...
-> >
-> > > > Maybe Paul would be open to adding something like audit_log_packet(=
-) to
-> > > > kernel/audit.c and then have xt_AUDIT.c and nft_log.c just call the
-> > > > common helper.
-> > >
-> > > It sounds like a good idea to me. What do you think, Paul?
-> >
-> > Seems like a good idea to me too.
->
-> A quick follow-up to this ... when you are doing the work Ricardo,
-> please do this as a two patch patchset; the first patch should
-> introduce a new common function called by both audit_tg() and
-> nft_log_eval_audit(), and the second patch should add new port
-> information to the audit record.
->
-> --
-> paul-moore.com
->
 
-Thanks for the tip, Paul! I'll work on it next week.
 
+On 10/13/25 7:17 PM, georg@syscid.com wrote:
+> From: Georg Pfuetzenreuter <mail@georg-pfuetzenreuter.net>
+> 
+> The expression needs to be enclosed in a single string and combined with
+> a logical AND to have the desired effect.
+> 
+> Fixes: 1188a69604c3 ("src: introduce SYNPROXY matching")
+> Signed-off-by: Georg Pfuetzenreuter <mail@georg-pfuetzenreuter.net>
+> ---
+>   doc/statements.txt | 3 +--
+>   1 file changed, 1 insertion(+), 2 deletions(-)
+
+Thank you Georg!
+
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
