@@ -1,115 +1,98 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 612701DDA18
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 20:27:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD28630AD09
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 20:39:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760387223; cv=none; b=p/+U6kHelp+3BXZ9a6uzBUPTvT+ZWGrx6gbm7PdGoXJo1ONjBsfTQT2Z5AjTQ/pYWgZ8BndcSkLk8p9tHPR2C8BFXvbCMJ7mVVDYx8yI+7/Mw9YcLaCq1m3d2/bsRhD3ZNQTLTDw3zeTxw5fP+cNDMTHVmfhe4U3KjFnicOcoRE=
+	t=1760387971; cv=none; b=hGzhQgZEA+thuF4lGRfwLFvrL9Nt3+7r57+kaOsm384mj/P0S/MGgggb9rlsdRzQKO7ayYvWk61sPogRpy1JDvI+ucjUoC4BoSWwA4zGjSjaQXbaJbW6y5kTJlwwh6Dx9Q2KhFjqMuIufJEWUHnhIiLPGYbr+uAub75PbLBaJ/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760387223; c=relaxed/simple;
-	bh=babBGhfXx1fPtsNfCx5hCEWBO9wdsLm3D8nBpU1zWoI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=j21TA/7Ceowa0LzfmH/EhAjNcZrT1PdKDGWbmGwTUVs0g150TcPXFyCoP4kc+lo9tTirE5pVYVB9ZfNqdkIj1IMbsrdyucs7UNNctZSOKEKyCLSfiX5LbFu4U4nwyFh1sFJM9Alr11hLVgmc76J6XUgKZOxnSO5x7WIrpXREi3w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=CJxT5+6T; arc=none smtp.client-ip=209.85.216.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1760387971; c=relaxed/simple;
+	bh=I6j2L5FwyggMI5z8JNpQ0H86wvYB/DHzni+hA4x1Fdo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JuwG6sMxKk6aOVNijAGzEBiiAnthk8NuePGfUteEjy714ewY6hiFkb07zo7FwRAlW2M+jdrXl4bco/9ZpnO95ZSVW6DTSciVK4ONMfZtKnbYNECXDSZXzMnCXyq9UGtKILOerrlxSPG3G+bFDzkXW9mhBaSyTb2F7QZvrTn6LOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=idJGaYWz; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Ee87M8nl; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="CJxT5+6T"
-Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-33b5a3e8ae2so3093939a91.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 13:27:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1760387222; x=1760992022; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=babBGhfXx1fPtsNfCx5hCEWBO9wdsLm3D8nBpU1zWoI=;
-        b=CJxT5+6TaokJ/y+guIdlPVglEm0w81fTgvi+U+3UlXpHbaqVrDSzxSS5qVwiDwZxP7
-         q51mvi4EjNdd20Z8DPjGyXGJRvnSaOBGBqHsxEWhHdj7S9uWCisd8uBOpUwNSkgxvf8y
-         R5zpK4BqsQEALII7LuG/0LulSPurPl373rnMm+8opO9aqPuvP5NmSZ6mHEGOcNKg5Q1Q
-         sZf+wNvMYOOR2sZETAXnjsYnqdz/wAElTc9CQ+TZSlS61iLAAcGFwsCo6k+rlL85Pf86
-         tlTVpLP1+rF3XYhvalHxPc75sshf1qCvcLngaiGeIglI5sXtY4QDJaiMUdrE2vXGL4XD
-         I5Zw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760387222; x=1760992022;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=babBGhfXx1fPtsNfCx5hCEWBO9wdsLm3D8nBpU1zWoI=;
-        b=Yuo2sT8H3mxQtziaqYDB16FMii24QZM0tSlipI4WQ6yzztytPYXT9vF6z+qZN3l+ry
-         BJt9I8VXqYX9ShDxEUjGTMtG0kOenHur3t3PFI1R1Dwo4cS2QigqLs9jOrUMAK3HIVUG
-         F+XvTVX4fh5U0WQsE2uU+UblbGgQ6DGlN+MdYjnndZiaN8b1XNs03ONzHDdO3+BRkWJY
-         2nTQEMJxONQ+KotTz+LjETpCm1Ng61oMH9+5FiFpcffWeAsGF9vQQJs7VjBIZhpOL9TV
-         hXTPaxe2R4B8BE0gEOT9GEKwa38J6ichDt5bo49NUERQIsJyya74IBN/KzY5GCKdpiTr
-         XTAQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXrHfB5LzsijXXG8bY2Gam7ShtDiUWFvkWNtEItw8lejZIk46InN9YWo/WQUduTe5MoWqn68OWyNnpdE3Ccrvg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzoKtGYjSajz+YbzOIbwGpvrIE3ZMNPE40kok5q656InXnGcCPU
-	m34x8TVHxTXCTXHkKSL4BpLcpc9U3DmeF8scZomI5AZ7heiKAKivjn9xvZKr/6TwWdsLQSQotMZ
-	Ngir9X26a3d3qibCZmDggkiQV6nU2DhUF0JoapZFC
-X-Gm-Gg: ASbGncuYOoPph9WR1OfzmeG66NMvaM+wQEZksHzWM2YIAZBIP245EC4HSUJShM1gYv6
-	6f2Y70ndqNzQ2gHVR+xc9sgqNyGyacan1aPjOu+sYdsbWJO+kfrxwLNvvlpfQEOsteoXdAbIQ+L
-	LJEyITBcejckf/A28pwMi/5mG2HR8nGSVbOV/p+RjPw37ogHipO6aB9OE/pAT6Ii62MsgEN3chn
-	m3JtqPdc7vbBxdjWocn/uIPuA==
-X-Google-Smtp-Source: AGHT+IGss2VDJO8x5HyqI5H573+UkHtTHLXgrJeCVBKZm5LGM/ts88b5TDQDn4YSXHwBmxi80eK/R3J0uWJkmg5SckU=
-X-Received: by 2002:a17:90b:4d:b0:32e:11cc:d17a with SMTP id
- 98e67ed59e1d1-339eda47424mr36047088a91.4.1760387221613; Mon, 13 Oct 2025
- 13:27:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="idJGaYWz";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Ee87M8nl"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id CAAB86029F; Mon, 13 Oct 2025 22:39:18 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1760387958;
+	bh=nHVJwmPL/CLXIHtg1L3iiu/LlxpU6oYV1JdzcAHLVwI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=idJGaYWzQC6IpBEWqeXXKwriM1tjFzADYioub9qOGHDGFuZF0cnFyeC97hPxQMd8y
+	 WIaS7I7XcGBUDsDoiKr0mt/waQdOUDXLw0jvBQ2fpxAK7Li8ufwT/1uLju3fnA+jjQ
+	 tOxSEnXP21o31aBvShqCtk83sX7zusi1SskxDELPDj8AOpmrYLbu3LifJ6sbzArxjL
+	 35ab1Cz5nOPdvD4zY9Oxoo2YKNEE6tjgmjes2pNjlb0Gd4c7QUw5wFDcxi6ibryrSF
+	 JxcUZNniTkCHcPC7OwnA61kS4Dgf5sg5vkLqxA2oXTqvLsMfZvaH4GH+RqSm2H/Jwl
+	 fy9rBt5vwTwUg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 95C176029F;
+	Mon, 13 Oct 2025 22:39:17 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1760387957;
+	bh=nHVJwmPL/CLXIHtg1L3iiu/LlxpU6oYV1JdzcAHLVwI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Ee87M8nljjB/bf9QvQbqImCwm9Sr6A+66LuQZOIHBkfhTS3qNrPvyXsYnpUSr1lqJ
+	 T/baM184VzqKHK077i4JyRl/y1tCCvv+3DS0AMH+QrHNb3uZp6i0jRpzVFklYX5hLc
+	 HJDl14EMtDLZW7J3pVcAIoVS33tYTgSE3WYSpdyVKmwEfSGshVYyNx6914jlWsNUux
+	 kvRUXfFaj6ETLKhW5m1yVYlnMMyivayXeEtoKMJDLNpIMHDwMa3dXY6u/kkI3gQsBd
+	 bdCO6ec0RlO87tetMgBUPk614CP3X+oXxboFmVl9caN3WbaK96+UFFtdMxwLt7+IQY
+	 3AtVW4CgvBWOg==
+Date: Mon, 13 Oct 2025 22:39:14 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH nft] meta: introduce meta ibrhwdr support
+Message-ID: <aO1jchhd9t07Igq3@calendula>
+References: <20250902113529.5456-1-fmancera@suse.de>
+ <aO1XOREzSUUgROcy@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250926193035.2158860-1-rrobaina@redhat.com> <aNfAKjRGXNUoSxQV@strlen.de>
- <CAABTaaDc_1N90BQP5mEHCoBEX5KkS=cyHV0FnY9H3deEbc7_Xw@mail.gmail.com>
- <CAHC9VhR+U3c_tH11wgQceov5aP_PwjPEX6bjCaowZ5Kcwv71rA@mail.gmail.com>
- <CAHC9VhR-EXz-w6QeX7NfyyO7B3KUXTnz-Jjhd=xbD9UpXnqr+w@mail.gmail.com> <CAABTaaBO2KBujB=bqvyumO2xW=JCxKP0hc87myqcLF3pbxSorA@mail.gmail.com>
-In-Reply-To: <CAABTaaBO2KBujB=bqvyumO2xW=JCxKP0hc87myqcLF3pbxSorA@mail.gmail.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Mon, 13 Oct 2025 16:26:49 -0400
-X-Gm-Features: AS18NWCUy4T8laMXtjmGm2u5DGufptm_DTkxgnp7osvagZXN3dVSC1WH5MNw9Qc
-Message-ID: <CAHC9VhRL2mGrpzz9Eo3Hm+HQkUP36cDv_xx5BtjJjUqh2eZmug@mail.gmail.com>
-Subject: Re: [PATCH v3] audit: include source and destination ports to NETFILTER_PKT
-To: Ricardo Robaina <rrobaina@redhat.com>
-Cc: Florian Westphal <fw@strlen.de>, audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, eparis@redhat.com, 
-	pablo@netfilter.org, kadlec@netfilter.org, ej@inai.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aO1XOREzSUUgROcy@strlen.de>
 
-On Mon, Oct 13, 2025 at 3:11=E2=80=AFPM Ricardo Robaina <rrobaina@redhat.co=
-m> wrote:
-> On Mon, Oct 13, 2025 at 3:51=E2=80=AFPM Paul Moore <paul@paul-moore.com> =
-wrote:
-> > On Mon, Oct 13, 2025 at 2:48=E2=80=AFPM Paul Moore <paul@paul-moore.com=
-> wrote:
-> > > On Fri, Oct 3, 2025 at 11:43=E2=80=AFAM Ricardo Robaina <rrobaina@red=
-hat.com> wrote:
-> > > > On Sat, Sep 27, 2025 at 7:45=E2=80=AFAM Florian Westphal <fw@strlen=
-.de> wrote:
-> > > > > Ricardo Robaina <rrobaina@redhat.com> wrote:
-> > >
-> > > ...
-> > >
-> > > > > Maybe Paul would be open to adding something like audit_log_packe=
-t() to
-> > > > > kernel/audit.c and then have xt_AUDIT.c and nft_log.c just call t=
-he
-> > > > > common helper.
-> > > >
-> > > > It sounds like a good idea to me. What do you think, Paul?
-> > >
-> > > Seems like a good idea to me too.
-> >
-> > A quick follow-up to this ... when you are doing the work Ricardo,
-> > please do this as a two patch patchset; the first patch should
-> > introduce a new common function called by both audit_tg() and
-> > nft_log_eval_audit(), and the second patch should add new port
-> > information to the audit record.
->
-> Thanks for the tip, Paul! I'll work on it next week.
+Hi Florian,
 
-Great, thanks :)
+On Mon, Oct 13, 2025 at 09:47:05PM +0200, Florian Westphal wrote:
+> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> > Can be used in bridge prerouting hook to redirect the packet to the
+> > receiving physical device for processing.
+> > 
+> > table bridge nat {
+> >         chain PREROUTING {
+> >                 type filter hook prerouting priority 0; policy accept;
+> >                 ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwdr accept
+> >         }
+> > }
+> 
+> Pablo, does the above ok to you?
+> I am not sure about 'ibrhwdr'.
 
---=20
-paul-moore.com
+I'd suggest: ibrhwaddr, for consistency with other existing ibr
+selectors and anything that relates to address uses the suffix 'addr'.
+
+> Will there be an 'obrhwdr'?
+
+No usecase for this so far.
+
+> Or is it for consistency because its envisioned to be used in
+> incoming direction?
+
+Using the input device where this frame came from, which is a bridge
+port, fetch the address of the upper bridge device on top of it.
+
+It is a bit unix-like looking acronym, arguably not so intuitive, but
+I don't have a better idea.
+
+> Patch LGTM, I would apply this and the libnftnl dependency.
