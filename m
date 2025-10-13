@@ -1,174 +1,92 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-pf1-f194.google.com (mail-pf1-f194.google.com [209.85.210.194])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D85C2FB978
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 09:04:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDB432FD1D3
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 09:35:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760346286; cv=none; b=GCo6IkyHitkRAQO7jWtOdWBamwNHyG31YuOByZvP0KjNrSWQ1BMOnCy4F32c0ouY94zrGHJP8qJzd8VRA6seyGUZslVPVXVy7ahaag/VJrzTN7G/Z6js7+Nvct2ls4FlPC6kbONeV89MUlz09PD92FfCH6prcvYhTV5q1DqMxeM=
+	t=1760348104; cv=none; b=Z4Cp6Zv0YFOcLwnwTJZ5mMcwaKdi8BzO8Ao+L7lmsjxk/R4Juq2mgR+yW+Q1N5PRzer3dCCrLLkgVKMuZacrad96RzGWeRQBLw6OMxN/3nR4K0I14Rryq3ZXxqlBhFX/Y127V2Zd6jZ+IUlXNNZq+3vU4PloLuU9L/ykoi7lwwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760346286; c=relaxed/simple;
-	bh=ArPk5F3tZzTcn61dZ5qKcWyvw29Uekx/BGuqxUSXgOI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=AZhug82i7bu6BDh9+SgyxVhOUKfDpI+zOnmUz1rjuagH4UJgzL3tFuxeYN+qStJiZihCCEtYzZjAhhnVmfFVuwiUJE8CbP9w5ad7nqsiloaffMcyapVmEngMIogVVyC7m+YyjfHxr0reMXGD4ZhJOWZ5rFI3mg3877dwIw/Q7K4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=R9AFFpqU; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q/SR35do; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=R9AFFpqU; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q/SR35do; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1760348104; c=relaxed/simple;
+	bh=h/7JTy6TbprU+dCtnUq5sVaFosiidQqOxR/pPvZSvKA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=asGdjc+ShQ708BX/3kQFGJiITgAxdazQS0BLZ0xDWdJE+G6YpgOkZvtY8Fm9q1yzTZaFu3H58mJLEqnA1VjiDcqGAzlclZWWZZ4cVKB3LsptgVbryVvXK33hRnVCaVj3X9fC2iHyJawitQldvIVxmarMbDxpuV0GuJ65uBrp5WQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mnx1SxTk; arc=none smtp.client-ip=209.85.210.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="R9AFFpqU";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q/SR35do";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="R9AFFpqU";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q/SR35do"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 561DF21A02;
-	Mon, 13 Oct 2025 09:04:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1760346282; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=SR2Zcf0y9WV/9eKPSi3cBezQInqXzzkRmi/DSiyRj1c=;
-	b=R9AFFpqUGvoe/spUd9+Blhu0JFO5vj3CCbTMz+hnpBeytYaMejmp1j4wTKmoA9jtbDWhiT
-	C8BY0q8isZiuGIP81+Mf1kREH2SqriL2F9t3kyWCaC5BG8NZf43FM7Dh7FO14K7CqIlvEw
-	XsOwuKHJtf3Yzc2vY8Bk3zHFetA4AdQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1760346282;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=SR2Zcf0y9WV/9eKPSi3cBezQInqXzzkRmi/DSiyRj1c=;
-	b=q/SR35dod+Ug4KKLeW3JFE31Fv0jRt+SDlU+/QfW5wn6hDo9KdMqcaYUqH9UEqqFabpx0k
-	CmnDV3v3R4+VYBBA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1760346282; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=SR2Zcf0y9WV/9eKPSi3cBezQInqXzzkRmi/DSiyRj1c=;
-	b=R9AFFpqUGvoe/spUd9+Blhu0JFO5vj3CCbTMz+hnpBeytYaMejmp1j4wTKmoA9jtbDWhiT
-	C8BY0q8isZiuGIP81+Mf1kREH2SqriL2F9t3kyWCaC5BG8NZf43FM7Dh7FO14K7CqIlvEw
-	XsOwuKHJtf3Yzc2vY8Bk3zHFetA4AdQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1760346282;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=SR2Zcf0y9WV/9eKPSi3cBezQInqXzzkRmi/DSiyRj1c=;
-	b=q/SR35dod+Ug4KKLeW3JFE31Fv0jRt+SDlU+/QfW5wn6hDo9KdMqcaYUqH9UEqqFabpx0k
-	CmnDV3v3R4+VYBBA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1E1761374A;
-	Mon, 13 Oct 2025 09:04:42 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id Nw5UBKrA7Gg/UwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 13 Oct 2025 09:04:42 +0000
-Message-ID: <dae7551c-c18e-46ea-b490-1b7310a40195@suse.de>
-Date: Mon, 13 Oct 2025 11:04:28 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mnx1SxTk"
+Received: by mail-pf1-f194.google.com with SMTP id d2e1a72fcca58-77f67ba775aso5726734b3a.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Oct 2025 02:35:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1760348101; x=1760952901; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=H5bKclxFecJJ5GNJZlIb9xGDoD2UnMroqAQc+H9CWag=;
+        b=mnx1SxTkrQzHYji3aeb3q4OJ91PiRt+A7UU+c/8zJExuePN2QeB0IklJwTH08iodb9
+         88kDaaj4FBNqNOtBTe+OejuT3GlNCJcZwjgASUnCU4a0lR1yY7M6QZR6UMYWSiSh5+GO
+         Tx9y1tJ+iZiuZITt5suiuPdQ8g+j6ane0nytRhF/zsYd6TqiinT29kbbjZ70akhtMZz1
+         gFItwEi5eZMaL56EE8dNlJGvP1yNkZmlgkCw3CxS2OJ+o/H2ayhEoUVgXk9QYP8jfPEG
+         9VDEIuB/nihlBX/vMp1CSrmHCqgPinTh+LVg7YqCqf5zQyg0oGEC9NUJm0Go6V+SR27i
+         L8/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1760348101; x=1760952901;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=H5bKclxFecJJ5GNJZlIb9xGDoD2UnMroqAQc+H9CWag=;
+        b=iCEBOf1UZLZ7FWA4CbSiUeBRqk7jM+POz6RMsl1jzVzbCaXVKaz/AV+ZrL5V9GRGX5
+         TIHHEWgX8m+zaEkQNuCNZBwmV3UnwGj7TFN7z19J/ZqB4/DeUWKyeqT6F4P7J+IPuDpj
+         HeDaSNCxywsaY1RJsdzTekPDIW6/Y0F9+fOtY6aArYwsVLOHwCAb2xg6ep/QzRnjvktU
+         p26Sx4/rmy3XMzjMfM0GcsISTSqTFtJ2Pk332MLYNByae9bIcVkDd3vRq98Na2GOh9y9
+         yBKAEWwmbGgXvSC1Z0SaY0FWOZb/nDaGW9lbn4rqiLzVVpbStcuu6qkEEiyf+5PdJs/R
+         3ekA==
+X-Forwarded-Encrypted: i=1; AJvYcCVk1bhmQgMmTzPPIALKQzoOmJRk7Wm6PtOjglmDGuQV6Qp2H6obg3JFMILGgirloVyWvXuhPglBaJeAcZTM6ag=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyQKmTKgoHY9iFPX+Pi4o/daIenzVi1+Ch5TN0SBiP9bOEu6nKX
+	8gXCFpgT4pWLuLKi6YN6tysxOrse/HlEZ6fB9/hVkWPnnQDy2b39slPn
+X-Gm-Gg: ASbGncuPX0ZR4gb3REzhV3m0h8PznPnB5j37RwaScnRz1hfv4ifkACdxa9Mc/XUj/bj
+	TX9/qfzKTSsl5EQ3Sydy/S7lICrjk88OWiczywtVEbdDg9WqSYuUrJhO36Gxx6o0CFxzbYH4jtQ
+	0kebD3BNiAD6HAdQdJFW7fqaV5d1bwNL4Xm6L/pwbj3KiQeh0QxJvMm97NtcIcgjEoZUBUDVQsQ
+	JgRYldzU+ONf2B6966m6vfbMB43vAVjQhdl1IIe0A1/CyedXWCp7BG6P4perNExavjEPxfpuVgR
+	/YlifcaB+OJLa7kZOmvSRB2ufJFTX0IqjtjWl+lBbOXbnbrWe4uj613SveD6Q+7wggDGwUSIch4
+	q4oRIJDJxc2aRfGVbwY6hQ3CN9a1ORwUuUheVOUKqAfKqPqbw2Ri9WEukFKoRA8hnTcuxsi/3WQ
+	==
+X-Google-Smtp-Source: AGHT+IGPAzAetlOptAzw9GaNxbD3zKkFT2GadJ1WyMX5hnKkmmcKAsypxbC/VTf8veeCOAjENtE2yQ==
+X-Received: by 2002:a05:6a20:7291:b0:2fc:a1a1:4839 with SMTP id adf61e73a8af0-32da80da6dfmr27467709637.10.1760348101035;
+        Mon, 13 Oct 2025 02:35:01 -0700 (PDT)
+Received: from LAPTOP-PN4ROLEJ.localdomain ([222.191.246.242])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-b678df952cbsm8693944a12.45.2025.10.13.02.34.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 13 Oct 2025 02:35:00 -0700 (PDT)
+From: Slavin Liu <slavin452@gmail.com>
+To: stable@vger.kernel.org
+Cc: Slavin Liu <slavin452@gmail.com>,
+	Julian Anastasov <ja@ssi.bg>,
+	Florian Westphal <fw@strlen.de>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org
+Subject: Backport request for commit 134121bfd99a ("ipvs: Defer ip_vs_ftp unregister during netns cleanup")
+Date: Mon, 13 Oct 2025 17:34:49 +0800
+Message-Id: <20251013093449.465-1-slavin452@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: iptables: zero dereference parsing bitwise operations
-To: "Remy D. Farley" <one-d-wide@protonmail.com>,
- Florian Westphal <fw@strlen.de>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-References: <s5LZtLzqFmQhlD4mtmgcKbrgkfQ-X7k7vvg7s7XnXHekGJSKOMyOdmoiONo7MzuLVqYTFPntt74igf8Q0ERSPy5R9f8L1EfwrhOZbs_nhO8=@protonmail.com>
- <aOpigXfhOrj02Qa5@strlen.de>
- <e2mf5Q5IBD50dFQcvIXCNkQCKwghz-hLmCunP33gaZy33srxWrQKdcL1J3GKA8a0H05T6p4kZGFpR910g7JBZusbg_AmEZKPD1UvW_mEheQ=@protonmail.com>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <e2mf5Q5IBD50dFQcvIXCNkQCKwghz-hLmCunP33gaZy33srxWrQKdcL1J3GKA8a0H05T6p4kZGFpR910g7JBZusbg_AmEZKPD1UvW_mEheQ=@protonmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Level: 
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.980];
-	MIME_GOOD(-0.10)[text/plain];
-	TO_DN_EQ_ADDR_SOME(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FREEMAIL_TO(0.00)[protonmail.com,strlen.de];
-	ARC_NA(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[protonmail.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[3];
-	RCVD_TLS_ALL(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	URIBL_BLOCKED(0.00)[protonmail.com:email];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
+I would like to request backporting 134121bfd99a ("ipvs: Defer ip_vs_ftp 
+unregister during netns cleanup") to all LTS kernels.
 
-On 10/11/25 10:15 PM, Remy D. Farley wrote:
-> On Saturday, October 11th, 2025 at 13:58, Florian Westphal <fw@strlen.de> wrote:
-> 
->> Remy D. Farley one-d-wide@protonmail.com wrote:
->>
->>> While messing around with manually encoding nftables expressions, I noticed
->>> that iptables binary v1.8.11 segfaults with -L and -D <chain> options, if
->>> there's a rule containing a bitwise operation of a type other than
->>> mask-and-xor. As I understand, iptables and nft tools only generate rules with
->>> mask-xor, though the kernel seems to happily accept other types as well.
->>
->>
->> No, nftables supports this, but iptables does not.
-> 
-> 
-> Hmm, when I run `nft list ruleset` it terminates successfully, but it does
-> report some errors at the end if the rule from the example is present.
-> 
->> netlink: Error: Invalid source register 0
->> netlink: Error: Bitwise expression has no right-hand expression
->> netlink: Error: Relational expression has no left hand side
-> 
-> But I'm not completely sure whether it's not me incorrectly encoding the rule.
-> 
+This fixes a UAF vulnerability in IPVS that was introduced since v2.6.39, and 
+the patch applies cleanly to the LTS kernels.
 
-Hi Remy, could you share the full output of:
+thanks,
 
-'nft --debug=netlink list ruleset'
-
-This will allow me to understand what is the generated bytecode and an 
-easy way to reproduce this with libnftnl. I am happy to investigate/fix 
-this on the nft/libnftnl/kernel side :)
-
-> For some context, that's how it renders the rule:
-> 
->>     chain example-chain {
->>         accept
->>     }
-> 
-> 
->> iptables should not segfault, however. Care to make a patch?
-> 
-> 
-> Sure. I think it's fine for now to just check for the operation type and
-> error with something like "unsupported bitwise operation", like seems to be the
-> case with nft tool, since this issue appears to be extremely uncommon, if it
-> hasn't been spotted before.
-> 
-
+Slavin Liu
