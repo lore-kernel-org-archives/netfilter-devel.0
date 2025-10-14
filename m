@@ -1,76 +1,77 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0A712C0F7C
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 12:20:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0594F312802
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 12:21:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760444461; cv=none; b=Y6ex9E22kpcgumD7TILKTA2gA1lpVDJ0S40ubeWBJ4CCuJxs1yBb9CtjFPWGfHXnGesBPB8JMF4eUEWXXo/yUTZr2B9G0xa+GWTtz6Jlu2+IrU4g4HjOSqOKWkihftkqNFF8ng+juePNdoaz9ymec6YrX5+YrIQ3W/HhMpCpRyA=
+	t=1760444500; cv=none; b=ucEPklRzjVXTgoSzcZjlRtQR+mpQ0P2mgDb0KR3xYFeur0BBQZUB8f7N87oxAMhpmYN6i8/UzfNKlbDuvdnKrUPYeguDebKbKZtIHGMyoTKHAqgLDiKKJVOP7ZtKsO6elqts6ziaa2YqP3Zc4PeHfC0qOshjHlHvVydUo5d8hJ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760444461; c=relaxed/simple;
-	bh=dhQ1ZyT5FUYW6kd9sqJC75HiqzpEkvlYk4dH4OR32x4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MGsFzc306781Jku1vKBwLduC1wyH6mN1f8Su9QywU/iX4ca5OqN9VePPucwSGrOF2Aepu9iHyjqiT/dtpCJcn/Ok7Sc4f0Fnuyznsbz52LRa++67q/bOs3ob7dpA/8Lq7/qijQvEO0nFAtZhrjE7si20rfhS1CtTqDKE7o79twE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QWy/BwSm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=mLhTPaRQ; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QWy/BwSm; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=mLhTPaRQ; arc=none smtp.client-ip=195.135.223.131
+	s=arc-20240116; t=1760444500; c=relaxed/simple;
+	bh=c1kvb5CKLy9E8ii8xNFMSI+DhYkQB2D++o0JpGJYQ04=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=aPuCXgBM65gmE3HBYQAoRXpiUW70TqYKNdHBh9sfYMo2ZH8VZcFQ3Me3C3w/8L+QE8LUxTM+fBe1GkuMJ2NAGayoAOLlMX/bTb1WxeU5fZe9cQ/Qj0jXS6rVyegtW4YOgGqwrYzH8yK3SOFDmykugESOIc8KPYHPtLOuHkijLTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=oB3YkEb4; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=lBG+2BC7; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=IEZFGMfF; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=acmFSaW6; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QWy/BwSm";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="mLhTPaRQ";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QWy/BwSm";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="mLhTPaRQ"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="oB3YkEb4";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="lBG+2BC7";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="IEZFGMfF";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="acmFSaW6"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 02E341F391;
-	Tue, 14 Oct 2025 12:20:58 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id ECD1421D6C;
+	Tue, 14 Oct 2025 12:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1760444458; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1760444496; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PIunIJJW+T16wRVDYo1PuSvzrrR3NMmn60XoKqAOZpI=;
-	b=QWy/BwSmTmdpSqEMMUWJERvjt6gkbvOjB9ylVegM2tQhf1SXKC1TJ5mIovHLw/vmGuWBeA
-	q8G/naFYFMyVhvIrN70ApywuyqTio0HyFBHX7j1EhCHBPfaf3d1+deaheQivDw6CV4llru
-	/Ps5CIJV1k1z/V/GCYVGOZB0yBJaiWQ=
+	bh=TsYO/+7h4Y0El9rkFTmnxUOx60FL+daInOGInmYPx2w=;
+	b=oB3YkEb4CrIay2ORqyh5UdfgkXs9aXHGXmII8hnRyLlNzXKmSXqm5AXIccEFBiegObLbBh
+	oPi9mcCVjrw7lfwuYLqkNegH9zFlbK4inzM3cRCAWwWPQt/p1fLPbzW74JeJh1UTczoIjU
+	iDFrXSXk5s78+hkIV+brr9GcF/MeiYU=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1760444458;
+	s=susede2_ed25519; t=1760444496;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PIunIJJW+T16wRVDYo1PuSvzrrR3NMmn60XoKqAOZpI=;
-	b=mLhTPaRQ+Ej8sWTGMSRiQVANw/7JyhbukynCPA/3vl5Ci8mHow8Tm6sN6p2D5kfPNuXcq0
-	7zn0d5Hx6gG/6vCQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
+	bh=TsYO/+7h4Y0El9rkFTmnxUOx60FL+daInOGInmYPx2w=;
+	b=lBG+2BC7o46PP5B7mpxX5AbeTnteEI0LzZxVbFBTqk4tO0GO79G0gD7G1HYzx71Eq4Tnxs
+	xPqEZeeBM3BDXQAQ==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=IEZFGMfF;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=acmFSaW6
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1760444458; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1760444495; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PIunIJJW+T16wRVDYo1PuSvzrrR3NMmn60XoKqAOZpI=;
-	b=QWy/BwSmTmdpSqEMMUWJERvjt6gkbvOjB9ylVegM2tQhf1SXKC1TJ5mIovHLw/vmGuWBeA
-	q8G/naFYFMyVhvIrN70ApywuyqTio0HyFBHX7j1EhCHBPfaf3d1+deaheQivDw6CV4llru
-	/Ps5CIJV1k1z/V/GCYVGOZB0yBJaiWQ=
+	bh=TsYO/+7h4Y0El9rkFTmnxUOx60FL+daInOGInmYPx2w=;
+	b=IEZFGMfFFKVwTkq4ayUaHBZqMI5yr9DaZ+LOGbBTnWgLxqvoMSsW8Vhx1N6irRFfGnKEga
+	1xeldTHlnn87B3Zaviu3btLliVlu5iUIWOX4sW3sKusCNcPMR0YCDk73vVMJQiOGBkFIcU
+	81Xt3Imv1239s+8cznt5Juok8v5K+X4=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1760444458;
+	s=susede2_ed25519; t=1760444495;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=PIunIJJW+T16wRVDYo1PuSvzrrR3NMmn60XoKqAOZpI=;
-	b=mLhTPaRQ+Ej8sWTGMSRiQVANw/7JyhbukynCPA/3vl5Ci8mHow8Tm6sN6p2D5kfPNuXcq0
-	7zn0d5Hx6gG/6vCQ==
+	bh=TsYO/+7h4Y0El9rkFTmnxUOx60FL+daInOGInmYPx2w=;
+	b=acmFSaW6HwJ8g6GoNpyyUlQCRj645Xr6sHvS4KuDorf+ZAQ+XmHoXF7OD4wGll1+oU28cB
+	vm+ih8K/fByoUtDg==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B9C3E13A44;
-	Tue, 14 Oct 2025 12:20:57 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id AC7B913A44;
+	Tue, 14 Oct 2025 12:21:35 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id Ym+oKilA7mhYewAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 14 Oct 2025 12:20:57 +0000
+	id oRNHJ09A7mjYewAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Tue, 14 Oct 2025 12:21:35 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nft v2] meta: introduce meta ibrhwaddr support
-Date: Tue, 14 Oct 2025 14:20:42 +0200
-Message-ID: <20251014122042.28934-1-fmancera@suse.de>
+Subject: [PATCH nft v3] tests: shell: add packetpath test for meta ibrhwaddr
+Date: Tue, 14 Oct 2025 14:21:28 +0200
+Message-ID: <20251014122128.28956-1-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -79,153 +80,173 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spam-Level: 
-X-Spamd-Result: default: False [-2.80 / 50.00];
+X-Rspamd-Queue-Id: ECD1421D6C
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-3.01 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
 	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
 	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
+	MX_GOOD(-0.01)[];
 	ARC_NA(0.00)[];
 	MIME_TRACE(0.00)[0:+];
 	TO_DN_SOME(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
 	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from,2a07:de40:b281:106:10:150:64:167:received];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
 	RCPT_COUNT_THREE(0.00)[3];
-	RCVD_TLS_ALL(0.00)[]
+	RCVD_TLS_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,suse.de:dkim];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Action: no action
 X-Spam-Flag: NO
-X-Spam-Score: -2.80
+X-Spam-Score: -3.01
+X-Spam-Level: 
 
-Can be used in bridge prerouting hook to redirect the packet to the
-receiving physical device for processing.
-
-table bridge nat {
-        chain PREROUTING {
-                type filter hook prerouting priority 0; policy accept;
-                ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwaddr accept
-        }
-}
+The test checks that the packets are processed by the bridge device and
+not forwarded.
 
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
-v2: rename the selector to ibrhwaddr
+v2: set ipv4 address on bridge, enable ip_forwarding and check ipv4 forward hook too.
+v3: rename to ibrhwaddr
 ---
- include/linux/netfilter/nf_tables.h |  2 ++
- src/meta.c                          |  4 ++++
- tests/py/bridge/meta.t              |  1 +
- tests/py/bridge/pass_up.t           |  6 ++++++
- tests/py/bridge/pass_up.t.json      | 19 +++++++++++++++++++
- tests/py/bridge/pass_up.t.payload   |  4 ++++
- 6 files changed, 36 insertions(+)
- create mode 100644 tests/py/bridge/pass_up.t
- create mode 100644 tests/py/bridge/pass_up.t.json
- create mode 100644 tests/py/bridge/pass_up.t.payload
+ tests/shell/features/meta_ibrhwaddr.nft       |   8 ++
+ .../shell/testcases/packetpath/bridge_pass_up | 102 ++++++++++++++++++
+ 2 files changed, 110 insertions(+)
+ create mode 100644 tests/shell/features/meta_ibrhwaddr.nft
+ create mode 100755 tests/shell/testcases/packetpath/bridge_pass_up
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index b38d4780..45d0b92b 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -949,6 +949,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_SDIF: slave device interface index
-  * @NFT_META_SDIFNAME: slave device interface name
-  * @NFT_META_BRI_BROUTE: packet br_netfilter_broute bit
-+ * @NFT_META_BRI_IIFHWADDR: packet input bridge interface ethernet address
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -989,6 +990,7 @@ enum nft_meta_keys {
- 	NFT_META_SDIFNAME,
- 	NFT_META_BRI_BROUTE,
- 	__NFT_META_IIFTYPE,
-+	NFT_META_BRI_IIFHWADDR,
- };
- 
- /**
-diff --git a/src/meta.c b/src/meta.c
-index 1010209d..c3648602 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -23,6 +23,7 @@
- #include <arpa/inet.h>
- #include <linux/netfilter.h>
- #include <linux/pkt_sched.h>
-+#include <linux/if_ether.h>
- #include <linux/if_packet.h>
- #include <time.h>
- 
-@@ -704,6 +705,9 @@ const struct meta_template meta_templates[] = {
- 						BYTEORDER_HOST_ENDIAN),
- 	[NFT_META_BRI_BROUTE]	= META_TEMPLATE("broute",   &integer_type,
- 						1    , BYTEORDER_HOST_ENDIAN),
-+	[NFT_META_BRI_IIFHWADDR] = META_TEMPLATE("ibrhwaddr", &etheraddr_type,
-+						 ETH_ALEN * BITS_PER_BYTE,
-+						 BYTEORDER_BIG_ENDIAN),
- };
- 
- static bool meta_key_is_unqualified(enum nft_meta_keys key)
-diff --git a/tests/py/bridge/meta.t b/tests/py/bridge/meta.t
-index 171aa610..1e312a27 100644
---- a/tests/py/bridge/meta.t
-+++ b/tests/py/bridge/meta.t
-@@ -11,3 +11,4 @@ meta protocol ip udp dport 67;ok
- meta protocol ip6 udp dport 67;ok
- 
- meta broute set 1;fail
-+meta ibrhwaddr;fail
-diff --git a/tests/py/bridge/pass_up.t b/tests/py/bridge/pass_up.t
+diff --git a/tests/shell/features/meta_ibrhwaddr.nft b/tests/shell/features/meta_ibrhwaddr.nft
 new file mode 100644
-index 00000000..642fbafe
+index 00000000..e41abac8
 --- /dev/null
-+++ b/tests/py/bridge/pass_up.t
-@@ -0,0 +1,6 @@
-+:prerouting;type filter hook prerouting priority 0
-+
-+*bridge;test-bridge;prerouting
-+
-+ether daddr set meta ibrhwaddr;ok
-+meta ibrhwaddr set 00:1a:2b:3c:4d:5e;fail
-diff --git a/tests/py/bridge/pass_up.t.json b/tests/py/bridge/pass_up.t.json
-new file mode 100644
-index 00000000..7d6a30bf
++++ b/tests/shell/features/meta_ibrhwaddr.nft
+@@ -0,0 +1,8 @@
++# cbd2257dc96e ("netfilter: nft_meta_bridge: introduce NFT_META_BRI_IIFHWADDR support")
++# v6.16-rc2-16052-gcbd2257dc96e
++table bridge nat {
++	chain PREROUTING {
++		type filter hook prerouting priority 0; policy accept;
++		ether daddr set meta ibrhwaddr
++	}
++}
+diff --git a/tests/shell/testcases/packetpath/bridge_pass_up b/tests/shell/testcases/packetpath/bridge_pass_up
+new file mode 100755
+index 00000000..50c5fc8d
 --- /dev/null
-+++ b/tests/py/bridge/pass_up.t.json
-@@ -0,0 +1,19 @@
-+# ether daddr set meta ibrhwaddr
-+[
-+    {
-+        "mangle": {
-+            "key": {
-+                "payload": {
-+                    "field": "daddr",
-+                    "protocol": "ether"
-+                }
-+            },
-+            "value": {
-+                "meta": {
-+                    "key": "ibrhwaddr"
-+                }
-+            }
-+        }
-+    }
-+]
++++ b/tests/shell/testcases/packetpath/bridge_pass_up
+@@ -0,0 +1,102 @@
++#!/bin/bash
 +
-diff --git a/tests/py/bridge/pass_up.t.payload b/tests/py/bridge/pass_up.t.payload
-new file mode 100644
-index 00000000..d76c6b94
---- /dev/null
-+++ b/tests/py/bridge/pass_up.t.payload
-@@ -0,0 +1,4 @@
-+# ether daddr set meta ibrhwaddr
-+bridge test-bridge prerouting
-+  [ meta load ibrhwaddr => reg 1 ]
-+  [ payload write reg 1 => 6b @ link header + 0 csum_type 0 csum_off 0 csum_flags 0x0 ]
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_meta_ibrhwaddr)
++
++rnd=$(mktemp -u XXXXXXXX)
++ns1="nft1ifname-$rnd"
++ns2="nft2ifname-$rnd"
++ns3="nft3ifname-$rnd"
++
++cleanup()
++{
++	ip netns del "$ns1"
++	ip netns del "$ns2"
++	ip netns del "$ns3"
++}
++
++trap cleanup EXIT
++
++set -e
++
++ip netns add "$ns1"
++ip netns add "$ns2"
++ip netns add "$ns3"
++
++ip link add veth0 netns $ns1 type veth peer name veth0 netns $ns2
++ip link add veth1 netns $ns3 type veth peer name veth1 netns $ns2
++ip link add br0 netns $ns2 type bridge
++
++ip -net "$ns1" link set veth0 addr da:d3:00:01:02:03
++ip -net "$ns3" link set veth1 addr de:ad:00:00:be:ef
++
++ip -net "$ns2" link set veth0 master br0
++ip -net "$ns2" link set veth1 master br0
++
++ip -net "$ns1" link set veth0 up
++ip -net "$ns2" link set veth0 up
++ip -net "$ns3" link set veth1 up
++ip -net "$ns2" link set veth1 up
++ip -net "$ns2" link set br0 up
++
++ip netns exec "$ns2" sysctl -q net.ipv4.ip_forward=1
++
++ip -net "$ns1" addr add 10.1.1.10/24 dev veth0
++ip -net "$ns3" addr add 10.1.1.20/24 dev veth1
++ip -net "$ns2" addr add 10.1.1.1/24 dev br0
++
++ip netns exec "$ns2" $NFT -f /dev/stdin <<"EOF"
++table bridge nat {
++	chain PREROUTING {
++		type filter hook prerouting priority 0; policy accept;
++		ether daddr de:ad:00:00:be:ef meta pkttype set host ether daddr set meta ibrhwaddr meta mark set 1
++	}
++}
++
++table bridge process {
++	chain INPUT {
++		type filter hook input priority 0; policy accept;
++		ip protocol icmp meta mark 1 counter
++	}
++}
++
++table bridge donotprocess {
++	chain FORWARD {
++		type filter hook forward priority 0; policy accept;
++		ip protocol icmp meta mark 1 counter
++	}
++}
++
++table ip process {
++	chain FORWARD {
++		type filter hook forward priority 0; policy accept;
++		ip protocol icmp meta mark 1 counter
++	}
++}
++EOF
++
++ip netns exec "$ns1" ping -c 1 10.1.1.20 || true
++
++set +e
++
++ip netns exec "$ns2" $NFT list table bridge process | grep 'counter packets 0'
++if [ $? -eq 0 ]
++then
++	echo "Failure: packets not seen at bridge input hook"
++	exit 1
++fi
++
++ip netns exec "$ns2" $NFT list table bridge donotprocess | grep 'counter packets 0'
++if [ $? -eq 1 ]
++then
++	echo "Failure: packets seen at bridge forward hook"
++	exit 1
++fi
++
++ip netns exec "$ns2" $NFT list table ip process | grep 'counter packets 0'
++if [ $? -eq 0 ]
++then
++	echo "Failure: packets not seen at ipv4 forward hook"
++	exit 1
++fi
++
++exit 0
 -- 
 2.51.0
 
