@@ -1,110 +1,97 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from baidu.com (mx20.baidu.com [111.202.115.85])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D82A030CD80
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 11:43:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099402FE053;
+	Tue, 14 Oct 2025 11:51:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.202.115.85
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760442221; cv=none; b=gzN3LGqzg9gwLQEeuhP0kj/j8gm6eGwelE9i3cxRfnMGsS5ZJYUPD+bibQVxC/6fYp2+WPOKPDG0kHgF0eQPfSOvnIU5U+doakVZkKnzz02fuRPX54+GRT0sv5DGEJKbpCKsMcRu7I5gc8h3vr7UU1q1Z2ZiTTUHSwGDEHvdTUY=
+	t=1760442721; cv=none; b=g79nWei4DrMPohKtTaVy57nMm+aYgVU8DXAttUJsEAz/SMfHVUMl6wDUHJddfYMrJ8ZY2XtqnzWFHhS5BOw55xjXebw0fuqE8thpcCybEe4tqq0nchgiEmp6MmBmkFJuF0WAOY0LSSk3SRMa0icrinaGZwTtXeed2ux8ynuruoA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760442221; c=relaxed/simple;
-	bh=9Anz8SdWCHj//cI708iSDs2qphpPgNV3XK3W9CnyRRY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IJYro8VYiDP0R4IGJv4nkxHznBzfExwIed7mopwPb/qTAw60vl3Snhhatbl8UdPqCSo4th2hQzJkuHd/ig2g+j//YT0TzT4wmRx0oVe8kzWJu0gigkpwPP25u8JAgxS9touqZmOs5Z+cq8+Hdd3+EDfai+F1q/08cjYBr46cLoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io; spf=pass smtp.mailfrom=vyos.io; dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b=whrYiz/X; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vyos.io
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b="whrYiz/X"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-b50206773adso1125289066b.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 04:43:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=vyos.io; s=google; t=1760442218; x=1761047018; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=tzi/ei+DoEPQ0UXsEb+6ZYb7S4ThZhfVu5KSSSvXqaE=;
-        b=whrYiz/X92bu0MLAMI7oDBmG4J8MsyotukbZ+P9yvz3KFXjkRjiet6ecHeVRQCe7nk
-         ZG30hDJPH4FeW9jPnBO4TCFnRZw0anVkNwUTWCMzrk6JowQL1/W9vrvsauMs9BZCjFfH
-         7/xwgtIQO+RGWny2R9IgouA1UdCOf4qUcYCse2KhGH4X35rHLuVfnzGb8XmnKC/rjxBZ
-         P5c1sFZGxGe/nsba18UqhxbpvFquIdq8ohZAnTFPSI9jEAp2dfXdkD0lm6lfRCbwbnKN
-         xWJsqK/ht+fs7XVhe0AoBjLEEi2ZprMmC5Xqz0vnMnoIqAWtr7IUt0kzn2XPvVp16LSg
-         +MBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1760442218; x=1761047018;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=tzi/ei+DoEPQ0UXsEb+6ZYb7S4ThZhfVu5KSSSvXqaE=;
-        b=pIChnThPw7QXKetLk4IoKRwcK34jIzgKov70bRyNNYaSidQNadGMriMhwgZ6ATC0KT
-         HFIyHnsVd88FJB5CGuh4jmI5prHDhhQQT3T59R0WvjSk4kTctMkmZrXzMEGtHRbUqQ7K
-         RWOC54kIfGkGJRpUXLzON2pPKTlddmNQ65m5pwvlNIMkA6Tw0xX9oNrzDRIx9ErYEH/E
-         BwpUp+na7nwnN0N4OMQK1CECE3w/LZe83rHJAYvZH0c4PtEz3wuajVi9KpvR3H9FilLs
-         Cq5IdZIDYkrpmN0EqqZixvQe3IBZ9eMwor+O78CGrlRRNoO5hn5PBTpGjIwGYxWebHRn
-         4zRw==
-X-Forwarded-Encrypted: i=1; AJvYcCWWaym8J0CsXdOlLoYDrjC+BT+5Np1owrzc7MZwBjMgK7LdLpLjGClSNDsCafiwLYVu+mUgfZFgdVWSZMezUCk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwifBkAiIjQQPUuaykURgiwiSOFqAUCuaBvFpANJGzMpSF+Ue0t
-	jcYHoHVt08n//CRJFTmQQXDSeJCQ5PBW9th5YU6NknRO5HQ54o80pHihCONthfw33zc=
-X-Gm-Gg: ASbGnctnzD0s9Bxf4CZxU/myOq8SOztqbjEXhXx41CO7nmmBGEZZl+xSH/sgdxgCAmw
-	I3JBRMhlCZfmcRN3QJoHEUCqiRLGCpcF9cme1NOQ3PotzqSkBxJ02cjlsuqsdd2o1KmFbFl10X6
-	/E10kgHT4bl3pX2SLJcl8BTF3ljy/yZADBcJB1PM523QTwFa1YIEI5Mx4cbhbuYlXV/qOkaVyRR
-	mh8Xuye5cRDe7DamuhR4uy8IB6tRzhKRJwwW6cSV0KNoMYkgyDsG0XU6l1GDEeGX+Skz8W9EWhd
-	cgZff4bsWFcVC799JF1QDkFTNHgnKbOTwKrIrc2lcNfVHdGhvv0S5GNioR2gLMIrn8rI2UDlk5D
-	e39ctX85NbDv1XWoIhmIPyqBVCiJ1VAZNliMO3ypyRd8QflZdNab/JJirac98tPPVIEduwvzeDw
-	b9kOqt0BfUaJB48g==
-X-Google-Smtp-Source: AGHT+IGZy8B5qcY5omdqnsSW8uejd8MU/DWT1dZAEfS/f9Fb8Rfos0k20W7zR+hFEx57vClHrSnnPQ==
-X-Received: by 2002:a17:907:8694:b0:b40:7305:b93d with SMTP id a640c23a62f3a-b50bcbe2701mr3007302166b.2.1760442218015;
-        Tue, 14 Oct 2025 04:43:38 -0700 (PDT)
-Received: from VyOS.. (089144196114.atnat0005.highway.a1.net. [89.144.196.114])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b55d8c129c4sm1150091766b.41.2025.10.14.04.43.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Oct 2025 04:43:37 -0700 (PDT)
-From: Andrii Melnychenko <a.melnychenko@vyos.io>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc
-Cc: davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/1] netfilter: Added nfct_seqadj_ext_add() for ftp's conntrack.
-Date: Tue, 14 Oct 2025 13:43:34 +0200
-Message-ID: <20251014114334.4167561-1-a.melnychenko@vyos.io>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1760442721; c=relaxed/simple;
+	bh=Hfs/oyD16dhuLjpqiLOj0BghJMlBJWnviczL0Y3NGms=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=upUz62G3iS47rYWNN9h4O/w5z2zcWOyvzgnmvFFOQVL8ly0GSbWUWw6YxDXmmePIPdxiUMdIokMyvJHQlBbGk8hwB675tMjAY1sZORMrbzscTACfl4Rg3baqYQ6GzEtmOL/LXYtzLB3dIGDh5Ehq8fzl5J/d9+xnZSqlDYt+m3E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; arc=none smtp.client-ip=111.202.115.85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+From: lirongqing <lirongqing@baidu.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
+	<kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter
+	<phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>, Eric Dumazet
+	<edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
+	<pabeni@redhat.com>, Simon Horman <horms@kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+CC: Li RongQing <lirongqing@baidu.com>
+Subject: [PATCH net-next] netfilter: conntrack: Reduce cond_resched frequency in gc_worker
+Date: Tue, 14 Oct 2025 19:51:03 +0800
+Message-ID: <20251014115103.2678-1-lirongqing@baidu.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: bjhj-exc9.internal.baidu.com (172.31.3.19) To
+ bjkjy-exc3.internal.baidu.com (172.31.50.47)
+X-FEAS-Client-IP: 172.31.50.47
+X-FE-Policy-ID: 52:10:53:SYSTEM
 
-There was an issue with NAT'ed ftp and replaced messages
-for PASV/EPSV mode. "New" IP in the message may have a
-different length that would require sequence adjustment.
+From: Li RongQing <lirongqing@baidu.com>
 
-Signed-off-by: Andrii Melnychenko <a.melnychenko@vyos.io>
+The current implementation calls cond_resched() in every iteration
+of the garbage collection loop. This creates some overhead when
+processing large conntrack tables with billions of entries,
+as each cond_resched() invocation involves scheduler operations.
+
+To reduce this overhead, implement a time-based throttling mechanism
+that calls cond_resched() at most once per millisecond. This maintains
+system responsiveness while minimizing scheduler contention.
+
+gc_worker() with hashsize=10000 shows measurable improvement:
+
+Before: 7114.274us
+After:  5993.518us (15.8% reduction)
+
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
 ---
- net/netfilter/nf_conntrack_ftp.c | 2 ++
- 1 file changed, 2 insertions(+)
+ net/netfilter/nf_conntrack_core.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 617f744a2..555ff77f4 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -390,6 +390,8 @@ static int help(struct sk_buff *skb,
- 	/* Until there's been traffic both ways, don't look in packets. */
- 	if (ctinfo != IP_CT_ESTABLISHED &&
- 	    ctinfo != IP_CT_ESTABLISHED_REPLY) {
-+		if (!nf_ct_is_confirmed(ct))
-+			nfct_seqadj_ext_add(ct);
- 		pr_debug("ftp: Conntrackinfo = %u\n", ctinfo);
- 		return NF_ACCEPT;
- 	}
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 344f882..779ca03 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1513,7 +1513,7 @@ static bool gc_worker_can_early_drop(const struct nf_conn *ct)
+ static void gc_worker(struct work_struct *work)
+ {
+ 	unsigned int i, hashsz, nf_conntrack_max95 = 0;
+-	u32 end_time, start_time = nfct_time_stamp;
++	u32 end_time, resched_time, start_time = nfct_time_stamp;
+ 	struct conntrack_gc_work *gc_work;
+ 	unsigned int expired_count = 0;
+ 	unsigned long next_run;
+@@ -1536,6 +1536,7 @@ static void gc_worker(struct work_struct *work)
+ 	count = gc_work->count;
+ 
+ 	end_time = start_time + GC_SCAN_MAX_DURATION;
++	resched_time = nfct_time_stamp;
+ 
+ 	do {
+ 		struct nf_conntrack_tuple_hash *h;
+@@ -1615,7 +1616,10 @@ static void gc_worker(struct work_struct *work)
+ 		 * we will just continue with next hash slot.
+ 		 */
+ 		rcu_read_unlock();
+-		cond_resched();
++		if (nfct_time_stamp - resched_time > msecs_to_jiffies(1)) {
++			cond_resched();
++			resched_time = nfct_time_stamp;
++		}
+ 		i++;
+ 
+ 		delta_time = nfct_time_stamp - end_time;
 -- 
-2.43.0
+2.9.4
 
