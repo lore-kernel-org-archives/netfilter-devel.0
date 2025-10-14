@@ -1,74 +1,97 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15B7D2F0C49
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 15:29:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0F172550CD
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 22:33:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760455757; cv=none; b=XFUb/345z5zmermsSnJTiCo3JlQRKKvR6qWpdKmsWHrTXTb57zCPnfxrtdBd734ZNcTjFcamlUaxTPXeMJaFhzGXe7Bda4/PjmBi3NhD7fIesFtfM8OPp3lRVcjskUKmZUrT8BS8Xdn5hVAAPZWBWaQ1kBQjZN5iwGH15uZtdMw=
+	t=1760481238; cv=none; b=dgfVnFB1GWut4mmjY+Vh7eSzlQ60R35KYnjaqU+hLvAZEIVPdmtfwcPMSnDDFDKmqGhm8wqWqqy/AEplna3ztE7TRZC7lN5apm2BOBODyI/52JQ7RDadnZRbGju2tvg897wUylFkYW7byF0HeidlRrvZX+N4hdbry71XSHncJEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760455757; c=relaxed/simple;
-	bh=bx7WtxQ1IuuZSt2CYxCibeUrjNkdfo1IeCtCCqgVX30=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MuEG78bsaf3qieaWSw/KDW0XYEMd1KgTK9JypYZZ5zEOqJsrHd5asLaMy8SM6q2UiXgNg2+65grEdX4a09Z5Qq4iFjhYU1tAr3qZRL/L1PsX6iJzVLcrDQJGpeBN2mHR/nGjT4/mcwabX+lIHysjsLTXrdfZxdMlHnR4Q4kcVHU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C4B45603CA; Tue, 14 Oct 2025 17:29:11 +0200 (CEST)
-Date: Tue, 14 Oct 2025 17:29:11 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: "Remy D. Farley" <one-d-wide@protonmail.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: Re: iptables: zero dereference parsing bitwise operations
-Message-ID: <aO5sR82R-XqueUq-@strlen.de>
-References: <s5LZtLzqFmQhlD4mtmgcKbrgkfQ-X7k7vvg7s7XnXHekGJSKOMyOdmoiONo7MzuLVqYTFPntt74igf8Q0ERSPy5R9f8L1EfwrhOZbs_nhO8=@protonmail.com>
- <aOpigXfhOrj02Qa5@strlen.de>
- <e2mf5Q5IBD50dFQcvIXCNkQCKwghz-hLmCunP33gaZy33srxWrQKdcL1J3GKA8a0H05T6p4kZGFpR910g7JBZusbg_AmEZKPD1UvW_mEheQ=@protonmail.com>
- <dae7551c-c18e-46ea-b490-1b7310a40195@suse.de>
- <c0jUt9xXxfO6o8KmFHUCZKJYW1bArw2X3KSLyVn39yv9-LiFW46XF0vnsPVV-QXkempUYu7kwzNsmG9rHM-65QjnqZ-mdz94Es2EPKbjbHI=@protonmail.com>
- <e914fab4-e65d-43d3-a99d-816e8dffd72b@suse.de>
+	s=arc-20240116; t=1760481238; c=relaxed/simple;
+	bh=xeAEnsAMu4azJrocqDQkt+LnGIidaO+9dfcF13cOKsE=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JleinXe/ht1D5pAcAZaX+vTc0n4Ah7tbtMxTReknByf+TSAHBV8/4R+RKld+qlJCwtfCQy8gHcZewxha9LjSJpYmqog+czKVthW5C0GsbGtFWlREF8Z7jiv/SajTPjCc9Oqr5ICWA08e6Pk32RbohyHtxaug8H6OTi46UcxDTJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PWOMzOAn; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PWOMzOAn; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PWOMzOAn";
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PWOMzOAn"
+Received: by mail.netfilter.org (Postfix, from userid 109)
+	id 965A160297; Wed, 15 Oct 2025 00:33:47 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1760481227;
+	bh=6qYM56kga6l3kEPmzQkXiEVVq609yOgXBTXhC3Pc+K4=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=PWOMzOAnK4VQz6xTBWVXXAqiiQh8yt+IX51D88cr1zGDDL79L++MQToKH/hPfM5sD
+	 t2vstJJlEG16W5PNIyHIt/5DmXXYwaXwAZ85r1voBlW3CdPY4ByBat70BhbicJY8Z9
+	 QTjSB0n5vXbxUAiJlczMnxz6ZfMGMf+jkIOQ+KatMtnxx8GEivd+RM5YLae8NEOmVM
+	 W/XttjHQ1qzNv2e+V/7gDHL2eQxdnjQFsLgmYZ4EIr//9J1sodwoe4iy6lCI4kETSK
+	 tmF3IW/jhIJJMUa/eNaEwAZMWsC4UFp9ZdCAHNcKiQM9ucxbYfRGvxubzGMj9dRNWp
+	 IcDrLqgH2XNHg==
+X-Spam-Level: 
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id E5CAF60294;
+	Wed, 15 Oct 2025 00:33:46 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1760481227;
+	bh=6qYM56kga6l3kEPmzQkXiEVVq609yOgXBTXhC3Pc+K4=;
+	h=Date:From:To:Subject:References:In-Reply-To:From;
+	b=PWOMzOAnK4VQz6xTBWVXXAqiiQh8yt+IX51D88cr1zGDDL79L++MQToKH/hPfM5sD
+	 t2vstJJlEG16W5PNIyHIt/5DmXXYwaXwAZ85r1voBlW3CdPY4ByBat70BhbicJY8Z9
+	 QTjSB0n5vXbxUAiJlczMnxz6ZfMGMf+jkIOQ+KatMtnxx8GEivd+RM5YLae8NEOmVM
+	 W/XttjHQ1qzNv2e+V/7gDHL2eQxdnjQFsLgmYZ4EIr//9J1sodwoe4iy6lCI4kETSK
+	 tmF3IW/jhIJJMUa/eNaEwAZMWsC4UFp9ZdCAHNcKiQM9ucxbYfRGvxubzGMj9dRNWp
+	 IcDrLqgH2XNHg==
+Date: Wed, 15 Oct 2025 00:33:44 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH] utils: Drop asterisk from end of
+ NFTA_DEVICE_PREFIX strings
+Message-ID: <aO7PyNgUnGxg7qHt@calendula>
+References: <20251007155935.1324-1-phil@nwl.cc>
+ <aOWJLfLGdbT5eDST@calendula>
+ <aOWOwaCWV1SXpdg6@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <e914fab4-e65d-43d3-a99d-816e8dffd72b@suse.de>
+In-Reply-To: <aOWOwaCWV1SXpdg6@orbyte.nwl.cc>
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> > 
-> >> Hi Remy, could you share the full output of:
-> >>
-> >> 'nft --debug=netlink list ruleset'
-> >>
-> >> This will allow me to understand what is the generated bytecode and an
-> >> easy way to reproduce this with libnftnl. I am happy to investigate/fix
-> >> this on the nft/libnftnl/kernel side :)
-> > 
-> > 
-> > Hi Fernando,
-> > 
-> > Not sure if it worth investigating, but here you go.
-> > 
-> > 
+On Wed, Oct 08, 2025 at 12:05:53AM +0200, Phil Sutter wrote:
+> Hi Pablo,
 > 
-> I have reproduced this and confirmed that the right source register is 
-> being set (NFT_REG_1) and that libnftnl is reporting it correctly. The 
-> problem is on nft command line tool side.. I do not think it is worth 
-> going deeper as it is probably related to nftables not being able to 
-> delinearize this rule as it is not supported by nft itself.
+> On Tue, Oct 07, 2025 at 11:42:05PM +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Oct 07, 2025 at 05:58:26PM +0200, Phil Sutter wrote:
+> > > The asterisk left in place becomes part of the prefix by accident and is thus
+> > > both included when matching interface names as well as dumped back to user
+> > > space.
+> > > 
+> > > Fixes: f30eae26d813e ("utils: Add helpers for interface name wildcards")
+> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
+> > > ---
+> > > This code is currently unused by nftables at least since it builds the
+> > > netlink message itself.
+> > 
+> > This was moved to nftables, and no release was made to include it?
+> > Would it possible to remove it from libnftnl?
+> 
+> The code layout is a bit inconsistent in this regard: While nftables
+> does the serialization itself (to record offsets for extack), it relies
+> upon libnftnl to perform the deserialization. Therefore parts of the
+> wildcard interface feature will have to be spread over the two projects.
+> And since this is the case, I decided to keep libnftnl's serialization
+> code "maintained" in this regard, i.e. enable it to perform the netlink
+> message building for wildcard interface names as well even though there
+> is no known user for it.
+> 
+> I'd prefer to keep it, also because I see us eventually returning to
+> libnftnl's serialization code once there is a mechanism to extract the
+> offsets for extack. You have the last word though (as always)! :)
 
-What the rule is doing is supported, but nft will transform it to use
-xor/and, as that will work on all nf_tables versions rather than only
-kernels that support NFT_BITWISE_OR.
-
-I think it would be possible to extend netlink_delinerize.c to support
-it but its technically not needed.
-
-nft can also not be expected to ever be able to make sense of a ruleset
-generated by something else, there is just too much variance to always
-be able to map this back to nft grammar.
+LGTM, thanks for explaining.
