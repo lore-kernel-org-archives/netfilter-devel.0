@@ -1,97 +1,84 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from baidu.com (mx21.baidu.com [220.181.3.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0F172550CD
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2025 22:33:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FD381F4191;
+	Wed, 15 Oct 2025 01:57:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.85
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760481238; cv=none; b=dgfVnFB1GWut4mmjY+Vh7eSzlQ60R35KYnjaqU+hLvAZEIVPdmtfwcPMSnDDFDKmqGhm8wqWqqy/AEplna3ztE7TRZC7lN5apm2BOBODyI/52JQ7RDadnZRbGju2tvg897wUylFkYW7byF0HeidlRrvZX+N4hdbry71XSHncJEw=
+	t=1760493443; cv=none; b=J6t3MZ6/AXcqWVGX6mZk8Ln0PhgHLwIfJecov/jUPPpudvnlQ4O/R3sUkHcc7rjD9tX3Ra2LMwo5TRb7gDEB1cTRKHzKRy7SIFupaNoZkIdm1XWnr3NTk68gPEk0lYlYU5AkrCKmRhUF34ty8MQNJw1/dKHrM2OGuZAULi9kK4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760481238; c=relaxed/simple;
-	bh=xeAEnsAMu4azJrocqDQkt+LnGIidaO+9dfcF13cOKsE=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JleinXe/ht1D5pAcAZaX+vTc0n4Ah7tbtMxTReknByf+TSAHBV8/4R+RKld+qlJCwtfCQy8gHcZewxha9LjSJpYmqog+czKVthW5C0GsbGtFWlREF8Z7jiv/SajTPjCc9Oqr5ICWA08e6Pk32RbohyHtxaug8H6OTi46UcxDTJ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PWOMzOAn; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PWOMzOAn; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PWOMzOAn";
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PWOMzOAn"
-Received: by mail.netfilter.org (Postfix, from userid 109)
-	id 965A160297; Wed, 15 Oct 2025 00:33:47 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1760481227;
-	bh=6qYM56kga6l3kEPmzQkXiEVVq609yOgXBTXhC3Pc+K4=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=PWOMzOAnK4VQz6xTBWVXXAqiiQh8yt+IX51D88cr1zGDDL79L++MQToKH/hPfM5sD
-	 t2vstJJlEG16W5PNIyHIt/5DmXXYwaXwAZ85r1voBlW3CdPY4ByBat70BhbicJY8Z9
-	 QTjSB0n5vXbxUAiJlczMnxz6ZfMGMf+jkIOQ+KatMtnxx8GEivd+RM5YLae8NEOmVM
-	 W/XttjHQ1qzNv2e+V/7gDHL2eQxdnjQFsLgmYZ4EIr//9J1sodwoe4iy6lCI4kETSK
-	 tmF3IW/jhIJJMUa/eNaEwAZMWsC4UFp9ZdCAHNcKiQM9ucxbYfRGvxubzGMj9dRNWp
-	 IcDrLqgH2XNHg==
-X-Spam-Level: 
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id E5CAF60294;
-	Wed, 15 Oct 2025 00:33:46 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1760481227;
-	bh=6qYM56kga6l3kEPmzQkXiEVVq609yOgXBTXhC3Pc+K4=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=PWOMzOAnK4VQz6xTBWVXXAqiiQh8yt+IX51D88cr1zGDDL79L++MQToKH/hPfM5sD
-	 t2vstJJlEG16W5PNIyHIt/5DmXXYwaXwAZ85r1voBlW3CdPY4ByBat70BhbicJY8Z9
-	 QTjSB0n5vXbxUAiJlczMnxz6ZfMGMf+jkIOQ+KatMtnxx8GEivd+RM5YLae8NEOmVM
-	 W/XttjHQ1qzNv2e+V/7gDHL2eQxdnjQFsLgmYZ4EIr//9J1sodwoe4iy6lCI4kETSK
-	 tmF3IW/jhIJJMUa/eNaEwAZMWsC4UFp9ZdCAHNcKiQM9ucxbYfRGvxubzGMj9dRNWp
-	 IcDrLqgH2XNHg==
-Date: Wed, 15 Oct 2025 00:33:44 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH] utils: Drop asterisk from end of
- NFTA_DEVICE_PREFIX strings
-Message-ID: <aO7PyNgUnGxg7qHt@calendula>
-References: <20251007155935.1324-1-phil@nwl.cc>
- <aOWJLfLGdbT5eDST@calendula>
- <aOWOwaCWV1SXpdg6@orbyte.nwl.cc>
+	s=arc-20240116; t=1760493443; c=relaxed/simple;
+	bh=/zC2WZ0f+zEXcM6rYZXPDJMMSq/9n/5kb+d0paxVClg=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=AMBUiA+xv4BBLm9mpnQ2IeJhqD9sWRTaZE+hXqd5U8D9XKLkpnvRcIn3K8sQ8O6j/e9r6cIlOKMN0P/JPISdIKxPwOW+jzJgZV9DftQSMuEnYR4sSRtSQLF9yHPKXdVljQ5HD3MGYFvq+0CKIJAZTWrGVKCR5wP+RqvdT1JBFVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; arc=none smtp.client-ip=220.181.3.85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+From: "Li,Rongqing" <lirongqing@baidu.com>
+To: Florian Westphal <fw@strlen.de>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
+	<kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>, "David S . Miller"
+	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+	<horms@kernel.org>, "netfilter-devel@vger.kernel.org"
+	<netfilter-devel@vger.kernel.org>, "coreteam@netfilter.org"
+	<coreteam@netfilter.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [????] Re: [PATCH net-next] netfilter: conntrack: Reduce
+ cond_resched frequency in gc_worker
+Thread-Topic: [????] Re: [PATCH net-next] netfilter: conntrack: Reduce
+ cond_resched frequency in gc_worker
+Thread-Index: AQHcPQDVgdtchoaPFky/o8HNXziejLTBFqYAgAFcacA=
+Date: Wed, 15 Oct 2025 01:56:35 +0000
+Message-ID: <13de94827815469193e10d6fb0c0d45b@baidu.com>
+References: <20251014115103.2678-1-lirongqing@baidu.com>
+ <aO5K4mICGHVNlkHJ@strlen.de>
+In-Reply-To: <aO5K4mICGHVNlkHJ@strlen.de>
+Accept-Language: zh-CN, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aOWOwaCWV1SXpdg6@orbyte.nwl.cc>
+X-FEAS-Client-IP: 172.31.50.46
+X-FE-Policy-ID: 52:10:53:SYSTEM
 
-On Wed, Oct 08, 2025 at 12:05:53AM +0200, Phil Sutter wrote:
-> Hi Pablo,
-> 
-> On Tue, Oct 07, 2025 at 11:42:05PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Oct 07, 2025 at 05:58:26PM +0200, Phil Sutter wrote:
-> > > The asterisk left in place becomes part of the prefix by accident and is thus
-> > > both included when matching interface names as well as dumped back to user
-> > > space.
-> > > 
-> > > Fixes: f30eae26d813e ("utils: Add helpers for interface name wildcards")
-> > > Signed-off-by: Phil Sutter <phil@nwl.cc>
-> > > ---
-> > > This code is currently unused by nftables at least since it builds the
-> > > netlink message itself.
-> > 
-> > This was moved to nftables, and no release was made to include it?
-> > Would it possible to remove it from libnftnl?
-> 
-> The code layout is a bit inconsistent in this regard: While nftables
-> does the serialization itself (to record offsets for extack), it relies
-> upon libnftnl to perform the deserialization. Therefore parts of the
-> wildcard interface feature will have to be spread over the two projects.
-> And since this is the case, I decided to keep libnftnl's serialization
-> code "maintained" in this regard, i.e. enable it to perform the netlink
-> message building for wildcard interface names as well even though there
-> is no known user for it.
-> 
-> I'd prefer to keep it, also because I see us eventually returning to
-> libnftnl's serialization code once there is a mechanism to extract the
-> offsets for extack. You have the last word though (as always)! :)
+> > The current implementation calls cond_resched() in every iteration of
+> > the garbage collection loop. This creates some overhead when
+> > processing large conntrack tables with billions of entries, as each
+> > cond_resched() invocation involves scheduler operations.
+> >
+> > To reduce this overhead, implement a time-based throttling mechanism
+> > that calls cond_resched() at most once per millisecond. This maintains
+> > system responsiveness while minimizing scheduler contention.
+> >
+> > gc_worker() with hashsize=3D10000 shows measurable improvement:
+> >
+> > Before: 7114.274us
+> > After:  5993.518us (15.8% reduction)
+>=20
+> I dislike this, I have never seen this pattern.
+>=20
 
-LGTM, thanks for explaining.
+This patch is similar as=20
+
+commit 271557de7cbfdecb08e89ae1ca74647ceb57224f
+    xfs: reduce the rate of cond_resched calls inside scrub
+
+> Whole point of cond_resched() is to let scheduler decide.
+>=20
+> Maybe it would be better to move gc_worker off to its own work queue
+> (create_workqueue()) instead of reusing system wq so one can tune the
+> priority instead?
+
+I am fine to move gc_worker to its own work queue
+
+Thanks
+
+-Li
