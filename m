@@ -1,84 +1,78 @@
-Received: from baidu.com (mx21.baidu.com [220.181.3.85])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FD381F4191;
-	Wed, 15 Oct 2025 01:57:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.181.3.85
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E909815A8;
+	Wed, 15 Oct 2025 02:40:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760493443; cv=none; b=J6t3MZ6/AXcqWVGX6mZk8Ln0PhgHLwIfJecov/jUPPpudvnlQ4O/R3sUkHcc7rjD9tX3Ra2LMwo5TRb7gDEB1cTRKHzKRy7SIFupaNoZkIdm1XWnr3NTk68gPEk0lYlYU5AkrCKmRhUF34ty8MQNJw1/dKHrM2OGuZAULi9kK4E=
+	t=1760496023; cv=none; b=tvlfs1B4tlN2W2ppPzP14X0yrc4JlxneTMZq/WwLwowVLcsOh/NaPCB7ux1QGDH7J2uga7C09AcUJtc5/B5hcNeMoNlFAcZgqtF2YgPrMWU4RlwUG39+/8sk3yNngG+jgdff6S+jBFxmK/Am9423ogm3m/fPmNdFA8uos60Q4C8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760493443; c=relaxed/simple;
-	bh=/zC2WZ0f+zEXcM6rYZXPDJMMSq/9n/5kb+d0paxVClg=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=AMBUiA+xv4BBLm9mpnQ2IeJhqD9sWRTaZE+hXqd5U8D9XKLkpnvRcIn3K8sQ8O6j/e9r6cIlOKMN0P/JPISdIKxPwOW+jzJgZV9DftQSMuEnYR4sSRtSQLF9yHPKXdVljQ5HD3MGYFvq+0CKIJAZTWrGVKCR5wP+RqvdT1JBFVM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; arc=none smtp.client-ip=220.181.3.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
-From: "Li,Rongqing" <lirongqing@baidu.com>
-To: Florian Westphal <fw@strlen.de>
-CC: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
-	<kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>, "David S . Miller"
-	<davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
-	<horms@kernel.org>, "netfilter-devel@vger.kernel.org"
-	<netfilter-devel@vger.kernel.org>, "coreteam@netfilter.org"
-	<coreteam@netfilter.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [????] Re: [PATCH net-next] netfilter: conntrack: Reduce
- cond_resched frequency in gc_worker
-Thread-Topic: [????] Re: [PATCH net-next] netfilter: conntrack: Reduce
- cond_resched frequency in gc_worker
-Thread-Index: AQHcPQDVgdtchoaPFky/o8HNXziejLTBFqYAgAFcacA=
-Date: Wed, 15 Oct 2025 01:56:35 +0000
-Message-ID: <13de94827815469193e10d6fb0c0d45b@baidu.com>
-References: <20251014115103.2678-1-lirongqing@baidu.com>
- <aO5K4mICGHVNlkHJ@strlen.de>
-In-Reply-To: <aO5K4mICGHVNlkHJ@strlen.de>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1760496023; c=relaxed/simple;
+	bh=1sqiiP9jBdXP1f9uwkO5V3Wjjvpidmjin5tLGzVX+vY=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=BUoF7GnxAo6D5gdfhD0QRU1fc3j+m+J5GKXFWG0bsy/dra836eYD3TFVAOQTK+E2uk8FpWEf2YZFFqGLH8xYeRo2vxbsTcXX5UkMzIaCzBZrYg+uVDK0VcMxNdoe4Ibv0JBffjnFPXqN8rL1402LkKz/AOP2PwPThTHr4XJD05k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=H01HI8Xu; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="H01HI8Xu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7058FC4CEE7;
+	Wed, 15 Oct 2025 02:40:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1760496021;
+	bh=1sqiiP9jBdXP1f9uwkO5V3Wjjvpidmjin5tLGzVX+vY=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=H01HI8XuS1VAIL7i9d/C5nIxXtBeEjkcQZUkzdex6tEB6vzSwPPg/QnJiIzYoWtFS
+	 feh/rH0eo2cx7oazi6rDIzxGHGHExWtzvlczCVN3QEQE+mvr6H6uETyjkb5kGLBbXq
+	 eXmd3AGAcOUZUvblnIWeUS3Hn4J3JFfiql7R7+fwhgntWbKT7dQZf6fzdfpfO6EXFZ
+	 n1cwW+k5cKGI9PiPCo4MQOe+uWrEdUWZ0y2ZD96FkjGnVxGAiE/MiPLjnbFQibLWhc
+	 qHK9enHpF/ItnuqJtNcGuAXQKgipNtDMdUJJLwHim2VXwMDQ2kY19OjR3RKt/89plR
+	 tTsRDHONxaK7Q==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id AE828380CEDD;
+	Wed, 15 Oct 2025 02:40:07 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-FEAS-Client-IP: 172.31.50.46
-X-FE-Policy-ID: 52:10:53:SYSTEM
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v2] net: core: fix lockdep splat on device unregister
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <176049600651.193903.16031508442804598392.git-patchwork-notify@kernel.org>
+Date: Wed, 15 Oct 2025 02:40:06 +0000
+References: <20251013185052.14021-1-fw@strlen.de>
+In-Reply-To: <20251013185052.14021-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org, sdf@fomichev.me
 
-> > The current implementation calls cond_resched() in every iteration of
-> > the garbage collection loop. This creates some overhead when
-> > processing large conntrack tables with billions of entries, as each
-> > cond_resched() invocation involves scheduler operations.
-> >
-> > To reduce this overhead, implement a time-based throttling mechanism
-> > that calls cond_resched() at most once per millisecond. This maintains
-> > system responsiveness while minimizing scheduler contention.
-> >
-> > gc_worker() with hashsize=3D10000 shows measurable improvement:
-> >
-> > Before: 7114.274us
-> > After:  5993.518us (15.8% reduction)
->=20
-> I dislike this, I have never seen this pattern.
->=20
+Hello:
 
-This patch is similar as=20
+This patch was applied to netdev/net.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
 
-commit 271557de7cbfdecb08e89ae1ca74647ceb57224f
-    xfs: reduce the rate of cond_resched calls inside scrub
+On Mon, 13 Oct 2025 20:50:52 +0200 you wrote:
+> Since blamed commit, unregister_netdevice_many_notify() takes the netdev
+> mutex if the device needs it.
+> 
+> If the device list is too long, this will lock more device mutexes than
+> lockdep can handle:
+> 
+> unshare -n \
+>  bash -c 'for i in $(seq 1 100);do ip link add foo$i type dummy;done'
+> 
+> [...]
 
-> Whole point of cond_resched() is to let scheduler decide.
->=20
-> Maybe it would be better to move gc_worker off to its own work queue
-> (create_workqueue()) instead of reusing system wq so one can tune the
-> priority instead?
+Here is the summary with links:
+  - [net,v2] net: core: fix lockdep splat on device unregister
+    https://git.kernel.org/netdev/net/c/7f0fddd817ba
 
-I am fine to move gc_worker to its own work queue
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-Thanks
 
--Li
