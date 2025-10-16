@@ -1,170 +1,183 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5F852116E9
-	for <netfilter-devel@vger.kernel.org>; Thu, 16 Oct 2025 15:00:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FDD27A444
+	for <netfilter-devel@vger.kernel.org>; Thu, 16 Oct 2025 23:37:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760626822; cv=none; b=hu2mRJKB0ttvIN9DwZNtudzSxB6RGuae0nWof7wBi/KsKmsUEqxsX9O4fPzS2zyMJzUJ/Tot2fEgcRhGjWSv8ft6o4hrMaL7uJMZtS4kc8RevvTEbY+JQurBer9R9dvtsNJsdlW/S/CHjB30ocW0xPIJEbc0HkJAhcMFiWjDq4M=
+	t=1760657860; cv=none; b=N/Xti9/02NywTMOjFgfRlaLHStkjvFx0vHa/ymYua6fB2Q+/lfNyt79gSZoIwMhx/4RZ5zWy4PhhFmVW7WU4QwIFpirnlpfJ/ug0GBjF3uT1t+AS+h9sTU10QyVonCnAxcH11X7ZVcFvzvG45WADC+ClZUglAcoCZrhS1nbtXDM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760626822; c=relaxed/simple;
-	bh=BFTPyGcZoZFHKBZNz6kWJMZTt+1biHDZ6TCFv2vavD4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XKp067OWBjzKOvMrxuFn+YNkZ8+MwrMj0WdWHe9snmskXQoKeXgGaWCVA01Qd8I1IFk531gLKRE4tzTpq4CZAEhkcH7XFEvIeyLROhqOMeoR7QAQfG17c59b1P97eDrcDqGX/Jeds1vkTW9xb73E5krb4Eu2zofyZm2VMz2GKqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 35F9E6109E; Thu, 16 Oct 2025 17:00:19 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/4] evaluate: reject tunnel section if another one is already present
-Date: Thu, 16 Oct 2025 16:59:36 +0200
-Message-ID: <20251016145955.7785-5-fw@strlen.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251016145955.7785-1-fw@strlen.de>
-References: <20251016145955.7785-1-fw@strlen.de>
+	s=arc-20240116; t=1760657860; c=relaxed/simple;
+	bh=u65fHiyMVdqShHb65ET2V0hMp3wymcJx9+uITLh33gw=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=KmP+H0B6iyZJ/oU7JE5YWlTDAFMGdWgCllQ0C+RmcfiztKtcA24sQo+eS2UPYPS/rxYSqosgKRWKGkSuAdU4IJ+qKEjjuk6yFLPurAl2ze9pMOOQUTLpe1AjI/wR2gfRkZkBZJ46SDiyAL5W7PDG/3d1v3yZ0tLHpRL3XuXEpy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wr7HV0ZQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9jM6Rp/J; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wr7HV0ZQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=9jM6Rp/J; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wr7HV0ZQ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9jM6Rp/J";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wr7HV0ZQ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="9jM6Rp/J"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 87F501FB87;
+	Thu, 16 Oct 2025 23:37:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1760657856; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CboQXkUe11kIsw2tcRPyJppQLVLzSvR7AGppqVX4ZaA=;
+	b=wr7HV0ZQ+F/x96qnOwmRN2Ox4RjtSI3uQnbfbsvH4UxQzpAdESfdglarJUc58ZqntGY/pr
+	MdkxKlZT/ayn6H6zP+4SQLZ1bLrDae5k/k8QzaBySyr/RNME/xxyHxyFMgU5aK9LaET8/Q
+	nwSzX3At8kaZKOKp7EspTc7fg7j3OX8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1760657856;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CboQXkUe11kIsw2tcRPyJppQLVLzSvR7AGppqVX4ZaA=;
+	b=9jM6Rp/JY8rgmR4FBe+8IC74gDCaktnlMzOACUZ3M9ZsFFMUfr4wnzWnLIeMWiWWAKalIm
+	YdRualYhMqdtjjCQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=wr7HV0ZQ;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b="9jM6Rp/J"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1760657856; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CboQXkUe11kIsw2tcRPyJppQLVLzSvR7AGppqVX4ZaA=;
+	b=wr7HV0ZQ+F/x96qnOwmRN2Ox4RjtSI3uQnbfbsvH4UxQzpAdESfdglarJUc58ZqntGY/pr
+	MdkxKlZT/ayn6H6zP+4SQLZ1bLrDae5k/k8QzaBySyr/RNME/xxyHxyFMgU5aK9LaET8/Q
+	nwSzX3At8kaZKOKp7EspTc7fg7j3OX8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1760657856;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CboQXkUe11kIsw2tcRPyJppQLVLzSvR7AGppqVX4ZaA=;
+	b=9jM6Rp/JY8rgmR4FBe+8IC74gDCaktnlMzOACUZ3M9ZsFFMUfr4wnzWnLIeMWiWWAKalIm
+	YdRualYhMqdtjjCQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 58CEF1340C;
+	Thu, 16 Oct 2025 23:37:36 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id yp7/EcCB8WiMCAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 16 Oct 2025 23:37:36 +0000
+Message-ID: <56c973f0-87a1-4e60-bd40-3cebfafdfe90@suse.de>
+Date: Fri, 17 Oct 2025 01:37:35 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH nft 1/4] evaluate: tunnel: don't assume src is set
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20251016145955.7785-1-fw@strlen.de>
+ <20251016145955.7785-2-fw@strlen.de>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20251016145955.7785-2-fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 87F501FB87
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCPT_COUNT_TWO(0.00)[2];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:email,suse.de:mid,suse.de:dkim];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -4.51
+X-Spam-Level: 
 
-Included bogon causes a crash because the list head isn't initialised
-due to tunnel->type == VXLAN.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/parser_bison.y                            | 38 ++++++++++++++++---
- .../bogons/nft-f/tunnel_in_tunnel_crash       | 10 +++++
- 2 files changed, 42 insertions(+), 6 deletions(-)
- create mode 100644 tests/shell/testcases/bogons/nft-f/tunnel_in_tunnel_crash
+On 10/16/25 4:59 PM, Florian Westphal wrote:
+> Included bogon crashes, after fix:
+> 
+> empty_geneve_definition_crash:2:9-16: Error: Could not process rule: Invalid argument
+> 
+> Since this feature is undocumented (hint, hint) I don't know
+> if there are cases where ip daddr can be elided.
+> 
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4e028d31c165..3c21c7584d01 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -144,6 +144,19 @@ static bool already_set(const void *attr, const struct location *loc,
- 	return true;
- }
- 
-+static bool tunnel_set_type(const struct location *loc,
-+			    struct obj *obj, enum tunnel_type type, const char *name,
-+			    struct parser_state *state)
-+{
-+	if (obj->tunnel.type) {
-+		erec_queue(error(loc, "Cannot create new %s section inside another tunnel", name), state->msgs);
-+		return false;
-+	}
-+
-+	obj->tunnel.type = type;
-+	return true;
-+}
-+
- static struct expr *ifname_expr_alloc(const struct location *location,
- 				      struct list_head *queue,
- 				      const char *name)
-@@ -4980,11 +4993,15 @@ erspan_block		:	/* empty */	{ $$ = $<obj>-1; }
- erspan_block_alloc	:	/* empty */
- 			{
- 				$$ = $<obj>-1;
-+
-+				if (!tunnel_set_type(&$$->location, $$, TUNNEL_ERSPAN, "erspan", state))
-+					YYERROR;
- 			}
- 			;
- 
- erspan_config		:	HDRVERSION	NUM
- 			{
-+				assert($<obj>0->tunnel.type == TUNNEL_ERSPAN);
- 				$<obj>0->tunnel.erspan.version = $2;
- 			}
- 			|	INDEX		NUM
-@@ -5017,6 +5034,10 @@ geneve_block		:	/* empty */	{ $$ = $<obj>-1; }
- geneve_block_alloc	:	/* empty */
- 			{
- 				$$ = $<obj>-1;
-+				if (!tunnel_set_type(&$$->location, $$, TUNNEL_GENEVE, "geneve", state))
-+					YYERROR;
-+
-+				init_list_head(&$$->tunnel.geneve_opts);
- 			}
- 			;
- 
-@@ -5024,6 +5045,8 @@ geneve_config		:	CLASS	NUM	OPTTYPE	NUM	DATA	string
- 			{
- 				struct tunnel_geneve *geneve;
- 
-+				assert($<obj>0->tunnel.type == TUNNEL_GENEVE);
-+
- 				geneve = xmalloc(sizeof(struct tunnel_geneve));
- 				geneve->geneve_class = $2;
- 				geneve->type = $4;
-@@ -5034,10 +5057,6 @@ geneve_config		:	CLASS	NUM	OPTTYPE	NUM	DATA	string
- 					YYERROR;
- 				}
- 
--				if (!$<obj>0->tunnel.type) {
--					$<obj>0->tunnel.type = TUNNEL_GENEVE;
--					init_list_head(&$<obj>0->tunnel.geneve_opts);
--				}
- 				list_add_tail(&geneve->list, &$<obj>0->tunnel.geneve_opts);
- 				free_const($6);
- 			}
-@@ -5055,11 +5074,15 @@ vxlan_block		:	/* empty */	{ $$ = $<obj>-1; }
- vxlan_block_alloc	:	/* empty */
- 			{
- 				$$ = $<obj>-1;
-+
-+				if (!tunnel_set_type(&$$->location, $$, TUNNEL_VXLAN, "vxlan", state))
-+					YYERROR;
- 			}
- 			;
- 
- vxlan_config		:	GBP	NUM
- 			{
-+				assert($<obj>0->tunnel.type == TUNNEL_VXLAN);
- 				$<obj>0->tunnel.vxlan.gbp = $2;
- 			}
- 			;
-@@ -5123,13 +5146,16 @@ tunnel_config		:	ID	NUM
- 			}
- 			|	ERSPAN	erspan_block_alloc '{' erspan_block '}'
- 			{
--				$<obj>0->tunnel.type = TUNNEL_ERSPAN;
-+				$2->location = @2;
- 			}
- 			|	VXLAN	vxlan_block_alloc '{' vxlan_block '}'
- 			{
--				$<obj>0->tunnel.type = TUNNEL_VXLAN;
-+				$2->location = @2;
- 			}
- 			|	GENEVE	geneve_block_alloc '{' geneve_block '}'
-+			{
-+				$2->location = @2;
-+			}
- 			;
- 
- tunnel_block		:	/* empty */	{ $$ = $<obj>-1; }
-diff --git a/tests/shell/testcases/bogons/nft-f/tunnel_in_tunnel_crash b/tests/shell/testcases/bogons/nft-f/tunnel_in_tunnel_crash
-new file mode 100644
-index 000000000000..9f029807f521
---- /dev/null
-+++ b/tests/shell/testcases/bogons/nft-f/tunnel_in_tunnel_crash
-@@ -0,0 +1,10 @@
-+table netdev x {
-+	tunnel geneve-t {
-+		vxlan {
-+			gbp 200
-+		}
-+		geneve {
-+			class 0x1 opt-type 0x1 data "0x12345678"
-+		}
-+	}
-+
--- 
-2.51.0
+Ugh, sorry. That is my fault, I am going to document this properly.
+
+> If not, a followup patch should reject empty dst upfront
+> so users get a more verbose error message.
+> 
+
+dst cannot be empty so it should be rejected properly providing a good 
+error message. Let me handle that on a follow up patch.
+
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>   src/evaluate.c                                           | 9 +++++----
+>   .../testcases/bogons/nft-f/empty_geneve_definition_crash | 4 ++++
+>   2 files changed, 9 insertions(+), 4 deletions(-)
+>   create mode 100644 tests/shell/testcases/bogons/nft-f/empty_geneve_definition_crash
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 0c7d90f8f43b..ac482c83cce2 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -5865,11 +5865,12 @@ static int tunnel_evaluate(struct eval_ctx *ctx, struct obj *obj)
+>   				 obj->tunnel.dst->dtype->size);
+>   		if (expr_evaluate(ctx, &obj->tunnel.dst) < 0)
+>   			return -1;
+> -	}
+>   
+> -	if (obj->tunnel.src->dtype != obj->tunnel.dst->dtype)
+> -		return __stmt_binary_error(ctx, &obj->location, NULL,
+> -					  "specify either ip or ip6 for address");
+> +		if (obj->tunnel.src &&
+> +		    obj->tunnel.src->dtype != obj->tunnel.dst->dtype)
+> +			return __stmt_binary_error(ctx, &obj->location, NULL,
+> +						  "specify either ip or ip6 for address");
+> +	}
+>   
+>   	return 0;
+>   }
+> diff --git a/tests/shell/testcases/bogons/nft-f/empty_geneve_definition_crash b/tests/shell/testcases/bogons/nft-f/empty_geneve_definition_crash
+> new file mode 100644
+> index 000000000000..d1bc76c56bd5
+> --- /dev/null
+> +++ b/tests/shell/testcases/bogons/nft-f/empty_geneve_definition_crash
+> @@ -0,0 +1,4 @@
+> +table netdev x {
+> +	tunnel geneve-t {
+> +	}
+> +}
+
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
