@@ -1,299 +1,224 @@
-Received: from bumble.maple.relay.mailchannels.net (bumble.maple.relay.mailchannels.net [23.83.214.25])
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8053F186294
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Oct 2025 02:30:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.214.25
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760668230; cv=pass; b=X+RBNiPHSOfVHXDxgUnOGW3oxXo6CZkhxU1tOxrJ1jKjEFOXb+pVswg67+LSvgNAZgTlfRh0yNMHoH+58j+HVqaPn5Pt7pfa/2UIH2cqdODed8riKglf4bvgZD50t246R6aMmakctfN0wa7BKGEDY88y2ABhDEgU/jjDTJw8L6M=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760668230; c=relaxed/simple;
-	bh=q/mU65hnAZjA42aUm0ZFrfmHc8sQIiKk/XEn1R4+TgE=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=TBrpXPpve0muEVxdG7jS7eKViB4KLj8LU8GSTjE3+syeSJ5TOq57dCI3lzoIQmx4JjSC45DmHC6fkhPMtjQaFNogJbSeOPon1Yw2nna/oNlnUPMSerLSfTfJHWbxZ4O8LHkXU6gsXY2F9wXxWTenLtm0BAN3YQ5UwqwOARBjJOg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=ZeB0xpov reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.214.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 334B62475CB;
+	Fri, 17 Oct 2025 02:55:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.131
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1760669712; cv=none; b=Cevltd6J4Nsf2d+O20llCeldZWZONjqfCkcy/1L/ve0wOU9zYcT5ShMJvriJ6tBn0R+GldL0ObHxvl5FUZRITjyLQIHrn6innOaHO1cOpt8OgttZCEO37mX3o/5oxL5gRXdHmWfqILIVW1xprsplzTxPeKsdklblE8Nbnd5iXf0=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1760669712; c=relaxed/simple;
+	bh=QURLEDWP5884j9LwuE4mMY1mqzv44aXKnTuQFUEQcnU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RcAT1JYkq6K/sp535Q85Z3ApoyPPIU7G3qElkconNVRn3+JQpw7Y9D8kRgCL+UjIQmWJ0JkTNh0XslZoBngwiswLoJ+GV2l5BgfxdA8vE9eiqZv+GRu9mTtGnYKzE0ToU5qUv82umBrH/5FTvtjl6v4J7KMazpkOF9yteDlZnKo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=j61sKLhP; arc=none smtp.client-ip=115.124.30.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="ZeB0xpov"
-X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id C6682501C9D;
-	Fri, 17 Oct 2025 02:30:21 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (100-117-100-119.trex-nlb.outbound.svc.cluster.local [100.117.100.119])
-	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id C7292501719;
-	Fri, 17 Oct 2025 02:30:16 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1760668217; a=rsa-sha256;
-	cv=none;
-	b=0+Lrwm/bPyZlFjOkIDgfNAcWmMifniWQdtNw2g9w9fPoPU2zQjNi9z5vBHDixAmCV+o3M5
-	7dfpGP57cbXz05rbf5Yk0kyTg7B9TdkVGVwX9bkj7y4/gFrGQ8BSQr07jqD8ONDBmC/27/
-	pEs6BhxKSpqqZ4IVUbkDUctfFZKkSEXYIMbi0ENZl4EZAKA0SVoFIZb9Bqc3n04LgEfcVq
-	9u6CSp99MnLDp83c6ztL8N981ol//1lIJX90KCCj2sEX2va+srcHuD3A6APubXrIc0eZkI
-	+mzSfATTqMs7mnnTKbZVsMxfL71UC/+DURvFR4tZojFhTAKTKCiJyhO6AxSFbQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1760668217;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=0YTDCeZoSv06AIvan8d7xR3S3GXOsIFXDPQWiTTSCIU=;
-	b=R7mX0tgZZt06whJLg2YbanG/hwGXaPkMbYOK+l3LfYHYrSFH6QA2aYIDbuL4K6MOREZPp6
-	uXE+UqpZeYorB4sFPNcPD8mqAQ/NkSlHITfuKwwN3dFdX7Q91i1YCfBlU4Im6lalhDerpk
-	8H5X31VED9bzBE1L1GAIjWlfpMltLl3Vr3W5/TEu+aSLHurQeLCa5hWUHNdnbC2McmoLiR
-	Et4twOKx+jOq1bXo2RDV6g6Q/XH0GsR31XhWJDOCZFymVL8LH6uy/toXtiFcEl5Fh0gW/Y
-	MWHgiTyaE7jPWR3pEc2SDX1fdcOr17U4KiIbMYHafhn3yr9HuRdeUAKT+0UfEA==
-ARC-Authentication-Results: i=1;
-	rspamd-57f765db6d-wkb4p;
-	auth=pass smtp.auth=instrampxe0y3a
- smtp.mailfrom=mail@christoph.anton.mitterer.name
-X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
-X-MC-Relay: Neutral
-X-MailChannels-SenderId:
- instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
-X-MailChannels-Auth-Id: instrampxe0y3a
-X-Celery-Bubble: 1ac1ac392907988f_1760668221677_530753100
-X-MC-Loop-Signature: 1760668221677:1945870771
-X-MC-Ingress-Time: 1760668221677
-Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
- [3.69.87.180])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.117.100.119 (trex/7.1.3);
-	Fri, 17 Oct 2025 02:30:21 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
-	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
-	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=0YTDCeZoSv06AIvan8d7xR3S3GXOsIFXDPQWiTTSCIU=; b=ZeB0xpov8Stc
-	NljA9QAl4dUmRBFKwG0QghrvwmdbLqiIpMAcM5hNeNLyevTbJX0ofmf/NnLeQCq5URFuM/QNZXgq1
-	S7JHp4gTwKCXfGiKiAtxqlsJSC9qtTDaqIpg0L94pJLzqWSyzut2DZhZKmo23tbbbR6gDJNr/BE9j
-	2PvWUXHZeCImKCje5dQTz959sCgu5KuFX3ujMEEMoXZNJmin+Iu6tu4A3VTIPIt1zbqHZwk6uyzF0
-	s4/Oisv/5wkQ3rGmxFoTggL/pg1BUeGFTsFi6+BlZACAn9kYCyuSL8qBKIS1KdqgoSXfdUW/DyLSw
-	XZEgRShiVvvnElDYRTQ8bQ==;
-Received: from [212.104.214.84] (port=21453 helo=[10.2.0.2])
-	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <mail@christoph.anton.mitterer.name>)
-	id 1v9aES-00000000DpL-2TBm;
-	Fri, 17 Oct 2025 02:30:15 +0000
-Message-ID: <11427578d25220212d40533ed4a77652acefcc26.camel@christoph.anton.mitterer.name>
-Subject: Re: [PATCH v2 2/7] doc: fix/improve documentation of verdicts
-From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Date: Fri, 17 Oct 2025 04:30:13 +0200
-In-Reply-To: <aO-IqRLJoEJ1RYTv@strlen.de>
-References: <6bb455009ebd3a2fe17581dfa74addc9186f33ea.camel@scientia.org>
-	 <20251011002928.262644-1-mail@christoph.anton.mitterer.name>
-	 <20251011002928.262644-3-mail@christoph.anton.mitterer.name>
-	 <aO-IqRLJoEJ1RYTv@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-5 
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="j61sKLhP"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1760669699; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
+	bh=8pdmBWhYD/jIQ8KGcQVFijwS0E4PNiF8bDa51ql5obs=;
+	b=j61sKLhPpCY0r+1kt0KC5m6WQ0OivCPEopMLcM61P8g7W+m2+eq9xeRoeFfa9hz7VAR+bVVXChBBHbDQRhrbJJq1nbk2PYCt487yqxAHJ3oFpcNOC5la44CU5or8zkktAC+K3I2PsOcHaKS7YIJQ3VycmVfol/AyyZG3qhIVUl4=
+Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0WqNQjE5_1760669698 cluster:ay36)
+          by smtp.aliyun-inc.com;
+          Fri, 17 Oct 2025 10:54:59 +0800
+Date: Fri, 17 Oct 2025 10:54:58 +0800
+From: Dust Li <dust.li@linux.alibaba.com>
+To: Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Jiejian Wu <jiejian@linux.alibaba.com>, rcu@vger.kernel.org
+Subject: Re: [PATCHv4 net-next 00/14] ipvs: per-net tables and optimizations
+Message-ID: <aPGwAl_XsR-D93Li@linux.alibaba.com>
+Reply-To: dust.li@linux.alibaba.com
+References: <20240528080234.10148-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-AuthUser: mail@christoph.anton.mitterer.name
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240528080234.10148-1-ja@ssi.bg>
 
-Hey.
-
-
-Thanks for already merging the first patch of the series :-)
-
-
-On Wed, 2025-10-15 at 13:42 +0200, Florian Westphal wrote:
-> Christoph Anton Mitterer <mail@christoph.anton.mitterer.name> wrote:
-> > +*accept*:: Terminate the evaluation of the current base chain (and
-> > any regular
-> > +chains called from it) and accept the packet from their point of
-> > view.
->=20
-> Suggest:
-> *accept*:: Terminate the evaluation of the chain.=C2=A0 Evaluation
-> continues in the next base chain, if any.
-
-What I like about it, is that it avoids the slightly awkward "current
-base chain (and any regular chains called from it)" construct...
-
-What I'm neutral about: Strictly speaking, it does not mention whether
-evaluation of any "parent" chains is also terminated.
-You try to solve that by saying "Evaluation continues in the next base
-chain"... and it is indeed kinda reasonable that all from the current
-base chain are then stopped... but a weird system could in principle
-continue with the next base chain, and eventually go back to the
-previous.
-(Just like originally I completely misunderstood how return works when
-goto was involved).
-
-What I like less about it, is that is misses this additional context of
-"acceptance is only with respect to those chains".
-
-Yes it can be deduced from the following sentence ("The packet may
-however still be dropped by either")... and meanwhile, where I
-(hopefully ;-) ) understand how it works, that seems enough, but for a
-pure beginner it's IMO better to give such context and rather reinforce
-things twice in different words.
+On 2024-05-28 11:02:20, Julian Anastasov wrote:
+>	Hello,
+>
+>	This patchset targets more netns isolation when IPVS
+>is used in large setups and also includes some optimizations.
 
 
-What would you think about:
-1st:
-   Either:
-Terminate the evaluation of the current chain as well as any chains
-from which that was called and accept the packet with respect to the
-base chain of these.
-or:
-Terminate the evaluation of the current chain as well as any chains in
-the call stack and accept the packet with respect to the base chain of
-these.
+Hi Julian,
 
-2nd and also replacing:
-> The packet may however still be dropped by either another chain with a hi=
-gher
-> priority of the same hook or any chain of a later hook.
+It looks like this patchset is ready to be upstreamed, but progress may
+have stalled. Just checking, do you still intend to move forward with it?
 
-Evaluation continues in the next base chain (of higher or possibly
-equal priority from the same hook or of any priority from a later
-hook), if any.
-This means the packet can still be dropped in that next base chain as
-well as any regular chain (directly or indirectly) called from it.
+Best regards,
+Dust
 
-
-> > +The packet may however still be dropped by either another chain
-> > with a higher
-> > +priority of the same hook or any chain of a later hook.
->=20
-> ... This means the packet can still be dropped ...
-
-Shamelessly stole and integrated that in my proposal above.
-
-
->=20
-> > +*drop*:: Terminate ruleset evaluation and drop the packet. This
-> > occurs
-> > +instantly, no further chains of any hooks are evaluated and it is
-> > thus not
-> > +possible to again accept the packet in a higher priority or later
-> > chain, as
-> > +those are not evaluated anymore for the packet.
->=20
-> Can this be compacted a bit?=C2=A0 I feel this is a tad too verbose.
->=20
-> *drop*: Packet is dropped immediately.=C2=A0 No futher evaluation of any
-> kind.
->=20
-> I think thats enough, no?
-
-Uhm... I made it a perhaps bit extra verbose, mostly because we have
-terms like "terminal statement/verdict", where not all of them are
-really ultimately terminal.
-
-What about the following compromise: O;-)
-
-*drop*: Immediately drop the packet and terminate ruleset evaluation.
-This means no further evaluation of any chains and it's thus - unlike
-with  *accept* - not possible to again change the ultimate fate of the
-packet in any later chain.
-
-What I'd at least think would be nice to have is to re-iterate on that
-conceptual difference between accept (may be overruled) and drop (is
-ultimate).
-
-
-
-> > +All the above applies analogously to statements that imply a
-> > verdict:
-> > +*redirect*, *dnat*, *snat* and *masquerade* internally issue
-> > eventually an
-> > +*accept* verdict.
->=20
-> You can remove 'eventually'.
-
-+
-
-> > +*reject* and *synproxy* internally issue eventually a *drop*
-> > verdict.
->=20
-> Same.
-
-The idea of that was a slight indication that these statements do:
-<other things> + accept|drop.
-
-Admittedly eventually isn't really perfect =E2=80=A6
-
-> > +These statements thus behave like their implied verdicts, but with
-> > side effects.
-
-=E2=80=A6 but since there's already this sentence, I think you're right an =
-we
-can just leave out the "eventually" without loosing too much.
-
-
-> > +For example, a *reject* also immediately terminates the evaluation
-> > of the
-> > +current rule, overrules any *accept* from any other chains
->=20
-> No, not really.=C2=A0 There is no *overrule*.=C2=A0 We don't keep any 've=
-rdict
-> state'.=C2=A0 There is no difference between 'drop' in the first rule of
-> the
-> first ever base chain or a drop somewhere later in the pipeline,
-> aside
-> from side effects from other matching expressions.
-
-Well first, whether you keep an internal verdict state or not... isn't
-that again some implementation detail which here not really matters for
-the user's understanding of how evaluation works?
-
-
-> I would suggest:
-> For example, *reject* is like *drop*, but will attempt to send a
-> error
-> reply packet back to the sender before doing so.
-
-I mean I'm open to change, but what I think should in one form or
-another go in, is explicitly reinforcing that reject has the same
-"power" like drop, i.e. it can render any further accepts (of other
-base chains) moot.
-That's what I mean with respect to "overruling" (i.e. and previous
-accept).
-
-You're proposal rather describes the side effects of *reject* which are
-however IMO not really relevant with respect to overall ruleset
-evaluation.
-
-
-> > +overruled, while the various NAT statements may be overruled by
-> > other *drop*
-> > +verdicts respectively statements that imply this.
->=20
-> There is no overrule.=C2=A0 I would not mention NAT at all here.
-> *accept* documentation already says that later chains in the pipeline
-> can drop the packet (and so could the traffic scheduler, qdisc, NIC,
-> network ...)
-
-Like above... the idea here was again to reinforce that the statements
-which internally issue an accept, have the same "weakness" as accept
-itself, i.e. they're not ultimate and any later drop/reject/similar may
-"overrule" them.
-
-
-
-Any other ideas how include these two points? At least I personally
-rather think that the actual side effect of "but will attempt to send a
-error reply packet back to the sender" is rather not that interesting
-with respect to the overall semantics of evaluation.
-
-
-I think it makes no sense to spam the list with a v3 until I've got
-your opinions on all the above points.... so I'm waiting for that and
-the make a v3. :-)
-
-
-Thanks and best wishes,
-Chris.
+>
+>	First patch adds useful wrappers to rculist_bl, the
+>hlist_bl methods IPVS will use in the following patches. The other
+>patches are IPVS-specific.
+>
+>	The following patches will:
+>
+>* Convert the global __ip_vs_mutex to per-net service_mutex and
+>  switch the service tables to be per-net, cowork by Jiejian Wu and
+>  Dust Li
+>
+>* Convert some code that walks the service lists to use RCU instead of
+>  the service_mutex
+>
+>* We used two tables for services (non-fwmark and fwmark), merge them
+>  into single svc_table
+>
+>* The list for unavailable destinations (dest_trash) holds dsts and
+>  thus dev references causing extra work for the ip_vs_dst_event() dev
+>  notifier handler. Change this by dropping the reference when dest
+>  is removed and saved into dest_trash. The dest_trash will need more
+>  changes to make it light for lookups. TODO.
+>
+>* On new connection we can do multiple lookups for services by tryng
+>  different fallback options. Add more counters for service types, so
+>  that we can avoid unneeded lookups for services.
+>
+>* Add infrastructure for resizable hash tables based on hlist_bl
+>  which we will use for services and connections: hlists with
+>  per-bucket bit lock in the heads. The resizing delays RCU lookups
+>  on a bucket level with seqcounts which are protected with spin locks.
+>  The entries keep the table ID and the hash value which allows to
+>  filter the entries without touching many cache lines and to
+>  unlink the entries without lookup by keys.
+>
+>* Change the 256-bucket service hash table to be resizable in the
+>  range of 4..20 bits depending on the added services and use jhash
+>  hashing to reduce the collisions.
+>
+>* Change the global connection table to be per-net and resizable
+>  in the range of 256..ip_vs_conn_tab_size. As the connections are
+>  hashed by using remote addresses and ports, use siphash instead
+>  of jhash for better security.
+>
+>* As the connection table is not with fixed size, show its current
+>  size to user space
+>
+>* As the connection table is not global anymore, the no_cport and
+>  dropentry counters can be per-net
+>
+>* Make the connection hashing more secure for setups with multiple
+>  services. Hashing only by remote address and port (client info)
+>  is not enough. To reduce the possible hash collisions add the
+>  used virtual address/port (local info) into the hash and as a side
+>  effect the MASQ connections will be double hashed into the
+>  hash table to match the traffic from real servers:
+>    OLD:
+>    - all methods: c_list node: proto, caddr:cport
+>    NEW:
+>    - all methods: hn0 node (dir 0): proto, caddr:cport -> vaddr:vport
+>    - MASQ method: hn1 node (dir 1): proto, daddr:dport -> caddr:cport
+>
+>* Add /proc/net/ip_vs_status to show current state of IPVS, per-net
+>
+>cat /proc/net/ip_vs_status
+>Conns:	9401
+>Conn buckets:	524288 (19 bits, lfactor -5)
+>Conn buckets empty:	505633 (96%)
+>Conn buckets len-1:	18322 (98%)
+>Conn buckets len-2:	329 (1%)
+>Conn buckets len-3:	3 (0%)
+>Conn buckets len-4:	1 (0%)
+>Services:	12
+>Service buckets:	128 (7 bits, lfactor -3)
+>Service buckets empty:	116 (90%)
+>Service buckets len-1:	12 (100%)
+>Stats thread slots:	1 (max 16)
+>Stats chain max len:	16
+>Stats thread ests:	38400
+>
+>It shows the table size, the load factor (2^n), how many are the empty
+>buckets, with percents from the all buckets, the number of buckets
+>with length 1..7 where len-7 catches all len>=7 (zero values are
+>not shown). The len-N percents ignore the empty buckets, so they
+>are relative among all len-N buckets. It shows that smaller lfactor
+>is needed to achieve len-1 buckets to be ~98%. Only real tests can
+>show if relying on len-1 buckets is a better option because the
+>hash table becomes too large with multiple connections. And as
+>every table uses random key, the services may not avoid collision
+>in all cases.
+>
+>* add conn_lfactor and svc_lfactor sysctl vars, so that one can tune
+>  the connection/service hash table sizing
+>
+>Changes in v4:
+>Patch 14:
+>* the load factor parameters will be read-only for unprivileged
+>  namespaces while we do not account the allocated memory
+>Patch 5:
+>* resync with changes in main tree
+>
+>Changes in v3:
+>Patch 7:
+>* change the sign of the load factor parameter, so that
+>  2^lfactor = load/size
+>Patch 8:
+>* change the sign of the load factor parameter
+>* fix 'goto unlock_sem' in svc_resize_work_handler() after the last
+>  mutex_trylock() call, should be goto unlock_m
+>* now cond_resched_rcu() needs to include linux/rcupdate_wait.h
+>Patch 9:
+>* consider that the sign of the load factor parameter is changed
+>Patch 12:
+>* consider that the sign of the load factor parameter is changed
+>Patch 14:
+>* change the sign of the load factor parameters in docs
+>
+>Changes in v2:
+>Patch 1:
+>* add comments to hlist_bl_for_each_entry_continue_rcu and fix
+>  sparse warnings
+>Patch 9:
+>* Simon Kirby reports that backup server crashes if conn_tab is not
+>  created. Create it just to sync conns before any services are added.
+>Patch 11:
+>* kernel test robot reported for dropentry_counters problem when
+>  compiling with !CONFIG_SYSCTL, so it is time to wrap todrop_entry,
+>  ip_vs_conn_ops_mode and ip_vs_random_dropentry under CONFIG_SYSCTL
+>Patch 13:
+>* remove extra old_gen assignment at start of ip_vs_status_show()
+>
+>Jiejian Wu (1):
+>  ipvs: make ip_vs_svc_table and ip_vs_svc_fwm_table per netns
+>
+>Julian Anastasov (13):
+>  rculist_bl: add hlist_bl_for_each_entry_continue_rcu
+>  ipvs: some service readers can use RCU
+>  ipvs: use single svc table
+>  ipvs: do not keep dest_dst after dest is removed
+>  ipvs: use more counters to avoid service lookups
+>  ipvs: add resizable hash tables
+>  ipvs: use resizable hash table for services
+>  ipvs: switch to per-net connection table
+>  ipvs: show the current conn_tab size to users
+>  ipvs: no_cport and dropentry counters can be per-net
+>  ipvs: use more keys for connection hashing
+>  ipvs: add ip_vs_status info
+>  ipvs: add conn_lfactor and svc_lfactor sysctl vars
+>
+> Documentation/networking/ipvs-sysctl.rst |   33 +
+> include/linux/rculist_bl.h               |   49 +-
+> include/net/ip_vs.h                      |  395 ++++++-
+> net/netfilter/ipvs/ip_vs_conn.c          | 1074 ++++++++++++++-----
+> net/netfilter/ipvs/ip_vs_core.c          |  177 +++-
+> net/netfilter/ipvs/ip_vs_ctl.c           | 1236 ++++++++++++++++------
+> net/netfilter/ipvs/ip_vs_est.c           |   18 +-
+> net/netfilter/ipvs/ip_vs_pe_sip.c        |    4 +-
+> net/netfilter/ipvs/ip_vs_sync.c          |   23 +
+> net/netfilter/ipvs/ip_vs_xmit.c          |   39 +-
+> 10 files changed, 2355 insertions(+), 693 deletions(-)
+>
+>-- 
+>2.44.0
+>
