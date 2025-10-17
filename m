@@ -1,27 +1,104 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com (pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com [34.218.115.239])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED37E283FE5
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Oct 2025 08:43:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CEC5261B80;
+	Fri, 17 Oct 2025 09:05:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=34.218.115.239
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760690610; cv=none; b=Y9Fj/ju+uMYEej/RRwJClnw80Ob2RezWyenJpI8CERiDSAG0hgPOQttmmho2aZbM6j6tV5ufxUjI/nlSZYjAN6vJLkcMHjgqNm4bnb4u4Fo4gpytwdtzpCyfa7Eq5ykgpMJMQ4GZshREHFSbD1/wvLMG09UgY58FZqBxs8+AGdU=
+	t=1760691947; cv=none; b=QiezCN9eMXYHHodHPwHw3iv5KUKaJUemLZg31BEBC6b4txA81PSL3xGzpTsTDdo4LUguVw1ow+DLbh6mdU0wtKmxUwIo2FPSYL7QLpKlF3HkwJv6ndRNRzG0q3ZU8WdnWv3EodEpCNBtNsJf1hR3GFGwgvAojAcgNScTeEIz7wc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760690610; c=relaxed/simple;
-	bh=05CmfAFysb5dcxsBEmwp+KLw1hNBpm5IWKGC1kj9U6Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kfHn3sjQFvSbZ9pEl88fytgCqFPb7XLeEhkfCCLZHPq/xkx2nDZORHSMlvOH6pOFagC4hTQPhQt1kO06S8uZ0gVLOt+5GFL7nFHrUQiLETGAPbBU9hxyp+2nKPVDr2T0NKcWGm/KjdonWzZeBDM8bLf/yPwBsCPF0JPnV3efIY8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 32AAC60329; Fri, 17 Oct 2025 10:43:25 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] src: fix fmt string warnings
-Date: Fri, 17 Oct 2025 10:43:16 +0200
-Message-ID: <20251017084320.19462-1-fw@strlen.de>
-X-Mailer: git-send-email 2.51.0
+	s=arc-20240116; t=1760691947; c=relaxed/simple;
+	bh=r3aRMRxLlDgna5pGqlhOhcl+QTURmPg1ODwkm06HnuM=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=p5ZTzNV2vzqKM3Qikzrwkfl6qrnZxCqGLoPYaG1dwfcup9zYv49X6y1YvAv+oMoyJ1kcKay6IbHReabO8//2O8TT93eZlZAQk8pnFAtS8Klkied78PrdPLenlGp4vp1i+BvjzxN+r5Hdab2mYJOqdMI5uBjfgDZMSIcyHmb+G2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.com; dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b=YeoKGb0+; arc=none smtp.client-ip=34.218.115.239
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=amazon.com header.i=@amazon.com header.b="YeoKGb0+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazoncorp2;
+  t=1760691945; x=1792227945;
+  h=from:to:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=zbj2mTisKzioKQVYABevmwS3PD+KbTl4NbCfwfEx+Qc=;
+  b=YeoKGb0+qJP5B0jO5lJJH8XRqTdaxrB6Ec1OHVG7a1haV591Fp+K0stX
+   iCqnhMnfg3xO5m6m1GgiOjA7O8806xJ03yQ2+iHMGziLAMD+YdJAXr/8I
+   e89rcOVcnFhibwwLMcJtej4wfXkr3xZ2v3DrLmk9xQNK0L1jvotcDCUBP
+   5EYbcQcXP8OGMXkaGRESociN9UJ0dxXB5W+rjNO9jtkMN5jAMfIXaknE6
+   2GVX7ECXL0H2PpVUwDiSEypmI3dxCNJxnWZ0sGe+Fx7QzzqOXAujY9WZY
+   xpgBXTWOJbRCd3+s4IDoJ4+1hcjz7xfcmRqFIceGzHgcj69FavSyY8jjd
+   w==;
+X-CSE-ConnectionGUID: r6Bg9Du6S1OIcsGc5tRu+Q==
+X-CSE-MsgGUID: RfhnESv6RwG1ZmzF97qNew==
+X-IronPort-AV: E=Sophos;i="6.19,236,1754956800"; 
+   d="scan'208";a="4884236"
+Received: from ip-10-5-0-115.us-west-2.compute.internal (HELO smtpout.naws.us-west-2.prod.farcaster.email.amazon.dev) ([10.5.0.115])
+  by internal-pdx-out-013.esa.us-west-2.outbound.mail-perimeter.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2025 09:05:43 +0000
+Received: from EX19MTAUWB002.ant.amazon.com [205.251.233.111:17609]
+ by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.8.44:2525] with esmtp (Farcaster)
+ id 48bd48bb-d4c8-4418-898a-1915d00032a2; Fri, 17 Oct 2025 09:05:43 +0000 (UTC)
+X-Farcaster-Flow-ID: 48bd48bb-d4c8-4418-898a-1915d00032a2
+Received: from EX19D001UWA001.ant.amazon.com (10.13.138.214) by
+ EX19MTAUWB002.ant.amazon.com (10.250.64.231) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20;
+ Fri, 17 Oct 2025 09:05:38 +0000
+Received: from dev-dsk-farbere-1a-46ecabed.eu-west-1.amazon.com
+ (172.19.116.181) by EX19D001UWA001.ant.amazon.com (10.13.138.214) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA) id 15.2.2562.20; Fri, 17 Oct 2025
+ 09:05:23 +0000
+From: Eliav Farber <farbere@amazon.com>
+To: <gregkh@linuxfoundation.org>, <stable@vger.kernel.org>,
+	<linux@armlinux.org.uk>, <jdike@addtoit.com>, <richard@nod.at>,
+	<anton.ivanov@cambridgegreys.com>, <dave.hansen@linux.intel.com>,
+	<luto@kernel.org>, <peterz@infradead.org>, <tglx@linutronix.de>,
+	<mingo@redhat.com>, <bp@alien8.de>, <x86@kernel.org>, <hpa@zytor.com>,
+	<tony.luck@intel.com>, <qiuxu.zhuo@intel.com>, <mchehab@kernel.org>,
+	<james.morse@arm.com>, <rric@kernel.org>, <harry.wentland@amd.com>,
+	<sunpeng.li@amd.com>, <alexander.deucher@amd.com>,
+	<christian.koenig@amd.com>, <airlied@linux.ie>, <daniel@ffwll.ch>,
+	<evan.quan@amd.com>, <james.qian.wang@arm.com>, <liviu.dudau@arm.com>,
+	<mihail.atanassov@arm.com>, <brian.starkey@arm.com>,
+	<maarten.lankhorst@linux.intel.com>, <mripard@kernel.org>,
+	<tzimmermann@suse.de>, <robdclark@gmail.com>, <sean@poorly.run>,
+	<jdelvare@suse.com>, <linux@roeck-us.net>, <fery@cypress.com>,
+	<dmitry.torokhov@gmail.com>, <agk@redhat.com>, <snitzer@redhat.com>,
+	<dm-devel@redhat.com>, <rajur@chelsio.com>, <davem@davemloft.net>,
+	<kuba@kernel.org>, <peppe.cavallaro@st.com>, <alexandre.torgue@st.com>,
+	<joabreu@synopsys.com>, <mcoquelin.stm32@gmail.com>, <malattia@linux.it>,
+	<hdegoede@redhat.com>, <mgross@linux.intel.com>, <intel-linux-scu@intel.com>,
+	<artur.paszkiewicz@intel.com>, <jejb@linux.ibm.com>,
+	<martin.petersen@oracle.com>, <sakari.ailus@linux.intel.com>, <clm@fb.com>,
+	<josef@toxicpanda.com>, <dsterba@suse.com>, <xiang@kernel.org>,
+	<chao@kernel.org>, <jack@suse.com>, <tytso@mit.edu>,
+	<adilger.kernel@dilger.ca>, <dushistov@mail.ru>,
+	<luc.vanoostenryck@gmail.com>, <rostedt@goodmis.org>, <pmladek@suse.com>,
+	<sergey.senozhatsky@gmail.com>, <andriy.shevchenko@linux.intel.com>,
+	<linux@rasmusvillemoes.dk>, <minchan@kernel.org>, <ngupta@vflare.org>,
+	<akpm@linux-foundation.org>, <kuznet@ms2.inr.ac.ru>,
+	<yoshfuji@linux-ipv6.org>, <pablo@netfilter.org>, <kadlec@netfilter.org>,
+	<fw@strlen.de>, <jmaloy@redhat.com>, <ying.xue@windriver.com>,
+	<willy@infradead.org>, <farbere@amazon.com>, <sashal@kernel.org>,
+	<ruanjinjie@huawei.com>, <David.Laight@ACULAB.COM>,
+	<herve.codina@bootlin.com>, <Jason@zx2c4.com>, <keescook@chromium.org>,
+	<kbusch@kernel.org>, <nathan@kernel.org>, <bvanassche@acm.org>,
+	<ndesaulniers@google.com>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-um@lists.infradead.org>,
+	<linux-edac@vger.kernel.org>, <amd-gfx@lists.freedesktop.org>,
+	<dri-devel@lists.freedesktop.org>, <linux-arm-msm@vger.kernel.org>,
+	<freedreno@lists.freedesktop.org>, <linux-hwmon@vger.kernel.org>,
+	<linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <linux-stm32@st-md-mailman.stormreply.com>,
+	<platform-driver-x86@vger.kernel.org>, <linux-scsi@vger.kernel.org>,
+	<linux-staging@lists.linux.dev>, <linux-btrfs@vger.kernel.org>,
+	<linux-erofs@lists.ozlabs.org>, <linux-ext4@vger.kernel.org>,
+	<linux-sparse@vger.kernel.org>, <linux-mm@kvack.org>,
+	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
+	<tipc-discussion@lists.sourceforge.net>
+Subject: [PATCH v2 00/27 5.10.y] Backport minmax.h updates from v6.17-rc7
+Date: Fri, 17 Oct 2025 09:04:52 +0000
+Message-ID: <20251017090519.46992-1-farbere@amazon.com>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -29,164 +106,148 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: EX19D045UWA003.ant.amazon.com (10.13.139.46) To
+ EX19D001UWA001.ant.amazon.com (10.13.138.214)
 
-for some reason several functions had a __gmp_fmtstring annotation,
-but that was an empty macro.
+This series backports 27 patches to update minmax.h in the 5.10.y
+branch, aligning it with v6.17-rc7.
 
-After fixing it up, we get several new warnings:
+The ultimate goal is to synchronize all long-term branches so that they
+include the full set of minmax.h changes.
 
-In file included from src/datatype.c:28:
-src/datatype.c:174:24: note: in expansion of macro 'error'
-  174 |                 return error(&sym->location,
-      |                        ^~~~~
-src/datatype.c:405:24: note: in expansion of macro 'error'
-  405 |                 return error(&sym->location, "Could not parse %s; did you mean `%s'?",
-      |                        ^~~~~
+- 6.12.y has already been backported; the changes are included in
+  v6.12.49.
+- 6.6.y has already been backported; the changes are included in
+  v6.6.109.
+- 6.1.y has already been backported; the changes are currently in the
+  6.1-stable tree.
+- 5.15.y has already been backported; the changes are currently in the
+  5.15-stable tree.
 
-Fmt string says '%s', but unqailified void *, add 'const char *' cast,
-it is safe in both cases.
+The key motivation is to bring in commit d03eba99f5bf ("minmax: allow
+min()/max()/clamp() if the arguments have the same signedness"), which
+is missing in kernel 5.10.y.
 
-In file included from src/evaluate.c:29:
-src/evaluate.c: In function 'byteorder_conversion':
-src/evaluate.c:232:35: warning: format '%s' expects a matching 'char *' argument [-Wformat=]
-  232 |                                   "Byteorder mismatch: %s expected %s, %s got %s",
-      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In mainline, this change enables min()/max()/clamp() to accept mixed
+argument types, provided both have the same signedness. Without it,
+backported patches that use these forms may trigger compiler warnings,
+which escalate to build failures when -Werror is enabled.
 
-Actual bug, fmt string has one '%s' too many, remove it.
+The first two patches in this series were added to prevent build
+failures caused by changes introduced later in minmax.h.
 
-All other warnings were due to '%u' instead of '%lu' / '%zu'.
+ - Commit 92d23c6e9415 ("overflow, tracing: Define the is_signed_type()
+   macro once") is needed for commit 75ca38c1960f ("minmax: allow
+   min()/max()/clamp()").
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/erec.h       | 4 ++--
- include/expression.h | 2 +-
- include/utils.h      | 5 -----
- src/datatype.c       | 4 ++--
- src/evaluate.c       | 8 ++++----
- src/parser_bison.y   | 2 +-
- 6 files changed, 10 insertions(+), 15 deletions(-)
+ - Commit cea628008fc8 ("btrfs: remove duplicated in_range() macro") is
+   needed for commit f9bff0e31881 ("minmax: add in_range() macro").
 
-diff --git a/include/erec.h b/include/erec.h
-index c17f5def5302..8ad5d83a705d 100644
---- a/include/erec.h
-+++ b/include/erec.h
-@@ -40,10 +40,10 @@ struct error_record {
- extern struct error_record *erec_vcreate(enum error_record_types type,
- 					 const struct location *loc,
- 					 const char *fmt, va_list ap)
--					 __gmp_fmtstring(3, 0);
-+					 __fmtstring(3, 0);
- extern struct error_record *erec_create(enum error_record_types type,
- 					const struct location *loc,
--					const char *fmt, ...) __gmp_fmtstring(3, 4);
-+					const char *fmt, ...) __fmtstring(3, 4);
- extern void erec_add_location(struct error_record *erec,
- 			      const struct location *loc);
- extern void erec_destroy(struct error_record *erec);
-diff --git a/include/expression.h b/include/expression.h
-index e73ad90e7e5d..a960f8cb8b08 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -441,7 +441,7 @@ extern void expr_set_type(struct expr *expr, const struct datatype *dtype,
- struct eval_ctx;
- extern int expr_binary_error(struct list_head *msgs,
- 			     const struct expr *e1, const struct expr *e2,
--			     const char *fmt, ...) __gmp_fmtstring(4, 5);
-+			     const char *fmt, ...) __fmtstring(4, 5);
- 
- #define expr_error(msgs, expr, fmt, args...) \
- 	expr_binary_error(msgs, expr, NULL, fmt, ## args)
-diff --git a/include/utils.h b/include/utils.h
-index e18fabec56ba..474c7595f7cd 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -27,11 +27,6 @@
- #endif
- 
- #define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
--#if 0
--#define __gmp_fmtstring(x, y)	__fmtstring(x, y)
--#else
--#define __gmp_fmtstring(x, y)
--#endif
- 
- #define __must_check		__attribute__((warn_unused_result))
- #define __noreturn		__attribute__((__noreturn__))
-diff --git a/src/datatype.c b/src/datatype.c
-index f347010f4a1a..956ce2ac0a97 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -173,7 +173,7 @@ static struct error_record *__symbol_parse_fuzzy(const struct expr *sym,
- 	if (st.obj) {
- 		return error(&sym->location,
- 			     "Could not parse %s expression; did you you mean `%s`?",
--			     sym->dtype->desc, st.obj);
-+			     sym->dtype->desc, (const char *)st.obj);
- 	}
- 
- 	return NULL;
-@@ -403,7 +403,7 @@ static struct error_record *verdict_type_error(const struct expr *sym)
- 
- 	if (st.obj) {
- 		return error(&sym->location, "Could not parse %s; did you mean `%s'?",
--			     sym->dtype->desc, st.obj);
-+			     sym->dtype->desc, (const char *)st.obj);
- 	}
- 
- 	/* assume user would like to jump to chain as a hint. */
-diff --git a/src/evaluate.c b/src/evaluate.c
-index a5cc41819198..ffd3ce626859 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -229,7 +229,7 @@ static int byteorder_conversion(struct eval_ctx *ctx, struct expr **expr,
- 		return 0;
- 	default:
- 		return expr_error(ctx->msgs, *expr,
--				  "Byteorder mismatch: %s expected %s, %s got %s",
-+				  "Byteorder mismatch: expected %s, %s got %s",
- 				  byteorder_names[byteorder],
- 				  expr_name(*expr),
- 				  byteorder_names[(*expr)->byteorder]);
-@@ -1811,7 +1811,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 		ctx->inner_desc = NULL;
- 
- 		if (size > NFT_MAX_EXPR_LEN_BITS)
--			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %u",
-+			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %lu",
- 					  size, NFT_MAX_EXPR_LEN_BITS);
- 	}
- 
-@@ -3507,7 +3507,7 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
- 
- 	if (payload_byte_size > sizeof(data))
- 		return expr_error(ctx->msgs, stmt->payload.expr,
--				  "uneven load cannot span more than %u bytes, got %u",
-+				  "uneven load cannot span more than %zu bytes, got %u",
- 				  sizeof(data), payload_byte_size);
- 
- 	if (aligned_fetch && payload_byte_size & 1) {
-@@ -5187,7 +5187,7 @@ static int set_expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 		size += netlink_padded_len(i->len);
- 
- 		if (size > NFT_MAX_EXPR_LEN_BITS)
--			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %u",
-+			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %lu",
- 					  size, NFT_MAX_EXPR_LEN_BITS);
- 	}
- 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 3c21c7584d01..52730f71b880 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -5863,7 +5863,7 @@ payload_expr		:	payload_raw_expr
- payload_raw_len		:	NUM
- 			{
- 				if ($1 > NFT_MAX_EXPR_LEN_BITS) {
--					erec_queue(error(&@1, "raw payload length %u exceeds upper limit of %u",
-+					erec_queue(error(&@1, "raw payload length %lu exceeds upper limit of %lu",
- 							 $1, NFT_MAX_EXPR_LEN_BITS),
- 						 state->msgs);
- 					YYERROR;
+The changes were tested using `make allyesconfig` and
+`make allmodconfig` for arm64, arm, x86_64 and i386 architectures.
+
+Changes in v2:
+The series was updated after initially backporting and approving the
+newer long-term branches.
+
+Andy Shevchenko (2):
+  minmax: deduplicate __unconst_integer_typeof()
+  minmax: fix header inclusions
+
+Bart Van Assche (1):
+  overflow, tracing: Define the is_signed_type() macro once
+
+David Laight (11):
+  minmax: allow min()/max()/clamp() if the arguments have the same
+    signedness.
+  minmax: fix indentation of __cmp_once() and __clamp_once()
+  minmax: allow comparisons of 'int' against 'unsigned char/short'
+  minmax: relax check to allow comparison between unsigned arguments and
+    signed constants
+  minmax.h: add whitespace around operators and after commas
+  minmax.h: update some comments
+  minmax.h: reduce the #define expansion of min(), max() and clamp()
+  minmax.h: use BUILD_BUG_ON_MSG() for the lo < hi test in clamp()
+  minmax.h: move all the clamp() definitions after the min/max() ones
+  minmax.h: simplify the variants of clamp()
+  minmax.h: remove some #defines that are only expanded once
+
+Herve Codina (1):
+  minmax: Introduce {min,max}_array()
+
+Jason A. Donenfeld (2):
+  minmax: sanity check constant bounds when clamping
+  minmax: clamp more efficiently by avoiding extra comparison
+
+Johannes Thumshirn (1):
+  btrfs: remove duplicated in_range() macro
+
+Linus Torvalds (8):
+  minmax: avoid overly complicated constant expressions in VM code
+  minmax: add a few more MIN_T/MAX_T users
+  minmax: simplify and clarify min_t()/max_t() implementation
+  minmax: make generic MIN() and MAX() macros available everywhere
+  minmax: don't use max() in situations that want a C constant
+    expression
+  minmax: simplify min()/max()/clamp() implementation
+  minmax: improve macro expansion and type checking
+  minmax: fix up min3() and max3() too
+
+Matthew Wilcox (Oracle) (1):
+  minmax: add in_range() macro
+
+ arch/arm/mm/pageattr.c                        |   6 +-
+ arch/um/drivers/mconsole_user.c               |   2 +
+ arch/x86/mm/pgtable.c                         |   2 +-
+ drivers/edac/sb_edac.c                        |   4 +-
+ drivers/edac/skx_common.h                     |   1 -
+ .../drm/amd/display/modules/hdcp/hdcp_ddc.c   |   2 +
+ .../drm/amd/pm/powerplay/hwmgr/ppevvmath.h    |  14 +-
+ .../drm/arm/display/include/malidp_utils.h    |   2 +-
+ .../display/komeda/komeda_pipeline_state.c    |  24 +-
+ drivers/gpu/drm/drm_color_mgmt.c              |   2 +-
+ drivers/gpu/drm/msm/adreno/a6xx_gmu.c         |   6 -
+ drivers/gpu/drm/radeon/evergreen_cs.c         |   2 +
+ drivers/hwmon/adt7475.c                       |  24 +-
+ drivers/input/touchscreen/cyttsp4_core.c      |   2 +-
+ drivers/md/dm-integrity.c                     |   6 +-
+ drivers/media/dvb-frontends/stv0367_priv.h    |   3 +
+ .../net/ethernet/chelsio/cxgb3/cxgb3_main.c   |  18 +-
+ .../net/ethernet/stmicro/stmmac/stmmac_main.c |   2 +-
+ drivers/net/fjes/fjes_main.c                  |   4 +-
+ drivers/nfc/pn544/i2c.c                       |   2 -
+ drivers/platform/x86/sony-laptop.c            |   1 -
+ drivers/scsi/isci/init.c                      |   6 +-
+ .../pci/hive_isp_css_include/math_support.h   |   5 -
+ fs/btrfs/ctree.h                              |   2 -
+ fs/btrfs/extent_io.c                          |   1 +
+ fs/btrfs/file-item.c                          |   1 +
+ fs/btrfs/misc.h                               |   2 -
+ fs/btrfs/raid56.c                             |   1 +
+ fs/btrfs/tree-checker.c                       |   2 +-
+ fs/erofs/zdata.h                              |   2 +-
+ fs/ext2/balloc.c                              |   2 -
+ fs/ext4/ext4.h                                |   2 -
+ fs/ufs/util.h                                 |   6 -
+ include/linux/compiler.h                      |  15 +
+ include/linux/minmax.h                        | 267 ++++++++++++++----
+ include/linux/overflow.h                      |   1 -
+ include/linux/trace_events.h                  |   2 -
+ kernel/trace/preemptirq_delay_test.c          |   2 -
+ lib/btree.c                                   |   1 -
+ lib/decompress_unlzma.c                       |   2 +
+ lib/logic_pio.c                               |   3 -
+ lib/vsprintf.c                                |   2 +-
+ lib/zstd/zstd_internal.h                      |   2 -
+ mm/zsmalloc.c                                 |   1 -
+ net/ipv4/proc.c                               |   2 +-
+ net/ipv6/proc.c                               |   2 +-
+ net/netfilter/nf_nat_core.c                   |   6 +-
+ net/tipc/core.h                               |   2 +-
+ net/tipc/link.c                               |  10 +-
+ 49 files changed, 312 insertions(+), 169 deletions(-)
+
 -- 
-2.51.0
+2.47.3
 
