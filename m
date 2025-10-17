@@ -1,26 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D3F226F2B2
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Oct 2025 08:14:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED37E283FE5
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 Oct 2025 08:43:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760688849; cv=none; b=jSARzo1+ECeshplaPs5Z8ewysTDXXN1AAkIZEgg3PuQv3KWc9RrpfYOKpazlPlNVKz6rINB4D3Z4Rn8cpxRG0FXf3DO/WLSO654CmArRdAexBBJMvdaRoIsaHij8JCZUXYVhaQk7azSGUrbe/8nQeVTQ3+i2cXA9jS/ha8wn+mk=
+	t=1760690610; cv=none; b=Y9Fj/ju+uMYEej/RRwJClnw80Ob2RezWyenJpI8CERiDSAG0hgPOQttmmho2aZbM6j6tV5ufxUjI/nlSZYjAN6vJLkcMHjgqNm4bnb4u4Fo4gpytwdtzpCyfa7Eq5ykgpMJMQ4GZshREHFSbD1/wvLMG09UgY58FZqBxs8+AGdU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760688849; c=relaxed/simple;
-	bh=d07fJ2siK/DduHW4EvHd2nsliQl3MR64QIshRWu8Ym8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DZQZDz70Hg6Co0bSIWMqOldDhl6yK+YB39wCkkH6Ce7s8ptUWT5mL2KTpczxJ9Ds5el6Y7PKBagSBKpsy2vK2L9wCaU6HNn/cm8sFY7pUpSeoyVHMC8Tdl/W6z9V/B5vZVMSFOUQCSiIuWxVQQWkwmNt3UoafZ9koYdTI3zReu8=
+	s=arc-20240116; t=1760690610; c=relaxed/simple;
+	bh=05CmfAFysb5dcxsBEmwp+KLw1hNBpm5IWKGC1kj9U6Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kfHn3sjQFvSbZ9pEl88fytgCqFPb7XLeEhkfCCLZHPq/xkx2nDZORHSMlvOH6pOFagC4hTQPhQt1kO06S8uZ0gVLOt+5GFL7nFHrUQiLETGAPbBU9hxyp+2nKPVDr2T0NKcWGm/KjdonWzZeBDM8bLf/yPwBsCPF0JPnV3efIY8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2F7F160329; Fri, 17 Oct 2025 10:14:05 +0200 (CEST)
+	id 32AAC60329; Fri, 17 Oct 2025 10:43:25 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] src: add refcount asserts
-Date: Fri, 17 Oct 2025 10:13:53 +0200
-Message-ID: <20251017081355.23152-1-fw@strlen.de>
+Subject: [PATCH nft] src: fix fmt string warnings
+Date: Fri, 17 Oct 2025 10:43:16 +0200
+Message-ID: <20251017084320.19462-1-fw@strlen.de>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,203 +30,163 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-_get() functions must not be used when refcnt is 0, as expr_free()
-releases expressions on 1 -> 0 transition.
+for some reason several functions had a __gmp_fmtstring annotation,
+but that was an empty macro.
 
-Also, check that a refcount would not overflow from UINT_MAX to 0.
-This helps catching use-after-free refcounting bugs even when nft
-is built without ASAN support.
+After fixing it up, we get several new warnings:
+
+In file included from src/datatype.c:28:
+src/datatype.c:174:24: note: in expansion of macro 'error'
+  174 |                 return error(&sym->location,
+      |                        ^~~~~
+src/datatype.c:405:24: note: in expansion of macro 'error'
+  405 |                 return error(&sym->location, "Could not parse %s; did you mean `%s'?",
+      |                        ^~~~~
+
+Fmt string says '%s', but unqailified void *, add 'const char *' cast,
+it is safe in both cases.
+
+In file included from src/evaluate.c:29:
+src/evaluate.c: In function 'byteorder_conversion':
+src/evaluate.c:232:35: warning: format '%s' expects a matching 'char *' argument [-Wformat=]
+  232 |                                   "Byteorder mismatch: %s expected %s, %s got %s",
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Actual bug, fmt string has one '%s' too many, remove it.
+
+All other warnings were due to '%u' instead of '%lu' / '%zu'.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/rule.h   |  2 +-
- src/expression.c | 12 ++++++++++++
- src/rule.c       | 28 ++++++++++++++++++++++++++++
- 3 files changed, 41 insertions(+), 1 deletion(-)
+ include/erec.h       | 4 ++--
+ include/expression.h | 2 +-
+ include/utils.h      | 5 -----
+ src/datatype.c       | 4 ++--
+ src/evaluate.c       | 8 ++++----
+ src/parser_bison.y   | 2 +-
+ 6 files changed, 10 insertions(+), 15 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index 8d2f29d09337..bcdc50cad59d 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -115,7 +115,7 @@ struct symbol {
- 	struct list_head	list;
- 	const char		*identifier;
- 	struct expr		*expr;
--	int			refcnt;
-+	unsigned int		refcnt;
- };
+diff --git a/include/erec.h b/include/erec.h
+index c17f5def5302..8ad5d83a705d 100644
+--- a/include/erec.h
++++ b/include/erec.h
+@@ -40,10 +40,10 @@ struct error_record {
+ extern struct error_record *erec_vcreate(enum error_record_types type,
+ 					 const struct location *loc,
+ 					 const char *fmt, va_list ap)
+-					 __gmp_fmtstring(3, 0);
++					 __fmtstring(3, 0);
+ extern struct error_record *erec_create(enum error_record_types type,
+ 					const struct location *loc,
+-					const char *fmt, ...) __gmp_fmtstring(3, 4);
++					const char *fmt, ...) __fmtstring(3, 4);
+ extern void erec_add_location(struct error_record *erec,
+ 			      const struct location *loc);
+ extern void erec_destroy(struct error_record *erec);
+diff --git a/include/expression.h b/include/expression.h
+index e73ad90e7e5d..a960f8cb8b08 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -441,7 +441,7 @@ extern void expr_set_type(struct expr *expr, const struct datatype *dtype,
+ struct eval_ctx;
+ extern int expr_binary_error(struct list_head *msgs,
+ 			     const struct expr *e1, const struct expr *e2,
+-			     const char *fmt, ...) __gmp_fmtstring(4, 5);
++			     const char *fmt, ...) __fmtstring(4, 5);
  
- extern void symbol_bind(struct scope *scope, const char *identifier,
-diff --git a/src/expression.c b/src/expression.c
-index 019c263f187b..3e74a669c8a4 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -68,6 +68,11 @@ struct expr *expr_clone(const struct expr *expr)
+ #define expr_error(msgs, expr, fmt, args...) \
+ 	expr_binary_error(msgs, expr, NULL, fmt, ## args)
+diff --git a/include/utils.h b/include/utils.h
+index e18fabec56ba..474c7595f7cd 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -27,11 +27,6 @@
+ #endif
  
- struct expr *expr_get(struct expr *expr)
- {
-+	if (expr->refcnt == 0)
-+		BUG("refcnt 0, use-after-free on type %s\n", expr_name(expr));
-+	if (expr->refcnt == UINT_MAX)
-+		BUG("refcnt overflow for type %s\n", expr_name(expr));
-+
- 	expr->refcnt++;
- 	return expr;
- }
-@@ -84,6 +89,10 @@ void expr_free(struct expr *expr)
- {
- 	if (expr == NULL)
- 		return;
-+
-+	if (expr->refcnt == 0)
-+		BUG("refcnt 0, possible double-free on type %p %s\n",expr,  expr_name(expr));
-+
- 	if (--expr->refcnt > 0)
- 		return;
+ #define __fmtstring(x, y)	__attribute__((format(printf, x, y)))
+-#if 0
+-#define __gmp_fmtstring(x, y)	__fmtstring(x, y)
+-#else
+-#define __gmp_fmtstring(x, y)
+-#endif
  
-@@ -343,11 +352,14 @@ static void variable_expr_clone(struct expr *new, const struct expr *expr)
- 	new->scope      = expr->scope;
- 	new->sym	= expr->sym;
+ #define __must_check		__attribute__((warn_unused_result))
+ #define __noreturn		__attribute__((__noreturn__))
+diff --git a/src/datatype.c b/src/datatype.c
+index f347010f4a1a..956ce2ac0a97 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -173,7 +173,7 @@ static struct error_record *__symbol_parse_fuzzy(const struct expr *sym,
+ 	if (st.obj) {
+ 		return error(&sym->location,
+ 			     "Could not parse %s expression; did you you mean `%s`?",
+-			     sym->dtype->desc, st.obj);
++			     sym->dtype->desc, (const char *)st.obj);
+ 	}
  
-+	assert(expr->sym->refcnt > 0);
-+	assert(expr->sym->refcnt < UINT_MAX);
- 	expr->sym->refcnt++;
- }
+ 	return NULL;
+@@ -403,7 +403,7 @@ static struct error_record *verdict_type_error(const struct expr *sym)
  
- static void variable_expr_destroy(struct expr *expr)
- {
-+	assert(expr->sym->refcnt > 0);
- 	expr->sym->refcnt--;
- }
+ 	if (st.obj) {
+ 		return error(&sym->location, "Could not parse %s; did you mean `%s'?",
+-			     sym->dtype->desc, st.obj);
++			     sym->dtype->desc, (const char *)st.obj);
+ 	}
  
-diff --git a/src/rule.c b/src/rule.c
-index d0a62a3ee002..722e48ae254b 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -181,6 +181,8 @@ struct set *set_clone(const struct set *set)
+ 	/* assume user would like to jump to chain as a hint. */
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a5cc41819198..ffd3ce626859 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -229,7 +229,7 @@ static int byteorder_conversion(struct eval_ctx *ctx, struct expr **expr,
+ 		return 0;
+ 	default:
+ 		return expr_error(ctx->msgs, *expr,
+-				  "Byteorder mismatch: %s expected %s, %s got %s",
++				  "Byteorder mismatch: expected %s, %s got %s",
+ 				  byteorder_names[byteorder],
+ 				  expr_name(*expr),
+ 				  byteorder_names[(*expr)->byteorder]);
+@@ -1811,7 +1811,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+ 		ctx->inner_desc = NULL;
  
- struct set *set_get(struct set *set)
- {
-+	assert(set->refcnt > 0);
-+	assert(set->refcnt < UINT_MAX);
- 	set->refcnt++;
- 	return set;
- }
-@@ -189,6 +191,7 @@ void set_free(struct set *set)
- {
- 	struct stmt *stmt, *next;
+ 		if (size > NFT_MAX_EXPR_LEN_BITS)
+-			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %u",
++			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %lu",
+ 					  size, NFT_MAX_EXPR_LEN_BITS);
+ 	}
  
-+	assert(set->refcnt > 0);
- 	if (--set->refcnt > 0)
- 		return;
+@@ -3507,7 +3507,7 @@ static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
  
-@@ -484,12 +487,15 @@ struct rule *rule_alloc(const struct location *loc, const struct handle *h)
+ 	if (payload_byte_size > sizeof(data))
+ 		return expr_error(ctx->msgs, stmt->payload.expr,
+-				  "uneven load cannot span more than %u bytes, got %u",
++				  "uneven load cannot span more than %zu bytes, got %u",
+ 				  sizeof(data), payload_byte_size);
  
- struct rule *rule_get(struct rule *rule)
- {
-+	assert(rule->refcnt > 0);
-+	assert(rule->refcnt < UINT_MAX);
- 	rule->refcnt++;
- 	return rule;
- }
+ 	if (aligned_fetch && payload_byte_size & 1) {
+@@ -5187,7 +5187,7 @@ static int set_expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+ 		size += netlink_padded_len(i->len);
  
- void rule_free(struct rule *rule)
- {
-+	assert(rule->refcnt > 0);
- 	if (--rule->refcnt > 0)
- 		return;
- 	stmt_list_free(&rule->stmts);
-@@ -606,13 +612,22 @@ struct symbol *symbol_get(const struct scope *scope, const char *identifier)
- 	if (!sym)
- 		return NULL;
+ 		if (size > NFT_MAX_EXPR_LEN_BITS)
+-			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %u",
++			return expr_error(ctx->msgs, i, "Concatenation of size %u exceeds maximum size of %lu",
+ 					  size, NFT_MAX_EXPR_LEN_BITS);
+ 	}
  
-+	if (sym->refcnt == 0)
-+		BUG("sym->recnt is 0, use-after-free for identifier %s\n", identifier);
-+
-+	assert(sym->refcnt > 0);
- 	sym->refcnt++;
- 
-+	if (sym->refcnt == UINT_MAX)
-+		BUG("sym->refcnt overflow, identifier %s\n", identifier);
-+
- 	return sym;
- }
- 
- static void symbol_put(struct symbol *sym)
- {
-+	assert(sym->refcnt > 0);
-+
- 	if (--sym->refcnt == 0) {
- 		free_const(sym->identifier);
- 		expr_free(sym->expr);
-@@ -732,6 +747,9 @@ struct chain *chain_alloc(void)
- 
- struct chain *chain_get(struct chain *chain)
- {
-+	assert(chain->refcnt > 0);
-+	assert(chain->refcnt < UINT_MAX);
-+
- 	chain->refcnt++;
- 	return chain;
- }
-@@ -741,6 +759,7 @@ void chain_free(struct chain *chain)
- 	struct rule *rule, *next;
- 	int i;
- 
-+	assert(chain->refcnt > 0);
- 	if (--chain->refcnt > 0)
- 		return;
- 	list_for_each_entry_safe(rule, next, &chain->rules, list)
-@@ -1176,6 +1195,7 @@ void table_free(struct table *table)
- 	struct set *set, *nset;
- 	struct obj *obj, *nobj;
- 
-+	assert(table->refcnt > 0);
- 	if (--table->refcnt > 0)
- 		return;
- 	if (table->comment)
-@@ -1214,6 +1234,8 @@ void table_free(struct table *table)
- 
- struct table *table_get(struct table *table)
- {
-+	assert(table->refcnt > 0);
-+	assert(table->refcnt < UINT_MAX);
- 	table->refcnt++;
- 	return table;
- }
-@@ -1687,12 +1709,15 @@ struct obj *obj_alloc(const struct location *loc)
- 
- struct obj *obj_get(struct obj *obj)
- {
-+	assert(obj->refcnt > 0);
-+	assert(obj->refcnt < UINT_MAX);
- 	obj->refcnt++;
- 	return obj;
- }
- 
- void obj_free(struct obj *obj)
- {
-+	assert(obj->refcnt > 0);
- 	if (--obj->refcnt > 0)
- 		return;
- 	free_const(obj->comment);
-@@ -2270,6 +2295,8 @@ struct flowtable *flowtable_alloc(const struct location *loc)
- 
- struct flowtable *flowtable_get(struct flowtable *flowtable)
- {
-+	assert(flowtable->refcnt > 0);
-+	assert(flowtable->refcnt < UINT_MAX);
- 	flowtable->refcnt++;
- 	return flowtable;
- }
-@@ -2278,6 +2305,7 @@ void flowtable_free(struct flowtable *flowtable)
- {
- 	int i;
- 
-+	assert(flowtable->refcnt > 0);
- 	if (--flowtable->refcnt > 0)
- 		return;
- 	handle_free(&flowtable->handle);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 3c21c7584d01..52730f71b880 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -5863,7 +5863,7 @@ payload_expr		:	payload_raw_expr
+ payload_raw_len		:	NUM
+ 			{
+ 				if ($1 > NFT_MAX_EXPR_LEN_BITS) {
+-					erec_queue(error(&@1, "raw payload length %u exceeds upper limit of %u",
++					erec_queue(error(&@1, "raw payload length %lu exceeds upper limit of %lu",
+ 							 $1, NFT_MAX_EXPR_LEN_BITS),
+ 						 state->msgs);
+ 					YYERROR;
 -- 
 2.51.0
 
