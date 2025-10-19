@@ -1,34 +1,34 @@
-Received: from sienna.cherry.relay.mailchannels.net (sienna.cherry.relay.mailchannels.net [23.83.223.165])
+Received: from cockroach.ash.relay.mailchannels.net (cockroach.ash.relay.mailchannels.net [23.83.222.37])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D61881724
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E03D17A2F6
 	for <netfilter-devel@vger.kernel.org>; Sun, 19 Oct 2025 01:40:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.165
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.222.37
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760838015; cv=pass; b=iLH0k4PfNWFtvpNRI5wdfmTnjwENNb1jr/MEzZ5kF0G+5zHMWETMNzcr9G8KfuHgAZlApI1mBmWymbyLTbVvjDFXpm07QMs0lY9JWSL1PnwHgI3LX6dbygpc0PQ0INY1RWuPxhnAu63/BRo83izb5Jb0hd9WVhyiOuOksY1jkzU=
+	t=1760838016; cv=pass; b=jNTYPeXJbkoRzy79eUJzAunrD7r4EFFcVEp3sPnPbye/QtQMqD4AAbvfyl3OX/r6D/9+IjemVM2JUqxYSd1p6ZJMH6cdTH828o2l4TI40+jyO/z1tugG8vjBwf6MujGTAto5d7D4KWywoc1tDDGz4dtiDSKcHw3stvu/0LcpYCY=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760838015; c=relaxed/simple;
-	bh=vxUeLshsgIprKw7ESC8O5rYuWPpIPYuEm5tFPjRuFtU=;
+	s=arc-20240116; t=1760838016; c=relaxed/simple;
+	bh=dY6Pum6YQ7cW5pLtAeuDa3AgXaJ/CAk8nhXbkVBZNEs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=iPzlzKU71Tav5XKPenAdCRPegKmbmR+zUaqibsAqTU7IiGHt+8BL0jeXQ4K7E1uNjXKJz0+L+czLXp+KBbwzhbsaimUy/Vm8t6ji9ib06aqw46TIECtGEO3zCYsryVPc7qMyOlO+bm77XCW93mdHi7dClX1JgBbngcILvGrHtsc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.223.165
+	 MIME-Version:Content-Type; b=WxU/PBgsK76A7dIjKXVccZz6bU1fylV6MQzo5zYuLyRR3ZgAcR0Js0BRnv3p2lD82vOZJOKkt2n59OFllRKbAbYefbV4cgDs0V9+G/idUuI7ANLbKjoWNISi1aX2rEqHzc+aGqdD1bt8bbB1MjtQ+Zj0414DxlHOUNz1l/nm69A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.222.37
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 01A2A8E231C;
-	Sun, 19 Oct 2025 01:40:07 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (100-121-87-189.trex-nlb.outbound.svc.cluster.local [100.121.87.189])
-	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 34C6E8E2520;
+	by relay.mailchannels.net (Postfix) with ESMTP id C4AA6101AED;
 	Sun, 19 Oct 2025 01:40:06 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-121-87-108.trex-nlb.outbound.svc.cluster.local [100.121.87.108])
+	(Authenticated sender: instrampxe0y3a)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 0AD4E101B60;
+	Sun, 19 Oct 2025 01:40:05 +0000 (UTC)
 ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1760838006; a=rsa-sha256;
 	cv=none;
-	b=4/BzCrAo0J7J1esr5fKzS2et+/ErKJEcS13+f+QGDc/tOWo5hQaOI/wOpSyrGaS0llFX0E
-	DTwaj5v/MfM3O2EmAACEgQ+0bXKZ7ffY5ACdfQFO8I5NBMwsU5qxT5/qIgPMxwNTQS3PJI
-	X+9H6GXJumn+BtAxx1H5F6rlAYF68Pa5J8DSB5wKkHv7QK05pX5i36GVpyrjKySQtwSPnl
-	ppdQqAGQ5QJ2r0bINQ2CQwX/tSGPCLenUbihxCmd+dnIl5798QVpKj3yhI5HNB+Z9jy+m+
-	G5MS6TMilNu3syNjicueD5f7uq/ilQOZfKb/xo1YdjN4w3/zZWM7RAOiy68fEw==
+	b=2ERBoRPOkO7RG+UlyWrGKwD++RVOM2jZjXbIr8ayf+Roqi4/4QP53DsUi5DiAZjFYnr0Es
+	0fpqMCZc/Mt2Eo3oYXnCk7bUaN5n++O/YKyC1Zn6T2ChmIBVt9FZMr3+P1KJEsSvx8jUQq
+	ZtBm8a7vt70wgf3XkRmCz9G4MQtEI0H50UXX7RYby7eiVhLrOsjJaPITrZChSrEa1DpJqG
+	gtfznf62yoNuDotorSDc7lyiiKNihCITaxspi2FyOX51zJrEzy7kdMvvyMbIlpfwTczvWX
+	gXwoGW0hUvSzUBQNbJMleTcobMLMEF0wDGJzlTgLOrdS6tHd7x6Ci088d6hklw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
 	s=arc-2022; t=1760838006;
@@ -36,43 +36,43 @@ ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=cdzTKjvPNmrD7AE9837HrBxMtEiFg9j5ZGscJOUly8E=;
-	b=XKr+tRYbesFwOqXHSqycTkaUMz+fZGNjnG1TfLPtEJSlgzIs6vAg9VLISTxBz9Ewo6CigC
-	n3fZY5itJQrq5VXclKliVB7Wv0bLfYIEOIU7ZmF/ZaOwTvu/9kfVawWnicXsb9aFcC044b
-	A7y+0RAr0dT0ocRmvjUHFGRY55PtMIi8ieiX54jCmUK2xnuG8ZMlbAqXCjLsIy/JmhAxtW
-	e0x7/HaeJo35g4WdUuThULdB+BpcW15uj0Jj7GDwXnGHzV7sbHCFLmzLAOmgztVOzygVvf
-	SkE1/9HwlxOj6perDbvn/6b0EGdi3kw9i81SkyABwW+QcI7AKVdESs+pDUcryQ==
+	bh=Zfneuvewl/4V1ssG/oZ160K9/C1Vxq8W42BCQQMHNWw=;
+	b=MYOyuf1OAWeVU0YU0823YQRLrx7BfqMIzP54Vuxzx08VMY1Vlmb2MYaBcHnk7canzCwGYq
+	7ySzUYBsqHNoawBZwN2OJ6hz2t6Fm0zaRc0fF6pGDUyLnomgVmj/XedwKN5xcF9dI5yFx+
+	VHtCb402wINswu3RKBteelP8cW6JlLeGOIXVPED2zxkPqSOTHVw9Tuk8Z6nU+xow1TCvfA
+	U1/3hMw6RLi6pZh4zBqWsZk6qmGrJDJfxcb50wm/vNK40kAKmXvxQxBY+rN8VHqPfv4Nec
+	JZmrsy+149aURJegHloOQVR2wKtLPKWZGY5jQbh1t7q7TSvFNHIi84OCWfOgRA==
 ARC-Authentication-Results: i=1;
-	rspamd-6c854d7645-n2jgw;
+	rspamd-6c854d7645-7ffz2;
 	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MC-Relay: Neutral
 X-MC-Copy: stored-urls
 X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Soft-Gusty: 69d7d1821619d2fb_1760838006913_1006200013
-X-MC-Loop-Signature: 1760838006913:2048605417
-X-MC-Ingress-Time: 1760838006913
+X-Cold-Tank: 158addb62616c5dd_1760838006711_3317759172
+X-MC-Loop-Signature: 1760838006711:3203193113
+X-MC-Ingress-Time: 1760838006711
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.121.87.189 (trex/7.1.3);
+	by 100.121.87.108 (trex/7.1.3);
 	Sun, 19 Oct 2025 01:40:06 +0000
-Received: from [212.104.214.84] (port=41324 helo=heisenberg.scientia.org)
+Received: from [212.104.214.84] (port=52910 helo=heisenberg.scientia.org)
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <calestyo@scientia.org>)
-	id 1vAIP0-0000000DT4c-27Tz;
+	id 1vAIP0-0000000DT4t-2OXW;
 	Sun, 19 Oct 2025 01:40:04 +0000
 Received: by heisenberg.scientia.org (Postfix, from userid 1000)
-	id 806A359EEDE7; Sun, 19 Oct 2025 03:40:02 +0200 (CEST)
+	id 8C39F59EEDEB; Sun, 19 Oct 2025 03:40:02 +0200 (CEST)
 From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 To: netfilter-devel@vger.kernel.org
 Cc: Florian Westphal <fw@strlen.de>,
 	pablo@netfilter.org
-Subject: [PATCH v3 1/6] doc: fix/improve documentation of verdicts
-Date: Sun, 19 Oct 2025 03:38:08 +0200
-Message-ID: <20251019014000.49891-2-mail@christoph.anton.mitterer.name>
+Subject: [PATCH v3 3/6] doc: add overall description of the ruleset evaluation
+Date: Sun, 19 Oct 2025 03:38:10 +0200
+Message-ID: <20251019014000.49891-4-mail@christoph.anton.mitterer.name>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251019014000.49891-1-mail@christoph.anton.mitterer.name>
 References: <6bb455009ebd3a2fe17581dfa74addc9186f33ea.camel@scientia.org>
@@ -87,157 +87,124 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-AuthUser: calestyo@scientia.org
 
-- Clarify that a terminating statement also prevents the execution of later
-  statements in the same rule and give an example about that.
-- Correct that `accept` won’t terminate the evaluation of the ruleset (which is
-  generally used for the whole set of all chains, rules, etc.) but only that of
-  the current base chain (and any regular chains called from that).
-  Indicate that `accept` only accepts the packet from the current base chain’s
-  point of view.
-  Clarify that not only chains of a later hook could still drop the packet, but
-  also ones from the same hook if they have a higher priority.
-- Overhaul the description of `jump`/`goto`/`return`.
-  `jump` only explains what the statement causes from the point of view of the
-  new chain (that is: not, how the returning works), which includes that an
-  implicit `return` is issued at the end of the chain.
-  `goto` is explained in reference to `jump`.
-  `return` describes abstractly how the return position is determined and what
-  happens if there’s no position to return to (but not for example where an
-  implicit `return` is issued).
-- Various other minor improvements/clarifications to wording.
-- List and explain verdict-like statements like `reject` which internally imply
-  `accept` or `drop`.
-  Further explain that with respect to evaluation these behave like their
-  respectively implied verdicts.
-
-Link: https://lore.kernel.org/netfilter-devel/3c7ddca7029fa04baa2402d895f3a594a6480a3a.camel@scientia.org/T/#t
 Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 ---
- doc/statements.txt | 97 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 70 insertions(+), 27 deletions(-)
+ doc/nft.txt | 102 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 102 insertions(+)
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 834f95fb..1338471e 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -1,6 +1,7 @@
--VERDICT STATEMENT
--~~~~~~~~~~~~~~~~~
--The verdict statement alters control flow in the ruleset and issues policy decisions for packets.
-+VERDICT STATEMENTS
-+~~~~~~~~~~~~~~~~~~
-+The verdict statements alter control flow in the ruleset and issue policy
-+decisions for packets.
+diff --git a/doc/nft.txt b/doc/nft.txt
+index 49fffe2f..363c67ba 100644
+--- a/doc/nft.txt
++++ b/doc/nft.txt
+@@ -572,6 +572,108 @@ table inet filter {
+ nft delete rule inet filter input handle 5
+ -------------------------
  
- [verse]
- ____
-@@ -10,40 +11,82 @@ ____
- 'CHAIN' := 'chain_name' | *{* 'statement' ... *}*
- ____
- 
--*accept* and *drop* are absolute verdicts -- they terminate ruleset evaluation immediately.
-+*accept* and *drop* are absolute verdicts, which immediately terminate the
-+evaluation of the current rule, i.e. even any later statements of the current
-+rule won’t get executed.
++OVERALL EVALUATION OF THE RULESET
++---------------------------------
++This is a summary of how the ruleset is evaluated.
 +
-+.*counter* will get executed:
-+------------------------------
-+… counter accept
-+------------------------------
++* Even if a packet is accepted by the ruleset (and thus by netfilter), it may
++  still get discarded by other means, for example Linux generally ignores
++  various ICMP types and there are sysctl options like
++  `net.ipv{4,6}.conf.*.forwarding` or `net.ipv4.conf.*.rp_filter`.
++* Tables are merely a concept of nftables to structure the ruleset and not known
++  to netfilter itself.
++  They are thus irrelevant with respect to netfilter’s evaluation of the
++  ruleset.
++* Packets traverse the network stack and at various hooks (see
++  <<ADDRESS_FAMILIES>> above for lists of hooks per address family) they’re
++  evaluated by any base chains attached to these hooks.
++* Base chains may call regular chains and regular chains may call other regular
++  chains (via *jump* and *goto* verdicts), in which case evaluation continues in
++  the called chain.
++  Base chains themsevlves cannot be called and only chains of the same table can
++  be called.
++* For each hook, the attached chains are evaluated in order of their priorities.
++  Chains with lower priority values are evaluated before those with higher ones.
++  The order of chains with the same priority value is undefined.
++* An *accept* verdict (including an implict one via the base chain’s policy)
++  ends the evaluation of the current base chain (and any regular chains called
++  from that).
++  It accepts the packet only with respect to the current base chain. Any other
++  base chain (or regular chain called by such) with a higher priority of the
++  same hook as well as any other base chain (or regular chain called by such) of
++  any later hook may however still ultimately *drop* (which might also be done
++  via verdict-like statements that imply *drop*, like *reject*) the packet with
++  an according verdict (with consequences as described below for *drop*).
++  Thus and merely from netfilter’s point of view, a packet is only ultimately
++  accepted if none of the chains (regardless of their tables) that are attached
++  to any of the respectively relevant hooks issues a *drop* verdict (be it
++  explicitly or implicitly by policy or via a verdict-like statement that
++  implies *drop*, for example *reject*), which already means that there has to
++  be at least one *accept* verdict (be it explicitly or implicitly by policy).
++  All this applies analogously to verdict-like statements that imply *accept*,
++  for example the NAT statements.
++* A *drop* verdict (including an implict one via the base chain’s policy)
++  immediately ends the evaluation of the whole ruleset and ultimately drops the
++  packet.
++  Unlike with an *accept* verdict, no further chains of any hook and regardless
++  of their table get evaluated and it’s therefore not possible to have an *drop*
++  verdict overruled.
++  Thus, if any base chain uses drop as its policy, the same base chain (or any
++  regular chain directly or indirectly called by it) must accept a packet or it
++  is ensured to be ultimately dropped by it.
++  All this applies analogously to verdict-like statements that imply *drop*,
++  for example *reject*.
++* Given the semantics of *accept*/*drop* and only with respect to the utlimate
++  decision of whether a packet is accepted or dropped, the ordering of the
++  various base chains per hook via their priorities matters only in so far, as
++  any of them modifies the packet or its meta data and that has an influence on
++  the verdicts issued by the chains – other than that, the ordering shouldn’t
++  matter (except for performance and other side effects).
++  It also means that short-circuiting the ultimate decision is only possible via
++  *drop* verdicts (respectively verdict-like statements that imply *drop*, for
++  example *reject*).
++* A *jump* verdict causes the current position to be stored in the call stack of
++  chains and evaluation to continue at the beginning of the called regular
++  chain.
++  Called chains must be from the same table and cannot be base chains.
++  When the end of the called chain is reached, an implicit *return* verdict is
++  issued.
++  Other verdicts (respectively verdict-like statements) are processed as
++  described above and below.
++* A *goto* verdict is equal to *jump* except that the current position is not
++  stored in the call stack of chains.
++* A *return* verdict ends the evaluation of the current chain, pops the most
++  recently added position from the call stack of chains and causes evaluation to
++  continue after that position.
++  When there’s no position to pop (which is the case when the current chain is
++  either the base chain or a regular chain that was reached solely via *goto*
++  verdicts) it ends the evaluation of the current base chain (and any regular
++  chains called from it) using the base chain’s policy as implicit verdict.
++* Examples for *jump*/*goto*/*return*:
++  * 'base' {*jump*}→ 'regular-1' {*jump*}→ 'regular-2'
++    At the end of 'regular-2' or when a *return* is issued in that, evaluation
++    continues after the *jump* position in 'regular-1'.
++    At the end of 'regular-1' or when a *return* is issued in that, evaluation
++    continues after the *jump* position in 'base'.
++  * 'base' {*jump*}→ 'regular-1' {*goto*}→ 'regular-2'
++    At the end of 'regular-2' or when a *return* is issued in that, evaluation
++    continues after the *jump* position in 'base'.
++  * 'base' {*jump*}→ 'regular-1' {*jump*}→ 'regular-2' {*goto*}→ 'regular-3'
++    At the end of 'regular-3' or when a *return* is issued in that, evaluation
++    continues after the *jump* position in 'regular-1'.
++    At the end of 'regular-1' or when a *return* is issued in that, evaluation
++    continues after the *jump* position in 'base'.
++  * 'base' {*jump*}→ 'regular-1' {*goto*}→ 'regular-2' {*goto*}→ 'regular-3'
++    At the end of 'regular-3' or when a *return* is issued in that, evaluation
++    continues after the *jump* position in 'base'.
++* Verdicts (that is: *accept*, *drop*, *jump*, *goto*, *return*, *continue* and
++  *queue*) as well as statements that imply a verdict (like *reject* or the NAT
++  statements) also end the evaluation of any later statements in their
++  respective rules (respectively cause an error when loading such rules).
++  For example in `… counter accept` the `counter` statement is processed, but in
++  `… accept counter` it is not.
++  This does not apply to the `comment` statement, which is always evaluated.
 +
-+.*counter* won’t get executed:
-+------------------------------
-+… accept counter
-+------------------------------
-+
-+Further:
- 
- [horizontal]
--*accept*:: Terminate ruleset evaluation and accept the packet.
--The packet can still be dropped later by another hook, for instance accept
--in the forward hook still allows one to drop the packet later in the postrouting hook,
--or another forward base chain that has a higher priority number and is evaluated
--afterwards in the processing pipeline.
--*drop*:: Terminate ruleset evaluation and drop the packet.
--The drop occurs instantly, no further chains or hooks are evaluated.
--It is not possible to accept the packet in a later chain again, as those
--are not evaluated anymore for the packet.
--*queue*:: Terminate ruleset evaluation and queue the packet to userspace.
--Userspace must provide a drop or accept verdict.  In case of accept, processing
--resumes with the next base chain hook, not the rule following the queue verdict.
-+*accept*:: Terminate the evaluation of the current chain as well as any chains
-+ in the call stack and accept the packet with respect to the base chain of
-+ these.
-+ Evaluation continues in the next base chain (of higher or possibly equal
-+ priority from the same hook or of any priority from a later hook), if any.
-+ This means the packet can still be dropped in any next base chain as well as
-+ any regular chain (directly or indirectly) called from it.
-+ For example, an *accept* in a chain of the *forward* hook still allows one to
-+ *drop* (or *reject*, etc.) the packet in another *forward* hook base chain (and
-+ any regular chains called from it) that has a higher priority number as well as
-+ later in a chain of the *postrouting* hook.
-+*drop*:: Immediately drop the packet and terminate ruleset evaluation.
-+ This means no further evaluation of any chains and it’s thus – unlike with
-+ *accept* – not possible to again change the ultimate fate of the packet in any
-+ later chain.
-+
-+
-+Terminate ruleset evaluation and drop the packet. This occurs
-+ instantly, no further chains of any hooks are evaluated and it is thus not
-+ possible to again accept the packet in a higher priority or later chain, as
-+ those are not evaluated anymore for the packet.
-+*jump* 'CHAIN':: Store the current position in the call stack of chains and
-+ continue evaluation at the first rule of 'CHAIN'.
-+ When the end of 'CHAIN' is reached, an implicit *return* verdict is issued.
-+ When an absolute verdict is issued (respectively implied by a verdict-like
-+ statement) in 'CHAIN', evaluation terminates as described above.
-+*goto* 'CHAIN':: Equal to *jump* except that the current position is not stored
-+ in the call stack of chains.
-+*return*:: End evaluation of the current chain, pop the most recently added
-+ position from the call stack of chains and continue evaluation after that
-+ position.
-+ When there’s no position to pop (which is the case when the current chain is
-+ either the base chain or a regular chain that was reached solely via *goto*
-+ verdicts) end evaluation of the current base chain (and any regular chains
-+ called from it) using the base chain’s policy as implicit verdict.
- *continue*:: Continue ruleset evaluation with the next rule. This
-  is the default behaviour in case a rule issues no verdict.
--*return*:: Return from the current chain and continue evaluation at the
-- next rule in the last chain. If issued in a base chain, it is equivalent to the
-- base chain policy.
--*jump* 'CHAIN':: Continue evaluation at the first rule in 'CHAIN'. The current
-- position in the ruleset is pushed to a call stack and evaluation will continue
-- there when the new chain is entirely evaluated or a *return* verdict is issued.
-- In case an absolute verdict is issued by a rule in the chain, ruleset evaluation
-- terminates immediately and the specific action is taken.
--*goto* 'CHAIN':: Similar to *jump*, but the current position is not pushed to the
-- call stack, meaning that after the new chain evaluation will continue at the last
-- chain instead of the one containing the goto statement.
-+*queue*:: Terminate ruleset evaluation and queue the packet to userspace.
-+ Userspace must provide a drop or accept verdict.  In case of accept, processing
-+ resumes with the next base chain hook, not the rule following the queue
-+ verdict.
- 
- An alternative to specifying the name of an existing, regular chain in 'CHAIN'
- is to specify an anonymous chain ad-hoc. Like with anonymous sets, it can't be
- referenced from another rule and will be removed along with the rule containing
- it.
- 
-+All the above applies analogously to statements that imply a verdict:
-+*redirect*, *dnat*, *snat* and *masquerade* internally issue an *accept*
-+verdict at the end of their respective actions.
-+*reject* and *synproxy* internally issue a *drop* verdict at the end of their
-+respective actions.
-+These statements thus behave like their implied verdicts, but with side effects.
-+
-+For example, a *reject* also immediately terminates the evaluation of the
-+current rule as well as of all chains, overrules any *accept* from any other chains and can itself not be
-+overruled, while the various NAT statements may be overruled by other *drop*
-+verdict respectively statements that imply this.
-+
- .Using verdict statements
- -------------------
- # process packets from eth0 and the internal network in from_lan
+ SETS
+ ----
+ nftables offers two kinds of set concepts. Anonymous sets are sets that have no
 -- 
 2.51.0
 
