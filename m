@@ -1,373 +1,196 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68852E172D
-	for <netfilter-devel@vger.kernel.org>; Sun, 19 Oct 2025 09:34:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50394A41;
+	Sun, 19 Oct 2025 12:37:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760866463; cv=none; b=BdMOoDEQAVJZUcjQg+1Q3ri8cbjCqYlIlNuZblnMhLU8qGVT5YJV+KGI0nuTIygsEmOSmdvnP5+jfptxFh4eX3R2ywZProR2Ff4xQlmNpwgS9SBqLe94mHG25ieplO9M8PB6GC9A3Ry6dy7M//6XDyKwVsnly/vXZIgWRnWKpi4=
+	t=1760877464; cv=none; b=feJOt1BBmQqr2VY8wbDIPztP47tXjDLCWkWHS7/NMB3pmNCBvT658W3J/QGk1dPzseCInMqyQNp0Xysq1AQNg3Cr2WSRZEafVP3zPkMbG6pmG2k4BfvzER7LhLCVrcxaS8oAa+Q3YBPqLZMwikSUA3ap4ju1hh37vYLJOeP0iXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760866463; c=relaxed/simple;
-	bh=XudtDQSMwWH9CDzEwuo6JAePaGm0YQanzRNw76/sXfU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=CzGQJ9JJIFdKpcDU4yo3q5DUxhaPZ30ohuoGxkAzRR+S0vIcm5LLmO1Tq3OXH31aEfRJeaumsLVi1XvpK0Ohm/YDq1PNsZVhnBi3M5xFUg4/LWkZBY+3/dMSJNyL2HVldl8b0Vf3ZXyUqaZ9wB0CcX3GO2NRlhjFje7/GNmjMa4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=U4YOPIN5; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2jjYce0O; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=HVdzshaw; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ukGEIdMx; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1760877464; c=relaxed/simple;
+	bh=dgzA9LsGuiP/mYejoGwFkpon4M45cMihfvBvR4qrSRg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GZR6F4dTdA5UvN2irZqmWrvNZu7D5STaimlzgp1izDXP/XYymavfECXsTK5d+c3uL88e/OPlv1nvlBZVB2x/wF46J5qKJ5tPsgBPhbHumb7E8pA+kbkWa/cIQLot0G0lfF5TP72aSc++lJ5kEFm4/eMMi19Dhck2Uq02n/DFKfY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=mr7tZ637; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="U4YOPIN5";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2jjYce0O";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="HVdzshaw";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ukGEIdMx"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id AFD7D1F393;
-	Sun, 19 Oct 2025 09:34:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1760866458; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7lLUKe2TuZ0jJds+bALjC8gRe2thG+XEJh0GYqFg2As=;
-	b=U4YOPIN5Q56d9/JTQtYLmTpYI3Giz/mkG85AeLZfVXcISy7mz0VoOd8nJe/pWwacckojz/
-	CjU3TU0MlSUo3lOLjIjbjioFMIVmoQes+XPC0ggCBHUscW0AHsFfsbzjfESvAwcnpHz8LW
-	KuhZRNpGJpWhlJJsIjbqBc3SKWVJZ2A=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1760866458;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7lLUKe2TuZ0jJds+bALjC8gRe2thG+XEJh0GYqFg2As=;
-	b=2jjYce0OzMj7KEj8KxQd4i0++gVM9I9gfuocf6nCbgk/4IR4k1x+UzIFGAJfmeZIZ9DnQS
-	yxO8+hbxigcDxjDA==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=HVdzshaw;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=ukGEIdMx
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1760866454; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7lLUKe2TuZ0jJds+bALjC8gRe2thG+XEJh0GYqFg2As=;
-	b=HVdzshaw9y4kmEs1uJ5dIFLK43fbuE8JWC/Ca7so+31HWV0+cz9xuAp447VW6y66rJ0JxM
-	NgPCrrSFkQktkFi1D9vVcxPiIG0Zhb/10dxgmqqH7EvTNqxBxMBm91305Q6hi5RPAw+kFJ
-	fDSScg3gwabu8+izzLsgcefRxPDM7Eg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1760866454;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7lLUKe2TuZ0jJds+bALjC8gRe2thG+XEJh0GYqFg2As=;
-	b=ukGEIdMx5wRAn/KQPGqK0mx4wTjbhd0dKtT1G01T2szJbhRdxdgKv8AiOEqSEJOYuBQqtg
-	v6frfGUND+2YvODA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 778B9139D8;
-	Sun, 19 Oct 2025 09:34:14 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id en/mGZaw9GjLCAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Sun, 19 Oct 2025 09:34:14 +0000
-Message-ID: <ddf0bfea-0239-42bd-ba1b-5e6f340f1af4@suse.de>
-Date: Sun, 19 Oct 2025 11:34:03 +0200
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="mr7tZ637"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54864C4CEE7;
+	Sun, 19 Oct 2025 12:37:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1760877463;
+	bh=dgzA9LsGuiP/mYejoGwFkpon4M45cMihfvBvR4qrSRg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=mr7tZ637v1WDh2Nr8sg19/xoeGzZL3RvlnXfYUykPJk+G6zQteton6Oo+u5wVdnxN
+	 ZBC8QPSBVC5hJfXNWgutJHN6QRJ4bxeGe2+hYWxIp2brHCNu/KXcKMeG5P43CM4Fjg
+	 vDPDOANq6idL2020QoIIUuWRPKXTuhm7Nf2n5Cxw=
+Date: Sun, 19 Oct 2025 14:37:40 +0200
+From: Greg KH <gregkh@linuxfoundation.org>
+To: "Farber, Eliav" <farbere@amazon.com>
+Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>,
+	"linux@armlinux.org.uk" <linux@armlinux.org.uk>,
+	"jdike@addtoit.com" <jdike@addtoit.com>,
+	"richard@nod.at" <richard@nod.at>,
+	"anton.ivanov@cambridgegreys.com" <anton.ivanov@cambridgegreys.com>,
+	"dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
+	"luto@kernel.org" <luto@kernel.org>,
+	"peterz@infradead.org" <peterz@infradead.org>,
+	"tglx@linutronix.de" <tglx@linutronix.de>,
+	"mingo@redhat.com" <mingo@redhat.com>,
+	"bp@alien8.de" <bp@alien8.de>, "x86@kernel.org" <x86@kernel.org>,
+	"hpa@zytor.com" <hpa@zytor.com>,
+	"tony.luck@intel.com" <tony.luck@intel.com>,
+	"qiuxu.zhuo@intel.com" <qiuxu.zhuo@intel.com>,
+	"mchehab@kernel.org" <mchehab@kernel.org>,
+	"james.morse@arm.com" <james.morse@arm.com>,
+	"rric@kernel.org" <rric@kernel.org>,
+	"harry.wentland@amd.com" <harry.wentland@amd.com>,
+	"sunpeng.li@amd.com" <sunpeng.li@amd.com>,
+	"alexander.deucher@amd.com" <alexander.deucher@amd.com>,
+	"christian.koenig@amd.com" <christian.koenig@amd.com>,
+	"airlied@linux.ie" <airlied@linux.ie>,
+	"daniel@ffwll.ch" <daniel@ffwll.ch>,
+	"evan.quan@amd.com" <evan.quan@amd.com>,
+	"james.qian.wang@arm.com" <james.qian.wang@arm.com>,
+	"liviu.dudau@arm.com" <liviu.dudau@arm.com>,
+	"mihail.atanassov@arm.com" <mihail.atanassov@arm.com>,
+	"brian.starkey@arm.com" <brian.starkey@arm.com>,
+	"maarten.lankhorst@linux.intel.com" <maarten.lankhorst@linux.intel.com>,
+	"mripard@kernel.org" <mripard@kernel.org>,
+	"tzimmermann@suse.de" <tzimmermann@suse.de>,
+	"robdclark@gmail.com" <robdclark@gmail.com>,
+	"sean@poorly.run" <sean@poorly.run>,
+	"jdelvare@suse.com" <jdelvare@suse.com>,
+	"linux@roeck-us.net" <linux@roeck-us.net>,
+	"fery@cypress.com" <fery@cypress.com>,
+	"dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>,
+	"agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"rajur@chelsio.com" <rajur@chelsio.com>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	"kuba@kernel.org" <kuba@kernel.org>,
+	"peppe.cavallaro@st.com" <peppe.cavallaro@st.com>,
+	"alexandre.torgue@st.com" <alexandre.torgue@st.com>,
+	"joabreu@synopsys.com" <joabreu@synopsys.com>,
+	"mcoquelin.stm32@gmail.com" <mcoquelin.stm32@gmail.com>,
+	"malattia@linux.it" <malattia@linux.it>,
+	"hdegoede@redhat.com" <hdegoede@redhat.com>,
+	"mgross@linux.intel.com" <mgross@linux.intel.com>,
+	"intel-linux-scu@intel.com" <intel-linux-scu@intel.com>,
+	"artur.paszkiewicz@intel.com" <artur.paszkiewicz@intel.com>,
+	"jejb@linux.ibm.com" <jejb@linux.ibm.com>,
+	"martin.petersen@oracle.com" <martin.petersen@oracle.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	"clm@fb.com" <clm@fb.com>,
+	"josef@toxicpanda.com" <josef@toxicpanda.com>,
+	"dsterba@suse.com" <dsterba@suse.com>,
+	"xiang@kernel.org" <xiang@kernel.org>,
+	"chao@kernel.org" <chao@kernel.org>,
+	"jack@suse.com" <jack@suse.com>, "tytso@mit.edu" <tytso@mit.edu>,
+	"adilger.kernel@dilger.ca" <adilger.kernel@dilger.ca>,
+	"dushistov@mail.ru" <dushistov@mail.ru>,
+	"luc.vanoostenryck@gmail.com" <luc.vanoostenryck@gmail.com>,
+	"rostedt@goodmis.org" <rostedt@goodmis.org>,
+	"pmladek@suse.com" <pmladek@suse.com>,
+	"sergey.senozhatsky@gmail.com" <sergey.senozhatsky@gmail.com>,
+	"andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>,
+	"linux@rasmusvillemoes.dk" <linux@rasmusvillemoes.dk>,
+	"minchan@kernel.org" <minchan@kernel.org>,
+	"ngupta@vflare.org" <ngupta@vflare.org>,
+	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+	"kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>,
+	"yoshfuji@linux-ipv6.org" <yoshfuji@linux-ipv6.org>,
+	"pablo@netfilter.org" <pablo@netfilter.org>,
+	"kadlec@netfilter.org" <kadlec@netfilter.org>,
+	"fw@strlen.de" <fw@strlen.de>,
+	"jmaloy@redhat.com" <jmaloy@redhat.com>,
+	"ying.xue@windriver.com" <ying.xue@windriver.com>,
+	"willy@infradead.org" <willy@infradead.org>,
+	"sashal@kernel.org" <sashal@kernel.org>,
+	"ruanjinjie@huawei.com" <ruanjinjie@huawei.com>,
+	"David.Laight@aculab.com" <David.Laight@aculab.com>,
+	"herve.codina@bootlin.com" <herve.codina@bootlin.com>,
+	"Jason@zx2c4.com" <Jason@zx2c4.com>,
+	"keescook@chromium.org" <keescook@chromium.org>,
+	"kbusch@kernel.org" <kbusch@kernel.org>,
+	"nathan@kernel.org" <nathan@kernel.org>,
+	"bvanassche@acm.org" <bvanassche@acm.org>,
+	"ndesaulniers@google.com" <ndesaulniers@google.com>,
+	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-um@lists.infradead.org" <linux-um@lists.infradead.org>,
+	"linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
+	"amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+	"freedreno@lists.freedesktop.org" <freedreno@lists.freedesktop.org>,
+	"linux-hwmon@vger.kernel.org" <linux-hwmon@vger.kernel.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>,
+	"platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>,
+	"linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>,
+	"linux-staging@lists.linux.dev" <linux-staging@lists.linux.dev>,
+	"linux-btrfs@vger.kernel.org" <linux-btrfs@vger.kernel.org>,
+	"linux-erofs@lists.ozlabs.org" <linux-erofs@lists.ozlabs.org>,
+	"linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>,
+	"linux-sparse@vger.kernel.org" <linux-sparse@vger.kernel.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"tipc-discussion@lists.sourceforge.net" <tipc-discussion@lists.sourceforge.net>
+Subject: Re: [PATCH v2 00/27 5.10.y] Backport minmax.h updates from v6.17-rc7
+Message-ID: <2025101929-curator-poplar-7460@gregkh>
+References: <20251017090519.46992-1-farbere@amazon.com>
+ <2025101704-rumble-chatroom-60b5@gregkh>
+ <CH0PR18MB5433BB2E99395D2AC8B0E0FBC6F7A@CH0PR18MB5433.namprd18.prod.outlook.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nft v2] support for afl++ (american fuzzy lop++) fuzzer
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20251017115145.20679-1-fw@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20251017115145.20679-1-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: AFD7D1F393
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_TLS_ALL(0.00)[];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_DN_SOME(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
-X-Spam-Level: 
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CH0PR18MB5433BB2E99395D2AC8B0E0FBC6F7A@CH0PR18MB5433.namprd18.prod.outlook.com>
 
-
-
-On 10/17/25 1:51 PM, Florian Westphal wrote:
-> afl comes with a compiler frontend that can add instrumentation suitable
-> for running nftables via the "afl-fuzz" fuzzer.
+On Sat, Oct 18, 2025 at 08:07:32PM +0000, Farber, Eliav wrote:
+> > On Fri, Oct 17, 2025 at 09:04:52AM +0000, Eliav Farber wrote:
+> > > This series backports 27 patches to update minmax.h in the 5.10.y
+> > > branch, aligning it with v6.17-rc7.
+> > >
+> > > The ultimate goal is to synchronize all long-term branches so that they
+> > > include the full set of minmax.h changes.
+> > >
+> > > - 6.12.y has already been backported; the changes are included in
+> > >   v6.12.49.
+> > > - 6.6.y has already been backported; the changes are included in
+> > >   v6.6.109.
+> > > - 6.1.y has already been backported; the changes are currently in the
+> > >   6.1-stable tree.
+> > > - 5.15.y has already been backported; the changes are currently in the
+> > >   5.15-stable tree.
+> >
+> > With this series applied, on an arm64 server, building 'allmodconfig', I
+> > get the following build error.
+> >
+> > Oddly I don't see it on my x86 server, perhaps due to different compiler
+> > versions?
+> >
+> > Any ideas?
 > 
-> This change adds a "--with-fuzzer" option to configure script and enables
-> specific handling in nftables and libnftables to speed up the fuzzing process.
-> It also adds the "--fuzzer" command line option.
+> This mainline commit is missing:
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/drivers/net/wireless/ralink/rt2x00/rt2800lib.c?h=v6.18-rc1&id=66063033f77e10b985258126a97573f84bb8d3b4
 > 
-
-Hi Florian, I think this is awesome. I have been playing with it since 
-you posted this patch.. and found a couple of things already!
-
-> afl-fuzz initialisation gets delayed until after the netlink context is set up
-> and symbol tables such as (e.g. route marks) have been parsed.
+> This fix already exists in 5.15.y:
+> https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/drivers/net/wireless/ralink/rt2x00/rt2800lib.c?h=v5.15.194&id=2d3cef3d7a5df260a14a6679c4aca0c97e570ee5
+> …but is missing in 5.10.y.
 > 
-> When afl-fuzz restarts the process with a new input round, it will
-> resume *after* this point (see __AFL_INIT macro in main.c).
-> 
-> With --fuzzer <stage>, nft will perform multiple fuzzing rounds per
-> invocation: this increases processing rate by an order of magnitude.
-> The argument to '--fuzzer' specifies the last stage to run:
-> 
-> 1: 'parser':
->      Only run / exercise the flex/bison parser.
-> 
-> 2: 'eval': stop after the evaluation phase.
->      This attempts to build a complete ruleset in memory, does
->      symbol resolution, adds needed shift/masks to payload instructions
->      etc.
-> 
-> 3: 'netlink-ro':
->      'netlink-ro' builds the netlink buffer to send to the kernel,
->      without actually doing so.
-> 
-> 4: 'netlink-rw':
->      Pass generated command/ruleset will be passed to the kernel.
->      You can combine it with the '--check' option to send data to the kernel
->      but without actually committing any changes.
->      This could still end up triggering a kernel crash if there are bugs
->      in the valiation / transaction / abort phases.
-> 
-> Use 'netlink-ro' if you want to prevent nft from ever submitting any
-> changes to the kernel or if you are only interested in fuzzing nftables
-> and its libraries.
-> 
-> In case a kernel splat is detected, the fuzzing process stops and all further
-> fuzzer attemps are blocked until reboot.
-> 
+> I now backported it to 5.10.y here:
+> https://lore.kernel.org/stable/20251018195945.18825-1-farbere@amazon.com/T/#u
 
-I do not think this is what happens or I am maybe misunderstanding 
-something.I got a kernel splat - soft lockup as the CPU was stuck for 
-40s (!). Anyway, kernel was then tainted but the fuzzer didn't stop it 
-continued running but not executing the commands as kernel was tainted.. 
-see the comments below.
+Thanks,I've queued that up now.
 
-> [...]
-> +/* this lets the source compile without afl-clang-fast/lto */
-> +static unsigned char fuzz_buf[4096];
-> +static ssize_t fuzz_len;
-> +
-> +#define __AFL_FUZZ_TESTCASE_LEN fuzz_len
-> +#define __AFL_FUZZ_TESTCASE_BUF fuzz_buf
-> +#define __AFL_FUZZ_INIT() do { } while (0)
-> +#define __AFL_LOOP(x) \
-> +   ((fuzz_len = read(0, fuzz_buf, sizeof(fuzz_buf))) > 0 ? 1 : 0)
-> +#endif
-> +
-> +struct nft_afl_state {
-> +	FILE *make_it_fail_fp;
-> +};
-> +
-> +static struct nft_afl_state state;
-> +
-> +static char *preprocess(unsigned char *input, ssize_t len)
-> +{
-> +	ssize_t real_len = strnlen((char *)input, len);
-> +
-> +	if (real_len == 0)
-> +		return NULL;
-> +
-> +	if (real_len >= len)
-> +		input[len - 1] = 0;
-> +
-> +	return (char *)input;
-> +}
-> +
-> +static bool kernel_is_tainted(void)
-> +{
-> +	FILE *fp = fopen("/proc/sys/kernel/tainted", "r");
-> +	unsigned int taint;
-> +	bool ret = false;
-> +
-> +	if (fp) {
-> +		if (fscanf(fp, "%u", &taint) == 1 && taint) {
-> +			fprintf(stderr, "Kernel is tainted: 0x%x\n", taint);
-> +			sleep(3);	/* in case we run under fuzzer, don't restart right away */
-> +			ret = true;
-> +		}
-> +
-> +		fclose(fp);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static void fault_inject_write(FILE *fp, unsigned int v)
-> +{
-> +	rewind(fp);
-> +	fprintf(fp, "%u\n", v);
-> +	fflush(fp);
-> +}
-> +
-> +static void fault_inject_enable(const struct nft_afl_state *state)
-> +{
-> +	if (state->make_it_fail_fp)
-> +		fault_inject_write(state->make_it_fail_fp, 1);
-> +}
-> +
-> +static void fault_inject_disable(const struct nft_afl_state *state)
-> +{
-> +	if (state->make_it_fail_fp)
-> +		fault_inject_write(state->make_it_fail_fp, 0);
-> +}
-> +
-> +static bool nft_afl_run_cmd(struct nft_ctx *ctx, const char *input_cmd)
-> +{
-> +	if (kernel_is_tainted())
-> +		return false;
-> +
-
-While this prevents the execution of the command, the input is already 
-generated. See comments in main function.
-
-> +	switch (ctx->afl_ctx_stage) {
-> +	case NFT_AFL_FUZZER_PARSER:
-> +	case NFT_AFL_FUZZER_EVALUATION:
-> +	case NFT_AFL_FUZZER_NETLINK_RO:
-> +		nft_run_cmd_from_buffer(ctx, input_cmd);
-> +		return true;
-> +	case NFT_AFL_FUZZER_NETLINK_RW:
-> +		break;
-> +	}
-> +
-> +	fault_inject_enable(&state);
-> +	nft_run_cmd_from_buffer(ctx, input_cmd);
-> +	fault_inject_disable(&state);
-> +
-> +	return kernel_is_tainted();
-> +}
-> +
-> +static FILE *fault_inject_open(void)
-> +{
-> +	return fopen(self_fault_inject_file, "r+");
-> +}
-> +
-> +static bool nft_afl_state_init(struct nft_afl_state *state)
-> +{
-> +	state->make_it_fail_fp = fault_inject_open();
-> +	return true;
-> +}
-> +
-> +int nft_afl_init(struct nft_ctx *ctx, enum nft_afl_fuzzer_stage stage)
-> +{
-> +#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-> +	const char instrumented[] = "afl instrumented";
-> +#else
-> +	const char instrumented[] = "no afl instrumentation";
-> +#endif
-> +	nft_afl_print_build_info(stderr);
-> +
-> +	if (!nft_afl_state_init(&state))
-> +		return -1;
-> +
-> +	ctx->afl_ctx_stage = stage;
-> +
-> +	if (state.make_it_fail_fp) {
-> +		unsigned int value;
-> +		int ret;
-> +
-> +		rewind(state.make_it_fail_fp);
-> +		ret = fscanf(state.make_it_fail_fp, "%u", &value);
-> +		if (ret != 1 || value != 1) {
-> +			fclose(state.make_it_fail_fp);
-> +			state.make_it_fail_fp = NULL;
-> +		}
-> +
-> +		/* if its enabled, disable and then re-enable ONLY
-> +		 * when submitting data to the kernel.
-> +		 *
-> +		 * Otherwise even libnftables memory allocations could fail
-> +		 * which is not what we want.
-> +		 */
-> +		fault_inject_disable(&state);
-> +	}
-> +
-> +	fprintf(stderr, "starting (%s, %s fault injection)", instrumented, state.make_it_fail_fp ? "with" : "no");
-> +	return 0;
-> +}
-> +
-> +int nft_afl_main(struct nft_ctx *ctx)
-> +{
-> +	unsigned char *buf;
-> +	ssize_t len;
-> +
-> +	if (kernel_is_tainted())
-> +		return -1;
-> +
-> +	if (state.make_it_fail_fp) {
-> +		FILE *fp = fault_inject_open();
-> +
-> +		/* reopen is needed because /proc/self is a symlink, i.e.
-> +		 * fp refers to parent process, not "us".
-> +		 */
-> +		if (!fp) {
-> +			fprintf(stderr, "Could not reopen %s: %s", self_fault_inject_file, strerror(errno));
-> +			return -1;
-> +		}
-> +
-> +		fclose(state.make_it_fail_fp);
-> +		state.make_it_fail_fp = fp;
-> +	}
-> +
-> +	buf = __AFL_FUZZ_TESTCASE_BUF;
-> +
-> +	while (__AFL_LOOP(UINT_MAX)) {
-> +		char *input;
-> +
-> +		len = __AFL_FUZZ_TESTCASE_LEN;  // do not use the macro directly in a call!
-> +
-> +		input = preprocess(buf, len);
-> +		if (!input)
-> +			continue;
-> +
-> +		/* buf is null terminated at this point */
-> +		if (!nft_afl_run_cmd(ctx, input))
-> +			continue;
-
-If we get a kernel splat and kernel is tainted but continue running 
-(soft lockup, warning..) the fuzzer won't stop, it won't execute more 
-commands but it will generate inputs for hours.
-
-In addition I noticed that when a kernel splat happens the ruleset that 
-triggered it isn't saved anywhere, it would be nice to save them so we 
-have a reproducer right away.. For one of the kernel splats I got, I was 
-able to generate a reproducer by looking at the trace.. but for the 
-other I couldn't.
-
-I have a server at home that I am not using.. I would love to automate a 
-script to run this in multiple VMs and generate reports :)
-
+greg k-h
