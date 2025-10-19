@@ -1,157 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E1822E336E;
-	Sun, 19 Oct 2025 12:38:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09DFA2EAB7A
+	for <netfilter-devel@vger.kernel.org>; Sun, 19 Oct 2025 14:18:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760877510; cv=none; b=bcjS0jweRihx2DjZbolATQybB5BSRMmn1b1u6FQkfLOMMtZnXvGzbBXct7/FSpmupDxhoNd8GFIH9wF0iYnua2DIvFXiEQBl8he2CqDb/63CnxRohSlvfKiVFWGyNlDaXFqpxLhg5vU6xxEeHKwqmOYs8caKfB3jEu+vB2D353U=
+	t=1760883488; cv=none; b=ZaDI6yD5Z3BEmAujAycqJfAJRUb53+SINrDhaoq8FkoThxH4XkrFB5VbAsTBR3puNp6Dskao4fjcBuTG4BWJCMuAiuLqG//T8tyGJCq5nkPBMSO8xx8qatwoOwIAPjHKnRuCgZr+qJFH40kR4djc8I2b/HQB8RM2M5wFbwn1Zds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760877510; c=relaxed/simple;
-	bh=oGwiDB09ge0ciPiwd9WRh3Y/M8CeD9dHfclvYoY7FBA=;
+	s=arc-20240116; t=1760883488; c=relaxed/simple;
+	bh=Z5wEjasElzbjgSWduWlXRmneqRd9AgJkG+5qL1qTCl8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=mRJ58PzKI1hJFwjIWXBgQw47vz38Xs8nHwZkEL/YTLAbWFSh+7UYLEGhJvz/fJ+yoFwNwtXZmxvpcz3vSaHly/w+KAPUXGv+srBW+IkmS8abBm8VT1xPaZ334tkrgSsGAG3O29AtxbLnxki8XI4e40tmD9YZ1QGFbylD9qnIA90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=nPSmMhj3; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="nPSmMhj3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2363C4CEE7;
-	Sun, 19 Oct 2025 12:38:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1760877510;
-	bh=oGwiDB09ge0ciPiwd9WRh3Y/M8CeD9dHfclvYoY7FBA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nPSmMhj3TEXZoJrVWpARUkUyuGqk5lSFTPPoq1ZLeK3fCa9fne3RGlMO8KN1UE5lj
-	 ujRuOzzKq00FxR8F6wzbmtZQ/5O3ZNw8lG3lB3NfHxm+YwEDzwS2JsXmf0Ca6p4Frl
-	 ca5FOfnjYZ+gRAebgpsYtYTlOl8nww3/qAlyQSN0=
-Date: Sun, 19 Oct 2025 14:38:26 +0200
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Nathan Chancellor <nathan@kernel.org>
-Cc: Eliav Farber <farbere@amazon.com>, stable@vger.kernel.org,
-	linux@armlinux.org.uk, jdike@addtoit.com, richard@nod.at,
-	anton.ivanov@cambridgegreys.com, dave.hansen@linux.intel.com,
-	luto@kernel.org, peterz@infradead.org, tglx@linutronix.de,
-	mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com,
-	tony.luck@intel.com, qiuxu.zhuo@intel.com, mchehab@kernel.org,
-	james.morse@arm.com, rric@kernel.org, harry.wentland@amd.com,
-	sunpeng.li@amd.com, alexander.deucher@amd.com,
-	christian.koenig@amd.com, airlied@linux.ie, daniel@ffwll.ch,
-	evan.quan@amd.com, james.qian.wang@arm.com, liviu.dudau@arm.com,
-	mihail.atanassov@arm.com, brian.starkey@arm.com,
-	maarten.lankhorst@linux.intel.com, mripard@kernel.org,
-	tzimmermann@suse.de, robdclark@gmail.com, sean@poorly.run,
-	jdelvare@suse.com, linux@roeck-us.net, fery@cypress.com,
-	dmitry.torokhov@gmail.com, agk@redhat.com, snitzer@redhat.com,
-	dm-devel@redhat.com, rajur@chelsio.com, davem@davemloft.net,
-	kuba@kernel.org, peppe.cavallaro@st.com, alexandre.torgue@st.com,
-	joabreu@synopsys.com, mcoquelin.stm32@gmail.com, malattia@linux.it,
-	hdegoede@redhat.com, mgross@linux.intel.com,
-	intel-linux-scu@intel.com, artur.paszkiewicz@intel.com,
-	jejb@linux.ibm.com, martin.petersen@oracle.com,
-	sakari.ailus@linux.intel.com, clm@fb.com, josef@toxicpanda.com,
-	dsterba@suse.com, xiang@kernel.org, chao@kernel.org, jack@suse.com,
-	tytso@mit.edu, adilger.kernel@dilger.ca, dushistov@mail.ru,
-	luc.vanoostenryck@gmail.com, rostedt@goodmis.org, pmladek@suse.com,
-	sergey.senozhatsky@gmail.com, andriy.shevchenko@linux.intel.com,
-	linux@rasmusvillemoes.dk, minchan@kernel.org, ngupta@vflare.org,
-	akpm@linux-foundation.org, kuznet@ms2.inr.ac.ru,
-	yoshfuji@linux-ipv6.org, pablo@netfilter.org, kadlec@netfilter.org,
-	fw@strlen.de, jmaloy@redhat.com, ying.xue@windriver.com,
-	willy@infradead.org, sashal@kernel.org, ruanjinjie@huawei.com,
-	David.Laight@aculab.com, herve.codina@bootlin.com, Jason@zx2c4.com,
-	keescook@chromium.org, kbusch@kernel.org, bvanassche@acm.org,
-	ndesaulniers@google.com, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-um@lists.infradead.org,
-	linux-edac@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org, linux-arm-msm@vger.kernel.org,
-	freedreno@lists.freedesktop.org, linux-hwmon@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com,
-	platform-driver-x86@vger.kernel.org, linux-scsi@vger.kernel.org,
-	linux-staging@lists.linux.dev, linux-btrfs@vger.kernel.org,
-	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-	linux-sparse@vger.kernel.org, linux-mm@kvack.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	tipc-discussion@lists.sourceforge.net
-Subject: Re: [PATCH v2 00/27 5.10.y] Backport minmax.h updates from v6.17-rc7
-Message-ID: <2025101905-matter-freezable-39e5@gregkh>
-References: <20251017090519.46992-1-farbere@amazon.com>
- <2025101704-rumble-chatroom-60b5@gregkh>
- <20251017160924.GA2728735@ax162>
+	 Content-Type:Content-Disposition:In-Reply-To; b=QPHtRebeOK1xxbxZLoXqlgXdhc/CaOsSF7mwbXwNs3LPO3F9axFL1Kdin6UpewEbFEBeOISeu7joTjqQrBvofeAY7up0qhIuMQpCeQ/777437l4UMeGGg1uiYEjfFl7Q2BC1e8m4FLBCmNKKVWgiVQgQkiiXsStytTm3mnIs160=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 39F2561A28; Sun, 19 Oct 2025 16:17:53 +0200 (CEST)
+Date: Sun, 19 Oct 2025 16:17:51 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2] support for afl++ (american fuzzy lop++) fuzzer
+Message-ID: <aPTzD7qoSIQ5AXB-@strlen.de>
+References: <20251017115145.20679-1-fw@strlen.de>
+ <ddf0bfea-0239-42bd-ba1b-5e6f340f1af4@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20251017160924.GA2728735@ax162>
+In-Reply-To: <ddf0bfea-0239-42bd-ba1b-5e6f340f1af4@suse.de>
 
-On Fri, Oct 17, 2025 at 05:09:24PM +0100, Nathan Chancellor wrote:
-> On Fri, Oct 17, 2025 at 05:03:02PM +0200, Greg KH wrote:
-> > On Fri, Oct 17, 2025 at 09:04:52AM +0000, Eliav Farber wrote:
-> > > This series backports 27 patches to update minmax.h in the 5.10.y
-> > > branch, aligning it with v6.17-rc7.
-> > > 
-> > > The ultimate goal is to synchronize all long-term branches so that they
-> > > include the full set of minmax.h changes.
-> > > 
-> > > - 6.12.y has already been backported; the changes are included in
-> > >   v6.12.49.
-> > > - 6.6.y has already been backported; the changes are included in
-> > >   v6.6.109.
-> > > - 6.1.y has already been backported; the changes are currently in the
-> > >   6.1-stable tree.
-> > > - 5.15.y has already been backported; the changes are currently in the
-> > >   5.15-stable tree.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> On 10/17/25 1:51 PM, Florian Westphal wrote:
+> > afl comes with a compiler frontend that can add instrumentation suitable
+> > for running nftables via the "afl-fuzz" fuzzer.
 > > 
-> > With this series applied, on an arm64 server, building 'allmodconfig', I
-> > get the following build error.
+> > This change adds a "--with-fuzzer" option to configure script and enables
+> > specific handling in nftables and libnftables to speed up the fuzzing process.
+> > It also adds the "--fuzzer" command line option.
 > > 
-> > Oddly I don't see it on my x86 server, perhaps due to different compiler
-> > versions?
-> > 
-> > Any ideas?
-> > 
-> > thanks,
-> > 
-> > greg k-h
-> > 
-> > ------------------------
-> > 
-> > In function ‘rt2800_txpower_to_dev’,
-> >     inlined from ‘rt2800_config_channel’ at ../drivers/net/wireless/ralink/rt2x00/rt2800lib.c:4022:25:
-> > ./../include/linux/compiler_types.h:309:45: error: call to ‘__compiletime_assert_1168’ declared with attribute error: clamp() low limit -7 greater than high limit 15
-> >   309 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-> >       |                                             ^
-> > ./../include/linux/compiler_types.h:290:25: note: in definition of macro ‘__compiletime_assert’
-> >   290 |                         prefix ## suffix();                             \
-> >       |                         ^~~~~~
-> > ./../include/linux/compiler_types.h:309:9: note: in expansion of macro ‘_compiletime_assert’
-> >   309 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
-> >       |         ^~~~~~~~~~~~~~~~~~~
-> > ../include/linux/build_bug.h:39:37: note: in expansion of macro ‘compiletime_assert’
-> >    39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
-> >       |                                     ^~~~~~~~~~~~~~~~~~
-> > ../include/linux/minmax.h:188:9: note: in expansion of macro ‘BUILD_BUG_ON_MSG’
-> >   188 |         BUILD_BUG_ON_MSG(statically_true(ulo > uhi),                            \
-> >       |         ^~~~~~~~~~~~~~~~
-> > ../include/linux/minmax.h:195:9: note: in expansion of macro ‘__clamp_once’
-> >   195 |         __clamp_once(type, val, lo, hi, __UNIQUE_ID(v_), __UNIQUE_ID(l_), __UNIQUE_ID(h_))
-> >       |         ^~~~~~~~~~~~
-> > ../include/linux/minmax.h:218:36: note: in expansion of macro ‘__careful_clamp’
-> >   218 | #define clamp_t(type, val, lo, hi) __careful_clamp(type, val, lo, hi)
-> >       |                                    ^~~~~~~~~~~~~~~
-> > ../drivers/net/wireless/ralink/rt2x00/rt2800lib.c:3980:24: note: in expansion of macro ‘clamp_t’
-> >  3980 |                 return clamp_t(char, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
-> >       |                        ^~~~~~~
 > 
-> Missing commit 3bc753c06dd0 ("kbuild: treat char as always unsigned")?
+> Hi Florian, I think this is awesome. I have been playing with it since you
+> posted this patch.. and found a couple of things already!
 
-That's going to be messy to backport, it's not even in 6.1.y, so let's
-leave that alone if at all possible.
+Great :)
 
-thanks,
+> > In case a kernel splat is detected, the fuzzing process stops and all further
+> > fuzzer attemps are blocked until reboot.
+> > 
+> I do not think this is what happens or I am maybe misunderstanding
+> something.I got a kernel splat - soft lockup as the CPU was stuck for 40s
+> (!). Anyway, kernel was then tainted but the fuzzer didn't stop it continued
+> running but not executing the commands as kernel was tainted.. see the
+> comments below.
 
-greg k-h
+Yes, I don't know how to stop it.  IIRC exit() just makes afl-fuzz resume
+with next cycle.
+
+> While this prevents the execution of the command, the input is already
+> generated. See comments in main function.
+
+Yes.  I just want it to stop burning cpu cycles if kernel is already
+tainted.
+
+> > +	buf = __AFL_FUZZ_TESTCASE_BUF;
+> > +
+> > +	while (__AFL_LOOP(UINT_MAX)) {
+> > +		char *input;
+> > +
+> > +		len = __AFL_FUZZ_TESTCASE_LEN;  // do not use the macro directly in a call!
+> > +
+> > +		input = preprocess(buf, len);
+> > +		if (!input)
+> > +			continue;
+> > +
+> > +		/* buf is null terminated at this point */
+> > +		if (!nft_afl_run_cmd(ctx, input))
+> > +			continue;
+> 
+> If we get a kernel splat and kernel is tainted but continue running (soft
+> lockup, warning..) the fuzzer won't stop, it won't execute more commands but
+> it will generate inputs for hours.
+
+Yes, it should not continue to burn cpu cycles.
+
+> In addition I noticed that when a kernel splat happens the ruleset that
+> triggered it isn't saved anywhere, it would be nice to save them so we have
+> a reproducer right away.
+
+I had such code but removed it for this version.
+
+I can send a followup patch to re-add it but I think that it is better
+for kernel fuzzing to extend knft acordingly, as nft is restricted by
+the input grammar wrt. the nonsense that it can create.
+
+> I have a server at home that I am not using.. I would love to automate a
+> script to run this in multiple VMs and generate reports :)
+
+Yes, that would be good.  Note that I still primarily use it with
+netlink-ro mode to not exercise he kernel, its easy to make graph
+validation (or abort path) take very long to finish.
+
+There is still a patch series in the queue to limit jumps in nftables
+and I did not yet have time in looking at the abort path, Its simply not
+an issue for normal cases (you assume the input is going to be
+committed...).  But for faster netlink-rw/knft fuzzing it would make
+sense to look into async abort (like we do for commit cleanup).
