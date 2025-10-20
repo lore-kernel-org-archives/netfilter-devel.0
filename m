@@ -1,36 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 057182FD7B2;
-	Mon, 20 Oct 2025 14:20:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706D0324B3F
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 14:25:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760970047; cv=none; b=RUowt71V8KwrvrWkkKBQPji/h+OXsGz7ZQht8CUZ7se+GErFHZA5Pa/jk0drg32HWVXVvxCnsBMVY05uK1fvvb2wZkLq0A3sBL7KUnqx8jppz6VVHA05O5MzMs2NwmPb+P+MMHdfntX3GaBwQsyh/23UI7hidYIHi3SZVo7CsUw=
+	t=1760970303; cv=none; b=TwGPtr7TMtaeFLn8iKdg4gn2URBU5a5Q5by2brketim/4vXGIexcYit7Tno6KkznEHesiH9HKh2OLUrEWESLkNYHxx/oaZ9nGR4c0kvbkoSg02jH3BOLkZ5FJcKP09hrAj60qZ9+mLfQ3O8ZLScOe+Li6aqL/xPPVGvaEHKTiJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760970047; c=relaxed/simple;
-	bh=Svv7NMXFNpj2k34olEOUeJp95lr/GE8kZLjPFyLzbtc=;
+	s=arc-20240116; t=1760970303; c=relaxed/simple;
+	bh=XCgbTjraLw7FnbL8oEA7qVEq22UZ/uJayFT3G+6lyQc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=F7KLuMUu5nZhOvO+ZgqHY1H1/rKMhbTzHzAemJxHJSQUHDMUTmzVg2dbgw16Swdh/w04V2ohFZRKvOvcjLDfr840wTLPOnER724ZGr/wmov+WSXd8IE554LwJ7X4WJQsUUo2GGduSsWsaceTnti9bDxBv8/3Dz2xIttU+OVo7V0=
+	 Content-Type:Content-Disposition:In-Reply-To; b=uzevLM3FSTvOQG1NRf4gx/M2ecDhpAR12mfgQcEbOlxW0I1wY1npxBAgpIm/U7IMIK9RaCarcqhEupglV27rgU3DfjSfq2ISpYpqrNquidf/+/AHu2oam/jHBLGCWh/mcpGKvwXCPJrqNTxN5qHelfhwHp4naVQOUi68x/xWSmo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 95C3A618FC; Mon, 20 Oct 2025 16:20:36 +0200 (CEST)
-Date: Mon, 20 Oct 2025 16:20:36 +0200
+	id 03E24618FC; Mon, 20 Oct 2025 16:24:58 +0200 (CEST)
+Date: Mon, 20 Oct 2025 16:24:58 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Andrii Melnychenko <a.melnychenko@vyos.io>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, phil@nwl.cc,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, horms@kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 1/1] nf_conntrack_ftp: Added nfct_seqadj_ext_add() for
- ftp's conntrack.
-Message-ID: <aPZFNBNXlyq0Q5dM@strlen.de>
-References: <20251016104802.567812-1-a.melnychenko@vyos.io>
- <20251016104802.567812-2-a.melnychenko@vyos.io>
- <aPDU6i1HKhy5v-nh@strlen.de>
- <CANhDHd-k2Ros8nFo4fNi=-Mu1DxkK4A2MgLYjuDqPwpfJYYfdw@mail.gmail.com>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2] support for afl++ (american fuzzy lop++) fuzzer
+Message-ID: <aPZGOudKuDa5HMmS@strlen.de>
+References: <20251017115145.20679-1-fw@strlen.de>
+ <ddf0bfea-0239-42bd-ba1b-5e6f340f1af4@suse.de>
+ <aPTzD7qoSIQ5AXB-@strlen.de>
+ <a2686aa3-adc4-4684-9442-ab4ad9654c69@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -39,38 +34,67 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CANhDHd-k2Ros8nFo4fNi=-Mu1DxkK4A2MgLYjuDqPwpfJYYfdw@mail.gmail.com>
+In-Reply-To: <a2686aa3-adc4-4684-9442-ab4ad9654c69@suse.de>
 
-Andrii Melnychenko <a.melnychenko@vyos.io> wrote:
-> I've researched the issue a bit. Despite the fact that in `nf_nat_ftp()`
-> the helper for the expected connection is installed, it isn't executed in
-> the following functions - `nf_nat_mangle_tcp_packet()`. Also, shouldn't the
-> logic of `nf_nat_follow_master` affect the "upcoming" passive FTP
-> connection?
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> On 10/19/25 4:17 PM, Florian Westphal wrote:
+> >> In addition I noticed that when a kernel splat happens the ruleset that
+> >> triggered it isn't saved anywhere, it would be nice to save them so we have
+> >> a reproducer right away.
+> > 
+> > I had such code but removed it for this version.
+> > 
+> > I can send a followup patch to re-add it but I think that it is better
+> > for kernel fuzzing to extend knft acordingly, as nft is restricted by
+> > the input grammar wrt. the nonsense that it can create.
+> > 
+> 
+> That is fine for me, I still have pending to try knft which I might do 
+> this week if I have time. If we do not want to save which ruleset 
+> generated the kernel splat I would drop netlink-rw mode completely..
 
-Yes, but we need the seqadj extension on the control connection to
-rewrite the announced address to connect to/from.
+Hmmm.... I'm not sure on this.  It would be a bit of a silly limitation.
+Its not like -rw adds a huge chunk of code.
 
-nf_nat_setup_info() takes care of this but only for template-based
-helper assignment, not for the explicit assign done via
-nft_ct_helper_obj_eval().
+The store code wasn't too bad, back then I added some scripting for
+allow to e.g. call nft flush ruleset periodically and that was more code
+than strictly needed for pure nft (-ro mode) fuzzing.
 
-> I've also checked the setup of `nfct_seqadj_ext_add()` in the
-> `ft_ct_helper_obj_eval()` routine - it works. However, now the seqadj would
-> be added to all "NATed" conntrack helpers.
+> Yes, it seems we found the same issue. I do not have a solution on the 
+> control plane although I was about to send this patch for data plane.
+> 
+> diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+> index 6557a4018c09..ddc4943d082c 100644
+> --- a/net/netfilter/nf_tables_core.c
+> +++ b/net/netfilter/nf_tables_core.c
+> @@ -251,10 +251,10 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+>   {
+>          const struct nft_chain *chain = priv, *basechain = chain;
+>          const struct net *net = nft_net(pkt);
+> +       unsigned int stackptr = 0, jumps = 0;
+>          const struct nft_expr *expr, *last;
+>          const struct nft_rule_dp *rule;
+>          struct nft_regs regs;
+> -       unsigned int stackptr = 0;
+>          struct nft_jumpstack jumpstack[NFT_JUMP_STACK_SIZE];
+>          bool genbit = READ_ONCE(net->nft.gencursor);
+>          struct nft_rule_blob *blob;
+> @@ -314,6 +314,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
+> 
+>          switch (regs.verdict.code) {
+>          case NFT_JUMP:
+> +               jumps++;
+> +               if (WARN_ON_ONCE(jumps > 256))
+> +                       return NF_DROP;
+>                  if (WARN_ON_ONCE(stackptr >= NFT_JUMP_STACK_SIZE))
+>                          return NF_DROP;
+>                  jumpstack[stackptr].rule = nft_rule_next(rule);
+> 
+> Currently with enough jumps chained together and traffic generated, CPU 
+> can get stuck on nft_do_chain() triggering a kernel splat. If there is a 
+> solution on data plane it would be much better than this of course.
 
-Yes.
+There is this patch:
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20250728040315.1014454-1-brady.1345@gmail.com/
 
-> Maybe it's better to leave the
-> seqadj setup in `nf_conntrack_ftp`, so it would apply explicitly to FTP
-> traffic, but with an additional `(ct->status & IPS_NAT_MASK)` check?
-
-As-is, almost all the helpers are broken when used with nat and assignment
-via nft objref infra.  We could add some annotation to those that don't
-need seqadj, but afaics thats just the netbios helper.
-
-> I can prepare a new patch with changes in either `nft_ct` or
-> `nf_conntrack_ftp`.
-> Any suggestions?
-
-Thanks, please fix nft_ct infra.  Does the above make sense to you?
+I planned to push it upstream in this merge window.
