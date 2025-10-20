@@ -1,288 +1,232 @@
 Received: from toucan.tulip.relay.mailchannels.net (toucan.tulip.relay.mailchannels.net [23.83.218.254])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6AC33EA8D
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 23:48:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7466A238C1F
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 23:51:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.254
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761004130; cv=pass; b=SBqu53Tm54o7n2PWb29ECnZVQS3sjKeDTLkKbbjEMVwP6jbdMZTl/Fpu93ahs6YYWbgiR2gicBm9bXTuF1YJ1twPkK12zJgBkp5HZs1bKxRAJl9+hX9xev3GHmBi6GUbBDrRZAV4tlX6jL3alwqtrVK7wiamg3tszVScrgCN/Jk=
+	t=1761004303; cv=pass; b=go9qKw8yrEVTvxl17kIhu/gBE6zHLrjl4fRSSehlNCQIKcdkkthIHuYTtTpwcQJFND3Jj4kbiAdxPJiIEY8+Olbcy7Kq4dyOna9EAolgGZGdeVqiI0MjlGAWYFRjiwggXHswoEyvSP9T5bVdtmlN28lYDGALSVSAtiDy0r+3feg=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761004130; c=relaxed/simple;
-	bh=qMhLtBCqTcxL//upPscwGSnlovYR6BqtlgkSGYMjCeU=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=qCz27+e2rH+36P207QxVfSfklzsv0t8mFimYhI1Bhk1HgR68dWgl3uQjMG7YjxafJGayQ/a5Y6PrJsG+LoQkVHz9eQDde9k67iqzJBViQnJyCgzVUwd4QB+pF4BUdBkkCmNR5NCn0iOaUNgrRXmpnwOrDZ4Xq3npstLA4kfThsU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=Nr0InTcM reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.254
+	s=arc-20240116; t=1761004303; c=relaxed/simple;
+	bh=lILjckrVFOTEFTXS5DqaDvyjuY9WmyqoN7z1RgmpUJw=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=gzCCFDcMFTluMjLf6E9V5PvDuc6qaZc+LkjQoidY4X/X8UUpv00Eji7f1DbABYSQrEqoxW976yWSp/qXyyAvE//HACwFWkAHV7mbOXwZZbuFae7gNkbjCaJEUZ9tgtXInllbe/NQwqxbv8dRlaTtFZEQCRkjUFeMnp4hVV82BfU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.218.254
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="Nr0InTcM"
-X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 3F51E1E1E74;
-	Mon, 20 Oct 2025 23:48:46 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-green-4.trex.outbound.svc.cluster.local [100.117.123.159])
+	by relay.mailchannels.net (Postfix) with ESMTP id E41BE6A26E8;
+	Mon, 20 Oct 2025 23:51:40 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-116-176-11.trex-nlb.outbound.svc.cluster.local [100.116.176.11])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 71A671E0EDD;
-	Mon, 20 Oct 2025 23:48:45 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761004126; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 036DD6A25A9;
+	Mon, 20 Oct 2025 23:51:35 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761004296; a=rsa-sha256;
 	cv=none;
-	b=Af4t8f/NYdZhCidASj3GZwMosaVZXcA2PomiH1vaqzZRspqVAmfn7fcoNlXQAjyCmr1k0J
-	y7/4XhXF7O1RI5JFHAK0I9sMPkN5ohhcMHtSSJl6lRdCqlV4Zz0eY7mvGpLY7N1hd4AGoT
-	gmRrk0wyBWm6nf0yCnzGJg2ok96Rpz6RTEiUIEFF9dlvNmA2JrxHwIQPGZ2ToaZAO5T2qy
-	7QHE7B5XvDx6isjakjyzrlc3rHmevfOey57KijvANYZYZdwIPQP6qkBUxjExAxr4N5rGCQ
-	I1vTyP1bBgxRgeVdaibonhA4UOELD8JFkd2ogUq6g3E7o8wcPlSBV+OQ/moZoQ==
+	b=tN84+gb3LImaQZfjCNmZL0hnTHw98O8t/UMjoInqR98ds0Ybhy2VQj6SXyjs/nHZ5uOTDt
+	48XG4G5s50XciPToNVX8aKJwLPVE5VwsbGlsniJ7ab5uC/bpODqc5w0SoAjAr4rVDraxNX
+	ZKsm78fzpD09OpkwV7jpIOO9itw3/WIiWiqM5i8IpoBtlNhypymn/UfVl1d2HATQGMoWv7
+	sU/KW4opnTKEYtHLaL6VPdu/xBJRFD2YGCi9RiVakVAzx8BAXUORTIN8fC7FH5erUtRf7u
+	lMyPD4HQoN5gBAf4M2fBzCpor5UuYaNTBJD4XaniYnLj9nx9QiWKIWiQHmiZYQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1761004126;
+	s=arc-2022; t=1761004296;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=WPna3akvuOEF5RnjPX10jcnOyObeRPsn0dOWVXcWzPs=;
-	b=Lf7jsH4/tgRVjnYvr5ZFb49HVaUpAu8DzBjn0jLuls1O2Zr3MjEwYHRe21E+6HAjxvTYtV
-	NY1saa57WHXrYou3GeGZSTAY5a4OdALfuPmDJ4NlrKV3BABc8HwlI72yROM9FmkOhxPmMw
-	OQHfJjgMARMNjl53y27XtaRMgqDSagU17+MO7q7ezWFHa+oEVPVYnVDy1c6g/TlDy3a3eh
-	UnzW/Yy6f+cOHbDF2LDF1mlOYIeRfoABpJCQ9ipIkBKFtKqTaeVnQ8tubXlLwoD3I55T8S
-	+tmd6c3rE0Q/Ie48Hock0Jacd6PWNT+7zhfKgNT6j7JXte+vNjkJ60B0AF/T3w==
+	 in-reply-to:in-reply-to:references:references;
+	bh=5kgiq0Yur0otGWmA+iIKwGPdgQBexfoMwqD5YPh1QPY=;
+	b=76RtVt6rbIF4GGFiagaEH1d117M9xawjje+cb/5GI3mO8y/1VBpqyEZHGb7uzHRlpir2uq
+	oBWg8EFB6FmtDOlUeNk22NLHZQKdMLTkK7cB0Bk6ve0kz94mQpmQm0GMp6lv/Pfg7Y1YCT
+	ipzOhS0zi1QTomjevBk1g5VSHfCtn+0H26/ZZXkwCkndpnTgd9/KODVOI432yTMZE1RMdS
+	k4YWFlVA0XR+B868fM4plrGRhf39vyiRb+hHmcjWScsssCX1/JaSB3O7nz82x+kkGN3nqi
+	vArz1xluhkj26Gb76TUlF1Ct1QAxePdeZbVf63g55Rl6mbxFJPe+tuL58ZMNlw==
 ARC-Authentication-Results: i=1;
-	rspamd-869c579f6-wzb6g;
-	auth=pass smtp.auth=instrampxe0y3a
- smtp.mailfrom=mail@christoph.anton.mitterer.name
-X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+	rspamd-869c579f6-dkwbl;
+	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MC-Relay: Neutral
-X-MailChannels-SenderId:
- instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+X-MC-Copy: stored-urls
+X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Wipe-Illegal: 457e3d7442627537_1761004126143_3310009816
-X-MC-Loop-Signature: 1761004126143:1861510694
-X-MC-Ingress-Time: 1761004126143
+X-Skirt-Trouble: 03581f663d819815_1761004300831_2077979731
+X-MC-Loop-Signature: 1761004300831:817459422
+X-MC-Ingress-Time: 1761004300831
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.117.123.159 (trex/7.1.3);
-	Mon, 20 Oct 2025 23:48:46 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
-	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
-	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=WPna3akvuOEF5RnjPX10jcnOyObeRPsn0dOWVXcWzPs=; b=Nr0InTcMTidl
-	FqnhgVfTEv2MjMAqpS1BB1fdbRlNNapNuWxHvzyiJ7dhxPC6LlbdSdrHrlNivpQIAY+wJXIMjZZ0u
-	xwpEMLNMNq8+RZEqhyR1AGTS8BJr3OBbUeS5BlIQ0GrQTc4Cch0uXyG2mdlBHE8GFH0r2rgVxPK8g
-	JQcUHBxWnQsDMTygbzTe/jrwwPYpI+x0cmWAzVacdWM4EeZj+aCkUZwTgf80C/buAKCV1IYUBzLSt
-	aw38PA7UvDwOeiCCjDKqJYhIZJaJnSFdjBpxbYhalVUm7Cm6NBFicrStMVco2ZOfsjHvoaNoPWfHS
-	56wW756xHrGMSKBeuUnzWA==;
-Received: from [79.127.207.162] (port=21093 helo=[10.2.0.2])
+	by 100.116.176.11 (trex/7.1.3);
+	Mon, 20 Oct 2025 23:51:40 +0000
+Received: from [79.127.207.162] (port=19407 helo=heisenberg.scientia.org)
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
-	(envelope-from <mail@christoph.anton.mitterer.name>)
-	id 1vAzcJ-00000009cG4-2q7F;
-	Mon, 20 Oct 2025 23:48:43 +0000
-Message-ID: <9b936453175cccac308be2e8d6bfa8c232cbd0df.camel@christoph.anton.mitterer.name>
-Subject: Re: [PATCH v2 4/7] doc: add overall description of the ruleset
- evaluation
+	(envelope-from <calestyo@scientia.org>)
+	id 1vAzf4-00000009coi-1FaI;
+	Mon, 20 Oct 2025 23:51:34 +0000
+Received: by heisenberg.scientia.org (Postfix, from userid 1000)
+	id 5AF1F5A29C23; Tue, 21 Oct 2025 01:51:32 +0200 (CEST)
 From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Date: Tue, 21 Oct 2025 01:48:41 +0200
-In-Reply-To: <aPYDVPyq5x_2264k@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	pablo@netfilter.org
+Subject: [PATCH v4 1/5] doc: fix/improve documentation of verdicts
+Date: Tue, 21 Oct 2025 01:49:01 +0200
+Message-ID: <20251020235130.361377-2-mail@christoph.anton.mitterer.name>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251020235130.361377-1-mail@christoph.anton.mitterer.name>
 References: <6bb455009ebd3a2fe17581dfa74addc9186f33ea.camel@scientia.org>
-	 <20251011002928.262644-1-mail@christoph.anton.mitterer.name>
-	 <20251011002928.262644-5-mail@christoph.anton.mitterer.name>
-	 <aPYDVPyq5x_2264k@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-5 
+ <20251020235130.361377-1-mail@christoph.anton.mitterer.name>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-AuthUser: mail@christoph.anton.mitterer.name
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-AuthUser: calestyo@scientia.org
 
-On Mon, 2025-10-20 at 11:39 +0200, Florian Westphal wrote:
-> ... I think this is too confusing and verbose.
-> packet ultimately passed: no drop verdict was issued.=C2=A0 Its all there
-> is
-> to it, really.
+- Clarify that a terminating statement also prevents the execution of later
+  statements in the same rule and give an example about that.
+- Correct that `accept` won’t terminate the evaluation of the ruleset (which is
+  generally used for the whole set of all chains, rules, etc.) but only that of
+  the current base chain (and any regular chains called from that).
+  Indicate that `accept` only accepts the packet from the current base chain’s
+  point of view.
+  Clarify that not only chains of a later hook could still drop the packet, but
+  also ones from the same hook if they have a higher priority.
+- Overhaul the description of `jump`/`goto`/`return`.
+  `jump` only explains what the statement causes from the point of view of the
+  new chain (that is: not, how the returning works), which includes that an
+  implicit `return` is issued at the end of the chain.
+  `goto` is explained in reference to `jump`.
+  `return` describes abstractly how the return position is determined and what
+  happens if there’s no position to return to (but not for example where an
+  implicit `return` is issued).
+- Various other minor improvements/clarifications to wording.
+- List and explain verdict-like statements like `reject` which internally imply
+  `accept` or `drop`.
+  Further explain that with respect to evaluation these behave like their
+  respectively implied verdicts.
 
-Phew...
+Link: https://lore.kernel.org/netfilter-devel/3c7ddca7029fa04baa2402d895f3a594a6480a3a.camel@scientia.org/T/#t
+Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+---
+ doc/statements.txt | 86 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 59 insertions(+), 27 deletions(-)
 
-I mean we have four parts in there:
+diff --git a/doc/statements.txt b/doc/statements.txt
+index e275ee39..e1d8552c 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -1,6 +1,7 @@
+-VERDICT STATEMENT
+-~~~~~~~~~~~~~~~~~
+-The verdict statement alters control flow in the ruleset and issues policy decisions for packets.
++VERDICT STATEMENTS
++~~~~~~~~~~~~~~~~~~
++The verdict statements alter control flow in the ruleset and issue policy
++decisions for packets.
+ 
+ [verse]
+ ____
+@@ -10,40 +11,71 @@ ____
+ 'CHAIN' := 'chain_name' | *{* 'statement' ... *}*
+ ____
+ 
+-*accept* and *drop* are absolute verdicts -- they terminate ruleset evaluation immediately.
++*accept* and *drop* are absolute verdicts, which immediately terminate the
++evaluation of the current rule, i.e. even any later statements of the current
++rule won’t get executed.
++
++.*counter* will get executed:
++------------------------------
++… counter accept
++------------------------------
++
++.*counter* won’t get executed:
++------------------------------
++… accept counter
++------------------------------
++
++Further:
+ 
+ [horizontal]
+-*accept*:: Terminate ruleset evaluation and accept the packet.
+-The packet can still be dropped later by another hook, for instance accept
+-in the forward hook still allows one to drop the packet later in the postrouting hook,
+-or another forward base chain that has a higher priority number and is evaluated
+-afterwards in the processing pipeline.
+-*drop*:: Terminate ruleset evaluation and drop the packet.
+-The drop occurs instantly, no further chains or hooks are evaluated.
+-It is not possible to accept the packet in a later chain again, as those
+-are not evaluated anymore for the packet.
+-*queue*:: Terminate ruleset evaluation and queue the packet to userspace.
+-Userspace must provide a drop or accept verdict.  In case of accept, processing
+-resumes with the next base chain hook, not the rule following the queue verdict.
++*accept*:: Terminate the evaluation of the current chain as well as any chains
++ in the call stack and accept the packet with respect to the base chain of
++ these.
++ Evaluation continues in the next base chain (of higher or possibly equal
++ priority from the same hook or of any priority from a later hook), if any.
++ This means the packet can still be dropped in any next base chain as well as
++ any regular chain (directly or indirectly) called from it.
++ For example, an *accept* in a chain of the *forward* hook still allows one to
++ *drop* (or *reject*, etc.) the packet in another *forward* hook base chain (and
++ any regular chains called from it) that has a higher priority number as well as
++ later in a chain of the *postrouting* hook.
++*drop*:: Immediately drop the packet and terminate ruleset evaluation.
++ This means no further evaluation of any chains and it’s thus – unlike with
++ *accept* – not possible to again change the ultimate fate of the packet in any
++ later chain.
++*jump* 'CHAIN':: Store the current position in the call stack of chains and
++ continue evaluation at the first rule of 'CHAIN'.
++ When the end of 'CHAIN' is reached, an implicit *return* verdict is issued.
++ When an absolute verdict is issued (respectively implied by a verdict-like
++ statement) in 'CHAIN', evaluation terminates as described above.
++*goto* 'CHAIN':: Equal to *jump* except that the current position is not stored
++ in the call stack of chains.
++*return*:: End evaluation of the current chain, pop the most recently added
++ position from the call stack of chains and continue evaluation after that
++ position.
++ When there’s no position to pop (which is the case when the current chain is
++ either the base chain or a regular chain that was reached solely via *goto*
++ verdicts) end evaluation of the current base chain (and any regular chains
++ called from it) using the base chain’s policy as implicit verdict.
+ *continue*:: Continue evaluation with the next rule. This
+  is the default behaviour in case a rule issues no verdict.
+-*return*:: Return from the current chain and continue evaluation at the
+- next rule in the last chain. If issued in a base chain, it is equivalent to the
+- base chain policy.
+-*jump* 'CHAIN':: Continue evaluation at the first rule in 'CHAIN'. The current
+- position in the ruleset is pushed to a call stack and evaluation will continue
+- there when the new chain is entirely evaluated or a *return* verdict is issued.
+- In case an absolute verdict is issued by a rule in the chain, ruleset evaluation
+- terminates immediately and the specific action is taken.
+-*goto* 'CHAIN':: Similar to *jump*, but the current position is not pushed to the
+- call stack, meaning that after the new chain evaluation will continue at the last
+- chain instead of the one containing the goto statement.
++*queue*:: Terminate ruleset evaluation and queue the packet to userspace.
++ Userspace must provide a drop or accept verdict.  In case of accept, processing
++ resumes with the next base chain hook, not the rule following the queue
++ verdict.
+ 
+ An alternative to specifying the name of an existing, regular chain in 'CHAIN'
+ is to specify an anonymous chain ad-hoc. Like with anonymous sets, it can't be
+ referenced from another rule and will be removed along with the rule containing
+ it.
+ 
++All the above applies analogously to statements that imply a verdict:
++*redirect*, *dnat*, *snat* and *masquerade* internally issue an *accept*
++verdict at the end of their respective actions.
++*reject* and *synproxy* internally issue a *drop* verdict at the end of their
++respective actions.
++These statements thus behave like their implied verdicts, but with side effects.
++
+ .Using verdict statements
+ -------------------
+ # process packets from eth0 and the internal network in from_lan
+-- 
+2.51.0
 
-> * An *accept* verdict (including an implict one via the base chain=E2=80=
-=99s policy)    =20
->   ends the evaluation of the current base chain (and any regular chains c=
-alled  =20
->   from that).                                                            =
-       =20
-
-That should IMO be uncontroversial and it's the counterpart to the
-first sentence in drop's description.
-
->   It accepts the packet only with respect to the current base chain. Any =
-other  =20
->   base chain (or regular chain called by such) with a higher priority of =
-the    =20
->   same hook as well as any other base chain (or regular chain called by s=
-uch) of=20
->   any later hook may however still ultimately *drop* (which might also be=
- done  =20
->   via verdict-like statements that imply *drop*, like *reject*) the packe=
-t with =20
->   an according verdict (with consequences as described below for *drop*).=
-       =20
-
-That one is the counterpart to drop's "Unlike with an *accept*
-verdict =E2=80=A6".
-
-I'm not sure how we could shorten that without loosing something
-valuable in terms of teaching.
-
-- We can't shorten "Any other base chain (or regular chain called by
-  such)" to e.g. "any other chain" because that would IMO not make it
-  clear that this is only for a new base chain.
-  If we leave out the "regular ones", people might come to think a drop
-  in those might not be effective.
-- We could leave out the whole "with a higher priority of the same hook
-  as well as any other base chain (or regular chain called by such) of
-  any later hook" ... but I think one would loose the nice
-  understanding at which chains exactly the "overruling" (sorry O:-) )
-  could happen.
-
-
->   Thus and merely from netfilter=E2=80=99s point of view, a packet is onl=
-y ultimately   =20
->   accepted if none of the chains (regardless of their tables) that are at=
-tached =20
->   to any of the respectively relevant hooks issues a *drop* verdict (be i=
-t      =20
->   explicitly or implicitly by policy or via a verdict-like statement that=
-       =20
->   implies *drop*, for example *reject*), which already means that there h=
-as to  =20
->   be at least one *accept* verdict (be it explicitly or implicitly by pol=
-icy).
-
-That's basically the counterpart to drop's "Thus, if any base chain
-uses drop as its policy=E2=80=A6"  sentence, =E2=80=A6 basically trying to =
-explain the
-consequences of the above.
-
-I think it's nice to have because it teaches this concept of: "What is
-needed for a package to pass ultimately? No drops in any chain - which
-automatically means there's at least one accept".
-
-Could perhaps be shortened to:
-> Thus and merely from netfilter=E2=80=99s point of view, a packet is
-> ultimately only accepted if none of the chains of the relevant hooks
-> issues a *drop* verdict (be it explicitly or implicitly by policy or
-> via a verdict-like statement that implies *drop*, for example
-> *reject*), which already means that there has to be at least one
-> *accept* verdict (be it explicitly or implicitly by policy).
-
-I think the "of the relevant hooks" is important as packets do not go
-through all hooks, do they?!
-
-The whole "which already means..." could perhaps be dropped, but people
-might first come to think "Wait... I never said accept and it still
-goes through? WTF?!"... until they realise that "no drop" already means
-"at least one accept".=20
-
->   All this applies analogously to verdict-like statements that imply *acc=
-ept*,  =20
->   for example the NAT statements.                                        =
-       =20
-
-Again, counterpart to the same in *drop*.
-
-
-
-> > +* A *drop* verdict (including an implict one via the base chain=E2=80=
-=99s
-> > policy)
-> > +=C2=A0 immediately ends the evaluation of the whole ruleset and
-> > ultimately drops the
-> > +=C2=A0 packet.
-> > +=C2=A0 Unlike with an *accept* verdict, no further chains of any hook
-> > and regardless
-> > +=C2=A0 of their table get evaluated and it=E2=80=99s therefore not pos=
-sible to
-> > have an *drop*
-> > +=C2=A0 verdict overruled.
->=20
-> This is fine.
-
-.oO( guess he must have overseen that mischievous in the end :P )
-
-
-> > +* Given the semantics of *accept*/*drop* and only with respect to
-> > the utlimate
-> > +=C2=A0 decision of whether a packet is accepted or dropped, the
-> > ordering of the
-> > +=C2=A0 various base chains per hook via their priorities matters only
-> > in so far, as
-> > +=C2=A0 any of them modifies the packet or its meta data and that has a=
-n
-> > influence on
-> > +=C2=A0 the verdicts issued by the chains =E2=80=93 other than that, th=
-e
-> > ordering shouldn=E2=80=99t
-> > +=C2=A0 matter (except for performance and other side effects).
-> > +=C2=A0 It also means that short-circuiting the ultimate decision is
-> > only possible via
-> > +=C2=A0 *drop* verdicts (respectively verdict-like statements that impl=
-y
-> > *drop*, for
-> > +=C2=A0 example *reject*).
->=20
-> Maybe rework the *accept* part to say that the packet moves on to the
-> next hook?=C2=A0 (As opposed to *drop*, which is final).
-
-You mean further above and not in the "Given the semantics of" point!?
-
-I mean effectively this "accept =3D packt moves on to the next chain [not
-hook]", is explained in the first two sentences ("An *accept* verdict=E2=80=
-=A6"
-and "It accepts the packet only=E2=80=A6").
-
-Shorten it that drastically,... with pure beginners who never used
-nf/iptables before probably having zero clue on how a packet moves
-through netfilter (let alone that this works like a pipeline)... IMO
-doesn't really add to understanding.
-
-If one has no knowledge, accept means just that "allow for good" and
-drop the other way round.
-So we must at least tell that accept does not ultimately accept, but
-only for the base chain. Thus we also need to tell it moves on to all
-other chains, but only those that are relevant.
-And we must bring in the concept that drop is more powerful than accept
-and can actually immediately and ultimately decide the fate.
-
-Even if we'd already introduce the pipeline concept at that stage...
-not sure how much that would add to understanding/confusion.
-I mean implicitly, we already kinda have it, I'd say...
-
-
-> I think almost all of the overrule talk comes from this distinction
-> (or lack thereof).
-
-Well right now one one place is left where "overruling" is mentioned,
-which you greenlit above ;-)
-And that we could easily change to:
-> it=E2=80=99s therefore not possible to have a *drop* changed to an *accep=
-t*
-> in a later chain.
-
-which I actually did.
-
-
-
-Will post v4 soon... not much changes for this patch though, so I guess
-you won't be satisfied and we'll need another round. ;-)
-
-
-Cheers,
-Chris.
