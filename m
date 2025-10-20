@@ -1,136 +1,178 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from siberian.tulip.relay.mailchannels.net (siberian.tulip.relay.mailchannels.net [23.83.218.246])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E8402C3745
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 21:48:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1760996918; cv=none; b=RqAng6j8l6JGnfkm6bh0Wj4FD5fj6GAgMRFIH3j0JuyYOMxxP3zzM1DHIrEdo5SpBYNLKbYJW8d6YFGHLBEvS2H+ubrlKOrP/MQl5KFUesGOC/dsO95z3603zVZ7Ho0VSMdXavjPD3jBXj9aRAQ11eiIGICE57HPIp9z9JhP/CU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1760996918; c=relaxed/simple;
-	bh=3yXIbibzqb4Edqo1u8LSl7pz6o+Vrx2Cx2S82MfjlF4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ClaWtQ3PVruv0ZOzsTi9N0+K+JakC8GaKz8kuc2i/4pM1+0CUiDoQ/gQOndzLrOGRfZ++erbQ8RZJcUHHxbE7CR8m005SiTwm9bj4PMEagpflcWsdpFrMnOSxTjkTcUtQiWn79w2qRY5/XkufwaoRZQPRO/4FSbgCzBuov48+30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=C9wEBdsj; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 325742E3387
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 21:57:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.246
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1760997478; cv=pass; b=t8tmZY4T3PoevuGhmG5gJflCdtDKOUYDWog+hGTQrOz3YT0TgIidnKk4ZWb3aiwbH2Ut1IfJAr/zqwA9SBATWdzUD3eHGm4TZS6lya+cH5F4v2Y7ESxtTRGtK2lnh0jwqAXyuCpZcAgYMnmvORagLTTzlPjthe1rBHM8jHjgIqM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1760997478; c=relaxed/simple;
+	bh=usXC/oazqOtLDDjrGNg+tPjTSiVfsZah7FTloi1W83I=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=cuqg4CkxmDFXSRWcF56y8P0vV8uem/MeaJGorWorPI6njYdeh3hjsLPHpXmz7gkiAzEwwe3PziS32cbivT1ESEBXG28/lzWRl1TGEvEMRQTMJqlNt7njj0nnByQrQx+Rlne+tgKskyFQOy70e5N5l6tg8J70VfnqGVa/76SiFZ0=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=DJXEc6Cd reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.246
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="C9wEBdsj"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id AA3FC60288;
-	Mon, 20 Oct 2025 23:48:26 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1760996906;
-	bh=qXh4xCAO5BjA6WgbqRTyRNHHq2o20Q9U7yQmBo/4zVA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=C9wEBdsjm0EBxz4b21wPCsptab8B8kvciCIjKmYkXP7XzG1gSflJPtMxpdIAWoD++
-	 ykjC00hFLXwv6pXbxncb2+YkvblB90qnU1GS27e49HcjE1eoC4xz6gURCr7YHbdRXi
-	 TcNSGP0iQF2f7mYppEyoWKO5YXmZRgXJ0U/KoZYf6PvFuTiaOTEP1NMvPhhjOW4qyz
-	 9SnnPzwb1Vq2/vlNzEvOgLDZLz/0F3pW618QCsvvgw0WbHisC1lZ0sSRDVcM6O+E6a
-	 Ok8da9mO3Z8oH5m6l1myZAPMsBWGd9afLtV3hE6DfBLe1h2M1odPrD3duRbmOTwWAq
-	 V3wBPVPIP4GVA==
-Date: Mon, 20 Oct 2025 23:48:23 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft v2] support for afl++ (american fuzzy lop++) fuzzer
-Message-ID: <aPauJ9saxZ-Mn3bZ@calendula>
-References: <20251017115145.20679-1-fw@strlen.de>
- <ddf0bfea-0239-42bd-ba1b-5e6f340f1af4@suse.de>
- <aPTzD7qoSIQ5AXB-@strlen.de>
- <a2686aa3-adc4-4684-9442-ab4ad9654c69@suse.de>
- <aPZGOudKuDa5HMmS@strlen.de>
- <a641ebd1-c2de-478d-bbba-68eaed580fd9@suse.de>
- <aPaA8itLIaGqDoyM@calendula>
- <aPaIepWRL2u1HsLb@calendula>
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="DJXEc6Cd"
+X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id C8C71700F06;
+	Mon, 20 Oct 2025 21:57:49 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-117-132-18.trex-nlb.outbound.svc.cluster.local [100.117.132.18])
+	(Authenticated sender: instrampxe0y3a)
+	by relay.mailchannels.net (Postfix) with ESMTPA id BABF8700BAA;
+	Mon, 20 Oct 2025 21:57:48 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1760997469; a=rsa-sha256;
+	cv=none;
+	b=nyPZBBaoF2bo2zBWWCboLqQHCDPE2xydGpjiXzlM35aUPR6lrJQQehPp6M2cNsJGrGtNET
+	kOPowIUfrNTzXJ6fwUqq0mjHAx7PSZ7vb4K0r/5exqNeh01jqlTarIQ/wG0NezMfWMnDPW
+	yN0PAyhIO55P6dTZhS+AvHCK9+A1/mYIIO4GqRbTWBQWdPrrz8zHfdHXf6YKnrysUUmzkj
+	Qx8DKmYvncurej+enImioXgmkRsV15/Xl/TZR4xqyLWvZTu1ZYEHrcdeCi7M0i/MRQDCtk
+	my/PlborcAXseApHAj9haTCpJQOsUqYNUTlRtf9sgNoM0BS7Ymjs+gwdif+zwA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1760997469;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=usXC/oazqOtLDDjrGNg+tPjTSiVfsZah7FTloi1W83I=;
+	b=K1Xg1Cr40rv7r4F4l2UV4TerpMIN075/qemVeM9U9Mn+NUIeTRegZ3Dxfw/iFUYmwOwcmW
+	od1K8Ox0whGb0zjioqhVKnSDzljRONsAWWcwgukQ6Cz08+trfxStF5KtS8f1CcVGC+7Unr
+	g3CH4iv83yb393VaiZFG8wuVA+Yex9Rs6evIAuAWMtFoK0sG5XvgwVY0LoKX/ovgUe3VgF
+	zw3MZGROH5wix1IVQWoii9Wb1zq0rGiYFVqB9bV9xuCB3wcIN8zfkKfdaoNWeapfbHv2Lv
+	mbCo0W3D8S8MFO3A0Jl2B302PnhyJIutCXK8uksX+bng1zltSexmgd0xSy20hA==
+ARC-Authentication-Results: i=1;
+	rspamd-869c579f6-7rcq2;
+	auth=pass smtp.auth=instrampxe0y3a
+ smtp.mailfrom=mail@christoph.anton.mitterer.name
+X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+X-MC-Relay: Neutral
+X-MailChannels-SenderId:
+ instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+X-MailChannels-Auth-Id: instrampxe0y3a
+X-Occur-Fumbling: 7ee7ab54683420df_1760997469649_3570051947
+X-MC-Loop-Signature: 1760997469648:3100155619
+X-MC-Ingress-Time: 1760997469648
+Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
+ [3.69.87.180])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.117.132.18 (trex/7.1.3);
+	Mon, 20 Oct 2025 21:57:49 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
+	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
+	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
+	List-Archive; bh=usXC/oazqOtLDDjrGNg+tPjTSiVfsZah7FTloi1W83I=; b=DJXEc6CdXIXa
+	0wJ9aFXy4XsstVZio0TnBrzdTzwm++cBl/4c+1dPv5qVm1AHhip/KPOxw3wrGYqMiW77OAMeVNac9
+	2Sq4+xScEAnEyDrcWR9j7o5iBdC76CJI3nw/xbzKBothZM669HtL1bv++18fudVPBoX1FbsSNicSJ
+	86ZYYUFp8p873ptoBqhV10wV/QR+2Aj4STFU2quxIPvPkD481bm82+nnwRFEu72E4bgyqM0hOB7tX
+	tQOuDeyneeV9xrheXbpUI97YDjI6CUHt5Dksw3MaEVG+IzIteUlb89pUQyit9Qf4SNGoIXP/0TurO
+	+P8ZRmdUwI6vg27bmzXK5w==;
+Received: from [79.127.207.162] (port=54232 helo=[10.2.0.2])
+	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <mail@christoph.anton.mitterer.name>)
+	id 1vAxsw-00000008xpM-1VmP;
+	Mon, 20 Oct 2025 21:57:45 +0000
+Message-ID: <cb2b48e9a9d4d8c13b53297e5cc4482e0057deec.camel@christoph.anton.mitterer.name>
+Subject: Re: [PATCH v3 4/6] doc: add more documentation on bitmasks and sets
+From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Date: Mon, 20 Oct 2025 23:57:44 +0200
+In-Reply-To: <aPX7qH9nCZ5VfxEJ@strlen.de>
+References: <6bb455009ebd3a2fe17581dfa74addc9186f33ea.camel@scientia.org>
+	 <20251019014000.49891-1-mail@christoph.anton.mitterer.name>
+	 <20251019014000.49891-5-mail@christoph.anton.mitterer.name>
+	 <aPX7qH9nCZ5VfxEJ@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-5 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aPaIepWRL2u1HsLb@calendula>
+X-AuthUser: mail@christoph.anton.mitterer.name
 
-On Mon, Oct 20, 2025 at 09:07:42PM +0200, Pablo Neira Ayuso wrote:
-> On Mon, Oct 20, 2025 at 08:35:34PM +0200, Pablo Neira Ayuso wrote:
-> > On Mon, Oct 20, 2025 at 05:23:47PM +0200, Fernando Fernandez Mancera wrote:
-> > > 
-> > > 
-> > > On 10/20/25 4:24 PM, Florian Westphal wrote:
-> > > > Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> > > > > On 10/19/25 4:17 PM, Florian Westphal wrote:
-> > > > > > > In addition I noticed that when a kernel splat happens the ruleset that
-> > > > > > > triggered it isn't saved anywhere, it would be nice to save them so we have
-> > > > > > > a reproducer right away.
-> > > > > > 
-> > > > > > I had such code but removed it for this version.
-> > > > > > 
-> > > > > > I can send a followup patch to re-add it but I think that it is better
-> > > > > > for kernel fuzzing to extend knft acordingly, as nft is restricted by
-> > > > > > the input grammar wrt. the nonsense that it can create.
-> > > > > > 
-> > > > > 
-> > > > > That is fine for me, I still have pending to try knft which I might do
-> > > > > this week if I have time. If we do not want to save which ruleset
-> > > > > generated the kernel splat I would drop netlink-rw mode completely..
-> > > > 
-> > > > Hmmm.... I'm not sure on this.  It would be a bit of a silly limitation.
-> > > > Its not like -rw adds a huge chunk of code.
-> > > > 
-> > > > The store code wasn't too bad, back then I added some scripting for
-> > > > allow to e.g. call nft flush ruleset periodically and that was more code
-> > > > than strictly needed for pure nft (-ro mode) fuzzing.
-> > > > 
-> > > > > Yes, it seems we found the same issue. I do not have a solution on the
-> > > > > control plane although I was about to send this patch for data plane.
-> > > > > 
-> > > > > diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-> > > > > index 6557a4018c09..ddc4943d082c 100644
-> > > > > --- a/net/netfilter/nf_tables_core.c
-> > > > > +++ b/net/netfilter/nf_tables_core.c
-> > > > > @@ -251,10 +251,10 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
-> > > > >    {
-> > > > >           const struct nft_chain *chain = priv, *basechain = chain;
-> > > > >           const struct net *net = nft_net(pkt);
-> > > > > +       unsigned int stackptr = 0, jumps = 0;
-> > > > >           const struct nft_expr *expr, *last;
-> > > > >           const struct nft_rule_dp *rule;
-> > > > >           struct nft_regs regs;
-> > > > > -       unsigned int stackptr = 0;
-> > > > >           struct nft_jumpstack jumpstack[NFT_JUMP_STACK_SIZE];
-> > > > >           bool genbit = READ_ONCE(net->nft.gencursor);
-> > > > >           struct nft_rule_blob *blob;
-> > > > > @@ -314,6 +314,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
-> > > > > 
-> > > > >           switch (regs.verdict.code) {
-> > > > >           case NFT_JUMP:
-> > > > > +               jumps++;
-> > > > > +               if (WARN_ON_ONCE(jumps > 256))
-> > > > > +                       return NF_DROP;
-> > > > >                   if (WARN_ON_ONCE(stackptr >= NFT_JUMP_STACK_SIZE))
-> > > > >                           return NF_DROP;
-> > > > >                   jumpstack[stackptr].rule = nft_rule_next(rule);
-> > > > > 
-> > > > > Currently with enough jumps chained together and traffic generated, CPU
-> > > > > can get stuck on nft_do_chain() triggering a kernel splat. If there is a
-> > > > > solution on data plane it would be much better than this of course.
-> > > > 
-> > > > There is this patch:
-> > > > https://patchwork.ozlabs.org/project/netfilter-devel/patch/20250728040315.1014454-1-brady.1345@gmail.com/
-> > > > 
-> > > > I planned to push it upstream in this merge window.
-> > > 
-> > > This looks quite good. I tested it and seems to solve the problem, great!
-> > 
-> > This patch emits a WARN_ON_ONCE.
-> > 
-> > Can this be controlled from control plane instead?
-> 
-> Oh well, you refer to the patch that checks this from control plane.
-> 
-> I remember an issue with abort path, has this been addressed?
+On Mon, 2025-10-20 at 11:06 +0200, Florian Westphal wrote:
+> Christoph Anton Mitterer <mail@christoph.anton.mitterer.name> wrote:=C2=
+=A0
+> > +Equality of a value with a set is given if the value matches
+> > exactly one value
+> > +in the set.
+>=20
+> That contradicts whats right above, which describes range handling.
 
-I think this does not handle rule/set element removal with jump/goto
-correctly.
+Uhm... what exactly do you mean?
+
+But that's anyway missing the stuff about how interval values are
+matched, which I only sent as stand alone patch in some mail before.
+
+
+> > +It shall be noted that for bitmask values this means, that
+> > +*'expression' 'bit'[,'bit']...* (which yields true if *any* of the
+> > bits are set)
+> > +is not the same as *'expression' {'bit'[,'bit']...}* (which yields
+> > true if
+> > +exactly one of the bits are set).
+> > +It may however be (effectively) the same, in cases like
+> > +`ct state established,related` and `ct state
+> > {established,related}`, where these
+> > +states are mutually exclusive.
+>=20
+> Would you object if I apply this patch but onlt rhe first part?
+
+You mean: not the changes to nft.txt?
+
+What I think should be kept being added to the SETS documentation in
+nft.txt is:
+> Equality of a value with a set is given if the value matches exactly
+> one value
+> in the set (which for intervals means that it=E2=80=99s contained in any =
+of
+> them).
+
+Cause that's currently nowhere really documented, AFAICS.
+
+The following:
+> It shall be noted that for bitmask values this means, that
+> *'expression' 'bit'[,'bit']...* (which yields true if *any* of the
+> bits are set)
+> is not the same as *'expression' {'bit'[,'bit']...}* (which yields
+> true if
+> exactly one of the bits are set).
+
+Can be skipped, or maybe one should add a small reference like:
+> See <<BITMASK TYPE>> for how equality checks differ between sets and
+> bitmasks.
+
+This:
+> It may however be (effectively) the same, in cases like
+> `ct state established,related` and `ct state {established,related}`,
+> where these
+> states are mutually exclusive.
+
+We can either simply drop, or move over to the BITMASK TYPE section.
+It's not super important, but I think there might be some value in
+understanding why these are identical (especially as many people use
+something like ct new {established,related}.
+
+
+> I think the above just duplicates what is explained in the new
+> bitmask part above it.
+
+Other than the above... I'd be fine with that :-)
+
+
+Wanna a new patch or are you going to do it yourself?
+
+
+Cheers,
+Chris.
