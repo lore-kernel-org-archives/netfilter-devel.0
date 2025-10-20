@@ -1,78 +1,78 @@
-Received: from silver.cherry.relay.mailchannels.net (silver.cherry.relay.mailchannels.net [23.83.223.166])
+Received: from tiger.tulip.relay.mailchannels.net (tiger.tulip.relay.mailchannels.net [23.83.218.248])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22ED922259B
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 23:51:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.166
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79DAF2673AA
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Oct 2025 23:51:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.248
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761004304; cv=pass; b=X4HfB1/UZ47MqFK/7XetqTrESoX+7jflrHAg9IuKKKwX65WGIl0HDGUx0koGy3BWM25o4/xkqssYLhPcSL0iaZTk5bkOPNDzTIvqJonyJpVLMSm7UHDhblJVd9gop5btSj4I2bQ/yGQ0oB2pKgepP433bnLWgw3dhUlKIlB5tIo=
+	t=1761004305; cv=pass; b=X1MowqBYyS9AmxNqg9F5n5bS5XIq//cHTzgsgvUbU02lyw6rndUHYU25sY4IKfG5TT++R4ZKTReWwohEfl9aVja5mmYw9L7SJ0weVo2K6smVGIkD3Iq9c9XQYdG4qWCfmZFemqcGjCwYk3j1bjsI9ela/ASZDTOJiQztpJHgUbc=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761004304; c=relaxed/simple;
-	bh=80/D75yy+ksTRDK1fbe+EfYeFX1Gggo0uS3zXsRJhr4=;
+	s=arc-20240116; t=1761004305; c=relaxed/simple;
+	bh=9C907wm2nrItVHIartIvjsDIS++/eBTrYcFFa/Kyf8o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mm4NJn9FvzZ+lXulNAFQCJBxC/+alZ8YKFFtDVB6eivrfAjq+jEouwWqa34Auhz5rlae4hzKSPYGKWRwXeJ8BQHLh47URFSHs8cUyven93FC35BWCFkj9YXh2UllJkCEtfBx4SD4kq6wgqq9Dv3aJjkHIatZ6pbkEK/WYTbhD4o=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.223.166
+	 MIME-Version:Content-Type; b=nBIqXKbim9teWecc2GAmEFf5+849X2lP2yda6lr/uNASR2uO8ZAvdZCLWMuDzc4OLMiMU/avPntcmtOEjFFBSWDKkwR2mik1di5i+KnL6+5B+o+3f6TMMlYJV89+jLqXChSUY/cnjJwqvXAGRdtcZm7up+3Qk9/yJwhs7Z61bwA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.218.248
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id B4A78901DFB;
-	Mon, 20 Oct 2025 23:51:36 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (100-116-230-204.trex-nlb.outbound.svc.cluster.local [100.116.230.204])
+	by relay.mailchannels.net (Postfix) with ESMTP id A8BA0722EE6;
+	Mon, 20 Oct 2025 23:51:37 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-116-100-247.trex-nlb.outbound.svc.cluster.local [100.116.100.247])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id B645C901966;
-	Mon, 20 Oct 2025 23:51:35 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761004296; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id E0E26721D9F;
+	Mon, 20 Oct 2025 23:51:36 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761004297; a=rsa-sha256;
 	cv=none;
-	b=pMU8DIld8j8ag2eOx/VK1kR+YVcyVbSW4TAj+sNWe5iwkdaUg14qAwaYZsoMnOcuVYPHow
-	8Nxo/9vJ4rz2VpigSe5ZBFcMYGsSQ5XqyarCK12+reBbPC9Qe0Vgjg8/QUEaLAQsh5x7tF
-	pxiDdtunFuYg8RajpDTKMP2KZb5r6AuK7Q1va3G584o0Eh5H/ltUTd+fU2BS935cOMzVzB
-	KXhk5FyRNczgBnZdfmzh/LOuYUSnAemQbMZyE5BuFs9NrnO3DfNQE4m9fxN84sT/eU1nOY
-	1po2q20kf1sI91mXn0Q1998thyBvZWR5KmKbeqnC+OhOmTxHqAUIL04nk98/gA==
+	b=skRtaxpYBTr61/fLGKclgB//+CvsJrIIqF4gcyinL78jFTJEyXbwREJ7Hj8sXU41zbg3IS
+	EeDN0/qE2b4WcQAoWmhs1MXs/kraYr4UMW2SAvUObScCix3/EPxhm3qqyZ0S+QmLPj7RW0
+	g9zWYTxE0LLgnK2X38Ud/uFf+wo1nmmR6/mlOOv/J/P9OKozatKZRc4LmvNhR1eP7GXdC3
+	pwI5vK0YX/hIxQIE4igDZFzo5npHazr0XePwB9GHZSTf2jMbvDshsS565tsVYLrjRnOkfT
+	CSjM7w6Q4lFPq766pmOcfWaE4l/0pgOzDonF7c0TT1cYkI0OC8H20h2KF9aCeA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1761004296;
+	s=arc-2022; t=1761004297;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=tC86XUxtTL1exRBgslf8k1ItRvmN8AChwsLLb5b3V6A=;
-	b=GH/1qdUruMIk7orkydGxCsOvGrqR5GdlXqzu22n3d85xC1mcE5TLFbde4jW0hrKBlByPqv
-	Ekd77wQlmjVdfDodqY9UHQlHkVH8vPD6czM4ChbNReUt/GS8/bYnQp0azY7KfMuZYV+RSA
-	4+SbFLJkdfsnwE3rAX4EKm9DEa2SzQeeMgW7XuUGr1IDSvmnc5p6jdH13b9ga4uv+r7rKA
-	UAMBgeC6GLOJ2Ia4sLnJp1zMFIbCfcC3YM+FNKY899DCDqEaOkKVYcq4iAZXFdkidG5Wj6
-	t/QPOeLqJpbpGY9XsE8JCGKW8YUC63gstnzUnZ52qDawB4z9eUdJgSFzwGv+cw==
+	bh=47Fr9xpW/RHq4viGv70OC3E/CGupJpbkGV0cpy/d1So=;
+	b=RbdvbpFpqaMhs3cXRSYous7eDZhxbcH4Up1qY22Kn20r4mGDDe9N2blIMhyQlSuQiASgaj
+	wCpTzDZXnJcqfw9e/xHyPfc001VkqTLn1F+SqwT/19nI83N5cW7Vzl2YzBmoLLHn8hTqW0
+	mX0n/moDOurt73l7SaJSmZ5Onb95oks4MmqXmnuLqGfJCOrEmHbG2hduAk8Fx7WMWrd4Jg
+	uj8rlVL445V2z2ekX+F5eMHgM29AqyVOhtnvCPVpBliOoAe3njV0v2YRW8W6LeO4zpz+yT
+	+qnAtkbsZfEY4ngM7fEQeqsI1i+kIDK7GQoMN+JTRRaCPbign2oWecE+MPg+TQ==
 ARC-Authentication-Results: i=1;
-	rspamd-869c579f6-rdvn2;
+	rspamd-869c579f6-9qz7h;
 	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MC-Relay: Neutral
 X-MC-Copy: stored-urls
 X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Squirrel-Snatch: 5da63269636eac68_1761004296592_3333574818
-X-MC-Loop-Signature: 1761004296592:3276807394
-X-MC-Ingress-Time: 1761004296591
+X-Hysterical-Continue: 71fb2d255fb7b827_1761004297587_2288899657
+X-MC-Loop-Signature: 1761004297587:3372985595
+X-MC-Ingress-Time: 1761004297586
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.116.230.204 (trex/7.1.3);
-	Mon, 20 Oct 2025 23:51:36 +0000
-Received: from [79.127.207.162] (port=14925 helo=heisenberg.scientia.org)
+	by 100.116.100.247 (trex/7.1.3);
+	Mon, 20 Oct 2025 23:51:37 +0000
+Received: from [79.127.207.162] (port=27545 helo=heisenberg.scientia.org)
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <calestyo@scientia.org>)
-	id 1vAzf4-00000009cok-1hRN;
-	Mon, 20 Oct 2025 23:51:34 +0000
+	id 1vAzf5-00000009cpM-3l44;
+	Mon, 20 Oct 2025 23:51:35 +0000
 Received: by heisenberg.scientia.org (Postfix, from userid 1000)
-	id 6544C5A29C27; Tue, 21 Oct 2025 01:51:32 +0200 (CEST)
+	id 6ECE35A29C2B; Tue, 21 Oct 2025 01:51:32 +0200 (CEST)
 From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de,
 	pablo@netfilter.org
-Subject: [PATCH v4 3/5] doc: add more documentation on bitmasks and sets
-Date: Tue, 21 Oct 2025 01:49:03 +0200
-Message-ID: <20251020235130.361377-4-mail@christoph.anton.mitterer.name>
+Subject: [PATCH v4 5/5] doc: minor improvements the `reject` statement
+Date: Tue, 21 Oct 2025 01:49:05 +0200
+Message-ID: <20251020235130.361377-6-mail@christoph.anton.mitterer.name>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251020235130.361377-1-mail@christoph.anton.mitterer.name>
 References: <6bb455009ebd3a2fe17581dfa74addc9186f33ea.camel@scientia.org>
@@ -89,68 +89,29 @@ X-AuthUser: calestyo@scientia.org
 
 Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 ---
- doc/data-types.txt | 31 +++++++++++++++++++++++++++++++
- doc/nft.txt        |  5 +++++
- 2 files changed, 36 insertions(+)
+ doc/statements.txt | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/doc/data-types.txt b/doc/data-types.txt
-index 18af266a..b36ca768 100644
---- a/doc/data-types.txt
-+++ b/doc/data-types.txt
-@@ -26,6 +26,37 @@ integer
+diff --git a/doc/statements.txt b/doc/statements.txt
+index e1d8552c..fa2a1cc6 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -222,10 +222,11 @@ ____
+                  *tcp reset*
+ ____
  
- The bitmask type (*bitmask*) is used for bitmasks.
+-A reject statement is used to send back an error packet in response to the
+-matched packet otherwise it is equivalent to drop so it is a terminating
+-statement, ending rule traversal. This statement is only valid in base chains
+-using the *prerouting*, *input*,
++A reject statement tries to send back an error packet in response to the matched
++packet and then interally issues a *drop* verdict.
++It’s thus a terminating statement with all consequences of the latter (see
++<<OVERALL EVALUATION OF THE RULESET>> respectively <<VERDICT STATEMENTS>>).
++This statement is only valid in base chains using the *prerouting*, *input*,
+ *forward* or *output* hooks, and user-defined chains which are only called from
+ those chains.
  
-+In expressions the bits of a bitmask may be specified as *'bit'[,'bit']...* with
-+'bit' being the value of the bit or a pre-defined symbolic constant, if any (for
-+example *ct state*’s bit 0x1 has the symbolic constant `new`).
-+
-+Equality of a value with such bitmask is given, if the value has any of the
-+bitmask’s bits set (and optionally others).
-+
-+The syntax *'expression' 'value' / 'mask'* is identical to
-+*'expression' and 'mask' == 'value'*.
-+For example `tcp flags syn,ack / syn,ack,fin,rst` is the same as
-+`tcp flags and (syn|ack|fin|rst) == syn|ack`.
-+
-+Note that *'expression' 'bit'[,'bit']...* is not generally the same as
-+*'expression' {'bit'[,'bit']...}* and analogously with a named set.
-+The latter forms are lookups in a set and will match only if the set contains
-+exactly one value that matches.
-+They are however effectively the same (with matching bitmasks typically being
-+faster) when all bits are semantically mutually exclusive.
-+
-+Examples:
-+* *tcp flags syn,ack* matches packets that have the SYN, the ACK or both SYN and
-+  ACK flags set. Other flags are ignored.
-+  *tcp flags { syn, ack }* matches packets that have either only the SYN or only
-+  the ACK flag set. All other flags must be unset.
-+* *ct state established,related* and *ct state { established, related } * match
-+  exactly the same packets, because the bits of *ct state* are all mutually
-+  exclusive.
-+
-+As usual, the the *nft describe* command may be used to get details on a data
-+type, which for bitmasks shows the symbolic names and values of the bits.
-+
- STRING TYPE
- ~~~~~~~~~~~~
- [options="header"]
-diff --git a/doc/nft.txt b/doc/nft.txt
-index 4cd3fa8e..4ae998ed 100644
---- a/doc/nft.txt
-+++ b/doc/nft.txt
-@@ -775,6 +775,11 @@ Example: When the set contains range *1.2.3.1-1.2.3.4*, then adding element *1.2
- effect.  Adding *1.2.3.5* changes the existing range to cover *1.2.3.1-1.2.3.5*.
- Without this flag, *1.2.3.2* can not be added and *1.2.3.5* is inserted as a new entry.
- 
-+Equality of a value with a set is given if the value matches exactly one value
-+in the set (which for intervals means that it’s contained in any of them).
-+See <<BITMASK TYPE>> for the subtle differences between syntactically similarly
-+looking equiality checks of sets and bitmasks.
-+
- MAPS
- -----
- [verse]
 -- 
 2.51.0
 
