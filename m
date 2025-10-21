@@ -1,124 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48861257859;
-	Tue, 21 Oct 2025 17:48:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FC3C2620F5
+	for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2025 21:58:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761068934; cv=none; b=YkvmU/8yO7KWOQDWj/8hkiYINbogaVrRctgHv2ReWGg/dkcv1Mr4UnFcZ2MiW1ZVf7GaZphYZcYUjWo+SbmvY1bK+G+wuU4MNmcF06iXOg3PBQYa/SUSqYANcuz/OEHeroWnlnZufVeudjRlrWH9NcpE8mq1Tg3BhV6EGumx3qU=
+	t=1761083885; cv=none; b=q1ebSGqnfGAIIAtfbt5Hy2zcnNNK/qDYjdw4XwFYBnVCoVgL2XfLjmiSrP5PcdwiZPj+RFLZl4fA3nigXqixnbZIfjb1JLU7q2VsprEv8XZsBB8W+6Umk5RFclkFewBg52zZ6py/bN5muKiFuasWvy9Nc/VMUV2dKIUImIqA0Gg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761068934; c=relaxed/simple;
-	bh=zViVWbIqH/k2G08l4zC7D+eJnbQM8tCMSN3ai52tEeY=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=lWHG3yJA1FPjyDj/r8gqnpzy4wbVJAtNMLHaXdO6Iz2MZ9K8G61/D+8ugQMT8UGCwXnjkY+u7S+TbgvAxyOx7tTBIE44tli6BbYN4OVHYPOUBnfUUF0IyiN7nBeTeBv1dcJbHhWILQPSBgNHmtw48HUEtLBDcLlDGXoiblUf9NI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iEU3HSrQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1761083885; c=relaxed/simple;
+	bh=N2yXlurf2Prcgsbi0dYGn7YFdB2y6ovD3fX5BUAkW0Q=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=NTTfgOrW2NX8L/LP+F5fabXy4GyV3WMsRXIWGAEu1m4fKhb/mRqkpExUTeBud+U2G4rX+K9/E0qqCYPYqAuDySq5UGSXSak5zBPWjer4Fduw10SeHetsJ2JWlMLq4+2STcz+h+vYjQrlD02e/jNYus93AnjH3YKto8dMN+WFPLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=nI0gCyL9; arc=none smtp.client-ip=209.85.128.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iEU3HSrQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B31F2C4CEF5;
-	Tue, 21 Oct 2025 17:48:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1761068934;
-	bh=zViVWbIqH/k2G08l4zC7D+eJnbQM8tCMSN3ai52tEeY=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=iEU3HSrQh+40oqov3yqA23IuKvQn75UtEjaluXZc1ZcVocQILCOhV/nubPjb+Jxdr
-	 JnBf4PDvglifRLIhVZCsN/vKvrMI1CMfM92QCYuxyXK6Lni+pA/HYNJoThUgVa43Po
-	 2jeQTfmqmK47Jpz90aoJPEd0HI7Pbdsd8l40WTesDD/PT1FpNcAcVds43G8qK0usUa
-	 RZwGyZirLO/wIY7qFzSeKpZNrRNvBAFNjmIvxMrz7D9b8BKOcEDSe3LWzwQMlSk3IV
-	 3gbV5hb3XlshkiJiNjYI5OCVYrtb8x03X3m48VVpndBNrX/SnopVI+QV4HE5pWNYY5
-	 bBluKuJjbEhqw==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Tue, 21 Oct 2025 19:48:20 +0200
-Subject: [PATCH nf-next v7 3/3] selftests: netfilter: nft_flowtable.sh: Add
- IPIP flowtable selftest
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="nI0gCyL9"
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-46b303f7469so49245575e9.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2025 14:58:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1761083882; x=1761688682; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=N2yXlurf2Prcgsbi0dYGn7YFdB2y6ovD3fX5BUAkW0Q=;
+        b=nI0gCyL9sV+U4xH3LQ4B1yYV0Bdxd6r/hc2k/oB521y+Xq719eKinF+sNFug70YPAF
+         n2CkBpegA/J5bR3HWntS5FXxB4OKXJv/L+1SXJIUWPMNjFzX+is2IpEkyBgvSUNxaMqC
+         HDLs07JQusY2GTV5eNdGzaWVfiMJRbPkK73aKXsJOY3YUS0F3x5179JLm+NbjcOaSuG7
+         Ubji6MJuvbSo/aZTzMD9AZB8qn6zL+xq4PuU0AL3zi5HrzsI5exWxmN3SuvzxRBVtx7v
+         KRnEyI/a1hfHrYT4Mwdf6VwI3af9vhCnU/8xKgFh+jbpSAM7JVgcqI3KxTU0FhkkAZwA
+         79iA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761083882; x=1761688682;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=N2yXlurf2Prcgsbi0dYGn7YFdB2y6ovD3fX5BUAkW0Q=;
+        b=Y75+o3OuXswbn4wCGGsc+oPi1X4wx/QKuAC0I1KZvYdKNuz+84nP0GngsLX7aO7quQ
+         r6uxNguvSQtwafifIgnTWugDLfGQqGjEpG6Vs2AaSJe3GMC//BuEzpvvEfnOhA3u1ees
+         iZIJh0kcdrCVpbBgC/fjJ5ec4Z6d01SNJ9qetkfs/8hB0O/821XUHw+Y5EE9/9E+l1Or
+         0Ze52TSZbxvgi5DHsiGXIoIZLu+jedTkFT4cysk6CmSjMLSdD005TtHuU/+ezZS1/Ejj
+         5qmLjL3kzMUKzo8+fhi/4rxc6JhffvRB9rqcxR7gqepFj2AMCTh0xdxTSLlYO7b68ckz
+         Gq/g==
+X-Forwarded-Encrypted: i=1; AJvYcCVV5Usr0lxyJfFH8JWe////lKgeRanflM3xjFxKUEGqfWCP+jT+AOv0z/hKDMBiVQQi7GR6tQWLrfHQbkVAZVY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwW6Qds0Y750WbmTj4qsuImd+5cAGEUYxXlcDA3GTZt6vVyWWEw
+	52+BykWbmIYhkv8QO5hzEW2Yd+rlj9L3jO9ocBg+M5L1Ljxb4+OqhsKT8tTAsxI+ooLGs1Ja+aL
+	TDvKITuNCW0unqTjqC6HTyry1TyKqBVZPeCTyoxXLvPXf32RHUWBYTTvE
+X-Gm-Gg: ASbGncv46EY8hY/7dtU2AoyZX9UoxJQo3RR59SJEVZLCFmjOfdwpCnxtmaUj2al8rnR
+	Mxvoph2bQ3odM3/gx9BSa0e53Dp7A3axVmX4ViTAr1EtHDb1uiyN9n2lvh6q8d0XsogfhHuPlBS
+	73QpNVxmfAKZ47kC/fwGz9pGBOcdc3znLKt/I/2FtpApB4f1LVfrnyknZvdmM9z8lLdnj6u4bF8
+	M8XI8Ju7AiZSUR5RXKfTparLU2KmeWPoS9BwOQJDwk5FGd/gGowsGmSxxY=
+X-Google-Smtp-Source: AGHT+IH1UkIrH3A7Vq3FiCYAPfrZUgSR8FUhVUq+T7RBWnBpmdVVkoHdf60FqZdEfpk2A18dwELh1rRhnlSVbuWUFEo=
+X-Received: by 2002:a05:600c:870b:b0:471:9da:5252 with SMTP id
+ 5b1f17b1804b1-47117919c1cmr146804435e9.29.1761083881572; Tue, 21 Oct 2025
+ 14:58:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251021-nf-flowtable-ipip-v7-3-a45214896106@kernel.org>
-References: <20251021-nf-flowtable-ipip-v7-0-a45214896106@kernel.org>
-In-Reply-To: <20251021-nf-flowtable-ipip-v7-0-a45214896106@kernel.org>
-To: "David S. Miller" <davem@davemloft.net>, 
- David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, 
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
- Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Shuah Khan <shuah@kernel.org>, 
- Andrew Lunn <andrew+netdev@lunn.ch>, Phil Sutter <phil@nwl.cc>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org, 
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- linux-kselftest@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.2
+References: <20251020200805.298670-1-aojea@google.com> <aPah2y2pdhIjwHBU@strlen.de>
+ <CAAdXToT14bjkvCrP=tG4V4XJhhyGMfuJz+FdfTO+xJ10Z-RezA@mail.gmail.com>
+ <aPay1RM9jdkEnPbM@strlen.de> <CAAdXToQs8wPYyf=GEnNnmGXVTHQM0bkDfHGqVbLhber04AyM_w@mail.gmail.com>
+ <aPdkVOTuUElaFKZZ@strlen.de> <CAAdXToRzRoCX4Cvwifq9Yr7U663o4YLCh1VC=_yhAYqAUZsvUA@mail.gmail.com>
+ <aPd6Ch7h6wdJa-eE@strlen.de>
+In-Reply-To: <aPd6Ch7h6wdJa-eE@strlen.de>
+From: Antonio Ojea <aojea@google.com>
+Date: Tue, 21 Oct 2025 23:57:49 +0200
+X-Gm-Features: AS18NWDPyQ7Z2HNBUUuE7tzLDT7rEHzEGykZ7ludzCwpoNsdgifNKjxIYEZK3Y4
+Message-ID: <CAAdXToQ+DuBsPGQUgSCk2=f_b2222iTD4-rT=0gVuaYWT7A2HQ@mail.gmail.com>
+Subject: Re: [PATCH] selftests: nft_queue: conntrack expiration requeue
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Eric Dumazet <edumazet@google.com>, 
+	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Introduce specific selftest for IPIP flowtable SW acceleration in
-nft_flowtable.sh
+> Looks like one needs to set a label somewhere, no need for it to match.
+>
+> chain never { ct label set foo }
+>
+> makes this work for me.
+> We could change this so that *checking* a label also turns on the
+> extension infra.
+>
+> Back then i did not want to allocate the extra space for
+> the extensions and i did not want to add to a new sysctl either.
+>
+> So I went with 'no rules that adds one, no need for ct label
+> extension space allocation'.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
- .../selftests/net/netfilter/nft_flowtable.sh       | 40 ++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+But that does not consider the people that just use netlink to set the
+labels ... from a 1k altitude , can you do a check on the first
+update/create/delete label to initialize the extension?
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 45832df982950c2164dcb6637497870f0d3daefe..e1434611464b3a8f5056e09a831180fa1bff7139 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -558,6 +558,44 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 ""; then
- 	ip netns exec "$nsr1" nft list ruleset
- fi
- 
-+# IPIP tunnel test:
-+# Add IPIP tunnel interfaces and check flowtable acceleration.
-+test_ipip() {
-+if ! ip -net "$nsr1" link add name tun0 type ipip \
-+     local 192.168.10.1 remote 192.168.10.2 >/dev/null;then
-+	echo "SKIP: could not add ipip tunnel"
-+	[ "$ret" -eq 0 ] && ret=$ksft_skip
-+	return
-+fi
-+ip -net "$nsr1" link set tun0 up
-+ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
-+ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr2" link add name tun0 type ipip local 192.168.10.2 remote 192.168.10.1
-+ip -net "$nsr2" link set tun0 up
-+ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
-+ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
-+
-+ip -net "$nsr1" route change default via 192.168.100.2
-+ip -net "$nsr2" route change default via 192.168.100.1
-+ip -net "$ns2" route add default via 10.0.2.1
-+
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward \
-+	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
-+
-+if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
-+	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
-+# Restore the previous configuration
-+ip -net "$nsr1" route change default via 192.168.10.2
-+ip -net "$nsr2" route change default via 192.168.10.1
-+ip -net "$ns2" route del default via 10.0.2.1
-+}
-+
- # Another test:
- # Add bridge interface br0 to Router1, with NAT enabled.
- test_bridge() {
-@@ -643,6 +681,8 @@ ip -net "$nsr1" addr add dead:1::1/64 dev veth0 nodad
- ip -net "$nsr1" link set up dev veth0
- }
- 
-+test_ipip
-+
- test_bridge
- 
- KEY_SHA="0x"$(ps -af | sha1sum | cut -d " " -f 1)
 
--- 
-2.51.0
-
+Another question related, is it required for the label value to be
+always 16 bytes?
+I do not know if is the golang libraries I'm using but it seems it
+does not work with other lengths
