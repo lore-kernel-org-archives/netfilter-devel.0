@@ -1,85 +1,161 @@
-Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C431D33F8CD
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2025 13:02:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CBF53451C8;
+	Wed, 22 Oct 2025 14:14:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761138124; cv=none; b=pcUo3cMpFU+hLT1aXRjl2ctwMSea0DuZX0cg9E21fi1LbvJZdQmLvGlRSO0E+eIgF86yflbEZ9vLRcthJ05mgK9ci5bbHgDiYjp9cxkHg0k01LhAamvKA+uCH4snjxCPGH6AJNzyDbBTO6yQ512Sivwv8dvJH1ZmJEedx1B7nr4=
+	t=1761142477; cv=none; b=KywK8w0N1qsbfeWOUqJjk+xkU0chLNzyYG8lII2FD31CwBEQO+YGUz60O4QveOq6ikgI/rK7ZDKa8MshNoeDUjDFfBeJ9XN+Mz/TPac64vJig28KcF4HYWHlKVWvssxsFhGGUM4QOnk8mnnpFAEyz09Xa1arpZCIAbNuX99QRDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761138124; c=relaxed/simple;
-	bh=YyOT6xckVX0MriiIl7HBo2d4T8KTUI4Zs0unfYBtZTE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=O9HOi9HMqUTP9x4t9xuyWbZ9i3jTtGN2vZptwc+ltigxUlGCN3Xwsfw5LNvj7PGLCrmG0+I0CwLWKxd0Z5etmFaCxIiHkNYR4VjBGrr7JKwgHOGKEYmiUcN0uwV2rJdUjnUdZ0+7a11SFfllKS9l5DqyUupPdStTBumOWG3mz0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io; spf=pass smtp.mailfrom=vyos.io; dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b=EMT3FnbT; arc=none smtp.client-ip=209.85.128.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vyos.io
+	s=arc-20240116; t=1761142477; c=relaxed/simple;
+	bh=rlBN7u0Rjc2CZ97e+3oJTh3YOUqtZbkx5FlApV3Xm+8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ChuTxwH8STgFM3N+h3MMJ0gv2mrBUXJ5Vony56b/1b3f6/mLLvVRRTtDBQUSV5oN8F0rntLH+ubovWz1KiO1GzBz/KPY/TnxrxGbERI7H8nKf/42Lsxs21htQYME+aWnY8G24YcTOieNsL5I48wR405iSpP1jCRYf/OH+rvrDSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZasiNxpA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b="EMT3FnbT"
-Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-7849f01e56eso42889127b3.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2025 06:02:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=vyos.io; s=google; t=1761138122; x=1761742922; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=YyOT6xckVX0MriiIl7HBo2d4T8KTUI4Zs0unfYBtZTE=;
-        b=EMT3FnbTWISnp8qFS8tmeCFyrvbxL4ZJ3ydv8XGpLrnSQyGWnNTULQQ1Y4/Uv7YtmJ
-         aejyuE/km3ZFPTNKjgN35GzsNqohMByj2wC3QhKxYd4BTwyYnzO8/PimtHyP4DWyoUmC
-         HbQmXuGB7ijOqy+DW0+cnwrvuyAPzXLvEEvWLH3YlMN5N7hXu1htCCv0Ju4buO0PQYca
-         BKJLZkFB2wj5fDbS8BIdY5l1/ZZC28uY8WFgIbJAQD/y9gzBsEBc9kAXHAh24JO4okOD
-         wdm2j6AkVXrjr920Hq9FSNCStvE9MVB6Q6rWrwny4fxWx8knVoz6lCNVeNEuUjL+jY9z
-         7kQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761138122; x=1761742922;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=YyOT6xckVX0MriiIl7HBo2d4T8KTUI4Zs0unfYBtZTE=;
-        b=LdtIVvCykJ8jegOtZKHHAP650l7VMZEzRGGw35mnZF43VWckvCmzxyHqODlJEox1cf
-         ENCa3MbhBU7daCpZynp6UdoP3yoirO7ooApHQ5hM/XcIDCSoiw5Wc8fGVVYI/OKkcA/G
-         Gwz+8hZ71a2N+DWPuRBQz+2h0OESXgbQL22lElSek1Q/LdQXPCW2Bp8KLLOG+e1TKZQO
-         PYK6oSScXYzZ7IFLmYPX2guFPVTtDujIU+LX+b1nfCVCytHuOWKMq76TYJwUxBujxJgG
-         rSWDdVoqu9tCzbSh2mK3e34hopMq8XG5fQBOjgTT026yM7FXciiHwIOVxPpevhMSjOr0
-         yWMw==
-X-Forwarded-Encrypted: i=1; AJvYcCVdVmTg1m57ikeLZqpYtiw/qkQL7dLoppgniQlWQHnmYi/7IPgnOVIBwPFVga1mbvW85oTE5Nyjx9vNaL88nT0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxIKmdfEIg3s2Z1j2GZj+3s0G3Z2I5sliEQWNFEvD7ckQjBn1d8
-	DbLNHf20G7ShBSApKShjsq6hYGq9vXqQoJJNK6WoDTo/Ik4wMsP9GIS95dbokQ3gfnk3CqVqQI6
-	r5JPVbfNwha8BP2IrbIUcNaIhk8pp0CgqeSDk/ymbCw==
-X-Gm-Gg: ASbGncs5QJkJ3H9p5uSQkBT9gREqW9HGqK3c9WBE42KjZT214FOgjNS14H3/IM63X0/
-	ct8QZpRjUJLwiLhazr7IqfgzN9ah8zWUbGYG/NS7L/iSOdzY8WGzE7sYJliayr6m03StVLpnnL2
-	ujc34Hngoacx7OJD/S9rPT2DWJo8ibzpjuL7Rqvyu5PN0g8cLhnNgqCCbXh9cinFqGfA9IxfXdG
-	jgATyuFmlIQbIMq5O5+XgxeGuOxAwGQeLcr6JSyRSeIANGFM9iqfeFyvVmyj3mulk7NoEiX
-X-Google-Smtp-Source: AGHT+IF9jG7efkMJkLjrKK96cUycd0uKP1eoJk4jV4LE5zYD+KPHywlzQYSMFmQ/paz3aQtOfKK1rFQpJc1+j+AphxY=
-X-Received: by 2002:a05:690e:4182:b0:63e:d1f:d683 with SMTP id
- 956f58d0204a3-63e161c551amr14636102d50.45.1761138121557; Wed, 22 Oct 2025
- 06:02:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZasiNxpA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30D9EC4CEE7;
+	Wed, 22 Oct 2025 14:14:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1761142476;
+	bh=rlBN7u0Rjc2CZ97e+3oJTh3YOUqtZbkx5FlApV3Xm+8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZasiNxpAVRgliLzm7hFEJsLMzX0qFJIx1ktc8R9a0e/ozT5li8Uw2VmYaqVFC5cAz
+	 leWwN8XCblt96jrkeSFpdkMVBn+/DpWP3y2wQOXcUgV8xw3n+2QA6ssnQ54eDHspfs
+	 MCz2XLJDtmstcJMYSrt2tw2VEDdlmAaVmbNwMOfleDADA5ilImGcZHVZ1c5pijwh8p
+	 UVVWvJRqv/+pDjOBEgwYV2d9Tyw7ZxF9hxztek5VgVUXgXNp61XyADdxhBsW635Zau
+	 bt3tFf23fJWkJc+ZX8+OiAUxSmOSkFNqZ/12XquwMuoxapDT7tuplSOlVIYykn1lXc
+	 HMkwnEV4lArww==
+Date: Wed, 22 Oct 2025 16:14:34 +0200
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v7 0/3] Add IPIP flowtable SW acceleration
+Message-ID: <aPjmyptnBpfS4RSy@lore-desk>
+References: <20251021-nf-flowtable-ipip-v7-0-a45214896106@kernel.org>
+ <aPi7haYp3pWqM0oW@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251021133918.500380-1-a.melnychenko@vyos.io>
- <20251021133918.500380-2-a.melnychenko@vyos.io> <aPeZ_4bano8JJigk@strlen.de>
- <aPghQ2-QVkeNgib1@calendula> <aPi8h_Ervgips4X4@strlen.de>
-In-Reply-To: <aPi8h_Ervgips4X4@strlen.de>
-From: Andrii Melnychenko <a.melnychenko@vyos.io>
-Date: Wed, 22 Oct 2025 15:01:50 +0200
-X-Gm-Features: AS18NWCJ-LY11lV6XRcH3jguswzoDQqltcrK4QfPMuRXpo5tSQWNpGqcBGGDgzU
-Message-ID: <CANhDHd_iPWgSuxi-6EVWE2HVbFUKqfuGoo-p_vcZgNst=RSqCA@mail.gmail.com>
-Subject: Re: [PATCH v3 1/1] nft_ct: Added nfct_seqadj_ext_add() for NAT'ed conntrack.
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@netfilter.org, phil@nwl.cc, 
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, 
-	horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="TK1zm52MDJiEAg5j"
+Content-Disposition: inline
+In-Reply-To: <aPi7haYp3pWqM0oW@calendula>
 
-Hi all,
 
-> BTW, this fixes DNAT case, but SNAT case is still broken because flag
-> is set at a later stage, right?
+--TK1zm52MDJiEAg5j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've checked SNAT with the "PORT" FTP command - didn't reproduce the bug.
-I assume that `nft_nat_eval()` -> `nf_nat_setup_info()` sets up seqadj
-for the SNAT case.
+> Hi Lorenzo,
+
+Hi Pablo,
+
+>=20
+> On Tue, Oct 21, 2025 at 07:48:17PM +0200, Lorenzo Bianconi wrote:
+> > Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
+> > infrastructure. This series introduces basic infrastructure to
+> > accelerate other tunnel types (e.g. IP6IP6).
+>=20
+> Would you be so kind to rebase this series on top of:
+>=20
+> https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=3D477081
+>=20
+> That series should simplify the integration of your IPIP support.
+
+ack, sure. I will do in v8.
+
+Regards,
+Lorenzo
+
+>=20
+> Thanks.
+>=20
+> > ---
+> > Changes in v7:
+> > - Introduce sw acceleration for tx path of IPIP tunnels
+> > - Rely on exact match during flowtable entry lookup
+> > - Fix typos
+> > - Link to v6: https://lore.kernel.org/r/20250818-nf-flowtable-ipip-v6-0=
+-eda90442739c@kernel.org
+> >=20
+> > Changes in v6:
+> > - Rebase on top of nf-next main branch
+> > - Link to v5: https://lore.kernel.org/r/20250721-nf-flowtable-ipip-v5-0=
+-0865af9e58c6@kernel.org
+> >=20
+> > Changes in v5:
+> > - Rely on __ipv4_addr_hash() to compute the hash used as encap ID
+> > - Remove unnecessary pskb_may_pull() in nf_flow_tuple_encap()
+> > - Add nf_flow_ip4_ecanp_pop utility routine
+> > - Link to v4: https://lore.kernel.org/r/20250718-nf-flowtable-ipip-v4-0=
+-f8bb1c18b986@kernel.org
+> >=20
+> > Changes in v4:
+> > - Use the hash value of the saddr, daddr and protocol of outer IP heade=
+r as
+> >   encapsulation id.
+> > - Link to v3: https://lore.kernel.org/r/20250703-nf-flowtable-ipip-v3-0=
+-880afd319b9f@kernel.org
+> >=20
+> > Changes in v3:
+> > - Add outer IP header sanity checks
+> > - target nf-next tree instead of net-next
+> > - Link to v2: https://lore.kernel.org/r/20250627-nf-flowtable-ipip-v2-0=
+-c713003ce75b@kernel.org
+> >=20
+> > Changes in v2:
+> > - Introduce IPIP flowtable selftest
+> > - Link to v1: https://lore.kernel.org/r/20250623-nf-flowtable-ipip-v1-1=
+-2853596e3941@kernel.org
+> >=20
+> > ---
+> > Lorenzo Bianconi (3):
+> >       net: netfilter: Add IPIP flowtable rx sw acceleration
+> >       net: netfilter: Add IPIP flowtable tx sw acceleration
+> >       selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selfte=
+st
+> >=20
+> >  include/linux/netdevice.h                          |  16 +++
+> >  include/net/netfilter/nf_flow_table.h              |  26 +++++
+> >  net/ipv4/ipip.c                                    |  29 +++++
+> >  net/netfilter/nf_flow_table_core.c                 |  10 ++
+> >  net/netfilter/nf_flow_table_ip.c                   | 118 +++++++++++++=
++++++++-
+> >  net/netfilter/nft_flow_offload.c                   |  79 ++++++++++++--
+> >  .../selftests/net/netfilter/nft_flowtable.sh       |  40 +++++++
+> >  7 files changed, 307 insertions(+), 11 deletions(-)
+> > ---
+> > base-commit: d1d7998df9d7d3ee20bcfc876065fa897b11506d
+> > change-id: 20250623-nf-flowtable-ipip-1b3d7b08d067
+> >=20
+> > Best regards,
+> > --=20
+> > Lorenzo Bianconi <lorenzo@kernel.org>
+> >=20
+
+--TK1zm52MDJiEAg5j
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaPjmygAKCRA6cBh0uS2t
+rNFcAQCdgI4MlWAg+3oclx9ED2h5hMqHYU7XgBaA1IpIt9rMtAD/b1VjAEyGyu+E
+lj1wKSWfJVJHVKuAoAAlR3yoltsHBw8=
+=4tUQ
+-----END PGP SIGNATURE-----
+
+--TK1zm52MDJiEAg5j--
