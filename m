@@ -1,64 +1,85 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FB1C32861C
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2025 11:26:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C431D33F8CD
+	for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2025 13:02:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761132379; cv=none; b=Bfr+OFWjOUJdxGrZSKpUOczztC0s8pwBPIGGFxwJWgJOyUBEqMiD59/EWOEAv7n38A8O9loGxjdxyNI0xI9qDS0U/5KNRIXoHZ9sCMqjncBJywMeOveBmBO2BTY1C2ulrmtZw+ell4BTIGRq6eei6MxIrLUgXbR0N/bBrJoWaEw=
+	t=1761138124; cv=none; b=pcUo3cMpFU+hLT1aXRjl2ctwMSea0DuZX0cg9E21fi1LbvJZdQmLvGlRSO0E+eIgF86yflbEZ9vLRcthJ05mgK9ci5bbHgDiYjp9cxkHg0k01LhAamvKA+uCH4snjxCPGH6AJNzyDbBTO6yQ512Sivwv8dvJH1ZmJEedx1B7nr4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761132379; c=relaxed/simple;
-	bh=1z5fX7oHjKhZbPwh/qe6b1grz+heE7CVp39d4GIsxZ8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SvvvQIwyUYS0zHA+VjwlHLnyvCMZFE0pX60E4ItOu8Jo9sXfHFsapMN9TTJxkE8+CVOScVfsDLe7j3hJAj3rNA27fbwNhFsuzYjWgjO8kd8jmCUNJpr7MSmBeiDu5SoRCztrszIKIF5W+2j1b9My+yf5zI2+oBPCrmL/nh1VWM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2B7896031F; Wed, 22 Oct 2025 13:26:14 +0200 (CEST)
-Date: Wed, 22 Oct 2025 13:26:13 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Antonio Ojea <aojea@google.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] selftests: nft_queue: conntrack expiration requeue
-Message-ID: <aPi_VdZpVjWujZ29@strlen.de>
-References: <20251020200805.298670-1-aojea@google.com>
- <aPah2y2pdhIjwHBU@strlen.de>
- <CAAdXToT14bjkvCrP=tG4V4XJhhyGMfuJz+FdfTO+xJ10Z-RezA@mail.gmail.com>
- <aPay1RM9jdkEnPbM@strlen.de>
- <CAAdXToQs8wPYyf=GEnNnmGXVTHQM0bkDfHGqVbLhber04AyM_w@mail.gmail.com>
- <aPdkVOTuUElaFKZZ@strlen.de>
- <CAAdXToRzRoCX4Cvwifq9Yr7U663o4YLCh1VC=_yhAYqAUZsvUA@mail.gmail.com>
- <aPd6Ch7h6wdJa-eE@strlen.de>
- <CAAdXToQ+DuBsPGQUgSCk2=f_b2222iTD4-rT=0gVuaYWT7A2HQ@mail.gmail.com>
+	s=arc-20240116; t=1761138124; c=relaxed/simple;
+	bh=YyOT6xckVX0MriiIl7HBo2d4T8KTUI4Zs0unfYBtZTE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=O9HOi9HMqUTP9x4t9xuyWbZ9i3jTtGN2vZptwc+ltigxUlGCN3Xwsfw5LNvj7PGLCrmG0+I0CwLWKxd0Z5etmFaCxIiHkNYR4VjBGrr7JKwgHOGKEYmiUcN0uwV2rJdUjnUdZ0+7a11SFfllKS9l5DqyUupPdStTBumOWG3mz0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io; spf=pass smtp.mailfrom=vyos.io; dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b=EMT3FnbT; arc=none smtp.client-ip=209.85.128.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vyos.io
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b="EMT3FnbT"
+Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-7849f01e56eso42889127b3.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Oct 2025 06:02:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=vyos.io; s=google; t=1761138122; x=1761742922; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=YyOT6xckVX0MriiIl7HBo2d4T8KTUI4Zs0unfYBtZTE=;
+        b=EMT3FnbTWISnp8qFS8tmeCFyrvbxL4ZJ3ydv8XGpLrnSQyGWnNTULQQ1Y4/Uv7YtmJ
+         aejyuE/km3ZFPTNKjgN35GzsNqohMByj2wC3QhKxYd4BTwyYnzO8/PimtHyP4DWyoUmC
+         HbQmXuGB7ijOqy+DW0+cnwrvuyAPzXLvEEvWLH3YlMN5N7hXu1htCCv0Ju4buO0PQYca
+         BKJLZkFB2wj5fDbS8BIdY5l1/ZZC28uY8WFgIbJAQD/y9gzBsEBc9kAXHAh24JO4okOD
+         wdm2j6AkVXrjr920Hq9FSNCStvE9MVB6Q6rWrwny4fxWx8knVoz6lCNVeNEuUjL+jY9z
+         7kQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761138122; x=1761742922;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=YyOT6xckVX0MriiIl7HBo2d4T8KTUI4Zs0unfYBtZTE=;
+        b=LdtIVvCykJ8jegOtZKHHAP650l7VMZEzRGGw35mnZF43VWckvCmzxyHqODlJEox1cf
+         ENCa3MbhBU7daCpZynp6UdoP3yoirO7ooApHQ5hM/XcIDCSoiw5Wc8fGVVYI/OKkcA/G
+         Gwz+8hZ71a2N+DWPuRBQz+2h0OESXgbQL22lElSek1Q/LdQXPCW2Bp8KLLOG+e1TKZQO
+         PYK6oSScXYzZ7IFLmYPX2guFPVTtDujIU+LX+b1nfCVCytHuOWKMq76TYJwUxBujxJgG
+         rSWDdVoqu9tCzbSh2mK3e34hopMq8XG5fQBOjgTT026yM7FXciiHwIOVxPpevhMSjOr0
+         yWMw==
+X-Forwarded-Encrypted: i=1; AJvYcCVdVmTg1m57ikeLZqpYtiw/qkQL7dLoppgniQlWQHnmYi/7IPgnOVIBwPFVga1mbvW85oTE5Nyjx9vNaL88nT0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxIKmdfEIg3s2Z1j2GZj+3s0G3Z2I5sliEQWNFEvD7ckQjBn1d8
+	DbLNHf20G7ShBSApKShjsq6hYGq9vXqQoJJNK6WoDTo/Ik4wMsP9GIS95dbokQ3gfnk3CqVqQI6
+	r5JPVbfNwha8BP2IrbIUcNaIhk8pp0CgqeSDk/ymbCw==
+X-Gm-Gg: ASbGncs5QJkJ3H9p5uSQkBT9gREqW9HGqK3c9WBE42KjZT214FOgjNS14H3/IM63X0/
+	ct8QZpRjUJLwiLhazr7IqfgzN9ah8zWUbGYG/NS7L/iSOdzY8WGzE7sYJliayr6m03StVLpnnL2
+	ujc34Hngoacx7OJD/S9rPT2DWJo8ibzpjuL7Rqvyu5PN0g8cLhnNgqCCbXh9cinFqGfA9IxfXdG
+	jgATyuFmlIQbIMq5O5+XgxeGuOxAwGQeLcr6JSyRSeIANGFM9iqfeFyvVmyj3mulk7NoEiX
+X-Google-Smtp-Source: AGHT+IF9jG7efkMJkLjrKK96cUycd0uKP1eoJk4jV4LE5zYD+KPHywlzQYSMFmQ/paz3aQtOfKK1rFQpJc1+j+AphxY=
+X-Received: by 2002:a05:690e:4182:b0:63e:d1f:d683 with SMTP id
+ 956f58d0204a3-63e161c551amr14636102d50.45.1761138121557; Wed, 22 Oct 2025
+ 06:02:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAdXToQ+DuBsPGQUgSCk2=f_b2222iTD4-rT=0gVuaYWT7A2HQ@mail.gmail.com>
+References: <20251021133918.500380-1-a.melnychenko@vyos.io>
+ <20251021133918.500380-2-a.melnychenko@vyos.io> <aPeZ_4bano8JJigk@strlen.de>
+ <aPghQ2-QVkeNgib1@calendula> <aPi8h_Ervgips4X4@strlen.de>
+In-Reply-To: <aPi8h_Ervgips4X4@strlen.de>
+From: Andrii Melnychenko <a.melnychenko@vyos.io>
+Date: Wed, 22 Oct 2025 15:01:50 +0200
+X-Gm-Features: AS18NWCJ-LY11lV6XRcH3jguswzoDQqltcrK4QfPMuRXpo5tSQWNpGqcBGGDgzU
+Message-ID: <CANhDHd_iPWgSuxi-6EVWE2HVbFUKqfuGoo-p_vcZgNst=RSqCA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/1] nft_ct: Added nfct_seqadj_ext_add() for NAT'ed conntrack.
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@netfilter.org, phil@nwl.cc, 
+	davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, 
+	horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Antonio Ojea <aojea@google.com> wrote:
-> > So I went with 'no rules that adds one, no need for ct label
-> > extension space allocation'.
-> 
-> But that does not consider the people that just use netlink to set the
-> labels ... from a 1k altitude , can you do a check on the first
-> update/create/delete label to initialize the extension?
+Hi all,
 
-Yes, but in that case it is not possible to disable it again.
+> BTW, this fixes DNAT case, but SNAT case is still broken because flag
+> is set at a later stage, right?
 
-Rule based on/off means we can disable it once the rule is gone.
-
-I'd propose to extend the label allocation to when a 'ct lablel'
-rule is added rather than just 'ct label set'.
-
-> Another question related, is it required for the label value to be
-> always 16 bytes?
-
-As far as I can see ctnetlink enforces the len must be a multiple of 4
-and at most 16 bytes.
+I've checked SNAT with the "PORT" FTP command - didn't reproduce the bug.
+I assume that `nft_nat_eval()` -> `nf_nat_setup_info()` sets up seqadj
+for the SNAT case.
