@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18B282356D9
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2025 16:14:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CFF52877F2
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2025 16:14:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761236095; cv=none; b=mo8cOB2zgiIUnmcw6KuiyIeF/Grp0Va+SqCNbIczko7Gk3jiMi3dKb8Bsm6b63gffoqgb2xfrgVZ51v04L1Pd7JTG0vGr/6Mupo3+q4pFx6wi10aJGLiF74AKCaLF+UPizmUMF08+Ke0uqOXcVszATS7bx65cPZ39pSoO9jtaAs=
+	t=1761236100; cv=none; b=heVXl8a3uvFz83qyLs1kOWTQXQo+M4GhZ6wvXp+wUSk4v8JPawvpCG7YCTv+9miXz3c94ZYfIJiBomcSOCkvqJkGRfJqmyhkyrUWnm4Eq71a2eaBnxEOfAmsnt+zm2ahDZgjwgW//scdxzoqbEDZ52TF35tSExmhJQBt8JdFnrQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761236095; c=relaxed/simple;
-	bh=9ehzOEtWq3v+kXUQh/kDKR9BYjRL7e62JonlQi5inzU=;
+	s=arc-20240116; t=1761236100; c=relaxed/simple;
+	bh=61A3fxaak5TKzblylUs8TNTv03rMRSKzSt6Vp/kHPAc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Jhreo2sFZRDom/rxUwyoLHYGOWsvESblCrTJ9kn/4h2MKTFOVTyprTfhwr5siHmu3tzbszCJIa0nLMfw2cWEUTG7REd9azWdFC/FgUcWW/sSrC6WhvYFE6RIv5/X46JylwQp2h6hmSKPmrTsZ2dclFtXp81SP7crQX/u2QyLgjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=M6mUM/gT; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=GHkAtsVCC+u0VumkHzuuG6Kd70bphQC0Q7Pv758zgnlDLWtThyyxYBF4NJT0m+eD8FV47foDqAP15UEP4ytOEcYDWyVptP9hBpf8zCFEyucMx5AWhfoU7PltqDxWibuIjjvxBEcuUqellS86T2qwdai4nIuS+WZJquR985ga8k4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=D5zca1gg; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="M6mUM/gT"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="D5zca1gg"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=InEFhrcVDrirdmmpfJTbeXgMEB5xdmABW3c4ZrQHLe4=; b=M6mUM/gTyl7WA18WLYWF+2iMIf
-	A3y70+wzztm5wdw00yg19hCVA7p+8hS7559+yqpZX4YkW0mpPtB06j3GS9MgSoiTxQrtlICrtQP0R
-	LCq8+7TJ7YiPiPfwbEVxZ1kvAfDp5DQaQlfLHXlfGSuf3xKAPHh5rXhQV+IshHGrxEju54vuyM0MU
-	d7QefZBOW+26Bou6qBA+pM8daFgLdZRlzPBihmUTX1DXMkL4nib1PCia1oC6DY+lQCrmdYQLPWDMC
-	Wf9Mp2g3jOthbn9eTY1rybVqaKoXOdeEqmfoignIkrWjNkY8Xroo1t9VFET6YwNLEbNFb5o47Q1qZ
-	n2uC3xhA==;
+	bh=rfO3nPPn229U71HCYDzz0RFFoQQA0cKxErM03mOD1Aw=; b=D5zca1ggvUMywp5PHCq1OCYhr0
+	emw6A5i4acea9yZbisjKJBFHER6Y6C+oV8xmcGtkCr7fc23KNZmux2d8ega6glfBqNbU0gxZDF6k5
+	3xYZDlIsiiiGIgrT8bH/xAsVJ3Z88Dj1mtViAhZnyqMXSjCfM2t4iA8W1AsAZcSCbN/a032m1ZTrd
+	Cd7D0Ym9vZUroM5n27tp5dU8STwqgkNDd7YTHNn8cGs8C4cJLK6iak3conlZX9mIPzA9NAHOymvff
+	vavW6RFw8ABH0XpVqDMFhByRYdPifeymjPWpmQY3ObDzKyFXtdsGFeRoa030CeEC0jOWwhv8Bdvg+
+	TmCfqG3Q==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1vBxxj-0000000007e-0jQW;
-	Thu, 23 Oct 2025 18:14:51 +0200
+	id 1vBxxk-0000000008E-0NI1;
+	Thu, 23 Oct 2025 18:14:56 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 28/28] Drop no longer needed newline in BUG() messages
-Date: Thu, 23 Oct 2025 18:14:17 +0200
-Message-ID: <20251023161417.13228-29-phil@nwl.cc>
+Subject: [nft PATCH 13/28] Define string-based data types as Big Endian
+Date: Thu, 23 Oct 2025 18:14:02 +0200
+Message-ID: <20251023161417.13228-14-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251023161417.13228-1-phil@nwl.cc>
 References: <20251023161417.13228-1-phil@nwl.cc>
@@ -52,781 +52,558 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Since BUG() now appends a newline itself, drop it from calls where
-present.
+Doesn't quite matter internally, but libnftnl should not attempt to
+convert strings from host byte order when printing.
+
+Fib expression byte order changes with NFT_FIB_RESULT_OIFNAME to Big
+Endian.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/datatype.c            |  2 +-
- src/erec.c                |  2 +-
- src/evaluate.c            | 46 +++++++++++++++++++--------------------
- src/expression.c          |  6 ++---
- src/fib.c                 |  2 +-
- src/intervals.c           |  8 +++----
- src/json.c                |  4 ++--
- src/mergesort.c           |  2 +-
- src/mnl.c                 |  8 +++----
- src/netlink.c             | 11 +++++-----
- src/netlink_delinearize.c | 11 +++++-----
- src/netlink_linearize.c   | 28 ++++++++++++------------
- src/optimize.c            |  2 +-
- src/rule.c                | 20 ++++++++---------
- src/segtree.c             |  2 +-
- src/statement.c           |  2 +-
- 16 files changed, 79 insertions(+), 77 deletions(-)
+ src/ct.c                  |  2 +-
+ src/datatype.c            | 10 +++++-----
+ src/evaluate.c            | 18 +++++++++---------
+ src/fib.c                 |  5 +++--
+ src/intervals.c           |  5 -----
+ src/json.c                |  2 +-
+ src/meta.c                | 16 ++++++++--------
+ src/mnl.c                 |  2 +-
+ src/netlink.c             | 12 +++++-------
+ src/netlink_delinearize.c | 14 +++++++-------
+ src/osf.c                 |  3 +--
+ src/parser_bison.y        | 10 +++++-----
+ src/parser_json.c         |  4 ++--
+ src/segtree.c             | 10 +++++-----
+ 14 files changed, 53 insertions(+), 60 deletions(-)
 
+diff --git a/src/ct.c b/src/ct.c
+index 4edbc0fc2997f..e9333c79dfd42 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -273,7 +273,7 @@ const struct ct_template ct_templates[__NFT_CT_MAX] = {
+ 					      BYTEORDER_HOST_ENDIAN,
+ 					      4 * BITS_PER_BYTE),
+ 	[NFT_CT_HELPER]		= CT_TEMPLATE("helper",	    &string_type,
+-					      BYTEORDER_HOST_ENDIAN,
++					      BYTEORDER_BIG_ENDIAN,
+ 					      NF_CT_HELPER_NAME_LEN * BITS_PER_BYTE),
+ 	[NFT_CT_L3PROTOCOL]	= CT_TEMPLATE("l3proto",    &nfproto_type,
+ 					      BYTEORDER_HOST_ENDIAN,
 diff --git a/src/datatype.c b/src/datatype.c
-index 2ee7e7d5e9cf6..eee9ab9d19296 100644
+index 55cd0267055bd..2ee7e7d5e9cf6 100644
 --- a/src/datatype.c
 +++ b/src/datatype.c
-@@ -119,7 +119,7 @@ void datatype_print(const struct expr *expr, struct output_ctx *octx)
- 						       false, octx);
- 	} while ((dtype = dtype->basetype));
+@@ -324,7 +324,7 @@ void expr_chain_export(const struct expr *e, char *chain_name)
+ 		BUG("verdict expression length %u is too large (%u bits max)",
+ 		    e->len, NFT_CHAIN_MAXNAMELEN * BITS_PER_BYTE);
  
--	BUG("datatype %s has no print method or symbol table\n",
-+	BUG("datatype %s has no print method or symbol table",
- 	    expr->dtype->name);
+-	mpz_export_data(chain_name, e->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(chain_name, e->value, BYTEORDER_BIG_ENDIAN, len);
  }
  
-diff --git a/src/erec.c b/src/erec.c
-index fe66abbe3ac29..8f480a80a0d0c 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -156,7 +156,7 @@ void erec_print(struct output_ctx *octx, const struct error_record *erec,
- 	case INDESC_NETLINK:
- 		break;
- 	default:
--		BUG("invalid input descriptor type %u\n", indesc->type);
-+		BUG("invalid input descriptor type %u", indesc->type);
- 	}
+ static void verdict_jump_chain_print(const char *what, const struct expr *e,
+@@ -532,7 +532,7 @@ static void string_type_print(const struct expr *expr, struct output_ctx *octx)
+ 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
+ 	char data[len+1];
  
- 	f = octx->error_fp;
+-	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(data, expr->value, BYTEORDER_BIG_ENDIAN, len);
+ 	data[len] = '\0';
+ 	nft_print(octx, "\"%s\"", data);
+ }
+@@ -542,7 +542,7 @@ static struct error_record *string_type_parse(struct parse_ctx *ctx,
+ 	      				      struct expr **res)
+ {
+ 	*res = constant_expr_alloc(&sym->location, &string_type,
+-				   BYTEORDER_HOST_ENDIAN,
++				   BYTEORDER_BIG_ENDIAN,
+ 				   (strlen(sym->identifier) + 1) * BITS_PER_BYTE,
+ 				   sym->identifier);
+ 	return NULL;
+@@ -552,7 +552,7 @@ const struct datatype string_type = {
+ 	.type		= TYPE_STRING,
+ 	.name		= "string",
+ 	.desc		= "string",
+-	.byteorder	= BYTEORDER_HOST_ENDIAN,
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.print		= string_type_print,
+ 	.json		= string_type_json,
+ 	.parse		= string_type_parse,
+@@ -1609,7 +1609,7 @@ static struct error_record *priority_type_parse(struct parse_ctx *ctx,
+ 	} else {
+ 		erec_destroy(erec);
+ 		*res = constant_expr_alloc(&sym->location, &string_type,
+-					   BYTEORDER_HOST_ENDIAN,
++					   BYTEORDER_BIG_ENDIAN,
+ 					   strlen(sym->identifier) * BITS_PER_BYTE,
+ 					   sym->identifier);
+ 	}
 diff --git a/src/evaluate.c b/src/evaluate.c
-index cee500312bc6d..7dc59a00097a8 100644
+index a5cc418191989..be366140c12f2 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -172,7 +172,7 @@ static enum ops byteorder_conversion_op(struct expr *expr,
- 	default:
- 		break;
- 	}
--	BUG("invalid byte order conversion %u => %u\n",
-+	BUG("invalid byte order conversion %u => %u",
- 	    expr->byteorder, byteorder);
- }
- 
-@@ -587,7 +587,7 @@ static int expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
- 					  &extra_len);
- 		break;
- 	default:
--		BUG("Unknown expression %s\n", expr_name(expr));
-+		BUG("Unknown expression %s", expr_name(expr));
+@@ -376,7 +376,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
  	}
  
- 	masklen = len + shift;
-@@ -1366,7 +1366,7 @@ static int expr_evaluate_unary(struct eval_ctx *ctx, struct expr **expr)
- 		byteorder = BYTEORDER_HOST_ENDIAN;
- 		break;
- 	default:
--		BUG("invalid unary operation %u\n", unary->op);
-+		BUG("invalid unary operation %u", unary->op);
- 	}
+ 	memset(data + len, 0, data_len - len);
+-	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(data, expr->value, BYTEORDER_BIG_ENDIAN, len);
  
- 	__datatype_set(unary, datatype_clone(arg->dtype));
-@@ -1417,7 +1417,7 @@ static int constant_binop_simplify(struct eval_ctx *ctx, struct expr **expr)
- 		mpz_rshift_ui(val, mpz_get_uint32(right->value));
- 		break;
- 	default:
--		BUG("invalid binary operation %u\n", op->op);
-+		BUG("invalid binary operation %u", op->op);
- 	}
+ 	if (strlen(data) == 0)
+ 		return expr_error(ctx->msgs, expr,
+@@ -388,7 +388,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
+ 		 * expression length to avoid problems on big endian.
+ 		 */
+ 		value = constant_expr_alloc(&expr->location, ctx->ectx.dtype,
+-					    BYTEORDER_HOST_ENDIAN,
++					    BYTEORDER_BIG_ENDIAN,
+ 					    expr->len, data);
+ 		expr_free(expr);
+ 		*exprp = value;
+@@ -406,7 +406,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
+ 		xstrunescape(data, unescaped_str);
  
- 	new = constant_expr_alloc(&op->location, op->dtype, op->byteorder,
-@@ -1606,7 +1606,7 @@ static int expr_evaluate_binop(struct eval_ctx *ctx, struct expr **expr)
- 		ret = expr_evaluate_bitwise(ctx, expr);
- 		break;
- 	default:
--		BUG("invalid binary operation %u\n", op->op);
-+		BUG("invalid binary operation %u", op->op);
- 	}
+ 		value = constant_expr_alloc(&expr->location, ctx->ectx.dtype,
+-					    BYTEORDER_HOST_ENDIAN,
++					    BYTEORDER_BIG_ENDIAN,
+ 					    expr->len, unescaped_str);
+ 		expr_free(expr);
+ 		*exprp = value;
+@@ -415,14 +415,14 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
  
+ 	data[datalen] = 0;
+ 	value = constant_expr_alloc(&expr->location, ctx->ectx.dtype,
+-				    BYTEORDER_HOST_ENDIAN,
++				    BYTEORDER_BIG_ENDIAN,
+ 				    expr->len, data);
  
-@@ -2044,7 +2044,7 @@ static int interval_set_eval(struct eval_ctx *ctx, struct set *set,
- 	case CMD_RESET:
- 		break;
- 	default:
--		BUG("unhandled op %d\n", ctx->cmd->op);
-+		BUG("unhandled op %d", ctx->cmd->op);
- 		break;
- 	}
+ 	prefix = prefix_expr_alloc(&expr->location, value,
+ 				   datalen * BITS_PER_BYTE);
+ 	datatype_set(prefix, ctx->ectx.dtype);
+ 	prefix->flags |= EXPR_F_CONSTANT;
+-	prefix->byteorder = BYTEORDER_HOST_ENDIAN;
++	prefix->byteorder = BYTEORDER_BIG_ENDIAN;
+ 	prefix->len = expr->len;
  
-@@ -2269,7 +2269,7 @@ static int expr_evaluate_map(struct eval_ctx *ctx, struct expr **expr)
- 			return -1;
+ 	expr_free(expr);
+@@ -3120,7 +3120,7 @@ static int verdict_validate_chain(struct eval_ctx *ctx,
+ 				  "chain name length 0 not allowed");
  
- 		if (ectx.len && mappings->set->data->len != ectx.len)
--			BUG("%d vs %d\n", mappings->set->data->len, ectx.len);
-+			BUG("%d vs %d", mappings->set->data->len, ectx.len);
+ 	memset(buf, 0, sizeof(buf));
+-	mpz_export_data(buf, chain->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(buf, chain->value, BYTEORDER_BIG_ENDIAN, len);
  
- 		map->mappings = mappings;
- 
-@@ -2634,7 +2634,7 @@ static int binop_transfer_one(struct eval_ctx *ctx,
- 					    *right, expr_get(left->right));
- 		break;
- 	default:
--		BUG("invalid binary operation %u\n", left->op);
-+		BUG("invalid binary operation %u", left->op);
- 	}
- 
- 	return expr_evaluate(ctx, right);
-@@ -2956,7 +2956,7 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 						 "Use concatenations with sets and maps, not singleton values");
- 			break;
- 		default:
--			BUG("invalid expression type %s\n", expr_name(right));
-+			BUG("invalid expression type %s", expr_name(right));
- 		}
- 		break;
- 	case OP_LT:
-@@ -2987,7 +2987,7 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 			return -1;
- 		break;
- 	default:
--		BUG("invalid relational operation %u\n", rel->op);
-+		BUG("invalid relational operation %u", rel->op);
- 	}
- 
- 	if (binop_transfer(ctx, expr) < 0)
-@@ -3223,7 +3223,7 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 	case EXPR_RANGE_SYMBOL:
- 		return expr_evaluate_symbol_range(ctx, expr);
- 	default:
--		BUG("unknown expression type %s\n", expr_name(*expr));
-+		BUG("unknown expression type %s", expr_name(*expr));
- 	}
- }
- 
-@@ -3384,7 +3384,7 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
- 	case EXPR_MAP:
- 		break;
- 	default:
--		BUG("invalid verdict expression %s\n", expr_name(stmt->expr));
-+		BUG("invalid verdict expression %s", expr_name(stmt->expr));
- 	}
- 	return 0;
- }
-@@ -5085,7 +5085,7 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- 	case STMT_OPTSTRIP:
- 		return stmt_evaluate_optstrip(ctx, stmt);
- 	default:
--		BUG("unknown statement type %d\n", stmt->type);
-+		BUG("unknown statement type %d", stmt->type);
- 	}
- }
- 
-@@ -5476,7 +5476,7 @@ static struct expr *expr_set_to_list(struct eval_ctx *ctx, struct expr *dev_expr
- 			expr = key;
- 			break;
- 		default:
--			BUG("invalid expression type %s\n", expr_name(expr));
-+			BUG("invalid expression type %s", expr_name(expr));
- 			break;
- 		}
- 
-@@ -5528,7 +5528,7 @@ static bool evaluate_device_expr(struct eval_ctx *ctx, struct expr **dev_expr)
- 		case EXPR_VALUE:
- 			break;
- 		default:
--			BUG("invalid expression type %s\n", expr_name(expr));
-+			BUG("invalid expression type %s", expr_name(expr));
- 			break;
- 		}
- 
-@@ -5968,7 +5968,7 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
- 		handle_merge(&cmd->object->handle, &cmd->handle);
- 		return obj_evaluate(ctx, cmd->object);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- }
- 
-@@ -6139,7 +6139,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 		obj_del_cache(ctx, cmd, NFT_OBJECT_TUNNEL);
+ 	if (strnlen(buf, sizeof(buf)) < sizeof(buf))
  		return 0;
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- }
+@@ -5010,7 +5010,7 @@ static int stmt_evaluate_objref(struct eval_ctx *ctx, struct stmt *stmt)
  
-@@ -6149,7 +6149,7 @@ static int cmd_evaluate_get(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_ELEMENTS:
- 		return setelem_evaluate(ctx, cmd);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- }
+ 	if (stmt_evaluate_arg(ctx, stmt,
+ 			      &string_type, NFT_OBJ_MAXNAMELEN * BITS_PER_BYTE,
+-			      BYTEORDER_HOST_ENDIAN, &stmt->objref.expr) < 0)
++			      BYTEORDER_BIG_ENDIAN, &stmt->objref.expr) < 0)
+ 		return -1;
  
-@@ -6304,7 +6304,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		}
- 		return 0;
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- }
+ 	if (!expr_is_constant(stmt->objref.expr))
+@@ -5336,7 +5336,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 	} else if (set_is_objmap(set->flags)) {
+ 		assert(set->data == NULL);
+ 		set->data = constant_expr_alloc(&netlink_location, &string_type,
+-						BYTEORDER_HOST_ENDIAN,
++						BYTEORDER_BIG_ENDIAN,
+ 						NFT_OBJ_MAXNAMELEN * BITS_PER_BYTE,
+ 						NULL);
  
-@@ -6333,7 +6333,7 @@ static int cmd_evaluate_reset(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_MAP:
- 		return cmd_evaluate_list(ctx, cmd);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- }
+@@ -5414,7 +5414,7 @@ static bool evaluate_priority(struct eval_ctx *ctx, struct prio_spec *prio,
+ 	if (prio->expr->dtype->type == TYPE_INTEGER)
+ 		return true;
  
-@@ -6413,7 +6413,7 @@ static int cmd_evaluate_flush(struct eval_ctx *ctx, struct cmd *cmd)
+-	mpz_export_data(prio_str, prio->expr->value, BYTEORDER_HOST_ENDIAN,
++	mpz_export_data(prio_str, prio->expr->value, BYTEORDER_BIG_ENDIAN,
+ 			NFT_NAME_MAXLEN);
+ 	loc = prio->expr->location;
  
- 		return 0;
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -6435,7 +6435,7 @@ static int cmd_evaluate_rename(struct eval_ctx *ctx, struct cmd *cmd)
- 
- 		break;
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -6625,5 +6625,5 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 		break;
- 	};
- 
--	BUG("invalid command operation %u\n", cmd->op);
-+	BUG("invalid command operation %u", cmd->op);
- }
-diff --git a/src/expression.c b/src/expression.c
-index de63196b60a6a..0dc59ab04b16c 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -1770,7 +1770,7 @@ void range_expr_value_low(mpz_t rop, const struct expr *expr)
- 	case EXPR_SET_ELEM:
- 		return range_expr_value_low(rop, expr->key);
- 	default:
--		BUG("invalid range expression type %s\n", expr_name(expr));
-+		BUG("invalid range expression type %s", expr_name(expr));
- 	}
- }
- 
-@@ -1797,7 +1797,7 @@ void range_expr_value_high(mpz_t rop, const struct expr *expr)
- 	case EXPR_SET_ELEM:
- 		return range_expr_value_high(rop, expr->key);
- 	default:
--		BUG("invalid range expression type %s\n", expr_name(expr));
-+		BUG("invalid range expression type %s", expr_name(expr));
- 	}
- }
- 
-@@ -1848,7 +1848,7 @@ const struct expr_ops *expr_ops(const struct expr *e)
- 
- 	ops = __expr_ops_by_type(e->etype);
- 	if (!ops)
--		BUG("Unknown expression type %d\n", e->etype);
-+		BUG("Unknown expression type %d", e->etype);
- 
- 	return ops;
- }
 diff --git a/src/fib.c b/src/fib.c
-index 571277ddf434a..c8ac8a8357e5d 100644
+index 4db7cd2bbc9c3..571277ddf434a 100644
 --- a/src/fib.c
 +++ b/src/fib.c
-@@ -197,7 +197,7 @@ struct expr *fib_expr_alloc(const struct location *loc,
- 		type = &fib_addr_type;
+@@ -179,6 +179,7 @@ const struct expr_ops fib_expr_ops = {
+ struct expr *fib_expr_alloc(const struct location *loc,
+ 			    unsigned int flags, unsigned int result)
+ {
++	enum byteorder bo = BYTEORDER_HOST_ENDIAN;
+ 	const struct datatype *type;
+ 	unsigned int len = 4 * BITS_PER_BYTE;
+ 	struct expr *expr;
+@@ -190,6 +191,7 @@ struct expr *fib_expr_alloc(const struct location *loc,
+ 	case NFT_FIB_RESULT_OIFNAME:
+ 		type = &ifname_type;
+ 		len = IFNAMSIZ * BITS_PER_BYTE;
++		bo = BYTEORDER_BIG_ENDIAN;
  		break;
- 	default:
--		BUG("Unknown result %d\n", result);
-+		BUG("Unknown result %d", result);
+ 	case NFT_FIB_RESULT_ADDRTYPE:
+ 		type = &fib_addr_type;
+@@ -203,8 +205,7 @@ struct expr *fib_expr_alloc(const struct location *loc,
+ 		len = BITS_PER_BYTE;
  	}
  
- 	if (flags & NFTA_FIB_F_PRESENT) {
+-	expr = expr_alloc(loc, EXPR_FIB, type,
+-			  BYTEORDER_HOST_ENDIAN, len);
++	expr = expr_alloc(loc, EXPR_FIB, type, bo, len);
+ 
+ 	expr->fib.result = result;
+ 	expr->fib.flags	= flags;
 diff --git a/src/intervals.c b/src/intervals.c
-index 6a917b7b79c3f..7f3d2252fcadc 100644
+index a63c58ac96066..438957c52d391 100644
 --- a/src/intervals.c
 +++ b/src/intervals.c
-@@ -65,7 +65,7 @@ static void setelem_expr_to_range(struct expr *expr)
+@@ -42,8 +42,6 @@ static void setelem_expr_to_range(struct expr *expr)
+ 
+ 		mpz_init(rop);
+ 		mpz_bitmask(rop, expr->key->len - expr->key->prefix_len);
+-		if (expr_basetype(expr)->type == TYPE_STRING)
+-			mpz_switch_byteorder(expr->key->prefix->value, expr->len / BITS_PER_BYTE);
+ 
+ 		mpz_ior(rop, rop, expr->key->prefix->value);
+ 		key = constant_range_expr_alloc(&expr->location,
+@@ -57,9 +55,6 @@ static void setelem_expr_to_range(struct expr *expr)
  		expr->key = key;
  		break;
- 	default:
--		BUG("unhandled key type %s\n", expr_name(expr->key));
-+		BUG("unhandled key type %s", expr_name(expr->key));
- 	}
- }
- 
-@@ -221,7 +221,7 @@ static struct expr *interval_expr_key(struct expr *i)
- 		elem = i;
- 		break;
- 	default:
--		BUG("unhandled expression type %d\n", i->etype);
-+		BUG("unhandled expression type %d", i->etype);
- 		return NULL;
- 	}
- 
-@@ -751,7 +751,7 @@ static struct expr *setelem_key(struct expr *expr)
- 		key = expr->key;
- 		break;
- 	default:
--		BUG("unhandled expression type %d\n", expr->etype);
-+		BUG("unhandled expression type %d", expr->etype);
- 		return NULL;
- 	}
- 
-@@ -775,7 +775,7 @@ int setelem_to_interval(const struct set *set, struct expr *elem,
- 	}
- 
- 	if (key->etype != EXPR_RANGE_VALUE)
--		BUG("key must be RANGE_VALUE, not %s\n", expr_name(key));
-+		BUG("key must be RANGE_VALUE, not %s", expr_name(key));
- 
- 	assert(!next_key || next_key->etype == EXPR_RANGE_VALUE);
- 
+ 	case EXPR_VALUE:
+-		if (expr_basetype(expr)->type == TYPE_STRING)
+-			mpz_switch_byteorder(expr->key->value, expr->len / BITS_PER_BYTE);
+-
+ 		key = constant_range_expr_alloc(&expr->location,
+ 						expr->key->dtype,
+ 						expr->key->byteorder,
 diff --git a/src/json.c b/src/json.c
-index 46d8a73333374..e3688249f806a 100644
+index 0afce5415f541..46d8a73333374 100644
 --- a/src/json.c
 +++ b/src/json.c
-@@ -1117,7 +1117,7 @@ static json_t *datatype_json(const struct expr *expr, struct output_ctx *octx)
- 		}
- 	} while ((dtype = dtype->basetype));
+@@ -1220,7 +1220,7 @@ json_t *string_type_json(const struct expr *expr, struct output_ctx *octx)
+ 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
+ 	char data[len+1];
  
--	BUG("datatype %s has no print method or symbol table\n",
-+	BUG("datatype %s has no print method or symbol table",
- 	    expr->dtype->name);
- }
+-	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(data, expr->value, BYTEORDER_BIG_ENDIAN, len);
+ 	data[len] = '\0';
  
-@@ -2149,7 +2149,7 @@ int do_command_list_json(struct netlink_ctx *ctx, struct cmd *cmd)
- 		errno = EOPNOTSUPP;
- 		return -1;
- 	case CMD_OBJ_INVALID:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 		break;
- 	}
- 
-diff --git a/src/mergesort.c b/src/mergesort.c
-index 95037e5be8608..9984e272df580 100644
---- a/src/mergesort.c
-+++ b/src/mergesort.c
-@@ -48,7 +48,7 @@ static mpz_srcptr expr_msort_value(const struct expr *expr, mpz_t value)
- 		mpz_bitmask(value, expr->len);
- 		break;
- 	default:
--		BUG("Unknown expression %s\n", expr_name(expr));
-+		BUG("Unknown expression %s", expr_name(expr));
- 	}
- 	return value;
- }
+ 	return json_string(data);
+diff --git a/src/meta.c b/src/meta.c
+index c36486029cca8..4eccb2cadf3b0 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -370,7 +370,7 @@ const struct datatype ifname_type = {
+ 	.type		= TYPE_IFNAME,
+ 	.name		= "ifname",
+ 	.desc		= "network interface name",
+-	.byteorder	= BYTEORDER_HOST_ENDIAN,
++	.byteorder	= BYTEORDER_BIG_ENDIAN,
+ 	.size		= IFNAMSIZ * BITS_PER_BYTE,
+ 	.basetype	= &string_type,
+ };
+@@ -630,14 +630,14 @@ const struct meta_template meta_templates[] = {
+ 						4 * 8, BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_IIFNAME]	= META_TEMPLATE("iifname",   &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_IIFTYPE]	= META_TEMPLATE("iiftype",   &arphrd_type,
+ 						2 * 8, BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_OIF]		= META_TEMPLATE("oif",	     &ifindex_type,
+ 						4 * 8, BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_OIFNAME]	= META_TEMPLATE("oifname",   &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_OIFTYPE]	= META_TEMPLATE("oiftype",   &arphrd_type,
+ 						2 * 8, BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_SKUID]	= META_TEMPLATE("skuid",     &uid_type,
+@@ -650,10 +650,10 @@ const struct meta_template meta_templates[] = {
+ 						4 * 8, BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_BRI_IIFNAME]	= META_TEMPLATE("ibrname",  &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_BRI_OIFNAME]	= META_TEMPLATE("obrname",  &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_PKTTYPE]	= META_TEMPLATE("pkttype",   &pkttype_type,
+ 						BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
+@@ -676,10 +676,10 @@ const struct meta_template meta_templates[] = {
+ 						BITS_PER_BYTE, BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_IIFKIND]	= META_TEMPLATE("iifkind",   &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_OIFKIND]	= META_TEMPLATE("oifkind",   &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_BRI_IIFPVID]	= META_TEMPLATE("ibrpvid",   &integer_type,
+ 						2 * BITS_PER_BYTE,
+ 						BYTEORDER_HOST_ENDIAN),
+@@ -702,7 +702,7 @@ const struct meta_template meta_templates[] = {
+ 						BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_SDIFNAME]	= META_TEMPLATE("sdifname", &ifname_type,
+ 						IFNAMSIZ * BITS_PER_BYTE,
+-						BYTEORDER_HOST_ENDIAN),
++						BYTEORDER_BIG_ENDIAN),
+ 	[NFT_META_BRI_BROUTE]	= META_TEMPLATE("broute",   &integer_type,
+ 						1    , BYTEORDER_HOST_ENDIAN),
+ 	[NFT_META_BRI_IIFHWADDR] = META_TEMPLATE("ibrhwaddr", &etheraddr_type,
 diff --git a/src/mnl.c b/src/mnl.c
-index 6e32fc3467ce9..a2e555d4a8bf4 100644
+index ab4a7dbc8d252..6e32fc3467ce9 100644
 --- a/src/mnl.c
 +++ b/src/mnl.c
-@@ -740,18 +740,18 @@ static void nft_dev_add(struct nft_dev *dev_array, const struct expr *expr, int
- 	char ifname[IFNAMSIZ];
- 
- 	if (expr->etype != EXPR_VALUE)
--		BUG("Must be a value, not %s\n", expr_name(expr));
-+		BUG("Must be a value, not %s", expr_name(expr));
- 
- 	ifname_len = div_round_up(expr->len, BITS_PER_BYTE);
- 	memset(ifname, 0, sizeof(ifname));
- 
+@@ -748,7 +748,7 @@ static void nft_dev_add(struct nft_dev *dev_array, const struct expr *expr, int
  	if (ifname_len > sizeof(ifname))
--		BUG("Interface length %u exceeds limit\n", ifname_len);
-+		BUG("Interface length %u exceeds limit", ifname_len);
+ 		BUG("Interface length %u exceeds limit\n", ifname_len);
  
- 	mpz_export_data(ifname, expr->value, BYTEORDER_BIG_ENDIAN, ifname_len);
+-	mpz_export_data(ifname, expr->value, BYTEORDER_HOST_ENDIAN, ifname_len);
++	mpz_export_data(ifname, expr->value, BYTEORDER_BIG_ENDIAN, ifname_len);
  
  	if (strnlen(ifname, IFNAMSIZ) >= IFNAMSIZ)
--		BUG("Interface length %zu exceeds limit, no NUL byte\n", strnlen(ifname, IFNAMSIZ));
-+		BUG("Interface length %zu exceeds limit, no NUL byte", strnlen(ifname, IFNAMSIZ));
- 
- 	dev_array[i].ifname = xstrdup(ifname);
- 	dev_array[i].location = &expr->location;
-@@ -1734,7 +1734,7 @@ int mnl_nft_obj_add(struct netlink_ctx *ctx, struct cmd *cmd,
- 		obj_tunnel_add_opts(nlo, &obj->tunnel);
- 		break;
- 	default:
--		BUG("Unknown type %d\n", obj->type);
-+		BUG("Unknown type %d", obj->type);
- 		break;
- 	}
- 	netlink_dump_obj(nlo, ctx);
+ 		BUG("Interface length %zu exceeds limit, no NUL byte\n", strnlen(ifname, IFNAMSIZ));
 diff --git a/src/netlink.c b/src/netlink.c
-index 68228bdc5c99a..5be7feb17d84a 100644
+index 3258f9ab9056e..2a6caa9c76565 100644
 --- a/src/netlink.c
 +++ b/src/netlink.c
-@@ -125,7 +125,7 @@ struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
- 		elem = expr;
- 	}
- 	if (elem->etype != EXPR_SET_ELEM)
--		BUG("Unexpected expression type: got %d\n", elem->etype);
-+		BUG("Unexpected expression type: got %d", elem->etype);
+@@ -487,7 +487,7 @@ static void netlink_gen_chain(const struct expr *expr,
+ 	memset(chain, 0, sizeof(chain));
  
- 	key = elem->key;
- 
-@@ -227,7 +227,7 @@ struct nftnl_set_elem *alloc_nftnl_setelem(const struct expr *set,
- 					       nld.byteorder, nld.sizes);
- 			break;
- 		default:
--			BUG("unexpected set element expression\n");
-+			BUG("unexpected set element expression");
- 			break;
- 		}
- 	}
-@@ -347,7 +347,8 @@ static void nft_data_memcpy(struct nft_data_linearize *nld,
- 			    const void *src, unsigned int len)
- {
- 	if (len > sizeof(nld->value))
--		BUG("nld buffer overflow: want to copy %u, max %u\n", len, (unsigned int)sizeof(nld->value));
-+		BUG("nld buffer overflow: want to copy %u, max %u",
-+		    len, (unsigned int)sizeof(nld->value));
- 
- 	memcpy(nld->value, src, len);
- 	nld->len = len;
-@@ -606,7 +607,7 @@ static void netlink_gen_key(const struct expr *expr,
- 	case EXPR_PREFIX:
- 		return netlink_gen_prefix(expr, data);
- 	default:
--		BUG("invalid data expression type %s\n", expr_name(expr));
-+		BUG("invalid data expression type %s", expr_name(expr));
- 	}
+ 	mpz_export_data(chain, expr->chain->value,
+-			BYTEORDER_HOST_ENDIAN, len);
++			BYTEORDER_BIG_ENDIAN, len);
+ 	snprintf(data->chain, NFT_CHAIN_MAXNAMELEN, "%s", chain);
  }
  
-@@ -629,7 +630,7 @@ static void __netlink_gen_data(const struct expr *expr,
- 	case EXPR_PREFIX:
- 		return netlink_gen_prefix(expr, data);
- 	default:
--		BUG("invalid data expression type %s\n", expr_name(expr));
-+		BUG("invalid data expression type %s", expr_name(expr));
+@@ -623,7 +623,7 @@ static struct expr *netlink_alloc_verdict(const struct location *loc,
+ 	case NFT_JUMP:
+ 	case NFT_GOTO:
+ 		chain = constant_expr_alloc(loc, &string_type,
+-					    BYTEORDER_HOST_ENDIAN,
++					    BYTEORDER_BIG_ENDIAN,
+ 					    strlen(nld->chain) * BITS_PER_BYTE,
+ 					    nld->chain);
+ 		break;
+@@ -1376,9 +1376,8 @@ static struct expr *concat_elem_expr(const struct set *set, struct expr *key,
+ 		expr->byteorder = subtype->byteorder;
  	}
- }
  
+-	if (expr_basetype(expr)->type == TYPE_STRING ||
+-	    (!(set->flags & NFT_SET_INTERVAL) &&
+-	     expr->byteorder == BYTEORDER_HOST_ENDIAN))
++	if (!(set->flags & NFT_SET_INTERVAL) &&
++	    expr->byteorder == BYTEORDER_HOST_ENDIAN)
+ 		mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
+ 
+ 	if (expr->dtype->basetype != NULL &&
+@@ -1623,8 +1622,7 @@ int netlink_delinearize_setelem(struct netlink_ctx *ctx,
+ 
+ 		data = netlink_alloc_value(&netlink_location, &nld);
+ 		data->dtype = &string_type;
+-		data->byteorder = BYTEORDER_HOST_ENDIAN;
+-		mpz_switch_byteorder(data->value, data->len / BITS_PER_BYTE);
++		data->byteorder = BYTEORDER_BIG_ENDIAN;
+ 		expr = mapping_expr_alloc(&netlink_location, expr, data);
+ 	}
+ out:
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 54be0682b0899..3f79463c25f76 100644
+index 990edc824ad9e..54be0682b0899 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -2474,7 +2474,7 @@ static void binop_adjust_one(const struct expr *binop, struct expr *value,
- 		value->len = left->len;
- 		break;
- 	default:
--		BUG("unknown expression type %s\n", expr_name(left));
-+		BUG("unknown expression type %s", expr_name(left));
- 		break;
- 	}
- }
-@@ -2505,7 +2505,8 @@ static void binop_adjust(const struct expr *binop, struct expr *right,
- 				binop_adjust(binop, i->key->key, shift);
- 				break;
- 			default:
--				BUG("unknown expression type %s\n", expr_name(i->key));
-+				BUG("unknown expression type %s",
-+				    expr_name(i->key));
- 			}
- 		}
- 		break;
-@@ -2514,7 +2515,7 @@ static void binop_adjust(const struct expr *binop, struct expr *right,
- 		binop_adjust_one(binop, right->right, shift);
- 		break;
- 	default:
--		BUG("unknown expression type %s\n", expr_name(right));
-+		BUG("unknown expression type %s", expr_name(right));
- 		break;
- 	}
- }
-@@ -2645,7 +2646,7 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx,
- 			expr->op = OP_NEG;
- 			break;
- 		default:
--			BUG("unknown operation type %d\n", expr->op);
-+			BUG("unknown operation type %d", expr->op);
- 		}
- 		expr_free(binop);
- 	} else if (datatype_prefix_notation(binop->left->dtype) &&
-@@ -3051,7 +3052,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 		ct_expr_update_type(&dl->pctx, expr);
- 		break;
- 	default:
--		BUG("unknown expression type %s\n", expr_name(expr));
-+		BUG("unknown expression type %s", expr_name(expr));
- 	}
+@@ -1876,7 +1876,7 @@ static void netlink_parse_objref(struct netlink_parse_ctx *ctx,
+ 					   &nld.len);
+ 		expr = netlink_alloc_value(&netlink_location, &nld);
+ 		datatype_set(expr, &string_type);
+-		expr->byteorder = BYTEORDER_HOST_ENDIAN;
++		expr->byteorder = BYTEORDER_BIG_ENDIAN;
+ 	} else if (nftnl_expr_is_set(nle, NFTNL_EXPR_OBJREF_SET_SREG)) {
+ 		struct expr *left, *right;
+ 		enum nft_registers sreg;
+@@ -1905,7 +1905,7 @@ static void netlink_parse_objref(struct netlink_parse_ctx *ctx,
+ 
+ 		right = set_ref_expr_alloc(loc, set);
+ 		expr = map_expr_alloc(loc, left, right);
+-		expr_set_type(expr, &string_type, BYTEORDER_HOST_ENDIAN);
++		expr_set_type(expr, &string_type, BYTEORDER_BIG_ENDIAN);
+ 		type = set->objtype;
+ 	} else {
+ 		netlink_error(ctx, loc, "unknown objref expression type %u",
+@@ -2752,12 +2752,12 @@ static struct expr *string_wildcard_expr_alloc(struct location *loc,
+ 	char data[len + 2];
+ 	int pos;
+ 
+-	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(data, expr->value, BYTEORDER_BIG_ENDIAN, len);
+ 	pos = div_round_up(expr_mask_to_prefix(mask), BITS_PER_BYTE);
+ 	data[pos] = '*';
+ 	data[pos + 1] = '\0';
+ 
+-	return constant_expr_alloc(loc, expr->dtype, BYTEORDER_HOST_ENDIAN,
++	return constant_expr_alloc(loc, expr->dtype, BYTEORDER_BIG_ENDIAN,
+ 				   expr->len + BITS_PER_BYTE, data);
  }
  
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 36a539bf96283..ac0eaff9a23ca 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -76,7 +76,7 @@ static enum nft_registers __get_register(struct netlink_linearize_ctx *ctx,
+@@ -2770,7 +2770,7 @@ static bool __expr_postprocess_string(struct expr **exprp)
+ 	unsigned int len = div_round_up(expr->len, BITS_PER_BYTE);
+ 	char data[len + 1];
  
- 	n = netlink_register_space(size);
- 	if (ctx->reg_low + n > NFT_REG_1 + NFT_REG32_15 - NFT_REG32_00 + 1)
--		BUG("register reg_low %u invalid\n", ctx->reg_low);
-+		BUG("register reg_low %u invalid", ctx->reg_low);
+-	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
++	mpz_export_data(data, expr->value, BYTEORDER_BIG_ENDIAN, len);
  
- 	reg = ctx->reg_low;
- 	ctx->reg_low += n;
-@@ -90,7 +90,7 @@ static void __release_register(struct netlink_linearize_ctx *ctx,
+ 	if (data[len - 1] != '\0')
+ 		return false;
+@@ -2781,7 +2781,7 @@ static bool __expr_postprocess_string(struct expr **exprp)
+ 		data[len]	= '*';
+ 		data[len + 1]	= '\0';
+ 		expr = constant_expr_alloc(&expr->location, expr->dtype,
+-					   BYTEORDER_HOST_ENDIAN,
++					   BYTEORDER_BIG_ENDIAN,
+ 					   (len + 2) * BITS_PER_BYTE, data);
+ 		expr_free(*exprp);
+ 		*exprp = expr;
+@@ -2799,7 +2799,7 @@ static struct expr *expr_postprocess_string(struct expr *expr)
+ 		return expr;
  
- 	n = netlink_register_space(size);
- 	if (ctx->reg_low < NFT_REG_1 + n)
--		BUG("register reg_low %u invalid\n", ctx->reg_low);
-+		BUG("register reg_low %u invalid", ctx->reg_low);
+ 	mask = constant_expr_alloc(&expr->location, &integer_type,
+-				   BYTEORDER_HOST_ENDIAN,
++				   BYTEORDER_BIG_ENDIAN,
+ 				   expr->len + BITS_PER_BYTE, NULL);
+ 	mpz_clear(mask->value);
+ 	mpz_init_bitmask(mask->value, expr->len);
+diff --git a/src/osf.c b/src/osf.c
+index a8f80b2bbaacb..2ff8490ae1790 100644
+--- a/src/osf.c
++++ b/src/osf.c
+@@ -75,8 +75,7 @@ struct expr *osf_expr_alloc(const struct location *loc, const uint8_t ttl,
+ 	const struct datatype *type = &string_type;
+ 	struct expr *expr;
  
- 	ctx->reg_low -= n;
- }
-@@ -457,7 +457,7 @@ static enum nft_cmp_ops netlink_gen_cmp_op(enum ops op)
- 	case OP_GTE:
- 		return NFT_CMP_GTE;
- 	default:
--		BUG("invalid comparison operation %u\n", op);
-+		BUG("invalid comparison operation %u", op);
- 	}
- }
+-	expr = expr_alloc(loc, EXPR_OSF, type,
+-			  BYTEORDER_HOST_ENDIAN, len);
++	expr = expr_alloc(loc, EXPR_OSF, type, BYTEORDER_BIG_ENDIAN, len);
+ 	expr->osf.ttl = ttl;
+ 	expr->osf.flags = flags;
  
-@@ -521,7 +521,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 		nft_rule_add_expr(ctx, nle, &expr->location);
- 		break;
- 	default:
--		BUG("invalid range operation %u\n", expr->op);
-+		BUG("invalid range operation %u", expr->op);
- 
- 	}
- 
-@@ -606,7 +606,7 @@ static void netlink_gen_relational(struct netlink_linearize_ctx *ctx,
- 	case OP_NEG:
- 		break;
- 	default:
--		BUG("invalid relational operation %u\n", expr->op);
-+		BUG("invalid relational operation %u", expr->op);
- 	}
- 
- 	switch (expr->right->etype) {
-@@ -741,7 +741,7 @@ static void netlink_gen_bitwise_mask_xor(struct netlink_linearize_ctx *ctx,
- 			combine_binop(mask, xor, tmp, val);
- 			break;
- 		default:
--			BUG("invalid binary operation %u\n", i->op);
-+			BUG("invalid binary operation %u", i->op);
- 		}
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 3c21c7584d01f..8e34b86a0f400 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -176,7 +176,7 @@ static struct expr *ifname_expr_alloc(const struct location *location,
+ 		return NULL;
  	}
  
-@@ -789,7 +789,7 @@ static void netlink_gen_bitwise_bool(struct netlink_linearize_ctx *ctx,
- 		nftnl_expr_set_u32(nle, NFTNL_EXPR_BITWISE_OP, NFT_BITWISE_OR);
- 		break;
- 	default:
--		BUG("invalid binary operation %u\n", expr->op);
-+		BUG("invalid binary operation %u", expr->op);
- 	}
+-	expr = constant_expr_alloc(location, &ifname_type, BYTEORDER_HOST_ENDIAN,
++	expr = constant_expr_alloc(location, &ifname_type, BYTEORDER_BIG_ENDIAN,
+ 				   length * BITS_PER_BYTE, name);
  
- 	netlink_gen_expr(ctx, expr->left, dreg);
-@@ -833,7 +833,7 @@ static enum nft_byteorder_ops netlink_gen_unary_op(enum ops op)
- 	case OP_NTOH:
- 		return NFT_BYTEORDER_NTOH;
- 	default:
--		BUG("invalid unary operation %u\n", op);
-+		BUG("invalid unary operation %u", op);
- 	}
- }
+ 	free_const(name);
+@@ -2800,7 +2800,7 @@ extended_prio_spec	:	int_num
+ 				struct prio_spec spec = {0};
  
-@@ -961,7 +961,7 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
- 	case EXPR_XFRM:
- 		return netlink_gen_xfrm(ctx, expr, dreg);
- 	default:
--		BUG("unknown expression type %s\n", expr_name(expr));
-+		BUG("unknown expression type %s", expr_name(expr));
- 	}
- }
+ 				spec.expr = constant_expr_alloc(&@$, &string_type,
+-								BYTEORDER_HOST_ENDIAN,
++								BYTEORDER_BIG_ENDIAN,
+ 								strlen($1) * BITS_PER_BYTE,
+ 								$1);
+ 				free_const($1);
+@@ -2813,7 +2813,7 @@ extended_prio_spec	:	int_num
+ 				char str[NFT_NAME_MAXLEN];
+ 				snprintf(str, sizeof(str), "%s + %" PRIu64, $1, $3);
+ 				spec.expr = constant_expr_alloc(&@$, &string_type,
+-								BYTEORDER_HOST_ENDIAN,
++								BYTEORDER_BIG_ENDIAN,
+ 								strlen(str) * BITS_PER_BYTE,
+ 								str);
+ 				free_const($1);
+@@ -2826,7 +2826,7 @@ extended_prio_spec	:	int_num
  
-@@ -994,7 +994,7 @@ static void netlink_gen_objref_stmt(struct netlink_linearize_ctx *ctx,
- 				   stmt->objref.type);
- 		break;
- 	default:
--		BUG("unsupported expression %u\n", expr->etype);
-+		BUG("unsupported expression %u", expr->etype);
- 	}
- 	nft_rule_add_expr(ctx, nle, &expr->location);
- }
-@@ -1082,7 +1082,7 @@ struct nftnl_expr *netlink_gen_stmt_stateful(const struct stmt *stmt)
- 	case STMT_LAST:
- 		return netlink_gen_last_stmt(stmt);
- 	default:
--		BUG("unknown stateful statement type %d\n", stmt->type);
-+		BUG("unknown stateful statement type %d", stmt->type);
- 	}
- }
+ 				snprintf(str, sizeof(str), "%s - %" PRIu64, $1, $3);
+ 				spec.expr = constant_expr_alloc(&@$, &string_type,
+-								BYTEORDER_HOST_ENDIAN,
++								BYTEORDER_BIG_ENDIAN,
+ 								strlen(str) * BITS_PER_BYTE,
+ 								str);
+ 				free_const($1);
+@@ -5471,7 +5471,7 @@ chain_expr		:	variable_expr
+ 			|	identifier
+ 			{
+ 				$$ = constant_expr_alloc(&@$, &string_type,
+-							 BYTEORDER_HOST_ENDIAN,
++							 BYTEORDER_BIG_ENDIAN,
+ 							 strlen($1) * BITS_PER_BYTE,
+ 							 $1);
+ 				free_const($1);
+diff --git a/src/parser_json.c b/src/parser_json.c
+index e78262505d243..a7d6a0f5997c1 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -1412,7 +1412,7 @@ static struct expr *json_alloc_chain_expr(const char *chain)
+ 	if (!chain)
+ 		return NULL;
  
-@@ -1241,7 +1241,7 @@ static unsigned int nat_addrlen(uint8_t family)
- 	case NFPROTO_IPV6: return 128;
- 	}
- 
--	BUG("invalid nat family %u\n", family);
-+	BUG("invalid nat family %u", family);
- 	return 0;
+-	return constant_expr_alloc(int_loc, &string_type, BYTEORDER_HOST_ENDIAN,
++	return constant_expr_alloc(int_loc, &string_type, BYTEORDER_BIG_ENDIAN,
+ 				   strlen(chain) * BITS_PER_BYTE, chain);
  }
  
-@@ -1284,7 +1284,7 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 		nftnl_reg_pmax = NFTNL_EXPR_REDIR_REG_PROTO_MAX;
- 		break;
- 	default:
--		BUG("unknown nat type %d\n", stmt->nat.type);
-+		BUG("unknown nat type %d", stmt->nat.type);
- 		break;
+@@ -3020,7 +3020,7 @@ static struct expr *ifname_expr_alloc(struct json_ctx *ctx,
+ 		return NULL;
  	}
  
-@@ -1772,7 +1772,7 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 	case STMT_OPTSTRIP:
- 		return netlink_gen_optstrip_stmt(ctx, stmt);
- 	default:
--		BUG("unknown statement type %d\n", stmt->type);
-+		BUG("unknown statement type %d", stmt->type);
- 	}
- }
- 
-diff --git a/src/optimize.c b/src/optimize.c
-index ffc06480d4ee5..17084a84d4655 100644
---- a/src/optimize.c
-+++ b/src/optimize.c
-@@ -1181,7 +1181,7 @@ static void rule_optimize_print(struct output_ctx *octx,
- 	case INDESC_NETLINK:
- 		break;
- 	default:
--		BUG("invalid input descriptor type %u\n", indesc->type);
-+		BUG("invalid input descriptor type %u", indesc->type);
- 	}
- 
- 	print_location(octx->error_fp, indesc, loc);
-diff --git a/src/rule.c b/src/rule.c
-index d0a62a3ee002d..14184a70675b7 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1450,7 +1450,7 @@ void cmd_free(struct cmd *cmd)
- 			flowtable_free(cmd->flowtable);
- 			break;
- 		default:
--			BUG("invalid command object type %u\n", cmd->obj);
-+			BUG("invalid command object type %u", cmd->obj);
- 		}
- 	}
- 	free(cmd->attr);
-@@ -1549,7 +1549,7 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
- 	case CMD_OBJ_FLOWTABLE:
- 		return mnl_nft_flowtable_add(ctx, cmd, flags);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -1560,7 +1560,7 @@ static int do_command_replace(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_RULE:
- 		return mnl_nft_rule_replace(ctx, cmd);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -1576,7 +1576,7 @@ static int do_command_insert(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_RULE:
- 		return mnl_nft_rule_add(ctx, cmd, flags);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -1630,7 +1630,7 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_FLOWTABLE:
- 		return mnl_nft_flowtable_del(ctx, cmd);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- }
- 
-@@ -2654,7 +2654,7 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 		break;
- 	}
- 
--	BUG("invalid command object type %u\n", cmd->obj);
-+	BUG("invalid command object type %u", cmd->obj);
- 	return 0;
- }
- 
-@@ -2694,7 +2694,7 @@ static int do_command_get(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_ELEMENTS:
- 		return do_get_setelems(ctx, cmd, false);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 
- 	return 0;
-@@ -2725,7 +2725,7 @@ static int do_command_flush(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_RULESET:
- 		return mnl_nft_table_del(ctx, cmd);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -2743,7 +2743,7 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 		return mnl_nft_chain_rename(ctx, cmd, chain);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
- 	return 0;
- }
-@@ -2830,7 +2830,7 @@ int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_DESCRIBE:
- 		return do_command_describe(ctx, cmd, &ctx->nft->output);
- 	default:
--		BUG("invalid command object type %u\n", cmd->obj);
-+		BUG("invalid command object type %u", cmd->obj);
- 	}
+-	return constant_expr_alloc(int_loc, &ifname_type, BYTEORDER_HOST_ENDIAN,
++	return constant_expr_alloc(int_loc, &ifname_type, BYTEORDER_BIG_ENDIAN,
+ 				   length * BITS_PER_BYTE, name);
  }
  
 diff --git a/src/segtree.c b/src/segtree.c
-index 7d4c50f499ef7..3758193efe3fc 100644
+index 88207a3987b8f..b9c35dcb297ce 100644
 --- a/src/segtree.c
 +++ b/src/segtree.c
-@@ -120,7 +120,7 @@ static struct expr *expr_value(struct expr *expr)
- 	case EXPR_VALUE:
- 		return expr;
+@@ -33,7 +33,7 @@ static enum byteorder get_key_byteorder(const struct expr *e)
+ 		 */
+ 		return BYTEORDER_BIG_ENDIAN;
+ 	case TYPE_STRING:
+-		return BYTEORDER_HOST_ENDIAN;
++		return BYTEORDER_BIG_ENDIAN;
  	default:
--		BUG("invalid expression type %s\n", expr_name(expr));
-+		BUG("invalid expression type %s", expr_name(expr));
+ 		break;
  	}
- }
+@@ -201,7 +201,7 @@ static struct expr *expr_to_set_elem(struct expr *e)
+ 	data[str_len] = '*';
  
-diff --git a/src/statement.c b/src/statement.c
-index 20241f6867a31..d0993ddeac3b3 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -1138,7 +1138,7 @@ const struct stmt_ops *stmt_ops(const struct stmt *stmt)
+ 	expr = constant_expr_alloc(&e->location, e->dtype,
+-				   BYTEORDER_HOST_ENDIAN,
++				   BYTEORDER_BIG_ENDIAN,
+ 				   (str_len + 1) * BITS_PER_BYTE, data);
  
- 	ops = __stmt_ops_by_type(stmt->type);
- 	if (!ops)
--		BUG("Unknown statement type %d\n", stmt->type);
-+		BUG("Unknown statement type %d", stmt->type);
+ 	return __expr_to_set_elem(e, expr);
+@@ -412,11 +412,11 @@ void concat_range_aggregate(struct expr *set)
+ 				unsigned int str_len = prefix_len / BITS_PER_BYTE;
+ 				char data[str_len + 2];
  
- 	return ops;
- }
+-				mpz_export_data(data, r1->value, BYTEORDER_HOST_ENDIAN, str_len);
++				mpz_export_data(data, r1->value, BYTEORDER_BIG_ENDIAN, str_len);
+ 				data[str_len] = '*';
+ 
+ 				tmp = constant_expr_alloc(&r1->location, r1->dtype,
+-							  BYTEORDER_HOST_ENDIAN,
++							  BYTEORDER_BIG_ENDIAN,
+ 							  (str_len + 1) * BITS_PER_BYTE, data);
+ 				tmp->len = r2->len;
+ 				list_replace(&r2->list, &tmp->list);
+@@ -495,7 +495,7 @@ static struct expr *interval_to_string(struct expr *low, struct expr *i, const m
+ 	data[str_len] = '*';
+ 
+ 	expr = constant_expr_alloc(&low->location, low->dtype,
+-				   BYTEORDER_HOST_ENDIAN,
++				   BYTEORDER_BIG_ENDIAN,
+ 				   len * BITS_PER_BYTE, data);
+ 
+ 	return __expr_to_set_elem(low, expr);
 -- 
 2.51.0
 
