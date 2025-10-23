@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9041F295DBD
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2025 16:14:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E269299A8C
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2025 16:14:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761236073; cv=none; b=N74A55ZBD7GSDX1RsT9z6Ok6KQFUt/SLSD4S/7/gZqPnBKGNpcMWSV06FjBP68nW2URgTEROywmfXq4miwCNXtDbU0sXNdHA/15SN7zXEhWiJ0xX1s6nUq6Cyaks5uskE+CV8g2WZ6ANXAvAaI8rpqO/aG3LKMysNKPleeCFlOo=
+	t=1761236076; cv=none; b=jszFdI8tzwh25nZ0p4OH/BFP19+vCVAQ4u8PU8VnCVfR9jtydl6agVF6cfa8ZPKQTpY8gu1eHyZ20hMFA1l4CIBNni+bD0Xz4jJKAEaIt9Ng5tppLYBElIgHUUQubTNGFSMo6/zM3297jEGJzelOEtDOmdnB+67Myn28pogIFMo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761236073; c=relaxed/simple;
-	bh=qbNbDpD1iQYK+1LsgL4BauNp5A7S6yo4hPhwfXC9zMg=;
+	s=arc-20240116; t=1761236076; c=relaxed/simple;
+	bh=xDcHzCrvdjfpq2ztWxHKFt3j3xweM5k8BclVjZkF4tM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=o/HdkjeFlhAR655T25KbgD3PIKJtKFUUejHpq3TfSVxUmSBN2+8BET6aeubDFCGAHXj3wqUGZOzlWdMY2x9h8ponxN+iyrvM3ehwGVaO36IQ48SnLovnXbcgNYBDvtLA3uzxCpLZRyqr9Z83upJUsXWN/nRNJ7j9Py3OkZPyMhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=LGw3RW43; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=sqijKMHJQDbTp1W+ZD0z8f6lhEt+/w/qe1LjxL0+Vl5YxjiXdICf1pvSsq2JxdSlgPNdydij6oLHYUr5xBiZreI53G0pgqXoBFsHcHzo7NC2WlRbHsIR+6q/frvsmkWZGZ+BAoq4FkufQ2RMINu7x0JY/cNZhl5wR917hKaDVdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=nbFE/mcP; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="LGw3RW43"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="nbFE/mcP"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=c1/RhZqpms5iQmq3j3l7D0N3FKIWGA6jo8x4ZSPh1FA=; b=LGw3RW43wUZSplQYt2BsfDJD2b
-	FtTHhjNM/4j5uQI3psv2bcpODg3IIJ6lgCl0C2kir8I6tsP/OwvtHdW4LKiqb7TgZmOIklTIQnPSp
-	4tN8lAcvXh0bM6893gUdoz6nofyFRe1k97lLwdV5NMQlVFsXrgwmresg4+URkyCQw4uQpMQ3deSII
-	O7QhfWc+y0AgIwIp6gpoAJ0talzvdX21GqJ9i9qdRgNXJu0jpdi+p5TRf9aOoPX1UXC6tlwAZDSX6
-	TkN/HbLaM32ECA75QrySf9DEsdMfT96WSyBsnwsUbUeXSCkJMEPVmPVPE9HmIwt5iXqsatdFF39I8
-	LM8WQawg==;
+	bh=/5YDhAPOqkq6JThf3in/RYCOpjWeah5x8JrGlkFvirY=; b=nbFE/mcPG19TsVXpd4nOhrCSa7
+	lFlez7s754Qps2nZIut0tEo7FCSRVIE1ZVt1x+qrCOW+/qFAKNILMF8/wUsMt/dmZg9He8dDhEaMf
+	tJpogxV+EOeWGGup813JyfZMraTqR3Nc5GTu09mr7wMB9vod8ORBAzgAX5vS9ZZ74VvNmIvj4466D
+	Vrmwiw5/w1oVJr8Tz29Dy4nCQfnyM7mJ5N+M9UBCPxHbZ7gkfz7Icu9OjxU0G3J087cSZbOL/+MMS
+	Iyz1ID7BtkbmJchhxSMDVqQwkVQu3HnCWlKsr2SZaZkbzQEvW4BKrfSRGetoexGrIDO9ZdLnlj1rl
+	WTX61Njw==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1vBxxN-0000000005T-0IQW;
-	Thu, 23 Oct 2025 18:14:29 +0200
+	id 1vBxxO-0000000005Y-2HW3;
+	Thu, 23 Oct 2025 18:14:31 +0200
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 24/28] tests: py: tools: Add regen_payloads.sh
-Date: Thu, 23 Oct 2025 18:14:13 +0200
-Message-ID: <20251023161417.13228-25-phil@nwl.cc>
+Subject: [nft PATCH 02/28] optimize: Fix verdict expression comparison
+Date: Thu, 23 Oct 2025 18:13:51 +0200
+Message-ID: <20251023161417.13228-3-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251023161417.13228-1-phil@nwl.cc>
 References: <20251023161417.13228-1-phil@nwl.cc>
@@ -52,94 +52,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use this script to recreate all payload records.
+In verdict expression, 'chain' points at a constant expression of
+verdict_type, not a symbol expression. Therefore 'chain->identifier'
+points eight bytes (on 64bit systems) into the mpz_t 'value' holding the
+chain name. This matches the '_mp_d' data pointer, so works by accident.
 
+Fix this by copying what verdict_jump_chain_print() does and export
+chain names before comparing.
+
+Fixes: fb298877ece27 ("src: add ruleset optimization infrastructure")
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- tests/py/tools/regen_payloads.sh | 74 ++++++++++++++++++++++++++++++++
- 1 file changed, 74 insertions(+)
- create mode 100755 tests/py/tools/regen_payloads.sh
+ src/optimize.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/tests/py/tools/regen_payloads.sh b/tests/py/tools/regen_payloads.sh
-new file mode 100755
-index 0000000000000..9fcbc2c0912a5
---- /dev/null
-+++ b/tests/py/tools/regen_payloads.sh
-@@ -0,0 +1,74 @@
-+#!/bin/bash
+diff --git a/src/optimize.c b/src/optimize.c
+index cdd6913a306dd..ffc06480d4ee5 100644
+--- a/src/optimize.c
++++ b/src/optimize.c
+@@ -341,13 +341,18 @@ static bool __stmt_type_eq(const struct stmt *stmt_a, const struct stmt *stmt_b,
+ 
+ static bool expr_verdict_eq(const struct expr *expr_a, const struct expr *expr_b)
+ {
++	char chain_a[NFT_CHAIN_MAXNAMELEN];
++	char chain_b[NFT_CHAIN_MAXNAMELEN];
 +
-+# update payload records in an automated fashion, trying to reduce diff sizes
-+
-+
-+# scan payloadfile and print record for cmd (if found)
-+find_payload() { # (payloadfile, cmd)
-+	local found=false
-+
-+	readarray -t pl <"$1"
-+	for l in "${pl[@]}"; do
-+		if [[ "$l" == "# "* ]]; then
-+			$found && return
-+			[[ "$l" == "$2" ]] && found=true
-+		fi
-+		$found && echo "$l"
-+	done
-+	$found || echo "Warning: Command '$2' not found in '$1'" >&2
-+}
-+
-+cd $(dirname $0)/../
-+
-+# make sure no stray output files get in the way
-+rm -f */*.got */*.gotgot
-+
-+# store payload records for later
-+# clear payload files to force regenerating (but leave them in place)
-+for pl in */*.payload*; do
-+	[[ $pl == *.bak ]] && continue # ignore leftover .bak files
-+	cp "$pl" "${pl}.bak"
-+	echo >"$pl"
-+done
-+
-+# run the testsuite to create .got files
-+# pass -f to keep going despite missing payloads
-+./nft-test.py -f
-+
-+# restore old payload records
-+for plbak in */*.bak; do
-+	mv "$plbak" "${plbak%.bak}"
-+done
-+
-+# sort created got files to match order in old payload records
-+for g in ${@:-*/*.payload*.got}; do
-+	pl=${g%.got}
-+
-+	[[ -f $g ]] || continue
-+	[[ -f $pl ]] || continue
-+
-+	readarray -t ploads <"$g"
-+	readarray -t cmds <<< $(grep '^# ' $pl)
-+	for cmd in "${cmds[@]}"; do
-+		found=false
-+		for l in "${ploads[@]}"; do
-+			if [[ "$l" == "# "* ]]; then
-+				$found && break
-+				[[ "$l" == "$cmd" ]] && found=true
-+			fi
-+			$found && [[ "$l" != "" ]] && echo "$l"
-+		done
-+		if ! $found; then
-+			echo "Warning: Command '$cmd' not found in '$g'" >&2
-+		else
-+			echo ""
-+		fi
-+	done | head -n -1 >${g}got
-+
-+	mv "${g}got" "${g}"
-+done
-+
-+# overwrite old payload records with new ones
-+for got in */*.payload*.got; do
-+	mv "${got}" "${got%.got}"
-+done
+ 	if (expr_a->verdict != expr_b->verdict)
+ 		return false;
+ 	if (expr_a->chain && expr_b->chain) {
+-		if (expr_a->chain->etype != expr_b->chain->etype)
++		if (expr_a->chain->etype != EXPR_VALUE ||
++		    expr_a->chain->etype != expr_b->chain->etype)
+ 			return false;
+-		if (expr_a->chain->etype == EXPR_VALUE &&
+-		    strcmp(expr_a->chain->identifier, expr_b->chain->identifier))
++		expr_chain_export(expr_a->chain, chain_a);
++		expr_chain_export(expr_b->chain, chain_b);
++		if (strcmp(chain_a, chain_b))
+ 			return false;
+ 	} else if (expr_a->chain || expr_b->chain) {
+ 		return false;
 -- 
 2.51.0
 
