@@ -1,27 +1,26 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 516EF30F927
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2025 12:09:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F240313544
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2025 12:19:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761221375; cv=none; b=uAcQ/7z8AfK70sCFO8X4ivN5ay8HZHLGSkvNcLtIYNI5QeWtveTZxwst1kmz6y98Do0tzy5L0qKPPgBSD3OUfNl9+JNlcWn3ShSzz2rLhAyvd2nUfI2ZJ+v7ER5ixh5ZhH+OBgE3TKb5hGuXf2ssZ3WaOGLqtxY0Sg1BEzVUhEk=
+	t=1761221984; cv=none; b=iL7MlwveVgFD0x+ThExYbu+T/dAeYD19dAeztAIWMMdvCiFh5pamZ/qgpimrfbzr6q+Sv6Soj2RpCcgQPW2y3lQmGiQuFNvEeWaiqagIzgcHIezXNQOy6nMx5tP9zQO2knKYRMWRKhl7vjvWCXYZl8dqkGxLqrnD+kPpExI4kRc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761221375; c=relaxed/simple;
-	bh=uqIpRImtukeQYvMPHbCP8DM2wd24krjBXEBJB4W8I3M=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=sfMvnKEELNVckXY5I4ZomdlyFYbqKaVnXtcJkT/Ult1umqxw4t5mUnhSmRXMt23oBNKl+h60xVdFw+OY1wvAjXeZeQr8nXdjGR4/pPoylL3wz5LyQeoL/kiKNq4GLYawkwIAX8oJubJOjHhyJA6i/UXhHOXXewvBB89D+6RWKbw=
+	s=arc-20240116; t=1761221984; c=relaxed/simple;
+	bh=oakxRBlXjXhYVeXEUDktigAlRQMgfhEsXh5ZQOXLm4U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Y023c/tRtlGHp2vaNgRowASPg0usumi9GgrB5/rCA8Fod7VQhXHc7DpiA9zRnUffSmJthdFLWahB9NHG6AbQdo2ELVPo6yJnh/GuqVa/1FUYBLXnqEBMh/sY7xGb/SgB9O1xX7+I6M/fvkH39iOTGcyW1qXTKOoo7NbI6FD53Yg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7A4A760627; Thu, 23 Oct 2025 14:09:31 +0200 (CEST)
+	id B0CB26046B; Thu, 23 Oct 2025 14:19:37 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Antonio Ojea <aojea@google.com>
-Subject: [PATCH nf] netfilter: nft_ct: enable labels for get case too
-Date: Thu, 23 Oct 2025 14:09:18 +0200
-Message-ID: <20251023120922.2847-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft v3] src: add refcount asserts
+Date: Thu, 23 Oct 2025 14:19:29 +0200
+Message-ID: <20251023121932.12812-1-fw@strlen.de>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -31,108 +30,214 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-conntrack labels can only be set when the conntrack has been created
-with the "ctlabel" extension.
+_get() functions must not be used when refcnt is 0, as expr_free()
+releases expressions on 1 -> 0 transition.
 
-For older iptables (connlabel match), adding an "-m connlabel" rule
-turns on the ctlabel extension allocation for all future conntrack
-entries.
+Also, check that a refcount would not overflow from UINT_MAX to 0.
+Use INT_MAX to also catch refcount leaks sooner, we don't expect
+2**31 get()s on same object.
 
-For nftables, its only enabled for 'ct label set foo', but not for
-'ct label foo' (i.e. check).
-But users could have a ruleset that only checks for presence, and rely
-on userspace to set a label bit via ctnetlink infrastructure.
+This helps catching use-after-free refcounting bugs even when nft
+is built without ASAN support.
 
-This doesn't work without adding a dummy 'ct label set' rule.
-We could also enable extension infra for the first (failing) ctnetlink
-request, but unlike ruleset we would not be able to disable the
-extension again.
+v3: use a macro + BUG to get more info without a coredump.
 
-Therefore turn on ctlabel extension allocation if an nftables ruleset
-checks for a connlabel too.
-
-Fixes: 1ad8f48df6f6 ("netfilter: nftables: add connlabel set support")
-Reported-by: Antonio Ojea <aojea@google.com>
-Closes: https://lore.kernel.org/netfilter-devel/aPi_VdZpVjWujZ29@strlen.de/
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_ct.c | 25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ include/rule.h   |  2 +-
+ include/utils.h  |  8 ++++++++
+ src/expression.c |  5 +++++
+ src/rule.c       | 14 ++++++++++++++
+ 4 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index d526e69a2a2b..a418eb3d612b 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -379,6 +379,14 @@ static bool nft_ct_tmpl_alloc_pcpu(void)
- }
- #endif
+diff --git a/include/rule.h b/include/rule.h
+index 8d2f29d09337..bcdc50cad59d 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -115,7 +115,7 @@ struct symbol {
+ 	struct list_head	list;
+ 	const char		*identifier;
+ 	struct expr		*expr;
+-	int			refcnt;
++	unsigned int		refcnt;
+ };
  
-+static void __nft_ct_get_destroy(const struct nft_ctx *ctx, struct nft_ct *priv)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_LABELS
-+	if (priv->key == NFT_CT_LABELS)
-+		nf_connlabels_put(ctx->net);
-+#endif
-+}
+ extern void symbol_bind(struct scope *scope, const char *identifier,
+diff --git a/include/utils.h b/include/utils.h
+index 474c7595f7cd..b1d11b8c26cb 100644
+--- a/include/utils.h
++++ b/include/utils.h
+@@ -6,6 +6,7 @@
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <assert.h>
++#include <limits.h>
+ #include <list.h>
+ #include <gmputil.h>
+ 
+@@ -39,6 +40,13 @@
+ #define __must_be_array(a) \
+ 	BUILD_BUG_ON_ZERO(__builtin_types_compatible_p(typeof(a), typeof(&a[0])))
+ 
++#define assert_refcount_safe(refcnt) do {						\
++	if ((refcnt) == 0)								\
++		BUG("refcount was 0\n");						\
++	if ((refcnt) >= INT_MAX)							\
++		BUG("refcount saturated\n");						\
++} while (0)
 +
- static int nft_ct_get_init(const struct nft_ctx *ctx,
- 			   const struct nft_expr *expr,
- 			   const struct nlattr * const tb[])
-@@ -413,6 +421,10 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 		if (tb[NFTA_CT_DIRECTION] != NULL)
- 			return -EINVAL;
- 		len = NF_CT_LABELS_MAX_SIZE;
-+
-+		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
-+		if (err)
-+			return err;
- 		break;
- #endif
- 	case NFT_CT_HELPER:
-@@ -494,7 +506,8 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 		case IP_CT_DIR_REPLY:
- 			break;
- 		default:
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto err;
- 		}
- 	}
+ #define container_of(ptr, type, member) ({			\
+ 	typeof( ((type *)0)->member ) *__mptr = (ptr);		\
+ 	(type *)( (void *)__mptr - offsetof(type,member) );})
+diff --git a/src/expression.c b/src/expression.c
+index 019c263f187b..6c7bebe0a3d1 100644
+--- a/src/expression.c
++++ b/src/expression.c
+@@ -68,6 +68,7 @@ struct expr *expr_clone(const struct expr *expr)
  
-@@ -502,11 +515,11 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 	err = nft_parse_register_store(ctx, tb[NFTA_CT_DREG], &priv->dreg, NULL,
- 				       NFT_DATA_VALUE, len);
- 	if (err < 0)
--		return err;
-+		goto err;
- 
- 	err = nf_ct_netns_get(ctx->net, ctx->family);
- 	if (err < 0)
--		return err;
-+		goto err;
- 
- 	if (priv->key == NFT_CT_BYTES ||
- 	    priv->key == NFT_CT_PKTS  ||
-@@ -514,6 +527,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 		nf_ct_set_acct(ctx->net, true);
- 
- 	return 0;
-+err:
-+	__nft_ct_get_destroy(ctx, priv);
-+	return err;
- }
- 
- static void __nft_ct_set_destroy(const struct nft_ctx *ctx, struct nft_ct *priv)
-@@ -626,6 +642,9 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- static void nft_ct_get_destroy(const struct nft_ctx *ctx,
- 			       const struct nft_expr *expr)
+ struct expr *expr_get(struct expr *expr)
  {
-+	struct nft_ct *priv = nft_expr_priv(expr);
++	assert_refcount_safe(expr->refcnt);
+ 	expr->refcnt++;
+ 	return expr;
+ }
+@@ -84,6 +85,8 @@ void expr_free(struct expr *expr)
+ {
+ 	if (expr == NULL)
+ 		return;
 +
-+	__nft_ct_get_destroy(ctx, priv);
- 	nf_ct_netns_put(ctx->net, ctx->family);
++	assert_refcount_safe(expr->refcnt);
+ 	if (--expr->refcnt > 0)
+ 		return;
+ 
+@@ -343,11 +346,13 @@ static void variable_expr_clone(struct expr *new, const struct expr *expr)
+ 	new->scope      = expr->scope;
+ 	new->sym	= expr->sym;
+ 
++	assert_refcount_safe(expr->sym->refcnt);
+ 	expr->sym->refcnt++;
  }
  
+ static void variable_expr_destroy(struct expr *expr)
+ {
++	assert_refcount_safe(expr->sym->refcnt);
+ 	expr->sym->refcnt--;
+ }
+ 
+diff --git a/src/rule.c b/src/rule.c
+index d0a62a3ee002..f51d605cc1ad 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -181,6 +181,7 @@ struct set *set_clone(const struct set *set)
+ 
+ struct set *set_get(struct set *set)
+ {
++	assert_refcount_safe(set->refcnt);
+ 	set->refcnt++;
+ 	return set;
+ }
+@@ -189,6 +190,7 @@ void set_free(struct set *set)
+ {
+ 	struct stmt *stmt, *next;
+ 
++	assert_refcount_safe(set->refcnt);
+ 	if (--set->refcnt > 0)
+ 		return;
+ 
+@@ -484,12 +486,14 @@ struct rule *rule_alloc(const struct location *loc, const struct handle *h)
+ 
+ struct rule *rule_get(struct rule *rule)
+ {
++	assert_refcount_safe(rule->refcnt);
+ 	rule->refcnt++;
+ 	return rule;
+ }
+ 
+ void rule_free(struct rule *rule)
+ {
++	assert_refcount_safe(rule->refcnt);
+ 	if (--rule->refcnt > 0)
+ 		return;
+ 	stmt_list_free(&rule->stmts);
+@@ -606,6 +610,7 @@ struct symbol *symbol_get(const struct scope *scope, const char *identifier)
+ 	if (!sym)
+ 		return NULL;
+ 
++	assert_refcount_safe(sym->refcnt);
+ 	sym->refcnt++;
+ 
+ 	return sym;
+@@ -613,6 +618,7 @@ struct symbol *symbol_get(const struct scope *scope, const char *identifier)
+ 
+ static void symbol_put(struct symbol *sym)
+ {
++	assert_refcount_safe(sym->refcnt);
+ 	if (--sym->refcnt == 0) {
+ 		free_const(sym->identifier);
+ 		expr_free(sym->expr);
+@@ -732,6 +738,7 @@ struct chain *chain_alloc(void)
+ 
+ struct chain *chain_get(struct chain *chain)
+ {
++	assert_refcount_safe(chain->refcnt);
+ 	chain->refcnt++;
+ 	return chain;
+ }
+@@ -741,6 +748,7 @@ void chain_free(struct chain *chain)
+ 	struct rule *rule, *next;
+ 	int i;
+ 
++	assert_refcount_safe(chain->refcnt);
+ 	if (--chain->refcnt > 0)
+ 		return;
+ 	list_for_each_entry_safe(rule, next, &chain->rules, list)
+@@ -1176,6 +1184,7 @@ void table_free(struct table *table)
+ 	struct set *set, *nset;
+ 	struct obj *obj, *nobj;
+ 
++	assert_refcount_safe(table->refcnt);
+ 	if (--table->refcnt > 0)
+ 		return;
+ 	if (table->comment)
+@@ -1214,6 +1223,7 @@ void table_free(struct table *table)
+ 
+ struct table *table_get(struct table *table)
+ {
++	assert_refcount_safe(table->refcnt);
+ 	table->refcnt++;
+ 	return table;
+ }
+@@ -1687,12 +1697,14 @@ struct obj *obj_alloc(const struct location *loc)
+ 
+ struct obj *obj_get(struct obj *obj)
+ {
++	assert_refcount_safe(obj->refcnt);
+ 	obj->refcnt++;
+ 	return obj;
+ }
+ 
+ void obj_free(struct obj *obj)
+ {
++	assert_refcount_safe(obj->refcnt);
+ 	if (--obj->refcnt > 0)
+ 		return;
+ 	free_const(obj->comment);
+@@ -2270,6 +2282,7 @@ struct flowtable *flowtable_alloc(const struct location *loc)
+ 
+ struct flowtable *flowtable_get(struct flowtable *flowtable)
+ {
++	assert_refcount_safe(flowtable->refcnt);
+ 	flowtable->refcnt++;
+ 	return flowtable;
+ }
+@@ -2278,6 +2291,7 @@ void flowtable_free(struct flowtable *flowtable)
+ {
+ 	int i;
+ 
++	assert_refcount_safe(flowtable->refcnt);
+ 	if (--flowtable->refcnt > 0)
+ 		return;
+ 	handle_free(&flowtable->handle);
 -- 
 2.51.0
 
