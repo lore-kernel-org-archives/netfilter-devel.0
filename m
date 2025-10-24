@@ -1,118 +1,76 @@
-Received: from dog.birch.relay.mailchannels.net (dog.birch.relay.mailchannels.net [23.83.209.48])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D994728DC4
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 02:53:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.209.48
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761274405; cv=pass; b=oACUFh4CNch2v/pK4zipxkLFoesIiLBTvSQKOzQ6rl2EHuYhXYJM2tYuo5dddS97PCCJ/ygbwNuDtYu9Tl6WDAPLxUPEqiyOloqymzGp9RY5X84bus/5kBT9cD6DPgkNXIawfBWOVKjiWE5tCyzxu9Z8rX4JS/8DB/1IAOapT6U=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761274405; c=relaxed/simple;
-	bh=MFTC1My9HLm1NA3WqkM92G2icscxCIf86SyxlPTWV84=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Sjh3xL5n1v1vVAuhpd5VvmejbAO5x6PLK9k+cYr4QVMPfeQHUujqSPTeEudmbsy5ecmzBqho9xvxoTcG3DNhaAKiIIVesluVwW7pvjAA/lKrx9zo+mlBBtDUnGb7/FKnsZO/Ske9KddaWzWZuxS9kYcSwUPCdCorzsw3/t3Spm4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.209.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
-X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 83F4C741CB0;
-	Fri, 24 Oct 2025 02:35:21 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-green-8.trex.outbound.svc.cluster.local [100.119.46.77])
-	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 0C40B741A51
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 02:35:20 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761273321; a=rsa-sha256;
-	cv=none;
-	b=Pvcwbxr2cNV65k0ZPH7qlMCzQX9KnIrEKEk2Iz4oR0V2FyIW9GpzZ2MjNnL5KlE3LdaH27
-	AzfoVFnrjip7ZJj71Ho7bjMaKnVnhbu44rwN4GuuKD+Ob4EpF2Xhv5y0ejEoycMc/F4oQc
-	m7CouKZlKD9Ara+gwi0Xg0+Oa9tVtOBPhyHjD5yK2tLMq3o6FUARn18g2a+F6i0hr7c2I1
-	27v00ZQvgNiAE2cmYdlu2AvnZKHUZH0LiLGJv9NK0vm6vJzzuQxm0V3N010ydZXNRN9xH4
-	5w4L+U9VnmekuJIZXQO5AJ9zTjRAWObKNrM+wb39/42ltyPUzpCP1dSs8iw8YQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1761273321;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=olvYycJ/TIclrChjRMyklsMe5qkR39WaBzl+id+427k=;
-	b=tJYgHo0Jd19EYltjGbuQha6sEy6ldcVEDiWMXLasoBJwtPc13tpD+TdHWqrAIRrwU27yNL
-	6EVPAa7ePCrY/+9fCykh7x2CZTPxeW27azM0B/ymUrxhjEfvm6uIALlEiju2IOd8l+47MS
-	azchd0+dVdK2rcuqeTpnlE/eGIRqSxsTu6BDWIr5FqpOMoDhH+j7RiC5FFhL5V0Lr88VIQ
-	S2pMjR864DLJKVzrYJdLDKg/CtsmNfoApF9g8uaALXhaWfiPx5/S/4THosDfB1X9eIrGNT
-	OGQnnvb2nKye54I6MDkD03LBHaGspTqrRwznmjtswYgCkWH+MHi1TvND+prirA==
-ARC-Authentication-Results: i=1;
-	rspamd-674f557ffc-d5fx4;
-	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
-X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
-X-MC-Relay: Neutral
-X-MC-Copy: stored-urls
-X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
-X-MailChannels-Auth-Id: instrampxe0y3a
-X-Battle-Versed: 46b33bb74ddb024f_1761273321429_4065605571
-X-MC-Loop-Signature: 1761273321429:769175294
-X-MC-Ingress-Time: 1761273321429
-Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
- [3.69.87.180])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.119.46.77 (trex/7.1.3);
-	Fri, 24 Oct 2025 02:35:21 +0000
-Received: from [212.104.214.84] (port=3820 helo=heisenberg.scientia.org)
-	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <calestyo@scientia.org>)
-	id 1vC7eD-0000000FtWW-21is
-	for netfilter-devel@vger.kernel.org;
-	Fri, 24 Oct 2025 02:35:19 +0000
-Received: by heisenberg.scientia.org (Postfix, from userid 1000)
-	id 159905AA5C08; Fri, 24 Oct 2025 04:35:17 +0200 (CEST)
-From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH 9/9] tools: let the unit fail if the rules file is missing
-Date: Fri, 24 Oct 2025 04:08:24 +0200
-Message-ID: <20251024023513.1000918-10-mail@christoph.anton.mitterer.name>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
-References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 897C71D6AA
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 11:02:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1761303764; cv=none; b=cojl3GsX9S9Lm/NakFDcVbOvFpWzNhyzYPtOuDlFzY9amY/0IUFVWxNWQJKRTyaEmpH1LuZXmnc8UYSJnUrXLhrh+Y8rv1ucuoGqzgDQA7bTQ8y+LhdVPdnB8A9EsZo0BqmYjXyONLS+VYxoRvWeqXFJ4xDUw5xnxKEliSLbeRk=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1761303764; c=relaxed/simple;
+	bh=Q3qFETzOwNsxQMU7nZRLlPhFu0gqPia4voXCLpQNhEM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=q+nt/hCQPbowN4Bkeg6/9nfjUxQEILjc7ZwtJ51jqicHQ5SBDZnp06CZJGI048WGAyq5g66mccxfAKggfxHr8Kts1LwvymVpf2Od1C2SCE2WOvRMS7yJpLLR3+mdqdN9f9WkmA/+/e+DrDjGRsJv45J1fWJRRoA3+0w7jGz48i4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 3CB0A60308; Fri, 24 Oct 2025 13:02:39 +0200 (CEST)
+Date: Fri, 24 Oct 2025 13:02:38 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	louis.t42@caramail.com
+Subject: Re: [PATCH nf] netfilter: nft_connlimit: fix stale read of
+ connection count
+Message-ID: <aPtctiRlb9Pg9sNQ@strlen.de>
+References: <20251023232037.3777-1-fmancera@suse.de>
+ <6b0de8f3-d03a-4f12-b2f8-c87aeeef4847@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-X-AuthUser: calestyo@scientia.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6b0de8f3-d03a-4f12-b2f8-c87aeeef4847@suse.de>
 
-The idea is that if `nftables.service` is enabled it’s likely meant to load
-firewall rules and shall thus rather fail loudly if that can’t be done because
-the rules file is (perhaps accidentally) missing.
-The default should be hardened/secure behaviour, so if someone actually wants
-the conditional a systemd drop-in configuration should be used in that case.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> On 10/24/25 1:20 AM, Fernando Fernandez Mancera wrote:
+> > nft_connlimit_eval() reads priv->list->count to check if the connection
+> > limit has been exceeded. This value can be cached by the CPU while it
+> > can be decremented by a different CPU when a connection is closed. This
+> > causes a data race as the value cached might be outdated.
+> > 
+> > When a new connection is established and evaluated by the connlimit
+> > expression, priv->list->count is incremented by nf_conncount_add(),
+> > triggering the CPU's cache coherency protocol and therefore refreshing
+> > the cached value before updating it.
+> > 
+> > Solve this situation by reading the value using READ_ONCE().
+> > 
+> > Fixes: df4a90250976 ("netfilter: nf_conncount: merge lookup and add functions")
+> > Closes: https://lore.kernel.org/netfilter/trinity-85c72a88-d762-46c3-be97-36f10e5d9796-1761173693813@3c-app-mailcom-bs12/
+> > Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> > ---
+> 
+> While at this, I have found another problem with connlimit although with 
+> this fix, it is partially mitigated. Since d265929930e2 ("netfilter: 
+> nf_conncount: reduce unnecessary GC"), if __nf_conncount_add() is called 
+> more than once during the same jiffy, the function won't check if the 
+> connection is already tracked and will be added right away incrementing 
+> the count. This can cause a situation where the count is greater than it 
+> should and can cause nft_connlimit to match wrongly for a few jiffies.
+> 
+> I am open to suggestions on how to fix this.. as currently I don't have 
+> a different one other than reverting the commit..
 
-If no rules shall be loaded by `nftables.service` it can simply be disabled (for
-example, when shipped as part of a downstream package that also contains the
-`nft` program).
+People are not supposed to use it in this way.
 
-Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
----
- tools/nftables.service.in | 2 --
- 1 file changed, 2 deletions(-)
+This is very expensive, there is a reason why iptables-extensions
+examples all use iptables --syn.
 
-diff --git a/tools/nftables.service.in b/tools/nftables.service.in
-index 0ad66b8c..81082882 100644
---- a/tools/nftables.service.in
-+++ b/tools/nftables.service.in
-@@ -10,8 +10,6 @@ DefaultDependencies=no
- 
- IgnoreOnIsolate=yes
- 
--ConditionPathExists=@pkgsysconfdir@/rules/main.nft
--
- 
- [Service]
- Type=oneshot
--- 
-2.51.0
+This needs a documentation fix.
 
+Or, we could revert df4a90250976 and then only _add for ctinfo NEW.
