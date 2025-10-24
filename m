@@ -1,32 +1,29 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 504A731A069
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 12:49:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAFB83195E8
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 12:55:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761310184; cv=none; b=bneD096M/PASsLoT1Ur4GjHlzUAqJ0XoPjU7EYRtVvtessLFNwghZ1SrMe/KsZ+ZaZ+qg+Ovz81zX2OahuIMywwGJUGT8hzSg0pRTYt3m3W+2Uvk9jka6Ks4hUUwWffAYuYsuJ7mIDrA6/+hWaaHolouRkVZbrM8WtpA1qS565U=
+	t=1761310515; cv=none; b=nc3IyIN8hzRKVlh/7O5ZmOyX9gQwc79v7MfksjUcbwHgfIQGNPpqDwAJ3EdXCebJMaXW2ecTrsDKQA/op2qqLWxJ8IHK7uk3d9FbWhzu3Tm4auQ/TSZIcHv7HQeQVUJS4xmzhYxt867M0a0IIzdmt6bVtPmgbicbKYvoYeRQQk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761310184; c=relaxed/simple;
-	bh=KaJhAg0c1ZvpOUrnEYRTN91DOKwwl1ZicweeQvFDd5U=;
+	s=arc-20240116; t=1761310515; c=relaxed/simple;
+	bh=VWmDnjVaoIE0K+LMieGP/Rfx6QA51bUdYJBkZUjFvco=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=I0lcGbMevZiWAivqwjWOZxS4Gem7tIMIho+45OzrHPpBPutjasCFaZlCIKKHhkKKsiSCmYViQUNu7PpzLbIyRixfqOMmeomkO3jxb1ogAbaHQLnRvEiGEDB8CHpGPWyjdmARftuUIlB0KrXgstJB+6U9xPyvHa14KHWTz2O7lCo=
+	 Content-Type:Content-Disposition:In-Reply-To; b=ugSL8D04zxX3uC8ZRvO2x30KdBmgGPSN+JbMygYPClNRJR7qu7XtssJnNLL08Oz9yCz7U+Ae7ov/kuiPHCMPYi+s/WU1IVsGQJo4NJX+R1gdqv12N51HNIsHaEFXUKuN/d2hIj61BmMGINwyBnHh5XdyvUU2vge7/1IdQ4UvasI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 04D8D60308; Fri, 24 Oct 2025 14:49:39 +0200 (CEST)
-Date: Fri, 24 Oct 2025 14:49:34 +0200
+	id 13BBA60308; Fri, 24 Oct 2025 14:55:12 +0200 (CEST)
+Date: Fri, 24 Oct 2025 14:55:11 +0200
 From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	louis.t42@caramail.com
-Subject: Re: [PATCH nf] netfilter: nft_connlimit: fix stale read of
- connection count
-Message-ID: <aPt13hRzJvTkkK4e@strlen.de>
-References: <20251023232037.3777-1-fmancera@suse.de>
- <aPtjnNZncIqh19Jl@strlen.de>
- <9d15bc0f-e41d-400b-9e3b-84f6ba1688f7@suse.de>
+To: Antonio Ojea <aojea@google.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nft_ct: enable labels for get case too
+Message-ID: <aPt3L9LboWOsalSv@strlen.de>
+References: <20251023120922.2847-1-fw@strlen.de>
+ <CAAdXToT6ZfaP3oxuYdVK9PWwWwuyHeaRuJdOX9sXoVenhtnAmg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,61 +32,35 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <9d15bc0f-e41d-400b-9e3b-84f6ba1688f7@suse.de>
+In-Reply-To: <CAAdXToT6ZfaP3oxuYdVK9PWwWwuyHeaRuJdOX9sXoVenhtnAmg@mail.gmail.com>
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> On 10/24/25 1:31 PM, Florian Westphal wrote:
-> > Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> >> nft_connlimit_eval() reads priv->list->count to check if the connection
-> >> limit has been exceeded. This value can be cached by the CPU while it
-> >> can be decremented by a different CPU when a connection is closed. This
-> >> causes a data race as the value cached might be outdated.
-> >>
-> >> When a new connection is established and evaluated by the connlimit
-> >> expression, priv->list->count is incremented by nf_conncount_add(),
-> >> triggering the CPU's cache coherency protocol and therefore refreshing
-> >> the cached value before updating it.
-> >>
-> >> Solve this situation by reading the value using READ_ONCE().
-> > 
-> > Hmm, I am not sure about this.
-> > 
-> > Patch looks correct (we read without holding a lock),
-> > but I don't see how compiler would emit different code here.
-> > 
-> > This patch makes no difference on my end, same code is emitted.
-> > 
-> > Can you show code before and after this patch on your side?
-> 
-> I did `make net/netfilter/nft_connlimit.s` for before and after, then I 
-> diffed both files with diff -u:
-> 
-> I see a difference on how count is being handled.
+Antonio Ojea <aojea@google.com> wrote:
+> Hi Florian, I'm trying to add a kselftest
 
-I'd apply this patch for correctness reasons. But I see no difference:
+Thanks!
 
-> @@ -984,19 +984,19 @@
->   # net/netfilter/nft_connlimit.c:46: 	if 
-> (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
->   	testl	%eax, %eax	# _30
->   	jne	.L65	#,
-> -# net/netfilter/nft_connlimit.c:51: 	count = priv->list->count;
-> -	movq	8(%rbx), %rax	# MEM[(struct nft_connlimit *)expr_2(D) + 8B].list, 
-> MEM[(struct nft_connlimit *)expr_2(D) + 8B].list
-> +# net/netfilter/nft_connlimit.c:51: 	count = READ_ONCE(priv->list->count);
-> +	movq	8(%rbx), %rax	# MEM[(struct nft_connlimit *)expr_2(D) + 8B].list, _31
-> +	movl	88(%rax), %eax	# MEM[(const volatile unsigned int *)_31 + 88B], _32
+> but it seems the conntrack
+> tool fails to add the label if the /etc/xtables/connlabel.conf file
+> does not exist. This is the behavior I'm observing:
+> - conntrack -U:
+>   - fails if the file does not exist
+>   - works if the file exists, but if the entry does not exist in the
+> file the tool throws an error but the label is added
+> - conntrack -L -o label
+>   - does not output the label if the file does not exist or is empty.
+>   - if the file exists and the ct entry label exists in the file, then
+> it's correctly displayed in conntrack -L
+>   - if the file exists but  the label is not present in the file, the
+> output has a labels statement but is empty
 
-old:
-movq    8(%rbx), %rax  
-movl    88(%rax), %eax
-cmpl    %eax, 16(%rbx) 
+Hmm, this isn't ideal, it should resort to a hexdump in that case
+(on -L), needs a fix.
 
-new:
-movq    8(%rbx), %rax
-movl    88(%rax), %eax
-cmpl    %eax, 16(%rbx)
+> Can you give me advice on how to proceed?
 
-same instruction sequence, only comments differ.
-Doesn't invalidate the patch however, we do read while not holding
-any locks so this READ_ONCE annotation is needed.
+Best advice I can give is to check if conntrack tool supports
+--labelmap option (not in any released version, added in June this
+year).
+
+And then add a custom temporary config file via 'mktemp' + feed that
+file to conntrack.
