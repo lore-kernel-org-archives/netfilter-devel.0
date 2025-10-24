@@ -1,34 +1,34 @@
 Received: from rusty.tulip.relay.mailchannels.net (rusty.tulip.relay.mailchannels.net [23.83.218.252])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58414221DB6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5847F258CF2
 	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 02:35:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.252
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761273329; cv=pass; b=oZCUKw/Bq6eY34fh37wa+zFoGfl625geR+0bB8WLhOOLSno+0oKuwP9FstsfgYACyc/ko4jSV3ElBMdGYQD+1S69kl2tQmzgWVgnTClqwCmDVjgsOJAR+F1hLBDjiniQJbYBWyNIg5gXknatxg4GcLKQoqHIJzTxygm/Vy5iY8c=
+	t=1761273329; cv=pass; b=e7FI6yAs0AZblKTWC/2PJf2Nx5Sb252VC7ZnCQZPy9GmngSDlF+qQLCaOOyPirCOML/vbHDv28ejT5c+lVZsqTJSVrK/uYvrb208TGaxbcgEMfIBTfmS6rikyG02nGTlI8PzR1tJdFn4A/t2EHpHUExFN80p5gDf7rEqhHOSfj8=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1761273329; c=relaxed/simple;
-	bh=bgM+AD+J6GXwPPFFwIfkp7S0yWnmhhQAlrqdZPGxxgQ=;
+	bh=bdFM53Wv1fxE5I9zTPLlVArFQocewMJWP4RWrRmTRtU=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kVAF+DlcdGBENxkl2Sd03/ELyce3DDDNcJhMXMe+OyZzxEIPHezF8jyZfGjmHWdu/NDyqcc0B5piGD4nYZA/QPB7c/dfKTtYoeSCcuLDJtvOLrfeal5cv2nsKaTXygsXZH97k8BaEKkNXd0fnBlAi777n7XlWE8+zQ9eEe6Ou+0=
+	 MIME-Version:Content-Type; b=RCEJ/6BmXkv+mKGztmLsYRHahMrr60vz2wzbQykF8eEO0I5LHgz8cNtG1Jvuktb4rb1a78p881CuGP/x6NFMjMEFFn2KcJD4sGS6K69u3HONIvaLCWZP7WgfKh+tgM/wu8maH96HZgIrmoJcYCGjBKLDtGjQApoIizk60lTyWVs=
 ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.218.252
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 36077404CE;
+	by relay.mailchannels.net (Postfix) with ESMTP id 4778336122E;
 	Fri, 24 Oct 2025 02:35:21 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-green-2.trex.outbound.svc.cluster.local [100.121.87.189])
+Received: from cpanel-007-fra.hostingww.com (trex-green-5.trex.outbound.svc.cluster.local [100.121.167.245])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id B07D8416F2
+	by relay.mailchannels.net (Postfix) with ESMTPA id C649E360F96
 	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 02:35:20 +0000 (UTC)
 ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761273321; a=rsa-sha256;
 	cv=none;
-	b=VuHefrbCV/EIKFKqH6YgGs/eauA4/t+izp+d00FSkRiOb6kIlbvXBFeYQrO9asxD2DwILH
-	FSWpNVb2WFGqKDpCui68LZlB8bCpOKwq1COJ7YZvnJWL0bdLbLk9FogSUh5+DuR1CUilLO
-	Vu39KWdJie+0XVlx7xzYMX34MhPN7bpfnTDCTLB1EVdZtfypkPl7N/sXRFBbfyNKB5YJue
-	wim89GtXYYwTtpdyuE2ghTSODJvUZQOOwabxjp8b7fR1ZXwwi3MGmgtGuXr2AJBGwHcH+e
-	5U7L37ehThX+uBv8N2ZSBc2DNEwsJAl9MYpkvvcD7pK9IQMaiL3T1/Wi0oeUMQ==
+	b=rI44lnjdyu8xou2/8OwgetCi0Z4Vr4i24J1iZmyteUo/MbCDi4ZfoEl41j1o2pi3s4oziX
+	UefMsl8wQMQN4qP8kpcijMCs+Tuw8iLztvSNLQplNw0RsXR5+m/rmYHusTKXc4R5u3HlQa
+	nQgGuOQ1gsm7XhRMcn/M+OhX1Kbw0akdybSRjPn9XDSSfxe2/c5UXQH2gkuXo2TrxJAyXE
+	aYmC2lddMzOyfb7cnIXXnTkhC/FtY0TXBV0tiAlTJOJSbkRM1LX8He4ZKC1vkOMLttNL7O
+	U+veOY6f4+wLbqcbnQp3vVSsu7FQ8zUpW1lcsJbjVjzyPLWc0ckwUQXA54YIJw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
 	s=arc-2022; t=1761273321;
@@ -36,42 +36,42 @@ ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
 	 to:to:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=q/V0h5G6R3pGnt/riwGtnTWhiPKI2Wy3ttpCxq9UGzE=;
-	b=X5Et0hggI0Bw0P7jTkQbXZCefSk0ExHErP3LG7trpZo5X6iVYV3xA+x+4PX2B3OhrLGWFp
-	Hp6xuFBzyfl1nBHRVzR+WvxYvPaHlT/GlW76K9F5U4vvGJ1TTZ2QMOPq/TET/r2FZMI4He
-	C87j/txHQzHfMOwvl81GffZ+UaA21+AjFlnLCMH8fz9MT/dSydPvEIaFqWpb0a6ET+51UQ
-	yyYuSSd2nLUmU587u5HaUN6GFodo9EgSvjaLC3TIwzouIRhogcyufw1gGDDD9YMCQk5SN3
-	2zvIlcXvkaqgrWhnrMgCivn8m0R4I0G8DKYA3bxGm62zaxIl1jn2MbLTh5kPEA==
+	bh=fu3mvOgxPNL6tMskP8yUSWHlClGa2VR5/1TG1Ml8Tlc=;
+	b=kzsSafiTMVUdmgK8FpXNE9cFhw7EQopGfCVjZ9Z+v5QZ8eeALFzx/eas3YcoLG99E9x25r
+	SO5+8KEXsvv3TWGryDSPLwDJUeH4a/3I77gAPN1yL4dUk+z3ybzsuHmjpuKGoblvhMj25B
+	u5P5fn+JQRcnwr/sTMxoF4/A6VC15TmS/Aw+2Tn7wAciA7RjAK9L4Vz3szjCgIj4qvSHvY
+	7fgLttAUId9EQh25NIuEqpGB4TrdccKvUdD8VecelgfC4TUP3ea8oiE33UpV7YuTSQ78Kc
+	eYZVpemMoxY62m/aXrFS8RezxMnI4+q1CwwwYq8V1dcW066ioZgvh6NGUn0+GQ==
 ARC-Authentication-Results: i=1;
-	rspamd-674f557ffc-d5fx4;
+	rspamd-674f557ffc-lwqpg;
 	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MC-Relay: Neutral
 X-MC-Copy: stored-urls
 X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Language-Chief: 73798ce8478adff0_1761273321095_3547932889
-X-MC-Loop-Signature: 1761273321095:2155020449
-X-MC-Ingress-Time: 1761273321095
+X-Cure-Well-Made: 01e3d9cb5445b90b_1761273321186_2091508245
+X-MC-Loop-Signature: 1761273321186:1351522503
+X-MC-Ingress-Time: 1761273321186
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.121.87.189 (trex/7.1.3);
+	by 100.121.167.245 (trex/7.1.3);
 	Fri, 24 Oct 2025 02:35:21 +0000
-Received: from [212.104.214.84] (port=61611 helo=heisenberg.scientia.org)
+Received: from [212.104.214.84] (port=43104 helo=heisenberg.scientia.org)
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <calestyo@scientia.org>)
-	id 1vC7eD-0000000FtWU-1k4F
+	id 1vC7eD-0000000FtWL-0rjE
 	for netfilter-devel@vger.kernel.org;
 	Fri, 24 Oct 2025 02:35:19 +0000
 Received: by heisenberg.scientia.org (Postfix, from userid 1000)
-	id 0B6015AA5C04; Fri, 24 Oct 2025 04:35:17 +0200 (CEST)
+	id 038535AA5C00; Fri, 24 Oct 2025 04:35:17 +0200 (CEST)
 From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH 7/9] =?UTF-8?q?tools:=20don=E2=80=99t=20stop=20`nftables.s?= =?UTF-8?q?ervice`=20(and=20flush=20the=20ruleset)=20when=20isolating=20an?= =?UTF-8?q?other=20unit?=
-Date: Fri, 24 Oct 2025 04:08:22 +0200
-Message-ID: <20251024023513.1000918-8-mail@christoph.anton.mitterer.name>
+Subject: [PATCH 5/9] tools: depend on `sysinit.target`
+Date: Fri, 24 Oct 2025 04:08:20 +0200
+Message-ID: <20251024023513.1000918-6-mail@christoph.anton.mitterer.name>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
 References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
@@ -85,9 +85,50 @@ Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-AuthUser: calestyo@scientia.org
 
-The nftables ruleset shouldn’t be unexpectedly flushed, which might however
-happen when `nftables.service` is stopped as a consequence of isolating another
-unit.
+As of systemd 258.1 and as per systemd.service(5), `DefaultDependencies=yes`
+implies for non-instanced service units:
+Requires=sysinit.target
+Conflicts=shutdown.target
+Before=shutdown.target
+After=sysinit.target basic.target
+
+Previous commit messages don’t indicate why `DefaultDependencies=no` was set,
+presumably because systemd.special(7) suggests for `sysinit.target` that
+services pulled in by it – as is the case for `nftables.service` – “should
+declare DefaultDependencies=no and specify all their dependencies manually”.
+
+It’s however unclear why the dependencies on `sysinit.target` and `basic.target`
+were dropped.
+
+This commit adds the ones on the former, assuming that at least `@sbindir@/nft`
+and `@pkgsysconfdir@/rules/main.nft` are required. As per bootup(7),
+`sysinit.target` pulls in `local-fs.target`, which should make these available.
+
+`local-fs.target` might have been enough, but some other services pulled in by
+`sysinit.target` (the “various low-level services: udevd, tmpfiles, random seed,
+sysctl, ...”) seem to be reasonable, too.
+
+`basic.target`, which as per systemd.special(7) and bootup(7) seems to
+additionally pull in in particular `timers.target`, `paths.target` and
+`sockets.target` seems rather not required for nftables and is thus not added by
+this commit.
+
+`remote-fs.target` can’t be pulled in either, as `nftables.service` shall run
+before any networking is brought up.
+
+It shall be noted, that this doesn’t render that `WantedBy=sysinit.target`
+superfluous.
+The (added) dependencies of `nftables.service` merely specify what nftables
+needs to be run – the `[Install]` on the other hand specifies “who” pulls in
+`nftables.service`.
+
+Typically, networking is configured in later targets, usually
+`multi-user.target`.
+In particular, `emergency.target` should run without any networking, so nothing
+needs to be done for that. Similarly for `rescue.target` and while networking
+might be started, nftables rules being loaded before it is not ensured.
+Scenarios where networking is already brought up during the initramfs are not
+covered by this and would have no nftables rules loaded.
 
 Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
 ---
@@ -95,17 +136,18 @@ Signed-off-by: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
  1 file changed, 2 insertions(+)
 
 diff --git a/tools/nftables.service.in b/tools/nftables.service.in
-index ea428ee7..5f367a24 100644
+index 15c3b5da..8388ae68 100644
 --- a/tools/nftables.service.in
 +++ b/tools/nftables.service.in
-@@ -8,6 +8,8 @@ Before=network-pre.target
- After=sysinit.target
+@@ -3,7 +3,9 @@ Description=nftables static rule set
+ Documentation=man:nftables.service(8) man:nft(8) https://wiki.nftables.org
+ 
+ Wants=network-pre.target
++Requires=sysinit.target
+ Before=network-pre.target shutdown.target
++After=sysinit.target
+ Conflicts=shutdown.target
  DefaultDependencies=no
- 
-+IgnoreOnIsolate=yes
-+
- ConditionPathExists=@pkgsysconfdir@/rules/main.nft
- 
  
 -- 
 2.51.0
