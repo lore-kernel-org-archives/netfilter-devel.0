@@ -1,222 +1,166 @@
-Received: from out30-111.freemail.mail.aliyun.com (out30-111.freemail.mail.aliyun.com [115.124.30.111])
+Received: from purple.birch.relay.mailchannels.net (purple.birch.relay.mailchannels.net [23.83.209.150])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 525E318A6A7;
-	Fri, 24 Oct 2025 02:21:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.111
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761272487; cv=none; b=b2Qi1LSgTpLyJeZVU0EadOkPlJ+ALvW9IU7/Fv/9zd0Bi97Zw+AY9lMZVWlNdZUZSwn0yr2pKw6z8XGhWa0vGtADdvSAfI9S4OtNreRY7/mfLoO1qzYKprceEJz+NzBbQ+xc1VKAS+yybF2HeJkL9Wxsm62CZGD6+oxFOsNFrRU=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761272487; c=relaxed/simple;
-	bh=9r2koSF36jE9MkgN6kFyte8dlM8nq3azJeHpl2qxQBQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NFGu/tZp3+q1ndwYRC7SDW+QGtVdTXzgt8OZE0cpXQXbbH07g3Kp/0PGHJn9k+5r2EBLS70KR9ijizO4KiTFVyEGnUMDL3xYfRyVFHd5OgljbKmAGo3lxHkMUvLQPLh//Xh9NCN3/bhT3PJqXhq5kj4s4h0OjmElFEh3XCANQeo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=JYe3+kr4; arc=none smtp.client-ip=115.124.30.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="JYe3+kr4"
-DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux.alibaba.com; s=default;
-	t=1761272475; h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type;
-	bh=vegTbyzQwgetuNbwLhZjZCKV0EXnxbZxEznM1T+Yfmk=;
-	b=JYe3+kr40Au1wJYObuHv0uDlAI9B+RPMAOxEvDZIt6Yn/vKJ9P2zGwlEoORpxDYfgdwDnwj34gvbHojqwTgmUkgHfG876GhcpDAUdso8/RFw5nwqGULzy+Pc9RTJ9uWiddYJKf0QaJnfWXtzlZbjpmfTKQgqQSdtzzKGHZ8bStg=
-Received: from localhost(mailfrom:dust.li@linux.alibaba.com fp:SMTPD_---0WqshndM_1761272474 cluster:ay36)
-          by smtp.aliyun-inc.com;
-          Fri, 24 Oct 2025 10:21:14 +0800
-Date: Fri, 24 Oct 2025 10:21:14 +0800
-From: Dust Li <dust.li@linux.alibaba.com>
-To: Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Jiejian Wu <jiejian@linux.alibaba.com>, rcu@vger.kernel.org
-Subject: Re: [PATCHv6 net-next 03/14] ipvs: some service readers can use RCU
-Message-ID: <aPrimkqc9leCCZQf@linux.alibaba.com>
-Reply-To: dust.li@linux.alibaba.com
-References: <20251019155711.67609-1-ja@ssi.bg>
- <20251019155711.67609-4-ja@ssi.bg>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2A1014B06C
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 02:35:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.209.150
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1761273323; cv=pass; b=anvB+t8ETSFNwoPzrUeOydySjCMWXO6f2uliK7+sEV+nVaFkRCe8XjRcgZcRXUHXkO9efIwDy8XEs6wtFNfiiOMEx+w1mlkBH1yfrlGCEq5ktX7o8rITA+BKNGE0rHhn1ceNGDlES0VeFqBObblNl1gftRPxxZbp/UbMudKxcnw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1761273323; c=relaxed/simple;
+	bh=JFjUvc2C8rH/MoKlohl/RnwttrAJmPO6N+GI1NJBTLc=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=SOTrt5pbT1qvau1LqTEY8itlOov9XCwKI+eLtwdxFwA4cnYZ28iL+sJ/cgldeSmpIvI7SIbuBqgo3OtIWEUV6qP4WqWUe6iqxBDAe6pOPbgt89NVIAjnl95cNJs4EPH+cxOXaKqX9oguAHg0yixlXoh7WjpWol4+o1AiD7+En5Q=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.209.150
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id B568A41701;
+	Fri, 24 Oct 2025 02:35:20 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (trex-green-8.trex.outbound.svc.cluster.local [100.119.46.77])
+	(Authenticated sender: instrampxe0y3a)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 3AA8A416C7
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2025 02:35:20 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761273320; a=rsa-sha256;
+	cv=none;
+	b=NLDNd5CSPJuEDBacBWeGQWKM9Jgle55evwAjvhQkp8Vys+ezjzh1YLX4C4BD6mEKfdNhMo
+	yOhJNvEn5sy1iK1DKYqLxejT1hbWtDoS/b5hn+DytSPWHLgKVOpExv38mMG1yoDjzgMJbJ
+	P7lLiUtCI2VFZCoAmVIxffKP5r0eWFa48rx0XZ+muqQG5qK+VCls5NaP1VndtqwEHVd5ew
+	4bG9d4nEJspWMPBntvd33VRgNztRDNoCy+fOHi7cyl3ub4bUoi6mfLc02Jszeqa73HA9/r
+	0YcEaYeZJ8pVJ6ps2/gq8ol7XyuolpwwuWezqlZ/XBbZMVXTE+/ofqBJdZEGwQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1761273320;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=GPH7OR815p/Emz69ZjLURcYKJQ7baF+nEHmmn020WfM=;
+	b=OHMWHFmF/yu1ruSi3jEGxwXFPdf2suitd2utigEWgSUg8R3xZAHvhequYvaHvCe/jED1yP
+	Om1Dogkl+qybrQo7FQueNn0QaY/2Dp5nNUDTqGS3HM74ltdBqjg4B5FoQ71EykJjnz+B1G
+	CUcmyW2mCMJRRJjCH54Bix4cEZweu8AD/06dHToXKiP6XsFEx6tRWz62EK1Rn1k9T3/6eX
+	i56yGu18whsuwfFqWpPUmXG/oFKz7NRrwHVtbwScnQuuAz4Xs6ydeOQTgJqC2KYWC6C/DV
+	aX536DgMnZjNF6XuYsmMiCwM1Bi1ol5F8yvqxf/QL/O30FDdotYemKHmQcb/lQ==
+ARC-Authentication-Results: i=1;
+	rspamd-674f557ffc-d5fx4;
+	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
+X-MC-Relay: Neutral
+X-MC-Copy: stored-urls
+X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
+X-MailChannels-Auth-Id: instrampxe0y3a
+X-Belong-Left: 3771bf6a648695b0_1761273320623_4157330713
+X-MC-Loop-Signature: 1761273320623:2709487248
+X-MC-Ingress-Time: 1761273320623
+Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
+ [3.69.87.180])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.119.46.77 (trex/7.1.3);
+	Fri, 24 Oct 2025 02:35:20 +0000
+Received: from [212.104.214.84] (port=2029 helo=heisenberg.scientia.org)
+	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <calestyo@scientia.org>)
+	id 1vC7eC-0000000FtVs-0tQH
+	for netfilter-devel@vger.kernel.org;
+	Fri, 24 Oct 2025 02:35:18 +0000
+Received: by heisenberg.scientia.org (Postfix, from userid 1000)
+	id DFB305AA5BF6; Fri, 24 Oct 2025 04:35:16 +0200 (CEST)
+From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH 0/8] improve systemd service
+Date: Fri, 24 Oct 2025 04:08:15 +0200
+Message-ID: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20251019155711.67609-4-ja@ssi.bg>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-AuthUser: calestyo@scientia.org
 
-On 2025-10-19 18:57:00, Julian Anastasov wrote:
->Some places walk the services under mutex but they can just use RCU:
->
->* ip_vs_dst_event() uses ip_vs_forget_dev() which uses its own lock
->  to modify dest
->* ip_vs_genl_dump_services(): ip_vs_genl_fill_service() just fills skb
->* ip_vs_genl_parse_service(): move RCU lock to callers
->  ip_vs_genl_set_cmd(), ip_vs_genl_dump_dests() and ip_vs_genl_get_cmd()
->* ip_vs_genl_dump_dests(): just fill skb
->
->Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Hey.
 
-Reviewed-by: Dust Li <dust.li@linux.alibaba.com>
+This is a first series of patches that tries to improve the included
+`nftables.service`.
 
-Best regards,
-Dust
+It contains the (hopefully) less controversial stuff I’d like to do. O:-)
+
+The main idea is to make things more hardened as it should be for loading
+firewall rules.
 
 
->---
-> net/netfilter/ipvs/ip_vs_ctl.c | 47 +++++++++++++++++-----------------
-> 1 file changed, 23 insertions(+), 24 deletions(-)
->
->diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
->index 2fb9034b4f53..b18d08d79bcb 100644
->--- a/net/netfilter/ipvs/ip_vs_ctl.c
->+++ b/net/netfilter/ipvs/ip_vs_ctl.c
->@@ -1759,23 +1759,21 @@ static int ip_vs_dst_event(struct notifier_block *this, unsigned long event,
-> 	if (event != NETDEV_DOWN || !ipvs)
-> 		return NOTIFY_DONE;
-> 	IP_VS_DBG(3, "%s() dev=%s\n", __func__, dev->name);
->-	mutex_lock(&ipvs->service_mutex);
->+	rcu_read_lock();
-> 	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
->-		hlist_for_each_entry(svc, &ipvs->svc_table[idx], s_list) {
->-			list_for_each_entry(dest, &svc->destinations,
->-					    n_list) {
->+		hlist_for_each_entry_rcu(svc, &ipvs->svc_table[idx], s_list)
->+			list_for_each_entry_rcu(dest, &svc->destinations,
->+						n_list)
-> 				ip_vs_forget_dev(dest, dev);
->-			}
->-		}
-> 
->-		hlist_for_each_entry(svc, &ipvs->svc_fwm_table[idx], f_list) {
->-			list_for_each_entry(dest, &svc->destinations,
->-					    n_list) {
->+		hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[idx], f_list)
->+			list_for_each_entry_rcu(dest, &svc->destinations,
->+						n_list)
-> 				ip_vs_forget_dev(dest, dev);
->-			}
->-		}
-> 	}
->+	rcu_read_unlock();
-> 
->+	mutex_lock(&ipvs->service_mutex);
-> 	spin_lock_bh(&ipvs->dest_trash_lock);
-> 	list_for_each_entry(dest, &ipvs->dest_trash, t_list) {
-> 		ip_vs_forget_dev(dest, dev);
->@@ -3318,9 +3316,9 @@ static int ip_vs_genl_fill_service(struct sk_buff *skb,
-> 			goto nla_put_failure;
-> 	}
-> 
->-	sched = rcu_dereference_protected(svc->scheduler, 1);
->+	sched = rcu_dereference(svc->scheduler);
-> 	sched_name = sched ? sched->name : "none";
->-	pe = rcu_dereference_protected(svc->pe, 1);
->+	pe = rcu_dereference(svc->pe);
-> 	if (nla_put_string(skb, IPVS_SVC_ATTR_SCHED_NAME, sched_name) ||
-> 	    (pe && nla_put_string(skb, IPVS_SVC_ATTR_PE_NAME, pe->name)) ||
-> 	    nla_put(skb, IPVS_SVC_ATTR_FLAGS, sizeof(flags), &flags) ||
->@@ -3374,9 +3372,9 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
-> 	struct net *net = sock_net(skb->sk);
-> 	struct netns_ipvs *ipvs = net_ipvs(net);
-> 
->-	mutex_lock(&ipvs->service_mutex);
->+	rcu_read_lock();
-> 	for (i = 0; i < IP_VS_SVC_TAB_SIZE; i++) {
->-		hlist_for_each_entry(svc, &ipvs->svc_table[i], s_list) {
->+		hlist_for_each_entry_rcu(svc, &ipvs->svc_table[i], s_list) {
-> 			if (++idx <= start)
-> 				continue;
-> 			if (ip_vs_genl_dump_service(skb, svc, cb) < 0) {
->@@ -3387,7 +3385,7 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
-> 	}
-> 
-> 	for (i = 0; i < IP_VS_SVC_TAB_SIZE; i++) {
->-		hlist_for_each_entry(svc, &ipvs->svc_fwm_table[i], f_list) {
->+		hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[i], f_list) {
-> 			if (++idx <= start)
-> 				continue;
-> 			if (ip_vs_genl_dump_service(skb, svc, cb) < 0) {
->@@ -3398,7 +3396,7 @@ static int ip_vs_genl_dump_services(struct sk_buff *skb,
-> 	}
-> 
-> nla_put_failure:
->-	mutex_unlock(&ipvs->service_mutex);
->+	rcu_read_unlock();
-> 	cb->args[0] = idx;
-> 
-> 	return skb->len;
->@@ -3454,13 +3452,11 @@ static int ip_vs_genl_parse_service(struct netns_ipvs *ipvs,
-> 		usvc->fwmark = 0;
-> 	}
-> 
->-	rcu_read_lock();
-> 	if (usvc->fwmark)
-> 		svc = __ip_vs_svc_fwm_find(ipvs, usvc->af, usvc->fwmark);
-> 	else
-> 		svc = __ip_vs_service_find(ipvs, usvc->af, usvc->protocol,
-> 					   &usvc->addr, usvc->port);
->-	rcu_read_unlock();
-> 	*ret_svc = svc;
-> 
-> 	/* If a full entry was requested, check for the additional fields */
->@@ -3587,7 +3583,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
-> 	struct net *net = sock_net(skb->sk);
-> 	struct netns_ipvs *ipvs = net_ipvs(net);
-> 
->-	mutex_lock(&ipvs->service_mutex);
->+	rcu_read_lock();
-> 
-> 	/* Try to find the service for which to dump destinations */
-> 	if (nlmsg_parse_deprecated(cb->nlh, GENL_HDRLEN, attrs, IPVS_CMD_ATTR_MAX, ip_vs_cmd_policy, cb->extack))
->@@ -3599,7 +3595,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
-> 		goto out_err;
-> 
-> 	/* Dump the destinations */
->-	list_for_each_entry(dest, &svc->destinations, n_list) {
->+	list_for_each_entry_rcu(dest, &svc->destinations, n_list) {
-> 		if (++idx <= start)
-> 			continue;
-> 		if (ip_vs_genl_dump_dest(skb, dest, cb) < 0) {
->@@ -3612,7 +3608,7 @@ static int ip_vs_genl_dump_dests(struct sk_buff *skb,
-> 	cb->args[0] = idx;
-> 
-> out_err:
->-	mutex_unlock(&ipvs->service_mutex);
->+	rcu_read_unlock();
-> 
-> 	return skb->len;
-> }
->@@ -3915,9 +3911,12 @@ static int ip_vs_genl_set_cmd(struct sk_buff *skb, struct genl_info *info)
-> 	if (cmd == IPVS_CMD_NEW_SERVICE || cmd == IPVS_CMD_SET_SERVICE)
-> 		need_full_svc = true;
-> 
->+	/* We use function that requires RCU lock */
->+	rcu_read_lock();
-> 	ret = ip_vs_genl_parse_service(ipvs, &usvc,
-> 				       info->attrs[IPVS_CMD_ATTR_SERVICE],
-> 				       need_full_svc, &svc);
->+	rcu_read_unlock();
-> 	if (ret)
-> 		goto out;
-> 
->@@ -4037,7 +4036,7 @@ static int ip_vs_genl_get_cmd(struct sk_buff *skb, struct genl_info *info)
-> 	if (!msg)
-> 		return -ENOMEM;
-> 
->-	mutex_lock(&ipvs->service_mutex);
->+	rcu_read_lock();
-> 
-> 	reply = genlmsg_put_reply(msg, info, &ip_vs_genl_family, 0, reply_cmd);
-> 	if (reply == NULL)
->@@ -4105,7 +4104,7 @@ static int ip_vs_genl_get_cmd(struct sk_buff *skb, struct genl_info *info)
-> out_err:
-> 	nlmsg_free(msg);
-> out:
->-	mutex_unlock(&ipvs->service_mutex);
->+	rcu_read_unlock();
-> 
-> 	return ret;
-> }
->-- 
->2.51.0
->
+[PATCH 8/9] tools: flush the ruleset only on an actual dedicated unit
+might need some more discussion:
+
+1. Instead of the whole logic I’ve addeed we could also choose to simply never
+   do anything on stop, i.e. not seeting `ExecStop=` at all, which would mean
+   that even on `systemctl stop nftables.service`, the ruleset isn’t flushed.
+
+   Might even better prevent accidentally stopping the firewall; and writing
+   `nft flush ruleset` instead would be even shorter.
+
+
+2. If we keep the basic idea as proposed in the patch, there's still:
+   a) Do you want my slightly awkward multi-line syntax with `\n\` line
+      terminators or would you rather have anything in one line or something
+      else?
+
+      A problematic thing about the multi-line syntax is that it seems
+      impossible to write e.g. the shell’s `;;` on a single line with only
+      leading whitespace, as systemd then ignores that as a comment. See [0].
+      Might be error prone with future changes.
+
+   b) systemd sets some default PATH (which is even an compile option, IIRC)
+      that usually contains /usr/loca/[s]bin.
+      Because of that it’s IMO safer to use absolute pathnames for sh and
+      systemctl (just in case a user made some local overrides).
+
+      Maybe it would be even better to set a fixde `ExecSearchPath=` (wihout
+      /u/local), IIRC that also exports PATH, which would then be inherited by
+      `nft`, should that ever exec some binary via PATH resoluiton.
+
+      I have chose to *not* use @sbindir@ (respectively add a @bindir@) for sh
+      and systemctl because these aren’t shipped by nftables, and I think if any
+      distro would really use something different, patching the file would be
+      completely upon them.
+
+      While I’ve been in favour of usr-merge, I still can’t write `/usr/bin/sh`.
+      ;-)
+
+      The perfectionist in me would want to add a `unset -v job_type`, to
+      prevent that from being exported to `nft`, just in case anyone would have
+      configured/override his systemd to export a env var of the same name.
+
+
+A planned 2nd series would focus on hardening with things like the already
+present `ProtectSystem=`.
+Quite some more sandboxing seetings seem to be usable with this and IMO units
+should generally try to set as many as (reasonably) possible.
+
+I’ll probably send a mail first with proposals on what could be hardened and
+what people would think about the various points.
+
+
+Last but not least, one idea would have been to set:
+  WorkingDirectory=/etc
+
+If no further `--includepath` is configured, this would cause relative pathnames
+starting with `./` in nft’s `include` statement to use the same path as relative
+pathnames without `./` – at least when the default `--includepath` is kept at
+`/etc`.
+No strong opinion myself, whther that would be better or not. Anyone?
+
+It wouldn’t be backwards compatible, if someone used the service with it’s
+current (current) working dir (which is /), and specified absolute pathnames as
+relative ones.
+
+
+Cheers,
+Chris.
+
+[0] https://github.com/systemd/systemd/issues/39332
+
+
