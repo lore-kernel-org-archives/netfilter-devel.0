@@ -1,90 +1,86 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3A1430F93F
-	for <netfilter-devel@vger.kernel.org>; Sat, 25 Oct 2025 16:33:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8FB0611E
+	for <netfilter-devel@vger.kernel.org>; Sun, 26 Oct 2025 08:54:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761410026; cv=none; b=jl6RKiKBbXyxSoMe2gqBXQrVN6cdb7QTq29OJRNEnN4yXSpsFsajwRHVUjirekcCTCIkOZYIRZC4K8+Z7C9w+MSIQx/GUj1zEYPsEBXx0gy6pIr7lM+O7LcFIPWWQeqcZrLHlnV3a9epr/ZLdC5osyK7g6XTBHqe1zRv+0A0+Is=
+	t=1761468896; cv=none; b=WVLi+wGAiXEJD5K4O9Y8oXzQcwJHBKspW4yOiw16Ppus+S1i+TaVxDtsnHKgkihG9396qlvGUc/qHquOABJa/5F1G/GkqJVl5Dwr2Uk+hQjOFyk53eO9E+xkhQxOig/7rGRnFZsdJ3qmxjUzYATB6gzxoUGfZAEC659OaXeIpXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761410026; c=relaxed/simple;
-	bh=tZhf1SNF/e9yXNH7/pIZy1QQoeFscXn365DYOS78Cng=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=dK+cIlEBBV8C4VF9Z7tK5xAdmHBaKGyTwNeY2VFdIpTyLTt7j6Cf52L7koLNhWgmQKrx33aMFsac9KdFXSj5Hf+wG1ZFwMSpIcqPjPU+O5/bYmxsi8shCJeMpzPvTyKTXSAIjJhGTwR7iMc88xQXekNSHhNTxZ5oN/Qe6KcQ0Os=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=SiGnujyy; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="SiGnujyy"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Type:MIME-Version:Message-ID:Subject:To:From:Date:
-	Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=1AdH5LOT6QBmMbz5VYHCxtMdW3IU9VjWsqkGURL6WC0=; b=SiGnujyyUOGoBZSMMUKmsuOw7g
-	WRKnOfR0flwiiO2WOJ2N95ODsR1EVn3M62aMClX8V20zJXLacVeXZYafGAscfZzFv6T6s9rSaoCQG
-	3sAMIICEeDu6d3QbgrnR3vEzr+uDM4BmfG+CicqrGJahAjQdxoKR7kPvqPDE6AHk09tUb+Z6Z+38B
-	IKVQ9zLlmCQf4U0YPp91higDFHLopG8aQppvuyxLbWGJCT/6tjYFocnWhjnvRUOkvBAav20x3H3pD
-	Cuwk/+AZySQwozFiclmVMD1ICkRInvy82l3HHw79fFsLeoj9U2f+SBma2hOCOWg9xynczI6VCR3N3
-	Dx8gIRig==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1vCgp3-00000004xES-1TSj
-	for netfilter-devel@vger.kernel.org;
-	Sat, 25 Oct 2025 17:08:53 +0100
-Date: Sat, 25 Oct 2025 17:08:52 +0100
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: ipset download location
-Message-ID: <20251025160852.GF4413@celephais.dreamlands>
+	s=arc-20240116; t=1761468896; c=relaxed/simple;
+	bh=igPDWezEG6IxtWWL/IukYezBG0+XwIMCNo8zYVKaOdU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=L8RWbZ6PCLh7hbQknEGMAu6kdFIrfOb1A3I+OgZdCbvP72U2loyH5yuqWw+GKQYUjyUzw/fygtNZQcLlYbS2VIVFqQtzodKabTRwy8bZksO0BIbXWDAosmlm9oEmoPc2OiaUwJ42dn9zpD/vcWB4LvJh7tNfXakPVKbz1bpWDVY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 56288603CA; Sun, 26 Oct 2025 09:54:45 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] doc: remove queue from verdict list
+Date: Sun, 26 Oct 2025 09:54:36 +0100
+Message-ID: <20251026085439.12336-1-fw@strlen.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="zH0yeDb/avYSzGD0"
-Content-Disposition: inline
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 
+While its correct that the queue statement is internally implemented
+via the queue verdict, this is an implementation detail.
+We don't list "stolen" as a verdict either.
 
---zH0yeDb/avYSzGD0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+nft ... queue will always use the nft_queue statement, so move the
+reinject detail from statements to queue statement and remove this.
 
-What is the canonical location for ipset release tar-balls?  The most
-recent one at https://www.netfilter.org/pub/ipset/ (which is what we use
-in Debian) is 7.22, but I spy 7.24 at
-https://ipset.netfilter.org/install.html.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ doc/statements.txt | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-J.
+diff --git a/doc/statements.txt b/doc/statements.txt
+index e275ee39dc4e..0633d023f2c0 100644
+--- a/doc/statements.txt
++++ b/doc/statements.txt
+@@ -4,7 +4,7 @@ The verdict statement alters control flow in the ruleset and issues policy decis
+ 
+ [verse]
+ ____
+-{*accept* | *drop* | *queue* | *continue* | *return*}
++{*accept* | *drop* | *continue* | *return*}
+ {*jump* | *goto*} 'CHAIN'
+ 
+ 'CHAIN' := 'chain_name' | *{* 'statement' ... *}*
+@@ -22,11 +22,6 @@ afterwards in the processing pipeline.
+ The drop occurs instantly, no further chains or hooks are evaluated.
+ It is not possible to accept the packet in a later chain again, as those
+ are not evaluated anymore for the packet.
+-*queue*:: Terminate ruleset evaluation and queue the packet to userspace.
+-Userspace must provide a drop or accept verdict.  In case of accept, processing
+-resumes with the next base chain hook, not the rule following the queue verdict.
+-*continue*:: Continue evaluation with the next rule. This
+- is the default behaviour in case a rule issues no verdict.
+ *return*:: Return from the current chain and continue evaluation at the
+  next rule in the last chain. If issued in a base chain, it is equivalent to the
+  base chain policy.
+@@ -741,9 +736,10 @@ QUEUE STATEMENT
+ ~~~~~~~~~~~~~~~
+ This statement passes the packet to userspace using the nfnetlink_queue handler.
+ The packet is put into the queue identified by its 16-bit queue number.
+-Userspace can inspect and modify the packet if desired. Userspace must then drop
+-or re-inject the packet into the kernel. See libnetfilter_queue documentation
+-for details.
++Userspace can inspect and optionally modify the packet if desired.
++Userspace must provide a drop or accept verdict.  In case of accept, processing
++resumes with the next base chain hook, not the rule following the queue verdict.
++See libnetfilter_queue documentation for details.
+ 
+ [verse]
+ ____
+-- 
+2.51.0
 
---zH0yeDb/avYSzGD0
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJo/PYFCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmd1A2U7y4KMnoCz66TumT1XqAeCfeNfW5Mj1BIdEKhE
-KhYhBGwdtFNj70A3vVbVFymGrAq98QQNAABRvQ//RPp11z0K2EIOOQeR1QiBMyAx
-02mRyacW3PjFcvPVapiq1mmUy+HQ49iNklHHEv/Cu2QScWaeG4LJOQAEUCAkiAys
-Zb/z353avRr6r2ulPWmHW2AyTv7z2noaZYQc7xh7pjLyUhJ/0n0kY4iD+deYBWzj
-3oms9dLrF+TfiApiC0VbbTyzeV0mHLjv481T2/dP25nNWVp3KjLifDn637ouKCPV
-w5k3sI4eVxyKU7kQ4LxMWbwn8+b7mxbCJu2NSpHx9N5jjl2WZ2UixmkAGDoUuCnP
-9QmYhdt+xJFyiwQMG5akIXetYlbSCU8nbpY8oh0LuYzzhlTpE+WHWJ2gXoL5wKch
-BSdU+3rg6cB4S61E+gle3pNhhXYhEALKAQSPD5cfYJJGp4x2SsuVPcZ0kgpM5NS8
-RVZkvCxvQgvPPwiVACNTENytDKzMVJETf/pMF4l82EtJhj/tzkkbHLhFvpSYdbXX
-7xidv4v7F3VDk3iHPxkDpNmK0GGWhyGTvvoNbypq5UNLz0JiWDHH4+l+2jinwNFD
-6zXFkAsvD2T2lxsMTaqEzfWdzTS7sALXzEQuNxB/mljsiX7ers4h/fCy+vYrcvuY
-+xfkclXeoJgrVdSQGyJSJ2JOG+4d/xOHuMUtXulv6n0SR3XQW/SkuajQBb89cgQe
-lZMi/a2zfGTFKcJc4Cg=
-=jIZJ
------END PGP SIGNATURE-----
-
---zH0yeDb/avYSzGD0--
