@@ -1,44 +1,43 @@
-Received: from smtpfb2-g21.free.fr (smtpfb2-g21.free.fr [212.27.42.10])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C023A2DFA31
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Oct 2025 22:40:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.27.42.10
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA08E4C9D
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Oct 2025 23:48:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761604858; cv=none; b=NLBeFW7yL51yfl0oSTXRz6jYsl+rWwbRHP36eyuesz5qe4aVkUINvHqVCsn6/CNy/sw7UFh0htGbc53pvwDE/py58W3SAaCfBN5otd8K2QqF1YivZK/+S0rWmx7po5v8huIpUJ/vLOhAt9PorYDpn/duMFdJhjpMvGTmzlgP6Kw=
+	t=1761608891; cv=none; b=HgEu0bYruq10iE12wnKGijGh7R86tD7lnbnEQt1Urqra/2od330QxHzXv7u447wX26C3d9T0cf/o9xf73e4f0UUr0JJ2nQuY4K0oQusLYr4BQwut/QmliqaP7tPQm4COqFNMdVXZP6X41UqDg/1EBRnlRe29cj5dml6jPNBjcFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761604858; c=relaxed/simple;
-	bh=t/xOUHxI30whEdwK8uc5QBvrXNw4uidswqYEiYdXwg4=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:Subject:MIME-Version:
-	 Content-Type; b=bGcKuEr9jKlk3w0i6bMfGx8pjIhs/g3RwCyDkgGbGg4POA4phmg8nJtoKR4Q3SZ0WwZ3zaRHXcm4ohIcTxsmh+DSNGP6Kerd85hvrSFdI2viiRaUOVZ/CZcqcISVxTzkxKfERjYrbqJdPNpoGWD62rcWgUkzffXNZaEKoh4BGec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=free.fr; spf=pass smtp.mailfrom=free.fr; dkim=pass (2048-bit key) header.d=free.fr header.i=@free.fr header.b=M16pMWTu; arc=none smtp.client-ip=212.27.42.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=free.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=free.fr
+	s=arc-20240116; t=1761608891; c=relaxed/simple;
+	bh=TmMDgAsdS2huEZQH6QVh+UWBgvPjgo9nvjn55d6Bpwg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MGSpfcM2cSE5lpy01Uv53VlwqYZmXnBK1AQTzPODb4QNlhpJQlEe7GXIOnsJ3C57POfUMxq1qD5MZgNO8v2W7Vdpwg3lgEqF3jVxWIsUCkWGoQvlZRHtGvh3x7o6WaSmni+QWUKb0srt+Po50KrllFRtWgPiK7MMu4TX6W2jlwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kvgsr8Fi; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=free.fr header.i=@free.fr header.b="M16pMWTu"
-Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id CA38E4CC92
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Oct 2025 23:40:45 +0100 (CET)
-Received: from zimbra62-e11.priv.proxad.net (unknown [172.20.243.212])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id D22045FFAA;
-	Mon, 27 Oct 2025 23:40:37 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=free.fr;
-	s=smtp-20201208; t=1761604837;
-	bh=t/xOUHxI30whEdwK8uc5QBvrXNw4uidswqYEiYdXwg4=;
-	h=Date:From:To:Cc:In-Reply-To:Subject:From;
-	b=M16pMWTuxclUQxtQOUi/GQ2lCm8iFvcfrNyKQcvCmyepWrXbsbUP64GN9cfhBcrj8
-	 20ViKIF5KNIEYII1x48TdpB9OKE2Tk3aWoK/q0IEdNLpXOUXY872EjnW9s5jcKL/oj
-	 n4YlCm12c2zJo+v6T3qadU4svWYm3Mlr4SSCVQh/rrZBINrPgrVJaOaDYy7xwD4kv8
-	 Fx66IYrHEU8Moinx5TqUdgHD+oWn9dkC301HfYSZ+H50pnbGD/cjc3Mekm3X4TezdY
-	 l7DbT2CGbdpnooAtaGgaW4v4pa1Gkk1F8jjLMyfNLWAUIVsHNk3XHAJvtSHvdUk2Cr
-	 9AEIwNLmHp2MQ==
-Date: Mon, 27 Oct 2025 23:40:37 +0100 (CET)
-From: "Antoine C." <acalando@free.fr>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kvgsr8Fi"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9A1ED60262;
+	Tue, 28 Oct 2025 00:48:05 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1761608885;
+	bh=E+bLzwiBuzdcQJ/EWOISnoIpQqU5eqn42MA6VpahgPU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=kvgsr8FiIDENm6CXq5Eycw7lN4dMRjmmRMzg7GP87pA53wuU9w0vha47ayYvov10s
+	 7arQZtS2u/A2rtE8i8uelmqN6NG99QurH2RMzHXLB3coo/Z7fRdUQ1xapYd8yYnPNe
+	 7PATe25YM5sRjvcbWFjBqqJp5PNuzE15p7XcOCteAxY4Y4LMoFUWCnFK02KgX53rF4
+	 40OoP5AIfvbCLyilZulI3RECOqSZYJ85iyZ0SS1A3IZpBD6KzVMIF0BKM4HGyASMT7
+	 0m0shSYONCgxxYbIEHK/blPtKzzrFJQSNxHhXSXxEAmjJWSmFWWEd3SfdvGrdgJaWp
+	 6cd3nire326MQ==
+Date: Tue, 28 Oct 2025 00:48:02 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, 
-	Eric Woudstra <ericwouds@gmail.com>
-Message-ID: <628074913.12181179.1761604837771.JavaMail.root@zimbra62-e11.priv.proxad.net>
-In-Reply-To: <aP-76gB9axgCebpL@strlen.de>
-Subject: Re: bug report: MAC src + protocol optiomization failing with
- 802.1Q frames
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 2/5] netfilter: flowtable: consolidate xmit path
+Message-ID: <aQAEssvnuJmLLaVb@calendula>
+References: <20251010111825.6723-1-pablo@netfilter.org>
+ <20251010111825.6723-3-pablo@netfilter.org>
+ <aOuebEc_iHm6r3u0@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -46,46 +45,43 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Mailer: Zimbra 7.2.0-GA2598 (zclient/7.2.0-GA2598)
-X-Authenticated-User: acalando@free.fr
+Content-Disposition: inline
+In-Reply-To: <aOuebEc_iHm6r3u0@strlen.de>
 
+On Sun, Oct 12, 2025 at 02:26:20PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Use dev_queue_xmit() for the XMIT_NEIGH case. Store the interface index
+> > of the real device behind the vlan/pppoe device, this introduces  an
+> > extra lookup for the real device in the xmit path because rt->dst.dev
+> > provides the vlan/pppoe device.
+> 
+> Will this scale?  netdev_by_index only has a fixed table of 256 slots,
+> so with 8k vlans or so this will have a 30-ish netdev list walk.
+> 
+> [ EDIT: I see now that nf_flow_queue_xmit() already does that.
+>   So I guess its either not an issue or not yet and it can be
+>   optimized later.  So disregard this ]
 
------ Florian Westphal <fw@strlen.de> a =C3=A9crit=C2=A0:
-> Antoine C. <acalando@free.fr> wrote:
-> >=20
-> > This bug does not seem to get a lot of attention but may be it
-> > deserves at least to be filed ?
->=20
-> Its a design bug and so far not a single solution was
-> presented.
->=20
-> And no one answered any of the questions that I asked.
->=20
-> So, whats YOUR opinion?
->=20
-> > > Should "ip saddr 1.2.3.4" match:
-> > >=20
-> > > Only in classic ethernet case?
-> > > In VLAN?
-> > > In QinQ?
-> > >=20
-> > > What about IP packet in a PPPOE frame?
-> > > What about other L2 protocols?
+Yes, that will need a look closer or later.
 
-As a user, my answer would be of course that "ip xxx" rules=20
-work seamlessly whatever the encapsulation is above. I have
-been trying to do for a few weeks with iptables what I just
-did with nft (for reasons  external to this problem) and I
-can only praise how this was easy and elegant with nft,=20
-despite of this bug (to give more context: I am converting
-a huge access control list with L2/L3/L4 fields to=20
-NFT/iptables rules).
+> >  	case FLOW_OFFLOAD_XMIT_NEIGH:
+> >  		rt = dst_rtable(tuplehash->tuple.dst_cache);
+> > -		outdev = rt->dst.dev;
+> > -		skb->dev = outdev;
+> > -		nexthop = rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr);
+> > +		xmit.outdev = dev_get_by_index_rcu(state->net, tuplehash->tuple.ifidx);
+> 
+> Why do this if we already have dst_cache?
 
-Of course, this is just my personal use case and I fully=20
-understand that my wishes come after under-the-hood=20
-constraints or main cases optimizations. But at least,
-I would expect an error or a warning if I ask nft=20
-something ending up in undefined behavior.
+This is to skip one level of indirection, ie. dst_cache points to the
+vlan device, not the real device. The idea is that the flowtable gains
+control on the xmit path so the flowtable pushes l2/l3 headers and
+send the packets directly to the "real" netdevice.
 
-Antoine
+> The above explanation (rt->dst.dev could be a tunnel device, whereas
+> the latter fetches phyical / lowest device) from the commit message
+> makes that clear; but I think a short comment would help.
+
+Yes, I can add a comment on this.
+
+Thanks.
