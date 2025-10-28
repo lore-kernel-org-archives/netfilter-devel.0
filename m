@@ -1,88 +1,49 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0DCD348882
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 17:11:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+Received: from a3.inai.de (a3.inai.de [144.76.212.145])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B5A9626CE36
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 17:19:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=144.76.212.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761671494; cv=none; b=BXEJCzEueYdiL/mDbh8b0Q2MqHgW8TsbUsFIgBX9nLA/YKwqFWv9YKo/RTcQd/zAEQNeZj+chKv70XoRj0h4YqBuOnoORjvC4pXDhPgbD+Sv8pNtBl/Z9XNffwlNRIFSZa1ibUMOH8jNDjZ5ZiwBEwCq70exSh/VRkODppJdX8w=
+	t=1761671975; cv=none; b=A5FzBTgawW4tDEnC2W4luj9lfXeXI4Yf93/GCi7WWy0aGRQdWdYDU2UVF3tWXKUp9Mvnpi31utoe+z0yodejciGiA1xSb4Fhu6TIte9EXntuhYNSSso4Yq2XREv+7c4I73LT2qbOMzofQRuHhpeU+/xI383MelAI06RSebUYW5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761671494; c=relaxed/simple;
-	bh=n21Aw+TnlrJm4+ohlxL6kA0tA+uSiKz9S5fD7+j37Cs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XBoBX7emHpsJhJLw3rXy8irsU2LHRoL2Rf6cLA+tq5JoYNSCfUtyTosn/62AAVSI3ViioxWEph8Hb/XVvUNqiA87jm6O0pLz+gxhFfsLkP4kgd34jLV1hzSMD+c4nRlLLlRZW5XPENKDQuGwM0ET1/dfgOtQiSZLyCslqQFAZGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kH7I4UtX; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kH7I4UtX"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 52EB160278;
-	Tue, 28 Oct 2025 18:11:28 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1761671488;
-	bh=DOZlPPoZM8ux5hTde6V0Nh0GIs7OMKoVDedSp+JikNE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kH7I4UtXKcYvsdEbd6gdniuqsk191RtQB4tnwO7z54VN2kg6Var32GNlAgfsgjFM/
-	 j78AHjTfyYdsjjU/h9LqZ6rAnUg3CueWUdbPd0bC/170Fd4vxSPzEvbpxyHE1AyWlY
-	 ONgI2F0zisYFjk4yfPVSGPm7qp82nDZx2Q0H8KeYwfEgOHkEvNfHpxN4/hcf5b7fbO
-	 /8dQQbQPtYoDQ64jpqgJKsNsdNfihUsjtyKTqNh5e4qEFXgGos32+CpSMykkQlZLfX
-	 Xaom3/t2iKVh92v4cbzZMWxaAfBKY5dPdKhryrl5B42Oj9I8LAQ8RtZ44LPdT35Ax6
-	 TzrWFQikm5Vmg==
-Date: Tue, 28 Oct 2025 18:11:25 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	louis.t42@caramail.com
-Subject: Re: [PATCH nf] netfilter: nft_connlimit: fix duplicated tracking of
- a connection
-Message-ID: <aQD5PUkG7M_sqUAv@calendula>
-References: <20251027125730.3864-1-fmancera@suse.de>
- <aQD2R1fQSJtMmTJc@calendula>
- <aQD4J7pI-Fz1V3eC@strlen.de>
+	s=arc-20240116; t=1761671975; c=relaxed/simple;
+	bh=CdEM95MDS3MiP4+qiTqGLFYvfQVR4GV50ZbmDBooJhE=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=ZWXLr6RDTuxnzL37gH0vjMYPSGwkRQ1P2j67DvXH7en98eg6NNd37cVpa3yee9FFJh7MWsl2RFl1hhikuq0VnJZToXllkyDJ/ugd6iZiddVH8KzzHrx/I6e6jNpBNoQ+47BBqIWdExj8Lx9GntekRkSxUBHvTVXiZPusbGLicCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de; spf=pass smtp.mailfrom=inai.de; arc=none smtp.client-ip=144.76.212.145
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=inai.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=inai.de
+Received: by a3.inai.de (Postfix, from userid 25121)
+	id 407371015FA993; Tue, 28 Oct 2025 18:19:30 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by a3.inai.de (Postfix) with ESMTP id 3E89911020CBFD;
+	Tue, 28 Oct 2025 18:19:30 +0100 (CET)
+Date: Tue, 28 Oct 2025 18:19:30 +0100 (CET)
+From: Jan Engelhardt <ej@inai.de>
+To: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 5/9] tools: depend on `sysinit.target`
+In-Reply-To: <20251024023513.1000918-6-mail@christoph.anton.mitterer.name>
+Message-ID: <87oq102q-55q8-3137-5377-s74r778qn718@vanv.qr>
+References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name> <20251024023513.1000918-6-mail@christoph.anton.mitterer.name>
+User-Agent: Alpine 2.26 (LSU 649 2022-06-02)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <aQD4J7pI-Fz1V3eC@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
 
-On Tue, Oct 28, 2025 at 06:06:47PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > -	if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-> > > -		regs->verdict.code = NF_DROP;
-> > > -		return;
-> > > +	if (ctinfo == IP_CT_NEW) {
-> > 
-> > Quick question: Is this good enough to deal with retransmitted packets
-> > while in NEW state?
-> 
-> Good point, I did not consider retransmit case.
-> What about if (!nf_ct_is_confirmed(ct)) { ..?
-> 
-> Would need a small comment that this is there instead of NEW
-> check due to rexmit.
-> 
-> > > +		if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-> > > +			regs->verdict.code = NF_DROP;
-> > > +			return;
-> > > +		}
-> > > +	} else {
-> > > +		local_bh_disable();
-> > > +		nf_conncount_gc_list(nft_net(pkt), priv->list);
-> > > +		local_bh_enable();
-> > >  	}
-> 
-> As this needs a respin anyway, what about removing the else
-> clause altogether?  Resp. what was the rationale for doing a gc call
-> here?
 
-You mean, call gc for both cases, correct?
+On Friday 2025-10-24 04:08, Christoph Anton Mitterer wrote:
 
-> And, do we want same check in xt_connlimit?
+>As of systemd 258.1 and as per systemd.service(5), `DefaultDependencies=yes`
+>implies for non-instanced service units[...]
 
-Are you referring to the !nf_ct_is_confirmed() check?
+The explanation is sound, but long-winded. Feel free to shorten the
+commit message to simply sy that no reason *for* DefDeps= is on record
+when it should have.
+
+I was a second-hand submitter, and did not question what the distros had
+concocted up in their .service files. I acknowledge no additional thought was
+given to DefDeps=no, and that's on me.
