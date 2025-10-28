@@ -1,83 +1,69 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F35012882B4
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 16:58:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA716343D91
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 17:06:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761670741; cv=none; b=llm39ayzCB7KEyQCJlZ0+YHN7sHFcBcxR1JWYhiLV0Mn+ody3NO/H1GFAGIm3jbyU1AVHxub/4sBAYVyW4gwpmSwT6JkaXl5VATHza/Bmr9ke4TzCilb4eLObnTFWRQHkFiib6reH2QAObJUtDkt20G3o7/Q8cezlZ1T78SZYNI=
+	t=1761671212; cv=none; b=btGZRu97TvUL66GRkc9Itko03lWgcMGT0UfKpsGTSv2a+z95LlHPmLtb7DjNljV8e3NddzD7np3p8Id6gLpkwO5HiV/0SrMNGsiB8tjeeMlSfvh7lsfP0jUgn4adwHEpi6LLsjOKiK6XoLMpashlkaIeojIhmFO+F0jzNXzvJE4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761670741; c=relaxed/simple;
-	bh=tGchocrKT9H2Q8psYQanYMhhyqkOGeSgrBOYOx9JgXQ=;
+	s=arc-20240116; t=1761671212; c=relaxed/simple;
+	bh=Z1MKnKyfFfAgUu1GhLTBmo4ZKzXU5dsRBT5dY/2JPPg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZkuWH2weNaPRH4hsSKBxeHUmFChbAtmCz9BXorOrX39xapJLEjTYSJR3jQGRI4ritPCaw2Lvg3h6v3RGvbCycR0PB045MP264f30iQXeUtUuisc/ti0kerlAHI/t7oU5qNCKh2gGx7cjb7FOAmzXA+lk6wBChY7cOBPht5Lu8u0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GSJ/LKQM; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GSJ/LKQM"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9677360281;
-	Tue, 28 Oct 2025 17:58:50 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1761670730;
-	bh=NDoIOC+vHwUTWFq5pW7JrAoW3UL+pF1yRUw8sToYDaA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GSJ/LKQMAPPt7fNIg4xBJFsfb0Thdck8f6mQHHsD5/xEWyuEkskEHT84FyzHa0elM
-	 mlCMq50yQyeC0IwCK1hOVDInSDoBkuENsPRpIp0LipZ9rHrSxd5QmNl247DXFDkHIr
-	 EsNkWIpJnanxvrszdo4qxz1fPUw06e+DM879jpEKrL47h5BWLcZbxIbA/MCTpDvxFw
-	 OhQAr26xoalBia2q7iK31MgUyOoG5aHC4yvICJK5YblENycQFSUz9Xi0cA70IYa3If
-	 Z2OBYtNOeg64uljeopcIFQQUK/+v27HKYoYIQs0SF34DMbWgvPkyuGTy9UvHiL3BoP
-	 6F4DqQaVzUftA==
-Date: Tue, 28 Oct 2025 17:58:47 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	louis.t42@caramail.com, fw@strlen.de
+	 Content-Type:Content-Disposition:In-Reply-To; b=pSjACAgYDcxWedMfyVmuR+slkmoQNPCqhZjs5W33G/FUvmJcC5l4firFSJk13wGe5+hsQ/PcS8Y/Hswmtbfy/+DZjchN6WNI7HL9UEYhradAneTTftUzRTznbd0T2peSvexyK7na7vh457foaSieSqmsX7MCwwX0HYZHf1V+g0A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id E9C1661A31; Tue, 28 Oct 2025 18:06:47 +0100 (CET)
+Date: Tue, 28 Oct 2025 18:06:47 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	louis.t42@caramail.com
 Subject: Re: [PATCH nf] netfilter: nft_connlimit: fix duplicated tracking of
  a connection
-Message-ID: <aQD2R1fQSJtMmTJc@calendula>
+Message-ID: <aQD4J7pI-Fz1V3eC@strlen.de>
 References: <20251027125730.3864-1-fmancera@suse.de>
+ <aQD2R1fQSJtMmTJc@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251027125730.3864-1-fmancera@suse.de>
+In-Reply-To: <aQD2R1fQSJtMmTJc@calendula>
 
-On Mon, Oct 27, 2025 at 01:57:30PM +0100, Fernando Fernandez Mancera wrote:
-
-> diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-> index fc35a11cdca2..19c8b5377e35 100644
-> --- a/net/netfilter/nft_connlimit.c
-> +++ b/net/netfilter/nft_connlimit.c
-> @@ -43,9 +43,15 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
->  		return;
->  	}
->  
-> -	if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-> -		regs->verdict.code = NF_DROP;
-> -		return;
-> +	if (ctinfo == IP_CT_NEW) {
-
-Quick question: Is this good enough to deal with retransmitted packets
-while in NEW state?
-
-> +		if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-> +			regs->verdict.code = NF_DROP;
-> +			return;
-> +		}
-> +	} else {
-> +		local_bh_disable();
-> +		nf_conncount_gc_list(nft_net(pkt), priv->list);
-> +		local_bh_enable();
->  	}
->  
->  	count = READ_ONCE(priv->list->count);
-> -- 
-> 2.51.0
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > -	if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
+> > -		regs->verdict.code = NF_DROP;
+> > -		return;
+> > +	if (ctinfo == IP_CT_NEW) {
 > 
-> 
+> Quick question: Is this good enough to deal with retransmitted packets
+> while in NEW state?
+
+Good point, I did not consider retransmit case.
+What about if (!nf_ct_is_confirmed(ct)) { ..?
+
+Would need a small comment that this is there instead of NEW
+check due to rexmit.
+
+> > +		if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
+> > +			regs->verdict.code = NF_DROP;
+> > +			return;
+> > +		}
+> > +	} else {
+> > +		local_bh_disable();
+> > +		nf_conncount_gc_list(nft_net(pkt), priv->list);
+> > +		local_bh_enable();
+> >  	}
+
+As this needs a respin anyway, what about removing the else
+clause altogether?  Resp. what was the rationale for doing a gc call
+here?
+
+And, do we want same check in xt_connlimit?
