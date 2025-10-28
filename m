@@ -1,79 +1,65 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50C55285058
-	for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 16:26:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83733332EAD
+	for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 16:33:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761668806; cv=none; b=kpwPQvtfbG1o+xaYHHTSwZNfeVErdlY4lbzs4L8BsGcvtddaQy4HyWTUt7B5mdwCEtDCOdUbojfHGLnZF9JbbmcjOD+Qn3UFpVU0BLAvLRe1ZTGLziYdXKatBIbwVFOrjjN3SkIQ/D9QFokikucMgduhCnfZ37gx2R3s/7pjaSs=
+	t=1761669239; cv=none; b=sHidqgUGnRjC6v1AdN/mO4YbPUoGXR8aq5o6grnbwvHTbL4JqrdEIF74VJl+BGSPAvW2zQBeNKg1ks4KoYEIxwM69tCKIB4tjy1+pLnrDZuFzS5wM4zupk/nJinrHoGIsARFpIKv6IVTLvuV5sWKF0SHcHPkBg/nd3bKNHyg48M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761668806; c=relaxed/simple;
-	bh=NBcOSaBykf2Y7JpidrcTq9ZKXM1eeD204FvxYzQa3ag=;
+	s=arc-20240116; t=1761669239; c=relaxed/simple;
+	bh=YL2cOHSMT9ZF+Z7Uoa8rR7j9OkFuEbFRqeBce6j6buU=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=V/sD24iQwVNUf46x1aS9wjFnMohJf29HGRK7mdldsRet9s72ej4LJLZNaW3EXYjVmNARa5iqr5aQMvOfSnR+zp/8TjP37AQG+KeI3v83lMx0eZk1sdAvaYi0vhu1eVY3HmgDW0lVk8paA3G9N7b/3p8a7NQSnhq23QzT2VNbL2A=
+	 Content-Type:Content-Disposition:In-Reply-To; b=BdmExpCv914VaUj7vXbc6IMxTYMg9MEVD4l6Y5CkBoBr+ISz2BFtOKK2BO03+96S8b0JzuA/zqfWEDTqtNfFiHGKY5CkuRdrq2l+GU3VesSrUC+r+Q7UWhyAfZYgp6tA9zjD6XpotGy04+/S5M1C9Qdl8m3n7q+p922qbF77FOI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 367F361A31; Tue, 28 Oct 2025 17:26:41 +0100 (CET)
-Date: Tue, 28 Oct 2025 17:26:36 +0100
+	id 4E0706031F; Tue, 28 Oct 2025 17:33:54 +0100 (CET)
+Date: Tue, 28 Oct 2025 17:33:54 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Christoph Anton Mitterer <calestyo@scientia.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: nftables.service hardening ideas
-Message-ID: <aQDuvGsDwlaiK94D@strlen.de>
-References: <71e8f96ac2cd1ee0ab8676facb04b40870a095a1.camel@scientia.org>
+To: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+Cc: netfilter-devel@vger.kernel.org, jengelh@inai.de
+Subject: Re: [PATCH 0/8] improve systemd service
+Message-ID: <aQDwcsK0RKsrtVop@strlen.de>
+References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <71e8f96ac2cd1ee0ab8676facb04b40870a095a1.camel@scientia.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
 
-Christoph Anton Mitterer <calestyo@scientia.org> wrote:
-> This would be ideas about further hardening nftables.service, primarily
-> using the options from systemd.exec(5).
+Christoph Anton Mitterer <mail@christoph.anton.mitterer.name> wrote:
 
-Whats the point?  nft will exit anyway.
+[ CC Jan ]
 
-> which not only mounts some but the entire fs hierarchy read-only for
-> the service's commands.
-> I guess nft -f should never write anywhere, or does it? At least it
-> seems to work.
+> This is a first series of patches that tries to improve the included
+> `nftables.service`.
 
-nft -f should not write anything.
+Sir, this is netfilter-devel and not nftables-systemd-devel@.
 
-> 4. I guess nft needs no capabilities/privileges other than
-> CAP_NET_ADMIN:
-> > CapabilityBoundingSet=CAP_NET_ADMIN
-> > AmbientCapabilities=""
-> > NoNewPrivileges=yes
+> It contains the (hopefully) less controversial stuff I’d like to do. O:-)
 > 
-> CapabilityBoundingSet=CAP_NET_ADMIN would supersede the =~CAP_SYS_ADMIN
-> from (2) above.
+> The main idea is to make things more hardened as it should be for loading
+> firewall rules.
 
-CAP_NET_ADMIN is mandatory and should work as only capability.
+I have no horse in this race but I don't want to have too many changes
+to this thing.
 
-> AmbientCapabilities="" disables all ambient capabilities, I'd blindly
-> guess that nftables doesn't execve(),... but it shouldn't harm either.
+I see Jans original service file) as convinience / ease-of-use contribution
+not as something that should be maintained continuously.
 
-It doesn't execve.
+As for your series:
 
-> 5. There should be no reason why nft -f needs to access stuff in /tmp
-> or /var/tmp of anything else, so:
-> > PrivateTmp=yes
+Its waaaay to many tiny patches.  The first 4 patches could easily be
+squashed into one without making it hard to review.
 
-Makes no sense to me.  nft -f won't write anything.
+As for flush-on-shutdown: I see no need for that either.  Jan?
 
-> 7. AFAICS, nft -f may cause modules to be loaded, but that's done
-> indirectly (i.e. I guess by the kernel itself?)
-
-nft relies on kernel module autoloading.
-
-> So leats get a bit more exotic ;-)
-
-Exotic? More like estoteric, this is bad.  Service file should be small and not rely
-on obscure and maybe not well-tested systemd code paths.
+FTR, this is about:
+https://patchwork.ozlabs.org/series/479245/mbox/
