@@ -1,147 +1,151 @@
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from tiger.tulip.relay.mailchannels.net (tiger.tulip.relay.mailchannels.net [23.83.218.248])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AF352C21E2
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 00:31:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761697871; cv=none; b=bHh0xflq1KWVnVprAykHDk1t6/uZwR9RBWAtDqDH0smD3ZgU3su+9TrBFX/uPYlMTX7phbYU923GgYAVB7Bnxt1f6FLVRRe3CoxPxZDEHyP15VzTZFTcGA00c1lMVYb3iB/po/9dTybwzDjVu9lcd0u0hSXk1dCgNBE98UEwjlg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761697871; c=relaxed/simple;
-	bh=FjeBJ7qTOOuFy5XC/P8ENdKUZAwjK0jGghsUJJ5YXyg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LgDzpUcR5Yhrj1QK7IuBUgyha4I9Li3Abk0f81HiMyHdd31E182aWPg1jxokrCpVSpq1teB4rAMrD6cO6H8Xyqddo5DzYkr1v6QjTbA0A3o9B4FVr/HpGzpw3/Mo0LN3/uJgdOVoM2XAV6TCrcvjaMpLrdz10sCb/OwrV4pK1v8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YVh1R5a8; arc=none smtp.client-ip=209.85.128.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 074272C15A6
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 00:42:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.248
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1761698523; cv=pass; b=UG1yb/5TR9IGnsnaziCB4RJKrYZJBK7aYxf2QxTmPn+j3XxhYJ0oZjBk0IeG22hc1PTGYGEhNQk+6b4gAl6E0HrIUpU7YlU4Tlp09Mq667AuNGgliPYIqY0Lh2pnSWU4U2FEb+c9ns8/bP9gxF6WQNJgcdnixRHhDvkh8v0UkIQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1761698523; c=relaxed/simple;
+	bh=66WKiP+5zaY3za83VDAM+CMG4FteB+s71DMmjTWJOyU=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=mClFir0ha8fFwJudTID7xlWbGtQneiSMg2QZCrm6sBIqmFtzu6lxRF7xVp7/1kgg9zNT7R7w3kb6DZC8fKQ/VhlkeOdABNFkLYvVdO5TNuooAHLXrUz3Q0S8riTK21IahNwUv3D5AG+h0/qkp5pqkTnu0WABlX6f26MfoxmMNS8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=SAhGnWf5 reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.248
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YVh1R5a8"
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-475dc6029b6so38537785e9.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2025 17:31:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1761697865; x=1762302665; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=IStlHAPGFAuv66IOHetCckKbHriTUSVQfUzkY0LaiRc=;
-        b=YVh1R5a8B5i8aDuTG/qN0FVmeDmHXXYeod0BseSHT4zFYeQda//hITsekgXvI2U/BI
-         fd0m2Xjl21P5t77PTb4spioD9/q1R021KQIqA1b+wmKNJKSoa6P5m29pyjzYDtxteNwd
-         uziNoBq3c9lMrwG6HmPDv14ezHaXroXSQ74totBtz3KXks724MmnfoN1UG0NjibpRfDO
-         UM197wYfj3qMl8Evyy67HEzGQuCn/ZL8HbhC7kI9ZUGazMAYDolr40qyCfUOULWwSPz2
-         nxhAjbpuvsFBHITj4QV09kTdPdJsbf+0nOWePvlgI8ZcmurhOS+oxNemEXvS3eRD3Qhp
-         KLvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761697865; x=1762302665;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IStlHAPGFAuv66IOHetCckKbHriTUSVQfUzkY0LaiRc=;
-        b=ASlMM29G0n7lhAC4Mpq/B+8mXEbyuNeoj0KF/QvbRaoj0JvfnuYK4/mYPDUb2VZWb5
-         GKYFTsZucdOPuGVtnkJUgTZ4+4r6LA23FkpUn9c7K37pi+CBzz6z6Is5pv0WJxBWUmut
-         ez5QOaTobzDMNLKA/wxjE98+tnZI8dhh+ltJpDwlLalV4h6NkmMyJsLI1cyNgV3Fjt4T
-         3k2cr0ejncazxV3mzc+C1zGdAKgN6XKkWTXWzfw8xez0g8LDjPBohAEvkycCx5Nq+R0o
-         cYRfvuW2uNfz9XDfnclqUBpdABPEZyUDKCJnuehnOHatcOjM4FzRvddI31Bq+nCKBeBU
-         KgiA==
-X-Gm-Message-State: AOJu0YygLxOUZx4n3RZRghPVm2w+8kml9IcVCPa+QryMFKRa46oFITv/
-	16Rhpqm/0a9StvU4/7daBQHBqSHFJTnlZATS8r3VtzSzxi4EEoJAwW+4mBPAqQ==
-X-Gm-Gg: ASbGncunV07wXkVf5uUQyAtBjrlBXP2ld7EJO5Jc7oD/Gfu/tb7dX6LQDTtLU/uwFEy
-	v1yqxSSRLO6bhHykmwMZXrWh/fEUT8PqYXMH9XuUFgeSvYMI7MudIb40pplW4EL6LQkMk54GKsz
-	n/1JhmPbywkiETOmQBm+tCmwxBwp5FMugvO6qIT3/gDCuHZXeza2sfE/16/nBrSSnz1s12fiQOk
-	/FHeDJoy3H8J3gGbGe9H3gIJN0Crla6VTjlOucvUdIuaATHUMczuFhhHI9BMADt3cCTrwJxjt/7
-	Ui6YJC/ZOBycWIbkvXZcy4evKIlSMfIzZY9EZPpuY+WIpUiTrG2sb3ZP7D3n5BiOHjGxdxZdsdJ
-	3mY5Sr+Rpl4RnLMtOVJFjqzg8eLaCUyRFhj7NPCKHCS/RjossyBd58TLchOwH8Udh1DTvdUMtF3
-	uyx4UJKAXLPpTfV0yzqmH+CiMC6aQqenRfi2aflUAk/7jEGMQ=
-X-Google-Smtp-Source: AGHT+IFum1ku0bKJnOQHD47btEXv8+XIvP+eW+NcROPPuevWJf0k1sEHg81PxlwJr267W0jtKp7ujQ==
-X-Received: by 2002:a05:600c:608b:b0:475:de12:d3b2 with SMTP id 5b1f17b1804b1-4771e1f1dc2mr10346065e9.36.1761697864866;
-        Tue, 28 Oct 2025 17:31:04 -0700 (PDT)
-Received: from pc-111.home ([2a01:cb1c:8441:2b00:c694:3c2c:878b:f4c0])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429952cb7dcsm23838309f8f.11.2025.10.28.17.31.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 28 Oct 2025 17:31:03 -0700 (PDT)
-From: Alexandre Knecht <knecht.alexandre@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Alexandre Knecht <knecht.alexandre@gmail.com>
-Subject: [nft PATCH] parser_json: support handle for rule positioning in JSON add rule
-Date: Wed, 29 Oct 2025 01:30:44 +0100
-Message-ID: <20251029003044.548224-1-knecht.alexandre@gmail.com>
-X-Mailer: git-send-email 2.51.0
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="SAhGnWf5"
+X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id DDA04780E61;
+	Wed, 29 Oct 2025 00:41:55 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-118-36-217.trex-nlb.outbound.svc.cluster.local [100.118.36.217])
+	(Authenticated sender: instrampxe0y3a)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 0C7B0780A49;
+	Wed, 29 Oct 2025 00:41:54 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761698515; a=rsa-sha256;
+	cv=none;
+	b=7qVbbsMd6h2MAHDbpQrkvxcKN/ub1038ywX+hcutDkZpPVvAZkc2dsbGooVATHoYOQQKz4
+	UVSgMRtmS6kg6sPxm6JaVrJ7vDw1d2CJobCd1gk/o+7S8Jl4xGj760+njZBIGkeG6+o6oV
+	usmE6cG+ZMg63UVbhlYrbi2DquvqPW2qNh95lJ34sY8bdOCwU9/bD2V4tiKtLa5COibW0I
+	VkizKLpHZokjysu0ZxEaj/NHZdt7uXTLrLNZMzLNtuH6dYVoi2aJYZPJ4VdjNY6bApmjY6
+	r/uAOlhblHtJJbjLYaYlZO7chjsu1CLuV4l5I9s3m7p+niMt+HW4AIBT7Q6yow==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1761698515;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=O8MII1P9tcvJ0E1uo9o0kkMFuYrUmzQvYO0tRdfktCQ=;
+	b=H63kWyeCyYA9WzFeYV8ZLO3Xzya8rIZuZIygPN38HGee3MO2olE59AnxJTCoJYPU/ecbOz
+	0rXBTfIVExd3r4avvwkJrvvEz1tbWgfe/wFVKyrzc2Y+64311m8mohFfpWMzzqCajUDNrX
+	himzEceLlM7XXkSnV/GEghtROhjVvgwEB7RFO1PkUtkE6wQiTsTTlfz4Ytdnj8IvLvtA9g
+	qRbxSn85UBcfxROQU7pZa4OQPMcF9XBDRwn722ofJKLPbpznizw1JeZD3QNSxvJtSUqpyX
+	eJMs73quu8qSli0z+sa1/fHkps71oLRZpeInepTYZbuHRhjyrzuKn1iRURhcGg==
+ARC-Authentication-Results: i=1;
+	rspamd-768b565cdb-hvscs;
+	auth=pass smtp.auth=instrampxe0y3a
+ smtp.mailfrom=mail@christoph.anton.mitterer.name
+X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+X-MC-Relay: Neutral
+X-MailChannels-SenderId:
+ instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+X-MailChannels-Auth-Id: instrampxe0y3a
+X-Continue-Illustrious: 3df1dd610cc3251d_1761698515737_544701233
+X-MC-Loop-Signature: 1761698515737:2299918186
+X-MC-Ingress-Time: 1761698515736
+Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
+ [3.69.87.180])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.118.36.217 (trex/7.1.3);
+	Wed, 29 Oct 2025 00:41:55 +0000
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
+	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
+	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
+	List-Archive; bh=O8MII1P9tcvJ0E1uo9o0kkMFuYrUmzQvYO0tRdfktCQ=; b=SAhGnWf5E0jI
+	OEXEBv0M5vq0Yj3zi+Arc6jpiATo+YtxTJ/+iscW2s2LbnE+Ly0RZvQQLIVSC09a+c5LT4IeDLz4F
+	PbhKF2oCM18zX4X9sQPjlk+4MgCb+P2cpa8SC2GfcYxxQuxqO36+lw+OKSY6FaLIw96yn2veBQ3Ds
+	F3Xyoq9tWsrY3VXxhKtn6ollSpGjMxfJrEDWr1IVfKLrzDDh0vG4MteUYS6XUNaVKgJDgAHfORhzf
+	+yK2aj2aBwxRPD8xYr5XGSlP0cpOOzco8hF/xPo7FW3gr5esY11S+kTUSch5wItAonS1undKKs9HC
+	QWxZM47ZYPkdwGSSFMgg1A==;
+Received: from [212.104.214.84] (port=24654 helo=[10.2.0.2])
+	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <mail@christoph.anton.mitterer.name>)
+	id 1vDuG9-0000000DKte-1MIY;
+	Wed, 29 Oct 2025 00:41:53 +0000
+Message-ID: <b88acc763d340c8f7859349621fa6a0f027610b2.camel@christoph.anton.mitterer.name>
+Subject: Re: [PATCH 8/9] tools: flush the ruleset only on an actual
+ dedicated unit stop
+From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
+To: Jan Engelhardt <ej@inai.de>
+Cc: netfilter-devel@vger.kernel.org
+Date: Wed, 29 Oct 2025 01:41:51 +0100
+In-Reply-To: <q48p3nq8-5969-0qp9-po30-nrn7s1q53109@vanv.qr>
+References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
+	 <20251024023513.1000918-9-mail@christoph.anton.mitterer.name>
+	 <q48p3nq8-5969-0qp9-po30-nrn7s1q53109@vanv.qr>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.56.2-5 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-AuthUser: mail@christoph.anton.mitterer.name
 
-This patch fixes JSON-based rule positioning when using "add rule" with
-a handle parameter. Previously, the handle was deleted before being used
-for positioning, causing rules to always be appended at the end of the
-chain instead of being placed after the specified rule handle.
+On Tue, 2025-10-28 at 18:31 +0100, Jan Engelhardt wrote:
+> On Friday 2025-10-24 04:08, Christoph Anton Mitterer wrote:
+> > In systemd, the `ExecStop=3D` command isn=E2=80=99t only executed on an
+> > actual dedicated
+> > unit stop, but also, for example, on restart (which is a stop
+> > followed by a
+> > start).
+> >=20
+> > There=E2=80=99s a chance users either don=E2=80=99t know this or (accid=
+entally)
+> > confuse restart
+> > (and similar) with reload.
+>=20
+> I do not see room for a confusion, for I cannot imagine a Linux
+> newbie in 2025
+> starting off with a sysvinit-based distro (good luck finding those)
+> and then deciding "yep, I'll edit nftables.service".
 
-The fix follows the same pattern used in json_parse_cmd_replace():
-- Parse the handle field from JSON
-- Convert handle to position for CMD_ADD operations
-- Remove the code that was deleting the handle field
+That rationale, I don't understand. What does editing nftables.service
+have to do with it?
 
-With NLM_F_APPEND set (as it always is for add operations), the kernel
-interprets position as "add after this handle", which matches the CLI
-behavior of "add rule position X".
+The scenario I'm trying to "solve" is:
+A user changes his nftables rules and wants to get them loaded.
+Unknowingly or accidentally he does a
+  systemctl restart nftables.service
+rather than
+  systemctl reload nftables.service
 
-Before this fix:
-  nft -j add rule ... handle 2  --> rule added at end
+The former, with the current service file in git, will cause the
+ExecStop=3D command to be executed and the ruleset to be flushed.
+Even if the new rules are sound, there'll be a short time window in
+which everything is open.
+And if the rules contain a syntax error/etc. the stop implied by the
+restart will still succeed but the (re)start will fail, leaving the
+firewall even longer open.
 
-After this fix:
-  nft -j add rule ... handle 2  --> rule added after handle 2
+One can assume now that all systemd users know about reload vs. restart
+(and that nftables.service actually has a reload defined), but that
+seems quite optimistic to me.
 
-The CLI version (nft add rule ... position X) was already working
-correctly.
+So I felt if nftables *does* ship an example .service, it can well ship
+one that handles such things better and less error prone.
+Unfortunately, I found no better/shorter means for doing so than the
+way I've had proposed.
 
-Tested with:
-  # nft add table inet test
-  # nft add chain inet test c
-  # nft add rule inet test c tcp dport 80 accept
-  # nft add rule inet test c tcp dport 443 accept
-  # echo '{"nftables":[{"add":{"rule":{"family":"inet","table":"test","chain":"c","handle":2,"expr":[{"match":{"left":{"payload":{"protocol":"tcp","field":"dport"}},"op":"==","right":8080}},{"accept":null}]}}}]}' | nft -j -f -
-  # nft -a list table inet test
 
-Result: Rule with port 8080 correctly placed after handle 2 (port 80).
-
-Signed-off-by: Alexandre Knecht <knecht.alexandre@gmail.com>
----
- src/parser_json.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/src/parser_json.c b/src/parser_json.c
-index 7b4f3384..c974a9e2 100644
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -3197,10 +3197,18 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
- 		return NULL;
- 	}
- 
-+	/* Parse handle and index (similar to json_parse_cmd_replace) */
-+	json_unpack(root, "{s:I}", "handle", &h.handle.id);
- 	if (!json_unpack(root, "{s:I}", "index", &h.index.id)) {
- 		h.index.id++;
- 	}
- 
-+	/* For CMD_ADD, convert handle to position for rule positioning */
-+	if ((op == CMD_ADD || op == CMD_CREATE) && h.handle.id) {
-+		h.position.id = h.handle.id;
-+		h.handle.id = 0;
-+	}
-+
- 	rule = rule_alloc(int_loc, NULL);
- 
- 	json_unpack(root, "{s:s}", "comment", &comment);
-@@ -3226,9 +3234,6 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
- 		rule_stmt_append(rule, stmt);
- 	}
- 
--	if (op == CMD_ADD)
--		json_object_del(root, "handle");
--
- 	return cmd_alloc(op, obj, &h, int_loc, rule);
- 
- err_free_rule:
--- 
-2.51.0
-
+Cheers,
+Chris.
