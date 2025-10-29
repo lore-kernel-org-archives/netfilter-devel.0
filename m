@@ -1,72 +1,74 @@
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com [209.85.221.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC5413FEE
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 22:45:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67B8D13FEE
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 22:45:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761777937; cv=none; b=Nmcs9ZO8eEc7qis+kQtrwab1aIGxxK6jJZuTMZYThxwvsHRTpuu88e2w87Dl1PyqOtbWuJ5xJlHSWcbT57MIrACfICkO7Fx+iEhS64YqPUEd/DSpIjwGBeSABkIwADbg5G6ywE7HrXnnOGDPid+S+noUXH2C5XDPrjxh9zcJiHo=
+	t=1761777959; cv=none; b=CO6Bq9L9IUhLOBbwTvTwrV3UB3JklqzevEUsH4G+ctvf3zirPVtS0Lts1XPu2+8IVDSDHrUPCtqAIai8EtwYuf4jkoHawAvF8GUtq7VH8tWGkXS8X2n8I8cF+UVmaBPtDH/oVbwZ8eNQVexI6o7oc0upowwNEIRlW86mJvSdIFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761777937; c=relaxed/simple;
-	bh=fx4tbyfbxfqROrwuaVQPKZ47kjPCz9YraW90Cy8j13U=;
+	s=arc-20240116; t=1761777959; c=relaxed/simple;
+	bh=p+oM04O/H7wRhfkK/ntVnSUsr4SUOXmTs1h89IMk3lQ=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=QvSMG5kvykJ6xUa5ib+PxEqY4C8OhH9WPh4WbjYuIg8lsHCsCaGNOIsmD7KksXeotf/oBCamExFOoV4KJk1cf0QJaRiYgeDjus8KSC75u0DptdQJOq81GHVBPQywfPDnRruCfoeuaHY23Kc9CdM/NTnejwKZrrjS8o55FvhGS3w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Am0h8Eih; arc=none smtp.client-ip=209.85.221.44
+	 MIME-Version; b=uyzzewOLGRK1L5CUOXA+USFY/+R3k29t42ElDqDMnEE1UpEg791PEEwApSWwEUCxZpdAciPIplmr2xQ2SMK55HO0FvjwN5vulA8dK+fv2ggKixtkpxXpVFAcL9nDKk5YOYG9h/dZJJPoGQFlAeT28z46yKR/ysxBfSoKfplHLkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UQw30m64; arc=none smtp.client-ip=209.85.221.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Am0h8Eih"
-Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-4270491e9easo326324f8f.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 15:45:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UQw30m64"
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-4270a3464bcso274635f8f.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 15:45:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1761777933; x=1762382733; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1761777955; x=1762382755; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=fx4tbyfbxfqROrwuaVQPKZ47kjPCz9YraW90Cy8j13U=;
-        b=Am0h8EihsX/uKThD56v6xRG/srpmde8EffSTuKlbapyawfAfLZZsk/hJEMf6XzJ9GE
-         XgmGHGSigZNu29egUxflreklZDP/0r80Ej0GXvLuN0GkqUIq5BcShaQ6gl5odxCrYxzO
-         xni/NJQlf/XAPV3iCul/MdRxNCxxqZFH0Zmnlla3Vszq7rJ8w7lYw8PIOjEZ/hSI94NK
-         T+ucBxAPuJOx4QeTFHP3w4PUO4Ww3MElFm3ip6IV4x4V3jPIvsALdxUexfOb/6MIBNZe
-         pMXqPK3UAaw2D0sBDOouquc4AWKdX4Khrymuth98b0ZoXZRYNsRYwsgA1OcXReVGkguM
-         sYBw==
+        bh=NYl0FglliXOljtOev5rTotnwMG2nQs0Y97fbh4hCkyA=;
+        b=UQw30m64m/3KsOktxfD1pV73MLVTWlu/IxZ70K0EyqilPBggILvmay3EkYUSK/68pF
+         4T6ffSDOTwWfuJ5qr9oe2XYiJ3W52NRjII+0fuPMNYW3k2WUvFBKpZIz82jLpXllO4nz
+         KcDTjG5DqZdo0hBqHBaACjzApfdgRlFGcrEfVK75FmbTg5a+AB53Uh+mr1IKVTuK889P
+         Ev1hdRga+xcQQ/og9TYhg5ef/sFYNxTZTTzcPpp8VZSpEG6TZ4JPcBP+aMTzm93uHh8R
+         H70y/fGLOiRKw3JnM3ZrgocSuOi1uhusWdGYUGATJ4p1RPxS0HFPXXHzFdJ4xCYS02rS
+         pEPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761777933; x=1762382733;
+        d=1e100.net; s=20230601; t=1761777955; x=1762382755;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=fx4tbyfbxfqROrwuaVQPKZ47kjPCz9YraW90Cy8j13U=;
-        b=RVEnijRbPSr2yBDATN1E2ab3U4SRs96LbUijdyLb85q1Jtz/r3QvscwDpYVuGceF6w
-         vKOR9lOCP3TDszjn9P/qtvSfIXUwhew52ffZ0OAU8xJhrw4HUMbgHjfNVYvKZiUNoUz0
-         j2QfREprGoD1L2h49B/v06cNbSEjd0o117xJ35J3b216WdLciWgyLb1LU18fplGPZgr2
-         Z5hmjMB2/wowhg2wnOhrWZxwIkRy7zCSYCYJOmyzliT+iVYJXSHCNgNlsBz5gxdEm3f1
-         vbeoOnPolgOgwZ0DY4aSr0y1kf6zyoIJULF86J/xuCzgBe3b8TwphSrqTh5tMalyBbe+
-         yfjg==
-X-Gm-Message-State: AOJu0YyuZUIZ7eAhcKGpuCmna10ZGNeVlkReJr5wyjgoQjWI6F0IMa1H
-	uOGY5MsYGPURuVFNtkV6qo7fvElT86n+9CfKN+WsU5ud9fTGyzz4Q+2Lnnc5BA==
-X-Gm-Gg: ASbGncvIaeOIZvC3teLb5gcxI7ny8t/Opd7UrkF3NvWQPNrhGLlxUkkqmkF6OKT4jCZ
-	DOL0g13Cj3aQeQX1/IVhK/nZw7/72RNcS7fkuH9KWTzKTq6oLvFRg/uG8u1g+s/E3RWqff8BtO1
-	sOgOB6j3P7Jua4wqLz4DV3+EIrctOG3Vh/wHeAQYrLeceZQK3NVLKPw1vQ1IMWmY0tDRwvYEWd6
-	2KIjbM7fr1E9eeIB67fvwRWmI5bA8+56cFnQVfa62mllMDy7fjyEPkJCI1PmeiiNYxRn6xsypc+
-	QA4JsxOV7Cczs0Dy6j+Hjt3eMtS+YhGGAsc/HdB36xw+le68DwJxeX1vohiCBf0bwx4W7arPAts
-	5npOVpH+MvaSzdHIykltMb/0CkkWGOZ6xt20hihJpR+5sgS/loUEXFJ8iQZT7wrFbwbp1+4orYL
-	4/7VymwT35vLJ7o1Ikt7aOUdQTsRxfqnWjZYgTTC+2hNEVBg==
-X-Google-Smtp-Source: AGHT+IGflYFa94z25OEZp3F4S1UqmyV4iiUnVETjMh2YUvyOZVPSs5qcul0hJiJx5+ovEh0me53GuA==
-X-Received: by 2002:a05:6000:186a:b0:429:58f:400 with SMTP id ffacd0b85a97d-429b4c9d05fmr932319f8f.50.1761777933308;
-        Wed, 29 Oct 2025 15:45:33 -0700 (PDT)
+        bh=NYl0FglliXOljtOev5rTotnwMG2nQs0Y97fbh4hCkyA=;
+        b=X67pxTkizC78Ib6npwmwyMMn/jagOkPSYyCsKWYnAKedjSrcusID+rJn3xH7HIpYN7
+         SWrQJ5zEkbCHZG8kVYgAmeeOZeG4pwsbgaooUoxJiaxG/YJBwwaYpcq+MnI1Vk69ImFP
+         CJpFaiPgyqyUuOMlJp6n5ipGZMUon0oCiwD3Met6Cp9BuE6Q0lBN6pzCuwBdlR2kL2y+
+         d25kCXesFSnL8L8CRIhIxuJ8uIPnwhhD5saDVH2euSIkrg9eek0Q/9o274SUdbP7Mj5w
+         SXulRcR446O+1aDB2P3Ok69nI0EgKrS0RuVUglzrm2K1FINuIXaD7a0qrap/d+QtQ5tc
+         yXqw==
+X-Gm-Message-State: AOJu0YzcZUlo2V49mGMBRRqdCRbkZUh5p49knjfcHsHC0lB+r2nMuYIV
+	o986IYRmyWtoTL2K9g4a0fZuyqdOjfs/StUYxlt/0m/4/jLUcwu/7Mmn3f0izg==
+X-Gm-Gg: ASbGncs85TGJxEoHkBHCApnQ34nvmQcahdq5s/ESeT0spBKBGRe1EzDb+jg1qzmjlIk
+	Juf/Urxz40Q6i49KAeW6D2BM0KMPjCpQC0pzecdwJyhl6oYu6NW6EfdsMb/7XJfN5curLGG4q6X
+	auqPDKkmunJWldX+mV+fu+lk/ykvF6adGre+zCjSsF4uxYw8hcs5g8H/GUHKsjtMv09su/vuq7g
+	qohcDqgW0MPUAoMH2I+saVPr9GPiIPE5DYtH9YUSo6SwgooAyOxoTFVNt1tLqVQP7QmPaGL+E+r
+	TJ6NworRyTST0zn25lcYdnq2C6Kly0d9Rv7Se5bukIuhoXzdOTw6aOYOw3zgvFYFlXY6D09L+Uz
+	YmiTgX3uw1CxfX4qBrgdoS7kGzWN5S4XfxfAknCQ9lH2AoTHXK34RcyRIh9mlgMnaNMCsKHMfX8
+	gbvUtpd8z5ilCzrwVlY3o0XzzsDhmp24i5bsgpazLgzpG3m0IabbOg/5PV
+X-Google-Smtp-Source: AGHT+IExFTA/VUD2N/ZsSpTTPtIQv5ij4d7qenYXJg3I/dJ68I2Lxx+190b/o7aR4XEJ+qW7D3BoXw==
+X-Received: by 2002:a05:6000:230c:b0:429:b1e4:1f6e with SMTP id ffacd0b85a97d-429b4c8a05dmr1079225f8f.16.1761777955167;
+        Wed, 29 Oct 2025 15:45:55 -0700 (PDT)
 Received: from pc-111.home ([2a01:cb1c:8441:2b00:c694:3c2c:878b:f4c0])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429952d5773sm30600955f8f.27.2025.10.29.15.45.31
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429952d5773sm30600955f8f.27.2025.10.29.15.45.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Oct 2025 15:45:32 -0700 (PDT)
+        Wed, 29 Oct 2025 15:45:54 -0700 (PDT)
 From: Alexandre Knecht <knecht.alexandre@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: 
-Date: Wed, 29 Oct 2025 23:45:02 +0100
-Message-ID: <20251029224530.1962783-1-knecht.alexandre@gmail.com>
+Cc: fw@strlen.de,
+	Alexandre Knecht <knecht.alexandre@gmail.com>
+Subject: [nft PATCH v2] parser_json: support handle for rule positioning in JSON add rule
+Date: Wed, 29 Oct 2025 23:45:03 +0100
+Message-ID: <20251029224530.1962783-2-knecht.alexandre@gmail.com>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251029003044.548224-1-knecht.alexandre@gmail.com>
+In-Reply-To: <20251029224530.1962783-1-knecht.alexandre@gmail.com>
 References: <20251029003044.548224-1-knecht.alexandre@gmail.com>
+ <20251029224530.1962783-1-knecht.alexandre@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -75,14 +77,231 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+This patch fixes JSON-based rule positioning when using "add rule" with
+a handle parameter. Previously, the handle was deleted before being used
+for positioning, causing rules to always be appended at the end of the
+chain instead of being placed after the specified rule handle.
 
-Thank you for your reply, please find the test case below.
+The fix follows the same pattern used in json_parse_cmd_replace():
+- Parse the handle field from JSON
+- Convert handle to position for CMD_ADD operations
+- Remove the code that was deleting the handle field
 
-I've added a shell test in tests/shell/testcases/json/ that verifies
-the handle positioning works correctly. The test has been verified
-in a clean container environment and passes successfully.
+With NLM_F_APPEND set (as it always is for add operations), the kernel
+interprets position as "add after this handle", which matches the CLI
+behavior of "add rule position X".
 
-Thanks,
-Alexandre
+Before this fix:
+  nft -j add rule ... handle 2  --> rule added at end
+
+After this fix:
+  nft -j add rule ... handle 2  --> rule added after handle 2
+
+The CLI version (nft add rule ... position X) was already working
+correctly.
+
+Tested with:
+  # nft add table inet test
+  # nft add chain inet test c
+  # nft add rule inet test c tcp dport 80 accept
+  # nft add rule inet test c tcp dport 443 accept
+  # echo '{"nftables":[{"add":{"rule":{"family":"inet","table":"test","chain":"c","handle":2,"expr":[{"match":{"left":{"payload":{"protocol":"tcp","field":"dport"}},"op":"==","right":8080}},{"accept":null}]}}}]}' | nft -j -f -
+  # nft -a list table inet test
+
+Result: Rule with port 8080 correctly placed after handle 2 (port 80).
+
+Signed-off-by: Alexandre Knecht <knecht.alexandre@gmail.com>
+---
+ src/parser_json.c                             |  11 +-
+ .../json/0007rule_add_handle_position_0       |  22 ++++
+ .../0007rule_add_handle_position_0.json-nft   | 101 ++++++++++++++++++
+ .../dumps/0007rule_add_handle_position_0.nft  |   7 ++
+ 4 files changed, 138 insertions(+), 3 deletions(-)
+ create mode 100755 tests/shell/testcases/json/0007rule_add_handle_position_0
+ create mode 100644 tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.json-nft
+ create mode 100644 tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.nft
+
+diff --git a/src/parser_json.c b/src/parser_json.c
+index 7b4f3384..c974a9e2 100644
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -3197,10 +3197,18 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
+ 		return NULL;
+ 	}
+ 
++	/* Parse handle and index (similar to json_parse_cmd_replace) */
++	json_unpack(root, "{s:I}", "handle", &h.handle.id);
+ 	if (!json_unpack(root, "{s:I}", "index", &h.index.id)) {
+ 		h.index.id++;
+ 	}
+ 
++	/* For CMD_ADD, convert handle to position for rule positioning */
++	if ((op == CMD_ADD || op == CMD_CREATE) && h.handle.id) {
++		h.position.id = h.handle.id;
++		h.handle.id = 0;
++	}
++
+ 	rule = rule_alloc(int_loc, NULL);
+ 
+ 	json_unpack(root, "{s:s}", "comment", &comment);
+@@ -3226,9 +3234,6 @@ static struct cmd *json_parse_cmd_add_rule(struct json_ctx *ctx, json_t *root,
+ 		rule_stmt_append(rule, stmt);
+ 	}
+ 
+-	if (op == CMD_ADD)
+-		json_object_del(root, "handle");
+-
+ 	return cmd_alloc(op, obj, &h, int_loc, rule);
+ 
+ err_free_rule:
+diff --git a/tests/shell/testcases/json/0007rule_add_handle_position_0 b/tests/shell/testcases/json/0007rule_add_handle_position_0
+new file mode 100755
+index 00000000..e7dde7c7
+--- /dev/null
++++ b/tests/shell/testcases/json/0007rule_add_handle_position_0
+@@ -0,0 +1,22 @@
++#!/bin/bash
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_json)
++
++# Test that JSON add rule with handle parameter positions rule correctly
++
++set -e
++
++$NFT flush ruleset
++
++# Create table, chain, and two initial rules
++# The first rule (port 80) will get handle 2
++# The second rule (port 443) will get handle 3
++SETUP='{"nftables": [{"add": {"table": {"family": "inet", "name": "test"}}}, {"add": {"chain": {"family": "inet", "table": "test", "name": "c"}}}, {"add": {"rule": {"family": "inet", "table": "test", "chain": "c", "expr": [{"match": {"left": {"payload": {"protocol": "tcp", "field": "dport"}}, "op": "==", "right": 80}}, {"accept": null}]}}}, {"add": {"rule": {"family": "inet", "table": "test", "chain": "c", "expr": [{"match": {"left": {"payload": {"protocol": "tcp", "field": "dport"}}, "op": "==", "right": 443}}, {"accept": null}]}}}]}'
++
++$NFT -j -f - <<< "$SETUP"
++
++# Add a new rule positioned after handle 2 (the port 80 rule)
++# This rule should end up between port 80 and port 443
++ADD_RULE='{"nftables": [{"add": {"rule": {"family": "inet", "table": "test", "chain": "c", "handle": 2, "expr": [{"match": {"left": {"payload": {"protocol": "tcp", "field": "dport"}}, "op": "==", "right": 8080}}, {"accept": null}]}}}]}'
++
++$NFT -j -f - <<< "$ADD_RULE"
+diff --git a/tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.json-nft b/tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.json-nft
+new file mode 100644
+index 00000000..667e14c1
+--- /dev/null
++++ b/tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.json-nft
+@@ -0,0 +1,101 @@
++{
++  "nftables": [
++    {
++      "metainfo": {
++        "version": "VERSION",
++        "release_name": "RELEASE_NAME",
++        "json_schema_version": 1
++      }
++    },
++    {
++      "table": {
++        "family": "inet",
++        "name": "test",
++        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "inet",
++        "table": "test",
++        "name": "c",
++        "handle": 0
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "test",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 80
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "test",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 8080
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "test",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 443
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    }
++  ]
++}
+diff --git a/tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.nft b/tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.nft
+new file mode 100644
+index 00000000..d3e8e1ba
+--- /dev/null
++++ b/tests/shell/testcases/json/dumps/0007rule_add_handle_position_0.nft
+@@ -0,0 +1,7 @@
++table inet test {
++	chain c {
++		tcp dport 80 accept
++		tcp dport 8080 accept
++		tcp dport 443 accept
++	}
++}
+-- 
+2.51.0
 
