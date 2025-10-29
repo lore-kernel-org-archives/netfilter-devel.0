@@ -1,171 +1,88 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FFF5233722
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 20:42:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EC5413FEE
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 22:45:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761770582; cv=none; b=TXupOuXqRxcK25gs6487oR8euzX/kLKWPh+RF0HSmet/iyZmTAJgRpLhkctlho1FzYxxukWI+vALIkIN0J6JqmUGiAAtqZzZiprrIMv9Auv9R/PNhw1C4KFHwbUUSe4Xp91Vd/FvLE6a8cANofiOVwCzcl0NM0odBualtZrrZzM=
+	t=1761777937; cv=none; b=Nmcs9ZO8eEc7qis+kQtrwab1aIGxxK6jJZuTMZYThxwvsHRTpuu88e2w87Dl1PyqOtbWuJ5xJlHSWcbT57MIrACfICkO7Fx+iEhS64YqPUEd/DSpIjwGBeSABkIwADbg5G6ywE7HrXnnOGDPid+S+noUXH2C5XDPrjxh9zcJiHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761770582; c=relaxed/simple;
-	bh=eOLC4/LojyjE5wdAd9C5zYPYktj9Gpk8X9BPE95Ep4Q=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qffk8fndGF4631/Ovt4sov1CgmP3lJ4a9d+dQTTgLMQoBwbOV+Bek1bWBw3sfxcan1rsyDQebf7gvZp08VqwX+HxLCRxBzoGLAkhFBTtFcY4SBp0nMdypYEI2CbxS1W/3GCA8I/u4SZBvS3VB4ZEWKIIAFfbzXv7LWuuwuE3yuc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VsAnZTaO; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1761777937; c=relaxed/simple;
+	bh=fx4tbyfbxfqROrwuaVQPKZ47kjPCz9YraW90Cy8j13U=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=QvSMG5kvykJ6xUa5ib+PxEqY4C8OhH9WPh4WbjYuIg8lsHCsCaGNOIsmD7KksXeotf/oBCamExFOoV4KJk1cf0QJaRiYgeDjus8KSC75u0DptdQJOq81GHVBPQywfPDnRruCfoeuaHY23Kc9CdM/NTnejwKZrrjS8o55FvhGS3w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Am0h8Eih; arc=none smtp.client-ip=209.85.221.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VsAnZTaO"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A741B6028E;
-	Wed, 29 Oct 2025 21:42:56 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1761770576;
-	bh=bcfDHcc3w0CDKBU89s7e6s1vDCM9eiX55zKKFQFYS2s=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VsAnZTaOxv1FILzZFVxtRVueufthewt94I8eJvZfZ8/KY+Z3vAPHsF2lK1Y6OGPxB
-	 gzQl2TJbKs3cxq+JC9U+SZxPCsLYl/ZzEXDYhban+yqNRYhaA5vIZXwWiEaPpKBCCl
-	 l7vjpFXvJST9Srhb48/QkB4NvB9sdmhaHbB/bdmSWTehCEp3J/S238pGyMfsyGANBf
-	 7pwP00oCJUOFy3bis3fjKfcJj73skrXCo05+Gnjr7qQ65tXQiwzVHPjet+aFjyDbcV
-	 Lth+3eZjgAe4MJus0h6TpmcJuKiHTA55zEGKMI3DuGN64SXsiwEIOICGCsx9BvNI9L
-	 qFe7vnm0SBRLg==
-Date: Wed, 29 Oct 2025 21:33:07 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de
-Subject: Re: [PATCH nf v2] netfilter: nft_connlimit: fix duplicated tracking
- of a connection
-Message-ID: <aQJ6AysjCMTHLzsP@calendula>
-References: <20251029132318.5628-1-fmancera@suse.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Am0h8Eih"
+Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-4270491e9easo326324f8f.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 15:45:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1761777933; x=1762382733; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fx4tbyfbxfqROrwuaVQPKZ47kjPCz9YraW90Cy8j13U=;
+        b=Am0h8EihsX/uKThD56v6xRG/srpmde8EffSTuKlbapyawfAfLZZsk/hJEMf6XzJ9GE
+         XgmGHGSigZNu29egUxflreklZDP/0r80Ej0GXvLuN0GkqUIq5BcShaQ6gl5odxCrYxzO
+         xni/NJQlf/XAPV3iCul/MdRxNCxxqZFH0Zmnlla3Vszq7rJ8w7lYw8PIOjEZ/hSI94NK
+         T+ucBxAPuJOx4QeTFHP3w4PUO4Ww3MElFm3ip6IV4x4V3jPIvsALdxUexfOb/6MIBNZe
+         pMXqPK3UAaw2D0sBDOouquc4AWKdX4Khrymuth98b0ZoXZRYNsRYwsgA1OcXReVGkguM
+         sYBw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1761777933; x=1762382733;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=fx4tbyfbxfqROrwuaVQPKZ47kjPCz9YraW90Cy8j13U=;
+        b=RVEnijRbPSr2yBDATN1E2ab3U4SRs96LbUijdyLb85q1Jtz/r3QvscwDpYVuGceF6w
+         vKOR9lOCP3TDszjn9P/qtvSfIXUwhew52ffZ0OAU8xJhrw4HUMbgHjfNVYvKZiUNoUz0
+         j2QfREprGoD1L2h49B/v06cNbSEjd0o117xJ35J3b216WdLciWgyLb1LU18fplGPZgr2
+         Z5hmjMB2/wowhg2wnOhrWZxwIkRy7zCSYCYJOmyzliT+iVYJXSHCNgNlsBz5gxdEm3f1
+         vbeoOnPolgOgwZ0DY4aSr0y1kf6zyoIJULF86J/xuCzgBe3b8TwphSrqTh5tMalyBbe+
+         yfjg==
+X-Gm-Message-State: AOJu0YyuZUIZ7eAhcKGpuCmna10ZGNeVlkReJr5wyjgoQjWI6F0IMa1H
+	uOGY5MsYGPURuVFNtkV6qo7fvElT86n+9CfKN+WsU5ud9fTGyzz4Q+2Lnnc5BA==
+X-Gm-Gg: ASbGncvIaeOIZvC3teLb5gcxI7ny8t/Opd7UrkF3NvWQPNrhGLlxUkkqmkF6OKT4jCZ
+	DOL0g13Cj3aQeQX1/IVhK/nZw7/72RNcS7fkuH9KWTzKTq6oLvFRg/uG8u1g+s/E3RWqff8BtO1
+	sOgOB6j3P7Jua4wqLz4DV3+EIrctOG3Vh/wHeAQYrLeceZQK3NVLKPw1vQ1IMWmY0tDRwvYEWd6
+	2KIjbM7fr1E9eeIB67fvwRWmI5bA8+56cFnQVfa62mllMDy7fjyEPkJCI1PmeiiNYxRn6xsypc+
+	QA4JsxOV7Cczs0Dy6j+Hjt3eMtS+YhGGAsc/HdB36xw+le68DwJxeX1vohiCBf0bwx4W7arPAts
+	5npOVpH+MvaSzdHIykltMb/0CkkWGOZ6xt20hihJpR+5sgS/loUEXFJ8iQZT7wrFbwbp1+4orYL
+	4/7VymwT35vLJ7o1Ikt7aOUdQTsRxfqnWjZYgTTC+2hNEVBg==
+X-Google-Smtp-Source: AGHT+IGflYFa94z25OEZp3F4S1UqmyV4iiUnVETjMh2YUvyOZVPSs5qcul0hJiJx5+ovEh0me53GuA==
+X-Received: by 2002:a05:6000:186a:b0:429:58f:400 with SMTP id ffacd0b85a97d-429b4c9d05fmr932319f8f.50.1761777933308;
+        Wed, 29 Oct 2025 15:45:33 -0700 (PDT)
+Received: from pc-111.home ([2a01:cb1c:8441:2b00:c694:3c2c:878b:f4c0])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-429952d5773sm30600955f8f.27.2025.10.29.15.45.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Oct 2025 15:45:32 -0700 (PDT)
+From: Alexandre Knecht <knecht.alexandre@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: 
+Date: Wed, 29 Oct 2025 23:45:02 +0100
+Message-ID: <20251029224530.1962783-1-knecht.alexandre@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251029003044.548224-1-knecht.alexandre@gmail.com>
+References: <20251029003044.548224-1-knecht.alexandre@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20251029132318.5628-1-fmancera@suse.de>
+Content-Transfer-Encoding: 8bit
 
-Hi Fernando,
+Hi Florian,
 
-On Wed, Oct 29, 2025 at 02:23:18PM +0100, Fernando Fernandez Mancera wrote:
-> Connlimit expression can be used for all kind of packets and not only
-> for packets with connection state new. See this ruleset as example:
-> 
-> table ip filter {
->         chain input {
->                 type filter hook input priority filter; policy accept;
->                 tcp dport 22 ct count over 4 counter
->         }
-> }
-> 
-> Currently, if the connection count goes over the limit the counter will
-> count the packets. When a connection is closed, the connection count
-> won't decrement as it should because it is only updated for new
-> connections due to an optimization on __nf_conncount_add() that prevents
-> updating the list if the connection is duplicated.
-> 
-> In addition, since commit d265929930e2 ("netfilter: nf_conncount: reduce
-> unnecessary GC") there can be situations where a duplicated connection
-> is added to the list. This is caused by two packets from the same
-> connection being processed during the same jiffy.
-> 
-> To solve these problems, check whether this is a new connection and only
-> add the connection to the list if that is the case during connlimit
-> evaluation. Otherwise run a GC to update the count. This doesn't yield a
-> performance degradation.
+Thank you for your reply, please find the test case below.
 
-This is true is list is small, e.g. ct count over 4.
+I've added a shell test in tests/shell/testcases/json/ that verifies
+the handle positioning works correctly. The test has been verified
+in a clean container environment and passes successfully.
 
-But user could much larger value, then every packet could trigger a
-long list walk, because gc is bound to CONNCOUNT_GC_MAX_NODES which is
-the maximum number of nodes that is _collected_.
+Thanks,
+Alexandre
 
-And maybe the user selects:
-
-  ct count over N mark set 0x1
-
-where N is high, the gc walk can be long.
-
-TBH, I added this expression mainly focusing on being used with
-dynset, I allowed it too in rules for parity. In the dynset case,
-there is a front-end datastructure (set) and this conncount list
-is per element. Maybe there high ct count is also possible.
-
-With this patch, gc is called more frequently, not only for each new
-packet.
-
-> Fixed in xt_connlimit too.
-> 
-> Fixes: d265929930e2 ("netfilter: nf_conncount: reduce unnecessary GC")
-> Fixes: 976afca1ceba ("netfilter: nf_conncount: Early exit in nf_conncount_lookup() and cleanup")
-> Closes: https://lore.kernel.org/netfilter/trinity-85c72a88-d762-46c3-be97-36f10e5d9796-1761173693813@3c-app-mailcom-bs12/
-> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-> ---
-> v2: use nf_ct_is_confirmed(), add comment about why the gc call is
-> needed and fix this in xt_connlimit too.
-> ---
->  net/netfilter/nft_connlimit.c | 17 ++++++++++++++---
->  net/netfilter/xt_connlimit.c  | 14 ++++++++++++--
->  2 files changed, 26 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-> index fc35a11cdca2..dedea1681e73 100644
-> --- a/net/netfilter/nft_connlimit.c
-> +++ b/net/netfilter/nft_connlimit.c
-> @@ -43,9 +43,20 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
->  		return;
->  	}
->  
-> -	if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-> -		regs->verdict.code = NF_DROP;
-> -		return;
-> +	if (!ct || !nf_ct_is_confirmed(ct)) {
-> +		if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-> +			regs->verdict.code = NF_DROP;
-> +			return;
-> +		}
-> +	} else {
-> +		/* Call gc to update the list count if any connection has been
-> +		 * closed already. This is useful to softlimit connections
-> +		 * like limiting bandwidth based on a number of open
-> +		 * connections.
-> +		 */
-> +		local_bh_disable();
-> +		nf_conncount_gc_list(nft_net(pkt), priv->list);
-> +		local_bh_enable();
->  	}
->  
->  	count = READ_ONCE(priv->list->count);
-> diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-> index 0189f8b6b0bd..5c90e1929d86 100644
-> --- a/net/netfilter/xt_connlimit.c
-> +++ b/net/netfilter/xt_connlimit.c
-> @@ -69,8 +69,18 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  		key[1] = zone->id;
->  	}
->  
-> -	connections = nf_conncount_count(net, info->data, key, tuple_ptr,
-> -					 zone);
-> +	if (!ct || !nf_ct_is_confirmed(ct)) {
-> +		connections = nf_conncount_count(net, info->data, key, tuple_ptr,
-> +						 zone);
-> +	} else {
-> +		/* Call nf_conncount_count() with NULL tuple and zone to update
-> +		 * the list if any connection has been closed already. This is
-> +		 * useful to softlimit connections like limiting bandwidth based
-> +		 * on a number of open connections.
-> +		 */
-> +		connections = nf_conncount_count(net, info->data, key, NULL, NULL);
-> +	}
-
-Maybe remove this from xt_connlimit?
-
-> +
->  	if (connections == 0)
->  		/* kmalloc failed, drop it entirely */
->  		goto hotdrop;
-> -- 
-> 2.51.0
-> 
