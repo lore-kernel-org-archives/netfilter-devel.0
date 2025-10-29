@@ -1,94 +1,78 @@
-Received: from iguana.tulip.relay.mailchannels.net (iguana.tulip.relay.mailchannels.net [23.83.218.253])
+Received: from cornsilk.maple.relay.mailchannels.net (cornsilk.maple.relay.mailchannels.net [23.83.214.40])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C944E2D320E
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 00:43:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.253
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF22A2D593E
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 00:55:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.214.40
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761698606; cv=pass; b=NQM3FVn+ll88NkiTqip40vHtTn+gXic64/UWYLWHRirIPHHabwgJzNc8F5x8dkCnQsrIkg56qOnJ0qka+Y/3+LkES9XzAP/NHdHMEWAmOXZNJyMg0UVYecD5Tj39ETs5G0/Mzy6bBN4WV2p1sNtQsCybYYcDYxTFWbuLJ7/Nzwc=
+	t=1761699324; cv=pass; b=USF5W0twRpisB/XkAqLcTG9LXlQ9S4XHzpGFStqpSMe38OfPNmKTnrNe3rVzYX+/Vh/j59WP0RvPfesRgKzb686mTVoiTkxIr1PSZJw+u8BXOjmfaG4ewFa+q+Bl3P8NfoJGlY+RlK6ZnDFwDZD7Fu4xHeOnMhiBQSVesnqqh4Q=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761698606; c=relaxed/simple;
-	bh=HMDGuIq5Wk3rqQ5IRW7KD4Q7BJ5DnhMHJsLOIuE+QSg=;
+	s=arc-20240116; t=1761699324; c=relaxed/simple;
+	bh=f/H/QWbq7jftmlwuwXTIB9BZuLH8FLgrT6xFom2qzMQ=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=Io17Xm3m6ZMNBPSRUI8EJ6ATFBN8QQz9aFBUTgumxZ9vy7c7PB0JpNf98evuvvc1ZW8HPiIS3hmKts6TBaiXe5RSU5DvrHXxjy0cPOJM6pLyBC779/cTRwNqmxZZLbpJKUCNHmuGgXh4pSY+CP0rCj2NXaVPJknY6lccvaIkN34=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=TMPsJtjU reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.253
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="TMPsJtjU"
-X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+	 Content-Type:MIME-Version; b=sUKjkV98tTUSqFWavs9n49oHRnenFaM8rPf7lpbarPdE56sjCnyq+xHcBhKFIf60lpyc5z9o2fSTWjRyYJNoqoKpxoc7r9QYl9lO2hdHz78ApbVu36fQGiV2BH40Y9zohB8euCvr9bTkg4VXMmlzAInyAUT7htxsiXodjDMc/oA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.214.40
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id D6C851212FB;
-	Wed, 29 Oct 2025 00:35:05 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (100-120-42-56.trex-nlb.outbound.svc.cluster.local [100.120.42.56])
+	by relay.mailchannels.net (Postfix) with ESMTP id E2A89120D8C;
+	Wed, 29 Oct 2025 00:55:20 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-118-36-217.trex-nlb.outbound.svc.cluster.local [100.118.36.217])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id F0C531212A4;
-	Wed, 29 Oct 2025 00:35:04 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761698105; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 14FA51210EC;
+	Wed, 29 Oct 2025 00:55:19 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761699320; a=rsa-sha256;
 	cv=none;
-	b=m5H49dhbiThVacnIDtdjzM+zjYJGT0RvTDiZyEbPeCUtpgcMQLa6XJHvXR/7143Z2mIm2G
-	iyJNV3QSRlFic8PD8UtFIvpqvoFMhS6hpKDR3O6e/wUdZd7C31zNqhg8MNR1M1sBuWnmXc
-	pqADjnzENJ2fL3oYv9k+Rq+PCVEcthE6f7QURYhqRFykOiQF6sUcXn/4dsY12v5NAS368s
-	A2EmXPRLs9yKBzm/YvZd3g0j1dsczIBC607UbcepEwy8RaStFPB4zdZmbxeXJ6+1h5V3Gc
-	5s52T9mDqEZfv1BYINglcxxFmNlpImUZeLsv6bbRH5sr9FVTWOf/DmJVu0xaqw==
+	b=gvBnnyfW2iJM+wFCA3GRwhF+cNTCSVmYWXM30PIyDZ/obyCM8kUyYxtTlsTCGRQemzYLv3
+	/IRLnr7lZVclLx41Mni6FV9ySi/oeR3K0k60GPZTybNf6+bF2048ZLTpbfxdKszbI3ThZH
+	yLWktNjNpEGcmG+62ZlzZOvM4LYHlHC00r2SGqnNxGrMY2Nubzn1/1l3271RIvVtpVm5iX
+	GUnOsAAC+Z6F5fA0pHoXYFkOhNlN13OYtrn8hbxTF5Qer8jLBl5bBwfquWv6pjDTrBj7ns
+	Prc8TVYHCYT9Pj1hRKqwU3zb43Vt4RxGv0pVDj9DeX7X7AZEjQcAUFjyxTL5Sw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1761698105;
+	s=arc-2022; t=1761699320;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=HMDGuIq5Wk3rqQ5IRW7KD4Q7BJ5DnhMHJsLOIuE+QSg=;
-	b=eUISFByQKja6hARqCB21sb4YyK4IGY1XNRiRf53FqB5qPq620MhumAJzTDdN0ynvBIkSPO
-	MMsfBVUCfubMWngQ+NgYKMopRgt0pUHBNT5wJQEEwO06fSNZ7MpBXT+qC/KHsYkqEqHzdF
-	F4LsCTylK3yfgLhl5KUQFecfZ2Qhxm4P2TVtCGEtpuE7boJLko91nH+6+3KUIA+c6zQ5Z2
-	yBkSrwGeBWl1EHZ7JjeFykNT75Ae7ymE01OMwesqSLkncW1SY6ZMWmusmf5Z1aUb99r1HU
-	r5m3Xv5TV1Y7VbIDp1fWkCcnba+AZwtic/ZXsKQmGWKGCza6C7onn3q92NRbaQ==
+	 in-reply-to:in-reply-to:references:references;
+	bh=f/H/QWbq7jftmlwuwXTIB9BZuLH8FLgrT6xFom2qzMQ=;
+	b=nEZ4xFr1mEF/bbZzUK7izVo4irWf4LcRxl7/vC7CxiftiQY+InEg7imsyF/6M70KbgZdVt
+	ZYVCcwKAfxFfv6Z6b6Q72W3PdFCJqsB0KvjAIzQJnFZlIowsrIpoTpqIxJSnWZv2nsbAzh
+	878/xSSqdD7M550ISuVApaA05N5VeMftXk1Tnjtihvx485pal+EPVYPlpCmenz8T9ua0YQ
+	Rtk8rrHbNmR6hj2xBqx58CvYTgL+E1spwA9amj3+iC7RBz/W9h6rCfJ4dFlFvSqfpIB19M
+	88qPmhis0OMFSRNYrv5SXTa8fXOwQqhr8VszM8yu1n1bZclztcO6qBBkraRoYg==
 ARC-Authentication-Results: i=1;
-	rspamd-768b565cdb-4szxz;
-	auth=pass smtp.auth=instrampxe0y3a
- smtp.mailfrom=mail@christoph.anton.mitterer.name
-X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+	rspamd-768b565cdb-sfz8m;
+	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
+X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MC-Relay: Neutral
-X-MailChannels-SenderId:
- instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
+X-MC-Copy: stored-urls
+X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Chemical-Wiry: 5f54e5b604f204b1_1761698105712_183413558
-X-MC-Loop-Signature: 1761698105712:571872035
-X-MC-Ingress-Time: 1761698105712
+X-Abortive-Whispering: 2da1f0ed1dd6f90d_1761699320768_1526398407
+X-MC-Loop-Signature: 1761699320768:836518248
+X-MC-Ingress-Time: 1761699320767
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.120.42.56 (trex/7.1.3);
-	Wed, 29 Oct 2025 00:35:05 +0000
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
-	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
-	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=HMDGuIq5Wk3rqQ5IRW7KD4Q7BJ5DnhMHJsLOIuE+QSg=; b=TMPsJtjU6Hxn
-	ujodgIDzB28CsUBLKR7uiRtJ50QIlbTOZjr7acM0GiIlYCR+MdWbS9Svxmtbn1tCK2OKGmGrArCJz
-	gv1+nDOd0/IVnPxAKTqJaNGb84nHotNAMgRQdKitWI6hBKObPlMFxiKnW++V+Kh1oG6PdMyir8s9h
-	zxHQ+khl3cUxp6lTdVd2d56OIRxZUWQNJkBqErJXjT0wvq45pAxi9UmpdTuTkuvtt1lazjsqQK04F
-	t8I9M5usm7FxsjvRSkhdm+ca4kZ6Y7Og484ooZ45RvJqzo75p/DU8Ev6peY4pZ52sIiz8AP/F3wvV
-	e4xn5uthvL/Nn/Xgc0FLwg==;
-Received: from [212.104.214.84] (port=3736 helo=[10.2.0.2])
+	by 100.118.36.217 (trex/7.1.3);
+	Wed, 29 Oct 2025 00:55:20 +0000
+Received: from [212.104.214.84] (port=18843 helo=[10.2.0.2])
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
-	(envelope-from <mail@christoph.anton.mitterer.name>)
-	id 1vDu9W-0000000DJdQ-3xSM;
-	Wed, 29 Oct 2025 00:35:03 +0000
-Message-ID: <b89a2c19fbde68004ae4c59fe00599d1382fc6f0.camel@christoph.anton.mitterer.name>
-Subject: Re: [PATCH 5/9] tools: depend on `sysinit.target`
-From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-To: Jan Engelhardt <ej@inai.de>
+	(envelope-from <calestyo@scientia.org>)
+	id 1vDuT8-0000000DNeS-1BLz;
+	Wed, 29 Oct 2025 00:55:18 +0000
+Message-ID: <7c3760d6afad70f7579311022748363f7d5f5c77.camel@scientia.org>
+Subject: Re: nftables.service hardening ideas
+From: Christoph Anton Mitterer <calestyo@scientia.org>
+To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Date: Wed, 29 Oct 2025 01:35:01 +0100
-In-Reply-To: <87oq102q-55q8-3137-5377-s74r778qn718@vanv.qr>
-References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
-	 <20251024023513.1000918-6-mail@christoph.anton.mitterer.name>
-	 <87oq102q-55q8-3137-5377-s74r778qn718@vanv.qr>
+Date: Wed, 29 Oct 2025 01:55:16 +0100
+In-Reply-To: <aQDuvGsDwlaiK94D@strlen.de>
+References: <71e8f96ac2cd1ee0ab8676facb04b40870a095a1.camel@scientia.org>
+	 <aQDuvGsDwlaiK94D@strlen.de>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.56.2-5 
@@ -98,26 +82,72 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-AuthUser: mail@christoph.anton.mitterer.name
+X-AuthUser: calestyo@scientia.org
 
-On Tue, 2025-10-28 at 18:19 +0100, Jan Engelhardt wrote:
-> The explanation is sound, but long-winded. Feel free to shorten the
-> commit message to simply sy that no reason *for* DefDeps=3D is on
-> record
-> when it should have.
+Hey.
 
-Wenn I read the commit that added the file to netfilter, it didn't
-mention why e.g. DefaultDependencies=3D were chosen as it was (and why
-the values for it implies were e.g. not set).
+On Tue, 2025-10-28 at 17:26 +0100, Florian Westphal wrote:
+> Christoph Anton Mitterer <calestyo@scientia.org> wrote:
+> > This would be ideas about further hardening nftables.service,
+> > primarily
+> > using the options from systemd.exec(5).
+>=20
+> Whats the point?=C2=A0 nft will exit anyway.
 
-I figured, if my patch would have gotten merged, even only a few months
-from now, no would remember why I e.g. set
-After=3D/Requires=3Dsysinit.target *and* WantedBy=3Dsysinit.target, but e.g=
-.
-not basic.target.
+Uhm... well the point of any sandboxing is always (at least trying to)
+prevent any attacks.
 
-So IMO it's better to have a good rationale, than not.
+Sure, nftables is probably not the most likely program to be abused (in
+particular as it usually won't process untrusted input), but still even
+nftables can't be 100% sure to never be abused in something like
+secretly included malware or so.
+
+As with the first patchset my idea was simply that *if* a .service file
+is shared it could as well be proper and use as many sandboxing options
+from systemd as possible, serving as and example for e.g. downstream
+versions of such .service.
 
 
-Cheer,
+> > I guess nft -f should never write anywhere, or does it? At least it
+> > seems to work.
+>=20
+> nft -f should not write anything.
+
+Wasn't 100% sure whether it might e.g. write to some locations like
+/proc/sys/net in special situations.
+
+
+> > 5. There should be no reason why nft -f needs to access stuff in
+> > /tmp
+> > or /var/tmp of anything else, so:
+> > > PrivateTmp=3Dyes
+>=20
+> Makes no sense to me.=C2=A0 nft -f won't write anything.
+
+The idea of PrivateTmp=3Dyes (in addition to ProtectSystem=3Dstrict) was
+rather to prevent that nftables would be able to read anyone else's
+files in /tmp (and /var/tmp), again for sandboxing reasons.
+
+
+
+> Exotic? More like estoteric, this is bad.=C2=A0 Service file should be
+> small and not rely
+> on obscure and maybe not well-tested systemd code paths.
+
+Uhm... do you have any reason to believe that the options below were
+less tested? It seems at least some of them are used by system's own
+units, so these are probably used on basically every system, and most
+of what systemd does there is, AFAIU, merely using stuff the kernel
+provides via namespaces.
+Also *if* something would actually fail, then nft would probably just
+terminate with some error or via some signal and it would be quickly
+spotted.
+
+
+Anyway, as said, none of this needs to be done at all... I merely did
+the work to went through all these options and which could be used with
+nft -f, so that other could perhaps benefit from that, too.
+
+
+Cheers,
 Chris.
