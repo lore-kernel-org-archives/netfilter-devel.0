@@ -1,153 +1,142 @@
-Received: from cornsilk.maple.relay.mailchannels.net (cornsilk.maple.relay.mailchannels.net [23.83.214.40])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF22A2D593E
-	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 00:55:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.214.40
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761699324; cv=pass; b=USF5W0twRpisB/XkAqLcTG9LXlQ9S4XHzpGFStqpSMe38OfPNmKTnrNe3rVzYX+/Vh/j59WP0RvPfesRgKzb686mTVoiTkxIr1PSZJw+u8BXOjmfaG4ewFa+q+Bl3P8NfoJGlY+RlK6ZnDFwDZD7Fu4xHeOnMhiBQSVesnqqh4Q=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761699324; c=relaxed/simple;
-	bh=f/H/QWbq7jftmlwuwXTIB9BZuLH8FLgrT6xFom2qzMQ=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=sUKjkV98tTUSqFWavs9n49oHRnenFaM8rPf7lpbarPdE56sjCnyq+xHcBhKFIf60lpyc5z9o2fSTWjRyYJNoqoKpxoc7r9QYl9lO2hdHz78ApbVu36fQGiV2BH40Y9zohB8euCvr9bTkg4VXMmlzAInyAUT7htxsiXodjDMc/oA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.214.40
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
-X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id E2A89120D8C;
-	Wed, 29 Oct 2025 00:55:20 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (100-118-36-217.trex-nlb.outbound.svc.cluster.local [100.118.36.217])
-	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 14FA51210EC;
-	Wed, 29 Oct 2025 00:55:19 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761699320; a=rsa-sha256;
-	cv=none;
-	b=gvBnnyfW2iJM+wFCA3GRwhF+cNTCSVmYWXM30PIyDZ/obyCM8kUyYxtTlsTCGRQemzYLv3
-	/IRLnr7lZVclLx41Mni6FV9ySi/oeR3K0k60GPZTybNf6+bF2048ZLTpbfxdKszbI3ThZH
-	yLWktNjNpEGcmG+62ZlzZOvM4LYHlHC00r2SGqnNxGrMY2Nubzn1/1l3271RIvVtpVm5iX
-	GUnOsAAC+Z6F5fA0pHoXYFkOhNlN13OYtrn8hbxTF5Qer8jLBl5bBwfquWv6pjDTrBj7ns
-	Prc8TVYHCYT9Pj1hRKqwU3zb43Vt4RxGv0pVDj9DeX7X7AZEjQcAUFjyxTL5Sw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1761699320;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=f/H/QWbq7jftmlwuwXTIB9BZuLH8FLgrT6xFom2qzMQ=;
-	b=nEZ4xFr1mEF/bbZzUK7izVo4irWf4LcRxl7/vC7CxiftiQY+InEg7imsyF/6M70KbgZdVt
-	ZYVCcwKAfxFfv6Z6b6Q72W3PdFCJqsB0KvjAIzQJnFZlIowsrIpoTpqIxJSnWZv2nsbAzh
-	878/xSSqdD7M550ISuVApaA05N5VeMftXk1Tnjtihvx485pal+EPVYPlpCmenz8T9ua0YQ
-	Rtk8rrHbNmR6hj2xBqx58CvYTgL+E1spwA9amj3+iC7RBz/W9h6rCfJ4dFlFvSqfpIB19M
-	88qPmhis0OMFSRNYrv5SXTa8fXOwQqhr8VszM8yu1n1bZclztcO6qBBkraRoYg==
-ARC-Authentication-Results: i=1;
-	rspamd-768b565cdb-sfz8m;
-	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
-X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
-X-MC-Relay: Neutral
-X-MC-Copy: stored-urls
-X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
-X-MailChannels-Auth-Id: instrampxe0y3a
-X-Abortive-Whispering: 2da1f0ed1dd6f90d_1761699320768_1526398407
-X-MC-Loop-Signature: 1761699320768:836518248
-X-MC-Ingress-Time: 1761699320767
-Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
- [3.69.87.180])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.118.36.217 (trex/7.1.3);
-	Wed, 29 Oct 2025 00:55:20 +0000
-Received: from [212.104.214.84] (port=18843 helo=[10.2.0.2])
-	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <calestyo@scientia.org>)
-	id 1vDuT8-0000000DNeS-1BLz;
-	Wed, 29 Oct 2025 00:55:18 +0000
-Message-ID: <7c3760d6afad70f7579311022748363f7d5f5c77.camel@scientia.org>
-Subject: Re: nftables.service hardening ideas
-From: Christoph Anton Mitterer <calestyo@scientia.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Date: Wed, 29 Oct 2025 01:55:16 +0100
-In-Reply-To: <aQDuvGsDwlaiK94D@strlen.de>
-References: <71e8f96ac2cd1ee0ab8676facb04b40870a095a1.camel@scientia.org>
-	 <aQDuvGsDwlaiK94D@strlen.de>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.56.2-5 
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4AC5221294
+	for <netfilter-devel@vger.kernel.org>; Wed, 29 Oct 2025 04:50:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1761713448; cv=none; b=Nw4y/oGsiNlMqDRt6QRx5+4p6Q739n62hUdhJM9YnaW4DFXjOgkujVb1/hykWdg+CygtNhNItKg1QxdpbWSJUSF0MUX6et4CPSkvm6kzgMqGcHFUG4rVTveE1zZyG8jysWtntJlPWVCJLc/RuQkq5ARsXbw/DWsaFoLWukXhAmo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1761713448; c=relaxed/simple;
+	bh=m+xtCQlsQ2W/RTc69IEMvaWvvLYl73pqZWkjRlTO/jY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=D4ryYl2HBCg6Ti3V/pXkbJSweG1byVWahdWxG/O6YlM49Jfnfz2VAWtFU0iFDezHqeI66iXUqLaoZmyPfAqabwWB+SsUne3mg5CU6PIjN2SB1deNQ2qBfU/ISl+9HzrEeVTM6RE+cC50T/D2hP4vPdS662G8QYXhFS3ACB3Yh9g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DkBs+fCh; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DkBs+fCh"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1761713447; x=1793249447;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=m+xtCQlsQ2W/RTc69IEMvaWvvLYl73pqZWkjRlTO/jY=;
+  b=DkBs+fChhr1Qr0A62jxyxR/+V1s16qNWvzVmweEGHFza3T67Yf4eM3sV
+   SxobzLehCaJtoAdLW1RR7uKg3aoREocNuqf2HngAxRMPdx5MSEmoLICUb
+   LqOoKuj4hEh7RIkg7KqNl4qUxyv4YuutpKsHE55GLVVSyL70ROagXCuoU
+   x1gWll+gJ6R54/XLFUujwNu0/I6pG8Dxkh31AMaJcz54H3uF6Xyf5jAo6
+   /IlYjaL9bpnSg+PDnuN6zCt9Z/fliYVRt0UbiOB/bZkwHMgrDKzDOeBOU
+   mSx4rqtadJyoVXuFcnGXaD2Olo94+DJozBu/tjul0/fhuHMtY71qOZXpA
+   w==;
+X-CSE-ConnectionGUID: 5IsovDsNR+2we3S2DNCukg==
+X-CSE-MsgGUID: 6wpnCpjORfqfOGh4pzYa/A==
+X-IronPort-AV: E=McAfee;i="6800,10657,11531"; a="63753424"
+X-IronPort-AV: E=Sophos;i="6.17,312,1747724400"; 
+   d="scan'208";a="63753424"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Oct 2025 21:50:46 -0700
+X-CSE-ConnectionGUID: 7z1IadphTougDt3CqOkDFw==
+X-CSE-MsgGUID: pKbUsDDKTZ63BTHknyyYSg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.19,263,1754982000"; 
+   d="scan'208";a="216199959"
+Received: from lkp-server02.sh.intel.com (HELO 66d7546c76b2) ([10.239.97.151])
+  by orviesa002.jf.intel.com with ESMTP; 28 Oct 2025 21:50:44 -0700
+Received: from kbuild by 66d7546c76b2 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1vDy8p-000K9B-11;
+	Wed, 29 Oct 2025 04:50:36 +0000
+Date: Wed, 29 Oct 2025 12:49:58 +0800
+From: kernel test robot <lkp@intel.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, fw@strlen.de,
+	ffmancera@suse.de, brady.1345@gmail.com
+Subject: Re: [PATCH nf 1/2] netfilter: nf_tables: limit maximum number of
+ jumps/gotos per netns
+Message-ID: <202510291201.P7nkKt1R-lkp@intel.com>
+References: <20251027221722.183398-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-AuthUser: calestyo@scientia.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251027221722.183398-2-pablo@netfilter.org>
 
-Hey.
+Hi Pablo,
 
-On Tue, 2025-10-28 at 17:26 +0100, Florian Westphal wrote:
-> Christoph Anton Mitterer <calestyo@scientia.org> wrote:
-> > This would be ideas about further hardening nftables.service,
-> > primarily
-> > using the options from systemd.exec(5).
->=20
-> Whats the point?=C2=A0 nft will exit anyway.
+kernel test robot noticed the following build warnings:
 
-Uhm... well the point of any sandboxing is always (at least trying to)
-prevent any attacks.
+[auto build test WARNING on netfilter-nf/main]
+[also build test WARNING on linus/master v6.18-rc3 next-20251029]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Sure, nftables is probably not the most likely program to be abused (in
-particular as it usually won't process untrusted input), but still even
-nftables can't be 100% sure to never be abused in something like
-secretly included malware or so.
+url:    https://github.com/intel-lab-lkp/linux/commits/Pablo-Neira-Ayuso/netfilter-nf_tables-limit-maximum-number-of-jumps-gotos-per-netns/20251028-062221
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20251027221722.183398-2-pablo%40netfilter.org
+patch subject: [PATCH nf 1/2] netfilter: nf_tables: limit maximum number of jumps/gotos per netns
+config: arm-randconfig-003-20251028 (https://download.01.org/0day-ci/archive/20251029/202510291201.P7nkKt1R-lkp@intel.com/config)
+compiler: clang version 22.0.0git (https://github.com/llvm/llvm-project d1c086e82af239b245fe8d7832f2753436634990)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20251029/202510291201.P7nkKt1R-lkp@intel.com/reproduce)
 
-As with the first patchset my idea was simply that *if* a .service file
-is shared it could as well be proper and use as many sandboxing options
-from systemd as possible, serving as and example for e.g. downstream
-versions of such .service.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202510291201.P7nkKt1R-lkp@intel.com/
 
+All warnings (new ones prefixed by >>):
 
-> > I guess nft -f should never write anywhere, or does it? At least it
-> > seems to work.
->=20
-> nft -f should not write anything.
-
-Wasn't 100% sure whether it might e.g. write to some locations like
-/proc/sys/net in special situations.
-
-
-> > 5. There should be no reason why nft -f needs to access stuff in
-> > /tmp
-> > or /var/tmp of anything else, so:
-> > > PrivateTmp=3Dyes
->=20
-> Makes no sense to me.=C2=A0 nft -f won't write anything.
-
-The idea of PrivateTmp=3Dyes (in addition to ProtectSystem=3Dstrict) was
-rather to prevent that nftables would be able to read anyone else's
-files in /tmp (and /var/tmp), again for sandboxing reasons.
+   In file included from net/netfilter/core.c:27:
+   In file included from include/net/netfilter/nf_tables.h:13:
+   In file included from include/net/netfilter/nf_flow_table.h:13:
+   In file included from include/linux/if_pppox.h:17:
+   include/uapi/linux/if_pppox.h:71:4: warning: field sa_addr within 'struct sockaddr_pppox' is less aligned than 'union (unnamed union at include/uapi/linux/if_pppox.h:68:2)' and is usually due to 'struct sockaddr_pppox' being packed, which can lead to unaligned accesses [-Wunaligned-access]
+      71 |         } sa_addr;
+         |           ^
+>> net/netfilter/core.c:832:1: warning: unused label 'err_nft_pernet' [-Wunused-label]
+     832 | err_nft_pernet:
+         | ^~~~~~~~~~~~~~~
+   2 warnings generated.
 
 
+vim +/err_nft_pernet +832 net/netfilter/core.c
 
-> Exotic? More like estoteric, this is bad.=C2=A0 Service file should be
-> small and not rely
-> on obscure and maybe not well-tested systemd code paths.
+   805	
+   806	int __init netfilter_init(void)
+   807	{
+   808		int ret;
+   809	
+   810		ret = register_pernet_subsys(&netfilter_net_ops);
+   811		if (ret < 0)
+   812			goto err;
+   813	
+   814	#ifdef CONFIG_LWTUNNEL
+   815		ret = netfilter_lwtunnel_init();
+   816		if (ret < 0)
+   817			goto err_lwtunnel_pernet;
+   818	#endif
+   819	#if IS_ENABLED(CONFIG_NF_TABLES)
+   820		ret = netfilter_nf_tables_sysctl_init();
+   821		if (ret < 0)
+   822			goto err_nft_pernet;
+   823	#endif
+   824		ret = netfilter_log_init();
+   825		if (ret < 0)
+   826			goto err_log_pernet;
+   827	
+   828		return 0;
+   829	
+   830	err_log_pernet:
+   831		netfilter_nf_tables_sysctl_fini();
+ > 832	err_nft_pernet:
 
-Uhm... do you have any reason to believe that the options below were
-less tested? It seems at least some of them are used by system's own
-units, so these are probably used on basically every system, and most
-of what systemd does there is, AFAIU, merely using stuff the kernel
-provides via namespaces.
-Also *if* something would actually fail, then nft would probably just
-terminate with some error or via some signal and it would be quickly
-spotted.
-
-
-Anyway, as said, none of this needs to be done at all... I merely did
-the work to went through all these options and which could be used with
-nft -f, so that other could perhaps benefit from that, too.
-
-
-Cheers,
-Chris.
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
