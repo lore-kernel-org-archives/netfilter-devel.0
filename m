@@ -1,44 +1,44 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AFAA54918
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 21:56:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09BE423372C
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 22:02:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761861380; cv=none; b=RodkO7NZUnATLsg2ux5tBzEl5izLMfnbhkVXicX6XMdp3xvfSIhivYnIOGqRNT/peJa9cZ5PdaLDUJMnZeCqQQNPYlFX8H820a4zRsdYIfXmLeDR7JpQpu2xUdJyDOksc2CR5AT5BtYdavmH5xnNcm8dJBzmQaz/ef9hTB+9jkg=
+	t=1761861752; cv=none; b=G68P+Ev87FZ7X5GJ0N0P7odlYuNysx58cAuqkSSpJ+tfNOY/lC8bvaFQVEESYItc6w9r4GTdnchWNxpUZpHcYwWRUnregLwo9H/HWoOQNPYRpSSX47JCwJfyDrj+KaEk2HpTJaVFlsGwtZVaeAQPgg7T8y1bo3SPzYlvZpqNUVE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761861380; c=relaxed/simple;
-	bh=2MKW/Gla8B4HnvSP+KNpev0DQv9MeT7TojbmE44zm0Y=;
+	s=arc-20240116; t=1761861752; c=relaxed/simple;
+	bh=48X0wkEaCPylgLH63AuB+rk0ixxL50uMO0tDKD102oQ=;
 	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f3W0DCk2zFI/y73WsfgFYhM80XnCW5LFaN0mszdqA9isFadn8ILug2/h0v8sN99qGqZq2kjAjSP7ZpQZiHycpgzptK9HkvpK1f8LXaIBZZWqHoaIBUJns7rs1Ib30pUgqsTqmx4MUeEs9sbOr5ZikjudEy5MwQlH9gfSybV/Aj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Qqxbf+Iz; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=iThdMMTwKGEYjxnHzVdUGxIBWN8oniKgJcDTZzq2Ej5/gYvd+G1iFSZ3b8YqGCnMk5081ijWprUkwHf/GZkNeMn1HSMFEQumIplaWc9fiQNTxuuRomi4SY83AA1yLV8dhsgVjUHatnsaVegT9VXniW7BaOcm1o9/f4DR0AaM7hA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e+AW6aki; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Qqxbf+Iz"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e+AW6aki"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1BB6760312;
-	Thu, 30 Oct 2025 22:56:08 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 29E0760253;
+	Thu, 30 Oct 2025 23:02:28 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1761861368;
-	bh=lYx+j/i4xITVF2Snf9JseFs8QoPf7RMDxWF3aMJ4pIY=;
+	s=2025; t=1761861748;
+	bh=U33mjWKSdHmZa4H08auS6PGNvlDZkPq4MC5WvIzFH18=;
 	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=Qqxbf+Iz36eEWqfyq7AgHOS7gM1pE9pJIhhDel2j7ywk37zJXjBF55Ckc9vtp45W6
-	 xnu+RAxTeq7+r5DmU1g6oT04TuNlewDsR13Y8xG2UuR8szhIDecSxhlCeCwbfayA6G
-	 yTUZivOffPyose40bNdQuUKn0dSUAxtK4djturiHwNgQpJL2Nhu29RaTrr3lNT4pmb
-	 s8sydisGFF5cghKmLiOxDdC+boZ3bhwqgontdQ59tPSeUP6JDQh8B0/ZP1Ffgygsn0
-	 P17ytad3N5WEI1v2BfOlzSFXbmxGu4X3i5HWMLdjyAGyvo/kHlnPDJz3BuomqNNK8I
-	 Wbp0cn3DJ7KpA==
-Date: Thu, 30 Oct 2025 22:56:04 +0100
+	b=e+AW6akiaHBMDeMz7fHoY4PGxXMQcSSy9RCMZH2p55peaMZ068m9S1+fN2U7m6LU1
+	 IgLOierwnfYz51TGycrRqBandGg3LPnFEnoKqAf2S2ns7ccplZFHAIGlK2JZ8eLYtf
+	 swUEXvUY1JbKf2qgcHeJ9azV/mxZCBKPfhXMtcThZ7LHP9wjpMcWETDt0uzVapQ68W
+	 D3ZNaZJvyqmtLn92VB7NUNNfWvcqBHtXJDhT7wYH6aG1CPM3iZKpfTagWjIaeApSPG
+	 Kpc3PXPY6Gq2jZBTc//kps/X0CpNGwnj81D77zSLoNeKY/JMSfWkBT5aORcjnsIXRz
+	 jrIGE2y72sLVg==
+Date: Thu, 30 Oct 2025 23:02:25 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 10/28] datatype: Increase symbolic constant printer
- robustness
-Message-ID: <aQPe2073x5p7lUKo@calendula>
+Subject: Re: [nft PATCH 12/28] netlink: Zero nft_data_linearize objects when
+ populating
+Message-ID: <aQPgcSO75pz3iCxE@calendula>
 References: <20251023161417.13228-1-phil@nwl.cc>
- <20251023161417.13228-11-phil@nwl.cc>
- <aQJesgR0qPoO4SfP@calendula>
- <aQNFYAfsuDn-LkPJ@orbyte.nwl.cc>
+ <20251023161417.13228-13-phil@nwl.cc>
+ <aQJe44ks8cDYQcBC@calendula>
+ <aQNHJhDYPIqPMXh5@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,42 +47,27 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aQNFYAfsuDn-LkPJ@orbyte.nwl.cc>
+In-Reply-To: <aQNHJhDYPIqPMXh5@orbyte.nwl.cc>
 
-On Thu, Oct 30, 2025 at 12:00:48PM +0100, Phil Sutter wrote:
-> On Wed, Oct 29, 2025 at 07:36:34PM +0100, Pablo Neira Ayuso wrote:
-> > On Thu, Oct 23, 2025 at 06:13:59PM +0200, Phil Sutter wrote:
-> > > Do not segfault if passed symbol table is NULL.
-> >
-> > Is this a fix, or a cleanup?
->
-> It is a fix but for a case which normally doesn't happen. It is
-> triggered by the macro in patch 26 due to the ad-hoc struct output_ctx
-> definition not populating the symbol tables.
+On Thu, Oct 30, 2025 at 12:08:22PM +0100, Phil Sutter wrote:
+> On Wed, Oct 29, 2025 at 07:37:23PM +0100, Pablo Neira Ayuso wrote:
+> > On Thu, Oct 23, 2025 at 06:14:01PM +0200, Phil Sutter wrote:
+> > > Callers of netlink_gen_{key,data}() pass an uninitialized auto-variable,
+> > > avoid misinterpreting garbage in fields "left blank".
+> > 
+> > Is this a safety improvement or fixing something you have observed?
+> 
+> Patches 19 and 20 add fields to struct nft_data_linearize ('byteorder'
+> and 'sizes'). Having these memset() calls in place allows for setting
+> (bits in) these fields only if needed, default value becomes zero when
+> it was random before.
+> 
+> One could avoid it by making sure the new fields 'byteorder' and 'sizes'
+> are fully initialized by called functions. Are you concerned about the
+> performance impact?
 
-For the debug thing that is unused? ie. #define expr_print_debug(expr)
+No, I just was expecting you clarify in the commit message that this
+is just extra-safety initialization that is not fixing anything,
+otherwise it is not obvious what the intention with this is.
 
-This cannot ever happen in the code:
-
-src/datatype.c: return symbolic_constant_print(octx->tbl.mark, expr, true, octx);
-src/meta.c:     return symbolic_constant_print(&pkttype_type_tbl, expr, false, octx);
-src/meta.c:     return symbolic_constant_print(octx->tbl.devgroup, expr, true, octx);
-src/meta.c:     return symbolic_constant_print(&day_type_tbl, expr, true, octx);
-src/proto.c:    return symbolic_constant_print(&ethertype_tbl, expr, false, octx);
-src/rt.c:       return symbolic_constant_print(octx->tbl.realm, expr, true, octx);
-
-And here:
-
-void datatype_print(const struct expr *expr, struct output_ctx *octx)
-{
-...
-                if (dtype->sym_tbl != NULL)
-                        return symbolic_constant_print(dtype->sym_tbl, expr,
-                                                       false, octx);
-
-Sorry but this is all sufficiently complex to add misleading hints.
-
-If you need to extend anything, then please have a look at extending
---debug to expose more information that you need.
-
-Sorry, I do not see this is an improvement.
+But it is too late to discuss this now.
