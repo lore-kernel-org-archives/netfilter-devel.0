@@ -1,79 +1,74 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F1A1306B1A
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 23:10:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDB67335567;
+	Thu, 30 Oct 2025 23:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761865858; cv=none; b=l3kxdKxgIUSpKTmGluLpzYvgW7eKp/g60FQk4pNAWYOP42LzGiJ+ROtbhd2QikgA5M2XAXuRc96d9PW963bzCY/vHZkoHdP/16eo169+6OD4IIK+VcvPxtG7HD2/X/ajPIgMeL5fHStsVffWlFXrS/+D3a3GN05RhqbU7NOJilk=
+	t=1761866068; cv=none; b=hM+feAaDGBXXKWAluV6JQqk7MTOVQ6oBTWlrLCjj1gXsG8blHSC5sd6GOF+kAcivhakqXHfe/xwe4Fv+JZdoFUqsv/4vqfWn0hRszUYUv0Rvt+aHbAM3/awS7l1/oKQpRKZIPBMUtjyFapFUh8skE+jmSiNjdAiYcQ+GSKfm26g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761865858; c=relaxed/simple;
-	bh=wCqgTROzH7yDsvg4b2gkRW3Grr6bAKPpGi7mD47SDFM=;
+	s=arc-20240116; t=1761866068; c=relaxed/simple;
+	bh=QcTh+OhegINb346RF9hW5buznZQ8lVHOlDIAsAyCX9A=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kiOxCKshLat/JM4UIifVrVmJnxqw4TeTM23hrTL3aH8UBxFqnnQiAmtQBi4ZXClwiB4IYEtX2DVJayi8EsmWxtnKOK6Hr/E7ILygtMGNPOY09Fn/5yJ9PwtXIApNqf0/k82hSU6iSpOpo59t32gtvxzABB0zqK3c+ZrWg64m4CA=
+	 Content-Type:Content-Disposition:In-Reply-To; b=UmO6waj8ZIbK10oM6vsCb4/7j5sGgKIhEd/BYWYwfA0ZGcffhh38KW68XzdSyXXgKwLTzQ4IKsC9f89dpEvGSDpk02VETUlaz8QZWO4okODw2w3MMdHInWr7E20xdE2aibBEQrzW03+1Nji+K2RUjW2AFU/XKzvgA00rH6w2Ows=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id BBB256017F; Fri, 31 Oct 2025 00:10:52 +0100 (CET)
-Date: Fri, 31 Oct 2025 00:10:52 +0100
+	id A8F9760203; Fri, 31 Oct 2025 00:14:24 +0100 (CET)
+Date: Fri, 31 Oct 2025 00:14:24 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Christoph Anton Mitterer <calestyo@scientia.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: nftables.service hardening ideas
-Message-ID: <aQPwcOW3X-4OGuiq@strlen.de>
-References: <71e8f96ac2cd1ee0ab8676facb04b40870a095a1.camel@scientia.org>
- <aQDuvGsDwlaiK94D@strlen.de>
- <7c3760d6afad70f7579311022748363f7d5f5c77.camel@scientia.org>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, bridge@lists.linux.dev
+Subject: Re: [PATCH v15 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
+ double vlan and pppoe
+Message-ID: <aQPxULsaFi0uIV8u@strlen.de>
+References: <20250925183043.114660-1-ericwouds@gmail.com>
+ <20250925183043.114660-4-ericwouds@gmail.com>
+ <aN425i3sBuYiC5D5@strlen.de>
+ <a4a3dce4-0f2c-4153-abbe-81e5d2715bbe@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <7c3760d6afad70f7579311022748363f7d5f5c77.camel@scientia.org>
+In-Reply-To: <a4a3dce4-0f2c-4153-abbe-81e5d2715bbe@gmail.com>
 
-Christoph Anton Mitterer <calestyo@scientia.org> wrote:
-> Hey.
-> 
-> On Tue, 2025-10-28 at 17:26 +0100, Florian Westphal wrote:
-> > Christoph Anton Mitterer <calestyo@scientia.org> wrote:
-> > > This would be ideas about further hardening nftables.service,
-> > > primarily
-> > > using the options from systemd.exec(5).
+Eric Woudstra <ericwouds@gmail.com> wrote:
+> > I also vaguely remember I commented that this changes (breaks?) existing
+> > behaviour for a rule like "tcp dport 22 accept" which may now match e.g.
+> > a PPPoE packet.
 > > 
-> > Whats the point?  nft will exit anyway.
-> 
-> Uhm... well the point of any sandboxing is always (at least trying to)
-> prevent any attacks.
+> > Pablo, whats your take on this?  Do we need a new NFPROTO_BRIDGE
+> > expression that can munge (populate) nft_pktinfo with the l4 data?
+> > 
+> > That would move this off to user policy (config) land.
+> > 
+> > (or extend nft_meta_bridge, doesn't absolutely require a brand new expression).
+> > 
+> Did you get any answer on this somewhere? I think that answer may affect
+> this commit, so I'll wait before sending the next version for now.
 
-Sure, but then we're talking about e.g. bug in dns resolver/parser
-or something like that.
+Sorry for dropping the ball on this.  No, I did not.
 
-In general I don't believe Linux is capable of isolating against
-abusing userspace, unfortunately.  Especially with CAP_NET_ADMIN
-(which is very broad and provides access to many facilities in
- the kernel) or with unprivilged user namespaces enabled (the default,
-sigh).
+First step is to write up a summary of the current behaviour,
+then decide on a how-do-we-want-this-to-work and then on
+an how-to-get-there.
 
-> Sure, nftables is probably not the most likely program to be abused (in
-> particular as it usually won't process untrusted input), but still even
-> nftables can't be 100% sure to never be abused in something like
-> secretly included malware or so.
+I think for the second part (how-do-we-want-this-to-work)
+the 'greedy' approach proposed by Antoine (ip saddr 1.2.3.4
+matches regardless of l2 encap) makes sense but it will be hard
+to get there.
 
-In that case I think all bets are of.
-
-> As with the first patchset my idea was simply that *if* a .service file
-> is shared it could as well be proper and use as many sandboxing options
-> from systemd as possible, serving as and example for e.g. downstream
-> versions of such .service.
-
-Ok, if you want then feel free to start to send patches.
-(and CC Jan).
-
-I think that enabling CAP_NET_ADMIN restriction is fine,
-otoh if you think that this should be done then I believe
-its better to patch nft and not rely on systemd for this.
+I will try to cook up a proposal/rfc sometime next week.
