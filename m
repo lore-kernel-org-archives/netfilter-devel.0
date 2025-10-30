@@ -1,20 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EAFF86347;
-	Thu, 30 Oct 2025 12:20:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 843E886347;
+	Thu, 30 Oct 2025 12:20:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761826803; cv=none; b=PRKvpSA2bW7YtANJi2V43Gb9wZzDe5s3rjB7y7PW6jG6AkCqx7YIR8rAcOqlJFl1T2BfTdDe8SRRCTTI9E5lu+M17ckpVmT4BU+ZiED6/So30cgifbwOvRr9MksEwbOQdSbXfr892TY6nsKRSuWJSaPp97oK7xIoHO629rBUcQY=
+	t=1761826808; cv=none; b=d9SApsGECDwY8+bK7Q+DbHuvYoMJVSvO4nd2+YEUWZpdR+0JtiTzeVN4EEcX3yYlnpv9xTpK0XzyszkdUO291F5FvPgDAdBZuRWCUA9dEQaHsf+6R0tplrmxfFxPuRM2wPgicQxChSzSsGSlYb+QrY63S01ABboj7MvSKee9dqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761826803; c=relaxed/simple;
-	bh=Sr7rU12Ibv7w9EHPDOj5/788g4r2tBgn2zxLcSepF8I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uOzS/8QXbqt7aV9h/EBd6g1lUiFVk4ApWflX9GECt+w5YaCtdvTFWtKWH+JO7r2KxaDYfItL0Kj5svw+oBhhiqCeFQ176sIjCjAnbaP/AMkgY4rfK5QIFCYinAHGVnLOVTV9Ju1txzpghA4oYNvwFkw0P2YO9/bghhk3J2FQtN4=
+	s=arc-20240116; t=1761826808; c=relaxed/simple;
+	bh=v14TvLeTXJC3tKmV8PXnxdxhW73FR08gOZq0qf2eERg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Paid1CKwDk65jW+zIEQ8w/96eKfJIk7EkijEGi0lRFkdLbKRrRzQiZV+yLID4VW9zOhfz8NJEHiBh08SgX3/TOgk14oCNW+5h6zUJYVqi6aZzaXBqCRU6fL3r2iyERUVPSQxn9NDg85skeUg8eq6zIYZUmeZjmrTzWKjaEcart4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 49DB76020C; Thu, 30 Oct 2025 13:19:59 +0100 (CET)
+	id B11FE6020C; Thu, 30 Oct 2025 13:20:03 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -23,10 +24,12 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 0/3] netfilter: updates for net-next
-Date: Thu, 30 Oct 2025 13:19:51 +0100
-Message-ID: <20251030121954.29175-1-fw@strlen.de>
+Subject: [PATCH net-next 1/3] netfilter: nf_tables: use C99 struct initializer for nft_set_iter
+Date: Thu, 30 Oct 2025 13:19:52 +0100
+Message-ID: <20251030121954.29175-2-fw@strlen.de>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251030121954.29175-1-fw@strlen.de>
+References: <20251030121954.29175-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,50 +38,114 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-The following patchset contains Netfilter fixes for *net-next*:
+Use C99 struct initializer for nft_set_iter, simplifying the code and
+preventing future errors due to uninitialized fields if new fields are
+added to the struct.
 
-1) Convert nf_tables 'nft_set_iter' usage to use C99 struct
-   initialization, from Fernando Fernandez Mancera.
-2) Disallow nf_conntrack_max=0.  This was an (undocumented)
-   historic inheritance from ip_conntrack (ipv4 only nf_conntrack
-   predecessor).  Doing so will simplify future changes to make this
-   pernet-tuneable.
-3) Fix a typo in conntrack.h comment, from Weibiao Tu.
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 34 ++++++++++++++++------------------
+ net/netfilter/nft_lookup.c    | 13 +++++--------
+ 2 files changed, 21 insertions(+), 26 deletions(-)
 
-Please, pull these changes from:
-The following changes since commit ea7d0d60ebc9bddf3ad768557dfa1495bc032bf6:
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index eed434e0a970..f3de2f9bbebf 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -5770,7 +5770,11 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 		       struct nft_set_binding *binding)
+ {
+ 	struct nft_set_binding *i;
+-	struct nft_set_iter iter;
++	struct nft_set_iter iter = {
++		.genmask	= nft_genmask_next(ctx->net),
++		.type		= NFT_ITER_UPDATE,
++		.fn		= nf_tables_bind_check_setelem,
++	};
+ 
+ 	if (!list_empty(&set->bindings) && nft_set_is_anonymous(set))
+ 		return -EBUSY;
+@@ -5785,13 +5789,6 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 				goto bind;
+ 		}
+ 
+-		iter.genmask	= nft_genmask_next(ctx->net);
+-		iter.type	= NFT_ITER_UPDATE;
+-		iter.skip 	= 0;
+-		iter.count	= 0;
+-		iter.err	= 0;
+-		iter.fn		= nf_tables_bind_check_setelem;
+-
+ 		set->ops->walk(ctx, set, &iter);
+ 		if (!iter.err)
+ 			iter.err = nft_set_catchall_bind_check(ctx, set);
+@@ -6195,7 +6192,17 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 	struct nftables_pernet *nft_net;
+ 	struct nft_table *table;
+ 	struct nft_set *set;
+-	struct nft_set_dump_args args;
++	struct nft_set_dump_args args = {
++		.cb = cb,
++		.skb = skb,
++		.reset = dump_ctx->reset,
++		.iter = {
++			.genmask = nft_genmask_cur(net),
++			.type = NFT_ITER_READ,
++			.skip = cb->args[0],
++			.fn = nf_tables_dump_setelem,
++		},
++	};
+ 	bool set_found = false;
+ 	struct nlmsghdr *nlh;
+ 	struct nlattr *nest;
+@@ -6246,15 +6253,6 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
+ 	if (nest == NULL)
+ 		goto nla_put_failure;
+ 
+-	args.cb			= cb;
+-	args.skb		= skb;
+-	args.reset		= dump_ctx->reset;
+-	args.iter.genmask	= nft_genmask_cur(net);
+-	args.iter.type		= NFT_ITER_READ;
+-	args.iter.skip		= cb->args[0];
+-	args.iter.count		= 0;
+-	args.iter.err		= 0;
+-	args.iter.fn		= nf_tables_dump_setelem;
+ 	set->ops->walk(&dump_ctx->ctx, set, &args.iter);
+ 
+ 	if (!args.iter.err && args.iter.count == cb->args[0])
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index 58c5b14889c4..fc2d7c5d83c8 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -246,19 +246,16 @@ static int nft_lookup_validate(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr)
+ {
+ 	const struct nft_lookup *priv = nft_expr_priv(expr);
+-	struct nft_set_iter iter;
++	struct nft_set_iter iter = {
++		.genmask	= nft_genmask_next(ctx->net),
++		.type		= NFT_ITER_UPDATE,
++		.fn		= nft_setelem_validate,
++	};
+ 
+ 	if (!(priv->set->flags & NFT_SET_MAP) ||
+ 	    priv->set->dtype != NFT_DATA_VERDICT)
+ 		return 0;
+ 
+-	iter.genmask	= nft_genmask_next(ctx->net);
+-	iter.type	= NFT_ITER_UPDATE;
+-	iter.skip	= 0;
+-	iter.count	= 0;
+-	iter.err	= 0;
+-	iter.fn		= nft_setelem_validate;
+-
+ 	priv->set->ops->walk(ctx, priv->set, &iter);
+ 	if (!iter.err)
+ 		iter.err = nft_set_catchall_validate(ctx, priv->set);
+-- 
+2.51.0
 
-  Merge branch 'add-cn20k-nix-and-npa-contexts' (2025-10-30 10:44:12 +0100)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-10-30
-
-for you to fetch changes up to 57347d58a4011551e7d0e030f2f12e4d1a28feb6:
-
-  netfilter: fix typo in nf_conntrack_l4proto.h comment (2025-10-30 12:52:45 +0100)
-
-----------------------------------------------------------------
-netfilter pull request nf-next-25-10-30
-
-----------------------------------------------------------------
-Fernando Fernandez Mancera (1):
-      netfilter: nf_tables: use C99 struct initializer for nft_set_iter
-
-Florian Westphal (1):
-      netfilter: conntrack: disable 0 value for conntrack_max setting
-
-caivive (Weibiao Tu) (1):
-      netfilter: fix typo in nf_conntrack_l4proto.h comment
-
- include/net/netfilter/nf_conntrack_l4proto.h |  2 +-
- net/netfilter/nf_conntrack_core.c            |  2 +-
- net/netfilter/nf_conntrack_standalone.c      |  4 ++--
- net/netfilter/nf_tables_api.c                | 34 +++++++++++++---------------
- net/netfilter/nft_lookup.c                   | 13 ++++-------
- 5 files changed, 25 insertions(+), 30 deletions(-)
-# WARNING: skip 0001-netfilter-nf_tables-use-C99-struct-initializer-for-n.patch, no "Fixes" tag!
-# WARNING: skip 0002-netfilter-conntrack-disable-0-value-for-conntrack_ma.patch, no "Fixes" tag!
-# WARNING: skip 0003-netfilter-fix-typo-in-nf_conntrack_l4proto.h-comment.patch, no "Fixes" tag!
