@@ -1,47 +1,47 @@
-Received: from black.elm.relay.mailchannels.net (black.elm.relay.mailchannels.net [23.83.212.19])
+Received: from tiger.tulip.relay.mailchannels.net (tiger.tulip.relay.mailchannels.net [23.83.218.248])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AADB329E4E
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 23:59:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.212.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FEC2329E4E
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 23:59:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.248
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761868752; cv=pass; b=QRogNneMQMhOthE0excdByDCdnZA69dUcl/oYVc+b7XMRQUEB7f0d0PDj4xGGrOH1Gy6g7cEGBC3612T95oLD4jvTSeTc9nSs9ewqF116Gm7ykCFXngBHRYefLOsArRO3vL4K7bXrNYK6QgbxFAzqBKH2h608AYcQLvLGM0eQYo=
+	t=1761868759; cv=pass; b=i0oX4VCg6iANxxNwP8JUEJpLZrxiBK7ViKvY1LVgujye1WnJhoDbup5K37uzSiG44Bln/dWP6JQ50Wqyd/G1Txh5dntGWtSI+dHBFAs3dA5kcnAfbxl6eEf1uxOYaAjRPpuSFkoiQmT5cks/2SryJecLAgZo3unsGgbCkjei2fw=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761868752; c=relaxed/simple;
-	bh=bXm4jZL0fksrWnPy1xZpnIL+t8qpvJJv8B0S9s2xAGQ=;
+	s=arc-20240116; t=1761868759; c=relaxed/simple;
+	bh=7sYXQAFij4SUWYWmx1uVHteRH5v6Xa0NZj4/bZ7tv4Q=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=DwHuRxVYjKH2xM6kMAD6kfCqJNNdzdyvo+ZdgBb0rlRleCydX5Rejmi4E7uhVrK79H3tg5UbNd6pxsQ/Sg3y1TWNWyf+gh3RNun0ILCH//yHnzP9wSiBrDqctoG4NapBq4yyjYiJYGz8rNbxg7SK3UAZ8RuCJU4oqn03XuDARuU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.212.19
+	 Content-Type:MIME-Version; b=V3uUCJByqzgucME9cPDw9QYP5EusE44g0cyhh28wWa5xLZcjPb3/4huKY+I3Fr8Ob9QQRZ8y3ANHqiDM9JQVAboS5kAzC41KzXa94uvlqjflyIWptr3rr4XbnqwVwGVPvKJgvfCGxvdsFuxtG6x5TYxLsM1+ZQ808eQ+8IAq6Jo=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org; spf=pass smtp.mailfrom=scientia.org; arc=pass smtp.client-ip=23.83.218.248
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=scientia.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=scientia.org
 X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 1785D121558;
-	Thu, 30 Oct 2025 23:59:09 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-green-0.trex.outbound.svc.cluster.local [100.121.54.118])
+	by relay.mailchannels.net (Postfix) with ESMTP id EB1312218AB;
+	Thu, 30 Oct 2025 23:59:16 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (100-121-221-249.trex-nlb.outbound.svc.cluster.local [100.121.221.249])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 35782120514;
-	Thu, 30 Oct 2025 23:59:08 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761868748; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 22476221382;
+	Thu, 30 Oct 2025 23:59:15 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761868756; a=rsa-sha256;
 	cv=none;
-	b=Et4OpgZBevMxKtaW0IRdOjWSS8xVP7d22hW17u7ai/SiT94YsaLGtwLaC/z+nXMi4lIDKw
-	rVUoZ2z24WuN0p12vzZh2u/M+zkmYjfFaOkQ5IdNYgCQQakZqdicyYuKciMW2yMr5S7lRJ
-	GHZUpD4bzeDlj9WpDjoNFXl9meBfdD9nnRNuoMJ80JFn1dTzjGfXXkwrcsBXFCx4HxgRWP
-	tHm/ACNZO+uNqTfSVclq95uiG+TGpUNKzmsNZahWDXWVXW1GDwD674taXYD+CeJgRrhlrQ
-	GzgYzwNd+kqDCR96xJGs2QK1S4lVfrDHtBMVYageOUr0OFJfoMlPqp2s3gtO5Q==
+	b=Q3goMujUxjj/rWHTkHERc235YaOYqDpzfExXG/tZBvKhLvb+0nhaRi+w0GAnVSuG8TiB8Y
+	kAFN4J4f99NLeV0Al/ln0zkChiMM8Fe4scYkkf0ZKtQRxLUS0embM5Gcoc1peZHBiIcWNw
+	+/CryHUHp1lUieUehyPSASWJ/pXnSV60t2mJhVXsk1ySpfzeJOxtUfMzXSj576U9eZqNiR
+	uPv5wPw5SQF7gLoobRSZN14dWgvwzA8S7cSDnlQwJtT10LlmhEb/d+eqo0RCXNBGckC1xk
+	ae16tpmB398ztp1G96UiMl6QdlBfBJoSXEFVB4aW9+JjbB2DmROYFGWq7T8J2g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1761868748;
+	s=arc-2022; t=1761868756;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=bXm4jZL0fksrWnPy1xZpnIL+t8qpvJJv8B0S9s2xAGQ=;
-	b=egg+3PvCHFQqRnodZwQBuKaObfgsu+S4Nvwe1iyvHovPjWrBMXIEfYg66EhZdYLPuF94xo
-	71CIe8qeziGuVm0y8GUCSrH/rN70Gs8lAd0G7XjxTDnK+Xs53eq1dyItGnYL3tWo1RNr0d
-	Mn93VVnRhYiFIjkoJhPsl6pwKoTcZBsjdnzsZpfivzNhzdZWdM2QN/vF1u7ZfE4iLZ7hhI
-	Qi+EcRHbTs1z6h4gW3qajpAeg5rhU9sxY2iSzPUgXzplaDTZzVpJPGonZfanrR9dLl/ohC
-	7/JHg9gUxyG6PQaOamlwNUq3CZnEFxYq8awdH3YyxG4h9Gvl3Lr22MwrE90MQQ==
+	bh=7sYXQAFij4SUWYWmx1uVHteRH5v6Xa0NZj4/bZ7tv4Q=;
+	b=FM5rme2mr1EgKns7yZTmb6Qv5ZvaIZAbKco3D+fc4SwkkePb5s8l+C5Bi3nqwZPgATlL2n
+	U8yTdDeGrixy6n2TvL8uFCmiD3PySSUKYZ17h9yf2K43nrLXc9F4uw7WGPelc/ptQp9kez
+	dUfq29VLit1/da8YsTMF4J7tT7rC9Prh8EIij0+HEL4AznIAMK7xL3psD1qAYrASObfKcO
+	gcMkjVhBujOFTw1RIJWdMx6xHUzurTJ50fqVrQPMAw2rNYCT341wwe0l62mFcOt2xBhi+m
+	cfNhPZOX9tPel1yDve1+gpZzg9hhc2nlrSOP3g3g5dHAwlnsK855FYvi4eY0VQ==
 ARC-Authentication-Results: i=1;
 	rspamd-768b565cdb-f949h;
 	auth=pass smtp.auth=instrampxe0y3a smtp.mailfrom=calestyo@scientia.org
@@ -49,31 +49,29 @@ X-Sender-Id: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: instrampxe0y3a|x-authuser|calestyo@scientia.org
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Illustrious-Zesty: 2f2eaf9c59d51b21_1761868748906_1385069019
-X-MC-Loop-Signature: 1761868748906:2513600873
-X-MC-Ingress-Time: 1761868748905
+X-Grain-Abaft: 2c4a907278f84ebc_1761868756830_2097171914
+X-MC-Loop-Signature: 1761868756830:3801503176
+X-MC-Ingress-Time: 1761868756830
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.121.54.118 (trex/7.1.3);
-	Thu, 30 Oct 2025 23:59:08 +0000
-Received: from [212.104.214.84] (port=9990 helo=[10.2.0.2])
+	by 100.121.221.249 (trex/7.1.3);
+	Thu, 30 Oct 2025 23:59:16 +0000
+Received: from [212.104.214.84] (port=43819 helo=[10.2.0.2])
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <calestyo@scientia.org>)
-	id 1vEcXq-00000009Wxb-0r40;
-	Thu, 30 Oct 2025 23:59:05 +0000
-Message-ID: <f92fa0061f00e62af78033faef7b13e648afb3b8.camel@scientia.org>
+	id 1vEcXz-00000009Wyo-3uFU;
+	Thu, 30 Oct 2025 23:59:14 +0000
+Message-ID: <55947376098fca1d7a71c4464dda3fceb4be5fc6.camel@scientia.org>
 Subject: Re: nftables.service hardening ideas
 From: Christoph Anton Mitterer <calestyo@scientia.org>
-To: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Date: Fri, 31 Oct 2025 00:59:02 +0100
-In-Reply-To: <aQPwcOW3X-4OGuiq@strlen.de>
+Date: Fri, 31 Oct 2025 00:59:12 +0100
+In-Reply-To: <aQP1HRqdYtTFxQD8@calendula>
 References: <71e8f96ac2cd1ee0ab8676facb04b40870a095a1.camel@scientia.org>
-	 <aQDuvGsDwlaiK94D@strlen.de>
-	 <7c3760d6afad70f7579311022748363f7d5f5c77.camel@scientia.org>
-	 <aQPwcOW3X-4OGuiq@strlen.de>
+	 <aQP1HRqdYtTFxQD8@calendula>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.56.2-5 
@@ -85,76 +83,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-AuthUser: calestyo@scientia.org
 
-On Fri, 2025-10-31 at 00:10 +0100, Florian Westphal wrote:
-> Sure, but then we're talking about e.g. bug in dns resolver/parser
-> or something like that.
->=20
-> In general I don't believe Linux is capable of isolating against
-> abusing userspace, unfortunately.=C2=A0 Especially with CAP_NET_ADMIN
-> (which is very broad and provides access to many facilities in
-> =C2=A0the kernel) or with unprivilged user namespaces enabled (the
-> default,
-> sigh).
+On Fri, 2025-10-31 at 00:30 +0100, Pablo Neira Ayuso wrote:
+> For more advanced configurations, probably we can provide a list of
+> extra configurations for the paranoid users that they can apply to
+> refine in some other form (wiki page?).
 
-Well, in principle I agree... still we get more and more such
-sandboxing stuff (all the bubblewrap, etc.) and even if none of them
-may give a 100% safe jail, if they help only in 10% cases it may
-already be a win.
+I personally, don't like wikis for documentation (it's rather difficult
+to "download" them).
 
+What I've thought about was that one could make the more esoteric stuff
+comments in the .service, so that any users of it (like downstream
+distros) could decide whether or not they want to enable it.
 
-> > Sure, nftables is probably not the most likely program to be abused
-> > (in
-> > particular as it usually won't process untrusted input), but still
-> > even
-> > nftables can't be 100% sure to never be abused in something like
-> > secretly included malware or so.
->=20
-> In that case I think all bets are of.
+However, that would still kinda put he burden on maintaining these
+comments (and keeping them working) on nftables, which it seems is not
+really desired.
 
-Maybe. Though if you think e.g. about XZ, some distros were basically
-safe for more or less obscurish reasons.
+For example, my:
+> ExecPaths=3D/usr/sbin/nft -/lib -/usr/lib
+(an some more) wasn't well tested enough yet, and would have broken my
+own ExecStop=3D (which tries to execute sh and systemctl).
 
-
->=20
-> Ok, if you want then feel free to start to send patches.
-> (and CC Jan).
->=20
-> I think that enabling CAP_NET_ADMIN restriction is fine,
-> otoh if you think that this should be done then I believe
-> its better to patch nft and not rely on systemd for this.
-
-Well I as said, I have no strong desires to get any of that upstream.=C2=A0
-
-For me personally, the patches from the first series (in particular the
-one about not stopping on shutdown/isolation and closing the "pitfall"
-of restart) would have been the ones I'd have considered the most
-beneficial, but that was already conceived not so enthusiastically. ;-)
-
-
-I can of course make patches if you really think some of this makes
-sense (like e.g. CAP_NET_ADMIN), but then it'll be helpful[0] if you
-could just tell me the numbers of the points from my original mail,
-which you think are reasonable to even consider and which are way off.
-
-And whether you rather want each set of related hardening options in
-one commit, so you can easier pick (we can still squash shortly before
-merging) or from the beginning larger patches.
-
-But it shouldn't be considered as me trying to strongly push any of
-that getting merged. If you say "no let's leave things as is", I'll
-hold no grudge :-)
+Keeping all that sandboxing options well tested and up2date is of
+course some effort, so from that PoV I can fully understand Florian,
+when he doesn't want to have any of this in upstream.
 
 
 Cheers,
 Chris.
-
-
-[0] In that case, please keep in mind that some of the sandboxing
-options make not much sense without some others:
-
-E.g. ProtectHostname=3Dyes seems to be safely usable with nftables
-(assuming it should never try to change the hostname), but if we don't
-set (12) or even better run nft it as non-root, it's as per
-systemd.exec(5) not really useful.
-
-I tried to mention all these cases in my mail.
