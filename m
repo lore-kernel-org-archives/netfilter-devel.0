@@ -1,141 +1,176 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DF4A266EFC
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 14:57:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F90D329E7E
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 20:48:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761836262; cv=none; b=JIz/1R4b+P8rDuQkKJBGwDj5hG7Z6NcrSBdJ+Gkn6Xbv2xNIJT7X7IV8gzWdtQdGj0Qmg0+BciwpAqrPyENQHt8QOo5VCA/obEMqeWJXEPWkNHyFJFXoL43jSuZa+h6jWwYJTjMDYCMfKVcllThxWzKH7qiB58AdZ3Yn2sz8DZc=
+	t=1761857305; cv=none; b=bs2WYcdZPJTERkasfrc+5kzEIgZqAXzwa3fJp3JhEPCSsHRymnNAarpaCco4V127Vej4U6eCBzPacv0N04XiYw61PCnEtUNiyOo+Nct+T1kyZ7YXdijK+Dc3zbkODimFCOIIFues7Z71fpfeN4AyYetGFpzky3qfOe2XL5ygKe8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761836262; c=relaxed/simple;
-	bh=VPc6nAw9xUkngbpuHwVt3f64S9sYthW6LR4iISLpD20=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=U+WFRSUZzwBWkPUhzmuJJqW20fUZQASOtMfcUkV24XbP6y/i1agvBtFsxhpZtnR6kZEEMdIeUcjtdi7mqtb/+Gls4ZG8GTXuqVe1K1J5e50Qt/lWl8qg7/qhvvDpRKnl3NtVe3LBRkm0yxsDZo6l0XbLkSy8e1+BfippBntDK6s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io; spf=pass smtp.mailfrom=vyos.io; dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b=K9AxOdaH; arc=none smtp.client-ip=209.85.218.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=vyos.io
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vyos.io
+	s=arc-20240116; t=1761857305; c=relaxed/simple;
+	bh=rIWlZBg/RWSmUJYCjVduMXXlXli2vX/TJcx7EQKLOhg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bjE+47j1GgsxK7sYYwJarRtEft1TBFTqpVEJrD+8mG3y5L5NZ3kyQLNSYQPQOcDPpfPkbVppe+p7zlTce7KR8eyiz+FsxrBKQvOxBvoVThLWCpPskngWrcJV8t6VofxieQ8pztSx1pUgmAWvAt7NGg2rQie+K/sH9PbB2pZlO5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Pnzs7tMZ; arc=none smtp.client-ip=209.85.219.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=vyos.io header.i=@vyos.io header.b="K9AxOdaH"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-b3b27b50090so194966966b.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 07:57:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Pnzs7tMZ"
+Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-88025eb208bso7868746d6.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 13:48:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=vyos.io; s=google; t=1761836258; x=1762441058; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:to:from:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=NteojDHYsqPG7103VQyx6cbbplc0COxdkEL/emOdyLE=;
-        b=K9AxOdaHU6dvAw6HU/UuzSrErHq/S5M8lrIustt4smsUQs1iNE92pRCvARBvBmWHtJ
-         Of9VcmLnj6LcWptF/+n4DDCIK87SV27T8Ov+xsbZCj7xB19M/ngNomwRysfezJeosWRR
-         p2Xtx74Kp7izT3y8DP8QfLqcvOeJnwTHT54E/y2fWIqS90m/lU3SW+S3BbBfghmqmTN8
-         0qnvJagKKr6Yu2cc81nmB23NRcoSA4lufziy07+renvoYKws44FMioGoxBKcHBEFvnrE
-         NX1Z3QHaKWNXiBb7OpP2wWBNthaWnC/weQwrbPckAp6vwST7k8RKm9gNsBfMm++0dNKZ
-         hxDA==
+        d=gmail.com; s=20230601; t=1761857302; x=1762462102; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qAAUBtqV+6cAEC6eWnL8u1CFOXDYJHXorQLmtUtcHaw=;
+        b=Pnzs7tMZeDC9/9/dK0WCWtF3XSBQ0kEWbPMy+dBNPId6TPl/MS2Ggt3/rfcqg4/LFL
+         Nhsw4OLgxF3T24a1BFzlJCYlfQbQMpYxWJsEZeK15nHzR1WIq5STr2QvEecpWYqeGSqg
+         dBxkG20RmlZCX8StGne/dmCWEYNSNP4NPKXi44z4ubDFJuGQEX92vGa05LsjRrQ0crmL
+         O43FBW2SGLJNB7kSgGBJoTwF0vGvjY4s0jaSyVtcmK3giNZoR03I2H55rGrA11+sy0w0
+         hqYU2RbbmkO0GS2MqwZue/TsCvL3JdnSn+1kkxZZytdE8gPkbknx/+xbUlT5+SMRozrg
+         URfw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1761836258; x=1762441058;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1761857302; x=1762462102;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=NteojDHYsqPG7103VQyx6cbbplc0COxdkEL/emOdyLE=;
-        b=P4NS7TsM6rEg8pq0krEltRXLVLQN0KsuqijQ5kRFOja9wDg9KaC2k0GW170ppKPykq
-         h2X6NiQb/+q+YHaKeVDsGYKAC70/ch0f/Fn4d9g3KhufnVcQTr3G6Mm8atLVsAg+Aeq+
-         uGA5ZuSQIsR+1G+eY4TE/F7MhGsmIuOPWHH/gS9RK7f1vaa+5/JvImSemZ3vbFHw8zdO
-         GsH8rmFEl/rdONzZfrMw0i23nG8OVcM5RkobHEojAiIH6Fbf4UjxUQZhZpo7xIGAhTnF
-         UIOgx8bJmfmFqOxKZwXcqUWwMPXBw3X5TstYSZ7laWl4/uoCXlr7QQs4Z5XuGLoQEjON
-         vsOQ==
-X-Gm-Message-State: AOJu0YwbVAbHVj/i+6yL4o1hm1RQ4xFPYkCHwacJtW+NLl50Napf3ZK2
-	IEA2hRqrHkfn45pxm3O6ptApDQib8AzGe3qe70Z3xYi7+LutrOWJg3ewpz2imVrN0rOme5voIsI
-	OgLe2
-X-Gm-Gg: ASbGnctUnm7CTSeH0AhoFP9trXHzwbK+zQD18nJXsIt2sH5Skcfn2ow8Ho/vgcQ7neh
-	e2VYKecqCRnBRZqGO5pVhvRP3tkdACUZvgq2Zr+0ChfYZuMMRBRrfVo8r5FDIrGayJIRHuhhsCz
-	1v9w/5VSymL5iy/h7Il5ReL8KCpB8Wr78NQTnBnQmj7hLD3V4buoAPxJXkdH+tZA6JzDjTpR3HJ
-	LyfpCUOyfN4Gjm5lZxpOUL1cXskCRskT7xRQ8zMwMx+T0yfV1i0qSUWqhPrNeuJy1C0G6P2l4Yc
-	e1JSiaWFuE1ur0voc2y6Kn2eVtktWgsaHX6TlwuZ6nfBzXtBBi6OKfSn/WCN5Ow90UYbKJpswCE
-	DRnDo+wOuLvp/tQlbwjFbqLplADFm4XG4y/uES5yqSwUF7wkF5T/rDqwH3Xc7HGd9LdFCzVD0Ix
-	81ZACNmPpR0kD0YNfSE+bYbrba
-X-Google-Smtp-Source: AGHT+IH6l20iyhfUUi8sk6kdXHd5fcTzpikodqAxsq6ejWwWD4HYMxIgKHByAalhaLLEg91kh9v/2g==
-X-Received: by 2002:a17:907:7fa0:b0:b3d:9261:ff1b with SMTP id a640c23a62f3a-b7053b63973mr302589966b.5.1761836258126;
-        Thu, 30 Oct 2025 07:57:38 -0700 (PDT)
-Received: from VyOS.. (213-225-2-6.nat.highway.a1.net. [213.225.2.6])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b6d853c549fsm1790483966b.37.2025.10.30.07.57.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 30 Oct 2025 07:57:37 -0700 (PDT)
-From: Andrii Melnychenko <a.melnychenko@vyos.io>
-To: netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-Subject: [PATCH v3 2/2] tests: shell: Added SNAT/DNAT only cases for nat_ftp
-Date: Thu, 30 Oct 2025 15:57:31 +0100
-Message-ID: <20251030145731.2234648-3-a.melnychenko@vyos.io>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20251030145731.2234648-1-a.melnychenko@vyos.io>
-References: <20251030145731.2234648-1-a.melnychenko@vyos.io>
+        bh=qAAUBtqV+6cAEC6eWnL8u1CFOXDYJHXorQLmtUtcHaw=;
+        b=Xdovz1NKJzl0CCxkYMzD5sqxPi83eTRVZgpUHKOjrakPhApTmAc5oZ4euduwJ8ux8B
+         P6NJ6LOL/R5VdmL1WDW4XbV2OVW+4726Y/zcC78ySjSqs//km6E1UOk2gKoxG/pdWoqq
+         k6CVs5NDyZMQGPQ47qUA4SIhGmUSg+lP1vtqbjgKs0w5JFm1o7/MXlZYrN74LcnKR3zk
+         THtxY5c+tChmMPxfyt9t/Oe6qpg+mF4IbsScAelsgBSM+HJye5haZdyFrLE1q81LkyML
+         KWl8g9dsUqUZH25GdfP6pqLZtTKLvL/YXyVv+TGo9IB+J+azLG0TDUu3kxgCgfjzNjfS
+         rjew==
+X-Gm-Message-State: AOJu0Yy+jMIk9xuwVPeXKv7VAaBiJ8KT/jGUhjsr1F9MuxpB3gO0v6Mv
+	K9Cc12UD8UaT+7JornFOrWTDn1gULSS6BO5bB8E2MzmQrUQGmUQQa1lrakW1xiPf+V4zrf/qhPl
+	JkDhepT6RUo87HJ9dlQbmKglzcXwungvOFlfd
+X-Gm-Gg: ASbGncv4gpnN6Vi8Z0DIpRkctM7qCNykoCexVYJMB3RvEI7fvNZf47cuQTMXcMzbFoZ
+	C2TOZUf05QGrs+D7XKDoZD+/xWqMLzQHgf5y7yE7vPOcoqbQZJyeBzcrNqYYPiKHY/A3AQatWTU
+	rAyJFob8KiXdYgiB8Zg3Wq+uur4xUOAyu9jGYZ6Nt+hXHWLVvXzW94r0M3tIIYADEAeaBSSkuuO
+	XQOlD+435IOJc/nVeZ3aHTSNgj+mjF/THwYKpnO1OA62lX8IIxH+wdVILY0VlYMcvsjthJEX1cT
+	dAK2uK9QJFXeWw4ghcB5Xrf/djJ+eMs4OdsGF6gNIm6uhzh/8rh6CD6bWwOfQw==
+X-Google-Smtp-Source: AGHT+IG6Uo85hN9xFdG10QwEDmdsDoFEWy4GnX67wkJbLio962nHFmcf5Gqo6Hi4v8VhbAr5YgpOePkhtht7prEHXso=
+X-Received: by 2002:a05:6214:d04:b0:87c:113c:f1d2 with SMTP id
+ 6a1803df08f44-8802f47f6fcmr13784206d6.38.1761857301920; Thu, 30 Oct 2025
+ 13:48:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20251029003044.548224-1-knecht.alexandre@gmail.com>
+ <20251029224530.1962783-1-knecht.alexandre@gmail.com> <20251029224530.1962783-2-knecht.alexandre@gmail.com>
+ <aQNBcGLaZTV8iRB1@strlen.de> <aQNNY-Flo9jFcay3@strlen.de>
+In-Reply-To: <aQNNY-Flo9jFcay3@strlen.de>
+From: Alexandre Knecht <knecht.alexandre@gmail.com>
+Date: Thu, 30 Oct 2025 21:48:08 +0100
+X-Gm-Features: AWmQ_bku6t5lBeZSgZS268sm33zhb3zU1jMx42jcGgPQwRkcLrMkalZIYHD_7C4
+Message-ID: <CAHAB8WyByEKOKGropjHYFvz=yprJ4B=nS6kV6xyVLm0PWMWbYQ@mail.gmail.com>
+Subject: Re: [nft PATCH v2] parser_json: support handle for rule positioning
+ in JSON add rule
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Added cases for SNAT or DNAT only for active and passive modes.
+Hi Florian,
 
-Signed-off-by: Andrii Melnychenko <a.melnychenko@vyos.io>
----
- tests/shell/testcases/packetpath/nat_ftp | 32 ++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+Thanks for your feedback! I've investigated the test failure and found an
+interesting design that I'd like to discuss.
 
-diff --git a/tests/shell/testcases/packetpath/nat_ftp b/tests/shell/testcases/packetpath/nat_ftp
-index 93330225..bc44ed86 100755
---- a/tests/shell/testcases/packetpath/nat_ftp
-+++ b/tests/shell/testcases/packetpath/nat_ftp
-@@ -144,6 +144,18 @@ reload_ruleset()
- 	load_snat
- }
- 
-+reload_ruleset_dnat_only()
-+{
-+	reload_ruleset_base
-+	load_dnat
-+}
-+
-+reload_ruleset_snat_only()
-+{
-+	reload_ruleset_base
-+	load_snat
-+}
-+
- dd if=/dev/urandom of="$INFILE" bs=4096 count=1 2>/dev/null
- chmod 755 $INFILE
- assert_pass "Prepare the file for FTP transmission"
-@@ -190,9 +202,29 @@ reload_ruleset
- test_case "Passive mode" "[${ip_rc}]:2121" ${ip_rs}
- 
- 
-+# test passive mode DNAT only
-+reload_ruleset_dnat_only
-+test_case "Passive mode DNAT only" "[${ip_rc}]:2121" ${ip_cr}
-+
-+
-+# test passive mode SNAT only
-+reload_ruleset_snat_only
-+test_case "Passive mode SNAT only" "[${ip_sr}]:21" ${ip_rs}
-+
-+
- # test active mode
- reload_ruleset
- test_case "Active mode" "[${ip_rc}]:2121" ${ip_rs} "-P -"
- 
-+
-+# test active mode DNAT only
-+reload_ruleset_dnat_only
-+test_case "Active mode DNAT only" "[${ip_rc}]:2121" ${ip_cr} "-P -"
-+
-+
-+# test active mode SNAT only
-+reload_ruleset_snat_only
-+test_case "Active mode SNAT only" "[${ip_sr}]:21" ${ip_rs} "-P -"
-+
- # trap calls cleanup
- exit 0
--- 
-2.43.0
+The problem:
 
+The test 0005secmark_objref_0 (and 0001set_statements_0) fail because they
+include handles in rule JSON that don't exist yet. For example:
+
+  {"rule": {"family": "inet", "table": "x", "chain": "y", "handle": 4, ...}=
+}
+
+My patch makes JSON "handle" behave like CLI handle - converting it to a
+positioning reference. This causes "No such file or directory" errors becau=
+se
+handle 4 doesn't exist yet.
+
+Current behavior vs. expected:
+
+In CLI, this already fails as expected:
+
+  $ nft add rule inet x y handle 4 tcp dport 80 accept
+  Error: Could not process rule: No such file or directory
+
+But in JSON (before my patch), handles were silently ignored for ADD operat=
+ions.
+
+The current JSON design :
+
+As Phil Sutter noted in commit fb557b55 (2018): "For a programmatic API lik=
+e
+JSON, this should be fine" - JSON always exports handles regardless of -a f=
+lag.
+
+I couldn't agree more with JSON being a programmatic API.
+
+I verified:
+
+  $ nft -j list ruleset    # includes "handle": 2
+  $ nft -a -j list ruleset # same output, includes "handle": 2
+
+This creates a conflict:
+1. Export/import: JSON exports include handles (for reference/metadata)
+2. Positioning: JSON should support adding rules at specific positions
+(like CLI)
+3. Ambiguity: when "nft -j -f" receives "handle": X, he doesn't know
+if it is for positioning
+   or just metadata from an export?
+
+Why we shouldn't solve this in code:
+
+Doing a handle lookup before deciding whether to use it for positioning cou=
+ld
+cause race conditions when adding multiple rules or add slowness. The solut=
+ion
+must come from the input format itself to be unambiguous.
+
+Proposed solution:
+
+Reintroduce the "position" field in JSON for explicit positioning:
+- "handle": ignored for ADD operations (treated as metadata from exports)
+- "position": used for positioning (add after this handle)
+- "index": already supported for absolute positioning
+
+Why "position" makes sense for JSON:
+
+While the "position" keyword was deprecated in CLI (commit effb881c, 2018) =
+in
+favor of "handle" for consistency, it still exists for backwards compatibil=
+ity
+and is even documented in the official wiki:
+https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management
+
+For JSON, "position" could serve a clearer purpose:
+- Separates positioning intent from metadata
+- Allows safe export/import (handles are preserved but ignored for position=
+ing)
+- Provides explicit semantics: "position": X means "add/insert
+relative to handle X"
+
+Example:
+
+Export/import scenario (handles are metadata):
+  {"add": {"rule": {"family": "inet", "table": "test", "chain": "c",
+                    "handle": 4, "expr": [...]}}}
+  =E2=86=92 Handle 4 is ignored, rule appended
+
+Explicit positioning:
+  {"add": {"rule": {"family": "inet", "table": "test", "chain": "c",
+                    "position": 2, "expr": [...]}}}
+  =E2=86=92 Rule added after handle 2
+
+What do you think about this approach? I can implement it if you agree it's
+the right direction.
+
+Thanks for your time!
+
+Alexandre
