@@ -1,51 +1,51 @@
-Received: from buffalo.tulip.relay.mailchannels.net (buffalo.tulip.relay.mailchannels.net [23.83.218.24])
+Received: from tiger.tulip.relay.mailchannels.net (tiger.tulip.relay.mailchannels.net [23.83.218.248])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FBCD1FBEA8
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 00:53:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91FF5184E
+	for <netfilter-devel@vger.kernel.org>; Thu, 30 Oct 2025 01:04:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.248
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1761785599; cv=pass; b=aCFLz1008QQpupv2u1P3eQlnK0Ttpo7JIjYhIZsljeBn8ji8b06Sn4bTkBqh+u0a4bKjP8Ki2pvgHph6+mnId/qOjHSSUQnh5LQB8mWQe/o3uFNoxSjfnR8OjMHuKyZ07uIQzMFgC5tLVr7edNKBPPsixD/kLeLtBc76uRyOowA=
+	t=1761786286; cv=pass; b=aFIvwRRzvBThoOj3x4+/xMJIW4xhm+2pE1D/+WU0vi2aGQuBPc9YwtNOhkQSQRKx5mtMSTbGRxHz7o+kdBzUfhA+h6AwC5uz6+PXUe0oc45HvvglgrtW4qZEiSglpmnYIxx5nyNDZGRbKM1/a+6axL6VG0PtusL6aGONroyYeew=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1761785599; c=relaxed/simple;
-	bh=630ZLVL0IJ0TCu42hp14ywFsnINLXfJiquGV/C11tMQ=;
+	s=arc-20240116; t=1761786286; c=relaxed/simple;
+	bh=PaXVR60inXv85d3iPltxiOyN0TZqp4wY/u8rD7lJh1w=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=VJgQ7E2XBpf8hYeT1aY7OtNZUUmo0EasSjGioysVxsStYLg+FrtxcvUBg/7AxTi3W58lnrYP0/J5g1DJlssUiLXzXmKP4025DUMxFWKMXxqPOoqAJuMQXCRUkkqwp+WPn3gBa0mh6OOK6WfqOyc628/fNJ+oXVTajXWnOU7SHnU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=E15hY9gC reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.24
+	 Content-Type:MIME-Version; b=tTdOIw2Oi+vvYxZkymaP+PJR9eg1a+W7glSm8PiVzwxlwjwL73Pjmaxcv0yJlqIUisWFcF4NAGpnjCuz+/Lg7Jn8Hfryuvmwau2bU9B8DRx7S/se+jqKfBis9TqlIhYszoXXMBSmG/KZk14OVdcWzr+4hMqeSlksI5hALxAPqfU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name; spf=pass smtp.mailfrom=christoph.anton.mitterer.name; dkim=fail (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b=j/MZNIzM reason="key not found in DNS"; arc=pass smtp.client-ip=23.83.218.248
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=christoph.anton.mitterer.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="E15hY9gC"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=christoph.anton.mitterer.name header.i=@christoph.anton.mitterer.name header.b="j/MZNIzM"
 X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id B9B08721D1F;
-	Thu, 30 Oct 2025 00:53:16 +0000 (UTC)
-Received: from cpanel-007-fra.hostingww.com (trex-green-5.trex.outbound.svc.cluster.local [100.123.217.88])
+	by relay.mailchannels.net (Postfix) with ESMTP id 18DD7821C5C;
+	Thu, 30 Oct 2025 01:04:38 +0000 (UTC)
+Received: from cpanel-007-fra.hostingww.com (trex-green-7.trex.outbound.svc.cluster.local [100.121.221.249])
 	(Authenticated sender: instrampxe0y3a)
-	by relay.mailchannels.net (Postfix) with ESMTPA id EA3C77212CB;
-	Thu, 30 Oct 2025 00:53:15 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761785596; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 42CB8821CA1;
+	Thu, 30 Oct 2025 01:04:37 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1761786277; a=rsa-sha256;
 	cv=none;
-	b=+OT2TRRq+2XQy4bSarUkqYSXnQhf5CW+3IW8VtXtGCV/dltw9AFMMnR1/H84gdU1sQgz37
-	Vg8gkHSusRgoXOcMM65tq7ShsoCvP7yG2iX9Uy6TsG/G9cUw5A2aFWVaVCjj+rSQCU3698
-	TSouiMTbFuKze2qhWHoCfO9XYEY3LaTuRXG5G9v4RiYnV+tDGmxB+ycPuGKhoasOS9PePb
-	P2epMPh6Sox2Tp7zzFKUo3AHUXvh/ooYK7eCOkliA72bX2K8bU2TvLK+Q48vmYDjBQeCfP
-	BeADpcpK5h8rcr3qR0uAOb/RrLG/xBzdO2ujOAZyyvuvPhCnEz9m2++XJ4ShqA==
+	b=fPkb5Pis/GEJ64Gg7pq2iGDOc08Nqn/0Y/Ft+hHbAteTXDLdSYHwHQG6cJxrsxHxKsIfMf
+	DJKUy93tBulPjjVs4AOs2ZSt7ibzkL7zya+OSzjHPVSvUhS+fyCxNq5LMsGKc4YmHEZBmI
+	I9kHviwO+2jnTwb1sySfripbg5AdLsuVxZM8uvabuevd6iUx9S26il7u0hzBI0+3VUy7xd
+	eNzEEjiHbeEu0rI7GI0jRvPlpHWqUIlX2omfyDpf8u05sWBs1txPCZ0oTBuko3NOJbyQOl
+	fi7scbyaMnHv8a+8VEoyyTD+NovdD7WkRJWenmVtEjRgJXHBAcheyV3Er/flcg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1761785596;
+	s=arc-2022; t=1761786277;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=630ZLVL0IJ0TCu42hp14ywFsnINLXfJiquGV/C11tMQ=;
-	b=6ST+iIX53U6Zz5UxrpMTe+jkdsTCmvCTweV7F2QoqyUNbzoDqgMJ0qikvKOmhBeAZ/40nx
-	A4bZatXwp7UNylaoF9Sl574mLR3oEcvamghhK86ATkG+b+gdD634W96zKV9V9MYmaWewQN
-	/dI+Y4TSKok38HrEEaqsGet3A92SV8NkY8rK3+va4Qx/FEl1yiWkjGPiO1WlJDjyohE9k7
-	tUyCGxEYOT3/SRZttjdLB0xi8AYM0P/uy41HWRNhq5Ezqj24HS2WZ6qMJtMvhLsw7W+Nmw
-	FSEB8BG+DdIhYPw8dddcLqSiH6VPPmD4ko1s6FbCJ6VmJvy/AhDPR9wwi+Oetg==
+	bh=PNy9X6LxYI10lKMxbUEBjabWnU43SbI+sZJ/WEirSag=;
+	b=E69u/XjBPTCqFpCLXQ/0pkAuwnsXX5sRTokRUBol4rY0ya1MMlB+maOr5cIdJt5seCbxaj
+	bLg1SnPOH67A4/mNWlARq2qD8hSmGHoKE8t7QuC2GjjlQvCKboSdH2we3h3syXSHZD+pYB
+	X6pEAb7+R/2SN7DAQtAErhaKbLc8IJ+n0WuC/CmNRyOHSAToeW8PCYgbFNFjbjg3WBpPk9
+	npQKyMBRM4IpIRGKYrxPbqIRChfZsSwhMdfRwd35VUBd5a8vDrpFXsGLUv4z6vztH6FFxQ
+	wGUyRVA/PjXlToW1Zh2ka3EnYOhgFzMLZ5yZmZhKu4TbJ2n/UGstSFpJ055KVg==
 ARC-Authentication-Results: i=1;
-	rspamd-77bb85d8d5-qk84r;
+	rspamd-768b565cdb-lcjgk;
 	auth=pass smtp.auth=instrampxe0y3a
  smtp.mailfrom=mail@christoph.anton.mitterer.name
 X-Sender-Id: instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
@@ -53,45 +53,42 @@ X-MC-Relay: Neutral
 X-MailChannels-SenderId:
  instrampxe0y3a|x-authuser|mail@christoph.anton.mitterer.name
 X-MailChannels-Auth-Id: instrampxe0y3a
-X-Stretch-Abiding: 7ee680794e9a118d_1761785596637_1065377626
-X-MC-Loop-Signature: 1761785596637:3612121517
-X-MC-Ingress-Time: 1761785596637
+X-Lettuce-Quick: 6b99af0e4ab7dfaf_1761786277968_2359111494
+X-MC-Loop-Signature: 1761786277968:2050648916
+X-MC-Ingress-Time: 1761786277968
 Received: from cpanel-007-fra.hostingww.com (cpanel-007-fra.hostingww.com
  [3.69.87.180])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.123.217.88 (trex/7.1.3);
-	Thu, 30 Oct 2025 00:53:16 +0000
+	by 100.121.221.249 (trex/7.1.3);
+	Thu, 30 Oct 2025 01:04:37 +0000
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=christoph.anton.mitterer.name; s=default; h=MIME-Version:
 	Content-Transfer-Encoding:Content-Type:References:In-Reply-To:Date:Cc:To:From
 	:Subject:Message-ID:Sender:Reply-To:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:
-	List-Archive; bh=630ZLVL0IJ0TCu42hp14ywFsnINLXfJiquGV/C11tMQ=; b=E15hY9gCpDS2
-	ME7+S/6mqRMi1ROGINcNIFE9llVlRUuqnWLdYvHlzFPC+/lahX/H5H2R0wM5bg6DWaW0okBAEq1BL
-	ZIGojLs3IQNjoQEoy/oi3i0dgPZoEYZsLZIpX980SyKMti/DCwW+g8FKfCsYEAyHrJ0Hj0w3qHfuc
-	7awo05LAM5v6gSBR91Xt+7RMBW0PIDx7zPQpSMbJnysKThJAv+0x0CAovc+gAVufPtTgT+Fy9ixV3
-	jFPzoqAT/R12Vp/H1Zmo74S4971w76DhMEqw/PajLvnPUZTYJBvS+M/c4WQ2vLHnpNQ9FJUDKtyMf
-	xCSz81WZWVk4OnlocLbaew==;
-Received: from [212.104.214.84] (port=42397 helo=[10.2.0.2])
+	List-Archive; bh=PNy9X6LxYI10lKMxbUEBjabWnU43SbI+sZJ/WEirSag=; b=j/MZNIzMW4Um
+	kgl5c8RIXBJH6KEL80Y2l/V75Tuy3P6hs16iD76OWmqXVn7uokTI+ZUTCtsUM+GXVH+3dMv+gFtXL
+	DMdu6wi5Arh+w20H9Hp28qdlQKd352w5Ky9EU6JJ8iZz6F2qtYrvSQKu7pcnxOSBq7BlmABlpVEqz
+	ea707/akCcoZ8EjIwVT7gRvL/Oo8D7i+UR6ylOrGn9w2T2woD7CtABLMH+kAF9s0ALdVUVwI3fZ/M
+	PwFx0rlUvWOm4C+dP7b3gLamdz8TC846R1vhcQbzXISDkzhMW8oUQ2Lq5H8KL52zLjyQz0mGbXjZU
+	bsgW7AcHVKju0ZOUKrEx1Q==;
+Received: from [212.104.214.84] (port=5959 helo=[10.2.0.2])
 	by cpanel-007-fra.hostingww.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
 	(Exim 4.98.2)
 	(envelope-from <mail@christoph.anton.mitterer.name>)
-	id 1vEGug-00000002la8-2vMf;
-	Thu, 30 Oct 2025 00:53:14 +0000
-Message-ID: <d61be988f7974bd60f0550221b14354c2d4b6a76.camel@christoph.anton.mitterer.name>
-Subject: Re: [PATCH 8/9] tools: flush the ruleset only on an actual
- dedicated unit stop
+	id 1vEH5g-00000002oRn-2flH;
+	Thu, 30 Oct 2025 01:04:35 +0000
+Message-ID: <80a6e18535c94b60a226c89b9de06070cd154214.camel@christoph.anton.mitterer.name>
+Subject: Re: [PATCH nft v6 0/3] doc: miscellaneous improvements
 From: Christoph Anton Mitterer <mail@christoph.anton.mitterer.name>
-To: Jan Engelhardt <ej@inai.de>
+To: Florian Westphal <fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org
-Date: Thu, 30 Oct 2025 01:53:12 +0100
-In-Reply-To: <5rs82n4r-4por-6784-1n4o-39730qrs65n0@vanv.qr>
-References: <20251024023513.1000918-1-mail@christoph.anton.mitterer.name>
-	  <20251024023513.1000918-9-mail@christoph.anton.mitterer.name>
-	  <q48p3nq8-5969-0qp9-po30-nrn7s1q53109@vanv.qr>
-	 <b88acc763d340c8f7859349621fa6a0f027610b2.camel@christoph.anton.mitterer.name>
-	 <5rs82n4r-4por-6784-1n4o-39730qrs65n0@vanv.qr>
+Date: Thu, 30 Oct 2025 02:04:34 +0100
+In-Reply-To: <aQH6T6M-r561jvQ7@strlen.de>
+References: <20251028145436.29415-1-fw@strlen.de>
+	 <0e0112a16c881a1072c3d9dcba4d323b608674b0.camel@christoph.anton.mitterer.name>
+	 <aQH6T6M-r561jvQ7@strlen.de>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.56.2-5 
@@ -103,37 +100,64 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-AuthUser: mail@christoph.anton.mitterer.name
 
-On Wed, 2025-10-29 at 11:07 +0100, Jan Engelhardt wrote:
-> "The universe will always build a better idiot"
+On Wed, 2025-10-29 at 12:28 +0100, Florian Westphal wrote:
 >=20
-> before you know it they'll type `systemctl stop nftables; systemctl
-> start
-> nftables`, nullifying the restart magic.
+> What about this:
+> =C2=A0 Thus, if any base chain uses drop as its policy, the same base
+> chain (or a
+> =C2=A0 regular chain directly or indirectly called by it) must contain at
+> least one
+> =C2=A0 *accept* rule to avoid all traffic from getting dropped.
 
-Well but here it's literally to be seen in the command, that there's
-first a stop, then a start.
-Which is - at least not that - obvious with restart, especially as
-there are services which have no ExecStop=3D, as you say.
+Isn't that still effectively the same?
+
+I mean the whole summary chapter explains things from the view of a
+single packet, as was also the case for my last version of this
+sentence:
+> +  Thus, if any base chain uses drop as its policy, the same base chain (=
+or any
+> +  regular chain directly or indirectly called by it) must accept a packe=
+t or it
+> +  is ensured to be ultimately dropped by it.
+
+Your wording changes this now to refer to "all traffic", which I think
+make an unnecessary specialised case, namely that, where all packets
+would be dropped, unless there's at least one accept rule.
+
+The typical firewalling case is however that for most packets (that
+might end up on the system) there actually is no single rule that would
+accept them and only some of them get accept.
+
+I simply would let the reference frame on a single packet.
 
 
-> If you really need restart-safe behavior, then just delete the
-> ExecStop=3D line entirely (at the cost of not flushing the ruleset).
-> sysctl.service does not have ExecStop either, it also does not reset
-> sysctl settings.
+> > IMO it doesn't make things easier for a beginner, if one basically
+> > has to read through everything to find all information.
+>=20
+> I added a reference.=C2=A0 Also keep in mind that nftables will already
+> tell
+> you about terminal statement not at end.
+>=20
+> nft add rule ip f c drop counter
+> Error: Statement after terminal statement has no effect
 
-Well, I had suggested that as an alternative in the first mail of the
-series.
+Sure. I know.
 
-I think it would be better than what we have now, but may of course be
-disliked by people who actually want to use the stop action to disable
-any firewalling.
-That's why I came up with the proposed solution that would give us
-both.
+Is it still mentioned somewhere that "comment" is an exception to the
+rule?
+I think that should be mentioned, because while people could just try
+it out, they shouldn't have to... and even then they couldn't be sure
+whether that's actually intended or merely a bug.
 
 
-But I merely proposed that for the benefit over everyone, so I'm
-totally find with ending discussion at this point and simply leaving
-things as is.
+> > Als, "or a user-defined", ain't the base chains user-defined,
+> > too?
+>=20
+> Thanks, user-defined is iptables-legacy lingo (base chains always
+> exist), old habit.
+
+You're welcome :-)
+
 
 
 Cheers,
