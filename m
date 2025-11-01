@@ -1,154 +1,152 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 222EC19047A;
-	Sat,  1 Nov 2025 13:14:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C551DF258;
+	Sat,  1 Nov 2025 19:20:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762002859; cv=none; b=h4DPDg7Iow2NhxPxM/WzU+Mu1xkbeh7rGqeoLXfkuw1LdDG3Mc23XG8waQ6RwMuz/cbIViqyTmY/6+tkoQHtYbXtWSyzrGhzkvUJRtj0Vc1rfxJvFi2h9R7sXd/1OoMuTIi1i7xQUPrGiAOxx2tsHQCrsow7GGPW3cA/q4ixe38=
+	t=1762024843; cv=none; b=H8m3D+67IWD3vj4EYGS/Xpkj57sCRtuWKtiOrNO0HBzYAKpTXyIfIMlPO68y/wmFXt2nRDlUay6qBEjnbETSDWAEPmOWGb2BM3h4tWV0XqciG0QWMU/HaJ5xadnMugpBJ/0pxKMOZgci76Yvxr+AnPi823n0kVn+XoZ4feToj8A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762002859; c=relaxed/simple;
-	bh=ucC1SBjyqXAhBZLxgwerYDBWb772Y9+WJyoKPT5a5qM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ldcYgsvhWs4Sk+wMafe2sdiWGa4+zCohh4NxHlkdT3OAUaOzExl6rk0+T/gsIZy+ixJEa23DhP/odW/9ZNosqK6gaNpGzxutDK1Y8q6bMpHelLNfcJ+cG+BGJAzHoA0T8YYF6kkRqxuqsvCDJSiz2pgg6RqiIVjKPe8iV8WlF0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aJS2B/Hz; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1762024843; c=relaxed/simple;
+	bh=EbBplVH/jp/WQDFITyHV/kOjC8DhNug4NV/9A+tLHUA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PUtGA9ZcTPfWderzG/If2hiJxQ3364adZSCpLxmKrKzdHMnHxBFTdUMIAupLdr3AYp9Q36igyp7XrRsc/mvHza4skOiM2cGzG52un58ItnUq4K5T+6LLwQqQfT0lfCX3Iob+gn3yE905nvroihUkV1SVNaqOWbJE7cI+5HIIMhg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=2yNm860m; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aJS2B/Hz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1762002857; x=1793538857;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ucC1SBjyqXAhBZLxgwerYDBWb772Y9+WJyoKPT5a5qM=;
-  b=aJS2B/HzHzHZI9hqKWVZiYAw+vquSRVWv+5ZNRHt4zts3ZC2BN/UrqXd
-   sfhIWI56WAYEsHjqQm0h8qE6mZHSrLQJXbJ3GfGbwYzlDt/ozwYExYfnY
-   62I8xIQlVFrrudNU/VRBTKUQ30STF+UtoMbbtF/JzOeiYoaIiAwp982VP
-   cAFwr4Gv9uSf0Kzd7y76LTCEpc/W++Y14VHNSUKlvt1/xhkvpKOis4cfQ
-   y6mNArMrGJxCcO3UY+gpAa6v34J7kYtAIyzGTBKxJWH79kI/ofTxemSgY
-   sstABj/wcgq9e95ZwPAEY53iZQN7357Edxw0l2dwB37Q9Sk1HPiCzemvP
-   Q==;
-X-CSE-ConnectionGUID: tXrqGzXuRwqYJrlovlHM4A==
-X-CSE-MsgGUID: uYyarzo2RyCRhiE64kXYpQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11599"; a="64176842"
-X-IronPort-AV: E=Sophos;i="6.19,272,1754982000"; 
-   d="scan'208";a="64176842"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Nov 2025 06:14:16 -0700
-X-CSE-ConnectionGUID: iLqsQlKqThKyeTHgT5PBRg==
-X-CSE-MsgGUID: A4yJHSMuQkKs8h759JW5ZQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.19,272,1754982000"; 
-   d="scan'208";a="186144478"
-Received: from lkp-server02.sh.intel.com (HELO 66d7546c76b2) ([10.239.97.151])
-  by fmviesa007.fm.intel.com with ESMTP; 01 Nov 2025 06:14:14 -0700
-Received: from kbuild by 66d7546c76b2 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1vFBQp-000OHo-2a;
-	Sat, 01 Nov 2025 13:14:11 +0000
-Date: Sat, 1 Nov 2025 21:14:02 +0800
-From: kernel test robot <lkp@intel.com>
-To: Ricardo Robaina <rrobaina@redhat.com>, audit@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Cc: oe-kbuild-all@lists.linux.dev, paul@paul-moore.com, eparis@redhat.com,
-	fw@strlen.de, pablo@netfilter.org, kadlec@netfilter.org,
-	Ricardo Robaina <rrobaina@redhat.com>
-Subject: Re: [PATCH v4 1/2] audit: add audit_log_packet_ip4 and
- audit_log_packet_ip6 helper functions
-Message-ID: <202511012016.TaXzGDDi-lkp@intel.com>
-References: <cfafc5247fbfcd2561de16bcff67c1afd5676c9e.1761918165.git.rrobaina@redhat.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="2yNm860m"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=UiYKIoB/RAwW7vaxisQKhlQflM4KDYIBpvhlC5sFr+8=; b=2yNm860mEjlSCQMKTz9g5yEwrG
+	KrigR+w7TZkiKZmpgQmIOfZmaoPIb3QEQEtZFz5WCs4pWW32KasygahkwqKvtl7jLZMuz1iO8OIht
+	X2YycorV0foi8nPskaD1T4K6bvNF0xyY5mzG1XFQvqjBLT+ldWO+gSGtLym29t2PbBW6Yp1zPKk6x
+	wRueWh1q3flOdOSHwNtqwSDwOu6lnSraypfORWVgOP7dpeyh6oF852FCmz2lc0Hv4PNyliCaKd+wd
+	KWcu0Hb7yIxNz0OhlYMW+TmL47pzEAoQpeueU+n3OOFHQoIjuTjFnttxRBwRSUyJWM40Zy/5l3f7/
+	oRfnGobQ==;
+Received: from [50.53.43.113] (helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vFH9T-000000082cw-065k;
+	Sat, 01 Nov 2025 19:20:39 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: netdev@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Subject: [PATCH net-next] netfilter: nf_tables: improve UAPI kernel-doc comments
+Date: Sat,  1 Nov 2025 12:20:38 -0700
+Message-ID: <20251101192038.2005374-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.51.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cfafc5247fbfcd2561de16bcff67c1afd5676c9e.1761918165.git.rrobaina@redhat.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Ricardo,
+In include/uapi/linux/netfilter/nf_tables.h,
+correct the kernel-doc comments for mistyped enum names and enum values to
+avoid these kernel-doc warnings and improve the documentation:
 
-kernel test robot noticed the following build errors:
+nf_tables.h:896: warning: Enum value 'NFT_EXTHDR_OP_TCPOPT' not described
+ in enum 'nft_exthdr_op'
+nf_tables.h:896: warning: Excess enum value 'NFT_EXTHDR_OP_TCP' description
+ in 'nft_exthdr_op'
 
-[auto build test ERROR on pcmoore-audit/next]
-[also build test ERROR on netfilter-nf/main nf-next/master linus/master v6.18-rc3 next-20251031]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+nf_tables.h:1210: warning: expecting prototype for enum
+ nft_flow_attributes. Prototype was for enum nft_offload_attributes instead
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Ricardo-Robaina/audit-add-audit_log_packet_ip4-and-audit_log_packet_ip6-helper-functions/20251031-220605
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pcmoore/audit.git next
-patch link:    https://lore.kernel.org/r/cfafc5247fbfcd2561de16bcff67c1afd5676c9e.1761918165.git.rrobaina%40redhat.com
-patch subject: [PATCH v4 1/2] audit: add audit_log_packet_ip4 and audit_log_packet_ip6 helper functions
-config: m68k-defconfig (https://download.01.org/0day-ci/archive/20251101/202511012016.TaXzGDDi-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 15.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20251101/202511012016.TaXzGDDi-lkp@intel.com/reproduce)
+nf_tables.h:1428: warning: expecting prototype for enum nft_reject_code.
+ Prototype was for enum nft_reject_inet_code instead
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202511012016.TaXzGDDi-lkp@intel.com/
+(add beginning '@' to each enum value description:)
+nf_tables.h:1493: warning: Enum value 'NFTA_TPROXY_FAMILY' not described
+ in enum 'nft_tproxy_attributes'
+nf_tables.h:1493: warning: Enum value 'NFTA_TPROXY_REG_ADDR' not described
+ in enum 'nft_tproxy_attributes'
+nf_tables.h:1493: warning: Enum value 'NFTA_TPROXY_REG_PORT' not described
+ in enum 'nft_tproxy_attributes'
 
-All errors (new ones prefixed by >>):
+nf_tables.h:1796: warning: expecting prototype for enum
+ nft_device_attributes. Prototype was for enum
+ nft_devices_attributes instead
 
-   net/netfilter/nft_log.c: In function 'nft_log_eval_audit':
->> net/netfilter/nft_log.c:48:31: error: implicit declaration of function 'audit_log_packet_ip4'; did you mean 'audit_log_capset'? [-Wimplicit-function-declaration]
-      48 |                         fam = audit_log_packet_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-         |                               ^~~~~~~~~~~~~~~~~~~~
-         |                               audit_log_capset
->> net/netfilter/nft_log.c:51:31: error: implicit declaration of function 'audit_log_packet_ip6'; did you mean 'audit_log_capset'? [-Wimplicit-function-declaration]
-      51 |                         fam = audit_log_packet_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-         |                               ^~~~~~~~~~~~~~~~~~~~
-         |                               audit_log_capset
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+---
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-
-vim +48 net/netfilter/nft_log.c
-
-    28	
-    29	static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
-    30	{
-    31		struct sk_buff *skb = pkt->skb;
-    32		struct audit_buffer *ab;
-    33		int fam = -1;
-    34	
-    35		if (!audit_enabled)
-    36			return;
-    37	
-    38		ab = audit_log_start(NULL, GFP_ATOMIC, AUDIT_NETFILTER_PKT);
-    39		if (!ab)
-    40			return;
-    41	
-    42		audit_log_format(ab, "mark=%#x", skb->mark);
-    43	
-    44		switch (nft_pf(pkt)) {
-    45		case NFPROTO_BRIDGE:
-    46			switch (eth_hdr(skb)->h_proto) {
-    47			case htons(ETH_P_IP):
-  > 48				fam = audit_log_packet_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-    49				break;
-    50			case htons(ETH_P_IPV6):
-  > 51				fam = audit_log_packet_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-    52				break;
-    53			}
-    54			break;
-    55		case NFPROTO_IPV4:
-    56			fam = audit_log_packet_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-    57			break;
-    58		case NFPROTO_IPV6:
-    59			fam = audit_log_packet_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-    60			break;
-    61		}
-    62	
-    63		if (fam == -1)
-    64			audit_log_format(ab, " saddr=? daddr=? proto=-1");
-    65	
-    66		audit_log_end(ab);
-    67	}
-    68	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+--- linux-next-20251031.orig/include/uapi/linux/netfilter/nf_tables.h
++++ linux-next-20251031/include/uapi/linux/netfilter/nf_tables.h
+@@ -881,7 +881,7 @@ enum nft_exthdr_flags {
+  * enum nft_exthdr_op - nf_tables match options
+  *
+  * @NFT_EXTHDR_OP_IPV6: match against ipv6 extension headers
+- * @NFT_EXTHDR_OP_TCP: match against tcp options
++ * @NFT_EXTHDR_OP_TCPOPT: match against tcp options
+  * @NFT_EXTHDR_OP_IPV4: match against ipv4 options
+  * @NFT_EXTHDR_OP_SCTP: match against sctp chunks
+  * @NFT_EXTHDR_OP_DCCP: match against dccp otions
+@@ -1200,7 +1200,7 @@ enum nft_ct_attributes {
+ #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
+ 
+ /**
+- * enum nft_flow_attributes - ct offload expression attributes
++ * enum nft_offload_attributes - ct offload expression attributes
+  * @NFTA_FLOW_TABLE_NAME: flow table name (NLA_STRING)
+  */
+ enum nft_offload_attributes {
+@@ -1410,7 +1410,7 @@ enum nft_reject_types {
+ };
+ 
+ /**
+- * enum nft_reject_code - Generic reject codes for IPv4/IPv6
++ * enum nft_reject_inet_code - Generic reject codes for IPv4/IPv6
+  *
+  * @NFT_REJECT_ICMPX_NO_ROUTE: no route to host / network unreachable
+  * @NFT_REJECT_ICMPX_PORT_UNREACH: port unreachable
+@@ -1480,9 +1480,9 @@ enum nft_nat_attributes {
+ /**
+  * enum nft_tproxy_attributes - nf_tables tproxy expression netlink attributes
+  *
+- * NFTA_TPROXY_FAMILY: Target address family (NLA_U32: nft_registers)
+- * NFTA_TPROXY_REG_ADDR: Target address register (NLA_U32: nft_registers)
+- * NFTA_TPROXY_REG_PORT: Target port register (NLA_U32: nft_registers)
++ * @NFTA_TPROXY_FAMILY: Target address family (NLA_U32: nft_registers)
++ * @NFTA_TPROXY_REG_ADDR: Target address register (NLA_U32: nft_registers)
++ * @NFTA_TPROXY_REG_PORT: Target port register (NLA_U32: nft_registers)
+  */
+ enum nft_tproxy_attributes {
+ 	NFTA_TPROXY_UNSPEC,
+@@ -1783,7 +1783,7 @@ enum nft_synproxy_attributes {
+ #define NFTA_SYNPROXY_MAX (__NFTA_SYNPROXY_MAX - 1)
+ 
+ /**
+- * enum nft_device_attributes - nf_tables device netlink attributes
++ * enum nft_devices_attributes - nf_tables device netlink attributes
+  *
+  * @NFTA_DEVICE_NAME: name of this device (NLA_STRING)
+  * @NFTA_DEVICE_PREFIX: device name prefix, a simple wildcard (NLA_STRING)
