@@ -1,303 +1,422 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AC05301704
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Nov 2025 11:05:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 192B91DB12C
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 Nov 2025 14:29:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762167940; cv=none; b=lRWE/AJZqNM/oGF/ZTDVm0sx8HwVVcFf7D4jl/KQ/8cBvzrQbZRtQqeXqDhMCfcqDCx34y2i08z4gQzcKuVR0FdIKHuN8n6buzDBL2XssgS0r7INwXSAMnx0/v3/8k+7W7pM1/lODgDLckSUtODEs2sxT4VVV50KDkpOTFCEOKA=
+	t=1762180151; cv=none; b=DG0NRWnU4xMNhe43p4O0JnFzLq04yY6nNu5+CF3MUe99RF3o/8b0HQ0cWajLQjrhrOsmTalIg45HYYk59UpkhWRLxLyLkvW1iN7KAtTjsc8S8xDn/cL9kc5ldTVzoq9+iI5Pn1fFnQ8/D2D+DtQWlQz4mEtMWnxiJQ3CaSu6QlQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762167940; c=relaxed/simple;
-	bh=gfTwUykB/RnmTajqRSHRxKNiOaTJwE/JIgeSdjNjNDU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=pivZW8d9/yDZiPiOsoWed2P9bZw9MFMmZjbkVM38d+zTrZazZRyr+4970MRfD1yvibXF4SjceKSrg+S3OshsYv3ZoGhS4z2jg+lrjQYtEN4yLhytvJvUpigCz4a7+7Op4nAZC6KnoFNLKwRZ015d0o3tn+hYVtd+BKpAFCcd4NI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=FMv4kxOF; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=Dom5Qxpm; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1762180151; c=relaxed/simple;
+	bh=MdLLlfp5E/gMO0MpJVIDiiUNAuM8Np2kvUdFT+IeAf0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=o/ZmlW/ShHmhdDPiRUIx08c9hQh0Go+bysUj4KcQHY7W3/y0s2Ypec+IUryhNskQvmazspid9aTk1IjUzfDT/SFrefS1jUnUecYNVjE2H8w+3KlxAGgMp7lI922mg98754enJXIsFyBE7Lt/ndX3eiR7UlENpRYVjsPj8Hf9n/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=B9unfoNa; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q9lWUKqx; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=B9unfoNa; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q9lWUKqx; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FMv4kxOF";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="Dom5Qxpm"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1762167937;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=9xCrDGRchnnGTkwO6YdV7uPKVA0+6GBpSaManbFOJHM=;
-	b=FMv4kxOF9OrN58AMVvanVWHzLkeknnlm7z8Sf9M0Ao5UvLcCnOhCG/euzW0x5d/NA3bc6c
-	otFy7EFHi0mx8+dBzN1PnCTdBHLiWqmcB3Grbt8qY6JcqHbCQaM7sUJSx3aJWoWQyTCivU
-	LCu6jt0vaQ5F8tLZLIyHrvQkXa7obOM=
-Received: from mail-pl1-f199.google.com (mail-pl1-f199.google.com
- [209.85.214.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-396-rfSnFjSIMEmcvTVhjokfuw-1; Mon, 03 Nov 2025 06:05:36 -0500
-X-MC-Unique: rfSnFjSIMEmcvTVhjokfuw-1
-X-Mimecast-MFC-AGG-ID: rfSnFjSIMEmcvTVhjokfuw_1762167935
-Received: by mail-pl1-f199.google.com with SMTP id d9443c01a7336-2956cdcdc17so16172955ad.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Nov 2025 03:05:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1762167935; x=1762772735; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=9xCrDGRchnnGTkwO6YdV7uPKVA0+6GBpSaManbFOJHM=;
-        b=Dom5Qxpmybg5uWgVL6MHt+QvS3sxwwjVF3JIBiqyw9ISex1xSidbn9WxTEmenRZMjS
-         NVs/UOr6JoNxubV6Eq5SwM87faS5c+9VkoiKEGUqLdJsiCrn8SB582eScn+i8YCGXZhE
-         hCzhKE/VNA9n2PpLVyS9LJSqTR5HO691O34z7P6f2h0lfuHD+lN6I3/vSyC/ywUbhkAS
-         tlKf6FpsQkHfUjsCpBqyxBvEGefNjgXSTMolVHXFC7x1PwBAvqWxdvx19m7xkFh0/y8/
-         ZBDzUOfbsIfb6xSc9H26gpzUNaAQM/aPsqQqOYq5Cax9wwhsTIB/CYuUFP2VIvi9dmEw
-         fmrw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762167935; x=1762772735;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=9xCrDGRchnnGTkwO6YdV7uPKVA0+6GBpSaManbFOJHM=;
-        b=WALbUtePWtXp3kRkVCVa/cqVL91p+lSE+PKxBKY18AMWCrKbPzjMHOkTFS0H1FrZrc
-         Qwuou0/lnjPHWYcMFGPlOTQ217+hu60a/oCXG/Fz7JYv54SQa0uRUGwQdL/Xp8X/XVUe
-         4QDLR1e0hMBfOUUGDO3NDmq0dG3lHDf2FmBrmOQFX9SNudtbGDccyI2RFUIeFNxJ+vCH
-         EZxUwU3bwNmh/Urbl2N4T25rS+2oOOOq2vVEbuXEwijCEYvqxulTAqh2CEyWSIGbtE0R
-         IQHu6DDuoff7f6Td8IECBdvV+AJz8TuGJ5AYMhVu203eoTY0gcJoG4lIZFaEdmVUor0e
-         CNfw==
-X-Forwarded-Encrypted: i=1; AJvYcCW9A8jrzCp6XuDu0iIlCTWyzdpfF+yqS57DMaFoyj3f6ui+KRf5WuMRjxIPpG9cOuIkhWx6c8JIzvz5p3sPl7I=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz+dqMB90B0X9MzNltOSClFPSZkGoVMLEGAwo8XYdRX5oMQETSb
-	zxazENj3jpdxITK81Uh0FitSXZbjYzKxzsnvGl8FtTzT0ME7ryeQUE78YiYFzjPOLaklLn69fhj
-	rROe7AHC+YBZRpRYmN/voLsduOl1IubitUsC4lLuJRwgknHkog63h0juFiuAzWjWSSiB2ShoC7T
-	PJAiLDxkiu1MdRu3u60+hxGtVYxA+IrWQIidjOAtobSRcK
-X-Gm-Gg: ASbGncvDbWO9C1IaapkFhRR9IoE1cowK5ToiKDXH7A48pqvjhYmP04yYwr7EhyfjqgZ
-	8vN0Y4n3+mBGwc0Jk2Rw9zmH9GxoY5V9FH2YmCx2CPCsHr8y87hvFHTlWKn5dsmnseIxWFYDyiO
-	kGe/TT+PGNSmPUAFH9MfqoURNZFhUEMXQGkWx8Pho020RSBAzBzEW61f8=
-X-Received: by 2002:a17:903:11cd:b0:27d:c542:fe25 with SMTP id d9443c01a7336-2951a587e32mr155174795ad.41.1762167934871;
-        Mon, 03 Nov 2025 03:05:34 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IGA5xxOqESC5njIUuwo8X7aUkUUbc4ngsKRBvL0f6Uy3SwdFfrZxjJ/xB3v9LkidFvC0hMkhLozQ/mE6e5SuA8=
-X-Received: by 2002:a17:903:11cd:b0:27d:c542:fe25 with SMTP id
- d9443c01a7336-2951a587e32mr155174295ad.41.1762167934419; Mon, 03 Nov 2025
- 03:05:34 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="B9unfoNa";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q9lWUKqx";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="B9unfoNa";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q9lWUKqx"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 27F121F7C4;
+	Mon,  3 Nov 2025 14:29:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1762180144; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=h5qSAzO3iNb7YnsMO93jo+nDg6MnSV+Js5h6CqE0fGA=;
+	b=B9unfoNaz/IyyEGv98c/xysIovHkin0/LEgdmUCx2vBiQXNOZ0JfA/DlfJBCrZvEDL81GW
+	sYprPYzSRNvw+Xox6SofGhLi7T4Ds9lb2Zx7poFN0fqYRRop3qIEnmi/TDxR/OrFjt9kkF
+	HKq0PXcXU5MkqBFnWPeTs0LvcvnvFtM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1762180144;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=h5qSAzO3iNb7YnsMO93jo+nDg6MnSV+Js5h6CqE0fGA=;
+	b=q9lWUKqx5+i/agLU0gbccvr6QYULAmCgmrQqpVW/2P0xVJT1iZAdOJwDiCMhgcRX+pq3Pr
+	oX7NVKdy9UMIqrBg==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1762180144; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=h5qSAzO3iNb7YnsMO93jo+nDg6MnSV+Js5h6CqE0fGA=;
+	b=B9unfoNaz/IyyEGv98c/xysIovHkin0/LEgdmUCx2vBiQXNOZ0JfA/DlfJBCrZvEDL81GW
+	sYprPYzSRNvw+Xox6SofGhLi7T4Ds9lb2Zx7poFN0fqYRRop3qIEnmi/TDxR/OrFjt9kkF
+	HKq0PXcXU5MkqBFnWPeTs0LvcvnvFtM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1762180144;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=h5qSAzO3iNb7YnsMO93jo+nDg6MnSV+Js5h6CqE0fGA=;
+	b=q9lWUKqx5+i/agLU0gbccvr6QYULAmCgmrQqpVW/2P0xVJT1iZAdOJwDiCMhgcRX+pq3Pr
+	oX7NVKdy9UMIqrBg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C2BD5139A9;
+	Mon,  3 Nov 2025 14:29:03 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id IKRuLC+8CGnNXAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 03 Nov 2025 14:29:03 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	fw@strlen.de,
+	pablo@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH libnftnl v2] expr: add support to math expression
+Date: Mon,  3 Nov 2025 15:28:49 +0100
+Message-ID: <20251103142849.23240-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6ac2baf0d5ae176cbd3279a4dff9e2c7750c6d45.1761918165.git.rrobaina@redhat.com>
- <202511011146.aPtw8SOn-lkp@intel.com>
-In-Reply-To: <202511011146.aPtw8SOn-lkp@intel.com>
-From: Ricardo Robaina <rrobaina@redhat.com>
-Date: Mon, 3 Nov 2025 08:05:22 -0300
-X-Gm-Features: AWmQ_blix0O5YM7w_tT0WXs6Pqjmi5gLv0k1Qz_HlHfym8b0laV-ctbmO_s95gk
-Message-ID: <CAABTaaCqzGoWKiRp40wh8JzJCq5OukdH+3HpGYN9OvnORpdjaA@mail.gmail.com>
-Subject: Re: [PATCH v4 2/2] audit: include source and destination ports to NETFILTER_PKT
-To: kernel test robot <lkp@intel.com>
-Cc: audit@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	oe-kbuild-all@lists.linux.dev, paul@paul-moore.com, eparis@redhat.com, 
-	fw@strlen.de, pablo@netfilter.org, kadlec@netfilter.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	TO_DN_SOME(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RCPT_COUNT_FIVE(0.00)[5];
+	RCVD_TLS_ALL(0.00)[]
+X-Spam-Flag: NO
+X-Spam-Score: -2.80
+X-Spam-Level: 
 
-Same thing here. I didn't get these warning messages in my local
-build. I'll fix it and submit a new version.
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+v2: adjusted the new fields and fixed the duplicated "math" on print
+---
+ include/libnftnl/expr.h             |   9 ++
+ include/linux/netfilter/nf_tables.h |  27 ++++
+ src/Makefile.am                     |   1 +
+ src/expr/math.c                     | 206 ++++++++++++++++++++++++++++
+ src/expr_ops.c                      |   2 +
+ 5 files changed, 245 insertions(+)
+ create mode 100644 src/expr/math.c
 
-On Sat, Nov 1, 2025 at 1:05=E2=80=AFAM kernel test robot <lkp@intel.com> wr=
-ote:
->
-> Hi Ricardo,
->
-> kernel test robot noticed the following build errors:
->
-> [auto build test ERROR on pcmoore-audit/next]
-> [also build test ERROR on netfilter-nf/main nf-next/master linus/master v=
-6.18-rc3 next-20251031]
-> [If your patch is applied to the wrong git tree, kindly drop us a note.
-> And when submitting patch, we suggest to use '--base' as documented in
-> https://git-scm.com/docs/git-format-patch#_base_tree_information]
->
-> url:    https://github.com/intel-lab-lkp/linux/commits/Ricardo-Robaina/au=
-dit-add-audit_log_packet_ip4-and-audit_log_packet_ip6-helper-functions/2025=
-1031-220605
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/pcmoore/audit.git=
- next
-> patch link:    https://lore.kernel.org/r/6ac2baf0d5ae176cbd3279a4dff9e2c7=
-750c6d45.1761918165.git.rrobaina%40redhat.com
-> patch subject: [PATCH v4 2/2] audit: include source and destination ports=
- to NETFILTER_PKT
-> config: arc-randconfig-002-20251101 (https://download.01.org/0day-ci/arch=
-ive/20251101/202511011146.aPtw8SOn-lkp@intel.com/config)
-> compiler: arc-linux-gcc (GCC) 8.5.0
-> reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/archi=
-ve/20251101/202511011146.aPtw8SOn-lkp@intel.com/reproduce)
->
-> If you fix the issue in a separate patch/commit (i.e. not just a new vers=
-ion of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202511011146.aPtw8SOn-lkp=
-@intel.com/
->
-> All errors (new ones prefixed by >>):
->
->    kernel/audit.c: In function 'audit_log_packet_ip4':
-> >> kernel/audit.c:2555:3: error: a label can only be part of a statement =
-and a declaration is not a statement
->       struct tcphdr _tcph;
->       ^~~~~~
-> >> kernel/audit.c:2556:3: error: expected expression before 'const'
->       const struct tcphdr *th;
->       ^~~~~
-> >> kernel/audit.c:2558:3: error: 'th' undeclared (first use in this funct=
-ion); did you mean 'ih'?
->       th =3D skb_header_pointer(skb, skb_transport_offset(skb), sizeof(_t=
-cph), &_tcph);
->       ^~
->       ih
->    kernel/audit.c:2558:3: note: each undeclared identifier is reported on=
-ly once for each function it appears in
->    kernel/audit.c:2568:3: error: a label can only be part of a statement =
-and a declaration is not a statement
->       struct udphdr _udph;
->       ^~~~~~
->    kernel/audit.c:2569:3: error: expected expression before 'const'
->       const struct udphdr *uh;
->       ^~~~~
-> >> kernel/audit.c:2571:3: error: 'uh' undeclared (first use in this funct=
-ion); did you mean 'ih'?
->       uh =3D skb_header_pointer(skb, skb_transport_offset(skb), sizeof(_u=
-dph), &_udph);
->       ^~
->       ih
->    kernel/audit.c:2580:3: error: a label can only be part of a statement =
-and a declaration is not a statement
->       struct sctphdr _sctph;
->       ^~~~~~
->    kernel/audit.c:2581:3: error: expected expression before 'const'
->       const struct sctphdr *sh;
->       ^~~~~
-> >> kernel/audit.c:2583:3: error: 'sh' undeclared (first use in this funct=
-ion); did you mean 'ih'?
->       sh =3D skb_header_pointer(skb, skb_transport_offset(skb), sizeof(_s=
-ctph), &_sctph);
->       ^~
->       ih
->    kernel/audit.c: In function 'audit_log_packet_ip6':
->    kernel/audit.c:2616:3: error: a label can only be part of a statement =
-and a declaration is not a statement
->       struct tcphdr _tcph;
->       ^~~~~~
->    kernel/audit.c:2617:3: error: expected expression before 'const'
->       const struct tcphdr *th;
->       ^~~~~
->    kernel/audit.c:2619:3: error: 'th' undeclared (first use in this funct=
-ion); did you mean 'ih'?
->       th =3D skb_header_pointer(skb, skb_transport_offset(skb), sizeof(_t=
-cph), &_tcph);
->       ^~
->       ih
->    kernel/audit.c:2629:3: error: a label can only be part of a statement =
-and a declaration is not a statement
->       struct udphdr _udph;
->       ^~~~~~
->    kernel/audit.c:2630:3: error: expected expression before 'const'
->       const struct udphdr *uh;
->       ^~~~~
->    kernel/audit.c:2632:3: error: 'uh' undeclared (first use in this funct=
-ion); did you mean 'ih'?
->       uh =3D skb_header_pointer(skb, skb_transport_offset(skb), sizeof(_u=
-dph), &_udph);
->       ^~
->       ih
->    kernel/audit.c:2641:3: error: a label can only be part of a statement =
-and a declaration is not a statement
->       struct sctphdr _sctph;
->       ^~~~~~
->    kernel/audit.c:2642:3: error: expected expression before 'const'
->       const struct sctphdr *sh;
->       ^~~~~
->    kernel/audit.c:2644:3: error: 'sh' undeclared (first use in this funct=
-ion); did you mean 'ih'?
->       sh =3D skb_header_pointer(skb, skb_transport_offset(skb), sizeof(_s=
-ctph), &_sctph);
->       ^~
->       ih
->
->
-> vim +2555 kernel/audit.c
->
->   2543
->   2544  bool audit_log_packet_ip4(struct audit_buffer *ab, struct sk_buff=
- *skb)
->   2545  {
->   2546          struct iphdr _iph;
->   2547          const struct iphdr *ih;
->   2548
->   2549          ih =3D skb_header_pointer(skb, skb_network_offset(skb), s=
-izeof(_iph), &_iph);
->   2550          if (!ih)
->   2551                  return false;
->   2552
->   2553          switch (ih->protocol) {
->   2554          case IPPROTO_TCP:
-> > 2555                  struct tcphdr _tcph;
-> > 2556                  const struct tcphdr *th;
->   2557
-> > 2558                  th =3D skb_header_pointer(skb, skb_transport_offs=
-et(skb), sizeof(_tcph), &_tcph);
->   2559                  if (!th)
->   2560                          return false;
->   2561
->   2562                  audit_log_format(ab, " saddr=3D%pI4 daddr=3D%pI4 =
-proto=3D%hhu sport=3D%hu dport=3D%hu",
->   2563                                   &ih->saddr, &ih->daddr, ih->prot=
-ocol,
->   2564                                   ntohs(th->source), ntohs(th->des=
-t));
->   2565                  break;
->   2566          case IPPROTO_UDP:
->   2567          case IPPROTO_UDPLITE:
->   2568                  struct udphdr _udph;
->   2569                  const struct udphdr *uh;
->   2570
-> > 2571                  uh =3D skb_header_pointer(skb, skb_transport_offs=
-et(skb), sizeof(_udph), &_udph);
->   2572                  if (!uh)
->   2573                          return false;
->   2574
->   2575                  audit_log_format(ab, " saddr=3D%pI4 daddr=3D%pI4 =
-proto=3D%hhu sport=3D%hu dport=3D%hu",
->   2576                                   &ih->saddr, &ih->daddr, ih->prot=
-ocol,
->   2577                                   ntohs(uh->source), ntohs(uh->des=
-t));
->   2578                  break;
->   2579          case IPPROTO_SCTP:
->   2580                  struct sctphdr _sctph;
->   2581                  const struct sctphdr *sh;
->   2582
-> > 2583                  sh =3D skb_header_pointer(skb, skb_transport_offs=
-et(skb), sizeof(_sctph), &_sctph);
->   2584                  if (!sh)
->   2585                          return false;
->   2586
->   2587                  audit_log_format(ab, " saddr=3D%pI4 daddr=3D%pI4 =
-proto=3D%hhu sport=3D%hu dport=3D%hu",
->   2588                                   &ih->saddr, &ih->daddr, ih->prot=
-ocol,
->   2589                                   ntohs(sh->source), ntohs(sh->des=
-t));
->   2590                  break;
->   2591          default:
->   2592                  audit_log_format(ab, " saddr=3D%pI4 daddr=3D%pI4 =
-proto=3D%hhu",
->   2593                                   &ih->saddr, &ih->daddr, ih->prot=
-ocol);
->   2594          }
->   2595
->   2596          return true;
->   2597  }
->   2598  EXPORT_SYMBOL(audit_log_packet_ip4);
->   2599
->
-> --
-> 0-DAY CI Kernel Test Service
-> https://github.com/intel/lkp-tests/wiki
->
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 1c07b54..779ad5a 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -363,6 +363,15 @@ enum {
+ 	__NFTNL_EXPR_INNER_MAX
+ };
+ 
++enum {
++	NFTNL_EXPR_MATH_SREG	= NFTNL_EXPR_BASE,
++	NFTNL_EXPR_MATH_DREG,
++	NFTNL_EXPR_MATH_OP,
++	NFTNL_EXPR_MATH_LEN,
++	NFTNL_EXPR_MATH_BITMASK,
++	__NFTNL_EXPR_MATH_MAX
++};
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 7c0c915..06e91cd 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -2015,4 +2015,31 @@ enum nft_tunnel_attributes {
+ };
+ #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
+ 
++/**
++ * enum nft_math_attributes - nftables math expression netlink attributes
++ *
++ * @NFTA_MATH_SREG: source register (NLA_U32: nft_registers)
++ * @NFTA_MATH_DREG: destination register (NLA_U32: nft_registers)
++ * @NFTA_MATH_OP: operation to be performed (NLA_U32)
++ * @NFTA_MATH_BITMASK: bitmask to be applied on the operation (NLA_U32)
++ * @NFTA_MATH_LEN: value length in bits (NLA_U32)
++ */
++enum nft_math_attributes {
++	NFTA_MATH_UNSPEC,
++	NFTA_MATH_SREG,
++	NFTA_MATH_DREG,
++	NFTA_MATH_OP,
++	NFTA_MATH_BITMASK,
++	NFTA_MATH_LEN,
++	__NFTA_MATH_MAX,
++};
++#define NFTA_MATH_MAX (__NFTA_MATH_MAX - 1)
++
++enum nft_math_op {
++	NFT_MATH_OP_INC,
++	NFT_MATH_OP_DEC,
++	__NFT_MATH_OP_MAX,
++};
++#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 1c38d00..90eafc4 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -62,6 +62,7 @@ libnftnl_la_SOURCES = utils.c		\
+ 		      expr/synproxy.c	\
+ 		      expr/osf.c	\
+ 		      expr/xfrm.c	\
++		      expr/math.c	\
+ 		      obj/counter.c	\
+ 		      obj/ct_helper.c	\
+ 		      obj/quota.c	\
+diff --git a/src/expr/math.c b/src/expr/math.c
+new file mode 100644
+index 0000000..48eba71
+--- /dev/null
++++ b/src/expr/math.c
+@@ -0,0 +1,206 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * (C) 2025 by Fernando Fernandez Mancera <fmancera@suse.de>
++ */
++
++#include <arpa/inet.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include "internal.h"
++#include <libmnl/libmnl.h>
++#include <libnftnl/expr.h>
++#include <libnftnl/rule.h>
++
++struct nftnl_expr_math {
++	enum nft_registers sreg;
++	enum nft_registers dreg;
++	enum nft_math_op   op;
++	uint32_t	   bitmask;
++	uint32_t	   len;
++};
++
++static int nftnl_expr_math_set(struct nftnl_expr *e, uint16_t type,
++			       const void *data, uint32_t data_len)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++
++	switch(type) {
++	case NFTNL_EXPR_MATH_SREG:
++		memcpy(&math->sreg, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_DREG:
++		memcpy(&math->dreg, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_OP:
++		memcpy(&math->op, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_LEN:
++		memcpy(&math->len, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_BITMASK:
++		memcpy(&math->bitmask, data, data_len);
++		break;
++	}
++	return 0;
++}
++
++static const void *
++nftnl_expr_math_get(const struct nftnl_expr *e, uint16_t type,
++		    uint32_t *data_len)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++
++	switch(type) {
++	case NFTNL_EXPR_MATH_SREG:
++		*data_len = sizeof(math->sreg);
++		return &math->sreg;
++	case NFTNL_EXPR_MATH_DREG:
++		*data_len = sizeof(math->dreg);
++		return &math->dreg;
++	case NFTNL_EXPR_MATH_OP:
++		*data_len = sizeof(math->op);
++		return &math->op;
++	case NFTNL_EXPR_MATH_LEN:
++		*data_len = sizeof(math->len);
++		return &math->len;
++	case NFTNL_EXPR_MATH_BITMASK:
++		*data_len = sizeof(math->bitmask);
++		return &math->bitmask;
++	}
++	return NULL;
++}
++
++static void
++nftnl_expr_math_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++
++	if ((e->flags & (1 << NFTNL_EXPR_MATH_SREG)) &&
++	    (e->flags & (1 << NFTNL_EXPR_MATH_DREG)) &&
++	    (e->flags & (1 << NFTNL_EXPR_MATH_LEN)) &&
++	    (e->flags & (1 << NFTNL_EXPR_MATH_OP))) {
++		if (e->flags & (1 << NFTNL_EXPR_MATH_BITMASK))
++			mnl_attr_put_u32(nlh, NFTA_MATH_BITMASK, htonl(math->bitmask));
++
++		mnl_attr_put_u32(nlh, NFTA_MATH_SREG, htonl(math->sreg));
++		mnl_attr_put_u32(nlh, NFTA_MATH_DREG, htonl(math->dreg));
++		mnl_attr_put_u32(nlh, NFTA_MATH_OP, htonl(math->op));
++		mnl_attr_put_u32(nlh, NFTA_MATH_LEN, htonl(math->len));
++	}
++
++}
++
++static int nftnl_expr_math_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_MATH_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch(type) {
++	case NFTNL_EXPR_MATH_SREG:
++	case NFTNL_EXPR_MATH_DREG:
++	case NFTNL_EXPR_MATH_BITMASK:
++	case NFTNL_EXPR_MATH_OP:
++	case NFTNL_EXPR_MATH_LEN:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
++	}
++
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++static int
++nftnl_expr_math_parse(struct nftnl_expr *e, struct nlattr *attr)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++	struct nlattr *tb[NFTA_MATH_MAX + 1] = {};
++
++	if (mnl_attr_parse_nested(attr, nftnl_expr_math_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_MATH_SREG]) {
++		math->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_SREG]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_SREG);
++	}
++
++	if (tb[NFTA_MATH_DREG]) {
++		math->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_DREG]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_DREG);
++	}
++
++	if (tb[NFTA_MATH_LEN]) {
++		math->len = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_LEN]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_LEN);
++	}
++
++	if (tb[NFTA_MATH_OP]) {
++		math->op = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_OP]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_OP);
++	}
++
++	if (tb[NFTA_MATH_BITMASK]) {
++		math->bitmask = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_BITMASK]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_BITMASK);
++	}
++
++	return 0;
++}
++
++static const char op2char(enum nft_math_op op)
++{
++	switch (op) {
++	case NFT_MATH_OP_INC:
++		return '+';
++	case NFT_MATH_OP_DEC:
++		return '-';
++	default:
++		return '?';
++	}
++}
++
++static int
++nftnl_expr_math_snprintf(char *buf, size_t len,
++			 uint32_t flags, const struct nftnl_expr *e)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++	int ret, offset = 0;
++
++	ret = snprintf(buf, len, "%u bits", math->len);
++	SNPRINTF_BUFFER_SIZE(ret, len, offset);
++
++	if (e->flags & (1 << NFTNL_EXPR_MATH_BITMASK)) {
++		ret = snprintf(buf + offset, len, " mask 0x%.8x", math->bitmask);
++		SNPRINTF_BUFFER_SIZE(ret, len, offset);
++	}
++
++	ret = snprintf(buf + offset, len, " reg %u %c 1 => %u",
++		       math->sreg, op2char(math->op), math->dreg);
++	SNPRINTF_BUFFER_SIZE(ret, len, offset);
++
++	return offset;
++}
++
++static struct attr_policy math_attr_policy[__NFTNL_EXPR_MATH_MAX] = {
++	[NFTNL_EXPR_MATH_SREG]		= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_DREG]		= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_BITMASK]	= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_OP]		= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_LEN]		= { .maxlen = sizeof(uint32_t) },
++
++};
++
++struct expr_ops expr_ops_math = {
++	.name		= "math",
++	.alloc_len	= sizeof(struct nftnl_expr_math),
++	.nftnl_max_attr	= __NFTNL_EXPR_MATH_MAX - 1,
++	.attr_policy	= math_attr_policy,
++	.set		= nftnl_expr_math_set,
++	.get		= nftnl_expr_math_get,
++	.parse		= nftnl_expr_math_parse,
++	.build		= nftnl_expr_math_build,
++	.output		= nftnl_expr_math_snprintf,
++};
+diff --git a/src/expr_ops.c b/src/expr_ops.c
+index b85f472..b654fa0 100644
+--- a/src/expr_ops.c
++++ b/src/expr_ops.c
+@@ -43,6 +43,7 @@ extern struct expr_ops expr_ops_synproxy;
+ extern struct expr_ops expr_ops_tunnel;
+ extern struct expr_ops expr_ops_osf;
+ extern struct expr_ops expr_ops_xfrm;
++extern struct expr_ops expr_ops_math;
+ 
+ static struct expr_ops expr_ops_notrack = {
+ 	.name	= "notrack",
+@@ -89,6 +90,7 @@ static struct expr_ops *expr_ops[] = {
+ 	&expr_ops_tunnel,
+ 	&expr_ops_osf,
+ 	&expr_ops_xfrm,
++	&expr_ops_math,
+ 	NULL,
+ };
+ 
+-- 
+2.51.0
 
