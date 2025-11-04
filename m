@@ -1,175 +1,96 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45D2127B4EE
-	for <netfilter-devel@vger.kernel.org>; Tue,  4 Nov 2025 11:18:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E446A27B4EE
+	for <netfilter-devel@vger.kernel.org>; Tue,  4 Nov 2025 11:18:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762255094; cv=none; b=Ub7eexcU9jYgZDuY9aY+A7m18OfBfYxJ1rvuM2DmL4HkUFbJcO3SWeUG3EoAK+BtqOZHUwhQ0vyJYMEi/7Qnb0TYGtZjWUVa27ZQs+pbFGXW3S76ApWLD4fc7rxxyTcTrqePeFev7KHlFWYWVBQtmVN2WMxlO2V+4uKhXCT/xGM=
+	t=1762255100; cv=none; b=JMtb3ov2XG0E5MhHSuVAwBQNZJk3rred2rjv2Ysf8DqMCwLTgAjvHWhJD3Bwy4TnMRjjiPNfw08ad2gkDuuBb/Uuo9RRR2lSeyZFE2U3G6Ghm25P1n6DfRhWDo3HdNT8eyFK6Haq4O4GG566UswVLlOUwSlOCqjMBQr1NgXhaHg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762255094; c=relaxed/simple;
-	bh=07T2MIelmCvJuwddAMT5IJYtbPNXwpgQ1BzvwFOjp9s=;
+	s=arc-20240116; t=1762255100; c=relaxed/simple;
+	bh=lK0diGY0/MLE7HK7RU3OqIPCaCnQHm34XeXTkDmkVvQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VgO3zJFOSRic60HcWu21+ZXMRyjjCiNs+01ptMP/zT8LzRx6F3dGIOnJzY4NrMkXU6vSlXCHNrtYrpeciMQoyDMlh3Gru7IYBwUSd10TT6UQ6o7QmYtzLaPpJTU05MYWPLV1mkYdzM/QcaOhAMyuFTn4wDU9ei32jOkNBhQylhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qmsFPmTv; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qmsFPmTv"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=7HdQzewN31lFnGAMvtgePsaiADGEH9lJCNT4vrAeylU=; b=qmsFPmTvkDiGqFGP1Mtw2Yvl+p
-	uF36mIKgFfktvUqP8iqKRbFFGP6UVZfnxThqDd/5T3ZBNK09tupemaIko0X1YXpX9oJ7TWGsPUbAu
-	2PlwUCYOJaLILEMhkccgJrTSmeCTVc7QdxgkjSnZ/VF6g0aaGHVJSLPJlrCtQljrBeJpURupvjA/j
-	SdT9mNhlFxQGjdbdSe8pamepfF8e/5n28UzTNRt4ipi993C5iEs4Jbc9n2vjS2Ikc3uv3PwMojcRl
-	5AZebuqbl0qJT21uTSpgVgzXUaODDcAgoOpVEkWMKeHRUv/fVyHNLdHDtGHY39QT5m0hRUja5yM3g
-	iFSG1VXA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1vGF32-000000003FI-0o5C;
-	Tue, 04 Nov 2025 12:18:00 +0100
-Date: Tue, 4 Nov 2025 12:18:00 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: Alexandre Knecht <knecht.alexandre@gmail.com>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v2] parser_json: support handle for rule positioning
- in JSON add rule
-Message-ID: <aQng6Holl8xN04dd@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Alexandre Knecht <knecht.alexandre@gmail.com>,
-	netfilter-devel@vger.kernel.org
-References: <20251029003044.548224-1-knecht.alexandre@gmail.com>
- <20251029224530.1962783-1-knecht.alexandre@gmail.com>
- <20251029224530.1962783-2-knecht.alexandre@gmail.com>
- <aQNBcGLaZTV8iRB1@strlen.de>
- <aQNNY-Flo9jFcay3@strlen.de>
- <CAHAB8WyByEKOKGropjHYFvz=yprJ4B=nS6kV6xyVLm0PWMWbYQ@mail.gmail.com>
- <aQdRjC4HJmjMStrI@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=JqeUCuBp2tZpA4lly4X5ef95CHCW9qlrD1FQs6IY8Q3k5Woz5PpOeh0TbI+K9OLD6XHIbGMF6Uq+ymae31VWC+0EvxKPpKJZkACwkIk7AloBOn5nEPJQeNzig8njJdf5CBe7yIpn7f5IIASFAauSP27FUgRtCR3jQTfa9wA/reY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 63111603B8; Tue,  4 Nov 2025 12:18:09 +0100 (CET)
+Date: Tue, 4 Nov 2025 12:18:09 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	pablo@netfilter.org
+Subject: Re: [PATCH nf v3] netfilter: nft_connlimit: fix duplicated tracking
+ of a connection
+Message-ID: <aQng8WtxoVMaABLs@strlen.de>
+References: <20251031130837.8806-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <aQdRjC4HJmjMStrI@strlen.de>
+In-Reply-To: <20251031130837.8806-1-fmancera@suse.de>
 
-Hi,
-
-On Sun, Nov 02, 2025 at 01:41:48PM +0100, Florian Westphal wrote:
-> Alexandre Knecht <knecht.alexandre@gmail.com> wrote:
->  Export/import scenario (handles are metadata):
-> >   {"add": {"rule": {"family": "inet", "table": "test", "chain": "c",
-> >                     "handle": 4, "expr": [...]}}}
-> >   → Handle 4 is ignored, rule appended
-> > 
-> > Explicit positioning:
-> >   {"add": {"rule": {"family": "inet", "table": "test", "chain": "c",
-> >                     "position": 2, "expr": [...]}}}
-> >   → Rule added after handle 2
-> > 
-> > What do you think about this approach? I can implement it if you agree it's
-> > the right direction.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> Connlimit expression can be used for all kind of packets and not only
+> for packets with connection state new. See this ruleset as example:
 > 
-> I think its a sensible strategy, yes.
+> table ip filter {
+>         chain input {
+>                 type filter hook input priority filter; policy accept;
+>                 tcp dport 22 ct count over 4 counter
+>         }
+> }
 > 
-> Reactivating the handle is a no-go as it will break existing cases.
-
-Though libnftables-json.5 has this description of rule's "handle"
-property:
-
-"The rule’s handle. In delete/replace commands, it serves as an
-identifier of the rule to delete/replace. In add/insert commands, it
-serves as an identifier of an existing rule to append/prepend the rule
-to."
-
-So one might declare lack of handle support in "add" commands a bug and
-the use-cases depending on it as broken.
-
-We must not stop ignoring handles in implicit add commands as that
-breaks 'nft -j list ruleset | nft -j -f -' but we can distinguish
-those.
-
-> Could you also add a test case that validates the various relative
-> positioning outcomes?
+> Currently, if the connection count goes over the limit the counter will
+> count the packets. When a connection is closed, the connection count
+> won't decrement as it should because it is only updated for new
+> connections due to an optimization on __nf_conncount_add() that prevents
+> updating the list if the connection is duplicated.
 > 
-> i.e. given:
-> 
-> rule handle 1
-> rule handle 2
-> rule handle 3
-> 
-> - check that positinging at 1 results in
-> rule 1
-> rule N
-> rule 2
-> rule 3
-> 
-> - check that positining at rule 1 results in
-> 
-> rule 1
-> rule N2
-> rule N
-> rule 2
-> rule 3
-> 
-> - check that positinging at rule 1 will fail
-> in case that rule was already deleted.
-> 
-> - check that positinging at rule 2 will insert
-> after handle 2 and not N2.
+> In addition, since commit d265929930e2 ("netfilter: nf_conncount: reduce
+> unnecessary GC") there can be situations where a duplicated connection
+> is added to the list. This is caused by two packets from the same
+> connection being processed during the same jiffy.
+> +	if (!ct || !nf_ct_is_confirmed(ct)) {
+> +		if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
+> +			regs->verdict.code = NF_DROP;
+> +			return;
+> +		}
 
-I'd suggest extending testcases/rule_management/0001addinsertposition_0
-in tests/shell to cover the missing parts above and create a copy for
-JSON syntax.
+This means the bug fix won't work when this is hooked before
+conntrack.
 
-> My only question is how "Position" is treated with insert (instead of
-> add).
-> 
-> It should NOT be ignored, it should either be rejected outright (and
-> everywhere its not expected) or it should have different meaning, ie.
-> prepend (insert occurs before the given handle).
+> diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+> index 0189f8b6b0bd..5c90e1929d86 100644
+> --- a/net/netfilter/xt_connlimit.c
+> +++ b/net/netfilter/xt_connlimit.c
+> @@ -69,8 +69,18 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  		key[1] = zone->id;
+>  	}
+>  
+> -	connections = nf_conncount_count(net, info->data, key, tuple_ptr,
+> -					 zone);
+> +	if (!ct || !nf_ct_is_confirmed(ct)) {
+> +		connections = nf_conncount_count(net, info->data, key, tuple_ptr,
+> +						 zone);
 
-With insert command, handle property is recognized and behaves identical
-to standard syntax. In general, I think JSON syntax parser should
-deviate as little as necessary from standard syntax one. Same name but
-different function will likely confuse users. Although not documented
-anymore, standard syntax still accepts "position" and treats it as
-synonym to "handle".
+Same here, but usage in -t raw is legal/allowed.
 
-So maybe just do this (untested):
+I would suggest to rework this api so that this always passes in
+struct nf_conn *ct, either derived from sk_buff or obtained via
+nf_conntrack_find_get().
 
---- a/src/parser_json.c
-+++ b/src/parser_json.c
-@@ -4045,7 +4045,8 @@ static struct cmd *json_parse_cmd_replace(struct json_ctx *ctx,
-                return NULL;
-        }
- 
--       if ((op == CMD_INSERT || op == CMD_ADD) && h.handle.id) {
-+       if (h.handle.id &&
-+           (op == CMD_INSERT || op == CMD_ADD || op == CMD_CREATE)) {
-                h.position.id = h.handle.id;
-                h.handle.id = 0;
-        }
-@@ -4328,9 +4329,9 @@ static struct cmd *json_parse_cmd(struct json_ctx *ctx, json_t *root)
-                enum cmd_ops op;
-                struct cmd *(*cb)(struct json_ctx *ctx, json_t *, enum cmd_ops);
-        } parse_cb_table[] = {
--               { "add", CMD_ADD, json_parse_cmd_add },
-+               { "add", CMD_ADD, json_parse_cmd_replace },
-                { "replace", CMD_REPLACE, json_parse_cmd_replace },
--               { "create", CMD_CREATE, json_parse_cmd_add },
-+               { "create", CMD_CREATE, json_parse_cmd_replace },
-                { "insert", CMD_INSERT, json_parse_cmd_replace },
-                { "delete", CMD_DELETE, json_parse_cmd_add },
-                { "list", CMD_LIST, json_parse_cmd_list },
+The net, tuple_ptr, and zone argument would be obsoleted and
+replaced with nf_conn *ct arg.
 
-Cheers, Phil
+This allows the nf_conncount internals to always skip the
+insertion for !confirmed case, and the existing suppression
+for same-jiffy collect could remain in place as well.
+
+Its more work but since this has been broken forever I don't
+think we need a urgent/small fix for this.
