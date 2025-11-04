@@ -1,155 +1,175 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A085191F92;
-	Tue,  4 Nov 2025 11:08:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45D2127B4EE
+	for <netfilter-devel@vger.kernel.org>; Tue,  4 Nov 2025 11:18:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762254491; cv=none; b=ZFoM6cEw2HEuAs8D0m9o5lNSqrkSpK0Cgvn1eM3JIOai52WTaxIenwi2rEAUXwvaNRkioeoXjn51+auP+kmu2I271Bg2nRyONr8l26/wA6SiJosc+iJ8gMEytgJuvIvmAzC/AkDAHZwALZYg16nUYGMYOQREm7w6Dam6YTST0zs=
+	t=1762255094; cv=none; b=Ub7eexcU9jYgZDuY9aY+A7m18OfBfYxJ1rvuM2DmL4HkUFbJcO3SWeUG3EoAK+BtqOZHUwhQ0vyJYMEi/7Qnb0TYGtZjWUVa27ZQs+pbFGXW3S76ApWLD4fc7rxxyTcTrqePeFev7KHlFWYWVBQtmVN2WMxlO2V+4uKhXCT/xGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762254491; c=relaxed/simple;
-	bh=LmdhoSAI9lnKK3Lr3krP6aCJTZmvPTtd9486Cgqqibo=;
+	s=arc-20240116; t=1762255094; c=relaxed/simple;
+	bh=07T2MIelmCvJuwddAMT5IJYtbPNXwpgQ1BzvwFOjp9s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SCgwvhaP3FV/8zs3eHTbLTiWOWuNde/mBgyyLDUCM56XcNWm+79u4h9TfT+ouHllhgrMcEluRCiZzu+HZNmaCh9fjCUCATN+FkQE8NwcF9f9a6+E1ku+nd3d9mIo9H4nCqmygY9iOE/XIsWbQGfK0pZOKuTUm0Fk/tUViEBqBU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ITX4mipP; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=VgO3zJFOSRic60HcWu21+ZXMRyjjCiNs+01ptMP/zT8LzRx6F3dGIOnJzY4NrMkXU6vSlXCHNrtYrpeciMQoyDMlh3Gru7IYBwUSd10TT6UQ6o7QmYtzLaPpJTU05MYWPLV1mkYdzM/QcaOhAMyuFTn4wDU9ei32jOkNBhQylhI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qmsFPmTv; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ITX4mipP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 445D3C4CEF7;
-	Tue,  4 Nov 2025 11:08:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1762254488;
-	bh=LmdhoSAI9lnKK3Lr3krP6aCJTZmvPTtd9486Cgqqibo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ITX4mipPZ76lcXAIaPNSaOq9l2dzLMiMzCY8jKUcy9ESdyLzreK17nB4zrZWFRJMA
-	 YZZL5zXT42ySFcYEnfq2/A3RTh+yCJrB2LI+LgIltjv84P10U7qfvgwF2iuptZIqyQ
-	 Co8N1BMYuGHpTpvzVQc8tdEJ8BV3T1+GKCtRAI2ABxOOrhI2Eo/2WAQmI1X/Q/M2a+
-	 5C0y6sYZ/AuE9zLTArKxMLaUHZdK8lqO1yXWcZrib2xRqtC8WifJvubLxKqWEsZsnF
-	 d1wasDV1Od59Pmz2P+TpcJhVZDOMRBR6q4/At1uipBWJf822q/+dW8OfIlNPDhtN5P
-	 nCz3XJEagyDTQ==
-Date: Tue, 4 Nov 2025 12:08:06 +0100
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-To: "David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	Phil Sutter <phil@nwl.cc>
-Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v8 0/3] Add IPIP flowtable SW acceleration
-Message-ID: <aQnelp8RNlMfw4nr@lore-desk>
-References: <20251023-nf-flowtable-ipip-v8-0-5d5d8595c730@kernel.org>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qmsFPmTv"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Transfer-Encoding:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=7HdQzewN31lFnGAMvtgePsaiADGEH9lJCNT4vrAeylU=; b=qmsFPmTvkDiGqFGP1Mtw2Yvl+p
+	uF36mIKgFfktvUqP8iqKRbFFGP6UVZfnxThqDd/5T3ZBNK09tupemaIko0X1YXpX9oJ7TWGsPUbAu
+	2PlwUCYOJaLILEMhkccgJrTSmeCTVc7QdxgkjSnZ/VF6g0aaGHVJSLPJlrCtQljrBeJpURupvjA/j
+	SdT9mNhlFxQGjdbdSe8pamepfF8e/5n28UzTNRt4ipi993C5iEs4Jbc9n2vjS2Ikc3uv3PwMojcRl
+	5AZebuqbl0qJT21uTSpgVgzXUaODDcAgoOpVEkWMKeHRUv/fVyHNLdHDtGHY39QT5m0hRUja5yM3g
+	iFSG1VXA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vGF32-000000003FI-0o5C;
+	Tue, 04 Nov 2025 12:18:00 +0100
+Date: Tue, 4 Nov 2025 12:18:00 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Alexandre Knecht <knecht.alexandre@gmail.com>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH v2] parser_json: support handle for rule positioning
+ in JSON add rule
+Message-ID: <aQng6Holl8xN04dd@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>,
+	Alexandre Knecht <knecht.alexandre@gmail.com>,
+	netfilter-devel@vger.kernel.org
+References: <20251029003044.548224-1-knecht.alexandre@gmail.com>
+ <20251029224530.1962783-1-knecht.alexandre@gmail.com>
+ <20251029224530.1962783-2-knecht.alexandre@gmail.com>
+ <aQNBcGLaZTV8iRB1@strlen.de>
+ <aQNNY-Flo9jFcay3@strlen.de>
+ <CAHAB8WyByEKOKGropjHYFvz=yprJ4B=nS6kV6xyVLm0PWMWbYQ@mail.gmail.com>
+ <aQdRjC4HJmjMStrI@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="/hmIC4VKqnIfckr9"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20251023-nf-flowtable-ipip-v8-0-5d5d8595c730@kernel.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <aQdRjC4HJmjMStrI@strlen.de>
 
+Hi,
 
---/hmIC4VKqnIfckr9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sun, Nov 02, 2025 at 01:41:48PM +0100, Florian Westphal wrote:
+> Alexandre Knecht <knecht.alexandre@gmail.com> wrote:
+>  Export/import scenario (handles are metadata):
+> >   {"add": {"rule": {"family": "inet", "table": "test", "chain": "c",
+> >                     "handle": 4, "expr": [...]}}}
+> >   → Handle 4 is ignored, rule appended
+> > 
+> > Explicit positioning:
+> >   {"add": {"rule": {"family": "inet", "table": "test", "chain": "c",
+> >                     "position": 2, "expr": [...]}}}
+> >   → Rule added after handle 2
+> > 
+> > What do you think about this approach? I can implement it if you agree it's
+> > the right direction.
+> 
+> I think its a sensible strategy, yes.
+> 
+> Reactivating the handle is a no-go as it will break existing cases.
 
-> Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
-> infrastructure. This series introduces basic infrastructure to
-> accelerate other tunnel types (e.g. IP6IP6).
+Though libnftables-json.5 has this description of rule's "handle"
+property:
 
-Hi Pablo and Florian,
+"The rule’s handle. In delete/replace commands, it serves as an
+identifier of the rule to delete/replace. In add/insert commands, it
+serves as an identifier of an existing rule to append/prepend the rule
+to."
 
-Do you have any updates/comments about this series? Thanks in advance.
+So one might declare lack of handle support in "add" commands a bug and
+the use-cases depending on it as broken.
 
-Regards,
-Lorenzo
+We must not stop ignoring handles in implicit add commands as that
+breaks 'nft -j list ruleset | nft -j -f -' but we can distinguish
+those.
 
->=20
-> ---
-> Changes in v8:
-> - Rebase on top of the following series (not yet applied)
->   https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=3D477=
-081
-> - Link to v7: https://lore.kernel.org/r/20251021-nf-flowtable-ipip-v7-0-a=
-45214896106@kernel.org
->=20
-> Changes in v7:
-> - Introduce sw acceleration for tx path of IPIP tunnels
-> - Rely on exact match during flowtable entry lookup
-> - Fix typos
-> - Link to v6: https://lore.kernel.org/r/20250818-nf-flowtable-ipip-v6-0-e=
-da90442739c@kernel.org
->=20
-> Changes in v6:
-> - Rebase on top of nf-next main branch
-> - Link to v5: https://lore.kernel.org/r/20250721-nf-flowtable-ipip-v5-0-0=
-865af9e58c6@kernel.org
->=20
-> Changes in v5:
-> - Rely on __ipv4_addr_hash() to compute the hash used as encap ID
-> - Remove unnecessary pskb_may_pull() in nf_flow_tuple_encap()
-> - Add nf_flow_ip4_ecanp_pop utility routine
-> - Link to v4: https://lore.kernel.org/r/20250718-nf-flowtable-ipip-v4-0-f=
-8bb1c18b986@kernel.org
->=20
-> Changes in v4:
-> - Use the hash value of the saddr, daddr and protocol of outer IP header =
-as
->   encapsulation id.
-> - Link to v3: https://lore.kernel.org/r/20250703-nf-flowtable-ipip-v3-0-8=
-80afd319b9f@kernel.org
->=20
-> Changes in v3:
-> - Add outer IP header sanity checks
-> - target nf-next tree instead of net-next
-> - Link to v2: https://lore.kernel.org/r/20250627-nf-flowtable-ipip-v2-0-c=
-713003ce75b@kernel.org
->=20
-> Changes in v2:
-> - Introduce IPIP flowtable selftest
-> - Link to v1: https://lore.kernel.org/r/20250623-nf-flowtable-ipip-v1-1-2=
-853596e3941@kernel.org
->=20
-> ---
-> Lorenzo Bianconi (3):
->       net: netfilter: Add IPIP flowtable rx sw acceleration
->       net: netfilter: Add IPIP flowtable tx sw acceleration
->       selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selftest
->=20
->  include/linux/netdevice.h                          |  16 +++
->  include/net/netfilter/nf_flow_table.h              |  22 ++++
->  net/ipv4/ipip.c                                    |  29 +++++
->  net/netfilter/nf_flow_table_core.c                 |   3 +
->  net/netfilter/nf_flow_table_ip.c                   | 117 +++++++++++++++=
-+++++-
->  net/netfilter/nf_flow_table_path.c                 |  86 +++++++++++++--
->  .../selftests/net/netfilter/nft_flowtable.sh       |  40 +++++++
->  7 files changed, 298 insertions(+), 15 deletions(-)
-> ---
-> base-commit: 32e4b1bf1bbfe63e52e2fff7ade0aaeb805defe3
-> change-id: 20250623-nf-flowtable-ipip-1b3d7b08d067
->=20
-> Best regards,
-> --=20
-> Lorenzo Bianconi <lorenzo@kernel.org>
->=20
+> Could you also add a test case that validates the various relative
+> positioning outcomes?
+> 
+> i.e. given:
+> 
+> rule handle 1
+> rule handle 2
+> rule handle 3
+> 
+> - check that positinging at 1 results in
+> rule 1
+> rule N
+> rule 2
+> rule 3
+> 
+> - check that positining at rule 1 results in
+> 
+> rule 1
+> rule N2
+> rule N
+> rule 2
+> rule 3
+> 
+> - check that positinging at rule 1 will fail
+> in case that rule was already deleted.
+> 
+> - check that positinging at rule 2 will insert
+> after handle 2 and not N2.
 
---/hmIC4VKqnIfckr9
-Content-Type: application/pgp-signature; name=signature.asc
+I'd suggest extending testcases/rule_management/0001addinsertposition_0
+in tests/shell to cover the missing parts above and create a copy for
+JSON syntax.
 
------BEGIN PGP SIGNATURE-----
+> My only question is how "Position" is treated with insert (instead of
+> add).
+> 
+> It should NOT be ignored, it should either be rejected outright (and
+> everywhere its not expected) or it should have different meaning, ie.
+> prepend (insert occurs before the given handle).
 
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaQnelgAKCRA6cBh0uS2t
-rIKNAQCBqiEOogDSti97oqbOzgwdepURLlyGeQ1wlZfifilu1AEAy6H4XEWEKEi5
-IO1DZWBhH6l1a6afqaXiTr7LF7k8nQs=
-=Mk5f
------END PGP SIGNATURE-----
+With insert command, handle property is recognized and behaves identical
+to standard syntax. In general, I think JSON syntax parser should
+deviate as little as necessary from standard syntax one. Same name but
+different function will likely confuse users. Although not documented
+anymore, standard syntax still accepts "position" and treats it as
+synonym to "handle".
 
---/hmIC4VKqnIfckr9--
+So maybe just do this (untested):
+
+--- a/src/parser_json.c
++++ b/src/parser_json.c
+@@ -4045,7 +4045,8 @@ static struct cmd *json_parse_cmd_replace(struct json_ctx *ctx,
+                return NULL;
+        }
+ 
+-       if ((op == CMD_INSERT || op == CMD_ADD) && h.handle.id) {
++       if (h.handle.id &&
++           (op == CMD_INSERT || op == CMD_ADD || op == CMD_CREATE)) {
+                h.position.id = h.handle.id;
+                h.handle.id = 0;
+        }
+@@ -4328,9 +4329,9 @@ static struct cmd *json_parse_cmd(struct json_ctx *ctx, json_t *root)
+                enum cmd_ops op;
+                struct cmd *(*cb)(struct json_ctx *ctx, json_t *, enum cmd_ops);
+        } parse_cb_table[] = {
+-               { "add", CMD_ADD, json_parse_cmd_add },
++               { "add", CMD_ADD, json_parse_cmd_replace },
+                { "replace", CMD_REPLACE, json_parse_cmd_replace },
+-               { "create", CMD_CREATE, json_parse_cmd_add },
++               { "create", CMD_CREATE, json_parse_cmd_replace },
+                { "insert", CMD_INSERT, json_parse_cmd_replace },
+                { "delete", CMD_DELETE, json_parse_cmd_add },
+                { "list", CMD_LIST, json_parse_cmd_list },
+
+Cheers, Phil
