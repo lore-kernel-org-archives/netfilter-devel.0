@@ -1,27 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98E4F31353B
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Nov 2025 16:48:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9465A337BB2
+	for <netfilter-devel@vger.kernel.org>; Wed,  5 Nov 2025 16:48:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762361304; cv=none; b=rfz/w5BqUoR575qgeISKo6Cxsa6hKoC9Hm0dr4OHQlhT0pwrGKqC67BbIrRcRSGZ6kte3OJKMA5+lGEpT3aKBhR+TwoKf/605db3EV2Z61v5zaVRUEkipLMRThmt//OyYenmZ9QfT7T4FxvgV0nM78wQon+8n80Hz9BmA3GmQS4=
+	t=1762361307; cv=none; b=n22irLT0y+xXpTZBcXPjOySBzBIzinN8l4fUWjDPYazKwHjwDhmzjTxjQ7WT6y+kqVTaVCcs+zhDboo9MSqA0yfWeJeCgi0gmrCo/w54v5jKCdQ69zunlrVc6PSkL2bFXgx9FyTXSqE4D4MvZYrLzO583NdTiqZXlvxVnn5IiIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762361304; c=relaxed/simple;
-	bh=9roF8bbw0/9WvJoHDZakay1AKQp3GHj4Y6zfyzLlCxo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NNljnzeD5bhvOuFtPI7zZFH5s2/nkKMD18w/iu1LJQBorijDP2qwcPWz5Leed/ImD/uQ+vQr6/ic9umIwBE9ItipbY/rlejDGmk9MthqztL8E1wqY4gyK8ZxM9UGy7v8tQ9vDrCOxYwOMuevjVne6e4gkBxjS5orsmDXr0mr7zc=
+	s=arc-20240116; t=1762361307; c=relaxed/simple;
+	bh=XIWgS3ovNUwLyxOVJ6ba5HZUex1kyVyNutEM2y7WlYk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=FVlxS7GgikM3RZRtN6bUQiIsAbunENmO3uSDuLNSTU2G2B/EayPgL2uuhpRUqOlQddjLscCp6UXL0PvZKUp+hgEjxOWdeCHUKs86isgg1rfCws7V1jPW6mHioPeuzjPeliZ5zC1RxqNipwYxxa6uJvYGs70f3SKItgWdQx2xD10=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7673B6031F; Wed,  5 Nov 2025 17:48:14 +0100 (CET)
+	id 85564603CA; Wed,  5 Nov 2025 17:48:23 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Cc: pablo@netfilter.org
-Subject: [RFC nf-next 00/11] netfilter: conntrack: pernet hash tables
-Date: Wed,  5 Nov 2025 17:47:54 +0100
-Message-ID: <20251105164805.3992-1-fw@strlen.de>
+Subject: [RFC nf-next 02/11] netfilter: conntrack: don't schedule gc worker when table is empty
+Date: Wed,  5 Nov 2025 17:47:56 +0100
+Message-ID: <20251105164805.3992-3-fw@strlen.de>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251105164805.3992-1-fw@strlen.de>
+References: <20251105164805.3992-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,69 +33,108 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This patch set moves nf_conntrack to use separate pernet hash tables.
+No need to wakeup every minute when there are no entries.
 
-Only partially tested, not yet for merge.
+Instead of doing a scan at least once a minute, check of the worker
+is pending (its expected to be except on idle system) and queue it
+if its not.
 
-Not converted here and left for a later date:
-- we still use a global array of locks to guard hash tables.
-- only one (global) hash secret
-- memory accounting is not resolved here, after this patchset,
-  single netns can hog system memory as there are no limits (anymore).
-  This will need memcg integration for nf_conn structs, but the patchset
-  that does it isn't complete yet.
-  Alternative would be to keep the constraint added in first patch, i.e.
-  let nf_max_conntrack be bound by the init_net setting
-  (and then maybe remove the constraint later).
-- ovs/tc 100% untested.
-- bpf ct helpers untested.
+In case the gc worker was executing at time of check (means, it wasn't
+pending), then the gc worker should re-run at the newly computed next_run
+interval.  Switch it to mod_delayed_work() to allow this.
 
-Patches 1 and 2 are not dependant on the rest and could go in
-regardless of the rest of the series (after more testing).
+While at it, get rid of 'exiting' toggle:
+use disable_delayed_work_sync instead of the 'cancel_' version at exit
+time to prevent rearming.
 
-Only upside of this patchset that I can see is faster conntrack dumps:
-we no longer need to skip foreign netns-owned entries.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_core.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
-Downside is the excess indirections required for the pernet table
-accesses.
-
-We also need to be careful on lookup and iteration, we can still
-observe foreign netns conntracks due to SLAB_TYPESAFE_BY_RCU reuse.
-This is also the reason why nf_conn retains the struct net pointer,
-I think thats better than going back to pernet slab caches.
-
-Florian Westphal (10):
-  netfilter: conntrack: don't schedule gc worker when table is empty
-  tests: netfilter: conntrack_resize: prepare for pernet conntrack table
-  netfilter: conntrack: pass pointer to buckets instead of index
-  netfilter: conntrack: split hashtable auto-size to helper function
-  netfilter: conntrack: move nf_conntrack_hash to struct net
-  netfilter: conntrack: init and start independent gc workers when needed
-  netfilter: conntrack: make nf_conntrack hash table pernet
-  netfilter: conntrack: delay conntrack hashtable allocation until needed
-  netfilter: conntrack: allow non-init-net to change table size
-  netfilter: nf_nat: make bysource hash table pernet
-
-lvxiafei (1):
-  netfilter: netns nf_conntrack: per-netns
-    net.netfilter.nf_conntrack_max sysctl
-
- .../networking/nf_conntrack-sysctl.rst        |   8 +-
- include/net/netfilter/nf_conntrack.h          |  42 +-
- include/net/netfilter/nf_conntrack_core.h     |   1 -
- include/net/netns/conntrack.h                 |   3 +
- net/netfilter/nf_conntrack_bpf.c              |   5 +
- net/netfilter/nf_conntrack_core.c             | 368 +++++++++++-------
- net/netfilter/nf_conntrack_expect.c           |   2 +-
- net/netfilter/nf_conntrack_netlink.c          |  30 +-
- net/netfilter/nf_conntrack_proto.c            |   6 +-
- net/netfilter/nf_conntrack_standalone.c       |  42 +-
- net/netfilter/nf_nat_core.c                   | 100 +++--
- net/openvswitch/conntrack.c                   |   6 +
- net/sched/act_connmark.c                      |   6 +
- net/sched/act_ct.c                            |   7 +
- net/sched/act_ctinfo.c                        |   7 +
- .../net/netfilter/conntrack_resize.sh         |  26 +-
- 16 files changed, 434 insertions(+), 225 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 210792a2275d..fa6e5047d15b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -69,7 +69,6 @@ struct conntrack_gc_work {
+ 	u32			avg_timeout;
+ 	u32			count;
+ 	u32			start_time;
+-	bool			exiting;
+ 	bool			early_drop;
+ };
+ 
+@@ -91,7 +90,7 @@ static DEFINE_MUTEX(nf_conntrack_mutex);
+  * allowing non-idle machines to wakeup more often when needed.
+  */
+ #define GC_SCAN_INITIAL_COUNT	100
+-#define GC_SCAN_INTERVAL_INIT	GC_SCAN_INTERVAL_MAX
++#define GC_SCAN_INTERVAL_INIT	(GC_SCAN_INTERVAL_MAX / 2)
+ 
+ #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
+ #define GC_SCAN_EXPIRED_MAX	(64000u / HZ)
+@@ -1639,19 +1638,17 @@ static void gc_worker(struct work_struct *work)
+ 		next_run = 1;
+ 
+ early_exit:
+-	if (gc_work->exiting)
+-		return;
+-
+ 	if (next_run)
+ 		gc_work->early_drop = false;
+ 
+-	queue_delayed_work(system_power_efficient_wq, &gc_work->dwork, next_run);
++	if (gc_work->count > GC_SCAN_INITIAL_COUNT || gc_work->next_bucket > 0)
++		mod_delayed_work(system_power_efficient_wq, &gc_work->dwork, next_run);
+ }
+ 
+ static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
+ {
++	/* work is started on first conntrack allocation. */
+ 	INIT_DELAYED_WORK(&gc_work->dwork, gc_worker);
+-	gc_work->exiting = false;
+ }
+ 
+ static struct nf_conn *
+@@ -1709,6 +1706,15 @@ __nf_conntrack_alloc(struct net *net,
+ 	 * this is inserted in any list.
+ 	 */
+ 	refcount_set(&ct->ct_general.use, 0);
++
++	/* Re-arm gc_work if needed, but do not modify
++	 * in case it was already pending.
++	 */
++	if (unlikely(!delayed_work_pending(&conntrack_gc_work.dwork)))
++		queue_delayed_work(system_power_efficient_wq,
++				   &conntrack_gc_work.dwork,
++				   GC_SCAN_INTERVAL_INIT);
++
+ 	return ct;
+ out:
+ 	atomic_dec(&cnet->count);
+@@ -2458,13 +2464,12 @@ static int kill_all(struct nf_conn *i, void *data)
+ void nf_conntrack_cleanup_start(void)
+ {
+ 	cleanup_nf_conntrack_bpf();
+-	conntrack_gc_work.exiting = true;
+ }
+ 
+ void nf_conntrack_cleanup_end(void)
+ {
+ 	RCU_INIT_POINTER(nf_ct_hook, NULL);
+-	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
++	disable_delayed_work_sync(&conntrack_gc_work.dwork);
+ 	kvfree(nf_conntrack_hash);
+ 
+ 	nf_conntrack_proto_fini();
+@@ -2687,7 +2692,6 @@ int nf_conntrack_init_start(void)
+ 		goto err_proto;
+ 
+ 	conntrack_gc_work_init(&conntrack_gc_work);
+-	queue_delayed_work(system_power_efficient_wq, &conntrack_gc_work.dwork, HZ);
+ 
+ 	ret = register_nf_conntrack_bpf();
+ 	if (ret < 0)
 -- 
 2.51.0
+
