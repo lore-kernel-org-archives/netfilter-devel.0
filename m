@@ -1,152 +1,80 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDBAF2C237E
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Nov 2025 23:46:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25E0305044;
+	Thu,  6 Nov 2025 23:47:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762472810; cv=none; b=RVV7tigmk7JoLSc1OLXJQrjlcp4UCwi6aZiVzaSl0H/YmRKWN509/NSJhpjYfwL+U5rTJukEzvIhl8Zv+n6jnNriKlv+eA/i3oiss1GFM1IsocsFc+KlsdZkr2xo9Ym5fuREqLGGued9QEvKs7cJinsOc6W63NrlroXds/a8Fdc=
+	t=1762472848; cv=none; b=KnQOxj5trtNVT12rnkYSXdRHuqoeWltfGLbCSYvaoL4iDRiloK1IO0GwNuBW3D9nhOuGfG4arw/EGvg9oN+geaSmN+QfJ3qWKOvWAC6BTvrzC+4RsXSZRe0X3Te1LMlozKprF2Ncg1zmA14UKZBfZoOXq2wy2Q/ZgwbU5Dxnh9Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762472810; c=relaxed/simple;
-	bh=Gdfjn9KPu1OLY3psN0MYZ7vBRlHcj16FndSX41v/FWw=;
+	s=arc-20240116; t=1762472848; c=relaxed/simple;
+	bh=0yDBKr3QbihLy9egvMgBK8fZ1PK4/GQnwnszzzE4DNg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PRXirE4DL8fU2XU1gRQ6NL3dR8VP89oVNeH4iBpBNn1h8v7L3N3kwqjVu0p22hsQNmE4tIz5hj7B8TZ0DJVb4inO6ausPHOJ+pGfU5k3MpY/LyQrF4sjWyleYRv7ZXs+Eo0fos0/SR7pkTWnFsuckppSciZfGbz+tv2glUznaAI=
+	 Content-Type:Content-Disposition:In-Reply-To; b=SOA+cj/l5Jy9JvhDcFZJWa2ecHjXUHnAbbt2IFwxF229GR7JgJI/9ca6YBKJOe2VtGUBZrvhpJmID0PYgGCn7xlpqv81LTfdW0fHfjpL6eUWEij8BGunTk80WhycUoy1YpsB7CV7c8WDw8Z2JhiKvwfQ+Gbcc+9ZdUzMkOdvdEg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C37E2601A1; Fri,  7 Nov 2025 00:46:45 +0100 (CET)
-Date: Fri, 7 Nov 2025 00:46:45 +0100
+	id 452C46021B; Fri,  7 Nov 2025 00:47:25 +0100 (CET)
+Date: Fri, 7 Nov 2025 00:47:25 +0100
 From: Florian Westphal <fw@strlen.de>
-To: "Antoine C." <acalando@free.fr>
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: Re: bug report: MAC src + protocol optiomization failing with 802.1Q
- frames
-Message-ID: <aQ0zZe__4AKOWCj3@strlen.de>
-References: <aP-76gB9axgCebpL@strlen.de>
- <628074913.12181179.1761604837771.JavaMail.root@zimbra62-e11.priv.proxad.net>
+To: Eric Woudstra <ericwouds@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	Nikolay Aleksandrov <razor@blackwall.org>,
+	Ido Schimmel <idosch@nvidia.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux.dev, netdev@vger.kernel.org
+Subject: Re: [PATCH v16 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
+ double vlan and pppoe
+Message-ID: <aQ0zja96khMMZfsq@strlen.de>
+References: <20251104145728.517197-1-ericwouds@gmail.com>
+ <20251104145728.517197-4-ericwouds@gmail.com>
+ <aQohjDYORamn7Gya@strlen.de>
+ <114f0b33-2c5f-4ae8-8ed8-e8bc7ef3dd2c@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <628074913.12181179.1761604837771.JavaMail.root@zimbra62-e11.priv.proxad.net>
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <114f0b33-2c5f-4ae8-8ed8-e8bc7ef3dd2c@gmail.com>
 
-Antoine C. <acalando@free.fr> wrote:
-> ----- Florian Westphal <fw@strlen.de> a écrit :
-> > Antoine C. <acalando@free.fr> wrote:
-> > > 
-> > > This bug does not seem to get a lot of attention but may be it
-> > > deserves at least to be filed ?
-> > 
-> > Its a design bug and so far not a single solution was
-> > presented.
-> > 
-> > And no one answered any of the questions that I asked.
-> > 
-> > So, whats YOUR opinion?
-> > 
-> > > > Should "ip saddr 1.2.3.4" match:
-> > > > 
-> > > > Only in classic ethernet case?
-> > > > In VLAN?
-> > > > In QinQ?
-> > > > 
-> > > > What about IP packet in a PPPOE frame?
-> > > > What about other L2 protocols?
-> 
-> As a user, my answer would be of course that "ip xxx" rules 
-> work seamlessly whatever the encapsulation is above. I have
+Eric Woudstra <ericwouds@gmail.com> wrote:
+> >> +		return NF_ACCEPT;
+> >=20
+> >=20
+> > Hmm.  I'm not sure, I think this should either drop them right away
+> > OR pass them to do_chain without any changes (i.e. retain existing
+> > behavior and have this be same as nft_set_pktinfo_unspec()).
+> >=20
+> > but please wait until resend.
+> >=20
+> > I hope to finish a larger set i've been working on by tomorrow.
+> > Then I can give this a more thorough review (and also make a summary +
+> > suggestion wrt. the bridge match semantics wrt.  vlan + pppoe etc.
+> >=20
+> > My hunch is that your approach is pretty much the way to go
+> > but I need to complete related homework to make sure I did not
+> > miss/forget anything.
+>=20
+> I understand. I've send this, because from v5 to v15 it moved towards
+> matching in the rule, but it all started with the fact that
+> nft_flow_offload_eval() uses nft_thoff().
+>=20
+> At a bare minimum I need to address having pkt->thoff set correctly to
+> implement the software bridge-fastpath.
 
-Thanks.  I believe that this is the way to go, i.e., if user asks
-to match L3, then we should be greedy and attempt to provide the
-relevant context.
+Sorry, fail to see how thats related.
 
-TL;DR: I think
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20251104145728.517197-4-ericwouds@gmail.com/
+If the header is incomplete, then with your approach the packet isn't
+even seen by nft_flow_offload_eval() (-> NF_ACCEPT'd).
 
-is the way to go with only minor changes needed.
-
-Unfortunately this isn't as easy as it sounds.
-Lets see where we are:
-
-When user asks for 'ip saddr 1.2.3.4'. we must provide context
-for matching to work in first place.
-
-1. Kernel doesn't always know where to start the matching (the network
-header offset in this case).  For ethernet and vlan the kernel will
-know.
-
-But for other procotols on top of ethernet that might not be the case
-especially if the kernel is only forwarding frames.
-
-To make 'ip saddr' work on bridge with other encapsulations, e.g. PPPoE,
-this needs kernel changes.
-
-That also means that existing rules behave differently when updating
-kernel with new L2 encap protocol support.
-
-2. Even if kernel knows where in the frame the network header starts,
-'ip saddr 1.2.3.4' must not match e.g. an ipv6 packet.
-
-This is solved (or rather, supposed to be solved) by nftables userspace:
-For bridge family nft will insert a protocol dependency check
-internally, in the given example it is
-'meta load protocol;cmp eq 0x0800'.
-
-- It excludes non-ipv4 (no false matches). This is wanted behavior.
-- It includes VLAN encapsulated frames because kernel (by default)
-  removes vlan headers and thus replaces the 0x8100 vlan type with
-  the upper protocol.
-- If kernel is configured to not do that, then this will only match
-  normal (non-vlan) ipv4 ethernet frames.
-
-If we want to make 'ip saddr 1.2.3.4' always match for netdev and bridge
-families, then we need to make changes on both userspace and/or kernel:
-
-- kernel must, for bridge and netdev chains, follow the L2 encap trail
-  until it finds ip/ip6 protocol or it can't follow any further.
-
- This means extension to also skip PPPoE, q-in-q and so on and would
- be largely identical to what Eric Woudstras patches already do.
-
-Downside: Behaviour change on kernel upgrade: packets that were
-not matched before now will be, UNLESS we don't update
-skb->protocol value and e.g. add a new l3proto field to nft_pktinfo.
-
-That in turn is also problematic, because it means that we'd have to
-add a new 'meta l3proto' that can extract this from nft_pktinfo
-as a replacement of 'meta protocol'.
-
-Semantics would be:
-meta protocol == skb->protocol
-
-meta l3proto == "last" ETH_P_ that kernel could figure out.
-It is similar to 'ip6 nexthdr' vs. 'meta l4proto';
-former is just the first next header value, the latter the last
-protocol header with all extension headers, if any, skipped.
-
-The problem is that, given its a new extension, we can't update
-nftables to use it for implicit dependencies; else rule add
-fails on older kernels.
-
-If we ignore that and pretend we could change this, then
-the behaviour of:
-
-ip saddr 1.2.3.4 (with meta l3proto dep)
-ip saddr 1.2.3.4 (with current meta protocol)
-
-... are identical between the two options
-(i.e., follow dependency trail and update skb->protocol to last
- known ETH_P value) resp. 'stash last known ETH_P in nft_pktinfo)
-from user perspective.
-
-That would also mean that nftables netdev family should be
-fixed to follow the bridge dependency approach consistently
-if possible.
+Whats the problem with passing the skb to nft_do_chain in its
+'original' form?
