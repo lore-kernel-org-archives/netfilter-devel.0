@@ -1,30 +1,85 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CE86337B8D
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Nov 2025 16:49:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57D0C1EF36E
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Nov 2025 00:56:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762361346; cv=none; b=cxztyR7v1UeTJQH6sJ+hIXs6Vlqmn3+y+Wwj6WYDT6jg619X80udvpxdiSUTfF9dVh9VZD/D+tlrB8SsGmsOvHb7M2Injx8DpANv1WZn+bW+iEZ4K9iapNZPCI2rkyqO2m1P+lYK0uNu6+SbtfsCalGvIKJMjr7FFw9lAsZ7+O4=
+	t=1762390594; cv=none; b=EFrEfpxjR6I/hUJZKK4G/NAEShycVOMvkzL2dFiFcYxJR9f2m9wg0uIIgIu0rTL6ONEXY1sqD3zXmI5TT6yKEMbqhSWe6Gnv6VrN+GGi6FjFtGdYJL51U6k2mwslDHM9oirwBWa37P3ttnkf2FZnePrdIrdL7sLHvEKXI/7f/yw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762361346; c=relaxed/simple;
-	bh=L3tdXJ9N6eWjVe0HWRmKi0S/af5Feo+VH5fBpVLz3e4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=NrNgHER5i+quO+3zxUsuCBxLFndAItxxy/Iu5SaAMX+LI5mCBEhOnk9O0ApvMjY6JugT11r0TYoqFcDkOnfqJlBuoPyrUBqg99VqAgHYF2cGFhV0/igHxCUG1BJUtRyjVG9QmtjaM+05T54z2UovQWwts07AFFOdTELWaLTqvwA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id EE4CD604A8; Wed,  5 Nov 2025 17:49:02 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: pablo@netfilter.org
-Subject: [RFC nf-next 11/11] netfilter: nf_nat: make bysource hash table pernet
-Date: Wed,  5 Nov 2025 17:48:05 +0100
-Message-ID: <20251105164805.3992-12-fw@strlen.de>
+	s=arc-20240116; t=1762390594; c=relaxed/simple;
+	bh=1JsQP+jyBsxys7iInO8R6JSvwe0ICRBtJmZPGnHocPM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=fEcI7e5o8OU3c2ZXedHk8t5CdW6W+XcP9Fu93IG+g/1IhfN/8DSrX9jXwCmC1vwQXC0wcJFb3l6HoECHkxMmH/wxlV1oId+poqmBmg9pvHqV5gy9sXThtZ2aCI+QQDJ3BVzpiqSOgoCO0YRgI8dMAVSNNBH2tNKXnKSZBdK6whU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xY83x7Nt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=UrLJc0Pn; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xY83x7Nt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=UrLJc0Pn; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xY83x7Nt";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="UrLJc0Pn";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xY83x7Nt";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="UrLJc0Pn"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 1C3441F393;
+	Thu,  6 Nov 2025 00:56:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1762390590; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=+nIngGyBQkILGOsYzMkpcUJietCAD4cCOR2Kwpm/HTc=;
+	b=xY83x7NtEIs/uqpgr2BDnOzzwm69Doai5xTyZA9uF/YZsDEOr7vSKEWfDD9qLpavPvdWZZ
+	ztdMmhOBiYhdE+rItHbuDuKBpy6RkGT7P+9y6sPgfKPer/jmVikaFBVv22i0f/sT1kqfgx
+	rliy+8zSsJNtdb7UA0LGAYaHB3HkjFo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1762390590;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=+nIngGyBQkILGOsYzMkpcUJietCAD4cCOR2Kwpm/HTc=;
+	b=UrLJc0Pn9y8HdbSSqV8vnd+h3borSJrMCA6tovTZtNDEDf1+vBxNUYmhvuUJIzcPPwBcPC
+	+2lxzAc7vHrOlACw==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=xY83x7Nt;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=UrLJc0Pn
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1762390590; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=+nIngGyBQkILGOsYzMkpcUJietCAD4cCOR2Kwpm/HTc=;
+	b=xY83x7NtEIs/uqpgr2BDnOzzwm69Doai5xTyZA9uF/YZsDEOr7vSKEWfDD9qLpavPvdWZZ
+	ztdMmhOBiYhdE+rItHbuDuKBpy6RkGT7P+9y6sPgfKPer/jmVikaFBVv22i0f/sT1kqfgx
+	rliy+8zSsJNtdb7UA0LGAYaHB3HkjFo=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1762390590;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=+nIngGyBQkILGOsYzMkpcUJietCAD4cCOR2Kwpm/HTc=;
+	b=UrLJc0Pn9y8HdbSSqV8vnd+h3borSJrMCA6tovTZtNDEDf1+vBxNUYmhvuUJIzcPPwBcPC
+	+2lxzAc7vHrOlACw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 7ADB9132DD;
+	Thu,  6 Nov 2025 00:56:29 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id /eq6Gj3yC2mNLAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 06 Nov 2025 00:56:29 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	aconole@redhat.com,
+	echaudro@redhat.com,
+	i.maximets@ovn.org,
+	dev@openvswitch.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH 0/3 nf-next] netfilter: nf_conncount: rework conncount API to
+Date: Thu,  6 Nov 2025 01:55:54 +0100
+Message-ID: <20251106005557.3849-1-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251105164805.3992-1-fw@strlen.de>
-References: <20251105164805.3992-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,237 +87,72 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Rspamd-Queue-Id: 1C3441F393
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[10];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -3.01
+X-Spam-Level: 
 
-Improve netns isolation by providing each net namespace
-with its own table.
+This series is fixing two different problems. The first issue is related
+to duplicated entries when used for non-confirmed connections in
+nft_connlimit and xt_connlimit. Now, nf_conncount_add() checks whether
+the connection is confirmed or not. If the connection is confirmed,
+skip the add.
 
-Table is allocated when the namespace requests nat
-functionality.
+In order to do that, the nf_conncount API is now receiving struct nf_conn
+as argument instead of tuple and zone. In addition, nf_conncount_count()
+also needs to receive the net because it calls nf_conncount_gc_list()
+inside it if ct is NULL.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_nat_core.c | 100 ++++++++++++++++++++++++++----------
- 1 file changed, 74 insertions(+), 26 deletions(-)
+The second issue this series is fixing is related to
+nft_connlimit/xt_connlimit not updating the list of connection for
+confirmed connections breaking softlimiting use-cases like limiting the
+bandwidth when too many connections are open.
 
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 2e660f4d4ac1..2add90e3d636 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -35,10 +35,6 @@ static spinlock_t nf_nat_locks[CONNTRACK_LOCKS];
- static DEFINE_MUTEX(nf_nat_proto_mutex);
- static unsigned int nat_net_id __read_mostly;
- 
--static struct hlist_head *nf_nat_bysource __read_mostly;
--static unsigned int nf_nat_htable_size __read_mostly;
--static siphash_aligned_key_t nf_nat_hash_rnd;
--
- struct nf_nat_lookup_hook_priv {
- 	struct nf_hook_entries __rcu *entries;
- 
-@@ -51,9 +47,18 @@ struct nf_nat_hooks_net {
- };
- 
- struct nat_net {
-+	struct hlist_head *nf_nat_bysource;
-+	unsigned int nf_nat_htable_size;
-+	siphash_key_t hash_rnd;
-+
- 	struct nf_nat_hooks_net nat_proto_net[NFPROTO_NUMPROTO];
- };
- 
-+static struct nat_net *nf_nat_get_pernet(const struct net *net)
-+{
-+	return net_generic(net, nat_net_id);
-+}
-+
- #ifdef CONFIG_XFRM
- static void nf_nat_ipv4_decode_session(struct sk_buff *skb,
- 				       const struct nf_conn *ct,
-@@ -153,30 +158,27 @@ hash_by_src(const struct net *net,
- 	    const struct nf_conntrack_zone *zone,
- 	    const struct nf_conntrack_tuple *tuple)
- {
-+	struct nat_net *nat_pernet = nf_nat_get_pernet(net);
- 	unsigned int hash;
- 	struct {
- 		struct nf_conntrack_man src;
--		u32 net_mix;
- 		u32 protonum;
- 		u32 zone;
- 	} __aligned(SIPHASH_ALIGNMENT) combined;
- 
--	get_random_once(&nf_nat_hash_rnd, sizeof(nf_nat_hash_rnd));
--
- 	memset(&combined, 0, sizeof(combined));
- 
- 	/* Original src, to ensure we map it consistently if poss. */
- 	combined.src = tuple->src;
--	combined.net_mix = net_hash_mix(net);
- 	combined.protonum = tuple->dst.protonum;
- 
- 	/* Zone ID can be used provided its valid for both directions */
- 	if (zone->dir == NF_CT_DEFAULT_ZONE_DIR)
- 		combined.zone = zone->id;
- 
--	hash = siphash(&combined, sizeof(combined), &nf_nat_hash_rnd);
-+	hash = siphash(&combined, sizeof(combined), &nat_pernet->hash_rnd);
- 
--	return reciprocal_scale(hash, nf_nat_htable_size);
-+	return reciprocal_scale(hash, nat_pernet->nf_nat_htable_size);
- }
- 
- /**
-@@ -481,10 +483,12 @@ find_appropriate_src(struct net *net,
- 		     struct nf_conntrack_tuple *result,
- 		     const struct nf_nat_range2 *range)
- {
-+	struct nat_net *nat_pernet = nf_nat_get_pernet(net);
- 	unsigned int h = hash_by_src(net, zone, tuple);
- 	const struct nf_conn *ct;
- 
--	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
-+	hlist_for_each_entry_rcu(ct, &nat_pernet->nf_nat_bysource[h],
-+				 nat_bysource) {
- 		if (same_src(ct, tuple) &&
- 		    net_eq(net, nf_ct_net(ct)) &&
- 		    nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL)) {
-@@ -826,6 +830,7 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	}
- 
- 	if (maniptype == NF_NAT_MANIP_SRC) {
-+		struct nat_net *nat_net = nf_nat_get_pernet(net);
- 		unsigned int srchash;
- 		spinlock_t *lock;
- 
-@@ -834,7 +839,7 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		lock = &nf_nat_locks[srchash % CONNTRACK_LOCKS];
- 		spin_lock_bh(lock);
- 		hlist_add_head_rcu(&ct->nat_bysource,
--				   &nf_nat_bysource[srchash]);
-+				   &nat_net->nf_nat_bysource[srchash]);
- 		spin_unlock_bh(lock);
- 	}
- 
-@@ -1189,6 +1194,22 @@ static struct nf_ct_helper_expectfn follow_master_nat = {
- 	.expectfn	= nf_nat_follow_master,
- };
- 
-+static bool nf_nat_alloc_bysource(struct nat_net *nat_net, unsigned int size)
-+{
-+	struct hlist_head *nf_nat_bysource;
-+
-+	nf_nat_bysource = nf_ct_alloc_hashtable(&size, 0);
-+	if (!nf_nat_bysource)
-+		return false;
-+
-+	get_random_bytes_wait(&nat_net->hash_rnd,
-+			      sizeof(nat_net->hash_rnd));
-+
-+	nat_net->nf_nat_bysource = nf_nat_bysource;
-+	nat_net->nf_nat_htable_size = size;
-+	return true;
-+}
-+
- int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		       const struct nf_hook_ops *orig_nat_ops, unsigned int ops_count)
- {
-@@ -1215,6 +1236,13 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		return -EINVAL;
- 
- 	mutex_lock(&nf_nat_proto_mutex);
-+
-+	if (!nat_net->nf_nat_bysource &&
-+	    !nf_nat_alloc_bysource(nat_net, net->ct.nf_conntrack_htable_size)) {
-+		mutex_unlock(&nf_nat_proto_mutex);
-+		return -ENOMEM;
-+	}
-+
- 	if (!nat_proto_net->nat_hook_ops) {
- 		WARN_ON(nat_proto_net->users != 0);
- 
-@@ -1312,8 +1340,41 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 	mutex_unlock(&nf_nat_proto_mutex);
- }
- 
-+static int __net_init nf_nat_net_init(struct net *net)
-+{
-+	unsigned int nf_nat_htable_size;
-+
-+	/* Leave them the same for the moment. */
-+	nf_nat_htable_size = net->ct.nf_conntrack_htable_size;
-+	if (nf_nat_htable_size < CONNTRACK_LOCKS)
-+		nf_nat_htable_size = CONNTRACK_LOCKS;
-+
-+	return 0;
-+}
-+
-+static void __net_exit nf_nat_net_exit_batch(struct list_head *net_exit_list)
-+{
-+	struct nf_nat_proto_clean clean = {};
-+	struct net *net;
-+
-+	/* all nat hooks must have been removed at this point */
-+	list_for_each_entry(net, net_exit_list, exit_list) {
-+		struct nat_net *nat_net = nf_nat_get_pernet(net);
-+		struct nf_ct_iter_data iter_data = {
-+			.data = &clean,
-+			.net = net,
-+		};
-+
-+		nf_ct_iterate_cleanup_net(nf_nat_proto_clean, &iter_data);
-+
-+		kvfree(nat_net->nf_nat_bysource);
-+	}
-+}
-+
- static struct pernet_operations nat_net_ops = {
- 	.id = &nat_net_id,
-+	.init = nf_nat_net_init,
-+	.exit_batch = nf_nat_net_exit_batch,
- 	.size = sizeof(struct nat_net),
- };
- 
-@@ -1329,23 +1390,12 @@ static int __init nf_nat_init(void)
- {
- 	int ret, i;
- 
--	/* Leave them the same for the moment. */
--	nf_nat_htable_size = init_net.ct.nf_conntrack_htable_size;
--	if (nf_nat_htable_size < CONNTRACK_LOCKS)
--		nf_nat_htable_size = CONNTRACK_LOCKS;
--
--	nf_nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size, 0);
--	if (!nf_nat_bysource)
--		return -ENOMEM;
--
- 	for (i = 0; i < CONNTRACK_LOCKS; i++)
- 		spin_lock_init(&nf_nat_locks[i]);
- 
- 	ret = register_pernet_subsys(&nat_net_ops);
--	if (ret < 0) {
--		kvfree(nf_nat_bysource);
-+	if (ret < 0)
- 		return ret;
--	}
- 
- 	nf_ct_helper_expectfn_register(&follow_master_nat);
- 
-@@ -1358,7 +1408,6 @@ static int __init nf_nat_init(void)
- 		nf_ct_helper_expectfn_unregister(&follow_master_nat);
- 		synchronize_net();
- 		unregister_pernet_subsys(&nat_net_ops);
--		kvfree(nf_nat_bysource);
- 	}
- 
- 	return ret;
-@@ -1374,7 +1423,6 @@ static void __exit nf_nat_cleanup(void)
- 	RCU_INIT_POINTER(nf_nat_hook, NULL);
- 
- 	synchronize_net();
--	kvfree(nf_nat_bysource);
- 	unregister_pernet_subsys(&nat_net_ops);
- }
- 
+This has been tested on datapath using connlimit in nftables and
+iptables. I have stressed the system up to 2000 connections.
+
+CC'ing openvswitch maintainers as this change on the API required me to
+touch their code. I am not very familiar with the internals of
+openvswitch but I believe this should be fine for them. If you could
+provide some testing from openvswitch side it would be really helpful. 
+
+Fernando Fernandez Mancera (3):
+  netfilter: nf_conncount: only track connection if it is not confirmed
+  netfilter: nf_conncount: make nf_conncount_gc_list() to disable BH
+  netfilter: nft_connlimit: update connection list if add was skipped
+
+ include/net/netfilter/nf_conntrack_count.h | 10 +--
+ net/netfilter/nf_conncount.c               | 94 +++++++++++++---------
+ net/netfilter/nft_connlimit.c              | 49 ++++++-----
+ net/netfilter/xt_connlimit.c               | 28 ++++---
+ net/openvswitch/conntrack.c                | 14 ++--
+ 5 files changed, 106 insertions(+), 89 deletions(-)
+
 -- 
 2.51.0
 
