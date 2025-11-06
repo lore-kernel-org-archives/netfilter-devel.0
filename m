@@ -1,79 +1,78 @@
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51093218EB1
-	for <netfilter-devel@vger.kernel.org>; Thu,  6 Nov 2025 00:56:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAF2023D281
+	for <netfilter-devel@vger.kernel.org>; Thu,  6 Nov 2025 00:56:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762390604; cv=none; b=fmVkYhc6rfSC3MMtmen7gdQjG3R/P9n1t8WTeaw0vSvUrQrzz9g+mJBh6kRmtZhXdKXTwJGVi6kKIu4WRlcj6jVVkPCjXNbIN4/IWdFe+dijcyZJKnhTxPMfy+X4owJ3n2Z2Ov8sjvQl7SxR7uDNsQDHLotd3p+0fk4seVrh/KM=
+	t=1762390612; cv=none; b=CwJXObt8scokyhCO7okKvD9yS2EvOrrE4QKtvy6OR+rDE4ik3XRFvqGzeSoL2DRhjh7/xz2+8UaZ0XMHi/JuWVQ4kes6OWmMn9rfsLSqSQn1AvE+5LdkdUEGBu69v7TVCvtWqMid5YskabX4A2MTitnX2XHvuWD+0UC5Qjg022k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762390604; c=relaxed/simple;
-	bh=wHdJWnvxNhuCqxrzc3rLdl6y4p6H7xaUD2VMQ5tS3t0=;
+	s=arc-20240116; t=1762390612; c=relaxed/simple;
+	bh=qNBsPG1WMdnpNVMNETSwQCTjrBVV7oPaq2/OHtga6M0=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YMafZcAPSxiN3jD+/W3+CWEixry1ra3dNIBvqZp5e/pbW42H3oieuyoxYk44t+Ao3PfUEzTNI5D5WbbTvWMzTIrRak/GeyjBPg86we3zfV/DSJanVpxvv7O76mbmNnvr6WUMixhwepaUxMru56YSVmBTlUPntGRCVVXJJ7an+jc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=igbSXVc7; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=5Py9JFB8; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=igbSXVc7; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=5Py9JFB8; arc=none smtp.client-ip=195.135.223.130
+	 MIME-Version; b=ICznIR8OhD6Zm0fdp54fAYYxDyjbUeMkhC9T/1OCs5bNimy4u6wcLkN56wNdg/kNdUbLu9MbNx165j9mnZgdEQ9t3lRgg9k6Go4umBPmXsgzvcdXrU4x8iJuwSFGxuYqaRMFHpE9zikGWBx8AUdHcFjq3qKlBjnvjN3ZTZ68wSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QQDjSPD9; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=shhNWNx8; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=QQDjSPD9; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=shhNWNx8; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="igbSXVc7";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="5Py9JFB8";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="igbSXVc7";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="5Py9JFB8"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QQDjSPD9";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="shhNWNx8";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="QQDjSPD9";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="shhNWNx8"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 57162211A6;
-	Thu,  6 Nov 2025 00:56:40 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 56A89211C8;
+	Thu,  6 Nov 2025 00:56:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762390600; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1762390602; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=7rMxOhtQYsNf8VrEiN7coD8LvVx1e5PlDVyfGs3mMos=;
-	b=igbSXVc7X2DWPxxjdWzofpNxIfbe/5jEdt5zBpG6X0NTHsIuBDou1h1siZL4WLdaQV1rh6
-	aYj7SREkTFkiawMQhosB+YxH+M219nCWAI8mDBZqPuLpAtlYB8G9SVJICIbKt5kaLzF38O
-	jSXW/fOu7QSTUlmbcts4DNkPWyHFH+U=
+	bh=QnbLnJjJCDUVDR6lfzw9D9bHo7UgIsp5wR5jzg6+g/0=;
+	b=QQDjSPD9eQiMtE7STEYnzRBx3wOBKhIYPnhu65NfC4RRz5yzf1hA5r21KVOo3QbEb9CoDX
+	BIA6VHxsoq0bByCZkQdWzSCItOIkgyRZ0ZLhMf1kbUbnx3JCgbwB2w3oMhyA1Ywihs8dUG
+	DBrOzFZGImy/opOsnO5TzGIfK1F0HqI=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762390600;
+	s=susede2_ed25519; t=1762390602;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=7rMxOhtQYsNf8VrEiN7coD8LvVx1e5PlDVyfGs3mMos=;
-	b=5Py9JFB8sYCVUJhly/UJJc8cwNhNJhzxXmimfNPxvAlQzoQ0pvXk+l/isSsYmsqkeKFfZk
-	pRSvJA2X3XUw4rDQ==
+	bh=QnbLnJjJCDUVDR6lfzw9D9bHo7UgIsp5wR5jzg6+g/0=;
+	b=shhNWNx8VnNIxwmRCY3s6etn6/gQNPkRWfSXm+DlmLQd6a6oXz1f9LH0DR1npzPZk8iLxN
+	vRMHBdFsuHvZgADA==
 Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=igbSXVc7;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=5Py9JFB8
+	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762390600; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1762390602; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=7rMxOhtQYsNf8VrEiN7coD8LvVx1e5PlDVyfGs3mMos=;
-	b=igbSXVc7X2DWPxxjdWzofpNxIfbe/5jEdt5zBpG6X0NTHsIuBDou1h1siZL4WLdaQV1rh6
-	aYj7SREkTFkiawMQhosB+YxH+M219nCWAI8mDBZqPuLpAtlYB8G9SVJICIbKt5kaLzF38O
-	jSXW/fOu7QSTUlmbcts4DNkPWyHFH+U=
+	bh=QnbLnJjJCDUVDR6lfzw9D9bHo7UgIsp5wR5jzg6+g/0=;
+	b=QQDjSPD9eQiMtE7STEYnzRBx3wOBKhIYPnhu65NfC4RRz5yzf1hA5r21KVOo3QbEb9CoDX
+	BIA6VHxsoq0bByCZkQdWzSCItOIkgyRZ0ZLhMf1kbUbnx3JCgbwB2w3oMhyA1Ywihs8dUG
+	DBrOzFZGImy/opOsnO5TzGIfK1F0HqI=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762390600;
+	s=susede2_ed25519; t=1762390602;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=7rMxOhtQYsNf8VrEiN7coD8LvVx1e5PlDVyfGs3mMos=;
-	b=5Py9JFB8sYCVUJhly/UJJc8cwNhNJhzxXmimfNPxvAlQzoQ0pvXk+l/isSsYmsqkeKFfZk
-	pRSvJA2X3XUw4rDQ==
+	bh=QnbLnJjJCDUVDR6lfzw9D9bHo7UgIsp5wR5jzg6+g/0=;
+	b=shhNWNx8VnNIxwmRCY3s6etn6/gQNPkRWfSXm+DlmLQd6a6oXz1f9LH0DR1npzPZk8iLxN
+	vRMHBdFsuHvZgADA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id BCA61132DD;
-	Thu,  6 Nov 2025 00:56:39 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id BC28C132DD;
+	Thu,  6 Nov 2025 00:56:41 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id EL5HK0fyC2mNLAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 06 Nov 2025 00:56:39 +0000
+	id iHwlK0nyC2mNLAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 06 Nov 2025 00:56:41 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
@@ -85,9 +84,9 @@ Cc: coreteam@netfilter.org,
 	i.maximets@ovn.org,
 	dev@openvswitch.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 2/3 nf-next] netfilter: nf_conncount: make nf_conncount_gc_list() to disable BH
-Date: Thu,  6 Nov 2025 01:55:56 +0100
-Message-ID: <20251106005557.3849-3-fmancera@suse.de>
+Subject: [PATCH 3/3 nf-next] netfilter: nft_connlimit: update connection list if add was skipped
+Date: Thu,  6 Nov 2025 01:55:57 +0100
+Message-ID: <20251106005557.3849-4-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251106005557.3849-1-fmancera@suse.de>
 References: <20251106005557.3849-1-fmancera@suse.de>
@@ -98,117 +97,78 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 57162211A6
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-3.01 / 50.00];
+X-Spamd-Result: default: False [-2.80 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	MID_CONTAINS_FROM(1.00)[];
 	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.999];
 	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_COUNT_TWO(0.00)[2];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[10];
 	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:email,suse.de:mid,suse.de:dkim];
-	RCVD_TLS_ALL(0.00)[];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCPT_COUNT_SEVEN(0.00)[10];
+	RCVD_COUNT_TWO(0.00)[2];
 	FROM_EQ_ENVFROM(0.00)[];
-	R_RATELIMIT(0.00)[to_ip_from(RLdq3axj463rejm7ya15ar34kh)];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Action: no action
+	TO_DN_SOME(0.00)[];
+	RCVD_TLS_ALL(0.00)[]
 X-Spam-Flag: NO
-X-Spam-Score: -3.01
+X-Spam-Score: -2.80
 X-Spam-Level: 
 
-For convenience when performing GC over the connection list, make
-nf_conncount_gc_list() to disable BH. This unifies the behavior with
-nf_conncount_add() and nf_conncount_count().
+Connlimit expression can be used for all kind of packets and not only
+for packets with connection state new. See this ruleset as example:
 
+table ip filter {
+        chain input {
+                type filter hook input priority filter; policy accept;
+                tcp dport 22 ct count over 4 counter
+        }
+}
+
+Currently, if the connection count goes over the limit the counter will
+count the packets. When a connection is closed, the connection count
+won't decrement as it should because it is only updated for new
+connections due to an optimization on __nf_conncount_add() that prevents
+updating the list if the connection is duplicated.
+
+To solve this problem, check whether the connection was skipped and if
+so, update the list. This fix isn't necessary on xt_connlimit as the new
+nf_conncount API updates the list when the add is skipped inside
+nf_conncount_count().
+
+Fixes: 976afca1ceba ("netfilter: nf_conncount: Early exit in nf_conncount_lookup() and cleanup")
+Closes: https://lore.kernel.org/netfilter/trinity-85c72a88-d762-46c3-be97-36f10e5d9796-1761173693813@3c-app-mailcom-bs12/
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
- net/netfilter/nf_conncount.c  | 24 +++++++++++++++++-------
- net/netfilter/nft_connlimit.c |  7 +------
- 2 files changed, 18 insertions(+), 13 deletions(-)
+ net/netfilter/nft_connlimit.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 803589f4eaa1..cb52fe928a77 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -227,8 +227,8 @@ void nf_conncount_list_init(struct nf_conncount_list *list)
- EXPORT_SYMBOL_GPL(nf_conncount_list_init);
- 
- /* Return true if the list is empty. Must be called with BH disabled. */
--bool nf_conncount_gc_list(struct net *net,
--			  struct nf_conncount_list *list)
-+static bool __nf_conncount_gc_list(struct net *net,
-+				   struct nf_conncount_list *list)
- {
- 	const struct nf_conntrack_tuple_hash *found;
- 	struct nf_conncount_tuple *conn, *conn_n;
-@@ -240,10 +240,6 @@ bool nf_conncount_gc_list(struct net *net,
- 	if ((u32)jiffies == READ_ONCE(list->last_gc))
- 		return false;
- 
--	/* don't bother if other cpu is already doing GC */
--	if (!spin_trylock(&list->list_lock))
--		return false;
--
- 	list_for_each_entry_safe(conn, conn_n, &list->head, node) {
- 		found = find_or_evict(net, list, conn);
- 		if (IS_ERR(found)) {
-@@ -272,7 +268,21 @@ bool nf_conncount_gc_list(struct net *net,
- 	if (!list->count)
- 		ret = true;
- 	list->last_gc = (u32)jiffies;
--	spin_unlock(&list->list_lock);
-+
-+	return ret;
-+};
-+
-+bool nf_conncount_gc_list(struct net *net,
-+			  struct nf_conncount_list *list)
-+{
-+	bool ret;
-+
-+	/* don't bother if other cpu is already doing GC */
-+	if (!spin_trylock_bh(&list->list_lock))
-+		return false;
-+
-+	ret = __nf_conncount_gc_list(net, list);
-+	spin_unlock_bh(&list->list_lock);
- 
- 	return ret;
- }
 diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index e815c0235b62..3c1d9ae37bec 100644
+index 3c1d9ae37bec..4cec228e82e2 100644
 --- a/net/netfilter/nft_connlimit.c
 +++ b/net/netfilter/nft_connlimit.c
-@@ -245,13 +245,8 @@ static void nft_connlimit_destroy_clone(const struct nft_ctx *ctx,
- static bool nft_connlimit_gc(struct net *net, const struct nft_expr *expr)
- {
- 	struct nft_connlimit *priv = nft_expr_priv(expr);
--	bool ret;
+@@ -49,7 +49,14 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
  
--	local_bh_disable();
--	ret = nf_conncount_gc_list(net, priv->list);
--	local_bh_enable();
--
--	return ret;
-+	return nf_conncount_gc_list(net, priv->list);
- }
- 
- static struct nft_expr_type nft_connlimit_type;
+ 	err = nf_conncount_add(ct, priv->list);
+ 	if (err) {
+-		if (err != -EINVAL) {
++		if (err == -EINVAL) {
++			/* Call gc to update the list count if any connection has
++			 * been closed already. This is useful to softlimit
++			 * connections like limiting bandwidth based on a number
++			 * of open connections.
++			 */
++			nf_conncount_gc_list(nf_ct_net(ct), priv->list);
++		} else {
+ 			regs->verdict.code = NF_DROP;
+ 			return;
+ 		}
 -- 
 2.51.0
 
