@@ -1,34 +1,50 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7C12D781F
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Nov 2025 00:31:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C1667404E
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Nov 2025 10:01:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762475513; cv=none; b=nEkrYt3MQwl5KcZjW4su51XTCmL7OlZVknNNmw5Cgzpr8/bSc1ADf/mXPWTjavPZ9SzBIC2KViJGQOoKyljx4rt4eaB0MG9csf885cplWsRSkEsPNOZQ0chKPBKGwsiV+ArI9ddgBmJIx6vtpZW+DZsCz+GPn0F0qG0dMXCfcbs=
+	t=1762509697; cv=none; b=ZM5xSdAWDCj+M4EFvP/GnLq4Q2BacrXIoQuE7DYjDG2CZ8DcI0Q7qYWPLWkin/DqGmFpRayL1TEhWSh+Tn1hOsAObm9KWk4zyidzeKvYbMDmCZLkfJpNjF07wy9wOlxVctqu8EWq7b3SGWtwdB0xF3xuWrXNL3HLB0kIZZ/5NSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762475513; c=relaxed/simple;
-	bh=d8zXWmotkmUIyqbtGc33+GP7mkMgoxmLbhkc1Yc2sBY=;
+	s=arc-20240116; t=1762509697; c=relaxed/simple;
+	bh=onsZkeahqDOk6Nls9G20BBF2XrPwjOj3x6C9NlvGZPg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gV9XpNqrDt0BcuitVAppumsYbA3Q4CFFqdgtGHlY7uVDy22r0gAQQaCc93d+7Sl9+MGUE16rQYUhE8s3hPZTLR4nxvcVGf8I9HUGU5y+3CL534CuVjiqDspV0ZP9Wq917MT5lWE9FVNedgy8sChB2kTIGl5IyjSA/FUOCuxaLFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E7CF260072; Fri,  7 Nov 2025 01:31:48 +0100 (CET)
-Date: Fri, 7 Nov 2025 01:31:43 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	pablo@netfilter.org, phil@nwl.cc, aconole@redhat.com,
-	echaudro@redhat.com, i.maximets@ovn.org, dev@openvswitch.org
-Subject: Re: [PATCH 1/3 nf-next] netfilter: nf_conncount: only track
- connection if it is not confirmed
-Message-ID: <aQ097wN8P96ni6rN@strlen.de>
-References: <20251106005557.3849-1-fmancera@suse.de>
- <20251106005557.3849-2-fmancera@suse.de>
- <aQv8YE3sZ1Rp1iYG@strlen.de>
- <1f5a5a3d-a38a-4f81-9912-38242480de9c@suse.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=ivYMpF+MxrhQY8jGy3hbioagFq/zhGSUv9e5Px5XT58mv3d0KyI2hGzRQi/qdHLF1B+jhCC/Oxsy3/n5aeLtjjXXBugvZjDhxBHhNGKuFB/MuvdeIfOaPujXSlJZxtkXKMcWJO7pTuVhi6jvCjU+5tdzM7ZGeUbxS6yD/ED0wTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EubbgA+H; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EubbgA+H"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=q5T0Rcb6Nq4ShWkKNJPi2Ist0/rCaPjwUBcyT+DftGI=; b=EubbgA+Hi1i2Kf4nnEYFKQkAi3
+	/zzWh+U8o2RGCxypt+y9rGcaFd80AKG6/MQ8cWwGBh9VYmJ2xjRtXFQJp2vl6xLxqkEnYwtMVfF8j
+	+Ow9Z5yEP7ctnFnk9gmGLL65GN2pxI0LXHIa9pVp6HG0uBnfrTaUXmB1AbHlaoFvCglGuQT7JHZ3b
+	j1XALP3eaXzT0f+95gjUOzzuRL6Xs4pAAbLU0twHcWcmRZtiiMrnNHG+9CXsmZn5oO6gK+Ipr+tFN
+	pg/6TMXTFxh46mb5QSlsk+hgy49SQfbEx9mqZS0bKV6Kx/byaSZ+MkF9c6ZO0kMZ0KmG0ot5Xdi/m
+	six2ZFPA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vHJHY-000000008BM-2sbM;
+	Fri, 07 Nov 2025 11:01:24 +0100
+Date: Fri, 7 Nov 2025 11:01:24 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] doc: libnftables-json: Describe RULESET object
+Message-ID: <aQ3DdD5zUcFxGxhj@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20251106111717.9609-1-phil@nwl.cc>
+ <aQ0s80YeCLRZnmsB@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,122 +53,19 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1f5a5a3d-a38a-4f81-9912-38242480de9c@suse.de>
+In-Reply-To: <aQ0s80YeCLRZnmsB@strlen.de>
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+On Fri, Nov 07, 2025 at 12:19:15AM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > Document the syntax of this meta-object used by "list" and "flush"
+> > commands only.
+>  
+> > 872f373dc50f7 ("doc: Add JSON schema documentation")
 > 
-> 
-> On 11/6/25 2:39 AM, Florian Westphal wrote:
-> > Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> >> Since commit d265929930e2 ("netfilter: nf_conncount: reduce unnecessary
-> >> GC") if nftables/iptables connlimit is used without a check for new
-> >> connections there can be duplicated entries tracked.
-> >>
-> >> Pass the nf_conn struct directly to the nf_conncount API and check
-> >> whether the connection is confirmed or not inside nf_conncount_add(). If
-> >> the connection is confirmed, skip it.
-> > 
-> > I think there is a bit too much noise here, can this be
-> > split in several chunks?
-> > 
-> 
-> Not sure, I could try but the noise comes from removing zone and tuple 
-> which requires many changes around. Otherwise this would compile with 
-> warnings/errors. I am not sure I can split this more.
+> Why is that here?  Should this have been 'Fixes: '?
 
-Ok.
+Oops, yes.
 
-> > I also see that this shared copypaste with xtables.
-> > Would it be possible to pass 'const struct sk_buff *'
-> > and let the nf_conncount core handle this internally?
-> > 
-> > nf_conncount_add(net, pf, skb, priv->list);
-> > 
-> > which does:
-> > 	ct = nf_ct_get(skb, &ctinfo);
-> > 	if (ct && !nf_ct_is_template(ct))
-> > 		return __nf_conncount_add(ct, list);
-> > 
-> > 	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), pf, net,
-> > 				&tuple))
-> > 		return -ERR;
-> > 
-> > 	if (ct)	/* its a template, so do lookup in right zone */
-> > 		zone = nf_ct_zone(ct);
-> > 	else
-> > 		zone = &nf_ct_zone_dflt;
-> > 
-> > 	h = nf_conntrack_find_get(nft_net(pkt), zone, &tuple);
-> > 	if (!h)
-> > 		return -ERR;
-> > 
-> > 	ct = nf_ct_tuplehash_to_ctrack(h);
-> > 
-> > 	err = __nf_conncount_add(ct, list);
-> > 
-> > 	nf_ct_put(ct):
-> > 
-> > 	return err;
-> > 
-> > I.e., the existing nf_conncount_add() becomes a helper that takes
-> > a ct, as you have already proposed, but its renamed and turned into
-> > an internal helper so frontends don't need to duplicate tuple lookup.
-> > 
-> > Alternatively, no need to rename it and instead add a new API call
-> > that takes the ct argument, e.g. 'nf_conncount_add_ct' or whatever,
-> > and then make nf_conncount_add() internal in a followup patch.
-> > 
-> 
-> Unfortunately, I do not think this is possible. xt_connlimit is using 
-> the rbtree with nf_conncount_count() while nft_connlimit isn't. I 
-> believe we do not want to change that.
+> Aside from that, just apply this, thanks.
 
-OK.  I had hoped one could start with refactoring nf_conncount_count()
-and then after that nf_conncount_count().
-
-> In addition, for the rbtree we
-> need to calculate the key..
-
-Right but AFAICS due to the missing 'template check' we pass all-zero
-tuple_ptr if there is a template attached to the skb.
-Not catastrophic but its not correct either.
-
-I had hoped it was possible so s/tuple, zone/sk_buff/ in the
-arguments and then handle that internally (first in count_tree and then
-later in a converted nf_conncount_count(), i.e. push the sk_buff -> ct
-handling down in followup patches.
-
-> I would leave this code as duplicated given
-> that is shared only between xt_connlimit and nft_connlimit. Openvswitch 
-> doesn't care about this as they always call nf_conncount_count() while 
-> holding a reference to a ct..
-
-[..]
-
-> No worries at all, I think there is some benefit from this change even 
-> with the copy-paste. Maybe we can create a helper function to just get 
-> the ct from the sk_buff.. what about "nf_conntrack_get_or_find()"? I 
-> accept suggestions for a better name :)
-
-OK, but the problem is that you need to know when you need to put the
-reference and when you don't have to.
-
-Task is:
-given skb, return a
-'ct' that is not a template
-... but if its a template we need the zone to make a lookup ourselves
-... and we have to bump (and put) refcount when we do that lookup
-ourselves.
-
-Maybe you could try adding a new api, e.g. call it
-'nf_conncount_count_skb()' that then calls nf_conncount_count()
-internally just to see how bad it looks?
-
-If its not too bad, then all callers could be converted one after
-another.
-
-And then same with nf_conncount_add().
-
-Just a suggestion, alternatively give your nf_conntrack_get_or_find()
-a try, it would need a 'bool *refcounted' or similar arg and a
-conditional 'if (refcounted) nf_ct_put(ct)' to be done by the callers.
+Patch applied, thanks!
