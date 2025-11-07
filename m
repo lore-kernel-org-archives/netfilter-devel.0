@@ -1,38 +1,34 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F1C4A0C;
-	Fri,  7 Nov 2025 00:06:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7C12D781F
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Nov 2025 00:31:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762473977; cv=none; b=buKjeVzW32rI4EkRLth49xlx8Qb/W8exjMrHVyqTBLcyJa/BpYUtS7xbLXU4DD2TyQrmmuJfNlbKogsojzOUrdv5kgfTt+WDVKakjrz38HF/yuePs3UH0SsAblhHWJgu4SjVO10F7qsKAEIaycpmFzTB6yTH9DRwkYfwASRmGKw=
+	t=1762475513; cv=none; b=nEkrYt3MQwl5KcZjW4su51XTCmL7OlZVknNNmw5Cgzpr8/bSc1ADf/mXPWTjavPZ9SzBIC2KViJGQOoKyljx4rt4eaB0MG9csf885cplWsRSkEsPNOZQ0chKPBKGwsiV+ArI9ddgBmJIx6vtpZW+DZsCz+GPn0F0qG0dMXCfcbs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762473977; c=relaxed/simple;
-	bh=lAEFtF4IVOn7eBjUXI7mHzgCxFs5I6xmj63FmnOrf+0=;
+	s=arc-20240116; t=1762475513; c=relaxed/simple;
+	bh=d8zXWmotkmUIyqbtGc33+GP7mkMgoxmLbhkc1Yc2sBY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=acRucjui8xdXrGjFrES6KZVlffT9/m4S1XElRbyEiqhJo6aDlBfEZFgrO1EuonWn3xtG11xk3ubdnRL6bKrJT/b+Jiq2ixpL6oV5tPkx6P5j8iQJPvZpv/ohqASyMe57Z7EfMVPNiHKXBjgbPssW9oGrDpndxd1aEO8i4xwdapQ=
+	 Content-Type:Content-Disposition:In-Reply-To; b=gV9XpNqrDt0BcuitVAppumsYbA3Q4CFFqdgtGHlY7uVDy22r0gAQQaCc93d+7Sl9+MGUE16rQYUhE8s3hPZTLR4nxvcVGf8I9HUGU5y+3CL534CuVjiqDspV0ZP9Wq917MT5lWE9FVNedgy8sChB2kTIGl5IyjSA/FUOCuxaLFA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id A7ED7601A1; Fri,  7 Nov 2025 01:06:13 +0100 (CET)
-Date: Fri, 7 Nov 2025 01:06:13 +0100
+	id E7CF260072; Fri,  7 Nov 2025 01:31:48 +0100 (CET)
+Date: Fri, 7 Nov 2025 01:31:43 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org
-Subject: Re: [PATCH v16 nf-next 3/3] netfilter: nft_chain_filter: Add bridge
- double vlan and pppoe
-Message-ID: <aQ039Zn_r9woDImN@strlen.de>
-References: <20251104145728.517197-1-ericwouds@gmail.com>
- <20251104145728.517197-4-ericwouds@gmail.com>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	pablo@netfilter.org, phil@nwl.cc, aconole@redhat.com,
+	echaudro@redhat.com, i.maximets@ovn.org, dev@openvswitch.org
+Subject: Re: [PATCH 1/3 nf-next] netfilter: nf_conncount: only track
+ connection if it is not confirmed
+Message-ID: <aQ097wN8P96ni6rN@strlen.de>
+References: <20251106005557.3849-1-fmancera@suse.de>
+ <20251106005557.3849-2-fmancera@suse.de>
+ <aQv8YE3sZ1Rp1iYG@strlen.de>
+ <1f5a5a3d-a38a-4f81-9912-38242480de9c@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,54 +37,122 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251104145728.517197-4-ericwouds@gmail.com>
+In-Reply-To: <1f5a5a3d-a38a-4f81-9912-38242480de9c@suse.de>
 
-Eric Woudstra <ericwouds@gmail.com> wrote:
-> In nft_do_chain_bridge() pktinfo is only fully populated for plain packets
-> and packets encapsulated in single 802.1q or 802.1ad.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
 > 
-> When implementing the software bridge-fastpath and testing all possible
-> encapulations, there can be more encapsulations:
 > 
-> The packet could (also) be encapsulated in PPPoE, or the packet could be
-> encapsulated in an inner 802.1q, combined with an outer 802.1ad or 802.1q
-> encapsulation.
+> On 11/6/25 2:39 AM, Florian Westphal wrote:
+> > Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> >> Since commit d265929930e2 ("netfilter: nf_conncount: reduce unnecessary
+> >> GC") if nftables/iptables connlimit is used without a check for new
+> >> connections there can be duplicated entries tracked.
+> >>
+> >> Pass the nf_conn struct directly to the nf_conncount API and check
+> >> whether the connection is confirmed or not inside nf_conncount_add(). If
+> >> the connection is confirmed, skip it.
+> > 
+> > I think there is a bit too much noise here, can this be
+> > split in several chunks?
+> > 
 > 
-> nft_flow_offload_eval() also examines the L4 header, with the L4 protocol
-> known from the conntrack-tuplehash. To access the header it uses
-> nft_thoff(), but for these packets it returns zero.
+> Not sure, I could try but the noise comes from removing zone and tuple 
+> which requires many changes around. Otherwise this would compile with 
+> warnings/errors. I am not sure I can split this more.
+
+Ok.
+
+> > I also see that this shared copypaste with xtables.
+> > Would it be possible to pass 'const struct sk_buff *'
+> > and let the nf_conncount core handle this internally?
+> > 
+> > nf_conncount_add(net, pf, skb, priv->list);
+> > 
+> > which does:
+> > 	ct = nf_ct_get(skb, &ctinfo);
+> > 	if (ct && !nf_ct_is_template(ct))
+> > 		return __nf_conncount_add(ct, list);
+> > 
+> > 	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), pf, net,
+> > 				&tuple))
+> > 		return -ERR;
+> > 
+> > 	if (ct)	/* its a template, so do lookup in right zone */
+> > 		zone = nf_ct_zone(ct);
+> > 	else
+> > 		zone = &nf_ct_zone_dflt;
+> > 
+> > 	h = nf_conntrack_find_get(nft_net(pkt), zone, &tuple);
+> > 	if (!h)
+> > 		return -ERR;
+> > 
+> > 	ct = nf_ct_tuplehash_to_ctrack(h);
+> > 
+> > 	err = __nf_conncount_add(ct, list);
+> > 
+> > 	nf_ct_put(ct):
+> > 
+> > 	return err;
+> > 
+> > I.e., the existing nf_conncount_add() becomes a helper that takes
+> > a ct, as you have already proposed, but its renamed and turned into
+> > an internal helper so frontends don't need to duplicate tuple lookup.
+> > 
+> > Alternatively, no need to rename it and instead add a new API call
+> > that takes the ct argument, e.g. 'nf_conncount_add_ct' or whatever,
+> > and then make nf_conncount_add() internal in a followup patch.
+> > 
 > 
-> Introduce nft_set_bridge_pktinfo() to help populate pktinfo with the
-> offsets, without setting pkt->tprot and the corresponding pkt->flags.
-> 
-> This will not change rule processing, but does make these offsets
-> available for code that is not checking pkt->flags to use the offsets,
-> like nft_flow_offload_eval().
+> Unfortunately, I do not think this is possible. xt_connlimit is using 
+> the rbtree with nf_conncount_count() while nft_connlimit isn't. I 
+> believe we do not want to change that.
 
-Thanks.  I think this is fine and we can extend/change this later on.
+OK.  I had hoped one could start with refactoring nf_conncount_count()
+and then after that nf_conncount_count().
 
-> +	case htons(ETH_P_8021Q): {
-> +		struct vlan_hdr *vhdr;
-> +
-> +		if (!pskb_may_pull(skb, VLAN_HLEN))
-> +			return -1;
-> +		vhdr = (struct vlan_hdr *)(skb->data);
-> +		*proto = vhdr->h_vlan_encapsulated_proto;
-> +		skb_set_network_header(skb, VLAN_HLEN);
+> In addition, for the rbtree we
+> need to calculate the key..
 
-Could you move the skb_set_network_header() calls
-to places where we know that we have an ip/ipv6 proto
-in the upper header?
+Right but AFAICS due to the missing 'template check' we pass all-zero
+tuple_ptr if there is a template attached to the skb.
+Not catastrophic but its not correct either.
 
-You already return the length of the encap header
-anyway, might as well restrict the skb nh update
-to when it will be useful.
+I had hoped it was possible so s/tuple, zone/sk_buff/ in the
+arguments and then handle that internally (first in count_tree and then
+later in a converted nf_conncount_count(), i.e. push the sk_buff -> ct
+handling down in followup patches.
 
-Or was there another reason to do it this way?
+> I would leave this code as duplicated given
+> that is shared only between xt_connlimit and nft_connlimit. Openvswitch 
+> doesn't care about this as they always call nf_conncount_count() while 
+> holding a reference to a ct..
 
-If you prefer you can only resend this patch, I believe there
-are two different use cases:
+[..]
 
-This patch as requirement for future ft offload of ip/ip6 packets
-in bridged pppoe/qinq and this patch as starting point to eventually
-allow 'ip saddr 1.2.3.4' to auto-match for PPPoE, Vlan, etc.
+> No worries at all, I think there is some benefit from this change even 
+> with the copy-paste. Maybe we can create a helper function to just get 
+> the ct from the sk_buff.. what about "nf_conntrack_get_or_find()"? I 
+> accept suggestions for a better name :)
+
+OK, but the problem is that you need to know when you need to put the
+reference and when you don't have to.
+
+Task is:
+given skb, return a
+'ct' that is not a template
+... but if its a template we need the zone to make a lookup ourselves
+... and we have to bump (and put) refcount when we do that lookup
+ourselves.
+
+Maybe you could try adding a new api, e.g. call it
+'nf_conncount_count_skb()' that then calls nf_conncount_count()
+internally just to see how bad it looks?
+
+If its not too bad, then all callers could be converted one after
+another.
+
+And then same with nf_conncount_add().
+
+Just a suggestion, alternatively give your nf_conntrack_get_or_find()
+a try, it would need a 'bool *refcounted' or similar arg and a
+conditional 'if (refcounted) nf_ct_put(ct)' to be done by the callers.
