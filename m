@@ -1,71 +1,126 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C1667404E
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Nov 2025 10:01:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44256320A00;
+	Fri,  7 Nov 2025 11:15:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762509697; cv=none; b=ZM5xSdAWDCj+M4EFvP/GnLq4Q2BacrXIoQuE7DYjDG2CZ8DcI0Q7qYWPLWkin/DqGmFpRayL1TEhWSh+Tn1hOsAObm9KWk4zyidzeKvYbMDmCZLkfJpNjF07wy9wOlxVctqu8EWq7b3SGWtwdB0xF3xuWrXNL3HLB0kIZZ/5NSQ=
+	t=1762514112; cv=none; b=GimQT6+7glbOtnH7qZXZ1MqLtR3RNArRXlPtksrp/Ye9Y+pYPrOi+v+U6ObfHLL6El3ALEE8CZ7+Bd7zoXvyn4plfU2B1WefGExWuhZcbXBvnDMWclTcZYrq8guNk0wHxlMeP+7f1YSCu7u2/znK08POSrAZl4c+VEBYfUNaN8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762509697; c=relaxed/simple;
-	bh=onsZkeahqDOk6Nls9G20BBF2XrPwjOj3x6C9NlvGZPg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ivYMpF+MxrhQY8jGy3hbioagFq/zhGSUv9e5Px5XT58mv3d0KyI2hGzRQi/qdHLF1B+jhCC/Oxsy3/n5aeLtjjXXBugvZjDhxBHhNGKuFB/MuvdeIfOaPujXSlJZxtkXKMcWJO7pTuVhi6jvCjU+5tdzM7ZGeUbxS6yD/ED0wTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=EubbgA+H; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1762514112; c=relaxed/simple;
+	bh=R0+I1GodW0kaLsfONU7InUNmqif4N7CYW8CRHNfhb8U=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=mlvhWdmwNGT0YGFxex3Dv3Fe5dzXfveltwOO5DCfGdbKmHeQBuSUrgv0uDqu9LL9vR9GOfCbOr2NguEffrHjWP1o02vuvTd4Vqu85ioKaIMWrT0/oWm6/Fhv5xC/2OPcxuEiGIJrUmTU2HEGVd0WmfdAel1l8fJqaljus3+Yo6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bSkaOG9w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="EubbgA+H"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=q5T0Rcb6Nq4ShWkKNJPi2Ist0/rCaPjwUBcyT+DftGI=; b=EubbgA+Hi1i2Kf4nnEYFKQkAi3
-	/zzWh+U8o2RGCxypt+y9rGcaFd80AKG6/MQ8cWwGBh9VYmJ2xjRtXFQJp2vl6xLxqkEnYwtMVfF8j
-	+Ow9Z5yEP7ctnFnk9gmGLL65GN2pxI0LXHIa9pVp6HG0uBnfrTaUXmB1AbHlaoFvCglGuQT7JHZ3b
-	j1XALP3eaXzT0f+95gjUOzzuRL6Xs4pAAbLU0twHcWcmRZtiiMrnNHG+9CXsmZn5oO6gK+Ipr+tFN
-	pg/6TMXTFxh46mb5QSlsk+hgy49SQfbEx9mqZS0bKV6Kx/byaSZ+MkF9c6ZO0kMZ0KmG0ot5Xdi/m
-	six2ZFPA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1vHJHY-000000008BM-2sbM;
-	Fri, 07 Nov 2025 11:01:24 +0100
-Date: Fri, 7 Nov 2025 11:01:24 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] doc: libnftables-json: Describe RULESET object
-Message-ID: <aQ3DdD5zUcFxGxhj@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20251106111717.9609-1-phil@nwl.cc>
- <aQ0s80YeCLRZnmsB@strlen.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bSkaOG9w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F1BDC19424;
+	Fri,  7 Nov 2025 11:15:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1762514111;
+	bh=R0+I1GodW0kaLsfONU7InUNmqif4N7CYW8CRHNfhb8U=;
+	h=From:Subject:Date:To:Cc:From;
+	b=bSkaOG9wbHDpEphNm1vrIC/iyflW/bP6ozjv49bASRMW1yIch6h1drNW+PNlgPdzH
+	 59IiYVSanQ0ieaqlysoKKYHqVagxje5k4tn/8PRgM+B3Yxzz41rOhhvGY5QwxprDU7
+	 YL7h11OmRS26KFFbzQboMed9Uj53LOZ4xh3x/KZ2e9gZc3pPFWjrsQ3NIZcmXcFcn1
+	 e269aOiuRNlmDzPJ2BWvHq1jVJtbLG3yq6/Ag2ydvLsOYXy9+w3FuPPzC9yvI5LCN5
+	 fSVE+okshPqmIQUEWM5MABLVa0LqD+MhUKV6OpV3nxCGDCEyzzyuaFswJwKqmUGCj9
+	 6y2cgT8z3150g==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Subject: [PATCH nf-next v9 0/3] Add IPIP flowtable SW acceleration
+Date: Fri, 07 Nov 2025 12:14:45 +0100
+Message-Id: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aQ0s80YeCLRZnmsB@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAKXUDWkC/33Qy2rDMBAF0F8JWldlRs9RVv2P0oX1SkSDbezgp
+ oT8e4UXjYtFl8MdnbnozuY0lTSz4+HOprSUuQx9HdzLgYVz158SL7HOTIDQYITkfeb5MnxdO3+
+ p2VhGjl5G64EiGMvqu3FKudxW853V9T7druyjBucyX4fpe7214Br/wy7IkQvSUjuTpFP49pmmP
+ l1eh+m0covYErZFCA48WJQAMiSr/Y6QT8JCs4WsBBF0OUp03uUdoTYEUotQlcjkPQYk78jsCL0
+ hBLYIXQkgo7vskqawJ8yToHYLU4kUOwdKCStd2BH2l0Bot7CV6JQWqMgZhH0L2hLN76RK6Kgja
+ aeDlfCHeDweP4v1SHuRAgAA
+X-Change-ID: 20250623-nf-flowtable-ipip-1b3d7b08d067
+To: "David S. Miller" <davem@davemloft.net>, 
+ David Ahern <dsahern@kernel.org>, Eric Dumazet <edumazet@google.com>, 
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+ Simon Horman <horms@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Shuah Khan <shuah@kernel.org>, 
+ Andrew Lunn <andrew+netdev@lunn.ch>, Phil Sutter <phil@nwl.cc>
+Cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org, 
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ linux-kselftest@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.2
 
-On Fri, Nov 07, 2025 at 12:19:15AM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > Document the syntax of this meta-object used by "list" and "flush"
-> > commands only.
->  
-> > 872f373dc50f7 ("doc: Add JSON schema documentation")
-> 
-> Why is that here?  Should this have been 'Fixes: '?
+Introduce SW acceleration for IPIP tunnels in the netfilter flowtable
+infrastructure. This series introduces basic infrastructure to
+accelerate other tunnel types (e.g. IP6IP6).
 
-Oops, yes.
+---
+Changes in v9:
+- Fixed IPIP tunnel offloading when VLAN encapsulation is enabled.
+- Add IPIP tunnel over vlan self-test
+- Remove wrong filed from flow_offload_tuple key
+- Cosmetics
+- Link to v8: https://lore.kernel.org/r/20251023-nf-flowtable-ipip-v8-0-5d5d8595c730@kernel.org
 
-> Aside from that, just apply this, thanks.
+Changes in v8:
+- Rebase on top of the following series (not yet applied)
+  https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=477081
+- Link to v7: https://lore.kernel.org/r/20251021-nf-flowtable-ipip-v7-0-a45214896106@kernel.org
 
-Patch applied, thanks!
+Changes in v7:
+- Introduce sw acceleration for tx path of IPIP tunnels
+- Rely on exact match during flowtable entry lookup
+- Fix typos
+- Link to v6: https://lore.kernel.org/r/20250818-nf-flowtable-ipip-v6-0-eda90442739c@kernel.org
+
+Changes in v6:
+- Rebase on top of nf-next main branch
+- Link to v5: https://lore.kernel.org/r/20250721-nf-flowtable-ipip-v5-0-0865af9e58c6@kernel.org
+
+Changes in v5:
+- Rely on __ipv4_addr_hash() to compute the hash used as encap ID
+- Remove unnecessary pskb_may_pull() in nf_flow_tuple_encap()
+- Add nf_flow_ip4_ecanp_pop utility routine
+- Link to v4: https://lore.kernel.org/r/20250718-nf-flowtable-ipip-v4-0-f8bb1c18b986@kernel.org
+
+Changes in v4:
+- Use the hash value of the saddr, daddr and protocol of outer IP header as
+  encapsulation id.
+- Link to v3: https://lore.kernel.org/r/20250703-nf-flowtable-ipip-v3-0-880afd319b9f@kernel.org
+
+Changes in v3:
+- Add outer IP header sanity checks
+- target nf-next tree instead of net-next
+- Link to v2: https://lore.kernel.org/r/20250627-nf-flowtable-ipip-v2-0-c713003ce75b@kernel.org
+
+Changes in v2:
+- Introduce IPIP flowtable selftest
+- Link to v1: https://lore.kernel.org/r/20250623-nf-flowtable-ipip-v1-1-2853596e3941@kernel.org
+
+---
+Lorenzo Bianconi (3):
+      net: netfilter: Add IPIP flowtable rx sw acceleration
+      net: netfilter: Add IPIP flowtable tx sw acceleration
+      selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selftest
+
+ include/linux/netdevice.h                          |  13 ++
+ include/net/netfilter/nf_flow_table.h              |  18 +++
+ net/ipv4/ipip.c                                    |  25 ++++
+ net/netfilter/nf_flow_table_core.c                 |   3 +
+ net/netfilter/nf_flow_table_ip.c                   | 135 +++++++++++++++++++--
+ net/netfilter/nf_flow_table_path.c                 |  84 +++++++++++--
+ .../selftests/net/netfilter/nft_flowtable.sh       |  69 +++++++++++
+ 7 files changed, 328 insertions(+), 19 deletions(-)
+---
+base-commit: 32e4b1bf1bbfe63e52e2fff7ade0aaeb805defe3
+change-id: 20250623-nf-flowtable-ipip-1b3d7b08d067
+
+Best regards,
+-- 
+Lorenzo Bianconi <lorenzo@kernel.org>
+
