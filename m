@@ -1,66 +1,66 @@
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A962BE034
-	for <netfilter-devel@vger.kernel.org>; Fri,  7 Nov 2025 22:46:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E7132F3C18
+	for <netfilter-devel@vger.kernel.org>; Fri,  7 Nov 2025 22:46:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762555584; cv=none; b=b0kF6gTMtxLd302eQq785MStfxnYAD+deyxsN+MollN1rdlGwvlEuaoQWSI9+AYvSd+NieKyYyoHwd5cZ6Iqozi9x34vQ2NqdjyR1muUpX0aQJpOeOs2S4qCwtGLycRdGoUpKzIqxCcygfrVd333Ira8c/AzFSPBbav7lgDK2E8=
+	t=1762555584; cv=none; b=itAm4B+bxIQ6Tj4G2L9Mf488H33jynwQC9cou9NmDpYdZuWJ2iZTcSGwmkXf+NkLLy7NepcA3zbndgms9E7XKoj3TuyX7naiBCmKKrFjQNwe9EgWDJnSrvZ8TT9Ic1uq7KBEtPlg8M2QNg7iBCPGT/yaU2FdfRMhJ6NXrWNS/HA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1762555584; c=relaxed/simple;
-	bh=Iw0djrGj0E1EeAmzCQwmf4P9quCFdn1G1qnajo2IswA=;
+	bh=exM2y4bXCjZMQxm7NJdgWLyhnwqAYQhkw/iId3BFS+8=;
 	h=Date:Message-ID:MIME-Version:Content-Type:From:To:Cc:Subject:
-	 References:In-Reply-To; b=bs+FhupRuNPJ4REBxR8ntPpKnURVstCn6YluIIglewlEnXTQhBI+KXcVFnwBlpxCRzQFE5tGScekwSV1ZGeCdKwGoiBXB2LSKLmuevpQj6ZyYK1IfZRjJ7n5ITOAgPfrsMa9DmHtYj2p+wS60EQyMdjgStYKBnR4PS4L2jWVKOs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=Y37ErSiH; arc=none smtp.client-ip=209.85.160.178
+	 References:In-Reply-To; b=DWO9I3+YMKMiErP4EYf7i1ZS57AAb8WOtjxUzjhcIM6shUVibAwQG3US3DwSZyoBtmRt0csPg4/yJeH8H+A1gYNjIR/QPIdENzu9CZ5jYvVmsxtfXnLIwgkwR0DgsrTYGAccYSjMljGIkTlY2yDZVLPnLB3LjTVFpgX8SnMkMH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=KVYUmF+4; arc=none smtp.client-ip=209.85.222.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="Y37ErSiH"
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-4e89de04d62so10130291cf.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 07 Nov 2025 14:46:20 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="KVYUmF+4"
+Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-8b1f2fbaed7so118349285a.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 07 Nov 2025 14:46:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1762555580; x=1763160380; darn=vger.kernel.org;
+        d=paul-moore.com; s=google; t=1762555582; x=1763160382; darn=vger.kernel.org;
         h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
          :mime-version:message-id:date:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=LLmOflXkVRsPG430Y/bM1DxcagZMiyutQotB6mJKGqY=;
-        b=Y37ErSiH4Isan3caNYKDLIEIsV77MBpWe/YiN+tvF/g0CpXXvUE3DSr4FHkaDjvm37
-         HU25KiqHTNV60ZiCsYzOMvS1HJruZknV8Pwwfro4xSXUV/nWQg8uSd7UfWvLjYOq58bF
-         yQUClq9RlHRYpObM41GxH9NnxWe+wMg2j77RDBWG1zExYLuh+dPNWC9Lj3U2AOqK+DMx
-         KVknOFKG3FceXGCpSQEYE0ux3POONuMPreTSV2q+q1D29sc5EBuoOMRJfAzVGR0mWKvL
-         LpYT1KBfsIpV3HbpzGgZAtVseewMON6p3Kog9y+tFzi5/hzsn1B+/O5Noe/OqS6ngot1
-         tshQ==
+        bh=MkmPvv21zjwIVzkW8sxRUn2RFjg0W7CBZpQyks/0r2w=;
+        b=KVYUmF+4V85J7wkDvBX3yrVHN5+YA71d5bxsyxqohUm2OmHoZwGu9JWjnf0UhwtVvO
+         pW4QIjxXvTG5Ix+VkbzhoPxxUsPK4C6sZa69vVq4BohCiqNBFnYS7pNeBbG2h9J+7HKc
+         4qCPr27R6XCpoUPA1rNEPqwZrcYlpC21iUzho/0/oqa3hMFManvilFCpf+iACvMbKxzt
+         RMljVYOJXELWE8fQzf8jdQYPtEtofibVTvfb4vJ+P61bX5nDzbDk02HEUhwqzN3ATSji
+         io+vgmyxH+Nb+j+j2uieD0odIG+HYtwb6vXjj03Oj2ucT/sEVYYDEpyFww+eEHsy/Dnw
+         SVtQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1762555580; x=1763160380;
+        d=1e100.net; s=20230601; t=1762555582; x=1763160382;
         h=in-reply-to:references:subject:cc:to:from:content-transfer-encoding
          :mime-version:message-id:date:x-gm-gg:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=LLmOflXkVRsPG430Y/bM1DxcagZMiyutQotB6mJKGqY=;
-        b=tWrL2NRK55A7QdsgGj0ZGkKctx1aPZAQrM6G4i0sUb6Es/tcRyYT4fdE7akEf6MIwD
-         QluyEXBZASxO7+w75tCh7p89XJPVZdfQfdR/9Mkf+8B9r6qjsj/XXHpffp+XRcWx8lhc
-         /+IpwlKRHSrXcMbckrAZ0yIpjAvqjmquCoNA3EKH4cYUi0RBFFOX5qsyHcj7Rocs3JFJ
-         t93D7UjSys4p9pPzS7YYJQ6VzAxgWwkeNv0n0EzAAphQ+k1LGGcrJPB44uzJXWQO/kqm
-         3TKW3JQiXyiE7mAd1fk2tpM3VtTPoKfLcMMW6kRHyOxiuZXesbwbxAkrKNJU4M6q3UqP
-         OK8A==
-X-Forwarded-Encrypted: i=1; AJvYcCXi5BXpWM33TPovHmTD8bFFIIwg9W7J9P1QacGQMKRbRoK1bcmviZBhmyj/wN1jK9jQeInmwg9Ncc61x/BJWy4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxqYSpQ2GW9QH74nghP39WdhxsTSbdIN05ayOUbbSJShSMvPc3p
-	GF+IMyZO9w32V110Fhf1ShUanrOHJ3FQSrnvNq4P7LuvJA9ELJU8SdjIaXz9Cee1Hg==
-X-Gm-Gg: ASbGncvMcIEKVxZWqy626sU2BcA5aSscl/Nq5nFuIq3H3qzoLX/o/Kvt4eiJOXzveFw
-	tRHvIeFb0+XtfDTCYsD8x3Wq/wzsTRtmsbS5DZglpc44O8aC53IAeKZtdW7lvh8Q90X32JGB7Ct
-	dZDckV/G1f54AJUTeJP7psLWUuGYhPH33Y9iGvlIPVQqsy76/BQ5+05nMme/qBkrmeevBOvPUW5
-	pdm5scUIW2uXYNYy1oOhthB3tpfqdMMlE8Vw0lI7b1ZZLsWV0/6nAyRFX5oivVfE2JAtQDMF7AI
-	en/nfDwvU0tpTufHpQSXNh/A67cwA1MPTFbmlLms1phf9sqhop3HYgkGnEsghiDmI0G2qSrNgEA
-	bih1HEtFlCYesW7mRAW+vvbzFxSMhTQ4i6v3D2r8hvWS5noKUQOnt3/cEAGa3wydB27njCuayDY
-	mS+Y/WdErz/uPwu+pHOGWDHsISiNKZT53YsnjVNCltJr2Yi8tXZubJF0dU
-X-Google-Smtp-Source: AGHT+IHrQn8HXQkHpkHyR17I/vgJvQDZ3PvcxfyB/9NyJzEb8+tk8bEQSW8kbFzruHMF1M4pLru8Dw==
-X-Received: by 2002:a05:622a:1455:b0:4eb:a2ab:4175 with SMTP id d75a77b69052e-4eda4fa3eebmr10623901cf.39.1762555579930;
-        Fri, 07 Nov 2025 14:46:19 -0800 (PST)
+        bh=MkmPvv21zjwIVzkW8sxRUn2RFjg0W7CBZpQyks/0r2w=;
+        b=UK6ZTwv6+8RBpptyRJQRlyyOwX/VfdDmurCFmJFG+wg4jiysNZF9OTIgAeWhz5iP61
+         Ei7YXVm6Op4TEPIhapXZOgHaxKVVYjlcJ46H2yvH+kOgK/26w5nQOPJyRhXFk33hRzcU
+         p0lu8QlNKTm1w6A0w1iXuF5+f2/rM34uqngSwfrRf+ZnMwi1GZUgfZSUHK5Pxl7GT/B5
+         T41ItlryZu/sJa+3W/+4AOTsZvN+RHqF8LYpyxg9ByoRMWYJ9oMSZe56cekxAwN5bzLe
+         ARcUCTNO/CsUhQ7xBBKHBkf3f8ZE/ltSApLl/FyNvB97DLokW2cV982If0A4h/PqO8VZ
+         ck/A==
+X-Forwarded-Encrypted: i=1; AJvYcCWD0BlhCJKI+hBYzolfpkKa/8GL54QJlsQnARr9+aXUK4F1IpQ+LPDZ95fc5Q/reRWPH1uHjVK5+40gQ3+m/qE=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxJ4t98ikGLxdRj2DmazOeNNKu6rX4ITn5pWvCcsOrUdKvj2/Du
+	BqNFM/aGgYNAWRv2ITmIZmC54isBDHqYwIB4iEKg/kbOMCHMxUrx16PKAIpVUn+Y0A==
+X-Gm-Gg: ASbGncuE3yuaUp4nryUkrZNllijedFe9+M93q8IWNjd1Kmy0HvbLCm/Wd2qtoNkmvGn
+	XGd7HTItW9SPUTYAES4mdPknceDMdPuydJO65tyx7WhEjxyl8QoGYvPJwbRiv7/rAv0w5VQfOmv
+	qxUB2kYIKhI9CqENQZQ/p/yCJEtOVgBqzQL2nQk02Q1XBbb5LmRFzsMg3ScoWM8AzpamgyvLamB
+	+58rxUrHsh3RRognOZ9aOYeBq/P6rZdNAV9xa8Q4eLwiVCl5oHK0Aus/yGQnxHfyiHYyirhEKO0
+	2+rIUJloqFG/whuXvImKnckj6Tkt6OJMVOoiZ86oc979p/gCf73YId9qBbYyXIrYVGWr/+83Ewf
+	gPrpTKa1gVq+RXmjRir6j3OjrjKQFkpUKtczgCkq4IFG18KuDQA5nGgFL052Y0RNVTcVfXXx8X5
+	hWia96pYR7wKLUAlXK4PiumriBHful06jzEWJm/1HCpIrG3t/z0SzMQq8B
+X-Google-Smtp-Source: AGHT+IGW2w5cYMyEJm74NZs2gDmZaOfaiPNwFh5FQ3KOXZnvYLTWQ2yOy1B0NxEYIggNl+tUwAUNgQ==
+X-Received: by 2002:a05:620a:4153:b0:892:8439:2efa with SMTP id af79cd13be357-8b257f02acemr121709485a.23.1762555581926;
+        Fri, 07 Nov 2025 14:46:21 -0800 (PST)
 Received: from localhost (pool-71-126-255-178.bstnma.fios.verizon.net. [71.126.255.178])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4eda56132c0sm3554831cf.7.2025.11.07.14.46.19
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8b2355c334dsm512663685a.12.2025.11.07.14.46.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 07 Nov 2025 14:46:19 -0800 (PST)
-Date: Fri, 07 Nov 2025 17:46:18 -0500
-Message-ID: <e92df5b09f0907f78bb07467b38d2330@paul-moore.com>
+        Fri, 07 Nov 2025 14:46:20 -0800 (PST)
+Date: Fri, 07 Nov 2025 17:46:20 -0500
+Message-ID: <a396108e2b9f19f0c453a44c8e7be873@paul-moore.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -73,211 +73,50 @@ X-Mailer: pstg-pwork:20251107_1632/pstg-lib:20251107_1737/pstg-pwork:20251107_16
 From: Paul Moore <paul@paul-moore.com>
 To: Ricardo Robaina <rrobaina@redhat.com>, audit@vger.kernel.org, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Cc: eparis@redhat.com, fw@strlen.de, pablo@netfilter.org, kadlec@netfilter.org, Ricardo Robaina <rrobaina@redhat.com>
-Subject: Re: [PATCH v5 1/2] audit: add audit_log_packet_ip4 and  audit_log_packet_ip6 helper functions
-References: <acd8109245882afd78cdf2805a2344c20fef1a08.1762434837.git.rrobaina@redhat.com>
-In-Reply-To: <acd8109245882afd78cdf2805a2344c20fef1a08.1762434837.git.rrobaina@redhat.com>
+Subject: Re: [PATCH v5 2/2] audit: include source and destination ports to  NETFILTER_PKT
+References: <b44ec08fbb011bc73ad2760676e0bbfda2ca9585.1762434837.git.rrobaina@redhat.com>
+In-Reply-To: <b44ec08fbb011bc73ad2760676e0bbfda2ca9585.1762434837.git.rrobaina@redhat.com>
 
 On Nov  6, 2025 Ricardo Robaina <rrobaina@redhat.com> wrote:
 > 
-> Netfilter code (net/netfilter/nft_log.c and net/netfilter/xt_AUDIT.c)
-> have to be kept in sync. Both source files had duplicated versions of
-> audit_ip4() and audit_ip6() functions, which can result in lack of
-> consistency and/or duplicated work.
+> NETFILTER_PKT records show both source and destination
+> addresses, in addition to the associated networking protocol.
+> However, it lacks the ports information, which is often
+> valuable for troubleshooting.
 > 
-> This patch adds two helper functions in audit.c that can be called by
-> netfilter code commonly, aiming to improve maintainability and
-> consistency.
+> This patch adds both source and destination port numbers,
+> 'sport' and 'dport' respectively, to TCP, UDP, UDP-Lite and
+> SCTP-related NETFILTER_PKT records.
+> 
+>  $ TESTS="netfilter_pkt" make -e test &> /dev/null
+>  $ ausearch -i -ts recent |grep NETFILTER_PKT
+>  type=NETFILTER_PKT ... proto=icmp
+>  type=NETFILTER_PKT ... proto=ipv6-icmp
+>  type=NETFILTER_PKT ... proto=udp sport=46333 dport=42424
+>  type=NETFILTER_PKT ... proto=udp sport=35953 dport=42424
+>  type=NETFILTER_PKT ... proto=tcp sport=50314 dport=42424
+>  type=NETFILTER_PKT ... proto=tcp sport=57346 dport=42424
+> 
+> Link: https://github.com/linux-audit/audit-kernel/issues/162
 > 
 > Signed-off-by: Ricardo Robaina <rrobaina@redhat.com>
 > Acked-by: Florian Westphal <fw@strlen.de>
 > ---
->  include/linux/audit.h    | 12 +++++++++++
->  kernel/audit.c           | 39 ++++++++++++++++++++++++++++++++++++
->  net/netfilter/nft_log.c  | 43 ++++------------------------------------
->  net/netfilter/xt_AUDIT.c | 43 ++++------------------------------------
->  4 files changed, 59 insertions(+), 78 deletions(-)
+>  kernel/audit.c | 83 +++++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 79 insertions(+), 4 deletions(-)
 
-...
+This looks fine to me, although it may change a bit based on the
+discussion around patch 1/2.  However, two things I wanted to comment
+on in this patch:
 
-> diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-> index e35588137995..f53fb4222134 100644
-> --- a/net/netfilter/nft_log.c
-> +++ b/net/netfilter/nft_log.c
-> @@ -26,41 +26,6 @@ struct nft_log {
->  	char			*prefix;
->  };
->  
-> -static bool audit_ip4(struct audit_buffer *ab, struct sk_buff *skb)
-> -{
-> -	struct iphdr _iph;
-> -	const struct iphdr *ih;
-> -
-> -	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_iph), &_iph);
-> -	if (!ih)
-> -		return false;
-> -
-> -	audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-> -			 &ih->saddr, &ih->daddr, ih->protocol);
-> -
-> -	return true;
-> -}
-> -
-> -static bool audit_ip6(struct audit_buffer *ab, struct sk_buff *skb)
-> -{
-> -	struct ipv6hdr _ip6h;
-> -	const struct ipv6hdr *ih;
-> -	u8 nexthdr;
-> -	__be16 frag_off;
-> -
-> -	ih = skb_header_pointer(skb, skb_network_offset(skb), sizeof(_ip6h), &_ip6h);
-> -	if (!ih)
-> -		return false;
-> -
-> -	nexthdr = ih->nexthdr;
-> -	ipv6_skip_exthdr(skb, skb_network_offset(skb) + sizeof(_ip6h), &nexthdr, &frag_off);
-> -
-> -	audit_log_format(ab, " saddr=%pI6c daddr=%pI6c proto=%hhu",
-> -			 &ih->saddr, &ih->daddr, nexthdr);
-> -
-> -	return true;
-> -}
-> -
->  static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
->  {
->  	struct sk_buff *skb = pkt->skb;
-> @@ -80,18 +45,18 @@ static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
->  	case NFPROTO_BRIDGE:
->  		switch (eth_hdr(skb)->h_proto) {
->  		case htons(ETH_P_IP):
-> -			fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-> +			fam = audit_log_packet_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
->  			break;
->  		case htons(ETH_P_IPV6):
-> -			fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-> +			fam = audit_log_packet_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
->  			break;
->  		}
->  		break;
->  	case NFPROTO_IPV4:
-> -		fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
-> +		fam = audit_log_packet_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
->  		break;
->  	case NFPROTO_IPV6:
-> -		fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
-> +		fam = audit_log_packet_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
->  		break;
->  	}
+- Please try to stick to an 80 char line width for audit code.  There are
+obvious exceptions like printf-esque strings, etc. but the
+skb_header_pointer() calls in this patch could be easily split into
+multiple lines, each under 80 chars.
 
-We can probably take this a step further by moving the case statements
-into the audit functions too.  I think this will make some of the other
-changes a bit cleaner and should reduce the amount of audit code in the
-NFT code.
-
-If we don't want to do that, it might be worthwhile to take the
-NFPROTO_BRIDGE protocol family reset shown below in audit_log_nft_skb()
-and use that in the nft_log_eval_audit() function so we aren't
-duplicating calls into the audit code.
-
-[WARNING: completely untested code, but you should get the basic idea]
-
-diff --git a/kernel/audit.c b/kernel/audit.c
-index 26a332ffb1b8..72ba3f51f859 100644
---- a/kernel/audit.c
-+++ b/kernel/audit.c
-@@ -2538,6 +2538,59 @@ static void audit_log_set_loginuid(kuid_t koldloginuid, kuid_t kloginuid,
-        audit_log_end(ab);
- }
- 
-+int audit_log_nft_skb(struct audit_buffer *ab,
-+                     struct sk_buff *skb, u8 nfproto)
-+{
-+       /* find the IP protocol in the case of NFPROTO_BRIDGE */
-+       if (nfproto == NFPROTO_BRIDGE) {
-+               switch (eth_hdr(skb)->h_proto) {
-+               case htons(ETH_P_IP):
-+                       nfproto = NFPROTO_IPV4;
-+               case htons(ETH_P_IPV6):
-+                       nfproto = NFPROTO_IPV6;
-+               default:
-+                       goto unknown_proto;
-+               }
-+       }
-+
-+       switch (nfproto) {
-+       case NFPROTO_IPV4: {
-+               struct iphdr iph;
-+               const struct iphdr *ih;
-+
-+               ih = skb_header_pointer(skb, skb_network_offset(skb),
-+                                       sizeof(_iph), &_iph);
-+               if (!ih)
-+                       return -ENOMEM;
-+
-+               audit_log_format(ab, " saddr=%pI4 daddr=%pI4 proto=%hhu",
-+                                &ih->saddr, &ih->daddr, ih->protocol);
-+               break;
-+       }
-+       case NFPROTO_IPV6: {
-+               struct ipv6hdr iph;
-+               const struct ipv6hdr *ih;
-+
-+               ih = skb_header_pointer(skb, skb_network_offset(skb),
-+                                       sizeof(_iph), &_iph);
-+               if (!ih)
-+                       return -ENOMEM;
-+
-+               audit_log_format(ab, " saddr=%pI6 daddr=%pI6 proto=%hhu",
-+                                &ih->saddr, &ih->daddr, ih->protocol);
-+               break;
-+       }
-+       default:
-+               goto unknown_proto;
-+       }
-+
-+       return 0;
-+
-+unknown_proto:
-+       audit_log_format(ab, " saddr=? daddr=? proto=?");
-+       return -EPFNOSUPPORT;
-+}
-+
- /**
-  * audit_set_loginuid - set current task's loginuid
-  * @loginuid: loginuid value
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index e35588137995..6f444e2ad70a 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -75,28 +75,7 @@ static void nft_log_eval_audit(const struct nft_pktinfo *pkt)
-                return;
- 
-        audit_log_format(ab, "mark=%#x", skb->mark);
--
--       switch (nft_pf(pkt)) {
--       case NFPROTO_BRIDGE:
--               switch (eth_hdr(skb)->h_proto) {
--               case htons(ETH_P_IP):
--                       fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
--                       break;
--               case htons(ETH_P_IPV6):
--                       fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
--                       break;
--               }
--               break;
--       case NFPROTO_IPV4:
--               fam = audit_ip4(ab, skb) ? NFPROTO_IPV4 : -1;
--               break;
--       case NFPROTO_IPV6:
--               fam = audit_ip6(ab, skb) ? NFPROTO_IPV6 : -1;
--               break;
--       }
--
--       if (fam == -1)
--               audit_log_format(ab, " saddr=? daddr=? proto=-1");
-+       audit_log_nft_skb(ab, skb, nft_pf(pkt));
- 
-        audit_log_end(ab);
- }
+- This isn't a general comment, but in this particular case it would be
+nice to move the protocol header variables into their associated switch
+case (see what I did in patch 1/2).
 
 --
 paul-moore.com
