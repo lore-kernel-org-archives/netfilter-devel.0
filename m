@@ -1,140 +1,118 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A56382EDD63
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2025 20:30:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 901932F0C69
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2025 20:44:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762806613; cv=none; b=fm9TUrN0iSy4PdmKe/ntnqr8OHs0N4OJ2UN/5BF9zBBt9jaGFxmvmJ0Md00E+iemXYkO7Xh9ps+jZbGmjoHeL8Hil6GbI08P31o7E9qN25m4086x8qYuy688Rw+CkaNXqjnDmqQd21YpkTJjvvf/S7Rfqdu85Q2jsVFruTDRieg=
+	t=1762807464; cv=none; b=S0WB5oT2+R+5/nJrhc9b17aElX2YkHPClzZ/Ya2uoBzEKnFraSCkSS7kRAhnLj3IJkREedrxt27PNxB8xEUMcnzeFc1sQaAnB8A3yrQT91MHLkD0Tb4tWtQuT/tKbDo51FA7KYIns4SBX+EU2CPZ2ztu9wp95PWZu2IPJEqHvwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762806613; c=relaxed/simple;
-	bh=UmjRi3hXBSKF6ZzNALfHfpstRXNI9ZW8jJVzyV9IZk8=;
-	h=From:To:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pQPqP2Qb5bng8YYHg3fuWvtea+nJi1SlBH63/DFmBYyPbHFOJw4TkzbaDN+28t03XhgT1PhQTfQ6IdsY1TjOdhYA6G7QdaeNRWNwZSqgDA266EwKlkVYucbdWs4BG4ZwMhD94OjAOlbEiIEP7LbnCI2TbulSPL6IhdOVYiJZkP4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=THhrr4fy; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="THhrr4fy"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id F35B96034A
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2025 21:30:01 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1762806602;
-	bh=6AYOpKwKi5EIoLq7wm+BMAK9hbzjy/tX+leXV6FUms0=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=THhrr4fylQ9+BT+zcWwL1c1IPH21YR8WamFWELcrvpBR20TVsqtoECoqJrrvqzH+u
-	 MoKUzV5bUOMXIJn5GsGYsKuvkWL99KfBuu5d29tY+QuQCkx2oXmf+bk2nxMr4FRaMc
-	 8GgJoiLQrD1iUt0qjYRu4HbCC5HoGPdA5FUtemKvIrHTuzh+dgSyjRnIHQ80JiES63
-	 sDkLaov3Mn9WSdZr0G5kyFcguxOFUWExYSFD1zWKDtuJKD/EMQ9NdtDXvffIQ2VNOa
-	 XKTE7BnB16HpGaqYlmF4yawTymIkAYMK4seiaxBfO3o09ka6d+4hZjRTG3KDqp3C1g
-	 pX+CswBOhiOWA==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH conntrack-tools,v2 3/3] conntrackd: update netns test to support IPv6
-Date: Mon, 10 Nov 2025 21:29:56 +0100
-Message-Id: <20251110202956.22523-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20251110202956.22523-1-pablo@netfilter.org>
-References: <20251110202956.22523-1-pablo@netfilter.org>
+	s=arc-20240116; t=1762807464; c=relaxed/simple;
+	bh=YCKA7ljmPnMfiLB0AZyXHH0P/QDwDDVqwlwWka7f81U=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JQZk1KpC4QWy75jPQZ1NO17ZBWTtQtI0PxQBbmB41X+KulR+ZR5Zso7NxXurFjjzCg49U6/2Xp1RJDUy6qvr6cBlJBUMck/D16EXoVtfcvZowk9Sd4BUh1cpMIgnueWDdt8tFcCSOzy3zkIHz/p1Rl5WfdJoMQZOhN+OEb8lIXU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 378AD604EE; Mon, 10 Nov 2025 21:44:19 +0100 (CET)
+Date: Mon, 10 Nov 2025 21:44:19 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	pablo@netfilter.org, phil@nwl.cc, aconole@redhat.com,
+	echaudro@redhat.com, i.maximets@ovn.org
+Subject: Re: [PATCH 2/4 nf-next v2] netfilter: nf_conncount: only track
+ connection if it is not confirmed
+Message-ID: <aRJOo4bN1DEhYvE7@strlen.de>
+References: <20251110154249.3586-1-fmancera@suse.de>
+ <20251110154249.3586-3-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251110154249.3586-3-fmancera@suse.de>
 
-Extend test to support for IPv6:
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+> index 0189f8b6b0bd..8c21890e4536 100644
+> --- a/net/netfilter/xt_connlimit.c
+> +++ b/net/netfilter/xt_connlimit.c
+> @@ -29,24 +29,16 @@
+>  static bool
+>  connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  {
+> -	struct net *net = xt_net(par);
+>  	const struct xt_connlimit_info *info = par->matchinfo;
+> -	struct nf_conntrack_tuple tuple;
+> -	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
+> -	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
+> -	enum ip_conntrack_info ctinfo;
+> -	const struct nf_conn *ct;
+> +	struct net *net = xt_net(par);
+>  	unsigned int connections;
+> +	bool refcounted = false;
+> +	struct nf_conn *ct;
+>  	u32 key[5];
+>  
+> -	ct = nf_ct_get(skb, &ctinfo);
+> -	if (ct != NULL) {
+> -		tuple_ptr = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+> -		zone = nf_ct_zone(ct);
+> -	} else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
+> -				      xt_family(par), net, &tuple)) {
+> +	ct = nf_ct_get_or_find(net, skb, xt_family(par), &refcounted);
+> +	if (!ct)
+>  		goto hotdrop;
+> -	}
 
-- Add IPv6 address and route.
-- Use inet instead of ip table for masquerading.
-- Annotate the IPv6 multicast address for IPv6_address in
-  conntrackd.conf files.
+This can't work this way for -t raw use case, which we need
+to preserve.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v3: new in this series.
+Anyone who uses -t raw ... -m connlimit ...
 
- tests/conntrackd/netns/conntrackd-netns-test.sh | 10 ++++++++++
- tests/conntrackd/netns/conntrackd-nsr1.conf     |  1 +
- tests/conntrackd/netns/conntrackd-nsr2.conf     |  1 +
- tests/conntrackd/netns/ruleset-nsr1.nft         |  2 +-
- 4 files changed, 13 insertions(+), 1 deletion(-)
+will now have their packets dropped, so no connection
+can make forward progress (not even when using iptables --syn).
 
-diff --git a/tests/conntrackd/netns/conntrackd-netns-test.sh b/tests/conntrackd/netns/conntrackd-netns-test.sh
-index 6f165879040f..f6b11e26dcf7 100755
---- a/tests/conntrackd/netns/conntrackd-netns-test.sh
-+++ b/tests/conntrackd/netns/conntrackd-netns-test.sh
-@@ -17,24 +17,34 @@ start () {
- 	ip link add veth2 netns nsr1 type veth peer name veth0 netns nsr2
- 
- 	ip -net ns1 addr add 192.168.10.2/24 dev veth0
-+	ip -6 -net ns1 addr add bbbb::2/64 dev veth0
- 	ip -net ns1 link set up dev veth0
- 	ip -net ns1 ro add 10.0.1.0/24 via 192.168.10.1 dev veth0
-+	ip -6 -net ns1 ro add aaaa::/64 via bbbb::1 dev veth0
- 
- 	ip -net nsr1 addr add 10.0.1.1/24 dev veth0
- 	ip -net nsr1 addr add 192.168.10.1/24 dev veth1
-+	ip -6 -net nsr1 addr add aaaa::1/64 dev veth0
-+	ip -6 -net nsr1 addr add bbbb::1/64 dev veth1
- 	ip -net nsr1 link set up dev veth0
- 	ip -net nsr1 link set up dev veth1
- 	ip -net nsr1 route add default via 192.168.10.2
-+	ip -6 -net nsr1 route add default via bbbb::2
- 	ip netns exec nsr1 sysctl net.ipv4.ip_forward=1
-+	ip netns exec nsr1 sysctl net.ipv6.conf.all.forwarding=1
- 
- 	ip -net nsr1 addr add 192.168.100.2/24 dev veth2
-+	ip -6 -net nsr1 addr add cccc::2/96 dev veth2
- 	ip -net nsr1 link set up dev veth2
- 	ip -net nsr2 addr add 192.168.100.3/24 dev veth0
-+	ip -6 -net nsr2 addr add cccc::3/96 dev veth0
- 	ip -net nsr2 link set up dev veth0
- 
- 	ip -net ns2 addr add 10.0.1.2/24 dev veth0
-+	ip -6 -net ns2 addr add aaaa::2/64 dev veth0
- 	ip -net ns2 link set up dev veth0
- 	ip -net ns2 route add default via 10.0.1.1
-+	ip -6 -net ns2 route add default via aaaa::1
- 
- 	echo 1 > /proc/sys/net/netfilter/nf_log_all_netns
- 
-diff --git a/tests/conntrackd/netns/conntrackd-nsr1.conf b/tests/conntrackd/netns/conntrackd-nsr1.conf
-index c79eff5f6bab..d37e102e86d1 100644
---- a/tests/conntrackd/netns/conntrackd-nsr1.conf
-+++ b/tests/conntrackd/netns/conntrackd-nsr1.conf
-@@ -3,6 +3,7 @@ Sync {
- 	}
- 	Multicast {
- 		IPv4_address 225.0.0.50
-+		#IPv6_address ff08::123
- 		Group 3780
- 		IPv4_interface 192.168.100.2
- 		Interface veth2
-diff --git a/tests/conntrackd/netns/conntrackd-nsr2.conf b/tests/conntrackd/netns/conntrackd-nsr2.conf
-index 65fa0d6a4a1a..aab60839750b 100644
---- a/tests/conntrackd/netns/conntrackd-nsr2.conf
-+++ b/tests/conntrackd/netns/conntrackd-nsr2.conf
-@@ -3,6 +3,7 @@ Sync {
- 	}
- 	Multicast {
- 		IPv4_address 225.0.0.50
-+		#IPv6_address ff08::123
- 		Group 3780
- 		IPv4_interface 192.168.100.3
- 		Interface veth0
-diff --git a/tests/conntrackd/netns/ruleset-nsr1.nft b/tests/conntrackd/netns/ruleset-nsr1.nft
-index bd6f1b4df6dd..5ba6d6faa5fb 100644
---- a/tests/conntrackd/netns/ruleset-nsr1.nft
-+++ b/tests/conntrackd/netns/ruleset-nsr1.nft
-@@ -1,4 +1,4 @@
--table ip filter {
-+table inet filter {
- 	chain postrouting {
- 		type nat hook postrouting priority srcnat; policy accept;
- 		oif veth0 masquerade
--- 
-2.30.2
+We need to get rid of the
+        if ((u32)jiffies == list->last_gc)
+                goto add_new_node;
 
+check in nf_conncount_add(), or, (to not add perf regress for ovs ...)
+apply it when a (confirmed) conntrack entry is present.
+
+Given that limitation, I don't think this nf_ct_get_or_find() helper
+makes any sense, since you still need to pass the tupleptr down
+to count_tree().
+
+I think passing in the sk_buff is better, so all of this
+conntrack/tuple/zone etc. stuff is hidden away in nf_conncount.c.
+
+I think you could start by *adding*
+
+unsigned int nf_conncount_count_skb(struct net *net,
+				    const struct sk_buff *skb,
+				    struct nf_conncount_data *data,
+				    const u32 *key);
+
+As frontend function for nf_conncount_count().
+This new function could (re)use some of the code you made
+for nf_ct_get_or_find(), the zone usage there looks correct
+to me.
+
+Then, in patch 2, convert -m connlimit.
+You could send that as an initial patch set already.
+
+Then, in patch 3 (or later followup patch set), convert remaining user
+(ovs) and hide old api.
+
+Then, in patch 4, start pushing down the sk_buff more in nf_conncount.c
+until its available for nf_conncount_add().
+
+Then, add nf_conncount_add_skb and repeat this process.
+
+Does that make sense?
