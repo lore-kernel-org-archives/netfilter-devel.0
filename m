@@ -1,61 +1,55 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39F3530BF77
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2025 12:36:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6AFE30CDA1;
+	Mon, 10 Nov 2025 12:43:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762778165; cv=none; b=nkW/4G6zVv3gfpln9nnFcFVZRSTEjOIP8YzvRon1DY+j0SI0LqnuQwHBdEMSPrGk/Pq9qynlYvpo8vlwGrmljmBKZjm5jbJWvbs53GT22js82En0w2jOSEY5k7A4Qefobf9icZZSTh64ueiqZryZvbFgNrcOcOEAE0tPEoOnnUc=
+	t=1762778641; cv=none; b=bNnFMmyRhoh+aj9UQjO92wsmgn01KVZggAqn7b43kkSnkw2myyVFcRPSzaXAI2jRBFtS1PPfVzfXCzPgwlaGYR1+rNTa66ETqUJX/twweAmYVHxsj9UaZuLMGK+Cvv4LKsAMmsLq1eD+A+QqNAh87NOwq9lzDQtBgr/4vSEz21U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762778165; c=relaxed/simple;
-	bh=/0Y7shLHieCGFeKsgaYN0DjH0Rv7iU1iqsogl1Xwg24=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=h4nVjIg4Nc6DDK3CsiUatN0LWeq2eAphdyiAsV2+/iQVW4xeMg6q2ZW8yvGEfX4o1aS3ojDE+TrWxJEPXaEWSypmc66S2JsylTdwxjCmsWFbmDYZLbO1fTIf/DQSoy23TpeVKouHwC7Q4TS03UQjhyQCZzb6Z7f0Nh5MequOT9Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=MPXu7LXp; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="MPXu7LXp"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 22B1360253
-	for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2025 13:35:58 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1762778158;
-	bh=m/5BnKuRm+IUEqPaYmF3ql/JeSm3KSRzGt6Zii5HhyY=;
-	h=Date:From:To:Subject:References:In-Reply-To:From;
-	b=MPXu7LXphAW9VbcYcPgHrPjhCFCWpfZ62UfL2vPlNxkdDAc3tnctluo0I2l98TqZK
-	 ziSxtCEUoBTaPs5r30NPHg8qcGr2ygCbQfEhsFR8vj9U5Juato+VS6YXxp0qeIYKMj
-	 EU2C0KXSvxVnNA/GKC6sGuYoaUPAobIQwbHldOOMjzC/VgS6zCWQ3bF6hnHQSsv5S5
-	 IPFfr+oBrEIpc3DngeHe0DPRzY3Zf42lEp4YFqnIIVTyZK2WX5e+TRr2VZiAlJytFe
-	 sNk/LgxH0wAUoBMF7H2PTRcXs1DZfVZXecixuStm2C5S4BHkLPM17v6k8tzllA+L5X
-	 0C3n98QkBW9ZA==
-Date: Mon, 10 Nov 2025 13:35:55 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH conntrack-tools 1/2] conntrackd: restrict multicast
- reception
-Message-ID: <aRHcK0reHpFVExYi@calendula>
-References: <20251110103531.2158-1-pablo@netfilter.org>
+	s=arc-20240116; t=1762778641; c=relaxed/simple;
+	bh=FgEkP7fgrny1QFi+3H+4FmZFwSuM7CPXNJJo6qvlHtU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EtrsiLRrqZqaGgNALYQ6/SpYe0NRUo9w/h+iu0Rg6EC4ccCN3SZR/hBQphFJUFakHm+VlMQTW0k3xGhro5stnYYapG6bAiLecPQpnbBDY9dmGbsB3ruqwqsyQ6TMqJNcupyYUpdvbhzGW8gEZki4Te30vFx+lIMA92h0jmqALH4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id CFA0E6045F; Mon, 10 Nov 2025 13:43:48 +0100 (CET)
+Date: Mon, 10 Nov 2025 13:43:48 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Ricardo Robaina <rrobaina@redhat.com>
+Cc: Paul Moore <paul@paul-moore.com>, audit@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, eparis@redhat.com, pablo@netfilter.org,
+	kadlec@netfilter.org
+Subject: Re: [PATCH v5 1/2] audit: add audit_log_packet_ip4 and
+ audit_log_packet_ip6 helper functions
+Message-ID: <aRHd_WFBcyiL1Ufe@strlen.de>
+References: <acd8109245882afd78cdf2805a2344c20fef1a08.1762434837.git.rrobaina@redhat.com>
+ <e92df5b09f0907f78bb07467b38d2330@paul-moore.com>
+ <CAABTaaCVsFOmouRZED_DTMPy_EimSAsercz=8A3RLTUYnpvf_A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251110103531.2158-1-pablo@netfilter.org>
+In-Reply-To: <CAABTaaCVsFOmouRZED_DTMPy_EimSAsercz=8A3RLTUYnpvf_A@mail.gmail.com>
 
-On Mon, Nov 10, 2025 at 11:35:30AM +0100, Pablo Neira Ayuso wrote:
-> - For IPv4, bind multicast socket to the address specified by
->   IPv4_interface to restrict the interface.
+Ricardo Robaina <rrobaina@redhat.com> wrote:
+> > +int audit_log_nft_skb(struct audit_buffer *ab,
+> > +                     struct sk_buff *skb, u8 nfproto)
+> Thanks for reviewing this patch, Paul.
 > 
-> - For IPv6, bind the multicast socket to the IPv6 multicast address.
->   Although interface_index6 already restricts the interface, binding to
->   inaddr_any still allows for IPv4 sync messages to be received.
-> 
-> Without this patch, multicast sync messages can be received from any
-> address if your firewall policy does not restrict the interface used for
-> sending and receiving them.
+> It makes sense to me. I'll work on a newer version addressing your suggestions.
 
-This patch breaks communication between nodes, scratch that.
+Nit, but as you need to resend anyway, can you also make this
+'const struct sk_buff *' ?
+
+Also, given this isn't nftables specific, I suggest
+audit_log_nf_skb, audit_log_netfilter_skb or some such instead.
+
+Thanks.
