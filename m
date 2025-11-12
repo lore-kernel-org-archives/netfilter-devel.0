@@ -1,78 +1,151 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECCD92C375E;
-	Wed, 12 Nov 2025 23:10:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78CD32550AF;
+	Wed, 12 Nov 2025 23:10:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762989027; cv=none; b=aol8hoZNhbgiyzhHU/jEnQ3n6luR3E3aE/3Hdy2aMbbVG2JcvQOrkCiwGOYx6TfT3mtAOTNmIDjP6LDaUpECCIxYVezvck+wHK4Gn9LlUsEINtPik2Us9BKtbFTjR24Z2WJ+tBiapolLJfD+WTwhULkIJLeln13F0vQK6ISfeyQ=
+	t=1762989061; cv=none; b=KF8L4/TMl783qXidzsGdFOdB7EnjmDL8FZhYzX4aMGouIWjWr3j2SU4vnQp72LEyG8bIznDTnJDPC660PTbSoSBxXTWsrNxxEpyKq6P94M6tB1NU3/vWAB9vFeyc1fWQcPs5wpftKXQRX8J7Z3NtxSVLRJaKZ/sBa85DV3FfQkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762989027; c=relaxed/simple;
-	bh=Gsx3zSy57rq++hugpVFLbKz3EFbiM2+8RVOotUfTjj0=;
+	s=arc-20240116; t=1762989061; c=relaxed/simple;
+	bh=g8HQwyvosRqrj/H5ZyB6qV1fxoG9t+H6fK+shkMMQMk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RnbWc04w3In7jA7hiGTNwE96c/Q8mYEr19rf9SVoM4rf+6ksvyQ/clQSoCw8zPhco8Hb3sH+V+KEl5RAuxmBE6aL+/iowWdNv0vuRNC1G6tkw3qnH/QnusoxoxYnG9Xt8Tfm1Hv3GJqf+/+qjeIO7nMozWhpIuFbMyEpqwBo/As=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7F5226045F; Thu, 13 Nov 2025 00:10:16 +0100 (CET)
-Date: Thu, 13 Nov 2025 00:10:16 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Scott Mitchell <scott.k.mitch1@gmail.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, phil@nwl.cc,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, horms@kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Scott Mitchell <scott_mitchell@apple.com>
-Subject: Re: [PATCH] netfilter: nfnetlink_queue: optimize verdict lookup with
- hash table
-Message-ID: <aRUT2PIAqo3VY9SJ@strlen.de>
-References: <20251112160333.30883-1-scott_mitchell@apple.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=WSWV6/SFiDI9ZZn6n03EXV+4EDZAj05zWailyXPFY6m+PgUHaZEwmL7jomwbZzZqDpEQcMLe1aQnHAa9YfLBv/GtU0QxyEmPzIztvzJJiLnIke4Lips/8CYTsN3WSK8lEr4hLmB09dkkrW0A9FY3CJ9bBDvg4DDZuE6/EX9YlPY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vR41GOMo; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vR41GOMo"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id D61D660279;
+	Thu, 13 Nov 2025 00:10:53 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1762989054;
+	bh=lhBJqy6zMtIHmZv4N86dc6RbKyZHbbHAvF6rboVN0/g=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=vR41GOMoghr4+WpMVNC79Tgs9adVJXTC7MiVSbI1MsYwFPGkMA0/G7VyciUBy+TSc
+	 rV0XXcGZqg6yR3CeUXUGWPKay+TEKHmjuBfzkRDCi/xk4oSMyRQJBVeRjVmyveAwXa
+	 64uYjyOHV7p7Z6c4Ql5jQm+P9/WhH+m6JSTOrnjq3Pdraes7nLpCHe+y0JUe+pDNhb
+	 OiQCIQl9N0fSSzP3PzMg/bJhshi1SvQ5XoA/zYgA02pDS14SECX3IMPFGs7iu0CbRM
+	 94wLf++lBqa3uxR7VaUMX1hJl549O7a2NXGCsoBYrtTIGijfmhdsZWWLkh/GEGEfII
+	 2Unzs70yGSZhA==
+Date: Thu, 13 Nov 2025 00:10:50 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v9 2/3] net: netfilter: Add IPIP flowtable tx sw
+ acceleration
+Message-ID: <aRUT-tFXYbwfZYUk@calendula>
+References: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
+ <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
+ <aRSDjkzMx4Ba7IW8@calendula>
+ <aRSvnfdhO2G1DXJI@lore-desk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20251112160333.30883-1-scott_mitchell@apple.com>
+In-Reply-To: <aRSvnfdhO2G1DXJI@lore-desk>
 
-Scott Mitchell <scott.k.mitch1@gmail.com> wrote:
->  static inline u_int8_t instance_hashfn(u_int16_t queue_num)
->  {
->  	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
-> @@ -114,13 +153,63 @@ instance_lookup(struct nfnl_queue_net *q, u_int16_t queue_num)
->  	return NULL;
->  }
->  
-> +static int
-> +nfqnl_hash_resize(struct nfqnl_instance *inst, u32 hash_size)
-> +{
-> +	struct hlist_head *new_hash, *old_hash;
-> +	struct nf_queue_entry *entry;
-> +	unsigned int h, hash_mask;
-> +
-> +	/* lock scope includes kcalloc/kfree to bound memory if concurrent resizes.
-> +	 * lock scope could be reduced to exclude the  kcalloc/kfree at the cost
-> +	 * of increased code complexity (re-check of hash_size) and relaxed memory
-> +	 * bounds (concurrent resize may each do allocations). since resize is
-> +	 * expected to be rare, the broader lock scope is simpler and preferred.
-> +	 */
+Hi Lorenzo,
 
-I'm all for simplicity. but I don't see how concurrent resizes are
-possible.  NFQNL_MSG_CONFIG runs under nfnetlink subsystem mutex.
+On Wed, Nov 12, 2025 at 05:02:37PM +0100, Lorenzo Bianconi wrote:
+[...]
+> > On Fri, Nov 07, 2025 at 12:14:47PM +0100, Lorenzo Bianconi wrote:
+> > [...]
+> > > @@ -565,8 +622,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+> > >  
+> > >  	dir = tuplehash->tuple.dir;
+> > >  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> > > +	other_tuple = &flow->tuplehash[!dir].tuple;
+> > >  
+> > > -	if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
+> > > +	if (nf_flow_encap_push(state->net, skb, other_tuple))
+> > >  		return NF_DROP;
+> > >  
+> > >  	switch (tuplehash->tuple.xmit_type) {
+> > > @@ -577,7 +635,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+> > >  			flow_offload_teardown(flow);
+> > >  			return NF_DROP;
+> > >  		}
+> > > -		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr));
+> > > +		dest = other_tuple->tun_num ? other_tuple->tun.src_v4.s_addr
+> > > +					    : other_tuple->src_v4.s_addr;
+> > 
+> > I think this can be simplified if my series use the ip_hdr(skb)->daddr
+> > for rt_nexthop(), see attached patch. This would be fetched _before_
+> > pushing the tunnel and layer 2 encapsulation headers. Then, there is
+> > no need to fetch other_tuple and check if tun_num is greater than
+> > zero.
+> > 
+> > See my sketch patch, I am going to give this a try, if this is
+> > correct, I would need one more iteration from you.
+> >
+> > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+> > index 8b74fb34998e..ff2b6c16c715 100644
+> > --- a/net/netfilter/nf_flow_table_ip.c
+> > +++ b/net/netfilter/nf_flow_table_ip.c
+> > @@ -427,6 +427,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+> >  	struct flow_offload *flow;
+> >  	struct neighbour *neigh;
+> >  	struct rtable *rt;
+> > +	__be32 ip_dst;
+> >  	int ret;
+> >  
+> >  	tuplehash = nf_flow_offload_lookup(&ctx, flow_table, skb);
+> > @@ -449,6 +450,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+> >  
+> >  	dir = tuplehash->tuple.dir;
+> >  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> > +	ip_dst = ip_hdr(skb)->daddr;
+> 
+> I agree this patch will simplify my series (thx :)) but I guess we should move
+> ip_dst initialization after nf_flow_encap_push() since we need to route the
+> traffic according to the tunnel dst IP address, right?
 
-Or did I miss something?
+Right, I made a quick edit, it looks like this:
 
-> +	new_hash = kcalloc(hash_size, sizeof(*new_hash), GFP_ATOMIC);
+@@ -566,9 +624,14 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 
+        dir = tuplehash->tuple.dir;
+        flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
++       other_tuple = &flow->tuplehash[!dir].tuple;
++
++       if (nf_flow_tunnel_push(skb, other_tuple) < 0)
++               return NF_DROP;
++
+        ip_daddr = ip_hdr(skb)->daddr;
+ 
+-       if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
++       if (nf_flow_encap_push(skb, other_tuple) < 0)
+                return NF_DROP;
+ 
+        switch (tuplehash->tuple.xmit_type) {
 
-Since the hash table could be large I would prefer if this could
-be GFP_KERNEL_ACCOUNT + kvcalloc to permit vmalloc fallback.
+That is, after tunnel header push but before pushing l2 encap (that
+could possibly modify skb_network_header pointer), fetch the
+destination address.
 
-> +	if (nfqa[NFQA_CFG_HASH_SIZE]) {
-> +		hash_size = ntohl(nla_get_be32(nfqa[NFQA_CFG_HASH_SIZE]));
-> +	}
+I made a few more comestic edits on your series and I pushed them out
+to this branch:
 
-Nit, no { } here.
+https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git/log/?h=flowtable-consolidate-xmit%2bipip
+
+I just noticed, in nf_flow_tunnel_ipip_push(), that this can be removed:
+
+        memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
+
+because this packet never entered the IP layer, the flowtable takes it
+before it can get there.
