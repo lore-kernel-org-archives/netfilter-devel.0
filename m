@@ -1,131 +1,134 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4333002D4;
-	Wed, 12 Nov 2025 12:55:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C11DF33C506
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 15:41:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762952110; cv=none; b=AWDJaTt/vI/eP13Ix3Q4vwSmStpCbuC/FVkfL6TKQeZaQ9hA0kS+zZEJw59ZN0sI62g3l0N1bHiDuUM1zjKHXOyUD9hdF/zMrjcuhYQuJqv1/93DwRoiAFU9XBNqv2EK2tbBBd7Hy/XkMdod1fGAOC/N3b2e1cNgA5wICw1IERM=
+	t=1762962101; cv=none; b=HV5+Ckr+viqVGRMv4rWRsk5gp4STFfi23qQjcE4hBcrvL97/oQuFQznODIa06RcjOuvLhQISLoD8BjlCQSY2cXJR3KLCye/DgQ9M/cm6Ugu72ZSCjJkzYEvq+RnrMhtlB5j5whnagW4ZalfpXWH1jI50RRlDms7q4RIVP2Sj+Ac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762952110; c=relaxed/simple;
-	bh=GK3S2B+V0tGij54CXCXdL03p1HBPSpt3WcU8s4IwIWk=;
+	s=arc-20240116; t=1762962101; c=relaxed/simple;
+	bh=ZiXQwsLaQ9DJlXCjNct0PPina8F7j3H7ylv1I8Z+t7E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=boe1WaMaq/qcabACLPdWoOscxwiWwvEs8XdLRt3W9dkF9Pu4TF9Xy5lX8QfuLNHDAvYm1jtBHL7j/UI7T6g3+yEtE9E7QYT0Oj39srWx7/ENF+9V9tZFWZhKgxVa2QSUEGhK7anvlFpRDlCvU5z4iFc5YPQmTtUjc4vWFMAccDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D6Bcjm/9; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=GgWfqeuq1mYcs96bx6/B1UoG/vguS+m6rWuCYJqVPKQ7GFMqEZrntci0v2clFNoYmuGf8z7r8CeYOMGB4vzD0oYog0xdLNiHjS0Q3c1sBq5y3KLV+/+enxbRCbFM+dQ4LbBQj6RI1fEGnXuc8M8pNmf0SHCKgv69oJiIyoOr2pI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=pCrP/IOE; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D6Bcjm/9"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 35840602A5;
-	Wed, 12 Nov 2025 13:55:03 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1762952103;
-	bh=OdNeVeyuucE30sPTpY9njuCBycZpQtt+JjceqnPV0Mw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=D6Bcjm/9LmFjtZeCTxPN0DJvz6XRu9Sc37Yb468pSkOpuAsnIIoqNazJRAud1sHoO
-	 mSxY5PM1z7yDgjRQl9NUgocoRUnggPcUSTm+qIXRQkNacOF9yv0AaC9HmSLeQhg7O7
-	 K3Z0/LtLWLjU6+T0X2vO0qu2tfklmPLSEFASLrJhdgG8Z8/lCTEUnS4ApEJUloFdWv
-	 WYudt8DCKioP7oXrFtXWT/e9wbbuAFLc+853qhVQqjTYbZMvUIe9qK8g1wHpYcAmeO
-	 6Ek5GA/lrp4yoZ8pWYiAi7erBgWRy74MIwLvjmxyozW4mQAVOQbb0ri2aMk5XEKYtw
-	 389qt0rQVqprA==
-Date: Wed, 12 Nov 2025 13:55:00 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v9 2/3] net: netfilter: Add IPIP flowtable tx sw
- acceleration
-Message-ID: <aRSDjkzMx4Ba7IW8@calendula>
-References: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
- <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pCrP/IOE"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=bagmLhze6xzBMgC+HNM0e3xjgB9PpFzhX3X+Jo8v1t0=; b=pCrP/IOE3gk8HQ2X91fimm9+6g
+	p39lGfJbjixYovtcmehc5TBanCZx0uiAA24YG2IYH4uk/TgetfRLqE9xb0DSNjNg1ka+OZRE0vjfQ
+	Ftoa+0HBP3SZaGHeZtFlJUyZ6JPSQRi2ETeFoOYTBX0DVkQMqfTQeolBu6mitDXlmvaogEavGXi3p
+	AS4OYsys5khWMxh1f0NIPnAgqR8sqCnbF7ae0CqlDQSN4EQWftMc6HgrnVt1K8PnF25FvZFEK8TXn
+	r30AFDfbW/7jeJbCbuYg409hTa2ahjLV25hfJ3CpqLHvsYg9ZCRzwoAO5Oq1JkWW3jDamIK97u8nA
+	8vGrwmEg==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vJCyQ-000000000hs-1Vul;
+	Wed, 12 Nov 2025 16:41:30 +0100
+Date: Wed, 12 Nov 2025 16:41:30 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Yi Chen <yiche@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] tests: shell: add packetpath test for meta time
+ expression.
+Message-ID: <aRSqqp3OW0j_na1z@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Yi Chen <yiche@redhat.com>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+References: <20251112073831.14720-1-yiche@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="qIJPGgiRR2AxazJq"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
+In-Reply-To: <20251112073831.14720-1-yiche@redhat.com>
 
+Hi Chen Yi,
 
---qIJPGgiRR2AxazJq
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+On Wed, Nov 12, 2025 at 03:38:31PM +0800, Yi Chen wrote:
+> Signed-off-by: Yi Chen <yiche@redhat.com>
+> ---
+>  .../packetpath/dumps/meta_time.nodump         |  0
+>  tests/shell/testcases/packetpath/meta_time    | 79 +++++++++++++++++++
+>  2 files changed, 79 insertions(+)
+>  create mode 100644 tests/shell/testcases/packetpath/dumps/meta_time.nodump
+>  create mode 100755 tests/shell/testcases/packetpath/meta_time
+> 
+> diff --git a/tests/shell/testcases/packetpath/dumps/meta_time.nodump b/tests/shell/testcases/packetpath/dumps/meta_time.nodump
+> new file mode 100644
+> index 00000000..e69de29b
+> diff --git a/tests/shell/testcases/packetpath/meta_time b/tests/shell/testcases/packetpath/meta_time
+> new file mode 100755
+> index 00000000..a5003fa2
+> --- /dev/null
+> +++ b/tests/shell/testcases/packetpath/meta_time
+> @@ -0,0 +1,79 @@
+> +#!/bin/sh
+> +
+> +# NFT_TEST_REQUIRES(NFT_TEST_HAVE_meta_time)
+> +
+> +. $NFT_TEST_LIBRARY_FILE
+> +
+> +gen_in_range_minute()
+> +{
+> +	echo $(date -d "-5 minutes" +%H:%M)-$(date -d "+5 minutes" +%H:%M)
+> +}
+> +
+> +gen_out_of_range_minute()
+> +{
+> +	echo $(date -d "+2 minutes" +%H:%M)-$(date -d "+5 minutes" +%H:%M)
+> +}
+> +
+> +gen_in_range_hour()
+> +{
+> +	echo $(date -d "-2 hours" +%H:%M)-$(date -d "+2 hours" +%H:%M)
+> +}
+> +
+> +gen_out_of_range_hour()
+> +{
+> +	echo $(date -d "+1 hours" +%H:%M)-$(date -d "+2 hours" +%H:%M)
+> +}
+> +gen_in_range_day()
+> +{
+> +	#meta day "Sunday"-"Tuesday"
+> +	echo \"$(date -d "-1 days" +%A)\"-\"$(date -d "+1 days" +%A)\"
+> +}
+> +gen_out_of_range_day()
+> +{
+> +	echo \"$(date -d "-2 days" +%A)\"-\"$(date -d "-1 days" +%A)\"
+> +}
+> +
+> +gen_in_range_time()
+> +{
+> +	echo ">" \"$(date -d "-1 years +10 days" +%G-%m-%d" "%H:%M:%S)\" "meta time <" \"$(date -d "+2 days" +%G-%m-%d" "%H:%M:%S)\"
+> +}
+> +
+> +gen_out_of_range_time()
+> +{
+> +	echo ">" \"$(date -d "+10 days" +%G-%m-%d" "%H:%M:%S)\" "meta time <" \"$(date -d "+1 month" +%G-%m-%d" "%H:%M:%S)\"
+> +}
 
-Hi Lorenzo,
+Why do you resort to using two matches instead of a range here?
+Something like the following works fine for me:
 
-On Fri, Nov 07, 2025 at 12:14:47PM +0100, Lorenzo Bianconi wrote:
-[...]
-> @@ -565,8 +622,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
->  
->  	dir = tuplehash->tuple.dir;
->  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
-> +	other_tuple = &flow->tuplehash[!dir].tuple;
->  
-> -	if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
-> +	if (nf_flow_encap_push(state->net, skb, other_tuple))
->  		return NF_DROP;
->  
->  	switch (tuplehash->tuple.xmit_type) {
-> @@ -577,7 +635,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
->  			flow_offload_teardown(flow);
->  			return NF_DROP;
->  		}
-> -		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr));
-> +		dest = other_tuple->tun_num ? other_tuple->tun.src_v4.s_addr
-> +					    : other_tuple->src_v4.s_addr;
+| nft add rule t c 'meta time "2025-11-10 10:15:45"-"2025-11-11 10:25:35"'
 
-I think this can be simplified if my series use the ip_hdr(skb)->daddr
-for rt_nexthop(), see attached patch. This would be fetched _before_
-pushing the tunnel and layer 2 encapsulation headers. Then, there is
-no need to fetch other_tuple and check if tun_num is greater than
-zero.
+> +
+> +$NFT -f - <<-EOF
+> +table ip time_test {
+> +	counter matched {}
+> +	counter unmatch {}
 
-See my sketch patch, I am going to give this a try, if this is
-correct, I would need one more iteration from you.
+Nice trick to assert matches and non-matches without having to look at
+individual rule counters!
 
---qIJPGgiRR2AxazJq
-Content-Type: text/x-diff; charset=utf-8
-Content-Disposition: attachment; filename="update.patch"
-
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 8b74fb34998e..ff2b6c16c715 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -427,6 +427,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	struct flow_offload *flow;
- 	struct neighbour *neigh;
- 	struct rtable *rt;
-+	__be32 ip_dst;
- 	int ret;
- 
- 	tuplehash = nf_flow_offload_lookup(&ctx, flow_table, skb);
-@@ -449,6 +450,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 
- 	dir = tuplehash->tuple.dir;
- 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
-+	ip_dst = ip_hdr(skb)->daddr;
- 
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
-@@ -458,7 +460,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			flow_offload_teardown(flow);
- 			return NF_DROP;
- 		}
--		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr));
-+		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, ip_dst));
- 		if (IS_ERR(neigh)) {
- 			flow_offload_teardown(flow);
- 			return NF_DROP;
-
---qIJPGgiRR2AxazJq--
+Thanks, Phil
