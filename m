@@ -1,184 +1,157 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED10329CEB
-	for <netfilter-devel@vger.kernel.org>; Tue, 11 Nov 2025 23:12:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC422857C1
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 07:38:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762902746; cv=none; b=BkGRtrqOiu7sCpXpr0eX70ACdrk798LVa7Hk6IrllyvXZsIeUaEB9d5cerEAT+LLDRV9CNNosq8OLQXHtBzJmdjA8sk4Xovsd8WGfNjF3fI+Y6Nr1qyXFXhwIGKLeQoezF1BS+gvbMOEK2XEs/sGbcJChhr5Wx4ruAb2cNyIhqY=
+	t=1762933122; cv=none; b=Hwy16TAW4HSgo4yrKt1Illh4jwyGpsLiFINYL8bod8V75TWQUotl/4ssKjigAC64B3S5SEfV+TvF/K/vT9lP+g5NnYqeNNrEN0Bk3fNhhtg2iY6pHEPNi7jw+50mC5OsXvtif7hrqpW/EEpOjO5xQgFkkMuYAlKTHH2j2QhtVfk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762902746; c=relaxed/simple;
-	bh=nzuzwr74RMh5hAPBAqaqC7bBe6CB5LBB5j6xboJg61I=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=k7OdeYevVv+TW7iLo2zjYfBNjYTn3fgNUi5Kox9iGWmKKeINXzlbtNO/a6QE+lXEv44kM1Bd8nrlQGi2Jqzr9yjquLcCaU3mu+t3ZJfG3jlaol3cW74w2ediQPrliJpkFnGeEflsMz0tK0K92d4uzBnpH2ebeIEL7k7jDthu6o8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=RQvM9LBS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=gbgtY+6z; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=RQvM9LBS; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=gbgtY+6z; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1762933122; c=relaxed/simple;
+	bh=VX9UxJWfqwPGGGSoe/98v/9ZW+723DNfVXAtgkmuHU4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Pm36AV9dmYiSRylWVk5ov4MVdHedOWLlxkD64k/qqkYa9//HXFUUIARfCEyz+P3gV4yMjm5OT2l2Pl8WK0ESw/vXoLcHgPikKD31MX2HYMYp7JjeNt+DPsj2LzG/Lo76Y6AP1oTiiLTKDhVLUBLpMoZunN0mJaxQyxK4fgMzWhQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ZfP8WwQJ; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="RQvM9LBS";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="gbgtY+6z";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="RQvM9LBS";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="gbgtY+6z"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZfP8WwQJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1762933120;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=6zo0DYKVOULHcWn+4RYlzYprbUF2jfhDmYn1RXi1H/c=;
+	b=ZfP8WwQJx4vZ3Li5t+DGYi/Z/8zB+1veUeLO8efWN5GxLoU/HRg3bbaB/tl8rAFyKwhD8r
+	zqIJ/tNP2izNsLBnbWk8B6UtlTYYe9IllIbZ6JvYej+2waknCrGVOuWFgPCgacO4p+ELdU
+	qf4B1CULoECb6lNNmYAgOrnYRv92Y+w=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-127-EUYfZHgCNcqpAZEemkEz6A-1; Wed,
+ 12 Nov 2025 02:38:38 -0500
+X-MC-Unique: EUYfZHgCNcqpAZEemkEz6A-1
+X-Mimecast-MFC-AGG-ID: EUYfZHgCNcqpAZEemkEz6A_1762933117
+Received: from mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.17])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 948A021C13;
-	Tue, 11 Nov 2025 23:12:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762902737; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EGno5R4faafdqL97zVRGwEToZj0wrZH9eqxY40nvHI8=;
-	b=RQvM9LBS0dG5oL5fw7j5YXbLaNGVGMriKykVotx8nzmAy29+QQX2/ZQfCPOFj503OXMNdP
-	3p6zIxmnu999y0CvMqmTPAsFdJs4m3kRZwkMBtgY8hdRVot6kQVTvmusyfnrl8f5pw85nL
-	fwVxhqcL0NAaFUsA1o6r+mUbMzoiyHM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762902737;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EGno5R4faafdqL97zVRGwEToZj0wrZH9eqxY40nvHI8=;
-	b=gbgtY+6zsjiR1OAQKbneswrsFmxeUE9OIm/4esfCQWes/SUK2HLr1p9Dgndca9Rl9Znyij
-	jTz6KhZ6bEy4wSAg==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=RQvM9LBS;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=gbgtY+6z
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762902737; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EGno5R4faafdqL97zVRGwEToZj0wrZH9eqxY40nvHI8=;
-	b=RQvM9LBS0dG5oL5fw7j5YXbLaNGVGMriKykVotx8nzmAy29+QQX2/ZQfCPOFj503OXMNdP
-	3p6zIxmnu999y0CvMqmTPAsFdJs4m3kRZwkMBtgY8hdRVot6kQVTvmusyfnrl8f5pw85nL
-	fwVxhqcL0NAaFUsA1o6r+mUbMzoiyHM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762902737;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EGno5R4faafdqL97zVRGwEToZj0wrZH9eqxY40nvHI8=;
-	b=gbgtY+6zsjiR1OAQKbneswrsFmxeUE9OIm/4esfCQWes/SUK2HLr1p9Dgndca9Rl9Znyij
-	jTz6KhZ6bEy4wSAg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 60E8D14BE6;
-	Tue, 11 Nov 2025 23:12:17 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id pdjMFNHCE2m5OAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 11 Nov 2025 23:12:17 +0000
-Message-ID: <c8a3fdb3-7b44-43a2-80a7-90bc66e88bd5@suse.de>
-Date: Wed, 12 Nov 2025 00:12:15 +0100
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 2468C195608F;
+	Wed, 12 Nov 2025 07:38:37 +0000 (UTC)
+Received: from yiche-laptop.redhat.com (unknown [10.72.116.123])
+	by mx-prod-int-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 7AB651955F1A;
+	Wed, 12 Nov 2025 07:38:34 +0000 (UTC)
+From: Yi Chen <yiche@redhat.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>
+Subject: [PATCH] tests: shell: add packetpath test for meta time expression.
+Date: Wed, 12 Nov 2025 15:38:31 +0800
+Message-ID: <20251112073831.14720-1-yiche@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nft] src: add connlimit stateful object support
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-References: <20251104171321.29393-1-fmancera@suse.de>
- <aRN5iuGxV6aHn6zA@calendula>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <aRN5iuGxV6aHn6zA@calendula>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Rspamd-Queue-Id: 948A021C13
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCPT_COUNT_THREE(0.00)[3];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:mid,suse.de:dkim];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
-X-Spam-Level: 
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.17
 
-On 11/11/25 6:59 PM, Pablo Neira Ayuso wrote:
-> Hi Fernando,
-> 
-> On Tue, Nov 04, 2025 at 06:13:21PM +0100, Fernando Fernandez Mancera wrote:
->> Add support for "ct count" stateful object. E.g
->>
->> table ip mytable {
->> 	ct count ssh-connlimit { over 4 }
->> 	ct count http-connlimit { over 1000 }
-> 
-> For the opposite case, maybe could you use?
-> 
-> 	ct count http-connlimit { to 1000 }
-> 
-> because this representation limits a bit its extensibility in the
-> future:
-> 
-> 	ct count http-connlimit { 1000 }
-> 
-> parser can do better with a bit of tokens as context.
-> 
+Signed-off-by: Yi Chen <yiche@redhat.com>
+---
+ .../packetpath/dumps/meta_time.nodump         |  0
+ tests/shell/testcases/packetpath/meta_time    | 79 +++++++++++++++++++
+ 2 files changed, 79 insertions(+)
+ create mode 100644 tests/shell/testcases/packetpath/dumps/meta_time.nodump
+ create mode 100755 tests/shell/testcases/packetpath/meta_time
 
-Sure, I am adding the "to" token in a v2. Thanks!
+diff --git a/tests/shell/testcases/packetpath/dumps/meta_time.nodump b/tests/shell/testcases/packetpath/dumps/meta_time.nodump
+new file mode 100644
+index 00000000..e69de29b
+diff --git a/tests/shell/testcases/packetpath/meta_time b/tests/shell/testcases/packetpath/meta_time
+new file mode 100755
+index 00000000..a5003fa2
+--- /dev/null
++++ b/tests/shell/testcases/packetpath/meta_time
+@@ -0,0 +1,79 @@
++#!/bin/sh
++
++# NFT_TEST_REQUIRES(NFT_TEST_HAVE_meta_time)
++
++. $NFT_TEST_LIBRARY_FILE
++
++gen_in_range_minute()
++{
++	echo $(date -d "-5 minutes" +%H:%M)-$(date -d "+5 minutes" +%H:%M)
++}
++
++gen_out_of_range_minute()
++{
++	echo $(date -d "+2 minutes" +%H:%M)-$(date -d "+5 minutes" +%H:%M)
++}
++
++gen_in_range_hour()
++{
++	echo $(date -d "-2 hours" +%H:%M)-$(date -d "+2 hours" +%H:%M)
++}
++
++gen_out_of_range_hour()
++{
++	echo $(date -d "+1 hours" +%H:%M)-$(date -d "+2 hours" +%H:%M)
++}
++gen_in_range_day()
++{
++	#meta day "Sunday"-"Tuesday"
++	echo \"$(date -d "-1 days" +%A)\"-\"$(date -d "+1 days" +%A)\"
++}
++gen_out_of_range_day()
++{
++	echo \"$(date -d "-2 days" +%A)\"-\"$(date -d "-1 days" +%A)\"
++}
++
++gen_in_range_time()
++{
++	echo ">" \"$(date -d "-1 years +10 days" +%G-%m-%d" "%H:%M:%S)\" "meta time <" \"$(date -d "+2 days" +%G-%m-%d" "%H:%M:%S)\"
++}
++
++gen_out_of_range_time()
++{
++	echo ">" \"$(date -d "+10 days" +%G-%m-%d" "%H:%M:%S)\" "meta time <" \"$(date -d "+1 month" +%G-%m-%d" "%H:%M:%S)\"
++}
++
++$NFT -f - <<-EOF
++table ip time_test {
++	counter matched {}
++	counter unmatch {}
++	chain input {
++		type filter hook input priority filter; policy accept;
++		iifname lo icmp type echo-request meta hour $(gen_in_range_hour)       counter name matched
++		iifname lo icmp type echo-request meta hour $(gen_out_of_range_hour)   counter name unmatch
++		iifname lo icmp type echo-request meta hour $(gen_in_range_minute)     counter name matched
++		iifname lo icmp type echo-request meta hour $(gen_out_of_range_minute) counter name unmatch
++		iifname lo icmp type echo-request meta day  $(gen_in_range_day)        counter name matched
++		iifname lo icmp type echo-request meta day  $(gen_out_of_range_day)    counter name unmatch
++		iifname lo icmp type echo-request meta time $(gen_in_range_time)       counter name matched
++		iifname lo icmp type echo-request meta time $(gen_out_of_range_time)   counter name unmatch
++	}
++}
++EOF
++assert_pass "restore meta time ruleset"
++
++nft add rule ip time_test input ip protocol icmp meta hour \"24:00\"-\"4:00\" 2>/dev/null
++assert_fail "Wrong time format input"
++nft add rule ip time_test input ip protocol icmp meta hour \"-2:00\"-\"4:00\" 2>/dev/null
++assert_fail "Wrong time format input"
++
++ip link set lo up
++ping -W 1 127.0.0.1 -c 1
++assert_pass "ping pass"
++
++$NFT list counter ip time_test matched | grep 'packets 4'
++assert_pass "matched check"
++$NFT list counter ip time_test unmatch | grep 'packets 0'
++assert_pass "unmatch check"
++$NFT delete table ip time_test
++assert_pass "delete table"
+-- 
+2.51.1
 
-> I am not expecting any extension 'ct count' on this in 2025, but you
-> never know what future brings.
-> 
->>          chain mychain {
->>                  type filter hook input priority filter; policy accept;
->>                  ct count name tcp dport map { 22 : "ssh-connlimit", 80 : "http-connlimit" } meta mark set 0x1
->>          }
->> }
-> 
-> For the record, there is one more scenario which is not supported and
-> that needs a kernel + userspace extension, which is:
-> 
->          ... ct count map { 0-10 : jump a, 11-20 : jump b, * : jump c }
-> 
-> This is because I _deliberately_ implemented the 'ct count VALUE' as a
-> statement, not as a expression, because at that time I want to add
-> support for ct count for dynsets, and only statements are supported
-> there.
-> 
-> This requires to extend connlimit to have a function to return the
-> count and stores the value in a DREG.
-> 
-> In userspace, there will be an issue to support this because there is
-> a shift-reduce conflict in the parser which needs a careful look.
-> 
-> That would complete native 'ct count' support for nftables.
-> 
-
-Thanks for letting me know, I didn't think about it. This has been added 
-to my TO-DO list although, is not at the top right now.
-
-Thanks,
-Fernando.
