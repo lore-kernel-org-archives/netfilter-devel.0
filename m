@@ -1,78 +1,78 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D936F3148B5
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 11:45:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A35DE3168E6
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 11:45:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762947912; cv=none; b=U/s1IEldrqYmIN06iC47fMBT04NwR9N5Rz67mAdKhkA6k8qpcJDq33j9qOyWYAlSmB65Tnje4L/xmZ+Ljc7QN7hYlOGda6cWmpRoq3nOW9njslgXc09c3rtu/V1TdLeJ5aEQcfV7tn0kJDKLwUHaafwqgjQvQNLMELT3YYmeKvk=
+	t=1762947917; cv=none; b=mpXc37WAneYFyP8GhPNveI2sAkNx4tE6PUZlH3+2QFnPBHdwpPjgVhBsoxMuEJ4SEQmyX8bM+bs3fZrC1LfLpY+oCa8+w77M7FCepubbmo5DPs912RUfZpXg8bbawDZqIgObKnuxQLN9CrLuRGhIsUyU2NBn0PQa3LsKe+DR8yY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762947912; c=relaxed/simple;
-	bh=c/pnxcW952hI+iOdKLDDPWcirAUj5+uvSC6ALQ6lJv4=;
+	s=arc-20240116; t=1762947917; c=relaxed/simple;
+	bh=6Kk0RTVwAknqDJ7OniVfMNoMnyRrrvHMFYz6j4bcDVg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hdGXS5epkX/k84aqGutFV+bGx2zTLimcIXj585aVrlzFXzk2o9RAYqONsLOgQ0Z1S+tLJoNGc5WgLY4S3LBwEHbnj2g/udohqRPWMrUQ//eMuK+bd6dp2Bkgrc58GIqN/qvlRbwzMt7iQ4C35bP7hBaUKtkMvM7q6NQpiM8WLUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZYS/IcGb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=T0VS5i6t; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=OdtjkJsL; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=r9Npk14x; arc=none smtp.client-ip=195.135.223.131
+	 MIME-Version; b=mCnCrwQCbBIEGXNopeXuiJvHSbhUTrOLpWemA6JxW7XlEPYh6vtigC0UgueupeJRVZzgkchmo1o5S1RvZG1SrJ/GrLAbrfofVo4gVbDfNnwSAFQ22198xwhoB+FfESNzqKPXF2Ng5nxe5/ycqmEHlAAm36x0+Rm6K57wLe7Hxbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=OvI9Rquu; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=br8tfQlw; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=OvI9Rquu; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=br8tfQlw; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZYS/IcGb";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="T0VS5i6t";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="OdtjkJsL";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="r9Npk14x"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="OvI9Rquu";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="br8tfQlw";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="OvI9Rquu";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="br8tfQlw"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id ED3F61F44F;
-	Wed, 12 Nov 2025 11:45:08 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 3EF36211D0;
+	Wed, 12 Nov 2025 11:45:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762947909; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1762947911; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=J8zzJv4MSHMPPUb5UKWhPV4oxRGzGJJvU0aqalX1DKM=;
-	b=ZYS/IcGbi3H8nJ4zZLwuuK7rTUBmky09DauDn8giOKuLuYYboNqhQWcI2rN+CEcflqfrlc
-	OzR5dhHuOF00dksRVlzNBApYxmz0DoD06MA43ETfZ3nv01jfKFMlADO6RZsjehfIWlj5wM
-	P1Q8y+oAxavwRMHWJlziaHdtdhnT5bo=
+	bh=tC/tm9WIY+5EzuZLbbkfkxrc7Gz3u4X64HR4x8qSkLk=;
+	b=OvI9Rquuscf3wc13OYfJ9cl5wUkSFGu/Spby0xHpRb1aLMNYOVKahCoHw0sjLk+w1H6Gi3
+	sdsf1//RR69VjOD6Z+xfp1bEl1edUn8f9AggRaUie/GIchF6/x2lQgVpwn3eRt9iwXuUyp
+	SW7peJBKFlQb04RFk1j/wONSq2WvPZc=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762947909;
+	s=susede2_ed25519; t=1762947911;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=J8zzJv4MSHMPPUb5UKWhPV4oxRGzGJJvU0aqalX1DKM=;
-	b=T0VS5i6tVrTyFR8Z32Ipk80U9b0jhOu5SN+yyWgq24J0Mjf1C0DUpLqps53ffnAtvmpO0N
-	yvv5tC+wKIhT6rCA==
-Authentication-Results: smtp-out2.suse.de;
+	bh=tC/tm9WIY+5EzuZLbbkfkxrc7Gz3u4X64HR4x8qSkLk=;
+	b=br8tfQlwiSQTpprlLXJzybN3hFCo8PAaJcrLb/1MPyB4R5YlGW02u5uQb/1lFLEVoFBwT6
+	tUIBcP2brKD01PCQ==
+Authentication-Results: smtp-out1.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762947908; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1762947911; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=J8zzJv4MSHMPPUb5UKWhPV4oxRGzGJJvU0aqalX1DKM=;
-	b=OdtjkJsLeorA/CEZv0z9BPJkwfzXxQODaf2Y5sTK71rI24pHcpwWxKq8e5VSbEq/QDnky8
-	zWktsddqz2gS5eaGH9PkcFJ3zGloBhLGsap+P6K9cv5bTfXlhFszzTHjLKE45ul6A/Ulty
-	RG4t4QaoSNrk42BktHsyiw7oSjIUVNg=
+	bh=tC/tm9WIY+5EzuZLbbkfkxrc7Gz3u4X64HR4x8qSkLk=;
+	b=OvI9Rquuscf3wc13OYfJ9cl5wUkSFGu/Spby0xHpRb1aLMNYOVKahCoHw0sjLk+w1H6Gi3
+	sdsf1//RR69VjOD6Z+xfp1bEl1edUn8f9AggRaUie/GIchF6/x2lQgVpwn3eRt9iwXuUyp
+	SW7peJBKFlQb04RFk1j/wONSq2WvPZc=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762947908;
+	s=susede2_ed25519; t=1762947911;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=J8zzJv4MSHMPPUb5UKWhPV4oxRGzGJJvU0aqalX1DKM=;
-	b=r9Npk14x4zI1nRED0gVnlLPRYbTAVsiAJj94enu15eLyLBc+RiQQTII2nGXo3Cl/jRlxB/
-	M7vueO4zbAtv6WCw==
+	bh=tC/tm9WIY+5EzuZLbbkfkxrc7Gz3u4X64HR4x8qSkLk=;
+	b=br8tfQlwiSQTpprlLXJzybN3hFCo8PAaJcrLb/1MPyB4R5YlGW02u5uQb/1lFLEVoFBwT6
+	tUIBcP2brKD01PCQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 610803EA61;
-	Wed, 12 Nov 2025 11:45:08 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A81D33EA61;
+	Wed, 12 Nov 2025 11:45:10 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id eBm5FERzFGmvCQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 12 Nov 2025 11:45:08 +0000
+	id mLEXJkZzFGmvCQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 12 Nov 2025 11:45:10 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
@@ -83,9 +83,9 @@ Cc: coreteam@netfilter.org,
 	echaudro@redhat.com,
 	i.maximets@ovn.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 1/6 nf-next v3] netfilter: nf_conncount: introduce new nf_conncount_count_skb() API
-Date: Wed, 12 Nov 2025 12:43:47 +0100
-Message-ID: <20251112114351.3273-3-fmancera@suse.de>
+Subject: [PATCH 2/6 nf-next v3] netfilter: xt_connlimit: use nf_conncount_count_skb() directly
+Date: Wed, 12 Nov 2025 12:43:48 +0100
+Message-ID: <20251112114351.3273-4-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251112114351.3273-2-fmancera@suse.de>
 References: <20251112114351.3273-2-fmancera@suse.de>
@@ -100,113 +100,77 @@ X-Spam-Level:
 X-Spamd-Result: default: False [-6.80 / 50.00];
 	REPLY(-4.00)[];
 	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
 	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
 	R_MISSING_CHARSET(0.50)[];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
-	RCVD_COUNT_TWO(0.00)[2];
+	MIME_TRACE(0.00)[0:+];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
 	ARC_NA(0.00)[];
 	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
 	TO_DN_SOME(0.00)[];
 	RCPT_COUNT_SEVEN(0.00)[9];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	R_RATELIMIT(0.00)[to_ip_from(RLt5hdgqk6xitctmbg8wz1bcat)];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
 	RCVD_TLS_ALL(0.00)[]
 X-Spam-Flag: NO
 X-Spam-Score: -6.80
 
-This API allows the caller to pass directly an sk_buff struct. It
-fetches the tuple and zone and the corresponding ct from it and performs
-a count_tree() operation.
+The implementation in xt_connlimit can be simplified as now
+nf_conncount_count_skb() allow the conncount users to pass the sk_buff.
 
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
- include/net/netfilter/nf_conntrack_count.h |  6 +++
- net/netfilter/nf_conncount.c               | 48 ++++++++++++++++++++++
- 2 files changed, 54 insertions(+)
+ net/netfilter/xt_connlimit.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
-index 1b58b5b91ff6..706b5a82386e 100644
---- a/include/net/netfilter/nf_conntrack_count.h
-+++ b/include/net/netfilter/nf_conntrack_count.h
-@@ -24,6 +24,12 @@ unsigned int nf_conncount_count(struct net *net,
- 				const struct nf_conntrack_tuple *tuple,
- 				const struct nf_conntrack_zone *zone);
- 
-+unsigned int nf_conncount_count_skb(struct net *net,
-+				    const struct sk_buff *skb,
-+				    u16 l3num,
-+				    struct nf_conncount_data *data,
-+				    const u32 *key);
-+
- int nf_conncount_add(struct net *net, struct nf_conncount_list *list,
- 		     const struct nf_conntrack_tuple *tuple,
- 		     const struct nf_conntrack_zone *zone);
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 913ede2f57f9..cf5ed5c6bfba 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -524,6 +524,54 @@ unsigned int nf_conncount_count(struct net *net,
- }
- EXPORT_SYMBOL_GPL(nf_conncount_count);
- 
-+/* Count and return number of conntrack entries in 'net' with particular 'key'.
-+ * If 'skb' is not null, insert the corresponding tuple into the accounting
-+ * data structure. Call with RCU read lock.
-+ */
-+unsigned int nf_conncount_count_skb(struct net *net,
-+				    const struct sk_buff *skb,
-+				    u16 l3num,
-+				    struct nf_conncount_data *data,
-+				    const u32 *key)
-+{
-+	const struct nf_conntrack_tuple_hash *h;
-+	const struct nf_conntrack_zone *zone;
-+	struct nf_conntrack_tuple tuple;
-+	enum ip_conntrack_info ctinfo;
-+	unsigned int connections;
-+	struct nf_conn *ct;
-+
-+	if (!skb)
-+		return count_tree(net, data, key, NULL, NULL);
-+
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (ct && !nf_ct_is_template(ct))
-+		return count_tree(net, data, key,
-+				  &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+				  nf_ct_zone(ct));
-+
-+	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), l3num, net, &tuple))
-+		return 0;
-+
-+	if (ct)
-+		zone = nf_ct_zone(ct);
-+	else
-+		zone = &nf_ct_zone_dflt;
-+
-+	h = nf_conntrack_find_get(net, zone, &tuple);
-+	if (!h)
-+		return count_tree(net, data, key, &tuple, zone);
-+
-+	ct = nf_ct_tuplehash_to_ctrack(h);
-+	connections = count_tree(net, data, key,
-+				 &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-+				 zone);
-+	nf_ct_put(ct);
-+
-+	return connections;
-+}
-+EXPORT_SYMBOL_GPL(nf_conncount_count_skb);
-+
- struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen)
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 0189f8b6b0bd..848287ab79cf 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -31,8 +31,6 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
  {
- 	struct nf_conncount_data *data;
+ 	struct net *net = xt_net(par);
+ 	const struct xt_connlimit_info *info = par->matchinfo;
+-	struct nf_conntrack_tuple tuple;
+-	const struct nf_conntrack_tuple *tuple_ptr = &tuple;
+ 	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
+ 	enum ip_conntrack_info ctinfo;
+ 	const struct nf_conn *ct;
+@@ -40,13 +38,8 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	u32 key[5];
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+-	if (ct != NULL) {
+-		tuple_ptr = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
++	if (ct)
+ 		zone = nf_ct_zone(ct);
+-	} else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
+-				      xt_family(par), net, &tuple)) {
+-		goto hotdrop;
+-	}
+ 
+ 	if (xt_family(par) == NFPROTO_IPV6) {
+ 		const struct ipv6hdr *iph = ipv6_hdr(skb);
+@@ -69,10 +62,9 @@ connlimit_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		key[1] = zone->id;
+ 	}
+ 
+-	connections = nf_conncount_count(net, info->data, key, tuple_ptr,
+-					 zone);
++	connections = nf_conncount_count_skb(net, skb, xt_family(par), info->data, key);
+ 	if (connections == 0)
+-		/* kmalloc failed, drop it entirely */
++		/* kmalloc failed or tuple couldn't be found, drop it entirely */
+ 		goto hotdrop;
+ 
+ 	return (connections > info->limit) ^ !!(info->flags & XT_CONNLIMIT_INVERT);
 -- 
 2.51.0
 
