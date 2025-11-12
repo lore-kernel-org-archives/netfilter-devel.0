@@ -1,203 +1,108 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from sender-op-o15.zoho.eu (sender-op-o15.zoho.eu [136.143.169.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2C07275AFB
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 18:42:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762972957; cv=none; b=cQKKkxgn+zxUYxPfAdd+oxZ3FhNCZyllWdfP4IMvsYYKFV8EA/C+opDAhOhkxdAd5ghmltaidq98WG2z6Wya7MVOQ70tTPkKCn/mW6QAnbKN48vdYwTNYC5Wz15c7wgzmRFdupkmmS9F65wAZxKy5r0THUhUgyW2zE4s/8O0sMY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762972957; c=relaxed/simple;
-	bh=q/CUAtCQ0Juwe9KR0JPrqzfw9p0AyyeG+rKv9Flh4fY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jarg/N5pTQZE8o1D7jgR+QoKoKr58ZcoYwur7hWrtcRQLyhZv4igfn6G6QSJN6kYA4wI9PzoZ86GvGI+reENTFlSBqHgzHjzFfLT+mNCI2mZ+ATjD7jEGXqO+AiM4q7JVmuRAd5B5Uc0jHvzWUnClLCDj86rGHy9a2NrGUf4X0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Ad0+1y2x; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=OVjsXpE1; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Ad0+1y2x; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=OVjsXpE1; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D4892DD5E2
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 22:37:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.169.15
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1762987026; cv=pass; b=cJbQDvaWNlVjQzF6AMBFf92BiNkWXtrUBVIkX7j2UD0o1bh0lcvnpnyeJIixEMtmSPrdgWzCF7IGVM0OQONDtaup+5M98o9f9P6nfliLpvRI0qQmJ8PatFSKYMklt+lPn7tiBmjvt6mgxU3s5kbcD+ufFdp5A7Qfm0p2Ib0QL2g=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1762987026; c=relaxed/simple;
+	bh=eoTdYUFxaATAfwIAIUokQ8Rg+W9xI9PG57Rqmj1wr5o=;
+	h=Date:From:To:Cc:Message-ID:In-Reply-To:Subject:MIME-Version:
+	 Content-Type; b=rL6W2mq/nY6gxAnjfjEJm5IOXD3wIikEh3EH0tezUDC8UiknxcZ97dbjKNZj49E/JxZEoTvP1ie7aDkDqqThWFAEEUks3trOWSdeyDQMM1G/wryvyYkWQ9yTorylhoylkwoCwtUlHtEnr6ay3E22Ew3aIMAt6Tbn6IlEUMQkheA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nftban.com; spf=pass smtp.mailfrom=nftban.com; dkim=temperror (0-bit key) header.d=nftban.com header.i=contact@nftban.com header.b=bkUSzky8; arc=pass smtp.client-ip=136.143.169.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nftban.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nftban.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Ad0+1y2x";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="OVjsXpE1";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Ad0+1y2x";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="OVjsXpE1"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 727CA21B97;
-	Wed, 12 Nov 2025 18:42:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762972942; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=5xS+b3X4KYQviNDDVSPo/AsvoXaG6hz5vNyLm1qX+qI=;
-	b=Ad0+1y2xwd/newJbmfwdniKTJlYZ/S8XAZFy8C2AFCykSdfBkonuAbkafzaY9YyipFRS6r
-	YED+X1VQ3kIecq2pRee8qUK8nBZkEeHQ5ilwZusfv7igDdjXCFUC2Au21to4AmNBgCV78t
-	m1ZR3WQyAezNO9aWLdviIShNVUvSdHo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762972942;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=5xS+b3X4KYQviNDDVSPo/AsvoXaG6hz5vNyLm1qX+qI=;
-	b=OVjsXpE1YxrDftDjooCoYzx7DWfjrFqWsZJRRcGJmg9WSkxyKpsE2EJxb3T48koRafS/GP
-	nIxSYbegtvcb76AA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1762972942; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=5xS+b3X4KYQviNDDVSPo/AsvoXaG6hz5vNyLm1qX+qI=;
-	b=Ad0+1y2xwd/newJbmfwdniKTJlYZ/S8XAZFy8C2AFCykSdfBkonuAbkafzaY9YyipFRS6r
-	YED+X1VQ3kIecq2pRee8qUK8nBZkEeHQ5ilwZusfv7igDdjXCFUC2Au21to4AmNBgCV78t
-	m1ZR3WQyAezNO9aWLdviIShNVUvSdHo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1762972942;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=5xS+b3X4KYQviNDDVSPo/AsvoXaG6hz5vNyLm1qX+qI=;
-	b=OVjsXpE1YxrDftDjooCoYzx7DWfjrFqWsZJRRcGJmg9WSkxyKpsE2EJxb3T48koRafS/GP
-	nIxSYbegtvcb76AA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 29F0F3EA61;
-	Wed, 12 Nov 2025 18:42:22 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id GBq6Bg7VFGn6LgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 12 Nov 2025 18:42:22 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nft] tunnel: add missing tunnel object list support
-Date: Wed, 12 Nov 2025 19:42:04 +0100
-Message-ID: <20251112184204.21907-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=temperror (0-bit key) header.d=nftban.com header.i=contact@nftban.com header.b="bkUSzky8"
+ARC-Seal: i=1; a=rsa-sha256; t=1762987006; cv=none; 
+	d=zohomail.eu; s=zohoarc; 
+	b=YCWcPq2Je3VZkGHqIJfVJ9tVSTyiu2n1RwTybiqIw1OHMVRsWkFbe9ghYKM05GVOJiwRwfgBpnyvpQ4vWihkvTHhR9aJNeH8EsbYGLqj2OdR8QYaUMS8VPDrXsflDOdF3NRWyg+uQhy9zC6FXXx8Zjlm+XwoCMzZ9bCgrWIQ1n4=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.eu; s=zohoarc; 
+	t=1762987006; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=eoTdYUFxaATAfwIAIUokQ8Rg+W9xI9PG57Rqmj1wr5o=; 
+	b=Y2pGaOnCaS3tj19B3Zd5c9Dq7inWAT809leX2/SVghI0HQVa204P3KL/xAAHkI94vbbmIuZK/QkKrGb/0KjkleyCu3BjQ+veqCQ3eGQRY3DrHCP6E7gxkKkQ42g3Oqzdc+n4tBU+56fuZkPRL9R5zZcXVOsu23fauE3VlT7qYZk=
+ARC-Authentication-Results: i=1; mx.zohomail.eu;
+	dkim=pass  header.i=nftban.com;
+	spf=pass  smtp.mailfrom=contact@nftban.com;
+	dmarc=pass header.from=<contact@nftban.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1762987006;
+	s=dkim; d=nftban.com; i=contact@nftban.com;
+	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Message-Id:Reply-To;
+	bh=eoTdYUFxaATAfwIAIUokQ8Rg+W9xI9PG57Rqmj1wr5o=;
+	b=bkUSzky8WX0njwc9qhbYctZluRz2YhYXyWJMHk0nA9eR2EMM4U2cOF05jrP6mizo
+	TJzL7ISOSBbcTu18cgaFmBl0bspVN9FtmOEAzS2+PMfBt4GwNe3cTr/3oqMmWBR1y/s
+	uIA9Ug+smh3bHMjrm2DiG4jXiy94EFdI66Oqy/Qg=
+Received: from mail.zoho.eu by mx.zoho.eu
+	with SMTP id 1762987005581382.5112374338862; Wed, 12 Nov 2025 23:36:45 +0100 (CET)
+Date: Thu, 13 Nov 2025 00:36:45 +0200
+From: Antonios Voulvoulis <contact@nftban.com>
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+Cc: "pablo" <pablo@netfilter.org>, "fw" <fw@strlen.de>
+Message-ID: <19a7a36d661.12807b73b363175.6432167163249493689@nftban.com>
+In-Reply-To: 
+Subject: =?UTF-8?Q?[RFC]_Review_of_NFTBan_nftables_arch?=
+ =?UTF-8?Q?itecture_=E2=80=94_DDoS_&_port-scan_handling?=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_CONTAINS_FROM(1.00)[];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	RCPT_COUNT_THREE(0.00)[3];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: Zoho Mail
+X-Mailer: Zoho Mail
 
-Tunnel object listing support was missing. Now it is possible to list
-tunnels. Example:
+Hello netfilter/nftables maintainers,
 
-sudo nft list tunnel netdev x y
-table netdev x {
-	tunnel y {
-		id 10
-		ip saddr 192.168.2.10
-		ip daddr 192.168.2.11
-		sport 10
-		dport 20
-		ttl 10
-		erspan {
-			version 1
-			index 2
-		}
-	}
-}
+I=E2=80=99m the author of **NFTBan**, an adaptive firewall manager built on=
+ top of nftables.
 
-Fixes: a937a5dc02db ("src: add tunnel statement and expression support")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+I=E2=80=99d like to request a short technical review focused on our DDoS an=
+d port-scan handling,
+and validation of our nftables usage patterns.
+
+Full document:
+https://github.com/nftban/nftban/blob/main/docs/NFTBAN_NFTABLES_ARCHITECTUR=
+E_REVIEW.md
+
+NFTBan Sample nftables Configuration:
+https://github.com/itcmsgr/nftban/blob/main/docs/sample_nftban.nft
+
+### Quick summary
+- Uses `inet` tables; runtime + main table model.
+- Atomic reload (rename-swap).
+- DDoS protection: SYN rate limits, connection tracking thresholds.
+- Port-scan detection via userspace tracking + temporary IP sets.
+
+### Key review questions
+1. Best approach to handle large dynamic sets (100k+ IPs) efficiently.
+2. Whether `ct count` provides per-IP limits or global counting.
+3. Recommended kernel-native way to detect multi-port scans per source IP.
+4. Any race/safety issues with rename-swap atomic reloads.
+5. Recommended tuning or known pitfalls for high conntrack load.
+
+All details, code snippets, and metrics are in the linked document.
+
+Thank you for your time =E2=80=94 feedback from the nftables maintainers
+will help ensure our design follows kernel and nftables best practices.
+
+
+## Contact
+
+**Maintainer:** Antonios Voulvoulis
+**Email:** contact@nftban.com
+**Project:** https://nftban.com
+**Repository:** https://github.com/itcmsgr/nftban
+
+Thank you for your time and guidance.
+
 ---
- src/cache.c        | 4 ++++
- src/evaluate.c     | 3 +++
- src/parser_bison.y | 8 ++++++++
- src/scanner.l      | 1 -
- 4 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/src/cache.c b/src/cache.c
-index 09aa20bf..bb005c10 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -296,6 +296,10 @@ static unsigned int evaluate_cache_list(struct nft_ctx *nft, struct cmd *cmd,
- 	case CMD_OBJ_SYNPROXYS:
- 		obj_filter_setup(cmd, &flags, filter, NFT_OBJECT_SYNPROXY);
- 		break;
-+	case CMD_OBJ_TUNNEL:
-+	case CMD_OBJ_TUNNELS:
-+		obj_filter_setup(cmd, &flags, filter, NFT_OBJECT_TUNNEL);
-+		break;
- 	case CMD_OBJ_RULESET:
- 	default:
- 		flags |= NFT_CACHE_FULL;
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 5a5e6cb5..4be52992 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -6279,6 +6279,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_CT_EXPECT);
- 	case CMD_OBJ_SYNPROXY:
- 		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_SYNPROXY);
-+	case CMD_OBJ_TUNNEL:
-+		return cmd_evaluate_list_obj(ctx, cmd, NFT_OBJECT_TUNNEL);
- 	case CMD_OBJ_COUNTERS:
- 	case CMD_OBJ_QUOTAS:
- 	case CMD_OBJ_CT_HELPERS:
-@@ -6289,6 +6291,7 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_SYNPROXYS:
- 	case CMD_OBJ_CT_TIMEOUTS:
- 	case CMD_OBJ_CT_EXPECTATIONS:
-+	case CMD_OBJ_TUNNELS:
- 		if (cmd->handle.table.name == NULL)
- 			return 0;
- 		if (!table_cache_find(&ctx->nft->cache.table_cache,
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 52730f71..3ceef794 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1737,6 +1737,14 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_HOOKS, &$2, &@$, NULL);
- 			}
-+			|	TUNNELS	list_cmd_spec_any
-+			{
-+				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_TUNNELS, &$2, &@$, NULL);
-+			}
-+			|	TUNNEL	obj_spec	close_scope_tunnel
-+			{
-+				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_TUNNEL, &$2, &@$, NULL);
-+			}
- 			;
- 
- basehook_device_name	:	DEVICE STRING
-diff --git a/src/scanner.l b/src/scanner.l
-index 8085c93b..df8e536b 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -404,7 +404,6 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 	"maps"			{ return MAPS; }
- 	"secmarks"		{ return SECMARKS; }
- 	"synproxys"		{ return SYNPROXYS; }
--	"tunnel"		{ return TUNNEL; }
- 	"tunnels"		{ return TUNNELS; }
- 	"hooks"			{ return HOOKS; }
- }
--- 
-2.51.0
-
+Antonios Voulvoulis
+Founder & Architect =E2=80=94 NFTBan
+Security by Design =E2=80=A2 Open Source Transparency
+https://nftban.com | https://github.com/itcmsgr/nftban
