@@ -1,37 +1,37 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5544314A85
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 11:45:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33AE4310624
+	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 11:45:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762947919; cv=none; b=ph1W1LGI7zR5rjH1r4RNQy119YSjYEfCA3BEOL0CmXfRIpJhWn43QRc5A4alWtMGM3hmNM4zTYZnbkgYTTiM6FfKIdFZZioRXEQXECzPA4adrQ0OyYvOQlQrnR5Urj8Xhg9EgGeAUaWlOrzLQKOn6kvY5XCS0+yYpRjgtcS40fg=
+	t=1762947923; cv=none; b=d39c3UlY3yMWjpUA64JmrFb7foaSQEyLaKhVk8e2/ts0PYTellyKjGPELQD2q28OfLwEBDGrEd4wo0SYtev9iX46mmL7E5iI/MWUbsCi6ltyzUkxo+cCoS0aCL+Ka8pAYneEb8o0Ftb2/uBFJAxM58vBi+HVbNnfffQ0RVZNz1c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762947919; c=relaxed/simple;
-	bh=4iTDY5K/RA7aSTuuOP+/HgkewuHml2BvS0RlaiL5KrY=;
+	s=arc-20240116; t=1762947923; c=relaxed/simple;
+	bh=CDyrM6BVoIC1XvmJHD5JPLG6ev8g6utecF1eK6uFcqg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WJwSzrjuqFt4fWQqJV1MyYwEUN6BHRuBYgIPnDMzMIkdEJuOiKoCmxrxf5oLt79P2T+OPexRUF4+kkFiiIR6orJ5loMFUSo+N0g8jMt+PmR99kYXiFH+kL6442oTfMA7k1Uxw+HDCgRWGUEzDciQcCDJtNCQa9YEScH70KErfZ8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.131
+	 MIME-Version; b=Fpz5iCtm2b+ucOwfPo2bLU2s6vawW7Ql8tocMbJLK7zG2ElYYPZv2a38t4wrMwy0vr3HK1CGIDrKvNPP2GIfRcpkBm+9L9cM0Duujvij3JmYmEqw2B+9/BrdNFhdWLffreosBYQpsxllpWCh+IGEMnDjEby6ktkZXfWK7O4Y82w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id B37F91F45B;
-	Wed, 12 Nov 2025 11:45:14 +0000 (UTC)
-Authentication-Results: smtp-out2.suse.de;
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 88883211F8;
+	Wed, 12 Nov 2025 11:45:12 +0000 (UTC)
+Authentication-Results: smtp-out1.suse.de;
 	none
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 275FD3EA61;
-	Wed, 12 Nov 2025 11:45:14 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id F0CBF3EA61;
+	Wed, 12 Nov 2025 11:45:11 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 0MihBkpzFGmvCQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 12 Nov 2025 11:45:14 +0000
+	id 8HfON0dzFGmvCQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 12 Nov 2025 11:45:11 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
@@ -42,9 +42,9 @@ Cc: coreteam@netfilter.org,
 	echaudro@redhat.com,
 	i.maximets@ovn.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 4/6 nf-next v3] netfilter: nf_conncount: pass the sk_buff down to __nf_conncount_add()
-Date: Wed, 12 Nov 2025 12:43:50 +0100
-Message-ID: <20251112114351.3273-6-fmancera@suse.de>
+Subject: [PATCH 3/6 nf-next v3] openvswitch: use nf_conncount_count_skb() directly
+Date: Wed, 12 Nov 2025 12:43:49 +0100
+Message-ID: <20251112114351.3273-5-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251112114351.3273-2-fmancera@suse.de>
 References: <20251112114351.3273-2-fmancera@suse.de>
@@ -58,400 +58,119 @@ Content-Transfer-Encoding: 8bit
 X-Rspamd-Pre-Result: action=no action;
 	module=replies;
 	Message is reply to one we originated
-X-Rspamd-Queue-Id: B37F91F45B
+X-Spam-Level: 
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.00 / 50.00];
+	REPLY(-4.00)[]
+X-Rspamd-Queue-Id: 88883211F8
 X-Rspamd-Pre-Result: action=no action;
 	module=replies;
 	Message is reply to one we originated
 X-Rspamd-Action: no action
 X-Spam-Flag: NO
 X-Spam-Score: -4.00
-X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	REPLY(-4.00)[]
 
-When using nf_conncount infrastructure for non-confirmed connections a
-duplicated track is possible due to an optimization introduced since
-commit d265929930e2 ("netfilter: nf_conncount: reduce unnecessary GC").
+Use the new nf_conncount_count_skb() which allows the caller to pass the
+sk_buff. As openvswitch is the last user of the old nf_conncount_count()
+API, remove the old API too.
 
-This is solved by passing the sk_buff down to __nf_conncount_add() and
-there if the ct is present and already confirmed, skip the add
-operation.
-
-As __nf_conncount_add() is now handling the sk_buff directly, introduce
-a new API nf_conncount_add_skb() similar to the already introduced
-nf_conncount_count_skb(). In addition, add a helper function to fetch
-tuple, zone and ct from the skb to avoid duplicated code.
-
-Use the newly introduce API from nft_connlimit.
-
-Fixes: d265929930e2 ("netfilter: nf_conncount: reduce unnecessary GC")
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
- include/net/netfilter/nf_conntrack_count.h |   5 +-
- net/netfilter/nf_conncount.c               | 175 ++++++++++++---------
- net/netfilter/nft_connlimit.c              |  21 +--
- 3 files changed, 107 insertions(+), 94 deletions(-)
+ include/net/netfilter/nf_conntrack_count.h |  6 ------
+ net/netfilter/nf_conncount.c               | 14 --------------
+ net/openvswitch/conntrack.c                | 16 ++++++++--------
+ 3 files changed, 8 insertions(+), 28 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_count.h b/include/net/netfilter/nf_conntrack_count.h
-index 8d980f7bff8e..52a06de41aa0 100644
+index 706b5a82386e..8d980f7bff8e 100644
 --- a/include/net/netfilter/nf_conntrack_count.h
 +++ b/include/net/netfilter/nf_conntrack_count.h
-@@ -24,9 +24,8 @@ unsigned int nf_conncount_count_skb(struct net *net,
- 				    struct nf_conncount_data *data,
- 				    const u32 *key);
+@@ -18,12 +18,6 @@ struct nf_conncount_list {
+ struct nf_conncount_data *nf_conncount_init(struct net *net, unsigned int keylen);
+ void nf_conncount_destroy(struct net *net, struct nf_conncount_data *data);
  
--int nf_conncount_add(struct net *net, struct nf_conncount_list *list,
--		     const struct nf_conntrack_tuple *tuple,
--		     const struct nf_conntrack_zone *zone);
-+int nf_conncount_add_skb(struct net *net, const struct sk_buff *skb,
-+			 u16 l3num, struct nf_conncount_list *list);
- 
- void nf_conncount_list_init(struct nf_conncount_list *list);
- 
+-unsigned int nf_conncount_count(struct net *net,
+-				struct nf_conncount_data *data,
+-				const u32 *key,
+-				const struct nf_conntrack_tuple *tuple,
+-				const struct nf_conntrack_zone *zone);
+-
+ unsigned int nf_conncount_count_skb(struct net *net,
+ 				    const struct sk_buff *skb,
+ 				    u16 l3num,
 diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index fc5798db7727..e6d30a54b1fc 100644
+index cf5ed5c6bfba..fc5798db7727 100644
 --- a/net/netfilter/nf_conncount.c
 +++ b/net/netfilter/nf_conncount.c
-@@ -122,15 +122,65 @@ find_or_evict(struct net *net, struct nf_conncount_list *list,
- 	return ERR_PTR(-EAGAIN);
+@@ -510,20 +510,6 @@ static void tree_gc_worker(struct work_struct *work)
+ 	spin_unlock_bh(&nf_conncount_locks[tree]);
  }
  
-+static bool get_ct_or_tuple_from_skb(struct net *net,
-+				     const struct sk_buff *skb,
-+				     u16 l3num,
-+				     struct nf_conn **ct,
-+				     struct nf_conntrack_tuple *tuple,
-+				     const struct nf_conntrack_zone **zone,
-+				     bool *refcounted)
-+{
-+	const struct nf_conntrack_tuple_hash *h;
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *found_ct;
-+
-+	found_ct = nf_ct_get(skb, &ctinfo);
-+	if (found_ct && !nf_ct_is_template(found_ct)) {
-+		*tuple = found_ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
-+		*zone = nf_ct_zone(found_ct);
-+		*ct = found_ct;
-+		return true;
-+	}
-+
-+	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), l3num, net, tuple))
-+		return false;
-+
-+	if (found_ct)
-+		*zone = nf_ct_zone(found_ct);
-+
-+	h = nf_conntrack_find_get(net, *zone, tuple);
-+	if (!h)
-+		return true;
-+
-+	found_ct = nf_ct_tuplehash_to_ctrack(h);
-+	*refcounted = true;
-+	*ct = found_ct;
-+
-+	return true;
-+}
-+
- static int __nf_conncount_add(struct net *net,
--			      struct nf_conncount_list *list,
--			      const struct nf_conntrack_tuple *tuple,
--			      const struct nf_conntrack_zone *zone)
+-/* Count and return number of conntrack entries in 'net' with particular 'key'.
+- * If 'tuple' is not null, insert it into the accounting data structure.
+- * Call with RCU read lock.
+- */
+-unsigned int nf_conncount_count(struct net *net,
+-				struct nf_conncount_data *data,
+-				const u32 *key,
+-				const struct nf_conntrack_tuple *tuple,
+-				const struct nf_conntrack_zone *zone)
+-{
+-	return count_tree(net, data, key, tuple, zone);
+-}
+-EXPORT_SYMBOL_GPL(nf_conncount_count);
+-
+ /* Count and return number of conntrack entries in 'net' with particular 'key'.
+  * If 'skb' is not null, insert the corresponding tuple into the accounting
+  * data structure. Call with RCU read lock.
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index e573e9221302..a0811e1fba65 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -928,8 +928,8 @@ static u32 ct_limit_get(const struct ovs_ct_limit_info *info, u16 zone)
+ }
+ 
+ static int ovs_ct_check_limit(struct net *net,
+-			      const struct ovs_conntrack_info *info,
+-			      const struct nf_conntrack_tuple *tuple)
 +			      const struct sk_buff *skb,
-+			      u16 l3num,
-+			      struct nf_conncount_list *list)
++			      const struct ovs_conntrack_info *info)
  {
-+	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
- 	const struct nf_conntrack_tuple_hash *found;
- 	struct nf_conncount_tuple *conn, *conn_n;
-+	struct nf_conntrack_tuple tuple;
-+	struct nf_conn *ct = NULL;
- 	struct nf_conn *found_ct;
- 	unsigned int collect = 0;
-+	bool refcounted = false;
-+
-+	if (!get_ct_or_tuple_from_skb(net, skb, l3num, &ct, &tuple, &zone, &refcounted))
-+		return -ENOENT;
-+
-+	if (ct && nf_ct_is_confirmed(ct)) {
-+		if (refcounted)
-+			nf_ct_put(ct);
-+		return -EINVAL;
-+	}
- 
- 	if ((u32)jiffies == list->last_gc)
- 		goto add_new_node;
-@@ -144,10 +194,10 @@ static int __nf_conncount_add(struct net *net,
- 		if (IS_ERR(found)) {
- 			/* Not found, but might be about to be confirmed */
- 			if (PTR_ERR(found) == -EAGAIN) {
--				if (nf_ct_tuple_equal(&conn->tuple, tuple) &&
-+				if (nf_ct_tuple_equal(&conn->tuple, &tuple) &&
- 				    nf_ct_zone_id(&conn->zone, conn->zone.dir) ==
- 				    nf_ct_zone_id(zone, zone->dir))
--					return 0; /* already exists */
-+					goto out_put; /* already exists */
- 			} else {
- 				collect++;
- 			}
-@@ -156,7 +206,7 @@ static int __nf_conncount_add(struct net *net,
- 
- 		found_ct = nf_ct_tuplehash_to_ctrack(found);
- 
--		if (nf_ct_tuple_equal(&conn->tuple, tuple) &&
-+		if (nf_ct_tuple_equal(&conn->tuple, &tuple) &&
- 		    nf_ct_zone_equal(found_ct, zone, zone->dir)) {
- 			/*
- 			 * We should not see tuples twice unless someone hooks
-@@ -165,7 +215,7 @@ static int __nf_conncount_add(struct net *net,
- 			 * Attempt to avoid a re-add in this case.
- 			 */
- 			nf_ct_put(found_ct);
--			return 0;
-+			goto out_put;
- 		} else if (already_closed(found_ct)) {
- 			/*
- 			 * we do not care about connections which are
-@@ -188,31 +238,35 @@ static int __nf_conncount_add(struct net *net,
- 	if (conn == NULL)
- 		return -ENOMEM;
- 
--	conn->tuple = *tuple;
-+	conn->tuple = tuple;
- 	conn->zone = *zone;
- 	conn->cpu = raw_smp_processor_id();
- 	conn->jiffies32 = (u32)jiffies;
- 	list_add_tail(&conn->node, &list->head);
- 	list->count++;
- 	list->last_gc = (u32)jiffies;
-+
-+out_put:
-+	if (refcounted)
-+		nf_ct_put(ct);
- 	return 0;
- }
- 
--int nf_conncount_add(struct net *net,
--		     struct nf_conncount_list *list,
--		     const struct nf_conntrack_tuple *tuple,
--		     const struct nf_conntrack_zone *zone)
-+int nf_conncount_add_skb(struct net *net,
-+			 const struct sk_buff *skb,
-+			 u16 l3num,
-+			 struct nf_conncount_list *list)
- {
- 	int ret;
- 
- 	/* check the saved connections */
- 	spin_lock_bh(&list->list_lock);
--	ret = __nf_conncount_add(net, list, tuple, zone);
-+	ret = __nf_conncount_add(net, skb, l3num, list);
- 	spin_unlock_bh(&list->list_lock);
- 
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(nf_conncount_add);
-+EXPORT_SYMBOL_GPL(nf_conncount_add_skb);
- 
- void nf_conncount_list_init(struct nf_conncount_list *list)
- {
-@@ -309,19 +363,22 @@ static void schedule_gc_worker(struct nf_conncount_data *data, int tree)
- 
- static unsigned int
- insert_tree(struct net *net,
-+	    const struct sk_buff *skb,
-+	    u16 l3num,
- 	    struct nf_conncount_data *data,
- 	    struct rb_root *root,
- 	    unsigned int hash,
--	    const u32 *key,
--	    const struct nf_conntrack_tuple *tuple,
--	    const struct nf_conntrack_zone *zone)
-+	    const u32 *key)
- {
- 	struct nf_conncount_rb *gc_nodes[CONNCOUNT_GC_MAX_NODES];
-+	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
-+	bool do_gc = true, refcounted = false;
-+	unsigned int count = 0, gc_count = 0;
- 	struct rb_node **rbnode, *parent;
--	struct nf_conncount_rb *rbconn;
-+	struct nf_conntrack_tuple tuple;
- 	struct nf_conncount_tuple *conn;
--	unsigned int count = 0, gc_count = 0;
--	bool do_gc = true;
-+	struct nf_conncount_rb *rbconn;
-+	struct nf_conn *ct = NULL;
- 
- 	spin_lock_bh(&nf_conncount_locks[hash]);
- restart:
-@@ -340,7 +397,7 @@ insert_tree(struct net *net,
- 		} else {
- 			int ret;
- 
--			ret = nf_conncount_add(net, &rbconn->list, tuple, zone);
-+			ret = nf_conncount_add_skb(net, skb, l3num, &rbconn->list);
- 			if (ret)
- 				count = 0; /* hotdrop */
- 			else
-@@ -375,19 +432,24 @@ insert_tree(struct net *net,
- 		goto out_unlock;
- 	}
- 
--	conn->tuple = *tuple;
--	conn->zone = *zone;
--	conn->cpu = raw_smp_processor_id();
--	conn->jiffies32 = (u32)jiffies;
--	memcpy(rbconn->key, key, sizeof(u32) * data->keylen);
-+	if (get_ct_or_tuple_from_skb(net, skb, l3num, &ct, &tuple, &zone, &refcounted)) {
-+		conn->tuple = tuple;
-+		conn->zone = *zone;
-+		conn->cpu = raw_smp_processor_id();
-+		conn->jiffies32 = (u32)jiffies;
-+		memcpy(rbconn->key, key, sizeof(u32) * data->keylen);
- 
--	nf_conncount_list_init(&rbconn->list);
--	list_add(&conn->node, &rbconn->list.head);
--	count = 1;
--	rbconn->list.count = count;
-+		nf_conncount_list_init(&rbconn->list);
-+		list_add(&conn->node, &rbconn->list.head);
-+		count = 1;
-+		rbconn->list.count = count;
- 
--	rb_link_node_rcu(&rbconn->node, parent, rbnode);
--	rb_insert_color(&rbconn->node, root);
-+		rb_link_node_rcu(&rbconn->node, parent, rbnode);
-+		rb_insert_color(&rbconn->node, root);
-+
-+		if (refcounted)
-+			nf_ct_put(ct);
-+	}
- out_unlock:
- 	spin_unlock_bh(&nf_conncount_locks[hash]);
- 	return count;
-@@ -395,10 +457,10 @@ insert_tree(struct net *net,
- 
- static unsigned int
- count_tree(struct net *net,
-+	   const struct sk_buff *skb,
-+	   u16 l3num,
- 	   struct nf_conncount_data *data,
--	   const u32 *key,
--	   const struct nf_conntrack_tuple *tuple,
--	   const struct nf_conntrack_zone *zone)
-+	   const u32 *key)
- {
- 	struct rb_root *root;
- 	struct rb_node *parent;
-@@ -422,7 +484,7 @@ count_tree(struct net *net,
- 		} else {
- 			int ret;
- 
--			if (!tuple) {
-+			if (!skb) {
- 				nf_conncount_gc_list(net, &rbconn->list);
- 				return rbconn->list.count;
- 			}
-@@ -437,7 +499,7 @@ count_tree(struct net *net,
- 			}
- 
- 			/* same source network -> be counted! */
--			ret = __nf_conncount_add(net, &rbconn->list, tuple, zone);
-+			ret = __nf_conncount_add(net, skb, l3num, &rbconn->list);
- 			spin_unlock_bh(&rbconn->list.list_lock);
- 			if (ret)
- 				return 0; /* hotdrop */
-@@ -446,10 +508,10 @@ count_tree(struct net *net,
- 		}
- 	}
- 
--	if (!tuple)
-+	if (!skb)
+ 	struct ovs_net *ovs_net = net_generic(net, ovs_net_id);
+ 	const struct ovs_ct_limit_info *ct_limit_info = ovs_net->ct_limit_info;
+@@ -942,8 +942,9 @@ static int ovs_ct_check_limit(struct net *net,
+ 	if (per_zone_limit == OVS_CT_LIMIT_UNLIMITED)
  		return 0;
  
--	return insert_tree(net, data, root, hash, key, tuple, zone);
-+	return insert_tree(net, skb, l3num, data, root, hash, key);
+-	connections = nf_conncount_count(net, ct_limit_info->data,
+-					 &conncount_key, tuple, &info->zone);
++	connections = nf_conncount_count_skb(net, skb, info->family,
++					     ct_limit_info->data,
++					     &conncount_key);
+ 	if (connections > per_zone_limit)
+ 		return -ENOMEM;
+ 
+@@ -972,8 +973,7 @@ static int ovs_ct_commit(struct net *net, struct sw_flow_key *key,
+ #if	IS_ENABLED(CONFIG_NETFILTER_CONNCOUNT)
+ 	if (static_branch_unlikely(&ovs_ct_limit_enabled)) {
+ 		if (!nf_ct_is_confirmed(ct)) {
+-			err = ovs_ct_check_limit(net, info,
+-				&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
++			err = ovs_ct_check_limit(net, skb, info);
+ 			if (err) {
+ 				net_warn_ratelimited("openvswitch: zone: %u "
+ 					"exceeds conntrack limit\n",
+@@ -1770,8 +1770,8 @@ static int __ovs_ct_limit_get_zone_limit(struct net *net,
+ 	zone_limit.limit = limit;
+ 	nf_ct_zone_init(&ct_zone, zone_id, NF_CT_DEFAULT_ZONE_DIR, 0);
+ 
+-	zone_limit.count = nf_conncount_count(net, data, &conncount_key, NULL,
+-					      &ct_zone);
++	zone_limit.count = nf_conncount_count_skb(net, NULL, 0, data,
++						  &conncount_key);
+ 	return nla_put_nohdr(reply, sizeof(zone_limit), &zone_limit);
  }
  
- static void tree_gc_worker(struct work_struct *work)
-@@ -520,41 +582,8 @@ unsigned int nf_conncount_count_skb(struct net *net,
- 				    struct nf_conncount_data *data,
- 				    const u32 *key)
- {
--	const struct nf_conntrack_tuple_hash *h;
--	const struct nf_conntrack_zone *zone;
--	struct nf_conntrack_tuple tuple;
--	enum ip_conntrack_info ctinfo;
--	unsigned int connections;
--	struct nf_conn *ct;
--
--	if (!skb)
--		return count_tree(net, data, key, NULL, NULL);
--
--	ct = nf_ct_get(skb, &ctinfo);
--	if (ct && !nf_ct_is_template(ct))
--		return count_tree(net, data, key,
--				  &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
--				  nf_ct_zone(ct));
--
--	if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb), l3num, net, &tuple))
--		return 0;
--
--	if (ct)
--		zone = nf_ct_zone(ct);
--	else
--		zone = &nf_ct_zone_dflt;
--
--	h = nf_conntrack_find_get(net, zone, &tuple);
--	if (!h)
--		return count_tree(net, data, key, &tuple, zone);
--
--	ct = nf_ct_tuplehash_to_ctrack(h);
--	connections = count_tree(net, data, key,
--				 &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
--				 zone);
--	nf_ct_put(ct);
-+	return count_tree(net, skb, l3num, data, key);
- 
--	return connections;
- }
- EXPORT_SYMBOL_GPL(nf_conncount_count_skb);
- 
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index fc35a11cdca2..4bee5a8f9ef8 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -24,26 +24,11 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
- 					 const struct nft_pktinfo *pkt,
- 					 const struct nft_set_ext *ext)
- {
--	const struct nf_conntrack_zone *zone = &nf_ct_zone_dflt;
--	const struct nf_conntrack_tuple *tuple_ptr;
--	struct nf_conntrack_tuple tuple;
--	enum ip_conntrack_info ctinfo;
--	const struct nf_conn *ct;
- 	unsigned int count;
-+	int err;
- 
--	tuple_ptr = &tuple;
--
--	ct = nf_ct_get(pkt->skb, &ctinfo);
--	if (ct != NULL) {
--		tuple_ptr = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
--		zone = nf_ct_zone(ct);
--	} else if (!nf_ct_get_tuplepr(pkt->skb, skb_network_offset(pkt->skb),
--				      nft_pf(pkt), nft_net(pkt), &tuple)) {
--		regs->verdict.code = NF_DROP;
--		return;
--	}
--
--	if (nf_conncount_add(nft_net(pkt), priv->list, tuple_ptr, zone)) {
-+	err = nf_conncount_add_skb(nft_net(pkt), pkt->skb, nft_pf(pkt), priv->list);
-+	if (err != EINVAL) {
- 		regs->verdict.code = NF_DROP;
- 		return;
- 	}
 -- 
 2.51.0
 
