@@ -1,159 +1,131 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 822E230EF75
-	for <netfilter-devel@vger.kernel.org>; Wed, 12 Nov 2025 11:45:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED4333002D4;
+	Wed, 12 Nov 2025 12:55:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762947937; cv=none; b=rvT7fTVYEwycRB8yBpcSdBJHHR+fSFvuqc9bcOs568ztIeUNAICbTUQqTH/h+PrdRHCXfhHk/vO6O3yP6rqQmSkQL4Ekvd8MyTS3ptKHbilN4U5dtRfDDQpK6v9UD7baWbekxnXXUVTynsTGg0BBrykzMgV4MAZf9hOQBBnD8a0=
+	t=1762952110; cv=none; b=AWDJaTt/vI/eP13Ix3Q4vwSmStpCbuC/FVkfL6TKQeZaQ9hA0kS+zZEJw59ZN0sI62g3l0N1bHiDuUM1zjKHXOyUD9hdF/zMrjcuhYQuJqv1/93DwRoiAFU9XBNqv2EK2tbBBd7Hy/XkMdod1fGAOC/N3b2e1cNgA5wICw1IERM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762947937; c=relaxed/simple;
-	bh=xuPEVniFmzc2GVpOqb9sy9yekSN2uoql+b1YkI7mxAE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qH/TRK2+0OoXsUyqK7KRgxBAxl3eCNUyqjN0EahRyLoMqegb/yaLuQf9MovRwZNrtksGUPCoK2bI7ciapGyt+RvC1A+s62cEsrnByvHomTHda9UJq1CREKp1mZfx09ad6mP9LHxSEp5GfVFryv2KAZjKPJtT+sEm0Fn/3a4Y1dU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 78B4121248;
-	Wed, 12 Nov 2025 11:45:17 +0000 (UTC)
-Authentication-Results: smtp-out1.suse.de;
-	none
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E253E3EA61;
-	Wed, 12 Nov 2025 11:45:16 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id cEZMNExzFGmvCQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 12 Nov 2025 11:45:16 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	aconole@redhat.com,
-	echaudro@redhat.com,
-	i.maximets@ovn.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 6/6 nf-next v3] netfilter: nft_connlimit: update the count if add was skipped
-Date: Wed, 12 Nov 2025 12:43:52 +0100
-Message-ID: <20251112114351.3273-8-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251112114351.3273-2-fmancera@suse.de>
-References: <20251112114351.3273-2-fmancera@suse.de>
+	s=arc-20240116; t=1762952110; c=relaxed/simple;
+	bh=GK3S2B+V0tGij54CXCXdL03p1HBPSpt3WcU8s4IwIWk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=boe1WaMaq/qcabACLPdWoOscxwiWwvEs8XdLRt3W9dkF9Pu4TF9Xy5lX8QfuLNHDAvYm1jtBHL7j/UI7T6g3+yEtE9E7QYT0Oj39srWx7/ENF+9V9tZFWZhKgxVa2QSUEGhK7anvlFpRDlCvU5z4iFc5YPQmTtUjc4vWFMAccDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D6Bcjm/9; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D6Bcjm/9"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 35840602A5;
+	Wed, 12 Nov 2025 13:55:03 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1762952103;
+	bh=OdNeVeyuucE30sPTpY9njuCBycZpQtt+JjceqnPV0Mw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=D6Bcjm/9LmFjtZeCTxPN0DJvz6XRu9Sc37Yb468pSkOpuAsnIIoqNazJRAud1sHoO
+	 mSxY5PM1z7yDgjRQl9NUgocoRUnggPcUSTm+qIXRQkNacOF9yv0AaC9HmSLeQhg7O7
+	 K3Z0/LtLWLjU6+T0X2vO0qu2tfklmPLSEFASLrJhdgG8Z8/lCTEUnS4ApEJUloFdWv
+	 WYudt8DCKioP7oXrFtXWT/e9wbbuAFLc+853qhVQqjTYbZMvUIe9qK8g1wHpYcAmeO
+	 6Ek5GA/lrp4yoZ8pWYiAi7erBgWRy74MIwLvjmxyozW4mQAVOQbb0ri2aMk5XEKYtw
+	 389qt0rQVqprA==
+Date: Wed, 12 Nov 2025 13:55:00 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v9 2/3] net: netfilter: Add IPIP flowtable tx sw
+ acceleration
+Message-ID: <aRSDjkzMx4Ba7IW8@calendula>
+References: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
+ <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Spam-Level: 
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	REPLY(-4.00)[]
-X-Rspamd-Queue-Id: 78B4121248
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -4.00
+Content-Type: multipart/mixed; boundary="qIJPGgiRR2AxazJq"
+Content-Disposition: inline
+In-Reply-To: <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
 
-Connlimit expression can be used for all kind of packets and not only
-for packets with connection state new. See this ruleset as example:
 
-table ip filter {
-        chain input {
-                type filter hook input priority filter; policy accept;
-                tcp dport 22 ct count over 4 counter
-        }
-}
+--qIJPGgiRR2AxazJq
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Currently, if the connection count goes over the limit the counter will
-count the packets. When a connection is closed, the connection count
-won't decrement as it should because it is only updated for new
-connections due to an optimization on __nf_conncount_add() that prevents
-updating the list if the connection is duplicated.
+Hi Lorenzo,
 
-To solve this problem, check whether the connection was skipped and if
-so, update the list. Adjust count_tree() too so the same fix is applied
-for xt_connlimit.
+On Fri, Nov 07, 2025 at 12:14:47PM +0100, Lorenzo Bianconi wrote:
+[...]
+> @@ -565,8 +622,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+>  
+>  	dir = tuplehash->tuple.dir;
+>  	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> +	other_tuple = &flow->tuplehash[!dir].tuple;
+>  
+> -	if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
+> +	if (nf_flow_encap_push(state->net, skb, other_tuple))
+>  		return NF_DROP;
+>  
+>  	switch (tuplehash->tuple.xmit_type) {
+> @@ -577,7 +635,9 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+>  			flow_offload_teardown(flow);
+>  			return NF_DROP;
+>  		}
+> -		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr));
+> +		dest = other_tuple->tun_num ? other_tuple->tun.src_v4.s_addr
+> +					    : other_tuple->src_v4.s_addr;
 
-Fixes: 976afca1ceba ("netfilter: nf_conncount: Early exit in nf_conncount_lookup() and cleanup")
-Closes: https://lore.kernel.org/netfilter/trinity-85c72a88-d762-46c3-be97-36f10e5d9796-1761173693813@3c-app-mailcom-bs12/
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- net/netfilter/nf_conncount.c  | 10 +++++++---
- net/netfilter/nft_connlimit.c | 15 ++++++++++++---
- 2 files changed, 19 insertions(+), 6 deletions(-)
+I think this can be simplified if my series use the ip_hdr(skb)->daddr
+for rt_nexthop(), see attached patch. This would be fetched _before_
+pushing the tunnel and layer 2 encapsulation headers. Then, there is
+no need to fetch other_tuple and check if tun_num is greater than
+zero.
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 833ef7507af5..cd26ba65eb09 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -408,7 +408,7 @@ insert_tree(struct net *net,
- 			int ret;
+See my sketch patch, I am going to give this a try, if this is
+correct, I would need one more iteration from you.
+
+--qIJPGgiRR2AxazJq
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="update.patch"
+
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 8b74fb34998e..ff2b6c16c715 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -427,6 +427,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	struct flow_offload *flow;
+ 	struct neighbour *neigh;
+ 	struct rtable *rt;
++	__be32 ip_dst;
+ 	int ret;
  
- 			ret = nf_conncount_add_skb(net, skb, l3num, &rbconn->list);
--			if (ret)
-+			if (ret && ret != -EINVAL)
- 				count = 0; /* hotdrop */
- 			else
- 				count = rbconn->list.count;
-@@ -511,10 +511,14 @@ count_tree(struct net *net,
- 			/* same source network -> be counted! */
- 			ret = __nf_conncount_add(net, skb, l3num, &rbconn->list);
- 			spin_unlock_bh(&rbconn->list.list_lock);
--			if (ret)
-+			if (ret && ret != -EINVAL) {
- 				return 0; /* hotdrop */
--			else
-+			} else {
-+				/* -EINVAL means add was skipped, update the list */
-+				if (ret == -EINVAL)
-+					nf_conncount_gc_list(net, &rbconn->list);
- 				return rbconn->list.count;
-+			}
+ 	tuplehash = nf_flow_offload_lookup(&ctx, flow_table, skb);
+@@ -449,6 +450,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
++	ip_dst = ip_hdr(skb)->daddr;
+ 
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+@@ -458,7 +460,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			flow_offload_teardown(flow);
+ 			return NF_DROP;
  		}
- 	}
- 
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index 00c247601173..ba786085389b 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -28,9 +28,18 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
- 	int err;
- 
- 	err = nf_conncount_add_skb(nft_net(pkt), pkt->skb, nft_pf(pkt), priv->list);
--	if (err != EINVAL) {
--		regs->verdict.code = NF_DROP;
--		return;
-+	if (err) {
-+		if (err == -EINVAL) {
-+			/* Call gc to update the list count if any connection has
-+			 * been closed already. This is useful for softlimit
-+			 * connections like limiting bandwidth based on a number
-+			 * of open connections.
-+			 */
-+			nf_conncount_gc_list(nft_net(pkt), priv->list);
-+		} else {
-+			regs->verdict.code = NF_DROP;
-+			return;
-+		}
- 	}
- 
- 	count = READ_ONCE(priv->list->count);
--- 
-2.51.0
+-		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, flow->tuplehash[!dir].tuple.src_v4.s_addr));
++		neigh = ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, ip_dst));
+ 		if (IS_ERR(neigh)) {
+ 			flow_offload_teardown(flow);
+ 			return NF_DROP;
 
+--qIJPGgiRR2AxazJq--
