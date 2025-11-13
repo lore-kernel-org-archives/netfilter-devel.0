@@ -1,115 +1,89 @@
-Received: from mail-vs1-f53.google.com (mail-vs1-f53.google.com [209.85.217.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBB5A347BBA
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 16:18:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE8D357A31
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 17:44:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763050736; cv=none; b=ho4LVF0nLBVcO0b27G9KI1ihy3EdoJm/Az7hkkEUks3rewVW2nBMrf3cH4c79knQiThiq9+LVilTWN9Y8sPqsgA10bfkrnLwRDDj5L+KVWp6+4cL+xLJ/5+hIwHBaTpBr+ziakjsnK+mXKJ6joBJWh5gPMttDdR3FT1DbBnCLeU=
+	t=1763055886; cv=none; b=qNJCcexX77d11pBdoYO1QBuVCA7t7gifz2uhXJ1eM3UqaojVr7TfDJunPSb3uyzNnmCq+JHM8aXnUNtpYJg2Xuxtyu5KnMBMWWFfEJe+/lSZKTpLNAbi6s+6kmbUg1QAc7+Ys7MgU7UKgg2Wr/fQ+4rdaUMRFrY7wXo6ncW4McU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763050736; c=relaxed/simple;
-	bh=X+jglSuIcAqBj4r2Yvzejgtem7Zuj3d3HuPiUn8D4x4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=UoQWzbDOW7Ah3MKlaMYLWNJOb+aghApQzJeOwISkmHx1Hh01x9QIK0uDqUlYqVmUUTgSBFTbFoyYvPqExEWz4UXk6qQxxOzUYdcgyBVR2r6WBtn59OqSffe6IlZRN9U1KO9iIKfK/u6dXgVoH3SrQuLaJsXGWOFnIneI3WqWMac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g2Hxzr9d; arc=none smtp.client-ip=209.85.217.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1763055886; c=relaxed/simple;
+	bh=F59iHaLVlGXUBLHLMfCK4CLJvoNZzUlDIzXrN20PFe8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=syRBkMOjIBNsChedDzZnfkbIctvJdgUVdEh6ZKADrFTuO20G1xlS8P6OOvGzh+COgemn4452l+HfBUxWRD/SZCQIgpRV9GHzJikCBCYfBifEDJLObiBRhx03pm+6W8iyZWQ+1lulX/Mg29VWKW6/uGMCIvKJxz09WLqET88f5Mo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZZPd5vfn; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g2Hxzr9d"
-Received: by mail-vs1-f53.google.com with SMTP id ada2fe7eead31-5dbd2b7a7e3so712324137.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 08:18:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763050734; x=1763655534; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=X+jglSuIcAqBj4r2Yvzejgtem7Zuj3d3HuPiUn8D4x4=;
-        b=g2Hxzr9d1+BSv+THQ6Mf2zWVTLYFPfNC0n+CgAzWx4ljQRadWCZssG7VITcPJ/hdwb
-         SfhWo508HygUpzjAoiUc3a1ooLqcasT5utH2z3Dp6muTbYmHa9N6WFd7rZJovYMtDlQu
-         g6xMxN/o7TBprchv4nFV6515aowPDnqKV9QFHMDiwZwssURu7zQzhqAPPjRV8+HA0q2B
-         B/frdEHcLxNCM5LYGwqqzLXv4qBD+dwRoFvmsfrE5HdrL4VKtDUlW/YETWvG1Dc+Obai
-         WE+WCgAAGHYKbBbzsFnRh70tvOoQymvEr181iJFSPQCmhdcV8fYObR/3RdxhIB/A3ogg
-         FhnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763050734; x=1763655534;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=X+jglSuIcAqBj4r2Yvzejgtem7Zuj3d3HuPiUn8D4x4=;
-        b=TNW8ZPgc3iY/1BaOOJSVzBamOxcc10qWW4oZbDtFfT02NP80yxjRZZOKQ01/p2DOwr
-         qxZ0ekp6DQdYJDafFlEKk78IQ4IIrL7DTjI1tXKXuHbpRu0cbVR65MpRxS1cHDaBiQN+
-         RevKT2gRDBMvwHRVzgAF1STnTok/2J4wsx88eXaB6J2WD0JTtzjbVVzPfYAlhloN3qnl
-         OEzpSH6qmDsHHcn6QD5tm5uDpifVvx5nKLdB91Gyu+xaGl59drM9iobp1hozjUNkjcfm
-         U4dMSBb6ncyFTXfQfz7ZnRe20OQxtnro4fi0oAnU1Ad+EgnyEbM4s1FMLqoQBPj8Lg7G
-         kLhQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUAPnbDOZMFhs4MKCoMrMYwn52rwoPkv70jdh/kPLw2b6wPLzlL0jgFkFSKJdNQ+0TqN9QVHJUIUoYztcvrq3E=@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywcu4YVI1z4mEub7sYjDuuc2eqYqjcPRcvIaENzBGw+w1Z7SjD9
-	aklvtchBIfXLka+kkkYSjuWNad75/qkAQxDST2pSCb+pUcd1bf5f0/K1m8iJ2XHFXy8bxQDLds4
-	1fYD03xjevRqLpfAP5PzAbFPNbwLpfYY=
-X-Gm-Gg: ASbGncvAtT43NvK/UWFUti0PV0DFhwRx5KC+oWAmQPgGXhjo4k7aLePeY75LdTELjvQ
-	7yB+5DPfb7KUWDtWtMIGjnOtx6J3JctS4n+oKXknGEyKiyThXkl0mH+LmSAvedDStCHwh9aqcIt
-	Km1diBxTKSoPCmu83t+0GQvUwb4bfODehQBscKCdD76qMbt1NcledOHoAhQnMgVuoUyWoXuGZCF
-	TF6Jxzz/SFEuypwOn72Y5jW2uHW5sFO0lockgAh9JV7YIygQ2Jxkh12xq01O98=
-X-Google-Smtp-Source: AGHT+IHQlvloEzjKkY5BkMvD2gAnBdnRNb1amCMLvHF1Utj0ORHdSRDHFy5DC5NLvgH60/r/vrHA1AW5hpH3I+XpRwc=
-X-Received: by 2002:a05:6102:4487:b0:5dd:c3ec:b5b with SMTP id
- ada2fe7eead31-5dfc5b72883mr124216137.31.1763050733707; Thu, 13 Nov 2025
- 08:18:53 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZZPd5vfn"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=46pFG5QRm6VtrrlNxZoI8MmKgzoxbdz6ftRChNim47A=; b=ZZPd5vfnQLB37hu6VfjQtwRFck
+	db/STuzT0E1IxHgBhR+Xhbc5uGe8DD6l5uBlAFm50T2RsxfCumt6iFxayaGDFVfasPC2fkNz2zMTt
+	V8XdfvVykW1aV+2vrAiQ53zygyQKNF8vnVqLh8xKU90+FQ8wefgC2Tadl8uSTPz0C0eqRkH62ITVg
+	bpAI6oz4iCIXX6Yj305wfQh11+tZgx+XMfH6A3R+CfAIzr4o3duvhTK5z9gn9JwyMnaiVRr7INMA+
+	R5kGuTn/j0E+syWQ874rJWpxYeBKGd3mT9sBPzYs2jFmrsgu9zY3dv9WXlsW9ju6JZiuUtPMwXZbv
+	GpguTkrQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vJbN5-0000000031p-1AsB;
+	Thu, 13 Nov 2025 18:44:35 +0100
+Date: Thu, 13 Nov 2025 18:44:35 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Alexandre Knecht <knecht.alexandre@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+Subject: Re: [PATCH nf v3] parser_json: support handle for rule positioning
+ in JSON add rule
+Message-ID: <aRYZA6M9lVLyBZ5l@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Alexandre Knecht <knecht.alexandre@gmail.com>,
+	netfilter-devel@vger.kernel.org, fw@strlen.de
+References: <20251106083551.137310-1-knecht.alexandre@gmail.com>
+ <aQxwwwlTFj12H8TN@orbyte.nwl.cc>
+ <CAHAB8WyP-eD-v+zkO5xuNYRwkQyNTwwYhZ2j7+WMDj+-SJ19Eg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113154605.23370-1-scott_mitchell@apple.com> <CANn89iJ_b6hfj96Me-8AZN92W+cA52HpGcu81J0MNtzeahpfXg@mail.gmail.com>
-In-Reply-To: <CANn89iJ_b6hfj96Me-8AZN92W+cA52HpGcu81J0MNtzeahpfXg@mail.gmail.com>
-From: Scott Mitchell <scott.k.mitch1@gmail.com>
-Date: Thu, 13 Nov 2025 08:18:42 -0800
-X-Gm-Features: AWmQ_bnF1bGJN_bDR1NS8Ie2R0lRRCVzMsqRXHPobd7cBDwaINkzoduMtW9VB0s
-Message-ID: <CAFn2buA+uHsRLU-TG9Xy42-pATex9Hh7kD4uCtcVRHAKVCgZow@mail.gmail.com>
-Subject: Re: [PATCH v4] netfilter: nfnetlink_queue: optimize verdict lookup
- with hash table
-To: Eric Dumazet <edumazet@google.com>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, phil@nwl.cc, 
-	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	syzbot@syzkaller.appspotmail.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHAB8WyP-eD-v+zkO5xuNYRwkQyNTwwYhZ2j7+WMDj+-SJ19Eg@mail.gmail.com>
 
-On Thu, Nov 13, 2025 at 7:50=E2=80=AFAM Eric Dumazet <edumazet@google.com> =
-wrote:
->
-> On Thu, Nov 13, 2025 at 7:46=E2=80=AFAM Scott Mitchell <scott.k.mitch1@gm=
-ail.com> wrote:
-> >
-> > From: Scott Mitchell <scott.k.mitch1@gmail.com>
-> >
-> > The current implementation uses a linear list to find queued packets by
-> > ID when processing verdicts from userspace. With large queue depths and
-> > out-of-order verdicting, this O(n) lookup becomes a significant
-> > bottleneck, causing userspace verdict processing to dominate CPU time.
-> >
-> > Replace the linear search with a hash table for O(1) average-case
-> > packet lookup by ID. The hash table size is configurable via the new
-> > NFQA_CFG_HASH_SIZE netlink attribute (default 1024 buckets, matching
-> > NFQNL_QMAX_DEFAULT; max 131072). The size is normalized to a power of
-> > two to enable efficient bitwise masking instead of modulo operations.
-> > Unpatched kernels silently ignore the new attribute, maintaining
-> > backward compatibility.
-> >
-> > The existing list data structure is retained for operations requiring
-> > linear iteration (e.g. flush, device down events). Hot fields
-> > (queue_hash_mask, queue_hash pointer) are placed in the same cache line
-> > as the spinlock and packet counters for optimal memory access patterns.
-> >
-> > Signed-off-by: Scott Mitchell <scott.k.mitch1@gmail.com>
->
-> Please wait ~24 hours between each version.
->
-> Documentation/process/maintainer-netdev.rst
->
-> Thank you.
+Hi Alexandre,
 
-ack. I will wait 24 hours to address Florian's comments on v3 (unless
-instructed otherwise).
+On Fri, Nov 07, 2025 at 03:19:27PM +0100, Alexandre Knecht wrote:
+> Before submitting v4 for JSON handle positioning, I wanted to share
+> the design approach and get your feedback on whether it looks sound.
+
+Sorry for the late reply!
+
+[...]
+> Questions for Review
+> 
+> 1. Flag approach: Does using CTX_F_IMPLICIT seem reasonable, or would
+> you prefer one of the alternatives?
+> 2. Expression mask: Is CTX_F_EXPR_MASK acceptable as a fix, or should
+> I refactor to separate expr_flags and command_flags entirely?
+
+Yes, CTX_F_IMPLICIT is a good idea and CTX_F_EXPR_MASK the easiest
+option to avoid misinterpretation of the new flag bit.
+
+> 3. Test coverage: Are tests 0007 and 0008 sufficient, or should I add
+> more edge cases?
+
+They seem more than enough to me. Extending tests to cover for newly
+discovered cases is also not a big deal, so no worries here.
+
+> Ready to submit if design is approved !
+> 
+> I have the complete patch ready to send if this approach looks good to you.
+
+Cool, looking forward to your patch!
+
+Thanks, Phil
