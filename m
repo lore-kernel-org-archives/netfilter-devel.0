@@ -1,117 +1,115 @@
-Received: from mail-vs1-f47.google.com (mail-vs1-f47.google.com [209.85.217.47])
+Received: from mail-vs1-f53.google.com (mail-vs1-f53.google.com [209.85.217.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 292AC357A35
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 16:15:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBB5A347BBA
+	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 16:18:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763050560; cv=none; b=bJuu2xhKjydUdwIB0ugvRaaSyxM20kTaefed9e69btcWNEtukMFj5x7xNPdUXUhTnNrmmSwvtxlwaXl8/K8EvETsQdxOeNfBack3omna5JeBvzZ/dzlmsfUFEZIMDBS00XsWJnAZppWSlm9h+80uoycEJ3GpDQNFn8YS3EBc27Q=
+	t=1763050736; cv=none; b=ho4LVF0nLBVcO0b27G9KI1ihy3EdoJm/Az7hkkEUks3rewVW2nBMrf3cH4c79knQiThiq9+LVilTWN9Y8sPqsgA10bfkrnLwRDDj5L+KVWp6+4cL+xLJ/5+hIwHBaTpBr+ziakjsnK+mXKJ6joBJWh5gPMttDdR3FT1DbBnCLeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763050560; c=relaxed/simple;
-	bh=kafW6vm77X+S5eJdFGrqID+7DDj+I7gbTIu7zvP37RI=;
+	s=arc-20240116; t=1763050736; c=relaxed/simple;
+	bh=X+jglSuIcAqBj4r2Yvzejgtem7Zuj3d3HuPiUn8D4x4=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FkxjjwCyDGW1m8HNv6bshbhfCrraUQjxv0eFtxrKg4Mygf8MYSnNJcJcyozx+pAig3TCiQfOKF0uJw5myNFwEEYmXFtE+rZnh598H/NvYQfgsmccNrZ4tiwSchTwHKMhkSKpJKG9IvFDxH9igFc8hOeP45Q4zZGk2CqRDn7DM90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=C1pjjSg4; arc=none smtp.client-ip=209.85.217.47
+	 To:Cc:Content-Type; b=UoQWzbDOW7Ah3MKlaMYLWNJOb+aghApQzJeOwISkmHx1Hh01x9QIK0uDqUlYqVmUUTgSBFTbFoyYvPqExEWz4UXk6qQxxOzUYdcgyBVR2r6WBtn59OqSffe6IlZRN9U1KO9iIKfK/u6dXgVoH3SrQuLaJsXGWOFnIneI3WqWMac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g2Hxzr9d; arc=none smtp.client-ip=209.85.217.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C1pjjSg4"
-Received: by mail-vs1-f47.google.com with SMTP id ada2fe7eead31-5dbcd54d2d8so894004137.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 08:15:58 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g2Hxzr9d"
+Received: by mail-vs1-f53.google.com with SMTP id ada2fe7eead31-5dbd2b7a7e3so712324137.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 08:18:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763050558; x=1763655358; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1763050734; x=1763655534; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QtZrc8pcV94m9BaS5IFrkwCaXzwDk1JO5Dgtlvx9nnI=;
-        b=C1pjjSg4y7VbbIQiWGAig7QPRE5zgmqH/55gQfJZRM+KANtXd2Mb8clkAgb1X9mKIh
-         YS0lWKizGIfFUaVm6RNL2rm6pr2XytoNAyfBoyNK9Wi5baNBLqIBLAxR9oibluvYcAP3
-         CAYYdn5eQheU7At9zJ2ShrWKV5RyLWDeeYAIj0Lo80XPUkp3kBtE7G1Ggo1aQ17aqGbj
-         jgY2wjdJac1QkXXJ4YXh1+INLFcxEQQSz6wHIwZnBMO9wNR4lv0kFGiusFT3YBO79Hg1
-         XrRdOPbCMWcSHSgWodgoRvlYBdpdjNIRDBApUsmQJe+i2E+7oHPxiUM+nVrNUKsVRWer
-         83LA==
+        bh=X+jglSuIcAqBj4r2Yvzejgtem7Zuj3d3HuPiUn8D4x4=;
+        b=g2Hxzr9d1+BSv+THQ6Mf2zWVTLYFPfNC0n+CgAzWx4ljQRadWCZssG7VITcPJ/hdwb
+         SfhWo508HygUpzjAoiUc3a1ooLqcasT5utH2z3Dp6muTbYmHa9N6WFd7rZJovYMtDlQu
+         g6xMxN/o7TBprchv4nFV6515aowPDnqKV9QFHMDiwZwssURu7zQzhqAPPjRV8+HA0q2B
+         B/frdEHcLxNCM5LYGwqqzLXv4qBD+dwRoFvmsfrE5HdrL4VKtDUlW/YETWvG1Dc+Obai
+         WE+WCgAAGHYKbBbzsFnRh70tvOoQymvEr181iJFSPQCmhdcV8fYObR/3RdxhIB/A3ogg
+         FhnA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763050558; x=1763655358;
+        d=1e100.net; s=20230601; t=1763050734; x=1763655534;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=QtZrc8pcV94m9BaS5IFrkwCaXzwDk1JO5Dgtlvx9nnI=;
-        b=r9Fd4X74s4Ex2AdQ1lO/cMvfSBPITSTO4WE2REyNlkvXpeuXKLVt7ShYK9C7ZslzPI
-         O9gvDHPmv5KsTRP+TE+4J3AmLYFo0ZI+CLE8JA0OtO5WGOP0tKXqh05AOLEkYgIu9/KR
-         ja+VZ0qLdsk3FQoL7sFC7tBqGi3dAyGG6m3UU2+bDSI4cD6v/jlqduY84HR/L/4287aV
-         Tw4cnVSDoEl9m3yl43OmPFg6N+/13fPUagJUCpVLhUd3g5vskS+uyVA4A67bnEihOxwC
-         vD1c8JIs8a/rYFes5+gbjzXQ8jtVsDi/RKwpHM1HQR9FhVyc15vpw/ret5ZnXs2+zSMU
-         IFOQ==
-X-Forwarded-Encrypted: i=1; AJvYcCURoG27UpSSC4tZ7YQcC8qmT2DdEC0vQ2qv5MvRJVsEuv6c2qabQXplqjMC/CqxykzKtb8fVe81GO7RRQ7kLVo=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx9ifFlO/Ov1WtLU+UaX/cJAnFfSYBZ3SqONlRyAAoOKqcPP6Zn
-	L2NUQ8sVAET5a77x5ORB4Za3S3kT/fo2DABLy8pI/ceyxmh5tb43Uxj66VXfQ+WR0qIAkfxJCuk
-	cYvu4Os6pe0nIAWrG0IGewaWBx7WNH9o=
-X-Gm-Gg: ASbGncuy148QqUzvUQdd+UfdT3VrlDHEVsA0m8K4KGjpitB+7s3jiWTThZ02ksS3Nwr
-	GXJJFNlFHl10c7270asEfRpEXxQYsr5+gDi/kI2fXn1UM0d25db5jmUoaUaNmflE6dzEY9j5gsc
-	QyecLqSOlJ1k7XeCFfiV4I2moFewE/BqysmU4aVsMlUm+Ko4gJPvQ7v4VXMB+ldSHEkeOO1MMLI
-	YCn02G1Y5j6ao2TTEoaae/ibhXiBwr24KOh/HEfgBdaT3AZdZDTRXJ/ew+bCrQ=
-X-Google-Smtp-Source: AGHT+IH2HUQ+XY5AWd7wrPGPnvmbvbSLt8KzksKdJcvdqRJKUPwqI37CvV3L4gFpgWh2H8+Lncy/ncP5xaKiRgSBfY0=
-X-Received: by 2002:a05:6102:947:b0:5df:af0f:3094 with SMTP id
- ada2fe7eead31-5dfc5b9fa3amr116681137.42.1763050557931; Thu, 13 Nov 2025
- 08:15:57 -0800 (PST)
+        bh=X+jglSuIcAqBj4r2Yvzejgtem7Zuj3d3HuPiUn8D4x4=;
+        b=TNW8ZPgc3iY/1BaOOJSVzBamOxcc10qWW4oZbDtFfT02NP80yxjRZZOKQ01/p2DOwr
+         qxZ0ekp6DQdYJDafFlEKk78IQ4IIrL7DTjI1tXKXuHbpRu0cbVR65MpRxS1cHDaBiQN+
+         RevKT2gRDBMvwHRVzgAF1STnTok/2J4wsx88eXaB6J2WD0JTtzjbVVzPfYAlhloN3qnl
+         OEzpSH6qmDsHHcn6QD5tm5uDpifVvx5nKLdB91Gyu+xaGl59drM9iobp1hozjUNkjcfm
+         U4dMSBb6ncyFTXfQfz7ZnRe20OQxtnro4fi0oAnU1Ad+EgnyEbM4s1FMLqoQBPj8Lg7G
+         kLhQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUAPnbDOZMFhs4MKCoMrMYwn52rwoPkv70jdh/kPLw2b6wPLzlL0jgFkFSKJdNQ+0TqN9QVHJUIUoYztcvrq3E=@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywcu4YVI1z4mEub7sYjDuuc2eqYqjcPRcvIaENzBGw+w1Z7SjD9
+	aklvtchBIfXLka+kkkYSjuWNad75/qkAQxDST2pSCb+pUcd1bf5f0/K1m8iJ2XHFXy8bxQDLds4
+	1fYD03xjevRqLpfAP5PzAbFPNbwLpfYY=
+X-Gm-Gg: ASbGncvAtT43NvK/UWFUti0PV0DFhwRx5KC+oWAmQPgGXhjo4k7aLePeY75LdTELjvQ
+	7yB+5DPfb7KUWDtWtMIGjnOtx6J3JctS4n+oKXknGEyKiyThXkl0mH+LmSAvedDStCHwh9aqcIt
+	Km1diBxTKSoPCmu83t+0GQvUwb4bfODehQBscKCdD76qMbt1NcledOHoAhQnMgVuoUyWoXuGZCF
+	TF6Jxzz/SFEuypwOn72Y5jW2uHW5sFO0lockgAh9JV7YIygQ2Jxkh12xq01O98=
+X-Google-Smtp-Source: AGHT+IHQlvloEzjKkY5BkMvD2gAnBdnRNb1amCMLvHF1Utj0ORHdSRDHFy5DC5NLvgH60/r/vrHA1AW5hpH3I+XpRwc=
+X-Received: by 2002:a05:6102:4487:b0:5dd:c3ec:b5b with SMTP id
+ ada2fe7eead31-5dfc5b72883mr124216137.31.1763050733707; Thu, 13 Nov 2025
+ 08:18:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113153220.16961-1-scott_mitchell@apple.com> <aRX_VP61EqRM-8z7@strlen.de>
-In-Reply-To: <aRX_VP61EqRM-8z7@strlen.de>
+References: <20251113154605.23370-1-scott_mitchell@apple.com> <CANn89iJ_b6hfj96Me-8AZN92W+cA52HpGcu81J0MNtzeahpfXg@mail.gmail.com>
+In-Reply-To: <CANn89iJ_b6hfj96Me-8AZN92W+cA52HpGcu81J0MNtzeahpfXg@mail.gmail.com>
 From: Scott Mitchell <scott.k.mitch1@gmail.com>
-Date: Thu, 13 Nov 2025 08:15:46 -0800
-X-Gm-Features: AWmQ_bmfelQ7mL859A_WFlpN488ACFKOjNy8IKc90uyX9-mjfPmXI3utiSYZVBs
-Message-ID: <CAFn2buAJY0RpSBAevCVavq9cUkenBKe3QcnXFA+5qqiS=8z5rA@mail.gmail.com>
-Subject: Re: [PATCH v3] netfilter: nfnetlink_queue: optimize verdict lookup
+Date: Thu, 13 Nov 2025 08:18:42 -0800
+X-Gm-Features: AWmQ_bnF1bGJN_bDR1NS8Ie2R0lRRCVzMsqRXHPobd7cBDwaINkzoduMtW9VB0s
+Message-ID: <CAFn2buA+uHsRLU-TG9Xy42-pATex9Hh7kD4uCtcVRHAKVCgZow@mail.gmail.com>
+Subject: Re: [PATCH v4] netfilter: nfnetlink_queue: optimize verdict lookup
  with hash table
-To: Florian Westphal <fw@strlen.de>
-Cc: pablo@netfilter.org, kadlec@netfilter.org, phil@nwl.cc, 
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org, pabeni@redhat.com, 
-	horms@kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Eric Dumazet <edumazet@google.com>
+Cc: pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, phil@nwl.cc, 
+	davem@davemloft.net, kuba@kernel.org, pabeni@redhat.com, horms@kernel.org, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	syzbot@syzkaller.appspotmail.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 13, 2025 at 7:55=E2=80=AFAM Florian Westphal <fw@strlen.de> wro=
-te:
+On Thu, Nov 13, 2025 at 7:50=E2=80=AFAM Eric Dumazet <edumazet@google.com> =
+wrote:
 >
-> Scott Mitchell <scott.k.mitch1@gmail.com> wrote:
-> > +static int
-> > +nfqnl_hash_resize(struct nfqnl_instance *inst, u32 hash_size)
-> > +{
-> > +     struct hlist_head *new_hash, *old_hash;
-> > +     struct nf_queue_entry *entry;
-> > +     unsigned int h, hash_mask;
-> > +
-> > +     hash_size =3D nfqnl_normalize_hash_size(hash_size);
-> > +     if (hash_size =3D=3D inst->queue_hash_size)
-> > +             return 0;
-> > +
-> > +     new_hash =3D kvcalloc(hash_size, sizeof(*new_hash), GFP_KERNEL_AC=
-COUNT);
+> On Thu, Nov 13, 2025 at 7:46=E2=80=AFAM Scott Mitchell <scott.k.mitch1@gm=
+ail.com> wrote:
+> >
+> > From: Scott Mitchell <scott.k.mitch1@gmail.com>
+> >
+> > The current implementation uses a linear list to find queued packets by
+> > ID when processing verdicts from userspace. With large queue depths and
+> > out-of-order verdicting, this O(n) lookup becomes a significant
+> > bottleneck, causing userspace verdict processing to dominate CPU time.
+> >
+> > Replace the linear search with a hash table for O(1) average-case
+> > packet lookup by ID. The hash table size is configurable via the new
+> > NFQA_CFG_HASH_SIZE netlink attribute (default 1024 buckets, matching
+> > NFQNL_QMAX_DEFAULT; max 131072). The size is normalized to a power of
+> > two to enable efficient bitwise masking instead of modulo operations.
+> > Unpatched kernels silently ignore the new attribute, maintaining
+> > backward compatibility.
+> >
+> > The existing list data structure is retained for operations requiring
+> > linear iteration (e.g. flush, device down events). Hot fields
+> > (queue_hash_mask, queue_hash pointer) are placed in the same cache line
+> > as the spinlock and packet counters for optimal memory access patterns.
+> >
+> > Signed-off-by: Scott Mitchell <scott.k.mitch1@gmail.com>
 >
-> This doesn't work, please re-test with LOCKDEP enabled before sending
-> next version.
+> Please wait ~24 hours between each version.
 >
-> > +     inst->queue_hash =3D kvcalloc(hash_size, sizeof(*inst->queue_hash=
-),
-> > +                                 GFP_KERNEL_ACCOUNT);
+> Documentation/process/maintainer-netdev.rst
 >
-> .. and this doesn't work either, we are holding rcu read lock and
-> the queue instance spinlock, so we cannot do a sleeping allocation.
->
-> That said, I don't see a compelling reason why rcu read lock is held
-> here, but resolving that needs prep work :-/
->
-> So there are only two choices:
-> 1. add a prep patch that pushes the locks to where they are needed,
->    the rebase this patch on top
-> 2. use GFP_ATOMIC like in v1 and update comment to say that
->    GFP_KERNEL_ACCOUNT would need more work to place allocations
->    outside of the locks.
+> Thank you.
 
-I will go with option 2 to make incremental progress.
+ack. I will wait 24 hours to address Florian's comments on v3 (unless
+instructed otherwise).
