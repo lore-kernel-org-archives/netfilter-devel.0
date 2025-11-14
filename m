@@ -1,117 +1,149 @@
-Received: from mail-vs1-f46.google.com (mail-vs1-f46.google.com [209.85.217.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55BCE320CAC
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 20:56:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CD6220F079
+	for <netfilter-devel@vger.kernel.org>; Fri, 14 Nov 2025 00:25:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763067398; cv=none; b=jVcAA9c8h0WMXSRiHJxb3Hl1mwYFbybhhaKhje6AE7cpHdYxBVQ2CSLdbjOk4MoV7mDrhn7HEMm4BERuLZemzg0BsEzV60OLX6xy2v/1RR4vbMOzElWappjXLqrIYIyqdI1yujyaamhtU88Nrf732E3aAZpTg/ZvBQ9SgEIShIA=
+	t=1763079953; cv=none; b=iHDcjMn10BWicxzFA/A44mQ2LaN5ydagQ7TK7F5m/m1wb/HYqDqWAHYMOZOGLcb9jyLBiksmCAK7nQDgcxg7OW/p1FhEQbdEVV1cpmYRRrsFQ7h+k4bvJ/zyK8VCIkYO2ad7gt8juBLNmSSR5/GFKCEMDWuitmFMClQ0y5bKa/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763067398; c=relaxed/simple;
-	bh=xcx51CpZDC2fkjH4LJIQFa9yOLzN8e25KFGSYzDpG1k=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=stUsqAkPyEg7Um46jiGe38CzgEfxKvnOfAfLJwXd/jVadD+GzFvbOWCiteNZlw+yCbw4+r63AyY/66SU40wrPlMWFVFHLUib8HkhGzzJBUEE6iRVH1S9I8P8Ufh26Cv7oBvtHm9ndW3uN1rcsWhUncifHH5O8pZoNgt5zuV3ihQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PWNof0G7; arc=none smtp.client-ip=209.85.217.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1763079953; c=relaxed/simple;
+	bh=T/YkZQM4k7vbi5s69PcPnayFXRUJb7s+o07rO6hHxr0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=FXJR0TEiV3KKbEf8XlAXmMe5Q8S/G77plzEdFT5xmHhyoNIYzt60w+/RRf7CCeuA3T+LACIGajIURiheOJJexMQdB/d0DR1il3v+ALWadrsfI3l5FfZuFvmBIaZQRd/vLr5mhQMfxCgS5mOk+pTqP45RIf3zBLneD8ni9XKUoX8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=hPuxxJZs; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PWNof0G7"
-Received: by mail-vs1-f46.google.com with SMTP id ada2fe7eead31-5dfc2a9b79fso229592137.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 13 Nov 2025 12:56:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1763067396; x=1763672196; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fE6wkTka36l+WuIbH6rtyhnrc4czYANuD5KWow4y1eY=;
-        b=PWNof0G7520PnJBc9SLS9M4LZwwtleoViibd/qNGRIjkF88VkCpTkp0aF/G0EhRIBG
-         jCpUEKpeZVJ5/oUlS0tnkBtRxYEXHeH9mu4WCXv6Y4Zm2sBsw3ieCRXxv8E4LdCwrAwZ
-         ky4YP0nSxw36pN3CoKpA+Pl93jz0PlSkHQjQhPa7nR0MqAzO+JdaNDGvDeiFb9rq/anV
-         3j12fp0IWezn1a9bD9SYBSros2to+Hq8JqrKZMBaGX6LyU2W+eDi+pOhOoUvyhTDXyPQ
-         8WF+tyEc4ffkvrNLM6UXlCOs1kVJXffKRmQ6Tmd5ndfVtgcgpzNIy+/ldb/rR1r5fpao
-         6/yA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1763067396; x=1763672196;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=fE6wkTka36l+WuIbH6rtyhnrc4czYANuD5KWow4y1eY=;
-        b=HMj31PiMyjhljcFb4XUSD9FPWoimdXBWyYZsPNwpnMQu/e68Wq8stpfRXByCafZSvt
-         Ok3vVNnqdXqRUbshzmhKtkIa16QZbGwtKG2rcjQH8olZLu4bAQb3zbHSKF6NCk8eJvlR
-         0EZaJRtjBnujx5ItDpUIydWmrD7lvsiHESHZhgyYqbWa18k8kShXmlRBD9WeVjV6rzp2
-         7YxRIWYgdrKaPljRtYXjocMp/CGow3XdbPXE04a5oqXTl/VtW6uY7ja/8a+sl1xbGi6x
-         PmPqnLavx9AgtoiKc7QpBVBcqsmkYw8YFaeaAS76bTmleP5RtVXGAG1zchhDlxToI6bz
-         v7mA==
-X-Forwarded-Encrypted: i=1; AJvYcCWlp52LgrhrlWnX7PxzbTpeZwr0Yjeia0YoyCErEAOl74UvTd9xffvCQqs9pgI46T8eOOg09pZbVcj/6f8YkF0=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz38spmhfuXBZxAmXxfcjz21WBM+gMJ4JWd5Ru2PTnqhsONcjZX
-	s2pREZjIZ8Rn01sjI3uuC8VXWIiqEJicnXjh1BBteYStKE5aWsJcyRlIlP3ZpLzlg+pk346Bqnf
-	NDjklWUvQ6DQbUcE04nXSBt3EMssdJ2Y=
-X-Gm-Gg: ASbGncvMGvJSNtrByP1wWMFp9b1H0tbkYUVTqwjF3JtWMt4H+YWkXqiKTnuZ0y8H3hV
-	+7sfyaKi+SHwuH4bVPBMUDXSJfxNYZ1z4dnwT5CPRwAL7eJ871QRHatNpW8/yFGm1RL9Z+fnqse
-	Hh/gQKxp/nortY1wclDbpfWCUxRcT7eZADgYVzBLHqKWa76zdSHdBY18nDHkgPTJIyuytKTYiIO
-	qBcsT+jUPWv5qMkPr8eAOkr0wjuyAMHxmwWib72JlfQ7nJO3EAHQnIf6rJXfHwhce5/r9kT65GU
-	8e+yhpHM/4Vr
-X-Google-Smtp-Source: AGHT+IEuYuAEqPYTSWSN+h426W33ZgMvr8eWHUjqHTxueXAXxSuhXsQmmawhbdxIne3/JUPA9fdkujcoOKj+toV5PfU=
-X-Received: by 2002:a05:6102:5808:b0:5dd:b288:e780 with SMTP id
- ada2fe7eead31-5dfc533e040mr691137137.0.1763067396190; Thu, 13 Nov 2025
- 12:56:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="hPuxxJZs"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=vxUDUzxYx30rvQ2b/tz0G3HJI6h4fV+jw04vYZNifew=; b=hPuxxJZs7D1Ykz797J+UGoR8cw
+	b5TnYNLlyWmVfj7BayZYyPQ0u+3rKJ7M9dSZKiKdOL5qu+tayzXvR062v+CI2lmyfkvJH+3SU69Z5
+	k6S3u7AG1R9z6f5xh1tG1AGS+z1XEAuU4DYrrQmswtzFH4RUCI4h4LBZf1fpyDDXNHRqg4Ikq0MvK
+	2pvbYyNBj0b062GHe3D0FG3sIhuzNhfse+zJIk+Y6liZvQprbbWK7BBKER/gqL1LI3Vhy2LnIGI2E
+	UB2PMb4DUwob8y4erBcTiX0SV8UL+6S3gnhJQ9Nam9jFnwyuesh299OspPJS2xYr4jK/Og2wqjTcP
+	xZGnwK2w==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vJhdL-000000005jh-25pb;
+	Fri, 14 Nov 2025 01:25:48 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH v2 07/11] netlink: Introduce struct nft_data_linearize::sizes
+Date: Fri, 14 Nov 2025 01:25:38 +0100
+Message-ID: <20251114002542.22667-8-phil@nwl.cc>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251114002542.22667-1-phil@nwl.cc>
+References: <20251114002542.22667-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251113092606.91406-1-scott_mitchell@apple.com>
- <CANn89iJAH0-6FiK-wnA=WUS8ddyQ-q2e7vfK=7-Yrqgi_HrXAQ@mail.gmail.com> <20251113194029.5d4cf9d7@pumpkin>
-In-Reply-To: <20251113194029.5d4cf9d7@pumpkin>
-From: Scott Mitchell <scott.k.mitch1@gmail.com>
-Date: Thu, 13 Nov 2025 12:56:25 -0800
-X-Gm-Features: AWmQ_bm47bkPDEkq2SO3eRLRbarp-giqb4Vz8j4DJ-oKOw0iNgI_m1DRXDEzE84
-Message-ID: <CAFn2buD7QWb42nVaG8yMhEA6+6VtTndk61E+_tZvydLm0Gs3qg@mail.gmail.com>
-Subject: Re: [PATCH v2] netfilter: nfnetlink_queue: optimize verdict lookup
- with hash table
-To: David Laight <david.laight.linux@gmail.com>
-Cc: Eric Dumazet <edumazet@google.com>, pablo@netfilter.org, kadlec@netfilter.org, 
-	fw@strlen.de, phil@nwl.cc, davem@davemloft.net, kuba@kernel.org, 
-	pabeni@redhat.com, horms@kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Scott Mitchell <scott_mitchell@apple.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Nov 13, 2025 at 11:40=E2=80=AFAM David Laight
-<david.laight.linux@gmail.com> wrote:
->
-> On Thu, 13 Nov 2025 02:25:24 -0800
-> Eric Dumazet <edumazet@google.com> wrote:
->
-> > On Thu, Nov 13, 2025 at 1:26=E2=80=AFAM Scott Mitchell <scott.k.mitch1@=
-gmail.com> wrote:
-> ....
-> > I do not think this is an efficient hash function.
-> >
-> > queue->id_sequence is monotonically increasing (controlled by the
-> > kernel : __nfqnl_enqueue_packet(), not user space).
->
-> If id_sequence is allocated by the kernel, is there any requirement
-> that the values be sequential rather than just unique?
+This array holds each concat component's actual length in bytes. It is
+crucial because component data is padded to match register lengths and
+if libnftnl has to print data "in reverse" (to print Little Endian
+values byte-by-byte), it will print extra leading zeroes with odd data
+lengths and thus indicate number of printed bytes does no longer
+correctly reflect actual data length.
 
-I will defer to maintainers for the authoritative answer, but
-NFQNL_MSG_VERDICT_BATCH API semantics rely on sequential IDs
-(nfqnl_recv_verdict_batch applies same verdict to all IDs <=3D max id).
-New options could be added to opt-in to different ID generation
-behavior (e.g. user acknowledging NFQNL_MSG_VERDICT_BATCH isn't used),
-but not clear this would always be beneficial as "unique for all
-packets" depends on size of map relative to number of un-verdicted
-packets. Packets can be verdicted out-of-order which would require
-additional tracking/searching to get "next unused ID".
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ include/netlink.h |  1 +
+ src/netlink.c     | 14 ++++++++++----
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
->
-> If they don't need to be sequential then the kernel can pick an 'id' valu=
-e
-> such that 'id & mask' is unique for all 'live' id values.
-> Then the hash becomes 'perfect' and degenerates into a simple array looku=
-p.
-> Just needs a bit of housekeeping...
->
->         David
+diff --git a/include/netlink.h b/include/netlink.h
+index a762cb485784f..aa25094dc7c1d 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -107,6 +107,7 @@ struct nft_data_linearize {
+ 	uint32_t	chain_id;
+ 	int		verdict;
+ 	uint32_t	byteorder;
++	uint8_t		sizes[NFT_REG32_COUNT];
+ };
+ 
+ struct nft_data_delinearize {
+diff --git a/src/netlink.c b/src/netlink.c
+index 3a512753c7624..d81cfccb6c6aa 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -382,7 +382,7 @@ static void netlink_gen_concat_key(const struct expr *expr,
+ 		if (byteorder == BYTEORDER_HOST_ENDIAN &&
+ 		    expr_basetype(i)->type != TYPE_STRING)
+ 			nld->byteorder |= 1 << n;
+-		n++;
++		nld->sizes[n++] = div_round_up(i->len, BITS_PER_BYTE);
+ 	}
+ 
+ 	nft_data_memcpy(nld, data, len);
+@@ -452,7 +452,7 @@ static void __netlink_gen_concat_expand(const struct expr *expr,
+ 		if (i->byteorder == BYTEORDER_HOST_ENDIAN &&
+ 		    expr_basetype(i)->type != TYPE_STRING)
+ 			nld->byteorder |= 1 << n;
+-		n++;
++		nld->sizes[n++] = div_round_up(i->len, BITS_PER_BYTE);
+ 	}
+ 
+ 	list_for_each_entry(i, &expr_concat(expr)->expressions, list) {
+@@ -460,7 +460,7 @@ static void __netlink_gen_concat_expand(const struct expr *expr,
+ 		if (i->byteorder == BYTEORDER_HOST_ENDIAN &&
+ 		    expr_basetype(i)->type != TYPE_STRING)
+ 			nld->byteorder |= 1 << n;
+-		n++;
++		nld->sizes[n++] = div_round_up(i->len, BITS_PER_BYTE);
+ 	}
+ 
+ 	nft_data_memcpy(nld, data, len);
+@@ -485,7 +485,7 @@ static void __netlink_gen_concat(const struct expr *expr,
+ 		if (i->byteorder == BYTEORDER_HOST_ENDIAN &&
+ 		    expr_basetype(i)->type != TYPE_STRING)
+ 			nld->byteorder |= 1 << n;
+-		n++;
++		nld->sizes[n++] = div_round_up(i->len, BITS_PER_BYTE);
+ 	}
+ 
+ 	nft_data_memcpy(nld, data, len);
+@@ -563,6 +563,8 @@ static void netlink_gen_range(const struct expr *expr,
+ 	offset = netlink_export_pad(data, expr->left->value, expr->left);
+ 	netlink_export_pad(data + offset, expr->right->value, expr->right);
+ 	nft_data_memcpy(nld, data, len);
++	nld->sizes[0] = div_round_up(expr->left->len, BITS_PER_BYTE);
++	nld->sizes[1] = div_round_up(expr->right->len, BITS_PER_BYTE);
+ }
+ 
+ static void netlink_gen_range_value(const struct expr *expr,
+@@ -579,6 +581,8 @@ static void netlink_gen_range_value(const struct expr *expr,
+ 	offset = netlink_export_pad(data, expr->range.low, expr);
+ 	netlink_export_pad(data + offset, expr->range.high, expr);
+ 	nft_data_memcpy(nld, data, len);
++	nld->sizes[0] = div_round_up(expr->len, BITS_PER_BYTE);
++	nld->sizes[1] = nld->sizes[0];
+ }
+ 
+ static void netlink_gen_prefix(const struct expr *expr,
+@@ -599,6 +603,8 @@ static void netlink_gen_prefix(const struct expr *expr,
+ 	mpz_clear(v);
+ 
+ 	nft_data_memcpy(nld, data, len);
++	nld->sizes[0] = div_round_up(expr->prefix->len, BITS_PER_BYTE);
++	nld->sizes[1] = nld->sizes[0];
+ }
+ 
+ static void netlink_gen_key(const struct expr *expr,
+-- 
+2.51.0
+
