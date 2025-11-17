@@ -1,168 +1,98 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from mailgw.kylinos.cn (mailgw.kylinos.cn [124.126.103.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C98735966
-	for <netfilter-devel@vger.kernel.org>; Sat, 15 Nov 2025 13:15:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F21531AF18;
+	Mon, 17 Nov 2025 08:56:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=124.126.103.232
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763212556; cv=none; b=ZS+004OefterqntOOjLrQR13w3ptnOPVND9SB+l7CuxgAuyq0lhRphYJxbiJbb0Q3kTEYmQGlszKPmFiI5qUunV7TVG+LJAKURt2/4jnY74B0jJnNq0bvknXpKnxLWz4HwFIghRYEDpVxD79ABpl69DswCA0c5NzbPYvl7weNi0=
+	t=1763369816; cv=none; b=j03V8ANKx6n1jcRS9UwejVUygEwtDlLxLHKuZnlCykhictOtQax1/IFTgZiOS50Qb1z80gZd7U3uLgSo1L9Am329p0clAi//kCoksKdOPFJjMKLKmAvBSB9Xn0meA0qTSyS8DfA8i3oYNkqF8ec7N8CLPmU1D0Nc7JKluZjDbz8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763212556; c=relaxed/simple;
-	bh=T4CY9cQTw/YY0u9B3vAND5impotqXJBxDfDiIlXIid8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pwj+qUO53JXiVCYfCcHPvVgauIdn/+DMejAWBqqffO4yS+LXiS+3aL6CIN1wW9rylgEcUCSNbMc4ovcFZi5rowkUK3m+ODgYZT4fJuStZlFGwbhuQ2kP4dAVSwePtOLvEyLeL+Ou05Z1vcodkd3R5eC4d3B7qfTLRxJWcabhBjE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=PIlaV1nh; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="PIlaV1nh"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=lnwyov/mTvyIWsjQkDPa6T1Fk5SbRjgahZSOmlviqUs=; b=PIlaV1nhp0jJ4BycRDs8Ul+4aI
-	c4iS/pCiX0mLA1kZwBamAueSek/VlcGYl3aZhd1MHFwrce4UalZQUpTMiUvUfwpP4FpydBKJ1BUrF
-	CCj2QfJXwTVd9rx9FeCPPk2rDzNuBilILBJyLBdwWCoQfRlW01WgvIS/luzORxU/TqV4PcADAVLaO
-	xE0M7NpDdIIayqqtMOTXoBSBWUYrfTRwNwOdHsB/5r9Y7qcIY9b48jlmJQkCygPZhsvKmw2D7MoGe
-	oAy65+/bu74U4bVhY5lXRXRkyxtgxl5g/LpHHAeHmbStYugEOC/xMx3R8CipGliAboTrKRdNguxCE
-	th8IQf7A==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1vKG88-0000000211Z-3Llj;
-	Sat, 15 Nov 2025 13:15:52 +0000
-Date: Sat, 15 Nov 2025 13:15:51 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Florian Westphal <fw@strlen.de>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables] xshared: restore legal options for combined `-L
- -Z` commands
-Message-ID: <20251115131551.GD269079@celephais.dreamlands>
-References: <20251114210109.1825562-1-jeremy@azazel.net>
- <20251114213718.GB269079@celephais.dreamlands>
- <aRhotOKf6VjOWX2f@strlen.de>
- <20251115125435.GC269079@celephais.dreamlands>
- <aRh7oi9SGQKCfhWP@strlen.de>
+	s=arc-20240116; t=1763369816; c=relaxed/simple;
+	bh=zeNRmRHWtUOX6I8TzEx3xaRMSJ4fHKEsFIP53qGol6k=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=WxXPFGJaPW92Ry6M6r3s6Q6/iMTYWV4prjRWExHHb0Q6d5vQ0gy2QAPgadyhXg/g8PhywJ4X8GUXXM9SG9TYjIZU4AavePZT0D9WfOnj2vhmmMqFPrD5DANpAOFOMdir3AVRLSksO5y54c58FzGveCBA+0l82MtM5jOoAR69kCU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn; spf=pass smtp.mailfrom=kylinos.cn; arc=none smtp.client-ip=124.126.103.232
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=kylinos.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kylinos.cn
+X-UUID: 57291b98c39311f0a38c85956e01ac42-20251117
+X-CTIC-Tags:
+	HR_CC_COUNT, HR_CC_DOMAIN_COUNT, HR_CC_NAME, HR_CC_NO_NAME, HR_CTE_8B
+	HR_CTT_MISS, HR_DATE_H, HR_DATE_WKD, HR_DATE_ZONE, HR_FROM_NAME
+	HR_SJ_LANG, HR_SJ_LEN, HR_SJ_LETTER, HR_SJ_NOR_SYM, HR_SJ_PHRASE
+	HR_SJ_PHRASE_LEN, HR_SJ_WS, HR_TO_COUNT, HR_TO_DOMAIN_COUNT, HR_TO_NAME
+	IP_TRUSTED, SRC_TRUSTED, DN_TRUSTED, SA_TRUSTED, SA_EXISTED
+	SN_TRUSTED, SN_EXISTED, SPF_NOPASS, DKIM_NOPASS, DMARC_NOPASS
+	CIE_GOOD, CIE_GOOD_SPF, GTI_FG_BS, GTI_RG_INFO, GTI_C_BU
+	AMN_GOOD, ABX_MISS_RDNS
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.3.6,REQID:0c023d73-c0c8-4c77-ad45-099326e89bc9,IP:10,U
+	RL:0,TC:0,Content:0,EDM:0,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTION
+	:release,TS:5
+X-CID-INFO: VERSION:1.3.6,REQID:0c023d73-c0c8-4c77-ad45-099326e89bc9,IP:10,URL
+	:0,TC:0,Content:0,EDM:0,RT:0,SF:-5,FILE:0,BULK:0,RULE:Release_Ham,ACTION:r
+	elease,TS:5
+X-CID-META: VersionHash:a9d874c,CLOUDID:c1d9d1ac3ac19c751748fda4e8ba206e,BulkI
+	D:251117165644OW1UUAGY,BulkQuantity:0,Recheck:0,SF:17|19|38|66|78|102|850,
+	TC:nil,Content:0|15|50,EDM:-3,IP:-2,URL:0,File:nil,RT:nil,Bulk:nil,QS:nil,
+	BEC:nil,COL:0,OSI:0,OSA:0,AV:0,LES:1,SPR:NO,DKR:0,DKP:0,BRR:0,BRE:0,ARC:0
+X-CID-BVR: 2,SSN|SDN
+X-CID-BAS: 2,SSN|SDN,0,_
+X-CID-FACTOR: TF_CID_SPAM_FSD,TF_CID_SPAM_SNR,TF_CID_SPAM_FAS
+X-CID-RHF: D41D8CD98F00B204E9800998ECF8427E
+X-UUID: 57291b98c39311f0a38c85956e01ac42-20251117
+X-User: zhaochenguang@kylinos.cn
+Received: from localhost.localdomain [(223.70.159.239)] by mailgw.kylinos.cn
+	(envelope-from <zhaochenguang@kylinos.cn>)
+	(Generic MTA with TLSv1.3 TLS_AES_256_GCM_SHA384 256/256)
+	with ESMTP id 999051287; Mon, 17 Nov 2025 16:56:43 +0800
+From: Chenguang Zhao <zhaochenguang@kylinos.cn>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>
+Cc: Chenguang Zhao <zhaochenguang@kylinos.cn>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH linux] netfilter: conntrack: Add missing modification about data-race around ct->timeout
+Date: Mon, 17 Nov 2025 16:56:32 +0800
+Message-Id: <20251117085632.429735-1-zhaochenguang@kylinos.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="4a4z/UG30SE4x4GQ"
-Content-Disposition: inline
-In-Reply-To: <aRh7oi9SGQKCfhWP@strlen.de>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 
+Add missing modification about data-race around ct->timeout
 
---4a4z/UG30SE4x4GQ
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Chenguang Zhao <zhaochenguang@kylinos.cn>
 
-On 2025-11-15, at 14:09:54 +0100, Florian Westphal wrote:
-> Jeremy Sowden <jeremy@azazel.net> wrote:
-> > On 2025-11-15, at 12:49:24 +0100, Florian Westphal wrote:
-> > > Jeremy Sowden <jeremy@azazel.net> wrote:
-> > > > On 2025-11-14, at 21:01:09 +0000, Jeremy Sowden wrote:
-> > > > > Prior to commit 9c09d28102bb ("xshared: Simplify generic_opt_chec=
-k()"), if
-> > > > > multiple commands were given, options which were legal for any of=
- the commands
-> > > > > were considered legal for all of them.  This allowed one to do th=
-ings like:
-> > > >
-> > > >	# iptables -n -L -Z chain
-> > >
-> > > Whats wrong with it?
-> > >
-> > > This failed before
-> > > 192c3a6bc18f ("xshared: Accept an option if any given command allows =
-it"), yes.
-> > >
-> > > Is it still broken?  If yes, what isn't working?
-> >
-> > The iptables man-page description of the `-L` command includes the
-> > following:
-> >
-> > 	Please note that it is often used with the -n option, in order
-> > 	to avoid long reverse DNS lookups.  It is legal to specify the
-> > 	-Z (zero) option as well, in which case the chain(s) will be
-> > 	atomically listed and zeroed.
-> >
-> > This works as expected in 1.8.10:
-> >
-> > 	$ schroot -r -c iptables-sid -u root -- /usr/local/sbin/iptables-nft -=
--version
-> > 	iptables v1.8.10 (nf_tables)
-> > 	$ schroot -r -c iptables-sid -u root -- /usr/local/sbin/iptables-nft -=
-n -L -Z INPUT
-> > 	# Warning: iptables-legacy tables present, use iptables-legacy to see =
-them
-> > 	Chain INPUT (policy ACCEPT)
-> > 	target     prot opt source               destination
-> > 	LIBVIRT_INP  0    --  0.0.0.0/0            0.0.0.0/0
-> >
-> > However, it does not work in 1.8.11:
-> >
-> > 	$ schroot -r -c iptables-sid -u root -- /usr/local/sbin/iptables-nft -=
-n -L -Z INPUT
-> > 	iptables v1.8.11 (nf_tables): Illegal option `--numeric' with this com=
-mand
-> > 	Try `iptables -h' or 'iptables --help' for more information.
->=20
-> But this works in git :-/
->=20
-> So again, what exactly is broken? AFAICS everything works as expected:
->=20
-> iptables/xtables-nft-multi iptables -n -L -v -Z foo
-> Chain foo (1 references)
->  pkts bytes target     prot opt in     out     source               desti=
-nation
->     1    36            all  --  *      *       0.0.0.0/0            0.0.0=
-=2E0/0
-> Zeroing chain `foo'
-> iptables/xtables-nft-multi iptables -n -L -v -Z foo
-> Chain foo (1 references)
->  pkts bytes target     prot opt in     out     source               desti=
-nation
->     0     0            all  --  *      *       0.0.0.0/0            0.0.0=
-=2E0/0
-> Zeroing chain `foo'
+Fixes: 802a7dc5cf1b ("netfilter: conntrack: annotate data-races around ct->timeout")
+---
+ net/netfilter/nf_conntrack_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Damn it.  You're right.  Obviously, it's already been fixed.  Apologies.
-Been rather unwell this week and clearly I'm still somewhat dim-witted.
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 344f88295976..0b26d53f3b65 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1297,7 +1297,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	/* Timeout is relative to confirmation time, not original
+ 	   setting time, otherwise we'd get timer wrap in
+ 	   weird delay cases. */
+-	ct->timeout += nfct_time_stamp;
++	WRITE_ONCE(ct->timeout, ct->timeout + nfct_time_stamp);
+ 
+ 	__nf_conntrack_insert_prepare(ct);
+ 
+-- 
+2.25.1
 
-Thanks, Florian.
-
-J.
-
---4a4z/UG30SE4x4GQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJpGH0GCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmcneVEHFk0Key7sYBiPJwg9K+L/3S73so4Rsr9Y59XC
-CRYhBGwdtFNj70A3vVbVFymGrAq98QQNAAB6nw//RShreGpgWYdILecptK/8GEbd
-zIkto2GRbU738xywA4wDMCTgRGsjnt+/lqzPUPlovmeH8hmiwqds/RDy2OVhjHTY
-hZse2wimeQGmvvTXDgRjhOCPJHZQaWqH6RHLKUmE0Y53OL+64+aTZzP1yoQHsczU
-BSwFzIS5M0ryG3FZjPIxH59Ax1Vnb9WWeQCchfxQqIiI4OwUsQpVoaKcUh48lWL1
-mntjxFVbg+nvZvAWQp4LslivY9Ct2oPcRXN3I3jRQKGbAIvjr2zTE9QJ5Hmx0H36
-4+TweiyRXj0vDFTLU+EzEKmyJPBu5rHqenZVRwQPAxjdtdx2ca8Ou8ZlOKZ47aU7
-81Faeks4M50Uv09waXn/hzVKvnEWn3A7hEBDxkJm+32RsBGjvXoHHR5fWBn9uF87
-snfROfbUkI7Tzigm6kT+1J272ho367PuXmiLRMUN6w5/bw5Ty2nZvhPUa1qfTRxa
-L+KK0zgf2bfQyTOIeANht/5g2WbQYbbZJY8VnGg4RMmux4fcXknabKSqsygf2bPr
-N34IFgBINMrBJjjJL7LYgp9ER/IBgClsK6DEwqtdu53V9psobMIDyKa++2uZFETI
-a/9KAmPheMJJd/3FtcUI7BmeDJ/5un+RQoa+gxUSfpFeWJAhXoVq9KRNJllEyuSi
-YaHKyngx3r0w1lrguYs=
-=9dm+
------END PGP SIGNATURE-----
-
---4a4z/UG30SE4x4GQ--
