@@ -1,42 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8B0A30E0F2;
-	Mon, 17 Nov 2025 21:40:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9962B255F31;
+	Mon, 17 Nov 2025 21:40:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763415656; cv=none; b=Sxx5Tt4yBx9TI0TzU8Rwjb93EUAGLbX5NIk2CCbow01aaztCnVZdoQR5Gg5tflFx67BQw5O+qIpIccXYBZmq8NKNJ8L8lheMsrKAjrE/vXaT8kC220RKFoKUXFyVfZdQQYuWXxcRr0MRNtyMyRY0WPCKfb/HXtdAl1+vWCau5FY=
+	t=1763415658; cv=none; b=Nkp+uyA8B3kxC8RuV9H0xsIH1dcxCgcRpI9f8HdKzKZE9oYnvaLz1rwefrgGooqB3BnOQnd/7JB5h0pmCI1nA37uYgy0n9BfiK7EGjy57Y4robBZISt+nz/gO8pRct1Gw/h5Ci965NiHLI0RdfzzXtNGgPx7PLOnfsoLTKm3LjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763415656; c=relaxed/simple;
-	bh=bljsyx/L1tlDjjDCkpVM5zgc/UFupr3RAsVRgDX8RUs=;
+	s=arc-20240116; t=1763415658; c=relaxed/simple;
+	bh=6AVP6/waYBCSTk3eM287PleDofD4ie7z+SyLM+INe5M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Tokf+EyI+WFOmuUG6d1NnK2Vo3gqih3qLicAvm6fcpvcFyv0ljUbGhEK2UvLHMRg7qTzk33+cgYKt1FE2uW4Pg0ljhLcrXEp3Dz+pVaSFj4uWB/ykzA3inyuf1H80kHTJRLiEqlxkcUhqoH0Hie2FBZhgJQZAa7/tT/vFS7/YOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=psKpmeUq; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=ERHU49ptWfL9vm7KoWQBADIr5YHVWYvWug5g//xaiugTTdA7YvKSCI7LvrBoSwWdDrmpqDRZPtmgQQ/TJKJJFE7AIbEnEf+PK6Pi+ENjs8VSF0wvkCz+ZgNn8jFopaRz35KId3rzmfb95WFQ8Bf81bmuSHUCWunm8YgVPUqYoRo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=U4owAwzB; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="psKpmeUq"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="U4owAwzB"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id D5E356027C;
-	Mon, 17 Nov 2025 22:40:52 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id CED5E6027E;
+	Mon, 17 Nov 2025 22:40:54 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1763415653;
-	bh=h8MXzFn3fLYKjqXJxBYRTuNnV61EH5nTt/rkse7Y/hg=;
+	s=2025; t=1763415655;
+	bh=buGRw0thpo1INGuPHZSd/Mn4rfmS50BZCj2ylYCYOQs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=psKpmeUqWO5N/giL5n0nuMnulh6/xYYNvtWOQWA1646mk4uwV7kZIHAQmz75C+Wx8
-	 nUBc0xozDqWmnxpbLifYUbvKq90IHZJAHkcVJGewPGkkUd3hayie5bHqh4bW1LoGXF
-	 82oKYi9WD8W2Kz7dRIypEWImF1YIxInHkog4bALjJgeTUAxYiOACuGbe+9uc40N2Pk
-	 /edK7JFgiTetlG7+XgQXauOzIR+/SqCNQiRzbT6KZtUCB01vHeGqUccV2YUE4Rm1QK
-	 HCVc6K/36XK30ywXL2O+kpNSOUlqSh+43sJThr8fwesxUVz0u6JJR0izCG7MF2aF82
-	 ARJcpp41kktDg==
+	b=U4owAwzBoef+0+eku42VMAEnnuF0J1UVyXPTbSEyuSRC2F3KPDM9kGnXm3XUISR2V
+	 2La0GaygmrqH1a3JgwQcWf6Co8BjTrHfSkyeL99p2jnyfZERsiy4rploNwwE7ZeHgt
+	 6y37HwJPkWxWZv8+b/YroOu3CIEITSSdQdS4oeaplw92547JHPYFQMX/HhRE3uGGnz
+	 ehmhsKZ94pSCOavPJ1uRxDy2VnpG/g+sYr4gemojn1XTVxFK3PQA/MGe/4xs6/6K6F
+	 PQekaTUWdlQhE8lX22FLgxHjFWiDoIhlU7Y4cmZbXQWY087heqWw1MdW7gPzXSUXb2
+	 FoV9cgCp+uNtg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,5.10 1/1] netfilter: nf_tables: reject duplicate device on updates
-Date: Mon, 17 Nov 2025 21:40:46 +0000
-Message-ID: <20251117214047.858985-2-pablo@netfilter.org>
+Subject: [PATCH -stable,5.10 1/1] netfilter: nft_socket: fix sk refcount leaks
+Date: Mon, 17 Nov 2025 21:40:47 +0000
+Message-ID: <20251117214047.858985-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20251117214047.858985-1-pablo@netfilter.org>
 References: <20251117214047.858985-1-pablo@netfilter.org>
@@ -48,64 +48,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit cf5fb87fcdaaaafec55dcc0dc5a9e15ead343973 upstream.
+From: Florian Westphal <fw@strlen.de>
 
-A chain/flowtable update with duplicated devices in the same batch is
-possible. Unfortunately, netdev event path only removes the first
-device that is found, leaving unregistered the hook of the duplicated
-device.
+commit 8b26ff7af8c32cb4148b3e147c52f9e4c695209c upstream.
 
-Check if a duplicated device exists in the transaction batch, bail out
-with EEXIST in such case.
+We must put 'sk' reference before returning.
 
-WARNING is hit when unregistering the hook:
-
- [49042.221275] WARNING: CPU: 4 PID: 8425 at net/netfilter/core.c:340 nf_hook_entry_head+0xaa/0x150
- [49042.221375] CPU: 4 UID: 0 PID: 8425 Comm: nft Tainted: G S                  6.16.0+ #170 PREEMPT(full)
- [...]
- [49042.221382] RIP: 0010:nf_hook_entry_head+0xaa/0x150
-
-Fixes: 78d9f48f7f44 ("netfilter: nf_tables: add devices to existing flowtable")
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 039b1f4f24ec ("netfilter: nft_socket: fix erroneous socket assignment")
 Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Backport patch posted by Denis Arefev.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 8e799848cbcc..dcb35be8b2af 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7105,6 +7105,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_flowtable_hook flowtable_hook;
-+	struct nftables_pernet *nft_net;
- 	struct nft_hook *hook, *next;
- 	struct nft_trans *trans;
- 	bool unregister = false;
-@@ -7120,6 +7121,20 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 		if (nft_hook_list_find(&flowtable->hook_list, hook)) {
- 			list_del(&hook->list);
- 			kfree(hook);
-+			continue;
-+		}
-+
-+		nft_net = net_generic(ctx->net, nf_tables_net_id);
-+		list_for_each_entry(trans, &nft_net->commit_list, list) {
-+			if (trans->msg_type != NFT_MSG_NEWFLOWTABLE ||
-+			    trans->ctx.table != ctx->table ||
-+			    !nft_trans_flowtable_update(trans))
-+				continue;
-+
-+			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook)) {
-+				err = -EEXIST;
-+				goto err_flowtable_update_hook;
-+			}
+ net/netfilter/nft_socket.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nft_socket.c b/net/netfilter/nft_socket.c
+index 826e5f8c78f3..07e73e50b713 100644
+--- a/net/netfilter/nft_socket.c
++++ b/net/netfilter/nft_socket.c
+@@ -88,13 +88,13 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 			*dest = sk->sk_mark;
+ 		} else {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
  		}
+ 		break;
+ 	case NFT_SOCKET_WILDCARD:
+ 		if (!sk_fullsock(sk)) {
+ 			regs->verdict.code = NFT_BREAK;
+-			return;
++			goto out_put_sk;
+ 		}
+ 		nft_socket_wildcard(pkt, regs, sk, dest);
+ 		break;
+@@ -103,6 +103,7 @@ static void nft_socket_eval(const struct nft_expr *expr,
+ 		regs->verdict.code = NFT_BREAK;
  	}
  
++out_put_sk:
+ 	if (sk != skb->sk)
+ 		sock_gen_put(sk);
+ }
 -- 
-2.47.3
+2.30.2
 
