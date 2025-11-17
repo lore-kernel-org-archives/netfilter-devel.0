@@ -1,45 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AF433254B5;
-	Mon, 17 Nov 2025 21:29:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3B1C243367;
+	Mon, 17 Nov 2025 21:39:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763414964; cv=none; b=NZXeGDojYt+MOhdlfZ1aTK41ZjnZDq3I6jj2W8fiUOLxsMGQ0afMKBZ++cTL8SJh+706RXCNd1M2RIrZBAytD+neGNgaZBJuV5TDSVsk30w4Dati4FjnBiS7K2l9ZQ9m4M1CQxOVLUKa1P1ZTbrsEUsmviIlc6lhhqlS+xeu3lA=
+	t=1763415569; cv=none; b=jUJ6/Xvn9jfE4GMTptik14qy7rl4nIejtXr3atvIs/evf2dBaxnw08gGdcJdASjI+FNpfjXi9IadwnwOp+s4wqqpx6PW76oQconner2V5kpj9S6QIJWiWmaaBD5LS7D4mje0FhpCGQ/U8JFIVcvMfNwJWN60Uld/Uljlmm9EGac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763414964; c=relaxed/simple;
-	bh=2+T27aDuwNTkX5qB8Im7w4S4d/5uY9QMLQze6q+Hi9w=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jOjcBEkFpJ3OLDh/FLuGI0oUjS+m+TRVojB79XsDfv9p8TWR09AuTWg3XHTUTkZS6+qMd4wBw0u3C4JIYjj8DtFp9Jv+EM7u2lJKKR5pDwkH/2DUfAznGO4d131XkxlZRAnBM5n1eLc00pzt34qvMPJNDdDMDUVNNxhgGJQEJ4M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CcXBXDuS; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1763415569; c=relaxed/simple;
+	bh=f/3vybOK+kFHS7PD6yBenlALnIO0WWp0vF+oBT9Nc0U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=NhtaHGSRGOCCpHL8IfX2pwUpxmpYEPM0OmCpVjlSsoJhSSmpoEbhZlccSl/BdQeQseSqZBOxIuCsrBxqr9e0pUvuFDirfeLsQJ3bKaYa7eclHUaJXdyJLiwV7V96I6KoBY1t7v1WDjeVD4FeqIvjaIlMimpYZLsAk8oXwDCEW8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Gy/uuGH/; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CcXBXDuS"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Gy/uuGH/"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 3110560311;
-	Mon, 17 Nov 2025 22:29:15 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id DA64F60264;
+	Mon, 17 Nov 2025 22:39:25 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1763414955;
-	bh=h8IzNR8V6ST5Gv/mNfPwWtwt6SCfaJ9B229bN2sdSDU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CcXBXDuSmG8NrZwPbBAPrI2Ldy8YupfQbX3essscVpuej7D7hV3uQ57PSc80r00i1
-	 uTUwhlTOEByfOseXmXjo6ZfWk9VTdsQtiYylKCqBw09+Mv5uRB2SnNahMK4ajXlhp+
-	 C9P0VAuII5glq6H55tGBOGQZXbP5iBH4Vdz2YEVEbZHPhV2BfYn2lr7VCt7dMNAdOR
-	 5VZqZwzMKqncWXCoc2j6l++Ri9KZSzyVAQNI4yj76MKmIXQ1J8+VwXh8/rgntiVgW8
-	 Y0VLkoMjpFZJD8xEkti7xXuHV+t2cGuzDjE1ahAoHyyTTnuojvug6oruBbGtOZ7ekX
-	 4kv6pqlUfhE8Q==
+	s=2025; t=1763415566;
+	bh=yctjzv3RB1JImSRz6fXGGs3iK9QEMAF2bazlj489d3k=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Gy/uuGH/wP27eLul/6fI3E8gxxLq3lliDD+GgdosB9td5G7JTOiQyqXNGiEcUMZYp
+	 Z7zxThiEr1o9T1NLomle+HUyWiTwLIE8vfWWcRPGXUr8stWqe5wxTuAwUVgDlHz+Wx
+	 SkgoF+bSoModn5UkwF3tLV3ceAu0Qp36VGZaCaIGEKM+vXNTPfgh+ekC5Gm2iGMzMf
+	 DDN+uY0CrgokMJqEzDFwt8i8t6Dq6ozUpVqu0hvP9tuTaOAlvy6aP+I5HZGUFh9BBe
+	 YIqg78R7hcp3O/OQ2FxQX+QKNAsUY5zAjMgTzP5HabObKZzxDFQdhWkCXKC2hy0+hB
+	 f0zokcvoDbRHA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: gregkh@linuxfoundation.org,
 	sashal@kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH -stable,6.12 2/2] netfilter: nf_tables: reject duplicate device on updates
-Date: Mon, 17 Nov 2025 21:28:59 +0000
-Message-ID: <20251117212859.858321-3-pablo@netfilter.org>
+Subject: [PATCH -stable,6.6 0/1] Netfilter fixes for -stable
+Date: Mon, 17 Nov 2025 21:39:20 +0000
+Message-ID: <20251117213921.858836-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20251117212859.858321-1-pablo@netfilter.org>
-References: <20251117212859.858321-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,93 +45,23 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit cf5fb87fcdaaaafec55dcc0dc5a9e15ead343973 upstream.
+Hi Greg, Sasha,
 
-A chain/flowtable update with duplicated devices in the same batch is
-possible. Unfortunately, netdev event path only removes the first
-device that is found, leaving unregistered the hook of the duplicated
-device.
+This batch contains backported fixes for 6.6 -stable.
+ 
+The following list shows the backported patch:
+ 
+1) cf5fb87fcdaa ("netfilter: nf_tables: reject duplicate device on updates")
 
-Check if a duplicated device exists in the transaction batch, bail out
-with EEXIST in such case.
+Please, apply,
+Thanks
 
-WARNING is hit when unregistering the hook:
+Pablo Neira Ayuso (1):
+  netfilter: nf_tables: reject duplicate device on updates
 
- [49042.221275] WARNING: CPU: 4 PID: 8425 at net/netfilter/core.c:340 nf_hook_entry_head+0xaa/0x150
- [49042.221375] CPU: 4 UID: 0 PID: 8425 Comm: nft Tainted: G S                  6.16.0+ #170 PREEMPT(full)
- [...]
- [49042.221382] RIP: 0010:nf_hook_entry_head+0xaa/0x150
-
-Fixes: 78d9f48f7f44 ("netfilter: nf_tables: add devices to existing flowtable")
-Fixes: b9703ed44ffb ("netfilter: nf_tables: support for adding new devices to an existing netdev chain")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
  net/netfilter/nf_tables_api.c | 30 ++++++++++++++++++++++++++++++
  1 file changed, 30 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2f3684dcbef8..e1c617b48888 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2642,6 +2642,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 	struct nft_chain *chain = ctx->chain;
- 	struct nft_chain_hook hook = {};
- 	struct nft_stats *stats = NULL;
-+	struct nftables_pernet *nft_net;
- 	struct nft_hook *h, *next;
- 	struct nf_hook_ops *ops;
- 	struct nft_trans *trans;
-@@ -2682,6 +2683,20 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
- 				if (nft_hook_list_find(&basechain->hook_list, h)) {
- 					list_del(&h->list);
- 					kfree(h);
-+					continue;
-+				}
-+
-+				nft_net = nft_pernet(ctx->net);
-+				list_for_each_entry(trans, &nft_net->commit_list, list) {
-+					if (trans->msg_type != NFT_MSG_NEWCHAIN ||
-+					    trans->table != ctx->table ||
-+					    !nft_trans_chain_update(trans))
-+						continue;
-+
-+					if (nft_hook_list_find(&nft_trans_chain_hooks(trans), h)) {
-+						nft_chain_release_hook(&hook);
-+						return -EEXIST;
-+					}
- 				}
- 			}
- 		} else {
-@@ -8686,6 +8701,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_flowtable_hook flowtable_hook;
-+	struct nftables_pernet *nft_net;
- 	struct nft_hook *hook, *next;
- 	struct nft_trans *trans;
- 	bool unregister = false;
-@@ -8701,6 +8717,20 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 		if (nft_hook_list_find(&flowtable->hook_list, hook)) {
- 			list_del(&hook->list);
- 			kfree(hook);
-+			continue;
-+		}
-+
-+		nft_net = nft_pernet(ctx->net);
-+		list_for_each_entry(trans, &nft_net->commit_list, list) {
-+			if (trans->msg_type != NFT_MSG_NEWFLOWTABLE ||
-+			    trans->table != ctx->table ||
-+			    !nft_trans_flowtable_update(trans))
-+				continue;
-+
-+			if (nft_hook_list_find(&nft_trans_flowtable_hooks(trans), hook)) {
-+				err = -EEXIST;
-+				goto err_flowtable_update_hook;
-+			}
- 		}
- 	}
- 
 -- 
 2.47.3
 
