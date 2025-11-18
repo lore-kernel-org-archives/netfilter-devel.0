@@ -1,214 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 308E830E822;
-	Mon, 17 Nov 2025 23:53:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6E8426F2AA;
+	Tue, 18 Nov 2025 00:58:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763423597; cv=none; b=gyUVGb0Dfs/apq6syjANI+3htd5YBK6LvMHMed++DK3j4Mwn6oxma5WK55EKy//qaZGDNA/NOthST25tftW4Zi9iDBQB7DbK5CCdkl0JWcRivb4uzF/C8txpCjALC7eaWUDzJq6q4QWcgl3BkVSWfzSJ3cNmFyZliHTTNFirnSs=
+	t=1763427488; cv=none; b=RhA4buCx8v+KdcWXTPs9XqVqI0h9cvQrtdpTyH6F3J5V0uHQ66XVbkQ/rNxnuIRlE76qZ5TbZoQR1sNHtOdQWbYEAj8l848bfj7/dxqRI4BK8t+cC68sNTc1bZ9HyihM1AhLzAUx0V6gRnYu2LrNfrV2wkwc9lFL7k8hk5GdL64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763423597; c=relaxed/simple;
-	bh=+40SYsJpAQOkn3DRJWhnXLXBCZYMk+TJGUfJCa6Luwk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tawyuL39iuxEHwaocBUVajWkZ75hSPY6LOwMGdPudad0KEZpeHPotl0icK32x09MsoPkTQB2oakdCEGquVO3QG4We7mIgf2/2/aJ2siPAV2pmb7sRjeqe+Rqk9WjXZxgOVdmyTV5RSICB2d7R2KygUI5pLu2bi4xOXjCw59qfKI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E8BdIzAP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1763427488; c=relaxed/simple;
+	bh=QjpnzXEjt3J/zuxMaUqbHJ+O+bL40zA0DJnjCVWJJ3Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=cAkiUzGrS0DfRZhqibcox+eJl3G7tBL8HPOP313nYpE34tLCJl32k53GBiBPfs0l0xafvaS+OXDDyqHuUzqbecgz+F/n6OD9lPvC/0tcxyE69d9kSckicHvIc928HacblYPoAMtxVLa1e+rd5NXTDehrJEVieZa3fsOt9As9Pbw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FoXthtZc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E8BdIzAP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AD5C19423;
-	Mon, 17 Nov 2025 23:53:15 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FoXthtZc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A4B7C2BCB6;
+	Tue, 18 Nov 2025 00:58:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1763423596;
-	bh=+40SYsJpAQOkn3DRJWhnXLXBCZYMk+TJGUfJCa6Luwk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=E8BdIzAPdMseKwqqf2eRwH+rqidCj3sfGIUNpSluBBuZYG5oI2GmKXHAxTHQhVsCA
-	 MRFeoOsWnsP8xfxTeH5r8H5ZXcnaGjg/k4G9gpMBtopW7RUDjRbhZ2EefONFnMAuV0
-	 2h6+W7vZ3vgReMGVyK8AF05dkkrtk95Fo0pYmo+YhTGX1poe4dHxUf2DIX113MGlyJ
-	 reUtOl63+okRr9Y3GvnfzAjjxhGaWYiVeKXteL51uhnz36hmVDvVCQqhmrLD/gzWYf
-	 aGLSUNoxCXutWAZGkgjCak6Fok1hoRbJDCP8qB93v//lAokelVYmsvo159eOWAvKuO
-	 a94DaLEJ9Wafg==
-Date: Tue, 18 Nov 2025 00:53:12 +0100
-From: Lorenzo Bianconi <lorenzo@kernel.org>
+	s=k20201202; t=1763427485;
+	bh=QjpnzXEjt3J/zuxMaUqbHJ+O+bL40zA0DJnjCVWJJ3Y=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=FoXthtZcUwicjg/KVOsngCqVwuid8MSPI15k8p9aaeMDDwYLvyGdInIHPisWQ3bA+
+	 F1SP20o7PF/jpeCOpx0jW/9ZjNpcpCELw1oRhK/7lfrsm3oFcUN4gQYdhJxJgYUHu2
+	 5RloD5Wk1+dwZ3fh9KE1qWpU87g+Pt65hlVgwZVApPORAm19pmMHhp7bk+XFt6Dkgw
+	 Dvwom2fNTDyGWafruMxtk4hr9rXKWtSJuQ2SjRulfeymOFsXrB46WAuC69DscxwXG/
+	 cyqJ2kYtkcKR50e3CE3uysBtoXsw5F4qN3bFxgexfafMxBhgsX+QrmmiqjQiLCALGX
+	 6qAbqEGQzidZg==
+From: Sasha Levin <sashal@kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
-	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next v9 2/3] net: netfilter: Add IPIP flowtable tx sw
- acceleration
-Message-ID: <aRu1aFVwT_FPDeZ1@lore-desk>
-References: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
- <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
- <aRSDjkzMx4Ba7IW8@calendula>
- <aRSvnfdhO2G1DXJI@lore-desk>
- <aRUT-tFXYbwfZYUk@calendula>
- <aRWLhLobB4Rz0dA_@lore-desk>
- <aRunjT-HYQ-UeR_-@calendula>
+Cc: netfilter-devel@vger.kernel.org,
+	gregkh@linuxfoundation.org,
+	sashal@kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH -stable,5.15 1/1] netfilter: nf_tables: reject duplicate device on updates
+Date: Mon, 17 Nov 2025 19:58:02 -0500
+Message-ID: <20251118005802.4137812-1-sashal@kernel.org>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251117214023.858943-2-pablo@netfilter.org>
+References: <20251117214023.858943-2-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="G18J24CSxAvkYMcc"
-Content-Disposition: inline
-In-Reply-To: <aRunjT-HYQ-UeR_-@calendula>
+Content-Transfer-Encoding: 8bit
 
+This patch has been queued up for the 5.15 stable tree.
 
---G18J24CSxAvkYMcc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Subject: netfilter: nf_tables: reject duplicate device on updates
+Queue: 5.15
 
-> On Thu, Nov 13, 2025 at 08:40:52AM +0100, Lorenzo Bianconi wrote:
-> > > Hi Lorenzo,
-> >=20
-> > Hi Pablo,
-> >=20
-> > >=20
-> > > On Wed, Nov 12, 2025 at 05:02:37PM +0100, Lorenzo Bianconi wrote:
-> > > [...]
-> > > > > On Fri, Nov 07, 2025 at 12:14:47PM +0100, Lorenzo Bianconi wrote:
-> > > > > [...]
-> > > > > > @@ -565,8 +622,9 @@ nf_flow_offload_ip_hook(void *priv, struct =
-sk_buff *skb,
-> > > > > > =20
-> > > > > >  	dir =3D tuplehash->tuple.dir;
-> > > > > >  	flow =3D container_of(tuplehash, struct flow_offload, tupleha=
-sh[dir]);
-> > > > > > +	other_tuple =3D &flow->tuplehash[!dir].tuple;
-> > > > > > =20
-> > > > > > -	if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
-> > > > > > +	if (nf_flow_encap_push(state->net, skb, other_tuple))
-> > > > > >  		return NF_DROP;
-> > > > > > =20
-> > > > > >  	switch (tuplehash->tuple.xmit_type) {
-> > > > > > @@ -577,7 +635,9 @@ nf_flow_offload_ip_hook(void *priv, struct =
-sk_buff *skb,
-> > > > > >  			flow_offload_teardown(flow);
-> > > > > >  			return NF_DROP;
-> > > > > >  		}
-> > > > > > -		neigh =3D ip_neigh_gw4(rt->dst.dev, rt_nexthop(rt, flow->tup=
-lehash[!dir].tuple.src_v4.s_addr));
-> > > > > > +		dest =3D other_tuple->tun_num ? other_tuple->tun.src_v4.s_ad=
-dr
-> > > > > > +					    : other_tuple->src_v4.s_addr;
-> > > > >=20
-> > > > > I think this can be simplified if my series use the ip_hdr(skb)->=
-daddr
-> > > > > for rt_nexthop(), see attached patch. This would be fetched _befo=
-re_
-> > > > > pushing the tunnel and layer 2 encapsulation headers. Then, there=
- is
-> > > > > no need to fetch other_tuple and check if tun_num is greater than
-> > > > > zero.
-> > > > >=20
-> > > > > See my sketch patch, I am going to give this a try, if this is
-> > > > > correct, I would need one more iteration from you.
-> > > > >
-> > > > > diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_=
-flow_table_ip.c
-> > > > > index 8b74fb34998e..ff2b6c16c715 100644
-> > > > > --- a/net/netfilter/nf_flow_table_ip.c
-> > > > > +++ b/net/netfilter/nf_flow_table_ip.c
-> > > > > @@ -427,6 +427,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk=
-_buff *skb,
-> > > > >  	struct flow_offload *flow;
-> > > > >  	struct neighbour *neigh;
-> > > > >  	struct rtable *rt;
-> > > > > +	__be32 ip_dst;
-> > > > >  	int ret;
-> > > > > =20
-> > > > >  	tuplehash =3D nf_flow_offload_lookup(&ctx, flow_table, skb);
-> > > > > @@ -449,6 +450,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk=
-_buff *skb,
-> > > > > =20
-> > > > >  	dir =3D tuplehash->tuple.dir;
-> > > > >  	flow =3D container_of(tuplehash, struct flow_offload, tuplehash=
-[dir]);
-> > > > > +	ip_dst =3D ip_hdr(skb)->daddr;
-> > > >=20
-> > > > I agree this patch will simplify my series (thx :)) but I guess we =
-should move
-> > > > ip_dst initialization after nf_flow_encap_push() since we need to r=
-oute the
-> > > > traffic according to the tunnel dst IP address, right?
-> > >=20
-> > > Right, I made a quick edit, it looks like this:
-> > >=20
-> > > @@ -566,9 +624,14 @@ nf_flow_offload_ip_hook(void *priv, struct sk_bu=
-ff *skb,
-> > > =20
-> > >         dir =3D tuplehash->tuple.dir;
-> > >         flow =3D container_of(tuplehash, struct flow_offload, tupleha=
-sh[dir]);
-> > > +       other_tuple =3D &flow->tuplehash[!dir].tuple;
-> > > +
-> > > +       if (nf_flow_tunnel_push(skb, other_tuple) < 0)
-> > > +               return NF_DROP;
-> > > +
-> > >         ip_daddr =3D ip_hdr(skb)->daddr;
-> > > =20
-> > > -       if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
-> > > +       if (nf_flow_encap_push(skb, other_tuple) < 0)
-> > >                 return NF_DROP;
-> > > =20
-> > >         switch (tuplehash->tuple.xmit_type) {
-> > >=20
-> > > That is, after tunnel header push but before pushing l2 encap (that
-> > > could possibly modify skb_network_header pointer), fetch the
-> > > destination address.
-> > >=20
-> > > I made a few more comestic edits on your series and I pushed them out
-> > > to this branch:
-> > >=20
-> > > https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git=
-/log/?h=3Dflowtable-consolidate-xmit%2bipip
-> > [
-> >=20
-> > ack, I tested this branch and it works fine running my local tests. Tha=
-nks for
-> > fixing pending bits.
->=20
-> I need this one more little change below.
->=20
-> > > I just noticed, in nf_flow_tunnel_ipip_push(), that this can be remov=
-ed:
-> > >=20
-> > >         memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
-> > >=20
-> > > because this packet never entered the IP layer, the flowtable takes it
-> > > before it can get there.
->=20
-> I have removed this memset and pushed out a new branch:
->=20
-> flowtable-consolidate-xmit+ipip2
-
-ack, it works fine for me.
-
-Regards,
-Lorenzo
-
->=20
-> This should be good to go.
->=20
-> Thanks.
-
---G18J24CSxAvkYMcc
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaRu1aAAKCRA6cBh0uS2t
-rB5RAQClR98PxzwNtjjXo/hXwY/JOJcQSRS/UnxtyYV7UbGZxwEAkAq75owpSCVL
-NbGw/GXOg9iszX3kiYz9B9EmeNJ9awY=
-=+xCp
------END PGP SIGNATURE-----
-
---G18J24CSxAvkYMcc--
+Thanks for the backport!
