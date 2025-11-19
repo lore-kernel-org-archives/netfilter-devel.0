@@ -1,75 +1,181 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EDA59475
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2025 00:09:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78547191;
+	Wed, 19 Nov 2025 00:13:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763510958; cv=none; b=OEW/byeqmGQl3T0d7RWeJkF2vizr1uA1dDiwV6UTg1plnXYgTEM3lP4xU4yPY5weK5fjSmMr0N3rZT2NgHtMKHBwF/RrUF7II+KDfMEz1hW+h+VgQ3j8lHH8yGtv9x6opVeHGFDKcx9nRP+bQ0KzfnLlZKuWiIBH73MQHhYZAog=
+	t=1763511211; cv=none; b=ux43AJ7+v9QJ9Alz0Y3eMtYIyOPDp4mYnRiiFAwYERCd0CjQQ9bFXLW2m61ilZiz0obsAsHl+9xx613KqYuQG1U68gG+Mm0HC4dW22U31v65l7sGMjHzBhzqgRkXIa2tIDozXAys3wsCGuZYPBwxxLKGfRyZVcn939HzHv6QFJQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763510958; c=relaxed/simple;
-	bh=SArMB8zLRB47drvp6fvpCoIzaOiWqGDPa8bZ9C2kUtE=;
+	s=arc-20240116; t=1763511211; c=relaxed/simple;
+	bh=tNhrmH7gReZ4ZYPdSLTYqbBGC0mEIOspEpHU6EAAFjA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OE7sysjnkw83IYDysf13LR3uAPyoorXhs9hUiCcVrag/E4JZsDeAnYqpTl5bZanbmWkgX0kh/7re3xRGTcJfIOZmvhlcC1WjmcfxYAW/Ly5sOwJiyBuwgs9j4u196hCb6wABeZWBdDFrKRy9TUH+UGlaUsQdAzHmUHimCP8xQlg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 0A5D8604EF; Wed, 19 Nov 2025 01:09:14 +0100 (CET)
-Date: Wed, 19 Nov 2025 01:09:15 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 2/2] netfilter: nfnetlink: bail out batch
- processing with EMLINK
-Message-ID: <aR0Kq9G-MD-Cvvdk@strlen.de>
-References: <20251118235009.149562-1-pablo@netfilter.org>
- <20251118235009.149562-2-pablo@netfilter.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=rTsAwStfYhiv2owSl4a4n+MYQBAYEUHLug2lSNYZ/D6FbLuRh0/txNIh2xw/R9jriYHpdp/ivFwtFk43Lv3idjuN++zJWY4+x9XJa+G7QtZHn2H8v/oRb/Etgj4M4c0eTou6XY36s0wIBP4o8wKsDRI7cAlVuP72ts0abUmrY7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=O0Xk5MFs; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="O0Xk5MFs"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 022326026D;
+	Wed, 19 Nov 2025 01:13:26 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1763511206;
+	bh=5k+g15HZUscl+EXiVgMedFZkR9Qrlj8kdASp7Z7QWX8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=O0Xk5MFsq3tbL/CuJx/6uklz4cKlxJdDYxin3nt2wIo7BY5ea5jiJEjLRqtIchoI+
+	 djvu0I5JtD5DwlZ07ff3yG/6hyALHljcRDUKhYJs/eI2mOh9lzlnVNHIRxlC7goTCv
+	 KpsaG7HL96VBJjJtVTdEtBzre+Q1hdUWawCWyiWZ+1yu2YT4e8+W/eCdDItltjE3ae
+	 n4ROlzoFF+YcCTdltqL135GRxHOSakfMPaAGoQcG33/ycRp1qnDUjY075HRCEFLjUJ
+	 7eyaPrQeecIesZ9VFbWOHZqJ+No39Zi14ug/8R8AE+VgXUMkmzEYhcpEsod0/ummiP
+	 s6ksVYnkAglUw==
+Date: Wed, 19 Nov 2025 01:13:23 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Lorenzo Bianconi <lorenzo@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v9 2/3] net: netfilter: Add IPIP flowtable tx sw
+ acceleration
+Message-ID: <aR0Lj3ph0RYtpleX@calendula>
+References: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
+ <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
+ <aRSDjkzMx4Ba7IW8@calendula>
+ <aRSvnfdhO2G1DXJI@lore-desk>
+ <aRUT-tFXYbwfZYUk@calendula>
+ <aRWLhLobB4Rz0dA_@lore-desk>
+ <aRunjT-HYQ-UeR_-@calendula>
+ <aRu1aFVwT_FPDeZ1@lore-desk>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="FfFY3znOfUsFReA0"
 Content-Disposition: inline
-In-Reply-To: <20251118235009.149562-2-pablo@netfilter.org>
+In-Reply-To: <aRu1aFVwT_FPDeZ1@lore-desk>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Stop batch evaluation on the first EMLINK error, ruleset validation is
-> expensive and it could take a while before user recovers control after
-> sending a batch with too many jump/goto chain.
 
-ok, but...
+--FfFY3znOfUsFReA0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-> Fixes: 0628b123c96d ("netfilter: nfnetlink: add batch support and use it from nf_tables")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nfnetlink.c | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-> index 811d02b4c4f7..315240b2368e 100644
-> --- a/net/netfilter/nfnetlink.c
-> +++ b/net/netfilter/nfnetlink.c
-> @@ -558,6 +558,10 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
->  			 */
->  			if (err)
->  				status |= NFNL_BATCH_FAILURE;
-> +
-> +			/* EMLINK is fatal, stop processing batch. */
-> +			if (err == -EMLINK)
-> +				goto done;
+Hi Lorenzo,
 
-... but -EINVAL, -ERANGE or any other validation error is also
-fatal, so why do we make an exception for -EMLINK?
+I found one more issue: caching the ip6 daddr does not work because
+skb_cow_head() can reallocate the skb header, invalidating all
+pointers.
 
-Is it because -EMLINK indicates we already spent lots of time
-hogging cpu in chain validation and continuing will burn more cycles?
+I went back to use the other_tuple, it is safer, new branch:
 
-But even if thats the case, I'm not sure its the right choice,
-we could also spend lots of time without hitting -EMLINK.
+        flowtable-consolidate-xmit+ipip3
 
-Maybe count errors instead and stop after n fatal errors?
-Would also help with rcv buffer overflow on too many
-netlink errors.
+Hopefully, this is the last iteration for this series.
+
+I am attaching a diff that compares flowtable-consolidate-xmit+ipip2
+vs. flowtable-consolidate-xmit+ipip3 branches.
+
+I also made a few cosmetic edits.
+
+--FfFY3znOfUsFReA0
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="diff-v2-v3.patch"
+
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index ee81ee3a5110..e128b0fe9a7b 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -512,13 +512,14 @@ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
+ }
+ 
+ static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
+-				    struct flow_offload_tuple *tuple)
++				    struct flow_offload_tuple *tuple,
++				    __be32 *ip_daddr)
+ {
+ 	struct iphdr *iph = (struct iphdr *)skb_network_header(skb);
+ 	struct rtable *rt = dst_rtable(tuple->dst_cache);
+-	__be16	frag_off = iph->frag_off;
+-	u32 headroom = sizeof(*iph);
+ 	u8 tos = iph->tos, ttl = iph->ttl;
++	__be16 frag_off = iph->frag_off;
++	u32 headroom = sizeof(*iph);
+ 	int err;
+ 
+ 	err = iptunnel_handle_offloads(skb, SKB_GSO_IPXIP4);
+@@ -551,14 +552,17 @@ static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
+ 	__ip_select_ident(net, iph, skb_shinfo(skb)->gso_segs ?: 1);
+ 	ip_send_check(iph);
+ 
++	*ip_daddr = tuple->tun.src_v4.s_addr;
++
+ 	return 0;
+ }
+ 
+ static int nf_flow_tunnel_v4_push(struct net *net, struct sk_buff *skb,
+-				  struct flow_offload_tuple *tuple)
++				  struct flow_offload_tuple *tuple,
++				  __be32 *ip_daddr)
+ {
+ 	if (tuple->tun_num)
+-		return nf_flow_tunnel_ipip_push(net, skb, tuple);
++		return nf_flow_tunnel_ipip_push(net, skb, tuple, ip_daddr);
+ 
+ 	return 0;
+ }
+@@ -572,7 +576,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+ 		switch (tuple->encap[i].proto) {
+ 		case htons(ETH_P_8021Q):
+ 		case htons(ETH_P_8021AD):
+-			if (skb_vlan_push(skb, tuple->encap[i].proto, tuple->encap[i].id) < 0)
++			if (skb_vlan_push(skb, tuple->encap[i].proto,
++					  tuple->encap[i].id) < 0)
+ 				return -1;
+ 			break;
+ 		case htons(ETH_P_PPP_SES):
+@@ -624,12 +629,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+ 	other_tuple = &flow->tuplehash[!dir].tuple;
++	ip_daddr = other_tuple->src_v4.s_addr;
+ 
+-	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple) < 0)
++	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
+ 		return NF_DROP;
+ 
+-	ip_daddr = ip_hdr(skb)->daddr;
+-
+ 	if (nf_flow_encap_push(skb, other_tuple) < 0)
+ 		return NF_DROP;
+ 
+@@ -906,6 +910,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ {
+ 	struct flow_offload_tuple_rhash *tuplehash;
+ 	struct nf_flowtable *flow_table = priv;
++	struct flow_offload_tuple *other_tuple;
+ 	enum flow_offload_tuple_dir dir;
+ 	struct nf_flowtable_ctx ctx = {
+ 		.in	= state->in,
+@@ -937,9 +942,10 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 
+ 	dir = tuplehash->tuple.dir;
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+-	ip6_daddr = &ipv6_hdr(skb)->daddr;
++	other_tuple = &flow->tuplehash[!dir].tuple;
++	ip6_daddr = &other_tuple->src_v6;
+ 
+-	if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
++	if (nf_flow_encap_push(skb, other_tuple) < 0)
+ 		return NF_DROP;
+ 
+ 	switch (tuplehash->tuple.xmit_type) {
+
+--FfFY3znOfUsFReA0--
