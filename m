@@ -1,130 +1,208 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 421F54C98
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2025 11:02:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E21A8350A0B;
+	Wed, 19 Nov 2025 11:19:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763550152; cv=none; b=qlHRn1RaqlOaot174L/BSB4TSdDEIUYawuRkN40S4u59hr+AhMVlI60lmgNieRF8gcYD4/qNZGbIRDGKw132Jz+fovgdO3Z1GxBlSofpWJAH7BZafU6xcwtcl9SjpqwifY4AlD0ezrrM5KBmUs8NeYYkFAzOQiZHOZ0HRXbZkUg=
+	t=1763551152; cv=none; b=Xj3/4xdrLYuaslHvtiyvxIy/Bt5z7xpVF581+QBt0vdgd/mjLZmBMkreXR+Cc8TFPjKs4WYHCfuO/zFT/UK2WqTzJ0WbV9wrtSmg6lHgyC7Tjxg46gnPBG9KQUOe/mQdY2cm/HN18s4lcsUq2mzNkfhZ77xzn8Ewg1jCHo5y3L8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763550152; c=relaxed/simple;
-	bh=WXNkgnzLH5RTioRFo83kR553wlCNXy/8HjolfHRkbHY=;
+	s=arc-20240116; t=1763551152; c=relaxed/simple;
+	bh=e5luU8H79ds78sItRWsonUxVPkWeHh+yAutPaKVJGLk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kySyGc5cFg2tBeQ6dLQirqEBxn1kYk0ZzS9z8EkJd4yGyBu0mYz4Lz0yzyJRXXp7phKIfTkgKcEPgV3D8voSlKvMC0EvftBh3lAtY9jqr5hb30t4NPhxtEr1WN3pVCZZ2KzgdSE7XBZ/pTvUy1gxRyVhujMWEm10jMiznB8QZCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=G20E3eYc; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=QIHnQF53NXsr1T6YeWU7IvqsCJTeedSE91HcYc9JeCx1z8/njWwdHyqs59Kt5gOpMWxHVwLK4eKDkCtr+pR/ZFnrRjxLbFKKgo6nu4WhCo+5Xs73p4S2/ehtMKbsa+YApVwCKtzN0max1jDxeW8aykrEDTucT+205AB787AIAlg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aF+9Tk3I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="G20E3eYc"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=v9CPM97iKxEvS2CDsRutHbIsnPNsTFEZTms/BaQlmtA=; b=G20E3eYcDbnrdzA2fx3HnxSnhx
-	jU+MSZzam/FX4tXhb/F6yxaGO8RWMvn/DusLlXcZjwP6UWcVFVE/1LYrilBtM2EUnI/p3aa9xVS1F
-	puJyHQA5XWPrCYkNWgsjdbh1sB9ShXaAIfwm3r6NKu73MrOezqVbJhHEfts+HpAIPZfD9dYle2YYj
-	nIbZsmxnHMkm9tXujhaCwOhKgw62DHu3zziv0HhlKrPp8J3p0viyl38AesrgMjGuaZzxzNUCBiZPJ
-	mVnOAHT0Gss4QWLCnk9wRra6ed8JQpx5ok4HQ93BouehNEOBgT6uL4NLx4RiglhumHZS0UcWkuWc5
-	MxjG1Irg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1vLfeS-000000005bI-22Oe;
-	Wed, 19 Nov 2025 11:43:04 +0100
-Date: Wed, 19 Nov 2025 11:43:04 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: Florian Westphal <fw@strlen.de>,
-	Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables] xshared: restore legal options for combined `-L
- -Z` commands
-Message-ID: <aR2fON8ju2S7Ww7q@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Jeremy Sowden <jeremy@azazel.net>, Florian Westphal <fw@strlen.de>,
-	Netfilter Devel <netfilter-devel@vger.kernel.org>
-References: <20251114210109.1825562-1-jeremy@azazel.net>
- <20251114213718.GB269079@celephais.dreamlands>
- <aRhotOKf6VjOWX2f@strlen.de>
- <20251115125435.GC269079@celephais.dreamlands>
- <aRh7oi9SGQKCfhWP@strlen.de>
- <20251115131551.GD269079@celephais.dreamlands>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aF+9Tk3I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BF2AC19422;
+	Wed, 19 Nov 2025 11:19:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1763551151;
+	bh=e5luU8H79ds78sItRWsonUxVPkWeHh+yAutPaKVJGLk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=aF+9Tk3IRXUKewbiFGFbnkhZdXblI7LOHDgr7982DO40NcRvuObB+En+tYDt1A1J7
+	 m5BpJm2XewurnYwAJlYKo5z5PEM6CnRhOurUWGtfjHyNEmzZPnYMtJpBsxSQSfVzvg
+	 G8XCzzs3sGbJV2WBoXGqM/e5RAv8YvCpCqhDcFGpXpZCu/0pMZsWOEOaMTnu4M/SLP
+	 epmOfKP2cbCEYHeJPcd1UKswbx89b4R1xWdZq0QLIECwONtvDLTZpShaUGwOJJuY3K
+	 gbg24oTHnEDm19e21UVyr6s2p08xnk/t4KPVaRPft9Y4AGGtrqFupwGb2xXno9jnjF
+	 gUIXiLDqoRCNQ==
+Date: Wed, 19 Nov 2025 12:19:07 +0100
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	David Ahern <dsahern@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Shuah Khan <shuah@kernel.org>, Andrew Lunn <andrew+netdev@lunn.ch>,
+	Phil Sutter <phil@nwl.cc>, Florian Westphal <fw@strlen.de>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kselftest@vger.kernel.org
+Subject: Re: [PATCH nf-next v9 2/3] net: netfilter: Add IPIP flowtable tx sw
+ acceleration
+Message-ID: <aR2nq_UIz9oF5Xt_@lore-desk>
+References: <20251107-nf-flowtable-ipip-v9-0-7cbc4090dfcb@kernel.org>
+ <20251107-nf-flowtable-ipip-v9-2-7cbc4090dfcb@kernel.org>
+ <aRSDjkzMx4Ba7IW8@calendula>
+ <aRSvnfdhO2G1DXJI@lore-desk>
+ <aRUT-tFXYbwfZYUk@calendula>
+ <aRWLhLobB4Rz0dA_@lore-desk>
+ <aRunjT-HYQ-UeR_-@calendula>
+ <aRu1aFVwT_FPDeZ1@lore-desk>
+ <aR0Lj3ph0RYtpleX@calendula>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="kcIDJeLuCmIpT6qE"
+Content-Disposition: inline
+In-Reply-To: <aR0Lj3ph0RYtpleX@calendula>
+
+
+--kcIDJeLuCmIpT6qE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251115131551.GD269079@celephais.dreamlands>
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
+> Hi Lorenzo,
+>=20
+> I found one more issue: caching the ip6 daddr does not work because
+> skb_cow_head() can reallocate the skb header, invalidating all
+> pointers.
+>=20
+> I went back to use the other_tuple, it is safer, new branch:
+>=20
+>         flowtable-consolidate-xmit+ipip3
 
-On Sat, Nov 15, 2025 at 01:15:51PM +0000, Jeremy Sowden wrote:
-> On 2025-11-15, at 14:09:54 +0100, Florian Westphal wrote:
-> > Jeremy Sowden <jeremy@azazel.net> wrote:
-> > > On 2025-11-15, at 12:49:24 +0100, Florian Westphal wrote:
-> > > > Jeremy Sowden <jeremy@azazel.net> wrote:
-> > > > > On 2025-11-14, at 21:01:09 +0000, Jeremy Sowden wrote:
-> > > > > > Prior to commit 9c09d28102bb ("xshared: Simplify generic_opt_check()"), if
-> > > > > > multiple commands were given, options which were legal for any of the commands
-> > > > > > were considered legal for all of them.  This allowed one to do things like:
-> > > > >
-> > > > >	# iptables -n -L -Z chain
-> > > >
-> > > > Whats wrong with it?
-> > > >
-> > > > This failed before
-> > > > 192c3a6bc18f ("xshared: Accept an option if any given command allows it"), yes.
-> > > >
-> > > > Is it still broken?  If yes, what isn't working?
-> > >
-> > > The iptables man-page description of the `-L` command includes the
-> > > following:
-> > >
-> > > 	Please note that it is often used with the -n option, in order
-> > > 	to avoid long reverse DNS lookups.  It is legal to specify the
-> > > 	-Z (zero) option as well, in which case the chain(s) will be
-> > > 	atomically listed and zeroed.
-> > >
-> > > This works as expected in 1.8.10:
-> > >
-> > > 	$ schroot -r -c iptables-sid -u root -- /usr/local/sbin/iptables-nft --version
-> > > 	iptables v1.8.10 (nf_tables)
-> > > 	$ schroot -r -c iptables-sid -u root -- /usr/local/sbin/iptables-nft -n -L -Z INPUT
-> > > 	# Warning: iptables-legacy tables present, use iptables-legacy to see them
-> > > 	Chain INPUT (policy ACCEPT)
-> > > 	target     prot opt source               destination
-> > > 	LIBVIRT_INP  0    --  0.0.0.0/0            0.0.0.0/0
-> > >
-> > > However, it does not work in 1.8.11:
-> > >
-> > > 	$ schroot -r -c iptables-sid -u root -- /usr/local/sbin/iptables-nft -n -L -Z INPUT
-> > > 	iptables v1.8.11 (nf_tables): Illegal option `--numeric' with this command
-> > > 	Try `iptables -h' or 'iptables --help' for more information.
-> > 
-> > But this works in git :-/
-> > 
-> > So again, what exactly is broken? AFAICS everything works as expected:
-> > 
-> > iptables/xtables-nft-multi iptables -n -L -v -Z foo
-> > Chain foo (1 references)
-> >  pkts bytes target     prot opt in     out     source               destination
-> >     1    36            all  --  *      *       0.0.0.0/0            0.0.0.0/0
-> > Zeroing chain `foo'
-> > iptables/xtables-nft-multi iptables -n -L -v -Z foo
-> > Chain foo (1 references)
-> >  pkts bytes target     prot opt in     out     source               destination
-> >     0     0            all  --  *      *       0.0.0.0/0            0.0.0.0/0
-> > Zeroing chain `foo'
-> 
-> Damn it.  You're right.  Obviously, it's already been fixed.  Apologies.
-> Been rather unwell this week and clearly I'm still somewhat dim-witted.
+Hi Pablo,
 
-Yes, it is fixed by commit 192c3a6bc18f2 ("xshared: Accept an option if
-any given command allows it"). Reminds me that we should release
-v1.8.12, v1.8.11 is already a year old. There are only 21 commits on top
-in HEAD, but I see six Fixes: tags in there.
+thx for fixing it. I tested the branch above and it works fine with IPIP tu=
+nnel
+flowtable offloading.
 
-Cheers, Phil
+>=20
+> Hopefully, this is the last iteration for this series.
+>=20
+> I am attaching a diff that compares flowtable-consolidate-xmit+ipip2
+> vs. flowtable-consolidate-xmit+ipip3 branches.
+>=20
+> I also made a few cosmetic edits.
+
+> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_tab=
+le_ip.c
+> index ee81ee3a5110..e128b0fe9a7b 100644
+> --- a/net/netfilter/nf_flow_table_ip.c
+> +++ b/net/netfilter/nf_flow_table_ip.c
+> @@ -512,13 +512,14 @@ static int nf_flow_pppoe_push(struct sk_buff *skb, =
+u16 id)
+>  }
+> =20
+>  static int nf_flow_tunnel_ipip_push(struct net *net, struct sk_buff *skb,
+> -				    struct flow_offload_tuple *tuple)
+> +				    struct flow_offload_tuple *tuple,
+> +				    __be32 *ip_daddr)
+>  {
+>  	struct iphdr *iph =3D (struct iphdr *)skb_network_header(skb);
+>  	struct rtable *rt =3D dst_rtable(tuple->dst_cache);
+> -	__be16	frag_off =3D iph->frag_off;
+> -	u32 headroom =3D sizeof(*iph);
+>  	u8 tos =3D iph->tos, ttl =3D iph->ttl;
+> +	__be16 frag_off =3D iph->frag_off;
+> +	u32 headroom =3D sizeof(*iph);
+>  	int err;
+> =20
+>  	err =3D iptunnel_handle_offloads(skb, SKB_GSO_IPXIP4);
+> @@ -551,14 +552,17 @@ static int nf_flow_tunnel_ipip_push(struct net *net=
+, struct sk_buff *skb,
+>  	__ip_select_ident(net, iph, skb_shinfo(skb)->gso_segs ?: 1);
+>  	ip_send_check(iph);
+> =20
+> +	*ip_daddr =3D tuple->tun.src_v4.s_addr;
+> +
+>  	return 0;
+>  }
+> =20
+>  static int nf_flow_tunnel_v4_push(struct net *net, struct sk_buff *skb,
+> -				  struct flow_offload_tuple *tuple)
+> +				  struct flow_offload_tuple *tuple,
+> +				  __be32 *ip_daddr)
+>  {
+>  	if (tuple->tun_num)
+> -		return nf_flow_tunnel_ipip_push(net, skb, tuple);
+> +		return nf_flow_tunnel_ipip_push(net, skb, tuple, ip_daddr);
+> =20
+>  	return 0;
+>  }
+> @@ -572,7 +576,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+>  		switch (tuple->encap[i].proto) {
+>  		case htons(ETH_P_8021Q):
+>  		case htons(ETH_P_8021AD):
+> -			if (skb_vlan_push(skb, tuple->encap[i].proto, tuple->encap[i].id) < 0)
+> +			if (skb_vlan_push(skb, tuple->encap[i].proto,
+> +					  tuple->encap[i].id) < 0)
+>  				return -1;
+>  			break;
+>  		case htons(ETH_P_PPP_SES):
+> @@ -624,12 +629,11 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff =
+*skb,
+>  	dir =3D tuplehash->tuple.dir;
+>  	flow =3D container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+>  	other_tuple =3D &flow->tuplehash[!dir].tuple;
+> +	ip_daddr =3D other_tuple->src_v4.s_addr;
+> =20
+> -	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple) < 0)
+> +	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
+>  		return NF_DROP;
+> =20
+> -	ip_daddr =3D ip_hdr(skb)->daddr;
+> -
+>  	if (nf_flow_encap_push(skb, other_tuple) < 0)
+>  		return NF_DROP;
+> =20
+> @@ -906,6 +910,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff =
+*skb,
+>  {
+>  	struct flow_offload_tuple_rhash *tuplehash;
+>  	struct nf_flowtable *flow_table =3D priv;
+> +	struct flow_offload_tuple *other_tuple;
+>  	enum flow_offload_tuple_dir dir;
+>  	struct nf_flowtable_ctx ctx =3D {
+>  		.in	=3D state->in,
+> @@ -937,9 +942,10 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff=
+ *skb,
+> =20
+>  	dir =3D tuplehash->tuple.dir;
+>  	flow =3D container_of(tuplehash, struct flow_offload, tuplehash[dir]);
+> -	ip6_daddr =3D &ipv6_hdr(skb)->daddr;
+> +	other_tuple =3D &flow->tuplehash[!dir].tuple;
+> +	ip6_daddr =3D &other_tuple->src_v6;
+> =20
+> -	if (nf_flow_encap_push(skb, &flow->tuplehash[!dir].tuple) < 0)
+> +	if (nf_flow_encap_push(skb, other_tuple) < 0)
+>  		return NF_DROP;
+> =20
+>  	switch (tuplehash->tuple.xmit_type) {
+
+ack, the above changes are fine to me.
+
+Regards,
+Lorenzo
+
+
+
+--kcIDJeLuCmIpT6qE
+Content-Type: application/pgp-signature; name=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQTquNwa3Txd3rGGn7Y6cBh0uS2trAUCaR2nqwAKCRA6cBh0uS2t
+rCguAP94Y7RHnUASHiziYeFrJJxBnS4STiAJgV9S0aQo5/aivwD/eSWO+ndi+yzN
+7+k7tS3aaTPJVKMehmyBmfl9xGWd+QE=
+=4wc/
+-----END PGP SIGNATURE-----
+
+--kcIDJeLuCmIpT6qE--
