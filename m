@@ -1,95 +1,160 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f208.google.com (mail-il1-f208.google.com [209.85.166.208])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B9B53587A9
-	for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2025 12:52:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01AAF363C4F
+	for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2025 13:14:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763556734; cv=none; b=ImYV6jMxZ+uVZP5P4VQMiQiVZ8uRzaltSswE7WT3i/xpvFcCy/bsK+wckxBoeLyWC/M8zmQkZ+JfsW2+JkGOWqk6CG2//CaZ9RqZJXmlpivYvBVn0+O6cox/Rxl+YsJ4MybqPJxTQ4pO50ShJiE9BBc5H/jP0ls6kAyG/9njPUU=
+	t=1763558067; cv=none; b=WM0mNMPWK3iFgp7tduSuMggfyNefEnkyFrZE3uuoJnnmgcsEqIDlkoBTDpuZ7NMgLhjmUnyY2oF34SBs0yalswmKWC3V5G+A0NDR067i0S/X1Mv/ARqx+WG5hLWMbCfRgMW2cFgyExLoGvjze/+9p3+kyZkHWeXeN28p5jfiZjo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763556734; c=relaxed/simple;
-	bh=cGvyGonjs+L+bGn4tVPzZEbsax0SKJAzXOUb155EdTQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jVctND338JyMy+0VKzNgc9JgWfGqBApaqjBxKv7i9aCHXw5FdnwYinA8Ovuyu4qgK6j8epqUf0HJH+b/WV5xibGRq9XJsmdFvmZa2UPB55VofMZ2oly9zCiDCLfXNVIEGTzf3D6yScOLCu7Wzjzj8zhLqmvaARxb4Mp/Jt6c6Wk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=pv7N2Tg4; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="pv7N2Tg4"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=lYCL0Mkbp8rt3/PVwGYXyspvOCQeESlMiDxE5256ZxQ=; b=pv7N2Tg4IMzE/7oyWIpuJGzwlq
-	I/JZYvoZkx15XJwXpSzhLgpszqKRffvDa97Hbcl5wiMpCttpt5koQ6UX/c8b3QtGS7nefblpMg7RO
-	X9OgCI20/HPMELbFKSK99yxzov3IvZojhWpzYHnBQjvB+818S00DZiJgv2bxJWT+2N0fYpCZnZ+ru
-	j9Covq/ro0FZhbJT5M/kwHvramUISp8UArv1JCMjqykYxffFDLzuiU58omBzmmbIudvLe3+7Wr1wW
-	JsRIV9Z58ES+sq/pyAJmr08HxzHc5LPkpti7PYYIaeedKXXO7zJO50KB9IhgANpwU9qXdLMw0GMWJ
-	OLgHu6ow==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
-	(envelope-from <phil@nwl.cc>)
-	id 1vLhfJ-000000004fY-30S6;
-	Wed, 19 Nov 2025 13:52:05 +0100
-Date: Wed, 19 Nov 2025 13:52:05 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next 0/3] netfilter: nft_set_rbtree: use cloned tree
- for insertions and removal
-Message-ID: <aR29ddgmrjWcayAV@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20251118111657.12003-1-fw@strlen.de>
- <9a4e63da-6d36-4365-8c08-547961c9bfa7@suse.de>
+	s=arc-20240116; t=1763558067; c=relaxed/simple;
+	bh=42RmOKiDA6GeexOCOMcU/ivBYtVakVLPOtwUodTLUOk=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=ZbCBfVm74ODbV797CQvni33UI1dXlbYCtu4yub312oXI83elTHwTNACpfbSm6ESzNyzzcQsa/EThW8h9deNATQ+4IhUmif8zsMKOH9wHIHB5lEW9pJVUZ1CTXWhzYvAoEUOvwGL2+D0fkI2L7XRZX5lTpkt3n99EUE7aHKw77Vo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f208.google.com with SMTP id e9e14a558f8ab-435a04dace1so5608595ab.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2025 05:14:21 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1763558060; x=1764162860;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=cWeS540O/DtVZO2hs++H8AN2oyKVmTS0zqyLwiaCVtg=;
+        b=N5uWu/u63c1bFsob9p71MUUhG1qNp5pfEj9M8YBQ6C4wp5Lg2JGK+SujbZRW9GwYnW
+         PfHJHSp23iLkUMVl2UvdYi42noFhG9vV1D3ZNI+4JqE53M8YEGJfa36rPLiNBuJLNV5p
+         E+DugZJyo+R8OWmRplJHdoCtdyqlDDI0eGPzWp635fhX6hIuA5kTzo8zZ0/1hWKmwZzf
+         FcDpa860fw1GviwcY7HzkxqsSUibKELRfxgiu/VESETx6dyDwaAgqlAa11oqoACYKWfy
+         8cLoayYi++p9GdRzKBSmUH13nub26qiS/EAdy1DtSmytZIMlaH+JQL1FNvQRs1AuZrvi
+         aQnw==
+X-Forwarded-Encrypted: i=1; AJvYcCUN+vzhgqZe4l/MdS+vQMSy4k4xRxbrOggpRw6YD6pqir6GigmdRHnHgT6/141rkvr8bKUFeuHIsVn7MORkE2g=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxFaEvBm5Z0Q3Ojs3nFbA/AE0Gd3le54VKLtSi859asHlxv7V5Z
+	GBDsuglzjTXHfqpF6sD3cqPr0fdEZ7bdicwkhno+M6u4etREMIp9XLCTHUDimcXBfR/aoCHJi3i
+	vK8JieimSM1rt8iKUVRKvlQ5ANKAT8Rkt/20ngipV09UmcdhanxcZmBkDwvE=
+X-Google-Smtp-Source: AGHT+IE0wN29h+b//Oy4kflZwkutKByXWn7e4G2F17+fGh7LzriH+pLrQE9E/GQMsNJDpkneW5Y33SPtXhIrBOd2RULh8XNfzAHd
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9a4e63da-6d36-4365-8c08-547961c9bfa7@suse.de>
+X-Received: by 2002:a05:6e02:3810:b0:434:96ea:ff8b with SMTP id
+ e9e14a558f8ab-43496eb0395mr195448995ab.35.1763558060468; Wed, 19 Nov 2025
+ 05:14:20 -0800 (PST)
+Date: Wed, 19 Nov 2025 05:14:20 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <691dc2ac.050a0220.2ffa18.0005.GAE@google.com>
+Subject: [syzbot] [bridge?] [netfilter?] WARNING in nf_ct_bridge_post
+From: syzbot <syzbot+a8ba738fe2db6b4bb27f@syzkaller.appspotmail.com>
+To: bridge@lists.linux.dev, coreteam@netfilter.org, davem@davemloft.net, 
+	edumazet@google.com, fw@strlen.de, horms@kernel.org, idosch@nvidia.com, 
+	kadlec@netfilter.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, phil@nwl.cc, razor@blackwall.org, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+Hello,
 
-On Tue, Nov 18, 2025 at 05:07:56PM +0100, Fernando Fernandez Mancera wrote:
-> On 11/18/25 12:16 PM, Florian Westphal wrote:
-> > This series fixes false negative lookup bug in rbtree set backend that
-> > can occur during transaction.
-> > 
-> > First two patches prepare for actual fix, which is coming in last patch.
-> > 
-> > All inserts/removals will now occur in a cloned copy, so packetpath can
-> > no longer observe the problematic mixed-bag of old, current and new
-> > elements.
-> > 
-> > The live tree will only have reachable elements that are active in the
-> > current generation or were active in the previous generation (but are still
-> > valid while packetpath holds rcu read lock).  The latter case is only
-> > temporary, as new lookups already observe the updated tree).
-> > 
-> 
-> I have been taking a look to the series and testing it with different 
-> set sizes. The implementation looks good to me but I noticed that due 
-> the new "clone" mechanism there is an impact on performance when 
-> modifying an existing rbtree set (inserts or deletions). According to my 
-> number the impact would be around 40~%. Usually that isn't problematic 
-> but if big sets are used.. then it is a bit more. e.g
-> 
-> 200K elements ~ avg. time insertion before 510ms after 744ms
-> 500K elements ~ avg. time insertion before 5460ms after 7730ms
+syzbot found the following issue on:
 
-I wonder if nft_rbtree_maybe_clone() could run a simpler copying
-algorithm than properly inserting every element from the old tree into
-the new one since the old tree is already correctly organized -
-basically leveraging the existing knowledge of every element's correct
-position.
+HEAD commit:    5bebe8de1926 mm/huge_memory: Fix initialization of huge ze..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=1526e97c580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=a1db0fea040c2a9f
+dashboard link: https://syzkaller.appspot.com/bug?extid=a8ba738fe2db6b4bb27f
+compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13fca8b4580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=121b7332580000
 
-Or is there a need to traverse the new tree with each element instead of
-copying the whole thing as-is?
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-5bebe8de.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/45a180eaa13d/vmlinux-5bebe8de.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/9ba2dcafae20/bzImage-5bebe8de.xz
 
-Cheers, Phil
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+a8ba738fe2db6b4bb27f@syzkaller.appspotmail.com
+
+bridge0: received packet on syz_tun with own address as source address (addr:aa:aa:aa:aa:aa:aa, vlan:1)
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 5876 at net/bridge/netfilter/nf_conntrack_bridge.c:357 nf_ct_bridge_refrag net/bridge/netfilter/nf_conntrack_bridge.c:357 [inline]
+WARNING: CPU: 0 PID: 5876 at net/bridge/netfilter/nf_conntrack_bridge.c:357 nf_ct_bridge_post+0x3ff/0x1060 net/bridge/netfilter/nf_conntrack_bridge.c:408
+Modules linked in:
+CPU: 0 UID: 0 PID: 5876 Comm: syz.3.94 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:nf_ct_bridge_refrag net/bridge/netfilter/nf_conntrack_bridge.c:357 [inline]
+RIP: 0010:nf_ct_bridge_post+0x3ff/0x1060 net/bridge/netfilter/nf_conntrack_bridge.c:408
+Code: 89 ff 48 89 da 48 8d 8c 24 40 01 00 00 49 c7 c0 40 0c 2a 8a e8 12 d6 e1 ff 41 bf 02 00 00 00 e9 9c 07 00 00 e8 d2 1a 96 f7 90 <0f> 0b 90 45 31 ff e9 8b 07 00 00 e8 c1 1a 96 f7 eb 05 e8 ba 1a 96
+RSP: 0018:ffffc9000d996ae0 EFLAGS: 00010293
+RAX: ffffffff8a29f88e RBX: ffff888050bc0140 RCX: ffff88803b2b0000
+RDX: 0000000000000000 RSI: ffffffff8f40f220 RDI: 0000000000000081
+RBP: ffffc9000d996cc0 R08: ffff88803b2b0000 R09: 0000000000000002
+R10: 000000000000dd86 R11: 0000000000000000 R12: 1ffff1100a17802e
+R13: dffffc0000000000 R14: ffffc9000d996d80 R15: 0000000000000081
+FS:  00007f027c05e6c0(0000) GS:ffff88808d730000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00002000000000c0 CR3: 0000000059f5b000 CR4: 0000000000352ef0
+Call Trace:
+ <TASK>
+ nf_hook_entry_hookfn include/linux/netfilter.h:158 [inline]
+ nf_hook_slow+0xc5/0x220 net/netfilter/core.c:623
+ nf_hook include/linux/netfilter.h:273 [inline]
+ NF_HOOK+0x215/0x3c0 include/linux/netfilter.h:316
+ br_forward_finish+0xd3/0x130 net/bridge/br_forward.c:66
+ NF_HOOK+0x320/0x3c0 include/linux/netfilter.h:318
+ __br_forward+0x41e/0x600 net/bridge/br_forward.c:115
+ deliver_clone net/bridge/br_forward.c:131 [inline]
+ maybe_deliver+0xb5/0x160 net/bridge/br_forward.c:191
+ br_flood+0x31a/0x6a0 net/bridge/br_forward.c:238
+ br_handle_frame_finish+0x15a3/0x1c90 net/bridge/br_input.c:229
+ nf_hook_bridge_pre net/bridge/br_input.c:313 [inline]
+ br_handle_frame+0xb75/0x14f0 net/bridge/br_input.c:442
+ __netif_receive_skb_core+0x10b9/0x4380 net/core/dev.c:5966
+ __netif_receive_skb_one_core net/core/dev.c:6077 [inline]
+ __netif_receive_skb+0x72/0x380 net/core/dev.c:6192
+ netif_receive_skb_internal net/core/dev.c:6278 [inline]
+ netif_receive_skb+0x1cb/0x790 net/core/dev.c:6337
+ tun_rx_batched+0x1b9/0x730 drivers/net/tun.c:1485
+ tun_get_user+0x2b65/0x3e90 drivers/net/tun.c:1953
+ tun_chr_write_iter+0x113/0x200 drivers/net/tun.c:1999
+ new_sync_write fs/read_write.c:593 [inline]
+ vfs_write+0x5c9/0xb30 fs/read_write.c:686
+ ksys_write+0x145/0x250 fs/read_write.c:738
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0xfa0 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f027b18e17f
+Code: 89 54 24 18 48 89 74 24 10 89 7c 24 08 e8 f9 92 02 00 48 8b 54 24 18 48 8b 74 24 10 41 89 c0 8b 7c 24 08 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 31 44 89 c7 48 89 44 24 08 e8 4c 93 02 00 48
+RSP: 002b:00007f027c05e000 EFLAGS: 00000293 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f027b3e6090 RCX: 00007f027b18e17f
+RDX: 000000000000004e RSI: 0000200000000500 RDI: 00000000000000c8
+RBP: 00007f027b211f91 R08: 0000000000000000 R09: 0000000000000000
+R10: 000000000000004e R11: 0000000000000293 R12: 0000000000000000
+R13: 00007f027b3e6128 R14: 00007f027b3e6090 R15: 00007ffc84bca4a8
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
