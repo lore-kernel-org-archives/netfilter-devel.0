@@ -1,157 +1,114 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FC7134FF7B;
-	Thu, 20 Nov 2025 22:05:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 367E42D9ECF
+	for <netfilter-devel@vger.kernel.org>; Thu, 20 Nov 2025 23:43:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763676312; cv=none; b=D8wgtEEQlnUcT4syyc0OWtTHLqhJwfI51ZoCUMJv+jUBBf68t6X6uM57T/SZJ7nOQcaBZc4Ibn0Xts5+LA5jZiXGsNWTPY7dOnBz/UHAMJeD/cpQ7xU6utVIm9qMfVw8LpxVj2TiJIR9H6MMH4Hq7E55+aZykHQiitZfebp8ZUo=
+	t=1763682207; cv=none; b=q//9HmLZi6ERJPMmUm5LxMk1jYy/Lsf4fKX2hXBicriKcicj2frFt0ayTeX5OJgiDy1yLL/vut9At3f4qQ/dJDYK6JYNOCsXlB1aZ0+eQ49+XIjRhG/iOj8ScBuENsxXl12jskBbP3F7+6sqRSxfdaER9pEpZzBEsrGYVbUmdyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763676312; c=relaxed/simple;
-	bh=ZRDytxpt/zqMuU9SJD79Kue0YqZleDCHOurXE4WDacQ=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=Xznz989E/aoyfwINqAQEE+0WPqqkgQPiLuVx/ggLiW3t08EQD03xL20i/sTGVzMCxPjX7aKW1asyc9tPfuxYzYiu+CDBBhhl82H0dggSw/bsTluNVmZzNhZuIDkiYTUc66HKyPESX/3uG32DetRa+0mcgRvJWjWpLzfzsNl0Jt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=Ed2H+/Mh; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1763682207; c=relaxed/simple;
+	bh=SRLNwWKaDWnbIztnciAgtEPisEBR7Ob09DzmHmWCuGA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sE5qryoFmbTIJ47gQYVudhtx8n52jfQVlq4DE43rlZIc3PQFBfoTuKJ7taTeWslIDrtFP71KYBa7DtpUWwqqEGxpICBV58I+UFgwsPXzqd+UJEDQM7Mk4so4W7s7ZvwhjOBLEf1P1JFa6fszn97z4cQ0ilPmxB8Kj6R5P1clJ4U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VLOFB2r4; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="Ed2H+/Mh"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id D70A0211A4;
-	Thu, 20 Nov 2025 23:59:36 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=YsyWFNZjlULkeSGVnGvh/CrGBK0Cirq99eqdZO8Cfuo=; b=Ed2H+/Mh5QA6
-	022Ks8ZITIcTmyUCWZu2mDn9jGERvScYVRCHH3+NA8bydzIsrmRerJkN2BEzfwIj
-	AeXVTUGyVpmveMWrFg5DLGlFxHFpLliBCdkcNzaBbfEdDtgY4z6h3brhFSmJeHZo
-	IV++kBUCL2JRk097WVv6iXqUa3p97qoVHW88bBKbgWE6RTfuQYHMsmJQAtKJ/B3U
-	GffL3CAbugfKWB3pxTYfasGHQjH1yM67/28+kVYZFm1KWNJhOSvrVdb5gQd/mnX2
-	zOTPG7tVnUIJY66zpJjK3u5sb41R5F/wbCc4DkI6EvitGekMD8cnBHugSad82iPT
-	gVSIryfCc4OTVN0pPTHYdXuDf30dgBvZKzwWDMab9PcYTXd70r3PSVm7ANZiuc+I
-	MYxYZbFBMgVygSjEO3onPBDEccvZa9Q27Qk7fvfrqrwfeGfcuGlPze8x7PIQ1HDx
-	LaZGTKVZxugApIRlfXLGiiUG8ewYXe8eG1XGYi0NeiXTzePHc7eq/kuGUE3ERSDL
-	BTSuOHEI3ADS28ag8x1e4oVMmUOxOhzko2vFiRskQ40KSrCmLYNb9RD2B5RmpbPh
-	WARqvOkRjIroeetJ3f/I/HX0tDbrMEwg/7CHu4ftTOoBDLiPA/SaFyiNBa+qBK82
-	vk+CSCOyoafZD2bce2c4Two+fXDU6Rk=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Thu, 20 Nov 2025 23:59:35 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id EDFC866745;
-	Thu, 20 Nov 2025 23:59:33 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 5AKLxNdg047491;
-	Thu, 20 Nov 2025 23:59:24 +0200
-Date: Thu, 20 Nov 2025 23:59:23 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Slavin Liu <slavin452@gmail.com>
-cc: horms@verge.net.au, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH net] ipvs: fix ipv4 null-ptr-deref in route error path
-In-Reply-To: <20251120190313.1051-1-slavin452@gmail.com>
-Message-ID: <a05775db-fe29-ed82-d87e-b3f7588c2c84@ssi.bg>
-References: <20251120190313.1051-1-slavin452@gmail.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VLOFB2r4"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 933BE60272;
+	Fri, 21 Nov 2025 00:43:20 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1763682200;
+	bh=x6JgzW7NGKh3ig7wCbDl4tU/3bIrsLyngvYtWrC3ebM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VLOFB2r4+SqZXWW/mR2D0HukYOFq0j3nhvPI+IZO9f8svpUUS2aq2yly4Bu2fShjQ
+	 pCHOgMgAX9xYdsNcKQhBXrTPbj6XILdd392K1AWiBBg4a3La3QfpF2tQvSzum++Dfx
+	 AvkNWJnk1+ZLoy5XP/nRf+XVaPkPc2VxqTUEb+rCx5MArYRPScbN3b+Ywuj5tjhxCC
+	 JIAW//ysns26H02jVMUHF05ave6CClaj+J3pE3mNg5/MD+61vARQZNZqM9889evO3z
+	 F4kKD6jmX2S4gWdm+h033t6e65/BKCVmnizYrSyf43cswFCfdJyDYJiu1F7p+HKNZZ
+	 NP6qN0SXGSPDg==
+Date: Fri, 21 Nov 2025 00:43:18 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
+	phil@nwl.cc, aconole@redhat.com, echaudro@redhat.com,
+	i.maximets@ovn.org
+Subject: Re: [PATCH 0/6 nf-next v3] netfilter: rework conncount API to
+ receive sk_buff directly
+Message-ID: <aR-nlkm8RrHZsCbP@calendula>
+References: <20251112114351.3273-2-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-2017688460-1763675972=:9175"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20251112114351.3273-2-fmancera@suse.de>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Fernando,
 
----1463811672-2017688460-1763675972=:9175
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-
-
-	Hello,
-
-On Fri, 21 Nov 2025, Slavin Liu wrote:
-
-> The IPv4 code path in __ip_vs_get_out_rt() calls dst_link_failure()
-> without ensuring skb->dev is set, leading to a NULL pointer dereference
-> in fib_compute_spec_dst() when ipv4_link_failure() attempts to send
-> ICMP destination unreachable messages.
+On Wed, Nov 12, 2025 at 12:43:46PM +0100, Fernando Fernandez Mancera wrote:
+> This series is fixing two different problems. The first issue is related
+> to duplicated entries when used for non-confirmed connections in
+> nft_connlimit and xt_connlimit. Now, nf_conncount_add() checks whether
+> the connection is confirmed or not. If the connection is confirmed,
+> skip the add.
 > 
-> The bug was introduced in commit 4115ded13164 ("ipvs: consolidate all
-> dst checks on transmit in one place") which added the err_unreach error
-> path with a dst_link_failure(skb) call to both __ip_vs_get_out_rt() and
-> __ip_vs_get_out_rt_v6(). The IPv6 version was subsequently fixed by
-> commit 326bf17ea5d4 ("ipvs: fix ipv6 route unreach panic"), but the
-> fix was never applied to the IPv4 code path.
-
-	It was not needed for IPv4 at that time because
-icmp_send() was safe to use when skb->dev is NULL.
-
-> The crash occurs when:
-> 1. IPVS processes a packet in NAT mode with a misconfigured destination
-> 2. Route lookup fails in __ip_vs_get_out_rt() before establishing a route
-> 3. The error path calls dst_link_failure(skb) with skb->dev == NULL
-> 4. ipv4_link_failure() → ipv4_send_dest_unreach() →
->    __ip_options_compile() → fib_compute_spec_dst()
-> 5. fib_compute_spec_dst() dereferences NULL skb->dev
+> In order to do that, nf_conncount_count_skb() and nf_conncount_add_skb()
+> API has been introduced. They allow the user to pass the sk_buff
+> directly. The old API has been removed.
 > 
-> Apply the same fix used for IPv6: set skb->dev from skb_dst(skb)->dev
-> before calling dst_link_failure().
+> The second issue this series is fixing is related to
+> nft_connlimit/xt_connlimit not updating the list of connection for
+> confirmed connections breaking softlimiting use-cases like limiting the
+> bandwidth when too many connections are open.
 > 
-> KASAN: null-ptr-deref in range [0x0000000000000328-0x000000000000032f]
-> CPU: 1 PID: 12732 Comm: syz.1.3469 Not tainted 6.6.114 #2
-> RIP: 0010:__in_dev_get_rcu include/linux/inetdevice.h:233
-> RIP: 0010:fib_compute_spec_dst+0x17a/0x9f0 net/ipv4/fib_frontend.c:285
-> Call Trace:
->   <TASK>
->   spec_dst_fill net/ipv4/ip_options.c:232
->   spec_dst_fill net/ipv4/ip_options.c:229
->   __ip_options_compile+0x13a1/0x17d0 net/ipv4/ip_options.c:330
->   ipv4_send_dest_unreach net/ipv4/route.c:1252
->   ipv4_link_failure+0x702/0xb80 net/ipv4/route.c:1265
->   dst_link_failure include/net/dst.h:437
->   __ip_vs_get_out_rt+0x15fd/0x19e0 net/netfilter/ipvs/ip_vs_xmit.c:412
->   ip_vs_nat_xmit+0x1d8/0xc80 net/netfilter/ipvs/ip_vs_xmit.c:764
+> This has been tested with nftables and iptables both in filter and raw
+> priorities. I have stressed the system up to 2000 connections.
 > 
-> Fixes: 4115ded13164 ("ipvs: consolidate all dst checks on transmit in one place")
-
-	I guess, this is a followup to commit 0113d9c9d1cc.
-Looks like the problem comes from commit ed0de45a1008 which
-starts to use __ip_options_compile(), so the problem is more
-recent because we used to call dst_link_failure() even before
-commit 4115ded13164. But it is better to fix the problem in
-IPVS. Just send v2 with commit ed0de45a1008 in the Fixes tag
-and explain that it started to use __ip_options_compile(),
-commit 4115ded13164 should not be the culprit.
-
-> Signed-off-by: Slavin Liu <slavin452@gmail.com>
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 3 +++
->  1 file changed, 3 insertions(+)
+> CC'ing openvswitch maintainers as this change on the API required me to
+> touch their code. I am not very familiar with the internals of
+> openvswitch but I believe this should be fine. If you could provide some
+> testing from openvswitch side it would be really helpful.
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 95af252b2939..618fbe1240b5 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -409,6 +409,9 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
->  	return -1;
->  
->  err_unreach:
-> +	if (!skb->dev)
-> +		skb->dev = skb_dst(skb)->dev;
-> +
->  	dst_link_failure(skb);
->  	return -1;
->  }
-> -- 
-> 2.43.0
+> Fernando Fernandez Mancera (6):
+>   netfilter: nf_conncount: introduce new nf_conncount_count_skb() API
+>   netfilter: xt_connlimit: use nf_conncount_count_skb() directly
+>   openvswitch: use nf_conncount_count_skb() directly
+>   netfilter: nf_conncount: pass the sk_buff down to __nf_conncount_add()
 
-Regards
+I have collapsed this four patches initial patches (1-4) to see how it
+looks:
 
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-2017688460-1763675972=:9175--
+ include/net/netfilter/nf_conntrack_count.h |   17 ++++-----
+ net/netfilter/nf_conncount.c               |  159 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------
+ net/netfilter/nft_connlimit.c              |   21 +----------
+ net/netfilter/xt_connlimit.c               |   14 +------
+ net/openvswitch/conntrack.c                |   16 ++++----
+ 5 files changed, 133 insertions(+), 94 deletions(-)
 
+It is a bit large, but I find it easier to understand the goal,
+because this patch is pushing down the skb into the conncount core and
+adapting callers at the same time, which is what Florian suggested.
+
+Then, another patch to add the special -EINVAL case for already
+confirmed conntracks that is in patch 6/6 in this series. This is to
+deal with the new use-case of using ct count really for counting, not
+just for limiting.
+
+Finally, the gc consolidation.
+
+I pushed it to this branch in nf-next.git,
+
+        https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git/log/?h=tentative-conncount-series
+
+NOTE: commit messages would need an adjustment.
+
+Sidenote: Not related, but connlimit does not work for bridge and
+netdev families because of nft_pf(). This relates to another topic
+that is being discussing about how to handle vlan/pppoe packets.
+**No need to address this series**, just mentioning it.
