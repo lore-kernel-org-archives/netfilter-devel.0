@@ -1,160 +1,211 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C951CD1F
-	for <netfilter-devel@vger.kernel.org>; Fri, 21 Nov 2025 00:15:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55AD036D4E7
+	for <netfilter-devel@vger.kernel.org>; Fri, 21 Nov 2025 00:16:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763684102; cv=none; b=NFrqrNKveW3NLPMF3Qs3G8ERZQi/tUQg0KVkRcSyCbciVivV0rz4rZhNUNztiwaQe6AglsbKodaydOIrSyRaagmy29xGEOF7HqaYBA/vFOXlPx0p+Nuu5lFtfquJd3L4PJeuKEHXc0kVazd6gwZDDdzVPiLozPC9IPQlMLZA4+M=
+	t=1763684195; cv=none; b=SnN3mnAh7AnLrPrFn+o08zna4wo3CwxIjvqvWdpwEuA8gEpOxZqzZxD55krIwWV2dsOcuBzfxbf29oQ8dIW8AUpuhHjRoTw6LwhyQ0t6RN9jnS4RQYdNDNiTspaXwEtatRg0TG1aexWtnlvQl6QdhCt2fPOanhkVK0gST5BaVqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763684102; c=relaxed/simple;
-	bh=iqKEiPanvv+eDNpo8fRvgnpcV5s4awNBiGMIcovHXJw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=az6YRIdLqxDpz2ENpIiTP2fG5r9iOMqCFmxtd7R1YQ/XsXxGLwDV5lKkjXAl5gwsXJ+dTRjqv/LLyUY9S+h269n6lBm4ODpTOIVblcjgVjFNIdQqCMXNuGOKfdF41KgltwSdQnA6fWnTcwTKp5vHUhbjBpcG6H0uZiU3AwYHoZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.130
+	s=arc-20240116; t=1763684195; c=relaxed/simple;
+	bh=1LnVyZTDz1rmPxyEojklHzQ+dEx7IbqmT74DhMx6Bu4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=CKdK3IaLwavz6sPsu4F90SPNgTDlQDOM93XbtuUE/iz2YIk5EIMstApNe4lFTbEKpDKx5c90fiElJwDDFdQcaG5SkSiD5HwL6jdunKEoF8jpOO0gp16iNkA6qjKmCNYexWZcg5gI+VTFN+F2XDX1v4Lf1g9NF0sItt+dW5pI50I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=TvvEqH1y; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=rFpydp4u; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=TvvEqH1y; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=rFpydp4u; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="TvvEqH1y";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="rFpydp4u";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="TvvEqH1y";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="rFpydp4u"
 Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 584AD211A7;
-	Fri, 21 Nov 2025 00:14:49 +0000 (UTC)
-Authentication-Results: smtp-out1.suse.de;
-	none
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 1D54720CF6;
+	Fri, 21 Nov 2025 00:16:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1763684191; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e6AfKK4hv5UFG2UfKnm87X/FByU++U7443rsAbSuEA8=;
+	b=TvvEqH1ySuF30ulWOQHA7ll5t56SoPwPQog5m6gJa/iYr8bLNb4rf8YD2W0JyFqUo4dIj3
+	hJxXHFJH1FcRx+5/mhXfRQZ0fZKT6F8tH4KaYBhnDE0SFAHOSjUUSL8CXIBBAEJKEiLMLv
+	vmcoxsUEr4SXgRKO+62OygepOyZSl5I=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1763684191;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e6AfKK4hv5UFG2UfKnm87X/FByU++U7443rsAbSuEA8=;
+	b=rFpydp4u1uuLfVajYS1U3o5sxnaLMBFuToNlKJJFjKsjum5IxPtDn1vouWrq9Xyw5bhJIM
+	2HXyohDpVyoj0BCg==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=TvvEqH1y;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=rFpydp4u
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1763684191; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e6AfKK4hv5UFG2UfKnm87X/FByU++U7443rsAbSuEA8=;
+	b=TvvEqH1ySuF30ulWOQHA7ll5t56SoPwPQog5m6gJa/iYr8bLNb4rf8YD2W0JyFqUo4dIj3
+	hJxXHFJH1FcRx+5/mhXfRQZ0fZKT6F8tH4KaYBhnDE0SFAHOSjUUSL8CXIBBAEJKEiLMLv
+	vmcoxsUEr4SXgRKO+62OygepOyZSl5I=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1763684191;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=e6AfKK4hv5UFG2UfKnm87X/FByU++U7443rsAbSuEA8=;
+	b=rFpydp4u1uuLfVajYS1U3o5sxnaLMBFuToNlKJJFjKsjum5IxPtDn1vouWrq9Xyw5bhJIM
+	2HXyohDpVyoj0BCg==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 17CE93EA61;
-	Fri, 21 Nov 2025 00:14:49 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 9A0993EA61;
+	Fri, 21 Nov 2025 00:16:30 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id kEwHA/muH2mLcwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 21 Nov 2025 00:14:49 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH 3/3 nf-next v4] netfilter: nft_connlimit: update the count if add was skipped
-Date: Fri, 21 Nov 2025 01:14:32 +0100
-Message-ID: <20251121001432.3552-3-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251121001432.3552-1-fmancera@suse.de>
-References: <20251121001432.3552-1-fmancera@suse.de>
+	id S0yFIl6vH2n0dAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 21 Nov 2025 00:16:30 +0000
+Message-ID: <bfb59b17-2c95-4790-a442-522cda9846eb@suse.de>
+Date: Fri, 21 Nov 2025 01:16:14 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Rspamd-Queue-Id: 584AD211A7
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/6 nf-next v3] netfilter: rework conncount API to receive
+ sk_buff directly
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
+ phil@nwl.cc, aconole@redhat.com, echaudro@redhat.com, i.maximets@ovn.org
+References: <20251112114351.3273-2-fmancera@suse.de>
+ <aR-nlkm8RrHZsCbP@calendula>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <aR-nlkm8RrHZsCbP@calendula>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 1D54720CF6
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-4.51 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_SEVEN(0.00)[8];
+	MIME_TRACE(0.00)[0:+];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	TO_DN_SOME(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
+	DNSWL_BLOCKED(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	URIBL_BLOCKED(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
+	DKIM_TRACE(0.00)[suse.de:+]
 X-Rspamd-Action: no action
 X-Spam-Flag: NO
-X-Spam-Score: -4.00
+X-Spam-Score: -4.51
 X-Spam-Level: 
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	REPLY(-4.00)[]
 
-Connlimit expression can be used for all kind of packets and not only
-for packets with connection state new. See this ruleset as example:
 
-table ip filter {
-        chain input {
-                type filter hook input priority filter; policy accept;
-                tcp dport 22 ct count over 4 counter
-        }
-}
 
-Currently, if the connection count goes over the limit the counter will
-count the packets. When a connection is closed, the connection count
-won't decrement as it should because it is only updated for new
-connections due to an optimization on __nf_conncount_add() that prevents
-updating the list if the connection is duplicated.
+On 11/21/25 12:43 AM, Pablo Neira Ayuso wrote:
+> Hi Fernando,
+> 
+> On Wed, Nov 12, 2025 at 12:43:46PM +0100, Fernando Fernandez Mancera wrote:
+>> This series is fixing two different problems. The first issue is related
+>> to duplicated entries when used for non-confirmed connections in
+>> nft_connlimit and xt_connlimit. Now, nf_conncount_add() checks whether
+>> the connection is confirmed or not. If the connection is confirmed,
+>> skip the add.
+>>
+>> In order to do that, nf_conncount_count_skb() and nf_conncount_add_skb()
+>> API has been introduced. They allow the user to pass the sk_buff
+>> directly. The old API has been removed.
+>>
+>> The second issue this series is fixing is related to
+>> nft_connlimit/xt_connlimit not updating the list of connection for
+>> confirmed connections breaking softlimiting use-cases like limiting the
+>> bandwidth when too many connections are open.
+>>
+>> This has been tested with nftables and iptables both in filter and raw
+>> priorities. I have stressed the system up to 2000 connections.
+>>
+>> CC'ing openvswitch maintainers as this change on the API required me to
+>> touch their code. I am not very familiar with the internals of
+>> openvswitch but I believe this should be fine. If you could provide some
+>> testing from openvswitch side it would be really helpful.
+>>
+>> Fernando Fernandez Mancera (6):
+>>    netfilter: nf_conncount: introduce new nf_conncount_count_skb() API
+>>    netfilter: xt_connlimit: use nf_conncount_count_skb() directly
+>>    openvswitch: use nf_conncount_count_skb() directly
+>>    netfilter: nf_conncount: pass the sk_buff down to __nf_conncount_add()
+> 
+> I have collapsed this four patches initial patches (1-4) to see how it
+> looks:
+> 
+>   include/net/netfilter/nf_conntrack_count.h |   17 ++++-----
+>   net/netfilter/nf_conncount.c               |  159 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------
+>   net/netfilter/nft_connlimit.c              |   21 +----------
+>   net/netfilter/xt_connlimit.c               |   14 +------
+>   net/openvswitch/conntrack.c                |   16 ++++----
+>   5 files changed, 133 insertions(+), 94 deletions(-)
+> 
+> It is a bit large, but I find it easier to understand the goal,
+> because this patch is pushing down the skb into the conncount core and
+> adapting callers at the same time, which is what Florian suggested.
+> 
+> Then, another patch to add the special -EINVAL case for already
+> confirmed conntracks that is in patch 6/6 in this series. This is to
+> deal with the new use-case of using ct count really for counting, not
+> just for limiting.
+> 
+> Finally, the gc consolidation.
+> 
 
-To solve this problem, check whether the connection was skipped and if
-so, update the list. Adjust count_tree() too so the same fix is applied
-for xt_connlimit.
+All looks good to me, except the gc consolidation must be before the 
+nft_connlimit one.. otherwise nft_connlimit would be calling it without 
+disabling bh. Anyway, I just sent a v4 with the collapsed patches, 
+commit description adjusted and the correct ordering for the last two 
+patches.
 
-Fixes: 976afca1ceba ("netfilter: nf_conncount: Early exit in nf_conncount_lookup() and cleanup")
-Closes: https://lore.kernel.org/netfilter/trinity-85c72a88-d762-46c3-be97-36f10e5d9796-1761173693813@3c-app-mailcom-bs12/
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
- net/netfilter/nf_conncount.c  | 12 ++++++++----
- net/netfilter/nft_connlimit.c | 13 +++++++++++--
- 2 files changed, 19 insertions(+), 6 deletions(-)
+Thanks,
+Fernando.
 
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index eabce7e141f8..81915ef99a83 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -179,7 +179,7 @@ static int __nf_conncount_add(struct net *net,
- 	if (ct && nf_ct_is_confirmed(ct)) {
- 		if (refcounted)
- 			nf_ct_put(ct);
--		return 0;
-+		return -EEXIST;
- 	}
- 
- 	if ((u32)jiffies == list->last_gc)
-@@ -408,7 +408,7 @@ insert_tree(struct net *net,
- 			int ret;
- 
- 			ret = nf_conncount_add_skb(net, skb, l3num, &rbconn->list);
--			if (ret)
-+			if (ret && ret != -EEXIST)
- 				count = 0; /* hotdrop */
- 			else
- 				count = rbconn->list.count;
-@@ -511,10 +511,14 @@ count_tree(struct net *net,
- 			/* same source network -> be counted! */
- 			ret = __nf_conncount_add(net, skb, l3num, &rbconn->list);
- 			spin_unlock_bh(&rbconn->list.list_lock);
--			if (ret)
-+			if (ret && ret != -EEXIST) {
- 				return 0; /* hotdrop */
--			else
-+			} else {
-+				/* -EEXIST means add was skipped, update the list */
-+				if (ret == -EEXIST)
-+					nf_conncount_gc_list(net, &rbconn->list);
- 				return rbconn->list.count;
-+			}
- 		}
- 	}
- 
-diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
-index 41770bde39d3..714a59485935 100644
---- a/net/netfilter/nft_connlimit.c
-+++ b/net/netfilter/nft_connlimit.c
-@@ -29,8 +29,17 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
- 
- 	err = nf_conncount_add_skb(nft_net(pkt), pkt->skb, nft_pf(pkt), priv->list);
- 	if (err) {
--		regs->verdict.code = NF_DROP;
--		return;
-+		if (err == -EEXIST) {
-+			/* Call gc to update the list count if any connection has
-+			 * been closed already. This is useful for softlimit
-+			 * connections like limiting bandwidth based on a number
-+			 * of open connections.
-+			 */
-+			nf_conncount_gc_list(nft_net(pkt), priv->list);
-+		} else {
-+			regs->verdict.code = NF_DROP;
-+			return;
-+		}
- 	}
- 
- 	count = READ_ONCE(priv->list->count);
--- 
-2.51.1
+> I pushed it to this branch in nf-next.git,
+> 
+>          https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git/log/?h=tentative-conncount-series
+> 
+> NOTE: commit messages would need an adjustment.
+> 
+> Sidenote: Not related, but connlimit does not work for bridge and
+> netdev families because of nft_pf(). This relates to another topic
+> that is being discussing about how to handle vlan/pppoe packets.
+> **No need to address this series**, just mentioning it.
+> 
+
+Yes, I will need to look into this during the next release cycle I 
+guess. Thanks for mentioning it.
 
