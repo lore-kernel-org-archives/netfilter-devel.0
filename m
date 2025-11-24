@@ -1,154 +1,168 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4155A29A322;
-	Mon, 24 Nov 2025 15:35:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49CB629D289
+	for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2025 16:37:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1763998521; cv=none; b=E3ExYfu/fxTjjqFylcOK96sydCugd3WA3KcUbe0/18FOEgKlGylgRF2lzfMJaouUz/9BJ3ZYVMyvUb99OPSh/z0Ky1dckCT0GBWru3wddBkdITrYcrFCuvJXm0ElUyNGNYoq36ViqQ0pFavIwvDuZz6KGkLt4Bd8Ft9WatbLHSA=
+	t=1764002245; cv=none; b=Ly4pez7gFOJNktITTCkSxsYKn9x0M9iYPAlgVogN0FsMhg9a8kON3B1hs/pw9Hd0erRQ8c6Womya+jCn3U24UXsc9nHAw7fB4/7Dwzseqju1zJ3DgI6va8IOzIdeudQXaHrc/4vUcVvjJr+qh8OgKtZGltunF+Q0ExUWxXHHHX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1763998521; c=relaxed/simple;
-	bh=Cgy1jSGdvXKofvHzDc7wqhKqOmo64bHdMx1gZPWfGCc=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=DjWbdguznzxTrci/CoE7jiw8BNOYo4BOYVyvl16Ka3oNdArHKh6f8A+91LyFt3s5+TS8L4C3vbyYO+ceMQO+bw4UoHQ3/rfA/JbQyoq9VO5OtMS2lSNofPb3RSbcYHmpL7NQeQ8WvGsFsf21cCgHf2jJ3/XADI1Z/VM46ZzT9pU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=36mJOIwP; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1764002245; c=relaxed/simple;
+	bh=mPkLJ1vUXZvCh53B0J5fuJphnmGdjrW3qEMrXQeBPQk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iTj6+KdkBQLNBxX3VPzEKXgeCz0DDi2RUlJ0hVZd8Fdf7Rm0bJCS73q435+IfIYoq3Pa64En5JA4eIz5O5q6HZlII0rQy0KTzmfxxGtvpDQ1qMmLSEEAjemiQSWiGJa11MRe/p+5ZGvP8+JIpTZewdhVFzmi6+nsjPs2zzxv9tA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Yua8fasQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=MAloqvKb; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=Yua8fasQ; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=MAloqvKb; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="36mJOIwP"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id BD671211AB;
-	Mon, 24 Nov 2025 17:35:07 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=gdxKfmy94OiIU4Ge1eb4/bVO0IJ+/rgl6uTSYrP7bzI=; b=36mJOIwPNHs1
-	dDZzRCkNURh9jWNFAjD78AFE03vo0wjFSfFAMEUS9gAdmwHicdFOdkqukU5XN6l9
-	iIbBb2PyuTM5NKHwc3qE7zgkT/AKNbuWQjHGF8H2hYTq6g+f7xHUmY8jNpIXXDna
-	DVc1qwED48N/cTwlf9USiHs/D9MwyJEeh3gXXEYYoJ63UZdL4Sb7wNIB1Y4NcZOs
-	Bd1hcleyRLvhnGUtXx1rblmSh2OQe9aGX+DMNgI2MmWFcIMDSb5QmLzDKNd4Zgdv
-	ami+keJOV6gQRoDDLHL6Dz6ABlbXd0G3Fq246X7I95M1kn34SpCNAaG/WMDosDBX
-	/29Ngp3CIVnm6cS7obytx4mPooQJoNCnWAWR9jWoIITubNOM6sT0ffQseOuNxGaY
-	+DMjHIMSlNhRqfL5rws35buV0DdSVaPlMReqX5nDef/fw1+cQ4RFfc0iRuSpHLy5
-	rh++bl4gWY6nknCyyzo2MWMB1v3fp3arBj9/qg29pf3hgNgYtn9LaFSOHbbX1Eco
-	gslnrIlUriqJ06wjICsfheDuhq8fRg+aBCKs0UmhwedKxEiB7hUpBDvS8EldSyAv
-	iTTVu2+zUfx1TruLrIxrJCdG0xBYLrU2AFj+dBDvuI86tR42C/y1cYjuJvC4u7zo
-	0syDnRCujxg+rPBXajvRnHW3bPMZb5A=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Mon, 24 Nov 2025 17:35:06 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 6B569601D6;
-	Mon, 24 Nov 2025 17:35:04 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 5AOFYlCj025431;
-	Mon, 24 Nov 2025 17:34:48 +0200
-Date: Mon, 24 Nov 2025 17:34:47 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Slavin Liu <slavin452@gmail.com>
-cc: horms@verge.net.au, pablo@netfilter.org, kadlec@netfilter.org,
-        fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
-        kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org
-Subject: Re: [PATCH net v2] ipvs: fix ipv4 null-ptr-deref in route error
- path
-In-Reply-To: <20251121085213.1660-1-slavin452@gmail.com>
-Message-ID: <e0ecac84-29b4-477e-8e40-2603ca7b1154@ssi.bg>
-References: <20251120190313.1051-1-slavin452@gmail.com> <20251121085213.1660-1-slavin452@gmail.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Yua8fasQ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="MAloqvKb";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="Yua8fasQ";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="MAloqvKb"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 1A828221DB;
+	Mon, 24 Nov 2025 16:37:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1764002241; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=uFKghpvLUEuOp8sJmrDVTf13HBr5e1Wf6PG08ozLCrU=;
+	b=Yua8fasQKjZQttxXzn+b4GKd5awiGdCCeJSQpM45ifHxlo02V9U8/K4iO7DhzM9QVyTwU5
+	Mt0vSeq/r8Q5Got9wxyYbKWYqFVyzYbk4UlBb0DKm77YRotm/1n3sUydi+c5BlK8bNUVmj
+	kxNP56BeAIlgycoF1bRU4I244ld8CvY=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1764002241;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=uFKghpvLUEuOp8sJmrDVTf13HBr5e1Wf6PG08ozLCrU=;
+	b=MAloqvKb6YAiriO8HHDBORmOs6Kto40TymnOHBYCKsEzB3ecdk1SQArZvIvhJ1t+s6mGPk
+	6DDRTY/wdNTZ9cDQ==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=Yua8fasQ;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=MAloqvKb
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1764002241; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=uFKghpvLUEuOp8sJmrDVTf13HBr5e1Wf6PG08ozLCrU=;
+	b=Yua8fasQKjZQttxXzn+b4GKd5awiGdCCeJSQpM45ifHxlo02V9U8/K4iO7DhzM9QVyTwU5
+	Mt0vSeq/r8Q5Got9wxyYbKWYqFVyzYbk4UlBb0DKm77YRotm/1n3sUydi+c5BlK8bNUVmj
+	kxNP56BeAIlgycoF1bRU4I244ld8CvY=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1764002241;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=uFKghpvLUEuOp8sJmrDVTf13HBr5e1Wf6PG08ozLCrU=;
+	b=MAloqvKb6YAiriO8HHDBORmOs6Kto40TymnOHBYCKsEzB3ecdk1SQArZvIvhJ1t+s6mGPk
+	6DDRTY/wdNTZ9cDQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id CC92F3EA63;
+	Mon, 24 Nov 2025 16:37:20 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id TwPoLsCJJGnLDQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 24 Nov 2025 16:37:20 +0000
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+To: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH nf-next v2] netfilter: nft_connlimit: add support to object update operation
+Date: Mon, 24 Nov 2025 17:36:58 +0100
+Message-ID: <20251124163658.8001-1-fmancera@suse.de>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="-1463811672-1733670800-1763998496=:3133"
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Queue-Id: 1A828221DB
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	ARC_NA(0.00)[];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_COUNT_TWO(0.00)[2];
+	MIME_TRACE(0.00)[0:+];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_DN_SOME(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	FROM_HAS_DN(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email,suse.de:mid,suse.de:dkim,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
+	RCVD_TLS_ALL(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCPT_COUNT_THREE(0.00)[3];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -3.01
+X-Spam-Level: 
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is useful to update the limit or flags without clearing the
+connections tracked. Use READ_ONCE() on packetpath as it can be modified
+on controlplane.
 
----1463811672-1733670800-1763998496=:3133
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+---
+v2: rebased in top of nf-next branch, use READ_ONCE() annotation as
+discussed with Pablo offlist.
+---
+ net/netfilter/nft_connlimit.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-
-	Hello,
-
-On Fri, 21 Nov 2025, Slavin Liu wrote:
-
-> The IPv4 code path in __ip_vs_get_out_rt() calls dst_link_failure()
-> without ensuring skb->dev is set, leading to a NULL pointer dereference
-> in fib_compute_spec_dst() when ipv4_link_failure() attempts to send
-> ICMP destination unreachable messages.
-> 
-> The issue emerged after commit ed0de45a1008 ("ipv4: recompile ip options
-> in ipv4_link_failure") started calling __ip_options_compile() from
-> ipv4_link_failure(). This code path eventually calls fib_compute_spec_dst()
-> which dereferences skb->dev. An attempt was made to fix the NULL skb->dev
-> dereference in commit 0113d9c9d1cc ("ipv4: fix null-deref in
-> ipv4_link_failure"), but it only addressed the immediate dev_net(skb->dev)
-> dereference by using a fallback device. The fix was incomplete because
-> fib_compute_spec_dst() later in the call chain still accesses skb->dev
-> directly, which remains NULL when IPVS calls dst_link_failure().
-> 
-> The crash occurs when:
-> 1. IPVS processes a packet in NAT mode with a misconfigured destination
-> 2. Route lookup fails in __ip_vs_get_out_rt() before establishing a route
-> 3. The error path calls dst_link_failure(skb) with skb->dev == NULL
-> 4. ipv4_link_failure() → ipv4_send_dest_unreach() →
->    __ip_options_compile() → fib_compute_spec_dst()
-> 5. fib_compute_spec_dst() dereferences NULL skb->dev
-> 
-> Apply the same fix used for IPv6 in commit 326bf17ea5d4 ("ipvs: fix
-> ipv6 route unreach panic"): set skb->dev from skb_dst(skb)->dev before
-> calling dst_link_failure().
-> 
-> KASAN: null-ptr-deref in range [0x0000000000000328-0x000000000000032f]
-> CPU: 1 PID: 12732 Comm: syz.1.3469 Not tainted 6.6.114 #2
-> RIP: 0010:__in_dev_get_rcu include/linux/inetdevice.h:233
-> RIP: 0010:fib_compute_spec_dst+0x17a/0x9f0 net/ipv4/fib_frontend.c:285
-> Call Trace:
->   <TASK>
->   spec_dst_fill net/ipv4/ip_options.c:232
->   spec_dst_fill net/ipv4/ip_options.c:229
->   __ip_options_compile+0x13a1/0x17d0 net/ipv4/ip_options.c:330
->   ipv4_send_dest_unreach net/ipv4/route.c:1252
->   ipv4_link_failure+0x702/0xb80 net/ipv4/route.c:1265
->   dst_link_failure include/net/dst.h:437
->   __ip_vs_get_out_rt+0x15fd/0x19e0 net/netfilter/ipvs/ip_vs_xmit.c:412
->   ip_vs_nat_xmit+0x1d8/0xc80 net/netfilter/ipvs/ip_vs_xmit.c:764
-> 
-> Fixes: ed0de45a1008 ("ipv4: recompile ip options in ipv4_link_failure")
-> Signed-off-by: Slavin Liu <slavin452@gmail.com>
-
-	Looks good to me for the nf tree, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 95af252b2939..618fbe1240b5 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -409,6 +409,9 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
->  	return -1;
->  
->  err_unreach:
-> +	if (!skb->dev)
-> +		skb->dev = skb_dst(skb)->dev;
-> +
->  	dst_link_failure(skb);
->  	return -1;
->  }
-> -- 
-> 2.43.0
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-1733670800-1763998496=:3133--
+diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+index 714a59485935..4a7aef1674bc 100644
+--- a/net/netfilter/nft_connlimit.c
++++ b/net/netfilter/nft_connlimit.c
+@@ -44,7 +44,7 @@ static inline void nft_connlimit_do_eval(struct nft_connlimit *priv,
+ 
+ 	count = READ_ONCE(priv->list->count);
+ 
+-	if ((count > priv->limit) ^ priv->invert) {
++	if ((count > READ_ONCE(priv->limit)) ^ READ_ONCE(priv->invert)) {
+ 		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+@@ -131,6 +131,16 @@ static int nft_connlimit_obj_init(const struct nft_ctx *ctx,
+ 	return nft_connlimit_do_init(ctx, tb, priv);
+ }
+ 
++static void nft_connlimit_obj_update(struct nft_object *obj,
++				     struct nft_object *newobj)
++{
++	struct nft_connlimit *newpriv = nft_obj_data(newobj);
++	struct nft_connlimit *priv = nft_obj_data(obj);
++
++	priv->limit = newpriv->limit;
++	priv->invert = newpriv->invert;
++}
++
+ static void nft_connlimit_obj_destroy(const struct nft_ctx *ctx,
+ 				      struct nft_object *obj)
+ {
+@@ -160,6 +170,7 @@ static const struct nft_object_ops nft_connlimit_obj_ops = {
+ 	.init		= nft_connlimit_obj_init,
+ 	.destroy	= nft_connlimit_obj_destroy,
+ 	.dump		= nft_connlimit_obj_dump,
++	.update		= nft_connlimit_obj_update,
+ };
+ 
+ static struct nft_object_type nft_connlimit_obj_type __read_mostly = {
+-- 
+2.51.1
 
