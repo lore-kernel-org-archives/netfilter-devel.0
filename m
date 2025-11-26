@@ -1,28 +1,50 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9348F320A0D
-	for <netfilter-devel@vger.kernel.org>; Wed, 26 Nov 2025 11:47:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2819E30B529
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Nov 2025 15:13:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764157641; cv=none; b=fZAojzzU2lDNkbq/9KYUXDzi2ebHvze8d2+aNOZKLi9X1YxbNBNMF7sdDGXlrZMKX+4ylHj7TxmWz4EGLCXMYT5NyZfQXOugMUCseF6E58FeUJAdcx2zPgeApKlu9I1vepPFBIzIG+mku7U93gWUm6LxSoKbXu+ky+c8g41GMlE=
+	t=1764170044; cv=none; b=MWKnva/iv2wyUs13HU6nEEOGJnh+sSvnQyvH67q4Xusu1ew9+st277MTIlIFGQXAki44G13OXwQvbGfTiWe90qtWMf4M13DwAfwm2/JwHnAEQ/vpLZd3CNeondSdx5W3UEy6P55tGufVyLpf5N4iF1tgAczpgXdUq2Bx1gnnKsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764157641; c=relaxed/simple;
-	bh=m5NKispOHu/x+PonWgG9I8yAem9haGZK3Y0wn6aGihE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jwkGbHrtkDQy6C/qG26QQqfYw9rKWuyehT8b5wI8sJwT5lzJbeaH1x1svggq3Y8AwiGPB3iSkd6PAJH08N43jo0nlx7lHySwys7hTHwbJwQvcmsxwQC18LHkbZkIJ0awyr/MhYZUDYMppq37VExVlW389z5I2DTpJwycAJTqrD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 6DD506042D; Wed, 26 Nov 2025 12:47:15 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: hamzamahfooz@linux.microsoft.com,
-	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_tables: avoid chain re-validation if possible
-Date: Wed, 26 Nov 2025 12:47:00 +0100
-Message-ID: <20251126114703.8826-1-fw@strlen.de>
-X-Mailer: git-send-email 2.51.2
+	s=arc-20240116; t=1764170044; c=relaxed/simple;
+	bh=90WQ7eKU48BfUBL7pHOxikptggGMlHSrvUlgAAoOQj4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=GCxioa1waYUXYmbPAfus+G90q9PCtzWhL+daHduKIksFTk7wwwt6RgcW6tbTneuMVh3UIjRZ9hiF09Wwv1qeuwHuTbFgqn+n/DoknGMtbFGHNJiofD2Q9VoV6sPwoyyBNVOLE8Ahyj2nGgF6MfXDLpGTW9as595AfN7P7Gddu3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fkHHC8JA; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fkHHC8JA"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=96ka3+L7fJeEXfvLiBUISgz0PHhx+uI5HgjUO0KXbFU=; b=fkHHC8JAhf7TCjTjcVTIcfty02
+	dz9cw/a1tI9Q+QW/MZP0+U6KojSBZ0wCVxUWEYTklb5Ba1JsoI0DBxbwjh6qrhXl5kIbJaVpAaKry
+	zvkBD+MyVyok+MtVTcJd+gJqQSXEk7NpjJ945coED79K12RbHMUOqSdAo9TTSpNCY4u7syryc81dh
+	LwEkU117e8eEDeeaTLRWwoNM5JjhKPXbS3dz5a2KnUeIpHAM6uSms3/fEYhbN/K4/Uq7ch1HeKaoe
+	L0w0D2Hts8RoIuUvRIoRntHnmLmNCmkGPKJWz+rFVnUsxsDAmjyXQ8S89MevLqXg1874l50WFRyok
+	GwKsxQdg==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vOHDL-000000001A8-2ERu;
+	Wed, 26 Nov 2025 16:13:51 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	netfilter-devel@vger.kernel.org
+Subject: [nft PATCH RFC 4/6] parser_bison: Introduce tokens for log levels
+Date: Wed, 26 Nov 2025 16:13:44 +0100
+Message-ID: <20251126151346.1132-5-phil@nwl.cc>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20251126151346.1132-1-phil@nwl.cc>
+References: <20251126151346.1132-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,220 +53,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Consider:
-  input -> j2 -> j3
-  input -> j2 -> j3
-  input -> j1 -> j2 -> j3
+Since log statement is scoped already, it's just a matter of declaring
+the tokens in that scope and using them. This eliminates the redundant
+copy of log level string parsing in parser_bison.y - the remaining one,
+namely log_level_parse() in statement.c is used by JSON parser.
 
-Then the second rule does not need to revalidate j2, and, by extension j3.
-We need to validate it only for rule 3.
-
-This is needed because chain loop detection also ensures we do not
-exceed the jump stack: Just because we know that j2 is cycle free, its
-last jump might now exceed the allowed stack.  We also need to update
-the new largest call depth for all the reachable nodes.
-
-Care has to be taken to revalidate even if the chain depth won't be an
-issue, as the chain validation also ensures that expressions are not
-called from invalid context (e.g., masquerade from a filter chain
-or NAT prerouting hook).
-
-Therefore we also need to stash the base chain context (type, hooknum)
-and revalidate if the chain became reachable from a different hook or type.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- Not urgent, can be deferred to next cycle.
+ src/parser_bison.y | 46 ++++++++++++++++++----------------------------
+ src/scanner.l      |  9 +++++++++
+ 2 files changed, 27 insertions(+), 28 deletions(-)
 
- include/net/netfilter/nf_tables.h | 30 +++++++++----
- net/netfilter/nf_tables_api.c     | 70 +++++++++++++++++++++++++++++--
- 2 files changed, 88 insertions(+), 12 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index fab7dc73f738..3f91a4f0dcaa 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1091,6 +1091,26 @@ struct nft_rule_blob {
- 		__attribute__((aligned(__alignof__(struct nft_rule_dp))));
- };
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index a190cbbbd6dee..91a03f78c611a 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -643,6 +643,15 @@ int nft_lex(void *, void *, void *);
+ %token SNAPLEN			"snaplen"
+ %token QUEUE_THRESHOLD		"queue-threshold"
+ %token LEVEL			"level"
++%token EMERG			"emerg"
++%token ALERT			"alert"
++%token CRIT			"crit"
++%token ERR			"err"
++%token WARN			"warn"
++%token NOTICE			"notice"
++%token INFO			"info"
++%token DEBUG_TOKEN		"debug"
++%token AUDIT			"audit"
  
-+enum nft_chain_types {
-+	NFT_CHAIN_T_DEFAULT = 0,
-+	NFT_CHAIN_T_ROUTE,
-+	NFT_CHAIN_T_NAT,
-+	NFT_CHAIN_T_MAX
-+};
-+
-+/**
-+ *	struct nft_chain_validate_state - cache validation state
-+ *
-+ *	@depth: chain was validated for call level <= depth
-+ *	@basetype_mask: chain receives packets from basetypes
-+ *	@hook_mask: chain receives packets from hook numbers
-+ */
-+struct nft_chain_validate_state {
-+	u8			basetype_mask;
-+	u8			hook_mask[NFT_CHAIN_T_MAX];
-+	u8			depth;
-+};
-+
- /**
-  *	struct nft_chain - nf_tables chain
-  *
-@@ -1128,9 +1148,10 @@ struct nft_chain {
+ %token LIMIT			"limit"
+ %token RATE			"rate"
+@@ -3490,34 +3499,15 @@ log_arg			:	PREFIX			string
+ 			}
+ 			;
  
- 	/* Only used during control plane commit phase: */
- 	struct nft_rule_blob		*blob_next;
-+	struct nft_chain_validate_state vstate;
- };
+-level_type		:	string
+-			{
+-				if (!strcmp("emerg", $1))
+-					$$ = NFT_LOGLEVEL_EMERG;
+-				else if (!strcmp("alert", $1))
+-					$$ = NFT_LOGLEVEL_ALERT;
+-				else if (!strcmp("crit", $1))
+-					$$ = NFT_LOGLEVEL_CRIT;
+-				else if (!strcmp("err", $1))
+-					$$ = NFT_LOGLEVEL_ERR;
+-				else if (!strcmp("warn", $1))
+-					$$ = NFT_LOGLEVEL_WARNING;
+-				else if (!strcmp("notice", $1))
+-					$$ = NFT_LOGLEVEL_NOTICE;
+-				else if (!strcmp("info", $1))
+-					$$ = NFT_LOGLEVEL_INFO;
+-				else if (!strcmp("debug", $1))
+-					$$ = NFT_LOGLEVEL_DEBUG;
+-				else if (!strcmp("audit", $1))
+-					$$ = NFT_LOGLEVEL_AUDIT;
+-				else {
+-					erec_queue(error(&@1, "invalid log level"),
+-						   state->msgs);
+-					free_const($1);
+-					YYERROR;
+-				}
+-				free_const($1);
+-			}
++level_type		:	EMERG		{ $$ = NFT_LOGLEVEL_EMERG; }
++			|	ALERT		{ $$ = NFT_LOGLEVEL_ALERT; }
++			|	CRIT		{ $$ = NFT_LOGLEVEL_CRIT; }
++			|	ERR		{ $$ = NFT_LOGLEVEL_ERR; }
++			|	WARN		{ $$ = NFT_LOGLEVEL_WARNING; }
++			|	NOTICE		{ $$ = NFT_LOGLEVEL_NOTICE; }
++			|	INFO		{ $$ = NFT_LOGLEVEL_INFO; }
++			|	DEBUG_TOKEN	{ $$ = NFT_LOGLEVEL_DEBUG; }
++			|	AUDIT		{ $$ = NFT_LOGLEVEL_AUDIT; }
+ 			;
  
--int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain);
-+int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain);
- int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
- 			 const struct nft_set_iter *iter,
- 			 struct nft_elem_priv *elem_priv);
-@@ -1138,13 +1159,6 @@ int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set);
- int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
- void nf_tables_unbind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
- 
--enum nft_chain_types {
--	NFT_CHAIN_T_DEFAULT = 0,
--	NFT_CHAIN_T_ROUTE,
--	NFT_CHAIN_T_NAT,
--	NFT_CHAIN_T_MAX
--};
--
- /**
-  * 	struct nft_chain_type - nf_tables chain type info
-  *
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f3de2f9bbebf..763690850a39 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -123,6 +123,30 @@ static void nft_validate_state_update(struct nft_table *table, u8 new_validate_s
- 
- 	table->validate_state = new_validate_state;
- }
-+
-+static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
-+				   const struct nft_chain *chain)
-+{
-+	const struct nft_base_chain *base_chain;
-+	enum nft_chain_types type;
-+	u8 hooknum;
-+
-+	if (!nft_is_base_chain(ctx->chain))
-+		return false;
-+
-+	base_chain = nft_base_chain(ctx->chain);
-+	hooknum = base_chain->ops.hooknum;
-+	type = base_chain->type->type;
-+
-+	/* chain is already validated for this call depth */
-+	if (chain->vstate.depth >= ctx->level &&
-+	    chain->vstate.basetype_mask & BIT(type) &&
-+	    chain->vstate.hook_mask[type] & BIT(hooknum))
-+		return true;
-+
-+	return false;
-+}
-+
- static void nf_tables_trans_destroy_work(struct work_struct *w);
- 
- static void nft_trans_gc_work(struct work_struct *work);
-@@ -4079,6 +4103,29 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
- 	nf_tables_rule_destroy(ctx, rule);
+ log_flags		:	TCP	log_flags_tcp	close_scope_tcp
+diff --git a/src/scanner.l b/src/scanner.l
+index e0f0aabb683a3..ca570e2bfe066 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -433,6 +433,15 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 	"queue-threshold"	{ return QUEUE_THRESHOLD; }
+ 	"level"			{ return LEVEL; }
+ 	"group"			{ return GROUP; }
++	"emerg"			{ return EMERG; }
++	"alert"			{ return ALERT; }
++	"crit"			{ return CRIT; }
++	"err"			{ return ERR; }
++	"warn"			{ return WARN; }
++	"notice"		{ return NOTICE; }
++	"info"			{ return INFO; }
++	"debug"			{ return DEBUG_TOKEN; }
++	"audit"			{ return AUDIT; }
  }
  
-+static void nft_chain_vstate_update(const struct nft_ctx *ctx, struct nft_chain *chain)
-+{
-+	const struct nft_base_chain *base_chain;
-+	enum nft_chain_types type;
-+	u8 hooknum;
-+
-+	if (!nft_is_base_chain(ctx->chain)) {
-+		memset(&chain->vstate, 0, sizeof(chain->vstate));
-+		return;
-+	}
-+
-+	base_chain = nft_base_chain(ctx->chain);
-+	hooknum = base_chain->ops.hooknum;
-+	type = base_chain->type->type;
-+
-+	BUILD_BUG_ON(BIT(NF_INET_NUMHOOKS) > U8_MAX);
-+
-+	chain->vstate.basetype_mask |= BIT(type);
-+	chain->vstate.hook_mask[type] |= BIT(hooknum);
-+	if (chain->vstate.depth < ctx->level)
-+		chain->vstate.depth = ctx->level;
-+}
-+
- /** nft_chain_validate - loop detection and hook validation
-  *
-  * @ctx: context containing call depth and base chain
-@@ -4088,15 +4135,25 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
-  * and set lookups until either the jump limit is hit or all reachable
-  * chains have been validated.
-  */
--int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
-+int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
- {
- 	struct nft_expr *expr, *last;
- 	struct nft_rule *rule;
- 	int err;
- 
-+	BUILD_BUG_ON(NFT_JUMP_STACK_SIZE > 255);
- 	if (ctx->level == NFT_JUMP_STACK_SIZE)
- 		return -EMLINK;
- 
-+	if (ctx->level > 0) {
-+		/* jumps to base chains are not allowed. */
-+		if (nft_is_base_chain(chain))
-+			return -ELOOP;
-+
-+		if (nft_chain_vstate_valid(ctx, chain))
-+			return 0;
-+	}
-+
- 	list_for_each_entry(rule, &chain->rules, list) {
- 		if (fatal_signal_pending(current))
- 			return -EINTR;
-@@ -4117,6 +4174,7 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
- 		}
- 	}
- 
-+	nft_chain_vstate_update(ctx, chain);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nft_chain_validate);
-@@ -4128,7 +4186,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 		.net	= net,
- 		.family	= table->family,
- 	};
--	int err;
-+	int err = 0;
- 
- 	list_for_each_entry(chain, &table->chains, list) {
- 		if (!nft_is_base_chain(chain))
-@@ -4137,12 +4195,16 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 		ctx.chain = chain;
- 		err = nft_chain_validate(&ctx, chain);
- 		if (err < 0)
--			return err;
-+			goto err;
- 
- 		cond_resched();
- 	}
- 
--	return 0;
-+err:
-+	list_for_each_entry(chain, &table->chains, list)
-+		memset(&chain->vstate, 0, sizeof(chain->vstate));
-+
-+	return err;
- }
- 
- int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
+ "queue"			{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_QUEUE); return QUEUE;}
 -- 
-2.51.2
+2.51.0
 
