@@ -1,93 +1,161 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E8C019006B;
-	Wed, 26 Nov 2025 20:16:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11F9F221FDE;
+	Wed, 26 Nov 2025 20:56:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764188210; cv=none; b=sH0yLVKTkL57xuZm7LjNba7mwUQInI8yjjUNujGY4vGNlca2SlaqDjQrN54o2w3awxTH60fYP7OvcSlEzK3GKgsd1msekWGkEHnVHz1VlRKUYivzQdyITCj3AVTlNrfVKg/jhoC6I00w5NUJjxATXY2Q3UcYJOW9alCK52ONhkI=
+	t=1764190585; cv=none; b=hxvlWRMEyOM2r+wCGIrkbFiQxWHEi+8VYYysRTTpuINEOlUc0ozl2FQFG+xVNzXbdSHKVu4eGYYEYn+FXb1kYXOPMQE4eReXqRaZQgOK8Rj6ZY2kbD7a0JC7sgemwE+/THA73aZhkggBYkvZ+CnROt5E9mcMopc+GQ+aPcV6zDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764188210; c=relaxed/simple;
-	bh=E6eG/BxClPiFo8K2hLTm4D6hyhOqn3PzsT+P2KR/gGY=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=gWzD1zYDBI2jt/T8aPe2jJt95OLE08Lc7eiPFO7HjC7uj7JwGxMBp92EofGqsKAXzMZk6Y42ikm1ypJM5PDjQdvGo2620nULNKkZjLBuNX6kVcKMcHPrnGU062PGKblKVqTi49o2Dsjkz5SyruZn8Dw21OKHBCjpp7qTLn56ozc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=gqBoqNZz; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1764190585; c=relaxed/simple;
+	bh=5jJvPli9DarKyNmZ7GXV3BVik6hqowDTEf6PYgeEs9Y=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=eA+eBB4nKyzRcRR1HbLAs1FWAbNrmRZofU5fQpQqF9zQ8nvQLtrw8GX7aRh9fCqbWh89CnjcaamyqU4Ny1hvQN7+5QvsVrnG+RXx5G+9XjnO7dtEk6EAWV7VKNciI843j72l64iEB6IZ+bE9d6LkEeDk9XB1j8zx53ZM8h6EtIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dxqwd3jJ; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="gqBoqNZz"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 8E9A72112A;
-	Wed, 26 Nov 2025 22:16:46 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=coor/eoQQzzCHqDWQtCH5agJhI+CICL9w/RCA9WrzZg=; b=gqBoqNZzZfr1
-	yjlza3qZZkNjYJHjHbkV8YG2/wwI/ueHowVEnLHOQegrIVGNE93IGbVracr5q3i1
-	jitUI3J2gtPD/SN9WRzY19Xp1hUlFhkKQBvdOtFbJz8JI4Xq3f9afv+67pLB+180
-	8/QLEoR6LjF9S/VNExLVqE0PE4Xbt7IxMqhc7urDGvzkd4kDRtdMBqMncaIY8G9A
-	GaY8KalusWqnPGM3pkUH2NtWaqkNGGo21J5Jda/YIjWf1nj69Av2+kA+f/2/8zM0
-	ax8vLuF9G6qgFpUViRTXPit4HjTCpqLVMiX+QScXCDNpU055Svcua2zXmYlhBuvT
-	mAxjUxY5BYWD3ZKH7JZqiYThjM4cP+JQBTS4aROEHnRuN5Kl0zKtrV4G+DO1B8EL
-	4hapEljn7UTqHIu21f/I1zMdu/RUKngIrqoJ0fCbC26NrfawJv4L4jpjCYCFGc+9
-	D+Z6GqbJRKmj8COpbyFqHA9En0X4aEATX3rgyPZHICPGmBCTYBeetjDNkANtxKaD
-	7erah6CkeIm9nH5h1ZUiciVUy5eN2R/CJt8Nio/0MfLPz0z6RBJLJVg/GlTYnPpM
-	whqfJfsQu4NvbKv8wqjCqQj9YLcFtGZOmCahtChtg8hHabhlaQQVi+0Gd2JI5Tu6
-	KfLp3qNpsC9ztvoYmypPlj6u3fyAL9g=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 26 Nov 2025 22:16:45 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 3A43464C41;
-	Wed, 26 Nov 2025 22:16:44 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 5AQKGgUO043740;
-	Wed, 26 Nov 2025 22:16:42 +0200
-Date: Wed, 26 Nov 2025 22:16:42 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-        netfilter-devel@vger.kernel.org, Dust Li <dust.li@linux.alibaba.com>,
-        Jiejian Wu <jiejian@linux.alibaba.com>, rcu@vger.kernel.org
-Subject: Re: [PATCHv6 net-next 00/14] ipvs: per-net tables and
- optimizations
-In-Reply-To: <aSTSSTFT9j5eldzv@calendula>
-Message-ID: <83fec0a6-6a24-13c1-d59c-777367aff75c@ssi.bg>
-References: <20251019155711.67609-1-ja@ssi.bg> <aSTSSTFT9j5eldzv@calendula>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dxqwd3jJ"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 6BC496026F;
+	Wed, 26 Nov 2025 21:56:17 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1764190577;
+	bh=eO/ssF6zuszta6wwQkf6r4iQ6SPNw2YcUmk/MWv4+8g=;
+	h=From:To:Cc:Subject:Date:From;
+	b=dxqwd3jJL+5wqgV5Vhl5vaQQXTmaWu6mGdQCD0iiZocj337NwCnJioJ6ubTVpFbNk
+	 Hx4TFQYnxaiuzun/irFrjabjhUDFzo6ewtpqaKwoAHtAgEs/Vdn77+LObxeP2TsQ1J
+	 /FKrfrjGaGnWHFOPdNnb77ATBYTSnIgkeWnLSR2psPojRCRuO+X5AFlFgy/q78mV7B
+	 hTtKpg55esCMOo4bStEQap1nHHduY12SLKbOS+NfBXJQnIO0cXQ7EuCCgJVjtON3iV
+	 Z9f4K50KeiG0hHQFsZ9BA9xlG3m3wp2w37BdnlPFoxb6El8YSBbP591vuWbehwmnI9
+	 FvsNu/xi7wdkw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net-next,v2 00/16] Netfilter updates for net-next
+Date: Wed, 26 Nov 2025 20:55:55 +0000
+Message-ID: <20251126205611.1284486-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+v2: - Move ifidx to avoid adding a hole, per Eric Dumazet.
+    - Update pppoe xmit inline patch description, per Qingfang Deng.
 
-	Hello,
+-o-
 
-On Mon, 24 Nov 2025, Pablo Neira Ayuso wrote:
+Hi,
 
-> Hi Julian,
-> 
-> This is v6 and you have work hard on this, and I am coming late to
-> review... but may I suggest to split this series?
-> 
-> >From my understanding, here I can see initial preparation patches,
-> including improvements, that could be applied initially before the
-> per-netns support.
-> 
-> Then, follow up with initial basic per-netns conversion.
-> 
-> Finally, pursue more advanced datastructures / optimizations.
-> 
-> If this is too extreme/deal breaker, let me know.
+The following batch contains Netfilter updates for net-next:
+ 
+1) Move the flowtable path discovery code to its own file, the
+   nft_flow_offload.c mixes the nf_tables evaluation with the path
+   discovery logic, just split this in two for clarity.
+ 
+2) Consolidate flowtable xmit path by using dev_queue_xmit() and the
+   real device behind the layer 2 vlan/pppoe device. This allows to
+   inline encapsulation. After this update, hw_ifidx can be removed
+   since both ifidx and hw_ifidx now point to the same device.
+ 
+3) Support for IPIP encapsulation in the flowtable, extend selftest
+   to cover for this new layer 3 offload, from Lorenzo Bianconi.
+ 
+4) Push down the skb into the conncount API to fix duplicates in the
+   conncount list for packets with non-confirmed conntrack entries,
+   this is due to an optimization introduced in d265929930e2
+   ("netfilter: nf_conncount: reduce unnecessary GC").
+   From Fernando Fernandez Mancera.
+ 
+5) In conncount, disable BH when performing garbage collection 
+   to consolidate existing behaviour in the conncount API, also
+   from Fernando.
+ 
+6) A matching packet with a confirmed conntrack invokes GC if
+   conncount reaches the limit in an attempt to release slots.
+   This allows the existing extensions to be used for real conntrack
+   counting, not just limiting new connections, from Fernando.
+ 
+7) Support for updating ct count objects in nf_tables, from Fernando.
+ 
+8) Extend nft_flowtables.sh selftest to send IPv6 TCP traffic,
+   from Lorenzo Bianconi.
+ 
+9) Fixes for UAPI kernel-doc documentation, from Randy Dunlap.
 
-	It should be possible to split it to 2-3 parts.
-And may be I'll change the ip_vs_dst_event() code to be
-faster and race free...
+Please, pull these changes from:
 
-Regards
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git nf-next-25-11-26
 
---
-Julian Anastasov <ja@ssi.bg>
+Thanks.
 
+----------------------------------------------------------------
+
+The following changes since commit 61e628023d79386e93d2d64f8b7af439d27617a6:
+
+  Merge branch 'net_sched-speedup-qdisc-dequeue' (2025-11-25 16:10:35 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-25-11-26
+
+for you to fetch changes up to 15a2af8160eb751ca7b7104d5fad80fd6a1c009d:
+
+  netfilter: nf_tables: improve UAPI kernel-doc comments (2025-11-26 20:52:40 +0000)
+
+----------------------------------------------------------------
+netfilter pull request 25-11-26
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (4):
+      netfilter: nf_conncount: rework API to use sk_buff directly
+      netfilter: nf_conncount: make nf_conncount_gc_list() to disable BH
+      netfilter: nft_connlimit: update the count if add was skipped
+      netfilter: nft_connlimit: add support to object update operation
+
+Lorenzo Bianconi (4):
+      netfilter: flowtable: Add IPIP rx sw acceleration
+      netfilter: flowtable: Add IPIP tx sw acceleration
+      selftests: netfilter: nft_flowtable.sh: Add IPIP flowtable selftest
+      selftests: netfilter: nft_flowtable.sh: Add the capability to send IPv6 TCP traffic
+
+Pablo Neira Ayuso (6):
+      netfilter: flowtable: move path discovery infrastructure to its own file
+      netfilter: flowtable: consolidate xmit path
+      netfilter: flowtable: inline vlan encapsulation in xmit path
+      netfilter: flowtable: inline pppoe encapsulation in xmit path
+      netfilter: flowtable: remove hw_ifidx
+      netfilter: flowtable: use tuple address to calculate next hop
+
+Randy Dunlap (2):
+      netfilter: ip6t_srh: fix UAPI kernel-doc comments format
+      netfilter: nf_tables: improve UAPI kernel-doc comments
+
+ include/linux/netdevice.h                          |  13 +
+ include/net/netfilter/nf_conntrack_count.h         |  17 +-
+ include/net/netfilter/nf_flow_table.h              |  26 +-
+ include/uapi/linux/netfilter/nf_tables.h           |  14 +-
+ include/uapi/linux/netfilter_ipv6/ip6t_srh.h       |  40 +--
+ net/ipv4/ipip.c                                    |  25 ++
+ net/netfilter/Makefile                             |   1 +
+ net/netfilter/nf_conncount.c                       | 193 ++++++++----
+ net/netfilter/nf_flow_table_core.c                 |   5 +-
+ net/netfilter/nf_flow_table_ip.c                   | 293 ++++++++++++++++---
+ net/netfilter/nf_flow_table_offload.c              |   2 +-
+ net/netfilter/nf_flow_table_path.c                 | 323 +++++++++++++++++++++
+ net/netfilter/nft_connlimit.c                      |  54 ++--
+ net/netfilter/nft_flow_offload.c                   | 252 ----------------
+ net/netfilter/xt_connlimit.c                       |  14 +-
+ net/openvswitch/conntrack.c                        |  16 +-
+ .../selftests/net/netfilter/nft_flowtable.sh       | 116 +++++++-
+ 17 files changed, 954 insertions(+), 450 deletions(-)
+ create mode 100644 net/netfilter/nf_flow_table_path.c
