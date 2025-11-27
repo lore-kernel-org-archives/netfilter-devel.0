@@ -1,154 +1,89 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBBDC32E74E;
-	Thu, 27 Nov 2025 12:34:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04EE7333452;
+	Thu, 27 Nov 2025 14:40:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764246854; cv=none; b=K8Vdd3AxY3nh0RW7P/dwhRNlWkrNAnTbHL40sJUFh34B0unYclDgVcJRpA7Esp6BlDDm7RIgF1oNdVbY0XJ0YCgpat0W+eRET6Z3YoRAI7Fcgtl8hEptbv6nNXhCq3vAOAHBgU8KdCgmEKDc+3UNbwqrPdg/uxuPxq5EWjGLGUU=
+	t=1764254459; cv=none; b=JjRgFw+ikrUie9KqjMTioJ7dyX6mm3275/dyby1pveJlSPk4adTHqbNSXONyhb4l4Roo6HlhCvMKq+/LYd1XPCIRQ4IDPlrQAyof5+Y4LrLWeW7vRukTxGHAN+1kYKGiIJOFfK5Ikk8+MlQ5u/WUhgjP7fFQKiNyWbqcS4tl1cw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764246854; c=relaxed/simple;
-	bh=kPEeVjlsROszodXwHmrTdOPdnmIysr4IV/UbI9/crGE=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=s/m9xs2mNjCnKTDYZDI+7Z7TkAkjoR7TZd4EEdlZhsnchfwmlYI3QtA/r5QryPtHJ0a3tETF2wZ5s4ygVRcRw3e5xtAbIh0H27yhChs4PpypSKh6q0Y1qVMsug3/I67RPx/tKJ7fCSto5TFGW7TyQ4Opq5RGF9HRa8/jOABfoBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=oSYglpkN; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="oSYglpkN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5DA0C4CEF8;
-	Thu, 27 Nov 2025 12:34:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1764246853;
-	bh=kPEeVjlsROszodXwHmrTdOPdnmIysr4IV/UbI9/crGE=;
-	h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-	b=oSYglpkNdbnKr0j/kjD5YUQrG77ldRVzmACd2NgjL6lELOLgDGGp/ak9hvTiBRrnM
-	 xWFBFbmFNdldMpf1IRpj//lre8Z9ZKS7T4LvQwbqb9yWMxwrD5F22UYm6TvlX8NSf0
-	 +2xLx6GN9D56/8zn5REI61ak77oIPd5/IKkKURsjva7f77PgZkjZRnL865xrEohkiB
-	 yG4m/frA0tAHuDSCV9u6uJxPeGzG6QK1B/f8S9wB+0gCH+kfeWJmmf07TqAzbruuIo
-	 /NyY6aZskAKa0bU7MmgRcdeLSdZtdYA7W0orka2ES6i3FPCvhptTlQK0tj0ral7mVF
-	 qo/TgWuF2u8AQ==
-Subject: [PATCH nf-next RFC 3/3] xt_statistic: DEBUG patch
-From: Jesper Dangaard Brouer <hawk@kernel.org>
-To: netfilter-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>, netdev@vger.kernel.org,
- phil@nwl.cc, Eric Dumazet <eric.dumazet@gmail.com>,
- "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, kernel-team@cloudflare.com,
- mfleming@cloudflare.com, matt@readmodwrite.com
-Date: Thu, 27 Nov 2025 13:34:08 +0100
-Message-ID: <176424684879.194326.4423360073954201534.stgit@firesoul>
-In-Reply-To: <176424680115.194326.6611149743733067162.stgit@firesoul>
+	s=arc-20240116; t=1764254459; c=relaxed/simple;
+	bh=qZzsDmEgedYYyU8FMvZoUFy/0KNHgI1WTAosRLlSxKY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=j3032F2UiqEYr0OIlV+35bxsWS+h1ZTw8kWswUITjHmpsTTiqMvDT3bfkMnrBwViIqjWsvfH1YfMPVwztd9NByNFQcY91jMZa+3BUhAjmHisXZGTIRk3eC21aDrdP6v4oclbv99+g5LaMV85/VF9gDYsrGnJl/cxTIbGGMaovnM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 2246760429; Thu, 27 Nov 2025 15:40:48 +0100 (CET)
+Date: Thu, 27 Nov 2025 15:40:43 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Jesper Dangaard Brouer <hawk@kernel.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
+	phil@nwl.cc, Eric Dumazet <eric.dumazet@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	kernel-team@cloudflare.com, mfleming@cloudflare.com,
+	matt@readmodwrite.com
+Subject: Re: [PATCH nf-next RFC 1/3] xt_statistic: taking GRO/GSO into
+ account for nth-match
+Message-ID: <aShi608hEPxDLvsr@strlen.de>
 References: <176424680115.194326.6611149743733067162.stgit@firesoul>
-User-Agent: StGit/1.5
+ <176424683595.194326.16910514346485415528.stgit@firesoul>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <176424683595.194326.16910514346485415528.stgit@firesoul>
 
-This is not for upstream comsumption.
-Used this while developing the patch to valid the two cases was exercised.
+Jesper Dangaard Brouer <hawk@kernel.org> wrote:
+> The iptables statistic nth mode is documented to match one packet every nth
+> packets. When packets gets GRO/GSO aggregated before traversing the statistic
+> nth match, then they get accounted as a single packet.
+> 
+> This patch takes into account the number of packet frags a GRO/GSO packet
+> contains for the xt_statistic match.
 
-Nacked-by: Jesper Dangaard Brouer <hawk@kernel.org>
----
- net/netfilter/xt_statistic.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+I doubt we can do this upstream.  Two reasons that come to mind, in no
+particular order:
 
-diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
-index 165bff0a76e5..016669a71f2a 100644
---- a/net/netfilter/xt_statistic.c
-+++ b/net/netfilter/xt_statistic.c
-@@ -4,6 +4,7 @@
-  *
-  * Based on ipt_random and ipt_nth by Fabrice MARIE <fabrice@netfilter.org>.
-  */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/init.h>
- #include <linux/spinlock.h>
-@@ -26,7 +27,12 @@ MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
- MODULE_ALIAS("ipt_statistic");
- MODULE_ALIAS("ip6t_statistic");
- 
--static int gso_pkt_cnt(const struct sk_buff *skb)
-+enum gso_type {
-+	SKB_GSO_FRAGS_LIST,
-+	SKB_GSO_FRAGS_ARRAY
-+};
-+
-+static int gso_pkt_cnt(const struct sk_buff *skb, enum gso_type *type)
- {
- 	int pkt_cnt = 1;
- 
-@@ -39,9 +45,11 @@ static int gso_pkt_cnt(const struct sk_buff *skb)
- 	if (skb_has_frag_list(skb)) {
- 		struct sk_buff *iter;
- 
-+		*type = SKB_GSO_FRAGS_LIST;
- 		skb_walk_frags(skb, iter)
- 			pkt_cnt++;
- 	} else {
-+		*type = SKB_GSO_FRAGS_ARRAY;
- 		pkt_cnt += skb_shinfo(skb)->nr_frags;
- 	}
- 
-@@ -54,9 +62,10 @@ statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const struct xt_statistic_info *info = par->matchinfo;
- 	struct xt_statistic_priv *priv = info->master;
- 	bool ret = info->flags & XT_STATISTIC_INVERT;
-+	enum gso_type gso_type;
-+	bool match = false;
- 	u32 nval, oval;
- 	int pkt_cnt;
--	bool match;
- 
- 	switch (info->mode) {
- 	case XT_STATISTIC_MODE_RANDOM:
-@@ -64,7 +73,7 @@ statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 			ret = !ret;
- 		break;
- 	case XT_STATISTIC_MODE_NTH:
--		pkt_cnt = gso_pkt_cnt(skb);
-+		pkt_cnt = gso_pkt_cnt(skb, &gso_type);
- 		do {
- 			match = false;
- 			oval = this_cpu_read(*priv->cnt_pcpu);
-@@ -79,7 +88,7 @@ statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 			ret = !ret;
- 		break;
- 	case XT_STATISTIC_MODE_NTH_ATOMIC:
--		pkt_cnt = gso_pkt_cnt(skb);
-+		pkt_cnt = gso_pkt_cnt(skb, &gso_type);
- 		do {
- 			match = false;
- 			oval = atomic_read(&priv->count);
-@@ -95,6 +104,10 @@ statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		break;
- 	}
- 
-+	if (match)
-+		pr_info("debug XXX: SKB is GRO type:%d contains %d packets\n",
-+			gso_type, pkt_cnt);
-+
- 	return ret;
- }
- 
-@@ -154,11 +167,13 @@ static struct xt_match xt_statistic_mt_reg __read_mostly = {
- 
- static int __init statistic_mt_init(void)
- {
-+	pr_info("module init\n");
- 	return xt_register_match(&xt_statistic_mt_reg);
- }
- 
- static void __exit statistic_mt_exit(void)
- {
-+	pr_info("module exit\n");
- 	xt_unregister_match(&xt_statistic_mt_reg);
- }
- 
+1. It introduces asymmetry.  All matches use "skb == packet" design.
+   Examples that come to mind: xt_limit, xt_length.
+2. This adds a compat issue with nftables:
+    iptables-translate -A INPUT -m statistic --mode nth --packet 0  --every 10
+    nft 'add rule ip filter INPUT numgen inc mod 10 0 counter'
 
+'numgen' increments a counter for every skb, i.e. reg := i++;.
+But, after this patch -m statistics doesn't work this way anymore
+and the two rules no longer do the same thing.
 
+But even if we'd ignore this or add a flag to control behavior, I don't
+see how this could be implemented in nft.
+
+And last but not least, I'm not sure the premise is correct.
+Yes, when you think of 'packet sampling', then we don't 'match'
+often enough for gro/gso case.
+
+However, when doing '-m statistic ... -j LOG' (or whatever), then the
+entire GSO superpacket is logged, i.e. several 'packets' got matched
+at once.
+
+So the existing algorithm works correctly even when considering
+aggregation because on average the correct amount of segments gets
+matched (logged).
+
+With this proposed new algo, we can now match 100% of skbs / aggregated
+segments, even for something like '--every 10'.  And that seems fishy to
+me.
+
+As far as I understood its only 'more correct' in your case because the
+logging backend picks one individual segment out from the NFLOG'd
+superpacket.
+
+But if it would NOT do that, then you now sample (almost) all segments
+seen on wire.  Did I misunderstand something here?
