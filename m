@@ -1,151 +1,83 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC61932D0F3;
-	Thu, 27 Nov 2025 11:59:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2071519B5A3;
+	Thu, 27 Nov 2025 12:33:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764244755; cv=none; b=u8xkC0s+dCgr+ocM9aAsgB8GrvWFXwXyu6k1DrLmtMjasYG6FUa4rFs678tSm4pDYISOfGTBHIoKfmCXS/kT9rhn+UNULSas4GfMyT+mOoBATUI2+7MZAUqBcI7ozpXHePX2PMTTRC81xyNBAT/kNqhUHSAXes/nc+aZ9vM91bE=
+	t=1764246835; cv=none; b=Hb+4yrAfdv/AoMKEFE312vHOb207nrf/C5XC+JH2zqf6AWxbCBrBlRWylhgUQR9RuWhfd2xgysJNeWtRc3d4EInBZb6wzlD76yiaV+SF+4BYF+fEksuuJPgVrNYGpsctkd2agaTrZu0SQAKWoMPpJK+axaLGYSK3xZjh4v1BmcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764244755; c=relaxed/simple;
-	bh=2qB2eCl0eofbsnFLkh+Ilr9d7zdr+w4aA12A5by3Bdg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XtXZ/40Ok3pAccTm5+0dbN0i09Vv7+DSDSZNuwwuB1mAF2LRXi6fbIp00/Du5ZBcgHbBlKXsrcLtN/X2ZwHM+A9EA+y7r2EwPLZIK+7tdOHHyJRNCk/X+CpQJL9u7GU43A48mmabTSuvSc8Sfrqg0JSoA6tllKq0fRdn99b/0LA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=s6p6D/R8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1764246835; c=relaxed/simple;
+	bh=9XpFaoSIL1kTn6eFjQgnB+mcw8pcb+2pZRRAZG57Zqk=;
+	h=Subject:From:To:Cc:Date:Message-ID:MIME-Version:Content-Type; b=adBf+98haXFLLKyFGh7qxhcVRaDZ/pIH+kH740MDKRSMldgA7RTLVTc7ZEXzG3vmpeNaT6G7MvSAmhze/eu9Yx97QvCOjYk5sVwAnNpVP4duct3HuKUV7kGwU+AaCxtIerrnbx3ZqGDyngIrmwYiMwJJQPkHpPpA4uu30NAGyIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dA0QO9u4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="s6p6D/R8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB51FC4AF09;
-	Thu, 27 Nov 2025 11:59:11 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dA0QO9u4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A902C4CEF8;
+	Thu, 27 Nov 2025 12:33:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1764244754;
-	bh=2qB2eCl0eofbsnFLkh+Ilr9d7zdr+w4aA12A5by3Bdg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=s6p6D/R8ZqqzaDSp4+inzrveJKOqEy+1LY5Uq7GgsrcK/Gk8p3gp66kBshTJkyx5w
-	 92uEwSYZ1wd02R9B6ni+7MBbSLlm7RcaXd795ou70ajPjNRqR7BCHZYJE7vu5Ux2H+
-	 RMUzdpS9pHvwpvbKBHahLTyw0sBgp+gMVFfi12Zqt19SinolKvB+gwR563iEXlTUOZ
-	 wVItBOQPqZVtESc8sYYpc+SIiS426V7pCGO8pFkbSE2bGDpHrcuMbu/I89kLMlZU5m
-	 yfDoXaSt/vBn2VIdsr29W8JkZ4tAXgrPxTdkfmNktHoMgd36c3riuy/Y8xPM3mPOxP
-	 Gp24sf9Vn+SGA==
-Date: Thu, 27 Nov 2025 11:59:09 +0000
-From: Simon Horman <horms@kernel.org>
-To: Lorenzo Bianconi <lorenzo@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Shuah Khan <shuah@kernel.org>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kselftest@vger.kernel.org
-Subject: Re: [PATCH nf-next] selftests: netfilter: nft_flowtable.sh: Add the
- capability to send IPv6 TCP traffic
-Message-ID: <aSg9DbG4_NlLxEcy@horms.kernel.org>
-References: <20251122-nft_flowtable-sh-ipv6-tcp-v1-1-4480d3c863a2@kernel.org>
- <aSgllQoIqNHIXqrs@horms.kernel.org>
- <aSg1MWLUx0GyCWij@lore-desk>
+	s=k20201202; t=1764246834;
+	bh=9XpFaoSIL1kTn6eFjQgnB+mcw8pcb+2pZRRAZG57Zqk=;
+	h=Subject:From:To:Cc:Date:From;
+	b=dA0QO9u4WYmpZZcK+9psjV3OaBgajeD5sunxdM4w5czH8k7RsKONihD6RaB7Rrakb
+	 BwfbbJN0SSYWPmKPHFIG4VWpKR8VAI0Q3I+qPdU5FmF1HYUn7KBQA3hfWy0A6FOCbs
+	 8jjL/2VvhLoQRkj+BshLim/SHPWdfbOGpSATd0DSlDVhjvoRAtpaw3LPHpaIGoG+uM
+	 ZX8fnKWEChEjwxNr3UjxtKRwz+C+pEKDF4Pqc5w/pJFLnvF8jegnpCxAV4hi//EIwW
+	 lSpauYRDgTfMIDrQZKnFkX5CArDyR0kN6TZUW6OJvUd646M+cOrbZQkU9mTD46YUFx
+	 pAIkIjGy8QmCA==
+Subject: [PATCH nf-next RFC 0/3] netfilter: x_tables: statistic nth match
+ account GRO/GSO packets
+From: Jesper Dangaard Brouer <hawk@kernel.org>
+To: netfilter-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>
+Cc: Jesper Dangaard Brouer <hawk@kernel.org>, netdev@vger.kernel.org,
+ phil@nwl.cc, Eric Dumazet <eric.dumazet@gmail.com>,
+ "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, kernel-team@cloudflare.com,
+ mfleming@cloudflare.com, matt@readmodwrite.com
+Date: Thu, 27 Nov 2025 13:33:49 +0100
+Message-ID: <176424680115.194326.6611149743733067162.stgit@firesoul>
+User-Agent: StGit/1.5
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aSg1MWLUx0GyCWij@lore-desk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 27, 2025 at 12:25:37PM +0100, Lorenzo Bianconi wrote:
-> > On Sat, Nov 22, 2025 at 07:41:38PM +0100, Lorenzo Bianconi wrote:
-> > > Introduce the capability to send TCP traffic over IPv6 to
-> > > nft_flowtable netfilter selftest.
-> > > 
-> > > Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
-> > > ---
-> > >  .../selftests/net/netfilter/nft_flowtable.sh       | 47 +++++++++++++++-------
-> > >  1 file changed, 33 insertions(+), 14 deletions(-)
-> > > 
-> > > diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-> > > index 1fbfc8ad8dcdc5db2ab1a1ea9310f655d09eee83..24b4e60b91451e7ea7f6a041b0335233047c6242 100755
-> > > --- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-> > > +++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-> > > @@ -127,6 +127,8 @@ ip -net "$nsr1" addr add fee1:2::1/64 dev veth1 nodad
-> > >  ip -net "$nsr2" addr add 192.168.10.2/24 dev veth0
-> > >  ip -net "$nsr2" addr add fee1:2::2/64 dev veth0 nodad
-> > >  
-> > > +ip netns exec "$nsr1" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
-> > > +ip netns exec "$nsr2" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
-> > >  for i in 0 1; do
-> > >    ip netns exec "$nsr1" sysctl net.ipv4.conf.veth$i.forwarding=1 > /dev/null
-> > >    ip netns exec "$nsr2" sysctl net.ipv4.conf.veth$i.forwarding=1 > /dev/null
-> > > @@ -153,7 +155,9 @@ ip -net "$ns1" route add default via dead:1::1
-> > >  ip -net "$ns2" route add default via dead:2::1
-> > >  
-> > >  ip -net "$nsr1" route add default via 192.168.10.2
-> > > +ip -6 -net "$nsr1" route add default via fee1:2::2
-> > >  ip -net "$nsr2" route add default via 192.168.10.1
-> > > +ip -6 -net "$nsr2" route add default via fee1:2::1
-> > >  
-> > >  ip netns exec "$nsr1" nft -f - <<EOF
-> > >  table inet filter {
-> > > @@ -352,8 +356,9 @@ test_tcp_forwarding_ip()
-> > >  	local nsa=$1
-> > >  	local nsb=$2
-> > >  	local pmtu=$3
-> > > -	local dstip=$4
-> > > -	local dstport=$5
-> > > +	local proto=$4
-> > > +	local dstip=$5
-> > > +	local dstport=$6
-> > >  	local lret=0
-> > >  	local socatc
-> > >  	local socatl
-> > > @@ -363,12 +368,12 @@ test_tcp_forwarding_ip()
-> > >  		infile="$nsin_small"
-> > >  	fi
-> > >  
-> > > -	timeout "$SOCAT_TIMEOUT" ip netns exec "$nsb" socat -4 TCP-LISTEN:12345,reuseaddr STDIO < "$infile" > "$ns2out" &
-> > > +	timeout "$SOCAT_TIMEOUT" ip netns exec "$nsb" socat -${proto} TCP${proto}-LISTEN:12345,reuseaddr STDIO < "$infile" > "$ns2out" &
-> > 
-> > Hi Lorenzo,
-> > 
-> > Some minor nits:
-> > 
-> > 1. This line is (and was) excessively long.
-> >    Maybe it can be addressed as the line is being modified anyway.
-> > 
-> >    Flagged by checkpatch
-> > 
-> > 2. Prior to this patch, variables on this line were enclosed in "" to
-> >    guard against word splitting when expansion occurs.
-> >    This is no longer the case.
-> > 
-> >    Flagged by shellcheck
-> > 
-> > >  	lpid=$!
-> > >  
-> > >  	busywait 1000 listener_ready
-> > >  
-> > > -	timeout "$SOCAT_TIMEOUT" ip netns exec "$nsa" socat -4 TCP:"$dstip":"$dstport" STDIO < "$infile" > "$ns1out"
-> > > +	timeout "$SOCAT_TIMEOUT" ip netns exec "$nsa" socat -${proto} TCP${proto}:"$dstip":"$dstport" STDIO < "$infile" > "$ns1out"
-> > >  	socatc=$?
-> > 
-> > Likewise here.
-> > 
-> > >  
-> > >  	wait $lpid
-> > 
-> > Otherwise this LGTM.
-> 
-> Hi Simon,
-> 
-> ack, fine. Is it ok to address them in subsequent patch or do you prefer to
-> address them here?
+In production we have a service that does sampling of 1 in every 10000 nth
+packets. This is leveraging the iptables statistic module for reducing the
+samples send to userspace via NFLOG target.
 
-Hi Lorenzo,
+This part worked nicely until a mathematician noticed that we were under
+sampling GRO/GSO packets. This is an example of a Bernoulli trial. When wanted
+to sample one packet every nth packet. When a GRO packet contains e.g. just 2
+packets then we should have sampled that at 5000. At 10 packets this is
+1000. This caused enough under sampling of GRO/GSO to make statistics wrong in
+our backend systems consuming this.
 
-No preference on my side.
-And feel free to include the following either way.
+The production workaround is simply send all packets larger than the MTU to
+userspace (via NFLOG). Then let the userspace sampler daemon pick 1 in 10000 nth
+packets to be logged to the backend. Needless to say, this solution doesn't
+scale. In production if enough CPUs participate this results in lock contention,
+and in general this is limiting through to 20Gbit/s out of 25Gbit/s.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+This patchset avoids having to send all GRO/GSO packet to userspace, by letting
+the statistics nth mode account for the number of GRO/GSO fragments.
 
-> @Pablo: what do you prefer?
+---
+
+Jesper Dangaard Brouer (3):
+      xt_statistic: taking GRO/GSO into account for nth-match
+      xt_statistic: do nth-mode accounting per CPU
+      xt_statistic: DEBUG patch
+
+
+ include/uapi/linux/netfilter/xt_statistic.h |  1 +
+ net/netfilter/xt_statistic.c                | 94 +++++++++++++++++++--
+ 2 files changed, 89 insertions(+), 6 deletions(-)
+
+--
+
