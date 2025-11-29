@@ -1,37 +1,30 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 701FF3B2BA
-	for <netfilter-devel@vger.kernel.org>; Sat, 29 Nov 2025 01:22:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07E311A0BE0
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Nov 2025 01:32:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764379339; cv=none; b=ubBsM5NOOt31HXKhFZ8jCvJIMaCcrqhWKndMqBH2u9+rctdvkoAsbHJOzu+nCnG9gje6Zg6VHUTQTDtk1l/uCVXDU/hFuD1ZzTfVOL2c1Nw5ZZ2iUMRZD5q0bgsGzZT/yydJ44f2/ER/tAhFHy6yFuNxniUDGgI/mRoAHfIUV7M=
+	t=1764379939; cv=none; b=dULJVQfG6D2EOnjHGAo30EGsVfZ6VXTj76UatvG2PEB43RLkhDqpT0AmrnOO0usD3FQ9ag97/nIwZrCly7Bp6zkbrqznnHpCDsS91E/vC6SBpPa0sgIoISxAWTx8A26BtVtGQQFFHgPsgQs8/+ApRDi60o1y0c5Ud9Wzq2nhuzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764379339; c=relaxed/simple;
-	bh=iLd812kZZh3S6GBQ2C3wTbrw4azDi2uzz2IB7cnkdac=;
+	s=arc-20240116; t=1764379939; c=relaxed/simple;
+	bh=vBFtaPY51hQ0OGmuksqeNS8xMy9KYnj16CAU4JjRB5w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EEZT5waB+Auh2q6Zp/CWcc++DIKpKnPlUZXOYWTuTLH1KsFOZVnpJCdZtGUmSt535hQRl/9lrqvtptiUYld/1V/Rwbll4vBMJByGhiy+4e78083ZIJ8U9sS+EzYxlmma59LovGT6gz3ZrxihBAlEFOSNGtRYWEcP4bhDTFp6tw4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=VRe7GRlD; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="VRe7GRlD"
-Received: by linux.microsoft.com (Postfix, from userid 1216)
-	id E43AC2126F9E; Fri, 28 Nov 2025 17:22:11 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E43AC2126F9E
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1764379331;
-	bh=d+MHBlGBLyRiw6TAn7GfdnBSOpONOGPm5aiQ+tbRFgA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VRe7GRlDSQgArtEUZZBsRjNvGTQkiFuBl6i6ybbtSj+10FGev3LLrK/fSIvWpnWcH
-	 OAsoXdCtphKcFCkJOvPwl7X2pM5G5xZnvk4Es8o16dHEVJKKUXLgKYa7SkWM+PWLZf
-	 Ed8GMStEhCLWqEZ5+kI5OIGs09uqdkfffzBsP7P4=
-Date: Fri, 28 Nov 2025 17:22:11 -0800
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-To: Florian Westphal <fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=gSRF5loNY1RC4Xs1uPOQYZ7ae1U31ndDsQeMlCLela9WXCa9Hx7DsjfVmZDlWV7h9EmDUTv6y/BomQdqgA/bcbHl8jMJlG/6HuS+vU4nZLPrJjInFBEJZ84h2RLnn3hZHoxJNTl9+rYFzQcPln/zY6Xa1Bd0tNwQpG6KljRHCok=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 80496604D4; Sat, 29 Nov 2025 02:32:14 +0100 (CET)
+Date: Sat, 29 Nov 2025 02:32:15 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 Cc: netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nf-next] netfilter: nf_tables: avoid chain re-validation
  if possible
-Message-ID: <20251129012211.GA29847@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+Message-ID: <aSpNHzxDh-nN7GRX@strlen.de>
 References: <20251126114703.8826-1-fw@strlen.de>
+ <20251129012211.GA29847@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,59 +33,43 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251126114703.8826-1-fw@strlen.de>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <20251129012211.GA29847@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 
-On Wed, Nov 26, 2025 at 12:47:00PM +0100, Florian Westphal wrote:
-> Consider:
->   input -> j2 -> j3
->   input -> j2 -> j3
->   input -> j1 -> j2 -> j3
+Hamza Mahfooz <hamzamahfooz@linux.microsoft.com> wrote:
+> The issue is reproducible with this version of the patch applied, unless
+> I make the following change:
 > 
-> Then the second rule does not need to revalidate j2, and, by extension j3.
-> We need to validate it only for rule 3.
-> 
-> This is needed because chain loop detection also ensures we do not
-> exceed the jump stack: Just because we know that j2 is cycle free, its
-> last jump might now exceed the allowed stack.  We also need to update
-> the new largest call depth for all the reachable nodes.
-> 
-> Care has to be taken to revalidate even if the chain depth won't be an
-> issue, as the chain validation also ensures that expressions are not
-> called from invalid context (e.g., masquerade from a filter chain
-> or NAT prerouting hook).
-> 
-> Therefore we also need to stash the base chain context (type, hooknum)
-> and revalidate if the chain became reachable from a different hook or type.
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 1cf9f0aa1f49..a7b415c53df6 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -4145,14 +4145,8 @@ int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
+>  	if (ctx->level == NFT_JUMP_STACK_SIZE)
+>  		return -EMLINK;
+>  
+> -	if (ctx->level > 0) {
+> -		/* jumps to base chains are not allowed. */
+> -		if (nft_is_base_chain(chain))
+> -			return -ELOOP;
+> -
+> -		if (nft_chain_vstate_valid(ctx, chain))
+> -			return 0;
+> -	}
+> +	if (ctx->level && nft_chain_vstate_valid(ctx, chain))
+> +		return 0;
 
-The issue is reproducible with this version of the patch applied, unless
-I make the following change:
+Looks like a placebo change to me?
+Also, the nft_is_base_chain(chain) check is required.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1cf9f0aa1f49..a7b415c53df6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4145,14 +4145,8 @@ int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
- 	if (ctx->level == NFT_JUMP_STACK_SIZE)
- 		return -EMLINK;
- 
--	if (ctx->level > 0) {
--		/* jumps to base chains are not allowed. */
--		if (nft_is_base_chain(chain))
--			return -ELOOP;
--
--		if (nft_chain_vstate_valid(ctx, chain))
--			return 0;
--	}
-+	if (ctx->level && nft_chain_vstate_valid(ctx, chain))
-+		return 0;
- 
- 	list_for_each_entry(rule, &chain->rules, list) {
- 		if (fatal_signal_pending(current))
+> It is also worth noting that I'm still seeing the cpu usage spike up to
+> 100% for a couple of seconds (attributed to an iptables process) with
+> this version of the patch (even with the above change), while the
+> previous rendition seemd to have resolved that.
 
-It is also worth noting that I'm still seeing the cpu usage spike up to
-100% for a couple of seconds (attributed to an iptables process) with
-this version of the patch (even with the above change), while the
-previous rendition seemd to have resolved that.
+The previous version makes illegal shortcuts (as in, not validating
+when it has to), it cannot be applied.
 
-Hamza
+That said, I have flagged this patch as deferred anyway, there are too
+many conflicting changes flying around.
+
+I'll resubmit in a few weeks when -next opens up again.
