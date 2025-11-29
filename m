@@ -1,31 +1,37 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D326C253B59
-	for <netfilter-devel@vger.kernel.org>; Fri, 28 Nov 2025 18:11:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 701FF3B2BA
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Nov 2025 01:22:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764353482; cv=none; b=Q+jdbm5zy6Ei972xMNhIDSq/ZydVpImBKQLgxJT6Q+2oriAk9vcPDbJ2K1YqrdVGlDtP++KJKuhqOp0DVop9+XddjA2gP0aMNoxfPkCHToK8rRfJQm4LBVAc5Y6owrgP84g0QKqBPY1rTNidT1fZD6m6GT5x5aIqnNSitN5aXlo=
+	t=1764379339; cv=none; b=ubBsM5NOOt31HXKhFZ8jCvJIMaCcrqhWKndMqBH2u9+rctdvkoAsbHJOzu+nCnG9gje6Zg6VHUTQTDtk1l/uCVXDU/hFuD1ZzTfVOL2c1Nw5ZZ2iUMRZD5q0bgsGzZT/yydJ44f2/ER/tAhFHy6yFuNxniUDGgI/mRoAHfIUV7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764353482; c=relaxed/simple;
-	bh=c12nTuDVmy6Y/NsI5rophuDgPVEv2TgT+SQuFO3jQrs=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Apbe61OMRIlNzWcCph1jD78nuaCY1P18ExYT3UE9/lqDznjGrnvUFRE8zMliMIiXnAHHaqMxeWOQ9PWz6YAeHVbuWqOP55V4wfyaq0ZeuopQm0bBS/l3Ogn2Eb1T3mc0J8Hl8KSvNqw/QtnuiyNpeOT0p4MqXhuB/U+prTZ8zw8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7D379604DD; Fri, 28 Nov 2025 19:11:17 +0100 (CET)
-Date: Fri, 28 Nov 2025 19:11:18 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Phil Sutter <phil@nwl.cc>, Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH RFC 6/6] scanner: Introduce SCANSTATE_RATE
-Message-ID: <aSnlxiILhVZn9u8S@strlen.de>
-References: <20251126151346.1132-1-phil@nwl.cc>
- <20251126151346.1132-7-phil@nwl.cc>
- <aSnecCkmj1FPGFHk@strlen.de>
- <aSnk1YtMPIhkSK9e@orbyte.nwl.cc>
+	s=arc-20240116; t=1764379339; c=relaxed/simple;
+	bh=iLd812kZZh3S6GBQ2C3wTbrw4azDi2uzz2IB7cnkdac=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EEZT5waB+Auh2q6Zp/CWcc++DIKpKnPlUZXOYWTuTLH1KsFOZVnpJCdZtGUmSt535hQRl/9lrqvtptiUYld/1V/Rwbll4vBMJByGhiy+4e78083ZIJ8U9sS+EzYxlmma59LovGT6gz3ZrxihBAlEFOSNGtRYWEcP4bhDTFp6tw4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=VRe7GRlD; arc=none smtp.client-ip=13.77.154.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="VRe7GRlD"
+Received: by linux.microsoft.com (Postfix, from userid 1216)
+	id E43AC2126F9E; Fri, 28 Nov 2025 17:22:11 -0800 (PST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E43AC2126F9E
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1764379331;
+	bh=d+MHBlGBLyRiw6TAn7GfdnBSOpONOGPm5aiQ+tbRFgA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=VRe7GRlDSQgArtEUZZBsRjNvGTQkiFuBl6i6ybbtSj+10FGev3LLrK/fSIvWpnWcH
+	 OAsoXdCtphKcFCkJOvPwl7X2pM5G5xZnvk4Es8o16dHEVJKKUXLgKYa7SkWM+PWLZf
+	 Ed8GMStEhCLWqEZ5+kI5OIGs09uqdkfffzBsP7P4=
+Date: Fri, 28 Nov 2025 17:22:11 -0800
+From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: avoid chain re-validation
+ if possible
+Message-ID: <20251129012211.GA29847@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <20251126114703.8826-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,15 +40,59 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <aSnk1YtMPIhkSK9e@orbyte.nwl.cc>
+In-Reply-To: <20251126114703.8826-1-fw@strlen.de>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 
-Phil Sutter <phil@nwl.cc> wrote:
-> > this might allow to scope this to meta+rate first before adding
-> > the exclusive start condition change.
->=20
-> Sadly, not. Unless you want to get rid of meta_key_unqualified as well:
-> Since nft accepts rules like "hour 10 accept", we have to keep "hour"
-> and "day" in global scope.
+On Wed, Nov 26, 2025 at 12:47:00PM +0100, Florian Westphal wrote:
+> Consider:
+>   input -> j2 -> j3
+>   input -> j2 -> j3
+>   input -> j1 -> j2 -> j3
+> 
+> Then the second rule does not need to revalidate j2, and, by extension j3.
+> We need to validate it only for rule 3.
+> 
+> This is needed because chain loop detection also ensures we do not
+> exceed the jump stack: Just because we know that j2 is cycle free, its
+> last jump might now exceed the allowed stack.  We also need to update
+> the new largest call depth for all the reachable nodes.
+> 
+> Care has to be taken to revalidate even if the chain depth won't be an
+> issue, as the chain validation also ensures that expressions are not
+> called from invalid context (e.g., masquerade from a filter chain
+> or NAT prerouting hook).
+> 
+> Therefore we also need to stash the base chain context (type, hooknum)
+> and revalidate if the chain became reachable from a different hook or type.
 
-Sigh, yes, I forgot about unqualified :-(
+The issue is reproducible with this version of the patch applied, unless
+I make the following change:
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 1cf9f0aa1f49..a7b415c53df6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4145,14 +4145,8 @@ int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
+ 	if (ctx->level == NFT_JUMP_STACK_SIZE)
+ 		return -EMLINK;
+ 
+-	if (ctx->level > 0) {
+-		/* jumps to base chains are not allowed. */
+-		if (nft_is_base_chain(chain))
+-			return -ELOOP;
+-
+-		if (nft_chain_vstate_valid(ctx, chain))
+-			return 0;
+-	}
++	if (ctx->level && nft_chain_vstate_valid(ctx, chain))
++		return 0;
+ 
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		if (fatal_signal_pending(current))
+
+It is also worth noting that I'm still seeing the cpu usage spike up to
+100% for a couple of seconds (attributed to an iptables process) with
+this version of the patch (even with the above change), while the
+previous rendition seemd to have resolved that.
+
+Hamza
