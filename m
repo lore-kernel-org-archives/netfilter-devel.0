@@ -1,118 +1,135 @@
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D283E2836F
-	for <netfilter-devel@vger.kernel.org>; Sun, 30 Nov 2025 17:25:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCC1D301475;
+	Mon,  1 Dec 2025 10:23:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764523527; cv=none; b=MOrO1RzoEsQr7HS8wV7tZLDul/6b9DZ9JYiA4lnV3XE1oibMnDhKN5EaY4D+iFMgkY5ekLoU4F+43xLBaTc0wHoICu8/4CN7gIl+txYijHyup8D+kmjK+L7eKzaQgEP8BVqh/U9szcsQTgzcJH+AZPnZxl7hzSCiXfDYysA621I=
+	t=1764584589; cv=none; b=QjZqb61h0OA3QzmVdy0re0xV6BxnstyybL5Kzc6KDWMayoPX+OtpDu2+eVF5HlZCLn76mpn1NacBTjC27e7HgOozxPPjT2d/qhx55ueaDLwI1/Oy+pqOSJzmRvaR0CF2fSwhInFXoZBm51z7sKzllv0dYk9fX0Q9/bW+F6sg1Us=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764523527; c=relaxed/simple;
-	bh=yGqfxjf40dVFBHjf9P3ah8dcX2o57hhsYtugmHdG3XI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Kp5Bn1AbuV/PD3uPeKIzFxYUBNF6gqpk0XUBnQxgwU7oGKEL5PRu2Qb0A3gYGxgN/jr+1e0ERBgvTuocm4V6SoGGCSJ11/cJCzpIIk7pMuq9vPH/33EO8ED17bXjL9LWXrOT2P+QwjGekSiBKm615/EvUUzCsAAh4jLOGXZOM3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Bgs5hMWV; arc=none smtp.client-ip=209.85.208.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1764584589; c=relaxed/simple;
+	bh=kwh+Hg/LLxhbNL95rorHfY6ghNbojJFzs7vONsAbfOc=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=ngd4dx31UD6ZIulc93v6I7jCW4q8CCAlq/J7dJmjvuCydcpTEPjxHWmw1LpjsM6sw9mHxmAMLVNE6QAHF1nxPAE/oG3IiWzDA+4NP7BH4wa7UTjx0WyX3GFVN4HCj8wqxRHZvszODsrFTBtXlnzSpQz0Lbrm/EGX/VE3Y8YHNjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WvqBgENG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bgs5hMWV"
-Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-640c6577120so6092621a12.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 30 Nov 2025 09:25:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1764523524; x=1765128324; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=TmP+iBDrXAFEAg/gg0z9T+sbSzNZC5V0CnRcFDXOjao=;
-        b=Bgs5hMWVAwR01pxYsN5gf6PVY3x5aazrbuYKDUUjaR55rlOd5JTh4Zt5SucnMNnINY
-         vB/vcXl9A/5VN2UrVKkhuiGGjc3rjlovrti6Ox8x4ch35SU9Ugr9Z70UGXwEuGMI/TIV
-         j9GdDTptu3Gjo5kdAoXtu/ZMlNkS7jAb/usNgt7SPproqITj8SajqhV4LcRCx7yyR/X+
-         aDwD0//jom1JotHRtCZeM4CKCpkCu86rn2z/sqluVfweXsUYIsVW2KJJVPhD1jktFR4Q
-         Iuy31dtUYctwg6rMV8Hec6YB2zXfz7s9eBqYEjwHYFm8wZn/D7ETDgKCEAZM40Gs6l/m
-         c5DQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1764523524; x=1765128324;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TmP+iBDrXAFEAg/gg0z9T+sbSzNZC5V0CnRcFDXOjao=;
-        b=o15kGgmiHzGwNx+u6l+j21Ul2h89/MeidoO/RglOsZ+bJAe97QFcexy4jYgUWR7maa
-         e9uSGVc+MI8qAaXxLyLc45SgsCIspwsgRfLKpikZfYb3etaC/aljAKzqkIWFSOofmgAc
-         0l5aQkcFwYGIVu7scMZ6dXAio4udvi0bJtL22W8J1zoC8d6sfwWFalxQu/7j14sJWawz
-         fd5dX5YaUxJuHNe7bdRjKK1v5UH9jHMlwMrUrm+lwhz3RCzQP34oTeogc8puU4ciG+dD
-         b5MS1nPihwZbEQXb42aT6ys9j7fxJ0D2pV4Vbrz8gRWQReHUKal5SuUa8/7qjBZXNohw
-         FOng==
-X-Gm-Message-State: AOJu0Yxcdhu0k1EOY3/jRjqQv4US09hMZO9j9lxT8DNNGmAQcgIbhbpF
-	YSWG71QDismeFdgbWHU3tY8jQHBL04I08rglkn7EjmCIS4TL/ldjM5BaYFkCRg==
-X-Gm-Gg: ASbGnct3AiWiRhSx7xfuuggkrqFQVg/SraCtr9xRp3HxZtMPPdjYEZRc2lBmiuSsbU3
-	hOUK4Gza+jbRaPRUtOOkNw4s+c9kTlEhrTvdLwCCR0e6KNPi9008HrTfGoeHqRY3AngdAKS9u2j
-	YRVU3rplIkrbiboVehlwhysVrKpNGMX8HUmy4KySPOJkDcFsCD2ecCVBIB9CD6Mruxfqa8YjLzj
-	O8mhJSikBquoj4wvr0+ViX0TKj69dngsY2exIBQYiauVz8sKt6is3yrMi0N/U6h94qdBh9+A9if
-	108Xw39Geo89akcTgoOwQl+nAX0yYhSB2vz2foUQEtgQrA0yg4g5bbjYqswcBrSt7BNsvxbiudR
-	p206y3Yvstv+qSH6Y6OzCRzvaPl1N+BhU+Pk1+e+HXeDR13SqlG0blU5XjT7+lxRf8nGSnxd9x1
-	sJnQZsm0sg6LUqjZo++94YPux+
-X-Google-Smtp-Source: AGHT+IGOvIw+nIp3Nm+brV2wycXVKo9yABc+ineJTYCS6m2WyOOpZo2bWREOzl42x/OlrWbPiA+JVw==
-X-Received: by 2002:a17:907:948e:b0:b73:70c9:1780 with SMTP id a640c23a62f3a-b767183c122mr4274437366b.41.1764523523562;
-        Sun, 30 Nov 2025 09:25:23 -0800 (PST)
-Received: from ice-home.lan ([92.253.236.24])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b76f59e93acsm962440666b.50.2025.11.30.09.25.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 30 Nov 2025 09:25:23 -0800 (PST)
-From: Serhii Ivanov <icegood1980@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Serhii Ivanov <icegood1980@gmail.com>
-Subject: [PATCH] Some common changes in ulogs: 1) Added debug log to indicate when stack is created. Helps to debug settings in configs for users
-Date: Sun, 30 Nov 2025 19:25:20 +0200
-Message-ID: <20251130172520.2589387-1-icegood1980@gmail.com>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WvqBgENG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C042C4CEF1;
+	Mon,  1 Dec 2025 10:23:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1764584588;
+	bh=kwh+Hg/LLxhbNL95rorHfY6ghNbojJFzs7vONsAbfOc=;
+	h=From:Date:Subject:To:Cc:From;
+	b=WvqBgENGEDXHC7flebeOx3Tz33HtLbC9uwdT2JsgzyIGVwXIh847fEcplLdSQaS/C
+	 s6KLUXw6WrBcXQVfrbKQat4D2mxMwg+Y/6rcTDdo5kAp5gImiVJCUh/WfvVw5PD6DQ
+	 kC2OZgcnfDVylKmfAUgCFpjkjOOPvXlqDof7JaY3zZHN6/+80FUl54f59BWoJ0j05Q
+	 Z2F5PrBuf/2NUtvpJjbtLenVm3ZAuBYY0b1LKXcmusKMZhraj3B6oWRr2RxgZU/yLf
+	 PrvzRWX0qBcjIz/1FFwId71Miq7lgaCK1oNwLKakOtAwCHvWM/HKqC5z2qr1/287j7
+	 88yZ5B8G4fysw==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Date: Mon, 01 Dec 2025 11:22:45 +0100
+Subject: [PATCH nf-next] netfilter: Always set route tuple out ifindex
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20251201-nft-flowtable-always-set-ifidx-v1-1-0aa6f08ffe4b@kernel.org>
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/x3NTQqEMAxA4atI1hNog104VxlcdGzqBEodmuIP4
+ t0tLr/NeycoF2GFd3dC4VVUltxgXx1MP59nRgnNQIacJWMxx4oxLVv138To0+YPReWKEiXsaIj
+ 7gZ0LQ0/QIv/CUfZn8Bmv6wYhy2igcAAAAA==
+X-Change-ID: 20251201-nft-flowtable-always-set-ifidx-02e49e55d942
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.2
 
-2) Properly include defines via
-+#include <ulogd/ulogd.h>  instead of explicit -#include "../config.h"
-To be honest explicit way is right way to go, but by 'properly' i mean
-how other plugins do i.e. 'by voting'
+Always set nf_flow_route tuple out ifindex even if the indev is not one
+of the flowtable configured devices since otherwise the outdev lookup in
+nf_flow_offload_ip_hook() or nf_flow_offload_ipv6_hook() for
+FLOW_OFFLOAD_XMIT_NEIGH flowtable entries will fail.
+The above issue occurs in the following configuration since IP6IP6
+tunnel does not support flowtable acceleration yet:
+
+$ip addr show
+5: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 00:11:22:33:22:55 brd ff:ff:ff:ff:ff:ff link-netns ns1
+    inet6 2001:db8:1::2/64 scope global nodad
+       valid_lft forever preferred_lft forever
+    inet6 fe80::211:22ff:fe33:2255/64 scope link tentative proto kernel_ll
+       valid_lft forever preferred_lft forever
+6: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 00:22:22:33:22:55 brd ff:ff:ff:ff:ff:ff link-netns ns3
+    inet6 2001:db8:2::1/64 scope global nodad
+       valid_lft forever preferred_lft forever
+    inet6 fe80::222:22ff:fe33:2255/64 scope link tentative proto kernel_ll
+       valid_lft forever preferred_lft forever
+7: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1452 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/tunnel6 2001:db8:2::1 peer 2001:db8:2::2 permaddr a85:e732:2c37::
+    inet6 2002:db8:1::1/64 scope global nodad
+       valid_lft forever preferred_lft forever
+    inet6 fe80::885:e7ff:fe32:2c37/64 scope link proto kernel_ll
+       valid_lft forever preferred_lft forever
+
+$ip -6 route show
+2001:db8:1::/64 dev eth0 proto kernel metric 256 pref medium
+2001:db8:2::/64 dev eth1 proto kernel metric 256 pref medium
+2002:db8:1::/64 dev tun0 proto kernel metric 256 pref medium
+default via 2002:db8:1::2 dev tun0 metric 1024 pref medium
+
+$nft list ruleset
+table inet filter {
+        flowtable ft {
+                hook ingress priority filter
+                devices = { eth0, eth1 }
+        }
+
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                meta l4proto { tcp, udp } flow add @ft
+        }
+}
+
+Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
- output/ulogd_output_XML.c | 3 +--
- src/ulogd.c               | 1 +
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_flow_table_path.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/output/ulogd_output_XML.c b/output/ulogd_output_XML.c
-index 0e1ae7b..c661174 100644
---- a/output/ulogd_output_XML.c
-+++ b/output/ulogd_output_XML.c
-@@ -20,7 +20,7 @@
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index f0984cf69a09bbd8404caf67c2a774bf5833f572..eb24fe2715dcd5fcafa054309c91ccb2601249c1 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -250,6 +250,9 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) >= 0)
+ 		nft_dev_path_info(&stack, &info, ha, &ft->data);
  
- #include <sys/types.h>
- #include <inttypes.h>
--#include "../config.h"
-+#include <ulogd/ulogd.h>
- #ifdef BUILD_NFLOG
- #include <libnetfilter_log/libnetfilter_log.h>
- #endif
-@@ -30,7 +30,6 @@
- #ifdef BUILD_NFACCT
- #include <libnetfilter_acct/libnetfilter_acct.h>
- #endif
--#include <ulogd/ulogd.h>
- #include <sys/param.h>
- #include <time.h>
- #include <errno.h>
-diff --git a/src/ulogd.c b/src/ulogd.c
-index 917ae3a..9004286 100644
---- a/src/ulogd.c
-+++ b/src/ulogd.c
-@@ -1111,6 +1111,7 @@ static int create_stack(const char *option)
++	if (info.outdev)
++		route->tuple[dir].out.ifindex = info.outdev->ifindex;
++
+ 	if (!info.indev || !nft_flowtable_find_dev(info.indev, ft))
+ 		return;
  
- 	/* add head of pluginstance stack to list of stacks */
- 	llist_add(&stack->stack_list, &ulogd_pi_stacks);
-+	ulogd_log(ULOGD_DEBUG, "pluginstance stack created: '%s'\n", option);
- 	free(buf);
- 	return 0;
+@@ -269,7 +272,6 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
  
+ 	route->tuple[!dir].in.num_encaps = info.num_encaps;
+ 	route->tuple[!dir].in.ingress_vlans = info.ingress_vlans;
+-	route->tuple[dir].out.ifindex = info.outdev->ifindex;
+ 
+ 	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
+ 		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
+
+---
+base-commit: 0177f0f07886e54e12c6f18fa58f63e63ddd3c58
+change-id: 20251201-nft-flowtable-always-set-ifidx-02e49e55d942
+
+Best regards,
 -- 
-2.51.0
+Lorenzo Bianconi <lorenzo@kernel.org>
 
