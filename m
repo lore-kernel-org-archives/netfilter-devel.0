@@ -1,39 +1,32 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id ACC6D20DD75
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Dec 2025 19:48:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.77.154.182
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 134C7279DCE
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Dec 2025 21:58:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764618511; cv=none; b=IKZG5msdK4DGwEwwjLoGGHVxiMpMeqtyF4apCXcePnw9OWdgt2lUsgVukfRGZgYrDM82eZ2H18GK4f91PkS97mxCdMmkyhj6YGPKH1brwQjKAYOu33p62jCftCr6fVr95AR+r3AiDcAHG4iNqeMK8ZzKTy7eobDV96tFzsbAi6w=
+	t=1764626291; cv=none; b=u8Wx7gp9uMIZvPjyedIbpGYOK6HtD1NUgFvXsXU2Nj1hf8P23sPAVLb8gDvWvh6MuDYdJs7dqNJJUFu4Z7nd6gKrBaWHi08pwHeKLscFc+YBLCxEoBMvL0XhBSCcnzIuMLFe7aTxLmM2OHneRufnJg6YVmvGMMUgYFQp66ViDMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764618511; c=relaxed/simple;
-	bh=usOAcYXyZnqt7PpGKC5+FsFoeuOwBrEucz6sVbSOI54=;
+	s=arc-20240116; t=1764626291; c=relaxed/simple;
+	bh=fygSOAFJE+MyFjtlY0qCLrRqXg2U+Xm4oqYLYta2Mgo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lhzVCj5GHpfaaxex+ckPXrMU78kcF/r1hDkJUkzouR2FJ/WyNZeDDqZbeborX37Zawfk1gwpLWxyPHNhlQrZ+Yu3sA3bA+I0+/nRhm0w8FoOdwMgVGcoV904a3o8UJdK/kCqrdB/ucSmA7siwWyGOBVl9arGi5NigiD6qnjHYEE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com; spf=pass smtp.mailfrom=linux.microsoft.com; dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b=cYrMdMHI; arc=none smtp.client-ip=13.77.154.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.microsoft.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.microsoft.com header.i=@linux.microsoft.com header.b="cYrMdMHI"
-Received: by linux.microsoft.com (Postfix, from userid 1216)
-	id 536D8206C15D; Mon,  1 Dec 2025 11:48:29 -0800 (PST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 536D8206C15D
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1764618509;
-	bh=4BCNDTBVgZAsEJHoKsWmo3sJyegTiq2eLLOvSq43+gA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=cYrMdMHIexYYm2lXl3pQe+xon4w7WBsRmYi6I/wlKmSl5oDfxtwcDSrZvyZanhzoy
-	 16IRvXXL/YbPPut9s85SDHL8l/xZ1Ti7mseyx9eBQZe60P+A1x/IG1JF5K/UihOa/7
-	 7ReEO7y5/vLZX2nxCm2RJb3RqQ3x/RDJbH08dRCI=
-Date: Mon, 1 Dec 2025 11:48:29 -0800
-From: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-To: Florian Westphal <fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=lw0XE6Aed4XltI4VYBdC1whbWvDCa5Ti3iCYiN1e/lfnD1q8BUN1gdA7m1VGqVRKbgq38Ij7LtSA51KybYhqJVzV6e+tJ5X9dVHwXO/QTffExGUdEO28NRco0muIEOhkree+XJJNOQDcG+20IRgtCKN0QL18EnKSHuHiexEaEPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id C4AC360308; Mon, 01 Dec 2025 22:57:58 +0100 (CET)
+Date: Mon, 1 Dec 2025 22:57:58 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 Cc: netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH nf-next] netfilter: nf_tables: avoid chain re-validation
  if possible
-Message-ID: <20251201194829.GA8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+Message-ID: <aS4PZsEfUC3mJZYD@strlen.de>
 References: <20251126114703.8826-1-fw@strlen.de>
  <20251129012211.GA29847@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
  <aSpNHzxDh-nN7GRX@strlen.de>
+ <20251201194829.GA8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,31 +35,26 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aSpNHzxDh-nN7GRX@strlen.de>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+In-Reply-To: <20251201194829.GA8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
 
-On Sat, Nov 29, 2025 at 02:32:15AM +0100, Florian Westphal wrote:
-> Looks like a placebo change to me?
-> Also, the nft_is_base_chain(chain) check is required.
+Hamza Mahfooz <hamzamahfooz@linux.microsoft.com> wrote:
+> On Sat, Nov 29, 2025 at 02:32:15AM +0100, Florian Westphal wrote:
+> > I'll resubmit in a few weeks when -next opens up again.
 > 
-
-Ya, seems like the delta was due to variances in test runs.
-Sorry about the noise.
-
+> Makes sense, in any case this patch significantly reduces the soft
+> lockup rate, so feel free to add:
 > 
-> The previous version makes illegal shortcuts (as in, not validating
-> when it has to), it cannot be applied.
-> 
-> That said, I have flagged this patch as deferred anyway, there are too
-> many conflicting changes flying around.
-> 
-> I'll resubmit in a few weeks when -next opens up again.
+> Tested-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 
-Makes sense, in any case this patch significantly reduces the soft
-lockup rate, so feel free to add:
+Thanks for testing!
 
-Tested-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Now that you mention this: you could try to revert
+314c82841602 ("netfilter: nf_tables: can't schedule in nft_chain_validate")
+to get rid of all softlockup warnings:
 
-When you get around to resubmitting it after the merge window closes.
+As of a60a5abe19d6 ("netfilter: nf_tables: allow iter callbacks to sleep")
+the iterator-cant-schedule no longer applies.
 
-Hamza
+If i'm right you could submit a bug fix revert for nf tree.
+
+Thanks!
