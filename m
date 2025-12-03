@@ -1,97 +1,72 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67D381D555;
-	Wed,  3 Dec 2025 16:08:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3350A304BB3
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Dec 2025 17:25:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1764778130; cv=none; b=PqA1ZR8CUC6P8OeAdaaZc0ar2DGVZtduT9Euz4dxeLZ5ETXj5ikaAyWVAElJLpOZlwQDyLSDxqqJjcht5R17oMugk8aImaRcS8xQ0Zuu2oQ7Qu8fLjW2347pJi08BCMLAD6oHQyrNyb99fUl9+hclXitQqDQajIwZjyLtDgwiW0=
+	t=1764782716; cv=none; b=AWKv6Ghq1WZHwIKpUsfN16YD+8RX5AyZVyZ8tUJ6QWYmUiEjKo1zazX8vqkjj60Gev7DipPJUMgFPw8YiUSxJsEIOx3WSYXVKBpKx0QBNDP5gMpop60oyZn0OShUuT+LG3uOyzHWegvVUDwDb0Shzp8XXtak9tRwXkqG+kOcALg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1764778130; c=relaxed/simple;
-	bh=aUs6lQYder+1Mm0Q6gTZnBaAxTkukI4Bt7fVzmsbOLI=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=nRnfarhVfspfhMoFdXe46VRtqehhHpHdLtWp3jpbODQLD3CqjkZUHsD+ycEzZigh+aJeXpeP9xcYsZqRnUjz6rL8NoDnPTJh6mLUdGNtws0TcXBMP3CfEEGP06ybNp6DIIdxMNF2z2qFeORbuc0SUdZ8zlmxrnrp/zZ8KJ4+QMU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=S1/7c+dg; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="S1/7c+dg"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id AEEFC60251;
-	Wed,  3 Dec 2025 17:08:36 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1764778116;
-	bh=RIZH+837axEPMbvjhXwhKSwSV47vc6GEjWwvPWuY5cs=;
-	h=Date:From:To:Cc:Subject:From;
-	b=S1/7c+dgHHl/kqLOzFScI8bPeSLlUjsD7kBN8zPotQNfzWvXoRpji/6aF+ev93JVg
-	 kkYxgdbofai9yklfDmufg5sMpOzXRgQj4gQiKEtWINF0QbstyRyjj/H6Uuz2m5MPCs
-	 R44sk9VE6akeaH4IyNXnKsQRCSJnvMgHFcYqFEkj8cxSogl4bwgEaVOLfBG+eORxCM
-	 HbpRStOmep1H71p988BIURWY17VYMR6dXHUxYMfyRbnRnhWTrcbZz/AM2r3V66PDuJ
-	 PtQoIVP4xI5CbwhPLeRFywiBwdGXIYo6+oMVZxG3+vvdvHsuwhXvkaOZ7TtBadxWnf
-	 ZCGIMGTZM/Swg==
-Date: Wed, 3 Dec 2025 16:08:34 +0000
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
-Subject: [ANNOUNCE] libnftnl 1.3.1 release
-Message-ID: <aTBggr8_2CS9fa2k@chamomile>
+	s=arc-20240116; t=1764782716; c=relaxed/simple;
+	bh=6Axqs9IPw0YwAnWoNjVtTkvsZvxQHVFol95ADcEf9nc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hnOktij1LkizZA1/jGy7PFJMgeVX5nvA9KNsOnUOlKaEyCeN8RKe97u0xGadNPJY4ziw80IK2KTDZKYYVrGb6V1/8+Aid/5XD4ycL07Gy6fBxiimR94bQKi3ynEHWgwIjY6OR9+hKO8d3SEIBXzGeHVelyFUhat5oBYGpSh7mec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 5AB98605DD; Wed, 03 Dec 2025 18:25:11 +0100 (CET)
+Date: Wed, 3 Dec 2025 18:25:11 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Stefano Brivio <sbrivio@redhat.com>
+Cc: netfilter-devel@vger.kernel.org, Phil Sutter <phil@nwl.cc>
+Subject: Re: pipapo with element shadowing, wildcard support
+Message-ID: <aTBydxPbKZnh-iUw@strlen.de>
+References: <aS8D5pxjnGg6WH-2@strlen.de>
+ <20251203150849.0ea16d5f@elisabeth>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="cI0bsuTuS2bhIJ9G"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20251203150849.0ea16d5f@elisabeth>
 
+Stefano Brivio <sbrivio@redhat.com> wrote:
+> > Question would be if it makes sense to relax the -EEXIST checks so that in
+> > step 1 the wider key could be inserted first and then allow it to be
+> > (partially) shadowed later.
+> 
+> The reason why I implemented it this way was to avoid possible
+> ambiguity because entries inserted first are anyway matched first.
+> Details with example at:
+> 
+>   https://lore.kernel.org/all/20200226115924.461f2029@redhat.com/
 
---cI0bsuTuS2bhIJ9G
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Thanks.
 
-Hi!
+> It might make sense to change that, but that's not entirely trivial as
+> you would need to renumber / reorder entries in the buckets on
+> insertion, so that more specific entries are always added first.
 
-The Netfilter project proudly presents:
+Right, it needs a reorder step.
 
-        libnftnl 1.3.1
+> I guess you assumed this was already implemented, which is a reasonable
+> assumption, but unfortunately I didn't add that, it looked good enough
+> as it was, back then.
 
-libnftnl is a userspace library providing a low-level netlink
-programming interface (API) to the in-kernel nf_tables subsystem.
-This library is currently used by nftables.
+No, I realized this was missing, the -EEXIST tests would not have
+made sense otherwise.
 
-This release contains:
+What I did not know if it was omitted due to 'not feasible/too hard' or
+'good enough for now'.
 
-- add meta ibrhwaddr support
-- fix for NFTA_DEVICE_PREFIX with asterisk at the end of the string
-- new NFTNL_UDATA_TABLE_NFT{VER,BLD} to store build information in userdata
-- complete tunnel options support
+> See that same thread for some discussion about it, in particular around:
+> 
+>   https://lore.kernel.org/all/20200225184857.GC9532@orbyte.nwl.cc/
+> 
+> other than that I'm not aware of previous discussions.
 
-See ChangeLog that comes attached to this email for more details on
-the updates.
-
-You can download it from:
-
-https://www.netfilter.org/projects/libnftnl/downloads.html
-
-Happy firewalling.
-
---cI0bsuTuS2bhIJ9G
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename="changes-libnftnl-1.3.1.txt"
-
-Fernando Fernandez Mancera (2):
-      tunnel: add support to geneve options
-      expr: meta: introduce ibrhwaddr meta expression
-
-Pablo Neira Ayuso (2):
-      tunnel: rework options
-      build: libnftnl 1.3.1 release
-
-Phil Sutter (4):
-      udata: Introduce NFTNL_UDATA_TABLE_NFT{VER,BLD}
-      utils: Add helpers for interface name wildcards
-      utils: Drop asterisk from end of NFTA_DEVICE_PREFIX strings
-      utils: Introduce nftnl_parse_str_attr()
-
-
---cI0bsuTuS2bhIJ9G--
+Thanks for the pointer!
