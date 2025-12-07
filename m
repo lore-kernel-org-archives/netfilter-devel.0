@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D636B238150;
-	Sun,  7 Dec 2025 01:10:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BA222248BE;
+	Sun,  7 Dec 2025 01:10:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765069805; cv=none; b=ZkTKK4FYZQqhv67wQfqjF52soYMw2zShDujWZD/j9PETm8C7Yg4dg5Nwjf3Cs4xdDXio/zNolyiQ46d8VBAMNsBgSAJUrzr3hNKZ1RMxOz/g/MZZ1PNDUL9hnrTd9Xd9/6dQyplM85ww0HMwlCcu1fuLbPUZ0VI9iMUypW8P0Z4=
+	t=1765069806; cv=none; b=jx0FN3zXqjqbtVA/R2Q4tNXJT0Y+aznBJiD9PLw3vRxZacOeK9Zkl4Gnj6uFcOQIRGJW2sJ2z/gMdlHsQ4cO1iqQ7izIpbByyHkhdF7au9P6u/JGVK5uYwziKWvzUQ5y4wgpCKPU5JBO/5ptZ+z2zkO0rnudswReXXo0seE8UkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765069805; c=relaxed/simple;
-	bh=Ds5YnaVMDyEfcUU9LvWtKN9gs7WEJBVXuvTDGyOUbeY=;
+	s=arc-20240116; t=1765069806; c=relaxed/simple;
+	bh=11M5eBT/VPa9NHfWK0RvP/UC6pemO4CgvIoZi6pLj58=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=T9vqGCqi1FyvY1v/8FAVsCieZ7KAxJlLQTChrGPkczThEYLpYVfmHbT1yULkcYLGydfHqhAjWoXDzVo1f56iOrZJZI7n1B1Ywfu/BJn/HYWWvP5aMc7Lo8XOCHm8A/ns9hKLQ5sdPPyUm77/GIQ/HNDrHE8MTsuuv8F5Cp2OZow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dzQPAACt; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=f+Ig4xJG9lJvafO1S6mplK1mToNLZZuiV7RLplhjXactfMdapAztjzyoON0WmhEq56i+UGFiIIv7nEafJEFqSrPUPJPA6Cs1SjDo3bwiVeL31BxYcQiIihsZVXbA6+7Qskua8RtAphzjD8InqhqQ+Bms1P+ulT+l/TRpQ5JgJ5U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ekWmmTF0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dzQPAACt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E892EC113D0;
-	Sun,  7 Dec 2025 01:10:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ekWmmTF0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BE46C4CEF5;
+	Sun,  7 Dec 2025 01:10:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765069803;
-	bh=Ds5YnaVMDyEfcUU9LvWtKN9gs7WEJBVXuvTDGyOUbeY=;
+	s=k20201202; t=1765069804;
+	bh=11M5eBT/VPa9NHfWK0RvP/UC6pemO4CgvIoZi6pLj58=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=dzQPAACtB8I9e3dDh6i4pBun6bwYikv/R7FR4y+dTo3Mudq2qdYMbD76eLghBf97v
-	 zWQJ45wuFXX/vHFAh5HvDkAs11gDyBO3j318kdJ6MOA+ufwQrcN4Ecaoj40ytlM1HH
-	 t6eiECznbYU/wi6CeTvlXunIVKBOE/32k1tq8H2oAw9uKDSmAIRALDWhUZ2OO4DeTa
-	 JogwRpKMc92RIRaJjTnmInFjRjmJFIIlZRZUw3vV7kXZyPQ3lPdnb+BuYpDS8zFX3X
-	 Q4rkLh5XUjSMc2viph0YT4K9IjMtHO9fjeJujyyHIdRDGLGp8PYcdrnfA1n1gXxa/B
-	 OPzbPxbkvzNGQ==
+	b=ekWmmTF0bGRO5ZwGbtWek1zT9tWFHUNbd0GLsP0UxVOSPS7p1WCDkCNU2UjHINtUP
+	 /zkx8IKC9yZZP15ZBoGjekE8VuZElWk0nfI95ibUh35J5LV683U2/nfbdPamdvb8Mq
+	 H22CXnCRay++YG05Tyo8X/i7eIoGeH9rQgKv0JUglQKm2VFiypoJhecevZYEb9IPQK
+	 iugix8n+SxoE6rjDy8crwDNw/VIKQGEfaHZ5Jm5DAXZX11qnDCqmCUHVQqnCqFStEP
+	 VWDKp9+f8sJ/NuIpIyGeAK1PiMWHkNhC6z85m5TDgrWJLeR/ODh0rlEYU+mt4Hs0yG
+	 Pf/w2UsuRJobQ==
 From: Jakub Kicinski <kuba@kernel.org>
 To: davem@davemloft.net
 Cc: netdev@vger.kernel.org,
@@ -39,9 +39,9 @@ Cc: netdev@vger.kernel.org,
 	willemdebruijn.kernel@gmail.com,
 	kuniyu@google.com,
 	Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH net 2/4] inet: frags: add inet_frag_queue_flush()
-Date: Sat,  6 Dec 2025 17:09:40 -0800
-Message-ID: <20251207010942.1672972-3-kuba@kernel.org>
+Subject: [PATCH net 4/4] netfilter: conntrack: warn when cleanup is stuck
+Date: Sat,  6 Dec 2025 17:09:42 -0800
+Message-ID: <20251207010942.1672972-5-kuba@kernel.org>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20251207010942.1672972-1-kuba@kernel.org>
 References: <20251207010942.1672972-1-kuba@kernel.org>
@@ -53,86 +53,36 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Instead of exporting inet_frag_rbtree_purge() which requires that
-caller takes care of memory accounting, add a new helper. We will
-need to call it from a few places in the next patch.
+nf_conntrack_cleanup_net_list() calls schedule() so it does not
+show up as a hung task. Add an explicit check to make debugging
+leaked skbs/conntack references more obvious.
 
 Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- include/net/inet_frag.h  |  5 ++---
- net/ipv4/inet_fragment.c | 15 ++++++++++++---
- net/ipv4/ip_fragment.c   |  6 +-----
- 3 files changed, 15 insertions(+), 11 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/include/net/inet_frag.h b/include/net/inet_frag.h
-index 0eccd9c3a883..3ffaceee7bbc 100644
---- a/include/net/inet_frag.h
-+++ b/include/net/inet_frag.h
-@@ -141,9 +141,8 @@ void inet_frag_kill(struct inet_frag_queue *q, int *refs);
- void inet_frag_destroy(struct inet_frag_queue *q);
- struct inet_frag_queue *inet_frag_find(struct fqdir *fqdir, void *key);
- 
--/* Free all skbs in the queue; return the sum of their truesizes. */
--unsigned int inet_frag_rbtree_purge(struct rb_root *root,
--				    enum skb_drop_reason reason);
-+void inet_frag_queue_flush(struct inet_frag_queue *q,
-+			   enum skb_drop_reason reason);
- 
- static inline void inet_frag_putn(struct inet_frag_queue *q, int refs)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0b95f226f211..d1f8eb725d42 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -2487,6 +2487,7 @@ void nf_conntrack_cleanup_net(struct net *net)
+ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
  {
-diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
-index 30f4fa50ee2d..1bf969b5a1cb 100644
---- a/net/ipv4/inet_fragment.c
-+++ b/net/ipv4/inet_fragment.c
-@@ -263,8 +263,8 @@ static void inet_frag_destroy_rcu(struct rcu_head *head)
- 	kmem_cache_free(f->frags_cachep, q);
- }
+ 	struct nf_ct_iter_data iter_data = {};
++	unsigned long start = jiffies;
+ 	struct net *net;
+ 	int busy;
  
--unsigned int inet_frag_rbtree_purge(struct rb_root *root,
--				    enum skb_drop_reason reason)
-+static unsigned int
-+inet_frag_rbtree_purge(struct rb_root *root, enum skb_drop_reason reason)
- {
- 	struct rb_node *p = rb_first(root);
- 	unsigned int sum = 0;
-@@ -284,7 +284,16 @@ unsigned int inet_frag_rbtree_purge(struct rb_root *root,
+@@ -2507,6 +2508,8 @@ void nf_conntrack_cleanup_net_list(struct list_head *net_exit_list)
+ 			busy = 1;
  	}
- 	return sum;
- }
--EXPORT_SYMBOL(inet_frag_rbtree_purge);
-+
-+void inet_frag_queue_flush(struct inet_frag_queue *q,
-+			   enum skb_drop_reason reason)
-+{
-+	unsigned int sum;
-+
-+	sum = inet_frag_rbtree_purge(&q->rb_fragments, reason);
-+	sub_frag_mem_limit(q->fqdir, sum);
-+}
-+EXPORT_SYMBOL(inet_frag_queue_flush);
- 
- void inet_frag_destroy(struct inet_frag_queue *q)
- {
-diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
-index d7bccdc9dc69..32f1c1a46ba7 100644
---- a/net/ipv4/ip_fragment.c
-+++ b/net/ipv4/ip_fragment.c
-@@ -240,14 +240,10 @@ static int ip_frag_too_far(struct ipq *qp)
- 
- static int ip_frag_reinit(struct ipq *qp)
- {
--	unsigned int sum_truesize = 0;
--
- 	if (!mod_timer_pending(&qp->q.timer, jiffies + qp->q.fqdir->timeout))
- 		return -ETIMEDOUT;
- 
--	sum_truesize = inet_frag_rbtree_purge(&qp->q.rb_fragments,
--					      SKB_DROP_REASON_FRAG_TOO_FAR);
--	sub_frag_mem_limit(qp->q.fqdir, sum_truesize);
-+	inet_frag_queue_flush(&qp->q, SKB_DROP_REASON_FRAG_TOO_FAR);
- 
- 	qp->q.flags = 0;
- 	qp->q.len = 0;
+ 	if (busy) {
++		DEBUG_NET_WARN_ONCE(time_after(jiffies, start + 60 * HZ),
++				    "conntrack cleanup blocked for 60s");
+ 		schedule();
+ 		goto i_see_dead_people;
+ 	}
 -- 
 2.52.0
 
