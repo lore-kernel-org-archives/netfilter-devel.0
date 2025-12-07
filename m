@@ -1,79 +1,110 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C589B3B8D6B
-	for <netfilter-devel@vger.kernel.org>; Sat,  6 Dec 2025 22:02:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEA1E2AD00;
+	Sun,  7 Dec 2025 01:10:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765058582; cv=none; b=HHOL9amW9B27iGdqIgbK3T25ak2DEPM+jKzHOpnpXl6AGpNWDtVFL6I0fTj9lvxzFlWUuU6CYJHqhBMxGl4hohphF6DdIN13zoMH54QGtAeTh3jQs6+Hd1y/k/epmcGjC0drflc7PN3Z6vRXGDFwhSIiPyh2M5vEXOlRQT1BVRU=
+	t=1765069803; cv=none; b=fJYc0AoVC4FLgiHrWccoGobKh5J/l7X/oBWaGGnsC+sBic6stLakxS3oPyAbTwYHxjLSBAmtWFnxYg3i9iDFRIHKKzpIk2+C+LiKI9ZaIwkLSbqcpvhy+QcVkBSGCOiRa9i9UJEKVakZcGlRZF8gUl8mFSCVbNKLeSnkHxLXBZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765058582; c=relaxed/simple;
-	bh=O0KaIroBTEqUIsq2enAscj3kaY2/G3J9pNa2PNSgLqg=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=nyu6TwbDp3WPJhO4z5qYiZMJGkPCgaUnOkfw5B8Q0QS2jReYFCedDJ1JcLtAGXwIhM71WfT3HMAsloifwmmd+J8AXnAoeqELXD4KRC7t9XWWrRIcuW3LmgIV1nEUqZcSyP2J87LOuGz7VwtIdsKR1XdGB1A32QhkbOV5S4O8Fs8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=AlbZVNST; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1765069803; c=relaxed/simple;
+	bh=1nvyRIRL+2AMnI1+YsPKhv8ckkhkN5Sb2caHluZRCc4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=XhCyKOR7SP0R9lq6/viuH0URdFyjyQE0cSerJCQzyMZaPhete1y9C2qRN1Urb9eY225Vcv9fhJnm64j4DS3gd4LJOvJFlABUv1anoIQ5ee1RPYlS1hqLYbJOzNxbPs6L5nRhPVUiUE97X9/QLKaiWSQZjeAybgx72CrA8M+TnsQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uR52G3RX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="AlbZVNST"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:Content-Type:MIME-Version:Message-ID:
-	Date:Subject:To:From:Sender:Reply-To:Cc:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=F7c+EsD8ah0ShcxFt1ld1eBDnWh2urpPeovhEKKj0pA=; b=AlbZVNST/QqS4KVKI7JKYl9V4l
-	d7/h+vXk7AARaj7zeFkKfS1WUUogEzuYxtzAEc1oTUDZYY73dj0U6GhjP7vfM066WOqP64+0UxPLz
-	St6xko+vDolt0yDqKsQEmhgm0KcnmRAvTNgVQWwlAs+Jn4pHKgtvigXOCcDA+LDm2hC8OwCvcPmQp
-	TfjaetSLJHRHlfbXqUbDYTOvYQiadEs42GatQ4cc5VhoH3jZzhZ32GDkT/kCVFNpz+JF4QHqX1II2
-	FsKaHpFYF0bRCkM/Rhfdg3A83elRthPLAcvcHwq3N2TqQ/+zYGOCuCkOVBFFO6BHImeremyW6KquN
-	TacusNWQ==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1vS0Dq-0000000E8vL-4BZ6
-	for netfilter-devel@vger.kernel.org;
-	Sat, 06 Dec 2025 21:53:47 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft] doc: fix typo in man-page
-Date: Sat,  6 Dec 2025 21:53:36 +0000
-Message-ID: <20251206215338.703540-1-jeremy@azazel.net>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uR52G3RX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CCC2C16AAE;
+	Sun,  7 Dec 2025 01:10:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1765069802;
+	bh=1nvyRIRL+2AMnI1+YsPKhv8ckkhkN5Sb2caHluZRCc4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=uR52G3RXIrLhvX5YNo4D+GKTcN45KJd2j9JhXrul+/xkgzMEFsaqrNV0ONczYZwKS
+	 UwTGpIBz4cgJWM7WymOZdqGLWRhE5JRtqmmpqpoNdgIa5k5zQwLxwJrY6pZC4Y0u8l
+	 2kn/CuwkDMLYDR2QCCznnsDdDdKzyCbBAVdnAWxKyw+F477NfwKcuG4WGWY1u2F2X+
+	 3sEpM3fxkNK7B1p3KLbJjGyV3CvBYM+J2ye3zv51nMKc7IUTo1q+WUQbriVzAkAMQG
+	 oXzY5XK+Ihpc2ioLdDn6RtxExr+wiG3i19LcJzJradZcANVYEZuIO0Yt1kK5r80V03
+	 +Fo7Rgz8GdheQ==
+From: Jakub Kicinski <kuba@kernel.org>
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org,
+	edumazet@google.com,
+	pabeni@redhat.com,
+	andrew+netdev@lunn.ch,
+	horms@kernel.org,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	willemdebruijn.kernel@gmail.com,
+	kuniyu@google.com,
+	Jakub Kicinski <kuba@kernel.org>
+Subject: [PATCH net 1/4] inet: frags: avoid theoretical race in ip_frag_reinit()
+Date: Sat,  6 Dec 2025 17:09:39 -0800
+Message-ID: <20251207010942.1672972-2-kuba@kernel.org>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20251207010942.1672972-1-kuba@kernel.org>
+References: <20251207010942.1672972-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-"interally" -> "internally"
+In ip_frag_reinit() we want to move the frag timeout timer into
+the future. If the timer fires in the meantime we inadvertently
+scheduled it again, and since the timer assumes a ref on frag_queue
+we need to acquire one to balance things out.
 
-Fixes: f34381547094 ("doc: minor improvements the `reject` statement")
+This is technically racy, we should have acquired the reference
+_before_ we touch the timer, it may fire again before we take the ref.
+Avoid this entire dance by using mod_timer_pending() which only modifies
+the timer if its pending (and which exists since Linux v2.6.30)
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Note that this was the only place we ever took a ref on frag_queue
+since Eric's conversion to RCU. So we could potentially replace
+the whole refcnt field with an atomic flag and a bit more RCU.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 ---
- doc/statements.txt | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/inet_fragment.c | 4 +++-
+ net/ipv4/ip_fragment.c   | 4 +---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/doc/statements.txt b/doc/statements.txt
-index 0b14398117de..8f96bf6b84fa 100644
---- a/doc/statements.txt
-+++ b/doc/statements.txt
-@@ -203,7 +203,7 @@ ____
- ____
+diff --git a/net/ipv4/inet_fragment.c b/net/ipv4/inet_fragment.c
+index 025895eb6ec5..30f4fa50ee2d 100644
+--- a/net/ipv4/inet_fragment.c
++++ b/net/ipv4/inet_fragment.c
+@@ -327,7 +327,9 @@ static struct inet_frag_queue *inet_frag_alloc(struct fqdir *fqdir,
  
- A reject statement tries to send back an error packet in response to the matched
--packet and then interally issues a *drop* verdict.
-+packet and then internally issues a *drop* verdict.
- It’s thus a terminating statement with all consequences of the latter (see
- <<OVERALL_EVALUATION_OF_THE_RULESET>> respectively <<VERDICT_STATEMENTS>>).
- This statement is only valid in base chains using the *prerouting*, *input*,
+ 	timer_setup(&q->timer, f->frag_expire, 0);
+ 	spin_lock_init(&q->lock);
+-	/* One reference for the timer, one for the hash table. */
++	/* One reference for the timer, one for the hash table.
++	 * We never take any extra references, only decrement this field.
++	 */
+ 	refcount_set(&q->refcnt, 2);
+ 
+ 	return q;
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index f7012479713b..d7bccdc9dc69 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -242,10 +242,8 @@ static int ip_frag_reinit(struct ipq *qp)
+ {
+ 	unsigned int sum_truesize = 0;
+ 
+-	if (!mod_timer(&qp->q.timer, jiffies + qp->q.fqdir->timeout)) {
+-		refcount_inc(&qp->q.refcnt);
++	if (!mod_timer_pending(&qp->q.timer, jiffies + qp->q.fqdir->timeout))
+ 		return -ETIMEDOUT;
+-	}
+ 
+ 	sum_truesize = inet_frag_rbtree_purge(&qp->q.rb_fragments,
+ 					      SKB_DROP_REASON_FRAG_TOO_FAR);
 -- 
-2.51.0
+2.52.0
 
