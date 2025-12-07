@@ -1,58 +1,45 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF741F8691;
-	Sun,  7 Dec 2025 01:56:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5677E2D46DD;
+	Sun,  7 Dec 2025 10:21:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765072608; cv=none; b=BAv2xtbtzgWU5Emql6fEWf10+pe6Buax0+q4gWHfOPR4XEvph9diihWQEoEt13WwW5GjsrGe6nxB/3it1/cyAC/TGq1m4bWqKpMSBzg0dI/4SwLmKYoMYCS+r1DbVAum1wqGJD+5V4e8CAO0EiGxk1H5MpvTAB8sqw0GxEWwFlA=
+	t=1765102885; cv=none; b=f3qTjKzXEZ4RniXFDilfA1iJiKcUeHmIYAF+gKV0cUcNcfxbG/9VJTso14sK9JsVXVjh6oLGs4jXgrvMsXJNdsvitiGECw/0AKcVkZCcrS9fUNgls2+AlcQzPGJpVzGQOzdsHpBKwyJpDCofz45e20j7KGz2Aw/cVgy1NceEc9c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765072608; c=relaxed/simple;
-	bh=mo6n/OiiadjTXvCBmA3TT6bjWqtC8ITh0SIsNjX7R+I=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OjzDeaRI1VJjxO6tClg0ETmEDLzDMC28hvJO+iumbFgLlwumHf/ccCRLK89c3FK3Q7wwBoHHBMTYTNdk3GP7PAzRa971bDkPMunNay11rjVUudpWUhORZzccfKMzS7J54Uq3iMmif4a5Y2O+oDO/dB13fGUg1EvTnCpmKaF4eg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Lrp3IGW5; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Lrp3IGW5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62473C4CEF5;
-	Sun,  7 Dec 2025 01:56:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765072608;
-	bh=mo6n/OiiadjTXvCBmA3TT6bjWqtC8ITh0SIsNjX7R+I=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Lrp3IGW5pDJOtyaT/tGNs5xyg8eMvPzzRWvCNoh0kktUHJyrsON1yxdJAdkRIxoNO
-	 XDRwEKy2He0i60qKGcRUk8B2IM/KeWWnKZ1OU8AK5aKzIYKVi1KosC0LnggfsJ/tRw
-	 Jmaul1Dmo8ItZn60IDMqpZRuvC5PdZqz3Nf6AQHAIHfqKiFt6T6wkeeDuXnCkBIpT5
-	 eWgBsDokZ/yDgc5wNDn8QupG5PfP9DoD2X4CoRcvMNpiIRK8Sdjd0bQILGelMs9M4G
-	 pwE90wnvvXqR9jNH1H8Kpsms/6g2unUZ+grbH0ySVLNeY38nEE6lzm4rRdxRQTiYTk
-	 K2elF6kFw3rXg==
-Date: Sat, 6 Dec 2025 17:56:47 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [TEST] conntrack_reverse_clash.sh flakes
-Message-ID: <20251206175647.5c32f419@kernel.org>
-In-Reply-To: <20251206175135.4a56591b@kernel.org>
-References: <20251206175135.4a56591b@kernel.org>
+	s=arc-20240116; t=1765102885; c=relaxed/simple;
+	bh=CDJEVZSxdMszsEuj4Wpr7PZfkSN6pZ+9xlpPG6OKslM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SqgVCZ9lfb8gY26xPCEEHJcfwBZhrbSwirkMADPBXzM4F5lchtCppii1fiTkhBkzNfjuyHoNZA65nmQnYYzU9KpXCiBaaDFJxshUfdVvKruE66Sdba8WNJXEByM/dEFyEO2LFwKt6oimHJ75ABrmCG5ScRS866W6T2Z+7upwgJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 4BE4E60336; Sun, 07 Dec 2025 11:21:14 +0100 (CET)
+Date: Sun, 7 Dec 2025 11:21:12 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org, edumazet@google.com,
+	pabeni@redhat.com, andrew+netdev@lunn.ch, horms@kernel.org,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	willemdebruijn.kernel@gmail.com, kuniyu@google.com
+Subject: Re: [PATCH net 4/4] netfilter: conntrack: warn when cleanup is stuck
+Message-ID: <aTVVGM_1_B6CGZSK@strlen.de>
+References: <20251207010942.1672972-1-kuba@kernel.org>
+ <20251207010942.1672972-5-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251207010942.1672972-5-kuba@kernel.org>
 
-On Sat, 6 Dec 2025 17:51:35 -0800 Jakub Kicinski wrote:
-> Hi Florian!
-> 
-> We have a new faster NIPA setup, and now on non-debug builds we see 
-> a few (4 a week to be exact) flakes in conntrack_reverse_clash.sh
+Jakub Kicinski <kuba@kernel.org> wrote:
+> nf_conntrack_cleanup_net_list() calls schedule() so it does not
+> show up as a hung task. Add an explicit check to make debugging
+> leaked skbs/conntack references more obvious.
 
-Ah, one more, the non-reverse conntrack-clash is SKIPping, occasionally:
-https://netdev.bots.linux.dev/contest.html?pass=0&test=conntrack-clash-sh
-
-If the event it's testing is probabilistic could we make it return XFAIL
-when it doesn't trigger? We try to reserve SKIP for tests skipped
-because tool is missing in env, something isn't built into the kernel
-etc.
+Acked-by: Florian Westphal <fw@strlen.de>
