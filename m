@@ -1,37 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC10B19D092;
-	Mon,  8 Dec 2025 14:46:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63A63A1CD;
+	Mon,  8 Dec 2025 14:48:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765205183; cv=none; b=ABjFErjm7wknswOACeT0143sOxrzdn9N6FLgGBQrpDxVl+tjsYx8iwImRhASIiBy2MsRbvYyI+izZtxjnI8TYDOvVbumyqwWdca2IPkG9Iet4g1nsEXeZlnu35F7SRmn9PHabaY4rH+KJLt8OY1JDLbwNomrqqPRmF745xBCeo8=
+	t=1765205302; cv=none; b=ULTboHWRtZZGp4/V3KBHWs8JBTVkMOs3OHrSCGcpZcimDdgnmrcMyaJR2ADS0ry9Mu/RnhG1h/O+hjalFq/6oww4S+7lAjPHdRTLXmusWQUFvljbUToIXxvkQ7W5dV2NE69c/AHfu6NR0oZaFW8/vLAJCenvSvCApucwCHsSBJw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765205183; c=relaxed/simple;
-	bh=KejMhTn1AaeL3RzdmUwKZ3OaDXqSGv5CVFbFMAsC+4I=;
+	s=arc-20240116; t=1765205302; c=relaxed/simple;
+	bh=ZBJqfP2yTwPlOGYe65iyaFAYEfFJxH0tU+M856wi8Hw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ioIcy7JfFvaPoHyi/d6MwcQ9M1rUhgCo8GylraJQP5F4vZO7zQ/GRNosKRAQ3PnVZjNX5adGPwofEOuDz6WxtnwBtpBCasydRK3Q1ZLwR4r9WOxFdSKTkaj8wTyWh/aaXHeEgRo+LfU0wz4i8V8GG6pkWAfw01ZK4PGqKxlDk+c=
+	 Content-Type:Content-Disposition:In-Reply-To; b=AMCy1gaM+TOUyyETLYGAkaXzFXxSUJXRfESdDa3wBMRRPJWg+zWHrxD6H1Fd/r2EL/Xf79uJOIbLTmrDqE4H5yt8hvLWLph0zvngcbjw/MF9Swgq32Umepqz8MKs2dsCuMKTqFiXjN9xGbNIoF8V543meDZdj2moeEBfxPRiP4M=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E85A860336; Mon, 08 Dec 2025 15:46:18 +0100 (CET)
-Date: Mon, 8 Dec 2025 15:46:13 +0100
+	id A96CE60336; Mon, 08 Dec 2025 15:48:18 +0100 (CET)
+Date: Mon, 8 Dec 2025 15:48:18 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	phil@nwl.cc, Eric Dumazet <eric.dumazet@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	kernel-team@cloudflare.com, mfleming@cloudflare.com,
-	matt@readmodwrite.com
-Subject: Re: [PATCH nf-next RFC 2/3] xt_statistic: do nth-mode accounting per
- CPU
-Message-ID: <aTbktQxxH5gUJrB6@strlen.de>
-References: <176424680115.194326.6611149743733067162.stgit@firesoul>
- <176424684236.194326.12739516403715190883.stgit@firesoul>
- <aShkog5k8nsD5YsA@strlen.de>
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [TEST] conntrack_reverse_clash.sh flakes
+Message-ID: <aTblMlbPfxuac2eg@strlen.de>
+References: <20251206175135.4a56591b@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,35 +31,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aShkog5k8nsD5YsA@strlen.de>
+In-Reply-To: <20251206175135.4a56591b@kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
-> Jesper Dangaard Brouer <hawk@kernel.org> wrote:
-> > The atomic cmpxchg operations for the nth-mode matching is a scaling
-> > concern, on our production servers with 192 CPUs. The iptables rules that
-> > does sampling of every 10000 packets exists on INPUT and OUTPUT chains.
-> > Thus, these nth-counter rules are hit for every packets on the system with
-> > high concurrency.
->  
-> > Our use-case is statistical sampling, where we don't need an accurate packet
-> > across all CPUs in the system. Thus, we implement per-CPU counters for the
-> > nth-mode match.
-> > 
-> > This replaces the XT_STATISTIC_MODE_NTH, to avoid having to change userspace
-> > tooling. We keep and move atomic variant under XT_STATISTIC_MODE_NTH_ATOMIC
-> > mode, which userspace can easily be extended to leverage if this is
-> > necessary.
+Jakub Kicinski <kuba@kernel.org> wrote:
+> We have a new faster NIPA setup, and now on non-debug builds we see 
+> a few (4 a week to be exact) flakes in conntrack_reverse_clash.sh
 > 
-> This patch seems acceptable to me (aside from the deliberate userspace
-> breakage).
+> List of flakes from the last 100 runs:
+> https://netdev.bots.linux.dev/contest.html?pass=0&test=conntrack-reverse-clash-sh
 > 
-> But I do wonder why you can't move to random sampling instead, it
-> doesn't suffer from this problem (i.e. -m statistic --mode random).
+> Example:
+> 
+> # selftests: net/netfilter: conntrack_reverse_clash.sh
+> # Port number changed, wanted 56789 got 5950
+> # ERROR: SNAT performed without any matching snat rule
+> # kill: sending signal to 16051 failed: No such process
+> not ok 1 selftests: net/netfilter: conntrack_reverse_clash.sh # exit=1
+> 
+> Looks like the test also occasionally flaked on the old setup ("remote"
+> column with "metal" instead of "virt") which is now shut down:
+> 
+> # selftests: net/netfilter: conntrack_reverse_clash.sh
+> # Port number changed, wanted 56789 got 54630
+> # Port number changed, wanted 56790 got 25814
+> # ERROR: SNAT performed without any matching snat rule
+> not ok 1 selftests: net/netfilter: conntrack_reverse_clash.sh # exit=1
+> 
+> so this isn't new, just more likely now..
+> 
+> Could you TAL when you have spare cycles? (BTW the new setup is owned 
+> by netdev foundation so I can give you access if that helps).
 
-Addendum, did not think of this before.  Another alternative is to
-prefix '-m statistic' with '-m cpu' so only one core will do the
-sampling.  If this should be done on all cpus then xtables
-framework would require n rules for n cpus which scales poorly.
+No need, I can reproduce this:
+# selftests: conntrack_reverse_clash.sh
+# Port number changed, wanted 56790 got 64562 from 127.0.0.12
+# ERROR: SNAT performed without any matching snat rule
+# udp      17 30 src=127.0.0.11 dst=127.0.0.12 sport=56789 dport=56790 [UNREPLIED] src=127.0.0.12 dst=127.0.0.11 sport=56790 dport=56789 mark=0 use=1
+# conntrack v1.4.8 (conntrack-tools): 1 flow entries have been shown.
+# cpu=0         found=0 invalid=0 insert=0 insert_failed=0 drop=0 early_drop=0 error=0 search_restart=0 clash_resolve=0 chaintoolong=0
+...
 
-In nftables one could use verdict map with 'meta cpu' as a hash key,
-then one would be able to fanout based on processing cpu.
+Looks like an actual bug to me, will need some time to investigate this.
+If its too annoying consider disabling this particular test for now.
+
+Thanks for reporting.
