@@ -1,72 +1,72 @@
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
+Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99E302264B0
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Dec 2025 15:17:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 978AF2773E4
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Dec 2025 15:18:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765207067; cv=none; b=s0wTNh6wvMiX1OgQGWboPHjnIOcsft+ZvNgvbn2XVSf5tcxw7N9i2yj2g/g6clLblCLZnEF2mBe13S1fcoEObEJX7r28pHxI+A0MmCubQHFF4KaJM2av7AFeyLxuIXGLHM7pLTa8hPsfumhMQEb9/5/RieFisCXFhY33i/x/pa8=
+	t=1765207108; cv=none; b=uT8C6AAob9n/Q1UaIoUR2xy/tc1y8u/kejUOoi2f43ya6slm+ekahhWZxCSwCTLhMgfGy30XUoBRJRuDlJHcZokig+lvWvUe8vMqYerSsnHMMPvtru9KFYgg/gxr0Hor1+B4C9814AI80sVOEvyv4D4HjQqVSsOlTfxynIc+9sc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765207067; c=relaxed/simple;
-	bh=izizD3VjgpVVdOW3BC8PfHRSOs6E0jjQfdGsV27pIiQ=;
+	s=arc-20240116; t=1765207108; c=relaxed/simple;
+	bh=oKAfzbDpF5HxMruBvGmNP/TyJQbPITsy31Os9j1AF/E=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=lD7fVisWh2YI2l7x+nGstcT1GFEuu056hm/ZHykm09GTuVEdu2Ia1QhB7poIWpAMecdzudXaokn8HTQdC4XEH+xlF9ktPDTJPSma+AtGbPT3zNInql7oUHXZH3vJh4IAN5a/kEp6i/DaJ3Y+UapRMYZ4Qyku6nJr0f0CueeBgU8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=IQFxLVLd; arc=none smtp.client-ip=209.85.222.172
+	 To:Cc:Content-Type; b=Po4QNNoS6qoDMLkk7lbP3RLMFRX93Jbqs3L9QcooNKYsvGrxc+TETUihJSzgOGtPNQDlwGCV5rEnVHf4cG63pB2eXwC371URLpo9spOae0COhLpl6eVttbCUtE18PRGLhAzrfMX2Qjwl2gI3iaLTl4rRsAqlQkbEDHwqg1LtCVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=WBrBTJa1; arc=none smtp.client-ip=209.85.160.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="IQFxLVLd"
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-8b5c81bd953so408057485a.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 08 Dec 2025 07:17:45 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="WBrBTJa1"
+Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-4ee1fca7a16so38446741cf.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 08 Dec 2025 07:18:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1765207064; x=1765811864; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1765207105; x=1765811905; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=izizD3VjgpVVdOW3BC8PfHRSOs6E0jjQfdGsV27pIiQ=;
-        b=IQFxLVLd8SpFLKiPA5qnp4mMOCaKBmHil7Po/taDeabViEDKZrr7t0ouR6SIbPJbaw
-         I5kZr6csOAYqcnYEGb5gqQVGcwluqIWkI3QX+SfzjGxG2bkDw4f71VSLw6DUBcI/2XvA
-         94lRxA0agyK7ClbwCE/xSoZhQ6VzZcvMMBXmwCheO3HLhKsBinbGK7gBp+bRwlz/Odo7
-         ixyVzIt3a66PH/gQXZriEo54Pz6h92Q0XiplxPIpxqKOa/LZ31/8zNkrctCX9HOVEdFx
-         PpxhipyUs1A2g33G5ZIYHTz8G7IEGkVbGAWfN14o0XoKxfSjCpEO3jeRaJbNApUG1EWU
-         l38Q==
+        bh=oKAfzbDpF5HxMruBvGmNP/TyJQbPITsy31Os9j1AF/E=;
+        b=WBrBTJa1xCNKnrVksu5YNuV85ybgutM91c7JA8rm22/A8Jqf8vAj0yrupIYswSvKLT
+         LwN0pgP5wLZt4vcazJ7gvLHSgYml6PvyPKAL8cPtlHHnPvprnPOltfhx/dHLJknk+Jwn
+         kZ8Y22+X7BaRSMIDNwDMgHYTtGENsgkPqlFF/4n9L8RUWJR10ez4Y6sMomeMpbLjXkkn
+         5UbWk0sH2rkB/9dO5rDLiN0aDHooUFlGNYBflrkDc6btD4Mnx60H2asSv/01O8LuaV3h
+         7A4TicAb4dlzB78o55bbpNfjp2fYv5uDwEsnFu2d/O7w3FLM4VyOgNDmI/8cJqPuG/KE
+         Buig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765207064; x=1765811864;
+        d=1e100.net; s=20230601; t=1765207105; x=1765811905;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=izizD3VjgpVVdOW3BC8PfHRSOs6E0jjQfdGsV27pIiQ=;
-        b=xFyauso15L4sAGg+pQwndRk80vFGG8IJkyKA0liXrEWIJea5B2FgYtVRBd3GoFMog0
-         Fo/2SeXyiu6Jo/0qoqLyWTwJzSKBiLG+zk/r9bgbvrnMAhjDNViEOjRAMuT7NKJ591rg
-         g4J65uYmEGQ0XOAVGlqI8Ju/qoZgykhfu1fJl4LsDVlJlucg84G6NABf38YR0x2IcdIK
-         9YXsolI0hEf9l+NpVd0S1e1fWGo95imfPDc+nwALoRYmcPY8tSAVQm9SgIAfmlZXHJnc
-         KsKsA0L7dmZ+dV6XY2t5ID4iF8jvPwHRjQyURsrjKIkV0q9pA43OT0qwCDRl9/xqNMdS
-         Uhvw==
-X-Forwarded-Encrypted: i=1; AJvYcCWrskrDlFtULC4mYOQFXcacV26BjCklpWk3QsVMusKzOMUwwlh5lU9n/gUGuB5f7eQ4gXTTpR6k25tUf/p9rAU=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxNGnGK5xiggOPLzs7r7r3MF24wICRl1WQLKKMSOCYF8ErG8Ir/
-	5BYD9QGxRW9EySUvS7YAoTj+gtyOgIZ91A/ybbUg4D5eRi4O47iE+Ij9D8J+SO4PYeuPSk+3i5Q
-	XYiEIDla/A4OmpPCR+T7zjxaOqPWPjbOLMrjuQm+I
-X-Gm-Gg: ASbGncsxuTGdz1U5TywrNFPUYjWQk8L/Ju8ohLbqZbd3/Opn1BS/yrEAO7MvnDqDNrr
-	xFVG1wSgtTVsxob51g/nDz6cec2qWncPkqABqPXJu7RvF8M2nNxD7fmnRLsW/dIIvc3U7tLpue4
-	8lKk6vzFNRLTmGnt11lzyzrx6a+MYn3d3aYQ+Qf/dS1Q7rhFcD2OYEclSAq4xIZRcnruxf/XIlF
-	Oi9PU8IVDAfgm0Um/PqX1YDJWkglvI/6eZ7w41zzNYs9LD0g2NF6ny/o9iSLCRQNXtDY1w=
-X-Google-Smtp-Source: AGHT+IFS+w6QDxMLDyPgYwa89+TWhIuFIv1sv1yUhL3jFz9Ar5QN3KkcOF8P1l32aGce+lkI52/LTtQ94IwqUUmK3jo=
-X-Received: by 2002:a05:622a:58c3:b0:4f0:2258:fe1e with SMTP id
- d75a77b69052e-4f03fde931bmr102885071cf.10.1765207064084; Mon, 08 Dec 2025
- 07:17:44 -0800 (PST)
+        bh=oKAfzbDpF5HxMruBvGmNP/TyJQbPITsy31Os9j1AF/E=;
+        b=LWtIaMeS1KfZ8q6FATWjEn1pEYTeYCTKtnBk8o0SHC7ArK3bRC+2QP8otrWaDozJz2
+         VvVHSGmiXcVv0pzlutlB9VO1lVY1E1NFEuQj+jttbi19jDpQ7L7eNclbMY5vP2ubL5J4
+         SLgRIuVD9Xyt/IGZOuSW3klfQdCAxcgazK9YdZwsmbPYv6kNqYbpJC5EO4IhI7cZnZtH
+         MMuFKnI5HA0BbCwXGBy6ZRg3Qn/j+TKixce0b9ZtrpYRNadwb1c4Bl5xdzECU8OIkppI
+         Eo2Ll6VWtr8sUzQv6lUTy7DfSZFcam26Hsg+VAfcYZFqTuLLvnpRlZ+Iqyr8wC1E77xG
+         WXug==
+X-Forwarded-Encrypted: i=1; AJvYcCVrrBx+7t6JAZbXmsi2gPfRRr9q7ih5AVsH7YxK1CKuhWaPho+gm6qKw7oKH8/6QWUNq6k8zqpsy5D62fSOdoY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzLI71zAJDREKqG0vHIA2zb9oBUKtrgcFde3szmTTdpXhZjS3CX
+	E01sXHAXKUHuKCLYdxfldG0r/aSGDQ2DZMzc7uSj75o6MqO5dnsFGFajEP9Pm6xLIHX/JjlTpsR
+	WBpbzQwXDqN6SVpmh6yXbEBX0LXOPupKr71JgwNLj
+X-Gm-Gg: ASbGnct+BaWxhepoRcav7vz5xPH7zYDG1OqxqAcoJ4LSqkaWnL/XJgzAnKI0/71xfm3
+	0MDPz9SXzP1MqqMU5hfK6SV2gbpMgoUbV2mQLXL/hcqNG47Be4yWXF5ZZhl65Ic/0m/8UdREqbv
+	BB8wZjPWDR6XGyf4D4OEe4iBw/VH36CvHFJky28m/RJn9igRWSssJaIYAU82SuxhcbwLhtcv6Uv
+	eDaDneaFJoa0khWG9o+z+nIiIBi9Tu1a8BSQlvSSMfAJQ+imB1XUvi7jaejiZhnJ5H3Us4=
+X-Google-Smtp-Source: AGHT+IG3QbYCkW0+w14+GxOn8zrOdultaiRW9GGC+8/GajzreNpWlXbmMSYEZgIhqNUBOeXUPiC/zyq2CdgSlnaQgIg=
+X-Received: by 2002:ac8:5896:0:b0:4ed:1bba:f935 with SMTP id
+ d75a77b69052e-4f03fedb2a3mr123684371cf.57.1765207104627; Mon, 08 Dec 2025
+ 07:18:24 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20251207010942.1672972-1-kuba@kernel.org> <20251207010942.1672972-4-kuba@kernel.org>
-In-Reply-To: <20251207010942.1672972-4-kuba@kernel.org>
+References: <20251207010942.1672972-1-kuba@kernel.org> <20251207010942.1672972-2-kuba@kernel.org>
+In-Reply-To: <20251207010942.1672972-2-kuba@kernel.org>
 From: Eric Dumazet <edumazet@google.com>
-Date: Mon, 8 Dec 2025 07:17:33 -0800
-X-Gm-Features: AQt7F2oX_UOv9MW-_6378FuuUImQnAfrJK7Esmwm2N09qzF03GjECuOURZmcBzU
-Message-ID: <CANn89iJgoxOjGjhBAHeaCdcd3X9wzRoUg27e3TSY4X+SR0aBdQ@mail.gmail.com>
-Subject: Re: [PATCH net 3/4] inet: frags: flush pending skbs in fqdir_pre_exit()
+Date: Mon, 8 Dec 2025 07:18:13 -0800
+X-Gm-Features: AQt7F2oYapRJno2e3aRfjRsCvAw13aWyh8c4DdAqOiUWSZvDdIDiVYfXnMpLG_I
+Message-ID: <CANn89iKJXNksYB1nOnsQAXgsrYYaVa78JLeSuG_y3b9QaXnoMg@mail.gmail.com>
+Subject: Re: [PATCH net 1/4] inet: frags: avoid theoretical race in ip_frag_reinit()
 To: Jakub Kicinski <kuba@kernel.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org, pabeni@redhat.com, 
 	andrew+netdev@lunn.ch, horms@kernel.org, pablo@netfilter.org, fw@strlen.de, 
@@ -78,34 +78,22 @@ Content-Transfer-Encoding: quoted-printable
 On Sat, Dec 6, 2025 at 5:10=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wro=
 te:
 >
-> We have been seeing occasional deadlocks on pernet_ops_rwsem since
-> September in NIPA. The stuck task was usually modprobe (often loading
-> a driver like ipvlan), trying to take the lock as a Writer.
-> lockdep does not track readers for rwsems so the read wasn't obvious
-> from the reports.
+> In ip_frag_reinit() we want to move the frag timeout timer into
+> the future. If the timer fires in the meantime we inadvertently
+> scheduled it again, and since the timer assumes a ref on frag_queue
+> we need to acquire one to balance things out.
 >
-> On closer inspection the Reader holding the lock was conntrack looping
-> forever in nf_conntrack_cleanup_net_list(). Based on past experience
-> with occasional NIPA crashes I looked thru the tests which run before
-> the crash and noticed that the crash follows ip_defrag.sh. An immediate
-> red flag. Scouring thru (de)fragmentation queues reveals skbs sitting
-> around, holding conntrack references.
+> This is technically racy, we should have acquired the reference
+> _before_ we touch the timer, it may fire again before we take the ref.
+> Avoid this entire dance by using mod_timer_pending() which only modifies
+> the timer if its pending (and which exists since Linux v2.6.30)
 >
-> The problem is that since conntrack depends on nf_defrag_ipv6,
-> nf_defrag_ipv6 will load first. Since nf_defrag_ipv6 loads first its
-> netns exit hooks run _after_ conntrack's netns exit hook.
+> Note that this was the only place we ever took a ref on frag_queue
+> since Eric's conversion to RCU. So we could potentially replace
+> the whole refcnt field with an atomic flag and a bit more RCU.
 >
-> Flush all fragment queue SKBs during fqdir_pre_exit() to release
-> conntrack references before conntrack cleanup runs. Also flush
-> the queues in timer expiry handlers when they discover fqdir->dead
-> is set, in case packet sneaks in while we're running the pre_exit
-> flush.
->
-> The commit under Fixes is not exactly the culprit, but I think
-> previously the timer firing would eventually unblock the spinning
-> conntrack.
->
-> Fixes: d5dd88794a13 ("inet: fix various use-after-free in defrags units")
+> Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 > Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+> ---
 
 Reviewed-by: Eric Dumazet <edumazet@google.com>
