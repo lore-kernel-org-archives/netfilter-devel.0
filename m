@@ -1,180 +1,153 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6A8C296BCD;
-	Tue,  9 Dec 2025 07:36:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D599921CC58
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Dec 2025 10:29:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765265770; cv=none; b=QmAB/DJRc+B5EH8pVk9C2gfN1DvuEpNFSUvwODTcalSxLTMGfTpaEBcmUiXWidZnY17LfWQCXRZbNEJveshuAA2sHmZA7GBFM2NYwymSTUMWZNz9XGYhxPCAoD+zw4bfY9JkUPGNb1ZtkykPr4ZE8NdD5HP8APgySnaXI3rQowc=
+	t=1765276151; cv=none; b=arKHqVYKHM7fUHqaDFkslhxQZH5qGsIP1LYRZZB/BUilvqxZwdGTdrfj6YC+nx2Y+ezrkOu0gtawGBg64dq7y1ZnQMn/YpZRFYdL4U2p22A/U5d6w70VJTMsOH1GH8AVfL75Iab0PsZAM+Lxicx2JZvy9x5B4QlFV4EUEWSu/hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765265770; c=relaxed/simple;
-	bh=VjDGUTom6je4dVzwHm2KOd5tgoOEnl0QV5kY0rsBtfk=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=iMvxU9V1JXaDff8P3kgzyL3LknKTdyaEXhqPB2Bea4ioiqdeV/4XD//QCjM2Dr8XBXXqdidF87+ptBKS626QX/Qyz02y+DoCEiMEePpp8M+/gu24865U2yYK9q2tUuxgT1CYkmWRIsgwu4pwIFJfGPyTTDYAzRHrM3e0qCV9PRo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dwNIe1QP; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dwNIe1QP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76672C4CEFB;
-	Tue,  9 Dec 2025 07:36:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1765265769;
-	bh=VjDGUTom6je4dVzwHm2KOd5tgoOEnl0QV5kY0rsBtfk=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=dwNIe1QP7aUfee4HmmJU/eK0s8d7qwhrXdv3oJcNnN65kmjSXJg/M8s+GsP2hxWGQ
-	 WtQSYtCfE8MXJZzR+3LQqQk06CNfmvZEPk+I7qMqyYM5k66N3n98RwbnNc86kUFKqT
-	 wG2ThU80u0j0tybip3nnSxxrhjGXP+fakbS/qhZqfLYi/7JRpUbUEFzpKKGG9/yCX9
-	 M9F2YDRzRfJ/Cq8h3fKQButt0Jj2kbwQIq9Apflv7tF0Jzx8fj5oXtQukPZ1DI+XQO
-	 Zn0iG5WLHdsp5GKBkt0vegXD5r56mBcxxE3n0gOjvzhmKJfOf08OLIy0V3PYrCd9S5
-	 6odAddYESHboQ==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Tue, 09 Dec 2025 08:35:34 +0100
-Subject: [PATCH nf-next v2 4/4] selftests: netfilter: nft_flowtable.sh: Add
- IP6IP6 flowtable selftest
+	s=arc-20240116; t=1765276151; c=relaxed/simple;
+	bh=gLUj5Lkem8gSZi+LOwgMgxvE9xf2wrJZo555kXqzU6I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iu+CJOXZasnVrjJfpDCArgtx+unseyz+UkQYFLw3Mf6os4kN/IvyQRKsD0OfG9gictOabSwLGpdXh4jT5lQGoguUV0kVafFk1aSyZwxFbQkOA0QZDmpm2X33qE1BGVtnxwmLHiBqpCzitpAGzS/wQKKInJfnNzEOf+v5s+FAWAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9EDBA60189; Tue, 09 Dec 2025 11:29:06 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Jakub Kicinski <kuba@kernel.org>
+Subject: [PATCH nf] netfilter: nf_nat: remove bogus direction check
+Date: Tue,  9 Dec 2025 11:28:58 +0100
+Message-ID: <20251209102901.2939-1-fw@strlen.de>
+X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20251209-b4-flowtable-offload-ip6ip6-v2-4-44817f1be5c6@kernel.org>
-References: <20251209-b4-flowtable-offload-ip6ip6-v2-0-44817f1be5c6@kernel.org>
-In-Reply-To: <20251209-b4-flowtable-offload-ip6ip6-v2-0-44817f1be5c6@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
- Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
- David Ahern <dsahern@kernel.org>, Shuah Khan <shuah@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- netdev@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.2
+Content-Transfer-Encoding: 8bit
 
-Similar to IPIP, introduce specific selftest for IP6IP6 flowtable SW
-acceleration in nft_flowtable.sh
+Jakub reports spurious failures of the 'conntrack_reverse_clash.sh'
+selftest.  A bogus check makes nat core resort to port rewrite even
+though there is no need for this.
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+When the check is made, nf_nat_used_tuple() would already have caused us
+to return if no other CPU had added a colliding entry, so the comment is
+flat out wrong.
+Moreover, nf_nat_used_tuple() would have ignored the colliding entry if
+their origin tuples had been the same, so we know they aren't.
+
+All that is left to check is if the colliding entry in the hash table
+is subject to NAT and if our entry matches in the reverse direction,
+e.g. hash table has
+
+addr1:1234 -> addr2:80, and we want to commit
+addr2:80   -> addr1:1234.
+
+Because we already checked that neither the new nor the committed entry is
+subject to NAT we only have to check origin vs. reply tuple:
+for non-nat entries, the reply tuple is always the inverted original.
+
+Just in case there are more problems extend the error reporting
+in the selftest and dump conntrack table/stats on error.
+
+Reported-by: Jakub Kicinski <kuba@kernel.org>
+Closes: https://lore.kernel.org/netdev/20251206175135.4a56591b@kernel.org/
+Fixes: d8f84a9bc7c4 ("netfilter: nf_nat: don't try nat source port reallocation for reverse dir clash")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../selftests/net/netfilter/nft_flowtable.sh       | 62 ++++++++++++++++++----
- 1 file changed, 53 insertions(+), 9 deletions(-)
+ net/netfilter/nf_nat_core.c                        | 14 +-------------
+ .../net/netfilter/conntrack_reverse_clash.c        | 13 +++++++++----
+ .../net/netfilter/conntrack_reverse_clash.sh       |  2 ++
+ 3 files changed, 12 insertions(+), 17 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 24b4e60b91451e7ea7f6a041b0335233047c6242..bc98baba56c638cad35478109a3776d6d93c34a8 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -590,16 +590,28 @@ ip -net "$nsr1" link set tun0 up
- ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
- ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 78a61dac4ade..e6b24586d2fe 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -294,25 +294,13 @@ nf_nat_used_tuple_new(const struct nf_conntrack_tuple *tuple,
  
-+ip -net "$nsr1" link add name tun6 type ip6tnl local fee1:2::1 remote fee1:2::2
-+ip -net "$nsr1" link set tun6 up
-+ip -net "$nsr1" addr add fee1:3::1/64 dev tun6 nodad
-+
- ip -net "$nsr2" link add name tun0 type ipip local 192.168.10.2 remote 192.168.10.1
- ip -net "$nsr2" link set tun0 up
- ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
- ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
+ 	ct = nf_ct_tuplehash_to_ctrack(thash);
  
-+ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1
-+ip -net "$nsr2" link set tun6 up
-+ip -net "$nsr2" addr add fee1:3::2/64 dev tun6 nodad
-+
- ip -net "$nsr1" route change default via 192.168.100.2
- ip -net "$nsr2" route change default via 192.168.100.1
-+ip -6 -net "$nsr1" route change default via fee1:3::2
-+ip -6 -net "$nsr2" route change default via fee1:3::1
- ip -net "$ns2" route add default via 10.0.2.1
-+ip -6 -net "$ns2" route add default via dead:2::1
+-	/* NB: IP_CT_DIR_ORIGINAL should be impossible because
+-	 * nf_nat_used_tuple() handles origin collisions.
+-	 *
+-	 * Handle remote chance other CPU confirmed its ct right after.
+-	 */
+-	if (thash->tuple.dst.dir != IP_CT_DIR_REPLY)
+-		goto out;
+-
+ 	/* clashing connection subject to NAT? Retry with new tuple. */
+ 	if (READ_ONCE(ct->status) & uses_nat)
+ 		goto out;
  
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6 accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward \
- 	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
- 
-@@ -609,28 +621,51 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
- 	ret=1
- fi
- 
-+if test_tcp_forwarding "$ns1" "$ns2" 1 6 "[dead:2::99]" 12345; then
-+	echo "PASS: flow offload for ns1/ns2 IP6IP6 tunnel"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
- # Create vlan tagged devices for IPIP traffic.
- ip -net "$nsr1" link add link veth1 name veth1.10 type vlan id 10
- ip -net "$nsr1" link set veth1.10 up
- ip -net "$nsr1" addr add 192.168.20.1/24 dev veth1.10
-+ip -net "$nsr1" addr add fee1:4::1/64 dev veth1.10 nodad
- ip netns exec "$nsr1" sysctl net.ipv4.conf.veth1/10.forwarding=1 > /dev/null
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif veth1.10 accept'
--ip -net "$nsr1" link add name tun1 type ipip local 192.168.20.1 remote 192.168.20.2
--ip -net "$nsr1" link set tun1 up
--ip -net "$nsr1" addr add 192.168.200.1/24 dev tun1
-+
-+ip -net "$nsr1" link add name tun0.10 type ipip local 192.168.20.1 remote 192.168.20.2
-+ip -net "$nsr1" link set tun0.10 up
-+ip -net "$nsr1" addr add 192.168.200.1/24 dev tun0.10
- ip -net "$nsr1" route change default via 192.168.200.2
--ip netns exec "$nsr1" sysctl net.ipv4.conf.tun1.forwarding=1 > /dev/null
--ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun1 accept'
-+ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0.10 accept'
-+
-+ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2
-+ip -net "$nsr1" link set tun6.10 up
-+ip -net "$nsr1" addr add fee1:5::1/64 dev tun6.10 nodad
-+ip -6 -net "$nsr1" route change default via fee1:5::2
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6.10 accept'
- 
- ip -net "$nsr2" link add link veth0 name veth0.10 type vlan id 10
- ip -net "$nsr2" link set veth0.10 up
- ip -net "$nsr2" addr add 192.168.20.2/24 dev veth0.10
-+ip -net "$nsr2" addr add fee1:4::2/64 dev veth0.10 nodad
- ip netns exec "$nsr2" sysctl net.ipv4.conf.veth0/10.forwarding=1 > /dev/null
--ip -net "$nsr2" link add name tun1 type ipip local 192.168.20.2 remote 192.168.20.1
--ip -net "$nsr2" link set tun1 up
--ip -net "$nsr2" addr add 192.168.200.2/24 dev tun1
-+
-+ip -net "$nsr2" link add name tun0.10 type ipip local 192.168.20.2 remote 192.168.20.1
-+ip -net "$nsr2" link set tun0.10 up
-+ip -net "$nsr2" addr add 192.168.200.2/24 dev tun0.10
- ip -net "$nsr2" route change default via 192.168.200.1
--ip netns exec "$nsr2" sysctl net.ipv4.conf.tun1.forwarding=1 > /dev/null
-+ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
-+
-+ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1
-+ip -net "$nsr2" link set tun6.10 up
-+ip -net "$nsr2" addr add fee1:5::2/64 dev tun6.10 nodad
-+ip -6 -net "$nsr2" route change default via fee1:5::1
- 
- if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
- 	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel over vlan" 1>&2
-@@ -638,10 +673,19 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
- 	ret=1
- fi
- 
-+if test_tcp_forwarding "$ns1" "$ns2" 1 6 "[dead:2::99]" 12345; then
-+	echo "PASS: flow offload for ns1/ns2 IP6IP6 tunnel over vlan"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel over vlan" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
- # Restore the previous configuration
- ip -net "$nsr1" route change default via 192.168.10.2
- ip -net "$nsr2" route change default via 192.168.10.1
- ip -net "$ns2" route del default via 10.0.2.1
-+ip -6 -net "$ns2" route del default via dead:2::1
+ 	if (nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
+-			      &ignored_ct->tuplehash[IP_CT_DIR_REPLY].tuple) &&
+-	    nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_REPLY].tuple,
+-			      &ignored_ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple)) {
++			      &ignored_ct->tuplehash[IP_CT_DIR_REPLY].tuple))
+ 		taken = false;
+-		goto out;
+-	}
+ out:
+ 	nf_ct_put(ct);
+ 	return taken;
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c
+index 507930cee8cb..462d628cc3bd 100644
+--- a/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c
++++ b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.c
+@@ -33,9 +33,14 @@ static void die(const char *e)
+ 	exit(111);
  }
  
- # Another test:
-
+-static void die_port(uint16_t got, uint16_t want)
++static void die_port(const struct sockaddr_in *sin, uint16_t want)
+ {
+-	fprintf(stderr, "Port number changed, wanted %d got %d\n", want, ntohs(got));
++	uint16_t got = ntohs(sin->sin_port);
++	char str[INET_ADDRSTRLEN];
++
++	inet_ntop(AF_INET, &sin->sin_addr, str, sizeof(str));
++
++	fprintf(stderr, "Port number changed, wanted %d got %d from %s\n", want, got, str);
+ 	exit(1);
+ }
+ 
+@@ -100,7 +105,7 @@ int main(int argc, char *argv[])
+ 				die("child recvfrom");
+ 
+ 			if (peer.sin_port != htons(PORT))
+-				die_port(peer.sin_port, PORT);
++				die_port(&peer, PORT);
+ 		} else {
+ 			if (sendto(s2, buf, LEN, 0, (struct sockaddr *)&sa1, sizeof(sa1)) != LEN)
+ 				continue;
+@@ -109,7 +114,7 @@ int main(int argc, char *argv[])
+ 				die("parent recvfrom");
+ 
+ 			if (peer.sin_port != htons((PORT + 1)))
+-				die_port(peer.sin_port, PORT + 1);
++				die_port(&peer, PORT + 1);
+ 		}
+ 	}
+ 
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh
+index a24c896347a8..dc7e9d6da062 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_reverse_clash.sh
+@@ -45,6 +45,8 @@ if ip netns exec "$ns0" ./conntrack_reverse_clash; then
+ 	echo "PASS: No SNAT performed for null bindings"
+ else
+ 	echo "ERROR: SNAT performed without any matching snat rule"
++	ip netns exec "$ns0" conntrack -L
++	ip netns exec "$ns0" conntrack -S
+ 	exit 1
+ fi
+ 
 -- 
-2.52.0
+2.51.2
 
