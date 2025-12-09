@@ -1,50 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9438F329C65
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Dec 2025 16:45:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 132662FFFB1
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Dec 2025 16:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765298753; cv=none; b=YVbNzMHR2vlAaXtP8MUk6MWHWVQWA97iTmni0vYamfTefYTT79837Qn73meFDSecoxP9icDM4XuqH+7/Qm8rBTcKM5jdqXCKaudKC1cfiMDPAOU2kL/KTe/0Yc/bDIlGD9BfSXV2EGvgWLJAWfTE4zm62VBjDVE2rkJUidqlfHA=
+	t=1765298753; cv=none; b=OyideRPQu9EQjaII3x1/nT2WKi/I4/NuqxaR0MM1TCieCmEX13+huWlfEbrRHCwkux63O/jQGfijgnXGXw9XJfhYFyvdsvyLBw1T3z7Z6/mkR05rHx8uSITJvxE7vKdXDzWyZoDClOL5GV5C8CgjrtZK+IReewj+kLPxdV0v37U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1765298753; c=relaxed/simple;
-	bh=JIccEBWmvp7cyfxV0G+z4fAEfHluio6Mk4R3NgclL04=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WVyauZkgBkvB6tQMXbxH7YHKY06xu97m1uGmvOWz8BuNFuLLPpRMDRRSUx7swpL5lu5k/G41710OiBKoGMGJOFTQLIUU7WR9+3K4YL/H1b6FDPEiEsvALTEKZibze4JczCtGxZaqNQhk25q3GCU5fbC+nThNOQNf3pG7GinQIfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ngbTQCE8; arc=none smtp.client-ip=151.80.46.58
+	bh=jlaOkLIiS32AxTDiHzFEm5Sdp2j/l9fAA7qVWQd/314=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=c/N3APiKropRBoS0+l+FOQNoK9MIDtYgCinZ3a+7Til6dj6ujwx/R2USCQ1U7NDEUoguWmRQliAdo3KiolxIjDFrLylNZOVAkVq80rmuWKNAc3Lf6JsbUvNfPj7/6w16A1pnoXVaXFckGXlUgwZto4P+ucisO6QIzfL9m6NVbsc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=OYYR9lGF; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ngbTQCE8"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="OYYR9lGF"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=hetxi1allriwGXfA2tmYd7+XXmQSvelH8O0RtCd57k8=; b=ngbTQCE8TEyVzT4QWsI4KOoLnC
-	hivKJpbg8MTeUpWSODa+CvbzRXZ5+lHuowsg2TACz0+Ai9U078PueYrRSesh06ONddkTbYPc0VAoJ
-	CQIZtEWLKHMgfFisij+w2zm/1RDc43sF1lO6lYyZNZkRSOaGYHlAphwH1dTfCQqT3i5rXBpQpB0XI
-	dvVNxBcVv0YxlDYWFc78wMTEr0qmLxFJqs67PEspUF/xg2VxubwFvpDVresaDGUrQlo6jwMydbNL3
-	5BfPvPdMNujHC9IosilifsQW6ic0Nl3lmwJ4wpDM8gv7y89YNBjdtOBO1AAbivWrj+V7e5AZxAm6J
-	qMtSL+jQ==;
+	bh=T+x+YnbalXcdEfeGXK1SgL59LE0VeNj/25PnyF98Kyo=; b=OYYR9lGFosBc1/F7GVp4Oh9+A6
+	W6usCD0JS3ahXgP+QMVxJNcXjzRprL7uDereliZTxmbb5P56BPcS0wos8SKz/DYbHPcLssPMxpxXY
+	vQQ25XG84Q8a7GR+O+/Hv5y0kCP0yD96MzgTXypgzsEcxYOJcXD2Hr6PcxAlE0VnuSoLljntbYfdx
+	T6kWVhIflOcgdLKfbdyyiB0KrfzHXLRU9unoZR8vimCEsg4dsF26J2f8z7LVSw/InEL6/uckJlJqV
+	K5sKZd1Jt0ooLG0ECGLS7imdlSQv/xKSkpZVFT5rOMA+e91IeRD6AQCF9/8D4/OX03QpuvpeqjcsX
+	9W/kAYJQ==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1vT0qT-000000007u2-48Ow;
-	Tue, 09 Dec 2025 17:45:50 +0100
+	id 1vT0qQ-000000007tO-3K69;
+	Tue, 09 Dec 2025 17:45:46 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH 5/6] parser_bison: Introduce bytes_unit
-Date: Tue,  9 Dec 2025 17:45:40 +0100
-Message-ID: <20251209164541.13425-6-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH 0/6] parser_bison: Less STRING more tokens
+Date: Tue,  9 Dec 2025 17:45:35 +0100
+Message-ID: <20251209164541.13425-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20251209164541.13425-1-phil@nwl.cc>
-References: <20251209164541.13425-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,215 +49,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Introduce scoped tokens for "kbytes" and "mbytes", completing already
-existing "bytes" one. Then generalize the unit for byte values and
-replace both quota_unit and limit_bytes by a combination of NUM and
-bytes_unit.
+Introducing new tokens should be harmless as long as they are scoped
+since it won't break existing rulesets using them for user-defined names.
 
-With this in place, data_unit_parse() is not called outside of
-datatype.c, so make it static.
+Leverage this to offload more input parsing to flex/bison, thereby
+reducing custom code size.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Reviewed-by: Florian Westphal <fw@strlen.de>
----
- include/datatype.h |  3 --
- src/datatype.c     |  4 +--
- src/parser_bison.y | 75 +++++++++++-----------------------------------
- src/scanner.l      |  2 ++
- 4 files changed, 22 insertions(+), 62 deletions(-)
+Changes since RFC:
+- Fix up patches 1 and 2 as per review
+- Add Reviewed-by: tags to patches 3 to 5
 
-diff --git a/include/datatype.h b/include/datatype.h
-index 4fb47f158fc2f..63dba330137a0 100644
---- a/include/datatype.h
-+++ b/include/datatype.h
-@@ -313,9 +313,6 @@ extern struct error_record *rate_parse(const struct location *loc,
- 				       const char *str, uint64_t *rate,
- 				       uint64_t *unit);
- 
--extern struct error_record *data_unit_parse(const struct location *loc,
--					    const char *str, uint64_t *rate);
--
- struct limit_rate {
- 	uint64_t rate, unit;
- };
-diff --git a/src/datatype.c b/src/datatype.c
-index fac4eb9cdcecd..1950a2f3757b8 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -1507,8 +1507,8 @@ static struct error_record *time_unit_parse(const struct location *loc,
- 	return NULL;
- }
- 
--struct error_record *data_unit_parse(const struct location *loc,
--				     const char *str, uint64_t *rate)
-+static struct error_record *data_unit_parse(const struct location *loc,
-+					    const char *str, uint64_t *rate)
- {
- 	if (strcmp(str, "bytes") == 0)
- 		*rate = 1ULL;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 8e07671cb80e9..9639352a4b47d 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -617,6 +617,8 @@ int nft_lex(void *, void *, void *);
- %token NAME			"name"
- %token PACKETS			"packets"
- %token BYTES			"bytes"
-+%token KBYTES			"kbytes"
-+%token MBYTES			"mbytes"
- %token AVGPKT			"avgpkt"
- 
- %token LAST			"last"
-@@ -774,8 +776,8 @@ int nft_lex(void *, void *, void *);
- %type <prio_spec>		extended_prio_spec prio_spec
- %destructor { expr_free($$.expr); } extended_prio_spec prio_spec
- 
--%type <string>			extended_prio_name quota_unit	basehook_device_name
--%destructor { free_const($$); }	extended_prio_name quota_unit	basehook_device_name
-+%type <string>			extended_prio_name basehook_device_name
-+%destructor { free_const($$); }	extended_prio_name basehook_device_name
- 
- %type <expr>			dev_spec
- %destructor { free($$); }	dev_spec
-@@ -828,7 +830,7 @@ int nft_lex(void *, void *, void *);
- %type <val>			level_type log_flags log_flags_tcp log_flag_tcp
- %type <stmt>			limit_stmt quota_stmt connlimit_stmt
- %destructor { stmt_free($$); }	limit_stmt quota_stmt connlimit_stmt
--%type <val>			limit_burst_pkts limit_burst_bytes limit_mode limit_bytes time_unit quota_mode
-+%type <val>			limit_burst_pkts limit_burst_bytes limit_mode bytes_unit time_unit quota_mode
- %type <stmt>			reject_stmt reject_stmt_alloc
- %destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
- %type <stmt>			nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
-@@ -3596,23 +3598,15 @@ quota_mode		:	OVER		{ $$ = NFT_QUOTA_F_INV; }
- 			|	/* empty */	{ $$ = 0; }
- 			;
- 
--quota_unit		:	BYTES		{ $$ = xstrdup("bytes"); }
--			|	STRING		{ $$ = $1; }
-+bytes_unit		:	BYTES		{ $$ = 1; }
-+			|	KBYTES		{ $$ = 1024; }
-+			|	MBYTES		{ $$ = 1024 * 1024; }
- 			;
- 
- quota_used		:	/* empty */	{ $$ = 0; }
--			|	USED NUM quota_unit
-+			|	USED NUM bytes_unit
- 			{
--				struct error_record *erec;
--				uint64_t rate;
--
--				erec = data_unit_parse(&@$, $3, &rate);
--				free_const($3);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--				$$ = $2 * rate;
-+				$$ = $2 * $3;
- 			}
- 			;
- 
-@@ -3625,22 +3619,14 @@ quota_stmt_alloc	:	QUOTA
- quota_stmt		:	quota_stmt_alloc quota_args
- 			;
- 
--quota_args		:	quota_mode NUM quota_unit quota_used
-+quota_args		:	quota_mode NUM bytes_unit quota_used
- 			{
--				struct error_record *erec;
- 				struct quota_stmt *quota;
--				uint64_t rate;
- 
- 				assert($<stmt>0->type == STMT_QUOTA);
- 
--				erec = data_unit_parse(&@$, $3, &rate);
--				free_const($3);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
- 				quota = &$<stmt>0->quota;
--				quota->bytes = $2 * rate;
-+				quota->bytes = $2 * $3;
- 				quota->used = $4;
- 				quota->flags = $1;
- 			}
-@@ -3663,7 +3649,7 @@ limit_rate_pkts		:	NUM     SLASH	time_unit
- 			;
- 
- limit_burst_bytes	:	/* empty */			{ $$ = 0; }
--			|	BURST	limit_bytes		{ $$ = $2; }
-+			|	BURST	NUM	bytes_unit	{ $$ = $2 * $3; }
- 			;
- 
- limit_rate_bytes	:	NUM     STRING
-@@ -3680,26 +3666,10 @@ limit_rate_bytes	:	NUM     STRING
- 				$$.rate = rate * $1;
- 				$$.unit = unit;
- 			}
--			|	limit_bytes SLASH time_unit
-+			|	NUM bytes_unit SLASH time_unit
- 			{
--				$$.rate = $1;
--				$$.unit = $3;
--			}
--			;
--
--limit_bytes		:	NUM	BYTES		{ $$ = $1; }
--			|	NUM	STRING
--			{
--				struct error_record *erec;
--				uint64_t rate;
--
--				erec = data_unit_parse(&@$, $2, &rate);
--				free_const($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--				$$ = $1 * rate;
-+				$$.rate = $1 * $2;
-+				$$.unit = $4;
- 			}
- 			;
- 
-@@ -4767,21 +4737,12 @@ counter_obj		:	/* empty */
- 			}
- 			;
- 
--quota_config		:	quota_mode NUM quota_unit quota_used
-+quota_config		:	quota_mode NUM bytes_unit quota_used
- 			{
--				struct error_record *erec;
- 				struct quota *quota;
--				uint64_t rate;
--
--				erec = data_unit_parse(&@$, $3, &rate);
--				free_const($3);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
- 
- 				quota = &$<obj>0->quota;
--				quota->bytes	= $2 * rate;
-+				quota->bytes	= $2 * $3;
- 				quota->used	= $4;
- 				quota->flags	= $1;
- 			}
-diff --git a/src/scanner.l b/src/scanner.l
-index ca570e2bfe066..4cbc8a44c89c8 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -414,6 +414,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- <SCANSTATE_COUNTER,SCANSTATE_LIMIT,SCANSTATE_QUOTA,SCANSTATE_STMT_SYNPROXY,SCANSTATE_EXPR_OSF,SCANSTATE_TUNNEL>"name"			{ return NAME; }
- <SCANSTATE_COUNTER,SCANSTATE_CT,SCANSTATE_LIMIT>"packets"		{ return PACKETS; }
- <SCANSTATE_COUNTER,SCANSTATE_CT,SCANSTATE_LIMIT,SCANSTATE_QUOTA>"bytes"	{ return BYTES; }
-+<SCANSTATE_LIMIT,SCANSTATE_QUOTA>"kbytes"	{ return KBYTES; }
-+<SCANSTATE_LIMIT,SCANSTATE_QUOTA>"mbytes"	{ return MBYTES; }
- 
- "last"				{ scanner_push_start_cond(yyscanner, SCANSTATE_LAST); return LAST; }
- <SCANSTATE_LAST>{
+Phil Sutter (6):
+  parser_bison: Introduce tokens for monitor events
+  parser_bison: Introduce tokens for chain types
+  parser_bison: Introduce tokens for osf ttl values
+  parser_bison: Introduce tokens for log levels
+  parser_bison: Introduce bytes_unit
+  scanner: Introduce SCANSTATE_RATE
+
+ include/datatype.h           |   7 --
+ include/parser.h             |   1 +
+ include/rule.h               |  21 ++--
+ src/datatype.c               |  61 -----------
+ src/evaluate.c               |  22 +---
+ src/parser_bison.y           | 204 +++++++++++------------------------
+ src/rule.c                   |  23 +---
+ src/scanner.l                |  76 ++++++++-----
+ tests/py/any/limit.t         |   6 ++
+ tests/py/any/limit.t.json    |  70 ++++++++++++
+ tests/py/any/limit.t.payload |  20 ++++
+ 11 files changed, 231 insertions(+), 280 deletions(-)
+
 -- 
 2.51.0
 
