@@ -1,47 +1,47 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6EBE3002A0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA093002D3
 	for <netfilter-devel@vger.kernel.org>; Tue,  9 Dec 2025 16:45:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765298751; cv=none; b=gDYSSinuvLpICrwCdtyVlVAj2Z7BXoYZhpTu/k3knqY6vX1nA6gPRTvsjpmatMKFhkMjwdjQST1XHqxudsTxxKxuPISEr4TZ9tnHszorws5ipgjcY7P6yZW44qisMBZkX7TnnBrn8getDkbH7Y3P9jnhdA3So5gVZqdNum46KzI=
+	t=1765298752; cv=none; b=QweR01EILWXjUpLDSG/1x+dQXAxAEndvh6n9H30ZIPR2SaAEzijaArnt0dMMUNihu0JQ0cLgQPsM0ubczaYs7Y1+Bn0YrCc/uJ+hNiHDwzBpEV8b5hBbYDLid3qwrTVlHCtCDurGjVru0HdpBaY3uTpEmSaiHvpzhx0xqsZtTLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765298751; c=relaxed/simple;
-	bh=p2DiFMn0pi2xYYDklHXmV3s7TJ7tOX0K7dWWz+Wsfhg=;
+	s=arc-20240116; t=1765298752; c=relaxed/simple;
+	bh=ihVJFv3nxlRU4dcz0bJPdssDEKGjviLy/kYRSkqZD60=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gfOSiS9K+FKIkEltW1zLWuHv2/gwkSvpN2DGaS5eEcelimv5maqiHB6wpq50m1QwRmPr5OeQIQ7KzrcRDpBWAq9zuPSWECi7X9f5dTr1egoCc1qJZCpaI7zAw8NVjRPpNEtQY1JSF8CAUyZVz35K3I6mvmhyfAujuVL5AT6UwhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=U65K3EeI; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=Yj7NUB75FKGA4f4sWvVYaMauT5AGIF1jFdb1x1bh6Fiu4K4zaqkqMwodQDPAr3B7+tBfqQDZwIli1WyLXNljeNLPZ6dDBfQsPqnAJuTClvfxGlimfHwiroJvvl+gKf3RzvNj9WIc6ay99YX8dyXnS8gCfl+vfvi2wvCzPCOGzjk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=HEOG5HD3; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="U65K3EeI"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="HEOG5HD3"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=hvL43COqY1775QbIjDN0QhhFaZTqr7F08jA3IdkiSj0=; b=U65K3EeICf6cidsi0cMyAct9j+
-	TtLZYBx3Pg11rTPjEBKIKIZcl13li3+mQ3VN5UwxcQDi6BJw4Y6CdwvRpxilZaxJBqLLmwPLA3ER2
-	3Gl/kQ5k3V+EOWCc91DvxjMeOeFHGTx1St9JqVFiR2aACP6RNBd3k77TCnCNj3NLJrAOKAeTL9Hey
-	hlimlzzozPIXdsd6vJjtXn7/MRqdpCpP9TjFCAI1px/PRkxdloP2ujNanG2yZuOI3ZYSWfEZBHDKY
-	Y70L56UJwiNx05O95UzWwi00JQfMq8wyCXswq/GAkrKivv3Zi9i8V8XD3Apu1mBQxsceYCL1unsJJ
-	pT/NHerg==;
+	bh=J4UDFFyqYn/9KTG6+FbqKxX7YGSjb1PK/qs5CSJcvEA=; b=HEOG5HD34pJlEmSfmVWu/BRaBW
+	MAppNT7QVQUK6AhDuvPAA6h3yr5i6cgmP16xoqI3unggkEMEVOY8IRflIGhzpITxcjtM5FMIMbuew
+	0XI+Jlr90dKw6mXnKNPNRWZbA0rkEc6EXbcUeTfTWqJB5ShKjar0CJTdNCugJXtoxz5f95YyiY3qY
+	eCtLF2Gxo65eM5WXaatuHDA1ZOsUAvOJ5Q26Wq5iAHSnZ6OJg88lwYYaTDeMV56G9roYzkq2WVEji
+	k9bwIBsTM+tLz6JWCJaPqXIsM2HMQHFlO7g3OOfnjNYtH88eDtbrEfHdOoJWDniU9384nqwh77zFW
+	u/IWzB5w==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.97.1)
 	(envelope-from <phil@nwl.cc>)
-	id 1vT0qR-000000007tb-3YAJ;
-	Tue, 09 Dec 2025 17:45:47 +0100
+	id 1vT0qS-000000007tm-1dOE;
+	Tue, 09 Dec 2025 17:45:48 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org,
 	Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH 3/6] parser_bison: Introduce tokens for osf ttl values
-Date: Tue,  9 Dec 2025 17:45:38 +0100
-Message-ID: <20251209164541.13425-4-phil@nwl.cc>
+Subject: [nft PATCH 4/6] parser_bison: Introduce tokens for log levels
+Date: Tue,  9 Dec 2025 17:45:39 +0100
+Message-ID: <20251209164541.13425-5-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20251209164541.13425-1-phil@nwl.cc>
 References: <20251209164541.13425-1-phil@nwl.cc>
@@ -53,74 +53,102 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Eliminate the open-coded string parsing and error handling.
+Since log statement is scoped already, it's just a matter of declaring
+the tokens in that scope and using them. This eliminates the redundant
+copy of log level string parsing in parser_bison.y - the remaining one,
+namely log_level_parse() in statement.c is used by JSON parser.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 Reviewed-by: Florian Westphal <fw@strlen.de>
 ---
- src/parser_bison.y | 24 ++++++------------------
- src/scanner.l      |  6 ++++++
- 2 files changed, 12 insertions(+), 18 deletions(-)
+ src/parser_bison.y | 46 ++++++++++++++++++----------------------------
+ src/scanner.l      |  9 +++++++++
+ 2 files changed, 27 insertions(+), 28 deletions(-)
 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 405fe8f2690ca..ba485a8c25b50 100644
+index ba485a8c25b50..8e07671cb80e9 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -719,6 +719,9 @@ int nft_lex(void *, void *, void *);
- %token NAT		"nat"
- %token ROUTE		"route"
+@@ -643,6 +643,15 @@ int nft_lex(void *, void *, void *);
+ %token SNAPLEN			"snaplen"
+ %token QUEUE_THRESHOLD		"queue-threshold"
+ %token LEVEL			"level"
++%token EMERG			"emerg"
++%token ALERT			"alert"
++%token CRIT			"crit"
++%token ERR			"err"
++%token WARN			"warn"
++%token NOTICE			"notice"
++%token INFO			"info"
++%token DEBUG_TOKEN		"debug"
++%token AUDIT			"audit"
  
-+%token LOOSE		"loose"
-+%token SKIP		"skip"
-+
- %type <limit_rate>		limit_rate_pkts
- %type <limit_rate>		limit_rate_bytes
- 
-@@ -4485,24 +4488,9 @@ osf_expr		:	OSF	osf_ttl		HDRVERSION	close_scope_osf
+ %token LIMIT			"limit"
+ %token RATE			"rate"
+@@ -3490,34 +3499,15 @@ log_arg			:	PREFIX			string
  			}
  			;
  
--osf_ttl			:	/* empty */
+-level_type		:	string
 -			{
--				$$ = NF_OSF_TTL_TRUE;
--			}
--			|	TTL	STRING
--			{
--				if (!strcmp($2, "loose"))
--					$$ = NF_OSF_TTL_LESS;
--				else if (!strcmp($2, "skip"))
--					$$ = NF_OSF_TTL_NOCHECK;
+-				if (!strcmp("emerg", $1))
+-					$$ = NFT_LOGLEVEL_EMERG;
+-				else if (!strcmp("alert", $1))
+-					$$ = NFT_LOGLEVEL_ALERT;
+-				else if (!strcmp("crit", $1))
+-					$$ = NFT_LOGLEVEL_CRIT;
+-				else if (!strcmp("err", $1))
+-					$$ = NFT_LOGLEVEL_ERR;
+-				else if (!strcmp("warn", $1))
+-					$$ = NFT_LOGLEVEL_WARNING;
+-				else if (!strcmp("notice", $1))
+-					$$ = NFT_LOGLEVEL_NOTICE;
+-				else if (!strcmp("info", $1))
+-					$$ = NFT_LOGLEVEL_INFO;
+-				else if (!strcmp("debug", $1))
+-					$$ = NFT_LOGLEVEL_DEBUG;
+-				else if (!strcmp("audit", $1))
+-					$$ = NFT_LOGLEVEL_AUDIT;
 -				else {
--					erec_queue(error(&@2, "invalid ttl option"),
+-					erec_queue(error(&@1, "invalid log level"),
 -						   state->msgs);
--					free_const($2);
+-					free_const($1);
 -					YYERROR;
 -				}
--				free_const($2);
+-				free_const($1);
 -			}
-+osf_ttl			:	/* empty */	{ $$ = NF_OSF_TTL_TRUE; }
-+			|	TTL	LOOSE	{ $$ = NF_OSF_TTL_LESS; }
-+			|	TTL	SKIP	{ $$ = NF_OSF_TTL_NOCHECK; }
++level_type		:	EMERG		{ $$ = NFT_LOGLEVEL_EMERG; }
++			|	ALERT		{ $$ = NFT_LOGLEVEL_ALERT; }
++			|	CRIT		{ $$ = NFT_LOGLEVEL_CRIT; }
++			|	ERR		{ $$ = NFT_LOGLEVEL_ERR; }
++			|	WARN		{ $$ = NFT_LOGLEVEL_WARNING; }
++			|	NOTICE		{ $$ = NFT_LOGLEVEL_NOTICE; }
++			|	INFO		{ $$ = NFT_LOGLEVEL_INFO; }
++			|	DEBUG_TOKEN	{ $$ = NFT_LOGLEVEL_DEBUG; }
++			|	AUDIT		{ $$ = NFT_LOGLEVEL_AUDIT; }
  			;
  
- shift_expr		:	primary_expr
+ log_flags		:	TCP	log_flags_tcp	close_scope_tcp
 diff --git a/src/scanner.l b/src/scanner.l
-index b397a147ef9bd..e0f0aabb683a3 100644
+index e0f0aabb683a3..ca570e2bfe066 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -533,6 +533,12 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- <SCANSTATE_EXPR_OSF,SCANSTATE_IP>{
- 	"ttl"			{ return TTL; }
+@@ -433,6 +433,15 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 	"queue-threshold"	{ return QUEUE_THRESHOLD; }
+ 	"level"			{ return LEVEL; }
+ 	"group"			{ return GROUP; }
++	"emerg"			{ return EMERG; }
++	"alert"			{ return ALERT; }
++	"crit"			{ return CRIT; }
++	"err"			{ return ERR; }
++	"warn"			{ return WARN; }
++	"notice"		{ return NOTICE; }
++	"info"			{ return INFO; }
++	"debug"			{ return DEBUG_TOKEN; }
++	"audit"			{ return AUDIT; }
  }
-+
-+<SCANSTATE_EXPR_OSF>{
-+	"loose"			{ return LOOSE; }
-+	"skip"			{ return SKIP; }
-+}
-+
- <SCANSTATE_CT,SCANSTATE_IP,SCANSTATE_META,SCANSTATE_TYPE,SCANSTATE_GRE>"protocol"		{ return PROTOCOL; }
- <SCANSTATE_EXPR_MH,SCANSTATE_EXPR_UDP,SCANSTATE_EXPR_UDPLITE,SCANSTATE_ICMP,SCANSTATE_IGMP,SCANSTATE_IP,SCANSTATE_SCTP,SCANSTATE_TCP>{
- 	"checksum"		{ return CHECKSUM; }
+ 
+ "queue"			{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_QUEUE); return QUEUE;}
 -- 
 2.51.0
 
