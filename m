@@ -1,88 +1,85 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E746218B0A
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Dec 2025 23:03:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0BC72741AC;
+	Tue,  9 Dec 2025 07:35:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765235033; cv=none; b=kEp0nU1mAgsMOBhB/uTwuvE0KFXJUDWzHIds2B44iiN0whiFGNqrFd0plZ9v841iJSdUnwL50A9EyfBArN2QGYHdUQWaX7Q7FdTsgHakIee5dtk2qoff98dp7hiZKekWDZBuuHLDZYCLCOffEYzu26P9xpri3nxA/rndIMVV4sk=
+	t=1765265760; cv=none; b=dCj/r0CP02YShjml0t0Aqt/jDHaJe7Gp08cewH/AmK/BUe5XAXtCkmG21pRD222Ugyzmn7oexg/5p6vUPSG7xZTVmoChK9CXBuugT9RxHF9wyZZBbYhNX317qrvOTm8W4Dd8ys8pFMhFyG4jCiUsMFSV/8CdrtibxR5dMu4eSvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765235033; c=relaxed/simple;
-	bh=DAv2l7W00UxvUjAGkM/i7GFyw04TMLOKTkp0TNtrgi8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JYTnues1uNfRHXnG8VB0SY2FGaa15D11wtvIPlM55wdPLZ5ZDenvkqUmrmxD/W56rn6f0wPDq+IPMzBh4Ug+Hz1E6k2fNJp4QJhsEsjYI6llkXtgESMA79yCzc5YufzEevVWxMjZflFLCKRr6vWuM+i+Vp0Do4ki/Nd3w9XV3r0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D5BB860336; Tue, 09 Dec 2025 00:03:48 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Jakub Kicinski <kuba@kernel.org>
-Subject: [PATCH nf] selftests: netfilter: prefer xfail in case race wasn't triggered
-Date: Tue,  9 Dec 2025 00:03:36 +0100
-Message-ID: <20251208230339.28964-1-fw@strlen.de>
-X-Mailer: git-send-email 2.51.2
+	s=arc-20240116; t=1765265760; c=relaxed/simple;
+	bh=rz+m2KhohhyibiCcuNEJXb+G/bF4RQKoUcygr5ERccg=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=QJg+VbR2U7nYzWufdQMDkGZiixqlEHFY0LL2HyvxUB0SFOjNhe+mwCCuOf53J+SnyGtsXGjiDU5gPUNhz1bExD/rosusqVtIlVffPMYgbdc6CKgaa9lnvoLKEwZGBbJXFFTX/EwI8lCVhFRbBwW2DQnTneLZ8Ptnd6O3yEE5baA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rKhm10my; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rKhm10my"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A976C4CEF5;
+	Tue,  9 Dec 2025 07:35:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1765265759;
+	bh=rz+m2KhohhyibiCcuNEJXb+G/bF4RQKoUcygr5ERccg=;
+	h=From:Subject:Date:To:Cc:From;
+	b=rKhm10myHl1kxiYWeeP5ESH8nH4DMgafY2Dh8T8CvRMXFZAeoftqz9+jvu5T2nuxC
+	 NHyTa2TU6JM+WAuooRFQvIRJuoQ6Xd5FBu3HKvRm0EhtA50q4hH55T9pAEMH9a0aXt
+	 Zfhu5FYdVi7VNWw/xGwwvtHXKmE6Sm7RwB3nmtwokdGhl80g62TQKNAb6GgDuu6sAE
+	 mI+jdR4dLy+lbnnbMiQlZr0xOL0FZwlffKH5YRpS7oe0hGJQroa5BGE8iY0SeQZIq0
+	 OLNs7cz4BJ4ABC2941fj1qmy8J2wzu52J9j+tatJka2KBrRWBThBYldO+J3yIlWMsA
+	 9kz9wft8tSfRg==
+From: Lorenzo Bianconi <lorenzo@kernel.org>
+Subject: [PATCH nf-next v2 0/4] Add IP6IP6 flowtable SW acceleration
+Date: Tue, 09 Dec 2025 08:35:30 +0100
+Message-Id: <20251209-b4-flowtable-offload-ip6ip6-v2-0-44817f1be5c6@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAAAAAAC/42NQQ6CMBBFr0Jm7Zi2IEVX3sOwKGUKEwklLakaw
+ t2tnMDkL/77i/c3iBSYItyKDQIljuznDOpUgB3NPBBynxmUUBephMauQjf512q6idC73E2PvNQ
+ 52NDVKFu70mgN2bAEcvw+7I8288hx9eFznCX5W//zJokCZUOl6bTTVWPvTwozTWcfBmj3ff8Cl
+ Cw27scAAAA=
+X-Change-ID: 20251207-b4-flowtable-offload-ip6ip6-8e9a2c6f3a77
+To: Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ David Ahern <dsahern@kernel.org>, Shuah Khan <shuah@kernel.org>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+ netdev@vger.kernel.org, linux-kselftest@vger.kernel.org, 
+ Lorenzo Bianconi <lorenzo@kernel.org>
+X-Mailer: b4 0.14.2
 
-Jakub says: "We try to reserve SKIP for tests skipped because tool is
-missing in env, something isn't built into the kernel etc."
+Introduce SW acceleration for IP6IP6 tunnels in the netfilter flowtable
+infrastructure.
 
-use xfail, we can't force the race condition to appear at will
-so its expected that the test 'fails' occasionally.
-
-Fixes: 78a588363587 ("selftests: netfilter: add conntrack clash resolution test case")
-Reported-by: Jakub Kicinski <kuba@kernel.org>
-Closes: https://lore.kernel.org/netdev/20251206175647.5c32f419@kernel.org/
-Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tools/testing/selftests/net/netfilter/conntrack_clash.sh | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Changes in v2:
+- Fix compilation when CONFIG_IPV6 is disabled
+- Rely on ipv6_skip_exthdr() in nf_flow_ip6_tunnel_proto() to avoid
+  use-after-free issues
+- Drop patch 2/5 from v1
+- Link to v1: https://lore.kernel.org/r/20251207-b4-flowtable-offload-ip6ip6-v1-0-18e3ab7f748c@kernel.org
 
-diff --git a/tools/testing/selftests/net/netfilter/conntrack_clash.sh b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
-index 7fc6c5dbd551..84b8eb12143a 100755
---- a/tools/testing/selftests/net/netfilter/conntrack_clash.sh
-+++ b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
-@@ -116,7 +116,7 @@ run_one_clash_test()
- 	# not a failure: clash resolution logic did not trigger.
- 	# With right timing, xmit completed sequentially and
- 	# no parallel insertion occurs.
--	return $ksft_skip
-+	return $ksft_xfail
- }
- 
- run_clash_test()
-@@ -133,12 +133,12 @@ run_clash_test()
- 		if [ $rv -eq 0 ];then
- 			echo "PASS: clash resolution test for $daddr:$dport on attempt $i"
- 			return 0
--		elif [ $rv -eq $ksft_skip ]; then
-+		elif [ $rv -eq $ksft_xfail ]; then
- 			softerr=1
- 		fi
- 	done
- 
--	[ $softerr -eq 1 ] && echo "SKIP: clash resolution for $daddr:$dport did not trigger"
-+	[ $softerr -eq 1 ] && echo "XFAIL: clash resolution for $daddr:$dport did not trigger"
- }
- 
- ip link add veth0 netns "$nsclient1" type veth peer name veth0 netns "$nsrouter"
-@@ -167,8 +167,7 @@ load_simple_ruleset "$nsclient2"
- run_clash_test "$nsclient2" "$nsclient2" 127.0.0.1 9001
- 
- if [ $clash_resolution_active -eq 0 ];then
--	[ "$ret" -eq 0 ] && ret=$ksft_skip
--	echo "SKIP: Clash resolution did not trigger"
-+	[ "$ret" -eq 0 ] && ret=$ksft_xfail
- fi
- 
- exit $ret
+---
+Lorenzo Bianconi (4):
+      netfilter: Introduce tunnel metadata info in nf_flowtable_ctx struct
+      netfilter: flowtable: Add IP6IP6 rx sw acceleration
+      netfilter: flowtable: Add IP6IP6 tx sw acceleration
+      selftests: netfilter: nft_flowtable.sh: Add IP6IP6 flowtable selftest
+
+ net/ipv6/ip6_tunnel.c                              |  27 +++
+ net/netfilter/nf_flow_table_ip.c                   | 229 ++++++++++++++++++---
+ .../selftests/net/netfilter/nft_flowtable.sh       |  62 +++++-
+ 3 files changed, 275 insertions(+), 43 deletions(-)
+---
+base-commit: f8156ef0fd8232055396ebf1e044fa06fb8bc388
+change-id: 20251207-b4-flowtable-offload-ip6ip6-8e9a2c6f3a77
+
+Best regards,
 -- 
-2.51.2
+Lorenzo Bianconi <lorenzo@kernel.org>
 
