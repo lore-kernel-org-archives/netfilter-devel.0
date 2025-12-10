@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C87A4321F39;
-	Wed, 10 Dec 2025 11:08:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E07331AA8B;
+	Wed, 10 Dec 2025 11:08:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765364895; cv=none; b=F6DkKXa8RiOeBlzKn9ukq9wCXJzH9SA5aVvBhiMbvF1xPAhCRmodTnembFwaknu9g+mNCcuJtBsyJJNecQFAEyfFIdTIzf3nmlj6+S2ncDSmZBZ/8tmD8YyhxS2bM7NQm9fXjAQxobP8ddm6U5QzrLANVxiBw7QJxNGnnN1Bcrk=
+	t=1765364900; cv=none; b=T+l8HsClC97gn1l0kC0hHY65q5QZ1wS0U/y10ShhYCKwjUzLyBAxW4uVMlcWAfnc2UKhCJugfuzEqHyqo41fYT9MQH5cnLcJfovC0+4vp9K8IwyZmMdSCLjnzXtXfEp3Q0B38nsM5jAYSu7FpJoOZzz/FDPjYW1WOXfzDopsx4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765364895; c=relaxed/simple;
-	bh=8TBoKxKVTVyKrmWai7e/jg4Ts0uGPdgiZfKDIsdxr1o=;
+	s=arc-20240116; t=1765364900; c=relaxed/simple;
+	bh=DAv2l7W00UxvUjAGkM/i7GFyw04TMLOKTkp0TNtrgi8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=PtLAi5vB94+w9dYy6kaQxGa5XhLcjDx3pA49xvqvV1cOAh97SiesxJr8qsPw6b6UKzBdZMDUnBfyzr9Oe9+UwP+NSLmagvAuvG2LZ5xesFAiqMr36otPws2QbtSMLivPhkmVc4pINfL5SKqo49SFLlxNOLSxksV7CKKkJDFidIk=
+	 MIME-Version; b=nQi9MNtv5lNWlNNFJxvMKbLY5EoCtCfnfMHk5otQP+s1gFNDUojRNn3PKVIv0MLcol7ZqzwXOUBRJe6lHwt8p79H2PbqPzx8AegGZ96GppG9xL1xs+WfkvJfDPz7JfCalimAUALu7H2/Huz2wR6VKUD+hrzS6uqyENBlur3FOl4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 18FA96054D; Wed, 10 Dec 2025 12:08:12 +0100 (CET)
+	id 6AA0F605E6; Wed, 10 Dec 2025 12:08:16 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 3/4] netfilter: always set route tuple out ifindex
-Date: Wed, 10 Dec 2025 12:07:53 +0100
-Message-ID: <20251210110754.22620-4-fw@strlen.de>
+Subject: [PATCH net 4/4] selftests: netfilter: prefer xfail in case race wasn't triggered
+Date: Wed, 10 Dec 2025 12:07:54 +0100
+Message-ID: <20251210110754.22620-5-fw@strlen.de>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251210110754.22620-1-fw@strlen.de>
 References: <20251210110754.22620-1-fw@strlen.de>
@@ -38,83 +38,58 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Lorenzo Bianconi <lorenzo@kernel.org>
+Jakub says: "We try to reserve SKIP for tests skipped because tool is
+missing in env, something isn't built into the kernel etc."
 
-Always set nf_flow_route tuple out ifindex even if the indev is not one
-of the flowtable configured devices since otherwise the outdev lookup in
-nf_flow_offload_ip_hook() or nf_flow_offload_ipv6_hook() for
-FLOW_OFFLOAD_XMIT_NEIGH flowtable entries will fail.
-The above issue occurs in the following configuration since IP6IP6
-tunnel does not support flowtable acceleration yet:
+use xfail, we can't force the race condition to appear at will
+so its expected that the test 'fails' occasionally.
 
-$ip addr show
-5: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-    link/ether 00:11:22:33:22:55 brd ff:ff:ff:ff:ff:ff link-netns ns1
-    inet6 2001:db8:1::2/64 scope global nodad
-       valid_lft forever preferred_lft forever
-    inet6 fe80::211:22ff:fe33:2255/64 scope link tentative proto kernel_ll
-       valid_lft forever preferred_lft forever
-6: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-    link/ether 00:22:22:33:22:55 brd ff:ff:ff:ff:ff:ff link-netns ns3
-    inet6 2001:db8:2::1/64 scope global nodad
-       valid_lft forever preferred_lft forever
-    inet6 fe80::222:22ff:fe33:2255/64 scope link tentative proto kernel_ll
-       valid_lft forever preferred_lft forever
-7: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1452 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/tunnel6 2001:db8:2::1 peer 2001:db8:2::2 permaddr a85:e732:2c37::
-    inet6 2002:db8:1::1/64 scope global nodad
-       valid_lft forever preferred_lft forever
-    inet6 fe80::885:e7ff:fe32:2c37/64 scope link proto kernel_ll
-       valid_lft forever preferred_lft forever
-
-$ip -6 route show
-2001:db8:1::/64 dev eth0 proto kernel metric 256 pref medium
-2001:db8:2::/64 dev eth1 proto kernel metric 256 pref medium
-2002:db8:1::/64 dev tun0 proto kernel metric 256 pref medium
-default via 2002:db8:1::2 dev tun0 metric 1024 pref medium
-
-$nft list ruleset
-table inet filter {
-        flowtable ft {
-                hook ingress priority filter
-                devices = { eth0, eth1 }
-        }
-
-        chain forward {
-                type filter hook forward priority filter; policy accept;
-                meta l4proto { tcp, udp } flow add @ft
-        }
-}
-
-Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
+Fixes: 78a588363587 ("selftests: netfilter: add conntrack clash resolution test case")
+Reported-by: Jakub Kicinski <kuba@kernel.org>
+Closes: https://lore.kernel.org/netdev/20251206175647.5c32f419@kernel.org/
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_flow_table_path.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ tools/testing/selftests/net/netfilter/conntrack_clash.sh | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index f0984cf69a09..eb24fe2715dc 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -250,6 +250,9 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
- 	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) >= 0)
- 		nft_dev_path_info(&stack, &info, ha, &ft->data);
+diff --git a/tools/testing/selftests/net/netfilter/conntrack_clash.sh b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
+index 7fc6c5dbd551..84b8eb12143a 100755
+--- a/tools/testing/selftests/net/netfilter/conntrack_clash.sh
++++ b/tools/testing/selftests/net/netfilter/conntrack_clash.sh
+@@ -116,7 +116,7 @@ run_one_clash_test()
+ 	# not a failure: clash resolution logic did not trigger.
+ 	# With right timing, xmit completed sequentially and
+ 	# no parallel insertion occurs.
+-	return $ksft_skip
++	return $ksft_xfail
+ }
  
-+	if (info.outdev)
-+		route->tuple[dir].out.ifindex = info.outdev->ifindex;
-+
- 	if (!info.indev || !nft_flowtable_find_dev(info.indev, ft))
- 		return;
+ run_clash_test()
+@@ -133,12 +133,12 @@ run_clash_test()
+ 		if [ $rv -eq 0 ];then
+ 			echo "PASS: clash resolution test for $daddr:$dport on attempt $i"
+ 			return 0
+-		elif [ $rv -eq $ksft_skip ]; then
++		elif [ $rv -eq $ksft_xfail ]; then
+ 			softerr=1
+ 		fi
+ 	done
  
-@@ -269,7 +272,6 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
+-	[ $softerr -eq 1 ] && echo "SKIP: clash resolution for $daddr:$dport did not trigger"
++	[ $softerr -eq 1 ] && echo "XFAIL: clash resolution for $daddr:$dport did not trigger"
+ }
  
- 	route->tuple[!dir].in.num_encaps = info.num_encaps;
- 	route->tuple[!dir].in.ingress_vlans = info.ingress_vlans;
--	route->tuple[dir].out.ifindex = info.outdev->ifindex;
+ ip link add veth0 netns "$nsclient1" type veth peer name veth0 netns "$nsrouter"
+@@ -167,8 +167,7 @@ load_simple_ruleset "$nsclient2"
+ run_clash_test "$nsclient2" "$nsclient2" 127.0.0.1 9001
  
- 	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
- 		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
+ if [ $clash_resolution_active -eq 0 ];then
+-	[ "$ret" -eq 0 ] && ret=$ksft_skip
+-	echo "SKIP: Clash resolution did not trigger"
++	[ "$ret" -eq 0 ] && ret=$ksft_xfail
+ fi
+ 
+ exit $ret
 -- 
 2.51.2
 
