@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75395317709;
-	Wed, 10 Dec 2025 11:08:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C87A4321F39;
+	Wed, 10 Dec 2025 11:08:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765364891; cv=none; b=elCdfKDcVHq/pksPwkb+Pj3REr9OlqA/+rukT9s++RE+wSz+we0+5tWPPZoH85Vov9rt+u+oQBP+hzhaFcDLUeahosfQwFN+lDCEdKGhwWIPZ2tb/E3KEQghyAzejaVOtct6cxdIKP7hkagMxBWfzuUtIwd2wK2brN5UaYUsR80=
+	t=1765364895; cv=none; b=F6DkKXa8RiOeBlzKn9ukq9wCXJzH9SA5aVvBhiMbvF1xPAhCRmodTnembFwaknu9g+mNCcuJtBsyJJNecQFAEyfFIdTIzf3nmlj6+S2ncDSmZBZ/8tmD8YyhxS2bM7NQm9fXjAQxobP8ddm6U5QzrLANVxiBw7QJxNGnnN1Bcrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765364891; c=relaxed/simple;
-	bh=xqfdE+7Cl7jpzOXzSMfVuBQk8TBtgHB6ZsT+2Mf3/f8=;
+	s=arc-20240116; t=1765364895; c=relaxed/simple;
+	bh=8TBoKxKVTVyKrmWai7e/jg4Ts0uGPdgiZfKDIsdxr1o=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=kLI2dAGiedoca4+1RvbSDNAkczQlCodhge80JEMc7YieYG74LYPjrf/TAkddU/Y9d1KlsWR71c7uCeuc2MyVS3YFtw15LSHH8UC4l5Y1/s2RWlDDkAgbaFKZTRAqs+rxVXU7gwCjITsvVqKQLjA1J+8yOgOrAFEIakSm9xd1XDA=
+	 MIME-Version; b=PtLAi5vB94+w9dYy6kaQxGa5XhLcjDx3pA49xvqvV1cOAh97SiesxJr8qsPw6b6UKzBdZMDUnBfyzr9Oe9+UwP+NSLmagvAuvG2LZ5xesFAiqMr36otPws2QbtSMLivPhkmVc4pINfL5SKqo49SFLlxNOLSxksV7CKKkJDFidIk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id BCCC960471; Wed, 10 Dec 2025 12:08:07 +0100 (CET)
+	id 18FA96054D; Wed, 10 Dec 2025 12:08:12 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 2/4] ipvs: fix ipv4 null-ptr-deref in route error path
-Date: Wed, 10 Dec 2025 12:07:52 +0100
-Message-ID: <20251210110754.22620-3-fw@strlen.de>
+Subject: [PATCH net 3/4] netfilter: always set route tuple out ifindex
+Date: Wed, 10 Dec 2025 12:07:53 +0100
+Message-ID: <20251210110754.22620-4-fw@strlen.de>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251210110754.22620-1-fw@strlen.de>
 References: <20251210110754.22620-1-fw@strlen.de>
@@ -36,75 +36,85 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Slavin Liu <slavin452@gmail.com>
+From: Lorenzo Bianconi <lorenzo@kernel.org>
 
-The IPv4 code path in __ip_vs_get_out_rt() calls dst_link_failure()
-without ensuring skb->dev is set, leading to a NULL pointer dereference
-in fib_compute_spec_dst() when ipv4_link_failure() attempts to send
-ICMP destination unreachable messages.
+Always set nf_flow_route tuple out ifindex even if the indev is not one
+of the flowtable configured devices since otherwise the outdev lookup in
+nf_flow_offload_ip_hook() or nf_flow_offload_ipv6_hook() for
+FLOW_OFFLOAD_XMIT_NEIGH flowtable entries will fail.
+The above issue occurs in the following configuration since IP6IP6
+tunnel does not support flowtable acceleration yet:
 
-The issue emerged after commit ed0de45a1008 ("ipv4: recompile ip options
-in ipv4_link_failure") started calling __ip_options_compile() from
-ipv4_link_failure(). This code path eventually calls fib_compute_spec_dst()
-which dereferences skb->dev. An attempt was made to fix the NULL skb->dev
-dereference in commit 0113d9c9d1cc ("ipv4: fix null-deref in
-ipv4_link_failure"), but it only addressed the immediate dev_net(skb->dev)
-dereference by using a fallback device. The fix was incomplete because
-fib_compute_spec_dst() later in the call chain still accesses skb->dev
-directly, which remains NULL when IPVS calls dst_link_failure().
+$ip addr show
+5: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 00:11:22:33:22:55 brd ff:ff:ff:ff:ff:ff link-netns ns1
+    inet6 2001:db8:1::2/64 scope global nodad
+       valid_lft forever preferred_lft forever
+    inet6 fe80::211:22ff:fe33:2255/64 scope link tentative proto kernel_ll
+       valid_lft forever preferred_lft forever
+6: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 00:22:22:33:22:55 brd ff:ff:ff:ff:ff:ff link-netns ns3
+    inet6 2001:db8:2::1/64 scope global nodad
+       valid_lft forever preferred_lft forever
+    inet6 fe80::222:22ff:fe33:2255/64 scope link tentative proto kernel_ll
+       valid_lft forever preferred_lft forever
+7: tun0@NONE: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1452 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/tunnel6 2001:db8:2::1 peer 2001:db8:2::2 permaddr a85:e732:2c37::
+    inet6 2002:db8:1::1/64 scope global nodad
+       valid_lft forever preferred_lft forever
+    inet6 fe80::885:e7ff:fe32:2c37/64 scope link proto kernel_ll
+       valid_lft forever preferred_lft forever
 
-The crash occurs when:
-1. IPVS processes a packet in NAT mode with a misconfigured destination
-2. Route lookup fails in __ip_vs_get_out_rt() before establishing a route
-3. The error path calls dst_link_failure(skb) with skb->dev == NULL
-4. ipv4_link_failure() → ipv4_send_dest_unreach() →
-   __ip_options_compile() → fib_compute_spec_dst()
-5. fib_compute_spec_dst() dereferences NULL skb->dev
+$ip -6 route show
+2001:db8:1::/64 dev eth0 proto kernel metric 256 pref medium
+2001:db8:2::/64 dev eth1 proto kernel metric 256 pref medium
+2002:db8:1::/64 dev tun0 proto kernel metric 256 pref medium
+default via 2002:db8:1::2 dev tun0 metric 1024 pref medium
 
-Apply the same fix used for IPv6 in commit 326bf17ea5d4 ("ipvs: fix
-ipv6 route unreach panic"): set skb->dev from skb_dst(skb)->dev before
-calling dst_link_failure().
+$nft list ruleset
+table inet filter {
+        flowtable ft {
+                hook ingress priority filter
+                devices = { eth0, eth1 }
+        }
 
-KASAN: null-ptr-deref in range [0x0000000000000328-0x000000000000032f]
-CPU: 1 PID: 12732 Comm: syz.1.3469 Not tainted 6.6.114 #2
-RIP: 0010:__in_dev_get_rcu include/linux/inetdevice.h:233
-RIP: 0010:fib_compute_spec_dst+0x17a/0x9f0 net/ipv4/fib_frontend.c:285
-Call Trace:
-  <TASK>
-  spec_dst_fill net/ipv4/ip_options.c:232
-  spec_dst_fill net/ipv4/ip_options.c:229
-  __ip_options_compile+0x13a1/0x17d0 net/ipv4/ip_options.c:330
-  ipv4_send_dest_unreach net/ipv4/route.c:1252
-  ipv4_link_failure+0x702/0xb80 net/ipv4/route.c:1265
-  dst_link_failure include/net/dst.h:437
-  __ip_vs_get_out_rt+0x15fd/0x19e0 net/netfilter/ipvs/ip_vs_xmit.c:412
-  ip_vs_nat_xmit+0x1d8/0xc80 net/netfilter/ipvs/ip_vs_xmit.c:764
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                meta l4proto { tcp, udp } flow add @ft
+        }
+}
 
-Fixes: ed0de45a1008 ("ipv4: recompile ip options in ipv4_link_failure")
-Signed-off-by: Slavin Liu <slavin452@gmail.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: b5964aac51e0 ("netfilter: flowtable: consolidate xmit path")
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipvs/ip_vs_xmit.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_flow_table_path.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 3162ce3c2640..64c697212578 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -408,6 +408,9 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 	return -1;
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index f0984cf69a09..eb24fe2715dc 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -250,6 +250,9 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 	if (nft_dev_fill_forward_path(route, dst, ct, dir, ha, &stack) >= 0)
+ 		nft_dev_path_info(&stack, &info, ha, &ft->data);
  
- err_unreach:
-+	if (!skb->dev)
-+		skb->dev = skb_dst(skb)->dev;
++	if (info.outdev)
++		route->tuple[dir].out.ifindex = info.outdev->ifindex;
 +
- 	dst_link_failure(skb);
- 	return -1;
- }
+ 	if (!info.indev || !nft_flowtable_find_dev(info.indev, ft))
+ 		return;
+ 
+@@ -269,7 +272,6 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 
+ 	route->tuple[!dir].in.num_encaps = info.num_encaps;
+ 	route->tuple[!dir].in.ingress_vlans = info.ingress_vlans;
+-	route->tuple[dir].out.ifindex = info.outdev->ifindex;
+ 
+ 	if (info.xmit_type == FLOW_OFFLOAD_XMIT_DIRECT) {
+ 		memcpy(route->tuple[dir].out.h_source, info.h_source, ETH_ALEN);
 -- 
 2.51.2
 
