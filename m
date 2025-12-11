@@ -1,26 +1,27 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2926230F812
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Dec 2025 12:31:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3756530F958
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Dec 2025 12:32:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765456297; cv=none; b=Eohj2vaBqTi96f8GTJS5RZKkX6MMwy9uJCIgIBIttdLMRl4cAlNeWj5rRVvdKIMOwBH4eUi/jHQUK5/4PTMoeIpApgwzgPnTCARilLSo7LOzWpSdKedstnFGRelFb6kSNXPbcxMJzG1mkzeeZptqd4QYJJ+CWefynreFIao7hPQ=
+	t=1765456336; cv=none; b=dpq5B1vP/oU5YkhzhjsH/Uvwo6BFypxcCrkNW3ibpqNEMEqpr+E0TeOBOGpOYXa+h0ZOLLoXl9/JbxW05VU4Z9h9s2kh5lcCdXy2JVkeuxkSjS2ioZmLKQ6P6nQvu7sFnxrjBVwa1Om5fbf91jEkDbUtmlSD9k7JjS9aowzTqiw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765456297; c=relaxed/simple;
-	bh=+biMBYT20zMcdvozZ8nVga2FaTIFGJ3XFLXM4lCLLNo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ct0cE4dE1gbizwKitjjh4qxXN+SY54fiflIIJBkMsebduK4mbHIgxumoa3NDw95OjYObE8oZmff2U6aDSqbcpU0hwyJHpsXCehoe2c7bzX9L+dO3t8IwMRWhca6npEuv9KnqkyadRoYN09lcfu+gjiZUNdkfmBx0ZKGqcHt/fNE=
+	s=arc-20240116; t=1765456336; c=relaxed/simple;
+	bh=Ei8XrZXg87+kkFxlYIqq9JbQzR/5/I10VR668Vb5wWo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rFTNtf3tqEGyeTXkTZ6eCov6tGF/7WdS5s+GHbtT/fIczkdC1GzhxKIi+8/LJlR7ZI+MFQo1zIHZfSQsxKwnbBhLaRDmTehJqrQxTL5mWPLGcBSDQPbyxxn49UQmobRUjwbbZNpKckAq5PY4wjB9/k7xVbQhFPfHE2UMq2SoD28=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 08C7560332; Thu, 11 Dec 2025 13:31:31 +0100 (CET)
+	id A38C260332; Thu, 11 Dec 2025 13:32:10 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nf_tables: avoid softlockup warnings in nft_chain_validate
-Date: Thu, 11 Dec 2025 13:31:23 +0100
-Message-ID: <20251211123126.8759-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Yi Chen <yiche@redhat.com>
+Subject: [PATCH nf] selftests: netfilter: packetdrill: avoid failure on HZ=100 kernel
+Date: Thu, 11 Dec 2025 13:32:00 +0100
+Message-ID: <20251211123205.15818-1-fw@strlen.de>
 X-Mailer: git-send-email 2.51.2
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,39 +31,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This reverts commit
-314c82841602 ("netfilter: nf_tables: can't schedule in nft_chain_validate"):
-Since commit a60a5abe19d6 ("netfilter: nf_tables: allow iter callbacks to sleep")
-the iterator callback is invoked without rcu read lock held, so this
-cond_resched() is now valid.
+packetdrill --ip_version=ipv4 --mtu=1500 --tolerance_usecs=1000000 --non_fatal packet conntrack_syn_challenge_ack.pkt
+conntrack v1.4.8 (conntrack-tools): 1 flow entries have been shown.
+conntrack_syn_challenge_ack.pkt:32: error executing `conntrack -f $NFCT_IP_VERSION \
+-L -p tcp --dport 8080 | grep UNREPLIED | grep -q SYN_SENT` command: non-zero status 1
 
+Affected kernel had CONFIG_HZ=100; reset packet was still sitting in
+backlog.
+
+Reported-by: Yi Chen <yiche@redhat.com>
+Fixes: a8a388c2aae4 ("selftests: netfilter: add packetdrill based conntrack tests")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .../net/netfilter/packetdrill/conntrack_syn_challenge_ack.pkt   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a9f6babcc781..618af6e90773 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4171,6 +4171,8 @@ int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
- 			if (err < 0)
- 				return err;
- 		}
-+
-+		cond_resched();
- 	}
+diff --git a/tools/testing/selftests/net/netfilter/packetdrill/conntrack_syn_challenge_ack.pkt b/tools/testing/selftests/net/netfilter/packetdrill/conntrack_syn_challenge_ack.pkt
+index 3442cd29bc93..cdb3910af95b 100644
+--- a/tools/testing/selftests/net/netfilter/packetdrill/conntrack_syn_challenge_ack.pkt
++++ b/tools/testing/selftests/net/netfilter/packetdrill/conntrack_syn_challenge_ack.pkt
+@@ -26,7 +26,7 @@
  
- 	nft_chain_vstate_update(ctx, chain);
-@@ -4195,8 +4197,6 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 		err = nft_chain_validate(&ctx, chain);
- 		if (err < 0)
- 			goto err;
--
--		cond_resched();
- 	}
+ +0.01 > R 643160523:643160523(0) win 0
  
- err:
+-+0.01 `conntrack -f $NFCT_IP_VERSION -L -p tcp --dport 8080 2>/dev/null | grep UNREPLIED | grep -q SYN_SENT`
+++0.1 `conntrack -f $NFCT_IP_VERSION -L -p tcp --dport 8080 2>/dev/null | grep UNREPLIED | grep -q SYN_SENT`
+ 
+ // Must go through.
+ +0.01 > S 0:0(0) win 65535 <mss 1460,sackOK,TS val 1 ecr 0,nop,wscale 8>
 -- 
 2.51.2
 
