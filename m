@@ -1,154 +1,142 @@
-Received: from mail-oo1-f79.google.com (mail-oo1-f79.google.com [209.85.161.79])
+Received: from mail-oi1-f200.google.com (mail-oi1-f200.google.com [209.85.167.200])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 568B121771C
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Dec 2025 18:38:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.79
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25F6419DFAB
+	for <netfilter-devel@vger.kernel.org>; Thu, 11 Dec 2025 23:44:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.200
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765478314; cv=none; b=AxIQOA7XhbfFsIC/WK5JXGyR+3j/rWWwGezO1Yq/9I+8pGrZHJ0CDw00sf6B+wU+9igLy6trcpbFFVXJmoPzHYhX0sPzsONIHQ92fX3m/0U6htygtES8eloLoEME8KnB051d34nUzZKhgOH3QcIDhzVmqF8v2ILZte3jCL4vPvo=
+	t=1765496664; cv=none; b=J7v+IhuTToRfpmjRbUCaOBYxpOlNtwHq09lpo4pAC0BMTT3reAC6+DG8lCx+F2zvPJ8u/XtC/U05+uYEOuCzIPBGvULCqisz5jDBd2QdECNJeBbRgyM4sSJHpCJ3F/nS840AgD6kvsF9/mIOyHD8V4bj5P6KXIn8AVM0WQxki4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765478314; c=relaxed/simple;
-	bh=KjN2TfuFunnBIIjIY5/NDtntkHTxpWh/AWfe8kSHgJ8=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=Q4LtC0wGrZFQDSwxlqG6IKRiv4kRnZ/30+emGnoeYTqHPE1aa7ppP5WYp6n6HHGfQI6CJD1Aa0b4hy8cBNzzK70qCiZBnKsShZez7Y5pJN9EKrHHW4kVbfWbWsNaUx/Y17ezRv3fKixwk4L4s3Z0Y1EfLRZ5ysRwO5yMB4R63D4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.79
+	s=arc-20240116; t=1765496664; c=relaxed/simple;
+	bh=kweQCQmDUPReqCEtyfwyN6m6JtHkE2e7lzHFapG3kBw=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
+	 Content-Type; b=YgE0UFNdgHEjEB/Ib3sjqVipAzA7uTTi7UNCb4JAE+Oyef447iZ5MwRtpghRhoV1eTb+7y+SBStkPfop2rogaSjGbdyTgIDSU2NHMTlkKE6HMcZNRxEcDcWJM3OAHgLS9qhviHgWDKOGdMKBR51eE5KIL1v7r7HDHD9Ld2dW6Q0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.167.200
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f79.google.com with SMTP id 006d021491bc7-65b32d52186so546237eaf.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Dec 2025 10:38:32 -0800 (PST)
+Received: by mail-oi1-f200.google.com with SMTP id 5614622812f47-44fe73611fdso831175b6e.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Dec 2025 15:44:22 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1765478311; x=1766083111;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=gmftX27Q/W7fyuelLAuPg2KIcheP2mgJj3RegfphCow=;
-        b=NenCU+oZDpfd86o/rrt2DTzemN61dar2l0pl1jzR4r/HkPsOGUrfR072IbvyZZ7ito
-         rcawKLESByqNt6dtq3+oGDHePnHNIxCYyst6rn+5R2564N/6b7+zzkPajJoct5NLqklD
-         cfE/1tgEc9hu1fahHmcsdyvFV20GdyJxYXCXa3szpkTlclehl5wqYEA/inp3mWyR+hIw
-         WZ6ewr1nXi5cQkgEM9Bi/PhiR2Mi/qoRe9C+vbrY7L89whqVgAW+GLdtD7cMXuJHqd+G
-         gjjz1DXOfn5GtAHsl3pnIn5ffsMLCfn891f6B/Cl4dtVVZwaJxC33zGsNsT09BQ5x1x2
-         OzDw==
-X-Forwarded-Encrypted: i=1; AJvYcCWTSIvyiPfv2Bsi4LozxEaMiGaMAwN52tjK9ZQOp9ICePp9BkzUAehDqt2iZoT3MdGMh2Du8cqWt257T/omTm8=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxhgvB8s+nIL8eB/JBJwzWMug9T1FIYtZKyNJzT5jsnQildT1d2
-	/iYkr1ZTBHZFfKLF8cXfccFMs5bpTeZZjjwqmf/4htVmGWEFgJbd/QEFMAqv3dIjxUI+fFSPBsd
-	ysu2bYxYQ+dRRnqtBoDqcPenEwkxIIu8Ts1DMAZvX+ZrlyL2V8yjb1us38QY=
-X-Google-Smtp-Source: AGHT+IEUZS5AFevvdPKWhnZ6WlvBNFsQ70+WT7EWv59zCjxEhfcLDn8Ymyg1BUg3wUcIiYnNXj08X8qEp6wSFad0/LEsPgoZ6dnq
+        d=1e100.net; s=20230601; t=1765496662; x=1766101462;
+        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=upZQ1mqW5QIiRRJS5+UQR46TtfDCfKkqFD2u5VQHzQ0=;
+        b=lrx9JRLV9Vi/wk1q/igK/majXHh6hjk0exgTuvH87kUvi/6n44lhKh5XA7eakjyj/a
+         KbycvtZKL+09JGEmJw/0aflaT78jNJljSz5+RCcze6nSxUTlbhXyO1WOYq9UxaJiP6G2
+         FRi2pTBVurYIM3E3lmre+xtU9PR8abdGqR3eaxVzxtE7GMbur+mvkGQZr9z1dMgnRlS0
+         p6QTAD7DwNRxnzWKrBw4nkIs1hwgQ+2VP8ZiJX41+HG/7czV60L3SPpeNWLgFketDc9r
+         fw3q7TsrafXoWpeBE1xcAhIeIS60rMkRB/Z7RXjHZYgaPNplxwrSFpwbNOsuVWe18BEb
+         tv1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCX/ZDEmB4VFl8OFRl2HTIAFT4uE5MCNmzXzONj3Ckowa5OIMRLvqXPVdGfS9JBPDjBZuW8EyASFipHib1LYTNg=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx3S6KYJLcTHH0nBP5KsNK/dBHxqFkZ+I38o36ifRbNUuamtpey
+	muZ2ag3ZVgpjbFgSdEDzVuSLgQNPROxHe6wuviamgDcNqzqRmoIEIERIb9pQjz0siRRj6B2qMTS
+	S2ZxI3YqIMvO0aKPVGSN17G/obxdx9fAnsADvh4Xb0b7aMrcUpnlPvdmlVfk=
+X-Google-Smtp-Source: AGHT+IHTm26FE9oFJaO1FZZ7RAIHr1Pol94DU+3+bTFh/xKqbOhLaFzntA73leQHpobGNakOQSy9CwB+dVrgou1zyhoiLCRmj25/
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:f033:b0:657:4f2:97b2 with SMTP id
- 006d021491bc7-65b2aaeb8d3mr3768233eaf.0.1765478311480; Thu, 11 Dec 2025
- 10:38:31 -0800 (PST)
-Date: Thu, 11 Dec 2025 10:38:31 -0800
+X-Received: by 2002:a4a:e912:0:b0:659:9a49:9000 with SMTP id
+ 006d021491bc7-65b452597b2mr114498eaf.45.1765496662268; Thu, 11 Dec 2025
+ 15:44:22 -0800 (PST)
+Date: Thu, 11 Dec 2025 15:44:22 -0800
+In-Reply-To: <20251211123038.1175-1-fw@strlen.de>
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <693b0fa7.050a0220.4004e.040d.GAE@google.com>
-Subject: [syzbot] [netfilter?] WARNING in nf_conntrack_cleanup_net_list
-From: syzbot <syzbot+4393c47753b7808dac7d@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	phil@nwl.cc, syzkaller-bugs@googlegroups.com
+Message-ID: <693b5756.050a0220.1ff09b.0012.GAE@google.com>
+Subject: [syzbot ci] Re: netfilter: nf_tables: avoid chain re-validation if possible
+From: syzbot ci <syzbot+ci135094d4d47126eb@syzkaller.appspotmail.com>
+To: fw@strlen.de, hamzamahfooz@linux.microsoft.com, 
+	netfilter-devel@vger.kernel.org
+Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 
-Hello,
+syzbot ci has tested the following series
 
-syzbot found the following issue on:
+[v3] netfilter: nf_tables: avoid chain re-validation if possible
+https://lore.kernel.org/all/20251211123038.1175-1-fw@strlen.de
+* [PATCH nf v3] netfilter: nf_tables: avoid chain re-validation if possible
 
-HEAD commit:    5ce74bc1b7cb Add linux-next specific files for 20251211
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=11a241b4580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a94030c847137a18
-dashboard link: https://syzkaller.appspot.com/bug?extid=4393c47753b7808dac7d
-compiler:       Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+and found the following issue:
+WARNING in nft_chain_validate
 
-Unfortunately, I don't have any reproducer for this issue yet.
+Full report is available here:
+https://ci.syzbot.org/series/498345c4-bb9b-4e13-9cd1-42a483844f55
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/e1660176a50f/disk-5ce74bc1.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/616ede012bbd/vmlinux-5ce74bc1.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/7c0c5bc40fd8/bzImage-5ce74bc1.xz
+***
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+4393c47753b7808dac7d@syzkaller.appspotmail.com
+WARNING in nft_chain_validate
+
+tree:      nf
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf.git
+base:      6a107cfe9c99a079e578a4c5eb70038101a3599f
+arch:      amd64
+compiler:  Debian clang version 20.1.8 (++20250708063551+0c9f909b7976-1~exp1~20250708183702.136), Debian LLD 20.1.8
+config:    https://ci.syzbot.org/builds/e56f0271-a9ee-403c-ad73-fe3d0fb22785/config
+C repro:   https://ci.syzbot.org/findings/c4c03a63-b1c1-4815-b601-f7c763a99b6c/c_repro
+syz repro: https://ci.syzbot.org/findings/c4c03a63-b1c1-4815-b601-f7c763a99b6c/syz_repro
 
 ------------[ cut here ]------------
-conntrack cleanup blocked for 60s
-WARNING: net/netfilter/nf_conntrack_core.c:2512 at nf_conntrack_cleanup_net_list+0x234/0x340 net/netfilter/nf_conntrack_core.c:2511, CPU#1: kworker/u8:0/12
+WARNING: net/netfilter/nf_tables_api.c:4112 at nft_chain_vstate_update net/netfilter/nf_tables_api.c:4112 [inline], CPU#1: syz.0.17/5982
+WARNING: net/netfilter/nf_tables_api.c:4112 at nft_chain_validate+0x6b0/0x8c0 net/netfilter/nf_tables_api.c:4176, CPU#1: syz.0.17/5982
 Modules linked in:
-CPU: 1 UID: 0 PID: 12 Comm: kworker/u8:0 Tainted: G             L      syzkaller #0 PREEMPT(full) 
-Tainted: [L]=SOFTLOCKUP
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/25/2025
-Workqueue: netns cleanup_net
-RIP: 0010:nf_conntrack_cleanup_net_list+0x234/0x340 net/netfilter/nf_conntrack_core.c:2511
-Code: 08 48 89 df e8 fd 78 a3 f8 4c 8b 3b 49 39 df 74 69 e8 20 16 3d f8 45 31 e4 e9 8e fe ff ff e8 13 16 3d f8 48 8d 3d ec 2f 0c 06 <67> 48 0f b9 3a eb c0 89 e9 80 e1 07 80 c1 03 38 c1 0f 8c cd fe ff
-RSP: 0018:ffffc90000117870 EFLAGS: 00010293
-RAX: ffffffff8984a13d RBX: ffffc90000117a00 RCX: ffff88801ce8db80
-RDX: 0000000000000000 RSI: ffffffffffffffcb RDI: ffffffff8f90d130
-RBP: 0000000000000001 R08: ffff88807ce6b003 R09: 1ffff1100f9cd600
-R10: dffffc0000000000 R11: ffffed100f9cd601 R12: 0000000000000001
-R13: dffffc0000000000 R14: 00000001000068e3 R15: 0000000100006918
-FS:  0000000000000000(0000) GS:ffff888125f32000(0000) knlGS:0000000000000000
+CPU: 1 UID: 0 PID: 5982 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+RIP: 0010:nft_chain_vstate_update net/netfilter/nf_tables_api.c:4112 [inline]
+RIP: 0010:nft_chain_validate+0x6b0/0x8c0 net/netfilter/nf_tables_api.c:4176
+Code: 31 db 89 d8 48 83 c4 50 5b 41 5c 41 5d 41 5e 41 5f 5d c3 cc cc cc cc cc e8 2d 32 42 f8 bb fc ff ff ff eb de e8 21 32 42 f8 90 <0f> 0b 90 49 83 c5 78 ba 04 00 00 00 4c 89 ef 31 f6 e8 ea 18 a8 f8
+RSP: 0018:ffffc90003df6fe0 EFLAGS: 00010293
+RAX: ffffffff897f183f RBX: 0000000000000000 RCX: ffff888102f93a80
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000040 R08: ffff888102f93a80 R09: 0000000000000002
+R10: 0000000000000010 R11: 0000000000000000 R12: ffff88816a79c510
+R13: ffff88816a79c500 R14: ffff88816a79c500 R15: dffffc0000000000
+FS:  000055555e417500(0000) GS:ffff8882a9eb1000(0000) knlGS:0000000000000000
 CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000200000020000 CR3: 00000000306ac000 CR4: 00000000003526f0
+CR2: 0000200000005000 CR3: 000000017531c000 CR4: 00000000000006f0
 Call Trace:
  <TASK>
- ops_exit_list net/core/net_namespace.c:205 [inline]
- ops_undo_list+0x525/0x990 net/core/net_namespace.c:252
- cleanup_net+0x4d8/0x7a0 net/core/net_namespace.c:696
- process_one_work+0x93a/0x15a0 kernel/workqueue.c:3279
- process_scheduled_works kernel/workqueue.c:3362 [inline]
- worker_thread+0x9b0/0xee0 kernel/workqueue.c:3443
- kthread+0x711/0x8a0 kernel/kthread.c:463
- ret_from_fork+0x599/0xb30 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:246
+ nft_validate_register_store+0xf6/0x1d0 net/netfilter/nf_tables_api.c:11750
+ nft_parse_register_store+0x225/0x2c0 net/netfilter/nf_tables_api.c:11787
+ nft_immediate_init+0x1cf/0x390 net/netfilter/nft_immediate.c:67
+ nf_tables_newexpr net/netfilter/nf_tables_api.c:3550 [inline]
+ nf_tables_newrule+0x1794/0x28a0 net/netfilter/nf_tables_api.c:4419
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:526 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:649 [inline]
+ nfnetlink_rcv+0x11d9/0x2590 net/netfilter/nfnetlink.c:667
+ netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+ netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1344
+ netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1894
+ sock_sendmsg_nosec net/socket.c:718 [inline]
+ __sock_sendmsg+0x21c/0x270 net/socket.c:733
+ ____sys_sendmsg+0x505/0x820 net/socket.c:2608
+ ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2662
+ __sys_sendmsg net/socket.c:2694 [inline]
+ __do_sys_sendmsg net/socket.c:2699 [inline]
+ __se_sys_sendmsg net/socket.c:2697 [inline]
+ __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2697
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xfa/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7f577a58f7c9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe377887c8 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007f577a7e5fa0 RCX: 00007f577a58f7c9
+RDX: 0000000000000000 RSI: 00002000000000c0 RDI: 0000000000000003
+RBP: 00007f577a5f297f R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f577a7e5fa0 R14: 00007f577a7e5fa0 R15: 0000000000000003
  </TASK>
-----------------
-Code disassembly (best guess):
-   0:	08 48 89             	or     %cl,-0x77(%rax)
-   3:	df e8                	fucomip %st(0),%st
-   5:	fd                   	std
-   6:	78 a3                	js     0xffffffab
-   8:	f8                   	clc
-   9:	4c 8b 3b             	mov    (%rbx),%r15
-   c:	49 39 df             	cmp    %rbx,%r15
-   f:	74 69                	je     0x7a
-  11:	e8 20 16 3d f8       	call   0xf83d1636
-  16:	45 31 e4             	xor    %r12d,%r12d
-  19:	e9 8e fe ff ff       	jmp    0xfffffeac
-  1e:	e8 13 16 3d f8       	call   0xf83d1636
-  23:	48 8d 3d ec 2f 0c 06 	lea    0x60c2fec(%rip),%rdi        # 0x60c3016
-* 2a:	67 48 0f b9 3a       	ud1    (%edx),%rdi <-- trapping instruction
-  2f:	eb c0                	jmp    0xfffffff1
-  31:	89 e9                	mov    %ebp,%ecx
-  33:	80 e1 07             	and    $0x7,%cl
-  36:	80 c1 03             	add    $0x3,%cl
-  39:	38 c1                	cmp    %al,%cl
-  3b:	0f                   	.byte 0xf
-  3c:	8c cd                	mov    %cs,%ebp
-  3e:	fe                   	(bad)
-  3f:	ff                   	.byte 0xff
 
+
+***
+
+If these findings have caused you to resend the series or submit a
+separate fix, please add the following tag to your commit message:
+  Tested-by: syzbot@syzkaller.appspotmail.com
 
 ---
 This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+syzbot ci engineers can be reached at syzkaller@googlegroups.com.
