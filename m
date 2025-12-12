@@ -1,88 +1,107 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f50.google.com (mail-ot1-f50.google.com [209.85.210.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09FBE26CE33
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2025 14:58:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD08126ED3E
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2025 20:13:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765551489; cv=none; b=pe3PdfX9Wzqk8bUvB3bU0t/jnGMsYzCpEvFNff4cD4y2hm4+xoySKme59JKXUnXOi8FiMQKdMwQ9z7810dJ4wax0Vhz0nJRKL+cff8rUpDOBMzYaXRRoXtSJwNocUCE/gTxH8zYS6qXa+v4+I0oD0NLSFUNFf+cN07EpsuYZWWA=
+	t=1765570440; cv=none; b=uN8A4KG5iRrIDNWW967/Fmb3MRibBwwqRFS8Fawd+0rMPUWuoyf5nTsCgCf9obd67mUM3YDOzxY1LWiCz7RJ72UagjbcD/DgBKwCQ69yV9H/lNIDf3e/YxXWeSsRvzKAVdBoPvi27/lLAv2T8WL8zTFw8DjN6gRsG6D07TB8rHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765551489; c=relaxed/simple;
-	bh=GYBH3XNVIUVK1W13mC/6iDHcrC7ddrwaKICtOVtTgWc=;
-	h=Date:From:To:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=TOXhhDIFauhJ9Ti7Mx4wCx4gayNObZyP0g7kEz9dVVVKPjUdpbW8IImr9UqVsezoT1TK7i44LhS+WlqLdGzeAUl7ELD+8C1PRdw20G9sqk0KnbHGAjS82HQmyqPCJ7wkZTNiBkdsmaIE7Ag/KsTQTXl9ursdRWiyap/uU6CKna0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=Iy5cVVwT; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1765570440; c=relaxed/simple;
+	bh=4dL6byPfat9On/EjO33y2mJNQieTHSlSNTCcsPe+q4w=;
+	h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type; b=MLT7q6nXO8swJOO4RgnUSWQgpogTZNp7HNLuHu0PnlUG1LEK9UqtlfjLv3neehPjQIuKxeqTYOfAav19DYHOYj33hOpSZW7eO2X17IZlQM3VeBs1oM/q2frKdLxORPfdff/JXOqfC5QKD7sPKH9pHpEVsjAzb8ZVX7KoNcNhNss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f6VD/yZb; arc=none smtp.client-ip=209.85.210.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="Iy5cVVwT"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Type:MIME-Version:Message-ID:Subject:To:From:Date:
-	Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=hBgZGq7uZM1A/KRVooly1JwN0sdu1PvdDxd3QpWHOV4=; b=Iy5cVVwT56Vx74mxTqA5+rdjzd
-	3KrIQ+MnIqotCQlR+ccQ8dr9IewD1sBOpE/Jb2I7g9HMxfx1ok2so3TGFLcMT7SkTK50yBvJkv7GM
-	OYD0eu4G4iuMfTb/jVYRw5kW78hSPojg6AT1GSu7p6uji9lDw4Ncj4vmANWlXAw2aj058NtESpxqK
-	h6v7TPUwBqEUz/AsrT7OnWhj59tkeTZIgvXJKFUeKvY3hR7F8byrUM/7eYcQfjmcWUb8Gb7HSrksM
-	L6CvO02T/k2wFJdTu6gsevxK0r6CtlEhvpGEs2gAcBN9pQmUUHJbfnbNZntHWn99z/YiAYDL963kX
-	/4nWE+5A==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1vU4ah-00000000dLl-2GuM
-	for netfilter-devel@vger.kernel.org;
-	Fri, 12 Dec 2025 14:57:55 +0000
-Date: Fri, 12 Dec 2025 14:57:54 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: New conntrack-tools release?
-Message-ID: <20251212145754.GA2993022@celephais.dreamlands>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f6VD/yZb"
+Received: by mail-ot1-f50.google.com with SMTP id 46e09a7af769-7c75dd36b1bso1218196a34.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2025 12:13:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1765570438; x=1766175238; darn=vger.kernel.org;
+        h=content-transfer-encoding:subject:from:to:content-language
+         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=gCtqwVvfmh9nSUZFfslmYUUcJYJfAJFfzxmpm1i7FFY=;
+        b=f6VD/yZbs1oYIfRTH2JJ3yOPV7BMRZta6ZeiLrZ3koBQX03CVuW5xCarhclIH9cR0n
+         3TG2U2Qj0Ee8mL3hv7JLauuytMC8cAI9/F8wt+paS3LjNDr8HcvAdftsMbo2vRc9r1/p
+         lX1DLerb22gufNtLY78Y0nNA3qp8T3XNiMyMeP88Vv2fqBhTzOmn2Y6CLr554R2pmOTg
+         T/r+KuTcup9T9F5KfoUj+mbLCFthsW9H5drUgagJFp6HDGrEOX5rEfzXhHmTUPMRO5Qg
+         v9jjxy1VXgWGQhdwCWI8WliDsxyGo64fJs9PCN3fn3H6mcxhxNxq8KH5INJ3xGIvF161
+         8GLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765570438; x=1766175238;
+        h=content-transfer-encoding:subject:from:to:content-language
+         :user-agent:mime-version:date:message-id:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gCtqwVvfmh9nSUZFfslmYUUcJYJfAJFfzxmpm1i7FFY=;
+        b=PBkbqY9r8xE4G6dlHCT0nh/cm5oTwx/0FMots6tyLtHnR6B+3FfwSJ+uxpvnh2vnHD
+         jty8Qxy2bpzvJnHl5WttkUvorKTd7UiypYvtXvDoOmxNiSSXewooouKLtdET2mXeXLr0
+         1NvMcljsZ9e01/JFWnk3aoVsHMFpDHEfSnV5KEnFU6qGqtGY10LiuDzTi3KhumMa7vUk
+         DZmYvUrTtRE+JskgYKRcEX5kK1MSaO2tv0o46jVq6V95zayklC2t6zAfg/KQ+BPNXgC2
+         KHr/HjCQAxkDe7wPsgWOeVq1zlYjxMHMwAL0utjL1uDIjdOg/3y3A8Sdmh4yReA4fWZR
+         K+uA==
+X-Gm-Message-State: AOJu0Ywk1fKbargxLyTR0X4YfK0s/jKmaOGajPO90cOYYtfuLhUkptr5
+	YVHDkBQ2pcu8Q84AOGlexHYz+rcgtfq9SXRwcC+xFAKW1nO2GLx278uA88Ms3Q==
+X-Gm-Gg: AY/fxX5LE4YGWcuoM55UXBrfrL8VmXXL042lAH9yH0g1cLXQDMR43jwuIsZ0phMHgIJ
+	zmVd/v7+KDI49HqG5gsEk8jEcScvCQmYfEe9nMiscjRQddFDPTRSiSQAHafW1PAJenUU2eRRA1H
+	+mJVnwBbWQjg1Wu4c72jqALsZIaxcYlx1+/5EEism5rOki1/B1Z/kCFCudN53+15+V/8g4hMKLJ
+	D+cLQhoZlQQ0dzFx4//t2OU/x29mIQuYbRQ2O2SK4XHBtiX9MV5VRO62KF1DERhNL3AGmFaLI6H
+	a90UN0bSNC4/UCxIwWPoXj0CD8x5k5SgbY3tpAN2OTKfWr00Fv3LnTt+F9Z7jevvRn3wUgKXI5g
+	URlNcOuZRey6YhfsMmDqdGGBgxwE6pICzYZVPL5iszZrUVr2NAUeYRdyLNZ3aFNrhL5AfVA1t9v
+	taAqOKhmyRSuoHTlce1TfVxWKGOSQzzh+cEtjHEADDhB9EJWtlDgZyJao22aA/ytkKFqvmQR22r
+	dTZrw==
+X-Google-Smtp-Source: AGHT+IHyz7wtYAp8xrC88N2upPApoCGv1I/VEi3/D7FpVrFFBD358uK+hrK28ELuzIdl0c4Qa0HnZQ==
+X-Received: by 2002:a05:6830:6e03:b0:7c7:2eaf:3337 with SMTP id 46e09a7af769-7cae836aaa7mr1335248a34.27.1765570437776;
+        Fri, 12 Dec 2025 12:13:57 -0800 (PST)
+Received: from [172.31.250.1] (47-162-126-134.bng01.plan.tx.frontiernet.net. [47.162.126.134])
+        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7cadb2fc086sm4048638a34.18.2025.12.12.12.13.57
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 12 Dec 2025 12:13:57 -0800 (PST)
+Message-ID: <1944a019-39af-46e6-b489-96715dd2dd01@gmail.com>
+Date: Fri, 12 Dec 2025 14:13:56 -0600
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="Qq7OGspHSiTmdvi/"
-Content-Disposition: inline
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+User-Agent: Mozilla Thunderbird
+Content-Language: en-US
+To: netfilter-devel@vger.kernel.org
+From: Ian Pilcher <arequipeno@gmail.com>
+Subject: RFD - Exposing netfilter types?
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
+Recently, I asked what I thought would be a simple question.  How should
+an application go about determining the type of objects stored in an
+nftables set.
 
---Qq7OGspHSiTmdvi/
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+   https://marc.info/?l=netfilter&m=176546062431223&w=2
 
-It's been a couple of years since conntrack-tools 1.4.8 and there have
-been twenty-odd commits since.  Time for 1.4.9?
+As seen in the response (thanks Florian!), doing this for all possible
+types, including concatenations, is actually pretty complicated.
 
-J.
+Presumably, this is why the NFTA_SET_KEY_TYPE values that correspond to
+simple types aren't in any public header.  Instead, those values, along
+with all of the logic associated with complex types seem to exist solely
+within the nftables user-space utility (nft).
 
---Qq7OGspHSiTmdvi/
-Content-Type: application/pgp-signature; name="signature.asc"
+Of course, this presents a problem for any other application that wants
+to work with these types/values.  Today, any such program needs to copy
+the values and/or logic that it needs from the nft sources.
 
------BEGIN PGP SIGNATURE-----
+Is there any reason that the type-related stuff that's currently in nft
+shouldn't be broken out into a separate library that other applications
+could also use?
 
-wsG7BAABCgBvBYJpPC1gCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmeAz9AMJhY3/4T/pPNWbESu+YN2y4+BPH6JicUsqV72
-WhYhBGwdtFNj70A3vVbVFymGrAq98QQNAACIWw//aF6Q8qcJPucvu7fRS17CiXCN
-s/VpWPR0ZNzZzzZG14+UcF9zLd3X6lsN95b4FHDZegonf0IjYCqte+kmG3RpE9D8
-yK2iRv/38cfu4S83W6LxYJyawGXUaK+q7KUtILYva4i1dYnlm0thhPdt4L0zL9GI
-MTm4SuqJ/Bekg07MronbxCvljsDqp5yOomSBr08xLflV53mKSJg7Iz+Uag8h88YQ
-6PBedBrp93k127ygfFiISC5FmXOuT+oBbzmzvmeLeEg0pwhjJxfqd1qcp3+QxGH3
-DmY1ZmuzqpSmnYNv+uwqhF2T42d+/SAmjoIrKVTE3YjdoABCpGNlUe8cv/kgk1qo
-Vbr1vbKowEpJrW2h0PuWRsKIAnsYV/Kz5FYEFBUV6S5uqov35b7jnP/HyvQZu53j
-FNoRUGCaIVKbmm/nLpcu1S1G4Fk8b5UxRTNE9HuCzcy3KVDQwf/jUCQWuLBbBB5i
-oZmt4JEvPkqqvdr4ZydINEncSrHSQipvNzwiiWvCIUSRRB3lBhYH8ej+bEUPPmxa
-8tXGHb9PIqMXigyVF0sBaffpopClftY3ofNkFph8HqPgU6uMJj9ycQaQ3fnVunIK
-rVeAJMg/EjAQSP1ZeLWX+84z+h5e4sDkg2mwpIxDv0trQZLbxLluaQ93sTyZLmvm
-R2b3eswX/QFMcy24xnE=
-=9hOJ
------END PGP SIGNATURE-----
+(Or have I missed something glaringly obvious.  That's always a
+possibility.)
 
---Qq7OGspHSiTmdvi/--
+-- 
+========================================================================
+If your user interface is intuitive in retrospect ... it isn't intuitive
+========================================================================
+
