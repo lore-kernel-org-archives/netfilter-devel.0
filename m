@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55BA332A3C8;
-	Tue, 16 Dec 2025 19:09:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1482F6590;
+	Tue, 16 Dec 2025 19:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765912166; cv=none; b=pNYtXjl69rYXrR9DWOSg984LfYrSYgXlfBiWryqcAyUCSWznk7XdLp1AqFL2lqTNXmSZOeleS+qqjrAlWkXXnLBdTzmG2biFZBLNbHSEzJQsZVOx8f/4I9B0g9R5lXEmJD719inQ4h2wwBiifipxIktre92xftqr/L+krpW/tbw=
+	t=1765912169; cv=none; b=pbdtFdBzPnZ90zvgqhv5VfmubzuQUQGfgiDr3AJSbI94Hk1EezAkaD+ZYFqtWkM++IG3YMAXaacrMD1xFJkrKvTUTk1SWxuk1GH+OX/FlHdjjX63/blRzl8hPDkSLYcWgRRDLVpebCVbRlygvG3LiuNkHwISKaAHJj+aHMOmQtc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765912166; c=relaxed/simple;
-	bh=RPM/zKSBsso1la4mBAFGbRJA7/yuYbBcRl/R72Qxkc4=;
+	s=arc-20240116; t=1765912169; c=relaxed/simple;
+	bh=vD7HGxJ3ZNZCDV+GjXIU4yE84rzCsMbKHkyXcCgKjPs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fP4QJVBFqpDnzLM4I9acBOvOxg20QOIw03o30nBA7ek6KLZS9UoaZMhShw+9bk+exLqqAECGvF9ZJ1OtkADuOsdWVN6EGyfAJMsY2di3Tz6t1JKoFJHYOIaIhvucMla6dilhCSRLFXJE/d9suYZfuTO2W/BWW3jvX7PrLgHfM8Y=
+	 MIME-Version; b=COjfMZXXXTuJYeeVCLMhYdLZd+Yq2rB32doZ359twXSs44V9mxwl0NZxX6DjNREuqHLByBTgpHDl21vHPyw+Tm8FQC3vtJCBEANQ7IHSwtTDs3MIF0hd4R/wRqFVJ7kWsmmtqoe9dZJzf68idj+yW/ZQhOM+mcTLKmnGhIJi11g=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E0B4D6024F; Tue, 16 Dec 2025 20:09:21 +0100 (CET)
+	id 40490605E6; Tue, 16 Dec 2025 20:09:26 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 3/6] netfilter: nf_tables: remove redundant chain validation on register store
-Date: Tue, 16 Dec 2025 20:09:01 +0100
-Message-ID: <20251216190904.14507-4-fw@strlen.de>
+Subject: [PATCH net 4/6] netfilter: nf_tables: avoid chain re-validation if possible
+Date: Tue, 16 Dec 2025 20:09:02 +0100
+Message-ID: <20251216190904.14507-5-fw@strlen.de>
 X-Mailer: git-send-email 2.51.2
 In-Reply-To: <20251216190904.14507-1-fw@strlen.de>
 References: <20251216190904.14507-1-fw@strlen.de>
@@ -38,53 +38,261 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Hamza Mahfooz reports cpu soft lock-ups in
+nft_chain_validate():
 
-This validation predates the introduction of the state machine that
-determines when to enter slow path validation for error reporting.
+ watchdog: BUG: soft lockup - CPU#1 stuck for 27s! [iptables-nft-re:37547]
+[..]
+ RIP: 0010:nft_chain_validate+0xcb/0x110 [nf_tables]
+[..]
+  nft_immediate_validate+0x36/0x50 [nf_tables]
+  nft_chain_validate+0xc9/0x110 [nf_tables]
+  nft_immediate_validate+0x36/0x50 [nf_tables]
+  nft_chain_validate+0xc9/0x110 [nf_tables]
+  nft_immediate_validate+0x36/0x50 [nf_tables]
+  nft_chain_validate+0xc9/0x110 [nf_tables]
+  nft_immediate_validate+0x36/0x50 [nf_tables]
+  nft_chain_validate+0xc9/0x110 [nf_tables]
+  nft_immediate_validate+0x36/0x50 [nf_tables]
+  nft_chain_validate+0xc9/0x110 [nf_tables]
+  nft_immediate_validate+0x36/0x50 [nf_tables]
+  nft_chain_validate+0xc9/0x110 [nf_tables]
+  nft_table_validate+0x6b/0xb0 [nf_tables]
+  nf_tables_validate+0x8b/0xa0 [nf_tables]
+  nf_tables_commit+0x1df/0x1eb0 [nf_tables]
+[..]
 
-Currently, table validation is perform when:
+Currently nf_tables will traverse the entire table (chain graph), starting
+from the entry points (base chains), exploring all possible paths
+(chain jumps).  But there are cases where we could avoid revalidation.
 
-- new rule contains expressions that need validation.
-- new set element with jump/goto verdict.
+Consider:
+1  input -> j2 -> j3
+2  input -> j2 -> j3
+3  input -> j1 -> j2 -> j3
 
-Validation on register store skips most checks with no basechains, still
-this walks the graph searching for loops and ensuring expressions are
-called from the right hook. Remove this.
+Then the second rule does not need to revalidate j2, and, by extension j3,
+because this was already checked during validation of the first rule.
+We need to validate it only for rule 3.
 
-Fixes: a654de8fdc18 ("netfilter: nf_tables: fix chain dependency validation")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+This is needed because chain loop detection also ensures we do not exceed
+the jump stack: Just because we know that j2 is cycle free, its last jump
+might now exceed the allowed stack size.  We also need to update all
+reachable chains with the new largest observed call depth.
+
+Care has to be taken to revalidate even if the chain depth won't be an
+issue: chain validation also ensures that expressions are not called from
+invalid base chains.  For example, the masquerade expression can only be
+called from NAT postrouting base chains.
+
+Therefore we also need to keep record of the base chain context (type,
+hooknum) and revalidate if the chain becomes reachable from a different
+hook location.
+
+Reported-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Closes: https://lore.kernel.org/netfilter-devel/20251118221735.GA5477@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net/
+Tested-by: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 11 -----------
- 1 file changed, 11 deletions(-)
+ include/net/netfilter/nf_tables.h | 34 +++++++++++----
+ net/netfilter/nf_tables_api.c     | 69 +++++++++++++++++++++++++++++--
+ 2 files changed, 91 insertions(+), 12 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index fab7dc73f738..0e266c2d0e7f 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1091,6 +1091,29 @@ struct nft_rule_blob {
+ 		__attribute__((aligned(__alignof__(struct nft_rule_dp))));
+ };
+ 
++enum nft_chain_types {
++	NFT_CHAIN_T_DEFAULT = 0,
++	NFT_CHAIN_T_ROUTE,
++	NFT_CHAIN_T_NAT,
++	NFT_CHAIN_T_MAX
++};
++
++/**
++ *	struct nft_chain_validate_state - validation state
++ *
++ *	If a chain is encountered again during table validation it is
++ *	possible to avoid revalidation provided the calling context is
++ *	compatible.  This structure stores relevant calling context of
++ *	previous validations.
++ *
++ *	@hook_mask: the hook numbers and locations the chain is linked to
++ *	@depth: the deepest call chain level the chain is linked to
++ */
++struct nft_chain_validate_state {
++	u8			hook_mask[NFT_CHAIN_T_MAX];
++	u8			depth;
++};
++
+ /**
+  *	struct nft_chain - nf_tables chain
+  *
+@@ -1109,6 +1132,7 @@ struct nft_rule_blob {
+  *	@udlen: user data length
+  *	@udata: user data in the chain
+  *	@blob_next: rule blob pointer to the next in the chain
++ *	@vstate: validation state
+  */
+ struct nft_chain {
+ 	struct nft_rule_blob		__rcu *blob_gen_0;
+@@ -1128,9 +1152,10 @@ struct nft_chain {
+ 
+ 	/* Only used during control plane commit phase: */
+ 	struct nft_rule_blob		*blob_next;
++	struct nft_chain_validate_state vstate;
+ };
+ 
+-int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain);
++int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain);
+ int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
+ 			 const struct nft_set_iter *iter,
+ 			 struct nft_elem_priv *elem_priv);
+@@ -1138,13 +1163,6 @@ int nft_set_catchall_validate(const struct nft_ctx *ctx, struct nft_set *set);
+ int nf_tables_bind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
+ void nf_tables_unbind_chain(const struct nft_ctx *ctx, struct nft_chain *chain);
+ 
+-enum nft_chain_types {
+-	NFT_CHAIN_T_DEFAULT = 0,
+-	NFT_CHAIN_T_ROUTE,
+-	NFT_CHAIN_T_NAT,
+-	NFT_CHAIN_T_MAX
+-};
+-
+ /**
+  * 	struct nft_chain_type - nf_tables chain type info
+  *
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f3de2f9bbebf..c46b1bb0efe0 100644
+index c46b1bb0efe0..a9f6babcc781 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -11676,21 +11676,10 @@ static int nft_validate_register_store(const struct nft_ctx *ctx,
- 				       enum nft_data_types type,
- 				       unsigned int len)
+@@ -123,6 +123,29 @@ static void nft_validate_state_update(struct nft_table *table, u8 new_validate_s
+ 
+ 	table->validate_state = new_validate_state;
+ }
++
++static bool nft_chain_vstate_valid(const struct nft_ctx *ctx,
++				   const struct nft_chain *chain)
++{
++	const struct nft_base_chain *base_chain;
++	enum nft_chain_types type;
++	u8 hooknum;
++
++	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain)))
++		return false;
++
++	base_chain = nft_base_chain(ctx->chain);
++	hooknum = base_chain->ops.hooknum;
++	type = base_chain->type->type;
++
++	/* chain is already validated for this call depth */
++	if (chain->vstate.depth >= ctx->level &&
++	    chain->vstate.hook_mask[type] & BIT(hooknum))
++		return true;
++
++	return false;
++}
++
+ static void nf_tables_trans_destroy_work(struct work_struct *w);
+ 
+ static void nft_trans_gc_work(struct work_struct *work);
+@@ -4079,6 +4102,29 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
+ 	nf_tables_rule_destroy(ctx, rule);
+ }
+ 
++static void nft_chain_vstate_update(const struct nft_ctx *ctx, struct nft_chain *chain)
++{
++	const struct nft_base_chain *base_chain;
++	enum nft_chain_types type;
++	u8 hooknum;
++
++	/* ctx->chain must hold the calling base chain. */
++	if (WARN_ON_ONCE(!nft_is_base_chain(ctx->chain))) {
++		memset(&chain->vstate, 0, sizeof(chain->vstate));
++		return;
++	}
++
++	base_chain = nft_base_chain(ctx->chain);
++	hooknum = base_chain->ops.hooknum;
++	type = base_chain->type->type;
++
++	BUILD_BUG_ON(BIT(NF_INET_NUMHOOKS) > U8_MAX);
++
++	chain->vstate.hook_mask[type] |= BIT(hooknum);
++	if (chain->vstate.depth < ctx->level)
++		chain->vstate.depth = ctx->level;
++}
++
+ /** nft_chain_validate - loop detection and hook validation
+  *
+  * @ctx: context containing call depth and base chain
+@@ -4088,15 +4134,25 @@ static void nf_tables_rule_release(const struct nft_ctx *ctx, struct nft_rule *r
+  * and set lookups until either the jump limit is hit or all reachable
+  * chains have been validated.
+  */
+-int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
++int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
  {
+ 	struct nft_expr *expr, *last;
+ 	struct nft_rule *rule;
+ 	int err;
+ 
++	BUILD_BUG_ON(NFT_JUMP_STACK_SIZE > 255);
+ 	if (ctx->level == NFT_JUMP_STACK_SIZE)
+ 		return -EMLINK;
+ 
++	if (ctx->level > 0) {
++		/* jumps to base chains are not allowed. */
++		if (nft_is_base_chain(chain))
++			return -ELOOP;
++
++		if (nft_chain_vstate_valid(ctx, chain))
++			return 0;
++	}
++
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		if (fatal_signal_pending(current))
+ 			return -EINTR;
+@@ -4117,6 +4173,7 @@ int nft_chain_validate(const struct nft_ctx *ctx, const struct nft_chain *chain)
+ 		}
+ 	}
+ 
++	nft_chain_vstate_update(ctx, chain);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nft_chain_validate);
+@@ -4128,7 +4185,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 		.net	= net,
+ 		.family	= table->family,
+ 	};
 -	int err;
--
- 	switch (reg) {
- 	case NFT_REG_VERDICT:
- 		if (type != NFT_DATA_VERDICT)
- 			return -EINVAL;
--
--		if (data != NULL &&
--		    (data->verdict.code == NFT_GOTO ||
--		     data->verdict.code == NFT_JUMP)) {
--			err = nft_chain_validate(ctx, data->verdict.chain);
--			if (err < 0)
--				return err;
--		}
--
- 		break;
- 	default:
- 		if (type != NFT_DATA_VALUE)
++	int err = 0;
+ 
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		if (!nft_is_base_chain(chain))
+@@ -4137,12 +4194,16 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 		ctx.chain = chain;
+ 		err = nft_chain_validate(&ctx, chain);
+ 		if (err < 0)
+-			return err;
++			goto err;
+ 
+ 		cond_resched();
+ 	}
+ 
+-	return 0;
++err:
++	list_for_each_entry(chain, &table->chains, list)
++		memset(&chain->vstate, 0, sizeof(chain->vstate));
++
++	return err;
+ }
+ 
+ int nft_setelem_validate(const struct nft_ctx *ctx, struct nft_set *set,
 -- 
 2.51.2
 
