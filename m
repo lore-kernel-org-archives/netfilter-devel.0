@@ -1,32 +1,46 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F3435CBA4
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Dec 2025 15:25:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F42181DF75B
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Dec 2025 15:28:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765898746; cv=none; b=K/pdM/1eVHoBbK0ZLUg5RqU7yPWkx7GHf7Bak2IOaU81rd0pflbbug7fVuC1sdBI0BhrKIo5Z1r+D3R5pYEDNK0TmWDHIhSG9PDw0+fbTnExOPcDmDVAbIZ0tWbbfEXtMIJjaUZAw376cLmp6lPzeTB35kb1Qjcwx/sW5ybxA6w=
+	t=1765898924; cv=none; b=LE3UPQ/5wjbJVJ4stNYrt7SjdUFn+8kgXQhZYYA647W5PN1mbGayv0idyNpzS9zNLmFJL9Lo6t034xLCSHHQuqMHVhHuqdwlhp4POWbbRGHoGp17a0AzjkgHCbdH05aDhVSOSv1w308DJOOFUbIRdSb3ShLqt+GeV4uO+Xhf6uc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765898746; c=relaxed/simple;
-	bh=b+H45Z3rRKbCMUEatXy6y3e0uj34LF8RW9HptA2/1ns=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K58Ne6lKY9GpNI53eI6baU1/9rQ2tVHTE8WovvawYqMTsb7mM6ttCoeGfz5mvQMp+eLobjHC9pSVZs6beWc+ID2AkzGdzb/Rt96qbRAjB9v/Nxraw3drWiL3zj+bWkKLoPkh2AEiqMZxMugOrv0XXMd17abVK9+cvakFlmk8m64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 12C856035A; Tue, 16 Dec 2025 16:25:41 +0100 (CET)
-Date: Tue, 16 Dec 2025 16:25:40 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Aleksandra Rukomoinikova <ARukomoinikova@k2.cloud>
-Subject: Re: [PATCH nf] netfilter: nf_conncount: increase connection clean up
- limit to 64
-Message-ID: <aUF59KJs9ghiGBdR@strlen.de>
-References: <20251216122449.30116-1-fmancera@suse.de>
- <aUFgyOkfh8e8vx_Z@strlen.de>
- <3f651847-9a0e-4007-8790-ffacd90f6e32@suse.de>
+	s=arc-20240116; t=1765898924; c=relaxed/simple;
+	bh=D9tx5ZSY4YESh051a9QH+mzxiaITv/EmTc6GXAHBTeQ=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=QGXoNe2yi4KFUKtUoA7D9ohbVlTwUg5/mAjffzNM5WK8bTU9kzmR76/DXtJWIvCqV6Fp+/0ja2dLYyQ7X8a2H9qrIvup+WDFWj3PxeikNdPyi6SiJplJ+ha38W4r+FBE7ZPyynIcCN0IdL3JjXUgQLyv45UM/dIjjMz8EJvYGRs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=eCuunF5I; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="eCuunF5I"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=0hDp9lybxUb7edMNQiujdecmHLaFPglcf0XISXPJFCw=; b=eCuunF5IVk9G8hH74Atmxhit7H
+	jt9c7rzVs25iSo0Sld435qXHkLvyUKQfKHWDKpgmf8939rU4E2dCD3OZexTqmV23n/rTGDdZq+hNc
+	ZkwYP/vTRlXUOSD17jZEe9vUMR88jCAcM3F0XPmEWcY5pwO/l8uuWRinKA8HcUndfnaAcZm/9B5cd
+	SQSqt82I8DBKH5v03wmslbCY9Euju4w+AdJL1HrQjU4iRW8K2PBifVpLB/moc4jH1hCO6ikzcESXY
+	gfuZPdtsqyQsbdqm6MAbYRyFttI5kQFwI1GElf/XUuEhKJKlL390iBG5AH9EVxGIkOx/Od5mgVOUR
+	BdT8DH6A==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.97.1)
+	(envelope-from <phil@nwl.cc>)
+	id 1vVWyd-000000000Vo-3ucV
+	for netfilter-devel@vger.kernel.org;
+	Tue, 16 Dec 2025 16:28:40 +0100
+Date: Tue, 16 Dec 2025 16:28:39 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] tests: monitor: Fix for out-of-path call
+Message-ID: <aUF6p6aa37OZFDY5@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org
+References: <20251216144613.10873-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,40 +49,23 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3f651847-9a0e-4007-8790-ffacd90f6e32@suse.de>
+In-Reply-To: <20251216144613.10873-1-phil@nwl.cc>
 
-Fernando Fernandez Mancera <fmancera@suse.de> wrote:
-> This sounds quite expensive to me. What about the following solution?
+On Tue, Dec 16, 2025 at 03:46:13PM +0100, Phil Sutter wrote:
+> When called from another directory without specifying test cases, an
+> incorrect regexp was used to glob all tests and no test was run at all:
 > 
-> 1. In nf_conncount_list, add "unsigned int last_gc_count"
-> 2. In __nf_connncount_add the optimization would look like this:
+> | # ./tests/monitor/run-tests.sh
+> | echo: running tests from file *.t
+> | ./tests/monitor/run-tests.sh: line 201: testcases/*.t: No such file or directory
+> | monitor: running tests from file *.t
+> | ./tests/monitor/run-tests.sh: line 201: testcases/*.t: No such file or directory
+> | json-echo: running tests from file *.t
+> | ./tests/monitor/run-tests.sh: line 201: testcases/*.t: No such file or directory
+> | json-monitor: running tests from file *.t
+> | ./tests/monitor/run-tests.sh: line 201: testcases/*.t: No such file or directory
 > 
-> 	if ((u32)jiffies == list->last_gc && (list->count - list->last_gc_count) >=
-> CONNCOUNT_GC_MAX_NODES - 1)
-> 	goto add_new_node;
+> Fixes: 83eaf50c36fe8 ("tests: monitor: Become $PWD agnostic")
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Won't that rescan the same entries for as long as the condition
-persists?
-
-That was the reason for the move-to-tail, so we start with something
-that we did not scan yet.
-
-> 3. After gc, we update the list->last_gc_count.
-> 
-> This way we make sure the optimization is not done if 7 or more connections
-> were added to the list.
-
-How many entries could be expected per seconds?  I think "tens of
-thousands" is possible. If not, then just increasing the GC_MAX_NODES
-would work.
-
-If we can't make this work, no choice but to add a destructor callback
-to conntrack... I very much dislike that idea.
-
-> It should ensure that the list does not fill up. For
-> better optimization, we can increase the number to 64 as I proposed. The
-> solution you proposed works too but I am worried that it will trigger a CPU
-> lockup for a big amount of connections..
-
-You could add "start = jiffies" and break on "jiffies != start",
-which would split the gc over multiple add requests.
+Patch applied.
