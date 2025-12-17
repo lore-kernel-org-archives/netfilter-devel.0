@@ -1,147 +1,153 @@
-Received: from ksmg2.croc.ru (ksmg2.croc.ru [195.38.23.102])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C0F4242D7F
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Dec 2025 15:17:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.38.23.102
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC85D34D4C1
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Dec 2025 16:28:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1765984641; cv=none; b=lpW2PKltDyL81FQr8JoLXD4Gn7+9MKQDuxKA34RGcXXtdS5Cm0QBLDwhcU1WJy1nA2wEexGGUB7TRsDDnkZwYsExwdkJoOWq7z5YUHTFZFuSKEjql9MVFFUG20ZdA1kUlrw7KDK2nLVdgUhD7LiJzv1Ojsrh4BBu1ECgJ1XSzF8=
+	t=1765988883; cv=none; b=PX9gMzad6/1D45ligvrlu88iJkNBg4viZxHlSgeC3yfoFEx8tiEwHoKQVqj0sZGlVM0s2JcBHKLJl7caWHYOb9p/Vd6TSvtSsOOB8WGF1zy+3u2icezsP3fpBL3XCcscHnKT4DqwdXjL9j5rJE1SxftdmR3jmdIEmwFZwtquS14=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1765984641; c=relaxed/simple;
-	bh=Y1N7BILZoiKrpGRCvDi8KIZDhhg9rS9QWrs0xRbjymw=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=TyTIfA9++qunKUveXqglJuWMu55wGEFYINheaIsPDQYUHE/hVhwTtgLB/Sagm9VqMuc7Eg7fbxFujRz0uzb4VgjfeI+gUl+qiDchW2RC12HA3sGI8Ud/+KXnMklUAJCeBpb8500+kS4Y2XnK/S3CkGeI5RdO/dj0w/1yaq1RjZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=k2.cloud; spf=pass smtp.mailfrom=k2.cloud; dkim=pass (2048-bit key) header.d=k2.cloud header.i=@k2.cloud header.b=bl3C0Rck; arc=none smtp.client-ip=195.38.23.102
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=k2.cloud
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=k2.cloud
+	s=arc-20240116; t=1765988883; c=relaxed/simple;
+	bh=0v6GiZwQmw10VgYg7XmvF5rjkeue5FWN8L2ipdtQVmk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=c0KQKCrEqLWmNUsMmjDhoWuY/EEKMuIOXHbGYdNtWYfboQnq98d8SQqjf92PE/IUaFnoNry/Ydj48u+95rhNeL8vajy299aLZHv6aDd/6e9v35qzIItbXlEB9g7P8R6XQn8FPZADydIzjWELWmYPGEs90hfIjn+lb9JrPE5dxgs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=UbGQDrg+; arc=none smtp.client-ip=209.85.128.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=k2.cloud header.i=@k2.cloud header.b="bl3C0Rck"
-Received: from ksmg2 (localhost [127.0.0.1])
-	by ksmg2.croc.ru (Postfix) with ESMTP id 9D4071E0012;
-	Wed, 17 Dec 2025 18:10:07 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ksmg2.croc.ru 9D4071E0012
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=k2.cloud; s=mail;
-	t=1765984207; bh=Y1N7BILZoiKrpGRCvDi8KIZDhhg9rS9QWrs0xRbjymw=;
-	h=From:To:Subject:Date:Message-ID:Content-Type:MIME-Version:From;
-	b=bl3C0RckzCp/56f5YXltVF5Zzp8JvhEI0TuNuRrv5TkjODE+Fzv9scxEjIlGJnDP9
-	 a+SKYaEqhvfChb2qRCZT9PGd58DP6G4ckdm7ouH7YZr+rKRMtnhvVoazkoK9t9Vivp
-	 NvTRajocZ+JlqNZDP94/ioW9jXD0fwuqgQ9xTO4XlPqV+0NbS0q0L+9jNlZZd3L79A
-	 ZPlsqV8sTX1bwDgn2WaJBEyY7eqxRkDE8kKeJv6h1jvBUY2fm3wTT/bKABBXEi8J4x
-	 B4S8ifHmSlcKF24wsoyOV8Ipb3w6ASHFVhkMq7+lZ/fORQf4OPhO3R+C0Z4ReHnKzJ
-	 WkXG2cHOsVQFQ==
-Received: from MXONE (unknown [195.38.23.35])
-	by ksmg2.croc.ru (Postfix) with ESMTP;
-	Wed, 17 Dec 2025 18:10:07 +0300 (MSK)
-From: Rukomoinikova Aleksandra <ARukomoinikova@k2.cloud>
-To: Fernando Fernandez Mancera <fmancera@suse.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-CC: "coreteam@netfilter.org" <coreteam@netfilter.org>, "Rukomoinikova
- Aleksandra" <ARukomoinikova@k2.cloud>
-Subject: Re: [PATCH 2/2 nf v2] netfilter: nf_conncount: increase the
- connection clean up limit to 64
-Thread-Topic: [PATCH 2/2 nf v2] netfilter: nf_conncount: increase the
- connection clean up limit to 64
-Thread-Index: AQHcb2QGYnJZjhw22UuF4jVC8tN/b7UlvWEA
-Date: Wed, 17 Dec 2025 15:10:06 +0000
-Message-ID: <b29fe852-0a72-4225-8963-fae8e6f17384@k2.cloud>
-References: <20251217144641.4122-1-fmancera@suse.de>
- <20251217144641.4122-2-fmancera@suse.de>
-In-Reply-To: <20251217144641.4122-2-fmancera@suse.de>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-except: 1
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <DF6B9C05D27565419D2AF269C75CDD24@croc.ru>
-Content-Transfer-Encoding: base64
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="UbGQDrg+"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-47789cd2083so32819815e9.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Dec 2025 08:28:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1765988879; x=1766593679; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=AUIBRQ1EfMgD4rZghNrrxsliWBknI9gTPJQu3bDLcJY=;
+        b=UbGQDrg+UUeEvVqqTzNHHL2CAtmr0I9eivMDfiPs4dvksQdkDU/B3/wR9FEybrFdHr
+         SgIjdbP6RwhsIXv5PHq85HSnQFzcXVHnTKEStgGDukUaTAYffZ4OOz6dtGN1coTVe9FO
+         Nehe2UuFXP6JgfANpbTmZK4g+WlyNCbIMgGcsLes3wNE3khOOdj7mNbWAcWsu+5PjlkQ
+         9+URkf7nYwCCb5XIlw3QHFKkzA9OnvR6QP/5eil33+qX9EZRYOuR4wlL5GM+Ay/sqnGv
+         Jr4mfbsJdqrdkWD6uyWFIOvjMcABh1LW7b5DWRBxnP5rg6R4V2AHdYMWnYBuIaRN+gLy
+         72sQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1765988879; x=1766593679;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AUIBRQ1EfMgD4rZghNrrxsliWBknI9gTPJQu3bDLcJY=;
+        b=aEFAy5O0Pzz1OwdddRVP9dR9Eq8P9MvGnscEJ5RTOB+kmq3AfJviJe0pagYnOSmnzB
+         A44mQtCqQcd+BXNPV8NHkx80B1shjucvqAj/rdOsmxUSdvSnWm7hgA3inRlF4VFnAtAh
+         X8/vZzo1Re/tX7MG73K+bWc2fB66gyGVQ+OhEQUQURREqgK+L0N8a0n5MVr1+ZOO6UjK
+         xcJ1hkzGHHU26+6M+hLfPsBjRV+ZHUQZF6X1d8cT3W3I6nISIxORrf8LosXD5KQpKY+V
+         LqpoDaBzGOnLJCtR+FPPMso3qGzqPmYLdoqhISni6r4q3u/dH1vpzG/qP3wje6TF8l2S
+         +BQA==
+X-Forwarded-Encrypted: i=1; AJvYcCVJats5k3wUrrTT4BYyn0akVoWG5UQllNi3A0HM50k59kzwM8C3KhVLTaEjbGmKduhwbkicn0+BzsLIRNF8fUk=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yze9Q4fdTq4oahXzrE9+b95WmMnYILKuYVQj4tJvYBSH8xDIEON
+	waKuWwJel6m4+E7hq65KsNhmwN7h3ijL1xULdx0X/LoruGaUFLxwbHmTuQH0MxhNnjc=
+X-Gm-Gg: AY/fxX5GDnbk5DCCHRZSjEkH/kn/ovAcVCMwT5QvHdVR8qoCEnnnAHHgfk9TiXR6HXM
+	SCFYfoLA+iqZKDLnbWPhf2hzOwiob9Oi82jBLr4X3RRu+OQXHFbLtfwupC6qDS0+7/8A8whoKq9
+	wHWUKxk07UP/2kAL165wdfnBpgNggr7gMOnhpFQ8Ox+5XeCqQydPG3MuC4ZdGjt4iPhiB3PFJ9r
+	KesSxl/oteXc6SWKYb9ybn30qiNB4CirhSmCDS2342Hj5wKXgxF82HKQ0DuFI1Pnmb7DSZ4tgMh
+	3Rz5jjGM5G9M5VLk5mKyQqvVBAF9UwtlQy6EfaqMMSHT6MUDu/9UdD/2EJQVAKMlB7h7cRzvEqP
+	fs4z170qsRvoz/g1ZCfrZn2LN3q8kElkxeiaODAsuwl9D3s9AooqEPeWA8JdzPTIx8VPot1bfTv
+	9OsXlZL6IFHLtXTspF+D3cxoD8bRM6o5c=
+X-Google-Smtp-Source: AGHT+IHGmMOUEefQoO5S3en43Zsul1QO3grq/W53kRWnWoSN5JrVJ1XTvQBX4MbJYn1xXsNPaQdx7A==
+X-Received: by 2002:a05:600c:5298:b0:46e:1a5e:211 with SMTP id 5b1f17b1804b1-47bdf5f0e9dmr21345875e9.21.1765988879254;
+        Wed, 17 Dec 2025 08:27:59 -0800 (PST)
+Received: from blackdock.suse.cz (nat2.prg.suse.com. [195.250.132.146])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4310adeee0esm5728364f8f.29.2025.12.17.08.27.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 17 Dec 2025 08:27:58 -0800 (PST)
+From: =?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>
+To: linux-block@vger.kernel.org,
+	bpf@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-hardening@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	cgroups@vger.kernel.org
+Cc: =?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>,
+	Hao Luo <haoluo@google.com>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Phil Sutter <phil@nwl.cc>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	Jens Axboe <axboe@kernel.dk>,
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	KP Singh <kpsingh@kernel.org>,
+	Eric Dumazet <edumazet@google.com>,
+	Florian Westphal <fw@strlen.de>,
+	Jiri Olsa <jolsa@kernel.org>,
+	Stanislav Fomichev <sdf@fomichev.me>,
+	Song Liu <song@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Simon Horman <horms@kernel.org>,
+	John Fastabend <john.fastabend@gmail.com>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Tejun Heo <tj@kernel.org>,
+	Josef Bacik <josef@toxicpanda.com>,
+	Paolo Abeni <pabeni@redhat.com>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Eduard Zingerman <eddyz87@gmail.com>,
+	Yu Kuai <yukuai@fnnas.com>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Kees Cook <kees@kernel.org>,
+	Jakub Kicinski <kuba@kernel.org>
+Subject: [PATCH 0/4] Use __counted_by for ancestor arrays
+Date: Wed, 17 Dec 2025 17:27:32 +0100
+Message-ID: <20251217162744.352391-1-mkoutny@suse.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-KSMG-Rule-ID: 4
-X-KSMG-Message-Action: skipped
-X-KSMG-AntiSpam-Status: not scanned, allowlist
-X-KSMG-AntiPhishing: not scanned, allowlist
-X-KSMG-LinksScanning: not scanned, allowlist
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.0.1.6960, not scanned, allowlist
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-SGkhIHRoYW5rcyBmb3IgZml4IG9uZSBtb3JlIHRpbWUpIEkgd2lsbCB0ZXN0IGl0IHRvZGF5DQoN
-Ck9uIDE3LjEyLjIwMjUgMTc6NDYsIEZlcm5hbmRvIEZlcm5hbmRleiBNYW5jZXJhIHdyb3RlOg0K
-PiBBZnRlciB0aGUgb3B0aW1pemF0aW9uIHRvIG9ubHkgcGVyZm9ybSBvbmUgR0MgcGVyIGppZmZ5
-LCBhIG5ldyBwcm9ibGVtDQo+IHdhcyBpbnRyb2R1Y2VkLiBJZiBtb3JlIHRoYW4gOCBuZXcgY29u
-bmVjdGlvbnMgYXJlIHRyYWNrZWQgcGVyIGppZmZ5IHRoZQ0KPiBsaXN0IHdvbid0IGJlIGNsZWFu
-ZWQgdXAgZmFzdCBlbm91Z2ggcG9zc2libHkgcmVhY2hpbmcgdGhlIGxpbWl0DQo+IHdyb25nbHku
-DQo+DQo+IEluIG9yZGVyIHRvIHByZXZlbnQgdGhpcyBpc3N1ZSwgb25seSBza2lwIHRoZSBHQyBp
-ZiBpdCB3YXMgYWxyZWFkeQ0KPiB0cmlnZ2VyZWQgZHVyaW5nIHRoZSBzYW1lIGppZmZ5IGFuZCB0
-aGUgaW5jcmVtZW50IGlzIGxvd2VyIHRoYW4gdGhlDQo+IGNsZWFuIHVwIGxpbWl0LiBJbiBhZGRp
-dGlvbiwgaW5jcmVhc2UgdGhlIGNsZWFuIHVwIGxpbWl0IHRvIDY0DQo+IGNvbm5lY3Rpb25zIHRv
-IGF2b2lkIHRyaWdnZXJpbmcgR0MgdG9vIG9mdGVuIGFuZCBkbyBtb3JlIGVmZmVjdGl2ZSBHQ3Mu
-DQo+DQo+IFRoaXMgaGFzIGJlZW4gdGVzdGVkIHVzaW5nIGEgSFRUUCBzZXJ2ZXIgYW5kIHNldmVy
-YWwNCj4gcGVyZm9ybWFuY2UgdG9vbHMgd2hpbGUgaGF2aW5nIG5mdF9jb25ubGltaXQveHRfY29u
-bmxpbWl0IG9yIE9WUyBsaW1pdA0KPiBjb25maWd1cmVkLg0KPg0KPiBPdXRwdXQgb2Ygc2xvd2h0
-dHB0ZXN0ICsgT1ZTIGxpbWl0IGF0IDUyMDAwIGNvbm5lY3Rpb25zOg0KPg0KPiAgIHNsb3cgSFRU
-UCB0ZXN0IHN0YXR1cyBvbiAzNDB0aCBzZWNvbmQ6DQo+ICAgaW5pdGlhbGl6aW5nOiAgICAgICAg
-MA0KPiAgIHBlbmRpbmc6ICAgICAgICAgICAgIDQzMg0KPiAgIGNvbm5lY3RlZDogICAgICAgICAg
-IDUxOTk4DQo+ICAgZXJyb3I6ICAgICAgICAgICAgICAgMA0KPiAgIGNsb3NlZDogICAgICAgICAg
-ICAgIDANCj4gICBzZXJ2aWNlIGF2YWlsYWJsZTogICBZRVMNCj4NCj4gRml4ZXM6IGQyNjU5Mjk5
-MzBlMiAoIm5ldGZpbHRlcjogbmZfY29ubmNvdW50OiByZWR1Y2UgdW5uZWNlc3NhcnkgR0MiKQ0K
-PiBSZXBvcnRlZC1ieTogQWxla3NhbmRyYSBSdWtvbW9pbmlrb3ZhIDxBUnVrb21vaW5pa292YUBr
-Mi5jbG91ZD4NCj4gQ2xvc2VzOiBodHRwczovL2xvcmUua2VybmVsLm9yZy9uZXRmaWx0ZXIvYjIw
-NjRlN2ItMDc3Ni00ZTE0LWFkYjYtYzY4MDgwOTg3NDcxQGsyLmNsb3VkLw0KPiBTaWduZWQtb2Zm
-LWJ5OiBGZXJuYW5kbyBGZXJuYW5kZXogTWFuY2VyYSA8Zm1hbmNlcmFAc3VzZS5kZT4NCj4gLS0t
-DQo+IHYyOiBhZGp1c3RlZCB0aGUgY29kZSBzbyB3ZSBhbHdheXMgcnVuIEdDIGlmIHdlIGluY3Jl
-bWVudCB0aGUgbGlzdCBtb3JlDQo+IHRoYW4gdGhlIGNsZWFuIHVwIGxpbWl0DQo+IC0tLQ0KPiAg
-IGluY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY291bnQuaCB8ICAxICsNCj4gICBu
-ZXQvbmV0ZmlsdGVyL25mX2Nvbm5jb3VudC5jICAgICAgICAgICAgICAgfCAxNSArKysrKysrKysr
-LS0tLS0NCj4gICAyIGZpbGVzIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25z
-KC0pDQo+DQo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNr
-X2NvdW50LmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvdW50LmgNCj4g
-aW5kZXggNTJhMDZkZTQxYWEwLi5jZjAxNjY1MjBjZjMgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUv
-bmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY291bnQuaA0KPiArKysgYi9pbmNsdWRlL25ldC9u
-ZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvdW50LmgNCj4gQEAgLTEzLDYgKzEzLDcgQEAgc3RydWN0
-IG5mX2Nvbm5jb3VudF9saXN0IHsNCj4gICAJdTMyIGxhc3RfZ2M7CQkvKiBqaWZmaWVzIGF0IG1v
-c3QgcmVjZW50IGdjICovDQo+ICAgCXN0cnVjdCBsaXN0X2hlYWQgaGVhZDsJLyogY29ubmVjdGlv
-bnMgd2l0aCB0aGUgc2FtZSBmaWx0ZXJpbmcga2V5ICovDQo+ICAgCXVuc2lnbmVkIGludCBjb3Vu
-dDsJLyogbGVuZ3RoIG9mIGxpc3QgKi8NCj4gKwl1bnNpZ25lZCBpbnQgbGFzdF9nY19jb3VudDsg
-LyogbGVuZ3RoIG9mIGxpc3QgYXQgbW9zdCByZWNlbnQgZ2MgKi8NCj4gICB9Ow0KPiAgIA0KPiAg
-IHN0cnVjdCBuZl9jb25uY291bnRfZGF0YSAqbmZfY29ubmNvdW50X2luaXQoc3RydWN0IG5ldCAq
-bmV0LCB1bnNpZ25lZCBpbnQga2V5bGVuKTsNCj4gZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIv
-bmZfY29ubmNvdW50LmMgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm5jb3VudC5jDQo+IGluZGV4IDg0
-ODc4MDhjODc2MS4uMjg4OTM2ZjVjMWJmIDEwMDY0NA0KPiAtLS0gYS9uZXQvbmV0ZmlsdGVyL25m
-X2Nvbm5jb3VudC5jDQo+ICsrKyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMNCj4gQEAg
-LTM0LDggKzM0LDkgQEANCj4gICANCj4gICAjZGVmaW5lIENPTk5DT1VOVF9TTE9UUwkJMjU2VQ0K
-PiAgIA0KPiAtI2RlZmluZSBDT05OQ09VTlRfR0NfTUFYX05PREVTCTgNCj4gLSNkZWZpbmUgTUFY
-X0tFWUxFTgkJNQ0KPiArI2RlZmluZSBDT05OQ09VTlRfR0NfTUFYX05PREVTCQk4DQo+ICsjZGVm
-aW5lIENPTk5DT1VOVF9HQ19NQVhfQ09MTEVDVAk2NA0KPiArI2RlZmluZSBNQVhfS0VZTEVOCQkJ
-NQ0KPiAgIA0KPiAgIC8qIHdlIHdpbGwgc2F2ZSB0aGUgdHVwbGVzIG9mIGFsbCBjb25uZWN0aW9u
-cyB3ZSBjYXJlIGFib3V0ICovDQo+ICAgc3RydWN0IG5mX2Nvbm5jb3VudF90dXBsZSB7DQo+IEBA
-IC0xODIsMTIgKzE4MywxMyBAQCBzdGF0aWMgaW50IF9fbmZfY29ubmNvdW50X2FkZChzdHJ1Y3Qg
-bmV0ICpuZXQsDQo+ICAgCQlnb3RvIG91dF9wdXQ7DQo+ICAgCX0NCj4gICANCj4gLQlpZiAoKHUz
-MilqaWZmaWVzID09IGxpc3QtPmxhc3RfZ2MpDQo+ICsJaWYgKCh1MzIpamlmZmllcyA9PSBsaXN0
-LT5sYXN0X2djICYmDQo+ICsJICAgIChsaXN0LT5jb3VudCAtIGxpc3QtPmxhc3RfZ2NfY291bnQp
-IDwgQ09OTkNPVU5UX0dDX01BWF9DT0xMRUNUKQ0KPiAgIAkJZ290byBhZGRfbmV3X25vZGU7DQo+
-ICAgDQo+ICAgCS8qIGNoZWNrIHRoZSBzYXZlZCBjb25uZWN0aW9ucyAqLw0KPiAgIAlsaXN0X2Zv
-cl9lYWNoX2VudHJ5X3NhZmUoY29ubiwgY29ubl9uLCAmbGlzdC0+aGVhZCwgbm9kZSkgew0KPiAt
-CQlpZiAoY29sbGVjdCA+IENPTk5DT1VOVF9HQ19NQVhfTk9ERVMpDQo+ICsJCWlmIChjb2xsZWN0
-ID4gQ09OTkNPVU5UX0dDX01BWF9DT0xMRUNUKQ0KPiAgIAkJCWJyZWFrOw0KPiAgIA0KPiAgIAkJ
-Zm91bmQgPSBmaW5kX29yX2V2aWN0KG5ldCwgbGlzdCwgY29ubik7DQo+IEBAIC0yMzAsNiArMjMy
-LDcgQEAgc3RhdGljIGludCBfX25mX2Nvbm5jb3VudF9hZGQoc3RydWN0IG5ldCAqbmV0LA0KPiAg
-IAkJbmZfY3RfcHV0KGZvdW5kX2N0KTsNCj4gICAJfQ0KPiAgIAlsaXN0LT5sYXN0X2djID0gKHUz
-MilqaWZmaWVzOw0KPiArCWxpc3QtPmxhc3RfZ2NfY291bnQgPSBsaXN0LT5jb3VudDsNCj4gICAN
-Cj4gICBhZGRfbmV3X25vZGU6DQo+ICAgCWlmIChXQVJOX09OX09OQ0UobGlzdC0+Y291bnQgPiBJ
-TlRfTUFYKSkgew0KPiBAQCAtMjc3LDYgKzI4MCw3IEBAIHZvaWQgbmZfY29ubmNvdW50X2xpc3Rf
-aW5pdChzdHJ1Y3QgbmZfY29ubmNvdW50X2xpc3QgKmxpc3QpDQo+ICAgCXNwaW5fbG9ja19pbml0
-KCZsaXN0LT5saXN0X2xvY2spOw0KPiAgIAlJTklUX0xJU1RfSEVBRCgmbGlzdC0+aGVhZCk7DQo+
-ICAgCWxpc3QtPmNvdW50ID0gMDsNCj4gKwlsaXN0LT5sYXN0X2djX2NvdW50ID0gMDsNCj4gICAJ
-bGlzdC0+bGFzdF9nYyA9ICh1MzIpamlmZmllczsNCj4gICB9DQo+ICAgRVhQT1JUX1NZTUJPTF9H
-UEwobmZfY29ubmNvdW50X2xpc3RfaW5pdCk7DQo+IEBAIC0zMTYsMTMgKzMyMCwxNCBAQCBzdGF0
-aWMgYm9vbCBfX25mX2Nvbm5jb3VudF9nY19saXN0KHN0cnVjdCBuZXQgKm5ldCwNCj4gICAJCX0N
-Cj4gICANCj4gICAJCW5mX2N0X3B1dChmb3VuZF9jdCk7DQo+IC0JCWlmIChjb2xsZWN0ZWQgPiBD
-T05OQ09VTlRfR0NfTUFYX05PREVTKQ0KPiArCQlpZiAoY29sbGVjdGVkID4gQ09OTkNPVU5UX0dD
-X01BWF9DT0xMRUNUKQ0KPiAgIAkJCWJyZWFrOw0KPiAgIAl9DQo+ICAgDQo+ICAgCWlmICghbGlz
-dC0+Y291bnQpDQo+ICAgCQlyZXQgPSB0cnVlOw0KPiAgIAlsaXN0LT5sYXN0X2djID0gKHUzMilq
-aWZmaWVzOw0KPiArCWxpc3QtPmxhc3RfZ2NfY291bnQgPSBsaXN0LT5jb3VudDsNCj4gICANCj4g
-ICAJcmV0dXJuIHJldDsNCj4gICB9DQoNCg0KLS0gDQpyZWdhcmRzLA0KQWxleGFuZHJhLg0KDQo=
+The trick with utilizing space in cgroup_root for cgroup::ancetors flex
+array was an obstacle for kernel reworks for
+-Wflex-array-member-not-at-end.
+
+The first patch fixes that, then I wanted to utilize __counted_by for
+this flex array which required some more rework how cgroup level is
+evaluated.
+
+Similar flex array is also in struct ioc_gq where it was tempting to
+simply use __counted_by(level), however, this would be off-by-one as it
+has semantics like cgroup's level (0 == root).
+Proper adjustment for __counted_by() would either need similar
+level/ancestor helpers or abstracted macros for ancestors up/down
+iterations.
+
+I only made a simple comment fixup since I'm not sure about benefit of
+__counted_by for structs that aren't sized based on direct user input.
+
+Michal Koutný (4):
+  cgroup: Eliminate cgrp_ancestor_storage in cgroup_root
+  cgroup: Introduce cgroup_level() helper
+  cgroup: Use __counted_by for cgroup::ancestors
+  blk-iocost: Correct comment ioc_gq::level
+
+ block/bfq-iosched.c           |  2 +-
+ block/blk-iocost.c            |  6 ++---
+ include/linux/cgroup-defs.h   | 43 +++++++++++++++++++----------------
+ include/linux/cgroup.h        | 18 ++++++++++++---
+ include/trace/events/cgroup.h |  8 +++----
+ kernel/bpf/helpers.c          |  2 +-
+ kernel/cgroup/cgroup.c        |  9 ++++----
+ net/netfilter/nft_socket.c    |  2 +-
+ 8 files changed, 53 insertions(+), 37 deletions(-)
+
+
+base-commit: 8f0b4cce4481fb22653697cced8d0d04027cb1e8
+-- 
+2.52.0
+
