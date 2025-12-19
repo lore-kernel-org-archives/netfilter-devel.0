@@ -1,79 +1,101 @@
-Received: from mx04.melco.co.jp (mx04.melco.co.jp [192.218.140.144])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E277D326951;
-	Fri, 19 Dec 2025 12:05:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.218.140.144
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58BB0320CA8;
+	Fri, 19 Dec 2025 13:39:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766145906; cv=none; b=JraXVgAwXA+jRQS+VeceGVBCNN9UJanMTjJzq5CES2ceWCT1WadBnGeNn4BZp+4UeBzUhwB2sfd/LdhCqMByTJW8+8EyT3vs7urm6zVeClplFZgIVSQPKNk3rB0ogwK7N2K8HaU53lovMtl5+Q97wQw2B2jjIH/ugJnWnKr2u1k=
+	t=1766151589; cv=none; b=H58YsCxygitMdJxO3GJ4O0SmalZM1CcizemjU/nmVw2KRKm5G7xFtw1CyShWMdl6EENVhCql3Z2taxIOciFcZfQK+zYXPZJOoalEmuPdxY5B7MX8imYLakhYg/vmerPmiCzOY0dW2Gr7SIDepuoIGZWvZqWNhVLO2K6plhoCUms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766145906; c=relaxed/simple;
-	bh=Py/no0h4h9biLN0454Kyu9lnA1lRRcRx782AVK4YzPY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qD+y/izIOP0Ct1BNgDLsvS9yUgrle2o5mvmRqQRYu7FDNIE26rg5RsOVuq3B6zzLhVtkkvRw1s52uFM9k4DToRs8QjpMki5cK+wquA17FlPBR+VAKB8w73AjGHzRGxG6VPjU9gEMbCcu5cqCAVueVv7go22pGmkz4IJQTw93EOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=da.MitsubishiElectric.co.jp; spf=pass smtp.mailfrom=da.MitsubishiElectric.co.jp; arc=none smtp.client-ip=192.218.140.144
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=da.MitsubishiElectric.co.jp
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=da.MitsubishiElectric.co.jp
-Received: from mr06.melco.co.jp (mr06 [133.141.98.164])
-	by mx04.melco.co.jp (Postfix) with ESMTP id 4dXmCP2ktdzMvNbL;
-	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
-Received: from mf04.melco.co.jp (unknown [192.168.20.184])
-	by mr06.melco.co.jp (Postfix) with ESMTP id 4dXmCP2gpxzMrL3y;
-	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
-Received: from elgw.isl.melco.co.jp (unknown [133.141.13.130])
-	by mf04.melco.co.jp (Postfix) with ESMTP id 4dXmCP2cV6zMt2LR;
-	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
-Received: from eliswall.isl.melco.co.jp (eliswall.isl.melco.co.jp [10.74.245.38])
-	by elgw.isl.melco.co.jp (Postfix) with ESMTP id 52A8D202EC0C;
-	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
-Received: from elc1910004.ad.melco.co.jp (c1910004.isl.melco.co.jp [10.74.1.185])
-	by eliswall.isl.melco.co.jp (Postfix) with ESMTP id 49967355;
-	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
-From: Yuto Hamaguchi <Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org,
-	netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	Hamaguchi.Yuto@da.MitsubishiElectric.co.jp
-Subject: [PATCH nf] netfilter: nf_conntrack: Add allow_clash to generic protocol handler
-Date: Fri, 19 Dec 2025 20:53:51 +0900
-Message-Id: <20251219115351.5662-1-Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
-X-Mailer: git-send-email 2.36.1
+	s=arc-20240116; t=1766151589; c=relaxed/simple;
+	bh=B7gy/6fcyRRQm9I3gjotnDVopYfBrxz7/tSUiK+f0lE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=SEmNZEBjgxxqCAhF+eQtFhVoGV0sL64d6rHPDyMAOyEPFS3DFADEgc8CRt1j4LPfiLUEHIj8mc/HC6CrU6BcGZZcyLiOevj9f3UpPHbv1yqEkfzkuXfpsw51ZLITBHE7tb9XImdUQBHUw//S24pZVagIY7R8TrmRbwoHJLdXvcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=umgsFRhI; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="umgsFRhI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20BFCC116C6;
+	Fri, 19 Dec 2025 13:39:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1766151588;
+	bh=B7gy/6fcyRRQm9I3gjotnDVopYfBrxz7/tSUiK+f0lE=;
+	h=Date:Reply-To:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=umgsFRhI/tLq/rGjvhZY5yLoaa2+cNDKAXbkW3WzgyHCXYgck6ifXVN5uPuIJzrkh
+	 4jR745ZgRXCOhaX0KQPU3DcLIWgAyXfHH99ge2mjBhdzluWGNL6raJ46Htrnijns6h
+	 v+08m1gkz6mzrbNz9cfpBt4/5/XGEZUuWvnBRwF/uOS46QBI40bWJYKubEDnuwq8nk
+	 h7A/N8h6LdwdqnSD1K6pZPH1NmihIl1gQMoJ/i+qBPaI3sB313iAQmhI6ZU5ONfhwR
+	 0xjhUJkOGazBQyjM1l6YNPSqKtSlvtRfOXhbSiQ4126+w7FSnWOddtb6DCTHDITaGx
+	 gPIlsmJ6Uh60Q==
+Message-ID: <fdb9f97d-7813-48a0-9fdf-ddc039d853eb@kernel.org>
+Date: Fri, 19 Dec 2025 14:39:40 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Reply-To: Daniel Gomez <da.gomez@kernel.org>
+Subject: Re: [PATCH] netfilter: replace -EEXIST with -EBUSY
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+ Nikolay Aleksandrov <razor@blackwall.org>, Ido Schimmel <idosch@nvidia.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, Luis Chamberlain <mcgrof@kernel.org>,
+ Petr Pavlu <petr.pavlu@suse.com>, Sami Tolvanen <samitolvanen@google.com>,
+ Aaron Tomlin <atomlin@atomlin.com>, Lucas De Marchi <demarchi@kernel.org>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+ bridge@lists.linux.dev, netdev@vger.kernel.org,
+ linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
+ Daniel Gomez <da.gomez@samsung.com>
+References: <20251219-dev-module-init-eexists-netfilter-v1-1-efd3f62412dc@samsung.com>
+ <aUUDRGqMQ_Ss3bDJ@strlen.de>
+Content-Language: en-US
+From: Daniel Gomez <da.gomez@kernel.org>
+Organization: kernel.org
+In-Reply-To: <aUUDRGqMQ_Ss3bDJ@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The upstream commit, 71d8c47fc653711c41bc3282e5b0e605b3727956
- ("netfilter: conntrack: introduce clash resolution on insertion race"),
-sets allow_clash=true in the UDP/UDPLITE protocol handler
-but does not set it in the generic protocol handler.
+On 19/12/2025 08.48, Florian Westphal wrote:
+> Daniel Gomez <da.gomez@kernel.org> wrote:
+>> From: Daniel Gomez <da.gomez@samsung.com>
+>>
+>> The -EEXIST error code is reserved by the module loading infrastructure
+>> to indicate that a module is already loaded. When a module's init
+>> function returns -EEXIST, userspace tools like kmod interpret this as
+>> "module already loaded" and treat the operation as successful, returning
+>> 0 to the user even though the module initialization actually failed.
+>>
+>> This follows the precedent set by commit 54416fd76770 ("netfilter:
+>> conntrack: helper: Replace -EEXIST by -EBUSY") which fixed the same
+>> issue in nf_conntrack_helper_register().
+>>
+>> Affected modules:
+>>   * ebtable_broute ebtable_filter ebtable_nat arptable_filter
+>>   * ip6table_filter ip6table_mangle ip6table_nat ip6table_raw
+>>   * ip6table_security iptable_filter iptable_mangle iptable_nat
+>>   * iptable_raw iptable_security
+> 
+> But this is very different from what 54416fd76770 fixes.
+> 
+> Before 54416fd76770. userspace can make a configuration entry that
+> prevents and unrelated module from getting loaded but at the same time
+> it doesn't provide any error to userspace.
+> 
+> All these -EEXIST should not be possible unless the module is
+> already loaded.
 
-As a result, packets composed of connectionless protocols at each layer,
-such as UDP over IP-in-IP, still drop packets due to conflicts during conntrack insertion.
+I see.
 
-To resolve this, this patch sets allow_clash in the nf_conntrack_l4proto_generic.
+> I'll apply this patch but its not related to 54416fd76770 afaics.
 
-Signed-off-by: Yuto Hamaguchi <Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
----
- net/netfilter/nf_conntrack_proto_generic.c | 1 +
- 1 file changed, 1 insertion(+)
+Thanks.
 
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index e831637bc8ca..cb260eb3d012 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -67,6 +67,7 @@ void nf_conntrack_generic_init_net(struct net *net)
- const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
- {
- 	.l4proto		= 255,
-+	.allow_clash            = true,
- #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
- 	.ctnl_timeout		= {
- 		.nlattr_to_obj	= generic_timeout_nlattr_to_obj,
--- 
-2.36.1
+Then, what about removing that paragraph that mentions the commit and add
+something like:
 
+Replace -EEXIST with -EBUSY to ensure correct error reporting in the module
+initialization path.
