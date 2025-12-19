@@ -1,154 +1,79 @@
-Received: from ksmg4.croc.ru (ksmg4.croc.ru [195.38.23.94])
+Received: from mx04.melco.co.jp (mx04.melco.co.jp [192.218.140.144])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2EC53019C5
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Dec 2025 11:04:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.38.23.94
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E277D326951;
+	Fri, 19 Dec 2025 12:05:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.218.140.144
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766142301; cv=none; b=u41DCLfUGJt3sjf/65sSrUrris91STV2XaPvj74rz0CbAMw94lC663CjwuVG6j8gA2XGPeMTUKk+wBukbyTOUfxwbiRH/8tMgw4IFhmaPumwrzt/RVwaCyIFXWbLUsccY4akJot36EQNMSVdq0EVgcS8TwqIuAfDV0my2OYxT0E=
+	t=1766145906; cv=none; b=JraXVgAwXA+jRQS+VeceGVBCNN9UJanMTjJzq5CES2ceWCT1WadBnGeNn4BZp+4UeBzUhwB2sfd/LdhCqMByTJW8+8EyT3vs7urm6zVeClplFZgIVSQPKNk3rB0ogwK7N2K8HaU53lovMtl5+Q97wQw2B2jjIH/ugJnWnKr2u1k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766142301; c=relaxed/simple;
-	bh=oO1whyWyvgOPG6pjaWnkbdiebawg9NyYJXJTl3gLm30=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=F/FU/MEk5HhF/Yr8+8tL8M9y0hvO0vpm4aZdWEq3LqUZMiBzQXFiEayUpxjtejB39/C6VAkR3eYjUJwmr6nagxW+DFIXLCfh2rcDIN1ZvpGSEGvnDwQN1imFSYF2bFgFGTLftnFAUIMYqUILMmGD2WDNLu8BmF3Be8q1qmnGn8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=k2.cloud; spf=pass smtp.mailfrom=k2.cloud; dkim=pass (2048-bit key) header.d=k2.cloud header.i=@k2.cloud header.b=NbYotnA7; arc=none smtp.client-ip=195.38.23.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=k2.cloud
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=k2.cloud
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=k2.cloud header.i=@k2.cloud header.b="NbYotnA7"
-Received: from ksmg4.croc.ru (localhost [127.0.0.1])
-	by ksmg4.croc.ru (Postfix) with ESMTP id 9ACA820026;
-	Fri, 19 Dec 2025 14:04:43 +0300 (MSK)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ksmg4.croc.ru 9ACA820026
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=k2.cloud; s=mail;
-	t=1766142283; bh=oO1whyWyvgOPG6pjaWnkbdiebawg9NyYJXJTl3gLm30=;
-	h=From:To:Subject:Date:Message-ID:Content-Type:MIME-Version:From;
-	b=NbYotnA7x8xsHPo9v93S81PNcbCazgg/sc89+VIlIKGqcTh9nsPu9ncusISzpBLHl
-	 1XRi9wXMOqhjJbUhW4/MQbYyk7jf9wySCIw2d+SjTaRm19jjOBjMD+yZXTXj5rVHJ8
-	 xY2B2PiPBauZHa0uWV8wXIvapiq4Il9/wpCH4IYRD00e/h4yEScEFwGS+oGg3zHtJm
-	 vpIqWZNLhiPn+IKqbYD0wCY1JZEP2vwgeibtMJaIXBJDp1eftueSKwYtgxGXa86+Tz
-	 vUoHKJCYfRV+gGdvdGENruW1EdOogFes2kQt3uja8EsadqlyrQ6hMU3NttqXtbjxrB
-	 14u8udB3jMC0w==
-Received: from MXONE (unknown [195.38.23.35])
-	by ksmg4.croc.ru (Postfix) with ESMTP;
-	Fri, 19 Dec 2025 14:04:43 +0300 (MSK)
-From: Rukomoinikova Aleksandra <ARukomoinikova@k2.cloud>
-To: Rukomoinikova Aleksandra <ARukomoinikova@k2.cloud>, "Fernando Fernandez
- Mancera" <fmancera@suse.de>, "netfilter-devel@vger.kernel.org"
-	<netfilter-devel@vger.kernel.org>
-CC: "coreteam@netfilter.org" <coreteam@netfilter.org>
-Subject: Re: [PATCH 2/2 nf v2] netfilter: nf_conncount: increase the
- connection clean up limit to 64
-Thread-Topic: [PATCH 2/2 nf v2] netfilter: nf_conncount: increase the
- connection clean up limit to 64
-Thread-Index: AQHcb2QGYnJZjhw22UuF4jVC8tN/b7UlvWEAgALgGQA=
-Date: Fri, 19 Dec 2025 11:04:42 +0000
-Message-ID: <a91149e0-fab0-4e3f-a580-a63f501b34ce@k2.cloud>
-References: <20251217144641.4122-1-fmancera@suse.de>
- <20251217144641.4122-2-fmancera@suse.de>
- <b29fe852-0a72-4225-8963-fae8e6f17384@k2.cloud>
-In-Reply-To: <b29fe852-0a72-4225-8963-fae8e6f17384@k2.cloud>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-except: 1
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <50B5A5C1B2A4D3469405CF52AB1C71FE@croc.ru>
-Content-Transfer-Encoding: base64
+	s=arc-20240116; t=1766145906; c=relaxed/simple;
+	bh=Py/no0h4h9biLN0454Kyu9lnA1lRRcRx782AVK4YzPY=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qD+y/izIOP0Ct1BNgDLsvS9yUgrle2o5mvmRqQRYu7FDNIE26rg5RsOVuq3B6zzLhVtkkvRw1s52uFM9k4DToRs8QjpMki5cK+wquA17FlPBR+VAKB8w73AjGHzRGxG6VPjU9gEMbCcu5cqCAVueVv7go22pGmkz4IJQTw93EOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=da.MitsubishiElectric.co.jp; spf=pass smtp.mailfrom=da.MitsubishiElectric.co.jp; arc=none smtp.client-ip=192.218.140.144
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=da.MitsubishiElectric.co.jp
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=da.MitsubishiElectric.co.jp
+Received: from mr06.melco.co.jp (mr06 [133.141.98.164])
+	by mx04.melco.co.jp (Postfix) with ESMTP id 4dXmCP2ktdzMvNbL;
+	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
+Received: from mf04.melco.co.jp (unknown [192.168.20.184])
+	by mr06.melco.co.jp (Postfix) with ESMTP id 4dXmCP2gpxzMrL3y;
+	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
+Received: from elgw.isl.melco.co.jp (unknown [133.141.13.130])
+	by mf04.melco.co.jp (Postfix) with ESMTP id 4dXmCP2cV6zMt2LR;
+	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
+Received: from eliswall.isl.melco.co.jp (eliswall.isl.melco.co.jp [10.74.245.38])
+	by elgw.isl.melco.co.jp (Postfix) with ESMTP id 52A8D202EC0C;
+	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
+Received: from elc1910004.ad.melco.co.jp (c1910004.isl.melco.co.jp [10.74.1.185])
+	by eliswall.isl.melco.co.jp (Postfix) with ESMTP id 49967355;
+	Fri, 19 Dec 2025 20:53:53 +0900 (JST)
+From: Yuto Hamaguchi <Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
+To: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	Hamaguchi.Yuto@da.MitsubishiElectric.co.jp
+Subject: [PATCH nf] netfilter: nf_conntrack: Add allow_clash to generic protocol handler
+Date: Fri, 19 Dec 2025 20:53:51 +0900
+Message-Id: <20251219115351.5662-1-Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
+X-Mailer: git-send-email 2.36.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-KSMG-Rule-ID: 4
-X-KSMG-Message-Action: skipped
-X-KSMG-AntiSpam-Status: not scanned, allowlist
-X-KSMG-AntiPhishing: not scanned, allowlist
-X-KSMG-LinksScanning: not scanned, allowlist
-X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.0.1.6960, not scanned, allowlist
+Content-Transfer-Encoding: 8bit
 
-SGkhDQovVGVzdGVkLWJ5LzogQWxleGFuZHJhIFJ1a29tb2luaWtvdmEgPGFydWtvbW9pbmlrb3Zh
-QGsyLmNsb3VkPg0KDQpPbiAxNy4xMi4yMDI1IDE4OjEwLCBSdWtvbW9pbmlrb3ZhIEFsZWtzYW5k
-cmEgd3JvdGU6DQo+IEhpISB0aGFua3MgZm9yIGZpeCBvbmUgbW9yZSB0aW1lKSBJIHdpbGwgdGVz
-dCBpdCB0b2RheQ0KPg0KPiBPbiAxNy4xMi4yMDI1IDE3OjQ2LCBGZXJuYW5kbyBGZXJuYW5kZXog
-TWFuY2VyYSB3cm90ZToNCj4+IEFmdGVyIHRoZSBvcHRpbWl6YXRpb24gdG8gb25seSBwZXJmb3Jt
-IG9uZSBHQyBwZXIgamlmZnksIGEgbmV3IHByb2JsZW0NCj4+IHdhcyBpbnRyb2R1Y2VkLiBJZiBt
-b3JlIHRoYW4gOCBuZXcgY29ubmVjdGlvbnMgYXJlIHRyYWNrZWQgcGVyIGppZmZ5IHRoZQ0KPj4g
-bGlzdCB3b24ndCBiZSBjbGVhbmVkIHVwIGZhc3QgZW5vdWdoIHBvc3NpYmx5IHJlYWNoaW5nIHRo
-ZSBsaW1pdA0KPj4gd3JvbmdseS4NCj4+DQo+PiBJbiBvcmRlciB0byBwcmV2ZW50IHRoaXMgaXNz
-dWUsIG9ubHkgc2tpcCB0aGUgR0MgaWYgaXQgd2FzIGFscmVhZHkNCj4+IHRyaWdnZXJlZCBkdXJp
-bmcgdGhlIHNhbWUgamlmZnkgYW5kIHRoZSBpbmNyZW1lbnQgaXMgbG93ZXIgdGhhbiB0aGUNCj4+
-IGNsZWFuIHVwIGxpbWl0LiBJbiBhZGRpdGlvbiwgaW5jcmVhc2UgdGhlIGNsZWFuIHVwIGxpbWl0
-IHRvIDY0DQo+PiBjb25uZWN0aW9ucyB0byBhdm9pZCB0cmlnZ2VyaW5nIEdDIHRvbyBvZnRlbiBh
-bmQgZG8gbW9yZSBlZmZlY3RpdmUgR0NzLg0KPj4NCj4+IFRoaXMgaGFzIGJlZW4gdGVzdGVkIHVz
-aW5nIGEgSFRUUCBzZXJ2ZXIgYW5kIHNldmVyYWwNCj4+IHBlcmZvcm1hbmNlIHRvb2xzIHdoaWxl
-IGhhdmluZyBuZnRfY29ubmxpbWl0L3h0X2Nvbm5saW1pdCBvciBPVlMgbGltaXQNCj4+IGNvbmZp
-Z3VyZWQuDQo+Pg0KPj4gT3V0cHV0IG9mIHNsb3dodHRwdGVzdCArIE9WUyBsaW1pdCBhdCA1MjAw
-MCBjb25uZWN0aW9uczoNCj4+DQo+PiAgICBzbG93IEhUVFAgdGVzdCBzdGF0dXMgb24gMzQwdGgg
-c2Vjb25kOg0KPj4gICAgaW5pdGlhbGl6aW5nOiAgICAgICAgMA0KPj4gICAgcGVuZGluZzogICAg
-ICAgICAgICAgNDMyDQo+PiAgICBjb25uZWN0ZWQ6ICAgICAgICAgICA1MTk5OA0KPj4gICAgZXJy
-b3I6ICAgICAgICAgICAgICAgMA0KPj4gICAgY2xvc2VkOiAgICAgICAgICAgICAgMA0KPj4gICAg
-c2VydmljZSBhdmFpbGFibGU6ICAgWUVTDQo+Pg0KPj4gRml4ZXM6IGQyNjU5Mjk5MzBlMiAoIm5l
-dGZpbHRlcjogbmZfY29ubmNvdW50OiByZWR1Y2UgdW5uZWNlc3NhcnkgR0MiKQ0KPj4gUmVwb3J0
-ZWQtYnk6IEFsZWtzYW5kcmEgUnVrb21vaW5pa292YSA8QVJ1a29tb2luaWtvdmFAazIuY2xvdWQ+
-DQo+PiBDbG9zZXM6IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL25ldGZpbHRlci9iMjA2NGU3Yi0w
-Nzc2LTRlMTQtYWRiNi1jNjgwODA5ODc0NzFAazIuY2xvdWQvDQo+PiBTaWduZWQtb2ZmLWJ5OiBG
-ZXJuYW5kbyBGZXJuYW5kZXogTWFuY2VyYSA8Zm1hbmNlcmFAc3VzZS5kZT4NCj4+IC0tLQ0KPj4g
-djI6IGFkanVzdGVkIHRoZSBjb2RlIHNvIHdlIGFsd2F5cyBydW4gR0MgaWYgd2UgaW5jcmVtZW50
-IHRoZSBsaXN0IG1vcmUNCj4+IHRoYW4gdGhlIGNsZWFuIHVwIGxpbWl0DQo+PiAtLS0NCj4+ICAg
-IGluY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY291bnQuaCB8ICAxICsNCj4+ICAg
-IG5ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMgICAgICAgICAgICAgICB8IDE1ICsrKysrKysr
-KystLS0tLQ0KPj4gICAgMiBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCA1IGRlbGV0
-aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29u
-bnRyYWNrX2NvdW50LmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvdW50
-LmgNCj4+IGluZGV4IDUyYTA2ZGU0MWFhMC4uY2YwMTY2NTIwY2YzIDEwMDY0NA0KPj4gLS0tIGEv
-aW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3VudC5oDQo+PiArKysgYi9pbmNs
-dWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvdW50LmgNCj4+IEBAIC0xMyw2ICsxMyw3
-IEBAIHN0cnVjdCBuZl9jb25uY291bnRfbGlzdCB7DQo+PiAgICAJdTMyIGxhc3RfZ2M7CQkvKiBq
-aWZmaWVzIGF0IG1vc3QgcmVjZW50IGdjICovDQo+PiAgICAJc3RydWN0IGxpc3RfaGVhZCBoZWFk
-OwkvKiBjb25uZWN0aW9ucyB3aXRoIHRoZSBzYW1lIGZpbHRlcmluZyBrZXkgKi8NCj4+ICAgIAl1
-bnNpZ25lZCBpbnQgY291bnQ7CS8qIGxlbmd0aCBvZiBsaXN0ICovDQo+PiArCXVuc2lnbmVkIGlu
-dCBsYXN0X2djX2NvdW50OyAvKiBsZW5ndGggb2YgbGlzdCBhdCBtb3N0IHJlY2VudCBnYyAqLw0K
-Pj4gICAgfTsNCj4+ICAgIA0KPj4gICAgc3RydWN0IG5mX2Nvbm5jb3VudF9kYXRhICpuZl9jb25u
-Y291bnRfaW5pdChzdHJ1Y3QgbmV0ICpuZXQsIHVuc2lnbmVkIGludCBrZXlsZW4pOw0KPj4gZGlm
-ZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMgYi9uZXQvbmV0ZmlsdGVyL25m
-X2Nvbm5jb3VudC5jDQo+PiBpbmRleCA4NDg3ODA4Yzg3NjEuLjI4ODkzNmY1YzFiZiAxMDA2NDQN
-Cj4+IC0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMNCj4+ICsrKyBiL25ldC9uZXRm
-aWx0ZXIvbmZfY29ubmNvdW50LmMNCj4+IEBAIC0zNCw4ICszNCw5IEBADQo+PiAgICANCj4+ICAg
-ICNkZWZpbmUgQ09OTkNPVU5UX1NMT1RTCQkyNTZVDQo+PiAgICANCj4+IC0jZGVmaW5lIENPTk5D
-T1VOVF9HQ19NQVhfTk9ERVMJOA0KPj4gLSNkZWZpbmUgTUFYX0tFWUxFTgkJNQ0KPj4gKyNkZWZp
-bmUgQ09OTkNPVU5UX0dDX01BWF9OT0RFUwkJOA0KPj4gKyNkZWZpbmUgQ09OTkNPVU5UX0dDX01B
-WF9DT0xMRUNUCTY0DQo+PiArI2RlZmluZSBNQVhfS0VZTEVOCQkJNQ0KPj4gICAgDQo+PiAgICAv
-KiB3ZSB3aWxsIHNhdmUgdGhlIHR1cGxlcyBvZiBhbGwgY29ubmVjdGlvbnMgd2UgY2FyZSBhYm91
-dCAqLw0KPj4gICAgc3RydWN0IG5mX2Nvbm5jb3VudF90dXBsZSB7DQo+PiBAQCAtMTgyLDEyICsx
-ODMsMTMgQEAgc3RhdGljIGludCBfX25mX2Nvbm5jb3VudF9hZGQoc3RydWN0IG5ldCAqbmV0LA0K
-Pj4gICAgCQlnb3RvIG91dF9wdXQ7DQo+PiAgICAJfQ0KPj4gICAgDQo+PiAtCWlmICgodTMyKWpp
-ZmZpZXMgPT0gbGlzdC0+bGFzdF9nYykNCj4+ICsJaWYgKCh1MzIpamlmZmllcyA9PSBsaXN0LT5s
-YXN0X2djICYmDQo+PiArCSAgICAobGlzdC0+Y291bnQgLSBsaXN0LT5sYXN0X2djX2NvdW50KSA8
-IENPTk5DT1VOVF9HQ19NQVhfQ09MTEVDVCkNCj4+ICAgIAkJZ290byBhZGRfbmV3X25vZGU7DQo+
-PiAgICANCj4+ICAgIAkvKiBjaGVjayB0aGUgc2F2ZWQgY29ubmVjdGlvbnMgKi8NCj4+ICAgIAls
-aXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoY29ubiwgY29ubl9uLCAmbGlzdC0+aGVhZCwgbm9kZSkg
-ew0KPj4gLQkJaWYgKGNvbGxlY3QgPiBDT05OQ09VTlRfR0NfTUFYX05PREVTKQ0KPj4gKwkJaWYg
-KGNvbGxlY3QgPiBDT05OQ09VTlRfR0NfTUFYX0NPTExFQ1QpDQo+PiAgICAJCQlicmVhazsNCj4+
-ICAgIA0KPj4gICAgCQlmb3VuZCA9IGZpbmRfb3JfZXZpY3QobmV0LCBsaXN0LCBjb25uKTsNCj4+
-IEBAIC0yMzAsNiArMjMyLDcgQEAgc3RhdGljIGludCBfX25mX2Nvbm5jb3VudF9hZGQoc3RydWN0
-IG5ldCAqbmV0LA0KPj4gICAgCQluZl9jdF9wdXQoZm91bmRfY3QpOw0KPj4gICAgCX0NCj4+ICAg
-IAlsaXN0LT5sYXN0X2djID0gKHUzMilqaWZmaWVzOw0KPj4gKwlsaXN0LT5sYXN0X2djX2NvdW50
-ID0gbGlzdC0+Y291bnQ7DQo+PiAgICANCj4+ICAgIGFkZF9uZXdfbm9kZToNCj4+ICAgIAlpZiAo
-V0FSTl9PTl9PTkNFKGxpc3QtPmNvdW50ID4gSU5UX01BWCkpIHsNCj4+IEBAIC0yNzcsNiArMjgw
-LDcgQEAgdm9pZCBuZl9jb25uY291bnRfbGlzdF9pbml0KHN0cnVjdCBuZl9jb25uY291bnRfbGlz
-dCAqbGlzdCkNCj4+ICAgIAlzcGluX2xvY2tfaW5pdCgmbGlzdC0+bGlzdF9sb2NrKTsNCj4+ICAg
-IAlJTklUX0xJU1RfSEVBRCgmbGlzdC0+aGVhZCk7DQo+PiAgICAJbGlzdC0+Y291bnQgPSAwOw0K
-Pj4gKwlsaXN0LT5sYXN0X2djX2NvdW50ID0gMDsNCj4+ICAgIAlsaXN0LT5sYXN0X2djID0gKHUz
-MilqaWZmaWVzOw0KPj4gICAgfQ0KPj4gICAgRVhQT1JUX1NZTUJPTF9HUEwobmZfY29ubmNvdW50
-X2xpc3RfaW5pdCk7DQo+PiBAQCAtMzE2LDEzICszMjAsMTQgQEAgc3RhdGljIGJvb2wgX19uZl9j
-b25uY291bnRfZ2NfbGlzdChzdHJ1Y3QgbmV0ICpuZXQsDQo+PiAgICAJCX0NCj4+ICAgIA0KPj4g
-ICAgCQluZl9jdF9wdXQoZm91bmRfY3QpOw0KPj4gLQkJaWYgKGNvbGxlY3RlZCA+IENPTk5DT1VO
-VF9HQ19NQVhfTk9ERVMpDQo+PiArCQlpZiAoY29sbGVjdGVkID4gQ09OTkNPVU5UX0dDX01BWF9D
-T0xMRUNUKQ0KPj4gICAgCQkJYnJlYWs7DQo+PiAgICAJfQ0KPj4gICAgDQo+PiAgICAJaWYgKCFs
-aXN0LT5jb3VudCkNCj4+ICAgIAkJcmV0ID0gdHJ1ZTsNCj4+ICAgIAlsaXN0LT5sYXN0X2djID0g
-KHUzMilqaWZmaWVzOw0KPj4gKwlsaXN0LT5sYXN0X2djX2NvdW50ID0gbGlzdC0+Y291bnQ7DQo+
-PiAgICANCj4+ICAgIAlyZXR1cm4gcmV0Ow0KPj4gICAgfQ0KPg0KDQotLSANCnJlZ2FyZHMsDQpB
-bGV4YW5kcmEuDQoNCg==
+The upstream commit, 71d8c47fc653711c41bc3282e5b0e605b3727956
+ ("netfilter: conntrack: introduce clash resolution on insertion race"),
+sets allow_clash=true in the UDP/UDPLITE protocol handler
+but does not set it in the generic protocol handler.
+
+As a result, packets composed of connectionless protocols at each layer,
+such as UDP over IP-in-IP, still drop packets due to conflicts during conntrack insertion.
+
+To resolve this, this patch sets allow_clash in the nf_conntrack_l4proto_generic.
+
+Signed-off-by: Yuto Hamaguchi <Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
+---
+ net/netfilter/nf_conntrack_proto_generic.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index e831637bc8ca..cb260eb3d012 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -67,6 +67,7 @@ void nf_conntrack_generic_init_net(struct net *net)
+ const struct nf_conntrack_l4proto nf_conntrack_l4proto_generic =
+ {
+ 	.l4proto		= 255,
++	.allow_clash            = true,
+ #ifdef CONFIG_NF_CONNTRACK_TIMEOUT
+ 	.ctnl_timeout		= {
+ 		.nlattr_to_obj	= generic_timeout_nlattr_to_obj,
+-- 
+2.36.1
+
