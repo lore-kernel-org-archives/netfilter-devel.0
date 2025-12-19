@@ -1,143 +1,154 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from ksmg4.croc.ru (ksmg4.croc.ru [195.38.23.94])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B8052E717B
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Dec 2025 08:50:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2EC53019C5
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Dec 2025 11:04:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.38.23.94
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766134230; cv=none; b=nbUyLsdFx8QnJDV6kmZBJNTm1oEtgi739lLYsNqua2CanQVjIBDUcRUn+Sy7fS3Te8BYy9GuTa4PYzi0sK10bpxAcSnf94RnVlCEc1F0LAXGwmgTSJVSRYoXeOvr7mDatkinmXer2ZQg9aJ0Caz5kCD3x50FdrwoFLFxfqgUTLU=
+	t=1766142301; cv=none; b=u41DCLfUGJt3sjf/65sSrUrris91STV2XaPvj74rz0CbAMw94lC663CjwuVG6j8gA2XGPeMTUKk+wBukbyTOUfxwbiRH/8tMgw4IFhmaPumwrzt/RVwaCyIFXWbLUsccY4akJot36EQNMSVdq0EVgcS8TwqIuAfDV0my2OYxT0E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766134230; c=relaxed/simple;
-	bh=RLALCsoe1w3XD3naM+vu9TepI4hTgU4yd/3pARzoNms=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pdP2uqlsh8dtcs2gwJQjkXu/JgSH38HxpShZLkEHnCpfDXSfSX5RHrK3jdoB4QBVSbkTTdP+IxCaOgTMlWW3Irfaqv+gbAs3FFlHIwRZHgGWCkfXmmDkcxC3a6MjjmLKLFJyrWtfx2YFREvw9Fsg3KcyCncZM0w6nzi58dY5jjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=REF2B5pf; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=aQMMZ4Qa; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1766142301; c=relaxed/simple;
+	bh=oO1whyWyvgOPG6pjaWnkbdiebawg9NyYJXJTl3gLm30=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=F/FU/MEk5HhF/Yr8+8tL8M9y0hvO0vpm4aZdWEq3LqUZMiBzQXFiEayUpxjtejB39/C6VAkR3eYjUJwmr6nagxW+DFIXLCfh2rcDIN1ZvpGSEGvnDwQN1imFSYF2bFgFGTLftnFAUIMYqUILMmGD2WDNLu8BmF3Be8q1qmnGn8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=k2.cloud; spf=pass smtp.mailfrom=k2.cloud; dkim=pass (2048-bit key) header.d=k2.cloud header.i=@k2.cloud header.b=NbYotnA7; arc=none smtp.client-ip=195.38.23.94
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=k2.cloud
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=k2.cloud
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="REF2B5pf";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="aQMMZ4Qa"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1766134227;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=J2K24You3Kfo8F59LNIwUD/2pkFrB/SR5T0fDa72reg=;
-	b=REF2B5pfwn+ZKNZlyLpS1CxZZslmufzvY1r4W4rzV6iyG0uSRUqoAU+7njDcKRVY9qlFWk
-	1hbEn2hXRqJKtTx685BpOj4uOLjO827UsyigePtrmuWQCb8qZl1MNE5APfom/TixDCfy8q
-	4MB2Tuor1VoYSNtxAID1ZvX+9gJLh88=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-634-vQS-5QExOfWkYlcApdz4SA-1; Fri, 19 Dec 2025 03:50:26 -0500
-X-MC-Unique: vQS-5QExOfWkYlcApdz4SA-1
-X-Mimecast-MFC-AGG-ID: vQS-5QExOfWkYlcApdz4SA_1766134225
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-430fb8d41acso713567f8f.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Dec 2025 00:50:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1766134225; x=1766739025; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=J2K24You3Kfo8F59LNIwUD/2pkFrB/SR5T0fDa72reg=;
-        b=aQMMZ4QaFOnIGPCBBXvggXo0UhbzlchUj7NRDwAhDhBs2rPhTRel5qf3UOzFyV1kCy
-         m1eVkDbyg/a0ipWftDvXQfNisb3+pciZssUhpxmSxAI3LKKjn8QMxK8P5L7AR7K5lLt9
-         vQfv1mj4VSvB+IxukNEFFmk5Qqa00DkW8by0326dpn834SSoHmJHYtOg1jdHHxjshIX6
-         TGJjGgKe8phBPZZ11Kte6byoH7X2TOQFUMFJCvOP/86n0ADXna8sXoLM4Kh6dtPvVoQa
-         JGLGALsPVMMvL0SmUI+5owohpOaW6r9gsliLzXR/4ehcG/uiWIb/POoyRESn5OEOqDP9
-         GmWw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766134225; x=1766739025;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=J2K24You3Kfo8F59LNIwUD/2pkFrB/SR5T0fDa72reg=;
-        b=APZ0eqfdWu+SuYRPSew58qE+pzELiNQVz9Lpdusxj5PKhVG1cGAMEOUFe57+svZbF/
-         xUloSbAWkB+KDG3lpJhjp5Qr/CJNIvsdafebflQRsr/QIWpa6IxhVVEKFfYWNU/yYUjH
-         aI0q5wbHDc/WPceSXeTS3iNwFb5YDfkqluNpV/7j92/yb4sI91l2YZ+9T07jhkJnkf57
-         YIxcnXrt+QZMj9RVtX5dkZh83rhXsLnJe+/Xkcae/EeYgDZt/5g1HOd49R9/Umroz+hK
-         CAEi/+DEBQteTMcCvEcIlYTuN16vx/ylA3Q+pkPDFWTI0eyvROmDYEYBan7Kg6wfEEVq
-         SkYQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU+q8PBictKtrVdddm4CCutRycMWWkAnqqOGfc3XOm00Amjk2yircJn7Ih9Btzp+ud9wyOJKnvVm/5yaZw/lvI=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwyRq+c+Eefc8vPaJBkc15sDCy4KWmxdXR1xqIg50WdhrHVnjBf
-	AaRbgBbOCbC/bfhDFk8COGcoax5YMjoZhu2rM5jBaZZAPDrXGnQe08BDdj2bj1kh5ZQwukt1CeV
-	Qfeock+BUDHrEK33RdTI4kqjGZjNy8JzgfFzW4gssNNsAbIXRlm3Y8eJusMIK4+0yO1BDRQ==
-X-Gm-Gg: AY/fxX7V8LJ/kPAOoOuhMiShL3yaKRWmmQ0ac8M+FLxdf7hRbfDsYR+6zhJdthFMgNT
-	M0ipGVfoU26M1U9KA6SAoiL+xN9p6LKPXF9BmYG3v5j8cvM2yJF8ppGaDp2C8N4+Gzo7KrGn967
-	dq4XvdAlUh28q4JYwX1jDEg6GYo/NgrllfL0ZjoBBTNWj5qZfbE8PLzIvXaFPHyNrjNAdiazvMn
-	l7gN4EzW5N+P1aJXDxWNU0kSq3XFr9UaGrKcYz4o1XGYgFJUkct1QRGG1IBdRP6wUO8C+PE59LQ
-	1SR0otIpbi3+HeFU3I34gd+1dhIkjBXZy04xQDbI24QLG7TnqsbYCOx+FczlX/L/EmLvnTR+OM+
-	foKV77x2nl5d6
-X-Received: by 2002:a05:6000:2907:b0:429:b751:7935 with SMTP id ffacd0b85a97d-4324e704a80mr2514630f8f.56.1766134224875;
-        Fri, 19 Dec 2025 00:50:24 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IHt/CfVvLNdIq+TM1T6BQhBqxVPih7iUEVrqrCXF3wQwAR+Q36BoRwUoHyrhDWqs9SKEnDvQA==
-X-Received: by 2002:a05:6000:2907:b0:429:b751:7935 with SMTP id ffacd0b85a97d-4324e704a80mr2514594f8f.56.1766134224471;
-        Fri, 19 Dec 2025 00:50:24 -0800 (PST)
-Received: from [192.168.88.32] ([216.128.11.227])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4324ea2267fsm3591620f8f.12.2025.12.19.00.50.23
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 19 Dec 2025 00:50:23 -0800 (PST)
-Message-ID: <6d244984-ff8d-4226-a5d0-49b0547eaff4@redhat.com>
-Date: Fri, 19 Dec 2025 09:50:22 +0100
+	dkim=pass (2048-bit key) header.d=k2.cloud header.i=@k2.cloud header.b="NbYotnA7"
+Received: from ksmg4.croc.ru (localhost [127.0.0.1])
+	by ksmg4.croc.ru (Postfix) with ESMTP id 9ACA820026;
+	Fri, 19 Dec 2025 14:04:43 +0300 (MSK)
+DKIM-Filter: OpenDKIM Filter v2.11.0 ksmg4.croc.ru 9ACA820026
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=k2.cloud; s=mail;
+	t=1766142283; bh=oO1whyWyvgOPG6pjaWnkbdiebawg9NyYJXJTl3gLm30=;
+	h=From:To:Subject:Date:Message-ID:Content-Type:MIME-Version:From;
+	b=NbYotnA7x8xsHPo9v93S81PNcbCazgg/sc89+VIlIKGqcTh9nsPu9ncusISzpBLHl
+	 1XRi9wXMOqhjJbUhW4/MQbYyk7jf9wySCIw2d+SjTaRm19jjOBjMD+yZXTXj5rVHJ8
+	 xY2B2PiPBauZHa0uWV8wXIvapiq4Il9/wpCH4IYRD00e/h4yEScEFwGS+oGg3zHtJm
+	 vpIqWZNLhiPn+IKqbYD0wCY1JZEP2vwgeibtMJaIXBJDp1eftueSKwYtgxGXa86+Tz
+	 vUoHKJCYfRV+gGdvdGENruW1EdOogFes2kQt3uja8EsadqlyrQ6hMU3NttqXtbjxrB
+	 14u8udB3jMC0w==
+Received: from MXONE (unknown [195.38.23.35])
+	by ksmg4.croc.ru (Postfix) with ESMTP;
+	Fri, 19 Dec 2025 14:04:43 +0300 (MSK)
+From: Rukomoinikova Aleksandra <ARukomoinikova@k2.cloud>
+To: Rukomoinikova Aleksandra <ARukomoinikova@k2.cloud>, "Fernando Fernandez
+ Mancera" <fmancera@suse.de>, "netfilter-devel@vger.kernel.org"
+	<netfilter-devel@vger.kernel.org>
+CC: "coreteam@netfilter.org" <coreteam@netfilter.org>
+Subject: Re: [PATCH 2/2 nf v2] netfilter: nf_conncount: increase the
+ connection clean up limit to 64
+Thread-Topic: [PATCH 2/2 nf v2] netfilter: nf_conncount: increase the
+ connection clean up limit to 64
+Thread-Index: AQHcb2QGYnJZjhw22UuF4jVC8tN/b7UlvWEAgALgGQA=
+Date: Fri, 19 Dec 2025 11:04:42 +0000
+Message-ID: <a91149e0-fab0-4e3f-a580-a63f501b34ce@k2.cloud>
+References: <20251217144641.4122-1-fmancera@suse.de>
+ <20251217144641.4122-2-fmancera@suse.de>
+ <b29fe852-0a72-4225-8963-fae8e6f17384@k2.cloud>
+In-Reply-To: <b29fe852-0a72-4225-8963-fae8e6f17384@k2.cloud>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-except: 1
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <50B5A5C1B2A4D3469405CF52AB1C71FE@croc.ru>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net 0/6] netfilter: updates for net
-To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- netfilter-devel@vger.kernel.org, pablo@netfilter.org
-References: <20251216190904.14507-1-fw@strlen.de>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <20251216190904.14507-1-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-KSMG-Rule-ID: 4
+X-KSMG-Message-Action: skipped
+X-KSMG-AntiSpam-Status: not scanned, allowlist
+X-KSMG-AntiPhishing: not scanned, allowlist
+X-KSMG-LinksScanning: not scanned, allowlist
+X-KSMG-AntiVirus: Kaspersky Secure Mail Gateway, version 2.0.1.6960, not scanned, allowlist
 
-On 12/16/25 8:08 PM, Florian Westphal wrote:
-> The following patchset contains Netfilter fixes for *net*:
-> 
-> 1)  Jozsef Kadlecsik is retiring.  Fortunately Jozsef will still keep an
->     eye on ipset patches.
-> 
-> 2)  remove a bogus direction check from nat core, this caused spurious
->     flakes in the 'reverse clash' selftest, from myself.
-> 
-> 3) nf_tables doesn't need to do chain validation on register store,
->    from Pablo Neira Ayuso.
-> 
-> 4) nf_tables shouldn't revisit chains during ruleset (graph) validation
->    if possible.  Both 3 and 4 were slated for -next initially but there
->    are now two independent reports of people hitting soft lockup errors
->    during ruleset validation, so it makes no sense anymore to route
->    this via -next given this is -stable material. From myself.
-> 
-> 5) call cond_resched() in a more frequently visited place during nf_tables
->    chain validation, this wasn't possible earlier due to rcu read lock,
->    but nowadays its not held anymore during set walks.
-> 
-> 6) Don't fail conntrack packetdrill test with HZ=100 kernels.
-> 
-> Please, pull these changes from:
-> The following changes since commit 885bebac9909994050bbbeed0829c727e42bd1b7:
-> 
->   nfc: pn533: Fix error code in pn533_acr122_poweron_rdr() (2025-12-11 01:40:00 -0800)
-> 
-> are available in the Git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-25-12-16
-> 
-> for you to fetch changes up to fec7b0795548b43e2c3c46e3143c34ef6070341c:
-> 
->   selftests: netfilter: packetdrill: avoid failure on HZ=100 kernel (2025-12-15 15:04:04 +0100)
-
-Pulled, thanks!
-
-Paolo
-
+SGkhDQovVGVzdGVkLWJ5LzogQWxleGFuZHJhIFJ1a29tb2luaWtvdmEgPGFydWtvbW9pbmlrb3Zh
+QGsyLmNsb3VkPg0KDQpPbiAxNy4xMi4yMDI1IDE4OjEwLCBSdWtvbW9pbmlrb3ZhIEFsZWtzYW5k
+cmEgd3JvdGU6DQo+IEhpISB0aGFua3MgZm9yIGZpeCBvbmUgbW9yZSB0aW1lKSBJIHdpbGwgdGVz
+dCBpdCB0b2RheQ0KPg0KPiBPbiAxNy4xMi4yMDI1IDE3OjQ2LCBGZXJuYW5kbyBGZXJuYW5kZXog
+TWFuY2VyYSB3cm90ZToNCj4+IEFmdGVyIHRoZSBvcHRpbWl6YXRpb24gdG8gb25seSBwZXJmb3Jt
+IG9uZSBHQyBwZXIgamlmZnksIGEgbmV3IHByb2JsZW0NCj4+IHdhcyBpbnRyb2R1Y2VkLiBJZiBt
+b3JlIHRoYW4gOCBuZXcgY29ubmVjdGlvbnMgYXJlIHRyYWNrZWQgcGVyIGppZmZ5IHRoZQ0KPj4g
+bGlzdCB3b24ndCBiZSBjbGVhbmVkIHVwIGZhc3QgZW5vdWdoIHBvc3NpYmx5IHJlYWNoaW5nIHRo
+ZSBsaW1pdA0KPj4gd3JvbmdseS4NCj4+DQo+PiBJbiBvcmRlciB0byBwcmV2ZW50IHRoaXMgaXNz
+dWUsIG9ubHkgc2tpcCB0aGUgR0MgaWYgaXQgd2FzIGFscmVhZHkNCj4+IHRyaWdnZXJlZCBkdXJp
+bmcgdGhlIHNhbWUgamlmZnkgYW5kIHRoZSBpbmNyZW1lbnQgaXMgbG93ZXIgdGhhbiB0aGUNCj4+
+IGNsZWFuIHVwIGxpbWl0LiBJbiBhZGRpdGlvbiwgaW5jcmVhc2UgdGhlIGNsZWFuIHVwIGxpbWl0
+IHRvIDY0DQo+PiBjb25uZWN0aW9ucyB0byBhdm9pZCB0cmlnZ2VyaW5nIEdDIHRvbyBvZnRlbiBh
+bmQgZG8gbW9yZSBlZmZlY3RpdmUgR0NzLg0KPj4NCj4+IFRoaXMgaGFzIGJlZW4gdGVzdGVkIHVz
+aW5nIGEgSFRUUCBzZXJ2ZXIgYW5kIHNldmVyYWwNCj4+IHBlcmZvcm1hbmNlIHRvb2xzIHdoaWxl
+IGhhdmluZyBuZnRfY29ubmxpbWl0L3h0X2Nvbm5saW1pdCBvciBPVlMgbGltaXQNCj4+IGNvbmZp
+Z3VyZWQuDQo+Pg0KPj4gT3V0cHV0IG9mIHNsb3dodHRwdGVzdCArIE9WUyBsaW1pdCBhdCA1MjAw
+MCBjb25uZWN0aW9uczoNCj4+DQo+PiAgICBzbG93IEhUVFAgdGVzdCBzdGF0dXMgb24gMzQwdGgg
+c2Vjb25kOg0KPj4gICAgaW5pdGlhbGl6aW5nOiAgICAgICAgMA0KPj4gICAgcGVuZGluZzogICAg
+ICAgICAgICAgNDMyDQo+PiAgICBjb25uZWN0ZWQ6ICAgICAgICAgICA1MTk5OA0KPj4gICAgZXJy
+b3I6ICAgICAgICAgICAgICAgMA0KPj4gICAgY2xvc2VkOiAgICAgICAgICAgICAgMA0KPj4gICAg
+c2VydmljZSBhdmFpbGFibGU6ICAgWUVTDQo+Pg0KPj4gRml4ZXM6IGQyNjU5Mjk5MzBlMiAoIm5l
+dGZpbHRlcjogbmZfY29ubmNvdW50OiByZWR1Y2UgdW5uZWNlc3NhcnkgR0MiKQ0KPj4gUmVwb3J0
+ZWQtYnk6IEFsZWtzYW5kcmEgUnVrb21vaW5pa292YSA8QVJ1a29tb2luaWtvdmFAazIuY2xvdWQ+
+DQo+PiBDbG9zZXM6IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL25ldGZpbHRlci9iMjA2NGU3Yi0w
+Nzc2LTRlMTQtYWRiNi1jNjgwODA5ODc0NzFAazIuY2xvdWQvDQo+PiBTaWduZWQtb2ZmLWJ5OiBG
+ZXJuYW5kbyBGZXJuYW5kZXogTWFuY2VyYSA8Zm1hbmNlcmFAc3VzZS5kZT4NCj4+IC0tLQ0KPj4g
+djI6IGFkanVzdGVkIHRoZSBjb2RlIHNvIHdlIGFsd2F5cyBydW4gR0MgaWYgd2UgaW5jcmVtZW50
+IHRoZSBsaXN0IG1vcmUNCj4+IHRoYW4gdGhlIGNsZWFuIHVwIGxpbWl0DQo+PiAtLS0NCj4+ICAg
+IGluY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY291bnQuaCB8ICAxICsNCj4+ICAg
+IG5ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMgICAgICAgICAgICAgICB8IDE1ICsrKysrKysr
+KystLS0tLQ0KPj4gICAgMiBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCA1IGRlbGV0
+aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29u
+bnRyYWNrX2NvdW50LmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvdW50
+LmgNCj4+IGluZGV4IDUyYTA2ZGU0MWFhMC4uY2YwMTY2NTIwY2YzIDEwMDY0NA0KPj4gLS0tIGEv
+aW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3VudC5oDQo+PiArKysgYi9pbmNs
+dWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvdW50LmgNCj4+IEBAIC0xMyw2ICsxMyw3
+IEBAIHN0cnVjdCBuZl9jb25uY291bnRfbGlzdCB7DQo+PiAgICAJdTMyIGxhc3RfZ2M7CQkvKiBq
+aWZmaWVzIGF0IG1vc3QgcmVjZW50IGdjICovDQo+PiAgICAJc3RydWN0IGxpc3RfaGVhZCBoZWFk
+OwkvKiBjb25uZWN0aW9ucyB3aXRoIHRoZSBzYW1lIGZpbHRlcmluZyBrZXkgKi8NCj4+ICAgIAl1
+bnNpZ25lZCBpbnQgY291bnQ7CS8qIGxlbmd0aCBvZiBsaXN0ICovDQo+PiArCXVuc2lnbmVkIGlu
+dCBsYXN0X2djX2NvdW50OyAvKiBsZW5ndGggb2YgbGlzdCBhdCBtb3N0IHJlY2VudCBnYyAqLw0K
+Pj4gICAgfTsNCj4+ICAgIA0KPj4gICAgc3RydWN0IG5mX2Nvbm5jb3VudF9kYXRhICpuZl9jb25u
+Y291bnRfaW5pdChzdHJ1Y3QgbmV0ICpuZXQsIHVuc2lnbmVkIGludCBrZXlsZW4pOw0KPj4gZGlm
+ZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMgYi9uZXQvbmV0ZmlsdGVyL25m
+X2Nvbm5jb3VudC5jDQo+PiBpbmRleCA4NDg3ODA4Yzg3NjEuLjI4ODkzNmY1YzFiZiAxMDA2NDQN
+Cj4+IC0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubmNvdW50LmMNCj4+ICsrKyBiL25ldC9uZXRm
+aWx0ZXIvbmZfY29ubmNvdW50LmMNCj4+IEBAIC0zNCw4ICszNCw5IEBADQo+PiAgICANCj4+ICAg
+ICNkZWZpbmUgQ09OTkNPVU5UX1NMT1RTCQkyNTZVDQo+PiAgICANCj4+IC0jZGVmaW5lIENPTk5D
+T1VOVF9HQ19NQVhfTk9ERVMJOA0KPj4gLSNkZWZpbmUgTUFYX0tFWUxFTgkJNQ0KPj4gKyNkZWZp
+bmUgQ09OTkNPVU5UX0dDX01BWF9OT0RFUwkJOA0KPj4gKyNkZWZpbmUgQ09OTkNPVU5UX0dDX01B
+WF9DT0xMRUNUCTY0DQo+PiArI2RlZmluZSBNQVhfS0VZTEVOCQkJNQ0KPj4gICAgDQo+PiAgICAv
+KiB3ZSB3aWxsIHNhdmUgdGhlIHR1cGxlcyBvZiBhbGwgY29ubmVjdGlvbnMgd2UgY2FyZSBhYm91
+dCAqLw0KPj4gICAgc3RydWN0IG5mX2Nvbm5jb3VudF90dXBsZSB7DQo+PiBAQCAtMTgyLDEyICsx
+ODMsMTMgQEAgc3RhdGljIGludCBfX25mX2Nvbm5jb3VudF9hZGQoc3RydWN0IG5ldCAqbmV0LA0K
+Pj4gICAgCQlnb3RvIG91dF9wdXQ7DQo+PiAgICAJfQ0KPj4gICAgDQo+PiAtCWlmICgodTMyKWpp
+ZmZpZXMgPT0gbGlzdC0+bGFzdF9nYykNCj4+ICsJaWYgKCh1MzIpamlmZmllcyA9PSBsaXN0LT5s
+YXN0X2djICYmDQo+PiArCSAgICAobGlzdC0+Y291bnQgLSBsaXN0LT5sYXN0X2djX2NvdW50KSA8
+IENPTk5DT1VOVF9HQ19NQVhfQ09MTEVDVCkNCj4+ICAgIAkJZ290byBhZGRfbmV3X25vZGU7DQo+
+PiAgICANCj4+ICAgIAkvKiBjaGVjayB0aGUgc2F2ZWQgY29ubmVjdGlvbnMgKi8NCj4+ICAgIAls
+aXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoY29ubiwgY29ubl9uLCAmbGlzdC0+aGVhZCwgbm9kZSkg
+ew0KPj4gLQkJaWYgKGNvbGxlY3QgPiBDT05OQ09VTlRfR0NfTUFYX05PREVTKQ0KPj4gKwkJaWYg
+KGNvbGxlY3QgPiBDT05OQ09VTlRfR0NfTUFYX0NPTExFQ1QpDQo+PiAgICAJCQlicmVhazsNCj4+
+ICAgIA0KPj4gICAgCQlmb3VuZCA9IGZpbmRfb3JfZXZpY3QobmV0LCBsaXN0LCBjb25uKTsNCj4+
+IEBAIC0yMzAsNiArMjMyLDcgQEAgc3RhdGljIGludCBfX25mX2Nvbm5jb3VudF9hZGQoc3RydWN0
+IG5ldCAqbmV0LA0KPj4gICAgCQluZl9jdF9wdXQoZm91bmRfY3QpOw0KPj4gICAgCX0NCj4+ICAg
+IAlsaXN0LT5sYXN0X2djID0gKHUzMilqaWZmaWVzOw0KPj4gKwlsaXN0LT5sYXN0X2djX2NvdW50
+ID0gbGlzdC0+Y291bnQ7DQo+PiAgICANCj4+ICAgIGFkZF9uZXdfbm9kZToNCj4+ICAgIAlpZiAo
+V0FSTl9PTl9PTkNFKGxpc3QtPmNvdW50ID4gSU5UX01BWCkpIHsNCj4+IEBAIC0yNzcsNiArMjgw
+LDcgQEAgdm9pZCBuZl9jb25uY291bnRfbGlzdF9pbml0KHN0cnVjdCBuZl9jb25uY291bnRfbGlz
+dCAqbGlzdCkNCj4+ICAgIAlzcGluX2xvY2tfaW5pdCgmbGlzdC0+bGlzdF9sb2NrKTsNCj4+ICAg
+IAlJTklUX0xJU1RfSEVBRCgmbGlzdC0+aGVhZCk7DQo+PiAgICAJbGlzdC0+Y291bnQgPSAwOw0K
+Pj4gKwlsaXN0LT5sYXN0X2djX2NvdW50ID0gMDsNCj4+ICAgIAlsaXN0LT5sYXN0X2djID0gKHUz
+MilqaWZmaWVzOw0KPj4gICAgfQ0KPj4gICAgRVhQT1JUX1NZTUJPTF9HUEwobmZfY29ubmNvdW50
+X2xpc3RfaW5pdCk7DQo+PiBAQCAtMzE2LDEzICszMjAsMTQgQEAgc3RhdGljIGJvb2wgX19uZl9j
+b25uY291bnRfZ2NfbGlzdChzdHJ1Y3QgbmV0ICpuZXQsDQo+PiAgICAJCX0NCj4+ICAgIA0KPj4g
+ICAgCQluZl9jdF9wdXQoZm91bmRfY3QpOw0KPj4gLQkJaWYgKGNvbGxlY3RlZCA+IENPTk5DT1VO
+VF9HQ19NQVhfTk9ERVMpDQo+PiArCQlpZiAoY29sbGVjdGVkID4gQ09OTkNPVU5UX0dDX01BWF9D
+T0xMRUNUKQ0KPj4gICAgCQkJYnJlYWs7DQo+PiAgICAJfQ0KPj4gICAgDQo+PiAgICAJaWYgKCFs
+aXN0LT5jb3VudCkNCj4+ICAgIAkJcmV0ID0gdHJ1ZTsNCj4+ICAgIAlsaXN0LT5sYXN0X2djID0g
+KHUzMilqaWZmaWVzOw0KPj4gKwlsaXN0LT5sYXN0X2djX2NvdW50ID0gbGlzdC0+Y291bnQ7DQo+
+PiAgICANCj4+ICAgIAlyZXR1cm4gcmV0Ow0KPj4gICAgfQ0KPg0KDQotLSANCnJlZ2FyZHMsDQpB
+bGV4YW5kcmEuDQoNCg==
