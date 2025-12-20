@@ -1,252 +1,158 @@
-Received: from mail-oa1-f77.google.com (mail-oa1-f77.google.com [209.85.160.77])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF152239E6F
-	for <netfilter-devel@vger.kernel.org>; Sat, 20 Dec 2025 00:58:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.77
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6556D2D94A9;
+	Sat, 20 Dec 2025 15:00:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766192311; cv=none; b=tFd5VFgmg85d4Lg18Hxw1f1nOeYBX646puAz0zdnQ581Rb0WY1JI4Vll/36upKSXn40UDK+3dx20/MEqhEQUFsHu40qsSoQFWqEMSBylJOBk8WJDkYMElYmbmEBntiKQmKsfeA1BrtFfKCWCgbpe0s13O4ZWdk0wBySFSNMDC68=
+	t=1766242821; cv=none; b=rPQyw+ADIFGiBYRgKKtboSWnKDZRlk1xENHtUzaMh8zlbwLPq9O3ZdzVIUgtmgV9oC+S/DMYH/GRs1i5zd+uSHwqJS/xq2M6Pgy8M/pxhYAczMxdKZPolDtDIH3TLAxWJK36Vx9LSHXXiTE3cwXBmussnQveCnKU1MxOXmALvO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766192311; c=relaxed/simple;
-	bh=76RkY53A53TE5vjruyOQ+9fxoxR/g3EA2S0do+GOSEM=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=VK2qRtQaeV95HVOx3fFOXXmF9bUQn71q2EqEFXD33qFJepvyQychsSaBgvflKoipL7AvQJAvq7/Ws/e08Wbvpf1G0REmrznDJ+r+qJGlzNlWkfH1agUYLywo5efZaDnaMg1LP9C69db/z61c4+BpeoW7aNHCbQpbepej06jWkRw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.160.77
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oa1-f77.google.com with SMTP id 586e51a60fabf-3e895c6cd28so1541211fac.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 19 Dec 2025 16:58:29 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1766192309; x=1766797109;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=WwApJ4ymW9qNlyX/ux7Ad8vgCZzQe62XlTOBLNe3WJU=;
-        b=t/H+gSeq8s/z43im7/a5kNgtDbUpP2yx2mDBgM1vmw1UYSAoUZxJM6iSeNKukJSHH9
-         l6WnrFpU1CXblBwCjnKSnvWOWLALm9BuXQ2yxYJ7iXSauzgfPVOe3PB2PMv/LuHGBYWD
-         oJSKQ7Sq7xR/KVZ2Yhbe2FpNCEVtEqnbvnt6esk3uBDusD/HWGZ46UOz086yiygIPtm9
-         PRSbvFYyuOsxueMlrSnqLCeEd9kTq5HbWcsjpd1+8Bd/5Z7wSJha4X0zlx105JbxsjbX
-         MBbWrL6orA8IiR3ymqRF4SMEZf24RnzEmWHjdVHE+3MemXI6P1F6Lsgnp5GbYzRseFTP
-         NkbA==
-X-Forwarded-Encrypted: i=1; AJvYcCV4eeaEgWC6IvjE7LUDz8KON8vpj3iQg73dUNf1DunONOzsuwbzz3JxSsi+fZascsr6QdiKFWPYel1z1c0dPBw=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy+crs41B+ogGMhEmwy3WmHQNpOlQk/Pzp0cOhJ/innee+dYj/v
-	XWWW0s/J8z3HrXY8J+j8uIDVcL3kHjNA2xtpsO8MymIEz/q4ez3CmO04hQRh7IizU+0uZPj/cKC
-	61qaEYYXD+YljGMe6I7PAH5S43chpWFcSFl1fTW7TcvDRSOsph9n6UWtUvpE=
-X-Google-Smtp-Source: AGHT+IH8z1xizs4/DgR2IxHVW2LrMd5szXgAdwV5XL5euymH4jWKMKV+aCIvYtTvLOOuayuVfcBFOkKm2lJ4xW/Uj4mdduejdkIc
+	s=arc-20240116; t=1766242821; c=relaxed/simple;
+	bh=nAnK3wG0RXziPz7E4YON0DH/0jR4RzGtYIeGV6e9eM4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=I9toDTl2u+4CTdrJXyIdhCQVTi+Mu010kQlXa7yy2qMWwzYEJFNFBbWQWvSjweq7K4iEVCswkozTPj8iMV8k0eYgXrBLCaco+I9WZRrHykSgHd+M2afzpFig8OYaNiluC1Qs8aV6VoH54LhnziE4CIlO8bFdVtaZCXZXTL18M3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SA8zPB/F; arc=none smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SA8zPB/F"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1766242820; x=1797778820;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=nAnK3wG0RXziPz7E4YON0DH/0jR4RzGtYIeGV6e9eM4=;
+  b=SA8zPB/F25dXNfUQWSddSWwq9NYRdSspS6vv0u/f4B4V6GwQxFVZaSO4
+   AxQ8brZ6lU8Okj2p//7NBoKr5TT2sOU8g2eQoX0Xecxub9n2d/PoV/vMd
+   vYbPTHJTDDuqwT8IhE2ela1zehRlftJUmyJsGXtFUZTAQc2lW0jrzSJQk
+   uW+GiPIWgAhJuNjY2winYYFdw0El1XnP4ELFFmJUvq1mkmoZCsbkaIAHN
+   xrRjZ46sHG70D6UdgWeaqVhmiQUSjX3u+CNc0oGYD6NTf1+sGviE5CeqC
+   p4OD4WnTQciVt8mlfb/kGI9lXebn80hLl1bgZfQwLA6xOlrRod5kbWN9+
+   w==;
+X-CSE-ConnectionGUID: FIIq50q7Tv6dWGyn1brQCg==
+X-CSE-MsgGUID: iYoF0BeXQKiuxSB0xilDrg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11648"; a="72034868"
+X-IronPort-AV: E=Sophos;i="6.21,164,1763452800"; 
+   d="scan'208";a="72034868"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Dec 2025 07:00:19 -0800
+X-CSE-ConnectionGUID: eWNAbC0nRfCspnSKssnnHQ==
+X-CSE-MsgGUID: YNbLtCx4Tp+NnLAk2qHUvQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,164,1763452800"; 
+   d="scan'208";a="198359996"
+Received: from lkp-server01.sh.intel.com (HELO 0d09efa1b85f) ([10.239.97.150])
+  by orviesa010.jf.intel.com with ESMTP; 20 Dec 2025 07:00:12 -0800
+Received: from kbuild by 0d09efa1b85f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1vWyRF-000000004hZ-0SYh;
+	Sat, 20 Dec 2025 15:00:09 +0000
+Date: Sat, 20 Dec 2025 22:59:32 +0800
+From: kernel test robot <lkp@intel.com>
+To: Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
+	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
+	cgroups@vger.kernel.org, linux-trace-kernel@vger.kernel.org,
+	bpf@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev,
+	Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
+	Yu Kuai <yukuai@fnnas.com>, Jens Axboe <axboe@kernel.dk>,
+	Tejun Heo <tj@kernel.org>, Josef Bacik <josef@toxicpanda.com>,
+	Johannes Weiner <hannes@cmpxchg.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Masami Hiramatsu <mhiramat@kernel.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Alexei Starovoitov <ast@kernel.org>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Andrii Nakryiko <andrii@kernel.org>,
+	Martin KaFai Lau <martin.lau@linux.dev>,
+	Eduard Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>,
+	Yonghong Song <yonghong.song@linux.dev>,
+	John Fastabend <john.fastabend@gmail.com>,
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@fomichev.me>,
+	Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/4] cgroup: Introduce cgroup_level() helper
+Message-ID: <202512202230.1uoB5chV-lkp@intel.com>
+References: <20251217162744.352391-3-mkoutny@suse.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a4a:e602:0:b0:65d:bee:4c7 with SMTP id 006d021491bc7-65d0eb1f940mr1539827eaf.42.1766192308685;
- Fri, 19 Dec 2025 16:58:28 -0800 (PST)
-Date: Fri, 19 Dec 2025 16:58:28 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6945f4b4.a70a0220.207337.0121.GAE@google.com>
-Subject: [syzbot] [netfilter?] possible deadlock in nf_tables_dumpreset_obj
-From: syzbot <syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	phil@nwl.cc, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20251217162744.352391-3-mkoutny@suse.com>
 
-Hello,
+Hi Michal,
 
-syzbot found the following issue on:
+kernel test robot noticed the following build errors:
 
-HEAD commit:    8f0b4cce4481 Linux 6.19-rc1
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=104f2d92580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a11e0f726bfb6765
-dashboard link: https://syzkaller.appspot.com/bug?extid=ff16b505ec9152e5f448
-compiler:       gcc (Debian 12.2.0-14+deb12u1) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+[auto build test ERROR on 8f0b4cce4481fb22653697cced8d0d04027cb1e8]
 
-Unfortunately, I don't have any reproducer for this issue yet.
+url:    https://github.com/intel-lab-lkp/linux/commits/Michal-Koutn/cgroup-Eliminate-cgrp_ancestor_storage-in-cgroup_root/20251218-004346
+base:   8f0b4cce4481fb22653697cced8d0d04027cb1e8
+patch link:    https://lore.kernel.org/r/20251217162744.352391-3-mkoutny%40suse.com
+patch subject: [PATCH 2/4] cgroup: Introduce cgroup_level() helper
+config: sparc64-randconfig-r134-20251218 (https://download.01.org/0day-ci/archive/20251220/202512202230.1uoB5chV-lkp@intel.com/config)
+compiler: clang version 20.1.8 (https://github.com/llvm/llvm-project 87f0227cb60147a26a1eeb4fb06e3b505e9c7261)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20251220/202512202230.1uoB5chV-lkp@intel.com/reproduce)
 
-Downloadable assets:
-disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-8f0b4cce.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/64c9a36f3f29/vmlinux-8f0b4cce.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/27a5e8a8a4b8/bzImage-8f0b4cce.xz
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202512202230.1uoB5chV-lkp@intel.com/
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
+All errors (new ones prefixed by >>):
 
-======================================================
-WARNING: possible circular locking dependency detected
-syzkaller #0 Not tainted
-------------------------------------------------------
-syz.3.970/9330 is trying to acquire lock:
-ffff888012d4ccd8 (&nft_net->commit_mutex){+.+.}-{4:4}, at: nf_tables_dumpreset_obj+0x6f/0xa0 net/netfilter/nf_tables_api.c:8491
-
-but task is already holding lock:
-ffff88802bce36f0 (nlk_cb_mutex-NETFILTER){+.+.}-{4:4}, at: __netlink_dump_start+0x150/0x990 net/netlink/af_netlink.c:2404
-
-which lock already depends on the new lock.
+>> block/blk-iocost.c:3006:53: error: expected ';' after expression
+    3006 |         iocg->level = cgroup_level(blkg->blkcg->css.cgroup)
+         |                                                            ^
+         |                                                            ;
+   1 error generated.
 
 
-the existing dependency chain (in reverse order) is:
+vim +3006 block/blk-iocost.c
 
--> #2 (nlk_cb_mutex-NETFILTER){+.+.}-{4:4}:
-       __mutex_lock_common kernel/locking/mutex.c:614 [inline]
-       __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
-       __netlink_dump_start+0x150/0x990 net/netlink/af_netlink.c:2404
-       netlink_dump_start include/linux/netlink.h:341 [inline]
-       ip_set_dump+0x17f/0x210 net/netfilter/ipset/ip_set_core.c:1717
-       nfnetlink_rcv_msg+0x9fc/0x1200 net/netfilter/nfnetlink.c:302
-       netlink_rcv_skb+0x158/0x420 net/netlink/af_netlink.c:2550
-       nfnetlink_rcv+0x1b3/0x430 net/netfilter/nfnetlink.c:669
-       netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
-       netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
-       netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
-       sock_sendmsg_nosec net/socket.c:727 [inline]
-       __sock_sendmsg net/socket.c:742 [inline]
-       ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
-       ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
-       __sys_sendmsg+0x16d/0x220 net/socket.c:2678
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0xcd/0xf80 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+  2981	
+  2982	static void ioc_pd_init(struct blkg_policy_data *pd)
+  2983	{
+  2984		struct ioc_gq *iocg = pd_to_iocg(pd);
+  2985		struct blkcg_gq *blkg = pd_to_blkg(&iocg->pd);
+  2986		struct ioc *ioc = q_to_ioc(blkg->q);
+  2987		struct ioc_now now;
+  2988		struct blkcg_gq *tblkg;
+  2989		unsigned long flags;
+  2990	
+  2991		ioc_now(ioc, &now);
+  2992	
+  2993		iocg->ioc = ioc;
+  2994		atomic64_set(&iocg->vtime, now.vnow);
+  2995		atomic64_set(&iocg->done_vtime, now.vnow);
+  2996		atomic64_set(&iocg->active_period, atomic64_read(&ioc->cur_period));
+  2997		INIT_LIST_HEAD(&iocg->active_list);
+  2998		INIT_LIST_HEAD(&iocg->walk_list);
+  2999		INIT_LIST_HEAD(&iocg->surplus_list);
+  3000		iocg->hweight_active = WEIGHT_ONE;
+  3001		iocg->hweight_inuse = WEIGHT_ONE;
+  3002	
+  3003		init_waitqueue_head(&iocg->waitq);
+  3004		hrtimer_setup(&iocg->waitq_timer, iocg_waitq_timer_fn, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
+  3005	
+> 3006		iocg->level = cgroup_level(blkg->blkcg->css.cgroup)
+  3007	
+  3008		for (tblkg = blkg; tblkg; tblkg = tblkg->parent) {
+  3009			struct ioc_gq *tiocg = blkg_to_iocg(tblkg);
+  3010			iocg->ancestors[tiocg->level] = tiocg;
+  3011		}
+  3012	
+  3013		spin_lock_irqsave(&ioc->lock, flags);
+  3014		weight_updated(iocg, &now);
+  3015		spin_unlock_irqrestore(&ioc->lock, flags);
+  3016	}
+  3017	
 
--> #1 (nfnl_subsys_ipset){+.+.}-{4:4}:
-       __mutex_lock_common kernel/locking/mutex.c:614 [inline]
-       __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
-       ip_set_nfnl_get_byindex+0x7c/0x290 net/netfilter/ipset/ip_set_core.c:909
-       set_target_v1_checkentry+0x1ac/0x570 net/netfilter/xt_set.c:313
-       xt_check_target+0x27c/0xa40 net/netfilter/x_tables.c:1038
-       nft_target_init+0x459/0x7d0 net/netfilter/nft_compat.c:267
-       nf_tables_newexpr net/netfilter/nf_tables_api.c:3527 [inline]
-       nf_tables_newrule+0xedd/0x2910 net/netfilter/nf_tables_api.c:4358
-       nfnetlink_rcv_batch+0x190d/0x2350 net/netfilter/nfnetlink.c:526
-       nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:649 [inline]
-       nfnetlink_rcv+0x3c1/0x430 net/netfilter/nfnetlink.c:667
-       netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
-       netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
-       netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
-       sock_sendmsg_nosec net/socket.c:727 [inline]
-       __sock_sendmsg net/socket.c:742 [inline]
-       ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
-       ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
-       __sys_sendmsg+0x16d/0x220 net/socket.c:2678
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0xcd/0xf80 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
--> #0 (&nft_net->commit_mutex){+.+.}-{4:4}:
-       check_prev_add kernel/locking/lockdep.c:3165 [inline]
-       check_prevs_add kernel/locking/lockdep.c:3284 [inline]
-       validate_chain kernel/locking/lockdep.c:3908 [inline]
-       __lock_acquire+0x1669/0x2890 kernel/locking/lockdep.c:5237
-       lock_acquire kernel/locking/lockdep.c:5868 [inline]
-       lock_acquire+0x179/0x330 kernel/locking/lockdep.c:5825
-       __mutex_lock_common kernel/locking/mutex.c:614 [inline]
-       __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
-       nf_tables_dumpreset_obj+0x6f/0xa0 net/netfilter/nf_tables_api.c:8491
-       netlink_dump+0x539/0xd30 net/netlink/af_netlink.c:2325
-       __netlink_dump_start+0x6d6/0x990 net/netlink/af_netlink.c:2440
-       netlink_dump_start include/linux/netlink.h:341 [inline]
-       nft_netlink_dump_start_rcu+0x81/0x1f0 net/netfilter/nf_tables_api.c:1286
-       nf_tables_getobj_reset+0x56b/0x6b0 net/netfilter/nf_tables_api.c:8626
-       nfnetlink_rcv_msg+0x583/0x1200 net/netfilter/nfnetlink.c:290
-       netlink_rcv_skb+0x158/0x420 net/netlink/af_netlink.c:2550
-       nfnetlink_rcv+0x1b3/0x430 net/netfilter/nfnetlink.c:669
-       netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
-       netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
-       netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
-       sock_sendmsg_nosec net/socket.c:727 [inline]
-       __sock_sendmsg net/socket.c:742 [inline]
-       ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
-       ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
-       __sys_sendmsg+0x16d/0x220 net/socket.c:2678
-       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
-       do_syscall_64+0xcd/0xf80 arch/x86/entry/syscall_64.c:94
-       entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-other info that might help us debug this:
-
-Chain exists of:
-  &nft_net->commit_mutex --> nfnl_subsys_ipset --> nlk_cb_mutex-NETFILTER
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  lock(nlk_cb_mutex-NETFILTER);
-                               lock(nfnl_subsys_ipset);
-                               lock(nlk_cb_mutex-NETFILTER);
-  lock(&nft_net->commit_mutex);
-
- *** DEADLOCK ***
-
-1 lock held by syz.3.970/9330:
- #0: ffff88802bce36f0 (nlk_cb_mutex-NETFILTER){+.+.}-{4:4}, at: __netlink_dump_start+0x150/0x990 net/netlink/af_netlink.c:2404
-
-stack backtrace:
-CPU: 0 UID: 0 PID: 9330 Comm: syz.3.970 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0x116/0x1f0 lib/dump_stack.c:120
- print_circular_bug+0x275/0x340 kernel/locking/lockdep.c:2043
- check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2175
- check_prev_add kernel/locking/lockdep.c:3165 [inline]
- check_prevs_add kernel/locking/lockdep.c:3284 [inline]
- validate_chain kernel/locking/lockdep.c:3908 [inline]
- __lock_acquire+0x1669/0x2890 kernel/locking/lockdep.c:5237
- lock_acquire kernel/locking/lockdep.c:5868 [inline]
- lock_acquire+0x179/0x330 kernel/locking/lockdep.c:5825
- __mutex_lock_common kernel/locking/mutex.c:614 [inline]
- __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
- nf_tables_dumpreset_obj+0x6f/0xa0 net/netfilter/nf_tables_api.c:8491
- netlink_dump+0x539/0xd30 net/netlink/af_netlink.c:2325
- __netlink_dump_start+0x6d6/0x990 net/netlink/af_netlink.c:2440
- netlink_dump_start include/linux/netlink.h:341 [inline]
- nft_netlink_dump_start_rcu+0x81/0x1f0 net/netfilter/nf_tables_api.c:1286
- nf_tables_getobj_reset+0x56b/0x6b0 net/netfilter/nf_tables_api.c:8626
- nfnetlink_rcv_msg+0x583/0x1200 net/netfilter/nfnetlink.c:290
- netlink_rcv_skb+0x158/0x420 net/netlink/af_netlink.c:2550
- nfnetlink_rcv+0x1b3/0x430 net/netfilter/nfnetlink.c:669
- netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
- netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
- netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
- sock_sendmsg_nosec net/socket.c:727 [inline]
- __sock_sendmsg net/socket.c:742 [inline]
- ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
- ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
- __sys_sendmsg+0x16d/0x220 net/socket.c:2678
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xcd/0xf80 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fb7e7b8f7c9
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fb7e8a9c038 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
-RAX: ffffffffffffffda RBX: 00007fb7e7de5fa0 RCX: 00007fb7e7b8f7c9
-RDX: 0000000004004004 RSI: 0000200000000140 RDI: 0000000000000003
-RBP: 00007fb7e7c13f91 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007fb7e7de6038 R14: 00007fb7e7de5fa0 R15: 00007fffe518fab8
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
