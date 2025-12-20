@@ -1,46 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2727280A21;
-	Sat, 20 Dec 2025 19:16:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AFF71E4AB;
+	Sat, 20 Dec 2025 20:06:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766258223; cv=none; b=OE3nETH9zv7cZ1fuCT35z2vyI/kKpreGqCfu/EXX3+PKi8zBFV5yY15jXpCBxRFgM+KuRRM73U5DPIgoP3rQsTeMp1g6MO52Xs54QJwG4CstZCgd3PE27fLANqFAW0P8g/TmkYz8yOscb4QNBhlcpMTbuRpCvVqtB48+GI9WX7k=
+	t=1766261170; cv=none; b=rcVVrvCXkZDv1U48eT1Lu+LRRwVeVqpW/04O/ij5IQB7IvXDaxjEVLU74pKd1c5wvS6wfT+4Bid8WeJC0z5/1SazE/O+pTSLDXPF+CLSYNA5pQWHSB6rc1PsW+Er7P751uxykfcYTi6SabbMzF6nCTEsS12xRjR666JU6bcvo8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766258223; c=relaxed/simple;
-	bh=wNcAmYBMJRoxLEEkuFIyrUQOB9kkOUqZdUxsj7Aizkg=;
+	s=arc-20240116; t=1766261170; c=relaxed/simple;
+	bh=E6StCNtlHToNzEn+XM3yJAUF63HEDsCHcYH9Xf3tfy8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YnAV8OF7GqvvjKq5cpJJKFCGVmjZEzddPmjAagZb7cz0wT7noebOD3kLQs1aFYqv6ywVllak3tpBXZuO92v2VKPWdtwbtPqvR2ISKXonXBiijbClCJ26MXKNSu+w5CvWlrazbkrHHHeYdNagIVHL5bVn4lbSIyjCC7Nuf8flGdI=
+	 Content-Type:Content-Disposition:In-Reply-To; b=qiMOQAv2Y+mS4CzKM8dDnQ2uhR3mYSv3rzxjg+/rqC0Ia+vffi4WzQlnOu/xbW1j0RpHjkn9pQHNZ3eo2h+WohePlv413fsbBsZNvKITwMlxryx6GRIYIDiEw6/qhlFIH3pwkYJYw2E/zgf/nXdqaNsElJ0u6UJHSjJsLS23J6Q=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C89D560351; Sat, 20 Dec 2025 20:16:51 +0100 (CET)
-Date: Sat, 20 Dec 2025 20:16:45 +0100
+	id 4DF1560351; Sat, 20 Dec 2025 21:06:03 +0100 (CET)
+Date: Sat, 20 Dec 2025 21:05:59 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Daniel Gomez <da.gomez@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Petr Pavlu <petr.pavlu@suse.com>,
-	Sami Tolvanen <samitolvanen@google.com>,
-	Aaron Tomlin <atomlin@atomlin.com>,
-	Lucas De Marchi <demarchi@kernel.org>,
+To: Yuto Hamaguchi <Hamaguchi.Yuto@da.mitsubishielectric.co.jp>
+Cc: pablo@netfilter.org, kadlec@netfilter.org,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux.dev, netdev@vger.kernel.org,
-	linux-modules@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Daniel Gomez <da.gomez@samsung.com>
-Subject: Re: [PATCH] netfilter: replace -EEXIST with -EBUSY
-Message-ID: <aUb2HS6kTR-z7gp2@strlen.de>
-References: <20251219-dev-module-init-eexists-netfilter-v1-1-efd3f62412dc@samsung.com>
- <aUUDRGqMQ_Ss3bDJ@strlen.de>
- <fdb9f97d-7813-48a0-9fdf-ddc039d853eb@kernel.org>
+	netdev@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_conntrack: Add allow_clash to generic
+ protocol handler
+Message-ID: <aUcBp4VuHTPqCdEt@strlen.de>
+References: <20251219115351.5662-1-Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,12 +34,18 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <fdb9f97d-7813-48a0-9fdf-ddc039d853eb@kernel.org>
+In-Reply-To: <20251219115351.5662-1-Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
 
-Daniel Gomez <da.gomez@kernel.org> wrote:
-> something like:
+Yuto Hamaguchi <Hamaguchi.Yuto@da.MitsubishiElectric.co.jp> wrote:
+> The upstream commit, 71d8c47fc653711c41bc3282e5b0e605b3727956
+>  ("netfilter: conntrack: introduce clash resolution on insertion race"),
+> sets allow_clash=true in the UDP/UDPLITE protocol handler
+> but does not set it in the generic protocol handler.
 > 
-> Replace -EEXIST with -EBUSY to ensure correct error reporting in the module
-> initialization path.
+> As a result, packets composed of connectionless protocols at each layer,
+> such as UDP over IP-in-IP, still drop packets due to conflicts during conntrack insertion.
+> 
+> To resolve this, this patch sets allow_clash in the nf_conntrack_l4proto_generic.
 
-Makes sense, I will mangle it locally when I apply this.  Thanks!
+Makes sense to me, thanks.
+I'll apply this for the next batch.
