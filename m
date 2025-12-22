@@ -1,37 +1,33 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB9814C92;
-	Mon, 22 Dec 2025 11:16:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C69312832;
+	Mon, 22 Dec 2025 11:22:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1766402179; cv=none; b=F6KQ4OI5FShknNS9pqx7K4QKbU4C1q5gfiwqHABJPs5JbuhyR/BNtvn9cE13Ugg37GfWvDpX1yX+drJFoidJpDd0NA//BpUsM1GMQXNELuveME1Vgfp5sMKDRR7rS1ZqFeesvheWbym7NpwoFjJLr2jfJAuQhHoI67eC4tvlMQU=
+	t=1766402568; cv=none; b=mXPY2KYMXpKMeOXwVZPpJVHk6vbI8Zp1m/1z3xJmzqKzL8wIU6wtoGViXyIgAU0Kmv5ds273gjFOdMbzuJ3/KNHRRjgF+GBdf2lbX7BT9atLMcwrEzcZ09aALFhjbV/WgwEIh4iuxoX28Gun42/nskreJygyNSK6qZYkfipocvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1766402179; c=relaxed/simple;
-	bh=sQUk61QA1ZJkorbZTrc9V1U1NZi5XOWVjC84QQSvmtM=;
+	s=arc-20240116; t=1766402568; c=relaxed/simple;
+	bh=gyqlSYdaz6rIfPq5gTF5YTqMjNJVtGuX8pdAzsvvyJ4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Vl0+sAYpP92iG9bDQuesnTvsSVqvYvJRtuXgMLyJnR3L+zHZbifCqc89iGkDqz0vHCcjLZarNAXwIGPs0PeFmlmRWzAQ8maAxDKiITRMNvxmqhk7lgeIZpXKp756lqR6TO9AExxxegQ3n8ZMASH+4Lqe5teSr0A+1dE90elhFUw=
+	 Content-Type:Content-Disposition:In-Reply-To; b=C6b82qJ6Ka4qlij6T8zgKLAaIbEUY4VwqSsav+/ZLtr4RkUWwqtxm37PcpZEb2/hIN0Zr/Qz4px2R/C60t6FVNhJ/sjxiEc5EIq9fgq3JIaqsdabvyZ8WaBmSkEaDWWXd3qMJmXcpeNzzcW5rAI8Se1P/85aQrEoerdZ2K2T2Hk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8363B60298; Mon, 22 Dec 2025 12:16:14 +0100 (CET)
-Date: Mon, 22 Dec 2025 12:16:14 +0100
+	id E593F60298; Mon, 22 Dec 2025 12:22:43 +0100 (CET)
+Date: Mon, 22 Dec 2025 12:22:43 +0100
 From: Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: syzbot <syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com>,
-	coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, phil@nwl.cc,
-	syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [netfilter?] possible deadlock in
- nf_tables_dumpreset_obj
-Message-ID: <aUkofscPurmzJ0Sh@strlen.de>
-References: <6945f4b4.a70a0220.207337.0121.GAE@google.com>
- <aUh_3mVRV8OrGsVo@strlen.de>
- <aUkNtgPyic8_fBd5@chamomile>
- <aUkPz0extqKuB7Bl@chamomile>
+Cc: Yuto Hamaguchi <Hamaguchi.Yuto@da.mitsubishielectric.co.jp>,
+	kadlec@netfilter.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH nf] netfilter: nf_conntrack: Add allow_clash to generic
+ protocol handler
+Message-ID: <aUkqA6m1C74T6cvA@strlen.de>
+References: <20251219115351.5662-1-Hamaguchi.Yuto@da.MitsubishiElectric.co.jp>
+ <aUcBp4VuHTPqCdEt@strlen.de>
+ <aUkeP0xzUcPjWwX-@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -40,27 +36,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aUkPz0extqKuB7Bl@chamomile>
+In-Reply-To: <aUkeP0xzUcPjWwX-@chamomile>
 
 Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > CPU0: 'nft reset'.
-> > > CPU1: 'ipset list' (anything in ipset doing a netlink dump op)
-> > > CPU2: 'iptables-nft -A ... -m set ...'
+> On Sat, Dec 20, 2025 at 09:05:59PM +0100, Florian Westphal wrote:
+> > Yuto Hamaguchi <Hamaguchi.Yuto@da.MitsubishiElectric.co.jp> wrote:
+> > > The upstream commit, 71d8c47fc653711c41bc3282e5b0e605b3727956
+> > >  ("netfilter: conntrack: introduce clash resolution on insertion race"),
+> > > sets allow_clash=true in the UDP/UDPLITE protocol handler
+> > > but does not set it in the generic protocol handler.
 > > > 
-> > > ... can result in:
+> > > As a result, packets composed of connectionless protocols at each layer,
+> > > such as UDP over IP-in-IP, still drop packets due to conflicts during conntrack insertion.
 > > > 
-> > > CPU0                    CPU1                            CPU2
-> > > ----                    ----                            ----
-> > > lock(nlk_cb_mutex-NETFILTER);
-> > >                         lock(nfnl_subsys_ipset);
-> > >                                                        lock(&nft_net->commit_mutex);
-> > >                         lock(nlk_cb_mutex-NETFILTER);
-> > >                                                        lock(nfnl_subsys_ipset);
-> > > lock(&nft_net->commit_mutex);
+> > > To resolve this, this patch sets allow_clash in the nf_conntrack_l4proto_generic.
+> > 
+> > Makes sense to me, thanks.
 > 
-> Would it work to use a separated mutex for reset itself?
+> Would it be possible to follow a more conservative approach?
+> ie. restrict this to protocols where we know clashes are possible
+> such as IPIP.
 
-I think so, yes, its only job is to prevent concurrent reset actions,
-the objects themselves are protected by rcu.
+I don't think there is a need to be more conservative here.
 
-Parallel add/removal should be fine.
+If we have to fallback to the generic tracker that means we don't have a
+L4 aware tracker for the protocol, so we can always merge entries instead
+of dropping them.
+
+Whats the concern?
