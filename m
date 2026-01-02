@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D63C930DD12;
-	Fri,  2 Jan 2026 11:41:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E05E30DD1A;
+	Fri,  2 Jan 2026 11:41:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767354110; cv=none; b=RcdbVMoBKDh2CteILpKqJca6+u5wBx/hAyFTjdtfjLEsaFnFKF82PAZRYsVzVHdmRMUgB8179PbCm7/KeQxIAudDyCwBKGxOfaUOCJQ94NrzEm1FgzZgTHZPYkGeJYMWz34o6F/CB27Sx2kYQjPMP1RuhSe4HPsqFV8qwN6ZPoQ=
+	t=1767354111; cv=none; b=qD9wTZGx0zNvqW9nWJPwEpqj+UwipqM7fVWTfBhP07fqvrmfWlSSnQfqUjNnf6Xo5Pqj3P74S/2SyUZZFsGgZk6CBXqczWeodG51OYjzJao/gxWj7tv8qpfFLkr+4+19RgOLHiwENbtW7wFzMJWlaMCNcxoig/3NRJzhZe4atDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767354110; c=relaxed/simple;
-	bh=AhKbyBU7IhnqvGIvYSDp6Fplmv8AgPqF6uygxmLQjUQ=;
+	s=arc-20240116; t=1767354111; c=relaxed/simple;
+	bh=xJM560743YoKbqt7FVPACZ5WWcZMwDbdPk3R3VIZYmE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Wouu260vyZOpY41Gud+Y+xVjQOlCVY3thIX/MmOSFwbIJye9EkvoFf4Nmr7vX9odEJuK+6P8BFTjSgWE8uDc9MU0ZkIHvI2vEfMSEqBapiHdkl1tbr0oi0XwUgLT0TNymyaXU3nxLsf7VKza6ozt3CGLyAj4VmNG11Fp1C8skcE=
+	 MIME-Version; b=sQQ26NCXOMqaauHSAoor14BQZVuQol4h7Y06F0ayaLJglEHc4E81eufgGI5/zATeHyWZHK6VWERmsCjGgWnShg/UEZ4JVgDBYtiIsJ3kFV34H3v4gzRRd3IBW0CooyddU6E6A08glF4O0lSmeaoYxAdqD3FyUAqoHUwLDzlGkGg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 4BF50604AE; Fri, 02 Jan 2026 12:41:46 +0100 (CET)
+	id ECAFD6035A; Fri, 02 Jan 2026 12:41:41 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 2/6] selftests: netfilter: nft_concat_range.sh: add check for overlap detection bug
-Date: Fri,  2 Jan 2026 12:41:24 +0100
-Message-ID: <20260102114128.7007-3-fw@strlen.de>
+Subject: [PATCH net 1/6] netfilter: nft_set_pipapo: fix range overlap detection
+Date: Fri,  2 Jan 2026 12:41:23 +0100
+Message-ID: <20260102114128.7007-2-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260102114128.7007-1-fw@strlen.de>
 References: <20260102114128.7007-1-fw@strlen.de>
@@ -38,94 +38,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-without 'netfilter: nft_set_pipapo: fix range overlap detection':
+set->klen has to be used, not sizeof().  The latter only compares a
+single register but a full check of the entire key is needed.
 
-  reject overlapping range on add       0s         [FAIL]
-Returned success for add { 1.2.3.4 . 1.2.4.1-1.2.4.2 } given set:
-table inet filter {
-	[..]
-       elements = { 1.2.3.4 . 1.2.4.1 counter packets 0 bytes 0,
-                    1.2.3.0-1.2.3.4 . 1.2.4.2 counter packets 0 bytes 0 }
+Example:
+table ip t {
+        map s {
+                typeof iifname . ip saddr : verdict
+                flags interval
+        }
 }
 
-The element collides with existing ones and was not added, but kernel
-returned success to userspace.
+nft add element t s '{ "lo" . 10.0.0.0/24 : drop }' # no error, expected
+nft add element t s '{ "lo" . 10.0.0.0/24 : drop }' # no error, expected
+nft add element t s '{ "lo" . 10.0.0.0/8 : drop }' # bug: no error
 
+The 3rd 'add element' should be rejected via -ENOTEMPTY, not -EEXIST,
+so userspace / nft can report an error to the user.
+
+The latter is only correct for the 2nd case (re-add of existing element).
+
+As-is, userspace is told that the command was successful, but no elements were
+added.
+
+After this patch, 3rd command gives:
+Error: Could not process rule: File exists
+add element t s { "lo" . 127.0.0.0/8 . "lo"  : drop }
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Fixes: 0eb4b5ee33f2 ("netfilter: nft_set_pipapo: Separate partial and complete overlap cases on insertion")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- .../net/netfilter/nft_concat_range.sh         | 45 ++++++++++++++++++-
- 1 file changed, 44 insertions(+), 1 deletion(-)
+ net/netfilter/nft_set_pipapo.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-index ad97c6227f35..394166f224a4 100755
---- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-@@ -29,7 +29,7 @@ TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
-        net6_port_net6_port net_port_mac_proto_net"
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 112fe46788b6..6d77a5f0088a 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1317,8 +1317,8 @@ static int nft_pipapo_insert(const struct net *net, const struct nft_set *set,
+ 		else
+ 			dup_end = dup_key;
  
- # Reported bugs, also described by TYPE_ variables below
--BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch doublecreate"
-+BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch doublecreate insert_overlap"
- 
- # List of possible paths to pktgen script from kernel tree for performance tests
- PKTGEN_SCRIPT_PATHS="
-@@ -420,6 +420,18 @@ race_repeat	0
- perf_duration	0
- "
- 
-+TYPE_insert_overlap="
-+display		reject overlapping range on add
-+type_spec	ipv4_addr . ipv4_addr
-+chain_spec	ip saddr . ip daddr
-+dst		addr4
-+proto		icmp
-+
-+race_repeat	0
-+
-+perf_duration	0
-+"
-+
- # Set template for all tests, types and rules are filled in depending on test
- set_template='
- flush ruleset
-@@ -1954,6 +1966,37 @@ EOF
- 	return 0
- }
- 
-+add_fail()
-+{
-+	if nft add element inet filter test "$1" 2>/dev/null ; then
-+		err "Returned success for add ${1} given set:"
-+		err "$(nft -a list set inet filter test )"
-+		return 1
-+	fi
-+
-+	return 0
-+}
-+
-+test_bug_insert_overlap()
-+{
-+	local elements="1.2.3.4 . 1.2.4.1"
-+
-+	setup veth send_"${proto}" set || return ${ksft_skip}
-+
-+	add "{ $elements }" || return 1
-+
-+	elements="1.2.3.0-1.2.3.4 . 1.2.4.1"
-+	add_fail "{ $elements }" || return 1
-+
-+	elements="1.2.3.0-1.2.3.4 . 1.2.4.2"
-+	add "{ $elements }" || return 1
-+
-+	elements="1.2.3.4 . 1.2.4.1-1.2.4.2"
-+	add_fail "{ $elements }" || return 1
-+
-+	return 0
-+}
-+
- test_reported_issues() {
- 	eval test_bug_"${subtest}"
- }
+-		if (!memcmp(start, dup_key->data, sizeof(*dup_key->data)) &&
+-		    !memcmp(end, dup_end->data, sizeof(*dup_end->data))) {
++		if (!memcmp(start, dup_key->data, set->klen) &&
++		    !memcmp(end, dup_end->data, set->klen)) {
+ 			*elem_priv = &dup->priv;
+ 			return -EEXIST;
+ 		}
 -- 
 2.51.2
 
