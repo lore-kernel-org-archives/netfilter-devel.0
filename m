@@ -1,79 +1,115 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E02B2E2DEF;
-	Fri,  2 Jan 2026 11:42:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+Received: from zg8tmtyylji0my4xnjeumjiw.icoremail.net (zg8tmtyylji0my4xnjeumjiw.icoremail.net [162.243.161.220])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A189512FF69;
+	Sun,  4 Jan 2026 14:05:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.243.161.220
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767354127; cv=none; b=NTtNvlGrtiKiPyz8lS4YbscVY2JJhojKDoIkXEEEPIlRMiLv85gE46Eq6OTJDwKB02gU8975GxWNEbIAWOKO+zauIxBaXxvJaSt9vrj/iB92DkWsjWsXlACT6mmhuOhfq6gCayaiQbfgVMN3v39ley7tSHB+1B3k7gKuNo0QILg=
+	t=1767535543; cv=none; b=c4R0AeMrNIbZPN7efeL1dAtiE+LXA65b1x6Ag45k1YKkm3XKcRwF5qYFiq5v83llpbOVI71rytw+kpUYKVVwzBKbMCW/W35+dbwhGzOfaP6wZs8clc64fyObuXTu8ydPJF1yjOBlXiEb4f2H/anzqVu5eavjRtQ2wb5nJYZBUzg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767354127; c=relaxed/simple;
-	bh=hPqtqKs3LeUx8cIiSpzHzCjCcJVEQ5gbLifCNJwaEEY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JVtB/xn0N+eP5TB5V8Zi7tXWDtJMA0LAgeg0D4XqVWvS7vWa2hl1HdqDWtRVolFVYdcUUS2dCUrOHXe2YAJtGrd9A+Iqa+jED0SimxbUH+Ul9X5CzGDK2ktD3ZdjtT4QodM5LMn/6r19axkupRYSBwisAu6oft6dh0FRnibvxqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 99793602F8; Fri, 02 Jan 2026 12:42:03 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net 6/6] netfilter: nf_conncount: update last_gc only when GC has been performed
-Date: Fri,  2 Jan 2026 12:41:28 +0100
-Message-ID: <20260102114128.7007-7-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260102114128.7007-1-fw@strlen.de>
-References: <20260102114128.7007-1-fw@strlen.de>
+	s=arc-20240116; t=1767535543; c=relaxed/simple;
+	bh=ATEf6nLB6CqpOQByZ+YmbYZHLawVEIFMfi4XsQZZu1c=;
+	h=Date:From:To:Cc:Subject:Content-Type:MIME-Version:Message-ID; b=rHoAlasTR8DrWsLAXoivlyyyvtevnnAhfY35cJjKVI2z6S2++IxvHLHla1eK1nxfMEFICzVJ1Wnm5Oe2N0RLvtmE3MnlqE7FgveuXRA6PEE1NAzBbGMVrWRBQGjtOnONFtMyoUiJov1NLHJCSors7LHxS90BilM22InP0z652+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=stu.xidian.edu.cn; spf=pass smtp.mailfrom=stu.xidian.edu.cn; dkim=fail (0-bit key) header.d=stu.xidian.edu.cn header.i=@stu.xidian.edu.cn header.b=Qf6mHWAT reason="key not found in DNS"; arc=none smtp.client-ip=162.243.161.220
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=stu.xidian.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stu.xidian.edu.cn
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=stu.xidian.edu.cn header.i=@stu.xidian.edu.cn header.b="Qf6mHWAT"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=stu.xidian.edu.cn; s=dkim; h=Received:Date:From:To:Cc:Subject:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:Message-ID;
+	bh=9suSyaa7qlp9j6+xqOuGYQPzCoORzdVF+XMJZprbDEQ=; b=Qf6mHWATj7b5u
+	q+2nV3XrGEirukcG+TQhMkGUW7qNciB2UBKsPljmCrcUNFQwuSk0jlsj/KZoK7l8
+	rY1i9dwdT+WRu2ReWPfmWJnlSiAHvh/3Xt0pGfqDxeMvPQEpmt7rppsgs4vpcGgi
+	s4fDJn1g8CKPe4VN75PJ6K4T1zEYxo=
+Received: from wangzhi_xd$stu.xidian.edu.cn ( [113.200.174.102] ) by
+ ajax-webmail-hzbj-edu-front-4.icoremail.net (Coremail) ; Sun, 4 Jan 2026
+ 22:05:29 +0800 (GMT+08:00)
+Date: Sun, 4 Jan 2026 22:05:29 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From: =?UTF-8?B?546L5b+X?= <wangzhi_xd@stu.xidian.edu.cn>
+To: pablo@netfilter.org, kadlec@netfilter.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH] netfilter: iptable_nat: fix null-ptr-deref in
+ ipt_nat_register_lookups
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2024.3-cmXT6 build
+ 20250410(2f5ccd7f) Copyright (c) 2002-2026 www.mailtech.cn
+ mispb-8dfce572-2f24-404d-b59d-0dd2e304114c-icoremail.cn
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Message-ID: <70343c9f.96e5.19b8953d001.Coremail.wangzhi_xd@stu.xidian.edu.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:BrQMCkBWudyrc1pptxTsAA--.13689W
+X-CM-SenderInfo: qstqimqsqqliuu6v33wo0lvxldqovvfxof0/1tbiAQUDCGlZJUtkE
+	gAAsn
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VW3Jw
+	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+	daVFxhVjvjDU=
 
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-
-Currently last_gc is being updated everytime a new connection is
-tracked, that means that it is updated even if a GC wasn't performed.
-With a sufficiently high packet rate, it is possible to always bypass
-the GC, causing the list to grow infinitely.
-
-Update the last_gc value only when a GC has been actually performed.
-
-Fixes: d265929930e2 ("netfilter: nf_conncount: reduce unnecessary GC")
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conncount.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conncount.c b/net/netfilter/nf_conncount.c
-index 3654f1e8976c..8487808c8761 100644
---- a/net/netfilter/nf_conncount.c
-+++ b/net/netfilter/nf_conncount.c
-@@ -229,6 +229,7 @@ static int __nf_conncount_add(struct net *net,
- 
- 		nf_ct_put(found_ct);
- 	}
-+	list->last_gc = (u32)jiffies;
- 
- add_new_node:
- 	if (WARN_ON_ONCE(list->count > INT_MAX)) {
-@@ -248,7 +249,6 @@ static int __nf_conncount_add(struct net *net,
- 	conn->jiffies32 = (u32)jiffies;
- 	list_add_tail(&conn->node, &list->head);
- 	list->count++;
--	list->last_gc = (u32)jiffies;
- 
- out_put:
- 	if (refcounted)
--- 
-2.51.2
-
+RGVhciBEZXZlbG9wZXJzLAoKSSBhbSByZXBvcnRpbmcgYSBudWxsLXBvaW50ZXIgZGVyZWZlcmVu
+Y2UgZGV0ZWN0ZWQgYnkgU3l6a2FsbGVyIG9uIExpbnV4IDYuMTguMC4gVGhlIGlzc3VlIG9jY3Vy
+cyBpbiB0aGUgbmV0ZmlsdGVyIHN1YnN5c3RlbSBkdXJpbmcgY29uY3VycmVudCBuZXR3b3JrIG5h
+bWVzcGFjZSBjcmVhdGlvbiBhbmQgbW9kdWxlIGxvYWRpbmcuCgoxLiBBbmFseXNpcwpUaGUgY3Jh
+c2ggaXMgdHJpZ2dlcmVkIGJ5IGEgcmFjZSBjb25kaXRpb24gYmV0d2VlbiB0aGUgcmVnaXN0cmF0
+aW9uIG9mIHRoZSBpcHRhYmxlX25hdCB0ZW1wbGF0ZSBhbmQgdGhlIGluaXRpYWxpemF0aW9uIG9m
+IHBlci1uZXQgcHJpdmF0ZSBkYXRhLgpJbiBpcHRfbmF0X3JlZ2lzdGVyX2xvb2t1cHMoKSwgdGhl
+IGRyaXZlciBhdHRlbXB0cyB0byByZXRyaWV2ZSBpdHMgcHJpdmF0ZSBkYXRhIHVzaW5nIG5ldF9n
+ZW5lcmljKG5ldCwgaXB0YWJsZV9uYXRfbmV0X2lkKS4gSG93ZXZlciwgaWYgdGhlIG1vZHVsZSBp
+cyBiZWluZyBsb2FkZWQgd2hpbGUgYSBuZXcgbmV0d29yayBuYW1lc3BhY2UgaXMgYmVpbmcgaW5p
+dGlhbGl6ZWQsIG5ldF9nZW5lcmljIGNhbiByZXR1cm4gTlVMTCBiZWNhdXNlIHRoZSBzdG9yYWdl
+IGZvciB0aGlzIHNwZWNpZmljIG1vZHVsZSBJRCBoYXMgbm90IHlldCBiZWVuIGFsbG9jYXRlZCBv
+ciBsaW5rZWQgZm9yIHRoZSB0YXJnZXQgbmFtZXNwYWNlLgpUaGUgY29kZSBjdXJyZW50bHkgcHJv
+Y2VlZHMgd2l0aG91dCBjaGVja2luZyBpZiB4dF9uYXRfbmV0IGlzIHZhbGlkLiBXaGVuIGl0IHN1
+YnNlcXVlbnRseSBhdHRlbXB0cyB0byBzdG9yZSB0aGUgb3BzIHBvaW50ZXJzOiB4dF9uYXRfbmV0
+LT5uZl9uYXRfb3BzID0gb3BzOyBJdCByZXN1bHRzIGluIGEgbnVsbC1wb2ludGVyIGRlcmVmZXJl
+bmNlIChHUEYpLCBzcGVjaWZpY2FsbHkgYXQgYW4gb2Zmc2V0IChlLmcuLCAweDE4KSBmcm9tIHRo
+ZSBOVUxMIGJhc2UuCgoyLiBQcm9wb3NlZCBGaXgKVGhlIGZpeCBpbnZvbHZlcyBhZGRpbmcgYSBO
+VUxMIGNoZWNrIGZvciB0aGUgcG9pbnRlciByZXR1cm5lZCBieSBuZXRfZ2VuZXJpYygpLiBJZiBp
+dCByZXR1cm5zIE5VTEwsIHRoZSByZWdpc3RyYXRpb24gc2hvdWxkIGJlIGFib3J0ZWQgd2l0aCAt
+RU5PTUVNIHRvIHByZXZlbnQgdGhlIGtlcm5lbCBjcmFzaC4KCjMuIFBhdGNoCkRpZmYKLS0tIGEv
+bmV0L2lwdjQvbmV0ZmlsdGVyL2lwdGFibGVfbmF0LmMKKysrIGIvbmV0L2lwdjQvbmV0ZmlsdGVy
+L2lwdGFibGVfbmF0LmMKQEAgLTY2LDYgKzY2LDkgQEAgc3RhdGljIGludCBpcHRfbmF0X3JlZ2lz
+dGVyX2xvb2t1cHMoc3RydWN0IG5ldCAqbmV0KQogCWludCBpLCByZXQ7CiAKIAl4dF9uYXRfbmV0
+ID0gbmV0X2dlbmVyaWMobmV0LCBpcHRhYmxlX25hdF9uZXRfaWQpOworCWlmICgheHRfbmF0X25l
+dCkKKwkJcmV0dXJuIC1FTk9NRU07CisKIAl0YWJsZSA9IHh0X2ZpbmRfdGFibGUobmV0LCBORlBS
+T1RPX0lQVjQsICJuYXQiKTsKIAlpZiAoV0FSTl9PTl9PTkNFKCF0YWJsZSkpCiAJCXJldHVybiAt
+RU5PRU5UOwoKNC4gQnVnIFRyYWNlIEhpZ2hsaWdodHMKS0FTQU46IG51bGwtcHRyLWRlcmVmIGlu
+IHJhbmdlIFsweDAwMDAwMDAwMDAwMDAwMTgtMHgwMDAwMDAwMDAwMDAwMDFmXQpSSVA6IDAwMTA6
+aXB0X25hdF9yZWdpc3Rlcl9sb29rdXBzKzB4ZjYvMHgxZTAKQ29kZTogNDggODkgZjggNDggODkg
+ZjcgNDggODkgZDYgNDggODkgY2EgNGQgODkgYzIgNGQgODkgYzggNGMgOGIgNGMgMjQgMDggMGYg
+MDUgCkNhbGwgVHJhY2U6CiA8VEFTSz4KIHh0X2ZpbmRfdGFibGVfbG9jaysweDIwYS8weDJmMCBo
+b21lL3dteS9GdXp6ZXIvdGhpcmRfdG9vbC9saW51eC02LjctZGVmY29uZmlnL25ldC9uZXRmaWx0
+ZXIveF90YWJsZXMuYzoxMjU5CiB4dF9yZXF1ZXN0X2ZpbmRfdGFibGVfbG9jaysweDJiLzB4YzAg
+aG9tZS93bXkvRnV6emVyL3RoaXJkX3Rvb2wvbGludXgtNi43LWRlZmNvbmZpZy9uZXQvbmV0Zmls
+dGVyL3hfdGFibGVzLmM6MTI4NAogZ2V0X2luZm8rMHhlYy8weDMzMCBob21lL3dteS9GdXp6ZXIv
+dGhpcmRfdG9vbC9saW51eC02LjctZGVmY29uZmlnL25ldC9pcHY0L25ldGZpbHRlci9pcF90YWJs
+ZXMuYzo5NjMKIGRvX2lwdF9nZXRfY3RsKzB4MTM0LzB4YTYwIGhvbWUvd215L0Z1enplci90aGly
+ZF90b29sL2xpbnV4LTYuNy1kZWZjb25maWcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX3RhYmxlcy5j
+OjE2NTEKIG5mX2dldHNvY2tvcHQrMHg2YS8weGEwIGhvbWUvd215L0Z1enplci90aGlyZF90b29s
+L2xpbnV4LTYuNy1kZWZjb25maWcvbmV0L25ldGZpbHRlci9uZl9zb2Nrb3B0LmM6MTE2CiBpcF9n
+ZXRzb2Nrb3B0KzB4MTkwLzB4MWYwIGhvbWUvd215L0Z1enplci90aGlyZF90b29sL2xpbnV4LTYu
+Ny1kZWZjb25maWcvbmV0L2lwdjQvaXBfc29ja2dsdWUuYzoxNzgxCiB0Y3BfZ2V0c29ja29wdCsw
+eDdmLzB4ZDAgaG9tZS93bXkvRnV6emVyL3RoaXJkX3Rvb2wvbGludXgtNi43LWRlZmNvbmZpZy9u
+ZXQvaXB2NC90Y3AuYzo0MzQwCiBkb19zb2NrX2dldHNvY2tvcHQrMHgyMGIvMHgyODAgaG9tZS93
+bXkvRnV6emVyL3RoaXJkX3Rvb2wvbGludXgtNi43LWRlZmNvbmZpZy9uZXQvc29ja2V0LmM6MjM3
+NwogX19zeXNfZ2V0c29ja29wdCsweDExNS8weDFiMCBob21lL3dteS9GdXp6ZXIvdGhpcmRfdG9v
+bC9saW51eC02LjctZGVmY29uZmlnL25ldC9zb2NrZXQuYzoyNDA2CiBfX2RvX3N5c19nZXRzb2Nr
+b3B0IGhvbWUvd215L0Z1enplci90aGlyZF90b29sL2xpbnV4LTYuNy1kZWZjb25maWcvbmV0L3Nv
+Y2tldC5jOjI0MTYgW2lubGluZV0KIF9fc2Vfc3lzX2dldHNvY2tvcHQgaG9tZS93bXkvRnV6emVy
+L3RoaXJkX3Rvb2wvbGludXgtNi43LWRlZmNvbmZpZy9uZXQvc29ja2V0LmM6MjQxMyBbaW5saW5l
+XQogX194NjRfc3lzX2dldHNvY2tvcHQrMHg2NC8weDgwIGhvbWUvd215L0Z1enplci90aGlyZF90
+b29sL2xpbnV4LTYuNy1kZWZjb25maWcvbmV0L3NvY2tldC5jOjI0MTMKIGRvX3N5c2NhbGxfeDY0
+IGhvbWUvd215L0Z1enplci90aGlyZF90b29sL2xpbnV4LTYuNy1kZWZjb25maWcvYXJjaC94ODYv
+ZW50cnkvY29tbW9uLmM6NTEgW2lubGluZV0KIGRvX3N5c2NhbGxfNjQrMHg0Ni8weGYwIGhvbWUv
+d215L0Z1enplci90aGlyZF90b29sL2xpbnV4LTYuNy1kZWZjb25maWcvYXJjaC94ODYvZW50cnkv
+Y29tbW9uLmM6ODIKIGVudHJ5X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFtZSsweDZmLzB4NzcKIDwv
+VEFTSz4KCkVudmlyb25tZW50OgpLZXJuZWw6IDYuMTguMCAjMSBQUkVFTVBUCkNvbmZpZzogS0FT
+QU4gZW5hYmxlZCwgTmV0ZmlsdGVyIGVuYWJsZWQKTW9kdWxlczogaXB0YWJsZV9uYXQoKykKClJl
+cG9ydGVkLWJ5OiBaaGkgV2FuZyB3YW5nemhpX3hkQHN0dS54aWRpYW4uZWR1LmNuIApTaWduZWQt
+b2ZmLWJ5OiBaaGkgV2FuZyB3YW5nemhpX3hkQHN0dS54aWRpYW4uZWR1LmNuIAoKQmVzdCByZWdh
+cmRzLApaaGkgV2FuZwo=
