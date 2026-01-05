@@ -1,22 +1,22 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F207C31AA94;
-	Mon,  5 Jan 2026 08:26:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 899E83314A9;
+	Mon,  5 Jan 2026 08:26:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767601614; cv=none; b=prQaW4eKOzrtYW/6u4YHRWw/OVRS18nH0yq7i86Ai3RgmrIVOpvEH5VK2LAQ4LqR/sfpGaug3xlkp32YbJyUaM14KhNr+tJzXc60By/Mo7pYv5R8XbDORr7ex5msbX2GeEo1v4+KIcr5wGte2zjEHwQFRors54cbZtX+b+2P8+8=
+	t=1767601615; cv=none; b=KX/3rv6KZNFx1+lxpsO6zMl6969W/zHxi18FqS7zNWvQ8UjkFX65/y5fbe39KgetF2xIV/sQr3Xy8u7Y/HOyhylzqTLUwbaOJ0wYt+M0zSnv2A+GPLzkjUXpR3xkGS7EJVISf7TPumlFGR+Ey1rXzZncjcaDn+5pxSkOh/xqYtU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767601614; c=relaxed/simple;
-	bh=M7HLAe90Qbpokyf331eCA/pwNjXKx5PAI1cBuE0OKMo=;
+	s=arc-20240116; t=1767601615; c=relaxed/simple;
+	bh=NLm5MuB4qw8Iur6kOFL/Cq64vy6/cvlOgwEDQ2/NMys=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=XqrcpvgD6l6i8BDL6DUf90pnaBEf4ePfnV8drSEZ2DlG16JJJwz2BVhgDaOhOliYwayyJkw7aYWkJjtxsblgVFpa9Sp8OBZ4hKZpqsmnkBdWruO81d/bXRwCNYi7foGOXi14/HQv7YvddH35eymTlvyg1iqmORDHN4W4R5dK8kQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=csmM31Hg; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=dHgEO3EX; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=kCMy0T/z60PMI0RcWu+QHmpaAxHkDCwYa8Puh5V7qlYjfE2CWdcojGk8iBJQZmW3McV7WalVNGXwIYhAuOJqB/XuQs7D0sh0HKfrluP6xwcp1Uls3ctlqjnfCwmgwc/D7EaI8IY0IDpuqpyQHy6SzSg2rbGlCn8zbH6H7l+yF2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=FPpY+BjV; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=j3+jTxXA; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="csmM31Hg";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="dHgEO3EX"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="FPpY+BjV";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="j3+jTxXA"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
 	s=2020; t=1767601611;
@@ -24,23 +24,24 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Qu0zNe88YkmXZJuzgQmdYipAfyHlqpY82/blAbrTdJw=;
-	b=csmM31HgRjc7e1Dy3oZQZgG56/0VcznmFXx5mhkpa3fFOvRg0FCpFFdIdlnUKgPZ3p6QX7
-	1pegkHLTiR6lnKjEfs+E3g8rebTRBRj6gpiKeZ2f1FjCclTcTx9+iYTI5MRCc/Zw6oT8Lb
-	tcMFKEKT6z5lHKsgeqDcJSshzIZP/SWJwk733+iTWwK20bpfCDsyBqA2Gznlh9+7yCinnG
-	eLeCN3KrMTtaxNf6cMFNZQH4MfYRugGaccWy2eqx0uXKI6pK/E8UcRjiChigV2231VA22+
-	J0ijF+Qd/8djNbxEZuiS8mIKaeIJ+gUA2RT16jk1JdXwOnf3cgVPsghmKWqBqA==
+	bh=c0EjK/xZ508m8ZLhWyIV/BZR47eYN0XRtYc1n0RBlPg=;
+	b=FPpY+BjVT5rgr+ojj/rGN+mfWwhSbU8T15zYUjpx0ofVwZWyJUa/ky3mrfKicUfIwSFsKd
+	hpy7zeR4CMsxUA47wvcUEO0QL7jDE20CxVUi6V5SC2DRvtOhsif3oSJ8xQ3Bej8uMXkDgn
+	aJMpNHb+FaUE1jOzZlhPfSZ7Vxg3FVMIYu4uThB9jsvVPh+1qm+Nf+baEPrMcGkQZstf+3
+	hpRW6Z/YQKjSn3ED/v6CAtpua3yLccoyPID3zWJ1J52SV54dcsK/xGLg3C7SnDNKlHdR9K
+	E8sU6sswY5kSlLMklMrGFM14SMmDyuFD58OqtHWLE88QeOI/038w1AB6k8ivCQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
 	s=2020e; t=1767601611;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Qu0zNe88YkmXZJuzgQmdYipAfyHlqpY82/blAbrTdJw=;
-	b=dHgEO3EXrumQJUiFTfDdVodejds4b8Fju3B65xkLkQqmyAqB5E+qQVGaPANI6B5ioiqCpS
-	eZ2x36/mbrkq+NAA==
-Date: Mon, 05 Jan 2026 09:26:47 +0100
-Subject: [PATCH RFC net-next 1/3] uapi: add INT_MAX and INT_MIN constants
+	bh=c0EjK/xZ508m8ZLhWyIV/BZR47eYN0XRtYc1n0RBlPg=;
+	b=j3+jTxXAHUyk7yYpJZgVxAIOwxvNmwZ8JmtCIAj20prJq5ze77V80UBUNJnVGevoMY0UZN
+	FRfG/oYjaEkvxoCA==
+Date: Mon, 05 Jan 2026 09:26:48 +0100
+Subject: [PATCH RFC net-next 2/3] ethtool: uapi: Use UAPI definition of
+ INT_MAX
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,7 +50,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20260105-uapi-limits-v1-1-023bc7a13037@linutronix.de>
+Message-Id: <20260105-uapi-limits-v1-2-023bc7a13037@linutronix.de>
 References: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
 In-Reply-To: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -62,38 +63,52 @@ Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
  netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
  coreteam@netfilter.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1767601610; l=771;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1767601610; l=1195;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=M7HLAe90Qbpokyf331eCA/pwNjXKx5PAI1cBuE0OKMo=;
- b=gHuSQxVq1/QXx8MzJtYqhw6AG/Xq+ukXL9eye9MGMePXbavcREoV+EY1WkqJzmZsOZkaQt9ga
- ESS0GELn94cBmAUQXHW4ryMNvcjtaSylXjk8msrPEsKAas5WoawVflv
+ bh=NLm5MuB4qw8Iur6kOFL/Cq64vy6/cvlOgwEDQ2/NMys=;
+ b=VyitLZaUJpnI0WhdJ2xm/BdP0eQwYT8My04ZcTTQm+6ijga8HfaT+A6GmCwClF21AOGu9Ee2P
+ DBdCmoBBEdUB/9r/h9+wdwRlX95qRx0zPIFcnQZ9pUNAl+4xQBpJcZa
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-Some UAPI headers use INT_MAX and INT_MIN. Currently they include
-<limits.h> for their definitions, which introduces a problematic
-dependency on libc.
+Using <limits.h> to gain access to INT_MAX introduces a dependency on a
+libc, which UAPI headers should not do.
 
-Add custom, namespaced definitions of INT_MAX and INT_MIN using the
-same values as the regular kernel code.
+Use the equivalent UAPI constant.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- include/uapi/linux/limits.h | 3 +++
- 1 file changed, 3 insertions(+)
+ include/uapi/linux/ethtool.h | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/linux/limits.h b/include/uapi/linux/limits.h
-index 6bcbe3068761..35ffa2667309 100644
---- a/include/uapi/linux/limits.h
-+++ b/include/uapi/linux/limits.h
-@@ -18,4 +18,7 @@
+diff --git a/include/uapi/linux/ethtool.h b/include/uapi/linux/ethtool.h
+index eb7ff2602fbb..9500236a9d2e 100644
+--- a/include/uapi/linux/ethtool.h
++++ b/include/uapi/linux/ethtool.h
+@@ -15,13 +15,10 @@
+ #define _UAPI_LINUX_ETHTOOL_H
  
- #define RTSIG_MAX	  32
+ #include <linux/const.h>
++#include <linux/limits.h>
+ #include <linux/types.h>
+ #include <linux/if_ether.h>
  
-+#define __KERNEL_INT_MAX ((int)(~0U >> 1))
-+#define __KERNEL_INT_MIN (-__KERNEL_INT_MAX - 1)
-+
- #endif
+-#ifndef __KERNEL__
+-#include <limits.h> /* for INT_MAX */
+-#endif
+-
+ /* All structures exposed to userland should be defined such that they
+  * have the same layout for 32-bit and 64-bit userland.
+  */
+@@ -2200,7 +2197,7 @@ enum ethtool_link_mode_bit_indices {
+ 
+ static inline int ethtool_validate_speed(__u32 speed)
+ {
+-	return speed <= INT_MAX || speed == (__u32)SPEED_UNKNOWN;
++	return speed <= __KERNEL_INT_MAX || speed == (__u32)SPEED_UNKNOWN;
+ }
+ 
+ /* Duplex, half or full. */
 
 -- 
 2.52.0
