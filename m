@@ -1,203 +1,283 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f78.google.com (mail-oo1-f78.google.com [209.85.161.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D87223314AB;
-	Mon,  5 Jan 2026 08:26:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43092333448
+	for <netfilter-devel@vger.kernel.org>; Mon,  5 Jan 2026 08:31:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.78
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767601615; cv=none; b=IuffSexxaVrCwbs6O2rg/45N8FK2p/nFMUMJrnPVnRieSsjZfspXbS6XphUtM8VQYO8FZyLcKrEWHB9yfLWGlwauH5xlFHBCagUwkxzdF9fOg+W5fZkFS2+bDosBHkDlR4bEiTFHwiibTD3nO0mQwJMTru+e7XfMGtjly6xTOFg=
+	t=1767601887; cv=none; b=B5zhEjVkeYuc3wBsBEuvQ/fHdN1GUD4pSlweQUcVl+9RS3JRJx+ml08s79iqUQYUvwNGmF/QV0IDCkzEDzPgjTgEpb+JoGXXQExrPcPdO/cYfy3ki47tRCR7BG75vj9TyLulHmVm8gHBQquZc3e+OOXBbTSClSX718CwiTJxTSA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767601615; c=relaxed/simple;
-	bh=P4/2AsT9n14c0ef4aSD1ALtr5hfCRfM8S6Cf4YlCz0I=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=EJIEmBPye5o5pmeOGFHH298AmdACF+jilvoiuJNnmsyUOPY7KJEpPeFcAEC2Syv+9dkO4gaYOBXZanuDdjSc4tPm7CLDwKYU/4CycmDSEzc9CVvg+9ihpIf4QzL0CnUEKkSyYuYZSs4iBRbWzuN6LdYd1kYnw1fFrQIEwlR3Z64=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=J/lGH1yV; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=ZIAXgaRp; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="J/lGH1yV";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="ZIAXgaRp"
-From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1767601612;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+IjD3h3khDbzYNe/aBGpfLpRCToA2hBBmeoprUDwalw=;
-	b=J/lGH1yV0CqsK7lMoSSr3DnEmr8bbIbbLfPIueCg7YHnRgNMF0kHnp+jLT+YuxQmN4X92C
-	d655+Bl2tCThO+1RX4n+dAyYrZQHObWtPmFrDvaQ2UtDwqRKM3u9E9ZUyusJBTZgc1xmQD
-	wMiv0ZGwuN7c4TF4sayXKwaeMbLBFFFZfQKgDWBKGc78VYLipYGJ4h8uW8W47k4ypeInbb
-	KkhLbA9e9KcQ+7iqc04hTMUHUzuu4V1FAczVIQxEedNlBkwdwbNloo5jQO0+jgu0isC6lz
-	57m+79FWsRkY4RPAqU4O9UBTH6v61ppHn/BgYEQ8ay3o68xUhl3m11kC8paITA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1767601612;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+IjD3h3khDbzYNe/aBGpfLpRCToA2hBBmeoprUDwalw=;
-	b=ZIAXgaRp8E+FxrBqV1a30iCVQsobmwftBdzvXn8owa0MmKkJuoy22J02rZ7b2wVJVrNAyq
-	VIpmLZu3as47VJDw==
-Date: Mon, 05 Jan 2026 09:26:49 +0100
-Subject: [PATCH RFC net-next 3/3] netfilter: uapi: Use UAPI definition of
- INT_MAX and INT_MIN
+	s=arc-20240116; t=1767601887; c=relaxed/simple;
+	bh=HNmhhznQJuu33DLS+2t6q801usE+P2O3v/lqJE76mfo=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=q2BpBq62fANBBTEyvvxawtaSXtsZrVcP+Y4JLHf9P/XKWPlZMGjspHh8D+tGCpiaagkA0rg6mFtqyDMv9zlR2XCEddRRNM4dLVVFicQTPBqLWkufGEV7UT1GWsQjpX5084jRaTHu0Rc1s4GWuji5MdXfsyVZpWgRMsa3FhKoDVw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.78
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f78.google.com with SMTP id 006d021491bc7-65b2cd67cceso27788911eaf.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 05 Jan 2026 00:31:25 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767601884; x=1768206684;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=9+E81ZK8kW7VMQC24dUJUhLhJ8nIdci8AoW4+w+wf2o=;
+        b=wLpZOu62p5RWnWncuh4E/zn5eQDteTazTjVrX37xPnHPOTv/4Lj4sJyva9swxk+JRN
+         3Zz9kxUJRidmNJY0k0xaOXFtrfziE6rARG5k1YrJ1lYL9/nCS31BStorGVA3Q1lNTABB
+         qLngDKjFM3dn/vLY8Les7dQpcSr4uLNcmvTXrv0WrCEOgE8hZ2euAtFZbjpBPm20Y95H
+         Q3A32dSjUTHMr7L+rFZtgj9f6FXtdejFiPp6o/DO9YpKNjigWeGZIIAlkjiyQXH3pJbE
+         je1jf+d3VeJbvzgKcJccPUmZVru7jLhSlwS9i/rv+P4kJId9IHUi8u2y6/DSaSaJc7+x
+         djrw==
+X-Forwarded-Encrypted: i=1; AJvYcCVyBdFdXHAC9H06ZA21/iIAK63vJ4AROtJ/udFCyqq0oGOZDeMJbkeGCbMLdDJtnf44u6QY5rmYgdQMT09bkeo=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxySFqLtJbnsY/S3gnUooagdlfy+sor+vaSYDTO2OmDrrDX65qB
+	l/9W3itWEOuymhe3gaOMxkeUowuI53iaZ4qWnoJAOl0vSqJMOQiIaIancyokaOF9JGRPS2SWInh
+	Lxc3KtZKDqMQvq+wR4X6cldbGeQfCupBM3ZkhKFXYCZfky+66523kc/QxWe8=
+X-Google-Smtp-Source: AGHT+IEdh0N1IsuCsTnZ+LDmkPk3wrN1GE3rg7IbJKz0xbqKlhXEd2WjJB7m1DqbuJTt3U2VLT2UILkrQkas9cqJGZC+cLxEcyF+
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20260105-uapi-limits-v1-3-023bc7a13037@linutronix.de>
-References: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
-In-Reply-To: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
-To: "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
- Andrew Lunn <andrew@lunn.ch>, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
- Phil Sutter <phil@nwl.cc>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, 
- netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
- coreteam@netfilter.org, 
- =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1767601610; l=3712;
- i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=P4/2AsT9n14c0ef4aSD1ALtr5hfCRfM8S6Cf4YlCz0I=;
- b=3kbE7So0hiBtD8nxv9RU5JAhr0H365fotZ8m/pGC3lRQdLC1DaILXOwzSk+6+CbEQuZdVEFVc
- MlUAOh9yWfJCQEBW8rQlaaOgo19di8zwFbFKZvnr6CV9kqbEzLCW5ip
-X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
- pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
+X-Received: by 2002:a05:6820:162a:b0:656:8548:d866 with SMTP id
+ 006d021491bc7-65d0e9324e2mr20576414eaf.1.1767601884251; Mon, 05 Jan 2026
+ 00:31:24 -0800 (PST)
+Date: Mon, 05 Jan 2026 00:31:24 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <695b76dc.050a0220.1c9965.0029.GAE@google.com>
+Subject: [syzbot] [netfilter?] possible deadlock in nf_tables_dumpreset_rules
+From: syzbot <syzbot+ee287f5effa60050d9ac@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
+	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
+	phil@nwl.cc, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Using <limits.h> to gain access to INT_MAX and INT_MIN introduces a
-dependency on a libc, which UAPI headers should not do.
+Hello,
 
-Use the equivalent UAPI constants.
+syzbot found the following issue on:
 
-Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+HEAD commit:    54e82e93ca93 Merge tag 'core_urgent_for_v6.19_rc4' of git:..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=10b1ee22580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8bfa57a8c0ab3aa8
+dashboard link: https://syzkaller.appspot.com/bug?extid=ee287f5effa60050d9ac
+compiler:       gcc (Debian 12.2.0-14+deb12u1) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+userspace arch: i386
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/d900f083ada3/non_bootable_disk-54e82e93.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/c7af41d4f0f4/vmlinux-54e82e93.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/02aa2250dd4f/bzImage-54e82e93.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+ee287f5effa60050d9ac@syzkaller.appspotmail.com
+
+netlink: 48 bytes leftover after parsing attributes in process `syz.8.6539'.
+======================================================
+WARNING: possible circular locking dependency detected
+syzkaller #0 Tainted: G             L     
+------------------------------------------------------
+syz.8.6539/2008 is trying to acquire lock:
+ffff888052e32cd8 (&nft_net->commit_mutex){+.+.}-{4:4}, at: nf_tables_dumpreset_rules+0x6f/0xa0 net/netfilter/nf_tables_api.c:3913
+
+but task is already holding lock:
+ffff888025cb16f0 (nlk_cb_mutex-NETFILTER){+.+.}-{4:4}, at: __netlink_dump_start+0x150/0x990 net/netlink/af_netlink.c:2404
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (nlk_cb_mutex-NETFILTER){+.+.}-{4:4}:
+       __mutex_lock_common kernel/locking/mutex.c:614 [inline]
+       __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
+       __netlink_dump_start+0x150/0x990 net/netlink/af_netlink.c:2404
+       netlink_dump_start include/linux/netlink.h:341 [inline]
+       ip_set_dump+0x17f/0x210 net/netfilter/ipset/ip_set_core.c:1717
+       nfnetlink_rcv_msg+0x9fc/0x1200 net/netfilter/nfnetlink.c:302
+       netlink_rcv_skb+0x158/0x420 net/netlink/af_netlink.c:2550
+       nfnetlink_rcv+0x1b3/0x430 net/netfilter/nfnetlink.c:669
+       netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+       netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
+       netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
+       sock_sendmsg_nosec net/socket.c:727 [inline]
+       __sock_sendmsg net/socket.c:742 [inline]
+       ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
+       ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
+       __sys_sendmsg+0x16d/0x220 net/socket.c:2678
+       do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
+       __do_fast_syscall_32+0xe8/0x680 arch/x86/entry/syscall_32.c:307
+       do_fast_syscall_32+0x32/0x80 arch/x86/entry/syscall_32.c:332
+       entry_SYSENTER_compat_after_hwframe+0x84/0x8e
+
+-> #1 (nfnl_subsys_ipset){+.+.}-{4:4}:
+       __mutex_lock_common kernel/locking/mutex.c:614 [inline]
+       __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
+       ip_set_nfnl_get_byindex+0x7c/0x290 net/netfilter/ipset/ip_set_core.c:909
+       set_target_v1_checkentry+0x1ac/0x570 net/netfilter/xt_set.c:313
+       xt_check_target+0x27c/0xa40 net/netfilter/x_tables.c:1038
+       nft_target_init+0x459/0x7d0 net/netfilter/nft_compat.c:267
+       nf_tables_newexpr net/netfilter/nf_tables_api.c:3550 [inline]
+       nf_tables_newrule+0xedd/0x2910 net/netfilter/nf_tables_api.c:4419
+       nfnetlink_rcv_batch+0x190d/0x2350 net/netfilter/nfnetlink.c:526
+       nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:649 [inline]
+       nfnetlink_rcv+0x3c1/0x430 net/netfilter/nfnetlink.c:667
+       netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+       netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
+       netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
+       sock_sendmsg_nosec net/socket.c:727 [inline]
+       __sock_sendmsg net/socket.c:742 [inline]
+       ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
+       ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
+       __sys_sendmsg+0x16d/0x220 net/socket.c:2678
+       do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
+       __do_fast_syscall_32+0xe8/0x680 arch/x86/entry/syscall_32.c:307
+       do_fast_syscall_32+0x32/0x80 arch/x86/entry/syscall_32.c:332
+       entry_SYSENTER_compat_after_hwframe+0x84/0x8e
+
+-> #0 (&nft_net->commit_mutex){+.+.}-{4:4}:
+       check_prev_add kernel/locking/lockdep.c:3165 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3284 [inline]
+       validate_chain kernel/locking/lockdep.c:3908 [inline]
+       __lock_acquire+0x1669/0x2890 kernel/locking/lockdep.c:5237
+       lock_acquire kernel/locking/lockdep.c:5868 [inline]
+       lock_acquire+0x179/0x330 kernel/locking/lockdep.c:5825
+       __mutex_lock_common kernel/locking/mutex.c:614 [inline]
+       __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
+       nf_tables_dumpreset_rules+0x6f/0xa0 net/netfilter/nf_tables_api.c:3913
+       netlink_dump+0x539/0xd30 net/netlink/af_netlink.c:2325
+       __netlink_dump_start+0x6d6/0x990 net/netlink/af_netlink.c:2440
+       netlink_dump_start include/linux/netlink.h:341 [inline]
+       nft_netlink_dump_start_rcu+0x81/0x1f0 net/netfilter/nf_tables_api.c:1309
+       nf_tables_getrule_reset+0x56b/0x6b0 net/netfilter/nf_tables_api.c:4053
+       nfnetlink_rcv_msg+0x583/0x1200 net/netfilter/nfnetlink.c:290
+       netlink_rcv_skb+0x158/0x420 net/netlink/af_netlink.c:2550
+       nfnetlink_rcv+0x1b3/0x430 net/netfilter/nfnetlink.c:669
+       netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+       netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
+       netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
+       sock_sendmsg_nosec net/socket.c:727 [inline]
+       __sock_sendmsg net/socket.c:742 [inline]
+       ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
+       ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
+       __sys_sendmsg+0x16d/0x220 net/socket.c:2678
+       do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
+       __do_fast_syscall_32+0xe8/0x680 arch/x86/entry/syscall_32.c:307
+       do_fast_syscall_32+0x32/0x80 arch/x86/entry/syscall_32.c:332
+       entry_SYSENTER_compat_after_hwframe+0x84/0x8e
+
+other info that might help us debug this:
+
+Chain exists of:
+  &nft_net->commit_mutex --> nfnl_subsys_ipset --> nlk_cb_mutex-NETFILTER
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(nlk_cb_mutex-NETFILTER);
+                               lock(nfnl_subsys_ipset);
+                               lock(nlk_cb_mutex-NETFILTER);
+  lock(&nft_net->commit_mutex);
+
+ *** DEADLOCK ***
+
+1 lock held by syz.8.6539/2008:
+ #0: ffff888025cb16f0 (nlk_cb_mutex-NETFILTER){+.+.}-{4:4}, at: __netlink_dump_start+0x150/0x990 net/netlink/af_netlink.c:2404
+
+stack backtrace:
+CPU: 2 UID: 0 PID: 2008 Comm: syz.8.6539 Tainted: G             L      syzkaller #0 PREEMPT(full) 
+Tainted: [L]=SOFTLOCKUP
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x116/0x1f0 lib/dump_stack.c:120
+ print_circular_bug+0x275/0x340 kernel/locking/lockdep.c:2043
+ check_noncircular+0x146/0x160 kernel/locking/lockdep.c:2175
+ check_prev_add kernel/locking/lockdep.c:3165 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3284 [inline]
+ validate_chain kernel/locking/lockdep.c:3908 [inline]
+ __lock_acquire+0x1669/0x2890 kernel/locking/lockdep.c:5237
+ lock_acquire kernel/locking/lockdep.c:5868 [inline]
+ lock_acquire+0x179/0x330 kernel/locking/lockdep.c:5825
+ __mutex_lock_common kernel/locking/mutex.c:614 [inline]
+ __mutex_lock+0x1aa/0x1ca0 kernel/locking/mutex.c:776
+ nf_tables_dumpreset_rules+0x6f/0xa0 net/netfilter/nf_tables_api.c:3913
+ netlink_dump+0x539/0xd30 net/netlink/af_netlink.c:2325
+ __netlink_dump_start+0x6d6/0x990 net/netlink/af_netlink.c:2440
+ netlink_dump_start include/linux/netlink.h:341 [inline]
+ nft_netlink_dump_start_rcu+0x81/0x1f0 net/netfilter/nf_tables_api.c:1309
+ nf_tables_getrule_reset+0x56b/0x6b0 net/netfilter/nf_tables_api.c:4053
+ nfnetlink_rcv_msg+0x583/0x1200 net/netfilter/nfnetlink.c:290
+ netlink_rcv_skb+0x158/0x420 net/netlink/af_netlink.c:2550
+ nfnetlink_rcv+0x1b3/0x430 net/netfilter/nfnetlink.c:669
+ netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+ netlink_unicast+0x5aa/0x870 net/netlink/af_netlink.c:1344
+ netlink_sendmsg+0x8c8/0xdd0 net/netlink/af_netlink.c:1894
+ sock_sendmsg_nosec net/socket.c:727 [inline]
+ __sock_sendmsg net/socket.c:742 [inline]
+ ____sys_sendmsg+0xa5d/0xc30 net/socket.c:2592
+ ___sys_sendmsg+0x134/0x1d0 net/socket.c:2646
+ __sys_sendmsg+0x16d/0x220 net/socket.c:2678
+ do_syscall_32_irqs_on arch/x86/entry/syscall_32.c:83 [inline]
+ __do_fast_syscall_32+0xe8/0x680 arch/x86/entry/syscall_32.c:307
+ do_fast_syscall_32+0x32/0x80 arch/x86/entry/syscall_32.c:332
+ entry_SYSENTER_compat_after_hwframe+0x84/0x8e
+RIP: 0023:0xf702d579
+Code: b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 00 00 00 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
+RSP: 002b:00000000f4f9f55c EFLAGS: 00000296 ORIG_RAX: 0000000000000172
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000080000240
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000296 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+----------------
+Code disassembly (best guess), 2 bytes skipped:
+   0:	10 06                	adc    %al,(%rsi)
+   2:	03 74 b4 01          	add    0x1(%rsp,%rsi,4),%esi
+   6:	10 07                	adc    %al,(%rdi)
+   8:	03 74 b0 01          	add    0x1(%rax,%rsi,4),%esi
+   c:	10 08                	adc    %cl,(%rax)
+   e:	03 74 d8 01          	add    0x1(%rax,%rbx,8),%esi
+  1e:	00 51 52             	add    %dl,0x52(%rcx)
+  21:	55                   	push   %rbp
+  22:	89 e5                	mov    %esp,%ebp
+  24:	0f 34                	sysenter
+  26:	cd 80                	int    $0x80
+* 28:	5d                   	pop    %rbp <-- trapping instruction
+  29:	5a                   	pop    %rdx
+  2a:	59                   	pop    %rcx
+  2b:	c3                   	ret
+  2c:	90                   	nop
+  2d:	90                   	nop
+  2e:	90                   	nop
+  2f:	90                   	nop
+  30:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+  37:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+
+
 ---
- include/uapi/linux/netfilter_bridge.h | 9 +++------
- include/uapi/linux/netfilter_ipv4.h   | 9 ++++-----
- include/uapi/linux/netfilter_ipv6.h   | 7 +++----
- 3 files changed, 10 insertions(+), 15 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/uapi/linux/netfilter_bridge.h b/include/uapi/linux/netfilter_bridge.h
-index 1610fdbab98d..6ace6c8b211b 100644
---- a/include/uapi/linux/netfilter_bridge.h
-+++ b/include/uapi/linux/netfilter_bridge.h
-@@ -6,15 +6,12 @@
-  */
- 
- #include <linux/in.h>
-+#include <linux/limits.h>
- #include <linux/netfilter.h>
- #include <linux/if_ether.h>
- #include <linux/if_vlan.h>
- #include <linux/if_pppox.h>
- 
--#ifndef __KERNEL__
--#include <limits.h> /* for INT_MIN, INT_MAX */
--#endif
--
- /* Bridge Hooks */
- /* After promisc drops, checksum checks. */
- #define NF_BR_PRE_ROUTING	0
-@@ -31,14 +28,14 @@
- #define NF_BR_NUMHOOKS		6
- 
- enum nf_br_hook_priorities {
--	NF_BR_PRI_FIRST = INT_MIN,
-+	NF_BR_PRI_FIRST = __KERNEL_INT_MIN,
- 	NF_BR_PRI_NAT_DST_BRIDGED = -300,
- 	NF_BR_PRI_FILTER_BRIDGED = -200,
- 	NF_BR_PRI_BRNF = 0,
- 	NF_BR_PRI_NAT_DST_OTHER = 100,
- 	NF_BR_PRI_FILTER_OTHER = 200,
- 	NF_BR_PRI_NAT_SRC = 300,
--	NF_BR_PRI_LAST = INT_MAX,
-+	NF_BR_PRI_LAST = __KERNEL_INT_MAX,
- };
- 
- #endif /* _UAPI__LINUX_BRIDGE_NETFILTER_H */
-diff --git a/include/uapi/linux/netfilter_ipv4.h b/include/uapi/linux/netfilter_ipv4.h
-index 155e77d6a42d..e675534b2128 100644
---- a/include/uapi/linux/netfilter_ipv4.h
-+++ b/include/uapi/linux/netfilter_ipv4.h
-@@ -6,13 +6,12 @@
- #define _UAPI__LINUX_IP_NETFILTER_H
- 
- 
-+#include <linux/limits.h>
- #include <linux/netfilter.h>
- 
- /* only for userspace compatibility */
- #ifndef __KERNEL__
- 
--#include <limits.h> /* for INT_MIN, INT_MAX */
--
- /* IP Hooks */
- /* After promisc drops, checksum checks. */
- #define NF_IP_PRE_ROUTING	0
-@@ -28,7 +27,7 @@
- #endif /* ! __KERNEL__ */
- 
- enum nf_ip_hook_priorities {
--	NF_IP_PRI_FIRST = INT_MIN,
-+	NF_IP_PRI_FIRST = __KERNEL_INT_MIN,
- 	NF_IP_PRI_RAW_BEFORE_DEFRAG = -450,
- 	NF_IP_PRI_CONNTRACK_DEFRAG = -400,
- 	NF_IP_PRI_RAW = -300,
-@@ -41,8 +40,8 @@ enum nf_ip_hook_priorities {
- 	NF_IP_PRI_NAT_SRC = 100,
- 	NF_IP_PRI_SELINUX_LAST = 225,
- 	NF_IP_PRI_CONNTRACK_HELPER = 300,
--	NF_IP_PRI_CONNTRACK_CONFIRM = INT_MAX,
--	NF_IP_PRI_LAST = INT_MAX,
-+	NF_IP_PRI_CONNTRACK_CONFIRM = __KERNEL_INT_MAX,
-+	NF_IP_PRI_LAST = __KERNEL_INT_MAX,
- };
- 
- /* Arguments for setsockopt SOL_IP: */
-diff --git a/include/uapi/linux/netfilter_ipv6.h b/include/uapi/linux/netfilter_ipv6.h
-index 80aa9b0799af..6be21833f696 100644
---- a/include/uapi/linux/netfilter_ipv6.h
-+++ b/include/uapi/linux/netfilter_ipv6.h
-@@ -9,13 +9,12 @@
- #define _UAPI__LINUX_IP6_NETFILTER_H
- 
- 
-+#include <linux/limits.h>
- #include <linux/netfilter.h>
- 
- /* only for userspace compatibility */
- #ifndef __KERNEL__
- 
--#include <limits.h> /* for INT_MIN, INT_MAX */
--
- /* IP6 Hooks */
- /* After promisc drops, checksum checks. */
- #define NF_IP6_PRE_ROUTING	0
-@@ -32,7 +31,7 @@
- 
- 
- enum nf_ip6_hook_priorities {
--	NF_IP6_PRI_FIRST = INT_MIN,
-+	NF_IP6_PRI_FIRST = __KERNEL_INT_MIN,
- 	NF_IP6_PRI_RAW_BEFORE_DEFRAG = -450,
- 	NF_IP6_PRI_CONNTRACK_DEFRAG = -400,
- 	NF_IP6_PRI_RAW = -300,
-@@ -45,7 +44,7 @@ enum nf_ip6_hook_priorities {
- 	NF_IP6_PRI_NAT_SRC = 100,
- 	NF_IP6_PRI_SELINUX_LAST = 225,
- 	NF_IP6_PRI_CONNTRACK_HELPER = 300,
--	NF_IP6_PRI_LAST = INT_MAX,
-+	NF_IP6_PRI_LAST = __KERNEL_INT_MAX,
- };
- 
- 
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
--- 
-2.52.0
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
