@@ -1,91 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD17E1E3DED;
-	Sun,  4 Jan 2026 20:17:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9262E33123D;
+	Mon,  5 Jan 2026 08:26:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767557830; cv=none; b=itPrsY2gahS0ZbdGFngHUnrwa3ahz+cDYWMN5t2sI+It5ejVXA2X/og2bw2bckzF9VjUZNh6gnqtWFOtY/BwyB0Ymr4MdrJ00Vatv0OL1jw/ZcOJAzC40md+Qu7qsz+MKTPli2J5g4TcTifYa+K6VAT7pNodfspaBMA+qkKZni8=
+	t=1767601614; cv=none; b=OXarkkMaE2KX28r+npPdv+FbmQmA7i4bpRgQtHaVhyEkuoLh12/fDErMDiE0lxf6lzbF/OWFOK8Bf5xoaBTC4tDQi7VVZDI7Jd8SvjYiSEV2yKanzazjU7f+Q2oywsoxXMHOqcwkJg1mHRh41ZFXe4wHjxOUXQ3LlhAlSizBnlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767557830; c=relaxed/simple;
-	bh=MbcUpwDFt9twtpPtCl2E6jvD3/Jkl6ammYkMQpIgrQU=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=WeYYweaG46J+BFseoZcL8s/SEtSF+u7xRSvJ48LHcUcQTo2yP1yvQ0/DCkDvUF6xZUAhjicSBGJ0OtIiOIfahNAx/WjOCzcmDoVXLKlbj9Y4bM7WYTtxm/WFoGkckFXIORz6g8UEbwtQweB/v2HweB8JeMSXc+skvA4IjU5ttmA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=IF0DWggP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1767601614; c=relaxed/simple;
+	bh=PlSAHLIcPqEr0WSD9F/zyyFIGslt4XFL2PegPLaRmw4=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=b94/+SSnpuoFji+2lk761jN8XDHWTuSMCmzonxok2nOdxFbCYWKESiaNemi9qoy1RytctKIAHvsOSBZWYv/bzUFEdvPH+FNnuINSoRdoyOyL5CmOJDyVSsarkqc5oK14d8Ozyj7mSqjOJcdRsH2oeg5KGun5Z7c5dauK8rPG/so=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=xIETlA3j; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=D5HIgG6F; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="IF0DWggP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B6BCC4CEF7;
-	Sun,  4 Jan 2026 20:17:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1767557830;
-	bh=MbcUpwDFt9twtpPtCl2E6jvD3/Jkl6ammYkMQpIgrQU=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=IF0DWggP8w6TB/caRLMcb9h/jpwQLVq3Bokz+L1lFzAH8czbUzaQgXAT6AC2tf/tO
-	 gF3NadBQ75aZ3JD1/grpOTmZkesuRaeFY02aEVVKMMjFNGgq68b22UPC4r230VRiRh
-	 Ecq0jnv64WN0UfhKRPu2W0eF9kvXAWGNaDFiKy/qiNf6dB4aEz0O+rP7xFMhHnOkWk
-	 UrDFNj4MXKWVoTgCYMiv5YR9t7fK/NudPUkmgDC/tm5trsWTbRgwNS+B7CfDiG5jBI
-	 vE0e6rRsBtwBBBy1Z0f91TborMFGkZUEoPxUmqXQ8UijoTmp3/1xGJYsTefOR92J8j
-	 QPXu6bT9ZeIUw==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 78906380AA58;
-	Sun,  4 Jan 2026 20:13:50 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="xIETlA3j";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="D5HIgG6F"
+From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1767601610;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=MZ8esC/5910O5pzfA0ceSYS5IgjotIwLmMG2zA9Ur3k=;
+	b=xIETlA3jQGYDshg3ErxHFBiTLp6oYnCuJZfGza8BClNYy8AVD/kH4KHmRjBCYO/kEj1vmK
+	ESLOFCUcgvipO8g0UdY+CSMgW7Uh9vMj3kiqwVI9OONVbtzY1UoROfPULzYuxh8oP/W8Tb
+	yoJDe8pR/KOTRQWPRfflVtStCY5KtfA6Cw2DhRgBSoRWrTMBZ2jOElhHz2AbTF8+3yLK39
+	dO37yO4wDvEVUywECUQ0IEZWV9cZHp3IhxBzIVO76p8Sv7+od3JqWqvX2VOCvIUDv6tqA5
+	l8hoxEt721nAQZGzpCt8uZKMsAl7TXo56N3ysp1ra3JufV0xGwbF4yWsjGLL0A==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1767601610;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=MZ8esC/5910O5pzfA0ceSYS5IgjotIwLmMG2zA9Ur3k=;
+	b=D5HIgG6Ff2QERGyxoy5cDoFCDZj4lbQBjaQqi+G20IgtMv+Sa0fvdXklcTzGqSbH27mMVm
+	DY9IFpfp/2OkCBBw==
+Subject: [PATCH RFC net-next 0/3] uapi: Use UAPI definitions of INT_MAX and
+ INT_MIN
+Date: Mon, 05 Jan 2026 09:26:46 +0100
+Message-Id: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/6] netfilter: nft_set_pipapo: fix range overlap
- detection
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <176755762931.155813.1576847923477813062.git-patchwork-notify@kernel.org>
-Date: Sun, 04 Jan 2026 20:13:49 +0000
-References: <20260102114128.7007-2-fw@strlen.de>
-In-Reply-To: <20260102114128.7007-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+X-B4-Tracking: v=1; b=H4sIAMZ1W2kC/x2MwQpAQBQAf0Xv7BXLqnVVPsBVDloPr1jaXVLy7
+ 5bjTM3c4MgyOSijGyyd7HgzAdI4Aj33ZiLkITCIRMhUCIVHvzMuvLJ3KAudS62yQmkFodgtjXz
+ 9txaauvqcIY+GLg/d87xGkpaVbgAAAA==
+X-Change-ID: 20251229-uapi-limits-56c45c9369c9
+To: "David S. Miller" <davem@davemloft.net>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+ Andrew Lunn <andrew@lunn.ch>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+ Phil Sutter <phil@nwl.cc>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, 
+ netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+ coreteam@netfilter.org, 
+ =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1767601610; l=936;
+ i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
+ bh=PlSAHLIcPqEr0WSD9F/zyyFIGslt4XFL2PegPLaRmw4=;
+ b=i+eKk6Ljv1e9zzV7oMX7y7EdJ0RKmOzKqNNlOG3ig20oos1onvLlwWebdVYibX5UVYC400clo
+ NFvzmG+Ra4pANXLy7U9XTlAUVnd6SdSIT2YRmP1SpZZUzo9H7DFIMmR
+X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
+ pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-Hello:
+Using <limits.h> to gain access to INT_MAX and INT_MIN introduces a
+dependency on a libc, which UAPI headers should not do.
 
-This series was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
+Introduce and use equivalent UAPI constants.
 
-On Fri,  2 Jan 2026 12:41:23 +0100 you wrote:
-> set->klen has to be used, not sizeof().  The latter only compares a
-> single register but a full check of the entire key is needed.
-> 
-> Example:
-> table ip t {
->         map s {
->                 typeof iifname . ip saddr : verdict
->                 flags interval
->         }
-> }
-> 
-> [...]
+Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+---
+Thomas Weißschuh (3):
+      uapi: add INT_MAX and INT_MIN constants
+      ethtool: uapi: Use UAPI definition of INT_MAX
+      netfilter: uapi: Use UAPI definition of INT_MAX and INT_MIN
 
-Here is the summary with links:
-  - [net,1/6] netfilter: nft_set_pipapo: fix range overlap detection
-    https://git.kernel.org/netdev/net/c/7711f4bb4b36
-  - [net,2/6] selftests: netfilter: nft_concat_range.sh: add check for overlap detection bug
-    https://git.kernel.org/netdev/net/c/a675d1caa204
-  - [net,3/6] netfilter: nft_synproxy: avoid possible data-race on update operation
-    https://git.kernel.org/netdev/net/c/36a320057564
-  - [net,4/6] netfilter: replace -EEXIST with -EBUSY
-    https://git.kernel.org/netdev/net/c/2bafeb8d2f38
-  - [net,5/6] netfilter: nf_tables: fix memory leak in nf_tables_newrule()
-    https://git.kernel.org/netdev/net/c/d077e8119ddb
-  - [net,6/6] netfilter: nf_conncount: update last_gc only when GC has been performed
-    https://git.kernel.org/netdev/net/c/7811ba452402
+ include/uapi/linux/ethtool.h          | 7 ++-----
+ include/uapi/linux/limits.h           | 3 +++
+ include/uapi/linux/netfilter_bridge.h | 9 +++------
+ include/uapi/linux/netfilter_ipv4.h   | 9 ++++-----
+ include/uapi/linux/netfilter_ipv6.h   | 7 +++----
+ 5 files changed, 15 insertions(+), 20 deletions(-)
+---
+base-commit: dbf8fe85a16a33d6b6bd01f2bc606fc017771465
+change-id: 20251229-uapi-limits-56c45c9369c9
 
-You are awesome, thank you!
+Best regards,
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 
