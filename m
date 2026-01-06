@@ -1,90 +1,177 @@
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC8E617736;
-	Mon,  5 Jan 2026 14:48:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62DF52D7DCE
+	for <netfilter-devel@vger.kernel.org>; Tue,  6 Jan 2026 19:55:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767624525; cv=none; b=lYllaFDSs7Qv1FNemLgLhiC0MqMY2mUsjcuLSoLxYW/jZLufOGCgY9uOOh8YzME9cZQ4XILUrpidE0mDgJ6P47+D5mY0edz3AHMI+H2eJ+Vo8yF9bEJZkQFFv/+FNKHCVUAvB0z+n0vnpggUpx3gzGICFJtccMlsok28EraRr/g=
+	t=1767729313; cv=none; b=aPIj9Uhltj03gY7isYxXGRyKMxJsgICtAIjgTMsSIST5yhyYpSk8zgwBMU9s1BmWDm2DQC2IMc66KLHu8MYdCtbIfZDUHat8LhhpjLCkZY0cnZ2F+939BVkYGeluIM0sJFLrFc1EXCRFX7rQuiMKQ16q+K2W5j7XnJfdeYuUXe4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767624525; c=relaxed/simple;
-	bh=D8ZDylyNaO7a1YULuB3qtg+Imwuj9iNUix8M4auAjSI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Maui3gcgyCYAf5IwmRzN6waDtsOQGKa2CMLI1oO1Hv4POZiKb5zjSWJI/5v4W0nPxEVwj6aNVpTcZgBsAW8lUAJN5sGfD3/btilboUITRxJY/oyDQQxQEiv5WSeDW/R1wXiNPXxs0OltAQJNSC3HApMgy1uMWyHZic4Yw2Q3Tu0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=ue5F62vf; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=+yPU6Mvk; arc=none smtp.client-ip=193.142.43.55
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
+	s=arc-20240116; t=1767729313; c=relaxed/simple;
+	bh=ezRQarOjjBM21zauRZItcnGzBQWgx/j7g7YBZfAhrFA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=oLa9yi12fgOSeAT2jIflJI5Xq1rtzNDADU/wuaGdS7GOoNi0w6dDESNi4XnoKhka/TCFr2qKHDkSJihU0cn4xSgSaeVCDHqG5Fxm2RPEfUFyOSj+kJecbY70dYMD7iWQc45L7iuZ73HfjWWGTba7VJAwutlXQ0pJA+wpOS4NwE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kpx2AwBw; arc=none smtp.client-ip=209.85.208.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="ue5F62vf";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="+yPU6Mvk"
-Date: Mon, 5 Jan 2026 15:48:38 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1767624521;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RK1ege7lL4G3FEhJT1V+htfNNauc/205k+U2T2Cmj9o=;
-	b=ue5F62vfvt6ZfGnmKmiEWSUkM+X5yhpLERp++1iIms0aLYWdto/WPwaYW52lpK4DRnnzlA
-	cJIG9/CtescuCTLW3LEVMeUORVCla0We10fEN29cuMEJZ/j7N6jE0MYZxS7wMooouVggJ7
-	PtNYUIAlv6lB5/1M5UrbK13hU/7UKNOtQQoS8Kc6Tkq+yBcJh+YMMkie9ItbHKGYNNpY7U
-	yZZ1yAiqHSh11PD4oVgdtZtlA+K5uypZgdozwrs6He3doCYoaxKZI/g449u9PM10PxwH3l
-	c8Y2Qh1Vx0a54sjVPtM82RGAb2CoXzXeKLsSKsjk3xSSOwV732lqDfZem77MIA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1767624521;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=RK1ege7lL4G3FEhJT1V+htfNNauc/205k+U2T2Cmj9o=;
-	b=+yPU6MvkityWZ4a4DJYeJbcwJo5jznELU4QSjMKh4VhISWNykdlebWlhQ359YMiWc90yeB
-	15YzfxtW5qS41RAA==
-From: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: "David S. Miller" <davem@davemloft.net>, 
-	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
-	Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, Arnd Bergmann <arnd@arndb.de>, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
-	coreteam@netfilter.org
-Subject: Re: [PATCH RFC net-next 1/3] uapi: add INT_MAX and INT_MIN constants
-Message-ID: <20260105154705-2301e4f2-948f-422d-bfed-81725ac82bc8@linutronix.de>
-References: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
- <20260105-uapi-limits-v1-1-023bc7a13037@linutronix.de>
- <ae78ddb2-7b5f-4d3b-adef-97b0ab363a30@lunn.ch>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kpx2AwBw"
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-64b8123c333so2086309a12.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jan 2026 11:55:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1767729310; x=1768334110; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=BmSo9DVOGxS+EqfPBwMvHqn9WrIYsrAaibtCJtd/X8c=;
+        b=kpx2AwBwqmt402iWht+jAPHIOEBlGQ/Go+EXWvSs5dk42obdR8Hztd2zlKIrJzKQx5
+         fp5gWD5xjViZoTX+gg3Zqj9JUMOZg/v4g7n7X4Nbq8n0c0A70ohxm9GuAXmeftI3Hsft
+         zOLPcVAHN0D38x++HVtF2tFj1lWVDKYml+VJycdA7ZM3VLaR9csZbqaqJqoHvP9wu59Y
+         Wp35a0KQtmVR9XPTSJsVY6oHGt12QGk8fsQeC7VbXTc+12RQXAiNNzbZdQcKNIZwWstS
+         sb/99L0dvplQw4+PFleU3/saPlHf8cU5HpeAmwuxFm67n9LmgqaB45IhJgVhqtoO0gKD
+         iJYw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1767729310; x=1768334110;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=BmSo9DVOGxS+EqfPBwMvHqn9WrIYsrAaibtCJtd/X8c=;
+        b=unGP0fwGGMFEDWsQxLN+53IOHLAWefQrqDxi5/0RLZJBNtWsMoZ0hOVn61uXcTjsMn
+         +3h4KcZSJbq+q/BnlUJ/fuW3DLTXkbAcfGTtswSlgm92qOMkEWmoLNa4CrPWZq3IqO0H
+         UjEcFma2JLILEfJMb91KkdWu8MtNmorg2HY41dpOmMASev5Ir9Iyf51nB1wbsnYuov3b
+         Dp3a1FE2zYZBhDZyShtDX950j++a949D0TpoXlzZF9f9z7owhiqSyUkZLJaDg9HsQsO+
+         3lwSIY3HmtEqBbGrXJP1jPsT+xytWb77IUWR6N3RwM2fNQeTR+BqyggNT3JGgKbP488j
+         XKpQ==
+X-Gm-Message-State: AOJu0Yxo30CbMbD8SjCQV05yYMYMLK2NEevn0nnquBSRPFngY9rStoWu
+	umF7Gx7nl1wwfm7OxsfuEktrJ0r0GMIVhqC9Ec6V+KcMW5xmrE8L/EYr
+X-Gm-Gg: AY/fxX70rWMiqEu5/UnXGS0FzBQvrUH31ODgxINE+1u3lg0hk4JM6aasdLAiNMCTzsS
+	3z5Y5MuKweKBPH3Gh+pEVhgrurLZAZTYgRMWkEkkDWmeQxObApLgGq5y4k6K5MZN9guJN/0WBNY
+	nLzYwN2uLDOAPOfjkLfG/OeEFYQuG68AOZB93iDbmnKuZtfY95Yn1ZKhx4YbevDezO/AHjl/Zaq
+	PVgtTnZ3N2riilBuBKSWbyyNMoVgDKy+9tK22V1+1KTxPQaXH7/Aex/fcznBbUMSbeVuchErkzi
+	sCE1YrbpgUA9Q6MwnCnrr8Fzrr/g/CaQYET5sHugp8rwJxWwhnF8zPfAySvbrT6IbmAQqo3StfM
+	tfK/smuINR3yRzESWB7ZwJtmufl6WKdbYqvGXq6xKky8AmWTYHqAKAo53oIUqTW5ZIrG8iKHLnS
+	HHo5Ccznhf+x6qsQReOLc/FheHQo48afODqnSZASXI3QAeTvlLjGIAcjX6/LLiOX81XHxsh2iaF
+	knKsfINBRU7ElIu+XI/mfAKd4Bv1auJ/SRqLvcs1do/ElIELRaHhlYrC0MCSc+P3Q==
+X-Google-Smtp-Source: AGHT+IGFE95wEtpfFwtjTiCcDiqd/x/VRp77b5we3rDpWf3zlfvwo6wItKcd0BaEkVYOWNXABbIVMg==
+X-Received: by 2002:a05:6402:42c4:b0:64b:7b73:7d50 with SMTP id 4fb4d7f45d1cf-65097de8202mr162574a12.1.1767729309560;
+        Tue, 06 Jan 2026 11:55:09 -0800 (PST)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6507b8c4454sm2902324a12.3.2026.01.06.11.55.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 06 Jan 2026 11:55:09 -0800 (PST)
+Message-ID: <6d77bdc4-a385-43bf-a8a5-6787f99d2b7d@gmail.com>
+Date: Tue, 6 Jan 2026 20:55:07 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ae78ddb2-7b5f-4d3b-adef-97b0ab363a30@lunn.ch>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v17 nf-next 0/4] conntrack: bridge: add double vlan, pppoe
+ and pppoe-in-q
+To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+ bridge@lists.linux.dev, Simon Horman <horms@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>,
+ Phil Sutter <phil@nwl.cc>, Ido Schimmel <idosch@nvidia.com>,
+ Nikolay Aleksandrov <razor@blackwall.org>, Eric Dumazet
+ <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>
+References: <20251109192427.617142-1-ericwouds@gmail.com>
+From: Eric Woudstra <ericwouds@gmail.com>
+Content-Language: en-US
+In-Reply-To: <20251109192427.617142-1-ericwouds@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 05, 2026 at 03:37:14PM +0100, Andrew Lunn wrote:
-> On Mon, Jan 05, 2026 at 09:26:47AM +0100, Thomas Weißschuh wrote:
-> > Some UAPI headers use INT_MAX and INT_MIN. Currently they include
-> > <limits.h> for their definitions, which introduces a problematic
-> > dependency on libc.
-> > 
-> > Add custom, namespaced definitions of INT_MAX and INT_MIN using the
-> > same values as the regular kernel code.
+
+
+On 11/9/25 8:24 PM, Eric Woudstra wrote:
+> Conntrack bridge only tracks untagged and 802.1q.
 > 
-> Maybe a dumb question.
+> To make the bridge-fastpath experience more similar to the
+> forward-fastpath experience, introduce patches for double vlan,
+> pppoe and pppoe-in-q tagged packets to bridge conntrack and to
+> bridge filter chain.
 > 
-> > +#define __KERNEL_INT_MAX ((int)(~0U >> 1))
-> > +#define __KERNEL_INT_MIN (-__KERNEL_INT_MAX - 1)
+> Changes in v17:
 > 
-> How does this work for a 32 bit userspace on top of a 64 bit kernel?
->
-> And do we need to be careful with KERNEL in the name, in that for a 32
-> bit userspace, this is going to be 32bit max int, when in fact the
-> kernel is using 64 bit max int?
+> - Add patch for nft_set_pktinfo_ipv4/6_validate() adding nhoff argument.
+> - Stopped using skb_set_network_header() in nft_set_bridge_pktinfo,
+>    using the new offset for nft_set_pktinfo_ipv4/6_validate instead.
+> - When pskb_may_pull() fails in nft_set_bridge_pktinfo() set proto to 0,
+>    resulting in pktinfo unspecified.
+> 
+> Changes in v16:
+> 
+> - Changed nft_chain_filter patch: Only help populating pktinfo offsets,
+>    call nft_do_chain() with original network_offset.
+> - Changed commit messages.
+> - Removed kernel-doc comments.
+> 
+> Changes in v15:
+> 
+> - Do not munge skb->protocol.
+> - Introduce nft_set_bridge_pktinfo() helper.
+> - Introduce nf_ct_bridge_pre_inner() helper.
+> - nf_ct_bridge_pre(): Don't trim on ph->hdr.length, only compare to what
+>    ip header claims and return NF_ACCEPT if it does not match.
+> - nf_ct_bridge_pre(): Renamed u32 data_len to pppoe_len.
+> - nf_ct_bridge_pre(): Reset network_header only when ret == NF_ACCEPT.
+> - nf_checksum(_partial)(): Use of skb_network_offset().
+> - nf_checksum(_partial)(): Use 'if (WARN_ON()) return 0' instead.
+> - nf_checksum(_partial)(): Added comments
+> 
+> Changes in v14:
+> 
+> - nf_checksum(_patial): Use DEBUG_NET_WARN_ON_ONCE(
+>    !skb_pointer_if_linear()) instead of pskb_may_pull().
+> - nft_do_chain_bridge: Added default case ph->proto is neither
+>    ipv4 nor ipv6.
+> - nft_do_chain_bridge: only reset network header when ret == NF_ACCEPT.
+> 
+> Changes in v13:
+> 
+> - Do not use pull/push before/after calling nf_conntrack_in() or
+>    nft_do_chain().
+> - Add patch to correct calculating checksum when skb->data !=
+>    skb_network_header(skb).
+> 
+> Changes in v12:
+> 
+> - Only allow tracking this traffic when a conntrack zone is set.
+> - nf_ct_bridge_pre(): skb pull/push without touching the checksum,
+>    because the pull is always restored with push.
+> - nft_do_chain_bridge(): handle the extra header similar to
+>    nf_ct_bridge_pre(), using pull/push.
+> 
+> Changes in v11:
+> 
+> - nft_do_chain_bridge(): Proper readout of encapsulated proto.
+> - nft_do_chain_bridge(): Use skb_set_network_header() instead of thoff.
+> - removed test script, it is now in separate patch.
+> 
+> v10 split from patch-set: bridge-fastpath and related improvements v9
+> 
+> Eric Woudstra (4):
+>   netfilter: utils: nf_checksum(_partial) correct data!=networkheader
+>   netfilter: bridge: Add conntrack double vlan and pppoe
+>   netfilter: nft_set_pktinfo_ipv4/6_validate: Add nhoff argument
+>   netfilter: nft_chain_filter: Add bridge double vlan and pppoe
+> 
+>  include/net/netfilter/nf_tables_ipv4.h     | 21 +++--
+>  include/net/netfilter/nf_tables_ipv6.h     | 21 +++--
+>  net/bridge/netfilter/nf_conntrack_bridge.c | 92 ++++++++++++++++++----
+>  net/netfilter/nft_chain_filter.c           | 59 ++++++++++++--
+>  net/netfilter/utils.c                      | 28 +++++--
+>  5 files changed, 176 insertions(+), 45 deletions(-)
+> 
 
-'int' is always 32 bit on Linux.
+Can I kindly ask, what is the status of this patch-set?
 
+Regards,
 
-Thomas
+Eric
+
