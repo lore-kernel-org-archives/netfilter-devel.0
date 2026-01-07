@@ -1,67 +1,80 @@
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62DF52D7DCE
-	for <netfilter-devel@vger.kernel.org>; Tue,  6 Jan 2026 19:55:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 300BC348465
+	for <netfilter-devel@vger.kernel.org>; Wed,  7 Jan 2026 14:31:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1767729313; cv=none; b=aPIj9Uhltj03gY7isYxXGRyKMxJsgICtAIjgTMsSIST5yhyYpSk8zgwBMU9s1BmWDm2DQC2IMc66KLHu8MYdCtbIfZDUHat8LhhpjLCkZY0cnZ2F+939BVkYGeluIM0sJFLrFc1EXCRFX7rQuiMKQ16q+K2W5j7XnJfdeYuUXe4=
+	t=1767796300; cv=none; b=f4m7qMC3RHjA5VpCP3GnuP/qzU5vqHE4Nc9m80fhIZ6o3yX0rmGGDr/5hy3ykOhNtqaxejqJaARxvPBWWKTFPrEAeIdl6JoqamDQig1oMfnYstrAxAQrLHxJtNeFWr9ULZEdWNP7YnmFdiUecqDNac2k36sZO8HMq2y4yR6v5is=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1767729313; c=relaxed/simple;
-	bh=ezRQarOjjBM21zauRZItcnGzBQWgx/j7g7YBZfAhrFA=;
+	s=arc-20240116; t=1767796300; c=relaxed/simple;
+	bh=JCulDDklVHIAxbNiHMFRV0eYFRNWPGHt+DUFTEdz2/w=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oLa9yi12fgOSeAT2jIflJI5Xq1rtzNDADU/wuaGdS7GOoNi0w6dDESNi4XnoKhka/TCFr2qKHDkSJihU0cn4xSgSaeVCDHqG5Fxm2RPEfUFyOSj+kJecbY70dYMD7iWQc45L7iuZ73HfjWWGTba7VJAwutlXQ0pJA+wpOS4NwE4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kpx2AwBw; arc=none smtp.client-ip=209.85.208.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 In-Reply-To:Content-Type; b=kAXwroDiUsZF/UbztT/wdHKWgW1uA8l8wTRLN1y+pi1norJdx3aYODhCm11zk++vQlgNfzChUMrKqKKy+7WeYa1Z+0aG7GGyT4BHogUeHMo9zJUKpLjQEAkeUkQKXPsz3OfBjoaffBHileuSnPE7pfrOEeo15Dm98UIwY3g3yxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=gmDI36Wn; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=SQcX4gRF; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=gmDI36Wn; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=SQcX4gRF; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kpx2AwBw"
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-64b8123c333so2086309a12.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jan 2026 11:55:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1767729310; x=1768334110; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=BmSo9DVOGxS+EqfPBwMvHqn9WrIYsrAaibtCJtd/X8c=;
-        b=kpx2AwBwqmt402iWht+jAPHIOEBlGQ/Go+EXWvSs5dk42obdR8Hztd2zlKIrJzKQx5
-         fp5gWD5xjViZoTX+gg3Zqj9JUMOZg/v4g7n7X4Nbq8n0c0A70ohxm9GuAXmeftI3Hsft
-         zOLPcVAHN0D38x++HVtF2tFj1lWVDKYml+VJycdA7ZM3VLaR9csZbqaqJqoHvP9wu59Y
-         Wp35a0KQtmVR9XPTSJsVY6oHGt12QGk8fsQeC7VbXTc+12RQXAiNNzbZdQcKNIZwWstS
-         sb/99L0dvplQw4+PFleU3/saPlHf8cU5HpeAmwuxFm67n9LmgqaB45IhJgVhqtoO0gKD
-         iJYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1767729310; x=1768334110;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=BmSo9DVOGxS+EqfPBwMvHqn9WrIYsrAaibtCJtd/X8c=;
-        b=unGP0fwGGMFEDWsQxLN+53IOHLAWefQrqDxi5/0RLZJBNtWsMoZ0hOVn61uXcTjsMn
-         +3h4KcZSJbq+q/BnlUJ/fuW3DLTXkbAcfGTtswSlgm92qOMkEWmoLNa4CrPWZq3IqO0H
-         UjEcFma2JLILEfJMb91KkdWu8MtNmorg2HY41dpOmMASev5Ir9Iyf51nB1wbsnYuov3b
-         Dp3a1FE2zYZBhDZyShtDX950j++a949D0TpoXlzZF9f9z7owhiqSyUkZLJaDg9HsQsO+
-         3lwSIY3HmtEqBbGrXJP1jPsT+xytWb77IUWR6N3RwM2fNQeTR+BqyggNT3JGgKbP488j
-         XKpQ==
-X-Gm-Message-State: AOJu0Yxo30CbMbD8SjCQV05yYMYMLK2NEevn0nnquBSRPFngY9rStoWu
-	umF7Gx7nl1wwfm7OxsfuEktrJ0r0GMIVhqC9Ec6V+KcMW5xmrE8L/EYr
-X-Gm-Gg: AY/fxX70rWMiqEu5/UnXGS0FzBQvrUH31ODgxINE+1u3lg0hk4JM6aasdLAiNMCTzsS
-	3z5Y5MuKweKBPH3Gh+pEVhgrurLZAZTYgRMWkEkkDWmeQxObApLgGq5y4k6K5MZN9guJN/0WBNY
-	nLzYwN2uLDOAPOfjkLfG/OeEFYQuG68AOZB93iDbmnKuZtfY95Yn1ZKhx4YbevDezO/AHjl/Zaq
-	PVgtTnZ3N2riilBuBKSWbyyNMoVgDKy+9tK22V1+1KTxPQaXH7/Aex/fcznBbUMSbeVuchErkzi
-	sCE1YrbpgUA9Q6MwnCnrr8Fzrr/g/CaQYET5sHugp8rwJxWwhnF8zPfAySvbrT6IbmAQqo3StfM
-	tfK/smuINR3yRzESWB7ZwJtmufl6WKdbYqvGXq6xKky8AmWTYHqAKAo53oIUqTW5ZIrG8iKHLnS
-	HHo5Ccznhf+x6qsQReOLc/FheHQo48afODqnSZASXI3QAeTvlLjGIAcjX6/LLiOX81XHxsh2iaF
-	knKsfINBRU7ElIu+XI/mfAKd4Bv1auJ/SRqLvcs1do/ElIELRaHhlYrC0MCSc+P3Q==
-X-Google-Smtp-Source: AGHT+IGFE95wEtpfFwtjTiCcDiqd/x/VRp77b5we3rDpWf3zlfvwo6wItKcd0BaEkVYOWNXABbIVMg==
-X-Received: by 2002:a05:6402:42c4:b0:64b:7b73:7d50 with SMTP id 4fb4d7f45d1cf-65097de8202mr162574a12.1.1767729309560;
-        Tue, 06 Jan 2026 11:55:09 -0800 (PST)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6507b8c4454sm2902324a12.3.2026.01.06.11.55.08
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 06 Jan 2026 11:55:09 -0800 (PST)
-Message-ID: <6d77bdc4-a385-43bf-a8a5-6787f99d2b7d@gmail.com>
-Date: Tue, 6 Jan 2026 20:55:07 +0100
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="gmDI36Wn";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="SQcX4gRF";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="gmDI36Wn";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="SQcX4gRF"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 3E9555BCFD;
+	Wed,  7 Jan 2026 14:31:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1767796296; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GhOukjpnQk5O3w0khWnVApnz+f/+Cj/dUYvaPnYcv+g=;
+	b=gmDI36WnAcXeHocJMYfDXRAWPDKIyT/l5/5NOGB4NdDKpSNkmE91hnsrKp6ShmMLKzW/pd
+	64Y1NQrln+jfNyxJZiyoQV9FN81k/jFiqKVhDfS4iUTQckY6UfteY3joZFBxkldrUB/1AX
+	PNXMtLnOZ7cCBsOMXwbVDXeP1YiIXG4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1767796296;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GhOukjpnQk5O3w0khWnVApnz+f/+Cj/dUYvaPnYcv+g=;
+	b=SQcX4gRFDa24PwLLB/vM5j+m8G5jj1BuwJ8I6hm7AYucXJ2htEzBsM4lLrNlIRrdf9dMNx
+	pOah970oTNO9q2Ag==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1767796296; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GhOukjpnQk5O3w0khWnVApnz+f/+Cj/dUYvaPnYcv+g=;
+	b=gmDI36WnAcXeHocJMYfDXRAWPDKIyT/l5/5NOGB4NdDKpSNkmE91hnsrKp6ShmMLKzW/pd
+	64Y1NQrln+jfNyxJZiyoQV9FN81k/jFiqKVhDfS4iUTQckY6UfteY3joZFBxkldrUB/1AX
+	PNXMtLnOZ7cCBsOMXwbVDXeP1YiIXG4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1767796296;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=GhOukjpnQk5O3w0khWnVApnz+f/+Cj/dUYvaPnYcv+g=;
+	b=SQcX4gRFDa24PwLLB/vM5j+m8G5jj1BuwJ8I6hm7AYucXJ2htEzBsM4lLrNlIRrdf9dMNx
+	pOah970oTNO9q2Ag==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D47193EA63;
+	Wed,  7 Jan 2026 14:31:35 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id zLcpMUduXmnIRwAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Wed, 07 Jan 2026 14:31:35 +0000
+Message-ID: <0f9b3772-0b38-40ae-ad3f-e2e790695054@suse.de>
+Date: Wed, 7 Jan 2026 15:31:22 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -69,109 +82,611 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v17 nf-next 0/4] conntrack: bridge: add double vlan, pppoe
- and pppoe-in-q
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
- bridge@lists.linux.dev, Simon Horman <horms@kernel.org>,
- Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>,
- Phil Sutter <phil@nwl.cc>, Ido Schimmel <idosch@nvidia.com>,
- Nikolay Aleksandrov <razor@blackwall.org>, Eric Dumazet
- <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>,
- Jozsef Kadlecsik <kadlec@netfilter.org>
-References: <20251109192427.617142-1-ericwouds@gmail.com>
-From: Eric Woudstra <ericwouds@gmail.com>
+Subject: Re: [PATCH 3/7 nft v3] src: add tunnel statement and expression
+ support
+To: Yi Chen <yiche@redhat.com>, pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, Phil Sutter <phil@nwl.cc>,
+ Eric Garver <egarver@redhat.com>
+References: <20250821091302.9032-1-fmancera@suse.de>
+ <20250821091302.9032-3-fmancera@suse.de>
+ <CAJsUoE2uoZJH2VA6E+J+SK=G1W06JE2+0v-NmgGyGWBNRKFgng@mail.gmail.com>
 Content-Language: en-US
-In-Reply-To: <20251109192427.617142-1-ericwouds@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <CAJsUoE2uoZJH2VA6E+J+SK=G1W06JE2+0v-NmgGyGWBNRKFgng@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [-4.29 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	NEURAL_HAM_SHORT(-0.19)[-0.975];
+	MIME_GOOD(-0.10)[text/plain];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	ARC_NA(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FROM_HAS_DN(0.00)[];
+	RCPT_COUNT_FIVE(0.00)[6];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email]
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spam-Score: -4.29
 
-
-
-On 11/9/25 8:24 PM, Eric Woudstra wrote:
-> Conntrack bridge only tracks untagged and 802.1q.
+On 12/29/25 2:51 PM, Yi Chen wrote:
+> Hello Pablo and Fernando,
+> I have started working on a test script (attached) to exercise this
+> feature, using a geneve tunnel with an egress hook.
+> Please let me know if egress is the correct hook to use in this context.
 > 
-> To make the bridge-fastpath experience more similar to the
-> forward-fastpath experience, introduce patches for double vlan,
-> pppoe and pppoe-in-q tagged packets to bridge conntrack and to
-> bridge filter chain.
-> 
-> Changes in v17:
-> 
-> - Add patch for nft_set_pktinfo_ipv4/6_validate() adding nhoff argument.
-> - Stopped using skb_set_network_header() in nft_set_bridge_pktinfo,
->    using the new offset for nft_set_pktinfo_ipv4/6_validate instead.
-> - When pskb_may_pull() fails in nft_set_bridge_pktinfo() set proto to 0,
->    resulting in pktinfo unspecified.
-> 
-> Changes in v16:
-> 
-> - Changed nft_chain_filter patch: Only help populating pktinfo offsets,
->    call nft_do_chain() with original network_offset.
-> - Changed commit messages.
-> - Removed kernel-doc comments.
-> 
-> Changes in v15:
-> 
-> - Do not munge skb->protocol.
-> - Introduce nft_set_bridge_pktinfo() helper.
-> - Introduce nf_ct_bridge_pre_inner() helper.
-> - nf_ct_bridge_pre(): Don't trim on ph->hdr.length, only compare to what
->    ip header claims and return NF_ACCEPT if it does not match.
-> - nf_ct_bridge_pre(): Renamed u32 data_len to pppoe_len.
-> - nf_ct_bridge_pre(): Reset network_header only when ret == NF_ACCEPT.
-> - nf_checksum(_partial)(): Use of skb_network_offset().
-> - nf_checksum(_partial)(): Use 'if (WARN_ON()) return 0' instead.
-> - nf_checksum(_partial)(): Added comments
-> 
-> Changes in v14:
-> 
-> - nf_checksum(_patial): Use DEBUG_NET_WARN_ON_ONCE(
->    !skb_pointer_if_linear()) instead of pskb_may_pull().
-> - nft_do_chain_bridge: Added default case ph->proto is neither
->    ipv4 nor ipv6.
-> - nft_do_chain_bridge: only reset network header when ret == NF_ACCEPT.
-> 
-> Changes in v13:
-> 
-> - Do not use pull/push before/after calling nf_conntrack_in() or
->    nft_do_chain().
-> - Add patch to correct calculating checksum when skb->data !=
->    skb_network_header(skb).
-> 
-> Changes in v12:
-> 
-> - Only allow tracking this traffic when a conntrack zone is set.
-> - nf_ct_bridge_pre(): skb pull/push without touching the checksum,
->    because the pull is always restored with push.
-> - nft_do_chain_bridge(): handle the extra header similar to
->    nf_ct_bridge_pre(), using pull/push.
-> 
-> Changes in v11:
-> 
-> - nft_do_chain_bridge(): Proper readout of encapsulated proto.
-> - nft_do_chain_bridge(): Use skb_set_network_header() instead of thoff.
-> - removed test script, it is now in separate patch.
-> 
-> v10 split from patch-set: bridge-fastpath and related improvements v9
-> 
-> Eric Woudstra (4):
->   netfilter: utils: nf_checksum(_partial) correct data!=networkheader
->   netfilter: bridge: Add conntrack double vlan and pppoe
->   netfilter: nft_set_pktinfo_ipv4/6_validate: Add nhoff argument
->   netfilter: nft_chain_filter: Add bridge double vlan and pppoe
-> 
->  include/net/netfilter/nf_tables_ipv4.h     | 21 +++--
->  include/net/netfilter/nf_tables_ipv6.h     | 21 +++--
->  net/bridge/netfilter/nf_conntrack_bridge.c | 92 ++++++++++++++++++----
->  net/netfilter/nft_chain_filter.c           | 59 ++++++++++++--
->  net/netfilter/utils.c                      | 28 +++++--
->  5 files changed, 176 insertions(+), 45 deletions(-)
+> However, the behavior is not what I expected: the tunnel template does
+> not appear to be attached, and even ARP packets are not being
+> encapsulated.
+> I would appreciate any guidance on what I might be missing, or
+> suggestions on how this test could be improved.
+> Thank you for your time and help.
 > 
 
-Can I kindly ask, what is the status of this patch-set?
+Hi Yi Chen,
 
-Regards,
+As my patch is taking longer than expected because I am polishing all 
+the details related to the tunnel object let me explain it here briefly 
+to unblock you.
 
-Eric
+The tunnel expression/object is used to attach tunnel metadata into a 
+packet so in essence support Lightweight Tunneling (LWT) using Nftables. 
+The LWT support is useful on virtualization environments where the users 
+need to created a lot of tunnels to interconnect containers that are 
+inside different VMs. Instead of creating one interface per container, 
+the idea is that the user can create a single one and then attach the 
+metadata as needed. Imagine the topology described below.
+
++------------------------+                   +------------------------+
+|--------+          VM A |                   | VM B          +--------|
+|Box     | +------+ +---+|(192.168.124.49)   +----+ +------+ |Box     |
+|10.0.0.1|-|vxlan0|-|eth0|-------------------|eth0|-|vxlan0|-|10.0.0.2|
+|--------+ +------+ +---+|  (192.168.124.134)+----+ +------+ +--------|
+|                        |                   |                        |
+|                        |                   |                        |
++------------------------+                   +------------------------+
+
+We want to reach 10.0.0.2 from 10.0.0.1, the nftables ruleset on VM A 
+will look like this:
+
+```
+table netdev filter_tunnel {
+	tunnel vxlan_tmpl {
+		id 100
+		ip saddr 192.168.124.49
+		ip daddr 192.168.124.134
+		dport 8472
+		ttl 255
+		vxlan {
+			gbp 100
+		}
+	}
+
+	chain redirect_to_tunnel {
+		type filter hook ingress device "veth_host" priority filter; policy 
+accept;
+		ip daddr 10.0.0.2 tunnel name "vxlan_tmpl" fwd to "vxlan0"
+	}
+
+	chain redirect_from_tunnel {
+		type filter hook ingress device "vxlan0" priority filter; policy accept;
+		ip daddr 10.0.0.1 fwd to "veth_host"
+	}
+}
+```
+
+On VM B the ruleset will be exactly the same but swapping saddr/daddr 
+everywhere, both the external and internal one.
+
+The idea behind this feature is to scale up the number of 
+containers/namespaces without creating more VXLAN interfaces. Also, keep 
+on mind that you need to mark the VXLAN as external when creating it, i.e
+
+ip link add dev vxlan0 type vxlan external
+
+After that, you should be able to ping between them:
+
+PING 10.0.0.2 (10.0.0.2) 56(84) bytes of data.
+64 bytes from 10.0.0.2: icmp_seq=1 ttl=64 time=0.198 ms
+64 bytes from 10.0.0.2: icmp_seq=2 ttl=64 time=0.364 ms
+64 bytes from 10.0.0.2: icmp_seq=3 ttl=64 time=0.369 ms
+
+Please, let me know if something is missing.
+
+Thanks,
+Fernando.
+
+> 
+> On Thu, Aug 21, 2025 at 5:18 PM Fernando Fernandez Mancera
+> <fmancera@suse.de> wrote:
+>>
+>> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>>
+>> This patch allows you to attach tunnel metadata through the tunnel
+>> statement.
+>>
+>> The following example shows how to redirect traffic to the erspan0
+>> tunnel device which will take the tunnel configuration that is
+>> specified by the ruleset.
+>>
+>>       table netdev x {
+>>              tunnel y {
+>>                      id 10
+>>                      ip saddr 192.168.2.10
+>>                      ip daddr 192.168.2.11
+>>                      sport 10
+>>                      dport 20
+>>                      ttl 10
+>>                      erspan {
+>>                              version 1
+>>                              index 2
+>>                      }
+>>              }
+>>
+>>              chain x {
+>>                      type filter hook ingress device veth0 priority 0;
+>>
+>>                      ip daddr 10.141.10.123 tunnel name y fwd to erspan0
+>>              }
+>>       }
+>>
+>> This patch also allows to match on tunnel metadata via tunnel expression.
+>>
+>> Joint work with Fernando.
+>>
+>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+>> ---
+>> v3: rebased
+>> ---
+>>   Makefile.am               |  2 +
+>>   include/expression.h      |  6 +++
+>>   include/tunnel.h          | 33 ++++++++++++++++
+>>   src/evaluate.c            |  8 ++++
+>>   src/expression.c          |  1 +
+>>   src/netlink_delinearize.c | 17 ++++++++
+>>   src/netlink_linearize.c   | 14 +++++++
+>>   src/parser_bison.y        | 33 +++++++++++++---
+>>   src/scanner.l             |  3 +-
+>>   src/statement.c           |  1 +
+>>   src/tunnel.c              | 81 +++++++++++++++++++++++++++++++++++++++
+>>   11 files changed, 193 insertions(+), 6 deletions(-)
+>>   create mode 100644 include/tunnel.h
+>>   create mode 100644 src/tunnel.c
+>>
+>> diff --git a/Makefile.am b/Makefile.am
+>> index 4909abfe..152a80d6 100644
+>> --- a/Makefile.am
+>> +++ b/Makefile.am
+>> @@ -100,6 +100,7 @@ noinst_HEADERS = \
+>>          include/statement.h \
+>>          include/tcpopt.h \
+>>          include/trace.h \
+>> +       include/tunnel.h \
+>>          include/utils.h \
+>>          include/xfrm.h \
+>>          include/xt.h \
+>> @@ -243,6 +244,7 @@ src_libnftables_la_SOURCES = \
+>>          src/socket.c \
+>>          src/statement.c \
+>>          src/tcpopt.c \
+>> +       src/tunnel.c \
+>>          src/utils.c \
+>>          src/xfrm.c \
+>>          $(NULL)
+>> diff --git a/include/expression.h b/include/expression.h
+>> index e483b7e7..7185ee66 100644
+>> --- a/include/expression.h
+>> +++ b/include/expression.h
+>> @@ -77,6 +77,7 @@ enum expr_types {
+>>          EXPR_NUMGEN,
+>>          EXPR_HASH,
+>>          EXPR_RT,
+>> +       EXPR_TUNNEL,
+>>          EXPR_FIB,
+>>          EXPR_XFRM,
+>>          EXPR_SET_ELEM_CATCHALL,
+>> @@ -229,6 +230,7 @@ enum expr_flags {
+>>   #include <hash.h>
+>>   #include <ct.h>
+>>   #include <socket.h>
+>> +#include <tunnel.h>
+>>   #include <osf.h>
+>>   #include <xfrm.h>
+>>
+>> @@ -368,6 +370,10 @@ struct expr {
+>>                          enum nft_socket_keys    key;
+>>                          uint32_t                level;
+>>                  } socket;
+>> +               struct {
+>> +                       /* EXPR_TUNNEL */
+>> +                       enum nft_tunnel_keys    key;
+>> +               } tunnel;
+>>                  struct {
+>>                          /* EXPR_RT */
+>>                          enum nft_rt_keys        key;
+>> diff --git a/include/tunnel.h b/include/tunnel.h
+>> new file mode 100644
+>> index 00000000..9e6bd97a
+>> --- /dev/null
+>> +++ b/include/tunnel.h
+>> @@ -0,0 +1,33 @@
+>> +#ifndef NFTABLES_TUNNEL_H
+>> +#define NFTABLES_TUNNEL_H
+>> +
+>> +/**
+>> + * struct tunnel_template - template for tunnel expressions
+>> + *
+>> + * @token:     parser token for the expression
+>> + * @dtype:     data type of the expression
+>> + * @len:       length of the expression
+>> + * @byteorder: byteorder
+>> + */
+>> +struct tunnel_template {
+>> +       const char              *token;
+>> +       const struct datatype   *dtype;
+>> +       enum byteorder          byteorder;
+>> +       unsigned int            len;
+>> +};
+>> +
+>> +extern const struct tunnel_template tunnel_templates[];
+>> +
+>> +#define TUNNEL_TEMPLATE(__token, __dtype, __len, __byteorder) {        \
+>> +       .token          = (__token),                            \
+>> +       .dtype          = (__dtype),                            \
+>> +       .len            = (__len),                              \
+>> +       .byteorder      = (__byteorder),                        \
+>> +}
+>> +
+>> +extern struct expr *tunnel_expr_alloc(const struct location *loc,
+>> +                                     enum nft_tunnel_keys key);
+>> +
+>> +extern const struct expr_ops tunnel_expr_ops;
+>> +
+>> +#endif /* NFTABLES_TUNNEL_H */
+>> diff --git a/src/evaluate.c b/src/evaluate.c
+>> index da8794dd..6bf14b0c 100644
+>> --- a/src/evaluate.c
+>> +++ b/src/evaluate.c
+>> @@ -1737,6 +1737,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
+>>                  case EXPR_SOCKET:
+>>                  case EXPR_OSF:
+>>                  case EXPR_XFRM:
+>> +               case EXPR_TUNNEL:
+>>                          break;
+>>                  case EXPR_RANGE:
+>>                  case EXPR_PREFIX:
+>> @@ -3053,6 +3054,11 @@ static int expr_evaluate_osf(struct eval_ctx *ctx, struct expr **expr)
+>>          return expr_evaluate_primary(ctx, expr);
+>>   }
+>>
+>> +static int expr_evaluate_tunnel(struct eval_ctx *ctx, struct expr **exprp)
+>> +{
+>> +       return expr_evaluate_primary(ctx, exprp);
+>> +}
+>> +
+>>   static int expr_evaluate_variable(struct eval_ctx *ctx, struct expr **exprp)
+>>   {
+>>          struct symbol *sym = (*exprp)->sym;
+>> @@ -3170,6 +3176,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
+>>                  return expr_evaluate_meta(ctx, expr);
+>>          case EXPR_SOCKET:
+>>                  return expr_evaluate_socket(ctx, expr);
+>> +       case EXPR_TUNNEL:
+>> +               return expr_evaluate_tunnel(ctx, expr);
+>>          case EXPR_OSF:
+>>                  return expr_evaluate_osf(ctx, expr);
+>>          case EXPR_FIB:
+>> diff --git a/src/expression.c b/src/expression.c
+>> index 8cb63979..e3c27a13 100644
+>> --- a/src/expression.c
+>> +++ b/src/expression.c
+>> @@ -1762,6 +1762,7 @@ static const struct expr_ops *__expr_ops_by_type(enum expr_types etype)
+>>          case EXPR_NUMGEN: return &numgen_expr_ops;
+>>          case EXPR_HASH: return &hash_expr_ops;
+>>          case EXPR_RT: return &rt_expr_ops;
+>> +       case EXPR_TUNNEL: return &tunnel_expr_ops;
+>>          case EXPR_FIB: return &fib_expr_ops;
+>>          case EXPR_XFRM: return &xfrm_expr_ops;
+>>          case EXPR_SET_ELEM_CATCHALL: return &set_elem_catchall_expr_ops;
+>> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+>> index b97962a3..5627826d 100644
+>> --- a/src/netlink_delinearize.c
+>> +++ b/src/netlink_delinearize.c
+>> @@ -940,6 +940,21 @@ static void netlink_parse_osf(struct netlink_parse_ctx *ctx,
+>>          netlink_set_register(ctx, dreg, expr);
+>>   }
+>>
+>> +static void netlink_parse_tunnel(struct netlink_parse_ctx *ctx,
+>> +                                const struct location *loc,
+>> +                                const struct nftnl_expr *nle)
+>> +{
+>> +       enum nft_registers dreg;
+>> +       struct expr * expr;
+>> +       uint32_t key;
+>> +
+>> +       key = nftnl_expr_get_u32(nle, NFTNL_EXPR_TUNNEL_KEY);
+>> +       expr = tunnel_expr_alloc(loc, key);
+>> +
+>> +       dreg = netlink_parse_register(nle, NFTNL_EXPR_TUNNEL_DREG);
+>> +       netlink_set_register(ctx, dreg, expr);
+>> +}
+>> +
+>>   static void netlink_parse_meta_stmt(struct netlink_parse_ctx *ctx,
+>>                                      const struct location *loc,
+>>                                      const struct nftnl_expr *nle)
+>> @@ -1922,6 +1937,7 @@ static const struct expr_handler netlink_parsers[] = {
+>>          { .name = "exthdr",     .parse = netlink_parse_exthdr },
+>>          { .name = "meta",       .parse = netlink_parse_meta },
+>>          { .name = "socket",     .parse = netlink_parse_socket },
+>> +       { .name = "tunnel",     .parse = netlink_parse_tunnel },
+>>          { .name = "osf",        .parse = netlink_parse_osf },
+>>          { .name = "rt",         .parse = netlink_parse_rt },
+>>          { .name = "ct",         .parse = netlink_parse_ct },
+>> @@ -3023,6 +3039,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+>>          case EXPR_NUMGEN:
+>>          case EXPR_FIB:
+>>          case EXPR_SOCKET:
+>> +       case EXPR_TUNNEL:
+>>          case EXPR_OSF:
+>>          case EXPR_XFRM:
+>>                  break;
+>> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+>> index 8ac33d34..d01cadf8 100644
+>> --- a/src/netlink_linearize.c
+>> +++ b/src/netlink_linearize.c
+>> @@ -334,6 +334,18 @@ static void netlink_gen_osf(struct netlink_linearize_ctx *ctx,
+>>          nft_rule_add_expr(ctx, nle, &expr->location);
+>>   }
+>>
+>> +static void netlink_gen_tunnel(struct netlink_linearize_ctx *ctx,
+>> +                              const struct expr *expr,
+>> +                              enum nft_registers dreg)
+>> +{
+>> +       struct nftnl_expr *nle;
+>> +
+>> +       nle = alloc_nft_expr("tunnel");
+>> +       netlink_put_register(nle, NFTNL_EXPR_TUNNEL_DREG, dreg);
+>> +       nftnl_expr_set_u32(nle, NFTNL_EXPR_TUNNEL_KEY, expr->tunnel.key);
+>> +       nftnl_rule_add_expr(ctx->nlr, nle);
+>> +}
+>> +
+>>   static void netlink_gen_numgen(struct netlink_linearize_ctx *ctx,
+>>                              const struct expr *expr,
+>>                              enum nft_registers dreg)
+>> @@ -932,6 +944,8 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
+>>                  return netlink_gen_fib(ctx, expr, dreg);
+>>          case EXPR_SOCKET:
+>>                  return netlink_gen_socket(ctx, expr, dreg);
+>> +       case EXPR_TUNNEL:
+>> +               return netlink_gen_tunnel(ctx, expr, dreg);
+>>          case EXPR_OSF:
+>>                  return netlink_gen_osf(ctx, expr, dreg);
+>>          case EXPR_XFRM:
+>> diff --git a/src/parser_bison.y b/src/parser_bison.y
+>> index 557977e2..08d75dbb 100644
+>> --- a/src/parser_bison.y
+>> +++ b/src/parser_bison.y
+>> @@ -321,6 +321,8 @@ int nft_lex(void *, void *, void *);
+>>   %token RULESET                 "ruleset"
+>>   %token TRACE                   "trace"
+>>
+>> +%token PATH                    "path"
+>> +
+>>   %token INET                    "inet"
+>>   %token NETDEV                  "netdev"
+>>
+>> @@ -779,8 +781,8 @@ int nft_lex(void *, void *, void *);
+>>   %destructor { stmt_free($$); } counter_stmt counter_stmt_alloc stateful_stmt last_stmt
+>>   %type <stmt>                   limit_stmt_alloc quota_stmt_alloc last_stmt_alloc ct_limit_stmt_alloc
+>>   %destructor { stmt_free($$); } limit_stmt_alloc quota_stmt_alloc last_stmt_alloc ct_limit_stmt_alloc
+>> -%type <stmt>                   objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy
+>> -%destructor { stmt_free($$); } objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy
+>> +%type <stmt>                   objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy objref_stmt_tunnel
+>> +%destructor { stmt_free($$); } objref_stmt objref_stmt_counter objref_stmt_limit objref_stmt_quota objref_stmt_ct objref_stmt_synproxy objref_stmt_tunnel
+>>
+>>   %type <stmt>                   payload_stmt
+>>   %destructor { stmt_free($$); } payload_stmt
+>> @@ -940,9 +942,9 @@ int nft_lex(void *, void *, void *);
+>>   %destructor { expr_free($$); } mh_hdr_expr
+>>   %type <val>                    mh_hdr_field
+>>
+>> -%type <expr>                   meta_expr
+>> -%destructor { expr_free($$); } meta_expr
+>> -%type <val>                    meta_key        meta_key_qualified      meta_key_unqualified    numgen_type
+>> +%type <expr>                   meta_expr       tunnel_expr
+>> +%destructor { expr_free($$); } meta_expr       tunnel_expr
+>> +%type <val>                    meta_key        meta_key_qualified      meta_key_unqualified    numgen_type     tunnel_key
+>>
+>>   %type <expr>                   socket_expr
+>>   %destructor { expr_free($$); } socket_expr
+>> @@ -3206,6 +3208,14 @@ objref_stmt_synproxy     :       SYNPROXY        NAME    stmt_expr close_scope_synproxy
+>>                          }
+>>                          ;
+>>
+>> +objref_stmt_tunnel     :       TUNNEL  NAME    stmt_expr       close_scope_tunnel
+>> +                       {
+>> +                               $$ = objref_stmt_alloc(&@$);
+>> +                               $$->objref.type = NFT_OBJECT_TUNNEL;
+>> +                               $$->objref.expr = $3;
+>> +                       }
+>> +                       ;
+>> +
+>>   objref_stmt_ct         :       CT      TIMEOUT         SET     stmt_expr       close_scope_ct
+>>                          {
+>>                                  $$ = objref_stmt_alloc(&@$);
+>> @@ -3226,6 +3236,7 @@ objref_stmt               :       objref_stmt_counter
+>>                          |       objref_stmt_quota
+>>                          |       objref_stmt_synproxy
+>>                          |       objref_stmt_ct
+>> +                       |       objref_stmt_tunnel
+>>                          ;
+>>
+>>   stateful_stmt          :       counter_stmt    close_scope_counter
+>> @@ -3904,6 +3915,7 @@ primary_stmt_expr :       symbol_expr                     { $$ = $1; }
+>>                          |       boolean_expr                    { $$ = $1; }
+>>                          |       meta_expr                       { $$ = $1; }
+>>                          |       rt_expr                         { $$ = $1; }
+>> +                       |       tunnel_expr                     { $$ = $1; }
+>>                          |       ct_expr                         { $$ = $1; }
+>>                          |       numgen_expr                     { $$ = $1; }
+>>                          |       hash_expr                       { $$ = $1; }
+>> @@ -4381,6 +4393,7 @@ selector_expr             :       payload_expr                    { $$ = $1; }
+>>                          |       exthdr_expr                     { $$ = $1; }
+>>                          |       exthdr_exists_expr              { $$ = $1; }
+>>                          |       meta_expr                       { $$ = $1; }
+>> +                       |       tunnel_expr                     { $$ = $1; }
+>>                          |       socket_expr                     { $$ = $1; }
+>>                          |       rt_expr                         { $$ = $1; }
+>>                          |       ct_expr                         { $$ = $1; }
+>> @@ -5493,6 +5506,16 @@ socket_key               :       TRANSPARENT     { $$ = NFT_SOCKET_TRANSPARENT; }
+>>                          |       WILDCARD        { $$ = NFT_SOCKET_WILDCARD; }
+>>                          ;
+>>
+>> +tunnel_key             :       PATH            { $$ = NFT_TUNNEL_PATH; }
+>> +                       |       ID              { $$ = NFT_TUNNEL_ID; }
+>> +                       ;
+>> +
+>> +tunnel_expr            :       TUNNEL  tunnel_key
+>> +                       {
+>> +                               $$ = tunnel_expr_alloc(&@$, $2);
+>> +                       }
+>> +                       ;
+>> +
+>>   offset_opt             :       /* empty */     { $$ = 0; }
+>>                          |       OFFSET  NUM     { $$ = $2; }
+>>                          ;
+>> diff --git a/src/scanner.l b/src/scanner.l
+>> index def0ac0e..9695d710 100644
+>> --- a/src/scanner.l
+>> +++ b/src/scanner.l
+>> @@ -410,7 +410,7 @@ addrstring  ({macaddr}|{ip4addr}|{ip6addr})
+>>   }
+>>
+>>   "counter"              { scanner_push_start_cond(yyscanner, SCANSTATE_COUNTER); return COUNTER; }
+>> -<SCANSTATE_COUNTER,SCANSTATE_LIMIT,SCANSTATE_QUOTA,SCANSTATE_STMT_SYNPROXY,SCANSTATE_EXPR_OSF>"name"                   { return NAME; }
+>> +<SCANSTATE_COUNTER,SCANSTATE_LIMIT,SCANSTATE_QUOTA,SCANSTATE_STMT_SYNPROXY,SCANSTATE_EXPR_OSF,SCANSTATE_TUNNEL>"name"                  { return NAME; }
+>>   <SCANSTATE_COUNTER,SCANSTATE_CT,SCANSTATE_LIMIT>"packets"              { return PACKETS; }
+>>   <SCANSTATE_COUNTER,SCANSTATE_CT,SCANSTATE_LIMIT,SCANSTATE_QUOTA>"bytes"        { return BYTES; }
+>>
+>> @@ -826,6 +826,7 @@ addrstring  ({macaddr}|{ip4addr}|{ip6addr})
+>>          "erspan"                { return ERSPAN; }
+>>          "egress"                { return EGRESS; }
+>>          "ingress"               { return INGRESS; }
+>> +       "path"                  { return PATH; }
+>>   }
+>>
+>>   "notrack"              { return NOTRACK; }
+>> diff --git a/src/statement.c b/src/statement.c
+>> index 2bfed4ac..20241f68 100644
+>> --- a/src/statement.c
+>> +++ b/src/statement.c
+>> @@ -290,6 +290,7 @@ static const char *objref_type[NFT_OBJECT_MAX + 1] = {
+>>          [NFT_OBJECT_QUOTA]      = "quota",
+>>          [NFT_OBJECT_CT_HELPER]  = "ct helper",
+>>          [NFT_OBJECT_LIMIT]      = "limit",
+>> +       [NFT_OBJECT_TUNNEL]     = "tunnel",
+>>          [NFT_OBJECT_CT_TIMEOUT] = "ct timeout",
+>>          [NFT_OBJECT_SECMARK]    = "secmark",
+>>          [NFT_OBJECT_SYNPROXY]   = "synproxy",
+>> diff --git a/src/tunnel.c b/src/tunnel.c
+>> new file mode 100644
+>> index 00000000..cd92d039
+>> --- /dev/null
+>> +++ b/src/tunnel.c
+>> @@ -0,0 +1,81 @@
+>> +/*
+>> + * Copyright (c) 2018 Pablo Neira Ayuso <pablo@netfilter.org>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#include <errno.h>
+>> +#include <limits.h>
+>> +#include <stddef.h>
+>> +#include <stdlib.h>
+>> +#include <stdio.h>
+>> +#include <stdbool.h>
+>> +#include <stdint.h>
+>> +#include <string.h>
+>> +#include <net/if.h>
+>> +#include <net/if_arp.h>
+>> +#include <pwd.h>
+>> +#include <grp.h>
+>> +#include <arpa/inet.h>
+>> +#include <linux/netfilter.h>
+>> +#include <linux/pkt_sched.h>
+>> +#include <linux/if_packet.h>
+>> +
+>> +#include <nftables.h>
+>> +#include <expression.h>
+>> +#include <datatype.h>
+>> +#include <tunnel.h>
+>> +#include <gmputil.h>
+>> +#include <utils.h>
+>> +#include <erec.h>
+>> +
+>> +const struct tunnel_template tunnel_templates[] = {
+>> +       [NFT_TUNNEL_PATH]       = META_TEMPLATE("path", &boolean_type,
+>> +                                               BITS_PER_BYTE, BYTEORDER_HOST_ENDIAN),
+>> +       [NFT_TUNNEL_ID]         = META_TEMPLATE("id",  &integer_type,
+>> +                                               4 * 8, BYTEORDER_HOST_ENDIAN),
+>> +};
+>> +
+>> +static void tunnel_expr_print(const struct expr *expr, struct output_ctx *octx)
+>> +{
+>> +       uint32_t key = expr->tunnel.key;
+>> +       const char *token = "unknown";
+>> +
+>> +       if (key < array_size(tunnel_templates))
+>> +               token = tunnel_templates[key].token;
+>> +
+>> +       nft_print(octx, "tunnel %s", token);
+>> +}
+>> +
+>> +static bool tunnel_expr_cmp(const struct expr *e1, const struct expr *e2)
+>> +{
+>> +       return e1->tunnel.key == e2->tunnel.key;
+>> +}
+>> +
+>> +static void tunnel_expr_clone(struct expr *new, const struct expr *expr)
+>> +{
+>> +       new->tunnel.key = expr->tunnel.key;
+>> +}
+>> +
+>> +const struct expr_ops tunnel_expr_ops = {
+>> +       .type           = EXPR_TUNNEL,
+>> +       .name           = "tunnel",
+>> +       .print          = tunnel_expr_print,
+>> +       .cmp            = tunnel_expr_cmp,
+>> +       .clone          = tunnel_expr_clone,
+>> +};
+>> +
+>> +struct expr *tunnel_expr_alloc(const struct location *loc,
+>> +                              enum nft_tunnel_keys key)
+>> +{
+>> +       const struct tunnel_template *tmpl = &tunnel_templates[key];
+>> +       struct expr *expr;
+>> +
+>> +       expr = expr_alloc(loc, EXPR_TUNNEL, tmpl->dtype, tmpl->byteorder,
+>> +                         tmpl->len);
+>> +       expr->tunnel.key = key;
+>> +
+>> +       return expr;
+>> +}
+>> --
+>> 2.50.1
+>>
+>>
 
