@@ -1,60 +1,60 @@
-Received: from mail-vs1-f54.google.com (mail-vs1-f54.google.com [209.85.217.54])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0EA6244687
-	for <netfilter-devel@vger.kernel.org>; Sun, 11 Jan 2026 20:39:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6606A1E1A3D
+	for <netfilter-devel@vger.kernel.org>; Sun, 11 Jan 2026 21:57:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768163974; cv=none; b=C1xwLmT4unA7U6EZsHYJNedKxBwVxXeHhPy6VmmQ6oNdzbf3+kqGj52bKeWwhboRCTktM7hYif0vxmoU5n4YGKby262BZAILMn6Vyn/Oc6d8+NGb+rvSW6FTXJshNkJmd/hXLts5FleH4TZsmr6meJpupmhj25wkGFL5BpdgKz0=
+	t=1768168622; cv=none; b=GiLBSC7VdGQeOmIpp6vjcW+zw9ZJmY5d5tAzJsIyQ/Z/nJ6mpmFiS09bmAIoOpbNOD6fIGfbET5he8UesDFqim0lIPxAdfYH8aJMMzR4Hf/VbiErEijurPmMmvGRYzg90hJrlAJtZl6DxcHW0hixDcwu+KmGTW0FUjOyR63WnDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768163974; c=relaxed/simple;
-	bh=BW13uDTRClwd+ENxHZXrwcj7SqhkHZAYp+zJ9mxdIss=;
+	s=arc-20240116; t=1768168622; c=relaxed/simple;
+	bh=xFlWECxaoDZh26KeVqkC6WDEEOK3831sKkU5fLuGUS0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NgQyxp6NNS1GCludnqz0zJpiSJijfvpzdHNzEyQyDFBGOKB2su0uvBj2i8e01z5pNS78ARkFv+5DhipvpFU3zk2HxuOvCBgHuGAIgIpnSoMxxXtv1mJLmsYMUg8CDKwV09SO7whyEK14QjZktyessJFTaK6Q3xuDAnPEqlh/+js=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Vlfe6jaf; arc=none smtp.client-ip=209.85.217.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=SZa4ef8LRu+UcIpN4b5HfDFrt7ZF7bl33idnRURxZsMsora3W4YpTQYrmSN+aoaujjjXK4uHIGHOdiCi5lsCtHV7IXSt7ygnA76cDUGKs3PUH2l7eKZiiYxqmQ2Mh14D1vuUD6b72UJ1G1lYd5sv4f7GWueJBDq+cGT57a9YUEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=HwaQo05y; arc=none smtp.client-ip=209.85.216.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Vlfe6jaf"
-Received: by mail-vs1-f54.google.com with SMTP id ada2fe7eead31-5ef31a77afbso1731726137.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 11 Jan 2026 12:39:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="HwaQo05y"
+Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-34c84ec3b6eso5551102a91.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Jan 2026 13:57:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768163972; x=1768768772; darn=vger.kernel.org;
+        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1768168621; x=1768773421; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=P/B6ir2X1iP6OIYfvHzrgy+6QEnGmGpOcZQdGo4rUmk=;
-        b=Vlfe6jafqpcv1447YgakVCS78OBd4NtiKJeKi9AmjA4LehYOexwfOhBTqE5PB1saYL
-         5BdpepXDRGLdCg9REInDLz0uHw90oUXpQ/MnGigt1JuuMnjTEbvTZlZ0tZqREJ4cLUi4
-         rirYJFFPdBhH0jQj9AVHBTuX13ak+pA2qdsLRkQ5SZXcamIEyzVLRO5tSuZucdTDDWNe
-         XofE7u7qQMOa+9ijIGmDvXLNLVsoxl5oqKFcLSgdQSl/s13L0o/Md2lL5vSvtz4ovU8c
-         15QlGRGnzZAy6tcLWxM/PFpTQojIAMN7oM0wKs1gNiEFiVawylPdCSdIqw4yO6x/OFgp
-         iYLw==
+        bh=O47s4215UWtpnw16+zm74FyVoUZmR1+LgwCphJTVcVo=;
+        b=HwaQo05y261u5VQGvbb4Sj5c2EdslDVmv+UGOS30gOSaTvzJFb8yghWq93VilWmiuH
+         UxjtJI55mrAXqIl8o7rM56bJ2TShffDynoN7/3DET/LpdpyEDudF/ynxV2j9YC9iidMv
+         /0VF0UhlDEYULn2i7B/VjESgChsYlLSt0woXZ24X7ce/fMG5UUKTfeS4MgqErVV0rpfO
+         Qho5E7Q/tDCKcYgMSNovJSC2yMA6mbSQ2Rr75uJV66GoXaizxoHujt1PRwEnLMkpGnHK
+         SHe5rqdG1RxXa2gkjkMdO8x0s67XmRtbp9wn9bPATwn5ZNiw7fpnPDM+mt9n30jVzRms
+         DHeg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768163972; x=1768768772;
+        d=1e100.net; s=20230601; t=1768168621; x=1768773421;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=P/B6ir2X1iP6OIYfvHzrgy+6QEnGmGpOcZQdGo4rUmk=;
-        b=K6nio6wHw8I83ZPAyvYmD01HT5byUBRRrn60nK/4SqPaNxKdgKA+1QrzC1Clcn8FtC
-         PUvC+fS0OFp0muey47tgLXjcIFeMgRatELNp3GD7tWuN0w4jpJM3pnPAzY8GH3adbhaD
-         dZkUe/OvVxIE4He9rwf0kMotpw7vcFAQ54ftixMSstwYaU5VdK80dbuYaAd4CDn51bzu
-         G9PqgFHU7HFFhBjvJL1gg/AyQHkORQlzwNOeE/rClt4PDTojlF2CDvuTgi8H0x2AJPbt
-         +B9ReSQxt+YMb4rSs5/cA5j8S1FrjSnQ/WNijw4aDKePryfuREFrM85bEWg3gvyGsFem
-         w5Ag==
-X-Forwarded-Encrypted: i=1; AJvYcCWCunYVUOHo+IzCMiZPk/C3/PMsuCU+lUXAo6wRGrzAmJdvuXkhV2M+EPsTzmzpRRSn/b9qB0V4oE9lSP9fYLc=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwadCDF44JpNZ9WsKuShy1X9OcD6KTnCp89u3fzdrhMd+Gcvvcl
-	5+XLlXCQAZSC2uPw9ZTWAKSKJGOjbA99Uw31nP95p4RX1Tr67Flo6u41EXVF54GwgtAp2eI/GNV
-	PX/VFSb9kPodeBJxaMlQ/PuiAwADL0Hk=
-X-Gm-Gg: AY/fxX7zct+dFKXbpUuk817gKAlcWsXxISEZOXk4fW0rYKB3c0iLPYlzuO5x5znWGJ7
-	iVCA3LNmpAO4dixgnrN1RlVJKZs1MbU/juKYXSYCv303jqm7dTmfyAFZE082SGfPUICyYErzsF5
-	jOoW1u4nTpgdRzY6GfUYe9GcgRAuaFxWp2STLq+OU5MozFgJOFgSPiCbhDqmXQOvhO1dh8trcnW
-	ESoJciJyZ4P3XWSf5eGy3QOwjGGry0LdtVcKeKiEXyXw4OZhmGCG9b6fxs9XiwWTYZBmgIL+tiM
-	ThEQypkJ6vpJpdK2dGmSq3Q92ksx
-X-Google-Smtp-Source: AGHT+IHgiVt0XZYHJifogGXKM5jKONG9TLKcspZkda6yt0LOWf6kO999+bQ8W8E6x1OgBeJWn9LEF0UE4NTlDMeG5Us=
-X-Received: by 2002:a05:6102:c8d:b0:5db:293c:c294 with SMTP id
- ada2fe7eead31-5ec8b94edbfmr6899220137.5.1768163972469; Sun, 11 Jan 2026
- 12:39:32 -0800 (PST)
+        bh=O47s4215UWtpnw16+zm74FyVoUZmR1+LgwCphJTVcVo=;
+        b=TkaCUyBEJEA0CHkpcBjNzYKgdP8r39xFkftOzzLLEt88LFEa0H6T3WfpP8ATnisJNL
+         mjDZ7qImscu+TA/5g5HZHkR62UlwMgALACTXak+pQb+Xs/2HL1P4phxFP7QHraDibrrw
+         rMv7hJhE2HdcAVwiT82FuhGO8UpQSPuOXxopav3XF+CCnKk42OiBMZwjR8odINvEaoXN
+         cf/KGLKRp/tHnubJzmg+07fqq1N8Ba9XUn0jkOlZnnLSUaOqUFudNxEtD8OpwJh2u4Aw
+         KZ1B0cV1vbJ6A/Fna32pcQpxb68laR1iLvW/UBr8udeL4CO2qHLag4ibVNUHQAEUsWQB
+         jrMw==
+X-Forwarded-Encrypted: i=1; AJvYcCVS7FJloglAD4qSmHwt1pWQNTG18d+SsEx6YraM2l3wA7SLN52cyzFGwjViZTTx6UTbBl0uWoUjOpyij7GLvrw=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxp5h3Sirvd8PQ88Hn0b+ArmhHe2BJcTaxZAMxitTy7069eNywf
+	uDznOIIFHs74csXuAlxdEY4v7sZbI4YUUB2TFcQrWnwnElBgyB9qQRAUHUtfd9Q/5624bNH2Kiz
+	dEyVK8sADDg744G4qr2SLVj9DOmmlXD9EnK748Xp5
+X-Gm-Gg: AY/fxX7R9NaIw2GKYk31vrDJTaGYn9X1fZPnUfJOzRaQkNi+h4ikpLPQPqfhrwtlr7B
+	n0GhKAVg1YpbmEx9F06iGb3iOJFEJq+EpggFg5lvApAs0qyRAmKA27NezdYyOizhK7xRqNfB+Y9
+	8Yt/7zYt6RnMopmxGWHkQ1WKQj8HCu8mok0dXM8yAzEzdZkQgb/5aDNUeWe9AufvNa0HizclpHO
+	tGs1B8aZEzepIKhbeW4r9NF5PeSTAUPKjGkil1CYGG3FqZ1cGzoVRPcLUIXDFm1z0fcQvyLaF+j
+	tQ5twP5uUcDpBA==
+X-Google-Smtp-Source: AGHT+IEy9t6bD7BrcaZMHhU56GXnz+UM8VXT2xgHbtTco0qAE+pRJDdH4z3zrllfCZtF/z+NYcth5hr/QUt9NNUgGbU=
+X-Received: by 2002:a17:90b:540e:b0:343:5f43:933e with SMTP id
+ 98e67ed59e1d1-34f68cbe0b5mr14145356a91.19.1768168620712; Sun, 11 Jan 2026
+ 13:57:00 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -62,14 +62,15 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20260111163947.811248-1-jhs@mojatatu.com> <20260111163947.811248-6-jhs@mojatatu.com>
-In-Reply-To: <20260111163947.811248-6-jhs@mojatatu.com>
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Date: Sun, 11 Jan 2026 12:39:21 -0800
-X-Gm-Features: AZwV_QiHay8kyrsuwvPurpt476Csb0RIB49hzdeCN69NIk-5IDi1jZbzUDbC3ug
-Message-ID: <CAM_iQpVVJ=8dSj7pGo+68wG5zfMop_weUh_N9EX0kO5P11NQJw@mail.gmail.com>
+ <CAM_iQpVVJ=8dSj7pGo+68wG5zfMop_weUh_N9EX0kO5P11NQJw@mail.gmail.com>
+In-Reply-To: <CAM_iQpVVJ=8dSj7pGo+68wG5zfMop_weUh_N9EX0kO5P11NQJw@mail.gmail.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Date: Sun, 11 Jan 2026 16:56:49 -0500
+X-Gm-Features: AZwV_QjlT5Or4gJQl48Nxq5oe9d1hZ4KcOpAwnaklI5Wneq_ZH9aZCNwNx0WO4I
+Message-ID: <CAM0EoMn7Mza5LqV5f6MMgacuELncbr1Ka6BOi7SA_2Fe3a7LCA@mail.gmail.com>
 Subject: Re: [PATCH net 5/6] net/sched: fix packet loop on netem when
  duplicate is on
-To: Jamal Hadi Salim <jhs@mojatatu.com>
+To: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
 	pabeni@redhat.com, horms@kernel.org, andrew+netdev@lunn.ch, 
 	netdev@vger.kernel.org, jiri@resnulli.us, victor@mojatatu.com, 
@@ -81,26 +82,34 @@ Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 11, 2026 at 8:40=E2=80=AFAM Jamal Hadi Salim <jhs@mojatatu.com>=
- wrote:
-> -               q->duplicate =3D 0;
-> +               skb2->ttl++; /* prevent duplicating a dup... */
->                 rootq->enqueue(skb2, rootq, to_free);
-> -               q->duplicate =3D dupsave;
+On Sun, Jan 11, 2026 at 3:39=E2=80=AFPM Cong Wang <xiyou.wangcong@gmail.com=
+> wrote:
+>
+> On Sun, Jan 11, 2026 at 8:40=E2=80=AFAM Jamal Hadi Salim <jhs@mojatatu.co=
+m> wrote:
+> > -               q->duplicate =3D 0;
+> > +               skb2->ttl++; /* prevent duplicating a dup... */
+> >                 rootq->enqueue(skb2, rootq, to_free);
+> > -               q->duplicate =3D dupsave;
+>
+> As I already explained many times, the ROOT cause is enqueuing
+> to the root qdisc, not anything else.
+>
+> We need to completely forget all the kernel knowledge and ask
+> a very simple question here: is enqueuing to root qdisc a reasonable
+> use? More importantly, could we really define it?
+>
+> I already provided my answer in my patch description, sorry for not
+> keeping repeating it for at least the 3rd time.
+>
+> Therefore, I still don't think you fix the root cause here. The
+> problematic behavior of enqueuing to root qdisc should be corrected,
+> regardless of any kernel detail.
+>
 
-As I already explained many times, the ROOT cause is enqueuing
-to the root qdisc, not anything else.
+The root cause is a loop in the existing code, present since the
+duplication feature was introduced into netem about 20 years ago. That
+code enqueues to the root qdisc.
 
-We need to completely forget all the kernel knowledge and ask
-a very simple question here: is enqueuing to root qdisc a reasonable
-use? More importantly, could we really define it?
-
-I already provided my answer in my patch description, sorry for not
-keeping repeating it for at least the 3rd time.
-
-Therefore, I still don't think you fix the root cause here. The
-problematic behavior of enqueuing to root qdisc should be corrected,
-regardless of any kernel detail.
-
-Thanks.
-Cong
+cheers,
+jamal
