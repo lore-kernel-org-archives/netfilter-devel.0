@@ -1,146 +1,156 @@
-Received: from fhigh-a8-smtp.messagingengine.com (fhigh-a8-smtp.messagingengine.com [103.168.172.159])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0ED033C51B;
-	Mon, 12 Jan 2026 09:23:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.159
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 181713570D4
+	for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2026 11:51:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768209821; cv=none; b=gOQYXuPsXEzORh6rTei+qcv0KfuX4VC69apAjO03BAbstR9z1uXI2C/2ndE4WdVSRQodj9nHeMqQ/M+lfORadUUUrd5HeDjodD2UilRjBARQ1/i/uBX0AOL9WiBpcKaRSvl2QXpyqWB/NE72zXmMFxTS0i7LPizrKYy55pdZljY=
+	t=1768218707; cv=none; b=gd7WcV83MRRcb8f0a5LI20CeNls3XqnmvDFHNPyVsb0plGyfBC1iMhqD6dZ1Y6z2psuLIGwa4cgq020zWprGPEXBiCbgsbd4bpRhkrE+/m7tB/MxTc+vWa5cdFu63xQmAgPEJco6gUSipqjb5juDHDBS0Wp9QoKfB+TEIZ/80Ww=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768209821; c=relaxed/simple;
-	bh=UDF25lfYu2q7ad5OaqwLD7z5ozQ5qut8XIB0wx6p8Cc=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=fM2nfK98nIcx31Q6spjWh+1SyNvyVnUDBNlLKM0ZCRAlfcskt4UmpH9SMBb6HkoREXm9dyR9SC+IR9LXvJONVDfen7udcvxISQcGbk8M8Ajwg9hvN8SjcoOiyGxqtH3WKAlTmslWitkp2Cc9INgQcls8LMMmc/bbSlQJAqf7NZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=uoAud1wP; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=OLZm1lJC; arc=none smtp.client-ip=103.168.172.159
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1768218707; c=relaxed/simple;
+	bh=feLaFnmGnrJ4Dof7GMHtDgGJ97t3WHZAfq+beo4QUpE=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=O34ZIeIRdqN6qQqD828HUjYAzU5XVaRBwAoDck0zCDXoeRKLVnP/l01c31cbhjvmUQFBTiQe8ewMSiKEz+99gKtRLO1azaBBGdNSoaUvbjqY/M/4X/e/Ory1hnxaqQ4+Z7sZjqTwVIjQx5buz7eKTsI8mDRFoaqQ5NcoBjTJIdo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rJDrWcpE; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="uoAud1wP";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="OLZm1lJC"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 01C8814000A2;
-	Mon, 12 Jan 2026 04:23:39 -0500 (EST)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Mon, 12 Jan 2026 04:23:39 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1768209818;
-	 x=1768296218; bh=lzWxlvrKpcrXEIRzWq8neU3zC0hTlV62S50r4rTDl7A=; b=
-	uoAud1wPNw1fKoCA+iCd2GpHOtK+nZgILvqLrU8vY0EmszjIXJX0/5bbSi0mgo3A
-	YlVqo3ny3DtpN9IkxMv1rEAehNRWGn5cOEHZ9h8gMVCeIX81NKpUqLoGrcwoOv/c
-	DtR15tpjwvGZYZ7derWxiUThPhqdSVj63u3lMQR47jhIIye7eTgCea333aaPoicE
-	tQtODbBdLBORClGt9CO7KIaa3gkF2rKonyuVnE5g69tr/lmYNL5UGTN0oTPP6cbF
-	a3cAfDcaaNe0Asc67kiNAFkOL5NxMZ9uzqh5EwutmRsLyBU740c8fPEjDJItJrRd
-	qE9XcNXdsmoRxd6Wq/UHBQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1768209818; x=
-	1768296218; bh=lzWxlvrKpcrXEIRzWq8neU3zC0hTlV62S50r4rTDl7A=; b=O
-	LZm1lJCbwlv1/Uw9qcywRt1288n+m5CdCTqlVLo9MCvk2EBmw01AA9w7od7YpckU
-	of8S62HijVYI+3780K7pGmv8BmvLasrYi7GmIE95Wy9EjhEpDEimfui/LMyajOl7
-	KzECuczdP2x3M0NAWdV66ABXfnZrEq5NSfG1Wd4kGBCEPg89hLmBtS8b4KYEqtQy
-	XDNEu5rFEXjaJgAURjgD9qKbQyM7s0vykazKgkdnQfDOb1fvmU0y6neo4nJmUp1x
-	fPjNJ4bTW8SfHZokFJMAoiGddFx2IgqaDvATOlOKis6xQwHsQsmUcdnXvj6gMQsG
-	hCcBbx7qtUmMVNYQfqCUA==
-X-ME-Sender: <xms:mr1kaUPNVuxKVEWpGn3MGtqAPbkVzSEsb0bhIwym_-fcflFf7SlJNA>
-    <xme:mr1kaVxrssznn0ktqV5l8WYQApJR06mR-eAgqt3zZJ7RiEdMd6WlROUQhoMvSPnU0
-    fjJlSQUUREYZcr_xYSsP-8WJdpFKL7ayS-98TTlFXWVziwsPynWpQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgdduudejtdekucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdejnecuhfhrohhmpedftehrnhgu
-    uceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvg
-    hrnhepvdfhvdekueduveffffetgfdvveefvdelhedvvdegjedvfeehtdeggeevheefleej
-    necuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprghrnh
-    gusegrrhhnuggsrdguvgdpnhgspghrtghpthhtohepudehpdhmohguvgepshhmthhpohhu
-    thdprhgtphhtthhopegurghvvghmsegurghvvghmlhhofhhtrdhnvghtpdhrtghpthhtoh
-    epvgguuhhmrgiivghtsehgohhoghhlvgdrtghomhdprhgtphhtthhopehhohhrmhhssehk
-    vghrnhgvlhdrohhrghdprhgtphhtthhopehkuhgsrgeskhgvrhhnvghlrdhorhhgpdhrtg
-    hpthhtohepthhhohhmrghsrdifvghishhsshgthhhuhheslhhinhhuthhrohhnihigrdgu
-    vgdprhgtphhtthhopegrnhgurhgvfieslhhunhhnrdgthhdprhgtphhtthhopegtohhrvg
-    htvggrmhesnhgvthhfihhlthgvrhdrohhrghdprhgtphhtthhopehkrggulhgvtgesnhgv
-    thhfihhlthgvrhdrohhrghdprhgtphhtthhopehprggslhhosehnvghtfhhilhhtvghrrd
-    horhhg
-X-ME-Proxy: <xmx:mr1kaZzJrTJHc79Cm6tZL_j6WVMV3y1XxKHQPT1LOiE1nTAQefAg9A>
-    <xmx:mr1kaZtymw50frqsfty9G1mv6g3JDx_nc0qrdcVLXx7_v1zPgcpyRw>
-    <xmx:mr1kaTF-7lIAdn5cWYE-yLEJSMfj2a_APZV7lzafp-ASyiCFqTZbkw>
-    <xmx:mr1kaX6Qqb5MuMs_preQ2e_korGZWo1WLUB8hDaixTu1t_oSoxu_Qg>
-    <xmx:mr1kaWhvF0zHso7pEhn9tUEEmVarYffKWqLOIwwxN9tvYNC5T5BzH_q2>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id F2EAA700069; Mon, 12 Jan 2026 04:23:37 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rJDrWcpE"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3AE7060865
+	for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2026 12:42:22 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1768218142;
+	bh=2fLoWYwU3XAACAA1tG5yN/ktUWRKOF+wv2bodxTPR60=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=rJDrWcpEetBYMLbuoCU9Ghy1vYn1nghl+fJKsA/aIlJxFvZUtqGRXitO2YN2z2OJm
+	 H9a5rNcJ6PQjreVV50yBCyF4BQlYfZiBFcQg9R2+rpqSws3q1LDdsLgO+vhSWAta4o
+	 OqHy3WHsqk/E4U2kqAngoF+WGc0idanYLLhSqwuwtElnzzYTfLR2MKQQtrNRhDfB1w
+	 sAc82KlHL2oIcyR7mHhTMaJ7U6Xwxew3B2mN5PTRR8YK1R6gKQcK4h0C+Gtp+BqEjp
+	 JA2efPKf5Nm/NvxE//C2lOSWRN8pnv0bWMJ8IYrAMhvSm60x5NM4SRVBYbSktIYLV+
+	 /s0DY0bG/cgAg==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft 2/2] mnl: restore create element command with large batches
+Date: Mon, 12 Jan 2026 12:42:16 +0100
+Message-ID: <20260112114216.305723-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260112114216.305723-1-pablo@netfilter.org>
+References: <20260112114216.305723-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: AZiuWalixslg
-Date: Mon, 12 Jan 2026 10:23:07 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: =?UTF-8?Q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-Cc: "David S . Miller" <davem@davemloft.net>,
- "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>, "Simon Horman" <horms@kernel.org>,
- "Andrew Lunn" <andrew@lunn.ch>, "Pablo Neira Ayuso" <pablo@netfilter.org>,
- "Jozsef Kadlecsik" <kadlec@netfilter.org>, "Florian Westphal" <fw@strlen.de>,
- "Phil Sutter" <phil@nwl.cc>, linux-kernel@vger.kernel.org,
- Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org
-Message-Id: <22075614-c2b6-447d-8cf8-fff547d98ecc@app.fastmail.com>
-In-Reply-To: 
- <20260112090140-8b5fb693-989f-4af6-b65c-9c24a12d8779@linutronix.de>
-References: <20260105-uapi-limits-v1-0-023bc7a13037@linutronix.de>
- <20260105-uapi-limits-v1-3-023bc7a13037@linutronix.de>
- <d3554d2d-1344-45f3-a976-188d45415419@app.fastmail.com>
- <20260109111310-4b387d2e-1459-4701-9e58-dc02ad74c499@linutronix.de>
- <20260112090140-8b5fb693-989f-4af6-b65c-9c24a12d8779@linutronix.de>
-Subject: Re: [PATCH RFC net-next 3/3] netfilter: uapi: Use UAPI definition of INT_MAX
- and INT_MIN
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Mon, Jan 12, 2026, at 09:06, Thomas Wei=C3=9Fschuh wrote:
-> On Fri, Jan 09, 2026 at 11:20:22AM +0100, Thomas Wei=C3=9Fschuh wrote:
->> On Mon, Jan 05, 2026 at 02:02:17PM +0100, Arnd Bergmann wrote:
->> >=20
->> > - put the __KERNEL_INT_MIN into a different header -- either a new =
-one
->> >   or maybe uapi/linux/types.h
->>=20
->> > - use the compiler's built-in __INT_MIN__ instead of INT_MIN in
->> >   UAPI headers.
->>=20
->> If we can rely on compiler built-ins I would prefer this option.
->
-> It turns out that the compiler only provides __INT_MAX__, not __INT_MI=
-N__.
-> We can derive INT_MIN from INT_MAX as done in the original commit, but
-> open-coding it is ugly as heck. So we are back to a definition in a he=
-ader
-> file again.
+The rework to reduce memory consumption has introduced a bug that result
+in spurious EEXIST with large batches.
 
-Indeed, even gcc's own limits.h does the derivation of each
-signed type's limits like
+The code that tracks the start and end elements of the interval can add
+the same element twice to the batch. This works with the add element
+command, since it ignores EEXIST error, but it breaks the the create
+element command.
 
-#undef INT_MIN
-#define INT_MIN (-INT_MAX - 1)
-#undef INT_MAX
-#define INT_MAX __INT_MAX__
+Update this codepath to ensure both sides of the interval fit into the
+netlink message, otherwise, trim the netlink message to remove them.
+So the next netlink message includes the elements that represent the
+interval that could not fit.
 
-so it's clearly safe, but open-coding is not very clear.
+Fixes: 91dc281a82ea ("src: rework singleton interval transformation to reduce memory consumption")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/mnl.c | 42 +++++++++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
 
-> What about putting them in uapi/linux/types.h or adding a new
-> uapi/linux/typelimits.h?
+diff --git a/src/mnl.c b/src/mnl.c
+index 0a445189da82..eee0a33ceaeb 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -1880,16 +1880,17 @@ static int set_elem_cb(const struct nlmsghdr *nlh, void *data)
+ 
+ static bool mnl_nft_attr_nest_overflow(struct nlmsghdr *nlh,
+ 				       const struct nlattr *from,
+-				       const struct nlattr *to)
++				       const struct nlattr *to,
++				       unsigned int nest_len)
+ {
+-	int len = (void *)to + to->nla_len - (void *)from;
++	int len = (void *)to + nest_len - (void *)from;
+ 
+ 	/* The attribute length field is 16 bits long, thus the maximum payload
+ 	 * that an attribute can convey is UINT16_MAX. In case of overflow,
+ 	 * discard the last attribute that did not fit into the nest.
+ 	 */
+ 	if (len > UINT16_MAX) {
+-		nlh->nlmsg_len -= to->nla_len;
++		nlh->nlmsg_len -= nest_len;
+ 		return true;
+ 	}
+ 	return false;
+@@ -1955,8 +1956,9 @@ static int mnl_nft_setelem_batch(const struct nftnl_set *nls, struct cmd *cmd,
+ 				 struct netlink_ctx *ctx)
+ {
+ 	struct nftnl_set_elem *nlse, *nlse_high = NULL;
++	struct nlattr *nest1, *nest2, *nest3;
+ 	struct expr *expr = NULL, *next;
+-	struct nlattr *nest1, *nest2;
++	unsigned int nest_len = 0;
+ 	struct nlmsghdr *nlh;
+ 	int i = 0;
+ 
+@@ -1998,33 +2000,35 @@ next:
+ 			else
+ 				next = NULL;
+ 
+-			if (!nlse_high) {
+-				nlse = alloc_nftnl_setelem_interval(set, init, expr, next, &nlse_high);
+-			} else {
+-				nlse = nlse_high;
+-				nlse_high = NULL;
+-			}
++			nlse = alloc_nftnl_setelem_interval(set, init, expr, next, &nlse_high);
+ 		} else {
+ 			nlse = alloc_nftnl_setelem(init, expr);
+ 		}
+ 
+ 		cmd_add_loc(cmd, nlh, &expr->location);
+ 
+-		/* remain with this element, range high still needs to be added. */
+-		if (nlse_high)
+-			expr = list_prev_entry(expr, list);
+-
+ 		nest2 = mnl_attr_nest_start(nlh, ++i);
+ 		nftnl_set_elem_nlmsg_build_payload(nlh, nlse);
+ 		mnl_attr_nest_end(nlh, nest2);
+ 
+ 		netlink_dump_setelem(nlse, ctx);
+ 		nftnl_set_elem_free(nlse);
+-		if (mnl_nft_attr_nest_overflow(nlh, nest1, nest2)) {
+-			if (nlse_high) {
+-				nftnl_set_elem_free(nlse_high);
+-				nlse_high = NULL;
+-			}
++
++		nest_len = nest2->nla_len;
++
++		if (nlse_high) {
++			nest3 = mnl_attr_nest_start(nlh, ++i);
++			nftnl_set_elem_nlmsg_build_payload(nlh, nlse_high);
++			mnl_attr_nest_end(nlh, nest3);
++
++			netlink_dump_setelem(nlse_high, ctx);
++			nftnl_set_elem_free(nlse_high);
++			nlse_high = NULL;
++
++			nest_len += nest3->nla_len;
++		}
++
++		if (mnl_nft_attr_nest_overflow(nlh, nest1, nest2, nest_len)) {
+ 			mnl_attr_nest_end(nlh, nest1);
+ 			mnl_nft_batch_continue(batch);
+ 			mnl_seqnum_inc(seqnum);
+-- 
+2.47.3
 
-Those both seem fine to me. Or possibly a netfilter-specific
-macro in uapi/linux/netfilter.h, as all three headers that
-actually need INT_MIN are all netfilter specific and include
-that header already.
-
-      Arnd
