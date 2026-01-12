@@ -1,83 +1,83 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE789359F96
-	for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2026 12:55:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28B76358D21
+	for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2026 12:55:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768222507; cv=none; b=eGNVRN7ZrPn2qulBvnJ3I5AgwXVJXoOZzZdzy8wZ8trRrC9/b7BUC2xZTH/tsggvQDpko8yRdLYeFixNVfRZ12Vzrpjz1Jep43IZ/L+ReOOj9niIpyqzuyLMli4R0e8VDNYjatzlBN/X7enIU1rQEDrE6Ahfw0mYCPQwxuCqzNk=
+	t=1768222508; cv=none; b=PMMKi4JmNr9v2uYbfcW/VmmxH3G7+Z1RauLieCe6GW9QCQ8EkdziXMXTykrNcLLTHSwasR4nZc4Z0hRC81okLn1/edI8UgNoLobxnbzDgJRvvH10z3VjDKz6cq8BPzdWuU124etxVY8okorWDSUmgY8VqPXipCMlZsR0LKr7hzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768222507; c=relaxed/simple;
-	bh=TCr86+g83B5jykr4uoI4MF4hOXPzr5E27AlUPYqmfnw=;
+	s=arc-20240116; t=1768222508; c=relaxed/simple;
+	bh=9AA+6Xkc06ZNRttRTO7oNESMzk9GkeD69hB4TdB8dWk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JDAJ6iSU4RZFizOFT58vEI6Ec+vd71ptHAhrFTgEN58JRRt5udcBQYgiXMLVrazfsopk2IfIPiBLmlyb3REivdirWczFMmapTLV90buhs/zKXIm1n09L6JPUzJ2bF6wj8ESNBYWPFupDx+39JLtZsN7reuSKQUgBMfIIkq06FsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=NmCW29Oq; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=a2cu08iV; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version; b=VlmUFoF6kZV95uIBlrkDoj067eXUEmUs9zV8QN4xFR9QVUSHJ4dah4PQrkmdNCdJhYBOsK1tMz9F2w97XERKuGo2tzEl2cHnkPZdOSVIiM2NH2fPTNIFnCS2iO/Jog6kPaTC+giRwrzf6cji7wVy4thS2xed/9eAXd/C3IzlRxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ZOnv6j1x; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=UvYoMKc0; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NmCW29Oq";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="a2cu08iV"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZOnv6j1x";
+	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="UvYoMKc0"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1768222503;
+	s=mimecast20190719; t=1768222506;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=rhxkLbdZYuCDIREBJ5aMnl1Pqa4kOCAZc2N2w1wi0pg=;
-	b=NmCW29Oqu5wp1eMeA2D1VSsIh4yrm3wgrnK3QC9c6n5AvpjyeSYHrxAqUejG3JhboxuXAu
-	dFj4ZIeFUcYEHszLECyPl7jg0kYQUGvsI5ZUmkrYOqQWQr3/q57ohrO9gGkITKsDOpHr8T
-	7XlOR+zJq2byvML+ZUT+QsujUPsz434=
-Received: from mail-ej1-f71.google.com (mail-ej1-f71.google.com
- [209.85.218.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=Aw/NV8LRyH0v6ORkecK6sJJhDNFc4SC6s3IiJQNZsCk=;
+	b=ZOnv6j1xUx/4jsfruIXXHNtUHDFxwCwCXW4OZ1T1MQ+PNYjVuTLxvZc7nTaqIqdhv8uixW
+	4Z46ZxsGsW+/of5uc7v/M5/h0KctYB8VBI/HXfu7LpSriMIIgB1qqdT3de22zHgPut05xa
+	wKEshQ0KyAzp+oX9mLQxKRFaN7GCfKk=
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
+ [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-296-eDZNS9fXMQudDJcJQTS5MA-1; Mon, 12 Jan 2026 07:54:59 -0500
-X-MC-Unique: eDZNS9fXMQudDJcJQTS5MA-1
-X-Mimecast-MFC-AGG-ID: eDZNS9fXMQudDJcJQTS5MA_1768222498
-Received: by mail-ej1-f71.google.com with SMTP id a640c23a62f3a-b872c88d115so44149466b.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2026 04:54:59 -0800 (PST)
+ us-mta-650-uupy7PssOZaK_4GPwhXUPw-1; Mon, 12 Jan 2026 07:54:55 -0500
+X-MC-Unique: uupy7PssOZaK_4GPwhXUPw-1
+X-Mimecast-MFC-AGG-ID: uupy7PssOZaK_4GPwhXUPw_1768222494
+Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-b7a29e6f9a0so626160766b.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2026 04:54:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1768222498; x=1768827298; darn=vger.kernel.org;
+        d=redhat.com; s=google; t=1768222494; x=1768827294; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rhxkLbdZYuCDIREBJ5aMnl1Pqa4kOCAZc2N2w1wi0pg=;
-        b=a2cu08iVMFn/z5KVTdc33ddBRhM9nauUO+V8DwpNdFsMpxt232p6ZYmRWfPT/Q0oHG
-         Qw3GHiPJBzHZ4iigWJ2KQXwzanAxlsSUj80xkJ90GIVVnsQby1B0hmjPWazr6l3+b+T8
-         ctYH1c9NTrcIfrjNClPCGuvzE30AIretagA5yiIeaWCT/pGzdEinYjAGbjRWStU2KA2h
-         P37z+/qGACCyilZ/Y1IUCewb9qSxh8mOUzkKKPxY9tO588Ks+HpFJOgv6MQ7IRrYzoCn
-         RvCD659tiovByLPspnNOJctMGD8Z41RlRezMjtXYJ6qXkT77PPjXrnE/mzCofGem9xS9
-         +/bg==
+        bh=Aw/NV8LRyH0v6ORkecK6sJJhDNFc4SC6s3IiJQNZsCk=;
+        b=UvYoMKc0kKHzHOlmfPz746OTgXzILzb5qA9R/0Xv7FL7h7kvLMA4nZSHablQURMXSL
+         x7t2Pzs/23OZhL4nPPY65DFjdM9XY+ac3pSA8P5mzsguFS7sC6Zy6IIM2jEZtPVbESuP
+         AqH8aiuFL7i++fRBST5zLOY1rlbwBPhBR9oQmzrnfgAKyu90ASEpyGb50fPVMt8KJ/cs
+         EbueGRx+IKpaR4x3X70Qm1Y821iO5EngzcUe9xzD5YZRBzbfpH18D/1+zdmdl9uQL2Kt
+         zKCdOFI2aokPbRcV8dnnxnWgQbk6kJ8xEpJBOVx8HQBzO5xX/t2U9RI/9oKQsU6EzIbq
+         uNWw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768222498; x=1768827298;
+        d=1e100.net; s=20230601; t=1768222494; x=1768827294;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=rhxkLbdZYuCDIREBJ5aMnl1Pqa4kOCAZc2N2w1wi0pg=;
-        b=pcUhGZ6zrGecd4zPB2IFewklAa8y98SmWsxBrwZZp/xak0g3iSYCxj2K8A3fTV3Ut2
-         9R8ZyLYiAdyyrzVIGLJp+NEqEN1gxNpkHVRBgEP23q/40Qh7b6B3x7fep4EvXz9HAofP
-         LTxgGWOa2Z3ZNZckVmWv+w8BD3ecPwp7VoLDAaXUcvjj/4/hLmekyo/HsS6rvdH4i9wi
-         n46IAiJrEg+ZgQ/TN8KsX/6jfxVgXvM43kMW9lMux2yjqHb/mVO5upPLNt66+O25kTGc
-         BNKhNAOz3kKHk/GO2Yl4l97YVC1Wrau+500KQiFOoSlbSleGRv9+CO55ndD5xUcsTMDU
-         f4ow==
-X-Forwarded-Encrypted: i=1; AJvYcCV5CF0IgOejUws4EBYe6GAiwEE8BPTq9qRT+DNnmHahmd7vRPJQn6QG26bDMEXc6W7vqiuolYgy9DxI8G6UcK4=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw/9WjwxgJdfQB77pEuPXKokg2GD/lVtRY34IMKPSTa3UNmSz1B
-	V+uoN1/jOAuNlrOfQdfACfu0BWMSYCwcCv6l4zKoDK/xgazlmZlf4+7cykhBuUvQ6iGJe/CvkRF
-	dWcJdjBFED5nLMu4+ksDcTuy7K5HbtURNu1pmGWyccssbJHGULiWW12xIxDzjcVLjmzDAYQ==
-X-Gm-Gg: AY/fxX7Ey05pk/owtuIEhnTfJ90L70LIvMBJ6hkj8M3qqHmdAcaNHOVE1Um7+XtLeoA
-	577WCDwrtSQodjrd9VhGaG0RIlqhZjEvN0YSjPR66QPNaVG4mvvtXCXfwmjSuUFrB0t00SJAgBh
-	Ip3WJ3Q9IYSX09qw8+k2c1Nx7Mz8C9D+UviBVAqZvfAlHHnlatn7JFKiur6Hp884qI7pidKZmOz
-	c/88iV0Cj+7YvCZ/UTP1OlcTrkpz0f2HGV58aaDg0lAFsgecjdRSeAeMUrJqDfA/0lH9kZ0tnbr
-	A8wl+60cAPsOuRq0f5IHRWnbKe3P85tseo39zvlC9eWwj3ZYjNT4Usb1+7e266JSF/9BvCuoIT6
-	P3jTDxtGpzWNIqsdfKnhmqN287sRfI6SdLVyStbx8IC83zd5VwVBjmwTi7OE=
-X-Received: by 2002:a17:907:26c7:b0:b73:a2ce:540f with SMTP id a640c23a62f3a-b8444c80f04mr1718742966b.17.1768222498451;
-        Mon, 12 Jan 2026 04:54:58 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IHPr3dIgVWRsuP91OEnws2gf/Ukq1HmhAKZbz1wMFay2J0zyGKodjzzWjXpSeXa764C1KXgRg==
-X-Received: by 2002:a17:907:26c7:b0:b73:a2ce:540f with SMTP id a640c23a62f3a-b8444c80f04mr1718740366b.17.1768222497991;
-        Mon, 12 Jan 2026 04:54:57 -0800 (PST)
+        bh=Aw/NV8LRyH0v6ORkecK6sJJhDNFc4SC6s3IiJQNZsCk=;
+        b=eX+NILqEBn/4+us6ImOrwt/6cENVPrFNGwJ8e8CJf/BFhpTfnI3D7PYFqySkNB7dwY
+         XvYhKnVRV6ZyaR6M0blChO6XbHJ9EIP/StiIjM82yUXC3TLmamfknG7UocITxhqXqtdv
+         xcrEavLOnYTLh1vbrbl4XHIn7E7LeWh0bLI13cnJQJokGrUCU8fKoQlD5bLBbNLumRwp
+         IsFM1Fh2t/rdUQoG3g6667uyh67dqF4VWLQrWdFEtga+XeRGsZRHezlspaM5oR76ZnLR
+         k3F8hclBLcfNF1uhoPLdRrn2GnVXpbrfpj3mXm7PkeNco1GvvRRZXAWLrpgqVznOc/ew
+         zgLA==
+X-Forwarded-Encrypted: i=1; AJvYcCXmRg+7+KP2QFElHsnJ6Qja9ccq+fQ5YVly8Y1AyiGwifpUgQgYyDOrMIY9Q4xOuvPxYIhxOEc2bATvmMTb4W8=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxbRolQJxpS5wOerHji9Mw88yeFYxJvJ2wVEkd99UWJ0aIe7clf
+	ivf5go8sF/ta7gSnavsfiDhV3YrlLdEix6Z1u5Grl3KNRKJvjtKi4CimryBApTuwaeOeUfEJ3Pa
+	b04uns9py6vhCiqCGzGJwfPSGYYlUUro7AeeBIPDmoPi9UXii8QPWGiXKOO4xWbW8urtgzg==
+X-Gm-Gg: AY/fxX5Q8+hFdbqtGAasw1LGSSJc9Pmb2COfpofE+SdqnVDBRWd0MDOHBfXDAGEN9Yv
+	v73+kj0FdsYENeiLJC8HZTmmPQoM6GvYyVDAsjiESvKvY3waizyLIkRRqVrq2/h2W1YlTqfvxq8
+	qDMJREG/E+/JsBgSw0S6vulssN4aNZ61jGvbDdANJ5gz61UHdlWpoZe+ydDJjiP1BLefj3ETZ4d
+	Bk+yRL8b4WDdd94pHMCVT9Ja8o3WS1JnQNCWL647/cmPQSXaGWoab0gksE3Lgj/TyShB1ndGjCP
+	cn1TbCIoBlYk9iNwL6qRQoSG2LXiLDrQ0Lx/svJKzQvw3VtZUbFiaR7FY1lTXmxaLxoKWmKkX88
+	g+pjmYTyywHFRglJa6BzMc3dPuPZ075nZGir8mEImNYjpeKemqZXYMNpRLgg=
+X-Received: by 2002:a17:907:b59c:b0:b86:eda4:f780 with SMTP id a640c23a62f3a-b86eda503ffmr427900666b.18.1768222493911;
+        Mon, 12 Jan 2026 04:54:53 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEQQUtq3Zy/c64KpzKtlRB+1NOLYJQC+enp8zQ7vlFIka+NmHMqyup9Wyx1StgQLyix4fqkyw==
+X-Received: by 2002:a17:907:b59c:b0:b86:eda4:f780 with SMTP id a640c23a62f3a-b86eda503ffmr427897866b.18.1768222493414;
+        Mon, 12 Jan 2026 04:54:53 -0800 (PST)
 Received: from lbulwahn-thinkpadx1carbongen12.rmtde.csb ([2a02:810d:7e01:ef00:ff56:9b88:c93b:ed43])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b8706c2604bsm497062466b.16.2026.01.12.04.54.56
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b8706c2604bsm497062466b.16.2026.01.12.04.54.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 12 Jan 2026 04:54:57 -0800 (PST)
+        Mon, 12 Jan 2026 04:54:53 -0800 (PST)
 From: Lukas Bulwahn <lbulwahn@redhat.com>
 X-Google-Original-From: Lukas Bulwahn <lukas.bulwahn@redhat.com>
 To: "David S . Miller" <davem@davemloft.net>,
@@ -108,9 +108,9 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	kernel-janitors@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Lukas Bulwahn <lukas.bulwahn@redhat.com>
-Subject: [RFC PATCH 5/5] s390/configs: replace deprecated NF_LOG configs by NF_LOG_SYSLOG
-Date: Mon, 12 Jan 2026 13:54:31 +0100
-Message-ID: <20260112125432.61218-6-lukas.bulwahn@redhat.com>
+Subject: [RFC PATCH 4/5] riscv: defconfig: replace deprecated NF_LOG configs by NF_LOG_SYSLOG
+Date: Mon, 12 Jan 2026 13:54:30 +0100
+Message-ID: <20260112125432.61218-5-lukas.bulwahn@redhat.com>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260112125432.61218-1-lukas.bulwahn@redhat.com>
 References: <20260112125432.61218-1-lukas.bulwahn@redhat.com>
@@ -128,55 +128,43 @@ The config options NF_LOG_{ARP,IPV4,IPV6} are deprecated and they only
 exist to ensure that older kernel configurations would enable the
 replacement config option NF_LOG_SYSLOG. To step towards eventually
 removing the definitions of these deprecated config options from the kernel
-tree, update the s390 kernel configurations to set NF_LOG_SYSLOG and drop
+tree, update the riscv kernel configuration to set NF_LOG_SYSLOG and drop
 the deprecated config options.
 
 Signed-off-by: Lukas Bulwahn <lukas.bulwahn@redhat.com>
 ---
- arch/s390/configs/debug_defconfig | 2 +-
- arch/s390/configs/defconfig       | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/riscv/configs/defconfig | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/arch/s390/configs/debug_defconfig b/arch/s390/configs/debug_defconfig
-index 4be3a7540909..93721ca340c1 100644
---- a/arch/s390/configs/debug_defconfig
-+++ b/arch/s390/configs/debug_defconfig
-@@ -176,6 +176,7 @@ CONFIG_NETFILTER=y
+diff --git a/arch/riscv/configs/defconfig b/arch/riscv/configs/defconfig
+index cd736a1d657e..0b99a73f43b2 100644
+--- a/arch/riscv/configs/defconfig
++++ b/arch/riscv/configs/defconfig
+@@ -64,6 +64,7 @@ CONFIG_INET_ESP=m
+ CONFIG_NETFILTER=y
  CONFIG_BRIDGE_NETFILTER=m
- CONFIG_NETFILTER_NETLINK_HOOK=m
  CONFIG_NF_CONNTRACK=m
 +CONFIG_NF_LOG_SYSLOG=m
- CONFIG_NF_CONNTRACK_SECMARK=y
- CONFIG_NF_CONNTRACK_ZONES=y
- CONFIG_NF_CONNTRACK_PROCFS=y
-@@ -327,7 +328,6 @@ CONFIG_IP_VS_FTP=m
- CONFIG_IP_VS_PE_SIP=m
- CONFIG_NFT_FIB_IPV4=m
- CONFIG_NF_TABLES_ARP=y
+ CONFIG_NF_CONNTRACK_FTP=m
+ CONFIG_NF_CONNTRACK_TFTP=m
+ CONFIG_NETFILTER_XT_MARK=m
+@@ -75,8 +76,6 @@ CONFIG_IP_VS_PROTO_TCP=y
+ CONFIG_IP_VS_PROTO_UDP=y
+ CONFIG_IP_VS_RR=m
+ CONFIG_IP_VS_NFCT=y
+-CONFIG_NF_LOG_ARP=m
 -CONFIG_NF_LOG_IPV4=m
  CONFIG_IP_NF_IPTABLES=m
- CONFIG_IP_NF_MATCH_AH=m
- CONFIG_IP_NF_MATCH_ECN=m
-diff --git a/arch/s390/configs/defconfig b/arch/s390/configs/defconfig
-index c064e0cacc98..7750f333a1ac 100644
---- a/arch/s390/configs/defconfig
-+++ b/arch/s390/configs/defconfig
-@@ -167,6 +167,7 @@ CONFIG_NETFILTER=y
- CONFIG_BRIDGE_NETFILTER=m
- CONFIG_NETFILTER_NETLINK_HOOK=m
- CONFIG_NF_CONNTRACK=m
-+CONFIG_NF_LOG_SYSLOG=m
- CONFIG_NF_CONNTRACK_SECMARK=y
- CONFIG_NF_CONNTRACK_ZONES=y
- CONFIG_NF_CONNTRACK_PROCFS=y
-@@ -318,7 +319,6 @@ CONFIG_IP_VS_FTP=m
- CONFIG_IP_VS_PE_SIP=m
- CONFIG_NFT_FIB_IPV4=m
- CONFIG_NF_TABLES_ARP=y
--CONFIG_NF_LOG_IPV4=m
- CONFIG_IP_NF_IPTABLES=m
- CONFIG_IP_NF_MATCH_AH=m
- CONFIG_IP_NF_MATCH_ECN=m
+ CONFIG_IP_NF_FILTER=m
+ CONFIG_IP_NF_TARGET_REJECT=m
+@@ -84,7 +83,6 @@ CONFIG_IP_NF_NAT=m
+ CONFIG_IP_NF_TARGET_MASQUERADE=m
+ CONFIG_IP_NF_TARGET_REDIRECT=m
+ CONFIG_IP_NF_MANGLE=m
+-CONFIG_NF_LOG_IPV6=m
+ CONFIG_IP6_NF_IPTABLES=m
+ CONFIG_IP6_NF_MATCH_IPV6HEADER=m
+ CONFIG_IP6_NF_FILTER=m
 -- 
 2.52.0
 
