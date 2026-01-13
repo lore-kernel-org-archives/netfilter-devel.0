@@ -1,46 +1,46 @@
 Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 786D031ED70;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7875834AB06;
 	Tue, 13 Jan 2026 07:44:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768290272; cv=none; b=ZPGiJCTR2cQYJeLVlsjIfV5J5NUN35o81peNOexJ3334QiXVAECSlfVGQMsR6HuNqtVZl4Qyf6aFtTJGPr0S/c5o5MIz8msulvDFHgAuOS23x7Sbj2f3BpZ8sCUBAwZ+jmaqFPPzQr3RpvN4qH1ShKBXIdnAUCquYgHzDyOvyZ4=
+	t=1768290272; cv=none; b=EH2nRHzuKLwY2XOIOO9n4ow5AMbU0tj8FLI+ytz7qVbN9tfHDVGz5veLmIGb5LqrDbJUdVtydG+GfL9ul9HqSvaNWPo55cKSEs5lMotdBiG/muJq7k0Zud6+BEGz4oeJusZoTklKXStUT9i3cGBGwDRBS+yDgxfGkj8RZE7uXAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1768290272; c=relaxed/simple;
-	bh=iANGX4Q6qxYVZYRU4b03ddO8t8QVAF0+rAdnajHaGbw=;
+	bh=dDGinnEv/hwDI6n919dQ+WdzmoAGg5PXMDNfoTENOgA=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=cmU8DNhJfss7c83Kpi/EYoHhZrUFgozoqGoU6ORie8ntqbv9FW+ZhrPeonlMBjPLtAY6XYm3AJ1RuIIHY3iBAEVhzgb/BNnws28jHjCBobyqSaTWqaRdO1gWop+jLVnoKUfltBWpPHfrAyx3dcJeIajOMXpbJdg+VOmhowKVaUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=R6IOYhGm; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=spBIs+81; arc=none smtp.client-ip=193.142.43.55
+	 In-Reply-To:To:Cc; b=Dq531DcFjrvKN/bmaa0w8HBAVI7UFImsSqSsqKROvec5zl2x8UqJ54nNa2POjIf9Dsi52EWwXPobfnrWi6vdK8bRQAitfuD+VPonB+i5MocGZO9CR8lALWzsDOfxsgLcY2FDIv7lgeGsWIkn0wUdHG84TkmoE2tg+kySyNSaXgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=0jmRUgCL; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=fIAbCzPZ; arc=none smtp.client-ip=193.142.43.55
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="R6IOYhGm";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="spBIs+81"
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="0jmRUgCL";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="fIAbCzPZ"
 From: =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1768290264;
+	s=2020; t=1768290263;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=MWlu9Xbv+hyXYq41qjpldmiCRJPs3xJjYejVCpWHTEo=;
-	b=R6IOYhGmf4ezmbVBSysqxJhT6qASkoNfCcM9S14nMcs3tg+unmIFbJ56Vzr6Ucm1glKYoM
-	ZIwNfTQFkFSs4D//vWUHb1lsHukpmzLYMJXKhCSFAsjfq3zdh01R6+21+d4A7kSKZYGz5i
-	j4AoTnFU8pJIJys7CxNzJeKA7VuoDOKK2QEzp6HWmpXL6XOAOG7JU4zZkyTd37JY4pXiLq
-	JtiKQPZ3T+XM+ZTLb6PeMnqih+x07eDUjgUr9fHAJYegxZQOtoz8i99nHWLv6qcvxkXWi1
-	8ypRM4UWmubbx89faAoh41PxFLGFG6+hXRhZAxwyE/CxF+i05yw70bXoxkQL8Q==
+	bh=+B+tiiOSgm0hNIzNpQ9/RnXH1HzC16eEaSpprAwZNQY=;
+	b=0jmRUgCL/Z8hAJAS/msA7fjSJnr1ZTfs/4ox8FL0ueksJYgLZkIIRcEtCfTv8V8AlfBXS6
+	IMggIF6hCDbGBqy36XH1Sxh8EfvRzZQlqGfXL+E5RIIfncYG3peA3YGT5k5sDzZsPtMHIG
+	WRTtOwUbHisM7/0CDgT0eMJLS7HnfMEB+5BpJO7F2329q5O4BrFgl+xldAUJZhJWV96+un
+	L6iWlzyW/g4tBxtS7cHcC0OLI7Ow1IoOnYt3OFJ9qQEYQ4a2A1ybh0ky2I2cuDkWipPQcI
+	Edn8quYSeCr3kiYROOST6NFuoWankO+ZUWluToSewLI2pMUnlL/SFJ5OfCVqSg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1768290264;
+	s=2020e; t=1768290263;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=MWlu9Xbv+hyXYq41qjpldmiCRJPs3xJjYejVCpWHTEo=;
-	b=spBIs+81E2CgSWm37WQ/fCFk39/8lchOG8YhFLDdiwXf6BHdoHDelDvpKE7EOXZ0XItjzp
-	RgAJ41nHKalHEUBA==
-Date: Tue, 13 Jan 2026 08:44:18 +0100
-Subject: [PATCH v2 2/3] ethtool: uapi: Use UAPI definition of INT_MAX
+	bh=+B+tiiOSgm0hNIzNpQ9/RnXH1HzC16eEaSpprAwZNQY=;
+	b=fIAbCzPZrFMK9p30OH+aZEKjqTrRAFXRd4StLlKiZvKcVjsW1nl3y6rGBKr5Wwi66A6ZuY
+	36BztfytdJqCCTCw==
+Date: Tue, 13 Jan 2026 08:44:17 +0100
+Subject: [PATCH v2 1/3] uapi: add INT_MAX and INT_MIN constants
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,7 +49,7 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20260113-uapi-limits-v2-2-93c20f4b2c1a@linutronix.de>
+Message-Id: <20260113-uapi-limits-v2-1-93c20f4b2c1a@linutronix.de>
 References: <20260113-uapi-limits-v2-0-93c20f4b2c1a@linutronix.de>
 In-Reply-To: <20260113-uapi-limits-v2-0-93c20f4b2c1a@linutronix.de>
 To: "David S. Miller" <davem@davemloft.net>, 
@@ -62,52 +62,42 @@ Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
  netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
  coreteam@netfilter.org, 
  =?utf-8?q?Thomas_Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1768290260; l=1199;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1768290260; l=1051;
  i=thomas.weissschuh@linutronix.de; s=20240209; h=from:subject:message-id;
- bh=iANGX4Q6qxYVZYRU4b03ddO8t8QVAF0+rAdnajHaGbw=;
- b=zkhqxKjVk6PtpV5RIZGdqM5hrdB4PS5fKBYmSgcbha2Ru2pXGRUwVrQJnhbVk15ZeBrmrKYbz
- DpE/h/ut1JzAAEk248OwzdJfTwv1Xb08X2x8YVYq8ZSGVsuvxUZeQc4
+ bh=dDGinnEv/hwDI6n919dQ+WdzmoAGg5PXMDNfoTENOgA=;
+ b=maD6p1KKzhdv5+qN58UP+OWyZLDZ5D7EM8Qo1aGkS9UxCSDQgj8UBPivyDsy3cFnEpZFZfGaM
+ 6r3m1/t/ElHBiUf9RsVgyrhuUZ3lf8T+RUR9BDwRp5JJGTTfFhLP2WZ
 X-Developer-Key: i=thomas.weissschuh@linutronix.de; a=ed25519;
  pk=pfvxvpFUDJV2h2nY0FidLUml22uGLSjByFbM6aqQQws=
 
-Using <limits.h> to gain access to INT_MAX introduces a dependency on a
-libc, which UAPI headers should not do.
+Some UAPI headers use INT_MAX and INT_MIN. Currently they include
+<limits.h> for their definitions, which introduces a problematic
+dependency on libc.
 
-Use the equivalent UAPI constant.
+Add custom, namespaced definitions of INT_MAX and INT_MIN using the
+same values as the regular kernel code.
+These definitions are not added to uapi/linux/limits.h, as that header
+will conflict with libc definitions on some platforms.
 
 Signed-off-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
 ---
- include/uapi/linux/ethtool.h | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/uapi/linux/typelimits.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/include/uapi/linux/ethtool.h b/include/uapi/linux/ethtool.h
-index eb7ff2602fbb..70a0ef08f6f5 100644
---- a/include/uapi/linux/ethtool.h
-+++ b/include/uapi/linux/ethtool.h
-@@ -15,13 +15,10 @@
- #define _UAPI_LINUX_ETHTOOL_H
- 
- #include <linux/const.h>
-+#include <linux/typelimits.h>
- #include <linux/types.h>
- #include <linux/if_ether.h>
- 
--#ifndef __KERNEL__
--#include <limits.h> /* for INT_MAX */
--#endif
--
- /* All structures exposed to userland should be defined such that they
-  * have the same layout for 32-bit and 64-bit userland.
-  */
-@@ -2200,7 +2197,7 @@ enum ethtool_link_mode_bit_indices {
- 
- static inline int ethtool_validate_speed(__u32 speed)
- {
--	return speed <= INT_MAX || speed == (__u32)SPEED_UNKNOWN;
-+	return speed <= __KERNEL_INT_MAX || speed == (__u32)SPEED_UNKNOWN;
- }
- 
- /* Duplex, half or full. */
+diff --git a/include/uapi/linux/typelimits.h b/include/uapi/linux/typelimits.h
+new file mode 100644
+index 000000000000..8166c639b518
+--- /dev/null
++++ b/include/uapi/linux/typelimits.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _UAPI_LINUX_TYPELIMITS_H
++#define _UAPI_LINUX_TYPELIMITS_H
++
++#define __KERNEL_INT_MAX ((int)(~0U >> 1))
++#define __KERNEL_INT_MIN (-__KERNEL_INT_MAX - 1)
++
++#endif /* _UAPI_LINUX_TYPELIMITS_H */
 
 -- 
 2.52.0
