@@ -1,72 +1,72 @@
-Received: from mail-ua1-f44.google.com (mail-ua1-f44.google.com [209.85.222.44])
+Received: from mail-ua1-f42.google.com (mail-ua1-f42.google.com [209.85.222.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18E4130C616
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2026 19:45:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D0A028467C
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2026 20:10:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768333511; cv=none; b=pIR+7QV9lkw8j8Dyt5O8WMsmOnwt/Cbrt9A8O9rf7L2vpZ2GhGsg2PPha9+GayCKQJMyWyD6XkyaihLBqyXs94on1m3tzYZlhV2gF8P1LG6Cb9kdMBezNzIQ8Tgo8c30JdT/rUUwx5wwuv0G1h9dFyHFfj+8KiKWmtG+QEsYGDc=
+	t=1768335026; cv=none; b=LSAbkoFRKKzjDuxOHrolHls2Q6PxFjeaffq6WRcAKZo5LGdaZFQSmTN+DipZ4AIm8WEWmbSyEV4txNP5mf3CGM41eTGoUZtvhAOTOHvs/6H1Y88mswPvSCYoziMrYCQT+tIxddu7C0Hy5mAmcZkKodbyilw/G7rvjWed7Mv1Ojs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768333511; c=relaxed/simple;
-	bh=BUigQmv+IS7SNf1S/5NL6itraOCI8E1tv4UT92H7zMA=;
+	s=arc-20240116; t=1768335026; c=relaxed/simple;
+	bh=PISqowe2c+4RDD8+Y4LJYF6tRP/gV/zX+U5Yg9psxTc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=XDEBW1i/Dr2ijGSPeteRE0hlQT83Xdw1SD3JBChbZcesrXemIWwxRCFxaI7JfW5kbqMM8VqvTBiITo6m6pDooVIYUjdX0QYM067hjhiFmlqfBk1Eekwh9++pkUEAoGI2IsQnlkXNn1oUW5zGuCZNdsamjHO7xfDO3P/On1DygxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aPiPLF4i; arc=none smtp.client-ip=209.85.222.44
+	 To:Cc:Content-Type; b=L9jxtQ2TQJjJTAVrLKULqloLcdbCVsrdD0MLZrD0ADOwnGUnHny99J6Eas3iPDMs8mXYgRknokxFHLHWoiLN4X//SLWMWKUzwZR+bhgwRERPZq542jBgBjIzFERv8BioYfQ72nKdqYAeZ4+W2GW5V6PKyvev3YxwPVvofAYQPfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dgcf9VMx; arc=none smtp.client-ip=209.85.222.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aPiPLF4i"
-Received: by mail-ua1-f44.google.com with SMTP id a1e0cc1a2514c-93f542917eeso2617108241.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2026 11:45:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dgcf9VMx"
+Received: by mail-ua1-f42.google.com with SMTP id a1e0cc1a2514c-93f573ba819so3178670241.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2026 12:10:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768333509; x=1768938309; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1768335024; x=1768939824; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=BUigQmv+IS7SNf1S/5NL6itraOCI8E1tv4UT92H7zMA=;
-        b=aPiPLF4iQFJ2frMo536J5NyvXV+rKXUnT5jUXc5bIHceaTY9lF7rfKPN1GTpvAFe0h
-         xxdsW+P7DTXuQ1VJvFIzRN0Tr6/vRuvVnTpb+WLqsDog1tSRUONBveJLJBv8vXjI2tfs
-         glWSoCgA3JCBPYAfjmnwl9VOy8pu7ZU+K7mAU2Rc0pOutQC13kKNTODyddR1cyvPlDS0
-         5fzeLxOphFObZN5LuB22ugEXxQ5BNMBDQfWYicdhkjNGcnC9sj7UVnK8kAOWkKsihiaK
-         AWdwTayv4k1Kz1cz3e0Y32tb1E8Fkb/doSr0lIErUVf4eLVuTAotOerkI8X6nTL9t+9X
-         jmdA==
+        bh=PISqowe2c+4RDD8+Y4LJYF6tRP/gV/zX+U5Yg9psxTc=;
+        b=dgcf9VMxJ1/K4XNYip4IbzCvlRr6ktVMJYXp0hHpj8rc0xkbkik/EF/fkOUesDZqa7
+         YDaNdIFLvRQmYZvK6dIltZzTb8gP9DP+xotlr1eudJfLMGbpEXiM1onTNpnCj4TGH1yk
+         X0Z5SDx2KNFBDMP7JUTEsupinwNxlN4XBuOM2LUmUlweWPSWaDDI2IU5fvjUJwjlC36j
+         SPGt2VKPH//Mtf3D1/WqPzZaxkQBvZNfiTngKHek8Zc7Jw/b/zbjVGVUNZSObY32cQXN
+         GAshSYG7Z0y0oUU8Sx0UousG9sHKg05k0wmke751o0uv0vZdnVV1ELyzLdby4jluV2dq
+         2UaQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768333509; x=1768938309;
+        d=1e100.net; s=20230601; t=1768335024; x=1768939824;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=BUigQmv+IS7SNf1S/5NL6itraOCI8E1tv4UT92H7zMA=;
-        b=GQF5Bjft5XuxIVw+E0wj5WHedVtNUN4RNfkfRRJZ++H+RpOgfI0q4ctqnPtGz9Hnrn
-         0ULxymsm+QRH1zrzmueoxC9OExt5y8KSSkJ5PRwLs5EyLzIAlYoFi/BRgX5C1UvZc5PS
-         ge39TwX/Ootv4Pm+qFGAaz3vBpOTL+ATHGXBQJEjGKePrDiFgX0t1ANS8q+rokMeG3SR
-         Kd5jtCWzDQRMimRTxT7Y7G/7neDRSSEA/fQTCCgjTVy4/Bo5nfq4GqP/kKqczZlZFkc3
-         +5gBo4ozuzSkIerXOJzRZkI8vWOk2iKqCwnMu2YQTgXnoza0xrgQpatstk/lJamR8CGd
-         Pf2w==
-X-Forwarded-Encrypted: i=1; AJvYcCXgxUj9w3b4ZsoY/0sjH7vJ6/qNTzFyi7IYEayaC2iUZO3pPDSsNnWN3dP2XeszdZ0w+tSw0AqjjDO/mSO7QIM=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy/t6qgjGhf2xeW4fvqv2IbSBgnkwbwZ3dP0YsGodY4S+7Sp3oq
-	JcmwFpLqaQukU7zZZxwmi0pJP/e1ctExG3zY8ajA6xCHOxtKQH7oBo4y1aeVzTdx/Qf0yfmkUhG
-	V1+lxurHG+C/eXKctaYMkr8xDZUs3c/w=
-X-Gm-Gg: AY/fxX6RqfPW/gUeln9BhM+vneN3DVQAZiZFU1s+PtXY1XpqMODLDdm8emOCQhbxHbT
-	v4VMHE0xswNJ/fuRctn2lPxqF6ZYUOeuwWitekwOOsG78Bl/bFz6j95HITIyX+AkXke0IVJaK+o
-	74VDmDTlvCgBxs4ZTuCSNwX1i9u+2DA7Kv2nxLgmAff66spe8qNSUoAEb1ZDOEqUt/ytU8y2jj+
-	aeSnCiWTNMV2IhqyLaj3Y5fY9jdo4oMwsVbtBVQD7C/JYWYSHDBzY8Da+HnJHdj2zUwQ27asdQ0
-	VO9FKOW4flfItEKJhhYZBGBbLv4p
-X-Received: by 2002:a05:6102:3913:b0:5db:e6bf:c4d7 with SMTP id
- ada2fe7eead31-5f17f5c0ffbmr152415137.21.1768333508926; Tue, 13 Jan 2026
- 11:45:08 -0800 (PST)
+        bh=PISqowe2c+4RDD8+Y4LJYF6tRP/gV/zX+U5Yg9psxTc=;
+        b=B0SnJ6fFddCFGjudbxc5127y+5M1cPNrBbQnZBAR5FNukUXWKnA1Ew+BvhwKSlgKXO
+         P0NUruMeU+jCOs20AU6MATDEV2JxuzzFCJHT7dUM6W1qJuQ7VzKNuIvbyKa3ITJ6HkiX
+         tvEwWiSWF5utxIKoaPGkOmSGNEX6rd3I6ZG4DyoP4D9OuwtLklcXR/hczWIxxlBU1E1f
+         6l73LpAyv1e4qXdExWBA8vnObQgCRaME2ygvkc0RT0Tqm94i3LexG7T86BiwGoHwDP7H
+         GeTmHo0By7UFvTJjJmCfg4kKM6Psa5PeRmVLaZzk7YVFH6gvMrfSOf1CXQ6jTICxFkwj
+         QkEg==
+X-Forwarded-Encrypted: i=1; AJvYcCXjKVFf4iNWcnTlpHOwFreQTqSkXWPRCn2bls8oqdpKvlXbpS6dAzrEcV1vsbQGlQBh1IchMHFzFIiTAHpqBic=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxOxWQ5oeMcr8OdU/DYHWi2HzUk5+PH+7fha/EXEAz9CDIdghNG
+	97haE5RFi3ley6B/RqQSCC0pqqVQphi73/nBlVMfvePOjGbMRL11g9DPUA0xBN73awkhfMMglBM
+	i+fnyaMrGHs89Od0WsD9kRnD1CDek+Mg=
+X-Gm-Gg: AY/fxX6pJOT711y2Pmp49sFb7tjiLZcfqO/SGejyho4WqSLHHgsM6fTOZuS4MTFwF7/
+	AjbqgiWIG9fGtTHxj66aMZvEeYrKR38J5AJ3d4O3Pl9073nSTE0e/mjZgeonmpP9va+ZlJAtXd1
+	Ke8Fh+ltPjYH7weJzx1j+8/ZFyGUXuWjv/6FNqNjsJ0MiFqGPdV/qlFz81GwkTTMj100UTJTL+U
+	OgX5akySBlX0kY+rzA4KnF/xqmaABkf+k9rE86wuEVCVCsNX+//Zz5xIPRy20qV4tJxKBUFViGt
+	EfIcrVX1Ksm2S9OSNbHbVONs9cY7
+X-Received: by 2002:a05:6102:292b:b0:5ef:a247:4749 with SMTP id
+ ada2fe7eead31-5f17f584f40mr196449137.23.1768335023609; Tue, 13 Jan 2026
+ 12:10:23 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260111163947.811248-1-jhs@mojatatu.com> <20260111163947.811248-2-jhs@mojatatu.com>
-In-Reply-To: <20260111163947.811248-2-jhs@mojatatu.com>
+References: <20260111163947.811248-1-jhs@mojatatu.com>
+In-Reply-To: <20260111163947.811248-1-jhs@mojatatu.com>
 From: Cong Wang <xiyou.wangcong@gmail.com>
-Date: Tue, 13 Jan 2026 11:44:57 -0800
-X-Gm-Features: AZwV_QghuBmNS2SHRIXNqqie9Rli8ChJPn_4i1AP_4fpkgiSVL0_Wio5jYQkhwU
-Message-ID: <CAM_iQpVPnwe=YqZubeUFy78ym_TM-R3qvx3u3ydN0t6GbFnmgg@mail.gmail.com>
-Subject: Re: [PATCH net 1/6] net: Introduce skb ttl field to track packet loops
+Date: Tue, 13 Jan 2026 12:10:12 -0800
+X-Gm-Features: AZwV_Qh110CfAjqIeJ9pDoXr3a--Err3wGqCF4LHns3UhhlVCEjcOsKHE3kYvJQ
+Message-ID: <CAM_iQpXXiOj=+jbZbmcth06-46LoU_XQd5-NuusaRdJn-80_HQ@mail.gmail.com>
+Subject: Re: [PATCH net 0/6] net/sched: Fix packet loops in mirred and netem
 To: Jamal Hadi Salim <jhs@mojatatu.com>
 Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
 	pabeni@redhat.com, horms@kernel.org, andrew+netdev@lunn.ch, 
@@ -76,55 +76,38 @@ Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
 	zyc199902@zohomail.cn, lrGerlinde@mailfence.com, jschung2@proton.me
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 
-T24gU3VuLCBKYW4gMTEsIDIwMjYgYXQgODo0MOKAr0FNIEphbWFsIEhhZGkgU2FsaW0gPGpoc0Bt
-b2phdGF0dS5jb20+IHdyb3RlOg0KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9za2J1ZmYu
-aCBiL2luY2x1ZGUvbGludXgvc2tidWZmLmgNCj4gaW5kZXggODY3MzcwNzYxMDFkLi43ZjE4YjBj
-Mjg3MjggMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvbGludXgvc2tidWZmLmgNCj4gKysrIGIvaW5j
-bHVkZS9saW51eC9za2J1ZmYuaA0KPiBAQCAtODQwLDYgKzg0MCw3IEBAIGVudW0gc2tiX3RzdGFt
-cF90eXBlIHsNCj4gICAqICAgICBAbm9fZmNzOiAgUmVxdWVzdCBOSUMgdG8gdHJlYXQgbGFzdCA0
-IGJ5dGVzIGFzIEV0aGVybmV0IEZDUw0KPiAgICogICAgIEBlbmNhcHN1bGF0aW9uOiBpbmRpY2F0
-ZXMgdGhlIGlubmVyIGhlYWRlcnMgaW4gdGhlIHNrYnVmZiBhcmUgdmFsaWQNCj4gICAqICAgICBA
-ZW5jYXBfaGRyX2NzdW06IHNvZnR3YXJlIGNoZWNrc3VtIGlzIG5lZWRlZA0KPiArICogICAgIEB0
-dGw6IHRpbWUgdG8gbGl2ZSBjb3VudCB3aGVuIGEgcGFja2V0IGxvb3BzLg0KPiAgICogICAgIEBj
-c3VtX3ZhbGlkOiBjaGVja3N1bSBpcyBhbHJlYWR5IHZhbGlkDQo+ICAgKiAgICAgQGNzdW1fbm90
-X2luZXQ6IHVzZSBDUkMzMmMgdG8gcmVzb2x2ZSBDSEVDS1NVTV9QQVJUSUFMDQo+ICAgKiAgICAg
-QGNzdW1fY29tcGxldGVfc3c6IGNoZWNrc3VtIHdhcyBjb21wbGV0ZWQgYnkgc29mdHdhcmUNCj4g
-QEAgLTEwMDAsNiArMTAwMSw3IEBAIHN0cnVjdCBza19idWZmIHsNCj4gICAgICAgICAvKiBJbmRp
-Y2F0ZXMgdGhlIGlubmVyIGhlYWRlcnMgYXJlIHZhbGlkIGluIHRoZSBza2J1ZmYuICovDQo+ICAg
-ICAgICAgX191OCAgICAgICAgICAgICAgICAgICAgZW5jYXBzdWxhdGlvbjoxOw0KPiAgICAgICAg
-IF9fdTggICAgICAgICAgICAgICAgICAgIGVuY2FwX2hkcl9jc3VtOjE7DQo+ICsgICAgICAgX191
-OCAgICAgICAgICAgICAgICAgICAgdHRsOjI7DQoNCkluIHRoZSB3b3JzdCBjYXNlIGl0IGluY3Jl
-YXNlcyBza19idWZmIHNpemUuDQoNCiAg4pSM4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSs4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSs4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSs4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSQDQogIOKUgiAgICAgICBD
-b25maWcgc2NlbmFyaW8gICAgICAgIOKUgiAgICAgIEN1cnJlbnQgICAgICDilIIgICBBZnRlciBj
-aGFuZ2UNCiAg4pSCICBEZWx0YSAg4pSCDQogIOKUnOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUvOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUgOKUvOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUgOKUgOKUvOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUpA0KICDilIIgQWxs
-IGNvbmZpZ3MgZW5hYmxlZCAgICAgICAgICDilIIgMTcgYml0cyAoMyBieXRlcykg4pSCIDE4IGJp
-dHMgKDMNCmJ5dGVzKSDilIIgMCAgICAgICDilIINCiAg4pSc4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pS84pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pS84pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pS84pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSkDQogIOKU
-giBDT05GSUdfTkVUX1JFRElSRUNUIGRpc2FibGVkIOKUgiAxNiBiaXRzICAgICAgICAgICDilIIg
-MTggYml0cw0KICDilIIgKzIgYml0cyDilIINCiAg4pSc4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pS84pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pS84pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pS84pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSkDQogIOKUgiBN
-aW5pbWFsIGNvbmZpZyAgICAgICAgICAgICAgIOKUgiA3IGJpdHMgKDEgYnl0ZSkgICDilIIgOSBi
-aXRzICgyDQpieXRlcykgIOKUgiArMSBieXRlIOKUgg0KICDilJTilIDilIDilIDilIDilIDilIDi
-lIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDi
-lIDilIDilIDilIDilIDilLTilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDi
-lIDilIDilIDilIDilIDilIDilLTilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDi
-lIDilIDilIDilIDilIDilIDilIDilLTilIDilIDilIDilIDilIDilIDilIDilIDilIDilJgNCg0K
-SSB0aGluayB0aGlzIHdvdWxkIGJlIGEgY2xlYXIgc3RvcHBlciBpbiBuZXRkZXYuDQoNCkdvb2Qg
-bHVjayB0byB5b3Ugb24gZmlnaHRpbmcgd2l0aCBpbmNyZWFzaW5nIHNrX2J1ZmYgc2l6ZSENCg0K
-UmVnYXJkcywNCkNvbmcNCg==
+On Sun, Jan 11, 2026 at 8:40=E2=80=AFAM Jamal Hadi Salim <jhs@mojatatu.com>=
+ wrote:
+>
+>
+> We introduce a 2-bit global skb->ttl counter.Patch #1 describes how we pu=
+ti
+> together those bits. Patches #2 and patch #5 use these bits.
+> I added Fixes tags to patch #1 in case it is useful for backporting.
+> Patch #3 and #4 revert William's earlier netem commits. Patch #6 introduc=
+es
+> tdc test cases.
+
+3 reasons why this patchset should be rejected:
+
+1) It increases sk_buff size potentially by 1 byte with minimal config
+
+2) Infinite loop is the symptom caused by enqueuing to the root qdisc,
+fixing the infinite loop itself is fixing the symptom and covering up the
+root cause deeper.
+
+3) Using skb->ttl makes netem duplication behavior less predictable
+for users. With a TTL-based approach, the duplication depth is limited
+by a kernel-internal constant that is invisible to userspace. Users
+configuring nested netem hierarchies cannot determine from tc
+commands alone whether their packets will be duplicated at each
+stage or silently pass through when TTL is exhausted.
+
+NACKed-by: Cong Wang <xiyou.wangcong@gmail.com>
+
+(I hope I am still better than your AI.)
+
+Regards,
+Cong
