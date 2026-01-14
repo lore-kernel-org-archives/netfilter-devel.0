@@ -1,91 +1,86 @@
-Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CD57394463
-	for <netfilter-devel@vger.kernel.org>; Wed, 14 Jan 2026 16:34:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E8A3A0B39
+	for <netfilter-devel@vger.kernel.org>; Wed, 14 Jan 2026 16:40:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768408448; cv=none; b=dN24AgKUiJS++zsaCdG4NRY+OcNxfyODm+vICku8Zoojv8iJNhHph47+aBnLBNoltF8oi86dyH5LmVjGF6n+8EA1qtBdku5vQdC60YevDaINbYGDFW2dWx1ysvoI8S9HL0NGBj7V9z1s1W/i2tJ7KzZWtPaDW/MjSkz7dOvguiY=
+	t=1768408832; cv=none; b=KeuOVFxfNGXsEkKi3RLodKHpNvq8NylKTUwXQ/CHG2rm87aij2OjR6dvpOftJJ0clA3jNkezeYMfSKCa2fXzM67lHNPr+1zPNx4AkHoHgKoearD/z54Vb26Bz5eNxiF5rS3OTRx02NnOD64fD1R9Q1u3IJc+h6xFa95rtNdoEcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768408448; c=relaxed/simple;
-	bh=EV0/yy7esrd7Dn9sH9OIVX7FqE756S3/nAr8EYjENSI=;
+	s=arc-20240116; t=1768408832; c=relaxed/simple;
+	bh=s/fD5xvGs2utvhqODnMb/L+upL6xmROHs/yMeG5HRGg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=q/Wnf2Qly4tRNGsqiRD9nT+ffqL+8/tazmnyy5xV8ewhj3EZTmwOzwODoE2/quk4O6Ep8nwhKXgjaIHrUlANA7M/sNDdal6agUJ/qhzdy/SNfGKR9+1TkY3QcpXHxXxd4ls05PX7Y3KAgVDTJZuoq81MoFIdC/uu4MHOQy7M6Tk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=hQr9aWtf; arc=none smtp.client-ip=209.85.215.178
+	 To:Cc:Content-Type; b=IJbRNHEWYqBLKQDI49KM12aoRNEBo1ZP5OidPH6Ki+PMCLfW6lU2BA6+rXu0B0/0MHCCm0CKgXrclrQ+euLLAPD1QM+p2pAFHm60i7ibFaW9nms44N7PxAZtNPJZuigMQ8S5vipftqLO0g09CmA1NlF+Bb4BtX74ycten1BagFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=TdlnJSQa; arc=none smtp.client-ip=209.85.215.176
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="hQr9aWtf"
-Received: by mail-pg1-f178.google.com with SMTP id 41be03b00d2f7-c06cb8004e8so14725a12.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jan 2026 08:34:06 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="TdlnJSQa"
+Received: by mail-pg1-f176.google.com with SMTP id 41be03b00d2f7-c2af7d09533so23847a12.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jan 2026 08:40:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1768408446; x=1769013246; darn=vger.kernel.org;
+        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1768408830; x=1769013630; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=EV0/yy7esrd7Dn9sH9OIVX7FqE756S3/nAr8EYjENSI=;
-        b=hQr9aWtfrw+gtHD4U6I6cvT8E7pkTDipQoYvNrrUmLaIZC4Wdh4yLFhnhSkXtgd1iw
-         v0+5JhjPkgGKMgaY3ri1YhafS6lUIwxyaLeCLe47Z4n4O6z1zozA0iYDmAZ8PaUYThPe
-         AfZp2KtR1aB/P1oOrpl/JOTHr+1qUTwZNfgvfGeiTIzV3eWYqlUl6HOvZvSrK0baT76M
-         fFDFeHeQpkVVtEszZFnvoL8UuQMvmOBFOKddWIdWN3At8GFvGQSq8fpJ6E9W9TkI7sdj
-         crqBLkrkZjvWfhb9NY4LpBFL3+c7m2WyvhYpxvZ9TtnIY5Cgd2/jnwTMGwHRXfP5+a0O
-         gYCw==
+        bh=s/fD5xvGs2utvhqODnMb/L+upL6xmROHs/yMeG5HRGg=;
+        b=TdlnJSQaZjFuHx6q9SlZFnsROeRujZK98HANzkvdlfS79zBGXPBx3bOLt9U5kB/sos
+         ssk0CRqHyYuVrk0xRwPO6I3F5vQ7nM8DqXhlZgboI8eylzJzS5EAhTptGwCFLJU3FiIH
+         CuUuq5AAtsYaSBvAgeFePm70hpXIbOdkdahArAgt/m9sEOaEUUVnlAjGw5yu4e5/36nC
+         vjvPz8qPIih9Sbg3W5oH08U58PPjmcM/THsDyWhwfoU+cu56h+o39tdgdZwtGee4CfE/
+         VavPTIG2p08tSi3YLueVB9cpzTtv4Ll8wdL3cXWENJRGDlBJQTcwrf+qMzqD+8GtAQrO
+         EUfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768408446; x=1769013246;
+        d=1e100.net; s=20230601; t=1768408830; x=1769013630;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=EV0/yy7esrd7Dn9sH9OIVX7FqE756S3/nAr8EYjENSI=;
-        b=TAcTdbJl1C79D6xOGWsm7/mEgvEszz8lCWwxMqGaI9vLAuK+aZ2ReASOrA7ghbDFE7
-         DhUIQ9ueskO7zU88z29iNy03cEBFi4fhOH5IMmG4r+dZ3DlbDRSZsaBzmynvAmA2lpSk
-         H+HJfx3/USk6hsN5fiD6AzWdnX+IrwEvVqmDldInxInX1DHXIxmu7as2aRGunV01xkOa
-         41nGnh9Jqd+3o1sITXTZaacciznR1Wt1+ihrMpwJX8KZgg8io+izBhrdj0MglTvgCY/w
-         +9D4hdpIor+BsVA3R5rMgB+TGAYzduf9euLi+57GW+c2qKw75Fs10szEWv71vD03MgLC
-         jT2w==
-X-Forwarded-Encrypted: i=1; AJvYcCVrDepk0fo1Dg1XnSrLl+RxgAfmTv7rTPsvOM2L6BeM7E9KjyqC7kbG6JI+zkJt5ugt/a3a+zLJKE7YFOJkUVI=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwTBnMCNwIKnqJDd2zHSLjmHVZaHLnA0aw+WbkuYnlt/13ylpVh
-	wQVm4Fz0VJ3dvBHcAxgLn1P22b3xLiAthkGDx9APUAANNOVbK3Yo70XTVAXXKyC1JzGOm4wzsLC
-	QqUnx1h42hgVGkW4XIQWo16DQcirb6khOYzWNWddR
-X-Gm-Gg: AY/fxX7v4FH2H302UgS+jb8/kU9nUefi1JAXIMEfz0X1Yx754Q2L6FDhb1zdcK6otCn
-	JFiHsWLUwkm7zJOa7LrY6orfAAXIMCsExwuPQHiywI5oabO+/vrIkFDHiMdxIQPB1e8zwROzCqB
-	LzHlfLT9r7Stfzw5r2kqP4dIxERzopEZPxpJ7IGQgZwacZ9lidxfbXnpyLJ8RkfPfahJOGghwIs
-	Qs1eAbf/sXbucGVNvBeFfMoAGmX41BDi7/OoH1aC+CDT+TqmHtCyU6OY/ykLzZeaIo1KD9io9Aj
-	/JqKTWRYe7hNXw==
-X-Received: by 2002:a17:90b:1f83:b0:32e:5646:d448 with SMTP id
- 98e67ed59e1d1-3510b12673cmr2360317a91.21.1768408446393; Wed, 14 Jan 2026
- 08:34:06 -0800 (PST)
+        bh=s/fD5xvGs2utvhqODnMb/L+upL6xmROHs/yMeG5HRGg=;
+        b=c++4Eab2OMZ4A0iBFKDM6KY9CAzN6t409cDKQhHCUveMIo048v5UeH2wT9mcgyvu0F
+         fIHF+kiGZxHqZqNQjXHW9ig8l2eCG+VigfTbZYlWOue6e418G0V5USKxaOXx1RAU4W3V
+         w2nsU+CxupsLCpncPKtjESAk+g6vp+kYPU74cZUjGpfvFcGv3jNnIfsc1xfZ6zc6Fpxr
+         PfPwo2SoboJ4HmcBlmUPIgzbdYN3TO7EXj8PrivsGOs6H8QJbGxs00aJtg966mvqtT93
+         gdQeiUUDxr3Z9JAdCztK6juzIwN3smxRzeCBhR5TddP1xr6Ldttf25gqDO1o0/rW7yES
+         MLNg==
+X-Forwarded-Encrypted: i=1; AJvYcCUzF6E9MGKvm0zz7bp2tKIk4T60O7MWsigCFazqbPIsZIOlfwhgZ5KGB5a6Gcl3T98jkx2KtbcuwF73OQvf9wI=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxN8RauQwA0W/nT9FtSxNZGrAzQyFTAYwc0krgnsumeqmzStTix
+	AG4t+238Tj/TvX7D+kpSzqq6u/4g7m5XIH75151KVoIzodNNi17ovlCU9gZZNaG3X0bPExWJaJ2
+	LdsBrBzL2boIBgasGJjd60rfTfIeQuI6ShuSeOx65SuBKNDQ7QUM=
+X-Gm-Gg: AY/fxX7GQN/NJx8zqfrcK36sSX4S5hqhVaNOIK9ddDthOCvdDMBfNBqTprb4ayuL/c1
+	oTKG8oULKcK9HbgMljGyDYYWedhy1ng0gT0deTEdNfMbzSOco6YExj1oJVgxdns/EfFj+sHBwvB
+	lNtGW3xCpu6TRTMY0JQ/ZXyL3bPaWtc674CckKL8xn0VUitPYO2mmbUB9E4T/c9NBftqEfWBmoW
+	fWdSajcD/JCe55MbDIM0KQE2uwDQvibSTsreJt+As9nvK+VU/h5pAFJPQ3tTFXBwhjMqLtkjhHW
+	Z6A=
+X-Received: by 2002:a05:6a20:e290:b0:38b:de3d:d52c with SMTP id
+ adf61e73a8af0-38befa93994mr2928287637.3.1768408830348; Wed, 14 Jan 2026
+ 08:40:30 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260111163947.811248-1-jhs@mojatatu.com> <CAM_iQpXXiOj=+jbZbmcth06-46LoU_XQd5-NuusaRdJn-80_HQ@mail.gmail.com>
-In-Reply-To: <CAM_iQpXXiOj=+jbZbmcth06-46LoU_XQd5-NuusaRdJn-80_HQ@mail.gmail.com>
+References: <20260111163947.811248-1-jhs@mojatatu.com> <20260113180720.08bbf8e1@kernel.org>
+In-Reply-To: <20260113180720.08bbf8e1@kernel.org>
 From: Jamal Hadi Salim <jhs@mojatatu.com>
-Date: Wed, 14 Jan 2026 11:33:55 -0500
-X-Gm-Features: AZwV_QjM9sCmciqd-3G5CC1tZ7mrTsZr3pe_blrLR8iInt1cI1E82GjtFqVpO9k
-Message-ID: <CAM0EoM=VHt3VakG6n81Lt+6LFzOVKAL-uzjM2y_xuWMv5kE+JA@mail.gmail.com>
+Date: Wed, 14 Jan 2026 11:40:18 -0500
+X-Gm-Features: AZwV_QhQpZ25u2X2LNZn5BpYx8rrhPXxGdKMryc_JQfQo8v_CapUiIOJGhkcc6c
+Message-ID: <CAM0EoMmZA_1R8fJ=60z_dvABpW3-f0-5WhYzpn1B1uY9BA4x4A@mail.gmail.com>
 Subject: Re: [PATCH net 0/6] net/sched: Fix packet loops in mirred and netem
-To: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: davem@davemloft.net, edumazet@google.com, kuba@kernel.org, 
-	pabeni@redhat.com, horms@kernel.org, andrew+netdev@lunn.ch, 
-	netdev@vger.kernel.org, jiri@resnulli.us, victor@mojatatu.com, 
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: davem@davemloft.net, edumazet@google.com, pabeni@redhat.com, 
+	horms@kernel.org, andrew+netdev@lunn.ch, netdev@vger.kernel.org, 
+	xiyou.wangcong@gmail.com, jiri@resnulli.us, victor@mojatatu.com, 
 	dcaratti@redhat.com, lariel@nvidia.com, daniel@iogearbox.net, 
 	pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, phil@nwl.cc, 
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	zyc199902@zohomail.cn, lrGerlinde@mailfence.com, jschung2@proton.me, 
-	William Liu <will@willsroot.io>, Savy <savy@syst3mfailure.io>
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 13, 2026 at 3:10=E2=80=AFPM Cong Wang <xiyou.wangcong@gmail.com=
-> wrote:
+On Tue, Jan 13, 2026 at 9:07=E2=80=AFPM Jakub Kicinski <kuba@kernel.org> wr=
+ote:
 >
-> On Sun, Jan 11, 2026 at 8:40=E2=80=AFAM Jamal Hadi Salim <jhs@mojatatu.co=
-m> wrote:
-> >
-> >
+> On Sun, 11 Jan 2026 11:39:41 -0500 Jamal Hadi Salim wrote:
 > > We introduce a 2-bit global skb->ttl counter.Patch #1 describes how we =
 puti
 > > together those bits. Patches #2 and patch #5 use these bits.
@@ -94,40 +89,13 @@ puti
 uces
 > > tdc test cases.
 >
-> 3 reasons why this patchset should be rejected:
->
-> 1) It increases sk_buff size potentially by 1 byte with minimal config
->
+> TC is not the only way one can loop packets in the kernel forever.
+> Are we now supposed to find and prevent them all?
 
-All distro vendors turn all options. So no change in size happens.
-Regardless, it's a non-arguement there is no way to resolve the mirred
-issue without global state.
-It's a twofer - fixing mirred and netem.
+These two are trivial to reproduce with simple configs. They consume
+both CPU and memory resources.
+I am not aware of other forever packet loops - but if you are we can
+look into them.
 
-> 2) Infinite loop is the symptom caused by enqueuing to the root qdisc,
-> fixing the infinite loop itself is fixing the symptom and covering up the
-> root cause deeper.
->
-
-The behavior of sending to the root has been around for ~20 years.
-I just saw your patches - do you mind explaining why you didnt Cc me on the=
-m?
-
-> 3) Using skb->ttl makes netem duplication behavior less predictable
-> for users. With a TTL-based approach, the duplication depth is limited
-> by a kernel-internal constant that is invisible to userspace. Users
-> configuring nested netem hierarchies cannot determine from tc
-> commands alone whether their packets will be duplicated at each
-> stage or silently pass through when TTL is exhausted.
->
-
-The patch is not using the ttl as a counter for netem, it's being
-treated as boolean (just like your patch is doing). We are only using
-this as a counter for the mirred loop use case.
-
-> NACKed-by: Cong Wang <xiyou.wangcong@gmail.com>
-
-Calm down please.
-
-cheers
+cheers,
 jamal
