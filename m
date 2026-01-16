@@ -1,73 +1,109 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8AC61632DD
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Jan 2026 12:39:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D41943AA6
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Jan 2026 13:07:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768567152; cv=none; b=VHllHEvP6FYEYhpEU0LdcSkuHmyACed/1mWMzWb+KYWg3JlfSUv81Nx13GmM2DQuvHcxGMeomQREnMa9uIg6tfksnOG41F1zj91sXEj/TgZ13CElf+2HS71q2YcEHtu2voJ/HjbnLugBkY1MjFb7EnuHe9AxGF9DC/m8jBSmQLQ=
+	t=1768568853; cv=none; b=X89u7Nib9KBCyYO6kW25Ex6ETq/zQxggqh+FuAyomQFajWYyAqmgFzRctHpkDzpFFjjnScuc5FuEhn4WykW/9/IlRBQ11gH0idm/oLVaFWzEkg592Tei04zIf+AuO9LIegGX/YDtphMq+9SGR8bZ0y9QYNipl+k7lnwEJu18/dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768567152; c=relaxed/simple;
-	bh=dzR2UVJ20uwn3WbZjKz5bpMCkY7E+Yi26RGmMhdrKKE=;
+	s=arc-20240116; t=1768568853; c=relaxed/simple;
+	bh=qQDVlLeI1qCGEKP6U5aQRCR1OEWlHl5esqwCUHgERaM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l9ROJVEGQJ+DfPtDOVpO5XcF3J6WPJgg/ObR2yjCp7vdPsALk4tFZOQe+QBwDetbiM5iv5SyZXrp3Tx9ynp4aEfygyLXAcwyxJpNQOXkXYYeSuqgDcEYt2IN3lr8ngeDkDhccyuTGJhlzricrdlWdyCiTveMkUVWTBWUx9QomFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qlJAtmIG; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qlJAtmIG"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=dzR2UVJ20uwn3WbZjKz5bpMCkY7E+Yi26RGmMhdrKKE=; b=qlJAtmIGvSqF6SPdc3P06Wtsk9
-	bptMbKKvAAYUlAhXSme5Y/7HzjqQi+xlFsv4yaIAV1bYinyVw2nJ2T2vBeSC8P6l4coHZ5FRSON8L
-	RenRU/wQ8C/IYw/F9v+Doy+h2yxQXbPdM3q9+wL08jqeUDHoIEFASCYA7+GCXNM2nC8P0EmWMB+O7
-	EvQVGCcelS5gT8uf2LN6cn7RKqo/fTE0kPki4Gf2M4snTAJNNZ7LD8hvYJIMEQL/SZ9YXH8n3NBb8
-	Eg5p5VNhlvPNGoXJuhJh/CcQLCtpcH13XOybi5P0Ych+XVE2Qnx0vIKyZCsiQRCGyilB2HoS4z9po
-	59UgXpXw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vgj6T-000000000aR-23jh;
-	Fri, 16 Jan 2026 13:39:01 +0100
-Date: Fri, 16 Jan 2026 13:39:01 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Alexandre Knecht <knecht.alexandre@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nf-next v4] parser_json: support handle for rule
- positioning without breaking other objects
-Message-ID: <aWoxZQc-h93Y_xyN@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Alexandre Knecht <knecht.alexandre@gmail.com>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20251113203041.419595-1-knecht.alexandre@gmail.com>
- <aRcnt9F7N5WiV-zi@orbyte.nwl.cc>
- <aRcwa_ZsBrvKFEci@strlen.de>
- <aWe16oO_R-GwM_Af@orbyte.nwl.cc>
- <CAHAB8WzKr9rehUKWSZAPWZq_3QnLGbh2Py88WXpV9sE3_V3MZw@mail.gmail.com>
+	 Content-Type:Content-Disposition:In-Reply-To; b=XNCa39OVbhHXiVk8b6tFEv6tC0TDFASgJxf3QuG00wF49J01GZ+tTbc8ghWNVqHS3uYr6SsZcpxSmMVbWIxWVvugQX9cpTI+CnmpVynRDSZy757k9zdN0krt+Zp+BVPEdADPKxRbE7sEsuAR4nQu7RlwneCOsztTS3XOmrPX918=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 4BAD360242; Fri, 16 Jan 2026 14:07:29 +0100 (CET)
+Date: Fri, 16 Jan 2026 14:07:24 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Jan =?utf-8?Q?Ko=C5=84czak?= <jan.konczak@cs.put.poznan.pl>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] parser_bison: on syntax errors, output expected
+ tokens
+Message-ID: <aWo4DAHLS5284upo@strlen.de>
+References: <1950751.CQOukoFCf9@imladris>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAHAB8WzKr9rehUKWSZAPWZq_3QnLGbh2Py88WXpV9sE3_V3MZw@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1950751.CQOukoFCf9@imladris>
 
-Hi Alexandre,
+Jan Kończak <jan.konczak@cs.put.poznan.pl> wrote:
+> +static int
+> +yyreport_syntax_error(const yypcontext_t *yyctx, struct nft_ctx *nft,
+> +                      void *scanner, struct parser_state *state)
+> +{
+> +	struct location *loc = yypcontext_location(yyctx);
+> +	const char *badTok = yysymbol_name(yypcontext_token(yyctx));
+> +
+> +	char * msg;
+> +	int len = 1024;
+> +	int pos;
+> +	const char * const sep = ", ";
+> +
+> +	// get expected tokens
+> +	int expTokCnt = yypcontext_expected_tokens(yyctx, NULL, 0);
 
-On Thu, Jan 15, 2026 at 09:23:22PM +0100, Alexandre Knecht wrote:
-> I'm deeply sorry for the delay, had a loss in my family, plus a
-> truckload of tasks to achieve at the end of year at work, I have the
-> patch nearly ready, need to review and retest it and I should push it
-> this weekend during my spare time.
+No need for these comments, the function name below is verbose enough.
 
-My condolences. Just take your time, there are more important things in
-life than software (hardware e.g. ;). I merely wanted to check with you
-that next steps are clear. If you wish, I can also take over from here
-on but you sound like you don't want to hand it over yet. :)
+> +	yysymbol_kind_t *expTokArr = malloc(sizeof(yysymbol_kind_t) * expTokCnt);
 
-Cheers, Phil
+You could use xmalloc_array() instead.
+
+> +	if (!expTokArr) return YYENOMEM;
+> +	yypcontext_expected_tokens(yyctx, expTokArr, expTokCnt);
+> +
+> +	// reserve space for the error message
+> +	msg = malloc(len);
+
+You can use xmalloc() here, like other parts in the parser already do.
+
+> +	if (!msg) { free(expTokArr); return YYENOMEM; }
+
+... and then this can be removed.
+
+> +	// start building up the error message
+> +	pos = snprintf(msg, len, "syntax error, unexpected %s\n"
+> +	                         "expected any of: ", badTok);
+
+I think it would be easier to switch this to fprintf, with
+FILE *err = open_memstream(&msg,  ...).
+
+> +	// append expected tokens to the error message
+> +	for (int i = 0; i < expTokCnt; ++i) {
+> +		yysymbol_kind_t expTokKind = expTokArr[i];
+> +		const char * expTokName = yysymbol_name(expTokKind);
+> +
+> +		// tokens that name generic things shall be printed as <foo>; detect them
+> +		int isNotAKeyword = 0;
+> +		switch( expTokKind ){
+> +			case YYSYMBOL_NUM:      case YYSYMBOL_QUOTED_STRING:
+> +			case YYSYMBOL_STRING:   case YYSYMBOL_ASTERISK_STRING:
+> +				isNotAKeyword = 1;
+> +			default:
+> +		}
+> +
+> +		if ((size_t)len-pos-1 < strlen(expTokName)+strlen(sep)+isNotAKeyword*2) {
+> +			// need more space for the error message to fit all expected tokens
+> +			char * newMsg;
+> +			len += 1024;
+> +			newMsg = realloc(msg, len);
+> +			if (!newMsg) { free(msg); free(expTokArr); return YYENOMEM; }
+> +			msg = newMsg;
+
+... it would allow to remove these checks; libc would take care of
+reallocting the memory buffer.
+
+> +		pos += snprintf(msg+pos, len-pos, "%s%s%s%s",
+
+and no more need to advance the target buffer and manual fiddling with
+allowed length.
+
+Other than these nits I think this is ready to get merged.
