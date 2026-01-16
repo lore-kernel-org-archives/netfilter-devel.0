@@ -1,93 +1,73 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 354B226F28D
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Jan 2026 11:42:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8AC61632DD
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Jan 2026 12:39:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768563778; cv=none; b=Mo5Bi8/9QMZc4ox3AWW/Lo43IcltFLfALvGiPrQAdwFXAZuxoCHmJ+oASV4zfJ2VMHcNxdri3Aq5y0ORG8e2IaSq98+JwVDodzwM8lWsVCGJ3ympFN++n948ECRwTvBOD4OUdAhp6b2TUhdsbI0B5LFNLo4pMcO2Y/5KGVS7OkE=
+	t=1768567152; cv=none; b=VHllHEvP6FYEYhpEU0LdcSkuHmyACed/1mWMzWb+KYWg3JlfSUv81Nx13GmM2DQuvHcxGMeomQREnMa9uIg6tfksnOG41F1zj91sXEj/TgZ13CElf+2HS71q2YcEHtu2voJ/HjbnLugBkY1MjFb7EnuHe9AxGF9DC/m8jBSmQLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768563778; c=relaxed/simple;
-	bh=Nf4ZLBnMB8sPyrlvdUjxK5A4Ir7a76qGTQUOwoG9Qo8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=kUTbCKN/p1trhJMHErxbwZILlfMnj35epVgPH9NORthSj1A15O1SX3XGP3IOJIgkBqmehOOQtSrqkYT5G53qHEmvux35NVo6sUNNx30Rz9wbt2vnSe37xY5BcpJYiA7TW0RvuhNjwUUu2/uaexGQIkbaUf5JGK0TePCIugBrKDI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 036876054D; Fri, 16 Jan 2026 12:42:51 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nft_compat: add more restrictions on netlink attributes
-Date: Fri, 16 Jan 2026 12:42:14 +0100
-Message-ID: <20260116114219.20868-1-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
+	s=arc-20240116; t=1768567152; c=relaxed/simple;
+	bh=dzR2UVJ20uwn3WbZjKz5bpMCkY7E+Yi26RGmMhdrKKE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=l9ROJVEGQJ+DfPtDOVpO5XcF3J6WPJgg/ObR2yjCp7vdPsALk4tFZOQe+QBwDetbiM5iv5SyZXrp3Tx9ynp4aEfygyLXAcwyxJpNQOXkXYYeSuqgDcEYt2IN3lr8ngeDkDhccyuTGJhlzricrdlWdyCiTveMkUVWTBWUx9QomFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qlJAtmIG; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qlJAtmIG"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=dzR2UVJ20uwn3WbZjKz5bpMCkY7E+Yi26RGmMhdrKKE=; b=qlJAtmIGvSqF6SPdc3P06Wtsk9
+	bptMbKKvAAYUlAhXSme5Y/7HzjqQi+xlFsv4yaIAV1bYinyVw2nJ2T2vBeSC8P6l4coHZ5FRSON8L
+	RenRU/wQ8C/IYw/F9v+Doy+h2yxQXbPdM3q9+wL08jqeUDHoIEFASCYA7+GCXNM2nC8P0EmWMB+O7
+	EvQVGCcelS5gT8uf2LN6cn7RKqo/fTE0kPki4Gf2M4snTAJNNZ7LD8hvYJIMEQL/SZ9YXH8n3NBb8
+	Eg5p5VNhlvPNGoXJuhJh/CcQLCtpcH13XOybi5P0Ych+XVE2Qnx0vIKyZCsiQRCGyilB2HoS4z9po
+	59UgXpXw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1vgj6T-000000000aR-23jh;
+	Fri, 16 Jan 2026 13:39:01 +0100
+Date: Fri, 16 Jan 2026 13:39:01 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Alexandre Knecht <knecht.alexandre@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v4] parser_json: support handle for rule
+ positioning without breaking other objects
+Message-ID: <aWoxZQc-h93Y_xyN@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Alexandre Knecht <knecht.alexandre@gmail.com>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20251113203041.419595-1-knecht.alexandre@gmail.com>
+ <aRcnt9F7N5WiV-zi@orbyte.nwl.cc>
+ <aRcwa_ZsBrvKFEci@strlen.de>
+ <aWe16oO_R-GwM_Af@orbyte.nwl.cc>
+ <CAHAB8WzKr9rehUKWSZAPWZq_3QnLGbh2Py88WXpV9sE3_V3MZw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHAB8WzKr9rehUKWSZAPWZq_3QnLGbh2Py88WXpV9sE3_V3MZw@mail.gmail.com>
 
-As far as I can see nothing bad can happen when NFTA_TARGET/MATCH_NAME
-are too large because this calls x_tables helpers which check for the
-length, but it seems better to reject known bad values early via
-netlink policy.
+Hi Alexandre,
 
-Rest of the changes avoid silent u8/u16 truncations.
+On Thu, Jan 15, 2026 at 09:23:22PM +0100, Alexandre Knecht wrote:
+> I'm deeply sorry for the delay, had a loss in my family, plus a
+> truckload of tasks to achieve at the end of year at work, I have the
+> patch nearly ready, need to review and retest it and I should push it
+> this weekend during my spare time.
 
-For _TYPE, its expected to be only 1 or 0. In x_tables world, this
-variable is set by kernel, for IPT_SO_GET_REVISION_TARGET its 1, for
-all others its set to 0.
+My condolences. Just take your time, there are more important things in
+life than software (hardware e.g. ;). I merely wanted to check with you
+that next steps are clear. If you wish, I can also take over from here
+on but you sound like you don't want to hand it over yet. :)
 
-As older versions of nf_tables permitted any value except 1 to mean 'match',
-keep this as-is but sanitize the value for consistency.
-
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_compat.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 72711d62fddf..08f620311b03 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -134,7 +134,8 @@ static void nft_target_eval_bridge(const struct nft_expr *expr,
- }
- 
- static const struct nla_policy nft_target_policy[NFTA_TARGET_MAX + 1] = {
--	[NFTA_TARGET_NAME]	= { .type = NLA_NUL_STRING },
-+	[NFTA_TARGET_NAME]	= { .type = NLA_NUL_STRING,
-+				    .len = XT_EXTENSION_MAXNAMELEN, },
- 	[NFTA_TARGET_REV]	= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_TARGET_INFO]	= { .type = NLA_BINARY },
- };
-@@ -434,7 +435,8 @@ static void nft_match_eval(const struct nft_expr *expr,
- }
- 
- static const struct nla_policy nft_match_policy[NFTA_MATCH_MAX + 1] = {
--	[NFTA_MATCH_NAME]	= { .type = NLA_NUL_STRING },
-+	[NFTA_MATCH_NAME]	= { .type = NLA_NUL_STRING,
-+				    .len = XT_EXTENSION_MAXNAMELEN },
- 	[NFTA_MATCH_REV]	= NLA_POLICY_MAX(NLA_BE32, 255),
- 	[NFTA_MATCH_INFO]	= { .type = NLA_BINARY },
- };
-@@ -693,7 +695,12 @@ static int nfnl_compat_get_rcu(struct sk_buff *skb,
- 
- 	name = nla_data(tb[NFTA_COMPAT_NAME]);
- 	rev = ntohl(nla_get_be32(tb[NFTA_COMPAT_REV]));
--	target = ntohl(nla_get_be32(tb[NFTA_COMPAT_TYPE]));
-+	/* x_tables api checks for 'target == 1' to mean target,
-+	 * everything else means 'match'.
-+	 * In x_tables world, the number is set by kernel, not
-+	 * userspace.
-+	 */
-+	target = nla_get_be32(tb[NFTA_COMPAT_TYPE]) == htonl(1);
- 
- 	switch(family) {
- 	case AF_INET:
--- 
-2.52.0
-
+Cheers, Phil
