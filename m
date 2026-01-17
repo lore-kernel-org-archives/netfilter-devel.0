@@ -1,138 +1,138 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC46533A6E2
-	for <netfilter-devel@vger.kernel.org>; Fri, 16 Jan 2026 15:31:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D596A1E9B1A
+	for <netfilter-devel@vger.kernel.org>; Sat, 17 Jan 2026 17:32:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768577514; cv=none; b=LryWte52xZSM7FD+lYN+lzGrDeQQWxQIZPLl/rg2DaT3m68ZQwGLrKJyRStkHRyISxarqbG1DWHquznWlA/lKrvZUGLiic6ndGEAo1wVeJb9cH6g/52GibRn48cLz+Ff4mQ3HKs5BxViZP27mKIykXk4pfiO+9PKXhPburqK9zM=
+	t=1768671157; cv=none; b=Umr6umAkLJUmcoReGQd4Zr9tEh2GKTqzVuJQK9ro3uLbpBM3IvTQsb1wNVPMIztD7LHy67kPxnHlC7/IaG+mwRL49oz9OJxfyodvaIuEAiIGVAN2HHKqpf+taOCNc9NY8Dg3BJe80wi/8m9GeL01Ao8Hj1hDD3ngPv+5KTN19QI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768577514; c=relaxed/simple;
-	bh=IzrMQkq70Cxm4pigQ8xG5z7FDOeh7gHVZ5fxlq8kE7M=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=h5HLvD9z3rbW4RgHeFdCZOMk/kDqkD+gzYdrBTcZq0w+DUilY16qbbo5ANt7IbadebaKCeXcS17hdLe3AqkHk9tHmNqGC3q3AN2nCoHVufp7fR78VBr8Eu6/Nf3sQAWLbvtbnw4fqQNFH0Hd2ZWNYv9CFl9fpzNxTfdZKRDo2rg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=rpQK+nNE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=/2mW+ECV; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=vBDAq9s+; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=SpgqEQ7o; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1768671157; c=relaxed/simple;
+	bh=i1mATf9Ptiw/oQ3Qkv7uYUlssO4aEkJWpF4KIpp8hJs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=VxTB1Lbai3RB1sWf9ECQHmAC6EKR4nW0C2ubJ6WXhVIvpnSSvEm5q8XkfRcHMW+5tEFLC7+uTzRlAagIvFpTd/CAZ6KL86GhoBIAmj84ye0LPudgo889nTjIdUUmPys/HxpEfBG2jayXTwsC4o5JXY7GL9TaTeyZb5l/pBIRHA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PXlKgjmQ; arc=none smtp.client-ip=74.125.82.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="rpQK+nNE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="/2mW+ECV";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="vBDAq9s+";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="SpgqEQ7o"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 20CA05BE58;
-	Fri, 16 Jan 2026 15:31:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1768577509; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=5T73AKt1C+JbOJ8TxKkwX0+5VLxcWbSt08S/m90VIf0=;
-	b=rpQK+nNEkMDZLkb+cFN793HDMQZoSs0WIf0yQQUJVnLTY5+8WXUaIPKkhRSqjMbX4LiZOl
-	/YIb9Q/4DR+i1/Yz/5K20uW4tSbfkmg5YtI72J2raPgcABn1qSK6OWwDk7Yb96Nowh25mP
-	BlR8HpPIq0BfXMPio/l00RBB0TjEUp8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1768577509;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=5T73AKt1C+JbOJ8TxKkwX0+5VLxcWbSt08S/m90VIf0=;
-	b=/2mW+ECVEWzCzt5iwq/LXrwLZMOkQWDe33nNsVsHxdE03AcwhuOzk2cquellxxelbaFqYu
-	WsoWPI00TNzrU+DQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1768577508; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=5T73AKt1C+JbOJ8TxKkwX0+5VLxcWbSt08S/m90VIf0=;
-	b=vBDAq9s+Ukroo9P+VJlxr901K0JFTkhlTZlR4emAWUwEVODiwSxX2Nbsqjlxor8nOmNG7I
-	VJ/1UnEr6fBOiWB6XyKovfYUNL/dfHT+9fD0N3wwZ4VSHo+pS54eDXv8ZBz2A6hui5rgLu
-	X1wV/2Z5XlzZIk6YygB3U0BircnQTNk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1768577508;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=5T73AKt1C+JbOJ8TxKkwX0+5VLxcWbSt08S/m90VIf0=;
-	b=SpgqEQ7o9UGgMvsRZPXz8B0M+6d8EmiyoegEd5oe+InP2/IuAsO8bpku2rBly86rHXi2SD
-	6bHq67z48rew4KBQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C40683EA63;
-	Fri, 16 Jan 2026 15:31:47 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id i3mGKeNZamk2LAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 16 Jan 2026 15:31:47 +0000
-Message-ID: <74d8f91b-3e25-448b-90d5-981c3fcc89d6@suse.de>
-Date: Fri, 16 Jan 2026 16:31:30 +0100
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PXlKgjmQ"
+Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-2b6bb644e8eso3481454eec.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jan 2026 09:32:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1768671155; x=1769275955; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=R6gEaK0aE35YjCrECbEERnEdoE/GiDCyaJrkeJSYjdY=;
+        b=PXlKgjmQBhwQNEP5LGSYeo3cikom/7FTyWZSw0GAhzavUYLbA8GMKNwsAhtcAv+vUD
+         dAMzonLHyKwETA6Lu7JmfrxEYvpo7ZM2D+k5i+aIeAVeyQVP5VN/QwN+fDuElPTVdG6k
+         8YAPZUs7LY0G1AUBzCQyG1QAjfmq2p9sTdwJtNtMCLsau9uA8LM8J5hctU/olHqYcNsK
+         lrEAT2NHCwXkqVkti4Z5ViCF8cfH16Xxd0mR00FU1EKFK122S54AmLIAOa0uOLMdFgoM
+         acJiYpxywgwOqx0MGjzeufPSsSg6UpoQIuiBNEZcTK7wJVT53wNjHW0qKGuh75KLgeza
+         lQZg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1768671155; x=1769275955;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=R6gEaK0aE35YjCrECbEERnEdoE/GiDCyaJrkeJSYjdY=;
+        b=uWT+L3VM7QWm2qN4fm02xH9Vsf011EP5z+/1wrojfdk7V2oyumuBpudmba8FlUQ6ok
+         gK/vuNKCcdlbKlVSkSIF5FFt9EV4fTV5gXf+J94lMHoencB4RlJoxK0ivipcFIy4Lvtn
+         0NbRINpL8RhMvCpPl30D3khahubwxA8OGMzMOv+lGP74PJDoOvY+9exFNB9nxmUa+Hp1
+         oDCHkZgETcUtR8+21hWJVkS2/wjpzwpGuxHs5Bm5jdORZOArLYtcY1N8BWwIUcIGAAIE
+         rfJaMgkL0s0xZ3nAzDEMtqhibtI8Sj0UZYyjpLqUmQ59VFJIV/1H+5wsMKD4WQXOVBPW
+         cj4g==
+X-Gm-Message-State: AOJu0Yx8nkVDjFEI5+1YhudJOi/BgvlcBL/iP7JNMf4iS5PLXICDAKkY
+	MK6CWIyMlxN3U3nE6f2YPRq9UP0mnqO5hhPR8hZPOCneTZKFdKqem3ojhY2Nzg==
+X-Gm-Gg: AY/fxX6fv3FI4//mKooHXaLoIfnvI6OvTZhnUjPQxCyzCRlR0so961G4M1AxDNdSA4D
+	A4ErKNhZC0MHMe72arjO7gKIf4/Pz3ZLndPlLKK06fCmwIuHsVwOxz2rlrcM/X4y1SIQhFY6dJr
+	lhw2PLv4fArC8WXPnr7A3GLuzLdLsM5e0u9m1wAGinBf9xkXjzfhrIY0QGHC9FyrIZqrqtoebwJ
+	3hq2dB2iiwQiJzbgPMHNxrkWF7Y0V3RrP4c4IfYNnM9hb1IF3ZiKeDdpcjtGX0I6lxizZGMWnS1
+	ZsEu6UXfv284nlDM4W8FIGD1da9NmzanNaqjpMTs3WEozqrZn2PC2B+hUBa2SKx5eC5bo/Bj6Vr
+	etESlqlIYnOphI3ULzwPbr3QiNodbSLeIk8obLU/oh3PlzvY9v2fZpk2CNtgjmqmgEMhrIIXNIp
+	vSj7WXA5t10DpoSC5KNFPU5Q==
+X-Received: by 2002:a05:7300:5714:b0:2ae:5ddf:e203 with SMTP id 5a478bee46e88-2b6b3f2ffc7mr4284195eec.11.1768671154548;
+        Sat, 17 Jan 2026 09:32:34 -0800 (PST)
+Received: from mac.com ([136.24.82.250])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b6b361f5c9sm6486614eec.22.2026.01.17.09.32.33
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Sat, 17 Jan 2026 09:32:34 -0800 (PST)
+From: scott.k.mitch1@gmail.com
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	Scott Mitchell <scott.k.mitch1@gmail.com>
+Subject: [PATCH v6 0/2] netfilter: nfnetlink_queue: optimize verdict lookup with hash table
+Date: Sat, 17 Jan 2026 09:32:29 -0800
+Message-Id: <20260117173231.88610-1-scott.k.mitch1@gmail.com>
+X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf-next] netfilter: nft_compat: add more restrictions on
- netlink attributes
-To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20260116114219.20868-1-fw@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260116114219.20868-1-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spam-Score: -4.30
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.999];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email]
-X-Spam-Level: 
-X-Spam-Flag: NO
+Content-Transfer-Encoding: 8bit
 
-On 1/16/26 12:42 PM, Florian Westphal wrote:
-> As far as I can see nothing bad can happen when NFTA_TARGET/MATCH_NAME
-> are too large because this calls x_tables helpers which check for the
-> length, but it seems better to reject known bad values early via
-> netlink policy.
-> 
-> Rest of the changes avoid silent u8/u16 truncations.
-> 
-> For _TYPE, its expected to be only 1 or 0. In x_tables world, this
-> variable is set by kernel, for IPT_SO_GET_REVISION_TARGET its 1, for
-> all others its set to 0.
-> 
-> As older versions of nf_tables permitted any value except 1 to mean 'match',
-> keep this as-is but sanitize the value for consistency.
-> 
-> Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+From: Scott Mitchell <scott.k.mitch1@gmail.com>
 
-Looks good to me and tested it.
+The current implementation uses a linear list to find queued packets by
+ID when processing verdicts from userspace. With large queue depths and
+out-of-order verdicting, this O(n) lookup becomes a significant
+bottleneck, causing userspace verdict processing to dominate CPU time.
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Replace the linear search with a hash table for O(1) average-case
+packet lookup by ID. The existing list data structure is retained for
+operations requiring linear iteration (e.g. flush, device down events).
+
+Patch 1 refactors locking in nfqnl_recv_config() to allow GFP_KERNEL_ACCOUNT
+allocation in instance_create(). This unifies the RCU locking pattern and
+prepares for hash table initialization which requires sleeping allocation.
+
+Patch 2 implements a manual hash table with automatic resizing. The hash
+table grows at 75% load factor and shrinks at 25% load factor (with 60
+second minimum between shrinks to prevent resize cycling). Memory is
+allocated with GFP_KERNEL_ACCOUNT for proper cgroup attribution. Resize
+operations are deferred to a work queue since they require GFP_KERNEL_ACCOUNT
+allocation which cannot be done in softirq context.
+
+v5: https://lore.kernel.org/netfilter-devel/20251122003720.16724-1-scott_mitchell@apple.com/
+
+Changes in v6:
+- Split into 2-patch series
+- Patch 1: Refactor locking to allow GFP_KERNEL_ACCOUNT allocation in
+  instance_create() by dropping RCU lock after instance_lookup() and
+  peer_portid verification (Florian Westphal)
+- Patch 2: Remove UAPI for hash size, automatic resize, attribute
+  memory to cgroup.
+
+Changes in v5:
+- Use GFP_ATOMIC with kvmalloc_array instead of GFP_KERNEL_ACCOUNT due to
+  rcu_read_lock held in nfqnl_recv_config. Add comment explaining that
+  GFP_KERNEL_ACCOUNT would require lock refactoring (Florian Westphal)
+
+Changes in v4:
+- Fix sleeping while atomic bug: allocate hash table before taking
+  spinlock in instance_create() (syzbot)
+
+Changes in v3:
+- Simplify hash function to use direct masking (id & mask) instead of
+  hash_32() for better cache locality with sequential IDs (Eric Dumazet)
+
+Changes in v2:
+- Use kvcalloc/kvfree with GFP_KERNEL_ACCOUNT to support larger hash
+  tables with vmalloc fallback (Florian Westphal)
+- Remove incorrect comment about concurrent resizes - nfnetlink subsystem
+  mutex already serializes config operations (Florian Westphal)
+- Fix style: remove unnecessary braces around single-line if (Florian Westphal)
+
+Scott Mitchell (2):
+  netfilter: nfnetlink_queue: nfqnl_instance GFP_ATOMIC ->
+    GFP_KERNEL_ACCOUNT allocation
+  netfilter: nfnetlink_queue: optimize verdict lookup with hash table
+
+ include/net/netfilter/nf_queue.h |   1 +
+ net/netfilter/nfnetlink_queue.c  | 304 ++++++++++++++++++++++++++-----
+ 2 files changed, 258 insertions(+), 47 deletions(-)
+
+--
+2.39.5 (Apple Git-154)
 
