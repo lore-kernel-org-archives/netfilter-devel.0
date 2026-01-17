@@ -1,70 +1,70 @@
-Received: from mail-dy1-f180.google.com (mail-dy1-f180.google.com [74.125.82.180])
+Received: from mail-dy1-f173.google.com (mail-dy1-f173.google.com [74.125.82.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A372A279355
-	for <netfilter-devel@vger.kernel.org>; Sat, 17 Jan 2026 17:32:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 090CB1E9B1A
+	for <netfilter-devel@vger.kernel.org>; Sat, 17 Jan 2026 17:32:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768671159; cv=none; b=rHS1Eunrs1B3QxNPAt77v733ZCKvvRnxE+9QHBRmooCjT9ZLlRvoo3AE1ZGcaSFeAZH9pKnSmq+xQJfHeJ2mQIDqxF4pEQo8cUwDI+c/Aopnh05yjTmaEd4UGQw4+b7q+aDdNRfy0rd+9M8v9WGTw1mKQri1AcSPQ10XZ6rtglo=
+	t=1768671160; cv=none; b=IuXTJP9N3+zcmfDxlPKU7dB5BlEV20G4nNchXmABk7uZgTH0GZbT8g4I0cSPrYoThc05XXPBonPvMnKcXhzkJ/KLX6ukcfd6zzqMbj+DgK6mEAy8WkLyJWlTi9pS9gYZ9ymW0IDUCXEZJ4RigzA7BPsKzeYbR+1noddpGeuz4B8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768671159; c=relaxed/simple;
-	bh=SHquis//YSnRdw9BlDXK2mSGReJsCwA7Pjd51i4SzVU=;
+	s=arc-20240116; t=1768671160; c=relaxed/simple;
+	bh=cJYasRhiERLYuANQ7GWpF+sPnKaPFFAmKfvlSDOLXkY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=is+oDUKYSa8vbzUBlWBpyGN479g6pyhSbUwf4QSl7Yi+n0cC2w2D6W6nAG2PIbgLJ3jGsvcX4yQUP/afCv42WWC2m1lF592wM8rKeE9jjxgwVuGe/50Mvcc9hfriCCSxzF8pxeW7/lbffSId+veYKo6M7hpPCCi5ZN4f4w28gQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=N2y8g9QT; arc=none smtp.client-ip=74.125.82.180
+	 MIME-Version; b=hn7YPSxNT7TdNhm7FIkEVVctkxCy9zmSl89APCe+Kk57MaqVN6JAPx4HARusz/igEAsoVIcC+S9RZDYgxHHlLBv+uIZAXtxXxQM4q2awg4qYkQn8aOJyJmsmNJyaOOx6jBw83b8IBeSVUmSdnIDkb5gacbDzfidmJFwP7Xkx3HQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CPgizIMt; arc=none smtp.client-ip=74.125.82.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N2y8g9QT"
-Received: by mail-dy1-f180.google.com with SMTP id 5a478bee46e88-2b6b65c79aeso3279405eec.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jan 2026 09:32:37 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CPgizIMt"
+Received: by mail-dy1-f173.google.com with SMTP id 5a478bee46e88-2ae61424095so3242004eec.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Jan 2026 09:32:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768671156; x=1769275956; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1768671158; x=1769275958; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rQyYPajs63jOfQrX/n1UkXXCDBCQo3EBXBTdVg7TOwI=;
-        b=N2y8g9QTK4fMbMkDaMhHzIh6KG4v3TeuP+tu5pRhGKmxPTeK+KgdcJtZw0p/f8++J5
-         GaxOzkWMMjaf2D8lzhOv81zpWjy0To8kV3LQNU4gpncEzqZl3YqMzCZkjG9LNNSkTL53
-         GuRMV57zLQgUMilGEVVA2Y7PfJ4Ius4pY1eko9gkq7PT/dwCNZ5s9LeYBh9NktIpfheN
-         Ogg63+C7g0Q2lVtqJYMce6PFjmJ2zJPbscPuQbRlvA/DXYXFckDQM7mvZiBLbvWP1A0d
-         OamgTksnsaDwgW2/F51gV71wcjvK2l1K8nvL6QzwSCUNgUg1mYMhkAeUGDRiZ9B0INft
-         V6pw==
+        bh=VCHTqt9zdTEOnQwhDzXbV5p6SXRicPFE0YZbJjkWFe4=;
+        b=CPgizIMtBAss10HJC4QYT3fs0ryVanWMezi0mOnOoafxx1xXTkC7Qt8BBfkbGLaHTR
+         NkhRVl/a9rPypRFndbYgfp392EVzFcNrKk9Bi0RJrPpdvvKhzaFWWEqKO2BM2D8FlCkC
+         shYWWlD6n3fcHpvCIRRegSg3Jby7MAF8pEyz6vjEjLIR6Skzb1C4TFfaoPqEDb/pvR4R
+         JEhzd3W2H9tkS+XdouGQ/beOaZ1qOAJDq7quEW1iSSe8JVEHSkVDg8W5eOOyYPJLBF2p
+         noHq++mi750AwQH5OhjfDugaQPJaCt4hUf1HMGOddB344pBuuK5Mv3/EkkF5NzlB/ULd
+         ShHg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768671156; x=1769275956;
+        d=1e100.net; s=20230601; t=1768671158; x=1769275958;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=rQyYPajs63jOfQrX/n1UkXXCDBCQo3EBXBTdVg7TOwI=;
-        b=xAila5YtNnRL0reLACFBgIyaxSUaFLeN24JWJ3p/b6H6QcwGhEYBV3Ehv687U/qL7y
-         pnPbzjrFw88JqdJ7EfK6ao6OchysU1tuMt6j8hEE51uGHbpoLARbLEQWRa8Z3MQk4rRs
-         8MFIFRsFfiuQ3NqqwSuYhu6z0JhAQZ5crABIUGPql+QrSA2+/3B04r0JmguKQPcOaoW9
-         e8Yfvo3tB4UBfcDErNijDy3mmuq5ac9aRqV5kdHiXOKZiWbPTG+gyhPU8enBdj3hk8QF
-         YDvhyBChhcPi3CiJf/te2dtrsNq4JSSaE1WqOY4wEe5R3BFT5sgMno/RcZAeuzWKs3zP
-         wdGA==
-X-Gm-Message-State: AOJu0YxkU4eOMdqYPM+lzTjWhUi3uUh8WnIL1oi8IFk5XLVsxApCbKtG
-	QZqIJcD3pXNWweEkpNMmLLpHcc2f/C7DGjdQPMcEkIbJmMpPqv8JEAj+mfq3ig==
-X-Gm-Gg: AY/fxX5Aq/88Iyry4c3ngyjhSJF8SlTV04JODcSdEwrsaSTs285YB+/4FYxAfNCdVk4
-	3n8LUXFoVIwgveAlVedt1pmLhYkB4cWVmzIWwMoab8J1HsRKRiT8V8x2Ajiw9wRjlPzPYTrd/0k
-	0iEWvuNsUhjyj8FOWjB/UmpVF1poU0xVNTngcZ764FAh+r7hHvmLwEjOABinDu6GIjTcXw0Tie/
-	uqJ/t05XBM+ikzY+ut2LLaMunngUmGBwx0HuIYwtqb7wc+BddkGVM32kPnONXq7KDKyNtOj+ufq
-	qsxS/Js/HFqJlrm3U9Ixwic6XeDhgYookGQuy+AhE6eWzzEJPFz8GmfFMgeI2l5zfK0eG+smULQ
-	TvYMwOhOw43Tb8i0eGqbNBmizTThQq6wDcQ1yWRpWbS7K4rnSgKf7GE3QV42XO6Hk9omsjq/dAO
-	gtabKd4bQC9vaZ+yALVcy6EA==
-X-Received: by 2002:a05:7301:6086:b0:2a4:3592:cf60 with SMTP id 5a478bee46e88-2b6b3f2236amr4599063eec.4.1768671156199;
-        Sat, 17 Jan 2026 09:32:36 -0800 (PST)
+        bh=VCHTqt9zdTEOnQwhDzXbV5p6SXRicPFE0YZbJjkWFe4=;
+        b=vNMDDSiD3NWuhVZV9cMODRLRgwvIyJH/ywmVuLZ291J8gdBlJkQuDPbdhYs1L4TAR0
+         xxcshfH2Wgtkgy8Y4rX84SbzFfAzBJ14mKkogHQRQ9RtPVBvc1cDE6qn+hmbtLfTjQ6M
+         O5o11HT8DWqpAFiVzNpei1wwegkj2HDmG0/mCISBeDrDsKPNTxqi1NjTN9Tc7QLx3biy
+         ghU0YgNPpDOcjejVOy+JStLUWnOkk4sboDZHcHhpfeB/vciEHWD2P6JiN+wQO4KCqexR
+         RRNwI2vz6jvq7JPLcXGu4kMn0zMaWbBGK5Wf5xQoFh8MVpOHina/Z/znTEFcTdxWBGt9
+         6m6g==
+X-Gm-Message-State: AOJu0YxkExEFusQQFiY05YU8y4X98FzMpFMRyQglXo3QSjDPvIEgngS/
+	yX1uhSTUHnmERl9VuyFPObivDdEgcmiOMGvc9an3s/J4wovfA6R3rRuk6bJviw==
+X-Gm-Gg: AY/fxX4O0FIvUsAQJguK5lcsNFqH1bH24oRfj9oYYBEXDpmNpU0k+MavZ+rarSbbv6L
+	N7erb2FscfBlxA5k4xQs6UHTVyRsWxQq42SNmawubrMMs085KB1Ftv2vIbv5ULK778Quddi7rTT
+	8qQ8T2UvxOw+uOkN4Gq56AcNhvlY5FwJRP9IgVIeOgBcQTOChMIcnbFEm/OQy1z+ytRZDlG/cyP
+	s7TufVuqfIXrskh+3btB36YY6UJ6QCVo0lF+WgU7QGMsDBTrKmgrAK/pem75ARmcYz6V+cu4hyg
+	S1jh3WUuK2qYRWtVIrbHlajs0eY2tiKWr7Wn3qlHmCk0p8t3FCWTPjfng98bSe2OFDXyNSLky0B
+	pRaWDPhczUcboN4+VI8/AEawUYkhVsLLrx41RQ6sv2/E47RI+TUT3MAa+un1r2lLqZuOC6n1aIc
+	G0Z0f9s19qEBadKMoaz4ju7sFHH8fav0f+
+X-Received: by 2002:a05:7301:fa0e:b0:2ae:533d:19bd with SMTP id 5a478bee46e88-2b6b46d2fa6mr4180735eec.8.1768671157591;
+        Sat, 17 Jan 2026 09:32:37 -0800 (PST)
 Received: from mac.com ([136.24.82.250])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b6b361f5c9sm6486614eec.22.2026.01.17.09.32.35
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b6b361f5c9sm6486614eec.22.2026.01.17.09.32.36
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Sat, 17 Jan 2026 09:32:35 -0800 (PST)
+        Sat, 17 Jan 2026 09:32:37 -0800 (PST)
 From: scott.k.mitch1@gmail.com
 To: netfilter-devel@vger.kernel.org
 Cc: pablo@netfilter.org,
 	fw@strlen.de,
 	Scott Mitchell <scott.k.mitch1@gmail.com>
-Subject: [PATCH v6 1/2] netfilter: nfnetlink_queue: nfqnl_instance GFP_ATOMIC -> GFP_KERNEL_ACCOUNT allocation
-Date: Sat, 17 Jan 2026 09:32:30 -0800
-Message-Id: <20260117173231.88610-2-scott.k.mitch1@gmail.com>
+Subject: [PATCH v6 2/2] netfilter: nfnetlink_queue: optimize verdict lookup with hash table
+Date: Sat, 17 Jan 2026 09:32:31 -0800
+Message-Id: <20260117173231.88610-3-scott.k.mitch1@gmail.com>
 X-Mailer: git-send-email 2.39.5 (Apple Git-154)
 In-Reply-To: <20260117173231.88610-1-scott.k.mitch1@gmail.com>
 References: <20260117173231.88610-1-scott.k.mitch1@gmail.com>
@@ -78,164 +78,386 @@ Content-Transfer-Encoding: 8bit
 
 From: Scott Mitchell <scott.k.mitch1@gmail.com>
 
-Currently, instance_create() uses GFP_ATOMIC because it's called while
-holding instances_lock spinlock. This makes allocation more likely to
-fail under memory pressure.
+The current implementation uses a linear list to find queued packets by
+ID when processing verdicts from userspace. With large queue depths and
+out-of-order verdicting, this O(n) lookup becomes a significant
+bottleneck, causing userspace verdict processing to dominate CPU time.
 
-Refactor nfqnl_recv_config() to drop RCU lock after instance_lookup()
-and peer_portid verification. A socket cannot simultaneously send a
-message and close, so the queue owned by the sending socket cannot be
-destroyed while processing its CONFIG message. This allows
-instance_create() to allocate with GFP_KERNEL_ACCOUNT before taking
-the spinlock.
+Replace the linear search with a hash table for O(1) average-case
+packet lookup by ID. The hash table automatically resizes based on
+queue depth: grows at 75% load factor, shrinks at 25% load factor.
+To prevent rapid resize cycling during traffic bursts, shrinking only
+occurs if at least 60 seconds have passed since the last shrink.
 
-Suggested-by: Florian Westphal <fw@strlen.de>
+Hash table memory is allocated with GFP_KERNEL_ACCOUNT so memory is
+attributed to the cgroup rather than kernel overhead.
+
+The existing list data structure is retained for operations requiring
+linear iteration (e.g. flush, device down events). Hot fields
+(queue_hash_mask, queue_hash pointer, resize state) are placed in the
+same cache line as the spinlock and packet counters for optimal memory
+access patterns.
+
 Signed-off-by: Scott Mitchell <scott.k.mitch1@gmail.com>
 ---
- net/netfilter/nfnetlink_queue.c | 73 +++++++++++++++------------------
- 1 file changed, 32 insertions(+), 41 deletions(-)
+ include/net/netfilter/nf_queue.h |   1 +
+ net/netfilter/nfnetlink_queue.c  | 237 +++++++++++++++++++++++++++++--
+ 2 files changed, 229 insertions(+), 9 deletions(-)
 
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 4aeffddb7586..3d0def310523 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -11,6 +11,7 @@
+ /* Each queued (to userspace) skbuff has one of these. */
+ struct nf_queue_entry {
+ 	struct list_head	list;
++	struct hlist_node	hash_node;
+ 	struct sk_buff		*skb;
+ 	unsigned int		id;
+ 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 8b7b39d8a109..7b2cabf08fdf 100644
+index 7b2cabf08fdf..772d2a7d0d7c 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -121,17 +121,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
+@@ -30,6 +30,11 @@
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/list.h>
+ #include <linux/cgroup-defs.h>
++#include <linux/workqueue.h>
++#include <linux/jiffies.h>
++#include <linux/log2.h>
++#include <linux/memcontrol.h>
++#include <linux/sched/mm.h>
+ #include <net/gso.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+@@ -46,7 +51,11 @@
+ #include <net/netfilter/nf_conntrack.h>
+ #endif
+ 
+-#define NFQNL_QMAX_DEFAULT 1024
++#define NFQNL_QMAX_DEFAULT         1024
++#define NFQNL_HASH_MIN_SIZE        16
++#define NFQNL_HASH_MAX_SIZE        131072
++#define NFQNL_HASH_DEFAULT_SIZE    NFQNL_HASH_MIN_SIZE
++#define NFQNL_HASH_SHRINK_INTERVAL (60 * HZ)	/* Only shrink every 60 seconds */
+ 
+ /* We're using struct nlattr which has 16bit nla_len. Note that nla_len
+  * includes the header length. Thus, the maximum packet length that we
+@@ -59,6 +68,11 @@
+ struct nfqnl_instance {
+ 	struct hlist_node hlist;		/* global list of queues */
+ 	struct rcu_head rcu;
++	struct work_struct destroy_work;
++	struct work_struct resize_work;
++#ifdef CONFIG_MEMCG
++	struct mem_cgroup *resize_memcg;
++#endif
+ 
+ 	u32 peer_portid;
+ 	unsigned int queue_maxlen;
+@@ -66,7 +80,6 @@ struct nfqnl_instance {
+ 	unsigned int queue_dropped;
+ 	unsigned int queue_user_dropped;
+ 
+-
+ 	u_int16_t queue_num;			/* number of this queue */
+ 	u_int8_t copy_mode;
+ 	u_int32_t flags;			/* Set using NFQA_CFG_FLAGS */
+@@ -77,6 +90,10 @@ struct nfqnl_instance {
+ 	spinlock_t	lock	____cacheline_aligned_in_smp;
+ 	unsigned int	queue_total;
+ 	unsigned int	id_sequence;		/* 'sequence' of pkt ids */
++	unsigned int	queue_hash_size;
++	unsigned int	queue_hash_mask;
++	unsigned long	queue_hash_last_shrink_jiffies;
++	struct hlist_head *queue_hash;
+ 	struct list_head queue_list;		/* packets in queue */
+ };
+ 
+@@ -114,9 +131,183 @@ instance_lookup(struct nfnl_queue_net *q, u_int16_t queue_num)
+ 	return NULL;
+ }
+ 
++static inline unsigned int
++nfqnl_packet_hash(unsigned int id, unsigned int mask)
++{
++	return id & mask;
++}
++
++static inline void
++nfqnl_resize_schedule_work(struct nfqnl_instance *queue, struct sk_buff *skb)
++{
++#ifdef CONFIG_MEMCG
++	/* Capture the cgroup of the packet triggering the grow request.
++	 * If resize_memcg is already set, a previous packet claimed it.
++	 * If the worker is currently running, it clears this pointer
++	 * early, allowing us to queue the blame for the next run.
++	 */
++	if (!queue->resize_memcg && skb->sk && sk_fullsock(skb->sk) && skb->sk->sk_memcg) {
++		queue->resize_memcg = skb->sk->sk_memcg;
++		/* Increment reference count */
++		css_get(&queue->resize_memcg->css);
++	}
++#endif
++
++	schedule_work(&queue->resize_work);
++}
++
++static inline bool
++nfqnl_should_grow(struct nfqnl_instance *queue)
++{
++	/* Grow if above 75% */
++	return queue->queue_total > (queue->queue_hash_size / 4 * 3) &&
++		queue->queue_hash_size < NFQNL_HASH_MAX_SIZE;
++}
++
++static inline void
++nfqnl_check_grow(struct nfqnl_instance *queue, struct sk_buff *skb)
++{
++	if (nfqnl_should_grow(queue))
++		nfqnl_resize_schedule_work(queue, skb);
++}
++
++static inline bool
++nfqnl_should_shrink(struct nfqnl_instance *queue)
++{
++	/* shrink if below 25% and 60+ seconds since last shrink */
++	return queue->queue_total < (queue->queue_hash_size / 4) &&
++		queue->queue_hash_size > NFQNL_HASH_MIN_SIZE &&
++		time_after(jiffies,
++			   queue->queue_hash_last_shrink_jiffies + NFQNL_HASH_SHRINK_INTERVAL);
++}
++
++static inline void
++nfqnl_check_shrink(struct nfqnl_instance *queue, struct sk_buff *skb)
++{
++	if (nfqnl_should_shrink(queue))
++		nfqnl_resize_schedule_work(queue, skb);
++}
++
++static void
++nfqnl_hash_resize_work(struct work_struct *work)
++{
++	struct nfqnl_instance *inst = container_of(work, struct nfqnl_instance, resize_work);
++	struct mem_cgroup *old_memcg = NULL, *target_memcg = NULL;
++	struct hlist_head *new_hash, *old_hash;
++	struct nf_queue_entry *entry;
++	unsigned int h, hash_mask, new_size;
++
++	/* Check current size under lock and determine if grow/shrink is required */
++	spin_lock_bh(&inst->lock);
++#ifdef CONFIG_MEMCG
++	target_memcg = inst->resize_memcg;
++	inst->resize_memcg = NULL;
++#endif
++
++	new_size = inst->queue_hash_size;
++	if (nfqnl_should_grow(inst)) {
++		/* Resize cannot be done synchronously from __enqueue_entry because
++		 * it runs in softirq context where the GFP_KERNEL_ACCOUNT allocation
++		 * (which can sleep) is not allowed. Instead, resize is deferred to
++		 * work queue. During packet bursts, multiple enqueues may occur before
++		 * any work runs, so we calculate target size based on current queue_total
++		 * (aiming for 75% load) rather than just doubling. Ensure minimum 2x
++		 * growth to avoid tiny increments.
++		 */
++		new_size = (inst->queue_total > NFQNL_HASH_MAX_SIZE * 3 / 4) ?
++			NFQNL_HASH_MAX_SIZE :
++			roundup_pow_of_two(inst->queue_total / 3 * 4);
++
++		new_size = max(new_size, inst->queue_hash_size * 2);
++	} else if (nfqnl_should_shrink(inst)) {
++		new_size = inst->queue_hash_size / 2;
++	}
++
++	if (new_size == inst->queue_hash_size) {
++		spin_unlock_bh(&inst->lock);
++		goto out_put;
++	}
++
++	/* Work queue serialization guarantees only one instance of this function
++	 * runs at a time for a given queue, so we can safely drop the lock during
++	 * allocation without worrying about concurrent resizes.
++	 */
++	spin_unlock_bh(&inst->lock);
++
++	if (target_memcg)
++		old_memcg = set_active_memcg(target_memcg);
++
++	new_hash = kvmalloc_array(new_size, sizeof(*new_hash), GFP_KERNEL_ACCOUNT);
++
++	if (target_memcg)
++		set_active_memcg(old_memcg);
++
++	if (!new_hash)
++		goto out_put;
++
++	hash_mask = new_size - 1;
++	for (h = 0; h < new_size; h++)
++		INIT_HLIST_HEAD(&new_hash[h]);
++
++	spin_lock_bh(&inst->lock);
++
++	list_for_each_entry(entry, &inst->queue_list, list) {
++		/* No hlist_del() since old_hash will be freed and we hold lock */
++		h = nfqnl_packet_hash(entry->id, hash_mask);
++		hlist_add_head(&entry->hash_node, &new_hash[h]);
++	}
++
++	old_hash = inst->queue_hash;
++
++	if (new_size < inst->queue_hash_size)
++		inst->queue_hash_last_shrink_jiffies = jiffies;
++
++	inst->queue_hash_size = new_size;
++	inst->queue_hash_mask = hash_mask;
++	inst->queue_hash = new_hash;
++
++	spin_unlock_bh(&inst->lock);
++
++	kvfree(old_hash);
++
++out_put:
++#ifdef CONFIG_MEMCG
++	/* Decrement reference count after we are done */
++	if (target_memcg)
++		css_put(&target_memcg->css);
++#endif
++}
++
++static void
++instance_destroy_work(struct work_struct *work)
++{
++	struct nfqnl_instance *inst = container_of(work, struct nfqnl_instance,
++						    destroy_work);
++
++	/* Cancel resize_work to avoid use-after-free */
++	cancel_work_sync(&inst->resize_work);
++
++#ifdef CONFIG_MEMCG
++	if (inst->resize_memcg)
++		css_put(&inst->resize_memcg->css);
++#endif
++
++	kvfree(inst->queue_hash);
++	kfree(inst);
++	module_put(THIS_MODULE);
++}
++
+ static struct nfqnl_instance *
+ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
+ {
++	/* Must be power of two for queue_hash_mask to work correctly.
++	 * Avoid overflow of is_power_of_2 by bounding NFQNL_MAX_HASH_SIZE.
++	 */
++	BUILD_BUG_ON(!is_power_of_2(NFQNL_HASH_MIN_SIZE) ||
++		     !is_power_of_2(NFQNL_HASH_DEFAULT_SIZE) ||
++		     !is_power_of_2(NFQNL_HASH_MAX_SIZE) ||
++		     NFQNL_HASH_MAX_SIZE > 1U << 31);
++
+ 	struct nfqnl_instance *inst;
  	unsigned int h;
  	int err;
+@@ -125,11 +316,26 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
+ 	if (!inst)
+ 		return ERR_PTR(-ENOMEM);
  
--	spin_lock(&q->instances_lock);
--	if (instance_lookup(q, queue_num)) {
--		err = -EEXIST;
--		goto out_unlock;
--	}
--
--	inst = kzalloc(sizeof(*inst), GFP_ATOMIC);
--	if (!inst) {
--		err = -ENOMEM;
--		goto out_unlock;
--	}
-+	inst = kzalloc(sizeof(*inst), GFP_KERNEL_ACCOUNT);
-+	if (!inst)
-+		return ERR_PTR(-ENOMEM);
- 
++	inst->queue_hash_size = NFQNL_HASH_DEFAULT_SIZE;
++	inst->queue_hash_mask = inst->queue_hash_size - 1;
++	inst->queue_hash = kvmalloc_array(inst->queue_hash_size, sizeof(*inst->queue_hash),
++					  GFP_KERNEL_ACCOUNT);
++	if (!inst->queue_hash) {
++		err = -ENOMEM;
++		goto out_free;
++	}
++
++	for (h = 0; h < inst->queue_hash_size; h++)
++		INIT_HLIST_HEAD(&inst->queue_hash[h]);
++
  	inst->queue_num = queue_num;
  	inst->peer_portid = portid;
-@@ -141,9 +133,15 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
+ 	inst->queue_maxlen = NFQNL_QMAX_DEFAULT;
+ 	inst->copy_range = NFQNL_MAX_COPY_RANGE;
+ 	inst->copy_mode = NFQNL_COPY_NONE;
++	inst->queue_hash_last_shrink_jiffies = jiffies;
++	INIT_WORK(&inst->destroy_work, instance_destroy_work);
++	INIT_WORK(&inst->resize_work, nfqnl_hash_resize_work);
  	spin_lock_init(&inst->lock);
  	INIT_LIST_HEAD(&inst->queue_list);
  
-+	spin_lock(&q->instances_lock);
-+	if (instance_lookup(q, queue_num)) {
-+		err = -EEXIST;
-+		goto out_unlock;
-+	}
-+
- 	if (!try_module_get(THIS_MODULE)) {
- 		err = -EAGAIN;
--		goto out_free;
-+		goto out_unlock;
- 	}
+@@ -153,6 +359,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
  
- 	h = instance_hashfn(queue_num);
-@@ -153,10 +151,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
- 
- 	return inst;
- 
--out_free:
--	kfree(inst);
  out_unlock:
  	spin_unlock(&q->instances_lock);
-+	kfree(inst);
++
++out_free:
++	kvfree(inst->queue_hash);
+ 	kfree(inst);
  	return ERR_PTR(err);
  }
- 
-@@ -1498,7 +1495,6 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
- 	struct nfqnl_msg_config_cmd *cmd = NULL;
- 	struct nfqnl_instance *queue;
- 	__u32 flags = 0, mask = 0;
--	int ret = 0;
- 
- 	if (nfqa[NFQA_CFG_CMD]) {
- 		cmd = nla_data(nfqa[NFQA_CFG_CMD]);
-@@ -1544,47 +1540,44 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
- 		}
- 	}
- 
-+	/* Lookup queue under RCU. After peer_portid check (or for new queue
-+	 * in BIND case), the queue is owned by the socket sending this message.
-+	 * A socket cannot simultaneously send a message and close, so while
-+	 * processing this CONFIG message, nfqnl_rcv_nl_event() (triggered by
-+	 * socket close) cannot destroy this queue. Safe to use without RCU.
-+	 */
+@@ -169,8 +378,11 @@ instance_destroy_rcu(struct rcu_head *head)
  	rcu_read_lock();
- 	queue = instance_lookup(q, queue_num);
- 	if (queue && queue->peer_portid != NETLINK_CB(skb).portid) {
--		ret = -EPERM;
--		goto err_out_unlock;
-+		rcu_read_unlock();
-+		return -EPERM;
- 	}
-+	rcu_read_unlock();
- 
- 	if (cmd != NULL) {
- 		switch (cmd->command) {
- 		case NFQNL_CFG_CMD_BIND:
--			if (queue) {
--				ret = -EBUSY;
--				goto err_out_unlock;
--			}
--			queue = instance_create(q, queue_num,
--						NETLINK_CB(skb).portid);
--			if (IS_ERR(queue)) {
--				ret = PTR_ERR(queue);
--				goto err_out_unlock;
--			}
-+			if (queue)
-+				return -EBUSY;
-+			queue = instance_create(q, queue_num, NETLINK_CB(skb).portid);
-+			if (IS_ERR(queue))
-+				return PTR_ERR(queue);
- 			break;
- 		case NFQNL_CFG_CMD_UNBIND:
--			if (!queue) {
--				ret = -ENODEV;
--				goto err_out_unlock;
--			}
-+			if (!queue)
-+				return -ENODEV;
- 			instance_destroy(q, queue);
--			goto err_out_unlock;
-+			return 0;
- 		case NFQNL_CFG_CMD_PF_BIND:
- 		case NFQNL_CFG_CMD_PF_UNBIND:
- 			break;
- 		default:
--			ret = -ENOTSUPP;
--			goto err_out_unlock;
-+			return -EOPNOTSUPP;
- 		}
- 	}
- 
--	if (!queue) {
--		ret = -ENODEV;
--		goto err_out_unlock;
--	}
-+	if (!queue)
-+		return -ENODEV;
- 
- 	if (nfqa[NFQA_CFG_PARAMS]) {
- 		struct nfqnl_msg_config_params *params =
-@@ -1609,9 +1602,7 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
- 		spin_unlock_bh(&queue->lock);
- 	}
- 
--err_out_unlock:
--	rcu_read_unlock();
--	return ret;
-+	return 0;
+ 	nfqnl_flush(inst, NULL, 0);
+ 	rcu_read_unlock();
+-	kfree(inst);
+-	module_put(THIS_MODULE);
++
++	/* Defer kvfree to process context (work queue) because kvfree can
++	 * sleep if memory was vmalloc'd, and RCU callbacks run in softirq.
++	 */
++	schedule_work(&inst->destroy_work);
  }
  
- static const struct nfnl_callback nfqnl_cb[NFQNL_MSG_MAX] = {
+ static void
+@@ -191,25 +403,33 @@ instance_destroy(struct nfnl_queue_net *q, struct nfqnl_instance *inst)
+ static inline void
+ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
+ {
+-       list_add_tail(&entry->list, &queue->queue_list);
+-       queue->queue_total++;
++	unsigned int hash = nfqnl_packet_hash(entry->id, queue->queue_hash_mask);
++
++	hlist_add_head(&entry->hash_node, &queue->queue_hash[hash]);
++	list_add_tail(&entry->list, &queue->queue_list);
++	queue->queue_total++;
++	nfqnl_check_grow(queue, entry->skb);
+ }
+ 
+ static void
+ __dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
+ {
++	hlist_del(&entry->hash_node);
+ 	list_del(&entry->list);
+ 	queue->queue_total--;
++	nfqnl_check_shrink(queue, entry->skb);
+ }
+ 
+ static struct nf_queue_entry *
+ find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
+ {
+ 	struct nf_queue_entry *entry = NULL, *i;
++	unsigned int hash;
+ 
+ 	spin_lock_bh(&queue->lock);
+ 
+-	list_for_each_entry(i, &queue->queue_list, list) {
++	hash = nfqnl_packet_hash(id, queue->queue_hash_mask);
++	hlist_for_each_entry(i, &queue->queue_hash[hash], hash_node) {
+ 		if (i->id == id) {
+ 			entry = i;
+ 			break;
+@@ -404,8 +624,7 @@ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
+ 	spin_lock_bh(&queue->lock);
+ 	list_for_each_entry_safe(entry, next, &queue->queue_list, list) {
+ 		if (!cmpfn || cmpfn(entry, data)) {
+-			list_del(&entry->list);
+-			queue->queue_total--;
++			__dequeue_entry(queue, entry);
+ 			nfqnl_reinject(entry, NF_DROP);
+ 		}
+ 	}
 -- 
 2.39.5 (Apple Git-154)
 
