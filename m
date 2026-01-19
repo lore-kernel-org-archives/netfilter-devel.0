@@ -1,71 +1,71 @@
 Received: from mail-wm1-f50.google.com (mail-wm1-f50.google.com [209.85.128.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACCEB376BE0
-	for <netfilter-devel@vger.kernel.org>; Mon, 19 Jan 2026 14:08:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9477137418D
+	for <netfilter-devel@vger.kernel.org>; Mon, 19 Jan 2026 14:08:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768831715; cv=none; b=HMXGJlgXmkCHECqzOQRR9QjzsnnDDWPGlbNowMkEQqZrhrfoEsTFQwaJSmsfLKeyYoz8JJP9ZhKanY6LsYAbppEmp/BA9D/ULKgVAyT12B3OMPkU+VIIzR2NXUgWzsB8JLKG5cCiZctyeTF7YG4wZHfdb5LsECFGJl4L0WM0t8o=
+	t=1768831717; cv=none; b=lLTfCX4glqoCYMgMjZ9z0ObkxEmc681uF3gKKOvkaceFzIjTqv1kEiPVa/3WNmRUXOF06pnjxhPsF12Dk8tulQsg79rxmnTkC4GALy8MOEPpBO7YiJwzTYzHASZKfuzTuwsTsrNsLIBeAo0XeqJNkKtSguCRCRilMkX2XnVLjmc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768831715; c=relaxed/simple;
-	bh=luvXRt1CZOqupcF6f2Bb9+9KAsYmq/ufn28EOdCG5fE=;
+	s=arc-20240116; t=1768831717; c=relaxed/simple;
+	bh=Wc0zOQESfE5s5ecNdG6NBVdoEN3SMMcN/yL4E4wazq8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=F4XSpwAuiqiQ6cTSshtdOvsQSw7eVteXoX5DMjsYnr17V8D/vWa2+quDg7jw92XFKPutled6Z9tf69J1muWR3Io87vcJv3mPNRCJvpxCD1N+koFDm7xNAT3R0D3ZWVxW/k2TJXQ41jk6A/XDQrsNHmRZ1qjWInhH05N/v4Oq8FY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jU5Nfdg2; arc=none smtp.client-ip=209.85.128.50
+	 MIME-Version; b=UCF0ay66NwT1uAlaqse3wMyFxah5H20tcuwed0vplSymBExbZ8170yyr342GCxdT78wOYS95PepSddlA36kfuQJxDZ2qizHHxGMFxqinlTgrMRNml2GxhiEufnutK7lFpbd1vBDoDwILXaNeALQSviNNki4aR0gPfyI/MYci3EE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DH+hNWdz; arc=none smtp.client-ip=209.85.128.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jU5Nfdg2"
-Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-47d63594f7eso29821995e9.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jan 2026 06:08:32 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DH+hNWdz"
+Received: by mail-wm1-f50.google.com with SMTP id 5b1f17b1804b1-4801c314c84so25420565e9.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Jan 2026 06:08:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1768831710; x=1769436510; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1768831713; x=1769436513; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=UYdB0a6FW4wGViEmeoxYUU7WIhIUqANqsrUKBdfYjq4=;
-        b=jU5Nfdg27vN7tlHFQRyn2e5jMInZYr7HJ8xcNrRpKJUM+2KLFGNCDc3k1LZX5NuSbT
-         Gb27KvN5EZiF31G7loz5vCBSYD9ch38zBXYleZTF/qk96UXVeEqhu5XMOtHPuJTQFthm
-         5XhmnSSPZkS3N8PYyedm+7qgKRKo9grTS5xklkPSQC2K8SHfpos6Ybov8bBLDbTZroR1
-         tCtMOh+hATSj8ocFY5lIPgF2n8CrI4lvCDMz758BQUAt6esJ5ZYIsfYBJWJ9aa3K+HyB
-         vvOsmr9wGHP/3uTLIg5N9EQyMa1XZGRP4Ejfug3UGoKot0lz0rpw2+ZvuT4macgyUuKY
-         4scA==
+        bh=HNBIGa1MHbrQfLi7mQ/sZTBMUnQSbSCoiwS9SfLj2Sg=;
+        b=DH+hNWdzFog5b+w6lOUwK+N4aE6pmo+YI00S2r5oi9xafyRHX9O9UxygzHb4H6Kpc2
+         SDDDRQRvpyusl9kp5+ShcMJVWr7v63HrlJo+Q7s52HuTsCzo3kXuCY6od5Bwo6NtAcFS
+         PxOTa4vswzEjZJSJqrvlhsDE8VnAPWnVnwsrZJ5E6GB6h8ZWaZKKQZtmHszVC1I535F4
+         PRYHKkaoCYoJsds+kii5AaGgkgjmo5iC8st/s167ZC/L+TimrgAL9aRmlSchmUh62wOL
+         PhdGL6YblLht/3ziacEaI3WJ1m8xTL3t5pqBBvqnnybXJN5cxcQzJVWA+zj57zi/uyQj
+         2XFQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1768831710; x=1769436510;
+        d=1e100.net; s=20230601; t=1768831713; x=1769436513;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=UYdB0a6FW4wGViEmeoxYUU7WIhIUqANqsrUKBdfYjq4=;
-        b=VYhw/tl1E60zokGCbJ9FT7BdmIE51RNdI1zm1S8IvSanzdkuES4RIDYhHRfmAIIEyH
-         7s5FI2R/tLs43uNgp8E4m/m+Erg5Krpzvqi3xG3XknYtYSY9bmcxYxQe75VY7T6Svcv9
-         4DBLcCQcqFmUwZsJtEJuXbwrCfO1nHU9T4ezMaH9zc1uNnFkDkWAYPhCpz0FOkglpnTQ
-         YgF2AFQ2Um3uVpqlkqQ6y70cDLyYlQznRQEcjjLn9vpZA4bKAD6nuikqltdN4KpqOgWc
-         NafeMXhVnEpgNMJ/sXcVC4vxq4T2XVMEf4M/EwOhl9Dx02yuib9oiJ9xf3q3RjR6FOuF
-         E09A==
-X-Gm-Message-State: AOJu0YxIHiQIx5HMiGGnM4W2uCZQ1/ekoNuDeKSfHrotKsww11CQteol
-	A+YUhpwp7SD53qNTvzmytBoYS8PjsxakHB4PwodrYDQIoNvC+OOzlmncV8m2rw==
-X-Gm-Gg: AY/fxX6fS7+CTe4IZ7iTPhRFiyVdu84za1ZOTpdmmA8ETGwfcm+u65/P/2v+tTc6BfJ
-	qA3QkEEHN6eg27ZsivziS2ofoeJz/yKkhIgPTsjzcm3sNvIFOiKKSayHTswKYI2XF4FbNt0crwH
-	ZHuywRwQVk19WfOFZTokVxyxYzP4/v83AsE8ZXTkF3N5APfq3EEm54LGRAhDtU6MYUHVZFCRmy/
-	Eda4HqyrYDZn///I75NyjguCIrZjNLNa1Em+sGTnkBc9xo6Vl9NJh3Ck/YSgkFgJHPkypfbb60O
-	2EQeiKxRdEKYUq7csBD8wH56zi4BtZC6WOt55HO106eDHoOrOGC+9W9/ttuWPu9E4bqIoKWsoIA
-	xCHfmUtJfQAoHB7UU217knhhqggr5mrryNhv3pjprKBqEaE52/WFFgPLZR1gxVr7rDu9X8M1zGB
-	YYnyLTk3mnML4TKtLLYY9fEaz1lFI7av5NfJddkeQhWH9ILvkrAq8uvao9Dni+f8/8en4OtksZs
-	tDTKw==
-X-Received: by 2002:a05:600c:35c2:b0:480:3b26:82cc with SMTP id 5b1f17b1804b1-4803b2683c0mr13683445e9.18.1768831710158;
-        Mon, 19 Jan 2026 06:08:30 -0800 (PST)
+        bh=HNBIGa1MHbrQfLi7mQ/sZTBMUnQSbSCoiwS9SfLj2Sg=;
+        b=lRpbzeqt9bwXRSh/SLq+cFKKT9HinSLnemKF/PREV1My2SjmH+G2nlHCbLV66nOgo4
+         PXnLnE27h9yqzkFDiUq9tmZlwLQkEhsyTMk3juPjDLSPCl1zq9sEm+89a5z5En5Jffu8
+         ihpGsZOzlJvuUMjdLRz/dF3ae+6+XSgk4bLOT3SEQEcNGFEgUBWHdNaj0NQebHSk21hF
+         IAKF6CWLXVmTMGuig+LJzs2e4/XOB5+6DE1tGX23FYPTYw3tD1TRgozSNVdkVAS9iIJk
+         uLLrSF3O8EdyPMBbjkhQIwUU5zT7LNSB69IUXIh+nt0lfpHlzx6kUK2skWEemgZHTdt8
+         rx/w==
+X-Gm-Message-State: AOJu0YxwBJHrSCiBrofG9NI91w5otjF15yq1q2DyIccRSVkj3Lbq6j42
+	CsLjSSC9pBQRhKco37HpLHXZGm+l8yIG7mmm4goRaC6mco/S/VWfXVjC2mCvew==
+X-Gm-Gg: AY/fxX67BqUy4uv5OhRdaUkeCqCQrKVL5AZh8yKFB4oF0NybEEQL31sJ2r59vRbbLSy
+	NcdU3AXFXpav+bQWmitEPzpupAotaybSPp/LdTB/5Rf1DaFsfijkb1qHbr97fv0yJogxfTOXbMz
+	tk33rAAcbkWJuOqpi+VdZkNbByylcW9vYkN/levhazWKC/y1oZBZ4d1OoHMERpFP08yKo4mP9uq
+	aNVpPm7iDmSoke2yEsDoEymegw7eAdfKGApH5Z0JrOMCKFvjg3V+JSiCvlNsU/QCQZNPIHPdhQ8
+	/VvNJY0HmYYUayAATRQLpWc+yKzMgqmFBageaMHYR5ORPIilWDOnuBU1EVv0Lm82R3x28V1LW1b
+	tQgzZu3PHr0UfyZP++bLlN598CEvommzmH6AaLyLA4HMMw28TingVdCRXn1uGKDOUt3/L4TW4PV
+	cugapVmgj15puhI3brnvd0CADocaQ9G4X5uBfmb7BOAQBOY9okwkuNLLmywWzThvGMN78pEtJao
+	IaEfg==
+X-Received: by 2002:a05:600c:c178:b0:477:a977:b8c5 with SMTP id 5b1f17b1804b1-4801e34cd0emr159832385e9.31.1768831712319;
+        Mon, 19 Jan 2026 06:08:32 -0800 (PST)
 Received: from bluefin (2a02-8440-e509-8e1d-0fa7-f9cb-e455-a769.rev.sfr.net. [2a02:8440:e509:8e1d:fa7:f9cb:e455:a769])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4356999824csm23233975f8f.39.2026.01.19.06.08.29
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-4356999824csm23233975f8f.39.2026.01.19.06.08.31
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Jan 2026 06:08:29 -0800 (PST)
+        Mon, 19 Jan 2026 06:08:31 -0800 (PST)
 From: Alexandre Knecht <knecht.alexandre@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Cc: phil@nwl.cc,
 	fw@strlen.de,
 	Alexandre Knecht <knecht.alexandre@gmail.com>
-Subject: [PATCH v5 2/3] tests: shell: add JSON test for all object types
-Date: Mon, 19 Jan 2026 15:08:12 +0100
-Message-ID: <20260119140813.536515-3-knecht.alexandre@gmail.com>
+Subject: [PATCH v5 3/3] tests: shell: add JSON test for handle-based rule positioning
+Date: Mon, 19 Jan 2026 15:08:13 +0100
+Message-ID: <20260119140813.536515-4-knecht.alexandre@gmail.com>
 X-Mailer: git-send-email 2.51.1
 In-Reply-To: <20260119140813.536515-1-knecht.alexandre@gmail.com>
 References: <20260119140813.536515-1-knecht.alexandre@gmail.com>
@@ -77,188 +77,205 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add comprehensive test for JSON add/insert/delete/replace/create
-operations on all object types to ensure the handle field changes
-don't break non-rule objects.
+Add comprehensive test for JSON handle-based rule positioning to verify
+the handle field correctly positions rules with explicit add/insert
+commands while being ignored in implicit format.
 
-Tests coverage:
-- ADD operations: table, chain, rule, set, counter, quota
-- INSERT operations: rule positioning
-- REPLACE operations: rule modification
-- CREATE operations: table creation with conflict detection
-- DELETE operations: rule, set, chain, table
+Test coverage:
+1. ADD with handle positions AFTER the specified handle
+2. INSERT with handle positions BEFORE the specified handle
+3. INSERT without handle positions at beginning
+4. Multiple commands in single transaction (batch behavior)
+5. Implicit format ignores handle field for portability
 
-The test verifies that all object types work correctly with JSON
-commands and validates intermediate states. Final state is an empty
-table from the CREATE test.
+The test uses sed for handle extraction and nft -f format for setup
+as suggested in code review. Final state is a table with two rules
+from the implicit format test.
 
 Signed-off-by: Alexandre Knecht <knecht.alexandre@gmail.com>
 ---
- .../json/0007add_insert_delete_objects_0      | 145 ++++++++++++++++++
- .../0007add_insert_delete_objects_0.json-nft  |  18 +++
- .../dumps/0007add_insert_delete_objects_0.nft |   2 +
- 3 files changed, 165 insertions(+)
- create mode 100755 tests/shell/testcases/json/0007add_insert_delete_objects_0
- create mode 100644 tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.json-nft
- create mode 100644 tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.nft
+ .../testcases/json/0008rule_position_handle_0 | 162 ++++++++++++++++++
+ .../dumps/0008rule_position_handle_0.json-nft |  76 ++++++++
+ .../json/dumps/0008rule_position_handle_0.nft |   6 +
+ 3 files changed, 244 insertions(+)
+ create mode 100755 tests/shell/testcases/json/0008rule_position_handle_0
+ create mode 100644 tests/shell/testcases/json/dumps/0008rule_position_handle_0.json-nft
+ create mode 100644 tests/shell/testcases/json/dumps/0008rule_position_handle_0.nft
 
-diff --git a/tests/shell/testcases/json/0007add_insert_delete_objects_0 b/tests/shell/testcases/json/0007add_insert_delete_objects_0
+diff --git a/tests/shell/testcases/json/0008rule_position_handle_0 b/tests/shell/testcases/json/0008rule_position_handle_0
 new file mode 100755
-index 00000000..f701b062
+index 00000000..32a3752c
 --- /dev/null
-+++ b/tests/shell/testcases/json/0007add_insert_delete_objects_0
-@@ -0,0 +1,145 @@
++++ b/tests/shell/testcases/json/0008rule_position_handle_0
+@@ -0,0 +1,162 @@
 +#!/bin/bash
 +
 +# NFT_TEST_REQUIRES(NFT_TEST_HAVE_json)
 +
-+# Comprehensive test for JSON add/insert/delete/replace operations
-+# Tests that all object types work correctly with JSON commands
++# Test JSON handle-based rule positioning
++# Verifies explicit format uses handle for positioning while implicit format ignores it
 +
 +set -e
 +
 +$NFT flush ruleset
 +
-+# ===== ADD operations =====
-+
-+echo "Test 1: Add table"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"add": {"table": {"family": "inet", "name": "test"}}}]}
++echo "Test 1: ADD with handle positions AFTER"
++$NFT -f - <<EOF
++table inet test {
++	chain c {
++		tcp dport 22 accept
++		tcp dport 80 accept
++	}
++}
 +EOF
 +
-+echo "Test 2: Add chain"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"add": {"chain": {"family": "inet", "table": "test", "name": "input_chain", "type": "filter", "hook": "input", "prio": 0, "policy": "accept"}}}]}
++# Get handle of first rule (tcp dport 22)
++HANDLE=$($NFT -a list chain inet test c | sed -n 's/.*tcp dport 22 .* handle \([0-9]\+\)/\1/p')
++
++# Add after handle (should be between 22 and 80)
++$NFT -j -f - <<EOF
++{"nftables": [{"add": {"rule": {"family": "inet", "table": "test", "chain": "c", "handle": $HANDLE, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 443}}, {"accept": null}]}}}]}
 +EOF
 +
-+echo "Test 3: Add rule"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"add": {"rule": {"family": "inet", "table": "test", "chain": "input_chain", "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 22}}, {"accept": null}]}}}]}
-+EOF
++# Verify order: 22, 443, 80
++RULES=$($NFT list chain inet test c | grep -o "tcp dport [0-9]*")
++EXPECTED="tcp dport 22
++tcp dport 443
++tcp dport 80"
 +
-+echo "Test 4: Add set"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"add": {"set": {"family": "inet", "table": "test", "name": "test_set", "type": "ipv4_addr"}}}]}
-+EOF
-+
-+echo "Test 5: Add counter"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"add": {"counter": {"family": "inet", "table": "test", "name": "test_counter"}}}]}
-+EOF
-+
-+echo "Test 6: Add quota"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"add": {"quota": {"family": "inet", "table": "test", "name": "test_quota", "bytes": 1000000}}}]}
-+EOF
-+
-+# Verify all objects were created
-+$NFT list ruleset > /dev/null || { echo "Failed to list ruleset after add operations"; exit 1; }
-+
-+# ===== REPLACE operations =====
-+
-+echo "Test 7: Replace rule"
-+# Get handle of rule with dport 22
-+HANDLE=$($NFT -a list chain inet test input_chain | sed -n 's/.*tcp dport 22 .* handle \([0-9]\+\)/\1/p')
-+if [ -z "$HANDLE" ]; then
-+	echo "Test 7 failed: could not find rule handle"
++if [ "$RULES" = "$EXPECTED" ]; then
++	echo "PASS: Rule added after handle"
++else
++	echo "FAIL: Expected order 22,443,80, got:"
++	echo "$RULES"
 +	exit 1
 +fi
 +
-+$NFT -j -f - << EOF
-+{"nftables": [{"replace": {"rule": {"family": "inet", "table": "test", "chain": "input_chain", "handle": $HANDLE, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 443}}, {"accept": null}]}}}]}
++echo "Test 2: INSERT with handle positions BEFORE"
++$NFT flush ruleset
++$NFT -f - <<EOF
++table inet test {
++	chain c {
++		tcp dport 22 accept
++		tcp dport 80 accept
++	}
++}
 +EOF
 +
-+# Verify rule was replaced
-+if ! $NFT list chain inet test input_chain | grep -q "tcp dport 443"; then
-+	echo "Test 7 failed: rule not replaced correctly"
-+	exit 1
-+fi
-+if $NFT list chain inet test input_chain | grep -q "tcp dport 22"; then
-+	echo "Test 7 failed: old rule still exists"
-+	exit 1
-+fi
++# Get handle of second rule (tcp dport 80)
++HANDLE=$($NFT -a list chain inet test c | sed -n 's/.*tcp dport 80 .* handle \([0-9]\+\)/\1/p')
 +
-+# ===== CREATE operations =====
-+
-+echo "Test 8: Create table (should work like add)"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"create": {"table": {"family": "ip", "name": "created_table"}}}]}
++# Insert before handle
++$NFT -j -f - <<EOF
++{"nftables": [{"insert": {"rule": {"family": "inet", "table": "test", "chain": "c", "handle": $HANDLE, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 443}}, {"accept": null}]}}}]}
 +EOF
 +
-+if ! $NFT list tables | grep -q "created_table"; then
-+	echo "Test 8 failed: table not created"
++# Verify order: 22, 443, 80
++RULES=$($NFT list chain inet test c | grep -o "tcp dport [0-9]*")
++if [ "$RULES" = "$EXPECTED" ]; then
++	echo "PASS: Rule inserted before handle"
++else
++	echo "FAIL: Expected order 22,443,80, got:"
++	echo "$RULES"
 +	exit 1
 +fi
 +
-+echo "Test 9: Create table that exists (should fail)"
-+if $NFT -j -f - 2>/dev/null << 'EOF'
-+{"nftables": [{"create": {"table": {"family": "ip", "name": "created_table"}}}]}
-+EOF
-+then
-+	echo "Test 9 failed: create should have failed for existing table"
-+	exit 1
-+fi
-+
-+# ===== DELETE operations =====
-+
-+echo "Test 10: Delete rule"
-+HANDLE=$($NFT -a list chain inet test input_chain | sed -n 's/.*tcp dport 443 .* handle \([0-9]\+\)/\1/p')
-+$NFT -j -f - << EOF
-+{"nftables": [{"delete": {"rule": {"family": "inet", "table": "test", "chain": "input_chain", "handle": $HANDLE}}}]}
-+EOF
-+
-+if $NFT list chain inet test input_chain | grep -q "tcp dport 443"; then
-+	echo "Test 10 failed: rule not deleted"
-+	exit 1
-+fi
-+
-+echo "Test 11: Delete counter"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"delete": {"counter": {"family": "inet", "table": "test", "name": "test_counter"}}}]}
++echo "Test 3: INSERT without handle positions at beginning"
++$NFT flush ruleset
++$NFT -f - <<EOF
++table inet test {
++	chain c {
++		tcp dport 22 accept
++		tcp dport 80 accept
++	}
++}
 +EOF
 +
-+if $NFT list counters | grep -q "test_counter"; then
-+	echo "Test 11 failed: counter not deleted"
-+	exit 1
-+fi
-+
-+echo "Test 12: Delete set"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"delete": {"set": {"family": "inet", "table": "test", "name": "test_set"}}}]}
++# Insert without handle (should go to beginning)
++$NFT -j -f - <<EOF
++{"nftables": [{"insert": {"rule": {"family": "inet", "table": "test", "chain": "c", "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 443}}, {"accept": null}]}}}]}
 +EOF
 +
-+if $NFT list sets | grep -q "test_set"; then
-+	echo "Test 12 failed: set not deleted"
++# Verify order: 443, 22, 80
++RULES=$($NFT list chain inet test c | grep -o "tcp dport [0-9]*")
++EXPECTED_INSERT="tcp dport 443
++tcp dport 22
++tcp dport 80"
++
++if [ "$RULES" = "$EXPECTED_INSERT" ]; then
++	echo "PASS: Rule inserted at beginning without handle"
++else
++	echo "FAIL: Expected order 443,22,80, got:"
++	echo "$RULES"
 +	exit 1
 +fi
 +
-+echo "Test 13: Delete chain"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"delete": {"chain": {"family": "inet", "table": "test", "name": "input_chain"}}}]}
++echo "Test 4: Multiple commands in single transaction"
++$NFT flush ruleset
++$NFT -f - <<EOF
++table inet test {
++	chain c {
++		tcp dport 22 accept
++	}
++}
 +EOF
 +
-+if $NFT list chains | grep -q "input_chain"; then
-+	echo "Test 13 failed: chain not deleted"
-+	exit 1
-+fi
++# Get handle
++HANDLE=$($NFT -a list chain inet test c | sed -n 's/.*tcp dport 22 .* handle \([0-9]\+\)/\1/p')
 +
-+echo "Test 14: Delete table"
-+$NFT -j -f - << 'EOF'
-+{"nftables": [{"delete": {"table": {"family": "inet", "name": "test"}}}]}
++# Add two rules after same handle in single transaction
++$NFT -j -f - <<EOF
++{"nftables": [
++	{"add": {"rule": {"family": "inet", "table": "test", "chain": "c", "handle": $HANDLE, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 80}}, {"accept": null}]}}},
++	{"add": {"rule": {"family": "inet", "table": "test", "chain": "c", "handle": $HANDLE, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 443}}, {"accept": null}]}}}
++]}
 +EOF
 +
-+if $NFT list tables | grep -q "table inet test"; then
-+	echo "Test 14 failed: table not deleted"
++# Verify: Both should be after handle 22
++# In a transaction, both position to same handle, so added in reverse order
++# Order should be: 22, then 443, then 80 (last add goes immediately after position)
++RULES=$($NFT list chain inet test c | grep -o "tcp dport [0-9]*")
++EXPECTED_MULTI="tcp dport 22
++tcp dport 443
++tcp dport 80"
++
++if [ "$RULES" = "$EXPECTED_MULTI" ]; then
++	echo "PASS: Multiple rules in transaction positioned correctly"
++else
++	echo "FAIL: Expected order 22,443,80, got:"
++	echo "$RULES"
 +	exit 1
 +fi
 +
-+echo "All tests passed!"
-diff --git a/tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.json-nft b/tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.json-nft
++echo "Test 5: Implicit format ignores handle"
++$NFT flush ruleset
++$NFT -f - <<EOF
++table inet test {
++	chain c {
++		tcp dport 22 accept
++	}
++}
++EOF
++
++# Implicit format with non-existent handle should succeed (handle ignored)
++$NFT -j -f - <<EOF
++{"nftables": [{"rule": {"family": "inet", "table": "test", "chain": "c", "handle": 9999, "expr": [{"match": {"op": "==", "left": {"payload": {"protocol": "tcp", "field": "dport"}}, "right": 80}}, {"accept": null}]}}]}
++EOF
++
++if $NFT list chain inet test c | grep -q "tcp dport 80"; then
++	echo "PASS: Implicit format ignores handle"
++else
++	echo "FAIL: Implicit format should have added rule despite non-existent handle"
++	exit 1
++fi
++
++echo "All positioning tests passed!"
+diff --git a/tests/shell/testcases/json/dumps/0008rule_position_handle_0.json-nft b/tests/shell/testcases/json/dumps/0008rule_position_handle_0.json-nft
 new file mode 100644
-index 00000000..f449da30
+index 00000000..62101fbb
 --- /dev/null
-+++ b/tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.json-nft
-@@ -0,0 +1,18 @@
++++ b/tests/shell/testcases/json/dumps/0008rule_position_handle_0.json-nft
+@@ -0,0 +1,76 @@
 +{
 +  "nftables": [
 +    {
@@ -270,20 +287,82 @@ index 00000000..f449da30
 +    },
 +    {
 +      "table": {
-+        "family": "ip",
-+        "name": "created_table",
++        "family": "inet",
++        "name": "test",
 +        "handle": 0
++      }
++    },
++    {
++      "chain": {
++        "family": "inet",
++        "table": "test",
++        "name": "c",
++        "handle": 0
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "test",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 22
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
++      }
++    },
++    {
++      "rule": {
++        "family": "inet",
++        "table": "test",
++        "chain": "c",
++        "handle": 0,
++        "expr": [
++          {
++            "match": {
++              "op": "==",
++              "left": {
++                "payload": {
++                  "protocol": "tcp",
++                  "field": "dport"
++                }
++              },
++              "right": 80
++            }
++          },
++          {
++            "accept": null
++          }
++        ]
 +      }
 +    }
 +  ]
 +}
-diff --git a/tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.nft b/tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.nft
+diff --git a/tests/shell/testcases/json/dumps/0008rule_position_handle_0.nft b/tests/shell/testcases/json/dumps/0008rule_position_handle_0.nft
 new file mode 100644
-index 00000000..1d9aecf1
+index 00000000..d222ad64
 --- /dev/null
-+++ b/tests/shell/testcases/json/dumps/0007add_insert_delete_objects_0.nft
-@@ -0,0 +1,2 @@
-+table ip created_table {
++++ b/tests/shell/testcases/json/dumps/0008rule_position_handle_0.nft
+@@ -0,0 +1,6 @@
++table inet test {
++	chain c {
++		tcp dport 22 accept
++		tcp dport 80 accept
++	}
 +}
 -- 
 2.51.1
