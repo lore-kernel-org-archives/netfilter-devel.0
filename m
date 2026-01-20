@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B4C1477E48;
-	Tue, 20 Jan 2026 19:18:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCACC47A0C1;
+	Tue, 20 Jan 2026 19:18:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768936714; cv=none; b=Q5A50XYGnXzZuX47WU9ML0afxVyRbj4TITRvAvG2JHp69cbsdW6NExewcRodSfI1EdvxCVRZozUz+0/HynX0PexOAOWx3lISw+717p3VuaF7PoKBH1IF4aMDILLRxnVemLejZkEjN1Q0v2b8mvsD0Gafz703yKn9tp2uDb0uoe8=
+	t=1768936717; cv=none; b=aj01f7DuWvrAnRFXdy8VzgRSZ7dq5B2NeGnezH9+wJp88U5jYFmpRBku3x4aag+OLIRUMyNdGexrrDXw5/HsqVHODPFOqYpk2wORjV7pB13hGW/Eca2kvo0SpnyAxhqgOKvzJ44C6Z8rX7XpRBjhy6H7shQYSAskcEQpLURIEhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768936714; c=relaxed/simple;
-	bh=3zIMelwwPQ/+GFOhvJNs/ebaBr4hWV1kO4NI9Jd/ScQ=;
+	s=arc-20240116; t=1768936717; c=relaxed/simple;
+	bh=Nrob2+n8VK+A+CyFH4ai2sdMLPvJbW88ClS9ojQ1ID4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=j3ipimElhaNd23KiUcXDxzoNIqMz9YkawnJKtvzkPojsESvJ/9PqWnSRdJq2CBPB2ZaLfggPVcHvTFpJlg5QsbrH5bsOTYwZbSopjVDa75OJb01HNkbM0auC/3bGRn6ngtuuJZW7vOu0i/AMvRTD/Ag8jW6qx4P8Dse6XWPafOE=
+	 MIME-Version; b=HIgp0DykXzixGQHjkBbyJBsvLABnNTTDIMPLhOw9dH5Nurhzk+i+EU5VUeQNuTxD5uz/dkupifc3H3UHr71HhP7g2684fzkDiyUZQ4AkMhIc9/1kG1NBHpk8o3QUDOdwblSscLrW3HRMkGz3dTLzGETSHzRwIkk0Citj2a4Q7cA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E9F3B602AB; Tue, 20 Jan 2026 20:18:28 +0100 (CET)
+	id 456E460854; Tue, 20 Jan 2026 20:18:33 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 05/10] netfilter: don't include xt and nftables.h in unrelated subsystems
-Date: Tue, 20 Jan 2026 20:17:58 +0100
-Message-ID: <20260120191803.22208-6-fw@strlen.de>
+Subject: [PATCH net-next 06/10] netfilter: nf_conntrack: don't rely on implicit includes
+Date: Tue, 20 Jan 2026 20:17:59 +0100
+Message-ID: <20260120191803.22208-7-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260120191803.22208-1-fw@strlen.de>
 References: <20260120191803.22208-1-fw@strlen.de>
@@ -38,120 +38,201 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-conntrack, xtables and nftables are distinct subsystems, don't use them
-in other subystems.
+several netfilter compilation units rely on implicit includes
+coming from nf_conntrack_proto_gre.h.
+
+Clean this up and add the required dependencies where needed.
+
+nf_conntrack.h requires net_generic() helper.
+Place various gre/ppp/vlan includes to where they are needed.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/audit.h                      | 1 -
- include/net/netfilter/nf_conntrack_tuple.h | 2 +-
- include/net/netfilter/nf_tables.h          | 1 -
- net/bridge/netfilter/nf_conntrack_bridge.c | 3 +--
- net/netfilter/nf_conntrack_h323_main.c     | 1 +
- net/netfilter/nf_synproxy_core.c           | 1 +
- net/netfilter/nf_tables_api.c              | 1 +
- net/netfilter/nft_synproxy.c               | 1 +
- 8 files changed, 6 insertions(+), 5 deletions(-)
+ include/linux/netfilter/nf_conntrack_proto_gre.h | 3 ---
+ include/net/netfilter/nf_conntrack.h             | 1 +
+ net/netfilter/nf_conntrack_bpf.c                 | 1 +
+ net/netfilter/nf_conntrack_netlink.c             | 1 +
+ net/netfilter/nf_conntrack_proto_gre.c           | 2 ++
+ net/netfilter/nf_flow_table_ip.c                 | 2 ++
+ net/netfilter/nf_flow_table_offload.c            | 1 +
+ net/netfilter/nf_flow_table_path.c               | 1 +
+ net/netfilter/nf_nat_ovs.c                       | 3 +++
+ net/netfilter/nf_nat_proto.c                     | 1 +
+ net/netfilter/nft_flow_offload.c                 | 1 +
+ net/sched/act_ct.c                               | 2 ++
+ net/sched/act_ctinfo.c                           | 1 +
+ 13 files changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/audit.h b/include/linux/audit.h
-index 536f8ee8da81..14df25095e19 100644
---- a/include/linux/audit.h
-+++ b/include/linux/audit.h
-@@ -13,7 +13,6 @@
- #include <linux/ptrace.h>
- #include <linux/audit_arch.h>
- #include <uapi/linux/audit.h>
--#include <uapi/linux/netfilter/nf_tables.h>
- #include <uapi/linux/fanotify.h>
+diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
+index 34ce5d2f37a2..9ee7014400e8 100644
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -1,9 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef _CONNTRACK_PROTO_GRE_H
+ #define _CONNTRACK_PROTO_GRE_H
+-#include <asm/byteorder.h>
+-#include <net/gre.h>
+-#include <net/pptp.h>
  
- #define AUDIT_INO_UNSET ((unsigned long)-1)
-diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
-index f7dd950ff250..4d55b7325707 100644
---- a/include/net/netfilter/nf_conntrack_tuple.h
-+++ b/include/net/netfilter/nf_conntrack_tuple.h
-@@ -11,7 +11,7 @@
- #ifndef _NF_CONNTRACK_TUPLE_H
- #define _NF_CONNTRACK_TUPLE_H
+ struct nf_ct_gre {
+ 	unsigned int stream_timeout;
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index aa0a7c82199e..bc42dd0e10e6 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -16,6 +16,7 @@
+ #include <linux/bitops.h>
+ #include <linux/compiler.h>
  
--#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
- #include <linux/list_nulls.h>
- 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 0e266c2d0e7f..2597077442e5 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -6,7 +6,6 @@
- #include <linux/list.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
--#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/u64_stats_sync.h>
- #include <linux/rhashtable.h>
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 6482de4d8750..3b28b84191be 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -16,8 +16,7 @@
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_bridge.h>
- 
--#include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
-+#include <linux/netfilter_ipv4.h>
- 
- #include "../br_private.h"
- 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 14f73872f647..17f1f453d481 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -23,6 +23,7 @@
- #include <linux/skbuff.h>
- #include <net/route.h>
- #include <net/ip6_route.h>
-+#include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_ipv6.h>
- 
- #include <net/netfilter/nf_conntrack.h>
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 3fa3f5dfb264..57f57e2fc80a 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -10,6 +10,7 @@
- #include <net/netns/generic.h>
- #include <linux/proc_fs.h>
- 
-+#include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_ipv6.h>
- #include <linux/netfilter/nf_synproxy.h>
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 027bab30c238..e7247363c643 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
++#include <net/netns/generic.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/nf_conntrack_tcp.h>
+ #include <linux/netfilter/nf_conntrack_sctp.h>
+diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
+index 4a136fc3a9c0..4fe6d9d33329 100644
+--- a/net/netfilter/nf_conntrack_bpf.c
++++ b/net/netfilter/nf_conntrack_bpf.c
 @@ -14,6 +14,7 @@
- #include <linux/rhashtable.h>
- #include <linux/audit.h>
- #include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_flow_table.h>
-diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
-index 4d3e5a31b412..b71ef18b0e8c 100644
---- a/net/netfilter/nft_synproxy.c
-+++ b/net/netfilter/nft_synproxy.c
-@@ -7,6 +7,7 @@
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_synproxy.h>
- #include <net/netfilter/nf_synproxy.h>
-+#include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/nf_synproxy.h>
+ #include <linux/types.h>
+ #include <linux/btf_ids.h>
+ #include <linux/net_namespace.h>
++#include <net/sock.h>
+ #include <net/xdp.h>
+ #include <net/netfilter/nf_conntrack_bpf.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 3a04665adf99..662f6bbfa805 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -32,6 +32,7 @@
+ #include <linux/siphash.h>
  
+ #include <linux/netfilter.h>
++#include <net/ipv6.h>
+ #include <net/netlink.h>
+ #include <net/sock.h>
+ #include <net/netfilter/nf_conntrack.h>
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index af369e686fc5..b894bb7a97ad 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -33,12 +33,14 @@
+ #include <linux/skbuff.h>
+ #include <linux/slab.h>
+ #include <net/dst.h>
++#include <net/gre.h>
+ #include <net/net_namespace.h>
+ #include <net/netns/generic.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_timeout.h>
++#include <net/pptp.h>
+ #include <linux/netfilter/nf_conntrack_proto_gre.h>
+ #include <linux/netfilter/nf_conntrack_pptp.h>
+ 
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index 78883343e5d6..11da560f38bf 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -8,6 +8,8 @@
+ #include <linux/ipv6.h>
+ #include <linux/netdevice.h>
+ #include <linux/if_ether.h>
++#include <linux/if_vlan.h>
++#include <net/gre.h>
+ #include <net/gso.h>
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index d8f7bfd60ac6..b1966b68c48a 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -6,6 +6,7 @@
+ #include <linux/netdevice.h>
+ #include <linux/tc_act/tc_csum.h>
+ #include <net/flow_offload.h>
++#include <net/ip_tunnels.h>
+ #include <net/netfilter/nf_flow_table.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_conntrack.h>
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index eb24fe2715dc..6bb9579dcc2a 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -2,6 +2,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/etherdevice.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
+ #include <linux/spinlock.h>
+diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
+index 0f9a559f6207..31474e8c034a 100644
+--- a/net/netfilter/nf_nat_ovs.c
++++ b/net/netfilter/nf_nat_ovs.c
+@@ -2,6 +2,9 @@
+ /* Support nat functions for openvswitch and used by OVS and TC conntrack. */
+ 
+ #include <net/netfilter/nf_nat.h>
++#include <net/ipv6.h>
++#include <linux/ip.h>
++#include <linux/if_vlan.h>
+ 
+ /* Modelled after nf_nat_ipv[46]_fn().
+  * range is only used for new, uninitialized NAT state.
+diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
+index b14a434b9561..97c0f841fc96 100644
+--- a/net/netfilter/nf_nat_proto.c
++++ b/net/netfilter/nf_nat_proto.c
+@@ -25,6 +25,7 @@
+ #include <net/ip6_route.h>
+ #include <net/xfrm.h>
+ #include <net/ipv6.h>
++#include <net/pptp.h>
+ 
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack.h>
+diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
+index b8f76c9057fd..179d0e59e2b5 100644
+--- a/net/netfilter/nft_flow_offload.c
++++ b/net/netfilter/nft_flow_offload.c
+@@ -1,4 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
++#include <linux/etherdevice.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
+index 2b6ac7069dc1..81d488655793 100644
+--- a/net/sched/act_ct.c
++++ b/net/sched/act_ct.c
+@@ -13,9 +13,11 @@
+ #include <linux/skbuff.h>
+ #include <linux/rtnetlink.h>
+ #include <linux/pkt_cls.h>
++#include <linux/if_tunnel.h>
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+ #include <linux/rhashtable.h>
++#include <net/gre.h>
+ #include <net/netlink.h>
+ #include <net/pkt_sched.h>
+ #include <net/pkt_cls.h>
+diff --git a/net/sched/act_ctinfo.c b/net/sched/act_ctinfo.c
+index 71efe04d00b5..d2c750bab1d3 100644
+--- a/net/sched/act_ctinfo.c
++++ b/net/sched/act_ctinfo.c
+@@ -16,6 +16,7 @@
+ #include <net/pkt_sched.h>
+ #include <net/act_api.h>
+ #include <net/pkt_cls.h>
++#include <net/inet_ecn.h>
+ #include <uapi/linux/tc_act/tc_ctinfo.h>
+ #include <net/tc_act/tc_ctinfo.h>
+ #include <net/tc_wrapper.h>
 -- 
 2.52.0
 
