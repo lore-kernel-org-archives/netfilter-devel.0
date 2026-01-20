@@ -1,26 +1,31 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A7DA43E9FF
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2026 19:13:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922F8477E3A;
+	Tue, 20 Jan 2026 19:18:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768936414; cv=none; b=BAQXOcQe/yn4fnJFofesXhM4UauHM4Z+QB2OM5Llx4EQ3auH8fhvKUmHC0+rjcykWJ7EJsre3/na9i6LaqlTwxiIE/qTzZ8zD4kJpd4koxp9fhQ3/h60VAm2RbyUcR2oU8IB17RU/toPfyuRnTOIIjaNt3gGUDvhTQB8nkUMZ2s=
+	t=1768936691; cv=none; b=tJ4rf7TmEPNEJmSyJkvWeBO69/Z6q/+Vpheu1ZGDdYo1ZmFL3obYxz1s73+JNOOkBxZO3AtlYTGROkAJctAeFuWHmf1ykTMHPJRgkwhgcZ0s0A1vb0hs98WEznmpcV9x10i1cBGKD5HYtugrKOSb8tJAM+kcbh6SAesCPN9+27s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768936414; c=relaxed/simple;
-	bh=ypn61WmiY797tqs8eQJ/21k9LwHu2TkB207u/nAW02k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Tob8a+X6DH+FyapWlF/Eu9k0YgWkm15Deubu0AV+cm4dT8eQXHsoW5NzBZAwuYtJzodXTk6/cwNHvks/ydTzBlPFNZ2MaNkfLFjro52m0U8sUIZ/XhjtfYc2/y6sS4HsYENbpinwgBNg02WSjuPdgekRBa54gxUVPeg3TQsCTPs=
+	s=arc-20240116; t=1768936691; c=relaxed/simple;
+	bh=yFe+RDwHgYFendKzYSDvhlCgj2LUow7ykJ+nJUr85m4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Hb+kChEH1wjs9p5f6AIZ4KYLrlQ6F55ZS1q+ij30sM7qoBVQjaVSBWMIFE9IbAKgnCuRElc/w4IkbZCelVwevKUqEoOPkW7YT3ULVM8R2Dz4J6LeXf6S+LgvR1ztVibkp5KoHFSaA66IkLbHn2N77ktjoSfxma6KgS+ytEpc/uY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E7C50602AB; Tue, 20 Jan 2026 20:13:29 +0100 (CET)
+	id 50F24602AB; Tue, 20 Jan 2026 20:18:07 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] parser: move qualified meta expression parsing to flex/bison
-Date: Tue, 20 Jan 2026 20:13:16 +0100
-Message-ID: <20260120191319.21383-1-fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net-next 00/10] Subject: netfilter: updates for net-next
+Date: Tue, 20 Jan 2026 20:17:53 +0100
+Message-ID: <20260120191803.22208-1-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -30,179 +35,114 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The meta keyword currently accepts 'STRING' arguments.
-This was originally done to avoid pollution the global token namespace.
+Hi,
 
-However, nowadays we do have flex scopes to avoid this.
-Add the tokens currently handled implciitly via STRING within
-META flex scope.
+The following patchset contains Netfilter fixes for *net-next*:
 
-SECPATH is a compatibility alias, map this to IPSEC token.
-IBRPORT/OBRPORT are also compatibility aliases, remove those tokens
-and handle this directly in scanner.l.
+1) Speed up nftables transactions after earlier transaction failed.
+   Due to a (harmeless) bug we remained in slow paranoia mode until a
+   successful transaction completes.
 
-This also avoids nft from printing tokens in help texts that are only
-there for compatibility with old rulesets.
+2) Allow generic tracker to resolve clashes, this avoids very rare
+   packet drops.  From Yuto Hamaguchi.
 
-meta_key_parse() is retained for json input parser.
+3) Increase the cleanup budget to 64 entries in nf_conncount to reap
+   more entries in one go, from Fernando Fernandez Mancera.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- doc/libnftables-json.adoc |  2 +-
- src/parser_bison.y        | 54 +++++++++++++++------------------------
- src/scanner.l             | 19 ++++++++++++--
- 3 files changed, 39 insertions(+), 36 deletions(-)
+4) Allow icmp trackers to resolve clashes, this avoids very rare
+   initial packet drop with test cases that have high-frequency pings.
+   After this all trackers except tcp and sctp allow clash resolution.
 
-diff --git a/doc/libnftables-json.adoc b/doc/libnftables-json.adoc
-index 049c3254ff03..c3af007e1917 100644
---- a/doc/libnftables-json.adoc
-+++ b/doc/libnftables-json.adoc
-@@ -1269,7 +1269,7 @@ ____
- 'META_KEY' := *"length"* | *"protocol"* | *"priority"* | *"random"* | *"mark"* |
-               *"iif"* | *"iifname"* | *"iiftype"* | *"oif"* | *"oifname"* |
- 	      *"oiftype"* | *"skuid"* | *"skgid"* | *"nftrace"* |
--	      *"rtclassid"* | *"ibriport"* | *"obriport"* | *"ibridgename"* |
-+	      *"rtclassid"* | *"ibrname"* | *"obrname"* | *"ibridgename"* |
- 	      *"obridgename"* | *"pkttype"* | *"cpu"* | *"iifgroup"* |
- 	      *"oifgroup"* | *"cgroup"* | *"nfproto"* | *"l4proto"* |
- 	      *"secpath"*
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 33e2e3eaea73..74c3d25db4ff 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -584,8 +584,6 @@ int nft_lex(void *, void *, void *);
- %token SKGID			"skgid"
- %token NFTRACE			"nftrace"
- %token RTCLASSID		"rtclassid"
--%token IBRIPORT			"ibriport"
--%token OBRIPORT			"obriport"
- %token IBRIDGENAME		"ibrname"
- %token OBRIDGENAME		"obrname"
- %token PKTTYPE			"pkttype"
-@@ -595,6 +593,17 @@ int nft_lex(void *, void *, void *);
- %token CGROUP			"cgroup"
- %token TIME			"time"
- 
-+%token NFPROTO			"nfproto"
-+%token L4PROTO			"l4proto"
-+%token IIFKIND			"iifkind"
-+%token OIFKIND			"oifkind"
-+%token IBRPVID			"ibrpvid"
-+%token IBRVPROTO		"ibrvproto"
-+%token SDIF			"sdif"
-+%token SDIFNAME			"sdifname"
-+%token BROUTE			"broute"
-+%token BRIFHWADDR		"ibrhwaddr"
-+
- %token CLASSID			"classid"
- %token NEXTHOP			"nexthop"
- 
-@@ -5421,20 +5430,6 @@ meta_expr		:	META	meta_key	close_scope_meta
- 			{
- 				$$ = meta_expr_alloc(&@$, $1);
- 			}
--			|	META	STRING	close_scope_meta
--			{
--				struct error_record *erec;
--				unsigned int key;
--
--				erec = meta_key_parse(&@$, $2, &key);
--				free_const($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					YYERROR;
--				}
--
--				$$ = meta_expr_alloc(&@$, key);
--			}
- 			;
- 
- meta_key		:	meta_key_qualified
-@@ -5446,6 +5441,16 @@ meta_key_qualified	:	LENGTH		{ $$ = NFT_META_LEN; }
- 			|	PRIORITY	{ $$ = NFT_META_PRIORITY; }
- 			|	RANDOM		{ $$ = NFT_META_PRANDOM; }
- 			|	SECMARK	close_scope_secmark { $$ = NFT_META_SECMARK; }
-+			|	NFPROTO		{ $$ = NFT_META_NFPROTO; }
-+			|	L4PROTO		{ $$ = NFT_META_L4PROTO; }
-+			|	IIFKIND		{ $$ = NFT_META_IIFKIND; }
-+			|	OIFKIND		{ $$ = NFT_META_OIFKIND; }
-+			|	IBRPVID		{ $$ = NFT_META_BRI_IIFPVID; }
-+			|	IBRVPROTO	{ $$ = NFT_META_BRI_IIFVPROTO; }
-+			|	SDIF		{ $$ = NFT_META_SDIF; }
-+			|	SDIFNAME	{ $$ = NFT_META_SDIFNAME; }
-+			|	BROUTE		{ $$ = NFT_META_BRI_BROUTE; }
-+			|	BRIFHWADDR	{ $$ = NFT_META_BRI_IIFHWADDR; }
- 			;
- 
- meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
-@@ -5459,8 +5464,6 @@ meta_key_unqualified	:	MARK		{ $$ = NFT_META_MARK; }
- 			|	SKGID		{ $$ = NFT_META_SKGID; }
- 			|	NFTRACE		{ $$ = NFT_META_NFTRACE; }
- 			|	RTCLASSID	{ $$ = NFT_META_RTCLASSID; }
--			|	IBRIPORT	{ $$ = NFT_META_BRI_IIFNAME; }
--			|       OBRIPORT	{ $$ = NFT_META_BRI_OIFNAME; }
- 			|	IBRIDGENAME	{ $$ = NFT_META_BRI_IIFNAME; }
- 			|       OBRIDGENAME	{ $$ = NFT_META_BRI_OIFNAME; }
- 			|       PKTTYPE		{ $$ = NFT_META_PKTTYPE; }
-@@ -5498,21 +5501,6 @@ meta_stmt		:	META	meta_key	SET	stmt_expr	close_scope_meta
- 			{
- 				$$ = meta_stmt_alloc(&@$, $1, $3);
- 			}
--			|	META	STRING	SET	stmt_expr	close_scope_meta
--			{
--				struct error_record *erec;
--				unsigned int key;
--
--				erec = meta_key_parse(&@$, $2, &key);
--				free_const($2);
--				if (erec != NULL) {
--					erec_queue(erec, state->msgs);
--					expr_free($4);
--					YYERROR;
--				}
--
--				$$ = meta_stmt_alloc(&@$, key, $4);
--			}
- 			|	NOTRACK
- 			{
- 				$$ = notrack_stmt_alloc(&@$);
-diff --git a/src/scanner.l b/src/scanner.l
-index 9d8fade8308d..1b4eb1cf13a4 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -754,15 +754,30 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "skgid"			{ return SKGID; }
- "nftrace"		{ return NFTRACE; }
- "rtclassid"		{ return RTCLASSID; }
--"ibriport"		{ return IBRIPORT; }
-+"ibriport"		{ return IBRIDGENAME; } /* backwards compat */
- "ibrname"		{ return IBRIDGENAME; }
--"obriport"		{ return OBRIPORT; }
-+"obriport"		{ return OBRIDGENAME; }	/* backwards compat */
- "obrname"		{ return OBRIDGENAME; }
- "pkttype"		{ return PKTTYPE; }
- "cpu"			{ return CPU; }
- "iifgroup"		{ return IIFGROUP; }
- "oifgroup"		{ return OIFGROUP; }
- "cgroup"		{ return CGROUP; }
-+<SCANSTATE_META>{
-+	"nfproto"	{ return NFPROTO; }
-+	"l4proto"	{ return L4PROTO; }
-+	"iifkind"	{ return IIFKIND; }
-+	"oifkind"	{ return OIFKIND; }
-+	"ibrpvid"	{ return IBRPVID; }
-+	"ibrvproto"	{ return IBRVPROTO; }
-+	"sdif"		{ return SDIF; }
-+	"sdifname"	{ return SDIFNAME; }
-+	"broute"	{ return BROUTE; }
-+	"ibrhwaddr"	{ return BRIFHWADDR; }
-+
-+	/* backwards compat */
-+	"secpath"	{ scanner_push_start_cond(yyscanner, SCANSTATE_EXPR_IPSEC); return IPSEC; }
-+}
- 
- <SCANSTATE_EXPR_RT>{
- 	"nexthop"		{ return NEXTHOP; }
+5) Disentangle netfilter headers, don't include nftables/xtables headers
+   in subsystems that are unrelated.
+
+6) Don't rely on implicit includes coming from nf_conntrack_proto_gre.h.
+
+7) Allow nfnetlink_queue nfq instance struct to get accounted via memcg,
+   from Scott Mitchell.
+
+8) Reject bogus xt target/match data upfront via netlink policiy in
+   nft_compat interface rather than relying on x_tables API to do it.
+
+9) Fix nf_conncount breakage when trying to limit loopback flows via
+   prerouting rule, from Fernando Fernandez Mancera.
+   This is a recent breakage but not seen as urgent enough to rush this
+   via net tree at this late stage in development cycle.
+
+10) Fix a possible off-by-one when parsing tcp option in xtables tcpmss
+    match.  Also handled via -next due to late stage in development
+    cycle.
+
+0003-netfilter-nf_conncount-increase-the-connection-clean.patch fixes commit from v5.19-rc1~159^2~45^2~2
+0008-netfilter-nft_compat-add-more-restrictions-on-netlin.patch fixes commit from v3.13-rc1~105^2~186^2~8
+0009-netfilter-nf_conncount-fix-tracking-of-connections-f.patch fixes commit from nf-next-25-11-28~6
+
+
+Please, pull these changes from:
+The following changes since commit 77b9c4a438fc66e2ab004c411056b3fb71a54f2c:
+
+  Merge branch 'netkit-support-for-io_uring-zero-copy-and-af_xdp' (2026-01-20 12:25:29 +0100)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-01-20
+
+for you to fetch changes up to 735ee8582da3d239eb0c7a53adca61b79fb228b3:
+
+  netfilter: xt_tcpmss: check remaining length before reading optlen (2026-01-20 16:23:38 +0100)
+
+----------------------------------------------------------------
+netfilter pull request nf-next-26-01-20
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (2):
+  netfilter: nf_conncount: increase the connection clean up limit to 64
+  netfilter: nf_conncount: fix tracking of connections from localhost
+
+Florian Westphal (6):
+  netfilter: nf_tables: reset table validation state on abort
+  netfilter: nf_conntrack: enable icmp clash support
+  netfilter: don't include xt and nftables.h in unrelated subsystems
+  netfilter: nf_conntrack: don't rely on implicit includes
+  netfilter: nft_compat: add more restrictions on netlink attributes
+  netfilter: xt_tcpmss: check remaining length before reading optlen
+
+Scott Mitchell (1):
+  netfilter: nfnetlink_queue: nfqnl_instance GFP_ATOMIC -> GFP_KERNEL_ACCOUNT allocation
+
+Yuto Hamaguchi (1):
+  netfilter: nf_conntrack: Add allow_clash to generic protocol handler
+
+ include/linux/audit.h                         |  1 -
+ .../linux/netfilter/nf_conntrack_proto_gre.h  |  3 -
+ include/net/netfilter/nf_conntrack.h          |  1 +
+ include/net/netfilter/nf_conntrack_count.h    |  1 +
+ include/net/netfilter/nf_conntrack_tuple.h    |  2 +-
+ include/net/netfilter/nf_tables.h             |  1 -
+ net/bridge/netfilter/nf_conntrack_bridge.c    |  3 +-
+ net/netfilter/nf_conncount.c                  | 30 ++++++--
+ net/netfilter/nf_conntrack_bpf.c              |  1 +
+ net/netfilter/nf_conntrack_h323_main.c        |  1 +
+ net/netfilter/nf_conntrack_netlink.c          |  1 +
+ net/netfilter/nf_conntrack_proto_generic.c    |  1 +
+ net/netfilter/nf_conntrack_proto_gre.c        |  2 +
+ net/netfilter/nf_conntrack_proto_icmp.c       |  1 +
+ net/netfilter/nf_conntrack_proto_icmpv6.c     |  1 +
+ net/netfilter/nf_flow_table_ip.c              |  2 +
+ net/netfilter/nf_flow_table_offload.c         |  1 +
+ net/netfilter/nf_flow_table_path.c            |  1 +
+ net/netfilter/nf_nat_ovs.c                    |  3 +
+ net/netfilter/nf_nat_proto.c                  |  1 +
+ net/netfilter/nf_synproxy_core.c              |  1 +
+ net/netfilter/nf_tables_api.c                 |  8 ++
+ net/netfilter/nfnetlink_queue.c               | 75 +++++++++----------
+ net/netfilter/nft_compat.c                    | 13 +++-
+ net/netfilter/nft_flow_offload.c              |  1 +
+ net/netfilter/nft_synproxy.c                  |  1 +
+ net/netfilter/xt_tcpmss.c                     |  2 +-
+ net/sched/act_ct.c                            |  2 +
+ net/sched/act_ctinfo.c                        |  1 +
+ 29 files changed, 102 insertions(+), 60 deletions(-)
+
 -- 
 2.52.0
-
