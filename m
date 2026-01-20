@@ -1,78 +1,66 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from libra.cs.put.poznan.pl (libra.cs.put.poznan.pl [150.254.30.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A8243CED7
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2026 16:28:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF04F3382DC
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2026 17:43:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=150.254.30.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768926522; cv=none; b=WrMfGzUYaisW6mGY4N973vMMCz8nLll2++UJtwWrPrFo7wIn+T7ldBuJcWUvbX6LXDhnaBMH3kItBmbeEhrcYtDYel//hLU8L43vD5zm2AV2RFVb6A6WOimUbOd7q4ZaSNTzbnO3WdOtBHoPib8jbLbSRjCkR6Ej1Fifmxt68Og=
+	t=1768931042; cv=none; b=HNdd4wWqvqJvGAYlPuGEso85sPNABYVG9YwQY5/QO1YG/7v0Ve+MkUpyqxP+B4v+XMD7Hus7AurWEue/+0t+7B/nZOdu7V7TOxXebDZASJeslfNnr9jKfCyNqvm6cp6NHi2QGHB99AsuHxudHcTw0iVBUPhwF5SmyfHeEWV5Ynw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768926522; c=relaxed/simple;
-	bh=umTTDxJpnJ5Tz/kwwXR4mCgkLh33SSa8kLmlFBZ7hOI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r9EsvdvxykGy4zaQe+2QqbaG+VMfZo2+PTrbybBrE6UL+Cprw4pG9IU56Ku7RyvXu5H6gbRbfHYIM553V3/GuW0Ida42YhP/LtFLHGGosM7NFifuIP6N66SGUiX3mKbVXpWbgDH3DOInumdR0Lv3/dwAhxYn8ehBdG/OqtbuZk0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=XEkS10br; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1768931042; c=relaxed/simple;
+	bh=QH7vDJSSIhDsfj8O3naDi7GhX9f6WNTQc4VzBxXgT2E=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=cuQuQaL+cpz9ApX9jBZsDvEl+QvIIccGdPTs2AKmvf4hmEYcmoJBoRCq/pBMds03femWjGJGZaYfzSo3iNBAAquIqijHDL0HS8Mj0+XYzMokSfi1ak8V6mwC2Fdk4pIkr3XHEVMCjLGxaCT66TVRcMuxE/upnJq0RaHNl/cTmro=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cs.put.poznan.pl; spf=pass smtp.mailfrom=cs.put.poznan.pl; dkim=pass (2048-bit key) header.d=cs.put.poznan.pl header.i=@cs.put.poznan.pl header.b=eWHp5Hgq; arc=none smtp.client-ip=150.254.30.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cs.put.poznan.pl
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cs.put.poznan.pl
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="XEkS10br"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=44/mXwghCzs6av4w8HgrAksKT+i3wrRlzp1zNCBS5f8=; b=XEkS10br0sguoDLHAbP0teWfA5
-	RQRcn7oP4GTuTCJTyv9CDJxjrCNIaOzhYWmJ5yVVXDbwCwNrTsNtr+zryPBlG3ald2LoRPFaRr3ir
-	X9p2RATQEK78muBzFYGtKTQpc5fE2hScOd6ztmTBR63c450uW+fwHECIwKaRdPufDPDrfj3vVYaB0
-	Qk4aLvQ6MrJWmwwB87J/u2/w6qaZhStx0z6t9zcqR0e73F77Moa/vM09RWS5zLrEH6kh7Y5egk983
-	ktlc/NcYt2zbzeLRdedn3s8PZop1mMwaQbOELEPPFS1Gmr2IuQ2vb+/EmP9QkfoBnJg5l6ZRyjkwL
-	PncfIFag==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1viEar-000000001cM-3Peb;
-	Tue, 20 Jan 2026 17:28:37 +0100
-Date: Tue, 20 Jan 2026 17:28:37 +0100
-From: Phil Sutter <phil@nwl.cc>
+	dkim=pass (2048-bit key) header.d=cs.put.poznan.pl header.i=@cs.put.poznan.pl header.b="eWHp5Hgq"
+X-Virus-Scanned: Debian amavis at cs.put.poznan.pl
+Received: from libra.cs.put.poznan.pl ([150.254.30.30])
+ by localhost (meduza.cs.put.poznan.pl [150.254.30.40]) (amavis, port 10024)
+ with ESMTP id h-KRf1uAZX9O; Tue, 20 Jan 2026 17:31:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=cs.put.poznan.pl;
+	s=7168384; t=1768930319;
+	bh=QH7vDJSSIhDsfj8O3naDi7GhX9f6WNTQc4VzBxXgT2E=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=eWHp5HgqbCcP91eASXvkQRcyRzM2CGxNTZJzCbFliwlRPtCW9+7opYG0dbforAr2K
+	 ITDDzLNTGaaGwgzNMzYVv9iaXnT0CQ2A/yATN88+EbXbVKHiePzRO2MRuIFcnr5DNk
+	 E0xCME0iS+cZ8IBvRM/345hxNJfsDlbOWEaYXgeqDSc93SHaqRXNRjn5U9owfrAmOI
+	 wzLKjHMZat1Wur2jlsGFXCa3uVOLXKacWqrteAQn2/oiPfyuUDY0AWCDLVVIojB+t1
+	 U8EUFCsUSGket7kRTp6hgX7a376bLOxBLBNzAerHvWVlCkVrJmBUpxuaM7D1HEXEMC
+	 7XvtMeYw5+GVg==
+Received: from imladris.localnet (83.8.100.122.ipv4.supernova.orange.pl [83.8.100.122])
+	(Authenticated sender: jkonczak@libra.cs.put.poznan.pl)
+	by libra.cs.put.poznan.pl (Postfix on VMS) with ESMTPSA id CBFCD64E32;
+	Tue, 20 Jan 2026 18:33:50 +0100 (CET)
+From: Jan =?UTF-8?B?S2/FhGN6YWs=?= <jan.konczak@cs.put.poznan.pl>
 To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 6/6] scanner: Introduce SCANSTATE_RATE
-Message-ID: <aW-tNd_HhE7SvU6c@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20251209164541.13425-1-phil@nwl.cc>
- <20251209164541.13425-7-phil@nwl.cc>
- <aW-SicaUzUULQFv9@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft v2] parser_bison: on syntax errors,
+ output expected tokens
+Date: Tue, 20 Jan 2026 18:33:38 +0100
+Message-ID: <22975780.EfDdHjke4D@imladris>
+Organization: Institute of Computing Science,
+ =?UTF-8?B?UG96bmHFhA==?= University of Technology
+In-Reply-To: <20260120122954.18909-1-fw@strlen.de>
+References: <20260120122954.18909-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aW-SicaUzUULQFv9@strlen.de>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-On Tue, Jan 20, 2026 at 03:35:05PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > This is a first exclusive start condition, i.e. one which rejects
-> > unscoped tokens. When tokenizing, flex all too easily falls back into
-> > treating something as STRING when it could be split into tokens instead.
-> > Via an exclusive start condition, the string-fallback can be disabled as
-> > needed.
-> > 
-> > With rates in typical formatting <NUM><bytes-unit>/<time-unit>,
-> > tokenizer result depended on whitespace placement. SCANSTATE_RATE forces
-> > flex to split the string into tokens and fall back to JUNK upon failure.
-> > For this to work, tokens which shall still be recognized must be enabled
-> > in SCANSTATE_RATE (or all scopes denoted by '*'). This includes any
-> > tokens possibly following SCANSTATE_RATE to please the parser's
-> > lookahead behaviour.
+>  v2: prefer stdio (fprintf+memopen) vs. manual realloc of a cstring
+>  buffer, align more with nftables coding style.
 > 
-> Series:
-> Reviewed-by: Florian Westphal <fw@strlen.de>
+>  I'll apply this unless there are any objections.
 
-Series applied, thanks!
+None on my side; I should have resubmitted the patch corrected of basis
+of your comments, but I simply did not find time yet to look into that.
+
+
+
