@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCACC47A0C1;
-	Tue, 20 Jan 2026 19:18:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06CE53EF0D6;
+	Tue, 20 Jan 2026 19:18:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768936717; cv=none; b=aj01f7DuWvrAnRFXdy8VzgRSZ7dq5B2NeGnezH9+wJp88U5jYFmpRBku3x4aag+OLIRUMyNdGexrrDXw5/HsqVHODPFOqYpk2wORjV7pB13hGW/Eca2kvo0SpnyAxhqgOKvzJ44C6Z8rX7XpRBjhy6H7shQYSAskcEQpLURIEhQ=
+	t=1768936720; cv=none; b=gUOqBo+OkIYyn82W8F8+p3jmeHKpAk+gMxXz23c4WNkff4l9wJOZa7oGuorLXPiJm2n8x5fZu7SAnKf2S/SxpkMzEwCHRiqbYh3t97WrvXNI6P5ZYGUC5l+ZUW7VhRLvhLLjH+rO30BvvFq0ny0fxLbd2ISwxmYv4yZUjWvjrGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768936717; c=relaxed/simple;
-	bh=Nrob2+n8VK+A+CyFH4ai2sdMLPvJbW88ClS9ojQ1ID4=;
+	s=arc-20240116; t=1768936720; c=relaxed/simple;
+	bh=Vc9INXPtVlVZucYSCSazXbWABG/0cwqz3LM0Nly4alc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=HIgp0DykXzixGQHjkBbyJBsvLABnNTTDIMPLhOw9dH5Nurhzk+i+EU5VUeQNuTxD5uz/dkupifc3H3UHr71HhP7g2684fzkDiyUZQ4AkMhIc9/1kG1NBHpk8o3QUDOdwblSscLrW3HRMkGz3dTLzGETSHzRwIkk0Citj2a4Q7cA=
+	 MIME-Version; b=kfv40WhXKA50bwIBy+2k8eHXbk3PY+t6kl5DvT6Y8u4kvXGeNgcwC9tL/PJXsSgXUIQsYQLQA02Lvio3zNhM6jCd2f1jxF9G8gLTjQfpF//hNOKNb3nW4sKbV4cFtJAnMLP20jq3tGBLDyDiC7X37FPF/yGvbwqCkzUThnWOnvw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 456E460854; Tue, 20 Jan 2026 20:18:33 +0100 (CET)
+	id 9623B602AB; Tue, 20 Jan 2026 20:18:37 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 06/10] netfilter: nf_conntrack: don't rely on implicit includes
-Date: Tue, 20 Jan 2026 20:17:59 +0100
-Message-ID: <20260120191803.22208-7-fw@strlen.de>
+Subject: [PATCH net-next 07/10] netfilter: nfnetlink_queue: nfqnl_instance GFP_ATOMIC -> GFP_KERNEL_ACCOUNT allocation
+Date: Tue, 20 Jan 2026 20:18:00 +0100
+Message-ID: <20260120191803.22208-8-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260120191803.22208-1-fw@strlen.de>
 References: <20260120191803.22208-1-fw@strlen.de>
@@ -38,201 +38,169 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-several netfilter compilation units rely on implicit includes
-coming from nf_conntrack_proto_gre.h.
+From: Scott Mitchell <scott.k.mitch1@gmail.com>
 
-Clean this up and add the required dependencies where needed.
+Currently, instance_create() uses GFP_ATOMIC because it's called while
+holding instances_lock spinlock. This makes allocation more likely to
+fail under memory pressure.
 
-nf_conntrack.h requires net_generic() helper.
-Place various gre/ppp/vlan includes to where they are needed.
+Refactor nfqnl_recv_config() to drop RCU lock after instance_lookup()
+and peer_portid verification. A socket cannot simultaneously send a
+message and close, so the queue owned by the sending socket cannot be
+destroyed while processing its CONFIG message. This allows
+instance_create() to allocate with GFP_KERNEL_ACCOUNT before taking
+the spinlock.
 
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Scott Mitchell <scott.k.mitch1@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/netfilter/nf_conntrack_proto_gre.h | 3 ---
- include/net/netfilter/nf_conntrack.h             | 1 +
- net/netfilter/nf_conntrack_bpf.c                 | 1 +
- net/netfilter/nf_conntrack_netlink.c             | 1 +
- net/netfilter/nf_conntrack_proto_gre.c           | 2 ++
- net/netfilter/nf_flow_table_ip.c                 | 2 ++
- net/netfilter/nf_flow_table_offload.c            | 1 +
- net/netfilter/nf_flow_table_path.c               | 1 +
- net/netfilter/nf_nat_ovs.c                       | 3 +++
- net/netfilter/nf_nat_proto.c                     | 1 +
- net/netfilter/nft_flow_offload.c                 | 1 +
- net/sched/act_ct.c                               | 2 ++
- net/sched/act_ctinfo.c                           | 1 +
- 13 files changed, 17 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 75 +++++++++++++++------------------
+ 1 file changed, 34 insertions(+), 41 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
-index 34ce5d2f37a2..9ee7014400e8 100644
---- a/include/linux/netfilter/nf_conntrack_proto_gre.h
-+++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
-@@ -1,9 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef _CONNTRACK_PROTO_GRE_H
- #define _CONNTRACK_PROTO_GRE_H
--#include <asm/byteorder.h>
--#include <net/gre.h>
--#include <net/pptp.h>
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 8b7b39d8a109..8fa0807973c9 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -121,17 +121,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
+ 	unsigned int h;
+ 	int err;
  
- struct nf_ct_gre {
- 	unsigned int stream_timeout;
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index aa0a7c82199e..bc42dd0e10e6 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -16,6 +16,7 @@
- #include <linux/bitops.h>
- #include <linux/compiler.h>
+-	spin_lock(&q->instances_lock);
+-	if (instance_lookup(q, queue_num)) {
+-		err = -EEXIST;
+-		goto out_unlock;
+-	}
+-
+-	inst = kzalloc(sizeof(*inst), GFP_ATOMIC);
+-	if (!inst) {
+-		err = -ENOMEM;
+-		goto out_unlock;
+-	}
++	inst = kzalloc(sizeof(*inst), GFP_KERNEL_ACCOUNT);
++	if (!inst)
++		return ERR_PTR(-ENOMEM);
  
-+#include <net/netns/generic.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/netfilter/nf_conntrack_tcp.h>
- #include <linux/netfilter/nf_conntrack_sctp.h>
-diff --git a/net/netfilter/nf_conntrack_bpf.c b/net/netfilter/nf_conntrack_bpf.c
-index 4a136fc3a9c0..4fe6d9d33329 100644
---- a/net/netfilter/nf_conntrack_bpf.c
-+++ b/net/netfilter/nf_conntrack_bpf.c
-@@ -14,6 +14,7 @@
- #include <linux/types.h>
- #include <linux/btf_ids.h>
- #include <linux/net_namespace.h>
-+#include <net/sock.h>
- #include <net/xdp.h>
- #include <net/netfilter/nf_conntrack_bpf.h>
- #include <net/netfilter/nf_conntrack_core.h>
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 3a04665adf99..662f6bbfa805 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -32,6 +32,7 @@
- #include <linux/siphash.h>
+ 	inst->queue_num = queue_num;
+ 	inst->peer_portid = portid;
+@@ -141,9 +133,15 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
+ 	spin_lock_init(&inst->lock);
+ 	INIT_LIST_HEAD(&inst->queue_list);
  
- #include <linux/netfilter.h>
-+#include <net/ipv6.h>
- #include <net/netlink.h>
- #include <net/sock.h>
- #include <net/netfilter/nf_conntrack.h>
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index af369e686fc5..b894bb7a97ad 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -33,12 +33,14 @@
- #include <linux/skbuff.h>
- #include <linux/slab.h>
- #include <net/dst.h>
-+#include <net/gre.h>
- #include <net/net_namespace.h>
- #include <net/netns/generic.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_timeout.h>
-+#include <net/pptp.h>
- #include <linux/netfilter/nf_conntrack_proto_gre.h>
- #include <linux/netfilter/nf_conntrack_pptp.h>
++	spin_lock(&q->instances_lock);
++	if (instance_lookup(q, queue_num)) {
++		err = -EEXIST;
++		goto out_unlock;
++	}
++
+ 	if (!try_module_get(THIS_MODULE)) {
+ 		err = -EAGAIN;
+-		goto out_free;
++		goto out_unlock;
+ 	}
  
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 78883343e5d6..11da560f38bf 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -8,6 +8,8 @@
- #include <linux/ipv6.h>
- #include <linux/netdevice.h>
- #include <linux/if_ether.h>
-+#include <linux/if_vlan.h>
-+#include <net/gre.h>
- #include <net/gso.h>
- #include <net/ip.h>
- #include <net/ipv6.h>
-diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-index d8f7bfd60ac6..b1966b68c48a 100644
---- a/net/netfilter/nf_flow_table_offload.c
-+++ b/net/netfilter/nf_flow_table_offload.c
-@@ -6,6 +6,7 @@
- #include <linux/netdevice.h>
- #include <linux/tc_act/tc_csum.h>
- #include <net/flow_offload.h>
-+#include <net/ip_tunnels.h>
- #include <net/netfilter/nf_flow_table.h>
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_conntrack.h>
-diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
-index eb24fe2715dc..6bb9579dcc2a 100644
---- a/net/netfilter/nf_flow_table_path.c
-+++ b/net/netfilter/nf_flow_table_path.c
-@@ -2,6 +2,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/etherdevice.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
- #include <linux/spinlock.h>
-diff --git a/net/netfilter/nf_nat_ovs.c b/net/netfilter/nf_nat_ovs.c
-index 0f9a559f6207..31474e8c034a 100644
---- a/net/netfilter/nf_nat_ovs.c
-+++ b/net/netfilter/nf_nat_ovs.c
-@@ -2,6 +2,9 @@
- /* Support nat functions for openvswitch and used by OVS and TC conntrack. */
+ 	h = instance_hashfn(queue_num);
+@@ -153,10 +151,9 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
  
- #include <net/netfilter/nf_nat.h>
-+#include <net/ipv6.h>
-+#include <linux/ip.h>
-+#include <linux/if_vlan.h>
+ 	return inst;
  
- /* Modelled after nf_nat_ipv[46]_fn().
-  * range is only used for new, uninitialized NAT state.
-diff --git a/net/netfilter/nf_nat_proto.c b/net/netfilter/nf_nat_proto.c
-index b14a434b9561..97c0f841fc96 100644
---- a/net/netfilter/nf_nat_proto.c
-+++ b/net/netfilter/nf_nat_proto.c
-@@ -25,6 +25,7 @@
- #include <net/ip6_route.h>
- #include <net/xfrm.h>
- #include <net/ipv6.h>
-+#include <net/pptp.h>
+-out_free:
+-	kfree(inst);
+ out_unlock:
+ 	spin_unlock(&q->instances_lock);
++	kfree(inst);
+ 	return ERR_PTR(err);
+ }
  
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack.h>
-diff --git a/net/netfilter/nft_flow_offload.c b/net/netfilter/nft_flow_offload.c
-index b8f76c9057fd..179d0e59e2b5 100644
---- a/net/netfilter/nft_flow_offload.c
-+++ b/net/netfilter/nft_flow_offload.c
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0-only
-+#include <linux/etherdevice.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-diff --git a/net/sched/act_ct.c b/net/sched/act_ct.c
-index 2b6ac7069dc1..81d488655793 100644
---- a/net/sched/act_ct.c
-+++ b/net/sched/act_ct.c
-@@ -13,9 +13,11 @@
- #include <linux/skbuff.h>
- #include <linux/rtnetlink.h>
- #include <linux/pkt_cls.h>
-+#include <linux/if_tunnel.h>
- #include <linux/ip.h>
- #include <linux/ipv6.h>
- #include <linux/rhashtable.h>
-+#include <net/gre.h>
- #include <net/netlink.h>
- #include <net/pkt_sched.h>
- #include <net/pkt_cls.h>
-diff --git a/net/sched/act_ctinfo.c b/net/sched/act_ctinfo.c
-index 71efe04d00b5..d2c750bab1d3 100644
---- a/net/sched/act_ctinfo.c
-+++ b/net/sched/act_ctinfo.c
-@@ -16,6 +16,7 @@
- #include <net/pkt_sched.h>
- #include <net/act_api.h>
- #include <net/pkt_cls.h>
-+#include <net/inet_ecn.h>
- #include <uapi/linux/tc_act/tc_ctinfo.h>
- #include <net/tc_act/tc_ctinfo.h>
- #include <net/tc_wrapper.h>
+@@ -1498,7 +1495,8 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+ 	struct nfqnl_msg_config_cmd *cmd = NULL;
+ 	struct nfqnl_instance *queue;
+ 	__u32 flags = 0, mask = 0;
+-	int ret = 0;
++
++	WARN_ON_ONCE(!lockdep_nfnl_is_held(NFNL_SUBSYS_QUEUE));
+ 
+ 	if (nfqa[NFQA_CFG_CMD]) {
+ 		cmd = nla_data(nfqa[NFQA_CFG_CMD]);
+@@ -1544,47 +1542,44 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+ 		}
+ 	}
+ 
++	/* Lookup queue under RCU. After peer_portid check (or for new queue
++	 * in BIND case), the queue is owned by the socket sending this message.
++	 * A socket cannot simultaneously send a message and close, so while
++	 * processing this CONFIG message, nfqnl_rcv_nl_event() (triggered by
++	 * socket close) cannot destroy this queue. Safe to use without RCU.
++	 */
+ 	rcu_read_lock();
+ 	queue = instance_lookup(q, queue_num);
+ 	if (queue && queue->peer_portid != NETLINK_CB(skb).portid) {
+-		ret = -EPERM;
+-		goto err_out_unlock;
++		rcu_read_unlock();
++		return -EPERM;
+ 	}
++	rcu_read_unlock();
+ 
+ 	if (cmd != NULL) {
+ 		switch (cmd->command) {
+ 		case NFQNL_CFG_CMD_BIND:
+-			if (queue) {
+-				ret = -EBUSY;
+-				goto err_out_unlock;
+-			}
+-			queue = instance_create(q, queue_num,
+-						NETLINK_CB(skb).portid);
+-			if (IS_ERR(queue)) {
+-				ret = PTR_ERR(queue);
+-				goto err_out_unlock;
+-			}
++			if (queue)
++				return -EBUSY;
++			queue = instance_create(q, queue_num, NETLINK_CB(skb).portid);
++			if (IS_ERR(queue))
++				return PTR_ERR(queue);
+ 			break;
+ 		case NFQNL_CFG_CMD_UNBIND:
+-			if (!queue) {
+-				ret = -ENODEV;
+-				goto err_out_unlock;
+-			}
++			if (!queue)
++				return -ENODEV;
+ 			instance_destroy(q, queue);
+-			goto err_out_unlock;
++			return 0;
+ 		case NFQNL_CFG_CMD_PF_BIND:
+ 		case NFQNL_CFG_CMD_PF_UNBIND:
+ 			break;
+ 		default:
+-			ret = -ENOTSUPP;
+-			goto err_out_unlock;
++			return -EOPNOTSUPP;
+ 		}
+ 	}
+ 
+-	if (!queue) {
+-		ret = -ENODEV;
+-		goto err_out_unlock;
+-	}
++	if (!queue)
++		return -ENODEV;
+ 
+ 	if (nfqa[NFQA_CFG_PARAMS]) {
+ 		struct nfqnl_msg_config_params *params =
+@@ -1609,9 +1604,7 @@ static int nfqnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+ 		spin_unlock_bh(&queue->lock);
+ 	}
+ 
+-err_out_unlock:
+-	rcu_read_unlock();
+-	return ret;
++	return 0;
+ }
+ 
+ static const struct nfnl_callback nfqnl_cb[NFQNL_MSG_MAX] = {
 -- 
 2.52.0
 
