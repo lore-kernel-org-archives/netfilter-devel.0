@@ -1,39 +1,43 @@
-Received: from mail-07.mail-europe.com (mail-0701.mail-europe.com [51.83.17.38])
+Received: from mail-06.mail-europe.com (mail-06.mail-europe.com [85.9.210.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3983436998B;
-	Wed, 21 Jan 2026 18:47:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=51.83.17.38
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 491213A7F4F
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Jan 2026 18:47:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=85.9.210.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769021265; cv=none; b=In7WXv4D8HTAZBXa7qfT2AgEyl4LZdi2V52aeZhtLmgs/DYXMQByRCda20LDQ2LQU4ASn71Hle08TWv/qDUer/kwmcqSc50Qz+zV67QHOoISpcJGZxavjtbr7bigW0B2eUsZeTAjrXr113HDkJo0Wo4zaOv8ZWLoQ43AGN00wiI=
+	t=1769021271; cv=none; b=CiVSTfOmqunXZWLChOt/IRkUTAB3e9YR+0pzfi1bf+qkkOGV1VF626HJO3Mn452FK94bOaZyWNJ/bQj3MZzgI8Ja/m4PIuMUjrlZj/yRqqPzVrYK4VAeZ7s7it14OdZYT0jPOJ/H2cBdH5fB0/gOuTeG0P78GO08jkaCyC/LNxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769021265; c=relaxed/simple;
-	bh=XUgUE/aQqUyRCrHTh3KeVaRGZbHKoriW6JkJfAzNPVo=;
-	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=LYJBvP8tdY9Si1LISQ7VHf4eKfcsHuMSDO5K9E2i8gUVtVWbVlNUSymj7vGpYMH8neGri1w3WHmCjqTPoGlNWffZ6BUdxvyHuOgOSvwZM2IQSHn02ZiytulUyWYK4pYJ/TknGuyZIFpebmbtXKwFfcDcYtN1/mCnQGd4paUzXGc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=fail smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=qop6Wxly; arc=none smtp.client-ip=51.83.17.38
+	s=arc-20240116; t=1769021271; c=relaxed/simple;
+	bh=D6Yyt9mJNyPjj3ih5ntUNxqQuk0ywkubOjyJELeEG04=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=aj4PuOWrx7OE25B9WGi1Ogd4EGLz0cKntuAJitz7Fbp4Tf803yMP0XOpffo5Dr3bbmB2owz2sxCpPwUKXgEAB/Ww0+kh80GQX36tw1Eo/xzDV8J2cFmSwOy1QfXW0VMn3gASOLSPR1gkY5NoQs2UUp9SOMgZoqNAlAOleyPHefE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=Vlv6Sc2k; arc=none smtp.client-ip=85.9.210.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="qop6Wxly"
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="Vlv6Sc2k"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1769021253; x=1769280453;
-	bh=O6jeRObaDPPCbKkRGzG3IGZSDLK8QgrVadNS88A/e7Y=;
-	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
-	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=qop6Wxly2i2i6AIWPS3ZDrSJ4nlb2fcoVRWtrU7CO4cChkqT0PhPxyu7Y67UKdZRe
-	 IM6NnCPJKWXVJtaZBF5MeXuFUgegKOJ4//6S7eIaiEn3RNElY+ZwQ4Y9CQOJtu40xq
-	 +JKhOxkRGVlZj9ubJnRo97lbSxoQMGX3gmQYivHGpFse3goZFMrWI9TqGI3c1dBouk
-	 s87TQAhNRnL0531kiI5B7LGwnvOBs8Q6q12S//UnJxd4UKI1rcdflbO74CwKshY86g
-	 xiky76cGG4gz/okFkGXVtErBmm8zKEp0OslnEKDyRcRTxmRx6TG+9f5LZaSHG4tRZe
-	 2KNg2e8WPEdIA==
-Date: Wed, 21 Jan 2026 18:47:29 +0000
+	s=protonmail3; t=1769021259; x=1769280459;
+	bh=rHMVPKl2AAFuu+Uzm988Bz0I23yJv6HWmEa8ePr+Ee4=;
+	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
+	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
+	 Message-ID:BIMI-Selector;
+	b=Vlv6Sc2kk0i/L8B2aU9BU0pBt+KLo+dKHMiKrzxm4Jx2o4LFcCXSvkrcCh3v5gBvR
+	 baEjyTwN5FCwr+in9azNOuj2mKl/fB5LNitKaFHXRvzXbNha8oM0W9LElKkLUpP89Q
+	 YJWnlqCUAo7TDxK1CrL0ruUBpfvYHg2BfzZpCaW/zKEECbCu/KX63ypbKqftfmIvR7
+	 gDClmx3WC767wk8zmRPS9R3X9nsP2Wfe+wrQYFM9Y7jQVUD6LBbDMF4Ua/icwtPRFz
+	 XboFzNPeLEkNQ/chjGjh/Lm2bg3GLrthPrRC5Wq99RNVknxynK3ZS9Ty7e85ib5B/w
+	 yJ8pEt8E6Hr+A==
+Date: Wed, 21 Jan 2026 18:47:36 +0000
 To: Donald Hunter <donald.hunter@gmail.com>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
 From: "Remy D. Farley" <one-d-wide@protonmail.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, "Remy D. Farley" <one-d-wide@protonmail.com>
-Subject: [PATCH v6 0/6] doc/netlink: Expand nftables specification
-Message-ID: <20260121184621.198537-1-one-d-wide@protonmail.com>
+Subject: [PATCH v6 1/6] doc/netlink: netlink-raw: Add max check
+Message-ID: <20260121184621.198537-2-one-d-wide@protonmail.com>
+In-Reply-To: <20260121184621.198537-1-one-d-wide@protonmail.com>
+References: <20260121184621.198537-1-one-d-wide@protonmail.com>
 Feedback-ID: 59017272:user:proton
-X-Pm-Message-ID: 8e11415d56f4cb199534aa192eb44c125aee0240
+X-Pm-Message-ID: 0944e501e84432700ce17ed40164bc85ff785af6
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,59 +47,45 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-Getting out some changes I've accumulated while making nftables work
-with Rust netlink-bindings. Hopefully, this will be useful upstream.
+Add definitions for max check and len-or-limit type, the same as in other
+specifications.
 
-v6:
-- Sort sub-messages.
-- Add description for "Add max check" commit.
-- Fix doc comment for expr-bitwise-attrs to match one in nf_tables.h (thank=
-s Donald)
+Suggested-by: Donald Hunter <donald.hunter@gmail.com>
+Signed-off-by: Remy D. Farley <one-d-wide@protonmail.com>
+---
+ Documentation/netlink/netlink-raw.yaml | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-v5: https://lore.kernel.org/netdev/20251120151754.1111675-1-one-d-wide@prot=
-onmail.com/
-- Fix docgen warnings in enums (avoid interleaving strings and attrsets in =
-a list).
-- Remove "# defined in ..." comments in favor of explicit "header" tag.
-- Split into smaller commits.
-
-v4: https://lore.kernel.org/netdev/cover.1763574466.git.one-d-wide@protonma=
-il.com/
-- Move changes to netlink-raw.yaml into a separate commit.
-
-v3: https://lore.kernel.org/netdev/20251009203324.1444367-1-one-d-wide@prot=
-onmail.com/
-- Fill out missing attributes in each operation (removing todo comments fro=
-m v1).
-- Add missing annotations: dump ops, byte-order, checks.
-- Add max check to netlink-raw specification (suggested by Donald Hunter).
-- Revert changes to ynl_gen_rst.py.
-
-v2: https://lore.kernel.org/netdev/20251003175510.1074239-1-one-d-wide@prot=
-onmail.com/
-- Handle empty request/reply attributes in ynl_gen_rst.py script.
-
-v1: https://lore.kernel.org/netdev/20251002184950.1033210-1-one-d-wide@prot=
-onmail.com/
-- Add missing byte order annotations.
-- Fill out attributes in some operations.
-- Replace non-existent "name" attribute with todo comment.
-- Add some missing sub-messages (and associated attributes).
-- Add (copy over) documentation for some attributes / enum entries.
-- Add "getcompat" operation.
-
-Remy D. Farley (6):
-  doc/netlink: netlink-raw: Add max check
-  doc/netlink: nftables: Add definitions
-  doc/netlink: nftables: Update attribute sets
-  doc/netlink: nftables: Add sub-messages
-  doc/netlink: nftables: Add getcompat operation
-  doc/netlink: nftables: Fill out operation attributes
-
- Documentation/netlink/netlink-raw.yaml    |  11 +-
- Documentation/netlink/specs/nftables.yaml | 695 ++++++++++++++++++++--
- 2 files changed, 656 insertions(+), 50 deletions(-)
-
+diff --git a/Documentation/netlink/netlink-raw.yaml b/Documentation/netlink=
+/netlink-raw.yaml
+index 0166a7e4a..dd98dda55 100644
+--- a/Documentation/netlink/netlink-raw.yaml
++++ b/Documentation/netlink/netlink-raw.yaml
+@@ -19,6 +19,12 @@ $defs:
+     type: [ string, integer ]
+     pattern: ^[0-9A-Za-z_-]+( - 1)?$
+     minimum: 0
++  len-or-limit:
++    # literal int, const name, or limit based on fixed-width type
++    # e.g. u8-min, u16-max, etc.
++    type: [ string, integer ]
++    pattern: ^[0-9A-Za-z_-]+$
++    minimum: 0
+=20
+ # Schema for specs
+ title: Protocol
+@@ -270,7 +276,10 @@ properties:
+                     type: string
+                   min:
+                     description: Min value for an integer attribute.
+-                    type: integer
++                    $ref: '#/$defs/len-or-limit'
++                  max:
++                    description: Max value for an integer attribute.
++                    $ref: '#/$defs/len-or-limit'
+                   min-len:
+                     description: Min length for a binary attribute.
+                     $ref: '#/$defs/len-or-define'
 --=20
 2.51.2
 
