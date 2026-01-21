@@ -1,67 +1,89 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2661B40FD8B
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2026 23:20:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F5424A3C
+	for <netfilter-devel@vger.kernel.org>; Wed, 21 Jan 2026 00:09:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1768951233; cv=none; b=ZqFcdN6ugfcIgFMtiNQs1hKLP/gKu/wBE3uLOFehvepE8VNISMeeE2lE7zms3ZoUCR/JZMX8irE9eJZwFL57dgk0JdfI3IhuTK5XOo1sjFFHNandfJukFvCy4muDDuGFanIFJbfF5uDyqxG2FeTAm16bH8JDGJVOaiKBGjC43Qs=
+	t=1768954145; cv=none; b=YL5qHv/Lavxu8SPDW+F38dexA3v7Hm9I/2LjBvyEQ1ROmB6mnXVN6W581ST+2yVeG5d1297M2i+J56tLBopBtWV9RgN65ZHYDkz1NDo0Pb6bxWgfjI5tj4KBG+J5K/HxUR5v6FfF9/UHXv/BcjvSKEfQV5qq6dwMaVOnCtxroTs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1768951233; c=relaxed/simple;
-	bh=3j19VJ+YOCmxn5gFAHr3ojUEOAs+042Nh0Rfly/NMps=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=ogkpzL5Qh/mYoCdMqGlHcE8Q2THc7vwD9t7k/hraflT0/D6WLmgWX+68LE3XBiOXdEp2Dxvq8tbKLmqt1t2s9kHQOc1Mj6suDJwG05I5cZLCsNqhojEwLedj8io1MvulIVmL7Y3NrA1XykG59MrmIccaMrbxLIdDQcYtiE/UPYY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=O8IAhFKg; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1768954145; c=relaxed/simple;
+	bh=BxpEd/7aeCIaap5n5gTpBWJH3Se3bYf8H8qg9QypToM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=m4l+VaEdUEHuzqRnjrVY/qs19FVJNjrFCrtVQZogozDHdWBMyMfbLsEVwscjfUEYJCyk+ejXNIe9vWoyvDRdoJ9a6myqkfeR9ao+5jnN1TVPNryHqn82x04gkS83V8JNjYfE+TT0P5/3k7e5+B1+J1HFRqW7yKPdHnMFJqUk1ko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=r7WkOaMl; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="O8IAhFKg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Type:MIME-Version:Message-ID:Subject:Cc:To:From:Date:
-	Sender:Reply-To:Content-Transfer-Encoding:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=3j19VJ+YOCmxn5gFAHr3ojUEOAs+042Nh0Rfly/NMps=; b=O8IAhFKgaPvOTqltbMg29LuCsK
-	hX4+r2b938Y3WiZ385znKxUS0pKFly9ms0LFfyyn8sM38d6QlYiF5WVs6Pw/Kn11E/x2r4xOylH+Q
-	/5OPzMRIRa++ecuTryAF/HAfbK2x2T4p/cM8qkwRo/wlsY7puCZdE2oabbHXrW/lYMF3Wrk+DMb0a
-	QF87z9noK9e61oK3+JqQchYLaS2jzsnobb6FXxcpC/OtGqhhMB2bHl4Y7qPTH/E9RHXtoi1vAhEKl
-	b5aPz6nArRYtf0B6nA0J7CPx+vUxbNYHlKJXZK2mEHqfb4iFLz5N9WWEsA8H/v0aIV2mXlPvCjUwG
-	v2ks1z7Q==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1viL1R-000000000zh-0uAT;
-	Wed, 21 Jan 2026 00:20:29 +0100
-Date: Wed, 21 Jan 2026 00:20:29 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: FYI: Code coverage of nft test suites
-Message-ID: <aXANvUVv8nX-wPeM@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="r7WkOaMl"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id C691760179;
+	Wed, 21 Jan 2026 01:08:52 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1768954132;
+	bh=msFsGOEc1Ah1R1uPvUyiAB/SoebrIODc1gtRd7jzJlc=;
+	h=From:To:Cc:Subject:Date:From;
+	b=r7WkOaMlJYMe+SVBt7ZI0X+MTidmtMmDTtZbaxebpKZAEsdsDF34QpyFjChTogM/U
+	 IndxiRRmnnO3qdFQyOPqy3wM1ceAzQ+IS+lWNieGdPUbuhgbveYGRHYi+D2sDVK0eZ
+	 Daz3w8cctdmXUCOMt4ZRczuy0R40BnZZHVsTdLpuO7SrgP7SCTnWQbMp/dZy3eQYFJ
+	 FsT0M0fsuKzNC20IR2SJtGyBok95q2VQV6w4JBpolVLNF4qfR5umS1hI0iLR7p51jb
+	 FTlhHN/djy4+FYIBtsg/hHjF/vJ/UKz41TiiwsEnBTaT5leEY2Yi+PLYg1s1I/dGFS
+	 sM29+2KXVNO2g==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf-next,v2 0/4] convert rbtree to binary search array
+Date: Wed, 21 Jan 2026 01:08:43 +0100
+Message-ID: <20260121000847.294125-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
 Hi,
 
-I recalled there was an effort to increase code coverage of the nft test
-suites so I ran 'make check' in a '--coverage'-enabled build. Here's
-the result for HEAD at commit dda050bd78245 ("doc: clarify JSON rule
-positioning with handle field"):
+v2: - fix kdoc in 1/4
+    - fix sparse warning in nft_rbtree_destroy() in 2/4
+    - add 4/4, new in this series.
 
-http://nwl.cc/~n0-1/nft_testsuites_coverage/index.html
+Florian reported that there is currently an issue with interval matching
+in the rbtree, allowing for false negative lookup during transaction.
+ 
+This series addresses this issue by translating the rbtree, which keeps
+the intervals in order, to binary search. The array is published to
+packet path through RCU. The idea is to keep using the rbtree
+datastructure for control plane, which needs to deal with updates, then
+generate an array using this rbtree for binary search lookups. 
 
-I plan to pick at least a few low hanging fruits from there, but anyone
-interested is more than welcome to chime in!
+Patch #1 allows to call .remove in case .abort is defined, which is
+needed by this new approach. Only pipapo needs to skip .remove to speed.
+ 
+Patch #2 add the binary search array approach for interval matching.
+ 
+Patch #3 updates .get to use the binary search array to find for
+(closest or exact) interval matching.
 
-Cheers, Phil
+Patch #4 removes seqcount_rwlock_t as it is not needed anymore (new in
+this series).
+
+This can possibly go to nf.git alternatively since it qualifies as bugfix,
+feel free to pick the best route for it.
+
+Pablo Neira Ayuso (4):
+  netfilter: nf_tables: add .abort_skip_removal flag for set types
+  netfilter: nft_set_rbtree: translate rbtree to array for binary search
+  netfilter: nft_set_rbtree: use binary search array in get command
+  netfilter: nft_set_rbtree: remove seqcount_rwlock_t
+
+ include/net/netfilter/nf_tables.h |   2 +
+ net/netfilter/nf_tables_api.c     |   3 +-
+ net/netfilter/nft_set_pipapo.c    |   2 +
+ net/netfilter/nft_set_rbtree.c    | 429 ++++++++++++++++++++----------
+ 4 files changed, 291 insertions(+), 145 deletions(-)
+
+-- 
+2.47.3
+
