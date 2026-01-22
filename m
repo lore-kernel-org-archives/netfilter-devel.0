@@ -1,84 +1,96 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D39436355;
-	Wed, 21 Jan 2026 22:05:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19CBD28A1D5;
+	Thu, 22 Jan 2026 04:40:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769033126; cv=none; b=LQSge2+sE8Plnf8LD6FFbzi5DM03LLgS2eVUVZdmi3V1k2oJfGLrx58C/SS4+8kzGFfMQuZnKJzp0eN2+dr9ebnOxR/AYAOEJO/7bS/pRY8N12St/HyWjAcP3jEeGrYNm7L3OQeOKEwl1VF4EuCxvoWENPTkdliofWZOyyKQ4fM=
+	t=1769056820; cv=none; b=YCIKW71t0UOag+99fN375+MRsHhSUmuOtkixkDI1d2SZ4Bm46AqPoN2N/jsrt4vwFqzuwfzU7a8OmCn1vsqWUxjqISBCmiC3guXeAFKhe/PZ8VImhl5Nzno/0GVZRp0lh38jrXdRK/fyP2tp84Qw6kA+KOVvnwxaQBv6vd6JdhU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769033126; c=relaxed/simple;
-	bh=LuTw8y90YApXhD/F4Zf/Rauzp1AiSIsi2AsfoS1T+no=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rzmGf3LoHyS/fsMXVoQG9OhvGrVPuyHCbMFJ71ATKbj5t+zUFQzhDfH3MIgwB0+dmR/E7BKV28MLY4Zrr6weFcdjgbO3rrOF2/2iaNhl46GHDMzsCEdlrkPkTNUdNJru/k0PpYrL04xBEjh9vT8zE2iQ1WIXos9Rh+xlIPrAzQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 4402B604E3; Wed, 21 Jan 2026 23:05:21 +0100 (CET)
-Date: Wed, 21 Jan 2026 23:05:21 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Simon Horman <horms@kernel.org>
-Cc: Kshitiz Bartariya <kshitiz.bartariya@zohomail.in>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	"David S . Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net-next] netfilter: arptables: use xt_entry_foreach() in
- copy_entries_to_user()
-Message-ID: <aXFNoRjTS71iqDDQ@strlen.de>
-References: <20260119063704.12989-1-kshitiz.bartariya@zohomail.in>
- <aXERRqh79pmVsuzk@horms.kernel.org>
+	s=arc-20240116; t=1769056820; c=relaxed/simple;
+	bh=AI8dbuGL/HePhE8XRMZqTuwcBec9gvAnEVPmRRXeqCI=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=sMaoA54wRqg3qc2giSsJTQvxTlIzhIKldRCpndfIrgqpF5fcZRZW+CWVa0vjDYu04kkj7LYsmi1ySc+1v7P9PTitzWmak5s3ngtPKqxGQ+0B1F89rlc5oAAlOfoM/LbTaETbl4cmzuFXNU6Yzci/fyV/UDShMXGOX0HWZ7uTjaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sY1LWIeL; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sY1LWIeL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18C13C116C6;
+	Thu, 22 Jan 2026 04:40:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769056819;
+	bh=AI8dbuGL/HePhE8XRMZqTuwcBec9gvAnEVPmRRXeqCI=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=sY1LWIeLbe9PtnsZ2TXCkVlrxGKCxhUOr4JSyJeR1qit1DXQrZqISJkVQ2pnwOc3i
+	 wT3xghpz10ALVOWHtMdNnMfrqGEnGUVIVjp+mrAHM3FfZoen+JHUz8Sd0HCJBxfHJp
+	 Qji+TSQna8VPDJHHCnKnkYFkD2w++8y1XzEo+nnVGpSmVoWo2lT7GcGtrGcr2Wf7mh
+	 cMBgSCrgUxI/1LftFYqHCdsrRzVTDdvqorq/bvBYKX3oa2++3YuHdUAwp/O+Ij8c5D
+	 u2dhu/e7jxdwtWXpk5tSzLpxb4OKyvWbsswsdwHe7wgKqDvkyGTvGwFvYGdRBctpXb
+	 WcI0rRIr75xoQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 11E403808200;
+	Thu, 22 Jan 2026 04:40:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aXERRqh79pmVsuzk@horms.kernel.org>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 01/10] netfilter: nf_tables: reset table
+ validation
+ state on abort
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <176905681585.1558231.4991951813231134524.git-patchwork-notify@kernel.org>
+Date: Thu, 22 Jan 2026 04:40:15 +0000
+References: <20260120191803.22208-2-fw@strlen.de>
+In-Reply-To: <20260120191803.22208-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-Simon Horman <horms@kernel.org> wrote:
-> On Mon, Jan 19, 2026 at 12:07:04PM +0530, Kshitiz Bartariya wrote:
-> > Replace the manual offset-based iteration with xt_entry_foreach(),
-> > thereby removing FIXME. The byte offset semantics and user ABI
-> > are preserved.
-> > 
-> > Signed-off-by: Kshitiz Bartariya <kshitiz.bartariya@zohomail.in>
-> > ---
-> >  net/ipv4/netfilter/arp_tables.c | 8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-> > index 1cdd9c28ab2d..9f82ce0fcaa5 100644
-> > --- a/net/ipv4/netfilter/arp_tables.c
-> > +++ b/net/ipv4/netfilter/arp_tables.c
-> > @@ -684,12 +684,11 @@ static int copy_entries_to_user(unsigned int total_size,
-> >  
-> >  	loc_cpu_entry = private->entries;
-> >  
-> > -	/* FIXME: use iterator macros --RR */
-> > -	/* ... then go back and fix counters and names */
-> > -	for (off = 0, num = 0; off < total_size; off += e->next_offset, num++){
-> > +	num = 0;
-> > +	xt_entry_foreach(e, loc_cpu_entry, total_size) {
-> >  		const struct xt_entry_target *t;
-> >  
-> > -		e = loc_cpu_entry + off;
-> > +		off = (unsigned char *)e - (unsigned char *)loc_cpu_entry;
+Hello:
+
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
+
+On Tue, 20 Jan 2026 20:17:54 +0100 you wrote:
+> If a transaction fails the final validation in the commit hook, the table
+> validation state is changed to NFT_VALIDATE_DO and a replay of the batch is
+> performed.  Every rule insert will then do a graph validation.
 > 
-> This offset calculation makes me feel queasy.
+> This is much slower, but provides better error reporting to the user
+> because we can point at the rule that introduces the validation issue.
 > 
-> Can the code start with off = 0 and increment it by e->next_offset
-> as the loop iterates, as was the case before this patch?
-> It would be similar to how num is handled.
+> [...]
 
-I think this file should just be left alone resp. should be restricted
-to bug fixes only.  Same for ip/ip6/ebtables.
+Here is the summary with links:
+  - [net-next,01/10] netfilter: nf_tables: reset table validation state on abort
+    https://git.kernel.org/netdev/net-next/c/6f93616a7323
+  - [net-next,02/10] netfilter: nf_conntrack: Add allow_clash to generic protocol handler
+    https://git.kernel.org/netdev/net-next/c/8a49fc8d8a3e
+  - [net-next,03/10] netfilter: nf_conncount: increase the connection clean up limit to 64
+    https://git.kernel.org/netdev/net-next/c/21d033e47273
+  - [net-next,04/10] netfilter: nf_conntrack: enable icmp clash support
+    https://git.kernel.org/netdev/net-next/c/f7becf0dad8f
+  - [net-next,05/10] netfilter: don't include xt and nftables.h in unrelated subsystems
+    https://git.kernel.org/netdev/net-next/c/910d27122775
+  - [net-next,06/10] netfilter: nf_conntrack: don't rely on implicit includes
+    https://git.kernel.org/netdev/net-next/c/d00453b6e3a3
+  - [net-next,07/10] netfilter: nfnetlink_queue: nfqnl_instance GFP_ATOMIC -> GFP_KERNEL_ACCOUNT allocation
+    https://git.kernel.org/netdev/net-next/c/a4400a5b343d
+  - [net-next,08/10] netfilter: nft_compat: add more restrictions on netlink attributes
+    https://git.kernel.org/netdev/net-next/c/cda26c645946
+  - [net-next,09/10] netfilter: nf_conncount: fix tracking of connections from localhost
+    https://git.kernel.org/netdev/net-next/c/de8a70cefcb2
+  - [net-next,10/10] netfilter: xt_tcpmss: check remaining length before reading optlen
+    https://git.kernel.org/netdev/net-next/c/735ee8582da3
 
-Its too early to remove this file from the tree, but I don't see
-value in making cosmetic improvements, sorry.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
