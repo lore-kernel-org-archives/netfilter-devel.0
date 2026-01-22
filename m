@@ -1,34 +1,35 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD5033F38B;
-	Thu, 22 Jan 2026 17:46:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E48AF30F547;
+	Thu, 22 Jan 2026 17:46:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769103993; cv=none; b=QLcOIXz3umwcjglaK7Aog3kM3FkmHHvcZ1uOwv/LCIHOe+zYh0Elbcutr7XgOeVBaoQFK6X0Lq9/a0P76YBqfbfVfnl8UMWP+uo31DHjyWFt5XnKVDZr12IsDZLYAXR7qPVAu7r5uCcfV4xy4tqOlQJHpmKG/Dr0JFNBtLh6+3E=
+	t=1769103997; cv=none; b=F1e/czg6bWcLlyV8neoy/n/KM8D7t0f3jrENia9x4OkACBY2m9XAmVsyVe9nv/tXWDCSUbaHcD4ev4kgUeT3SXDQynsDosl4BXjlMWkt91ZyrJUUstnmLLxqQVTAkRVED+x/mSaFqOEBf3RjeRKtBIbVHjDIYyg1EqFbwdCAykU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769103993; c=relaxed/simple;
-	bh=J6EE2JV/EP3jDCqUxKjcoNGe9PWk5ovakEfZ60HsXpU=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=WXSOpcra/TPHsS54Bi5p2Dlx9AaGQMw9XjUQV3jbTVa51HbQbfkU1qzwJkAX+oB4Y5/wPFb9EZ2SXBj9Zov8cyxuypzZpwVKufk/R/KBb/UN+85gMgytl0iW5cQAqJAxclQY2rZeUYAlu6qldvIz3y5KDtuXpnEbK48+jR+96TM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sIuK0HKN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769103997; c=relaxed/simple;
+	bh=Vb0BDsIkdF+pAP1UDkQuPP/llPkZVJAR7tMLh1xpciI=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=HdqfEYxSY3afdWEbfUdwP6XgsIlAdiX1XH3bwW+HZZJrjjNkNEKoiDmxsP8+ZVPIvPsqadgGjSfDXea0O0mOrTSRo1O7Af7TDpzPPdlv+iAOs3q6SRId6Qxaht3ymMnEXiC6VqmoqhLAIrTuE0jpUhx0DgAczLw9vsYVESXjUh8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gV/5P/Bj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sIuK0HKN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D73CAC16AAE;
-	Thu, 22 Jan 2026 17:46:32 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gV/5P/Bj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C31C116C6;
+	Thu, 22 Jan 2026 17:46:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769103993;
-	bh=J6EE2JV/EP3jDCqUxKjcoNGe9PWk5ovakEfZ60HsXpU=;
-	h=From:Subject:Date:To:Cc:From;
-	b=sIuK0HKNjPaDFeFLGLaIB6HB5ac6aJ3xfuMpKzDfE8DFEERMPLmKcWU4uKHZ2vdKH
-	 AE/Ldi4PPeLOKxGsA0kFNEG52gUQSEtxsWBI36yirROATAemw5S01hwpzEF9P3HSnz
-	 1cMP5LnpTmjYyUFaH51fO0ZGI1EL894YRuHGINFlVvs3CMwn6peAhKVIXIDQC9iB1R
-	 2Vrk6hQclxubXluqvHhaLEsPHwrn5RhB1u7G62DxfTyqeZSjqI+KGzrqLTFd1YBvrj
-	 pyzMsS9PIMWxaWrNgFusMvyj9GxhJNCE/Ji1lJ0dwdO8ZeUVUJ64xAtvfYCLcLCHJE
-	 NF0JR/Dz6c+0Q==
+	s=k20201202; t=1769103995;
+	bh=Vb0BDsIkdF+pAP1UDkQuPP/llPkZVJAR7tMLh1xpciI=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=gV/5P/BjPDm2/3dx8fHwESKu9Tu63HKJEB0O0t8WwLB5GL96hb8Su4Ep1LjREBS/J
+	 lXn3dD09x7A9H3OlPv43nCqA35nf7JAqth6y3HRfEJW1TVCNL8/7YmLs9epXy+cp5K
+	 NZtb9L3OhaE/Xe+9+hLkC0IPz72UTvvHQVjYAobZTiOudWOVVexOdlEUCVkCBfEBIW
+	 Ydi+Dn1a4iBJiw1TOZQo+tOxCnsoYyM2Xwx98E0stGFgFZKrjvDip7T1uT9j7v6Sfs
+	 2Aic/yaGU+6utKEagn90FfeE6XUtSA2TiE910xa0HGCuQl7wBZ5q/zswKuPyGszE/E
+	 N29lxnwg9p9dA==
 From: Lorenzo Bianconi <lorenzo@kernel.org>
-Subject: [PATCH nf-next v4 0/5] Add IP6IP6 flowtable SW acceleration
-Date: Thu, 22 Jan 2026 18:46:12 +0100
-Message-Id: <20260122-b4-flowtable-offload-ip6ip6-v4-0-ea3dd826c23b@kernel.org>
+Date: Thu, 22 Jan 2026 18:46:13 +0100
+Subject: [PATCH nf-next v4 1/5] netfilter: Add ctx pointer in
+ nf_flow_skb_encap_protocol/nf_flow_ip4_tunnel_proto signature
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,11 +38,9 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAAAAAAAC/43NUQuCMBDA8a8Se26xm3ObPfU9ooc5bzYSJ1OsE
- L97UwiKQIJ7uP89/G4iPUaPPTnuJhJx9L0PbQqx3xF7NW2N1FepCWc8B84ULQV1TbgPpmyQBpd
- 2U1HfyTRUY2G4lS4zSpEkdBGdf6z6+ZL66vshxOf6bITl+p87AmUUNGamVE4JbU83jC02hxBrs
- sAj/8SKbYwnTAgNykGJuZU/WPbGJAOQ21iWMAvOmkrnpmD5FzbP8wvR56bsYQEAAA==
-X-Change-ID: 20251207-b4-flowtable-offload-ip6ip6-8e9a2c6f3a77
+Message-Id: <20260122-b4-flowtable-offload-ip6ip6-v4-1-ea3dd826c23b@kernel.org>
+References: <20260122-b4-flowtable-offload-ip6ip6-v4-0-ea3dd826c23b@kernel.org>
+In-Reply-To: <20260122-b4-flowtable-offload-ip6ip6-v4-0-ea3dd826c23b@kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>, 
  Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
  Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
@@ -53,47 +52,105 @@ Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
  Lorenzo Bianconi <lorenzo@kernel.org>
 X-Mailer: b4 0.14.2
 
-Introduce SW acceleration for IP6IP6 tunnels in the netfilter flowtable
-infrastructure.
+Rely on nf_flowtable_ctx struct pointer in nf_flow_ip4_tunnel_proto and
+nf_flow_skb_encap_protocol routine signature. This is a preliminary patch
+to introduce IP6IP6 flowtable acceleration since nf_flowtable_ctx will
+be used to store IP6IP6 tunnel info.
 
+Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 ---
-Changes in v4:
-- Take into account encap limit option during tunnel MTU calculation
-- Take into account ctx->offset to get next-header type in
-  nf_flow_ip6_tunnel_proto()
-- Link to v3: https://lore.kernel.org/r/20260116-b4-flowtable-offload-ip6ip6-v3-0-c1fcad85a905@kernel.org
+ net/netfilter/nf_flow_table_ip.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-Changes in v3:
-- Split patch 1/4 in two separated patches 1/4 and 2/4 and improve
-  commit logs
-- Add more comments in the code
-- Rely on skb_header_pointer in patch 2/4
-- Link to v2: https://lore.kernel.org/r/20251209-b4-flowtable-offload-ip6ip6-v2-0-44817f1be5c6@kernel.org
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index e128b0fe9a7bf50b458df9940d629ea08c521871..8d3fbeaca2df110180414d44b28475adce8724ae 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -293,15 +293,16 @@ static unsigned int nf_flow_xmit_xfrm(struct sk_buff *skb,
+ 	return NF_STOLEN;
+ }
+ 
+-static bool nf_flow_ip4_tunnel_proto(struct sk_buff *skb, u32 *psize)
++static bool nf_flow_ip4_tunnel_proto(struct nf_flowtable_ctx *ctx,
++				     struct sk_buff *skb)
+ {
+ 	struct iphdr *iph;
+ 	u16 size;
+ 
+-	if (!pskb_may_pull(skb, sizeof(*iph) + *psize))
++	if (!pskb_may_pull(skb, sizeof(*iph) + ctx->offset))
+ 		return false;
+ 
+-	iph = (struct iphdr *)(skb_network_header(skb) + *psize);
++	iph = (struct iphdr *)(skb_network_header(skb) + ctx->offset);
+ 	size = iph->ihl << 2;
+ 
+ 	if (ip_is_fragment(iph) || unlikely(ip_has_options(size)))
+@@ -311,7 +312,7 @@ static bool nf_flow_ip4_tunnel_proto(struct sk_buff *skb, u32 *psize)
+ 		return false;
+ 
+ 	if (iph->protocol == IPPROTO_IPIP)
+-		*psize += size;
++		ctx->offset += size;
+ 
+ 	return true;
+ }
+@@ -327,8 +328,8 @@ static void nf_flow_ip4_tunnel_pop(struct sk_buff *skb)
+ 	skb_reset_network_header(skb);
+ }
+ 
+-static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+-				       u32 *offset)
++static bool nf_flow_skb_encap_protocol(struct nf_flowtable_ctx *ctx,
++				       struct sk_buff *skb, __be16 proto)
+ {
+ 	__be16 inner_proto = skb->protocol;
+ 	struct vlan_ethhdr *veth;
+@@ -341,7 +342,7 @@ static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+ 
+ 		veth = (struct vlan_ethhdr *)skb_mac_header(skb);
+ 		if (veth->h_vlan_encapsulated_proto == proto) {
+-			*offset += VLAN_HLEN;
++			ctx->offset += VLAN_HLEN;
+ 			inner_proto = proto;
+ 			ret = true;
+ 		}
+@@ -349,14 +350,14 @@ static bool nf_flow_skb_encap_protocol(struct sk_buff *skb, __be16 proto,
+ 	case htons(ETH_P_PPP_SES):
+ 		if (nf_flow_pppoe_proto(skb, &inner_proto) &&
+ 		    inner_proto == proto) {
+-			*offset += PPPOE_SES_HLEN;
++			ctx->offset += PPPOE_SES_HLEN;
+ 			ret = true;
+ 		}
+ 		break;
+ 	}
+ 
+ 	if (inner_proto == htons(ETH_P_IP))
+-		ret = nf_flow_ip4_tunnel_proto(skb, offset);
++		ret = nf_flow_ip4_tunnel_proto(ctx, skb);
+ 
+ 	return ret;
+ }
+@@ -414,7 +415,7 @@ nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
+ {
+ 	struct flow_offload_tuple tuple = {};
+ 
+-	if (!nf_flow_skb_encap_protocol(skb, htons(ETH_P_IP), &ctx->offset))
++	if (!nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IP)))
+ 		return NULL;
+ 
+ 	if (nf_flow_tuple_ip(ctx, skb, &tuple) < 0)
+@@ -895,7 +896,7 @@ nf_flow_offload_ipv6_lookup(struct nf_flowtable_ctx *ctx,
+ 	struct flow_offload_tuple tuple = {};
+ 
+ 	if (skb->protocol != htons(ETH_P_IPV6) &&
+-	    !nf_flow_skb_encap_protocol(skb, htons(ETH_P_IPV6), &ctx->offset))
++	    !nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IPV6)))
+ 		return NULL;
+ 
+ 	if (nf_flow_tuple_ipv6(ctx, skb, &tuple) < 0)
 
-Changes in v2:
-- Fix compilation when CONFIG_IPV6 is disabled
-- Rely on ipv6_skip_exthdr() in nf_flow_ip6_tunnel_proto() to avoid
-  use-after-free issues
-- Drop patch 2/5 from v1
-- Link to v1: https://lore.kernel.org/r/20251207-b4-flowtable-offload-ip6ip6-v1-0-18e3ab7f748c@kernel.org
-
----
-Lorenzo Bianconi (5):
-      netfilter: Add ctx pointer in nf_flow_skb_encap_protocol/nf_flow_ip4_tunnel_proto signature
-      netfilter: Introduce tunnel metadata info in nf_flowtable_ctx struct
-      netfilter: flowtable: Add IP6IP6 rx sw acceleration
-      netfilter: flowtable: Add IP6IP6 tx sw acceleration
-      selftests: netfilter: nft_flowtable.sh: Add IP6IP6 flowtable selftest
-
- net/ipv6/ip6_tunnel.c                              |  27 +++
- net/netfilter/nf_flow_table_ip.c                   | 243 ++++++++++++++++++---
- .../selftests/net/netfilter/nft_flowtable.sh       |  62 +++++-
- 3 files changed, 287 insertions(+), 45 deletions(-)
----
-base-commit: f8156ef0fd8232055396ebf1e044fa06fb8bc388
-change-id: 20251207-b4-flowtable-offload-ip6ip6-8e9a2c6f3a77
-
-Best regards,
 -- 
-Lorenzo Bianconi <lorenzo@kernel.org>
+2.52.0
 
