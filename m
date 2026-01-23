@@ -1,180 +1,86 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257982248BE;
-	Thu, 22 Jan 2026 17:46:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C284B31BC9E;
+	Fri, 23 Jan 2026 00:00:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769104008; cv=none; b=ZlTzXPsfLwKlzMsLecXrPxnrVCXBd8RG3B2NkZpy6UTVEGqcL1MO4GYM0GS5liIqDqlYx5i9MHekTWsOZx3rgm93TxEgCaA3lDfLPGRYv7jLXHnEwzPFDtZLduv+FWriRSJIf5XIHh9ZoOtunPA1dOA6Nva7IYIWF03ibHQlqeE=
+	t=1769126413; cv=none; b=lfdTeMW9igvOZxuEUI7tCc+aQY0KkYptXPh0be3pg5h9KK7x28vY2C2lAcjliwj9yvyaBAHM/JcBK5GDx2AgH8oecZVygMZWyhvXRcbXGoCiHBfhy7Qd6PZUo+wdwqhtLJPgRglW2DuD6fGnAuQ9dzvopxsXdazUCspZKOh0mxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769104008; c=relaxed/simple;
-	bh=VjDGUTom6je4dVzwHm2KOd5tgoOEnl0QV5kY0rsBtfk=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=Be++bt7HikhKNV9k9KGQLX/lG+Y9I4QbLBOK8lldWPipNJ1HGSqROiYAaqCl/RQfeMWyxm328LUkC0Ljdd0Z4A/+3GARR7IT2dxob2kfB7k5V4nkoS8OVxNw799DyZeoQejtMxiJ3exkGkFZtYwRw3ejBw191MigSxiHLDgKNtU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DMEzpUH0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769126413; c=relaxed/simple;
+	bh=jO6L/hzPe0ilE9T+6MWZ5gyH0HGsAh+O/AHfJ11qlEs=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=VcoM73GfOsEC6cJsoSQq89YT+s5Z48VT7NXVaQVlSSldg5RP8iJMHmKA5GR//dz6IuC3SsazjVJGkkFvY/JY6AHEM/BjubRa1YzXBCqMmdpXXHTdC00eVpD9TCcNLW5H/s+s+wja325DA7/klrwoF+fKJqSi+bGY3hxwqWl75OU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QP91yCft; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DMEzpUH0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D0FDC116D0;
-	Thu, 22 Jan 2026 17:46:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QP91yCft"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 117A7C116C6;
+	Fri, 23 Jan 2026 00:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769104006;
-	bh=VjDGUTom6je4dVzwHm2KOd5tgoOEnl0QV5kY0rsBtfk=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=DMEzpUH0sCcVRQKiLLbjFI94FDuri0ywOqM0HwIq1MjhTMeQLGyAz/NDEbf5lwnVX
-	 qUD5SrKzE4egZCIQeTvUDuPdaUb7co0gFxUpoFrNuU8NRBvnv6O3i10LOpP/Dl48rt
-	 3PnVzjzMIPJDVTlwruu91ckszTtwcQsik9VTGlODhRVJxbh4+PbWRqw9R6vokw6iAF
-	 29sfH3PQnumfVjkIci6MfIWyxZdKYoxNWwMUMrnbosY8+g83esJq124j2gQUXPtxLc
-	 J3gTEtCiLnIl0RvXqMSMmB/J3GawaLciu+oZeIh/HKa4BvfbCpBe9PUNGqH5tr9xij
-	 aRhzJctqQGbTQ==
-From: Lorenzo Bianconi <lorenzo@kernel.org>
-Date: Thu, 22 Jan 2026 18:46:17 +0100
-Subject: [PATCH nf-next v4 5/5] selftests: netfilter: nft_flowtable.sh: Add
- IP6IP6 flowtable selftest
+	s=k20201202; t=1769126413;
+	bh=jO6L/hzPe0ilE9T+6MWZ5gyH0HGsAh+O/AHfJ11qlEs=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=QP91yCft2aTcrXP3DkglGvWMs81eV/bPWTRRMKeSYcuQtzgnjw+fRawW3Cbu1OjrZ
+	 GvJ60Ka4jozayZbLc0UfbGe9H4SOE3sQn9LB1LlD4Ob4Ct0qd1h5bCAgfFeMnT3U09
+	 fONptRo/S8i4OtohPohflNkjRUZkT1DgCHrk2Z6GBz3QsX8EmB1tdXne92GjC9GCo/
+	 uClCPa/IRVK40U273HmPFU5pRZr1Q0CZpIKzzFJKmyxE+QP6zmlNRXymVk50VdvO3i
+	 VrXJ5+LNo8k8EgMphviyRCSCfU7Db1CfwWLbmsjp+vC+9eEg3G8Po+5VuxuxrSCfPE
+	 qHGstSxfChJ2w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 8BB363808200;
+	Fri, 23 Jan 2026 00:00:10 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20260122-b4-flowtable-offload-ip6ip6-v4-5-ea3dd826c23b@kernel.org>
-References: <20260122-b4-flowtable-offload-ip6ip6-v4-0-ea3dd826c23b@kernel.org>
-In-Reply-To: <20260122-b4-flowtable-offload-ip6ip6-v4-0-ea3dd826c23b@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>, 
- Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, 
- Phil Sutter <phil@nwl.cc>, "David S. Miller" <davem@davemloft.net>, 
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
- Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
- David Ahern <dsahern@kernel.org>, Shuah Khan <shuah@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
- netdev@vger.kernel.org, linux-kselftest@vger.kernel.org, 
- Lorenzo Bianconi <lorenzo@kernel.org>
-X-Mailer: b4 0.14.2
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 1/4] netfilter: nf_tables: add
+ .abort_skip_removal
+ flag for set types
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <176912640898.2329686.4992612220362762335.git-patchwork-notify@kernel.org>
+Date: Fri, 23 Jan 2026 00:00:08 +0000
+References: <20260122162935.8581-2-fw@strlen.de>
+In-Reply-To: <20260122162935.8581-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-Similar to IPIP, introduce specific selftest for IP6IP6 flowtable SW
-acceleration in nft_flowtable.sh
+Hello:
 
-Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
----
- .../selftests/net/netfilter/nft_flowtable.sh       | 62 ++++++++++++++++++----
- 1 file changed, 53 insertions(+), 9 deletions(-)
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-index 24b4e60b91451e7ea7f6a041b0335233047c6242..bc98baba56c638cad35478109a3776d6d93c34a8 100755
---- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
-@@ -590,16 +590,28 @@ ip -net "$nsr1" link set tun0 up
- ip -net "$nsr1" addr add 192.168.100.1/24 dev tun0
- ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
- 
-+ip -net "$nsr1" link add name tun6 type ip6tnl local fee1:2::1 remote fee1:2::2
-+ip -net "$nsr1" link set tun6 up
-+ip -net "$nsr1" addr add fee1:3::1/64 dev tun6 nodad
-+
- ip -net "$nsr2" link add name tun0 type ipip local 192.168.10.2 remote 192.168.10.1
- ip -net "$nsr2" link set tun0 up
- ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
- ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
- 
-+ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1
-+ip -net "$nsr2" link set tun6 up
-+ip -net "$nsr2" addr add fee1:3::2/64 dev tun6 nodad
-+
- ip -net "$nsr1" route change default via 192.168.100.2
- ip -net "$nsr2" route change default via 192.168.100.1
-+ip -6 -net "$nsr1" route change default via fee1:3::2
-+ip -6 -net "$nsr2" route change default via fee1:3::1
- ip -net "$ns2" route add default via 10.0.2.1
-+ip -6 -net "$ns2" route add default via dead:2::1
- 
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0 accept'
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6 accept'
- ip netns exec "$nsr1" nft -a insert rule inet filter forward \
- 	'meta oif "veth0" tcp sport 12345 ct mark set 1 flow add @f1 counter name routed_repl accept'
- 
-@@ -609,28 +621,51 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel"; then
- 	ret=1
- fi
- 
-+if test_tcp_forwarding "$ns1" "$ns2" 1 6 "[dead:2::99]" 12345; then
-+	echo "PASS: flow offload for ns1/ns2 IP6IP6 tunnel"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
- # Create vlan tagged devices for IPIP traffic.
- ip -net "$nsr1" link add link veth1 name veth1.10 type vlan id 10
- ip -net "$nsr1" link set veth1.10 up
- ip -net "$nsr1" addr add 192.168.20.1/24 dev veth1.10
-+ip -net "$nsr1" addr add fee1:4::1/64 dev veth1.10 nodad
- ip netns exec "$nsr1" sysctl net.ipv4.conf.veth1/10.forwarding=1 > /dev/null
- ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif veth1.10 accept'
--ip -net "$nsr1" link add name tun1 type ipip local 192.168.20.1 remote 192.168.20.2
--ip -net "$nsr1" link set tun1 up
--ip -net "$nsr1" addr add 192.168.200.1/24 dev tun1
-+
-+ip -net "$nsr1" link add name tun0.10 type ipip local 192.168.20.1 remote 192.168.20.2
-+ip -net "$nsr1" link set tun0.10 up
-+ip -net "$nsr1" addr add 192.168.200.1/24 dev tun0.10
- ip -net "$nsr1" route change default via 192.168.200.2
--ip netns exec "$nsr1" sysctl net.ipv4.conf.tun1.forwarding=1 > /dev/null
--ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun1 accept'
-+ip netns exec "$nsr1" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0.10 accept'
-+
-+ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2
-+ip -net "$nsr1" link set tun6.10 up
-+ip -net "$nsr1" addr add fee1:5::1/64 dev tun6.10 nodad
-+ip -6 -net "$nsr1" route change default via fee1:5::2
-+ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6.10 accept'
- 
- ip -net "$nsr2" link add link veth0 name veth0.10 type vlan id 10
- ip -net "$nsr2" link set veth0.10 up
- ip -net "$nsr2" addr add 192.168.20.2/24 dev veth0.10
-+ip -net "$nsr2" addr add fee1:4::2/64 dev veth0.10 nodad
- ip netns exec "$nsr2" sysctl net.ipv4.conf.veth0/10.forwarding=1 > /dev/null
--ip -net "$nsr2" link add name tun1 type ipip local 192.168.20.2 remote 192.168.20.1
--ip -net "$nsr2" link set tun1 up
--ip -net "$nsr2" addr add 192.168.200.2/24 dev tun1
-+
-+ip -net "$nsr2" link add name tun0.10 type ipip local 192.168.20.2 remote 192.168.20.1
-+ip -net "$nsr2" link set tun0.10 up
-+ip -net "$nsr2" addr add 192.168.200.2/24 dev tun0.10
- ip -net "$nsr2" route change default via 192.168.200.1
--ip netns exec "$nsr2" sysctl net.ipv4.conf.tun1.forwarding=1 > /dev/null
-+ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
-+
-+ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1
-+ip -net "$nsr2" link set tun6.10 up
-+ip -net "$nsr2" addr add fee1:5::2/64 dev tun6.10 nodad
-+ip -6 -net "$nsr2" route change default via fee1:5::1
- 
- if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
- 	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel over vlan" 1>&2
-@@ -638,10 +673,19 @@ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
- 	ret=1
- fi
- 
-+if test_tcp_forwarding "$ns1" "$ns2" 1 6 "[dead:2::99]" 12345; then
-+	echo "PASS: flow offload for ns1/ns2 IP6IP6 tunnel over vlan"
-+else
-+	echo "FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel over vlan" 1>&2
-+	ip netns exec "$nsr1" nft list ruleset
-+	ret=1
-+fi
-+
- # Restore the previous configuration
- ip -net "$nsr1" route change default via 192.168.10.2
- ip -net "$nsr2" route change default via 192.168.10.1
- ip -net "$ns2" route del default via 10.0.2.1
-+ip -6 -net "$ns2" route del default via dead:2::1
- }
- 
- # Another test:
+On Thu, 22 Jan 2026 17:29:32 +0100 you wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> The pipapo set backend is the only user of the .abort interface so far.
+> To speed up pipapo abort path, removals are skipped.
+> 
+> The follow up patch updates the rbtree to use to build an array of
+> ordered elements, then use binary search. This needs a new .abort
+> interface but, unlike pipapo, it also need to undo/remove elements.
+> 
+> [...]
 
+Here is the summary with links:
+  - [net-next,1/4] netfilter: nf_tables: add .abort_skip_removal flag for set types
+    https://git.kernel.org/netdev/net-next/c/f175b46d9134
+  - [net-next,2/4] netfilter: nft_set_rbtree: translate rbtree to array for binary search
+    https://git.kernel.org/netdev/net-next/c/7e43e0a1141d
+  - [net-next,3/4] netfilter: nft_set_rbtree: use binary search array in get command
+    https://git.kernel.org/netdev/net-next/c/2aa34191f06f
+  - [net-next,4/4] netfilter: nft_set_rbtree: remove seqcount_rwlock_t
+    https://git.kernel.org/netdev/net-next/c/5599fa810b50
+
+You are awesome, thank you!
 -- 
-2.52.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
