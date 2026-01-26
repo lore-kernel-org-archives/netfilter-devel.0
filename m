@@ -1,56 +1,61 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from wilbur.contactoffice.com (wilbur.contactoffice.com [212.3.242.68])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67A6533AD90;
-	Mon, 26 Jan 2026 13:56:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A120E168BD
+	for <netfilter-devel@vger.kernel.org>; Mon, 26 Jan 2026 17:38:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.3.242.68
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769435798; cv=none; b=FO2Deyrzn4OiweA+zm80iltHzfLCJnoHGFHEJIMgbp9rNwmkEwVm7DVCN3RtoyWKd9g1KumFkesICld5IiRnc6k96Le2Oo0ekISQPxfJE92Us2hSRAneTL61mAIJ3/LhPds86FM41A0c0J3ljY7jlO6cv+d1wkrlgmq3gThrwDQ=
+	t=1769449117; cv=none; b=C6ug3hdsmncA7ZfDK8YWU2XURmby080dtfIUwPZ8Q/Gnz6XiN2CdvY5BpTrHKLd1sHCp3pRRcwpiDWzJrdB7vfehM/82DeACcXqFQa9Jx5smAHQ0qlKiQwHmmeNhBT9EaQZR0zaOCKv2S621ytXw07dAwUxB2UMx+4Jhq/tgZRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769435798; c=relaxed/simple;
-	bh=04a/VV6VOmIqWD5Ds4BSeW2LLTscE1DzMTZgVcCLQ7E=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=NQ9+5vQaw8m7aDJ1BJdoyXLCTRLgHWs82TWurUaaLhyO7Ov3d9VgB71G1l48wpCm3DyY7zqR6dis8/CHAu4XKPw4C9XAz7TTGc2AA+4+8vGBItGPFt6cLRPi5vJNBVggfxepntFkvCCOEzvDCbPgPw95/C4tHTHPXpIrjuOXs0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KzYV1yNg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769449117; c=relaxed/simple;
+	bh=h6RfDwqM0jPtCc0y5wIl196B98bx6odnfoUTokMUQE0=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=ZZL4AsPOX1rjJyQ+uVIbh7uDBzhTmBDl1IZxTSAI7j+0J7wuFnt7Ji3mdrqCyGoTNcLUWdHMoI7WCymrsd5MZ1XOl1jwX3hxPvskN7fdbsEGjHkZ7AlJTGbdmwX9uCIMzdjc6u8IxqjsTunbcXK3ZNXPwq3QpLwdIEvyvHMundk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailfence.com; spf=pass smtp.mailfrom=mailfence.com; dkim=pass (2048-bit key) header.d=mailfence.com header.i=brianwitte@mailfence.com header.b=tM7DlsVW; arc=none smtp.client-ip=212.3.242.68
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailfence.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailfence.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KzYV1yNg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93BDFC116C6;
-	Mon, 26 Jan 2026 13:56:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769435798;
-	bh=04a/VV6VOmIqWD5Ds4BSeW2LLTscE1DzMTZgVcCLQ7E=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KzYV1yNgmvuvADWNKqbnyENwBhcMumCmSutGhY22rioGcEBGF+n27MPP98HjU5QSe
-	 CHC3Ko8o64gvk8IN+2WKsG5gmhvv0Z7NndRvu3TO4T6uIiw7EwDLMPkULf1X/skWtG
-	 qewKnenKjv0QMLvjcw9jRqrWf6aSo4Gh0A8yaSY2Mxt0+17hF4dHlMGvHK+WFYzTZr
-	 eBg33pEyA3amS1R3YVSghXig+W/wWO/AHeWrI8ya4J/yt5A1j1jbXjzyqdQlSlCJRm
-	 q9zirG3UgzzwAigAZEBqi2G8Cgv0SZQkA2ynGuxNeyod4G5b+p0UDwp387jU6gEvUC
-	 Kjvj2Wl2VMb6A==
-Date: Mon, 26 Jan 2026 13:56:33 +0000
-From: Simon Horman <horms@kernel.org>
-To: Jinjie Ruan <ruanjinjie@huawei.com>
-Cc: pablo@netfilter.org, fw@strlen.de, phil@nwl.cc, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: xt_time: use is_leap_year() helper
-Message-ID: <aXdykTYHStzwgNTt@horms.kernel.org>
-References: <20260123081051.336239-1-ruanjinjie@huawei.com>
+	dkim=pass (2048-bit key) header.d=mailfence.com header.i=brianwitte@mailfence.com header.b="tM7DlsVW"
+Received: from smtpauth2.co-bxl (smtpauth2.co-bxl [10.2.0.24])
+	by wilbur.contactoffice.com (Postfix) with ESMTP id E8D8C295F;
+	Mon, 26 Jan 2026 18:38:31 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1769449111;
+	s=20240605-akrp; d=mailfence.com; i=brianwitte@mailfence.com;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
+	bh=h6RfDwqM0jPtCc0y5wIl196B98bx6odnfoUTokMUQE0=;
+	b=tM7DlsVWhn+0AES1Ris2H4WXBSTrJhwSHzKFt+eMbX5fDuHOC/h7zQgBYlJlMxzE
+	2+YqVAb+ugTFfYyhBrQQpX0IS7m9Cul4JNwKwqD4WFHoFVyhNpG3nRL9v1kPywx01z+
+	I3ZYCO54HDDPiVV2bZh/pV/9Rxtepo2i9fP1IY+NL/03PtCvzFK9C1/zPFeIzrlMDhQ
+	nMQ8cn7hFIpZkXZkYHRXYdfXyt5kHWd3kguNawrh+tncnoJqvEKeqVhVMlz7xsWfJS8
+	ywoGjm1i2MggW4hA0N+zbC/0mybwSv24AXUmkEBCNtF63WgulTjFZ2dWsNPu7DpKg7N
+	SkqyXwOk+g==
+Received: by smtp.mailfence.com with ESMTPSA ; Mon, 26 Jan 2026 18:38:29 +0100 (CET)
+From: Brian Witte <brianwitte@mailfence.com>
+To: fw@strlen.de
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] datatype: fix ether address parsing of integer values
+Date: Mon, 26 Jan 2026 11:38:12 -0600
+Message-ID: <20260126173812.56922-1-brianwitte@mailfence.com>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <aXdZNS1fL36NL5vB@strlen.de>
+References: <aXdZNS1fL36NL5vB@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260123081051.336239-1-ruanjinjie@huawei.com>
+Content-Transfer-Encoding: 8bit
+X-ContactOffice-Account: com:441463380
 
-On Fri, Jan 23, 2026 at 04:10:51PM +0800, Jinjie Ruan wrote:
-> Use the is_leap_year() helper from rtc.h instead of
-> writing it by hand
-> 
-> Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+Florian Westphal <fw@strlen.de> wrote:
+> Yes, but it looks like it breaks backwards compatibility.
+>
+> 'ether daddr 99' is parsed as 00:00:00:00:00:99.
+> After your patch, its parsed as 00:00:00:00:00:63.
+>
+> So I'm not sure we can fix this.
 
-Reviewed-by: Simon Horman <horms@kernel.org>
+You're right, I hadn't considered that case. Thanks for the review.
 
+Brian
