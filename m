@@ -1,188 +1,99 @@
-Received: from wilbur.contactoffice.com (wilbur.contactoffice.com [212.3.242.68])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f177.google.com (mail-dy1-f177.google.com [74.125.82.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA32D2FD66D
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 03:06:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.3.242.68
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769483205; cv=none; b=eykRoKcaVFP/J6E8TEf166hRoanQeoogMNHfwfyQWZtUM68QF1giL/qcFogUMzVAagdWeY3hsw/MM46n2qLGMkvZjcBxxY/hbmJW25p2jQipX+t1GWwBc/W2TyVj/IjMLHpBklUBBgxHybUhcJ3rd8FEodR2gzhQAMJ98u+ufUM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769483205; c=relaxed/simple;
-	bh=n4gtVyllIhS60OggznlfVYUDiD1yOUUiKcUXgfGZTDw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZKyq3a7HsFSdyhxRUFdGvUk8Gx0TGeUUNO/bXS1TdBwfW1PM1n5neF+plSFc6tWe1X5KpayzwiMdliMbzxmSQMZiuuA6EpTCiNZJ7kOEiZbHY4gnTKHH3HYUEIT0HNbSqWV0y5ZPW+OI0wUbaHhj3nvCuFWv2GoJuCrykVmD07w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailfence.com; spf=pass smtp.mailfrom=mailfence.com; dkim=pass (2048-bit key) header.d=mailfence.com header.i=brianwitte@mailfence.com header.b=plH+WUwh; arc=none smtp.client-ip=212.3.242.68
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailfence.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailfence.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E86D2FE582
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 03:26:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.82.177
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769484389; cv=pass; b=mdcFECZmEcAWRt5w1wDMF9rNVTOutL5up4FJaJ/n7CtCRLwjQTf0YdcM7uzM1RUVQGeWi5c9lnMwUBZOfhhxnaquhRDK0Km/SalUCWeJKcQFsi8Kd0ugnP6081d70zCKEiNTVloM/FD4i7pcNhqj6UX+dKLWZ6sOupfxDj9tMzE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769484389; c=relaxed/simple;
+	bh=TgPDz+N7xPqRCVDZETjhUk3bfM+xUP2qP0o3+ocSwMA=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=BW7r24l4c17soXp540Sd00M3tSHCvZhZRehKo70LjWeZoMb1XQTBVl1GpCrAm0TQvfale68UrMJraWZQWQ7LJzhFFXhTCgPuMMB43FUl5R6J5dGoOg0xLVfbOjgVSdqqtAjBfLjr7NG1LARA7MB1udYvu1bbKHa7SpV8lAUnp74=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Dhr1juKd; arc=pass smtp.client-ip=74.125.82.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mailfence.com header.i=brianwitte@mailfence.com header.b="plH+WUwh"
-Received: from smtpauth2.co-bxl (smtpauth2.co-bxl [10.2.0.24])
-	by wilbur.contactoffice.com (Postfix) with ESMTP id A4269C99;
-	Tue, 27 Jan 2026 04:06:41 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1769483201;
-	s=20240605-akrp; d=mailfence.com; i=brianwitte@mailfence.com;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Transfer-Encoding;
-	bh=naE23BES8tH/nT8USq4+FSw9s3m7FtSIiSkF0TeYraE=;
-	b=plH+WUwh5osycf8Mkkl3am68n+887qfuFXHmr0Xcghpp+TPHITft4LcMYsDYbt7u
-	hGtP0rEqjcQPXFZVt3Was3OHqjXVNgzMF1l5YcenR8RkwEXHiCwnmNsn4i1JET1euhP
-	GgAiLonp4834XNG+3l1X1+Xzhsj6VW/Q9+IniiLqNszCr3LdoW3tNr861wCM4SvMrPR
-	a9hhnz0tglyjypD5wFVh7i9RZZIygTBTm90mi+q1UJdmq41UUJWih3gkF+CWbyOI8fj
-	zMka/2tfqWvXrF42uKZ24ZClVifjD1q5yl67xin2v6F/WtGl6+ndb1/T7GTFNlxs9j7
-	Im+UxeYQAA==
-Received: by smtp.mailfence.com with ESMTPSA ; Tue, 27 Jan 2026 04:06:38 +0100 (CET)
-From: Brian Witte <brianwitte@mailfence.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	kadlec@blackhole.kfki.hu
-Subject: [PATCH nf-next] netfilter: nf_tables: use dedicated mutex for reset operations
-Date: Mon, 26 Jan 2026 21:06:04 -0600
-Message-ID: <20260127030604.39982-1-brianwitte@mailfence.com>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Dhr1juKd"
+Received: by mail-dy1-f177.google.com with SMTP id 5a478bee46e88-2b70abe3417so11741135eec.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jan 2026 19:26:28 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769484387; cv=none;
+        d=google.com; s=arc-20240605;
+        b=lHqSt7zgw4Kc66ohkiZkySBcavxzx7Nq2waRq69DLYRgdcbu+LxnCscARNwN6ruGDG
+         jw8vETt6frKWge6xWbnRbpuPFdnZXiH6KqL1RN9Rc3aKsCyPVTePcz+AqXM/NsgC20oB
+         bvlyswko0t9813fD8ZClni7tYALusEatwQQ/V5uMxXm2biX+P5lQtLTNXN1nqWvQZzVB
+         HsM/nVwl5mfxYkpzDFq3HJtEfuxb/hkz9YEb89TyGvPyyV7UN66UHL1ACeNhHDvrKGDm
+         Bv5N9jdepmxR+zhJkH+4oSyngdw3hTMCH4hQRTPoRsRWXeQFRmo3COwuFarpA1wibvEw
+         ZxAA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=BpRooRzIG3q5cO6zqoFpypS5yXPD8oAVt4zCD9WCqM8=;
+        fh=94XZ0kbhVmGEa7CVQQn7x19t/0l9HgwgaJK+mk7Jllo=;
+        b=erL0IGKYypxTGr30cKQkFyeog+rNUgSTg4bIAdxce5/Q7ABP4N6/K73AJ4rVoMJqN5
+         K9TeNjgFFXWXIOPDv9FBpllpax1w92G7WJCzSvT6v5x/Hk+4+A8xmqlbFHpgQygRio5n
+         KiivAzaWKN3OUiN0FKywESxc8O7vKGRINht8wA9p6yLX45z7LMzzpEpAD1TeOBBfYhIR
+         U+79hSmsKXtY4G5mjCuY86KpCAUILND/q5zPBLKJ6NDtKWITHlhoDhvFucbNrdSRSBj5
+         b/gV6fgPp0iYA2vTFAu2Xfc9itf5XvutNvJHJoPXVLc9rz95L0BcdDyZcagwHu7xoAW/
+         xUMg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769484387; x=1770089187; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=BpRooRzIG3q5cO6zqoFpypS5yXPD8oAVt4zCD9WCqM8=;
+        b=Dhr1juKd4ACYeJ+azuSx43V1AvJ3D9NB000WyS97jy+C4kS6d4MCrwtqjvlqpRCux2
+         PzrNQSyfAnmvHT8aAsD9kTN7b7JeWeo+a+Jzs9NPO/+KQhVSfKBRBHO7TQ65E3IZ6KyX
+         mpE5I5Sx1mt1IG1P28FffMhIk4jAm2YWXgJ/E3cLMb6L9GIox9CuyNWfVzlfGaxNVBdC
+         J91gl1PSl0F0vnyeOUSEa9lqooDa8ZlNjiE8gjHxWEM4bPIB3/WSQ7UsBcKeMkp4fXv1
+         WlrB7qc8tnzUnHmQuExjFtXu7rB5h6Va+qqS+qXDjE9BfffS9/4WGlrU0SrWGQ5R6OKe
+         xjYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769484387; x=1770089187;
+        h=to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=BpRooRzIG3q5cO6zqoFpypS5yXPD8oAVt4zCD9WCqM8=;
+        b=Ynd73n/QyuJXKOFhm3XMxYR4yI1QZKTf3yRW1xTlMaTIZrF9CFXzf/uTtUblO1zijz
+         badZrW4GIEzu+q+ytk4l5bwrt8b8+A0I6ZzUfwrqHTmgEiXxPccTjHdCa0Y8MjA2O8z9
+         4wTP3qZQSbSf1LdeC2JilCTjwGHLTjT2Zs2PEJ2y1acV0CrnbJUziXYycHGGxv+T6ken
+         XkjvPh3xVfTVTevTuufPk0ZZzYh6YJzdywJN6m8fAlZtVeJm5nsjgY7KSedHksvTB4dv
+         gfo2TpTDnGv+q0fCvr/nLdZC5X85jBzvs+lQOJswGyTURSVZj5Du7K63csAh5hE2kMcR
+         mhdQ==
+X-Gm-Message-State: AOJu0YxNkDTX37nmorC5EpF8xV7MLHJNFeE9Gqs2JBBpaJkfy3IXPdjA
+	rBaGIv2FdWZ4XOR+mKcTUSYOJPLkVq7fZYbnroiCyy6O2wIuC/b2MkFw24r/lafmco9WHW2YGZ7
+	4W8B7FTG1Qgn9n6rxbSsCGp2rnIfnwUViPvRN
+X-Gm-Gg: AZuq6aJ8UHMdnNvAoi1MzJDWrAK8rEy1hvnzbRVSAV6cCIgfWUJC/twJxzziqZIniyU
+	QBSTPbgJl5sBmsXFYSqEt+k4uley73yi7jXGfTz1nJwoT9JKb0r98cgTZsl2m4WPVMKlJ33h1tu
+	czm/fQJVZJPb74fp2emMCKdgIkPjdIKAjZtXWwZ5OBhtfyMLvy9dDKJsul2o6SsfgRL8V5XDacN
+	EYlotenOKCGdTgGdg6LooV/pN3TPW8u5kO2Atb++5Im6abMM2IEICHAyrFJuMMl6EM5AWGbeTQp
+	58OzHjemp9cIdr0rDJul4Taepg==
+X-Received: by 2002:a05:7300:cd8f:b0:2b7:2ce1:3e9e with SMTP id
+ 5a478bee46e88-2b78da1a306mr286747eec.39.1769484387362; Mon, 26 Jan 2026
+ 19:26:27 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-ContactOffice-Account: com:441463380
+From: Mathieu Patenaude <mpatenaude@gmail.com>
+Date: Mon, 26 Jan 2026 22:26:16 -0500
+X-Gm-Features: AZwV_Qh3dQXU12rTe2o8vLee-_1LjBL6syYNDfTA2f6lw3xvBsjnZ7UX1CLmieo
+Message-ID: <CAJ-1uKHCK_yGx7WUAyOpoTn5QJFhu5khG4W17Foj_3ovgTjPwQ@mail.gmail.com>
+Subject: nft bash completion
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Add a dedicated reset_mutex to serialize reset operations instead of
-reusing the commit_mutex. This fixes a circular locking dependency
-between commit_mutex, nfnl_subsys_ipset, and nlk_cb_mutex-NETFILTER
-that could lead to deadlock when nft reset, ipset list, and
-iptables-nft with set match run concurrently:
+Hi,
 
-  CPU0 (nft reset):        nlk_cb_mutex -> commit_mutex
-  CPU1 (ipset list):       nfnl_subsys_ipset -> nlk_cb_mutex
-  CPU2 (iptables -m set):  commit_mutex -> nfnl_subsys_ipset
+Just inquiring to see if there is any interest in adding nft bash
+completion to the nftables project tree?  I only found a reference to
+it dating back to 2016 (patchwork RFC), but I'm unclear if this was
+ever merged or if I'm just looking in the wrong place.
 
-The reset_mutex only serializes concurrent reset operations to prevent
-counter underruns, which is all that's needed. Breaking the commit_mutex
-dependency in the dump-reset path eliminates the circular lock chain.
+I wrote something that works:
+https://github.com/mpatenaude/bash-nft-completion/blob/main/nft
 
-Reported-by: syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=ff16b505ec9152e5f448
-Signed-off-by: Brian Witte <brianwitte@mailfence.com>
----
- include/net/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c     | 30 +++++++++++++++---------------
- 2 files changed, 16 insertions(+), 15 deletions(-)
+Let me know if that can be helpful.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 31906f90706e..85cdd93e564b 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1931,6 +1931,7 @@ struct nftables_pernet {
- 	struct list_head	module_list;
- 	struct list_head	notify_list;
- 	struct mutex		commit_mutex;
-+	struct mutex		reset_mutex;
- 	u64			table_handle;
- 	u64			tstamp;
- 	unsigned int		gc_seq;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index be4924aeaf0e..c82b7875c49c 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3907,13 +3907,12 @@ static int nf_tables_dumpreset_rules(struct sk_buff *skb,
- 	struct nftables_pernet *nft_net = nft_pernet(sock_net(skb->sk));
- 	int ret;
- 
--	/* Mutex is held is to prevent that two concurrent dump-and-reset calls
--	 * do not underrun counters and quotas. The commit_mutex is used for
--	 * the lack a better lock, this is not transaction path.
-+	/* Mutex is held to prevent that two concurrent dump-and-reset calls
-+	 * do not underrun counters and quotas.
- 	 */
--	mutex_lock(&nft_net->commit_mutex);
-+	mutex_lock(&nft_net->reset_mutex);
- 	ret = nf_tables_dump_rules(skb, cb);
--	mutex_unlock(&nft_net->commit_mutex);
-+	mutex_unlock(&nft_net->reset_mutex);
- 
- 	return ret;
- }
-@@ -4057,9 +4056,9 @@ static int nf_tables_getrule_reset(struct sk_buff *skb,
- 	if (!try_module_get(THIS_MODULE))
- 		return -EINVAL;
- 	rcu_read_unlock();
--	mutex_lock(&nft_net->commit_mutex);
-+	mutex_lock(&nft_net->reset_mutex);
- 	skb2 = nf_tables_getrule_single(portid, info, nla, true);
--	mutex_unlock(&nft_net->commit_mutex);
-+	mutex_unlock(&nft_net->reset_mutex);
- 	rcu_read_lock();
- 	module_put(THIS_MODULE);
- 
-@@ -6346,7 +6345,7 @@ static int nf_tables_dumpreset_set(struct sk_buff *skb,
- 	struct nft_set_dump_ctx *dump_ctx = cb->data;
- 	int ret, skip = cb->args[0];
- 
--	mutex_lock(&nft_net->commit_mutex);
-+	mutex_lock(&nft_net->reset_mutex);
- 
- 	ret = nf_tables_dump_set(skb, cb);
- 
-@@ -6354,7 +6353,7 @@ static int nf_tables_dumpreset_set(struct sk_buff *skb,
- 		audit_log_nft_set_reset(dump_ctx->ctx.table, cb->seq,
- 					cb->args[0] - skip);
- 
--	mutex_unlock(&nft_net->commit_mutex);
-+	mutex_unlock(&nft_net->reset_mutex);
- 
- 	return ret;
- }
-@@ -6671,7 +6670,7 @@ static int nf_tables_getsetelem_reset(struct sk_buff *skb,
- 	if (!try_module_get(THIS_MODULE))
- 		return -EINVAL;
- 	rcu_read_unlock();
--	mutex_lock(&nft_net->commit_mutex);
-+	mutex_lock(&nft_net->reset_mutex);
- 	rcu_read_lock();
- 
- 	err = nft_set_dump_ctx_init(&dump_ctx, skb, info, nla, true);
-@@ -6690,7 +6689,7 @@ static int nf_tables_getsetelem_reset(struct sk_buff *skb,
- 
- out_unlock:
- 	rcu_read_unlock();
--	mutex_unlock(&nft_net->commit_mutex);
-+	mutex_unlock(&nft_net->reset_mutex);
- 	rcu_read_lock();
- 	module_put(THIS_MODULE);
- 
-@@ -8552,9 +8551,9 @@ static int nf_tables_dumpreset_obj(struct sk_buff *skb,
- 	struct nftables_pernet *nft_net = nft_pernet(sock_net(skb->sk));
- 	int ret;
- 
--	mutex_lock(&nft_net->commit_mutex);
-+	mutex_lock(&nft_net->reset_mutex);
- 	ret = nf_tables_dump_obj(skb, cb);
--	mutex_unlock(&nft_net->commit_mutex);
-+	mutex_unlock(&nft_net->reset_mutex);
- 
- 	return ret;
- }
-@@ -8693,9 +8692,9 @@ static int nf_tables_getobj_reset(struct sk_buff *skb,
- 	if (!try_module_get(THIS_MODULE))
- 		return -EINVAL;
- 	rcu_read_unlock();
--	mutex_lock(&nft_net->commit_mutex);
-+	mutex_lock(&nft_net->reset_mutex);
- 	skb2 = nf_tables_getobj_single(portid, info, nla, true);
--	mutex_unlock(&nft_net->commit_mutex);
-+	mutex_unlock(&nft_net->reset_mutex);
- 	rcu_read_lock();
- 	module_put(THIS_MODULE);
- 
-@@ -12194,6 +12193,7 @@ static int __net_init nf_tables_init_net(struct net *net)
- 	INIT_LIST_HEAD(&nft_net->module_list);
- 	INIT_LIST_HEAD(&nft_net->notify_list);
- 	mutex_init(&nft_net->commit_mutex);
-+	mutex_init(&nft_net->reset_mutex);
- 	net->nft.base_seq = 1;
- 	nft_net->gc_seq = 0;
- 	nft_net->validate_state = NFT_VALIDATE_SKIP;
--- 
-2.47.3
-
+Cheers!
