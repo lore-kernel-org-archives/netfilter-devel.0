@@ -1,116 +1,98 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFFFC18FC86
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 23:30:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922B520C023
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 23:39:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769556653; cv=none; b=Zaw+57Suw+LCHVqwFWMDdTxitzVjpXlPPhOi8ZUiVplVbwikldtPoyoxLNu6JSfkapIiL/t8Teaa4u+mXp23WJcMdkEEFGI8M2elInC6O4j8mmrL0jxv1AwVbZPy32aTcEbpYzaFGjQHE0+w8pxhr0iG5AAVXZDTtGC8/ALRwzA=
+	t=1769557167; cv=none; b=Vrgwsr37b1fBNIfQ33SovWwhMneXrbYI8dj7FvAqFmFxqJWfbpVD1PKQ2iVMGIfhg0eG3Bq//gjwWGplrXRJ4gII2prFGzo4xmb5lr/EB5BMsydL3Cgm5AD7Y+x6EQM4L1kxTgsPipaL/3dczU+aBGsmo7uA7l6SDNuYnJY2J4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769556653; c=relaxed/simple;
-	bh=MiHpP6czi7w2fBEAAB1bD0PZbdqHRqIIN2HdNL7Eb/U=;
+	s=arc-20240116; t=1769557167; c=relaxed/simple;
+	bh=9Ruu38L3WWAFI1lF2LLip92/Ni2LvBI1K8c7BIOsMdw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GgIad+u4oFXTwcstgY5doXL7wKRo2sY9mesbRdDGIzAZf3qHe31Kj3xdRLy1F8dveS/SKZy3+hy17ixuTqZg30C931gZrmeDyV3s2qhVL6Yj2saumYm99ullZ0Y5MUZosBrgZtm/OwwRI4FeyT06Z34rJUf9g5/3z5NoJ8uWqIg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=diYf/0ak; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	 Content-Type:Content-Disposition:In-Reply-To; b=TW6pcLAU9Hp1AJ/mYfIoMMSBUFQpQHPtTG7NzrVXnOnPdPp06gATHh74GKtvnXPnjUoYK373fLdzYRxYIP2ruM0Tji1FdkrCiHMGTOlgypoMVaOt/N1BvcCJIkUcfH9U/aCqXC0iD9eNc+wnaUMJSS7CNyXYz9fk+NJSQz2FJMk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KEJnd5y/; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="diYf/0ak"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=vo1ga2XvDFC/n0gGhSSA0kmGscWegtPT9p0il5uZcD0=; b=diYf/0akkYCjZKsDmMNKzrA86+
-	NeWirf9vOFU5jvYzohA+pt7cqaKK6MdERSuEPGe+2u7RHcdZJwnB40Z0fRW7+9l5DEchWp1PPCEEs
-	YbBHza1kivDuchyrEUCNsG7zLApiu6rgOPWcACzMh8CybfZ7sFVz5Y9N4GBaVTTkxFs6gQhtWIAa+
-	j5eQP87oF5580Q9QnvCuozXz7O7u87oyz1zGVqfpyeQcjlDlrvJJ2SwYqKVItYaEH/WnXQCdZjd+N
-	o43jo5zYc7g+PPSziN+7LtW3ewU5I/mWjdlmGxREpjY5ixnCjOMiQPWEuPVxxLpfKiBF+UFQexRab
-	aoFy06ZA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vksWG-000000003xl-3oVb;
-	Wed, 28 Jan 2026 00:30:48 +0100
-Date: Wed, 28 Jan 2026 00:30:48 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KEJnd5y/"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5DE1060254;
+	Wed, 28 Jan 2026 00:39:23 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1769557163;
+	bh=0dMbuM3C7NKtoNfVtityKIzeEpjhi+l+HawKx36x8E0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=KEJnd5y/Q0qlqiwPd889UtnpRvt+8/0EzBqQvqPbkg/7GJWYZQ4IqreJK9DxSwWt3
+	 6FZYrmcrei+qn+KkOxJE6ru3tykIjkUBsbykeu8A6DwU/ThfnR3MBVdTaAc451rj3d
+	 RcVKODB3DoXAg94AW3NE2UWVKPTuhTKDeVjK/TucieLbhvsQzjah1rFV/R8Wqd/kZr
+	 EX6c8Vl++C4OkyuAV4tyGFPOu+yhcdOQmROU/u7RaYCehpuh8y0MbjPeeL5MZEsjkn
+	 id7dzdcdOghWrMC3EoArlCXrM1CSNXjuMTWDblQUuL8zMwUmVPY4FuRa0H/Ghg5ray
+	 5fJTN+heWYJuw==
+Date: Wed, 28 Jan 2026 00:39:20 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH] doc: nft.8: Describe iface_type data type
-Message-ID: <aXlKqM0lim7gvOGi@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-References: <20260127221252.27440-1-phil@nwl.cc>
- <aXk5l4AQ4XHvyBrx@strlen.de>
- <aXk-ZPRpYwj_KZ5e@orbyte.nwl.cc>
- <aXlAdFAKM5SVfFfE@strlen.de>
- <aXlDPwtasLIQ9NMg@orbyte.nwl.cc>
- <aXlH2xBJdgX9gFgj@strlen.de>
+Subject: Re: [libnftnl PATCH 9/9] udata: Store u32 udata values in Big Endian
+Message-ID: <aXlMqOfp2klbz_bH@chamomile>
+References: <20251023160547.10928-1-phil@nwl.cc>
+ <20251023160547.10928-10-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aXlH2xBJdgX9gFgj@strlen.de>
+In-Reply-To: <20251023160547.10928-10-phil@nwl.cc>
 
-On Wed, Jan 28, 2026 at 12:18:51AM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > As said, these headers are all structured as "<typename> TYPE":
-> > 
-> > - INTEGER TYPE
-> > - BITMASK TYPE
-> > - STRING TYPE
-> > - INTERFACE TYPE TYPE
-> 
-> - INTERFACE TYPE
-> 
-> > - LINK LAYER ADDRESS TYPE
-> > - IPV4 ADDRESS TYPE
-> > ...
-> > - ICMP TYPE TYPE
-> 
-> ICMP TYPE
-> 
-> > - ICMP CODE TYPE
-> > - ICMPV6 TYPE TYPE
-> 
-> > - ICMPV6 TYPE
-> 
-> > IMO we could drop the " TYPE" suffix from them all, but only merging the
-> > "TYPE TYPE" cases is inconsistent.
-> 
-> Why?!
-> 
-> INTEGER TYPE
-> INTERFACE TYPE TYPE
-> 
-> Thats absolutely sounds inconsistent.
+On Thu, Oct 23, 2025 at 06:05:47PM +0200, Phil Sutter wrote:
+> Avoid deviation of this data in between different byte orders. Assume
+> that direct callers of nftnl_udata_put() know what they do.
 
-Why is it? First type is named "integer", the second one "interface
-type".
+How does this work after an update?
 
-> Sure:
-> payload expression, datatype integer (integer), 4 bits
-> meta expression, datatype iface_type (network interface type) (basetype integer), 16 bits
+Load ruleset with nft version previous to this, then upgrade, then
+list ruleset with new nft version.
+
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
+> ---
+>  src/udata.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
 > 
-> So what?
-> I don't see any implication that you can take 'FOO TYPE' to mean
-> that the type is called 'foo' internally.
-
-We start splitting hair, but IMO a user reading "ICMP CODE TYPE" and
-"ICMP TYPE" will likely assume the first type is called "ICMP CODE" and
-the second just "ICMP".
-
-> > I get your point, it looks wrong and sounds odd when reading out loud
-> > but it is formally correct.
+> diff --git a/src/udata.c b/src/udata.c
+> index a1956571ef5fd..8cf4e7ca61e2f 100644
+> --- a/src/udata.c
+> +++ b/src/udata.c
+> @@ -8,6 +8,7 @@
+>  #include <udata.h>
+>  #include <utils.h>
+>  
+> +#include <arpa/inet.h>
+>  #include <stdlib.h>
+>  #include <stdint.h>
+>  #include <string.h>
+> @@ -100,7 +101,9 @@ EXPORT_SYMBOL(nftnl_udata_put_u32);
+>  bool nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
+>  			 uint32_t data)
+>  {
+> -	return nftnl_udata_put(buf, type, sizeof(data), &data);
+> +	uint32_t data_be = htonl(data);
+> +
+> +	return nftnl_udata_put(buf, type, sizeof(data_be), &data_be);
+>  }
+>  
+>  EXPORT_SYMBOL(nftnl_udata_type);
+> @@ -128,7 +131,7 @@ uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
+>  
+>  	memcpy(&data, attr->value, sizeof(data));
+>  
+> -	return data;
+> +	return ntohl(data);
+>  }
+>  
+>  EXPORT_SYMBOL(nftnl_udata_next);
+> -- 
+> 2.51.0
 > 
-> Ok, I give up.
-
-I'm just stating my point. If you think we should just
-'s/type type/type/g' and it's not a problem, just go for it and I'll
-adjust my patch to it.
-
-Cheers, Phil
