@@ -1,92 +1,92 @@
-Received: from mail-lj1-f178.google.com (mail-lj1-f178.google.com [209.85.208.178])
+Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com [209.85.167.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56074343201
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 10:58:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C489344D98
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 10:59:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.48
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769511505; cv=pass; b=B8fPAxesaDHEBkEhcIziG18L/qjvbhNS4G6vh7RVyC/GJkAcRRI7ceHJZ2EdLAryEaU1sHGS3LvysyRKcEfIFf3b77L9ashXExN8NLVdz6GXZQV+uVPtXG3TGNCWsxfMGtVjrdOdLtgYW+fmccKlT9PjZ9aN2NhI6GCFw6u9qC4=
+	t=1769511591; cv=pass; b=r28mUYogjfp/y9l1h5R3fpaqYZkiYPO8nb9bYoROkpJy7RXgmEDpQUFWyfLbBltzVO/L7YbfEZeghRYjcZnfGjU8bC8SKHOBcRHNLrRRoK/X+J53XQxaZqlvh5y9igwyJuecVdcfC+Bb2TZMh4WEANivC7h7GA27wG6ZsMkzUSI=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769511505; c=relaxed/simple;
-	bh=9j47t5rMsU8ZASRBZwwfTEmAJ8TWZKYRSbD51WsqFfE=;
+	s=arc-20240116; t=1769511591; c=relaxed/simple;
+	bh=BECvrmATlKBwshE0pKD8YMPH0q22JCw7MblIaHu1gcg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ONr30UnEbrwNxpR6WFA/niIQ4l/NQI1LFta8SB3WJgIT8N/MjUuezOZN3mtbLpT3Cy6Q1JB3n5yvWF8uNbA8nji+SfQ6/UXA930vI2ID9FfjKA0mwHNDkm8Uu9zyh/rx48QYc+Xjq9gGe/ZwS9E8xaaTnWrQ8SjX8BG6lamZqdI=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OfMAw3/M; arc=pass smtp.client-ip=209.85.208.178
+	 To:Cc:Content-Type; b=kEmECc+nGUMY8teZKu5nuJhnu6Dp2UJoayZRbdi2QpGxt9E6wd++BryIdMFCoWTsrRsUD9S9MtG1RoBCK1xpyzyfJX3NyBalQeYiJw8hdMBL5zihC+xg6GIqnx5fjLK5C+SNq+tGNfvUzfCqIH6VquKwFEe2ltyVj6QK8bJBZ6U=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YSiLfhmm; arc=pass smtp.client-ip=209.85.167.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OfMAw3/M"
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-385b6a15affso59764691fa.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 02:58:24 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1769511502; cv=none;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YSiLfhmm"
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-59dd7bfeb8aso6810412e87.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 02:59:48 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769511587; cv=none;
         d=google.com; s=arc-20240605;
-        b=LV7FoP8y+3LMyAj0r8t+rPIB4le/e71QeDGC2U6q4tTFR2qZv0jpxSZt0Wzm7WAadP
-         OXc/+hu4wVPqaOg/fBeQ75VtaK2wX3FYWXyrESq8068dz92reeazqCOssn5SqFnWpgqs
-         oY22y5QjVLvHOg16qwhsi3z8KdpCiskXZZ1SXqNIhJebcUGoTCsaLtKgtoWUlRVNr/Yt
-         z/wtD5JVDtIuXbsfeU2iTP+KPvbHuvQtqC02B87i1n4QzvrwUhRReoYbU1qWTunWn7ON
-         0Aqhiht8tvGxz1p9eFydHjO19paLvuoZKk7jUny2hbxmTY3asAhvaArJbBkSivh12nxB
-         5/5Q==
+        b=DFBPTCY9YNqcBf/wKydfFiwxfbvlnkXR39/vQbugS/yZaPyrktAzfqoINvOoYZZ3x2
+         XsgIakYkTC228RQllGSjHaqG3TfGEg3xNIptC7+c62pJtZkmw8FqffdMGXOtyTDLP3jm
+         +9YeRlyRFcFEaLmRlW86U73aT90O/PO2fQ0/VZjGJ2wLJ9hqQW2X5lLNhxYficvK+6Wi
+         XWr0Tk3Lc9ZD1CGFiqeOu5gUWaQr2PQtneA6SgtiVQ3O6MTy7Xv38A01CAVbSA7VbC54
+         ksFmQ3MBZcS4JsQiz8UXfxXs5apBjCw+zPvARc6aiSFKBXjU5Ps8G5dgQZl5UQPB4EbK
+         BEzA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:dkim-signature;
-        bh=9j47t5rMsU8ZASRBZwwfTEmAJ8TWZKYRSbD51WsqFfE=;
-        fh=W6ssnP4oj71tmana/kui4dqj0fWHNDUvFrLPt59a+4c=;
-        b=D+03UQtUhcVrxmvVrJW2Z9EhVQaZKnL1irtaWYpS7s1zEyeAm173x+A35vawX7jXH5
-         03FcF+fNWTyQFZhmxlNCdRr1YU43fW3tXk3Oir586WihkkziiLGLptGr7fmQ0uFrs+rr
-         I/OEQE0UUj00WHLL2jym+6DOxdzaL+qQjeG5kF9LQLOheak1HouM/uD+7qBbqIfkKDyI
-         /7xzCHMbPG3uvEIbxywbEj8tkwThFSdVe3gYr8TJCzE31oIcgxzYfYinzi4B+r5vwUIs
-         kOfQStNQaO9yMNK5f4WIaHF4A9bqPwQ0sNCsBDc1l4xMw9LSqe2vDaiNHcaBnfF+x0tw
-         AS1w==;
+        bh=WYsfFHIplmOm9N2B0bIUCqqqwv0zYamUAJ//iJfYf5A=;
+        fh=dlEy6MeOzAijlNB6HjKKYgSLDtiLzt+wwSwH2Kr1E3U=;
+        b=i5azHoO/D7PAalEjQrdjyqI6s/4kMBj5M0RQe7knJbcK2ZztdAJ99Mr68x0wqtIV0P
+         qzGZ+P25Goe6PsynJlkEq+3kIlaReJnS+Vt39bc7jFAIeOQksAe0X5La+O628jnZm1Rn
+         fXGvwYjfvxpGQYsXv4s3Fd1PZK6sUI18/FQbSeoeiOqZZ4IAKJvxvTq33YqXpin4Xdyi
+         Qu5foTf9YUN9Tl26AR82o2L+n/ANLTCr83wNcZWwCU5Gm9d3ZvnKVXQXFgaOrmrlA0Pk
+         wCWxHsgppR71Ve4f6KIf9T6bVrj/kFXGqzCfgy8o/FSIm/yz/AUBDiN2J0vozJhqLlT2
+         vJIA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769511502; x=1770116302; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1769511587; x=1770116387; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=9j47t5rMsU8ZASRBZwwfTEmAJ8TWZKYRSbD51WsqFfE=;
-        b=OfMAw3/Mic2rqr1c4ldAl7P+FvOUuDD6RMHYqKLQHNAThUg3+149AJ/4KktNPrgg/A
-         5QgdzukVlamnkp9LVkQD3SmXxb65cfmC8/2EJIwQi3BchlNHV+YbOI2kws5FUvrwlPHg
-         k0jTtOlpdGEG33rmtNyOvanKzcZyOIqoMp/jYBeSEIxy9KXHa3TgsabW5GW8dREL7KcF
-         yiry7+TpjjWJ2/zMiBmLslpVWUE1RCyN+wXVSE4V+qKpwKDmPJrJ49dRCjwohXAE5Hff
-         //gvCqMfZRgdn0Yhpv0bsCFqj8XSYlry5KKWz1+8jCxGxGNKFYvCX35NKYkxS6/fy54J
-         1etw==
+        bh=WYsfFHIplmOm9N2B0bIUCqqqwv0zYamUAJ//iJfYf5A=;
+        b=YSiLfhmmUhBhJ8UB/7rA3oQQzDOCg2xveCdqBGs5si2z4aVjBS62qgHDsN3lauL78Z
+         7a8SXQhs5LD8FtlQez2oIzL1s2g/Vkbfob6qvBVYWQx6kqT5npUxWnqX6PbCgf8+1hui
+         RGnXEKFPZoskXbCn0WUacJYRBM8DykMMzaSWAOtnKFOz6G7sTkxp8sYtI1FzQLJt3bO/
+         +vclPJxovWIzvDp1kn6J+dK4fi6qe8Hd7Xq0PPTGl22rRFZ+UTdOmCUYgIFZ6e2HHEyb
+         i6UrgvesIMGqC3Heddylm9FFMwuwnQYq3aJnd5Gr7z/5UXh6sMLujSlhDjkykAsNFa81
+         1NoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769511502; x=1770116302;
+        d=1e100.net; s=20230601; t=1769511587; x=1770116387;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=9j47t5rMsU8ZASRBZwwfTEmAJ8TWZKYRSbD51WsqFfE=;
-        b=LkyqvIUcdqvupL+b8XTtuaDVKOpMd5yf6kO0z2gSonN9hhxWUxXSHk9FAxnLpn11O5
-         5WtU+4rxdCzgjvoK9t74KWbBLtE2wx8WOboKdv3UcLSGqY0D/AAjgLpjPCE3HyzCTvIJ
-         S6zUqodO9efsEM70eDG1tnwz2rAaW3XMLOELNFHSVeuVsEexXHIihRN+04iqJ8eL/AhE
-         QbDSz41ayTem+NAluBQB1SJq7WeAQH+c/sKU74Yk+81ZWTLyrgW4YL74CgDoUjma4Re3
-         6BXEMjzjCrB1z+i0I2UkLrSCHJR7FVhRGHtEgwfkjzMwQbCGInr5v5h2o83Nd2BYFWVp
-         nYDA==
-X-Forwarded-Encrypted: i=1; AJvYcCXbRJJsHhuVE2lsNYZWznpiE66bLhxlT2ByZbqQ+3AS94XuDOw88d7V2DkPqs/LJkzEJcJNGmrb7zjSbu9jECs=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5+W0Vi7uSocG1ZGMxS8w8+flmiLdYWaCpSfdq6Za1rV4RSq4g
-	NzQ4LMy94cqVMuiwm62m73BxMIAJBxLHegnMfFTsu+HuLrXEWwkgSs958pDoOzbUvP8Ly2n6U7u
-	MLnpAfFKfh27BV/d//Oaql8ZL2zA0zQQ=
-X-Gm-Gg: AZuq6aJY5ZGwlMTmBroQkWQgQ/ywT23NyLuQWHbRB8RSgUSM81qR/U0QPGkCrPvdl5n
-	VShjvXh4WtBHFGbcuEMeScb5EUgDpVebCYH9l9YWE49g5K7qhJgJmy5DNc0+0H09/JqbH4zspyW
-	PMGH4JAksrX7bcGzMPo9hXzyo6k4yJm1dJYbIkG5UWxef6fbK2pdtX8IYVFIhIj6kYaPp+sterD
-	HJiEreoHvaaDQgYTr2WZ1py45liYuegZFmrcPKYHFgI8uxkKMR8T0KSX/81U9W/0Tf2OfsmObY9
-	ftwNqjFRwiAgt2oruOV4iki5eQ==
-X-Received: by 2002:a2e:a98c:0:b0:383:160f:c230 with SMTP id
- 38308e7fff4ca-3861cdf742fmr6587841fa.6.1769511502131; Tue, 27 Jan 2026
- 02:58:22 -0800 (PST)
+        bh=WYsfFHIplmOm9N2B0bIUCqqqwv0zYamUAJ//iJfYf5A=;
+        b=dok2dsX1kZCblSae/kSceyO6Ddc9MrDNLYyhxD8cmO1SVMEtEB3MNltJwdJv61Iuq9
+         pgAUa0lg6iT8JL8kkHQ+rox1xaruCGwlA6M2LVxpmMhu2oWoYkUdo4gB3/fwIwFjxSZc
+         yT4d9XredhE6h+Ird4ZCQmZmMhE0773VNWmtuSseJHEQceJczY6l49A/TyHXEpHWItUe
+         S0I2zMXPr8UVOFQmaYYZs3kI6FlGeF7uPRR7SGVTyUVwR8NaRWyz38f/TAiflWyAOcVe
+         Cu7yxI5grnwd7ccs+JkbZvyQ03ltOuKSPbPSlzP8RMb9UI/h2TsjJJju4IEywmvO5XtV
+         qBCw==
+X-Forwarded-Encrypted: i=1; AJvYcCVowJVDvhW7EaMclIFctTH4WIeDRj+qDkktNPw0vgFn4ORn+yfqqBhc7apQWtzxNygaOOCLHIcHMziatqB6JSk=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx2Iyjtz2IOcescJYHKxPSGAzuWShbueUttIrh6evv43DIkjXb9
+	4BJ5v9vhs4CNAO3pGXZOPcObqptUXRX5Og/wrvZo9PbVS4NVDdYvugQrmERiEELVnztpqXRVGAc
+	ic7WjRlQXyuDZVZwrgF6ZZ8RuWfPfLKE=
+X-Gm-Gg: AZuq6aL5PneLGoOBWMLFohrVegEa6rZrg5YXUayC7BrUCJQJP9hZUu/ZXvJokDzSDlv
+	ZlAG9eSa7k/XUELZNAV9UiidPVJbSKSMMXBRxV+GO4j/3k2iSiK3SZmT4I5cv982iCItq8Tf8s6
+	qYrTdcBTyeRR2Oee7mrTNkYn/zhGyZeCXIeoyY+rqEMBEsZ1d4yXam1N5okh1nuivDZKL3CFaS7
+	akr2618uZ7pYARi5uLICW1jREXveymJAe7Lc2fjaAHbuYjw2TSCP5XaNlTYqXTfSU9ZMtpU/Ylp
+	/KeFN2E9bjgp8KP52+5rHi+kdg==
+X-Received: by 2002:a05:6512:234e:b0:59e:14f:a4d7 with SMTP id
+ 2adb3069b0e04-59e0412c504mr596109e87.27.1769511587201; Tue, 27 Jan 2026
+ 02:59:47 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260121184621.198537-1-one-d-wide@protonmail.com>
-In-Reply-To: <20260121184621.198537-1-one-d-wide@protonmail.com>
+References: <20260121184621.198537-1-one-d-wide@protonmail.com> <20260121184621.198537-2-one-d-wide@protonmail.com>
+In-Reply-To: <20260121184621.198537-2-one-d-wide@protonmail.com>
 From: Donald Hunter <donald.hunter@gmail.com>
-Date: Tue, 27 Jan 2026 10:58:10 +0000
-X-Gm-Features: AZwV_QilmQ0M_E_OX9gIvzqQlcezsEx3A9Xsbwt7w5VyeNrZs3zZwncF7WeR9UU
-Message-ID: <CAD4GDZwLgUW1STpjQegzsMSZb4mOh_L79FVJx0SvmhXSpxjVSw@mail.gmail.com>
-Subject: Re: [PATCH v6 0/6] doc/netlink: Expand nftables specification
+Date: Tue, 27 Jan 2026 10:59:35 +0000
+X-Gm-Features: AZwV_QjjnqVDqp9AOjWvw9Flzx5vLDm-5nUzTQmwPn_FMTo536uddKntxFCb2_w
+Message-ID: <CAD4GDZwy3B4pYH8q+MwY=NMNELjAcdwwk-trM+vAKhyvQCzH3w@mail.gmail.com>
+Subject: Re: [PATCH v6 1/6] doc/netlink: netlink-raw: Add max check
 To: "Remy D. Farley" <one-d-wide@protonmail.com>
 Cc: Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org, 
 	Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
@@ -96,19 +96,48 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Wed, 21 Jan 2026 at 18:47, Remy D. Farley <one-d-wide@protonmail.com> wrote:
 >
-> Getting out some changes I've accumulated while making nftables work
-> with Rust netlink-bindings. Hopefully, this will be useful upstream.
+> Add definitions for max check and len-or-limit type, the same as in other
+> specifications.
+>
+> Suggested-by: Donald Hunter <donald.hunter@gmail.com>
+> Signed-off-by: Remy D. Farley <one-d-wide@protonmail.com>
 
-Hi Remy,
+Reviewed-by: Donald Hunter <donald.hunter@gmail.com>
 
-Can you please cc the netfilter maintainers (and we should add
-nftables.yaml to the NETFILTER entry in MAINTAINERS).
-
-./scripts/get_maintainer.pl net/netfilter/nfnetlink.c
-Pablo Neira Ayuso <pablo@netfilter.org> (maintainer:NETFILTER)
-Florian Westphal <fw@strlen.de> (maintainer:NETFILTER)
-Phil Sutter <phil@nwl.cc> (reviewer:NETFILTER)
-...
-netfilter-devel@vger.kernel.org (open list:NETFILTER)
-coreteam@netfilter.org (open list:NETFILTER)
-...
+> ---
+>  Documentation/netlink/netlink-raw.yaml | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/netlink/netlink-raw.yaml b/Documentation/netlink/netlink-raw.yaml
+> index 0166a7e4a..dd98dda55 100644
+> --- a/Documentation/netlink/netlink-raw.yaml
+> +++ b/Documentation/netlink/netlink-raw.yaml
+> @@ -19,6 +19,12 @@ $defs:
+>      type: [ string, integer ]
+>      pattern: ^[0-9A-Za-z_-]+( - 1)?$
+>      minimum: 0
+> +  len-or-limit:
+> +    # literal int, const name, or limit based on fixed-width type
+> +    # e.g. u8-min, u16-max, etc.
+> +    type: [ string, integer ]
+> +    pattern: ^[0-9A-Za-z_-]+$
+> +    minimum: 0
+>
+>  # Schema for specs
+>  title: Protocol
+> @@ -270,7 +276,10 @@ properties:
+>                      type: string
+>                    min:
+>                      description: Min value for an integer attribute.
+> -                    type: integer
+> +                    $ref: '#/$defs/len-or-limit'
+> +                  max:
+> +                    description: Max value for an integer attribute.
+> +                    $ref: '#/$defs/len-or-limit'
+>                    min-len:
+>                      description: Min length for a binary attribute.
+>                      $ref: '#/$defs/len-or-define'
+> --
+> 2.51.2
+>
+>
