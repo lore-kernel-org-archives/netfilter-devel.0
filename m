@@ -1,46 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 786D92EA75E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1D0735E551
 	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 22:29:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769552965; cv=none; b=AFTQYO7AoKWeCnegePmX/PcJzAXfVBGAVs4uUP03eC33AavpFL0k8QN3ZYpVwH/crW3VL8b0852Tnj765dbOdhRuLf+279xGSmyczLsLZle+1f3/XzqlS4HYU8qzo7lj03f8AKufdOBExRhr7BiwGI8Z3GqOsS+QRlGmyI0ndio=
+	t=1769552965; cv=none; b=E5AQxKlINxanf8hNR8nfp8afI5FSAG/pDScygODWbSJH9QFUaxPrcw6qBEvxz2rSEAjgU8vtsm0pOnZF83vL+zQUiMmo+KqfQu5WykGGkfMqRc8XX63DBk2sd/BEK8KUb7gJ7lHQM6GzFwVYuoLugahdUF7EzIJLGUAV1EJ8oM4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1769552965; c=relaxed/simple;
-	bh=G0++cGbWsfB9Ls0Zu70ILHgggS7r/VNKZJSuLukqrds=;
+	bh=aEWtEOZLaaD+NXElceWZcxEE53ziPs0otNxJumx2R3A=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=dV2yTzxIk6pHLRB8J69yCYnwubxsx3+LLvVummm3kHDAUftoqqdwVC8AXEYWJXBgHdA76NhMnTedRmaDxVk2y5bpBSucMo3LvSxFxKRSvA5XgD6gPTzstQ7qAO4VAQRYNi5cOPfaEG7dfru6oBEEHmVQR6XfFwYJpisOmbTNicw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=GBGh+T7z; arc=none smtp.client-ip=151.80.46.58
+	 MIME-Version; b=qi0YzhEtEsicbju+iBk8s1oZzsnPKu1AGKJney/Bfx6CePYPC9aNcB+n5IEVKsXJ6ItfoKC29KJ9wPTyFgglP8x9Ubp5LhPz9NXuFA4pMiZVuNlkguFSQI0yPxevRS8sHjsuHVqWOpp7gYWKGW0iFJdCa6i8x6JX29vSzt2+v1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bLaUNv9M; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="GBGh+T7z"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bLaUNv9M"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
 	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=N1yjs4FXOi+YPVQW4NSl9EJAmjG4+JjpgHHCYouzI9I=; b=GBGh+T7zrFlujeqd0CLTsIVCN0
-	9vWsFJ69QpDpOIsBcFaAKN/r1/GccdtCTY+16YRv6SN/TXjwSnVt3MpP4TvRMo4pu6Aa4/YQAyZXX
-	D47dErlVik2yDyBFIZrphdPT2bdbFyiK1fpqh0OHNQVN2QLtzfkTzApI58F+8CfKA7YXbj7/KytyC
-	SPZaRx0Q85VUnjUr8x9f3QB2F2n7yWQXMeNyxN1cjszJ18ZWdM3IucjP1niFLvmcSGF8VmDkBrmLg
-	2JbxMfEyJjbCtEgVs1zEnggepsekZdhXVS0b/qFLfg3B8V7nvIP9LWLKWjQLQ1untoZMoLGDWdOHX
-	vW7RF8gA==;
+	bh=Nf5Uon7+xV73BSiZ3uKcrJ9L15H0uB0DDUK/njsYw5k=; b=bLaUNv9MwEo4/IdLZk3Sv2dB2Z
+	IzMTZ8KSvc54Gcr69N/GWCg3k6ZgG+EdvxvYbxcCYBspF76moOcr6lg74uX6DFJjqUWEEZ03V91J9
+	5Ko8csW5qczRgn9QUZfNNNl7YuhjGuzJ1VZvZ3AQuea5e7Kg65WAOl8SiUZJWUHdE1R9+PK0N2JG1
+	Gsr5uDiK+nulx0TPOkr5K92UzQ/WK/gXraUTp1uwVzihmfkcYdOWSuaGhYRadfVXyytL8F5X5lw+n
+	EOM4UlZ1OfmoyOj1oqeJHhnCTir4/jnIMRgdP9w+lcYpx3qHxMHxS09eJGaGuMPQkYNzECJN0omu+
+	2UTEbmYg==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vkrYn-000000002lP-1o0t;
+	id 1vkrYn-000000002lW-3zaD;
 	Tue, 27 Jan 2026 23:29:21 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 3/4] xt: Print comment match data as well
-Date: Tue, 27 Jan 2026 23:29:15 +0100
-Message-ID: <20260127222916.31806-4-phil@nwl.cc>
+Subject: [nft PATCH 1/4] configure: Implement --enable-profiling option
+Date: Tue, 27 Jan 2026 23:29:13 +0100
+Message-ID: <20260127222916.31806-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260127222916.31806-1-phil@nwl.cc>
 References: <20260127222916.31806-1-phil@nwl.cc>
@@ -52,43 +52,141 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In order to translate comment matches into the single nftables rule
-comment, libxtables does not immediately (maybe mid-rule) print a
-comment match's string but instead stores it into struct
-xt_xlate::comment array for later.
+This will set compiler flag --coverage so code coverage may be inspected
+using gcov.
 
-Since xt_stmt_xlate() is called by a statement's .print callback which
-can't communicate data back to caller, nftables has to print it right
-away.
-
-Since parser_bison accepts rule comments only at end of line though, the
-output from above can't be restored anymore. Which is a bad idea to
-begin with so accept this quirk and avoid refactoring the statement
-printing API.
+In order to successfully profile processes which are killed or
+interrupted as well, add a signal handler for those cases which calls
+exit(). This is relevant for test cases invoking nft monitor.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- src/xt.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ .gitignore   |  5 +++++
+ Makefile.am  | 16 ++++++++++++++++
+ configure.ac |  7 +++++++
+ src/main.c   | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 58 insertions(+)
 
-diff --git a/src/xt.c b/src/xt.c
-index f7bee21618030..c3a8c47621cbb 100644
---- a/src/xt.c
-+++ b/src/xt.c
-@@ -112,8 +112,12 @@ void xt_stmt_xlate(const struct stmt *stmt, struct output_ctx *octx)
- 		break;
- 	}
+diff --git a/.gitignore b/.gitignore
+index 719829b65d212..8673393fac397 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -19,6 +19,11 @@ nftversion.h
+ # cscope files
+ /cscope.*
  
--	if (rc == 1)
-+	if (rc == 1) {
- 		nft_print(octx, "%s", xt_xlate_get(xl));
-+		if (xt_xlate_get_comment(xl))
-+			nft_print(octx, "comment %s",
-+				  xt_xlate_get_comment(xl));
++# gcov-related
++*.gcda
++*.gcno
++*.gcov
++
+ # Generated by tests
+ *.payload.got
+ tests/build/tests.log
+diff --git a/Makefile.am b/Makefile.am
+index 18af82a927dc0..24ffa07cf0c4a 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -165,6 +165,10 @@ AM_CFLAGS = \
+ 
+ AM_YFLAGS = -d -Wno-yacc
+ 
++if BUILD_PROFILING
++AM_CFLAGS += --coverage
++endif
++
+ ###############################################################################
+ 
+ BUILT_SOURCES += src/parser_bison.h
+@@ -457,3 +461,15 @@ TESTS = tests/build/run-tests.sh \
+ 	tests/py/nft-test.py \
+ 	tests/shell/run-tests.sh
+ endif
++
++all_c_sources = $(filter %.c,$(src_libnftables_la_SOURCES)) $(src_nft_SOURCES)
++if BUILD_MINIGMP
++all_c_sources += $(src_libminigmp_la_SOURCES)
++endif
++if BUILD_AFL
++all_c_sources += $(tools_nft_afl_SOURCES)
++endif
++CLEANFILES += src/libparser_la-parser_bison.gcno
++CLEANFILES += src/libparser_la-scanner.gcno
++CLEANFILES += $(all_c_sources:.c=.gcno)
++CLEANFILES += $(src_nft_SOURCES:.c=.gcda)
+diff --git a/configure.ac b/configure.ac
+index dd172e88ca581..506f3f78fc460 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -172,6 +172,13 @@ AC_ARG_ENABLE([distcheck],
+ 	      [enable_distcheck=yes], [])
+ AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
+ 
++AC_ARG_ENABLE([profiling],
++	      AS_HELP_STRING([--enable-profiling], [build for use of gcov/gprof]),
++	      [enable_profiling="$enableval"], [enable_profiling="no"])
++AM_CONDITIONAL([BUILD_PROFILING], [test "x$enable_profiling" = xyes])
++AM_COND_IF([BUILD_PROFILING],
++	   [AC_DEFINE([BUILD_PROFILING], [1], [Define for profiling])])
++
+ AC_CONFIG_FILES([					\
+ 		Makefile				\
+ 		libnftables.pc				\
+diff --git a/src/main.c b/src/main.c
+index 29b0533dee7c9..bdcf8ab3c304b 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -16,6 +16,7 @@
+ #include <errno.h>
+ #include <getopt.h>
+ #include <fcntl.h>
++#include <signal.h>
+ #include <sys/types.h>
+ 
+ #include <nftables/libnftables.h>
+@@ -360,6 +361,33 @@ static bool nft_options_check(int argc, char * const argv[])
+ 	return true;
+ }
+ 
++#ifdef BUILD_PROFILING
++static void termhandler(int signo)
++{
++	switch (signo) {
++	case SIGTERM:
++		exit(143);
++	case SIGINT:
++		exit(130);
 +	}
- 	xt_xlate_free(xl);
- 	free(entry);
- #endif
++}
++
++static void setup_sighandler(void)
++{
++	struct sigaction act = {
++		.sa_handler = termhandler,
++	};
++
++	if (sigaction(SIGTERM, &act, NULL) == -1 ||
++	    sigaction(SIGINT, &act, NULL) == -1) {
++		perror("sigaction");
++		exit(1);
++	}
++}
++#else
++static void setup_sighandler(void) { /* empty */ }
++#endif
++
+ int main(int argc, char * const *argv)
+ {
+ 	const struct option *options = get_options();
+@@ -375,6 +403,8 @@ int main(int argc, char * const *argv)
+ 	if (getuid() != geteuid())
+ 		_exit(111);
+ 
++	setup_sighandler();
++
+ 	if (!nft_options_check(argc, argv))
+ 		exit(EXIT_FAILURE);
+ 
 -- 
 2.51.0
 
