@@ -1,49 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1D0735E551
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 22:29:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4044A35CB94
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 22:29:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769552965; cv=none; b=E5AQxKlINxanf8hNR8nfp8afI5FSAG/pDScygODWbSJH9QFUaxPrcw6qBEvxz2rSEAjgU8vtsm0pOnZF83vL+zQUiMmo+KqfQu5WykGGkfMqRc8XX63DBk2sd/BEK8KUb7gJ7lHQM6GzFwVYuoLugahdUF7EzIJLGUAV1EJ8oM4=
+	t=1769552965; cv=none; b=tb4NHmVNhL3yh9lG6NRjOFjmg8opi1ydDhRIPvtj8kGfEcu9GyydtgGEh4sRbiHbasBftf0EElMaBMwXW45bPlGBDFZJr2BjobiazwxYp5apnupnWRtkVRANRf2DPt0PPa/yrEeneP6na+Xpa3xHsB463eC5Exug1mawjZlgl3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1769552965; c=relaxed/simple;
-	bh=aEWtEOZLaaD+NXElceWZcxEE53ziPs0otNxJumx2R3A=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qi0YzhEtEsicbju+iBk8s1oZzsnPKu1AGKJney/Bfx6CePYPC9aNcB+n5IEVKsXJ6ItfoKC29KJ9wPTyFgglP8x9Ubp5LhPz9NXuFA4pMiZVuNlkguFSQI0yPxevRS8sHjsuHVqWOpp7gYWKGW0iFJdCa6i8x6JX29vSzt2+v1I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=bLaUNv9M; arc=none smtp.client-ip=151.80.46.58
+	bh=VGaqo+N4k0HSTLG2+sUlkURDZdqwWrdqwfTmTCiUzKs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GhX3dCjmmWTmOvCfEvs6PM4RwCHha8TWk0fl9w2akrb4U9/S6Kj+8dMX0WfsYoQc6Y/OHbSaZDXQ6kRPsOFU23xsDNwPbH2BVx9gDbGSUCayZH0/JwFKJJyMl8X2VxuQpPv+Is5xjEvlQ34EepIMz6tgVQclMQxq5RQcATz2sk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Xmk2wumd; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="bLaUNv9M"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Xmk2wumd"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=Nf5Uon7+xV73BSiZ3uKcrJ9L15H0uB0DDUK/njsYw5k=; b=bLaUNv9MwEo4/IdLZk3Sv2dB2Z
-	IzMTZ8KSvc54Gcr69N/GWCg3k6ZgG+EdvxvYbxcCYBspF76moOcr6lg74uX6DFJjqUWEEZ03V91J9
-	5Ko8csW5qczRgn9QUZfNNNl7YuhjGuzJ1VZvZ3AQuea5e7Kg65WAOl8SiUZJWUHdE1R9+PK0N2JG1
-	Gsr5uDiK+nulx0TPOkr5K92UzQ/WK/gXraUTp1uwVzihmfkcYdOWSuaGhYRadfVXyytL8F5X5lw+n
-	EOM4UlZ1OfmoyOj1oqeJHhnCTir4/jnIMRgdP9w+lcYpx3qHxMHxS09eJGaGuMPQkYNzECJN0omu+
-	2UTEbmYg==;
+	bh=w6G2hxVlECxQlv4m/y8w/Dm6LXkY1Gzaeh5BypSmCwQ=; b=Xmk2wumdu+wb93gBWWZOf+PeVx
+	yiMSYC0P87dicNSg62o8t5D9iItWqE4+Pe31mnciSknpFf5SC2YqvOF3Kb28CGIg9JK6PrykqLJRQ
+	HX633igVQ26a6jye8wUVIllEj2LwTNiz8C3z5bRwILzPQTeJbOU48vMpDLHT3dcXhxWRL+ESnbhIF
+	Y8hOk5odgopCeLVYH4WX1sZgO8x1pbWoUMMqIn19TdIWaMK6iBiyFz0EIhJYo41lr4BgDNuQ0X+W6
+	s+GClzAjZJJudhfu6rL5mTeuFsHcUVsIymmL9HglsAEaZfIjXNrGkt1+tsRvjQ3vP/eLufd/yeoZ6
+	hAdg5Exg==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vkrYn-000000002lW-3zaD;
-	Tue, 27 Jan 2026 23:29:21 +0100
+	id 1vkrYo-000000002lc-20rc;
+	Tue, 27 Jan 2026 23:29:22 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH 1/4] configure: Implement --enable-profiling option
-Date: Tue, 27 Jan 2026 23:29:13 +0100
-Message-ID: <20260127222916.31806-2-phil@nwl.cc>
+Subject: [nft PATCH 0/4] Inspect and improve test suite code coverage
+Date: Tue, 27 Jan 2026 23:29:12 +0100
+Message-ID: <20260127222916.31806-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260127222916.31806-1-phil@nwl.cc>
-References: <20260127222916.31806-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,141 +49,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This will set compiler flag --coverage so code coverage may be inspected
-using gcov.
+While inspecting the test suites' code coverage using --coverage gcc
+option and gcov(r) for analysis, I noticed that 'nft monitor' processes
+did not influence the stats at all. It appears that a process receiving
+SIGTERM or SIGINT (via kill or ctrl-c) does not dump profiling data at
+exit. Installing a signal handler for those signals which calls exit()
+resolves this, so patch 1 of this series implements --enable-profiling
+into configure which also conditionally enables said signal handler.
 
-In order to successfully profile processes which are killed or
-interrupted as well, add a signal handler for those cases which calls
-exit(). This is relevant for test cases invoking nft monitor.
+Patches 2 and 4 fix for zero test coverage of src/nftrace.c and
+src/xt.c, bumping stats to ~90% for both.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- .gitignore   |  5 +++++
- Makefile.am  | 16 ++++++++++++++++
- configure.ac |  7 +++++++
- src/main.c   | 30 ++++++++++++++++++++++++++++++
- 4 files changed, 58 insertions(+)
+Patch 3 fixes for ignored comment matches in translated iptables-nft
+rules. This is required for patch 4 which uses a comment match to check
+whether nft is built with translation support.
 
-diff --git a/.gitignore b/.gitignore
-index 719829b65d212..8673393fac397 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -19,6 +19,11 @@ nftversion.h
- # cscope files
- /cscope.*
- 
-+# gcov-related
-+*.gcda
-+*.gcno
-+*.gcov
-+
- # Generated by tests
- *.payload.got
- tests/build/tests.log
-diff --git a/Makefile.am b/Makefile.am
-index 18af82a927dc0..24ffa07cf0c4a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -165,6 +165,10 @@ AM_CFLAGS = \
- 
- AM_YFLAGS = -d -Wno-yacc
- 
-+if BUILD_PROFILING
-+AM_CFLAGS += --coverage
-+endif
-+
- ###############################################################################
- 
- BUILT_SOURCES += src/parser_bison.h
-@@ -457,3 +461,15 @@ TESTS = tests/build/run-tests.sh \
- 	tests/py/nft-test.py \
- 	tests/shell/run-tests.sh
- endif
-+
-+all_c_sources = $(filter %.c,$(src_libnftables_la_SOURCES)) $(src_nft_SOURCES)
-+if BUILD_MINIGMP
-+all_c_sources += $(src_libminigmp_la_SOURCES)
-+endif
-+if BUILD_AFL
-+all_c_sources += $(tools_nft_afl_SOURCES)
-+endif
-+CLEANFILES += src/libparser_la-parser_bison.gcno
-+CLEANFILES += src/libparser_la-scanner.gcno
-+CLEANFILES += $(all_c_sources:.c=.gcno)
-+CLEANFILES += $(src_nft_SOURCES:.c=.gcda)
-diff --git a/configure.ac b/configure.ac
-index dd172e88ca581..506f3f78fc460 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -172,6 +172,13 @@ AC_ARG_ENABLE([distcheck],
- 	      [enable_distcheck=yes], [])
- AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
- 
-+AC_ARG_ENABLE([profiling],
-+	      AS_HELP_STRING([--enable-profiling], [build for use of gcov/gprof]),
-+	      [enable_profiling="$enableval"], [enable_profiling="no"])
-+AM_CONDITIONAL([BUILD_PROFILING], [test "x$enable_profiling" = xyes])
-+AM_COND_IF([BUILD_PROFILING],
-+	   [AC_DEFINE([BUILD_PROFILING], [1], [Define for profiling])])
-+
- AC_CONFIG_FILES([					\
- 		Makefile				\
- 		libnftables.pc				\
-diff --git a/src/main.c b/src/main.c
-index 29b0533dee7c9..bdcf8ab3c304b 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -16,6 +16,7 @@
- #include <errno.h>
- #include <getopt.h>
- #include <fcntl.h>
-+#include <signal.h>
- #include <sys/types.h>
- 
- #include <nftables/libnftables.h>
-@@ -360,6 +361,33 @@ static bool nft_options_check(int argc, char * const argv[])
- 	return true;
- }
- 
-+#ifdef BUILD_PROFILING
-+static void termhandler(int signo)
-+{
-+	switch (signo) {
-+	case SIGTERM:
-+		exit(143);
-+	case SIGINT:
-+		exit(130);
-+	}
-+}
-+
-+static void setup_sighandler(void)
-+{
-+	struct sigaction act = {
-+		.sa_handler = termhandler,
-+	};
-+
-+	if (sigaction(SIGTERM, &act, NULL) == -1 ||
-+	    sigaction(SIGINT, &act, NULL) == -1) {
-+		perror("sigaction");
-+		exit(1);
-+	}
-+}
-+#else
-+static void setup_sighandler(void) { /* empty */ }
-+#endif
-+
- int main(int argc, char * const *argv)
- {
- 	const struct option *options = get_options();
-@@ -375,6 +403,8 @@ int main(int argc, char * const *argv)
- 	if (getuid() != geteuid())
- 		_exit(111);
- 
-+	setup_sighandler();
-+
- 	if (!nft_options_check(argc, argv))
- 		exit(EXIT_FAILURE);
- 
+Phil Sutter (4):
+  configure: Implement --enable-profiling option
+  tests: shell: Add a simple test for nftrace
+  xt: Print comment match data as well
+  tests: shell: Add a basic test for src/xt.c
+
+ .gitignore                                 |   5 +
+ Makefile.am                                |  16 +++
+ configure.ac                               |   7 ++
+ src/main.c                                 |  30 +++++
+ src/xt.c                                   |   6 +-
+ tests/shell/features/xtables_xlate.sh      |  21 ++++
+ tests/shell/testcases/parsing/compat_xlate | 135 +++++++++++++++++++++
+ tests/shell/testcases/trace/0001simple     |  85 +++++++++++++
+ 8 files changed, 304 insertions(+), 1 deletion(-)
+ create mode 100755 tests/shell/features/xtables_xlate.sh
+ create mode 100755 tests/shell/testcases/parsing/compat_xlate
+ create mode 100755 tests/shell/testcases/trace/0001simple
+
 -- 
 2.51.0
 
