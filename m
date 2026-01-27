@@ -1,45 +1,45 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25CF346AD9
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 22:12:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D8D9276028
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 22:17:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769551981; cv=none; b=tmjtYzkDS0wbAMd8K7eWw3H5b9Ar5XIWUuVx1CgKi2PpYZZWq1HW2WSeS3JFHsQrnHJjQvOHsyYuiBD+AOpRFAkHEP7uVNxUwRvTXCAm/DVOvCLUBbwhziSVf/nsol3r9/FywqYoRzQq5KFg6g6FVaC2JdXANSQQeI3HFm0LLg8=
+	t=1769552226; cv=none; b=KD85VOIsLwjD9jVYBa6FAayh4p3BFhZhw9vFkGFRDiThU/ugU4uXemCYmMtyLmF+xBYJz/xhwOF2OX67fatpIMO64YxhhfjRzGtGeILGoHV0rCqxRqUzn0sgwdwvMAG1eGtGkDt6ncc3ZHQsIm8ND2snz19gnw4CO7aZV1vGl0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769551981; c=relaxed/simple;
-	bh=+FLZBneW1lPZt6QY7GfiMTSKorWmVlyrXdh1vktTcMU=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=lHf6ega09gWKVHcvgQ2M4TTjiSK6X3/n4ZpcpYfVDX5Kc5N3DHqDL/mtwYgctzMxpSXrOrB92eGFikt3I3Iu6NMBr5qw3a8CthHiWTeu8Y9TYXhZrY/LRHxgor+nlS4GqyVyqd2dxhkbWDiw8rT+dawP6IsqskF9lYgEmMr+dUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=KckOAm43; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1769552226; c=relaxed/simple;
+	bh=ngibuQx8auydCH6cQE2ag8LRIvGPazARrX5wkncl3QQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VKcZ05FV4f0zv4DGUPtTAofKNDYOOVVj7ZmdReqGknkH3Sp316qZzc/nBPbx4drsNwGw8+CVKbL2MIJjiGNyPnLzm1gouDXZsn8qfs9wHpU40DSmHD3/JBP6NIsUkKUCH8GkhY6DCeDWM65SjUnGahiufMHbZx0sDNZbF2lFoT4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=MRC9FrXL; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="KckOAm43"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="MRC9FrXL"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
+	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=lEzA4t+NrpHUwv2ckyUCpYrHc32cAkmbgUyb4QaDK9E=; b=KckOAm43A73iGY/v0irMW4k1Pj
-	mUhWACehgF9eOvDg+CG0IG34S0FPG67hcP/X+828xZ4Ihy+UCLT3TXDCHUlKvrSQjVcJeYBbUa7R7
-	uCTzuYFDYiwTc/HjG2BXHD5PCngs+DnuC1N9wwhiVyhIevu2D+L0RcOL8v3NAokXpQB/JVfvVmVgM
-	jnFl5yyVoQB5Mr1zQeKqK1CSxPqo3AdAw+hsBdghzO7FYq33IKVnSR8iIYydfIA+rNBSwJdmwdqPh
-	cRjiF0dYpk7f/4No5UI873VWksg61UV0QQQ4v7325swpJAchZqcUUdSYezs0HUrHbGacZiYcgpCBG
-	3i0qOLjA==;
+	bh=4S0jY4n8HCMhvx+bR3uhZSoRgcRmu7SnnC2q1gOHjuo=; b=MRC9FrXLWb0RZOmvfkT2y7hug0
+	NuR2XvVAmqIoJCr8xl2vT8zXjOxAS7t6X0GSasjcqPgCSnPyVqvnCffNZAkJ4uo8NiF4TrUin8tTI
+	UNlhjuELCd3o3Y6UbgU3LpAgnohSrnGTIB9fVRgrl2PEopO5X+chVOYatfH+GQ0txI1HYK+3CTSYh
+	GRMjFlpPXM6IKQyK0hRWDxVVFXHktpBs84O67uaj7uF0vTkIEHe3/IhunNCW9jDwqA2ONXQogJncH
+	O9S1vGJrG4nRjUrvqom3SuRFDUehzUsADGuoFe9sGGtmZ7DgzPrttzRSGz7dDc6meBsOOR3jf70WU
+	MzVlZ3aA==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vkrIv-000000002Sm-3xI7
-	for netfilter-devel@vger.kernel.org;
-	Tue, 27 Jan 2026 23:12:57 +0100
+	id 1vkrMs-000000002XG-3Mfj;
+	Tue, 27 Jan 2026 23:17:02 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH] doc: nft.8: Describe iface_type data type
-Date: Tue, 27 Jan 2026 23:12:52 +0100
-Message-ID: <20260127221252.27440-1-phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: [nft PATCH] Makefile: Set PKG_CONFIG_PATH env for 'make check'
+Date: Tue, 27 Jan 2026 23:15:58 +0100
+Message-ID: <20260127221657.28148-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -49,67 +49,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-An entry in data-types.txt offers space for a name-value table. Even if
-one would refer to ARPHRD_*, some names are not derived from the
-respective macro name and thus not intuitive.
+When building nftables git HEAD, I use a script which also builds libmnl
+and libnftnl in their respective repositories and populates
+PKG_CONFIG_PATH variable so nftables is linked against them instead of
+host libraries. This is mandatory as host-installed libraries are
+chronically outdated and linking against them would fail.
+
+Same situation exists with build test suite. Luckily the PKG_CONFIG_PATH
+variable value used to build the project is cached in Makefiles and
+Automake supports populating test runners' environment.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
- doc/data-types.txt         | 27 +++++++++++++++++++++++++++
- doc/primary-expression.txt |  2 --
- 2 files changed, 27 insertions(+), 2 deletions(-)
+Pablo: Could you please confirm this does not break your workflow? I
+recall you relied upon build test suite while it never passed for me due
+to the reasons described above.
+---
+ Makefile.am | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/doc/data-types.txt b/doc/data-types.txt
-index e44308b5322cb..0b350effbea68 100644
---- a/doc/data-types.txt
-+++ b/doc/data-types.txt
-@@ -83,6 +83,33 @@ filter input iifname eth0
- filter input iifname "(eth0)"
- ----------------------------
+diff --git a/Makefile.am b/Makefile.am
+index b134330d5ca22..18af82a927dc0 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -450,6 +450,7 @@ tools/nftables.service: tools/nftables.service.in ${top_builddir}/config.status
+ endif
  
-+INTERFACE TYPE TYPE
-+~~~~~~~~~~~~~~~~~~~
-+[options="header"]
-+|==================
-+|Name | Keyword | Size | Base type
-+|Interface type |
-+iface_type|
-+16 bit |
-+integer
-+|===================
-+
-+The interface type type is used with *meta iiftype/oiftype* expression. Its values correspond with respective ARPHRD_* defines in <linux/if_arp.h>.
-+
-+.The following keywords will automatically resolve into an interface type type with given value
-+
-+[options="header"]
-+|==================
-+|Keyword | Value
-+| ether | 1
-+| ppp | 512
-+| ipip | 768
-+| ipip6 | 769
-+| loopback | 772
-+| sit | 776
-+| ipgre | 778
-+|===================
-+
- LINK LAYER ADDRESS TYPE
- ~~~~~~~~~~~~~~~~~~~~~~~
- [options="header"]
-diff --git a/doc/primary-expression.txt b/doc/primary-expression.txt
-index d5495e2c86291..bd80cd7f92fda 100644
---- a/doc/primary-expression.txt
-+++ b/doc/primary-expression.txt
-@@ -149,8 +149,6 @@ String value in the form HH:MM or HH:MM:SS. Values are expected to be less than
- Interface index (32 bit number). Can be specified numerically or as name of an existing interface.
- |ifname|
- Interface name (16 byte string). Does not have to exist.
--|iface_type|
--Interface type (16 bit number).
- |uid|
- User ID (32 bit number). Can be specified numerically or as user name.
- |gid|
+ if !BUILD_DISTCHECK
++AM_TESTS_ENVIRONMENT = PKG_CONFIG_PATH=$(PKG_CONFIG_PATH)
+ TESTS = tests/build/run-tests.sh \
+ 	tests/json_echo/run-test.py \
+ 	tests/monitor/run-tests.sh \
 -- 
 2.51.0
 
