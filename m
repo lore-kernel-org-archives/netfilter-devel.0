@@ -1,34 +1,52 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D13D25A2B4;
-	Wed, 28 Jan 2026 16:35:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5DC309EFB
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 16:37:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769618117; cv=none; b=MPQFg+q9PehQDR0Rc2lhtBo3CAahPtm3eH5h0xvLD3bHuuHBMesa8Faa0tNb4bPRnMsSUbDNjcQCy0Z2FCxIX46U/5hmxrzH/8+/vbKqBo6Tbj+F1mDGF6qZn/FsacYJZDy2daiU2mD14NjF4aeEyWcL6n+x1E8MWY0u5SCE6ts=
+	t=1769618272; cv=none; b=s9Pyhej5cnCCRn1ACJL2lp3+hEdMgqCC7zp2NmXoof4lHJ8DtwmN4gCe+w8P1HC4sqSq1XTq+lhjoe/CeSR3OLJ/ArpQ8pYo8Dmgxv7MKNl2faWOrZFfMSFccPjFqz5zL0bPGOJ08TzQrPLjGKOLrGoUWI3EiZuN+3/JJp79zdc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769618117; c=relaxed/simple;
-	bh=lEAPg8/1O1kCKjKzRe0arMgCCKsZXsXwj7sG/uTzP4c=;
+	s=arc-20240116; t=1769618272; c=relaxed/simple;
+	bh=FduemdCUqxkGCJv1cMxFWDffYJGRKXxrhnztd4oRxkM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aC2ZDEpL8Fg4xjYI5wvWUA3Vi37bakvKZFIPbkZB+uHSSLqc+Yn9iDOx6Mtr2GsFp+OZynyEb0EE9x399zSzyRdD48ULsyhbtqoeZrjG4u5PhhR7fmxU5//OwBqegZk5Diw5F5PfrnH+yuysOOvKocgG1c8Zw3J0fn+vv9de6BM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B085D60625; Wed, 28 Jan 2026 17:35:11 +0100 (CET)
-Date: Wed, 28 Jan 2026 17:35:12 +0100
-From: Florian Westphal <fw@strlen.de>
-To: syzbot <syzbot+d417922a3e7935517ef6@syzkaller.appspotmail.com>
-Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	horms@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pabeni@redhat.com, pablo@netfilter.org, phil@nwl.cc,
-	syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [netfilter?] KASAN: slab-use-after-free Read in
- nft_array_get_cmp
-Message-ID: <aXo6wL1ziBe1vKEN@strlen.de>
-References: <6979fc44.050a0220.c9109.003b.GAE@google.com>
- <aXoRvAottF2YRD3a@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=gS3R5PEkNk/B0I1fU9NXZUihhgMbLvL4TtioUMKxykWbeiCye8IWVA7bgDP1Q3/uDF4cuZocz5mKXxrftIMSJWXN8Myg2xkj6PS4MESxbaqYG8gvXuhltJYz/UZvJU5pEJzE25s9NL4F6AvCpimczz4yLiGxf8uCzuGzBwma9cM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=fNaEj0xN; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="fNaEj0xN"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=+ueWk23/sTxWAebwE1Y+bBEtGhfUoQjiHJJSLpEnbhY=; b=fNaEj0xNLMtVH/uaIqQgmrGdpf
+	IOHcXmZvMEKY3zYzr/GEr0SJkh9E1kATdA8zsfzwyRmdUF5aELoAK8pP77NmK1uE3SoaCYdhgdMRQ
+	VVMnp+AFNNTn3ivwMuTlaf9TZ3twvBHpAr8YQyDfWZ6Oe6K8zgrgmtFQUS0I01K25XU/DMefA3wlC
+	S3S/6nfIbO0o4fUW1MOOJsBUq7ar978Eu8Y+qlGhV1AdBSrFjgVt2/T7H1iJ6mzV8GptnfTMi1+Mt
+	3mbjbiMdI0LOvOKyQvJXI5Zrm296FDocRG2yjJ0xhFH9dzDh8M459uylvrFtcEr9ECyLf88esiVe3
+	B7KSOEAA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1vl8Y6-0000000008s-3sNg;
+	Wed, 28 Jan 2026 17:37:46 +0100
+Date: Wed, 28 Jan 2026 17:37:46 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Arnout Engelen <arnout@bzzt.net>, Philipp Bartsch <phil@grmr.de>
+Subject: Re: [nft PATCH] configure: Generate BUILD_STAMP at configure time
+Message-ID: <aXo7Wvl0-TtCkVMH@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Jeremy Sowden <jeremy@azazel.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Arnout Engelen <arnout@bzzt.net>, Philipp Bartsch <phil@grmr.de>
+References: <20260128145251.26767-1-phil@nwl.cc>
+ <20260128151152.GB2884714@celephais.dreamlands>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,47 +55,93 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aXoRvAottF2YRD3a@strlen.de>
+In-Reply-To: <20260128151152.GB2884714@celephais.dreamlands>
 
-Florian Westphal <fw@strlen.de> wrote:
-> >  dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
-> >  print_address_description mm/kasan/report.c:378 [inline]
-> >  print_report+0xba/0x230 mm/kasan/report.c:482
-> >  kasan_report+0x117/0x150 mm/kasan/report.c:595
-> >  nft_set_ext include/net/netfilter/nf_tables.h:795 [inline]
-> >  nft_set_ext_key include/net/netfilter/nf_tables.h:800 [inline]
-> >  nft_array_get_cmp+0x1f6/0x2a0 net/netfilter/nft_set_rbtree.c:133
-> >  __inline_bsearch include/linux/bsearch.h:15 [inline]
-> >  bsearch+0x50/0xc0 lib/bsearch.c:33
-> >  nft_rbtree_get+0x16b/0x400 net/netfilter/nft_set_rbtree.c:169
+On Wed, Jan 28, 2026 at 03:11:52PM +0000, Jeremy Sowden wrote:
+> On 2026-01-28, at 15:52:51 +0100, Phil Sutter wrote:
+> >Several flaws were identified with the previous approach at generating
+> >the build timestamp during compilation:
+> >
+> >- Recursive expansion of the BUILD_STAMP make variable caused changing
+> >  values upon each gcc call
+> >- Partial recompiling could also lead to changing BUILD_STAMP values in
+> >  objects
+> >
+> >While it is possible to work around the above issues using simple
+> >expansion and a mandatorily recompiled source file holding the values,
+> >generating the stamp at configure time is a much simpler solution and
+> >deemed sufficient enough for the purpose.
+> >
+> >While at it:
+> >
+> >- Respect SOURCE_DATE_EPOCH environment variable to support reproducible
+> >  builds, suggested by Philipp Bartsch
+> >- Guard the header against multiple inclusion, just in case
+> >
+> >Fixes: 64c07e38f049 ("table: Embed creating nft version into userdata")
+> >Reported-by: Arnout Engelen <arnout@bzzt.net>
+> >Closes: https://github.com/NixOS/nixpkgs/issues/478048
+> >Sugested-by: Philipp Bartsch <phil@grmr.de>
+> >Cc: Jeremy Sowden <jeremy@azazel.net>
+> >Signed-off-by: Phil Sutter <phil@nwl.cc>
+> >---
+> > Makefile.am  |  2 --
+> > configure.ac | 16 ++++++++--------
+> > 2 files changed, 8 insertions(+), 10 deletions(-)
+> >
+> >diff --git a/Makefile.am b/Makefile.am
+> >index 5c7c197f43ca7..c60c2e63d5aff 100644
+> >--- a/Makefile.am
+> >+++ b/Makefile.am
+> >@@ -159,8 +159,6 @@ AM_CFLAGS = \
+> > 	\
+> > 	$(GCC_FVISIBILITY_HIDDEN) \
+> > 	\
+> >-	-DMAKE_STAMP=$(MAKE_STAMP) \
+> >-	\
+> > 	$(NULL)
+> >
+> > AM_YFLAGS = -d -Wno-yacc
+> >diff --git a/configure.ac b/configure.ac
+> >index dd172e88ca581..ff1d86213eb80 100644
+> >--- a/configure.ac
+> >+++ b/configure.ac
+> >@@ -152,20 +152,20 @@ AC_CONFIG_COMMANDS([stable_release],
+> >                    [stable_release=$with_stable_release])
+> > AC_CONFIG_COMMANDS([nftversion.h], [
+> > (
+> >+	echo "#ifndef NFTABLES_NFTVERSION_H"
+> >+	echo "#define NFTABLES_NFTVERSION_H"
+> >+	echo ""
+> > 	echo "static char nftversion[[]] = {"
+> > 	echo "	${VERSION}," | tr '.' ','
+> > 	echo "	${STABLE_RELEASE}"
+> > 	echo "};"
+> >-	echo "static char nftbuildstamp[[]] = {"
+> >-	for i in `seq 56 -8 0`; do
+> >-		echo "	((uint64_t)MAKE_STAMP >> $i) & 0xff,"
+> >-	done
+> >-	echo "};"
+> >+	printf "static char nftbuildstamp[[]] = { "
+> >+	printf "%.16x" "$(printenv SOURCE_DATE_EPOCH || date '+%s')" | \
+> >+		sed -e 's/\(..\)/0x\1, /g' -e 's/, $/ };\n/'
+> >+	echo ""
+> >+	echo "#endif /* NFTABLES_NFTVERSION_H */"
+> > ) >nftversion.h
+> > ])
+> >-# Current date should be fetched exactly once per build,
+> >-# so have 'make' call date and pass the value to every 'gcc' call
+> >-AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
+> >
+> > AC_ARG_ENABLE([distcheck],
+> > 	      AS_HELP_STRING([--enable-distcheck], [Build for distcheck]),
 > 
-> Use after free, its possible for rbtree insert to evict elements
-> due to expiry, but still return -EEXIST.
-> 
-> We can thus end up with removed elements but without a call to
-> ->commit(), hence we have a stale binary blob referencing free'd
-> elements.
+> One other thing that I wondered about is why we are generating
+> nftversion.h like this.   How about the attached?
 
-So far I found 3 related issues, bsearch blob gets out of sync with the
-rbtree.  Prerequisite: set has a timed-out entry.  In all cases
-the bsearch blob isn't refreshed and holds pointers to free'd elements.
+Oh, much simpler. You wonder why I apparently reimplemented parts of
+autotools? The obvious answer is incompetence! ;)
 
-1. add new element, transaction is later aborted.
-Fix: refresh the bsearch blob from abort callback.
+Will you formally submit a patch?
 
-2. re-add an existing element, transaction passes.
-In this case, the commit hook isn't called because we don't have
-any changes to the set from transaction point of view.
-
-3. create (F_EXCL) an existing element.  This also
-aborts the transaction, but the abort callback isn't run
-as no change to the set was made.
-
-I'm not yet sure how to fix 2 and 3.
-
-I'll see about moving set_update_list to the nft pernet
-structure, so it can be populated from
-nft_trans_gc_queue_sync_done().
-
-Pipapo set backend should be fine with it, it won't act
-when called with the 'private clone' being NULL.
+Thanks, Phil
