@@ -1,241 +1,54 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD294307AF2;
-	Wed, 28 Jan 2026 15:42:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68F1C350D44
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 15:45:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769614963; cv=none; b=RRjlvl0stmwvTYM90JY31ZzHsvh/mgYhEXApbKdt0fgU0Kbt56nJEAFi3m1EoyCxW3l1RbD+TiT0mPLOg5FttRDKQdtC9k2B7D4G/ylJIS8NjHyBOteglrhC22Uw0GkVG6e6K8wOkIg9QxGUVmtIbxTwmebSPNv05FVzb6BSeAw=
+	t=1769615143; cv=none; b=FiDXM8NiidxOW9lUVVcPhCgfa9KDo2Rzzko4JLsO7q1bFW+uoViQxRPyE3jTZ9sxlVUjfES7wlPdOz+1Qo1BCwRr8bD4fDUVfA6xxmO/9qpNHNxhz/Wwj9H7k4tf7DuJyfTLcnJHu4BF/0RToWMbeVsh/6aqsAwecPsX6f47Kbw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769614963; c=relaxed/simple;
-	bh=uyN33aUCJ/8oKLfIUaYp8Ta7ulzubtTL2pXFlzzbgpE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=H1YRuRtYXgvawgu0tGHWF9qBwQgMFwPeKRE8/sYnbp98ddMatYHs6vomyboWNuArvOfENluOgWqJzyJQOvk4oTbv5hgRJwNbzov2shWPfbD+wI0wkwBjFGo1MP/XRQJrY39dcq5K8mzqnCaBc1TB8KJxCQ8QfHp7oN16c2MHUQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1769615143; c=relaxed/simple;
+	bh=sRJMxEHiWKRaDqce1HIJXy+s/KXi+nXrTTTNO5HZ0f8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=EGdYxECWvmfe+2i+jy7HN66rDoya+cj57l5QSNBCt2HaEJzYenRPA6cB0OsszLfWnTqKl0HsMhJTJgeKWLrpPifmwYWlUAObSDzZS4FYUBtrQzD97Cuns3iGSfy9AeEtxI6P+5eQbdrFFGqZVz368zJVp35DE5FXHXX3GXmhGrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8B3C86054D; Wed, 28 Jan 2026 16:42:37 +0100 (CET)
+	id C7BA6605C1; Wed, 28 Jan 2026 16:45:40 +0100 (CET)
+Date: Wed, 28 Jan 2026 16:45:41 +0100
 From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net-next 9/9] selftests: netfilter: nft_queue.sh: add udp fraglist gro test case
-Date: Wed, 28 Jan 2026 16:41:55 +0100
-Message-ID: <20260128154155.32143-10-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260128154155.32143-1-fw@strlen.de>
-References: <20260128154155.32143-1-fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 0/4] nf_tables: complete interval overlap
+ detection
+Message-ID: <aXovJVWj5PD-wrN9@strlen.de>
+References: <20260128014251.754512-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260128014251.754512-1-pablo@netfilter.org>
 
-Without the preceding patch, this fails with:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Overlap detection from the kernel in interval sets is still missing a
+> few corner cases, this is currently mitigated by nft from userspace by
+> dumping the set content for each add/create element command.
+>  
+> This series is composed of:
 
-FAIL: test_udp_gro_ct: Expected udp conntrack entry
-FAIL: test_udp_gro_ct: Expected software segmentation to occur, had 10 and 0
+Looks good to me.  I've held this back because syzbot found a problem
+with rbtree + bsearch blob getting out of sync in some cases and
+I would prefer to first get things back under control before making
+more changes to it.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- .../selftests/net/netfilter/nft_queue.sh      | 142 +++++++++++++++++-
- 1 file changed, 136 insertions(+), 6 deletions(-)
+I wasn't able to fix all of the problems so far and need more time
+to add relevant test coverage.
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index 6136ceec45e0..139bc1211878 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -510,7 +510,7 @@ EOF
- 
- udp_listener_ready()
- {
--	ss -S -N "$1" -uln -o "sport = :12345" | grep -q 12345
-+	ss -S -N "$1" -uln -o "sport = :$2" | grep -q "$2"
- }
- 
- output_files_written()
-@@ -518,7 +518,7 @@ output_files_written()
- 	test -s "$1" && test -s "$2"
- }
- 
--test_udp_ct_race()
-+test_udp_nat_race()
- {
-         ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
- flush ruleset
-@@ -545,8 +545,8 @@ EOF
- 	ip netns exec "$nsrouter" ./nf_queue -q 12 -d 1000 &
- 	local nfqpid=$!
- 
--	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns2"
--	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns3"
-+	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns2" 12345
-+	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns3" 12345
- 	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$nsrouter" 12
- 
- 	# Send two packets, one should end up in ns1, other in ns2.
-@@ -557,7 +557,7 @@ EOF
- 
- 	busywait 10000 output_files_written "$TMPFILE1" "$TMPFILE2"
- 
--	kill "$nfqpid"
-+	kill "$nfqpid" "$rpid1" "$rpid2"
- 
- 	if ! ip netns exec "$nsrouter" bash -c 'conntrack -L -p udp --dport 12345 2>/dev/null | wc -l | grep -q "^1"'; then
- 		echo "FAIL: Expected One udp conntrack entry"
-@@ -585,6 +585,135 @@ EOF
- 	echo "PASS: both udp receivers got one packet each"
- }
- 
-+# Make sure UDPGRO aggregated packets don't lose
-+# their skb->nfct entry when nfqueue passes the
-+# skb to userspace with software gso segmentation on.
-+test_udp_gro_ct()
-+{
-+	local errprefix="FAIL: test_udp_gro_ct:"
-+
-+	ip netns exec "$nsrouter" conntrack -F 2>/dev/null
-+
-+        ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+flush ruleset
-+table inet udpq {
-+	# Number of packets/bytes queued to userspace
-+	counter toqueue { }
-+	# Number of packets/bytes reinjected from userspace with 'ct new' intact
-+	counter fromqueue { }
-+	# These two counters should be identical and not 0.
-+
-+	chain prerouting {
-+		type filter hook prerouting priority -300; policy accept;
-+
-+		# userspace sends small packets, if < 1000, UDPGRO did
-+		# not kick in, but test needs a 'new' conntrack with udpgro skb.
-+		meta iifname veth0 meta l4proto udp meta length > 1000 accept
-+
-+		# don't pick up non-gso packets and don't queue them to
-+		# userspace.
-+		notrack
-+	}
-+
-+        chain postrouting {
-+		type filter hook postrouting priority 0; policy accept;
-+
-+		# Only queue unconfirmed fraglist gro skbs to userspace.
-+		udp dport 12346 ct status ! confirmed counter name "toqueue" mark set 1 queue num 1
-+        }
-+
-+	chain validate {
-+		type filter hook postrouting priority 1; policy accept;
-+		# ... and only count those that were reinjected with the
-+		# skb->nfct intact.
-+		mark 1 counter name "fromqueue"
-+	}
-+}
-+EOF
-+	timeout 10 ip netns exec "$ns2" socat UDP-LISTEN:12346,fork,pf=ipv4 OPEN:"$TMPFILE1",trunc &
-+	local rpid=$!
-+
-+	ip netns exec "$nsrouter" ./nf_queue -G -c -q 1 -t 2 > "$TMPFILE2" &
-+	local nfqpid=$!
-+
-+	ip netns exec "$nsrouter" ethtool -K "veth0" rx-udp-gro-forwarding on rx-gro-list on generic-receive-offload on
-+
-+	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns2" 12346
-+	busywait "$BUSYWAIT_TIMEOUT" nf_queue_wait "$nsrouter" 1
-+
-+	local bs=512
-+	local count=$(((32 * 1024 * 1024) / bs))
-+	dd if=/dev/zero bs="$bs" count="$count" 2>/dev/null | for i in $(seq 1 16); do
-+		timeout 5 ip netns exec "$ns1" \
-+			socat -u -b 512 STDIN UDP-DATAGRAM:10.0.2.99:12346,reuseport,bind=0.0.0.0:55221 &
-+	done
-+
-+	busywait 10000 test -s "$TMPFILE1"
-+
-+	kill "$rpid"
-+
-+	wait
-+
-+	local p
-+	local b
-+	local pqueued
-+	local bqueued
-+
-+	c=$(ip netns exec "$nsrouter" nft list counter inet udpq "toqueue" | grep packets)
-+	read p pqueued b bqueued <<EOF
-+$c
-+EOF
-+	local preinject
-+	local breinject
-+	c=$(ip netns exec "$nsrouter" nft list counter inet udpq "fromqueue" | grep packets)
-+	read p preinject b breinject <<EOF
-+$c
-+EOF
-+	ip netns exec "$nsrouter" ethtool -K "veth0" rx-udp-gro-forwarding off
-+	ip netns exec "$nsrouter" ethtool -K "veth1" rx-udp-gro-forwarding off
-+
-+	if [ "$pqueued" -eq 0 ];then
-+		# happens when gro did not build at least on aggregate
-+		echo "SKIP: No packets were queued"
-+		return
-+	fi
-+
-+	local saw_ct_entry=0
-+	if ip netns exec "$nsrouter" bash -c 'conntrack -L -p udp --dport 12346 2>/dev/null | wc -l | grep -q "^1"'; then
-+		saw_ct_entry=1
-+	else
-+		echo "$errprefix Expected udp conntrack entry"
-+		ip netns exec "$nsrouter" conntrack -L
-+		ret=1
-+	fi
-+
-+	if [ "$pqueued" -ge "$preinject" ] ;then
-+		echo "$errprefix Expected software segmentation to occur, had $pqueued and $preinject"
-+		ret=1
-+		return
-+	fi
-+
-+	# sw segmentation adds extra udp and ip headers.
-+	local breinject_expect=$((preinject * (512 + 20 + 8)))
-+
-+	if [ "$breinject" -eq "$breinject_expect" ]; then
-+		if [ "$saw_ct_entry" -eq 1 ];then
-+			echo "PASS: fraglist gro skb passed with conntrack entry"
-+		else
-+			echo "$errprefix fraglist gro skb passed without conntrack entry"
-+			ret=1
-+		fi
-+	else
-+		echo "$errprefix Counter mismatch, conntrack entry dropped by nfqueue? Queued: $pqueued, $bqueued. Post-queue: $preinject, $breinject. Expected $breinject_expect"
-+		ret=1
-+	fi
-+
-+	if ! ip netns exec "$nsrouter" nft delete table inet udpq; then
-+		echo "$errprefix: Could not delete udpq table"
-+		ret=1
-+	fi
-+}
-+
- test_queue_removal()
- {
- 	read tainted_then < /proc/sys/kernel/tainted
-@@ -663,7 +792,8 @@ test_tcp_localhost_connectclose
- test_tcp_localhost_requeue
- test_sctp_forward
- test_sctp_output
--test_udp_ct_race
-+test_udp_nat_race
-+test_udp_gro_ct
- 
- # should be last, adds vrf device in ns1 and changes routes
- test_icmp_vrf
--- 
-2.52.0
+Once rbtree is back to 'syzbot is happy again' state I will apply them.
 
+Sorry for the inconvenience.
