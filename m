@@ -1,98 +1,90 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922B520C023
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2026 23:39:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB0A125B2
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 00:09:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769557167; cv=none; b=Vrgwsr37b1fBNIfQ33SovWwhMneXrbYI8dj7FvAqFmFxqJWfbpVD1PKQ2iVMGIfhg0eG3Bq//gjwWGplrXRJ4gII2prFGzo4xmb5lr/EB5BMsydL3Cgm5AD7Y+x6EQM4L1kxTgsPipaL/3dczU+aBGsmo7uA7l6SDNuYnJY2J4w=
+	t=1769558954; cv=none; b=HIFkdrZfSpP+MauaUqOqsT+roDnFlagsr6L/aEVQnlFGKfO8DCCG02lrsvuU2cnZHQr3AfwCL/Z4qY7gSoeUFNu8++J9uB28ajDsNzaVqmTWLlk6Ma+VbE0yYHi1bo5T+7vwJn6FJ84i0ZJedqC6HbdN9Ri55yBONBSIpWMajeg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769557167; c=relaxed/simple;
-	bh=9Ruu38L3WWAFI1lF2LLip92/Ni2LvBI1K8c7BIOsMdw=;
+	s=arc-20240116; t=1769558954; c=relaxed/simple;
+	bh=XveIEhNb3pNWV8nWGPzWr8Q7j03HnmMppmZQBnPsOc8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TW6pcLAU9Hp1AJ/mYfIoMMSBUFQpQHPtTG7NzrVXnOnPdPp06gATHh74GKtvnXPnjUoYK373fLdzYRxYIP2ruM0Tji1FdkrCiHMGTOlgypoMVaOt/N1BvcCJIkUcfH9U/aCqXC0iD9eNc+wnaUMJSS7CNyXYz9fk+NJSQz2FJMk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KEJnd5y/; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KEJnd5y/"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5DE1060254;
-	Wed, 28 Jan 2026 00:39:23 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1769557163;
-	bh=0dMbuM3C7NKtoNfVtityKIzeEpjhi+l+HawKx36x8E0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=KEJnd5y/Q0qlqiwPd889UtnpRvt+8/0EzBqQvqPbkg/7GJWYZQ4IqreJK9DxSwWt3
-	 6FZYrmcrei+qn+KkOxJE6ru3tykIjkUBsbykeu8A6DwU/ThfnR3MBVdTaAc451rj3d
-	 RcVKODB3DoXAg94AW3NE2UWVKPTuhTKDeVjK/TucieLbhvsQzjah1rFV/R8Wqd/kZr
-	 EX6c8Vl++C4OkyuAV4tyGFPOu+yhcdOQmROU/u7RaYCehpuh8y0MbjPeeL5MZEsjkn
-	 id7dzdcdOghWrMC3EoArlCXrM1CSNXjuMTWDblQUuL8zMwUmVPY4FuRa0H/Ghg5ray
-	 5fJTN+heWYJuw==
-Date: Wed, 28 Jan 2026 00:39:20 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH 9/9] udata: Store u32 udata values in Big Endian
-Message-ID: <aXlMqOfp2klbz_bH@chamomile>
-References: <20251023160547.10928-1-phil@nwl.cc>
- <20251023160547.10928-10-phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=sWPLGRFlrO1SnBfkA0ou+ERfB6xLrnQUVOx9P/lIorFvvMEs3EgUBCt7WdoG3kqLFek6g8ogwo0sYVE2+32o5vXt8FfATKd5Ze3vbukEPTVnNxg59rjmSf3fDltUtI0ywrUHxMc7gW13qTtDNEQ8IO6hNu6NFF7KjSqfIlXSYM4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 87798602B6; Wed, 28 Jan 2026 01:09:09 +0100 (CET)
+Date: Wed, 28 Jan 2026 01:09:10 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Brian Witte <brianwitte@mailfence.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	kadlec@blackhole.kfki.hu
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: use dedicated mutex for
+ reset operations
+Message-ID: <aXlTpuk0Z1CeoYwT@strlen.de>
+References: <20260127030604.39982-1-brianwitte@mailfence.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251023160547.10928-10-phil@nwl.cc>
+In-Reply-To: <20260127030604.39982-1-brianwitte@mailfence.com>
 
-On Thu, Oct 23, 2025 at 06:05:47PM +0200, Phil Sutter wrote:
-> Avoid deviation of this data in between different byte orders. Assume
-> that direct callers of nftnl_udata_put() know what they do.
-
-How does this work after an update?
-
-Load ruleset with nft version previous to this, then upgrade, then
-list ruleset with new nft version.
-
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
->  src/udata.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
+Brian Witte <brianwitte@mailfence.com> wrote:
+> Add a dedicated reset_mutex to serialize reset operations instead of
+> reusing the commit_mutex. This fixes a circular locking dependency
+> between commit_mutex, nfnl_subsys_ipset, and nlk_cb_mutex-NETFILTER
+> that could lead to deadlock when nft reset, ipset list, and
+> iptables-nft with set match run concurrently:
 > 
-> diff --git a/src/udata.c b/src/udata.c
-> index a1956571ef5fd..8cf4e7ca61e2f 100644
-> --- a/src/udata.c
-> +++ b/src/udata.c
-> @@ -8,6 +8,7 @@
->  #include <udata.h>
->  #include <utils.h>
->  
-> +#include <arpa/inet.h>
->  #include <stdlib.h>
->  #include <stdint.h>
->  #include <string.h>
-> @@ -100,7 +101,9 @@ EXPORT_SYMBOL(nftnl_udata_put_u32);
->  bool nftnl_udata_put_u32(struct nftnl_udata_buf *buf, uint8_t type,
->  			 uint32_t data)
->  {
-> -	return nftnl_udata_put(buf, type, sizeof(data), &data);
-> +	uint32_t data_be = htonl(data);
-> +
-> +	return nftnl_udata_put(buf, type, sizeof(data_be), &data_be);
->  }
->  
->  EXPORT_SYMBOL(nftnl_udata_type);
-> @@ -128,7 +131,7 @@ uint32_t nftnl_udata_get_u32(const struct nftnl_udata *attr)
->  
->  	memcpy(&data, attr->value, sizeof(data));
->  
-> -	return data;
-> +	return ntohl(data);
->  }
->  
->  EXPORT_SYMBOL(nftnl_udata_next);
-> -- 
-> 2.51.0
+>   CPU0 (nft reset):        nlk_cb_mutex -> commit_mutex
+>   CPU1 (ipset list):       nfnl_subsys_ipset -> nlk_cb_mutex
+>   CPU2 (iptables -m set):  commit_mutex -> nfnl_subsys_ipset
 > 
+> The reset_mutex only serializes concurrent reset operations to prevent
+> counter underruns, which is all that's needed. Breaking the commit_mutex
+> dependency in the dump-reset path eliminates the circular lock chain.
+> 
+> Reported-by: syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug?extid=ff16b505ec9152e5f448
+> Signed-off-by: Brian Witte <brianwitte@mailfence.com>
+
+This needs more work:
+
+-----------------------------
+net/netfilter/nf_tables_api.c:1002 RCU-list traversed in non-reader section!!
+
+other info that might help us debug this:
+
+rcu_scheduler_active = 2, debug_locks = 1
+1 lock held by nft/17539:
+ #0: ffff888132018368 (&nft_net->reset_mutex){+.+.}-{4:4}, at: nf_tables_getobj_reset+0x19e/0x5a0 [nf_tables]
+
+stack backtrace:
+CPU: 4 UID: 0 PID: 17539 Comm: nft Not tainted 6.19.0-rc6+ #9 PREEMPT(full)
+Call Trace:
+ lockdep_rcu_suspicious.cold+0x4f/0xb1
+ nft_table_lookup.part.0+0x1e7/0x220 [nf_tables]
+ nf_tables_getobj_single+0x196/0x5a0 [nf_tables]
+ nf_tables_getobj_reset+0x1b1/0x5a0 [nf_tables]
+ nfnetlink_rcv_msg+0x49e/0xf00
+
+Please run nftables.git tests/shell/run-tests.sh with
+
+CONFIG_PROVE_LOCKING=y
+CONFIG_PROVE_RCU=y
+CONFIG_PROVE_RCU_LIST=y
+
+This warning is not a false positive, the list traversal was
+fine for reset case because we held the transaction mutex.
+
+Now that we don't, we need to hold rcu_read_lock().
+
+Maybe its worth investigating if we should instead protect
+only the reset action itself, i.e. add private reset spinlocks
+in nft_quota_do_dump() et al?
