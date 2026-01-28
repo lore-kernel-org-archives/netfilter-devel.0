@@ -1,116 +1,80 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 281BC29B216
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 02:29:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B379F2D780C
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 11:57:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769567400; cv=none; b=TbQkmoYQ8JwARuXtxgypBcJt0BCe14rd/jHWOgFBxkQasDOe733ASOZFPa7xp83Y6lPpTi89xlA83M1300pseZ5H1RWjt8Ak0aXPqmyk5YGv5b/WsCtFNHkxIWXngA3pcl3SGlGDlZ2Iw1RAc5iqB24COtKqZqH4CiMNB22m+0w=
+	t=1769601445; cv=none; b=lRjARmUe+NhmfuFTRaEEMNlmMpFS234WI4rERtyItyim43B/ZDXEYPiylJU3q7UzVqp4+VD7i18jMnGZrZMahklyHU2hKDxK9OqRLQaqSmrnFEWLYDTb8NZcOwKIuvd0P02KUL9oK8zgYyqw4xiKS4s9ocrYX3TSuMQ//yEYgK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769567400; c=relaxed/simple;
-	bh=Yl0EFztl0SboNzoQK69hvdbgcFIiVyw2ni8Rt2IZC5Y=;
+	s=arc-20240116; t=1769601445; c=relaxed/simple;
+	bh=lx9tTfbNU+aEpWvp2nM+C6qwW8glfTi5Q6dYpaw2foE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ah/x0ixdbjZrOsMT5GwuR6JqBAFUYNL6Ay0g2BmqUBHufNAjGXu0g1F0mHMzlH2CNoTDawBu1lud+0LERZmCx/wdUQ5o3rhStmVGnBSM9PThHdNOesT0ZPIuHonOEDDP2bGUkpl++5qFrwY0eRU4hgks3DRwPBqyXxttoCu11TQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NxVe6Qxm; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=ux4+SAGoqNifKsyrvhIYoRYMpm3eMHKS/sTjayP1UcTHSIBNKIR8vQjkieeH0R17PQ6DiJ3RlYgv6KIJSWHy366d2AQZ5ZnPtFsyczWrdPMjrOWT2Ld0b2UEZtpfy83MvcDNkK6397kuMiXxPP25MIhQaBBtCu+HeeT0//vU3UU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=XPaYQuLS; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NxVe6Qxm"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 3677360181;
-	Wed, 28 Jan 2026 03:29:57 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1769567397;
-	bh=TvMGIhhpowEU/IH7j793Wv4z2nCuw1AZ0j0JIj7Cvrw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NxVe6QxmcG6+c5i7y/TBbGIiFe9sFKhAPZfds7NIV6E5uM4+5uDXxU5uL+Dz8hYrD
-	 WT4DCvu9h4w+0REME2WDgpd+IR9UHSkAwvxY3nWXJafNe9SzRJqWYczhIoB8nmAhvL
-	 ilL+SAOfiVCn75kcQFGICXV/Eja2dOE9G0TTqobPPehEpL0ckwCmB/TprB4eMZ2pEw
-	 QmmLwJxE4/f6rBhM9yxxAPup2wRPc1pukrzU7a3+iKVnukNTMB4Y5Stok+2TPn6+MU
-	 g/pFzb+JWTlemst9s5T/T84WH2VUeJQ23qvvURMOjV79BSQ7OKq4oJMT9OfJMxPguB
-	 DMjTb5snz0CIQ==
-Date: Wed, 28 Jan 2026 03:29:54 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: netfilter-devel@vger.kernel.org, Philipp Bartsch <phil@grmr.de>,
-	Arnout Engelen <arnout@bzzt.net>, fw@strlen.de, phil@nwl.cc
-Subject: Re: [nftables PATCH] build: support SOURCE_DATE_EPOCH for
- reproducible build
-Message-ID: <aXl0orzXWNXUumUB@chamomile>
-References: <20260123123137.2327427-1-phil@amsel.grmr.de>
- <20260123163615.GB1387959@celephais.dreamlands>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="XPaYQuLS"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=nVyDYeeQwxB1YBK8usjQL/45vJzK3/aewD+inknddGE=; b=XPaYQuLSjycg1CnF4EpIg7gkBS
+	nYxVyzDnvHSaHDiV+n80vr1oubFAnftrsa3x100FhAgDquy3TvLXNs7tPqiKni7BDxDaeu5o0EnD2
+	wiTjKidobxYtGzfsFN/XOhHQ63B/mfc+Kva4qoQtAtPj8NSklhurOBCGgMlOk76E4P9k79aDleuh+
+	gg8AH1P0VX09oRaYkuXCeTeFCt++jwuQHUftdGOgqGP96cPSS5NycKwzlSzRpv58WemSGkGcwe6z8
+	JjAWrcEqa7ReO960E+MV126u72Qlzg288OdXSvuSOhTncnpG3MHC934ZtfJieOjv/MuK5Kabh58LW
+	EiU8vHYQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1vl4Ai-000000002sv-1kte;
+	Wed, 28 Jan 2026 12:57:20 +0100
+Date: Wed, 28 Jan 2026 12:57:20 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [libnftnl PATCH 9/9] udata: Store u32 udata values in Big Endian
+Message-ID: <aXn5oCx0nASLhd_I@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20251023160547.10928-1-phil@nwl.cc>
+ <20251023160547.10928-10-phil@nwl.cc>
+ <aXlMqOfp2klbz_bH@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260123163615.GB1387959@celephais.dreamlands>
+In-Reply-To: <aXlMqOfp2klbz_bH@chamomile>
 
-Cc'ing Phil.
+Hi Pablo,
 
-On Fri, Jan 23, 2026 at 04:36:15PM +0000, Jeremy Sowden wrote:
-> On 2026-01-23, at 13:30:40 +0100, Philipp Bartsch wrote:
-> > Including build timestamps in artifacts makes it harder to
-> > reproducibly build them.
-> > 
-> > Allow to overwrite build timestamp MAKE_STAMP by setting the
-> > SOURCE_DATE_EPOCH environment variable.
-> > 
-> > More details on SOURCE_DATE_EPOCH and reproducible builds:
-> > https://reproducible-builds.org/docs/source-date-epoch/
-> > 
-> > Fixes: 64c07e38f049 ("table: Embed creating nft version into userdata")
-> > Reported-by: Arnout Engelen <arnout@bzzt.net>
-> > Closes: https://github.com/NixOS/nixpkgs/issues/478048
-> > Signed-off-by: Philipp Bartsch <phil@grmr.de>
-> > ---
-> >  configure.ac | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/configure.ac b/configure.ac
-> > index dd172e88..3c672c99 100644
-> > --- a/configure.ac
-> > +++ b/configure.ac
-> > @@ -165,7 +165,7 @@ AC_CONFIG_COMMANDS([nftversion.h], [
-> >  ])
-> >  # Current date should be fetched exactly once per build,
-> >  # so have 'make' call date and pass the value to every 'gcc' call
-> > -AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
-> > +AC_SUBST([MAKE_STAMP], ["\$(shell printenv SOURCE_DATE_EPOCH || date +%s)"])
-> > 
-> >  AC_ARG_ENABLE([distcheck],
-> >  	      AS_HELP_STRING([--enable-distcheck], [Build for distcheck]),
+
+On Wed, Jan 28, 2026 at 12:39:20AM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Oct 23, 2025 at 06:05:47PM +0200, Phil Sutter wrote:
+> > Avoid deviation of this data in between different byte orders. Assume
+> > that direct callers of nftnl_udata_put() know what they do.
 > 
-> Apart from the reproducibility problem, the original code doesn't actual
-> do what the comment says.  `date` is called every time a file is
-> compiled.  Here are the first and last half-dozen time-stamps snipped
-> from a recent build:
+> How does this work after an update?
 > 
-> 	-DMAKE_STAMP=1769185524
-> 	-DMAKE_STAMP=1769185524
-> 	-DMAKE_STAMP=1769185524
-> 	-DMAKE_STAMP=1769185524
-> 	-DMAKE_STAMP=1769185525
-> 	-DMAKE_STAMP=1769185525
-> 	...
-> 	-DMAKE_STAMP=1769185536
-> 	-DMAKE_STAMP=1769185536
-> 	-DMAKE_STAMP=1769185539
-> 	-DMAKE_STAMP=1769185539
-> 	-DMAKE_STAMP=1769185540
-> 	-DMAKE_STAMP=1769185540
-> 
-> Generating one time-stamp in the Makefile is a pain in backside.  I have
-> come up with a way to do it, but it's fiddly.  Florian, Phil, would it
-> suffice to generate the time-stamp in configure?
+> Load ruleset with nft version previous to this, then upgrade, then
+> list ruleset with new nft version.
 
-Due to this issue, I can also see bogus:
+You're right, on LE systems this would interpret LE data as BE. Do we
+support this scenario? I vaguely remember a discussion around this topic
+with iptables-nft, but don't recall any details.
 
-# Warning: table ip x was created by a newer version of nftables? Content may be incomplete!
+Without this patch, udata values are in host byteorder. In order to
+correctly print them, libnftnl would need to know how data is
+structured, which it doesn't and that is by design, right? So the only
+alternative to this breakage that I see is to entirely omit userdata
+from debug output.
 
-with partial recompilations while developing on nftables, it is a bit
-annoying because I have to: make clean and compile again. This
-occasionally triggers spurious tests failures here for that reason.
+Cheers, Phil
