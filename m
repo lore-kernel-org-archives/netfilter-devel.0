@@ -1,90 +1,134 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB0A125B2
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 00:09:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA650146A66
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 01:43:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769558954; cv=none; b=HIFkdrZfSpP+MauaUqOqsT+roDnFlagsr6L/aEVQnlFGKfO8DCCG02lrsvuU2cnZHQr3AfwCL/Z4qY7gSoeUFNu8++J9uB28ajDsNzaVqmTWLlk6Ma+VbE0yYHi1bo5T+7vwJn6FJ84i0ZJedqC6HbdN9Ri55yBONBSIpWMajeg=
+	t=1769564583; cv=none; b=oUPwCKGJm46n0hq0jvdV+RvERuUgZjUh3YUH+uHkF+coq0PIGAPqng1BITc6kentTzAfl8rzU3nb2E9KHxiBcSlUWH2JWG0+lDNYOBoTEXVHdtbBwkK6rLEaOi3iZsNk7UyZNgp+kVis1x65eFWd1/BYZploFlyIVr2cKRfT7Us=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769558954; c=relaxed/simple;
-	bh=XveIEhNb3pNWV8nWGPzWr8Q7j03HnmMppmZQBnPsOc8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sWPLGRFlrO1SnBfkA0ou+ERfB6xLrnQUVOx9P/lIorFvvMEs3EgUBCt7WdoG3kqLFek6g8ogwo0sYVE2+32o5vXt8FfATKd5Ze3vbukEPTVnNxg59rjmSf3fDltUtI0ywrUHxMc7gW13qTtDNEQ8IO6hNu6NFF7KjSqfIlXSYM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 87798602B6; Wed, 28 Jan 2026 01:09:09 +0100 (CET)
-Date: Wed, 28 Jan 2026 01:09:10 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Brian Witte <brianwitte@mailfence.com>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	kadlec@blackhole.kfki.hu
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: use dedicated mutex for
- reset operations
-Message-ID: <aXlTpuk0Z1CeoYwT@strlen.de>
-References: <20260127030604.39982-1-brianwitte@mailfence.com>
+	s=arc-20240116; t=1769564583; c=relaxed/simple;
+	bh=HNJXpcDcZWPehrRRkIGWBW/QgeKQObS6a4Cr4gPmPOk=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=oq5jY5aHcGvyCyKi4g5G6xv4T8M9hH13LDrwLQ3o83AvrAXREiXawtvetrdH04U012oJh42MdEShhs7ngMCcAtUOJ3UmlZzodTAfsvtgoTuGYX3Dx80isZBUKq7pLg+B8rg5mzjUOOnkP4EJnS0u8Cj+ywS8GESFuB5XAVcEP5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JVxL05X/; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JVxL05X/"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id BC2C660178
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 02:42:58 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1769564578;
+	bh=/1+JbcdQ6TDBwf/Af5DxXLV9FBsWTy4SWRT/EocACcM=;
+	h=From:To:Subject:Date:From;
+	b=JVxL05X/HMqOwHtojtCpYw+nVa0RrK8bKejtsVaeflKhmqz/jxWAzo6IBbvAWz6Hq
+	 YCCV/9VQ+94zRBm2HHX2l1FpJIHjDN4FvaGs3hLp6iK4xhjz80SpHDLgflqszA/KVs
+	 tF2nS3Cl6EEtTfQKorahIzHp+wCGm0BsjaEZF6L2xKk3U5kQcRLDxVEGVQgYCV8+qc
+	 vCuXxjgm1k3DGwe7GM3feYYfESYXYt6JxzV13N1TC4SZSAnYFKEuZqq8QzDAtN4dTE
+	 zj8dLnkT9RqZCgHDlp8vgHi+RJ1DB3frUTyDR3Q+smVzfNqVBuahApKfANdu8ZFID7
+	 /PhDylMz3YzSw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf-next 0/4] nf_tables: complete interval overlap detection
+Date: Wed, 28 Jan 2026 02:42:47 +0100
+Message-ID: <20260128014251.754512-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260127030604.39982-1-brianwitte@mailfence.com>
+Content-Transfer-Encoding: 8bit
 
-Brian Witte <brianwitte@mailfence.com> wrote:
-> Add a dedicated reset_mutex to serialize reset operations instead of
-> reusing the commit_mutex. This fixes a circular locking dependency
-> between commit_mutex, nfnl_subsys_ipset, and nlk_cb_mutex-NETFILTER
-> that could lead to deadlock when nft reset, ipset list, and
-> iptables-nft with set match run concurrently:
-> 
->   CPU0 (nft reset):        nlk_cb_mutex -> commit_mutex
->   CPU1 (ipset list):       nfnl_subsys_ipset -> nlk_cb_mutex
->   CPU2 (iptables -m set):  commit_mutex -> nfnl_subsys_ipset
-> 
-> The reset_mutex only serializes concurrent reset operations to prevent
-> counter underruns, which is all that's needed. Breaking the commit_mutex
-> dependency in the dump-reset path eliminates the circular lock chain.
-> 
-> Reported-by: syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
-> Closes: https://syzkaller.appspot.com/bug?extid=ff16b505ec9152e5f448
-> Signed-off-by: Brian Witte <brianwitte@mailfence.com>
+Hi,
+ 
+Overlap detection from the kernel in interval sets is still missing a
+few corner cases, this is currently mitigated by nft from userspace by
+dumping the set content for each add/create element command.
+ 
+This series is composed of:
+ 
+Patch #1 fixes null interval with NLM_F_CREATE: simply ignore this dummy
+element when it already exists, so userspace does not need to dump the
+current set content to check if it exists to decide whether to add it or
+not to add it.
+ 
+Patch #2 enables overlap detection for start elements with anonymous
+sets. This validation in the kernel is currently disabled because end
+elements are omitted with adjacent intervals.
+ 
+The following command reports success while it should fail with ENOENT:
+ 
+  add rule ip x y meta mark set ip saddr map { 255.255.255.1-255.255.255.3 : 1, 255.255.255.0-255.255.255.4 : 2}
+ 
+Patch #3 extends overlap detection to report ENOENT when deleting start
+and end elements that belong to different intervals, eg.
+ 
+  add element inet x y { 1.1.1.1-2.2.2.2, 4.4.4.4-5.5.5.5 }
+ 
+then:
+ 
+  add element inet x y { 1.1.1.1-5.5.5.5 }
+ 
+reports success but this should fail with ENOENT.
+ 
+This patch uses a cookie field to store the pointer to the start element
+that already exists, then validate that the end element is adjacent to
+the start element that is stored in the cookie.
+ 
+This patch also performs similar validation for deletions, eg.
+ 
+  add element inet x y { 1.1.1.1-2.2.2.2, 4.4.4.4-5.5.5.5}
 
-This needs more work:
+then:
+ 
+  delete element inet x y { 1.1.1.1-5.5.5.5 }
+ 
+reports success but this should fail with ENOENT.
 
------------------------------
-net/netfilter/nf_tables_api.c:1002 RCU-list traversed in non-reader section!!
+Patch #4 enables overlap detection for open intervals in non-anonymous
+sets, which are only possible at the end of the set. Note that Patch #3
+relies on the end element to validate intervals, however, such end
+element is missing in the last open interval of the set. This needs a
+new LAST flag to detect if the last interval is an open interval.
+ 
+This cover the following scenario:
+ 
+  add element ip x y { 255.255.255.0-255.255.255.254 }
+ 
+then:
+ 
+  add element ip x y { 255.255.255.0-255.255.255.255 }
+ 
+reports success but this should fail with ENOENT.
 
-other info that might help us debug this:
+There is another corner case:
+ 
+  add element ip x y { 255.255.255.0-255.255.255.254 }
+  add element ip x y { 255.255.255.0-255.255.255.255, 255.255.255.0-255.255.255.254 }
+ 
+reports success but this should fail with ENOENT. This is handled by
+annotating that 255.255.255.0-255.255.255.255 is possibly an open
+interval, given that there is no end element.
+ 
+A better approach would be to allow interval sets to the KEY and KEY_END
+attributes, but this is not trivial with the existing rbtree set backend
+and it requires a lot more work. This series aims at addressing the
+existing issues.
 
-rcu_scheduler_active = 2, debug_locks = 1
-1 lock held by nft/17539:
- #0: ffff888132018368 (&nft_net->reset_mutex){+.+.}-{4:4}, at: nf_tables_getobj_reset+0x19e/0x5a0 [nf_tables]
+Pablo Neira Ayuso (4):
+  netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
+  netfilter: nft_set_rbtree: check for partial overlaps in anonymous sets
+  netfilter: nft_set_rbtree: validate element belonging to interval
+  netfilter: nft_set_rbtree: validate open interval overlap
 
-stack backtrace:
-CPU: 4 UID: 0 PID: 17539 Comm: nft Not tainted 6.19.0-rc6+ #9 PREEMPT(full)
-Call Trace:
- lockdep_rcu_suspicious.cold+0x4f/0xb1
- nft_table_lookup.part.0+0x1e7/0x220 [nf_tables]
- nf_tables_getobj_single+0x196/0x5a0 [nf_tables]
- nf_tables_getobj_reset+0x1b1/0x5a0 [nf_tables]
- nfnetlink_rcv_msg+0x49e/0xf00
+ include/net/netfilter/nf_tables.h |   4 +
+ net/netfilter/nf_tables_api.c     |  26 +++-
+ net/netfilter/nft_set_rbtree.c    | 225 ++++++++++++++++++++++++++++--
+ 3 files changed, 243 insertions(+), 12 deletions(-)
 
-Please run nftables.git tests/shell/run-tests.sh with
+-- 
+2.47.3
 
-CONFIG_PROVE_LOCKING=y
-CONFIG_PROVE_RCU=y
-CONFIG_PROVE_RCU_LIST=y
-
-This warning is not a false positive, the list traversal was
-fine for reset case because we held the transaction mutex.
-
-Now that we don't, we need to hold rcu_read_lock().
-
-Maybe its worth investigating if we should instead protect
-only the reset action itself, i.e. add private reset spinlocks
-in nft_quota_do_dump() et al?
