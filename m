@@ -1,38 +1,34 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AFED304968;
-	Wed, 28 Jan 2026 15:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D13D25A2B4;
+	Wed, 28 Jan 2026 16:35:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769615684; cv=none; b=h3WFLCFfIaEJ2+8OPqNCfmAOqwkXLhA+R5Pp1RZjoKn/JufK/rJvQaZs6PGnHw+RIN8ckQTH8xLCTsVYdlP5W3yeiAKSZaYqKZCTa6wn1zkBRV/slyON49YsKdK6i8k5b3w+nXxnexrmFFwilqwZn4EWXtwkgz2OnmIQp4qhVLQ=
+	t=1769618117; cv=none; b=MPQFg+q9PehQDR0Rc2lhtBo3CAahPtm3eH5h0xvLD3bHuuHBMesa8Faa0tNb4bPRnMsSUbDNjcQCy0Z2FCxIX46U/5hmxrzH/8+/vbKqBo6Tbj+F1mDGF6qZn/FsacYJZDy2daiU2mD14NjF4aeEyWcL6n+x1E8MWY0u5SCE6ts=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769615684; c=relaxed/simple;
-	bh=qUS9d/ckayBRL8ZTvLaQC3nCL6OtpqBjZM0ezsHILbU=;
+	s=arc-20240116; t=1769618117; c=relaxed/simple;
+	bh=lEAPg8/1O1kCKjKzRe0arMgCCKsZXsXwj7sG/uTzP4c=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=i/WaOP0i25omY7b/w5nMDsGa4krjUeCDXgIjvLk+6xlss/X8uouBFTngVYeUtj7IlC6ap+e2cOFsU2oTabAoLzZRAwAo0X36+sDLC75ev4k6p14DjlVsvh/yPCLyRhLVoxJD6OzfnoaF+Gg34n7OzOrrIUhg0pOanKpQepzGt9M=
+	 Content-Type:Content-Disposition:In-Reply-To; b=aC2ZDEpL8Fg4xjYI5wvWUA3Vi37bakvKZFIPbkZB+uHSSLqc+Yn9iDOx6Mtr2GsFp+OZynyEb0EE9x399zSzyRdD48ULsyhbtqoeZrjG4u5PhhR7fmxU5//OwBqegZk5Diw5F5PfrnH+yuysOOvKocgG1c8Zw3J0fn+vv9de6BM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8D994605E7; Wed, 28 Jan 2026 16:54:40 +0100 (CET)
-Date: Wed, 28 Jan 2026 16:54:41 +0100
+	id B085D60625; Wed, 28 Jan 2026 17:35:11 +0100 (CET)
+Date: Wed, 28 Jan 2026 17:35:12 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Eric Woudstra <ericwouds@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	bridge@lists.linux.dev, Simon Horman <horms@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>, Jakub Kicinski <kuba@kernel.org>,
-	Phil Sutter <phil@nwl.cc>, Ido Schimmel <idosch@nvidia.com>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jozsef Kadlecsik <kadlec@netfilter.org>
-Subject: Re: [PATCH v17 nf-next 0/4] conntrack: bridge: add double vlan,
- pppoe and pppoe-in-q
-Message-ID: <aXoxQbd_7mzTSBZO@strlen.de>
-References: <20251109192427.617142-1-ericwouds@gmail.com>
- <6d77bdc4-a385-43bf-a8a5-6787f99d2b7d@gmail.com>
+To: syzbot <syzbot+d417922a3e7935517ef6@syzkaller.appspotmail.com>
+Cc: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
+	horms@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com, pablo@netfilter.org, phil@nwl.cc,
+	syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] [netfilter?] KASAN: slab-use-after-free Read in
+ nft_array_get_cmp
+Message-ID: <aXo6wL1ziBe1vKEN@strlen.de>
+References: <6979fc44.050a0220.c9109.003b.GAE@google.com>
+ <aXoRvAottF2YRD3a@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -41,41 +37,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <6d77bdc4-a385-43bf-a8a5-6787f99d2b7d@gmail.com>
+In-Reply-To: <aXoRvAottF2YRD3a@strlen.de>
 
-Eric Woudstra <ericwouds@gmail.com> wrote:
-> >  include/net/netfilter/nf_tables_ipv4.h     | 21 +++--
-> >  include/net/netfilter/nf_tables_ipv6.h     | 21 +++--
-> >  net/bridge/netfilter/nf_conntrack_bridge.c | 92 ++++++++++++++++++----
-> >  net/netfilter/nft_chain_filter.c           | 59 ++++++++++++--
-> >  net/netfilter/utils.c                      | 28 +++++--
-> >  5 files changed, 176 insertions(+), 45 deletions(-)
-> > 
+Florian Westphal <fw@strlen.de> wrote:
+> >  dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+> >  print_address_description mm/kasan/report.c:378 [inline]
+> >  print_report+0xba/0x230 mm/kasan/report.c:482
+> >  kasan_report+0x117/0x150 mm/kasan/report.c:595
+> >  nft_set_ext include/net/netfilter/nf_tables.h:795 [inline]
+> >  nft_set_ext_key include/net/netfilter/nf_tables.h:800 [inline]
+> >  nft_array_get_cmp+0x1f6/0x2a0 net/netfilter/nft_set_rbtree.c:133
+> >  __inline_bsearch include/linux/bsearch.h:15 [inline]
+> >  bsearch+0x50/0xc0 lib/bsearch.c:33
+> >  nft_rbtree_get+0x16b/0x400 net/netfilter/nft_set_rbtree.c:169
 > 
-> Can I kindly ask, what is the status of this patch-set?
+> Use after free, its possible for rbtree insert to evict elements
+> due to expiry, but still return -EEXIST.
+> 
+> We can thus end up with removed elements but without a call to
+> ->commit(), hence we have a stale binary blob referencing free'd
+> elements.
 
-Rotting, sorry.
+So far I found 3 related issues, bsearch blob gets out of sync with the
+rbtree.  Prerequisite: set has a timed-out entry.  In all cases
+the bsearch blob isn't refreshed and holds pointers to free'd elements.
 
-At this time most of the patchwork queue management is done
-by me, there are several other patchsets also vying for attention
-and syzbot just reported UaF regression in rbtree, so I will be
-busy with that for a while.
+1. add new element, transaction is later aborted.
+Fix: refresh the bsearch blob from abort callback.
 
-I decided to defer this:
-1. There were no other 'Please lets apply this' reviews so far
-2. We are close to a new kernel release, hence time window
-   to accept features as opposed to fixes is shrinking.
-3. You patchset changes how packets get processed both by
-   conntrack and nf_tables bridge family.  Yes, its done as-advertised
-   but still, this has known impact.  Hence I would prefer to
-   apply this early in the cycle not at the last minute.
+2. re-add an existing element, transaction passes.
+In this case, the commit hook isn't called because we don't have
+any changes to the set from transaction point of view.
 
-   Futhermore its a change that, if it causes issues down the road,
-   might back us into a corner where we can neither fix things in a
-   backwards compatible way without breaking the new feature.
+3. create (F_EXCL) an existing element.  This also
+aborts the transaction, but the abort callback isn't run
+as no change to the set was made.
 
-In case there is no further feedback by the time the next development
-cycle starts I will apply this series as-is (or ask for a rebase
-in case its no longer applicable).
+I'm not yet sure how to fix 2 and 3.
 
-I apologize for the inconvenience.
+I'll see about moving set_update_list to the nft pernet
+structure, so it can be populated from
+nft_trans_gc_queue_sync_done().
+
+Pipapo set backend should be fine with it, it won't act
+when called with the 'private clone' being NULL.
