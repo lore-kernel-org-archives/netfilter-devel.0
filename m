@@ -1,47 +1,46 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 417D726ED41
-	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 18:31:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 251FE335089
+	for <netfilter-devel@vger.kernel.org>; Wed, 28 Jan 2026 19:38:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769625076; cv=none; b=kgnH+FU8XBFvy9cS+uIelbwVTtMwOa2zdAkJd83C5ceijF+IXuq+XwuJ/TFOqkyGH16RDoRQJYwPUtMuOCZ3FK1hHqr0I8byMFsje0kLvz6cWNJ9Ytgt6D0x5fagoCjGBXtaKFWWstPr3ju5iqzcQk/CCjyrlUBUyFVdAfjr6Y0=
+	t=1769629101; cv=none; b=nSpgXXcpUODEmXTFHzh/U8lh/gx4W3NeutvMhjfT/213zPQRoYW9NEtekcrjZrMoXZ/4zPtHj1tsAPWPnS0b2moW6bF3TI7OGli9iaUjpPe8SQlWB79boyLjerHR9fhKeyYmGJYt7mKfELfBEDJ+SgYcMzQyB5amrQFvL5fwyp8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769625076; c=relaxed/simple;
-	bh=1tFgxSM/0QIDEpRL8JvklNoaY9HV3PkJRjKqGJBn4k0=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=swXeUGAgCGbPB2p8Tfmmb/skL9VeRP5RmQKth6jFwyfCxuyqfzjjxHSib86CaRR9Vq3RAcLi5NzPf7xDAqJKeTh4iRMpToxW6Juq46RfNhmNCWjDEYTl0t4jgUbaQyArZ6jjIq6jAsq0/2/KB7+ounJRUBqKLmmeCs9AHQRcRug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=EpmG4avi; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1769629101; c=relaxed/simple;
+	bh=4vyUGnQ5ia3Jyti/p4hXW9ep4gTIvFaSMW42s/0ZVWs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=A9yyKvPF9DRg1eq+PoqqEA19mQ4Znu6VFSbnqCtlcWxYfqjAQfiiT0C8Uk/dFvEudySTHtz1h0+ZJ5j8cm6SeItj0N4Wq+JKwgPITbmEghNq8JCxaIZI6Vt6m1M1rRM2tXKR6ynfhjlZDWDoonnaEqBPungTmBujdaJ+b+jor4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=H/A0qmpT; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="EpmG4avi"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
-	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="H/A0qmpT"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=i/aZ5ShmLbDXH7tdnhWELk+WFrgifzPvjRoaFvTX+uo=; b=EpmG4aviuW+YeVMZsDi8R99IUZ
-	vLbru/s/6qZbpOIoA8iPePsEwvU5jz2875fkJiVjJVVQIvjcbwLpjBZuflh+mAZVTQWVaeh8VOJKs
-	Z9wVE96yyvQpfEKOM1Y+GOWRPE6fob4rVNBOJLfQmy+ii/wAETTdpbQ7UYiF3RzAvNOuilcuPiPnC
-	icVPmUNxO5PqJWyi0KgM0NNutaS6C2UMUrHVZ2WKuxfov+rugZ977ivNDe7TNRx0dYhnfQCY1Do7f
-	ss3U7i/yw3Sn4pstVLb7E+3NE321WMGk7Il0TTcMb8cRcx4K59SFoHsco+lRd56kjFppOXJzhZ+LH
-	EzKMvYEA==;
-Received: from ulthar.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae])
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1vlAJt-0000000CCaf-09rW
-	for netfilter-devel@vger.kernel.org;
-	Wed, 28 Jan 2026 18:31:13 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: [PATCH nft 2/3] build: generate build time-stamp once at configure
-Date: Wed, 28 Jan 2026 18:31:06 +0000
-Message-ID: <20260128183107.215838-2-jeremy@azazel.net>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260128183107.215838-1-jeremy@azazel.net>
+	bh=gV4/+Qyfdq1f9ceRA+w0Xt167wcn8S9tdPPQ0l+3jf4=; b=H/A0qmpTFdMZLFshoaqLb/pD1r
+	93y5qve6GKcG82Z++yC+pHqGX8coMBsaCDx4vdCj7nvPQE84QvW7l4c0Ad4TuOHgo8Iy6EsRVkvd9
+	w1Z6Si4HNCHhM6f5VR8htHUJAP03S80BCr49FWMRGA9hnERcVvAwVQFztSirwG6tds+bx/4jmSTIp
+	GZAZ69HX0pkkGPBOK3pKZyeDAPt64p8Y+i71ea+Rq+eCg/HOjsVRKuRESNKPguuRgfodmYB4Dvrst
+	TPjPXWj/j200iFyx4f5d8DtDpeT4te39ZVHH8Mtsld+L0Yd2Rtrh9nY9SDnMhmZMWJnILmJy+uhOr
+	zFlGolAQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1vlBMn-000000003fA-0e0k;
+	Wed, 28 Jan 2026 20:38:17 +0100
+Date: Wed, 28 Jan 2026 20:38:17 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft 1/3] build: simplify the instantation of nftversion.h
+Message-ID: <aXplqYgvvbO26cIj@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Jeremy Sowden <jeremy@azazel.net>,
+	Netfilter Devel <netfilter-devel@vger.kernel.org>
 References: <20260128183107.215838-1-jeremy@azazel.net>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -49,88 +48,14 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:2e4d:54ff:fe4b:a9ae
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260128183107.215838-1-jeremy@azazel.net>
 
-The existing implementation tries to generate a time-stamp once when make is
-run.  However, it doesn't work and generates one for every compilation.  Getting
-this right portably in automake is not straightforward.  Instead, do it when
-configure is run.
+On Wed, Jan 28, 2026 at 06:31:05PM +0000, Jeremy Sowden wrote:
+> Add an nftversion.h.in autoconf input file which configure uses to instantiate
+> nftversion.h in the usual way.
+> 
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 
-Rename the time-stamp variable since it is no longer generated by make.
-
-Fixes: 64c07e38f049 ("table: Embed creating nft version into userdata")
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- Makefile.am     |  2 --
- configure.ac    |  4 +---
- nftversion.h.in | 18 ++++++++++--------
- 3 files changed, 11 insertions(+), 13 deletions(-)
-
-diff --git a/Makefile.am b/Makefile.am
-index b134330d5ca2..ceb222578f93 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -159,8 +159,6 @@ AM_CFLAGS = \
- 	\
- 	$(GCC_FVISIBILITY_HIDDEN) \
- 	\
--	-DMAKE_STAMP=$(MAKE_STAMP) \
--	\
- 	$(NULL)
- 
- AM_YFLAGS = -d -Wno-yacc
-diff --git a/configure.ac b/configure.ac
-index 2c61072e0682..9859072e9ae5 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -149,9 +149,7 @@ AC_ARG_WITH([stable-release], [AS_HELP_STRING([--with-stable-release],
-             [], [with_stable_release=0])
- AC_SUBST([STABLE_RELEASE],[$with_stable_release])
- AC_SUBST([NFT_VERSION], [$(echo "${VERSION}" | tr '.' ',')])
--# Current date should be fetched exactly once per build,
--# so have 'make' call date and pass the value to every 'gcc' call
--AC_SUBST([MAKE_STAMP], ["\$(shell date +%s)"])
-+AC_SUBST([BUILD_STAMP], [$(date +%s)])
- 
- AC_ARG_ENABLE([distcheck],
- 	      AS_HELP_STRING([--enable-distcheck], [Build for distcheck]),
-diff --git a/nftversion.h.in b/nftversion.h.in
-index 6f897719d005..325b9dcca2d8 100644
---- a/nftversion.h.in
-+++ b/nftversion.h.in
-@@ -1,19 +1,21 @@
- #ifndef NFTABLES_NFTVERSION_H
- #define NFTABLES_NFTVERSION_H
- 
-+#define BUILD_STAMP @BUILD_STAMP@
-+
- static char nftversion[] = {
- 	@NFT_VERSION@,
- 	@STABLE_RELEASE@
- };
- static char nftbuildstamp[] = {
--	((uint64_t)MAKE_STAMP >> 56) & 0xff,
--	((uint64_t)MAKE_STAMP >> 48) & 0xff,
--	((uint64_t)MAKE_STAMP >> 40) & 0xff,
--	((uint64_t)MAKE_STAMP >> 32) & 0xff,
--	((uint64_t)MAKE_STAMP >> 24) & 0xff,
--	((uint64_t)MAKE_STAMP >> 16) & 0xff,
--	((uint64_t)MAKE_STAMP >> 8) & 0xff,
--	((uint64_t)MAKE_STAMP >> 0) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 56) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 48) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 40) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 32) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 24) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 16) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 8) & 0xff,
-+	((uint64_t)BUILD_STAMP >> 0) & 0xff,
- };
- 
- #endif /* !defined(NFTABLES_NFTVERSION_H) */
--- 
-2.51.0
-
+Series applied, thanks!
