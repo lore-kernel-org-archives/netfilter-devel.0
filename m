@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89DCA352F9D;
-	Thu, 29 Jan 2026 10:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0F9E3793DD;
+	Thu, 29 Jan 2026 10:54:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769684088; cv=none; b=FeW8Yho+ZOQk6Zxw/IdcrB7oSKUur7e5ocwJhS002YDPJ/qh1Fz7MKZL6vH3l+iry2qorXPhk9QrphNo0cwKFdsYdrTX+xCv7K/i+8OR+jLaoGUNQzYpf3MKl7gorcW00MhdyQK26jW1esN1xK/OSHlXwNnASKQY5Nn9nLQLWls=
+	t=1769684092; cv=none; b=qT9+WAMKC7jQeY3zlw+z74xKtKzvVhEtdoRH9rH51R4BowHV8ffH9R6e/N65SrCRw2Y56jWj9yesnIDT9L/of5fb2VqYi+Xpxz6qI56ryD2xcNBIxsjRx+56H6dpbSxik5tw8FlHHBmsMQht0d5I6Uh48hqUOk8dnblY0J0jNpE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769684088; c=relaxed/simple;
-	bh=AChJVcIGe86kCMPNQotUohEzisSPoNNoAaOcn1LctMQ=;
+	s=arc-20240116; t=1769684092; c=relaxed/simple;
+	bh=+FH7jnlEoHS41qVWaZ+yzrqv8JDXR7lupv6uILCo0To=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=REEJywz+oYMsZGfzE5iGJfbgk8z3DjwWEtWQ8/zDrCOHzlfGnAn6u8afBM+HP8LrvMzj3C/d5nPS2VdIvhsyq3MD4Rq4D1BYSoHOicdbituTqDwYUYvv+pFlTgEaaw1A145RTnvabB4gGoH6yNPfv9q9dycy2ntt7JW05UZOiCg=
+	 MIME-Version; b=pb/vg31P25td/KBNZdeQgGmuCZsjZr9+2bOOKzV8LvHuLci8BJULqqVDbfVHUTjZaDf0QNKWTjpEZ8UxhjXPO+nLITFh7UmuIV5YmQ3i89VAxh22m6WO+8ytYSZ9IPZS+pTxkw3BIkbP0ITpgwbzUpxRDQYbaDcwYegWk1zyVz4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id BDE4C603A1; Thu, 29 Jan 2026 11:54:44 +0100 (CET)
+	id 1E73C60516; Thu, 29 Jan 2026 11:54:49 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH v2 net-next 3/7] netfilter: flowtable: Add IP6IP6 rx sw acceleration
-Date: Thu, 29 Jan 2026 11:54:23 +0100
-Message-ID: <20260129105427.12494-4-fw@strlen.de>
+Subject: [PATCH v2 net-next 4/7] netfilter: flowtable: Add IP6IP6 tx sw acceleration
+Date: Thu, 29 Jan 2026 11:54:24 +0100
+Message-ID: <20260129105427.12494-5-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260129105427.12494-1-fw@strlen.de>
 References: <20260129105427.12494-1-fw@strlen.de>
@@ -40,10 +40,9 @@ Content-Transfer-Encoding: 8bit
 
 From: Lorenzo Bianconi <lorenzo@kernel.org>
 
-Introduce sw acceleration for rx path of IP6IP6 tunnels relying on the
-netfilter flowtable infrastructure. Subsequent patches will add sw
-acceleration for IP6IP6 tunnels tx path.
-IP6IP6 rx sw acceleration can be tested running the following scenario
+Introduce sw acceleration for tx path of IP6IP6 tunnels relying on the
+netfilter flowtable infrastructure.
+IP6IP6 tx sw acceleration can be tested running the following scenario
 where the traffic is forwarded between two NICs (eth0 and eth1) and an
 IP6IP6 tunnel is used to access a remote site (using eth1 as the underlay
 device):
@@ -86,216 +85,176 @@ table inet filter {
 Reproducing the scenario described above using veths I got the following
 results:
 - TCP stream received from the IPIP tunnel:
-  - net-next: (baseline)                  ~ 81Gbps
-  - net-next + IP6IP6 flowtbale support:  ~112Gbps
+  - net-next: (baseline)                  ~93Gbps
+  - net-next + IP6IP6 flowtbale support:  ~98Gbps
 
 Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv6/ip6_tunnel.c            | 27 +++++++++++
- net/netfilter/nf_flow_table_ip.c | 83 +++++++++++++++++++++++++++-----
- 2 files changed, 97 insertions(+), 13 deletions(-)
+ net/netfilter/nf_flow_table_ip.c | 108 ++++++++++++++++++++++++++++++-
+ 1 file changed, 106 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
-index c1f39735a236..f68f6f110a3e 100644
---- a/net/ipv6/ip6_tunnel.c
-+++ b/net/ipv6/ip6_tunnel.c
-@@ -1828,6 +1828,32 @@ int ip6_tnl_encap_setup(struct ip6_tnl *t,
- }
- EXPORT_SYMBOL_GPL(ip6_tnl_encap_setup);
- 
-+static int ip6_tnl_fill_forward_path(struct net_device_path_ctx *ctx,
-+				     struct net_device_path *path)
-+{
-+	struct ip6_tnl *t = netdev_priv(ctx->dev);
-+	struct flowi6 fl6 = {
-+		.daddr = t->parms.raddr,
-+	};
-+	struct dst_entry *dst;
-+	int err;
-+
-+	dst = ip6_route_output(dev_net(ctx->dev), NULL, &fl6);
-+	if (!dst->error) {
-+		path->type = DEV_PATH_TUN;
-+		path->tun.src_v6 = t->parms.laddr;
-+		path->tun.dst_v6 = t->parms.raddr;
-+		path->tun.l3_proto = IPPROTO_IPV6;
-+		path->dev = ctx->dev;
-+		ctx->dev = dst->dev;
-+	}
-+
-+	err = dst->error;
-+	dst_release(dst);
-+
-+	return err;
-+}
-+
- static const struct net_device_ops ip6_tnl_netdev_ops = {
- 	.ndo_init	= ip6_tnl_dev_init,
- 	.ndo_uninit	= ip6_tnl_dev_uninit,
-@@ -1836,6 +1862,7 @@ static const struct net_device_ops ip6_tnl_netdev_ops = {
- 	.ndo_change_mtu = ip6_tnl_change_mtu,
- 	.ndo_get_stats64 = dev_get_tstats64,
- 	.ndo_get_iflink = ip6_tnl_get_iflink,
-+	.ndo_fill_forward_path = ip6_tnl_fill_forward_path,
- };
- 
- #define IPXIPX_FEATURES (NETIF_F_SG |		\
 diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index ddfaddfa57be..51c64b3d4e50 100644
+index 51c64b3d4e50..3fdb10d9bf7f 100644
 --- a/net/netfilter/nf_flow_table_ip.c
 +++ b/net/netfilter/nf_flow_table_ip.c
-@@ -156,12 +156,14 @@ struct nf_flowtable_ctx {
- 	} tun;
- };
- 
--static void nf_flow_tuple_encap(struct sk_buff *skb,
-+static void nf_flow_tuple_encap(struct nf_flowtable_ctx *ctx,
-+				struct sk_buff *skb,
- 				struct flow_offload_tuple *tuple)
- {
- 	__be16 inner_proto = skb->protocol;
- 	struct vlan_ethhdr *veth;
- 	struct pppoe_hdr *phdr;
-+	struct ipv6hdr *ip6h;
- 	struct iphdr *iph;
- 	u16 offset = 0;
- 	int i = 0;
-@@ -188,13 +190,25 @@ static void nf_flow_tuple_encap(struct sk_buff *skb,
- 		break;
- 	}
- 
--	if (inner_proto == htons(ETH_P_IP)) {
-+	switch (inner_proto) {
-+	case htons(ETH_P_IP):
- 		iph = (struct iphdr *)(skb_network_header(skb) + offset);
--		if (iph->protocol == IPPROTO_IPIP) {
-+		if (ctx->tun.proto == IPPROTO_IPIP) {
- 			tuple->tun.dst_v4.s_addr = iph->daddr;
- 			tuple->tun.src_v4.s_addr = iph->saddr;
- 			tuple->tun.l3_proto = IPPROTO_IPIP;
- 		}
-+		break;
-+	case htons(ETH_P_IPV6):
-+		ip6h = (struct ipv6hdr *)(skb_network_header(skb) + offset);
-+		if (ctx->tun.proto == IPPROTO_IPV6) {
-+			tuple->tun.dst_v6 = ip6h->daddr;
-+			tuple->tun.src_v6 = ip6h->saddr;
-+			tuple->tun.l3_proto = IPPROTO_IPV6;
-+		}
-+		break;
-+	default:
-+		break;
- 	}
- }
- 
-@@ -265,7 +279,7 @@ static int nf_flow_tuple_ip(struct nf_flowtable_ctx *ctx, struct sk_buff *skb,
- 	tuple->l3proto		= AF_INET;
- 	tuple->l4proto		= ipproto;
- 	tuple->iifidx		= ctx->in->ifindex;
--	nf_flow_tuple_encap(skb, tuple);
-+	nf_flow_tuple_encap(ctx, skb, tuple);
- 
+@@ -14,6 +14,7 @@
+ #include <net/ip.h>
+ #include <net/ipv6.h>
+ #include <net/ip6_route.h>
++#include <net/ip6_tunnel.h>
+ #include <net/neighbour.h>
+ #include <net/netfilter/nf_flow_table.h>
+ #include <net/netfilter/nf_conntrack_acct.h>
+@@ -637,6 +638,97 @@ static int nf_flow_tunnel_v4_push(struct net *net, struct sk_buff *skb,
  	return 0;
  }
-@@ -328,10 +342,45 @@ static bool nf_flow_ip4_tunnel_proto(struct nf_flowtable_ctx *ctx,
- 	return true;
- }
  
--static void nf_flow_ip4_tunnel_pop(struct nf_flowtable_ctx *ctx,
--				   struct sk_buff *skb)
-+static bool nf_flow_ip6_tunnel_proto(struct nf_flowtable_ctx *ctx,
-+				     struct sk_buff *skb)
- {
--	if (ctx->tun.proto != IPPROTO_IPIP)
-+#if IS_ENABLED(CONFIG_IPV6)
-+	struct ipv6hdr *ip6h, _ip6h;
-+	__be16 frag_off;
-+	u8 nexthdr;
-+	int hdrlen;
++struct ipv6_tel_txoption {
++	struct ipv6_txoptions ops;
++	__u8 dst_opt[8];
++};
 +
-+	ip6h = skb_header_pointer(skb, ctx->offset, sizeof(*ip6h), &_ip6h);
-+	if (!ip6h)
-+		return false;
++static int nf_flow_tunnel_ip6ip6_push(struct net *net, struct sk_buff *skb,
++				      struct flow_offload_tuple *tuple,
++				      struct in6_addr **ip6_daddr,
++				      int encap_limit)
++{
++	struct ipv6hdr *ip6h = (struct ipv6hdr *)skb_network_header(skb);
++	u8 hop_limit = ip6h->hop_limit, proto = IPPROTO_IPV6;
++	struct rtable *rt = dst_rtable(tuple->dst_cache);
++	__u8 dsfield = ipv6_get_dsfield(ip6h);
++	struct flowi6 fl6 = {
++		.daddr = tuple->tun.src_v6,
++		.saddr = tuple->tun.dst_v6,
++		.flowi6_proto = proto,
++	};
++	int err, mtu;
++	u32 headroom;
 +
-+	if (ip6h->hop_limit <= 1)
-+		return false;
++	err = iptunnel_handle_offloads(skb, SKB_GSO_IPXIP6);
++	if (err)
++		return err;
 +
-+	nexthdr = ip6h->nexthdr;
-+	hdrlen = ipv6_skip_exthdr(skb, sizeof(*ip6h) + ctx->offset, &nexthdr,
-+				  &frag_off);
-+	if (hdrlen < 0)
-+		return false;
++	skb_set_inner_ipproto(skb, proto);
++	headroom = sizeof(*ip6h) + LL_RESERVED_SPACE(rt->dst.dev) +
++		   rt->dst.header_len;
++	if (encap_limit)
++		headroom += 8;
++	err = skb_cow_head(skb, headroom);
++	if (err)
++		return err;
 +
-+	if (nexthdr == IPPROTO_IPV6) {
-+		ctx->tun.hdr_size = hdrlen;
-+		ctx->tun.proto = IPPROTO_IPV6;
++	skb_scrub_packet(skb, true);
++	mtu = dst_mtu(&rt->dst) - sizeof(*ip6h);
++	if (encap_limit)
++		mtu -= 8;
++	mtu = max(mtu, IPV6_MIN_MTU);
++	skb_dst_update_pmtu_no_confirm(skb, mtu);
++
++	if (encap_limit > 0) {
++		struct ipv6_tel_txoption opt = {
++			.dst_opt[2] = IPV6_TLV_TNL_ENCAP_LIMIT,
++			.dst_opt[3] = 1,
++			.dst_opt[4] = encap_limit,
++			.dst_opt[5] = IPV6_TLV_PADN,
++			.dst_opt[6] = 1,
++		};
++		struct ipv6_opt_hdr *hopt;
++
++		opt.ops.dst1opt = (struct ipv6_opt_hdr *)opt.dst_opt;
++		opt.ops.opt_nflen = 8;
++
++		hopt = skb_push(skb, ipv6_optlen(opt.ops.dst1opt));
++		memcpy(hopt, opt.ops.dst1opt, ipv6_optlen(opt.ops.dst1opt));
++		hopt->nexthdr = IPPROTO_IPV6;
++		proto = NEXTHDR_DEST;
 +	}
-+	ctx->offset += ctx->tun.hdr_size;
 +
-+	return true;
-+#else
-+	return false;
-+#endif /* IS_ENABLED(CONFIG_IPV6) */
++	skb_push(skb, sizeof(*ip6h));
++	skb_reset_network_header(skb);
++
++	ip6h = ipv6_hdr(skb);
++	ip6_flow_hdr(ip6h, dsfield,
++		     ip6_make_flowlabel(net, skb, fl6.flowlabel, true, &fl6));
++	ip6h->hop_limit = hop_limit;
++	ip6h->nexthdr = proto;
++	ip6h->daddr = tuple->tun.src_v6;
++	ip6h->saddr = tuple->tun.dst_v6;
++	ipv6_hdr(skb)->payload_len = htons(skb->len - sizeof(*ip6h));
++	IP6CB(skb)->nhoff = offsetof(struct ipv6hdr, nexthdr);
++
++	*ip6_daddr = &tuple->tun.src_v6;
++
++	return 0;
 +}
 +
-+static void nf_flow_ip_tunnel_pop(struct nf_flowtable_ctx *ctx,
-+				  struct sk_buff *skb)
++static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
++				  struct flow_offload_tuple *tuple,
++				  struct in6_addr **ip6_daddr,
++				  int encap_limit)
 +{
-+	if (ctx->tun.proto != IPPROTO_IPIP &&
-+	    ctx->tun.proto != IPPROTO_IPV6)
- 		return;
- 
- 	skb_pull(skb, ctx->tun.hdr_size);
-@@ -366,8 +415,16 @@ static bool nf_flow_skb_encap_protocol(struct nf_flowtable_ctx *ctx,
- 		break;
- 	}
- 
--	if (inner_proto == htons(ETH_P_IP))
-+	switch (inner_proto) {
-+	case htons(ETH_P_IP):
- 		ret = nf_flow_ip4_tunnel_proto(ctx, skb);
-+		break;
-+	case htons(ETH_P_IPV6):
-+		ret = nf_flow_ip6_tunnel_proto(ctx, skb);
-+		break;
-+	default:
-+		break;
-+	}
- 
- 	return ret;
- }
-@@ -399,8 +456,9 @@ static void nf_flow_encap_pop(struct nf_flowtable_ctx *ctx,
- 		}
- 	}
- 
--	if (skb->protocol == htons(ETH_P_IP))
--		nf_flow_ip4_tunnel_pop(ctx, skb);
-+	if (skb->protocol == htons(ETH_P_IP) ||
-+	    skb->protocol == htons(ETH_P_IPV6))
-+		nf_flow_ip_tunnel_pop(ctx, skb);
- }
- 
- struct nf_flow_xmit {
-@@ -848,7 +906,7 @@ static int nf_flow_tuple_ipv6(struct nf_flowtable_ctx *ctx, struct sk_buff *skb,
- 	tuple->l3proto		= AF_INET6;
- 	tuple->l4proto		= nexthdr;
- 	tuple->iifidx		= ctx->in->ifindex;
--	nf_flow_tuple_encap(skb, tuple);
-+	nf_flow_tuple_encap(ctx, skb, tuple);
- 
- 	return 0;
- }
-@@ -906,8 +964,7 @@ nf_flow_offload_ipv6_lookup(struct nf_flowtable_ctx *ctx,
++	if (tuple->tun_num)
++		return nf_flow_tunnel_ip6ip6_push(net, skb, tuple, ip6_daddr,
++						  encap_limit);
++
++	return 0;
++}
++
+ static int nf_flow_encap_push(struct sk_buff *skb,
+ 			      struct flow_offload_tuple *tuple)
  {
- 	struct flow_offload_tuple tuple = {};
+@@ -914,7 +1006,7 @@ static int nf_flow_tuple_ipv6(struct nf_flowtable_ctx *ctx, struct sk_buff *skb,
+ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+ 					struct nf_flowtable *flow_table,
+ 					struct flow_offload_tuple_rhash *tuplehash,
+-					struct sk_buff *skb)
++					struct sk_buff *skb, int encap_limit)
+ {
+ 	enum flow_offload_tuple_dir dir;
+ 	struct flow_offload *flow;
+@@ -925,6 +1017,12 @@ static int nf_flow_offload_ipv6_forward(struct nf_flowtable_ctx *ctx,
+ 	flow = container_of(tuplehash, struct flow_offload, tuplehash[dir]);
  
--	if (skb->protocol != htons(ETH_P_IPV6) &&
--	    !nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IPV6)))
-+	if (!nf_flow_skb_encap_protocol(ctx, skb, htons(ETH_P_IPV6)))
- 		return NULL;
+ 	mtu = flow->tuplehash[dir].tuple.mtu + ctx->offset;
++	if (flow->tuplehash[!dir].tuple.tun_num) {
++		mtu -= sizeof(*ip6h);
++		if (encap_limit > 0)
++			mtu -= 8; /* encap limit option */
++	}
++
+ 	if (unlikely(nf_flow_exceeds_mtu(skb, mtu)))
+ 		return 0;
  
- 	if (nf_flow_tuple_ipv6(ctx, skb, &tuple) < 0)
+@@ -977,6 +1075,7 @@ unsigned int
+ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 			  const struct nf_hook_state *state)
+ {
++	int encap_limit = IPV6_DEFAULT_TNL_ENCAP_LIMIT;
+ 	struct flow_offload_tuple_rhash *tuplehash;
+ 	struct nf_flowtable *flow_table = priv;
+ 	struct flow_offload_tuple *other_tuple;
+@@ -995,7 +1094,8 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	if (tuplehash == NULL)
+ 		return NF_ACCEPT;
+ 
+-	ret = nf_flow_offload_ipv6_forward(&ctx, flow_table, tuplehash, skb);
++	ret = nf_flow_offload_ipv6_forward(&ctx, flow_table, tuplehash, skb,
++					   encap_limit);
+ 	if (ret < 0)
+ 		return NF_DROP;
+ 	else if (ret == 0)
+@@ -1014,6 +1114,10 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 	other_tuple = &flow->tuplehash[!dir].tuple;
+ 	ip6_daddr = &other_tuple->src_v6;
+ 
++	if (nf_flow_tunnel_v6_push(state->net, skb, other_tuple,
++				   &ip6_daddr, encap_limit) < 0)
++		return NF_DROP;
++
+ 	if (nf_flow_encap_push(skb, other_tuple) < 0)
+ 		return NF_DROP;
+ 
 -- 
 2.52.0
 
