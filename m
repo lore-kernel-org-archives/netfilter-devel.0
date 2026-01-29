@@ -1,47 +1,35 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6A03081BE
-	for <netfilter-devel@vger.kernel.org>; Thu, 29 Jan 2026 14:07:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC12437A497;
+	Thu, 29 Jan 2026 14:10:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769695675; cv=none; b=QANcKpvGW1plWen97DksITcuG6acUtve/Qy/B1ItYD2Dsx0GyMnnClU2j2hmRbYu/Qi4MgQ5RxkNIEr1AHNlYBIZPnJj+u5iL5vmqpB0O3OdaJQtquukHf/LKXNeBgOeulri7WdQeOSINF7C1EaoaNbwpHRRBi++QNq6Ho0U7bE=
+	t=1769695819; cv=none; b=HcTi4UyjvfoTfliKBAy2Pb7s9jGyT4rYoUeZ4+rvvTUSHJJf9g586CVkViMjpmhJILzh5s7IFxZJCFGbGD1RxW3yF7XGobeWPpWxNbwL+Ily5rZnDD2Z7CkXB7YSJFdV5/Uyn+QYj+bshHWfEKfC2Iw+HNTYVHjdv5AK1WTdCZc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769695675; c=relaxed/simple;
-	bh=a7jQNainYGuKosPZ6+Ps86r0s/FmbCqVgcB8YQOLrZc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=XaZ45AX7tvEx8G5+W94aW9D/bJDyDbcs3TnOdeNA2gCpCItOJmm9Mc8d7JOrrzEjw7PGVOb13F52X3+Q+KT970EeVB/H+iSqKFaXUhwVX6KoTfS5k7x+dPoEjTNPjxOElfk9JYucgU6ZcLYbOEGBbC9ll1CwuWGrElliIq3etrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=SbQeVnwP; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1769695819; c=relaxed/simple;
+	bh=15ALhzaU3lhjZQWrJedQtDV1gqtXCsRHP8nr+trK/Pw=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=r7lTGOTRGxl+fbGEneMnvnL3KaJC2x2bV28Bgi22XDSI0uDi9TrF/r3ezg2EZOviuQ+5BniG19H6Z8o9nAoY+C+aem9/pnBwEJh7C0XoZq8nqIRZX5k5yLjqEWQpqwdx9lg/biBYrKyheUSXBE4p3bmD0TaDOSVei8Dt1GXBxR0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=XFVypFFf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="SbQeVnwP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=CW2QQCfY9/Hdysd1SI1CuGbgzATAxK+je1pgsfvpoVQ=; b=SbQeVnwPEUEMf7aEBw+FZ4WhrY
-	NwwwuwdooyCxAjMXI6++ETSd2l+/U0Le6/YB5sfkhSL+vAcrA2Z2BDq29mUfg4NoRz3PTmldoBNm/
-	rS6luAWd6ORpF/hP2Nc6BWwAqfwtLWMOrlHQnnZTBMr6TjUqhZrB+L5hB52omTIQyf4Ik929+OJ3C
-	uXno1nzkyCqb76N1N+oWHVcvmrbBNgVRVk8Q4zEcd3oDLD7Gsw5UH1CF2JbEUrncWJQ3q3on49N6m
-	C4PuYFfqhmehSt5nf6hAl3sG6S9hp4X7qltrlJgRM+bOSePXbL6d10ObdpjqYJ1w9LeusHqC7/QTQ
-	lEIu+6Ww==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vlSgZ-000000001NW-4AXv;
-	Thu, 29 Jan 2026 15:07:52 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH] tests: py: Adjust payloads to changed userdata printing
-Date: Thu, 29 Jan 2026 15:07:46 +0100
-Message-ID: <20260129140746.10140-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XFVypFFf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 590D2C4CEF7;
+	Thu, 29 Jan 2026 14:10:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769695819;
+	bh=15ALhzaU3lhjZQWrJedQtDV1gqtXCsRHP8nr+trK/Pw=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=XFVypFFfM2Q8JWJ+Ve7pttPkUvnVsZ5S4vhAT1rlKog/kTNIyosXv04RG60WKCEpU
+	 RLExXrfv1t6XH8O+BT1j3O2WaqQ/CkDqls8KCyLSZKPjUrqkP2ihR5s/86l+AtbhEr
+	 L1GvSIvAPLBtf0CF/Zd9mVGvVRsnAsXaq5pJaw58dR5ecemPQijGiFHZt+x8AdkMye
+	 ttNUrC/kmpfEGohQJ3BZNciVH6T3/Bu8k0JS/FYV+IcR2fW2gOBNzzz3/hBTyCrBSu
+	 oz+bzUHJJTKcDVe//FvvaPOkulbMh3JnXZVo4tiPRnLOGzFfR+I9WL+PepY4aa/l3I
+	 dWcKJ0AAQeW2w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 8BC52380CEC7;
+	Thu, 29 Jan 2026 14:10:13 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,46 +37,53 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 net-next 1/7] netfilter: Add ctx pointer in
+ nf_flow_skb_encap_protocol/nf_flow_ip4_tunnel_proto signature
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <176969581236.2514880.12957541064070579896.git-patchwork-notify@kernel.org>
+Date: Thu, 29 Jan 2026 14:10:12 +0000
+References: <20260129105427.12494-2-fw@strlen.de>
+In-Reply-To: <20260129105427.12494-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-libnftnl no longer prints userdata content but merely its size and a sum
-of all bytes.
+Hello:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- tests/py/ip6/srh.t.payload | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
 
-diff --git a/tests/py/ip6/srh.t.payload b/tests/py/ip6/srh.t.payload
-index 5c3031f3bdd23..54fdd0ea5ad09 100644
---- a/tests/py/ip6/srh.t.payload
-+++ b/tests/py/ip6/srh.t.payload
-@@ -11,7 +11,7 @@ ip6 test-ip6 input
- # srh last-entry { 0, 4-127, 255 }
- __set%d test-ip6 7 size 5
- __set%d test-ip6 0
--	element 00	element 01 flags 1	element 04	element 80 flags 1	element ff  userdata = { \x01\x04\x00\x00\x00\x01 }
-+	element 00	element 01 flags 1	element 04	element 80 flags 1	element ff  userdata len 6 sum 0x6
- ip6 test-ip6 input
-   [ exthdr load ipv6 1b @ 43 + 4 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
-@@ -29,7 +29,7 @@ ip6 test-ip6 input
- # srh flags { 0, 4-127, 255 }
- __set%d test-ip6 7 size 5
- __set%d test-ip6 0
--	element 00	element 01 flags 1	element 04	element 80 flags 1	element ff  userdata = { \x01\x04\x00\x00\x00\x01 }
-+	element 00	element 01 flags 1	element 04	element 80 flags 1	element ff  userdata len 6 sum 0x6
- ip6 test-ip6 input
-   [ exthdr load ipv6 1b @ 43 + 5 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
-@@ -47,7 +47,7 @@ ip6 test-ip6 input
- # srh tag { 0, 4-127, 0xffff }
- __set%d test-ip6 7 size 5
- __set%d test-ip6 0
--	element 0000	element 0001 flags 1	element 0004	element 0080 flags 1	element ffff  userdata = { \x01\x04\x00\x00\x00\x01 }
-+	element 0000	element 0001 flags 1	element 0004	element 0080 flags 1	element ffff  userdata len 6 sum 0x6
- ip6 test-ip6 input
-   [ exthdr load ipv6 2b @ 43 + 6 => reg 1 ]
-   [ lookup reg 1 set __set%d ]
+On Thu, 29 Jan 2026 11:54:21 +0100 you wrote:
+> From: Lorenzo Bianconi <lorenzo@kernel.org>
+> 
+> Rely on nf_flowtable_ctx struct pointer in nf_flow_ip4_tunnel_proto and
+> nf_flow_skb_encap_protocol routine signature. This is a preliminary patch
+> to introduce IP6IP6 flowtable acceleration since nf_flowtable_ctx will
+> be used to store IP6IP6 tunnel info.
+> 
+> [...]
+
+Here is the summary with links:
+  - [v2,net-next,1/7] netfilter: Add ctx pointer in nf_flow_skb_encap_protocol/nf_flow_ip4_tunnel_proto signature
+    https://git.kernel.org/netdev/net-next/c/baa501b12a48
+  - [v2,net-next,2/7] netfilter: Introduce tunnel metadata info in nf_flowtable_ctx struct
+    https://git.kernel.org/netdev/net-next/c/c64436daf675
+  - [v2,net-next,3/7] netfilter: flowtable: Add IP6IP6 rx sw acceleration
+    https://git.kernel.org/netdev/net-next/c/d98103575dcd
+  - [v2,net-next,4/7] netfilter: flowtable: Add IP6IP6 tx sw acceleration
+    https://git.kernel.org/netdev/net-next/c/93cf357fa797
+  - [v2,net-next,5/7] selftests: netfilter: nft_flowtable.sh: Add IP6IP6 flowtable selftest
+    https://git.kernel.org/netdev/net-next/c/5e5180352193
+  - [v2,net-next,6/7] netfilter: xt_time: use is_leap_year() helper
+    https://git.kernel.org/netdev/net-next/c/77fd1b4c6e08
+  - [v2,net-next,7/7] netfilter: nfnetlink_queue: optimize verdict lookup with hash table
+    https://git.kernel.org/netdev/net-next/c/e19079adcd26
+
+You are awesome, thank you!
 -- 
-2.51.0
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
 
