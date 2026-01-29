@@ -1,349 +1,111 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f53.google.com (mail-yx1-f53.google.com [74.125.224.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619C93816F1;
-	Thu, 29 Jan 2026 10:55:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769684104; cv=none; b=ApoWIlPzHquyAiLwSz0FDW7Su4/AQDndivAplQDsA/LKLLbIdFsvn7GYLEhV/8IVQBx3fQO/edbYs7oREiFvMxYRTY0Kh2kx+iBsAQ/i7wcMc8mSCXih44r+WNZfyC9Ux3YWpE26ZdmsMS64kjgcHBB/SszDlEr8mOlNxeYpnQY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769684104; c=relaxed/simple;
-	bh=yaEWRSqaI+2Cf9Otd8/xYtW1YKUcait8SbBYDRJ/OTw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sU5V6utFgaNpejP71HDAuHNuN002ELs9qhhCEsVOq4h1ErdgT7Yw+r3OjtZvTbv837hZlyUPJ++wFqRVFih7K3t1HHkto25ZcxhFqp7cIP0NEEDbvs1Xy5nFRqqM9+t+tJ2TGVUMUlvsEmqVoGYd+bruMYZ9rZiSv40w9oAZgcA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 1B61460516; Thu, 29 Jan 2026 11:55:02 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH v2 net-next 7/7] netfilter: nfnetlink_queue: optimize verdict lookup with hash table
-Date: Thu, 29 Jan 2026 11:54:27 +0100
-Message-ID: <20260129105427.12494-8-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260129105427.12494-1-fw@strlen.de>
-References: <20260129105427.12494-1-fw@strlen.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5688C33D6C7
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 Jan 2026 12:06:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.53
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769688394; cv=pass; b=kVROwgKO3pi0W9ztKpLFACM8Mkbk5n6bL7CNavP/Xfsm1FZe1ZECEzGo/EcToyHv0c+rsjs5URSeVZDmT3X8edHbzIxn5TZ++AR3HS77DXf6VW0zPsYaQXxfDdSygTAd+Bds5wCbNVQvBWrQgFf9m2/VcUKFVgURxnLVt3LgF1M=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769688394; c=relaxed/simple;
+	bh=nhTTk5VLQ3xnOV8sVRp0iZp0R3slZLmDy96JjDG7vnc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=a9qqyLc3BucW6NxZyd/uIOCExwCePXOMdjG1S92JLoDTYc+/meI/tPOxLtmhjYyEokpO8IXmxO+mxV0iBTuCv0q7tSKOUi0A2HDIja293yoYuqzGvfsn6uVh89f0I+8z1QeSDlGTgoC7q1W/jxQfyqjITxZS/W94dBtfxUty6dk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UjlCG3x8; arc=pass smtp.client-ip=74.125.224.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UjlCG3x8"
+Received: by mail-yx1-f53.google.com with SMTP id 956f58d0204a3-64997a4dc0fso810673d50.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jan 2026 04:06:33 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769688392; cv=none;
+        d=google.com; s=arc-20240605;
+        b=cC5YICcIurI6aelrEFTuip9jP1xFjnq12ewuYsaqtrgDS7o854tIukEBHWeW+pgqO4
+         snwBod8ZMH87yD+zgBdpKYksXDAcT3hkWIxsRaEtZqA6g+9lGinFxk9o76ZOdJxB0sY4
+         jiwWEkjtSkGQmUEJAQ7gB4k4DSyaEmanJAgj6olN1Tdn1ds/pEuPbkZ0I2w4B2K6RXz/
+         Qi+5Nppkeo4DkgsDHj1akZBKPyBKiiU5/5hkhnkkIYe/6nQuc/pOigMtJb6cnEw7OLop
+         J3EMBk3pJPjdjGqvTw9BuF9lbAu2E5o30uir9tNhA0gEjeDhYMy5SMN876M4mSsXMuGO
+         tBQg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=nhTTk5VLQ3xnOV8sVRp0iZp0R3slZLmDy96JjDG7vnc=;
+        fh=PQ4xHXPtKQW0PUoYwSxZulSqMqiR8gLzpQb4uiQKLdI=;
+        b=Ej7ISCnhAuVpOxDgc1C/XDwQ6UaiiRBNXozuW0Squt+JsnvVY571BHLm5J6ozw0C2j
+         B5Vb5qrOAb8H68mF3/NoaKJ5XNAim+fxZZ/H6MNw2EFxxaWXL7umAc5ODoV7Ogitbit6
+         isAl1ok7CtTgFivhsEdYdHFg6XXUQaAMgk70zlJ83cXz3xGHTLFCwHWBhJnJUZsEq59X
+         Vrqz/yH7LlcTjLSsYGfxOc8f6gmfIe4r5aQE9lqVvlbcVrtw1f3he3eEo/I8RisN18pM
+         UFDRGpPpR+EV68CPHD0B8dihwD47WfveV+RqCGqBc8Fv2TnPd9u3KnAPGvvaoRpgrBZm
+         bJQg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769688392; x=1770293192; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=nhTTk5VLQ3xnOV8sVRp0iZp0R3slZLmDy96JjDG7vnc=;
+        b=UjlCG3x8PLA19oNgAVyFPi/Tk1McBZjeciAgvyCYGuityMdvSjkVaB7ShIXdfssIQe
+         bIWAHpnZ7RW9VdrRZHpCijhFAUbMJHPWOmm5zT8mC7GsHa2U262ztbIvlHeir3nuI7Z2
+         TtLa4bA/bGUn7ZY+8+WRFpxfbO2I4Gfb/onQDGELAXfio8Qb7VWr6tBk/KpRcYXCGWBU
+         OSj2/KIydvWx5Z3e9JA8m/Kw6iuOCorKeji9v5yfQvh4nlMucYObnEhVazK8oDX4TVn4
+         6mujL0Wwin+YXJpIxEn7F2B3lHO0Vyi7L6pGwB94Oth+oBiW1gKJ5UJk9XdH/cfT/LuW
+         EXJQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769688392; x=1770293192;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=nhTTk5VLQ3xnOV8sVRp0iZp0R3slZLmDy96JjDG7vnc=;
+        b=Tw3EDPI164gUiFTg76ImzqionXs4XsmzR6V2+7i7UlRzzLnjHTUAYXGt2FjtWlBs6g
+         pi+l8BNHbhHoGRuxYR9+shjocQlH+uLItRqFzFIhJhHcaPhbsYX6VyPN5owdBbm+o/oz
+         hQQCwJN0DIDF241PzGhLj8F7HMYhHzhpFFBT3AogN6qfBLVO0VhL5jDsFgg28xOeYJnJ
+         H9EEWaGihlky3xTq//I6wm7G5U3fgOBX9HWbQmCJ5pFC1jEWggHTIvYjiHObudaNaelE
+         3oDT3l3zDgVGN+N4sOA8nYGaAM4clt7FC+NiOzToMbPxSMPdQApTxdf8CHQC4q5XXduu
+         n7kw==
+X-Forwarded-Encrypted: i=1; AJvYcCUf6PTSs2TlX6NaOnTHcbEIUXmS0A/UDI9LBxgZaWtP0i9wCBwlVbyE+I8GmcjDMqG1QvcIUtDFJpM6NZCuML0=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyNeIatGV9owCEzvxacUmRyzVE+N3VAh6uai2cbXB50Hv1LfNZR
+	YHshXuTnXhyf7zr0JrOsMO0dYYsz25GEvICGz1j1sEbBQZrfWtXK75PvNCBFUZZjokAQOhwZjmr
+	nNhKCbPNNEtlMJCKsBZ1IPURADs1a8Ks=
+X-Gm-Gg: AZuq6aJDlTPk6aaStOJWprKZeRAPVV65xmdz8j6vmrEpy4TTHf9cN4Tdgk8+4sB4M1a
+	OvwA5GTJ9o5eu37mzm+ZrOmJBrqlsXQ89SMzXoXPYAtZLCCp/secbeqMpAcgXsTsOHmVKkSWV8p
+	o+xbjCne29lfOUC7R58QR5DMkFCcmyPBKSWZ48A/RHtTb2+kXXOMRYjySx0UB+lvzHKGzNS+1jk
+	8VdWV3TRtxjC59isGdv0rKWEHXBg6QQTo+5Zj9cAiorOFOHIgtXEAXtDlK4pfKtYo8tnGQVX/sB
+	zS3ZrsgfNkwZS5EUiNmNfQBv
+X-Received: by 2002:a05:690e:1301:b0:644:60d9:7519 with SMTP id
+ 956f58d0204a3-6498fc826c2mr5430656d50.93.1769688392358; Thu, 29 Jan 2026
+ 04:06:32 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260129101213.74557-1-dqfext@gmail.com> <aXs14ZJGN3lDnMDc@strlen.de>
+In-Reply-To: <aXs14ZJGN3lDnMDc@strlen.de>
+From: Qingfang Deng <dqfext@gmail.com>
+Date: Thu, 29 Jan 2026 20:06:22 +0800
+X-Gm-Features: AZwV_QiM_yCgV5Br78jgWvZgBwzVGxCJnecpTiSDpowaWBveh3X_YZQEustJxGY
+Message-ID: <CALW65ja5wOf-5PAkQY0yt8FO1_gTvfL392Q+S3TKtJoQ1kXFug@mail.gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: flowtable: dedicated slab for flow entry
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Lorenzo Bianconi <lorenzo@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-From: Scott Mitchell <scott.k.mitch1@gmail.com>
+On Thu, Jan 29, 2026 at 6:26=E2=80=AFPM Florian Westphal <fw@strlen.de> wro=
+te:
+> Ok, but please use KMEM_CACHE(), we've had a bunch of patches
+> that removed kmem_cache_create() in several places, I would like
+> to avoid a followup patch.
 
-The current implementation uses a linear list to find queued packets by
-ID when processing verdicts from userspace. With large queue depths and
-out-of-order verdicting, this O(n) lookup becomes a significant
-bottleneck, causing userspace verdict processing to dominate CPU time.
+But I'm creating a slab with a different name (`nf_flow_offload`) from
+the struct name (`flow_offload`). Should I keep the `nf_` prefix?
 
-Replace the linear search with a hash table for O(1) average-case
-packet lookup by ID. A global rhashtable spanning all network
-namespaces attributes hash bucket memory to kernel but is subject to
-fixed upper bound.
-
-Signed-off-by: Scott Mitchell <scott.k.mitch1@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_queue.h |   3 +
- net/netfilter/nfnetlink_queue.c  | 146 ++++++++++++++++++++++++-------
- 2 files changed, 119 insertions(+), 30 deletions(-)
-
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 4aeffddb7586..e6803831d6af 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -6,11 +6,13 @@
- #include <linux/ipv6.h>
- #include <linux/jhash.h>
- #include <linux/netfilter.h>
-+#include <linux/rhashtable-types.h>
- #include <linux/skbuff.h>
- 
- /* Each queued (to userspace) skbuff has one of these. */
- struct nf_queue_entry {
- 	struct list_head	list;
-+	struct rhash_head	hash_node;
- 	struct sk_buff		*skb;
- 	unsigned int		id;
- 	unsigned int		hook_index;	/* index in hook_entries->hook[] */
-@@ -20,6 +22,7 @@ struct nf_queue_entry {
- #endif
- 	struct nf_hook_state	state;
- 	u16			size; /* sizeof(entry) + saved route keys */
-+	u16			queue_num;
- 
- 	/* extra space to store route keys */
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 8fa0807973c9..671b52c652ef 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -30,6 +30,8 @@
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/list.h>
- #include <linux/cgroup-defs.h>
-+#include <linux/rhashtable.h>
-+#include <linux/jhash.h>
- #include <net/gso.h>
- #include <net/sock.h>
- #include <net/tcp_states.h>
-@@ -47,6 +49,8 @@
- #endif
- 
- #define NFQNL_QMAX_DEFAULT 1024
-+#define NFQNL_HASH_MIN     1024
-+#define NFQNL_HASH_MAX     1048576
- 
- /* We're using struct nlattr which has 16bit nla_len. Note that nla_len
-  * includes the header length. Thus, the maximum packet length that we
-@@ -56,6 +60,26 @@
-  */
- #define NFQNL_MAX_COPY_RANGE (0xffff - NLA_HDRLEN)
- 
-+/* Composite key for packet lookup: (net, queue_num, packet_id) */
-+struct nfqnl_packet_key {
-+	possible_net_t net;
-+	u32 packet_id;
-+	u16 queue_num;
-+} __aligned(sizeof(u32));  /* jhash2 requires 32-bit alignment */
-+
-+/* Global rhashtable - one for entire system, all netns */
-+static struct rhashtable nfqnl_packet_map __read_mostly;
-+
-+/* Helper to initialize composite key */
-+static inline void nfqnl_init_key(struct nfqnl_packet_key *key,
-+				  struct net *net, u32 packet_id, u16 queue_num)
-+{
-+	memset(key, 0, sizeof(*key));
-+	write_pnet(&key->net, net);
-+	key->packet_id = packet_id;
-+	key->queue_num = queue_num;
-+}
-+
- struct nfqnl_instance {
- 	struct hlist_node hlist;		/* global list of queues */
- 	struct rcu_head rcu;
-@@ -100,6 +124,39 @@ static inline u_int8_t instance_hashfn(u_int16_t queue_num)
- 	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
- }
- 
-+/* Extract composite key from nf_queue_entry for hashing */
-+static u32 nfqnl_packet_obj_hashfn(const void *data, u32 len, u32 seed)
-+{
-+	const struct nf_queue_entry *entry = data;
-+	struct nfqnl_packet_key key;
-+
-+	nfqnl_init_key(&key, entry->state.net, entry->id, entry->queue_num);
-+
-+	return jhash2((u32 *)&key, sizeof(key) / sizeof(u32), seed);
-+}
-+
-+/* Compare stack-allocated key against entry */
-+static int nfqnl_packet_obj_cmpfn(struct rhashtable_compare_arg *arg,
-+				  const void *obj)
-+{
-+	const struct nfqnl_packet_key *key = arg->key;
-+	const struct nf_queue_entry *entry = obj;
-+
-+	return !net_eq(entry->state.net, read_pnet(&key->net)) ||
-+	       entry->queue_num != key->queue_num ||
-+	       entry->id != key->packet_id;
-+}
-+
-+static const struct rhashtable_params nfqnl_rhashtable_params = {
-+	.head_offset = offsetof(struct nf_queue_entry, hash_node),
-+	.key_len = sizeof(struct nfqnl_packet_key),
-+	.obj_hashfn = nfqnl_packet_obj_hashfn,
-+	.obj_cmpfn = nfqnl_packet_obj_cmpfn,
-+	.automatic_shrinking = true,
-+	.min_size = NFQNL_HASH_MIN,
-+	.max_size = NFQNL_HASH_MAX,
-+};
-+
- static struct nfqnl_instance *
- instance_lookup(struct nfnl_queue_net *q, u_int16_t queue_num)
- {
-@@ -188,33 +245,45 @@ instance_destroy(struct nfnl_queue_net *q, struct nfqnl_instance *inst)
- 	spin_unlock(&q->instances_lock);
- }
- 
--static inline void
-+static int
- __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
--       list_add_tail(&entry->list, &queue->queue_list);
--       queue->queue_total++;
-+	int err;
-+
-+	entry->queue_num = queue->queue_num;
-+
-+	err = rhashtable_insert_fast(&nfqnl_packet_map, &entry->hash_node,
-+				     nfqnl_rhashtable_params);
-+	if (unlikely(err))
-+		return err;
-+
-+	list_add_tail(&entry->list, &queue->queue_list);
-+	queue->queue_total++;
-+
-+	return 0;
- }
- 
- static void
- __dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
-+	rhashtable_remove_fast(&nfqnl_packet_map, &entry->hash_node,
-+			       nfqnl_rhashtable_params);
- 	list_del(&entry->list);
- 	queue->queue_total--;
- }
- 
- static struct nf_queue_entry *
--find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
-+find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id,
-+		   struct net *net)
- {
--	struct nf_queue_entry *entry = NULL, *i;
-+	struct nfqnl_packet_key key;
-+	struct nf_queue_entry *entry;
- 
--	spin_lock_bh(&queue->lock);
-+	nfqnl_init_key(&key, net, id, queue->queue_num);
- 
--	list_for_each_entry(i, &queue->queue_list, list) {
--		if (i->id == id) {
--			entry = i;
--			break;
--		}
--	}
-+	spin_lock_bh(&queue->lock);
-+	entry = rhashtable_lookup_fast(&nfqnl_packet_map, &key,
-+				       nfqnl_rhashtable_params);
- 
- 	if (entry)
- 		__dequeue_entry(queue, entry);
-@@ -404,8 +473,7 @@ nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
- 	spin_lock_bh(&queue->lock);
- 	list_for_each_entry_safe(entry, next, &queue->queue_list, list) {
- 		if (!cmpfn || cmpfn(entry, data)) {
--			list_del(&entry->list);
--			queue->queue_total--;
-+			__dequeue_entry(queue, entry);
- 			nfqnl_reinject(entry, NF_DROP);
- 		}
- 	}
-@@ -885,23 +953,23 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 	if (nf_ct_drop_unconfirmed(entry))
- 		goto err_out_free_nskb;
- 
--	if (queue->queue_total >= queue->queue_maxlen) {
--		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
--			failopen = 1;
--			err = 0;
--		} else {
--			queue->queue_dropped++;
--			net_warn_ratelimited("nf_queue: full at %d entries, dropping packets(s)\n",
--					     queue->queue_total);
--		}
--		goto err_out_free_nskb;
--	}
-+	if (queue->queue_total >= queue->queue_maxlen)
-+		goto err_out_queue_drop;
-+
- 	entry->id = ++queue->id_sequence;
- 	*packet_id_ptr = htonl(entry->id);
- 
-+	/* Insert into hash BEFORE unicast. If failure don't send to userspace. */
-+	err = __enqueue_entry(queue, entry);
-+	if (unlikely(err))
-+		goto err_out_queue_drop;
-+
- 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
- 	err = nfnetlink_unicast(nskb, net, queue->peer_portid);
- 	if (err < 0) {
-+		/* Unicast failed - remove entry we just inserted */
-+		__dequeue_entry(queue, entry);
-+
- 		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
- 			failopen = 1;
- 			err = 0;
-@@ -911,11 +979,22 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 		goto err_out_unlock;
- 	}
- 
--	__enqueue_entry(queue, entry);
--
- 	spin_unlock_bh(&queue->lock);
- 	return 0;
- 
-+err_out_queue_drop:
-+	if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
-+		failopen = 1;
-+		err = 0;
-+	} else {
-+		queue->queue_dropped++;
-+
-+		if (queue->queue_total >= queue->queue_maxlen)
-+			net_warn_ratelimited("nf_queue: full at %d entries, dropping packets(s)\n",
-+					     queue->queue_total);
-+		else
-+			net_warn_ratelimited("nf_queue: hash insert failed: %d\n", err);
-+	}
- err_out_free_nskb:
- 	kfree_skb(nskb);
- err_out_unlock:
-@@ -1427,7 +1506,7 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 	verdict = ntohl(vhdr->verdict);
- 
--	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
-+	entry = find_dequeue_entry(queue, ntohl(vhdr->id), info->net);
- 	if (entry == NULL)
- 		return -ENOENT;
- 
-@@ -1774,10 +1853,14 @@ static int __init nfnetlink_queue_init(void)
- {
- 	int status;
- 
-+	status = rhashtable_init(&nfqnl_packet_map, &nfqnl_rhashtable_params);
-+	if (status < 0)
-+		return status;
-+
- 	status = register_pernet_subsys(&nfnl_queue_net_ops);
- 	if (status < 0) {
- 		pr_err("failed to register pernet ops\n");
--		goto out;
-+		goto cleanup_rhashtable;
- 	}
- 
- 	netlink_register_notifier(&nfqnl_rtnl_notifier);
-@@ -1802,7 +1885,8 @@ static int __init nfnetlink_queue_init(void)
- cleanup_netlink_notifier:
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
--out:
-+cleanup_rhashtable:
-+	rhashtable_destroy(&nfqnl_packet_map);
- 	return status;
- }
- 
-@@ -1814,6 +1898,8 @@ static void __exit nfnetlink_queue_fini(void)
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
- 
-+	rhashtable_destroy(&nfqnl_packet_map);
-+
- 	rcu_barrier(); /* Wait for completion of call_rcu()'s */
- }
- 
--- 
-2.52.0
-
+Regards,
+Qingfang
