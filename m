@@ -1,156 +1,180 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6ADC309F18
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 07:22:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769757738; cv=none; b=pLCubxkJlRX66QExJx2/lus5BPYibb1Htc209xjhImwmudJ9eUqhBmUHcNkUchI6p4DaBfcz/ufQmvEOcYpNV2td6z6qrAfd7kniAX6JcOWdGBxk6GntsZv7qktNYJq7XECHiEsM0fI9FOQlhgPL+xGfR9BjkK+8iJmjUYpvkdA=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769757738; c=relaxed/simple;
-	bh=scpHbiU85fPKFr3iZ5a8B06uHXcjdSPXniUbJsWoh5k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Yk+vKc18tM/y+/p7Gxc9k/g4so3K+YVCxzoZ6blcHDgGr9OYXGahoiO6ioVPLGXXp5vFhVmGIyQvzDxQpF8XuaCyNQ2C6b3XgJZx75Rpr3h5SBjambrujP7uduD8CzDbxNCJo+ZCDxABGMKajPYQwwoWyVK2dGDEzj5xOtOzzGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cQwmQm6L; arc=none smtp.client-ip=209.85.208.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55E9F32B99E
+	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 10:32:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.219.42
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769769168; cv=pass; b=IIlhkMST1THVAhpq/5NqJ5hwdjaXmz5R+OT6wKlgDlI+YdEutobCcGVD5TzHej7cAFCtsqZ8fkgk+f5TXiX6pDPNG7aDtBVewEMgufOgh/i+RuxdHk4cM1vNsrhRv4Kk5SqewBHLAl+0IOQsgrz3dyobqhL5tnLDmutFEoQ/j1o=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769769168; c=relaxed/simple;
+	bh=PM+crK4N6TQe9RH0AMdaTWLLQaP/RG3fAKprYEzGy9A=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=tKLe+C2djMrjfIgrX7WBtJ8Aex4nWNEM7/d1Fp9QZJM7Q/QxESHZHstnEGH/z6k93weUkrts7vN5wDwDsdWAtBjkfOoFf5YUC3KNEaMXTFlh31yIWUJeJak2G50F5PhqvD/WANvww6BAhf6xE68p2qpLU+7THoQqAmG5H6ST+Sg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=tYdmt+1B; arc=pass smtp.client-ip=209.85.219.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cQwmQm6L"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-64c893f3a94so4394583a12.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jan 2026 23:22:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="tYdmt+1B"
+Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-8946f12b1cfso22548626d6.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 02:32:47 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1769769166; cv=none;
+        d=google.com; s=arc-20240605;
+        b=OyPXRqLTvBd7jlRFOYWy4TQqiw3lpJzuXVc90QjN0WhoO2VjmMdqINF/I84zmm4nGL
+         MugKzwedfVlJDSpxK2FDEmsIC/9hl0Ey2URNrbay8ElNRmThPWrbH8n9bCzn9J5PrSeK
+         l1U5JmIzHbezN8DhEojiyQOiI+NhImqtIRyi2qKxK+rU2BrO6T++ofBkBsRNWyxbAHbW
+         5OKZV6O8HVjPWatoQtUCuwJyPgnnR+JjkR0YwFUMo/b5avieVZxckrhwbm9xmwG6gv47
+         OT+U5TvdhxCf2XGLU2Y5NMOwpgWFSf+mbh6PVBEhhhWehzPcpPTTOIvjxA4clxaOHdPj
+         iDuw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=WKmx4RJI0M3ErZSi66Ul/ZO3J0tfze4ljxzxFgky70c=;
+        fh=KARL3CxsAjwDfSu4p3gPKt/N2vzbt6Hxw0oXyWOmmfI=;
+        b=CeFdkJxDXDBNL9r7dv6i4E/A4SaHamOGhqopE4dwjTyVoSr7B6HfaTYyR7ym5oun6r
+         9nH3HxsWZPuMWj6+p/wMGWy7bcn8cDFsSrxIoRXjQj0KQ0pQljnzwMTKVB2tEAIAIKaL
+         UH7HSH3GhOwOiMP/JYlD5iwGs0pmLogOK0xcpGHPfv4Mauje9THgtpy+osi3iPfP56pw
+         OOQF8wS4IcGAhZD+1KpP2VBtIMd4/j97x0m5kVXvE0ADwnWTPM143PLm1UWbL3sPnX4o
+         btn9QrLYLt7KRSw9JckIuz8oOT2wGLuTBYF/Y+DgKQXxT4+iwzCZkSrgxxsCrHKPjT2b
+         wRxg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769757735; x=1770362535; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=0lV1Eb14MHHXl34cLNbbdByp1XdnJD9vp/7a+55/aDk=;
-        b=cQwmQm6LdQ1GoFYIID9LxpBt35vzfmqsXTxMsjgNifnTTB8MKJkO5cNjTlhfURddro
-         i5N4Pc8XW/1UNczzgir44OOAqTbquBFnP4+jXujj5gwFwyteKtFIgWTgbmS5OjzsxmZ1
-         cJBS5Xuc8cdpLglFNrwqc7n/1u20mejI+dfH1z7HOAz06ovruXlBfIuuKPJYiR/RerEy
-         Oj25silYh+WS7PYNLwJLB2l4SsBajrO7bybZ9qvFeFrdjj+WFHFQ9HcLNFcMHUZZcMym
-         tFEPpIzffyNFYjb4sOudbEqhum7T+yi1Yejpn+1NW6bSF1PF1WRYC4yeAnVLly3vmWku
-         9mvQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769757735; x=1770362535;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=google.com; s=20230601; t=1769769166; x=1770373966; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=0lV1Eb14MHHXl34cLNbbdByp1XdnJD9vp/7a+55/aDk=;
-        b=IX2cfhJ/OTqe6fjPrgUQCGtM/Zv9BBf35DPH2zsgCbFe/O9OTFp4jLwLQnE9h5rIjg
-         QnImaF99ztk1sflcKcKQhJAgYY6ebDAOCvmpanoHTvKkhrzlmOFR+8RyuMztKpKy9Ghe
-         qNlGB4jUhkaQ9P8U7PVEb0pH2tbrW3MrVvTneOgX5G7aFti5X+mF0T+VeG+VO+THyJ0v
-         jST3a5MobH9LIJiwyHgGFEs1LabJSPxzhSRRt8Qg+F0ApG1FsNz53kpfd7GOIHJI729+
-         gzN4Pj/8bE321QqKuUvSzEOec0wr4IQ0MLULTbw0iOyEyaV8N7uhpyHbwj6PVBsyj+OH
-         nSKQ==
-X-Forwarded-Encrypted: i=1; AJvYcCV7gg8MQ9daPG9Pm7ScmLOH49hd/0JRS+A9hgIdZt41akthF0utsaPiu6bpSLRyk75ngNiwzs9LI21SDOWcAaQ=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy1z6ggcuFOlHYMn0MIMaM+h+78iLqyN1NReBsTX0hUZgPqDRNv
-	KydnEB6IE2bghrHsh04fxvkObWqk0W8JOGYzDKZAxqG5+AsaSPCMDjbT
-X-Gm-Gg: AZuq6aKUN2Swifo4ewDAw+V+IT1Jzw/bEOCo3CRMiWp9qSAcnf3eDfUKPUvJfq/aC8R
-	MOIj7pR1W1I+F6vikYJFCbxMnNtccgK23nJxWS2Br5hr+2HAls8H6cAYmdMZvG9Vr0hlQ2D0jtC
-	52Ypxye02dlpvLDgn2FXqU18kNORAaBcZ8PANU7+z39DFTo9f1f+McZjKWccjgWyCn81oGWwbGk
-	1UeCcuTS27nyXSBOMAB1Wg9vY/PYKYRk4B8JUt4ivwp2SBi1JDqv8aRLmIQPDWWWllufL4nc46P
-	/jokyVscwBk/Acf5qwNrVF2VJ5e2WoyG4+O8h/XwhkXseYIb5n2CM5Cr425eJWFnCxcZP0CZUj0
-	CU4dG1FG2Yz8hQ27GEDeWxUnKCP90H3jIAP0vnK3veXzlfTIEWdxDvVpKTHf6MRPQrOU=
-X-Received: by 2002:a17:907:9805:b0:b87:7430:d5e2 with SMTP id a640c23a62f3a-b8ddf85c0a2mr331985166b.12.1769757734675;
-        Thu, 29 Jan 2026 23:22:14 -0800 (PST)
-Received: from gmail.com ([2a09:bac5:4e22:2e3c::49b:47])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b8dbf2f3e33sm379318466b.71.2026.01.29.23.22.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Jan 2026 23:22:14 -0800 (PST)
-From: Qingfang Deng <dqfext@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Lorenzo Bianconi <lorenzo@kernel.org>
-Subject: [PATCH nf-next v2] netfilter: flowtable: dedicated slab for flow entry
-Date: Fri, 30 Jan 2026 15:22:07 +0800
-Message-ID: <20260130072208.108345-1-dqfext@gmail.com>
-X-Mailer: git-send-email 2.43.0
+        bh=WKmx4RJI0M3ErZSi66Ul/ZO3J0tfze4ljxzxFgky70c=;
+        b=tYdmt+1BAKbQ882qp+R5RKM2QNVDviROFiBrxn6hDT65BKSOav9Bvsiz0aaQZvXIkZ
+         87bjpITBLgHZc9BJ/NZLwkSMEQ9iOHh3PJRmqcsZn9cVu9XJ9pamuru0rwZtWtxjC/Yk
+         Obg201FuUyhf7tZ98cAQ+ARdME8MhtwqzC9gt+rC93R2ViFeOlt6H0JNh0aLq1S925nb
+         AWFXvY3T5Oc5BNnFx/WwnCXXPCzTsegwKea6a0fAGgrprlnCJhMh9PEJs4oNvl/l2xhc
+         r5XHGShUCssEZ5Y13dH5GTCP8oJa21CKVdD/8CbQCfGjhMuihcoibf6hJSgpnm469Pab
+         Xq9w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769769166; x=1770373966;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=WKmx4RJI0M3ErZSi66Ul/ZO3J0tfze4ljxzxFgky70c=;
+        b=mq7qvSR0bFPweECP0smCBjeqkZm/hA+3nb5GVwOpsjxU3lkfcHowJebk8yoe5a6H7y
+         YSeIJMv2A6E6CINC4TE1ZsxRvllto+0cqIrbynk9vwiLrvI39ZM3o2v6nF+y0s3/swCj
+         t7RoAxKU0nxfM/ZhYleHwLmJaKuwkUZ2PJAf9nEpPs93p7k0ttC4Te87PKApsw1isj4a
+         0889TQcMEWbdWyN1nd+x8wswtZwfsEFX3iI0L+avacAU/s4hbYwuAPdckkmfcbKfu8WE
+         uEdPjTumRyGTb1F0SZ8lq1GxKapvT3EklSKdl4BVEJWN26lZYrXEGX5XctsXwKpdgRdd
+         mgmw==
+X-Forwarded-Encrypted: i=1; AJvYcCUoByiG7dEWkAtAPPBzvdoc6DkuFaPlmeuxFQ6FEo8F1aPe8aMm6EWrzKZLzet74FktSldPT5C1Evovd3q8gok=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyBfJbVwW12UYKI8UihGG8zcwWdrltVn++dqTByNccQlNz6s107
+	zSaKNnXZI0RiVLHG/RNlCcdN1Wtzq26tI9ZZcuJ9uIByr1U+ExkJfRLhbucH/ozr4TnR/L15S/n
+	2DIRq9eNbLdXlBruLQh6w/MLCXJ+hkRzFTOuyGlqQ
+X-Gm-Gg: AZuq6aLHwnF/kPW2GcdkNMqvQdDnjEvwzn+uWatwpjh9ocCwYaVGfqrE4nqqKV4ytt+
+	Ba1QqKLt/CdH9InpaXC5aduKxNkzL+VLWD9qMttjSoFnxM3srJQbve7fJLD8GfBw8niDj06Ah48
+	HGDtDycIM1hvb4DJcudCRkmAHGAhSCQ/uXgAwMcHwcMlnO6Lq5dKj8+/WJ1R6QQOBJf0V1705zq
+	U+IpuSGf8vIETgwqgmn3jRi16NcNj2dW1GTBH2Lk3X8agzqKYQSP6YsN6t3Uk9DhZl9ixY=
+X-Received: by 2002:a05:6214:c4c:b0:894:6f51:b4b5 with SMTP id
+ 6a1803df08f44-894e9fb0dafmr31281676d6.30.1769769165826; Fri, 30 Jan 2026
+ 02:32:45 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260130044348.3095-1-lirongqing@baidu.com>
+In-Reply-To: <20260130044348.3095-1-lirongqing@baidu.com>
+From: Eric Dumazet <edumazet@google.com>
+Date: Fri, 30 Jan 2026 11:32:33 +0100
+X-Gm-Features: AZwV_QguFHUo17T64TFpbIe9PBPhtFTxGSaH6-PWsbeemZcAQsG-P6tB82iuhLo
+Message-ID: <CANn89iLetxqpxpSBpQztPcg=av38nGNr2VpOo7HARrbqubREyg@mail.gmail.com>
+Subject: Re: [PATCH] netfilter: conntrack: remove __read_mostly from nf_conntrack_generation
+To: lirongqing <lirongqing@baidu.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The size of `struct flow_offload` has grown beyond 256 bytes on 64-bit
-kernels (currently 280 bytes) because of the `flow_offload_tunnel`
-member added recently. So kmalloc() allocates from the kmalloc-512 slab,
-causing significant memory waste per entry.
+On Fri, Jan 30, 2026 at 6:02=E2=80=AFAM lirongqing <lirongqing@baidu.com> w=
+rote:
+>
+> From: Li RongQing <lirongqing@baidu.com>
+>
+> The nf_conntrack_generation sequence counter is updated whenever
+> conntrack table generations are bumped (e.g., during netns exit or
+> heavy garbage collection). Under certain workloads, these updates
+> can be frequent enough that the variable no longer fits the
+> "read-mostly" criteria.
+>
+> Applying __read_mostly to a variable that is updated regularly can
+> lead to cache line bouncing and performance degradation for other
+> variables residing in the same section. Remove the annotation to
+> let the variable reside in the standard data section.
+>
 
-Introduce a dedicated slab cache for flow entries to reduce memory
-footprint. Results in a reduction from 512 bytes to 320 bytes per entry
-on x86_64 kernels.
 
-Signed-off-by: Qingfang Deng <dqfext@gmail.com>
----
-v2: use KMEM_CACHE macro
-  - https://lore.kernel.org/netfilter-devel/20260129101213.74557-1-dqfext@gmail.com/
+> Signed-off-by: Li RongQing <lirongqing@baidu.com>
+> ---
+>  net/netfilter/nf_conntrack_core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntra=
+ck_core.c
+> index d1f8eb7..233a281 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -204,7 +204,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
+>
+>  unsigned int nf_conntrack_max __read_mostly;
+>  EXPORT_SYMBOL_GPL(nf_conntrack_max);
+> -seqcount_spinlock_t nf_conntrack_generation __read_mostly;
+> +seqcount_spinlock_t nf_conntrack_generation;
+>  static siphash_aligned_key_t nf_conntrack_hash_rnd;
+>
 
- net/netfilter/nf_flow_table_core.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+What about nf_conntrack_hash_rnd ?
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 06e8251a6644..2c4140e6f53c 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -16,6 +16,7 @@
- 
- static DEFINE_MUTEX(flowtable_lock);
- static LIST_HEAD(flowtables);
-+static __read_mostly struct kmem_cache *flow_offload_cachep;
- 
- static void
- flow_offload_fill_dir(struct flow_offload *flow,
-@@ -56,7 +57,7 @@ struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
- 	if (unlikely(nf_ct_is_dying(ct)))
- 		return NULL;
- 
--	flow = kzalloc(sizeof(*flow), GFP_ATOMIC);
-+	flow = kmem_cache_zalloc(flow_offload_cachep, GFP_ATOMIC);
- 	if (!flow)
- 		return NULL;
- 
-@@ -812,9 +813,13 @@ static int __init nf_flow_table_module_init(void)
- {
- 	int ret;
- 
-+	flow_offload_cachep = KMEM_CACHE(flow_offload, SLAB_HWCACHE_ALIGN);
-+	if (!flow_offload_cachep)
-+		return -ENOMEM;
-+
- 	ret = register_pernet_subsys(&nf_flow_table_net_ops);
- 	if (ret < 0)
--		return ret;
-+		goto out_pernet;
- 
- 	ret = nf_flow_table_offload_init();
- 	if (ret)
-@@ -830,6 +835,8 @@ static int __init nf_flow_table_module_init(void)
- 	nf_flow_table_offload_exit();
- out_offload:
- 	unregister_pernet_subsys(&nf_flow_table_net_ops);
-+out_pernet:
-+	kmem_cache_destroy(flow_offload_cachep);
- 	return ret;
- }
- 
-@@ -837,6 +844,7 @@ static void __exit nf_flow_table_module_exit(void)
- {
- 	nf_flow_table_offload_exit();
- 	unregister_pernet_subsys(&nf_flow_table_net_ops);
-+	kmem_cache_destroy(flow_offload_cachep);
- }
- 
- module_init(nf_flow_table_module_init);
--- 
-2.43.0
+I _think_ this needs to be __read_mostly, regardless of its current
+location (it might by accident share a mostly read cache line),
+especially if your patch puts nf_conntrack_generation in the same
+cache line than nf_conntrack_hash_rnd.
 
+Same remark for nf_ct_expect_hashrnd
+
+diff --git a/net/netfilter/nf_conntrack_core.c
+b/net/netfilter/nf_conntrack_core.c
+index d1f8eb725d4223e042b02ab86ba89b9b7caf75f5..0a705fab2bb73f7590647ff06d7=
+066395e6eea66
+100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -204,8 +204,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
+
+ unsigned int nf_conntrack_max __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_max);
+-seqcount_spinlock_t nf_conntrack_generation __read_mostly;
+-static siphash_aligned_key_t nf_conntrack_hash_rnd;
++seqcount_spinlock_t nf_conntrack_generation;
++static siphash_aligned_key_t nf_conntrack_hash_rnd __read_mostly;
+
+ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple,
+                              unsigned int zoneid,
+diff --git a/net/netfilter/nf_conntrack_expect.c
+b/net/netfilter/nf_conntrack_expect.c
+index cfc2daa3fc7f340937898b4bef0769fd31f801b5..4dae405527febf913af43c49ddb=
+2961a8f05e0e4
+100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -41,7 +41,7 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_hash);
+ unsigned int nf_ct_expect_max __read_mostly;
+
+ static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
+-static siphash_aligned_key_t nf_ct_expect_hashrnd;
++static siphash_aligned_key_t nf_ct_expect_hashrnd __read_mostly;
+
+ /* nf_conntrack_expect helper functions */
+ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
+
+Thanks.
