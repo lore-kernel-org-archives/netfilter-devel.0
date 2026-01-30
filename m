@@ -1,272 +1,88 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from outbound.baidu.com (mx24.baidu.com [111.206.215.185])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00C97378D9D
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 11:11:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BB17364E82;
+	Fri, 30 Jan 2026 11:24:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=111.206.215.185
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769771487; cv=none; b=e7XRu975rso/533zA+uIp9CgQxE+3IfCcPE4N+SynfjqL7f3o1f+NAF20iH6MV30RIpCrJ0K0OLmPR+UXsyWuzxMUzcp2o60Q0vxvJoO8alAy/JV4ymvmC4lZTh5nLT8ZS1xTe7YPfyMiMRBDOZc8Yh/j5gQKL9rwpPiyMyfGCM=
+	t=1769772286; cv=none; b=F/nqSy+Ayt0vV2jUt2SC1oVSThKEJp0WEEmA989g2ueslRn4ChSfZpSqh+lUerTCydJ5kYtkjj5yC1ELOW/KeqKbugi6hDCSWsAibnNIrjsTRsW0Gtgat8f4fXNs0ujFa61qbU9e1SkYg2JQaSDvW5J7IVrEig1Nmf+LBpuknUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769771487; c=relaxed/simple;
-	bh=RWfV7BobZhE3F4BnAg6WZXtCaPMFMdutfTCH10+IrXg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cr5bPs4QI3R/oX7E+bjrC2QiGSmBvq6zMMwgTO5D47j98BdigbcDSmxxLBUp6jau0n71o69KLXp58UroHR+lQOhZP5pzKHyXk/IGPPlbdcLNJQICSXnW6GB+BHPhhBZOFmDrmgPYp4GICUZBYaDFXD+WM1vNQtH02wx4Bwz8HXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 67A46602B6; Fri, 30 Jan 2026 12:11:21 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Ulrich Weber <ulrich.weber@gmail.com>
-Subject: [PATCH v2 nf-next] netfilter: nfnetlink_queue: do shared-unconfirmed check before segmentation
-Date: Fri, 30 Jan 2026 12:11:05 +0100
-Message-ID: <20260130111108.1998-1-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
+	s=arc-20240116; t=1769772286; c=relaxed/simple;
+	bh=gY3XoYkjeVfsuCDxSemHm6hTSqPiFrY4EP7XNKMz+pk=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=EyxNYyuV1oDFYEcu36rgWNfGSYIp6x8XmqtGmRTJatAgQQC0nQwYi3q2FPcivujqKVGx0Kh8INyqi0Xd1aphJV7H1u1kmQBGVCluG93wL+mwo2xH+GLZVWMnYf2ckgFXYo4+DJ0DbgDcuCvjsxldyZEKC4DPCyZPZRbLo15qIyA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com; spf=pass smtp.mailfrom=baidu.com; arc=none smtp.client-ip=111.206.215.185
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=baidu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=baidu.com
+From: "Li,Rongqing" <lirongqing@baidu.com>
+To: Eric Dumazet <edumazet@google.com>
+CC: Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik
+	<kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter
+	<phil@nwl.cc>, "David S . Miller" <davem@davemloft.net>, Jakub Kicinski
+	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+	<horms@kernel.org>, "netfilter-devel@vger.kernel.org"
+	<netfilter-devel@vger.kernel.org>, "coreteam@netfilter.org"
+	<coreteam@netfilter.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Subject: =?utf-8?B?562U5aSNOiBb5aSW6YOo6YKu5Lu2XSBSZTogW1BBVENIXSBuZXRmaWx0ZXI6?=
+ =?utf-8?B?IGNvbm50cmFjazogcmVtb3ZlIF9fcmVhZF9tb3N0bHkgZnJvbSBuZl9jb25u?=
+ =?utf-8?Q?track=5Fgeneration?=
+Thread-Topic: =?utf-8?B?W+WklumDqOmCruS7tl0gUmU6IFtQQVRDSF0gbmV0ZmlsdGVyOiBjb25udHJh?=
+ =?utf-8?B?Y2s6IHJlbW92ZSBfX3JlYWRfbW9zdGx5IGZyb20gbmZfY29ubnRyYWNrX2dl?=
+ =?utf-8?Q?neration?=
+Thread-Index: AQHckaMKaFyWuz7BF0WyyylXiDKXFLVp/hqAgACTs4A=
+Date: Fri, 30 Jan 2026 11:23:36 +0000
+Message-ID: <7e1f38c0f792440da38ba0fa96ce932b@baidu.com>
+References: <20260130044348.3095-1-lirongqing@baidu.com>
+ <CANn89iLetxqpxpSBpQztPcg=av38nGNr2VpOo7HARrbqubREyg@mail.gmail.com>
+In-Reply-To: <CANn89iLetxqpxpSBpQztPcg=av38nGNr2VpOo7HARrbqubREyg@mail.gmail.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-FEAS-Client-IP: 172.31.3.12
+X-FE-Policy-ID: 52:10:53:SYSTEM
 
-Ulrich reports a regression with nfqueue:
-
-If an application did not set the 'F_GSO' capability flag and a gso
-packet with an unconfirmed nf_conn entry is received all packets are
-now dropped instead of queued, because the check happens after
-skb_gso_segment().  In that case, we did have exclusive ownership
-of the skb and its associated conntrack entry.  The elevated use
-count is due to skb_clone happening via skb_gso_segment().
-
-Move the check so that its peformed vs. the aggregated packet.
-
-Then, annotate the individual segments except the first one so we
-can do a 2nd check at reinject time.
-
-For the normal case, where userspace does in-order reinjects, this avoids
-packet drops: first reinjected segment continues traversal and confirms
-entry, remaining segments observe the confirmed entry.
-
-While at it, simplify nf_ct_drop_unconfirmed(): We only care about
-unconfirmed entries with a refcnt > 1, there is no need to special-case
-dying entries.
-
-This only happens with UDP.  With TCP, the only unconfirmed packet will
-be the TCP SYN, those aren't aggregated by GRO.
-
-Next patch adds a udpgro test case to cover this scenario.
-
-Reported-by: Ulrich Weber <ulrich.weber@gmail.com>
-Fixes: 7d8dc1c7be8d ("netfilter: nf_queue: drop packets with cloned unconfirmed conntracks")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- v2: can't use nf_queue_entry after call to
-     __nfqnl_enqueue_packet_gso(), that function takes ownership and might
-     have free'd it already, so just set ->is_unconfirmed right before.
-
- include/net/netfilter/nf_queue.h |   1 +
- net/netfilter/nfnetlink_queue.c  | 123 +++++++++++++++++++------------
- 2 files changed, 75 insertions(+), 49 deletions(-)
-
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index e6803831d6af..45eb26b2e95b 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -21,6 +21,7 @@ struct nf_queue_entry {
- 	struct net_device	*physout;
- #endif
- 	struct nf_hook_state	state;
-+	bool			nf_ct_is_unconfirmed;
- 	u16			size; /* sizeof(entry) + saved route keys */
- 	u16			queue_num;
- 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 671b52c652ef..f1c8049861a6 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -435,6 +435,34 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 	nf_queue_entry_free(entry);
- }
- 
-+/* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
-+ * exclusively.
-+ */
-+static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry, bool *is_unconfirmed)
-+{
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
-+	struct nf_conn *ct = (void *)skb_nfct(entry->skb);
-+
-+	if (!ct || nf_ct_is_confirmed(ct))
-+		return false;
-+
-+	if (is_unconfirmed)
-+		*is_unconfirmed = true;
-+
-+	/* in some cases skb_clone() can occur after initial conntrack
-+	 * pickup, but conntrack assumes exclusive skb->_nfct ownership for
-+	 * unconfirmed entries.
-+	 *
-+	 * This happens for br_netfilter and with ip multicast routing.
-+	 * This can't be solved with serialization here because one clone
-+	 * could have been queued for local delivery or could be transmitted
-+	 * in parallel on another CPU.
-+	 */
-+	return refcount_read(&ct->ct_general.use) > 1;
-+#endif
-+	return false;
-+}
-+
- static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- {
- 	const struct nf_ct_hook *ct_hook;
-@@ -462,6 +490,24 @@ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 			break;
- 		}
- 	}
-+
-+	if (verdict != NF_DROP && entry->nf_ct_is_unconfirmed) {
-+		/* If first queued segment was already reinjected then
-+		 * there is a good chance the ct entry is now confirmed.
-+		 *
-+		 * Handle the rare cases:
-+		 *  - out-of-order verdict
-+		 *  - threaded userspace reinjecting in parallel
-+		 *  - first segment was dropped
-+		 *
-+		 * In all of those cases we can't handle this packet
-+		 * because we can't be sure that another CPU won't modify
-+		 * nf_conn->ext in parallel which isn't allowed.
-+		 */
-+		if (nf_ct_drop_unconfirmed(entry, NULL))
-+			verdict = NF_DROP;
-+	}
-+
- 	nf_reinject(entry, verdict);
- }
- 
-@@ -891,49 +937,6 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 	return NULL;
- }
- 
--static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry)
--{
--#if IS_ENABLED(CONFIG_NF_CONNTRACK)
--	static const unsigned long flags = IPS_CONFIRMED | IPS_DYING;
--	struct nf_conn *ct = (void *)skb_nfct(entry->skb);
--	unsigned long status;
--	unsigned int use;
--
--	if (!ct)
--		return false;
--
--	status = READ_ONCE(ct->status);
--	if ((status & flags) == IPS_DYING)
--		return true;
--
--	if (status & IPS_CONFIRMED)
--		return false;
--
--	/* in some cases skb_clone() can occur after initial conntrack
--	 * pickup, but conntrack assumes exclusive skb->_nfct ownership for
--	 * unconfirmed entries.
--	 *
--	 * This happens for br_netfilter and with ip multicast routing.
--	 * We can't be solved with serialization here because one clone could
--	 * have been queued for local delivery.
--	 */
--	use = refcount_read(&ct->ct_general.use);
--	if (likely(use == 1))
--		return false;
--
--	/* Can't decrement further? Exclusive ownership. */
--	if (!refcount_dec_not_one(&ct->ct_general.use))
--		return false;
--
--	skb_set_nfct(entry->skb, 0);
--	/* No nf_ct_put(): we already decremented .use and it cannot
--	 * drop down to 0.
--	 */
--	return true;
--#endif
--	return false;
--}
--
- static int
- __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 			struct nf_queue_entry *entry)
-@@ -950,9 +953,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 	}
- 	spin_lock_bh(&queue->lock);
- 
--	if (nf_ct_drop_unconfirmed(entry))
--		goto err_out_free_nskb;
--
- 	if (queue->queue_total >= queue->queue_maxlen)
- 		goto err_out_queue_drop;
- 
-@@ -995,7 +995,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 		else
- 			net_warn_ratelimited("nf_queue: hash insert failed: %d\n", err);
- 	}
--err_out_free_nskb:
- 	kfree_skb(nskb);
- err_out_unlock:
- 	spin_unlock_bh(&queue->lock);
-@@ -1074,9 +1073,10 @@ __nfqnl_enqueue_packet_gso(struct net *net, struct nfqnl_instance *queue,
- static int
- nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- {
--	unsigned int queued;
--	struct nfqnl_instance *queue;
- 	struct sk_buff *skb, *segs, *nskb;
-+	bool ct_is_unconfirmed = false;
-+	struct nfqnl_instance *queue;
-+	unsigned int queued;
- 	int err = -ENOBUFS;
- 	struct net *net = entry->state.net;
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
-@@ -1100,6 +1100,15 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 		break;
- 	}
- 
-+	/* Check if someone already holds another reference to
-+	 * unconfirmed ct.  If so, we cannot queue the skb:
-+	 * concurrent modifications of nf_conn->ext are not
-+	 * allowed and we can't know if another CPU isn't
-+	 * processing the same nf_conn entry in parallel.
-+	 */
-+	if (nf_ct_drop_unconfirmed(entry, &ct_is_unconfirmed))
-+		return -EINVAL;
-+
- 	if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
- 		return __nfqnl_enqueue_packet(net, queue, entry);
- 
-@@ -1113,7 +1122,23 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
- 		goto out_err;
- 	queued = 0;
- 	err = 0;
-+
- 	skb_list_walk_safe(segs, segs, nskb) {
-+		if (ct_is_unconfirmed && queued > 0) {
-+			/* skb_gso_segment() increments the ct refcount.
-+			 * This is a problem for unconfirmed (not in hash)
-+			 * entries, those can race when reinjections happen
-+			 * in parallel.
-+			 *
-+			 * Annotate this for all queued entries except the
-+			 * first one.
-+			 *
-+			 * As long as the first one is reinjected first it
-+			 * will do the confirmation for us.
-+			 */
-+			entry->nf_ct_is_unconfirmed = ct_is_unconfirmed;
-+		}
-+
- 		if (err == 0)
- 			err = __nfqnl_enqueue_packet_gso(net, queue,
- 							segs, entry);
--- 
-2.52.0
-
+PiBXaGF0IGFib3V0IG5mX2Nvbm50cmFja19oYXNoX3JuZCA/DQo+IA0KPiBJIF90aGlua18gdGhp
+cyBuZWVkcyB0byBiZSBfX3JlYWRfbW9zdGx5LCByZWdhcmRsZXNzIG9mIGl0cyBjdXJyZW50IGxv
+Y2F0aW9uIChpdA0KPiBtaWdodCBieSBhY2NpZGVudCBzaGFyZSBhIG1vc3RseSByZWFkIGNhY2hl
+IGxpbmUpLCBlc3BlY2lhbGx5IGlmIHlvdXIgcGF0Y2ggcHV0cw0KPiBuZl9jb25udHJhY2tfZ2Vu
+ZXJhdGlvbiBpbiB0aGUgc2FtZSBjYWNoZSBsaW5lIHRoYW4gbmZfY29ubnRyYWNrX2hhc2hfcm5k
+Lg0KPiANCj4gU2FtZSByZW1hcmsgZm9yIG5mX2N0X2V4cGVjdF9oYXNocm5kDQo+IA0KDQpZb3Ug
+YXJlIHJpZ2h0LCBuZl9jb25udHJhY2tfaGFzaF9ybmQgYW5kIG5mX2N0X2V4cGVjdF9oYXNocm5k
+IHNob3VsZCBiZSBtYXJrZWQgYXMgX19yZWFkX21vc3RseQ0KDQpUaGFua3MNCg0KLUxpDQoNCj4g
+ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuYw0KPiBiL25ldC9u
+ZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuYw0KPiBpbmRleA0KPiBkMWY4ZWI3MjVkNDIyM2Uw
+NDJiMDJhYjg2YmE4OWI5YjdjYWY3NWY1Li4wYTcwNWZhYjJiYjczZjc1OTA2NDdmZjA2ZA0KPiA3
+MDY2Mzk1ZTZlZWE2Ng0KPiAxMDA2NDQNCj4gLS0tIGEvbmV0L25ldGZpbHRlci9uZl9jb25udHJh
+Y2tfY29yZS5jDQo+ICsrKyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuYw0KPiBA
+QCAtMjA0LDggKzIwNCw4IEBAIEVYUE9SVF9TWU1CT0xfR1BMKG5mX2Nvbm50cmFja19odGFibGVf
+c2l6ZSk7DQo+IA0KPiAgdW5zaWduZWQgaW50IG5mX2Nvbm50cmFja19tYXggX19yZWFkX21vc3Rs
+eTsNCj4gRVhQT1JUX1NZTUJPTF9HUEwobmZfY29ubnRyYWNrX21heCk7DQo+IC1zZXFjb3VudF9z
+cGlubG9ja190IG5mX2Nvbm50cmFja19nZW5lcmF0aW9uIF9fcmVhZF9tb3N0bHk7IC1zdGF0aWMN
+Cj4gc2lwaGFzaF9hbGlnbmVkX2tleV90IG5mX2Nvbm50cmFja19oYXNoX3JuZDsNCj4gK3NlcWNv
+dW50X3NwaW5sb2NrX3QgbmZfY29ubnRyYWNrX2dlbmVyYXRpb247IHN0YXRpYw0KPiArc2lwaGFz
+aF9hbGlnbmVkX2tleV90IG5mX2Nvbm50cmFja19oYXNoX3JuZCBfX3JlYWRfbW9zdGx5Ow0KPiAN
+Cj4gIHN0YXRpYyB1MzIgaGFzaF9jb25udHJhY2tfcmF3KGNvbnN0IHN0cnVjdCBuZl9jb25udHJh
+Y2tfdHVwbGUgKnR1cGxlLA0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25l
+ZCBpbnQgem9uZWlkLCBkaWZmIC0tZ2l0DQo+IGEvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tf
+ZXhwZWN0LmMNCj4gYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19leHBlY3QuYw0KPiBpbmRl
+eA0KPiBjZmMyZGFhM2ZjN2YzNDA5Mzc4OThiNGJlZjA3NjlmZDMxZjgwMWI1Li40ZGFlNDA1NTI3
+ZmViZjkxM2FmNDNjNDlkZGINCj4gMjk2MWE4ZjA1ZTBlNA0KPiAxMDA2NDQNCj4gLS0tIGEvbmV0
+L25ldGZpbHRlci9uZl9jb25udHJhY2tfZXhwZWN0LmMNCj4gKysrIGIvbmV0L25ldGZpbHRlci9u
+Zl9jb25udHJhY2tfZXhwZWN0LmMNCj4gQEAgLTQxLDcgKzQxLDcgQEAgRVhQT1JUX1NZTUJPTF9H
+UEwobmZfY3RfZXhwZWN0X2hhc2gpOw0KPiAgdW5zaWduZWQgaW50IG5mX2N0X2V4cGVjdF9tYXgg
+X19yZWFkX21vc3RseTsNCj4gDQo+ICBzdGF0aWMgc3RydWN0IGttZW1fY2FjaGUgKm5mX2N0X2V4
+cGVjdF9jYWNoZXAgX19yZWFkX21vc3RseTsgLXN0YXRpYw0KPiBzaXBoYXNoX2FsaWduZWRfa2V5
+X3QgbmZfY3RfZXhwZWN0X2hhc2hybmQ7DQo+ICtzdGF0aWMgc2lwaGFzaF9hbGlnbmVkX2tleV90
+IG5mX2N0X2V4cGVjdF9oYXNocm5kIF9fcmVhZF9tb3N0bHk7DQo+IA0KPiAgLyogbmZfY29ubnRy
+YWNrX2V4cGVjdCBoZWxwZXIgZnVuY3Rpb25zICovICB2b2lkDQo+IG5mX2N0X3VubGlua19leHBl
+Y3RfcmVwb3J0KHN0cnVjdCBuZl9jb25udHJhY2tfZXhwZWN0ICpleHAsDQo+IA0KPiBUaGFua3Mu
+DQoNCg==
