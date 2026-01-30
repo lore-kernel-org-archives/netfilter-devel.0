@@ -1,67 +1,122 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F2E72D061B
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 16:25:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F341D3033C7
+	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 18:22:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769790358; cv=none; b=Ca3sehhhMuMyyqZSEZDjT30+72PYfJ9Xk7ME4IuwL3NrjIMHkAA/aokd7Q8lkJVBXIL6AvhSLMt1omVmjuRgsmKNz1Te9vppebAK6orXEN82XpBAZjkJhU6stq+N6rAtEsKM4fnq3j/qPAhblup+BnG9dBV/Ihp5e8GqtD571x4=
+	t=1769797335; cv=none; b=IVUhi4ilR24TSR4+DgFjSDnQxOmPEsvDCYUno5GNnCGDPfoWToxlj1ZvwgvtQRVGIpq77J8mP3ftjhLzMSJg6lbqOT803YFyclQuXKE6KFvZZZjTVSGiNQi+zEo8fAHLfe6N+iS0UHzwpRYUtmvYMWZ9vnW1mjStFac1S/nPlFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769790358; c=relaxed/simple;
-	bh=NfXG2BpWal6Du0C1xySsDcjriOLR4TEF4SqtA0lRSuc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VccnxyFsXjnDEyTzSEZzPQ9MSzRxvQ9NtzJFlQ9Oj85jdgsMyMrDcAfjtsW8xjD8+E8ndimLqQ6sKL1Ysa11fxUeCJWjWZIbmCmvi/KRHnw+zGrUIkItQ8LcT4bG7a+XnbIXfVUCwHNu9moo7Ew223GIT4vFe3BpPPG/SicIkCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=CYo6ylAo; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="CYo6ylAo"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=ZzicJXpr0e8hd/9auUABzFs0QOINECSkwXY7OLHrsXQ=; b=CYo6ylAoQhxrVGoI2rcfZWVUdh
-	sj12aZtiNtZ5PHaRDATt5ZCzWIrOvq3FNcXR+umrhWKLZGjC8xitmqCuYR27/gmTAS7jLOgIpLDh4
-	B5MTBOY2YFvllQ7DxG5Bnfw9k6THVIUqcbmo0LcyJ8fOo3AlmhXlKv10L+YeH9ID6WKTTqyqsviTG
-	bh0ZvqYmL3fgAumycQFwbAMOLQLkOWqWMQq0BCBNCI3EXKYXal1OlrzCGgZxKj3T1DAaYJmZz8fDr
-	Uoh410ASnKF3bwWXBupuCycYWpeZ7iy+2Dt2HRkeMUjGp0V0QufbC3FgEHcDryP2LA7sfG0/M+X4P
-	rjO4or3w==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vlrJj-000000001qR-221L;
-	Fri, 30 Jan 2026 17:25:55 +0100
-Date: Fri, 30 Jan 2026 17:25:55 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH] configure: Auto-detect libz unless explicitly
- requested
-Message-ID: <aXzbk27yzNNa9xDO@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-References: <20260129195836.13988-1-phil@nwl.cc>
+	s=arc-20240116; t=1769797335; c=relaxed/simple;
+	bh=SzXUH8xA0CWVT4GbGHWqYMCuw+cDNP/x02+nuGEjs7k=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EI2kT9xOF4r2aWaem0+NAxdm3+aM+HnwFc/jiRqvbAfPlgBB3bhDoEHoNjLd8sfGDsq0Ci3bCBNBDQyoR3V3Y8sg5bMeIkqXIePjyKjz8ZRpVcoWT6br7yaaF9iyHw/qoHCrQie4mX54rBEXK9WS3Clbwarij7rwkHcaqCI6Nqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 87A89602AB; Fri, 30 Jan 2026 19:22:05 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: lorenzo@kernel.org,
+	Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] selftests: netfilter: add IPV6_TUNNEL to config
+Date: Fri, 30 Jan 2026 19:21:51 +0100
+Message-ID: <20260130182155.93253-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260129195836.13988-1-phil@nwl.cc>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jan 29, 2026 at 08:58:36PM +0100, Phil Sutter wrote:
-> If user did not pass --with-zlib and it is not available, simply turn
-> off rule compat expression compression. It is not strictly necessary and
-> users may not care.
-> 
-> While at it, drop the conditional AC_DEFINE() call: In fact,
-> AC_CHECK_LIB() does that already.
-> 
-> Fixes: ff5f6a208efcc ("nft-ruleparse: Fallback to compat expressions in userdata")
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
+The script now requires IPV6 tunnel support, enable this.
+This should have caught by CI, but as the config option is missing,
+the tunnel interface isn't added.  This results in an error cascade
+that ends with "route change default" failure.
 
-Also applied.
+That in turn means the "ipv6 tunnel" test re-uses the previous
+test setup so the "ip6ip6" test passes and script returns 0.
+
+Make sure to catch such bugs, set ret=1 if device cannot be added
+and delete the old default route before installing the new one.
+
+After this change, IPV6_TUNNEL=n kernel builds fail with the expected
+  FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel
+
+... while builds with IPV6_TUNNEL=m pass as before.
+
+Fixes: 5e5180352193 ("selftests: netfilter: nft_flowtable.sh: Add IP6IP6 flowtable selftest")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tools/testing/selftests/net/netfilter/config  |  1 +
+ .../selftests/net/netfilter/nft_flowtable.sh  | 19 +++++++++++++------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
+index 12ce61fa15a8..979cff56e1f5 100644
+--- a/tools/testing/selftests/net/netfilter/config
++++ b/tools/testing/selftests/net/netfilter/config
+@@ -29,6 +29,7 @@ CONFIG_IP_NF_RAW=m
+ CONFIG_IP_SCTP=m
+ CONFIG_IPV6=y
+ CONFIG_IPV6_MULTIPLE_TABLES=y
++CONFIG_IPV6_TUNNEL=m
+ CONFIG_IP_VS=m
+ CONFIG_IP_VS_PROTO_TCP=y
+ CONFIG_IP_VS_RR=m
+diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
+index 14d7f67715ed..7a34ef468975 100755
+--- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
+@@ -601,14 +601,19 @@ ip -net "$nsr2" link set tun0 up
+ ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
+ ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
+ 
+-ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1
++ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1 || ret=1
+ ip -net "$nsr2" link set tun6 up
+ ip -net "$nsr2" addr add fee1:3::2/64 dev tun6 nodad
+ 
+ ip -net "$nsr1" route change default via 192.168.100.2
+ ip -net "$nsr2" route change default via 192.168.100.1
+-ip -6 -net "$nsr1" route change default via fee1:3::2
+-ip -6 -net "$nsr2" route change default via fee1:3::1
++
++# do not use "route change" and delete old default so
++# socat fails to connect in case new default can't be added.
++ip -6 -net "$nsr1" route delete default
++ip -6 -net "$nsr1" route add default via fee1:3::2
++ip -6 -net "$nsr2" route delete default
++ip -6 -net "$nsr2" route add default via fee1:3::1
+ ip -net "$ns2" route add default via 10.0.2.1
+ ip -6 -net "$ns2" route add default via dead:2::1
+ 
+@@ -649,7 +654,8 @@ ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0.10 a
+ ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2
+ ip -net "$nsr1" link set tun6.10 up
+ ip -net "$nsr1" addr add fee1:5::1/64 dev tun6.10 nodad
+-ip -6 -net "$nsr1" route change default via fee1:5::2
++ip -6 -net "$nsr1" route delete default
++ip -6 -net "$nsr1" route add default via fee1:5::2
+ ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6.10 accept'
+ 
+ ip -net "$nsr2" link add link veth0 name veth0.10 type vlan id 10
+@@ -664,10 +670,11 @@ ip -net "$nsr2" addr add 192.168.200.2/24 dev tun0.10
+ ip -net "$nsr2" route change default via 192.168.200.1
+ ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
+ 
+-ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1
++ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1 || ret=1
+ ip -net "$nsr2" link set tun6.10 up
+ ip -net "$nsr2" addr add fee1:5::2/64 dev tun6.10 nodad
+-ip -6 -net "$nsr2" route change default via fee1:5::1
++ip -6 -net "$nsr2" route delete default
++ip -6 -net "$nsr2" route add default via fee1:5::1
+ 
+ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
+ 	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel over vlan" 1>&2
+-- 
+2.52.0
+
