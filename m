@@ -1,31 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 630E234E75E
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 11:51:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D96123EAA1
+	for <netfilter-devel@vger.kernel.org>; Fri, 30 Jan 2026 12:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769773889; cv=none; b=co/jJ68e8c1AazUh3cS8PD23EC1aD3SBGEg5rxjAKXAfKgBPOgMfgskhezvCE4Z0Q2ymseqhnOOwdDA1CZyXNCprK4zVkzoSflaa/E++sXvZPxW+xGt7uecvj/MpuB9QcCrh/GaBeStGTiPo1sHDQEMO7vTNom2Frf4pIWjcypg=
+	t=1769776506; cv=none; b=ic7mL/oD3SGAhOOMaU4jV5kx6xW8c6lq3ZNDuyxTavCuzcolVSKsRmrjn5dO4+QW2LmbXRu+8i8e0R7pBO1pM6kES0x0jgbQ+30adkvr7r/8TvL3sUWORHL6r++FQsiWcxy04ZVJFHCoTE8RA4my522Py1ZH95ZiWPvVT30BSdw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769773889; c=relaxed/simple;
-	bh=7yC5MNVWTUuEqoBW0YP/UokoiViJc/LkTOdGmetmUCY=;
+	s=arc-20240116; t=1769776506; c=relaxed/simple;
+	bh=Qsz4EnxRkBzPjoRSI9mG/UHVlQsJRx6mXRMI9d0rX3Q=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jntSqo7H8NG77T88n7U8GRnutezfSZK80CqcvRMMAypAFCl66iz7cUqEKrjEPyMi06lFn3Gy6MaJToykBjFs/W+zeRspH63TRjwS3HjWmTJTdptYIGhkl6D0d8qJ20QMEZ0YxyZzzviH2DfjZTxItPd2Mw9ntt1GzC50ZyNug6s=
+	 Content-Type:Content-Disposition:In-Reply-To; b=eidLIPottmtDPNnOM8z+wqPUONX+eYtFmReFb4wb+wUiUIIdve6+rG+mqPy34vxb9If2RyqsAu+//0I36+Mgb9pSk8ZUkcZusd/9jbG7buVlPcUYKZgEQV/k/iAdYhg99xA09sB5rcCR5EdKq00nEWrM6vufbF+ptzGc1ENADWg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 457AC60284; Fri, 30 Jan 2026 12:51:25 +0100 (CET)
-Date: Fri, 30 Jan 2026 12:51:24 +0100
+	id AB7C5602B6; Fri, 30 Jan 2026 13:35:02 +0100 (CET)
+Date: Fri, 30 Jan 2026 13:34:57 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Brian Witte <brianwitte@mailfence.com>
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org
-Subject: Re: [PATCH nf-next] netfilter: nf_tables: use dedicated mutex for
- reset operations
-Message-ID: <aXybPOcqHlBAdwM_@strlen.de>
-References: <aXlTpuk0Z1CeoYwT@strlen.de>
- <20260130015617.42025-1-brianwitte@mailfence.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next 4/4] netfilter: nft_set_rbtree: validate open
+ interval overlap
+Message-ID: <aXylcZ53xTI3Gp4Q@strlen.de>
+References: <20260128014251.754512-1-pablo@netfilter.org>
+ <20260128014251.754512-5-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,48 +33,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260130015617.42025-1-brianwitte@mailfence.com>
+In-Reply-To: <20260128014251.754512-5-pablo@netfilter.org>
 
-Brian Witte <brianwitte@mailfence.com> wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > Maybe its worth investigating if we should instead protect
-> > only the reset action itself, i.e. add private reset spinlocks
-> > in nft_quota_do_dump() et al?
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Open intervals do not have an end element, in particular an open
+> interval at the end of the set is hard to validate because of it is
+> lacking the end element, and interval validation relies on such end
+> element to perform the checks.
 > 
-> Thanks for the suggestion. Implemented per-object spinlocks as proposed.
-> Sending inline rather than v2 since I'm not certain about the approach.
+> This patch adds a new flag field to struct nft_set_elem, this is not an
+> issue because this is a temporary object that is allocated in the stack
+> from the insert/deactivate path. This flag field is used to specify that
+> this is the last element in this add/delete command.
 > 
-> Ran tests/shell/run-tests.sh with PROVE_LOCKING, PROVE_RCU, and
-> PROVE_RCU_LIST enabled - no warnings.
+> The last flag is used, in combination with the start element cookie, to
+> check if there is a partial overlap, eg.
 > 
-> Uses static lock class keys to avoid lockdep exhaustion with many objects.
+>    Already exists:   255.255.255.0-255.255.255.254
+>    Add interval:     255.255.255.0-255.255.255.255
+>                      ~~~~~~~~~~~~~
+>              start element overlap
 > 
-> Two questions:
-> 
-> 1. Should this be spin_lock_bh()? I think plain spin_lock() is fine
->    since the packet path doesn't take this lock.
+> Basically, the idea is to check for an existing end element in the set
+> if there is an overlap with an existing start element.
 
-Its fine if we're interrupted while holding this lock, no (soft)irq
-grabs it.
+This patch causes:
+W: [FAILED]     1/1 tests/shell/testcases/maps/named_limits
 
-> 2. The nf_tables_api.c changes also remove the try_module_get/module_put
->    and rcu_read_unlock/rcu_read_lock dance - that was only needed because
->    mutex_lock can sleep and we couldn't hold RCU across it. Since
->    spin_lock doesn't sleep, we stay under RCU the entire time. Please
->    confirm this is correct.
+It passes without this patch.
+I pushed a minor change to the test to ease debugging, failing command
+is:
 
-Yes, this dance isn't needed anymore.
+FAIL: Command add saddr6limit { c01a::/64 : "tarpit-bps" } failed
 
-> diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-> index cc7325329496..ae3c339cbcee 100644
-> --- a/net/netfilter/nft_counter.c
-> +++ b/net/netfilter/nft_counter.c
-> @@ -28,10 +28,13 @@ struct nft_counter_tot {
-> 
->  struct nft_counter_percpu_priv {
->  	struct nft_counter __percpu *counter;
-> +	spinlock_t	reset_lock;	/* protects concurrent reset */
->  };
+and the map is:
+        map saddr6limit {
+                typeof ip6 saddr : limit
+                flags interval
+                elements = { dead::beef-dead::1:aced : "tarpit-pps",
+                             fee1::dead : "tarpit-pps" }
+        }
 
-I don't think we need per-object granularity;
-a single spinlock in nft_pernet area is enough for this.
+I don't think this should fail?
