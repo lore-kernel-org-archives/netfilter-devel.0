@@ -1,342 +1,156 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3943427453
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Feb 2026 21:53:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43F6D313E1A
+	for <netfilter-devel@vger.kernel.org>; Mon,  2 Feb 2026 23:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770069200; cv=none; b=j5zFMLgleN8kDl+avfky9CMXH0IKiUIdp1hFyQMjxtJILBCKzMeBGGHhYUBvhm57FlE5PY3M+IY8+H9UWT3kZCvFPe2SKglXIhx/KTNz0D5OrTlWvkRtwE9O5n+0rjBfPqFa4nAg9BPxNQ3Dr9fuhI25FHbYQ7EgaMKi0e+A+bo=
+	t=1770073269; cv=none; b=O1UCutvVczaXaTswQRiFVlC2nDd2+Olu91anHwnFfz0BgWj8/PFnNwE8MEiaZs9USsX7RihMK7ALfmoH+1uNw38MFu/boIX/YuMrghBFBCtBPGrr7lHXxAKaGaAbNbQr6DTrh98yMvXsUI3UXkqXjbIInIBvuvEv189rKfpQvrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770069200; c=relaxed/simple;
-	bh=lq+LXOQA41YSSwGak1DCI5BBiBzCgMHN5tgyBfPCu3g=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=EnGgvy12aeqdlrEZwv2i1cNXQDaINfaOFTO1Sn2WsPztl9Sq1XBI9cojGUHuUxLOxaH14h2dg6hYJcnQgNmiMuOVanyhkdDFX5DfqkF8ogtU1gwjQi0g/vgdRH9F0RoO6Xotj5XOGq3gJP7JIwZGou0y2ncWtqVkQJAeHJ6gIHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ga+Vr91E; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1770073269; c=relaxed/simple;
+	bh=WARw7qOJsvJ/9GpyJ1bof8aXL7IewlcRAGKlWsKr4hg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LZ1fiUaMAv1yIjbPfsXkAsGGshOVIhC1yeb8va7KvQXGA1/yrrxV1XEeTIBQJ44lMhqJwec+UODTbAEsR4TxRd53/V8Rfx8Yw0FBN+2cRmOiGbQ38Zw0eNpCCXMOhJBWym2I6VSiEY0CLNNpQvnIDxt2Cb/C0JRqHOiyjXt6P1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rMS8rlcl; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ga+Vr91E"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C3D5D6017A
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Feb 2026 22:53:16 +0100 (CET)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rMS8rlcl"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id B4C146017A;
+	Tue,  3 Feb 2026 00:01:04 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1770069196;
-	bh=TNv6APPTO+huGR75Xq7wGaY53E0Ixule1fW9AlJSTVI=;
-	h=From:To:Subject:Date:From;
-	b=ga+Vr91EPEaF7VoTqJ1GwrI+NpqwIlKBXWD7nr11zZIWhtIBCMYxgRHTOmtV6Pubr
-	 yK95oDP6DCdVC8oF+oFn86DPsN/EM6Ind8hRag/cto71q7+C5aoGaUgTmR5+dr25d4
-	 Y6e6FVuBQo/lWBjgRm74LHGAljWZ5WLvSV8Hp0zjmnpz3u7LsEux3B9BRcmQ4syH5e
-	 wV4SxKZ73JavK/M7Q6Z4G/s97knM+TpekFJzWj/xKQdrJIaIWyeKkfUM519Dof7nz2
-	 cIvzhnkqFhCAl1uWoIiSYJWIGlPGmN03ScgOHPmvEjFP99YaPjUkE31gkbKdsu0Nvl
-	 QvNs9g4zBavuw==
+	s=2025; t=1770073264;
+	bh=xTNzWB32e8rSmxLtimmeKMWteNWOpwINWhEyCBbF+M4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=rMS8rlclnScCjZ8QYlhV0m88sB+IzNnAXrc2XIiz+nJ0AhjJw0MO6IYUw1d9yMrMP
+	 xIkp5tNv8unrv0E5An6YlWRxGXl1whoYB2tEffuqf0JX1tp2TBPv/VODDQZbgWWVO7
+	 hLMnc98df7w34sMUwj+e33mE56BLWdGiA9+vkjM1x2rCPvqTEnxi9ywOCxHoDQxtgI
+	 nqT6bHx4nYywQPn40aK5G39Gy4CSDmVLt1MVgCYjK/swTv223ppI2RpLCDFYQ9nPxg
+	 qyt8y8RXFaMP28RZrIr635PXyU6vW5xzjHyUQndo1ghFENuukzbBhJEVJ79Frw1jTu
+	 3L4lz0NrpoYRw==
+Date: Tue, 3 Feb 2026 00:01:01 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf-next,v2 4/4] netfilter: nft_set_rbtree: validate open interval overlap
-Date: Mon,  2 Feb 2026 22:53:13 +0100
-Message-ID: <20260202215313.950335-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: Florian Westphal <fw@strlen.de>
+Cc: Brian Witte <brianwitte@mailfence.com>, netfilter-devel@vger.kernel.org,
+	kadlec@blackhole.kfki.hu
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: use dedicated mutex for
+ reset operations
+Message-ID: <aYEsrZpkqCb675vv@chamomile>
+References: <20260127030604.39982-1-brianwitte@mailfence.com>
+ <aXlTpuk0Z1CeoYwT@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aXlTpuk0Z1CeoYwT@strlen.de>
 
-Open intervals do not have an end element, in particular an open
-interval at the end of the set is hard to validate because of it is
-lacking the end element, and interval validation relies on such end
-element to perform the checks.
+On Wed, Jan 28, 2026 at 01:09:10AM +0100, Florian Westphal wrote:
+> Brian Witte <brianwitte@mailfence.com> wrote:
+> > Add a dedicated reset_mutex to serialize reset operations instead of
+> > reusing the commit_mutex. This fixes a circular locking dependency
+> > between commit_mutex, nfnl_subsys_ipset, and nlk_cb_mutex-NETFILTER
+> > that could lead to deadlock when nft reset, ipset list, and
+> > iptables-nft with set match run concurrently:
+> > 
+> >   CPU0 (nft reset):        nlk_cb_mutex -> commit_mutex
+> >   CPU1 (ipset list):       nfnl_subsys_ipset -> nlk_cb_mutex
+> >   CPU2 (iptables -m set):  commit_mutex -> nfnl_subsys_ipset
+> > 
+> > The reset_mutex only serializes concurrent reset operations to prevent
+> > counter underruns, which is all that's needed. Breaking the commit_mutex
+> > dependency in the dump-reset path eliminates the circular lock chain.
+> > 
+> > Reported-by: syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
+> > Closes: https://syzkaller.appspot.com/bug?extid=ff16b505ec9152e5f448
+> > Signed-off-by: Brian Witte <brianwitte@mailfence.com>
+> 
+> This needs more work:
+> 
+> -----------------------------
+> net/netfilter/nf_tables_api.c:1002 RCU-list traversed in non-reader section!!
+> 
+> other info that might help us debug this:
+> 
+> rcu_scheduler_active = 2, debug_locks = 1
+> 1 lock held by nft/17539:
+>  #0: ffff888132018368 (&nft_net->reset_mutex){+.+.}-{4:4}, at: nf_tables_getobj_reset+0x19e/0x5a0 [nf_tables]
+> 
+> stack backtrace:
+> CPU: 4 UID: 0 PID: 17539 Comm: nft Not tainted 6.19.0-rc6+ #9 PREEMPT(full)
+> Call Trace:
+>  lockdep_rcu_suspicious.cold+0x4f/0xb1
+>  nft_table_lookup.part.0+0x1e7/0x220 [nf_tables]
+>  nf_tables_getobj_single+0x196/0x5a0 [nf_tables]
+>  nf_tables_getobj_reset+0x1b1/0x5a0 [nf_tables]
+>  nfnetlink_rcv_msg+0x49e/0xf00
+> 
+> Please run nftables.git tests/shell/run-tests.sh with
+> 
+> CONFIG_PROVE_LOCKING=y
+> CONFIG_PROVE_RCU=y
+> CONFIG_PROVE_RCU_LIST=y
+> 
+> This warning is not a false positive, the list traversal was
+> fine for reset case because we held the transaction mutex.
+> 
+> Now that we don't, we need to hold rcu_read_lock().
+> 
+> Maybe its worth investigating if we should instead protect
+> only the reset action itself, i.e. add private reset spinlocks
+> in nft_quota_do_dump() et al?
 
-This patch adds a new flag field to struct nft_set_elem, this is not an
-issue because this is a temporary object that is allocated in the stack
-from the insert/deactivate path. This flag field is used to specify that
-this is the last element in this add/delete command.
+Last time we discussed this:
 
-The last flag is used, in combination with the start element cookie, to
-check if there is a partial overlap, eg.
+- There was an attempt to make reset fully atomic (for the whole
+  ruleset), which is not really possible because netlink dumps for a
+  large ruleset might not fit into, not worth trying.
 
-   Already exists:   255.255.255.0-255.255.255.254
-   Add interval:     255.255.255.0-255.255.255.255
-                     ~~~~~~~~~~~~~
-             start element overlap
+- Still, there could be two threads resetting the counters at the same
+  time, and someone mentioned underrun is possible.
 
-Basically, the idea is to check for an existing end element in the set
-if there is an overlap with an existing start element.
+  Looking at last for nft_quota, it should be possible to use
+  atomic64_xchg():
 
-However, the last open interval can come in any position in the add
-command, the corner case can get a bit more complicated:
-
-   Already exists:   255.255.255.0-255.255.255.254
-   Add intervals:    255.255.255.0-255.255.255.255,255.255.255.0-255.255.255.254
-                     ~~~~~~~~~~~~~
-             start element overlap
-
-To catch this overlap, annotate that the new start element is a possible
-overlap, then report the overlap if the next element is another start
-element that confirms that previous element in an open interval at the
-end of the set.
-
-For deletions, do not update the start cookie when deleting an open
-interval, otherwise this can trigger spurious EEXIST when adding new
-elements.
-
-Unfortunately, there is no NFT_SET_ELEM_INTERVAL_OPEN flag which would
-make easier to detect open interval overlaps.
-
-Fixes: 7c84d41416d8 ("netfilter: nft_set_rbtree: Detect partial overlaps on insertion")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: fix double return in nft_rbtree_cmp_start_cookie().
-
- include/net/netfilter/nf_tables.h |  4 ++
- net/netfilter/nf_tables_api.c     | 21 ++++++++--
- net/netfilter/nft_set_rbtree.c    | 70 ++++++++++++++++++++++++++-----
- 3 files changed, 81 insertions(+), 14 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index f1b67b40dd4d..05f57ba62244 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -278,6 +278,8 @@ struct nft_userdata {
- 	unsigned char		data[];
- };
- 
-+#define NFT_SET_ELEM_INTERNAL_LAST	0x1
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index df0798da2329..4a501cc86192 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -144,7 +144,11 @@ static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
+         * that we see, don't go over the quota boundary in what we send to
+         * userspace.
+         */
+-       consumed = atomic64_read(priv->consumed);
++       if (reset)
++               consumed = atomic64_xchg(priv->consumed, 0);
++       else
++               consumed = atomic64_read(priv->consumed);
 +
- /* placeholder structure for opaque set element backend representation. */
- struct nft_elem_priv { };
+        quota = atomic64_read(&priv->quota);
+        if (consumed >= quota) {
+                consumed_cap = quota;
+@@ -160,10 +164,9 @@ static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
+            nla_put_be32(skb, NFTA_QUOTA_FLAGS, htonl(flags)))
+                goto nla_put_failure;
  
-@@ -287,6 +289,7 @@ struct nft_elem_priv { };
-  *	@key: element key
-  *	@key_end: closing element key
-  *	@data: element data
-+ * 	@flags: flags
-  *	@priv: element private data and extensions
-  */
- struct nft_set_elem {
-@@ -302,6 +305,7 @@ struct nft_set_elem {
- 		u32		buf[NFT_DATA_VALUE_MAXLEN / sizeof(u32)];
- 		struct nft_data val;
- 	} data;
-+	u32			flags;
- 	struct nft_elem_priv	*priv;
- };
- 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a3649d88ac64..4cdb3691f9f8 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7269,7 +7269,8 @@ static u32 nft_set_maxsize(const struct nft_set *set)
- }
- 
- static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
--			    const struct nlattr *attr, u32 nlmsg_flags)
-+			    const struct nlattr *attr, u32 nlmsg_flags,
-+			    bool last)
- {
- 	struct nft_expr *expr_array[NFT_SET_EXPR_MAX] = {};
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
-@@ -7555,6 +7556,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (flags)
- 		*nft_set_ext_flags(ext) = flags;
- 
-+	if (last)
-+		elem.flags = NFT_SET_ELEM_INTERNAL_LAST;
-+	else
-+		elem.flags = 0;
+-       if (reset) {
+-               atomic64_sub(consumed, priv->consumed);
++       if (reset)
+                clear_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags);
+-       }
 +
- 	if (obj)
- 		*nft_set_ext_obj(ext) = obj;
+        return 0;
  
-@@ -7718,7 +7724,8 @@ static int nf_tables_newsetelem(struct sk_buff *skb,
- 	nft_ctx_init(&ctx, net, skb, info->nlh, family, table, NULL, nla);
- 
- 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
--		err = nft_add_set_elem(&ctx, set, attr, info->nlh->nlmsg_flags);
-+		err = nft_add_set_elem(&ctx, set, attr, info->nlh->nlmsg_flags,
-+				       nla_is_last(attr, rem));
- 		if (err < 0) {
- 			NL_SET_BAD_ATTR(extack, attr);
- 			return err;
-@@ -7842,7 +7849,7 @@ static void nft_trans_elems_destroy_abort(const struct nft_ctx *ctx,
- }
- 
- static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
--			   const struct nlattr *attr)
-+			   const struct nlattr *attr, bool last)
- {
- 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
- 	struct nft_set_ext_tmpl tmpl;
-@@ -7910,6 +7917,11 @@ static int nft_del_setelem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (flags)
- 		*nft_set_ext_flags(ext) = flags;
- 
-+	if (last)
-+		elem.flags = NFT_SET_ELEM_INTERNAL_LAST;
-+	else
-+		elem.flags = 0;
-+
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_DELSETELEM, set);
- 	if (trans == NULL)
- 		goto fail_trans;
-@@ -8057,7 +8069,8 @@ static int nf_tables_delsetelem(struct sk_buff *skb,
- 		return nft_set_flush(&ctx, set, genmask);
- 
- 	nla_for_each_nested(attr, nla[NFTA_SET_ELEM_LIST_ELEMENTS], rem) {
--		err = nft_del_setelem(&ctx, set, attr);
-+		err = nft_del_setelem(&ctx, set, attr,
-+				      nla_is_last(attr, rem));
- 		if (err == -ENOENT &&
- 		    NFNL_MSG_TYPE(info->nlh->nlmsg_type) == NFT_MSG_DESTROYSETELEM)
- 			continue;
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 65319a2ed898..2d162e081d07 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -319,10 +319,19 @@ static void nft_rbtree_set_start_cookie(struct nft_rbtree *priv,
- 	priv->start_rbe_cookie = (unsigned long)rbe;
- }
- 
-+static void nft_rbtree_set_start_cookie_open(struct nft_rbtree *priv,
-+					     const struct nft_rbtree_elem *rbe,
-+					     unsigned long open_interval)
-+{
-+	priv->start_rbe_cookie = (unsigned long)rbe | open_interval;
-+}
-+
-+#define NFT_RBTREE_OPEN_INTERVAL	1UL
-+
- static bool nft_rbtree_cmp_start_cookie(struct nft_rbtree *priv,
- 					const struct nft_rbtree_elem *rbe)
- {
--	return priv->start_rbe_cookie == (unsigned long)rbe;
-+	return (priv->start_rbe_cookie & ~NFT_RBTREE_OPEN_INTERVAL) == (unsigned long)rbe;
- }
- 
- static bool nft_rbtree_insert_same_interval(const struct net *net,
-@@ -352,13 +361,14 @@ static bool nft_rbtree_insert_same_interval(const struct net *net,
- 
- static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			       struct nft_rbtree_elem *new,
--			       struct nft_elem_priv **elem_priv, u64 tstamp)
-+			       struct nft_elem_priv **elem_priv, u64 tstamp, bool last)
- {
- 	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL, *rbe_prev;
- 	struct rb_node *node, *next, *parent, **p, *first = NULL;
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u8 cur_genmask = nft_genmask_cur(net);
- 	u8 genmask = nft_genmask_next(net);
-+	unsigned long open_interval = 0;
- 	int d;
- 
- 	/* Descend the tree to search for an existing element greater than the
-@@ -464,10 +474,18 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		}
- 	}
- 
--	if (nft_rbtree_interval_null(set, new))
--		priv->start_rbe_cookie = 0;
--	else if (nft_rbtree_interval_start(new) && priv->start_rbe_cookie)
-+	if (nft_rbtree_interval_null(set, new)) {
- 		priv->start_rbe_cookie = 0;
-+	} else if (nft_rbtree_interval_start(new) && priv->start_rbe_cookie) {
-+		if (nft_set_is_anonymous(set)) {
-+			priv->start_rbe_cookie = 0;
-+		} else if (priv->start_rbe_cookie & NFT_RBTREE_OPEN_INTERVAL) {
-+			/* Previous element is an open interval that partially
-+			 * overlaps with an existing non-open interval.
-+			 */
-+			return -ENOTEMPTY;
-+		}
-+	}
- 
- 	/* - new start element matching existing start element: full overlap
- 	 *   reported as -EEXIST, cleared by caller if NLM_F_EXCL is not given.
-@@ -475,7 +493,26 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	if (rbe_ge && !nft_rbtree_cmp(set, new, rbe_ge) &&
- 	    nft_rbtree_interval_start(rbe_ge) == nft_rbtree_interval_start(new)) {
- 		*elem_priv = &rbe_ge->priv;
--		nft_rbtree_set_start_cookie(priv, rbe_ge);
-+
-+		/* - Corner case: new start element of open interval (which
-+		 *   comes as last element in the batch) overlaps the start of
-+		 *   an existing interval with an end element: partial overlap.
-+		 */
-+		node = rb_first(&priv->root);
-+		rbe = __nft_rbtree_next_active(node, genmask);
-+		if (nft_rbtree_interval_end(rbe)) {
-+			rbe = nft_rbtree_next_active(rbe, genmask);
-+			if (nft_rbtree_interval_start(rbe) &&
-+			    !nft_rbtree_cmp(set, new, rbe)) {
-+				if (last)
-+					return -ENOTEMPTY;
-+
-+				/* Maybe open interval? */
-+				open_interval = NFT_RBTREE_OPEN_INTERVAL;
-+			}
-+		}
-+		nft_rbtree_set_start_cookie_open(priv, rbe_ge, open_interval);
-+
- 		return -EEXIST;
- 	}
- 
-@@ -530,6 +567,12 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 	    nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
- 		return -ENOTEMPTY;
- 
-+	/* - start element overlaps an open interval but end element is new:
-+	 *   partial overlap, reported as -ENOEMPTY.
-+	 */
-+	if (!rbe_ge && priv->start_rbe_cookie && nft_rbtree_interval_end(new))
-+		return -ENOTEMPTY;
-+
- 	/* Accepted element: pick insertion point depending on key value */
- 	parent = NULL;
- 	p = &priv->root.rb_node;
-@@ -639,6 +682,7 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 			     struct nft_elem_priv **elem_priv)
- {
- 	struct nft_rbtree_elem *rbe = nft_elem_priv_cast(elem->priv);
-+	bool last = !!(elem->flags & NFT_SET_ELEM_INTERNAL_LAST);
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	u64 tstamp = nft_net_tstamp(net);
- 	int err;
-@@ -655,8 +699,12 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
- 		cond_resched();
- 
- 		write_lock_bh(&priv->lock);
--		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp);
-+		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp, last);
- 		write_unlock_bh(&priv->lock);
-+
-+		if (nft_rbtree_interval_end(rbe))
-+			priv->start_rbe_cookie = 0;
-+
- 	} while (err == -EAGAIN);
- 
- 	return err;
-@@ -744,6 +792,7 @@ nft_rbtree_deactivate(const struct net *net, const struct nft_set *set,
- 		      const struct nft_set_elem *elem)
- {
- 	struct nft_rbtree_elem *rbe, *this = nft_elem_priv_cast(elem->priv);
-+	bool last = !!(elem->flags & NFT_SET_ELEM_INTERNAL_LAST);
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	const struct rb_node *parent = priv->root.rb_node;
- 	u8 genmask = nft_genmask_next(net);
-@@ -784,9 +833,10 @@ nft_rbtree_deactivate(const struct net *net, const struct nft_set *set,
- 				continue;
- 			}
- 
--			if (nft_rbtree_interval_start(rbe))
--				nft_rbtree_set_start_cookie(priv, rbe);
--			else if (!nft_rbtree_deactivate_same_interval(net, priv, rbe))
-+			if (nft_rbtree_interval_start(rbe)) {
-+				if (!last)
-+					nft_rbtree_set_start_cookie(priv, rbe);
-+			} else if (!nft_rbtree_deactivate_same_interval(net, priv, rbe))
- 				return NULL;
- 
- 			nft_rbtree_flush(net, set, &rbe->priv);
--- 
-2.47.3
+ nla_put_failure:
 
+Note that priv->quota could be converted to use WRITE_ONCE/READ_ONCE
+instead, because updates in the quota are very rare and only happening
+from userspace (atomic64 is not needed).
+
+Then, for nft_counter, it is a bit more complicated, maybe a per-netns
+spinlock for counters is sufficient, to protect this
+nft_counter_do_dump() when the reset flag is true.
