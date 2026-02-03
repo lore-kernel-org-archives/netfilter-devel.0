@@ -1,31 +1,36 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 188C839C637;
-	Tue,  3 Feb 2026 13:50:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18756212548;
+	Tue,  3 Feb 2026 13:55:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770126625; cv=none; b=GERgpFHcPCHeiRdGfzkYibjh24xOEjf9kHklYXhrGfUrHhh7UWij9wbmGTB2Fm/GbZIGysK2+CSxvLHHtqjnTqG7+trcknq5y5krQKq42xDhn5ab43z4z2xe5VN2vjd0lMtQXdB2Vw0uGKy4SzQS2SjMcfTSmk51QOqHcK2szME=
+	t=1770126902; cv=none; b=VRxLzFdcoWNhA8RHmRlqBfog0/MOEsLVFTrr5Ygdg0Dj5EmMmIsP13jh88mWiIvSDK1v1uQpuwv1D2gRde2rQyodkr3ukolM1tIddJOwBVypYYErzf0mSVL2Lmg1f1n94yO3i7yMRMouMfAVq7sX7mU3kWnwoRHre89KfzQPAag=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770126625; c=relaxed/simple;
-	bh=Sba4kZl7eH4t/9pFUoriJ52rE4wlXNhh+3gMWig0PhU=;
+	s=arc-20240116; t=1770126902; c=relaxed/simple;
+	bh=IBIRN87f5gYXDRbNBgXqXufgoE2d6GCMY7PNczz36mI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WQfc72ElwwRyuVABCOSyzjFcYFH1qBNY1eWfI9u6ZdqKaIiHY+3PeIdV+qF5jWknlHfYH2v5ZgWp/SsjjboEVv8ez5r4L8QpeyZdnHYqHK5WvsFPpn6VZM1kf/cZ8xNtzitJETlJt1ifuIgp9AoofYRxMGvypMsmGS/4y3gfeIs=
+	 Content-Type:Content-Disposition:In-Reply-To; b=i6zU3EMxMbxCT0S21Nq6EyryCIPKI4G1scqWsCaXUAiREk51Y8vsoFgf+CBeYP03H16iNS4hsxXtzRQLxnm7cUgyYVdlM+KsU2ZrFuyi1P9W+o0HKtRDq0K9U3ifg0KGgcvC9oL4Urv4W+hOVKxB+uvFeNhA7P+/pgL2FWJ5Tiw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 88EB76033F; Tue, 03 Feb 2026 14:50:15 +0100 (CET)
-Date: Tue, 3 Feb 2026 14:50:15 +0100
+	id 572446033F; Tue, 03 Feb 2026 14:54:58 +0100 (CET)
+Date: Tue, 3 Feb 2026 14:54:58 +0100
 From: Florian Westphal <fw@strlen.de>
-To: Sun Jian <sun.jian.kdev@gmail.com>
+To: anders.grahn@gmail.com
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: amanda: fix RCU pointer typing for
- nf_nat_amanda_hook
-Message-ID: <aYH9FwwOTD28Gn04@strlen.de>
-References: <20260203080109.2682183-1-sun.jian.kdev@gmail.com>
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH v3] netfilter: nft_counter: Fix reset of counters on
+ 32bit archs
+Message-ID: <aYH-Mr0Hy7EfivBt@strlen.de>
+References: <20260203134831.1205444-1-anders.grahn@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,47 +39,24 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260203080109.2682183-1-sun.jian.kdev@gmail.com>
+In-Reply-To: <20260203134831.1205444-1-anders.grahn@gmail.com>
 
-Sun Jian <sun.jian.kdev@gmail.com> wrote:
-> The nf_nat_amanda_hook pointer is accessed via rcu_dereference(), but
-> it lacks the __rcu annotation in its declaration and definition. Sparse
-> reports "incompatible types in comparison expression (different
-> address spaces)" errors in nf_conntrack_amanda.c.
+anders.grahn@gmail.com <anders.grahn@gmail.com> wrote:
+> From: Anders Grahn <anders.grahn@gmail.com>
 > 
-> Fix this by:
-> 1. Adding __rcu and __read_mostly to the global nf_nat_amanda_hook
->    declaration.
-> 2. Adding __rcu to the global nf_nat_amanda_hook definition.
-> 3. Explicitly declaring the local nf_nat_amanda function pointer
->    without __rcu to store the dereferenced pointer.
-> 4. Using rcu_dereference_raw() to fetch the hook address, which
->    satisfies sparse's type checking for function pointers.
+> nft_counter_reset() calls u64_stats_add() with a negative value to reset
+> the counter. This will work on 64bit archs, hence the negative value
+> added will wrap as a 64bit value which then can wrap the stat counter as
+> well.
+> 
+> On 32bit archs, the added negative value will wrap as a 32bit value and
+> _not_ wrapping the stat counter properly. In most cases, this would just
+> lead to a very large 32bit value being added to the stat counter.
+> 
+> Fix by introducing u64_stats_sub().
 
-This doesn't look right, esp. step 4.  Why not:
+Thanks Anders.
 
-diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
---- a/include/linux/netfilter/nf_conntrack_amanda.h
-+++ b/include/linux/netfilter/nf_conntrack_amanda.h
-@@ -7,7 +7,7 @@
- #include <linux/skbuff.h>
- #include <net/netfilter/nf_conntrack_expect.h>
+I will apply this in the next days unless there is a NACK from
+netdev maintainers.
 
--extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
-+extern unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
-                                          enum ip_conntrack_info ctinfo,
-                                          unsigned int protoff,
-                                          unsigned int matchoff,
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -37,7 +37,7 @@ MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
- module_param(ts_algo, charp, 0400);
- MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
-
--unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
-+unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
-                                   enum ip_conntrack_info ctinfo,
-                                   unsigned int protoff,
-                                   unsigned int matchoff,
-?
