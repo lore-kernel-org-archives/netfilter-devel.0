@@ -1,99 +1,194 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3142396B7B
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Feb 2026 09:11:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B93833446B3
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Feb 2026 12:51:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770109871; cv=none; b=CJaRs//OT4KJEDM/sEEY+bBwEvUfCPreZqj+tckyb8p/WfIvs6k/k31vuda4SPWFdliRIv87+ytZ7A6DgNDoWV4g7DQIIXtcqoPWNdNvy6Op87V2CyZYrMNxHBHHQySSeGah06YjxvUzVv/L4eg/4ixwCHj55kY8TsNRlGW3L3g=
+	t=1770123111; cv=none; b=m6aTe6/vYZSGki9MhnHQK9yjW23I1GqNTDuk9JUO9oksN+G9tUngwcLgTsURtOku47Yg1F3az0EFO5zpW+3r6KaOknRRhUYTcqgF4+LlLJUau0Un5/Szgf4zIYfWNlSE5txNjM2DaF0GWpqyY3FAypQ9mME1Y/C9oc6GpQVaOFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770109871; c=relaxed/simple;
-	bh=cfdU1kSo8gBSVmXxXxV+VeJp31P0ZwNjDc7NslD7Etg=;
-	h=From:To:Cc:Subject:In-Reply-To:Date:Message-ID:References:
-	 MIME-Version:Content-Type; b=R0Atur1RdsW2DfEvG1e8N5NHzfmgJdxEoQE9N+MAhSL/4ptmVEBOg9Vf0FEruDp46rnUDIYFIMnWBHbD3/uoV03f+BPFzLvVClQmUzT/lHDxFoTKSQQgrTE4nqLiBpWnTfkmLASaXXe6lBqXCr45CH9nGQM4GzF5+EfC8vvZnIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NrpWvaUQ; arc=none smtp.client-ip=209.85.208.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NrpWvaUQ"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-65814266b08so10647275a12.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Feb 2026 01:11:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770109868; x=1770714668; darn=vger.kernel.org;
-        h=mime-version:user-agent:references:message-id:date:in-reply-to
-         :subject:cc:to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=cfdU1kSo8gBSVmXxXxV+VeJp31P0ZwNjDc7NslD7Etg=;
-        b=NrpWvaUQ7ZMI9gIow61dAaW4Ip7by6kXP9mns53l8SYTiJpJ3xRC2CVHYNWuWBVT/q
-         8Qj0/oyvoqt+/2w1AeAvmQQRce2E5PXsJThn5RI+Olwo7VvXwmclR85KRq3oIoxWbduf
-         f/3IJxns7vWqYy8JK30LrO4dgubIGk7vV9q/yELstasx9PvdVN0XSFVEUjen2rS26eXG
-         rXlLJq4zCzUTshwIcOEQRuGlORLqIkwubzL7CgegZFFrF1HR1M2pXtWyIZ7eBYkSTzBs
-         PxD1Kv1GAcl4fehwcAERT1BEsC+yQWzoXae/tbNJbU5g7+QVfOrL1FetJiaaxdbJwsjS
-         RL9A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770109868; x=1770714668;
-        h=mime-version:user-agent:references:message-id:date:in-reply-to
-         :subject:cc:to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=cfdU1kSo8gBSVmXxXxV+VeJp31P0ZwNjDc7NslD7Etg=;
-        b=wpU5MlyZauUzpzRIpI1rZ8gMAHQejHoUO4Vb/EoVFyILNT35ty4IcnvWHOTENtNoia
-         iUeqcVWfONOyNIpGyczyqwyTfrg5Mh2n6OEqZdbhhOkBwbAVwezy5wf6KlItsF73CFG3
-         ioS0woegH7Ubce1++6GG8nDMlAH289wNZlPJtSYxhk9nN2dHVtjyIrWxxU4m9djhXFLF
-         KgIU6h4EnMf3d4OOWdreOtsfUsX6bJ9kKa0Yap7sz7DLC10iVwZMwZRbHfBXh3DPsE9T
-         QNkV6JmLx6q3X8Bals2uqPf+5ZB7IkJFsc9x/uRsL3BHIbdCnbQVrpyZ/ShBw+vygIQP
-         yxcA==
-X-Forwarded-Encrypted: i=1; AJvYcCXPJq+jcQ4z7VJ85MFp60XnKndpjNtreRbCJAs2U36t8rqqsniFZPJjv6YiacQ8ab24Wi+3d4NGgLthFs+zku0=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyqe9C/FgDysWXVOxKOQonr3LUVaAwvTD9FpEH/yPKgX3YZ+5QL
-	sP4qCHAy5KGswO1wC/GqqIK63vR8/yE8/oNZLFY8jkPtRsZ9oVJd++Gi
-X-Gm-Gg: AZuq6aKElWBm7aWikvCOVy2hEoffbqEcx8wK8bra8XSD2f8mGmIZiJJwjMiik6Wu00B
-	u3Xp9EY9Tlk3fetoBayzhtmedLc3VgQQ0TNB0VS2MTJXGxRRQ5mMdGzsT4UIXROgMGqWKmTVzMT
-	069IG4IJuknxyywzjXeHpSybDw4l5CcFR3bRLqd2Eqf7aetegpV7U/sVb/6pqeowU9REUtJOkt9
-	qGNBz7f61J+qbhiLO2yhtSEFlpx2JMG+pIQXXhYtSnvS/MqGc2ZKqp19zfbvrVYxrZgsLcHfQDa
-	/yBkT+gY1Jm4Yu2C9CpVUlJ6CMITKi6NhsceYKeTYRLhAtFynBdDl0NC+MMeHVyyBA4fKQIvKdp
-	gejnj7AUb7Fd8LW70Jub8Nn/3jghkAr/y00NcgmCUpiXErvZUaw7O5j+cJ4Pc+13xm8/hmUZEIs
-	EkjmmJ6SdihnjHCciyzlQ7EBU=
-X-Received: by 2002:a05:6402:50cd:b0:64d:2082:d027 with SMTP id 4fb4d7f45d1cf-658de5a2f83mr7948742a12.29.1770109867713;
-        Tue, 03 Feb 2026 01:11:07 -0800 (PST)
-Received: from imac ([2a02:8010:60a0:0:c42b:3329:fccc:c347])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-658b42563dbsm9307740a12.3.2026.02.03.01.11.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Feb 2026 01:11:07 -0800 (PST)
-From: Donald Hunter <donald.hunter@gmail.com>
-To: "Remy D. Farley" <one-d-wide@protonmail.com>
-Cc: Jakub Kicinski <kuba@kernel.org>,  netdev@vger.kernel.org,  Pablo Neira
- Ayuso <pablo@netfilter.org>,  Florian Westphal <fw@strlen.de>,  Phil
- Sutter <phil@nwl.cc>,  netfilter-devel@vger.kernel.org,
-  coreteam@netfilter.org
-Subject: Re: [PATCH net-next v7 2/5] doc/netlink: nftables: Add definitions
-In-Reply-To: <20260202093928.742879-3-one-d-wide@protonmail.com>
-Date: Tue, 03 Feb 2026 09:04:05 +0000
-Message-ID: <m2jywu9p16.fsf@gmail.com>
-References: <20260202093928.742879-1-one-d-wide@protonmail.com>
-	<20260202093928.742879-3-one-d-wide@protonmail.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	s=arc-20240116; t=1770123111; c=relaxed/simple;
+	bh=y2V2HMwTxheKgI+Qo9+r/lLsC5dY5MBo9fVnG8TzHDU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hRGBrx6nUDlOWU/2CMhjWtUz9MR+fuyTm0u1WbZVM7/gwmxYr7KpS2+HFhSOoJHnKMDejb5l14cLyIxmiLEfGt2z/6Nf1a8q+5ismqVfsTJiw6oDv1pKf7rf/jA/Q/Lf28iWvc9MCIW0WPvZoNdMEZhf5YkmGy9HrB7xqvDpepM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 6E2676033F; Tue, 03 Feb 2026 13:51:46 +0100 (CET)
+Date: Tue, 3 Feb 2026 13:51:46 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Brian Witte <brianwitte@mailfence.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	kadlec@netfilter.org,
+	syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
+Subject: Re: [PATCH v4 nf-next 2/2] netfilter: nf_tables: serialize reset
+ with spinlock and atomic
+Message-ID: <aYHvYiDKHVdOoSeg@strlen.de>
+References: <20260203050723.263515-1-brianwitte@mailfence.com>
+ <20260203050723.263515-3-brianwitte@mailfence.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260203050723.263515-3-brianwitte@mailfence.com>
 
-"Remy D. Farley" <one-d-wide@protonmail.com> writes:
+Brian Witte <brianwitte@mailfence.com> wrote:
+> Add a dedicated spinlock to serialize counter reset operations,
+> preventing concurrent dump-and-reset from underrunning values.
+> 
+> Store struct net in counter priv to access the per-net spinlock during
+> reset. This avoids dereferencing skb->sk which is NULL in single-element
+> GET paths such as nft_get_set_elem.
 
-> New enums/flags:
-> - payload-base
-> - range-ops
-> - registers
-> - numgen-types
-> - log-level
-> - log-flags
->
-> Added missing enumerations:
-> - bitwise-ops
->
-> Annotated doc comment or associated enum:
-> - bitwise-ops
->
-> Signed-off-by: Remy D. Farley <one-d-wide@protonmail.com>
+Ouch, sorry about making a wrong suggestion.  I did not consider that
+this reset infra also works via plain netlink requests rather than just
+for netlink dumps.
 
-Reviewed-by: Donald Hunter <donald.hunter@gmail.com>
+> For quota, use atomic64_xchg() to atomically read and zero the consumed
+> value, which is simpler and doesn't require spinlock protection.
+
+I think you should split this, one patch for quota and one nft_counter.
+
+> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Suggested-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Brian Witte <brianwitte@mailfence.com>
+> ---
+>  include/net/netfilter/nf_tables.h |  1 +
+>  net/netfilter/nf_tables_api.c     |  3 +--
+>  net/netfilter/nft_counter.c       | 17 ++++++++++++-----
+>  net/netfilter/nft_quota.c         | 12 +++++++-----
+>  4 files changed, 21 insertions(+), 12 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index 426534a711b0..c4b6b8cadf09 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -1935,6 +1935,7 @@ struct nftables_pernet {
+>  	struct list_head	module_list;
+>  	struct list_head	notify_list;
+>  	struct mutex		commit_mutex;
+> +	spinlock_t		reset_lock;
+>  	u64			table_handle;
+>  	u64			tstamp;
+>  	unsigned int		gc_seq;
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index 9969d8488de4..146f29be834a 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -3986,7 +3986,6 @@ nf_tables_getrule_single(u32 portid, const struct nfnl_info *info,
+>  static int nf_tables_getrule(struct sk_buff *skb, const struct nfnl_info *info,
+>  			     const struct nlattr * const nla[])
+>  {
+> -	struct nftables_pernet *nft_net = nft_pernet(info->net);
+
+This is odd, shouldn't that be in patch 1?
+I would expect compiler to warn here, when just compiling with
+patch 1 applied.
+
+>  	u32 portid = NETLINK_CB(skb).portid;
+>  	struct net *net = info->net;
+>  	struct sk_buff *skb2;
+> @@ -8529,7 +8528,6 @@ nf_tables_getobj_single(u32 portid, const struct nfnl_info *info,
+>  static int nf_tables_getobj(struct sk_buff *skb, const struct nfnl_info *info,
+>  			    const struct nlattr * const nla[])
+>  {
+> -	struct nftables_pernet *nft_net = nft_pernet(info->net);
+
+Same.
+
+> @@ -12050,6 +12048,7 @@ static int __net_init nf_tables_init_net(struct net *net)
+>  	INIT_LIST_HEAD(&nft_net->module_list);
+>  	INIT_LIST_HEAD(&nft_net->notify_list);
+>  	mutex_init(&nft_net->commit_mutex);
+> +	spin_lock_init(&nft_net->reset_lock);
+>  	net->nft.base_seq = 1;
+>  	nft_net->gc_seq = 0;
+>  	nft_net->validate_state = NFT_VALIDATE_SKIP;
+> diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+> index cc7325329496..54bcbf33e2b9 100644
+> --- a/net/netfilter/nft_counter.c
+> +++ b/net/netfilter/nft_counter.c
+> @@ -28,6 +28,7 @@ struct nft_counter_tot {
+>  
+>  struct nft_counter_percpu_priv {
+>  	struct nft_counter __percpu *counter;
+> +	struct net *net;
+>  };
+
+Hmm, I think thats too high a price.
+
+> -static void nft_counter_reset(struct nft_counter_percpu_priv *priv,
+> +static void nft_counter_reset(struct nftables_pernet *nft_net,
+> +			      struct nft_counter_percpu_priv *priv,
+>  			      struct nft_counter_tot *total)
+>  {
+>  	struct u64_stats_sync *nft_sync;
+>  	struct nft_counter *this_cpu;
+>  
+>  	local_bh_disable();
+> +	spin_lock(&nft_net->reset_lock);
+
+This lock is too late, it has to be taken before fetching 'total',
+else you get following in parallel reset case:
+
+cpu0						cpu1
+ fetch total counter, get 1000
+ 						fetch total counter, get 1000
+
+ subtract 1000
+ 						subtract 1000 again
+
+Maybe something like this?  I think the single-spinlock is fine, I
+don't expect frequent resets, much less from concurrent netns.
+
+If we get a complaint, we can always take the code-churn route to pass
+'struct net' down to the dumper callback, or resort to array-of-locks
+or similar at a later time.
+
++/* control plane only: sync fetch+reset */
++static DEFINE_SPINLOCK(nft_counter_lock);
++
+ static inline void nft_counter_do_eval(struct nft_counter_percpu_priv *priv,
+                                       struct nft_regs *regs,
+                                       const struct nft_pktinfo *pkt)
+@@ -147,6 +151,14 @@ static void nft_counter_fetch(struct nft_counter_percpu_priv *priv,
+                total->packets  += packets;
+        }
+ }
++static void nft_counter_fetch_and_reset(struct nft_counter_percpu_priv *priv,
++                                       struct nft_counter_tot *total)
++{
++       spin_lock(&nft_lock);
++       nft_counter_fetch(priv, total);
++       nft_counter_reset(priv, total);
++       spin_unlock(&nft_lock);
++}
+
+ static int nft_counter_do_dump(struct sk_buff *skb,
+                               struct nft_counter_percpu_priv *priv,
+@@ -154,7 +166,10 @@ static int nft_counter_do_dump(struct sk_buff *skb,
+ {
+        struct nft_counter_tot total;
+
+-       nft_counter_fetch(priv, &total);
++       if (unlikely(reset))
++               nft_counter_fetch_and_reset(priv, &total);
++       else
++               nft_counter_fetch(priv, &total);
+
+        if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(total.bytes),
+                         NFTA_COUNTER_PAD) ||
+@@ -162,9 +177,6 @@ static int nft_counter_do_dump(struct sk_buff *skb,
+                         NFTA_COUNTER_PAD))
+                goto nla_put_failure;
+
+-       if (reset)
+-               nft_counter_reset(priv, &total);
+-
+        return 0;
+
