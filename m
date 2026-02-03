@@ -1,238 +1,134 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6D611E868
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Feb 2026 00:19:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 011FB125D0;
+	Tue,  3 Feb 2026 03:19:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770077952; cv=none; b=l5jQvtQtjH1bGwitX8StnK7xX6wypgfJbRtcdDtxLcW8H+6vzlI4QLjFuNrZ2lxXOY7XoV5oaOkkG7EEG2yhu6uRtmCpPu1uj8QJgtSpJ8PzGErfQrmTUKE5B7iMrJUv355IjRgDhuTeudhICUKde31mBELXxekT+57MvBcQxok=
+	t=1770088745; cv=none; b=SLspEuiHK1uMBxxMuOiR2+Io1yEMA1traM1ITDsGq8dPSoTVxhuQ7FufB62V6Q6ctIIB0bDyZcDLqoulAvXkxP+hIl3wVgtk5vL0JpYYVMxNwp0eyYJURRgsxWPnKOVOp8BJWyjsF/BmZ2Yp7aO3No9EZsQ9MLB2Y2HpuorVics=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770077952; c=relaxed/simple;
-	bh=bKr5lA0Ddg0tkih0KloqQz4rkG1OVRNdqGkS2tAk1dw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=L+b/F5Uaa/6wSyfmS3RJb1VL03Hoj9jqSjaDErjsIE0V+CGr4yYBvxIjAdBeg9OCU+UBpq3IJH4ue7/37d5h2+iQsAZkbLEVFT2PokHwVuzQBxvapvAE4G8/FYsxe9lQWPXFB7c9FIIJ3evjYwIEMxApy9og/kGpuiH3PZ8xUp8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=nfyti1PC; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1770088745; c=relaxed/simple;
+	bh=Xr5RciCKSPOhKRDLSKFKOQYUONb33o2QlFkL8N/5UFg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=bHudgE4FDejkJwyXyCbOX1yDFwJs6jubiP1NdTLv1w+pG6GPGmlJYtTCOostgRwH9oROpE1TK6PV7qIkOEEmGk2Td28QjCQfeAF5Lnao59VuVLg7mnaXl/eak5CGU/q0sZPNsRGNyk3kMTRbeE9vXpC2MLLWoxNPTmmdZuslNSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZZWQJBQ9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="nfyti1PC"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 696B160179;
-	Tue,  3 Feb 2026 01:19:08 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1770077948;
-	bh=lPmLFmLTI4pic4AK24KKrmKa+Nmpb+hwMnce9LzBAZU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=nfyti1PC0P+3g6PXHuArF4YTVdEE8tRH2KV17B2ibIPf0Z14jO7zqREkD4xShdx6h
-	 Q+zsG9Ty77ucBu/YdS/xVD1yK7+gyWj2heS7jK8dBSxku0gn3xEpMF7X51gcsqeE88
-	 ITBGKM+6wRCHVN4DUXFSou+1JeB+13mUvBeMJirBizjWekMsAGzuwaodkfiZvjpUD2
-	 0VscxNwoBOvLNCH+I+rYaSlJUorGiGA+32hHbiEcwHoQKvkSZFk9MGj0bXqprLVKKA
-	 wgepmFBcDI9un7JFhqchReh2lNdte+MegEYncFvsGa4sB5ADDLSHFbUhRUS9zHsXgQ
-	 lMPJBBUT0xz7w==
-Date: Tue, 3 Feb 2026 01:19:06 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Mathieu Patenaude <mpatenaude@gmail.com>
-Cc: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
-Subject: Re: nft bash completion
-Message-ID: <aYE--kfgDkYzASQm@chamomile>
-References: <CAJ-1uKHCK_yGx7WUAyOpoTn5QJFhu5khG4W17Foj_3ovgTjPwQ@mail.gmail.com>
- <aXzV1cB0zHqe4wwl@orbyte.nwl.cc>
- <CAJ-1uKFUx4zi-g71kKzphzRQJFH36M6SwGwdLpAMjYivbqWmXg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZZWQJBQ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BAE4C116D0;
+	Tue,  3 Feb 2026 03:19:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1770088744;
+	bh=Xr5RciCKSPOhKRDLSKFKOQYUONb33o2QlFkL8N/5UFg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ZZWQJBQ9nj91DYGslbsVFu6rfgkRfxM5HQBNWhMZa/s5DRoXbTFQoZyn4oqsYQ5/y
+	 +eHnnn++9dcWkMgOt3kAg8Xp2+h1faK8K4GtDvnGcu/Ov9S3IiW78AhLUjnyLHjvd9
+	 /p1P1vKqrNNjrqmbFwi5FofiYuk/iVk/t8r3+ph607NCofq79ovJ7e9EukJ9JoOeyz
+	 InwnyvKoYfwL+W7p/CxfiuHWzJogrc4p49erVpC5HQiNGSFmwCE04kZA9wWV+5jRFE
+	 QaOA3gqlRnXjWbEgDX0rHlnR5xEpbDP7IuSGCh2mgKM6nUroKr5QLE6nEOQExWr0Xx
+	 HzE1W/PYlDbMg==
+From: Jakub Kicinski <kuba@kernel.org>
+To: one-d-wide@protonmail.com
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	phil@nwl.cc,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	pablo@netfilter.org,
+	coreteam@netfilter.org,
+	fw@strlen.de,
+	donald.hunter@gmail.com
+Subject: Re: [net-next,v7,3/5] doc/netlink: nftables: Update attribute sets
+Date: Mon,  2 Feb 2026 19:19:02 -0800
+Message-ID: <20260203031902.934664-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260202093928.742879-4-one-d-wide@protonmail.com>
+References: <20260202093928.742879-4-one-d-wide@protonmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJ-1uKFUx4zi-g71kKzphzRQJFH36M6SwGwdLpAMjYivbqWmXg@mail.gmail.com>
 
-Hi,
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 
-On Fri, Jan 30, 2026 at 01:26:43PM -0500, Mathieu Patenaude wrote:
-> Hi Phil,
-> 
-> Thanks for looking into this, hopefully it's a small break from the
-> complex nftables c code ;-)
+For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
+---
+doc/netlink: nftables: Update attribute sets
 
-... interfering in this discussion.
+This commit adds new attribute sets (log-attrs, numgen-attrs, range-attrs,
+compat-target-attrs, compat-match-attrs, compat-attrs), adds missing
+attributes and checks, and fixes byte-order annotations for the nftables
+netlink specification.
 
-> The current code gets you up to the point where you need to define the
-> "object" specifics.  At the shell, the problem I see is the escaping
-> of special characters ( { } ; ) and basically not wanting to reproduce
-> the entire nft parser in bash.
-> 
-> I can be very wrong on this, my observation is that most users define
-> things using a file (or file "like" or automation) method and mostly
-> use shell command line to do "simpler" things. I guess if we wanted
-> to auto complete everything at the shell without having to maintain
-> the equivalent of the nft option parser in bash, the autocomplete
-> would need to be in the nft command itself, i.e. it would be great
-> if the "nft --interactive" mode had auto-completion, we could
-> somehow find an efficient way to leverage it from bash, removing
-> most of the need for the Bash'i'ism ;-)
+> diff --git a/Documentation/netlink/specs/nftables.yaml b/Documentation/netlink/specs/nftables.yaml
+> index f15f825cb3a1..2ddf89c70124 100644
+> --- a/Documentation/netlink/specs/nftables.yaml
+> +++ b/Documentation/netlink/specs/nftables.yaml
 
-It would be really good to have this consolidated, then expose a new
-option that tells what is possible from an incomplete command.
+[ ... ]
 
-> But then again, there is the "escaping special characters" fun part.
+> +  -
+> +    name: range-attrs
+> +    attributes:
+> +      # Mentioned in net/netfilter/nft_range.c
+> +      -
+> +        name: sreg
+> +        doc: source register of data to compare
+> +        type: u32
+> +        byte-order: big-endian
+> +        enum: registers
+> +      -
+> +        name: op
+> +        doc: cmp operation
+> +        type: u32
+> +        byte-order: big-endian
+> +        enum: range-ops
+> +        checks:
+> +          max: 256
 
-What is the issue specifically? Would providing some context to the
-autocomplete feature help? ie. "autocomplete, but this is bash". Or,
-are you already seeing scenarios in which this approach will lead to
-ambiguous autocomplete results that are difficult to address?
+Should this be max: 255? Looking at nft_range_init() in net/netfilter/nft_range.c,
+the kernel uses nft_parse_u32_check(tb[NFTA_RANGE_OP], U8_MAX, &op), where U8_MAX
+is 255. This spec would allow 256 which the kernel rejects with -ERANGE.
 
-Or is it just the complexity associate to dealing with the bison
-parser, I understand consolidated approach is harder.
+[ ... ]
 
-> I realize I posted a link to the nft completion itself, but I had a
-> note about sudo at the "project" (two files!) level here
-> https://github.com/mpatenaude/bash-nft-completion/tree/main
+> +  -
+> +    name: compat-target-attrs
+> +    header: linux/netfilter/nf_tables_compat.h
+> +    attributes:
+> +      -
+> +        name: name
+> +        type: string
+> +        checks:
+> +          max-len: 32
+> +      -
+> +        name: rev
+> +        type: u32
+> +        byte-order: big-endian
+> +      -
+> +        name: info
+> +        type: binary
+> +  -
+> +    name: compat-match-attrs
+> +    header: linux/netfilter/nf_tables_compat.h
+> +    attributes:
+> +      -
+> +        name: name
+> +        type: string
+> +        checks:
+> +          max-len: 32
+> +      -
+> +        name: rev
+> +        type: u32
+> +        byte-order: big-endian
+> +        checks:
+> +          max: 255
 
-But short term / easier approach that can be replaced by the
-consolidated autocompletion in nft later on should also be fine, which
-is what I think you're proposing: a script. Given such script can be
-simplified later on once the nft consolidated autocompletion is
-available.
-
-Are you planning to explore adding support for more complex stuff such
-as concatenations and maps?
-
-> The use of sudo / root is required for viewing the current ruleset, so
-> as soon as you need to auto complete an actual "object name", yes root
-> privileges are needed.  The no password OR cached sudo creds (via sudo
-> -v) is a requirement of the former, otherwise it would make the "auto
-> completion" pretty awkward, like, a  [tab] "enter your password", each
-> time you need to get a list of defined "objects".
-> 
-> For my use, this was initially put together for the "list" command so
-> it allowed the completion of the top most objects, like table, set,
-> chain, names.  I based the current version on this  "spec", not very
-> technical, but from the man page:
-> https://github.com/mpatenaude/bash-nft-completion/blob/main/positional-args-schema.txt.
-> 
-> Just to be sure I explain this correctly, for example:  nft list set
-> <family> <table> <set> will go like this:
-> 
-> # Prerequisites: cache the sudo credential if you don't have sudo
-> configured for NOPASSWD for the /usr/sbin/nft command, or just become
-> root...
-> [mathp@dev01 /]$ sudo -v
-> [sudo] password for mathp:
-> 
-> # Lists all top level options
-> [mathp@dev01 /]$ nft
-> -v                  --handle            --numeric           --file
->          delete
-> -V                  -s                  -y                  -D
->          create
-> --version           --stateless         --numeric-priority  --define
->          get
-> -h                  -t                  -p                  -I
->          replace
-> --help              --terse             --numeric-protocol
-> --includepath       rename
-> -i                  -S                  -T                  -d
->          monitor
-> --interactive       --service           --numeric-time      --debug
->          list
-> -c                  -N                  -e                  reset
->          insert
-> --check             --reversedns        --echo              destroy
-> -o                  -u                  -j                  flush
-> --optimize          --guid              --json              add
-> -a                  -n                  -f                  describe
-> 
-> # once you start the positional options (ex. list) it no longer
-> propose -/--flags, will also only propose what can be "listed" or
-> "added", etc.
-> # If you start typing f[tab] it does auto-complete until "flowtable"
-> and propose flowtable and flowtables for example.
-> [mathp@dev01 /]$ nft --handle list
-> chain       flowtable   quota       table       flowtables  maps        tables
-> counter     limit       ruleset     chains      hooks       quotas
-> ct          map         set         counters    limits      sets
-> 
-> # This is where the auto completion is opinionated, it currently
-> requires that you select the family, if you skip it, then it stops
-> proposing completion
-> [mathp@dev01 /]$ nft --handle list set
-> arp     bridge  inet    ip      ip6     netdev
-> 
-> # This is where "root" (sudo) is required, to list the actual table
-> names and propose them
-> [mathp@dev01 /]$ sudo nft --handle list set inet
-> firewalld                  systemd_cgroups_isolation
-> 
-> # Sudo  required to propose the defined set names for auto complete:
-> [mathp@dev01 /]$ sudo nft --handle list set inet systemd_cgroups_isolation
-> inbound_only_cgroups  test_set
-> 
-> # Auto complete the set name.
-> [mathp@dev01 /]$ sudo nft --handle list set inet
-> systemd_cgroups_isolation inbound_only_cgroups
-> table inet systemd_cgroups_isolation {
->         set inbound_only_cgroups { # handle 4
->                 type cgroupsv2
->                 elements = { 48026 }
->         }
-> }
-> 
-> # Adding a set for example, auto completion "propose stuff" until
-> "test_set" is entered.
-> [mathp@dev01 /]$ sudo nft add set inet systemd_cgroups_isolation
-> test_set '{ type ipv4_addr; }'
-> 
-> # lots of chains, yes it helps auto complete any one of those names ;-)
-> [mathp@dev01 /]$ nft list chain inet firewalld
-> Display all 117 possibilities? (y or n)
-> 
-> [mathp@dev01 /]$ nft list chain inet firewalld mangle_PRE
-> mangle_PREROUTING                        mangle_PRE_acme_log
-> mangle_PREROUTING_POLICIES               mangle_PRE_acme_deny
-> mangle_PRE_drop                          mangle_PRE_acme_allow
-> mangle_PRE_drop_pre                      mangle_PRE_acme_post
-> mangle_PRE_drop_log                      mangle_PRE_policy_allow-host-ipv6
-> mangle_PRE_drop_deny                     mangle_PRE_policy_allow-host-ipv6_pre
-> mangle_PRE_drop_allow                    mangle_PRE_policy_allow-host-ipv6_log
-> mangle_PRE_drop_post                     mangle_PRE_policy_allow-host-ipv6_deny
-> mangle_PRE_acme                      mangle_PRE_policy_allow-host-ipv6_allow
-> mangle_PRE_acme_pre                  mangle_PRE_policy_allow-host-ipv6_post
-> 
-> Best,
-> Math.
-> 
-> 
-> On Fri, Jan 30, 2026 at 11:01 AM Phil Sutter <phil@nwl.cc> wrote:
-> >
-> > Hi Mathieu,
-> >
-> > On Mon, Jan 26, 2026 at 10:26:16PM -0500, Mathieu Patenaude wrote:
-> > > Just inquiring to see if there is any interest in adding nft bash
-> > > completion to the nftables project tree?  I only found a reference to
-> > > it dating back to 2016 (patchwork RFC), but I'm unclear if this was
-> > > ever merged or if I'm just looking in the wrong place.
-> >
-> > AFAIK nothing exists yet.
-> >
-> > > I wrote something that works:
-> > > https://github.com/mpatenaude/bash-nft-completion/blob/main/nft
-> > >
-> > > Let me know if that can be helpful.
-> >
-> > Just to clarify:
-> >
-> > | # - Provides completions up to the start of a statement (until a '{' is needed).
-> >
-> > So this does not complete statements/expressions when adding a rule, and
-> > completing the initial part is limited since it can't find out which
-> > ruleset elements exist already unless sudo does not require a password.
-> >
-> > Is the latter a requirement for the former? I.e., could it continue to
-> > complete something like 'nft add rule t c ip ' despite it does not know
-> > what "t" or "c" is supposed to be?
-> >
-> > Cheers, Phil
-> 
+Should compat-target-attrs also have checks: max: 255 for its rev field? The
+kernel's nft_target_policy uses NLA_POLICY_MAX(NLA_BE32, 255) for NFTA_TARGET_REV,
+same as compat-match-attrs, but compat-target-attrs rev field above is missing
+this check.
+-- 
+pw-bot: cr
