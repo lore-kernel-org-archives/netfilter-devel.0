@@ -1,141 +1,167 @@
-Received: from mail-yx1-f41.google.com (mail-yx1-f41.google.com [74.125.224.41])
+Received: from mail-dy1-f172.google.com (mail-dy1-f172.google.com [74.125.82.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824591DC985
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Feb 2026 14:36:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.41
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770129399; cv=pass; b=gIMSisN3zokybSzQr+1tdNPYI0+7YyO+/LK5y8ER5+SAGhg3QEhWWRrqz5rSiKb6C5/0Wj5qQ2yWg7CKrfXLqQseU8dvuLp7jvM9ltzrTrD6SRe73m2DU7FVJ28KL2StubYvP477gXaRPHdXo5n0nJSWgHcPn5vKDeWDmNSWx84=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770129399; c=relaxed/simple;
-	bh=odADWoVpnh46kioRwm0TBjdpIHbkpoy15QMEVhLMOw0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=NuWoXqgjSlHtOurcWY4FSpTQV2NYMbEWJV9JvcIB2g7ryyuuaPgxzp6zvW0iY+YUPdjLqABMONS4xBQ0zu+KUZr3vcomm11iSttmT9mxhnjUjizLzMEkcJkaGl2uN8+fCu7C95nvEjzYHHMxo9m1eKIy+VZ/Ik24HGHAyPJDLFA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Cmp/FL4Y; arc=pass smtp.client-ip=74.125.224.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4181636921A
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Feb 2026 14:55:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.172
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770130539; cv=none; b=SYrlSxqi0jhRpoVGdY+6jluGZ4Yt9TAq7rKXIWwxqoQy5lXmJ9kK1qgIrZNQ/aylX8q79HULB8gncvdlmDaBAoFumZKuUUSjXWpSS6hDCMQHO/hDPgp/9PGEN+5d0wff0jjji2VdXl31LYwKAsgou11UlW2X/WzytJ10YWp/8Kg=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770130539; c=relaxed/simple;
+	bh=NRgVJBul0Y8zpGSgGKNgKM+I9r7ovGTkQ6APHRuS7mE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=iKmLVetWK1B1m4YRaQy77zraviCc6qzmk8Qs5O5Y3GxGZWXFZQlW+AVom57CJHMW2t8yTtF7A31ZNeSIs5+merAnXaw3vp3GUuZpD6DCXtA+bYVEcZePiJSk7D8zECIQ/ppcgH+NsOB7+ldnP7G3H4AkglsGj6XkpEIjuQXYjRc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lMgcB7gV; arc=none smtp.client-ip=74.125.82.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Cmp/FL4Y"
-Received: by mail-yx1-f41.google.com with SMTP id 956f58d0204a3-649605d3664so6364676d50.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 03 Feb 2026 06:36:38 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770129397; cv=none;
-        d=google.com; s=arc-20240605;
-        b=KQkvSRx62sTswAKS/W6E2LFG7t3mk4rveI/ACMcCF5FPCX/Sa7I9ktG68lovxvxow5
-         giVblZJOiaRSgAtjQsTeShC0FQyA21LdBm4E1r3IuF3Ciug/IrJ8cjVwl6gd7kTxLqfZ
-         yMocol0h2c34B69qXquoSY9IBKRSRNTQuD1tZDa6Pys5cpHHlalKL/0KVD8fsRvY88Jx
-         M22OmpTuDyWlpm6qyNVCfzW9xdtHqlxQkS6CoDRY0ChLpFzc9XQ7g20BISlOUVny+J3G
-         BQmx3LDNwQa5eL6JYIRtJwSeCkQZkEgzVpRjFOsynQmrV+q/I56yJGXjg7QzULBOnT2y
-         3iFQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=pBcbxMUtF8xNaMRTkP3Y2ohb5ZiU9Nml+ZgLyhJTzwU=;
-        fh=VaO8LpgFr7kztSSBFJHye4ysG2IchiR4mr5y/tmXzdA=;
-        b=IYqk1G/Oe0EEVtQUuZLWhFIfHdrCkDvCcPqqxkUYL7BiZr4EqOSwfT0hst1vJ8S4MI
-         rd5FrZ+nKDQYwxa8K5RSNZW2m097s+MkRnIj2dKpuE5q5m0hLTwkPplTr692RNIn5j2V
-         VD70g6OYRGHZuwJaXd/t20DhYQcaqvBjxlVxcCPj722vnln5UH0OTupRy+9b6IHsy6O4
-         7zvH2wruQ5i7SP9uzuw55k+J3mMPZOs7z76RorsVwQ9q+S/hAr2WKk74sFoBBvaS9+HR
-         srQkIMUUviPZm+KStm46ZRmKq4KExFdBCSMmnAZZJYn+gI479Pr7m5yuaFwI8XYsL9qZ
-         Z1BQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lMgcB7gV"
+Received: by mail-dy1-f172.google.com with SMTP id 5a478bee46e88-2b7070acfdcso6244414eec.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Feb 2026 06:55:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770129397; x=1770734197; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1770130533; x=1770735333; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=pBcbxMUtF8xNaMRTkP3Y2ohb5ZiU9Nml+ZgLyhJTzwU=;
-        b=Cmp/FL4YFtBZN07PeAUHkxVnGGG1q0XZVAmX8rpzYTtqYbjoDqm2RQZmmwsO6GOkHi
-         vrdmILcl+1ZHN+X3Km2mis4XOcUSFWYItmLy0Q2d2qE3Z6xZ7RLKzZUjt9Gei1kOA/he
-         zmh4igqkr9gqC7NVnm8ylL0FnK49YFJESW4hgZBSE/ZDlcjpIsY4aGDZKdhirRZAo4oG
-         rj2FcV+CjPgCkSpev9D9h/4imXw1C/twUu5Nk2yaIIM88GIw4TYmIGAIS82b6im8eMhj
-         eTAloBLMeCWf4eIiLEoBrxAvmfcDsecgsy4a0WsLkwSnp4MStcPS7jhYz0yZEnO0bULr
-         nsmw==
+        bh=ARM7OCB27g2Bz6Y1P5CF31jTt4HxwnIXMV7CLDf4O6g=;
+        b=lMgcB7gVLJBqTU6jI+7fIlgIRS3Vf8c5SWyknBT7xxEXWcWGwdv9zTuwu4rNlEm6iI
+         797OXgkwkgvklpjyzSqmztvg2yMR8o3/YY/84nfBKDhsaJA7QwVAY8a2YflCt5M/mD0v
+         fdJjKHv+Rmf0gHSBexfJCKxPLLtXB4iKBfpTLlQPuWaD6oLFwSs31vr5+/nVNMV10xGL
+         jv0tQkhNaOcUy5sjfg+aWQWp5fIJbW0MmQskvMUihYS+E9DK/mgM+acQakQmF4buGXDk
+         f/UyVOuktw8HZzmNJUVxxcwxAJ7ztOFFe5DRkVAD95RQxePX2gT53O2bty/O/DXufsU9
+         Nu6A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770129397; x=1770734197;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20230601; t=1770130533; x=1770735333;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=pBcbxMUtF8xNaMRTkP3Y2ohb5ZiU9Nml+ZgLyhJTzwU=;
-        b=QV+oyKtLUODoNzI9MbB7JsGs8Q2F1rXnu/nmATeC3DZLcvwGuFFejzc5e6YlaSNYgP
-         lsAbQgQpcQ9fySqJbRAdFp9lby7Y3Ijgj/gE16XRBrNsVYt8qPuABf/uP8Lqx7CDQl5Y
-         eFSLXASTZzn7lpo3nEHT7tqRHtAJfrxKSUTXehRNqJi7FS/Je1SU0sqbp/mmIW8M/0QB
-         xFuNWTcSSHpyPBRh82juuZP9uCvjWCdyG/dsyXaL6ZyOmWjVZMobGga+HoUPe8JJW6K/
-         4WN8YeDyYr70x+v0V1VBE2/MnsKk3UdlCwQwIN6/6dSJn+RNRIJ8j2v9RYCcijaAi6YR
-         G64A==
-X-Forwarded-Encrypted: i=1; AJvYcCW6QA6yBzcTCI5nU5QJMze+rHN+NIInl4zPnm0Z4yWW19grrrlbS03h2dTHe4+bfBg/0wfBGWyL+m+jRazKw3A=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzsmoQjAmfRmLkJ0q/SHmWT/S2Gy0h8TOjGCrvJyQY+RtuagWi7
-	qHqMq3EICgi2AdC7GyEdkMbOz04SOoTLpVCi/xQOKOIE8vSdW9YGD3990DRQXhLO6AWV251Gsp3
-	5zoVUkwSyHAuz/G5IYIaXJhmrvi/lHLWoi0LeFZM=
-X-Gm-Gg: AZuq6aI84mx2QWlBfHM0RIkJ480u3Pw8qFczsBTBL/QQacuGEsPplyo7Cb1jaHqw1sr
-	Wmjqe3ZgggejR7Xhm3v3MFFB0uTd5fnWJDraYoni9bOmF4i/mYJt2rLGjn2l2iVE1WgVFQ1JQyY
-	Z2tORzj9PkF5sRc5bvEmDcna4Kn6jPOB+gyYoqaU1W5zQMwpBKZiyuIuZCBmclErWRj1DXOSaqu
-	tTLIi3kfxUBPQBoGFPh5Nt/XVmK/muRWhyJreRQ9rU8yjeHB6OtRh5qm8gvYqmXvV0AqycOgeVo
-	94Af8g==
-X-Received: by 2002:a05:690e:408e:b0:644:71f7:a9ee with SMTP id
- 956f58d0204a3-649a8599a11mr11595318d50.97.1770129397430; Tue, 03 Feb 2026
- 06:36:37 -0800 (PST)
+        bh=ARM7OCB27g2Bz6Y1P5CF31jTt4HxwnIXMV7CLDf4O6g=;
+        b=qjGZ6daNG7jbV5CWjgk4iPLCbIdntP9z3lvfiM2xIPLqxo1JkGlPa738rBzjaRIyfz
+         MJMpAqegX85LPLCSvRXz9res2W2XA/9CSXsX82z1+oz3kWHsMGBWVZ3tWtBGyzZR39qY
+         FonOQ2pofdii3z9w6MFR8zX0StavR00sNTnl6b35MhcmsYcEfYPP5ga3VG5QfITrb7CL
+         usNLif6kHm6ZevuKvffRqqdln0htVubkoUDvDW0t7y8JOXGrk7yMCZyCU8q1xDsC65ck
+         aq0MH1NqZFfk3PxnL6w8jNE7qqyl7GUVOHq/aaXqFLC8ZtbSCepoKGZjkPma0nGVNp7N
+         XWpg==
+X-Forwarded-Encrypted: i=1; AJvYcCUaIP/ceaGE13l+szBPDQLcghnEgZ0AUVjJPY4GK68rkYfAZWj4dodu20PoF1eejcaHDOyZB9Thel/HqYBJl+o=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxiKAIvy0SX3bSolbf8IBYkatDdeXL/wMyaTCKY7OdP8Tu+st6x
+	5nWjYLbD9bae15MqYQYfc04U1PF8JMtmDv0s6Ccc7MLl4rYJkguhR/4c
+X-Gm-Gg: AZuq6aKiNKoeIkXZLgTvPhI/7W0hip5fRMYA4CUFbM4FRzjgi31ZgjxjiI+NsAyNaVE
+	DLB4YBTBtXzScdXrdOgoJ6d77rPbMkPZcIFqBFuPiToRSuxYW3CNZ0jiLbPADsfIg645tedegvG
+	wovMYEX5pecfOkRCUpSLJ52hfsEWDl9FSbSRbaYP1NRPyV/qMjbGqa/Bdod36oQmlESw2mM3Tq8
+	n1+7cabhowyXIELfyiqZnE1Z7tSeCdM/JqJdurq7Gjw4JNMqb8E3UDY3wDhuP1EvsmLrh0vHC5Y
+	kcpVwcWPmhHYoh+utHkYk5xI9whsjes6xUhBEjmcaaib4eeacDF683WcvwJaQ3Nw0y2qMNp1ZGC
+	gbny9tt8Gdrq90Tmt1kXMzQv9Vlj3kL4OnrraknFrwDU9WijECI/VQZp/3DaWtGBp371zocUF1U
+	/oF0DLAlzX+Zv121yQR4ZaZMV7MrYaHZzj4f24PO/hEf893l+McoGa9/s1u2OW+E5b7xTaTMb3c
+	aviwwR3SCDOZQ/F7XH5
+X-Received: by 2002:a05:7300:220f:b0:2b8:209d:5980 with SMTP id 5a478bee46e88-2b8209d5c4amr1327259eec.30.1770130533426;
+        Tue, 03 Feb 2026 06:55:33 -0800 (PST)
+Received: from localhost.localdomain (108-214-96-168.lightspeed.sntcca.sbcglobal.net. [108.214.96.168])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b7a16ef40asm21806765eec.13.2026.02.03.06.55.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 03 Feb 2026 06:55:33 -0800 (PST)
+From: Sun Jian <sun.jian.kdev@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Phil Sutter <phil@nwl.cc>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sun Jian <sun.jian.kdev@gmail.com>
+Subject: [PATCH v2] netfilter: amanda: fix RCU pointer typing for nf_nat_amanda_hook
+Date: Tue,  3 Feb 2026 22:55:11 +0800
+Message-ID: <20260203145511.164485-1-sun.jian.kdev@gmail.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20260203080109.2682183-1-sun.jian.kdev@gmail.com>
+References: <20260203080109.2682183-1-sun.jian.kdev@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260203080109.2682183-1-sun.jian.kdev@gmail.com> <aYH9FwwOTD28Gn04@strlen.de>
-In-Reply-To: <aYH9FwwOTD28Gn04@strlen.de>
-From: sun jian <sun.jian.kdev@gmail.com>
-Date: Tue, 3 Feb 2026 22:36:25 +0800
-X-Gm-Features: AZwV_Qimr3FJERvaY9Qr_TnLC5dLIZu4J9bhQ8-QxUcUvNCIWNYgNPDFrut0uIo
-Message-ID: <CABFUUZG87ia6AXbA=EWZb9uN=AzbBeH+gb_PDDOonJk-pyTPcQ@mail.gmail.com>
-Subject: Re: [PATCH] netfilter: amanda: fix RCU pointer typing for nf_nat_amanda_hook
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>, 
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, Feb 3, 2026 at 9:50=E2=80=AFPM Florian Westphal <fw@strlen.de> wrot=
-e:
->
-> Sun Jian <sun.jian.kdev@gmail.com> wrote:
+Sparse reports "incompatible types in comparison expression" error in
+nf_conntrack_amanda.c because nf_nat_amanda_hook is used with
+rcu_dereference() but lacks the proper __rcu annotation.
 
-> > 4. Using rcu_dereference_raw() to fetch the hook address, which
-> >    satisfies sparse's type checking for function pointers.
->
-> This doesn't look right, esp. step 4.  Why not:
->
-> diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linu=
-x/netfilter/nf_conntrack_amanda.h
-> --- a/include/linux/netfilter/nf_conntrack_amanda.h
-> +++ b/include/linux/netfilter/nf_conntrack_amanda.h
-> @@ -7,7 +7,7 @@
->  #include <linux/skbuff.h>
->  #include <net/netfilter/nf_conntrack_expect.h>
->
-> -extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
-> +extern unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
->                                           enum ip_conntrack_info ctinfo,
->                                           unsigned int protoff,
->                                           unsigned int matchoff,
-> diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_connt=
-rack_amanda.c
-> --- a/net/netfilter/nf_conntrack_amanda.c
-> +++ b/net/netfilter/nf_conntrack_amanda.c
-> @@ -37,7 +37,7 @@ MODULE_PARM_DESC(master_timeout, "timeout for the maste=
-r connection");
->  module_param(ts_algo, charp, 0400);
->  MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
->
-> -unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
-> +unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
->                                    enum ip_conntrack_info ctinfo,
->                                    unsigned int protoff,
->                                    unsigned int matchoff,
-> ?
-Ack, I'll follow your suggestions and send a V2 shortly.
-Thanks for the correction!
+Fix this by correctly placing the __rcu annotation inside the pointer
+parentheses in both the declaration and definition. This allows the
+standard rcu_dereference() to work correctly.
 
-Regards,
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Sun Jian <sun.jian.kdev@gmail.com>
+---
+v2:
+  - Correctly place __rcu annotation inside the parentheses as
+    suggested by Florian Westphal.
+  - Use standard rcu_dereference() instead of rcu_dereference_raw().
+---
+ include/linux/netfilter/nf_conntrack_amanda.h | 12 +++++------
+ net/netfilter/nf_conntrack_amanda.c           | 21 ++++++++++++-------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-Sun
+diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
+index 6f0ac896fcc9..9f957598a9da 100644
+--- a/include/linux/netfilter/nf_conntrack_amanda.h
++++ b/include/linux/netfilter/nf_conntrack_amanda.h
+@@ -7,10 +7,10 @@
+ #include <linux/skbuff.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
+ 
+-extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
+-					  enum ip_conntrack_info ctinfo,
+-					  unsigned int protoff,
+-					  unsigned int matchoff,
+-					  unsigned int matchlen,
+-					  struct nf_conntrack_expect *exp);
++extern unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
++						enum ip_conntrack_info ctinfo,
++						unsigned int protoff,
++						unsigned int matchoff,
++						unsigned int matchlen,
++						struct nf_conntrack_expect *exp);
+ #endif /* _NF_CONNTRACK_AMANDA_H */
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index 7be4c35e4795..2e3753758b9b 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -37,13 +37,13 @@ MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
+ module_param(ts_algo, charp, 0400);
+ MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
+ 
+-unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
+-				   enum ip_conntrack_info ctinfo,
+-				   unsigned int protoff,
+-				   unsigned int matchoff,
+-				   unsigned int matchlen,
+-				   struct nf_conntrack_expect *exp)
+-				   __read_mostly;
++unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
++					 enum ip_conntrack_info ctinfo,
++					 unsigned int protoff,
++					 unsigned int matchoff,
++					 unsigned int matchlen,
++					 struct nf_conntrack_expect *exp)
++					 __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_amanda_hook);
+ 
+ enum amanda_strings {
+@@ -98,7 +98,12 @@ static int amanda_help(struct sk_buff *skb,
+ 	u_int16_t len;
+ 	__be16 port;
+ 	int ret = NF_ACCEPT;
+-	typeof(nf_nat_amanda_hook) nf_nat_amanda;
++	unsigned int (*nf_nat_amanda)(struct sk_buff *skb,
++				      enum ip_conntrack_info ctinfo,
++				      unsigned int protoff,
++				      unsigned int matchoff,
++				      unsigned int matchlen,
++				      struct nf_conntrack_expect *exp);
+ 
+ 	/* Only look at packets from the Amanda server */
+ 	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL)
+-- 
+2.43.0
+
