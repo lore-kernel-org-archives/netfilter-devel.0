@@ -1,80 +1,76 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com [209.85.128.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037EB4266B1
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 15:24:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DEDE285404
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 15:38:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770218656; cv=none; b=DosvPCZZx/eLajGWv8rxh//5PMAea38QiC9qz5CGgcxoJjP3e1DMwF1Q5ZzqygegdJGVe4KJrzNooLzEvYrSiU+hsQHy+jryhKjCYZAnMUs+FCNMLIPMSTM3FjVJjRCjWh7qzuxAKGe4AzniZCf3Jh2s6ExfdlfzNzr7em1f0no=
+	t=1770219513; cv=none; b=MhcmFmIUM4ihL3S8dfuQZLoJMHdsYQgQ3J6flKXfxSPojczkXf9qRdwrDtVxqpZ3cu12gCdQyIcZ03Ls7llxI3H6KmdC+cIRlN2m3T8RGuwljlMuTLEvXZT8+BZefLst40L95S3MKLieRCDED7+SJ+lTEC04U/a/QRPYbKdC6D4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770218656; c=relaxed/simple;
-	bh=BTab8jSI8y7Xhp8gq5GUr43rlsbhORseNGAT39cpxU4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iNL1XUqfkw2tGeJSpPrgRRY+ZJdyv08E/gs0JNWztNGBjD5a6cACbsPQPyA2iFs7BlaqhtISYq10wBBw0TaAQGoXl2rAmJdtshLVW5jE6JepeZeyB98udLWTfDDcMar6HMVwIGqE0r4tTQt6BKUCUxUYRxZ8TWEguyA4JsdG/Ug=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZLBVXTry; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q4LkO+Ei; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZLBVXTry; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q4LkO+Ei; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1770219513; c=relaxed/simple;
+	bh=dazWroJUwQi0nrwSDlFxB7suit2nOEw7he12y3yOnqU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=cNLUt+XKv2USzkNhgIPudsz7iScqcij/A8IqWxfvgG8burmEVwvL7G6u5Hu7ww9uXuxoI/0wUw1yWqtTog7pL0GACURYTrB7jW9uA+aKP99j0SO7tALanZ8k+VgOFNj0mTEX6rODdx7Pw6ERLbfy/PwI1Yn5qttpeezsS8+WYQw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NP4ByoZ0; arc=none smtp.client-ip=209.85.128.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZLBVXTry";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q4LkO+Ei";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZLBVXTry";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q4LkO+Ei"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 4603F3E74C;
-	Wed,  4 Feb 2026 15:24:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1770218654; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=KkJQIigH7MfC9m9BlREZ8erEImMNBAQ5IQUrUKg9z+I=;
-	b=ZLBVXTryZ5UZFVgvQCBONp2rvFtMOhjQpL+dvAj6NSe6fbbMgRcXys5D08B/SqrQ9B9Rjh
-	2ZIYoTHxCq8STLCzqHy5zZ8m7xFtPeHweYGP5N/miTwWVMn9mm+QyAJsR48sKcjPx3KhB/
-	Hf7JGRR9jX/vTSL5s7y2pRxny2GuH24=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1770218654;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=KkJQIigH7MfC9m9BlREZ8erEImMNBAQ5IQUrUKg9z+I=;
-	b=q4LkO+EilCfKect6gsRQjFN0xy3oBQzhgkR3gIOMcHoYDBppH+LRy/MPQvyKGgBWIxshKO
-	qt/Xa9wGICTE57Bg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1770218654; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=KkJQIigH7MfC9m9BlREZ8erEImMNBAQ5IQUrUKg9z+I=;
-	b=ZLBVXTryZ5UZFVgvQCBONp2rvFtMOhjQpL+dvAj6NSe6fbbMgRcXys5D08B/SqrQ9B9Rjh
-	2ZIYoTHxCq8STLCzqHy5zZ8m7xFtPeHweYGP5N/miTwWVMn9mm+QyAJsR48sKcjPx3KhB/
-	Hf7JGRR9jX/vTSL5s7y2pRxny2GuH24=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1770218654;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=KkJQIigH7MfC9m9BlREZ8erEImMNBAQ5IQUrUKg9z+I=;
-	b=q4LkO+EilCfKect6gsRQjFN0xy3oBQzhgkR3gIOMcHoYDBppH+LRy/MPQvyKGgBWIxshKO
-	qt/Xa9wGICTE57Bg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id BFE8D3EA63;
-	Wed,  4 Feb 2026 15:24:13 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id CzefK51kg2m1QwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 04 Feb 2026 15:24:13 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf-next v3] netfilter: nf_tables: add math expression support
-Date: Wed,  4 Feb 2026 16:23:58 +0100
-Message-ID: <20260204152358.11396-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NP4ByoZ0"
+Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-794d05dbe22so39056977b3.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 Feb 2026 07:38:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1770219512; x=1770824312; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=HpODAycToOiJmSD/e3ZFdCwq9sHP+TaddEYeB8Erx0A=;
+        b=NP4ByoZ08sf7RBiXN+SbJMYTj6rfGiBOQgtTrWSzyTEUe3ueadqEuK/7SyrBXyFk+w
+         xTiqhKlhOtIlfqkHzzPALX2711cV5nJpMHSo6swK/EAVynzWR1f6iWipu4BxKB1oFQvE
+         YV56nqOXbS8/kQW9UT7wb3BZrSRDUGLIUVO6WZX1mBNXEpSuaichamwXtWZesz1p85tM
+         dthQRf2bCasj+OqiztYhqOSMfcYPjoK2DPkS90RXTObWRyHfBy0oIQl8dC1cV3/OUWrV
+         oQCWTCSrquAF3Fu3aKfiPAjjL6VtLa711Qk2hkTnZZOP8Zd3vmdyKokR543T+cDBB9G4
+         qTLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770219512; x=1770824312;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=HpODAycToOiJmSD/e3ZFdCwq9sHP+TaddEYeB8Erx0A=;
+        b=vNBHoA8XrNG36/N6Z+S5NCzXNYiUSRuJ3SY6KGPoyblg6djvRSByzhD+JlWN88TMeq
+         p5KxT9/UK8tp3luilBATWaV/Ap1h6eZmjmeXZEy5t5I/C/XZyEjpxwlNYHgh67Y6aLTZ
+         aQD5zt8Cax2lnwDsG3P79pL3OsMXaLEilkL7oGJKELLbkKo+a4Tk2JBqfnESLdurJSBh
+         daJFVTFoMq0dTooKzuZk1TpnQ36uVtqSZBPsA8WHZWbZt2DUnAgDQ4HzkryO2099lvT8
+         8Ag0tWUj9d0TG0unwRwXJlYuz2T6VWV9q3FFLXMdB2ZEFFusLBAhutz1SBmetIotZQHa
+         CPDA==
+X-Forwarded-Encrypted: i=1; AJvYcCUEYr0zZZ4e2nNttJd/6sjJbz9dOYZ9FnlhGAt5VEirz/FtX8RjxwnRodehCQ7JXfeSE6naIORZM/Xm1QcA0Nk=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yx/8592rvXYFiapuRl+C71UnsLq4Rymx4JV74XOsZ4B7OgXjFDw
+	ubJ2DaiEUzR04INcGbGLCIbuX6xzUeEVy/lMp3aBRKRsBmMSms8/Ru9s
+X-Gm-Gg: AZuq6aKZSQlg1CJjZhPZIZmLOuDV/VSxGvC15hnY2zZCY0+Dq9nHQ9ixOMRxl0gCqkc
+	UDrctwSELYu0BoFFKJizghN+tDnxH0akJ5AYSX4NKSug9bm2T1Th+RW7HXEIQ5O+WLH8hGgeVTj
+	v66kM2YuO75QJ0pS8Z0JtpbzsYPxvgKzqdHyHTONmN/+4geBFSgF2LIFPX8fonc9gj0Hiz/tBpK
+	S2Dr8++HjmRSjmxXKXjKZw53NCvIw1bA/z4qVEBEu+Qf7uMn2pBlAkT8td7dsRi6F8Wc3qalM2c
+	Y1khLn2pnG6ihl2Mvjru1NLJvqUjr3ahxc57DcSJCAQdw3nH6gVK+CbraCvI9s+AL+SxHv27puU
+	ETg7D8G7xcITB0tNLqClfA5kauvMzI9D3u+doPNBrp436VaQvMdKBbuYEUJ+JxoSd7nXzHME0+c
+	TRMIKJz/9qn9WEhiYosjwRHpcSPq6pWe2B4++iKovd9aPXPGVxnOIs6blT/thES1S739RL+U9kZ
+	bzvA1OvwpsvmqxLHyYA
+X-Received: by 2002:a05:690c:6107:b0:794:d8a8:674 with SMTP id 00721157ae682-794fe796c75mr33814437b3.53.1770219512303;
+        Wed, 04 Feb 2026 07:38:32 -0800 (PST)
+Received: from localhost.localdomain (108-214-96-168.lightspeed.sntcca.sbcglobal.net. [108.214.96.168])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-794fefedd4bsm23609397b3.48.2026.02.04.07.38.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 04 Feb 2026 07:38:32 -0800 (PST)
+From: Sun Jian <sun.jian.kdev@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sun Jian <sun.jian.kdev@gmail.com>
+Subject: [PATCH v4 0/5] netfilter: annotate NAT helper hook pointers with __rcu
+Date: Wed,  4 Feb 2026 23:38:07 +0800
+Message-ID: <20260204153812.739799-1-sun.jian.kdev@gmail.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <aYM6Wr7D4-7VvbX6@strlen.de>
+References: <aYM6Wr7D4-7VvbX6@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,366 +78,43 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[6];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
 
-Historically, users have requested support for increasing and decreasing
-TTL value in nftables in order to migrate from iptables.
+This series adds the missing __rcu annotations to NAT helper hook
+pointers across several netfilter helper modules.
 
-Following the nftables spirit of flexible and multipurpose expressions,
-this patch introduces "nft_math" expression. This expression allows to
-increase and decrease u32, u16 and u8 values stored in the nftables
-registers.
+These global hook pointers are updated and dereferenced under RCU rules,
+so their types should be annotated accordingly. This is a pure annotation
+change (no functional changes), and it also improves static checking.
 
-The math expression intends to be flexible enough in case it needs to be
-extended in the future, e.g implement bitfields operations. For this
-reason, the length of the data is indicated in bits instead of bytes.
+Changes since v2: (no v3 posted)
+  - Extend the series from nf_nat_amanda to the other NAT helpers
+    (ftp/irc/snmp/tftp).
+  - Keep the changes limited to __rcu annotations on the global hook
+    pointer declarations/definitions only (no functional changes).
 
-When loading a u8 or u16 payload into a register we don't know if the
-value is stored at least significant byte or most significant byte. In
-order to handle such cases, introduce a bitmask indicating what is the
-target bit and also use it to handle limits to prevent overflow.
+v2:
+  - Place __rcu annotation inside parentheses (per Florian Westphal).
+  - Use rcu_dereference() instead of rcu_dereference_raw().
 
-This implementation comes with a libnftnl patch that allows the user to
-generate the following example bytecodes:
+Sun Jian (5):
+  netfilter: amanda: annotate nf_nat_amanda_hook with __rcu
+  netfilter: ftp: annotate nf_nat_ftp_hook with __rcu
+  netfilter: irc: annotate nf_nat_irc_hook with __rcu
+  netfilter: snmp: annotate nf_nat_snmp_hook with __rcu
+  netfilter: tftp: annotate nf_nat_tftp_hook with __rcu
 
-- Bytecode to increase the TTL of a packet
+ include/linux/netfilter/nf_conntrack_amanda.h | 12 ++++++------
+ include/linux/netfilter/nf_conntrack_ftp.h    |  2 +-
+ include/linux/netfilter/nf_conntrack_irc.h    |  2 +-
+ include/linux/netfilter/nf_conntrack_snmp.h   |  2 +-
+ include/linux/netfilter/nf_conntrack_tftp.h   |  2 +-
+ net/netfilter/nf_conntrack_amanda.c           | 14 +++++++-------
+ net/netfilter/nf_conntrack_ftp.c              |  2 +-
+ net/netfilter/nf_conntrack_irc.c              |  2 +-
+ net/netfilter/nf_conntrack_snmp.c             |  2 +-
+ net/netfilter/nf_conntrack_tftp.c             |  2 +-
+ 10 files changed, 21 insertions(+), 21 deletions(-)
 
-table filter inet flags 0 use 1 handle 3
-inet filter input use 1 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
-inet filter input 4
-  [ payload load 2b @ network header + 8 => reg 1 ]
-  [ math 8 bits mask 0x000000ff reg 1 + 1 => 1]
-  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-
-- Bytecode to decrease the TTL of a packet
-
-table filter inet flags 0 use 1 handle 3
-inet filter input use 1 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
-inet filter input 4
-  [ payload load 2b @ network header + 8 => reg 1 ]
-  [ math 8 bits mask 0x000000ff reg 1 - 1 => 1]
-  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-
-- Bytecode to increase the meta mark of a packet
-
-table mangle inet flags 0 use 1 handle 6
-inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
-inet mangle output 2
-  [ meta load mark => reg 1 ]
-  [ math 32 bits reg 1 + 1 => 1]
-  [ meta set mark with reg 1 ]
-
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
-v2: dropped the byteorder netlink attribute, added bitmask to handle
-LSB/MSB when dealing with u8 and u16, simplified eval logic. I've kept
-nft_math as module, IMHO it would be too much to make it built-in.
-v3: fixed checkpatch warnings, improved Kconfig description and fixed a
-wrong EINVAL return.
----
- include/uapi/linux/netfilter/nf_tables.h |  27 +++
- net/netfilter/Kconfig                    |   9 +
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_math.c                 | 201 +++++++++++++++++++++++
- 4 files changed, 238 insertions(+)
- create mode 100644 net/netfilter/nft_math.c
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 45c71f7d21c2..e0a0c7cae1b5 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -2015,4 +2015,31 @@ enum nft_tunnel_attributes {
- };
- #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
- 
-+/**
-+ * enum nft_math_attributes - nftables math expression netlink attributes
-+ *
-+ * @NFTA_MATH_SREG: source register (NLA_U32: nft_registers)
-+ * @NFTA_MATH_DREG: destination register (NLA_U32: nft_registers)
-+ * @NFTA_MATH_OP: operation to be performed (NLA_U32)
-+ * @NFTA_MATH_BITMASK: bitmask to be applied on the operation (NLA_U32)
-+ * @NFTA_MATH_LEN: value length in bits (NLA_U32)
-+ */
-+enum nft_math_attributes {
-+	NFTA_MATH_UNSPEC,
-+	NFTA_MATH_SREG,
-+	NFTA_MATH_DREG,
-+	NFTA_MATH_OP,
-+	NFTA_MATH_BITMASK,
-+	NFTA_MATH_LEN,
-+	__NFTA_MATH_MAX,
-+};
-+#define NFTA_MATH_MAX (__NFTA_MATH_MAX - 1)
-+
-+enum nft_math_op {
-+	NFT_MATH_OP_INC,
-+	NFT_MATH_OP_DEC,
-+	__NFT_MATH_OP_MAX,
-+};
-+#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
-+
- #endif /* _LINUX_NF_TABLES_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 6cdc994fdc8a..4a0f6e037c61 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -671,6 +671,15 @@ config NFT_SYNPROXY
- 	  server. This allows to avoid conntrack and server resource usage
- 	  during SYN-flood attacks.
- 
-+config NFT_MATH
-+	tristate "Netfilter nf_tables math expression support"
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This option enables support for the nftables math expression.
-+	  It allows arithmetic operation to be performed on nft registers,
-+	  such as incrementing or decrementing values. Math expressions
-+	  can be used in nftables rules to modify packet fields.
-+
- if NF_TABLES_NETDEV
- 
- config NF_DUP_NETDEV
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6bfc250e474f..fe25b1d1ce0a 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -131,6 +131,7 @@ obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
- obj-$(CONFIG_NFT_TPROXY)	+= nft_tproxy.o
- obj-$(CONFIG_NFT_XFRM)		+= nft_xfrm.o
- obj-$(CONFIG_NFT_SYNPROXY)	+= nft_synproxy.o
-+obj-$(CONFIG_NFT_MATH)		+= nft_math.o
- 
- obj-$(CONFIG_NFT_NAT)		+= nft_chain_nat.o
- 
-diff --git a/net/netfilter/nft_math.c b/net/netfilter/nft_math.c
-new file mode 100644
-index 000000000000..dd0022dc5f56
---- /dev/null
-+++ b/net/netfilter/nft_math.c
-@@ -0,0 +1,201 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <net/netlink.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+struct nft_math {
-+	u8			sreg;
-+	u8			dreg;
-+	u32			len;
-+	u32			bitmask;
-+	enum nft_math_op	op;
-+};
-+
-+static const struct nla_policy nft_math_policy[NFTA_MATH_MAX + 1] = {
-+	[NFTA_MATH_SREG]	= { .type = NLA_U32 },
-+	[NFTA_MATH_DREG]	= { .type = NLA_U32 },
-+	[NFTA_MATH_OP]		= { .type = NLA_U32 },
-+	[NFTA_MATH_BITMASK]	= { .type = NLA_U32 },
-+	[NFTA_MATH_LEN]		= NLA_POLICY_MIN(NLA_U32, 8),
-+};
-+
-+static void nft_math_eval_bitmask(u32 *src, u32 *dst,
-+				  const struct nft_math *priv)
-+{
-+	u32 target, keep, bit_unit;
-+
-+	target = *src & priv->bitmask;
-+	keep = *src & ~priv->bitmask;
-+	bit_unit = priv->bitmask & -priv->bitmask;
-+
-+	switch (priv->op) {
-+	case NFT_MATH_OP_INC:
-+		if (target == priv->bitmask) {
-+			*dst = *src;
-+			break;
-+		}
-+
-+		target = target + bit_unit;
-+		*dst = target | keep;
-+		break;
-+	case NFT_MATH_OP_DEC:
-+		if (!target) {
-+			*dst = *src;
-+			break;
-+		}
-+
-+		target = target - bit_unit;
-+		*dst = target | keep;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static void nft_math_eval_u32(uint32_t *src, uint32_t *dst,
-+			      const struct nft_math *priv)
-+{
-+	switch (priv->op) {
-+	case NFT_MATH_OP_INC:
-+		if (*src != U32_MAX)
-+			*dst = *src + 1;
-+		else
-+			*dst = *src;
-+		break;
-+	case NFT_MATH_OP_DEC:
-+		if (*src != 0)
-+			*dst = *src - 1;
-+		else
-+			*dst = *src;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static void nft_math_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs,
-+			  const struct nft_pktinfo *pkt)
-+{
-+	const struct nft_math *priv = nft_expr_priv(expr);
-+	u32 *src = &regs->data[priv->sreg];
-+	u32 *dst = &regs->data[priv->dreg];
-+
-+	switch (priv->len) {
-+	case 32:
-+		nft_math_eval_u32(src, dst, priv);
-+		break;
-+	default:
-+		nft_math_eval_bitmask(src, dst, priv);
-+		break;
-+	}
-+}
-+
-+static int nft_math_init(const struct nft_ctx *ctx,
-+			 const struct nft_expr *expr,
-+			 const struct nlattr * const tb[])
-+{
-+	struct nft_math *priv = nft_expr_priv(expr);
-+	int err;
-+
-+	if (tb[NFTA_MATH_SREG] == NULL ||
-+	    tb[NFTA_MATH_DREG] == NULL ||
-+	    tb[NFTA_MATH_LEN] == NULL ||
-+	    tb[NFTA_MATH_OP] == NULL)
-+		return -EINVAL;
-+
-+	priv->op = ntohl(nla_get_u32(tb[NFTA_MATH_OP]));
-+	priv->len = ntohl(nla_get_u32(tb[NFTA_MATH_LEN]));
-+
-+	if (tb[NFTA_MATH_BITMASK])
-+		priv->bitmask = ntohl(nla_get_u32(tb[NFTA_MATH_BITMASK]));
-+
-+	if (priv->op > NFT_MATH_OP_MAX)
-+		return -EOPNOTSUPP;
-+
-+	switch (priv->len) {
-+	case 8:
-+		if (!priv->bitmask)
-+			priv->bitmask = 0xff;
-+		if (priv->bitmask != 0xff && priv->bitmask != 0xff000000)
-+			return -EINVAL;
-+		break;
-+	case 16:
-+		if (!priv->bitmask)
-+			priv->bitmask = 0xffff;
-+		if (priv->bitmask != 0xffff && priv->bitmask != 0xffff0000)
-+			return -EINVAL;
-+		break;
-+	case 32:
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-+				      priv->len / BITS_PER_BYTE);
-+	if (err < 0)
-+		return err;
-+
-+	return nft_parse_register_store(ctx, tb[NFTA_MATH_DREG],
-+					&priv->dreg, NULL, NFT_DATA_VALUE,
-+					priv->len / BITS_PER_BYTE);
-+}
-+
-+static int nft_math_dump(struct sk_buff *skb,
-+			 const struct nft_expr *expr, bool reset)
-+{
-+	const struct nft_math *priv = nft_expr_priv(expr);
-+
-+	if (nft_dump_register(skb, NFTA_MATH_SREG, priv->sreg))
-+		goto nla_put_failure;
-+	if (nft_dump_register(skb, NFTA_MATH_DREG, priv->dreg))
-+		goto nla_put_failure;
-+	if (priv->bitmask &&
-+	    nla_put_u32(skb, NFTA_MATH_BITMASK, htonl(priv->bitmask)))
-+		goto nla_put_failure;
-+	if (nla_put_u32(skb, NFTA_MATH_OP, htonl(priv->op)))
-+		goto nla_put_failure;
-+	if (nla_put_u32(skb, NFTA_MATH_LEN, htonl(priv->len)))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_math_type;
-+static const struct nft_expr_ops nft_math_op = {
-+	.eval		= nft_math_eval,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_math)),
-+	.init		= nft_math_init,
-+	.dump		= nft_math_dump,
-+	.type		= &nft_math_type,
-+};
-+
-+static struct nft_expr_type nft_math_type __read_mostly = {
-+	.ops		= &nft_math_op,
-+	.name		= "math",
-+	.owner		= THIS_MODULE,
-+	.policy		= nft_math_policy,
-+	.maxattr	= NFTA_MATH_MAX,
-+};
-+
-+static int __init nft_math_module_init(void)
-+{
-+	return nft_register_expr(&nft_math_type);
-+}
-+
-+static void __exit nft_math_module_exit(void)
-+{
-+	return nft_unregister_expr(&nft_math_type);
-+}
-+
-+module_init(nft_math_module_init);
-+module_exit(nft_math_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Fernando Fernandez Mancera <fmancera@suse.de>");
-+MODULE_ALIAS_NFT_EXPR("math");
-+MODULE_DESCRIPTION("nftables math support to operate with values");
 -- 
-2.52.0
+2.43.0
 
