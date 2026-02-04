@@ -1,50 +1,29 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F699423A64
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 16:07:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BB1B2D061B
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 16:33:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770221233; cv=none; b=Yio3oj1Gp3APKmTNJ6s6kN5K87NxdpzqO+qFzZlsSu19bJRqbrvQpef20Y97Ql3SJcLtJTL1HITLTcLQcpeIhnxcwJVqI2TPSPl3izg2yb+oIP5IA8F/Jg4YAoXdvs+cGUYcXj3bdhUDa6birVtSTikRITgmmH3SSCcBBQU+ROs=
+	t=1770222812; cv=none; b=ealaGA84WPJ2ArokA+8esj6B7bcaWe+Iut4fcMw+6Npu0BBcMPJJkeEYChtQE+SUqjFTscXPB80Y+lNoxbgvpdVxqHC6TRxd56p+jr8fj/QPOV1HCurKxXJYuNVdTeyvlC/jtzcnL/VSxGMiYzK6qWxFF0giBiHfhChtZYLZdio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770221233; c=relaxed/simple;
-	bh=W0tly3KGJPHXAE/ZVGcOXH81pGtXxTyyIjVNQuXWIno=;
+	s=arc-20240116; t=1770222812; c=relaxed/simple;
+	bh=lV2p0he1duPuaWPSOo9zbEiFgA+bT2nkuJ/kAGCjhxg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OJJtJDHdguyaB3McIjkUDq7fxqXFfooAKhLXll55p+U7cl1S/jUnqXeLwhbWYTQIZwwelquZ0FCjqeVdc8B1rkpQBlqXifIGoWvBPb9tJCsfH2Chqgnkaq06yeAIMCZT84FNxOJz+ekVAxPWIoC3gbo94EXBNXy2D03T8iIx5iM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=HhBSV/GC; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="HhBSV/GC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=mteD/1KDK+T1fTRguVE6yXiEGI6sRP9jhnJ1qZb+a4s=; b=HhBSV/GCjzvCkXx6FzdhnXIfcT
-	gaQsw/Ubqd8CoGnvVVbYGdcK55QS8QNIFYS4yMLeyUoly6ZkNKVd9ObR1GEEyY6jcQtckVJV5PtxS
-	a8HKGS0ki7v7m2WMxqszsPOgN5L2p3g+N/ZVEDxFCxhE5m1Vs7mPyGV1KiM7RjfWX7S4QVE1Y3+xm
-	shFUBfO1OuPad5SEcD2b0mMIRBke3v81GvWL60oDVa1xEDDJM3CKYI55IMmWqJaT5lAG5uhzpPqtG
-	XJe5k+txxsZ58wb2wK8E8rLVusLBVKSZ7NBgour+Na0ht1XWLcyoFew3EJE96x2O/K6EM9EuLaZyo
-	SlYLgpBA==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vnfPI-000000004RN-2s5D;
-	Wed, 04 Feb 2026 17:07:08 +0100
-Date: Wed, 4 Feb 2026 17:07:08 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Fernando Fernandez Mancera <fmancera@suse.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, fw@strlen.de,
-	pablo@netfilter.org
-Subject: Re: [PATCH nf-next v3] netfilter: nf_tables: add math expression
- support
-Message-ID: <aYNurHgLqfnX07NB@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	fw@strlen.de, pablo@netfilter.org
-References: <20260204152358.11396-1-fmancera@suse.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=e0PIRkoCKKJ6uF8+Af5iUmpGe3OuuNd6z8D3+k2pY9NPY6XgL+A5Hxky6A2lal1r6TMFv6ZMAJbeVq9BbYuo4g3dGYA0Gut/tvyStRlYhaISuzIH6Wv79sks6V1CBu95sfLE6H/Xz5F4z14KvZYC8jAhhv0zt5s/rPsSYtYCIYA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 637C96033F; Wed, 04 Feb 2026 17:33:30 +0100 (CET)
+Date: Wed, 4 Feb 2026 17:33:30 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Nikolaos Gkarlis <nickgarlis@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, fmancera@suse.de
+Subject: Re: [PATCH v3] selftests: netfilter: add nfnetlink ACK handling tests
+Message-ID: <aYN02tfKPpTxBZDW@strlen.de>
+References: <aOJZn0TLARyv5Ocj@strlen.de>
+ <20251005125439.827945-1-nickgarlis@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,52 +32,22 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260204152358.11396-1-fmancera@suse.de>
+In-Reply-To: <20251005125439.827945-1-nickgarlis@gmail.com>
 
-Hi Fernando,
-
-On Wed, Feb 04, 2026 at 04:23:58PM +0100, Fernando Fernandez Mancera wrote:
-> Historically, users have requested support for increasing and decreasing
-> TTL value in nftables in order to migrate from iptables.
+Nikolaos Gkarlis <nickgarlis@gmail.com> wrote:
+> Add nfnetlink selftests to validate the ACKs sent after a batch
+> message. These tests verify that:
 > 
-> Following the nftables spirit of flexible and multipurpose expressions,
-> this patch introduces "nft_math" expression. This expression allows to
-> increase and decrease u32, u16 and u8 values stored in the nftables
-> registers.
-> 
-> The math expression intends to be flexible enough in case it needs to be
-> extended in the future, e.g implement bitfields operations. For this
-> reason, the length of the data is indicated in bits instead of bytes.
-> 
-> When loading a u8 or u16 payload into a register we don't know if the
-> value is stored at least significant byte or most significant byte. In
-> order to handle such cases, introduce a bitmask indicating what is the
-> target bit and also use it to handle limits to prevent overflow.
+>   - ACKs are always received in order.
+>   - Module loading does not affect the responses.
+>   - The number of ACKs matches the number of requests, unless a
+>     fatal error occurs.
 
-This part puzzles me. IMO byteorder conversion is needed for arithmetic
-on multi-byte values in non-host byte order.
+I'm marking this as 'changes requested' in patchwork.
 
-Since nftables only knows host byte order and network byte order, the
-only case to consider is Little Endian host with NBO data. Registers are
-filled "from left to right", so (u16)0x1337 and (u32)0xfeedbabe look
-like this when stored in Network Byte Order in registers:
+As far as I can see this test also needs to be updated to not
+expect an ACK on the 'end batch'.
 
-{ 0x13, 0x37, 0x00, 0x00 }
-{ 0xfe, 0xed, 0xba, 0xbe }
-
-Interpreting those buffers as u16/u32 on Little Endian results in values
-0x3713 and 0xbebaedfe. Any increment/decrement on those values leads to
-wrong results.
-
-Maybe there's a hidden secret in 'bit_unit', but even if you calculate
-the right value to add/subtract from the right byte (0x100 and 0x1000000
-in our examples), a possible carry-over bumps the wrong byte.
-
-Assuming that I didn't entirely miss the point you might want to have a
-look at recent libnftnl/nftables commits informing libnftnl of payload
-byteorder for host byteorder independent debug output (with correct
-values). Particularly interesting are nftnl_*_set_imm() functions. Maybe
-this allows you to annotate math expression with data byteorder so it
-may perform byteorder conversion as needed.
-
-Cheers, Phil
+The consensus in the other thread appears to be that userspace
+cannot rely on a given number of acks being present, as the receive
+buffer might not be large enough to hold all of them.
