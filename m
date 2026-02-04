@@ -1,101 +1,101 @@
-Received: from wilbur.contactoffice.com (wilbur.contactoffice.com [212.3.242.68])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1271542DFF3
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 20:27:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.3.242.68
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74CC1395242
+	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 21:42:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770236835; cv=none; b=WodBrPnFJQhmysLwlU+1Jb875KaANRqf6YDgDVbDkKGa7OVTPpZfgZ92knmgfk4NAAh7BXrNgnWZUk0tR+pmnFv2e0oRFr/RlLth6oSHu0uxroCLz+gKO5AelRYwB/4TopmXDfTfeOa4gdoMKp3D/0JeK9CSuV6nPSUN8fz9LKM=
+	t=1770241349; cv=none; b=LIi+pe6I0CCxJVavSKoqDog1a1NJud4WmSaAxDBrd4VOrvMC9yQK9cOcrzEbtv2XM7lXCpnuGnmYpoFQU5K8E7wgt0TuC6c+EGqIOXMltjPNM9GwJIOKHt9AVTAP+Ep8Xj907EbNkiyia1C5qDCPJma0+K70WDtsxAtrg9/Drtk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770236835; c=relaxed/simple;
-	bh=spX8OY0R91gJkahjHLJOLF8ziANgiXwrDt3EB0arAFU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Nt9biUmNCeFEZ8r4nh5AUounJ5fhW2OZlqXi3avUwaYb9hlGXkcIdo4CApKnvrjtaDa3U94qqELExB7tepmaaklhgm59eIyveJQAB8OmCv9b7mmA2k33zVwvUE0OserlZEgjQvvCd+Czs7wr4k97pxmOk9kPPOlJM09kmNV0oes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailfence.com; spf=pass smtp.mailfrom=mailfence.com; dkim=pass (2048-bit key) header.d=mailfence.com header.i=brianwitte@mailfence.com header.b=KdVLq+WH; arc=none smtp.client-ip=212.3.242.68
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mailfence.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mailfence.com
+	s=arc-20240116; t=1770241349; c=relaxed/simple;
+	bh=rYLCoqFJS3MJ2oEnu2Y/661c07xvXs5RLoVzDldH6go=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=i/J63d9Ed9f+uZby1RZNvBL29wj7N4ywQq6sTyE9iIZtQUUp0WLgrWb5st1Z+RjHrHlsdKv6NfjoDQwU4Z6CSuSbXOwnbKJmyePBa9RTYKU7o4d7eGpgvRmqWZisVjzylG+YVx4eyC6nF1zhM07O21XJlw7AgUHg2WyqoksPw7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kaPw3xqy; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mailfence.com header.i=brianwitte@mailfence.com header.b="KdVLq+WH"
-Received: from smtpauth2.co-bxl (smtpauth2.co-bxl [10.2.0.24])
-	by wilbur.contactoffice.com (Postfix) with ESMTP id B99BB8756;
-	Wed,  4 Feb 2026 21:27:13 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1770236833;
-	s=20240605-akrp; d=mailfence.com; i=brianwitte@mailfence.com;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding;
-	bh=QdjvJ2ZN4sNM0g0Diw/Tv3p7j+J5wnOM2a7s3meSbzU=;
-	b=KdVLq+WH9VwsM2VxNyQi4NlUxYgM0zOywRj1ReIKAFoRe6y17rL7YC0Vjh63i7Wr
-	yaj6fnddn8fjjTuA6cbtrg6/WR56GbFXIlRVByEsYGzX/1aBBzU36nLH7h8k2iv6JRf
-	OUdj6gnIiipw/ypNiIssWT8mdIfiJRhTgoC/suD4cu2NWedgxhwtSO/HH2Yg1EBABCm
-	pIkro4DyciGybtSxZHpChprR4Ue7+PMcmeNqgw3TA5l4irqTyego5QG0rd8IFdDaSCL
-	Y4RQ+WBd8ed5ip0dkUtd5Huk5ZPWu7FmyxUUdawi8ENDaOJ6rUjUdvTjLLg2GpKoqK1
-	0Scw1bhxHw==
-Received: by smtp.mailfence.com with ESMTPSA ; Wed, 4 Feb 2026 21:27:12 +0100 (CET)
-From: Brian Witte <brianwitte@mailfence.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	kadlec@netfilter.org,
-	syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com,
-	Brian Witte <brianwitte@mailfence.com>
-Subject: [PATCH v5 nf-next 3/3] netfilter: nft_quota: use atomic64_xchg for reset
-Date: Wed,  4 Feb 2026 14:26:38 -0600
-Message-ID: <20260204202639.497235-4-brianwitte@mailfence.com>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260204202639.497235-1-brianwitte@mailfence.com>
-References: <20260204202639.497235-1-brianwitte@mailfence.com>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kaPw3xqy"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C5666607ED;
+	Wed,  4 Feb 2026 22:42:25 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1770241345;
+	bh=RCL0IHWA/dwNN83tNIvRERy9IQPN3jg36EHIb+gTV54=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=kaPw3xqyBzGMBJYZ79g5ucOyVyZKFWR2PcBel244nywsNfAIbkJeToZq9CGAWTZM0
+	 J9qI59ztp8KqdR9l2yOiYfZ+MIpKa1pcxKuhAvdwUcIy5STUQ6/S5mTCErgOhH+gNI
+	 N8C4z84XLb3/MXrImGuZIcNaL7ZZjuYmmhQUTA9h0OoYa1z9EQOHenMRHdiYlwCCw5
+	 edsPoBYirXnXOzyOJ6CRIPpwdrbn2dJBt1i16tzrR/28iBbRy98lYOD4Dh65YecCdW
+	 jBZg34VBEvV07tgaOXy6g5/BRt/RCbB3e8QvLU1/HLNdBPjhiFh0Jxwk1caI6eX6BY
+	 tdsyeQwJeyMGA==
+Date: Wed, 4 Feb 2026 22:42:22 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Brian Witte <brianwitte@mailfence.com>, kadlec@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
+Subject: Re: [PATCH v4 nf-next 2/2] netfilter: nf_tables: serialize reset
+ with spinlock and atomic
+Message-ID: <aYO9PrZ1Vx1dHu6-@chamomile>
+References: <aYJ0h5y-KZ29F99g@chamomile>
+ <20260204175809.5703-1-brianwitte@mailfence.com>
+ <aYOLBSdHzVUHLPXR@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-ContactOffice-Account: com:441463380
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aYOLBSdHzVUHLPXR@strlen.de>
 
-Use atomic64_xchg() to atomically read and zero the consumed value
-on reset, which is simpler than the previous read+sub pattern and
-doesn't require spinlock protection.
+On Wed, Feb 04, 2026 at 07:08:05PM +0100, Florian Westphal wrote:
+> Brian Witte <brianwitte@mailfence.com> wrote:
+> > On Mon, Feb 03, 2026 at 11:19:46PM +0100, Pablo Neira Ayuso wrote:
+> > > Maybe this so it covers for get and dump path?
+> > >
+> > > static struct nftables_pernet *nft_pernet_from_nlskb(const struct sk_buff *skb)
+> > > {
+> > >         struct sock *sk = skb->sk ? : NETLINK_CB(skb).sk;
+> > >
+> > >         return nft_pernet(sock_net(sk));
+> > > }
+> > >
+> > > in case it is worth to skip the unique nft_counter_lock below.
+> > 
+> > I have v5 ready with Florian's global DEFINE_SPINLOCK approach:
+> > split into 3 patches (revert, counter spinlock, quota atomic64_xchg),
+> > with nft_counter_fetch_and_reset() wrapping fetch+reset under the
+> > lock so parallel resets can't both read the same values. Tested and
+> > working.
+> 
+> Thanks.
+> 
+> > Before I send: should I go with the global spinlock, or would you
+> > prefer the per-net lock via nft_pernet_from_nlskb()? Happy to do
+> > either.
+> 
+> I don't think the nft_pernet_from_nlskb() will work as-is, for the
+> get requests the target skb is allocated via alloc_skb() and I don't
+> think the control block is initialised to hold the origin netlink query
+> sk.
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Brian Witte <brianwitte@mailfence.com>
----
- net/netfilter/nft_quota.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+This is GET path:
 
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index df0798da2329..34c77c872f79 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -140,11 +140,14 @@ static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
- 	u64 consumed, consumed_cap, quota;
- 	u32 flags = priv->flags;
+static int netlink_unicast_kernel(struct sock *sk, struct sk_buff *skb,
+                                  struct sock *ssk)
+{
+        int ret;
+        struct netlink_sock *nlk = nlk_sk(sk);
  
--	/* Since we inconditionally increment consumed quota for each packet
-+	/* Since we unconditionally increment consumed quota for each packet
- 	 * that we see, don't go over the quota boundary in what we send to
- 	 * userspace.
- 	 */
--	consumed = atomic64_read(priv->consumed);
-+	if (reset)
-+		consumed = atomic64_xchg(priv->consumed, 0);
-+	else
-+		consumed = atomic64_read(priv->consumed);
- 	quota = atomic64_read(&priv->quota);
- 	if (consumed >= quota) {
- 		consumed_cap = quota;
-@@ -160,10 +163,9 @@ static int nft_quota_do_dump(struct sk_buff *skb, struct nft_quota *priv,
- 	    nla_put_be32(skb, NFTA_QUOTA_FLAGS, htonl(flags)))
- 		goto nla_put_failure;
- 
--	if (reset) {
--		atomic64_sub(consumed, priv->consumed);
-+	if (reset)
- 		clear_bit(NFT_QUOTA_DEPLETED_BIT, &priv->flags);
--	}
-+
- 	return 0;
- 
- nla_put_failure:
--- 
-2.47.3
-
+        ret = -ECONNREFUSED;
+        if (nlk->netlink_rcv != NULL) {
+                ret = skb->len;
+                atomic_add(skb->truesize, &sk->sk_rmem_alloc);
+                netlink_skb_set_owner_r(skb, sk);
+                NETLINK_CB(skb).sk = ssk; <---------------------
+                netlink_deliver_tap_kernel(sk, ssk, skb);
+                nlk->netlink_rcv(skb);
+                consume_skb(skb);
