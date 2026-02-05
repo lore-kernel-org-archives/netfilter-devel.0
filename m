@@ -1,120 +1,331 @@
-Received: from mail-yx1-f47.google.com (mail-yx1-f47.google.com [74.125.224.47])
+Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com [209.85.128.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89DD13D3488
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 12:23:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=74.125.224.47
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770294235; cv=pass; b=OS7eFZzXJ9VBbwCriakOvsk8lDrR9MnGx26jFk6o066Ooi9+e94NCXB6M7RNxFVdmka86vXoZSK/yYAOBYarILYQsb5eux3l4/PoHtSeG9yPbxN5V3PyQSW+q7Ap2bYTqu3KUntMsdw3tDIkqgPubChAJa/0kq6r2byxr7iCspU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770294235; c=relaxed/simple;
-	bh=O9sIjWKgRixXEtdvd6AtajZi7D+wByC4tYSI0a52pSc=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=l+Vuov2XpUTCQuqP56KJZGWOQXTupiLHN+vF65QBevaAKEn2F8RHzmN9L2K3sGeh6TgYQvInpyejAJL7DtnJZyzoLGDJmBhPbxf4At8ni7Y/AEYG4C6bvALGTBhTOFoK2GD4CileTCrIQa5dCzDGoyRWRrxY5zr9R9ft0KvV3xE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mMA5v3YM; arc=pass smtp.client-ip=74.125.224.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A9DB38F223
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 12:30:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.171
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770294627; cv=none; b=mkXeDC4WYp7s/gwkzmGUfUCrqMGL0EZgvymcnVPbP2MD/Xx8jL0ewhoYAEtbpsKlkSgHjcHqZMj0dr5PbeVZTJGitwZBKhhkzkAt/tzqh1ICChwaQZuh9jXpDnP2tIfZKk11waOXCMNtAahL1fZUVVj39FG3jYsT4etigvRy1bE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770294627; c=relaxed/simple;
+	bh=BdLeY/Wcp9Yp2LmkVEP9i8CAU+Ez17YaOPV00h+snL4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=KRqJI9hIMKGfBTdEiXKodiDoQRb7/OwqtT08sDEh2dfWiDke52/4dRptuhW0CxCX8/pCfoJdm07/77Lql/z/Re4W6rCK4b71Lpt9ZTh1MWVjK2c1MhTT+CsfKVbW4WOnSYK8NFeemYVKiTJoZGJjCy7jroNlZuhAIOI6kyA7/mA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X+XyFQv8; arc=none smtp.client-ip=209.85.128.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mMA5v3YM"
-Received: by mail-yx1-f47.google.com with SMTP id 956f58d0204a3-649e97f1e99so700280d50.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Feb 2026 04:23:55 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1770294234; cv=none;
-        d=google.com; s=arc-20240605;
-        b=AmyeW/8bbvUOYCIdDcsVLVQpU5m5oyo178E6ZF7eKFRzQoXjHadHGp4cxCVwCIdkb/
-         zhksdbUxI1rqhMNl51sGEnMmxXv5iGvkiWWhdEUidXU/lLMUMSO+THxuoR51JEK2WPfC
-         2lRcKwNNSvQy6VtA8m/AJJqqn1fDWeyhvM9vRu3767AYqsqS+J5K0TJHafKvOzCFttYI
-         135XPP6U3rycpm2du0PPwtJNokTpPjwko5B4ol9T2m0IwZ1JxLz2l00bgNAB+Iwlce82
-         QTLwN/XdVdvWeArn1XNt3qKT+W/EX2dvyfFlPAQJzXbu9WTHsXHKI676FR2wIXX3HaA3
-         y5KA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=xuLdfS3PfDrpe6Ag0ImxrWBPON+V1ycwunsX1i7QOX8=;
-        fh=Xi1nH7avnIu9wNLOM4eFUJun09id6WGR95/OrwpPF9Q=;
-        b=kUJ7l6ES/dZK3mfELsQtq461wEFohh+VcUDe9daBQSlvx5xlkJXW4Ao1ESQJdrm0EU
-         9pnPq79bL4T+XreVPOEznn0mm2ssWbyVau7AUbUUJ4mwIzpDVT+bWYo6JsE614H1Yxnk
-         97vYyqGey9SkDTHD4w0PI6nZUEz+1Vupy066LhM3htZuIvyCOaRL+tiU03mQvkUKb3HA
-         /OJtdLIrBp77J6JHE4Eqcu5j/bZ90UBP3cbH6WC4kPLRzxlzQmS99YWh+J3Syoog/aNw
-         TmTbhURwe6GB4qKxxl5xP1F6772KJ2o8PUysszHcnVGtz+BDgDD7ZsqvRUJqEycrD3lc
-         I1uw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X+XyFQv8"
+Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-794911acb04so8914087b3.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Feb 2026 04:30:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1770294234; x=1770899034; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1770294626; x=1770899426; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=xuLdfS3PfDrpe6Ag0ImxrWBPON+V1ycwunsX1i7QOX8=;
-        b=mMA5v3YM8LeTm32ARtTUyykq6EXsQxUgRF9L3puI1SKBGIo27vMkcAKDJERI4Ouqon
-         AOouTZnPiS0FylcfP42D3nbGssdvfUsRcL+IlWsKO7MV6VlAp4nIOC5E8W9JxYFILtVg
-         O/7LyWiEmFoaRJOZ6SYiguJZxPjSxZxg3PsrD4Y7kJAHkWOvTTPPLFgH1Zc0JrzZYDEn
-         47vJMrVGfiwdvSBTPG9W8BvkZcrOiF0LfZWp76QpL0gJ/K4RVPmTF8Ra/CG0Y329Cu61
-         +Ndk1Qdm7OM+EaWKV/zKf1d3H2wAgPoB3249fLezBK2e7/zx7MhXB0QXo3kFknzZ9iI/
-         inzQ==
+        bh=yrS9DvQduBuG9vFWu3R3S68L8j+kOMCWlO1YzP6LJOM=;
+        b=X+XyFQv8iWownLFggkE+9ED2WrW4xBDz9gcqCLuqbiClC3C8Hy9S8qpXUpjRXig0et
+         ZxhrR7ITmSCUg74iszcXbuZOFbJjXVwxhdSCXfKics5GbJqYS6FqjNQD8yfw9MIXwWF7
+         II6nsJ5dFmS/wnqpIIvrs1MhNKJj4N9Z4VUdCtKJTCfoKolt5aTzu1kBpf2K1rHiMMg0
+         WsRuUUy/IQuMpdbhlPKeEDzsypU8WviCp6c9Q5Ne4AZodRTWKXhc+byQioHhKMRoiC2K
+         ZyQYG4J3Bl+SdY4PJCALDckUTyST9TJ9q6Bl3WvMxTerI/n9ecHeQSv6u5KgU5glAaLr
+         YpDw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770294234; x=1770899034;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20230601; t=1770294626; x=1770899426;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=xuLdfS3PfDrpe6Ag0ImxrWBPON+V1ycwunsX1i7QOX8=;
-        b=WCo5IeugTCQWV4yU3welK/FOSKN0CPeedlui+9s97pUsbO8w7jlJibCv3g9sRRaHup
-         sNXPAqMNzifHhSTEoqvWepeCrhwOmA733FILBlb/JXLi+YoaYwnGLI92YsG1HZzSfPCu
-         Ao5iVlLKBE8kXWY9rnVZ0jn+IIgypqBOqkm/fp+UWHfEUyzZVhewReCWOiQfn/Zj3JuA
-         Spysu3RJKzV+YG8yJbyXBEDKdqVz8bhidhOaaZScnVH2i6NmSnd6VNIptZ9B832T+fBj
-         y2EKoTVeIeAk+nygvnV811Ob7iJCBeGsxifXYAQnelYtioGtM49Rn7J9B4+qlnNc88KT
-         HlAw==
-X-Forwarded-Encrypted: i=1; AJvYcCXk8HTzjX6zCEJ5ytlq/l3qRHFEzVvq1wV8xg+qZOqhpzjL2ARKl9xO4DG4uXttntY6QrGLZBbukhWuSy7RYb0=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxELli1FbQ2USI+r5UHUjiLbgDN0mNHfS5ap2+3jD3GPXa+0LIr
-	YptPL4jCILI+UMUxGJoBP6j5SjJ+q0AriQmSut/sThoQqryfJWyKibdtKYqUpVdf89pTrbToJRN
-	FvtEo0Jm2tVZRW6stGa7FtnWu5WIIHHQ=
-X-Gm-Gg: AZuq6aLkGjxdiipliFTdX/YBDRFnANxDEnb2oF4wUURZ/1krWg6pvNs7rhX+IJfnCe4
-	/x7wNSWWaQlNR/M99/2U0dbcdR2oDPHZcJaW4Scx9ZbkptqeWwGC9ZuYuEH23MR2n15XsRsOYvd
-	O9oFITgQqwMq+ZCgBm+uGffWAXyxUkGXI/rhgmk2d7I4q945ybBRoq6wiayKjXwK+c/pNKM9S8S
-	7TAHS5ng+zunYpQgpQk26FeALyAwtmX1OxeL1EQDQbBgA3pbA3qVb1TdD/5Yks0e/iRxXUI
-X-Received: by 2002:a05:690e:24dc:b0:649:bbf4:121b with SMTP id
- 956f58d0204a3-649db333e19mr3694664d50.2.1770294234551; Thu, 05 Feb 2026
- 04:23:54 -0800 (PST)
+        bh=yrS9DvQduBuG9vFWu3R3S68L8j+kOMCWlO1YzP6LJOM=;
+        b=p9V+Ly5GLYDyxm7N4i1vdHI8bVZ2nan6AOwqyE+Jayu9ybTQjwilFxDa0dqFBSrGd2
+         SJW+tGNZZqrDSU/cjopa7zP+vxFgNoqIlEVfaPFTbE9Cx+SO0LFalc7aKXOC+uXvBi9P
+         x+zC3C3WVSxRojlpQe/C6uNFbh1g3ewLKvZ020BhgpjVW1XB5+kpnc15oPinrBVa9qwy
+         JXZ4WHzDLLrofH1slPSI4kviP8r9fTsKt2Tjcdi+m8QAcKCij0k7BKW7Fr19MzzDJKn2
+         AHptgiKNQhiXvcLvtWK7oPmHURVEZzSp6VVfzjqbM6B64m8eNvaUfT2L5KJ0bmCJ2/RQ
+         eO+w==
+X-Forwarded-Encrypted: i=1; AJvYcCUI5M6ofgHVDEzfStABXNwkSQI2erVNwZC07JpUAx5mdiTxu8YPK5BoVbuPOSHGJ33XaZdbJKvFsbwhwTfDx1E=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzeJU0pjzhw5jl/2C4pFIWPAPcAcMmyZFjK8jzYNKrZhwGUDZFQ
+	WmCQOD81AMv80G1rnBCTnzZyI84nVnjnVb3gE69ouYONyybkcIEmZ3fU
+X-Gm-Gg: AZuq6aIcfmgcE5AKC/1LwmiVjvUHTyY1NSyKguwygvTg5hDJNvLu6iBcz7nZrQzj/X5
+	qxYs1KbIAMBXEXp/Rh3vCNW+wrHXNwVGxP1aHMekSwM1NZo1OIIRTmW7DkoSJpofNCAX5uJoHaK
+	cOqI/adE4zmRRXsFdVfdUeh1hMnWe6J6rUkQuzoogB30R918z0KNs/qWhd6vpQBT1dzhwniCWl2
+	CdlNRaEhW6/8m1hrvny374Jw6wuwxORUeAAwUfvHJyHxK/KWY+lRMv5d9QEnMgoyUzwYUCVw+l9
+	/71+b3F5D6RJjpZJgSYYP8jCdLguf+bxg2fyj+3DPAhp+PkcG3L7Gpy2umo9pKAE25G32Ym6g3U
+	AhXjlrszUqiue0/dFCenzOhsKsU8xq+fY8YHRw4HnLMzW7DUEZmrSHISx/ZT4O0y7752SjvzC8P
+	oLGsUJ49YNbbh6y0qG/ImCeEaOxl1f69SuVNmdlazILZp+Azx3btSG1L7MMTi54lUe6U/WNenJv
+	UOaWAJYtg==
+X-Received: by 2002:a05:690c:e3ee:b0:794:e6c0:1e9d with SMTP id 00721157ae682-794fe678e95mr55962387b3.17.1770294626165;
+        Thu, 05 Feb 2026 04:30:26 -0800 (PST)
+Received: from localhost.localdomain (108-214-96-168.lightspeed.sntcca.sbcglobal.net. [108.214.96.168])
+        by smtp.gmail.com with ESMTPSA id 00721157ae682-794feff5cc7sm44122577b3.52.2026.02.05.04.30.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Feb 2026 04:30:25 -0800 (PST)
+From: Sun Jian <sun.jian.kdev@gmail.com>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Sun Jian <sun.jian.kdev@gmail.com>
+Subject: [PATCH v5] netfilter: annotate NAT helper hook pointers with __rcu
+Date: Thu,  5 Feb 2026 20:30:17 +0800
+Message-ID: <20260205123017.20152-1-sun.jian.kdev@gmail.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <aYRqOW_kWlfcEtWM@strlen.de>
+References: <aYRqOW_kWlfcEtWM@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <aYM6Wr7D4-7VvbX6@strlen.de> <20260204153812.739799-1-sun.jian.kdev@gmail.com>
- <20260204153812.739799-3-sun.jian.kdev@gmail.com> <aYRqOW_kWlfcEtWM@strlen.de>
-In-Reply-To: <aYRqOW_kWlfcEtWM@strlen.de>
-From: sun jian <sun.jian.kdev@gmail.com>
-Date: Thu, 5 Feb 2026 20:23:44 +0800
-X-Gm-Features: AZwV_QhCD0WB1XS3ICT6RUjv7g9LVF7DCnaxHjbOgv06s3aqLCZ9fvImeQd-Cec
-Message-ID: <CABFUUZEF3w48iehUyx2Mcxwi0K6qNEja=7f1P6n1gq=AGv=daQ@mail.gmail.com>
-Subject: Re: [PATCH v4 2/5] netfilter: ftp: annotate nf_nat_ftp_hook with __rcu
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Feb 5, 2026 at 6:00=E2=80=AFPM Florian Westphal <fw@strlen.de> wrot=
-e:
->
-> Sun Jian <sun.jian.kdev@gmail.com> wrote:
->
-> Patch 1 re-indents, the rest doesn't.
->
-> > diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntr=
-ack_ftp.c
-> CHECK: Alignment should match open parenthesis
-> #135: FILE: net/netfilter/nf_conntrack_ftp.c:47:
-> +unsigned int (__rcu *nf_nat_ftp_hook)(struct sk_buff *skb,
->                                 enum ip_conntrack_info ctinfo,
->
-> Please re-indent in .c and check that checkpatch.pl doesn't complain.
->
-> Also, no need to send this in multiple patches, its one logical
-> annotation change.
+The NAT helper hook pointers are updated and dereferenced under RCU rules,
+but lack the proper __rcu annotation.
 
-Ack. I'll squash these into a single patch and fix the alignment issues.
-v5 is coming soon.
+This makes sparse report address space mismatches when the hooks are used
+with rcu_dereference().
 
-Regards,
-sun jian
+Add the missing __rcu annotations to the global hook pointer declarations
+and definitions in Amanda, FTP, IRC, SNMP and TFTP.
+
+No functional change intended.
+
+Suggested-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Sun Jian <sun.jian.kdev@gmail.com>
+---
+v5:
+  - Squash previous 5-patch series into a single patch (per Florian).
+  - Fix parameter alignment in .h and .c files to match the opening
+    parenthesis.
+
+v4:
+  - Extend the change from amanda to the other NAT helpers (ftp/irc/snmp/tftp).
+  - Drop the proposed code simplification (typeof pattern).
+
+v2:
+  - Place __rcu annotation inside the pointer parentheses (per Florian).
+  - Return to use standard rcu_dereference() instead of rcu_dereference_raw().
+
+(no v3 posted)
+---
+ include/linux/netfilter/nf_conntrack_amanda.h | 12 ++++++------
+ include/linux/netfilter/nf_conntrack_ftp.h    | 14 +++++++-------
+ include/linux/netfilter/nf_conntrack_irc.h    | 12 ++++++------
+ include/linux/netfilter/nf_conntrack_snmp.h   |  2 +-
+ include/linux/netfilter/nf_conntrack_tftp.h   |  6 +++---
+ net/netfilter/nf_conntrack_amanda.c           | 14 +++++++-------
+ net/netfilter/nf_conntrack_ftp.c              | 14 +++++++-------
+ net/netfilter/nf_conntrack_irc.c              | 13 +++++++------
+ net/netfilter/nf_conntrack_snmp.c             |  8 ++++----
+ net/netfilter/nf_conntrack_tftp.c             |  7 ++++---
+ 10 files changed, 52 insertions(+), 50 deletions(-)
+
+diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
+index 6f0ac896fcc9..9f957598a9da 100644
+--- a/include/linux/netfilter/nf_conntrack_amanda.h
++++ b/include/linux/netfilter/nf_conntrack_amanda.h
+@@ -7,10 +7,10 @@
+ #include <linux/skbuff.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
+ 
+-extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
+-					  enum ip_conntrack_info ctinfo,
+-					  unsigned int protoff,
+-					  unsigned int matchoff,
+-					  unsigned int matchlen,
+-					  struct nf_conntrack_expect *exp);
++extern unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
++						enum ip_conntrack_info ctinfo,
++						unsigned int protoff,
++						unsigned int matchoff,
++						unsigned int matchlen,
++						struct nf_conntrack_expect *exp);
+ #endif /* _NF_CONNTRACK_AMANDA_H */
+diff --git a/include/linux/netfilter/nf_conntrack_ftp.h b/include/linux/netfilter/nf_conntrack_ftp.h
+index 0e38302820b9..939c847213b4 100644
+--- a/include/linux/netfilter/nf_conntrack_ftp.h
++++ b/include/linux/netfilter/nf_conntrack_ftp.h
+@@ -26,11 +26,11 @@ struct nf_ct_ftp_master {
+ 
+ /* For NAT to hook in when we find a packet which describes what other
+  * connection we should expect. */
+-extern unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
+-				       enum ip_conntrack_info ctinfo,
+-				       enum nf_ct_ftp_type type,
+-				       unsigned int protoff,
+-				       unsigned int matchoff,
+-				       unsigned int matchlen,
+-				       struct nf_conntrack_expect *exp);
++extern unsigned int (__rcu *nf_nat_ftp_hook)(struct sk_buff *skb,
++					     enum ip_conntrack_info ctinfo,
++					     enum nf_ct_ftp_type type,
++					     unsigned int protoff,
++					     unsigned int matchoff,
++					     unsigned int matchlen,
++					     struct nf_conntrack_expect *exp);
+ #endif /* _NF_CONNTRACK_FTP_H */
+diff --git a/include/linux/netfilter/nf_conntrack_irc.h b/include/linux/netfilter/nf_conntrack_irc.h
+index d02255f721e1..14ad5bfaad81 100644
+--- a/include/linux/netfilter/nf_conntrack_irc.h
++++ b/include/linux/netfilter/nf_conntrack_irc.h
+@@ -8,11 +8,11 @@
+ 
+ #define IRC_PORT	6667
+ 
+-extern unsigned int (*nf_nat_irc_hook)(struct sk_buff *skb,
+-				       enum ip_conntrack_info ctinfo,
+-				       unsigned int protoff,
+-				       unsigned int matchoff,
+-				       unsigned int matchlen,
+-				       struct nf_conntrack_expect *exp);
++extern unsigned int (__rcu *nf_nat_irc_hook)(struct sk_buff *skb,
++					     enum ip_conntrack_info ctinfo,
++					     unsigned int protoff,
++					     unsigned int matchoff,
++					     unsigned int matchlen,
++					     struct nf_conntrack_expect *exp);
+ 
+ #endif /* _NF_CONNTRACK_IRC_H */
+diff --git a/include/linux/netfilter/nf_conntrack_snmp.h b/include/linux/netfilter/nf_conntrack_snmp.h
+index 87e4f33eb55f..99107e4f5234 100644
+--- a/include/linux/netfilter/nf_conntrack_snmp.h
++++ b/include/linux/netfilter/nf_conntrack_snmp.h
+@@ -5,7 +5,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/skbuff.h>
+ 
+-extern int (*nf_nat_snmp_hook)(struct sk_buff *skb,
++extern int (__rcu *nf_nat_snmp_hook)(struct sk_buff *skb,
+ 				unsigned int protoff,
+ 				struct nf_conn *ct,
+ 				enum ip_conntrack_info ctinfo);
+diff --git a/include/linux/netfilter/nf_conntrack_tftp.h b/include/linux/netfilter/nf_conntrack_tftp.h
+index dc4c1b9beac0..05c72d0bc98d 100644
+--- a/include/linux/netfilter/nf_conntrack_tftp.h
++++ b/include/linux/netfilter/nf_conntrack_tftp.h
+@@ -19,8 +19,8 @@ struct tftphdr {
+ #define TFTP_OPCODE_ACK		4
+ #define TFTP_OPCODE_ERROR	5
+ 
+-extern unsigned int (*nf_nat_tftp_hook)(struct sk_buff *skb,
+-				        enum ip_conntrack_info ctinfo,
+-				        struct nf_conntrack_expect *exp);
++extern unsigned int (__rcu *nf_nat_tftp_hook)(struct sk_buff *skb,
++					      enum ip_conntrack_info ctinfo,
++					      struct nf_conntrack_expect *exp);
+ 
+ #endif /* _NF_CONNTRACK_TFTP_H */
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index 7be4c35e4795..c0132559f6af 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -37,13 +37,13 @@ MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
+ module_param(ts_algo, charp, 0400);
+ MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
+ 
+-unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
+-				   enum ip_conntrack_info ctinfo,
+-				   unsigned int protoff,
+-				   unsigned int matchoff,
+-				   unsigned int matchlen,
+-				   struct nf_conntrack_expect *exp)
+-				   __read_mostly;
++unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
++					 enum ip_conntrack_info ctinfo,
++					 unsigned int protoff,
++					 unsigned int matchoff,
++					 unsigned int matchlen,
++					 struct nf_conntrack_expect *exp)
++					 __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_amanda_hook);
+ 
+ enum amanda_strings {
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 617f744a2e3a..5e00f9123c38 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -43,13 +43,13 @@ module_param_array(ports, ushort, &ports_c, 0400);
+ static bool loose;
+ module_param(loose, bool, 0600);
+ 
+-unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
+-				enum ip_conntrack_info ctinfo,
+-				enum nf_ct_ftp_type type,
+-				unsigned int protoff,
+-				unsigned int matchoff,
+-				unsigned int matchlen,
+-				struct nf_conntrack_expect *exp);
++unsigned int (__rcu *nf_nat_ftp_hook)(struct sk_buff *skb,
++				      enum ip_conntrack_info ctinfo,
++				      enum nf_ct_ftp_type type,
++				      unsigned int protoff,
++				      unsigned int matchoff,
++				      unsigned int matchlen,
++				      struct nf_conntrack_expect *exp);
+ EXPORT_SYMBOL_GPL(nf_nat_ftp_hook);
+ 
+ static int try_rfc959(const char *, size_t, struct nf_conntrack_man *,
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 5703846bea3b..b8e6d724acd1 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -30,12 +30,13 @@ static unsigned int dcc_timeout __read_mostly = 300;
+ static char *irc_buffer;
+ static DEFINE_SPINLOCK(irc_buffer_lock);
+ 
+-unsigned int (*nf_nat_irc_hook)(struct sk_buff *skb,
+-				enum ip_conntrack_info ctinfo,
+-				unsigned int protoff,
+-				unsigned int matchoff,
+-				unsigned int matchlen,
+-				struct nf_conntrack_expect *exp) __read_mostly;
++unsigned int (__rcu *nf_nat_irc_hook)(struct sk_buff *skb,
++				      enum ip_conntrack_info ctinfo,
++				      unsigned int protoff,
++				      unsigned int matchoff,
++				      unsigned int matchlen,
++				      struct nf_conntrack_expect *exp)
++				      __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_irc_hook);
+ 
+ #define HELPER_NAME "irc"
+diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
+index daacf2023fa5..387dd6e58f88 100644
+--- a/net/netfilter/nf_conntrack_snmp.c
++++ b/net/netfilter/nf_conntrack_snmp.c
+@@ -25,10 +25,10 @@ static unsigned int timeout __read_mostly = 30;
+ module_param(timeout, uint, 0400);
+ MODULE_PARM_DESC(timeout, "timeout for master connection/replies in seconds");
+ 
+-int (*nf_nat_snmp_hook)(struct sk_buff *skb,
+-			unsigned int protoff,
+-			struct nf_conn *ct,
+-			enum ip_conntrack_info ctinfo);
++int (__rcu *nf_nat_snmp_hook)(struct sk_buff *skb,
++			      unsigned int protoff,
++			      struct nf_conn *ct,
++			      enum ip_conntrack_info ctinfo);
+ EXPORT_SYMBOL_GPL(nf_nat_snmp_hook);
+ 
+ static int snmp_conntrack_help(struct sk_buff *skb, unsigned int protoff,
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index 80ee53f29f68..89e9914e5d03 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -32,9 +32,10 @@ static unsigned int ports_c;
+ module_param_array(ports, ushort, &ports_c, 0400);
+ MODULE_PARM_DESC(ports, "Port numbers of TFTP servers");
+ 
+-unsigned int (*nf_nat_tftp_hook)(struct sk_buff *skb,
+-				 enum ip_conntrack_info ctinfo,
+-				 struct nf_conntrack_expect *exp) __read_mostly;
++unsigned int (__rcu *nf_nat_tftp_hook)(struct sk_buff *skb,
++				       enum ip_conntrack_info ctinfo,
++				       struct nf_conntrack_expect *exp)
++				       __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_tftp_hook);
+ 
+ static int tftp_help(struct sk_buff *skb,
+-- 
+2.43.0
+
