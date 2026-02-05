@@ -1,47 +1,46 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A335A3F074C
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 15:21:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64E73421F05
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 15:21:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770304885; cv=none; b=szEX1XR0Z/JB8hqr0KxJaRxJgVv3x8cj7AKHrDwDylqg6GhDKHb7+CMHf8d5Z5JZ3lCuoqDGaTn5Ue/BMbpXv/TKS/83e77AcDqqrl2nT8zU67uFtD/j4GcTirX/jemsM2MGgQKTnvrRlmmLBQQoH3ghmDn11jxC1zDkO6PdT9o=
+	t=1770304908; cv=none; b=oYioN/L/ZZIdxdQqTt42LvuxXr3FazjQSVsMBhpF11XUWI62pgHbGEYtiTSNigB7WFIgr4am9AVXlusj04JgfdI9dj4ezJomHCX2tJMuLvD8HqRUs3EQVTlAWSdnB+5MuzaByOmrlOnE8qzhVIZWUOAkQszoEIea8EINJ+rNpEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770304885; c=relaxed/simple;
-	bh=kPqJmFfaMEIlHCHqcy+SY/6Ra519FKa760lRiFVx6ws=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BuOXvkPmYrdcczPr7HrqDpyelg45UnUGaKl9Xv3qjfvvpTM4UVvBN8G6Q8PphZ8gpFmO2s/UDBYNY+B0Oa6YAvB7YyERNOuW9mw+0de43171PuGtDrlhJwgWoHTY6RevXqoxLIpG7aD15mW3zYSuYeTRxYkZMJ6BuCMEhmCDjSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=h6ZsCd4m; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1770304908; c=relaxed/simple;
+	bh=bIBxE3gv4Ql6/9UBqhl0HD4+y4SmL6wGwH0reYUhJLk=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=kvxp2XI5QLm9hYbRLBvqZewJrlFjNNNhC2fcO8eTS/lNarHe32XoLpf7qHAEgvWTIPQAFIY0db0rc9qMo9JE9hkbZ5736iaCTKby6DLLCwaEJiRfG8kJdbAnna9J8POuQYo+gO5ni7PDyJIUcGrC3UAPXSOm6JsVlDdhz/hFm+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=TDObD7CC; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="h6ZsCd4m"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="TDObD7CC"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=eEp2T4ggvebisSyHSs7kQwk8dSKTCvKGHfEMRpu0m7g=; b=h6ZsCd4mkK5is5Nny9pe8J+QZ1
-	bb6ZzazUELju5KI7VzxlTGFvikqUiMQIbUtN1m/E3c+LuNgLRaY0Utw6KWPIvy5P7LJjzP2atQUHs
-	KKChgjcfuu0NExQLWwI3P1l/QiayU8l8R6d2jEnAGrkXNf4EXKKVdQZe76BHdrg+++ciycS9ghpPt
-	PDbB4y46sNlOmWUWO9Jer8TbActcd/ED9CvEjXZIkD9BJBI/r1zehH85JIMR0z2jAbNZc6whJAaYj
-	DREImSaRaOh4dPUEe3KmnR3EceaG6cfhkm4x4b2WGw3LhDCZliaLAdp5aHboeix50cy0oxxY4ftZG
-	b8MVx3JA==;
+	bh=NwIiy/JI5ZOKcBBSX/nAX2a7gP0CvPUbTQM+6qWVGDo=; b=TDObD7CCCnDqYF6yMvIWHwZG5J
+	YXMrC9oA59VoUkfPvWuJWPMsxGBxXNPWOy98RBPKZX2XhsJ2t4oye+JHxLC1EFSIctInQo79Z8xtG
+	OS3q7OrOLq/c4cclIR6aoPWX7R1B1v8Cu34bjeb2pg5MIms+D9hL9zUghf9NuoWvh3qJkTBMdCEHt
+	9X/dMzw6zQOX/pv/KvO7l+r7Dclk/Rcdd3mx0X51Pl6vFGX7so7e9EWNINBDUEeh8+nDxkQj+gaAd
+	mFYQU13Gzffhq25JDSxv3Fp0bZURRKMejTVq93L3yQiDU3OogjP77npJg/fc2DX+mVe1GUunP8BZO
+	WBgXY3RQ==;
 Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vo1Aa-000000003JY-0yqG;
-	Thu, 05 Feb 2026 16:21:24 +0100
-Date: Thu, 5 Feb 2026 16:21:24 +0100
+	id 1vo1Aw-000000003K6-44W4
+	for netfilter-devel@vger.kernel.org;
+	Thu, 05 Feb 2026 16:21:46 +0100
+Date: Thu, 5 Feb 2026 16:21:46 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH 0/4] Inspect and improve test suite code coverage
-Message-ID: <aYS1dK59EWOxXBW_@orbyte.nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH] doc: nft.8: Describe iface_type data type
+Message-ID: <aYS1ikHAFm88-4Q7@orbyte.nwl.cc>
 Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-References: <20260127222916.31806-1-phil@nwl.cc>
+References: <20260127221252.27440-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -50,28 +49,13 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260127222916.31806-1-phil@nwl.cc>
+In-Reply-To: <20260127221252.27440-1-phil@nwl.cc>
 
-On Tue, Jan 27, 2026 at 11:29:12PM +0100, Phil Sutter wrote:
-> While inspecting the test suites' code coverage using --coverage gcc
-> option and gcov(r) for analysis, I noticed that 'nft monitor' processes
-> did not influence the stats at all. It appears that a process receiving
-> SIGTERM or SIGINT (via kill or ctrl-c) does not dump profiling data at
-> exit. Installing a signal handler for those signals which calls exit()
-> resolves this, so patch 1 of this series implements --enable-profiling
-> into configure which also conditionally enables said signal handler.
+On Tue, Jan 27, 2026 at 11:12:52PM +0100, Phil Sutter wrote:
+> An entry in data-types.txt offers space for a name-value table. Even if
+> one would refer to ARPHRD_*, some names are not derived from the
+> respective macro name and thus not intuitive.
 > 
-> Patches 2 and 4 fix for zero test coverage of src/nftrace.c and
-> src/xt.c, bumping stats to ~90% for both.
-> 
-> Patch 3 fixes for ignored comment matches in translated iptables-nft
-> rules. This is required for patch 4 which uses a comment match to check
-> whether nft is built with translation support.
-> 
-> Phil Sutter (4):
->   configure: Implement --enable-profiling option
->   tests: shell: Add a simple test for nftrace
->   xt: Print comment match data as well
->   tests: shell: Add a basic test for src/xt.c
+> Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Applied patches 2-4.
+Patch applied.
