@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF02939E6F7;
-	Thu,  5 Feb 2026 11:09:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E921B3ACA57;
+	Thu,  5 Feb 2026 11:09:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770289773; cv=none; b=i3VAnv36V/g7kraIceVx3pCletESrtOfUcIcvJE6U+gDeMAvEBQS3l5QTCXPMGJJL3J//gW81sas5x1GZjzPMDVXdkL+iLxJl38smyGXYLcYj47wBlRa2IBza6QdlwIA+RrzZzYTv962j+B3xjyw3N9L8qc/N0+ne+Wa0nL62sE=
+	t=1770289778; cv=none; b=GiqOBBkfi2N1MG4B9YWB4dRtu9wvDofWWq/7F/bdAkEL0yIp9btb7BF16cOW7vHttSzNNOkf92GLmJmbkE5q9OuqURoSEX8CpireBWLuY1N03x1rqKX+qPppG/1q5IbBdFlCruuRQ+ZX7rVoIHUXCNXmLkjFgVpj/tb2tqORD0M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770289773; c=relaxed/simple;
-	bh=EiOrpYCePP9Ke4k3ZF7JsQg4zb8Wlo3IOG4c2sDvaDA=;
+	s=arc-20240116; t=1770289778; c=relaxed/simple;
+	bh=8FMC7Ze0tJR47IX7eivWP8GzEgLJJ4tbl1aE8m+SfeU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=ehg3JYefaP/DOd2DOMkQjDI7XuuB0iCAu8NRmPwsyNRpJAxKQskRQBqx85S0aMST291WerjZSo46JbXYOCTexZalptdM9Hl794oTCecO3WjpvdFh64cXUHx4tYVUQ1sa7P2qjAPzQmRH7k3RQwzrxPr6fBgFqWQPFZtcHNatkO8=
+	 MIME-Version; b=Gt8GNXDYqYMBgxluNTQowrNvs/iAwg4tgrLEbYy+Ec2qDmtp1Fo0yPC4IfUpClmqWIm4Kxp0AFyAZjtVDVyKyfmB4mNDDQqL6MXu64fu2ORilgU8BRUKHPUNSwWDg/pqwuIMTUAEKzmU5nwN5mR8Q4xmbSGHM/R55ebTKGaDvqg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3991E60610; Thu, 05 Feb 2026 12:09:32 +0100 (CET)
+	id 90A6460807; Thu, 05 Feb 2026 12:09:36 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 04/11] netfilter: flowtable: dedicated slab for flow entry
-Date: Thu,  5 Feb 2026 12:08:58 +0100
-Message-ID: <20260205110905.26629-5-fw@strlen.de>
+Subject: [PATCH net-next 05/11] selftests: netfilter: add IPV6_TUNNEL to config
+Date: Thu,  5 Feb 2026 12:08:59 +0100
+Message-ID: <20260205110905.26629-6-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260205110905.26629-1-fw@strlen.de>
 References: <20260205110905.26629-1-fw@strlen.de>
@@ -38,76 +38,93 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Qingfang Deng <dqfext@gmail.com>
+The script now requires IPV6 tunnel support, enable this.
+This should have caught by CI, but as the config option is missing,
+the tunnel interface isn't added.  This results in an error cascade
+that ends with "route change default" failure.
 
-The size of `struct flow_offload` has grown beyond 256 bytes on 64-bit
-kernels (currently 280 bytes) because of the `flow_offload_tunnel`
-member added recently. So kmalloc() allocates from the kmalloc-512 slab,
-causing significant memory waste per entry.
+That in turn means the "ipv6 tunnel" test re-uses the previous
+test setup so the "ip6ip6" test passes and script returns 0.
 
-Introduce a dedicated slab cache for flow entries to reduce memory
-footprint. Results in a reduction from 512 bytes to 320 bytes per entry
-on x86_64 kernels.
+Make sure to catch such bugs, set ret=1 if device cannot be added
+and delete the old default route before installing the new one.
 
-Signed-off-by: Qingfang Deng <dqfext@gmail.com>
+After this change, IPV6_TUNNEL=n kernel builds fail with the expected
+  FAIL: flow offload for ns1/ns2 with IP6IP6 tunnel
+
+... while builds with IPV6_TUNNEL=m pass as before.
+
+Fixes: 5e5180352193 ("selftests: netfilter: nft_flowtable.sh: Add IP6IP6 flowtable selftest")
+Acked-by: Lorenzo Bianconi <lorenzo@kernel.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_flow_table_core.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ tools/testing/selftests/net/netfilter/config  |  1 +
+ .../selftests/net/netfilter/nft_flowtable.sh  | 19 +++++++++++++------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
-index 06e8251a6644..2c4140e6f53c 100644
---- a/net/netfilter/nf_flow_table_core.c
-+++ b/net/netfilter/nf_flow_table_core.c
-@@ -16,6 +16,7 @@
+diff --git a/tools/testing/selftests/net/netfilter/config b/tools/testing/selftests/net/netfilter/config
+index 12ce61fa15a8..979cff56e1f5 100644
+--- a/tools/testing/selftests/net/netfilter/config
++++ b/tools/testing/selftests/net/netfilter/config
+@@ -29,6 +29,7 @@ CONFIG_IP_NF_RAW=m
+ CONFIG_IP_SCTP=m
+ CONFIG_IPV6=y
+ CONFIG_IPV6_MULTIPLE_TABLES=y
++CONFIG_IPV6_TUNNEL=m
+ CONFIG_IP_VS=m
+ CONFIG_IP_VS_PROTO_TCP=y
+ CONFIG_IP_VS_RR=m
+diff --git a/tools/testing/selftests/net/netfilter/nft_flowtable.sh b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
+index 14d7f67715ed..7a34ef468975 100755
+--- a/tools/testing/selftests/net/netfilter/nft_flowtable.sh
++++ b/tools/testing/selftests/net/netfilter/nft_flowtable.sh
+@@ -601,14 +601,19 @@ ip -net "$nsr2" link set tun0 up
+ ip -net "$nsr2" addr add 192.168.100.2/24 dev tun0
+ ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0.forwarding=1 > /dev/null
  
- static DEFINE_MUTEX(flowtable_lock);
- static LIST_HEAD(flowtables);
-+static __read_mostly struct kmem_cache *flow_offload_cachep;
+-ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1
++ip -net "$nsr2" link add name tun6 type ip6tnl local fee1:2::2 remote fee1:2::1 || ret=1
+ ip -net "$nsr2" link set tun6 up
+ ip -net "$nsr2" addr add fee1:3::2/64 dev tun6 nodad
  
- static void
- flow_offload_fill_dir(struct flow_offload *flow,
-@@ -56,7 +57,7 @@ struct flow_offload *flow_offload_alloc(struct nf_conn *ct)
- 	if (unlikely(nf_ct_is_dying(ct)))
- 		return NULL;
- 
--	flow = kzalloc(sizeof(*flow), GFP_ATOMIC);
-+	flow = kmem_cache_zalloc(flow_offload_cachep, GFP_ATOMIC);
- 	if (!flow)
- 		return NULL;
- 
-@@ -812,9 +813,13 @@ static int __init nf_flow_table_module_init(void)
- {
- 	int ret;
- 
-+	flow_offload_cachep = KMEM_CACHE(flow_offload, SLAB_HWCACHE_ALIGN);
-+	if (!flow_offload_cachep)
-+		return -ENOMEM;
+ ip -net "$nsr1" route change default via 192.168.100.2
+ ip -net "$nsr2" route change default via 192.168.100.1
+-ip -6 -net "$nsr1" route change default via fee1:3::2
+-ip -6 -net "$nsr2" route change default via fee1:3::1
 +
- 	ret = register_pernet_subsys(&nf_flow_table_net_ops);
- 	if (ret < 0)
--		return ret;
-+		goto out_pernet;
++# do not use "route change" and delete old default so
++# socat fails to connect in case new default can't be added.
++ip -6 -net "$nsr1" route delete default
++ip -6 -net "$nsr1" route add default via fee1:3::2
++ip -6 -net "$nsr2" route delete default
++ip -6 -net "$nsr2" route add default via fee1:3::1
+ ip -net "$ns2" route add default via 10.0.2.1
+ ip -6 -net "$ns2" route add default via dead:2::1
  
- 	ret = nf_flow_table_offload_init();
- 	if (ret)
-@@ -830,6 +835,8 @@ static int __init nf_flow_table_module_init(void)
- 	nf_flow_table_offload_exit();
- out_offload:
- 	unregister_pernet_subsys(&nf_flow_table_net_ops);
-+out_pernet:
-+	kmem_cache_destroy(flow_offload_cachep);
- 	return ret;
- }
+@@ -649,7 +654,8 @@ ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun0.10 a
+ ip -net "$nsr1" link add name tun6.10 type ip6tnl local fee1:4::1 remote fee1:4::2
+ ip -net "$nsr1" link set tun6.10 up
+ ip -net "$nsr1" addr add fee1:5::1/64 dev tun6.10 nodad
+-ip -6 -net "$nsr1" route change default via fee1:5::2
++ip -6 -net "$nsr1" route delete default
++ip -6 -net "$nsr1" route add default via fee1:5::2
+ ip netns exec "$nsr1" nft -a insert rule inet filter forward 'meta oif tun6.10 accept'
  
-@@ -837,6 +844,7 @@ static void __exit nf_flow_table_module_exit(void)
- {
- 	nf_flow_table_offload_exit();
- 	unregister_pernet_subsys(&nf_flow_table_net_ops);
-+	kmem_cache_destroy(flow_offload_cachep);
- }
+ ip -net "$nsr2" link add link veth0 name veth0.10 type vlan id 10
+@@ -664,10 +670,11 @@ ip -net "$nsr2" addr add 192.168.200.2/24 dev tun0.10
+ ip -net "$nsr2" route change default via 192.168.200.1
+ ip netns exec "$nsr2" sysctl net.ipv4.conf.tun0/10.forwarding=1 > /dev/null
  
- module_init(nf_flow_table_module_init);
+-ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1
++ip -net "$nsr2" link add name tun6.10 type ip6tnl local fee1:4::2 remote fee1:4::1 || ret=1
+ ip -net "$nsr2" link set tun6.10 up
+ ip -net "$nsr2" addr add fee1:5::2/64 dev tun6.10 nodad
+-ip -6 -net "$nsr2" route change default via fee1:5::1
++ip -6 -net "$nsr2" route delete default
++ip -6 -net "$nsr2" route add default via fee1:5::1
+ 
+ if ! test_tcp_forwarding_nat "$ns1" "$ns2" 1 "IPIP tunnel over vlan"; then
+ 	echo "FAIL: flow offload for ns1/ns2 with IPIP tunnel over vlan" 1>&2
 -- 
 2.52.0
 
