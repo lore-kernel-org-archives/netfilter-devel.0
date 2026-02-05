@@ -1,45 +1,45 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 345043ECBF7
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 14:38:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 814663EF0D6
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 15:18:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770302323; cv=none; b=RsKtpoVd/C+An6GisMQ0Vy0u56DiKVqsWlj986UH5T5ynmBFbSEit1rBcfSWkzWNXewS+Y/sckk5irRFv4qX1zvsjP8Lq59rOIZGSqYt11MuY/B2IBw0rj0iG+uQ1quQubv0cim2IxQ/W8O2b3a1y15jRPCsoWKLLlvwutHaYaY=
+	t=1770304726; cv=none; b=Xys8pztCQgzYMVjeF5nuosCK29vc8ZMW8vb3NIQ4eY/49+IJPDEmfcvdyTU2Rs9EkbxkGGdARKvvN3swDyywVO9GDCq9NFBfZgL7YNUyTOQaR8MixD7bT+2xh1Rzu5pmUIUKNdupvtvvGCwJ/qVQYaZMWICvJNuWCDOZ/wG5oWU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770302323; c=relaxed/simple;
-	bh=70GVbcaqcfL6A4yAmRrY2f7XBSJzndhtUynrT3SoWRU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=p+VSBHzEcGBJtpMz1gHBUtAYVNmg2YWqBFsICC3WYFIAv0zuL/bJexR+CzQy5DQtUmhCNt5iyokbqSgqy9L1zHkehV9rOr81144QSOPxdPkzDfHVXcP3GYYTjqU6YKtusH/zsipr2bICD0lxmNapek0FzggDiwnjXndHOTgywfU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=eKVRTh8s; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1770304726; c=relaxed/simple;
+	bh=S6n3uHa80F/6LX1Lp/0WLFmlMQJrHQAsma0ycUkCZkA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EsaJlk1iLQvuXqPAgOVYlpHhgLJpndsOb5QqzPKJQQoraCtfPzivjS6nxzB8l7Vw3GhC1dmK82YB1z8ktRqpxjO793IUrZaPwNwSGk9WM7gfBzUBScoFpgVJGJbRVwVlFiP71ExpCRQL01b1gyKVheMZd4+hjyH58XO6jbt9J6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=V8ULlmdP; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="eKVRTh8s"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="V8ULlmdP"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
 	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
 	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
 	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
 	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=kqvJZQu8WcnB1BLo0XLQtKuR5oR9QFxi15H60AM6Zos=; b=eKVRTh8snCE+r/1AYoyRVE/mRl
-	CIc6umJDY4fnJ8t1iUkVG8CQNDX9LEZ9yY7qKN0odtndMF+zfrbkbrgTw4znp5/Ow+S/fviQwT+P3
-	QXhKfTQDjkQOcm/2y2eJuRVbvWZWPoZ+yJ5pImaYNtdUTJkzEN0TrtDN+c7lFpkhJBS+YkhprqRLV
-	/uVvZn3yl+Qk7xpfWfko92KpVayngpIHr3jTQthj1LeBmo2OB2Ybot6RCycNIMHsm654YX8Ubyb0n
-	pATKAUOm5WlmQQa+DtiE8z/jrdLlE2QFYhbcDVuWMRdc8TEmhEB4GEQNESoM1yMpbFIsPeaEtdJ19
-	+5rW1+fQ==;
+	bh=sXkUuOYwNqjBJf+OWVKQ/U3mrjaGYOrnJ9Xxb3vT6XU=; b=V8ULlmdPMb6Wc19RTejKewwqNV
+	LytIq1Ho4iE4s+rV8RS7WOL562L7iDspzmrYGrD7LS47V9i3pZ/MP9QMOWt/BSlbyANwTgRt7fh4Q
+	74Wqe2d7JEApSrBOiTQvdq8/zlCjqycSYK2O/F1D0lgc22fzGHLlBT/brBTv5IVIsI34lxkpCiRZ7
+	lF9+saPvdkq9osw3zoTR16ytLY7skfdY7Is16YKRH6bZgC23ow1ZY18XVGyrWFJlzEgfU5VNE9Lvb
+	caWGsowsRqej72jRJ4dS8gxTtHBvkd7Giy3ws46lKKNazswzns/BIFv6jbyt5LzNQc7ZatuNlLTKL
+	fJRYss9A==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vo0VF-000000002dz-2cm2;
-	Thu, 05 Feb 2026 15:38:41 +0100
+	id 1vo180-000000003Fp-4822;
+	Thu, 05 Feb 2026 16:18:45 +0100
 From: Phil Sutter <phil@nwl.cc>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
-Subject: [nft PATCH v2] Makefile: Pass PKG_CONFIG_PATH to internal builds
-Date: Thu,  5 Feb 2026 15:38:17 +0100
-Message-ID: <20260205143836.20146-1-phil@nwl.cc>
+Subject: [nft PATCH v2] configure: Implement --enable-profiling option
+Date: Thu,  5 Feb 2026 16:18:17 +0100
+Message-ID: <20260205151839.5321-1-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -49,48 +49,182 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When building nftables git HEAD, I use a script which also builds libmnl
-and libnftnl in their respective repositories and populates
-PKG_CONFIG_PATH variable so nftables is linked against them instead of
-host libraries. This is mandatory as host-installed libraries are
-chronically outdated and linking against them would fail.
+This will set compiler flag --coverage so code coverage may be inspected
+using gcov.
 
-Pass this variable to build test suite as well as the VPATH build
-performed by distcheck target based on the presumption that if a custom
-PKG_CONFIG_PATH was needed for the main build, these derived builds will
-need it as well.
+In order to successfully profile processes which are killed or
+interrupted as well, add a signal handler for those cases which calls
+exit(). This is relevant for test cases invoking nft monitor.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
 Changes since v1:
-- Cover for distcheck as well
-- Adjust patch description accordingly
+- Add src/profiling.c and include/profiling.h to keep conditionally
+  built code separate
 ---
- Makefile.am | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ .gitignore          |  5 +++++
+ Makefile.am         | 21 +++++++++++++++++++++
+ configure.ac        |  7 +++++++
+ include/profiling.h | 10 ++++++++++
+ src/main.c          |  3 +++
+ src/profiling.c     | 26 ++++++++++++++++++++++++++
+ 6 files changed, 72 insertions(+)
+ create mode 100644 include/profiling.h
+ create mode 100644 src/profiling.c
 
+diff --git a/.gitignore b/.gitignore
+index 719829b65d212..8673393fac397 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -19,6 +19,11 @@ nftversion.h
+ # cscope files
+ /cscope.*
+ 
++# gcov-related
++*.gcda
++*.gcno
++*.gcov
++
+ # Generated by tests
+ *.payload.got
+ tests/build/tests.log
 diff --git a/Makefile.am b/Makefile.am
-index c60c2e63d5aff..828146bc4fb1a 100644
+index bff746b53a0b4..5dfd2606e0fc7 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -23,7 +23,8 @@ libnftables_LIBVERSION = 2:0:1
+@@ -96,6 +96,7 @@ noinst_HEADERS = \
+ 	include/owner.h \
+ 	include/parser.h \
+ 	include/payload.h \
++	include/profiling.h \
+ 	include/proto.h \
+ 	include/rt.h \
+ 	include/rule.h \
+@@ -163,6 +164,10 @@ AM_CFLAGS = \
+ 
+ AM_YFLAGS = -d -Wno-yacc
+ 
++if BUILD_PROFILING
++AM_CFLAGS += --coverage
++endif
++
  ###############################################################################
  
- ACLOCAL_AMFLAGS = -I m4
--AM_DISTCHECK_CONFIGURE_FLAGS = --enable-distcheck
-+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-distcheck \
-+			       PKG_CONFIG_PATH=$(PKG_CONFIG_PATH)
- 
- EXTRA_DIST =
- BUILT_SOURCES =
-@@ -446,6 +447,7 @@ tools/nftables.service: tools/nftables.service.in ${top_builddir}/config.status
+ BUILT_SOURCES += src/parser_bison.h
+@@ -297,6 +302,10 @@ if BUILD_CLI
+ src_nft_SOURCES += src/cli.c
  endif
  
- if !BUILD_DISTCHECK
-+AM_TESTS_ENVIRONMENT = PKG_CONFIG_PATH=$(PKG_CONFIG_PATH)
- TESTS = tests/build/run-tests.sh \
- 	tests/json_echo/run-test.py \
- 	tests/monitor/run-tests.sh \
++if BUILD_PROFILING
++src_nft_SOURCES += src/profiling.c
++endif
++
+ src_nft_LDADD = src/libnftables.la
+ 
+ ###############################################################################
+@@ -453,3 +462,15 @@ TESTS = tests/build/run-tests.sh \
+ 	tests/py/nft-test.py \
+ 	tests/shell/run-tests.sh
+ endif
++
++all_c_sources = $(filter %.c,$(src_libnftables_la_SOURCES)) $(src_nft_SOURCES)
++if BUILD_MINIGMP
++all_c_sources += $(src_libminigmp_la_SOURCES)
++endif
++if BUILD_AFL
++all_c_sources += $(tools_nft_afl_SOURCES)
++endif
++CLEANFILES += src/libparser_la-parser_bison.gcno
++CLEANFILES += src/libparser_la-scanner.gcno
++CLEANFILES += $(all_c_sources:.c=.gcno)
++CLEANFILES += $(src_nft_SOURCES:.c=.gcda)
+diff --git a/configure.ac b/configure.ac
+index 022608627908a..5756f873f61a7 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -156,6 +156,13 @@ AC_ARG_ENABLE([distcheck],
+ 	      [enable_distcheck=yes], [])
+ AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
+ 
++AC_ARG_ENABLE([profiling],
++	      AS_HELP_STRING([--enable-profiling], [build for use of gcov/gprof]),
++	      [enable_profiling="$enableval"], [enable_profiling="no"])
++AM_CONDITIONAL([BUILD_PROFILING], [test "x$enable_profiling" = xyes])
++AM_COND_IF([BUILD_PROFILING],
++	   [AC_DEFINE([BUILD_PROFILING], [1], [Define for profiling])])
++
+ AC_CONFIG_FILES([					\
+ 		Makefile				\
+ 		libnftables.pc				\
+diff --git a/include/profiling.h b/include/profiling.h
+new file mode 100644
+index 0000000000000..77b50ec6b5338
+--- /dev/null
++++ b/include/profiling.h
+@@ -0,0 +1,10 @@
++#ifndef NFTABLES_PROFILING_H
++#define NFTABLES_PROFILING_H
++
++#ifdef BUILD_PROFILING
++static void setup_sighandler(void);
++#else
++static inline void setup_sighandler(void) { /* empty */ }
++#endif
++
++#endif /* NFTABLES_PROFILING_H */
+diff --git a/src/main.c b/src/main.c
+index 29b0533dee7c9..163d9312b20f4 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -19,6 +19,7 @@
+ #include <sys/types.h>
+ 
+ #include <nftables/libnftables.h>
++#include <profiling.h>
+ #include <utils.h>
+ #include <cli.h>
+ 
+@@ -375,6 +376,8 @@ int main(int argc, char * const *argv)
+ 	if (getuid() != geteuid())
+ 		_exit(111);
+ 
++	setup_sighandler();
++
+ 	if (!nft_options_check(argc, argv))
+ 		exit(EXIT_FAILURE);
+ 
+diff --git a/src/profiling.c b/src/profiling.c
+new file mode 100644
+index 0000000000000..ab292e768da9e
+--- /dev/null
++++ b/src/profiling.c
+@@ -0,0 +1,26 @@
++#include <signal.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++static void termhandler(int signo)
++{
++	switch (signo) {
++	case SIGTERM:
++		exit(143);
++	case SIGINT:
++		exit(130);
++	}
++}
++
++void setup_sighandler(void)
++{
++	struct sigaction act = {
++		.sa_handler = termhandler,
++	};
++
++	if (sigaction(SIGTERM, &act, NULL) == -1 ||
++	    sigaction(SIGINT, &act, NULL) == -1) {
++		perror("sigaction");
++		exit(1);
++	}
++}
 -- 
 2.51.0
 
