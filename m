@@ -1,58 +1,115 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57B8F2765D7
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 02:10:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67D151FF1B5
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 02:31:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770257432; cv=none; b=nDSgWxElKi1Fr+JEHVsDu1pETM+eB6vvQq3lHRtBdO3T+BT64x7PY+ed8thv3R7eJW0XzzfA+Gr/kDMmXRhbyq+IIwvjWtGs75WK2fpY8ULcRrZcY07zBVEZZIudKogu6bLNQX7Cb+4htJTFLZx7aVVfUdR0pdsV+0ScMW67vgg=
+	t=1770258685; cv=none; b=c6KV/XUMWhwmZVTjW4OpF68GYhLjb64Yr5kMFPSxcOd1rpweBmB6pjzklcvZn+AFhkL7UZ5NW7qsGHEQJj4fKY+Xuj6krzFrQ+28MFZN5JIRYkoaL8TwsV0FasjUQyTAzt6cj1GiCxrDsxymE4JWY5fETLldzVDjjUwo3L28a5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770257432; c=relaxed/simple;
-	bh=Mi6TqFE7aORrdGRLbiuUv4EncCHs45NYZ+mDxtCY/gI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XXJPaIKfY1mULu7odxyYUdPAYnbncsKpmcZmhg3UMkmsXDuYBQ4KksUiSQQphB5p0lbR/RVbwIXfFG8LByAGgC6pZ7RZumP598ysGWN1ZdDxk75JrgVvu2WFUMQqXXRdi9tq88CnCfuaVuU7ocEDxj1gMUizB7umAicjEClsX9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 41D546033F; Thu, 05 Feb 2026 03:10:29 +0100 (CET)
-Date: Thu, 5 Feb 2026 03:10:24 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Yi Chen <yiche@redhat.com>
-Cc: pablo@netfilter.org, phil@nwl.cc, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH] test: shell: run-test.sh: introduce NFT_TEST_EXCLUDES
-Message-ID: <aYP8ELzFrWADndpT@strlen.de>
-References: <20260204144940.63422-1-yiche@redhat.com>
- <aYNgX-nh04sAQdU8@strlen.de>
- <CAJsUoE03i1S6QmnSC++Qijh-q3J+QXdHek=j6E46R7+8-oZ7=w@mail.gmail.com>
+	s=arc-20240116; t=1770258685; c=relaxed/simple;
+	bh=oTda1+xTStdfMBAFP/3SZ4+XbeQYuj/TIYfp6BHImR8=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=qAzE95YklJoPsSPeImKZy8ZW99kkRYAmiK0vwfoATtQtw6DexYo4UqgTczyFoqUDL4rx253r12egn4D0zTgIURf4W9HThrsR9w72aA8b9FRNgqmdqWDu7poDo6HWNRfZ72jeB25XJWMnPoP1TPV6qj79U39oW0eYKPW+cz2MtXc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Y2dkQqYm; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Y2dkQqYm"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id E0BF960627
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 03:31:22 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1770258683;
+	bh=o5segeF2zeMwmAHXSOpnhzG6aVol7B2g3DZlfN1Gd+Y=;
+	h=From:To:Subject:Date:From;
+	b=Y2dkQqYmwDDbrrx2SeFRDbjZ6LEnlqD53PsZcLMPbMXaCRJ/2IN38inDYWvEopZPL
+	 hVEpttS5WvWKOiMw50quxsoc+pCp8sPQg1k+2MgN4y3n5LQUv7LZSXEj2PvTOCSRR+
+	 akdGkJ5E526GarcLUi6BWaisrv61M2A+XfBQfa20KlJYJ+uxKeh+S7XV3+eDmuL3eb
+	 x1xqJZZLYVX883UyZ4llbp+E66RRaFJulBrGN6G0/HIUH/O6pfs3gdPSBWBlRM1GgM
+	 cQ3yPZZi/UmMg65uijmFTczoXEcGx0Nj9DhktSGfvpxMMPLGmUU9AEJxq2z68eIKhk
+	 5N3gGpSHfeJ0g==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nft] tests: shell: double chain update with same device
+Date: Thu,  5 Feb 2026 03:31:18 +0100
+Message-ID: <20260205023118.1470019-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJsUoE03i1S6QmnSC++Qijh-q3J+QXdHek=j6E46R7+8-oZ7=w@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 
-Yi Chen <yiche@redhat.com> wrote:
-> Some patches may be considered too aggressive to backport to
-> downstream releases.
-> 
-> For example:
-> netfilter: nf_reject: don't reply to ICMP error messages
->
-> When this patch is missing,
-> tests/shell/testcases/packetpath/reject_loopback reports a failure.
+For Linux kernel patch:
 
-Right, that makes sense.
+  cf5fb87fcdaa ("netfilter: nf_tables: reject duplicate device on updates")
 
-> In addition, introducing this exclude feature makes it easier for
-> downstream streams to run this test suite while excluding known SKIP
-> items.
-> This also helps to quickly detect newly introduced SKIP items, which
-> may indicate new bugs.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ .../testcases/transactions/chain_update_dup   | 22 +++++++++++++++++++
+ .../transactions/flowtable_update_dup         | 22 +++++++++++++++++++
+ 2 files changed, 44 insertions(+)
+ create mode 100755 tests/shell/testcases/transactions/chain_update_dup
+ create mode 100755 tests/shell/testcases/transactions/flowtable_update_dup
 
-All good reasons, I'll place this in the commit message before applying.
+diff --git a/tests/shell/testcases/transactions/chain_update_dup b/tests/shell/testcases/transactions/chain_update_dup
+new file mode 100755
+index 000000000000..5d529dd157dc
+--- /dev/null
++++ b/tests/shell/testcases/transactions/chain_update_dup
+@@ -0,0 +1,22 @@
++#!/bin/bash
++
++ip link add dummy0 type dummy
++
++$NFT -f /dev/stdin <<EOF
++table netdev t {
++	chain c {
++		type filter hook ingress priority 0;
++	}
++}
++EOF
++
++$NFT -f /dev/stdin <<EOF
++add chain netdev t c { devices = { dummy0 }; }
++add chain netdev t c { devices = { dummy0 }; }
++EOF
++
++ip link del dummy0
++
++sleep 4
++
++$NFT flush ruleset
+diff --git a/tests/shell/testcases/transactions/flowtable_update_dup b/tests/shell/testcases/transactions/flowtable_update_dup
+new file mode 100755
+index 000000000000..434d8de5d5bc
+--- /dev/null
++++ b/tests/shell/testcases/transactions/flowtable_update_dup
+@@ -0,0 +1,22 @@
++#!/bin/bash
++
++ip link add dummy0 type dummy
++
++$NFT -f /dev/stdin <<EOF
++table inet t {
++	flowtable f {
++		hook ingress priority 0;
++	}
++}
++EOF
++
++$NFT -f /dev/stdin <<EOF
++add flowtable inet t f { devices = { dummy0 }; }
++add flowtable inet t f { devices = { dummy0 }; }
++EOF
++
++ip link del dummy0
++
++sleep 4
++
++$NFT flush ruleset
+-- 
+2.47.3
 
-Thanks!
