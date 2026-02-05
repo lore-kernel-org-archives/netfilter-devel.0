@@ -1,46 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74CC1395242
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 Feb 2026 21:42:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 001F721ADB7
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2026 01:29:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770241349; cv=none; b=LIi+pe6I0CCxJVavSKoqDog1a1NJud4WmSaAxDBrd4VOrvMC9yQK9cOcrzEbtv2XM7lXCpnuGnmYpoFQU5K8E7wgt0TuC6c+EGqIOXMltjPNM9GwJIOKHt9AVTAP+Ep8Xj907EbNkiyia1C5qDCPJma0+K70WDtsxAtrg9/Drtk=
+	t=1770254954; cv=none; b=XlEW9ogJNayeCUAEAZXyKHhgdzg1xT+dMeNifm1pef8XFjB0l8HKk/LHgVy38ilmQDwVVDrZj/EyVlUr2HSnYY3ujXKJ/nAvW9SSWblefhZj34RMlcz2ZRDBENZodUGuWhzcdvemA9iFL9BttCnCb34kQ/Zo2nfwJnHRzY/tkcU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770241349; c=relaxed/simple;
-	bh=rYLCoqFJS3MJ2oEnu2Y/661c07xvXs5RLoVzDldH6go=;
+	s=arc-20240116; t=1770254954; c=relaxed/simple;
+	bh=2fTgC2C4Xkt9ebSweAPrKwjSAJ1XAjmD1y1P20jgQ+Y=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=i/J63d9Ed9f+uZby1RZNvBL29wj7N4ywQq6sTyE9iIZtQUUp0WLgrWb5st1Z+RjHrHlsdKv6NfjoDQwU4Z6CSuSbXOwnbKJmyePBa9RTYKU7o4d7eGpgvRmqWZisVjzylG+YVx4eyC6nF1zhM07O21XJlw7AgUHg2WyqoksPw7M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kaPw3xqy; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=Jf6M40X+sZRQxA3jepBFXaJJuy4M9/sHcXRog0pwXZSji5dWjggK7bvMHb5YsRkFafD9E9i7IDnfh0OxciaR8/igKb0s+YIJhyJSObqC1m/EJ20AWtG2Nk/s1OFfCZ5HVtfS4lAo55AZiwBoE/POycI/O3VQ49y4cm8AiZFJTdY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D9kWLoxH; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kaPw3xqy"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D9kWLoxH"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C5666607ED;
-	Wed,  4 Feb 2026 22:42:25 +0100 (CET)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 94D1060275;
+	Thu,  5 Feb 2026 02:29:05 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1770241345;
-	bh=RCL0IHWA/dwNN83tNIvRERy9IQPN3jg36EHIb+gTV54=;
+	s=2025; t=1770254945;
+	bh=fFwg268tSmpsTgfKqiJ5jXfjc/rHl1dmWTKBdtZ6h6g=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=kaPw3xqyBzGMBJYZ79g5ucOyVyZKFWR2PcBel244nywsNfAIbkJeToZq9CGAWTZM0
-	 J9qI59ztp8KqdR9l2yOiYfZ+MIpKa1pcxKuhAvdwUcIy5STUQ6/S5mTCErgOhH+gNI
-	 N8C4z84XLb3/MXrImGuZIcNaL7ZZjuYmmhQUTA9h0OoYa1z9EQOHenMRHdiYlwCCw5
-	 edsPoBYirXnXOzyOJ6CRIPpwdrbn2dJBt1i16tzrR/28iBbRy98lYOD4Dh65YecCdW
-	 jBZg34VBEvV07tgaOXy6g5/BRt/RCbB3e8QvLU1/HLNdBPjhiFh0Jxwk1caI6eX6BY
-	 tdsyeQwJeyMGA==
-Date: Wed, 4 Feb 2026 22:42:22 +0100
+	b=D9kWLoxH4U2yl6kCXBto0jtBfh74lSz1GMm5q6DSAv30t6NxPKzJ/91zSvw+J8M9d
+	 Kt6dIVPlh0z/gHyRINgtjFdAx8IwPgyq2zB7dq4iSi9pPftMNbzhNCXVlazHB0B7dV
+	 Kc9kjQACYgbs1qynyRdriTdJCenPCEkHDa1vD7g3ASwTIsLX8UdFYDsVwkThloXmrw
+	 Q7Jvgh3J2vn6i5zafV/2zDPuzSBy6oAmSWqNn5CunME/ORaJzizAn4FUmK33tarsAb
+	 dzdH+EmzS6gvslKFDccquN7TNoO05aRly1MQ2HfyROaPwMCHbbrUk5UU89FECWQiCB
+	 stt37LZPl7rOA==
+Date: Thu, 5 Feb 2026 02:29:02 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Brian Witte <brianwitte@mailfence.com>, kadlec@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	syzbot+ff16b505ec9152e5f448@syzkaller.appspotmail.com
-Subject: Re: [PATCH v4 nf-next 2/2] netfilter: nf_tables: serialize reset
- with spinlock and atomic
-Message-ID: <aYO9PrZ1Vx1dHu6-@chamomile>
-References: <aYJ0h5y-KZ29F99g@chamomile>
- <20260204175809.5703-1-brianwitte@mailfence.com>
- <aYOLBSdHzVUHLPXR@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 1/4] configure: Implement --enable-profiling option
+Message-ID: <aYPyXsiChD6WfcBB@chamomile>
+References: <20260127222916.31806-1-phil@nwl.cc>
+ <20260127222916.31806-2-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,53 +45,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aYOLBSdHzVUHLPXR@strlen.de>
+In-Reply-To: <20260127222916.31806-2-phil@nwl.cc>
 
-On Wed, Feb 04, 2026 at 07:08:05PM +0100, Florian Westphal wrote:
-> Brian Witte <brianwitte@mailfence.com> wrote:
-> > On Mon, Feb 03, 2026 at 11:19:46PM +0100, Pablo Neira Ayuso wrote:
-> > > Maybe this so it covers for get and dump path?
-> > >
-> > > static struct nftables_pernet *nft_pernet_from_nlskb(const struct sk_buff *skb)
-> > > {
-> > >         struct sock *sk = skb->sk ? : NETLINK_CB(skb).sk;
-> > >
-> > >         return nft_pernet(sock_net(sk));
-> > > }
-> > >
-> > > in case it is worth to skip the unique nft_counter_lock below.
-> > 
-> > I have v5 ready with Florian's global DEFINE_SPINLOCK approach:
-> > split into 3 patches (revert, counter spinlock, quota atomic64_xchg),
-> > with nft_counter_fetch_and_reset() wrapping fetch+reset under the
-> > lock so parallel resets can't both read the same values. Tested and
-> > working.
-> 
-> Thanks.
-> 
-> > Before I send: should I go with the global spinlock, or would you
-> > prefer the per-net lock via nft_pernet_from_nlskb()? Happy to do
-> > either.
-> 
-> I don't think the nft_pernet_from_nlskb() will work as-is, for the
-> get requests the target skb is allocated via alloc_skb() and I don't
-> think the control block is initialised to hold the origin netlink query
-> sk.
+On Tue, Jan 27, 2026 at 11:29:13PM +0100, Phil Sutter wrote:
+> diff --git a/src/main.c b/src/main.c
+> index 29b0533dee7c9..bdcf8ab3c304b 100644
+> --- a/src/main.c
+> +++ b/src/main.c
+> @@ -16,6 +16,7 @@
+>  #include <errno.h>
+>  #include <getopt.h>
+>  #include <fcntl.h>
+> +#include <signal.h>
+>  #include <sys/types.h>
+>  
+>  #include <nftables/libnftables.h>
+> @@ -360,6 +361,33 @@ static bool nft_options_check(int argc, char * const argv[])
+>  	return true;
+>  }
+>  
+> +#ifdef BUILD_PROFILING
+> +static void termhandler(int signo)
+> +{
+> +	switch (signo) {
+> +	case SIGTERM:
+> +		exit(143);
+> +	case SIGINT:
+> +		exit(130);
+> +	}
+> +}
+> +
+> +static void setup_sighandler(void)
+> +{
+> +	struct sigaction act = {
+> +		.sa_handler = termhandler,
+> +	};
+> +
+> +	if (sigaction(SIGTERM, &act, NULL) == -1 ||
+> +	    sigaction(SIGINT, &act, NULL) == -1) {
+> +		perror("sigaction");
+> +		exit(1);
+> +	}
+> +}
+> +#else
+> +static void setup_sighandler(void) { /* empty */ }
+> +#endif
 
-This is GET path:
+Nitpick: This is small, but please add it to src/profile.c, to make
+extending it future proof and reduce ifdef pollution a bit.
 
-static int netlink_unicast_kernel(struct sock *sk, struct sk_buff *skb,
-                                  struct sock *ssk)
-{
-        int ret;
-        struct netlink_sock *nlk = nlk_sk(sk);
- 
-        ret = -ECONNREFUSED;
-        if (nlk->netlink_rcv != NULL) {
-                ret = skb->len;
-                atomic_add(skb->truesize, &sk->sk_rmem_alloc);
-                netlink_skb_set_owner_r(skb, sk);
-                NETLINK_CB(skb).sk = ssk; <---------------------
-                netlink_deliver_tap_kernel(sk, ssk, skb);
-                nlk->netlink_rcv(skb);
-                consume_skb(skb);
+With a include/profile.h also you can define the empty stub for
+setup_sighandler() when !BUILD_PROFILING.
+
+Thanks
+
+> +
+>  int main(int argc, char * const *argv)
+>  {
+>  	const struct option *options = get_options();
+> @@ -375,6 +403,8 @@ int main(int argc, char * const *argv)
+>  	if (getuid() != geteuid())
+>  		_exit(111);
+>  
+> +	setup_sighandler();
+> +
+>  	if (!nft_options_check(argc, argv))
+>  		exit(EXIT_FAILURE);
+>  
+> -- 
+> 2.51.0
+> 
