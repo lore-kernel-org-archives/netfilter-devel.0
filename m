@@ -1,35 +1,46 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06B06355030;
-	Thu,  5 Feb 2026 16:50:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 176AB1990A7;
+	Fri,  6 Feb 2026 02:08:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770310209; cv=none; b=UKNkHjI18Ar0Dc9R6rP0oLp/VZAECcQAtuHhjNeL5DcRcW4kOpH1f3OmRGOFSVIqat+arKcOcHTedM3AEiQw7ZV0F15YaQS443tVxKLjjRA8HvEIZ4p+tzrNIweqP+Ltw/CtVT80lJHGM/jly4dC52fMJDdJKg7/+wflBsfzATQ=
+	t=1770343695; cv=none; b=rwfc8YQCcjrcgSjFYir0PudGFQSwyOb+MnhwRQyixcRl2wg2uvq5Wnp5HNuFNCPD+Qsm618g3S398LNt+p3NcgQFejsd9DrQcJru405oznJ4dLmKVFF2x/z+Pn8tO5GofsTkUOa2SNliGia1Yt/hppo54MadLFKwisoM4TkJLco=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770310209; c=relaxed/simple;
-	bh=+lqJkPRlZVrNbFLDywMJUxiG2RrzMjYqH0TlN3zmDHU=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=YtKh1iU4sLJxbuqB1WXcXtylYbP4ewNMVqRUVb+yIzBidXCO8Fhum+ypMZ3RASs8w4hjHdp6atVu7UgpwGm4HOiRcCHK3Eg26ddEsPxFgiVRA8mhmQGgyFeG3P1Qh/8QuuqN63clBAU/gdniRMJLJ4TiuUomcTnodLa2mu9uo28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YoAA+4iI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770343695; c=relaxed/simple;
+	bh=dH0nvtriaUnYoCLi+Z5zipL5Hs4LMF08XXNr0DzOhng=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=IGZOr6gbY+W+Ln1oUSRkRFigNFMzf0da6joB+K9s5JTNorTKdl61v2/yOtccJifkpojt+gp9FLGlfwcHvHyutOy9RUpovKLNzhwbhltige0UxG46/W+wziLz+5IMPxm5CVnBUvnG4nLoaCIch5i/lnaapueIdbHPjFe1nIexB8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ooRXJFgI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YoAA+4iI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82B8EC4CEF7;
-	Thu,  5 Feb 2026 16:50:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ooRXJFgI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31141C4CEF7;
+	Fri,  6 Feb 2026 02:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770310208;
-	bh=+lqJkPRlZVrNbFLDywMJUxiG2RrzMjYqH0TlN3zmDHU=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=YoAA+4iIeEDMstoKQVsLQwwdo3c5ef9EAxj1i6TL2tLEWSlwsbvMhhhfz4VYkZT4B
-	 dSS+e1EeXMOsD19zQig67MQAbvKPVluk1Ab+quU6lZJ2NlZpUI42X3tFL2JJOWddYs
-	 rPbyo3UClPJbiY69Cg7zFiZU0PwX9MtI3QoITK9or9p8nTVvKzsUN97Opz0Oo7E49j
-	 aoX8OvCadFKLA9E2g6pKVJFVleSPm15Kvg4fdzEw3ZTjiRjFkbKm58xqEXPR7WG+iB
-	 /Y1DZoZJj2wEsKCP3HEMcSFHVvh4figxpdouYxd+dHiDULbjPK/3u2TvVwdLyv5qaA
-	 qoRBdOhmUBjTQ==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 853253808200;
-	Thu,  5 Feb 2026 16:50:07 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=k20201202; t=1770343694;
+	bh=dH0nvtriaUnYoCLi+Z5zipL5Hs4LMF08XXNr0DzOhng=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=ooRXJFgIlG+g+TKD3gkg6wL7N8eHtABNh5lkkhUjE2IwHn8p6C9TMxJS1HawAl48F
+	 8YSNxASweI1II7X5qaKRaMMqCwhc+MShPzGIfms0jWDr7ZHyxNRxPsyLYRT7q5WDWH
+	 W4I6KfyFOLdzbXR+5Jq5lGcNWdy4Cu7qcWNrOfe/A9Q84bCKNQ19pMzHjQ5x2SDZpe
+	 ThLdkNohaq9S/d0k+1StGRUAIi9tIWPdTtzseQSyZp2CsM+xo070ozIf73BqgPWtuj
+	 vdbJ4to4RVX88zzgbcWFRgVSL8Li2ztGZYWtmLUP53Oz9nGRWUBPgbk4dJvIvMotOz
+	 MIzVJ5t7+rnWQ==
+From: Jakub Kicinski <kuba@kernel.org>
+To: fw@strlen.de
+Cc: Jakub Kicinski <kuba@kernel.org>,
+	edumazet@google.com,
+	davem@davemloft.net,
+	pablo@netfilter.org,
+	pabeni@redhat.com,
+	netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+Subject: Re: [net-next,07/11] netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
+Date: Thu,  5 Feb 2026 18:08:05 -0800
+Message-ID: <20260206020805.3174445-1-kuba@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260205110905.26629-8-fw@strlen.de>
+References: <20260205110905.26629-8-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -37,48 +48,20 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/1] netfilter: nf_tables: fix inverted genmask check
- in
- nft_map_catchall_activate()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177031020633.485120.17507212737106778136.git-patchwork-notify@kernel.org>
-Date: Thu, 05 Feb 2026 16:50:06 +0000
-References: <20260205074450.3187-2-fw@strlen.de>
-In-Reply-To: <20260205074450.3187-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
 
-Hello:
+This is an AI-generated review of your patch. The human sending this
+email has considered the AI review valid, or at least plausible.
 
-This patch was applied to netdev/net.git (main)
-by Florian Westphal <fw@strlen.de>:
+For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
+---
+netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
 
-On Thu,  5 Feb 2026 08:44:50 +0100 you wrote:
-> From: Andrew Fasano <andrew.fasano@nist.gov>
-> 
-> nft_map_catchall_activate() has an inverted element activity check
-> compared to its non-catchall counterpart nft_mapelem_activate() and
-> compared to what is logically required.
-> 
-> nft_map_catchall_activate() is called from the abort path to re-activate
-> catchall map elements that were deactivated during a failed transaction.
-> It should skip elements that are already active (they don't need
-> re-activation) and process elements that are inactive (they need to be
-> restored). Instead, the current code does the opposite: it skips inactive
-> elements and processes active ones.
-> 
-> [...]
+This patch adds special handling for null interval elements in nftables
+rbtree sets, returning -ECANCELED instead of -EEXIST when re-adding them,
+so userspace re-adding the null element with NLM_F_CREATE succeeds.
 
-Here is the summary with links:
-  - [net,1/1] netfilter: nf_tables: fix inverted genmask check in nft_map_catchall_activate()
-    https://git.kernel.org/netdev/net/c/f41c5d151078
+> Fixes: c016c7e45ddf ("netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion")'
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+The Fixes tag has a spurious trailing apostrophe. The correct format is:
 
-
+Fixes: c016c7e45ddf ("netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion")
