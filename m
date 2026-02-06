@@ -1,40 +1,43 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CD223A7F46
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Feb 2026 12:33:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429812848A8
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Feb 2026 12:33:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770381239; cv=none; b=tD6z5U/NksHQtUeTlMNqs3I+C1yhRDgszO8ycCJQjuH0HiHQ2Ja6prnfQDtalch2WuhkfEuGf876vTUS7wIWo9FxLiMEvg0upr4TLuojrNVKonoBAu5woamNGvaiGcfkGcUlCnyeHf9Pv07mVzYChQFhAhFdnvB2jbMgbWZQ9d4=
+	t=1770381240; cv=none; b=lDmAA9Q7K4w/FBZfSw2UJViW/QU3N2/luSbn7mYn/vxI6BuEDKrpkXTkslm+zyrTdj0r3GXfpU5rNAqOsxTLm4Hhn0q/x5gC/Km7J/T8diSiWFaT9HzxJn6E7GYIjTWiN+erJkpOiTmsEAhM4H4uTzraG3RuoY99YsMfQzDXJnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770381239; c=relaxed/simple;
-	bh=vmbA8RaDKlSisHrYRkJTXXsjFgHKWy+QqxF4CQJLDQw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mi5+z661HFGDjTd3q4AHwYgoFyZdF/v1oEGaYTWrYcaddap+PsD5pw8Hj2h+03PTEC/E+ETx5GF9Toxzu0/S7vByKN64k9t6FE+TOX7HW1OLsVAcc4QtpiscRWiemvyibKSaOTV0bu3Mlqs+dQfe2FiGbFOU1wHOs6hkpRvFTTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RPqsyBHX; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1770381240; c=relaxed/simple;
+	bh=VO+aNQ3E4qsdcrH5ItWEWwcMylompBzt9p1or/uBGJY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=EU2ft43PQ2/xxlIqwZcPm+OeiR/k15rCW8X0wxTLjelJ4cYgsNEwg+gesRywR1qeg2H19cSvhPJyPLmU09aMZeImoewIYs7UcNYGkM+AOJrLRQz4kBXwwd1aNLOCvxu2xxl5mSSP9qc8qrPRqNhpmT3Q7a92rCRn6SHAfnDGYjo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CX3/+HrO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RPqsyBHX"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CX3/+HrO"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 96B0760888;
-	Fri,  6 Feb 2026 13:33:49 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7D7216088F;
+	Fri,  6 Feb 2026 13:33:51 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1770381229;
-	bh=vi550CN9H1WNaMx+11098lGnuTjYxfaEg9OPn4iiVK8=;
-	h=From:To:Cc:Subject:Date:From;
-	b=RPqsyBHX8LVEGK81W1+QNCmyV8tuZwkfFpwS00rmoF6Zuyi57+ycc7XnMj59zqhiq
-	 K2FdpwUQUxI3cbSLZLQIWkPwQPAVGqovAQlfo26IIhK7gfj6/x2xnSJAaEYhR7HsPt
-	 gY2FnLMemUhAvlrzmpZnEQQntCDb/Fiml7uQ0SJAZKdH8cRj/WzlgWnDcCtEuYdr5N
-	 RcBc84c2ZBsKtj34RovymH6jn1t+58hmGWh7HenvEs2uChdJDwruYn+dj6JTVxvFPT
-	 rUQ6xv9J1VBLvqC1rJosUwQNkb9JeuAePbKa4b5v1ocolJxzm+XyyJE59wniucv9Rb
-	 MqG4G7SXq4+BA==
+	s=2025; t=1770381231;
+	bh=pJWk+Pdj/MODLYRflLqIDd5WYuZl7Eza8dEVMzCj/x8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=CX3/+HrOkfhS92Fi0mTzv28f6klOmdO6nlL2cbZOGTaWMA8AlQb2SWBUHxhAIaw4F
+	 4jKMSAJNnxgEGns5x+E6Ha6jCDbX/8eHKbdQxVkjcgEp0+10/r6eLRXElratQilS58
+	 0EMX7+Az5h3r7jRSDXORwjD+tFbY0PzYzE7iKYGzeMx9Q8pKQbDvzvs8nL7AFw/AHJ
+	 SGUYhhVomFGkYKdy88kDvJcdIm9sAnavjZ5a8IOYKGyoOHqmwt5y3vAq0PlaWS4zQm
+	 Swy73RoZPQHuyMFelKMXzjPu2yvR1xkfKsOppGXLERI6+Ptr9Q7T++XrhSg+kJrxvw
+	 l9LJKRN+BoOqA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de
-Subject: [PATCH nf-next,v3 0/4] nft_set_rbtree: complete interval overlap detection
-Date: Fri,  6 Feb 2026 13:33:42 +0100
-Message-ID: <20260206123346.1529474-1-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 1/4] netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
+Date: Fri,  6 Feb 2026 13:33:43 +0100
+Message-ID: <20260206123346.1529474-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260206123346.1529474-1-pablo@netfilter.org>
+References: <20260206123346.1529474-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,26 +46,73 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+Userspace adds a non-matching null element to the kernel for historical
+reasons. This null element is added when the set is populated with
+elements. Inclusion of this element is conditional, therefore,
+userspace needs to dump the set content to check for its presence.
 
-This is a series addressing comments by AI.
+If the NLM_F_CREATE flag is turned on, this becomes an issue because
+kernel bogusly reports EEXIST.
 
-It has spotted mostly comestic issues, but it also uncovered a real
-issue in the last patch.
+Add special case to ignore NLM_F_CREATE in this case, therefore,
+re-adding the nul-element never fails.
 
-Please, apply this series for the nf-next PR, thanks.
+Fixes: c016c7e45ddf ("netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v3: fix trailing ' in Fixes: tag.
 
-Pablo Neira Ayuso (4):
-  netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
-  netfilter: nft_set_rbtree: check for partial overlaps in anonymous sets
-  netfilter: nft_set_rbtree: validate element belonging to interval
-  netfilter: nft_set_rbtree: validate open interval overlap
+ net/netfilter/nf_tables_api.c  |  5 +++++
+ net/netfilter/nft_set_rbtree.c | 13 +++++++++++++
+ 2 files changed, 18 insertions(+)
 
- include/net/netfilter/nf_tables.h |   4 +
- net/netfilter/nf_tables_api.c     |  26 +++-
- net/netfilter/nft_set_rbtree.c    | 241 ++++++++++++++++++++++++++++--
- 3 files changed, 258 insertions(+), 13 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index be4924aeaf0e..8ced4964eade 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7636,6 +7636,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			 * and an existing one.
+ 			 */
+ 			err = -EEXIST;
++		} else if (err == -ECANCELED) {
++			/* ECANCELED reports an existing nul-element in
++			 * interval sets.
++			 */
++			err = 0;
+ 		}
+ 		goto err_element_clash;
+ 	}
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 0efaa8c3f31b..2c240b0ade87 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -57,6 +57,13 @@ static bool nft_rbtree_interval_start(const struct nft_rbtree_elem *rbe)
+ 	return !nft_rbtree_interval_end(rbe);
+ }
+ 
++static bool nft_rbtree_interval_null(const struct nft_set *set,
++				     const struct nft_rbtree_elem *rbe)
++{
++	return (!memchr_inv(nft_set_ext_key(&rbe->ext), 0, set->klen) &&
++		nft_rbtree_interval_end(rbe));
++}
++
+ static int nft_rbtree_cmp(const struct nft_set *set,
+ 			  const struct nft_rbtree_elem *e1,
+ 			  const struct nft_rbtree_elem *e2)
+@@ -373,6 +380,12 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	 */
+ 	if (rbe_le && !nft_rbtree_cmp(set, new, rbe_le) &&
+ 	    nft_rbtree_interval_end(rbe_le) == nft_rbtree_interval_end(new)) {
++		/* - ignore null interval, otherwise NLM_F_CREATE bogusly
++		 *   reports EEXIST.
++		 */
++		if (nft_rbtree_interval_null(set, new))
++			return -ECANCELED;
++
+ 		*elem_priv = &rbe_le->priv;
+ 		return -EEXIST;
+ 	}
 -- 
 2.47.3
 
