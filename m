@@ -1,40 +1,40 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 429812848A8
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Feb 2026 12:33:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1827F3A7F46
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Feb 2026 12:34:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770381240; cv=none; b=lDmAA9Q7K4w/FBZfSw2UJViW/QU3N2/luSbn7mYn/vxI6BuEDKrpkXTkslm+zyrTdj0r3GXfpU5rNAqOsxTLm4Hhn0q/x5gC/Km7J/T8diSiWFaT9HzxJn6E7GYIjTWiN+erJkpOiTmsEAhM4H4uTzraG3RuoY99YsMfQzDXJnc=
+	t=1770381240; cv=none; b=dv/XHM6Qac+XqyfrWC2w16PkdtzXY1pPC7AmwXvx+kjcyYsJmneSGW4kyrexx+dsC9sQZRO7IPAP84WSE8MK4+u/oVflmRCFdFANng7mlWlOu6EAv8XeTuCv1cTJ0xrR+Ov/kdrUZFdRea+Ot/zrg4VlRm0UgrZRMCNp3rVZKv4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1770381240; c=relaxed/simple;
-	bh=VO+aNQ3E4qsdcrH5ItWEWwcMylompBzt9p1or/uBGJY=;
+	bh=bdTYJvzuYA6UDyf4olvBOpooH8WWnt8nDwzxzdCkXNk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EU2ft43PQ2/xxlIqwZcPm+OeiR/k15rCW8X0wxTLjelJ4cYgsNEwg+gesRywR1qeg2H19cSvhPJyPLmU09aMZeImoewIYs7UcNYGkM+AOJrLRQz4kBXwwd1aNLOCvxu2xxl5mSSP9qc8qrPRqNhpmT3Q7a92rCRn6SHAfnDGYjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CX3/+HrO; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=pjbcCuajbefGgnDdr0CRPCQa30MAenvmOSQWVXm9aJZKtIMSrDr7ntgIJhfSKCaNeohNhGVPjGMPr7W77IZOUPEvX0ZAB2trz9JzGVu8lv3ujlorwLoA0neg3n8/JZFcxnV3iBqYhNf4Qg0BijwARrVQ/fqWi444B43ViqUq2qk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=jrf7U83h; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CX3/+HrO"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="jrf7U83h"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7D7216088F;
-	Fri,  6 Feb 2026 13:33:51 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7B19760890;
+	Fri,  6 Feb 2026 13:33:52 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1770381231;
-	bh=pJWk+Pdj/MODLYRflLqIDd5WYuZl7Eza8dEVMzCj/x8=;
+	s=2025; t=1770381232;
+	bh=uek+lLMBaPsFUJvvJCLsJVj2p8X6d4a1ZbYhyqY3iAE=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CX3/+HrOkfhS92Fi0mTzv28f6klOmdO6nlL2cbZOGTaWMA8AlQb2SWBUHxhAIaw4F
-	 4jKMSAJNnxgEGns5x+E6Ha6jCDbX/8eHKbdQxVkjcgEp0+10/r6eLRXElratQilS58
-	 0EMX7+Az5h3r7jRSDXORwjD+tFbY0PzYzE7iKYGzeMx9Q8pKQbDvzvs8nL7AFw/AHJ
-	 SGUYhhVomFGkYKdy88kDvJcdIm9sAnavjZ5a8IOYKGyoOHqmwt5y3vAq0PlaWS4zQm
-	 Swy73RoZPQHuyMFelKMXzjPu2yvR1xkfKsOppGXLERI6+Ptr9Q7T++XrhSg+kJrxvw
-	 l9LJKRN+BoOqA==
+	b=jrf7U83h2wZlmZ+YrtYLhQ4MZ1b0/opxkFl7JYgXVA+2hnzQZveOim5dpa0GxcW7q
+	 Vi89xVfFkHTMbLNZ4iJg9DkoqSGmKKbTHta4JZPkDrXEznUDDJpH2tXqTmQQ6H0Ml7
+	 BbqJN4sqCiNi0Kl2XD6FFi241SR93bI0smreyu+ANnOckH3wZlEBI3Boqfo5KOGyK3
+	 U7APwaTuPMAG2fp0M1d1oSHBV/fxyKzpRz/hrF/XrOUJZf5hnECn7Ndb0bLL//Yrsb
+	 w2BKI7DkGzJJXuC6DNlpdYI+s/RyYJ5YzZbslyMFOUydk9P3bvntLHmoa31ppVmuv4
+	 +dUg+YhiTUqxQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: fw@strlen.de
-Subject: [PATCH nf-next,v3 1/4] netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
-Date: Fri,  6 Feb 2026 13:33:43 +0100
-Message-ID: <20260206123346.1529474-2-pablo@netfilter.org>
+Subject: [PATCH nf-next,v3 2/4] netfilter: nft_set_rbtree: check for partial overlaps in anonymous sets
+Date: Fri,  6 Feb 2026 13:33:44 +0100
+Message-ID: <20260206123346.1529474-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260206123346.1529474-1-pablo@netfilter.org>
 References: <20260206123346.1529474-1-pablo@netfilter.org>
@@ -46,73 +46,85 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Userspace adds a non-matching null element to the kernel for historical
-reasons. This null element is added when the set is populated with
-elements. Inclusion of this element is conditional, therefore,
-userspace needs to dump the set content to check for its presence.
+Userspace provides an optimized representation in case intervals are
+adjacent, where the end element is omitted.
 
-If the NLM_F_CREATE flag is turned on, this becomes an issue because
-kernel bogusly reports EEXIST.
+The existing partial overlap detection logic skips anonymous set checks
+on start elements for this reason.
 
-Add special case to ignore NLM_F_CREATE in this case, therefore,
-re-adding the nul-element never fails.
+However, it is possible to add intervals that overlap to this anonymous
+where two start elements with the same, eg. A-B, A-C where C < B.
 
-Fixes: c016c7e45ddf ("netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion")
+      start     end
+	A        B
+      start  end
+        A     C
+
+Restore the check on overlapping start elements to report an overlap.
+
+Fixes: c9e6978e2725 ("netfilter: nft_set_rbtree: Switch to node list walk for overlap detection")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: fix trailing ' in Fixes: tag.
+v3: - add comment to nft_rbtree_prev_active() to make AI happy.
+    - use Fixes: tag preferred by AI.
+    - update another comment in the code following suggestion of AI to make it less ambiguous
 
- net/netfilter/nf_tables_api.c  |  5 +++++
- net/netfilter/nft_set_rbtree.c | 13 +++++++++++++
- 2 files changed, 18 insertions(+)
+ net/netfilter/nft_set_rbtree.c | 30 +++++++++++++++++++++++++-----
+ 1 file changed, 25 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index be4924aeaf0e..8ced4964eade 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7636,6 +7636,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 			 * and an existing one.
- 			 */
- 			err = -EEXIST;
-+		} else if (err == -ECANCELED) {
-+			/* ECANCELED reports an existing nul-element in
-+			 * interval sets.
-+			 */
-+			err = 0;
- 		}
- 		goto err_element_clash;
- 	}
 diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 0efaa8c3f31b..2c240b0ade87 100644
+index 2c240b0ade87..14b4256bb00d 100644
 --- a/net/netfilter/nft_set_rbtree.c
 +++ b/net/netfilter/nft_set_rbtree.c
-@@ -57,6 +57,13 @@ static bool nft_rbtree_interval_start(const struct nft_rbtree_elem *rbe)
- 	return !nft_rbtree_interval_end(rbe);
+@@ -251,11 +251,23 @@ static bool nft_rbtree_update_first(const struct nft_set *set,
+ 	return false;
  }
  
-+static bool nft_rbtree_interval_null(const struct nft_set *set,
-+				     const struct nft_rbtree_elem *rbe)
++/* Only for anonymous sets which do not allow updates, all element are active. */
++static struct nft_rbtree_elem *nft_rbtree_prev_active(struct nft_rbtree_elem *rbe)
 +{
-+	return (!memchr_inv(nft_set_ext_key(&rbe->ext), 0, set->klen) &&
-+		nft_rbtree_interval_end(rbe));
++	struct rb_node *node;
++
++	node = rb_prev(&rbe->node);
++	if (!node)
++		return NULL;
++
++	return rb_entry(node, struct nft_rbtree_elem, node);
 +}
 +
- static int nft_rbtree_cmp(const struct nft_set *set,
- 			  const struct nft_rbtree_elem *e1,
- 			  const struct nft_rbtree_elem *e2)
-@@ -373,6 +380,12 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 			       struct nft_rbtree_elem *new,
+ 			       struct nft_elem_priv **elem_priv)
+ {
+-	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL;
++	struct nft_rbtree_elem *rbe, *rbe_le = NULL, *rbe_ge = NULL, *rbe_prev;
+ 	struct rb_node *node, *next, *parent, **p, *first = NULL;
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 cur_genmask = nft_genmask_cur(net);
+@@ -393,11 +405,19 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	/* - new start element with existing closest, less or equal key value
+ 	 *   being a start element: partial overlap, reported as -ENOTEMPTY.
+ 	 *   Anonymous sets allow for two consecutive start element since they
+-	 *   are constant, skip them to avoid bogus overlap reports.
++	 *   are constant, but validate that this new start element does not
++	 *   sit in between an existing start and end elements: partial overlap,
++	 *   reported as -ENOTEMPTY.
  	 */
- 	if (rbe_le && !nft_rbtree_cmp(set, new, rbe_le) &&
- 	    nft_rbtree_interval_end(rbe_le) == nft_rbtree_interval_end(new)) {
-+		/* - ignore null interval, otherwise NLM_F_CREATE bogusly
-+		 *   reports EEXIST.
-+		 */
-+		if (nft_rbtree_interval_null(set, new))
-+			return -ECANCELED;
+-	if (!nft_set_is_anonymous(set) && rbe_le &&
+-	    nft_rbtree_interval_start(rbe_le) && nft_rbtree_interval_start(new))
+-		return -ENOTEMPTY;
++	if (rbe_le &&
++	    nft_rbtree_interval_start(rbe_le) && nft_rbtree_interval_start(new)) {
++		if (!nft_set_is_anonymous(set))
++			return -ENOTEMPTY;
 +
- 		*elem_priv = &rbe_le->priv;
- 		return -EEXIST;
- 	}
++		rbe_prev = nft_rbtree_prev_active(rbe_le);
++		if (rbe_prev && nft_rbtree_interval_end(rbe_prev))
++			return -ENOTEMPTY;
++	}
+ 
+ 	/* - new end element with existing closest, less or equal key value
+ 	 *   being a end element: partial overlap, reported as -ENOTEMPTY.
 -- 
 2.47.3
 
