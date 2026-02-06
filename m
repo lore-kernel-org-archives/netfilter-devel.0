@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9C59125A0;
-	Fri,  6 Feb 2026 15:31:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F074B1DC1AB;
+	Fri,  6 Feb 2026 15:31:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770391864; cv=none; b=XeKZBw+os7vFnDMR28EdlVWIWhlIslG/lDR//Y65NrTnUfka/87qKxgaatP6uwirFVAfudvVGkjZoWjteOOBExja9OT9X21giJ4lhag8ceSZ+iPVj2Ms9btYGCa/S9JLsqotwhJJ/bcShNv+qcbh27oIj2+mvnu10kSHwpBYV3M=
+	t=1770391868; cv=none; b=OXsiaoIVgeUwGYrljjUTI5mWS80kG9MPNCWqOPqMGLFu2EhHPnEKWuGNCieo+OtOJhBquzx2BHU98mf5hk5gnejivbHu9A0Hn7tcQ5n0MsKBO2Nv2BK9EuGwoy5q8R9x0Vjqb2yLeIE6yhjOcH7KYWN5IsMyC+RnmUS7O8EQMms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770391864; c=relaxed/simple;
-	bh=rRyaeW7BqrZciGDbY4cyzeP9p04bcgK9rQS56g1PanQ=;
+	s=arc-20240116; t=1770391868; c=relaxed/simple;
+	bh=yZHUxD0HGS++xaC4ODShqzXV+2e3yyl7LTI1TiJGjOA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=uYTfsr5r8DufDVhlH5n26G7Jy1+2oXHg7wpMTiDqv6TWTnG2N+W7SKZD9+GqMWtVJgrGoi5mcpNhRULlRacbVqsPLW7//CMI5VpfiQDuluSpNRC0Ead4w28djexVuDesBrr1+7iAfdfS/MpEdVhnWfNtjNVc8o6apMOuAIL7GLY=
+	 MIME-Version; b=C/baZvDerEuUrLs8yRRJtoa1cGRjgo8HB+tGIgTBDcsHjV5sM/IqXtDXhTRJUj1YkqcWnawd9dB3L09tC2PzJtdxBe+IGm1uhmRE1qFz0sTx7w3biY/SinkFLs2S5UANYXmXHGLaBetDHI+E12FouH+kOvSrAXrsVdxqHugzfT0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 284C5607E0; Fri, 06 Feb 2026 16:31:02 +0100 (CET)
+	id 78AF860345; Fri, 06 Feb 2026 16:31:06 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH v2 net-next 01/11] netfilter: nft_set_rbtree: don't gc elements on insert
-Date: Fri,  6 Feb 2026 16:30:38 +0100
-Message-ID: <20260206153048.17570-2-fw@strlen.de>
+Subject: [PATCH v2 net-next 02/11] netfilter: nfnetlink_queue: do shared-unconfirmed check before segmentation
+Date: Fri,  6 Feb 2026 16:30:39 +0100
+Message-ID: <20260206153048.17570-3-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260206153048.17570-1-fw@strlen.de>
 References: <20260206153048.17570-1-fw@strlen.de>
@@ -38,293 +38,238 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-During insertion we can queue up expired elements for garbage
-collection.
+Ulrich reports a regression with nfqueue:
 
-In case of later abort, the commit hook will never be called.
-Packet path and 'get' requests will find free'd elements in the
-binary search blob:
+If an application did not set the 'F_GSO' capability flag and a gso
+packet with an unconfirmed nf_conn entry is received all packets are
+now dropped instead of queued, because the check happens after
+skb_gso_segment().  In that case, we did have exclusive ownership
+of the skb and its associated conntrack entry.  The elevated use
+count is due to skb_clone happening via skb_gso_segment().
 
- nft_set_ext_key include/net/netfilter/nf_tables.h:800 [inline]
- nft_array_get_cmp+0x1f6/0x2a0 net/netfilter/nft_set_rbtree.c:133
- __inline_bsearch include/linux/bsearch.h:15 [inline]
- bsearch+0x50/0xc0 lib/bsearch.c:33
- nft_rbtree_get+0x16b/0x400 net/netfilter/nft_set_rbtree.c:169
- nft_setelem_get net/netfilter/nf_tables_api.c:6495 [inline]
- nft_get_set_elem+0x420/0xaa0 net/netfilter/nf_tables_api.c:6543
- nf_tables_getsetelem+0x448/0x5e0 net/netfilter/nf_tables_api.c:6632
- nfnetlink_rcv_msg+0x8ae/0x12c0 net/netfilter/nfnetlink.c:290
+Move the check so that its peformed vs. the aggregated packet.
 
-Also, when we insert an element that triggers -EEXIST, and that insertion
-happens to also zap a timed-out entry, we end up with same issue:
-Neither commit nor abort hook is called.
+Then, annotate the individual segments except the first one so we
+can do a 2nd check at reinject time.
 
-Fix this by removing gc api usage during insertion.
+For the normal case, where userspace does in-order reinjects, this avoids
+packet drops: first reinjected segment continues traversal and confirms
+entry, remaining segments observe the confirmed entry.
 
-The blamed commit also removes concurrency of the rbtree with the
-packet path, so we can now safely rb_erase() the element and move
-it to a new expired list that can be reaped in the commit hook
-before building the next blob iteration.
+While at it, simplify nf_ct_drop_unconfirmed(): We only care about
+unconfirmed entries with a refcnt > 1, there is no need to special-case
+dying entries.
 
-This also avoids the need to rebuild the blob in the abort path:
-Expired elements seen during insertion attempts are kept around
-until a transaction passes.
+This only happens with UDP.  With TCP, the only unconfirmed packet will
+be the TCP SYN, those aren't aggregated by GRO.
 
-Reported-by: syzbot+d417922a3e7935517ef6@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=d417922a3e7935517ef6
-Fixes: 7e43e0a1141d ("netfilter: nft_set_rbtree: translate rbtree to array for binary search")
+Next patch adds a udpgro test case to cover this scenario.
+
+Reported-by: Ulrich Weber <ulrich.weber@gmail.com>
+Fixes: 7d8dc1c7be8d ("netfilter: nf_queue: drop packets with cloned unconfirmed conntracks")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_rbtree.c | 136 ++++++++++++++++-----------------
- 1 file changed, 68 insertions(+), 68 deletions(-)
+ include/net/netfilter/nf_queue.h |   1 +
+ net/netfilter/nfnetlink_queue.c  | 123 +++++++++++++++++++------------
+ 2 files changed, 75 insertions(+), 49 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 7598c368c4e5..0efaa8c3f31b 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -34,11 +34,15 @@ struct nft_rbtree {
- 	struct nft_array __rcu	*array;
- 	struct nft_array	*array_next;
- 	unsigned long		last_gc;
-+	struct list_head	expired;
- };
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index e6803831d6af..45eb26b2e95b 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -21,6 +21,7 @@ struct nf_queue_entry {
+ 	struct net_device	*physout;
+ #endif
+ 	struct nf_hook_state	state;
++	bool			nf_ct_is_unconfirmed;
+ 	u16			size; /* sizeof(entry) + saved route keys */
+ 	u16			queue_num;
  
- struct nft_rbtree_elem {
- 	struct nft_elem_priv	priv;
--	struct rb_node		node;
-+	union {
-+		struct rb_node	node;
-+		struct list_head list;
-+	};
- 	struct nft_set_ext	ext;
- };
- 
-@@ -179,13 +183,16 @@ nft_rbtree_get(const struct net *net, const struct nft_set *set,
- 	return &rbe->priv;
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 671b52c652ef..f1c8049861a6 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -435,6 +435,34 @@ static void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	nf_queue_entry_free(entry);
  }
  
--static void nft_rbtree_gc_elem_remove(struct net *net, struct nft_set *set,
--				      struct nft_rbtree *priv,
--				      struct nft_rbtree_elem *rbe)
-+static void nft_rbtree_gc_elem_move(struct net *net, struct nft_set *set,
-+				    struct nft_rbtree *priv,
-+				    struct nft_rbtree_elem *rbe)
- {
- 	lockdep_assert_held_write(&priv->lock);
- 	nft_setelem_data_deactivate(net, set, &rbe->priv);
- 	rb_erase(&rbe->node, &priv->root);
++/* return true if the entry has an unconfirmed conntrack attached that isn't owned by us
++ * exclusively.
++ */
++static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry, bool *is_unconfirmed)
++{
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	struct nf_conn *ct = (void *)skb_nfct(entry->skb);
 +
-+	/* collected later on in commit callback */
-+	list_add(&rbe->list, &priv->expired);
- }
- 
- static const struct nft_rbtree_elem *
-@@ -196,11 +203,6 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
- 	struct rb_node *prev = rb_prev(&rbe->node);
- 	struct net *net = read_pnet(&set->net);
- 	struct nft_rbtree_elem *rbe_prev;
--	struct nft_trans_gc *gc;
--
--	gc = nft_trans_gc_alloc(set, 0, GFP_ATOMIC);
--	if (!gc)
--		return ERR_PTR(-ENOMEM);
- 
- 	/* search for end interval coming before this element.
- 	 * end intervals don't carry a timeout extension, they
-@@ -218,28 +220,10 @@ nft_rbtree_gc_elem(const struct nft_set *__set, struct nft_rbtree *priv,
- 	rbe_prev = NULL;
- 	if (prev) {
- 		rbe_prev = rb_entry(prev, struct nft_rbtree_elem, node);
--		nft_rbtree_gc_elem_remove(net, set, priv, rbe_prev);
--
--		/* There is always room in this trans gc for this element,
--		 * memory allocation never actually happens, hence, the warning
--		 * splat in such case. No need to set NFT_SET_ELEM_DEAD_BIT,
--		 * this is synchronous gc which never fails.
--		 */
--		gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
--		if (WARN_ON_ONCE(!gc))
--			return ERR_PTR(-ENOMEM);
--
--		nft_trans_gc_elem_add(gc, rbe_prev);
-+		nft_rbtree_gc_elem_move(net, set, priv, rbe_prev);
- 	}
- 
--	nft_rbtree_gc_elem_remove(net, set, priv, rbe);
--	gc = nft_trans_gc_queue_sync(gc, GFP_ATOMIC);
--	if (WARN_ON_ONCE(!gc))
--		return ERR_PTR(-ENOMEM);
--
--	nft_trans_gc_elem_add(gc, rbe);
--
--	nft_trans_gc_queue_sync_done(gc);
-+	nft_rbtree_gc_elem_move(net, set, priv, rbe);
- 
- 	return rbe_prev;
- }
-@@ -675,29 +659,13 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 	}
- }
- 
--static void nft_rbtree_gc_remove(struct net *net, struct nft_set *set,
--				 struct nft_rbtree *priv,
--				 struct nft_rbtree_elem *rbe)
--{
--	nft_setelem_data_deactivate(net, set, &rbe->priv);
--	nft_rbtree_erase(priv, rbe);
--}
--
--static void nft_rbtree_gc(struct nft_set *set)
-+static void nft_rbtree_gc_scan(struct nft_set *set)
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 	struct nft_rbtree_elem *rbe, *rbe_end = NULL;
- 	struct net *net = read_pnet(&set->net);
- 	u64 tstamp = nft_net_tstamp(net);
- 	struct rb_node *node, *next;
--	struct nft_trans_gc *gc;
--
--	set  = nft_set_container_of(priv);
--	net  = read_pnet(&set->net);
--
--	gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
--	if (!gc)
--		return;
- 
- 	for (node = rb_first(&priv->root); node ; node = next) {
- 		next = rb_next(node);
-@@ -715,34 +683,46 @@ static void nft_rbtree_gc(struct nft_set *set)
- 		if (!__nft_set_elem_expired(&rbe->ext, tstamp))
- 			continue;
- 
--		gc = nft_trans_gc_queue_sync(gc, GFP_KERNEL);
--		if (!gc)
--			goto try_later;
--
- 		/* end element needs to be removed first, it has
- 		 * no timeout extension.
- 		 */
-+		write_lock_bh(&priv->lock);
- 		if (rbe_end) {
--			nft_rbtree_gc_remove(net, set, priv, rbe_end);
--			nft_trans_gc_elem_add(gc, rbe_end);
-+			nft_rbtree_gc_elem_move(net, set, priv, rbe_end);
- 			rbe_end = NULL;
- 		}
- 
--		gc = nft_trans_gc_queue_sync(gc, GFP_KERNEL);
--		if (!gc)
--			goto try_later;
--
--		nft_rbtree_gc_remove(net, set, priv, rbe);
--		nft_trans_gc_elem_add(gc, rbe);
-+		nft_rbtree_gc_elem_move(net, set, priv, rbe);
-+		write_unlock_bh(&priv->lock);
- 	}
- 
--try_later:
-+	priv->last_gc = jiffies;
++	if (!ct || nf_ct_is_confirmed(ct))
++		return false;
++
++	if (is_unconfirmed)
++		*is_unconfirmed = true;
++
++	/* in some cases skb_clone() can occur after initial conntrack
++	 * pickup, but conntrack assumes exclusive skb->_nfct ownership for
++	 * unconfirmed entries.
++	 *
++	 * This happens for br_netfilter and with ip multicast routing.
++	 * This can't be solved with serialization here because one clone
++	 * could have been queued for local delivery or could be transmitted
++	 * in parallel on another CPU.
++	 */
++	return refcount_read(&ct->ct_general.use) > 1;
++#endif
++	return false;
 +}
 +
-+static void nft_rbtree_gc_queue(struct nft_set *set)
-+{
-+	struct nft_rbtree *priv = nft_set_priv(set);
-+	struct nft_rbtree_elem *rbe, *rbe_end;
-+	struct nft_trans_gc *gc;
-+
-+	if (list_empty(&priv->expired))
-+		return;
- 
--	if (gc) {
--		gc = nft_trans_gc_catchall_sync(gc);
--		nft_trans_gc_queue_sync_done(gc);
--		priv->last_gc = jiffies;
-+	gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
-+	if (!gc)
-+		return;
-+
-+	list_for_each_entry_safe(rbe, rbe_end, &priv->expired, list) {
-+		list_del(&rbe->list);
-+		nft_trans_gc_elem_add(gc, rbe);
-+
-+		gc = nft_trans_gc_queue_sync(gc, GFP_KERNEL);
-+		if (!gc)
-+			return;
+ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ {
+ 	const struct nf_ct_hook *ct_hook;
+@@ -462,6 +490,24 @@ static void nfqnl_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 			break;
+ 		}
  	}
 +
-+	gc = nft_trans_gc_catchall_sync(gc);
-+	nft_trans_gc_queue_sync_done(gc);
- }
- 
- static u64 nft_rbtree_privsize(const struct nlattr * const nla[],
-@@ -761,6 +741,7 @@ static int nft_rbtree_init(const struct nft_set *set,
- 
- 	rwlock_init(&priv->lock);
- 	priv->root = RB_ROOT;
-+	INIT_LIST_HEAD(&priv->expired);
- 
- 	priv->array = NULL;
- 	priv->array_next = NULL;
-@@ -778,10 +759,15 @@ static void nft_rbtree_destroy(const struct nft_ctx *ctx,
- 			       const struct nft_set *set)
- {
- 	struct nft_rbtree *priv = nft_set_priv(set);
--	struct nft_rbtree_elem *rbe;
-+	struct nft_rbtree_elem *rbe, *next;
- 	struct nft_array *array;
- 	struct rb_node *node;
- 
-+	list_for_each_entry_safe(rbe, next, &priv->expired, list) {
-+		list_del(&rbe->list);
-+		nf_tables_set_elem_destroy(ctx, set, &rbe->priv);
++	if (verdict != NF_DROP && entry->nf_ct_is_unconfirmed) {
++		/* If first queued segment was already reinjected then
++		 * there is a good chance the ct entry is now confirmed.
++		 *
++		 * Handle the rare cases:
++		 *  - out-of-order verdict
++		 *  - threaded userspace reinjecting in parallel
++		 *  - first segment was dropped
++		 *
++		 * In all of those cases we can't handle this packet
++		 * because we can't be sure that another CPU won't modify
++		 * nf_conn->ext in parallel which isn't allowed.
++		 */
++		if (nf_ct_drop_unconfirmed(entry, NULL))
++			verdict = NF_DROP;
 +	}
 +
- 	while ((node = priv->root.rb_node) != NULL) {
- 		rb_erase(node, &priv->root);
- 		rbe = rb_entry(node, struct nft_rbtree_elem, node);
-@@ -828,13 +814,21 @@ static void nft_rbtree_commit(struct nft_set *set)
- 	u32 num_intervals = 0;
- 	struct rb_node *node;
- 
--	if (time_after_eq(jiffies, priv->last_gc + nft_set_gc_interval(set)))
--		nft_rbtree_gc(set);
--
- 	/* No changes, skip, eg. elements updates only. */
- 	if (!priv->array_next)
- 		return;
- 
-+	/* GC can be performed if the binary search blob is going
-+	 * to be rebuilt.  It has to be done in two phases: first
-+	 * scan tree and move all expired elements to the expired
-+	 * list.
-+	 *
-+	 * Then, after blob has been re-built and published to other
-+	 * CPUs, queue collected entries for freeing.
-+	 */
-+	if (time_after_eq(jiffies, priv->last_gc + nft_set_gc_interval(set)))
-+		nft_rbtree_gc_scan(set);
-+
- 	/* Reverse walk to create an array from smaller to largest interval. */
- 	node = rb_last(&priv->root);
- 	if (node)
-@@ -881,10 +875,16 @@ static void nft_rbtree_commit(struct nft_set *set)
- 		num_intervals++;
- err_out:
- 	priv->array_next->num_intervals = num_intervals;
--	old = rcu_replace_pointer(priv->array, priv->array_next, true);
-+	old = rcu_replace_pointer(priv->array, priv->array_next,
-+				  lockdep_is_held(&nft_pernet(read_pnet(&set->net))->commit_mutex));
- 	priv->array_next = NULL;
- 	if (old)
- 		call_rcu(&old->rcu_head, nft_array_free_rcu);
-+
-+	/* New blob is public, queue collected entries for freeing.
-+	 * call_rcu ensures elements stay around until readers are done.
-+	 */
-+	nft_rbtree_gc_queue(set);
+ 	nf_reinject(entry, verdict);
  }
  
- static void nft_rbtree_abort(const struct nft_set *set)
+@@ -891,49 +937,6 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	return NULL;
+ }
+ 
+-static bool nf_ct_drop_unconfirmed(const struct nf_queue_entry *entry)
+-{
+-#if IS_ENABLED(CONFIG_NF_CONNTRACK)
+-	static const unsigned long flags = IPS_CONFIRMED | IPS_DYING;
+-	struct nf_conn *ct = (void *)skb_nfct(entry->skb);
+-	unsigned long status;
+-	unsigned int use;
+-
+-	if (!ct)
+-		return false;
+-
+-	status = READ_ONCE(ct->status);
+-	if ((status & flags) == IPS_DYING)
+-		return true;
+-
+-	if (status & IPS_CONFIRMED)
+-		return false;
+-
+-	/* in some cases skb_clone() can occur after initial conntrack
+-	 * pickup, but conntrack assumes exclusive skb->_nfct ownership for
+-	 * unconfirmed entries.
+-	 *
+-	 * This happens for br_netfilter and with ip multicast routing.
+-	 * We can't be solved with serialization here because one clone could
+-	 * have been queued for local delivery.
+-	 */
+-	use = refcount_read(&ct->ct_general.use);
+-	if (likely(use == 1))
+-		return false;
+-
+-	/* Can't decrement further? Exclusive ownership. */
+-	if (!refcount_dec_not_one(&ct->ct_general.use))
+-		return false;
+-
+-	skb_set_nfct(entry->skb, 0);
+-	/* No nf_ct_put(): we already decremented .use and it cannot
+-	 * drop down to 0.
+-	 */
+-	return true;
+-#endif
+-	return false;
+-}
+-
+ static int
+ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 			struct nf_queue_entry *entry)
+@@ -950,9 +953,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 	}
+ 	spin_lock_bh(&queue->lock);
+ 
+-	if (nf_ct_drop_unconfirmed(entry))
+-		goto err_out_free_nskb;
+-
+ 	if (queue->queue_total >= queue->queue_maxlen)
+ 		goto err_out_queue_drop;
+ 
+@@ -995,7 +995,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 		else
+ 			net_warn_ratelimited("nf_queue: hash insert failed: %d\n", err);
+ 	}
+-err_out_free_nskb:
+ 	kfree_skb(nskb);
+ err_out_unlock:
+ 	spin_unlock_bh(&queue->lock);
+@@ -1074,9 +1073,10 @@ __nfqnl_enqueue_packet_gso(struct net *net, struct nfqnl_instance *queue,
+ static int
+ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ {
+-	unsigned int queued;
+-	struct nfqnl_instance *queue;
+ 	struct sk_buff *skb, *segs, *nskb;
++	bool ct_is_unconfirmed = false;
++	struct nfqnl_instance *queue;
++	unsigned int queued;
+ 	int err = -ENOBUFS;
+ 	struct net *net = entry->state.net;
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
+@@ -1100,6 +1100,15 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 		break;
+ 	}
+ 
++	/* Check if someone already holds another reference to
++	 * unconfirmed ct.  If so, we cannot queue the skb:
++	 * concurrent modifications of nf_conn->ext are not
++	 * allowed and we can't know if another CPU isn't
++	 * processing the same nf_conn entry in parallel.
++	 */
++	if (nf_ct_drop_unconfirmed(entry, &ct_is_unconfirmed))
++		return -EINVAL;
++
+ 	if (!skb_is_gso(skb) || ((queue->flags & NFQA_CFG_F_GSO) && !skb_is_gso_sctp(skb)))
+ 		return __nfqnl_enqueue_packet(net, queue, entry);
+ 
+@@ -1113,7 +1122,23 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 		goto out_err;
+ 	queued = 0;
+ 	err = 0;
++
+ 	skb_list_walk_safe(segs, segs, nskb) {
++		if (ct_is_unconfirmed && queued > 0) {
++			/* skb_gso_segment() increments the ct refcount.
++			 * This is a problem for unconfirmed (not in hash)
++			 * entries, those can race when reinjections happen
++			 * in parallel.
++			 *
++			 * Annotate this for all queued entries except the
++			 * first one.
++			 *
++			 * As long as the first one is reinjected first it
++			 * will do the confirmation for us.
++			 */
++			entry->nf_ct_is_unconfirmed = ct_is_unconfirmed;
++		}
++
+ 		if (err == 0)
+ 			err = __nfqnl_enqueue_packet_gso(net, queue,
+ 							segs, entry);
 -- 
 2.52.0
 
