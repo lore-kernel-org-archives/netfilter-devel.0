@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 876D525A2A4;
-	Fri,  6 Feb 2026 15:31:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5E9F25A2A4;
+	Fri,  6 Feb 2026 15:31:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770391889; cv=none; b=cYMsO8ZNTLrRifnKZdGh8T1NVvDPpEXY8qBhhRrrxsmxpvi5LYQGDPzMESa13k2aJNBpVepzu42pFyogGSy1cg8D9f9R5w7kU5UkIm4y482dpYF8yQ1vvAMrzMMAg3ncyRIHxVeXa4w23YizuAhHZJunDVJalLM5sGBjKtoVBms=
+	t=1770391894; cv=none; b=OTTOmOv143RMKdNy61RmqBI18Zqa9iNDt61lL3DHDqzOFZrVZ8O3iHwL1CTLsBodFD7bJRKVmxkzWY3ATQ6i1LyhJNjKE4yxaNvYzya8FanmmKlpe175gi0MsGt/F/s01OPUPj7BhpYeuwePscHfx8mr8UXkOmjjKSv5I/bY1w4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770391889; c=relaxed/simple;
-	bh=eOwPMXuSN3Uvd0pghwDe/+QshT9FsZzUGwrs9iN0ikU=;
+	s=arc-20240116; t=1770391894; c=relaxed/simple;
+	bh=UNOGihkixwPfr1flWqP0GQ+AkuLlelzMaA2gilXNSW8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Z8E9gi8MjfmEoZQzqR0B9fSqYdX37LO16z1QOeCVUVayLAZUYOhcGxY6qq9IC0BQvu3kuALtHNmVI40ciaI/D3yV0/k0AaM3mVHgnF7S80st8p/7q7qsR5AdSmGDHMAhDH8i98Bjnxb+zKiYhBBTbM4PaCeAtK8MEBEougHoLkA=
+	 MIME-Version; b=eDH2nd2pd1mCTBuerQ+XbT0ND/b5PiRe1n/3qEeC0kvmd7QKZ/IE6O5+wFp04KxL9ur0Mq1xMfrsdkoXQmw+8FWiOfby67zXK/IS1BtSs2DMwax3bMvzya87QiIZIFk8J6bUd3+6TmBopIzgRvfdmX0Y5KWezoGy8ACB+fxuqcw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 234F3607E0; Fri, 06 Feb 2026 16:31:28 +0100 (CET)
+	id 68EB760345; Fri, 06 Feb 2026 16:31:32 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH v2 net-next 07/11] netfilter: nft_counter: fix reset of counters on 32bit archs
-Date: Fri,  6 Feb 2026 16:30:44 +0100
-Message-ID: <20260206153048.17570-8-fw@strlen.de>
+Subject: [PATCH v2 net-next 08/11] netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
+Date: Fri,  6 Feb 2026 16:30:45 +0100
+Message-ID: <20260206153048.17570-9-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260206153048.17570-1-fw@strlen.de>
 References: <20260206153048.17570-1-fw@strlen.de>
@@ -38,70 +38,74 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Anders Grahn <anders.grahn@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-nft_counter_reset() calls u64_stats_add() with a negative value to reset
-the counter. This will work on 64bit archs, hence the negative value
-added will wrap as a 64bit value which then can wrap the stat counter as
-well.
+Userspace adds a non-matching null element to the kernel for historical
+reasons. This null element is added when the set is populated with
+elements. Inclusion of this element is conditional, therefore,
+userspace needs to dump the set content to check for its presence.
 
-On 32bit archs, the added negative value will wrap as a 32bit value and
-_not_ wrapping the stat counter properly. In most cases, this would just
-lead to a very large 32bit value being added to the stat counter.
+If the NLM_F_CREATE flag is turned on, this becomes an issue because
+kernel bogusly reports EEXIST.
 
-Fix by introducing u64_stats_sub().
+Add special case to ignore NLM_F_CREATE in this case, therefore,
+re-adding the nul-element never fails.
 
-Fixes: 4a1d3acd6ea8 ("netfilter: nft_counter: Use u64_stats_t for statistic.")
-Signed-off-by: Anders Grahn <anders.grahn@gmail.com>
+Fixes: c016c7e45ddf ("netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/linux/u64_stats_sync.h | 10 ++++++++++
- net/netfilter/nft_counter.c    |  4 ++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c  |  5 +++++
+ net/netfilter/nft_set_rbtree.c | 13 +++++++++++++
+ 2 files changed, 18 insertions(+)
 
-diff --git a/include/linux/u64_stats_sync.h b/include/linux/u64_stats_sync.h
-index 849ff6e159c6..f47cf4d78ad7 100644
---- a/include/linux/u64_stats_sync.h
-+++ b/include/linux/u64_stats_sync.h
-@@ -97,6 +97,11 @@ static inline void u64_stats_add(u64_stats_t *p, unsigned long val)
- 	local64_add(val, &p->v);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 58d9940a596a..d7773c9bbcff 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7636,6 +7636,11 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 			 * and an existing one.
+ 			 */
+ 			err = -EEXIST;
++		} else if (err == -ECANCELED) {
++			/* ECANCELED reports an existing nul-element in
++			 * interval sets.
++			 */
++			err = 0;
+ 		}
+ 		goto err_element_clash;
+ 	}
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 0efaa8c3f31b..2c240b0ade87 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -57,6 +57,13 @@ static bool nft_rbtree_interval_start(const struct nft_rbtree_elem *rbe)
+ 	return !nft_rbtree_interval_end(rbe);
  }
  
-+static inline void u64_stats_sub(u64_stats_t *p, s64 val)
++static bool nft_rbtree_interval_null(const struct nft_set *set,
++				     const struct nft_rbtree_elem *rbe)
 +{
-+	local64_sub(val, &p->v);
++	return (!memchr_inv(nft_set_ext_key(&rbe->ext), 0, set->klen) &&
++		nft_rbtree_interval_end(rbe));
 +}
 +
- static inline void u64_stats_inc(u64_stats_t *p)
- {
- 	local64_inc(&p->v);
-@@ -145,6 +150,11 @@ static inline void u64_stats_add(u64_stats_t *p, unsigned long val)
- 	p->v += val;
- }
- 
-+static inline void u64_stats_sub(u64_stats_t *p, s64 val)
-+{
-+	p->v -= val;
-+}
+ static int nft_rbtree_cmp(const struct nft_set *set,
+ 			  const struct nft_rbtree_elem *e1,
+ 			  const struct nft_rbtree_elem *e2)
+@@ -373,6 +380,12 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	 */
+ 	if (rbe_le && !nft_rbtree_cmp(set, new, rbe_le) &&
+ 	    nft_rbtree_interval_end(rbe_le) == nft_rbtree_interval_end(new)) {
++		/* - ignore null interval, otherwise NLM_F_CREATE bogusly
++		 *   reports EEXIST.
++		 */
++		if (nft_rbtree_interval_null(set, new))
++			return -ECANCELED;
 +
- static inline void u64_stats_inc(u64_stats_t *p)
- {
- 	p->v++;
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index cc7325329496..0d70325280cc 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -117,8 +117,8 @@ static void nft_counter_reset(struct nft_counter_percpu_priv *priv,
- 	nft_sync = this_cpu_ptr(&nft_counter_sync);
- 
- 	u64_stats_update_begin(nft_sync);
--	u64_stats_add(&this_cpu->packets, -total->packets);
--	u64_stats_add(&this_cpu->bytes, -total->bytes);
-+	u64_stats_sub(&this_cpu->packets, total->packets);
-+	u64_stats_sub(&this_cpu->bytes, total->bytes);
- 	u64_stats_update_end(nft_sync);
- 
- 	local_bh_enable();
+ 		*elem_priv = &rbe_le->priv;
+ 		return -EEXIST;
+ 	}
 -- 
 2.52.0
 
