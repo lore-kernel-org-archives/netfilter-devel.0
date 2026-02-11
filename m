@@ -1,74 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ABA62FCBF0;
-	Wed, 11 Feb 2026 03:56:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480063EBF2C;
+	Wed, 11 Feb 2026 05:00:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770782163; cv=none; b=c2zg6JZn4pQkzcNZ4l9Ei6VJAW8BwBo8j+Xh5OUzOMuj/zDiKyWEGMvDHrMtpcAhikvXOHuryPEnoIG6ol8yvew506350GAHd53wj2kLOD7b/EViIX88GVfpTZUK5Vo0m8sVF/2gqLmVmdf0/EXBdtqDoVCMn47doE4yNf9QaGE=
+	t=1770786025; cv=none; b=tqxUPHJJ5gNDsnbNVDiPC0KYKd+e3COaDJ/0D3TAZnzrC2AYnNOkvr+ibBTFVdrnERpwuuR8JBSA+R0H0VkYE0pJ/XYHDz2NqvR7pOz5sOMEjL42RRi7XoSNnZGFiIboYtloo+sf5JyGSDUal3DCl162jsuzlrg0MYjqned9MuQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770782163; c=relaxed/simple;
-	bh=V0HQ8jM4urK3kh0UIR+xuD+hZmcFkHmmUz561pGmwNU=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ouVH1+iShNVDe/C2c622OeXHifizhEkrhZ1Qdc/EN07ZW4drt/48q3BLChasOk6DbS98vrTed94Kuc3jheqPMGDUOU3ttVXOU9BMUu1p2RdwPr5jTjCQRnQXuMR26GUWZuU0VFOb/tkiNGHgRd3DKTsV3SZZIfSvlmGmhw99caY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mjB1oht4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770786025; c=relaxed/simple;
+	bh=xictI2KULnt7DCf7A1EHEUU3ErFAdvM3icWLKZoDHc4=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=kdzVj0XC3b6mJXWaaTzLRkjak/JVT6Nq/JIoNc5ix7tksjDgmUC3P71LYOgqtie5QMRgk3etjRyy1ZCOtRNklXJwugDcC078ohKGe3TcXzeubVWGZQnMDzMe7eV6SzI9nuvSBivTTEFIukHcksJTawXSVXF34SElJw7gBHAevj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nx8S7zPB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mjB1oht4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4811C16AAE;
-	Wed, 11 Feb 2026 03:56:02 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nx8S7zPB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4BEFC4CEF7;
+	Wed, 11 Feb 2026 05:00:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770782163;
-	bh=V0HQ8jM4urK3kh0UIR+xuD+hZmcFkHmmUz561pGmwNU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=mjB1oht4khR2Swi3y9rG7du9PIwN5qDlBYmg+mHaLWCtY+BDvA8pOohSTgG3SadBe
-	 TmvurEjLOsOX7UOAnPX2VmgCYqm7/EnV1JqDaP0UI17A72QQ61xwhz6HnFx8bO/585
-	 tRgzJ54sziDuucGCKzBhniTg2otKdvsXd0u912cEW5ytGfQdP6+WKvjJnwtnsWs/lB
-	 B6fKdkVmRjFhhzjiD1OQv7jzaSrU79SsSduhh6H/CS+Y+5q1Oc4QRVL99KxqZHZuna
-	 GgE/yiPEER+4+c03C2obiaYl5luqHtnsJbyIxSsYipjtWu9P09cBJfX+eq4++Ug6/o
-	 laMOAj9aoayJA==
-Date: Tue, 10 Feb 2026 19:56:01 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org, "David S.
- Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Subject: Re: [PATCH v2 net-next 11/11] netfilter: nft_set_rbtree: validate
- open interval overlap
-Message-ID: <20260210195601.16c54ce7@kernel.org>
-In-Reply-To: <aYtO3gzm0nRSR91a@strlen.de>
-References: <20260206153048.17570-1-fw@strlen.de>
-	<20260206153048.17570-12-fw@strlen.de>
-	<4d02b8fc-ac17-4fd7-a9dd-bff35c3719e4@redhat.com>
-	<aYtO3gzm0nRSR91a@strlen.de>
+	s=k20201202; t=1770786024;
+	bh=xictI2KULnt7DCf7A1EHEUU3ErFAdvM3icWLKZoDHc4=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=nx8S7zPB+yckcllYqexSnF75EMvIZ7FPgjzAG4mYi6FZi5wL9EU8zOu97lrrzreUu
+	 h1q9MoKqCIU1k8XIjSupx849zJDhpmYOJI41UiNpTO0Buv3uizGfYp9GoowQ+S9tIE
+	 /QrBQGi9U/CBxOl1M/9TQPdyPlDWrTbHbPgWeHmTutSWOwyJL2mY+SkVwF4SCLqy6H
+	 ehIoVoo5TaXHEGR91fexHbsqJ7mtscYdCKzs1gvX+zA5STEjAuTVIw02wpbEFtZJm4
+	 K2GjFFnMWV183w3ywI+b0bOi+uP3Jjd2V7OsNEYq21GV9sJq9W4GssDRY6x270IhNq
+	 z9JTUmNdvk0Mw==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 0B101380AA50;
+	Wed, 11 Feb 2026 05:00:21 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 net-next 01/11] netfilter: nft_set_rbtree: don't gc
+ elements on insert
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177078601958.5556.12670147258887198547.git-patchwork-notify@kernel.org>
+Date: Wed, 11 Feb 2026 05:00:19 +0000
+References: <20260206153048.17570-2-fw@strlen.de>
+In-Reply-To: <20260206153048.17570-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-On Tue, 10 Feb 2026 16:29:40 +0100 Florian Westphal wrote:
-> Paolo Abeni <pabeni@redhat.com> wrote:
-> > On 2/6/26 4:30 PM, Florian Westphal wrote:  
-> > > @@ -515,6 +553,12 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
-> > >  	    nft_rbtree_interval_end(rbe_ge) && nft_rbtree_interval_end(new))
-> > >  		return -ENOTEMPTY;
-> > >  
-> > > +	/* - start element overlaps an open interval but end element is new:
-> > > +	 *   partial overlap, reported as -ENOEMPTY.  
-> > 
-> > AI noticed a typo above, should be: -ENOTEMPTY.
-> > 
-> > Given the timeline, a repost will land into the next cycle. I guess it's
-> > better to merge this as-is and eventually follow-up later.  
-> 
-> Thanks.  Comments are for humans not machines so I think its fine.
-> 
-> That said, I will try to set up some form of AI code review here for
-> future MRs.
+Hello:
 
-FWIW if you have a patchwork where patches are queued and a tree on
-kernel.org against which you test -- I can hook up our AI bot to your
-patchwork instance.
+This series was applied to netdev/net-next.git (main)
+by Florian Westphal <fw@strlen.de>:
+
+On Fri,  6 Feb 2026 16:30:38 +0100 you wrote:
+> During insertion we can queue up expired elements for garbage
+> collection.
+> 
+> In case of later abort, the commit hook will never be called.
+> Packet path and 'get' requests will find free'd elements in the
+> binary search blob:
+> 
+> [...]
+
+Here is the summary with links:
+  - [v2,net-next,01/11] netfilter: nft_set_rbtree: don't gc elements on insert
+    https://git.kernel.org/netdev/net-next/c/35f83a75529a
+  - [v2,net-next,02/11] netfilter: nfnetlink_queue: do shared-unconfirmed check before segmentation
+    https://git.kernel.org/netdev/net-next/c/207b3ebacb61
+  - [v2,net-next,03/11] selftests: netfilter: nft_queue.sh: add udp fraglist gro test case
+    https://git.kernel.org/netdev/net-next/c/59ecffa3995e
+  - [v2,net-next,04/11] netfilter: flowtable: dedicated slab for flow entry
+    https://git.kernel.org/netdev/net-next/c/2a441a9aacaa
+  - [v2,net-next,05/11] selftests: netfilter: add IPV6_TUNNEL to config
+    https://git.kernel.org/netdev/net-next/c/1d79ae50e310
+  - [v2,net-next,06/11] netfilter: nft_set_hash: fix get operation on big endian
+    https://git.kernel.org/netdev/net-next/c/2f635adbe264
+  - [v2,net-next,07/11] netfilter: nft_counter: fix reset of counters on 32bit archs
+    https://git.kernel.org/netdev/net-next/c/1e13f27e0675
+  - [v2,net-next,08/11] netfilter: nft_set_rbtree: fix bogus EEXIST with NLM_F_CREATE with null interval
+    https://git.kernel.org/netdev/net-next/c/7f9203f41aae
+  - [v2,net-next,09/11] netfilter: nft_set_rbtree: check for partial overlaps in anonymous sets
+    https://git.kernel.org/netdev/net-next/c/4780ec142cbb
+  - [v2,net-next,10/11] netfilter: nft_set_rbtree: validate element belonging to interval
+    https://git.kernel.org/netdev/net-next/c/782f2688128e
+  - [v2,net-next,11/11] netfilter: nft_set_rbtree: validate open interval overlap
+    https://git.kernel.org/netdev/net-next/c/648946966a08
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
