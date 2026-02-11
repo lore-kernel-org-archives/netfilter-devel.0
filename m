@@ -1,47 +1,47 @@
-Received: from mailout1.samsung.com (mailout1.samsung.com [203.254.224.24])
+Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44E5E28003A
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2026 10:19:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.24
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F73367F31
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2026 10:32:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=203.254.224.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770805153; cv=none; b=KQkwJ+/EwSc7sTxqLyxNcWTk3MhlRFlevAcv9kuuAKy39KPbKT4FXwZOrL3hLRkDpvJNtkJSYTAYe5/a4ByBVSLl1JuuXd6dE5OpGT44/zj4b8/oUwxqAqe6iETqZF0Nb9HW2NzdaZehh0vYCI8GrGRe393hpXjJ6uuOiWE/NpY=
+	t=1770805972; cv=none; b=cHHqUreflJsfw5SJy+34E0X5ezZRp5pxQU6R3BAn+yNLfLSFvov5okM9QYFiw4zh2pJ0/ELDdoemTacg70MVYxYjyuCUlhQ63/1pwQK1wdLcaLIcqh4bl1blDw3lJM/q3HB6E+UtgXk+ibqsDhU+TOamHxrjZQWlDEUj7PQf710=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770805153; c=relaxed/simple;
-	bh=7jw5QFAMAvh4d+0ne06QcvewixWKkd9/l/IjHOMTU4I=;
+	s=arc-20240116; t=1770805972; c=relaxed/simple;
+	bh=kbd95KpYr+N0x3wwPG4q9ewalCNeWIaVbbDoaNs+d0A=;
 	h=Mime-Version:Subject:From:To:CC:Message-ID:Date:Content-Type:
-	 References; b=qbASNqn9X7h8ZLlkRdD0TR8bPqTreoI4s+YVdydby5MaR/r/BoeOANkiqSsGV7mVt3OCwFRz8mIBp+L/oWCGopUDcyTLPThrh3Ewhce/ejbJIHrBheiKAlEytXgwIgcIcH/k07Pp+pYxd+3cDKsS0koRmi8SDF76q5kfib29Yz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=njyjMbFa; arc=none smtp.client-ip=203.254.224.24
+	 References; b=igb+fL8XNumppinjyc1/Df7CdMe27y/30MwxkgxpUTdbJZQge0nLnpMhq4RdaQvL+u5FaWvzYgRC4Ezx8/Ons6mXnekhPF5sVUwOUfznFfwH0a0B869XFazGtrtH8u6BidnnY2Sax19m0ezv/CDb8QGAPXw47xeq9tNnTTWjOsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com; spf=pass smtp.mailfrom=samsung.com; dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b=RzdxvqLO; arc=none smtp.client-ip=203.254.224.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=samsung.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=samsung.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="njyjMbFa"
-Received: from epcas1p3.samsung.com (unknown [182.195.41.47])
-	by mailout1.samsung.com (KnoxPortal) with ESMTP id 20260211101907epoutp01fbb346a8d2583c68a0b4bd3ce8438070~TKeYpZSvW2319823198epoutp010
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2026 10:19:06 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.samsung.com 20260211101907epoutp01fbb346a8d2583c68a0b4bd3ce8438070~TKeYpZSvW2319823198epoutp010
+	dkim=pass (1024-bit key) header.d=samsung.com header.i=@samsung.com header.b="RzdxvqLO"
+Received: from epcas1p2.samsung.com (unknown [182.195.41.46])
+	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20260211103245epoutp048ece0bb4a7c8096e426e4046aaab2ab8~TKqTYohwv2068720687epoutp04S
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2026 10:32:45 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20260211103245epoutp048ece0bb4a7c8096e426e4046aaab2ab8~TKqTYohwv2068720687epoutp04S
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1770805147;
-	bh=iDMMlySM1Jo+nM9UavTAc2yR+fhsJAauP+Y5/RjOquc=;
+	s=mail20170921; t=1770805966;
+	bh=d0rF2H/PdO8jYk7U7E7k6WpRgQVoY2sSZ8pfhQNHA2E=;
 	h=Subject:Reply-To:From:To:CC:Date:References:From;
-	b=njyjMbFaw/V0JIQnomD9eQBHo/RwrRvTg0KrarU3QNbez708nTjh43h1YlJ4gvol/
-	 wTu0SqN2nGOEXA3UCSEmQznTnXkwQkgTTAQqZ28suoi2TfSEN0xZ30WLHJpsaSf5Cx
-	 ICr+jEEfGlxufLd6t4vrRETc2mSdwIvmOrIi1dZA=
-Received: from epsnrtp03.localdomain (unknown [182.195.42.155]) by
-	epcas1p1.samsung.com (KnoxPortal) with ESMTPS id
-	20260211101906epcas1p1d819653f0c43d8f0507c6a819ab34423~TKeX4w2JV2831728317epcas1p14;
-	Wed, 11 Feb 2026 10:19:06 +0000 (GMT)
-Received: from epcas1p2.samsung.com (unknown [182.195.38.195]) by
-	epsnrtp03.localdomain (Postfix) with ESMTP id 4f9vY56wK2z3hhT8; Wed, 11 Feb
-	2026 10:19:05 +0000 (GMT)
+	b=RzdxvqLO3IPxnTeh83svm6KeLMW/5F3WPabKibdEBSlmpMvhHqgslsL5l6wVui5ao
+	 pOHj8RksE5K2VTSugxsJrW09L2peYnAkWWIFUocDS5bYIJ+9F3f6Cdz549TPZ2gykQ
+	 g69G+V9s3xBNPJY00xjeBD91EsGgDqbpSnv8olq0=
+Received: from epsnrtp04.localdomain (unknown [182.195.42.156]) by
+	epcas1p3.samsung.com (KnoxPortal) with ESMTPS id
+	20260211103244epcas1p3b4072dbb311199073a0ede8260e9473b~TKqSKIA-21956819568epcas1p3M;
+	Wed, 11 Feb 2026 10:32:44 +0000 (GMT)
+Received: from epcas1p4.samsung.com (unknown [182.195.38.120]) by
+	epsnrtp04.localdomain (Postfix) with ESMTP id 4f9vrr37tBz6B9mG; Wed, 11 Feb
+	2026 10:32:44 +0000 (GMT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
-Subject: [net,v3] ipv6: shorten reassembly timeout under fragment memory
- pressure
+Subject: [net-next,v3] ipv6: shorten reassembly timeout under fragment
+ memory pressure
 Reply-To: soukjin.bae@samsung.com
 Sender: =?UTF-8?B?67Cw7ISd7KeE?= <soukjin.bae@samsung.com>
 From: =?UTF-8?B?67Cw7ISd7KeE?= <soukjin.bae@samsung.com>
@@ -60,19 +60,20 @@ X-Drm-Type: N,general
 X-Msg-Generator: Mail
 X-Msg-Type: PERSONAL
 X-Reply-Demand: N
-Message-ID: <20260211101905epcms1p79f189c8049846406ee0792804ca882ca@epcms1p7>
-Date: Wed, 11 Feb 2026 19:19:05 +0900
-X-CMS-MailID: 20260211101905epcms1p79f189c8049846406ee0792804ca882ca
+Message-ID: <20260211103243epcms1p2dd304fd11b28df04f4e680e8c90a7fc5@epcms1p2>
+Date: Wed, 11 Feb 2026 19:32:43 +0900
+X-CMS-MailID: 20260211103243epcms1p2dd304fd11b28df04f4e680e8c90a7fc5
 Content-Transfer-Encoding: 7bit
 Content-Type: text/plain; charset="utf-8"
 CMS-TYPE: 101P
 cpgsPolicy: CPGSC10-711,Y
 X-CFilter-Loop: Reflected
 X-CMS-RootMailID: 20260211030048epcms1p54c6ed78458f57def8e3163032498ca00
-References: <CGME20260211030048epcms1p54c6ed78458f57def8e3163032498ca00@epcms1p7>
+References: <CGME20260211030048epcms1p54c6ed78458f57def8e3163032498ca00@epcms1p2>
 
- Changes in v2:
+ Changes in v3:
 - Fix build bot error and warnings
+- baseline update
 
 
 
