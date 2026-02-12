@@ -1,293 +1,98 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E9673EBF3F
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2026 20:50:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 041F71448E0
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2026 22:47:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770929432; cv=none; b=MqC8inEEAewsWSqn+5ESdnFBWYBWd8P+XL+fb58fADh29euKyj2Gb6Ygtch3SS8uonq6QV94LStAq2zZOiV1v3zN0zKXyOiSdC6qwS+41/RAvxGXoVxCPMwYq5nPMJz1OhDK4mLuXk/9SBtguUn970ZRE0XG8Dld45fxSf5vLME=
+	t=1770936449; cv=none; b=ChTaY9iRMAJJ6mqNmbn78VLN+s5giXg5cOxw+kZpSZG7wN+QoItEcAztVqsZcdsOhcgHqQLdzXQ3pgzA1rn8MBUExa1DDs5ExJUaBXYLin2W0Mfp/MaqzKLQgiZyPcj2EGIg1pspM+e8724tsHjakohsAMtJo+ozqeJZRgEw6bM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770929432; c=relaxed/simple;
-	bh=XqcYEHnjB8j0zPTww8Kib6v0RkwxZg92puMHnumPpgI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pL2zghFR4wYVKNV/MiFqDR/geVTqfxZ/yGT3OeA+gT0gj9bwqzAzddXEZwLeYVEEVk2fhWa3196jYGfRwJmU7sH8wcB/fPwC9k6l44ljQPgWIR9kABOCdy8cgCTUKbStOJtOqNXmVYlDA/fy4uaLbC+DMPpDQpVSTPTr3LyFt1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=ZT+T7MxP; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1770936449; c=relaxed/simple;
+	bh=vi7J78blCk3qcQ+pNhnSWBOtOElaBi+6mBJthe0qdyU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iYrRsPLrSYi0SnHzvs6dxSH3dXmi5KWsIx3COxxqsgLPqTdErA8fPV5tduGWYOui2jH4FhwpdN9xhjhcy5Fi9jEmR8DIL+SbxfPRNsMEIzAbRdwCSysT5Q2ghnZR76G5bZ+qojBl0KDoC3FyuU0NdBncE70C5roWIDCJYsE90Hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QQhet260; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="ZT+T7MxP"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=JDjGOhiijalkT2GZsQ9mcOsHkc7yY/J66vXtlDyV1ik=; b=ZT+T7MxPeI2nd5QOjMfuJv4E1j
-	1Xyl5sypoQbA69JjtR5trn4nomXBdd6idOfdWT6+p5hn2s2BYasDIG3iIrBrI1jc8ty/B/Z9fhidF
-	MzEE6mGEBd3UG+cAZknqeF5fHsepDIS5eOkHopLNfXKSgyHV0ir9N6SeqX3JaYyr4PUD7P3yw/Xje
-	gAWr2vvU1QM8uHa+96UepCwlp/uU0UpDPu7e5+uTkHyjkmPKJXoQfNFpVffN+CgH0JP2FFRkeryI6
-	+fRJYvEz4YtczE6XMRt/LxNlKdjtB8B+NL9a8GIhsBXx4o/tbEvlAK1723bnqvUIG8eorp5notuEC
-	gQcrv7KQ==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vqdds-000000005GY-1YWW;
-	Thu, 12 Feb 2026 21:50:28 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH v4] configure: Implement --enable-profiling option
-Date: Thu, 12 Feb 2026 21:50:02 +0100
-Message-ID: <20260212205023.32010-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QQhet260"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1770936448; x=1802472448;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=vi7J78blCk3qcQ+pNhnSWBOtOElaBi+6mBJthe0qdyU=;
+  b=QQhet260cgksGIE6mwqDzN/B/3rHloZFscTU6j4UWIKkTjuBb3Yddzzh
+   kBLepQnfxB31EmrbKnjh/a1eKAC47HMVVTbv3svFij/ejkEa7sg9Pp8Kt
+   iqLCROAy5N1WbiloxFwu4k5kCEh+hAsrEhv01I9zNtNPOd4Uv1wMcxLBj
+   V9Vc2AMjo5dN8cu7fBDgGtaGyYXUWjwJuON2efEqMQgADAOllKLvY7ZYO
+   sQGpVgED2dxONoFoVeT3wnoQ6r5V4U7NHU16nGG0+DBRik3EK0ZoUWAxK
+   s8Ym1r0RZ6Qu9g2SpToGDbYPKvWr8Sb7SM+j5eJc98n5KYfoshHGNlSlK
+   w==;
+X-CSE-ConnectionGUID: JOke+meDREuM1fI3S3N/pw==
+X-CSE-MsgGUID: LuL3TPOBSqmTvpD+UG8oWQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11699"; a="72193907"
+X-IronPort-AV: E=Sophos;i="6.21,287,1763452800"; 
+   d="scan'208";a="72193907"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2026 14:47:28 -0800
+X-CSE-ConnectionGUID: agl0x8jsTBq2E7K9Tfzbqw==
+X-CSE-MsgGUID: YGFrk2FqSSS509aHQ0ElFA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.21,287,1763452800"; 
+   d="scan'208";a="211954700"
+Received: from lkp-server01.sh.intel.com (HELO 765f4a05e27f) ([10.239.97.150])
+  by fmviesa010.fm.intel.com with ESMTP; 12 Feb 2026 14:47:26 -0800
+Received: from kbuild by 765f4a05e27f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1vqfT2-00000000tvc-2UpD;
+	Thu, 12 Feb 2026 22:47:24 +0000
+Date: Fri, 13 Feb 2026 06:46:58 +0800
+From: kernel test robot <lkp@intel.com>
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: oe-kbuild-all@lists.linux.dev, Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 2/2] netfilter: nft_fib_ipv6: switch to
+ fib6_lookup
+Message-ID: <202602130602.s8coK6As-lkp@intel.com>
+References: <20260212122547.10437-3-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260212122547.10437-3-fw@strlen.de>
 
-This will set compiler flag --coverage so code coverage may be inspected
-using gcov.
+Hi Florian,
 
-In order to successfully profile processes which are killed or
-interrupted as well, add a signal handler for those cases which calls
-exit(). This is relevant for test cases invoking nft monitor.
+kernel test robot noticed the following build errors:
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-Changes since v3:
-- Avoid illegal exit() call in signal handler by use of signalfd()
+[auto build test ERROR on netfilter-nf/main]
+[also build test ERROR on linus/master v6.19 next-20260212]
+[cannot apply to nf-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Changes since v2:
-- Include profiling option value in configure's final status report
-- Fix build for --enable-profiling
-- Add copyright statement to new source file
+url:    https://github.com/intel-lab-lkp/linux/commits/Florian-Westphal/ipv6-export-fib6_lookup-for-nft_fib_ipv6/20260212-202753
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20260212122547.10437-3-fw%40strlen.de
+patch subject: [PATCH nf-next 2/2] netfilter: nft_fib_ipv6: switch to fib6_lookup
+config: arm-omap2plus_defconfig (https://download.01.org/0day-ci/archive/20260213/202602130602.s8coK6As-lkp@intel.com/config)
+compiler: arm-linux-gnueabi-gcc (GCC) 15.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260213/202602130602.s8coK6As-lkp@intel.com/reproduce)
 
-Changes since v1:
-- Add src/profiling.c and include/profiling.h to keep conditionally
-  built code separate
----
- .gitignore          |  5 +++++
- Makefile.am         | 21 +++++++++++++++++++
- configure.ac        | 10 ++++++++-
- include/profiling.h | 12 +++++++++++
- src/mnl.c           |  9 +++++++-
- src/profiling.c     | 51 +++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 106 insertions(+), 2 deletions(-)
- create mode 100644 include/profiling.h
- create mode 100644 src/profiling.c
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202602130602.s8coK6As-lkp@intel.com/
 
-diff --git a/.gitignore b/.gitignore
-index 719829b65d212..8673393fac397 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -19,6 +19,11 @@ nftversion.h
- # cscope files
- /cscope.*
- 
-+# gcov-related
-+*.gcda
-+*.gcno
-+*.gcov
-+
- # Generated by tests
- *.payload.got
- tests/build/tests.log
-diff --git a/Makefile.am b/Makefile.am
-index bff746b53a0b4..efc11e44e0b59 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -96,6 +96,7 @@ noinst_HEADERS = \
- 	include/owner.h \
- 	include/parser.h \
- 	include/payload.h \
-+	include/profiling.h \
- 	include/proto.h \
- 	include/rt.h \
- 	include/rule.h \
-@@ -163,6 +164,10 @@ AM_CFLAGS = \
- 
- AM_YFLAGS = -d -Wno-yacc
- 
-+if BUILD_PROFILING
-+AM_CFLAGS += --coverage
-+endif
-+
- ###############################################################################
- 
- BUILT_SOURCES += src/parser_bison.h
-@@ -264,6 +269,10 @@ src_libnftables_la_SOURCES += \
- 	$(NULL)
- endif
- 
-+if BUILD_PROFILING
-+src_libnftables_la_SOURCES += src/profiling.c
-+endif
-+
- src_libnftables_la_LDFLAGS = \
- 	-version-info "${libnftables_LIBVERSION}" \
- 	-Wl,--version-script="$(srcdir)/src//libnftables.map" \
-@@ -453,3 +462,15 @@ TESTS = tests/build/run-tests.sh \
- 	tests/py/nft-test.py \
- 	tests/shell/run-tests.sh
- endif
-+
-+all_c_sources = $(filter %.c,$(src_libnftables_la_SOURCES)) $(src_nft_SOURCES)
-+if BUILD_MINIGMP
-+all_c_sources += $(src_libminigmp_la_SOURCES)
-+endif
-+if BUILD_AFL
-+all_c_sources += $(tools_nft_afl_SOURCES)
-+endif
-+CLEANFILES += src/libparser_la-parser_bison.gcno
-+CLEANFILES += src/libparser_la-scanner.gcno
-+CLEANFILES += $(all_c_sources:.c=.gcno)
-+CLEANFILES += $(src_nft_SOURCES:.c=.gcda)
-diff --git a/configure.ac b/configure.ac
-index 022608627908a..0d3ee2ac89f69 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -156,6 +156,13 @@ AC_ARG_ENABLE([distcheck],
- 	      [enable_distcheck=yes], [])
- AM_CONDITIONAL([BUILD_DISTCHECK], [test "x$enable_distcheck" = "xyes"])
- 
-+AC_ARG_ENABLE([profiling],
-+	      AS_HELP_STRING([--enable-profiling], [build for use of gcov/gprof]),
-+	      [enable_profiling="$enableval"], [enable_profiling="no"])
-+AM_CONDITIONAL([BUILD_PROFILING], [test "x$enable_profiling" = xyes])
-+AM_COND_IF([BUILD_PROFILING],
-+	   [AC_DEFINE([BUILD_PROFILING], [1], [Define for profiling])])
-+
- AC_CONFIG_FILES([					\
- 		Makefile				\
- 		libnftables.pc				\
-@@ -170,7 +177,8 @@ echo "
-   use mini-gmp:			${with_mini_gmp}
-   enable man page:              ${enable_man_doc}
-   libxtables support:		${with_xtables}
--  json output support:          ${with_json}"
-+  json output support:          ${with_json}
-+  collect profiling data:       ${enable_profiling}"
- 
- if test "x$unitdir" != "x"; then
- AC_SUBST([unitdir])
-diff --git a/include/profiling.h b/include/profiling.h
-new file mode 100644
-index 0000000000000..78abd31d4315d
---- /dev/null
-+++ b/include/profiling.h
-@@ -0,0 +1,12 @@
-+#ifndef NFTABLES_PROFILING_H
-+#define NFTABLES_PROFILING_H
-+
-+#ifdef BUILD_PROFILING
-+int get_signalfd(void);
-+void check_signalfd(int fd);
-+#else
-+static inline int get_signalfd(void) { return -1; }
-+static inline void check_signalfd(int fd) { /* empty */ }
-+#endif
-+
-+#endif /* NFTABLES_PROFILING_H */
-diff --git a/src/mnl.c b/src/mnl.c
-index eee0a33ceaeb4..3f3ef82a25cb5 100644
---- a/src/mnl.c
-+++ b/src/mnl.c
-@@ -39,6 +39,7 @@
- #include <errno.h>
- #include <utils.h>
- #include <nftables.h>
-+#include <profiling.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter_arp.h>
- 
-@@ -2390,6 +2391,7 @@ int mnl_nft_event_listener(struct mnl_socket *nf_sock, unsigned int debug_mask,
- 	unsigned int bufsiz = NFTABLES_NLEVENT_BUFSIZ;
- 	int fd = mnl_socket_get_fd(nf_sock);
- 	char buf[NFT_NLMSG_MAXSIZE];
-+	int sigfd = get_signalfd();
- 	fd_set readfds;
- 	int ret;
- 
-@@ -2401,11 +2403,16 @@ int mnl_nft_event_listener(struct mnl_socket *nf_sock, unsigned int debug_mask,
- 	while (1) {
- 		FD_ZERO(&readfds);
- 		FD_SET(fd, &readfds);
-+		if (sigfd != -1)
-+			FD_SET(sigfd, &readfds);
- 
--		ret = select(fd + 1, &readfds, NULL, NULL, NULL);
-+		ret = select(max(fd, sigfd) + 1, &readfds, NULL, NULL, NULL);
- 		if (ret < 0)
- 			return -1;
- 
-+		if (FD_ISSET(sigfd, &readfds))
-+			check_signalfd(sigfd);
-+
- 		if (FD_ISSET(fd, &readfds)) {
- 			ret = mnl_socket_recvfrom(nf_sock, buf, sizeof(buf));
- 			if (ret < 0) {
-diff --git a/src/profiling.c b/src/profiling.c
-new file mode 100644
-index 0000000000000..34d91cc1746ec
---- /dev/null
-+++ b/src/profiling.c
-@@ -0,0 +1,51 @@
-+/*
-+ * Copyright (c) Red Hat GmbH.  Author: Phil Sutter <phil@nwl.cc>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 (or any
-+ * later) as published by the Free Software Foundation.
-+ */
-+
-+#include <nft.h>
-+#include <profiling.h>
-+
-+#include <sys/signalfd.h>
-+#include <signal.h>
-+#include <stdio.h>
-+
-+int get_signalfd(void)
-+{
-+	sigset_t mask;
-+	int fd;
-+
-+	sigemptyset(&mask);
-+	sigaddset(&mask, SIGTERM);
-+	sigaddset(&mask, SIGINT);
-+
-+	fd = signalfd(-1, &mask, 0);
-+	if (fd < 0) {
-+		perror("signalfd()");
-+		return fd;
-+	}
-+	if (sigprocmask(SIG_BLOCK, &mask, NULL) < 0) {
-+		perror("sigprocmask()");
-+		close(fd);
-+		return -1;
-+	}
-+	return fd;
-+}
-+
-+void check_signalfd(int fd)
-+{
-+	struct signalfd_siginfo info;
-+
-+	if (read(fd, &info, sizeof(info)) < (signed)sizeof(info))
-+		return;
-+
-+	switch (info.ssi_signo) {
-+	case SIGTERM:
-+		exit(143);
-+	case SIGINT:
-+		exit(130);
-+	}
-+}
+All errors (new ones prefixed by >>, old ones prefixed by <<):
+
+>> ERROR: modpost: "fib6_lookup" [net/ipv6/netfilter/nft_fib_ipv6.ko] undefined!
+
 -- 
-2.51.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
