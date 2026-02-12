@@ -1,205 +1,133 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03E123570C9
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2026 12:26:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770899164; cv=none; b=uCgs2hCCUKixbxeExAkHVlnS6UeYo9tBNM2r72oD4xLsqJSigPE7k5jV13vjRpqDN1KLXS9ZfY+VFCqCiznpiQRbvtOkGzUCMt7/JEv9fcSG2o91ujxJmq8gohqQroS8Q8OWBBoDcmjPdsGN+j/Uyo7T3xDBvRxjgumGOaVZtv8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770899164; c=relaxed/simple;
-	bh=VQqn6a+78QBhypz3cIDDJv+6Rx276H7AhRWsW1CEyHI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=YIc+FarcpwLZd4TR2U2Deu7X5oL1KA0U+0r8pY2qk0XFqvAtgTbHchdl9Nrcsb3I8BP7OenPvgd6Dd8FhVhA9b7UVaX97qsjhmPXskxQvumtnWO1q89HvYafcgWzBW7d3ZMJOa1JRGtiZIwr3WvaqTaNkmWhLsQROHCm6OHcTso=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 760946063D; Thu, 12 Feb 2026 13:26:01 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/2] netfilter: nft_fib_ipv6: switch to fib6_lookup
-Date: Thu, 12 Feb 2026 13:25:09 +0100
-Message-ID: <20260212122547.10437-3-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260212122547.10437-1-fw@strlen.de>
-References: <20260212122547.10437-1-fw@strlen.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02BB529B777
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2026 13:35:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.174
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1770903334; cv=pass; b=fzNdEq/FvK/2tzfBB991jR7HqLLNCz6E50bbgFy60xlD9ykLxu+XS2/a5zeTw15n1OLGnowHe7md9feIp0gEO+B2E1DRSFlTXwUYQOZDemqtph4HHvS2tBdrFFumrE58NRdwrizMCEMLGsgZNI83klmE+H4d9d5918VSVom82HI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1770903334; c=relaxed/simple;
+	bh=aRFWnn41uPVrWaWT4sT3FguV8XWmMp5HPBY6mlWoyZ8=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=Boka1pn/1ZfbQrVwauM7vKRZhR3mX3pBCafYGImWtL2z6+oFmqC3AA+C6h7I0yeKEIy0Jls1jCTvS3lyOKbJnAPn6LdbGVNs4JgcpEomPHjCYndnMOLjl8zR7y4xaqsCcrUKAgTNj6AH6YabuqSrUHQVbc7BVMoHXExcwdz2FNM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sleuthco.ai; spf=fail smtp.mailfrom=sleuthco.ai; dkim=pass (2048-bit key) header.d=sleuthco.ai header.i=@sleuthco.ai header.b=g5tIR2n1; arc=pass smtp.client-ip=209.85.128.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sleuthco.ai
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=sleuthco.ai
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=sleuthco.ai header.i=@sleuthco.ai header.b="g5tIR2n1"
+Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-794911acb04so65506207b3.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2026 05:35:32 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1770903332; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Iho9S0LcJ9RIfZcIo7ERximGnz1uwsvA9ayMLpAX2bwz0FrZrnH78eG4WQ8Y8eO/Bm
+         80Fx6fNJ0zN1pzAmYQ9wQ2tFAogZEmj5v0tgiqIM9ycoEJdZDrRMP9wGHlaYjoe3FW/m
+         W8GMQcf3EKRzc0j5skWtJnWTioeisynVOTOVDc3g+d7frC1NUPacWn9V61ndEHvA3q6U
+         HWS7ipBzeM1cyUbyxv7dSqahDAukXfb1/610Ohbagp9sFWjQynnHSGljraLAyJsV5+cy
+         0N4EsJoV/kTDcqXoUt5Y0KChg2enBk/8NGVWpLXl5hC9PnUNiWZIEbu2xSAwqGl8hg7e
+         4Tdw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:date:from:mime-version:dkim-signature;
+        bh=9659IzzzoA2vuxDtcj2Lp/qWrzDxt9i63sO/TfwF2So=;
+        fh=94XZ0kbhVmGEa7CVQQn7x19t/0l9HgwgaJK+mk7Jllo=;
+        b=ZWzduRJ9sP1NMu5BMotbg/l9SYD0G6n+2GW8MkvmnJ3Nrz9VZLFTBjwf/kB73ikHB8
+         FzLBijVvExYgjEZ+MuBvlu7y4hBolP9xITh7W3lup/hmtboEVJX33bztoTPCnW+K+ZWn
+         CKXZoHF/vA3xRX/P8Nq/Y9kKTMdOgwKkvlzr8CHL6xmBxUQjWxfTAwJ0cajHONRlUosw
+         18BRO+TaF39+aR52a9VWzB2eN+nQqdREp96g4bfG9cVLbRnZzK0092ZKJMJYyeuBUKxC
+         YUIvbTIv71MLJaf8hioqtE6ZtfxF2hmAKKCgaVKC6KxjGsSNEG6+QiytODuxG0LdNCwT
+         1CiA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sleuthco.ai; s=google; t=1770903332; x=1771508132; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=9659IzzzoA2vuxDtcj2Lp/qWrzDxt9i63sO/TfwF2So=;
+        b=g5tIR2n1Hqkmy7iU55+37alNIhr8KFAqrfyRRY610W3bQdvyelQvokSlnHYZ5KE/Jj
+         J5TSfGSYj9PaYGn3eRy9iWBAbHPjgUFlB9afmwC9E/i2c9kve34wkRmu3oAchIe8bmMl
+         o4JXJs2sqj9XhqKRw3qvISg8hgJQvJCk4ImuK8EHmYyESOOzw0dc6HbS+NKe23IGAEu9
+         hKMSAnGUZcO+fblTsMvVom45Lq4Jvm3uP6gmRduKbKUu7eK/BgbtE/QbEWTTILdrWZQZ
+         /b6tlLU8ymWi+YhN16rcIMPNqprOoJoVYTRAOtoHDsOo5+/yakOkzbvsJ79yeHKZnqle
+         vQtw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770903332; x=1771508132;
+        h=to:subject:message-id:date:from:mime-version:x-gm-gg
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=9659IzzzoA2vuxDtcj2Lp/qWrzDxt9i63sO/TfwF2So=;
+        b=PZbmBM9ZxGJjn9TZCr0NQFDA/EYONgwvZCbsHhZD2xSek0T/EqZR2Rsa4hnJMVZB2V
+         qwSDyqa/EfEBsbRR++X68GFX1o4/m+GV3/6l08g02Ieogf5ybuT6q0KwSqM/kg1UiJuz
+         Ml+BpSKpt2+M7IpUjtzBo+gz9O+y3boJRSw6WfOJH4MDcmCB9YM3xk/NVp3KrjLO2v/Z
+         UHke8MEWKfW+R+TqKoUYKyka6unefjsVop2SLvs9werbasBOQDgNLf3etok4yPWju4Fo
+         xoMdbnhs3JMFTlBG/4z79Z+/IN33dx8LpHMc0FTnLIKWy8BQO2Ucs3UJFncCEdAvj1fC
+         /Uug==
+X-Gm-Message-State: AOJu0Yy9tExDfnjnjY7c5SisNL1HlClaM61ZABXDEZJR3Fhal2WHtddm
+	hKC8+d5NCEhsI0IE/BqE8wMo5koIVCPoZ1sWtZL3vyLw7JlXOnPIDl4G8nD999darRpy0te6blP
+	o8r8pFPab/cYfuhvA+EF2OdtPEuM4pfTi7rodgd6hg4icPRkqij4hij+TbI8=
+X-Gm-Gg: AZuq6aLj7NC3w9Ud/LazJy/SUdjNLd30ekMHITozczn2TAsn3T5KwlujvKk2LRzZkzF
+	A5KBbwuMfuFutk1LqqY4x0Y0o1ojmW5kNkgCc1KQoZm1wrw/anyooxp6+fNSQ5dUFubgoHcH/Nw
+	Dwyeg8AZ2wW7CbpxnatwNXyJZZW67E8iHKZTdwRsz5xNGnELdfrwcWmZOcLXQaYGwVoERqBrvvG
+	EwoIuUFBnobH9Q3FFD4uDJatdWx28UWMKulqcaSWrUPB7pLEQy34GaDkbTCKjEvNZs1I53M3zyF
+	eX8Vkp6I5MSs7qc+g2h8oiYk+XbuaRlJExOSAU8=
+X-Received: by 2002:a05:690c:4c11:b0:794:b98d:b395 with SMTP id
+ 00721157ae682-7973765876amr26770607b3.49.1770903331519; Thu, 12 Feb 2026
+ 05:35:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Alan Ross <alan@sleuthco.ai>
+Date: Thu, 12 Feb 2026 08:35:21 -0500
+X-Gm-Features: AZwV_QghOVTD3S_z__375356uFHSPewBGrxY5vAzFy-nabNuThwUbpYO80DcJKM
+Message-ID: <CAKgz23F8EKsc2vhVAPyuZgUNA7Zohm0zS6-So+jPJTvCiNikig@mail.gmail.com>
+Subject: [PATCH v2] libxtables: refuse to run under file capabilities
+To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Existing code works but it requires a temporary dst object that is
-released again right away.
+ Extend the existing setuid guard in xtables_init() to also detect
+  file capabilities via getauxval(AT_SECURE).
 
-Switch to fib6_lookup + RT6_LOOKUP_F_DST_NOREF: no need for temporary dst
-objects and refcount overhead anymore.
+  Some container runtimes and minimal distributions grant cap_net_admin
+  via file capabilities (setcap cap_net_admin+ep /usr/sbin/iptables)
+  rather than running through sudo.  In that configuration the kernel
+  sets AT_SECURE and the dynamic linker strips LD_PRELOAD, but
+  getuid() == geteuid() so the existing setuid check passes.
+  Attacker-controlled env vars (XTABLES_LIBDIR, IPTABLES_LIB_DIR,
+  IP6TABLES_LIB_DIR) still reach dlopen(), allowing arbitrary code
+  execution as the capability-elevated user.
 
-Provides ~13% improvement in match performance.
+  getauxval(AT_SECURE) is nonzero whenever the kernel has set AT_SECURE
+  in the auxiliary vector -- this covers both classic setuid/setgid and
+  file capabilities.  Exit with status 111, matching the existing
+  setuid behavior.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv6/netfilter/nft_fib_ipv6.c | 79 +++++++++++++++++++------------
- 1 file changed, 49 insertions(+), 30 deletions(-)
+  Signed-off-by: Alan Ross <alan@sleuthco.ai>
+  ---
+   libxtables/xtables.c | 5 +++--
+   1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nft_fib_ipv6.c b/net/ipv6/netfilter/nft_fib_ipv6.c
-index 421036a3605b..4272a3f60b11 100644
---- a/net/ipv6/netfilter/nft_fib_ipv6.c
-+++ b/net/ipv6/netfilter/nft_fib_ipv6.c
-@@ -52,7 +52,13 @@ static int nft_fib6_flowi_init(struct flowi6 *fl6, const struct nft_fib *priv,
- 	fl6->flowlabel = (*(__be32 *)iph) & IPV6_FLOWINFO_MASK;
- 	fl6->flowi6_l3mdev = nft_fib_l3mdev_master_ifindex_rcu(pkt, dev);
- 
--	return lookup_flags;
-+	return lookup_flags | RT6_LOOKUP_F_DST_NOREF;
-+}
-+
-+static int nft_fib6_lookup(struct net *net, struct flowi6 *fl6,
-+			   struct fib6_result *res, int flags)
-+{
-+	return fib6_lookup(net, fl6->flowi6_oif, fl6, res, flags);
- }
- 
- static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
-@@ -60,13 +66,14 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 				struct ipv6hdr *iph)
- {
- 	const struct net_device *dev = NULL;
-+	struct fib6_result res = {};
- 	int route_err, addrtype;
--	struct rt6_info *rt;
- 	struct flowi6 fl6 = {
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
- 		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
-+	int lookup_flags;
- 	u32 ret = 0;
- 
- 	if (priv->flags & NFTA_FIB_F_IIF)
-@@ -74,29 +81,23 @@ static u32 __nft_fib6_eval_type(const struct nft_fib *priv,
- 	else if (priv->flags & NFTA_FIB_F_OIF)
- 		dev = nft_out(pkt);
- 
--	nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
-+	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, dev, iph);
- 
- 	if (dev && nf_ipv6_chk_addr(nft_net(pkt), &fl6.daddr, dev, true))
- 		ret = RTN_LOCAL;
- 
--	route_err = nf_ip6_route(nft_net(pkt), (struct dst_entry **)&rt,
--				 flowi6_to_flowi(&fl6), false);
-+	route_err = nft_fib6_lookup(nft_net(pkt), &fl6, &res, lookup_flags);
- 	if (route_err)
- 		goto err;
- 
--	if (rt->rt6i_flags & RTF_REJECT) {
--		route_err = rt->dst.error;
--		dst_release(&rt->dst);
--		goto err;
--	}
-+	if (res.fib6_flags & RTF_REJECT)
-+		return RTN_PROHIBIT;
- 
--	if (ipv6_anycast_destination((struct dst_entry *)rt, &fl6.daddr))
-+	if (res.fib6_flags & RTF_ANYCAST)
- 		ret = RTN_ANYCAST;
--	else if (!dev && rt->rt6i_flags & RTF_LOCAL)
-+	else if (!dev && res.fib6_flags & RTF_LOCAL)
- 		ret = RTN_LOCAL;
- 
--	dst_release(&rt->dst);
--
- 	if (ret)
- 		return ret;
- 
-@@ -152,6 +153,33 @@ static bool nft_fib_v6_skip_icmpv6(const struct sk_buff *skb, u8 next, const str
- 	return ipv6_addr_type(&iph->daddr) & IPV6_ADDR_LINKLOCAL;
- }
- 
-+static bool nft_fib6_info_nh_dev_match(const struct net_device *nh_dev,
-+				       const struct net_device *dev)
-+{
-+	return nh_dev == dev ||
-+	       l3mdev_master_ifindex_rcu(nh_dev) == dev->ifindex;
-+}
-+
-+static bool nft_fib6_info_nh_uses_dev(struct fib6_info *rt,
-+				      const struct net_device *dev)
-+{
-+	const struct net_device *nh_dev;
-+	struct fib6_info *iter;
-+
-+	nh_dev = fib6_info_nh_dev(rt);
-+	if (nft_fib6_info_nh_dev_match(nh_dev, dev))
-+		return true;
-+
-+	list_for_each_entry(iter, &rt->fib6_siblings, fib6_siblings) {
-+		nh_dev = fib6_info_nh_dev(iter);
-+
-+		if (nft_fib6_info_nh_dev_match(nh_dev, dev))
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 		   const struct nft_pktinfo *pkt)
- {
-@@ -160,14 +188,14 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	const struct net_device *found = NULL;
- 	const struct net_device *oif = NULL;
- 	u32 *dest = &regs->data[priv->dreg];
-+	struct fib6_result res = {};
- 	struct ipv6hdr *iph, _iph;
- 	struct flowi6 fl6 = {
- 		.flowi6_iif = LOOPBACK_IFINDEX,
- 		.flowi6_proto = pkt->tprot,
- 		.flowi6_uid = sock_net_uid(nft_net(pkt), NULL),
- 	};
--	struct rt6_info *rt;
--	int lookup_flags;
-+	int lookup_flags, ret;
- 
- 	if (nft_fib_can_skip(pkt)) {
- 		nft_fib_store_result(dest, priv, nft_in(pkt));
-@@ -193,26 +221,17 @@ void nft_fib6_eval(const struct nft_expr *expr, struct nft_regs *regs,
- 	lookup_flags = nft_fib6_flowi_init(&fl6, priv, pkt, oif, iph);
- 
- 	*dest = 0;
--	rt = (void *)ip6_route_lookup(nft_net(pkt), &fl6, pkt->skb,
--				      lookup_flags);
--	if (rt->dst.error)
--		goto put_rt_err;
--
--	/* Should not see RTF_LOCAL here */
--	if (rt->rt6i_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
--		goto put_rt_err;
-+	ret = nft_fib6_lookup(nft_net(pkt), &fl6, &res, lookup_flags);
-+	if (ret || res.fib6_flags & (RTF_REJECT | RTF_ANYCAST | RTF_LOCAL))
-+		return;
- 
- 	if (!oif) {
--		found = rt->rt6i_idev->dev;
-+		found = fib6_info_nh_dev(res.f6i);
- 	} else {
--		if (oif == rt->rt6i_idev->dev ||
--		    l3mdev_master_ifindex_rcu(rt->rt6i_idev->dev) == oif->ifindex)
-+		if (nft_fib6_info_nh_uses_dev(res.f6i, oif))
- 			found = oif;
- 	}
--
- 	nft_fib_store_result(dest, priv, found);
-- put_rt_err:
--	ip6_rt_put(rt);
- }
- EXPORT_SYMBOL_GPL(nft_fib6_eval);
- 
--- 
-2.52.0
+  diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+  index af56a75..f872cc6 100644
+  --- a/libxtables/xtables.c
+  +++ b/libxtables/xtables.c
+  @@ -31,6 +31,7 @@
+   #include <netinet/ether.h>
+   #include <sys/socket.h>
+   #include <sys/stat.h>
+  +#include <sys/auxv.h>
+   #include <sys/statfs.h>
+   #include <sys/types.h>
+   #include <sys/utsname.h>
+  @@ -331,8 +332,8 @@ void xtables_announce_chain(const char *name)
 
+   void xtables_init(void)
+   {
+  -     /* xtables cannot be used with setuid in a safe way. */
+  -     if (getuid() != geteuid())
+  +     /* xtables cannot be used with setuid/setcap in a safe way. */
+  +     if (getuid() != geteuid() || getauxval(AT_SECURE))
+                _exit(111);
+
+        xtables_libdir = getenv("XTABLES_LIBDIR");
+  --
+  2.43.0
