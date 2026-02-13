@@ -1,50 +1,33 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 382CA346E45
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2026 13:09:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AA2D3590C3
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2026 13:17:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770988170; cv=none; b=pR5Pb8BBTeMe1eplNw4z2Af+qGOWinV6gZm0S2iVWv318WH3yl1+f+QuEGpqsgfrPK3vHSoSAbm2Z+1vFLjr32wAIahQRX8qJtAIbSQ1vg7aaI76UELud1k0pF4BjaE3oNqKpgITO3LjCf6PqeYwPDTxKMwvDK+LnzqCTvthFhQ=
+	t=1770988644; cv=none; b=jy+zcYDFy+ReaZ3K8ZNw+xqY/xIWDCyPZC8FaDrjCYbxgKVlDLdwufBZWunyYzfJndz2S8q0pwliUJzPAkXGdhkeLXSIIiJ7DJ5SbmSLoPrCXu3h6sFKi73hUqmf+tRp6Gc4ZeBLKb/NhJTKK6Fcqs2nDhznmTBqlT59vOxq7Jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770988170; c=relaxed/simple;
-	bh=EA+5pkQ7b1Ud2q2JLYOxw/d9bUAEm7Qh3JLCdq8wqt4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UR1WqTQOdc5nLM+sXqpknG3Rr8fAOpJMyZrZ8fW3fkfnVfAVLv3Gh/XV4Ww7fQUtN1HPSimwbO6ZhCGi4feGK5nrWjTjoaIS2Aavv8C3J+68eBn3sD3ecYdlZT1PGKzrUu9wuq5+jAGlCYdDwyw2wV+556IqbWAXewhwKx9tUtM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qTXpki0i; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qTXpki0i"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Y76jjHJuuAqOO2KrXxsFGDS0ls6p9xQGkl7kAiB+UnA=; b=qTXpki0i4AI7lYxi095QZcIrMS
-	GvmQNHWOt+UUdoylVmhrX5ammX8gmnI6wdF9zjPsD7faNKxxIrHUwLFAvfKmChYwZqpE3XPm9GAHa
-	aiHYoO28WfL6DoWXbWCiCEt6YMIsqs4DPO66ZCf1tprNpQPXRXlGWyznBq7OJhZHO4Qm8Vhl/6qC2
-	hkuIVfUxggAkMcR1yh5+1c8teZrL1AdVNE1gLrMsYBOON3FzVpZMfFi/lO1xdFZQoxE0D7S/biraC
-	I0H2lGjBRC0BGtNm5UyoPIZaZn2/tQ5t2DokhlmNC21MLxOYSWzmiIgZ7l5tKLmw6HCyhhf6yv378
-	7WnLvs7Q==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1vqsvH-000000007Kk-32mK;
-	Fri, 13 Feb 2026 14:09:27 +0100
-Date: Fri, 13 Feb 2026 14:09:27 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nft PATCH v4] configure: Implement --enable-profiling option
-Message-ID: <aY8ih5bMqveTrF7Q@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
+	s=arc-20240116; t=1770988644; c=relaxed/simple;
+	bh=vA7OBfLXRUL7UzZImDg8jXRz8lKli37a8OrZM9YTUGs=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=uxPu5xCpKdfNCr3rvf8WiiCmceM56QZVmBzlJUVGAfdLfRnWdBw5pk3emJ7W1Y6L5zN5t5oVenGTDvbMO/pVf2OSEAgjWstdjmQtbXhAtcwGC0JPj+/LiVpJhEx4ZJ8s2BpzSTftI26vMTJH1nl9VF9N4kc+5346BJAgYwGXdfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id AFD19608AD; Fri, 13 Feb 2026 14:17:19 +0100 (CET)
+Date: Fri, 13 Feb 2026 14:17:19 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>, "Remy D. Farley" <one-d-wide@protonmail.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-References: <20260212205023.32010-1-phil@nwl.cc>
- <aY8Mk5eCymlbN8UA@strlen.de>
+	Jozsef Kadlecsik <kadlec@netfilter.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] iptables: fix null dereference parsing bitwise operations
+Message-ID: <aY8kXy5ZlvVIz1Ul@strlen.de>
+References: <20260202101408.745532-1-one-d-wide@protonmail.com>
+ <aYz2eUev4mUdN7uX@orbyte.nwl.cc>
+ <wsfxGCi6FNb3Qj2_tw3b9WZS2spw8DyUe34OgpSzj8UQg7tNdw0RReS7iwQBnoVIHfZOIFoCUFf6mVAVOAGCSabgUgWBa9yABVwyAzNI_lc=@protonmail.com>
+ <aY8hvMbo6JVX5hto@orbyte.nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -53,17 +36,17 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aY8Mk5eCymlbN8UA@strlen.de>
+In-Reply-To: <aY8hvMbo6JVX5hto@orbyte.nwl.cc>
 
-On Fri, Feb 13, 2026 at 12:35:47PM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > This will set compiler flag --coverage so code coverage may be inspected
-> > using gcov.
+Phil Sutter <phil@nwl.cc> wrote:
+> > > '== NFT_BITWISE_MASK_XOR' and drop the comment.
 > > 
-> > In order to successfully profile processes which are killed or
-> > interrupted as well, add a signal handler for those cases which calls
-> > exit(). This is relevant for test cases invoking nft monitor.
+> > 
+> > It took me a while to realize iptables/linux headers are quite outdated,
+> > so NFT_BITWISE_MASK_XOR is still called NFT_BITWISE_BOOL in there.
 > 
-> LGTM, thanks Phil.  Feel free to push this out.
+> Ah, sorry about that. I merely looked at current kernel headers to check
+> if that magic zero could be replaced by something more descriptive.
 
-Thanks for your thorough review, patch applied.
+Lets refresh the headers, then.  == NFT_BITWISE_MASK_XOR would be
+preferred.
