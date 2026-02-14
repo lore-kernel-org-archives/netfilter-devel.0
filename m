@@ -1,48 +1,50 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2D71C695
-	for <netfilter-devel@vger.kernel.org>; Sat, 14 Feb 2026 15:07:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8E0D27EC80
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Feb 2026 15:08:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771081678; cv=none; b=Z9p9/m4eirYl3e9wFh7CxlwGcNq25zTE/PDhdSqPncXX815gNnB2pufZjCKiR0pfdIYpTsEcuNqRsy7VOKoQAdOIMjiPNnom9NL49gpKfJPNTsL/XSEgIn6CVJu2Aw6wwiw0cNc6f1oRIRA1pUYyU7yl2wNalYpazesiq+HCUHE=
+	t=1771081741; cv=none; b=URCpf1iZNttDoVxrggCnxGcxT4Pd3MN10Y221kZ7uZBhfgBvMCDXiyr5F4Vcjvb7wDyDFHSozGjFr1OOBTNVXVhB0Q43ld2niXVnntM6AEpUxRiss3JNCb1PQJIpqZddhykq3teZQi6/GsEQ6IJqEUVouh7ek0SAosfPhziiZUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771081678; c=relaxed/simple;
-	bh=qjvhRLP0u2WL5eSecAtAkWDctpXK3Ur7iBUTBtcAw5I=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZcRKOOQwLhPpi8VI9A011xY2s+DgVQBVQ5l8VDzMR55rMVSRXKN2Pf+9fElnq2Xbm1p163npGcCDq300OYhmZZoWf0A3NaFq4qXNbbdGwHe73mkyysy3QfhDjKshb2NTcWvBOkRpG401I9sfjveRAGoiQ5HIaY0X4WtxVcwAm/M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=RgsbmKTB; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1771081741; c=relaxed/simple;
+	bh=CALbPl2hUAGkU4px/JCvqLQKbZG0rk5AKXMyM1h6ffk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=YCHLgDYIEYjvkKUE9eNlKSIezubmDdvfW9HBt0KKFllz+IyXVVijXj4nWJAcWf034LdxJoOjz7I8cm9ynbx7QJsKYxKXu4ZUm5r8yPY1JVCuWACVDCzoh4R/G7rZCVCXAMlarQl7Aemh868z86MEz0wmOltEGS2mKKObgtzCcMY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=n7Su7PX4; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="RgsbmKTB"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="n7Su7PX4"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=QvBXslcm4SU2m9mrC+oc+x4byiN+H1CtaOnGnICGVtU=; b=RgsbmKTBoeQE+keYSkXMEq4SQy
-	qPQvB4K9QMYBWy7JTXl8pis+3ldV4R1XJsSSzeyGLG94IIjLsmDfn2op+vDKjK/SrEtcfynuUxHND
-	MGw8aWjmXVtz6P91QyBMq4HZHCUH7te77l0IWfvmeD81UyVEydX+Gmat/4Nh95KGJAvloLYhd5SOu
-	OJxGGwsI/1xqqXkSUlr2lxyg/Zvg5SawIlegE6rQ1ORufP3QeukDO7bXShXHkZgoLGU5b0m2LebsV
-	ZwNXClvkivbdAFtN6G19oBBv5E/z8YHuGOTOnvp4seQDBC4YcL/JNfrI4APcCcIhOItZtZF3qdZ/s
-	PfxSArIw==;
+	bh=Faxg9YXC04GUJcsawnlby1MTaUdOvP29H4zL9KbmdDI=; b=n7Su7PX45Pzs3gRMUaPFHoJ2MH
+	oCL04MhCrWFNq1DSt6IvJixG14bTskgJ8fPQo/g0Tw34wzcA+IpRgx3YMK74VxTE3bysaqSoWxhFr
+	3I5bvvTfCCF99M84SmRqrc2hSmVX031fO6YPz35aWkNtn5svIW4M3sN4niWrQOmRh7/MgfmKcOpGA
+	7dqlehnLXy01U/IFXH1sbbWzYpHyo0tZa+ko8/otAk6l6O0t48Ceog3KPzj0Plcd/Zshv69sMH1pQ
+	UVXeJ2j0RRju2SStVxhCQYxFv48U2c3jlKVLAgY+PZru2XMDBh7lGNavWKfV3Z72Ww5N0g57KWRLO
+	7Nq2Ybog==;
 Authentication-Results: mail.nwl.cc;
 	iprev=pass (localhost) smtp.remote-ip=::1
 Received: from localhost ([::1] helo=xic)
 	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vrH2W-000000000P0-1KJC;
-	Sat, 14 Feb 2026 15:54:32 +0100
+	id 1vrHGT-000000000cs-3qC2;
+	Sat, 14 Feb 2026 16:08:57 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
-	Alyssa Ross <hi@alyssa.is>,
-	Florian Westphal <fw@strlen.de>
-Subject: [nf PATCH v2] include: uapi: netfilter_bridge.h: Cover for musl libc
-Date: Sat, 14 Feb 2026 15:54:06 +0100
-Message-ID: <20260214145427.6341-1-phil@nwl.cc>
+To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>,
+	"Remy D . Farley" <one-d-wide@protonmail.com>
+Subject: [iptables PATCH 2/2] nft: Use the current name for the desired NFTNL_EXPR_BITWISE_OP
+Date: Sat, 14 Feb 2026 16:08:51 +0100
+Message-ID: <20260214150851.31936-2-phil@nwl.cc>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20260214150851.31936-1-phil@nwl.cc>
+References: <20260214150851.31936-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,37 +53,26 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Musl defines its own struct ethhdr and thus defines __UAPI_DEF_ETHHDR to
-zero. To avoid struct redefinition errors, user space is therefore
-supposed to include netinet/if_ether.h before (or instead of)
-linux/if_ether.h. To relieve them from this burden, include the libc
-header here if not building for kernel space.
+Since refreshing nf_tables.h, the new name is available.
 
-Reported-by: Alyssa Ross <hi@alyssa.is>
-Suggested-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
-Changes since v1:
-- Adjust to previously applied 0b3877bec78b ("netfilter: uapi: Use UAPI definition of INT_MAX and INT_MIN")
----
- include/uapi/linux/netfilter_bridge.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ iptables/nft.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter_bridge.h b/include/uapi/linux/netfilter_bridge.h
-index f6e8d1e05c97..758de72b2764 100644
---- a/include/uapi/linux/netfilter_bridge.h
-+++ b/include/uapi/linux/netfilter_bridge.h
-@@ -5,6 +5,10 @@
- /* bridge-specific defines for netfilter. 
-  */
+diff --git a/iptables/nft.c b/iptables/nft.c
+index da008070e3016..5c9cc6b389cff 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -4035,7 +4035,7 @@ static int nft_is_expr_compatible(struct nftnl_expr *expr, void *data)
+ 		return 0;
  
-+#ifndef __KERNEL__
-+#include <netinet/if_ether.h>	/* for __UAPI_DEF_ETHHDR if defined */
-+#endif
-+
- #include <linux/in.h>
- #include <linux/netfilter.h>
- #include <linux/if_ether.h>
+ 	if (!strcmp(name, "bitwise") &&
+-	    nftnl_expr_get_u32(expr, NFTNL_EXPR_BITWISE_OP) == NFT_BITWISE_BOOL)
++	    nftnl_expr_get_u32(expr, NFTNL_EXPR_BITWISE_OP) == NFT_BITWISE_MASK_XOR)
+ 		return 0;
+ 
+ 	return -1;
 -- 
 2.51.0
 
