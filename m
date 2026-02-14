@@ -1,124 +1,186 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0FD92C11E5
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2026 22:53:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF8731DA62E;
+	Sat, 14 Feb 2026 15:02:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771023214; cv=none; b=YisbQY7ij55uWZHPELZO1+h6b8DVjtYmr57D36sHhwLct2picclZKHLpEILRQ5YTh7E8zMpDRDbzzz2BzVZscPKRUT4jx+i8OQ6ZGDwXkDMEeOehZ0BpPDfh8q2YLLWJMrMPF1esUa5oXeEk7WgFrM0nf0fTVWpCttwvooFT5I4=
+	t=1771081374; cv=none; b=B/xZ3x7MGIGU/p357eIFhiXA/Yyv8R9emGLg6pYISstx/8DdeZqjlrYSbd3jNplTtM+SeqYsI9z3BUgwaM0N5kyhfqouooYfJ///gn0z1kiAQijxOjMUyowzOZJ+QFPP8xf2n524HYV16HmyTm/X+zdq+hZHrNbDsi9zF2aoTyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771023214; c=relaxed/simple;
-	bh=5JMs9aIZ1bi3HLTDRgakvPbUT2rcR1gk4/WgD0hIJgI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=kj8pgwtUuT40HCEQVcU2y7+4opue+EBZF6+lMOJLaHRjDqjrNwfN+nj0S89deiDX/wefnxW3CybhHsjItvS7FD3MYxXKuBCdfLyj+SFjNcJqVW6OUdNG3FsP2A/+2yn9RIJlG2+FrG3MN4YGJFWOz0hLVy5uxoXy6JH5CQzwe6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sleuthco.ai; spf=fail smtp.mailfrom=sleuthco.ai; dkim=pass (2048-bit key) header.d=sleuthco.ai header.i=@sleuthco.ai header.b=c6peDAMQ; arc=none smtp.client-ip=209.85.222.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sleuthco.ai
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=sleuthco.ai
+	s=arc-20240116; t=1771081374; c=relaxed/simple;
+	bh=bUJ2/NUoi4gA+6dl0HVCjfpN5T6IjvL4MwfSVRanpwY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=p5MbSJnebMajY4m2XzrMrv1sWSFreSz9xOdo0BlJyc2OlrmLobwwfamvn8/G+zwKAMVmMxpPM1L/9R39naTx3NOTT8PWnu8fVGgcn+pXIDunYROFmUwe96mQRGcKmubV11kgQKSCJIGpElAijHTx/SlSfAO0P9OkE+rQ3LdjHOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=bminM2jV; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sleuthco.ai header.i=@sleuthco.ai header.b="c6peDAMQ"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-8cb48234b08so83106585a.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2026 14:53:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sleuthco.ai; s=google; t=1771023211; x=1771628011; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=kfqcDFPBwJDnv2FWvajh1p7LsMhJKi95glIjMj+Kkeg=;
-        b=c6peDAMQPAa5dy/+X0y3QsYM1lCUbykRPH6FkCc911hYsG+n9kc91DwlXGOivn43y8
-         ahL58RUR9MzKYf4R3N+bIN+xF1u2r2WCvaZvaLh8/5+yhgsgXYrdcmqwfvO4+ner4IIi
-         MKO7shkCogFI2v5OoRlpADna7oKr/jPCfm81fp71+CXDw7Ex/s+j6NuKQl9sOFkIX8EM
-         7JV4Z2Kv3UTAqyGZsl0plEyF8zjd+QK76rdf9QpgUuojoz/da2rfyy8VOf4UdONi+i7f
-         thbRxpg+Ib9nsywR6PkJ1XNc/KWU/Ni9UvUQYu1VP44aakXzXTTrDt8TsuqDwfoBk+VV
-         mNSg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771023211; x=1771628011;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=kfqcDFPBwJDnv2FWvajh1p7LsMhJKi95glIjMj+Kkeg=;
-        b=q9yhyZb0IetI/zlCxOjcxAvC+1um+EQoApdVaO7YCbfQW6fIf88MV9oGwou7g6xMg5
-         EQRSr6LkBOjq+Ex06KiOpLwl6Wh/T/OApfRUB+UltcWVVWeiAHwO4H8yzSfAUtkPrsak
-         HR+2JqrOWl6nAqQ3GcxulgdR4BXOElr+uPfYecnLkxC9LS/2OX+sXuwisVoU6agQ9wxL
-         B+1s5uDEBv/MgGPQsf+a/uz3zmoMFaa1PkvHGafnJJcbN8AeY67YKJWrEdqYs/Fi3Jqp
-         Sk8M7NXR3FScWC4dkAT2/6PO13Xf3VJYCV4layMWkvzs+aZGzi/eIf2oN/KLnR93vb1D
-         YISg==
-X-Gm-Message-State: AOJu0YyCJ3P5/GGPK8e4gpDoWk+OvyJqEz/ArxCMDPVMTCspVFoDjlOR
-	/z5NIgZj+OsHovHFXT/ETmMbpF2j1afC8f0MVSIR+kijFGAF77huy06E1ygEUgzwydKkSgh8QAm
-	1k72Ws2+r
-X-Gm-Gg: AZuq6aJf24b+w9CKUGqoRs3xcjCpgmwS+drKpj307OIzfMlcdDUX283wl0VebjxykLG
-	UYNOV303RgIrGrPLSr0mj1qc9kqbfLCMJS5/ZxrgkOtVu0ktnAsRc4zAT+OagLHDr8VPrD92hHR
-	/Vb4mGBxgXkotrNMnGC945hDx1wiNiiPYfb2tz1hplRfX4NGNfvMZDerlTgxQBaW/QASsFC1Mqt
-	uUmpswR3G2FHjQK9ciofFF2yMgmCUo+1eAX5Pd5r1nrL9ewND4H6y23B1pjtpM693tXYNLdBpx1
-	h6ePDU/Dc0E1IbhSuafbaCfovWKUAMILKx1jF+m5/5oEz/k8d4jLN046X80jsulUXUmzRXE57P5
-	edWtNh6xv0DbLZa6vxkVewop6kVclulEhM4XBJC7q2uHC3lKnDynPTHsnExXKnWXRvCVA3mcbwm
-	h40kZ/CIOWgskuARciarkB6gAk0DSbXtrXMR1Psnk=
-X-Received: by 2002:a05:620a:1917:b0:85e:b7b6:81e2 with SMTP id af79cd13be357-8cb4c00c942mr138175685a.50.1771023211087;
-        Fri, 13 Feb 2026 14:53:31 -0800 (PST)
-Received: from localhost.localdomain ([2601:195:c200:c890:bc72:9727:601e:995e])
-        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cb4120f939sm277612585a.44.2026.02.13.14.53.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Feb 2026 14:53:30 -0800 (PST)
-From: Alan Ross <alan@sleuthco.ai>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	Alan Ross <alan@sleuthco.ai>
-Subject: [PATCH] main: refuse to run under file capabilities
-Date: Fri, 13 Feb 2026 17:53:23 -0500
-Message-ID: <20260213225323.5749-1-alan@sleuthco.ai>
-X-Mailer: git-send-email 2.52.0.windows.1
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="bminM2jV"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id E20DC21D6A;
+	Sat, 14 Feb 2026 17:02:46 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=m28j557dyzS+Eb3mAHQeLNi4x1G/+PYAORs4hd4EMPo=; b=bminM2jVyS3t
+	ovnJDBGI7+Uy9lnXrUqrI0KpRi4GvQ4BPnTZm0I2WoaaWe3K9sV14XJLycIzV3hF
+	zVb0IQbOZ5Dfce9NvtL27Au9WQiw4+4GocWCOmHQoCzYdMg5exdQtnXbv5xQsqpH
+	LTya6cZT8KtE+SEYKvvdazL/cTzIloQG5mUwMzM0DUNaaJy6Va9F6GyMcIhKzzUj
+	1qdsP3cZn+uchGJXW/tZ27c0ajyvkm379rwpthW+LzD0ymPbyBMkNRlkl0U8wVaT
+	mIdwmNju9RksxV+1hM3GXYsMAmzLxsHWZRmt6vGj4vMxhNdVDv8kaxUhcnZhfXcR
+	7Lt777pqhj0d0gDKA2e58xb26f1rrhUapblDsSalO7SluX2ivFEZZWkx3EZ8/Yy0
+	K527yZgPxXqQBLt3APn8TMMhTULyyT+idLmwaeeH+dEUy33kX7qq8AeSUxQCJpI1
+	0RzRxAP+aMbgwQpxNbfXvV2XmDLM8IP20ZCkndmctD5PMfkNWigxRZk7dLuk+bo/
+	ElPULgDHSmlc32E1laqjDZMjisTQE9nQWZ9n5xWoTaAHyio4WWnqy1rzmxmngJli
+	QR4pv2d1/oj70u9BgKMCQBh2VLyu/Fz/w1Llb0ArE2UFQll+0CeUXEJaANkcgJLY
+	WVpknRfFKfqfLzqfMsnJ0wE36E/KJM8=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Sat, 14 Feb 2026 17:02:45 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 6255C609BE;
+	Sat, 14 Feb 2026 17:02:45 +0200 (EET)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 61EExQeU018159;
+	Sat, 14 Feb 2026 16:59:26 +0200
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.1/8.18.1/Submit) id 61EExQ8Q018158;
+	Sat, 14 Feb 2026 16:59:26 +0200
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, Dust Li <dust.li@linux.alibaba.com>,
+        Jiejian Wu <jiejian@linux.alibaba.com>
+Subject: [PATCH nf 2/2] ipvs: do not keep dest_dst if dev is going down
+Date: Sat, 14 Feb 2026 16:58:50 +0200
+Message-ID: <20260214145850.18130-3-ja@ssi.bg>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260214145850.18130-1-ja@ssi.bg>
+References: <20260214145850.18130-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Extend the existing setuid guard in main() to also detect
-file capabilities via getauxval(AT_SECURE).
+There is race between the netdev notifier ip_vs_dst_event()
+and the code that caches dst with dev that is going down.
+As the FIB can be notified for the closed device after our
+handler finishes, it is possible valid route to be returned
+and cached resuling in a leaked dev reference until the dest
+is not removed.
 
-Some container runtimes and minimal distributions grant cap_net_admin
-via file capabilities (setcap cap_net_admin+ep /usr/sbin/nft)
-rather than running through sudo.  In that configuration the kernel
-sets AT_SECURE and the dynamic linker strips LD_PRELOAD, but
-getuid() == geteuid() so the existing setuid check passes.
+To prevent new dest_dst to be attached to dest just after the
+handler dropped the old one, add a netif_running() check
+to make sure the notifier handler is not currently running
+for device that is closing.
 
-CAP_NET_ADMIN is quite powerful; even without dlopen(), we should not
-sanction setcap-installations — a control flow bug could still be
-exploited as the capability-elevated user.
-
-getauxval(AT_SECURE) is nonzero whenever the kernel has set AT_SECURE
-in the auxiliary vector — this covers both classic setuid/setgid and
-file capabilities.  Exit with status 111, matching the existing
-setuid behavior.
-
-Signed-off-by: Alan Ross <alan@sleuthco.ai>
+Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
 ---
- src/main.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_xmit.c | 46 ++++++++++++++++++++++++++-------
+ 1 file changed, 36 insertions(+), 10 deletions(-)
 
-diff --git a/src/main.c b/src/main.c
-index 29b0533..af49bec 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -17,6 +17,7 @@
- #include <getopt.h>
- #include <fcntl.h>
- #include <sys/types.h>
-+#include <sys/auxv.h>
+diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+index 64c697212578..124f779424b0 100644
+--- a/net/netfilter/ipvs/ip_vs_xmit.c
++++ b/net/netfilter/ipvs/ip_vs_xmit.c
+@@ -294,6 +294,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
+ 	return true;
+ }
  
- #include <nftables/libnftables.h>
- #include <utils.h>
-@@ -371,8 +372,8 @@ int main(int argc, char * const *argv)
- 	char *filename = NULL;
- 	unsigned int len;
++/* rt has device that is down */
++static bool rt_dev_is_down(const struct net_device *dev)
++{
++	return dev && !netif_running(dev);
++}
++
+ /* Get route to destination or remote server */
+ static int
+ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+@@ -309,9 +315,11 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
  
--	/* nftables cannot be used with setuid in a safe way. */
--	if (getuid() != geteuid())
-+	/* nftables cannot be used with setuid/setcap in a safe way. */
-+	if (getuid() != geteuid() || getauxval(AT_SECURE))
- 		_exit(111);
+ 	if (dest) {
+ 		dest_dst = __ip_vs_dst_check(dest);
+-		if (likely(dest_dst))
++		if (likely(dest_dst)) {
+ 			rt = dst_rtable(dest_dst->dst_cache);
+-		else {
++			if (ret_saddr)
++				*ret_saddr = dest_dst->dst_saddr.ip;
++		} else {
+ 			dest_dst = ip_vs_dest_dst_alloc();
+ 			spin_lock_bh(&dest->dst_lock);
+ 			if (!dest_dst) {
+@@ -327,14 +335,22 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 				ip_vs_dest_dst_free(dest_dst);
+ 				goto err_unreach;
+ 			}
+-			__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
++			/* It is forbidden to attach dest->dest_dst if
++			 * device is going down.
++			 */
++			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
++				__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
++			else
++				noref = 0;
+ 			spin_unlock_bh(&dest->dst_lock);
+ 			IP_VS_DBG(10, "new dst %pI4, src %pI4, refcnt=%d\n",
+ 				  &dest->addr.ip, &dest_dst->dst_saddr.ip,
+ 				  rcuref_read(&rt->dst.__rcuref));
++			if (ret_saddr)
++				*ret_saddr = dest_dst->dst_saddr.ip;
++			if (!noref)
++				ip_vs_dest_dst_free(dest_dst);
+ 		}
+-		if (ret_saddr)
+-			*ret_saddr = dest_dst->dst_saddr.ip;
+ 	} else {
+ 		noref = 0;
  
- 	if (!nft_options_check(argc, argv))
+@@ -471,9 +487,11 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 
+ 	if (dest) {
+ 		dest_dst = __ip_vs_dst_check(dest);
+-		if (likely(dest_dst))
++		if (likely(dest_dst)) {
+ 			rt = dst_rt6_info(dest_dst->dst_cache);
+-		else {
++			if (ret_saddr)
++				*ret_saddr = dest_dst->dst_saddr.in6;
++		} else {
+ 			u32 cookie;
+ 
+ 			dest_dst = ip_vs_dest_dst_alloc();
+@@ -494,14 +512,22 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+ 			}
+ 			rt = dst_rt6_info(dst);
+ 			cookie = rt6_get_cookie(rt);
+-			__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
++			/* It is forbidden to attach dest->dest_dst if
++			 * device is going down.
++			 */
++			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
++				__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
++			else
++				noref = 0;
+ 			spin_unlock_bh(&dest->dst_lock);
+ 			IP_VS_DBG(10, "new dst %pI6, src %pI6, refcnt=%d\n",
+ 				  &dest->addr.in6, &dest_dst->dst_saddr.in6,
+ 				  rcuref_read(&rt->dst.__rcuref));
++			if (ret_saddr)
++				*ret_saddr = dest_dst->dst_saddr.in6;
++			if (!noref)
++				ip_vs_dest_dst_free(dest_dst);
+ 		}
+-		if (ret_saddr)
+-			*ret_saddr = dest_dst->dst_saddr.in6;
+ 	} else {
+ 		noref = 0;
+ 		dst = __ip_vs_route_output_v6(net, daddr, ret_saddr, do_xfrm,
 -- 
-2.43.0
+2.53.0
+
 
