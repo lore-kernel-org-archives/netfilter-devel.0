@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52E6E37104C;
-	Tue, 17 Feb 2026 16:33:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9393D36EA95;
+	Tue, 17 Feb 2026 16:33:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771345997; cv=none; b=C8gdM29tBpK+Fqn/+Cix+gYd+0O4yc82o5QCvxGQ5hY84Xmz7SuPlhFLv2fXEb+AS8LEJk9GvdqfuL9zENqmuMLkl3W2FTru61WL5Z475y6oQHtfH1ubJPIHrQbONPqQQ/0fa26UHu8BZs5sBIPD/tSndi/8nnyL0bIDqFuLo7Y=
+	t=1771346001; cv=none; b=qx/SvKxfwNCr4fKEEfFesNGP6eWf/TWOoE/C2HY+sbj5m7QZlky5oKYqA/aXq8T3QgVlTxSf/e0kCNAfVka7l0bxP7PzeJTM/JbW/ROBz8G+Ylpnda6mhXo3OC80RWqGoXzFIoyGL5/MWZxwFZSh5q7Xv+yVQtmqnw1IHIU9cQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771345997; c=relaxed/simple;
-	bh=FmEL3yz60Zh7FKnuB3qprdNhLNsoiToC9zai7XaVdDc=;
+	s=arc-20240116; t=1771346001; c=relaxed/simple;
+	bh=fPkas7wFQs96+aNOpMbmbcM2fGDzBggtocSFqi/crUw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VX+X1YdEB+g6a3zdWNnX0FQGxOVIdl7DvrJXRXX4es3OPlAPczeygLohlCKTuF1uD5WgfdWF9XNgUUk+eozMuNcFfKrku4raNltNtL3KFki9Gb7Sbsuub9R8XzYUoXrwASddB6rIFZ4/Sp5AyMucdK+0Qs7Tq7qFOQBmDu3tegk=
+	 MIME-Version; b=VA/JPyE085PXgXyt4SZ+ryoF99jE6KzEkRLeKykjN0OpnYNJC7zm5vn64QK6t9b7zPi0TLAvR2nDILOlkmklDS+/Jq7U4K46AwN9pnFUEU5Ym6m8zRVM89rWN7OgyquUmZ/qPhlXlUwCTZQledJk2/f/1EvGhhWQDkWeLzDqoc8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D194A60CF7; Tue, 17 Feb 2026 17:33:14 +0100 (CET)
+	id 2D50160CF9; Tue, 17 Feb 2026 17:33:19 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 08/10] ipvs: do not keep dest_dst if dev is going down
-Date: Tue, 17 Feb 2026 17:32:31 +0100
-Message-ID: <20260217163233.31455-9-fw@strlen.de>
+Subject: [PATCH net 09/10] net: remove WARN_ON_ONCE when accessing forward path array
+Date: Tue, 17 Feb 2026 17:32:32 +0100
+Message-ID: <20260217163233.31455-10-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260217163233.31455-1-fw@strlen.de>
 References: <20260217163233.31455-1-fw@strlen.de>
@@ -38,124 +38,34 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-There is race between the netdev notifier ip_vs_dst_event()
-and the code that caches dst with dev that is going down.
-As the FIB can be notified for the closed device after our
-handler finishes, it is possible valid route to be returned
-and cached resuling in a leaked dev reference until the dest
-is not removed.
+Although unlikely, recent support for IPIP tunnels increases chances of
+reaching this WARN_ON_ONCE if userspace manages to build a sufficiently
+long forward path.
 
-To prevent new dest_dst to be attached to dest just after the
-handler dropped the old one, add a netif_running() check
-to make sure the notifier handler is not currently running
-for device that is closing.
+Remove it.
 
-Fixes: 7a4f0761fce3 ("IPVS: init and cleanup restructuring")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Fixes: ddb94eafab8b ("net: resolve forwarding path from virtual netdevice and HW destination address")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipvs/ip_vs_xmit.c | 46 ++++++++++++++++++++++++++-------
- 1 file changed, 36 insertions(+), 10 deletions(-)
+ net/core/dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index f861d116cc33..4389bfe3050d 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -294,6 +294,12 @@ static inline bool decrement_ttl(struct netns_ipvs *ipvs,
- 	return true;
- }
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 96f89eb797e8..096b3ff13f6b 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -744,7 +744,7 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
+ {
+ 	int k = stack->num_paths++;
  
-+/* rt has device that is down */
-+static bool rt_dev_is_down(const struct net_device *dev)
-+{
-+	return dev && !netif_running(dev);
-+}
-+
- /* Get route to destination or remote server */
- static int
- __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
-@@ -309,9 +315,11 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+-	if (WARN_ON_ONCE(k >= NET_DEVICE_PATH_STACK_MAX))
++	if (k >= NET_DEVICE_PATH_STACK_MAX)
+ 		return NULL;
  
- 	if (dest) {
- 		dest_dst = __ip_vs_dst_check(dest);
--		if (likely(dest_dst))
-+		if (likely(dest_dst)) {
- 			rt = dst_rtable(dest_dst->dst_cache);
--		else {
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.ip;
-+		} else {
- 			dest_dst = ip_vs_dest_dst_alloc();
- 			spin_lock_bh(&dest->dst_lock);
- 			if (!dest_dst) {
-@@ -327,14 +335,22 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 				ip_vs_dest_dst_free(dest_dst);
- 				goto err_unreach;
- 			}
--			__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
-+			/* It is forbidden to attach dest->dest_dst if
-+			 * device is going down.
-+			 */
-+			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
-+				__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
-+			else
-+				noref = 0;
- 			spin_unlock_bh(&dest->dst_lock);
- 			IP_VS_DBG(10, "new dst %pI4, src %pI4, refcnt=%d\n",
- 				  &dest->addr.ip, &dest_dst->dst_saddr.ip,
- 				  rcuref_read(&rt->dst.__rcuref));
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.ip;
-+			if (!noref)
-+				ip_vs_dest_dst_free(dest_dst);
- 		}
--		if (ret_saddr)
--			*ret_saddr = dest_dst->dst_saddr.ip;
- 	} else {
- 		noref = 0;
- 
-@@ -471,9 +487,11 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 
- 	if (dest) {
- 		dest_dst = __ip_vs_dst_check(dest);
--		if (likely(dest_dst))
-+		if (likely(dest_dst)) {
- 			rt = dst_rt6_info(dest_dst->dst_cache);
--		else {
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.in6;
-+		} else {
- 			u32 cookie;
- 
- 			dest_dst = ip_vs_dest_dst_alloc();
-@@ -494,14 +512,22 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
- 			}
- 			rt = dst_rt6_info(dst);
- 			cookie = rt6_get_cookie(rt);
--			__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
-+			/* It is forbidden to attach dest->dest_dst if
-+			 * device is going down.
-+			 */
-+			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
-+				__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
-+			else
-+				noref = 0;
- 			spin_unlock_bh(&dest->dst_lock);
- 			IP_VS_DBG(10, "new dst %pI6, src %pI6, refcnt=%d\n",
- 				  &dest->addr.in6, &dest_dst->dst_saddr.in6,
- 				  rcuref_read(&rt->dst.__rcuref));
-+			if (ret_saddr)
-+				*ret_saddr = dest_dst->dst_saddr.in6;
-+			if (!noref)
-+				ip_vs_dest_dst_free(dest_dst);
- 		}
--		if (ret_saddr)
--			*ret_saddr = dest_dst->dst_saddr.in6;
- 	} else {
- 		noref = 0;
- 		dst = __ip_vs_route_output_v6(net, daddr, ret_saddr, do_xfrm,
+ 	return &stack->path[k];
 -- 
 2.52.0
 
