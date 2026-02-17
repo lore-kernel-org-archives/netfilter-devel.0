@@ -1,86 +1,94 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F14CA36EA95;
-	Tue, 17 Feb 2026 16:33:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A601330B52B;
+	Tue, 17 Feb 2026 22:05:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771346006; cv=none; b=LLADzQGFu4A/aJamHe5RwQ5FPbKPhCNCSrQZF3tBqgZmd6EcQgoITx2h6PEB1ICUWaKz5X0cKT5zhYuXSM+Wk3B9XJxLf7T9UzvU1CqN/D2r6tbeNYXVoI0AWaGwXSzRo6HJtGAwyv48bGaucAhzavLzncP2+WFLcHz8q1tcOug=
+	t=1771365947; cv=none; b=VyZ5z/QeIZQZFDZfzNVhSOkiI4Hin71+LxAdp+waLCfuSCQPS7FRQHb8FI8Qv+wMo2SiKhM1qqmrW3w5sY85Wowr5+rHsOHOqutjfxqdwqIZ1ifdtmpzSSnMC64N8IlL0uIsdrHsaC/aOuQJyrITiHdljlD6I6PyLX/ENChyV2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771346006; c=relaxed/simple;
-	bh=NVoL6oS2NZpM0kV67jS8xtT75NvtAtIkB18jEHS9UzA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fFfmmJpTZtUDXfxlJca86UmX5z2r0Cuqqf/PazIQQIAMMngx5WgXwSyCcFtb+vzjCeqP/Nd1xNmhepJZuQ8YVJtCams6er9MOEaMwBgJSa3+Piv7lCik29fsjg1QY50pmH/eedimGaZ8UbHhK2qxAVUmM8w/G3q54SHo1hgLTSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 7D07F60CFA; Tue, 17 Feb 2026 17:33:23 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net 10/10] netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
-Date: Tue, 17 Feb 2026 17:32:33 +0100
-Message-ID: <20260217163233.31455-11-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260217163233.31455-1-fw@strlen.de>
-References: <20260217163233.31455-1-fw@strlen.de>
+	s=arc-20240116; t=1771365947; c=relaxed/simple;
+	bh=N352cReU/v+Zqk74ksFe2bI5YmBJMQ10oDYOnJpnozQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Tdhez4jQPzIKysNmZJzfbOy6pJeddFhifMjtwVIdm7E+O9lZOAOId9GlF650oiZE/ic9iFrecZGyaOVxUdpcNC9yny4/u77tcAwts/O+P3bmjMu7iWIMm23JTmROmSVCzJJU3dqCwbM53VKCqJN2Po/eFyebiblB80ybbbghtcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cz6l3Fev; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cz6l3Fev"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A84B9C4CEF7;
+	Tue, 17 Feb 2026 22:05:46 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1771365947;
+	bh=N352cReU/v+Zqk74ksFe2bI5YmBJMQ10oDYOnJpnozQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=cz6l3FevT8m57fUF5vkT2hXikEzplXJDCyA/dICZ7WiMnC4+IWrcAHGS+0xPo3z5B
+	 t0Qbgb8SIAh5aDkFekwdWqhq1FpQGmp4gub8Gr5o2BXuBCqX3Hg8GWBbYm2rdGeMOY
+	 fhEgy5ipWGrQywWWfdeSwQJVSpRLuGGGSy+jq8Sevh+bVmK1ZeLcO6X5ftTSSjP0cg
+	 bWKZI4K6RQfmf0lGOmpuD1j2T4+v9N1hDHAZpyjacBCbCR1F/KRn+uVrzBd12eDhXJ
+	 Wa2IyYvF+2xfFIfu3f8gIpvSjULetr2Kjd8RB9dQhUKxhg8xgwXYFlE4c0RgDe5lHp
+	 ykUJJLtcxhYzg==
+Date: Tue, 17 Feb 2026 14:05:45 -0800
+From: Jakub Kicinski <kuba@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, Shigeru Yoshida <syoshida@redhat.com>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+ <horms@kernel.org>, Phil Sutter <phil@nwl.cc>,
+ syzbot+5a66db916cdde0dbcc1c@syzkaller.appspotmail.com,
+ netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH net] net: flow_offload: protect driver_block_list in
+ flow_block_cb_setup_simple()
+Message-ID: <20260217140545.325067c0@kernel.org>
+In-Reply-To: <aZRUFQGKzEdcjNHG@chamomile>
+References: <20260208110054.2525262-1-syoshida@redhat.com>
+	<aYxw2CpxOKLh1wOz@strlen.de>
+	<20260212183447.2d577f5b@kernel.org>
+	<aY8LcgPsoYYGEH5s@strlen.de>
+	<20260213081749.3b3ede9c@kernel.org>
+	<aZHE4r18hkxdITD-@strlen.de>
+	<aZRUFQGKzEdcjNHG@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-From: Inseo An <y0un9sa@gmail.com>
+On Tue, 17 Feb 2026 12:42:13 +0100 Pablo Neira Ayuso wrote:
+> > static int
+> > mtk_eth_setup_tc_block(struct net_device *dev, struct flow_block_offload *f)
+> > {
+> >         struct mtk_mac *mac = netdev_priv(dev);
+> >         struct mtk_eth *eth = mac->hw;
+> >         static LIST_HEAD(block_cb_list);
+> > 	~~~~~~
+> > I have a question.
+> > 
+> > [..]
+> >         f->driver_block_list = &block_cb_list;
+> > 
+> > Now I have many questions!
+> > 
+> > How is this supposed to work?  
+> 
+> Last time I met people, I asked how is hw offload actually working
+> with netns (6 years ago?), someone told me: "maybe there is a driver
+> that supports it...". I have never seen one, but I am very much
+> outdates on how this has evolved TBH, I might be wrong.
+> 
+> I don't think any driver really supports netns + hardware offload, so
+> I suggest to restrict it, see attached patch.
+> 
+> It would be better to add a helper function such as int net_setup_tc()
+> for the myriad of ->ndo_setup_tc() calls in the code, then move this
+> check in it to consolidate, but I think you want something you can
+> pass to -stable at this stage?
 
-nf_tables_addchain() publishes the chain to table->chains via
-list_add_tail_rcu() (in nft_chain_add()) before registering hooks.
-If nf_tables_register_hook() then fails, the error path calls
-nft_chain_del() (list_del_rcu()) followed by nf_tables_chain_destroy()
-with no RCU grace period in between.
-
-This creates two use-after-free conditions:
-
- 1) Control-plane: nf_tables_dump_chains() traverses table->chains
-    under rcu_read_lock(). A concurrent dump can still be walking
-    the chain when the error path frees it.
-
- 2) Packet path: for NFPROTO_INET, nf_register_net_hook() briefly
-    installs the IPv4 hook before IPv6 registration fails.  Packets
-    entering nft_do_chain() via the transient IPv4 hook can still be
-    dereferencing chain->blob_gen_X when the error path frees the
-    chain.
-
-Add synchronize_rcu() between nft_chain_del() and the chain destroy
-so that all RCU readers -- both dump threads and in-flight packet
-evaluation -- have finished before the chain is freed.
-
-Fixes: 91c7b38dc9f0 ("netfilter: nf_tables: use new transaction infrastructure to handle chain")
-Signed-off-by: Inseo An <y0un9sa@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 819056ea1ce1..0c5a4855b97d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2823,6 +2823,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 policy,
- 
- err_register_hook:
- 	nft_chain_del(chain);
-+	synchronize_rcu();
- err_chain_add:
- 	nft_trans_destroy(trans);
- err_trans:
--- 
-2.52.0
-
+I don't think we need this restriction for TC side, it should be under
+rtnl_lock, IIUC. I have a... strong suspicion(?) that TC works, some
+drivers explicitly support devlink reload into a specified netns. 
+I always assumed this is for the cases where something like OvS offload
+is supposed to be handled outside init_net to avoid netdev explosion. 
+I could be wrong, tho, could be an RDMA thing.
