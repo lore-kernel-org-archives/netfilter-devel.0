@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CC7D36D50A;
-	Tue, 17 Feb 2026 16:32:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BC2E36F400;
+	Tue, 17 Feb 2026 16:32:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771345974; cv=none; b=AFWNADbzcsGrDsb1wlKzuw1NZB6ijR49rwTsuyz415Z70YxPI6KFqj4RLqdWC9Yum/UZUJCPxt5+iwlIiawx8yJLmeREyr/d2Aej4vWV9n29gOjOM/JXfuCjGwVUI26hiWdPHLkUQFVlTNTl2RG4B8UvIWc2MAgoI9o9EUvTygo=
+	t=1771345976; cv=none; b=lh9wv++dTxewRM1eGI0aRBSksdUlrkuNz7XcoozfHYudaGa0LaZnht5HOuLsVXg0ZGq7GcHeCQfu6QXVhlLyv8jQkJd3HhlY4XcXEBhv+OlIsxPzc4gTFORUqs58im7Zaz3Y6QTTVZU8T/RtRHPG3L6+X7qIvvgbNhfNJzMdkVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771345974; c=relaxed/simple;
-	bh=7oQdk/LAztsGryhpI1lXkwmCAGmUeo4oxY/eRAY3OyM=;
+	s=arc-20240116; t=1771345976; c=relaxed/simple;
+	bh=QjctK2P3bT1IyjsARWzgJtTfn5Kj1cpUr4Rpjybzpe4=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eG22upEYZ1wKvdjm7eMLSEZUyzuLBOY/yNjeyYpfUOL7mJexnbDVNfU0EosTkjl/RWxzL1PXU7eVG0/c2bL17ZN7IclYgOQiikFSa+FMYd8GzDisLQ8VATpDeKuSU1lKXsFFwGjk5bvNn0T2ktLjc5DYe3fgN7Vxwvw/GIxzY0A=
+	 MIME-Version; b=qz4MtM+On6t6uSRAyE/vuYSyJOmzbxxKVoOuG64GEpQLeHDpqph8bHgMseq5wLcU7MIQ+EpewmG7f3vGoHXGIGJ6xWqqDhYCN2gUAmvTDAQVGiKfVmzqTjbMFFF7PS++dgrXNyoO3syLoE8s2Ykm06iX6F5YPMo1dt/G3zQyDB8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id DAFDD60CF9; Tue, 17 Feb 2026 17:32:51 +0100 (CET)
+	id 85E1460CF7; Tue, 17 Feb 2026 17:32:47 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 02/10] netfilter: nft_counter: serialize reset with spinlock
-Date: Tue, 17 Feb 2026 17:32:25 +0100
-Message-ID: <20260217163233.31455-3-fw@strlen.de>
+Subject: [PATCH net 01/10] netfilter: annotate NAT helper hook pointers with __rcu
+Date: Tue, 17 Feb 2026 17:32:24 +0100
+Message-ID: <20260217163233.31455-2-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260217163233.31455-1-fw@strlen.de>
 References: <20260217163233.31455-1-fw@strlen.de>
@@ -38,81 +38,211 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Brian Witte <brianwitte@mailfence.com>
+From: Sun Jian <sun.jian.kdev@gmail.com>
 
-Add a global static spinlock to serialize counter fetch+reset
-operations, preventing concurrent dump-and-reset from underrunning
-values.
+The NAT helper hook pointers are updated and dereferenced under RCU rules,
+but lack the proper __rcu annotation.
 
-The lock is taken before fetching the total so that two parallel
-resets cannot both read the same counter values and then both
-subtract them.
+This makes sparse report address space mismatches when the hooks are used
+with rcu_dereference().
 
-A global lock is used for simplicity since resets are infrequent.
-If this becomes a bottleneck, it can be replaced with a per-net
-lock later.
+Add the missing __rcu annotations to the global hook pointer declarations
+and definitions in Amanda, FTP, IRC, SNMP and TFTP.
 
-Fixes: bd662c4218f9 ("netfilter: nf_tables: Add locking for NFT_MSG_GETOBJ_RESET requests")
-Fixes: 3d483faa6663 ("netfilter: nf_tables: Add locking for NFT_MSG_GETSETELEM_RESET requests")
-Fixes: 3cb03edb4de3 ("netfilter: nf_tables: Add locking for NFT_MSG_GETRULE_RESET requests")
+No functional change intended.
+
 Suggested-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Brian Witte <brianwitte@mailfence.com>
+Signed-off-by: Sun Jian <sun.jian.kdev@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_counter.c | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ include/linux/netfilter/nf_conntrack_amanda.h |  2 +-
+ include/linux/netfilter/nf_conntrack_ftp.h    |  2 +-
+ include/linux/netfilter/nf_conntrack_irc.h    |  2 +-
+ include/linux/netfilter/nf_conntrack_snmp.h   |  2 +-
+ include/linux/netfilter/nf_conntrack_tftp.h   |  2 +-
+ net/netfilter/nf_conntrack_amanda.c           | 14 +++++++-------
+ net/netfilter/nf_conntrack_ftp.c              | 14 +++++++-------
+ net/netfilter/nf_conntrack_irc.c              | 13 +++++++------
+ net/netfilter/nf_conntrack_snmp.c             |  8 ++++----
+ net/netfilter/nf_conntrack_tftp.c             |  7 ++++---
+ 10 files changed, 34 insertions(+), 32 deletions(-)
 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 0d70325280cc..169ae93688bc 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -32,6 +32,9 @@ struct nft_counter_percpu_priv {
+diff --git a/include/linux/netfilter/nf_conntrack_amanda.h b/include/linux/netfilter/nf_conntrack_amanda.h
+index 6f0ac896fcc9..dfe89f38d1f7 100644
+--- a/include/linux/netfilter/nf_conntrack_amanda.h
++++ b/include/linux/netfilter/nf_conntrack_amanda.h
+@@ -7,7 +7,7 @@
+ #include <linux/skbuff.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
  
- static DEFINE_PER_CPU(struct u64_stats_sync, nft_counter_sync);
+-extern unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
++extern unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
+ 					  enum ip_conntrack_info ctinfo,
+ 					  unsigned int protoff,
+ 					  unsigned int matchoff,
+diff --git a/include/linux/netfilter/nf_conntrack_ftp.h b/include/linux/netfilter/nf_conntrack_ftp.h
+index 0e38302820b9..f31292642035 100644
+--- a/include/linux/netfilter/nf_conntrack_ftp.h
++++ b/include/linux/netfilter/nf_conntrack_ftp.h
+@@ -26,7 +26,7 @@ struct nf_ct_ftp_master {
  
-+/* control plane only: sync fetch+reset */
-+static DEFINE_SPINLOCK(nft_counter_lock);
-+
- static inline void nft_counter_do_eval(struct nft_counter_percpu_priv *priv,
- 				       struct nft_regs *regs,
- 				       const struct nft_pktinfo *pkt)
-@@ -148,13 +151,25 @@ static void nft_counter_fetch(struct nft_counter_percpu_priv *priv,
- 	}
- }
+ /* For NAT to hook in when we find a packet which describes what other
+  * connection we should expect. */
+-extern unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
++extern unsigned int (__rcu *nf_nat_ftp_hook)(struct sk_buff *skb,
+ 				       enum ip_conntrack_info ctinfo,
+ 				       enum nf_ct_ftp_type type,
+ 				       unsigned int protoff,
+diff --git a/include/linux/netfilter/nf_conntrack_irc.h b/include/linux/netfilter/nf_conntrack_irc.h
+index d02255f721e1..4f3ca5621998 100644
+--- a/include/linux/netfilter/nf_conntrack_irc.h
++++ b/include/linux/netfilter/nf_conntrack_irc.h
+@@ -8,7 +8,7 @@
  
-+static void nft_counter_fetch_and_reset(struct nft_counter_percpu_priv *priv,
-+					struct nft_counter_tot *total)
-+{
-+	spin_lock(&nft_counter_lock);
-+	nft_counter_fetch(priv, total);
-+	nft_counter_reset(priv, total);
-+	spin_unlock(&nft_counter_lock);
-+}
-+
- static int nft_counter_do_dump(struct sk_buff *skb,
- 			       struct nft_counter_percpu_priv *priv,
- 			       bool reset)
- {
- 	struct nft_counter_tot total;
+ #define IRC_PORT	6667
  
--	nft_counter_fetch(priv, &total);
-+	if (unlikely(reset))
-+		nft_counter_fetch_and_reset(priv, &total);
-+	else
-+		nft_counter_fetch(priv, &total);
+-extern unsigned int (*nf_nat_irc_hook)(struct sk_buff *skb,
++extern unsigned int (__rcu *nf_nat_irc_hook)(struct sk_buff *skb,
+ 				       enum ip_conntrack_info ctinfo,
+ 				       unsigned int protoff,
+ 				       unsigned int matchoff,
+diff --git a/include/linux/netfilter/nf_conntrack_snmp.h b/include/linux/netfilter/nf_conntrack_snmp.h
+index 87e4f33eb55f..99107e4f5234 100644
+--- a/include/linux/netfilter/nf_conntrack_snmp.h
++++ b/include/linux/netfilter/nf_conntrack_snmp.h
+@@ -5,7 +5,7 @@
+ #include <linux/netfilter.h>
+ #include <linux/skbuff.h>
  
- 	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(total.bytes),
- 			 NFTA_COUNTER_PAD) ||
-@@ -162,9 +177,6 @@ static int nft_counter_do_dump(struct sk_buff *skb,
- 			 NFTA_COUNTER_PAD))
- 		goto nla_put_failure;
+-extern int (*nf_nat_snmp_hook)(struct sk_buff *skb,
++extern int (__rcu *nf_nat_snmp_hook)(struct sk_buff *skb,
+ 				unsigned int protoff,
+ 				struct nf_conn *ct,
+ 				enum ip_conntrack_info ctinfo);
+diff --git a/include/linux/netfilter/nf_conntrack_tftp.h b/include/linux/netfilter/nf_conntrack_tftp.h
+index dc4c1b9beac0..1490b68dd7d1 100644
+--- a/include/linux/netfilter/nf_conntrack_tftp.h
++++ b/include/linux/netfilter/nf_conntrack_tftp.h
+@@ -19,7 +19,7 @@ struct tftphdr {
+ #define TFTP_OPCODE_ACK		4
+ #define TFTP_OPCODE_ERROR	5
  
--	if (reset)
--		nft_counter_reset(priv, &total);
--
- 	return 0;
+-extern unsigned int (*nf_nat_tftp_hook)(struct sk_buff *skb,
++extern unsigned int (__rcu *nf_nat_tftp_hook)(struct sk_buff *skb,
+ 				        enum ip_conntrack_info ctinfo,
+ 				        struct nf_conntrack_expect *exp);
  
- nla_put_failure:
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index 7be4c35e4795..c0132559f6af 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -37,13 +37,13 @@ MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
+ module_param(ts_algo, charp, 0400);
+ MODULE_PARM_DESC(ts_algo, "textsearch algorithm to use (default kmp)");
+ 
+-unsigned int (*nf_nat_amanda_hook)(struct sk_buff *skb,
+-				   enum ip_conntrack_info ctinfo,
+-				   unsigned int protoff,
+-				   unsigned int matchoff,
+-				   unsigned int matchlen,
+-				   struct nf_conntrack_expect *exp)
+-				   __read_mostly;
++unsigned int (__rcu *nf_nat_amanda_hook)(struct sk_buff *skb,
++					 enum ip_conntrack_info ctinfo,
++					 unsigned int protoff,
++					 unsigned int matchoff,
++					 unsigned int matchlen,
++					 struct nf_conntrack_expect *exp)
++					 __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_amanda_hook);
+ 
+ enum amanda_strings {
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 617f744a2e3a..5e00f9123c38 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -43,13 +43,13 @@ module_param_array(ports, ushort, &ports_c, 0400);
+ static bool loose;
+ module_param(loose, bool, 0600);
+ 
+-unsigned int (*nf_nat_ftp_hook)(struct sk_buff *skb,
+-				enum ip_conntrack_info ctinfo,
+-				enum nf_ct_ftp_type type,
+-				unsigned int protoff,
+-				unsigned int matchoff,
+-				unsigned int matchlen,
+-				struct nf_conntrack_expect *exp);
++unsigned int (__rcu *nf_nat_ftp_hook)(struct sk_buff *skb,
++				      enum ip_conntrack_info ctinfo,
++				      enum nf_ct_ftp_type type,
++				      unsigned int protoff,
++				      unsigned int matchoff,
++				      unsigned int matchlen,
++				      struct nf_conntrack_expect *exp);
+ EXPORT_SYMBOL_GPL(nf_nat_ftp_hook);
+ 
+ static int try_rfc959(const char *, size_t, struct nf_conntrack_man *,
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 5703846bea3b..b8e6d724acd1 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -30,12 +30,13 @@ static unsigned int dcc_timeout __read_mostly = 300;
+ static char *irc_buffer;
+ static DEFINE_SPINLOCK(irc_buffer_lock);
+ 
+-unsigned int (*nf_nat_irc_hook)(struct sk_buff *skb,
+-				enum ip_conntrack_info ctinfo,
+-				unsigned int protoff,
+-				unsigned int matchoff,
+-				unsigned int matchlen,
+-				struct nf_conntrack_expect *exp) __read_mostly;
++unsigned int (__rcu *nf_nat_irc_hook)(struct sk_buff *skb,
++				      enum ip_conntrack_info ctinfo,
++				      unsigned int protoff,
++				      unsigned int matchoff,
++				      unsigned int matchlen,
++				      struct nf_conntrack_expect *exp)
++				      __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_irc_hook);
+ 
+ #define HELPER_NAME "irc"
+diff --git a/net/netfilter/nf_conntrack_snmp.c b/net/netfilter/nf_conntrack_snmp.c
+index daacf2023fa5..387dd6e58f88 100644
+--- a/net/netfilter/nf_conntrack_snmp.c
++++ b/net/netfilter/nf_conntrack_snmp.c
+@@ -25,10 +25,10 @@ static unsigned int timeout __read_mostly = 30;
+ module_param(timeout, uint, 0400);
+ MODULE_PARM_DESC(timeout, "timeout for master connection/replies in seconds");
+ 
+-int (*nf_nat_snmp_hook)(struct sk_buff *skb,
+-			unsigned int protoff,
+-			struct nf_conn *ct,
+-			enum ip_conntrack_info ctinfo);
++int (__rcu *nf_nat_snmp_hook)(struct sk_buff *skb,
++			      unsigned int protoff,
++			      struct nf_conn *ct,
++			      enum ip_conntrack_info ctinfo);
+ EXPORT_SYMBOL_GPL(nf_nat_snmp_hook);
+ 
+ static int snmp_conntrack_help(struct sk_buff *skb, unsigned int protoff,
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index 80ee53f29f68..89e9914e5d03 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -32,9 +32,10 @@ static unsigned int ports_c;
+ module_param_array(ports, ushort, &ports_c, 0400);
+ MODULE_PARM_DESC(ports, "Port numbers of TFTP servers");
+ 
+-unsigned int (*nf_nat_tftp_hook)(struct sk_buff *skb,
+-				 enum ip_conntrack_info ctinfo,
+-				 struct nf_conntrack_expect *exp) __read_mostly;
++unsigned int (__rcu *nf_nat_tftp_hook)(struct sk_buff *skb,
++				       enum ip_conntrack_info ctinfo,
++				       struct nf_conntrack_expect *exp)
++				       __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_nat_tftp_hook);
+ 
+ static int tftp_help(struct sk_buff *skb,
 -- 
 2.52.0
 
