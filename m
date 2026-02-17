@@ -1,70 +1,32 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7918E3358D9
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2026 12:16:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841FD271450;
+	Tue, 17 Feb 2026 16:32:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771330611; cv=none; b=EECz/iO37ct9L1zksui4fxTNZ4wrW0f8ayddaUAynUOQXY5t+m4WOacS3r2ke0ckdwUUy9GNlHtcU8dLCUczwNwgfmQ1pmk0HQ2L0CcwK2NCsuu48lF1H6ljiIrY+fmQyDoBcJbbf24aY4IfLdEABucPrV0Il7kcCTu+CqJByx0=
+	t=1771345973; cv=none; b=q22m1TWeDmABvBeHaMAZHwGFXf+bimuIct0QOHFvK3JR67YIWc746iU2MmmcH9oevhrUjRonCsvfkF/ycl676IOzUPYcN5Zh5HOsaqACrK/FqUKu4lLjM1sRO6eqhTX1wD+d1350pUIRKAKIr3HJ/AUHeIfXLC8CJ1xoOmJ+Kpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771330611; c=relaxed/simple;
-	bh=5IUOI+GdtYbqqt1hDN8PkLCp9ZIEhC7SZGm9CzRP6ww=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=kVL8Iwie4452Jb7Pp53ZVDd0ZgOYXS1323c8MiMKCmvsui+41FDb02GaVkxbAtx5knbdGYsvB7hsIaiBK1OMzpxx32kXN6qtlWWmlVb9VN69FbKmSuRRmHvOIM0riHxBVbFmlmRGlxNWWH/ILfBFjVU9M9So2rnfu3CCefGumjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TeN9iB3w; arc=none smtp.client-ip=209.85.214.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TeN9iB3w"
-Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2ab39b111b9so17935285ad.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2026 04:16:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771330610; x=1771935410; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=oAiOkzjJS9iAgqAV01DIUVkGS9wp9fVwp/L/ZMMWkl0=;
-        b=TeN9iB3wwH3UDniSM6WbMZEH6zxqmtVNnvdAfXmAzCdhgJ5zY9bAOIQsqUQt5W2ue8
-         lHji+7ThTqIIf+Lbe4zbkVsJOVvZW4oh4FUO73O09D7lBflrtPXn8TzWDP6p7EGJ5xXl
-         1ViX7Jd0CtdsOiojVBhPYgjt57mIeyaET40SbLQiTM/aOFuQbwJBOnkMlO89hfoR5/Yc
-         3qtdlrmznQKWP4ayI43Yj6rJv+aE/vYPGcNTKY8UndN+GXnY75pGmoBunqIKSMmLyyvP
-         PrbVmiowRQILPsR7bVIme6fVojXypqKOUrQxu+2H5KDxhFXCIyfGWUExTENAK9NIWBCu
-         Dhkw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771330610; x=1771935410;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oAiOkzjJS9iAgqAV01DIUVkGS9wp9fVwp/L/ZMMWkl0=;
-        b=c68OfVxswE9el0Hni+54FDCQGJjNeTnStLbMLHkk4NBNbUdEferSGlElWM3sLLD6tB
-         bABrEA3PQBw4lmNIuDZlueLCcDI34nN0S3OY8NB0p7rprIximCUq59d2EyFXsaxaPFAR
-         6cT8BLiNRK6F9t+DySN7bhjCGIdBJyq2CGbmYJvfGz2ssETqfOnbnOcH1aAA/zK/dUDZ
-         Ym7Zl0mCP5KY2gtUqEUm9i243UF1FbiJbfmUL9I8dXu27dntfi/9y1TnEXxb0E/KcaYK
-         7p9A0D1yIE6JPFPVjay1UxUZHm452rDOD+mCtJgmSWgcLI2shVS6p9syuIySyEVROn+Q
-         RsFA==
-X-Gm-Message-State: AOJu0Yy++4ho0n9qzsAI/XeGromVpbrg0VekbsVKu6N2ksd0uSEaDP9z
-	jQtnX0KkkqidjshAB6RiKPDr4V+3KDmRxqD2G7s9lKdsBeXRJjXWNUaSOnJtcQ==
-X-Gm-Gg: AZuq6aII07OV46c3oZaEZUJfrwwB9ZCbr57BJIWimwhs83daz84EFuk9+TIFaonALSQ
-	ISwGPqMbuCstrvhsHUW6L4ZVVTieyqhIElfHS//Fq0QRu7ljXsY0OjiN58h6wY2iTD9UypM3cVn
-	nWfh5dguKBoFg2s4zEBHgUUwsXEgxTjWNuZYulka2W72VxLWgQVbz4mEy9f8w26MJfVU8bTmgNQ
-	mgqr0jtxP3gREK3oKGFyjTPKdG2BHnGDwGNp0x6XKFSpZiWO1mLCb2PEO79Q4ns8MNI31yN66tu
-	yze7oXw5YZ3xnM48iheimchC7zDlXeUUthm+D4IAVqGhsM1PaWZPZN0PCQGJ/orNti9mmuQ51TW
-	Zm7P1HC871i04unnC3xQUn+rNH/qKG9CU2URZmC7KY0Ayoq2vd00LGNGLYfVWRAbP4sUbyunBwm
-	iHXE7BREiGoA1k3Pw7EJtxnAFlJQyEym7P
-X-Received: by 2002:a17:902:e949:b0:2aa:d287:6949 with SMTP id d9443c01a7336-2ad1740bcb5mr116348825ad.5.1771330609634;
-        Tue, 17 Feb 2026 04:16:49 -0800 (PST)
-Received: from localhost.localdomain ([112.145.86.158])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ad1a9d595fsm94123945ad.43.2026.02.17.04.16.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 17 Feb 2026 04:16:49 -0800 (PST)
-From: Inseo An <y0un9sa@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	stable@vger.kernel.org,
-	Inseo An <y0un9sa@gmail.com>
-Subject: [PATCH] netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
-Date: Tue, 17 Feb 2026 21:14:40 +0900
-Message-Id: <20260217121440.3210432-1-y0un9sa@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	s=arc-20240116; t=1771345973; c=relaxed/simple;
+	bh=oTfWvgJSP+kRBXBVtFhEiDAaB1etC6iuyyxj7gdvcSs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=po6xRZ93DJEOJC+wwbF+87cHu3j+Eswd67ZE7QtxSyGwdV3NJR9R+l/zcRXREM6ycVQ4FMwbhynSp8Gbbbgl1JLtrFCMGoauj72t6ooSYROv7lVEEE5AXaKsAGeUe4uLyD8aCnU/JuMOOff91IGbt5EECdb/GWHX9HuOVvpknPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 355F660683; Tue, 17 Feb 2026 17:32:43 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net 00/10] netfilter: updates for net
+Date: Tue, 17 Feb 2026 17:32:23 +0100
+Message-ID: <20260217163233.31455-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -73,46 +35,101 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-nf_tables_addchain() publishes the chain to table->chains via
-list_add_tail_rcu() (in nft_chain_add()) before registering hooks.
-If nf_tables_register_hook() then fails, the error path calls
-nft_chain_del() (list_del_rcu()) followed by nf_tables_chain_destroy()
-with no RCU grace period in between.
+Hi,
 
-This creates two use-after-free conditions:
+The following patchset contains Netfilter fixes for *net*:
 
- 1) Control-plane: nf_tables_dump_chains() traverses table->chains
-    under rcu_read_lock(). A concurrent dump can still be walking
-    the chain when the error path frees it.
+1) Add missing __rcu annotations to NAT helper hook pointers in Amanda, FTP,
+   IRC, SNMP and TFTP helpers.  From Sun Jian.
 
- 2) Packet path: for NFPROTO_INET, nf_register_net_hook() briefly
-    installs the IPv4 hook before IPv6 registration fails.  Packets
-    entering nft_do_chain() via the transient IPv4 hook can still be
-    dereferencing chain->blob_gen_X when the error path frees the
-    chain.
+2-4):
+ - Add global spinlock to serialize nft_counter fetch+reset operations.
+ - Use atomic64_xchg() for nft_quota reset instead of read+subtract pattern.
+   Note AI review detects a race in this change but it isn't new. The
+   'racing' bit only exists to prevent constant stream of 'quota expired'
+   notifications.
+ - Revert commit_mutex usage in nf_tables reset path, it caused
+   circular lock dependency.  All from Brian Witte.
 
-Add synchronize_rcu() between nft_chain_del() and the chain destroy
-so that all RCU readers -- both dump threads and in-flight packet
-evaluation -- have finished before the chain is freed.
+5) Fix uninitialized l3num value in nf_conntrack_h323 helper.
 
-Fixes: 91c7b38dc9f0 ("netfilter: nf_tables: use new transaction infrastructure to handle chain")
-Cc: stable@vger.kernel.org
-Signed-off-by: Inseo An <y0un9sa@gmail.com>
----
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+6) Fix musl libc compatibility in netfilter_bridge.h UAPI header. This
+   change isn't nice (UAPI headers should not include libc headers), but
+   as-is musl builds may fail due to redefinition of struct ethhdr.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index b278f493cc93c..1aa8ee4a79831 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2510,6 +2510,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
+7) Fix protocol checksum validation in IPVS for IPv6 with extension headers,
+   from Julian Anastasov.
 
- err_register_hook:
- 	nft_chain_del(chain);
-+	synchronize_rcu();
- err_chain_add:
- 	nft_trans_destroy(trans);
- err_trans:
---
-2.34.1
+8) Fix device reference leak in IPVS when netdev goes down. Also from
+   Julian.
+
+9) Remove WARN_ON_ONCE when accessing forward path array, this can
+   trigger with sufficiently long forward paths.  From Pablo Neira Ayuso.
+
+10) Fix use-after-free in nf_tables_addchain() error path, from Inseo An.
+
+Please, pull these changes from:
+The following changes since commit 77c5e3fdd2793f478e6fdae55c9ea85b21d06f8f:
+
+  Merge branch 'selftests-forwarding-fix-br_netfilter-related-test-failures' (2026-02-17 13:34:41 +0100)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-02-17
+
+for you to fetch changes up to 71e99ee20fc3f662555118cf1159443250647533:
+
+  netfilter: nf_tables: fix use-after-free in nf_tables_addchain() (2026-02-17 15:04:20 +0100)
+
+----------------------------------------------------------------
+netfilter pull request nf-26-02-17
+
+----------------------------------------------------------------
+Brian Witte (3):
+  netfilter: nft_counter: serialize reset with spinlock
+  netfilter: nft_quota: use atomic64_xchg for reset
+  netfilter: nf_tables: revert commit_mutex usage in reset path
+
+Florian Westphal (1):
+  netfilter: nf_conntrack_h323: don't pass uninitialised l3num value
+
+Inseo An (1):
+  netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
+
+Julian Anastasov (2):
+  ipvs: skip ipv6 extension headers for csum checks
+  ipvs: do not keep dest_dst if dev is going down
+
+Pablo Neira Ayuso (1):
+  net: remove WARN_ON_ONCE when accessing forward path array
+
+Phil Sutter (1):
+  include: uapi: netfilter_bridge.h: Cover for musl libc
+
+Sun Jian (1):
+  netfilter: annotate NAT helper hook pointers with __rcu
+
+ include/linux/netfilter/nf_conntrack_amanda.h |   2 +-
+ include/linux/netfilter/nf_conntrack_ftp.h    |   2 +-
+ include/linux/netfilter/nf_conntrack_irc.h    |   2 +-
+ include/linux/netfilter/nf_conntrack_snmp.h   |   2 +-
+ include/linux/netfilter/nf_conntrack_tftp.h   |   2 +-
+ include/uapi/linux/netfilter_bridge.h         |   4 +
+ net/core/dev.c                                |   2 +-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c         |  18 +-
+ net/netfilter/ipvs/ip_vs_proto_tcp.c          |  21 +-
+ net/netfilter/ipvs/ip_vs_proto_udp.c          |  20 +-
+ net/netfilter/ipvs/ip_vs_xmit.c               |  46 +++-
+ net/netfilter/nf_conntrack_amanda.c           |  14 +-
+ net/netfilter/nf_conntrack_ftp.c              |  14 +-
+ net/netfilter/nf_conntrack_h323_main.c        |  10 +-
+ net/netfilter/nf_conntrack_irc.c              |  13 +-
+ net/netfilter/nf_conntrack_snmp.c             |   8 +-
+ net/netfilter/nf_conntrack_tftp.c             |   7 +-
+ net/netfilter/nf_tables_api.c                 | 249 +++---------------
+ net/netfilter/nft_counter.c                   |  20 +-
+ net/netfilter/nft_quota.c                     |  13 +-
+ 20 files changed, 166 insertions(+), 303 deletions(-)
+
+-- 
+2.52.0
