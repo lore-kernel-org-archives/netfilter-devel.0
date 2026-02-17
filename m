@@ -1,40 +1,70 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D19C335562
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2026 11:56:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7918E3358D9
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2026 12:16:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771329406; cv=none; b=uy4FpCX2PvzdFLQB2zcZ+C/uPafE2A3aHVHLX4C+KSnRK2+jybMoxUFM7Giso4JE6eM2/D+pIhyA0duQg+wjCbPhKiFMPjbagvL5ZSD1LlFhcbQ6798kBjtsWI7SyEk2By7vR+UY/boOr+SzWXK39VICjwJS6rTgUov0gLpJTTc=
+	t=1771330611; cv=none; b=EECz/iO37ct9L1zksui4fxTNZ4wrW0f8ayddaUAynUOQXY5t+m4WOacS3r2ke0ckdwUUy9GNlHtcU8dLCUczwNwgfmQ1pmk0HQ2L0CcwK2NCsuu48lF1H6ljiIrY+fmQyDoBcJbbf24aY4IfLdEABucPrV0Il7kcCTu+CqJByx0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771329406; c=relaxed/simple;
-	bh=X4U5y36REp1rnlqIvFZdqx+2I6jkwub8+8tRaYx0Eq0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ZavRREuZq08SPbD41qFRnWIp7EPCyaUwZTg3ZobYf+keRcfd2SRcHG2etAmyYsXuXkTbx1FU/RDLw5uXAnFqYdbQ3Nm/4IA/0gPzO0Fe8H3hK1qHkh//qfNMQycGhTVpwoV3FtNV4bq+da4+qTATCIXHZsQsJ1L10h8/nsaWqNk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SexMZLO8; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1771330611; c=relaxed/simple;
+	bh=5IUOI+GdtYbqqt1hDN8PkLCp9ZIEhC7SZGm9CzRP6ww=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=kVL8Iwie4452Jb7Pp53ZVDd0ZgOYXS1323c8MiMKCmvsui+41FDb02GaVkxbAtx5knbdGYsvB7hsIaiBK1OMzpxx32kXN6qtlWWmlVb9VN69FbKmSuRRmHvOIM0riHxBVbFmlmRGlxNWWH/ILfBFjVU9M9So2rnfu3CCefGumjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TeN9iB3w; arc=none smtp.client-ip=209.85.214.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SexMZLO8"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 74A1760253;
-	Tue, 17 Feb 2026 12:56:42 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1771329402;
-	bh=O2KMcwLtbgkUMp153f8TYhMCJ7dlCpYdyRGyoZYZ/A4=;
-	h=From:To:Cc:Subject:Date:From;
-	b=SexMZLO8U4LnP0TVykrC7aVXrgSzNwdXZGGxhiXnPf9n9n4iHOao5Ci6/78YPA2qx
-	 0Bt2J2VkI3bLcgeIVoYAkEqEABQzZO8jKYWHCsZxa1f83xd92zrX0K1BEenDpoOJHM
-	 tFDWQu4YoG8xOjIRhz5vD0yv4Fr6mauRHpv5jbmCtBDq93+oa8pc/LXpR0dzVceJXT
-	 gJH1Cvoc/GW78EKv81X/oukntBJPgHyRn647L5R4XkKcw8uHbDGA806V95xSmckgSf
-	 ydex+grlwsJa52AVP4zgOlnQn7ZLN4Kk1JN5eLtUH5KW2OI+8oXJKHRqzf3A0ciZor
-	 JBNbdCVmUKNRQ==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TeN9iB3w"
+Received: by mail-pl1-f169.google.com with SMTP id d9443c01a7336-2ab39b111b9so17935285ad.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2026 04:16:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1771330610; x=1771935410; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=oAiOkzjJS9iAgqAV01DIUVkGS9wp9fVwp/L/ZMMWkl0=;
+        b=TeN9iB3wwH3UDniSM6WbMZEH6zxqmtVNnvdAfXmAzCdhgJ5zY9bAOIQsqUQt5W2ue8
+         lHji+7ThTqIIf+Lbe4zbkVsJOVvZW4oh4FUO73O09D7lBflrtPXn8TzWDP6p7EGJ5xXl
+         1ViX7Jd0CtdsOiojVBhPYgjt57mIeyaET40SbLQiTM/aOFuQbwJBOnkMlO89hfoR5/Yc
+         3qtdlrmznQKWP4ayI43Yj6rJv+aE/vYPGcNTKY8UndN+GXnY75pGmoBunqIKSMmLyyvP
+         PrbVmiowRQILPsR7bVIme6fVojXypqKOUrQxu+2H5KDxhFXCIyfGWUExTENAK9NIWBCu
+         Dhkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1771330610; x=1771935410;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=oAiOkzjJS9iAgqAV01DIUVkGS9wp9fVwp/L/ZMMWkl0=;
+        b=c68OfVxswE9el0Hni+54FDCQGJjNeTnStLbMLHkk4NBNbUdEferSGlElWM3sLLD6tB
+         bABrEA3PQBw4lmNIuDZlueLCcDI34nN0S3OY8NB0p7rprIximCUq59d2EyFXsaxaPFAR
+         6cT8BLiNRK6F9t+DySN7bhjCGIdBJyq2CGbmYJvfGz2ssETqfOnbnOcH1aAA/zK/dUDZ
+         Ym7Zl0mCP5KY2gtUqEUm9i243UF1FbiJbfmUL9I8dXu27dntfi/9y1TnEXxb0E/KcaYK
+         7p9A0D1yIE6JPFPVjay1UxUZHm452rDOD+mCtJgmSWgcLI2shVS6p9syuIySyEVROn+Q
+         RsFA==
+X-Gm-Message-State: AOJu0Yy++4ho0n9qzsAI/XeGromVpbrg0VekbsVKu6N2ksd0uSEaDP9z
+	jQtnX0KkkqidjshAB6RiKPDr4V+3KDmRxqD2G7s9lKdsBeXRJjXWNUaSOnJtcQ==
+X-Gm-Gg: AZuq6aII07OV46c3oZaEZUJfrwwB9ZCbr57BJIWimwhs83daz84EFuk9+TIFaonALSQ
+	ISwGPqMbuCstrvhsHUW6L4ZVVTieyqhIElfHS//Fq0QRu7ljXsY0OjiN58h6wY2iTD9UypM3cVn
+	nWfh5dguKBoFg2s4zEBHgUUwsXEgxTjWNuZYulka2W72VxLWgQVbz4mEy9f8w26MJfVU8bTmgNQ
+	mgqr0jtxP3gREK3oKGFyjTPKdG2BHnGDwGNp0x6XKFSpZiWO1mLCb2PEO79Q4ns8MNI31yN66tu
+	yze7oXw5YZ3xnM48iheimchC7zDlXeUUthm+D4IAVqGhsM1PaWZPZN0PCQGJ/orNti9mmuQ51TW
+	Zm7P1HC871i04unnC3xQUn+rNH/qKG9CU2URZmC7KY0Ayoq2vd00LGNGLYfVWRAbP4sUbyunBwm
+	iHXE7BREiGoA1k3Pw7EJtxnAFlJQyEym7P
+X-Received: by 2002:a17:902:e949:b0:2aa:d287:6949 with SMTP id d9443c01a7336-2ad1740bcb5mr116348825ad.5.1771330609634;
+        Tue, 17 Feb 2026 04:16:49 -0800 (PST)
+Received: from localhost.localdomain ([112.145.86.158])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2ad1a9d595fsm94123945ad.43.2026.02.17.04.16.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Feb 2026 04:16:49 -0800 (PST)
+From: Inseo An <y0un9sa@gmail.com>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf] net: remove WARN_ON_ONCE when accessing forward path array
-Date: Tue, 17 Feb 2026 12:56:39 +0100
-Message-ID: <20260217115639.1863946-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	stable@vger.kernel.org,
+	Inseo An <y0un9sa@gmail.com>
+Subject: [PATCH] netfilter: nf_tables: fix use-after-free in nf_tables_addchain()
+Date: Tue, 17 Feb 2026 21:14:40 +0900
+Message-Id: <20260217121440.3210432-1-y0un9sa@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -43,34 +73,46 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Although unlikely, recent support for IPIP tunnels increases chances of
-reaching this WARN_ON_ONCE if userspace manages to build a sufficiently
-long forward path.
+nf_tables_addchain() publishes the chain to table->chains via
+list_add_tail_rcu() (in nft_chain_add()) before registering hooks.
+If nf_tables_register_hook() then fails, the error path calls
+nft_chain_del() (list_del_rcu()) followed by nf_tables_chain_destroy()
+with no RCU grace period in between.
 
-Remove it.
+This creates two use-after-free conditions:
 
-Fixes: ddb94eafab8b ("net: resolve forwarding path from virtual netdevice and HW destination address")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+ 1) Control-plane: nf_tables_dump_chains() traverses table->chains
+    under rcu_read_lock(). A concurrent dump can still be walking
+    the chain when the error path frees it.
+
+ 2) Packet path: for NFPROTO_INET, nf_register_net_hook() briefly
+    installs the IPv4 hook before IPv6 registration fails.  Packets
+    entering nft_do_chain() via the transient IPv4 hook can still be
+    dereferencing chain->blob_gen_X when the error path frees the
+    chain.
+
+Add synchronize_rcu() between nft_chain_del() and the chain destroy
+so that all RCU readers -- both dump threads and in-flight packet
+evaluation -- have finished before the chain is freed.
+
+Fixes: 91c7b38dc9f0 ("netfilter: nf_tables: use new transaction infrastructure to handle chain")
+Cc: stable@vger.kernel.org
+Signed-off-by: Inseo An <y0un9sa@gmail.com>
 ---
-This infrastructure is only used by netfilter's flowtable at this stage,
-so I suggest the nf.git tree for this fix.
+ net/netfilter/nf_tables_api.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- net/core/dev.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b278f493cc93c..1aa8ee4a79831 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2510,6 +2510,7 @@ static int nf_tables_addchain(struct nft_ctx *ctx, u8 family, u8 genmask,
 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index ac6bcb2a0784..a8d5b0b1adc8 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -737,7 +737,7 @@ static struct net_device_path *dev_fwd_path(struct net_device_path_stack *stack)
- {
- 	int k = stack->num_paths++;
- 
--	if (WARN_ON_ONCE(k >= NET_DEVICE_PATH_STACK_MAX))
-+	if (k >= NET_DEVICE_PATH_STACK_MAX)
- 		return NULL;
- 
- 	return &stack->path[k];
--- 
-2.47.3
-
+ err_register_hook:
+ 	nft_chain_del(chain);
++	synchronize_rcu();
+ err_chain_add:
+ 	nft_trans_destroy(trans);
+ err_trans:
+--
+2.34.1
