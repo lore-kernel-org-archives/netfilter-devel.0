@@ -1,191 +1,152 @@
 Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48CE35C1AC
-	for <netfilter-devel@vger.kernel.org>; Sun, 22 Feb 2026 19:59:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB924356A24
+	for <netfilter-devel@vger.kernel.org>; Sun, 22 Feb 2026 20:20:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771790349; cv=none; b=l6NOoc1/grSw0IIMYLJaHF5BeD7COR0ERIOaTXuUJ5/QX7GP7c4ED7/ijIi4uM8ubyFY1lvGob3Zs9iKnHZHwlqJTPGw17v02okNti11i7NbxceLtCv3eog5H1xgdSEymX6DWkeusVS14PqxCprs2pzENlYoN7fm1hMpBnYtkhQ=
+	t=1771791609; cv=none; b=MAzTpHcDAbiFcgiI+tvqaf6oXVFJg7HXaR2dAb6+GrQZDv/YfRVrrbVoJbicBRwHpvR34IKuT+SK9K6dR8fO7JrGfKu4pNDE4RMbO4K3RJo+qV+qYyGrV2MVEsQ9IkyeLZeeiCGTpUVVhZybDc5TPRVhqTFXgoNpU8F+oXh0DNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771790349; c=relaxed/simple;
-	bh=otw/sidfsrVAXpxIAPSAHcc1JnUEwkQzo3iMewEEbLs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=lNDt9d04pUP+nHiHBuWBaz3NpRH4voYuYSJytcyFt0qkp3djRWtaIwkn4ySq+4bq7SalvzhbTD3vFgdahFA1qlDWWlyud8k17ylS6YVwSaeE3KlD4s99tU/PhOqZm2UycLKepB+3URQLUlCQixz0WzgDLIoCp2qJX5gzkOIkyPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=U4p4TMDV; arc=none smtp.client-ip=209.85.218.53
+	s=arc-20240116; t=1771791609; c=relaxed/simple;
+	bh=AvPUejLylMe6jxtFjp+4uu3x6b6UYh1yyZKXO4RB18g=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=uDP005cr0B6zDFVXeUy6mFOOTejOMe9Dh3zpmcRZS+Jn2YS7kZgB/bdc+8ARqjJ1Czk/S8CQI5MgKVkKxBsJK0jpAA7c4KSWfDilRfMdQUayivJMrxhpd22D0GYLXXnAeI0w+QQhmju6KFB+UZtT2OgoVG3ZJUqMLh9X/n8T8Lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Im5+F6P9; arc=none smtp.client-ip=209.85.218.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U4p4TMDV"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b8f8d80faebso664964666b.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 22 Feb 2026 11:59:07 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Im5+F6P9"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b885a18f620so652679066b.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 Feb 2026 12:20:07 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771790346; x=1772395146; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=coP60IDvUwENZ4G8REzPur6qzEmmqfojoUutShryN4c=;
-        b=U4p4TMDVXOX8tlyznO4pGpYlq2u/vqSP3x7/wVv1pTs+c47Rv5CCc5/3PWgvh/G6Fg
-         cjRR//410wSU0It4WkOcEjzmNtR7v9YEmmCfzW8ajR1eUdXDJZwqDw+YuVeiX1dGylAv
-         vJRAW6il44jDmqYbcNDT+gxLMEHiG0LpwoASzgavKYtVNzkevof//eLyITh92sF0sM/g
-         l6AesyU4/JtviweOwGQf6KCopBm7ZQCSXXha8hL14FE3Dy1edAfqOIO/LZ6uyEy/YX4w
-         go8b38NAMjPEtbTKg4shTOA9TrwPCNU/BKr0OkyQjuzgN0FdrXWW6AQqB2ojJPg01SQr
-         tGFg==
+        d=gmail.com; s=20230601; t=1771791606; x=1772396406; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ziqVjObozmBP/YMpMD3gIg2L0bYhVbhRy21Cs0R6NM4=;
+        b=Im5+F6P9mQnTRX6lgEV7pYRTS5FxSC6LH2GxXTbY553unxaWlpMZBCn2C9nS44M79U
+         wFouC2OvIKcB+qoSmWZjCHB4lVDpZBV5rmOKrQiOY9a+CvfnWIVuGg8QFisW7/j1nNQz
+         NFWHJARiDrDLEEwQC/yhoDp+Ge1o1mskdSA+HcEf6/Ru3pwMxXcr2I+5pVQcrKb6OAet
+         /sWAm7oaslecI06aHwmptjaf5IXnKGbFiw6Nt6PH5C2p0uYZGJTpKNG6JLlYqK3SU+wb
+         XghlSwLBaN3FVELPBxv6l6HBUWqR/kgeEtSJ/R7pNhC0SxgeCTulRAIlJoAwxw8qnv66
+         Qn5g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771790346; x=1772395146;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=coP60IDvUwENZ4G8REzPur6qzEmmqfojoUutShryN4c=;
-        b=ud1ARLCggNsX3M4jkQ+plRE2u7DvpGJ7GCZ6iRDXgz4GROHV90D2sV627//OqyBWuX
-         IVePadbHPahRjlaYX3w/9pictvnUTBsID01zvnti8Rzmudh/oNWjAnENQx8O0ttuC2k6
-         I/f0dz3hggB7GMIYx0xbRCXzDvEt3nXJWtHmnNptq5u1l0doq0G04zPrZuSMj5sGpeIi
-         5jNk9UcLsdRBkM3Rlh2coItaeJGUSlgDv4ahzM+lB3ia+h7lo4+ZM79VEVr+4xPcKECK
-         lKpSYWjczdOJWaQ7pCTzTSCdM/I6YIbzyL+27p616XIWwgCj1ghh8aUwbEZqCzwyhnnV
-         LnUQ==
-X-Gm-Message-State: AOJu0YxphXdrBxHyjUt5uTI2YUSWi9NuRizE5QdkPrGpFxrFHzk8d9Wj
-	pBxe7aFqaSfphFqSOSiAllJR5FXbzd9yEfLkNHsiuNAcVqInSEdBH7Fu
-X-Gm-Gg: AZuq6aKVlMAayb0zIrSq97Fncsa7vHPJhVs0J8A2EjMvUP22GJ0vLj0hyx4BDSQ+RDm
-	LOXArWnph2o1wpQ7xdoE39erDykIPSdMwDXmeGZsrrBBhFLtN2fNjbvu8b8ehtp1TEAXKdQW6Yz
-	EDxvgO9gzuyY4AKlN9vzGGeOh3rx/di6axBPSyLrAZRSgbfbqI3CnaJ9kLZFL8LvJsWjSkRBnG/
-	BXA784VgucZEv3nj5fT7tnleiMYLXglGFNsMdk3qWqmPQcJZs0cDim71SIKTd3Lg7pCKgHVCR2U
-	5hY/aThV+HeGEkC9a2iMan8xTx8L1cujXUHNCCjuafq2hEgClQeCUj7vVxjgHo98bw9rb5t3pvw
-	9fuP5RMrjSIXwfbtLJVpOTusMShy+ZcOxYKyPTOkq/Jvm4nHPBHzgOCZRcHP4Mfjw/cxO4lvzL9
-	bn1cUV3zxLK1jqavLhUlPRbKgV1VKbo4jMlUFxRBbTk1nCHb7jJtjh6qczTdxYqA7nwTaUYQj0a
-	tWeKC5tsfksm7Ls6pqpshnIwNNjWxvgr3p46V1tlv83+XgToMm+VWc/r35hbolkXQ==
-X-Received: by 2002:a17:907:988:b0:b88:1e2:ed49 with SMTP id a640c23a62f3a-b9080f13a76mr405909266b.8.1771790346139;
-        Sun, 22 Feb 2026 11:59:06 -0800 (PST)
-Received: from eric (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b9084c5c514sm246125466b.5.2026.02.22.11.59.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 22 Feb 2026 11:59:05 -0800 (PST)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>
-Cc: netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	bridge@lists.linux.dev,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v18 nf-next 4/4] netfilter: nft_chain_filter: Add bridge double vlan and pppoe
-Date: Sun, 22 Feb 2026 20:58:43 +0100
-Message-ID: <20260222195845.77880-5-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260222195845.77880-1-ericwouds@gmail.com>
-References: <20260222195845.77880-1-ericwouds@gmail.com>
+        d=1e100.net; s=20230601; t=1771791606; x=1772396406;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ziqVjObozmBP/YMpMD3gIg2L0bYhVbhRy21Cs0R6NM4=;
+        b=aJxzjCLxvCwEbwinv5D7q7gkvvF9GpjToqfGib3Wd3ngSLKeerlcCrDN+LsJ6jGvDi
+         mk5mfMgtB+1/xY6+hyhtdxGpp5waMatacpfrpWCjEknu3VoH5Qr0todzeZxTz4NNTn7b
+         5GArg2DljqX0pPGWfXlvA4V60+LdpRDNcRs9wUSb5NUXubP0AvFT7M95e9d/GZ2TuuvS
+         V0wNHtRLLUq9YT3Y0BRO/21mx7wY1mrNGpDOK0L/62aJi+gUp0gwtKv9SxSM8PegeV0x
+         DzpAeMl6doNJkzF0XN/QqzVwJFcngqdv8NNYdN2mwbHOnn7po1r6zajWlMS6AQlmMIQ+
+         2nOA==
+X-Forwarded-Encrypted: i=1; AJvYcCW9LExj/SG9OaV7Aw1QLqkc+cyTmrB0AGW8MbpD3xz3+jKBFnKSmCCvkraIoFOrQSOd75Cenncj4G7tFtRsbjU=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyi0NK1/KXIiAjmaFplHmT7Y7K6YrdxJvKJP8Mld4dKOPnhcOBM
+	HMKDRjVEZ+2qdstXSiAl8LnDO1g97YjooPmdakyUK5vhMZiXm8eKUmXmnQSetA==
+X-Gm-Gg: AZuq6aJxMAQ67I/trVYBAT4xYztf+7wFtkTq3DLYpRZUkvCwUhU87eBiqaKwSe8M6EW
+	EwjtVwjMF4SBmNj8R4j94UIt46kW8u3PMVC35/cy8Mvx1xDF02jJgL9s5gSxuGENHUjjLx7rGBL
+	L0HAqQR6/7pM7obPEM2Q+1ZZUgG+SPqIXRD+5w4ac6JybvSJYWufJlXIzxRVCexpcXX22KdYNAW
+	odgwSH1/wiSiDzyUip0aOa3sxf4bcs/MI3rN48L0b1w9T9zwrjJEYCoQPpe9xUU4jbieijeDyre
+	CFiWmMyGHwCx2cLWf5IU1c+IQmMtHZjprTiqKFwV5RMx/6UhxUvDHow8qg+F7lJAlIX0gnXcFJl
+	3AlqBKg+90lOAfCWAKN5BeyhNv+dGtZoPAju3TxUHviMGoP3Xr6+gtByXwsOHeziPA270ZaFfgD
+	oH8+7ek2rt/g+M+E6TeXcr5z6cXUbu3oobLQB1VLIXfFfA4khzNa8oJ9ex40RpRkVEvBbqB+rOx
+	nVW097c7DVgy9nWBNhp1hhikqmeUR6Eu0pkuoYElXplthixd9B1aIKIBjczd1JcBnCXqUuTYtcr
+	0oLjr+WmuDyptCAxDzASTiit40rtEl7zPw==
+X-Received: by 2002:a17:907:3d4b:b0:b8f:e43d:d5fe with SMTP id a640c23a62f3a-b9081a0cbc8mr417794866b.20.1771791605886;
+        Sun, 22 Feb 2026 12:20:05 -0800 (PST)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-65eab9ac4acsm1892737a12.14.2026.02.22.12.20.03
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 22 Feb 2026 12:20:04 -0800 (PST)
+Message-ID: <a4af5ff8-7aff-454d-8990-2922f1b9bbf3@gmail.com>
+Date: Sun, 22 Feb 2026 21:20:03 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH RFC v1 nf-next] netfilter: nf_flow_table_ip: Introduce
+ nf_flow_vlan_push()
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+ netdev@vger.kernel.org
+References: <20260222155251.76886-1-ericwouds@gmail.com>
+ <aZs8atSEZTjkzzQ3@strlen.de>
+From: Eric Woudstra <ericwouds@gmail.com>
+Content-Language: en-US
+In-Reply-To: <aZs8atSEZTjkzzQ3@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-In nft_do_chain_bridge() pktinfo is only fully populated for plain packets
-and packets encapsulated in single 802.1q or 802.1ad.
 
-When implementing the software bridge-fastpath and testing all possible
-encapulations, there can be more encapsulations:
 
-The packet could (also) be encapsulated in PPPoE, or the packet could be
-encapsulated in an inner 802.1q, combined with an outer 802.1ad or 802.1q
-encapsulation.
+On 2/22/26 6:27 PM, Florian Westphal wrote:
+> Eric Woudstra <ericwouds@gmail.com> wrote:
+>> With double vlan tagged packets in the fastpath, getting the error:
+>>
+>> skb_vlan_push got skb with skb->data not at mac header (offset 18)
+>>
+>> Introduce nf_flow_vlan_push, that can push the inner vlan in the
+>> fastpath.
+>>
+>> Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
+> 
+> This change is in net/nf tree, so why are you targetting nf-next?
+> Are you proposing a revert for nf?  If so, please first send a revert
+> for nf.
+> 
+> Is there a test case for this that demonstrages the breakage?
+> 
+> And why is this tagged as RFC, what is the problem with this patch?
+> 
 
-nft_flow_offload_eval() also examines the L4 header, with the L4 protocol
-known from the conntrack-tuplehash. To access the header it uses
-nft_thoff(), but for these packets it returns zero.
+I have run into this, when testing my branch for implementing the
+bridge-fastpath, not in the forward-fastpath. But anyway, no matter how
+packets are handled in the original path (forwarding or bridged), once
+going through the fastpath it would not matter, so it is broken in any
+fastpath.
 
-Introduce nft_set_bridge_pktinfo() to help populate pktinfo with the
-offsets.
+I have the complete testcase for bridge-fastpath here:
 
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
----
- net/netfilter/nft_chain_filter.c | 55 +++++++++++++++++++++++++++++---
- 1 file changed, 51 insertions(+), 4 deletions(-)
+https://github.com/ericwoud/linux/commits/bpir-nftflow-nf-next
 
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index d4d5eadaba9c..66ef30c60e56 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -227,21 +227,68 @@ static inline void nft_chain_filter_inet_fini(void) {}
- #endif /* CONFIG_NF_TABLES_IPV6 */
- 
- #if IS_ENABLED(CONFIG_NF_TABLES_BRIDGE)
-+static int nft_set_bridge_pktinfo(struct nft_pktinfo *pkt, struct sk_buff *skb,
-+				  const struct nf_hook_state *state,
-+				  __be16 *proto)
-+{
-+	nft_set_pktinfo(pkt, skb, state);
-+
-+	switch (*proto) {
-+	case htons(ETH_P_PPP_SES): {
-+		struct ppp_hdr {
-+			struct pppoe_hdr hdr;
-+			__be16 proto;
-+		} *ph, _ph;
-+
-+		ph = skb_header_pointer(skb, 0, sizeof(_ph), &_ph);
-+		if (!ph) {
-+			*proto = 0;
-+			return -1;
-+		}
-+		switch (ph->proto) {
-+		case htons(PPP_IP):
-+			*proto = htons(ETH_P_IP);
-+			return PPPOE_SES_HLEN;
-+		case htons(PPP_IPV6):
-+			*proto = htons(ETH_P_IPV6);
-+			return PPPOE_SES_HLEN;
-+		}
-+		break;
-+	}
-+	case htons(ETH_P_8021Q): {
-+		struct vlan_hdr *vhdr, _vhdr;
-+
-+		vhdr = skb_header_pointer(skb, 0, sizeof(_vhdr), &_vhdr);
-+		if (!vhdr) {
-+			*proto = 0;
-+			return -1;
-+		}
-+		*proto = vhdr->h_vlan_encapsulated_proto;
-+		return VLAN_HLEN;
-+	}
-+	}
-+	return 0;
-+}
-+
- static unsigned int
- nft_do_chain_bridge(void *priv,
- 		    struct sk_buff *skb,
- 		    const struct nf_hook_state *state)
- {
- 	struct nft_pktinfo pkt;
-+	__be16 proto;
-+	int offset;
- 
--	nft_set_pktinfo(&pkt, skb, state);
-+	proto = eth_hdr(skb)->h_proto;
-+
-+	offset = nft_set_bridge_pktinfo(&pkt, skb, state, &proto);
- 
--	switch (eth_hdr(skb)->h_proto) {
-+	switch (proto) {
- 	case htons(ETH_P_IP):
--		nft_set_pktinfo_ipv4_validate(&pkt, 0);
-+		nft_set_pktinfo_ipv4_validate(&pkt, offset);
- 		break;
- 	case htons(ETH_P_IPV6):
--		nft_set_pktinfo_ipv6_validate(&pkt, 0);
-+		nft_set_pktinfo_ipv6_validate(&pkt, offset);
- 		break;
- 	default:
- 		nft_set_pktinfo_unspec(&pkt);
--- 
-2.53.0
+I do not have a ready to use testcase in the forward-fastpath, but is is
+clearly broken. So this is why I started with an RFC first.
+
+>> +	if (skb_vlan_tag_present(skb)) {
+>> +		struct vlan_hdr *vhdr;
+>> +
+>> +		if (skb_cow_head(skb, VLAN_HLEN))
+>> +			return -1;
+>> +
+>> +		__skb_push(skb, VLAN_HLEN);
+>> +		skb_reset_network_header(skb);
+>> +
+>> +		vhdr = (struct vlan_hdr *)(skb->data);
+>> +		vhdr->h_vlan_TCI = htons(id);
+>> +		vhdr->h_vlan_encapsulated_proto = skb->protocol;
+>> +		skb->protocol = proto;
+> 
+> Ok, I see, this opencodes a variant of skb_vlan_push().
+> Would it be possible to correct skb->data so it points to the mac header
+> temporarily?  skb->data always points to network header so this cannot
+> have worked, ever.
+
+The code here for the inner header is an almost exact copy of
+nf_flow_pppoe_push(), which was also implemented at the same time.
+So handling pppoe and inner-vlan header is implemented in the same
+manner, which keeps it simple and uniform. If one functions
+(in)correctly, then so would the other.
+
+I've been implementing handling the inner vlan header like this for a
+half year now. My version of nf_flow_encap_push() was a bit different,
+but after this patch it is quite similar.
 
