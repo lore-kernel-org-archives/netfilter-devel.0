@@ -1,53 +1,53 @@
-Received: from mail-qv1-f74.google.com (mail-qv1-f74.google.com [209.85.219.74])
+Received: from mail-qv1-f73.google.com (mail-qv1-f73.google.com [209.85.219.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53A2C37E2F5
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 12:29:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.74
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87A443803D1
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 12:33:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771936143; cv=none; b=ptJVLiCr4evbPUhEcDJVOMupIiFhA3m6FOq+Ux2o7qmswFB1RHO8wDWTnXmmPO6d/IsjWrpXACelptZTtcPd08H5ZcddbIT3X42Wq+81zNa+jIUR/AsDqp234SC4s+BBepvCSK26JJOZbXm/Vg/GbEO8nBld7UfcRhT1Rdf6QfI=
+	t=1771936430; cv=none; b=rkuyFWPKVsWNUt3s7xzZZQOLD564mcexBnqHLs945hYY4NiC62RvDslaT7Lp/dlKCiI+T/gDfKMtbuIC58Um4J3k8L0KdKq3j3xfOeYkCWJe8sCGlGUST3tB3Eki68plD3GDTG9yTha4QLtJA90YVuZaLEQsO4e4DApvXvsIigU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771936143; c=relaxed/simple;
-	bh=Hsp3tQRgE2zFNjV/zPyI9+zpkx3vWREcoZDnXwGASz4=;
-	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=HXFSg8aSxnAQmLmxiFfuR0+kR6WX03uJdDcbYVLuRBwcdfI5TIgxgSHKyWb058mzkPHC5m3cPm8rqwo9ouAv1N5uvLF2Jjd8gJ36YXJLjd3F7mfVpvddPrTh7M55iFwOujy6TprQ+y4P28Aggv2qpXsmIfZX9zgLLtbY0IlcupM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=pQF8ulBj; arc=none smtp.client-ip=209.85.219.74
+	s=arc-20240116; t=1771936430; c=relaxed/simple;
+	bh=clZnONM24nEys84smKGnPS40DZNnvZ0axgHZ537gWa8=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=lrQBr5as2VMkC4dEEaE8dznXjDv83X36WaleWoXY9JeEJ+cAJZs89CXcPEa9TOWYszdxpn7XGXDR9kEbRn3PecztSuRZcgH2NqPP2CDYKtlYtjepLV3T6tONhF9PAkkmiw31uk1VYdcvNxnxpDFsXcNcG6kOlG+F8lcx/RqaO0w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=DRfJcHyZ; arc=none smtp.client-ip=209.85.219.73
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="pQF8ulBj"
-Received: by mail-qv1-f74.google.com with SMTP id 6a1803df08f44-89546cbb998so502664926d6.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 04:29:00 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="DRfJcHyZ"
+Received: by mail-qv1-f73.google.com with SMTP id 6a1803df08f44-89700915423so66218396d6.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 04:33:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1771936139; x=1772540939; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1771936428; x=1772541228; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=a3rCfk+n+zciKXPjSKsHFA//hqZJBADhsDjD5jNhlu0=;
-        b=pQF8ulBjgHi6Qwhdh7vHAV1pUExFxKgs4FchQvk91eIGbSOyhJeeWwTvoqet9tTkhY
-         5wxuF98tQouSTrg5bxK1XHerVSLOgZK4DGHLsBUobXjiT/zY3yISiSKlm/vpKJv34lLn
-         rBQPeCWG8FKi1nnQ+VppHDECOGFrIo/tLaVPOSv5iQoMJL6byJRpJksEtfHauWyeO+89
-         nFwnX50s8NzBvbAgVnToCBeFIDv7rsLOgfb9dnJcVNdleu6BTv+w2k9fkTLjmoD+1vL1
-         puI3/uBStM3ZYOEc47WiPgnW3FaPJWlYuLy+YwI5jyLyaR3oGiuCjQIl3AYaFBElIhuY
-         Scng==
+        bh=fQbu6Cl/paq0E3UGNbm7xLXUbURoFHMRf6FXvlp9cXk=;
+        b=DRfJcHyZo/thIw0B82gbRNF0xsmJbkZsu+3/nqihuaJMlQaTepzOdb2cibeNP3/hi4
+         qyA2u0XRgeuaNgnPB75K0ZrC7FFudSDP0XZPgx+e8p60RSddUXYai81xEG28HSz1rto5
+         k+hBVIKjlAAxFl9ljvIK8bvRNM736Fxxdx2QAf4JpEp9wm0pOFMgGwAKNZWJ/MSDGMsq
+         oSmgGWRDf2jklSm95lgjl7fZ2r+SitFxB1MazUFFbo1ZJVvGxumtHdqtbgIG458PotII
+         FT7Q4hBTegrALhUy8KFll0N8b3WpmKKWtpTGQsISYzUrGzhh92zwqJ/SguHHNUgjIk7q
+         bCGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771936139; x=1772540939;
+        d=1e100.net; s=20230601; t=1771936428; x=1772541228;
         h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=a3rCfk+n+zciKXPjSKsHFA//hqZJBADhsDjD5jNhlu0=;
-        b=bA3U20ntLlYCZlS7/MMZ4a/SLGQNp9hRbNt6eHboCK+AAUxLRT22MBxuhnCaWNN+mz
-         9R8TM3PGnDDAQTTISCeAq1ZSnLe6xWP9BjKT31a0qA1+zHQ/puiyAo3vdn/UpYGmEY0w
-         5iBuyx1+NDwB9NozQu6PkWD7SjmmwhdMWzvL0pu+YCrlpbSbnRUPkXGq+MYlc9ABd4mE
-         cbvDv87sUIJUCXGlpNBKlLMzteZWfUm6U4ABJm3X+bC78T9qJrFk4/W3cO2ardP8rqd2
-         fiP1AkQy5xAORf8WKxwIKQeZYXkQqrBsAsGtXtS6NeCEF47uASaYwsSQBK+5hKZhYK+r
-         RMhg==
-X-Forwarded-Encrypted: i=1; AJvYcCVpyg37VI20nWBtKJtlkYn4iIzdQABAkzEJKOpWkuLo6mI7oetTT7jklORNwxLnvjwhb50kHyrLfpzy4m6XTjg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyqXLHMJq1kTo4yjSabtg0yV5z61NRM3nEjBZxmnUAiOwSaArB0
-	dXyOSLc03aVwuQ5qb4RUVY8Vkjd2sr89iy1UY78rgYHbaEdO2OXSCO5fXU6M86TxLvNykKbmqij
-	9/i9HRBWqQPqhQw==
-X-Received: from qvbqo13.prod.google.com ([2002:a05:6214:590d:b0:894:946e:3688])
+        bh=fQbu6Cl/paq0E3UGNbm7xLXUbURoFHMRf6FXvlp9cXk=;
+        b=mBMtOVg1gnnU12DC8KLS+8G5dirzIutGzCnkqlDCJ4Va+JOj0iS8RO7Nsh/M1BCCNv
+         Otwl6uMlU0EjC8H273mS4UOtOT+52SIIOSwFXI0JX4EiJIakD28cBtbuWxzmWkDdH0bY
+         0vxQvBS4VaPba6U23ksu0a1hDQrgx9OCjzprh/l3Hi8h0yHsNHFPNGJKdTaqTwkhESqu
+         3QcYArWAyay/8gXuVBboHFx7Y1Uf+kj9YQAqYksRjAQ7EZ+uE1eYHRPRTsMMCyHDlEPj
+         OMkVuaTjerHJFpKZM7j7UnA57/QZIcRJhBx43qrIItmJqZpASy8ew1qMyweJCwDaaWym
+         1UPA==
+X-Forwarded-Encrypted: i=1; AJvYcCVA/v/wTbo+T4O0SNUByrndVvbX/p83FjICcxYWD9FZsyduOovMvd4mVTsfH1utUbnBVAeLaF/bAYfCmQyskIo=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxo1QrXLRHub4UdqUIolCZSLdrE3Ob1Laak8rmWeGHAn6vobdUP
+	ijevZxgeQpOBdNStiZrbyFuw9T2keSIr+C5DFRK5OB7de1YFauZRCo45bBaXZeHo0KmayUP2TEI
+	haowUkAiyNWlaQg==
+X-Received: from qvbif8.prod.google.com ([2002:a05:6214:1c48:b0:894:2b9f:cc7e])
  (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:6214:5646:b0:899:b004:13c with SMTP id 6a1803df08f44-899b00402f3mr4162046d6.17.1771936139013;
- Tue, 24 Feb 2026 04:28:59 -0800 (PST)
-Date: Tue, 24 Feb 2026 12:28:56 +0000
+ 2002:ad4:5c8c:0:b0:880:498e:a63e with SMTP id 6a1803df08f44-89979c53d67mr180727396d6.2.1771936428183;
+ Tue, 24 Feb 2026 04:33:48 -0800 (PST)
+Date: Tue, 24 Feb 2026 12:33:47 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -55,52 +55,43 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 X-Mailer: git-send-email 2.53.0.371.g1d285c8824-goog
-Message-ID: <20260224122856.3152608-1-edumazet@google.com>
-Subject: [PATCH net-next] netfilter: xt_owner: no longer acquire
- sk_callback_lock in mt_owner()
+Message-ID: <20260224123347.3163030-1-edumazet@google.com>
+Subject: [PATCH nf-next] netfilter: nf_log_syslog: no longer acquire
+ sk_callback_lock in nf_log_dump_sk_uid_gid()
 From: Eric Dumazet <edumazet@google.com>
 To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
-	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
-	Jozsef Kadlecsik <kadlec@netfilter.org>
+	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
 	coreteam@netfilter.org, eric.dumazet@gmail.com, 
 	Eric Dumazet <edumazet@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
 After commit 983512f3a87f ("net: Drop the lock in skb_may_tx_timestamp()")
-from Sebastian Andrzej Siewior, apply the same logic in mt_owner()
+from Sebastian Andrzej Siewior, apply the same logic in nf_log_dump_sk_uid_gid()
 to avoid touching sk_callback_lock.
 
 Signed-off-by: Eric Dumazet <edumazet@google.com>
 ---
- net/netfilter/xt_owner.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ net/netfilter/nf_log_syslog.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index 50332888c8d233aab0915a31f2f616f3171da45e..5845eabe6161b3a90df422e6e1055165d6538791 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -63,11 +63,12 @@ static bool
- owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index 41503847d9d7fb21824fabb1b57b45f2622b9310..dee6be17440c6c0f202fc2ba67129437879e45a6 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -165,18 +165,28 @@ static struct nf_logger nf_arp_logger __read_mostly = {
+ static void nf_log_dump_sk_uid_gid(struct net *net, struct nf_log_buf *m,
+ 				   struct sock *sk)
  {
- 	const struct xt_owner_match_info *info = par->matchinfo;
--	const struct file *filp;
- 	struct sock *sk = skb_to_full_sk(skb);
- 	struct net *net = xt_net(par);
 +	const struct socket *sock;
-+	const struct file *filp;
- 
--	if (!sk || !sk->sk_socket || !net_eq(net, sock_net(sk)))
-+	if (!sk || !READ_ONCE(sk->sk_socket) || !net_eq(net, sock_net(sk)))
- 		return (info->match ^ info->invert) == 0;
- 	else if (info->match & info->invert & XT_OWNER_SOCKET)
- 		/*
-@@ -76,10 +77,16 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		 */
- 		return false;
++	const struct file *file;
++
+ 	if (!sk || !sk_fullsock(sk) || !net_eq(net, sock_net(sk)))
+ 		return;
  
 -	read_lock_bh(&sk->sk_callback_lock);
--	filp = sk->sk_socket ? sk->sk_socket->file : NULL;
+-	if (sk->sk_socket && sk->sk_socket->file) {
+-		const struct cred *cred = sk->sk_socket->file->f_cred;
 +	/* The sk pointer remains valid as long as the skb is. The sk_socket and
 +	 * file pointer may become NULL if the socket is closed. Both structures
 +	 * (including file->cred) are RCU freed which means they can be accessed
@@ -108,37 +99,19 @@ index 50332888c8d233aab0915a31f2f616f3171da45e..5845eabe6161b3a90df422e6e1055165
 +	 */
 +	rcu_read_lock();
 +	sock = READ_ONCE(sk->sk_socket);
-+	filp = sock ? READ_ONCE(sock->file) : NULL;
- 	if (filp == NULL) {
--		read_unlock_bh(&sk->sk_callback_lock);
-+		rcu_read_unlock();
- 		return ((info->match ^ info->invert) &
- 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
- 	}
-@@ -90,7 +97,7 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
- 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
- 		    !(info->invert & XT_OWNER_UID)) {
--			read_unlock_bh(&sk->sk_callback_lock);
-+			rcu_read_unlock();
- 			return false;
- 		}
- 	}
-@@ -118,12 +125,12 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		}
++	file = sock ? READ_ONCE(sock->file) : NULL;
++	if (file) {
++		const struct cred *cred = file->f_cred;
  
- 		if (match ^ !(info->invert & XT_OWNER_GID)) {
--			read_unlock_bh(&sk->sk_callback_lock);
-+			rcu_read_unlock();
- 			return false;
- 		}
+ 		nf_log_buf_add(m, "UID=%u GID=%u ",
+ 			       from_kuid_munged(&init_user_ns, cred->fsuid),
+ 			       from_kgid_munged(&init_user_ns, cred->fsgid));
  	}
- 
 -	read_unlock_bh(&sk->sk_callback_lock);
 +	rcu_read_unlock();
- 	return true;
  }
  
+ static noinline_for_stack int
 -- 
 2.53.0.371.g1d285c8824-goog
 
