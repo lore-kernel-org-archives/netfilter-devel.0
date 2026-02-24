@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 953652C3256;
-	Tue, 24 Feb 2026 20:51:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC7933B6ED;
+	Tue, 24 Feb 2026 20:51:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771966282; cv=none; b=szJEVOYsXMbhGybUsP3sw84wMiw345B7PLyiNtPLGHpoCjFfGQKfaj81efDfQ9eEeMSXUnh/zl4+y6rtbBoNADI5Sjk810Q3NQtSl5q51xS1L4UGX+RKtmirYvds/0iej6jupqMAMERQ5cNMSxlz9VpINdTjWYjYlla36rFJ1kQ=
+	t=1771966285; cv=none; b=FQA+jiWs8g724eDAdq3/em4Jl6xclciC67Ms9wIDKSaIkRjTqf4wP+46ofARTa6+4qTIOO5ZDIzoywAS5CIpHKQBT9Psgacvah0Qd9Phxzr6JC02tpGI2PQIj3EhJFgV0CXJMr9wb1ig/q2TKhmHv1ItY1XcuH04suxjDXMIRBw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771966282; c=relaxed/simple;
-	bh=Uh2Jl7pU3EnfQJY4l+8IHNuiwfKpMuLAATL2c4FKQjA=;
+	s=arc-20240116; t=1771966285; c=relaxed/simple;
+	bh=cAreoWgHTw4tLyYkvGxHkPhS7ZsmGWj5PB0JKWDZkaA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ay9mSodOQqUzBcf2T7myNq4DL8zfXB9InNrx+rI9d0/EE7UFNK0scU4QLSibjUpi27fRQ94QgmQW/vbnDjZebJqZP6ZI0tQpGAY/Uy5A+fYogA+Lgq+IYjkZqNco04NrGffK2ce/H+EqEjSW/XCcaYP87zKbZ7BQ6BkLkZpW7y0=
+	 MIME-Version; b=poxe2V7pN9j+ODYtLO2OZLXQKB9+phTpHe7jK0NigiMUWfcRpP4lS9Pd7/PYxfNpvQK0E6qQX0X1xhslTQaY610dIRSTlH2GBWmOzAVwM4Lu+Oen9nVK0hxMBZ7WEE/fepxOCwK6RhHQhQH2rYUDUfU+FaLPt/wuoRiAJIk63V8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CF15560516; Tue, 24 Feb 2026 21:51:18 +0100 (CET)
+	id 2C6C260516; Tue, 24 Feb 2026 21:51:23 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 6/9] ipvs: no_cport and dropentry counters can be per-net
-Date: Tue, 24 Feb 2026 21:50:45 +0100
-Message-ID: <20260224205048.4718-7-fw@strlen.de>
+Subject: [PATCH net-next 7/9] netfilter: nft_set_rbtree: don't disable bh when acquiring tree lock
+Date: Tue, 24 Feb 2026 21:50:46 +0100
+Message-ID: <20260224205048.4718-8-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260224205048.4718-1-fw@strlen.de>
 References: <20260224205048.4718-1-fw@strlen.de>
@@ -38,186 +38,85 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Julian Anastasov <ja@ssi.bg>
+As of commit 7e43e0a1141d
+("netfilter: nft_set_rbtree: translate rbtree to array for binary search")
+the lock is only taken from control plane, no need to disable BH anymore.
 
-Change the no_cport counters to be per-net and address family.
-This should reduce the extra conn lookups done during present
-NO_CPORT connections.
-
-By changing from global to per-net dropentry counters, one net
-will not affect the drop rate of another net.
-
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/ip_vs.h             |  2 ++
- net/netfilter/ipvs/ip_vs_conn.c | 64 ++++++++++++++++++++-------------
- 2 files changed, 41 insertions(+), 25 deletions(-)
+ net/netfilter/nft_set_rbtree.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index f2291be36409..ad8a16146ac5 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -948,6 +948,7 @@ struct netns_ipvs {
- #endif
- 	/* ip_vs_conn */
- 	atomic_t		conn_count;      /* connection counter */
-+	atomic_t		no_cport_conns[IP_VS_AF_MAX];
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 644d4b916705..ef567a948703 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -684,9 +684,9 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
  
- 	/* ip_vs_ctl */
- 	struct ip_vs_stats_rcu	*tot_stats;      /* Statistics & est. */
-@@ -973,6 +974,7 @@ struct netns_ipvs {
- 	int			drop_counter;
- 	int			old_secure_tcp;
- 	atomic_t		dropentry;
-+	s8			dropentry_counters[8];
- 	/* locks in ctl.c */
- 	spinlock_t		dropentry_lock;  /* drop entry handling */
- 	spinlock_t		droppacket_lock; /* drop packet handling */
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 50cc492c7553..66057db63d02 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -59,9 +59,6 @@ static struct hlist_head *ip_vs_conn_tab __read_mostly;
- /*  SLAB cache for IPVS connections */
- static struct kmem_cache *ip_vs_conn_cachep __read_mostly;
+ 		cond_resched();
  
--/*  counter for no client port connections */
--static atomic_t ip_vs_conn_no_cport_cnt = ATOMIC_INIT(0);
+-		write_lock_bh(&priv->lock);
++		write_lock(&priv->lock);
+ 		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp, last);
+-		write_unlock_bh(&priv->lock);
++		write_unlock(&priv->lock);
+ 
+ 		if (nft_rbtree_interval_end(rbe))
+ 			priv->start_rbe_cookie = 0;
+@@ -696,13 +696,6 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	return err;
+ }
+ 
+-static void nft_rbtree_erase(struct nft_rbtree *priv, struct nft_rbtree_elem *rbe)
+-{
+-	write_lock_bh(&priv->lock);
+-	rb_erase(&rbe->node, &priv->root);
+-	write_unlock_bh(&priv->lock);
+-}
 -
- /* random value for IPVS connection hash */
- static unsigned int ip_vs_conn_rnd __read_mostly;
+ static void nft_rbtree_remove(const struct net *net,
+ 			      const struct nft_set *set,
+ 			      struct nft_elem_priv *elem_priv)
+@@ -710,7 +703,9 @@ static void nft_rbtree_remove(const struct net *net,
+ 	struct nft_rbtree_elem *rbe = nft_elem_priv_cast(elem_priv);
+ 	struct nft_rbtree *priv = nft_set_priv(set);
  
-@@ -294,10 +291,16 @@ struct ip_vs_conn *ip_vs_conn_in_get(const struct ip_vs_conn_param *p)
- 	struct ip_vs_conn *cp;
+-	nft_rbtree_erase(priv, rbe);
++	write_lock(&priv->lock);
++	rb_erase(&rbe->node, &priv->root);
++	write_unlock(&priv->lock);
+ }
  
- 	cp = __ip_vs_conn_in_get(p);
--	if (!cp && atomic_read(&ip_vs_conn_no_cport_cnt)) {
--		struct ip_vs_conn_param cport_zero_p = *p;
--		cport_zero_p.cport = 0;
--		cp = __ip_vs_conn_in_get(&cport_zero_p);
-+	if (!cp) {
-+		struct netns_ipvs *ipvs = p->ipvs;
-+		int af_id = ip_vs_af_index(p->af);
-+
-+		if (atomic_read(&ipvs->no_cport_conns[af_id])) {
-+			struct ip_vs_conn_param cport_zero_p = *p;
-+
-+			cport_zero_p.cport = 0;
-+			cp = __ip_vs_conn_in_get(&cport_zero_p);
-+		}
- 	}
- 
- 	IP_VS_DBG_BUF(9, "lookup/in %s %s:%d->%s:%d %s\n",
-@@ -490,9 +493,12 @@ void ip_vs_conn_put(struct ip_vs_conn *cp)
- void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- {
- 	if (ip_vs_conn_unhash(cp)) {
-+		struct netns_ipvs *ipvs = cp->ipvs;
-+		int af_id = ip_vs_af_index(cp->af);
-+
- 		spin_lock_bh(&cp->lock);
- 		if (cp->flags & IP_VS_CONN_F_NO_CPORT) {
--			atomic_dec(&ip_vs_conn_no_cport_cnt);
-+			atomic_dec(&ipvs->no_cport_conns[af_id]);
- 			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
- 			cp->cport = cport;
+ static void nft_rbtree_activate(const struct net *net,
+@@ -871,9 +866,9 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 		nft_rbtree_do_walk(ctx, set, iter);
+ 		break;
+ 	case NFT_ITER_READ:
+-		read_lock_bh(&priv->lock);
++		read_lock(&priv->lock);
+ 		nft_rbtree_do_walk(ctx, set, iter);
+-		read_unlock_bh(&priv->lock);
++		read_unlock(&priv->lock);
+ 		break;
+ 	default:
+ 		iter->err = -EINVAL;
+@@ -909,14 +904,14 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
+ 		/* end element needs to be removed first, it has
+ 		 * no timeout extension.
+ 		 */
+-		write_lock_bh(&priv->lock);
++		write_lock(&priv->lock);
+ 		if (rbe_end) {
+ 			nft_rbtree_gc_elem_move(net, set, priv, rbe_end);
+ 			rbe_end = NULL;
  		}
-@@ -891,8 +897,11 @@ static void ip_vs_conn_expire(struct timer_list *t)
- 		if (unlikely(cp->app != NULL))
- 			ip_vs_unbind_app(cp);
- 		ip_vs_unbind_dest(cp);
--		if (cp->flags & IP_VS_CONN_F_NO_CPORT)
--			atomic_dec(&ip_vs_conn_no_cport_cnt);
-+		if (unlikely(cp->flags & IP_VS_CONN_F_NO_CPORT)) {
-+			int af_id = ip_vs_af_index(cp->af);
-+
-+			atomic_dec(&ipvs->no_cport_conns[af_id]);
-+		}
- 		if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
- 			ip_vs_conn_rcu_free(&cp->rcu_head);
- 		else
-@@ -999,8 +1008,11 @@ ip_vs_conn_new(const struct ip_vs_conn_param *p, int dest_af,
- 	cp->out_seq.delta = 0;
  
- 	atomic_inc(&ipvs->conn_count);
--	if (flags & IP_VS_CONN_F_NO_CPORT)
--		atomic_inc(&ip_vs_conn_no_cport_cnt);
-+	if (unlikely(flags & IP_VS_CONN_F_NO_CPORT)) {
-+		int af_id = ip_vs_af_index(cp->af);
-+
-+		atomic_inc(&ipvs->no_cport_conns[af_id]);
-+	}
- 
- 	/* Bind the connection with a destination server */
- 	cp->dest = NULL;
-@@ -1257,6 +1269,7 @@ static const struct seq_operations ip_vs_conn_sync_seq_ops = {
- };
- #endif
- 
-+#ifdef CONFIG_SYSCTL
- 
- /* Randomly drop connection entries before running out of memory
-  * Can be used for DATA and CTL conns. For TPL conns there are exceptions:
-@@ -1266,12 +1279,7 @@ static const struct seq_operations ip_vs_conn_sync_seq_ops = {
-  */
- static inline int todrop_entry(struct ip_vs_conn *cp)
- {
--	/*
--	 * The drop rate array needs tuning for real environments.
--	 * Called from timer bh only => no locking
--	 */
--	static const signed char todrop_rate[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
--	static signed char todrop_counter[9] = {0};
-+	struct netns_ipvs *ipvs = cp->ipvs;
- 	int i;
- 
- 	/* if the conn entry hasn't lasted for 60 seconds, don't drop it.
-@@ -1280,15 +1288,17 @@ static inline int todrop_entry(struct ip_vs_conn *cp)
- 	if (time_before(cp->timeout + jiffies, cp->timer.expires + 60*HZ))
- 		return 0;
- 
--	/* Don't drop the entry if its number of incoming packets is not
--	   located in [0, 8] */
-+	/* Drop only conns with number of incoming packets in [1..8] range */
- 	i = atomic_read(&cp->in_pkts);
--	if (i > 8 || i < 0) return 0;
-+	if (i > 8 || i < 1)
-+		return 0;
- 
--	if (!todrop_rate[i]) return 0;
--	if (--todrop_counter[i] > 0) return 0;
-+	i--;
-+	if (--ipvs->dropentry_counters[i] > 0)
-+		return 0;
- 
--	todrop_counter[i] = todrop_rate[i];
-+	/* Prefer to drop conns with less number of incoming packets */
-+	ipvs->dropentry_counters[i] = i + 1;
- 	return 1;
- }
- 
-@@ -1368,7 +1378,7 @@ void ip_vs_random_dropentry(struct netns_ipvs *ipvs)
+ 		nft_rbtree_gc_elem_move(net, set, priv, rbe);
+-		write_unlock_bh(&priv->lock);
++		write_unlock(&priv->lock);
  	}
- 	rcu_read_unlock();
- }
--
-+#endif
  
- /*
-  *      Flush all the connection entries in the ip_vs_conn_tab
-@@ -1450,7 +1460,11 @@ void ip_vs_expire_nodest_conn_flush(struct netns_ipvs *ipvs)
-  */
- int __net_init ip_vs_conn_net_init(struct netns_ipvs *ipvs)
- {
-+	int idx;
-+
- 	atomic_set(&ipvs->conn_count, 0);
-+	for (idx = 0; idx < IP_VS_AF_MAX; idx++)
-+		atomic_set(&ipvs->no_cport_conns[idx], 0);
- 
- #ifdef CONFIG_PROC_FS
- 	if (!proc_create_net("ip_vs_conn", 0, ipvs->net->proc_net,
+ 	priv->last_gc = jiffies;
 -- 
 2.52.0
 
