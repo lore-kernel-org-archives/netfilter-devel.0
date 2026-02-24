@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC7933B6ED;
-	Tue, 24 Feb 2026 20:51:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7EE333B6E7;
+	Tue, 24 Feb 2026 20:51:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771966285; cv=none; b=FQA+jiWs8g724eDAdq3/em4Jl6xclciC67Ms9wIDKSaIkRjTqf4wP+46ofARTa6+4qTIOO5ZDIzoywAS5CIpHKQBT9Psgacvah0Qd9Phxzr6JC02tpGI2PQIj3EhJFgV0CXJMr9wb1ig/q2TKhmHv1ItY1XcuH04suxjDXMIRBw=
+	t=1771966290; cv=none; b=pTzITOhult82Qd2XU7OmKEdfmsMwGl6N3aB0UQyioZ8R8CsWRJ5EgWTIn4sfRqiuMWw30HJr61Oibg3z7ClmeEsOQH9v+itSI/s2KBrCnE562GdAB2hlcGLnvSEOaGuK4wRi9nZhkzarRWOU808drcl7NablzzGmCIhJZ1Sm/Tk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771966285; c=relaxed/simple;
-	bh=cAreoWgHTw4tLyYkvGxHkPhS7ZsmGWj5PB0JKWDZkaA=;
+	s=arc-20240116; t=1771966290; c=relaxed/simple;
+	bh=Qjm4OiegaImTM6Wvnh4vdsay+zWcdKyi9KIlRneHFyI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=poxe2V7pN9j+ODYtLO2OZLXQKB9+phTpHe7jK0NigiMUWfcRpP4lS9Pd7/PYxfNpvQK0E6qQX0X1xhslTQaY610dIRSTlH2GBWmOzAVwM4Lu+Oen9nVK0hxMBZ7WEE/fepxOCwK6RhHQhQH2rYUDUfU+FaLPt/wuoRiAJIk63V8=
+	 MIME-Version; b=tUT652YEK1OLoZj7WBbSuDYOc66aR5q9Z8CwOPvmm8r+BjZKcJ7GKrHqGhNeR87vBbnFtD02yAAuD2iAl8buinOjCoM2Mxa1Hj0AglwcUBUof0RImPKtQuN3qC9LB6OQN9BW0nEaflfUTNFcbbS4J9rP2LGJ1wsr2Z397+/8kQI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 2C6C260516; Tue, 24 Feb 2026 21:51:23 +0100 (CET)
+	id 7B04660D01; Tue, 24 Feb 2026 21:51:27 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 7/9] netfilter: nft_set_rbtree: don't disable bh when acquiring tree lock
-Date: Tue, 24 Feb 2026 21:50:46 +0100
-Message-ID: <20260224205048.4718-8-fw@strlen.de>
+Subject: [PATCH net-next 8/9] netfilter: nf_tables: drop obsolete EXPORT_SYMBOLs
+Date: Tue, 24 Feb 2026 21:50:47 +0100
+Message-ID: <20260224205048.4718-9-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260224205048.4718-1-fw@strlen.de>
 References: <20260224205048.4718-1-fw@strlen.de>
@@ -38,85 +38,105 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-As of commit 7e43e0a1141d
-("netfilter: nft_set_rbtree: translate rbtree to array for binary search")
-the lock is only taken from control plane, no need to disable BH anymore.
+These are no longer required, calling objects are nowadays
+baked into nf_tables.ko itself.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_rbtree.c | 23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ net/netfilter/nf_tables_api.c | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 644d4b916705..ef567a948703 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -684,9 +684,9 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0c5a4855b97d..23ef775897a4 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4128,7 +4128,6 @@ int nft_chain_validate(const struct nft_ctx *ctx, struct nft_chain *chain)
+ 	nft_chain_vstate_update(ctx, chain);
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(nft_chain_validate);
  
- 		cond_resched();
+ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ {
+@@ -4745,7 +4744,6 @@ struct nft_set *nft_set_lookup_global(const struct net *net,
+ 	}
+ 	return set;
+ }
+-EXPORT_SYMBOL_GPL(nft_set_lookup_global);
  
--		write_lock_bh(&priv->lock);
-+		write_lock(&priv->lock);
- 		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp, last);
--		write_unlock_bh(&priv->lock);
-+		write_unlock(&priv->lock);
+ static int nf_tables_set_alloc_name(struct nft_ctx *ctx, struct nft_set *set,
+ 				    const char *name)
+@@ -5818,7 +5816,6 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
  
- 		if (nft_rbtree_interval_end(rbe))
- 			priv->start_rbe_cookie = 0;
-@@ -696,13 +696,6 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(nf_tables_bind_set);
+ 
+ static void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 				 struct nft_set_binding *binding, bool event)
+@@ -5898,7 +5895,6 @@ void nf_tables_activate_set(const struct nft_ctx *ctx, struct nft_set *set)
+ 
+ 	nft_use_inc_restore(&set->use);
+ }
+-EXPORT_SYMBOL_GPL(nf_tables_activate_set);
+ 
+ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 			      struct nft_set_binding *binding,
+@@ -5938,14 +5934,12 @@ void nf_tables_deactivate_set(const struct nft_ctx *ctx, struct nft_set *set,
+ 				     phase == NFT_TRANS_COMMIT);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(nf_tables_deactivate_set);
+ 
+ void nf_tables_destroy_set(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+ 	if (list_empty(&set->bindings) && nft_set_is_anonymous(set))
+ 		nft_set_destroy(ctx, set);
+ }
+-EXPORT_SYMBOL_GPL(nf_tables_destroy_set);
+ 
+ const struct nft_set_ext_type nft_set_ext_types[] = {
+ 	[NFT_SET_EXT_KEY]		= {
+@@ -6783,7 +6777,6 @@ void nft_set_elem_destroy(const struct nft_set *set,
+ 
+ 	__nft_set_elem_destroy(&ctx, set, elem_priv, destroy_expr);
+ }
+-EXPORT_SYMBOL_GPL(nft_set_elem_destroy);
+ 
+ /* Drop references and destroy. Called from abort path. */
+ static void nft_trans_set_elem_destroy(const struct nft_ctx *ctx, struct nft_trans_elem *te)
+@@ -6910,7 +6903,6 @@ struct nft_set_ext *nft_set_catchall_lookup(const struct net *net,
+ 
+ 	return NULL;
+ }
+-EXPORT_SYMBOL_GPL(nft_set_catchall_lookup);
+ 
+ static int nft_setelem_catchall_insert(const struct net *net,
+ 				       struct nft_set *set,
+@@ -8038,7 +8030,6 @@ struct nft_object *nft_obj_lookup(const struct net *net,
+ 	rcu_read_unlock();
+ 	return ERR_PTR(-ENOENT);
+ }
+-EXPORT_SYMBOL_GPL(nft_obj_lookup);
+ 
+ static struct nft_object *nft_obj_lookup_byhandle(const struct nft_table *table,
+ 						  const struct nlattr *nla,
+@@ -11860,7 +11851,6 @@ void nft_data_release(const struct nft_data *data, enum nft_data_types type)
+ 		WARN_ON(1);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(nft_data_release);
+ 
+ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
+ 		  enum nft_data_types type, unsigned int len)
+@@ -11887,7 +11877,6 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
+ 	nla_nest_end(skb, nest);
  	return err;
  }
+-EXPORT_SYMBOL_GPL(nft_data_dump);
  
--static void nft_rbtree_erase(struct nft_rbtree *priv, struct nft_rbtree_elem *rbe)
--{
--	write_lock_bh(&priv->lock);
--	rb_erase(&rbe->node, &priv->root);
--	write_unlock_bh(&priv->lock);
--}
--
- static void nft_rbtree_remove(const struct net *net,
- 			      const struct nft_set *set,
- 			      struct nft_elem_priv *elem_priv)
-@@ -710,7 +703,9 @@ static void nft_rbtree_remove(const struct net *net,
- 	struct nft_rbtree_elem *rbe = nft_elem_priv_cast(elem_priv);
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 
--	nft_rbtree_erase(priv, rbe);
-+	write_lock(&priv->lock);
-+	rb_erase(&rbe->node, &priv->root);
-+	write_unlock(&priv->lock);
- }
- 
- static void nft_rbtree_activate(const struct net *net,
-@@ -871,9 +866,9 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 		nft_rbtree_do_walk(ctx, set, iter);
- 		break;
- 	case NFT_ITER_READ:
--		read_lock_bh(&priv->lock);
-+		read_lock(&priv->lock);
- 		nft_rbtree_do_walk(ctx, set, iter);
--		read_unlock_bh(&priv->lock);
-+		read_unlock(&priv->lock);
- 		break;
- 	default:
- 		iter->err = -EINVAL;
-@@ -909,14 +904,14 @@ static void nft_rbtree_gc_scan(struct nft_set *set)
- 		/* end element needs to be removed first, it has
- 		 * no timeout extension.
- 		 */
--		write_lock_bh(&priv->lock);
-+		write_lock(&priv->lock);
- 		if (rbe_end) {
- 			nft_rbtree_gc_elem_move(net, set, priv, rbe_end);
- 			rbe_end = NULL;
- 		}
- 
- 		nft_rbtree_gc_elem_move(net, set, priv, rbe);
--		write_unlock_bh(&priv->lock);
-+		write_unlock(&priv->lock);
- 	}
- 
- 	priv->last_gc = jiffies;
+ static void __nft_release_hook(struct net *net, struct nft_table *table)
+ {
 -- 
 2.52.0
 
