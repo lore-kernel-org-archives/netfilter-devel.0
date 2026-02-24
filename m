@@ -1,194 +1,144 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-qv1-f74.google.com (mail-qv1-f74.google.com [209.85.219.74])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C88CB30ACF1
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 06:53:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53A2C37E2F5
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 12:29:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.74
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771916004; cv=none; b=h8cU6zCLT3PiaVEknkJYiz1Ri3ZbVuGR2s8bRwIqmaf6GnE4Gj4CRVdnUZLztC5cQfuueLGUgzzUPvaoVYrhzqf6VfBRdQ0qUfvfOKrCfGgjf55X2cKstLiT5QnwAj5MxKv+2qkEnVR3gzuNpH9rIJ3cPsWwg3zfK+Fjal+TTrA=
+	t=1771936143; cv=none; b=ptJVLiCr4evbPUhEcDJVOMupIiFhA3m6FOq+Ux2o7qmswFB1RHO8wDWTnXmmPO6d/IsjWrpXACelptZTtcPd08H5ZcddbIT3X42Wq+81zNa+jIUR/AsDqp234SC4s+BBepvCSK26JJOZbXm/Vg/GbEO8nBld7UfcRhT1Rdf6QfI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771916004; c=relaxed/simple;
-	bh=otw/sidfsrVAXpxIAPSAHcc1JnUEwkQzo3iMewEEbLs=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=KNM58rmzrJvPqqLFQdrkNhVfOHVF8MVkkDkr2rdDI7SAXwW+vxAmvtmhhcyzIdaTeZ+ozeVM1HbErntj9iaQDS6/5xvR5Y06NtPBz+S/Q13gTjbXLKMSbfX4Ej3xcPYz0r2OPyaqvHMYkFQdQiDLBfg3bGTCf9vjB7+YqdgJcxg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MDi+Eww/; arc=none smtp.client-ip=209.85.208.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1771936143; c=relaxed/simple;
+	bh=Hsp3tQRgE2zFNjV/zPyI9+zpkx3vWREcoZDnXwGASz4=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=HXFSg8aSxnAQmLmxiFfuR0+kR6WX03uJdDcbYVLuRBwcdfI5TIgxgSHKyWb058mzkPHC5m3cPm8rqwo9ouAv1N5uvLF2Jjd8gJ36YXJLjd3F7mfVpvddPrTh7M55iFwOujy6TprQ+y4P28Aggv2qpXsmIfZX9zgLLtbY0IlcupM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=pQF8ulBj; arc=none smtp.client-ip=209.85.219.74
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MDi+Eww/"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-65c5a778923so7854248a12.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Feb 2026 22:53:22 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="pQF8ulBj"
+Received: by mail-qv1-f74.google.com with SMTP id 6a1803df08f44-89546cbb998so502664926d6.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 04:29:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771916001; x=1772520801; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=coP60IDvUwENZ4G8REzPur6qzEmmqfojoUutShryN4c=;
-        b=MDi+Eww/pw94u6xHqF0tz18BMsf7tuVhogQtdfWVLjch7+IYeLGrJ8xFbhvq4JGXcy
-         8ERihOa5D+h/LePO9YzjvtR23MqXs6L7aPBmEaFkonhkHJxvFoP+7iPjNUiaK8lqqC+v
-         eKiKIkxX5tqzyp3d8AN9ig1YQTnrKrrO8hXUcsYZ6ctjOoh1W7RBogCFAbdwqQETeGWf
-         yfUHh0btuUYCxMKKyxwT7bPeufU1nP8rqs06A0fZf46TXNFZ7Cu5fbIqA9uGQPgq8TM2
-         RhMB6Zxhztzf0LB9qb25JViHrQuB9wDI4HErh04oRbKYz8iCkEiuSRjYtXrv4qIw4QH/
-         cLaw==
+        d=google.com; s=20230601; t=1771936139; x=1772540939; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=a3rCfk+n+zciKXPjSKsHFA//hqZJBADhsDjD5jNhlu0=;
+        b=pQF8ulBjgHi6Qwhdh7vHAV1pUExFxKgs4FchQvk91eIGbSOyhJeeWwTvoqet9tTkhY
+         5wxuF98tQouSTrg5bxK1XHerVSLOgZK4DGHLsBUobXjiT/zY3yISiSKlm/vpKJv34lLn
+         rBQPeCWG8FKi1nnQ+VppHDECOGFrIo/tLaVPOSv5iQoMJL6byJRpJksEtfHauWyeO+89
+         nFwnX50s8NzBvbAgVnToCBeFIDv7rsLOgfb9dnJcVNdleu6BTv+w2k9fkTLjmoD+1vL1
+         puI3/uBStM3ZYOEc47WiPgnW3FaPJWlYuLy+YwI5jyLyaR3oGiuCjQIl3AYaFBElIhuY
+         Scng==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771916001; x=1772520801;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=coP60IDvUwENZ4G8REzPur6qzEmmqfojoUutShryN4c=;
-        b=hwoJXoPbNsXbffD/c+rOn5dbsrVlu1HpHW6Ho60VtExrp1Q6ADHH88NDYSLyfPBEKR
-         /IXA2JR1A6pI+pdBz1wyjVH+RZGCxP5eusanARVpbLIHDWAAgLDMCorAmCTir/ebdNSB
-         R0PgdtU6HYROJ1lF00EAsuI9oxK0nM23xYTd8/hIYzbF7jvgzD8eIHvY9LbmepXafiWD
-         2ToQGQ7O74XkHCxnS2I7P0freP7ABbJjBSJ3Cm9wN3ceHb2+Vdj03ubLz+Ool/J8Hykj
-         R1L1W06gJ4grXwWEJxi8fBSjLkaWz3zmG+6g8goqIJ4IyzWNXzoIibBLMPOXKYqNmZir
-         PO3w==
-X-Forwarded-Encrypted: i=1; AJvYcCUu+WckJG499JLRxTuFN0m/glDFDIsyKVoVtmAVOJvYV6D6sJe7sxNhwF6KZ/GUqweSYD9gdPd06HLe9j9qTvY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyvIX2ulL68RnWm6kBX1s4LyibudthVgifPoJ5JcMZJIIcF5xf0
-	g/qdDZ2AOspLsJYKNPy4mm0HPvbGHbs0ii/wQeVZVvFUEUKorIlNa1eu
-X-Gm-Gg: ATEYQzyBcy0P0MWDSR5BeVQvp4zqYZJ8mKAtNQC5pN7Z/cYaCAFni0UpWcua0t7VuIc
-	ltQDp6YZ5Fa6+6oHWRRP9gZaLcfvbaCSMEk8JCcRxn+lsWxTD91a8VcrkoxBI0rIi+Xy6PBnUUL
-	IPCYg9gAuuTl9qKzCyLc05r77+f4Y8pFgKjSku276EXa6iDkMBdS/LdhTODl0wA5pKMUh6uYiJe
-	UUVjMrAHnyFKgE04t0tfT+sQjO7RnJUJR6YinsT1QEE4YusOvnYUmxey7MtGTT2lSJByhlNeYbx
-	TTmLl7SIyZBeFneyDsStxTq4sxODgW50l884475h0uBhN1HeECG2UQko2CkVZshzrd31jgID0KK
-	lN3gkoA8I3R5UObWsUuL3RpP9BLqMsYS7HobVhLbC2kJAqNaazUYXy2y31ShDLAKAPoQHxY2fFY
-	NYFrLcnuniNd0om+xNoEHasCJvLRvJPrM1I7UdIobuHAK90lnqS41dSISrAD3K/oq11n0HPx4xo
-	IvUQ+4BICbn8rPkTTJMcCWtD40EkHs9pMrYvkGJNLQOBE+KxhTwKV0=
-X-Received: by 2002:a05:6402:50d2:b0:64b:58c0:a393 with SMTP id 4fb4d7f45d1cf-65ea4f07f63mr7024950a12.30.1771916001174;
-        Mon, 23 Feb 2026 22:53:21 -0800 (PST)
-Received: from eric (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-65eaba13866sm3096698a12.18.2026.02.23.22.53.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Feb 2026 22:53:20 -0800 (PST)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: Michal Ostrowski <mostrows@earthlink.net>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>
-Cc: netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	bridge@lists.linux.dev,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v19 nf-next 5/5] netfilter: nft_chain_filter: Add bridge double vlan and pppoe
-Date: Tue, 24 Feb 2026 07:53:06 +0100
-Message-ID: <20260224065307.120768-6-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260224065307.120768-1-ericwouds@gmail.com>
-References: <20260224065307.120768-1-ericwouds@gmail.com>
+        d=1e100.net; s=20230601; t=1771936139; x=1772540939;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=a3rCfk+n+zciKXPjSKsHFA//hqZJBADhsDjD5jNhlu0=;
+        b=bA3U20ntLlYCZlS7/MMZ4a/SLGQNp9hRbNt6eHboCK+AAUxLRT22MBxuhnCaWNN+mz
+         9R8TM3PGnDDAQTTISCeAq1ZSnLe6xWP9BjKT31a0qA1+zHQ/puiyAo3vdn/UpYGmEY0w
+         5iBuyx1+NDwB9NozQu6PkWD7SjmmwhdMWzvL0pu+YCrlpbSbnRUPkXGq+MYlc9ABd4mE
+         cbvDv87sUIJUCXGlpNBKlLMzteZWfUm6U4ABJm3X+bC78T9qJrFk4/W3cO2ardP8rqd2
+         fiP1AkQy5xAORf8WKxwIKQeZYXkQqrBsAsGtXtS6NeCEF47uASaYwsSQBK+5hKZhYK+r
+         RMhg==
+X-Forwarded-Encrypted: i=1; AJvYcCVpyg37VI20nWBtKJtlkYn4iIzdQABAkzEJKOpWkuLo6mI7oetTT7jklORNwxLnvjwhb50kHyrLfpzy4m6XTjg=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyqXLHMJq1kTo4yjSabtg0yV5z61NRM3nEjBZxmnUAiOwSaArB0
+	dXyOSLc03aVwuQ5qb4RUVY8Vkjd2sr89iy1UY78rgYHbaEdO2OXSCO5fXU6M86TxLvNykKbmqij
+	9/i9HRBWqQPqhQw==
+X-Received: from qvbqo13.prod.google.com ([2002:a05:6214:590d:b0:894:946e:3688])
+ (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:6214:5646:b0:899:b004:13c with SMTP id 6a1803df08f44-899b00402f3mr4162046d6.17.1771936139013;
+ Tue, 24 Feb 2026 04:28:59 -0800 (PST)
+Date: Tue, 24 Feb 2026 12:28:56 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.53.0.371.g1d285c8824-goog
+Message-ID: <20260224122856.3152608-1-edumazet@google.com>
+Subject: [PATCH net-next] netfilter: xt_owner: no longer acquire
+ sk_callback_lock in mt_owner()
+From: Eric Dumazet <edumazet@google.com>
+To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, 
+	Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, eric.dumazet@gmail.com, 
+	Eric Dumazet <edumazet@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-In nft_do_chain_bridge() pktinfo is only fully populated for plain packets
-and packets encapsulated in single 802.1q or 802.1ad.
+After commit 983512f3a87f ("net: Drop the lock in skb_may_tx_timestamp()")
+from Sebastian Andrzej Siewior, apply the same logic in mt_owner()
+to avoid touching sk_callback_lock.
 
-When implementing the software bridge-fastpath and testing all possible
-encapulations, there can be more encapsulations:
-
-The packet could (also) be encapsulated in PPPoE, or the packet could be
-encapsulated in an inner 802.1q, combined with an outer 802.1ad or 802.1q
-encapsulation.
-
-nft_flow_offload_eval() also examines the L4 header, with the L4 protocol
-known from the conntrack-tuplehash. To access the header it uses
-nft_thoff(), but for these packets it returns zero.
-
-Introduce nft_set_bridge_pktinfo() to help populate pktinfo with the
-offsets.
-
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 ---
- net/netfilter/nft_chain_filter.c | 55 +++++++++++++++++++++++++++++---
- 1 file changed, 51 insertions(+), 4 deletions(-)
+ net/netfilter/xt_owner.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index d4d5eadaba9c..66ef30c60e56 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -227,21 +227,68 @@ static inline void nft_chain_filter_inet_fini(void) {}
- #endif /* CONFIG_NF_TABLES_IPV6 */
- 
- #if IS_ENABLED(CONFIG_NF_TABLES_BRIDGE)
-+static int nft_set_bridge_pktinfo(struct nft_pktinfo *pkt, struct sk_buff *skb,
-+				  const struct nf_hook_state *state,
-+				  __be16 *proto)
-+{
-+	nft_set_pktinfo(pkt, skb, state);
-+
-+	switch (*proto) {
-+	case htons(ETH_P_PPP_SES): {
-+		struct ppp_hdr {
-+			struct pppoe_hdr hdr;
-+			__be16 proto;
-+		} *ph, _ph;
-+
-+		ph = skb_header_pointer(skb, 0, sizeof(_ph), &_ph);
-+		if (!ph) {
-+			*proto = 0;
-+			return -1;
-+		}
-+		switch (ph->proto) {
-+		case htons(PPP_IP):
-+			*proto = htons(ETH_P_IP);
-+			return PPPOE_SES_HLEN;
-+		case htons(PPP_IPV6):
-+			*proto = htons(ETH_P_IPV6);
-+			return PPPOE_SES_HLEN;
-+		}
-+		break;
-+	}
-+	case htons(ETH_P_8021Q): {
-+		struct vlan_hdr *vhdr, _vhdr;
-+
-+		vhdr = skb_header_pointer(skb, 0, sizeof(_vhdr), &_vhdr);
-+		if (!vhdr) {
-+			*proto = 0;
-+			return -1;
-+		}
-+		*proto = vhdr->h_vlan_encapsulated_proto;
-+		return VLAN_HLEN;
-+	}
-+	}
-+	return 0;
-+}
-+
- static unsigned int
- nft_do_chain_bridge(void *priv,
- 		    struct sk_buff *skb,
- 		    const struct nf_hook_state *state)
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index 50332888c8d233aab0915a31f2f616f3171da45e..5845eabe6161b3a90df422e6e1055165d6538791 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -63,11 +63,12 @@ static bool
+ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
  {
- 	struct nft_pktinfo pkt;
-+	__be16 proto;
-+	int offset;
+ 	const struct xt_owner_match_info *info = par->matchinfo;
+-	const struct file *filp;
+ 	struct sock *sk = skb_to_full_sk(skb);
+ 	struct net *net = xt_net(par);
++	const struct socket *sock;
++	const struct file *filp;
  
--	nft_set_pktinfo(&pkt, skb, state);
-+	proto = eth_hdr(skb)->h_proto;
-+
-+	offset = nft_set_bridge_pktinfo(&pkt, skb, state, &proto);
+-	if (!sk || !sk->sk_socket || !net_eq(net, sock_net(sk)))
++	if (!sk || !READ_ONCE(sk->sk_socket) || !net_eq(net, sock_net(sk)))
+ 		return (info->match ^ info->invert) == 0;
+ 	else if (info->match & info->invert & XT_OWNER_SOCKET)
+ 		/*
+@@ -76,10 +77,16 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		 */
+ 		return false;
  
--	switch (eth_hdr(skb)->h_proto) {
-+	switch (proto) {
- 	case htons(ETH_P_IP):
--		nft_set_pktinfo_ipv4_validate(&pkt, 0);
-+		nft_set_pktinfo_ipv4_validate(&pkt, offset);
- 		break;
- 	case htons(ETH_P_IPV6):
--		nft_set_pktinfo_ipv6_validate(&pkt, 0);
-+		nft_set_pktinfo_ipv6_validate(&pkt, offset);
- 		break;
- 	default:
- 		nft_set_pktinfo_unspec(&pkt);
+-	read_lock_bh(&sk->sk_callback_lock);
+-	filp = sk->sk_socket ? sk->sk_socket->file : NULL;
++	/* The sk pointer remains valid as long as the skb is. The sk_socket and
++	 * file pointer may become NULL if the socket is closed. Both structures
++	 * (including file->cred) are RCU freed which means they can be accessed
++	 * within a RCU read section.
++	 */
++	rcu_read_lock();
++	sock = READ_ONCE(sk->sk_socket);
++	filp = sock ? READ_ONCE(sock->file) : NULL;
+ 	if (filp == NULL) {
+-		read_unlock_bh(&sk->sk_callback_lock);
++		rcu_read_unlock();
+ 		return ((info->match ^ info->invert) &
+ 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
+ 	}
+@@ -90,7 +97,7 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
+ 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
+ 		    !(info->invert & XT_OWNER_UID)) {
+-			read_unlock_bh(&sk->sk_callback_lock);
++			rcu_read_unlock();
+ 			return false;
+ 		}
+ 	}
+@@ -118,12 +125,12 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		}
+ 
+ 		if (match ^ !(info->invert & XT_OWNER_GID)) {
+-			read_unlock_bh(&sk->sk_callback_lock);
++			rcu_read_unlock();
+ 			return false;
+ 		}
+ 	}
+ 
+-	read_unlock_bh(&sk->sk_callback_lock);
++	rcu_read_unlock();
+ 	return true;
+ }
+ 
 -- 
-2.53.0
+2.53.0.371.g1d285c8824-goog
 
