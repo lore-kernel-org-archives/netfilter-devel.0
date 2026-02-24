@@ -1,64 +1,64 @@
-Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EE6F30BBA9
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 06:53:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3494730C619
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2026 06:53:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771916000; cv=none; b=bMOm6b1Ak3tnON1UE614OsuMS3cNuA3rYU99ohRYv6s5GQUsqzjelXa3iVWL1L5HBaWBrUwEpmBa2HaNljQaqF/KSFye5pBce03mZBpj0vL6vNHcaEMKTifH6/BqRV9zGpDBPYttFVRyo+1rCPVJkwRB/NFghE8/oQnuMybqsvA=
+	t=1771916002; cv=none; b=D+fsmhJpLgkUlhK+Qq3wfJdzjqY+OYLOBEWNfROPNMBDJAEXhPbgWS7Ns8Kl8u3Z5fLW/VjChH1bwWi3P3hy7h6kEF573YhvzpwHE3eKY1OuEw9ywX8UDhMbUPmnD0wped3C9VNPH/QD7sZzL1Wb1l/6C7O+XkFfNmuBNf8izoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771916000; c=relaxed/simple;
-	bh=MgqFP+kEIYkaJNFbJG3TL6RfVtetCetfNmpFyY7dGco=;
+	s=arc-20240116; t=1771916002; c=relaxed/simple;
+	bh=cZOvplO+acrDIC/bdnPngpv5Yz9c1Kq3wtTg6un4bYg=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=W3QXmZCHIgx3GE+mbjGGDSry1ceca9fSh70ru27fDfkh1GJPA0293zT3LYzpNxX9/cyWMIEWM+g5zziv9LjxpxOzL0WRydFbwyI+2v+zrEkC2ENcveIahXkD+qFeBe0ev5s7ULdLs2hzHOccG7B6dMXeuCa1bb0gj0DxH9TcHP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CQ+DoYCO; arc=none smtp.client-ip=209.85.208.51
+	 MIME-Version; b=Ofm18zIJXZazLKYY/+IpUU/LpunZGBO2WGlYxX5gqAI3uKlu4aDYqhmkqjzzLiDcnjwxLIijfhNuEVmcS2tbRtMVLvPMD8Qx1zUMDr+cDjw2s1Sr9BYXPabGyp+dLbl/pPW94/rhe5k7RLuLjl559OXJCf5cTXumqAiptkN2jKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TWr464KO; arc=none smtp.client-ip=209.85.208.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CQ+DoYCO"
-Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-65bebcbffe8so9694841a12.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 23 Feb 2026 22:53:19 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TWr464KO"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-65a26c220b6so6577110a12.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Feb 2026 22:53:21 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1771915998; x=1772520798; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1771916000; x=1772520800; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=z+3Us/40ma9gw7n/u08hiyPrq5670jVo0kM4Qwre1Os=;
-        b=CQ+DoYCOlzAgyFbGVpRPcmWRPkpG/RypGlbSy1ZnsweMdS0iyyr+wQN+APNNkdmGWL
-         q4x0mbMEk7Vr31fJkhPTFnoEXFFayVNjMZb3NY3mjJh8ShoqmXbTMpYGePXeGd75rd7w
-         ojHxNNYQgAlfNr+lyngy/Vm9DdHJYcZQugEltn8w973v+2KlUW8l1fRPypndPUPa8WXn
-         R5y74s6Jv8uQ1QwbZu8xFPPNGsDToogEocprzBEJHcamaRg4shKGE+WesN/ZUktK55bA
-         uwubQ5Mmb4+cZVt2TFzBj3JATGi7farJAgza564AZgtXPlHU5Fjauiv3KNoB2xrdfMmU
-         gZuQ==
+        bh=gAePdTgx4rGcv9Ww6vpjOV8zuSULm275AmiWMO10ySE=;
+        b=TWr464KOoJPJgp/rweydHBIzDMB1mlTQOCsi6Ua1kUmWEFYkM2NG9GreM5MFggK5g6
+         /G8PhyaTy9n6cU1LH+7MpUoywfeNMzMQ7dPWLTbfNaIK7pwoq9OrIrpoEZ6q2JWmpork
+         /QQvfvlCJRR0VzRNftgSiLIKXoHT+r7aBP3RGYDOrHLWb6g95/H1caT9KZfBr13+cb/N
+         7y4PDuHdLdJmPpr2ksxmpqHDcKdPmjLw6ThWpIJBpQhvGPtSJsLWj+u8Czily6ZwzaHD
+         qHEbRBAdqYS1MWuUDpmhy2VTISiz1AB6MJXJg5GrGTiCBnuf6CQIlYpAecG+CD5CeZER
+         m3MA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1771915998; x=1772520798;
+        d=1e100.net; s=20230601; t=1771916000; x=1772520800;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=z+3Us/40ma9gw7n/u08hiyPrq5670jVo0kM4Qwre1Os=;
-        b=oPMIxBjmkbHIm4q6rx+K/dMdwwyDEYtiNaWFDfoIY8vuHvlwi7YEC0MH1djei8DQIw
-         1Qq7zMQ4cOZuOoomQkUOVwtelAAJ/UmF5vbn2uuzyABUoRTLDFjuRs3/m7USih6TAaER
-         oTVfLMGpwtno9wz0t/jD3uGwHUoUvi2qPP9uZpKKigleTQ1OUwo26zo8C5EA3drk7rfF
-         B44jNueG7h+Us8CLco/mKUemsqL5LiUzeIsb/n9ReC5iHQItCMn2MQSlyiZ+PjS3Iba2
-         JNDVHQzwh1OgFbFNu55HQlYrdYW35Mp5uC26fZmFcP38tK67CG2rchMRn3ktUeVroVmd
-         cO6Q==
-X-Forwarded-Encrypted: i=1; AJvYcCVcjSiMidyAJTe6C0RExe5Pm8a0LvDBpbnnuHrd89zVIa69fNSlSK8/YxzC1qhXKLTd5Xo0MN+Ej/4SoBt4x9c=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxrw9esnZns69eXnpYc5eRCnAtSV/inf9ndfSHVPw9tsPCN8bEE
-	d1nGbZCS9PaQzMNMrKRS0gaR1GYItTLdmhFqnlclBeGBhwQy4cunlo+W
-X-Gm-Gg: ATEYQzxdDL41a/EdaoUBfahEHX+/xUxGv/1LJN61BxUPVUQntIYLfNFMOQZ9KLEVeHW
-	lm+7rYqTz4hrF+hQvV1yV3bcJwaBJxVghBnyKqLc2VahCx1Jp2nFS5tRm9GUIO41tbx+MK3B34Y
-	bjY/5jWXr1knGRDNLYMvFaUm6ebC9RWFXvcwOhTXXn182XhlPDQHfhpSiC5OckCh9HIdy5s9MSU
-	GWh4jso3g3JnHjz78Ks8ihnDFTkopWLqdc1eTpga/RC9A5kC/s0aP8wZ8GqBrVdIzgUEesiIeFh
-	Oxso4aMlCXWEu0dyGRV90py1t4FHRqK1lOk48w4n7guLyni8Z9Mma4Yfo0Wip7ovBBI6OVUR0ll
-	nMiR9ktMO+Zvlgm0xx6bZzZRa4eghknSmYXaBmTSYw1TQSBtoxxdki6tYkTWZ43FdiUxUtqHnMN
-	QLajjnfoAJt85YfcF79ELQ5GHLsZiv2VyekJ2dzwBubTXRvLDBxKkxbR2eRZj49BEncxw02dXuF
-	CF3jvvPKum8422i9rpNSdwXatH9pPvO3EVDQqesWfNzyjIyb1zXRcI=
-X-Received: by 2002:a05:6402:440a:b0:65a:4202:640b with SMTP id 4fb4d7f45d1cf-65ea4ef5ff8mr6889632a12.19.1771915997684;
-        Mon, 23 Feb 2026 22:53:17 -0800 (PST)
+        bh=gAePdTgx4rGcv9Ww6vpjOV8zuSULm275AmiWMO10ySE=;
+        b=iUq2nnS57Hng4PnU5UQFo7I2xLDODStFawy1froULcFmch0O1kofLx0zQVaznKtv9L
+         yVVBlPXoNuJ3zXK7N4sSQXywF9sjoeugD6mpN6oLbj/8/ANxDfY4sDcFAlofTdOG6kG0
+         7GCyrjErx0ytYGtowJlTE41JPA7OdwijxW3enxHtA5gW4jnE+iMUObFexM4tb3igwPTM
+         i+8Ks6/eCTKDfXL3gwywotIKfF4deWfUhvEFU8plnvyoCBsSGMHgJ77YP/XA/G1+QgMd
+         1M+I78nJ07daRKNARXBiBvLbmw7P9qiZMxDoTchReV54rSE8jveqTVdTd+Lg9FFO0Ud0
+         lqAg==
+X-Forwarded-Encrypted: i=1; AJvYcCWaTLmeKKVuez/1Xz4i3fcKWepowQ81dNaCYtWuWwHDeBTgBCBs7uJ/pdhr9bTC0E8p8a6qT4LutNg4vOVGkL4=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwzNepGruHwY+jUq3un2Dzx36kjV0dbJlgQZtT9ilfPGug97nxF
+	YlnSTAuJgBBGWkui2icvfJ4//l/Z+vYsq/FWd13yxb7QBCq6ne+zaKB1
+X-Gm-Gg: ATEYQzzV2lw6eyJTXjjl5VIBG6GxnRlc3PWOVuZ6wFkjMYOz/HqoXWTdCl3/teRF9Zr
+	NhSCW1YtC55am4bYlj4Tr+PbcP43Ra4FDelDBM6YrdfkhpuPkTdUJrpkulovUcixH8/5+9mVi7v
+	/Ia2Mn4BAUS1k9dhhXJbq0ikKtIl5RxSAOcUFLSiCzxKVyRrSeBTEuApvQ8og62WHTfuQbH3duA
+	jNl37wKH3kw1xjBkICjBsrTPFUeZ4oEpP4Tk4QRyYuYMzScs1B+mCmTt/1GxxnzZcVRJO7I5BGX
+	SqL8w0R/4KxhHO37l98lfndsfCf26cwyQg4OLaSiZN6nxHrCcPT/FwmCjD0GoN4uJTQc3WmgUwm
+	BuU2KM3OYlyuHPrldHzJlDCRPQIzFnz1HyisYBVJZN8ojXJwEdSrAXg/EWNa0erDaZfTsa+tFSV
+	RG9RlovoN31jgb2FfRzEona14LMNg/w5yOqN4uAzuJZQT1AyjNJZIAKdkovxthIGvJ/Wk2FHeqr
+	8MOnM9IVvCe2aKbBT/Yj/luAN23QCdivAEnFDGnSJYDWCTtKRiOzV4=
+X-Received: by 2002:a05:6402:27cd:b0:65a:46a2:ed23 with SMTP id 4fb4d7f45d1cf-65ea4f0bc61mr7428081a12.28.1771915999554;
+        Mon, 23 Feb 2026 22:53:19 -0800 (PST)
 Received: from eric (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-65eaba13866sm3096698a12.18.2026.02.23.22.53.16
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-65eaba13866sm3096698a12.18.2026.02.23.22.53.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 23 Feb 2026 22:53:16 -0800 (PST)
+        Mon, 23 Feb 2026 22:53:19 -0800 (PST)
 From: Eric Woudstra <ericwouds@gmail.com>
 To: Michal Ostrowski <mostrows@earthlink.net>,
 	Andrew Lunn <andrew+netdev@lunn.ch>,
@@ -76,9 +76,9 @@ Cc: netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	bridge@lists.linux.dev,
 	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v19 nf-next 3/5] netfilter: bridge: Add conntrack double vlan and pppoe
-Date: Tue, 24 Feb 2026 07:53:04 +0100
-Message-ID: <20260224065307.120768-4-ericwouds@gmail.com>
+Subject: [PATCH v19 nf-next 4/5] netfilter: nft_set_pktinfo_ipv4/6_validate: Add nhoff argument
+Date: Tue, 24 Feb 2026 07:53:05 +0100
+Message-ID: <20260224065307.120768-5-ericwouds@gmail.com>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260224065307.120768-1-ericwouds@gmail.com>
 References: <20260224065307.120768-1-ericwouds@gmail.com>
@@ -90,170 +90,172 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In a bridge, until now, it is possible to track connections of plain
-ip(v6) and ip(v6) encapsulated in single 802.1q or 802.1ad.
+Add specifying an offset when calling nft_set_pktinfo_ipv4/6_validate()
+for cases where the ip(v6) header is not located at skb_network_header().
 
-This patch adds the capability to track connections when the connection
-is (also) encapsulated in PPPoE. It also adds the capability to track
-connections that are encapsulated in an inner 802.1q, combined with an
-outer 802.1ad or 802.1q encapsulation.
+When an offset is specified other then zero, do not set pkt->tprot and
+the corresponding pkt->flags to not change rule processing. It does make
+the offsets in pktinfo available for code that is not checking pkt->flags
+to use the offsets, like nft_flow_offload_eval().
 
-To prevent mixing connections that are tagged differently in the L2
-encapsulations, one should separate them using conntrack zones.
-Using a conntrack zone is a hard requirement for the newly added
-encapsulations of the tracking capability inside a bridge.
+Existing behaviour for a rule like "tcp dport 22 accept" is not changed
+when, for instance, a PPPoE packet is being matched inside a bridge.
 
 Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
 ---
- net/bridge/netfilter/nf_conntrack_bridge.c | 93 ++++++++++++++++++----
- 1 file changed, 76 insertions(+), 17 deletions(-)
+ include/net/netfilter/nf_tables_ipv4.h | 21 +++++++++++++--------
+ include/net/netfilter/nf_tables_ipv6.h | 21 +++++++++++++--------
+ net/netfilter/nft_chain_filter.c       |  8 ++++----
+ 3 files changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/net/bridge/netfilter/nf_conntrack_bridge.c b/net/bridge/netfilter/nf_conntrack_bridge.c
-index 58a33d0380b0..49e01083278c 100644
---- a/net/bridge/netfilter/nf_conntrack_bridge.c
-+++ b/net/bridge/netfilter/nf_conntrack_bridge.c
-@@ -16,6 +16,7 @@
- #include <net/netfilter/nf_conntrack_helper.h>
- #include <net/netfilter/nf_conntrack_bridge.h>
+diff --git a/include/net/netfilter/nf_tables_ipv4.h b/include/net/netfilter/nf_tables_ipv4.h
+index fcf967286e37..bd354937134f 100644
+--- a/include/net/netfilter/nf_tables_ipv4.h
++++ b/include/net/netfilter/nf_tables_ipv4.h
+@@ -16,12 +16,12 @@ static inline void nft_set_pktinfo_ipv4(struct nft_pktinfo *pkt)
+ 	pkt->fragoff = ntohs(ip->frag_off) & IP_OFFSET;
+ }
  
-+#include <linux/ppp_defs.h>
- #include <linux/netfilter_ipv4.h>
+-static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
++static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt, u32 nhoff)
+ {
+ 	struct iphdr *iph, _iph;
+ 	u32 len, thoff, skb_len;
  
- #include "../br_private.h"
-@@ -236,58 +237,116 @@ static int nf_ct_br_ipv6_check(const struct sk_buff *skb)
+-	iph = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb),
++	iph = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb) + nhoff,
+ 				 sizeof(*iph), &_iph);
+ 	if (!iph)
+ 		return -1;
+@@ -31,7 +31,7 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
+ 
+ 	len = iph_totlen(pkt->skb, iph);
+ 	thoff = iph->ihl * 4;
+-	skb_len = pkt->skb->len - skb_network_offset(pkt->skb);
++	skb_len = pkt->skb->len - skb_network_offset(pkt->skb) - nhoff;
+ 
+ 	if (skb_len < len)
+ 		return -1;
+@@ -40,17 +40,22 @@ static inline int __nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
+ 	else if (thoff < sizeof(*iph))
+ 		return -1;
+ 
+-	pkt->flags = NFT_PKTINFO_L4PROTO;
+-	pkt->tprot = iph->protocol;
+-	pkt->thoff = skb_network_offset(pkt->skb) + thoff;
++	if (!nhoff) {
++		pkt->flags = NFT_PKTINFO_L4PROTO;
++		pkt->tprot = iph->protocol;
++	} else {
++		pkt->flags = 0;
++		pkt->tprot = 0;
++	}
++	pkt->thoff = skb_network_offset(pkt->skb) + nhoff + thoff;
+ 	pkt->fragoff = ntohs(iph->frag_off) & IP_OFFSET;
+ 
  	return 0;
  }
  
-+static int nf_ct_bridge_pre_inner(struct sk_buff *skb, __be16 *proto, u32 *len)
-+{
-+	switch (*proto) {
-+	case htons(ETH_P_PPP_SES): {
-+		struct ppp_hdr {
-+			struct pppoe_hdr hdr;
-+			__be16 proto;
-+		} *ph;
-+
-+		if (!pskb_may_pull(skb, PPPOE_SES_HLEN))
-+			return -1;
-+		ph = (struct ppp_hdr *)(skb->data);
-+		switch (ph->proto) {
-+		case htons(PPP_IP):
-+			*proto = htons(ETH_P_IP);
-+			*len = ntohs(ph->hdr.length) - 2;
-+			skb_set_network_header(skb, PPPOE_SES_HLEN);
-+			return PPPOE_SES_HLEN;
-+		case htons(PPP_IPV6):
-+			*proto = htons(ETH_P_IPV6);
-+			*len = ntohs(ph->hdr.length) - 2;
-+			skb_set_network_header(skb, PPPOE_SES_HLEN);
-+			return PPPOE_SES_HLEN;
-+		}
-+		break;
-+	}
-+	case htons(ETH_P_8021Q): {
-+		struct vlan_hdr *vhdr;
-+
-+		if (!pskb_may_pull(skb, VLAN_HLEN))
-+			return -1;
-+		vhdr = (struct vlan_hdr *)(skb->data);
-+		*proto = vhdr->h_vlan_encapsulated_proto;
-+		skb_set_network_header(skb, VLAN_HLEN);
-+		return VLAN_HLEN;
-+	}
-+	}
-+	return 0;
-+}
-+
- static unsigned int nf_ct_bridge_pre(void *priv, struct sk_buff *skb,
- 				     const struct nf_hook_state *state)
+-static inline void nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt)
++static inline void nft_set_pktinfo_ipv4_validate(struct nft_pktinfo *pkt, u32 nhoff)
  {
- 	struct nf_hook_state bridge_state = *state;
-+	int ret = NF_ACCEPT, offset = 0;
- 	enum ip_conntrack_info ctinfo;
-+	u32 len, pppoe_len = 0;
- 	struct nf_conn *ct;
--	u32 len;
--	int ret;
-+	__be16 proto;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if ((ct && !nf_ct_is_template(ct)) ||
- 	    ctinfo == IP_CT_UNTRACKED)
- 		return NF_ACCEPT;
- 
--	switch (skb->protocol) {
--	case htons(ETH_P_IP):
--		if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-+	proto = skb->protocol;
-+
-+	if (ct && nf_ct_zone_id(nf_ct_zone(ct), CTINFO2DIR(ctinfo)) !=
-+			NF_CT_DEFAULT_ZONE_ID) {
-+		offset = nf_ct_bridge_pre_inner(skb, &proto, &pppoe_len);
-+		if (offset < 0)
- 			return NF_ACCEPT;
-+	}
-+
-+	switch (proto) {
-+	case htons(ETH_P_IP):
-+		if (!pskb_may_pull(skb, offset + sizeof(struct iphdr)))
-+			goto do_not_track;
- 
- 		len = skb_ip_totlen(skb);
--		if (pskb_trim_rcsum(skb, len))
--			return NF_ACCEPT;
-+		if (pppoe_len && pppoe_len != len)
-+			goto do_not_track;
-+		if (pskb_trim_rcsum(skb, offset + len))
-+			goto do_not_track;
- 
- 		if (nf_ct_br_ip_check(skb))
--			return NF_ACCEPT;
-+			goto do_not_track;
- 
- 		bridge_state.pf = NFPROTO_IPV4;
- 		ret = nf_ct_br_defrag4(skb, &bridge_state);
- 		break;
- 	case htons(ETH_P_IPV6):
--		if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
--			return NF_ACCEPT;
-+		if (!pskb_may_pull(skb, offset + sizeof(struct ipv6hdr)))
-+			goto do_not_track;
- 
- 		len = sizeof(struct ipv6hdr) + skb_ipv6_payload_len(skb);
--		if (pskb_trim_rcsum(skb, len))
--			return NF_ACCEPT;
-+		if (pppoe_len && pppoe_len != len)
-+			goto do_not_track;
-+		if (pskb_trim_rcsum(skb, offset + len))
-+			goto do_not_track;
- 
- 		if (nf_ct_br_ipv6_check(skb))
--			return NF_ACCEPT;
-+			goto do_not_track;
- 
- 		bridge_state.pf = NFPROTO_IPV6;
- 		ret = nf_ct_br_defrag6(skb, &bridge_state);
- 		break;
- 	default:
- 		nf_ct_set(skb, NULL, IP_CT_UNTRACKED);
--		return NF_ACCEPT;
-+		goto do_not_track;
- 	}
- 
--	if (ret != NF_ACCEPT)
--		return ret;
-+	if (ret == NF_ACCEPT)
-+		ret = nf_conntrack_in(skb, &bridge_state);
-+
-+do_not_track:
-+	if (offset && ret == NF_ACCEPT)
-+		skb_reset_network_header(skb);
- 
--	return nf_conntrack_in(skb, &bridge_state);
-+	return ret;
+-	if (__nft_set_pktinfo_ipv4_validate(pkt) < 0)
++	if (__nft_set_pktinfo_ipv4_validate(pkt, nhoff) < 0)
+ 		nft_set_pktinfo_unspec(pkt);
  }
  
- static unsigned int nf_ct_bridge_in(void *priv, struct sk_buff *skb,
+diff --git a/include/net/netfilter/nf_tables_ipv6.h b/include/net/netfilter/nf_tables_ipv6.h
+index c53ac00bb974..1e84a891f268 100644
+--- a/include/net/netfilter/nf_tables_ipv6.h
++++ b/include/net/netfilter/nf_tables_ipv6.h
+@@ -24,17 +24,17 @@ static inline void nft_set_pktinfo_ipv6(struct nft_pktinfo *pkt)
+ 	pkt->fragoff = frag_off;
+ }
+ 
+-static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
++static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt, u32 nhoff)
+ {
+ #if IS_ENABLED(CONFIG_IPV6)
+ 	unsigned int flags = IP6_FH_F_AUTH;
+ 	struct ipv6hdr *ip6h, _ip6h;
+-	unsigned int thoff = 0;
++	unsigned int thoff = nhoff;
+ 	unsigned short frag_off;
+ 	u32 pkt_len, skb_len;
+ 	int protohdr;
+ 
+-	ip6h = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb),
++	ip6h = skb_header_pointer(pkt->skb, skb_network_offset(pkt->skb) + nhoff,
+ 				  sizeof(*ip6h), &_ip6h);
+ 	if (!ip6h)
+ 		return -1;
+@@ -43,7 +43,7 @@ static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
+ 		return -1;
+ 
+ 	pkt_len = ipv6_payload_len(pkt->skb, ip6h);
+-	skb_len = pkt->skb->len - skb_network_offset(pkt->skb);
++	skb_len = pkt->skb->len - skb_network_offset(pkt->skb) - nhoff;
+ 	if (pkt_len + sizeof(*ip6h) > skb_len)
+ 		return -1;
+ 
+@@ -51,8 +51,13 @@ static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
+ 	if (protohdr < 0 || thoff > U16_MAX)
+ 		return -1;
+ 
+-	pkt->flags = NFT_PKTINFO_L4PROTO;
+-	pkt->tprot = protohdr;
++	if (!nhoff) {
++		pkt->flags = NFT_PKTINFO_L4PROTO;
++		pkt->tprot = protohdr;
++	} else {
++		pkt->flags = 0;
++		pkt->tprot = 0;
++	}
+ 	pkt->thoff = thoff;
+ 	pkt->fragoff = frag_off;
+ 
+@@ -62,9 +67,9 @@ static inline int __nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
+ #endif
+ }
+ 
+-static inline void nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt)
++static inline void nft_set_pktinfo_ipv6_validate(struct nft_pktinfo *pkt, u32 nhoff)
+ {
+-	if (__nft_set_pktinfo_ipv6_validate(pkt) < 0)
++	if (__nft_set_pktinfo_ipv6_validate(pkt, nhoff) < 0)
+ 		nft_set_pktinfo_unspec(pkt);
+ }
+ 
+diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
+index b16185e9a6dd..d4d5eadaba9c 100644
+--- a/net/netfilter/nft_chain_filter.c
++++ b/net/netfilter/nft_chain_filter.c
+@@ -238,10 +238,10 @@ nft_do_chain_bridge(void *priv,
+ 
+ 	switch (eth_hdr(skb)->h_proto) {
+ 	case htons(ETH_P_IP):
+-		nft_set_pktinfo_ipv4_validate(&pkt);
++		nft_set_pktinfo_ipv4_validate(&pkt, 0);
+ 		break;
+ 	case htons(ETH_P_IPV6):
+-		nft_set_pktinfo_ipv6_validate(&pkt);
++		nft_set_pktinfo_ipv6_validate(&pkt, 0);
+ 		break;
+ 	default:
+ 		nft_set_pktinfo_unspec(&pkt);
+@@ -293,10 +293,10 @@ static unsigned int nft_do_chain_netdev(void *priv, struct sk_buff *skb,
+ 
+ 	switch (skb->protocol) {
+ 	case htons(ETH_P_IP):
+-		nft_set_pktinfo_ipv4_validate(&pkt);
++		nft_set_pktinfo_ipv4_validate(&pkt, 0);
+ 		break;
+ 	case htons(ETH_P_IPV6):
+-		nft_set_pktinfo_ipv6_validate(&pkt);
++		nft_set_pktinfo_ipv6_validate(&pkt, 0);
+ 		break;
+ 	default:
+ 		nft_set_pktinfo_unspec(&pkt);
 -- 
 2.53.0
 
