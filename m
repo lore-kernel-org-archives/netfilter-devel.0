@@ -1,137 +1,116 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yx1-f73.google.com (mail-yx1-f73.google.com [74.125.224.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1B6E3B8D70;
-	Wed, 25 Feb 2026 13:06:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2D3C3ACF0B
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Feb 2026 13:20:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.224.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772024795; cv=none; b=TK8OI4nW1tjcLxN5s1Ab8WVi0w/L1vHvBgpyIVSRbmIbSTV63WQHSX71hGN7ICSMP/kKVC1cXtBiajgfzUO6bpxnA8Mac1O+rNzWPz9/OmIs7GekFnXI738DIajskFyil3bbKZvGXEaD5qXOypePIp0Noi8wJ0v8BQUT2zhXPZM=
+	t=1772025625; cv=none; b=oWActFM8IZrPU4ghTh9c0hL4x3oJrXlaqBwfIG5HB0ZNQ9OPOUXCCu3AdulDE34xG2kowMZSHqoTWr1TYirAaOkYWCY7a0YpJ4hCHJe4sm+z5IzexsFGCOQdFrmDPvfQtUS2SPZ9ybmQL2gSYkAh5S2iSdIi10u3UtSZHjlbNeI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772024795; c=relaxed/simple;
-	bh=mi/p/wlwjIAQhzdQYtTNQRvbII17xQiZQjkpSYutfN4=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oFjnIX/3iUJwaT5Ejhg6v2ENMaJZnhn+9pnPD3MfaWGM4/1b9L1ied2Sptn6n9XpDNJLBX0eK8bcj1Q9QeFfaiZeXTtIC9JU6RAKlN3Cc6NNbGz1iItEfvt84MvsVq7lnZnyIh2WAcsazLKJv5rJx6xTAQiyxdhPNCColfwSXv0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3102060516; Wed, 25 Feb 2026 14:06:32 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net 2/2] netfilter: nf_tables: unconditionally bump set->nelems before insertion
-Date: Wed, 25 Feb 2026 14:06:19 +0100
-Message-ID: <20260225130619.1248-3-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260225130619.1248-1-fw@strlen.de>
-References: <20260225130619.1248-1-fw@strlen.de>
+	s=arc-20240116; t=1772025625; c=relaxed/simple;
+	bh=dWkOdHUNZY084evNatRVHBp93SP9Ud6vhumdrqM0qYw=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=ZprPvHcOxbzP+qUtpUMkq6OcqavJ+GIu+HVdrKwX1JzZdtQBbO3cUKOcqmhSuGPiFox4l+hqJxO9MCabkYS2jRfp6Ueq5XcbaiuHrQqtcoSC6pUJI+//9sqbZCNLLqDRmRMNFylUzXM4eeXBC6Dg4vkpUhM1Scz0HdvHMMIMB28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=cO6MYkoO; arc=none smtp.client-ip=74.125.224.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--edumazet.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="cO6MYkoO"
+Received: by mail-yx1-f73.google.com with SMTP id 956f58d0204a3-6445cf02fcbso9422636d50.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 25 Feb 2026 05:20:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1772025623; x=1772630423; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=+IhwFnC60BkZSlrOC/ALdUxYIAf2cwE+9LjagsdzVp8=;
+        b=cO6MYkoOXx2KGXSjTTP9BEAAz8ELdZtwu3Z8UGIcGqZytlou56ifqnnFs7zeNBFw79
+         R5rsrTit5M5QP9ycOEOECgePI96le9IKADfkqWq6AMsGXeR1WYkCVxWgYgk4aHUwwt1q
+         A7a4xsVY1t6p4icBCp5r3IOIU7TltZ68XKYDxG9Jw9byvwywdUUdaGZ/wxzZHAT3ZqaX
+         tMR1/7MX5XX7Ms/7tHqOvS0cHnH1HPkEuMtBqgTsx0xAhdQXaxkSvp9Fz5buVQYmP9Cp
+         0MMIscL0P7vgHgbhmhQFCSEXyU2M/eM4zB3GvtERZKAyy4blAffTAlRKrYCRmJXVxLzb
+         U2qQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772025623; x=1772630423;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=+IhwFnC60BkZSlrOC/ALdUxYIAf2cwE+9LjagsdzVp8=;
+        b=n2DfTQG63vL5k+wKptmJ+iUcX1RfgVqAafREEvBrQoWqdKO1700ggK9qiI2P4BuDPo
+         aRujtpH3W1HpHik96I2GXD76PdDKpA30Y+93R2/T1989U208Ll2STNZeeoONzyhSHKEI
+         Y6m+3t235z0d/RbDdnHkBFzDASYCzvMI4V3htDDJQMkwVspEPood2o+60SS1FAc1TrdI
+         4LGLriBzcOABteAj/LxEeeAZiv/NJPSCJzpIYA7rHUpJsmMKTOoFh0WT9/NLvB78tHCl
+         Vg96WNN7nligYLiDO4SzbvhIBIpGQ6ufcQXWJYt9ktfOREYcf27WhUbITx08s09mHzKB
+         KDDg==
+X-Forwarded-Encrypted: i=1; AJvYcCXZl0USaSNXLfxBT4Xrr6aVK1t7mpXXHMGNMZn7wwMmIMbgM1ehzbg0htinpefo0sYrcvDcRUOAuG9igpiYODU=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxHeAe7FzkQiOm363QiqirJ8q06aVouHGdpZGezyOATRrsJTDCX
+	5gn4ZuDdWCbXYEvstoDi18s0j43wUvdHr+hbhB54bU7xtkq/j7wqs3N2STs7Yk96yy9cU/GrtKU
+	mYsV3QaA+8woXfQ==
+X-Received: from yxyb18.prod.google.com ([2002:a05:690e:1d2:b0:646:e5d7:6a2a])
+ (user=edumazet job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a53:cd86:0:b0:64a:d9b3:6ef3 with SMTP id 956f58d0204a3-64c787d6ed6mr10402222d50.6.1772025622596;
+ Wed, 25 Feb 2026 05:20:22 -0800 (PST)
+Date: Wed, 25 Feb 2026 13:20:19 +0000
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.53.0.414.gf7e9f6c205-goog
+Message-ID: <20260225132019.1103701-1-edumazet@google.com>
+Subject: [PATCH v2 nf-next] netfilter: nf_log_syslog: no longer acquire
+ sk_callback_lock in nf_log_dump_sk_uid_gid()
+From: Eric Dumazet <edumazet@google.com>
+To: "David S . Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, 
+	Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	coreteam@netfilter.org, eric.dumazet@gmail.com, 
+	Eric Dumazet <edumazet@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+After commit 983512f3a87f ("net: Drop the lock in skb_may_tx_timestamp()")
+from Sebastian Andrzej Siewior, apply the same logic in nf_log_dump_sk_uid_gid()
+to avoid touching sk_callback_lock.
 
-In case that the set is full, a new element gets published then removed
-without waiting for the RCU grace period, while RCU reader can be
-walking over it already.
-
-To address this issue, add the element transaction even if set is full,
-but toggle the set_full flag to report -ENFILE so the abort path safely
-unwinds the set to its previous state.
-
-As for element updates, decrement set->nelems to restore it.
-
-A simpler fix is to call synchronize_rcu() in the error path.
-However, with a large batch adding elements to already maxed-out set,
-this could cause noticeable slowdown of such batches.
-
-Fixes: 35d0ac9070ef ("netfilter: nf_tables: fix set->nelems counting with no NLM_F_EXCL")
-Reported-by: Inseo An <y0un9sa@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ net/netfilter/nf_log_syslog.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0c5a4855b97d..834736237b09 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -7171,6 +7171,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	struct nft_data_desc desc;
- 	enum nft_registers dreg;
- 	struct nft_trans *trans;
-+	bool set_full = false;
- 	u64 expiration;
- 	u64 timeout;
- 	int err, i;
-@@ -7462,10 +7463,18 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 	if (err < 0)
- 		goto err_elem_free;
+diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
+index 41503847d9d7fb21824fabb1b57b45f2622b9310..0507d67cad27530dd814aabaf806fdcd3583fe01 100644
+--- a/net/netfilter/nf_log_syslog.c
++++ b/net/netfilter/nf_log_syslog.c
+@@ -165,18 +165,26 @@ static struct nf_logger nf_arp_logger __read_mostly = {
+ static void nf_log_dump_sk_uid_gid(struct net *net, struct nf_log_buf *m,
+ 				   struct sock *sk)
+ {
++	const struct socket *sock;
++	const struct file *file;
++
+ 	if (!sk || !sk_fullsock(sk) || !net_eq(net, sock_net(sk)))
+ 		return;
  
-+	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
-+		unsigned int max = nft_set_maxsize(set), nelems;
-+
-+		nelems = atomic_inc_return(&set->nelems);
-+		if (nelems > max)
-+			set_full = true;
-+	}
-+
- 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
- 	if (trans == NULL) {
- 		err = -ENOMEM;
--		goto err_elem_free;
-+		goto err_set_size;
+-	read_lock_bh(&sk->sk_callback_lock);
+-	if (sk->sk_socket && sk->sk_socket->file) {
+-		const struct cred *cred = sk->sk_socket->file->f_cred;
++	/* The sk pointer remains valid as long as the skb is. The sk_socket and
++	 * file pointer may become NULL if the socket is closed. Both structures
++	 * (including file->cred) are RCU freed which means they can be accessed
++	 * within a RCU read section.
++	 */
++	sock = READ_ONCE(sk->sk_socket);
++	file = sock ? READ_ONCE(sock->file) : NULL;
++	if (file) {
++		const struct cred *cred = file->f_cred;
+ 
+ 		nf_log_buf_add(m, "UID=%u GID=%u ",
+ 			       from_kuid_munged(&init_user_ns, cred->fsuid),
+ 			       from_kgid_munged(&init_user_ns, cred->fsgid));
  	}
+-	read_unlock_bh(&sk->sk_callback_lock);
+ }
  
- 	ext->genmask = nft_genmask_cur(ctx->net);
-@@ -7517,7 +7526,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 
- 						ue->priv = elem_priv;
- 						nft_trans_commit_list_add_elem(ctx->net, trans);
--						goto err_elem_free;
-+						goto err_set_size;
- 					}
- 				}
- 			}
-@@ -7535,23 +7544,16 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 		goto err_element_clash;
- 	}
- 
--	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
--		unsigned int max = nft_set_maxsize(set);
--
--		if (!atomic_add_unless(&set->nelems, 1, max)) {
--			err = -ENFILE;
--			goto err_set_full;
--		}
--	}
--
- 	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
- 	nft_trans_commit_list_add_elem(ctx->net, trans);
--	return 0;
- 
--err_set_full:
--	nft_setelem_remove(ctx->net, set, elem.priv);
-+	return set_full ? -ENFILE : 0;
-+
- err_element_clash:
- 	kfree(trans);
-+err_set_size:
-+	if (!(flags & NFT_SET_ELEM_CATCHALL) && !set_full)
-+		atomic_dec(&set->nelems);
- err_elem_free:
- 	nf_tables_set_elem_destroy(ctx, set, elem.priv);
- err_parse_data:
+ static noinline_for_stack int
 -- 
-2.52.0
+2.53.0.414.gf7e9f6c205-goog
 
