@@ -1,66 +1,92 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A9711A3164;
-	Thu, 26 Feb 2026 03:44:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 020FC389446;
+	Thu, 26 Feb 2026 03:50:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772077491; cv=none; b=pa+9PMey2gfw2T6MewSr8gJ+BoGfWVcsqe9YaRml7wO4IQHoHL1jjFqRigA3a6wNoc6dKRktBwCz6DoivlAmX6DDX8Zg7STgsETXjkTwPxT7inRA6dYRNRgbsC5X2+8d4eux5O9WVujhVzAeKqPbFO3wG6X8HtMSZV4dMNWEA8E=
+	t=1772077813; cv=none; b=lgfu39WG69AaTqR7cL1yargWvxUAQzSjKxJ/fEeCfS5MI1IbQyb1RF+FOYEvOcQP1GvT+kBz0Au7zbGo6h2Pv6ISxpuuSAW06ItFckcwqEzD7tpGIHQ+JTavpdlBTyG/HTLhmNRC6wOUPkF3i4dXeRuvKRY6Mf9kbshsulUicyw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772077491; c=relaxed/simple;
-	bh=jdQ4TlTnvlE66MsCiRDSlmmGWeSt5nVcvT0Y6fdtRyA=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=OUT/SPi1XMPzTucRX4dZNv5XhQxF92Fytx6ux+6NzN30zQ30yB8Pv47YFRfzO53Z4qsuNM/VhDzbTtYlkljHsedOiEavjHiiIotr6A3EhST6/hFPbsA6UO96SJLTkGnuHvqZVVRp3kdnaEBoWjCx3HUIRr/lSTK4rNK7Z75mKyw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=c/PUb+sm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772077813; c=relaxed/simple;
+	bh=fci/qBn+7ygH24gFYFDNon8C8dvf2G87OGJVy6Fr98Y=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=JBOmf4wCckbOS/4xZ5re/8+eJeby5PKUINmrKKOf7oD1zuYRq4oiKwIfm1l5GPLyvkfU+ToBWIYeho2kEwqDuXqtr3laJEFKKr8QEupTkkcX1hURJmWtzXCWYwuoqmwWaHctVhORq2OY9ByIoGVswxYXUCNDP9JhEBx4eyRVGQ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=l54H8jwF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="c/PUb+sm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52E83C116C6;
-	Thu, 26 Feb 2026 03:44:50 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="l54H8jwF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94071C116C6;
+	Thu, 26 Feb 2026 03:50:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772077490;
-	bh=jdQ4TlTnvlE66MsCiRDSlmmGWeSt5nVcvT0Y6fdtRyA=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=c/PUb+smhA2x0Cyyo1IRI6RY7t94X9rr0GCoOV5Q5k0sq3jvxGG64yngdjLNd1+7q
-	 hLo7h80xIJw2nfH8gT2LRCEAD+gVruth+g0Ty5tXWsEG5P8zDxuEf8lo3E++/r9wzg
-	 KMjJ14+DG30Ka2VCDy02/VphwMqxQG7lnpJwyPMt8RRR6IYY3Q1pBHqnhwMoKekFm+
-	 o2M3GMnhAX0Ga8nCoiWWmYYIFan7aYzV+BYWrfMOenfUVt1h7+DdGKKs+tiA+4VV04
-	 T8PqSL2X8Is+aTNsxpNMuLxoJ7XzeCSnBlyc20ck8ewRrSmlBqpQbj8IybBee6zboG
-	 SjnRdQ3YOd70w==
-Date: Wed, 25 Feb 2026 19:44:49 -0800
-From: Jakub Kicinski <kuba@kernel.org>
-To: fw@strlen.de
-Cc: netfilter-devel@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, netdev@vger.kernel.org, pablo@netfilter.org
-Subject: Re: [net-next,4/9] ipvs: do not keep dest_dst after dest is removed
-Message-ID: <20260225194449.546cb6a1@kernel.org>
-In-Reply-To: <20260226034124.1806970-1-kuba@kernel.org>
-References: <20260224205048.4718-5-fw@strlen.de>
-	<20260226034124.1806970-1-kuba@kernel.org>
+	s=k20201202; t=1772077812;
+	bh=fci/qBn+7ygH24gFYFDNon8C8dvf2G87OGJVy6Fr98Y=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=l54H8jwFcYn+CoGiToEUpVJIKGbLauP2FomTNkREPUto78k7V+Bo3X1RyPLcX4/Hn
+	 DXGUG46kWNf7zkaY1nuID9VoaftAGCna9zGNcxpXebJ3A2NLBXKEcIcjkhguZWTkzH
+	 YL6IxOHaOmqAreFK70WMFCxZhVxpuhF9Pqct5s7jjlI8MMJaoOm56ygVW9ibYaRefl
+	 /gMoIZxVj61usDzoEPOiJLKJVb7CZR0bjPE6MOaS6sb8vONA3FYbtjebhsViVWJR6U
+	 xsvGza7/GnqX2/eZN15zFsjwWLvNcKCt6K0fjZuXgAlTKEL0rHI3aFjqmvjlDc0D6/
+	 4lA2DLqiD0wtQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7CFB8380A94B;
+	Thu, 26 Feb 2026 03:50:18 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net-next 0/9] netfilter: updates for net-next
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177207781729.1027914.17116155293102678686.git-patchwork-notify@kernel.org>
+Date: Thu, 26 Feb 2026 03:50:17 +0000
+References: <20260224205048.4718-1-fw@strlen.de>
+In-Reply-To: <20260224205048.4718-1-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-On Wed, 25 Feb 2026 19:41:24 -0800 Jakub Kicinski wrote:
-> > -			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
-> > +			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) &&
-> > +			    dest->flags & IP_VS_DEST_F_AVAILABLE)
-> >  				__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);  
-> 
-> Should this be wrapped in parentheses?
-> 
-> In C operator precedence, the logical AND (&&) binds more tightly than
-> the bitwise AND (&). The expression here parses as:
-> 
->     (!rt_dev_is_down(...) && dest->flags) & IP_VS_DEST_F_AVAILABLE
-> 
-> This works correctly only because IP_VS_DEST_F_AVAILABLE is 0x0001, and
-> the logical AND produces 0 or 1, so the bitwise AND with 0x0001 still
-> produces the expected result.
+Hello:
 
-Ah, should have skipped this one. It is of course bs. Chris reported 
-it to the developers of the model.
+This series was applied to netdev/net-next.git (main)
+by Jakub Kicinski <kuba@kernel.org>:
+
+On Tue, 24 Feb 2026 21:50:39 +0100 you wrote:
+> Hi,
+> 
+> The following patchset contains Netfilter fixes for *net-next*,
+> including IPVS updates from and via Julian Anastasov.
+> 
+> First updates for IPVS. From Julians cover-letter:
+> 
+> [...]
+
+Here is the summary with links:
+  - [net-next,1/9] ipvs: make ip_vs_svc_table and ip_vs_svc_fwm_table per netns
+    https://git.kernel.org/netdev/net-next/c/74455a5b4326
+  - [net-next,2/9] ipvs: some service readers can use RCU
+    https://git.kernel.org/netdev/net-next/c/3de0ec2873ea
+  - [net-next,3/9] ipvs: use single svc table
+    https://git.kernel.org/netdev/net-next/c/b24ae1a387e4
+  - [net-next,4/9] ipvs: do not keep dest_dst after dest is removed
+    https://git.kernel.org/netdev/net-next/c/40fb72209fd8
+  - [net-next,5/9] ipvs: use more counters to avoid service lookups
+    https://git.kernel.org/netdev/net-next/c/c59bd9e62e06
+  - [net-next,6/9] ipvs: no_cport and dropentry counters can be per-net
+    https://git.kernel.org/netdev/net-next/c/09b71fb45946
+  - [net-next,7/9] netfilter: nft_set_rbtree: don't disable bh when acquiring tree lock
+    https://git.kernel.org/netdev/net-next/c/3aea466a4399
+  - [net-next,8/9] netfilter: nf_tables: drop obsolete EXPORT_SYMBOLs
+    https://git.kernel.org/netdev/net-next/c/b6461103e01a
+  - [net-next,9/9] netfilter: nf_tables: remove register tracking infrastructure
+    https://git.kernel.org/netdev/net-next/c/6b94d081f81d
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
