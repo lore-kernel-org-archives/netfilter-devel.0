@@ -1,86 +1,74 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B65239B4A5;
-	Thu, 26 Feb 2026 14:00:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 783533ACA6D;
+	Thu, 26 Feb 2026 14:14:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772114402; cv=none; b=iVmSNMP4mr+ofYREXWyv0kxR9ht9siTGC5LnTntLLGaDB4D4IIo48Mc3YmMA28uBcIkw7dSTAy6AmvFYSfOncOzCGF8DwGf8MUTmd2AmD3s7h5FHsdidrfcgfgFKeYgzD1slu5Tj8wNtocgdbKblR/kfhgeZwSADn9NcXXbhclQ=
+	t=1772115246; cv=none; b=o+WwVLBi6ZzU77EtbcOsv4WfpiK/g161gRVQoQW5AhAkaFjrS9q/i+4DRsCpw17Qji1qds8ytm1YLubdsUSE0//EFyi21vUkH5ZUeRgEQSgr+FXd6vXItbU0XR4vObBSXlKJV3+bW5clBWftAAPXAqABK6qFtQUSsQ/uBBH8wsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772114402; c=relaxed/simple;
-	bh=kY839M1FiQyG/rTWUN37NiUx9KNkhkKWxJrdxAzSGjE=;
-	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
-	 In-Reply-To:To:Cc; b=Ll/F9omib+bHfydnaxWQgv4TV+5P/uX4/Ub0TGR7Ur2T6DubB1XKUDB81TTk8SYtCziZZZ2xOhD/f5Cp9UUZ2j+FXkAc0VMmuYbGg0G7wnHJoWbPY6F3XQS0c6Yb2m6QHxn8CGbX8u6J9il/Zy88wxQR/WM1oiaZzsyBrm6Lmt4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MNXSi6NZ; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MNXSi6NZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 382FFC116C6;
-	Thu, 26 Feb 2026 14:00:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772114401;
-	bh=kY839M1FiQyG/rTWUN37NiUx9KNkhkKWxJrdxAzSGjE=;
-	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-	b=MNXSi6NZIZEHa6c4wrlYy6s6gHYzD3uENmadJrr/NnTggjNGK0rOT1Cv4qN990HkY
-	 8nd0SPqFzWvwgcoPIAV4x+rGkSpbJzcclgmeCukhDFxj+NevfRRnyOY+sDiCN90CpI
-	 m3OfH7KUeu4ka5WPBmCg7SmjfX3Whkv/y4z37zTpJrVITwYmFE5UuG/6y4pOSAKxI+
-	 kCMplXRj+zOyJJGHFMBxVaVEYxTemc6Ikfy/W2490G3+7qAcNEDgkCWArH/EmC97Dx
-	 aS030HX1TVyfk895tW10gOxcLDBaQWaSDhSL3icE/PQ+TcqBBrZNr4/r/TRUIW5rUU
-	 4BfHXwr9/UHsg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 3FF373930925;
-	Thu, 26 Feb 2026 14:00:06 +0000 (UTC)
-Content-Type: text/plain; charset="utf-8"
+	s=arc-20240116; t=1772115246; c=relaxed/simple;
+	bh=bJGXITfP42DOu8udfbDXthtAZv/RrpkS0akQ+3aYjPI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hITGyBoioTsVDkYXZsTByHQpPL7XrBr2rlyf4juNWgyHi2NhkkmssA2mP3uvuYrbgaJzN1YdksfuM68+J9jmacOXg9D9SmR3NAw0q0EyNy8gp1hWTrz4XLspns/y18FTs71RaeoQKrbrOQM5Ne/lejKERw12G8UkMVGtxojOpXU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 38BFB60336; Thu, 26 Feb 2026 15:14:02 +0100 (CET)
+Date: Thu, 26 Feb 2026 15:14:01 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Paolo Abeni <pabeni@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org, netdev@vger.kernel.org
+Subject: Re: [PATCH net 1/2] netfilter: nf_conntrack_h323: fix OOB read in
+ decode_choice()
+Message-ID: <aaBVKVXk5T7j7jvU@strlen.de>
+References: <20260225130619.1248-1-fw@strlen.de>
+ <20260225130619.1248-2-fw@strlen.de>
+ <aaAOFygrzyyp2a_z@strlen.de>
+ <61b18149-17e4-439a-97d3-74f0dc20a78f@redhat.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH net 1/2] netfilter: nf_conntrack_h323: fix OOB read in
- decode_choice()
-From: patchwork-bot+netdevbpf@kernel.org
-Message-Id: 
- <177211440505.1230752.18207522034751824623.git-patchwork-notify@kernel.org>
-Date: Thu, 26 Feb 2026 14:00:05 +0000
-References: <20260225130619.1248-2-fw@strlen.de>
-In-Reply-To: <20260225130619.1248-2-fw@strlen.de>
-To: Florian Westphal <fw@strlen.de>
-Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
- edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
- pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <61b18149-17e4-439a-97d3-74f0dc20a78f@redhat.com>
 
-Hello:
-
-This series was applied to netdev/net.git (main)
-by Paolo Abeni <pabeni@redhat.com>:
-
-On Wed, 25 Feb 2026 14:06:18 +0100 you wrote:
-> From: Vahagn Vardanian <vahagn@redrays.io>
+Paolo Abeni <pabeni@redhat.com> wrote:
+> On 2/26/26 10:10 AM, Florian Westphal wrote:
+> > Florian Westphal <fw@strlen.de> wrote:
+> >> From: Vahagn Vardanian <vahagn@redrays.io>
+> >>
+> >> In decode_choice(), the boundary check before get_len() uses the
+> >> variable `len`, which is still 0 from its initialization at the top of
+> >> the function:
+> >>
+> > 
+> > @net maintainers: would you mind applying this patch directly?
+> > 
+> > I don't know when Pablo can re-spin his fix, and I don't want
+> > to hold up the H323 patch.
 > 
-> In decode_choice(), the boundary check before get_len() uses the
-> variable `len`, which is still 0 from its initialization at the top of
-> the function:
-> 
->     unsigned int type, ext, len = 0;
->     ...
->     if (ext || (son->attr & OPEN)) {
->         BYTE_ALIGN(bs);
->         if (nf_h323_error_boundary(bs, len, 0))  /* len is 0 here */
->             return H323_ERROR_BOUND;
->         len = get_len(bs);                        /* OOB read */
-> 
-> [...]
+> Makes sense. Note that I'll apply the patch (as opposed to pull it),
+> meaning it will get a new hash.
 
-Here is the summary with links:
-  - [net,1/2] netfilter: nf_conntrack_h323: fix OOB read in decode_choice()
-    https://git.kernel.org/netdev/net/c/baed0d9ba91d
-  - [net,2/2] netfilter: nf_tables: unconditionally bump set->nelems before insertion
-    (no matching commit)
+Yes, thats fine.
 
-You are awesome, thank you!
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
+At the moment both nf and nf-next stictly follow net/net-next, i.e.
+nf:main and nf-next:main might be behind the corresponding net
+tree, but are never ahead.
 
+Patches are queued up in :testing.  This allows me to rebase and
+if necessary drop patches again.
 
+Then, for pull request, last "good" testing branch gets tagged,
+then that tag is used in the pull request.
+
+After you pull changes, I re-sync the nf tree the net one and
+push to main.
