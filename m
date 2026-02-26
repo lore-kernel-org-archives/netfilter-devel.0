@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D75C5378831;
-	Thu, 26 Feb 2026 03:41:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C7C73876AD;
+	Thu, 26 Feb 2026 03:41:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772077284; cv=none; b=bzgLatZa5CCRGZhkUL2/n6D2fIscuTIReVksFdUKOHGPbHfDsSL3UyzPDG6c8x/dir/pxTo5yp6h723P8RGhi4yCX/ICdOu/wBV5f32WXE+PjtEcmp6Uf0LQvoVEcZ1XOr8NwW1ZuL78FT4j2YK+YfDAu/9VZoP871tFjP8FkfY=
+	t=1772077286; cv=none; b=X2nCyZVwKwGkKvMHw/Lk9YvT0GOPBOR35KGCz7R4ow8tBF91zLCmSLFiDrVyGxAc/3wmCjABh23xRimT8f6NjFt77ZezHUMxifqB6Wn+Fj8wOEqZvE2O7iBRz45Oj9r0C6fgbJ77I+H3sKi+X0Jk1f+Z9c1VhkOE8OTCY5aLTt0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772077284; c=relaxed/simple;
-	bh=li3Qjq+vB/+jOVcbQHbXwW4j7Zbqv1M7+Dnm7SrhjdE=;
+	s=arc-20240116; t=1772077286; c=relaxed/simple;
+	bh=mohWYbY9wLh1D3mgX6qgP294pIHbEtzES+tjlmn1e7Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nIxF4RYtndmyb7qj6B30HOLRLTH8VFPE79wsxULSX/zkdriifz/w6giaw6OWSuNuQbEWPE2mrBvwPd1TT3uE6ickbNoe6Px6xR766XDU5prddFb8/G6mX+lIOwTQKh/UXLxznWdusecM5/1uqAggnbJePb8Pmh/favvNqVWnIqE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gNnt1yIL; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version; b=qF5+uS62D4sR3kYZFaJM1X/71vAXbx1ltPioWx+/tsYnnMF3DFyRV4rTqLVzLRg56cIYAYGkc3RCmTqTyM1ADhBJBwE3FaLzwBukMXKbACfjtULOUZaJRXGP2e8Ox4Ki7RvuCNfryrXP0/SrzbqjYA/cd/jwocQuQHpc5arTWqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=E1xtqEgg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gNnt1yIL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3962BC19425;
-	Thu, 26 Feb 2026 03:41:24 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="E1xtqEgg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D43A6C19424;
+	Thu, 26 Feb 2026 03:41:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772077284;
-	bh=li3Qjq+vB/+jOVcbQHbXwW4j7Zbqv1M7+Dnm7SrhjdE=;
+	s=k20201202; t=1772077286;
+	bh=mohWYbY9wLh1D3mgX6qgP294pIHbEtzES+tjlmn1e7Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=gNnt1yILxBGM5PFsqrp/pIPrcxTSN1XIuYdkRuBHTfCoo0y6IoD01uYWeKdT6qv39
-	 WqYpVAo2aSvTl1+FJiqYNZioDcg5ZNeixk7DbOycdikTK2c5PuzuLOWWUxbjVlHsty
-	 Nd0zptVg2t+PZ/YWgCvNfYlsRLYe5xI97nxLNO0fa7J83TtGNPxN20pzPYJwFSCS8r
-	 mXd8ydnp6TBGZLvBDxiqUiUARKw4dXu3R7ZnqJzP88uUCLFcHAlgNhqni+uYT90HN0
-	 H/0Ibk6TrGOJy3b/N1qQhaZAJvgMs562DjggFzQdBrOhKtus354lQvrYF5yY+qODzN
-	 m3AadU/LO60Sw==
+	b=E1xtqEgg0a0z1Enu4uADTeCj6h8GfpVfjrE3dVcEPYapfJoIz9+zkukXCUJBi+mq6
+	 oBW8/8zZiL+epqNnXtlrU1VjHoIGz9pQi2aXqIqajp+2G6duzud/sJNByel5HyZ/HW
+	 bV5GmmU4u7VT8yEo8h2xqipZ2cSVRAgwvTh7Irh81ODeMDFHoMA4fvhZroiVUiAPdu
+	 m11BTnJyFWxaA584Cqakp3KlDo3NMaz5CEwRPCdfa4AJuZ6V+fmYVxtLrOM2a1q2Ea
+	 zqgnPUFrL4WdRzllh75zxKuMSamNKPmd4hRzFYQzUhTL+1/K/tB2c2+S+aZ1TzptVd
+	 tx74aFMYS1L8Q==
 From: Jakub Kicinski <kuba@kernel.org>
 To: fw@strlen.de
 Cc: Jakub Kicinski <kuba@kernel.org>,
@@ -35,12 +35,12 @@ Cc: Jakub Kicinski <kuba@kernel.org>,
 	edumazet@google.com,
 	netdev@vger.kernel.org,
 	pablo@netfilter.org
-Subject: Re: [net-next,3/9] ipvs: use single svc table
-Date: Wed, 25 Feb 2026 19:41:22 -0800
-Message-ID: <20260226034123.1806942-1-kuba@kernel.org>
+Subject: Re: [net-next,4/9] ipvs: do not keep dest_dst after dest is removed
+Date: Wed, 25 Feb 2026 19:41:24 -0800
+Message-ID: <20260226034124.1806970-1-kuba@kernel.org>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260224205048.4718-4-fw@strlen.de>
-References: <20260224205048.4718-4-fw@strlen.de>
+In-Reply-To: <20260224205048.4718-5-fw@strlen.de>
+References: <20260224205048.4718-5-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -54,33 +54,86 @@ email says "FYI"
 
 For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
 ---
-ipvs: use single svc table
+ipvs: do not keep dest_dst after dest is removed
 
-This patch merges fwmark based services and non-fwmark based services
-into a single service table, eliminating the separate svc_fwm_table and
-reducing the complexity of managing two hash tables.
+Before now dest->dest_dst is not released when server is moved into
+dest_trash list after removal. As result, we can keep dst/dev
+references for long time without actively using them. It is better to
+avoid walking the dest_trash list when ip_vs_dst_event() receives dev
+events. So, make sure we do not hold dev references in dest_trash
+list. As packets can be flying while server is being removed, check
+the IP_VS_DEST_F_AVAILABLE flag in slow path to ensure we do not save
+new dev references to removed servers.
 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 074a204ec6db..b5a5a5efe3cc 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 2ef1f99dada6..7c0e2d9b5b98 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+
+[ ... ]
+
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index 4389bfe3050d..394b5b5f2ccd 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -336,9 +336,11 @@ __ip_vs_get_out_rt(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+>  				goto err_unreach;
+>  			}
+>  			/* It is forbidden to attach dest->dest_dst if
+> -			 * device is going down.
+> +			 * device is going down or if server is removed and
+> +			 * stored in dest_trash.
+>  			 */
+> -			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
+> +			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) &&
+> +			    dest->flags & IP_VS_DEST_F_AVAILABLE)
+>  				__ip_vs_dst_set(dest, dest_dst, &rt->dst, 0);
+
+Should this be wrapped in parentheses?
+
+In C operator precedence, the logical AND (&&) binds more tightly than
+the bitwise AND (&). The expression here parses as:
+
+    (!rt_dev_is_down(...) && dest->flags) & IP_VS_DEST_F_AVAILABLE
+
+This works correctly only because IP_VS_DEST_F_AVAILABLE is 0x0001, and
+the logical AND produces 0 or 1, so the bitwise AND with 0x0001 still
+produces the expected result.
+
+Every other check of IP_VS_DEST_F_AVAILABLE in the IPVS codebase wraps
+the bitwise operation in parentheses. For example:
+
+net/netfilter/ipvs/ip_vs_core.c:ip_vs_out():
+    if (likely(dest && (dest->flags & IP_VS_DEST_F_AVAILABLE))) {
+        ...
+    }
+
+net/netfilter/ipvs/ip_vs_conn.c:ip_vs_conn_fill_param_sync():
+    if (unlikely(dest && !(dest->flags & IP_VS_DEST_F_AVAILABLE))) {
+        ...
+    }
+
+Would it be clearer to write this as:
+
+    if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) &&
+        (dest->flags & IP_VS_DEST_F_AVAILABLE))
+
+>  			else
+>  				noref = 0;
 
 [ ... ]
 
-> @@ -1050,10 +1049,7 @@ struct netns_ipvs {
->
->  	/* the service mutex that protect svc_table and svc_fwm_table */
-                                                              ^^^^^^^^^^^^^^
->  	struct mutex service_mutex;
-> -	/* the service table hashed by <protocol, addr, port> */
-> -	struct hlist_head svc_table[IP_VS_SVC_TAB_SIZE];
-> -	/* the service table hashed by fwmark */
-> -	struct hlist_head svc_fwm_table[IP_VS_SVC_TAB_SIZE];
-> +	struct hlist_head svc_table[IP_VS_SVC_TAB_SIZE];	/* Services */
+> @@ -513,9 +515,11 @@ __ip_vs_get_out_rt_v6(struct netns_ipvs *ipvs, int skb_af, struct sk_buff *skb,
+>  			rt = dst_rt6_info(dst);
+>  			cookie = rt6_get_cookie(rt);
+>  			/* It is forbidden to attach dest->dest_dst if
+> -			 * device is going down.
+> +			 * device is going down or if server is removed and
+> +			 * stored in dest_trash.
+>  			 */
+> -			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)))
+> +			if (!rt_dev_is_down(dst_dev_rcu(&rt->dst)) &&
+> +			    dest->flags & IP_VS_DEST_F_AVAILABLE)
+>  				__ip_vs_dst_set(dest, dest_dst, &rt->dst, cookie);
 
-Should this comment be updated to reflect the removal of svc_fwm_table?
-The comment still references both svc_table and svc_fwm_table, but this
-patch removes svc_fwm_table entirely. Perhaps it should read "protect
-svc_table" instead.
-
-[ ... ]
+Same question here in __ip_vs_get_out_rt_v6().
