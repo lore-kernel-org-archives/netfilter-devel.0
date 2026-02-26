@@ -1,208 +1,196 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15F613290A8
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Feb 2026 17:19:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A9344CF55;
+	Thu, 26 Feb 2026 19:25:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772126399; cv=none; b=H8q2Ep/9W/eadt4HZFVoFmNyr2srATiWzSUA8FdQvUFyGY4oCWrL8HKUG/U1wN4ZuW7rukpAQuCOXMjR+yMeJ49VcJrcaooUfphUvj2CuwmfCvDiTBixpBO9Y9tpmwkUFXamAHuYUzHqR+FMFwcielr3bVOXm4/awj7uyxWTO7A=
+	t=1772133949; cv=none; b=Av1Lle/v2HVKuBJsN8Wxyy7ewBDRkSOBL2IBCYDZniCwlNNNPJ/qim7o3SAQQN3aUgmgTkw29TO0A/vTlv0AvG53m8xCR0jSKE7ljN1abhT12vRiu9tCru3qKQ/uT0aTaKkz43FdIxwPaO6vpF2znOzCxjTDGH0hXYUEnFF72kw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772126399; c=relaxed/simple;
-	bh=439dE7sFUE8Ylr/hcP7uv5Gr5kbWRamHCpjN1hMqb0Y=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=m+8AdxFWtyejog7o18fxZcidr/ZoK/5XxbJH85KMr31AEbCiP7/1Ha8iFFCG6sEj7/ZY3XbysY5HPKaqjuknJD3nDFd9pJamb3VNnjQbKifbWcvE7opkTV3YrgT1WV04EXp0tgzNyGaE595BWHRd1mbj2v2sHqmR9KHN8BmbaoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=byF8qcdr; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=CpNI2wOv; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1772133949; c=relaxed/simple;
+	bh=i3wKPYd8EFlc8IZ73L+p7gW+K0o00fx/yJw+0Jptrls=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=ZZPj5BK886Ok3JFCOwIZYa/r65zrWUYXxr/hiZYd5pj6rr3gpd/GCXoNOw61uQgXsis2CXKwKDP1gLsedokz58gLJk9FLjWEJExECZlGUfei6g17J3FbAp4rZSoPon9gRuJw8J96K1DRhq1ks3IbwzDPmyLnYv5reH0cjMYr6Q4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=vwHaHfhU; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="byF8qcdr";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="CpNI2wOv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1772126396;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TquABwgtbOZ5KxkpbEKIOiEEuQnLW+9e9Fgru6e5Tlg=;
-	b=byF8qcdr/knkkoPk73xXlamEJ2pz8ZMmtFPkGGL+nF4fIZ8m+XjxesIfqA/50msoExIS+0
-	oP5zdKSTjEZErU0+qqKjo+p8osHQPXWzCl7pd5RJGEq24SGS2cxXzt3WGmAX4DjcA4XgXT
-	jSWgP41mCkhrbiOljsmKeai6NLxXHwY=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-445-_zrFcqSTPXerX39fHtjjPA-1; Thu, 26 Feb 2026 12:19:54 -0500
-X-MC-Unique: _zrFcqSTPXerX39fHtjjPA-1
-X-Mimecast-MFC-AGG-ID: _zrFcqSTPXerX39fHtjjPA_1772126393
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4806b12ad3fso9398185e9.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Feb 2026 09:19:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1772126393; x=1772731193; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=TquABwgtbOZ5KxkpbEKIOiEEuQnLW+9e9Fgru6e5Tlg=;
-        b=CpNI2wOvlmnrgocQz9Lfk1N0lDohOa+HmGusD8Pcir3iQGKsAxm5cgWU31w/BZKqtV
-         155MKgUGyYHQOm9AjptotsjHTHWNUzwVVWDjMJrsoUYhSewTN4KWUMP9ael3h5veALIl
-         Xz2B7MHkHTnng3fQ2fCqCQN2IuTH94top9hgAEzCU9WhbUkZA2+oD1WZYBn7jvgj2kuU
-         MON3X00R6ClTlwBFKhrSNYDn1I7kL6wy4fNLstfA3va9JbFegbILTZP83Oaf3KVH6LUO
-         96iFRoBEwgrOVZTW+TfkQDBg1bUp2gUAE1BB0qef4fFGekF3QegQP/ItXN5QwiN+Eiuk
-         rjoQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772126393; x=1772731193;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=TquABwgtbOZ5KxkpbEKIOiEEuQnLW+9e9Fgru6e5Tlg=;
-        b=fW5rjNK+XXQdLj1pItFagVQfFhdMQAeWVhGsow/WgaR1xQEg2QE4mVzIn/JEYlh1O/
-         MppPLGirvdc1GawLv3PhkUNeyZmBMg/m+CkAGhFD6xbvINlTn0CKODQr77Bph9HJ/A6t
-         cFz9C4nhGalL1Rzwros2ORnQZsc7zt2gg1qmuL/4h8qR6jlfSXrdrQGBYz6r/t23pitS
-         JeaoKVLreyZ/9OqBAhW7pdKeEfgAhTSvFA6A3FD1uuqGY/palC8M65IkRJE17xLPpzJE
-         cjnVRww8+ltjZ82Vdn4IJVdTC9lSbHT3Hunr4N8cEC8YqnMBs3kREiEB165KLj+LeyMN
-         hvUw==
-X-Forwarded-Encrypted: i=1; AJvYcCUXWmODINxG8A8QNzE9/yys457TVYxD8GenS91CKOA+ONqbzOjikGvwUjSLPALcDo46ub4qcGpehGa3zHpGM0k=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyQIWVGFot83pn1Ia4vfWjVnOaXNX2TMRR/UdgooHHUnQ4+131M
-	mFo7DQTRp0dkgfHOb+dhxWWGL9QtQ75RbhqGzn6yR0owpKb/bfGecvZBB9/2DcK4q3/XuSylijN
-	LEb2xYT1Cwe9elZDPXsDG4KNEpcYAvRi6Dn8ORcpgqp5gwbhNgF/PBG3ub/nPAJ/D6t3flA==
-X-Gm-Gg: ATEYQzw4hatSk7rOl70McnDL1VWu2xIKGaQk/H4cxM7R4yjKhV9/D/jhTy+CEvxM+Hf
-	+bn4705CwppcQDsCTCqr5NbRB6NGDeAsMKIOOcWKGCqFkc44PedTzc0w8psvsWsHi/4JfwKyks8
-	FbRRblFJWP93oLetKH3X+b/ck8ebSMLpOdcXqt922AR53tGsMLWwsj33dP323uPQaosmtG32ER3
-	LiYTgNcjpDAyrisPMKJg/TTqHG/4wFNKh1q28mzgshL1wv2cYujbr4+yq8wueq1cdyLLp/cz1Ft
-	/DBWiWp4gzpLgAYoiBGlIfJejkOshE6SyQqPEzZJ+2GiD4kp1ybawSE16d/p5qXYMv3wsU4DETV
-	PbdcXn4qEshnuXMW+CHGKxA9/og==
-X-Received: by 2002:a05:600c:6217:b0:471:14af:c715 with SMTP id 5b1f17b1804b1-483a95eb550mr327319695e9.3.1772126393344;
-        Thu, 26 Feb 2026 09:19:53 -0800 (PST)
-X-Received: by 2002:a05:600c:6217:b0:471:14af:c715 with SMTP id 5b1f17b1804b1-483a95eb550mr327319095e9.3.1772126392772;
-        Thu, 26 Feb 2026 09:19:52 -0800 (PST)
-Received: from [192.168.88.32] ([212.105.149.227])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-483bfcb4f8bsm104020285e9.4.2026.02.26.09.19.51
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 26 Feb 2026 09:19:52 -0800 (PST)
-Message-ID: <6fd597ff-ab5a-4304-a56d-1a0c9642c194@redhat.com>
-Date: Thu, 26 Feb 2026 18:19:51 +0100
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="vwHaHfhU"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id BAD5C21D4F;
+	Thu, 26 Feb 2026 21:19:57 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=Exe2tq+Qjn8oUB9BaUlHxkZcSCOCRHMqp4FnkJz94AA=; b=vwHaHfhUI3ig
+	HqMDxpDmjZtDDoNUW0vdk5vA1ZUiCEb+TOtFQJWazf0ycFFYQ8ad4mVFYEdwHlMc
+	QHQ3N/MKMKI08qtrpPXAs0VqctHG8vBVhok6snlwBWmH3O4iLTZjVbw8VPDl4JFL
+	jdukUF9LW9PfA6HNUrmfwlFoozuo/YJGu0GsuTXSKn18ECk36j5setNOpLWSxUeH
+	bXD7hEF0t1Nz3Y6WAouOkkurY5oLu7r9S89sPynTMC7XpBEGAROTwxo7sUhv7o7v
+	7AG30BPppCXanbbtBy99fujFEJlGdZP6J77zxb2s+pze8NnINqYR9T7VDUFcAXDF
+	4I/Qx/5+MeOlM1yvXZ2BS7JlAdH274hxSPaOuVu/5lsmvL887TPZ4ho6CDtpepg6
+	jNPzgdR1kbc/CC6ZBYEqCPRyUCIMqGKMgdvI+LFMjMmtj9oEwOGPjnK4XgpRGN4y
+	IM+T5tIRegh0Jo+yp0tQFYthWjVX9B6Xd9k7Sas2EDWRISphDiMNegH4cEqR+vm1
+	THe+Xck2d/VLBFk8/3tS8RJlZroze6tM1/6B80jMFEPEtQ/i0Y70OpFSfbpJRnGJ
+	W3tvNOvYEK+IBLSWK8KLcuTB4iJqZHRtpT5xjWFEQmXzJ3FnN8sajocVjhym0IJF
+	Pr95suJflirl2+2JJaEh3a6DepqRQpk=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Thu, 26 Feb 2026 21:19:56 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 911EA60973;
+	Thu, 26 Feb 2026 21:19:54 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 61QJJhQF062224;
+	Thu, 26 Feb 2026 21:19:44 +0200
+Date: Thu, 26 Feb 2026 21:19:43 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Jakub Kicinski <kuba@kernel.org>
+cc: fw@strlen.de, netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+        davem@davemloft.net, edumazet@google.com, netdev@vger.kernel.org,
+        pablo@netfilter.org
+Subject: Re: [net-next,1/9] ipvs: make ip_vs_svc_table and ip_vs_svc_fwm_table
+ per netns
+In-Reply-To: <20260226034114.1806906-1-kuba@kernel.org>
+Message-ID: <2b88af71-9294-e4a6-968a-cb9b314bc87f@ssi.bg>
+References: <20260224205048.4718-2-fw@strlen.de> <20260226034114.1806906-1-kuba@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [net,2/2] netfilter: nf_tables: unconditionally bump set->nelems
- before insertion
-To: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>
-Cc: Jakub Kicinski <kuba@kernel.org>, edumazet@google.com,
- netfilter-devel@vger.kernel.org, davem@davemloft.net, netdev@vger.kernel.org
-References: <20260225130619.1248-3-fw@strlen.de>
- <20260226035628.1827287-1-kuba@kernel.org> <aaACGbUnAyQiV3ut@strlen.de>
- <aaB0kaSgbnSgVFBE@chamomile>
-Content-Language: en-US
-From: Paolo Abeni <pabeni@redhat.com>
-In-Reply-To: <aaB0kaSgbnSgVFBE@chamomile>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 
-On 2/26/26 5:28 PM, Pablo Neira Ayuso wrote:
-> On Thu, Feb 26, 2026 at 09:19:37AM +0100, Florian Westphal wrote:
->> Jakub Kicinski <kuba@kernel.org> wrote:
->>> This is an AI-generated review of your patch. The human sending this
->>> email says "Is this legit?"
->>
->> Looks legit to me.
->>
->>> For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
->>> ---
->>> netfilter: nf_tables: unconditionally bump set->nelems before insertion
->>>
->>> This commit addresses a race condition where a new element gets published
->>> then removed without waiting for the RCU grace period when the set is full.
->>> The fix moves the nelems increment before insertion and adds cleanup logic
->>> using the abort path to safely unwind the set.
->>>
->>>> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
->>>> index 0c5a4855b97d..834736237b09 100644
->>>> --- a/net/netfilter/nf_tables_api.c
->>>> +++ b/net/netfilter/nf_tables_api.c
->>>> @@ -7171,6 +7171,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->>>>  	struct nft_data_desc desc;
->>>>  	enum nft_registers dreg;
->>>>  	struct nft_trans *trans;
->>>> +	bool set_full = false;
->>>>  	u64 expiration;
->>>>  	u64 timeout;
->>>>  	int err, i;
->>>> @@ -7462,10 +7463,18 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->>>>  	if (err < 0)
->>>>  		goto err_elem_free;
->>>>
->>>> +	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
->>>> +		unsigned int max = nft_set_maxsize(set), nelems;
->>>> +
->>>> +		nelems = atomic_inc_return(&set->nelems);
->>>> +		if (nelems > max)
->>>> +			set_full = true;
->>>> +	}
->>>> +
->>>>  	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
->>>>  	if (trans == NULL) {
->>>>  		err = -ENOMEM;
->>>> -		goto err_elem_free;
->>>> +		goto err_set_size;
->>>>  	}
->>>>
->>>>  	ext->genmask = nft_genmask_cur(ctx->net);
->>>> @@ -7517,7 +7526,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->>>>
->>>>  					ue->priv = elem_priv;
->>>>  					nft_trans_commit_list_add_elem(ctx->net, trans);
->>>> -					goto err_elem_free;
->>>> +					goto err_set_size;
->>>>  				}
->>>>  			}
->>>>  		}
->>>> @@ -7535,23 +7544,16 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->>>>  		goto err_element_clash;
->>>>  	}
->>>>
->>>> -	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
->>>> -		unsigned int max = nft_set_maxsize(set);
->>>> -
->>>> -		if (!atomic_add_unless(&set->nelems, 1, max)) {
->>>> -			err = -ENFILE;
->>>> -			goto err_set_full;
->>>> -		}
->>>> -	}
->>>> -
->>>>  	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
->>>>  	nft_trans_commit_list_add_elem(ctx->net, trans);
->>>> -	return 0;
->>>>
->>>> -err_set_full:
->>>> -	nft_setelem_remove(ctx->net, set, elem.priv);
->>>> +	return set_full ? -ENFILE : 0;
->>>> +
->>>>  err_element_clash:
->>>>  	kfree(trans);
->>>> +err_set_size:
->>>> +	if (!(flags & NFT_SET_ELEM_CATCHALL) && !set_full)
->>>> +		atomic_dec(&set->nelems);
->>>
->>> Does this properly handle the element update path when the set is full?
->>
->> Pablo, why does that check !set_full?  The increment is unconditional,
->> so why is the decrement asymmetric?
->>
->> err_set_size:
->>         if (!(flags & NFT_SET_ELEM_CATCHALL))
->>                 atomic_dec(&set->nelems);
->>
->> ?
+
+	Hello,
+
+On Wed, 25 Feb 2026, Jakub Kicinski wrote:
+
+> This is an AI-generated review of your patch. The human sending this
+> email says "FYI"
 > 
-> I think so, this is a leftover from initial patches that where still
-> using conditional atomic_add_unless().
+> For local reproduction steps see https://netdev-ai.bots.linux.dev/ai-local.html
+> ---
+> ipvs: make ip_vs_svc_table and ip_vs_svc_fwm_table per netns
 > 
-> I'm preparing a re-spin.
+> This commit converts the global IPVS service tables and their
+> associated mutex from global to per-netns, improving lookup
+> performance in large-scale deployments with multiple network
+> namespaces.
+> 
+> > diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+> > index 29a36709e7f3..074a204ec6db 100644
+> > --- a/include/net/ip_vs.h
+> > +++ b/include/net/ip_vs.h
+> > @@ -33,6 +33,12 @@
+> >
+> >  #define IP_VS_HDR_INVERSE	1
+> >  #define IP_VS_HDR_ICMP		2
+> > +/*
+> > + *	Hash table: for virtual service lookups
+> > + */
+> > +#define IP_VS_SVC_TAB_BITS 8
+> > +#define IP_VS_SVC_TAB_SIZE BIT(IP_VS_SVC_TAB_BITS)
+> > +#define IP_VS_SVC_TAB_MASK (IP_VS_SVC_TAB_SIZE - 1)
+> 
+> The patch removes the global mutex definition DEFINE_MUTEX(__ip_vs_mutex)
+> from net/netfilter/ipvs/ip_vs_ctl.c and replaces all usage sites with the
+> per-netns ipvs->service_mutex. However, the extern declaration at line 52
+> of include/net/ip_vs.h is still present:
+> 
+>     extern struct mutex __ip_vs_mutex;
 
-Please note that patch 1/2 as been already applied to the net tree.
+	I have fixes for all these issues in a followup
+patches. Sorry that I forgot to push them to the right
+patch.
 
-/P
+> Since no in-tree code references __ip_vs_mutex after this conversion,
+> should this declaration be removed for consistency?
+
+	It will be removed in a followup patchset, in its patch 3/5.
+
+> 
+> [ ... ]
+> 
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> > index 068702894377..d871273ce917 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> 
+> [ ... ]
+> 
+> > @@ -2306,9 +2282,9 @@ static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
+> >
+> >  	/* look in hash by protocol */
+> >  	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
+> > -		hlist_for_each_entry_rcu(svc, &ip_vs_svc_table[idx], s_list) {
+> > -			if ((svc->ipvs == ipvs) && pos-- == 0) {
+> > -				iter->table = ip_vs_svc_table;
+> > +		hlist_for_each_entry_rcu(svc, &ipvs->svc_table[idx], s_list) {
+> > +			if (pos-- == 0) {
+> > +				iter->table = ipvs->svc_table;
+> >  				iter->bucket = idx;
+> >  				return svc;
+> >  			}
+> > @@ -2317,10 +2293,10 @@ static struct ip_vs_service *ip_vs_info_array(struct seq_file *seq, loff_t pos)
+> >
+> >  	/* keep looking in fwmark */
+> >  	for (idx = 0; idx < IP_VS_SVC_TAB_SIZE; idx++) {
+> > -		hlist_for_each_entry_rcu(svc, &ip_vs_svc_fwm_table[idx],
+> > +		hlist_for_each_entry_rcu(svc, &ipvs->svc_fwm_table[idx],
+> >  					 f_list) {
+> > -			if ((svc->ipvs == ipvs) && pos-- == 0) {
+> > -				iter->table = ip_vs_svc_fwm_table;
+> > +			if (pos-- == 0) {
+> > +				iter->table = ipvs->svc_fwm_table;
+> >  				iter->bucket = idx;
+> >  				return svc;
+> >  			}
+> 
+> [ ... ]
+> 
+> > @@ -2414,7 +2392,7 @@ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
+> >
+> >  		if (svc->ipvs != ipvs)
+> >  			return 0;
+> > -		if (iter->table == ip_vs_svc_table) {
+> > +		if (iter->table == ipvs->svc_table) {
+> >  #ifdef CONFIG_IP_VS_IPV6
+> >  			if (svc->af == AF_INET6)
+> >  				seq_printf(seq, "%s  [%pI6]:%04X %s ",
+> 
+> The conversion to per-netns tables makes 'svc->ipvs != ipvs' always false
+> here in ip_vs_info_seq_show(). Every service in ipvs->svc_table belongs
+> to that netns by construction.
+> 
+> Looking at the patch, similar checks were removed everywhere else:
+> - ip_vs_flush(): removed 'svc->ipvs == ipvs' check
+> - ip_vs_dst_event(): removed 'svc->ipvs == ipvs' check
+> - ip_vs_zero_all(): removed 'svc->ipvs == ipvs' check
+> - __ip_vs_service_find(): removed 'svc->ipvs == ipvs' check
+> - __ip_vs_svc_fwm_find(): removed 'svc->ipvs == ipvs' check
+> - ip_vs_genl_dump_services(): removed 'svc->ipvs != ipvs' check
+> - __ip_vs_get_service_entries(): removed 'svc->ipvs != ipvs' check
+> - ip_vs_info_array(): removed 'svc->ipvs == ipvs' check
+> 
+> But this one in ip_vs_info_seq_show() was left behind. Should it also
+> be removed for consistency?
+
+	It was removed later in patch 3 ("ipvs: use single svc table").
+
+	Comments about patch 3/9:
+
+- svc_fwm_table in comments will be removed in a followup
+patchset, in its patch 3/5.
+
+	Comments about patch 4/9:
+
+- bitwise ops have precedence over the logical ops but as the
+series is already applied we can make it less confusing later
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
