@@ -1,148 +1,177 @@
-Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from s1.sapience.com (s1.sapience.com [72.84.236.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D609043DA42
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Feb 2026 16:30:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.52
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772209812; cv=none; b=CJ3H/lAw+0vnGuIlAlfhrYAjgONDP8aBp3ybMEInf8OMC2NFTjpjJd/4aHCb53Fad8XToAZxaA8lwtmhBWlUCue+fzJqeBwvXYzJ8pJH/mBNwEkoUZnvEbvdWaUILOYelHiNz7hOr2s27cewgkgxbJfPSPdUUjDkTHvJsV19768=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772209812; c=relaxed/simple;
-	bh=gRRzJAYut20vuX+uLpiXEe4mAnxSpcr+TglGWaXxAvo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LwLiDiWyQsvfKJrkVWCntUepIdI0vAsXUXPb0WKjUG0CAJKU389h3+Iz/aRBKkrNDvDIrdiBLNs96Erdj9WnL3OMM+akd02pD9EDSCxIEB9Lg8O8HtAVcndoyni9eRQHjEYA/6wxUI3k0nK3ZWxKRybKoS0RFo4z5Oms0d9IY9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aXPeikX4; arc=none smtp.client-ip=209.85.208.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92573A7F5F;
+	Fri, 27 Feb 2026 18:58:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=72.84.236.66
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1772218735; cv=fail; b=XU458Gcgk8F3exRSUmiXb6iUAV/ma0aKCLDfcsu/H3S+78hhQLQorzO39MWZ1mT1z0Xzf41aD16ESmedn21TB7PzvhutMzNroCx03XvliiUMS9xEfeZOXBVzSrulHehEj8IEIqUDSzW6/HJIRJ9hkZUIUEwJ70cogZib3RhpgMk=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1772218735; c=relaxed/simple;
+	bh=tIYP4+utRzFc1yoc4fWT3Uoem9MLQquNeA6VEEGNMUM=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=mXNGSSdqoHrP77hMUwFZM12wQeupGRCFTXiqnOntkKgHgP6/WbbVboXN+cZlzzbdISHCHI2fYCtOIICfuhFfyK7f0RmEJ7Z6QLmgKBvrqCgd1+mBJt+jq4CLl90QbRwv6judtCNql/YOeDPTzpBsfeyXslAa39bWZ6MuS30K/b8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sapience.com; spf=pass smtp.mailfrom=sapience.com; dkim=permerror (0-bit key) header.d=sapience.com header.i=@sapience.com header.b=j5dI/umw; dkim=pass (2048-bit key) header.d=sapience.com header.i=@sapience.com header.b=KPOXrE//; arc=fail smtp.client-ip=72.84.236.66
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sapience.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sapience.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aXPeikX4"
-Received: by mail-ed1-f52.google.com with SMTP id 4fb4d7f45d1cf-65c01595082so3778278a12.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Feb 2026 08:30:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772209807; x=1772814607; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=+l62BqL9NmRegeedzc1yCU+VeOAMH0TTIRf5fPEPPLc=;
-        b=aXPeikX40VflgBP1DAiWyua+9n4XyyqmLqs+Ueqnty9fQJLNdw5jwl4cR5nuYeP8eM
-         35zJz9Oeo1c6DWREO9eVZNrnvgmjH55i5axVNcq7Al1rmZw9Psr8YyOUUYc/DA923+5r
-         4SZ783P/HKcsHAyOXUpdQOY3BEfA1VQfSKWZk54nKaF+gZ9H1nh4koI+Msco3iUB5+jD
-         IKQ0nH42pH1PnsJIBIDnDxnD57DGzEZfPnQsdiZe8KbDcldA7+LiBcY1S3gIFzdv7QDc
-         OcQ0ULI9rfH6y99fyGJvElaEKjsljhffrmpCv16sduwd731DDDvMhfqAAgh9yuro69IP
-         z9nw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772209807; x=1772814607;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+l62BqL9NmRegeedzc1yCU+VeOAMH0TTIRf5fPEPPLc=;
-        b=bbibVQZH8KOMdzLpkfaARg/Ee9Hq3lvOgyDsBffiuI98E/Fx1iomLyLeYTzo7KG0wX
-         i9iXRnK+YMcvBwJ1Ar10rf5BdPfehYIe3A2Nlf/Loox4JzadQ/9e9aEU4HzJUIztS5iA
-         l5sG6/Ooow6xHT7G/0Lcyj8kfiUn9s0EdPbdeEJyo4A9rZJX7rsJpGKIjRO5UgIOoe6j
-         uCUKlmse7CF50KuZ77x0/vRkuhVTl6/egjMvbUQ/LYGl9+X6pJemzbNBTuejQn/AKd8v
-         l1+WkaLSExNqqw5CIpF90x8/IWe023G8UV0OvDDog0qXmc0J2RXJPUfVqIFCHLtcxa8A
-         KOeg==
-X-Gm-Message-State: AOJu0YwmFLCBmX+R7k9qFGV6FUrgPxs84BnQWqWu5DyceDT/mBP5JySQ
-	Oppa5s9y9Zn8rT5gTfD7mdzMK/oKaOQmi6jzemrOP5S7m2rINiweCjEz
-X-Gm-Gg: ATEYQzyr/465+tKGc8kbnrI4vxGg9FSKeUSUXxh89bxMjDgtIujLkbHi9x33lql11t0
-	3xa20ocdWveAx84VzNNBI8aEfHjMGyLbjerkoklNPNzkd/amzsyJSZunye6C+R4KNGsY+3uUKgc
-	3Wa3/9MR7Je9qUV6svBN8DQ4dnUfh9KDU4XWyizlTe5Csnkbm5EJEiCR5fWGTuFCTl0HuN68SLb
-	yIRJFQzO4h/0n3c73rwCfRWxPNop2Z2W9GkqCIIKvCAZrAILy2fcMF9wR5Scn5w2d983E4l+Lny
-	9VWmfxYH8KvLC4pcYAz3+3HdD6o3CZDY7kpnlDTLeE1jfuwyGUxdNKsU+IRS4Sk73ohtWVUi4P8
-	8JgoO/k13ak1xU29qXhuipbyh2uftxm6f+Ci7cXVcFRYi7iwlpQMrVCTZ364DRMoJygmv3tLlLj
-	PArNRLDjtwnndYBTRb2Y+/pocd1Fcgwyma4VBgLzt00ccILIv6ouiC6JH1Ft+YmmZPQppwbeiS3
-	TGXHxEG3Oa9ol3z9xrO6Ke+VtjKn76jybBjRb/7ndaXWJV1T0lVXM0=
-X-Received: by 2002:a05:6402:2803:b0:65f:aecc:4f17 with SMTP id 4fb4d7f45d1cf-65fddaf6ce1mr1828410a12.21.1772209806611;
-        Fri, 27 Feb 2026 08:30:06 -0800 (PST)
-Received: from eric (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-65fac07c06csm1380458a12.33.2026.02.27.08.30.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Feb 2026 08:30:06 -0800 (PST)
-From: Eric Woudstra <ericwouds@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	Eric Woudstra <ericwouds@gmail.com>
-Subject: [PATCH v2 nf] netfilter: nf_flow_table_ip: Introduce nf_flow_vlan_push()
-Date: Fri, 27 Feb 2026 17:29:55 +0100
-Message-ID: <20260227162955.122471-1-ericwouds@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	dkim=permerror (0-bit key) header.d=sapience.com header.i=@sapience.com header.b="j5dI/umw";
+	dkim=pass (2048-bit key) header.d=sapience.com header.i=@sapience.com header.b="KPOXrE//"
+Authentication-Results: dkim-srvy7; dkim=pass (Good ed25519-sha256 
+   signature) header.d=sapience.com header.i=@sapience.com 
+   header.a=ed25519-sha256; dkim=pass (Good 2048 bit rsa-sha256 signature) 
+   header.d=sapience.com header.i=@sapience.com header.a=rsa-sha256
+Received: from smtp.sapience.com (srv8.prv.sapience.com [10.164.28.13])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384)
+	(No client certificate requested)
+	by s1.sapience.com (Postfix) with ESMTPS id 1312E480A33;
+	Fri, 27 Feb 2026 13:58:53 -0500 (EST)
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=sapience.com;
+ i=@sapience.com; q=dns/txt; s=dk-ed25519-220413; t=1772218732;
+ h=message-id : subject : from : to : cc : date : in-reply-to :
+ references : content-type : mime-version : from;
+ bh=NGbsjSbPcFusC9feVYLBdka34A/NbvkjNOFFBprU3tU=;
+ b=j5dI/umwJRvE/i2mYEz84baWVP6gw0s5oHBIUOhXlig3aqdZ2X7/kiw/1DZBlwK1+bOOx
+ sj+mOz7V99VR45KDw==
+ARC-Seal: i=1; a=rsa-sha256; d=sapience.com; s=arc6-rsa-220412; t=1772218732;
+	cv=none; b=Vmkmt28ffuHrgdL9tYLz4Yu0tOMyJTZvondOy/6FeNOrw3WBB53Kwgx/x0bsTqVU6q9u+VVj3hmbErkbit3yayQERKJrmaUu3rD9Oj7GQBo+cV3+CYBXCwukyG9RigJiSKQ8GUABDQJT7XC0e5dYB8iOrN5z60/9ud1fZp+cImyB/EPpP21PRDkhdfxQHTz0H6T0tzScNRimJ2pNJJdHu/X3Eez8sSEq9nL+oIoFoUAbHQB0Qtcoia/XRyd2mP2faWvDF2LYIcW251wqnv4ySTnlH1BjuVEEqhpcfVXs7s3u3J0aalbcFxag1WUAmHXiu7NAMSMGooDMZRFeMIzz8A==
+ARC-Message-Signature: i=1; a=rsa-sha256; d=sapience.com; s=arc6-rsa-220412;
+	t=1772218732; c=relaxed/simple;
+	bh=tIYP4+utRzFc1yoc4fWT3Uoem9MLQquNeA6VEEGNMUM=;
+	h=DKIM-Signature:DKIM-Signature:Message-ID:Subject:From:To:Cc:Date:
+	 In-Reply-To:References:Autocrypt:Content-Type:User-Agent:
+	 MIME-Version; b=ygquy55Fq+J944SZOgtDzTyNawOcZ93hTXBTqKm+36JlR4Je2Tgz3yrZQDo8grci/3/QYnJpMySB7CohblfGn8BZh/AtpiDpI/BeH+KDuB+ji0KkCr4wQDctSvt6fV497f/gSl8BEAuefW2XSvSwpJZhKDw+qD+UPcXLjv9BVShRrwjY95SjZIJI4SobZ/H2NeOaTvC4H3FE4xHKk+U7wiuCcc+RxBNl4r0gelWohtWgLyIpbKks8GMvFJyRUPc3X2fk3GAeZZLE4ZrBCw7iuHKxW7hgCnyh1LdINfiLAJkMIavGdJ2BRGd9KHXQ6OBU9oM58sQTjbjEohOg4zUewg==
+ARC-Authentication-Results: i=1; arc-srv8.sapience.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sapience.com;
+ i=@sapience.com; q=dns/txt; s=dk-rsa-220413; t=1772218732;
+ h=message-id : subject : from : to : cc : date : in-reply-to :
+ references : content-type : mime-version : from;
+ bh=NGbsjSbPcFusC9feVYLBdka34A/NbvkjNOFFBprU3tU=;
+ b=KPOXrE//6ChLnK3NHal3But3XdsHu5laGeEPVR2qNIgbxVQ572v4KAky3UBG3HKimDgAr
+ U8RN30oS3puLkDE5YoDqWM7/jn0bkfgVL84jE+F9KI92NyhBcC59gIpHF3Uh4g36oDvSVKB
+ gga6lPDNkwio+xX4DSUjFN+BNUbkvxasoGWKTKTRrHdHoXzsE9IUYEPqu3lliy+Dvgfqktk
+ IqJOvS5DqUmufZmhJWyD0L7JtPyJTclsZl4K+Bu2ANNGAyeGAvKTDhAEKeCZk3CJ0eBTp9E
+ G3vDQaQh35PT7YlJh2tGHOM/urt8E3MqpQxcT1Ksd4e5iqLOGy6P5QmHcWhw==
+Received: by smtp.sapience.com (Postfix) id D5FE8280010;
+	Fri, 27 Feb 2026 13:58:52 -0500 (EST)
+Message-ID: <06b6a53bff1a5db07a29dec6441995d97b20cfa5.camel@sapience.com>
+Subject: Re: [REGRESSION] 6.19.4 stable netfilter / nftables -> resolved
+From: Genes Lists <lists@sapience.com>
+To: Florian Westphal <fw@strlen.de>, Thorsten Leemhuis
+	 <regressions@leemhuis.info>
+Cc: linux-kernel@vger.kernel.org, coreteam@netfilter.org, 
+	netfilter-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, 
+ Greg KH <gregkh@linuxfoundation.org>, stable@vger.kernel.org,
+ regressions@lists.linux.dev, "Kris Karas (Bug Reporting)"
+ <bugs-a21@moonlit-rail.com>
+Date: Fri, 27 Feb 2026 13:58:52 -0500
+In-Reply-To: <aaFSOkhkjowYB2YJ@strlen.de>
+References: <a529a6a9a2755d45765f20b58c5c11e2f790eacb.camel@sapience.com>
+	 <45f03b0b-fe8f-4942-bad1-3fbde03d4be1@leemhuis.info>
+	 <aaFSOkhkjowYB2YJ@strlen.de>
+Autocrypt: addr=lists@sapience.com; prefer-encrypt=mutual;
+ keydata=mDMEXSY9GRYJKwYBBAHaRw8BAQdAwzFfmp+m0ldl2vgmbtPC/XN7/k5vscpADq3BmRy5R
+ 7y0LU1haWwgTGlzdHMgKEwwIDIwMTkwNzEwKSA8bGlzdHNAc2FwaWVuY2UuY29tPoiWBBMWCAA+Ah
+ sBBQsJCAcCBhUKCQgLAgQWAgMBAh4BAheAFiEE5YMoUxcbEgQOvOMKc+dlCv6PxQAFAmPJfooFCRl
+ vRHEACgkQc+dlCv6PxQAc/wEA/Dbmg91DOGXll0OW1GKaZQGQDl7fHibMOKRGC6X/emoA+wQR5FIz
+ BnV/PrXbao8LS/h0tSkeXgPsYxrzvfZInIAC
+Content-Type: multipart/signed; micalg="pgp-sha384";
+	protocol="application/pgp-signature"; boundary="=-zm2RUZeaEdy7KEcSo7EL"
+User-Agent: Evolution 3.58.3 
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-With double vlan tagged packets in the fastpath, getting the error:
 
-skb_vlan_push got skb with skb->data not at mac header (offset 18)
+--=-zm2RUZeaEdy7KEcSo7EL
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Introduce nf_flow_vlan_push(), that can correctly push the inner vlan
-in the fastpath. It is closedly modelled on existing nf_flow_pppoe_push()
+On Fri, 2026-02-27 at 09:13 +0100, Florian Westphal wrote:
+> Thorsten Leemhuis <regressions@leemhuis.info> wrote:
+> > On 2/27/26 04:46, Genes Lists wrote:
+> > > I have a problem with nftables not working on 6.19.4=20
+> >=20
+> > Thx for the report. A problem that from a brief look seems to be
+> > similar
+> > ist already discussed and was bisected in this thread:
+> >=20
+> > https://lore.kernel.org/all/bb9ab61c-3bed-4c3d-baf0-
+> > 0bce4e142292@moonlit-rail.com/
+>=20
+> Thanks for this pointer.
+>=20
+> Can someone check if 'git cherry-pick
+> f175b46d9134f708358b5404730c6dfa200fbf3c'
+> makes things work again post 6.19.4?
+>=20
+> Its a missing indirect dependency.
 
-Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
-Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+Summary now that all is resolved.
 
----
+There were, coincidently, 2 separate issues.
+Pure serendipity they happened together.
 
-Changes in v2:
+ a) kernel 6.19.4 netfilter oops [1]
+    which is fixed by  =20
+	f175b46d9134f708358b5404730c6dfa200fbf3c
+=20
+ b) nftables with large sets=C2=A0
+    nft reports spurious error:
+    rule could not be loaded: File exists
+    After which no rules are loaded.
 
-- Targetting nf.git
-- Amended commit message
+    Fixed in nftables git repo by commit:
+    ---
+    commit e83e32c8d1cd228d751fb92b756306c6eb6c0759
+    Author: Pablo Neira Ayuso <pablo@netfilter.org>
+    Date:   Mon Jan 12 12:59:26 2026 +0100
 
- net/netfilter/nf_flow_table_ip.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+    mnl: restore create element command with large batches
+   =20
+    The rework to reduce memory consumption has introduced a
+    bug that result in spurious EEXIST with large batches.
+    ---
 
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 3fdb10d9bf7f..e65c8148688e 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -544,6 +544,27 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
- 	return 1;
- }
- 
-+static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id)
-+{
-+	if (skb_vlan_tag_present(skb)) {
-+		struct vlan_hdr *vhdr;
-+
-+		if (skb_cow_head(skb, VLAN_HLEN))
-+			return -1;
-+
-+		__skb_push(skb, VLAN_HLEN);
-+		skb_reset_network_header(skb);
-+
-+		vhdr = (struct vlan_hdr *)(skb->data);
-+		vhdr->h_vlan_TCI = htons(id);
-+		vhdr->h_vlan_encapsulated_proto = skb->protocol;
-+		skb->protocol = proto;
-+	} else {
-+		__vlan_hwaccel_put_tag(skb, proto, id);
-+	}
-+	return 0;
-+}
-+
- static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
- {
- 	int data_len = skb->len + sizeof(__be16);
-@@ -738,8 +759,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
- 		switch (tuple->encap[i].proto) {
- 		case htons(ETH_P_8021Q):
- 		case htons(ETH_P_8021AD):
--			if (skb_vlan_push(skb, tuple->encap[i].proto,
--					  tuple->encap[i].id) < 0)
-+			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
-+					      tuple->encap[i].id) < 0)
- 				return -1;
- 			break;
- 		case htons(ETH_P_PPP_SES):
--- 
-2.53.0
+    This happens with kernels=C2=A0:
+    - 6.19.4 + netfilter commit f175b46d9134f7
+    - 7.0-rc1
+    - linux-next
+=20
+    It does not seem to happen with older kernels (assuming I=C2=A0
+    did not mess up the testing!)
 
+    I confirmed this 2nd issue is resolved in both=C2=A0
+    - nftables git head and
+    - v1.1.6 plus
+      git cherry-pick=C2=A0\
+       a9ead6a808dbe637ae7b9f54598f0dff9582d34d \
+       e83e32c8d1cd228d751fb92b756306c6eb6c0759
+
+
+thanks all.
+
+gene
+
+
+[1]=C2=A0
+https://lore.kernel.org/all/bb9ab61c-3bed-4c3d-baf0-0bce4e142292@moonlit-ra=
+il.com/
+
+--=-zm2RUZeaEdy7KEcSo7EL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYJAB0WIQRByXNdQO2KDRJ2iXo5BdB0L6Ze2wUCaaHpbAAKCRA5BdB0L6Ze
+20UJAQCk+p3hTfdJNSn2aE7ZTsJe1KU8cUDrmutpcGCcWC7SoQEA6+w8h6gWCcE6
+ZzC1UcYaLqPQ++pib/Q1sm74p0eQGgs=
+=mKho
+-----END PGP SIGNATURE-----
+
+--=-zm2RUZeaEdy7KEcSo7EL--
