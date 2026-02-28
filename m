@@ -1,177 +1,171 @@
-Received: from s1.sapience.com (s1.sapience.com [72.84.236.66])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92573A7F5F;
-	Fri, 27 Feb 2026 18:58:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=72.84.236.66
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B234374751
+	for <netfilter-devel@vger.kernel.org>; Sat, 28 Feb 2026 13:05:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.172
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772218735; cv=fail; b=XU458Gcgk8F3exRSUmiXb6iUAV/ma0aKCLDfcsu/H3S+78hhQLQorzO39MWZ1mT1z0Xzf41aD16ESmedn21TB7PzvhutMzNroCx03XvliiUMS9xEfeZOXBVzSrulHehEj8IEIqUDSzW6/HJIRJ9hkZUIUEwJ70cogZib3RhpgMk=
+	t=1772283931; cv=pass; b=OYtUdAO0g16XKg7ukx4evLC8MYPrWLI9ttQr8WD/cNjXCMtxA0iJl+Yw6o8b/J1NE7R+iOQ4KBV0aD52Uru7+TJYU8eHu4RlVUjRFl1ZPfwUZE22PkSVDr0J1WM/Zf0ZK+5c9rMlY58OyDovUKGhcCwojh2nXBV4EHGPslvaEyM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772218735; c=relaxed/simple;
-	bh=tIYP4+utRzFc1yoc4fWT3Uoem9MLQquNeA6VEEGNMUM=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=mXNGSSdqoHrP77hMUwFZM12wQeupGRCFTXiqnOntkKgHgP6/WbbVboXN+cZlzzbdISHCHI2fYCtOIICfuhFfyK7f0RmEJ7Z6QLmgKBvrqCgd1+mBJt+jq4CLl90QbRwv6judtCNql/YOeDPTzpBsfeyXslAa39bWZ6MuS30K/b8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sapience.com; spf=pass smtp.mailfrom=sapience.com; dkim=permerror (0-bit key) header.d=sapience.com header.i=@sapience.com header.b=j5dI/umw; dkim=pass (2048-bit key) header.d=sapience.com header.i=@sapience.com header.b=KPOXrE//; arc=fail smtp.client-ip=72.84.236.66
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sapience.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sapience.com
+	s=arc-20240116; t=1772283931; c=relaxed/simple;
+	bh=OqozRgE+7Hr2AbFLJnG6hrQ5TWyJLeOE7GLaUeOb7A0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=V/f7icxEFt/+y7AOkCa6qHjUqCGkWb1BveRhaktI0HBWmlXuhPhiX4PRpclDE1H2uTfUDkDs72QlUioIMUGDkeTuTXG3EBFLgQa2xsYky8T0OafyZQE5ElfCrI5JyeOwSRueT3zKHglIOV2oWVIJxkmZsGoO4KF2UzNhSDsrLaI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=LdWYHt/z; arc=pass smtp.client-ip=209.85.214.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=permerror (0-bit key) header.d=sapience.com header.i=@sapience.com header.b="j5dI/umw";
-	dkim=pass (2048-bit key) header.d=sapience.com header.i=@sapience.com header.b="KPOXrE//"
-Authentication-Results: dkim-srvy7; dkim=pass (Good ed25519-sha256 
-   signature) header.d=sapience.com header.i=@sapience.com 
-   header.a=ed25519-sha256; dkim=pass (Good 2048 bit rsa-sha256 signature) 
-   header.d=sapience.com header.i=@sapience.com header.a=rsa-sha256
-Received: from smtp.sapience.com (srv8.prv.sapience.com [10.164.28.13])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange x25519 server-signature ECDSA (secp384r1) server-digest SHA384)
-	(No client certificate requested)
-	by s1.sapience.com (Postfix) with ESMTPS id 1312E480A33;
-	Fri, 27 Feb 2026 13:58:53 -0500 (EST)
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=sapience.com;
- i=@sapience.com; q=dns/txt; s=dk-ed25519-220413; t=1772218732;
- h=message-id : subject : from : to : cc : date : in-reply-to :
- references : content-type : mime-version : from;
- bh=NGbsjSbPcFusC9feVYLBdka34A/NbvkjNOFFBprU3tU=;
- b=j5dI/umwJRvE/i2mYEz84baWVP6gw0s5oHBIUOhXlig3aqdZ2X7/kiw/1DZBlwK1+bOOx
- sj+mOz7V99VR45KDw==
-ARC-Seal: i=1; a=rsa-sha256; d=sapience.com; s=arc6-rsa-220412; t=1772218732;
-	cv=none; b=Vmkmt28ffuHrgdL9tYLz4Yu0tOMyJTZvondOy/6FeNOrw3WBB53Kwgx/x0bsTqVU6q9u+VVj3hmbErkbit3yayQERKJrmaUu3rD9Oj7GQBo+cV3+CYBXCwukyG9RigJiSKQ8GUABDQJT7XC0e5dYB8iOrN5z60/9ud1fZp+cImyB/EPpP21PRDkhdfxQHTz0H6T0tzScNRimJ2pNJJdHu/X3Eez8sSEq9nL+oIoFoUAbHQB0Qtcoia/XRyd2mP2faWvDF2LYIcW251wqnv4ySTnlH1BjuVEEqhpcfVXs7s3u3J0aalbcFxag1WUAmHXiu7NAMSMGooDMZRFeMIzz8A==
-ARC-Message-Signature: i=1; a=rsa-sha256; d=sapience.com; s=arc6-rsa-220412;
-	t=1772218732; c=relaxed/simple;
-	bh=tIYP4+utRzFc1yoc4fWT3Uoem9MLQquNeA6VEEGNMUM=;
-	h=DKIM-Signature:DKIM-Signature:Message-ID:Subject:From:To:Cc:Date:
-	 In-Reply-To:References:Autocrypt:Content-Type:User-Agent:
-	 MIME-Version; b=ygquy55Fq+J944SZOgtDzTyNawOcZ93hTXBTqKm+36JlR4Je2Tgz3yrZQDo8grci/3/QYnJpMySB7CohblfGn8BZh/AtpiDpI/BeH+KDuB+ji0KkCr4wQDctSvt6fV497f/gSl8BEAuefW2XSvSwpJZhKDw+qD+UPcXLjv9BVShRrwjY95SjZIJI4SobZ/H2NeOaTvC4H3FE4xHKk+U7wiuCcc+RxBNl4r0gelWohtWgLyIpbKks8GMvFJyRUPc3X2fk3GAeZZLE4ZrBCw7iuHKxW7hgCnyh1LdINfiLAJkMIavGdJ2BRGd9KHXQ6OBU9oM58sQTjbjEohOg4zUewg==
-ARC-Authentication-Results: i=1; arc-srv8.sapience.com
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sapience.com;
- i=@sapience.com; q=dns/txt; s=dk-rsa-220413; t=1772218732;
- h=message-id : subject : from : to : cc : date : in-reply-to :
- references : content-type : mime-version : from;
- bh=NGbsjSbPcFusC9feVYLBdka34A/NbvkjNOFFBprU3tU=;
- b=KPOXrE//6ChLnK3NHal3But3XdsHu5laGeEPVR2qNIgbxVQ572v4KAky3UBG3HKimDgAr
- U8RN30oS3puLkDE5YoDqWM7/jn0bkfgVL84jE+F9KI92NyhBcC59gIpHF3Uh4g36oDvSVKB
- gga6lPDNkwio+xX4DSUjFN+BNUbkvxasoGWKTKTRrHdHoXzsE9IUYEPqu3lliy+Dvgfqktk
- IqJOvS5DqUmufZmhJWyD0L7JtPyJTclsZl4K+Bu2ANNGAyeGAvKTDhAEKeCZk3CJ0eBTp9E
- G3vDQaQh35PT7YlJh2tGHOM/urt8E3MqpQxcT1Ksd4e5iqLOGy6P5QmHcWhw==
-Received: by smtp.sapience.com (Postfix) id D5FE8280010;
-	Fri, 27 Feb 2026 13:58:52 -0500 (EST)
-Message-ID: <06b6a53bff1a5db07a29dec6441995d97b20cfa5.camel@sapience.com>
-Subject: Re: [REGRESSION] 6.19.4 stable netfilter / nftables -> resolved
-From: Genes Lists <lists@sapience.com>
-To: Florian Westphal <fw@strlen.de>, Thorsten Leemhuis
-	 <regressions@leemhuis.info>
-Cc: linux-kernel@vger.kernel.org, coreteam@netfilter.org, 
-	netfilter-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, 
- Greg KH <gregkh@linuxfoundation.org>, stable@vger.kernel.org,
- regressions@lists.linux.dev, "Kris Karas (Bug Reporting)"
- <bugs-a21@moonlit-rail.com>
-Date: Fri, 27 Feb 2026 13:58:52 -0500
-In-Reply-To: <aaFSOkhkjowYB2YJ@strlen.de>
-References: <a529a6a9a2755d45765f20b58c5c11e2f790eacb.camel@sapience.com>
-	 <45f03b0b-fe8f-4942-bad1-3fbde03d4be1@leemhuis.info>
-	 <aaFSOkhkjowYB2YJ@strlen.de>
-Autocrypt: addr=lists@sapience.com; prefer-encrypt=mutual;
- keydata=mDMEXSY9GRYJKwYBBAHaRw8BAQdAwzFfmp+m0ldl2vgmbtPC/XN7/k5vscpADq3BmRy5R
- 7y0LU1haWwgTGlzdHMgKEwwIDIwMTkwNzEwKSA8bGlzdHNAc2FwaWVuY2UuY29tPoiWBBMWCAA+Ah
- sBBQsJCAcCBhUKCQgLAgQWAgMBAh4BAheAFiEE5YMoUxcbEgQOvOMKc+dlCv6PxQAFAmPJfooFCRl
- vRHEACgkQc+dlCv6PxQAc/wEA/Dbmg91DOGXll0OW1GKaZQGQDl7fHibMOKRGC6X/emoA+wQR5FIz
- BnV/PrXbao8LS/h0tSkeXgPsYxrzvfZInIAC
-Content-Type: multipart/signed; micalg="pgp-sha384";
-	protocol="application/pgp-signature"; boundary="=-zm2RUZeaEdy7KEcSo7EL"
-User-Agent: Evolution 3.58.3 
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="LdWYHt/z"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-2adff872068so14830625ad.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 28 Feb 2026 05:05:30 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1772283930; cv=none;
+        d=google.com; s=arc-20240605;
+        b=WqqxprG/mr+zS14CetQ7Fdt3PzWqdkVzkLUnidxHOAMxHY5j9B4uvHgcxEPSkvPDIb
+         tCtjlXSJtOeJK5Te05ztq2ark5EfbmyOAC6KnGFhK+y7xCTKZSUzuNE4LFV0/XReJfvO
+         h+m6pq9U0BgqcVfIhrP86bpXQvcjQrJuIvLfoSMXuoNmwETCN45ReZ8sKi4sjn8T4OR8
+         LzyyumNdduLPF2GBWVLYkANRl1KfIxA/HxeHuFrIBIgsYliCbMSkIOfwsDJjNN+7SK6w
+         zQUFhgNuxHqaXSwVnI7iNCelhlY3HYOCC2cPBAIzLTk9SrRqaaewO70VnDn1+hz9wF5d
+         ZS6w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=OqozRgE+7Hr2AbFLJnG6hrQ5TWyJLeOE7GLaUeOb7A0=;
+        fh=YrWhaMUpjUro9sHuY5SiVL3Co1ZTxUaIn7IwBGndN30=;
+        b=ihETCmNlLbBW2YDOv2IS5icPT6qt+p2C+//3zu0fvn9oA5Ie0+WDzsyW6PFYqpTtI/
+         Re34Kj9vIhMr6DGvjqjjy7vmRhfNnXW4CMGEV5J9hzXFoVAx9FcJGk8NIc2pbT9Gclvu
+         T7ytc+svDTt6/7M9iD4X7p25YJzxJDc/7xiQf1ubOWaXkTHCUFrpru6NA6uVfLgz0WP8
+         hFZEZlIm8l8+cPrllnCuhMNvn3xUt3IPZoBBiEfQn1y57zzzPqe9R5gf+wkXuE/vxJj0
+         BC25EIl2KKKWaEt9ORrEB6r6Gw3ispmSLNOmx3+iXcSinWQhwcs+pMkMmEn8V1chj2rX
+         1Xyg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1772283930; x=1772888730; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OqozRgE+7Hr2AbFLJnG6hrQ5TWyJLeOE7GLaUeOb7A0=;
+        b=LdWYHt/z7UszWxsjf2OOzfhxDD5y9UTAr37f0eD793Z1/354DhMychY27Dl5AdKmS7
+         0tnSiuN/1u6EHiQ1c7gfR+0qx1vDkgg6y2H5kFW3zv9fwItp3+NzWyV9Jr3PIaI6emgA
+         ni8t0OvdSEAXdImwHwu9QmrpoxYo0kfwZ/ptUW15MfThkPrg+ZbNX9VehwnLynX6cryk
+         7jn4+i2LUJt0hpjkKrXam6FjsGMvWNuIoteW1X6AURnW60TmzuvsWs5qlrVl2Ioh/Ld5
+         ujhzCaGfFVyi6L7z63DNonnNuH/ZC3JhWyjz2VLS8QtXxVZhNnsFDU565TlL/ziwsK+f
+         v8Hg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772283930; x=1772888730;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=OqozRgE+7Hr2AbFLJnG6hrQ5TWyJLeOE7GLaUeOb7A0=;
+        b=ppxTzkVM0dEe6oW+/DboGd2Fny5omoBtPmt4smr4C/O9BiM8mvQK1LYuvOl/tjP7N/
+         8l7fyHrn3LxaVuDEFH5Q5ah1RZRqtAuFzo8gBt/mX14LxJQB9A6QTumr1SM2tTWy4gzy
+         9Ne8lqbT+DYtHQqUQWdcEsirRKrKGmhW4lKJ4oi9nqP5VT646q0azVkABbyewr/rXg5O
+         nACYFAouC4v4K3TxXDuHtnfFumOO462r7zQjQT45BS2nGaSe+U7nE5e7CiRD224ckv5y
+         6YlJEH5eKj0XjGluR55vK+pjUsliQODyrOyE/7WIAhHe1caqBASzPIEuuLV6n644egn5
+         ueUQ==
+X-Forwarded-Encrypted: i=1; AJvYcCURmyFflG1eGSnytLNEJxEIYuAFkbEhCV0ajV/nfonjqXDEPwTI4GBUi0Bnp5LweoAlI6lv+VoM0RUV7Morg1s=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyhKq2r2Yyw0qCcHgzPZn/qWeaoZQgRcRwyWuZUnlHRXGnPuMWZ
+	UAyG5er7Dj8Pu5ge/F94nsVXf9inWqL4xXjuOH5G+W3PQn3Dk5uXvl8V9O59eoZPoVkOM0TEM4E
+	U5WZsWiofiLsr+hH78rmLXBA26luCXD0iqQWZMHf+
+X-Gm-Gg: ATEYQzwBryCz9n4DuXkCcBYtYbsUn5GNJPyS2gZ1imDjQnh5gBD6Z64qE5YCPuF7h2P
+	DnYhQO20LnMK9bkvhRwzbIeGRjTz+eV2RHX+FFU7TbqLEEXrKsw/TloFFYEp2HNcF88BpjtkBFC
+	zgpZtz4idqArYX7/BRBAndPBrudp7jGRu+pYgSi4wjolLaGICdd5II/ecsOrSpW0hRMlf6o7pe7
+	neg4WZq081kh8fzL3IGWOSsr0l+wO3bE0ScmSMWp430Kc2eD9IP5zW2E4Rd03EWQuv5xdg2EecG
+	T27PuHXn0Y0grv/4mogY8vqC/A==
+X-Received: by 2002:a17:902:cf0f:b0:2ad:99bb:3129 with SMTP id
+ d9443c01a7336-2ae2e4e8d73mr54637665ad.50.1772283929489; Sat, 28 Feb 2026
+ 05:05:29 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-
-
---=-zm2RUZeaEdy7KEcSo7EL
+References: <20260111163947.811248-1-jhs@mojatatu.com> <d42f0c80-e289-4e0f-8608-10580d315fd9@redhat.com>
+ <CAM0EoMkFMURPj3+gNOaqO60D4deeht2F3EZWZbmShjO+B4wJBA@mail.gmail.com>
+ <CAF=yD-Jah3+1Sj3-Us72fKNu-__sg7pNb+-kC_knAV=iTHAitQ@mail.gmail.com> <CAM0EoMmAQ8RvHRmyEeMwehhNe0yXzn8NU5UvwitzAoL3cwVPqg@mail.gmail.com>
+In-Reply-To: <CAM0EoMmAQ8RvHRmyEeMwehhNe0yXzn8NU5UvwitzAoL3cwVPqg@mail.gmail.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Date: Sat, 28 Feb 2026 08:05:18 -0500
+X-Gm-Features: AaiRm50J7n10K1tJc5XtV8aE3FRKjaSqWroTN1RyVqgLAaiRSaTEaJr15HC97dA
+Message-ID: <CAM0EoMmXq67kso-n_+Y6sCMhJkkiE8b0R1Kn-d0rLb_X=ALV3A@mail.gmail.com>
+Subject: Re: [PATCH net 0/6] net/sched: Fix packet loops in mirred and netem
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc: Paolo Abeni <pabeni@redhat.com>, davem@davemloft.net, edumazet@google.com, 
+	kuba@kernel.org, horms@kernel.org, andrew+netdev@lunn.ch, 
+	netdev@vger.kernel.org, jiri@resnulli.us, victor@mojatatu.com, 
+	dcaratti@redhat.com, lariel@nvidia.com, daniel@iogearbox.net, 
+	pablo@netfilter.org, kadlec@netfilter.org, fw@strlen.de, phil@nwl.cc, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
+	zyc199902@zohomail.cn, lrGerlinde@mailfence.com, jschung2@proton.me, 
+	Stephen Hemminger <stephen@networkplumber.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 2026-02-27 at 09:13 +0100, Florian Westphal wrote:
-> Thorsten Leemhuis <regressions@leemhuis.info> wrote:
-> > On 2/27/26 04:46, Genes Lists wrote:
-> > > I have a problem with nftables not working on 6.19.4=20
-> >=20
-> > Thx for the report. A problem that from a brief look seems to be
-> > similar
-> > ist already discussed and was bisected in this thread:
-> >=20
-> > https://lore.kernel.org/all/bb9ab61c-3bed-4c3d-baf0-
-> > 0bce4e142292@moonlit-rail.com/
->=20
-> Thanks for this pointer.
->=20
-> Can someone check if 'git cherry-pick
-> f175b46d9134f708358b5404730c6dfa200fbf3c'
-> makes things work again post 6.19.4?
->=20
-> Its a missing indirect dependency.
+()
+Sorry, I was busied out so dropped the ball on this one...
 
-Summary now that all is resolved.
+On Thu, Jan 29, 2026 at 4:22=E2=80=AFPM Jamal Hadi Salim <jhs@mojatatu.com>=
+ wrote:
+>
+> On Thu, Jan 29, 2026 at 12:06=E2=80=AFAM Willem de Bruijn
+> <willemdebruijn.kernel@gmail.com> wrote:
+> >
+> > On Thu, Jan 15, 2026 at 6:33=E2=80=AFAM Jamal Hadi Salim <jhs@mojatatu.=
+com> wrote:
+> > >
+> > > On Thu, Jan 15, 2026 at 5:23=E2=80=AFAM Paolo Abeni <pabeni@redhat.co=
+m> wrote:
 
-There were, coincidently, 2 separate issues.
-Pure serendipity they happened together.
+[..]
 
- a) kernel 6.19.4 netfilter oops [1]
-    which is fixed by  =20
-	f175b46d9134f708358b5404730c6dfa200fbf3c
-=20
- b) nftables with large sets=C2=A0
-    nft reports spurious error:
-    rule could not be loaded: File exists
-    After which no rules are loaded.
+> > > > Generally speaking I think that a more self-encapsulated solution s=
+hould
+> > > > be preferable.
+> > > >
+> > >
+> > > I dont see a way to do that with mirred. I am more than happy if
+> > > someone else solves that issue or gives me an idea how to.
+> >
+> > It might be informative that there used to be a redirect ttl field. I
+> > removed it as part of tc_verd in commit aec745e2c520 ("net-tc: remove
+> > unused tc_verd fields"). It was already unused by that time. The
+> > mechanism was removed earlier in commit c19ae86a510c ("tc: remove
+> > unused redirect ttl").
+>
+> True - we used to have 3 bits, but we can leave with two;
+> Unfortunately, a single bit won't work - otherwise we could have just
+> used the one available.
+> Only one bit was available, so we recouped another (skb->from_ingress)
+> and adapted it to use the tc cb struct.
+> There is still a chance that could cause issues - all the users of
+> this field were CC'ed and i was hoping they would respond.
+>
 
-    Fixed in nftables git repo by commit:
-    ---
-    commit e83e32c8d1cd228d751fb92b756306c6eb6c0759
-    Author: Pablo Neira Ayuso <pablo@netfilter.org>
-    Date:   Mon Jan 12 12:59:26 2026 +0100
+And indeed reclaiming that bit is problematic. So the AI didnt catch this ;=
+->
+Stephen, see if you can improve your prompt to catch this in the
+future. Should be noted this would be nice to include as well in the
+netdev type AI to catch cb stomping bugs. Turning skb->from_ingress
+into an skb->cb field is problematic because the bit gets written way
+before we hit tc. First the mlnx driver writes it in
+mlx5e_tc_int_port_dev_fwd() and then the GRO code trumples over it. So
+by the time it gets to tc it could have an arbitrary value. So I guess
+our overlords are not ready to take over ;->
 
-    mnl: restore create element command with large batches
-   =20
-    The rework to reduce memory consumption has introduced a
-    bug that result in spurious EEXIST with large batches.
-    ---
+> > The IFB specific redirect logic remains (tc_at_ingress,
+> > tc_skip_classify, from_ingress, redirected). Maybe some of those bits
+> > can be used more efficiently. The cover letter for commit aec745e2c520
+> > had a few suggestions [1].
+> >
+>
+> Using the iif check against netdev feels a bit "dirty," but if there's
+> a strong view that it's okay, we could liberate that bit (some testing
+> needed) and in that case i would leave skb->from_ingress alone.
+>
 
-    This happens with kernels=C2=A0:
-    - 6.19.4 + netfilter commit f175b46d9134f7
-    - 7.0-rc1
-    - linux-next
-=20
-    It does not seem to happen with older kernels (assuming I=C2=A0
-    did not mess up the testing!)
+Let me try to reclaim skb->tc_skip_classify first and see if that
+causes any issues.
 
-    I confirmed this 2nd issue is resolved in both=C2=A0
-    - nftables git head and
-    - v1.1.6 plus
-      git cherry-pick=C2=A0\
-       a9ead6a808dbe637ae7b9f54598f0dff9582d34d \
-       e83e32c8d1cd228d751fb92b756306c6eb6c0759
-
-
-thanks all.
-
-gene
-
-
-[1]=C2=A0
-https://lore.kernel.org/all/bb9ab61c-3bed-4c3d-baf0-0bce4e142292@moonlit-ra=
-il.com/
-
---=-zm2RUZeaEdy7KEcSo7EL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYJAB0WIQRByXNdQO2KDRJ2iXo5BdB0L6Ze2wUCaaHpbAAKCRA5BdB0L6Ze
-20UJAQCk+p3hTfdJNSn2aE7ZTsJe1KU8cUDrmutpcGCcWC7SoQEA6+w8h6gWCcE6
-ZzC1UcYaLqPQ++pib/Q1sm74p0eQGgs=
-=mKho
------END PGP SIGNATURE-----
-
---=-zm2RUZeaEdy7KEcSo7EL--
+cheers,
+jamal
