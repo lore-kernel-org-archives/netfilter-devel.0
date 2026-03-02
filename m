@@ -1,111 +1,91 @@
-Received: from mail-lj1-f181.google.com (mail-lj1-f181.google.com [209.85.208.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F551175A89
-	for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2026 16:05:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98CC4426EBF;
+	Mon,  2 Mar 2026 17:41:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772467548; cv=none; b=Ad7XVTIxEWM7OPm5Xbe1Jtk0jtEqWLsQPbzdQpsMht8goU9RL3zanWEqYeb3itWWS5jcfjDnn2yVCf0dqO+tFliHQYDerrf/XAP/0Ms/eL7NuOWACMg/vLhJCdCsGxUaBz5FOU3jVMUAyuhKlaywbbxSepOVz8wdvZaW0rm+Nco=
+	t=1772473310; cv=none; b=CL3MYcfSSMLSciJQJ0AwhNTuKXxwsQ/2KUOL7XOmudC1KiI3qIYe7LfDGruQ4alSuo9Mqc1rTspkHG4u5IoosZ6e3i3NjMCWApZR5JgG9fCT96MFASVdj0lR/yum21Z/j3gwhYXFmJAuzl74sOHdn8AOstALBcdg9I9Yl+/mExA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772467548; c=relaxed/simple;
-	bh=KXBlLdsSABz7BwvMOI5DXgSj7zeiYnuFwRrrtdYPGGM=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=qSgAo/ADwDGfEQ812D1acb3XyVdyYCzjZZGRjgUYJUUAFYyfOdTOqXhSFts3V8Y1sf9qRvenzRH23k+Nwqp7ZLMkkeKiCjlsRcp+EMuSU6foEHwu405JLq1WC98TAQbp81rMSLTeY6hCIOxDRzRFAY35XULF7nPyMb8AdPEwBqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nQ6pL0j5; arc=none smtp.client-ip=209.85.208.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1772473310; c=relaxed/simple;
+	bh=4x4OAhzJKP3sJc7ALpsYHrOzDmkL/HbZ1wuO1OoMpIw=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=AC1grDftjXJr7vHRFrSTmENXx6ywNnYtT7nNyk8XJqcwRDdeBPxPcFThtUO6kyMHhiEFKjzEh9P6g7DK0XybL+yfxUuS35/VpyQHuWQP30uune7be72DkTePANmemqmPtnxKOUp+446CNTKaYmxGPpFPo7LUXv53En0wpdKnApo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=7ltGiybD; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nQ6pL0j5"
-Received: by mail-lj1-f181.google.com with SMTP id 38308e7fff4ca-389f933034cso60220281fa.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Mar 2026 08:05:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772467545; x=1773072345; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=KFW5wh5vekmY9Ki6mE60YsBw5N4zJvJ0KF42qLg3aJA=;
-        b=nQ6pL0j5bCQAPvhq+4HdqNXmZolRfPoH/6+0O3lhssD3nlQgYVzWLzFtfwMO1KF9xS
-         /0TjKBvASTsb6Dhbg2st59RbRBeFiqLaBn7RRKhBlleXTtRgHIaINnM5o3BXc8n9glVW
-         oK8xCnqd8npL83KqptnMHmUjl2fd5KDbdl0qCDqAlVGMY6CSHy4ckgz+da8scsshNqEW
-         9uzKkW4+ZC2fIMOsvBy4WfnTendX9Fh71whoj5I7AOdygegR614/n+l19Y0YhRb6pVbx
-         z1uHyz3daEg0J3jJCbZNJyU8BCt4q6GhHHWrVKADZe7SqI+pfp/CfbgHi44i73mhC9aY
-         Lhcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772467545; x=1773072345;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=KFW5wh5vekmY9Ki6mE60YsBw5N4zJvJ0KF42qLg3aJA=;
-        b=P7JKwqG/El8HlVILVJXgAUioNC8ausT5gGBzfSzZFK/gOzw3ewmy+7ND3DCjCB2KBy
-         mpJzkjwt5StFPJMUQP+Yc1LqtKa+bxQsrx28XaaydWBuX6ToBMNS8m5WVFVfUcGdRea7
-         78u09CXzwQEEg1eAXi8mPagHC+ESDQxvg9h92yfYn3Zl8Zapshb05TFzFNqEvOSZhVg6
-         /hbDLMG/TROrU9T/p+N82rqGKx9+D0+HaZKqWKe54mILm131QiiakInD/If7CsFNSNHT
-         3vz8zEYj9OvtdAq3Kq6dmtSgcLL+no1WO4MI9CrnuG6jyoKuYiLgghYHa0mIAaKsuuvC
-         +tVA==
-X-Gm-Message-State: AOJu0YxHFcXB6drdzToNwZBpUyt5TrFmR3FceytWb+Yew7hW3PbpCf9P
-	4W4FinB1hngOzkrzdIfUefPrxwza8U7od2VKm1ya8KSBJvq83zdauaiqMtNfnA19
-X-Gm-Gg: ATEYQzw2rRa9BbsPAU7KYHDqbQgzUisQz7Sul8Sx/6RObQsXRdbLEa1/onOVYpIjvUZ
-	9Gxx565xXzWIYoADCwu4ri8sUp0gh4ynyHZfusX9IzgHOZ8ZWjF05GQDJ1vf1povkS103XCFkjZ
-	CUbjERTD5LvmuO372U7msETm2DAXhEeFq0JGPA+NPnQv8+lJhE+snQ8MuMnM0ZYQRU9V8KNl5ZU
-	lV3vzVO4/LsoSnfbFcrdi7i6tGVSXpHX81KhxgdvSGMDLRCndhiD/IIAhRo7Vt9JhL3oBO6KkPC
-	rU/yWK0hokPtO/IrXm6QrRtfFBGVu3ZWxZKD19yZA4FuyjMkVxXqBIHrFqwWcWCeYE9jGVjm6AY
-	4a/R7Gf2XmhxQwHq7CWu410evpgMvEAlR251FVlZra/Fuj7ODpw/9qqGkc2PvnBw/Y4M/g55arX
-	B9FRLiZ2pWL1Fb2lFlPD1tr2L0DuOYTWu/MgyTfr6k+7XfAu2MYhXu6erDPuebF2hHk7Wy2mpG6
-	3ZLP1KtR5lVM95oJo5A72sAvbkC6oJknFw=
-X-Received: by 2002:a05:651c:388:b0:383:1232:379a with SMTP id 38308e7fff4ca-389ff118f5fmr63504081fa.2.1772467544790;
-        Mon, 02 Mar 2026 08:05:44 -0800 (PST)
-Received: from lnb0tqzjk.rasu.local (109-252-125-213.nat.spd-mgts.ru. [109.252.125.213])
-        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5a122e05d97sm38582e87.43.2026.03.02.08.05.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 02 Mar 2026 08:05:44 -0800 (PST)
-From: Anton Moryakov <ant.v.moryakov@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	Anton Moryakov <ant.v.moryakov@gmail.com>
-Subject: [PATCH] rule: fix NULL pointer dereference in do_list_flowtable
-Date: Mon,  2 Mar 2026 19:05:39 +0300
-Message-Id: <20260302160539.248755-1-ant.v.moryakov@gmail.com>
-X-Mailer: git-send-email 2.39.2
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="7ltGiybD"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 6F19221D44;
+	Mon, 02 Mar 2026 19:41:37 +0200 (EET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=tm5CAASlYPDcu2sptEbMOYs1+WZDl2Pn80TUBqPNElE=; b=7ltGiybD6d4v
+	aBZAsV2o24yC9c2v53EsIEuU9RHZJp77PElPyc+lbgOVUX/l2D+Dp0vwmQa4xg9h
+	JA5EnjLXn4B4hfRe6CGD3/7YjbRB5p3mgcV2ye8acpUHx5YdVDJ4QbYAlsMLxySJ
+	mVrIOcRnazK3DJqp0/AqReqWhP7OtalA9pPUz+l8lWt4U2DV9sys9WkKMP8sQ2QG
+	w8nlAgSywWDp0A2FFY3wu321XJDo9RvI1w9hrlFbQ7fOlMfnTqT9OaSOZK5lewbp
+	fxmaaQJcaSCmg1qWfBrQ0Fq4JJNN/5Bm68hT6NTDUgTQoUJ9AUiqlAnGQh0Yuc9d
+	HO8ZUPpHmG0r0ZVSZYwqvP8W0gw1tj8cuHUTUmKuACAemHCYoV+wi+7qnQ3dwhX1
+	/KBbfAUpD2nL3+XKzSwri7p1GCTUd/PixESjncIk5cmVDUxqKF8Ec5uYvOZGVevZ
+	UJTOIC7KEFP6EOkT2TwR+kH6+B4DpaRF0h68gVSps6rHRQRqD3y7vDBEF/yEvqM1
+	RtxVBLpKsqxnPoGBmYiNRRETGUz6gzPajFVZ/n9F+IOnJouH+B3rpm/ztxrDM/QY
+	rVv1OjorcVShoS1UE2fiwZeY92EPem5l7V4k/Il5D+t0ZfB3WMAtHcbLP04HZpGu
+	HvYGtMB0xBSTG+R+9jlNFgOWAX1HtpU=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 02 Mar 2026 19:41:36 +0200 (EET)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 55EF96086F;
+	Mon,  2 Mar 2026 19:41:34 +0200 (EET)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 622HfLMJ073133;
+	Mon, 2 Mar 2026 19:41:22 +0200
+Date: Mon, 2 Mar 2026 19:41:21 +0200 (EET)
+From: Julian Anastasov <ja@ssi.bg>
+To: Florian Westphal <fw@strlen.de>
+cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+        Dust Li <dust.li@linux.alibaba.com>,
+        Jiejian Wu <jiejian@linux.alibaba.com>, rcu@vger.kernel.org
+Subject: Re: [PATCH nf-next 2/5] ipvs: add resizable hash tables
+In-Reply-To: <aaQ955aj9ONBe695@strlen.de>
+Message-ID: <8cb40028-50ed-b646-ecd7-9ab47e9ba38f@ssi.bg>
+References: <20260226195021.64943-1-ja@ssi.bg> <20260226195021.64943-3-ja@ssi.bg> <aaQ955aj9ONBe695@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-Static analysis found a potential NULL pointer dereference in
-do_command_list() when handling CMD_OBJ_FLOWTABLE.
 
-If cmd->handle.table.name is not specified, the table pointer remains
-NULL after the cache lookup block. However, do_list_flowtable() expects
-a valid table pointer and dereferences it via ft_cache_find().
+	Hello,
 
-This is inconsistent with other object types (CMD_OBJ_SET, CMD_OBJ_CHAIN,
-etc.) which require a valid table for single-object listing.
+On Sun, 1 Mar 2026, Florian Westphal wrote:
 
-Add a NULL check before calling do_list_flowtable() to prevent the
-potential crash and return ENOENT error, consistent with existing
-error handling patterns.
+> Julian Anastasov <ja@ssi.bg> wrote:
+> > +/**
+> > + * ip_vs_rht_for_bucket_retry() - Retry bucket if entries are moved
+> > + * @t:		current table, used as cursor, struct ip_vs_rht *var
+> > + * @bucket:	index of current bucket or hash key
+> > + * @sc:		temp seqcount_t *var
+> > + * @retry:	temp int var
+> > + */
+> > +#define ip_vs_rht_for_bucket_retry(t, bucket, sc, seq, retry)		\
+> 
+> This triggers a small kdoc warning:
+> 
+> Warning: include/net/ip_vs.h:554 function parameter 'seq' not described in 'ip_vs_rht_for_bucket_retry'
 
-Signed-off-by: Anton Moryakov <ant.v.moryakov@gmail.com>
----
- src/rule.c | 4 ++++
- 1 file changed, 4 insertions(+)
+	Will fix it, thanks! Just let me know if more comments
+are expected before sending next version...
 
-diff --git a/src/rule.c b/src/rule.c
-index 8f8b77f1..0c3372ba 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -2655,6 +2655,10 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_TUNNELS:
- 		return do_list_obj(ctx, cmd, NFT_OBJECT_TUNNEL);
- 	case CMD_OBJ_FLOWTABLE:
-+	    if (!table) {
-+        	errno = ENOENT;
-+        	return -1;
-+    	}
- 		return do_list_flowtable(ctx, cmd, table);
- 	case CMD_OBJ_FLOWTABLES:
- 		return do_list_flowtables(ctx, cmd);
--- 
-2.39.2
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
