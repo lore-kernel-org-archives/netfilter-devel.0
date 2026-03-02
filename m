@@ -1,155 +1,214 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED26B390995;
-	Mon,  2 Mar 2026 22:19:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3D413909AB
+	for <netfilter-devel@vger.kernel.org>; Mon,  2 Mar 2026 22:28:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772489946; cv=none; b=lN7Uy18fkKjXPY5CJ+5Y75KmMIse+22hvo4WsOdEPcqft1pNHy5QPZjC8wAy3y8+tVRO0Et6VjaCchE9mfotDltCzQxkhEDWwCIzfIeCnMSW9O+xB9386p5idIh4wW/toEGP4tnMsaq6i1d72ZeVkIuYyAXSNJd0r5A6Qn5xtmk=
+	t=1772490503; cv=none; b=YkRPe1XHkOzCmP6huh5m11l5ZpZ2nvVB2Tblylywlw7TJJxVuRDiNgdW7HPRViqMYeKnf+Vl81ZqM7DMq+8iwEan8b32kcCyGtfVTT4P94wOENb/ejXEOCwIDQqquqQLF6PjUGU2s04bUB/bTHyFl35l+jakGc2aRCTPoe/XX2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772489946; c=relaxed/simple;
-	bh=wrl1B5CtaEn2yLVWSxGWi505RYTBrAT8skDredTeNic=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=WrZVq9KW7cjgHLz7eBGn9L6M2pHEdiXQ9WV9qrJuBxf0BMML3psaKhJTgbd+mgVE2Tpbrfy45dlGkl/XNnizhDQrStA2MMDzEMVtyNfdxFtahSnGHeHSWcTawMpXB/4yBa9j23uiVtSakdeWYFDybRb525+QRcsBpwSO9wRcFX4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=TrlFBhfu; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1772490503; c=relaxed/simple;
+	bh=PTtTBW1SK7d2blurIpbS510wVy4cHwHwXkQbrlLMTAk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Krg9OZh5sGY52DxbNEIQYJHrrfiz4oN/SFnpPwfXqSlQpiklG0yZM2Ng8V7IvHAgOymV70bwbDmn+Gc5VNzMl5YTmbrAXxwc52XlIm3/4v4JEQZUptRTjXnEbZdk81r7uEyBn5Rd5BODlEixOP/UX1e9qiO0w84qzDg24Dw37fA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YsUcMTJL; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="TrlFBhfu"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 393DF21D41;
-	Tue, 03 Mar 2026 00:18:59 +0200 (EET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=K2BjrCkn+3/4tdZXjXw5Du9tfAcXbUOI6+MIG9XakAM=; b=TrlFBhfuYihB
-	JHuo1QlOX0ZCeQnbu63mb+8VmDkct0q7QjGwT+Zo1L+WAWCfSdtq+6CvnjctNRCw
-	zHyvQDjKqtgaqI8Qrabz3GWpupvyRR7gGRepTXgTSfr5XKjlbVyFMlh2bEQbJdOe
-	EyD9VXI4jc/wjE3ncvOk9bMH2ANHaaOiPdnQxIVeEhAI5zROloGe6DkLRCnIg9vb
-	/a3lX8bxOuxxdUuFFLgzB2PwxwkwVUqbYq65JaOiWfsW5mXdx+3AA52NTbU80eAl
-	+W5gV2SEEeZc3UZDA3LJdHrN9+IhJQxI8DW36qrecCitoo+MvED460INEKXyHNQt
-	XMJsCgwVtQ3KPkvxp3UDgdXOe32qp2I2q0+Q60zh9P9lkqnvs9diBZCag1Rf3jJd
-	1tfLePheFixRm5Qrod+Q0V2N8Ll7++zVQvbWxoDGDzp1fBsISnu3H8XPy9Okqz0y
-	ZRRk6heakXUqROMmuyhzwuHC0LiHm04q21YYWRmZLQmCGTEDKtaBHbHu0D4iPbC6
-	Fji3MztASbajh1LhC6YSLKvYgpPjIk3UyKymcfWC9OMw6RvvlcMdnMajLx9nA/8g
-	I7UGk8SBO3ERgs7X6XH0oPNk6gHA706/lLGjmKH6TRfDuIyoIvvXwjd1hHInQudZ
-	t0dwkRaUMV3TjsBjvZG8tml9d3cDTJU=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Tue, 03 Mar 2026 00:18:57 +0200 (EET)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7C092608AE;
-	Tue,  3 Mar 2026 00:18:56 +0200 (EET)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 622MIq4E100229;
-	Tue, 3 Mar 2026 00:18:52 +0200
-Date: Tue, 3 Mar 2026 00:18:52 +0200 (EET)
-From: Julian Anastasov <ja@ssi.bg>
-To: Florian Westphal <fw@strlen.de>
-cc: Simon Horman <horms@verge.net.au>, Pablo Neira Ayuso <pablo@netfilter.org>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        Dust Li <dust.li@linux.alibaba.com>,
-        Jiejian Wu <jiejian@linux.alibaba.com>, rcu@vger.kernel.org
-Subject: Re: [PATCH nf-next 2/5] ipvs: add resizable hash tables
-In-Reply-To: <aaXiPAI5mcHAt385@strlen.de>
-Message-ID: <f1780ae2-5b62-d898-952a-3f779a91ad38@ssi.bg>
-References: <20260226195021.64943-1-ja@ssi.bg> <20260226195021.64943-3-ja@ssi.bg> <aaQ955aj9ONBe695@strlen.de> <8cb40028-50ed-b646-ecd7-9ab47e9ba38f@ssi.bg> <aaXiPAI5mcHAt385@strlen.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YsUcMTJL"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id BEC4E6026D;
+	Mon,  2 Mar 2026 23:28:19 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1772490500;
+	bh=+1wnru9/+otH/YXGvm8KrCFKjW9/SzcKHtyH6e9TrVY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=YsUcMTJLqXkoPsNJM92nORMgyHiTwBo5zGf5WbrcpIVfNbkBAopgcqrqCLOXDl4LG
+	 IZlIGtHWAPI43Q0zSNFAMNuM5j5difKOpyWBe7+6IN0T/KKmeIT2NZ/eouqMTYBq9e
+	 g2vpI1h78MvCh4uY6gZKr85Ad/88Aw65vDXlEwxvX/QtlRftrWar1cMm4RIpTCqNtY
+	 7x2IUNVkdIgUVLRAJ7O1RYoXFVwXnHYOmfCwGvczic64hvU3RlP1v2GbZ8QMP3l9rU
+	 ScJKtVdCjDFbEl1YLQFYHZP3IX3MQNbifYYJYr5ABU8NCtbJHWvLG7DlCyoIfOvBBA
+	 H5U/u0CzJ8YAA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf,v2] netfilter: nf_tables: clone set on flush only
+Date: Mon,  2 Mar 2026 23:28:15 +0100
+Message-ID: <20260302222815.2624460-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+Syzbot with fault injection triggered a failing memory allocation with
+GFP_KERNEL which results in a WARN splat:
 
-	Hello,
+iter.err
+WARNING: net/netfilter/nf_tables_api.c:845 at nft_map_deactivate+0x34e/0x3c0 net/netfilter/nf_tables_api.c:845, CPU#0: syz.0.17/5992
+Modules linked in:
+CPU: 0 UID: 0 PID: 5992 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full)
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2026
+RIP: 0010:nft_map_deactivate+0x34e/0x3c0 net/netfilter/nf_tables_api.c:845
+Code: 8b 05 86 5a 4e 09 48 3b 84 24 a0 00 00 00 75 62 48 8d 65 d8 5b 41 5c 41 5d 41 5e 41 5f 5d c3 cc cc cc cc cc e8 63 6d fa f7 90 <0f> 0b 90 43
++80 7c 35 00 00 0f 85 23 fe ff ff e9 26 fe ff ff 89 d9
+RSP: 0018:ffffc900045af780 EFLAGS: 00010293
+RAX: ffffffff89ca45bd RBX: 00000000fffffff4 RCX: ffff888028111e40
+RDX: 0000000000000000 RSI: 00000000fffffff4 RDI: 0000000000000000
+RBP: ffffc900045af870 R08: 0000000000400dc0 R09: 00000000ffffffff
+R10: dffffc0000000000 R11: fffffbfff1d141db R12: ffffc900045af7e0
+R13: 1ffff920008b5f24 R14: dffffc0000000000 R15: ffffc900045af920
+FS:  000055557a6a5500(0000) GS:ffff888125496000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fb5ea271fc0 CR3: 000000003269e000 CR4: 00000000003526f0
+Call Trace:
+ <TASK>
+ __nft_release_table+0xceb/0x11f0 net/netfilter/nf_tables_api.c:12115
+ nft_rcv_nl_event+0xc25/0xdb0 net/netfilter/nf_tables_api.c:12187
+ notifier_call_chain+0x19d/0x3a0 kernel/notifier.c:85
+ blocking_notifier_call_chain+0x6a/0x90 kernel/notifier.c:380
+ netlink_release+0x123b/0x1ad0 net/netlink/af_netlink.c:761
+ __sock_release net/socket.c:662 [inline]
+ sock_close+0xc3/0x240 net/socket.c:1455
 
-On Mon, 2 Mar 2026, Florian Westphal wrote:
+Restrict set clone to the flush set command in the preparation phase.
+Add NFT_ITER_UPDATE_CLONE and use it for this purpose, update the rbtree
+and pipapo backends to only clone the set when this iteration type is
+used.
 
-> Julian Anastasov <ja@ssi.bg> wrote:
-> > > Julian Anastasov <ja@ssi.bg> wrote:
-> > > > +/**
-> > > > + * ip_vs_rht_for_bucket_retry() - Retry bucket if entries are moved
-> > > > + * @t:		current table, used as cursor, struct ip_vs_rht *var
-> > > > + * @bucket:	index of current bucket or hash key
-> > > > + * @sc:		temp seqcount_t *var
-> > > > + * @retry:	temp int var
-> > > > + */
-> > > > +#define ip_vs_rht_for_bucket_retry(t, bucket, sc, seq, retry)		\
-> > > 
-> > > This triggers a small kdoc warning:
-> > > 
-> > > Warning: include/net/ip_vs.h:554 function parameter 'seq' not described in 'ip_vs_rht_for_bucket_retry'
-> > 
-> > 	Will fix it, thanks! Just let me know if more comments
-> > are expected before sending next version...
-> 
-> There is some checkpatch noise in patch 1:
-> 
-> CHECK: Alignment should match open parenthesis
-> #42: FILE: include/linux/rculist_bl.h:24:
-> +       rcu_assign_pointer(hlist_bl_first_rcu(h),
->                 (struct hlist_bl_node *)((unsigned long)n | LIST_BL_LOCKMASK));
+As for the existing NFT_ITER_UPDATE type, update the pipapo backend to
+use the existing set clone if available, otherwise use the existing set
+representation. After this update, there is no need to clone a set that
+is being deleted, this includes bound anonymous set.
 
-	I don't change here any alignment and I didn't fixed it
-because I'm not sure how to make it better :)
+An alternative approach to NFT_ITER_UPDATE_CLONE is to add a .clone
+interface and call it from the flush set path.
 
-> CHECK: Macro argument 'member' may be better as '(member)' to avoid precedence issues
-> #97: FILE: include/linux/rculist_bl.h:126:
-> +#define hlist_bl_for_each_entry_continue_rcu(tpos, pos, member)                \
-> +       for (pos = rcu_dereference_raw(hlist_bl_next_rcu(&(tpos)->member)); \
-> +            pos &&                                                     \
-> +            ({ tpos = hlist_bl_entry(pos, typeof(*tpos), member); 1; }); \
-> +            pos = rcu_dereference_raw(hlist_bl_next_rcu(pos)))
+Reported-by: syzbot+4924a0edc148e8b4b342@syzkaller.appspotmail.com
+Fixes: 3f1d886cc7c3 ("netfilter: nft_set_pipapo: move cloning of match info to insert/removal path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: add comments per Florian Westphal.
 
-	I think, this matches how all such macros use the member
-field.
+ include/net/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c     | 10 +++++++++-
+ net/netfilter/nft_set_hash.c      |  1 +
+ net/netfilter/nft_set_pipapo.c    | 11 +++++++++--
+ net/netfilter/nft_set_rbtree.c    |  8 +++++---
+ 5 files changed, 26 insertions(+), 6 deletions(-)
 
-> And patch 2:
-> ERROR: Macros with complex values should be enclosed in parentheses
-> #147: FILE: include/net/ip_vs.h:583:
-> +#define ip_vs_rht_walk_buckets_rcu(table, head)                                \
-> +       ip_vs_rht_for_each_table_rcu(table, _t, _p)                     \
-> +               ip_vs_rht_for_each_bucket(_t, _bucket, head)            \
-> +                       ip_vs_rht_for_bucket_retry(_t, _bucket, _sc,    \
-> +                                                  _seq, _retry)
-
-	Yep, here we use complex macros to help the callers
-use a loop with their statement/body. In the previous versions
-I checked the checkpatch output and due to the advanced macro
-usage I'm not sure what can be made better...
-
-> 
-> BUT SEE:
-> 
->    do {} while (0) advice is over-stated in a few situations:
-> 
->    The more obvious case is macros, like MODULE_PARM_DESC, invoked at
-> 
-> [ there is more ]
-> 
-> ... but I don't really care, you can handle/ignore it as you see fit.
-> 
-> I only have a question wrt. the hash table choice.
-> 
-> Why are you not re-using rhashtables and instead roll your own?
-> 
-> No requirement, but might make sense to mention the rationale
-> in the commit message.
-
-	I found the rhashtable_remove_fast operation slow by using 
-hashing+lookup. Also, IPVS needs to rehash (move) single entry when
-its key changes (cport in ip_vs_conn_fill_cport) and I don't see
-public method in rht for this. Things get complicated when we add double 
-conn hashing, it needs careful move operation from one/two chains. Also, 
-in part 4 of the changes we allow customizations for the load factor,
-in case the defaults are not suitable for the setup.
-
-	May be I can add more info in the commit message about this.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 426534a711b0..ea6f29ad7888 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -320,11 +320,13 @@ static inline void *nft_elem_priv_cast(const struct nft_elem_priv *priv)
+  * @NFT_ITER_UNSPEC: unspecified, to catch errors
+  * @NFT_ITER_READ: read-only iteration over set elements
+  * @NFT_ITER_UPDATE: iteration under mutex to update set element state
++ * @NFT_ITER_UPDATE_CLONE: clone set before iteration under mutex to update element
+  */
+ enum nft_iter_type {
+ 	NFT_ITER_UNSPEC,
+ 	NFT_ITER_READ,
+ 	NFT_ITER_UPDATE,
++	NFT_ITER_UPDATE_CLONE,
+ };
+ 
+ struct nft_set;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 08c819578514..15801a9a099e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -833,6 +833,11 @@ static void nft_map_catchall_deactivate(const struct nft_ctx *ctx,
+ 	}
+ }
+ 
++/* Use NFT_ITER_UPDATE iterator even if this may be called from the preparation
++ * phase, the set clone might already exist from a previous command, or it might
++ * be a set that is going away and does not require a clone. The netns and
++ * netlink release paths also need to work on the live set.
++ */
+ static void nft_map_deactivate(const struct nft_ctx *ctx, struct nft_set *set)
+ {
+ 	struct nft_set_iter iter = {
+@@ -7904,9 +7909,12 @@ static int nft_set_catchall_flush(const struct nft_ctx *ctx,
+ 
+ static int nft_set_flush(struct nft_ctx *ctx, struct nft_set *set, u8 genmask)
+ {
++	/* The set backend might need to clone the set, do it now from the
++	 * preparation phase, use NFT_ITER_UPDATE_CLONE iterator type.
++	 */
+ 	struct nft_set_iter iter = {
+ 		.genmask	= genmask,
+-		.type		= NFT_ITER_UPDATE,
++		.type		= NFT_ITER_UPDATE_CLONE,
+ 		.fn		= nft_setelem_flush,
+ 	};
+ 
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 739b992bde59..b0e571c8e3f3 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -374,6 +374,7 @@ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ {
+ 	switch (iter->type) {
+ 	case NFT_ITER_UPDATE:
++	case NFT_ITER_UPDATE_CLONE:
+ 		/* only relevant for netlink dumps which use READ type */
+ 		WARN_ON_ONCE(iter->skip != 0);
+ 
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 18e1903b1d3d..cd0d2d4ae36b 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -2145,13 +2145,20 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
+ 	const struct nft_pipapo_match *m;
+ 
+ 	switch (iter->type) {
+-	case NFT_ITER_UPDATE:
++	case NFT_ITER_UPDATE_CLONE:
+ 		m = pipapo_maybe_clone(set);
+ 		if (!m) {
+ 			iter->err = -ENOMEM;
+ 			return;
+ 		}
+-
++		nft_pipapo_do_walk(ctx, set, m, iter);
++		break;
++	case NFT_ITER_UPDATE:
++		if (priv->clone)
++			m = priv->clone;
++		else
++			m = rcu_dereference_protected(priv->match,
++						      nft_pipapo_transaction_mutex_held(set));
+ 		nft_pipapo_do_walk(ctx, set, m, iter);
+ 		break;
+ 	case NFT_ITER_READ:
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 644d4b916705..853ff30a208c 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -861,13 +861,15 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 
+ 	switch (iter->type) {
+-	case NFT_ITER_UPDATE:
+-		lockdep_assert_held(&nft_pernet(ctx->net)->commit_mutex);
+-
++	case NFT_ITER_UPDATE_CLONE:
+ 		if (nft_array_may_resize(set) < 0) {
+ 			iter->err = -ENOMEM;
+ 			break;
+ 		}
++		fallthrough;
++	case NFT_ITER_UPDATE:
++		lockdep_assert_held(&nft_pernet(ctx->net)->commit_mutex);
++
+ 		nft_rbtree_do_walk(ctx, set, iter);
+ 		break;
+ 	case NFT_ITER_READ:
+-- 
+2.47.3
 
