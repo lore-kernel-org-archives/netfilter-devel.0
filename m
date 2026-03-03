@@ -1,78 +1,111 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail-24429.protonmail.ch (mail-24429.protonmail.ch [109.224.244.29])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD7503845AE
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2026 19:02:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 835D93890F1
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2026 19:57:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=109.224.244.29
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772564555; cv=none; b=JpkACNIwwS5Iy5MYUNMtaVsxtzgFU8OLWASeoPIVukpyYetgnNBPW2PnEpQh1QA4IRzj/BBFyVB5h6kx3igYH2a4rGzhmPQgIImohrg7TDRTggBmisr6JBosstaHtov1e10irFFt7orvSi33Z0iU7D2JAr9CPFfe0zs9Y+nzb98=
+	t=1772567852; cv=none; b=KoNnR7CQsGEB+bledT3CyISSBI3PZWvktDSa6Rp6+HbaRtQuVsvlRkTaIXRyXC34NkhxhYQi6x9A8vcMkZ2/ffyeFB6DGwGaG7ABET+utbnIwdrXtbcsIC449qcjLhHDuVXxX7sFHJFPaq8ShGadA9D1lHlLapNIG1QMSTj7b5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772564555; c=relaxed/simple;
-	bh=mbT+axmjV0Dix4eewmadmAwDsytzxa+b69LGD1dze6w=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=prH7ycxcuJJNGh2MYp2A5eSI7iQyKBI+YrAeHmwPMPwPU+sILFBsjiH71kAB5jIkNYDgiVYnV1H28qJM0TU7lA+o5Sr70X3pZ7Q2N+sJJ7UV2ERVuQbt/kVsMK7sYrw3LqE/YMcHjfDaSXvE7iS7m9y24Y+UcERnvKUwepdXSOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3E70A60D28; Tue, 03 Mar 2026 20:02:32 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: sbrivio@redhat.com,
-	Florian Westphal <fw@strlen.de>,
-	Yiming Qian <yimingqian591@gmail.com>
-Subject: [PATCH nf 2/2] netfilter: nft_set_pipapo: prevent soft lockup during gc walk
-Date: Tue,  3 Mar 2026 20:02:08 +0100
-Message-ID: <20260303190218.19781-3-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260303190218.19781-1-fw@strlen.de>
-References: <20260303190218.19781-1-fw@strlen.de>
+	s=arc-20240116; t=1772567852; c=relaxed/simple;
+	bh=6wNWceZgJqE9TZcAbM4QEh90Yj2H18e8ohMDr/e/C/A=;
+	h=Date:To:From:Cc:Subject:Message-ID:MIME-Version:Content-Type; b=dum4bVmpjnJUo5XnIR1BWgFmheHrqHGdfuDvF0ws7qXCoAabvLC/7amYFFAFZ0yc8tUwr8PculIxrKS2lzWOSCRYVDB+OynkOtcqs0+0x+i2A0OMGq8SgmXXXvn7O0rkPs2LDd+C9y8h33Kq4wvFfCIdKNpZ1t69g4xqr2SnKRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=La4jOZ6n; arc=none smtp.client-ip=109.224.244.29
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="La4jOZ6n"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
+	s=protonmail3; t=1772567840; x=1772827040;
+	bh=6qYd3K+8FkbLYiLfYPWP8GVlg8j1VlnfnIgK80herps=;
+	h=Date:To:From:Cc:Subject:Message-ID:Feedback-ID:From:To:Cc:Date:
+	 Subject:Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
+	b=La4jOZ6nCIascUvAYtYzQjXNpW3xeDEW6m3yRTagHm+h7+NW/mYnVWMrbNau1oe7X
+	 SuPnthHgdEf9E4emn1zZrsuPnea8somoq6UFuoWV6i3UPO5YHkwFCSTv/sZ/t4Bkb+
+	 WyG46kxe87fGJTJwyDFB4gWPdJpbmg0zM1I4S1xCbQruNOia0cgP/ngKrmkWbzFSPm
+	 zjEZVkcnn7gHFtHUAvsriXuh1hadAd1zFFDhGcFVy8QdKAaQiJ2GKWqX5F5ZS9EEk2
+	 NjZPkq/I/HYCNWbj1B0oKCkUxndWxg+PzIYolrSmTIKQyS8zGiOHGE601k0eQKw3Pz
+	 hrai2RY9JbAAw==
+Date: Tue, 03 Mar 2026 19:57:16 +0000
+To: Donald Hunter <donald.hunter@gmail.com>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
+From: "Remy D. Farley" <one-d-wide@protonmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, "Remy D. Farley" <one-d-wide@protonmail.com>
+Subject: [PATCH net-next v8 0/5] doc/netlink: Expand nftables specification
+Message-ID: <20260303195638.381642-1-one-d-wide@protonmail.com>
+Feedback-ID: 59017272:user:proton
+X-Pm-Message-ID: 52cacc55e82d025d0162efd212585f65817fd132
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-The gc scan+shrinking process can take a very long time.
+Getting out some changes I've accumulated while making nftables work
+with Rust netlink-bindings. Hopefully, this will be useful upstream.
 
-Add an upper ceiling: If we've queued up some elements for removal
-already give up after spending up to 10s on gc compaction.
+v8:
+- De-duplicate operation attributes.
+- Fix typo in max-check, add missing max-check.
 
-Note this intentionally doesn't add a call to cond_resched();
-PREEMPT_NONE and _VOLUNTARY preemption models have been removed
-recently.
+v7: https://lore.kernel.org/netdev/20260202093928.742879-1-one-d-wide@proto=
+nmail.com/
+- Drop "getcompat" operation.
+- Fix formatting of lists of attrsets.
 
-Reported-by: Yiming Qian <yimingqian591@gmail.com>
-Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_set_pipapo.c | 4 ++++
- 1 file changed, 4 insertions(+)
+v6: https://lore.kernel.org/netdev/20260121184621.198537-1-one-d-wide@proto=
+nmail.com/
+- Sort sub-messages.
+- Add description for "Add max check" commit.
+- Fix doc comment for expr-bitwise-attrs to match one in nf_tables.h (thank=
+s Donald)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index d850166b8e45..0cd91f809655 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1686,6 +1686,7 @@ static void nft_pipapo_gc_deactivate(struct net *net, struct nft_set *set,
-  */
- static void pipapo_gc_scan(struct nft_set *set, struct nft_pipapo_match *m)
- {
-+	unsigned long stop_time = jiffies + 10 * HZ;
- 	struct nft_pipapo *priv = nft_set_priv(set);
- 	struct net *net = read_pnet(&set->net);
- 	unsigned int rules_f0, first_rule = 0;
-@@ -1697,6 +1698,9 @@ static void pipapo_gc_scan(struct nft_set *set, struct nft_pipapo_match *m)
- 		const struct nft_pipapo_field *f;
- 		unsigned int i, start, rules_fx;
- 
-+		if (priv->to_free && time_after(jiffies, stop_time))
-+			return;
-+
- 		start = first_rule;
- 		rules_fx = rules_f0;
- 
--- 
-2.52.0
+v5: https://lore.kernel.org/netdev/20251120151754.1111675-1-one-d-wide@prot=
+onmail.com/
+- Fix docgen warnings in enums (avoid interleaving strings and attrsets in =
+a list).
+- Remove "# defined in ..." comments in favor of explicit "header" tag.
+- Split into smaller commits.
+
+v4: https://lore.kernel.org/netdev/cover.1763574466.git.one-d-wide@protonma=
+il.com/
+- Move changes to netlink-raw.yaml into a separate commit.
+
+v3: https://lore.kernel.org/netdev/20251009203324.1444367-1-one-d-wide@prot=
+onmail.com/
+- Fill out missing attributes in each operation (removing todo comments fro=
+m v1).
+- Add missing annotations: dump ops, byte-order, checks.
+- Add max check to netlink-raw specification (suggested by Donald Hunter).
+- Revert changes to ynl_gen_rst.py.
+
+v2: https://lore.kernel.org/netdev/20251003175510.1074239-1-one-d-wide@prot=
+onmail.com/
+- Handle empty request/reply attributes in ynl_gen_rst.py script.
+
+v1: https://lore.kernel.org/netdev/20251002184950.1033210-1-one-d-wide@prot=
+onmail.com/
+- Add missing byte order annotations.
+- Fill out attributes in some operations.
+- Replace non-existent "name" attribute with todo comment.
+- Add some missing sub-messages (and associated attributes).
+- Add (copy over) documentation for some attributes / enum entries.
+- Add "getcompat" operation.
+
+Remy D. Farley (5):
+  doc/netlink: netlink-raw: Add max check
+  doc/netlink: nftables: Add definitions
+  doc/netlink: nftables: Update attribute sets
+  doc/netlink: nftables: Add sub-messages
+  doc/netlink: nftables: Fill out operation attributes
+
+ Documentation/netlink/netlink-raw.yaml    |  11 +-
+ Documentation/netlink/specs/nftables.yaml | 689 ++++++++++++++++++++--
+ 2 files changed, 650 insertions(+), 50 deletions(-)
+
+--=20
+2.51.2
+
 
