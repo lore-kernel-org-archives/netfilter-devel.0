@@ -1,43 +1,43 @@
-Received: from mail-106103.protonmail.ch (mail-106103.protonmail.ch [79.135.106.103])
+Received: from mail-10699.protonmail.ch (mail-10699.protonmail.ch [79.135.106.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDDBF3890EA
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 Mar 2026 19:57:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.103
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9328F30C371;
+	Tue,  3 Mar 2026 19:58:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.99
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772567870; cv=none; b=K2lF1B9fpMNC/7p6CGX8NmeVW7HdW66MqYf+uwrnkRuEkvDdcezhPU2fbb5TSIPpjMlMGXwZK7ONtQlwxDnAdWy8Ur6Jyugv8uZ7Kb2unbJd1oVhSTlNnlM6naI0THLv760N4bjtYJXQU1RtxxZ2KOlJKp5rjtahY/vFm37SVCk=
+	t=1772567907; cv=none; b=JvcOQrlK5woo4yhXREqU3wR4TeJ7MzL9w/4g5ZPs5gPGdGj5iVLapWs7CHYDkCvOCdgUdDScPFpcjxpK20mlgpV2zFH1hytEGq/Frxy54c3qEHNsQOPP2IU0P9Pgo6bpKCI9TuExM5/5BuNvv1dYXJrl1yT5uKkfv0LILPG7OB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772567870; c=relaxed/simple;
-	bh=n8FGee2L5bkPookg0YdJjFRKNtl4T+XNB6/eNYSidVM=;
+	s=arc-20240116; t=1772567907; c=relaxed/simple;
+	bh=Hu76kATG9N/5plvjm+rJh6m84mUVO8POtXZlv0F8oKg=;
 	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=qCTN4gK/GML2ie0j0e4U2OOykFThPAr+kbBUwLOX5cKEcfTGM/BtaN2avR9c5pgJyxa1EJVHdJkFyumU8oY4Wqs8TCtXzgyphnOrjLyQ/L2gJnIlojFiCLgr0O33/H7COBTGIGPah+0HpQAUYOGrgHW+4xayFPJ/YL2+iZ8t+as=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=lesEg0+c; arc=none smtp.client-ip=79.135.106.103
+	 MIME-Version:Content-Type; b=mXGdIsnJd07ENyeFytQQc9HoOFARcpBtTIzYUn6pX9Fh8qwgCCyQ9rP3zuFF9SDS2/pHy1MOuU44lLngVmTq1VZBfGG32gUx1c1GDQnx/3tE8jkgFgdVRxUkXghR0z+P/2OIVSKaELhTcTM8304/ui/1knvOB7tjmULoB4Cqf6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com; spf=pass smtp.mailfrom=protonmail.com; dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b=p7UqHcBV; arc=none smtp.client-ip=79.135.106.99
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=protonmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="lesEg0+c"
+	dkim=pass (2048-bit key) header.d=protonmail.com header.i=@protonmail.com header.b="p7UqHcBV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=protonmail.com;
-	s=protonmail3; t=1772567865; x=1772827065;
-	bh=Blr5GdP413xj9Y60FcLkP86aKJZ2VM3UVfsMfTMR3Dg=;
+	s=protonmail3; t=1772567897; x=1772827097;
+	bh=WRw9OzXx5E/BGMbZ5iV68e85Ik47NEOdpd1i9spn58Y=;
 	h=Date:To:From:Cc:Subject:Message-ID:In-Reply-To:References:
 	 Feedback-ID:From:To:Cc:Date:Subject:Reply-To:Feedback-ID:
 	 Message-ID:BIMI-Selector;
-	b=lesEg0+caXeyNutxOjIsq9f14hE5166VPdjEgLu1ha49TmUPkEqIfW+Fjh32MkEtR
-	 Ip8BqXPzmodtzUkU4hf2bnaKW7tNBN94BRDdXTs8CQuioZcTyaC3r3IiKD9wYKfbEy
-	 r8ROuHRT9DrgMmwMoOhqaTFKwy+lEdRkduJOpxZz0wiez0XTPFaoJi9mf+bWiJJvvz
-	 TZx4t5aqoSIjaSIXnfb2DLipL4lDaOl0HoTayWcKTfXpYwbLJtwbAcpbF3jTbCF/Fu
-	 bRs87SuVgS2pTfbjt6oSfhx562MxX0hj+qJzg+l1ZbVUV+eXiByRGlVDF6G2KQKAUo
-	 myV17Fs+K3Ogw==
-Date: Tue, 03 Mar 2026 19:57:41 +0000
+	b=p7UqHcBVCxrN6vyQtJmG2UJRN8rv7vYW8ZBkoroHSQ/qsbgDC7sUYcJW9FzxciYda
+	 ulwpQOtb2P8F0f3uNsceb5zewN9CmDMMTmQgnhqgv+n1Sw+vtuzCAWSQFyP/O/I0kR
+	 Hk5/9lGUdFGHQ9iFyPT62VRvg9MWR8ISv301s0xiX3Ar25KAQrioUSW3skgfmgK4/P
+	 2ztu059DLZiz4zxDKpk4Chza0g5ZHPf0Pxo+tVcPxtTzH6ZSajYVf9cojJB1hADEa6
+	 LGP9VISXdYHRthIKXika9izjYKg8A3tLYJlCovuITnPOrnkUTOkNbFyxqbMk315jvv
+	 vO1/Z5zRgdx2w==
+Date: Tue, 03 Mar 2026 19:58:13 +0000
 To: Donald Hunter <donald.hunter@gmail.com>, Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org
 From: "Remy D. Farley" <one-d-wide@protonmail.com>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, "Remy D. Farley" <one-d-wide@protonmail.com>
-Subject: [PATCH net-next v8 1/5] doc/netlink: netlink-raw: Add max check
-Message-ID: <20260303195638.381642-2-one-d-wide@protonmail.com>
+Subject: [PATCH net-next v8 2/5] doc/netlink: nftables: Add definitions
+Message-ID: <20260303195638.381642-3-one-d-wide@protonmail.com>
 In-Reply-To: <20260303195638.381642-1-one-d-wide@protonmail.com>
 References: <20260303195638.381642-1-one-d-wide@protonmail.com>
 Feedback-ID: 59017272:user:proton
-X-Pm-Message-ID: f38a3efdbe692eefe5f20ed36d21ed372d250cc5
+X-Pm-Message-ID: 51b05305c60acbd5d7be2abd12439db203a3376b
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,46 +47,244 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-Add definitions for max check and len-or-limit type, the same as in other
-specifications.
+New enums/flags:
+- payload-base
+- range-ops
+- registers
+- numgen-types
+- log-level
+- log-flags
 
-Suggested-by: Donald Hunter <donald.hunter@gmail.com>
+Added missing enumerations:
+- bitwise-ops
+
+Annotated doc comment or associated enum:
+- bitwise-ops
+
 Reviewed-by: Donald Hunter <donald.hunter@gmail.com>
 Signed-off-by: Remy D. Farley <one-d-wide@protonmail.com>
 ---
- Documentation/netlink/netlink-raw.yaml | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ Documentation/netlink/specs/nftables.yaml | 181 +++++++++++++++++++++-
+ 1 file changed, 178 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/netlink/netlink-raw.yaml b/Documentation/netlink=
-/netlink-raw.yaml
-index 0166a7e4a..dd98dda55 100644
---- a/Documentation/netlink/netlink-raw.yaml
-+++ b/Documentation/netlink/netlink-raw.yaml
-@@ -19,6 +19,12 @@ $defs:
-     type: [ string, integer ]
-     pattern: ^[0-9A-Za-z_-]+( - 1)?$
-     minimum: 0
-+  len-or-limit:
-+    # literal int, const name, or limit based on fixed-width type
-+    # e.g. u8-min, u16-max, etc.
-+    type: [ string, integer ]
-+    pattern: ^[0-9A-Za-z_-]+$
-+    minimum: 0
+diff --git a/Documentation/netlink/specs/nftables.yaml b/Documentation/netl=
+ink/specs/nftables.yaml
+index 17ad707fa..f15f825cb 100644
+--- a/Documentation/netlink/specs/nftables.yaml
++++ b/Documentation/netlink/specs/nftables.yaml
+@@ -66,9 +66,21 @@ definitions:
+     name: bitwise-ops
+     type: enum
+     entries:
+-      - bool
+-      - lshift
+-      - rshift
++      -
++        name: mask-xor  # aka bool (old name)
++        doc: >-
++          mask-and-xor operation used to implement NOT, AND, OR and XOR bo=
+olean
++          operations
++      -
++        name: lshift
++      -
++        name: rshift
++      -
++        name: and
++      -
++        name: or
++      -
++        name: xor
+   -
+     name: cmp-ops
+     type: enum
+@@ -132,6 +144,12 @@ definitions:
+       - object
+       - concat
+       - expr
++  -
++    name: set-elem-flags
++    type: flags
++    entries:
++      - interval-end
++      - catchall
+   -
+     name: lookup-flags
+     type: flags
+@@ -225,6 +243,147 @@ definitions:
+       - icmp-unreach
+       - tcp-rst
+       - icmpx-unreach
++  -
++    name: reject-inet-code
++    doc: These codes are mapped to real ICMP and ICMPv6 codes.
++    type: enum
++    entries:
++      - icmpx-no-route
++      - icmpx-port-unreach
++      - icmpx-host-unreach
++      - icmpx-admin-prohibited
++  -
++    name: payload-base
++    type: enum
++    entries:
++      - link-layer-header
++      - network-header
++      - transport-header
++      - inner-header
++      - tun-header
++  -
++    name: range-ops
++    doc: Range operator
++    type: enum
++    entries:
++      - eq
++      - neq
++  -
++    name: registers
++    doc: |
++      nf_tables registers.
++      nf_tables used to have five registers: a verdict register and four d=
+ata
++      registers of size 16. The data registers have been changed to 16 reg=
+isters
++      of size 4. For compatibility reasons, the NFT_REG_[1-4] registers st=
+ill
++      map to areas of size 16, the 4 byte registers are addressed using
++      NFT_REG32_00 - NFT_REG32_15.
++    type: enum
++    entries:
++      -
++        name: reg-verdict
++      -
++        name: reg-1
++      -
++        name: reg-2
++      -
++        name: reg-3
++      -
++        name: reg-4
++      -
++        name: reg32-00
++        value: 8
++      -
++        name: reg32-01
++      -
++        name: reg32-02
++      -
++        name: reg32-03
++      -
++        name: reg32-04
++      -
++        name: reg32-05
++      -
++        name: reg32-06
++      -
++        name: reg32-07
++      -
++        name: reg32-08
++      -
++        name: reg32-09
++      -
++        name: reg32-10
++      -
++        name: reg32-11
++      -
++        name: reg32-12
++      -
++        name: reg32-13
++      -
++        name: reg32-14
++      -
++        name: reg32-15
++  -
++    name: numgen-types
++    type: enum
++    entries:
++      - incremental
++      - random
++  -
++    name: log-level
++    doc: nf_tables log levels
++    type: enum
++    entries:
++      -
++        name: emerg
++        doc: system is unusable
++      -
++        name: alert
++        doc: action must be taken immediately
++      -
++        name: crit
++        doc: critical conditions
++      -
++        name: err
++        doc: error conditions
++      -
++        name: warning
++        doc: warning conditions
++      -
++        name: notice
++        doc: normal but significant condition
++      -
++        name: info
++        doc: informational
++      -
++        name: debug
++        doc: debug-level messages
++      -
++        name: audit
++        doc: enabling audit logging
++  -
++    name: log-flags
++    doc: nf_tables log flags
++    header: linux/netfilter/nf_log.h
++    type: flags
++    entries:
++      -
++        name: tcpseq
++        doc: Log TCP sequence numbers
++      -
++        name: tcpopt
++        doc: Log TCP options
++      -
++        name: ipopt
++        doc: Log IP options
++      -
++        name: uid
++        doc: Log UID owning local socket
++      -
++        name: nflog
++        doc: Unsupported, don't reuse
++      -
++        name: macdecode
++        doc: Decode MAC header
 =20
- # Schema for specs
- title: Protocol
-@@ -270,7 +276,10 @@ properties:
-                     type: string
-                   min:
-                     description: Min value for an integer attribute.
--                    type: integer
-+                    $ref: '#/$defs/len-or-limit'
-+                  max:
-+                    description: Max value for an integer attribute.
-+                    $ref: '#/$defs/len-or-limit'
-                   min-len:
-                     description: Min length for a binary attribute.
-                     $ref: '#/$defs/len-or-define'
+ attribute-sets:
+   -
+@@ -767,6 +926,22 @@ attribute-sets:
+         nested-attributes: hook-dev-attrs
+   -
+     name: expr-bitwise-attrs
++    doc: |
++      The bitwise expression supports boolean and shift operations. It
++      implements the boolean operations by performing the following
++      operation::
++
++          dreg =3D (sreg & mask) ^ xor
++
++          with these mask and xor values:
++
++          op      mask    xor
++          ----    ----    ---
++          NOT:     1       1
++          OR:     ~x       x
++          XOR:     1       x
++          AND:     x       0
++
+     attributes:
+       -
+         name: sreg
 --=20
 2.51.2
 
