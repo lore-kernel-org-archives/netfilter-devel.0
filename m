@@ -1,91 +1,109 @@
-Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656A43B7B7C;
-	Wed,  4 Mar 2026 14:59:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7719934BA3A;
+	Wed,  4 Mar 2026 17:29:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772636363; cv=none; b=ewdY8tGWzEaaUx2592qp3paWhW9HToluQlJqsI/a08Yk+RKUmoasAXPFn6F44J42Rvn7/4R13QJEApEfoXhr2jw7GCqsV74n6LpIlDGzLXd+W3SRMmHQEGLdLvzLr8igizGoJ2qw+zKv5V+nVOEXTPyeyofVtYwdWFMUVSSajy0=
+	t=1772645386; cv=none; b=eIzWWEECUKf4KWYzHjBK37bZVeI96G/MwY5OZkV9LUzle442im+qi94Vf54NNqca/ER0IAf1VOZjCrnRrYWMoAvAEHHQ7/zgibr4+5pQBjar8bUvA8eLnOGAUIGoyASh37iderLH+vlrXaR72LbMmdAUZq9i4Vgi5jeNFHUIlvk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772636363; c=relaxed/simple;
-	bh=/lNwR+ZYE4Pp0j2tZP/j9awuxcDAzLdyRMP+40EdGrI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=Ngf5JPkzeE1XZz06aWHRYF8jCDE+xawvnqr+D5TWKPxxLb9mdEfHT4XN3NqtnlLTTpKHof12RQtimCCJENJP8mFgH0RYJgWI3wDwZdLwJY1F3R0nXKBQ6DXqZLAK1io2Gj41GVYTzly0P/8r2yo3sl1LVTis6C1ykiZZ6JcqVLk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=KJ7vsDvn; arc=none smtp.client-ip=213.97.179.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="KJ7vsDvn"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-	References:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:Cc:
-	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=sUIfRa+g8fpmxFfqp2XG0bd5OP0+/q3uVgqVEbYGmPA=; b=KJ7vsDvn/Oknk0T9J4ShzV/hkt
-	EhjXH1u565mXeKNI40Hiq/ld2F8vOGUMqaUEiJqOH+46feMARlLXq/FjJpgfwGEdMKEN+TDlvGgys
-	9lc+lQHi0qlSDtKQSXX5jLivT9pCzF5mW/YKHZ6YIyGXMGOq8WDPi3XeuBVdcLxMqX7vr2PUXQQRn
-	SvjG4aaTjzBEMeK18o0s1m3PlPk5u0+IadndvJz9AwzWLHfBBDYkJb+uABSR4A4hUnoIFHX/8SSMM
-	2tJlVNrOu+5TgTQKkffGTZdLv9TJR4KW9XSUhlA92WwnyRbanA4fXdMOzb+f1ZRUFoX21Te7EnphF
-	webg1muw==;
-Received: from [179.221.50.217] (helo=[192.168.0.108])
-	by fanzine2.igalia.com with esmtpsa 
-	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-	id 1vxngv-008y27-95; Wed, 04 Mar 2026 15:59:13 +0100
-Message-ID: <279c7a14-2b8a-410e-85d5-ee11b0e5371e@igalia.com>
-Date: Wed, 4 Mar 2026 11:59:05 -0300
+	s=arc-20240116; t=1772645386; c=relaxed/simple;
+	bh=5vvd0n+GMaKMqFV1dmwHju63XvMWI7WSFBu7LkZqBNk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=P9hdZkjeeze2H+RtrzconzyK9ocHuQB6X6YJYKSwkuzrqbxspU7s9cFnB1UdMgUwqdDNrzDDSd6STgSHPNr46JEWnwsgOGxupoxAaWBHSLn16DJkggSuJv5hhX3J5G03dRIQmSTVks5nmc7cVFfqTrFNH4n5Mo0LI/A/DAx6W0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 71D1D6024F; Wed, 04 Mar 2026 18:29:43 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net 0/4] netfilter: updates for net
+Date: Wed,  4 Mar 2026 18:29:36 +0100
+Message-ID: <20260304172940.24948-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] netfilter: nf_tables: fix use-after-free on ops->dev
-To: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, kernel-dev@igalia.com
-References: <20260302212605.689909-1-koike@igalia.com>
- <aaYYiPTO5JYOlhhY@chamomile>
- <17499d82-ad03-44a9-ab3a-429d2ebea02f@igalia.com>
- <aafD369eE31dh1VP@strlen.de> <aaglAU8E48EF1m-_@orbyte.nwl.cc>
- <aag18YM3g0sS7wXW@strlen.de>
-Content-Language: en-US
-From: Helen Koike <koike@igalia.com>
-In-Reply-To: <aag18YM3g0sS7wXW@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
+The following patchset contains Netfilter fixes for *net*:
 
-On 3/4/26 10:38 AM, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
->>> And *THIS* looks buggy.
->>> Shouldn't that simply be:
->>> 			if (!match || ops)
->>> 				continue;
-> 
+1) Fix a bug with vlan headers in the flowtable infrastructure.
+   Existing code uses skb_vlan_push() helper, but that helper
+   requires skb->data to point to the MAC header, which isn't the
+   case for flowtables.  Switch to a new helper, modeled on the
+   existing PPPoE helper. From Eric Woudstra. This bug was added
+   in v6.19-rc1.
 
-I tested this change locally (with syz reproducer) and I'm unable to 
-trigger the issue anymore. Without this change I always reproduce it.
+2) Inseo An reported a bug with the set element handling in nf_tables:
+   When set cannot accept more elements, we unlink and immediately free
+   an element that was inserted into a public data structure, freeing it
+   without waiting for RCU grace period.  Fix this by doing the
+   increment earlier and by deferring possible unlink-and-free to the
+   existing abort path, which performs the needed synchronize_rcu before
+   free.  From Pablo Neira Ayuso. This is an ancient bug, dating back to
+   kernel 4.10.
 
-If you are to send this patch, please add:
+3) syzbot reported WARN_ON() splat in nf_tables that occurs on memory
+   allocation failure.  Fix this by a new iterator annotation:
+   The affected walker does not need to clone the data structure and
+   can just use the live version if no clone exists yet.
+   Also from Pablo.  This bug existed since 6.10 days.
 
-Tested-by: Helen Koike <koike@igalia.com>
+4) Ancient forever bug in nft_pipapo data structure:
+   The garbage collection logic to remove expired elements is broken.
+   We must unlink from data structure and can only hand the freeing
+   to call_rcu after the clone/live pointers of the data structures
+   have been swapped.  Else, readers can observe the free'd element.
+   Reported by Yiming Qian.
 
+Please, pull these changes from:
+The following changes since commit fbdfa8da05b6ae44114fc4f9b3e83e1736fd411c:
 
+  selftests: tc-testing: fix list_categories() crash on list type (2026-03-04 05:42:57 +0000)
 
-> FWIW I can't get the reproducer to trigger a splat with this change.
-> I've fed this to syzbot to double-check.
-> 
->> You're right, the 'changename' check in NETDEV_REGISTER is not needed
->> because even if not changing names one should skip if already
->> registered. Actually, this indicates a bug unless handling
->> NETDEV_CHANGENAME. Maybe add a WARN_ON_ONCE()?
-> 
-> Well, it does trigger, afaics.
+are available in the Git repository at:
 
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-03-04
 
-Thanks,
-Helen
+for you to fetch changes up to 41c5c0124bd9528c32c9ebd5f8b8f8eb800e77c3:
+
+  netfilter: nft_set_pipapo: split gc into unlink and reclaim phase (2026-03-04 15:39:33 +0100)
+
+----------------------------------------------------------------
+netfilter pull request nf-26-03-04
+
+----------------------------------------------------------------
+Eric Woudstra (1):
+  netfilter: nf_flow_table_ip: Introduce nf_flow_vlan_push()
+
+Florian Westphal (1):
+      netfilter: nft_set_pipapo: split gc into unlink and reclaim phase
+
+Pablo Neira Ayuso (2):
+  netfilter: nf_tables: unconditionally bump set->nelems before insertion
+  netfilter: nf_tables: clone set on flush only
+
+ include/net/netfilter/nf_tables.h |  7 ++++
+ net/netfilter/nf_flow_table_ip.c  | 25 ++++++++++++-
+ net/netfilter/nf_tables_api.c     | 45 ++++++++++++----------
+ net/netfilter/nft_set_hash.c      |  1 +
+ net/netfilter/nft_set_pipapo.c    | 62 ++++++++++++++++++++++++++-----
+ net/netfilter/nft_set_pipapo.h    |  2 +
+ net/netfilter/nft_set_rbtree.c    |  8 ++--
+ 7 files changed, 115 insertions(+), 35 deletions(-)
+
+-- 
+2.52.0
+
