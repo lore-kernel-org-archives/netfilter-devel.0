@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 044DF390221;
-	Wed,  4 Mar 2026 11:49:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207C4371872;
+	Wed,  4 Mar 2026 11:49:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772624994; cv=none; b=s4zrLxLAxCYc7WVgmiAxZLs0fMR8Ktp//HhOzdYnwHDJw0XH+WdnGo1QUQy1/Uab4HAPG8/DucUlIHZD6/Wm2RteXgeJ1MKfQEoSUcTDYsAxIc2gS3nUzASEvPlbru1bDI4DETDq6CsYLSQzPIw+QzHZpWNB959vboiA1HEyhN8=
+	t=1772624999; cv=none; b=EFjMlZvvh28tB94d+k/VcPd8opMoSV0oC7Cbk7+GAIFjwzdm00nNUpOgmmPVrPW6kRk5M1DBuOCR32sBbb9HE6i3StjA/9HsgY/clD1GW1i9saKriTmJGf3VBl9QZH/0Pj4yw3uWxtGbNHzY/H05ZairsW09VLqC/FxfzKYWXKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772624994; c=relaxed/simple;
-	bh=rZ8BZk952ITWQ0BSpEdpYUFrqbQ6TyNIsRo07z0gcw8=;
+	s=arc-20240116; t=1772624999; c=relaxed/simple;
+	bh=KPHQIorftCzmegXaoFBAMjKp1clMjuRrH5PAaPySCRI=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iTuE5mwy/dicW2i6gk2j5xV89GraOFRh2Uc86uyFqMzuDU4UkY4FnAdYSZMGNJxyoENxCXoN2OoSnWRPoyN6Q8mqsUaIeyHDk6GXwUroKtLR3oL8Pm1dJt1S82msg3rag/RKo+vM6hbhx4iEz6DqILGD3pr0CCU0ZI8MK0zB1ww=
+	 MIME-Version; b=J7uxrqyg/2fEdXpk9sxD/50GSzWvasQsAWn3iszehK9DHwPxvfNnMAvUrk6whiawBXzqdegz9xHPRbTQaJvDV0vmLdodJLtzEm08R1SGkeIEapyMp+AmLQAXCbpyIwykuIUu2/UDEFwwPSdSfhoAp/ntF1QxuACK1PXb8NrOlQk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C33D96026E; Wed, 04 Mar 2026 12:49:51 +0100 (CET)
+	id 2740F6026E; Wed, 04 Mar 2026 12:49:56 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 05/14] netfilter: xt_owner: no longer acquire sk_callback_lock in mt_owner()
-Date: Wed,  4 Mar 2026 12:49:12 +0100
-Message-ID: <20260304114921.31042-6-fw@strlen.de>
+Subject: [PATCH net-next 06/14] netfilter: nft_meta: no longer acquire sk_callback_lock in nft_meta_get_eval_skugid()
+Date: Wed,  4 Mar 2026 12:49:13 +0100
+Message-ID: <20260304114921.31042-7-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260304114921.31042-1-fw@strlen.de>
 References: <20260304114921.31042-1-fw@strlen.de>
@@ -41,41 +41,35 @@ Content-Transfer-Encoding: 8bit
 From: Eric Dumazet <edumazet@google.com>
 
 After commit 983512f3a87f ("net: Drop the lock in skb_may_tx_timestamp()")
-from Sebastian Andrzej Siewior, apply the same logic in mt_owner()
-to avoid touching sk_callback_lock.
+from Sebastian Andrzej Siewior, apply the same logic in
+nft_meta_get_eval_skugid() to avoid touching sk->sk_callback_lock.
 
 Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/xt_owner.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ net/netfilter/nft_meta.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index 50332888c8d2..5bfb4843df66 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -63,11 +63,12 @@ static bool
- owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 983158274c68..d0df6cf374d1 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -131,33 +131,36 @@ nft_meta_get_eval_skugid(enum nft_meta_keys key,
+ 			 u32 *dest,
+ 			 const struct nft_pktinfo *pkt)
  {
- 	const struct xt_owner_match_info *info = par->matchinfo;
--	const struct file *filp;
- 	struct sock *sk = skb_to_full_sk(skb);
- 	struct net *net = xt_net(par);
+-	struct sock *sk = skb_to_full_sk(pkt->skb);
+-	struct socket *sock;
++	const struct sock *sk = skb_to_full_sk(pkt->skb);
 +	const struct socket *sock;
-+	const struct file *filp;
++	const struct file *file;
  
--	if (!sk || !sk->sk_socket || !net_eq(net, sock_net(sk)))
-+	if (!sk || !READ_ONCE(sk->sk_socket) || !net_eq(net, sock_net(sk)))
- 		return (info->match ^ info->invert) == 0;
- 	else if (info->match & info->invert & XT_OWNER_SOCKET)
- 		/*
-@@ -76,23 +77,25 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 		 */
+ 	if (!sk || !sk_fullsock(sk) || !net_eq(nft_net(pkt), sock_net(sk)))
  		return false;
  
 -	read_lock_bh(&sk->sk_callback_lock);
--	filp = sk->sk_socket ? sk->sk_socket->file : NULL;
--	if (filp == NULL) {
+-	sock = sk->sk_socket;
+-	if (!sock || !sock->file) {
 -		read_unlock_bh(&sk->sk_callback_lock);
 +	/* The sk pointer remains valid as long as the skb is. The sk_socket and
 +	 * file pointer may become NULL if the socket is closed. Both structures
@@ -83,35 +77,24 @@ index 50332888c8d2..5bfb4843df66 100644
 +	 * within a RCU read section.
 +	 */
 +	sock = READ_ONCE(sk->sk_socket);
-+	filp = sock ? READ_ONCE(sock->file) : NULL;
-+	if (filp == NULL)
- 		return ((info->match ^ info->invert) &
- 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
++	file = sock ? READ_ONCE(sock->file) : NULL;
++	if (!file)
+ 		return false;
 -	}
  
- 	if (info->match & XT_OWNER_UID) {
- 		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
- 		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
-+
- 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
- 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
--		    !(info->invert & XT_OWNER_UID)) {
--			read_unlock_bh(&sk->sk_callback_lock);
-+		    !(info->invert & XT_OWNER_UID))
- 			return false;
--		}
- 	}
- 
- 	if (info->match & XT_OWNER_GID) {
-@@ -117,13 +120,10 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 			}
- 		}
- 
--		if (match ^ !(info->invert & XT_OWNER_GID)) {
--			read_unlock_bh(&sk->sk_callback_lock);
-+		if (match ^ !(info->invert & XT_OWNER_GID))
- 			return false;
--		}
+ 	switch (key) {
+ 	case NFT_META_SKUID:
+ 		*dest = from_kuid_munged(sock_net(sk)->user_ns,
+-					 sock->file->f_cred->fsuid);
++					 file->f_cred->fsuid);
+ 		break;
+ 	case NFT_META_SKGID:
+ 		*dest =	from_kgid_munged(sock_net(sk)->user_ns,
+-					 sock->file->f_cred->fsgid);
++					 file->f_cred->fsgid);
+ 		break;
+ 	default:
+ 		break;
  	}
  
 -	read_unlock_bh(&sk->sk_callback_lock);
