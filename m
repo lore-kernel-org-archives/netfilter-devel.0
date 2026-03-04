@@ -1,82 +1,118 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E5339D6FB;
-	Wed,  4 Mar 2026 11:09:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85A5239F173;
+	Wed,  4 Mar 2026 11:49:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772622592; cv=none; b=ZABMBUFYTp7Jb6ZTZ2fwhvTgBLiDybPnSqAyT1ya4gt0NyKbT9PvVTAC8H9aFQybnPavk+nTdwDhu/0u0dlByu/UOYBaFRBux8tgjlAZbakY5fvD6I0+gi/vvhAkE9UVxTjejzbGQaCvVRGdqVBvQC4GMJjnGKJN2k98mbMTa8E=
+	t=1772624975; cv=none; b=Rn2XLbD3Iku7oWDc5lIxw7Jyu2HxUQvFsDKHsOaOkiKV+mZuGFCXV4jyzUsKwLO9WSHT2Yb81cczIwie1HnIgoOaIWAtDXRcfVeu62WvWYWi4GAQH7BFLYjG1jYSGpKLBbg9kS7cMb8NQOU8DVYIF7SMntOqJSl5l07ZL+LLBLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772622592; c=relaxed/simple;
-	bh=DZ5EpOMngdd36wqNDd4NjYzA6OxXRNV1rOnQgdUoZNk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=H07vgqJp3enuIVgR0B/PpCJIoostp2VOXHfc9MTXQgU4A64Y3aJDZUGbTC46rQ7QVsnEOQShWfI4FQyP6fNOoodBd81bwjAJ8Ti3g/mUoUi7ckfMMoZWQbebZwTWyL/etslNQzZIhnKVONvJSEf1O59vM6s8WJ8qM3HxeiooEbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gRJaFpb9; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gRJaFpb9"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 8637B602C6;
-	Wed,  4 Mar 2026 12:09:47 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1772622587;
-	bh=gt4atHiWzBjK0uoCYrFGwaAoutjL7AQKx2Z3OuME5BE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gRJaFpb9RgWm2G1Y+nAquiLopA9BIrWHjBcW7f1wyHewAneXWa+p64Kwzy2BcTCSm
-	 Cd1K+SWWUUl0EqR+CH4+FuDH3gaSTTB89xL2tStmyT8BMeaB2bnb/TWFlDA0D5j6kc
-	 ZI5WrcNgjKPyV6uleytjCWJjeJRpZ/82F4nNytdsUK7mRERGJIqlFFXoBoRUNs5/Z+
-	 pNCKfU3h6UW5aoTJDUK97EqaABJOPpo9DOsMEB5QSRJItKru05tcTId8oq256VO1MK
-	 CqbZkthg5xt+5/lL9CwHKLqqIKWwAewajNfAcojvjUYFZUq/jV2uzjOtBN2Zvi9yaQ
-	 8ale43xA9rXBQ==
-Date: Wed, 4 Mar 2026 12:09:44 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: Jindrich Makovicka <makovick@gmail.com>,
-	Genes Lists <lists@sapience.com>,
-	Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	stable@vger.kernel.org, regressions@lists.linux.dev,
-	"Kris Karas (Bug Reporting)" <bugs-a21@moonlit-rail.com>
-Subject: Re: [REGRESSION] 6.19.4 stable netfilter / nftables [resolved]
-Message-ID: <aagS-IUhQwz6m3MF@chamomile>
-References: <a529a6a9a2755d45765f20b58c5c11e2f790eacb.camel@sapience.com>
- <45f03b0b-fe8f-4942-bad1-3fbde03d4be1@leemhuis.info>
- <143e1a402ad78dd7076516a6ceb637f378310b16.camel@sapience.com>
- <10537f2b74da2b8a5cb8dc939f723291db39ff84.camel@sapience.com>
- <2026022755-quail-graveyard-93e8@gregkh>
- <b231fcdb6c66a7b24dcef3ee5c35c5f612d5c1a7.camel@sapience.com>
- <9d110d860c0c7e110d018ea53a7666eba275da20.camel@gmail.com>
- <aaday5NR-yfCkFVb@chamomile>
- <75a4115f-e7f3-4316-b046-525fcd87cdef@leemhuis.info>
+	s=arc-20240116; t=1772624975; c=relaxed/simple;
+	bh=tNgMebyVLVIysFUKRyPizBE2w0Ibu+FjhaowLCsqS4s=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=e3tyBy92MQV9LMJbnDhNcBmgG2EG1CHiciYGfmkx2EU1uwdZosNNU9Lk5TrrovLfB1PCvmUy1umsl7BsSsJlKRb0fJY+rIK67JQK4RC2JCQnliG0T/Y5RxGNsjvJgCud031SKRDuzQ0RwgkxML8Cb/II1FHFqrE5uNk4+ctXBrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0E30D6026E; Wed, 04 Mar 2026 12:49:30 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net-next 00/14] netfilter: updates for net-next
+Date: Wed,  4 Mar 2026 12:49:07 +0100
+Message-ID: <20260304114921.31042-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <75a4115f-e7f3-4316-b046-525fcd87cdef@leemhuis.info>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 04, 2026 at 06:50:32AM +0100, Thorsten Leemhuis wrote:
-> On 3/3/26 23:03, Pablo Neira Ayuso wrote:
->  
-> > A new userspace release with this fix is required.
-> 
-> But a new user space should never be required for a new kernel. Find a
-> few quotes from Linus on this below. And I noticed other people ran
-> into this, too, so it's not a corner case:
-> https://lore.kernel.org/all/aaeIDJigEVkDfrRg@chamomile/
-> 
-> So should this be reverted everywhere where this was applied? Or is
-> there some way to do what the commit wanted to do without breaking
-> userspace?
+Hi,
 
-Thanks for explaining.
+The following patchset contains Netfilter updates for *net-next*,
+including changes to IPv6 stack and updates to IPVS from Julian Anastasov.
 
-I kindly requested to revert in -stable:
+1) ipv6: export fib6_lookup for nft_fib_ipv6 module
+2) factor out ipv6_anycast_destination logic so its usable without
+   dst_entry.  These are dependencies for patch 3.
+3) switch nft_fib_ipv6 module to no longer need temporary dst_entry
+   object allocations by using fib6_lookup() + RCU.
+   This gets us ~13% higher packet rate in my tests.
 
-  netfilter: nft_set_rbtree: validate open interval overlap
+Patches 4 to 8, from Eric Dumazet, zap sk_callback_lock usage in
+netfilter.  Patch 9 removes another sk_callback_lock instance.
 
-which amplifies the userspace bug.
+Remaining patches, from Julian Anastasov, improve IPVS, Quoting Julian:
+* Add infrastructure for resizable hash tables based on hlist_bl.
+* Change the 256-bucket service hash table to be resizable.
+* Change the global connection table to be per-net and resizable.
+* Make connection hashing more secure for setups with multiple services.
+
+Please, pull these changes from:
+The following changes since commit 4ad96a7c9e2cebbbdc68369438a736a133539f1d:
+
+  selftests: net: add macvlan multicast test for shared source MAC (2026-03-03 18:08:13 -0800)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-03-04
+
+for you to fetch changes up to f20c73b0460d15301cf1bddf0f85d060a38a75df:
+
+  ipvs: use more keys for connection hashing (2026-03-04 11:45:45 +0100)
+
+----------------------------------------------------------------
+netfilter pull request nf-next-26-03-04
+
+----------------------------------------------------------------
+
+Eric Dumazet (5):
+  netfilter: nf_log_syslog: no longer acquire sk_callback_lock in
+    nf_log_dump_sk_uid_gid()
+  netfilter: xt_owner: no longer acquire sk_callback_lock in mt_owner()
+  netfilter: nft_meta: no longer acquire sk_callback_lock in
+    nft_meta_get_eval_skugid()
+  netfilter: nfnetlink_log: no longer acquire sk_callback_lock
+  netfilter: nfnetlink_queue: no longer acquire sk_callback_lock
+
+Florian Westphal (4):
+  ipv6: export fib6_lookup for nft_fib_ipv6
+  ipv6: make ipv6_anycast_destination logic usable without dst_entry
+  netfilter: nft_fib_ipv6: switch to fib6_lookup
+  netfilter: nfnetlink_queue: remove locking in nfqnl_get_sk_secctx
+
+Julian Anastasov (5):
+  rculist_bl: add hlist_bl_for_each_entry_continue_rcu
+  ipvs: add resizable hash tables
+  ipvs: use resizable hash table for services
+  ipvs: switch to per-net connection table
+  ipvs: use more keys for connection hashing
+
+ include/linux/rculist_bl.h        |  49 +-
+ include/net/ip6_route.h           |  15 +-
+ include/net/ip_vs.h               | 377 ++++++++++--
+ net/ipv6/fib6_rules.c             |   3 +
+ net/ipv6/ip6_fib.c                |   3 +
+ net/ipv6/netfilter/nft_fib_ipv6.c |  79 ++-
+ net/netfilter/ipvs/ip_vs_conn.c   | 991 ++++++++++++++++++++++--------
+ net/netfilter/ipvs/ip_vs_core.c   | 179 ++++++
+ net/netfilter/ipvs/ip_vs_ctl.c    | 691 +++++++++++++++++----
+ net/netfilter/ipvs/ip_vs_pe_sip.c |   4 +-
+ net/netfilter/ipvs/ip_vs_sync.c   |  23 +
+ net/netfilter/nf_log_syslog.c     |  16 +-
+ net/netfilter/nfnetlink_log.c     |  19 +-
+ net/netfilter/nfnetlink_queue.c   |  24 +-
+ net/netfilter/nft_meta.c          |  23 +-
+ net/netfilter/xt_owner.c          |  28 +-
+ 16 files changed, 2011 insertions(+), 513 deletions(-)
+
+-- 
+2.52.0
