@@ -1,46 +1,44 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F856388E4D;
-	Wed,  4 Mar 2026 21:27:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B746826CE11;
+	Wed,  4 Mar 2026 21:57:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772659670; cv=none; b=AxzNQFqC44mwCokFFB77HlzKtepQL1E5MOtKe5iDlYBveG40JEGn8mT736UxVipEK6NSyzc8ya+NnDotxn01pEEMFo4ZLMNyDzshj8OJ/eHt1q7RIpUvTdjJz0cVK3SvXrMcK2ksKQXcrcAcBFMHxAjZCx89j8GlvwMlbMMneaY=
+	t=1772661427; cv=none; b=XgN206lQ3NxQ8280hlKHxDHDA+JOtsPO7xKauBilsZpH3hKPrO9rUJ32/z5I2EkSBkXNGrPwbmw6ortYVydiGwEzhG9GP7GeIYdBEtXdA1e2TQRgH0l63LKD+M+aEMwNAqsKy49/XpzkV3FHNeW/DSkQz4YK2DNANSHswAaxOGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772659670; c=relaxed/simple;
-	bh=oOM7Zk18wbpy+KVhSL25XNQql+cWoWEbIZLCb70VY9s=;
+	s=arc-20240116; t=1772661427; c=relaxed/simple;
+	bh=bazpq+SK+eoSsQxMUAjR0z1xDF+0vDKXWPNbWnOt65M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=K2luMs8HpF+HC1zMpL5Wf1fdC+0sBxwwAP+DhR44kyRBJlY9psVFncrgEZPSxMq+iyOt088LlQzhYzoHCjsRJUZse9NvDrnpZdzYkxWo7j7l84XN6gNsD6DxGRKCS+JBTXM7WEOp+rV+YPk9vR/7CA/HOHbyhn3iDiOASuX8pGM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PBkJMvxI; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=iv/NiDmZAhZM62gYwgCoLCr5XsrYPUf2ZzMe2RvEXdImTq69VsIBMWPE82AFeGtsANymNCaHHwVGZlc9sBPl2TqXkobGpcpBTnYVtOF9EUlVftbW5nQzlyGQRY1a9r5h4fzfT778uFQzWH0u1dQ9La1lqNoQ7emLPzqsm14hxQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=T1VgREoe; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PBkJMvxI"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="T1VgREoe"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 645366034C;
-	Wed,  4 Mar 2026 22:27:47 +0100 (CET)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D65BA60251;
+	Wed,  4 Mar 2026 22:57:03 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1772659667;
-	bh=g/MEdPmEoeWbHEJ9LIOvPo0bFSjkMYv54FYTIKY4j18=;
+	s=2025; t=1772661423;
+	bh=NZcQ+LOkyu6s20xwD3Bz2rY2z596cUhb0rAmyG47cpk=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PBkJMvxIQEdFp76/Q1Uzgb9reBH8jQC4B26LVVJ433p1aB0p8piWoZAlGZUfuMhlU
-	 VNOgAsIaT19XgwNTk4/LexHtHvKMcAwkCn/HXs/4/Qbl5BYh+DlsfOUg328/MnEJxC
-	 z4ypRqtH5b48RfXgWUCEmtgUjn48z55Ar2lU6X4djlsWT0GK29detVmo6FXhVk4bHy
-	 /jwwMFB5IF35wJtTPzkgRjCeFLIb9B5MTMfx4OACsHBZtME5NY/e6ZKQr5yTGUGL6o
-	 xzuK4PdjlfsRSYIP40DpOdOyeLN2YHCG9O1eIeuHT0iYTufLsBvh6Y8QHiuLbedRrl
-	 d8o4ij93kihLA==
-Date: Wed, 4 Mar 2026 22:27:45 +0100
+	b=T1VgREoeiBgiv/Z41ARc6LbmDPM63wse5ULAlEPTEtoVreap9B1bTJ8lC3Z0C8sSt
+	 IRXmzSSnY2LAd6iK7Ia9fv+LZBa5gPd5OGUuGJNNGsIQVhKrlfK2PHvYSksWqT8iEi
+	 fKkXOk+SVa12adKEz8QbK2Q2NGDhlys0rVYNiCamCGs86tyu66pBN1jfsxbTAHO7oD
+	 cDW8vjhSTuWhkawO8H+blO2C8vU7BC2KtOhUALfmC2ibdE7CV9jJkEpBlG7Y6PTrPg
+	 VG5jSN3oSD91lWrxgqf/YmU7/QfyMqR7XX5q+BDkNzSZEdA3h3NT+PRuJ+VEtvK8Rd
+	 LNhaj/bXdOpZQ==
+Date: Wed, 4 Mar 2026 22:57:00 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Chris Arges <carges@cloudflare.com>
-Cc: Florian Westphal <fw@strlen.de>, stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, lwn@lwn.net,
-	jslaby@suse.cz, kernel-team@cloudflare.com,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [REGRESSION] 6.18.14 netfilter/nftables consumes way more memory
-Message-ID: <aaij0XAgYRN40QdD@chamomile>
-References: <aahw_h5DdmYZeeqw@20HS2G4>
- <aaijcrM5Ke5-Zabx@chamomile>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net 0/4] netfilter: updates for net
+Message-ID: <aaiqrFrus1syOmlT@chamomile>
+References: <20260304172940.24948-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,78 +47,53 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aaijcrM5Ke5-Zabx@chamomile>
+In-Reply-To: <20260304172940.24948-1-fw@strlen.de>
 
-Resending, your Reply-To: is botched.
+Hi Florian,
 
--o-
-
-Hi,
-
-On Wed, Mar 04, 2026 at 11:50:54AM -0600, Chris Arges wrote:
-> Hello,
+On Wed, Mar 04, 2026 at 06:29:36PM +0100, Florian Westphal wrote:
+> Hi,
 > 
-> We've noticed significant slab unreclaimable memory increase after upgrading
-> from 6.18.12 to 6.18.15. Other memory values look fairly close, but in my
-> testing slab unreclaimable goes from 1.7 GB to 4.9 GB on machines.
-
-From where are you collecting these memory consumption numbers?
-
-> Our use case is having nft rules like below, but adding them to 1000s of
-> network namespaces. This is essentially running `nft -f` for all these
-> namespaces every minute.
-
-Those numbers for only 1000? That is too little number of entries for
-such increase in memory usage that you report.
-
-> ```
-> table inet service_1234567 {
-> }
-> delete table inet service_1234567
-> table inet service_1234567 {
-> 	chain input {
-> 		type filter hook prerouting priority filter; policy accept;
-> 		ip saddr @account.ip_list drop
-> 	}
-> 	set account.ip_list {
-> 		type ipv4_addr
-> 		flags interval
-> 		auto-merge
-> 	}
-> }
-> add element inet service_1234567 account.ip_list { /* add 1000s of CIDRs here */ }
-> ```
+> The following patchset contains Netfilter fixes for *net*:
 > 
-> I suspect this is related to:
-> - 36ed9b6e3961 (upstream 7e43e0a1141deec651a60109dab3690854107298)
-> - netfilter: nft_set_rbtree: translate rbtree to array for binary search
+> 1) Fix a bug with vlan headers in the flowtable infrastructure.
+>    Existing code uses skb_vlan_push() helper, but that helper
+>    requires skb->data to point to the MAC header, which isn't the
+>    case for flowtables.  Switch to a new helper, modeled on the
+>    existing PPPoE helper. From Eric Woudstra. This bug was added
+>    in v6.19-rc1.
 
-More memory consumption is expected indeed, but not so much as you are
-reporting.
-
-> I'm still digging into this, and plan on reverting commits and seeing if memory
-> usage goes back to nominal in production. I don't have a trivial
-> reproducer unfortunately.
-
-The extra memory comes from the array allocation, the relevant code
-is here:
-
-#define NFT_ARRAY_EXTRA_SIZE    10240 
+In patch 1/4, why is this new function so different wrt. skb_vlan_push?
  
-/* Similar to nft_rbtree_{u,k}size to hide details to userspace, but consider
- * packed representation coming from userspace for anonymous sets too.
- */     
-static u32 nft_array_elems(const struct nft_set *set)
+int skb_vlan_push(struct sk_buff *skb, __be16 vlan_proto, u16 vlan_tci)
+{
+        if (skb_vlan_tag_present(skb)) {
+                int offset = skb->data - skb_mac_header(skb);
+                int err;
+ 
+                if (WARN_ONCE(offset,
+                              "skb_vlan_push got skb with skb->data not at mac header (offset %d)\n",
+                              offset)) {
+                        return -EINVAL;
+                }
+ 
+                err = __vlan_insert_tag(skb, skb->vlan_proto,
+                                        skb_vlan_tag_get(skb));
+                if (err)
+                        return err;
+ 
+                skb->protocol = skb->vlan_proto;
+                skb->network_header -= VLAN_HLEN;
+ 
+                skb_postpush_rcsum(skb, skb->data + (2 * ETH_ALEN), VLAN_HLEN);
+        }
+        __vlan_hwaccel_put_tag(skb, vlan_proto, vlan_tci);
+ 
+ 
+In case there are two VLANs, the existing in hwaccel gets pushed into
+the VLAN header, and the outer VLAN becomes the one that is offloaded?
+ 
+Is this reversed in this patch? The first VLAN tag is offloaded, then
+the next one coming is pushed as a VLAN header?
 
-> Happy to run some additional tests, and I can easily apply patches on top of
-> linux-6.18.y to run in a test environment.
-
-I would need need more info to propose a patch, I don't know where you
-are pulling such numbers. You also mention you have no reproducer.
-
-> We are using userspace nftables 1.1.3, but had to apply the patch mentioned
-> in this thread: https://lore.kernel.org/all/e6b43861cda6953cc7f8c259e663b890e53d7785.camel@sapience.com/
-> In order to solve the other regression we encountered.
-
-Yes, there are plans to revert a kernel patch that went in -stable to
-address this.
+Thanks.
