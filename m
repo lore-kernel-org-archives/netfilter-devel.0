@@ -1,45 +1,46 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 877D53845AC;
-	Wed,  4 Mar 2026 21:26:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F856388E4D;
+	Wed,  4 Mar 2026 21:27:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772659579; cv=none; b=M3FP1qzGs8ssFOmmQIsBYXpQYYORmD4Jp7Moy3nsu9MJtNbxJeKTxj98WR+lFUrbejDuBkywdxtxERXYxAY/uDzzBWfLQbUAaSOw4Q4OUNK3tply3CB+zvjkM9WZcSMbArQnkPkoJUvsPqHFUgPhszpsJLPI9cc56OrSyI2goTQ=
+	t=1772659670; cv=none; b=AxzNQFqC44mwCokFFB77HlzKtepQL1E5MOtKe5iDlYBveG40JEGn8mT736UxVipEK6NSyzc8ya+NnDotxn01pEEMFo4ZLMNyDzshj8OJ/eHt1q7RIpUvTdjJz0cVK3SvXrMcK2ksKQXcrcAcBFMHxAjZCx89j8GlvwMlbMMneaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772659579; c=relaxed/simple;
-	bh=PhMjNizqtszEaWSgFMbyxw+xTYbOwGO000UfKY+bOm0=;
+	s=arc-20240116; t=1772659670; c=relaxed/simple;
+	bh=oOM7Zk18wbpy+KVhSL25XNQql+cWoWEbIZLCb70VY9s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=sF6IV1VwQblzP3nK4dnD8SAGEbQ0GfRJ1YwBNBkQP509fbp6G76soZ+Sfnz/PK3mTzjdc4/SKuJ8xmU+Ou+TB9tPcLQd4gFI45D4c85fd1QMp1vr3l1KgcHigWsieGmQfRXI9WaJVa1vNPOaTfdRK9DfLg0qlaRzRf9h4ufRmnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tl/ZN8h0; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=K2luMs8HpF+HC1zMpL5Wf1fdC+0sBxwwAP+DhR44kyRBJlY9psVFncrgEZPSxMq+iyOt088LlQzhYzoHCjsRJUZse9NvDrnpZdzYkxWo7j7l84XN6gNsD6DxGRKCS+JBTXM7WEOp+rV+YPk9vR/7CA/HOHbyhn3iDiOASuX8pGM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PBkJMvxI; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tl/ZN8h0"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PBkJMvxI"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 90F27602EC;
-	Wed,  4 Mar 2026 22:26:13 +0100 (CET)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 645366034C;
+	Wed,  4 Mar 2026 22:27:47 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1772659573;
-	bh=TbD57Cf8HsGwolFtN68G0Af7wmRjO6opYFFt8/q/SzI=;
+	s=2025; t=1772659667;
+	bh=g/MEdPmEoeWbHEJ9LIOvPo0bFSjkMYv54FYTIKY4j18=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tl/ZN8h0j8Xs9rFIpW2KoLzywjiMmZcPvMWhS8E6rdxuEXPpNamaClJccM4HwHMZc
-	 vEzl66kak2gqQtmO2b2X24sC37WddqXChBU7OsXh4zr+yQzfxFConft4P8nqDHwL4J
-	 9WQ0iqFJXMwK8AIprugBcXOMUhCv/2XYAihIKe21RVGek0pgAQ0zZYW6vAHyIZ8C2I
-	 uJlM4DdNX+nqykA3aCi7yvsngQIrFNLlUQeQCYkS9gBB51dmoxemT5/BdSHHQmIZRg
-	 YTUAa3FTo9inbTqw8WMudCyNOhr7D65x7pZfvzxY+mS7QRqh/dyyfAVFGfsQ+3CtsO
-	 3zL7VSMijYZvA==
-Date: Wed, 4 Mar 2026 22:26:10 +0100
+	b=PBkJMvxIQEdFp76/Q1Uzgb9reBH8jQC4B26LVVJ433p1aB0p8piWoZAlGZUfuMhlU
+	 VNOgAsIaT19XgwNTk4/LexHtHvKMcAwkCn/HXs/4/Qbl5BYh+DlsfOUg328/MnEJxC
+	 z4ypRqtH5b48RfXgWUCEmtgUjn48z55Ar2lU6X4djlsWT0GK29detVmo6FXhVk4bHy
+	 /jwwMFB5IF35wJtTPzkgRjCeFLIb9B5MTMfx4OACsHBZtME5NY/e6ZKQr5yTGUGL6o
+	 xzuK4PdjlfsRSYIP40DpOdOyeLN2YHCG9O1eIeuHT0iYTufLsBvh6Y8QHiuLbedRrl
+	 d8o4ij93kihLA==
+Date: Wed, 4 Mar 2026 22:27:45 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: 2026022652-lyricist-washtub-eeb4@gregkh
+To: Chris Arges <carges@cloudflare.com>
 Cc: Florian Westphal <fw@strlen.de>, stable@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, lwn@lwn.net,
 	jslaby@suse.cz, kernel-team@cloudflare.com,
 	netfilter-devel@vger.kernel.org
 Subject: Re: [REGRESSION] 6.18.14 netfilter/nftables consumes way more memory
-Message-ID: <aaijcrM5Ke5-Zabx@chamomile>
+Message-ID: <aaij0XAgYRN40QdD@chamomile>
 References: <aahw_h5DdmYZeeqw@20HS2G4>
+ <aaijcrM5Ke5-Zabx@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,7 +49,11 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aahw_h5DdmYZeeqw@20HS2G4>
+In-Reply-To: <aaijcrM5Ke5-Zabx@chamomile>
+
+Resending, your Reply-To: is botched.
+
+-o-
 
 Hi,
 
