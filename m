@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AFB739C62F;
-	Thu,  5 Mar 2026 12:26:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FF5939D6C0;
+	Thu,  5 Mar 2026 12:26:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772713612; cv=none; b=BF5IeQVMLgNNy9f8bIe6pg+caAkk21o7MJgA/g4urgQUTSwgchWiBDSDBZjHQgbEpLOrb1s1n1JVvAInyhDK5w7JDHhMWHUaU+Xy4qwe+Uq8GUTBWMBpfFD5lB26uaqVzjAL5nYWIS15V0nCowtqVwbWc8YWbeBhtfvC2fpzvnM=
+	t=1772713615; cv=none; b=c6HKYKJ7jQFoq3i9TV7tJRuwJRi+jF9uNjz1ZpPCy1v0gDoNoWH/E47JM5Oy1hAP/cXet3KASeS3/Cfr818Z38/Y2O5d7Jw8vRQD740vYui/rlXoPm7CatCT9/jSXy1WcdQwhQh35mrq8w5gBw1jVFwVGR4GMrLnT185qeJXW7s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772713612; c=relaxed/simple;
-	bh=8jnpwIKf/AqtXX7/ntMvMcMaDxEd4U69V/yGaSEhgLo=;
+	s=arc-20240116; t=1772713615; c=relaxed/simple;
+	bh=rMNDoA8iYdbt5Qz5Y4MAxadc62r0RBUOrEOfJSSVz6E=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TnvI5etcJEgSCD+5U8nbly5kW+5fC7fHk0tQGD3NvloQhVerbz7ydHHonjytjRwgzLfPjTHYFjwRMQWkmYRw9Im5MPRh8VkUVu25gsqsnw62waT2LvQmj0SZYQxOUtCx5tD11fXjoes+7DGfr+NYFCmWZLiiZCsT43mo6ljNfro=
+	 MIME-Version; b=GKvlzVg3pm2jajPpbyPl0n2rW7LDtFGQEgQLXRRLrovsr4qjFqrBhhQ2PmqVtQ2I0bWLsopHo471l4JHPck4Wtfh1kbiqol2sOEXrIuz79WWglPR+AKLA37YQ3iGP2+zuxTykE2u+FoIxI095iX8zJo/ynFBjpGiOASCKVAsI/s=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id AF1306047A; Thu, 05 Mar 2026 13:26:48 +0100 (CET)
+	id 0B9D36047A; Thu, 05 Mar 2026 13:26:53 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net v2 2/3] netfilter: nf_tables: clone set on flush only
-Date: Thu,  5 Mar 2026 13:26:34 +0100
-Message-ID: <20260305122635.23525-3-fw@strlen.de>
+Subject: [PATCH net v2 3/3] netfilter: nft_set_pipapo: split gc into unlink and reclaim phase
+Date: Thu,  5 Mar 2026 13:26:35 +0100
+Message-ID: <20260305122635.23525-4-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260305122635.23525-1-fw@strlen.de>
 References: <20260305122635.23525-1-fw@strlen.de>
@@ -38,173 +38,209 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Yiming Qian reports Use-after-free in the pipapo set type:
+  Under a large number of expired elements, commit-time GC can run for a very
+  long time in a non-preemptible context, triggering soft lockup warnings and
+  RCU stall reports (local denial of service).
 
-Syzbot with fault injection triggered a failing memory allocation with
-GFP_KERNEL which results in a WARN splat:
+We must split GC in an unlink and a reclaim phase.
 
-iter.err
-WARNING: net/netfilter/nf_tables_api.c:845 at nft_map_deactivate+0x34e/0x3c0 net/netfilter/nf_tables_api.c:845, CPU#0: syz.0.17/5992
-Modules linked in:
-CPU: 0 UID: 0 PID: 5992 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full)
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2026
-RIP: 0010:nft_map_deactivate+0x34e/0x3c0 net/netfilter/nf_tables_api.c:845
-Code: 8b 05 86 5a 4e 09 48 3b 84 24 a0 00 00 00 75 62 48 8d 65 d8 5b 41 5c 41 5d 41 5e 41 5f 5d c3 cc cc cc cc cc e8 63 6d fa f7 90 <0f> 0b 90 43
-+80 7c 35 00 00 0f 85 23 fe ff ff e9 26 fe ff ff 89 d9
-RSP: 0018:ffffc900045af780 EFLAGS: 00010293
-RAX: ffffffff89ca45bd RBX: 00000000fffffff4 RCX: ffff888028111e40
-RDX: 0000000000000000 RSI: 00000000fffffff4 RDI: 0000000000000000
-RBP: ffffc900045af870 R08: 0000000000400dc0 R09: 00000000ffffffff
-R10: dffffc0000000000 R11: fffffbfff1d141db R12: ffffc900045af7e0
-R13: 1ffff920008b5f24 R14: dffffc0000000000 R15: ffffc900045af920
-FS:  000055557a6a5500(0000) GS:ffff888125496000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fb5ea271fc0 CR3: 000000003269e000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- __nft_release_table+0xceb/0x11f0 net/netfilter/nf_tables_api.c:12115
- nft_rcv_nl_event+0xc25/0xdb0 net/netfilter/nf_tables_api.c:12187
- notifier_call_chain+0x19d/0x3a0 kernel/notifier.c:85
- blocking_notifier_call_chain+0x6a/0x90 kernel/notifier.c:380
- netlink_release+0x123b/0x1ad0 net/netlink/af_netlink.c:761
- __sock_release net/socket.c:662 [inline]
- sock_close+0xc3/0x240 net/socket.c:1455
+We cannot queue elements for freeing until pointers have been swapped.
+Expired elements are still exposed to both the packet path and userspace
+dumpers via the live copy of the data structure.
 
-Restrict set clone to the flush set command in the preparation phase.
-Add NFT_ITER_UPDATE_CLONE and use it for this purpose, update the rbtree
-and pipapo backends to only clone the set when this iteration type is
-used.
+call_rcu() does not protect us: dump operations or element lookups starting
+after call_rcu has fired can still observe the free'd element, unless the
+commit phase has made enough progress to swap the clone and live pointers
+before any new reader has picked up the old version.
 
-As for the existing NFT_ITER_UPDATE type, update the pipapo backend to
-use the existing set clone if available, otherwise use the existing set
-representation. After this update, there is no need to clone a set that
-is being deleted, this includes bound anonymous set.
+This a similar approach as done recently for the rbtree backend in commit
+35f83a75529a ("netfilter: nft_set_rbtree: don't gc elements on insert").
 
-An alternative approach to NFT_ITER_UPDATE_CLONE is to add a .clone
-interface and call it from the flush set path.
-
-Reported-by: syzbot+4924a0edc148e8b4b342@syzkaller.appspotmail.com
-Fixes: 3f1d886cc7c3 ("netfilter: nft_set_pipapo: move cloning of match info to insert/removal path")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Reported-by: Yiming Qian <yimingqian591@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 10 +++++++++-
- net/netfilter/nft_set_hash.c      |  1 +
- net/netfilter/nft_set_pipapo.c    | 11 +++++++++--
- net/netfilter/nft_set_rbtree.c    |  8 +++++---
- 5 files changed, 26 insertions(+), 6 deletions(-)
+ include/net/netfilter/nf_tables.h |  5 +++
+ net/netfilter/nf_tables_api.c     |  5 ---
+ net/netfilter/nft_set_pipapo.c    | 51 ++++++++++++++++++++++++++-----
+ net/netfilter/nft_set_pipapo.h    |  2 ++
+ 4 files changed, 50 insertions(+), 13 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 426534a711b0..ea6f29ad7888 100644
+index ea6f29ad7888..e2d2bfc1f989 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -320,11 +320,13 @@ static inline void *nft_elem_priv_cast(const struct nft_elem_priv *priv)
-  * @NFT_ITER_UNSPEC: unspecified, to catch errors
-  * @NFT_ITER_READ: read-only iteration over set elements
-  * @NFT_ITER_UPDATE: iteration under mutex to update set element state
-+ * @NFT_ITER_UPDATE_CLONE: clone set before iteration under mutex to update element
-  */
- enum nft_iter_type {
- 	NFT_ITER_UNSPEC,
- 	NFT_ITER_READ,
- 	NFT_ITER_UPDATE,
-+	NFT_ITER_UPDATE_CLONE,
+@@ -1863,6 +1863,11 @@ struct nft_trans_gc {
+ 	struct rcu_head		rcu;
  };
  
- struct nft_set;
++static inline int nft_trans_gc_space(const struct nft_trans_gc *trans)
++{
++	return NFT_TRANS_GC_BATCHCOUNT - trans->count;
++}
++
+ static inline void nft_ctx_update(struct nft_ctx *ctx,
+ 				  const struct nft_trans *trans)
+ {
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index df67932d3e09..058f7004cb2b 100644
+index 058f7004cb2b..1862bd7fe804 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -833,6 +833,11 @@ static void nft_map_catchall_deactivate(const struct nft_ctx *ctx,
+@@ -10493,11 +10493,6 @@ static void nft_trans_gc_queue_work(struct nft_trans_gc *trans)
+ 	schedule_work(&trans_gc_work);
+ }
+ 
+-static int nft_trans_gc_space(struct nft_trans_gc *trans)
+-{
+-	return NFT_TRANS_GC_BATCHCOUNT - trans->count;
+-}
+-
+ struct nft_trans_gc *nft_trans_gc_queue_async(struct nft_trans_gc *gc,
+ 					      unsigned int gc_seq, gfp_t gfp)
+ {
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index c091898df710..a34632ae6048 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1680,11 +1680,11 @@ static void nft_pipapo_gc_deactivate(struct net *net, struct nft_set *set,
+ }
+ 
+ /**
+- * pipapo_gc() - Drop expired entries from set, destroy start and end elements
++ * pipapo_gc_scan() - Drop expired entries from set and link them to gc list
+  * @set:	nftables API set representation
+  * @m:		Matching data
+  */
+-static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
++static void pipapo_gc_scan(struct nft_set *set, struct nft_pipapo_match *m)
+ {
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct net *net = read_pnet(&set->net);
+@@ -1697,6 +1697,8 @@ static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
+ 	if (!gc)
+ 		return;
+ 
++	list_add(&gc->list, &priv->gc_head);
++
+ 	while ((rules_f0 = pipapo_rules_same_key(m->f, first_rule))) {
+ 		union nft_pipapo_map_bucket rulemap[NFT_PIPAPO_MAX_FIELDS];
+ 		const struct nft_pipapo_field *f;
+@@ -1724,9 +1726,13 @@ static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
+ 		 * NFT_SET_ELEM_DEAD_BIT.
+ 		 */
+ 		if (__nft_set_elem_expired(&e->ext, tstamp)) {
+-			gc = nft_trans_gc_queue_sync(gc, GFP_KERNEL);
+-			if (!gc)
+-				return;
++			if (!nft_trans_gc_space(gc)) {
++				gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
++				if (!gc)
++					return;
++
++				list_add(&gc->list, &priv->gc_head);
++			}
+ 
+ 			nft_pipapo_gc_deactivate(net, set, e);
+ 			pipapo_drop(m, rulemap);
+@@ -1740,10 +1746,30 @@ static void pipapo_gc(struct nft_set *set, struct nft_pipapo_match *m)
+ 		}
+ 	}
+ 
+-	gc = nft_trans_gc_catchall_sync(gc);
++	priv->last_gc = jiffies;
++}
++
++/**
++ * pipapo_gc_queue() - Free expired elements
++ * @set:	nftables API set representation
++ */
++static void pipapo_gc_queue(struct nft_set *set)
++{
++	struct nft_pipapo *priv = nft_set_priv(set);
++	struct nft_trans_gc *gc, *next;
++
++	/* always do a catchall cycle: */
++	gc = nft_trans_gc_alloc(set, 0, GFP_KERNEL);
+ 	if (gc) {
++		gc = nft_trans_gc_catchall_sync(gc);
++		if (gc)
++			nft_trans_gc_queue_sync_done(gc);
++	}
++
++	/* always purge queued gc elements. */
++	list_for_each_entry_safe(gc, next, &priv->gc_head, list) {
++		list_del(&gc->list);
+ 		nft_trans_gc_queue_sync_done(gc);
+-		priv->last_gc = jiffies;
  	}
  }
  
-+/* Use NFT_ITER_UPDATE iterator even if this may be called from the preparation
-+ * phase, the set clone might already exist from a previous command, or it might
-+ * be a set that is going away and does not require a clone. The netns and
-+ * netlink release paths also need to work on the live set.
-+ */
- static void nft_map_deactivate(const struct nft_ctx *ctx, struct nft_set *set)
+@@ -1797,6 +1823,10 @@ static void pipapo_reclaim_match(struct rcu_head *rcu)
+  *
+  * We also need to create a new working copy for subsequent insertions and
+  * deletions.
++ *
++ * After the live copy has been replaced by the clone, we can safely queue
++ * expired elements that have been collected by pipapo_gc_scan() for
++ * memory reclaim.
+  */
+ static void nft_pipapo_commit(struct nft_set *set)
  {
- 	struct nft_set_iter iter = {
-@@ -7903,9 +7908,12 @@ static int nft_set_catchall_flush(const struct nft_ctx *ctx,
+@@ -1807,7 +1837,7 @@ static void nft_pipapo_commit(struct nft_set *set)
+ 		return;
  
- static int nft_set_flush(struct nft_ctx *ctx, struct nft_set *set, u8 genmask)
- {
-+	/* The set backend might need to clone the set, do it now from the
-+	 * preparation phase, use NFT_ITER_UPDATE_CLONE iterator type.
-+	 */
- 	struct nft_set_iter iter = {
- 		.genmask	= genmask,
--		.type		= NFT_ITER_UPDATE,
-+		.type		= NFT_ITER_UPDATE_CLONE,
- 		.fn		= nft_setelem_flush,
- 	};
+ 	if (time_after_eq(jiffies, priv->last_gc + nft_set_gc_interval(set)))
+-		pipapo_gc(set, priv->clone);
++		pipapo_gc_scan(set, priv->clone);
  
-diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
-index 739b992bde59..b0e571c8e3f3 100644
---- a/net/netfilter/nft_set_hash.c
-+++ b/net/netfilter/nft_set_hash.c
-@@ -374,6 +374,7 @@ static void nft_rhash_walk(const struct nft_ctx *ctx, struct nft_set *set,
- {
- 	switch (iter->type) {
- 	case NFT_ITER_UPDATE:
-+	case NFT_ITER_UPDATE_CLONE:
- 		/* only relevant for netlink dumps which use READ type */
- 		WARN_ON_ONCE(iter->skip != 0);
+ 	old = rcu_replace_pointer(priv->match, priv->clone,
+ 				  nft_pipapo_transaction_mutex_held(set));
+@@ -1815,6 +1845,8 @@ static void nft_pipapo_commit(struct nft_set *set)
  
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index 7ef4b44471d3..c091898df710 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -2144,13 +2144,20 @@ static void nft_pipapo_walk(const struct nft_ctx *ctx, struct nft_set *set,
- 	const struct nft_pipapo_match *m;
- 
- 	switch (iter->type) {
--	case NFT_ITER_UPDATE:
-+	case NFT_ITER_UPDATE_CLONE:
- 		m = pipapo_maybe_clone(set);
- 		if (!m) {
- 			iter->err = -ENOMEM;
- 			return;
- 		}
--
-+		nft_pipapo_do_walk(ctx, set, m, iter);
-+		break;
-+	case NFT_ITER_UPDATE:
-+		if (priv->clone)
-+			m = priv->clone;
-+		else
-+			m = rcu_dereference_protected(priv->match,
-+						      nft_pipapo_transaction_mutex_held(set));
- 		nft_pipapo_do_walk(ctx, set, m, iter);
- 		break;
- 	case NFT_ITER_READ:
-diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-index 3f02e4478216..ee3d4f5b9ff7 100644
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@ -861,13 +861,15 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 	struct nft_rbtree *priv = nft_set_priv(set);
- 
- 	switch (iter->type) {
--	case NFT_ITER_UPDATE:
--		lockdep_assert_held(&nft_pernet(ctx->net)->commit_mutex);
--
-+	case NFT_ITER_UPDATE_CLONE:
- 		if (nft_array_may_resize(set) < 0) {
- 			iter->err = -ENOMEM;
- 			break;
- 		}
-+		fallthrough;
-+	case NFT_ITER_UPDATE:
-+		lockdep_assert_held(&nft_pernet(ctx->net)->commit_mutex);
+ 	if (old)
+ 		call_rcu(&old->rcu, pipapo_reclaim_match);
 +
- 		nft_rbtree_do_walk(ctx, set, iter);
- 		break;
- 	case NFT_ITER_READ:
++	pipapo_gc_queue(set);
+ }
+ 
+ static void nft_pipapo_abort(const struct nft_set *set)
+@@ -2279,6 +2311,7 @@ static int nft_pipapo_init(const struct nft_set *set,
+ 		f->mt = NULL;
+ 	}
+ 
++	INIT_LIST_HEAD(&priv->gc_head);
+ 	rcu_assign_pointer(priv->match, m);
+ 
+ 	return 0;
+@@ -2328,6 +2361,8 @@ static void nft_pipapo_destroy(const struct nft_ctx *ctx,
+ 	struct nft_pipapo *priv = nft_set_priv(set);
+ 	struct nft_pipapo_match *m;
+ 
++	WARN_ON_ONCE(!list_empty(&priv->gc_head));
++
+ 	m = rcu_dereference_protected(priv->match, true);
+ 
+ 	if (priv->clone) {
+diff --git a/net/netfilter/nft_set_pipapo.h b/net/netfilter/nft_set_pipapo.h
+index eaab422aa56a..9aee9a9eaeb7 100644
+--- a/net/netfilter/nft_set_pipapo.h
++++ b/net/netfilter/nft_set_pipapo.h
+@@ -156,12 +156,14 @@ struct nft_pipapo_match {
+  * @clone:	Copy where pending insertions and deletions are kept
+  * @width:	Total bytes to be matched for one packet, including padding
+  * @last_gc:	Timestamp of last garbage collection run, jiffies
++ * @gc_head:	list of nft_trans_gc to queue up for mem reclaim
+  */
+ struct nft_pipapo {
+ 	struct nft_pipapo_match __rcu *match;
+ 	struct nft_pipapo_match *clone;
+ 	int width;
+ 	unsigned long last_gc;
++	struct list_head gc_head;
+ };
+ 
+ struct nft_pipapo_elem;
 -- 
 2.52.0
 
