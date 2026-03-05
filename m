@@ -1,67 +1,77 @@
 Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ECF737D126
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Mar 2026 11:11:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAA9D37F74D
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Mar 2026 11:15:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772709122; cv=none; b=YYtcgU9LzIxECRuGIRNyPVUNA7ZTzULm6IHaoxxrkC5fAYYodrvobCzfz1YwwVYH51eGyHre4TcQCVUEgx0BMQ20UqodoXlftLasE0oL1mZgcz+DauWQsiE+IrVSHIBdXoPpk6BL7fqN1VqbpdbJ82lt21tH3F49zlcRxIy4mpc=
+	t=1772709321; cv=none; b=WM6DprIqH4YGn/S1AURqMBu1O2RlV1o6UNj1VFi6/ejsqpqCQ7iyb49dwNrZjSPZNmw/62dZABWDHcryxVNpZxAoGZyIIzM3sGJvCTQjuRVltf7bo4zK9hmNIHTCf/zhF0b3dCWoSD8a4VkN32Q4avp2nUS1iySVw5mzaJx8EK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772709122; c=relaxed/simple;
-	bh=QiHXGt/R2IBO3lhPhqyX/lAOxpBjdFmDB5kvkFrOxLM=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gUvsq8ILm3wJbqlfWQPAfAJbX5KLTnpx2TF4Nj0RWAt3kV/gLXxqFiJOGVkZ3nf3BTxC+nSj9MeNpVqankIgZkp5hauTvb9HhpVzrh+asRkLakmFn7ECOqL4a55aw5U4Id8+jEhTh28DERmnmPPVxXVnvvVDDjaLE1fhLQKUUQA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Qf3/GzwK; arc=none smtp.client-ip=151.80.46.58
+	s=arc-20240116; t=1772709321; c=relaxed/simple;
+	bh=CALbPl2hUAGkU4px/JCvqLQKbZG0rk5AKXMyM1h6ffk=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=IbQ2d36VyXL1AhI7EKPiSzaNsIxo8fqoj19Nwqr9+gq4Q/FfXLhr7fNe39Fzc0EtZbn3RQbyhfX7Yy6s+vRNpP8hWM/ic9JNetHxk/igmXsuqDK4dwWC0DaTSUq8/UCvtzy9kK++1HQwcwznul/O+duiv698zhbTa71NTUYYqTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=YSv25p73; arc=none smtp.client-ip=151.80.46.58
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Qf3/GzwK"
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="YSv25p73"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
+	Message-ID:Date:Subject:To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:
 	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
 	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
 	List-Post:List-Owner:List-Archive;
-	bh=iBYJuqixY4JkpOajquOQxZXMrv+nSJlW8Om/KA4GgmQ=; b=Qf3/GzwKHcw5UfXc7XX2dwAPRj
-	Zt1/L/jRGz1LXkZ1qH1cH+jPuPcJJoESX2t84prPY8SIVoXRhIrbY1VnR8EkJXj/wsyvYmHV1scFh
-	2GcYyGp75qMN/kFbyDbmHEk/JTPVCaGXOacoBhDOb7MEDV8BZeBCEQM8EqD85kHj29i61NRsAtE0U
-	8J17H0q7sW5gXdiBJ8MzaMRGvBnwc7vsTE25Yd41ixc/bvLUElmggGTzCv/gyLz4eNyYZbm6igE58
-	QST7wvv2QydP0Bk2nfog/SbP732v4mqjUsCNhEjQyV9yJr+Zu2ChNNBoNNVJUYOAguIK0QC36yuRF
-	jbF53/uw==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	bh=Faxg9YXC04GUJcsawnlby1MTaUdOvP29H4zL9KbmdDI=; b=YSv25p73urfo//XinV7BPtmKfS
+	RW5R1bd6LXB8nDRjnjpBUV6ZnzCT/HTsFbBMaWdXRI0uHB1nCwNeA/YuYTIlYjdJ8GpVPjdf5cefz
+	heYsIRWK4Rj/hSqnw3dbMH8PAyrOaqseEX97ewhiZeRwi2jPZMtmnZRoRoL0C81ULgIY217F6WMVA
+	9euR+QYo8S4C/hdqhAfr3E8VRoInRvF7uZ1mXIyM3kf62ZDJYtxF2wUfZfhBtA+T5e5Hizmfi5OWd
+	ER0iqwR2voZRH4DQ1+Xuu+J75Z5dQDuwofxAz7rqEY41yOv6R2HpmuUa9agXdpnBLHRXuCCTv677k
+	8+Y9/OQQ==;
+Authentication-Results: mail.nwl.cc;
+	iprev=pass (localhost) smtp.remote-ip=::1
+Received: from localhost ([::1] helo=xic)
+	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
 	(envelope-from <phil@nwl.cc>)
-	id 1vy6cX-000000006sd-0LWu;
-	Thu, 05 Mar 2026 12:11:57 +0100
-Date: Thu, 5 Mar 2026 12:11:57 +0100
+	id 1vy6fm-000000006wV-1EwX
+	for netfilter-devel@vger.kernel.org;
+	Thu, 05 Mar 2026 12:15:18 +0100
 From: Phil Sutter <phil@nwl.cc>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH iptables] tests: iptables-test, xlate-test: use
- `os.unshare` Python function
-Message-ID: <aalk_STwkHIwC4RY@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Jeremy Sowden <jeremy@azazel.net>,
-	Netfilter Devel <netfilter-devel@vger.kernel.org>
-References: <20260304181304.696423-1-jeremy@azazel.net>
+To: netfilter-devel@vger.kernel.org
+Subject: [iptables PATCH 2/2] nft: Use the current name for the desired NFTNL_EXPR_BITWISE_OP
+Date: Thu,  5 Mar 2026 12:15:13 +0100
+Message-ID: <20260305111513.13910-2-phil@nwl.cc>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <20260305111513.13910-1-phil@nwl.cc>
+References: <20260305111513.13910-1-phil@nwl.cc>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260304181304.696423-1-jeremy@azazel.net>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 04, 2026 at 06:13:03PM +0000, Jeremy Sowden wrote:
-> Since Python 3.12 the standard library has included an `os.unshare` function.
-> Use it if it is available.
-> 
-> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+Since refreshing nf_tables.h, the new name is available.
 
-Patch applied, thanks!
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ iptables/nft.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-We have the same pattern in nftables' tests/py/nft-test.py, could you
-please send a patch for that as well?
+diff --git a/iptables/nft.c b/iptables/nft.c
+index da008070e3016..5c9cc6b389cff 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -4035,7 +4035,7 @@ static int nft_is_expr_compatible(struct nftnl_expr *expr, void *data)
+ 		return 0;
+ 
+ 	if (!strcmp(name, "bitwise") &&
+-	    nftnl_expr_get_u32(expr, NFTNL_EXPR_BITWISE_OP) == NFT_BITWISE_BOOL)
++	    nftnl_expr_get_u32(expr, NFTNL_EXPR_BITWISE_OP) == NFT_BITWISE_MASK_XOR)
+ 		return 0;
+ 
+ 	return -1;
+-- 
+2.51.0
 
-Thanks, Phil
