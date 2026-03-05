@@ -1,20 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B746039C632;
-	Thu,  5 Mar 2026 12:26:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E294039C62F;
+	Thu,  5 Mar 2026 12:26:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772713603; cv=none; b=OvYlrdouYBdESYTweR6dSDIYeRfINKOSPQq8zZWWT9cMAENNcfs8TVn/Svi0q6B+JY25uuhZDcSo5HscWnzd+gsTxwEqQmZN/F+gaE63DUBKMGIdL0SIS83ypl2CzxsFaEx/Z503Bd8/otZIjHHqV32x7vKvvIou5nHwBuRFAmo=
+	t=1772713607; cv=none; b=i4dhfxzNVMRsq+PAiTu5PlSdIQYFX7QWbXS7A67ThI7qk2/AMm8pMnOYDU5KvzCw24ajPyf1KwWgI7WtZuImcni7a7YOw40ru2cZbfIgWFhesMoXyn1RNqTdgcbgrbLinJHxC0gJcgVSkDHkuLLjN/EG8WBIpbYp19g7uKozIOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772713603; c=relaxed/simple;
-	bh=4i+MtDgEJ6L14OkL8OR6KuG4ubR/hfwIN/x052K7+s4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=h17dfZjAhEhu+lixRDpgT+sijongyabPd155TN9ZlCJ3vQYU2/EDmHiAR8TGLda9WdJ4bwLX6vRtMExtYkMBlYGmm7+FtachEhnJJ17shuowUwojigPcz8+DPCBFdnzsTUwPc/JHIdlABfSua1Vy1TG/TGvF8rXNV0/OukH7o48=
+	s=arc-20240116; t=1772713607; c=relaxed/simple;
+	bh=FyvW/LxF1YTHFjloFRD3V/I+Tubn5lyqQ8Zz6ROSsZk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=QGxnMBWZTBuyY0VveBhQecQJdBMfPk4gzUqvq7EMT+AJEkTx3oLzRKpuI+HWJQlG9a7QH9MeXx6JKaGKgF12jSitHgUTfQn87XXuS6D20h14w7VG/r27alomsHknT5Jkn4bUEDOBrgcBsIyDCPQv4bNDegFzSXq38S6L0rfuX9o=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 097206047A; Thu, 05 Mar 2026 13:26:40 +0100 (CET)
+	id 5D29E60735; Thu, 05 Mar 2026 13:26:44 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -23,10 +24,12 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net v2 0/3] netfilter: updates for net
-Date: Thu,  5 Mar 2026 13:26:32 +0100
-Message-ID: <20260305122635.23525-1-fw@strlen.de>
+Subject: [PATCH net v2 1/3] netfilter: nf_tables: unconditionally bump set->nelems before insertion
+Date: Thu,  5 Mar 2026 13:26:33 +0100
+Message-ID: <20260305122635.23525-2-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260305122635.23525-1-fw@strlen.de>
+References: <20260305122635.23525-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,66 +38,100 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-[ v2: remove patch 1 from series, no other changes ]
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Hi,
+In case that the set is full, a new element gets published then removed
+without waiting for the RCU grace period, while RCU reader can be
+walking over it already.
 
-The following patchset contains Netfilter fixes for *net*:
+To address this issue, add the element transaction even if set is full,
+but toggle the set_full flag to report -ENFILE so the abort path safely
+unwinds the set to its previous state.
 
-1) Inseo An reported a bug with the set element handling in nf_tables:
-   When set cannot accept more elements, we unlink and immediately free
-   an element that was inserted into a public data structure, freeing it
-   without waiting for RCU grace period.  Fix this by doing the
-   increment earlier and by deferring possible unlink-and-free to the
-   existing abort path, which performs the needed synchronize_rcu before
-   free.  From Pablo Neira Ayuso. This is an ancient bug, dating back to
-   kernel 4.10.
+As for element updates, decrement set->nelems to restore it.
 
-2) syzbot reported WARN_ON() splat in nf_tables that occurs on memory
-   allocation failure.  Fix this by a new iterator annotation:
-   The affected walker does not need to clone the data structure and
-   can just use the live version if no clone exists yet.
-   Also from Pablo.  This bug existed since 6.10 days.
+A simpler fix is to call synchronize_rcu() in the error path.
+However, with a large batch adding elements to already maxed-out set,
+this could cause noticeable slowdown of such batches.
 
-3) Ancient forever bug in nft_pipapo data structure:
-   The garbage collection logic to remove expired elements is broken.
-   We must unlink from data structure and can only hand the freeing
-   to call_rcu after the clone/live pointers of the data structures
-   have been swapped.  Else, readers can observe the free'd element.
-   Reported by Yiming Qian.
+Fixes: 35d0ac9070ef ("netfilter: nf_tables: fix set->nelems counting with no NLM_F_EXCL")
+Reported-by: Inseo An <y0un9sa@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-Please, pull these changes from:
-The following changes since commit b824c3e16c1904bf80df489e293d1e3cbf98896d:
-
-  net: Provide a PREEMPT_RT specific check for netdev_queue::_xmit_lock (2026-03-05 12:14:21 +0100)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-03-05
-
-for you to fetch changes up to 9df95785d3d8302f7c066050117b04cd3c2048c2:
-
-  netfilter: nft_set_pipapo: split gc into unlink and reclaim phase (2026-03-05 13:22:37 +0100)
-
-----------------------------------------------------------------
-netfilter pull request nf-26-03-05
-
-----------------------------------------------------------------
-
-Florian Westphal (1):
-  netfilter: nft_set_pipapo: split gc into unlink and reclaim phase
-
-Pablo Neira Ayuso (2):
-  netfilter: nf_tables: unconditionally bump set->nelems before insertion
-  netfilter: nf_tables: clone set on flush only
-
- include/net/netfilter/nf_tables.h |  7 ++++
- net/netfilter/nf_tables_api.c     | 45 ++++++++++++----------
- net/netfilter/nft_set_hash.c      |  1 +
- net/netfilter/nft_set_pipapo.c    | 62 ++++++++++++++++++++++++++-----
- net/netfilter/nft_set_pipapo.h    |  2 +
- net/netfilter/nft_set_rbtree.c    |  8 ++--
- 6 files changed, 92 insertions(+), 33 deletions(-)
-
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index fd7f7e4e2a43..df67932d3e09 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -7170,6 +7170,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	struct nft_data_desc desc;
+ 	enum nft_registers dreg;
+ 	struct nft_trans *trans;
++	bool set_full = false;
+ 	u64 expiration;
+ 	u64 timeout;
+ 	int err, i;
+@@ -7461,10 +7462,18 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 	if (err < 0)
+ 		goto err_elem_free;
+ 
++	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
++		unsigned int max = nft_set_maxsize(set), nelems;
++
++		nelems = atomic_inc_return(&set->nelems);
++		if (nelems > max)
++			set_full = true;
++	}
++
+ 	trans = nft_trans_elem_alloc(ctx, NFT_MSG_NEWSETELEM, set);
+ 	if (trans == NULL) {
+ 		err = -ENOMEM;
+-		goto err_elem_free;
++		goto err_set_size;
+ 	}
+ 
+ 	ext->genmask = nft_genmask_cur(ctx->net);
+@@ -7516,7 +7525,7 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 
+ 						ue->priv = elem_priv;
+ 						nft_trans_commit_list_add_elem(ctx->net, trans);
+-						goto err_elem_free;
++						goto err_set_size;
+ 					}
+ 				}
+ 			}
+@@ -7534,23 +7543,16 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err_element_clash;
+ 	}
+ 
+-	if (!(flags & NFT_SET_ELEM_CATCHALL)) {
+-		unsigned int max = nft_set_maxsize(set);
+-
+-		if (!atomic_add_unless(&set->nelems, 1, max)) {
+-			err = -ENFILE;
+-			goto err_set_full;
+-		}
+-	}
+-
+ 	nft_trans_container_elem(trans)->elems[0].priv = elem.priv;
+ 	nft_trans_commit_list_add_elem(ctx->net, trans);
+-	return 0;
+ 
+-err_set_full:
+-	nft_setelem_remove(ctx->net, set, elem.priv);
++	return set_full ? -ENFILE : 0;
++
+ err_element_clash:
+ 	kfree(trans);
++err_set_size:
++	if (!(flags & NFT_SET_ELEM_CATCHALL))
++		atomic_dec(&set->nelems);
+ err_elem_free:
+ 	nf_tables_set_elem_destroy(ctx, set, elem.priv);
+ err_parse_data:
 -- 
 2.52.0
+
