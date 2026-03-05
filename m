@@ -1,70 +1,84 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE1222258C
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Mar 2026 14:04:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C223264CB;
+	Thu,  5 Mar 2026 16:00:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772719496; cv=none; b=BTPx1BXL+xmEXWdhYLSBove70RcbBGjF9nCMtRl7KdsmH2glLFvmxJ6NLE0jPU8cjFa8v9vVfxa8lO4QE1ou++OZrn5/xCKpPME4lc1aKP+thxe8FwEm+/9KD2Bi+lt/bo5/XqW1qJdljEM0ylHf9oWevCNkQTBHfZAf9I7JC9E=
+	t=1772726424; cv=none; b=QFR+7v9INpf1/VzoTyRhB4siyLocskV9dX0gtCo5LLbL/f9d5LaFy9WP+SxnZmzznZsdsguAE5w2/hvpNPeYz+y4lTJQqddRKNcI1f7v4dCQUKaUrvkSBdvNyk+Bk8EMywVARbk/P+ipa1ldnmfo5tvCWtn7IBC1e/AemYmuU5I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772719496; c=relaxed/simple;
-	bh=X2J8EIOJYWDk/DfTlE4fkmhtlkHN4PdU4f/uSt+s/n8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BLQoiWO29Nl6Cy4+v4UPyOYC22HiQunuRyl8R9uEPF9YBqcGqK6we/tY1iniJicrkh6fI0etwz5sKH2K+bw8u7nLpoNblLAY0F7hGQv+bLnK6wwzK7cYwgjwpwMiw3RPuBhLGqESPZJgnrYt1VixCYKyZWbKKAgoKVCXnDqnwXE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 9F8846047A; Thu, 05 Mar 2026 15:04:52 +0100 (CET)
-Date: Thu, 5 Mar 2026 15:04:52 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Anton Moryakov <ant.v.moryakov@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-Subject: Re: [PATCH] rule: fix NULL pointer dereference in do_list_flowtable
-Message-ID: <aamNhIWHDeGQOXaf@strlen.de>
-References: <20260302160539.248755-1-ant.v.moryakov@gmail.com>
+	s=arc-20240116; t=1772726424; c=relaxed/simple;
+	bh=9RE6MctA9CP7+0mRcG6DwecWJ5R464xug6Affduv4hY=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=SquD2RA6Nk4Ye88mi8TBVFkdu91OMWvpSpFLtHe+FFjBHqk5rpZoHp3T65NF8UwlDOdMtU9eg24MYsDxoeMLeOKEUsrD67Nt9/+7W4Zn2vsPTC/U/6P4qI86kaPk7i+ZubyE62RsC3a1wNdoOjcaWW1mu95IvCWqZErzPkt46tQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=FtY4RkOE; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="FtY4RkOE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 463C2C2BC87;
+	Thu,  5 Mar 2026 16:00:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772726424;
+	bh=9RE6MctA9CP7+0mRcG6DwecWJ5R464xug6Affduv4hY=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=FtY4RkOELEuZ7R85qHDV5noF4Ne7qj0ziOkjvVWINARLrT2mDTzx8z7Io1RN+ElQt
+	 YKKsDsmAosNWdFk8P8R4uIlNayLPnjlPGyBU9mtgzGu2Wj6wvDNApbs65oU+yUL4Ao
+	 hBb5k/7lL2f3PyNVMMCBGbiTRUiriP4JcEjmIS4CCoWZPBtaAiAWa135W8kOTFOaYW
+	 kbRW/QATNFMsVzCZGFxTUgoPnGHe/zai7znRsyPg+3bj1POaSHCPYNUZJSLvmC+ubH
+	 eY+JL0d9wAsymmIVeriIWRkDpvIsq6Sx0zX/V6Z20gKHB8quo8F7xY0UxO7oTgfD2Q
+	 8bE1sYiZQWzJQ==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 7D0063808200;
+	Thu,  5 Mar 2026 16:00:25 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260302160539.248755-1-ant.v.moryakov@gmail.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net v2 1/3] netfilter: nf_tables: unconditionally bump
+ set->nelems before insertion
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177272642430.3184289.6847138664470686647.git-patchwork-notify@kernel.org>
+Date: Thu, 05 Mar 2026 16:00:24 +0000
+References: <20260305122635.23525-2-fw@strlen.de>
+In-Reply-To: <20260305122635.23525-2-fw@strlen.de>
+To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, pabeni@redhat.com, davem@davemloft.net,
+ edumazet@google.com, kuba@kernel.org, netfilter-devel@vger.kernel.org,
+ pablo@netfilter.org
 
-Anton Moryakov <ant.v.moryakov@gmail.com> wrote:
-> Static analysis found a potential NULL pointer dereference in
-> do_command_list() when handling CMD_OBJ_FLOWTABLE.
+Hello:
+
+This series was applied to netdev/net.git (main)
+by Florian Westphal <fw@strlen.de>:
+
+On Thu,  5 Mar 2026 13:26:33 +0100 you wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> If cmd->handle.table.name is not specified, the table pointer remains
-> NULL after the cache lookup block. However, do_list_flowtable() expects
-> a valid table pointer and dereferences it via ft_cache_find().
+> In case that the set is full, a new element gets published then removed
+> without waiting for the RCU grace period, while RCU reader can be
+> walking over it already.
+> 
+> To address this issue, add the element transaction even if set is full,
+> but toggle the set_full flag to report -ENFILE so the abort path safely
+> unwinds the set to its previous state.
+> 
+> [...]
 
-Not following, table is never NULL in the function:
+Here is the summary with links:
+  - [net,v2,1/3] netfilter: nf_tables: unconditionally bump set->nelems before insertion
+    https://git.kernel.org/netdev/net/c/def602e498a4
+  - [net,v2,2/3] netfilter: nf_tables: clone set on flush only
+    https://git.kernel.org/netdev/net/c/fb7fb4016300
+  - [net,v2,3/3] netfilter: nft_set_pipapo: split gc into unlink and reclaim phase
+    https://git.kernel.org/netdev/net/c/9df95785d3d8
 
-static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
-{
-	struct table *table = NULL; [..]
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
 
-	if (cmd->handle.table.name != NULL) {
-		table = table_cache_find(&ctx->nft->cache.table_cache,
-					 cmd->handle.table.name,
-					 cmd->handle.family);
-		if (!table) {
-			errno = ENOENT;
-			return -1;
-		}
-	}
-
-	switch (cmd->obj) {
-[..]
-	case CMD_OBJ_FLOWTABLE:
-		return do_list_flowtable(ctx, cmd, table);
-
-This has been the case for almost a year:
-
-commit 853d3a2d3cbdc7aab16d3d33999d00b32a6db7ce
-Date:   Thu Mar 20 14:31:42 2025 +0100
-rule: return error if table does not exist
 
