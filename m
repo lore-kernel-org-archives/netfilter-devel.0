@@ -1,139 +1,129 @@
-Received: from azazel.net (taras.nevrast.org [35.176.194.208])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6274B361DA1
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2026 18:36:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC732D4816
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2026 19:12:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772822168; cv=none; b=JiC4dDZXmDuNEIj7O7xK5m/tWAxElTz35N8biqZUrLYTuvxsuXbcvHAx+YYEvwUzlKqYuzs57X61FKefanG8noo6qfgj0Ui6hBCvU/PuvtpOdHv9HYVAX8MWM+eP7X3xDNheSAze7H2C7p8U0ge6nEHEW8YdkCAwqIIP5v9Zv78=
+	t=1772824361; cv=none; b=TmcORvhyg3ktpRFlJ8uODzMFGhu8cQ9qKv/8TmVaTsKSKIKEAf2YqBQpzM7ZCQv/nOlbaDN2osRIvES2eTaa5SP5CY7cPdNb50TQxtXXunYlMfpaT4afa3BCV2pf3EyhwFbMSPJIXE1csHfbOa+5VmWE7vP+5n2FKGOc95zbF0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772822168; c=relaxed/simple;
-	bh=tWuVJZRZMurqkmOYPTBTEAtbNK6WTAHPocGkA1t5qcg=;
-	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QeLVPyE0yfR3ybjcNPv4hvV/YmZVSI+F9pCeSt92BmosECKmZ1dPXLdWJ9L6jLYTTbdSy/jZbcxjND7sIQQLwfUzJk3tvRRgV/670fmieD2lndMBb9FbuV7s8UGNJblsbyykumoUBc4TOropOfUaV8c+Y1WAnl0b4WqBvYz6Uvw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=I4u4we2A; arc=none smtp.client-ip=35.176.194.208
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
+	s=arc-20240116; t=1772824361; c=relaxed/simple;
+	bh=L2hiLvGKBv7d8yhbcarIF8ra8IeF5q5tyCzOhmTpEZk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=FN8gUK/hS5/VqpaRr5IZ6MeZuJ67IfS0b3NKuq7A9AIDJpRY/JcQK3bJbNHla0nEkkO/uV6UzPbwLsVT0E3uEosnnnTjFCP1bGHASFfK5dOEYoMmHqs0hw75CdJJYv0g0HzdCLJX2MSCDx/T3rgEmQGOQVr+8MuFb1hx6hM/mAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kSXxx0eZ; arc=none smtp.client-ip=209.85.222.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="I4u4we2A"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
-	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=pitD0mZYAzKa1HFm8FdP5te/ronu+iROjaE/V5B6o9I=; b=I4u4we2ACCSSrCbXUWKB7NnjyQ
-	N2tBVSojthX8XiHtDA6TWOCgtVRsmfvmlCCh37i/f7TrPlsCgYqGiEE/rTqyh6RBM4tLRsHSwyaGP
-	QG9z1kxyKJpG6O1U0vzoCx+fPdMcIhJXDlwR4JmAd3jg0kAoS9XldEfoKGyHFKRWTYz6PuKn5u2G6
-	H1mD+fJubgUTod1ij0/uGAbcPwPwO820jwjKcLThehD4XJyqZVl+0Qpji56qfL1yiMDiNFlAzmPGR
-	g8iy3CiSd24YwHzOru9gUAs4t927rqtZxMccpvo+DYvMLt57B15FJ/x/mClxB0pYrAo3h6u85r5mq
-	6bvo3OQw==;
-Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
-	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.98.2)
-	(envelope-from <jeremy@azazel.net>)
-	id 1vya1k-0000000AtDN-3RZ2;
-	Fri, 06 Mar 2026 18:35:56 +0000
-Date: Fri, 6 Mar 2026 18:35:53 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Phil Sutter <phil@nwl.cc>,
-	Netfilter Devel <netfilter-devel@vger.kernel.org>
-Subject: Re: [PATCH nft] tests: py: use `os.unshare` Python function
-Message-ID: <20260306183553.GA5468@celephais.dreamlands>
-References: <20260305175358.806280-1-jeremy@azazel.net>
- <aasRsr93TOUuH_Xb@orbyte.nwl.cc>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kSXxx0eZ"
+Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-8cbb6d5f780so960082485a.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Mar 2026 11:12:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1772824359; x=1773429159; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=SqXQ6+uMTYxVS8znPfDnulqYlObSmjX7AH8GMsEC6YI=;
+        b=kSXxx0eZP5obhSv2s1bxDc1F8v5lTBbhX6D3wZWekARxdzAnOweXpQTW/2OItrwigM
+         AodUDE4kgSZ2Wk4HNCQUo9yila9mR1DEdzUxn1b36UBZiFudNOIOJmKCzm/OYl52FFz3
+         JoOOCnU5ub6MU+sB2czkxAGGuUnudSxZM7J2Wh11KlSeOHYpoZw+csNvDao3emxeTJx/
+         je2kFliFvNW+M1sC3xE+3n1D+xIpNWynwopENdjWkIGVFhheMZ1IfEQuGaUdBzBBT+PJ
+         fzN9XByP3aOYoVBX4L4IHvmfLJjM1r20v1x9+tfMAAgdD8+l63kn6/+CLy3ljv1YpOPI
+         pc5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772824359; x=1773429159;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=SqXQ6+uMTYxVS8znPfDnulqYlObSmjX7AH8GMsEC6YI=;
+        b=FqDWhKFkn/6OkxwhPdKdAEWiHncfalC4TBgah6emyE3X9TTk787uQ7VPdItxTafhlv
+         P/2QVDWSbBy2lcDCJj8MDJTmHtl3KMglTwOOxQ9yMYb4U6nh8qPjezuCgJgG2jMjQt9u
+         VCTSgk1a0SI7hqn7StHbdwgByiS4urkMGgplmnOEHx/ojSzuHkjT9Jq/mvNb7oOEmHZB
+         v1Um5QhaKC/2Ivzgg4ajeKx2TceLiS11LfRgTgXh0LR+AAdxWM6SMWNCA2a0xfBpPV0q
+         ydMlZOoN8hnhYTwM4pW7mTvwOIhNximM0ZqzLENb8qBeN69cDftXZml9iZAmtJHJtZ9e
+         CvKA==
+X-Gm-Message-State: AOJu0YwDbIMjUQxOl23njs2yjHN112du3P5mH6kc5DbgmLEA9rHvl9PS
+	N2MFMrizjMe4nDjr2Bmkq+MIVz/eyZ2QD9JhApsO5AeK6T1lZ6wNgcI6015wMixJ
+X-Gm-Gg: ATEYQzxrr/FRO/g4EMo7Um9S4SlhNotdq1vrml+LFFKpqATuGiPjU2rgbYXwgzpw5Os
+	HCOMmc6jw7DDlZPR7JuFkWwQ8AJNKK8xbF/MlH0InAvS7VdR97MGz9MpKZzHb37JGw+cvnpyaVi
+	VJn/IQUIvJfOeskbYqO4t3imo2nK2xWCUEcL64w+7u5uDJkMVLfB2nB2mbLxBERO+uu8Mh8/NYe
+	aWM+a1nxA5oKXmQX8kXaCSvv+7uozPZbc9PR+qSB+GdkofmQvza1FUftJRs08yS3KjyW0hoYYxu
+	SwZDIEFxPHbyeljRaTxYC9876dUNUgRjIVvbf9wl7yjgfZOj0184IgyWwjcSXc1x1mLa4mYY9tW
+	ChasPg6OGsAROXqpR7zIVfANimcIAW0QkoYBiylDWOuoNI7eWJnPncZvoUXm8giECSBelI36J+l
+	Y9tUqbJeHgy25emo1vz8CO3jHYig8YgjiNLqosXaVtiwYO
+X-Received: by 2002:a05:620a:25d0:b0:8cb:4289:6c3a with SMTP id af79cd13be357-8cd6d548a09mr419951685a.74.1772824359129;
+        Fri, 06 Mar 2026 11:12:39 -0800 (PST)
+Received: from 192-222-50-213.tail19a0b.ts.net ([192.222.50.213])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-8cd6f566fd5sm171804285a.43.2026.03.06.11.12.38
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Mar 2026 11:12:38 -0800 (PST)
+From: Jenny Guanni Qu <qguanni@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	kadlec@netfilter.org,
+	fw@strlen.de,
+	w@1wt.eu,
+	Jenny Guanni Qu <qguanni@gmail.com>
+Subject: [PATCH v2] netfilter: nft_set_pipapo: fix stack out-of-bounds read in pipapo_drop()
+Date: Fri,  6 Mar 2026 19:12:38 +0000
+Message-Id: <20260306191238.937530-1-qguanni@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="wQU8kRLLNNgO1qFh"
-Content-Disposition: inline
-In-Reply-To: <aasRsr93TOUuH_Xb@orbyte.nwl.cc>
-X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
-X-SA-Exim-Mail-From: jeremy@azazel.net
-X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
+Content-Transfer-Encoding: 8bit
 
+pipapo_drop() passes rulemap[i + 1].n to pipapo_unmap() as the
+to_offset argument on every iteration, including the last one where
+i == m->field_count - 1. This reads one element past the end of the
+stack-allocated rulemap array (declared as rulemap[NFT_PIPAPO_MAX_FIELDS]
+with NFT_PIPAPO_MAX_FIELDS == 16).
 
---wQU8kRLLNNgO1qFh
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Although pipapo_unmap() returns early when is_last is true without
+using the to_offset value, the argument is evaluated at the call site
+before the function body executes, making this a genuine out-of-bounds
+stack read confirmed by KASAN:
 
-On 2026-03-06, at 18:41:06 +0100, Phil Sutter wrote:
->On Thu, Mar 05, 2026 at 05:53:58PM +0000, Jeremy Sowden wrote:
-> > Since Python 3.12 the standard library has included an `os.unshare` fun=
-ction.
-> > Use it if it is available.
->=20
-> This patch breaks py test suite cases involving time-related matches,
-> e.g. 'meta time "1970-05-23 21:07:14"'. It expects:
->=20
-> | cmp eq reg 1 0x002bd503 0x43f05400
+  BUG: KASAN: stack-out-of-bounds in pipapo_drop+0x50c/0x57c [nf_tables]
+  Read of size 4 at addr ffff8000810e71a4
 
-	$ TZ=3DUTC-2 perl -MPOSIX=3Dstrftime -le 'my $ns =3D hex $ARGV[0]; print s=
-trftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x002bd50343f0=
-5400
-	1970-05-23 21:07:14
+  This frame has 1 object:
+   [32, 160) 'rulemap'
 
-> but instead the rule serializes into:
->=20
-> | cmp eq reg 1 0x002bd849 0x74a8f400
+  The buggy address is at offset 164 -- exactly 4 bytes past the end
+  of the rulemap array.
 
-	$ TZ=3DUTC-2 perl -MPOSIX=3Dstrftime -le 'my $ns =3D hex $ARGV[0]; print s=
-trftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x002bd84974a8=
-f400
-	1970-05-23 22:07:14
+Pass 0 instead of rulemap[i + 1].n on the last iteration to avoid
+the out-of-bounds read.
 
-> Do you see that too?
+Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
+Signed-off-by: Jenny Guanni Qu <qguanni@gmail.com>
+---
+ net/netfilter/nft_set_pipapo.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Yes, e.g.:
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 7ef4b44471d3..f43227fc3de1 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -1640,6 +1640,7 @@ static void pipapo_drop(struct nft_pipapo_match *m,
+ 	int i;
+ 
+ 	nft_pipapo_for_each_field(f, i, m) {
++		bool last = i == m->field_count - 1;
+ 		int g;
+ 
+ 		for (g = 0; g < f->groups; g++) {
+@@ -1659,7 +1660,7 @@ static void pipapo_drop(struct nft_pipapo_match *m,
+ 		}
+ 
+ 		pipapo_unmap(f->mt, f->rules, rulemap[i].to, rulemap[i].n,
+-			     rulemap[i + 1].n, i == m->field_count - 1);
++			     last ? 0 : rulemap[i + 1].n, last);
+ 		if (pipapo_resize(f, f->rules, f->rules - rulemap[i].n)) {
+ 			/* We can ignore this, a failure to shrink tables down
+ 			 * doesn't make tables invalid.
+-- 
+2.34.1
 
-	6: WARNING: line 4: 'add rule netdev test-netdev egress meta time > "2022-=
-07-01 11:00:00" accept': '[ cmp gt reg 1 0x16fda8f3 0x1977a000 ]' mismatche=
-s '[ cmp gt reg 1 0x16fdac39 0x4a304000 ]'
-
-As with your example, the discrepancy is an hour:
-
-	$ TZ=3DUTC-2 perl -MPOSIX=3Dstrftime -le 'my $ns =3D hex $ARGV[0]; print s=
-trftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x16fda8f31977=
-a000
-2022-07-01 11:00:00
-
-	$ TZ=3DUTC-2 perl -MPOSIX=3Dstrftime -le 'my $ns =3D hex $ARGV[0]; print s=
-trftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x16fdac394a30=
-4000
-2022-07-01 12:00:00
-
-which suggests it's time-zone related.  Didn't see anything about that
-in the doc's.  Will take a closer look.  Apologies.
-
-J.
-
-PS UTC-2 is exotic. :)
-
---wQU8kRLLNNgO1qFh
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-wsG7BAABCgBvBYJpqx52CRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
-cy5zZXF1b2lhLXBncC5vcmeF1QXSd5ZTdUxcDwP3KRWW2pDlntDOLV+ZtQa5GuFN
-uhYhBGwdtFNj70A3vVbVFymGrAq98QQNAAA79Q/+KqIrvciMvq63HF3d40VScSwt
-jilpUSSjzU63quR1g8LOANxmjz7E0PBluYRNKxlsPo8STzznJ8Ot13gCowRkgTjb
-ibI/RYAYMlxlmUqEQGBQnkohcUtZxJlZhIZFbqCKQvVO7l1zy/1xErXP2U3S+nwb
-mqwpXUyGffNylpF+/QpGyt96werFbX0ptCmqKSeOYiAHyVIAjoe9xRATXPKlMLHm
-ToN3SNvzD+eoovj8qZFdfsRyxg3XEdRs5joVWJiPr4Sknw3KFYRMomWyiMm6+EgA
-YE2gfKU3abma2xBjoMl2iFJnETs6CMvBmQuF5oZ9peZRJ5NyWm/8Lp42ICFTDx+f
-Q+/1tDTFNZjxuCmlc6V379D3E7eloW5Icc4bsGvRkyIVtFnM8dvod1+dhwwZAd6q
-EQAOKjiLqh9+9w6dXj2Xxi3hDRfNOvyKth5X3ceNaO5yBMs/jDI22bmQBFFw8v3Q
-yevr5OxpYA5jl8mxaRuNqet37meXza50YosYEtoiuY7e1DOKymC6FWo91mj5+J60
-wBQ39LCH5xPQ4RD3QtZbz06gQeq8kfQKgZQIaYIaPq8IScfzMdOQritCS2dA7TL1
-+NGw9Q0KzQKZaBd2yZl5lc2VakvFIV9nBeUWUAfx8VI9XPhl6gm4qJJjzGiNihJE
-nI7PIzsqWeDd0TLwypk=
-=xqJG
------END PGP SIGNATURE-----
-
---wQU8kRLLNNgO1qFh--
