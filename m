@@ -1,130 +1,171 @@
-Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
+Received: from mail-oa1-f72.google.com (mail-oa1-f72.google.com [209.85.160.72])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0EEF13959D
-	for <netfilter-devel@vger.kernel.org>; Sat,  7 Mar 2026 18:46:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 126A638735E
+	for <netfilter-devel@vger.kernel.org>; Sat,  7 Mar 2026 18:58:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772909176; cv=none; b=OUXL8MsfWaovpW/Kti4q4InTnpcX94CNQMTgMVi7aLvDi+ZJ/NWEd/4tNdRWeCXJzpJlYAShBlR3y83fr9uMSkteeVJFgkdREK5vb8bUiXSQnLntcfuny5CoOn6Jdr773aJPY5PuyEuOw1FW0rShM2nUFXm5hNAfFqSRWVxFaAc=
+	t=1772909924; cv=none; b=OmUFGC9Bklu+mUrS+gvN7s4JUlvoDDmucd1CSOX8zbEofum9Iet0HcL0lolylGLeDPYjkLXCpVgZtj8ar7DE7WiFxTKNVlhWzncTEcKqSrPWeMqsy7xWMb01cmlD+it/bbE9vBQYGXISzDqVr7dSDTg3hISLEPlxHkppfasIvd8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772909176; c=relaxed/simple;
-	bh=/CYdVKq2l5MzKXzbnzRHBtoUaMnVXnwtdkGZqN1ZVmA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fPMGRxfyJYyxnNmXeX//4kF7kFLhd3QC6ceVHQDKOwGD7HNdx1jskFbuAsNkk31oFDjGxt6jBOMVJorPjxltCaTnL7E1KBDUPp9mMxfaOmgVXIt1UbFiywkO8+qpMVbsMJFAMWAzh2PkJb9fTNcrPJBL6Jh2PDXScPfnshCVQfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SgxQ75Rd; arc=none smtp.client-ip=209.85.221.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SgxQ75Rd"
-Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-4327790c4e9so7924497f8f.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Mar 2026 10:46:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1772909173; x=1773513973; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=vLhowYs/RuAbMNrDZmXsktoh6KkWBTGnUSpYNQYGOrw=;
-        b=SgxQ75RdpEx+g5kDY2uKxTknRhQf6rpYEll+8jXetn6nzGTVNI9WRy0FtibW8lhAhN
-         Ag9BR05ygSxgttOsj6maQScdOhCd7lwfcTMT6jRXeSFEgX/niv9dRcGmxshUV5YwZ9S3
-         q5qL1Hq7kcQWnZicmRsjYQnUj20NO9/8Cdeq3Yl/wBAXvOhXUWOpd0FVAHRsY+Ydh9ic
-         EoTpRXEIJkJmT4POWYzWQPUzesb9mBvvpIeIlvelQPYSYs0WYzUFD3Mw04plVEGyaUjP
-         8UIHwJ6cldb2XKESfh3cgjZBAiMJVtZKYLlg+gm6zv1IsIUf0f7gAsPr2/hNctqeVeyg
-         gVSA==
+	s=arc-20240116; t=1772909924; c=relaxed/simple;
+	bh=gNExzrK/DJLtPB7fHgtqJHeoVg6E5WUuHnFBXHsAobc=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
+	 Content-Type; b=EYMYcpZZVojFA68TuKoFuutoKw/B8txPY44xm35YNRg2sBXZ5ZQtL+3bCbBcPtC7+5EVYiuPGe1CYQazL/sEF+JVmB/Hhxuo54OGRBB4dG1mSFFV0m0Oaax9S/TaLNf4Kdzq92cvtPqkoI7ouNj4XE6zA/SsTcBfZWca8jf/HyE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.160.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oa1-f72.google.com with SMTP id 586e51a60fabf-40948b7e832so54300246fac.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 07 Mar 2026 10:58:42 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772909173; x=1773513973;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=vLhowYs/RuAbMNrDZmXsktoh6KkWBTGnUSpYNQYGOrw=;
-        b=URtGOEy6iXWhMXFkeU+wXjbpQee6PA+i7xnoi2CZ4mtEIdjHK+kHM/pV3L827j+YB9
-         emf07JbUc87nGvItHokF04Cae2Ii3+nVZbPTwH+Q3NC8UkV+f+V35ee7lp+dbAFVD7hz
-         tf3InG9IrcL4zj7ga5ntFlZO1YRVrMWuurzILwyH3+jWzU00r0iAyrWOE2K7VeFHK0Cf
-         Q5aL52iLiB2p2H7n3z4uYuNPy/6IEne1hgCjlQnlZ/kM8gNebueHzTk7H7kyQkk/woQh
-         UiywIVNGdhSey88x09prWez4PCOS/jXz4CD0e71uKN/KLDD4zTvRdHecS+rpjbOHOKdT
-         wIlA==
-X-Gm-Message-State: AOJu0YxD5bPnRRGIa7ungWExkc6mIRz0kVNuOdI3eUdaiEICEM0oDrM1
-	Bz9lwwcBfEbpEwd8jZ5++EL87AHF9LmqgGi2+GhaCPt11sQ+7hl9Mwq1Tt7bWQ==
-X-Gm-Gg: ATEYQzyovI+faWPMXDnSek0tIpvsHJBYtPGCGTezrk9D0x6laZEpN28tvCVPMfuFXBn
-	aBlv4hQBgxjNMV3Jnf3iDfIIlNsecPlP4eXo70+48+NxA7KSBgpkrDmtZt1j3MvJFyS0zVSTgfG
-	TwOuzmAeqslUUrFNQtt1z5EoYHDIEB1ve1BxgoeENZTmtdf8AoifA2TliFIhz1dPn1Zm7tvUN3p
-	wZh/0xPtYrOyIDYV0HvG9hrB+BUdcQ6f16esyOWbKGwTszMw+vZEA90y38tFFoCD5/lBLGM28Ow
-	e7ZhTQWazKyamVsaykjkygLIGB64wg7TinRhAuSjI7dxJV7tRR1vXcpO8BgGSqSkAtjfI6urJgG
-	SeVPxY0+vsZJgc3UPoOG/bRV2Aj7vjfQIHIUOn5I63tGfAWLHizbVLLftpadtxoBub8bUOXXcBV
-	u4hCdVKKJdr11Edch51jO+WTYFkxRIkFd6TW/CoMNB
-X-Received: by 2002:a5d:588e:0:b0:439:ccd7:cde1 with SMTP id ffacd0b85a97d-439da65c413mr10376467f8f.14.1772909172793;
-        Sat, 07 Mar 2026 10:46:12 -0800 (PST)
-Received: from localhost.localdomain ([102.164.100.103])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439dad8da01sm13394197f8f.1.2026.03.07.10.46.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 07 Mar 2026 10:46:12 -0800 (PST)
-From: David Dull <monderasdor@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de,
-	David Dull <monderasdor@gmail.com>
-Subject: [PATCH v2] netfilter: guard option walkers against 1-byte tail reads
-Date: Sat,  7 Mar 2026 20:45:52 +0200
-Message-ID: <20260307184553.1779-1-monderasdor@gmail.com>
-X-Mailer: git-send-email 2.49.0.windows.1
-In-Reply-To: <20260307182621.1315-1-monderasdor@gmail.com>
-References: <20260307182621.1315-1-monderasdor@gmail.com>
+        d=1e100.net; s=20230601; t=1772909922; x=1773514722;
+        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=KFKlKppWZ1atXG5g/mzZfeIw97mKXkqXOimB2H6XWUU=;
+        b=fN5yoOdOXU0eK03GfJrkfTmGx+GJELxTMd4uXLY0A9XRgspYgSy+NTzQl4beI6sv18
+         uABEUSLB+qwZsDMo2xHJ7/PpjvwFk0H3BqxEtNW5+O6OV8GOAujb/TrckSjmTAfHLsuX
+         TPgMpk7IJiWak9xiAtarQCK6+r11XChBzYXm7ZHQqO7guB6mPQXYSeQ6+sG9QXFx6Mqg
+         lY24bK5a5aCzaWDFNlX1GqMGCvny3voAM26jrpZ0sXwghSpb4kOEt0f7/wJO1cgcNF0Y
+         W5rH3qgi2t0+v0DAIBtJkDOF+VB0/ssZxzKdtMFiISF9mdJjPLFtBXB7/riNlMBqiSFZ
+         cK1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXpOTUxfqEbYsoSThnn5i5syMpHimQ+ipnnx97Ithv+56FBIykcTuefNERzyA4ohHot395K8e0QNH2vfoIrsGY=@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywz6ckvwRAD6cj4NfD2QjbSYxnlGUBIVyqbS/byT+0aKFSJddn8
+	8nVBM71lHOItikyMlmhuXvLL1fjjYzqx72qQ+eka+wt1MS9vitTWiH7gcgTPq8UeFgL2sDgM53Y
+	6qYYQsuCbN5lD8/gBXDTqtz4uMDFKiXCKdYRbbGKNKhttAkm1lhecQHoBu6Q=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+X-Received: by 2002:a05:6820:228e:b0:679:c3e3:c360 with SMTP id
+ 006d021491bc7-67b9bccacdfmr3962418eaf.32.1772909922088; Sat, 07 Mar 2026
+ 10:58:42 -0800 (PST)
+Date: Sat, 07 Mar 2026 10:58:42 -0800
+In-Reply-To: <20260306123649.2878676-1-pablo@netfilter.org>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <69ac7562.050a0220.13f275.005a.GAE@google.com>
+Subject: [syzbot ci] Re: netfilter: nft_set_rbtree: allocate same array size
+ on updates
+From: syzbot ci <syzbot+ci49735e77812b876d@syzkaller.appspotmail.com>
+To: fw@strlen.de, netfilter-devel@vger.kernel.org, pablo@netfilter.org
+Cc: syzbot@lists.linux.dev, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-When the last byte of options is a non-single-byte option kind, walkers=0D
-that advance with i +=3D op[i + 1] ? : 1 can read op[i + 1] past the end=0D
-of the option area.=0D
-=0D
-Add an explicit i =3D=3D optlen - 1 check before dereferencing op[i + 1]
-in xt_tcpudp and xt_dccp option walkers.
+syzbot ci has tested the following series
 
-Fixes: 2e4e6a17af35 ("[NETFILTER] x_tables: Abstraction layer for {ip,ip6,a=
-rp}_tables")
-Cc: fw@strlen.de
-Cc: stable@vger.kernel.org
-Signed-off-by: David Dull <monderasdor@gmail.com>
+[v1] netfilter: nft_set_rbtree: allocate same array size on updates
+https://lore.kernel.org/all/20260306123649.2878676-1-pablo@netfilter.org
+* [PATCH nf] netfilter: nft_set_rbtree: allocate same array size on updates
+
+and found the following issue:
+general protection fault in nft_array_may_resize
+
+Full report is available here:
+https://ci.syzbot.org/series/63a7af7e-7e81-40b3-ac44-4a537af34cdf
+
+***
+
+general protection fault in nft_array_may_resize
+
+tree:      nf
+URL:       https://kernel.googlesource.com/pub/scm/linux/kernel/git/netfilter/nf.git
+base:      488f6400e447d446ff4d5daef6988f3403dd948d
+arch:      amd64
+compiler:  Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+config:    https://ci.syzbot.org/builds/7f67fa0a-1740-40ec-b191-899f77dd02ce/config
+C repro:   https://ci.syzbot.org/findings/c4666971-4767-49ca-b29d-854930c3aace/c_repro
+syz repro: https://ci.syzbot.org/findings/c4666971-4767-49ca-b29d-854930c3aace/syz_repro
+
+Oops: general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] SMP KASAN PTI
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 0 UID: 0 PID: 5957 Comm: syz.0.17 Not tainted syzkaller #0 PREEMPT(full) 
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+RIP: 0010:nft_array_may_resize+0x17f/0x3d0 net/netfilter/nft_set_rbtree.c:649
+Code: 00 00 00 49 81 c7 38 01 00 00 4c 89 f8 48 c1 e8 03 42 80 3c 28 00 74 08 4c 89 ff e8 1b de 4f f8 4d 8b 3f 4c 89 f8 48 c1 e8 03 <42> 0f b6 04 28 84 c0 0f 85 e3 01 00 00 41 8b 2f 48 c7 c0 a8 c2 1a
+RSP: 0018:ffffc9000591ecc8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000002 RCX: 0000000000000000
+RDX: ffff88816dced700 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000001 R08: ffff8881012f8473 R09: 1ffff1102025f08e
+R10: dffffc0000000000 R11: ffffed102025f08f R12: ffff8881012f8540
+R13: dffffc0000000000 R14: 1ffff1102025f0a8 R15: 0000000000000000
+FS:  000055557f50a500(0000) GS:ffff88818de64000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000200000009b40 CR3: 000000016f370000 CR4: 00000000000006f0
+Call Trace:
+ <TASK>
+ nft_rbtree_insert+0x161/0x2c00 net/netfilter/nft_set_rbtree.c:678
+ nft_add_set_elem net/netfilter/nf_tables_api.c:7486 [inline]
+ nf_tables_newsetelem+0x2a17/0x4450 net/netfilter/nf_tables_api.c:7618
+ nfnetlink_rcv_batch net/netfilter/nfnetlink.c:526 [inline]
+ nfnetlink_rcv_skb_batch net/netfilter/nfnetlink.c:649 [inline]
+ nfnetlink_rcv+0x1240/0x27b0 net/netfilter/nfnetlink.c:667
+ netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+ netlink_unicast+0x80f/0x9b0 net/netlink/af_netlink.c:1344
+ netlink_sendmsg+0x813/0xb40 net/netlink/af_netlink.c:1894
+ sock_sendmsg_nosec net/socket.c:727 [inline]
+ __sock_sendmsg net/socket.c:742 [inline]
+ ____sys_sendmsg+0x972/0x9f0 net/socket.c:2592
+ ___sys_sendmsg+0x2a5/0x360 net/socket.c:2646
+ __sys_sendmsg net/socket.c:2678 [inline]
+ __do_sys_sendmsg net/socket.c:2683 [inline]
+ __se_sys_sendmsg net/socket.c:2681 [inline]
+ __x64_sys_sendmsg+0x1bd/0x2a0 net/socket.c:2681
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x14d/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fdff099c799
+Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 e8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fff596fb518 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00007fdff0c15fa0 RCX: 00007fdff099c799
+RDX: 0000000000000040 RSI: 0000200000009b40 RDI: 0000000000000003
+RBP: 00007fdff0a32bd9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fdff0c15fac R14: 00007fdff0c15fa0 R15: 00007fdff0c15fa0
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:nft_array_may_resize+0x17f/0x3d0 net/netfilter/nft_set_rbtree.c:649
+Code: 00 00 00 49 81 c7 38 01 00 00 4c 89 f8 48 c1 e8 03 42 80 3c 28 00 74 08 4c 89 ff e8 1b de 4f f8 4d 8b 3f 4c 89 f8 48 c1 e8 03 <42> 0f b6 04 28 84 c0 0f 85 e3 01 00 00 41 8b 2f 48 c7 c0 a8 c2 1a
+RSP: 0018:ffffc9000591ecc8 EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000002 RCX: 0000000000000000
+RDX: ffff88816dced700 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000001 R08: ffff8881012f8473 R09: 1ffff1102025f08e
+R10: dffffc0000000000 R11: ffffed102025f08f R12: ffff8881012f8540
+R13: dffffc0000000000 R14: 1ffff1102025f0a8 R15: 0000000000000000
+FS:  000055557f50a500(0000) GS:ffff88818de64000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000200000009b40 CR3: 000000016f370000 CR4: 00000000000006f0
+----------------
+Code disassembly (best guess), 1 bytes skipped:
+   0:	00 00                	add    %al,(%rax)
+   2:	49 81 c7 38 01 00 00 	add    $0x138,%r15
+   9:	4c 89 f8             	mov    %r15,%rax
+   c:	48 c1 e8 03          	shr    $0x3,%rax
+  10:	42 80 3c 28 00       	cmpb   $0x0,(%rax,%r13,1)
+  15:	74 08                	je     0x1f
+  17:	4c 89 ff             	mov    %r15,%rdi
+  1a:	e8 1b de 4f f8       	call   0xf84fde3a
+  1f:	4d 8b 3f             	mov    (%r15),%r15
+  22:	4c 89 f8             	mov    %r15,%rax
+  25:	48 c1 e8 03          	shr    $0x3,%rax
+* 29:	42 0f b6 04 28       	movzbl (%rax,%r13,1),%eax <-- trapping instruction
+  2e:	84 c0                	test   %al,%al
+  30:	0f 85 e3 01 00 00    	jne    0x219
+  36:	41 8b 2f             	mov    (%r15),%ebp
+  39:	48                   	rex.W
+  3a:	c7                   	.byte 0xc7
+  3b:	c0                   	.byte 0xc0
+  3c:	a8 c2                	test   $0xc2,%al
+  3e:	1a                   	.byte 0x1a
+
+
+***
+
+If these findings have caused you to resend the series or submit a
+separate fix, please add the following tag to your commit message:
+  Tested-by: syzbot@syzkaller.appspotmail.com
+
 ---
- net/netfilter/xt_dccp.c   | 4 ++--
- net/netfilter/xt_tcpudp.c | 6 ++++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
-=0D
-diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c=0D
-index e5a13ecbe6..037ab93e25 100644=0D
---- a/net/netfilter/xt_dccp.c=0D
-+++ b/net/netfilter/xt_dccp.c=0D
-@@ -62,10 +62,10 @@ dccp_find_option(u_int8_t option,=0D
- 			return true;=0D
- 		}=0D
- =0D
--		if (op[i] < 2)=0D
-+		if (op[i] < 2 || i =3D=3D optlen - 1)=0D
- 			i++;=0D
- 		else=0D
--			i +=3D op[i+1]?:1;=0D
-+			i +=3D op[i + 1] ? : 1;=0D
- 	}=0D
- =0D
- 	spin_unlock_bh(&dccp_buflock);=0D
-diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
-index e8991130a3..f76cf18f1a 100644=0D
---- a/net/netfilter/xt_tcpudp.c=0D
-+++ b/net/netfilter/xt_tcpudp.c=0D
-@@ -59,8 +59,10 @@ tcp_find_option(u_int8_t option,=0D
- =0D
- 	for (i =3D 0; i < optlen; ) {=0D
- 		if (op[i] =3D=3D option) return !invert;=0D
--		if (op[i] < 2) i++;=0D
--		else i +=3D op[i+1]?:1;=0D
-+		if (op[i] < 2 || i =3D=3D optlen - 1)=0D
-+			i++;=0D
-+		else=0D
-+			i +=3D op[i + 1] ? : 1;=0D
- 	}=0D
- =0D
- 	return invert;=0D
--- =0D
-2.43.0
+This report is generated by a bot. It may contain errors.
+syzbot ci engineers can be reached at syzkaller@googlegroups.com.
