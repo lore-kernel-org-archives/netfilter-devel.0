@@ -1,85 +1,96 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C652224AE0;
-	Sat,  7 Mar 2026 00:15:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A290309EF2
+	for <netfilter-devel@vger.kernel.org>; Sat,  7 Mar 2026 09:07:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772842510; cv=none; b=u1DF8b++9R/tItxWhIik6uoqCJWLgW+y58xcrSjG3w86OslsPdOXMW1PynxS4iJIJJXpLu7oWuzg/9Sa5cXDEr7H9ghgQGBA14/3+Fh63o16C0HGctSPzIFkLGO0yUBfmnlVub4VhowpVC+CszGFs2p9ApTOxxTKyJxchEYcxec=
+	t=1772874452; cv=none; b=R0VBRSBXGJdHwS0QjNDQK8J+p5sgoB0b4y+doq8SdozmFBSCP2fEjGB1IjxDv03gJQybKr4TOoBS0IwOwW2No53n9UFkF4kGmBotWrP4L0eSiiqg+s4yBnwGgBe0G77cINSrk5Ikn3cBkQOGfZTnSTNXdpbahN6w3W2jn+Fxq2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772842510; c=relaxed/simple;
-	bh=tyt15WTiWzm1Uv5lOWMyzVaiGS0ThibnesyQLzVTAps=;
+	s=arc-20240116; t=1772874452; c=relaxed/simple;
+	bh=rKFBf4ckjppgpn7NKChM0xU0B0atUiplHbgAu9Gx+R0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gxdvcLCC9xYW7EE4/JTeRaAXeAP+UQWuX2oqPydob/PVBmerK4QzWL5XMYpRlSo18/jue1mqRWUxFWZdmfk2N9dEy/0S/jobRZ9jC3HPXdXV1WxAEvF4e2VIpC79mzkTozu61CjUWgyx1lFqdBY99yBghOP332brcZj2HniSSS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YrzAPgHH; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YrzAPgHH"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 2C9E0602D6;
-	Sat,  7 Mar 2026 01:15:07 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1772842507;
-	bh=y7jvae0QcNT4vmZ6m7HGWHRDoljbbht95hV4A1EgJQ0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=YrzAPgHH9kbo6vldrAZnlpWZGRgwQDv2mb2omyvyQIB/IC+nGYsmtQduGUS4MvED5
-	 u4ss2HGfY/F8xdBPjaWYqvBbS/o9Lt+6gfw+mLIZJQyO6EEIFv5Uvp5CGDx99ALp5x
-	 Am32MypFJdUWN/LzCJE5yb6RHxRHYi/CzK9FHSfHwv8o/aEwFUYOhQSxVwV5DPLDwR
-	 CeN+xM2fg5F4LFL/aDtDE/uL/OEUvpKdj4y0S8pWRnhqbVjBLd9Z2E2VmHuqVj9YOM
-	 iyegofiel/VG0ldMrTx9enEve0/ZTP2Iene+B2RegZOpgqe0ZFFugiVBXPg6JHJ8i+
-	 bxhBXiHuNu5aw==
-Date: Sat, 7 Mar 2026 01:15:04 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Chris Arges <carges@cloudflare.com>
-Cc: Florian Westphal <fw@strlen.de>, stable@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, lwn@lwn.net,
-	jslaby@suse.cz, kernel-team@cloudflare.com,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [REGRESSION] 6.18.14 netfilter/nftables consumes way more memory
-Message-ID: <aatuCHV6qQK_lryg@chamomile>
-References: <aahw_h5DdmYZeeqw@20HS2G4>
- <aaijcrM5Ke5-Zabx@chamomile>
- <aaij0XAgYRN40QdD@chamomile>
- <aamvQTTZu4-chpsS@20HS2G4>
- <aarHEfdMXDJ-Wq3V@chamomile>
- <aarHyHIQY0nS9d9K@chamomile>
- <aasa4AV5p7TFxNmj@20HS2G4>
+	 Content-Type:Content-Disposition:In-Reply-To; b=frGfd9PMw8Ogb6u6KYmhp7WlcCpDwRnOiu4VPt6WKnFT2WNVmwk4gjQxe/HknB9VRSl4x4n73rjxir8gzsTMeiam6jIbcIWf+ZevqPosgZy/1vAsfapnSLupWffGHnzcWfD3CFt3JorJvUJl42L5qkpgFUpLUBg0f2LJShQgnOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9AFEE60470; Sat, 07 Mar 2026 10:07:22 +0100 (CET)
+Date: Sat, 7 Mar 2026 10:07:12 +0100
+From: Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, carges@cloudflare.com
+Subject: Re: [PATCH nf,v2] netfilter: nft_set_rbtree: allocate same array
+ size on updates
+Message-ID: <aavqwA_H032EaiRg@strlen.de>
+References: <20260307001124.2897063-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <aasa4AV5p7TFxNmj@20HS2G4>
+In-Reply-To: <20260307001124.2897063-1-pablo@netfilter.org>
 
-On Fri, Mar 06, 2026 at 12:20:16PM -0600, Chris Arges wrote:
-> On 2026-03-06 13:25:44, Pablo Neira Ayuso wrote:
-> <snip>
-> > > I see what is going on, my resize logic is not correct. This is
-> > > increasing the size for each new transaction, then the array is
-> > > getting larger and larger on each transaction update.
-> > > 
-> > > Could you please give a try to this patch?
-> > 
-> > Scratch that.
-> > 
-> > Please, give a try to this patch.
-> > 
-> > Thanks.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> v2: fix crash with new sets, reported by Florian.
 > 
-> Pablo,
+>  net/netfilter/nft_set_rbtree.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
-> Thanks, I'm getting this set up on a few machines. I will have:
-> - 6.18.15 (original kernel version that repo'd the issue for us)
-> - 6.18.15 + this patch
-> - 6.18.15 + revert rbtree patchseries
-> 
-> I'll compare memory usage with those 3 variants and give a response.
+> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+> index 853ff30a208c..bdcea649467f 100644
+> --- a/net/netfilter/nft_set_rbtree.c
+> +++ b/net/netfilter/nft_set_rbtree.c
+> @@ -646,7 +646,12 @@ static int nft_array_may_resize(const struct nft_set *set)
+>  	struct nft_array *array;
+>  
+>  	if (!priv->array_next) {
+> -		array = nft_array_alloc(nelems + NFT_ARRAY_EXTRA_SIZE);
+> +		if (priv->array)
+> +			new_max_intervals = priv->array->max_intervals;
+> +		else
+> +			new_max_intervals = NFT_ARRAY_EXTRA_SIZE;
+> +
+> +		array = nft_array_alloc(new_max_intervals);
+>  		if (!array)
+>  			return -ENOMEM;
+>  
 
-I posted a new patch version, see:
+I wonder if rbtree code should try harder to compact memory.
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260307001124.2897063-1-pablo@netfilter.org/
+We can't defer allocation to commit hook because commit hook can't fail.
+But its the only location where we know the exact memory size needed:
+
+1. To-be-removed elements have been unlinked from the tree
+2. Expired elements have been unlinked too
+
+So, after the tree walk, num_intervals is the actual needed count and
+no longer a worst-case estimate.
+
+What if this would check num_intervals vs.
+priv->array_next->num_intervals, and, if the difference is say, more
+than 10% or more than 1 page of memory, try to allocate a better size?
+
+If the allocation fails, too bad, use the existing one.
+If it works, copy the elements over, free the larger allocation and
+use the "better fit".
+
+netlink has similar approach via netlink_trim() to avoid stuffing
+large allocations into socket queues.
+
+An even better way would be to just kvrealloc() but in the vmalloc case
+this code path doesn't shrink the VM area in case new requested size
+is smaller than the existing one, so that would require work on mm side
+first.
+
+One issue is that if you have a large rbtree, and the userspace pattern
+is:
+
+"flush set t s; add element t s { $huge }" then rbtree will roughly have
+double the memory size that it would actually need: it will
+first allocate the existing element size, then continue to realloc to
+accomodate the new incoming elements, but, since the flush only takes
+effect post-commit, can't account for the reduced size post-commit.
