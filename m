@@ -1,46 +1,46 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CFB520C490;
-	Sun,  8 Mar 2026 10:42:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92E5C36D4E4;
+	Sun,  8 Mar 2026 10:43:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772966569; cv=none; b=lK8rH3nsegn84AGvm53JJh6wZZA6zg26+i57gly2Wb7+lcB+UB3kdZjLBA58pzp4vWP+M6p+YdPPw/Xr5QVD36gnGDmeoTNDYqdB/zrwqgyKiXiAbuhGJBhJccivMWx7JBeP5jXy4+6j7SoEKhy9LYZAZr2CXHN8A/dS1K2dKbg=
+	t=1772966587; cv=none; b=bWKxM9kbwLDTkGDAi3+mJ0XOU4i9ZXuG70dgK8xS9e+mxwBvgnLx+GD+l6pWPWyv8FjBCjVbPA8+AjPDkHWSNj/Yv+4dBp5WaiigRiK0WC4KfORQhDZ+aq/SFeotsw1g24ILq/GWC2UTHknwlJ+Z52+LgWz86gtkEsqUrSnM5NM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772966569; c=relaxed/simple;
-	bh=vm5BTcyEKh8vR3LDTaWohwRiGLEUC6dysrGKwuDHk4c=;
+	s=arc-20240116; t=1772966587; c=relaxed/simple;
+	bh=y02TfbcEwGKQePAuEZIBamlBhc6UIiF+PhEqTAb8ZWg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=l0OTpOJgDT+HJwfGVf3vFXBGI7X+umai94032bVDMkl/tW5wxxbunAqjlkEJE3zY64NoIfdWotpKHfdJ3ECZv3bMmZYobg58b5x8wOjZvCieXcIgdsT+kbJi0NgaM+u+2lydK7yVcFbONvdGlOcMNkxMFmcKJEoioLzM4omCPi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=f0yPyzUH; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=dzNcYsXxMYPBCAc3RWpLFxSCRbUq04lW1p+5rNeRSBw1mWBG/YsEGv48iAgEhE5Yc+eYiAkHAjvwf9dv8puhDba93RJe8lKvh3f//9Ndv+fTBgdN6IUSESzSgCuXfVnmYiqB8fLjmRBJMs64vIgx56vRYo5qW8jahZf6NmobhQo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sTaDHGsj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="f0yPyzUH"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sTaDHGsj"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 4C27760521;
-	Sun,  8 Mar 2026 11:42:46 +0100 (CET)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 142E660521;
+	Sun,  8 Mar 2026 11:43:02 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1772966566;
-	bh=c50/1kJpiUczNpWJfedrg070eO1qKUvYW2iD3/gkW0E=;
+	s=2025; t=1772966582;
+	bh=+M+S7zGFiZKb8nqyORaqH9S+h5OjmBDWiY/9ubOO6rw=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=f0yPyzUHZBrgogXkujzKRRirAgyF48xZRKDVeFdhHOlHnGofrG0D1h2YDx0IrEcDV
-	 o9+Ym8nNcDRbsdxsgigev6bCY7EUh0t5W9SpxcnuX8pA2OqwCI8hGYn4BJcGuiDrOt
-	 WvphnMNW+w6SMID0SsW+rXLjG3oZ7abmPQyXXGZB466OXu/umL863hSjQ3d1YmngS0
-	 gNX6TRfOYjUMqjtDN1rSomEBdgjLImNgZPE4YeN2F3207zs8ROqXA5d5LlOjQ9z/ls
-	 UQz2TIJ3+MgyoQoOa7Hem2R0CKQBvdb4r0ceyTn0ijLfLEQxVYXJ/DRl56QlE0flF5
-	 se4z3xrxLGRlw==
-Date: Sun, 8 Mar 2026 11:42:43 +0100
+	b=sTaDHGsjSoLcXyrme51C/4cfZZCderlwRHxr64fk+J4kApYHkRXub3jVr6luLk5vz
+	 FVSBRIX/t6tpvs2zKGZy0if4XGtZdw/VcU54HZ4RB7DWbJ6Hw1XmJyfYpd3TWfmXYD
+	 veJ4TmEGq4eYaJLIU2N5Se+ODfejqPJX9UqEwrjevzTPqxT96vOkFD70bjcCDC0c1U
+	 ptx+7IYl6+4FzdiXV2546OfVSF2ft093nvIV002In9ze2GMr/4rytaHrv7BDK+9HEY
+	 T0AGnpbX/R2GzcQNfp3/2s62e+lZNmsUSAu98fHQ1XDzfI8DtmIS7S15v7qI6/nEJl
+	 Du/L6epu1SFZg==
+Date: Sun, 8 Mar 2026 11:42:59 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: Florian Westphal <fw@strlen.de>
 Cc: Hyunwoo Kim <imv4bel@gmail.com>, phil@nwl.cc, davem@davemloft.net,
 	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
 	horms@kernel.org, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: nf_conntrack_sctp: validate state value
- in nlattr_to_sctp()
-Message-ID: <aa1So_xa1En6l9zJ@chamomile>
-References: <aaxe43_A7rqHezJz@v4bel>
- <aaxtQA0BbpqTo5t1@strlen.de>
+Subject: Re: [PATCH net] netfilter: ctnetlink: validate CTA_EXPECT_NAT_DIR to
+ prevent OOB access
+Message-ID: <aa1Ss9c4Soa8C6Dc@chamomile>
+References: <aaxew8enOWT853XV@v4bel>
+ <aaxn41hrKcVo7e9M@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,24 +49,28 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <aaxtQA0BbpqTo5t1@strlen.de>
+In-Reply-To: <aaxn41hrKcVo7e9M@strlen.de>
 
-On Sat, Mar 07, 2026 at 07:24:00PM +0100, Florian Westphal wrote:
+On Sat, Mar 07, 2026 at 07:01:07PM +0100, Florian Westphal wrote:
 > Hyunwoo Kim <imv4bel@gmail.com> wrote:
-> > diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-> > index 7c6f7c9f7332..cbee99be7b5e 100644
-> > --- a/net/netfilter/nf_conntrack_proto_sctp.c
-> > +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-> > @@ -612,6 +612,9 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
-> >  	    !tb[CTA_PROTOINFO_SCTP_VTAG_REPLY])
-> >  		return -EINVAL;
-> >  
-> > +	if (nla_get_u8(tb[CTA_PROTOINFO_SCTP_STATE]) >= SCTP_CONNTRACK_MAX)
-> > +		return -EINVAL;
+> > ctnetlink_parse_expect_nat() assigns the user-supplied
+> > CTA_EXPECT_NAT_DIR value directly to exp->dir without validating that it
+> > is within the valid range (0 to IP_CT_DIR_MAX-1).  When
+> > nf_nat_sip_expected() later uses exp->dir as an index into
+> > ct->master->tuplehash[], an out-of-bounds array access occurs.
+> > 
+> > For example, with exp->dir = 100, the access at
+> > ct->master->tuplehash[100] reads 5600 bytes past the start of a
+> > 320-byte nf_conn object, causing a slab-out-of-bounds read confirmed by
+> > UBSAN.
+> > 
+> > Validate exp->dir against IP_CT_DIR_MAX before accepting it.
 > 
-> Like other, similar bug classes, I would prefer this to be solved via
-> netlink policy fixup.
+> I would prefer a fix for exp_nat_nla_policy so netlink policy validation
+> can handle this for us.
+> 
+>         [CTA_EXPECT_NAT_DIR] = NLA_POLICY_MAX(NLA_BE32, IPCT_DIR_MAX),
+> 
+> .. should do it.  Might make sense to check all other attrs while at it.
 
-Agreed, policy is the way to go to restrict this.
-
-A single patch for all protocol trackers should be fine.
+Agreed.
