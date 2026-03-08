@@ -1,116 +1,95 @@
-Received: from mail-oo1-f72.google.com (mail-oo1-f72.google.com [209.85.161.72])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FF8E2F4A16
-	for <netfilter-devel@vger.kernel.org>; Sun,  8 Mar 2026 06:39:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.72
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E8C32573F;
+	Sun,  8 Mar 2026 10:41:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772951972; cv=none; b=c1ihZm3Wku6iZ2pzfFHVSkpNXgW29HJYZWFxFVzvV6XIH+Ybx6dLhyYgRfMNHsLNPD3uWX4XekNzn/6p7QfOX/r4JWw26m+veCc4OFgOCVJ1ubmjtYog6zkaZE9+KfJ220hALRbvjNlvu1hMeaim0UEgz9dxzCfkHatuS8zv6zc=
+	t=1772966510; cv=none; b=fb0PnCUw5A2sIX70Hei1ep23nP9hoZ5AZKYlkE0ryzbJXlfVbKIpMOUyD20iXYsSFg0ezx2dvIfDi1MeY14vR/tG8VLE1sit8eMb9uvpWfxqBOhyuzJMDnUV22T6pQm9g2wRrSofmiuBA8q4wru93rJEZGgbUuErBxRedqF+AOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772951972; c=relaxed/simple;
-	bh=uNLIHze9mlx4oh6ofrENJDypOEscvSBNiXd1v5Pwm8s=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=mnWy2Y9Je6guXNr11wS5WjhQ/ILul8e0Yym/ey9tz+ApMFNHHNdnBrXFDnYA4IJ7Eq+29DHwyxTS5uymoY0lCUrtE+IyKEaGq12JGR3mp6jT96fwkRxChP8ydyGkNcz23KHR2s0uf2B26dEAtY/KtZgdkywRPpbr5pRDdQwS4fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f72.google.com with SMTP id 006d021491bc7-67ba8d8546cso12391395eaf.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 07 Mar 2026 22:39:31 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1772951970; x=1773556770;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=PXqz6ZgCdOp3HYkESBSwuN66nDli/XUoxf/iWpvSR1Y=;
-        b=CHemoRVtlMbK4c9PwDi46AMxbrOo1wvdZPN5BgmtvTkN81JsTyvZzP529h/fkRh8uA
-         QmZdNibQu7opRtTyI4cNtYibsDM4gxixQWvoq8N01Q2lVTt/t/8rOogJ3huDMlZ0/n+h
-         4RMdIkliR7AnvrPSHiVwla53XLUz/qgwhdkVHXr2pIMGNHrThJL/WOdTtc1gwU24Hyz1
-         ivFncei+gM/31g8QLi8m+fSRtedqoTbuDXiqy2GclWd2hFp3uHjD3KZZ8h7wipw5p8xx
-         3zS2lLiKasyu+OLVdmFoiknGQQkzw6249xh3aYMi8CQAayeWmL2tyQdbqi0zfpgiHXRD
-         VEvQ==
-X-Forwarded-Encrypted: i=1; AJvYcCX0X0r6q07/ZqMJQVBEC0WRsaJdxo3zVa2P/DYLWLN2Y0W6rCES9xEluld0qn7tTGdcC5vxgppV3tjXGR57rJ8=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwUVbgcbUdBdOe0u1IuPRVuw4MjQHNLrMbzUE00o0yUbSr7LA7R
-	ljwK/sICoYkkfaaklY/682UsNEEm8lIPCuhUgAhXlyNqtscFb2bh805aXUPnk8DQF3Aw0t6aeB2
-	SnHEE69073JGvhpsZVP1YNXCLY5JVrxDJesdZpWKeNg1f+6p/hv+La15AV/M=
+	s=arc-20240116; t=1772966510; c=relaxed/simple;
+	bh=ortrsBw1OkgZU3vWIo5P30ZCjQ2u4dJ36pPvVXaw1lw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rrAxKKX2/TM26zLLpAQ2SYnxhRFy7px2eG8Vos1JDxt3HY4wxkcvqaXdqqGy7sgwJ3GuB35RZlypaDJ0dhkaRYeU28dPThHXRc0thVpYjJm6gN6IHtPl+wqf5xe3YH4nbiBbo7gMpxxF8yvwJSeJc5t10289Ho4UaBL1hTSwOqE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=cTbB+nKV; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="cTbB+nKV"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id AC510603A7;
+	Sun,  8 Mar 2026 11:41:45 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1772966505;
+	bh=ZCra7hLXVN4S+alXxXHaAOV1+1z40y47V8bccJwtIkc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=cTbB+nKVOA3a9eFgAFYI990Rj9iIZaFci2259Y4bPunHgS3roWucUpt+0GJpTc6lG
+	 Xx9b7lJ1K5KUSH3WJKJk2HCDKpCuEW52SkfBY78VmLhKrkqfwq+YSUmhCv1K91emjD
+	 xc2B5vgavatU443H2t+ysgsjHISr/L0hJc+EL0PtEuseNpG0n7v6Fw0whNkI8aLXwh
+	 ORm2o+9IeNAy/YxKmQrac131N+LeglZOQIMLLp4Kk9KNeCp7Yl8j9hzuhQ9o7porNr
+	 8WoRRdDRDlBFpRH10oXN7zHS2jolgBLx8DThJj51xnDuWiFNrPuYXZjt14UrzVMbTJ
+	 ZmJRNH+AqtjAA==
+Date: Sun, 8 Mar 2026 11:41:43 +0100
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Hyunwoo Kim <imv4bel@gmail.com>
+Cc: fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH net] netfilter: nf_flow_table_offload: fix heap overflow
+ in flow_action_entry_next()
+Message-ID: <aa1SZwjQZ1Fbsj_e@chamomile>
+References: <aaxe-uH2Qr6qM4E9@v4bel>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6820:4b94:b0:662:fbdd:1adb with SMTP id
- 006d021491bc7-67b9bc8875emr5077737eaf.25.1772951970585; Sat, 07 Mar 2026
- 22:39:30 -0800 (PST)
-Date: Sat, 07 Mar 2026 22:39:30 -0800
-In-Reply-To: <695e9924.050a0220.1c677c.0371.GAE@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <69ad19a2.a70a0220.52840.0001.GAE@google.com>
-Subject: Re: [syzbot] [netfilter?] WARNING in nf_hook_entry_head (2)
-From: syzbot <syzbot+6f6a1d20567a8d6b2a58@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kadlec@netfilter.org, kuba@kernel.org, 
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org, 
-	netfilter-devel@vger.kernel.org, pabeni@redhat.com, pablo@netfilter.org, 
-	phil@nwl.cc, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aaxe-uH2Qr6qM4E9@v4bel>
 
-syzbot has found a reproducer for the following issue on:
+On Sun, Mar 08, 2026 at 02:23:06AM +0900, Hyunwoo Kim wrote:
+> flow_action_entry_next() increments num_entries and returns a pointer
+> into the flow_action_entry array without any bounds checking.  The array
+> is allocated with a fixed size of NF_FLOW_RULE_ACTION_MAX (16) entries,
+> but certain combinations of IPv6 + SNAT + DNAT + double VLAN (QinQ)
+> require 17 or more entries, causing a slab-out-of-bounds write in the
+> kmalloc-4k slab.
+> 
+> The maximum possible entry count is:
+>   tunnel(2) + eth(4) + VLAN(4) + IPv6_NAT(10) + redirect(1) = 21
 
-HEAD commit:    c113d5e32678 Merge branch 'net-spacemit-a-few-error-handli..
-git tree:       net
-console output: https://syzkaller.appspot.com/x/log.txt?x=176fca02580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=779072223d02a312
-dashboard link: https://syzkaller.appspot.com/bug?extid=6f6a1d20567a8d6b2a58
-compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1457075a580000
+There is no hardware offload for the:
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/a1a0aa684791/disk-c113d5e3.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/6d0461aed5ba/vmlinux-c113d5e3.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/05b26502bb1f/bzImage-c113d5e3.xz
+- tunnel support
+- IPv6 NAT
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+6f6a1d20567a8d6b2a58@syzkaller.appspotmail.com
+This is all very hypothetical.
 
-------------[ cut here ]------------
-1
-WARNING: net/netfilter/core.c:329 at nf_hook_entry_head+0x23e/0x2c0 net/netfilter/core.c:329, CPU#1: kworker/u8:6/166
-Modules linked in:
-CPU: 1 UID: 0 PID: 166 Comm: kworker/u8:6 Not tainted syzkaller #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2026
-Workqueue: netns cleanup_net
-RIP: 0010:nf_hook_entry_head+0x23e/0x2c0 net/netfilter/core.c:329
-Code: 4c 89 f8 48 c1 e8 03 48 b9 00 00 00 00 00 fc ff df 80 3c 08 00 74 08 4c 89 ff e8 ed 82 69 f8 4d 39 37 74 36 e8 43 41 ff f7 90 <0f> 0b 90 31 db 48 89 d8 5b 41 5e 41 5f 5d c3 cc cc cc cc cc e8 29
-RSP: 0018:ffffc900030a7820 EFLAGS: 00010293
-RAX: ffffffff89c657eb RBX: ffff8880358c4000 RCX: ffff88801f3a3d00
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: 0000000000000000 R08: ffff88801f3a3d00 R09: 0000000000000006
-R10: 000000000000000a R11: 0000000000000000 R12: ffff888068070000
-R13: 0000000000000005 R14: ffff888068070000 R15: ffff8880358c4108
-FS:  0000000000000000(0000) GS:ffff888125561000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f5f121e9e80 CR3: 0000000029e2a000 CR4: 00000000003526f0
-Call Trace:
- <TASK>
- __nf_unregister_net_hook+0x74/0x6f0 net/netfilter/core.c:491
- nft_unregister_flowtable_ops net/netfilter/nf_tables_api.c:8905 [inline]
- __nft_unregister_flowtable_net_hooks net/netfilter/nf_tables_api.c:8920 [inline]
- __nft_release_hook net/netfilter/nf_tables_api.c:11904 [inline]
- __nft_release_hooks net/netfilter/nf_tables_api.c:11918 [inline]
- nf_tables_pre_exit_net+0x64a/0x900 net/netfilter/nf_tables_api.c:12069
- ops_pre_exit_list net/core/net_namespace.c:161 [inline]
- ops_undo_list+0x187/0x940 net/core/net_namespace.c:234
- cleanup_net+0x56b/0x800 net/core/net_namespace.c:704
- process_one_work kernel/workqueue.c:3275 [inline]
- process_scheduled_works+0xb02/0x1830 kernel/workqueue.c:3358
- worker_thread+0xa50/0xfc0 kernel/workqueue.c:3439
- kthread+0x388/0x470 kernel/kthread.c:436
- ret_from_fork+0x51e/0xb90 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
-
-
----
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+> Increase NF_FLOW_RULE_ACTION_MAX to 24 (with headroom) to cover the
+> worst case.
+> 
+> Fixes: efce49dfe6a8 ("netfilter: flowtable: add vlan pop action offload support")
+> Signed-off-by: Hyunwoo Kim <imv4bel@gmail.com>
+> ---
+>  net/netfilter/nf_flow_table_offload.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+> index 9b677e116487..e843f6d0355e 100644
+> --- a/net/netfilter/nf_flow_table_offload.c
+> +++ b/net/netfilter/nf_flow_table_offload.c
+> @@ -727,7 +727,7 @@ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
+>  }
+>  EXPORT_SYMBOL_GPL(nf_flow_rule_route_ipv6);
+>  
+> -#define NF_FLOW_RULE_ACTION_MAX	16
+> +#define NF_FLOW_RULE_ACTION_MAX	24
+>  
+>  static struct nf_flow_rule *
+>  nf_flow_offload_rule_alloc(struct net *net,
+> -- 
+> 2.43.0
+> 
