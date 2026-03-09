@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82CCD40F8D5;
-	Mon,  9 Mar 2026 21:09:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B80141C0A2;
+	Mon,  9 Mar 2026 21:09:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773090552; cv=none; b=ZfMonIkgLgUuntuwvRKArUGaXCcHPFvECYCpirOZsTMjzTKEWTPN4zjmQkNjchqBZcteZtMrBtDDriVJkll8vmXO497B99/fNerS9I57IBdLOMIkX1c/g6QsxDiSYSukx/RvkWs/I9qkWBSzrV2xQ0Lfi40i4Z+OjmJ8doqlPdg=
+	t=1773090556; cv=none; b=D43T4DHZbAQ+wgJ/gp5MFzqGJLpnQT3DewVHho9J67oQd/9dI++RuDHJdY46Ll2skAa+1odzXBMvIsL7mqZO0tHorWVoXJovATOei2aDP0pRjMK3pVo04lUQeog8Yq/bhqB3z8Xz7Nd/4LFV/d+6P9SX/3rksMpFvc7qE33l6wM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773090552; c=relaxed/simple;
-	bh=lGmrWSTsTR6lPzVfbgKhM+VLgs5ilCR5oxe0jxd9y/o=;
+	s=arc-20240116; t=1773090556; c=relaxed/simple;
+	bh=tMGqRyTjVEp7Yynbv2lURxYWMsNUwYDvnGcwNnWdBqs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=c3uUqbocIUHEEQxkZSigSix1wE35XyemEekn/Xo/k2acIcEwfMWPWQGlxSlj9NPytu1G8L6X3uEhqbWjzyuTXDxfpX9XwQihngu8yF/lxJbG/cudNxNl1vfIVJTVG6nXk+pXxCJ3VZKOk7oqsi+VxlHVm1GqBA3Th5bXlHFec0o=
+	 MIME-Version; b=W8H/HWKA+jegxH8nKQDHT2IFUdsNXibaZXlW8u/5zEXX/IAoHdPwaJr0tNnXmMUucw/v/4s3WmK3Ri1kT7hLpNMhgmG67hMATC5yXip/sSMz6cDGXr7G7ISj0yjahYrM6br8aG0JGR3jHg30NB+XXbxhcpGSbRprViL7/+/qxcg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 33CDB6047A; Mon, 09 Mar 2026 22:09:10 +0100 (CET)
+	id 41C8B6047A; Mon, 09 Mar 2026 22:09:14 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 05/10] netfilter: nfnetlink_queue: fix entry leak in bridge verdict error path
-Date: Mon,  9 Mar 2026 22:08:40 +0100
-Message-ID: <20260309210845.15657-6-fw@strlen.de>
+Subject: [PATCH net 06/10] netfilter: nfnetlink_cthelper: fix OOB read in nfnl_cthelper_dump_table()
+Date: Mon,  9 Mar 2026 22:08:41 +0100
+Message-ID: <20260309210845.15657-7-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260309210845.15657-1-fw@strlen.de>
 References: <20260309210845.15657-1-fw@strlen.de>
@@ -40,44 +40,63 @@ Content-Transfer-Encoding: 8bit
 
 From: Hyunwoo Kim <imv4bel@gmail.com>
 
-nfqnl_recv_verdict() calls find_dequeue_entry() to remove the queue
-entry from the queue data structures, taking ownership of the entry.
-For PF_BRIDGE packets, it then calls nfqa_parse_bridge() to parse VLAN
-attributes.  If nfqa_parse_bridge() returns an error (e.g. NFQA_VLAN
-present but NFQA_VLAN_TCI missing), the function returns immediately
-without freeing the dequeued entry or its sk_buff.
+nfnl_cthelper_dump_table() has a 'goto restart' that jumps to a label
+inside the for loop body.  When the "last" helper saved in cb->args[1]
+is deleted between dump rounds, every entry fails the (cur != last)
+check, so cb->args[1] is never cleared.  The for loop finishes with
+cb->args[0] == nf_ct_helper_hsize, and the 'goto restart' jumps back
+into the loop body bypassing the bounds check, causing an 8-byte
+out-of-bounds read on nf_ct_helper_hash[nf_ct_helper_hsize].
 
-This leaks the nf_queue_entry, its associated sk_buff, and all held
-references (net_device refcounts, struct net refcount).  Repeated
-triggering exhausts kernel memory.
+The 'goto restart' block was meant to re-traverse the current bucket
+when "last" is no longer found, but it was placed after the for loop
+instead of inside it.  Move the block into the for loop body so that
+the restart only occurs while cb->args[0] is still within bounds.
 
-Fix this by dropping the entry via nfqnl_reinject() with NF_DROP verdict
-on the error path, consistent with other error handling in this file.
+ BUG: KASAN: slab-out-of-bounds in nfnl_cthelper_dump_table+0x9f/0x1b0
+ Read of size 8 at addr ffff888104ca3000 by task poc_cthelper/131
+ Call Trace:
+  nfnl_cthelper_dump_table+0x9f/0x1b0
+  netlink_dump+0x333/0x880
+  netlink_recvmsg+0x3e2/0x4b0
+  sock_recvmsg+0xde/0xf0
+  __sys_recvfrom+0x150/0x200
+  __x64_sys_recvfrom+0x76/0x90
+  do_syscall_64+0xc3/0x6e0
 
-Fixes: 8d45ff22f1b4 ("netfilter: bridge: nf queue verdict to use NFQA_VLAN and NFQA_L2HDR")
-Reviewed-by: David Dull <monderasdor@gmail.com>
+ Allocated by task 1:
+  __kvmalloc_node_noprof+0x21b/0x700
+  nf_ct_alloc_hashtable+0x65/0xd0
+  nf_conntrack_helper_init+0x21/0x60
+  nf_conntrack_init_start+0x18d/0x300
+  nf_conntrack_standalone_init+0x12/0xc0
+
+Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
 Signed-off-by: Hyunwoo Kim <imv4bel@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_queue.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_cthelper.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 7f5248b5f1ee..47f7f62906e2 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1546,8 +1546,10 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 	if (entry->state.pf == PF_BRIDGE) {
- 		err = nfqa_parse_bridge(entry, nfqa);
--		if (err < 0)
-+		if (err < 0) {
-+			nfqnl_reinject(entry, NF_DROP);
- 			return err;
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index d658b1478fa0..d545fa459455 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -601,10 +601,10 @@ nfnl_cthelper_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 				goto out;
+ 			}
+ 		}
+-	}
+-	if (cb->args[1]) {
+-		cb->args[1] = 0;
+-		goto restart;
++		if (cb->args[1]) {
++			cb->args[1] = 0;
++			goto restart;
 +		}
  	}
- 
- 	if (nfqa[NFQA_PAYLOAD]) {
+ out:
+ 	rcu_read_unlock();
 -- 
 2.52.0
 
