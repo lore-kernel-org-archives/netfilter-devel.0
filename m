@@ -1,154 +1,73 @@
-Received: from dilbert.mork.no (dilbert.mork.no [65.108.154.246])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5679D3CEB9E;
-	Tue, 10 Mar 2026 21:22:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=65.108.154.246
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CFF13B8BCE
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2026 21:39:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773177768; cv=none; b=ZQj6jzHO4uOrUEIsub1O7OpDJ2HKg4gBfzqEtKgst9B4vT6vak2gevxUKnEYP27yqnIDHIk+/lzhzx+U/90LC/BYAJ9jX7gpcKGUh7GndNLVceSqarCh2Cgw29jyXOiItq5xmHUj34KJq8dMao5vG8PnQqUH2ByOzZiQzpzOxqA=
+	t=1773178801; cv=none; b=vA/egD5jq2goKbOMCG4ZfNDWzZApWVmsGQLTwSMSAi/Ne6usUC5gToNDW2ZEppH+Afx8SxmbIoe1R4pRu4ju/NOi/jbIOvYkveOXwJJ/IqvAZPQATQRzmgD3KuAgAkGbQHdKE0JYnxYjY7qwiaLC+/Dm+2NPj/Xd15elkFHF8kk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773177768; c=relaxed/simple;
-	bh=uW/SHTU/bmzAxq69+5aquBUZCuf5Yy0XrivWZ/q8OEs=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=Vey6PaXBsbT/g2lLrKORr4n7judRAbM17OZ3+NZHdDWM4uMXPSUrWSNooKksAmQTzn6XH21aYacyXWUts43s9HvdqNsdk1CydtF8ARxO6EaA8jzO0JAAk6uDAkIBbVwjqCRDF9jh1fO08A9IzF+LQZppN1toISxCPeffCe3+ozo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mork.no; spf=pass smtp.mailfrom=miraculix.mork.no; dkim=pass (1024-bit key) header.d=mork.no header.i=@mork.no header.b=XehxLy1d; arc=none smtp.client-ip=65.108.154.246
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=mork.no
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=miraculix.mork.no
+	s=arc-20240116; t=1773178801; c=relaxed/simple;
+	bh=uJS/hSfOwPP3/teZd25xjabYeXkEA2AV69sB+2/KdSs=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Tg9uUc30h8YqvwpnF4CgSSiSwD6sCtd+XfXdGgo6gSxiH1dmzGM7mcORtsWqR0q8vHgNgyRHi3dBzpuD7jDxMzromzjPcbzu5xOaoS3PBXqAJm7rapYLgVFTEdBL+zvajzRj+Igy7JiMzN898e7VLlzuRoCjV9ugT25shO5gKV8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=GAmlinr1; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=mork.no header.i=@mork.no header.b="XehxLy1d"
-Authentication-Results: dilbert.mork.no;
-	dkim=pass (1024-bit key; secure) header.d=mork.no header.i=@mork.no header.a=rsa-sha256 header.s=b header.b=XehxLy1d;
-	dkim-atps=neutral
-Received: from canardo.dyn.mork.no ([IPv6:2a01:799:10e2:d900:0:0:0:1])
-	(authenticated bits=0)
-	by dilbert.mork.no (8.18.1/8.18.1) with ESMTPSA id 62ALICW34119410
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=OK);
-	Tue, 10 Mar 2026 21:18:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=mork.no; s=b;
-	t=1773177492; bh=uW/SHTU/bmzAxq69+5aquBUZCuf5Yy0XrivWZ/q8OEs=;
-	h=From:To:Cc:Subject:References:Date:Message-ID:From;
-	b=XehxLy1dP2hexPsyxBZBiYDt/ZKIsdMfw6dXSR0tS4w+wHD4C7MuVJdRWjblVJ4vN
-	 f1m6MVEq3Cv94mvAZbpeaPr7+ir8ONDcWdEb+OsChqmet/YhuA31w47Bmp/rKkxQ9s
-	 rMW/hB/Ky4PFf0e5UjQoOJEZFR0hLcpBMaWErYd0=
-Received: from miraculix.mork.no ([IPv6:2a01:799:10e2:d90a:6f50:7559:681d:630c])
-	(authenticated bits=0)
-	by canardo.dyn.mork.no (8.18.1/8.18.1) with ESMTPSA id 62ALIBSw285875
-	(version=TLSv1.3 cipher=TLS_AES_256_GCM_SHA384 bits=256 verify=OK);
-	Tue, 10 Mar 2026 22:18:12 +0100
-Received: (nullmailer pid 737464 invoked by uid 1000);
-	Tue, 10 Mar 2026 21:18:10 -0000
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: =?utf-8?Q?Kolbj=C3=B8rn?= Barmen <linux-m68k@kolla.no>,
-        Krzysztof
- Kozlowski <krzk@kernel.org>,
-        Fernando Fernandez Mancera <fmancera@suse.de>,
-        Netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org,
-        Geert
- Uytterhoeven <geert@linux-m68k.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-        Selvin Xavier <selvin.xavier@broadcom.com>,
-        Andrew Lunn <andrew+netdev@lunn.ch>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>, Ido Schimmel <idosch@nvidia.com>,
-        Petr Machata <petrm@nvidia.com>, Simon Horman <horms@kernel.org>,
-        Saurav Kashyap <skashyap@marvell.com>,
-        Javed Hasan <jhasan@marvell.com>,
-        "maintainer:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER" <GR-QLogic-Storage-Upstream@marvell.com>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Nilesh Javali <njavali@marvell.com>,
-        Manish Rangankar <mrangankar@marvell.com>,
-        Varun Prakash <varun@chelsio.com>,
-        Alexander Aring <aahringo@redhat.com>,
-        David
- Teigland <teigland@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Nikolay Aleksandrov <razor@blackwall.org>,
-        David Ahern <dsahern@kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-        Xin Long <lucien.xin@gmail.com>, Jon
- Maloy <jmaloy@redhat.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
-        Bjorn Andersson <bjorn.andersson@oss.qualcomm.com>,
-        Dmitry Baryshkov <dmitry.baryshkov@oss.qualcomm.com>,
-        Eric Biggers <ebiggers@kernel.org>,
-        Michal Simek <michal.simek@amd.com>,
-        Luca
- Weiss <luca.weiss@fairphone.com>, Sven Peter <sven@kernel.org>,
-        "Lad,
- Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        David Gow <david@davidgow.net>,
-        Herbert
- Xu <herbert@gondor.apana.org.au>,
-        Ryota Sakamoto <sakamo.ryota@gmail.com>,
-        Kuniyuki Iwashima <kuniyu@google.com>, Kir
- Chou <note351@hotmail.com>,
-        Kuan-Wei Chiu <visitorckw@gmail.com>,
-        Vikas Gupta <vikas.gupta@broadcom.com>,
-        Bhargava Marreddy <bhargava.marreddy@broadcom.com>,
-        Rajashekar Hudumula <rajashekar.hudumula@broadcom.com>,
-        Markus =?utf-8?Q?Bl=C3=B6chl?= <markus@blochl.de>,
-        "open list:M68K ARCHITECTURE" <linux-m68k@lists.linux-m68k.org>,
-        "open
- list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>,
-        "open
- list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
-        "open
- list:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER" <linux-scsi@vger.kernel.org>,
-        "open list:DISTRIBUTED LOCK MANAGER (DLM)" <gfs2@lists.linux.dev>,
-        "open
- list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
-        "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
-        "open list:NETFILTER" <coreteam@netfilter.org>,
-        "open list:RXRPC SOCKETS (AF_RXRPC)" <linux-afs@lists.infradead.org>,
-        "open list:SCTP PROTOCOL" <linux-sctp@vger.kernel.org>,
-        "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
-Subject: Re: [PATCH 01/10 net-next] ipv6: convert CONFIG_IPV6 to built-in
- only and clean up Kconfigs
-In-Reply-To: <5c4b6043-a484-479d-83bc-a86ecdb8f810@app.fastmail.com> (Arnd
-	Bergmann's message of "Tue, 10 Mar 2026 20:58:15 +0100")
-Organization: m
-References: <20260309022013.5199-1-fmancera@suse.de>
-	<20260309022013.5199-2-fmancera@suse.de>
-	<01a4936f-77cd-4c60-a1be-cabec872a2bb@kernel.org>
-	<e54d887c-5a70-b8c9-aeef-433c5134dd14@kolla.no>
-	<5c4b6043-a484-479d-83bc-a86ecdb8f810@app.fastmail.com>
-Date: Tue, 10 Mar 2026 22:18:10 +0100
-Message-ID: <87bjgvpenh.fsf@miraculix.mork.no>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="GAmlinr1"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=R8eVZ9Vtu6vwE3MT3SbErzQtgpfc4wVScMSXuvP0zos=; b=GAmlinr1hDRspP6s9WPaHzISK3
+	PIekaxq700Krz6mkrUl3Hi4U5nDKzkuCZl//+g2hgAWVteua7rRA0QrGPk+envdxyqH23zwHlQyK8
+	vWJNwOZJlWo8d4iNt6IXAnvOnoYP2G/21RGcnJwo5pcttl6IcdlpcdM+NUqjD6F1UFMK2CN1r5l5r
+	Qls4/rdw1e0z5+EnfkdOFE1UY7GQTq2i0uTRGxXH9+4CF1CVmvXyCaxRKMJnUt6T/Mxwp7OayH3AZ
+	k1QrCk5qpdnBajL3M7yP2hXgmEoADXgzOcpwCcFdn2BGQkx4HB5ArNuQl+6hPW41wEtV++LHtd8pC
+	98P2TrUQ==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1w04o0-000000003PX-3ydF;
+	Tue, 10 Mar 2026 22:39:56 +0100
+Date: Tue, 10 Mar 2026 22:39:56 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+Subject: Re: [iptables PATCH] xtables-translate: Return non-zero if
+ translation fails
+Message-ID: <abCPrKdqjPwrjWVL@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+References: <20260310171853.26362-1-phil@nwl.cc>
+ <abBWyuHDm7MT9JC3@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-Virus-Scanned: clamav-milter 1.4.3 at canardo.mork.no
-X-Virus-Status: Clean
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <abBWyuHDm7MT9JC3@strlen.de>
 
-"Arnd Bergmann" <arnd@arndb.de> writes:
+On Tue, Mar 10, 2026 at 06:37:14PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > Untranslated parts in output are easily overlooked and also don't disrupt
+> > piping into nft (which is a bad idea to begin with), so make a little
+> > noise if things go sideways:
+> 
+> Makes sense to me.
+> 
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-> The list does not include openwrt though, and I know that in
-> previous releases, there was an optional kmod-ipv6 package
-> that could be left out of an install without rebuilding
-> the kernel.
+There is a downside: Previously, you could check "translatability" of an
+entire dump. With my patch, you have to drop/comment out problematic
+rules in order to continue.
 
-The kmod-ipv6 package was dropped in 2016:
-https://github.com/openwrt/openwrt/commit/33beafa8d88e51907acba6fdece5a35f5=
-09934df
+It is not exactly a trivial change but maybe worth the effort to
+implement a "keep going" flag, what do you think?
 
-And IPv6 was unconditionally enabled in OpenWrt in 2022:
-https://github.com/openwrt/openwrt/commit/832e7b817221d288df76b763ca12c5853=
-65db5d8
-
-
-Bj=C3=B8rn
+Cheers, Phil
