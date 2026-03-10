@@ -1,100 +1,187 @@
-Received: from mail-106111.protonmail.ch (mail-106111.protonmail.ch [79.135.106.111])
+Received: from fhigh-a2-smtp.messagingengine.com (fhigh-a2-smtp.messagingengine.com [103.168.172.153])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A9A41EE033
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2026 21:49:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=79.135.106.111
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D968A346E50;
+	Tue, 10 Mar 2026 22:19:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.153
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773179363; cv=none; b=fiGDfEh0MdUv7V5yWceOWJ8SXRWg8T2S7Jlm2prBEZatN3GsR0ExDIQFCltZlJGCZ5a22ORkqmN5aGmHA7+zYoEzsawapcGgG4FHPwe1biCJnTyIy9cLRrTLbk0r/GmQQkHppLyLqf4Ep2gYnnRhnwRP6FCo9m1xTosfn4Feh9M=
+	t=1773181146; cv=none; b=q1aJXFscpzmHzy/e3N7fpCN4Lyt9mQ1KgtkN4eFW80cPwD11Do+I53+i/ZpicHM6Gqy0Y/Qu//UK/YqJ5WAOwArOhDCRwvxJPm5QULNzFJCTNmaL2vl6DvPtHldogrevwY5KfjdigvGSFU42dY9egd7grTKaXOqY2+x1Ilj4sMA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773179363; c=relaxed/simple;
-	bh=hYH8Z9qW6L7Pv4SzbvmBYP473SK0UCSUn2tmsDcH0U0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=GgvtBuGDbEBmO6aOdVwTwRP89adCwImqt5b5bRWODBZo+h/cFbFJfRFoM776nVrxgUKkf7/7WmmaYk8nNyJdefUeZNwC5paBhPu7dtT9gwo3ZDNmqGXTQQPQTmaDxJDJ/bwrrhMGH1Ph26df/06H2cBEmdQ/BJ4ZtTnKhdLEJog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=johannes-moeller.dev; spf=pass smtp.mailfrom=johannes-moeller.dev; dkim=pass (2048-bit key) header.d=johannes-moeller.dev header.i=@johannes-moeller.dev header.b=vnOfhVHU; arc=none smtp.client-ip=79.135.106.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=johannes-moeller.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=johannes-moeller.dev
+	s=arc-20240116; t=1773181146; c=relaxed/simple;
+	bh=iJDAvNQWfTXa/d54rND70rOy1C42f+AfmZ9GTZCuIqQ=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=JO6QY0WQWPDsMel5lrPEO34YhYUm2SD1yuhdpghYpl+brK2i4kH9Xh/ThMY61bCftzs+oUuxGy+hqEKhBczv8x64vWm0xnhYa765kn1diDEo+c3ItSlZNBI5Za/dN+oEVijkkl9zE8yeFzBPTkF3Km5hfWyJtrCkbRlGVXjgQXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=RBIWZwwe; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Q+noIFjW; arc=none smtp.client-ip=103.168.172.153
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=johannes-moeller.dev header.i=@johannes-moeller.dev header.b="vnOfhVHU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=johannes-moeller.dev; s=protonmail; t=1773179353; x=1773438553;
-	bh=QF6qc+aNL5LpCNRDF2PTtarXrsxuPHhlrVLr96bSGbU=;
-	h=From:To:Cc:Subject:Date:Message-ID:From:To:Cc:Date:Subject:
-	 Reply-To:Feedback-ID:Message-ID:BIMI-Selector;
-	b=vnOfhVHUvAiy2histAJ+80dVFzXEtocqUXWxLq4KchhkEKC+OS3luB8dNZU7UHpV3
-	 ZTS+301I9vGi2/py6FZjWgyL2TvJDov+cRinogM4CFXg7Vl/Q0ZcozwDZYVhBH3OsB
-	 YJ/r04AIJ/LxO75i1/Zx3dF8VgEU4V+dzyUPk06xWzBi9rXerbnHUsSLFpXbSNeo+d
-	 /TV3oD+M23tosE7SNctpo/xWImLzFZCor953EfIbPTgvUnAtMJublpgoXpRJUxM3De
-	 k9yqb6elBFXEwk9J/sDbXI4AMo+fFD5Pj+aYsusD5JyyDxtbJP9NaXZcIAYHrA5EW6
-	 o2jZ2wiucMovQ==
-X-Pm-Submission-Id: 4fVnZw1crNz2ScPP
-From: =?UTF-8?q?Lukas=20Johannes=20M=C3=B6ller?= <research@johannes-moeller.dev>
-To: netfilter-devel@vger.kernel.org
-Cc: Florian Westphal <fw@strlen.de>,
-	=?UTF-8?q?Lukas=20Johannes=20M=C3=B6ller?= <research@johannes-moeller.dev>,
-	stable@vger.kernel.org
-Subject: [PATCH] netfilter: nf_conntrack_sip: fix Content-Length u32 truncation in sip_help_tcp()
-Date: Tue, 10 Mar 2026 21:49:01 +0000
-Message-ID: <20260310214901.71422-1-research@johannes-moeller.dev>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="RBIWZwwe";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Q+noIFjW"
+Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 13189140021A;
+	Tue, 10 Mar 2026 18:19:04 -0400 (EDT)
+Received: from phl-imap-02 ([10.202.2.81])
+  by phl-compute-04.internal (MEProxy); Tue, 10 Mar 2026 18:19:04 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm3; t=1773181144;
+	 x=1773267544; bh=FRlgnoZcWgoJlJFqsFQjQT0OGLiik2V/K6MtiEBUEM4=; b=
+	RBIWZwwelBtW10J+dVYS5KxWLYY+Z5KYr67R+cWTV7oxZTv749/mXXRIVeTn+H7r
+	GxOX8R1vpM/4BWx9WXCn52aKQQf7Q+QqOKu/4RF/ZuN5lLTD5Dxx8jXeTxTNcULJ
+	3BEdBvl3GXqURyW3odtt3p8xWgE3oC/oREzqZEoAiVNOWgwpCJ7crrRUyBEhAVZI
+	vlHGARaFW1BJ7ddZSAm2xvDLFDvqHpuAAdz162Az2xtFyMkbXhTnQetXvA0XsbIl
+	Qg9mbenNjEbbMeKEwbX/P9bC5uV6xjLOmWYDgCQ+AQXOmkUkf20R8cdFbeQY7UHi
+	Bb4JfK+EU6ISGvpHgENqdA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1773181144; x=
+	1773267544; bh=FRlgnoZcWgoJlJFqsFQjQT0OGLiik2V/K6MtiEBUEM4=; b=Q
+	+noIFjWXCUrp3h0mxD7ppfVOe1UO+Vk7K4a1Yt/GNMGtSs8DP//5YAWcrCudmb41
+	P7NoEAuiAb8DUoQ4IRkMSwdpQ7ToF/oD9QaaiqGkpPIEv5xx5ZdfuJw/NMB+XUCs
+	pm7bgWLAVR7hF4/p/3rFkwhdq9YUcI6nFjnbynII3Yhc7YsBmluxVnPYCalEYQ9X
+	fuIkt382YG4TL7A8i8IOOVGPgmyXabQG0wsJSxVXwid7nU+m4Rk4051k7VIRiexz
+	S/CXCKMv9bfSsmjr6OANzMJulZ5Fr4ZYuFKf/5EYs1OIgQJRRnQ7rxaT+eyOjvqR
+	QU/tn0ahtRPn9ImmbhiwQ==
+X-ME-Sender: <xms:15iwafNpRAgTuD_NUtH5iWgTrmT8y0tX5mBrGDiYjk59bTEv8kacXQ>
+    <xme:15iwaUxC5D12tx0Ymltu00MT7vho8q9aEZWYTPxyHeiLt4fWBscd_upno1egcnsud
+    tmQbBgIEJQpP5DfnjuSVUYnxaHfET5TBqOjZjB8fKVR18oRO_RWZo4>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvkedvvddtucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdejnecuhfhrohhmpedftehrnhgu
+    uceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvg
+    hrnhepteefudehvedutdeugfeuveffleduheehfeehffeujeduledvheeivdffleffjedt
+    necuffhomhgrihhnpehgihhthhhusgdrtghomhenucevlhhushhtvghrufhiiigvpedtne
+    curfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggvpdhnsggprhgt
+    phhtthhopedvtddpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepmhgrrhhtihhnrd
+    hpvghtvghrshgvnhesohhrrggtlhgvrdgtohhmpdhrtghpthhtohepsghjohhrnhdrrghn
+    uggvrhhsshhonhesohhsshdrqhhurghltghomhhmrdgtohhmpdhrtghpthhtohepughmih
+    htrhihrdgsrghrhihshhhkohhvsehoshhsrdhquhgrlhgtohhmmhdrtghomhdprhgtphht
+    thhopehkrhiihihsiihtohhfrdhkohiilhhofihskhhisehoshhsrdhquhgrlhgtohhmmh
+    drtghomhdprhgtphhtthhopegrrghhrhhinhhgohesrhgvughhrghtrdgtohhmpdhrtghp
+    thhtoheprghgrhhuvghnsggrsehrvgguhhgrthdrtghomhdprhgtphhtthhopeguhhhofi
+    gvlhhlshesrhgvughhrghtrdgtohhmpdhrtghpthhtohepjhhmrghlohihsehrvgguhhgr
+    thdrtghomhdprhgtphhtthhopehprggsvghnihesrhgvughhrghtrdgtohhm
+X-ME-Proxy: <xmx:15iwaf-Kf6MeOapsmweEsqPwg3eFKiZQxijFSW0urK8Q7sozvfC3Sg>
+    <xmx:15iwacIPsJSGfO64l6EvH6QccwUWirQM-76oJVl80W02oxD_gTV-gA>
+    <xmx:15iwaSdFtRRhbAQ1DIeWCBhheGcHHYjmZ3FtJNyxsTaFVZZnTDqTQA>
+    <xmx:15iwaZbSe1UzVDHdUMe9n0Fnk2qwzCF_kNeCwUkf06zCOVeodNyh_w>
+    <xmx:2JiwaTKBIBeG4hh0HFeirOoWkHEfY8wvJ9daeDikHitZKM9-1D4LqoaB>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.phl.internal (Postfix, from userid 501)
+	id 173C2700065; Tue, 10 Mar 2026 18:19:03 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+X-ThreadId: Aes-ty0OVaaR
+Date: Tue, 10 Mar 2026 23:18:29 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: =?UTF-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Cc: =?UTF-8?Q?Kolbj=C3=B8rn_Barmen?= <linux-m68k@kolla.no>,
+ "Krzysztof Kozlowski" <krzk@kernel.org>,
+ "Fernando Fernandez Mancera" <fmancera@suse.de>,
+ Netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org,
+ "Geert Uytterhoeven" <geert@linux-m68k.org>,
+ "Jason Gunthorpe" <jgg@ziepe.ca>, "Leon Romanovsky" <leon@kernel.org>,
+ "Selvin Xavier" <selvin.xavier@broadcom.com>,
+ "Andrew Lunn" <andrew+netdev@lunn.ch>,
+ "David S . Miller" <davem@davemloft.net>,
+ "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
+ "Paolo Abeni" <pabeni@redhat.com>, "Ido Schimmel" <idosch@nvidia.com>,
+ "Petr Machata" <petrm@nvidia.com>, "Simon Horman" <horms@kernel.org>,
+ "Saurav Kashyap" <skashyap@marvell.com>,
+ "Javed Hasan" <jhasan@marvell.com>,
+ "maintainer:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER"
+ <GR-QLogic-Storage-Upstream@marvell.com>,
+ "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ "Nilesh Javali" <njavali@marvell.com>,
+ "Manish Rangankar" <mrangankar@marvell.com>,
+ "Varun Prakash" <varun@chelsio.com>,
+ "Alexander Aring" <aahringo@redhat.com>,
+ "David Teigland" <teigland@redhat.com>,
+ "Andreas Gruenbacher" <agruenba@redhat.com>,
+ "Nikolay Aleksandrov" <razor@blackwall.org>,
+ "David Ahern" <dsahern@kernel.org>,
+ "Pablo Neira Ayuso" <pablo@netfilter.org>,
+ "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
+ "David Howells" <dhowells@redhat.com>,
+ "Marc Dionne" <marc.dionne@auristor.com>,
+ "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
+ "Xin Long" <lucien.xin@gmail.com>, "Jon Maloy" <jmaloy@redhat.com>,
+ "Krzysztof Kozlowski" <krzysztof.kozlowski@oss.qualcomm.com>,
+ "Bjorn Andersson" <bjorn.andersson@oss.qualcomm.com>,
+ "Dmitry Baryshkov" <dmitry.baryshkov@oss.qualcomm.com>,
+ "Eric Biggers" <ebiggers@kernel.org>,
+ "Michal Simek" <michal.simek@amd.com>,
+ "Luca Weiss" <luca.weiss@fairphone.com>, "Sven Peter" <sven@kernel.org>,
+ "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+ "Kuninori Morimoto" <kuninori.morimoto.gx@renesas.com>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "David Gow" <david@davidgow.net>,
+ "Herbert Xu" <herbert@gondor.apana.org.au>,
+ "Ryota Sakamoto" <sakamo.ryota@gmail.com>,
+ "Kuniyuki Iwashima" <kuniyu@google.com>,
+ "Kir Chou" <note351@hotmail.com>, "Kuan-Wei Chiu" <visitorckw@gmail.com>,
+ "Vikas Gupta" <vikas.gupta@broadcom.com>,
+ "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
+ "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
+ =?UTF-8?Q?Markus_Bl=C3=B6chl?= <markus@blochl.de>,
+ "open list:M68K ARCHITECTURE" <linux-m68k@lists.linux-m68k.org>,
+ "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>,
+ "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
+ "open list:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER"
+ <linux-scsi@vger.kernel.org>,
+ "open list:DISTRIBUTED LOCK MANAGER (DLM)" <gfs2@lists.linux.dev>,
+ "open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
+ "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+ "open list:NETFILTER" <coreteam@netfilter.org>,
+ "open list:RXRPC SOCKETS (AF_RXRPC)" <linux-afs@lists.infradead.org>,
+ "open list:SCTP PROTOCOL" <linux-sctp@vger.kernel.org>,
+ "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
+Message-Id: <ebebb003-f7d7-4659-8248-9d36e9c2c26b@app.fastmail.com>
+In-Reply-To: <87bjgvpenh.fsf@miraculix.mork.no>
+References: <20260309022013.5199-1-fmancera@suse.de>
+ <20260309022013.5199-2-fmancera@suse.de>
+ <01a4936f-77cd-4c60-a1be-cabec872a2bb@kernel.org>
+ <e54d887c-5a70-b8c9-aeef-433c5134dd14@kolla.no>
+ <5c4b6043-a484-479d-83bc-a86ecdb8f810@app.fastmail.com>
+ <87bjgvpenh.fsf@miraculix.mork.no>
+Subject: Re: [PATCH 01/10 net-next] ipv6: convert CONFIG_IPV6 to built-in only and
+ clean up Kconfigs
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-sip_help_tcp() parses the SIP Content-Length header with
-simple_strtoul(), which returns unsigned long, but stores the result in
-unsigned int clen.  On 64-bit systems, values exceeding UINT_MAX are
-silently truncated before computing the SIP message boundary.
+On Tue, Mar 10, 2026, at 22:18, Bj=C3=B8rn Mork wrote:
+> "Arnd Bergmann" <arnd@arndb.de> writes:
+>
+>> The list does not include openwrt though, and I know that in
+>> previous releases, there was an optional kmod-ipv6 package
+>> that could be left out of an install without rebuilding
+>> the kernel.
+>
+> The kmod-ipv6 package was dropped in 2016:
+> https://github.com/openwrt/openwrt/commit/33beafa8d88e51907acba6fdece5=
+a35f509934df
+>
+> And IPv6 was unconditionally enabled in OpenWrt in 2022:
+> https://github.com/openwrt/openwrt/commit/832e7b817221d288df76b763ca12=
+c585365db5d8
 
-For example, Content-Length 4294967328 (2^32 + 32) is truncated to 32,
-causing the parser to miscalculate where the current message ends.  The
-loop then treats trailing data in the TCP segment as a second SIP
-message and processes it through the SDP parser.
+Thanks for checking!
 
-Fix this by changing clen to unsigned long to match the return type of
-simple_strtoul(), and reject Content-Length values that exceed the
-remaining TCP payload length.
+Not sure what the commit log for the second one is trying to say, as
+there generally was no build failure in mainline for a long time
 
-Fixes: f5b321bd37fb ("netfilter: nf_conntrack_sip: add TCP support")
-Cc: stable@vger.kernel.org
-Signed-off-by: Lukas Johannes Möller <research@johannes-moeller.dev>
----
-Note: simple_strtoul() is deprecated; a follow-up patch could convert
-to kstrtoul() with stricter input validation.
+But if nobody has bothered to revert the patch, it doesn't seem
+to have caused any problems.
 
- net/netfilter/nf_conntrack_sip.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index ca748f8dbff1..eb6295f0e08c 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1534,7 +1534,8 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- {
- 	struct tcphdr *th, _tcph;
- 	unsigned int dataoff, datalen;
--	unsigned int matchoff, matchlen, clen;
-+	unsigned int matchoff, matchlen;
-+	unsigned long clen;
- 	unsigned int msglen, origlen;
- 	const char *dptr, *end;
- 	s16 diff, tdiff = 0;
-@@ -1573,6 +1574,9 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- 		if (dptr + matchoff == end)
- 			break;
- 
-+		if (clen > datalen)
-+			break;
-+
- 		term = false;
- 		for (; end + strlen("\r\n\r\n") <= dptr + datalen; end++) {
- 			if (end[0] == '\r' && end[1] == '\n' &&
-
-base-commit: 1f318b96cc84d7c2ab792fcc0bfd42a7ca890681
--- 
-2.43.0
-
+    Arnd
