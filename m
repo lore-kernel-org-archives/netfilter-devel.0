@@ -1,187 +1,126 @@
-Received: from fhigh-a2-smtp.messagingengine.com (fhigh-a2-smtp.messagingengine.com [103.168.172.153])
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D968A346E50;
-	Tue, 10 Mar 2026 22:19:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.153
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BFD82DB780
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2026 23:09:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773181146; cv=none; b=q1aJXFscpzmHzy/e3N7fpCN4Lyt9mQ1KgtkN4eFW80cPwD11Do+I53+i/ZpicHM6Gqy0Y/Qu//UK/YqJ5WAOwArOhDCRwvxJPm5QULNzFJCTNmaL2vl6DvPtHldogrevwY5KfjdigvGSFU42dY9egd7grTKaXOqY2+x1Ilj4sMA=
+	t=1773184143; cv=none; b=HnVdT8bLEv18xgjO6Fls7K+MRBVha6PbIqToRU3MFBhtqQcsEDg/9lr8Ee4lRPjdmW4/7NzrM5ammeCdr/7bAOFZW3t9fU4ZfO07userN2RV9d39Zgo2AKC7Ed53s+E3GFaLuTWVA6TM4om4A3GNz3Xx1eC/sZ408fJONedKfZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773181146; c=relaxed/simple;
-	bh=iJDAvNQWfTXa/d54rND70rOy1C42f+AfmZ9GTZCuIqQ=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=JO6QY0WQWPDsMel5lrPEO34YhYUm2SD1yuhdpghYpl+brK2i4kH9Xh/ThMY61bCftzs+oUuxGy+hqEKhBczv8x64vWm0xnhYa765kn1diDEo+c3ItSlZNBI5Za/dN+oEVijkkl9zE8yeFzBPTkF3Km5hfWyJtrCkbRlGVXjgQXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=RBIWZwwe; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Q+noIFjW; arc=none smtp.client-ip=103.168.172.153
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1773184143; c=relaxed/simple;
+	bh=ZKepyzWF9vZrdtPQWN0ODdLSvdYymTbVK+UsruI09X8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VKQULEPlWokNy8UGrz6HYqLPcVBzRAQr7s0E2wOQ1pFTjFaNVJySlXwTtK1ircPg8iVl3J6tIYOOFiDCHbY20eCHviA0aS2Ig6eqKV6cd7eU1wLqs/xhBJCefz0kHzeC+LD6c+y9zONCAec9LOOLutjVQFo51I/MNrToIgMxyCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=AsrC0CwN; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="RBIWZwwe";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Q+noIFjW"
-Received: from phl-compute-04.internal (phl-compute-04.internal [10.202.2.44])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 13189140021A;
-	Tue, 10 Mar 2026 18:19:04 -0400 (EDT)
-Received: from phl-imap-02 ([10.202.2.81])
-  by phl-compute-04.internal (MEProxy); Tue, 10 Mar 2026 18:19:04 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1773181144;
-	 x=1773267544; bh=FRlgnoZcWgoJlJFqsFQjQT0OGLiik2V/K6MtiEBUEM4=; b=
-	RBIWZwwelBtW10J+dVYS5KxWLYY+Z5KYr67R+cWTV7oxZTv749/mXXRIVeTn+H7r
-	GxOX8R1vpM/4BWx9WXCn52aKQQf7Q+QqOKu/4RF/ZuN5lLTD5Dxx8jXeTxTNcULJ
-	3BEdBvl3GXqURyW3odtt3p8xWgE3oC/oREzqZEoAiVNOWgwpCJ7crrRUyBEhAVZI
-	vlHGARaFW1BJ7ddZSAm2xvDLFDvqHpuAAdz162Az2xtFyMkbXhTnQetXvA0XsbIl
-	Qg9mbenNjEbbMeKEwbX/P9bC5uV6xjLOmWYDgCQ+AQXOmkUkf20R8cdFbeQY7UHi
-	Bb4JfK+EU6ISGvpHgENqdA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1773181144; x=
-	1773267544; bh=FRlgnoZcWgoJlJFqsFQjQT0OGLiik2V/K6MtiEBUEM4=; b=Q
-	+noIFjWXCUrp3h0mxD7ppfVOe1UO+Vk7K4a1Yt/GNMGtSs8DP//5YAWcrCudmb41
-	P7NoEAuiAb8DUoQ4IRkMSwdpQ7ToF/oD9QaaiqGkpPIEv5xx5ZdfuJw/NMB+XUCs
-	pm7bgWLAVR7hF4/p/3rFkwhdq9YUcI6nFjnbynII3Yhc7YsBmluxVnPYCalEYQ9X
-	fuIkt382YG4TL7A8i8IOOVGPgmyXabQG0wsJSxVXwid7nU+m4Rk4051k7VIRiexz
-	S/CXCKMv9bfSsmjr6OANzMJulZ5Fr4ZYuFKf/5EYs1OIgQJRRnQ7rxaT+eyOjvqR
-	QU/tn0ahtRPn9ImmbhiwQ==
-X-ME-Sender: <xms:15iwafNpRAgTuD_NUtH5iWgTrmT8y0tX5mBrGDiYjk59bTEv8kacXQ>
-    <xme:15iwaUxC5D12tx0Ymltu00MT7vho8q9aEZWYTPxyHeiLt4fWBscd_upno1egcnsud
-    tmQbBgIEJQpP5DfnjuSVUYnxaHfET5TBqOjZjB8fKVR18oRO_RWZo4>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefgedrtddtgddvkedvvddtucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhepofggfffhvfevkfgjfhfutgfgsehtqhertdertdejnecuhfhrohhmpedftehrnhgu
-    uceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrthhtvg
-    hrnhepteefudehvedutdeugfeuveffleduheehfeehffeujeduledvheeivdffleffjedt
-    necuffhomhgrihhnpehgihhthhhusgdrtghomhenucevlhhushhtvghrufhiiigvpedtne
-    curfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggvpdhnsggprhgt
-    phhtthhopedvtddpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepmhgrrhhtihhnrd
-    hpvghtvghrshgvnhesohhrrggtlhgvrdgtohhmpdhrtghpthhtohepsghjohhrnhdrrghn
-    uggvrhhsshhonhesohhsshdrqhhurghltghomhhmrdgtohhmpdhrtghpthhtohepughmih
-    htrhihrdgsrghrhihshhhkohhvsehoshhsrdhquhgrlhgtohhmmhdrtghomhdprhgtphht
-    thhopehkrhiihihsiihtohhfrdhkohiilhhofihskhhisehoshhsrdhquhgrlhgtohhmmh
-    drtghomhdprhgtphhtthhopegrrghhrhhinhhgohesrhgvughhrghtrdgtohhmpdhrtghp
-    thhtoheprghgrhhuvghnsggrsehrvgguhhgrthdrtghomhdprhgtphhtthhopeguhhhofi
-    gvlhhlshesrhgvughhrghtrdgtohhmpdhrtghpthhtohepjhhmrghlohihsehrvgguhhgr
-    thdrtghomhdprhgtphhtthhopehprggsvghnihesrhgvughhrghtrdgtohhm
-X-ME-Proxy: <xmx:15iwaf-Kf6MeOapsmweEsqPwg3eFKiZQxijFSW0urK8Q7sozvfC3Sg>
-    <xmx:15iwacIPsJSGfO64l6EvH6QccwUWirQM-76oJVl80W02oxD_gTV-gA>
-    <xmx:15iwaSdFtRRhbAQ1DIeWCBhheGcHHYjmZ3FtJNyxsTaFVZZnTDqTQA>
-    <xmx:15iwaZbSe1UzVDHdUMe9n0Fnk2qwzCF_kNeCwUkf06zCOVeodNyh_w>
-    <xmx:2JiwaTKBIBeG4hh0HFeirOoWkHEfY8wvJ9daeDikHitZKM9-1D4LqoaB>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id 173C2700065; Tue, 10 Mar 2026 18:19:03 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="AsrC0CwN"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=eTyDEI1FRRcdKf1n4Vr7Cmc0p2zwShoYxtEbVXtnWAk=; b=AsrC0CwN2QNIrD0V5STDYTJUG8
+	9XU/ITqYfQx6hrM13asZEubtG7n1qFQ9h06dUJhG2qlSyDX3JJu9wbJ0TemFy8+tdX7HK4Gp1Z5Na
+	erv55A7vU0yJLmFb7VftsCFBj/sMXpGhh91mrfiRUuRS3+NYLj9e+c6a59OUOyt/K8KtjdXa1pllA
+	yChtu3ONgaho4HUSKMtNFvCJYBf93AupBnq+geW3qpbgbuVVBISMV3w/gfvAZHeoEYa8RHQvzcY3d
+	XSAEpnKJ4xw7tElSYPCQI7zgFmk0ZDXg3Lm1BpDhr0HYQFujkor1CIQjrwGOZytPGtjexOnbaakjN
+	4ZZXjiFA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1w06CB-000000004nP-0PcP;
+	Wed, 11 Mar 2026 00:08:59 +0100
+Date: Wed, 11 Mar 2026 00:08:59 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft] tests: py: use `os.unshare` Python function
+Message-ID: <abCki9aBa8wVBvQi@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
+	Jeremy Sowden <jeremy@azazel.net>,
+	Netfilter Devel <netfilter-devel@vger.kernel.org>
+References: <20260305175358.806280-1-jeremy@azazel.net>
+ <aasRsr93TOUuH_Xb@orbyte.nwl.cc>
+ <20260306183553.GA5468@celephais.dreamlands>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-ThreadId: Aes-ty0OVaaR
-Date: Tue, 10 Mar 2026 23:18:29 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: =?UTF-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Cc: =?UTF-8?Q?Kolbj=C3=B8rn_Barmen?= <linux-m68k@kolla.no>,
- "Krzysztof Kozlowski" <krzk@kernel.org>,
- "Fernando Fernandez Mancera" <fmancera@suse.de>,
- Netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org,
- "Geert Uytterhoeven" <geert@linux-m68k.org>,
- "Jason Gunthorpe" <jgg@ziepe.ca>, "Leon Romanovsky" <leon@kernel.org>,
- "Selvin Xavier" <selvin.xavier@broadcom.com>,
- "Andrew Lunn" <andrew+netdev@lunn.ch>,
- "David S . Miller" <davem@davemloft.net>,
- "Eric Dumazet" <edumazet@google.com>, "Jakub Kicinski" <kuba@kernel.org>,
- "Paolo Abeni" <pabeni@redhat.com>, "Ido Schimmel" <idosch@nvidia.com>,
- "Petr Machata" <petrm@nvidia.com>, "Simon Horman" <horms@kernel.org>,
- "Saurav Kashyap" <skashyap@marvell.com>,
- "Javed Hasan" <jhasan@marvell.com>,
- "maintainer:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER"
- <GR-QLogic-Storage-Upstream@marvell.com>,
- "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
- "Martin K. Petersen" <martin.petersen@oracle.com>,
- "Nilesh Javali" <njavali@marvell.com>,
- "Manish Rangankar" <mrangankar@marvell.com>,
- "Varun Prakash" <varun@chelsio.com>,
- "Alexander Aring" <aahringo@redhat.com>,
- "David Teigland" <teigland@redhat.com>,
- "Andreas Gruenbacher" <agruenba@redhat.com>,
- "Nikolay Aleksandrov" <razor@blackwall.org>,
- "David Ahern" <dsahern@kernel.org>,
- "Pablo Neira Ayuso" <pablo@netfilter.org>,
- "Florian Westphal" <fw@strlen.de>, "Phil Sutter" <phil@nwl.cc>,
- "David Howells" <dhowells@redhat.com>,
- "Marc Dionne" <marc.dionne@auristor.com>,
- "Marcelo Ricardo Leitner" <marcelo.leitner@gmail.com>,
- "Xin Long" <lucien.xin@gmail.com>, "Jon Maloy" <jmaloy@redhat.com>,
- "Krzysztof Kozlowski" <krzysztof.kozlowski@oss.qualcomm.com>,
- "Bjorn Andersson" <bjorn.andersson@oss.qualcomm.com>,
- "Dmitry Baryshkov" <dmitry.baryshkov@oss.qualcomm.com>,
- "Eric Biggers" <ebiggers@kernel.org>,
- "Michal Simek" <michal.simek@amd.com>,
- "Luca Weiss" <luca.weiss@fairphone.com>, "Sven Peter" <sven@kernel.org>,
- "Lad, Prabhakar" <prabhakar.mahadev-lad.rj@bp.renesas.com>,
- "Kuninori Morimoto" <kuninori.morimoto.gx@renesas.com>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "David Gow" <david@davidgow.net>,
- "Herbert Xu" <herbert@gondor.apana.org.au>,
- "Ryota Sakamoto" <sakamo.ryota@gmail.com>,
- "Kuniyuki Iwashima" <kuniyu@google.com>,
- "Kir Chou" <note351@hotmail.com>, "Kuan-Wei Chiu" <visitorckw@gmail.com>,
- "Vikas Gupta" <vikas.gupta@broadcom.com>,
- "Bhargava Marreddy" <bhargava.marreddy@broadcom.com>,
- "Rajashekar Hudumula" <rajashekar.hudumula@broadcom.com>,
- =?UTF-8?Q?Markus_Bl=C3=B6chl?= <markus@blochl.de>,
- "open list:M68K ARCHITECTURE" <linux-m68k@lists.linux-m68k.org>,
- "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>,
- "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
- "open list:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER"
- <linux-scsi@vger.kernel.org>,
- "open list:DISTRIBUTED LOCK MANAGER (DLM)" <gfs2@lists.linux.dev>,
- "open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
- "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
- "open list:NETFILTER" <coreteam@netfilter.org>,
- "open list:RXRPC SOCKETS (AF_RXRPC)" <linux-afs@lists.infradead.org>,
- "open list:SCTP PROTOCOL" <linux-sctp@vger.kernel.org>,
- "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
-Message-Id: <ebebb003-f7d7-4659-8248-9d36e9c2c26b@app.fastmail.com>
-In-Reply-To: <87bjgvpenh.fsf@miraculix.mork.no>
-References: <20260309022013.5199-1-fmancera@suse.de>
- <20260309022013.5199-2-fmancera@suse.de>
- <01a4936f-77cd-4c60-a1be-cabec872a2bb@kernel.org>
- <e54d887c-5a70-b8c9-aeef-433c5134dd14@kolla.no>
- <5c4b6043-a484-479d-83bc-a86ecdb8f810@app.fastmail.com>
- <87bjgvpenh.fsf@miraculix.mork.no>
-Subject: Re: [PATCH 01/10 net-next] ipv6: convert CONFIG_IPV6 to built-in only and
- clean up Kconfigs
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260306183553.GA5468@celephais.dreamlands>
 
-On Tue, Mar 10, 2026, at 22:18, Bj=C3=B8rn Mork wrote:
-> "Arnd Bergmann" <arnd@arndb.de> writes:
->
->> The list does not include openwrt though, and I know that in
->> previous releases, there was an optional kmod-ipv6 package
->> that could be left out of an install without rebuilding
->> the kernel.
->
-> The kmod-ipv6 package was dropped in 2016:
-> https://github.com/openwrt/openwrt/commit/33beafa8d88e51907acba6fdece5=
-a35f509934df
->
-> And IPv6 was unconditionally enabled in OpenWrt in 2022:
-> https://github.com/openwrt/openwrt/commit/832e7b817221d288df76b763ca12=
-c585365db5d8
+Hi Jeremy,
 
-Thanks for checking!
+On Fri, Mar 06, 2026 at 06:35:53PM +0000, Jeremy Sowden wrote:
+> On 2026-03-06, at 18:41:06 +0100, Phil Sutter wrote:
+> >On Thu, Mar 05, 2026 at 05:53:58PM +0000, Jeremy Sowden wrote:
+> > > Since Python 3.12 the standard library has included an `os.unshare` function.
+> > > Use it if it is available.
+> > 
+> > This patch breaks py test suite cases involving time-related matches,
+> > e.g. 'meta time "1970-05-23 21:07:14"'. It expects:
+> > 
+> > | cmp eq reg 1 0x002bd503 0x43f05400
+> 
+> 	$ TZ=UTC-2 perl -MPOSIX=strftime -le 'my $ns = hex $ARGV[0]; print strftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x002bd50343f05400
+> 	1970-05-23 21:07:14
+> 
+> > but instead the rule serializes into:
+> > 
+> > | cmp eq reg 1 0x002bd849 0x74a8f400
+> 
+> 	$ TZ=UTC-2 perl -MPOSIX=strftime -le 'my $ns = hex $ARGV[0]; print strftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x002bd84974a8f400
+> 	1970-05-23 22:07:14
+> 
+> > Do you see that too?
+> 
+> Yes, e.g.:
+> 
+> 	6: WARNING: line 4: 'add rule netdev test-netdev egress meta time > "2022-07-01 11:00:00" accept': '[ cmp gt reg 1 0x16fda8f3 0x1977a000 ]' mismatches '[ cmp gt reg 1 0x16fdac39 0x4a304000 ]'
+> 
+> As with your example, the discrepancy is an hour:
+> 
+> 	$ TZ=UTC-2 perl -MPOSIX=strftime -le 'my $ns = hex $ARGV[0]; print strftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x16fda8f31977a000
+> 2022-07-01 11:00:00
+> 
+> 	$ TZ=UTC-2 perl -MPOSIX=strftime -le 'my $ns = hex $ARGV[0]; print strftime "%Y-%m-%d %H:%M:%S", localtime int $ns / 1000000000' 0x16fdac394a304000
+> 2022-07-01 12:00:00
+> 
+> which suggests it's time-zone related.  Didn't see anything about that
+> in the doc's.  Will take a closer look.  Apologies.
 
-Not sure what the commit log for the second one is trying to say, as
-there generally was no build failure in mainline for a long time
+Yes, it's odd. Neither unshare module nor 'unshare -n' behave like this,
+even though os.unshare is described as doing the same as unshare command
+does. It also doesn't mangle os.environ['TZ'] value, no idea why it
+messes with this.
 
-But if nobody has bothered to revert the patch, it doesn't seem
-to have caused any problems.
+> PS UTC-2 is exotic. :)
 
-    Arnd
+Maybe it's Ander Juaristi's native timezone, he added the tests in
+commit 0518ea3f70d8c ("tests: add meta time test cases"). And then I
+did:
+
+commit 7e326d697ecf43ea029de5584e59701eb61ca87e
+Author: Phil Sutter <phil@nwl.cc>
+Date:   Sat Nov 16 22:32:18 2019 +0100
+
+    tests/py: Set a fixed timezone in nft-test.py
+    
+    Payload generated for 'meta time' matches depends on host's timezone and
+    DST setting. To produce constant output, set a fixed timezone in
+    nft-test.py. Choose UTC-2 since most payloads are correct then, adjust
+    the remaining two tests.
+    
+    Fixes: 0518ea3f70d8c ("tests: add meta time test cases")
+    Signed-off-by: Phil Sutter <phil@nwl.cc>
+    Acked-by: Ander Juaristi <a@juaristi.eus>
+    Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+So that's how UTC-2 became py test suite's native timezone. :D
+
+Cheers, Phil
