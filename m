@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2FB3A6B81;
-	Tue, 10 Mar 2026 13:21:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A89CA2517AC;
+	Tue, 10 Mar 2026 13:21:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773148887; cv=none; b=KrXbvRu5QG3b8Z9FHx7rbAUV4+/5cGPKZepizGo6lX/pZTyB53RvgRbLPFyr6UYw3Zg79wLNhLH9/F29DoOSB01Lnfq9c3s+wAiwVe7vrIvvKi1ZBwvamKuEjoXI8ps7Q8J/BLhIt7We7F8RoI7GckNqfN4Uwc3PJ8U9G/TX3xs=
+	t=1773148891; cv=none; b=fE6r8RGN3gqcZI5be/WfT0hCiDVham7aSGmPhpV0ODtjkXrfUgBcDO7TOxsvIct/t6Jp3/KJ5cSffvfrg0RqhOJl9WqF8tgDNP8HlXbfuxmwoGRDTfWvV27Jk6jxz+DQOh7HRQFb0Nd7d0Y+PjgJjp6TFm9siJnW/ZESpr6++B8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773148887; c=relaxed/simple;
-	bh=tMGqRyTjVEp7Yynbv2lURxYWMsNUwYDvnGcwNnWdBqs=;
+	s=arc-20240116; t=1773148891; c=relaxed/simple;
+	bh=PJxrBuFRXpFnnagOfTs3mQ2O48ZN+uobPNqwtZZzBYM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=iykxiuNKYl+8R8iqv0juCqtPMVXZ3uZZ/EIpGw9DySNok1KmWFq7Hb9RCbVKrLxVFFUtrm5LYvG7dOEF9QLZsgV+HQ9oAXlob+/50nAC3Cj4I5bkW844KhYM1n487jjdJRrUJS1gt5vso35q0roXbdfprxi8ytZmrqBCn7Ryq1w=
+	 MIME-Version; b=l5Vny6rK/TtWntVROx1viVakfbYNRIM1RtfWFHU56IVb2ACxT/2frE6h7KhK6lIQX5FgK54w7tUxiqvRe+TVB4k/rTmIUV0RDUbC5dIv5K4nikO4sxGwSmLU634TIN65y22c5yeRC6kaSmhiM2/JaTbH2a31wV+1g4+O8L4ZMxo=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C5CD46052A; Tue, 10 Mar 2026 14:21:24 +0100 (CET)
+	id 21CE36052A; Tue, 10 Mar 2026 14:21:29 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net v2 6/7] netfilter: nfnetlink_cthelper: fix OOB read in nfnl_cthelper_dump_table()
-Date: Tue, 10 Mar 2026 14:20:48 +0100
-Message-ID: <20260310132050.630-7-fw@strlen.de>
+Subject: [PATCH net v2 7/7] netfilter: xt_IDLETIMER: reject rev0 reuse of ALARM timer labels
+Date: Tue, 10 Mar 2026 14:20:49 +0100
+Message-ID: <20260310132050.630-8-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260310132050.630-1-fw@strlen.de>
 References: <20260310132050.630-1-fw@strlen.de>
@@ -38,65 +38,49 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Hyunwoo Kim <imv4bel@gmail.com>
+From: Yuan Tan <tanyuan98@outlook.com>
 
-nfnl_cthelper_dump_table() has a 'goto restart' that jumps to a label
-inside the for loop body.  When the "last" helper saved in cb->args[1]
-is deleted between dump rounds, every entry fails the (cur != last)
-check, so cb->args[1] is never cleared.  The for loop finishes with
-cb->args[0] == nf_ct_helper_hsize, and the 'goto restart' jumps back
-into the loop body bypassing the bounds check, causing an 8-byte
-out-of-bounds read on nf_ct_helper_hash[nf_ct_helper_hsize].
+IDLETIMER revision 0 rules reuse existing timers by label and always call
+mod_timer() on timer->timer.
 
-The 'goto restart' block was meant to re-traverse the current bucket
-when "last" is no longer found, but it was placed after the for loop
-instead of inside it.  Move the block into the for loop body so that
-the restart only occurs while cb->args[0] is still within bounds.
+If the label was created first by revision 1 with XT_IDLETIMER_ALARM,
+the object uses alarm timer semantics and timer->timer is never initialized.
+Reusing that object from revision 0 causes mod_timer() on an uninitialized
+timer_list, triggering debugobjects warnings and possible panic when
+panic_on_warn=1.
 
- BUG: KASAN: slab-out-of-bounds in nfnl_cthelper_dump_table+0x9f/0x1b0
- Read of size 8 at addr ffff888104ca3000 by task poc_cthelper/131
- Call Trace:
-  nfnl_cthelper_dump_table+0x9f/0x1b0
-  netlink_dump+0x333/0x880
-  netlink_recvmsg+0x3e2/0x4b0
-  sock_recvmsg+0xde/0xf0
-  __sys_recvfrom+0x150/0x200
-  __x64_sys_recvfrom+0x76/0x90
-  do_syscall_64+0xc3/0x6e0
+Fix this by rejecting revision 0 rule insertion when an existing timer with
+the same label is of ALARM type.
 
- Allocated by task 1:
-  __kvmalloc_node_noprof+0x21b/0x700
-  nf_ct_alloc_hashtable+0x65/0xd0
-  nf_conntrack_helper_init+0x21/0x60
-  nf_conntrack_init_start+0x18d/0x300
-  nf_conntrack_standalone_init+0x12/0xc0
-
-Fixes: 12f7a505331e ("netfilter: add user-space connection tracking helper infrastructure")
-Signed-off-by: Hyunwoo Kim <imv4bel@gmail.com>
+Fixes: 68983a354a65 ("netfilter: xtables: Add snapshot of hardidletimer target")
+Co-developed-by: Yifan Wu <yifanwucs@gmail.com>
+Signed-off-by: Yifan Wu <yifanwucs@gmail.com>
+Co-developed-by: Juefei Pu <tomapufckgml@gmail.com>
+Signed-off-by: Juefei Pu <tomapufckgml@gmail.com>
+Signed-off-by: Yuan Tan <tanyuan98@outlook.com>
+Signed-off-by: Xin Liu <dstsmallbird@foxmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nfnetlink_cthelper.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/xt_IDLETIMER.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index d658b1478fa0..d545fa459455 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -601,10 +601,10 @@ nfnl_cthelper_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 				goto out;
- 			}
- 		}
--	}
--	if (cb->args[1]) {
--		cb->args[1] = 0;
--		goto restart;
-+		if (cb->args[1]) {
-+			cb->args[1] = 0;
-+			goto restart;
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 5d93e225d0f8..517106165ad2 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -318,6 +318,12 @@ static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
+ 
+ 	info->timer = __idletimer_tg_find_by_label(info->label);
+ 	if (info->timer) {
++		if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
++			pr_debug("Adding/Replacing rule with same label and different timer type is not allowed\n");
++			mutex_unlock(&list_mutex);
++			return -EINVAL;
 +		}
- 	}
- out:
- 	rcu_read_unlock();
++
+ 		info->timer->refcnt++;
+ 		mod_timer(&info->timer->timer,
+ 			  secs_to_jiffies(info->timeout) + jiffies);
 -- 
 2.52.0
 
