@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BAE7399367;
-	Tue, 10 Mar 2026 13:21:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59DE43A3E9B;
+	Tue, 10 Mar 2026 13:21:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773148874; cv=none; b=iCj331Pap6OOUBxJnZZZU7txKSNYF7AcrHQLvDL292LLayUGlslAO3Ad1pSuMMtp2Pj/GqF/cMLVvwr1YnfRLovMsTAQ4T2c9FD596vN9LR6M3hSN+ohOBwHcID1+XbrGnRqTIKwClVlj07Bm6nfRuy1DNdGshShM1dyyqZItBc=
+	t=1773148878; cv=none; b=LDJc+0qGHTnE6MDDM20En9IorIGp1tVKz1oK8NE11z0XfyfQVMMBMP+pB5hYjCu+trMB+xUNg2lY6fnV7PO3pSKopbKlBgCw7SP/b7/bvmUZkA2+8SXHRIX6zX/kZid/CavtBd8cIaeh5i5OOy1WlJyJRXUYqfHwUW1ClR+Fv1k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773148874; c=relaxed/simple;
-	bh=Vtwzovxyz/Et9UXZu1rSfDEWApgBjGB1YBGfgnENWRQ=;
+	s=arc-20240116; t=1773148878; c=relaxed/simple;
+	bh=fF83qomXqdgo3XJul711dwJi28JL3p4+AwCVeNrIoZY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CguxRHupJJHSUpQRylU2LCKTHwPDhv10QuJ4qIHSyXewy9nM+PtnZK4BGVemn5CWgXrPqvs9zEE+4uWyjXgQfLatT90uSJvBoLvpmSjIRGvZThcr7lDUNDqLAdT+5XIHrtOzVoC7kb8ZN0+e1jm/IqfqXWZuZl3t1kPVXBHZl2g=
+	 MIME-Version; b=Uqw0xWOgArcuSzL0iXvz8ZLqzYbWWn49CgBmIooemPVYLBGY+sxGNuBbj1P6AF/LMhS1wZgeX97KTCBM/4gSk8uL/n6KwbC6i80tq4AhIRus2KuJ+L0HDxZ+3XANY3whIIhs0aJ/lyB5gpy7kVTh+a2baTu+8c0ILB1WYxzR/FE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id C48366052A; Tue, 10 Mar 2026 14:21:11 +0100 (CET)
+	id 243B56052A; Tue, 10 Mar 2026 14:21:16 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net v2 3/7] netfilter: nft_set_pipapo: fix stack out-of-bounds read in pipapo_drop()
-Date: Tue, 10 Mar 2026 14:20:45 +0100
-Message-ID: <20260310132050.630-4-fw@strlen.de>
+Subject: [PATCH net v2 4/7] netfilter: x_tables: guard option walkers against 1-byte tail reads
+Date: Tue, 10 Mar 2026 14:20:46 +0100
+Message-ID: <20260310132050.630-5-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260310132050.630-1-fw@strlen.de>
 References: <20260310132050.630-1-fw@strlen.de>
@@ -38,59 +38,57 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jenny Guanni Qu <qguanni@gmail.com>
+From: David Dull <monderasdor@gmail.com>
 
-pipapo_drop() passes rulemap[i + 1].n to pipapo_unmap() as the
-to_offset argument on every iteration, including the last one where
-i == m->field_count - 1. This reads one element past the end of the
-stack-allocated rulemap array (declared as rulemap[NFT_PIPAPO_MAX_FIELDS]
-with NFT_PIPAPO_MAX_FIELDS == 16).
+When the last byte of options is a non-single-byte option kind, walkers
+that advance with i += op[i + 1] ? : 1 can read op[i + 1] past the end
+of the option area.
 
-Although pipapo_unmap() returns early when is_last is true without
-using the to_offset value, the argument is evaluated at the call site
-before the function body executes, making this a genuine out-of-bounds
-stack read confirmed by KASAN:
+Add an explicit i == optlen - 1 check before dereferencing op[i + 1]
+in xt_tcpudp and xt_dccp option walkers.
 
-  BUG: KASAN: stack-out-of-bounds in pipapo_drop+0x50c/0x57c [nf_tables]
-  Read of size 4 at addr ffff8000810e71a4
-
-  This frame has 1 object:
-   [32, 160) 'rulemap'
-
-  The buggy address is at offset 164 -- exactly 4 bytes past the end
-  of the rulemap array.
-
-Pass 0 instead of rulemap[i + 1].n on the last iteration to avoid
-the out-of-bounds read.
-
-Fixes: 3c4287f62044 ("nf_tables: Add set type for arbitrary concatenation of ranges")
-Signed-off-by: Jenny Guanni Qu <qguanni@gmail.com>
+Fixes: 2e4e6a17af35 ("[NETFILTER] x_tables: Abstraction layer for {ip,ip6,arp}_tables")
+Signed-off-by: David Dull <monderasdor@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_pipapo.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/xt_dccp.c   | 4 ++--
+ net/netfilter/xt_tcpudp.c | 6 ++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
-index a34632ae6048..7fd24e0cc428 100644
---- a/net/netfilter/nft_set_pipapo.c
-+++ b/net/netfilter/nft_set_pipapo.c
-@@ -1640,6 +1640,7 @@ static void pipapo_drop(struct nft_pipapo_match *m,
- 	int i;
- 
- 	nft_pipapo_for_each_field(f, i, m) {
-+		bool last = i == m->field_count - 1;
- 		int g;
- 
- 		for (g = 0; g < f->groups; g++) {
-@@ -1659,7 +1660,7 @@ static void pipapo_drop(struct nft_pipapo_match *m,
+diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
+index e5a13ecbe67a..037ab93e25d0 100644
+--- a/net/netfilter/xt_dccp.c
++++ b/net/netfilter/xt_dccp.c
+@@ -62,10 +62,10 @@ dccp_find_option(u_int8_t option,
+ 			return true;
  		}
  
- 		pipapo_unmap(f->mt, f->rules, rulemap[i].to, rulemap[i].n,
--			     rulemap[i + 1].n, i == m->field_count - 1);
-+			     last ? 0 : rulemap[i + 1].n, last);
- 		if (pipapo_resize(f, f->rules, f->rules - rulemap[i].n)) {
- 			/* We can ignore this, a failure to shrink tables down
- 			 * doesn't make tables invalid.
+-		if (op[i] < 2)
++		if (op[i] < 2 || i == optlen - 1)
+ 			i++;
+ 		else
+-			i += op[i+1]?:1;
++			i += op[i + 1] ? : 1;
+ 	}
+ 
+ 	spin_unlock_bh(&dccp_buflock);
+diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+index e8991130a3de..f76cf18f1a24 100644
+--- a/net/netfilter/xt_tcpudp.c
++++ b/net/netfilter/xt_tcpudp.c
+@@ -59,8 +59,10 @@ tcp_find_option(u_int8_t option,
+ 
+ 	for (i = 0; i < optlen; ) {
+ 		if (op[i] == option) return !invert;
+-		if (op[i] < 2) i++;
+-		else i += op[i+1]?:1;
++		if (op[i] < 2 || i == optlen - 1)
++			i++;
++		else
++			i += op[i + 1] ? : 1;
+ 	}
+ 
+ 	return invert;
 -- 
 2.52.0
 
