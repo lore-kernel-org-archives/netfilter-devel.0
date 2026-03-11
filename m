@@ -1,48 +1,82 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f45.google.com (mail-dl1-f45.google.com [74.125.82.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9F292F4A14
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2026 19:41:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59358313E3B
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2026 19:41:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773258069; cv=none; b=WlJccjju+o42xCvtjuOd+J76f5+Xevx3oZBu7K8BYHnAtz25/czar3dEpf4mHzN6PD1OKRS6RjV3qKog+8wdff1T25qcsv6cwx5umhcAkrPJ3Px9fl8kxmZJ7owrhsDjBF8bwleDYTVm6IAqo+jWOv4Yf0z5U1MY61WLbb9tZuQ=
+	t=1773258081; cv=none; b=O3+FobutXDe7iXXZC7wyq7fLOpuwyvh87PYUiDQ0K0ImfDINukAa5tOOs1DZIuqK/xfeqbgtYWrCmEUXLFeT4tti2wn+Cn2CkV5L3TXFs7Z8YqjSb5+H28iweAIBzpN7NUhXFWPbg1a7svtPVDWEOWodOK50mMKv8kMddGLdGU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773258069; c=relaxed/simple;
-	bh=nGCtSjx5BZXVnn4sLF8VdTPba6yPu93FrnZ3IRcHH20=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=SHZYg00B5VEE0vtnhePov+cv7aTW0197H9wCDc0ClQJkB9URTLFAA3cU2dqzA7nCEuwYPSHr0hdByjZRNsz/eAY47vFaxqdM0rGo6tFZHBQVSsK68uyKqSfaqgnIIc6u3h5Xchis83krGz0i8zDC9tfkGY7BJW30znRtGMac7yY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=A7CSxlgd; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1773258081; c=relaxed/simple;
+	bh=JmzZ5cArUGLdVYVbW1glxu2tEsH90YQOrUa0/YOI0Es=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tgVxR11MjYLEPS9N5U/yPJRHnUTxiGPx03FtREMqoi+kdoOCRQtegDruGrMxsbyDzbqOXWII4quZcQO4tqD/8QJGxR/Qy8eurwDQER5UoYET0lEOHMe52YuwtcEbt9IDhGl6ST9ndOQwC8QQxE9kA47AG/imBHrk85yh+exutwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com; spf=pass smtp.mailfrom=arista.com; dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b=AJ6x8yC+; arc=none smtp.client-ip=74.125.82.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="A7CSxlgd"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=bU4Hi92BDkIAuuoglXVS3H12SQ0g+BGA8hj7bgVkTiE=; b=A7CSxlgdwU70VoW2b7dh3oK/XF
-	tOcjtvVpsb4//PXr31sLm2od/CDzO3KeohkojsPGMzfW5wNzF4B/4EDCeRyNNSTRzJzTMbEwbaLw8
-	SqpdcSbNhSJSktcjXIh4PvuewyrUlAHr7EuaQkJg/17vSQ6FXBqmOg7n4o30Q+wDgZiPYInYuW7q3
-	pOUOnwDDQ5lcfdQIOsJddnfBrLOfak7U0aFLJPHNy5sohM8Fo7ulykHMV+dMmtnbfu9wbxzoXRvI7
-	anjfBWeB2ULefit3yEbYFElqKw9/DNUvxAE+GxWqD3C1ZjopEWO2hOTRMBkVuASR2u0FRnP4dSAB/
-	HG75biag==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1w0PQX-000000007ks-3ViV;
-	Wed, 11 Mar 2026 20:41:05 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b="AJ6x8yC+"
+Received: by mail-dl1-f45.google.com with SMTP id a92af1059eb24-1271195d2a7so657565c88.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2026 12:41:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=arista.com; s=google; t=1773258078; x=1773862878; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=0wyN7pn3XZY19VGN08Uvl0u7SIQ9oF05liu+AZCu18U=;
+        b=AJ6x8yC+7o/lAmibpOtT7MjE6Pa4z2SZF1agRnMzOY5dakiPhQcsbgS31TR4Z6NzA2
+         d2XmC3itSbq3PvcwYeuly8IsZievObej3lShM4yPAWZBPMAcIaqWjYTfEjwGiffGTD/i
+         uv/1qtGRYvJ8vAYAU8e7AHd6bJfdNpzZDpw9456FFMWu1tBT4P57h2m8A/RYPPYeeUdb
+         70vvMnLZdXdGI7rWL4TUN7LVgri/mLDvB1X1nkiZ+UbUhaEn10aqQprjWJZGfKlQ2yWa
+         nooWQA7RF0cbCmdpbqGlHDMn2rNbSddxPqrfEo1QqKDY56wOEIfOxnWX4rzIZXvnxEY2
+         SBkg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1773258078; x=1773862878;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=0wyN7pn3XZY19VGN08Uvl0u7SIQ9oF05liu+AZCu18U=;
+        b=djDejTtGYA4buMzReN9oPN3zGZR6cZpTayaxHeeQzxyznwv4nlmaXk7kNPP7jmTr6o
+         LxD2SeQpNEHKnXAMLl8+Fiwga2oT2H9qFo1T9wuCO79dwl59lS333jGeaKTiHkueKjom
+         sbV5WDSs8o0Vv48y06YNYOUGT2M82BRYuCGw0FXY377Jgw8stekaGy8yoraEe8BKLuJO
+         a/c9PQug1nZHhHY1SwW8nVCGwgkI9sLafNAJyyYuTSzZvVkyz9zjyNkCXf2PNoId2fuL
+         nK5lb30WKT8RIIiMnO4uUGmNuCrG5dZMsFkVJc/j59iPq6jz9TuAx+29FgiOFZBmcQt7
+         ikLQ==
+X-Gm-Message-State: AOJu0YwRPxFB/DsJXBIV74K18zTxfu51mhs1nR5bbpl6rcHV1jUK0MS5
+	Vjn1H8Y+GdFFOvaqle//o+a/TYVm/J9xopyi2Yb0cLLpY/mdKNEicJz1N06qVEBqjUlVdGsHKi+
+	aqh4Sog==
+X-Gm-Gg: ATEYQzzgmOsiGxLdPnT2Mr4J6NTQZ0nUzdSIWIPSAZ5JAfeqdQrFnUFU5XSVlmgdJpO
+	r6489V7kpZumhQKemV8QopqhETIoVP9GylX2sjEvLh7N4USzbHj/PTwpggkxdy8Stz/ks1QJb40
+	IDXSbdv6lGMcCLMkNpcSyb8J+yiL4v2ItjaeI7heMZf+0ounhFoVFYTxicQaQZyx/zxvMU+FKQY
+	L1Mamj+BJode3WvG7reTOrgyeM6JxgiEfA5Euroa9MVVs836HmsYD2EvV9cOMHx2v8vcI0xx4l+
+	tqYfBABFJ0V9BTk8HHkGed5/mKpDFU5z7vDPdBhfh0NCGtCmDXu/XuAL8OmoXpGug8pejDySKN4
+	4gnvC02Xfuy3C7H8mOBtK36cuK/t/VnC0jYxMwEDT5+3D037EOOjH/a3IByDlpn1FihJ+mHJKgG
+	dqMu+vXxL3kiBIlScf88cw1VomeWZCfV56lj4RI7k/gP7hBBvBvvLKsDlGiH7CUusP
+X-Received: by 2002:a05:7022:6987:b0:127:3816:50c6 with SMTP id a92af1059eb24-128e77882d3mr1910091c88.8.1773258077754;
+        Wed, 11 Mar 2026 12:41:17 -0700 (PDT)
+Received: from localhost.localdomain ([2600:1700:4a3d:5010:7185:74c9:dc1e:956])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-128e7bf1e1asm4074436c88.3.2026.03.11.12.41.15
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Wed, 11 Mar 2026 12:41:17 -0700 (PDT)
+From: Prasanna S Panchamukhi <panchamukhi@arista.com>
+To: netfilter-devel@vger.kernel.org
+Cc: panchamukhi@arista.com,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>,
+	Simon Horman <horms@kernel.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shuah Khan <skhan@linuxfoundation.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
-	Eric Garver <e@erig.me>
-Subject: [nft PATCH] cache: Fix for multiple commands in a single batch
-Date: Wed, 11 Mar 2026 20:33:57 +0100
-Message-ID: <20260311194100.21983-1-phil@nwl.cc>
-X-Mailer: git-send-email 2.51.0
+	Phil Sutter <phil@nwl.cc>,
+	netdev@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [PATCH net-next] netfilter: conntrack: expose gc_scan_interval_max via sysctl
+Date: Wed, 11 Mar 2026 12:40:58 -0700
+Message-ID: <20260311194058.13860-1-panchamukhi@arista.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,208 +85,157 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A command line like 'nft list table t1 \; list table t2' would return an
-error for non-existent table t1: The filter setup for the second command
-limited cache population to table t2, so t1 was not found in cache.
+The conntrack garbage collection worker uses an adaptive algorithm that
+adjusts the scan interval based on the average timeout of tracked
+entries.  The upper bound of this interval is hardcoded as
+GC_SCAN_INTERVAL_MAX (60 seconds).
 
-Try to sort this by passing a temporary filter object to evaluate_cache
-routines and merging its content to the original object. The logic goes
-like this:
+Expose the upper bound as a new sysctl,
+net.netfilter.nf_conntrack_gc_scan_interval_max, so it can be tuned at
+runtime without rebuilding the kernel.  The default remains 60 seconds
+to preserve existing behavior.  The sysctl is global and read-only in
+non-init network namespaces, consistent with nf_conntrack_max and
+nf_conntrack_buckets.
 
-- The first command is easy, just copy filter->list values.
-- Folllowing commands may only remove filters, not add ones. Therefore
-  only unset filter values, if either the current command does not set a
-  filter (i.e., "needs all data") or filters for a different object (in
-  the case above, drop table filter for t1 instead of changing it to
-  t2).
-- If the family value varies between commands, unset all filters. The
-  kernel can't dump e.g. all tables named "t" in all families, so a
-  command like 'list table ip t ; list table ip6 t' breaks the algorihm.
-- Treat NFT_CACHE_TERSE flag like a filter (which it is), i.e. allow
-  later commands to unset it ("needs set elements") but not set it.
+In environments where long-lived offloaded flows dominate the table,
+the adaptive average drifts toward the maximum, delaying cleanup
+of short-lived expired entries such as those in TCP CLOSE state
+(10s timeout). Adding sysctl to set the maximum GC scan helps to
+tune according to the evironment.
 
-Fixes: 3f1d3912c3a6b ("cache: filter out tables that are not requested")
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Signed-off-by: Prasanna S Panchamukhi <panchamukhi@arista.com>
+cc: "David S. Miller" <davem@davemloft.net>
+cc: Eric Dumazet <edumazet@google.com>
+cc: Jakub Kicinski <kuba@kernel.org>
+cc: Paolo Abeni <pabeni@redhat.com>
+cc: Simon Horman <horms@kernel.org>
+cc: Jonathan Corbet <corbet@lwn.net>
+cc: Shuah Khan <skhan@linuxfoundation.org>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>
+cc: Florian Westphal <fw@strlen.de>
+cc: Phil Sutter <phil@nwl.cc>
+cc: netdev@vger.kernel.org
+cc: linux-doc@vger.kernel.org
+cc: linux-kernel@vger.kernel.org
+to: netfilter-devel@vger.kernel.org
+cc: coreteam@netfilter.org
 ---
-This patch is a mess and probably pretty fragile, too. I at least
-encountered way more "special" cases while testing it than anticipated.
+ Documentation/networking/nf_conntrack-sysctl.rst | 11 +++++++++++
+ include/net/netfilter/nf_conntrack.h             |  1 +
+ net/netfilter/nf_conntrack_core.c                |  9 ++++++---
+ net/netfilter/nf_conntrack_standalone.c          | 10 ++++++++++
+ 4 files changed, 28 insertions(+), 3 deletions(-)
 
-A proper fix would be to perform cache population for each command
-individually and thus support per-command filters - basically
-refactoring the cache population step in nft_evaluate().
-
-What do you think? Go for a proper solution or not? Apply this one "for
-now" or not?
----
- src/cache.c                                   | 47 +++++++++-
- .../testcases/listing/cache_filter_merge      | 88 +++++++++++++++++++
- 2 files changed, 132 insertions(+), 3 deletions(-)
- create mode 100755 tests/shell/testcases/listing/cache_filter_merge
-
-diff --git a/src/cache.c b/src/cache.c
-index 88a83b7406a6b..f6fff4d6d5fae 100644
---- a/src/cache.c
-+++ b/src/cache.c
-@@ -483,13 +483,15 @@ static void reset_filter(struct nft_cache_filter *filter)
- }
+diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documentation/networking/nf_conntrack-sysctl.rst
+index 35f889259fcd..c848eef9bc4f 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.rst
++++ b/Documentation/networking/nf_conntrack-sysctl.rst
+@@ -64,6 +64,17 @@ nf_conntrack_frag6_timeout - INTEGER (seconds)
  
- int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
--		       struct list_head *msgs, struct nft_cache_filter *filter,
-+		       struct list_head *msgs, struct nft_cache_filter *all_filter,
- 		       unsigned int *pflags)
- {
- 	unsigned int flags, batch_flags = NFT_CACHE_EMPTY;
-+	struct nft_cache_filter _filter, *filter = &_filter;
-+	bool first_cmd = true;
- 	struct cmd *cmd;
+ 	Time to keep an IPv6 fragment in memory.
  
--	assert(filter);
-+	assert(all_filter);
- 
- 	list_for_each_entry(cmd, cmds, list) {
- 		if (nft_handle_validate(cmd, msgs) < 0)
-@@ -536,7 +538,46 @@ int nft_cache_evaluate(struct nft_ctx *nft, struct list_head *cmds,
- 		default:
- 			break;
- 		}
--		batch_flags |= flags;
++nf_conntrack_gc_scan_interval_max - INTEGER (seconds)
++	default 60
 +
-+		if (first_cmd) {
-+			batch_flags = flags;
-+			all_filter->list = filter->list;
-+			first_cmd = false;
-+		} else {
-+			/* do not let later commands set TERSE if not set */
-+			batch_flags |= flags & ~NFT_CACHE_TERSE;
-+			/* unset TERSE if later commands need it off */
-+			if (!(flags & NFT_CACHE_TERSE))
-+				batch_flags &= ~NFT_CACHE_TERSE;
-+			if (all_filter->list.family != filter->list.family) {
-+				/* no filtering possible if family value varies */
-+				memset(&all_filter->list, 0,
-+				       sizeof(all_filter->list));
-+				all_filter->list.family = 0;
-+			}
-+			if (!all_filter->list.table ||
-+			    !filter->list.table ||
-+			    strcmp(all_filter->list.table, filter->list.table))
-+				all_filter->list.table = NULL;
-+			if (!all_filter->list.chain ||
-+			    !filter->list.chain ||
-+			    strcmp(all_filter->list.chain, filter->list.chain))
-+				all_filter->list.chain = NULL;
-+			if (!all_filter->list.obj ||
-+			    !filter->list.obj ||
-+			    strcmp(all_filter->list.obj, filter->list.obj))
-+				all_filter->list.obj = NULL;
-+			if (!all_filter->list.set ||
-+			    !filter->list.set ||
-+			    strcmp(all_filter->list.set, filter->list.set))
-+				all_filter->list.set = NULL;
-+			if (!all_filter->list.ft ||
-+			    !filter->list.ft ||
-+			    strcmp(all_filter->list.ft, filter->list.ft))
-+				all_filter->list.ft = NULL;
-+			if (all_filter->list.obj_type != filter->list.obj_type)
-+				all_filter->list.obj_type = 0;
-+		}
++	Maximum interval between garbage collection scans of the connection
++	tracking table. The GC worker uses an adaptive algorithm that adjusts
++	the scan interval based on average entry timeouts; this parameter caps
++	the upper bound. Lower values cause expired entries (e.g. connections
++	in CLOSE state) to be cleaned up faster, at the cost of slightly more
++	CPU usage. Minimum value is 1.
++	This sysctl is only writeable in the initial net namespace.
++
+ nf_conntrack_generic_timeout - INTEGER (seconds)
+ 	default 600
+ 
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index bc42dd0e10e6..0449577f322e 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -331,6 +331,7 @@ extern struct hlist_nulls_head *nf_conntrack_hash;
+ extern unsigned int nf_conntrack_htable_size;
+ extern seqcount_spinlock_t nf_conntrack_generation;
+ extern unsigned int nf_conntrack_max;
++extern unsigned int nf_conntrack_gc_scan_interval_max;
+ 
+ /* must be called with rcu read lock held */
+ static inline void
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 27ce5fda8993..54949246f329 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -91,7 +91,7 @@ static DEFINE_MUTEX(nf_conntrack_mutex);
+  * allowing non-idle machines to wakeup more often when needed.
+  */
+ #define GC_SCAN_INITIAL_COUNT	100
+-#define GC_SCAN_INTERVAL_INIT	GC_SCAN_INTERVAL_MAX
++#define GC_SCAN_INTERVAL_INIT	nf_conntrack_gc_scan_interval_max
+ 
+ #define GC_SCAN_MAX_DURATION	msecs_to_jiffies(10)
+ #define GC_SCAN_EXPIRED_MAX	(64000u / HZ)
+@@ -204,6 +204,9 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
+ 
+ unsigned int nf_conntrack_max __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_max);
++
++unsigned int nf_conntrack_gc_scan_interval_max __read_mostly = GC_SCAN_INTERVAL_MAX;
++
+ seqcount_spinlock_t nf_conntrack_generation __read_mostly;
+ static siphash_aligned_key_t nf_conntrack_hash_rnd;
+ 
+@@ -1568,7 +1571,7 @@ static void gc_worker(struct work_struct *work)
+ 				delta_time = nfct_time_stamp - gc_work->start_time;
+ 
+ 				/* re-sched immediately if total cycle time is exceeded */
+-				next_run = delta_time < (s32)GC_SCAN_INTERVAL_MAX;
++				next_run = delta_time < (s32)nf_conntrack_gc_scan_interval_max;
+ 				goto early_exit;
+ 			}
+ 
+@@ -1630,7 +1633,7 @@ static void gc_worker(struct work_struct *work)
+ 
+ 	gc_work->next_bucket = 0;
+ 
+-	next_run = clamp(next_run, GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_MAX);
++	next_run = clamp(next_run, GC_SCAN_INTERVAL_MIN, nf_conntrack_gc_scan_interval_max);
+ 
+ 	delta_time = max_t(s32, nfct_time_stamp - gc_work->start_time, 1);
+ 	if (next_run > (unsigned long)delta_time)
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 207b240b14e5..f8cab779763f 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -637,6 +637,7 @@ enum nf_ct_sysctl_index {
+ 	NF_SYSCTL_CT_PROTO_TIMEOUT_GRE,
+ 	NF_SYSCTL_CT_PROTO_TIMEOUT_GRE_STREAM,
+ #endif
++	NF_SYSCTL_CT_GC_SCAN_INTERVAL_MAX,
+ 
+ 	NF_SYSCTL_CT_LAST_SYSCTL,
+ };
+@@ -920,6 +921,14 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 		.proc_handler   = proc_dointvec_jiffies,
+ 	},
+ #endif
++	[NF_SYSCTL_CT_GC_SCAN_INTERVAL_MAX] = {
++		.procname	= "nf_conntrack_gc_scan_interval_max",
++		.data		= &nf_conntrack_gc_scan_interval_max,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_jiffies,
++		.extra1		= SYSCTL_ONE,
++	},
+ };
+ 
+ static struct ctl_table nf_ct_netfilter_table[] = {
+@@ -1043,6 +1052,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 		table[NF_SYSCTL_CT_MAX].mode = 0444;
+ 		table[NF_SYSCTL_CT_EXPECT_MAX].mode = 0444;
+ 		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
++		table[NF_SYSCTL_CT_GC_SCAN_INTERVAL_MAX].mode = 0444;
  	}
- 	*pflags = batch_flags;
  
-diff --git a/tests/shell/testcases/listing/cache_filter_merge b/tests/shell/testcases/listing/cache_filter_merge
-new file mode 100755
-index 0000000000000..82132d8e5dbbd
---- /dev/null
-+++ b/tests/shell/testcases/listing/cache_filter_merge
-@@ -0,0 +1,88 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT -f - <<EOF
-+table ip t {
-+	flowtable ft {
-+		hook ingress priority 0
-+	}
-+	set s {
-+		type inet_service
-+		elements = { 80, 443 }
-+	}
-+	counter cnt {
-+		packets 13 bytes 23
-+	}
-+	quota qt {
-+	}
-+	chain c {
-+		tcp dport 22 accept
-+	}
-+}
-+table ip6 t {
-+	flowtable ft {
-+		hook ingress priority 0
-+	}
-+	set s {
-+		type inet_service
-+		elements = { 80, 443 }
-+	}
-+	counter cnt {
-+		packets 13 bytes 23
-+	}
-+	quota qt {
-+	}
-+	chain c {
-+		tcp dport 22 accept
-+	}
-+}
-+EOF
-+
-+commands=(
-+	"list ruleset"
-+	"list ruleset ip"
-+	"list ruleset ip6"
-+	"list tables"
-+	"list tables ip"
-+	"list tables ip6"
-+)
-+for obj in flowtables sets counters quotas; do
-+	commands+=("list $obj")
-+	for fam in ip ip6; do
-+		commands+=(
-+			"list $obj $fam"
-+			"list $obj $fam t"
-+		)
-+	done
-+done
-+# FIXME: 'list chains <fam> <table>' unsupported
-+commands+=("list chains")
-+for fam in ip ip6; do
-+	commands+=(
-+		"list chains $fam"
-+	)
-+done
-+for fam in ip ip6; do
-+	commands+=(
-+		"list table $fam t"
-+		"list flowtable $fam t ft"
-+		"list set $fam t s"
-+		"list counter $fam t cnt"
-+		"list quota $fam t qt"
-+		"list chain $fam t c"
-+	)
-+done
-+
-+declare -a outputs
-+for cmd in "${commands[@]}"; do
-+	outputs+=("$($NFT "$cmd")")
-+done
-+
-+for ((i = 0; i < ${#commands[*]} - 1; i++)); do
-+	for ((j = $i + 1; j < ${#commands[*]}; j++)); do
-+		diff -u --label expect --label "${commands[$i]}; ${commands[$j]}" \
-+			<(echo "${outputs[$i]}"; echo "${outputs[$j]}") \
-+			<($NFT "${commands[$i]}; ${commands[$j]}")
-+	done
-+done
+ 	cnet->sysctl_header = register_net_sysctl_sz(net, "net/netfilter",
 -- 
-2.51.0
+2.50.1 (Apple Git-155)
 
