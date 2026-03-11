@@ -1,71 +1,48 @@
-Received: from mail-ot1-f44.google.com (mail-ot1-f44.google.com [209.85.210.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D08B2C1593
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2026 18:45:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E463319C566
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2026 19:15:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773254721; cv=none; b=cpJ/xPEVE8YVDXBhJ2M6x1yYBTkNlx/DhrRArj2aFo+KPy2eqphViCL65TOmNYLyC5ZMLxh0w2BZAW6O5eDFvSsDpsTSFTWJIzrdIyjhtEhMOw7ZzeLAvNu/QY+J5e24L1M0zSlp/W5qPwtaJd1KwzMUKjiZ3daezZ8omV7yXqw=
+	t=1773256530; cv=none; b=DLeE2tdHvTUeywdBmdaxvWsjjGi6+U67T1S+TiYzaAlEMl9px4UxCOB23GD38nBbu+1iFs+Yvaxto7/6J9U5Dd+45PhC7L72YzX6/CKGxJJCu/1DpNmmpwsrbEKIdfariN0Xazs+/yF5fONpYVH11PzQtMUdO7TRNQHrWfcRu10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773254721; c=relaxed/simple;
-	bh=F/FUM/WxK+16s7Td4xG9TYokwm++yHN1mmOypIk4SJk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=SxtaeNXFd7y1lNBG0eTToYi5oaT1GKxkPUmXaj3BR1lJT6pJwykrQVERT0ZwXpmWKKeNmClbUzRvR/TVZ06aIbk0xCP3SDe1W4TfHyxnCYb0Bag1mtBXOsjKq77EwzVxnMP8QMWATNhnTVNBwLl8KTc0kM9enbLJZTyGujqmvzA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com; spf=pass smtp.mailfrom=cloudflare.com; dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b=JKYNCHUW; arc=none smtp.client-ip=209.85.210.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudflare.com
+	s=arc-20240116; t=1773256530; c=relaxed/simple;
+	bh=EincP9w+SN2xU80sNFZARXAgKyIrUzPRmsClCCd51I8=;
+	h=Date:From:To:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=aBNh8M+ipNnWtc5H2qKIeflDvtt6mIhneaeFVwLbW6EeXBcXF7VyZNUtRgPeL2uVIvbMAUY99gSdPv+RYuaZ3059lVNtn987OZZawcf6gaWvyb4JPvRB443r1E7P1D/QHHWea2Hwrdlkusv6lL1XbvN6YUnaJP1k+O8bTfTN9p4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=aMMeECAV; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="JKYNCHUW"
-Received: by mail-ot1-f44.google.com with SMTP id 46e09a7af769-7d55b97f358so173487a34.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2026 11:45:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google09082023; t=1773254719; x=1773859519; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=HBEtBID0iBmXZ9g8hubX9HqMPMlXb5Ao1FxM4RO+wKY=;
-        b=JKYNCHUW8HAV9NsKk9TU9WW110spE1M7t+ZyfLbConB++sv9Oe1dB01kwPxctjSMt4
-         dAht4aud1SdZUGNmUpIXiqWh6T1vIyr+vyMwkZ8SsMgDPTgpoDSQvFwsbfurjG8qnhcm
-         T6Quo2a/zLGLFSMNQc3jAxMbQ9tMcZdOt1AoIbduUW9oCQk5y4r310i1c63931dir3DQ
-         E6NoSQCWBCBRfrraQtuBR3L1HIAXlkCOAlhhg9+KMxSHvOQq59mkCn8QjYfnkWSehVux
-         k+1mv3A82fv6vHCBQ4Z3aW9JSsucW1XgjWi1s2dH5GuPEX6LkrWho8rsKis0rZD+wL1m
-         hcsA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773254719; x=1773859519;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=HBEtBID0iBmXZ9g8hubX9HqMPMlXb5Ao1FxM4RO+wKY=;
-        b=Rj27vKTNl2tMMyzgkP+3CPGGpfpIUmx9YM02waoumIwCG7oP+4ZGQ1uf67pZcXfL84
-         w3kcVO11p6GjbY+zS2FiOI64xgbvGye0lpEmyPVC/vQxwWgSBKMBOtxqr7v9CfY82sON
-         wwij6knObGlZCxma80PiAcleuJunELkC5A5rFa5YcmCArz8GcdUpvR3UpbRfZeo4Ezhz
-         YkD1Mk3YUZLVCNOuDP7eoxG73/cusKScS+y8BsDVdMzTBaPKEpxcEGa5oib9HqQzsu1l
-         d5odgoWIPNrZhN/kLCFKw/D/xAY51emRvR8iyaA/jMsFIBCcqBNLmWkCYHEBtdOMC3Gt
-         ax8Q==
-X-Gm-Message-State: AOJu0YynJ2AcWaIX5dalul00hf9jKhBYhn/IEg0ovKTRTaqyv8MA5M5p
-	XUJXA9t5WPICk5H1UDqITkx7mbzifGwQASuRN2ZGl0qXxr7cUf1oxTfP9W+iM+sUEvw=
-X-Gm-Gg: ATEYQzx0Q417A8LxbBgLvpunVNQ9N7QEAmbfRBDaO0NrJiwbzJjlOB5hr3qlDExXxaO
-	s0aTCQRnCQ5NdIExBfFFgICRbip/wcTRAWPoXqGlY7lS9YflU4H+H2jp/bgeGnozafGfi2v+wE+
-	NwcxwC0tswFblqcDHMbNFEobWuJJppEOc1yx9MuyRSGSlCmaM7bILgCzOFkxguFuKOcD81vJ/eW
-	vywZpWsTTsX9/EFKodgpTmaBDI8xQQcPsFTZZiBJp90VPRecp7WISCQr7zrZzskCuPlMQjXzkYW
-	uWoRKcD0D5sR6+BhCQCepdCnBHyrhHWEJKqmY+t4mw+83Z2tGynXJNB2lRo2GggR1mf0bXxM1Sj
-	+Q6Uqekrrmx8JPd2F1kgEdXn6U0dWhlQOGfAfjk0DIYlB2hoEUhIp6+ArjCB9gJC+XvrkEGceKE
-	nYvARB3xzy2/4XGYsU
-X-Received: by 2002:a05:6830:6601:b0:7d5:96e7:1509 with SMTP id 46e09a7af769-7d76a844436mr2111075a34.21.1773254719077;
-        Wed, 11 Mar 2026 11:45:19 -0700 (PDT)
-Received: from 20HS2G4 ([2a09:bac1:76c0:540::3ce:20])
-        by smtp.gmail.com with ESMTPSA id 46e09a7af769-7d76ac32913sm2513574a34.5.2026.03.11.11.45.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Mar 2026 11:45:18 -0700 (PDT)
-Date: Wed, 11 Mar 2026 13:45:16 -0500
-From: Chris Arges <carges@cloudflare.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH nf,v2] netfilter: nft_set_rbtree: allocate same array
- size on updates
-Message-ID: <abG4PAE3M1b9M35_@20HS2G4>
-References: <20260307001124.2897063-1-pablo@netfilter.org>
- <abGYhwlvCWKoKNmm@20HS2G4>
- <abGbr0xbcAvRDMUZ@chamomile>
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="aMMeECAV"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:To:From:Date:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=jpEQZvpQkRdiOXNhOpeHa1EkEUVyySApmwInwE7uK5k=; b=aMMeECAVOpr+l6dzxzuTeVfy1g
+	Dzh6jaX7uTroIQ7MBJ1wEmBcLjil7XoUfdjacId7j+t61ilMhmFPU27x3Vxuu8EcjSpXvwEaFLjPj
+	psDAa5q36ilO/OBc9CneVIK1aq0vzi9R/rWid70POIo0BFC8MJBTkextp6YsqT/+pdxePmFSOSq+R
+	2waoyDv3Pur48JREpfag+01V5rNh5x0uugmzjQ3tY1LreF6dv+skBemlm0H8EtogAFqqWBukGPB1T
+	lZ5ZJLBnN0k3O5V+LBqLZbwOgxcprT+thboiwGJZHZjoMqiweWr9HTxDcOQjV0ltywOOxep2y7TTx
+	1orWP8kw==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1w0P1b-000000007Nu-02e5;
+	Wed, 11 Mar 2026 20:15:19 +0100
+Date: Wed, 11 Mar 2026 20:15:18 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Eric Garver <eric@garver.life>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nft PATCH 0/5] Enhance cache filter for list commands
+Message-ID: <abG_RrwTCdXbmGX0@orbyte.nwl.cc>
+Mail-Followup-To: Phil Sutter <phil@nwl.cc>, Eric Garver <eric@garver.life>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+References: <20260310231115.25638-1-phil@nwl.cc>
+ <abGFDGtr6Lk6dJYq@egarver-mac>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -74,97 +51,42 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <abGbr0xbcAvRDMUZ@chamomile>
+In-Reply-To: <abGFDGtr6Lk6dJYq@egarver-mac>
 
-On 2026-03-11 17:43:27, Pablo Neira Ayuso wrote:
-> On Wed, Mar 11, 2026 at 11:29:59AM -0500, Chris Arges wrote:
-> > On 2026-03-07 01:11:24, Pablo Neira Ayuso wrote:
-> > > The array resize function increments the size of the array in
-> > > NFT_ARRAY_EXTRA_SIZE slots for each update, this is unnecesarily
-> > > increasing the array size.
-> > > 
-> > > To determine the number of array slots:
-> > > 
-> > > - Use NFT_ARRAY_EXTRA_SIZE for new sets.
-> > > - Use the current maximum number of intervals in the live array.
-> > > 
-> > > Reported-by: Chris Arges <carges@cloudflare.com>
-> > > Fixes: 7e43e0a1141d ("netfilter: nft_set_rbtree: translate rbtree to array for binary search")
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > ---
-> > > v2: fix crash with new sets, reported by Florian.
-> > > 
-> > >  net/netfilter/nft_set_rbtree.c | 7 ++++++-
-> > >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > > 
+On Wed, Mar 11, 2026 at 11:06:52AM -0400, Eric Garver wrote:
+> On Wed, Mar 11, 2026 at 12:11:10AM +0100, Phil Sutter wrote:
+> > Reducing the amount of data fetched from kernel improves performance
+> > with large rule sets but also reduces adverse side-effects if multiple
+> > versions of nftables access the same kernel rule set. Being able to
+> > ignore parts of the rule set one is not interested in allows for (more or
+> > less) safe coexistence if each tool is operating on the data it created
+> > itself only.
 > > 
-> > Pablo,
-> 
-> Chris,
-> 
-> > I was able to test with this patch applied on top of v6.18.16; however the
-> > memory consumption remained high and similar to v6.18.16 without this patch.
-> 
-> Makes no sense to me.
-> 
-
-I did something like this:
-```
-git checkout v6.18.16
-patch -p1 < this.patch
-vng -b
-```
-Then ran my reproducer; unreclaimable slab memory went up past 4G showing
-the high memory consumption.
-
-> > My VM reproducer runs the services and checks for slab memory increases. In a
-> > passing test case, the unreclaimable slab memory reaches about 1.4G and
-> > stabilizes. In a failure test case unreclaimable slab memory goes beyond 4.4G
-> > then the process gets OOM killed due to cgroup memory limits.
-> 
-> I have to review again what I posted. You mean, memory keeps for each
-> dynamic update, increasing until it reaches OOM?
-> 
-
-Correct.
-
-> > Also, using this reproducer I re-verified that this patch is what changes
-> > slab memory.stat characteristics from within the cgroup:
-> > - 7e43e0a1141d netfilter: nft_set_rbtree: translate rbtree to array for binary search
+> > This series reduces caching for list commands which specify a family
+> > and/or table. To help testing this, patch 1 extends netlink debug output
+> > to include chains, flowtables and objects so a test case may check if
+> > they are fetched or not.
 > > 
-> > Finally, I reverted the following patches from v6.18.16 and re-tested using my
-> > reproducer:
-> > - 648946966a08 netfilter: nft_set_rbtree: validate open interval overlap
-> > - 782f2688128e netfilter: nft_set_rbtree: validate element belonging to interval
-> > - 35f83a75529a netfilter: nft_set_rbtree: don't gc elements on insert
-> 
-> Are you using timeout in your set?
->
-No.
- 
-> > - 5599fa810b50 netfilter: nft_set_rbtree: remove seqcount_rwlock_t
-> > - 2aa34191f06f netfilter: nft_set_rbtree: use binary search array in get command
-> > - 7e43e0a1141d netfilter: nft_set_rbtree: translate rbtree to array for binary search
-> > In this instance memory allocations were again around 1.4G.
+> > The remaining patches actually increase filter use.
 > > 
-> > Any suggestions for other tests, I can rebuild with memory debugging config as
-> > well.
+> > Phil Sutter (5):
+> >   cache: Include chains, flowtables and objects in netlink debug output
+> >   cache: Respect family in all list commands
+> >   cache: Relax chain_cache_dump filter application
+> >   cache: Filter for table when listing sets or maps
+> >   cache: Filter for table when listing flowtables
 > > 
-> > Also, could there be an option here to opt-out of this performance optimization
-> > in favor of retaining existing memory characteristics?
+> >  src/cache.c                                 | 11 ++--
+> >  src/mnl.c                                   | 60 ++++++++++++++++++---
+> >  tests/shell/testcases/listing/cache_filters | 53 ++++++++++++++++++
+> >  3 files changed, 113 insertions(+), 11 deletions(-)
+> >  create mode 100755 tests/shell/testcases/listing/cache_filters
 > 
-> This series is fixing a real bug, now you may experience possible
-> false negatives in lookups with what you have reverted.
-> 
+> I ran this series against the firewalld testsuite. All green.
+> Thanks Phil!
 
-Understood, we want to use these patches in the long run; once memory usage
-issues are fixed.
+Thanks for testing, Eric! Shame on me for not putting you in Cc as you
+asked for. Next time I'll probably best add a Cc: tag to one of the
+commits immediately. ;)
 
-> I am going to collect memory numbers and post them here, I will try to
-> mimic a script from your description.
-
-Sure, I can provide more details if needed, but should be similar as
-explained in https://lore.kernel.org/all/aahw_h5DdmYZeeqw@20HS2G4/.
-
-Thanks,
---chris
+Cheers, Phil
