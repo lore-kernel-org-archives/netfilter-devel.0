@@ -1,66 +1,93 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B7481DEFE8;
-	Thu, 12 Mar 2026 12:36:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0266730C359
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 12:48:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773319007; cv=none; b=LGSJn8rEeWaOYWm9fvgQxwDZUcCFZMbM3J7GxrvGOvSCZ59wLWWbwWxRfUvAjvhzc/KGjXa13lXNw3JPkeJA5aZQEUAOe6ktzLwM6SgK7y99J+sWGNtZu0cg5/JH3iYCsNA9gCuGLAO5O9X1xaAaM8qj+0Ux1aWSCWZMNAZlIcE=
+	t=1773319741; cv=none; b=JHJois60sBDMpiPfBsteErB6gbxeok+am8vmtL0/4QJEebSI81f/SOxDCWE7enaGmjyeklRdjV6p9gHR4HoaRkg5tSsQ8TGw8TYhgx5B6I1/5LNZ6kB0cv/2SWTo09FtGrye57AcJsIGpxMXO+JZ6X3jQLdwJVBB585watFx5EA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773319007; c=relaxed/simple;
-	bh=aLrncpKox8OUUgw9Pi1Wd+JmkU+sBo7DO9cXcHpsdMQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Gai2mL+B05oz2SUqjddiAlsfb9lnEA/Y+gHepRAq/40XonmQXRIHLcTsNbesa8YqruUON8gLNPUZhfV1Xj1YrnPP+jBcBuKu+vVqFRfXEM6zOfEokNBZjQQGGLXWiX2/3Op2DXxsxp/feGxn8+KYLhoKWO3gmUxS/DC2+aLxZS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D14026047A; Thu, 12 Mar 2026 13:36:38 +0100 (CET)
-Date: Thu, 12 Mar 2026 13:36:40 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Prasanna S Panchamukhi <panchamukhi@arista.com>
-Cc: netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-	Shuah Khan <skhan@linuxfoundation.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
-	netdev@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [PATCH net-next] netfilter: conntrack: expose
- gc_scan_interval_max via sysctl
-Message-ID: <abKzWIhVz_SeiSOa@strlen.de>
-References: <20260311194058.13860-1-panchamukhi@arista.com>
+	s=arc-20240116; t=1773319741; c=relaxed/simple;
+	bh=yMg35xkTXGqlv0tIWfCTvKH3CJraFyU0g/c44q0k66Y=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=QnRbQE6Fg6b5qDbtktnTKQhuD/eoAGm71UOWSZvpf3a+SaH53/pfBHbIh+6G8+5sSteUKtmGygbViAYdO+M4mgav8eMq/Mf1MnjPvC7FqBKoakLlYXPVr4HRVpxGdPZUK7f4QIRyptXvpbutFZM2QhM/Gbn03nKOz9sqGfZ92HE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=XZIreaCf; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="XZIreaCf"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id D09C160567
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 13:48:52 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1773319732;
+	bh=yYQsv6eKTQajv0O+O5OZSEYUko/mMhcLLlOjC1dzauI=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=XZIreaCfpmQrgTO/eQcoX9xTqlsbI8QLbkW9uYbdMbNs6zZpmo5lVpzSM+uz6fsk+
+	 ELG2g4Ky+F32K2YGSGZhwCyb1G609q6XfHFrY9kM8bq/Lzf0qp4Cz/d+frB3Bq/tRN
+	 OCk4AKJ55fIAnpLXsa0HalufhTlrp33RBWiAx3agW0PLJLt/DFpMpjURgtCrcD+Q/M
+	 Zw2XoIkdZ/KNzllMGJm8J9vhJZMLFI6dw8Kris5qdOFjWT7RsdV3o4IrH7o3/7fUQo
+	 0nFXVMpAnW0/xiTUXq2FXsJc9QhIszny8rJCCdP1Bqfpp91ozyQ6bcsH9fyEX4K30n
+	 Ju/NyQ4ibzYgA==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 2/2] netfilter: xt_CT: drop pending enqueued packets on template removal
+Date: Thu, 12 Mar 2026 13:48:48 +0100
+Message-ID: <20260312124848.3532943-2-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260312124848.3532943-1-pablo@netfilter.org>
+References: <20260312124848.3532943-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260311194058.13860-1-panchamukhi@arista.com>
+Content-Transfer-Encoding: 8bit
 
-Prasanna S Panchamukhi <panchamukhi@arista.com> wrote:
-> The conntrack garbage collection worker uses an adaptive algorithm that
-> adjusts the scan interval based on the average timeout of tracked
-> entries.  The upper bound of this interval is hardcoded as
-> GC_SCAN_INTERVAL_MAX (60 seconds).
-> 
-> Expose the upper bound as a new sysctl,
-> net.netfilter.nf_conntrack_gc_scan_interval_max, so it can be tuned at
-> runtime without rebuilding the kernel.  The default remains 60 seconds
-> to preserve existing behavior.  The sysctl is global and read-only in
-> non-init network namespaces, consistent with nf_conntrack_max and
-> nf_conntrack_buckets.
+Templates refer to objects that can go away while packets are sitting in
+nfqueue refer to:
 
-This was proposed before, see:
+- helper, this can be an issue on module removal.
+- timeout policy, nfnetlink_cttimeout might remove it.
 
-https://lore.kernel.org/netfilter-devel/aO-id5W6Tr7frdHN@strlen.de/
-https://lore.kernel.org/netfilter-devel/aRsuU57juCvsMBKE@strlen.de/
+The use of templates with zone and event cache filter are safe, since
+this just copies values.
 
-I did not hear back wrt. the horizon cache.
+Flush these enqueued packets in case the template rule gets removed.
 
-I'm not 100% opposed to this, but I do wonder if we really can't do
-better than the current avg strategy.
+Fixes: 24de58f46516 ("netfilter: xt_CT: allow to attach timeout policy + glue code")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+I don't remember what email reported this.
+
+Compile-tested only.
+
+ net/netfilter/xt_CT.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 3ba94c34297c..498f5871c84a 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -16,6 +16,7 @@
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
++#include "nf_internals.h"
+ 
+ static inline int xt_ct_target(struct sk_buff *skb, struct nf_conn *ct)
+ {
+@@ -283,6 +284,9 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
+ 	struct nf_conn_help *help;
+ 
+ 	if (ct) {
++		if (info->helper[0] || info->timeout[0])
++			nf_queue_nf_hook_drop(par->net);
++
+ 		help = nfct_help(ct);
+ 		xt_ct_put_helper(help);
+ 
+-- 
+2.47.3
+
