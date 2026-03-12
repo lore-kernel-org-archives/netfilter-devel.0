@@ -1,117 +1,259 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C84338939
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 14:59:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24AD03B4EBF
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 15:12:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773327591; cv=none; b=RErQP4bB2eiq4HvFhWNMfW8thwPRwc0b+FvRsc0+dTKL6FZOx9qX7/wyqW0KY1zuaLf7MpeYfaylVP9/57o9kzCilC85IYosreoVjVC7E67B+Sa12unRfkIoxz4P+sEPyCidjV5hWRA+ioxgMd/EFkNlSyCQx742eN4AGuB04rk=
+	t=1773328342; cv=none; b=HrLCDlN3UYYDNZUXLVQquzOGEpd0LYhth+5xVgnzn1CaZJ6ViNgIe4kndjRWv6N7WR8ntfOIcirYYW2XceDB56XDL7HbEOgrRbnSOCzMb77+7djGF0Du/rBhBS+/l6GlIzFjAzubOKoWRCFffLQO7wuQ96+pMuOiSsWyLdXziMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773327591; c=relaxed/simple;
-	bh=SjMnlsQ4WY/OQE8sqVrRyjEu66h5gjDpFhRj3w+I4zk=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=bIbG3m1MlWWO7kzay70/qSj/RKd3cx4UpWZLDNMOlsp/CNi78DWGX6bjdq8o37zeHRkVixFmkMo0BOWu6vmYYdRA/VsboU2ISGkrWXzLktcdR9dW5rjxRejZ8wYRMZ5/Ygq7p/Ce2V2uCMzFusnYgWQFumNYHe0vFjSAmlsKRn4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VyxbqOIU; arc=none smtp.client-ip=209.85.160.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773328342; c=relaxed/simple;
+	bh=/OlB2wYXzxx2lhu8Gs9ALiFJ9KIIcAJs+OvO6vGrCEY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=qYw+JbOCsjC2dh+4nri2zmepPJfdBkaj2aTfR9KM3k3AkXjRZ5azPK81MAv4iSUEJApqlmCHHBvedmjGVFE4j110q/5ZSwz6m3TqlNoOXWamSP8B+O/s9koCaZwjf9Py4kyiEiqiGoA8FNbNm2phx6P0Y/oFtSXhSEDhCUvIBlA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xRu6vREz; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=RojeaC+1; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xRu6vREz; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=RojeaC+1; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VyxbqOIU"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-5090c48de85so13059011cf.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 07:59:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773327590; x=1773932390; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=d4PJmVA5k7DDH3p9uARHgT86oQdHv/y0cojTHNDjevg=;
-        b=VyxbqOIUNNpsAeK+w05ipNHY2ATOLwQFG6ARjfLJwFJHsBmCsWwL49ECSyQvFx59bJ
-         TbvCyhYsTVGDCeejatEiceGV/WFks1RaL///AkNsXmt/8uHNqMel4szYZUo4nBKVKs/s
-         OdF6mp/qwYukaZrds3WvifD6EPcxfsbGOc28jf9wtPmDzWz4+GQptPoBaGifgpdFU4Pq
-         Ms1xlV8dA/hVErlVgNFMzBmT/7eqi7JdVClLFpUaoS0Rn2RkShs2z8wISy8MxjKB8fXp
-         ajrRP3VoPS2HorggD2F8Tty8Uk2fZTPH9cK2H9um9Vv5SLXBGXmQDoK3gGML59dfouNT
-         JNrQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773327590; x=1773932390;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=d4PJmVA5k7DDH3p9uARHgT86oQdHv/y0cojTHNDjevg=;
-        b=qgU/uWqQbMExhzeDor2pQevXLZYyKe3COVCnUQ/PRyjpCnzORnz1w6biuZUj2VOGM2
-         nRT9d5wLvkz8YzCFmZWyGxAfd8+SMQRJCelz8lX++SMWaRzs7kpPTGEue8VoWVXztW1J
-         +BbA3zqSuegIxwnmGspz2suEyIVsW/Z/3X3KBYDQt11nQ01EjIgQgtpt2vpV5Lu8zb0j
-         dR6ohHZe7tF/QVvvKh+4bwP/qKkYyf2jSmzRvy8z2Vpj49iRLufRvHG9bq2Qc1PbIuQ8
-         XB20FRVAXym9Fnl2WgJJ/l1YQ6FBSeELrg+99To6Mo/d+1ZIujYYh2qzxTzWhkVwUaNc
-         Gj7A==
-X-Gm-Message-State: AOJu0YzLvpq7iRT5atGPK6jGj7HKiWuG6Zjx9IVU4b1GINqV9bazZZQ8
-	Ng6SoVDiZo/XZjtPpOwKt4J9VH9oD2BgPJ+cGqLkK3p1OZGKUZImcXsJ
-X-Gm-Gg: ATEYQzxXwfBOaaWQv+mQedy0wY6JmeZEizSBYQnRe6+q8rYTPijUXYKxfXPJDIkNhBx
-	TFQzkZkTAejp0WSno2pxwXjlNzio+ZcyGRI3LpjJ/6zwoX5Rwip/GIzaQ3Z9Uu+U3ByojcW7cJ8
-	/cAVkqJn2XmDPBbC931E4Aed0Z5XZhSHOMiKokh4BIYmKepNyx9XI4fbFUHKkS45vKXLpyCCqXV
-	NJSxQ+V+Auc/qGUQUVEGahMq8fgl98evGVeXw958Ql9kEOgGLD4Nv5YmGUESbI3hKKw/KXgfxkE
-	6hPNytca49q/0kSGexMj1lpIYLl7vMQBPsnh69wF45p/rGxzWvYHKN20Hb/qZ0lZnIew5q0fPa0
-	9kVzQML6gkf4q8fxb73lSmrLD6FfNLL2pdIC+bKDmk9ltrLBmU8GcqwlPyvq8x1MGYTa1r4r7D4
-	YW3k8lybCthryOr35DwLz2nfVvig0L3tTy2Q==
-X-Received: by 2002:ac8:5ac6:0:b0:509:1cf9:ea18 with SMTP id d75a77b69052e-5093a22791amr87790611cf.73.1773327589797;
-        Thu, 12 Mar 2026 07:59:49 -0700 (PDT)
-Received: from 192-222-50-213.ll.local ([192.222.50.213])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5093a0e9658sm40388531cf.21.2026.03.12.07.59.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 07:59:49 -0700 (PDT)
-From: Jenny Guanni Qu <qguanni@gmail.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org
-Cc: netfilter-devel@vger.kernel.org,
-	fw@strlen.de,
-	klaudia@vidocsecurity.com,
-	dawid@vidocsecurity.com,
-	Jenny Guanni Qu <qguanni@gmail.com>
-Subject: [PATCH] netfilter: xt_time: use unsigned int for monthday bit shift
-Date: Thu, 12 Mar 2026 14:59:49 +0000
-Message-Id: <20260312145949.3400275-1-qguanni@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xRu6vREz";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="RojeaC+1";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xRu6vREz";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="RojeaC+1"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 56B334D291;
+	Thu, 12 Mar 2026 15:12:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1773328337; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YMN3lOpSDeHzFKXg/7He8rMHmT0WmpOMpEjVHXqTdfM=;
+	b=xRu6vREzGoHgGA2fUdRtHBjA2bI6+qRvJ+qzs72hVNkf5rofPyioB74jN3qYC0SeFB1juk
+	+uMPAE6Ps4ODzS5/FRsPQ609BczthN1Q2WOoDjd3ZX+buc/kjfgEVhdsZXmDnOKnR96QbK
+	21KoogoFiYYWcg5v4GiQO/x3chITNFk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1773328337;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YMN3lOpSDeHzFKXg/7He8rMHmT0WmpOMpEjVHXqTdfM=;
+	b=RojeaC+1VkbWVze91xYdCKbNG6aIJzoN8TYBSjL2bj11VaV2q1HRH+YFNqtt2k6oiP5Uqo
+	I+qIkjWcskTktIBg==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=xRu6vREz;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=RojeaC+1
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1773328337; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YMN3lOpSDeHzFKXg/7He8rMHmT0WmpOMpEjVHXqTdfM=;
+	b=xRu6vREzGoHgGA2fUdRtHBjA2bI6+qRvJ+qzs72hVNkf5rofPyioB74jN3qYC0SeFB1juk
+	+uMPAE6Ps4ODzS5/FRsPQ609BczthN1Q2WOoDjd3ZX+buc/kjfgEVhdsZXmDnOKnR96QbK
+	21KoogoFiYYWcg5v4GiQO/x3chITNFk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1773328337;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YMN3lOpSDeHzFKXg/7He8rMHmT0WmpOMpEjVHXqTdfM=;
+	b=RojeaC+1VkbWVze91xYdCKbNG6aIJzoN8TYBSjL2bj11VaV2q1HRH+YFNqtt2k6oiP5Uqo
+	I+qIkjWcskTktIBg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id CDA7B40022;
+	Thu, 12 Mar 2026 15:12:13 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id VQkzL83XsmnAJAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 12 Mar 2026 15:12:13 +0000
+Message-ID: <aebac89f-f3b9-4983-8139-353a3ff19c98@suse.de>
+Date: Thu, 12 Mar 2026 16:12:09 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 01/10 net-next v2] ipv6: convert CONFIG_IPV6 to built-in
+ only and clean up Kconfigs
+To: Jakub Kicinski <kuba@kernel.org>
+Cc: netdev@vger.kernel.org, rbm@suse.com,
+ Geert Uytterhoeven <geert@linux-m68k.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+ Leon Romanovsky <leon@kernel.org>, Selvin Xavier
+ <selvin.xavier@broadcom.com>, Andrew Lunn <andrew+netdev@lunn.ch>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Paolo Abeni <pabeni@redhat.com>, Ido Schimmel <idosch@nvidia.com>,
+ Petr Machata <petrm@nvidia.com>, Simon Horman <horms@kernel.org>,
+ Saurav Kashyap <skashyap@marvell.com>, Javed Hasan <jhasan@marvell.com>,
+ "maintainer:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER"
+ <GR-QLogic-Storage-Upstream@marvell.com>,
+ "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ Nilesh Javali <njavali@marvell.com>,
+ Manish Rangankar <mrangankar@marvell.com>, Varun Prakash
+ <varun@chelsio.com>, Alexander Aring <aahringo@redhat.com>,
+ David Teigland <teigland@redhat.com>,
+ Andreas Gruenbacher <agruenba@redhat.com>,
+ Nikolay Aleksandrov <razor@blackwall.org>, David Ahern <dsahern@kernel.org>,
+ Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>, David Howells <dhowells@redhat.com>,
+ Marc Dionne <marc.dionne@auristor.com>,
+ Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+ Xin Long <lucien.xin@gmail.com>, Jon Maloy <jmaloy@redhat.com>,
+ Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>,
+ Bjorn Andersson <bjorn.andersson@oss.qualcomm.com>,
+ Arnd Bergmann <arnd@arndb.de>, Eric Biggers <ebiggers@kernel.org>,
+ Michal Simek <michal.simek@amd.com>, Luca Weiss <luca.weiss@fairphone.com>,
+ Sven Peter <sven@kernel.org>,
+ Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
+ Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+ Andrew Morton <akpm@linux-foundation.org>, David Gow <david@davidgow.net>,
+ Kuan-Wei Chiu <visitorckw@gmail.com>, Ryota Sakamoto
+ <sakamo.ryota@gmail.com>, Kir Chou <note351@hotmail.com>,
+ Kuniyuki Iwashima <kuniyu@google.com>,
+ Herbert Xu <herbert@gondor.apana.org.au>,
+ Vikas Gupta <vikas.gupta@broadcom.com>,
+ Bhargava Marreddy <bhargava.marreddy@broadcom.com>,
+ Rajashekar Hudumula <rajashekar.hudumula@broadcom.com>,
+ =?UTF-8?Q?Markus_Bl=C3=B6chl?= <markus@blochl.de>,
+ Heiner Kallweit <hkallweit1@gmail.com>,
+ open list <linux-kernel@vger.kernel.org>,
+ "open list:M68K ARCHITECTURE" <linux-m68k@lists.linux-m68k.org>,
+ "open list:INFINIBAND SUBSYSTEM" <linux-rdma@vger.kernel.org>,
+ "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@corigine.com>,
+ "open list:BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER"
+ <linux-scsi@vger.kernel.org>,
+ "open list:DISTRIBUTED LOCK MANAGER (DLM)" <gfs2@lists.linux.dev>,
+ "open list:ETHERNET BRIDGE" <bridge@lists.linux.dev>,
+ "open list:NETFILTER" <netfilter-devel@vger.kernel.org>,
+ "open list:NETFILTER" <coreteam@netfilter.org>,
+ "open list:RXRPC SOCKETS (AF_RXRPC)" <linux-afs@lists.infradead.org>,
+ "open list:SCTP PROTOCOL" <linux-sctp@vger.kernel.org>,
+ "open list:TIPC NETWORK LAYER" <tipc-discussion@lists.sourceforge.net>
+References: <20260310153506.5181-1-fmancera@suse.de>
+ <20260310153506.5181-2-fmancera@suse.de> <20260311200219.45796ec4@kernel.org>
+Content-Language: en-US
+From: Fernando Fernandez Mancera <fmancera@suse.de>
+In-Reply-To: <20260311200219.45796ec4@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Action: no action
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	SUSPICIOUS_RECIPS(1.50)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCVD_TLS_ALL(0.00)[];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	TO_DN_SOME(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	TAGGED_RCPT(0.00)[netdev];
+	MID_RHS_MATCH_FROM(0.00)[];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[vger.kernel.org,suse.com,linux-m68k.org,ziepe.ca,kernel.org,broadcom.com,lunn.ch,davemloft.net,google.com,redhat.com,nvidia.com,marvell.com,HansenPartnership.com,oracle.com,chelsio.com,blackwall.org,netfilter.org,strlen.de,nwl.cc,auristor.com,gmail.com,oss.qualcomm.com,arndb.de,amd.com,fairphone.com,bp.renesas.com,renesas.com,linux-foundation.org,davidgow.net,hotmail.com,gondor.apana.org.au,blochl.de,lists.linux-m68k.org,corigine.com,lists.linux.dev,lists.infradead.org,lists.sourceforge.net];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:mid];
+	TO_MATCH_ENVRCPT_SOME(0.00)[];
+	RCPT_COUNT_GT_50(0.00)[68];
+	RCVD_COUNT_TWO(0.00)[2];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	DKIM_TRACE(0.00)[suse.de:+]
+X-Rspamd-Queue-Id: 56B334D291
+X-Spam-Flag: NO
+X-Spam-Score: -3.01
+X-Spam-Level: 
 
-The monthday field can be up to 31, and shifting a signed integer 1
-by 31 positions (1 << 31) is undefined behavior in C, as the result
-overflows a 32-bit signed int. Use 1U to ensure well-defined behavior
-for all valid monthday values.
+On 3/12/26 4:02 AM, Jakub Kicinski wrote:
+> On Tue, 10 Mar 2026 16:34:24 +0100 Fernando Fernandez Mancera wrote:
+>> Maintaining a modular IPv6 stack offers image size and memory savings
+>> for specific setups, this benefit is outweighed by the architectural
+>> burden it imposes on the subsystems on implementation and maintenance.
+>> Therefore, drop it.
+>>
+>> Change CONFIG_IPV6 from tristate to bool. Remove all Kconfig
+>> dependencies across the tree that explicitly checked for IPV6=m. In
+>> addition, remove MODULE_DESCRIPTION(), MODULE_ALIAS(), MODULE_AUTHOR()
+>> and MODULE_LICENSE().
+>>
+>> This is also replacing module_init() by device_initcall(). It is not
+>> possible to use fs_initcall() as IPv4 does because that creates a race
+>> condition on IPv6 addrconf.
+>>
+>> Finally, modify the default configs from CONFIG_IPV6=m to CONFIG_IPV6=y
+>> except for m68k as according to the bloat-o-meter the image is
+>> increasing by 330KB~ and that isn't acceptable. Instead, disable IPv6 on
+>> this architecture by default. This is aligned with m68k RAM requirements
+>> and recommendations [1].
+> 
+> AI has spotted:
+> 
+>> diff --git a/arch/m68k/configs/amiga_defconfig b/arch/m68k/configs/amiga_defconfig
+>> index 31d16cba9879..de088071dde4 100644
+>> --- a/arch/m68k/configs/amiga_defconfig
+>> +++ b/arch/m68k/configs/amiga_defconfig
+>> @@ -64,7 +64,6 @@ CONFIG_NET_IPIP=m
+>>   CONFIG_NET_IPGRE_DEMUX=m
+>>   CONFIG_NET_IPGRE=m
+>>   CONFIG_NET_IPVTI=m
+>> -CONFIG_NET_FOU_IP_TUNNELS=y
+>>   CONFIG_INET_AH=m
+> 
+> Is CONFIG_NET_FOU_IP_TUNNELS=y removed intentionally? This option
+> provides FOU/GUE encapsulation for IP tunnels and has 'depends on
+> NET_IPIP || NET_IPGRE || IPV6_SIT' as its Kconfig dependency. With IPv6
+> disabled, IPV6_SIT becomes unavailable, but CONFIG_NET_IPIP=m and
+> CONFIG_NET_IPGRE=m are both still present in the defconfig, so the
+> dependency remains satisfiable.
+> 
+> Since CONFIG_NET_FOU_IP_TUNNELS has no 'default y', removing it from the
+> defconfig means FOU/GUE encapsulation for IP tunnels will be silently
+> disabled by default on m68k. The commit message describes only disabling
+> IPv6 on m68k, not removing IPv4 FOU tunnel support.
+> 
 
-Change the weekday shift to 1U as well for consistency.
+I noticed that when running
 
-Fixes: ee4411a1b1e0 ("[NETFILTER]: x_tables: add xt_time match")
-Reported-by: Klaudia Kloc <klaudia@vidocsecurity.com>
-Reported-by: Dawid Moczadło <dawid@vidocsecurity.com>
-Tested-by: Jenny Guanni Qu <qguanni@gmail.com>
-Signed-off-by: Jenny Guanni Qu <qguanni@gmail.com>
----
- net/netfilter/xt_time.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+./scripts/config --disable CONFIG_IPV6
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 6aa12d0f54e2..61de85e02a40 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -227,13 +227,13 @@ time_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	localtime_2(&current_time, stamp);
- 
--	if (!(info->weekdays_match & (1 << current_time.weekday)))
-+	if (!(info->weekdays_match & (1U << current_time.weekday)))
- 		return false;
- 
- 	/* Do not spend time computing monthday if all days match anyway */
- 	if (info->monthdays_match != XT_TIME_ALL_MONTHDAYS) {
- 		localtime_3(&current_time, stamp);
--		if (!(info->monthdays_match & (1 << current_time.monthday)))
-+		if (!(info->monthdays_match & (1U << current_time.monthday)))
- 			return false;
- 	}
- 
--- 
-2.34.1
+for the m68k, the script was adding CONFIG_LWTUNNEL=y and CONFIG_NET_FOU=y.
+
+CONFIG_LWTUNNEL was selected by multiple IPV6 features. I do not think 
+it makes sense to keep it for m68k given the information there is on 
+http://www.linux-m68k.org/faq/platinfo.html.
+
+CONFIG_NET_FOU was something IPV6_FOU required, probably it should be 
+just dropped from the config instead of explicitly turn it off as it 
+turns off FOU_IP_TUNNELS too. It will be selected by FOU_IP_TUNNELS too 
+anyway.
+
+I will update the config and also the commit message about CONFIG_LWTUNNEL.
+
+FTR; I doubt anyone is running Foo over UDP in m68k but let's avoid 
+doing extra undocumented changes.
+
+Thanks,
+Fernando.
+
+> This affects four m68k defconfigs:
+> - amiga_defconfig
+> - apollo_defconfig
+> - atari_defconfig
+> - bvme6000_defconfig
+> 
 
