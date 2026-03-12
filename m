@@ -1,80 +1,81 @@
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB61B388E47
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 12:12:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2631FBC8E
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 12:15:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773317537; cv=none; b=sYg/lauwyZLs2rRclas+tOAUxK+jtJuZ7auWmSLTTwZrdlvdmpMEshSrSf3SppBOJofAt0X2ghCrAtVjrR5p/Kaqr7aLEEj+oMkra1muFyTyeA2R8O4jLjTgDhB86voG2A4848KSfDJZgNCR/3Y7wCGPfdr8b2oXqKixqGazo1A=
+	t=1773317750; cv=none; b=DlckEBIwshurQn5xZyZi7S8GVJQZxHXdbz6B8lxk+NLHlOjSgsWJ28wUBXV0STEEBXDBUn049CI8JC/kZvyd6DRwgSXdhQCdzZ9a6b0lm2VAMlVH/0ufxjEv63RwK1NAz0Fxnwz5fA3lwAoBBRrPbD1FqvocOTuqLDwzcTcBlRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773317537; c=relaxed/simple;
-	bh=BAobcb9CuFaakDdqoHMPQ+3oqwZVEllsE729QCLW8YU=;
+	s=arc-20240116; t=1773317750; c=relaxed/simple;
+	bh=BbA6w1sO0M8Zi5awc/vRTfCk1+66v1vzIB5zIcGRQfQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=tUpcHYsub8YFo+q7vJXFJCcv5qsWpxj6Ki8QjXluaj9GzbeaHYJYLKsLzKmZEcsc3sseF1AkMFloQ03pc+eRVuDO758/IK/7tQTgbFwqDJJCMPkVi18rv7EblqoEV0UKVvnlgBkjFpcgYKFOLcBwv6WiHdi7r21rOMyg+y/j3Os=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=NIOqQdnb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=S4EIcnpz; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=NIOqQdnb; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=S4EIcnpz; arc=none smtp.client-ip=195.135.223.130
+	 In-Reply-To:Content-Type; b=GUVZepzq14Lf1hqjJXo+npqQ6T0Sv1qgDfo96a6to4x4VWShtwJFyVFiqXFeFPGZLi03wWA9Kf/p16Od+366g6IqK/9yBPd9IyKA0JBM/Kofwj6Xw+x5T8czKsHixo3QjBljRbD2JT6+HirMmGCc25RR5sZqbSzw6FCTqn9xHHU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=yzJzh7NC; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Q8WeyAOw; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=yzJzh7NC; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=Q8WeyAOw; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="NIOqQdnb";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="S4EIcnpz";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="NIOqQdnb";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="S4EIcnpz"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="yzJzh7NC";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Q8WeyAOw";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="yzJzh7NC";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="Q8WeyAOw"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id A205E4D3CA;
-	Thu, 12 Mar 2026 12:12:11 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 5368E3FDA2;
+	Thu, 12 Mar 2026 12:15:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1773317531; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1773317744; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=StxNDEEJm/MKfQMlWCh7AudfdlhtE98aLWBisrKX4EA=;
-	b=NIOqQdnbEYh+pqxm3TY/oimbRa5hOKHYbUtH1jVAn/I52vBgJx2SpDRlQNcg0smmk/Cq9H
-	yJiEb/B04zxWVv4WyMP0aebhfAePEudiipb26ZHgykUenIhcor8hHxILqUbJ0FOQMUykeN
-	p3RIa2zLjvWSFGlv67a6PnhTtSyWNPs=
+	bh=Iyvo3MyG5/nMqbH5LhEzLuKSDNYzWDBrh0u3whLrNLA=;
+	b=yzJzh7NC4i5SJvPNXFzKkSl7390EhDxaokQVdiTFkKZQZztGzHLGWoywfNgBL+T/F4I6KJ
+	jC4RdCzkEAn962ftMc/JVH0dlbnUYVn9BjhLyal/6PqxadJTScYA/rtiy8VpT1kXfbjsjD
+	DP8kQWUpckzWk09y1IQxKVU2UWPxATo=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1773317531;
+	s=susede2_ed25519; t=1773317744;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=StxNDEEJm/MKfQMlWCh7AudfdlhtE98aLWBisrKX4EA=;
-	b=S4EIcnpz+mreO6XXUTk4yVupHGKh3BhPGl8HWOlt01B85263TlOyqMdpOjqeVHSJTQCgmv
-	/fKroxjDWUduLgCA==
+	bh=Iyvo3MyG5/nMqbH5LhEzLuKSDNYzWDBrh0u3whLrNLA=;
+	b=Q8WeyAOwVI5ca5hPLyVr07B6H3mK/Lk3F//qLSQaPceZxWRb48X/pgHFsouWy3SX/14Y9M
+	u/fC3gp5aWnbROAQ==
 Authentication-Results: smtp-out1.suse.de;
-	none
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=yzJzh7NC;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=Q8WeyAOw
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1773317531; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1773317744; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=StxNDEEJm/MKfQMlWCh7AudfdlhtE98aLWBisrKX4EA=;
-	b=NIOqQdnbEYh+pqxm3TY/oimbRa5hOKHYbUtH1jVAn/I52vBgJx2SpDRlQNcg0smmk/Cq9H
-	yJiEb/B04zxWVv4WyMP0aebhfAePEudiipb26ZHgykUenIhcor8hHxILqUbJ0FOQMUykeN
-	p3RIa2zLjvWSFGlv67a6PnhTtSyWNPs=
+	bh=Iyvo3MyG5/nMqbH5LhEzLuKSDNYzWDBrh0u3whLrNLA=;
+	b=yzJzh7NC4i5SJvPNXFzKkSl7390EhDxaokQVdiTFkKZQZztGzHLGWoywfNgBL+T/F4I6KJ
+	jC4RdCzkEAn962ftMc/JVH0dlbnUYVn9BjhLyal/6PqxadJTScYA/rtiy8VpT1kXfbjsjD
+	DP8kQWUpckzWk09y1IQxKVU2UWPxATo=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1773317531;
+	s=susede2_ed25519; t=1773317744;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=StxNDEEJm/MKfQMlWCh7AudfdlhtE98aLWBisrKX4EA=;
-	b=S4EIcnpz+mreO6XXUTk4yVupHGKh3BhPGl8HWOlt01B85263TlOyqMdpOjqeVHSJTQCgmv
-	/fKroxjDWUduLgCA==
+	bh=Iyvo3MyG5/nMqbH5LhEzLuKSDNYzWDBrh0u3whLrNLA=;
+	b=Q8WeyAOwVI5ca5hPLyVr07B6H3mK/Lk3F//qLSQaPceZxWRb48X/pgHFsouWy3SX/14Y9M
+	u/fC3gp5aWnbROAQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id A589F3FF6E;
-	Thu, 12 Mar 2026 12:12:10 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5E5993FF70;
+	Thu, 12 Mar 2026 12:15:42 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 740IJZqtsmnIXQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 12 Mar 2026 12:12:10 +0000
-Message-ID: <a18f93d5-af8c-4e67-90ae-f386af86ca0f@suse.de>
-Date: Thu, 12 Mar 2026 13:12:09 +0100
+	id ngDOE26usmmLZgAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Thu, 12 Mar 2026 12:15:42 +0000
+Message-ID: <09e1535f-59fe-41eb-91ed-2aeb97957bfc@suse.de>
+Date: Thu, 12 Mar 2026 13:15:41 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -100,28 +101,37 @@ From: Fernando Fernandez Mancera <fmancera@suse.de>
 In-Reply-To: <20260311194058.13860-1-panchamukhi@arista.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
+X-Spamd-Result: default: False [-4.51 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[16];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	MX_GOOD(-0.01)[];
 	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	ARC_NA(0.00)[];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	RCPT_COUNT_TWELVE(0.00)[16];
+	MIME_TRACE(0.00)[0:+];
 	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
 	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo,arista.com:email]
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:mid,arista.com:email]
+X-Rspamd-Action: no action
 X-Spam-Flag: NO
-X-Spam-Score: -4.30
+X-Spam-Score: -4.51
 X-Spam-Level: 
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Queue-Id: 5368E3FDA2
 
 On 3/11/26 8:40 PM, Prasanna S Panchamukhi wrote:
 > The conntrack garbage collection worker uses an adaptive algorithm that
@@ -170,6 +180,10 @@ On 3/11/26 8:40 PM, Prasanna S Panchamukhi wrote:
 > +	CPU usage. Minimum value is 1.
 > +	This sysctl is only writeable in the initial net namespace.
 > +
+
+I think it would be a good idea to add under which situations it is good 
+to tweak this setting.
+
 >   nf_conntrack_generic_timeout - INTEGER (seconds)
 >   	default 600
 >   
@@ -182,7 +196,10 @@ On 3/11/26 8:40 PM, Prasanna S Panchamukhi wrote:
 >   extern seqcount_spinlock_t nf_conntrack_generation;
 >   extern unsigned int nf_conntrack_max;
 > +extern unsigned int nf_conntrack_gc_scan_interval_max;
->   
+>
+
+Could it be just int? so there is no need to cast it to s32 later?
+
 >   /* must be called with rcu read lock held */
 >   static inline void
 > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
@@ -217,6 +234,9 @@ On 3/11/26 8:40 PM, Prasanna S Panchamukhi wrote:
 >   				goto early_exit;
 >   			}
 >   
+
+READ_ONCE() is required IMHO as it can be modified from sysctl concurrently.
+
 > @@ -1630,7 +1633,7 @@ static void gc_worker(struct work_struct *work)
 >   
 >   	gc_work->next_bucket = 0;
@@ -224,41 +244,8 @@ On 3/11/26 8:40 PM, Prasanna S Panchamukhi wrote:
 > -	next_run = clamp(next_run, GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERVAL_MAX);
 > +	next_run = clamp(next_run, GC_SCAN_INTERVAL_MIN, nf_conntrack_gc_scan_interval_max);
 >   
->   	delta_time = max_t(s32, nfct_time_stamp - gc_work->start_time, 1);
->   	if (next_run > (unsigned long)delta_time)
-> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-> index 207b240b14e5..f8cab779763f 100644
-> --- a/net/netfilter/nf_conntrack_standalone.c
-> +++ b/net/netfilter/nf_conntrack_standalone.c
-> @@ -637,6 +637,7 @@ enum nf_ct_sysctl_index {
->   	NF_SYSCTL_CT_PROTO_TIMEOUT_GRE,
->   	NF_SYSCTL_CT_PROTO_TIMEOUT_GRE_STREAM,
->   #endif
-> +	NF_SYSCTL_CT_GC_SCAN_INTERVAL_MAX,
->   
->   	NF_SYSCTL_CT_LAST_SYSCTL,
->   };
-> @@ -920,6 +921,14 @@ static struct ctl_table nf_ct_sysctl_table[] = {
->   		.proc_handler   = proc_dointvec_jiffies,
->   	},
->   #endif
-> +	[NF_SYSCTL_CT_GC_SCAN_INTERVAL_MAX] = {
-> +		.procname	= "nf_conntrack_gc_scan_interval_max",
-> +		.data		= &nf_conntrack_gc_scan_interval_max,
-> +		.maxlen		= sizeof(unsigned int),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec_jiffies,
-> +		.extra1		= SYSCTL_ONE,
-> +	},
->   };
->   
->   static struct ctl_table nf_ct_netfilter_table[] = {
-> @@ -1043,6 +1052,7 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
->   		table[NF_SYSCTL_CT_MAX].mode = 0444;
->   		table[NF_SYSCTL_CT_EXPECT_MAX].mode = 0444;
->   		table[NF_SYSCTL_CT_BUCKETS].mode = 0444;
-> +		table[NF_SYSCTL_CT_GC_SCAN_INTERVAL_MAX].mode = 0444;
->   	}
->   
->   	cnet->sysctl_header = register_net_sysctl_sz(net, "net/netfilter",
 
+Likewise here, READ_ONCE() recommended..
+
+Thanks,
+Fernando.
