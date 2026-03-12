@@ -1,117 +1,262 @@
-Received: from mail-oi1-f171.google.com (mail-oi1-f171.google.com [209.85.167.171])
+Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com [209.85.167.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21AE9367F53
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 20:35:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.171
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773347710; cv=none; b=nCdoOgswFFc3VwSD7+v5buO+54qCXik2k3RvEVstUU4W1sGK4rAl18f7W7a3eU9Va68Hc/hhZOb8pcFyHR2ZMhMAxbV3KUI44exyCCg0cN0yEBEOtScVqGTrIXjje+0D2VO6z5nSvekrBY4ck6f07mgJdBIqAnHn8VQVCNGvIuY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773347710; c=relaxed/simple;
-	bh=PCph8ooVcjJu9IOl+Kjjgu/fLSJ6MQr8MA29G0K6afI=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cT9cDv9fHQe+STT9rme/BMCzE9mlN4rdY/FArxSAcmIO0KdT71vbQQ4ftkZpBP585z0LgbeP4GWGy0r9w1YF10hnFRIywSq83uH1LAEpRtbG3xCgkSfoLvbvI7I3EBYRRcsc572EQ4B91XoZvsnTLcv7BtdBMIh+PrHoPMtRL8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com; spf=pass smtp.mailfrom=cloudflare.com; dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b=fhlFua7Z; arc=none smtp.client-ip=209.85.167.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cloudflare.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloudflare.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 443EC3F0768
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 21:45:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.48
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773351902; cv=pass; b=WbQv/KzWonmEzMPcr/l/nN435q+CveRG2zQzBYwzpAK6IQaBFLIY4PI5OmAj//ND1qu2OZVEHjLKF9XgBkCVPIwJ1DYezekAORD2BiCiWisTPDk5V7B6Ag66+6pyljtHL7rcMjDvv13q96DRE54Ps10j6ygzofPUZrO4cNDY/VY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773351902; c=relaxed/simple;
+	bh=VudM6nzCZVkA9277WVscwWUtl1xQAIgu3m2h8apEcxk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=ozp37fAfT02JaGkSg/ebF4g3Wo/vjEyyWEsJHqnXe3gljnPS+oZ9+My+0ogSp+XvFLBHELUYkt0ieD2CCg2vGvJHmY2rDMkwLv/gY8HU//w0GGwrnHFpfHr4cP4SjzRMLvxoHYYf+J4JdEGXG0wAWcqFSBB/KoyvDuB2or8unqc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com; spf=pass smtp.mailfrom=arista.com; dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b=P1U8+WnR; arc=pass smtp.client-ip=209.85.167.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cloudflare.com header.i=@cloudflare.com header.b="fhlFua7Z"
-Received: by mail-oi1-f171.google.com with SMTP id 5614622812f47-466f935a82fso1011633b6e.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 13:35:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b="P1U8+WnR"
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-59de8155501so1563775e87.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2026 14:45:00 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773351898; cv=none;
+        d=google.com; s=arc-20240605;
+        b=k7ZZTurkq49xu5nXD61Do7OAZ22x4Ttwio0YfrWn1ZIY/U3zjuH5tkpd6/xdRfkSu+
+         9kkAjmprfs6SWxMohhDmiHvnPyaHTeDTX5B/FoJftx9+9vUgcglF1rjDtS/mUAJ+JbkH
+         XjKCNTWeoMxiOyH1k7n8gBenhjv8enmGEWFXkMMN+JtA5MLNSodvZTzVNTFW3O6wxN8x
+         po5m32p4PIBuU4NP9UBWJEb1xwlwbl0x/j6NM0TGyx72fb5C2iuTtjGql3F+opSzAvIR
+         /ehGH1vVKKXzFE8ApLmzPIpniQ8DXlq7YXuHoM7UcxEH98WHhTyP+EOPEC0bwxmVbeyt
+         Po+Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=HfH7lKknQyQNOSVHyMK46+bKOSN4FbobYHp2cMfhjyE=;
+        fh=Zx1ThWTdsZde/lzEjSXDcyjwBabt0nVe7R/X5ivSI2o=;
+        b=UU8/LRohPG6gJWVUVpibAChgykOQMCeReUn6mbfni91UHN6Q/2dhg4In98yxVaxjTs
+         /ZjcGQd1Lx8qM0yEtIQLn5PtJR2As0f+jeyq/2uWppEdwU5e7900DVrDA1uCK0Ya5Y7c
+         NEuw6d5xOFtgt/RznOFSpPVOCwAabl3Pqj8BdvdJWqMdYCOOrUO+5KkF6IIAD+RenhC8
+         Vi3zwMFBzB4UkNXNXqu9wtRJigZAszXBecuttsJh4W4kJWxd6eIrX+NJ+VV17vqb2QMa
+         L5xb42QVO4vnKcrUpE0GbpFzWRumQqy3PjG3pTekYjL4FF/Nuybwy5HbDPA6FnGzuZZs
+         5c6g==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google09082023; t=1773347708; x=1773952508; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=CAAvxziM3U6eepAuJhCiC5rWl+NjjgbbEgcGcSdOuAI=;
-        b=fhlFua7ZeUQxA19e7/ynOvW2ZzD1v7W25LelsC/KxkaJxZ5dUx/QdsFLX74Lx/TfLj
-         9mAHylCzFjGa4PG9+cM10bl+IL+W3BAgydoUo7jde1YjxjSJukZBhSku7ok+9y8uBBdL
-         PXm7e8X4wsBKRORRt9AYVGu5JbEDiE/ePHE2Rtf66aCag0FyioWj5rLVm/iY9mJhMGUM
-         EAirHG8Zp9VmL4oJbYrUdj3D8kzrMawivFMZ9mtoJijFU1cNTh+9j1UmSpUSH9ikFWdu
-         8dsWvxbySfmzln9uNMdPAC5RtrdqWeHSbJ5jAzXbMNdXr+fmhMS2MowzyjqTw+QNIzH0
-         IUUA==
+        d=arista.com; s=google; t=1773351898; x=1773956698; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=HfH7lKknQyQNOSVHyMK46+bKOSN4FbobYHp2cMfhjyE=;
+        b=P1U8+WnR1Lxln/UwJwc8ebgTjoABiPgnTSelTRWOxp1XWROJwkYsd/Rt1spe3UkyvU
+         aXXwCzrLM8uNc3VNLHKn8RC0MhQBW8+9aQnQplWSsYG9S5cs4H+6pmoYj0FFB2zlkm82
+         I6klhGgtdfGe+BD1ssrolYw0vvNsJVF183w+mExZ+N6oJ9WYbpvpkAkj8QgoaYTdke7W
+         VnVPd++/gk5rhpvgHTjo3oFsozsN2SjQ9kGTSJSYk+hERnR3hdGMXDVyOBq8DjFeew81
+         56Qfhf4fW2bz7KKGB1i/OUKLxpcczJRq1bNYM3AONlHtQvtSnTCVjj6LnKyexXbkfmpC
+         JvVQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773347708; x=1773952508;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=CAAvxziM3U6eepAuJhCiC5rWl+NjjgbbEgcGcSdOuAI=;
-        b=SBjlP7XJ2+iah6SOOuyM1EYzbKgrsSCnYNM4yOcNmGnT2dj2hf9N5HGP5rJXI5b+UQ
-         ZsBGI7ZlPDoVWdg1BNAdkZhY19Vpqm/L7rM4h6l3Qpi8mR5CMq74rFdZGjh1fA+L9jkp
-         QUf6rA15niDyXCC4AiEIzTy2WVqU3FbbMiKGpOcPu3t+V/2uWsy9NDFyw4Yg9GFvxSm/
-         uhUED0VuXYhfc66gQdyxYZdAsNxRMeoNli1Pu4eS4JUgMIFodV7nv70T9TI7zR1XX3uM
-         bhcfVR11Ch4y23Gco4coqer7ovY24dmXGhN9Y6dVR7/3FhueVjnOhhrXU40EanasXGxL
-         pjig==
-X-Gm-Message-State: AOJu0YwiDnc2sh/JbtdO/M8tEenscsd1/qJruMTBz7K+sGa7xIeg8OQZ
-	zV8wHqtYnMrM8XJC/bT371gWZJjSsd0GiQOiHXELySWIQqClshzPFF699ZvWJsT/KPQ=
-X-Gm-Gg: ATEYQzzo3PNiUK0VXzGVMdHB0eRmhZfCW/YceCaZvSye3sEiB7VjR8X4xnereVpZFkJ
-	u8q55ceIKABbrHUyUAg9VrH1PzsgsIgMcCceehDh7mdEFE5k2DdjUtksKOZ8w+hk/+nLrj0nAWH
-	LGtBemq5eL61sKKz/Wj9NWB8f/1E+q+6o5cpvCx/a7yCx4lsF7yOEIhb3FmYv085V0QgN7+RCas
-	yZnDQ/RvdjDynTCfBRw/Zf6/1VUpLi+jGzXmS4slhYS/wEmhTpdtwrUhoogO4fV4NtucChA/xgv
-	It49NAfxC0ROzTF0POqwydujS+r7qIZiHiv3Y5UisfeF2a3w4Cb/JlhnLOyYGxTjaJKD59+20+b
-	tPxzyNsfhEF+gvtko2W0xyWO8VxNwhq3bkTEMLWL8tTUzgCNy7c6KP2crireZwQmONspsJ/N7R0
-	eWNuMTXg==
-X-Received: by 2002:a05:6808:1185:b0:467:15ad:9df0 with SMTP id 5614622812f47-467570a20c7mr393439b6e.7.1773347707963;
-        Thu, 12 Mar 2026 13:35:07 -0700 (PDT)
-Received: from 20HS2G4 ([2a09:bac1:76c0:540::2d4:51])
-        by smtp.gmail.com with ESMTPSA id 5614622812f47-46743aca62fsm2113020b6e.2.2026.03.12.13.35.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Mar 2026 13:35:06 -0700 (PDT)
-Date: Thu, 12 Mar 2026 15:35:04 -0500
-From: Chris Arges <carges@cloudflare.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-Subject: Re: [PATCH nf] netfilter: nft_set_rbtree: revisit array resize logic
-Message-ID: <abMjeP3jMDa3HE81@20HS2G4>
-References: <20260312011423.3492328-1-pablo@netfilter.org>
+        d=1e100.net; s=20230601; t=1773351898; x=1773956698;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=HfH7lKknQyQNOSVHyMK46+bKOSN4FbobYHp2cMfhjyE=;
+        b=L2SIVT5EtZqXx4lrQ9bzo/QagDXJvLxCjGxq53pm+AOXIJF8+WjEugnJlXd3K8GFPT
+         lKpPFw6WI8XqzMjfnYAS3GXYz4ypBS1ieVNQGjceEdTaC+doyNR7rC4ygHtMO/8oL8CQ
+         lGnUoxboo9zPSoZoPCCMnjHS+sJenMirx5wYNUASm/ZFWeN0ig0lvlRLYgye0D3H9MUy
+         qSzcqY+QZ7H3KMOVayH8BByiLfxXZhsb+QUvMjmK9JDl8eXcla11o52Ho3Q0K19kd6Z0
+         TosZdsigxiTJUUWVWucgroULNJt68JfLtNeKgon38Ts3yYw9ZGaIFNqd+G/BF8J7DPFG
+         F8Yw==
+X-Gm-Message-State: AOJu0Yw6GNO7MqHwAtVAXjRSKv5JHAjnyv830gNxLKY0pnA1XYaBbPMO
+	TadNbdSdbMyUTSNahRPM4jOgoORs5s1Q/0fkqkCdBhGSM8/gXIMOOESXzsJ8c/zGnGJmv7VvR0g
+	AtBx7pzI8yretwePY2Ke33Fx9HTw6b/AP5GimeY6F
+X-Gm-Gg: ATEYQzypJOHPehm+IRmdMemz1y5rjr60TxM6ExTqG777t8/Mm5VkRuv73SBHBYhj3Cy
+	ReDI0/46jYUJFeK4+6YnuT7M2rGzZsHXflsL24O2k5GXu0xuEEnCi6sM90Rdf/uBHx4EOI84nv0
+	BFH7wH3ejp4nZZwrAhZgzmPAPuogJN9WakfxoSJo+N2K0OJT5f5x/uaGaD+kpe1fqAWJ6c9V1Zz
+	YHUZ9+RODzeF6uwiWeGjFBgchNiP/drzbcG5kYLislmAlzRsYSGCAA3grqG5ikqUIngM5JfeA7i
+	WGR59w==
+X-Received: by 2002:a05:6512:254d:b0:5a1:45a2:2177 with SMTP id
+ 2adb3069b0e04-5a162b2af9emr230055e87.44.1773351898274; Thu, 12 Mar 2026
+ 14:44:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260312011423.3492328-1-pablo@netfilter.org>
+References: <20260311194058.13860-1-panchamukhi@arista.com> <09e1535f-59fe-41eb-91ed-2aeb97957bfc@suse.de>
+In-Reply-To: <09e1535f-59fe-41eb-91ed-2aeb97957bfc@suse.de>
+From: Prasanna Panchamukhi <panchamukhi@arista.com>
+Date: Thu, 12 Mar 2026 14:44:46 -0700
+X-Gm-Features: AaiRm51hQ3Exo0jf6qTinlBXpNuOgadUGx__Nada8LeERG7UHXRQpfwz9Fpg_no
+Message-ID: <CACqWiXCufBst=oga885BjD2Dr3FSaEK-WcJCSC8kjL48BBABvQ@mail.gmail.com>
+Subject: Re: [PATCH net-next] netfilter: conntrack: expose gc_scan_interval_max
+ via sysctl
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, 
+	Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, 
+	Simon Horman <horms@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
+	Shuah Khan <skhan@linuxfoundation.org>, Pablo Neira Ayuso <pablo@netfilter.org>, 
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, netdev@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	coreteam@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2026-03-12 02:14:23, Pablo Neira Ayuso wrote:
-> Start by 8192 slots in the array and expand it by pow of 2 to simplify
-> growth and shrink logic.
-> 
-> Use set->ndeact to subtract deactivated elements when calculating the
-> number of the slots in the array.
-> 
-> Add shrink logic to deal with flush+add set, otherwise the array size
-> array gets increased artifically.
-> 
-> Reported-by: Chris Arges <carges@cloudflare.com>
-> Fixes: 7e43e0a1141d ("netfilter: nft_set_rbtree: translate rbtree to array for binary search")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> Chris, I'm posting this patch, but I am not sure it fits into the
-> scenario you described.
+Hi Fernando,
+
+Thank you for the quick review.
+
+On Thu, Mar 12, 2026 at 5:15=E2=80=AFAM Fernando Fernandez Mancera
+<fmancera@suse.de> wrote:
 >
+> On 3/11/26 8:40 PM, Prasanna S Panchamukhi wrote:
+> > The conntrack garbage collection worker uses an adaptive algorithm that
+> > adjusts the scan interval based on the average timeout of tracked
+> > entries.  The upper bound of this interval is hardcoded as
+> > GC_SCAN_INTERVAL_MAX (60 seconds).
+> >
+> > Expose the upper bound as a new sysctl,
+> > net.netfilter.nf_conntrack_gc_scan_interval_max, so it can be tuned at
+> > runtime without rebuilding the kernel.  The default remains 60 seconds
+> > to preserve existing behavior.  The sysctl is global and read-only in
+> > non-init network namespaces, consistent with nf_conntrack_max and
+> > nf_conntrack_buckets.
+> >
+> > In environments where long-lived offloaded flows dominate the table,
+> > the adaptive average drifts toward the maximum, delaying cleanup
+> > of short-lived expired entries such as those in TCP CLOSE state
+> > (10s timeout). Adding sysctl to set the maximum GC scan helps to
+> > tune according to the evironment.
+> >
+> > Signed-off-by: Prasanna S Panchamukhi <panchamukhi@arista.com>
+> [...]
+> > ---
+> >   Documentation/networking/nf_conntrack-sysctl.rst | 11 +++++++++++
+> >   include/net/netfilter/nf_conntrack.h             |  1 +
+> >   net/netfilter/nf_conntrack_core.c                |  9 ++++++---
+> >   net/netfilter/nf_conntrack_standalone.c          | 10 ++++++++++
+> >   4 files changed, 28 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/Documentation/networking/nf_conntrack-sysctl.rst b/Documen=
+tation/networking/nf_conntrack-sysctl.rst
+> > index 35f889259fcd..c848eef9bc4f 100644
+> > --- a/Documentation/networking/nf_conntrack-sysctl.rst
+> > +++ b/Documentation/networking/nf_conntrack-sysctl.rst
+> > @@ -64,6 +64,17 @@ nf_conntrack_frag6_timeout - INTEGER (seconds)
+> >
+> >       Time to keep an IPv6 fragment in memory.
+> >
+> > +nf_conntrack_gc_scan_interval_max - INTEGER (seconds)
+> > +     default 60
+> > +
+> > +     Maximum interval between garbage collection scans of the connecti=
+on
+> > +     tracking table. The GC worker uses an adaptive algorithm that adj=
+usts
+> > +     the scan interval based on average entry timeouts; this parameter=
+ caps
+> > +     the upper bound. Lower values cause expired entries (e.g. connect=
+ions
+> > +     in CLOSE state) to be cleaned up faster, at the cost of slightly =
+more
+> > +     CPU usage. Minimum value is 1.
+> > +     This sysctl is only writeable in the initial net namespace.
+> > +
+>
+> I think it would be a good idea to add under which situations it is good
+> to tweak this setting.
 
-Pablo,
 
-Thank you, I was able to test this and here are my results:
+Done.
 
-* v6.18.13 (before nft_set_rbtree patches)
-Slab unreclaimable memory increases to 1.4G then levels off.
+>
+>
+> >   nf_conntrack_generic_timeout - INTEGER (seconds)
+> >       default 600
+> >
+> > diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilt=
+er/nf_conntrack.h
+> > index bc42dd0e10e6..0449577f322e 100644
+> > --- a/include/net/netfilter/nf_conntrack.h
+> > +++ b/include/net/netfilter/nf_conntrack.h
+> > @@ -331,6 +331,7 @@ extern struct hlist_nulls_head *nf_conntrack_hash;
+> >   extern unsigned int nf_conntrack_htable_size;
+> >   extern seqcount_spinlock_t nf_conntrack_generation;
+> >   extern unsigned int nf_conntrack_max;
+> > +extern unsigned int nf_conntrack_gc_scan_interval_max;
+> >
+>
+> Could it be just int? so there is no need to cast it to s32 later?
 
-* v6.18.17 (no patches)
-Slab unreclaimable memory increases to 4.9G then levels off.
 
-* v6.18.17 + this patch + nft_set_rbtree: allocate same array size on updates
-Slab unreclaimable memory increases to 3.1G then levels off.
 
-* v6.18.17 + this patch + nft_set_rbtree: allocate same array size on updates +
- NFT_ARRAY_INITIAL_SIZE 1024
+Regarding the data type, I encountered the following compilation error
+when trying to address the signedness:
 
-Slab unreclaimable memory increases to 1.6G then levels off.
+"../../net/netfilter/nf_conntrack_core.c: In function 'gc_worker':
+../../include/linux/compiler_types.h:548:45: error: call to
+'__compiletime_assert_1027' declared with attribute error:
+clamp(next_run, (1ul * 250), gc_scan_max) signedness error"
 
-So looks like this patch is a huge improvement! One modification I was able to
-test was setting NFT_ARRAY_INITIAL_SIZE to 1024. With that change I was getting
-a memory profile similar to before this patch:
-- 7e43e0a1141d netfilter: nft_set_rbtree: translate rbtree to array for binary search
 
---chris
+>
+> >   /* must be called with rcu read lock held */
+> >   static inline void
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
+rack_core.c
+> > index 27ce5fda8993..54949246f329 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -91,7 +91,7 @@ static DEFINE_MUTEX(nf_conntrack_mutex);
+> >    * allowing non-idle machines to wakeup more often when needed.
+> >    */
+> >   #define GC_SCAN_INITIAL_COUNT       100
+> > -#define GC_SCAN_INTERVAL_INIT        GC_SCAN_INTERVAL_MAX
+> > +#define GC_SCAN_INTERVAL_INIT        nf_conntrack_gc_scan_interval_max
+> >
+> >   #define GC_SCAN_MAX_DURATION        msecs_to_jiffies(10)
+> >   #define GC_SCAN_EXPIRED_MAX (64000u / HZ)
+> > @@ -204,6 +204,9 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
+> >
+> >   unsigned int nf_conntrack_max __read_mostly;
+> >   EXPORT_SYMBOL_GPL(nf_conntrack_max);
+> > +
+> > +unsigned int nf_conntrack_gc_scan_interval_max __read_mostly =3D GC_SC=
+AN_INTERVAL_MAX;
+> > +
+> >   seqcount_spinlock_t nf_conntrack_generation __read_mostly;
+> >   static siphash_aligned_key_t nf_conntrack_hash_rnd;
+> >
+> > @@ -1568,7 +1571,7 @@ static void gc_worker(struct work_struct *work)
+> >                               delta_time =3D nfct_time_stamp - gc_work-=
+>start_time;
+> >
+> >                               /* re-sched immediately if total cycle ti=
+me is exceeded */
+> > -                             next_run =3D delta_time < (s32)GC_SCAN_IN=
+TERVAL_MAX;
+> > +                             next_run =3D delta_time < (s32)nf_conntra=
+ck_gc_scan_interval_max;
+> >                               goto early_exit;
+> >                       }
+> >
+>
+> READ_ONCE() is required IMHO as it can be modified from sysctl concurrent=
+ly.
+Done.
+>
+> > @@ -1630,7 +1633,7 @@ static void gc_worker(struct work_struct *work)
+> >
+> >       gc_work->next_bucket =3D 0;
+> >
+> > -     next_run =3D clamp(next_run, GC_SCAN_INTERVAL_MIN, GC_SCAN_INTERV=
+AL_MAX);
+> > +     next_run =3D clamp(next_run, GC_SCAN_INTERVAL_MIN, nf_conntrack_g=
+c_scan_interval_max);
+> >
+>
+> Likewise here, READ_ONCE() recommended..
+
+Done. I have also added a local variable gc_scan_max to avoid multiple
+load instructions since it is referenced twice in the code.
+
+>
+> Thanks,
+> Fernando.
