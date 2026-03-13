@@ -1,20 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2D333A6B95;
-	Fri, 13 Mar 2026 15:06:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 344BC3A8759;
+	Fri, 13 Mar 2026 15:06:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773414387; cv=none; b=Wn6/MHgB2Ie+2j5S72pXLuc0osMYzVl9GpiVxNwOXwJqEWg5Gw7sQL73DCjBK+6jmiVWRrxYIC5pOJ9G8eM5uRZ1Fw4U2ITcX/8SaAFL/5h65egjFZgt/sMlaC7Y9Y0sVEBW2THXV9r8mCY2ffWJSPoYssW9JkGlmx9QA3zF48M=
+	t=1773414390; cv=none; b=nzoErRhPIFPwG41WaxMX6QMSrdD+al1eYiaiuac+BHg21W2ZrA969K3xcXq2zFph6CboD69vawYnoVDCJn/GVeEvO4Fyh7n7Bdwru6sbKy/qjbvdhcOY2tNUY7U0N6WUwFmbKtWWtUVSN1fW9bbAX9WT/gYC72GicOW/TLwrR3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773414387; c=relaxed/simple;
-	bh=mxE/FP0WPQNqDu2SQfhVYa4SidG+iYAPdbY+issJl3Q=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Tbut7eDN7FlCSEMuyWHk//nsmS8z3aHvs8Qnsez0SY9GYYAQh/TZoTleX2Rc+9nLVBYav6cvopvb6kmHkqoiDG+Rx4rtPU0zdbJVxhl2HUxOoJu3MmMWKQHQhiu5iNxqi10En33VKFBii7Xmnod0tT3gI0UMibCGPuR4skQguxk=
+	s=arc-20240116; t=1773414390; c=relaxed/simple;
+	bh=+lQuGfnv9UI3cFP8NpLhqFPHWtIrlgyS84kaZyiCQmk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=TddpQgwETMlqvdo9HgRoWcrv4eiHAGp5OiPd9xjGcWBzV2aMEcCDVszDpVxVL+Jh5LHXH8/sUx5CH0Qk+rAjbDACeo4L9BWVRsfkO9CF4ejjHQvdHhl6qfVL8cRJHOSGnFAARLYDk2GyA9IGEObiOPIse8AFf+iYepcfO3IijD0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8F8216047A; Fri, 13 Mar 2026 16:06:21 +0100 (CET)
+	id E15C560492; Fri, 13 Mar 2026 16:06:25 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -23,105 +24,132 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 00/11] netfilter: updates for net
-Date: Fri, 13 Mar 2026 16:06:03 +0100
-Message-ID: <20260313150614.21177-1-fw@strlen.de>
+Subject: [PATCH net 01/11] netfilter: ctnetlink: fix use-after-free in ctnetlink_dump_exp_ct()
+Date: Fri, 13 Mar 2026 16:06:04 +0100
+Message-ID: <20260313150614.21177-2-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260313150614.21177-1-fw@strlen.de>
+References: <20260313150614.21177-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Hyunwoo Kim <imv4bel@gmail.com>
 
-This is a much earlier pull request than usual, due to the large
-backlog.  We are aware of several unfixed issues, in particular in
-ctnetlink, patches are being worked on.
+ctnetlink_dump_exp_ct() stores a conntrack pointer in cb->data for the
+netlink dump callback ctnetlink_exp_ct_dump_table(), but drops the
+conntrack reference immediately after netlink_dump_start().  When the
+dump spans multiple rounds, the second recvmsg() triggers the dump
+callback which dereferences the now-freed conntrack via nfct_help(ct),
+leading to a use-after-free on ct->ext.
 
-The following patchset contains Netfilter fixes for *net*:
+The bug is that the netlink_dump_control has no .start or .done
+callbacks to manage the conntrack reference across dump rounds.  Other
+dump functions in the same file (e.g. ctnetlink_get_conntrack) properly
+use .start/.done callbacks for this purpose.
 
-1) fix a use-after-free in ctnetlink, from Hyunwoo Kim, broken
-   since v3.10.
-2) add missing netlink range checks in ctnetlink, broken since v2.6
-   days.
-3) fix content length truncation in sip conntrack helper,
-   from Lukas Johannes Möller.  Broken since 2.6.34.
-4) Revert a recent patch to add stronger checks for overlapping ranges
-   in nf_tables rbtree set type.
-   Patch is correct, but several nftables version have a bug (now fixed)
-   that trigger the checks incorrectly.
-5) Reset mac header before the vlan push to avoid warning splat (and
-   make things functional). From Eric Woudstra.
-6) Add missing bounds check in H323 conntrack helper, broken since this
-   helper was added 20 years ago, from Jenny Guanni Qu.
-7) Fix a memory leak in the dynamic set infrastructure, from Pablo Neira
-   Ayuso.  Broken since v5.11.
-8+9) a few spots failed to purge skbs queued to userspace via nfqueue,
-   this causes RCU escape / use-after-free. Also from Pablo. broken
-   since v3.4 added the CT target to xtables.
-10) Fix undefined behaviour in xt_time, use u32 for a shift-by-31
-    operation, not s32, from Jenny Guanni Qu.
-11) H323 conntrack helper lacks a check for length variable becoming
-    negative after decrement, causes major out-of-bounds read due to
-    cast to unsigned size later, also from Jenny.
-    Both issues exist since 2.6 days.
+Fix this by adding .start and .done callbacks that hold and release the
+conntrack reference for the duration of the dump, and move the
+nfct_help() call after the cb->args[0] early-return check in the dump
+callback to avoid dereferencing ct->ext unnecessarily.
 
-Please, pull these changes from:
-The following changes since commit 99600f79b28c83c68bae199a3d8e95049a758308:
+ BUG: KASAN: slab-use-after-free in ctnetlink_exp_ct_dump_table+0x4f/0x2e0
+ Read of size 8 at addr ffff88810597ebf0 by task ctnetlink_poc/133
 
-  mpls: add missing unregister_netdevice_notifier to mpls_init (2026-03-12 19:25:59 -0700)
+ CPU: 1 UID: 0 PID: 133 Comm: ctnetlink_poc Not tainted 7.0.0-rc2+ #3 PREEMPTLAZY
+ Call Trace:
+  <TASK>
+  ctnetlink_exp_ct_dump_table+0x4f/0x2e0
+  netlink_dump+0x333/0x880
+  netlink_recvmsg+0x3e2/0x4b0
+  ? aa_sk_perm+0x184/0x450
+  sock_recvmsg+0xde/0xf0
 
-are available in the Git repository at:
+ Allocated by task 133:
+  kmem_cache_alloc_noprof+0x134/0x440
+  __nf_conntrack_alloc+0xa8/0x2b0
+  ctnetlink_create_conntrack+0xa1/0x900
+  ctnetlink_new_conntrack+0x3cf/0x7d0
+  nfnetlink_rcv_msg+0x48e/0x510
+  netlink_rcv_skb+0xc9/0x1f0
+  nfnetlink_rcv+0xdb/0x220
+  netlink_unicast+0x3ec/0x590
+  netlink_sendmsg+0x397/0x690
+  __sys_sendmsg+0xf4/0x180
 
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-03-13
+ Freed by task 0:
+  slab_free_after_rcu_debug+0xad/0x1e0
+  rcu_core+0x5c3/0x9c0
 
-for you to fetch changes up to f173d0f4c0f689173f8cdac79991043a4a89bf66:
+Fixes: e844a928431f ("netfilter: ctnetlink: allow to dump expectation per master conntrack")
+Signed-off-by: Hyunwoo Kim <imv4bel@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_conntrack_netlink.c | 26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-  netfilter: nf_conntrack_h323: check for zero length in DecodeQ931() (2026-03-13 15:31:15 +0100)
-
-----------------------------------------------------------------
-netfilter pull request nf-26-03-13
-
-----------------------------------------------------------------
-Eric Woudstra (1):
-      netfilter: nf_flow_table_ip: reset mac header before vlan push
-
-Florian Westphal (2):
-      netfilter: conntrack: add missing netlink policy validations
-      netfilter: revert nft_set_rbtree: validate open interval overlap
-
-Hyunwoo Kim (1):
-      netfilter: ctnetlink: fix use-after-free in ctnetlink_dump_exp_ct()
-
-Jenny Guanni Qu (3):
-      netfilter: nf_conntrack_h323: fix OOB read in decode_int() CONS case
-      netfilter: xt_time: use unsigned int for monthday bit shift
-      netfilter: nf_conntrack_h323: check for zero length in DecodeQ931()
-
-Lukas Johannes Möller (1):
-      netfilter: nf_conntrack_sip: fix Content-Length u32 truncation in sip_help_tcp()
-
-Pablo Neira Ayuso (3):
-      nf_tables: nft_dynset: fix possible stateful expression memleak in error path
-      netfilter: nft_ct: drop pending enqueued packets on removal
-      netfilter: xt_CT: drop pending enqueued packets on template removal
-
- include/net/netfilter/nf_tables.h       |  6 +--
- net/netfilter/nf_conntrack_h323_asn1.c  |  4 ++
- net/netfilter/nf_conntrack_netlink.c    | 28 +++++++++-
- net/netfilter/nf_conntrack_proto_sctp.c |  3 +-
- net/netfilter/nf_conntrack_sip.c        |  6 ++-
- net/netfilter/nf_flow_table_ip.c        |  1 +
- net/netfilter/nf_tables_api.c           | 25 +++------
- net/netfilter/nft_ct.c                  |  4 ++
- net/netfilter/nft_dynset.c              | 10 +++-
- net/netfilter/nft_set_rbtree.c          | 71 ++++---------------------
- net/netfilter/xt_CT.c                   |  4 ++
- net/netfilter/xt_time.c                 |  4 +-
- 12 files changed, 75 insertions(+), 91 deletions(-)
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index c9d725fc2d71..65aa44a12d01 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3212,7 +3212,7 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ {
+ 	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
+ 	struct nf_conn *ct = cb->data;
+-	struct nf_conn_help *help = nfct_help(ct);
++	struct nf_conn_help *help;
+ 	u_int8_t l3proto = nfmsg->nfgen_family;
+ 	unsigned long last_id = cb->args[1];
+ 	struct nf_conntrack_expect *exp;
+@@ -3220,6 +3220,10 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 	if (cb->args[0])
+ 		return 0;
+ 
++	help = nfct_help(ct);
++	if (!help)
++		return 0;
++
+ 	rcu_read_lock();
+ 
+ restart:
+@@ -3249,6 +3253,24 @@ ctnetlink_exp_ct_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 	return skb->len;
+ }
+ 
++static int ctnetlink_dump_exp_ct_start(struct netlink_callback *cb)
++{
++	struct nf_conn *ct = cb->data;
++
++	if (!refcount_inc_not_zero(&ct->ct_general.use))
++		return -ENOENT;
++	return 0;
++}
++
++static int ctnetlink_dump_exp_ct_done(struct netlink_callback *cb)
++{
++	struct nf_conn *ct = cb->data;
++
++	if (ct)
++		nf_ct_put(ct);
++	return 0;
++}
++
+ static int ctnetlink_dump_exp_ct(struct net *net, struct sock *ctnl,
+ 				 struct sk_buff *skb,
+ 				 const struct nlmsghdr *nlh,
+@@ -3264,6 +3286,8 @@ static int ctnetlink_dump_exp_ct(struct net *net, struct sock *ctnl,
+ 	struct nf_conntrack_zone zone;
+ 	struct netlink_dump_control c = {
+ 		.dump = ctnetlink_exp_ct_dump_table,
++		.start = ctnetlink_dump_exp_ct_start,
++		.done = ctnetlink_dump_exp_ct_done,
+ 	};
+ 
+ 	err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_MASTER,
 -- 
 2.52.0
+
