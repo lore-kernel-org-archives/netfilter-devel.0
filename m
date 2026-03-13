@@ -1,113 +1,132 @@
-Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E7AC3CC9F2
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 20:13:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773432829; cv=none; b=pgFLi+lUFUlKwQUTnT3Ss5qxzVOhpT9qmwAWA/jOplJk4CKH9lkyhry7F0rzWAK4IWvuMXBkl9Q3WCT+yrudTgEj8a8aAr1JF0nCSxw9l3TIEXNvcSfaXzqokVjlMNagd3UoEhRwWT8vKrDkVwDjaqz5jufflqo1wnNH0o+gzN4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773432829; c=relaxed/simple;
-	bh=I281tWugee+et9EQGCIEYI6WwRIDABseU9N1y+8tlao=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=fUYRq6u5rASB8qWQVZ6UIVLjrR/k05JurqkLclE/L2IGSU+/ZhQ7DLwFFJ9/wl1eLw7ZMoSd0nTW9XGdCAJgX9q9L4gc5CZtQUcZ64ZtXKv1WA1AnNUgsYwzo9SjRR4I+wvYibo8q7MhIGXmsKfhMqXnYXTz/fLermatOZBDrlU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=W2rJGxxZ; arc=none smtp.client-ip=209.85.219.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F833E3162
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 22:55:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.167.52
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1773442552; cv=pass; b=nZM15KhPVMxcJheNBtW/zgoMSc9qHbl7h1qyc7HEQ8DFgaOHgFOPjLB4PQ4A5I0G84wpjr63RaYkINSi2jRVsCgbHMzDKlRJJ0Boyo+037Bp7RQB4/s9fgpbLwS2itPQ5TOI2CQ0VzbZmg7F1xb7bqS0wegS+O0wyNRG9qGkZRE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1773442552; c=relaxed/simple;
+	bh=1Ty0xY5cZA829vovRzYzuYeyQoqsHZ6EMyQIZz33Oxo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=SUxaMbCuAjGB3RZIzWdLyEymTsUnhp4nZ0ewiUtXggGU6Vnv3vaIYzB3dAA+i//+C3YvOXvTFbNUY3E8SYVDhxoTG3v4H9Gpgyv/u2nCcYSRsV80Migf1mtNc+cwnSgNBPQnBg508HVxvoquryjFcxCtdlbTOpC/ZK8cZeicqWA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com; spf=pass smtp.mailfrom=arista.com; dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b=LvQ7+Aoj; arc=pass smtp.client-ip=209.85.167.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=arista.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arista.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W2rJGxxZ"
-Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-899fb030812so35794806d6.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 13:13:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=arista.com header.i=@arista.com header.b="LvQ7+Aoj"
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-59e5aa4ca41so2409195e87.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 15:55:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1773442549; cv=none;
+        d=google.com; s=arc-20240605;
+        b=cB25uEX02GdFXWEdrVqPATDOlKznQGMfR2p223ReHYxVlR/TI1Uctk5dEiVMYn0IzP
+         E3zMRcenc901+uaHL/X6uw4hzfHGzxWyF1O37yXWa+3bmDe/ykdstcbUyBRQ9QPoIyjr
+         DBx8YeDY+WHPWodKkT82/LOSAMa8RCS4RLwrNf64I/4Af515JZQP5NMBrEuiT4LPFPAJ
+         Tsxnqd5Lr412uMP7NEUaO2kHI6i8VNLWFj45ChcUmZxTYpdbdgNNh4FxYVDeiTaPon5h
+         xJDnnfnzcnRLUI4KdBcZmo8lYUctDfz4KOMpXFkBIzfPZhdkzLQgX3HhMArTn5zEqgV5
+         bm1A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=W3QNx1W8EImhWG5G2h7xr/vJQj2kmarfg6d7Z6ksV9w=;
+        fh=8bppaUUFf8s6PJ+nouSnppNlIzqU0D2Y37UyDA+stGo=;
+        b=exGOLY0lX7FKaWsv9xLi9IMJKXe5g9D7zHbid3lug3cSV3qHv64FxPZxXev/SdpLe5
+         1D0LLEZ/BFERZxz5mRroHr65XdX7XoKVvnUQS4l3FotnUELiEkii7bKbELlNvMVwmGW4
+         SGpWXapENn5tIITt5GTWogi7Ene5JDsW3HxahsGyCkQlnYtAkFbHC2cNOwqWKSz2ZlJF
+         JvH3M2cBcMEvKDqu0SF0if7/IJbdMEPD1K+aX3GNXjZN8ZcmMqE+7be08iCg8hFkHBsJ
+         j0DUmpVtBC1BSCf56xK8UI2YsaW9dnSpkrsTKHSYAb9OQfpvdN0BBVXresaWhFGOomEM
+         aqqQ==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773432827; x=1774037627; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=/frZHKD2ro7xqrcvZseEqBamuQh4m16RGkZd0eaQ9jo=;
-        b=W2rJGxxZQYrUwSrVab+W3G3ys/pgryTv2neLMWe2deFeLtpws2Yyhvd1fr6D3XQ+Bi
-         kAnVw+g39J4oHIr8BZX0OPEH4Oka29WrW2ywOGfv/aKoYYkqd3ML92n6rkFaDbgxm9CD
-         b88+tosCz7MiGpZc6oxE11psWiUMq/QLiaUkY+ct/1JsbNxC9//yRkDeGrWkMtR65Kto
-         4Vvu3YMC/L6O4E3h0iQDTKGzswcKxMBobOFvxEJ263u9drqukNmJyf/cVvCg7H6G9Lew
-         dj9nCeWqE+nDkCXYbQYiNQwbLAe1Ajnux5QvoXG2OOjFqIMpNcC9mtYqIJxYcD8HQJCg
-         WxjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773432827; x=1774037627;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=arista.com; s=google; t=1773442549; x=1774047349; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=/frZHKD2ro7xqrcvZseEqBamuQh4m16RGkZd0eaQ9jo=;
-        b=gd8ux7laOlmAnCrztYWPTzIxNIbZyMQrH+J8xVvS1fAx9SKmnZ7NkRhR5m8rTzFokc
-         A5/d8SLrUxf2hVQyb8+FTd4CnmJsviDEZf90oAHdsHdP9RnAyiXq6Jl707serHCTKFdg
-         ua6ZtmBOK2eUxq1ZTAu5vJgyBt51bWYknlZ9QNY0F7Eb+ixFOhsxjDidAWoLiQuNUYSr
-         3oAo5LDMV/ME3bmlDdMj2IU5F7xneeOlPllo94s7awc8ExJAunpyaWaYdOUNMmMPHzS0
-         CK5DLHE5RTnjMZH/fZ+0f2OBMRyuG8u97txm09kewjQn4TVkbJAygeDhSfa4d6A2WceX
-         VqaA==
-X-Gm-Message-State: AOJu0YymdP7EnoVn5KRZ6IcQnuBknYfpBTusT2Kzd0JcPOQSLy76RW2T
-	tsCRXNIJxg1pxDQFyTIw6JNeVWQI2FK5BaezpFbNnlV3zAs4EOFfocBB
-X-Gm-Gg: ATEYQzwkHlwujOfMLydusDgxcYyDG7rZCFEV2d19KtGLOfgB8Xjlp7ncZzyYHEuItht
-	hyIuUZlggYz2y2TB8/Yi99lB5vxU3fAIr9MbcHSRu1/8bo4x8iSeUf7gemgrTlzydMGXjoPOKvq
-	80GKm9F1XNz7pzscTDDEf5Y8K/foxSZh2qafCBbAi1kApEituuJ2iszouiIqV4aAH615bD+nXwm
-	t1eZN/8fUOVDyKFd9QQ6eTeREdLjcBZul/KT13gZ1ODJ3jAXqex66rjKz+b4WhW/U6SDpEWHiU5
-	9Z0EmA2XLYvg4vY3tWCI2GP/lHzpG3TLm5PXeO5IHZWqPGgNO5jtewR3zw1+eMCkNSvCudj2H3K
-	r+sUC9g8vrRsoH9ipAkc8tIV20YL3ibvONuA9IU4xM+vVvzyZSf4Zbh1rqDRODkt7S5z3j957kw
-	PgP3h0ko0bsBTqkNeGrmp/vayM8xZPN7VjQvgoS6PHiSZ2
-X-Received: by 2002:a05:6214:23ce:b0:89a:171e:2f3c with SMTP id 6a1803df08f44-89a81f7304dmr68901186d6.31.1773432826967;
-        Fri, 13 Mar 2026 13:13:46 -0700 (PDT)
-Received: from 192-222-50-213.ll.local ([192.222.50.213])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-89a7995b712sm39485846d6.31.2026.03.13.13.13.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Mar 2026 13:13:46 -0700 (PDT)
-From: Jenny Guanni Qu <qguanni@gmail.com>
-To: pablo@netfilter.org,
-	kadlec@netfilter.org
-Cc: netfilter-devel@vger.kernel.org,
-	fw@strlen.de,
-	Jenny Guanni Qu <qguanni@gmail.com>
-Subject: [PATCH] netfilter: nf_nat_sip: validate exp->dir in nf_nat_sip_expected()
-Date: Fri, 13 Mar 2026 20:13:46 +0000
-Message-Id: <20260313201346.562476-1-qguanni@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        bh=W3QNx1W8EImhWG5G2h7xr/vJQj2kmarfg6d7Z6ksV9w=;
+        b=LvQ7+AojIQWbWslVxV6LZp++FCtfugv49r69G25dyddJVQ9fPkxdSjNimICXT1G3RT
+         yteZJtN4o43lx5JI9ETEBiPHRQUuYuVt+Y2bqPbCdA6ZSX8ic2t62emO7/JsN1LrfnP0
+         GKHCPYWxD5DiwyI7H4bda8dma8dX3n+0KRrUQs5iNgQEFZSSBb8gtD2DWkdT15jp8bC0
+         VufTk410tXmf+a+ZS9Z3onFFt4HURkznVec9CNUXuj9a2omod4iiPXOFMka6sbFzUrCg
+         xsia3X3JlB+QfnmIuBi4pwgW5SlGehvapj4envNOBrZpXA+IOgsPpVRGRzEilcV1HeZB
+         SYFg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773442549; x=1774047349;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=W3QNx1W8EImhWG5G2h7xr/vJQj2kmarfg6d7Z6ksV9w=;
+        b=gf75xZKFBiCLgnbxo4DyKcTib3Otte2KuCx0gygPckkLVM7Oh9FbqBuyy92knNpajV
+         mUQEP/aBCzpX75qar+88/Y5zQIO0B/F6AcjSl0wPxwVQYQui227hEFOmM5TV4UzMXwkt
+         RLTLFr9RbsgUL6LO8oyqEzipdcwvrmzJOwnaCT3uQhMSiNrNPeOzLnaaTvJQW5T2rp+t
+         b3ulVZVnexS4of/3w/QyRhW4Xb9ff3bu6s/hjHKzSPv5/NRurYDRvfDh0fT/4HZvQniz
+         qpFFAiXXX+TF3e2QMw9tEm187F8976cHIXihjRzoum56dPnSlw688z2RZI9Fx/wf4H8m
+         2I8w==
+X-Forwarded-Encrypted: i=1; AJvYcCUUz11VPxEIQ99s1i8J787tUduu2XjG/tvUsRR5i4uLh+JYuXSUhJrOcVCtOmKpj+jox8m1QwzaISvGBJ7QCdo=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxq+cpbDiourmrQ0f6ozmn1Zz5hj0QcwBCQANcP4ju01BDOegBd
+	g8HBOqKmByUJd/R97DTqnWMRrFIcZQOhoc8Zpe9vHNXQgMs7Q+V6iFG2h09qktMUYiE1rMBT9jI
+	qPoeYMhxTO1HZDNW9MLJsIFe9DzUzPcGjw7BE2IFG
+X-Gm-Gg: ATEYQzy/M+m88ZYWZaT6iiyYsifL54llXdedbOSQEVeGm7Uk8jlzqTA3fN1tobw6uwF
+	btXHX7l65fLWR4oM8frSKBvqor7Yni8rrBSflt9dxEzfPVS38ohYvsbRgZ+ZkmJ8GJ353HYuZ4c
+	4hugCkVX+a3d3MPPvKxac9ZkzZgKsBpW7hyNX3+hCk0t4CRnu8tFa2SZZtoRu084utJHyJJ0Yny
+	nwi9WpbKE2rHX/o1gD1d1HfL14104lJkrLWzQj3r75MbrKySfv4ix+NM6gkY7WXlKIpdxpNYntW
+	y43kEvEwSYhO+44hSTnqzXJcTmKNV//9jCkKIAB0IA==
+X-Received: by 2002:ac2:41c4:0:b0:5a1:227e:2753 with SMTP id
+ 2adb3069b0e04-5a162705a51mr1219058e87.7.1773442549289; Fri, 13 Mar 2026
+ 15:55:49 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260312223157.25083-1-panchamukhi@arista.com>
+ <abNxz9T_XB-JtBCj@strlen.de> <abPVr5RtRmZeyszb@chamomile>
+In-Reply-To: <abPVr5RtRmZeyszb@chamomile>
+From: Prasanna Panchamukhi <panchamukhi@arista.com>
+Date: Fri, 13 Mar 2026 15:55:38 -0700
+X-Gm-Features: AaiRm53c8uPZmtPIEF5jDrLrZEH8Dcp_VPBm6r1Z8iuHGq0Ct2Kh-ySBjwFklDE
+Message-ID: <CACqWiXBYJgM3S+QfON-fJQ=dPX3r21CVMN9rAXcxM+hi=DzydA@mail.gmail.com>
+Subject: Re: [PATCH net-next v2] netfilter: conntrack: expose
+ gc_scan_interval_max via sysctl
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org, 
+	"David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Simon Horman <horms@kernel.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Shuah Khan <skhan@linuxfoundation.org>, Phil Sutter <phil@nwl.cc>, 
+	netdev@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, coreteam@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-nf_nat_sip_expected() uses exp->dir to index into the 2-element
-tuplehash[] array without bounds checking. If exp->dir has an
-out-of-range value, this causes a slab-out-of-bounds read.
+On Fri, Mar 13, 2026 at 2:15=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.=
+org> wrote:
+>
+> On Fri, Mar 13, 2026 at 03:09:19AM +0100, Florian Westphal wrote:
+> > Prasanna S Panchamukhi <panchamukhi@arista.com> wrote:
+> > > The conntrack garbage collection worker uses an adaptive algorithm th=
+at
+> > > adjusts the scan interval based on the average timeout of tracked
+> > > entries.  The upper bound of this interval is hardcoded as
+> > > GC_SCAN_INTERVAL_MAX (60 seconds).
+> >
+> > I already said that I'm not keen on this approach.
+> > Its a 'we can't do any better' type "solution".
+> >
+> > If anything I'd be more inclined to make a change that allows to
+> > more easily override the next_run computation via bpf.
+>
+> It is regrettable that the request for this knob appears to be
+> intended to enable a potentially proprietary hardware offload
+> extension, implemented through a userspace daemon and a proprietary
+> SDK.
+>
+> It's 2026, there is plenty of infrastructure to offload the connection
+> tracking upstream, such as act_ct.c and the flowtable.
 
-KASAN reports:
+Thank you Pablo, for the suggestion. We will look into adopting the
+hardware offload feature soon.
 
-  BUG: KASAN: slab-out-of-bounds in nf_nat_sip_expected+0x804/0x938
-  Read of size 8 at addr ffff0000d113e3b8
-  The buggy address is located 72 bytes to the right of
-   allocated 240-byte region
-
-Add a bounds check to ensure exp->dir is less than IP_CT_DIR_MAX.
-
-Fixes: 9a6648210687 ("netfilter: nf_nat: support IPv6 in SIP NAT helper")
-Reported-by: Jenny Guanni Qu <qguanni@gmail.com>
-Tested-by: Jenny Guanni Qu <qguanni@gmail.com>
-Signed-off-by: Jenny Guanni Qu <qguanni@gmail.com>
----
- net/netfilter/nf_nat_sip.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index cf4aeb299bde..48b1b2d70a1e 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -326,6 +326,9 @@ static void nf_nat_sip_expected(struct nf_conn *ct,
- 	/* This must be a fresh one. */
- 	BUG_ON(ct->status & IPS_NAT_DONE_MASK);
- 
-+	if (exp->dir >= IP_CT_DIR_MAX)
-+		return;
-+
- 	/* For DST manip, map port here to where it's expected. */
- 	range.flags = (NF_NAT_RANGE_MAP_IPS | NF_NAT_RANGE_PROTO_SPECIFIED);
- 	range.min_proto = range.max_proto = exp->saved_proto;
--- 
-2.34.1
-
+Thanks,
+Prasanna
