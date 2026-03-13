@@ -1,133 +1,229 @@
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+Received: from mail-qt1-f179.google.com (mail-qt1-f179.google.com [209.85.160.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB5D73DA5DB
-	for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 18:01:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E411E1C02
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 19:52:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773424900; cv=none; b=kdVUvtfNYQIDa2kzYVN1rImktT4y8JQOixM56QmZnBdzuX/B6M9H17jYiqDxaZzhSKCDyjENczXaB2AhM8Z0JIp4c/uj6CmZW1Yw1hUXr9lS3WAaUwKSO+ys8RvMLnUpp2/tOrsycj0ZUv788f/O4FviNLjaRtiRfzKwZkMcjVM=
+	t=1773431580; cv=none; b=UJ8CIhY2317bcFOaz6WkonLW6FoS6C4BUruYRjSOxN21JgR+a0pMXGVuPGb+gYXh/IA+ef8NUyc8cxwIQZFxm3U9KEfCdN7Iba4zoQDndugEhfC/qjUoSIXHGEEWlXsQFMFn/H9i8k2Ft1oxYI2EE3AtwFCY7gK1a/+NADzfMH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773424900; c=relaxed/simple;
-	bh=MWXEFQ381SLQSXiwYPD6PgTvLJBhNSUHPAJpUG638dI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=LgoXSe+r7vH3KTYORj+VR19pDr6sAH/VlUCs/QRPcHu/31C3pEZc1t0mE/UWcDcmRO8NoP3g8IHoREoj8ZIvFmieDqV4yjhA6EucAZkt0CXhF4+AcawbOQYq8mr2Z8cEQBtXkislU/11vd1PwKHzgXzqDq2J3iROjI/ZBdrh2nQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IkBQYwHq; arc=none smtp.client-ip=209.85.128.182
+	s=arc-20240116; t=1773431580; c=relaxed/simple;
+	bh=sZibJWE0HCqTUkIBkF0n6W5X0JjQhRSFWDZywKQo9cI=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=mS0i26WfNMcgArWPXnAy4EwdkkZEIf8qggZSbukBCB/AftGMcCNsjFz3tOAOOfHyCjufhg/KJwypuCbIYQQgBMkouQGVrStjuXWunEtx5Ij4kq332Fz0JFUDyVjmHH7mupekXqUCvkakl3ZQqj6smiFc6Zl/x6IK7diisFZom8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AbCYRTVa; arc=none smtp.client-ip=209.85.160.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IkBQYwHq"
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-79863ab8478so26968867b3.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 11:01:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AbCYRTVa"
+Received: by mail-qt1-f179.google.com with SMTP id d75a77b69052e-506bcb23a78so21417431cf.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Mar 2026 12:52:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773424899; x=1774029699; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1773431577; x=1774036377; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=MDVR6LO95DY7vyobG5JaDyJauzh65mLzZY7eX52aAWM=;
-        b=IkBQYwHqaHSHPu+6JjTmwo+VWeLZUhwwGliyMuoa2dHFK9guFuF80n6s6Q681+14Ni
-         t986a79tnycPyxYSgtJFM+NUhBzWVdsoAiioeiGFlJZxDR1hY34+0BlFn4bmO0J/aWmY
-         GqHs8ukPG+wCPH/md/l1u5FNRjhzDvA3OzZYX+F68+FSZ2xaw9Wlywsek+hN7Hc3zt78
-         LXtJHEKOrxgHXHvhZN9EIMRNeQ+3s/A9ppDcEjIBf0oY+gkvPxZEcPFHukBVDLIhauAD
-         mkdFC4GEBnIpK+zC1+o+1KX/VQRea59F0AjgJrL8isTA5l1n9SgQlNHBRsydWLqZTVP5
-         c1/g==
+        bh=tg7D+p+O+2maaF7jwWb/fy7d1h+QUd3PiYZbn8v4whU=;
+        b=AbCYRTVa+a9zQIiPVa+TcpblD2NHN8xZ+aLnAkKNe8jCZoTRig4kMbjD42leFaW6IA
+         RRvVnzfc7v5LLXIlLPus/EPoUhE4Q3Ie8B7QIFGdySwH4evC0U8IYrLqE3bZZ0+XnRuO
+         NMMw9bGnS04DyrfZ9BakTuKk7feilkjSRA3zBUwd8XckuxRxjjNnRvQvaUOzIn0pTtaq
+         O9vyI5+To0VgBKevaC3jJsnHfVvfmZqeDc8t0uQB9mlcWCNoRALBz1iMgGv3kQPVsza3
+         iP3xtBRWBjmPzhY736VGrxrP60eBv66hNRNboXK3SqLCe+w6BrcEbvm09YEb23Ou85Vw
+         1hmw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773424899; x=1774029699;
+        d=1e100.net; s=20251104; t=1773431577; x=1774036377;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=MDVR6LO95DY7vyobG5JaDyJauzh65mLzZY7eX52aAWM=;
-        b=gVUvz7S+X28bI9E62k7WrySuBrFX/AnpQ2OQdERufJgDj96McRmwkiwcUses55sIdN
-         qeYWYNBEF2zlBHOYx+zfmE6tiPg/sMj4q3WneAvvnkhptzyhimxfsgoNhBg+BnC7x+Cn
-         GDKT4S014heJu7fAsxKLuK3KniE4w4GwYUsoTnOGIV+5YSn5LS7ZM9hcBw+QvOPy8XHU
-         hQPFCwBBcpCmASjQJJ2d1nQ9EcDm3xVSaUuTCpt/+u0uFlRKXKICnPCg5AXkX3rhTczd
-         JROCe9nwaN5+Ii2XeYPEb1Csz2uR+TuU/xlfAmjC/qYKzauRzGTnEUGRttE6NPP0ugks
-         0SGQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVtJ/ruGWMUDjEXT9LnC93e2Z4zHM2/wuiSNnNe+nzcmew/fZp1yqQ1KHdyTdEHBZ97QOThLeEQjl6he6xcf9I=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyqxEM9ch6KOMI6S/hEecKHgATd28S7vPdrPglSRV2eM99QW96r
-	wX/tsaAyhxjzBHHlAYDvT5WjjZTFpjCjGfjaqOy/y1MxCV78jDJrNK/c
-X-Gm-Gg: ATEYQzxWUeC2wV64jJrA1ghvoG71GZVe1XegdsawnlX3DEwkmqPmAoBAjTAQECUATh2
-	DVjsqfbtlgr1bljTIy8MLi5zuEaUlEcqKSDN6JXRzf8lM99lpoyFpkEtHKcWtDPUw2AsGm1JC55
-	JlSzcOWBA/STbxQlTumujGVpcchtCU7gxVM81eI3hTg7xtCtv8Y5ZqtnGWCc426GjHlwCl/zaMu
-	kjpvEp9yPe3O8UDfrDlUJPgam++L6ji9dDOnRSDcxJPM0zgANCrUKrvGAzwmpsjpOYH59mdT/T3
-	9IhjJx9+zcSP3lQRW9VOwrnJmfpTnzSaw0snyMyd/E3vfc3DKt2RLxHQLsK3sIdT6bacYaenK0B
-	Ww63Sll1fPdyMR8z69mj6isl5ahg42HZuoeb03wstN3Lp6BOh+LMds8d4d5IeO85GjaNBFAzUCS
-	fbeFhU/qjPp6t+EzD+DbYjqZmajfYJ3x7Emf+VwPiCI7ZyMSXruH5T9Z7E5pQolrDNKshMKaMSC
-	jQDlq4GgidasKdG28cQyr8M9MhxnS9Pmg==
-X-Received: by 2002:a05:690c:c50d:b0:798:5333:ce0d with SMTP id 00721157ae682-79a1c08d4ebmr44869727b3.4.1773424898390;
-        Fri, 13 Mar 2026 11:01:38 -0700 (PDT)
-Received: from localhost.localdomain (99-47-159-199.lightspeed.mmphtn.sbcglobal.net. [99.47.159.199])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-79917f42c4csm49980107b3.52.2026.03.13.11.01.37
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 13 Mar 2026 11:01:37 -0700 (PDT)
-From: David Baum <davidbaum461@gmail.com>
+        bh=tg7D+p+O+2maaF7jwWb/fy7d1h+QUd3PiYZbn8v4whU=;
+        b=RBqU7BYUS2FZitsqqF2slKtCmqGqq4F18+zzUcLLJVK/7SjCVQBa/ppXfI/oIJiER1
+         ToISOWKBCOzcSwfaPcvCqOcls/0WqPtmoFsxlOQbPLTLEQ+RWpt9mTVjGSnsDxJbOzDr
+         7JJUf7AW5CAEBDYJSOshBSGe8UIalamG1cqIgv7StsN85ebz6Q7itLxdSxvDOpSfan5L
+         G2rECmmY6/o2+DYAmRx5SRV5jiWcQ+9W02rAyxnASMAzJz7THwdmge7KziEkGWKyEC9u
+         5hJgqnP7lHIFCz1uLQpJyXk58CHRvq+kEVOj7OfpeWol5Fih6V+7CKzyMh6TAG+kKffj
+         Fw5A==
+X-Gm-Message-State: AOJu0YxHRJ3w6brrpIHnKfD2hnYKOh4CNZ7kDo5RwZ3YlXdPrNt08lv1
+	WNc3+Z3bIXKLk2QUMVFpPz5UQGEp8/d9r3483uo8K6wAkOQbUAOJL4g/
+X-Gm-Gg: ATEYQzz2LGsW8uTEdTY/mZnrSNpiRHaz1yWzRBidrc2jrW9V9WR99rdv2uqh9N3pK6I
+	TxGJqDwUa4Ty0rZk4GK55udyufotTIQwS4SP3nr7H0AnGhe7MFL2GD1E1EQSc4GnHN5Vao+sUCF
+	dfhyTbsTdZVgpVUVO12PEKJRixYoUaRNHfHjFcssfbYqij/KMtCc2cXjNKIoaWZNSKOPR2N9h+Y
+	FSYzWGzXeYrtVjZvUe2OtfRXnJwrU9Fs6mwTzQvF2HqX+CkrL9YEvoyJf39PTpPa+L1zpBuQsMp
+	/Z0UtEafWX3aO8M5aVDypYeyiqUKc4DdfRTIiydmhqZZ0JNfeSIyLWMjjZ9O0/jK7A8JnHY01ur
+	cTOuAv9zbsMaE8w/OTNaAfX0GIrNpXJ/gjY7arZ4beSyNOOPizsTM72xH9WUFhLd0H1whWC81N0
+	9Mk7n/paFvHafokadGzz/2ubxWFNM/+hBf/RYwCg1tY90I
+X-Received: by 2002:ac8:5703:0:b0:509:1579:7c3b with SMTP id d75a77b69052e-50957e1b5f7mr57344381cf.51.1773431576786;
+        Fri, 13 Mar 2026 12:52:56 -0700 (PDT)
+Received: from 192-222-50-213.ll.local ([192.222.50.213])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-5093a14725fsm60605541cf.32.2026.03.13.12.52.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 13 Mar 2026 12:52:56 -0700 (PDT)
+From: Jenny Guanni Qu <qguanni@gmail.com>
 To: pablo@netfilter.org,
-	fw@strlen.de
-Cc: phil@nwl.cc,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	David Baum <davidbaum461@gmail.com>
-Subject: [PATCH] netfilter: ipset: harden payload calculation in call_ad()
-Date: Fri, 13 Mar 2026 13:01:32 -0500
-Message-ID: <20260313180132.75655-1-davidbaum461@gmail.com>
-X-Mailer: git-send-email 2.50.1
+	kadlec@netfilter.org
+Cc: netfilter-devel@vger.kernel.org,
+	fw@strlen.de,
+	klaudia@vidocsecurity.com,
+	dawid@vidocsecurity.com,
+	Jenny Guanni Qu <qguanni@gmail.com>
+Subject: [PATCH v2] netfilter: nf_conntrack_sip: add bounds-checked port parsing helper
+Date: Fri, 13 Mar 2026 19:52:56 +0000
+Message-Id: <20260313195256.2783257-1-qguanni@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-call_ad() computes the netlink error payload size with
-min(SIZE_MAX, sizeof(*errmsg) + nlmsg_len(nlh)), but min(SIZE_MAX, x)
-is always x, so the guard is a no-op.
+Replace unsafe port parsing in epaddr_len(), ct_sip_parse_header_uri(),
+and ct_sip_parse_request() with a new sip_parse_port() helper that
+validates each digit against the buffer limit, eliminating the use of
+simple_strtoul() which assumes NUL-terminated strings.
 
-Replace it with an explicit negative-length check and
-check_add_overflow() so the addition is validated before being passed
-to nlmsg_new().
+The previous code dereferenced pointers without bounds checks after
+sip_parse_addr() and relied on simple_strtoul() on non-NUL-terminated
+skb data. A port that reaches the buffer limit without a trailing
+character is also rejected as malformed.
 
-Signed-off-by: David Baum <davidbaum461@gmail.com>
+Based on a suggestion by Florian Westphal.
+
+Fixes: 05e3ced297fe ("[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper")
+Reported-by: Klaudia Kloc <klaudia@vidocsecurity.com>
+Reported-by: Dawid Moczadło <dawid@vidocsecurity.com>
+Suggested-by: Florian Westphal <fw@strlen.de>
+Tested-by: Jenny Guanni Qu <qguanni@gmail.com>
+Signed-off-by: Jenny Guanni Qu <qguanni@gmail.com>
 ---
- net/netfilter/ipset/ip_set_core.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_sip.c | 80 +++++++++++++++++++++++---------
+ 1 file changed, 57 insertions(+), 23 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index a2fe711cb5e3..11d3854d9b11 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -10,6 +10,7 @@
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/ip.h>
-+#include <linux/overflow.h>
- #include <linux/skbuff.h>
- #include <linux/spinlock.h>
- #include <linux/rculist.h>
-@@ -1763,13 +1764,18 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
- 		struct nlmsghdr *rep, *nlh = nlmsg_hdr(skb);
- 		struct sk_buff *skb2;
- 		struct nlmsgerr *errmsg;
--		size_t payload = min(SIZE_MAX,
--				     sizeof(*errmsg) + nlmsg_len(nlh));
-+		int nlmsg_payload_len = nlmsg_len(nlh);
-+		size_t payload;
- 		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
- 		struct nlattr *cda[IPSET_ATTR_CMD_MAX + 1];
- 		struct nlattr *cmdattr;
- 		u32 *errline;
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index d0eac27f6ba0..00ecb5df5b5d 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -181,6 +181,57 @@ static int sip_parse_addr(const struct nf_conn *ct, const char *cp,
+ 	return 1;
+ }
  
-+		if (nlmsg_payload_len < 0 ||
-+		    check_add_overflow(sizeof(*errmsg),
-+				       (size_t)nlmsg_payload_len, &payload))
-+			return -ENOMEM;
++/* Parse optional port number after IP address.
++ * Returns false on malformed input, true otherwise.
++ * If port is non-NULL, stores parsed port in network byte order.
++ * If no port is present, sets *port to default SIP port.
++ */
++static bool sip_parse_port(const char *dptr, const char **endp,
++			   const char *limit, __be16 *port)
++{
++	unsigned int p = 0;
++	int len = 0;
 +
- 		skb2 = nlmsg_new(payload, GFP_KERNEL);
- 		if (!skb2)
- 			return -ENOMEM;
++	if (dptr >= limit)
++		return false;
++
++	if (*dptr != ':') {
++		if (port)
++			*port = htons(SIP_PORT);
++		if (endp)
++			*endp = dptr;
++		return true;
++	}
++
++	dptr++; /* skip ':' */
++
++	while (dptr < limit && isdigit(*dptr)) {
++		p = p * 10 + (*dptr - '0');
++		dptr++;
++		len++;
++		if (len > 5) /* max "65535" */
++			return false;
++	}
++
++	if (len == 0)
++		return false;
++
++	/* reached limit while parsing port */
++	if (dptr >= limit)
++		return false;
++
++	if (port) {
++		if (p < 1024 || p > 65535)
++			return false;
++		*port = htons(p);
++	}
++
++	if (endp)
++		*endp = dptr;
++
++	return true;
++}
++
+ /* skip ip address. returns its length. */
+ static int epaddr_len(const struct nf_conn *ct, const char *dptr,
+ 		      const char *limit, int *shift)
+@@ -193,11 +244,8 @@ static int epaddr_len(const struct nf_conn *ct, const char *dptr,
+ 		return 0;
+ 	}
+ 
+-	/* Port number */
+-	if (*dptr == ':') {
+-		dptr++;
+-		dptr += digits_len(ct, dptr, limit, shift);
+-	}
++	if (!sip_parse_port(dptr, &dptr, limit, NULL))
++		return 0;
+ 	return dptr - aux;
+ }
+ 
+@@ -241,7 +289,6 @@ int ct_sip_parse_request(const struct nf_conn *ct,
+ {
+ 	const char *start = dptr, *limit = dptr + datalen, *end;
+ 	unsigned int mlen;
+-	unsigned int p;
+ 	int shift = 0;
+ 
+ 	/* Skip method and following whitespace */
+@@ -267,14 +314,8 @@ int ct_sip_parse_request(const struct nf_conn *ct,
+ 
+ 	if (!sip_parse_addr(ct, dptr, &end, addr, limit, true))
+ 		return -1;
+-	if (end < limit && *end == ':') {
+-		end++;
+-		p = simple_strtoul(end, (char **)&end, 10);
+-		if (p < 1024 || p > 65535)
+-			return -1;
+-		*port = htons(p);
+-	} else
+-		*port = htons(SIP_PORT);
++	if (!sip_parse_port(end, &end, limit, port))
++		return -1;
+ 
+ 	if (end == dptr)
+ 		return 0;
+@@ -509,7 +550,6 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ 			    union nf_inet_addr *addr, __be16 *port)
+ {
+ 	const char *c, *limit = dptr + datalen;
+-	unsigned int p;
+ 	int ret;
+ 
+ 	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
+@@ -520,14 +560,8 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ 
+ 	if (!sip_parse_addr(ct, dptr + *matchoff, &c, addr, limit, true))
+ 		return -1;
+-	if (*c == ':') {
+-		c++;
+-		p = simple_strtoul(c, (char **)&c, 10);
+-		if (p < 1024 || p > 65535)
+-			return -1;
+-		*port = htons(p);
+-	} else
+-		*port = htons(SIP_PORT);
++	if (!sip_parse_port(c, &c, limit, port))
++		return -1;
+ 
+ 	if (dataoff)
+ 		*dataoff = c - dptr;
 -- 
-2.50.1 (Apple Git-155)
+2.34.1
 
