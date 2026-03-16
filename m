@@ -1,180 +1,478 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2764B34DCCC;
-	Mon, 16 Mar 2026 08:14:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E590D3563C2
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2026 08:15:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773648880; cv=none; b=R6uifiXiLHKtekGvGFZHlgopOJ3rI64uioDzTcaLsOo1hjwDQdYn9uz1/8wPu5hy1Vbl5h/9hTcXOMiGDXjzZrCFhefjyE29gZBN2rDgpjekavyF28mS2+XVznrzblsPRvKiAmKRvzvy0i1bFrTKY7s3aRDQ3O1/JKrO9IOyhyk=
+	t=1773648911; cv=none; b=PhSRFr9+8zXcPKukV/8fmMIzLbbuabScJuBVVXktxrH2Gfa2Whw9ISs/gE+cpXslUtQvCr/3yqxkYoeqjbrKV74GntGONQvjs+MMQ/iAYwA3gLgGzNvOmqveyBpZ0BtwNOYVzbYLxIrqicPKZCbs3SxwZAC8wlgfnOuleiK3gN8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773648880; c=relaxed/simple;
-	bh=b2j34XojWvxpTyiKlIsQIbjuS132RtdM75MXanwM9Jg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=QWa92uK4pRXTeI7vFt6qAWy7ZiIaFFNDY+vm8z+OnjIsFZCB9Tm/pcNl2JEbCIpLEYE9OPnWXVbzpXfp49UByKcsRt4ITs8GNfc+r0wduobH2L+7J/nojnyS5KP3WBJ5SQFNQwh4XuYES888iKCbOjn7rLFL/w0ACqxPuGaDK4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uPUhZkxi; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uPUhZkxi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6A3FC19421;
-	Mon, 16 Mar 2026 08:14:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773648879;
-	bh=b2j34XojWvxpTyiKlIsQIbjuS132RtdM75MXanwM9Jg=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=uPUhZkxim25wWZXzpgbSheIErlUFekp/qR6UUT+slOHt30dzJ02wLS6A0zLY0L35I
-	 zdvD7s9jjev7+waAnavON1Ue4EktLPew7msSGk249SkKXGomKpxuGwXuMcR4R/NAF2
-	 Gpws6P0u5Xji6mO0x5prCS+S5S1sIVFt4hMeYf5w7kFJRK7p7gUCanvt8AaaFDwDAs
-	 GaiX8kbWZiMCgp92oTcuJKrU5N3pll2+c2AJiLBAD+xQgvrki8GjtXLlX2EdzPGqPz
-	 wQmBWVco/TW+eB0vSxDyMITwJFKXvJjTn0kBgWVjkO5LpQWCQHYSy3a85rminZ9Mmx
-	 u5knf9ffVS4bw==
-Message-ID: <e45a039e-3b91-466f-b89c-c1fdc3a8b2b4@kernel.org>
-Date: Mon, 16 Mar 2026 09:14:34 +0100
+	s=arc-20240116; t=1773648911; c=relaxed/simple;
+	bh=jFubTPN1km+wRFIepxu6h1i6rT/1rywglttAb5ePPpU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iaR0AgcE8D95U/gc6vwHDAAbvbkgL7pHohzP4XbLSZW1sJxemxr1LhV/HCwLljQkLPmrqC7k398PqyFvRwnsmlqPH6Ov7fmXw321vRs6bbKk3HvGNgA+7hxCpNxGbpKT9MduxwzQBxZBJkkO7RVk6NPf3qa2gD1OYWtsh89vfsw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 9BAD2605C3; Mon, 16 Mar 2026 09:15:06 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 1/2] netfilter: add more netlink-based policy range checks
+Date: Mon, 16 Mar 2026 09:14:50 +0100
+Message-ID: <20260316081458.43497-1-fw@strlen.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird Beta
-Subject: Re: [PATCH net 04/11] netfilter: revert nft_set_rbtree: validate open
- interval overlap: manual merge
-To: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org
-Cc: Paolo Abeni <pabeni@redhat.com>, "David S. Miller" <davem@davemloft.net>,
- Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
- netfilter-devel@vger.kernel.org, pablo@netfilter.org,
- linux-next@vger.kernel.org, Mark Brown <broonie@kernel.org>
-References: <20260313150614.21177-1-fw@strlen.de>
- <20260313150614.21177-5-fw@strlen.de>
-From: Matthieu Baerts <matttbe@kernel.org>
-Content-Language: fr
-Autocrypt: addr=matttbe@kernel.org; keydata=
- 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
- lzVbFe7fduHbABmYz9cefQpO7wDE/Q==
-Organization: NGI0 Core
-In-Reply-To: <20260313150614.21177-5-fw@strlen.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+These spots either already check the attribute range manually
+before use or the consuming functions tolerate unexpected values.
 
-(+cc linux-next)
+Nevertheless, add more range checks via netlink policy so we gain
+more users and avoid possible re-use in other places that might
+not have the required manual checks.  This also improves error
+reporting: netlink core can generate extack errors.
 
-On 13/03/2026 16:06, Florian Westphal wrote:
-> This reverts commit 648946966a08 ("netfilter: nft_set_rbtree: validate
-> open interval overlap").
-> 
-> There have been reports of nft failing to laod valid rulesets after this
-> patch was merged into -stable.
-> 
-> I can reproduce several such problem with recent nft versions, including
-> nft 1.1.6 which is widely shipped by distributions.
-> 
-> We currently have little choice here.
-> This commit can be resurrected at some point once the nftables fix that
-> triggers the false overlap positive has appeared in common distros
-> (see e83e32c8d1cd ("mnl: restore create element command with large batches" in
->  nftables.git).
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../linux/netfilter/nf_conntrack_common.h     |  4 ++++
+ net/netfilter/ipset/ip_set_core.c             |  2 +-
+ net/netfilter/nf_conntrack_netlink.c          |  6 +++---
+ net/netfilter/nf_conntrack_proto_tcp.c        |  9 ++++++---
+ net/netfilter/nf_tables_api.c                 | 19 ++++++++++++++-----
+ net/netfilter/nfnetlink_acct.c                |  2 +-
+ net/netfilter/nfnetlink_cthelper.c            |  2 +-
+ net/netfilter/nfnetlink_hook.c                |  2 +-
+ net/netfilter/nfnetlink_log.c                 |  4 +++-
+ net/netfilter/nfnetlink_queue.c               |  2 +-
+ net/netfilter/nft_compat.c                    |  2 +-
+ net/netfilter/nft_connlimit.c                 |  2 +-
+ net/netfilter/nft_ct.c                        |  2 +-
+ net/netfilter/nft_dynset.c                    |  3 ++-
+ net/netfilter/nft_exthdr.c                    |  2 +-
+ net/netfilter/nft_inner.c                     |  2 +-
+ net/netfilter/nft_limit.c                     |  2 +-
+ net/netfilter/nft_log.c                       |  2 +-
+ net/netfilter/nft_osf.c                       |  2 +-
+ net/netfilter/nft_payload.c                   |  2 +-
+ net/netfilter/nft_queue.c                     |  2 +-
+ net/netfilter/nft_quota.c                     |  2 +-
+ net/netfilter/nft_synproxy.c                  |  4 ++--
+ net/netfilter/nft_tunnel.c                    |  4 ++--
+ net/netfilter/nft_xfrm.c                      |  4 ++--
+ 25 files changed, 54 insertions(+), 35 deletions(-)
 
-FYI, we got a small conflict when merging 'net' in 'net-next' in the
-MPTCP tree due to this patch applied in 'net':
-
-  598adea720b9 ("netfilter: revert nft_set_rbtree: validate open interval overlap")
-
-and this one from 'net-next':
-
-  3aea466a4399 ("netfilter: nft_set_rbtree: don't disable bh when acquiring tree lock")
-
-(...)
-
-> diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
-> index ee3d4f5b9ff7..fe8bd497d74a 100644
-> --- a/net/netfilter/nft_set_rbtree.c
-> +++ b/net/netfilter/nft_set_rbtree.c
-
-(...)
-
-> @@ -685,12 +640,8 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
->  		cond_resched();
->  
->  		write_lock_bh(&priv->lock);
-> -		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp, last);
-> +		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp);
->  		write_unlock_bh(&priv->lock);
-
-The conflict was in the context: the patch in "net-next" stop disabling
-bh, modifying the two write_(un)lock_bh() calls, while here the code
-executed with the lock and just after is modified.
-
-Rerere cache is available in [1]. The patch is attached below.
-
-Cheers,
-Matt
-
-1: https://github.com/multipath-tcp/mptcp-upstream-rr-cache/commit/a0ec8d0
-
--------------------- 8< --------------------
-diff --cc net/netfilter/nft_set_rbtree.c
-index e42905376654,fe8bd497d74a..b7501b2b873e
---- a/net/netfilter/nft_set_rbtree.c
-+++ b/net/netfilter/nft_set_rbtree.c
-@@@ -684,13 -639,9 +639,9 @@@ static int nft_rbtree_insert(const stru
-  
-  		cond_resched();
-  
- -		write_lock_bh(&priv->lock);
- +		write_lock(&priv->lock);
-- 		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp, last);
-+ 		err = __nft_rbtree_insert(net, set, rbe, elem_priv, tstamp);
- -		write_unlock_bh(&priv->lock);
- +		write_unlock(&priv->lock);
-- 
-- 		if (nft_rbtree_interval_end(rbe))
-- 			priv->start_rbe_cookie = 0;
-- 
-  	} while (err == -EAGAIN);
-  
-  	return err;
--------------------- 8< --------------------
-
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 26071021e986..9def1c6f1f2d 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -158,6 +158,10 @@ enum ip_conntrack_expect_events {
+ #define NF_CT_EXPECT_PERMANENT		0x1
+ #define NF_CT_EXPECT_INACTIVE		0x2
+ #define NF_CT_EXPECT_USERSPACE		0x4
++#ifdef __KERNEL__
++#define NF_CT_EXPECT_MASK	(NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE | \
++				 NF_CT_EXPECT_USERSPACE)
++#endif
+ 
+ 
+ #endif /* _UAPI_NF_CONNTRACK_COMMON_H */
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index a2fe711cb5e3..2204c90ce17b 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -985,7 +985,7 @@ static const struct nla_policy ip_set_create_policy[IPSET_ATTR_CMD_MAX + 1] = {
+ 				    .len = IPSET_MAXNAMELEN - 1 },
+ 	[IPSET_ATTR_TYPENAME]	= { .type = NLA_NUL_STRING,
+ 				    .len = IPSET_MAXNAMELEN - 1},
+-	[IPSET_ATTR_REVISION]	= { .type = NLA_U8 },
++	[IPSET_ATTR_REVISION]	= NLA_POLICY_MAX(NLA_U8, IPSET_REVISION_MAX),
+ 	[IPSET_ATTR_FAMILY]	= { .type = NLA_U8 },
+ 	[IPSET_ATTR_DATA]	= { .type = NLA_NESTED },
+ };
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 9b295867a105..f6d5c6759f34 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -908,8 +908,8 @@ struct ctnetlink_filter {
+ };
+ 
+ static const struct nla_policy cta_filter_nla_policy[CTA_FILTER_MAX + 1] = {
+-	[CTA_FILTER_ORIG_FLAGS]		= { .type = NLA_U32 },
+-	[CTA_FILTER_REPLY_FLAGS]	= { .type = NLA_U32 },
++	[CTA_FILTER_ORIG_FLAGS]		= NLA_POLICY_MASK(NLA_U32, CTA_FILTER_F_ALL),
++	[CTA_FILTER_REPLY_FLAGS]	= NLA_POLICY_MASK(NLA_U32, CTA_FILTER_F_ALL),
+ };
+ 
+ static int ctnetlink_parse_filter(const struct nlattr *attr,
+@@ -2632,7 +2632,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
+ 	[CTA_EXPECT_HELP_NAME]	= { .type = NLA_NUL_STRING,
+ 				    .len = NF_CT_HELPER_NAME_LEN - 1 },
+ 	[CTA_EXPECT_ZONE]	= { .type = NLA_U16 },
+-	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
++	[CTA_EXPECT_FLAGS]      = NLA_POLICY_MASK(NLA_BE32, NF_CT_EXPECT_MASK),
+ 	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
+ 	[CTA_EXPECT_NAT]	= { .type = NLA_NESTED },
+ 	[CTA_EXPECT_FN]		= { .type = NLA_NUL_STRING },
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 0c1d086e96cb..1efc807c12c2 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1385,9 +1385,12 @@ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ }
+ 
+ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
+-	[CTA_PROTOINFO_TCP_STATE]	    = { .type = NLA_U8 },
+-	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = { .type = NLA_U8 },
+-	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = { .type = NLA_U8 },
++	[CTA_PROTOINFO_TCP_STATE]	    = NLA_POLICY_MAX(NLA_U8,
++							 TCP_CONNTRACK_SYN_SENT2),
++	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = NLA_POLICY_MAX(NLA_U8,
++							 TCP_MAX_WSCALE),
++	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = NLA_POLICY_MAX(NLA_U8,
++							 TCP_MAX_WSCALE),
+ 	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]  = { .len = sizeof(struct nf_ct_tcp_flags) },
+ 	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len = sizeof(struct nf_ct_tcp_flags) },
+ };
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 72c1db7738dc..49d072fcb77a 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1112,7 +1112,7 @@ static __be16 nft_base_seq_be16(const struct net *net)
+ static const struct nla_policy nft_table_policy[NFTA_TABLE_MAX + 1] = {
+ 	[NFTA_TABLE_NAME]	= { .type = NLA_STRING,
+ 				    .len = NFT_TABLE_MAXNAMELEN - 1 },
+-	[NFTA_TABLE_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_TABLE_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_TABLE_F_MASK),
+ 	[NFTA_TABLE_HANDLE]	= { .type = NLA_U64 },
+ 	[NFTA_TABLE_USERDATA]	= { .type = NLA_BINARY,
+ 				    .len = NFT_USERDATA_MAXLEN }
+@@ -1878,7 +1878,7 @@ static const struct nla_policy nft_chain_policy[NFTA_CHAIN_MAX + 1] = {
+ 	[NFTA_CHAIN_TYPE]	= { .type = NLA_STRING,
+ 				    .len = NFT_MODULE_AUTOLOAD_LIMIT },
+ 	[NFTA_CHAIN_COUNTERS]	= { .type = NLA_NESTED },
+-	[NFTA_CHAIN_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_CHAIN_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_CHAIN_FLAGS),
+ 	[NFTA_CHAIN_ID]		= { .type = NLA_U32 },
+ 	[NFTA_CHAIN_USERDATA]	= { .type = NLA_BINARY,
+ 				    .len = NFT_USERDATA_MAXLEN },
+@@ -4597,7 +4597,15 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+ 					    .len = NFT_TABLE_MAXNAMELEN - 1 },
+ 	[NFTA_SET_NAME]			= { .type = NLA_STRING,
+ 					    .len = NFT_SET_MAXNAMELEN - 1 },
+-	[NFTA_SET_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_SET_FLAGS]		= NLA_POLICY_MASK(NLA_BE32, NFT_SET_ANONYMOUS |
++							  NFT_SET_CONSTANT |
++							  NFT_SET_INTERVAL |
++							  NFT_SET_MAP |
++							  NFT_SET_TIMEOUT |
++							  NFT_SET_EVAL |
++							  NFT_SET_OBJECT |
++							  NFT_SET_CONCAT |
++							  NFT_SET_EXPR),
+ 	[NFTA_SET_KEY_TYPE]		= { .type = NLA_U32 },
+ 	[NFTA_SET_KEY_LEN]		= { .type = NLA_U32 },
+ 	[NFTA_SET_DATA_TYPE]		= { .type = NLA_U32 },
+@@ -5929,7 +5937,8 @@ const struct nft_set_ext_type nft_set_ext_types[] = {
+ static const struct nla_policy nft_set_elem_policy[NFTA_SET_ELEM_MAX + 1] = {
+ 	[NFTA_SET_ELEM_KEY]		= { .type = NLA_NESTED },
+ 	[NFTA_SET_ELEM_DATA]		= { .type = NLA_NESTED },
+-	[NFTA_SET_ELEM_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_SET_ELEM_FLAGS]		= NLA_POLICY_MASK(NLA_BE32, NFT_SET_ELEM_INTERVAL_END |
++								    NFT_SET_ELEM_CATCHALL),
+ 	[NFTA_SET_ELEM_TIMEOUT]		= { .type = NLA_U64 },
+ 	[NFTA_SET_ELEM_EXPIRATION]	= { .type = NLA_U64 },
+ 	[NFTA_SET_ELEM_USERDATA]	= { .type = NLA_BINARY,
+@@ -8662,7 +8671,7 @@ static const struct nla_policy nft_flowtable_policy[NFTA_FLOWTABLE_MAX + 1] = {
+ 					    .len = NFT_NAME_MAXLEN - 1 },
+ 	[NFTA_FLOWTABLE_HOOK]		= { .type = NLA_NESTED },
+ 	[NFTA_FLOWTABLE_HANDLE]		= { .type = NLA_U64 },
+-	[NFTA_FLOWTABLE_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_FLOWTABLE_FLAGS]		= NLA_POLICY_MASK(NLA_BE32, NFT_FLOWTABLE_MASK),
+ };
+ 
+ struct nft_flowtable *nft_flowtable_lookup(const struct net *net,
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 2bfaa773d82f..8ff1e0ad5cb0 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -373,7 +373,7 @@ static const struct nla_policy nfnl_acct_policy[NFACCT_MAX+1] = {
+ 	[NFACCT_NAME] = { .type = NLA_NUL_STRING, .len = NFACCT_NAME_MAX-1 },
+ 	[NFACCT_BYTES] = { .type = NLA_U64 },
+ 	[NFACCT_PKTS] = { .type = NLA_U64 },
+-	[NFACCT_FLAGS] = { .type = NLA_U32 },
++	[NFACCT_FLAGS] = NLA_POLICY_MASK(NLA_BE32, NFACCT_F_QUOTA),
+ 	[NFACCT_QUOTA] = { .type = NLA_U64 },
+ 	[NFACCT_FILTER] = {.type = NLA_NESTED },
+ };
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index d545fa459455..0d16ad82d70c 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -165,7 +165,7 @@ nfnl_cthelper_expect_policy(struct nf_conntrack_expect_policy *expect_policy,
+ 
+ static const struct nla_policy
+ nfnl_cthelper_expect_policy_set[NFCTH_POLICY_SET_MAX+1] = {
+-	[NFCTH_POLICY_SET_NUM] = { .type = NLA_U32, },
++	[NFCTH_POLICY_SET_NUM] = NLA_POLICY_MAX(NLA_BE32, NF_CT_MAX_EXPECT_CLASSES),
+ };
+ 
+ static int
+diff --git a/net/netfilter/nfnetlink_hook.c b/net/netfilter/nfnetlink_hook.c
+index 531706982859..5623c18fcd12 100644
+--- a/net/netfilter/nfnetlink_hook.c
++++ b/net/netfilter/nfnetlink_hook.c
+@@ -24,7 +24,7 @@
+ #include <net/sock.h>
+ 
+ static const struct nla_policy nfnl_hook_nla_policy[NFNLA_HOOK_MAX + 1] = {
+-	[NFNLA_HOOK_HOOKNUM]	= { .type = NLA_U32 },
++	[NFNLA_HOOK_HOOKNUM]	= NLA_POLICY_MAX(NLA_BE32, 255),
+ 	[NFNLA_HOOK_PRIORITY]	= { .type = NLA_U32 },
+ 	[NFNLA_HOOK_DEV]	= { .type = NLA_STRING,
+ 				    .len = IFNAMSIZ - 1 },
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 730c2541a849..e662a02f0ad0 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -883,7 +883,9 @@ static const struct nla_policy nfula_cfg_policy[NFULA_CFG_MAX+1] = {
+ 	[NFULA_CFG_TIMEOUT]	= { .type = NLA_U32 },
+ 	[NFULA_CFG_QTHRESH]	= { .type = NLA_U32 },
+ 	[NFULA_CFG_NLBUFSIZ]	= { .type = NLA_U32 },
+-	[NFULA_CFG_FLAGS]	= { .type = NLA_U16 },
++	[NFULA_CFG_FLAGS]	= NLA_POLICY_MASK(NLA_BE16, NFULNL_CFG_F_SEQ |
++						  NFULNL_CFG_F_SEQ_GLOBAL |
++						  NFULNL_CFG_F_CONNTRACK),
+ };
+ 
+ static int nfulnl_recv_config(struct sk_buff *skb, const struct nfnl_info *info,
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 53e4b7ea7290..3fd1dfc0c105 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1584,7 +1584,7 @@ static const struct nla_policy nfqa_cfg_policy[NFQA_CFG_MAX+1] = {
+ 	[NFQA_CFG_PARAMS]	= { .len = sizeof(struct nfqnl_msg_config_params) },
+ 	[NFQA_CFG_QUEUE_MAXLEN]	= { .type = NLA_U32 },
+ 	[NFQA_CFG_MASK]		= { .type = NLA_U32 },
+-	[NFQA_CFG_FLAGS]	= { .type = NLA_U32 },
++	[NFQA_CFG_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFQA_CFG_F_MAX - 1),
+ };
+ 
+ static const struct nf_queue_handler nfqh = {
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 53a614a0e3cd..decc725a33c2 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -195,7 +195,7 @@ static void target_compat_from_user(struct xt_target *t, void *in, void *out)
+ 
+ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1] = {
+ 	[NFTA_RULE_COMPAT_PROTO]	= { .type = NLA_U32 },
+-	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_RULE_COMPAT_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_RULE_COMPAT_F_MASK),
+ };
+ 
+ static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+diff --git a/net/netfilter/nft_connlimit.c b/net/netfilter/nft_connlimit.c
+index 09ac4f77e389..46b31d78abc6 100644
+--- a/net/netfilter/nft_connlimit.c
++++ b/net/netfilter/nft_connlimit.c
+@@ -159,7 +159,7 @@ static int nft_connlimit_obj_dump(struct sk_buff *skb,
+ 
+ static const struct nla_policy nft_connlimit_policy[NFTA_CONNLIMIT_MAX + 1] = {
+ 	[NFTA_CONNLIMIT_COUNT]	= { .type = NLA_U32 },
+-	[NFTA_CONNLIMIT_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_CONNLIMIT_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_CONNLIMIT_F_INV),
+ };
+ 
+ static struct nft_object_type nft_connlimit_obj_type;
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 2bb3fdc87621..a8096520468d 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -337,7 +337,7 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
+ 	[NFTA_CT_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_CT_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
+-	[NFTA_CT_DIRECTION]	= { .type = NLA_U8 },
++	[NFTA_CT_DIRECTION]	= NLA_POLICY_MAX(NLA_U8, IP_CT_DIR_REPLY),
+ 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
+ };
+ 
+diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
+index 6bff6287e7d5..87e55afc1434 100644
+--- a/net/netfilter/nft_dynset.c
++++ b/net/netfilter/nft_dynset.c
+@@ -155,7 +155,8 @@ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
+ 	[NFTA_DYNSET_SREG_DATA]	= { .type = NLA_U32 },
+ 	[NFTA_DYNSET_TIMEOUT]	= { .type = NLA_U64 },
+ 	[NFTA_DYNSET_EXPR]	= { .type = NLA_NESTED },
+-	[NFTA_DYNSET_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_DYNSET_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_DYNSET_F_INV |
++						  NFT_DYNSET_F_EXPR),
+ 	[NFTA_DYNSET_EXPRESSIONS] = { .type = NLA_NESTED },
+ };
+ 
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 1602e4266f34..45d3b027a02d 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -490,7 +490,7 @@ static const struct nla_policy nft_exthdr_policy[NFTA_EXTHDR_MAX + 1] = {
+ 	[NFTA_EXTHDR_TYPE]		= { .type = NLA_U8 },
+ 	[NFTA_EXTHDR_OFFSET]		= { .type = NLA_U32 },
+ 	[NFTA_EXTHDR_LEN]		= NLA_POLICY_MAX(NLA_BE32, 255),
+-	[NFTA_EXTHDR_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_EXTHDR_FLAGS]		= NLA_POLICY_MASK(NLA_BE32, NFT_EXTHDR_F_PRESENT),
+ 	[NFTA_EXTHDR_OP]		= NLA_POLICY_MAX(NLA_BE32, 255),
+ 	[NFTA_EXTHDR_SREG]		= { .type = NLA_U32 },
+ };
+diff --git a/net/netfilter/nft_inner.c b/net/netfilter/nft_inner.c
+index c4569d4b9228..03ffb1159fc1 100644
+--- a/net/netfilter/nft_inner.c
++++ b/net/netfilter/nft_inner.c
+@@ -321,7 +321,7 @@ static void nft_inner_eval(const struct nft_expr *expr, struct nft_regs *regs,
+ 
+ static const struct nla_policy nft_inner_policy[NFTA_INNER_MAX + 1] = {
+ 	[NFTA_INNER_NUM]	= { .type = NLA_U32 },
+-	[NFTA_INNER_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_INNER_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_INNER_MASK),
+ 	[NFTA_INNER_HDRSIZE]	= { .type = NLA_U32 },
+ 	[NFTA_INNER_TYPE]	= { .type = NLA_U32 },
+ 	[NFTA_INNER_EXPR]	= { .type = NLA_NESTED },
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index f6830621c471..167d99b1447f 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -189,7 +189,7 @@ static const struct nla_policy nft_limit_policy[NFTA_LIMIT_MAX + 1] = {
+ 	[NFTA_LIMIT_UNIT]	= { .type = NLA_U64 },
+ 	[NFTA_LIMIT_BURST]	= { .type = NLA_U32 },
+ 	[NFTA_LIMIT_TYPE]	= { .type = NLA_U32 },
+-	[NFTA_LIMIT_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_LIMIT_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_LIMIT_F_INV),
+ };
+ 
+ static int nft_limit_pkts_init(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
+index da0c0d1c9cea..0d868eea6257 100644
+--- a/net/netfilter/nft_log.c
++++ b/net/netfilter/nft_log.c
+@@ -69,7 +69,7 @@ static const struct nla_policy nft_log_policy[NFTA_LOG_MAX + 1] = {
+ 	[NFTA_LOG_SNAPLEN]	= { .type = NLA_U32 },
+ 	[NFTA_LOG_QTHRESHOLD]	= { .type = NLA_U16 },
+ 	[NFTA_LOG_LEVEL]	= { .type = NLA_U32 },
+-	[NFTA_LOG_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_LOG_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NF_LOG_MASK),
+ };
+ 
+ static int nft_log_modprobe(struct net *net, enum nf_log_type t)
+diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
+index 39ccd67ed265..b2f44bc6bd3f 100644
+--- a/net/netfilter/nft_osf.c
++++ b/net/netfilter/nft_osf.c
+@@ -14,7 +14,7 @@ struct nft_osf {
+ static const struct nla_policy nft_osf_policy[NFTA_OSF_MAX + 1] = {
+ 	[NFTA_OSF_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_OSF_TTL]		= { .type = NLA_U8 },
+-	[NFTA_OSF_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_OSF_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_OSF_F_VERSION),
+ };
+ 
+ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 973d56af03ff..91b62083d942 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -216,7 +216,7 @@ static const struct nla_policy nft_payload_policy[NFTA_PAYLOAD_MAX + 1] = {
+ 	[NFTA_PAYLOAD_LEN]		= NLA_POLICY_MAX(NLA_BE32, 255),
+ 	[NFTA_PAYLOAD_CSUM_TYPE]	= { .type = NLA_U32 },
+ 	[NFTA_PAYLOAD_CSUM_OFFSET]	= NLA_POLICY_MAX(NLA_BE32, 255),
+-	[NFTA_PAYLOAD_CSUM_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_PAYLOAD_CSUM_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_PAYLOAD_L4CSUM_PSEUDOHDR),
+ };
+ 
+ static int nft_payload_init(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
+index 8eb13a02942e..b83d209db886 100644
+--- a/net/netfilter/nft_queue.c
++++ b/net/netfilter/nft_queue.c
+@@ -95,7 +95,7 @@ static int nft_queue_validate(const struct nft_ctx *ctx,
+ static const struct nla_policy nft_queue_policy[NFTA_QUEUE_MAX + 1] = {
+ 	[NFTA_QUEUE_NUM]	= { .type = NLA_U16 },
+ 	[NFTA_QUEUE_TOTAL]	= { .type = NLA_U16 },
+-	[NFTA_QUEUE_FLAGS]	= { .type = NLA_U16 },
++	[NFTA_QUEUE_FLAGS]	= NLA_POLICY_MASK(NLA_BE16, NFT_QUEUE_FLAG_MASK),
+ 	[NFTA_QUEUE_SREG_QNUM]	= { .type = NLA_U32 },
+ };
+ 
+diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
+index 3be788e5223c..6ed7c4409706 100644
+--- a/net/netfilter/nft_quota.c
++++ b/net/netfilter/nft_quota.c
+@@ -46,7 +46,7 @@ static inline void nft_quota_do_eval(struct nft_quota *priv,
+ 
+ static const struct nla_policy nft_quota_policy[NFTA_QUOTA_MAX + 1] = {
+ 	[NFTA_QUOTA_BYTES]	= { .type = NLA_U64 },
+-	[NFTA_QUOTA_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_QUOTA_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_QUOTA_F_INV),
+ 	[NFTA_QUOTA_CONSUMED]	= { .type = NLA_U64 },
+ };
+ 
+diff --git a/net/netfilter/nft_synproxy.c b/net/netfilter/nft_synproxy.c
+index 8e452a874969..7641f249614c 100644
+--- a/net/netfilter/nft_synproxy.c
++++ b/net/netfilter/nft_synproxy.c
+@@ -17,8 +17,8 @@ struct nft_synproxy {
+ 
+ static const struct nla_policy nft_synproxy_policy[NFTA_SYNPROXY_MAX + 1] = {
+ 	[NFTA_SYNPROXY_MSS]		= { .type = NLA_U16 },
+-	[NFTA_SYNPROXY_WSCALE]		= { .type = NLA_U8 },
+-	[NFTA_SYNPROXY_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_SYNPROXY_WSCALE]		= NLA_POLICY_MAX(NLA_U8, TCP_MAX_WSCALE),
++	[NFTA_SYNPROXY_FLAGS]		= NLA_POLICY_MASK(NLA_BE32, NF_SYNPROXY_OPT_MASK),
+ };
+ 
+ static void nft_synproxy_tcp_options(struct synproxy_options *opts,
+diff --git a/net/netfilter/nft_tunnel.c b/net/netfilter/nft_tunnel.c
+index f5cadba91417..65d06300f48a 100644
+--- a/net/netfilter/nft_tunnel.c
++++ b/net/netfilter/nft_tunnel.c
+@@ -68,7 +68,7 @@ static void nft_tunnel_get_eval(const struct nft_expr *expr,
+ static const struct nla_policy nft_tunnel_policy[NFTA_TUNNEL_MAX + 1] = {
+ 	[NFTA_TUNNEL_KEY]	= NLA_POLICY_MAX(NLA_BE32, 255),
+ 	[NFTA_TUNNEL_DREG]	= { .type = NLA_U32 },
+-	[NFTA_TUNNEL_MODE]	= NLA_POLICY_MAX(NLA_BE32, 255),
++	[NFTA_TUNNEL_MODE]	= NLA_POLICY_MAX(NLA_BE32, NFT_TUNNEL_MODE_MAX),
+ };
+ 
+ static int nft_tunnel_get_init(const struct nft_ctx *ctx,
+@@ -408,7 +408,7 @@ static const struct nla_policy nft_tunnel_key_policy[NFTA_TUNNEL_KEY_MAX + 1] =
+ 	[NFTA_TUNNEL_KEY_IP]	= { .type = NLA_NESTED, },
+ 	[NFTA_TUNNEL_KEY_IP6]	= { .type = NLA_NESTED, },
+ 	[NFTA_TUNNEL_KEY_ID]	= { .type = NLA_U32, },
+-	[NFTA_TUNNEL_KEY_FLAGS]	= { .type = NLA_U32, },
++	[NFTA_TUNNEL_KEY_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NFT_TUNNEL_F_MASK),
+ 	[NFTA_TUNNEL_KEY_TOS]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_TTL]	= { .type = NLA_U8, },
+ 	[NFTA_TUNNEL_KEY_SPORT]	= { .type = NLA_U16, },
+diff --git a/net/netfilter/nft_xfrm.c b/net/netfilter/nft_xfrm.c
+index 7ffe6a2690d1..6858cd2d16a4 100644
+--- a/net/netfilter/nft_xfrm.c
++++ b/net/netfilter/nft_xfrm.c
+@@ -17,8 +17,8 @@
+ 
+ static const struct nla_policy nft_xfrm_policy[NFTA_XFRM_MAX + 1] = {
+ 	[NFTA_XFRM_KEY]		= NLA_POLICY_MAX(NLA_BE32, 255),
+-	[NFTA_XFRM_DIR]		= { .type = NLA_U8 },
+-	[NFTA_XFRM_SPNUM]	= NLA_POLICY_MAX(NLA_BE32, 255),
++	[NFTA_XFRM_DIR]		= NLA_POLICY_MAX(NLA_U8, XFRM_POLICY_OUT),
++	[NFTA_XFRM_SPNUM]	= NLA_POLICY_MAX(NLA_BE32, XFRM_MAX_DEPTH - 1),
+ 	[NFTA_XFRM_DREG]	= { .type = NLA_U32 },
+ };
+ 
 -- 
-Sponsored by the NGI0 Core fund.
+2.53.0
 
