@@ -1,28 +1,107 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B77723AE6E7
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2026 11:50:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D2243E1217
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2026 14:01:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773748206; cv=none; b=UnNVJ5OxTaNoS68rjDXLlrM+qNz2lDYPw5w9lpl1JcKFJhasHk5yAWn4vypa/l2Gv3l9UjOm5aFMsHVeGVqcTyg9axI/wYh4Oc6fkO0bU1qOMBWNtUXZESmPlD4fBzBAO1NV7l3l+sRXRmH2iI/mEy2eD9VO6rtGjbCwvM8mCVo=
+	t=1773756069; cv=none; b=tLY3If+usFVAVWNkeEE/chASSO1KUx+3vzxRDhKOREtMwaMkhOfQUAqSs7g65KlxnjPRLNTNXAzBSeG9i+1UB3UlsnY7xtDyYQ6UGmpZifSvUYjgv3rhxr9+8ZEkjBosJaKNUyC18euQvLpIBjvOWpMuMtzUUqY9CVjjg00c8Qk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773748206; c=relaxed/simple;
-	bh=XAadaQyYMoAWVnvWU53k2VGwog6L4zz6uXLPI2Yp1RE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BeTubjwfcQlu+ipnQrhao6yZaWKeHx87KRYAFKog369ZlS77dzmKnGKYN0NkZqCv9vhimAO7zWxSRQ1TqvnH19yeWqiA/LaO3cZsLBj0g13Nj8nccJsaWre+1xS/auq4Rq0sJa4bkDmwSvr3Q3Cx/TYg9PIiodsNH6UL3sv/OV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 68424609F0; Tue, 17 Mar 2026 12:49:56 +0100 (CET)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Yiming Qian <yimingqian591@gmail.com>
-Subject: [PATCH nf] netfilter: bpf: defer hook memory release until rcu readers are done
-Date: Tue, 17 Mar 2026 12:49:49 +0100
-Message-ID: <20260317114951.20984-1-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
+	s=arc-20240116; t=1773756069; c=relaxed/simple;
+	bh=gyxmVw9w8IIW8kTl7ewnjbhQM9u6OeTRE5QFfrT/5N0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=J9GTJZR52cCiuXoq8OALppOvMfbbOcghkfV+fheBrEi53sOWHQrFLAOgVFGzsmhwGBMqp4mnCYk5dvndYgXThi0HMOzhiEfwPcxzysjq4Kxoq2iHqY/r4kNGE5UbgiDuEQ++fTFxdLIBT8zSseJUHPZd2hdyeALU2vk/kcdjZp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=X2ml0pbA; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=nz8bGRKe; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=PzLpze84; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=cbS+TY6W; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="X2ml0pbA";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="nz8bGRKe";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="PzLpze84";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="cbS+TY6W"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 58AA24D337;
+	Tue, 17 Mar 2026 14:01:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1773756065; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=Z42gc913v7qs82hn1hB8yx7ErxPW9ggLXqvAyIcz4oU=;
+	b=X2ml0pbAFz/6aqKGt6pgRhQL2Hl/w2d00SJVS1d3/5Q/qixaw5J6Vg5Il628neoi7RGf9K
+	3iKg/q5tCHivR2YRENH8bkKwFERBNJL9wXOg4CqwOyzcv8EP/fjQgNuHboQnzTZQZOOGph
+	BSbzSCO8QLeaHJ3liB/AjpEvUTQ4Nf8=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1773756065;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=Z42gc913v7qs82hn1hB8yx7ErxPW9ggLXqvAyIcz4oU=;
+	b=nz8bGRKefAFc1zH48fLvTHd8x8eVYwyQv9s+xoo0my4hQlYqwORkLGVER8EuznKvuj7Hjv
+	DN7pw2uIdq08ndDg==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1773756062; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=Z42gc913v7qs82hn1hB8yx7ErxPW9ggLXqvAyIcz4oU=;
+	b=PzLpze84/YZswWKbOpqheJUOTvlrxh2kCUc8N1qRZxvh5FfpY56/Rl20eg/FWJXMlnbAMj
+	NQcpP5Jxk9L1gt3SjwpJ+EulLpUeKVrhxuK4oYnhig/lxAVwysW2z3z0FeyWzrB/ao/qNj
+	Ys+LIGU0agQautlsYYHuHQjXdUp/i/Y=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1773756062;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=Z42gc913v7qs82hn1hB8yx7ErxPW9ggLXqvAyIcz4oU=;
+	b=cbS+TY6W/h6Kw4wDA0lmiglzupArg2cW7RfwkwQM0ant1e4YuLVUnw0dMYVowzSmNzK9/b
+	jR/JSY0wjT3N+ZAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 395684273B;
+	Tue, 17 Mar 2026 14:01:02 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id HNbyDZ5euWmjYgAAD6G6ig
+	(envelope-from <iluceno@suse.de>); Tue, 17 Mar 2026 14:01:02 +0000
+From: Ismael Luceno <iluceno@suse.de>
+To: linux-kernel@vger.kernel.org,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Ismael Luceno <iluceno@suse.de>,
+	Marco Crivellari <marco.crivellari@suse.com>,
+	Federico Pinca <federico.pinca@suse.com>,
+	Andreas Taschner <andreas.taschner@suse.com>,
+	Brad Bendily <brad.bendily@suse.com>,
+	Brendon Caligari <brendon.caligari@suse.com>,
+	Clemens Famulla-Conrad <cfamullaconrad@suse.com>,
+	Firo Yang <firo.yang@suse.com>,
+	Gabriel Krisman Bertazi <gabriel.bertazi@suse.com>,
+	Hans van den Heuvel <hvdheuvel@suse.com>,
+	Jean Delvare <jdelvare@suse.com>,
+	Michal Hocko <mhocko@suse.com>,
+	=?UTF-8?q?Michal=20Koutn=C3=BD?= <mkoutny@suse.com>,
+	Petr Mladek <pmladek@suse.com>,
+	Petr Tesarik <ptesarik@suse.com>,
+	Richard Thompson <richard.thompson@suse.com>,
+	William Preston <wpreston@suse.com>,
+	Yu Xu <yu.xu@suse.com>,
+	Simon Horman <horms@kernel.org>,
+	netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Subject: [PATCH] ipvs: Move defense_work to system_dfl_long_wq
+Date: Tue, 17 Mar 2026 15:00:59 +0100
+Message-ID: <20260317140100.24993-2-iluceno@suse.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -30,41 +109,89 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [-2.80 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_CONTAINS_FROM(1.00)[];
+	R_MISSING_CHARSET(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	TO_DN_SOME(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[33];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	R_RATELIMIT(0.00)[to_ip_from(RL4e5bdig4hxau1598td9p5syh)];
+	RCVD_TLS_ALL(0.00)[]
+X-Spam-Flag: NO
+X-Spam-Score: -2.80
+X-Spam-Level: 
 
-Yiming Qian reports UaF when concurrent process is dumping hooks via
-nfnetlink_hooks:
+Under synflood conditions binding defense_work to system_long_wq may
+pin it to a saturated CPU.
 
-BUG: KASAN: slab-use-after-free in nfnl_hook_dump_one.isra.0+0xe71/0x10f0
-Read of size 8 at addr ffff888003edbf88 by task poc/79
-Call Trace:
- <TASK>
- nfnl_hook_dump_one.isra.0+0xe71/0x10f0
- netlink_dump+0x554/0x12b0
- nfnl_hook_get+0x176/0x230
- [..]
+We've observed improved throughtput on a DPDK/VPP application with
+this change. We attribute this to the reduced context switching.
 
-Defer release until after concurrent readers have completed.
+The defense_work handler has no per-CPU data dependencies and no cache
+locality requirements that would justify this.
 
-Reported-by: Yiming Qian <yimingqian591@gmail.com>
-Fixes: 84601d6ee68a ("bpf: add bpf_link support for BPF_NETFILTER programs")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Ismael Luceno <iluceno@suse.de>
 ---
- net/netfilter/nf_bpf_link.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Depends-on: wq/for-7.1 c116737e972e ("workqueue: Add system_dfl_long_wq for long unbound works")
 
-diff --git a/net/netfilter/nf_bpf_link.c b/net/netfilter/nf_bpf_link.c
-index 6f3a6411f4af..c20031891b86 100644
---- a/net/netfilter/nf_bpf_link.c
-+++ b/net/netfilter/nf_bpf_link.c
-@@ -170,7 +170,7 @@ static int bpf_nf_link_update(struct bpf_link *link, struct bpf_prog *new_prog,
+ net/netfilter/ipvs/ip_vs_ctl.c | 6 +++---
+ net/netfilter/ipvs/ip_vs_est.c | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 35642de2a0fe..948ae5882a70 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -234,7 +234,7 @@ #define DEFENSE_TIMER_PERIOD	1*HZ
+ 	update_defense_level(ipvs);
+ 	if (atomic_read(&ipvs->dropentry))
+ 		ip_vs_random_dropentry(ipvs);
+-	queue_delayed_work(system_long_wq, &ipvs->defense_work,
++	queue_delayed_work(system_dfl_long_wq, &ipvs->defense_work,
+ 			   DEFENSE_TIMER_PERIOD);
+ }
+ #endif
+@@ -273,7 +273,7 @@ #define DEFENSE_TIMER_PERIOD	1*HZ
+ 	atomic_set(&ipvs->est_genid_done, genid);
  
- static const struct bpf_link_ops bpf_nf_link_lops = {
- 	.release = bpf_nf_link_release,
--	.dealloc = bpf_nf_link_dealloc,
-+	.dealloc_deferred = bpf_nf_link_dealloc,
- 	.detach = bpf_nf_link_detach,
- 	.show_fdinfo = bpf_nf_link_show_info,
- 	.fill_link_info = bpf_nf_link_fill_link_info,
--- 
-2.52.0
-
+ 	if (repeat)
+-		queue_delayed_work(system_long_wq, &ipvs->est_reload_work,
++		queue_delayed_work(system_dfl_long_wq, &ipvs->est_reload_work,
+ 				   delay);
+ 
+ unlock:
+@@ -4377,7 +4377,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 		goto err;
+ 
+ 	/* Schedule defense work */
+-	queue_delayed_work(system_long_wq, &ipvs->defense_work,
++	queue_delayed_work(system_dfl_long_wq, &ipvs->defense_work,
+ 			   DEFENSE_TIMER_PERIOD);
+ 
+ 	return 0;
+diff --git a/net/netfilter/ipvs/ip_vs_est.c b/net/netfilter/ipvs/ip_vs_est.c
+index b17de33314da..454ea24828cc 100644
+--- a/net/netfilter/ipvs/ip_vs_est.c
++++ b/net/netfilter/ipvs/ip_vs_est.c
+@@ -235,7 +235,7 @@ #define pr_fmt(fmt) "IPVS: " fmt
+ 	ip_vs_est_stopped_recalc(ipvs);
+ 	/* Bump the kthread configuration genid */
+ 	atomic_inc(&ipvs->est_genid);
+-	queue_delayed_work(system_long_wq, &ipvs->est_reload_work, 0);
++	queue_delayed_work(system_dfl_long_wq, &ipvs->est_reload_work, 0);
+ }
+ 
+ /* Start kthread task with current configuration */
