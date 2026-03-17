@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B55263ACEEE;
-	Tue, 17 Mar 2026 11:29:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 602023AD503;
+	Tue, 17 Mar 2026 11:29:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773746982; cv=none; b=eR/zfD5Iz+MUwyJPy5fXo2T4ZzyaOpnyQ1dc+3cCUCpt5q4BIB/wZ9/Wg7sz0iznm7pGtRKckLYl6DoagGqGuIQkdPOBdZkCUZvPEmUOmlBADKqalboTt8kvkNgiPIv1XSNShv/vfH1p5jhQQrzeNFKHsnChSKuHxkPYuFeCNPA=
+	t=1773746982; cv=none; b=o5T0Bwe8zbYR7QdIJQxw9UfRN9MR1IIJ2elNwypkDGKaA5y/OmOYFt7sSWceCJ7YgI3AlUFZuMcVl519g+p948tSizZoVnBGQrm2Ld/ZgnTbY7AAmwYw8PX2UHjYaztr1bV6fT1gmTi35puqRnW+ik7gxsVPUFNpRGmB2H9Tq+8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1773746982; c=relaxed/simple;
-	bh=zjQ+HAPRaHRo1Oeu6TsS/Rqp3X4Af9pvCqxmMTMvlbc=;
+	bh=2N+LxRirWPjWkmhl172q75wJtGmVGrZYSSsYFA7aNGE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rslTrtb1ok8zbd4idiR3SI5rgKi5kJSOhDZ9vpEALAJV0HdoRygWpgDaIShWD2DG56oDGkfAeKMoaqVVSsWTn+GrJzoA5A0A5YOMXQKSMscTi0XW4Y/al7YjITUiG/F8+IwNENhgIvhPr4nkcFOL34eDAWmwl0XWJa2KU8KS5cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Hk66rkOk; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=fYSQU5M+zfk7ptldUUz89DyNnnHcR0P+bpdCUKIjbbybUDcp3rGPtx8TV0EkctWhwXIkkV5xB/zgpxIN+LBP5qsd05i7eRh6V7wovMXJNoGmxMtTvpcYY/dmNCWARlc7gfMbnyU8qQrM9wnzfD8i3HBAiTwBi1JftqM4F8+Wt+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CmSOscvw; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Hk66rkOk"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CmSOscvw"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2ADF560264;
-	Tue, 17 Mar 2026 12:29:36 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9920E60269;
+	Tue, 17 Mar 2026 12:29:38 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1773746976;
-	bh=1hurq3r+y7BWEXsJ2KfABuEy+xsHpHpgQsbYbcADmCo=;
+	s=2025; t=1773746979;
+	bh=AhdNruwD2TeIvDY05m5DAMdYftgpTLu7ihJKqlxkumI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Hk66rkOkd/y15tQx5hIvqaPRsw1xUcce7f9hDxTspI7l45XdNnpwXTyriGNfS2Njy
-	 kXtuogj+P5qNS0HnghSJa0e26DdvIPll0rx6EeI6fbPmHCNK8uT9P0S9bK1mwRJ/Md
-	 o0nBSSXf9EBB48v9eE4diR9arZSlrJ1S9xovUT8bfjZ46A65n5GeOV7pVPOc7QdOER
-	 K5/zzoEp1JrmxYJT95Heo3v/Ir/oJeqnIkd0eWMsropv+AvthAdIg07krgg4m/a+he
-	 S5l/5NUHLwC5Lj6qpWoo07mkq8TVrxnbmdiHdULanshu1ST43vHJqUp9OLeSJ4zAkX
-	 Nxka7xuQwfH4w==
+	b=CmSOscvwC15FAZkWRU7L9slaTwMrZRMEy+nwxhSSs1I2bdswbTWtKYJWLIEdB033y
+	 TDGeuQr0XWLEX1CsPmxz3KwMOG9c2Gvv6IQjf9YOcEA7x/9n0itXD4+VHg1gYsTdmX
+	 wB6J6KE+QU/0ZFy7cwJ7efdFC+ADeN9eIgDZ7OpVGzwKA8iBMvKGKW/N4fm3KFtqyY
+	 gs/G4jJlZDXWFRdGN59Pl3CwCiwsCia1pSUSPBUa0TTMV/h8M2EvmufA0+XdnhSV6Y
+	 kbbslSLCG3YIRayaQKWe0SjjIjT+HGLixniYAYT1ImFFsFU1MePv/hVsl8iPVym6dJ
+	 ZTDbusHMxzHuw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -40,9 +40,9 @@ Cc: davem@davemloft.net,
 	horms@kernel.org,
 	steffen.klassert@secunet.com,
 	antony.antony@secunet.com
-Subject: [PATCH net-next,RFC 5/8] netfilter: nf_tables: add early ingress chain
-Date: Tue, 17 Mar 2026 12:29:14 +0100
-Message-ID: <20260317112917.4170466-6-pablo@netfilter.org>
+Subject: [PATCH net-next,RFC 7/8] net: add dev_noqueue_xmit_list() helper function
+Date: Tue, 17 Mar 2026 12:29:16 +0100
+Message-ID: <20260317112917.4170466-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260317112917.4170466-1-pablo@netfilter.org>
 References: <20260317112917.4170466-1-pablo@netfilter.org>
@@ -54,168 +54,191 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a new filter chain to filter out packets from the early_ingress hook.
+This new helper function wraps the device has no queue case.  This function can
+be reused from listified skb in the tx path since the device has no queue path
+already supports for skb list.
 
-This is the second user of this new hook, after the flowtable.
+***This replaces validate_xmit_skb() by validate_xmit_skb_list()*** in this
+new helper function.
+
+An alternative to this patch to reuse a smaller fraction of code can be to wrap
+this common code instead in a function:
+
++                       HARD_TX_LOCK(dev, txq, cpu);
++
++                       if (!netif_xmit_stopped(txq)) {
++                               dev_xmit_recursion_inc();
++                               skb = dev_hard_start_xmit(skb, dev, txq, &rc);
++                               dev_xmit_recursion_dec();
++                               if (dev_xmit_complete(rc)) {
++                                       HARD_TX_UNLOCK(dev, txq);
++                                       goto out;
++                               }
++                       }
++                       HARD_TX_UNLOCK(dev, txq);
+
+Note: This comment was in the original patch from Steffen:
+
+       /* FIXME: For each skb!!! */
+       dev_core_stats_tx_dropped_inc(dev);
+       kfree_skb_list(skb);
+
+This currently reports only one packet drop through stats.
 
 Co-developed-by: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_chain_filter.c | 116 ++++++++++++++++++++++++++++++-
- 1 file changed, 114 insertions(+), 2 deletions(-)
+ net/core/dev.c | 121 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 67 insertions(+), 54 deletions(-)
 
-diff --git a/net/netfilter/nft_chain_filter.c b/net/netfilter/nft_chain_filter.c
-index 47a612bdd03e..3467f7b7bd38 100644
---- a/net/netfilter/nft_chain_filter.c
-+++ b/net/netfilter/nft_chain_filter.c
-@@ -210,17 +210,75 @@ static unsigned int nft_do_chain_inet_ingress(void *priv, struct sk_buff *skb,
- 	return nft_do_chain(&pkt, priv);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 5c339416ae5d..8f5bef5a715c 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -4730,6 +4730,68 @@ static inline void dev_dst_drop(const struct net_device *dev, struct sk_buff *sk
+ 		skb_dst_force(skb);
  }
  
-+static unsigned int
-+nft_do_chain_inet_early_ingress(void *priv, struct sk_buff *unused,
-+				const struct nf_hook_state *state)
++/* The device has no queue. Common case for software devices:
++ * loopback, all the sorts of tunnels...
++ *
++ * Really, it is unlikely that netif_tx_lock protection is necessary
++ * here.  (f.e. loopback and IP tunnels are clean ignoring statistics
++ * counters.)
++ * However, it is possible, that they rely on protection
++ * made by us here.
++ *
++ * Check this and shot the lock. It is not prone from deadlocks.
++ * Either shot noqueue qdisc, it is even simpler 8)
++ */
++static inline int dev_noqueue_xmit_list(struct sk_buff *skb,
++					struct net_device *dev,
++					struct netdev_queue *txq)
 +{
-+	struct nf_hook_state ingress_state = *state;
-+	struct sk_buff *skb, *nskb;
-+	struct nft_pktinfo pkt;
-+	LIST_HEAD(accept_list);
-+	int ret;
++	bool again = false;
++	int rc = -ENOMEM;
 +
-+	list_for_each_entry_safe(skb, nskb, state->skb_list, list) {
-+		skb_list_del_init(skb);
++	if (dev->flags & IFF_UP) {
++		int cpu = smp_processor_id(); /* ok because BHs are off */
 +
-+		skb_reset_network_header(skb);
-+		if (!skb_transport_header_was_set(skb))
-+			skb_reset_transport_header(skb);
-+		skb_reset_mac_len(skb);
++		/* Other cpus might concurrently change txq->xmit_lock_owner
++		 * to -1 or to their cpu id, but not to our id.
++		 */
++		if (READ_ONCE(txq->xmit_lock_owner) != cpu) {
++			if (dev_xmit_recursion())
++				goto recursion_alert;
 +
-+		ret = nft_set_pktinfo_ingress(&pkt, skb, &ingress_state);
-+		switch (ret) {
-+		case 1:
-+			list_add_tail(&skb->list, &accept_list);
-+			continue;
-+		case 0:
-+			break;
-+		case -1:
-+			kfree_skb(skb);
-+			continue;
-+		default:
-+			break;
-+		}
++			skb = validate_xmit_skb_list(skb, dev, &again);
++			if (!skb)
++				goto out;
 +
-+		ret = nft_do_chain(&pkt, priv);
-+		switch (ret) {
-+		case NF_ACCEPT:
-+			list_add_tail(&skb->list, &accept_list);
-+			break;
-+		default:
-+			WARN_ON_ONCE(1);
-+			fallthrough;
-+		case NF_DROP:
-+			kfree_skb(skb);
-+			break;
++			HARD_TX_LOCK(dev, txq, cpu);
++
++			if (!netif_xmit_stopped(txq)) {
++				dev_xmit_recursion_inc();
++				skb = dev_hard_start_xmit(skb, dev, txq, &rc);
++				dev_xmit_recursion_dec();
++				if (dev_xmit_complete(rc)) {
++					HARD_TX_UNLOCK(dev, txq);
++					goto out;
++				}
++			}
++			HARD_TX_UNLOCK(dev, txq);
++			net_crit_ratelimited("Virtual device %s asks to queue packet!\n",
++					     dev->name);
++		} else {
++			/* Recursion is detected! It is possible,
++			 * unfortunately
++			 */
++recursion_alert:
++			net_crit_ratelimited("Dead loop on virtual device %s, fix it urgently!\n",
++					     dev->name);
 +		}
 +	}
 +
-+	WARN_ON_ONCE(!list_empty(state->skb_list));
-+
-+	list_splice(&accept_list, state->skb_list);
-+
-+	if (list_empty(state->skb_list))
-+		return NF_STOLEN;
-+
-+	return NF_ACCEPT;
++	rc = -ENETDOWN;
++out:
++	return rc;
 +}
 +
- static const struct nft_chain_type nft_chain_filter_inet = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
- 	.family		= NFPROTO_INET,
--	.hook_mask	= (1 << NF_INET_INGRESS) |
-+	.hook_mask	= (1 << NF_INET_EARLY_INGRESS) |
-+			  (1 << NF_INET_INGRESS) |
- 			  (1 << NF_INET_LOCAL_IN) |
- 			  (1 << NF_INET_LOCAL_OUT) |
- 			  (1 << NF_INET_FORWARD) |
- 			  (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING),
- 	.hooks		= {
-+		[NF_INET_EARLY_INGRESS]	= nft_do_chain_inet_early_ingress,
- 		[NF_INET_INGRESS]	= nft_do_chain_inet_ingress,
- 		[NF_INET_LOCAL_IN]	= nft_do_chain_inet,
- 		[NF_INET_LOCAL_OUT]	= nft_do_chain_inet,
-@@ -324,15 +382,69 @@ static unsigned int nft_do_chain_netdev(void *priv, struct sk_buff *skb,
- 	return nft_do_chain(&pkt, priv);
- }
+ /**
+  * __dev_queue_xmit() - transmit a buffer
+  * @skb:	buffer to transmit
+@@ -4757,7 +4819,6 @@ int __dev_queue_xmit(struct sk_buff *skb, struct net_device *sb_dev)
+ 	struct netdev_queue *txq = NULL;
+ 	struct Qdisc *q;
+ 	int rc = -ENOMEM;
+-	bool again = false;
  
-+static unsigned int
-+nft_do_chain_netdev_early_ingress(void *priv, struct sk_buff *unused,
-+				  const struct nf_hook_state *state)
-+{
-+	struct nf_hook_state ingress_state = *state;
-+	struct sk_buff *skb, *nskb;
-+	struct nft_pktinfo pkt;
-+	LIST_HEAD(accept_list);
-+	int ret;
-+
-+	list_for_each_entry_safe(skb, nskb, state->skb_list, list) {
-+		skb_list_del_init(skb);
-+
-+		skb_reset_network_header(skb);
-+		if (!skb_transport_header_was_set(skb))
-+			skb_reset_transport_header(skb);
-+		skb_reset_mac_len(skb);
-+
-+		ret = nft_set_pktinfo_ingress(&pkt, skb, &ingress_state);
-+		switch (ret) {
-+		case 1:
-+		case -1:
-+			nft_set_pktinfo(&pkt, skb, &ingress_state);
-+			break;
-+		default:
-+			break;
-+		}
-+
-+		ret = nft_do_chain(&pkt, priv);
-+		switch (ret) {
-+		case NF_ACCEPT:
-+			list_add_tail(&skb->list, &accept_list);
-+			break;
-+		default:
-+			WARN_ON_ONCE(1);
-+			fallthrough;
-+		case NF_DROP:
-+			kfree_skb(skb);
-+			break;
-+		}
+ 	skb_reset_mac_header(skb);
+ 	skb_assert_len(skb);
+@@ -4808,61 +4869,13 @@ int __dev_queue_xmit(struct sk_buff *skb, struct net_device *sb_dev)
+ 		goto out;
+ 	}
+ 
+-	/* The device has no queue. Common case for software devices:
+-	 * loopback, all the sorts of tunnels...
+-
+-	 * Really, it is unlikely that netif_tx_lock protection is necessary
+-	 * here.  (f.e. loopback and IP tunnels are clean ignoring statistics
+-	 * counters.)
+-	 * However, it is possible, that they rely on protection
+-	 * made by us here.
+-
+-	 * Check this and shot the lock. It is not prone from deadlocks.
+-	 *Either shot noqueue qdisc, it is even simpler 8)
+-	 */
+-	if (dev->flags & IFF_UP) {
+-		int cpu = smp_processor_id(); /* ok because BHs are off */
+-
+-		/* Other cpus might concurrently change txq->xmit_lock_owner
+-		 * to -1 or to their cpu id, but not to our id.
+-		 */
+-		if (READ_ONCE(txq->xmit_lock_owner) != cpu) {
+-			if (dev_xmit_recursion())
+-				goto recursion_alert;
+-
+-			skb = validate_xmit_skb(skb, dev, &again);
+-			if (!skb)
+-				goto out;
+-
+-			HARD_TX_LOCK(dev, txq, cpu);
+-
+-			if (!netif_xmit_stopped(txq)) {
+-				dev_xmit_recursion_inc();
+-				skb = dev_hard_start_xmit(skb, dev, txq, &rc);
+-				dev_xmit_recursion_dec();
+-				if (dev_xmit_complete(rc)) {
+-					HARD_TX_UNLOCK(dev, txq);
+-					goto out;
+-				}
+-			}
+-			HARD_TX_UNLOCK(dev, txq);
+-			net_crit_ratelimited("Virtual device %s asks to queue packet!\n",
+-					     dev->name);
+-		} else {
+-			/* Recursion is detected! It is possible,
+-			 * unfortunately
+-			 */
+-recursion_alert:
+-			net_crit_ratelimited("Dead loop on virtual device %s, fix it urgently!\n",
+-					     dev->name);
+-		}
+-	}
+-
+-	rc = -ENETDOWN;
++	rc = dev_noqueue_xmit_list(skb, dev, txq);
+ 	rcu_read_unlock_bh();
+ 
+-	dev_core_stats_tx_dropped_inc(dev);
+-	kfree_skb_list(skb);
++	if (rc < 0) {
++		dev_core_stats_tx_dropped_inc(dev);
++		kfree_skb_list(skb);
 +	}
-+
-+	WARN_ON_ONCE(!list_empty(state->skb_list));
-+
-+	list_splice(&accept_list, state->skb_list);
-+
-+	if (list_empty(state->skb_list))
-+		return NF_STOLEN;
-+
-+	return NF_ACCEPT;
-+}
-+
- static const struct nft_chain_type nft_chain_filter_netdev = {
- 	.name		= "filter",
- 	.type		= NFT_CHAIN_T_DEFAULT,
- 	.family		= NFPROTO_NETDEV,
- 	.hook_mask	= (1 << NF_NETDEV_INGRESS) |
--			  (1 << NF_NETDEV_EGRESS),
-+			  (1 << NF_NETDEV_EGRESS) |
-+			  (1 << NF_NETDEV_EARLY_INGRESS),
- 	.hooks		= {
- 		[NF_NETDEV_INGRESS]	= nft_do_chain_netdev,
- 		[NF_NETDEV_EGRESS]	= nft_do_chain_netdev,
-+		[NF_NETDEV_EARLY_INGRESS] = nft_do_chain_netdev_early_ingress,
- 	},
- };
- 
+ 	return rc;
+ out:
+ 	rcu_read_unlock_bh();
 -- 
 2.47.3
 
