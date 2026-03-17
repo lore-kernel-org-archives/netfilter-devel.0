@@ -1,50 +1,43 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59C733AE19A;
-	Tue, 17 Mar 2026 11:29:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C24534F486;
+	Tue, 17 Mar 2026 11:39:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773746983; cv=none; b=taaZmCMpOCKAUDCaQuSjipupdwaFsxJ4VYQfCkdF1RUBTRdOYzCFpsNDg+qZddxlR1PN6RbVz+UkhfWnWAKZxBiPV5V38mIZqNkTTwQlLci1TPRPPDRupLD1gYNlGSuSki0Dn7fvhTMRxBz1435lRTg8cRTAeEmHKJPH/MRQZD4=
+	t=1773747563; cv=none; b=gtxRJRnH/0lpyI0fk3CZJhEJzgEfoHUrJbpeSdOnLGRuoc0RQOrataff7Fd7d0fktZtLHVQxVcpNy11ru8kR5PqiFhdunYf2DsjWk1g/bFzDxZE9t8TDQaBP9g1r+3pquQgWIHOlqN9F9a11p9hBVbn6PIsQIZNqFtTI8QUAVUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773746983; c=relaxed/simple;
-	bh=cv6wZ8dWLrgsnV3oBF+YY6vLLKiC/IoeN0IEuXPcyfg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LJ+SfuODkoKIm6RkLMZ7m7PDzGSinh+sInuM9BrdfbvMumYL2zyREH6DDEcj/2RKusbVM1rZeKKFniBKc24HId6zuUm1T9Vhyo80K33HJkRnoyTrmG/Vh5VfBQHqOw8qt91zh69u3IojFMx2EttZmBNQcLjkIgdlHuagaP7eTEU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=IUNa/SaA; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1773747563; c=relaxed/simple;
+	bh=kdQ+1+afZ0cU27XQrMbqyykm1KyvnmBwhXqTYx7wVyc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=YOptF6cPxvUsDaqGTY616P8duOty2OE0G9swzcpzMHuoKntEZ+wUyb3VHuUBByuEHBh/pibfViehRWcEHlxT+rHfJrZmOwNWAbA709gHbvjOfXbm2727jLIrIHCciyzQFK0AfdTdLoF2AiNKsu6EGmUjTg82Wi45939dI2xS1Ys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=X3VWJmPc; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="IUNa/SaA"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0AD236026B;
-	Tue, 17 Mar 2026 12:29:39 +0100 (CET)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="X3VWJmPc"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5E2C560275;
+	Tue, 17 Mar 2026 12:39:20 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1773746980;
-	bh=ZYJeK+aud/ltHHtuFINdU7sSNOijRKxbP50/Tcgt9Mo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=IUNa/SaA05Bdzm8fcNC++Deh/pA/njvLf2sEm+Hkpd7EYk2sj+mkK+1RzFsGIeCKv
-	 CCPGl5BWZdCeTgvbUziW6/otRPDT5v+ehROFmyQgbrLlQY3r4xhM4Y4I8l/fMy5jgH
-	 IwkPnlDKXnto9LfROjpCxOVYUCHAc7lhE57ECQfnt6eASj1a85nb4rpMekUkNWYGvq
-	 ZaMhl6dX1d8uex/VUCWVJpUU/S/c2nI1JG3D7FuIuDn+W+3zq54Q+clqhPzD073lUQ
-	 C/s0M0PUIH3Si39hCXBybopskFbM4igTaaaz+WoFDsU5ApKLKnYZg08eFNUCiUSxz7
-	 f2NmsVmNGVEeg==
+	s=2025; t=1773747560;
+	bh=P33V43oP3dkCUdsRMCD8YrJZ9UrUUPnTwpPVsaX6Q9U=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=X3VWJmPc3wHHLmTk7yNGFmtyTNGuIZoIdvaMlyfbKfjthmfm+ND6C63mEIPFS4VJa
+	 o2hHxkWo0hWSDfjlelLylNrjpmGfILY7FlfcEImF1cmRzRtWI66Zs/8DUXxgl54XrD
+	 bmg20HqxJbOwuBWQXXmGZVzHB+Ufe1B0s0vpxtZuwayc6sbpLEZidRVVLqZhrpSs3a
+	 bab6ThnxoQd5xckRS32kUp09SDjEyr/oN2BH35NvVHPK0lTbrYeex8FSA7/WfJl+2n
+	 ADdK3j3XJQEaes2kT38+bCwv9mC73UVwODFkuZVwcrLqOEMeSseWC0AHN0Gtm5d7Sb
+	 5ZP7nonEKc8Gg==
+Date: Tue, 17 Mar 2026 12:39:17 +0100
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Cc: davem@davemloft.net,
-	netdev@vger.kernel.org,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	edumazet@google.com,
-	fw@strlen.de,
-	horms@kernel.org,
-	steffen.klassert@secunet.com,
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
+	horms@kernel.org, steffen.klassert@secunet.com,
 	antony.antony@secunet.com
-Subject: [PATCH net-next,RFC 8/8] net: add dev_queue_xmit_list() and use it
-Date: Tue, 17 Mar 2026 12:29:17 +0100
-Message-ID: <20260317112917.4170466-9-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260317112917.4170466-1-pablo@netfilter.org>
+Subject: Re: [PATCH net-next,RFC 0/8] netfilter: flowtable bulking
+Message-ID: <abk9ZQoc7GxfgODn@chamomile>
 References: <20260317112917.4170466-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -52,257 +45,119 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260317112917.4170466-1-pablo@netfilter.org>
 
-Add listified skb tx path and use it to implement the flowtable TX
-datapath. Use the dev_dst_drop() and dev_noqueue_xmit_list() helper
-functions to build dev_queue_xmit_list().
+Missing links:
 
-100dfa74cad9 ("net: dev_queue_xmit() llist adoption") requires to
-reverse the skb list and then splice this list to the the last pending
-skbuff for transmission.
+[1] https://lore.kernel.org/netdev/20180614141947.3580-1-pablo@netfilter.org/
+[2] https://linux-ipsec.org/2025-linux-kernel-flowtable-bulk-forwarding-and-xfrm-pcpu-forwarding-testing-results.html
 
-A few notes:
-
-- I removed:
-
-       if (unlikely(skb_shinfo(skb)->tx_flags & SKBTX_SCHED_TSTAMP))
-               return -1;
-
-Only possible if skb->sk is set on, if my assumption is not correct, this
-can be checked from flowtable path.
-
-Reducing the size of dev_queue_xmit_list() is convenient, to focus only
-on speeding up what it can be really speed up, so let's return -1 if
-either:
-
-- qdisc is not empty
-
-OR
-
-- qdisc is not work-conserving (no TCQ_F_CAN_BYPASS is set on)
-
-Then, the flowtable falls back to call dev_queue_xmit() for each single
-skbuff.
-
-Co-developed-by: Steffen Klassert <steffen.klassert@secunet.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netdevice.h        |   2 +
- net/core/dev.c                   | 157 +++++++++++++++++++++++++++++++
- net/netfilter/nf_flow_table_ip.c |  18 ++--
- 3 files changed, 169 insertions(+), 8 deletions(-)
-
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index c0174aa1037f..34747e9b85d2 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -3401,6 +3401,8 @@ static inline int dev_direct_xmit(struct sk_buff *skb, u16 queue_id)
- 	return ret;
- }
- 
-+int dev_queue_xmit_list(struct sk_buff *skb);
-+
- int register_netdevice(struct net_device *dev);
- void unregister_netdevice_queue(struct net_device *dev, struct list_head *head);
- void unregister_netdevice_many(struct list_head *head);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 8f5bef5a715c..8f114f5af537 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -4920,6 +4920,163 @@ int __dev_direct_xmit(struct sk_buff *skb, u16 queue_id)
- }
- EXPORT_SYMBOL(__dev_direct_xmit);
- 
-+static int dev_queue_xmit_skb_list(struct sk_buff *skb, struct Qdisc *q,
-+				   struct net_device *dev,
-+				   struct netdev_queue *txq)
-+{
-+	struct sk_buff *next, *to_free = NULL, *to_free2 = NULL;
-+	spinlock_t *root_lock = qdisc_lock(q);
-+	struct llist_node *ll_list, *first_n;
-+	unsigned long defer_count = 0;
-+	int rc = -1;
-+
-+	tcf_set_drop_reason(skb, SKB_DROP_REASON_QDISC_DROP);
-+
-+	if (q->flags & TCQ_F_NOLOCK) {
-+		if (q->flags & TCQ_F_CAN_BYPASS && nolock_qdisc_is_empty(q) &&
-+		    qdisc_run_begin(q)) {
-+			/* Retest nolock_qdisc_is_empty() within the protection
-+			 * of q->seqlock to protect from racing with requeuing.
-+			 */
-+			if (unlikely(!nolock_qdisc_is_empty(q))) {
-+				to_free2 = qdisc_run_end(q);
-+				goto free_skbs;
-+			}
-+
-+			if (sch_direct_xmit(skb, q, dev, txq, NULL, false) &&
-+			    !nolock_qdisc_is_empty(q))
-+				__qdisc_run(q);
-+
-+			to_free2 = qdisc_run_end(q);
-+			rc = NET_XMIT_SUCCESS;
-+			goto free_skbs;
-+		}
-+	}
-+
-+	/* Transform skb list to llist in reverse order to splice this batch
-+	 * into the defer_list. The next field of skb chain and llist use the
-+	 * memory layout.
-+	 */
-+	ll_list = llist_reverse_order(&skb->ll_node);
-+
-+	/* Open code llist_add(&skb->ll_node, &q->defer_list) + queue limit.
-+	 * In the try_cmpxchg() loop, we want to increment q->defer_count
-+	 * at most once to limit the number of skbs in defer_list.
-+	 * We perform the defer_count increment only if the list is not empty,
-+	 * because some arches have slow atomic_long_inc_return().
-+	 */
-+	first_n = READ_ONCE(q->defer_list.first);
-+	do {
-+		if (first_n && !defer_count) {
-+			defer_count = atomic_long_inc_return(&q->defer_count);
-+			if (unlikely(defer_count > READ_ONCE(net_hotdata.qdisc_max_burst))) {
-+				kfree_skb_reason(skb, SKB_DROP_REASON_QDISC_BURST_DROP);
-+				return NET_XMIT_DROP;
-+			}
-+                }
-+		/* Splice using last skb in the reverse list. */
-+		skb->ll_node.next = first_n;
-+	} while (!try_cmpxchg(&q->defer_list.first, &first_n, ll_list));
-+
-+	/* If defer_list was not empty, we know the cpu which queued
-+	 * the first skb will process the whole list for us.
-+	 */
-+	if (first_n)
-+		return NET_XMIT_SUCCESS;
-+
-+	spin_lock(root_lock);
-+
-+	ll_list = llist_del_all(&q->defer_list);
-+	/* There is a small race because we clear defer_count not atomically
-+	 * with the prior llist_del_all(). This means defer_list could grow
-+	 * over qdisc_max_burst.
-+	 */
-+	atomic_long_set(&q->defer_count, 0);
-+
-+	ll_list = llist_reverse_order(ll_list);
-+
-+	if (unlikely(test_bit(__QDISC_STATE_DEACTIVATED, &q->state))) {
-+		llist_for_each_entry_safe(skb, next, ll_list, ll_node)
-+			__qdisc_drop(skb, &to_free);
-+		rc = NET_XMIT_DROP;
-+		goto unlock;
-+	}
-+
-+	if ((q->flags & TCQ_F_CAN_BYPASS) && !qdisc_qlen(q) &&
-+	    !llist_next(ll_list) && qdisc_run_begin(q)) {
-+		/*
-+		 * This is a work-conserving queue; there are no old skbs
-+		 * waiting to be sent out; and the qdisc is not running -
-+		 * xmit the skb directly.
-+		 */
-+		DEBUG_NET_WARN_ON_ONCE(skb != llist_entry(ll_list,
-+							  struct sk_buff,
-+							  ll_node));
-+		qdisc_bstats_update(q, skb);
-+		if (sch_direct_xmit(skb, q, dev, txq, root_lock, true))
-+			__qdisc_run(q);
-+		to_free2 = qdisc_run_end(q);
-+		rc = NET_XMIT_SUCCESS;
-+	}
-+unlock:
-+	spin_unlock(root_lock);
-+
-+free_skbs:
-+	tcf_kfree_skb_list(to_free);
-+	tcf_kfree_skb_list(to_free2);
-+	return rc;
-+}
-+
-+int dev_queue_xmit_list(struct sk_buff *skb)
-+{
-+	struct net_device *dev = skb->dev;
-+	struct netdev_queue *txq;
-+	struct sk_buff *iter;
-+	struct Qdisc *q;
-+	int rc;
-+
-+	/* Disable soft irqs for various locks below. Also
-+	 * stops preemption for RCU.
-+	 */
-+	rcu_read_lock_bh();
-+
-+	/* Intentionally, no egress hooks here. This is called from the ingress
-+	 * path, which should have already classified packets before calling
-+	 * this function.
-+	 */
-+
-+	txq = netdev_tx_queue_mapping(dev, skb);
-+	if (!txq)
-+		txq = netdev_core_pick_tx(dev, skb, NULL);
-+
-+	q = rcu_dereference_bh(txq->qdisc);
-+
-+	iter = skb;
-+	while (iter) {
-+		dev_dst_drop(dev, iter);
-+		skb_copy_queue_mapping(iter, skb);
-+		iter = iter->next;
-+	}
-+
-+	if (q->enqueue) {
-+		rc = dev_queue_xmit_skb_list(skb, q, dev, txq);
-+		goto out;
-+	}
-+
-+	rc = dev_noqueue_xmit_list(skb, dev, txq);
-+	rcu_read_unlock_bh();
-+
-+	if (rc < 0) {
-+		dev_core_stats_tx_dropped_inc(dev);
-+		kfree_skb_list(skb);
-+	}
-+	return rc;
-+out:
-+	rcu_read_unlock_bh();
-+	return rc;
-+}
-+EXPORT_SYMBOL(dev_queue_xmit_list);
-+
- /*************************************************************************
-  *			Receiver routines
-  *************************************************************************/
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index 98b5d5e022c8..3d2d02be0f0d 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -863,14 +863,16 @@ static void nf_flow_neigh_xmit_list(struct sk_buff *skb, struct net_device *outd
- 		iter = iter->next;
- 	}
- 
--	iter = skb;
--	while (iter) {
--		struct sk_buff *next;
--
--		next = iter->next;
--		iter->next = NULL;
--		dev_queue_xmit(iter);
--		iter = next;
-+	if (dev_queue_xmit_list(skb) == -1) {
-+		iter = skb;
-+		while (iter) {
-+			struct sk_buff *next;
-+
-+			next = iter->next;
-+			iter->next = NULL;
-+			dev_queue_xmit(iter);
-+			iter = next;
-+		}
- 	}
- }
- 
--- 
-2.47.3
-
+On Tue, Mar 17, 2026 at 12:29:09PM +0100, Pablo Neira Ayuso wrote:
+> Hi,
+>  
+> Back in 2018 [1], a new fast forwarding combining the flowtable and
+> GRO/GSO was proposed, however, "GRO is specialized to optimize the
+> non-forwarding case", so it was considered "counter-intuitive to base a
+> fast forwarding path on top of it".
+>  
+> Then, Steffen Klassert proposed the idea of adding a new engine for the
+> flowtable that operates on the skb list that is provided after the NAPI
+> cycle. The idea is to process this skb list to create bulks grouped by
+> the ethertype, output device, next hop and tos/dscp. Then, add a
+> specialized xmit path that can deal with these skb bulks. Note that GRO
+> needs to be disabled so this new forwarding engine obtains the list of
+> skbs that resulted from the NAPI cycle.
+>  
+> Before grouping skbs in bulks, there is a flowtable lookup to check if
+> this flow is already in the flowtable, otherwise, the packet follows
+> slow path. In case the flowtable lookup returns an entry, then this
+> packet follows fast path: the ttl is decremented, the corresponding NAT
+> mangling on the packet and layer 2/3 tunnel encapsulation (layer 2:
+> vlan/pppoe, layer 3: ipip) are performed.
+>  
+> The fast forwarding path is enabled through explicit user policy, so the
+> user needs to request this behaviour from control plane, the following
+> example shows how to place flows in the new fast forwarding path from
+> the forward chain:
+> 
+>  table x {
+>         flowtable f {
+>                 hook early_ingress priority 0; devices = { eth0, eth1 }
+>         }
+>  
+>         chain y {
+>                 type filter hook forward priority 0;
+>                 ip protocol tcp flow offload @f counter
+>         }
+>  }
+>  
+>  
+> The example above sets up a fastpath for TCP flows that are placed in
+> the flowtable 'f', this flowtable is hooked at the new early_ingress
+> hook.  The initial TCP packets that match this rule from the standard
+> fowarding path create an entry in the flowtable.
+>  
+> Note that tcpdump only shows the packets in the tx path, since this
+> new early_ingress hook happens before the ingress tap.
+> 
+> The patch series contains 8 patches:
+> 
+> - #1 and #2 adds the basic RX flowtable bulking infrastructure for
+>   IPv4 and IPv6.
+> - #3 adds the early_ingress netfilter hook.
+> - #4 adds a helper function to prepare for the netfilter chain for
+>   the early_ingress hook.
+> - #5 adds the early_ingress filter chain.
+> - #6 and #7 add helper functions to reuse TX path codebase.
+> - #8 adds the custom TX path for listified skbs and updates
+>   the flowtable bulking to use it.
+> 
+> = Benchmark numbers =
+> 
+> Using the following testbed with 4 hosts with this topology:
+>  
+>  | sunset |-----| west |====| east |----| sunrise |
+>  
+> And this hardware:
+>  
+> * Supermicro H13SSW Motherboard
+> * AMD EPYC 9135 16-Core Processor (a.k.a. Bergamo, or Zen 5)
+> * NIC: Mellanox MT28800 ConnectX-5 Ex (100Gbps NIc)
+> * NIC: Broadcom BCM57508 NetXtreme-E (only on sunrise, 100Gbps NIc)
+>  
+> With 128 byte packets:
+>  
+> * From ~2 Mpps (baseline) to ~4 Mpps with 1 flow.
+> * From ~10.6 Mpps (baseline) to ~15.7 Mpps with 10 flows.
+>  
+> Antony Antony collected performance numbers and made a report describing
+> this the benchmarking[2]. This report includes numbers from the IPsec
+> support which is not included in this series.
+>
+> Comments welcome, thanks.
+> 
+> Pablo Neira Ayuso (8):
+>   netfilter: flowtable: Add basic bulking infrastructure for early ingress hook
+>   netfilter: flowtable: Add IPv6 bulking infrastructure for early ingress hook
+>   netfilter: nf_tables: add flowtable early_ingress support
+>   netfilter: nf_tables: add nft_set_pktinfo_ingress()
+>   netfilter: nf_tables: add early ingress chain
+>   net: add dev_dst_drop() helper function
+>   net: add dev_noqueue_xmit_list() helper function
+>   net: add dev_queue_xmit_list() and use it
+> 
+>  include/linux/netdevice.h             |   2 +
+>  include/net/netfilter/nf_flow_table.h |  13 +-
+>  net/core/dev.c                        | 297 ++++++++++++++++----
+>  net/netfilter/nf_flow_table_inet.c    |  81 ++++++
+>  net/netfilter/nf_flow_table_ip.c      | 384 ++++++++++++++++++++++++++
+>  net/netfilter/nf_tables_api.c         |  12 +-
+>  net/netfilter/nft_chain_filter.c      | 164 +++++++++--
+>  7 files changed, 872 insertions(+), 81 deletions(-)
+> 
+> -- 
+> 2.47.3
+> 
+> 
