@@ -1,139 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f195.google.com (mail-dy1-f195.google.com [74.125.82.195])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 840A52032D;
-	Wed, 18 Mar 2026 00:32:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFD261F239B
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2026 02:57:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.195
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773793963; cv=none; b=J3quJJMCXzn6FLrEianQ0BTavXOb8tP9nX1OUtGTlKXvg9zJbhzMOj79igXYi2hBX96rsDXx4Dwu8u+AIU8rAsu1rutudIyMoL3BeQnFA9o5rCONH6w3POitmDuDUQv94rdJJMldhtr7OOznyjnM0kS3y55xMQ5qfFDDL0xP0eQ=
+	t=1773802629; cv=none; b=SA0lgHR8uLVytxWEoBb2tIJFef2HC/74sJHBtGZ8Daug+TaUQR7tTG+g9H6NFvdiptkhwjIOIm9ptLGkq1x1zB3rqRTaujydSUFKlj/0ebhk2nOUrgQhgU00KnTR66UVAvsiZfAhVpr2axG9IjKIIDqFihDLtdTpqsW/HrZirLM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773793963; c=relaxed/simple;
-	bh=+K7vbrPEko/xLvJpG935Ozb3wcIECXD+K7p2132r3ew=;
-	h=Content-Type:MIME-Version:Message-Id:In-Reply-To:References:
-	 Subject:From:To:Cc:Date; b=YTr3nyvt0T0ZZsr7FF70rw4OQl7vzTiZDQVvxeaE37eGaOXDfaSuYyO7ogDNl2oTe2K625j7XsK5NogmhheZ2a0FZLQ3hFkBGufvdOXuv5skAFcJbvRJmlmlml5tnW/N1WCnzo2h3vaahZEvEUt6b7XwnL8JpWvb2X/E+R1eK6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KEKsmbLU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773802629; c=relaxed/simple;
+	bh=z4+QvH+TUpUIjYRhEgTxJeZhbWVmho7XnB8fRdwlEG8=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=QjVNMwFhac/1Vs5urlLxOPOIGjWCDrCFfjuCzYczqyU8J5tC2crJ5dHERcQbcLURzbyddb6jVK33iJS8k5ZcWI2MFGMhnIp7c7SSGJk8OvCezXmSoz1zRhTSbmp7Ilt/9xAWtOETGyHBQmECQTupgGeke+eiy2USacjyTbJbq6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IGAjDy61; arc=none smtp.client-ip=74.125.82.195
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KEKsmbLU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4AECC4CEF7;
-	Wed, 18 Mar 2026 00:32:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1773793963;
-	bh=+K7vbrPEko/xLvJpG935Ozb3wcIECXD+K7p2132r3ew=;
-	h=In-Reply-To:References:Subject:From:To:Cc:Date:From;
-	b=KEKsmbLUrOcZRyGZDXU0aYUEQjlp1R4wnHRtHtDlqZzwbHWtvp9kdM1XJd29cdWvG
-	 CoyqeDkTjfR4/y+0n/ifER95L2mTcXc65fH5CCJ5dvRz3vOjx39iSmVsQOat3zPBgh
-	 pp+5FOR/tI+wmQm9Z050dXwIID3N4kry1pBgf8XHFySjYDVZPDtRpje5nGfNguk7ED
-	 pxtmvw+2JMSRXq16BnyPMuaWHUuBoWhDLF92xxnWg/ybQGsK2Lc0WT8fJ3MjxaafTI
-	 ygsLru7SXuBNuNqLXefVJvBjKSE44dAEUIKj3bAfsVbXcGakHsRYXSaHQJWResvYuO
-	 yM5jrweSdy4XA==
-Content-Type: multipart/mixed; boundary="===============8481999304696418550=="
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IGAjDy61"
+Received: by mail-dy1-f195.google.com with SMTP id 5a478bee46e88-2b6b0500e06so7628983eec.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Mar 2026 19:57:08 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1773802627; x=1774407427; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=9+mMmf/GitB9L1jBesSILiOox4z7ggg6WNKP1tStGFo=;
+        b=IGAjDy61udPxpfl1GF0b9VlpzxegBlIRZ98iPJpwsDJT/zW7R3rLCjVl7XCBpZujTP
+         CVpim0x61dCBr+8BPCjH9Znfrx8Y+WzrJm5qd45/skFcfSmj75SCGfClQB+zOYgRsIsH
+         q6aY8VtT0xjjnhfBT4eLLefAf1aNSWazg9KSWXxUJJlOFEvFrKnACJhCuaWG21lABBB4
+         +lCDz9fYN1W0J/yhvmSVhl+dsrZVDdM82U91N1x6jUYlbnMyYRkG/9XFX71QDUYt8nkq
+         iO3ISo5kow0Efu2kF/z2+zsH/03rAzacYRTyvOnw/ctW2IHBq7Dsc6ZOgfeSbdVq6V/l
+         z5Gw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773802627; x=1774407427;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9+mMmf/GitB9L1jBesSILiOox4z7ggg6WNKP1tStGFo=;
+        b=S/Q9s5k36qWvQgIo/4laBGJsyL1nxJv/sMrNhzJrIPyssCppTHQUskRcU65xaaG7ZA
+         55rDRWsfsWSqzje/t4x7NQcyoBL5qMhQn2TzOCYnWkOswIENhuj3hZ8UO6N+rG4PvZY8
+         msnPG4OPmyHo3t7h3KM//1gXqA2tu2wEe75gtG9LgeN9r91uqwY/mqjFRC56KCWk/Dk6
+         LxqVbz3ECFnEarvCMtWXgEPCL2/6TG5GraFkeSCFALSwYKE0SBI7NvaQTOiX20UFhrMO
+         ktt3PxCfyuq15wl78+h/XfaIznss++TpXmVMSQ56rKoI8SJl9tEDSpB/0+t7k9vVnE0O
+         4b+g==
+X-Gm-Message-State: AOJu0Yz9X2bnt36t4SWloUUI/gLLXsLlOspLYVuvMNsO4bn1Ol/0oE7z
+	4jcoW1fnYcOuQA1OZZf7LRo4Bpd1sZoBeiM+pbU8rsQ2Vsg0kitpHLs/AiIZ4Li+nu0=
+X-Gm-Gg: ATEYQzyTWvejNIHwlZaGB8d9Tb21n5fFPOjTX2pbApJOueO8OZ3KbqBRRYVX7hacclM
+	sWONlGX/kwlTCWWxNRKzSbJicN+voP5Z/T6+492xvzHXDubSto53bplUvu8wCoKdBssL1/M8l6x
+	LHF4wOPjcM6EBZL4UwpzPyC5Mdd31Z7p0mP1DXBYufk0FJ5Zv5EfP5B2OTGnrtf1Vuzu+l369oV
+	fvir5cBq96qL1ANn2TMmx6a/3kKHIk8jnIwJKb06EFAG+xAYHUtRhCQTFqppdWh1PwmtkPawFk3
+	e808PUUFXPqGklV8WJvmEGemjyxxaRa4u+DcrEqukRud0VwW8Zg5v57bTQb9PSPsv2UHsjfDSFl
+	GIzfLjKdvP5LCOsnhBRwova5ZGLMIcRUs55ShoKV8SgtRkSVCj5nDJjijTqGGLoP3lgKDZUY8Ob
+	NFI/3yrPgCRWkbcZt9AuVq6EZHBV7oBuAeiztjb6ib6jstwjH8DF7iQMQMcw==
+X-Received: by 2002:a05:7300:3205:b0:2be:e4b:60c2 with SMTP id 5a478bee46e88-2c0e507ed98mr868420eec.5.1773802627323;
+        Tue, 17 Mar 2026 19:57:07 -0700 (PDT)
+Received: from cl-pc (2607-8700-5500-3d9a-0000-0000-0000-0003.16clouds.com. [2607:8700:5500:3d9a::3])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2c0e560fb5fsm2521485eec.31.2026.03.17.19.57.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 17 Mar 2026 19:57:06 -0700 (PDT)
+From: chlorodose <chlorodose@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: chlorodose <chlorodose@gmail.com>
+Subject: [PATCH] src: Export nftnl_set_clone symbol
+Date: Wed, 18 Mar 2026 10:56:51 +0800
+Message-ID: <20260318025651.151116-1-chlorodose@gmail.com>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Message-Id: <4835dc583eabe4c0d1763a8c08399302896e25490f353ecce51b58a59d20a0d3@mail.kernel.org>
-In-Reply-To: <20260317234851.234466-3-anzaki@gmail.com>
-References: <20260317234851.234466-3-anzaki@gmail.com>
-Subject: Re: [PATCH nf-next 2/2] netfilter: flowtable: update netdev stats with HW_OFFLOAD flows
-From: bot+bpf-ci@kernel.org
-To: anzaki@gmail.com,netfilter-devel@vger.kernel.org,pablo@netfilter.org,fw@strlen.de
-Cc: coreteam@netfilter.org,netdev@vger.kernel.org,ast@kernel.org,andrii@kernel.org,daniel@iogearbox.net,martin.lau@kernel.org,eddyz87@gmail.com,yonghong.song@linux.dev,clm@meta.com,ihor.solodrai@linux.dev
-Date: Wed, 18 Mar 2026 00:32:42 +0000 (UTC)
+Content-Transfer-Encoding: 8bit
 
---===============8481999304696418550==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Seems that nftnl_set_clone is forgot to be exported, we add it back.
 
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index 9b677e116487..d340d37589bf 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-
-[ ... ]
-
-> +static void flow_offload_netdev_update(struct flow_offload_work *offload,
-> +				       struct flow_stats *stats)
-> +{
-> +	const struct flow_offload_tuple *tuple;
-> +	struct net_device *indev, *outdev;
-> +	struct net *net;
-> +
-> +	rcu_read_lock();
-> +	net = read_pnet(&offload->flowtable->net);
-> +	if (stats[0].pkts) {
-> +		tuple = &offload->flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple;
-> +		indev  = dev_get_by_index_rcu(net, tuple->iifidx);
-> +		if (indev)
-> +			dev_sw_netstats_rx_add(indev,
-> +					       stats[0].pkts, stats[0].bytes);
-
-dev_sw_netstats_rx_add() and dev_sw_netstats_tx_add() both do
-this_cpu_ptr(dev->tstats) internally to update per-cpu software
-stats. Can this corrupt memory when the device does not have tstats
-allocated?
-
-Drivers that support flowtable hw offload (TC_SETUP_FT) are typically
-physical NICs such as mlx5, which do not set pcpu_stat_type and do
-not allocate dev->tstats. When dev->tstats is NULL,
-this_cpu_ptr(NULL) computes the per-cpu base address rather than
-faulting, and the subsequent writes would silently corrupt whatever
-per-cpu data lives at offset zero.
-
-All existing callers of dev_sw_netstats_rx_add() call it on device
-types known to have tstats (bridges, tunnels, tun/tap, etc.), not
-on devices obtained from arbitrary dev_get_by_index_rcu() lookups.
-
-> +
-> +		outdev = dev_get_by_index_rcu(net, tuple->out.ifidx);
-> +		if (outdev)
-> +			dev_sw_netstats_tx_add(outdev,
-> +					       stats[0].pkts, stats[0].bytes);
-
-For flows with xmit_type FLOW_OFFLOAD_XMIT_NEIGH (the common L3
-routing case), does tuple->out.ifidx return the correct output
-interface index?
-
-Looking at the flow_offload_tuple union layout in
-nf_flow_table.h and how flow_offload_fill_route() populates it:
-
-For FLOW_OFFLOAD_XMIT_DIRECT:
-    flow_tuple->out.ifidx = route->tuple[dir].out.ifindex;
-
-For FLOW_OFFLOAD_XMIT_NEIGH:
-    flow_tuple->dst_cache = dst;
-    flow_tuple->ifidx = route->tuple[dir].out.ifindex;
-
-The anonymous struct member ifidx sits at a different offset than
-out.ifidx in the union -- dst_cache (a pointer, 8 bytes on 64-bit)
-occupies offset 0, and the anonymous ifidx follows at offset 8.
-Meanwhile out.ifidx is at offset 0.
-
-So for NEIGH flows, reading tuple->out.ifidx actually reads the
-low bytes of the dst_cache pointer rather than the output interface
-index. dev_get_by_index_rcu() would return NULL for this bogus
-value, and outdev tx stats would be silently skipped.
-
-The existing software path in nf_flow_offload_ip_hook() handles
-this correctly by checking tuple->xmit_type and using
-tuple->out.ifidx only for DIRECT and tuple->ifidx (anonymous
-member) only for NEIGH.
-
-> +	}
-
-[ ... ]
-
-> +	rcu_read_unlock();
->  }
-
-[ ... ]
-
-
+Signed-off-by: chlorodose <chlorodose@gmail.com>
 ---
-AI reviewed your patch. Please fix the bug or email reply why it's not a bug.
-See: https://github.com/kernel-patches/vmtest/blob/master/ci/claude/README.md
+ src/set.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-CI run summary: https://github.com/kernel-patches/bpf/actions/runs/23222395400
---===============8481999304696418550==--
+diff --git a/src/set.c b/src/set.c
+index 54674bc..e5e51b6 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -360,6 +360,7 @@ uint64_t nftnl_set_get_u64(const struct nftnl_set *s, uint16_t attr)
+ 	return val ? *val : 0;
+ }
+ 
++EXPORT_SYMBOL(nftnl_set_clone);
+ struct nftnl_set *nftnl_set_clone(const struct nftnl_set *set)
+ {
+ 	struct nftnl_set *newset;
+-- 
+2.52.0
+
