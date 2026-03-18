@@ -1,31 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2C73B8BB0
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2026 13:24:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B41CF31353B
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2026 13:38:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773840275; cv=none; b=sFo3mJvk+saBuDJuTFXXH3v35sfRNsDnhL/1nkavKOsMIWFio5acpipMZgzy9+0ufAFvXy19EPEJCbQ1SnKoRUSLprE/hxKEnTnrHWRlxMHSxK9dkOmPNf7i6B+K7jGyLCsA5jqjQeKB1qSFh3pP2brDyE1VOzQNGgyQFj/dCLM=
+	t=1773841137; cv=none; b=iPtKx3wZsxJzJxTM37h4Ud962a/4vXeFgQgh54obkGqB8P8tf3EfyJdlIhStMLfVI/EEwbRS4VnvmMK1GxUqWMLckc5YUU1ZtgouJj4ZbE/5UmtSVQUQlJodApgrPGuKexw+9AJxffKAeV6x5/OEYnQSepavTYlxqYR3ZxJxCf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773840275; c=relaxed/simple;
-	bh=V8HpEYB6/trPBMnzvJwzvIgxks1EzXVpAxBPTCyfEuE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=XaIDNV9TfVmdnEiQYo6v/G0uQE+mHWqYljnK+Xd9kyym8mG9hcjaqFLtRKUlpDi60xPhdQrHuryT2zk+ztBbAY5QKHe/2Ti4EQDbhiIyvMaZLvRzy3lf1DinJHkoQ/u/7ybm5FNiYFMQG8frjDgCV05W/xnuuhNlilvATgCuhg8=
+	s=arc-20240116; t=1773841137; c=relaxed/simple;
+	bh=EJuP/OxzZQ5hmNNJ4qM0cHEavix/d8zMB/GPo11ntsU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lz2CDKdLiLoOfgPMk1b1VeAcBotdZD2aKTYfRGg50TEhhXz32n3gvOl+y3GzTcy1wsK1wbKgQjJmkbEToM1z4Hdc/3AI7aulIdYKQro2zKlooD6h+mGHquenSW8F284JHLrZdVfQ70igrrZ1s9XeJ2Wa4aOcKyMtgpDF+S24vXg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 08953608C9; Wed, 18 Mar 2026 14:24:27 +0100 (CET)
+	id 7D54A605C3; Wed, 18 Mar 2026 14:38:53 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: sbrivio@redhat.com,
+Cc: Stefano Brivio <sbrivio@redhat.com>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 1/2] netfilter: nft_set_pipapo_avx2: don't return non-matching entry on expiry
-Date: Wed, 18 Mar 2026 14:24:13 +0100
-Message-ID: <20260318132417.31661-2-fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: nft_set_pipapo: increment data in one step
+Date: Wed, 18 Mar 2026 14:38:34 +0100
+Message-ID: <20260318133840.1334-1-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260318132417.31661-1-fw@strlen.de>
-References: <20260318132417.31661-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -34,174 +31,37 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-New test case fails unexpectedly when avx2 matching functions are used.
-
-The test first loads a ranomly generated pipapo set
-with 'ipv4 . port' key, i.e.  nft -f foo.
-
-This works.  Then, it reloads the set after a flush:
-(echo flush set t s; cat foo) | nft -f -
-
-This is expected to work, because its the same set after all and it was
-already loaded succesfully once.
-
-But with avx2, this fails: nft reports a clashing element.
-
-The reported clash is of following form:
-
-    We successfully re-inserted
-      a . b
-      c . d
-
-Then we try to insert a . d
-
-avx2 finds the already existing a . d, which (due to 'flush set') is marked
-as invalid in the new generation.  It skips the element and moves to next.
-
-Due to incorrect masking, the skip-step finds the next matching
-element *only considering the first field*,
-
-i.e. we return the already reinserted "a . b", even though the
-last field is different and the entry should not have been matched.
-
-No such error is reported for the generic c implementation (no avx2) or when
-the last field has to use the 'nft_pipapo_avx2_lookup_slow' fallback.
-
-Bisection points to
-7711f4bb4b36 ("netfilter: nft_set_pipapo: fix range overlap detection")
-but that fix merely uncovers this bug.
-
-Before this commit, the wrong element is returned, but erronously
-reported as a full, identical duplicate.
-
-The root-cause is too early return in the avx2 match functions.
-When we process the last field, we should continue to process data
-until the entire input size has been consumed to make sure no stale
-bits remain in the map.
-
-An alternative fix is to change the avx2 lookup functions to also
-return the last 'i_ul' (map store location) and then replace:
-
-	if (unlikely(__nft_set_elem_expired(&e->ext, tstamp) ||
-                     !nft_set_elem_active(&e->ext, genmask))) {
-		ret = pipapo_refill(res, f->bsize, f->rules,
-				    fill, f->mt, last);
-		 goto next_match;
- 	}
-
-With:
-            if (unlikely(__nft_set_elem_expired(&e->ext, tstamp) ||
-                         !nft_set_elem_active(&e->ext, genmask))) {
-		if (slow)
-                      ret = pipapo_refill(res, f->bsize, f->rules,
-                                          fill, f->mt, last);
-		else
-		      ret = nft_pipapo_avx2_refill(i_ul, &res[i_ul], fill, f->mt, last);
-                                          fill, f->mt, last);
-                 goto next_match;
-
-... so that irrelvant map parts aren't considered. However, the diffstat
-is significantly larger than this one.
+For unkown reason the C version increments the data pointer in two steps.
+Switch to a single invocation of NFT_PIPAPO_GROUPS_PADDED_SIZE() helper,
+like the avx2 implementation.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_set_pipapo_avx2.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ net/netfilter/nft_set_pipapo.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 7ff90325c97f..6395982e4d95 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -242,7 +242,7 @@ static int nft_pipapo_avx2_lookup_4b_2(unsigned long *map, unsigned long *fill,
+diff --git a/net/netfilter/nft_set_pipapo.c b/net/netfilter/nft_set_pipapo.c
+index 7fd24e0cc428..50d4a4f04309 100644
+--- a/net/netfilter/nft_set_pipapo.c
++++ b/net/netfilter/nft_set_pipapo.c
+@@ -452,8 +452,6 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+ 			pipapo_and_field_buckets_4bit(f, res_map, data);
+ 		NFT_PIPAPO_GROUP_BITS_ARE_8_OR_4;
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+-		data += f->groups / NFT_PIPAPO_GROUPS_PER_BYTE(f);
+-
+ 		/* Now populate the bitmap for the next field, unless this is
+ 		 * the last field, in which case return the matched 'ext'
+ 		 * pointer if any.
+@@ -498,7 +496,7 @@ static struct nft_pipapo_elem *pipapo_get_slow(const struct nft_pipapo_match *m,
+ 		map_index = !map_index;
+ 		swap(res_map, fill_map);
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -319,7 +319,7 @@ static int nft_pipapo_avx2_lookup_4b_4(unsigned long *map, unsigned long *fill,
+-		data += NFT_PIPAPO_GROUPS_PADDING(f);
++		data += NFT_PIPAPO_GROUPS_PADDED_SIZE(f);
+ 	}
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -414,7 +414,7 @@ static int nft_pipapo_avx2_lookup_4b_8(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -505,7 +505,7 @@ static int nft_pipapo_avx2_lookup_4b_12(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -641,7 +641,7 @@ static int nft_pipapo_avx2_lookup_4b_32(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -699,7 +699,7 @@ static int nft_pipapo_avx2_lookup_8b_1(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -764,7 +764,7 @@ static int nft_pipapo_avx2_lookup_8b_2(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -839,7 +839,7 @@ static int nft_pipapo_avx2_lookup_8b_4(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -925,7 +925,7 @@ static int nft_pipapo_avx2_lookup_8b_6(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -1019,7 +1019,7 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
- 
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
- 
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
+ 	__local_unlock_nested_bh(&scratch->bh_lock);
 -- 
 2.52.0
 
