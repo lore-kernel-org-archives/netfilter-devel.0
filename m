@@ -1,29 +1,59 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C183E95B2
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 16:04:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 326563ED125;
+	Thu, 19 Mar 2026 16:36:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773936267; cv=none; b=p2qtr2yJ95/wHGb0AbGbOOSk4R0x9tGFbVY8Rs4Ok+cRFvYj78tMfyPI2Txn1Gz9zF903oABEkH/jP/bxYRWGcUke4NkjaDyHR6YqC7sjmQZyfMhPhRzaz0JgUC0FcQ54mVyQ1nRM9CIPIXGioZPMis32WN3YzfGIrfiC/kHmOE=
+	t=1773938205; cv=none; b=bPI2DONl8TAPEuPkhcRlKLg3sStsU4IOy/mkjSa7izgR8tDvemzCq6Mso61OtuiBQ6sutTWNePjd4iVva5kQvPXcutoOcvcc6HPWsExM0RRSnTwKbiuS39OMGKAlwk5LpKefr3jztgUw54d+LqE+DkIAzzQu2xo00TbjqcIY/ho=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773936267; c=relaxed/simple;
-	bh=1pvVf/fLO9BCOfPUwNbcip3uWMVq3AYH6qWZ/pQNIQ4=;
+	s=arc-20240116; t=1773938205; c=relaxed/simple;
+	bh=7S+sw9mF8TJewYvW7cVs+bKNPogMLQz3GWRSiugdtyc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jut6hkrCMQwgHAwbn8VK8d8wlnuTona9+OOedhMAYL9FTu4WJRDrPOiIquHyq/BOcM6pTWbp/wU67bXoFkTUeYxswrdYp7R56rq0HZ+aRZu5VgFAbmJykWjF6gNQEHKvd1F6IxRyLi3GN2bawDjmjoCaUIWDVqtRKRvkvtJXxm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 44284606E1; Thu, 19 Mar 2026 17:04:18 +0100 (CET)
-Date: Thu, 19 Mar 2026 17:04:18 +0100
-From: Florian Westphal <fw@strlen.de>
-To: Phil Sutter <phil@nwl.cc>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH] netfilter: nfnetlink_hook: Dump nat type chains
-Message-ID: <abwegj2TijkaQVLz@strlen.de>
-References: <20260313153220.19662-1-phil@nwl.cc>
+	 Content-Type:Content-Disposition:In-Reply-To; b=LULFs6a21D4/jdA3/gVsQuauUqw9kJE3mfF2/yuJAakC3OqcEwZAOznePvUMjAmfRlLGAtZcp09SfOkvmdr6GPdJQF+42FUjE0Fjl5gZ1Qc60QsSSkLi22PgYSc6ktFrIZFpEBUWOWVOurAW1NEwUWhBJWBpPT9S09wUHOsGikc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=J1NYDEFe; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="J1NYDEFe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 737E0C19424;
+	Thu, 19 Mar 2026 16:36:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773938204;
+	bh=7S+sw9mF8TJewYvW7cVs+bKNPogMLQz3GWRSiugdtyc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=J1NYDEFe/raeSCrUL/BX9oSVtThyhVPAAkuHylFwhFQgb7ty/7pJr3XD+9MPUKVs1
+	 K7GQIy5F6HfEqfN60CYB3jeLBiWHMGsZMUnZsYoM90hXfT4PdR7Z+lUROzJSOkOuiT
+	 6oUda3cT2a2uFX8khWtSyFtxz/HBF7Nk6BrBXUcwg8/c+ghkJzxORHAHr8qoe2tF+r
+	 vgsuLDx6Nbmotg/IGQQ7gmgx6PGugrz2qWURC4gNdcaEa/KHCIuh+b226dEWHpqpEq
+	 oGJsAGjV62WaA5IFPIBwMqDfbzNcQ5RUgBApitZ3mHNve+qTCC7yziWL0RlRpB9fOk
+	 VmubECZikG4cg==
+Date: Thu, 19 Mar 2026 16:36:37 +0000
+From: Simon Horman <horms@kernel.org>
+To: Ismael Luceno <iluceno@suse.de>
+Cc: linux-kernel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Marco Crivellari <marco.crivellari@suse.com>,
+	Federico Pinca <federico.pinca@suse.com>,
+	Andreas Taschner <andreas.taschner@suse.com>,
+	Brad Bendily <brad.bendily@suse.com>,
+	Brendon Caligari <brendon.caligari@suse.com>,
+	Clemens Famulla-Conrad <cfamullaconrad@suse.com>,
+	Firo Yang <firo.yang@suse.com>,
+	Gabriel Krisman Bertazi <gabriel.bertazi@suse.com>,
+	Hans van den Heuvel <hvdheuvel@suse.com>,
+	Jean Delvare <jdelvare@suse.com>, Michal Hocko <mhocko@suse.com>,
+	Michal =?utf-8?Q?Koutn=C3=BD?= <mkoutny@suse.com>,
+	Petr Mladek <pmladek@suse.com>, Petr Tesarik <ptesarik@suse.com>,
+	Richard Thompson <richard.thompson@suse.com>,
+	William Preston <wpreston@suse.com>, Yu Xu <yu.xu@suse.com>,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [PATCH] ipvs: Move defense_work to system_dfl_long_wq
+Message-ID: <20260319163637.GK1753385@horms.kernel.org>
+References: <20260317140100.24993-2-iluceno@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -32,36 +62,29 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260313153220.19662-1-phil@nwl.cc>
+In-Reply-To: <20260317140100.24993-2-iluceno@suse.de>
 
-Phil Sutter <phil@nwl.cc> wrote:
-> These chains are indirectly attached to the hook since they are
-> not called for packets belonging to an established connection.
+On Tue, Mar 17, 2026 at 03:00:59PM +0100, Ismael Luceno wrote:
+> Under synflood conditions binding defense_work to system_long_wq may
+> pin it to a saturated CPU.
 > 
-> Introduce NF_HOOK_OP_NAT to identify the container and dump attached
-> entries instead of the container itself.
+> We've observed improved throughtput on a DPDK/VPP application with
+> this change. We attribute this to the reduced context switching.
+> 
+> The defense_work handler has no per-CPU data dependencies and no cache
+> locality requirements that would justify this.
+> 
+> Signed-off-by: Ismael Luceno <iluceno@suse.de>
+> ---
+> Depends-on: wq/for-7.1 c116737e972e ("workqueue: Add system_dfl_long_wq for long unbound works")
 
-Please lets not do this.
+Hi Ismael,
 
-Before:
+This patch seems suitable to be targeted at the nf-next tree.
+That should be annotated like this:
 
-        hook postrouting {
-                +0000000100 nf_nat_ipv6_out [nf_nat]
-                +2147483647 nf_confirm [nf_conntrack]
-        }
+Subject [PATCH nf-next] ipvs: ...
 
-After:
-        hook postrouting {
-                +0000200000 chain inet nat postrouting [nft_chain_nat]
-                +2147483647 nf_confirm [nf_conntrack]
-        }
-
-... and thats not true.  The nat chain isn't hooked at 200000.
-
-It hooks at +100, this is a dispatcher.
-Concealing the actual hook location and then unrolling the embedded
-nat hooks gives a wrong impression and will mislead users wrt. the
-actual ordering.
-
-If we really want the ability to list the nat hooks, I think this
-needs a new command to dump them.
+And the patch must compile when applied to it's target tree.
+So you'll need to repost this patch once the dependency above
+has reached that tree.
