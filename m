@@ -1,66 +1,83 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3A97364E9E
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 09:32:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA1B52D8387;
+	Thu, 19 Mar 2026 09:38:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773912756; cv=none; b=lphdU+CQpxazSDEVCbK5hlc4f4NzbyLtunIdddZmwgcFdG3jdika1RBv76cYMdlG5wcJp1WytiUjWDyTBqQFFtUHOpbNssyQ3o0sYvtSJ/xLPCY0N7EGRlKTVWq5K8eztgFHV11DkwQ0e0UYsh5oqsMADPr07zc+GXVEo628t3M=
+	t=1773913121; cv=none; b=Wdcahw+rt+DVC6U5mgYMIxcGyTZ8LpUAHXPnaWUp6e4jguNjA8gYKMSbQ0tyi4zJoF6xHrFrdthilPalWkDGLSGL96jfL2QXA/mSUd0wOVLnAs+wA8x9aotZqk6iYrpTkd5W2cjwlB43+eS1HEiTxsUA9qfjMlSo3Isinu7kCcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773912756; c=relaxed/simple;
-	bh=7rYI/qxgNwMTmHnOssNndpIvG3UbWuHviaBuTsrPj8s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QWVrEDxNBGCFZR7sztj2hNlKUSENDSpNu3ZAtM5M9Kdej7n4eZj3F+72u5+HOhG+8srwe2MmXF4NTmeNU3TT7GJtXaCBWdyVXD/4xh2GLlx+sO4jo/t/1C3fJMKOCKCb3YDtuR0pLkfJibN4FhTh6x9uzweskcZ+Qomi4itVAMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=A5/Fn+hF; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="A5/Fn+hF"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=jvjt169TSK8PpfjNIgrJSE9JR0dETFX8YLfMm4C33Ls=; b=A5/Fn+hFHE7BpCYDWKxLJhkGO9
-	Mkd8PjamaIXhuJimCHfv/+ei4IwQEtCeFHv/mddJGPM2k1F9gVOCADzHtecNXiwDW//Djq4EY0jne
-	6o44E0yDdFznEKNO1IAKHo21/4Q8ri5gC9N+gT/vUMqJd3oZMbbuajDFUNGqzh3d8r7zvV9NdHpeB
-	GB7W37rJzC5znaXzb+Wqa64Xzsj4484TDePxslkqlG90PTc3UcKI4yPp+sw3BVt36Fwpom6h2+vv9
-	yjW0usyJaNkYLcSFLFPl0kRVrzN5Dr3oJH1lTaI1AwChRp7ilkTw9jz8ODf5vZNYxSIhRsZPaHuTG
-	pHMO4bwQ==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1w39k1-000000000wA-0ZTe;
-	Thu, 19 Mar 2026 10:32:33 +0100
-Date: Thu, 19 Mar 2026 10:32:33 +0100
-From: Phil Sutter <phil@nwl.cc>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Chloro Dose <chlorodose@gmail.com>
-Subject: Re: [libnftnl PATCH] set{,_elem}: Drop nftnl_set{,_elem}_clone()
-Message-ID: <abvCsUj2xKhOerKk@orbyte.nwl.cc>
-Mail-Followup-To: Phil Sutter <phil@nwl.cc>,
-	Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Chloro Dose <chlorodose@gmail.com>
-References: <20260319090613.13874-1-phil@nwl.cc>
- <abu_U5twbHFFv-FT@strlen.de>
+	s=arc-20240116; t=1773913121; c=relaxed/simple;
+	bh=31LK8NCeT9pZAzvqjCRETgZxFTk3AtpuJpNPq0z0hDE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=YI7y7SE+BCpC9Yy/caYLoZj80tmIHgpSjgr95BSyU6A/i+bVwDPEPZJq0e9rEWCkLXS33sDw8Vzzf0iqLHBgh6RLNHM0Vk/DjL28nY9LLnaR8pCx+Kk1sk5EVUelbHBesgxu6ohnRJii9Mq7yDxz1j7oT4AbRyEDCjfqDWxF7LQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 2D3D2606E1; Thu, 19 Mar 2026 10:38:38 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net 0/3] netfilter: updates for net
+Date: Thu, 19 Mar 2026 10:38:31 +0100
+Message-ID: <20260319093834.19933-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <abu_U5twbHFFv-FT@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Mar 19, 2026 at 10:18:11AM +0100, Florian Westphal wrote:
-> Phil Sutter <phil@nwl.cc> wrote:
-> > These functions were never exported and are not used internally anymore.
-> > Maybe due to that, they became incorrect (e.g., they ignore expr_list)
-> > so drop them altogether.
-> 
-> Acked-by: Florian Westphal <fw@strlen.de>
+Hi,
 
-Patch applied! :)
+The following patchset contains Netfilter fixes for *net*:
+
+1) Fix UaF when netfilter bpf link goes away while nfnetlink dumps
+   current hook list, we have to wait until rcu readers are gone.
+
+2) Fix UaF when flowtable fails to register all devices, similar
+   bug as 1). From Pablo Neira Ayuso.
+
+3) nfnetlink_osf fails to properly validate option length fields.
+   From Weiming Shi.
+
+Please, pull these changes from:
+The following changes since commit 7c46bd845d89ad4772573cfe0f2a56b93db75cc7:
+
+  Merge tag 'wireless-2026-03-18' of https://git.kernel.org/pub/scm/linux/kernel/git/wireless/wireless (2026-03-18 19:25:41 -0700)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-03-19
+
+for you to fetch changes up to dbdfaae9609629a9569362e3b8f33d0a20fd783c:
+
+  nfnetlink_osf: validate individual option lengths in fingerprints (2026-03-19 10:27:07 +0100)
+
+----------------------------------------------------------------
+netfilter pull request nf-26-03-19
+
+----------------------------------------------------------------
+Florian Westphal (1):
+  netfilter: bpf: defer hook memory release until rcu readers are done
+
+Pablo Neira Ayuso (1):
+  netfilter: nf_tables: release flowtable after rcu grace period on error
+
+Weiming Shi (1):
+  nfnetlink_osf: validate individual option lengths in fingerprints
+
+ net/netfilter/nf_bpf_link.c   |  2 +-
+ net/netfilter/nf_tables_api.c |  1 +
+ net/netfilter/nfnetlink_osf.c | 13 +++++++++++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
+
+-- 
+2.52.0
