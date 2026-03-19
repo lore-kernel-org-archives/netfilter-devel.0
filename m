@@ -1,150 +1,94 @@
-Received: from mail-oo1-f77.google.com (mail-oo1-f77.google.com [209.85.161.77])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 323373ED5CE
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 17:27:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.77
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 566923ACA65
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 21:08:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773941245; cv=none; b=J3G7sQBt6P7FkJwSbtDq0tSlwg+arORMMeemK7zh2h932JtOzZY60maZmnpD9Vp1mEiG8UXYgwgSIHuGZ4yFn8zVep9F4EY6QEGltVZhVBtfBRE6OXa9blcRsUBW1ds6KWRZ7n1SCiQsqu/o8su9MBaqjQRG/fqdwcZ7HWNYhwE=
+	t=1773954515; cv=none; b=QTufFxSJ34y+uxiYOCkwUMsPPHScZoXW1hlo7GzYc/PjwLfKGXWzxGlRzfQBUnfO4J5p02q5b1DYZK5yLPmQzNzkHrhCWI/XJb8cKRydyuqPtVYNk97804dY2E9aWG7RLXTs8Gjl0ZN0rLxnb9EXt2dnD8qBEQyYfNx+w2kIDTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773941245; c=relaxed/simple;
-	bh=9wlebsp9Rx6hCwC5pys32X1sYXY103vYKbl9abZWUJI=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=nllt61hX5BFhMnRfrQ1p0mdtfgXYWP/kZVQ0QfeISkNQGgCP8Fb5PAoBbiGhRutnnI7WymviepyssYvh3HfMQ9K9W36tWRV9FzrorAjQnbQbu49TGnjBRim01tnO2PgySkPrvqCoghBQPIQeaVC/7BqvIv2k/K39FGM9afNsxlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.77
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-oo1-f77.google.com with SMTP id 006d021491bc7-67baeba7a53so28247149eaf.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 10:27:20 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1773941240; x=1774546040;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=xnfckOcAi0uA4Z6a6lmoTefw+BoX6EypFKu89xrJ1iI=;
-        b=jNpXBimNafmuU+6ff79ti4ij0x43k7TATE2qtso03kzMH8dzjfj2h87xJq3grXzn/x
-         H3w5uJMPiwSZabLskhYbYQFMfj5q9J7pD2z01AEF163Dw0NRsgmluSaKy2IDRPJyRPvD
-         RoQ2WfiiK9Snbqwiun7Sy125mpea4G5XdwrDI4QjG4AAJvm9X9OAgBtf2ZrtcdX76ppT
-         4kBP9XzCeDp6F+rqwGH39SIGB28udlMqsCuqJHnYNpn8dopnPI14BsEO8SSyuufX/wHG
-         BIeEkhWpcUOIxbiCYMwmKpLkInhWhXilYkF9aVn47UKKp+qfBj6QR+S1ALZd0NlLfZwG
-         wnUw==
-X-Forwarded-Encrypted: i=1; AJvYcCW+khw5GyCfzJnAUHIcCYWsiEmSTM4yu+eGFeLP2mN0VxWFMmveCCWS9UyzECm3zHUk3s05KxBkj8dqnxM2CGs=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxviVzu2W5Z+Vtbn0uEs9gwTztGwVOK7bXYzsks/EXhizE7nMf5
-	tt85077sgnatCz/f8XHPXm5aJmcys/XuNOHdXTOymu/4Mv6gvr18QyIZdJs93IpboSYpoOlW+Cv
-	NsLkyZ3o3eAl1n2rnqkhlbLrYYLY15p1JKnBgYY0Xzej19579fvR8ZFyZYxc=
+	s=arc-20240116; t=1773954515; c=relaxed/simple;
+	bh=/WCTp6Fgbmo4e2gffdfxxqH8Y7xIiQ2NBgCyikKw8t4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K6DMe4eBC0Ers3DyVg1USuTsZ2jVvvmZgenj2ezU3MhyhphYs7hWjKVziRd4ZlISHfYOBaDHcqFA6OBnfSEiBhfk37e1xl8VnMVBaCpNA2mX386kCkrzuz828U0NZHOmXLVMs7gNkcJW/7S2UPkZdB3vsA5x5b3CHe0QyIVOf6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=Q/+aAjDF; arc=none smtp.client-ip=151.80.46.58
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="Q/+aAjDF"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
+	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=9PqFux5G6jNgr7vVHbX/ovQ8JkxOEVzELUkqs/aktBs=; b=Q/+aAjDFEcrlCc/pYiDm031en+
+	HF9b8vGNifjfrCqMpa+GjhKFZVi7YMmjp21ZUH/seiNBgAzvKbyhIYlnuVaH2KGzqy4TKne/UAkHz
+	aMW2M7kcLFiAJZ7p03OQQiuOadbxXsJK57NEKSjrUw8hP5/YtoS4IGmidHpPk28RMxsNAUoSerBfs
+	nL8C2PPz9ANSHJztwXWnH40LS7xR+dCa2bsqUXQZpo4c5v39WcsaIjA8HHCy3vAsXdbY+mZhd66RK
+	5RVuriyEm8dAzv0E+8aMhtvWN+5dyf2Jsd8DY3HoRWkh0gPboCeUaZdkDhUan3eAQRUEIKAtn9w9T
+	k8KLbwSA==;
+Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
+	(envelope-from <phil@nwl.cc>)
+	id 1w3KbW-000000003Df-2cDO;
+	Thu, 19 Mar 2026 22:08:30 +0100
+Date: Thu, 19 Mar 2026 22:08:30 +0100
+From: Phil Sutter <phil@nwl.cc>
+To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Subject: Re: [nf-next PATCH] netfilter: nfnetlink_hook: Dump nat type chains
+Message-ID: <abxlzn7lymOxWUFa@orbyte.nwl.cc>
+References: <20260313153220.19662-1-phil@nwl.cc>
+ <abwegj2TijkaQVLz@strlen.de>
+ <abwraHUuxizN4krg@orbyte.nwl.cc>
+ <abwtAkSF8-SmH684@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a4a:decc:0:b0:67c:1fa3:ae6e with SMTP id
- 006d021491bc7-67c1fa3b0a3mr891507eaf.8.1773941239827; Thu, 19 Mar 2026
- 10:27:19 -0700 (PDT)
-Date: Thu, 19 Mar 2026 10:27:19 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <69bc31f7.050a0220.18f14c.004f.GAE@google.com>
-Subject: [syzbot] [netfilter?] KCSAN: data-race in hash_ipport6_add / hash_ipport6_head
-From: syzbot <syzbot+786c889f046e8b003ca6@syzkaller.appspotmail.com>
-To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
-	fw@strlen.de, horms@kernel.org, kuba@kernel.org, linux-kernel@vger.kernel.org, 
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
-	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <abwtAkSF8-SmH684@strlen.de>
 
-Hello,
+On Thu, Mar 19, 2026 at 06:06:10PM +0100, Florian Westphal wrote:
+> Phil Sutter <phil@nwl.cc> wrote:
+> > Ah, so the nat-type chain's priority value orders it inside the
+> > dispatcher's list.
+> 
+> Yes.
+> 
+> > Maybe I should print them below the dispatcher hook with extra
+> > indentation? Maybe extra braces could further clarify, e.g.:
+> > 
+> > | hook postrouting {
+> > |         +0000000100 nf_nat_ipv6_out [nf_nat] {
+> > |                 +0000200000 chain inet nat postrouting [nft_chain_nat]
+> > |         }
+> > |         +2147483647 nf_confirm [nf_conntrack]
+> > | }
+> 
+> Actually  one could override the hook value with the one of the
+> nat base hook.  The ordering inside the dispatcher is whats important,
+> the exact numerical value isn't important.
 
-syzbot found the following issue on:
+Hmm. I like how one can use 'list hooks' output to find a good spot for
+a new base chain. The real nat chain priority value is needed for that,
+but no point in considering made up use-cases. Seeing the chains
+attached to a given nat dispatcher is already a step forward, and having
+their ordering is probably well enough.
 
-HEAD commit:    c107785c7e8d Merge tag 'modules-7.0-rc3.fixes' of git://gi..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=143b7006580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=6b32b22d8934c136
-dashboard link: https://syzkaller.appspot.com/bug?extid=786c889f046e8b003ca6
-compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
+> > > If we really want the ability to list the nat hooks, I think this
+> > > needs a new command to dump them.
+> > 
+> > We may change 'nft list hooks' output arbitrarily, right? Or should we
+> > fear braking some third-party parsers when doing too fancy stuff?
+> 
+> Ugh. No mercy for screenscrapers.  But maybe my suggestion above is
+> enough.
 
-Unfortunately, I don't have any reproducer for this issue yet.
+ACK, I'll prepare a v2.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/ddd71de958b3/disk-c107785c.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/79e800fb32ab/vmlinux-c107785c.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/1b65c942dadc/bzImage-c107785c.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+786c889f046e8b003ca6@syzkaller.appspotmail.com
-
-==================================================================
-BUG: KCSAN: data-race in hash_ipport6_add / hash_ipport6_head
-
-read-write to 0xffff88813e1d7a99 of 1 bytes by task 27445 on cpu 1:
- hash_ipport6_add+0x876/0x1110 net/netfilter/ipset/ip_set_hash_gen.h:965
- hash_ipport6_uadt+0x59f/0x680 net/netfilter/ipset/ip_set_hash_ipport.c:351
- call_ad+0x231/0x640 net/netfilter/ipset/ip_set_core.c:1751
- ip_set_ad+0x5c0/0x690 net/netfilter/ipset/ip_set_core.c:1841
- ip_set_uadd+0x41/0x50 net/netfilter/ipset/ip_set_core.c:1864
- nfnetlink_rcv_msg+0x509/0x5d0 net/netfilter/nfnetlink.c:302
- netlink_rcv_skb+0x123/0x220 net/netlink/af_netlink.c:2550
- nfnetlink_rcv+0x167/0x1720 net/netfilter/nfnetlink.c:669
- netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
- netlink_unicast+0x5c0/0x690 net/netlink/af_netlink.c:1344
- netlink_sendmsg+0x5c8/0x6f0 net/netlink/af_netlink.c:1894
- sock_sendmsg_nosec net/socket.c:727 [inline]
- __sock_sendmsg net/socket.c:742 [inline]
- ____sys_sendmsg+0x5af/0x600 net/socket.c:2592
- ___sys_sendmsg+0x195/0x1e0 net/socket.c:2646
- __sys_sendmsg net/socket.c:2678 [inline]
- __do_sys_sendmsg net/socket.c:2683 [inline]
- __se_sys_sendmsg net/socket.c:2681 [inline]
- __x64_sys_sendmsg+0xd4/0x160 net/socket.c:2681
- x64_sys_call+0x194c/0x3020 arch/x86/include/generated/asm/syscalls_64.h:47
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x12c/0x370 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-read to 0xffff88813e1d7a99 of 1 bytes by task 27450 on cpu 0:
- hash_ipport6_ext_size net/netfilter/ipset/ip_set_hash_gen.h:823 [inline]
- hash_ipport6_head+0x180/0x960 net/netfilter/ipset/ip_set_hash_gen.h:1275
- ip_set_dump_do+0xa34/0xb00 net/netfilter/ipset/ip_set_core.c:1651
- netlink_dump+0x455/0x8a0 net/netlink/af_netlink.c:2325
- netlink_recvmsg+0x420/0x550 net/netlink/af_netlink.c:1976
- sock_recvmsg_nosec net/socket.c:1078 [inline]
- sock_recvmsg+0x139/0x160 net/socket.c:1100
- ____sys_recvmsg+0xf5/0x280 net/socket.c:2812
- ___sys_recvmsg+0x11f/0x3b0 net/socket.c:2854
- __sys_recvmsg net/socket.c:2887 [inline]
- __do_sys_recvmsg net/socket.c:2893 [inline]
- __se_sys_recvmsg net/socket.c:2890 [inline]
- __x64_sys_recvmsg+0xd1/0x160 net/socket.c:2890
- x64_sys_call+0x2b1a/0x3020 arch/x86/include/generated/asm/syscalls_64.h:48
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x12c/0x370 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
-value changed: 0x01 -> 0x02
-
-Reported by Kernel Concurrency Sanitizer on:
-CPU: 0 UID: 0 PID: 27450 Comm: syz.3.7305 Tainted: G        W           syzkaller #0 PREEMPT(full) 
-Tainted: [W]=WARN
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2026
-==================================================================
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+Thanks, Phil
