@@ -1,80 +1,38 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from nbd.name (nbd.name [46.4.11.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61B304317D
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 12:00:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA77118FDBD;
+	Thu, 19 Mar 2026 12:18:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=46.4.11.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773921607; cv=none; b=UmYsfidfPSVrEc+tti55tA46jknxnXbm4C9tOFM/jVGopHqqCnyiAsnnKynvbain6K5jo8RyfY+VePA6NPQ06gZls1zWB2Zxa8AXuUQ/JZxH5hCOHwPmUfyw64s+dygrQl89SZ63q+Uy7zoZVrVMNhg55AznqVCCT4ygVsXVj0U=
+	t=1773922712; cv=none; b=e8Du0RfI23iSaUYDXTyeSQP4v9x8wNKQyobIEUpP0fERgja1H70S4cbMqQowx+HcoOoFah7JJout3ormS7XKuT5mQgOovns2mWK6o1ipwoDiM1B5VQ2znSMKB6acX4YR3wMieQZsGSMWSI03J81uCs+lNmbpXHC9a3hiXvqNtd8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773921607; c=relaxed/simple;
-	bh=FrbK6G8RVpy05p2ueTv+zPVtaTk9S52g7j+9c8Iqv4A=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=EQXaCoaAyJTJbiD4wQATV+DR9ePYG65oYohjwD59WIpPVzzI7MlVFavJLWkTLVezD2mIt+c0aHfM0lze6o3PvYV1B8HoRBYo8vFqULH8j2gJg2hbHi71gqFvxeewRoqyrFGE/JfzsTUvylUnjAuz+oucuz/LpjyPrgjGszZ708k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KiS/8Jnq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=UB8SMsF5; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ogV9Peh7; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=s+qpdl2x; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1773922712; c=relaxed/simple;
+	bh=7Sbl7ccpptWO5Dm0Im5eQp7Y4T8fmucEP85ckZUXRqc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=n6c/ay0Us8c+dE9pLYsajfkKRvz4Rof6XOYGRxYx96RSvIYY6vcH+dUojGoXChshn46ffDO9dPTisyEsuJSnenl/6UrQp/+l8/Lnc7zeNnORK3P/NZ/gnsp3Q3OhexC3eRoueDSX0Q54zPuBePuhyjvE8tiH7PDWn5ZdHTvczi0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name; spf=pass smtp.mailfrom=nbd.name; dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b=g0C85y2s; arc=none smtp.client-ip=46.4.11.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=nbd.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nbd.name
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KiS/8Jnq";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="UB8SMsF5";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ogV9Peh7";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="s+qpdl2x"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 758194D1F8;
-	Thu, 19 Mar 2026 11:59:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1773921599; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=21PQfW7b6Mvr5aR+X5avJ6Pm49XrpGjxdYE4guTjbgo=;
-	b=KiS/8JnqoOe5MQRiz7OF3yer4R93/ZTZDIQixIm0mufNoa684iv/2sc51FPloVU5byMEAV
-	k9uFiTC9ZGB9tdHqKYWJzXXKj7YWqiSb2QnFFFgRVSFZkdJ9OrIzNe/gi/ClT+aWVq95ay
-	G1DCSfmY7REza79YTJ6NSnez52cYWz8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1773921599;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=21PQfW7b6Mvr5aR+X5avJ6Pm49XrpGjxdYE4guTjbgo=;
-	b=UB8SMsF5eb9wIsK1Hz0n5FPoXEKzoZ99EKrt9FkeeE8lhAhcVHwLxKP/T44qLJauZi4CNk
-	Uh5YjT2iReo59WAA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1773921598; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=21PQfW7b6Mvr5aR+X5avJ6Pm49XrpGjxdYE4guTjbgo=;
-	b=ogV9Peh7u7XZpV+l6HFhFASv+YnvjA/qjpoLSjfNOJR3Vkg/DR8TCG9wWvGzgXI5y0VnJK
-	jjafaRwkF82q7bMfxCCBLJq8pK89wU6AeTd1xUCwSW6WSkkIoUMiwo3mtcdH3n4R00N3Sk
-	xkawAZ3chxJIh30XB8Ny9vUBJH5FDhw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1773921598;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=21PQfW7b6Mvr5aR+X5avJ6Pm49XrpGjxdYE4guTjbgo=;
-	b=s+qpdl2xwAPZeI5wqF/1Ot90ppvCEWryL63t39uLhKiktOxm8cc/fD0yfsYTGZP2C0A4RM
-	kLVdmcpRzkHizFBA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 49C2C4273B;
-	Thu, 19 Mar 2026 11:59:58 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id PYT/Dj7lu2m8VwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Thu, 19 Mar 2026 11:59:58 +0000
-Message-ID: <9da064d6-3d34-495d-a3dc-27711d48dfe9@suse.de>
-Date: Thu, 19 Mar 2026 12:59:57 +0100
+	dkim=pass (1024-bit key) header.d=nbd.name header.i=@nbd.name header.b="g0C85y2s"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nbd.name;
+	s=20160729; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=Rzxj0vmI4HeTCut7SZfXeHlomnlzlN5j69GKdaSydqk=; b=g0C85y2s/tAicN/jLt3Jg7edJZ
+	P1pq0CRIZjUf/SZahOqVhpp0iI6XcLMfcYbo9Qw9CG8vOmk/iOb3V7Ew/e+VQ7lLFFFs/tanT6qGx
+	2xEE1AsudzSgDGhZ2ikp9lAaadhawDnLcVPvfylhIamKqfBM7dB3jXUDtSZqk2zJ2+LA=;
+Received: from p5b01521c.dip0.t-ipconnect.de ([91.1.82.28] helo=nf.local)
+	by ds12 with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+	(Exim 4.96)
+	(envelope-from <nbd@nbd.name>)
+	id 1w3CKS-0073wz-0g;
+	Thu, 19 Mar 2026 13:18:20 +0100
+Message-ID: <8f71af62-61c5-44f6-98d4-737034c498c6@nbd.name>
+Date: Thu, 19 Mar 2026 13:18:19 +0100
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -82,74 +40,81 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH libnftnl 2/2] tunnel: validate geneve class and type from
- setter
-To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
-References: <20260319114441.205740-1-pablo@netfilter.org>
- <20260319114441.205740-2-pablo@netfilter.org>
+Subject: Re: [PATCH net-next,RFC 0/8] netfilter: flowtable bulking
+To: Steffen Klassert <steffen.klassert@secunet.com>,
+ Qingfang Deng <dqfext@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org,
+ davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+ pabeni@redhat.com, edumazet@google.com, fw@strlen.de, horms@kernel.org,
+ antony.antony@secunet.com
+References: <20260317112917.4170466-1-pablo@netfilter.org>
+ <20260319061520.356946-1-dqfext@gmail.com> <abvdyDVJ8OYW52fw@secunet.com>
 Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260319114441.205740-2-pablo@netfilter.org>
+From: Felix Fietkau <nbd@nbd.name>
+Autocrypt: addr=nbd@nbd.name; keydata=
+ xsDiBEah5CcRBADIY7pu4LIv3jBlyQ/2u87iIZGe6f0f8pyB4UjzfJNXhJb8JylYYRzIOSxh
+ ExKsdLCnJqsG1PY1mqTtoG8sONpwsHr2oJ4itjcGHfn5NJSUGTbtbbxLro13tHkGFCoCr4Z5
+ Pv+XRgiANSpYlIigiMbOkide6wbggQK32tC20QxUIwCg4k6dtV/4kwEeiOUfErq00TVqIiEE
+ AKcUi4taOuh/PQWx/Ujjl/P1LfJXqLKRPa8PwD4j2yjoc9l+7LptSxJThL9KSu6gtXQjcoR2
+ vCK0OeYJhgO4kYMI78h1TSaxmtImEAnjFPYJYVsxrhay92jisYc7z5R/76AaELfF6RCjjGeP
+ wdalulG+erWju710Bif7E1yjYVWeA/9Wd1lsOmx6uwwYgNqoFtcAunDaMKi9xVQW18FsUusM
+ TdRvTZLBpoUAy+MajAL+R73TwLq3LnKpIcCwftyQXK5pEDKq57OhxJVv1Q8XkA9Dn1SBOjNB
+ l25vJDFAT9ntp9THeDD2fv15yk4EKpWhu4H00/YX8KkhFsrtUs69+vZQwc0cRmVsaXggRmll
+ dGthdSA8bmJkQG5iZC5uYW1lPsJgBBMRAgAgBQJGoeQnAhsjBgsJCAcDAgQVAggDBBYCAwEC
+ HgECF4AACgkQ130UHQKnbvXsvgCgjsAIIOsY7xZ8VcSm7NABpi91yTMAniMMmH7FRenEAYMa
+ VrwYTIThkTlQzsFNBEah5FQQCACMIep/hTzgPZ9HbCTKm9xN4bZX0JjrqjFem1Nxf3MBM5vN
+ CYGBn8F4sGIzPmLhl4xFeq3k5irVg/YvxSDbQN6NJv8o+tP6zsMeWX2JjtV0P4aDIN1pK2/w
+ VxcicArw0VYdv2ZCarccFBgH2a6GjswqlCqVM3gNIMI8ikzenKcso8YErGGiKYeMEZLwHaxE
+ Y7mTPuOTrWL8uWWRL5mVjhZEVvDez6em/OYvzBwbkhImrryF29e3Po2cfY2n7EKjjr3/141K
+ DHBBdgXlPNfDwROnA5ugjjEBjwkwBQqPpDA7AYPvpHh5vLbZnVGu5CwG7NAsrb2isRmjYoqk
+ wu++3117AAMFB/9S0Sj7qFFQcD4laADVsabTpNNpaV4wAgVTRHKV/kC9luItzwDnUcsZUPdQ
+ f3MueRJ3jIHU0UmRBG3uQftqbZJj3ikhnfvyLmkCNe+/hXhPu9sGvXyi2D4vszICvc1KL4RD
+ aLSrOsROx22eZ26KqcW4ny7+va2FnvjsZgI8h4sDmaLzKczVRIiLITiMpLFEU/VoSv0m1F4B
+ FtRgoiyjFzigWG0MsTdAN6FJzGh4mWWGIlE7o5JraNhnTd+yTUIPtw3ym6l8P+gbvfoZida0
+ TspgwBWLnXQvP5EDvlZnNaKa/3oBes6z0QdaSOwZCRA3QSLHBwtgUsrT6RxRSweLrcabwkkE
+ GBECAAkFAkah5FQCGwwACgkQ130UHQKnbvW2GgCeMncXpbbWNT2AtoAYICrKyX5R3iMAoMhw
+ cL98efvrjdstUfTCP2pfetyN
+In-Reply-To: <abvdyDVJ8OYW52fw@secunet.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spam-Level: 
 
-On 3/19/26 12:44 PM, Pablo Neira Ayuso wrote:
-> From: Pengpeng Hou <pengpeng@iscas.ac.cn>
+On 19.03.26 12:28, Steffen Klassert wrote:
+> On Thu, Mar 19, 2026 at 02:15:17PM +0800, Qingfang Deng wrote:
+>> Hi Pablo,
+>> 
+>> On Tue, 17 Mar 2026 12:29:09 +0100, Pablo Neira Ayuso wrote:
+>> > Hi,
+>> >  
+>> > Back in 2018 [1], a new fast forwarding combining the flowtable and
+>> > GRO/GSO was proposed, however, "GRO is specialized to optimize the
+>> > non-forwarding case", so it was considered "counter-intuitive to base a
+>> > fast forwarding path on top of it".
+>> >  
+>> > Then, Steffen Klassert proposed the idea of adding a new engine for the
+>> > flowtable that operates on the skb list that is provided after the NAPI
+>> > cycle. The idea is to process this skb list to create bulks grouped by
+>> > the ethertype, output device, next hop and tos/dscp. Then, add a
+>> > specialized xmit path that can deal with these skb bulks. Note that GRO
+>> > needs to be disabled so this new forwarding engine obtains the list of
+>> > skbs that resulted from the NAPI cycle.
+>> 
+>> +Cc: Felix Fietkau
+>> 
+>> How does this compare to fraglist GRO with the original flowtable?
 > 
-> Ensure size is correct, otherwise bail out with EINVAL.
+> GRO can only aggregate packets of the same L4 flow. This can
+> aggregate all packets the are treated  the same by the
+> forwarding path. Packets need to have the same output device
+> and next hop, but can be from different L3 and L4 flows.
 > 
-> Fixes: 239fbdb8979d ("tunnel: add support to geneve options")
-> Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->   src/obj/tunnel.c | 8 ++++++++
->   1 file changed, 8 insertions(+)
-> 
-> diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
-> index 08adeb50b107..4b302f66ecc5 100644
-> --- a/src/obj/tunnel.c
-> +++ b/src/obj/tunnel.c
-> @@ -866,9 +866,17 @@ static int nftnl_tunnel_opt_geneve_set(struct nftnl_tunnel_opt *opt, uint16_t ty
->   {
->   	switch(type) {
->   	case NFTNL_TUNNEL_GENEVE_CLASS:
-> +		if (data_len != sizeof(uint16_t)) {
-> +			errno = EINVAL;
-> +			return -1;
-> +		}
->   		memcpy(&opt->geneve.geneve_class, data, data_len);
->   		break;
->   	case NFTNL_TUNNEL_GENEVE_TYPE:
-> +		if (data_len != sizeof(uint8_t)) {
-> +			errno = EINVAL;
-> +			return -1;
-> +		}
->   		memcpy(&opt->geneve.type, data, data_len);
->   		break;
->   	case NFTNL_TUNNEL_GENEVE_DATA:
+> Packet forwarders usually receive many different flows.
+> GRO might not even kick in if there are not at least
+> two packets from the same flow on a napi cycle.
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+Interesting approach! Do you think it might be possible to combine this 
+with GRO by bulking together GRO-combined frames from different flows?
 
-Thanks!
+I think it would be unfortunate if you have to choose between decent 
+forwarding throughput and decent local rx throughput.
+
+- Felix
