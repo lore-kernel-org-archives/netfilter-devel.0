@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5895737BE96;
-	Thu, 19 Mar 2026 09:38:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5471030EF92;
+	Thu, 19 Mar 2026 09:38:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773913129; cv=none; b=OtQDQcqna4XuBugZoFR8IaGzEUMxgwxoobftoL12jSOryBPjjDEXQGPz5z0jsWDgaAEiKLvVO2G+SD4uTvVTSk8v9Wx+f/RmlWiS3TOnQlqBBDG+UXazWH08ofOO8DZaFdoCLIJRWXopmAyLMIRUeXALD8OHDTGmbxxgM6HVix4=
+	t=1773913134; cv=none; b=bkyNOmuYs0My8oc/hcMQ+fsDWfHKdsRBakV4aXy4syr58AiD/Fk+43bt83VjgquaPXKb05LS2H1Wjex06hap5bxFfAgwt8XNBDjcGXcXlGSPwDou6xYwBKwULmV8qOzMurBzNcjd7BowhlHfDF2vjaT2VXEQHvZQm8WwkFHuNIA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773913129; c=relaxed/simple;
-	bh=pwXh1TlQ/lz1pUnL3QCwayjAB6cgKGK96VVbkaewFz8=;
+	s=arc-20240116; t=1773913134; c=relaxed/simple;
+	bh=Am0kw2DSI5ybTUAh3vL9h/v8qez1jurpms7CgaCSyhs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=tbhwM/bjm11LiY1QAfhP7gtivNOK9q2s5pAqqfqH1W+lGpVN9lCpHMrklc6tniAS51QYx9THi3khbhr8FXzxLSE8XDSCUSPEHaY0eioT5dOIx70R+lN/Ff5crK7vh+elDSTUrBK6DQp+qaicS3wCrJSpNhy6tJ+9/dtUGkv0vBs=
+	 MIME-Version; b=tnCykY+GmZsaS3+Fleg04/f4ab1/sF8TgUZQnBPDPMbZtZgK/zSrLps6MPjwiORmLawMF7HQ8cQklIAK6RJkk4THidRECFnwa+SFR9SH6n+37D0ZnJdVG6dw+twivsfH9hKw9VYl2O07/OlyakdS8mrc7ejyJicG0z05kAUrXHs=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D15F5606E1; Thu, 19 Mar 2026 10:38:46 +0100 (CET)
+	id 33481608E0; Thu, 19 Mar 2026 10:38:51 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 2/3] netfilter: nf_tables: release flowtable after rcu grace period on error
-Date: Thu, 19 Mar 2026 10:38:33 +0100
-Message-ID: <20260319093834.19933-3-fw@strlen.de>
+Subject: [PATCH net 3/3] nfnetlink_osf: validate individual option lengths in fingerprints
+Date: Thu, 19 Mar 2026 10:38:34 +0100
+Message-ID: <20260319093834.19933-4-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260319093834.19933-1-fw@strlen.de>
 References: <20260319093834.19933-1-fw@strlen.de>
@@ -38,45 +38,78 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Weiming Shi <bestswngs@gmail.com>
 
-Call synchronize_rcu() after unregistering the hooks from error path,
-since a hook that already refers to this flowtable can be already
-registered, exposing this flowtable to packet path and nfnetlink_hook
-control plane.
+nfnl_osf_add_callback() validates opt_num bounds and string
+NUL-termination but does not check individual option length fields.
+A zero-length option causes nf_osf_match_one() to enter the option
+matching loop even when foptsize sums to zero, which matches packets
+with no TCP options where ctx->optp is NULL:
 
-This error path is rare, it should only happen by reaching the maximum
-number hooks or by failing to set up to hardware offload, just call
-synchronize_rcu().
+ Oops: general protection fault
+ KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+ RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
+ Call Trace:
+  nf_osf_match (net/netfilter/nfnetlink_osf.c:227)
+  xt_osf_match_packet (net/netfilter/xt_osf.c:32)
+  ipt_do_table (net/ipv4/netfilter/ip_tables.c:293)
+  nf_hook_slow (net/netfilter/core.c:623)
+  ip_local_deliver (net/ipv4/ip_input.c:262)
+  ip_rcv (net/ipv4/ip_input.c:573)
 
-There is a check for already used device hooks by different flowtable
-that could result in EEXIST at this late stage. The hook parser can be
-updated to perform this check earlier to this error path really becomes
-rarely exercised.
+Additionally, an MSS option (kind=2) with length < 4 causes
+out-of-bounds reads when nf_osf_match_one() unconditionally accesses
+optp[2] and optp[3] for MSS value extraction.  While RFC 9293
+section 3.2 specifies that the MSS option is always exactly 4
+bytes (Kind=2, Length=4), the check uses "< 4" rather than
+"!= 4" because lengths greater than 4 do not cause memory
+safety issues -- the buffer is guaranteed to be at least
+foptsize bytes by the ctx->optsize == foptsize check.
 
-Uncovered by KASAN reported as use-after-free from nfnetlink_hook path
-when dumping hooks.
+Reject fingerprints where any option has zero length, or where an MSS
+option has length less than 4, at add time rather than trusting these
+values in the packet matching hot path.
 
-Fixes: 3b49e2e94e6e ("netfilter: nf_tables: add flow table netlink frontend")
-Reported-by: Yiming Qian <yimingqian591@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_api.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nfnetlink_osf.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 9b1c8d0a35fb..3922cff1bb3d 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -9203,6 +9203,7 @@ static int nf_tables_newflowtable(struct sk_buff *skb,
- 	return 0;
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 94e3eac5743a..45d9ad231a92 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -302,7 +302,9 @@ static int nfnl_osf_add_callback(struct sk_buff *skb,
+ {
+ 	struct nf_osf_user_finger *f;
+ 	struct nf_osf_finger *kf = NULL, *sf;
++	unsigned int tot_opt_len = 0;
+ 	int err = 0;
++	int i;
  
- err_flowtable_hooks:
-+	synchronize_rcu();
- 	nft_trans_destroy(trans);
- err_flowtable_trans:
- 	nft_hooks_destroy(&flowtable->hook_list);
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+@@ -318,6 +320,17 @@ static int nfnl_osf_add_callback(struct sk_buff *skb,
+ 	if (f->opt_num > ARRAY_SIZE(f->opt))
+ 		return -EINVAL;
+ 
++	for (i = 0; i < f->opt_num; i++) {
++		if (!f->opt[i].length || f->opt[i].length > MAX_IPOPTLEN)
++			return -EINVAL;
++		if (f->opt[i].kind == OSFOPT_MSS && f->opt[i].length < 4)
++			return -EINVAL;
++
++		tot_opt_len += f->opt[i].length;
++		if (tot_opt_len > MAX_IPOPTLEN)
++			return -EINVAL;
++	}
++
+ 	if (!memchr(f->genre, 0, MAXGENRELEN) ||
+ 	    !memchr(f->subtype, 0, MAXGENRELEN) ||
+ 	    !memchr(f->version, 0, MAXGENRELEN))
 -- 
 2.52.0
 
