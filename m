@@ -1,42 +1,39 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 447AB34D4EE
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 11:44:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44722344D8B
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 11:44:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773920689; cv=none; b=ORJ8kZ30Mbmyn0GKdr6JvkmyEdPni0VxA08r1ga+CJ3B0eBcRCb4QIfP8oMw1jbISC4Pech/DIvCiLDYcq/faW4y7xhwDa5LZmy7N2TteizpxBk/D0L+13Kx/o9c4JeE02PnUHJHf5He10GF/PL7GudBb/GKQAKf50WmnQ7hbPo=
+	t=1773920690; cv=none; b=h0GxVzuzwE7DcxkrPfEok/aDfbiym8B6KLtjDKFVBiVoXVWddfQjMd+5eEhTh0MMy5mMnaWpv1c8sq44hmEgC1O/iX/JyblhqY2C4flOAVcchd+qQCh8o0RuI71KSqULNsTSTkRC4oUogCF6dM69y1GvaE1Ccypcumeia8RkXws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773920689; c=relaxed/simple;
-	bh=fdv1Xd4XwYHZ2V/mzSGzUTf13a/6dR4i9kCWEU6RMHg=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=IB0I3FPB+1GzqA2IdNpw1zlpFYYQzUn4gGYaZPpJd9AijO6GrMcnZ0M1uYxOZNMptApCYj4vzslWY/XGy0VcGVO2s020gUS0gTvbzqLLXU/ct5iPeBBsP1eSmwG1TK72tSsRxDJufRQILW+uwDiztK0Kzn943deJkd5EAyPyCxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pPLmQ4xK; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1773920690; c=relaxed/simple;
+	bh=osZEMEGGkRgrGAggnnaH2fkPruSYTrE24B2+nmUz+po=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=WKr6DB951LlHCOnIHTwNM4H/kubpLiPL07rOa4y/M09BzUYlJ40bAzBBpRvGvtju8XjdVtT2sZTm+v61UZdAUip9NBCNquWxPYqbwJTIgsSkVgnmbKB764+jEL5xOixGBmyD394kq9JQoyLiI0Jx5tf9EapAprorAzKD5MkFjUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Jvbczgvr; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pPLmQ4xK"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Jvbczgvr"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id C5C766027C
-	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 12:44:45 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7B53F60272
+	for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2026 12:44:44 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1773920685;
-	bh=Bwa4cli2EOlCourC/jVGjvaQgDnlkenTrkG+b8BrEQU=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=pPLmQ4xKN4xINpqJqzJXcUV87vCsNBse1PMShyI+/mD0GBLVSRW/dTIJ+tTX8wH+I
-	 TYxQgxuXmVDa1RA3fqb+k3FT0TnqVn7PQRVbBcZ3OSZ6B1oP3nRSk0IFoKoV84Ku5d
-	 P7iXqMpiCkBf281Fbk8Tl51ZffezncoyXqypQEYRlC16u2e29VFaKMHNiDZlO1F4sS
-	 PGgO0idDmxEY+456TTqXLFKIT1hD7jg6qcL7D00baBTBJlmU4xq9hNPKqQiX0aRF5f
-	 7tYBxUaDkvvfRCciB2CwVAH18KYf7V8JarTbJmKswERtCxs+V5jZW5d0vViAGnRz1T
-	 oI58svbr9JFXA==
+	s=2025; t=1773920684;
+	bh=sFwU6te0IXYDHmUrBWaudJ9pKNHrRMW/e2bYlZ3+dcQ=;
+	h=From:To:Subject:Date:From;
+	b=JvbczgvreP4AMW7eZ+lKmo7ojySKPHlZprDZt5FXNKMnTIUGd3DV2rhmhXj4l7bb5
+	 Uwc96k/sCet3gJ0DfyAG4W1P2Oi68vLpnoVacLVAu3fxeYWAwZ8n41+/8Qt0Mh8pP+
+	 pmdN1lo/L82I9vy74+14mMKBg5K4qD91XrlRDVElHu770GKGgeV791HvkahgR75iZP
+	 ZlpdREcevlyZiN6pMdqC7PjTjIXcAuNGxRCKqM8CuH91Jasienia456nyUMlxplKEM
+	 vP7E51LT5aAboW/VC3CU830PKvOMc3VXnOn42ypugc8nn+UCk/4sbaqh8EYjzaYW2T
+	 V4etdQ7gOKq6A==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH libnftnl 2/2] tunnel: validate geneve class and type from setter
-Date: Thu, 19 Mar 2026 12:44:41 +0100
-Message-ID: <20260319114441.205740-2-pablo@netfilter.org>
+Subject: [PATCH libnftnl 1/2] tunnel: check kernel does not provide too large geneve data
+Date: Thu, 19 Mar 2026 12:44:40 +0100
+Message-ID: <20260319114441.205740-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260319114441.205740-1-pablo@netfilter.org>
-References: <20260319114441.205740-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,37 +44,32 @@ Content-Transfer-Encoding: 8bit
 
 From: Pengpeng Hou <pengpeng@iscas.ac.cn>
 
-Ensure size is correct, otherwise bail out with EINVAL.
+Make sure kernel does not provide geneve data larger than
+NFTNL_TUNNEL_GENEVE_DATA_MAXLEN, which might overrun the buffer.
 
 Fixes: 239fbdb8979d ("tunnel: add support to geneve options")
 Signed-off-by: Pengpeng Hou <pengpeng@iscas.ac.cn>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/obj/tunnel.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ src/obj/tunnel.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
 diff --git a/src/obj/tunnel.c b/src/obj/tunnel.c
-index 08adeb50b107..4b302f66ecc5 100644
+index ea9cb021741d..08adeb50b107 100644
 --- a/src/obj/tunnel.c
 +++ b/src/obj/tunnel.c
-@@ -866,9 +866,17 @@ static int nftnl_tunnel_opt_geneve_set(struct nftnl_tunnel_opt *opt, uint16_t ty
- {
- 	switch(type) {
- 	case NFTNL_TUNNEL_GENEVE_CLASS:
-+		if (data_len != sizeof(uint16_t)) {
-+			errno = EINVAL;
+@@ -596,6 +596,11 @@ nftnl_obj_tunnel_parse_geneve(struct nftnl_tunnel_opts *opts, struct nlattr *att
+ 	if (tb[NFTA_TUNNEL_KEY_GENEVE_DATA]) {
+ 		uint32_t len = mnl_attr_get_payload_len(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]);
+ 
++		if (len > NFTNL_TUNNEL_GENEVE_DATA_MAXLEN) {
++			free(opt);
 +			return -1;
 +		}
- 		memcpy(&opt->geneve.geneve_class, data, data_len);
- 		break;
- 	case NFTNL_TUNNEL_GENEVE_TYPE:
-+		if (data_len != sizeof(uint8_t)) {
-+			errno = EINVAL;
-+			return -1;
-+		}
- 		memcpy(&opt->geneve.type, data, data_len);
- 		break;
- 	case NFTNL_TUNNEL_GENEVE_DATA:
++
+ 		memcpy(opt->geneve.data,
+ 		       mnl_attr_get_payload(tb[NFTA_TUNNEL_KEY_GENEVE_DATA]),
+ 		       len);
 -- 
 2.47.3
 
