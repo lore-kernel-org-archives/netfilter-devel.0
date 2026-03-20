@@ -1,77 +1,93 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE1F4314B73
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2026 11:48:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4273469E6
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2026 11:48:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774007287; cv=none; b=erkozClVI6hQKdBDTErrmQArPW8yPx/DitkDgD5+Z0/PnKC9hr5kQ508QwE6n4lFdsVoUBI37p2l5GDGkj5yUn/m+F1L3E13FcyAhtuoaBg8XcNlQ98iBMqx5btpJ8II2iPCBKFQkPs3IrRkSXZCQanJ2an/q99Hn2T1S4B9GnY=
+	t=1774007295; cv=none; b=NZkwFGq+9TMLViegaQxKqOa+x60XWKA982avhlVHpqB8SDF29iEmusvmHvK3fQmXQ58tJqIaRM+XANx9PPTDmiwJXBUFOfTgzRGoUwPslPNNPHRQ8twwQ9BArOLx7Nzr7hGNLWNqDd62dRq7M/q2S6V17RpYmFeME3XUdLWFkYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774007287; c=relaxed/simple;
-	bh=v7Tt4TJy/Pja0OMgQof4SlJaBD1yBqHrqp1sEX2s5+c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=u177j6sRjFQNrTMXWjW1hi21CmG+DtUiJDsNUuD7jpOGaQTy9MTV1n9w1rwDBIS2OAMbEh8jDUo9FpXbN+Fj2bYkBuNwPWlCaHLOjWkCEXxh8z5/Pv0qrVbzDp6lk7bsV+hJVv/desU4RR8zAVllINKQwOBXRZm2UcCCYO/j4Ic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=j6GJkAjg; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1774007295; c=relaxed/simple;
+	bh=gFOJbOLdErng6m8aifMum8J1FXghQiwC4LvIAGXBTEI=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=NVmLmJZSwXujnId0abeSdlpjiR9ehwpUEfFY0V6wzRGegmCdcWDaqt9VK598/wkBIn4TE57XmBcfS20g9wsGeICrDAb/fBr8ai0YGs2Py9+OgOPjW3oSEjNxz6Z7kUVsNrUUhE2RWIOK5vTH8cVKxgaaILATN2iMTo5XUy4Hj3U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=elwtd94W; arc=none smtp.client-ip=148.6.0.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="j6GJkAjg"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 3BBE960262;
-	Fri, 20 Mar 2026 12:48:03 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774007283;
-	bh=bkgVM+GhLA8SXDyLVTRn3pUBUOSaWe1u7efq1FdYzwQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=j6GJkAjg7qnwx+jY7Qr4QEBH/q+bJY2wxzjP/3iWkkSTAV0gUcQIJx+RXhuMgmTwO
-	 1ibmpjsWYoFwESRPDrmpgj3RLUFXsg+ATYYyE6ngNdSQe8Q9Fnw75hqO/+nmbNfFi9
-	 uKqqSM5zKszFhWCo1Z8EnB5JhZol+WhujN6mqNasT1x70gxbq4tzVv0kPyOkhS3RPS
-	 5SHRXsSjEPe3J0AH0pmA/Jv1ncme5UI0P+w1HmXHy0J6do2DtaKgirsYYCWV8CKC9X
-	 aeatR0rPu9PQ9GVLabUenfTjfXz74QCceC3LXYZhDuzkXDYoy9J3KU4/LZwv/zzNW/
-	 xN1vZEFNpAuXw==
-Date: Fri, 20 Mar 2026 12:48:00 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Anna Wilcox <AWilcox@wilcox-tech.com>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [libnftnl PATCH] examples: nft-rule-add: Fix compile on musl libc
-Message-ID: <ab0z8HmTHljlaUEg@chamomile>
-References: <20260320084340.26543-2-AWilcox@Wilcox-Tech.com>
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="elwtd94W"
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4fcgcC4933z7s85Q;
+	Fri, 20 Mar 2026 12:40:43 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	blackhole.kfki.hu; h=mime-version:references:in-reply-to
+	:x-mailer:message-id:date:date:from:from:received:received
+	:received; s=20151130; t=1774006841; x=1775821242; bh=rk/JnZa5uN
+	E4aHsyNPMIAfg/pJB0fS/Kb1zCnyBMuwM=; b=elwtd94WJ/lT9/DliuxjYHlQUu
+	6+IW8RN6cI5xI1LgeVh/5K4kP81Kh4oqCB4d7FxY/3Yjq2P+POLlcV19UXP8oDX2
+	xE7NXANC06g1dK8gUEAh62I0R9rVrT1dDw11sZxC8jZG4phtgU+O7GpACtLrzkia
+	AIpX8xybXBI6zN3lk=
+X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
+Received: from smtp2.kfki.hu ([127.0.0.1])
+ by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id hsF2T97Y8pUa; Fri, 20 Mar 2026 12:40:41 +0100 (CET)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
+	by smtp2.kfki.hu (Postfix) with ESMTP id 4fcgc94r4dz7s85N;
+	Fri, 20 Mar 2026 12:40:41 +0100 (CET)
+Received: by blackhole.kfki.hu (Postfix, from userid 1000)
+	id 901C7340D75; Fri, 20 Mar 2026 12:40:41 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/1] netfilter: ipset: Fix data race between add and list header in all hash types
+Date: Fri, 20 Mar 2026 12:40:41 +0100
+Message-Id: <20260320114041.3486273-2-kadlec@netfilter.org>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20260320114041.3486273-1-kadlec@netfilter.org>
+References: <20260320114041.3486273-1-kadlec@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260320084340.26543-2-AWilcox@Wilcox-Tech.com>
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Mar 20, 2026 at 03:43:04AM -0500, Anna Wilcox wrote:
-> Without `_GNU_SOURCE`, the `dest` field on `tcphdr` is not present:
-> 
-> nft-rule-add.c: In function 'setup_rule':
-> nft-rule-add.c:108:21: error: 'struct tcphdr' has no member named 'dest'
+The "ipset list -terse" command is actually a dump operation which
+may run parallel with "ipset add" commands, which can trigger an
+internal resizing of the hash type of sets just being dumped. However,
+dumping just the header part of the set was not protected against
+underlying resizing. Fix it by protecting the header dumping part
+as well.
 
-Do more examples need this?
+Reported-by: syzbot+786c889f046e8b003ca6@syzkaller.appspotmail.com
+Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+---
+ net/netfilter/ipset/ip_set_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> Signed-off-by: Anna Wilcox <AWilcox@Wilcox-Tech.com>
-> ---
->  examples/nft-rule-add.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/examples/nft-rule-add.c b/examples/nft-rule-add.c
-> index 937b436..486544a 100644
-> --- a/examples/nft-rule-add.c
-> +++ b/examples/nft-rule-add.c
-> @@ -5,6 +5,7 @@
->   * This software has been sponsored by Sophos Astaro <http://www.sophos.com>
->   */
->  
-> +#define _GNU_SOURCE	/* for tcphdr.dest */
->  #include <stdlib.h>
->  #include <time.h>
->  #include <string.h>
-> -- 
-> 2.52.0
-> 
-> 
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
+et_core.c
+index a2fe711cb5e3..2cc04da95afd 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1648,13 +1648,13 @@ ip_set_dump_do(struct sk_buff *skb, struct netlin=
+k_callback *cb)
+ 			if (cb->args[IPSET_CB_PROTO] > IPSET_PROTOCOL_MIN &&
+ 			    nla_put_net16(skb, IPSET_ATTR_INDEX, htons(index)))
+ 				goto nla_put_failure;
++			if (set->variant->uref)
++				set->variant->uref(set, cb, true);
+ 			ret =3D set->variant->head(set, skb);
+ 			if (ret < 0)
+ 				goto release_refcount;
+ 			if (dump_flags & IPSET_FLAG_LIST_HEADER)
+ 				goto next_set;
+-			if (set->variant->uref)
+-				set->variant->uref(set, cb, true);
+ 			fallthrough;
+ 		default:
+ 			ret =3D set->variant->list(set, skb, cb);
+--=20
+2.39.5
+
