@@ -1,91 +1,121 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from mx1.secunet.com (mx1.secunet.com [62.96.220.36])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A501D61B7
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2026 00:24:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 918EC355F32;
+	Fri, 20 Mar 2026 06:49:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.96.220.36
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773966295; cv=none; b=mjlMpxj2V+px+6GYLVJmucBEi7MpFM42xkjHZx0/qsVNT7m8KjXILHiJdZYbMnuFFpM6X3+WcXkMSD9HHnBgS/QoqpDnGbQksQYKuRhOLuduTujJICfS5LsfthMialbADK4m+X5gInBbQoGLShBReKmI8cS7vN+gS+kOvJgQ+fM=
+	t=1773989350; cv=none; b=panihDYxh/vmWBFJttvqqUcVGhvBP4An4IqA8yKOdwAGgmYVBxUA6291Xi4j7IORm/hgyggShNQgtYUDLZZgd+vIzW9pz2YSraWVBpiPZVDafVaXJg8eWVkK4/Y68CX4VqLs740aC7S+XJmfUzCFqszO5ODuvCL+xw/+vQYBaLk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773966295; c=relaxed/simple;
-	bh=YBTNXCWE82fh2pIILXnj6SWDDBegP7WB4SVPe3FGEIU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=tWoe0IVZs551zHlJ7f0CSXoabZi3hyHCU6RWIbtfbsZSJLVd7D0VF6rxiTwpWhFGO4L6l1g1by1Tzs0byylsI/9D4bdF/+DnEYXZbLdweoJOhHdS5LMse3uwK6qsaIPOlwrxutpfsDFd7bstK+x8e8vE2GD3v13PxeCYVrnUDbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=p9webqaA; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1773989350; c=relaxed/simple;
+	bh=/0GIbIMZQIRMYEZhdjs4h4IPbDXFCX/nNCbIPnzfQUI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=BuEVVdg1p5W/hGA3d1xuBVRZc/WfWAJRncnQOz6fhjuN9stelXpfQ1U9x5KN7PYLmpZcjN7P2htay2pG0wJyrkQ4jJfmfry2GrzRQdbT5Uofm5ceMRdOZ8Y+ydMzWa9gFaMf3wtDxCnluQZluZYWJF41zjl8zsyvm3i4hqSSuIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=secunet.com; spf=pass smtp.mailfrom=secunet.com; dkim=pass (2048-bit key) header.d=secunet.com header.i=@secunet.com header.b=wL3tdiGI; arc=none smtp.client-ip=62.96.220.36
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=secunet.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=secunet.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="p9webqaA"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 7FD1F600B5;
-	Fri, 20 Mar 2026 01:24:43 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1773966283;
-	bh=CVLnqBE3sQRpp04+pzP0AQwqWUXv0YxSYk0D0BcQYxE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=p9webqaAEXOEs6zmTK0jO39e0TI4Yy1CZCKVI52wSRnKDJ+zuojH6qZoR4UZdH7c7
-	 dTDWifnBsmccJWkUgizdeDiEnbWIKNwZcf8cvRY2KP8uv0cnEp0q3Hyh9uYSfLC5oP
-	 uduM4XmJhml6BXYdbxYLyfGjhFzp3+oW4vDkwrVU9kHJU2HocvCm5UBnbAm/oeeA7m
-	 ahibJADVmQ6YzKQZ6/co/MhjNqSFEivrtJm+Iamdv3ZAS47r2hkvLJULlRYFa89Ytm
-	 7g9+Y+DUmyozHjpmLqVRsh85KH4xoxGzXJELbr/z0qlw9cawlFpcp0N5fW2HgnvTwE
-	 imFNi7j9vs0Rg==
-Date: Fri, 20 Mar 2026 01:24:40 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Phil Sutter <phil@nwl.cc>
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-Subject: Re: [nf-next PATCH] netfilter: nfnetlink_hook: Dump nat type chains
-Message-ID: <abyTyJBv47f3v9gd@chamomile>
-References: <20260313153220.19662-1-phil@nwl.cc>
- <abwegj2TijkaQVLz@strlen.de>
- <abwraHUuxizN4krg@orbyte.nwl.cc>
- <abwtAkSF8-SmH684@strlen.de>
- <abxlzn7lymOxWUFa@orbyte.nwl.cc>
+	dkim=pass (2048-bit key) header.d=secunet.com header.i=@secunet.com header.b="wL3tdiGI"
+Received: from localhost (localhost [127.0.0.1])
+	by mx1.secunet.com (Postfix) with ESMTP id 009EE20851;
+	Fri, 20 Mar 2026 07:49:05 +0100 (CET)
+X-Virus-Scanned: by secunet
+Received: from mx1.secunet.com ([127.0.0.1])
+ by localhost (mx1.secunet.com [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id u_tVBpO8pBpe; Fri, 20 Mar 2026 07:49:04 +0100 (CET)
+Received: from EXCH-01.secunet.de (rl1.secunet.de [10.32.0.231])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mx1.secunet.com (Postfix) with ESMTPS id 51F4220826;
+	Fri, 20 Mar 2026 07:49:04 +0100 (CET)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mx1.secunet.com 51F4220826
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=secunet.com;
+	s=202301; t=1773989344;
+	bh=r5SUTevA8Yh+GfkoAHaWh+6lNEe5selD4w2ly6R8puI=;
+	h=Date:From:To:CC:Subject:References:In-Reply-To:From;
+	b=wL3tdiGI5GWsTIHl+Mf9YB1JacAM8pT/rgklzxqomhyq6ySgqLoEt7ZmXw8oXj5JJ
+	 II2N0lV5iX9omWJFMxRNDpzK/XChG/AcmXrQp+ISl+DZF/0e7jSmh4KEa0tlq4uhWI
+	 6eXmBOT/uQuZxC0gd77s2/Zv9IZH4tnU5Kl8/sWXpbN80ZeAdnYaVGUYxKj/FY6LUo
+	 4c+ehKBOAB0xdHEc1DqO53h9sXyFQGbJ5wApFOca/Cizbm768YUIgEel6kfvS8Dqi5
+	 QH9C71UoitPrD1riCTI3StBI4axTayCOrmRvXl/w/Nr6gCgRcV83zbBIEpMEnoQNCV
+	 qhNOfoQ2fe8Pw==
+Received: from secunet.com (10.182.7.193) by EXCH-01.secunet.de (10.32.0.171)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.2562.17; Fri, 20 Mar
+ 2026 07:49:03 +0100
+Received: (nullmailer pid 580119 invoked by uid 1000);
+	Fri, 20 Mar 2026 06:49:02 -0000
+Date: Fri, 20 Mar 2026 07:49:02 +0100
+From: Steffen Klassert <steffen.klassert@secunet.com>
+To: Felix Fietkau <nbd@nbd.name>
+CC: Qingfang Deng <dqfext@gmail.com>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	<netfilter-devel@vger.kernel.org>, <davem@davemloft.net>,
+	<netdev@vger.kernel.org>, <kuba@kernel.org>, <pabeni@redhat.com>,
+	<edumazet@google.com>, <fw@strlen.de>, <horms@kernel.org>,
+	<antony.antony@secunet.com>
+Subject: Re: [PATCH net-next,RFC 0/8] netfilter: flowtable bulking
+Message-ID: <abzt3maph4VFq3wd@secunet.com>
+References: <20260317112917.4170466-1-pablo@netfilter.org>
+ <20260319061520.356946-1-dqfext@gmail.com>
+ <abvdyDVJ8OYW52fw@secunet.com>
+ <8f71af62-61c5-44f6-98d4-737034c498c6@nbd.name>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <abxlzn7lymOxWUFa@orbyte.nwl.cc>
+In-Reply-To: <8f71af62-61c5-44f6-98d4-737034c498c6@nbd.name>
+X-ClientProxiedBy: EXCH-03.secunet.de (10.32.0.183) To EXCH-01.secunet.de
+ (10.32.0.171)
 
-On Thu, Mar 19, 2026 at 10:08:30PM +0100, Phil Sutter wrote:
-> On Thu, Mar 19, 2026 at 06:06:10PM +0100, Florian Westphal wrote:
-> > Phil Sutter <phil@nwl.cc> wrote:
-> > > Ah, so the nat-type chain's priority value orders it inside the
-> > > dispatcher's list.
-> > 
-> > Yes.
-> > 
-> > > Maybe I should print them below the dispatcher hook with extra
-> > > indentation? Maybe extra braces could further clarify, e.g.:
+On Thu, Mar 19, 2026 at 01:18:19PM +0100, Felix Fietkau wrote:
+> On 19.03.26 12:28, Steffen Klassert wrote:
+> > On Thu, Mar 19, 2026 at 02:15:17PM +0800, Qingfang Deng wrote:
+> > > Hi Pablo,
 > > > 
-> > > | hook postrouting {
-> > > |         +0000000100 nf_nat_ipv6_out [nf_nat] {
-> > > |                 +0000200000 chain inet nat postrouting [nft_chain_nat]
-> > > |         }
-> > > |         +2147483647 nf_confirm [nf_conntrack]
-> > > | }
+> > > On Tue, 17 Mar 2026 12:29:09 +0100, Pablo Neira Ayuso wrote:
+> > > > Hi,
+> > > >  > Back in 2018 [1], a new fast forwarding combining the flowtable
+> > > and
+> > > > GRO/GSO was proposed, however, "GRO is specialized to optimize the
+> > > > non-forwarding case", so it was considered "counter-intuitive to base a
+> > > > fast forwarding path on top of it".
+> > > >  > Then, Steffen Klassert proposed the idea of adding a new engine
+> > > for the
+> > > > flowtable that operates on the skb list that is provided after the NAPI
+> > > > cycle. The idea is to process this skb list to create bulks grouped by
+> > > > the ethertype, output device, next hop and tos/dscp. Then, add a
+> > > > specialized xmit path that can deal with these skb bulks. Note that GRO
+> > > > needs to be disabled so this new forwarding engine obtains the list of
+> > > > skbs that resulted from the NAPI cycle.
+> > > 
+> > > +Cc: Felix Fietkau
+> > > 
+> > > How does this compare to fraglist GRO with the original flowtable?
 > > 
-> > Actually  one could override the hook value with the one of the
-> > nat base hook.  The ordering inside the dispatcher is whats important,
-> > the exact numerical value isn't important.
+> > GRO can only aggregate packets of the same L4 flow. This can
+> > aggregate all packets the are treated  the same by the
+> > forwarding path. Packets need to have the same output device
+> > and next hop, but can be from different L3 and L4 flows.
+> > 
+> > Packet forwarders usually receive many different flows.
+> > GRO might not even kick in if there are not at least
+> > two packets from the same flow on a napi cycle.
 > 
-> Hmm. I like how one can use 'list hooks' output to find a good spot for
-> a new base chain. The real nat chain priority value is needed for that,
-> but no point in considering made up use-cases. Seeing the chains
-> attached to a given nat dispatcher is already a step forward, and having
-> their ordering is probably well enough.
+> Interesting approach! Do you think it might be possible to combine this with
+> GRO by bulking together GRO-combined frames from different flows?
 
-I guess the goal is to expose iptables and nftables in place?
+This depends on how the GRO packets are crafted. If the packets built
+just by adding skb page frags, then yes. If the fraglist pointer is
+used to chain packets, then no (our approach uses the fraglist pointer
+as well). So combining these would require some changes to the GRO
+layer.
 
-Is it really needed to expose this internal +0000200000?
+> I think it would be unfortunate if you have to choose between decent
+> forwarding throughput and decent local rx throughput.
 
-Maybe simply report instead?
-
-         +0000000100 nf_nat_ipv6_out [nf_nat]: chain ip nat POSTROUTING [iptable_nat]
-         +0000000100 nf_nat_ipv6_out [nf_nat]: chain inet nat postrouting [nft_chain_nat]
-
-Yes, it looks like a duplicate, but it is sort of how it works now, no
-need to expose dispatcher details.
+Would be nice if we could tune for both cases, but sometimes it
+needs a decision for which use case it should be tuned.
