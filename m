@@ -1,59 +1,59 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE00230B51F
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2026 20:30:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 887DE344DB0
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2026 20:30:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774038640; cv=none; b=JRQq9mgszPexCi2W2CcQ0Oee2Urm+QGnid68rhDymQtv+qQ++HW25xT72udp5uUi5fk3NxQ+XauMJPWq1G33qsSkp9lOMepuNNaTb2SzCh7on0idqSQhn/MHTgUlEqVPyoC0ChoJr4tQOwcK0nAaJcvOfZ6sw9e8XX+k7hJoKwk=
+	t=1774038642; cv=none; b=rxogFvsr+2UGIQsisw3XW4K01O/iFR6cXt+bAn1X1GlJ0PNRDXvEBsf0mpVb8ksgBUvppKANQLAx9arfZOUchupALKY7MqYcLAYbJ5a1ylMK5qdwcOIBi0Dbf35sW4fuj88Hb6Yb2AokmxN8ImMapahwEJfxhQy09CQb6odyVsY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774038640; c=relaxed/simple;
-	bh=EbAhMe30/Ca+EXOXk7BRxayd11V8Yn1m+5rHs7nJRkY=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=ZA9rwX/rbNjo3pqBhLpbTOWT9+C9lRl3tsX7IjenVClX7tQ/NIMQb5YDxdppC9jcXVmaMvRjBBf3G8zN/uU0HvrMhX9OEK+1zu/RabYXgD2s83eGVbOzKTFf80Mmsl5MjkTuQV0hZoR29cCpIFJrEotehBRQ9nMjFoBObTINle0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bMPyBIXg; arc=none smtp.client-ip=198.175.65.21
+	s=arc-20240116; t=1774038642; c=relaxed/simple;
+	bh=K/x1A9CIWuk7LBGjjj4O8XkJDL4M8s5D9zg7EYPMU+o=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=EDifEAk55W09hYqWFv1wLMy7MusjZYy699CkwXTRgg+ijgkbgpjyP5MzYysQw/3grUWHeeIB9OkJ5jMwEUuSrTFo4h7XAbRITdX0hqtkkQGWS7ySKz5TAnPi1jU0IRv8lo4yPB8nmxbBmBkAQC1x/nOpfKnDcYSalhdCoaxv5T0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kenL9eO7; arc=none smtp.client-ip=192.198.163.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bMPyBIXg"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kenL9eO7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774038639; x=1805574639;
+  t=1774038640; x=1805574640;
   h=date:from:to:cc:subject:message-id;
-  bh=EbAhMe30/Ca+EXOXk7BRxayd11V8Yn1m+5rHs7nJRkY=;
-  b=bMPyBIXgNpgNrDKAb544d0oe9lzERRm8gqwq7KowrCXIzmdvl1HFQPuI
-   2ejDa/IBqc9ohtPlz4LSit8yBBxeAhXYQdTWRfKqszU2Rsh6cyFPoR0Ym
-   eCjzUF+KrzVAwxa/J71SGk01Cz0bg6wufNDUgTCjqK9mp6Z0GYU+Cn21m
-   I9sCFfMSpaE5V1C+1jLLb2GWwNZacj8PugWqDXNUpByiG1lKWORTU2ltp
-   DVBKLOSLlbAEysQ9SVS49U5fLX5dWzoNnxGFDXHLjv7z1CksGplR6JUKK
-   iNkVIm7TxTOm50hQdKeJM7M5mlpknmVBgjY2UlY3ve9Y9JFSqU3vrUJlh
+  bh=K/x1A9CIWuk7LBGjjj4O8XkJDL4M8s5D9zg7EYPMU+o=;
+  b=kenL9eO72/0zpWHVekFoLuDeHH+CUBXvuV6trxxV0bSLE/gAAIJphpoJ
+   BZrT1wXh8JOq+OEVsdNewaKKklJ/5FYhl59r/JGgoxnWXrAcGha9CiYIP
+   9hn3/gAsPesUOYu+yZx/MIUdp3KfZ0Tcly0/mTWU/oMSgexEb9e6Saldk
+   Be6HXFkRmG9bkht2aSr3WJsN9hh8U0/egQG/2zmxJr1eF8Mzb7D6eIO2T
+   aRrgdzi6tJxeu7EnEps/IQHLA4dTpIvVUW5l3yrHEMv/aEl/uGIXl/X16
+   F1qLsvuk74Vc4a2XdVxpHyo1uvgYq8gLlyGzlK/14Zdncp2xABX2CaTnN
    g==;
-X-CSE-ConnectionGUID: A7a6WRWDRXOQ/Lqmf6Iqpw==
-X-CSE-MsgGUID: DkO26057RH+ikGH4vDXUTw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11735"; a="75022441"
+X-CSE-ConnectionGUID: Q9rIMBc+TbCwQUjoh/Tewg==
+X-CSE-MsgGUID: ivbkUGY9R9Gxrxd2IE+YJA==
+X-IronPort-AV: E=McAfee;i="6800,10657,11735"; a="85758451"
 X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
-   d="scan'208";a="75022441"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2026 13:30:39 -0700
-X-CSE-ConnectionGUID: ayoQEIYbTjqerOihRWYWdQ==
-X-CSE-MsgGUID: hGCxaikCTVSxcgJXUqck4g==
+   d="scan'208";a="85758451"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2026 13:30:39 -0700
+X-CSE-ConnectionGUID: RnmfSTxGS16+wLbdsRMs6A==
+X-CSE-MsgGUID: EQI2n7ANSfSuOpw7lFZwqA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.23,130,1770624000"; 
-   d="scan'208";a="219150077"
+   d="scan'208";a="222478666"
 Received: from igk-lkp-server01.igk.intel.com (HELO 9958d990ccf2) ([10.211.93.152])
-  by fmviesa010.fm.intel.com with ESMTP; 20 Mar 2026 13:30:36 -0700
+  by orviesa006.jf.intel.com with ESMTP; 20 Mar 2026 13:30:37 -0700
 Received: from kbuild by 9958d990ccf2 with local (Exim 4.98.2)
 	(envelope-from <lkp@intel.com>)
-	id 1w3gUM-0000000056r-19d9;
+	id 1w3gUM-0000000056t-1M6L;
 	Fri, 20 Mar 2026 20:30:34 +0000
-Date: Fri, 20 Mar 2026 21:30:03 +0100
+Date: Fri, 20 Mar 2026 21:30:04 +0100
 From: kernel test robot <lkp@intel.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: oe-kbuild-all@lists.linux.dev, netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org, Florian Westphal <fw@strlen.de>
 Subject: [netfilter-nf:testing 7/9]
- ./arch/powerpc/include/asm/syscall.h:26:25: warning: unused variable
- 'compat_sys_call_table'
-Message-ID: <202603202156.EVAKEnwj-lkp@intel.com>
+ ./arch/arm64/include/asm/syscall.h:14:27: warning: unused variable
+ 'sys_call_table'
+Message-ID: <202603202110.Tkuhxfco-lkp@intel.com>
 User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,14 +64,14 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git testing
 head:   b1bad43d8b00ab31c8f93145a4c8db1567f0d2fe
 commit: 20d564bba6b3806c26498061299a88330561efa5 [7/9] netfilter: ctnetlink: ensure safe access to master conntrack
-config: powerpc64-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260320/202603202156.EVAKEnwj-lkp@intel.com/config)
-compiler: powerpc64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260320/202603202156.EVAKEnwj-lkp@intel.com/reproduce)
+config: arm64-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260320/202603202110.Tkuhxfco-lkp@intel.com/config)
+compiler: aarch64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260320/202603202110.Tkuhxfco-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603202156.EVAKEnwj-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603202110.Tkuhxfco-lkp@intel.com/
 
 All warnings (new ones prefixed by >>):
 
@@ -175,12 +175,9 @@ All warnings (new ones prefixed by >>):
    ./include/linux/audit.h:592:12: warning: unused variable 'audit_n_rules' [-Wunused-variable]
      592 | extern int audit_n_rules;
          |            ^~~~~~~~~~~~~
->> ./arch/powerpc/include/asm/syscall.h:26:25: warning: unused variable 'compat_sys_call_table' [-Wunused-variable]
-      26 | extern const syscall_fn compat_sys_call_table[];
-         |                         ^~~~~~~~~~~~~~~~~~~~~
->> ./arch/powerpc/include/asm/syscall.h:25:25: warning: unused variable 'sys_call_table' [-Wunused-variable]
-      25 | extern const syscall_fn sys_call_table[];
-         |                         ^~~~~~~~~~~~~~
+>> ./arch/arm64/include/asm/syscall.h:14:27: warning: unused variable 'sys_call_table' [-Wunused-variable]
+      14 | extern const syscall_fn_t sys_call_table[];
+         |                           ^~~~~~~~~~~~~~
    In file included from ./include/linux/audit.h:14:
    ./include/linux/audit_arch.h:31:17: warning: unused variable 'compat_signal_class' [-Wunused-variable]
       31 | extern unsigned compat_signal_class[];
@@ -212,14 +209,12 @@ All warnings (new ones prefixed by >>):
    ./include/linux/filter.h:1265:13: warning: unused variable 'bpf_jit_limit' [-Wunused-variable]
     1265 | extern long bpf_jit_limit;
          |             ^~~~~~~~~~~~~
-   In file included from ./arch/powerpc/include/asm/mmu.h:230,
-                    from ./arch/powerpc/include/asm/paca.h:18,
-                    from ./arch/powerpc/include/asm/current.h:13,
-                    from ./include/linux/thread_info.h:23,
-                    from ./include/asm-generic/preempt.h:5,
-                    from ./arch/powerpc/include/asm/preempt.h:5,
-                    from ./include/linux/preempt.h:79,
-                    from ./include/linux/spinlock.h:56:
+   In file included from ./include/linux/static_key.h:1,
+                    from ./include/linux/kasan-enabled.h:5,
+                    from ./arch/arm64/include/asm/cache.h:41,
+                    from ./include/vdso/cache.h:5,
+                    from ./include/linux/cache.h:6,
+                    from ./include/linux/time.h:5:
    ./include/linux/filter.h:1014:26: warning: unused variable 'bpf_master_redirect_enabled_key' [-Wunused-variable]
     1014 | DECLARE_STATIC_KEY_FALSE(bpf_master_redirect_enabled_key);
          |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -279,21 +274,21 @@ All warnings (new ones prefixed by >>):
       42 | extern unsigned int sysctl_fib_sync_mem_min;
          |                     ^~~~~~~~~~~~~~~~~~~~~~~
    ./include/net/ip.h:41:21: warning: unused variable 'sysctl_fib_sync_mem' [-Wunused-variable]
+      41 | extern unsigned int sysctl_fib_sync_mem;
+         |                     ^~~~~~~~~~~~~~~~~~~
 
 
-vim +/compat_sys_call_table +26 ./arch/powerpc/include/asm/syscall.h
+vim +/sys_call_table +14 ./arch/arm64/include/asm/syscall.h
 
-8640de0dee49ce Rohan McLure 2022-09-21  23  
-02424d8966d803 Ian Munsie   2011-02-02  24  /* ftrace syscalls requires exporting the sys_call_table */
-8640de0dee49ce Rohan McLure 2022-09-21 @25  extern const syscall_fn sys_call_table[];
-8640de0dee49ce Rohan McLure 2022-09-21 @26  extern const syscall_fn compat_sys_call_table[];
-02424d8966d803 Ian Munsie   2011-02-02  27  
+27d83e68f307ee Mark Rutland 2018-07-11  13  
+27d83e68f307ee Mark Rutland 2018-07-11 @14  extern const syscall_fn_t sys_call_table[];
+f27bb139c38768 Marc Zyngier 2012-03-05  15  
 
-:::::: The code at line 26 was first introduced by commit
-:::::: 8640de0dee49cec50040d9845a2bc96fd15adc9e powerpc: Use common syscall handler type
+:::::: The code at line 14 was first introduced by commit
+:::::: 27d83e68f307ee55b70fdfdc7a9ba3f25f276189 arm64: introduce syscall_fn_t
 
-:::::: TO: Rohan McLure <rmclure@linux.ibm.com>
-:::::: CC: Michael Ellerman <mpe@ellerman.id.au>
+:::::: TO: Mark Rutland <mark.rutland@arm.com>
+:::::: CC: Will Deacon <will.deacon@arm.com>
 
 -- 
 0-DAY CI Kernel Test Service
