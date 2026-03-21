@@ -1,59 +1,58 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01453221F1C
-	for <netfilter-devel@vger.kernel.org>; Sat, 21 Mar 2026 07:28:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6240F346AFB
+	for <netfilter-devel@vger.kernel.org>; Sat, 21 Mar 2026 08:23:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774078121; cv=none; b=TD+NrfZKYMFximotwW0d250QY+90Hn+r00QJQuSd+5VQHjgL8HoR36R0ZlRwyRMyXSywZ96zW5uq2wjb/Er9wx+bkc1F3VHw2tM+E+1EekrAoOZsHKTTnGct+sWVmizibu2Fdx/onAk03NLk5Bt+gB52/rQRPDw7ZKZ9hCZ53hs=
+	t=1774081414; cv=none; b=uD7miDsX9fLDN4hz8dbBIrrSQskIpbwgls0r8T7sPkqEZBnNQiQUBaDg97ca8VvJ3Y8o4LRDC7IMOBx9NHcM05izoBdhGrkDoNAg2dsW2WxAMugh9KXPdTO/0MP9LAihCLV+84ORmMNN41BEhr5aRHBnvUoRzPLj2GGJVfU8YoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774078121; c=relaxed/simple;
-	bh=jN8+sbTgPzWN0Uh56qdNa/p6mzJ107yGOJt1/wpgst0=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=pMgqv3E9YxN1Y3gcqIObwXxrTk/c5PCIFbo+wJ9G2r/QP03iZI6QB4PGf0bhFth7V+QZ4KDj6JC85j/n51LxxPSBUSpoY+u7lpCX0vko6sZbnaGew5rbxvh1zo/6Z7HiZnCr7zSzdHJEKz7mG3QYRFjZybekZlKH6Tae6OykvWo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AifZvaXZ; arc=none smtp.client-ip=198.175.65.18
+	s=arc-20240116; t=1774081414; c=relaxed/simple;
+	bh=hbFgvJSFm2EVOB3WiiZS5TaOg4K5jhU142IhDTiUJhM=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=ueOJ/XurbRrCkXndOwTap+m7dmWcuLwBBDWCKneA05/AYIFL4M3HE83o70q+cA0QOyzqKVOjgYrOH2Ut3bzxpxpAXSbYh6ysdpSVm8x59BPvGQ/EN+D9m2ycZssvd0DWehv/T+29b6gBML6C0DRS/m2kA+7opIN4pFd3Fw3VDdQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OwVoHqJZ; arc=none smtp.client-ip=198.175.65.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AifZvaXZ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OwVoHqJZ"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774078119; x=1805614119;
+  t=1774081411; x=1805617411;
   h=date:from:to:cc:subject:message-id;
-  bh=jN8+sbTgPzWN0Uh56qdNa/p6mzJ107yGOJt1/wpgst0=;
-  b=AifZvaXZ1jpBOpIkHetfnJfXRR3mtASVIhoHpV3JNnLusst7rJoJ46lV
-   XxEgy4dB6K2dWUg5sqVjqBQeimkoMLgmlcgviSX3vmms5mdjKdqr6aewj
-   4akcwloh5UvaCDq1c1c51RD+SmepAeNvYtQvq7f/ljjPc76PxAsmzJCO7
-   643vytGpx1h1NmGBTfCkts/j840x3T32fs4iMcnpwk43egtJdUBycNrOB
-   xLZMlseApA5cH+X1t7le+G3qhNo8r03CzNqQujjzAlqv8LYZ6jdIkHiw0
-   CQS437ktl+WjhA2NZl4dCetxh/XLJ6sKICTaRy6UHUMew/JQr0Blm/v6E
-   A==;
-X-CSE-ConnectionGUID: mGdLrkaWRaeTBEsyhphTTg==
-X-CSE-MsgGUID: MI0mg9y2Tdq3BtTR83V0iQ==
-X-IronPort-AV: E=McAfee;i="6800,10657,11735"; a="75184941"
-X-IronPort-AV: E=Sophos;i="6.23,132,1770624000"; 
-   d="scan'208";a="75184941"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2026 00:28:38 -0700
-X-CSE-ConnectionGUID: 1Z1CyaFSSFycwcaMI5I9Hg==
-X-CSE-MsgGUID: 3QH7w2zXQGGB/b06UHX52w==
+  bh=hbFgvJSFm2EVOB3WiiZS5TaOg4K5jhU142IhDTiUJhM=;
+  b=OwVoHqJZ/HgxRz8/U1lrfC9dv6T67gcB6YMyXsaQ1OvGd/XwrbkD0RhR
+   NJN2rA0O8kdGktCLruqxYIdM76D1lWJNOH/pWfgv4FBkT0ghF3PLQ1oAy
+   BiqrmoZZYkn0QPHbzlCTYjPI0xCOxVE/0Nwm5xeAFdRUWRf52w21RC55h
+   szNGafTSYNLbBWgvBXgGTlW/5VZcL3JuY9dbFwEUV/ycGoACDN7bDgLFk
+   BISP42zrnSZepH70N2Q6FONKDPqDcziGeBVX56vwuD69ebJLV9E/gCeii
+   4FJdk7JYNt4L41/mOvjOeqoTiSaxmnEDn1jo6Ubt2T7G+uA09dGkGPeYQ
+   g==;
+X-CSE-ConnectionGUID: MshD+N/7S7+01VgATgiPyQ==
+X-CSE-MsgGUID: u34L0oT9T0yPecNdg9hamQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11735"; a="75186342"
+X-IronPort-AV: E=Sophos;i="6.23,133,1770624000"; 
+   d="scan'208";a="75186342"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2026 01:23:30 -0700
+X-CSE-ConnectionGUID: Bxaye6LMQRGvzt+q0zdRzw==
+X-CSE-MsgGUID: RKRwSgepTy66Ekot9QmRGg==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,132,1770624000"; 
-   d="scan'208";a="220370628"
+X-IronPort-AV: E=Sophos;i="6.23,133,1770624000"; 
+   d="scan'208";a="218805304"
 Received: from lkp-server02.sh.intel.com (HELO d7fefbca0d04) ([10.239.97.151])
-  by fmviesa007.fm.intel.com with ESMTP; 21 Mar 2026 00:28:35 -0700
+  by fmviesa006.fm.intel.com with ESMTP; 21 Mar 2026 01:23:27 -0700
 Received: from kbuild by d7fefbca0d04 with local (Exim 4.98.2)
 	(envelope-from <lkp@intel.com>)
-	id 1w3qky-000000000Qv-2dBa;
-	Sat, 21 Mar 2026 07:28:28 +0000
-Date: Sat, 21 Mar 2026 15:27:51 +0800
+	id 1w3rbv-000000000Tf-021B;
+	Sat, 21 Mar 2026 08:23:09 +0000
+Date: Sat, 21 Mar 2026 16:21:51 +0800
 From: kernel test robot <lkp@intel.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Cc: oe-kbuild-all@lists.linux.dev, netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org, Florian Westphal <fw@strlen.de>
-Subject: [netfilter-nf:testing 7/9]
- arch/mips/include/asm/kexec.h:47:15: warning: unused variable
- '_crash_smp_send_stop'
-Message-ID: <202603211508.hPFgpNxL-lkp@intel.com>
+Subject: [netfilter-nf:testing 7/9] include/net/ip6_fib.h:663:33:
+ error: invalid storage class for function 'fib6_rules_init'
+Message-ID: <202603211611.4ulHj95G-lkp@intel.com>
 User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -64,420 +63,561 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 tree:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git testing
 head:   b1bad43d8b00ab31c8f93145a4c8db1567f0d2fe
 commit: 20d564bba6b3806c26498061299a88330561efa5 [7/9] netfilter: ctnetlink: ensure safe access to master conntrack
-config: mips-allyesconfig (https://download.01.org/0day-ci/archive/20260321/202603211508.hPFgpNxL-lkp@intel.com/config)
-compiler: mips-linux-gcc (GCC) 15.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260321/202603211508.hPFgpNxL-lkp@intel.com/reproduce)
+config: x86_64-randconfig-002-20260321 (https://download.01.org/0day-ci/archive/20260321/202603211611.4ulHj95G-lkp@intel.com/config)
+compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260321/202603211611.4ulHj95G-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202603211508.hPFgpNxL-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603211611.4ulHj95G-lkp@intel.com/
 
-All warnings (new ones prefixed by >>):
+All errors (new ones prefixed by >>):
 
-   drivers/net/ethernet/mellanox/mlx5/core/en_stats.h:522:8: note: in expansion of macro 'MLX5E_DECLARE_STATS_GRP'
-     522 | extern MLX5E_DECLARE_STATS_GRP(qcnt);
-         |        ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/net/ethernet/mellanox/mlx5/core/en_stats.h:97:30: warning: unused variable 'mlx5e_stats_grp_sw' [-Wunused-variable]
-      97 | #define MLX5E_STATS_GRP(grp) mlx5e_stats_grp_ ## grp
-         |                              ^~~~~~~~~~~~~~~~
-   drivers/net/ethernet/mellanox/mlx5/core/en_stats.h:100:38: note: in expansion of macro 'MLX5E_STATS_GRP'
-     100 |         const struct mlx5e_stats_grp MLX5E_STATS_GRP(grp)
-         |                                      ^~~~~~~~~~~~~~~
-   drivers/net/ethernet/mellanox/mlx5/core/en_stats.h:521:8: note: in expansion of macro 'MLX5E_DECLARE_STATS_GRP'
-     521 | extern MLX5E_DECLARE_STATS_GRP(sw);
-         |        ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/net/ethernet/mellanox/mlx5/core/en_stats.h:518:26: warning: unused variable 'mlx5e_nic_stats_grps' [-Wunused-variable]
-     518 | extern mlx5e_stats_grp_t mlx5e_nic_stats_grps[];
-         |                          ^~~~~~~~~~~~~~~~~~~~
-   drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h:46:13: warning: unused variable 'mlx5_core_debug_mask' [-Wunused-variable]
-      46 | extern uint mlx5_core_debug_mask;
-         |             ^~~~~~~~~~~~~~~~~~~~
-   include/linux/filter.h:1610:32: warning: unused variable 'bpf_sk_lookup_enabled' [-Wunused-variable]
-    1610 | extern struct static_key_false bpf_sk_lookup_enabled;
-         |                                ^~~~~~~~~~~~~~~~~~~~~
-   include/linux/filter.h:1266:13: warning: unused variable 'bpf_jit_limit_max' [-Wunused-variable]
-    1266 | extern long bpf_jit_limit_max;
-         |             ^~~~~~~~~~~~~~~~~
-   include/linux/filter.h:1265:13: warning: unused variable 'bpf_jit_limit' [-Wunused-variable]
-    1265 | extern long bpf_jit_limit;
-         |             ^~~~~~~~~~~~~
-   In file included from include/linux/security.h:35:
-   include/linux/bpf.h:1528:38: warning: unused variable 'bpf_dispatcher_xdp' [-Wunused-variable]
-    1528 |         extern struct bpf_dispatcher bpf_dispatcher_##name;
-         |                                      ^~~~~~~~~~~~~~~
-   include/linux/filter.h:1012:1: note: in expansion of macro 'DECLARE_BPF_DISPATCHER'
-    1012 | DECLARE_BPF_DISPATCHER(xdp)
-         | ^~~~~~~~~~~~~~~~~~~~~~
-   include/linux/filter.h:691:14: warning: unused variable 'nfct_btf_struct_access' [-Wunused-variable]
-     691 | extern int (*nfct_btf_struct_access)(struct bpf_verifier_log *log,
-         |              ^~~~~~~~~~~~~~~~~~~~~~
-   include/linux/filter.h:690:21: warning: unused variable 'nf_conn_btf_access_lock' [-Wunused-variable]
-     690 | extern struct mutex nf_conn_btf_access_lock;
-         |                     ^~~~~~~~~~~~~~~~~~~~~~~
-   include/crypto/sha1.h:21:17: warning: unused variable 'sha1_zero_message_hash' [-Wunused-variable]
-      21 | extern const u8 sha1_zero_message_hash[SHA1_DIGEST_SIZE];
-         |                 ^~~~~~~~~~~~~~~~~~~~~~
-   include/net/udp.h:579:36: warning: unused variable 'udp6_seq_ops' [-Wunused-variable]
-     579 | extern const struct seq_operations udp6_seq_ops;
-         |                                    ^~~~~~~~~~~~
-   include/net/udp.h:578:36: warning: unused variable 'udp_seq_ops' [-Wunused-variable]
-     578 | extern const struct seq_operations udp_seq_ops;
-         |                                    ^~~~~~~~~~~
-   include/net/udp.h:213:12: warning: unused variable 'sysctl_udp_wmem_min' [-Wunused-variable]
-     213 | extern int sysctl_udp_wmem_min;
-         |            ^~~~~~~~~~~~~~~~~~~
-   include/net/udp.h:212:12: warning: unused variable 'sysctl_udp_rmem_min' [-Wunused-variable]
-     212 | extern int sysctl_udp_rmem_min;
-         |            ^~~~~~~~~~~~~~~~~~~
-   include/net/udp.h:211:13: warning: unused variable 'sysctl_udp_mem' [-Wunused-variable]
-     211 | extern long sysctl_udp_mem[3];
-         |             ^~~~~~~~~~~~~~
-   include/net/udp.h:208:22: warning: unused variable 'udp_memory_per_cpu_fw_alloc' [-Wunused-variable]
-     208 | DECLARE_PER_CPU(int, udp_memory_per_cpu_fw_alloc);
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/percpu-defs.h:87:51: note: in definition of macro 'DECLARE_PER_CPU_SECTION'
-      87 |         extern __PCPU_ATTRS(sec) __typeof__(type) name
-         |                                                   ^~~~
-   include/net/udp.h:208:1: note: in expansion of macro 'DECLARE_PER_CPU'
-     208 | DECLARE_PER_CPU(int, udp_memory_per_cpu_fw_alloc);
-         | ^~~~~~~~~~~~~~~
-   include/net/udp.h:206:21: warning: unused variable 'udp_prot' [-Wunused-variable]
-     206 | extern struct proto udp_prot;
-         |                     ^~~~~~~~
-   include/net/udp.h:106:25: warning: unused variable 'udp_table' [-Wunused-variable]
-     106 | extern struct udp_table udp_table;
-         |                         ^~~~~~~~~
-   include/net/ip_tunnels.h:440:32: warning: unused variable 'ip_tunnel_header_ops' [-Wunused-variable]
-     440 | extern const struct header_ops ip_tunnel_header_ops;
-         |                                ^~~~~~~~~~~~~~~~~~~~
-   include/net/ip6_fib.h:556:36: warning: unused variable 'ipv6_route_seq_ops' [-Wunused-variable]
-     556 | extern const struct seq_operations ipv6_route_seq_ops;
-         |                                    ^~~~~~~~~~~~~~~~~~
-   include/net/inet_ecn.h:21:12: warning: unused variable 'sysctl_tunnel_ecn_log' [-Wunused-variable]
-      21 | extern int sysctl_tunnel_ecn_log;
-         |            ^~~~~~~~~~~~~~~~~~~~~
-   include/linux/crash_dump.h:18:27: warning: unused variable 'dm_crypt_keys_addr' [-Wunused-variable]
-      18 | extern unsigned long long dm_crypt_keys_addr;
-         |                           ^~~~~~~~~~~~~~~~~~
-   include/linux/crash_dump.h:16:27: warning: unused variable 'elfcorehdr_size' [-Wunused-variable]
-      16 | extern unsigned long long elfcorehdr_size;
-         |                           ^~~~~~~~~~~~~~~
-   include/linux/kexec.h:528:13: warning: unused variable 'kexec_file_dbg_print' [-Wunused-variable]
-     528 | extern bool kexec_file_dbg_print;
-         |             ^~~~~~~~~~~~~~~~~~~~
-   include/linux/kexec.h:470:13: warning: unused variable 'kexec_in_progress' [-Wunused-variable]
-     470 | extern bool kexec_in_progress;
-         |             ^~~~~~~~~~~~~~~~~
-   include/linux/kexec.h:448:23: warning: unused variable 'kexec_crash_image' [-Wunused-variable]
-     448 | extern struct kimage *kexec_crash_image;
-         |                       ^~~~~~~~~~~~~~~~~
-   include/linux/kexec.h:447:23: warning: unused variable 'kexec_image' [-Wunused-variable]
-     447 | extern struct kimage *kexec_image;
-         |                       ^~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:47:15: warning: unused variable '_crash_smp_send_stop' [-Wunused-variable]
-      47 | extern void (*_crash_smp_send_stop)(void);
-         |               ^~~~~~~~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:46:17: warning: unused variable 'kexec_ready_to_reboot' [-Wunused-variable]
-      46 | extern atomic_t kexec_ready_to_reboot;
-         |                 ^~~~~~~~~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:45:22: warning: unused variable 'secondary_kexec_args' [-Wunused-variable]
-      45 | extern unsigned long secondary_kexec_args[4];
-         |                      ^~~~~~~~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:44:28: warning: unused variable 'kexec_smp_wait' [-Wunused-variable]
-      44 | extern const unsigned char kexec_smp_wait[];
-         |                            ^~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:39:15: warning: unused variable '_machine_crash_shutdown' [-Wunused-variable]
-      39 | extern void (*_machine_crash_shutdown)(struct pt_regs *regs);
-         |               ^~~~~~~~~~~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:38:15: warning: unused variable '_machine_kexec_shutdown' [-Wunused-variable]
-      38 | extern void (*_machine_kexec_shutdown)(void);
-         |               ^~~~~~~~~~~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:37:14: warning: unused variable '_machine_kexec_prepare' [-Wunused-variable]
-      37 | extern int (*_machine_kexec_prepare)(struct kimage *);
-         |              ^~~~~~~~~~~~~~~~~~~~~~
->> arch/mips/include/asm/kexec.h:36:22: warning: unused variable 'kexec_args' [-Wunused-variable]
-      36 | extern unsigned long kexec_args[4];
-         |                      ^~~~~~~~~~
->> arch/mips/include/asm/stacktrace.h:10:12: warning: unused variable 'raw_show_trace' [-Wunused-variable]
-      10 | extern int raw_show_trace;
-         |            ^~~~~~~~~~~~~~
-   include/linux/crash_reserve.h:16:21: warning: unused variable 'crashk_cma_ranges' [-Wunused-variable]
-      16 | extern struct range crashk_cma_ranges[];
-         |                     ^~~~~~~~~~~~~~~~~
-   include/linux/crash_reserve.h:15:24: warning: unused variable 'crashk_low_res' [-Wunused-variable]
-      15 | extern struct resource crashk_low_res;
-         |                        ^~~~~~~~~~~~~~
-   include/linux/crash_reserve.h:14:24: warning: unused variable 'crashk_res' [-Wunused-variable]
-      14 | extern struct resource crashk_res;
-         |                        ^~~~~~~~~~
-   include/linux/vmcore_info.h:76:13: warning: unused variable 'vmcoreinfo_note' [-Wunused-variable]
-      76 | extern u32 *vmcoreinfo_note;
-         |             ^~~~~~~~~~~~~~~
-   include/linux/vmcore_info.h:75:15: warning: unused variable 'vmcoreinfo_size' [-Wunused-variable]
-      75 | extern size_t vmcoreinfo_size;
-         |               ^~~~~~~~~~~~~~~
-   include/linux/vmcore_info.h:74:23: warning: unused variable 'vmcoreinfo_data' [-Wunused-variable]
-      74 | extern unsigned char *vmcoreinfo_data;
-         |                       ^~~~~~~~~~~~~~~
-   include/linux/kexec.h:26:29: warning: unused variable 'crash_notes' [-Wunused-variable]
-      26 | extern note_buf_t __percpu *crash_notes;
-         |                             ^~~~~~~~~~~
-   include/net/pkt_cls.h:1075:26: warning: unused variable 'tc_skb_ext_tc' [-Wunused-variable]
-    1075 | DECLARE_STATIC_KEY_FALSE(tc_skb_ext_tc);
-         |                          ^~~~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/net/pkt_cls.h:78:26: warning: unused variable 'tcf_sw_enabled_key' [-Wunused-variable]
-      78 | DECLARE_STATIC_KEY_FALSE(tcf_sw_enabled_key);
-         |                          ^~~~~~~~~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/linux/mlx5/driver.h:895:23: warning: unused variable 'mlx5_debugfs_root' [-Wunused-variable]
-     895 | extern struct dentry *mlx5_debugfs_root;
-         |                       ^~~~~~~~~~~~~~~~~
-   include/net/devlink.h:1871:36: warning: unused variable 'devlink_dpipe_header_ipv6' [-Wunused-variable]
-    1871 | extern struct devlink_dpipe_header devlink_dpipe_header_ipv6;
-         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
-   include/net/devlink.h:1870:36: warning: unused variable 'devlink_dpipe_header_ipv4' [-Wunused-variable]
-    1870 | extern struct devlink_dpipe_header devlink_dpipe_header_ipv4;
-         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
-   include/net/devlink.h:1869:36: warning: unused variable 'devlink_dpipe_header_ethernet' [-Wunused-variable]
-    1869 | extern struct devlink_dpipe_header devlink_dpipe_header_ethernet;
-         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/rdma/ib_verbs.h:141:21: warning: unused variable 'zgid' [-Wunused-variable]
-     141 | extern union ib_gid zgid;
-         |                     ^~~~
-   include/rdma/ib_verbs.h:61:33: warning: unused variable 'ib_comp_unbound_wq' [-Wunused-variable]
-      61 | extern struct workqueue_struct *ib_comp_unbound_wq;
-         |                                 ^~~~~~~~~~~~~~~~~~
-   include/rdma/ib_verbs.h:60:33: warning: unused variable 'ib_comp_wq' [-Wunused-variable]
-      60 | extern struct workqueue_struct *ib_comp_wq;
-         |                                 ^~~~~~~~~~
-   include/rdma/ib_verbs.h:59:33: warning: unused variable 'ib_wq' [-Wunused-variable]
-      59 | extern struct workqueue_struct *ib_wq;
-         |                                 ^~~~~
-   include/net/ip.h:803:26: warning: unused variable 'ip4_min_ttl' [-Wunused-variable]
-     803 | DECLARE_STATIC_KEY_FALSE(ip4_min_ttl);
-         |                          ^~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/net/ip.h:397:12: warning: unused variable 'inet_peer_maxttl' [-Wunused-variable]
-     397 | extern int inet_peer_maxttl;
-         |            ^~~~~~~~~~~~~~~~
-   include/net/ip.h:396:12: warning: unused variable 'inet_peer_minttl' [-Wunused-variable]
-     396 | extern int inet_peer_minttl;
-         |            ^~~~~~~~~~~~~~~~
-   include/net/ip.h:395:12: warning: unused variable 'inet_peer_threshold' [-Wunused-variable]
-     395 | extern int inet_peer_threshold;
-         |            ^~~~~~~~~~~~~~~~~~~
-   include/net/ip.h:43:21: warning: unused variable 'sysctl_fib_sync_mem_max' [-Wunused-variable]
-      43 | extern unsigned int sysctl_fib_sync_mem_max;
-         |                     ^~~~~~~~~~~~~~~~~~~~~~~
-   include/net/ip.h:42:21: warning: unused variable 'sysctl_fib_sync_mem_min' [-Wunused-variable]
-      42 | extern unsigned int sysctl_fib_sync_mem_min;
-         |                     ^~~~~~~~~~~~~~~~~~~~~~~
-   include/net/ip.h:41:21: warning: unused variable 'sysctl_fib_sync_mem' [-Wunused-variable]
-      41 | extern unsigned int sysctl_fib_sync_mem;
-         |                     ^~~~~~~~~~~~~~~~~~~
-   include/net/lwtunnel.h:58:26: warning: unused variable 'nf_hooks_lwtunnel_enabled' [-Wunused-variable]
-      58 | DECLARE_STATIC_KEY_FALSE(nf_hooks_lwtunnel_enabled);
-         |                          ^~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/net/route.h:126:36: warning: unused variable 'ip_rt_acct' [-Wunused-variable]
-     126 | extern struct ip_rt_acct __percpu *ip_rt_acct;
-         |                                    ^~~~~~~~~~
-   include/net/ipv6_stubs.h:100:36: warning: unused variable 'ipv6_bpf_stub' [-Wunused-variable]
-     100 | extern const struct ipv6_bpf_stub *ipv6_bpf_stub __read_mostly;
-         |                                    ^~~~~~~~~~~~~
-   include/net/ip_fib.h:447:32: warning: unused variable 'rtm_ipv4_policy' [-Wunused-variable]
-     447 | extern const struct nla_policy rtm_ipv4_policy[];
+   include/net/inet_ecn.h:222:19: error: invalid storage class for function 'INET_ECN_set_ect1'
+     222 | static inline int INET_ECN_set_ect1(struct sk_buff *skb)
+         |                   ^~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h: In function 'INET_ECN_set_ect1':
+   include/net/inet_ecn.h:232:54: error: invalid application of 'sizeof' to incomplete type 'struct ipv6hdr'
+     232 |                 if (skb_network_header(skb) + sizeof(struct ipv6hdr) <=
+         |                                                      ^~~~~~
+   include/net/inet_ecn.h:234:54: error: passing argument 2 of 'IP6_ECN_set_ect1' from incompatible pointer type [-Wincompatible-pointer-types]
+     234 |                         return IP6_ECN_set_ect1(skb, ipv6_hdr(skb));
+         |                                                      ^~~~~~~~~~~~~
+         |                                                      |
+         |                                                      struct ipv6hdr *
+   include/net/inet_ecn.h:164:73: note: expected 'struct ipv6hdr *' but argument is of type 'struct ipv6hdr *'
+     164 | static inline int IP6_ECN_set_ect1(struct sk_buff *skb, struct ipv6hdr *iph)
+         |                                                         ~~~~~~~~~~~~~~~~^~~
+   include/net/inet_ecn.h: In function 'lockdep_nfct_expect_lock_not_held':
+   include/net/inet_ecn.h:265:19: error: invalid storage class for function '__INET_ECN_decapsulate'
+     265 | static inline int __INET_ECN_decapsulate(__u8 outer, __u8 inner, bool *set_ce)
+         |                   ^~~~~~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h:283:19: error: invalid storage class for function 'INET_ECN_decapsulate'
+     283 | static inline int INET_ECN_decapsulate(struct sk_buff *skb,
+         |                   ^~~~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h:300:19: error: invalid storage class for function 'IP_ECN_decapsulate'
+     300 | static inline int IP_ECN_decapsulate(const struct iphdr *oiph,
+         |                   ^~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h:319:19: error: invalid storage class for function 'IP6_ECN_decapsulate'
+     319 | static inline int IP6_ECN_decapsulate(const struct ipv6hdr *oipv6h,
+         |                   ^~~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h: In function 'IP6_ECN_decapsulate':
+   include/net/inet_ecn.h:335:59: error: passing argument 1 of 'ipv6_get_dsfield' from incompatible pointer type [-Wincompatible-pointer-types]
+     335 |         return INET_ECN_decapsulate(skb, ipv6_get_dsfield(oipv6h), inner);
+         |                                                           ^~~~~~
+         |                                                           |
+         |                                                           const struct ipv6hdr *
+   include/net/dsfield.h:22:59: note: expected 'const struct ipv6hdr *' but argument is of type 'const struct ipv6hdr *'
+      22 | static inline __u8 ipv6_get_dsfield(const struct ipv6hdr *ipv6h)
+         |                                     ~~~~~~~~~~~~~~~~~~~~~~^~~~~
+   In file included from include/net/dst_cache.h:8,
+                    from include/net/ip_tunnels.h:21:
+   include/net/ip6_fib.h: In function 'lockdep_nfct_expect_lock_not_held':
+   include/net/ip6_fib.h:91:20: error: invalid storage class for function 'fib6_routes_require_src'
+      91 | static inline bool fib6_routes_require_src(const struct net *net)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:96:20: error: invalid storage class for function 'fib6_routes_require_src_inc'
+      96 | static inline void fib6_routes_require_src_inc(struct net *net) {}
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:97:20: error: invalid storage class for function 'fib6_routes_require_src_dec'
+      97 | static inline void fib6_routes_require_src_dec(struct net *net) {}
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:240:33: error: invalid storage class for function 'ip6_dst_idev'
+     240 | static inline struct inet6_dev *ip6_dst_idev(const struct dst_entry *dst)
+         |                                 ^~~~~~~~~~~~
+   include/net/ip6_fib.h:245:20: error: invalid storage class for function 'fib6_requires_src'
+     245 | static inline bool fib6_requires_src(const struct fib6_info *rt)
+         |                    ^~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:253:20: error: invalid storage class for function 'fib6_clean_expires'
+     253 | static inline void fib6_clean_expires(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:262:20: error: invalid storage class for function 'fib6_set_expires'
+     262 | static inline void fib6_set_expires(struct fib6_info *f6i,
+         |                    ^~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:269:20: error: invalid storage class for function 'fib6_check_expired'
+     269 | static inline bool fib6_check_expired(const struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:281:20: error: invalid storage class for function 'fib6_get_cookie_safe'
+     281 | static inline bool fib6_get_cookie_safe(const struct fib6_info *f6i,
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:299:19: error: invalid storage class for function 'rt6_get_cookie'
+     299 | static inline u32 rt6_get_cookie(const struct rt6_info *rt)
+         |                   ^~~~~~~~~~~~~~
+   include/net/ip6_fib.h:318:20: error: invalid storage class for function 'ip6_rt_put'
+     318 | static inline void ip6_rt_put(struct rt6_info *rt)
+         |                    ^~~~~~~~~~
+   include/net/ip6_fib.h:330:20: error: invalid storage class for function 'fib6_info_hold'
+     330 | static inline void fib6_info_hold(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~
+   include/net/ip6_fib.h:335:20: error: invalid storage class for function 'fib6_info_hold_safe'
+     335 | static inline bool fib6_info_hold_safe(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:340:20: error: invalid storage class for function 'fib6_info_release'
+     340 | static inline void fib6_info_release(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:474:6: error: invalid storage class for function 'rt6_get_prefsrc'
+     474 | void rt6_get_prefsrc(const struct rt6_info *rt, struct in6_addr *addr)
+         |      ^~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:520:20: error: invalid storage class for function 'fib6_add_gc_list'
+     520 | static inline void fib6_add_gc_list(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:542:20: error: invalid storage class for function 'fib6_remove_gc_list'
+     542 | static inline void fib6_remove_gc_list(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:576:20: error: invalid storage class for function 'fib6_metric_locked'
+     576 | static inline bool fib6_metric_locked(struct fib6_info *f6i, int metric)
+         |                    ^~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:610:32: error: invalid storage class for function 'pol_lookup_func'
+     610 | static inline struct rt6_info *pol_lookup_func(pol_lookup_t lookup,
          |                                ^~~~~~~~~~~~~~~
-   include/net/ipv6.h:1163:31: warning: unused variable 'inet6_sockraw_ops' [-Wunused-variable]
-    1163 | extern const struct proto_ops inet6_sockraw_ops;
-         |                               ^~~~~~~~~~~~~~~~~
-   include/net/ipv6.h:1162:31: warning: unused variable 'inet6_dgram_ops' [-Wunused-variable]
-    1162 | extern const struct proto_ops inet6_dgram_ops;
-         |                               ^~~~~~~~~~~~~~~
-   include/net/ipv6.h:1161:31: warning: unused variable 'inet6_stream_ops' [-Wunused-variable]
-    1161 | extern const struct proto_ops inet6_stream_ops;
-         |                               ^~~~~~~~~~~~~~~~
-   include/net/ipv6.h:1113:26: warning: unused variable 'ip6_min_hopcount' [-Wunused-variable]
-    1113 | DECLARE_STATIC_KEY_FALSE(ip6_min_hopcount);
-         |                          ^~~~~~~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/net/ipv6.h:284:17: warning: unused variable 'ip6_ra_lock' [-Wunused-variable]
-     284 | extern rwlock_t ip6_ra_lock;
-         |                 ^~~~~~~~~~~
-   include/net/ipv6.h:283:34: warning: unused variable 'ip6_ra_chain' [-Wunused-variable]
-     283 | extern struct ip6_ra_chain      *ip6_ra_chain;
-         |                                  ^~~~~~~~~~~~
-   include/net/ipv6.h:205:12: warning: unused variable 'sysctl_mld_qrv' [-Wunused-variable]
-     205 | extern int sysctl_mld_qrv;
-         |            ^~~~~~~~~~~~~~
-   include/net/ipv6.h:204:12: warning: unused variable 'sysctl_mld_max_msf' [-Wunused-variable]
-     204 | extern int sysctl_mld_max_msf;
-         |            ^~~~~~~~~~~~~~~~~~
-   include/linux/ipv6.h:102:27: warning: unused variable 'ipv6_defaults' [-Wunused-variable]
-     102 | extern struct ipv6_params ipv6_defaults;
-         |                           ^~~~~~~~~~~~~
-   include/linux/pci.h:2486:11: warning: unused variable 'pci_cache_line_size' [-Wunused-variable]
-    2486 | extern u8 pci_cache_line_size;
-         |           ^~~~~~~~~~~~~~~~~~~
-   include/linux/pci.h:2485:11: warning: unused variable 'pci_dfl_cache_line_size' [-Wunused-variable]
-    2485 | extern u8 pci_dfl_cache_line_size;
-         |           ^~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/pci.h:2476:12: warning: unused variable 'pci_pci_problems' [-Wunused-variable]
-    2476 | extern int pci_pci_problems;
-         |            ^~~~~~~~~~~~~~~~
->> arch/mips/include/asm/pci.h:104:22: warning: unused variable 'PCIBIOS_MIN_MEM' [-Wunused-variable]
-     104 | extern unsigned long PCIBIOS_MIN_MEM;
-         |                      ^~~~~~~~~~~~~~~
->> arch/mips/include/asm/pci.h:103:22: warning: unused variable 'PCIBIOS_MIN_IO' [-Wunused-variable]
-     103 | extern unsigned long PCIBIOS_MIN_IO;
-         |                      ^~~~~~~~~~~~~~
->> include/linux/of.h:144:28: warning: unused variable 'of_stdout' [-Wunused-variable]
-     144 | extern struct device_node *of_stdout;
-         |                            ^~~~~~~~~
->> include/linux/of.h:143:28: warning: unused variable 'of_aliases' [-Wunused-variable]
-     143 | extern struct device_node *of_aliases;
-         |                            ^~~~~~~~~~
->> include/linux/of.h:142:28: warning: unused variable 'of_chosen' [-Wunused-variable]
-     142 | extern struct device_node *of_chosen;
-         |                            ^~~~~~~~~
-   include/linux/pci.h:2016:12: warning: unused variable 'pci_domains_supported' [-Wunused-variable]
-    2016 | extern int pci_domains_supported;
-         |            ^~~~~~~~~~~~~~~~~~~~~
-   include/linux/pci.h:1874:13: warning: unused variable 'pcie_ports_native' [-Wunused-variable]
-    1874 | extern bool pcie_ports_native;
-         |             ^~~~~~~~~~~~~~~~~
-   include/linux/pci.h:1873:13: warning: unused variable 'pcie_ports_disabled' [-Wunused-variable]
-    1873 | extern bool pcie_ports_disabled;
-         |             ^~~~~~~~~~~~~~~~~~~
-   include/linux/pci.h:1436:21: warning: unused variable 'pcibios_max_latency' [-Wunused-variable]
-    1436 | extern unsigned int pcibios_max_latency;
-         |                     ^~~~~~~~~~~~~~~~~~~
-   include/linux/pci.h:1195:25: warning: unused variable 'pci_root_buses' [-Wunused-variable]
-    1195 | extern struct list_head pci_root_buses; /* List of all known PCI buses */
-         |                         ^~~~~~~~~~~~~~
-   include/linux/pci.h:1191:30: warning: unused variable 'pci_bus_type' [-Wunused-variable]
-    1191 | extern const struct bus_type pci_bus_type;
-         |                              ^~~~~~~~~~~~
-   include/linux/pci.h:1189:35: warning: unused variable 'pcie_bus_config' [-Wunused-variable]
-    1189 | extern enum pcie_bus_config_types pcie_bus_config;
-         |                                   ^~~~~~~~~~~~~~~
-   include/linux/debugfs.h:46:23: warning: unused variable 'arch_debugfs_dir' [-Wunused-variable]
-      46 | extern struct dentry *arch_debugfs_dir;
-         |                       ^~~~~~~~~~~~~~~~
-   include/net/sock.h:3054:26: warning: unused variable 'net_high_order_alloc_disable_key' [-Wunused-variable]
-    3054 | DECLARE_STATIC_KEY_FALSE(net_high_order_alloc_disable_key);
-         |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/net/sock.h:3051:14: warning: unused variable 'sysctl_rmem_default' [-Wunused-variable]
-    3051 | extern __u32 sysctl_rmem_default;
-         |              ^~~~~~~~~~~~~~~~~~~
-   include/net/sock.h:3050:14: warning: unused variable 'sysctl_wmem_default' [-Wunused-variable]
-    3050 | extern __u32 sysctl_wmem_default;
-         |              ^~~~~~~~~~~~~~~~~~~
-   include/net/sock.h:3048:14: warning: unused variable 'sysctl_rmem_max' [-Wunused-variable]
-    3048 | extern __u32 sysctl_rmem_max;
-         |              ^~~~~~~~~~~~~~~
-   include/net/sock.h:3047:14: warning: unused variable 'sysctl_wmem_max' [-Wunused-variable]
-    3047 | extern __u32 sysctl_wmem_max;
-         |              ^~~~~~~~~~~~~~~
-   include/net/neighbour.h:281:32: warning: unused variable 'nda_policy' [-Wunused-variable]
-     281 | extern const struct nla_policy nda_policy[];
-         |                                ^~~~~~~~~~
-   In file included from include/net/netfilter/nf_nat.h:7:
-   include/linux/netfilter/nf_conntrack_pptp.h:320:45: warning: unused variable 'nf_nat_pptp_hook' [-Wunused-variable]
-     320 | extern const struct nf_nat_pptp_hook __rcu *nf_nat_pptp_hook;
-         |                                             ^~~~~~~~~~~~~~~~
-   include/net/act_api.h:273:26: warning: unused variable 'tcf_frag_xmit_count' [-Wunused-variable]
-     273 | DECLARE_STATIC_KEY_FALSE(tcf_frag_xmit_count);
-         |                          ^~~~~~~~~~~~~~~~~~~
-   include/linux/jump_label.h:392:40: note: in definition of macro 'DECLARE_STATIC_KEY_FALSE'
-     392 |         extern struct static_key_false name
-         |                                        ^~~~
-   include/net/pkt_sched.h:126:32: warning: unused variable 'rtm_tca_policy' [-Wunused-variable]
-     126 | extern const struct nla_policy rtm_tca_policy[TCA_MAX + 1];
-         |                                ^~~~~~~~~~~~~~
-   include/net/pkt_sched.h:88:25: warning: unused variable 'pfifo_head_drop_qdisc_ops' [-Wunused-variable]
-      88 | extern struct Qdisc_ops pfifo_head_drop_qdisc_ops;
-         |                         ^~~~~~~~~~~~~~~~~~~~~~~~~
-   include/net/pkt_sched.h:87:25: warning: unused variable 'bfifo_qdisc_ops' [-Wunused-variable]
-      87 | extern struct Qdisc_ops bfifo_qdisc_ops;
-         |                         ^~~~~~~~~~~~~~~
-   include/net/pkt_sched.h:86:25: warning: unused variable 'pfifo_qdisc_ops' [-Wunused-variable]
-      86 | extern struct Qdisc_ops pfifo_qdisc_ops;
-         |                         ^~~~~~~~~~~~~~~
-   include/linux/etherdevice.h:41:32: warning: unused variable 'eth_header_ops' [-Wunused-variable]
-      41 | extern const struct header_ops eth_header_ops;
-         |                                ^~~~~~~~~~~~~~
-   include/net/sch_generic.h:617:25: warning: unused variable 'mq_qdisc_ops' [-Wunused-variable]
-     617 | extern struct Qdisc_ops mq_qdisc_ops;
-         |                         ^~~~~~~~~~~~
-   include/net/sch_generic.h:616:17: warning: unused variable 'sch_default_prio2band' [-Wunused-variable]
-     616 | extern const u8 sch_default_prio2band[TC_PRIO_MAX + 1];
-         |                 ^~~~~~~~~~~~~~~~~~~~~
-   include/net/sch_generic.h:614:25: warning: unused variable 'noop_qdisc_ops' [-Wunused-variable]
-     614 | extern struct Qdisc_ops noop_qdisc_ops;
-         |                         ^~~~~~~~~~~~~~
-   include/linux/rtnetlink.h:53:28: warning: unused variable 'net_rwsem' [-Wunused-variable]
-      53 | extern struct rw_semaphore net_rwsem;
-         |                            ^~~~~~~~~
-   include/linux/rtnetlink.h:52:28: warning: unused variable 'pernet_ops_rwsem' [-Wunused-variable]
-      52 | extern struct rw_semaphore pernet_ops_rwsem;
+   include/net/ip6_fib.h:659:20: error: invalid storage class for function 'fib6_has_custom_rules'
+     659 | static inline bool fib6_has_custom_rules(const struct net *net)
+         |                    ^~~~~~~~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:663:33: error: invalid storage class for function 'fib6_rules_init'
+     663 | static inline int               fib6_rules_init(void)
+         |                                 ^~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:667:33: error: invalid storage class for function 'fib6_rules_cleanup'
+     667 | static inline void              fib6_rules_cleanup(void)
+         |                                 ^~~~~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:671:20: error: invalid storage class for function 'fib6_rule_default'
+     671 | static inline bool fib6_rule_default(const struct fib_rule *rule)
+         |                    ^~~~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:675:19: error: invalid storage class for function 'fib6_rules_dump'
+     675 | static inline int fib6_rules_dump(struct net *net, struct notifier_block *nb,
+         |                   ^~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:680:28: error: invalid storage class for function 'fib6_rules_seq_read'
+     680 | static inline unsigned int fib6_rules_seq_read(const struct net *net)
+         |                            ^~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:684:20: error: invalid storage class for function 'fib6_rules_early_flow_dissect'
+     684 | static inline bool fib6_rules_early_flow_dissect(struct net *net,
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/dst_cache.h:77:20: error: invalid storage class for function 'dst_cache_reset'
+      77 | static inline void dst_cache_reset(struct dst_cache *dst_cache)
+         |                    ^~~~~~~~~~~~~~~
+   In file included from include/net/ip_tunnels.h:22:
+   include/net/netdev_lock.h:10:20: error: invalid storage class for function 'netdev_trylock'
+      10 | static inline bool netdev_trylock(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~
+   include/net/netdev_lock.h:15:20: error: invalid storage class for function 'netdev_assert_locked'
+      15 | static inline void netdev_assert_locked(const struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:21:1: error: invalid storage class for function 'netdev_assert_locked_or_invisible'
+      21 | netdev_assert_locked_or_invisible(const struct net_device *dev)
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:28:20: error: invalid storage class for function 'netdev_need_ops_lock'
+      28 | static inline bool netdev_need_ops_lock(const struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:39:20: error: invalid storage class for function 'netdev_lock_ops'
+      39 | static inline void netdev_lock_ops(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:45:20: error: invalid storage class for function 'netdev_unlock_ops'
+      45 | static inline void netdev_unlock_ops(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:51:20: error: invalid storage class for function 'netdev_lock_ops_to_full'
+      51 | static inline void netdev_lock_ops_to_full(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:59:20: error: invalid storage class for function 'netdev_unlock_full_to_ops'
+      59 | static inline void netdev_unlock_full_to_ops(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:67:20: error: invalid storage class for function 'netdev_ops_assert_locked'
+      67 | static inline void netdev_ops_assert_locked(const struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:76:1: error: invalid storage class for function 'netdev_ops_assert_locked_or_invisible'
+      76 | netdev_ops_assert_locked_or_invisible(const struct net_device *dev)
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:83:20: error: invalid storage class for function 'netdev_lock_ops_compat'
+      83 | static inline void netdev_lock_ops_compat(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:91:20: error: invalid storage class for function 'netdev_unlock_ops_compat'
+      91 | static inline void netdev_unlock_ops_compat(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:99:19: error: invalid storage class for function 'netdev_lock_cmp_fn'
+      99 | static inline int netdev_lock_cmp_fn(const struct lockdep_map *a,
+         |                   ^~~~~~~~~~~~~~~~~~
+   In file included from include/net/ip6_route.h:13,
+                    from include/net/ip_tunnels.h:27:
+   include/net/nexthop.h:264:20: error: invalid storage class for function 'nexthop_get'
+     264 | static inline bool nexthop_get(struct nexthop *nh)
+         |                    ^~~~~~~~~~~
+   include/net/nexthop.h:269:20: error: invalid storage class for function 'nexthop_put'
+     269 | static inline void nexthop_put(struct nexthop *nh)
+         |                    ^~~~~~~~~~~
+   include/net/nexthop.h:275:20: error: invalid storage class for function 'nexthop_cmp'
+     275 | static inline bool nexthop_cmp(const struct nexthop *nh1,
+         |                    ^~~~~~~~~~~
+   include/net/nexthop.h:281:20: error: invalid storage class for function 'nexthop_is_fdb'
+     281 | static inline bool nexthop_is_fdb(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~
+   include/net/nexthop.h:296:20: error: invalid storage class for function 'nexthop_has_v4'
+     296 | static inline bool nexthop_has_v4(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~
+   include/net/nexthop.h:307:20: error: invalid storage class for function 'nexthop_is_multipath'
+     307 | static inline bool nexthop_is_multipath(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:320:28: error: invalid storage class for function 'nexthop_num_path'
+     320 | static inline unsigned int nexthop_num_path(const struct nexthop *nh)
          |                            ^~~~~~~~~~~~~~~~
-   include/linux/rtnetlink.h:51:17: warning: unused variable 'dev_unreg_count' [-Wunused-variable]
-      51 | extern atomic_t dev_unreg_count;
-         |                 ^~~~~~~~~~~~~~~
-   include/linux/rtnetlink.h:50:26: warning: unused variable 'netdev_unregistering_wq' [-Wunused-variable]
-      50 | extern wait_queue_head_t netdev_unregistering_wq;
-         |                          ^~~~~~~~~~~~~~~~~~~~~~~
-   include/net/netfilter/nf_conntrack_helper.h:164:21: warning: unused variable 'nf_ct_helper_hsize' [-Wunused-variable]
-     164 | extern unsigned int nf_ct_helper_hsize;
-         |                     ^~~~~~~~~~~~~~~~~~
-   include/net/netfilter/nf_conntrack_helper.h:163:27: warning: unused variable 'nf_ct_helper_hash' [-Wunused-variable]
-     163 | extern struct hlist_head *nf_ct_helper_hash;
-         |                           ^~~~~~~~~~~~~~~~~
-   drivers/net/ethernet/mellanox/mlx5/core/en/tc_ct.c: At top level:
+   include/net/nexthop.h:336:17: error: invalid storage class for function 'nexthop_mpath_select'
+     336 | struct nexthop *nexthop_mpath_select(const struct nh_group *nhg, int nhsel)
+         |                 ^~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:348:5: error: invalid storage class for function 'nexthop_mpath_fill_node'
+     348 | int nexthop_mpath_fill_node(struct sk_buff *skb, struct nexthop *nh,
+         |     ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:368:20: error: invalid storage class for function 'nexthop_is_blackhole'
+     368 | static inline bool nexthop_is_blackhole(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:386:20: error: invalid storage class for function 'nexthop_path_fib_result'
+     386 | static inline void nexthop_path_fib_result(struct fib_result *res, int hash)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h: In function 'nexthop_path_fib_result':
+   include/net/nexthop.h:391:41: error: passing argument 1 of 'nexthop_select_path' from incompatible pointer type [-Wincompatible-pointer-types]
+     391 |         nh = nexthop_select_path(res->fi->nh, hash);
+         |                                  ~~~~~~~^~~~
+         |                                         |
+         |                                         struct nexthop *
+   include/net/nexthop.h:318:53: note: expected 'struct nexthop *' but argument is of type 'struct nexthop *'
+     318 | struct nexthop *nexthop_select_path(struct nexthop *nh, int hash);
+         |                                     ~~~~~~~~~~~~~~~~^~
+   include/net/nexthop.h: In function 'lockdep_nfct_expect_lock_not_held':
+   include/net/nexthop.h:398:23: error: invalid storage class for function 'nexthop_fib_nhc'
+     398 | struct fib_nh_common *nexthop_fib_nhc(struct nexthop *nh, int nhsel)
+         |                       ^~~~~~~~~~~~~~~
+   include/net/nexthop.h:422:23: error: invalid storage class for function 'nexthop_get_nhc_lookup'
+     422 | struct fib_nh_common *nexthop_get_nhc_lookup(const struct nexthop *nh,
+         |                       ^~~~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:453:20: error: invalid storage class for function 'nexthop_uses_dev'
+--
+   include/net/inet_ecn.h:222:19: error: invalid storage class for function 'INET_ECN_set_ect1'
+     222 | static inline int INET_ECN_set_ect1(struct sk_buff *skb)
+         |                   ^~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h: In function 'INET_ECN_set_ect1':
+   include/net/inet_ecn.h:232:54: error: invalid application of 'sizeof' to incomplete type 'struct ipv6hdr'
+     232 |                 if (skb_network_header(skb) + sizeof(struct ipv6hdr) <=
+         |                                                      ^~~~~~
+   include/net/inet_ecn.h:234:54: error: passing argument 2 of 'IP6_ECN_set_ect1' from incompatible pointer type [-Wincompatible-pointer-types]
+     234 |                         return IP6_ECN_set_ect1(skb, ipv6_hdr(skb));
+         |                                                      ^~~~~~~~~~~~~
+         |                                                      |
+         |                                                      struct ipv6hdr *
+   include/net/inet_ecn.h:164:73: note: expected 'struct ipv6hdr *' but argument is of type 'struct ipv6hdr *'
+     164 | static inline int IP6_ECN_set_ect1(struct sk_buff *skb, struct ipv6hdr *iph)
+         |                                                         ~~~~~~~~~~~~~~~~^~~
+   include/net/inet_ecn.h: In function 'lockdep_nfct_expect_lock_not_held':
+   include/net/inet_ecn.h:265:19: error: invalid storage class for function '__INET_ECN_decapsulate'
+     265 | static inline int __INET_ECN_decapsulate(__u8 outer, __u8 inner, bool *set_ce)
+         |                   ^~~~~~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h:283:19: error: invalid storage class for function 'INET_ECN_decapsulate'
+     283 | static inline int INET_ECN_decapsulate(struct sk_buff *skb,
+         |                   ^~~~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h:300:19: error: invalid storage class for function 'IP_ECN_decapsulate'
+     300 | static inline int IP_ECN_decapsulate(const struct iphdr *oiph,
+         |                   ^~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h:319:19: error: invalid storage class for function 'IP6_ECN_decapsulate'
+     319 | static inline int IP6_ECN_decapsulate(const struct ipv6hdr *oipv6h,
+         |                   ^~~~~~~~~~~~~~~~~~~
+   include/net/inet_ecn.h: In function 'IP6_ECN_decapsulate':
+   include/net/inet_ecn.h:335:59: error: passing argument 1 of 'ipv6_get_dsfield' from incompatible pointer type [-Wincompatible-pointer-types]
+     335 |         return INET_ECN_decapsulate(skb, ipv6_get_dsfield(oipv6h), inner);
+         |                                                           ^~~~~~
+         |                                                           |
+         |                                                           const struct ipv6hdr *
+   include/net/dsfield.h:22:59: note: expected 'const struct ipv6hdr *' but argument is of type 'const struct ipv6hdr *'
+      22 | static inline __u8 ipv6_get_dsfield(const struct ipv6hdr *ipv6h)
+         |                                     ~~~~~~~~~~~~~~~~~~~~~~^~~~~
+   In file included from include/net/dst_cache.h:8,
+                    from include/net/ip_tunnels.h:21:
+   include/net/ip6_fib.h: In function 'lockdep_nfct_expect_lock_not_held':
+   include/net/ip6_fib.h:91:20: error: invalid storage class for function 'fib6_routes_require_src'
+      91 | static inline bool fib6_routes_require_src(const struct net *net)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:96:20: error: invalid storage class for function 'fib6_routes_require_src_inc'
+      96 | static inline void fib6_routes_require_src_inc(struct net *net) {}
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:97:20: error: invalid storage class for function 'fib6_routes_require_src_dec'
+      97 | static inline void fib6_routes_require_src_dec(struct net *net) {}
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:240:33: error: invalid storage class for function 'ip6_dst_idev'
+     240 | static inline struct inet6_dev *ip6_dst_idev(const struct dst_entry *dst)
+         |                                 ^~~~~~~~~~~~
+   include/net/ip6_fib.h:245:20: error: invalid storage class for function 'fib6_requires_src'
+     245 | static inline bool fib6_requires_src(const struct fib6_info *rt)
+         |                    ^~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:253:20: error: invalid storage class for function 'fib6_clean_expires'
+     253 | static inline void fib6_clean_expires(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:262:20: error: invalid storage class for function 'fib6_set_expires'
+     262 | static inline void fib6_set_expires(struct fib6_info *f6i,
+         |                    ^~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:269:20: error: invalid storage class for function 'fib6_check_expired'
+     269 | static inline bool fib6_check_expired(const struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:281:20: error: invalid storage class for function 'fib6_get_cookie_safe'
+     281 | static inline bool fib6_get_cookie_safe(const struct fib6_info *f6i,
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:299:19: error: invalid storage class for function 'rt6_get_cookie'
+     299 | static inline u32 rt6_get_cookie(const struct rt6_info *rt)
+         |                   ^~~~~~~~~~~~~~
+   include/net/ip6_fib.h:318:20: error: invalid storage class for function 'ip6_rt_put'
+     318 | static inline void ip6_rt_put(struct rt6_info *rt)
+         |                    ^~~~~~~~~~
+   include/net/ip6_fib.h:330:20: error: invalid storage class for function 'fib6_info_hold'
+     330 | static inline void fib6_info_hold(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~
+   include/net/ip6_fib.h:335:20: error: invalid storage class for function 'fib6_info_hold_safe'
+     335 | static inline bool fib6_info_hold_safe(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:340:20: error: invalid storage class for function 'fib6_info_release'
+     340 | static inline void fib6_info_release(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:474:6: error: invalid storage class for function 'rt6_get_prefsrc'
+     474 | void rt6_get_prefsrc(const struct rt6_info *rt, struct in6_addr *addr)
+         |      ^~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:520:20: error: invalid storage class for function 'fib6_add_gc_list'
+     520 | static inline void fib6_add_gc_list(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:542:20: error: invalid storage class for function 'fib6_remove_gc_list'
+     542 | static inline void fib6_remove_gc_list(struct fib6_info *f6i)
+         |                    ^~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:576:20: error: invalid storage class for function 'fib6_metric_locked'
+     576 | static inline bool fib6_metric_locked(struct fib6_info *f6i, int metric)
+         |                    ^~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:610:32: error: invalid storage class for function 'pol_lookup_func'
+     610 | static inline struct rt6_info *pol_lookup_func(pol_lookup_t lookup,
+         |                                ^~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:659:20: error: invalid storage class for function 'fib6_has_custom_rules'
+     659 | static inline bool fib6_has_custom_rules(const struct net *net)
+         |                    ^~~~~~~~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:663:33: error: invalid storage class for function 'fib6_rules_init'
+     663 | static inline int               fib6_rules_init(void)
+         |                                 ^~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:667:33: error: invalid storage class for function 'fib6_rules_cleanup'
+     667 | static inline void              fib6_rules_cleanup(void)
+         |                                 ^~~~~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:671:20: error: invalid storage class for function 'fib6_rule_default'
+     671 | static inline bool fib6_rule_default(const struct fib_rule *rule)
+         |                    ^~~~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:675:19: error: invalid storage class for function 'fib6_rules_dump'
+     675 | static inline int fib6_rules_dump(struct net *net, struct notifier_block *nb,
+         |                   ^~~~~~~~~~~~~~~
+>> include/net/ip6_fib.h:680:28: error: invalid storage class for function 'fib6_rules_seq_read'
+     680 | static inline unsigned int fib6_rules_seq_read(const struct net *net)
+         |                            ^~~~~~~~~~~~~~~~~~~
+   include/net/ip6_fib.h:684:20: error: invalid storage class for function 'fib6_rules_early_flow_dissect'
+     684 | static inline bool fib6_rules_early_flow_dissect(struct net *net,
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/dst_cache.h:77:20: error: invalid storage class for function 'dst_cache_reset'
+      77 | static inline void dst_cache_reset(struct dst_cache *dst_cache)
+         |                    ^~~~~~~~~~~~~~~
+   In file included from include/net/ip_tunnels.h:22:
+   include/net/netdev_lock.h:10:20: error: invalid storage class for function 'netdev_trylock'
+      10 | static inline bool netdev_trylock(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~
+   include/net/netdev_lock.h:15:20: error: invalid storage class for function 'netdev_assert_locked'
+      15 | static inline void netdev_assert_locked(const struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:21:1: error: invalid storage class for function 'netdev_assert_locked_or_invisible'
+      21 | netdev_assert_locked_or_invisible(const struct net_device *dev)
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:28:20: error: invalid storage class for function 'netdev_need_ops_lock'
+      28 | static inline bool netdev_need_ops_lock(const struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:39:20: error: invalid storage class for function 'netdev_lock_ops'
+      39 | static inline void netdev_lock_ops(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:45:20: error: invalid storage class for function 'netdev_unlock_ops'
+      45 | static inline void netdev_unlock_ops(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:51:20: error: invalid storage class for function 'netdev_lock_ops_to_full'
+      51 | static inline void netdev_lock_ops_to_full(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:59:20: error: invalid storage class for function 'netdev_unlock_full_to_ops'
+      59 | static inline void netdev_unlock_full_to_ops(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:67:20: error: invalid storage class for function 'netdev_ops_assert_locked'
+      67 | static inline void netdev_ops_assert_locked(const struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:76:1: error: invalid storage class for function 'netdev_ops_assert_locked_or_invisible'
+      76 | netdev_ops_assert_locked_or_invisible(const struct net_device *dev)
+         | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:83:20: error: invalid storage class for function 'netdev_lock_ops_compat'
+      83 | static inline void netdev_lock_ops_compat(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:91:20: error: invalid storage class for function 'netdev_unlock_ops_compat'
+      91 | static inline void netdev_unlock_ops_compat(struct net_device *dev)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~~
+   include/net/netdev_lock.h:99:19: error: invalid storage class for function 'netdev_lock_cmp_fn'
+      99 | static inline int netdev_lock_cmp_fn(const struct lockdep_map *a,
+         |                   ^~~~~~~~~~~~~~~~~~
+   In file included from include/net/ip6_route.h:13,
+                    from include/net/ip_tunnels.h:27:
+   include/net/nexthop.h:264:20: error: invalid storage class for function 'nexthop_get'
+     264 | static inline bool nexthop_get(struct nexthop *nh)
+         |                    ^~~~~~~~~~~
+   include/net/nexthop.h:269:20: error: invalid storage class for function 'nexthop_put'
+     269 | static inline void nexthop_put(struct nexthop *nh)
+         |                    ^~~~~~~~~~~
+   include/net/nexthop.h:275:20: error: invalid storage class for function 'nexthop_cmp'
+     275 | static inline bool nexthop_cmp(const struct nexthop *nh1,
+         |                    ^~~~~~~~~~~
+   include/net/nexthop.h:281:20: error: invalid storage class for function 'nexthop_is_fdb'
+     281 | static inline bool nexthop_is_fdb(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~
+   include/net/nexthop.h:296:20: error: invalid storage class for function 'nexthop_has_v4'
+     296 | static inline bool nexthop_has_v4(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~
+   include/net/nexthop.h:307:20: error: invalid storage class for function 'nexthop_is_multipath'
+     307 | static inline bool nexthop_is_multipath(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:320:28: error: invalid storage class for function 'nexthop_num_path'
+     320 | static inline unsigned int nexthop_num_path(const struct nexthop *nh)
+         |                            ^~~~~~~~~~~~~~~~
+   include/net/nexthop.h:336:17: error: invalid storage class for function 'nexthop_mpath_select'
+     336 | struct nexthop *nexthop_mpath_select(const struct nh_group *nhg, int nhsel)
+         |                 ^~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:348:5: error: invalid storage class for function 'nexthop_mpath_fill_node'
+     348 | int nexthop_mpath_fill_node(struct sk_buff *skb, struct nexthop *nh,
+         |     ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:368:20: error: invalid storage class for function 'nexthop_is_blackhole'
+     368 | static inline bool nexthop_is_blackhole(const struct nexthop *nh)
+         |                    ^~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:386:20: error: invalid storage class for function 'nexthop_path_fib_result'
+     386 | static inline void nexthop_path_fib_result(struct fib_result *res, int hash)
+         |                    ^~~~~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h: In function 'nexthop_path_fib_result':
+   include/net/nexthop.h:391:41: error: passing argument 1 of 'nexthop_select_path' from incompatible pointer type [-Wincompatible-pointer-types]
+     391 |         nh = nexthop_select_path(res->fi->nh, hash);
+         |                                  ~~~~~~~^~~~
+         |                                         |
+         |                                         struct nexthop *
+   include/net/nexthop.h:318:53: note: expected 'struct nexthop *' but argument is of type 'struct nexthop *'
+     318 | struct nexthop *nexthop_select_path(struct nexthop *nh, int hash);
+         |                                     ~~~~~~~~~~~~~~~~^~
+   include/net/nexthop.h: In function 'lockdep_nfct_expect_lock_not_held':
+   include/net/nexthop.h:398:23: error: invalid storage class for function 'nexthop_fib_nhc'
+     398 | struct fib_nh_common *nexthop_fib_nhc(struct nexthop *nh, int nhsel)
+         |                       ^~~~~~~~~~~~~~~
+   include/net/nexthop.h:422:23: error: invalid storage class for function 'nexthop_get_nhc_lookup'
+     422 | struct fib_nh_common *nexthop_get_nhc_lookup(const struct nexthop *nh,
+         |                       ^~~~~~~~~~~~~~~~~~~~~~
+   include/net/nexthop.h:453:20: error: invalid storage class for function 'nexthop_uses_dev'
 
 
-vim +/_crash_smp_send_stop +47 arch/mips/include/asm/kexec.h
+vim +/fib6_rules_init +663 include/net/ip6_fib.h
 
-583bb86fbb9e852 include/asm-mips/kexec.h      Nicolas Schichan 2006-10-18  33  
-8cd2accb71f5eb8 arch/mips/include/asm/kexec.h Baoquan He       2023-12-08  34  #ifdef CONFIG_KEXEC_CORE
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11  35  struct kimage;
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @36  extern unsigned long kexec_args[4];
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @37  extern int (*_machine_kexec_prepare)(struct kimage *);
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @38  extern void (*_machine_kexec_shutdown)(void);
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @39  extern void (*_machine_crash_shutdown)(struct pt_regs *regs);
-62cac480f33f8f9 arch/mips/include/asm/kexec.h Dengcheng Zhu    2018-09-11  40  void default_machine_crash_shutdown(struct pt_regs *regs);
-62cac480f33f8f9 arch/mips/include/asm/kexec.h Dengcheng Zhu    2018-09-11  41  void kexec_nonboot_cpu_jump(void);
-62cac480f33f8f9 arch/mips/include/asm/kexec.h Dengcheng Zhu    2018-09-11  42  void kexec_reboot(void);
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11  43  #ifdef CONFIG_SMP
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @44  extern const unsigned char kexec_smp_wait[];
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @45  extern unsigned long secondary_kexec_args[4];
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11 @46  extern atomic_t kexec_ready_to_reboot;
-54c721b857fd45f arch/mips/include/asm/kexec.h Hidehiro Kawai   2016-10-11 @47  extern void (*_crash_smp_send_stop)(void);
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11  48  #endif
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11  49  #endif
-7aa1c8f47e7e792 arch/mips/include/asm/kexec.h Ralf Baechle     2012-10-11  50  
+180ca444b985c4 Wei Wang         2017-10-06  574  
+8d1c802b2815ed David Ahern      2018-04-17  575  void fib6_metric_set(struct fib6_info *f6i, int metric, u32 val);
+8d1c802b2815ed David Ahern      2018-04-17 @576  static inline bool fib6_metric_locked(struct fib6_info *f6i, int metric)
+d4ead6b34b67fd David Ahern      2018-04-17  577  {
+d4ead6b34b67fd David Ahern      2018-04-17  578  	return !!(f6i->fib6_metrics->metrics[RTAX_LOCK - 1] & (1 << metric));
+d4ead6b34b67fd David Ahern      2018-04-17  579  }
+907eea486888cf Amit Cohen       2021-02-01  580  void fib6_info_hw_flags_set(struct net *net, struct fib6_info *f6i,
+0c5fcf9e249ee1 Amit Cohen       2021-02-07  581  			    bool offload, bool trap, bool offload_failed);
+180ca444b985c4 Wei Wang         2017-10-06  582  
+3c32cc1bceba8a Yonghong Song    2020-05-13  583  #if IS_BUILTIN(CONFIG_IPV6) && defined(CONFIG_BPF_SYSCALL)
+3c32cc1bceba8a Yonghong Song    2020-05-13  584  struct bpf_iter__ipv6_route {
+3c32cc1bceba8a Yonghong Song    2020-05-13  585  	__bpf_md_ptr(struct bpf_iter_meta *, meta);
+3c32cc1bceba8a Yonghong Song    2020-05-13  586  	__bpf_md_ptr(struct fib6_info *, rt);
+3c32cc1bceba8a Yonghong Song    2020-05-13  587  };
+3c32cc1bceba8a Yonghong Song    2020-05-13  588  #endif
+3c32cc1bceba8a Yonghong Song    2020-05-13  589  
+55cced4f813bec Brian Vazquez    2020-06-23  590  INDIRECT_CALLABLE_DECLARE(struct rt6_info *ip6_pol_route_output(struct net *net,
+55cced4f813bec Brian Vazquez    2020-06-23  591  					     struct fib6_table *table,
+55cced4f813bec Brian Vazquez    2020-06-23  592  					     struct flowi6 *fl6,
+55cced4f813bec Brian Vazquez    2020-06-23  593  					     const struct sk_buff *skb,
+55cced4f813bec Brian Vazquez    2020-06-23  594  					     int flags));
+55cced4f813bec Brian Vazquez    2020-06-23  595  INDIRECT_CALLABLE_DECLARE(struct rt6_info *ip6_pol_route_input(struct net *net,
+55cced4f813bec Brian Vazquez    2020-06-23  596  					     struct fib6_table *table,
+55cced4f813bec Brian Vazquez    2020-06-23  597  					     struct flowi6 *fl6,
+55cced4f813bec Brian Vazquez    2020-06-23  598  					     const struct sk_buff *skb,
+55cced4f813bec Brian Vazquez    2020-06-23  599  					     int flags));
+55cced4f813bec Brian Vazquez    2020-06-23  600  INDIRECT_CALLABLE_DECLARE(struct rt6_info *__ip6_route_redirect(struct net *net,
+55cced4f813bec Brian Vazquez    2020-06-23  601  					     struct fib6_table *table,
+55cced4f813bec Brian Vazquez    2020-06-23  602  					     struct flowi6 *fl6,
+55cced4f813bec Brian Vazquez    2020-06-23  603  					     const struct sk_buff *skb,
+55cced4f813bec Brian Vazquez    2020-06-23  604  					     int flags));
+55cced4f813bec Brian Vazquez    2020-06-23  605  INDIRECT_CALLABLE_DECLARE(struct rt6_info *ip6_pol_route_lookup(struct net *net,
+55cced4f813bec Brian Vazquez    2020-06-23  606  					     struct fib6_table *table,
+55cced4f813bec Brian Vazquez    2020-06-23  607  					     struct flowi6 *fl6,
+55cced4f813bec Brian Vazquez    2020-06-23  608  					     const struct sk_buff *skb,
+55cced4f813bec Brian Vazquez    2020-06-23  609  					     int flags));
+55cced4f813bec Brian Vazquez    2020-06-23 @610  static inline struct rt6_info *pol_lookup_func(pol_lookup_t lookup,
+55cced4f813bec Brian Vazquez    2020-06-23  611  						struct net *net,
+55cced4f813bec Brian Vazquez    2020-06-23  612  						struct fib6_table *table,
+55cced4f813bec Brian Vazquez    2020-06-23  613  						struct flowi6 *fl6,
+55cced4f813bec Brian Vazquez    2020-06-23  614  						const struct sk_buff *skb,
+55cced4f813bec Brian Vazquez    2020-06-23  615  						int flags)
+55cced4f813bec Brian Vazquez    2020-06-23  616  {
+55cced4f813bec Brian Vazquez    2020-06-23  617  	return INDIRECT_CALL_4(lookup,
+55cced4f813bec Brian Vazquez    2020-06-23  618  			       ip6_pol_route_output,
+55cced4f813bec Brian Vazquez    2020-06-23  619  			       ip6_pol_route_input,
+55cced4f813bec Brian Vazquez    2020-06-23  620  			       ip6_pol_route_lookup,
+55cced4f813bec Brian Vazquez    2020-06-23  621  			       __ip6_route_redirect,
+55cced4f813bec Brian Vazquez    2020-06-23  622  			       net, table, fl6, skb, flags);
+55cced4f813bec Brian Vazquez    2020-06-23  623  }
+55cced4f813bec Brian Vazquez    2020-06-23  624  
+7e5449c21562f1 Daniel Lezcano   2007-12-08  625  #ifdef CONFIG_IPV6_MULTIPLE_TABLES
+1f8ac5703037fd Paolo Abeni      2019-11-20  626  static inline bool fib6_has_custom_rules(const struct net *net)
+1f8ac5703037fd Paolo Abeni      2019-11-20  627  {
+1f8ac5703037fd Paolo Abeni      2019-11-20  628  	return net->ipv6.fib6_has_custom_rules;
+1f8ac5703037fd Paolo Abeni      2019-11-20  629  }
+1f8ac5703037fd Paolo Abeni      2019-11-20  630  
+5c3a0fd7d0fc29 Joe Perches      2013-09-21  631  int fib6_rules_init(void);
+5c3a0fd7d0fc29 Joe Perches      2013-09-21  632  void fib6_rules_cleanup(void);
+e3ea973159d535 Ido Schimmel     2017-08-03  633  bool fib6_rule_default(const struct fib_rule *rule);
+b7a595577ef3dc Jiri Pirko       2019-10-03  634  int fib6_rules_dump(struct net *net, struct notifier_block *nb,
+b7a595577ef3dc Jiri Pirko       2019-10-03  635  		    struct netlink_ext_ack *extack);
+e60ea45447768c Eric Dumazet     2024-10-09  636  unsigned int fib6_rules_seq_read(const struct net *net);
+5e5d6fed374155 Roopa Prabhu     2018-02-28  637  
+5e5d6fed374155 Roopa Prabhu     2018-02-28  638  static inline bool fib6_rules_early_flow_dissect(struct net *net,
+5e5d6fed374155 Roopa Prabhu     2018-02-28  639  						 struct sk_buff *skb,
+5e5d6fed374155 Roopa Prabhu     2018-02-28  640  						 struct flowi6 *fl6,
+5e5d6fed374155 Roopa Prabhu     2018-02-28  641  						 struct flow_keys *flkeys)
+5e5d6fed374155 Roopa Prabhu     2018-02-28  642  {
+5e5d6fed374155 Roopa Prabhu     2018-02-28  643  	unsigned int flag = FLOW_DISSECTOR_F_STOP_AT_ENCAP;
+5e5d6fed374155 Roopa Prabhu     2018-02-28  644  
+5e5d6fed374155 Roopa Prabhu     2018-02-28  645  	if (!net->ipv6.fib6_rules_require_fldissect)
+5e5d6fed374155 Roopa Prabhu     2018-02-28  646  		return false;
+5e5d6fed374155 Roopa Prabhu     2018-02-28  647  
+8aae7625ff3f0b Florian Westphal 2023-08-30  648  	memset(flkeys, 0, sizeof(*flkeys));
+8aae7625ff3f0b Florian Westphal 2023-08-30  649  	__skb_flow_dissect(net, skb, &flow_keys_dissector,
+8aae7625ff3f0b Florian Westphal 2023-08-30  650  			   flkeys, NULL, 0, 0, 0, flag);
+8aae7625ff3f0b Florian Westphal 2023-08-30  651  
+5e5d6fed374155 Roopa Prabhu     2018-02-28  652  	fl6->fl6_sport = flkeys->ports.src;
+5e5d6fed374155 Roopa Prabhu     2018-02-28  653  	fl6->fl6_dport = flkeys->ports.dst;
+5e5d6fed374155 Roopa Prabhu     2018-02-28  654  	fl6->flowi6_proto = flkeys->basic.ip_proto;
+5e5d6fed374155 Roopa Prabhu     2018-02-28  655  
+5e5d6fed374155 Roopa Prabhu     2018-02-28  656  	return true;
+5e5d6fed374155 Roopa Prabhu     2018-02-28  657  }
+7e5449c21562f1 Daniel Lezcano   2007-12-08  658  #else
+1f8ac5703037fd Paolo Abeni      2019-11-20 @659  static inline bool fib6_has_custom_rules(const struct net *net)
+1f8ac5703037fd Paolo Abeni      2019-11-20  660  {
+1f8ac5703037fd Paolo Abeni      2019-11-20  661  	return false;
+1f8ac5703037fd Paolo Abeni      2019-11-20  662  }
+7e5449c21562f1 Daniel Lezcano   2007-12-08 @663  static inline int               fib6_rules_init(void)
+7e5449c21562f1 Daniel Lezcano   2007-12-08  664  {
+7e5449c21562f1 Daniel Lezcano   2007-12-08  665  	return 0;
+7e5449c21562f1 Daniel Lezcano   2007-12-08  666  }
+7e5449c21562f1 Daniel Lezcano   2007-12-08 @667  static inline void              fib6_rules_cleanup(void)
+7e5449c21562f1 Daniel Lezcano   2007-12-08  668  {
+7e5449c21562f1 Daniel Lezcano   2007-12-08  669  	return ;
+7e5449c21562f1 Daniel Lezcano   2007-12-08  670  }
+e3ea973159d535 Ido Schimmel     2017-08-03 @671  static inline bool fib6_rule_default(const struct fib_rule *rule)
+e3ea973159d535 Ido Schimmel     2017-08-03  672  {
+e3ea973159d535 Ido Schimmel     2017-08-03  673  	return true;
+e3ea973159d535 Ido Schimmel     2017-08-03  674  }
+b7a595577ef3dc Jiri Pirko       2019-10-03 @675  static inline int fib6_rules_dump(struct net *net, struct notifier_block *nb,
+b7a595577ef3dc Jiri Pirko       2019-10-03  676  				  struct netlink_ext_ack *extack)
+dcb18f762f6ac8 Ido Schimmel     2017-08-03  677  {
+dcb18f762f6ac8 Ido Schimmel     2017-08-03  678  	return 0;
+dcb18f762f6ac8 Ido Schimmel     2017-08-03  679  }
+e60ea45447768c Eric Dumazet     2024-10-09 @680  static inline unsigned int fib6_rules_seq_read(const struct net *net)
 
-:::::: The code at line 47 was first introduced by commit
-:::::: 54c721b857fd45f3ad3bda695ee4f472518db02a mips/panic: replace smp_send_stop() with kdump friendly version in panic path
+:::::: The code at line 663 was first introduced by commit
+:::::: 7e5449c21562f1554d2c355db1ec9d3e4f434288 [IPV6]: route6 remove ifdef for fib_rules
 
-:::::: TO: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-:::::: CC: Linus Torvalds <torvalds@linux-foundation.org>
+:::::: TO: Daniel Lezcano <dlezcano@fr.ibm.com>
+:::::: CC: David S. Miller <davem@davemloft.net>
 
 -- 
 0-DAY CI Kernel Test Service
