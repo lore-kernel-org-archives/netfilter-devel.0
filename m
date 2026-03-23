@@ -1,257 +1,109 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBBE73CCA05
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Mar 2026 18:16:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 348B93D666F
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Mar 2026 19:45:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774289787; cv=none; b=YFcTG0Ew7Y5rpOdDLRrdW0ChamkMJXA4YLOAsMhsnBrMvPgCyGhrPfqlcM1rVtU7xWgOy/9z4rUHbC+f15ie/r/GtOXfZ3nn/Ubk/+XNGZP2vmyGPiJU3kDMLBqk99sFEN+143R3viFC0/YsjnWA/9imMJLyQNyk2HrBv+Is6ew=
+	t=1774295150; cv=none; b=mxR2Nbvjs8zjOCvLyJy/lt1FHzaYc7zGMFJ58Edwx3f7yJKo55i5Kau+z0mfTObLrg5SPHWX+V3MUDMOr1O+mEwWWjBkNP/mzzNJGDaceJLB3CfYE48NFvuKbO3cLaB/UCgRx8CSqlIT1Asm6Fjh9L3+0csaN/D0Qu9NB23hHqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774289787; c=relaxed/simple;
-	bh=A4MB6rq786Wp0u4uINddnn9ZF8gMwAb5l5w8TsAEb6o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DhqZmreNIewcAQPVCGk0yW/lwNcRGM6UYGyMgLIldKDqRDGjtUk9ciQRqZWZtcmHcLqItWzVv84eLDzu8hgGDbQ7nUlc/SI2e4bG+kXWLkrJnhqYmMVlDHHZcDO31FmD32/2rs9hobo+B/8XaUEcSrNO2fn7s2USPR0EQPhDBwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=YzSMiMwV; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1774295150; c=relaxed/simple;
+	bh=FW6AamUap6IdmQX7aPqFLUAtEVmtALZ7207pa5FRLO4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=VkSaF0iWoDIsBDr8tyxkfCc+u1FuZWNNmURgdm44vXQ7frTTiEnSI0xIdZj1M9m+U6uVJeeP7EkQmmun3xdsjx/7hqQ8b6J3SiTlcsF0DCicQpUX8QqHhkLijlY7IxwUbrdKMU9ciJ5q5n6E1veqISoGdK1W/n4yGrqAVL868Ys=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LIDRrHUb; arc=none smtp.client-ip=209.85.221.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="YzSMiMwV"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2585360263;
-	Mon, 23 Mar 2026 19:16:18 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774289778;
-	bh=WXRp0VEX4IfG4pLKPmewvnPJXxPcielRZWBX+8znXk0=;
-	h=From:To:Cc:Subject:Date:From;
-	b=YzSMiMwV5Hxmn9fJ11C6BMxb/I9zQQblx1S6j5Kjq7fc0Sq/CCqVSssQbNR/1FMgR
-	 ms3kxg/x6CCG2ixcbxdegK+wwNIXxpAEPp4bVoyetBvKGf1k8DXg99hhF9VjaIra05
-	 ttnnjtn6+mD1RCnkE3DykAI+s6cjsiREuFbKJTzMg8bPrwoQWhrFBZltCOI75tfove
-	 yhyb/prC8rpoWmLZW2+WYeysbIiukYyAszH47lApTpjigOTaVadi/boBlM1v2qlJ3H
-	 r3D+5+o2il/VRVVyShLPg6osh1ucmDIvQ+VUQclOzzLgHavtymPibtI/hWqceMNyyK
-	 DoFcHxpf5swzg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LIDRrHUb"
+Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-43b45bb7548so3301672f8f.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Mar 2026 12:45:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1774295147; x=1774899947; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=UN064Xn+atoreMZyKcgTmEcbQ1sNIRtDXi68fcy3LFc=;
+        b=LIDRrHUbpTJXgS+fjUjImb5BwM0xbGzVBd77FXYVKyeRPxGxzrDVp9iohf871osA20
+         1AUmTeuTiVCA5eD4nbVHBxh3I1wmKcZdlqzUZc17E6XkO/F5Xi0AvSb3oe5jWZTkV0uo
+         1cPfwuGJfNdKzRd6gWLHUtDQsVuMuI+Moaol5MmO9eb35obpiJYIvITXdjoW63LI21EC
+         MNLqfS5mzt75xTtfUE2Cb4nPArGknBa6ZTz17QbQNYWvMbzfvK9zeDG42oLOlAARTOuE
+         aFzCKOlwg3zzDNeZGA/1CNzt6sYDSmGkUPmpL9zMrqClBnMnGCJ2SmaRr9kPw7bbHSzu
+         3WXw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774295147; x=1774899947;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=UN064Xn+atoreMZyKcgTmEcbQ1sNIRtDXi68fcy3LFc=;
+        b=s2SASbe7awwFYiHxvVRlQVFIiE/mu3moxDJbgvjoXcoZzYrGF6fKdd+ot0e3hNhOSl
+         XR8yxTAwoqBgVqrae7dIr44WksmRPNcxhUzmiXN+SSE5Jy/EFVgVnBj4f2fHhnCjMN6U
+         49Wwqx7/2qQKJXaMoIcUraiWguhXgYbgASOnEssDSTTwUlhRI8kOhuDKozVTJiIIf2/g
+         tWuR6J89ELpKmdj7r1kolRABm/uR0IBb1VG3vCjXMBVw+n0ZYRw0XT7Lc4yRmduwn8vD
+         tk8SzwjgnuOTYQoqjUNLoVuSbsmLP1dy8H+KdUcdEPdi8PqNPV41UBvpAFgLVcB8ya/f
+         hzZA==
+X-Gm-Message-State: AOJu0Yw1cWeF1ZN8ZiHsXR3KXYpuIeStWiss4r1kzB3VazffJ/7g2hcO
+	mM/23X4bYhn0LNfbNYSNR3igHPw24NSEOQELXwqAEp0o4DZ53bBBzrAnZzOrFhZ1
+X-Gm-Gg: ATEYQzxIsG0Z8HFl7hYMy44u4alpgN/VfKPeG7jc3oW+YXUK7RGG56kgCG1oOXeJx3b
+	XxGWcwp/yw8TukFo8HhyWnYsiGk0i88PVC9VNNL0tau0cyrI9GUQc6+6PgPqG0SMHA5Be3eKYy0
+	5sM6/ibHFYCRZz091AfD6PAvEulrSxDE09rTk2Kyx7cyIkaEQR3d/cGlHdfyAX/R20rFxvfjR/y
+	NydEy2CZ/3/YNApKhI+EJhiGgN/mz7qZKSc4CBvUp7vwc2elYV8GF8VG5qKPZ8xM9yZg846UEPT
+	ClEN1zkhi24Cs670dsxSHrL11bBEo5wSO48UjrmyW+4RxE9LEEgediHpIw11ZeUZU67cnXWgbLr
+	eVyaSKAscAhTawMwsWDAlN3FhsJfM7zbaxKoKlgr2L+YHKDlwJa7EYtRjO+ydmm+kyBrjJgCkWN
+	sf6OFTY3JRutf0Dg==
+X-Received: by 2002:a05:6000:26c8:b0:439:bcb8:54b7 with SMTP id ffacd0b85a97d-43b6424b9eemr20058423f8f.15.1774295147052;
+        Mon, 23 Mar 2026 12:45:47 -0700 (PDT)
+Received: from erlkoenig-dev.. ([2a01:4f8:1c19:fa6a::1])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43b646b0b0csm30324660f8f.15.2026.03.23.12.45.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 23 Mar 2026 12:45:46 -0700 (PDT)
+From: "=?UTF-8?q?Rudolf=20R=C3=B6dl?=" <roedlrudi@gmail.com>
+X-Google-Original-From: =?UTF-8?q?Rudolf=20R=C3=B6dl?= <roedlrudi@googlemail.com>
 To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf 3/5,v3] netfilter: ctnetlink: ensure safe access to master conntrack
-Date: Mon, 23 Mar 2026 19:16:14 +0100
-Message-ID: <20260323181614.505534-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+Cc: pablo@netfilter.org,
+	=?UTF-8?q?Rudolf=20R=C3=B6dl?= <roedlrudi@googlemail.com>
+Subject: [PATCH] include: fix NLA type comments for log attributes
+Date: Mon, 23 Mar 2026 19:41:34 +0000
+Message-ID: <20260323194414.347527-1-roedlrudi@googlemail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Holding reference on the expectation is not sufficient, the master
-conntrack object can just go away, making exp->master invalid.
+The UAPI header comments for NFTA_LOG_GROUP and NFTA_LOG_QTHRESHOLD
+state NLA_U32, but the kernel implementation uses NLA_U16 since commit
+09d27a8 ("netfilter: nft_log: group and qthreshold are 2^16").
 
-To access exp->master safely:
+The nft userspace also correctly uses nftnl_expr_set_u16() for both
+attributes (netlink_linearize.c).
 
-- Grab the nf_conntrack_expect_lock, this gets serialized with
-  clean_from_lists() which also holds this lock when the master
-  conntrack goes away.
+Sync the comments to match the actual wire format.
 
-- Hold reference on master conntrack via nf_conntrack_find_get().
-  Not so easy since the master tuple to look up for the master conntrack
-  is not available in the existing problematic paths.
-
-This patch goes for extending the nf_conntrack_expect_lock section
-to address this issue for simplicity, in the cases that are described
-below this is just slightly extending the lock section.
-
-The add expectation command already holds a reference to the master
-conntrack from ctnetlink_create_expect().
-
-However, the delete expectation command needs to grab the spinlock
-before looking up for the expectation. Expand the existing spinlock
-section to address this to cover the expectation lookup. Note that,
-the nf_ct_expect_iterate_net() calls already grabs the spinlock while
-iterating over the expectation table, which is correct.
-
-The get expectation command needs to grab the spinlock to ensure master
-conntrack does not go away. This also expands the existing spinlock
-section to cover the expectation lookup too. I needed to move the
-netlink skb allocation out of the spinlock to keep it GFP_KERNEL.
-
-For the expectation events, the IPEXP_DESTROY event is already delivered
-under the spinlock, just move the delivery of IPEXP_NEW under the
-spinlock too because the master conntrack event cache is reached through
-exp->master.
-
-While at it, add lockdep notations to help identify what codepaths need
-to grab the spinlock.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Rudolf Rödl <roedlrudi@googlemail.com>
 ---
-v3: fix reversed logic in lockdep checks for nf_conntrack_expect.
+ include/linux/netfilter/nf_tables.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- include/net/netfilter/nf_conntrack_core.h |  8 +++++++
- net/netfilter/nf_conntrack_ecache.c       |  2 ++
- net/netfilter/nf_conntrack_expect.c       | 10 +++++++-
- net/netfilter/nf_conntrack_netlink.c      | 28 +++++++++++++++--------
- 4 files changed, 38 insertions(+), 10 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index 3384859a8921..497cfc00c194 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -83,6 +83,14 @@ void nf_conntrack_lock(spinlock_t *lock);
- 
- extern spinlock_t nf_conntrack_expect_lock;
- 
-+static inline void lockdep_nfct_expect_lock_held(void)
-+{
-+#ifdef CONFIG_PROVE_LOCKING
-+	if (debug_locks)
-+		WARN_ON_ONCE(!lockdep_is_held(&nf_conntrack_expect_lock));
-+#endif
-+}
-+
- /* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
- 
- static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 81baf2082604..9df159448b89 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -247,6 +247,8 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
- 	struct nf_ct_event_notifier *notify;
- 	struct nf_conntrack_ecache *e;
- 
-+	lockdep_nfct_expect_lock_held();
-+
- 	rcu_read_lock();
- 	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
- 	if (!notify)
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 16c7af4044b3..2505d1f4b68c 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -51,6 +51,7 @@ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
- 	struct net *net = nf_ct_exp_net(exp);
- 	struct nf_conntrack_net *cnet;
- 
-+	lockdep_nfct_expect_lock_held();
- 	WARN_ON(!master_help);
- 	WARN_ON(timer_pending(&exp->timeout));
- 
-@@ -118,6 +119,8 @@ nf_ct_exp_equal(const struct nf_conntrack_tuple *tuple,
- 
- bool nf_ct_remove_expect(struct nf_conntrack_expect *exp)
- {
-+	lockdep_nfct_expect_lock_held();
-+
- 	if (timer_delete(&exp->timeout)) {
- 		nf_ct_unlink_expect(exp);
- 		nf_ct_expect_put(exp);
-@@ -177,6 +180,8 @@ nf_ct_find_expectation(struct net *net,
- 	struct nf_conntrack_expect *i, *exp = NULL;
- 	unsigned int h;
- 
-+	lockdep_nfct_expect_lock_held();
-+
- 	if (!cnet->expect_count)
- 		return NULL;
- 
-@@ -446,6 +451,8 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
- 	unsigned int h;
- 	int ret = 0;
- 
-+	lockdep_nfct_expect_lock_held();
-+
- 	if (!master_help) {
- 		ret = -ESHUTDOWN;
- 		goto out;
-@@ -502,8 +509,9 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
- 
- 	nf_ct_expect_insert(expect);
- 
--	spin_unlock_bh(&nf_conntrack_expect_lock);
- 	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
-+	spin_unlock_bh(&nf_conntrack_expect_lock);
-+
- 	return 0;
- out:
- 	spin_unlock_bh(&nf_conntrack_expect_lock);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 47a073ee2b89..17975fb4905c 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3356,31 +3356,37 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
- 	if (err < 0)
- 		return err;
- 
-+	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!skb2)
-+		return -ENOMEM;
-+
-+	spin_lock_bh(&nf_conntrack_expect_lock);
- 	exp = nf_ct_expect_find_get(info->net, &zone, &tuple);
--	if (!exp)
-+	if (!exp) {
-+		spin_unlock_bh(&nf_conntrack_expect_lock);
-+		kfree_skb(skb2);
- 		return -ENOENT;
-+	}
- 
- 	if (cda[CTA_EXPECT_ID]) {
- 		__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
- 
- 		if (id != nf_expect_get_id(exp)) {
- 			nf_ct_expect_put(exp);
-+			spin_unlock_bh(&nf_conntrack_expect_lock);
-+			kfree_skb(skb2);
- 			return -ENOENT;
- 		}
- 	}
- 
--	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
--	if (!skb2) {
--		nf_ct_expect_put(exp);
--		return -ENOMEM;
--	}
--
- 	rcu_read_lock();
- 	err = ctnetlink_exp_fill_info(skb2, NETLINK_CB(skb).portid,
- 				      info->nlh->nlmsg_seq, IPCTNL_MSG_EXP_NEW,
- 				      exp);
- 	rcu_read_unlock();
- 	nf_ct_expect_put(exp);
-+	spin_unlock_bh(&nf_conntrack_expect_lock);
-+
- 	if (err <= 0) {
- 		kfree_skb(skb2);
- 		return -ENOMEM;
-@@ -3427,22 +3433,26 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
- 		if (err < 0)
- 			return err;
- 
-+		spin_lock_bh(&nf_conntrack_expect_lock);
-+
- 		/* bump usage count to 2 */
- 		exp = nf_ct_expect_find_get(info->net, &zone, &tuple);
--		if (!exp)
-+		if (!exp) {
-+			spin_unlock_bh(&nf_conntrack_expect_lock);
- 			return -ENOENT;
-+		}
- 
- 		if (cda[CTA_EXPECT_ID]) {
- 			__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
- 
- 			if (id != nf_expect_get_id(exp)) {
- 				nf_ct_expect_put(exp);
-+				spin_unlock_bh(&nf_conntrack_expect_lock);
- 				return -ENOENT;
- 			}
- 		}
- 
- 		/* after list removal, usage count == 1 */
--		spin_lock_bh(&nf_conntrack_expect_lock);
- 		if (timer_delete(&exp->timeout)) {
- 			nf_ct_unlink_expect_report(exp, NETLINK_CB(skb).portid,
- 						   nlmsg_report(info->nlh));
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 45d0b92b..11737fed 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -1281,10 +1281,10 @@ enum nft_last_attributes {
+ /**
+  * enum nft_log_attributes - nf_tables log expression netlink attributes
+  *
+- * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U32)
++ * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U16)
+  * @NFTA_LOG_PREFIX: prefix to prepend to log messages (NLA_STRING)
+  * @NFTA_LOG_SNAPLEN: length of payload to include in netlink message (NLA_U32)
+- * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U32)
++ * @NFTA_LOG_QTHRESHOLD: queue threshold (NLA_U16)
+  * @NFTA_LOG_LEVEL: log level (NLA_U32)
+  * @NFTA_LOG_FLAGS: logging flags (NLA_U32)
+  */
 -- 
-2.47.3
+2.43.0
 
