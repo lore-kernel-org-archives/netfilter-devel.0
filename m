@@ -1,73 +1,75 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBC623D5246
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2026 15:19:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C5433559D6
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2026 20:41:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774365559; cv=none; b=iI9na2B2g5H7hZFztuEX6ovDEiNRiJ3H9c173FhpkxgrFN27BPkrOeMT4VEbGHLQyqzaHbDXjntrIqJi9HosHFzhUnonP6SXk95NGFsCFMrN46k5khtPaaePB0nX7aoihAgK8og+UrlL2O1BqTwcx2+tTDCgkGAOGWd5bTyVLmE=
+	t=1774384887; cv=none; b=S19hkIzvS++YCMntAB/xrxEW47P8zfeOXxowIjCgwQE/rqASkWUVOg34QvDJJ6gu2OJJoGqmtPk/ChzML9aCEIoA1ytGxcvLLakaIpXXkNk7gjQtbQOqbkxvUryqlTC0NOQrCgTrOzPTkgSvTD0O+kfrN4S7FsD3iS9yCB87E1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774365559; c=relaxed/simple;
-	bh=yQu+yg14FNYHLy+s+BbhOlgj6hTn6x3xR7kw0ed5ygA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=oY0S1C9IlTmCQmPWOE2VYULXStvA/W8J4D2NAFI6fv1mMAGfkUroXnlZWAbxVUeMGa7vqyfDRjQbzzRsLlyhDhXUOE1O93a79xc2FJ+x1yUuHI2BhAuDmiQojg5qI0/q85hqwNM+RUPPcWY6OpGdxpLBLnuZcSeRgqb26sdzm1I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DgZTSMk8; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1774384887; c=relaxed/simple;
+	bh=7rS4b1sOJwSZSDEH5NqgxYEH3TYqIFxgaRgu7FRsEtc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BwwlhCNDMcQp4WVxuZhGSmNQLMGSrkOcYevfhGUz+mWTq8hrp/BtwTWJ45V/gX1h//ac+Ugouomisik6JGy22Bf9i5XXmuhNVkffSXxvs1rknr0bjsh9ay4a2pX+zFbHn/kZf+g1FjNdzj12jEB4KSg75vrFsyf5AB1hHLIESDA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TEW6a62u; arc=none smtp.client-ip=209.85.128.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DgZTSMk8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1774365555;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=47K4ukq6ERapPLsJPgxXf1k9UvvwaRytR4+a7cgPSYw=;
-	b=DgZTSMk8MUQwgAX1/wPeE5pBySz9IhkNrmfu9Y4t/noRwZpAVR6aLBqAXGB7IbAk18j2xh
-	s3T0csefPxFehSgU5jxtVKMGFWyuZiQ9zM8yqdceQJHasgxVVqehcjQ/zJHp87VjyCTBuL
-	agYBmver4BNqwR4PlFNqNff3xxHMTYA=
-Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-265-fwC_8vFtNWuKSKRWqW9RmQ-1; Tue,
- 24 Mar 2026 11:19:11 -0400
-X-MC-Unique: fwC_8vFtNWuKSKRWqW9RmQ-1
-X-Mimecast-MFC-AGG-ID: fwC_8vFtNWuKSKRWqW9RmQ_1774365549
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id E95361956046;
-	Tue, 24 Mar 2026 15:19:08 +0000 (UTC)
-Received: from llong-thinkpadp16vgen1.westford.csb (unknown [10.22.65.192])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 8BBCA1800764;
-	Tue, 24 Mar 2026 15:19:04 +0000 (UTC)
-From: Waiman Long <longman@redhat.com>
-To: Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Frederic Weisbecker <frederic@kernel.org>,
-	Chen Ridong <chenridong@huawei.com>,
-	Phil Auld <pauld@redhat.com>
-Cc: linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	sheviks <sheviks@gmail.com>,
-	Waiman Long <longman@redhat.com>
-Subject: [PATCH 2/2] ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
-Date: Tue, 24 Mar 2026 11:18:27 -0400
-Message-ID: <20260324151827.2006656-3-longman@redhat.com>
-In-Reply-To: <20260324151827.2006656-1-longman@redhat.com>
-References: <20260324151827.2006656-1-longman@redhat.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TEW6a62u"
+Received: by mail-wm1-f46.google.com with SMTP id 5b1f17b1804b1-4852b81c73aso39431615e9.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2026 13:41:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1774384885; x=1774989685; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Bh2npv0O/elfFN32ItPoLhgPFIFAS6miRnp44yqFPqQ=;
+        b=TEW6a62uRH3IhrFBWRmU7nER66jz2wluAMRAPR9daT4BGbIHgv2IWJ52qhuPAmPFc2
+         EiRPW/LNPT6d+DES81SuPmhPT5KQXoVQnC3RF7TCtsH0hOLD/X6hI7gQSqInBG+XeYuW
+         LWck936tSa2u63GTZbkV8uHpL+Mf+WenKI2C2wETz893ULyo0KMF/FUDsts4JFoxQr55
+         YYoQzJQJw7rEJjfm7oTaG0Bw43sEUNjCARfsMgjuFEKUS/Usf4dzU3Ebd5nfagzRAKwW
+         G1F8fPQOBMihL5bZ2YG04lyUGFf2bCB3IboTeGIsY3jF/6REKZyVyiqGwalZ94UIkARX
+         0ztQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774384885; x=1774989685;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Bh2npv0O/elfFN32ItPoLhgPFIFAS6miRnp44yqFPqQ=;
+        b=sW06U1HAtOgIrVT6qyuDrqCi39gzUkmeOO3RQ3vrGFT7Vx4WNADi0fCLjaYFWQb4lh
+         IyjExzFLR8qsAk+p0lsr0XWV+H/wuCDr5bEcReRIMwdCPfgduQgADAwU8sA7qW9j3kvM
+         z3CTe70Aiiobnc8zAgVQNFCjsAiSRmHDj6aWb2/iOf153FFCnxmbagymklpIFWOpKzfY
+         J6qv4oOSVEyHnv4kmXr48nyU36WznTRp6uuN33JRh5eB0bEcVxBazhfkHEKWWwcxh6Dn
+         g28IvLfBocgqWd0IWzFRrWJ+T/HgvI2F+Q0nZaOGVgrIjRYuhZPza3DuNpE5FTNmkGLf
+         36Zg==
+X-Gm-Message-State: AOJu0Yz79HpKhWbqsvmyatNO42S1fcJBav3icbrM4AwgQqWPSO511PE7
+	ahG19g5ebyFfykoJ+FPz1i/YHlS0yiFhoAgKCbD4/OOym+y2mYM7N7l4rekcSvaUUuKurQ==
+X-Gm-Gg: ATEYQzwdclEcMwKFnue6Yvd53JaIbdV7h3PZXv/ek+c0/JxIHEZqEpoFsfBEkqeWjsc
+	Yq+pYS0Bgl8ZWVqMEQgrBqo6y8z9NKasU/M9TYz2vte5MXKZNc/JsjdT0l4sywhF09PzVL5G63O
+	G8dbjssc5hQfpxDQ147if17U2xG0/Lk+QcgVNMDvmlMv5C+zd3OXF2UTA7CwnKdd/pRiDx96Tv9
+	zzF7li4Qs18h4VBDJWAth3dshux3Gdrd7/w3DwvqDp2VmCg8s5lrbCeUuUzbRjaVo5piA7Qe82Q
+	NiI3y0+KS9dBKxHs2SVooDfhvAsAWZ4qQpuG+uaznzZHJghDb9UkX5jBVFR1zv1idapEo37QAiS
+	+/YpU2YJ6TKvR/U5McP/wYH6wZecPr2XXaxIoTv35lKqgB3tFr3Z4hvZ7ST83YVjMI99EIrMqBY
+	6rWKxA+61aUiZhHoJqGMwL
+X-Received: by 2002:a05:600c:64c6:b0:485:34a2:919e with SMTP id 5b1f17b1804b1-487160a681bmr14938245e9.33.1774384884561;
+        Tue, 24 Mar 2026 13:41:24 -0700 (PDT)
+Received: from azaki-desk1.. ([41.234.201.118])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48716658352sm3686825e9.13.2026.03.24.13.41.22
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 24 Mar 2026 13:41:23 -0700 (PDT)
+From: Ahmed Zaki <anzaki@gmail.com>
+To: netfilter-devel@vger.kernel.org,
+	andrew@lunn.ch,
+	olteanv@gmail.com,
+	pablo@netfilter.org,
+	fw@strlen.de,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com
+Cc: coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: [PATCH nf-next v2 0/2] Update (DSA) netdev stats with offloaded flows
+Date: Tue, 24 Mar 2026 14:40:14 -0600
+Message-ID: <20260324204016.2089193-1-anzaki@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -75,104 +77,37 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
 
-The ip_vs_ctl.c file and the associated ip_vs.h file are the only places
-in the kernel where HK_TYPE_KTHREAD cpumask is being retrieved and used.
-Now that HK_TYPE_KTHREAD/HK_TYPE_DOMAIN cpumask can be changed at run
-time. We need to use RCU to guard access to this cpumask to avoid a
-potential UAF problem as the returned cpumask may be freed before it
-is being used.
+Some devices (notably DSA) delegate the nft flowtable HW offloaded flows
+to a parent drivers. The delegating drivers cannot collect or report
+the offloaded flows stats since they have no access to the underlying
+hardware. This breaks SNMP-based network monitoring systems that rely on
+netdev stats to report the network traffic.
 
-Signed-off-by: Waiman Long <longman@redhat.com>
+Fix by moving the offloaded flow stat reporting to the nft flowtable
+subsystem. The first patch adds a new stats field "fstats" to net_device
+that is allocated and updated by the nft subsystem only if the new
+flag "flow_offload_via_parent" is set by the driver. It also report these
+stats back to the user in dev_get_stats().
+
+Patch 2 sets the new flag "flow_offload_via_parent" for the DSA driver.
 ---
- include/net/ip_vs.h            | 20 ++++++++++++++++----
- net/netfilter/ipvs/ip_vs_ctl.c | 13 ++++++++-----
- 2 files changed, 24 insertions(+), 9 deletions(-)
+v2: - added the new "net_device->fstats" field since the existing
+      tstats cannot be used since it would double-count on devices that
+      already use tstats for hardware MIBs (P1).
+    - fixed the outdev ifindex logic based. See new func
+      "flow_offload_egress_ifidx()" in P1.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 29a36709e7f3..17c85a575ef4 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1155,7 +1155,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_run_estimation;
- }
- 
--static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
-+static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
- {
- 	if (ipvs->est_cpulist_valid)
- 		return ipvs->sysctl_est_cpulist;
-@@ -1273,7 +1273,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
- 	return 1;
- }
- 
--static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
-+static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
- {
- 	return housekeeping_cpumask(HK_TYPE_KTHREAD);
- }
-@@ -1290,6 +1290,18 @@ static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
- 
- #endif
- 
-+static inline bool sysctl_est_cpulist_empty(struct netns_ipvs *ipvs)
-+{
-+	guard(rcu)();
-+	return cpumask_empty(__sysctl_est_cpulist(ipvs));
-+}
-+
-+static inline unsigned int sysctl_est_cpulist_weight(struct netns_ipvs *ipvs)
-+{
-+	guard(rcu)();
-+	return cpumask_weight(__sysctl_est_cpulist(ipvs));
-+}
-+
- /* IPVS core functions
-  * (from ip_vs_core.c)
-  */
-@@ -1604,7 +1616,7 @@ static inline void ip_vs_est_stopped_recalc(struct netns_ipvs *ipvs)
- 	/* Stop tasks while cpulist is empty or if disabled with flag */
- 	ipvs->est_stopped = !sysctl_run_estimation(ipvs) ||
- 			    (ipvs->est_cpulist_valid &&
--			     cpumask_empty(sysctl_est_cpulist(ipvs)));
-+			     sysctl_est_cpulist_empty(ipvs));
- #endif
- }
- 
-@@ -1620,7 +1632,7 @@ static inline bool ip_vs_est_stopped(struct netns_ipvs *ipvs)
- static inline int ip_vs_est_max_threads(struct netns_ipvs *ipvs)
- {
- 	unsigned int limit = IPVS_EST_CPU_KTHREADS *
--			     cpumask_weight(sysctl_est_cpulist(ipvs));
-+			     sysctl_est_cpulist_weight(ipvs);
- 
- 	return max(1U, limit);
- }
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 35642de2a0fe..f38a2e2a9dc5 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -1973,11 +1973,14 @@ static int ipvs_proc_est_cpumask_get(const struct ctl_table *table,
- 
- 	mutex_lock(&ipvs->est_mutex);
- 
--	if (ipvs->est_cpulist_valid)
--		mask = *valp;
--	else
--		mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
--	ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
-+	/* HK_TYPE_KTHREAD cpumask needs RCU protection */
-+	scoped_guard(rcu) {
-+		if (ipvs->est_cpulist_valid)
-+			mask = *valp;
-+		else
-+			mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
-+		ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
-+	}
- 
- 	mutex_unlock(&ipvs->est_mutex);
- 
+Ahmed Zaki (2):
+  netfilter: flowtable: update netdev stats with HW_OFFLOAD flows
+  net: dsa: update net_device stats with HW offloaded flows stats
+
+ include/linux/netdevice.h             | 45 ++++++++++++
+ net/core/dev.c                        |  8 +++
+ net/dsa/user.c                        |  1 +
+ net/netfilter/nf_flow_table_offload.c | 98 +++++++++++++++++++++++++--
+ 4 files changed, 146 insertions(+), 6 deletions(-)
+
 -- 
-2.53.0
+2.43.0
 
