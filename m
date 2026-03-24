@@ -1,315 +1,141 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f180.google.com (mail-yw1-f180.google.com [209.85.128.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25378352921;
-	Tue, 24 Mar 2026 21:28:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774387718; cv=none; b=Fw4j8N28o4sSDFni3A0ANKxPemuzItUQ2t9nY7QoeKPVPeFiAfJ4gz2Chyh08A4XJMXCkFnqMJxMlnc1umSU//T+QAWU/spQVBEfhnf0f/mc9cp0qzsT0RzIYce97kOZveUDv7urKR14VtT3QKB4q/FXOqhmcQWDWsY6y/KU2k8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774387718; c=relaxed/simple;
-	bh=Pa8Giaac+RQBM5prQwB6l2LD3PHYdrPNru5oOwF2NrA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dn3GagCHqNk+F5Jirg/UxR8HCdGpXxWgj//kiMbP5uBbF+R90gsDq5KfYynQIPquuhDcp+t+QDZ8HBUTrIjQRUcY3lKMq1ubQkPoS7TeXoHDBAiyIeH7SitrxPW1UVAelr956TFxmQW+GHYpmJfjXGwqIcX1TLeqW7qOqxvuHrQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=X82e3rBP; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5160336884
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2026 23:28:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.128.180
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1774394890; cv=pass; b=I32AleOKPOobiUNc3PlJZE5g9zAdMOPKiT32Nk3ayuZW+e3sT/pjpLuxUZqiB/s7lPa+/GfjiemgGdP7NlNi5Wg304F2pCNUbe4V4NtC6cMOCPScCGwJQjBBUHTBbOBrcL+iiBY2wJZkjsfzRrR6t1amuxzXaSJSpMzVT/GTh6c=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1774394890; c=relaxed/simple;
+	bh=LT2q8PEldt87z3mrWDdYA25Zu4LLlNbQMdEbJVa3TH4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=DOgHW6bmgkvPtcNjrhCroRWatfCHkaKG4wP4lPSqeTCkFg3KEw91+PRMkjRmtMDrXFg/6Jd/IofFWlfONdl95cDm7dwyLV2VsLVmrHFbvZkT1wJtSjQxgcTyUDIiarelEsg2yl1d530mRnyXuiMs/j7Qfqzfpw8PTjQ6dviFxFA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WxPOYUy0; arc=pass smtp.client-ip=209.85.128.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="X82e3rBP"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id D79C5600B5;
-	Tue, 24 Mar 2026 22:28:25 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774387706;
-	bh=WSV63YLJEh/5Og9YjArs+nqErNOE9rA2hd+2DB8uIaA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=X82e3rBP0FBVPefVhG7N9M30FVISRNddarhBBB4O/1HKKVYjVDpbVC+gdGiIccGQi
-	 hY2e8FsDEgW/aPXWZJhOY/WJCsukYLDqkfabn6yMBshRB9E1iJaRvXuJLWdNtu24FP
-	 ub/P/0mEeJyEmE9p3WpgsFmK3ZIeL9aeyXq4OdEwvPEppDIeAR/y66MsuHMwona5qD
-	 vchmdhqVGk07hIkHrxr9qsK1mGea5x5uJS/y8K3AWlKN2Z78vXIf4amLXOw2I07e7f
-	 ETtBtaXJWVr2UCwq7kyL8wDXyqBsJJ+lzgwZ236UnNiZ7ZFAEcrAbG3TKEHOkMADZT
-	 CJxfuZx+/t+OQ==
-Date: Tue, 24 Mar 2026 22:28:23 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ahmed Zaki <anzaki@gmail.com>
-Cc: netfilter-devel@vger.kernel.org, andrew@lunn.ch, olteanv@gmail.com,
-	fw@strlen.de, kuba@kernel.org, pabeni@redhat.com,
-	edumazet@google.com, coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH nf-next v2 1/2] netfilter: flowtable: update netdev stats
- with HW_OFFLOAD flows
-Message-ID: <acMB9xSTEmwly8QK@chamomile>
-References: <20260324204016.2089193-1-anzaki@gmail.com>
- <20260324204016.2089193-2-anzaki@gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WxPOYUy0"
+Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-79a40fb9890so45768307b3.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2026 16:28:09 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1774394889; cv=none;
+        d=google.com; s=arc-20240605;
+        b=A4RMavfwf6+cmj32S0atS4Cd3tZ9mBdH8NlB6SXRSeCnqqY/kRHbX4Fa7otXE7d1vX
+         d8yJv72ZK4OcrgIDufElAdOZftefLjW8k+ZfGpEL41DMxe0J7F2f6w83/7rBN/HnjUFe
+         DianIaYu/AKMXuii1gq2z5xsad/tKQhF75fiTykvcFnzhhL+jsP4g1+9wvl3RywLQTxg
+         +P5G0zoW8Y07u3TLq1KSEmGCMlT0FT5FA3tU8qUJ2XolSHY15i3YnIa9cAUVbQkqDIP5
+         9UlEmPZAaD79ErUZViN7Yj4f68ll4fwq9rYm2wBK5UadhPSmrOPPRmV6KRNpIu3o/oqq
+         zvzg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=LT2q8PEldt87z3mrWDdYA25Zu4LLlNbQMdEbJVa3TH4=;
+        fh=RfTkRRQ9QGHC7Dv12BG7XbdNp64oE4mrTo9cmMiTN+o=;
+        b=aXk1DFYWuE4Zroz+C4FVdb7I6839z67P1ufD65CpW/6QTqIg1kwO9vzJ6/igr012qV
+         FjDPxbhkr99FGf4x6Eu2018brYpUd0sWFUlYmjBQjMtlQQ46et4o2teXFiXytWRs2sww
+         wpxruHNa2qR5BB3lhFdeICAHVh3c7lZoQX6idKKcwub5lng43WISaZuT0yOhZ3COfHKB
+         qkaDq6MKJiolL3pfxKxI/mpxo8QkUXWzWDLpOAhZUNpccRsSzoGQ6lZq7hXu/KR1QQ/4
+         zKtwa/dm4IUm+/rns1A833Hrk/4mRylL2GIKZq5vnEa2yaoRUk1fN9hKM6mfRN1mdDWU
+         fKYA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1774394889; x=1774999689; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LT2q8PEldt87z3mrWDdYA25Zu4LLlNbQMdEbJVa3TH4=;
+        b=WxPOYUy082lc2OjwB4xhShORA4QxdFRtI+x6ZZ3ALQYlmgNlgflc0CvwJfY2ZiMWCA
+         Pda4hK8u24vnWwuYI/kSIA3qc2f3oDQRS22HgD3blGmLG0pIHFYoVfGESBjQPe3EviDJ
+         sPwfWbP4SiO2fsQ6U/Ogv3TFy00c0vMW13EhAc/wWXPXDJpIYtPqlb+HdbSx1f4bHUfl
+         h4br/PwT23zhZaBPgrgnGI3cgrCDG5jTxLvakOsPIP79Re619iJvl72QjTLXflRAL+vZ
+         2pmBRjiyA6K15DNVWIazxaAlOob38Qv+Heag7N6CQz3Ku7KIsUHwQXhuXn4ybMw9fs29
+         WwwQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774394889; x=1774999689;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=LT2q8PEldt87z3mrWDdYA25Zu4LLlNbQMdEbJVa3TH4=;
+        b=pVgCuBDaPaVyisKADShA2aD4tY/Pn4zsKqI5wLqBVbL2LpxPRBSdYqQAz87HfgwG1R
+         aRstQ57DcRkabEX42VgyjDqRjYj6x4+Bv4+kDTBuWB4skFHr29c6MHnzkfi0BM/KxvcD
+         A4BqCTDQMMyahh8ismsZGnAJdTD56l9y2P3ua0ALalMZCPJmKCPt5TixLfYE7Vt+5Q55
+         r+RK2+4DrimTI90IABMTqa4sdTcc5SjoWIec90y7u/++le4jCh3yflUowB/HinGZq7Rx
+         ZtT4Sn0/tnvfk/HAa6g07I76EmqXdGTU2++/FiWGtuUTMcXXwCz0AuXCUQ6h0X8ctp8V
+         qGSQ==
+X-Gm-Message-State: AOJu0YzIaicTI4xH0N6s80F6e100NZAVJwrTNhJir66XtgKzls1DUyNu
+	EbSZf5A5vA6LED+vCY3EEiUIAO95tsmF04/9l7T7BJF+loulQYDsA6Sh+3L8bSclwHsY+/39nbN
+	mTdZA+VSjhE+p9llucs2vXcQnR702hB8=
+X-Gm-Gg: ATEYQzyN6vnH58Ofl98+AWFROpqo6fkRvhSfZsHKgcM9OzRuKWqZSAz3vjN6G/ksJoz
+	9z5xO7GEs+NGJ7tNLnS1z/y86ApTz8RscghNXGRUGwvS+90203KEHkBDD3cmHM6DktWDhBK1/52
+	ZpSTrp9Xnp0bM0hh8FrTrstjtzEubSDhuYBM15Pc0PVVfr2fngI4M7ZJ016XNOhKC4tyBMMpOYe
+	8Co5rzlukLotGkkWUtHA/W6aQI4f6YdbVpteP2hYXBP1I2JEAE+wK7tmAJP2DLNkn11QLenY0iA
+	SUPU4w5Q5DTUMkXEQWw=
+X-Received: by 2002:a05:690c:c0d3:b0:798:36:e110 with SMTP id
+ 00721157ae682-79acf6f180fmr15427277b3.62.1774394888606; Tue, 24 Mar 2026
+ 16:28:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260324204016.2089193-2-anzaki@gmail.com>
+References: <20260324204016.2089193-1-anzaki@gmail.com> <20260324204016.2089193-2-anzaki@gmail.com>
+ <acMB9xSTEmwly8QK@chamomile>
+In-Reply-To: <acMB9xSTEmwly8QK@chamomile>
+From: Ahmed Zaki <anzaki@gmail.com>
+Date: Tue, 24 Mar 2026 17:27:32 -0600
+X-Gm-Features: AaiRm51IbJFq0DzIib_tS9CxsVxmnu9xjmu7KIN3YEOt6boriUdcPPCK74Wy5qM
+Message-ID: <CANczwAHFy1fp4JU4ANJ2Uf-=B2uDP0GejrWUuELz9yf0wu9H2A@mail.gmail.com>
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: flowtable: update netdev stats
+ with HW_OFFLOAD flows
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, andrew@lunn.ch, olteanv@gmail.com, 
+	fw@strlen.de, kuba@kernel.org, pabeni@redhat.com, edumazet@google.com, 
+	coreteam@netfilter.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 24, 2026 at 02:40:15PM -0600, Ahmed Zaki wrote:
-> Some drivers (notably DSA) delegate the nft flowtable HW_OFFLOAD flows
-> to a parent driver. While the parent driver is able to report the
-> offloaded traffic stats directly from the HW, the delegating driver
-> does not report the stats. This fails SNMP-based monitoring tools that
-> rely on netdev stats to report the network traffic.
-> 
-> Add a new struct pcpu_sw_netstats "fstats" to net_device that gets
-> allocated only if the new flag "flow_offload_via_parent" is set by the
-> driver. The new stats are lazily allocated by the nft flow offloading
-> code when the first flow is offloaded. The stats are updated periodically
-> in flow_offload_work_stats() and also once in flow_offload_work_del()
-> before the flow is deleted. For this, flow_offload_work_del() had to
-> be moved below flow_offload_tuple_stats().
+On Tue, Mar 24, 2026 at 3:28=E2=80=AFPM Pablo Neira Ayuso <pablo@netfilter.=
+org> wrote:
+>
+> On Tue, Mar 24, 2026 at 02:40:15PM -0600, Ahmed Zaki wrote:
+> > Some drivers (notably DSA) delegate the nft flowtable HW_OFFLOAD flows
+> > to a parent driver. While the parent driver is able to report the
+> > offloaded traffic stats directly from the HW, the delegating driver
+> > does not report the stats. This fails SNMP-based monitoring tools that
+> > rely on netdev stats to report the network traffic.
+> >
+> > Add a new struct pcpu_sw_netstats "fstats" to net_device that gets
+> > allocated only if the new flag "flow_offload_via_parent" is set by the
+> > driver. The new stats are lazily allocated by the nft flow offloading
+> > code when the first flow is offloaded. The stats are updated periodical=
+ly
+> > in flow_offload_work_stats() and also once in flow_offload_work_del()
+> > before the flow is deleted. For this, flow_offload_work_del() had to
+> > be moved below flow_offload_tuple_stats().
+>
+> Hm, I think v1 was a simpler approach... except that you innecesarily
+> modified a lot of callsites as Jakub pointed out. I don't see why you
+> need this new callback for netdev_ops.
+>
 
-Hm, I think v1 was a simpler approach... except that you innecesarily
-modified a lot of callsites as Jakub pointed out. I don't see why you
-need this new callback for netdev_ops.
+No new netdev_op, but I added the new stats field (fstats) since having a
+separate field and flag guarantees that no other drivers gets broken and
+no other drivers (that already count offloaded stats) need to be touched.
 
-> Signed-off-by: Ahmed Zaki <anzaki@gmail.com>
-> ---
->  include/linux/netdevice.h             | 45 ++++++++++++
->  net/core/dev.c                        |  8 +++
->  net/netfilter/nf_flow_table_offload.c | 98 +++++++++++++++++++++++++--
->  3 files changed, 145 insertions(+), 6 deletions(-)
-> 
-> diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-> index 67e25f6d15a4..647758f78213 100644
-> --- a/include/linux/netdevice.h
-> +++ b/include/linux/netdevice.h
-> @@ -1840,6 +1840,11 @@ enum netdev_reg_state {
->   *	@stats:		Statistics struct, which was left as a legacy, use
->   *			rtnl_link_stats64 instead
->   *
-> + *	@fstats:	HW offloaded flow statistics: RX/TX packets,
-> + *			RX/TX bytes. Lazily allocated by the flow offload
-> + *			path on the first offloaded flow for devices that
-> + *			set @flow_offload_via_parent. Freed by free_netdev().
-> + *
->   *	@core_stats:	core networking counters,
->   *			do not use this in drivers
->   *	@carrier_up_count:	Number of times the carrier has been up
-> @@ -2048,6 +2053,12 @@ enum netdev_reg_state {
->   *	@change_proto_down: device supports setting carrier via IFLA_PROTO_DOWN
->   *	@netns_immutable: interface can't change network namespaces
->   *	@fcoe_mtu:	device supports maximum FCoE MTU, 2158 bytes
-> + *	@flow_offload_via_parent: device delegates nft flowtable hardware
-> + *				  offload to a parent/conduit device (e.g. DSA
-> + *				  user ports delegate to their conduit MAC).
-> + *				  The parent's HW count the offloaded traffic
-> + *				  but this device's sw netstats path does not.
-> + *				  @fstats is allocated to fill that gap.
->   *
->   *	@net_notifier_list:	List of per-net netdev notifier block
->   *				that follow this device when it is moved
-> @@ -2233,6 +2244,7 @@ struct net_device {
->  
->  	struct net_device_stats	stats; /* not used by modern drivers */
->  
-> +	struct pcpu_sw_netstats __percpu *fstats;
->  	struct net_device_core_stats __percpu *core_stats;
->  
->  	/* Stats to monitor link on/off, flapping */
-> @@ -2463,6 +2475,7 @@ struct net_device {
->  	unsigned long		change_proto_down:1;
->  	unsigned long		netns_immutable:1;
->  	unsigned long		fcoe_mtu:1;
-> +	unsigned long		flow_offload_via_parent:1;
->  
->  	struct list_head	net_notifier_list;
->  
-> @@ -2992,6 +3005,38 @@ struct pcpu_lstats {
->  
->  void dev_lstats_read(struct net_device *dev, u64 *packets, u64 *bytes);
->  
-> +static inline void dev_fstats_rx_add(struct net_device *dev,
-> +				     unsigned int packets,
-> +				     unsigned int len)
-> +{
-> +	struct pcpu_sw_netstats *fstats;
-> +
-> +	if (!dev->fstats)
-> +		return;
-> +
-> +	fstats = this_cpu_ptr(dev->fstats);
-> +	u64_stats_update_begin(&fstats->syncp);
-> +	u64_stats_add(&fstats->rx_bytes, len);
-> +	u64_stats_add(&fstats->rx_packets, packets);
-> +	u64_stats_update_end(&fstats->syncp);
-> +}
-> +
-> +static inline void dev_fstats_tx_add(struct net_device *dev,
-> +				     unsigned int packets,
-> +				     unsigned int len)
-> +{
-> +	struct pcpu_sw_netstats *fstats;
-> +
-> +	if (!dev->fstats)
-> +		return;
-> +
-> +	fstats = this_cpu_ptr(dev->fstats);
-> +	u64_stats_update_begin(&fstats->syncp);
-> +	u64_stats_add(&fstats->tx_bytes, len);
-> +	u64_stats_add(&fstats->tx_packets, packets);
-> +	u64_stats_update_end(&fstats->syncp);
-> +}
-> +
->  static inline void dev_sw_netstats_rx_add(struct net_device *dev, unsigned int len)
->  {
->  	struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
-> diff --git a/net/core/dev.c b/net/core/dev.c
-> index f48dc299e4b2..07fb315ad42c 100644
-> --- a/net/core/dev.c
-> +++ b/net/core/dev.c
-> @@ -11865,6 +11865,7 @@ struct rtnl_link_stats64 *dev_get_stats(struct net_device *dev,
->  {
->  	const struct net_device_ops *ops = dev->netdev_ops;
->  	const struct net_device_core_stats __percpu *p;
-> +	const struct pcpu_sw_netstats __percpu *fstats;
->  
->  	/*
->  	 * IPv{4,6} and udp tunnels share common stat helpers and use
-> @@ -11893,6 +11894,11 @@ struct rtnl_link_stats64 *dev_get_stats(struct net_device *dev,
->  		netdev_stats_to_stats64(storage, &dev->stats);
->  	}
->  
-> +	/* This READ_ONCE() pairs with cmpxchg in flow_offload_fstats_ensure() */
-> +	fstats = READ_ONCE(dev->fstats);
-> +	if (fstats)
-> +		dev_fetch_sw_netstats(storage, fstats);
-> +
->  	/* This READ_ONCE() pairs with the write in netdev_core_stats_alloc() */
->  	p = READ_ONCE(dev->core_stats);
->  	if (p) {
-> @@ -12212,6 +12218,8 @@ void free_netdev(struct net_device *dev)
->  	free_percpu(dev->pcpu_refcnt);
->  	dev->pcpu_refcnt = NULL;
->  #endif
-> +	free_percpu(dev->fstats);
-> +	dev->fstats = NULL;
->  	free_percpu(dev->core_stats);
->  	dev->core_stats = NULL;
->  	free_percpu(dev->xdp_bulkq);
-> diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> index b2e4fb6fa011..fc1e67a79904 100644
-> --- a/net/netfilter/nf_flow_table_offload.c
-> +++ b/net/netfilter/nf_flow_table_offload.c
-> @@ -925,13 +925,80 @@ static void flow_offload_work_add(struct flow_offload_work *offload)
->  	nf_flow_offload_destroy(flow_rule);
->  }
->  
-> -static void flow_offload_work_del(struct flow_offload_work *offload)
-> +static bool flow_offload_fstats_ensure(struct net_device *dev)
->  {
-> -	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
-> -	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
-> -	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
-> -		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
-> -	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
-> +	struct pcpu_sw_netstats __percpu *p;
-> +
-> +	if (!dev->flow_offload_via_parent)
-> +		return false;
-> +
-> +	/* Pairs with cmpxchg() below. */
-> +	if (likely(READ_ONCE(dev->fstats)))
-> +		return true;
-> +
-> +	p = __netdev_alloc_pcpu_stats(struct pcpu_sw_netstats, GFP_ATOMIC);
-> +	if (!p)
-> +		return false;
-> +
-> +	if (cmpxchg(&dev->fstats, NULL, p))
-> +		free_percpu(p);	/* lost the race, discard and use winner's */
-> +
-> +	return true;
-> +}
-> +
-> +static u32 flow_offload_egress_ifidx(const struct flow_offload_tuple *tuple)
-> +{
-> +	switch (tuple->xmit_type) {
-> +	case FLOW_OFFLOAD_XMIT_NEIGH:
-> +		return tuple->ifidx;
-> +	case FLOW_OFFLOAD_XMIT_DIRECT:
-> +		return tuple->out.ifidx;
-> +	default:
-> +		return 0;
-> +	}
-> +}
-> +
-> +static void flow_offload_netdev_update(struct flow_offload_work *offload,
-> +				       struct flow_stats *stats)
-> +{
-> +	const struct flow_offload_tuple *tuple;
-> +	struct net_device *indev, *outdev;
-> +	struct net *net;
-> +
-> +	rcu_read_lock();
-> +	net = read_pnet(&offload->flowtable->net);
-> +	if (stats[FLOW_OFFLOAD_DIR_ORIGINAL].pkts) {
-> +		tuple = &offload->flow->tuplehash[FLOW_OFFLOAD_DIR_ORIGINAL].tuple;
-> +		indev = dev_get_by_index_rcu(net, tuple->iifidx);
-> +		if (indev && flow_offload_fstats_ensure(indev))
-> +			dev_fstats_rx_add(indev,
-> +					  stats[FLOW_OFFLOAD_DIR_ORIGINAL].pkts,
-> +					  stats[FLOW_OFFLOAD_DIR_ORIGINAL].bytes);
-> +
-> +		outdev = dev_get_by_index_rcu(net,
-> +					      flow_offload_egress_ifidx(tuple));
-> +		if (outdev && flow_offload_fstats_ensure(outdev))
-> +			dev_fstats_tx_add(outdev,
-> +					  stats[FLOW_OFFLOAD_DIR_ORIGINAL].pkts,
-> +					  stats[FLOW_OFFLOAD_DIR_ORIGINAL].bytes);
-> +	}
-> +
-> +	if (stats[FLOW_OFFLOAD_DIR_REPLY].pkts) {
-> +		tuple = &offload->flow->tuplehash[FLOW_OFFLOAD_DIR_REPLY].tuple;
-> +		indev = dev_get_by_index_rcu(net, tuple->iifidx);
-> +		if (indev && flow_offload_fstats_ensure(indev))
-> +			dev_fstats_rx_add(indev,
-> +					  stats[FLOW_OFFLOAD_DIR_REPLY].pkts,
-> +					  stats[FLOW_OFFLOAD_DIR_REPLY].bytes);
-> +
-> +		outdev = dev_get_by_index_rcu(net,
-> +					      flow_offload_egress_ifidx(tuple));
-> +		if (outdev && flow_offload_fstats_ensure(outdev))
-> +			dev_fstats_tx_add(outdev,
-> +					  stats[FLOW_OFFLOAD_DIR_REPLY].pkts,
-> +					  stats[FLOW_OFFLOAD_DIR_REPLY].bytes);
-> +	}
-> +	rcu_read_unlock();
->  }
->  
->  static void flow_offload_tuple_stats(struct flow_offload_work *offload,
-> @@ -968,6 +1035,25 @@ static void flow_offload_work_stats(struct flow_offload_work *offload)
->  				       FLOW_OFFLOAD_DIR_REPLY,
->  				       stats[1].pkts, stats[1].bytes);
->  	}
-> +
-> +	flow_offload_netdev_update(offload, stats);
-> +}
-> +
-> +static void flow_offload_work_del(struct flow_offload_work *offload)
-> +{
-> +	struct flow_stats stats[FLOW_OFFLOAD_DIR_MAX] = {};
-> +
-> +	flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_ORIGINAL, &stats[0]);
-> +	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
-> +		flow_offload_tuple_stats(offload, FLOW_OFFLOAD_DIR_REPLY,
-> +					 &stats[1]);
-> +	flow_offload_netdev_update(offload, stats);
-> +
-> +	clear_bit(IPS_HW_OFFLOAD_BIT, &offload->flow->ct->status);
-> +	flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_ORIGINAL);
-> +	if (test_bit(NF_FLOW_HW_BIDIRECTIONAL, &offload->flow->flags))
-> +		flow_offload_tuple_del(offload, FLOW_OFFLOAD_DIR_REPLY);
-> +	set_bit(NF_FLOW_HW_DEAD, &offload->flow->flags);
->  }
->  
->  static void flow_offload_work_handler(struct work_struct *work)
-> -- 
-> 2.43.0
-> 
+Looking at some drivers, tstats seems to be sometimes used by H/W drivers
+and sometimes not, which just complicates the code semantics if we also use=
+ it
+for "H/W flow offloaded" stats. Some of these drivers already read H/W
+MIB registers.
+So I think there is no way around adding a new flag to not break something.
+
+But more importantly, I am not sure if there is no driver that sets
+NETDEV_PCPU_STAT_TSTATS
+**and** report its own offloaded flow stats. If we re-use tsats
+for these, we will double count the offloaded traffic unless we set some
+flag so that nft does not double-count.
+
+Also, any driver that already counts offloaded flow traffic and uses
+NETDEV_PCPU_STAT_DSTATS will break if we use tstas (union with dstats).
