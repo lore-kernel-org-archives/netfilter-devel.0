@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF6603D9DAE;
-	Wed, 25 Mar 2026 13:12:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07E853D9DD5;
+	Wed, 25 Mar 2026 13:12:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774444331; cv=none; b=FbOmM970oR55eyO42iG1d0dB8dJSPby9XjvBSFmPP3V4cAjxhdQOBQOwFiJUv54RywTr1YjwH9OZMRGcsKcmpxDp4TjL2ES7hfXjVak8nE9o52B6SQJ4+rhTw3GmgAg61xjtJBIhuhby6EqMNye7+xD5lFu25A81t0+KxUxIE5c=
+	t=1774444335; cv=none; b=glLbHmGGb0CksJcvbUqYC3BzhT/3GvnyrnokS0ZV+i8xZGT+gQve/MFl1a8a72gyMNN8izgh0Yh6Lq9SOBcydH6aH4qb0tGdGZ9K1Y0WNQ++ELyZTmPMQn0NPSXgyuUVzV4QSErrL/VEXCdoNzduUm23THwZgSJsOiBSZzeebq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774444331; c=relaxed/simple;
-	bh=QPx8aZ4EIRNRk3EuhjhbxwWFUz1O04BIedHDikjetes=;
+	s=arc-20240116; t=1774444335; c=relaxed/simple;
+	bh=oflo6V3jR6ZV+MJkc6kpSRqRvbZzMF7eBAMa/HpFHXA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LiV0wM+KR5eh/7sfskjg8QZkiFyDeMt9j6gRQISdOy9ndn5ITwDMYqD4ctZFIPWLM8u1NuCYvOHR+uEagh+CvXEj8zdeWIAjADAjATRaQFQEkXVifYSEyZho24LLozRboUGe7gxyD5jKn2YAkNqQimvsXK60Y3EQKaaI5Fg5Cxk=
+	 MIME-Version; b=f+Wr9Gh6hm9bKzIJYoEno9jplFbGi3fpDD1Zeg3hTCMhLSPJ9nCKSwcOIR74IEiBPSU3G/JaA1fbD88Zp8Q2hRs6cmFij9uZHXC532dqFg2QHLN3aE1ZaaZj379xytUI0gFn93iLZZ5TTMn05aAMjvIWXQup7IGSIjYzdZxEBPM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 3EA706080C; Wed, 25 Mar 2026 14:12:08 +0100 (CET)
+	id 964B1609EF; Wed, 25 Mar 2026 14:12:12 +0100 (CET)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 08/14] netfilter: nf_conntrack_expect: honor expectation helper field
-Date: Wed, 25 Mar 2026 14:11:02 +0100
-Message-ID: <20260325131108.23045-9-fw@strlen.de>
+Subject: [PATCH net 09/14] netfilter: nf_conntrack_expect: use expect->helper
+Date: Wed, 25 Mar 2026 14:11:03 +0100
+Message-ID: <20260325131108.23045-10-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260325131108.23045-1-fw@strlen.de>
 References: <20260325131108.23045-1-fw@strlen.de>
@@ -40,185 +40,140 @@ Content-Transfer-Encoding: 8bit
 
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-The expectation helper field is mostly unused. As a result, the
-netfilter codebase relies on accessing the helper through exp->master.
+Use expect->helper in ctnetlink and /proc to dump the helper name.
+Using nfct_help() without holding a reference to the master conntrack
+is unsafe.
 
-Always set on the expectation helper field so it can be used to reach
-the helper.
+Use exp->master->helper in ctnetlink path if userspace does not provide
+an explicit helper when creating an expectation to retain the existing
+behaviour. The ctnetlink expectation path holds the reference on the
+master conntrack and nf_conntrack_expect lock and the nfnetlink glue
+path refers to the master ct that is attached to the skb.
 
-This is a preparation patches for follow up fixes.
-
+Reported-by: Hyunwoo Kim <imv4bel@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_expect.h |  2 +-
- net/netfilter/nf_conntrack_broadcast.c      |  2 +-
- net/netfilter/nf_conntrack_expect.c         |  6 +++++-
- net/netfilter/nf_conntrack_h323_main.c      | 12 ++++++------
- net/netfilter/nf_conntrack_helper.c         |  7 ++++++-
- net/netfilter/nf_conntrack_netlink.c        |  2 +-
- net/netfilter/nf_conntrack_sip.c            |  2 +-
- 7 files changed, 21 insertions(+), 12 deletions(-)
+ net/netfilter/nf_conntrack_expect.c  |  2 +-
+ net/netfilter/nf_conntrack_helper.c  |  6 +-----
+ net/netfilter/nf_conntrack_netlink.c | 24 ++++++++++--------------
+ net/netfilter/nf_conntrack_sip.c     |  2 +-
+ 4 files changed, 13 insertions(+), 21 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 165e7a03b8e9..1b01400b10bd 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -40,7 +40,7 @@ struct nf_conntrack_expect {
- 			 struct nf_conntrack_expect *this);
- 
- 	/* Helper to assign to new connection */
--	struct nf_conntrack_helper *helper;
-+	struct nf_conntrack_helper __rcu *helper;
- 
- 	/* The conntrack of the master connection */
- 	struct nf_conn *master;
-diff --git a/net/netfilter/nf_conntrack_broadcast.c b/net/netfilter/nf_conntrack_broadcast.c
-index a7552a46d6ac..d21576fcb1d6 100644
---- a/net/netfilter/nf_conntrack_broadcast.c
-+++ b/net/netfilter/nf_conntrack_broadcast.c
-@@ -70,7 +70,7 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb,
- 	exp->expectfn             = NULL;
- 	exp->flags                = NF_CT_EXPECT_PERMANENT;
- 	exp->class		  = NF_CT_EXPECT_CLASS_DEFAULT;
--	exp->helper               = NULL;
-+	rcu_assign_pointer(exp->helper, nfct_help(ct)->helper);
- 
- 	nf_ct_expect_related(exp, 0);
- 	nf_ct_expect_put(exp);
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index cfc2daa3fc7f..197a76d0b231 100644
+index 197a76d0b231..16c7af4044b3 100644
 --- a/net/netfilter/nf_conntrack_expect.c
 +++ b/net/netfilter/nf_conntrack_expect.c
-@@ -309,6 +309,10 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_alloc);
+@@ -658,7 +658,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
+ 	if (expect->flags & NF_CT_EXPECT_USERSPACE)
+ 		seq_printf(s, "%sUSERSPACE", delim);
  
-+/* This function can only be used from packet path, where accessing
-+ * master's helper is safe, because the packet holds a reference on
-+ * the conntrack object. Never use it from control plane.
-+ */
- void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 		       u_int8_t family,
- 		       const union nf_inet_addr *saddr,
-@@ -325,7 +329,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 	exp->flags = 0;
- 	exp->class = class;
- 	exp->expectfn = NULL;
--	exp->helper = NULL;
-+	rcu_assign_pointer(exp->helper, nfct_help(exp->master)->helper);
- 	exp->tuple.src.l3num = family;
- 	exp->tuple.dst.protonum = proto;
- 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index a2a0e22ccee1..3f5c50455b71 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -643,7 +643,7 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3,
- 			  &ct->tuplehash[!dir].tuple.dst.u3,
- 			  IPPROTO_TCP, NULL, &port);
--	exp->helper = &nf_conntrack_helper_h245;
-+	rcu_assign_pointer(exp->helper, &nf_conntrack_helper_h245);
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
- 	if (memcmp(&ct->tuplehash[dir].tuple.src.u3,
-@@ -767,7 +767,7 @@ static int expect_callforwarding(struct sk_buff *skb,
- 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
--	exp->helper = nf_conntrack_helper_q931;
-+	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
- 	if (memcmp(&ct->tuplehash[dir].tuple.src.u3,
-@@ -1234,7 +1234,7 @@ static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
- 				&ct->tuplehash[!dir].tuple.src.u3 : NULL,
- 			  &ct->tuplehash[!dir].tuple.dst.u3,
- 			  IPPROTO_TCP, NULL, &port);
--	exp->helper = nf_conntrack_helper_q931;
-+	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;	/* Accept multiple calls */
- 
- 	nathook = rcu_dereference(nfct_h323_nat_hook);
-@@ -1306,7 +1306,7 @@ static int process_gcf(struct sk_buff *skb, struct nf_conn *ct,
- 	nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, nf_ct_l3num(ct),
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_UDP, NULL, &port);
--	exp->helper = nf_conntrack_helper_ras;
-+	rcu_assign_pointer(exp->helper, nf_conntrack_helper_ras);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect RAS ");
-@@ -1523,7 +1523,7 @@ static int process_acf(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;
--	exp->helper = nf_conntrack_helper_q931;
-+	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect Q.931 ");
-@@ -1577,7 +1577,7 @@ static int process_lcf(struct sk_buff *skb, struct nf_conn *ct,
- 			  &ct->tuplehash[!dir].tuple.src.u3, &addr,
- 			  IPPROTO_TCP, NULL, &port);
- 	exp->flags = NF_CT_EXPECT_PERMANENT;
--	exp->helper = nf_conntrack_helper_q931;
-+	rcu_assign_pointer(exp->helper, nf_conntrack_helper_q931);
- 
- 	if (nf_ct_expect_related(exp, 0) == 0) {
- 		pr_debug("nf_ct_ras: expect Q.931 ");
+-	helper = rcu_dereference(nfct_help(expect->master)->helper);
++	helper = rcu_dereference(expect->helper);
+ 	if (helper) {
+ 		seq_printf(s, "%s%s", expect->flags ? " " : "", helper->name);
+ 		if (helper->expect_policy[expect->class].name[0])
 diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index ceb48c3ca0a4..294a6ffcbccd 100644
+index 294a6ffcbccd..1b330ba6613b 100644
 --- a/net/netfilter/nf_conntrack_helper.c
 +++ b/net/netfilter/nf_conntrack_helper.c
-@@ -399,7 +399,7 @@ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
+@@ -395,14 +395,10 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
+ 
+ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
+ {
+-	struct nf_conn_help *help = nfct_help(exp->master);
  	const struct nf_conntrack_helper *me = data;
  	const struct nf_conntrack_helper *this;
  
--	if (exp->helper == me)
-+	if (rcu_access_pointer(exp->helper) == me)
- 		return true;
- 
- 	this = rcu_dereference_protected(help->helper,
-@@ -421,6 +421,11 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 
- 	nf_ct_expect_iterate_destroy(expect_iter_me, NULL);
- 	nf_ct_iterate_destroy(unhelp, me);
-+
-+	/* nf_ct_iterate_destroy() does an unconditional synchronize_rcu() as
-+	 * last step, this ensures rcu readers of exp->helper are done.
-+	 * No need for another synchronize_rcu() here.
-+	 */
+-	if (rcu_access_pointer(exp->helper) == me)
+-		return true;
+-
+-	this = rcu_dereference_protected(help->helper,
++	this = rcu_dereference_protected(exp->helper,
+ 					 lockdep_is_held(&nf_conntrack_expect_lock));
+ 	return this == me;
  }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index c156574e1273..a42d14290786 100644
+index a42d14290786..8477c3736432 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3573,7 +3573,7 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+@@ -3012,7 +3012,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ {
+ 	struct nf_conn *master = exp->master;
+ 	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
+-	struct nf_conn_help *help;
++	struct nf_conntrack_helper *helper;
+ #if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct nlattr *nest_parms;
+ 	struct nf_conntrack_tuple nat_tuple = {};
+@@ -3057,15 +3057,12 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 	    nla_put_be32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags)) ||
+ 	    nla_put_be32(skb, CTA_EXPECT_CLASS, htonl(exp->class)))
+ 		goto nla_put_failure;
+-	help = nfct_help(master);
+-	if (help) {
+-		struct nf_conntrack_helper *helper;
+ 
+-		helper = rcu_dereference(help->helper);
+-		if (helper &&
+-		    nla_put_string(skb, CTA_EXPECT_HELP_NAME, helper->name))
+-			goto nla_put_failure;
+-	}
++	helper = rcu_dereference(exp->helper);
++	if (helper &&
++	    nla_put_string(skb, CTA_EXPECT_HELP_NAME, helper->name))
++		goto nla_put_failure;
++
+ 	expfn = nf_ct_helper_expectfn_find_by_symbol(exp->expectfn);
+ 	if (expfn != NULL &&
+ 	    nla_put_string(skb, CTA_EXPECT_FN, expfn->name))
+@@ -3394,12 +3391,9 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
+ static bool expect_iter_name(struct nf_conntrack_expect *exp, void *data)
+ {
+ 	struct nf_conntrack_helper *helper;
+-	const struct nf_conn_help *m_help;
+ 	const char *name = data;
+ 
+-	m_help = nfct_help(exp->master);
+-
+-	helper = rcu_dereference(m_help->helper);
++	helper = rcu_dereference(exp->helper);
+ 	if (!helper)
+ 		return false;
+ 
+@@ -3534,9 +3528,9 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+ 		       struct nf_conntrack_tuple *tuple,
+ 		       struct nf_conntrack_tuple *mask)
+ {
+-	u_int32_t class = 0;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conn_help *help;
++	u32 class = 0;
+ 	int err;
+ 
+ 	help = nfct_help(ct);
+@@ -3573,6 +3567,8 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
  
  	exp->class = class;
  	exp->master = ct;
--	exp->helper = helper;
-+	rcu_assign_pointer(exp->helper, helper);
++	if (!helper)
++		helper = rcu_dereference(help->helper);
+ 	rcu_assign_pointer(exp->helper, helper);
  	exp->tuple = *tuple;
  	exp->mask.src.u3 = mask->src.u3;
- 	exp->mask.src.u.all = mask->src.u.all;
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 4ab5ef71d96d..106b2f419e19 100644
+index 106b2f419e19..20e57cf5c83a 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1297,7 +1297,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	nf_ct_expect_init(exp, SIP_EXPECT_SIGNALLING, nf_ct_l3num(ct),
- 			  saddr, &daddr, proto, NULL, &port);
- 	exp->timeout.expires = sip_timeout * HZ;
--	exp->helper = helper;
-+	rcu_assign_pointer(exp->helper, helper);
- 	exp->flags = NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE;
+@@ -924,7 +924,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 		exp = __nf_ct_expect_find(net, nf_ct_zone(ct), &tuple);
  
- 	hooks = rcu_dereference(nf_nat_sip_hooks);
+ 		if (!exp || exp->master == ct ||
+-		    nfct_help(exp->master)->helper != nfct_help(ct)->helper ||
++		    exp->helper != nfct_help(ct)->helper ||
+ 		    exp->class != class)
+ 			break;
+ #if IS_ENABLED(CONFIG_NF_NAT)
 -- 
 2.52.0
 
