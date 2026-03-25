@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B69371D0E;
-	Wed, 25 Mar 2026 22:26:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D399F38B7C5;
+	Wed, 25 Mar 2026 22:26:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774477601; cv=none; b=Lfu1IgQ3jEebGzva6tMNPOC3J6ItVNiM6sZ06C0pIyhBYhKqgcb2yqAdx5vadZXzsbJ6MgSbvsrHPbZ972FNPxiVvpoX+4alsyILz7iyHtj82Nbue7Te/zjekc05KjOENE+mytMTmj1oi/sGzCrTx5NQWogVP4slmIjmOUTPkfQ=
+	t=1774477604; cv=none; b=kdCR4byACnFhV2l8P+ElirDWFOPbIWdX0uzOtpLmbYxfQHkR0VbpkB5AHHS/uEYd1nM+xp+S1X+UgSn533/K/Ah61Q2F69X18Z25JxGJrqw9pSxEnTQIEM/L6Fm4mvGhBFzm9gOTO02sl397cJn9FUJClcCAk1KmEyzBwS1rqLc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774477601; c=relaxed/simple;
-	bh=tEyzgpBl6untVBoLfLqJ7aRUslMYGDD6YmvDurlq/tg=;
+	s=arc-20240116; t=1774477604; c=relaxed/simple;
+	bh=eB8DTUiEqN019xW+jY9w7FKR/cIYRdOq6iFJK2njVgc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mJKqUykmYkS0QNssHeilGxNAWkEMeSL11H6i3igTYxWzw2RC1scY7ad5Gq2JtBTzuZcM1SUQwmj89osNLU6zDHagqpJ6Iclu5aJoKVU+p+CfBE/5wV2jemU+LRFs/tcvhQosmGXnpuWbLRyvzrTQtwRWe7Xk0QSAR2FY+FYcZlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=C8v9DLR/; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=d67Snw40CGTQkb/LHdRDsZPSWHHraW8PlO5LjBAbT3tta2b6TV2Z1NMCSs3PJSgA245x5ew270w+m4jLSsyDun/h6BmXRzIeOM3gKoQ4VtnKUK3hiP/msNxDRDK6w4dWawWQX9yC0QuumJP33RP+DdkeKjKC4t9E+H6ak6BurDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mMk+4KOC; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="C8v9DLR/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mMk+4KOC"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 209FA6017D;
-	Wed, 25 Mar 2026 23:26:38 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 719956017A;
+	Wed, 25 Mar 2026 23:26:39 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774477598;
-	bh=Jieo/3if9WncjG+80KJlCXCChmQ3rYE4ZAyLUHFPIK8=;
+	s=2025; t=1774477599;
+	bh=pyZO6aL0NnAibtHpLWCfdpXmz5R7zaZw855RoS7dQpk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=C8v9DLR/c7NJwAv9Uj7M7W+oQzOfKSHoCrPIGqZF04ctKOBBFqv+ActqUb+frDXoY
-	 cg7vV0t3Estp6g34q/X+cRXFqohUXOwr9VzkXWXTjM+5nebyudw8mdup8FRh7H+Jue
-	 tbwJmMX9pvHjkF5tTpPhy/buOWCvc3IdIGbx93hVaaDjclo3vCL7azjX4m08n8aYWQ
-	 my5m4JVtvHsg6AVcucKD8rktHwYPS0/3Y3yGQsGDSgor9gFcq8ofJ5jtaFTUaLzTKZ
-	 M0lacTwKgH7xUXCCYmLMAD2wzhPmn6wJH1r3ydtQyrewqKoQK0+1NdXpwqEzSJCeS+
-	 PtyeZvIbrTfRQ==
+	b=mMk+4KOC+CUvDSE9OaBxkOFPSsh/y4QX6IOBiZ1XPVY8BSZj2rEQ2khKS+g4SjKMG
+	 Pu1XnkzaKVCub0NB7trzk457MtNFOxisxdacXYPq1SKiFYc5kiT741NvOK8NZ2UhLf
+	 uChrk7UlNU8IBXUUFhDs5xexBW35Naqff/2XXRkDpThES+Mc2ZX4N3P4Djtxz2cx3O
+	 VcS2Ax4xQLWN0QtUfkVJJq6yes8pTf7slejgYKbzZPl53dUsB+oLiAMHJIW/kzISKS
+	 ehsT5s15RFt9HJwin7G7tvH9ImHPPTxJ6IHo6pgAduLvjsxhy4J1tuOmp755O6yphE
+	 GsPdH2BuRknqA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 11/14] netfilter: nf_conntrack_expect: store netns and zone in expectation
-Date: Wed, 25 Mar 2026 23:26:12 +0100
-Message-ID: <20260325222615.637793-12-pablo@netfilter.org>
+Subject: [PATCH net 12/14] netfilter: nf_conntrack_expect: skip expectations in other netns via proc
+Date: Wed, 25 Mar 2026 23:26:13 +0100
+Message-ID: <20260325222615.637793-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260325222615.637793-1-pablo@netfilter.org>
 References: <20260325222615.637793-1-pablo@netfilter.org>
@@ -52,121 +52,38 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-__nf_ct_expect_find() and nf_ct_expect_find_get() are called under
-rcu_read_lock() but they dereference the master conntrack via
-exp->master.
+Skip expectations that do not reside in this netns.
 
-Since the expectation does not hold a reference on the master conntrack,
-this could be dying conntrack or different recycled conntrack than the
-real master due to SLAB_TYPESAFE_RCU.
+Similar to e77e6ff502ea ("netfilter: conntrack: do not dump other netns's
+conntrack entries via proc").
 
-Store the netns, the master_tuple and the zone in struct
-nf_conntrack_expect as a safety measure.
-
-This patch is required by the follow up fix not to dump expectations
-that do not belong to this netns.
-
+Fixes: 5a1fb391d881 ("netfilter: netns nf_conntrack: add ->ct_net -- pointer from conntrack to netns")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_expect.h | 18 +++++++++++++++++-
- net/netfilter/nf_conntrack_expect.c         |  7 +++++--
- net/netfilter/nf_conntrack_netlink.c        |  3 +++
- 3 files changed, 25 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_expect.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 1b01400b10bd..e9a8350e7ccf 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -22,10 +22,16 @@ struct nf_conntrack_expect {
- 	/* Hash member */
- 	struct hlist_node hnode;
- 
-+	/* Network namespace */
-+	possible_net_t net;
-+
- 	/* We expect this tuple, with the following mask */
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conntrack_tuple_mask mask;
- 
-+#ifdef CONFIG_NF_CONNTRACK_ZONES
-+	struct nf_conntrack_zone zone;
-+#endif
- 	/* Usage count. */
- 	refcount_t use;
- 
-@@ -62,7 +68,17 @@ struct nf_conntrack_expect {
- 
- static inline struct net *nf_ct_exp_net(struct nf_conntrack_expect *exp)
- {
--	return nf_ct_net(exp->master);
-+	return read_pnet(&exp->net);
-+}
-+
-+static inline bool nf_ct_exp_zone_equal_any(const struct nf_conntrack_expect *a,
-+					    const struct nf_conntrack_zone *b)
-+{
-+#ifdef CONFIG_NF_CONNTRACK_ZONES
-+	return a->zone.id == b->id;
-+#else
-+	return true;
-+#endif
- }
- 
- #define NF_CT_EXP_POLICY_NAME_LEN	16
 diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 1cbe5f1108c2..29b9d984a990 100644
+index 29b9d984a990..78270253cca9 100644
 --- a/net/netfilter/nf_conntrack_expect.c
 +++ b/net/netfilter/nf_conntrack_expect.c
-@@ -113,8 +113,8 @@ nf_ct_exp_equal(const struct nf_conntrack_tuple *tuple,
- 		const struct net *net)
+@@ -650,11 +650,15 @@ static int exp_seq_show(struct seq_file *s, void *v)
  {
- 	return nf_ct_tuple_mask_cmp(tuple, &i->tuple, &i->mask) &&
--	       net_eq(net, nf_ct_net(i->master)) &&
--	       nf_ct_zone_equal_any(i->master, zone);
-+	       net_eq(net, read_pnet(&i->net)) &&
-+	       nf_ct_exp_zone_equal_any(i, zone);
- }
+ 	struct nf_conntrack_expect *expect;
+ 	struct nf_conntrack_helper *helper;
++	struct net *net = seq_file_net(s);
+ 	struct hlist_node *n = v;
+ 	char *delim = "";
  
- bool nf_ct_remove_expect(struct nf_conntrack_expect *exp)
-@@ -326,6 +326,7 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- {
- 	struct nf_conntrack_helper *helper = NULL;
- 	struct nf_conn *ct = exp->master;
-+	struct net *net = read_pnet(&ct->ct_net);
- 	struct nf_conn_help *help;
- 	int len;
+ 	expect = hlist_entry(n, struct nf_conntrack_expect, hnode);
  
-@@ -343,6 +344,8 @@ void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
- 		helper = rcu_dereference(help->helper);
- 
- 	rcu_assign_pointer(exp->helper, helper);
-+	write_pnet(&exp->net, net);
-+	exp->zone = ct->zone;
- 	exp->tuple.src.l3num = family;
- 	exp->tuple.dst.protonum = proto;
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 89540112d165..2ec33c0518e9 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3538,6 +3538,7 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 		       struct nf_conntrack_tuple *tuple,
- 		       struct nf_conntrack_tuple *mask)
- {
-+	struct net *net = read_pnet(&ct->ct_net);
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conn_help *help;
- 	u32 class = 0;
-@@ -3577,6 +3578,8 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 
- 	exp->class = class;
- 	exp->master = ct;
-+	write_pnet(&exp->net, net);
-+	exp->zone = ct->zone;
- 	if (!helper)
- 		helper = rcu_dereference(help->helper);
- 	rcu_assign_pointer(exp->helper, helper);
++	if (!net_eq(nf_ct_exp_net(expect), net))
++		return 0;
++
+ 	if (expect->timeout.function)
+ 		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
+ 			   ? (long)(expect->timeout.expires - jiffies)/HZ : 0);
 -- 
 2.47.3
 
