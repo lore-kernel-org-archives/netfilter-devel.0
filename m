@@ -1,113 +1,101 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 635632874FA;
-	Wed, 25 Mar 2026 15:18:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52A0C3BED0C
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2026 16:41:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774451934; cv=none; b=fpwS46+u3bgfmSq+0bMBzwpO3oD9NdSJmy9Mia/fByhgsz5Wr4DIp74dmNl90MpJsYJ554XsxbXFga/LK5+aneaqde4NdkZvJ+ZSWlaQhUloyREcDPPwHRCu4XMCcAjzvSyNSMpYYVGf2o1XSnhZtD2MZLVSHJ1QrVcgTo0Hd38=
+	t=1774456919; cv=none; b=kIvn30I7UL/rRvlNX+Nmp7TX8sOfJFw8mYL9NbzM8V54ndpxxgOit7HC3bCjfxxuOdL3In84m9BzDddo+9dhppI3wnOlRZzKkNvinA6+Eqk2GioBqliKR++NYr6BLOb0SFaT6jGXJAltqpJj9bMgcysBTiv/AX8pLH4fkE4Pbe0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774451934; c=relaxed/simple;
-	bh=6m/MmvYSE/2Ygtum1ZsGcZJVuBOOGdOrW5mny9KmDFk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VlH7sqBhtwUGOwaCPUqO173ccAY7XB3asPb2tTNlFnpmOxbt17fRRW4bhXU0sXctnekBNwdlkSTE1lA+Wl4edd50FX6OBqXMzTWWOeadQh0kNoyVe8++hwRD//ipP9UrIGROisYR7a//QqGr5TVlaAandtGt8T+DqdAVEfg21jI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=e3hHqZCY; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="e3hHqZCY"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 58F7460178;
-	Wed, 25 Mar 2026 16:18:49 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774451929;
-	bh=x7JNqP/5ocp87OzSoqZMy229QOtYkmJPDg2MSYVgTZc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=e3hHqZCYGoseBnrzwF5sFL6/D3LhGOfLTyGapPTZlQ49V+OpE3JwCRPxAEl6PIBmX
-	 GmJhfxG/iLAx2eVWicZoyeD1uWWLBDPCk/MxOyIW7TlncqU2jFXpH1i8orwiDixGao
-	 LX2Aj+pJNmUavvCKJW+zlrN2bqeySwk4TAuEf64Mb3m84nl8YsICoRQjVOxghpcZrt
-	 EpNKki+io2lNl81N8tUHxuQHO3/SFPvUpp2qjlguvOPoH5FSaDQjE0MmyzRBR2xIF1
-	 uPBV73UESrRQNLINCHS+ZV/NfEZiwV8ymGB6ZswUPBEXVyiAtWx4rcPEFKuQYA5EVm
-	 m4f5LwV7punOQ==
-Date: Wed, 25 Mar 2026 16:18:47 +0100
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: Hyunwoo Kim <imv4bel@gmail.com>, phil@nwl.cc, davem@davemloft.net,
-	edumazet@google.com, kuba@kernel.org, pabeni@redhat.com,
-	horms@kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net] netfilter: nf_flow_table_offload: fix heap overflow
- in flow_action_entry_next()
-Message-ID: <acP810hDQY7O99-f@chamomile>
-References: <aaxe-uH2Qr6qM4E9@v4bel>
- <aax2yZtJce0d19gd@strlen.de>
- <abfhRFfZ1LOgWEsf@strlen.de>
- <abfoTBGLhav-iPQb@v4bel>
- <abfuEe_PpDCyA64B@strlen.de>
- <abgQ7GSjz2v2_QnX@v4bel>
- <abgajW6KJM5KD3bN@strlen.de>
- <acPw54RoNOSgsfdE@strlen.de>
+	s=arc-20240116; t=1774456919; c=relaxed/simple;
+	bh=JY2glMILN4+/CG1ObBikjiO/jIVgnDBytAotRygH+Oo=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Dkc5F5OHh1hvQgUxrmzkk6sf4TFc8qO7/0Nj0z0NqmmjRNX/xQjq6PGR3QXnPWFggvWv9YMEnclaphUmUPezNlNhAj7mGk1k1zhegM1GBUg2VgrNO7r7TRM//NWY4+wFzes8OmoJgD4ZR0JvsSLJVEOfQbenpWMd6FDAp7NxIOc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0A5716080C; Wed, 25 Mar 2026 17:41:56 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Hyunwoo Kim <imv4bel@gmail.com>
+Subject: [PATCH nf] netfilter: nf_tables: reject requests exceeding NF_FLOW_RULE_ACTION_MAX actions
+Date: Wed, 25 Mar 2026 17:41:27 +0100
+Message-ID: <20260325164130.29060-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <acPw54RoNOSgsfdE@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 25, 2026 at 03:27:51PM +0100, Florian Westphal wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > Hyunwoo Kim <imv4bel@gmail.com> wrote:
-> > > hmm. So, based on what you said, I assume the run-time check would look 
-> > > something like this?
-> > > 
-> > > diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
-> > > index 9b677e116487..69ffefbdd5e8 100644
-> > > --- a/net/netfilter/nf_flow_table_offload.c
-> > > +++ b/net/netfilter/nf_flow_table_offload.c
-> > > @@ -218,6 +218,9 @@ flow_action_entry_next(struct nf_flow_rule *flow_rule)
-> > >  {
-> > >         int i = flow_rule->rule->action.num_entries++;
-> > > 
-> > > +       if (WARN_ON_ONCE(i >= NF_FLOW_RULE_ACTION_MAX))
-> > > +               return NULL;
-> > > +
-> > >         return &flow_rule->rule->action.entries[i];
-> > >  }
-> > > 
-> > > However, if we add a runtime check in this way, all callers of 
-> > > flow_action_entry_next() would also need to handle a NULL return value, 
-> > > since none of them currently perform a null check.
-> > > 
-> > > Because of the potential risk, this would require modifying quite a number 
-> > > of call sites carefully. What do you think about this approach?
-> > 
-> > Can't we reject this at configuration time?
-> > 
-> > I mean, userspace has to ask for this action sequence, no?
-> 
-> Guess:
-> 
-> diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
-> --- a/net/netfilter/nf_tables_offload.c
-> +++ b/net/netfilter/nf_tables_offload.c
-> @@ -105,6 +105,9 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
->         if (num_actions == 0)
->                 return ERR_PTR(-EOPNOTSUPP);
-> 
-> +       if (num_actions > NF_FLOW_RULE_ACTION_MAX)
-> +               return ERR_PTR(-EOPNOTSUPP);
-> +
->         flow = nft_flow_rule_alloc(num_actions);
->         if (!flow)
->                 return ERR_PTR(-ENOMEM);
-> 
+nf_flow_offload_rule_alloc() allocates space for NF_FLOW_RULE_ACTION_MAX
+entries.  Make sure userspace passes more entries to us.
 
-That is good enough, thanks.
+Reported-by: Hyunwoo Kim <imv4bel@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Can also route via nf-next if thats deemed the better tree.
 
-Would you submit this?
+ include/net/netfilter/nf_flow_table.h | 2 ++
+ net/netfilter/nf_flow_table_offload.c | 2 --
+ net/netfilter/nf_tables_offload.c     | 5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-This is nf-next material, it is not possible to reach such number of
-actions (16) in the flowtable.
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index b09c11c048d5..0b2fb1467b3f 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -13,6 +13,8 @@
+ #include <linux/if_pppox.h>
+ #include <linux/ppp_defs.h>
+ 
++#define NF_FLOW_RULE_ACTION_MAX	16
++
+ struct nf_flowtable;
+ struct nf_flow_rule;
+ struct flow_offload;
+diff --git a/net/netfilter/nf_flow_table_offload.c b/net/netfilter/nf_flow_table_offload.c
+index 9b677e116487..11463682bbfa 100644
+--- a/net/netfilter/nf_flow_table_offload.c
++++ b/net/netfilter/nf_flow_table_offload.c
+@@ -727,8 +727,6 @@ int nf_flow_rule_route_ipv6(struct net *net, struct flow_offload *flow,
+ }
+ EXPORT_SYMBOL_GPL(nf_flow_rule_route_ipv6);
+ 
+-#define NF_FLOW_RULE_ACTION_MAX	16
+-
+ static struct nf_flow_rule *
+ nf_flow_offload_rule_alloc(struct net *net,
+ 			   const struct flow_offload_work *offload,
+diff --git a/net/netfilter/nf_tables_offload.c b/net/netfilter/nf_tables_offload.c
+index 9101b1703b52..a2f7966bc201 100644
+--- a/net/netfilter/nf_tables_offload.c
++++ b/net/netfilter/nf_tables_offload.c
+@@ -88,10 +88,11 @@ static void nft_flow_rule_transfer_vlan(struct nft_offload_ctx *ctx,
+ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 					   const struct nft_rule *rule)
+ {
++	unsigned int num_actions = 0;
+ 	struct nft_offload_ctx *ctx;
+ 	struct nft_flow_rule *flow;
+-	int num_actions = 0, err;
+ 	struct nft_expr *expr;
++	int err;
+ 
+ 	expr = nft_expr_first(rule);
+ 	while (nft_expr_more(rule, expr)) {
+@@ -102,7 +103,7 @@ struct nft_flow_rule *nft_flow_rule_create(struct net *net,
+ 		expr = nft_expr_next(expr);
+ 	}
+ 
+-	if (num_actions == 0)
++	if (num_actions == 0 || num_actions > NF_FLOW_RULE_ACTION_MAX)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+ 	flow = nft_flow_rule_alloc(num_actions);
+-- 
+2.52.0
+
