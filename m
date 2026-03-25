@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09D46382377;
-	Wed, 25 Mar 2026 22:26:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F27D37B021;
+	Wed, 25 Mar 2026 22:26:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774477597; cv=none; b=j6sb7VOBFJdOwuGo4fo/zovVkGKuK0N4g7dItlBvD8iX8lA82Kr5Yl5Bcf32LyJ3fVoqVThD8hP56EEklA5HGx2GR5dvc8zSqrxLr0qqPkXr74Y2fnSzooJzzxB6mwv1VVYqMWijYDyIgAeLNFXwxdirmZThSpUMZ6VW3bJ2/hs=
+	t=1774477598; cv=none; b=ioswWVsaG617np2xpq9o7pAixUxPZWRJUIpLq7iTgn0Va7LGMTvrVKMo0Cdp58XwKT/33HHCSeq7mYlzwuyNJFdgZ2QG8+whlF2J2+R85+8QXS0qToM0k7eBSsS781xv3/YUAm69p6rp20lPaj0ZpmSsmzIqqs7ucZucTssd22s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774477597; c=relaxed/simple;
-	bh=3M8SeXoNHLSfSINMUuDheIWOSxvuF8h+a8P9Ia2Rlqc=;
+	s=arc-20240116; t=1774477598; c=relaxed/simple;
+	bh=oTUeYgRYY4NGUxknfj9KSKHk9yYz1i9WzvwY/W4UwCU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bcit29FMpfHQg0AcqLizkuwjbPiuNqELD+8hL1EG49n4hI/VFj2ifSqNLjD80tXnX7pbL7UZ1LYIlBgmPytnsSM1K6+BxiWroVQcBkP3R9va15neKij/aOgvB2Fki82CUoLFiCLsRKHRek9151RlGSZXz3ZlNMuuJruUd9bp6w8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Cz/8Z+jv; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=E/A1uwz6GgBaKvjXvLhSIr5h8tiaD0pBAOjWxNDVAJsAbcxFYutRAzZV6IRF9xRAfck2FueEZeqt1npFBRkS76ppP2VKi2TCnUyH4+VQvsYO7sxzBtWzZWhId/hf6n65CofKaRKe3RzCQ0x3ZY3k9uptNKYa745UPxVwGoC0Jgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=mScutKAT; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Cz/8Z+jv"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="mScutKAT"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 0B2776024E;
-	Wed, 25 Mar 2026 23:26:30 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 13EE760254;
+	Wed, 25 Mar 2026 23:26:35 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774477591;
-	bh=GWPRWf1+yS2roJCPasyquMCXNaZuktYHTHQ8GKT903w=;
+	s=2025; t=1774477595;
+	bh=5z/jDTeSkll46GN1LoH/0wYrBiJ7v6EfR3Ufh7zKngw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Cz/8Z+jva0AWCktbXP2sjv9NJDjWKAjA1C5m8RRNzz5gLv0HpjV9F6D2GsxmtcfQA
-	 Ui/icT0vEOjRyYB3mtWkPKqVnv2R6UCX6OPe+IHDdg4V4a2WeuFhyFOR5nYBb7utJM
-	 bQKWbXTdJd+WBojiKyUSXR6vHTpV1nJlQCAK+Xt82oTQ921ghkiktS+NYNRGFhulow
-	 PAfppWfEzM4wv/tC4Ikl4cKxV3Lt6mSjEokD95fz5AtKZ+4qtjQqMi4CWbRXQ+x206
-	 y8u2o5G9xiW9nm+cf541M8hxxKCJdBIv5bZ5lhof/nzEz8XC6y/I3mt4gyjlYDdogd
-	 HGKjPE3TqkQZA==
+	b=mScutKATq+2kwNEagS3XnNUkcUImp0+I+22ydozCRJeHQH/1pSzJOSGV+JcBZMN3B
+	 /vM7GS5ZAT5PyJIvg7ln9YK9/2sgYxk7lWqfDsg/wo1/xLD0F4J4pFns6NZJ/NfKmj
+	 EhWt2Ef7WbU7TnNJv3gbXbRBze5Qd/t+iasdx6iLCUeHjoqoMDPguKQKAzQoEfDVJF
+	 sFvRUZey3B2201OxkTKXPp5Kl+bem65UirRn+sQgVFmhH/xRbyJWv/KWEorIqBDehw
+	 dBSQvAo3jsPggeT85o/cr4w3/z5kTkygvGRXzSNL5nqTJHmrIR6GjGdiVKjecZHUYC
+	 wR+MH6d0OT+aA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/14] netfilter: ip6t_rt: reject oversized addrnr in rt_mt6_check()
-Date: Wed, 25 Mar 2026 23:26:07 +0100
-Message-ID: <20260325222615.637793-7-pablo@netfilter.org>
+Subject: [PATCH net 09/14] netfilter: nf_conntrack_expect: use expect->helper
+Date: Wed, 25 Mar 2026 23:26:10 +0100
+Message-ID: <20260325222615.637793-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260325222615.637793-1-pablo@netfilter.org>
 References: <20260325222615.637793-1-pablo@netfilter.org>
@@ -52,43 +52,140 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ren Wei <n05ec@lzu.edu.cn>
+Use expect->helper in ctnetlink and /proc to dump the helper name.
+Using nfct_help() without holding a reference to the master conntrack
+is unsafe.
 
-Reject rt match rules whose addrnr exceeds IP6T_RT_HOPS.
+Use exp->master->helper in ctnetlink path if userspace does not provide
+an explicit helper when creating an expectation to retain the existing
+behaviour. The ctnetlink expectation path holds the reference on the
+master conntrack and nf_conntrack_expect lock and the nfnetlink glue
+path refers to the master ct that is attached to the skb.
 
-rt_mt6() expects addrnr to stay within the bounds of rtinfo->addrs[].
-Validate addrnr during rule installation so malformed rules are rejected
-before the match logic can use an out-of-range value.
-
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Co-developed-by: Yuan Tan <yuantan098@gmail.com>
-Signed-off-by: Yuan Tan <yuantan098@gmail.com>
-Suggested-by: Xin Liu <bird@lzu.edu.cn>
-Tested-by: Yuhang Zheng <z1652074432@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+Reported-by: Hyunwoo Kim <imv4bel@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_rt.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nf_conntrack_expect.c  |  2 +-
+ net/netfilter/nf_conntrack_helper.c  |  6 +-----
+ net/netfilter/nf_conntrack_netlink.c | 24 ++++++++++--------------
+ net/netfilter/nf_conntrack_sip.c     |  2 +-
+ 4 files changed, 13 insertions(+), 21 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index 4ad8b2032f1f..5561bd9cea81 100644
---- a/net/ipv6/netfilter/ip6t_rt.c
-+++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -157,6 +157,10 @@ static int rt_mt6_check(const struct xt_mtchk_param *par)
- 		pr_debug("unknown flags %X\n", rtinfo->invflags);
- 		return -EINVAL;
- 	}
-+	if (rtinfo->addrnr > IP6T_RT_HOPS) {
-+		pr_debug("too many addresses specified\n");
-+		return -EINVAL;
-+	}
- 	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
- 	    (!(rtinfo->flags & IP6T_RT_TYP) ||
- 	     (rtinfo->rt_type != 0) ||
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 841e316240da..64977db12b1d 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -666,7 +666,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
+ 	if (expect->flags & NF_CT_EXPECT_USERSPACE)
+ 		seq_printf(s, "%sUSERSPACE", delim);
+ 
+-	helper = rcu_dereference(nfct_help(expect->master)->helper);
++	helper = rcu_dereference(expect->helper);
+ 	if (helper) {
+ 		seq_printf(s, "%s%s", expect->flags ? " " : "", helper->name);
+ 		if (helper->expect_policy[expect->class].name[0])
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 294a6ffcbccd..1b330ba6613b 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -395,14 +395,10 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
+ 
+ static bool expect_iter_me(struct nf_conntrack_expect *exp, void *data)
+ {
+-	struct nf_conn_help *help = nfct_help(exp->master);
+ 	const struct nf_conntrack_helper *me = data;
+ 	const struct nf_conntrack_helper *this;
+ 
+-	if (rcu_access_pointer(exp->helper) == me)
+-		return true;
+-
+-	this = rcu_dereference_protected(help->helper,
++	this = rcu_dereference_protected(exp->helper,
+ 					 lockdep_is_held(&nf_conntrack_expect_lock));
+ 	return this == me;
+ }
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index a42d14290786..8477c3736432 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3012,7 +3012,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ {
+ 	struct nf_conn *master = exp->master;
+ 	long timeout = ((long)exp->timeout.expires - (long)jiffies) / HZ;
+-	struct nf_conn_help *help;
++	struct nf_conntrack_helper *helper;
+ #if IS_ENABLED(CONFIG_NF_NAT)
+ 	struct nlattr *nest_parms;
+ 	struct nf_conntrack_tuple nat_tuple = {};
+@@ -3057,15 +3057,12 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
+ 	    nla_put_be32(skb, CTA_EXPECT_FLAGS, htonl(exp->flags)) ||
+ 	    nla_put_be32(skb, CTA_EXPECT_CLASS, htonl(exp->class)))
+ 		goto nla_put_failure;
+-	help = nfct_help(master);
+-	if (help) {
+-		struct nf_conntrack_helper *helper;
+ 
+-		helper = rcu_dereference(help->helper);
+-		if (helper &&
+-		    nla_put_string(skb, CTA_EXPECT_HELP_NAME, helper->name))
+-			goto nla_put_failure;
+-	}
++	helper = rcu_dereference(exp->helper);
++	if (helper &&
++	    nla_put_string(skb, CTA_EXPECT_HELP_NAME, helper->name))
++		goto nla_put_failure;
++
+ 	expfn = nf_ct_helper_expectfn_find_by_symbol(exp->expectfn);
+ 	if (expfn != NULL &&
+ 	    nla_put_string(skb, CTA_EXPECT_FN, expfn->name))
+@@ -3394,12 +3391,9 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
+ static bool expect_iter_name(struct nf_conntrack_expect *exp, void *data)
+ {
+ 	struct nf_conntrack_helper *helper;
+-	const struct nf_conn_help *m_help;
+ 	const char *name = data;
+ 
+-	m_help = nfct_help(exp->master);
+-
+-	helper = rcu_dereference(m_help->helper);
++	helper = rcu_dereference(exp->helper);
+ 	if (!helper)
+ 		return false;
+ 
+@@ -3534,9 +3528,9 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+ 		       struct nf_conntrack_tuple *tuple,
+ 		       struct nf_conntrack_tuple *mask)
+ {
+-	u_int32_t class = 0;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conn_help *help;
++	u32 class = 0;
+ 	int err;
+ 
+ 	help = nfct_help(ct);
+@@ -3573,6 +3567,8 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+ 
+ 	exp->class = class;
+ 	exp->master = ct;
++	if (!helper)
++		helper = rcu_dereference(help->helper);
+ 	rcu_assign_pointer(exp->helper, helper);
+ 	exp->tuple = *tuple;
+ 	exp->mask.src.u3 = mask->src.u3;
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 106b2f419e19..20e57cf5c83a 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -924,7 +924,7 @@ static int set_expected_rtp_rtcp(struct sk_buff *skb, unsigned int protoff,
+ 		exp = __nf_ct_expect_find(net, nf_ct_zone(ct), &tuple);
+ 
+ 		if (!exp || exp->master == ct ||
+-		    nfct_help(exp->master)->helper != nfct_help(ct)->helper ||
++		    exp->helper != nfct_help(ct)->helper ||
+ 		    exp->class != class)
+ 			break;
+ #if IS_ENABLED(CONFIG_NF_NAT)
 -- 
 2.47.3
 
