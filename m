@@ -1,546 +1,144 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8854E3DA7FB
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Mar 2026 12:11:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69BD1309DDF;
+	Wed, 25 Mar 2026 13:11:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774440688; cv=none; b=sTpTS7hzXYng/5+1VGrCNbiqVir6hVaZbVMD3u6U7xwBqHknfkgBwBjZonhESRA45N08BRM8wqQg1lbJX1SVfpa9/XXS6m5Pda95fFAPXiz+yXohEKoASwHsiDB5diBaf1buP/QFHF0zTRcHG3PG70Q2ekWY0Nrd4EDkfdQN0o8=
+	t=1774444302; cv=none; b=VHH6zPkj9HfMV6qQxr4rgrZwHSVAfO/AIt+VPtmKwK0Lcn4+R6s7F26zh4/gw743DpokKueFOHuSMpgM1OZE6zy7f+WNUuJr5QZhM/VKY07bKGtYsPCdj3ZP3oqUcLwgClIZVD6rKAV63LLQZW1Vq9EeBk2RjVyIo155revK16g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774440688; c=relaxed/simple;
-	bh=zu3aLA0rvDaDrhmPPuqjpIE3CrfmdSxcAd9b1qb2ZYQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jTv6ZFAazuB3A89QpdeiGB6IDchRIuxTjc/7yRX7FPdCVFKJoJqA8Z6HVRwnljpuE4jtl0fxpafYrfPbj7sEKeCPthu1H/CueQ2cIuKUgtSFOgHgONGM3e7+W9HFVy8lJRZF/ZHrivWY0tkDQARQ97GmdOi2HxOgfY+3L06/alg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 0ABA15BCD0;
-	Wed, 25 Mar 2026 12:11:25 +0000 (UTC)
-Authentication-Results: smtp-out2.suse.de;
-	none
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0407F443BE;
-	Wed, 25 Mar 2026 12:11:23 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id mO2VOevQw2kbNgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Wed, 25 Mar 2026 12:11:23 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netdev@vger.kernel.org
-Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
-	=?UTF-8?q?Ricardo=20B=2E=20Marli=C3=A8re?= <rbm@suse.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
+	s=arc-20240116; t=1774444302; c=relaxed/simple;
+	bh=3AmlJPot+VL+VEaLAr7y61rdZG26HyCu2M4NIujBSLA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IOdKAYRQOVF7L8hzXsjb1gtbJKnsJglVzcjCdy/z8eFuoJjL/P1++tKD7xgflhqhJBUT8q8ZWlyvXPjwSuw4B3PsGErRpaXLBqHSrg25MXgS5WAghQJffI9tLMR5JboaUZBa8yfU0zT5KiHXF5rGCaGRqZg78KDbr/tcRsFLfeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 540316080C; Wed, 25 Mar 2026 14:11:33 +0100 (CET)
+From: Florian Westphal <fw@strlen.de>
+To: <netdev@vger.kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>,
 	"David S. Miller" <davem@davemloft.net>,
 	Eric Dumazet <edumazet@google.com>,
 	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	David Ahern <dsahern@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	bridge@lists.linux.dev
-Subject: [PATCH 11/11 net-next v5] netfilter: remove nf_ipv6_ops and use direct function calls
-Date: Wed, 25 Mar 2026 13:08:52 +0100
-Message-ID: <20260325120928.15848-12-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260325120928.15848-1-fmancera@suse.de>
-References: <20260325120928.15848-1-fmancera@suse.de>
+	<netfilter-devel@vger.kernel.org>,
+	pablo@netfilter.org
+Subject: [PATCH net 00/14] netfilter: updates for net
+Date: Wed, 25 Mar 2026 14:10:54 +0100
+Message-ID: <20260325131108.23045-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Rspamd-Queue-Id: 0ABA15BCD0
-X-Rspamd-Pre-Result: action=no action;
-	module=replies;
-	Message is reply to one we originated
-X-Rspamd-Action: no action
-X-Spam-Score: -4.00
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	REPLY(-4.00)[]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
 
-As IPv6 is built-in only, nf_ipv6_ops can be removed completely as it is
-not longer necessary.
+Hi,
 
-Convert all nf_ipv6_ops usage to direct function calls instead. In
-addition, remove the ipv6_netfilter_init/fini() functions as they are
-not necessary any longer.
+The following patchset contains Netfilter fixes for *net*.
+Note that most bugs fixed here stem from 2.6 days, the large PR
+is not due to an increase in regressions.
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
-Tested-by: Ricardo B. Marlière <rbm@suse.com>
----
- include/linux/netfilter_ipv6.h    | 102 ++----------------------------
- net/bridge/br_netfilter_hooks.c   |  12 +---
- net/bridge/br_netfilter_ipv6.c    |   7 +-
- net/ipv6/af_inet6.c               |   6 --
- net/ipv6/netfilter.c              |  48 --------------
- net/netfilter/core.c              |   3 -
- net/netfilter/nf_nat_masquerade.c |  21 +-----
- net/netfilter/nfnetlink_queue.c   |  22 +++++--
- net/netfilter/utils.c             |   1 -
- 9 files changed, 32 insertions(+), 190 deletions(-)
+1) Fix incorrect reject of set updates with nf_tables pipapo set
+   avx2 backend.  This comes with a regression test in patch 2.
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 61aa48f46dd7..5ce45b6d890f 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -34,59 +34,13 @@ struct ip6_rt_info {
- struct nf_queue_entry;
- struct nf_bridge_frag_data;
- 
--/*
-- * Hook functions for ipv6 to allow xt_* modules to be built-in even
-- * if IPv6 is a module.
-- */
--struct nf_ipv6_ops {
--#if IS_MODULE(CONFIG_IPV6)
--	int (*chk_addr)(struct net *net, const struct in6_addr *addr,
--			const struct net_device *dev, int strict);
--	int (*route_me_harder)(struct net *net, struct sock *sk, struct sk_buff *skb);
--	int (*dev_get_saddr)(struct net *net, const struct net_device *dev,
--		       const struct in6_addr *daddr, unsigned int srcprefs,
--		       struct in6_addr *saddr);
--	int (*route)(struct net *net, struct dst_entry **dst, struct flowi *fl,
--		     bool strict);
--	u32 (*cookie_init_sequence)(const struct ipv6hdr *iph,
--				    const struct tcphdr *th, u16 *mssp);
--	int (*cookie_v6_check)(const struct ipv6hdr *iph,
--			       const struct tcphdr *th);
--#endif
--	void (*route_input)(struct sk_buff *skb);
--	int (*fragment)(struct net *net, struct sock *sk, struct sk_buff *skb,
--			int (*output)(struct net *, struct sock *, struct sk_buff *));
--	int (*reroute)(struct sk_buff *skb, const struct nf_queue_entry *entry);
--#if IS_MODULE(CONFIG_IPV6)
--	int (*br_fragment)(struct net *net, struct sock *sk,
--			   struct sk_buff *skb,
--			   struct nf_bridge_frag_data *data,
--			   int (*output)(struct net *, struct sock *sk,
--					 const struct nf_bridge_frag_data *data,
--					 struct sk_buff *));
--#endif
--};
--
- #ifdef CONFIG_NETFILTER
- #include <net/addrconf.h>
- 
--extern const struct nf_ipv6_ops __rcu *nf_ipv6_ops;
--static inline const struct nf_ipv6_ops *nf_get_ipv6_ops(void)
--{
--	return rcu_dereference(nf_ipv6_ops);
--}
--
- static inline int nf_ipv6_chk_addr(struct net *net, const struct in6_addr *addr,
- 				   const struct net_device *dev, int strict)
- {
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (!v6_ops)
--		return 1;
--
--	return v6_ops->chk_addr(net, addr, dev, strict);
--#elif IS_BUILTIN(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6)
- 	return ipv6_chk_addr(net, addr, dev, strict);
- #else
- 	return 1;
-@@ -99,15 +53,7 @@ int __nf_ip6_route(struct net *net, struct dst_entry **dst,
- static inline int nf_ip6_route(struct net *net, struct dst_entry **dst,
- 			       struct flowi *fl, bool strict)
- {
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
--
--	if (v6ops)
--		return v6ops->route(net, dst, fl, strict);
--
--	return -EHOSTUNREACH;
--#endif
--#if IS_BUILTIN(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6)
- 	return __nf_ip6_route(net, dst, fl, strict);
- #else
- 	return -EHOSTUNREACH;
-@@ -129,14 +75,7 @@ static inline int nf_br_ip6_fragment(struct net *net, struct sock *sk,
- 						   const struct nf_bridge_frag_data *data,
- 						   struct sk_buff *))
- {
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (!v6_ops)
--		return 1;
--
--	return v6_ops->br_fragment(net, sk, skb, data, output);
--#elif IS_BUILTIN(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6)
- 	return br_ip6_fragment(net, sk, skb, data, output);
- #else
- 	return 1;
-@@ -147,14 +86,7 @@ int ip6_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb);
- 
- static inline int nf_ip6_route_me_harder(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (!v6_ops)
--		return -EHOSTUNREACH;
--
--	return v6_ops->route_me_harder(net, sk, skb);
--#elif IS_BUILTIN(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6)
- 	return ip6_route_me_harder(net, sk, skb);
- #else
- 	return -EHOSTUNREACH;
-@@ -165,15 +97,8 @@ static inline u32 nf_ipv6_cookie_init_sequence(const struct ipv6hdr *iph,
- 					       const struct tcphdr *th,
- 					       u16 *mssp)
- {
--#if IS_ENABLED(CONFIG_SYN_COOKIES)
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (v6_ops)
--		return v6_ops->cookie_init_sequence(iph, th, mssp);
--#elif IS_BUILTIN(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6) && IS_ENABLED(CONFIG_SYN_COOKIES)
- 	return __cookie_v6_init_sequence(iph, th, mssp);
--#endif
- #endif
- 	return 0;
- }
-@@ -181,15 +106,8 @@ static inline u32 nf_ipv6_cookie_init_sequence(const struct ipv6hdr *iph,
- static inline int nf_cookie_v6_check(const struct ipv6hdr *iph,
- 				     const struct tcphdr *th)
- {
--#if IS_ENABLED(CONFIG_SYN_COOKIES)
--#if IS_MODULE(CONFIG_IPV6)
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (v6_ops)
--		return v6_ops->cookie_v6_check(iph, th);
--#elif IS_BUILTIN(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6) && IS_ENABLED(CONFIG_SYN_COOKIES)
- 	return __cookie_v6_check(iph, th);
--#endif
- #endif
- 	return 0;
- }
-@@ -198,14 +116,6 @@ __sum16 nf_ip6_checksum(struct sk_buff *skb, unsigned int hook,
- 			unsigned int dataoff, u_int8_t protocol);
- 
- int nf_ip6_check_hbh_len(struct sk_buff *skb, u32 *plen);
--
--int ipv6_netfilter_init(void);
--void ipv6_netfilter_fini(void);
--
--#else /* CONFIG_NETFILTER */
--static inline int ipv6_netfilter_init(void) { return 0; }
--static inline void ipv6_netfilter_fini(void) { return; }
--static inline const struct nf_ipv6_ops *nf_get_ipv6_ops(void) { return NULL; }
- #endif /* CONFIG_NETFILTER */
- 
- #endif /*__LINUX_IP6_NETFILTER_H*/
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 083e2fe96441..0ab1c94db4b9 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -32,6 +32,7 @@
- 
- #include <net/ip.h>
- #include <net/ipv6.h>
-+#include <net/ip6_route.h>
- #include <net/addrconf.h>
- #include <net/dst_metadata.h>
- #include <net/route.h>
-@@ -890,7 +891,6 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 	}
- 	if (IS_ENABLED(CONFIG_NF_DEFRAG_IPV6) &&
- 	    skb->protocol == htons(ETH_P_IPV6)) {
--		const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
- 		struct brnf_frag_data *data;
- 
- 		if (br_validate_ipv6(net, skb))
-@@ -906,15 +906,9 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 		skb_copy_from_linear_data_offset(skb, -data->size, data->mac,
- 						 data->size);
- 
--		if (v6ops) {
--			ret = v6ops->fragment(net, sk, skb, br_nf_push_frag_xmit);
--			local_unlock_nested_bh(&brnf_frag_data_storage.bh_lock);
--			return ret;
--		}
-+		ret = ip6_fragment(net, sk, skb, br_nf_push_frag_xmit);
- 		local_unlock_nested_bh(&brnf_frag_data_storage.bh_lock);
--
--		kfree_skb(skb);
--		return -EMSGSIZE;
-+		return ret;
- 	}
- 	nf_bridge_info_free(skb);
- 	return br_dev_queue_push_xmit(net, sk, skb);
-diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
-index 76ce70b4e7f3..d8548428929e 100644
---- a/net/bridge/br_netfilter_ipv6.c
-+++ b/net/bridge/br_netfilter_ipv6.c
-@@ -30,6 +30,7 @@
- 
- #include <net/ip.h>
- #include <net/ipv6.h>
-+#include <net/ip6_route.h>
- #include <net/addrconf.h>
- #include <net/route.h>
- #include <net/netfilter/br_netfilter.h>
-@@ -95,15 +96,13 @@ br_nf_ipv6_daddr_was_changed(const struct sk_buff *skb,
- 
- /* PF_BRIDGE/PRE_ROUTING: Undo the changes made for ip6tables
-  * PREROUTING and continue the bridge PRE_ROUTING hook. See comment
-- * for br_nf_pre_routing_finish(), same logic is used here but
-- * equivalent IPv6 function ip6_route_input() called indirectly.
-+ * for br_nf_pre_routing_finish(), same logic is used here.
-  */
- static int br_nf_pre_routing_finish_ipv6(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
- 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 	struct rtable *rt;
- 	struct net_device *dev = skb->dev, *br_indev;
--	const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
- 
- 	br_indev = nf_bridge_get_physindev(skb, net);
- 	if (!br_indev) {
-@@ -120,7 +119,7 @@ static int br_nf_pre_routing_finish_ipv6(struct net *net, struct sock *sk, struc
- 	nf_bridge->in_prerouting = 0;
- 	if (br_nf_ipv6_daddr_was_changed(skb, nf_bridge)) {
- 		skb_dst_drop(skb);
--		v6ops->route_input(skb);
-+		ip6_route_input(skb);
- 
- 		if (skb_dst(skb)->error) {
- 			kfree_skb(skb);
-diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-index 33abd8d8cd7d..ee341a8254bf 100644
---- a/net/ipv6/af_inet6.c
-+++ b/net/ipv6/af_inet6.c
-@@ -38,7 +38,6 @@
- #include <linux/inet.h>
- #include <linux/netdevice.h>
- #include <linux/icmpv6.h>
--#include <linux/netfilter_ipv6.h>
- 
- #include <net/ip.h>
- #include <net/ipv6.h>
-@@ -1066,9 +1065,6 @@ static int __init inet6_init(void)
- 	if (err)
- 		goto igmp_fail;
- 
--	err = ipv6_netfilter_init();
--	if (err)
--		goto netfilter_fail;
- 	/* Create /proc/foo6 entries. */
- #ifdef CONFIG_PROC_FS
- 	err = -ENOMEM;
-@@ -1199,8 +1195,6 @@ static int __init inet6_init(void)
- 	raw6_proc_exit();
- proc_raw6_fail:
- #endif
--	ipv6_netfilter_fini();
--netfilter_fail:
- 	igmp6_cleanup();
- igmp_fail:
- 	ndisc_cleanup();
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index c3dc90dfab80..6d80f85e55fa 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -86,21 +86,6 @@ int ip6_route_me_harder(struct net *net, struct sock *sk_partial, struct sk_buff
- }
- EXPORT_SYMBOL(ip6_route_me_harder);
- 
--static int nf_ip6_reroute(struct sk_buff *skb,
--			  const struct nf_queue_entry *entry)
--{
--	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
--
--	if (entry->state.hook == NF_INET_LOCAL_OUT) {
--		const struct ipv6hdr *iph = ipv6_hdr(skb);
--		if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
--		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
--		    skb->mark != rt_info->mark)
--			return ip6_route_me_harder(entry->state.net, entry->state.sk, skb);
--	}
--	return 0;
--}
--
- int __nf_ip6_route(struct net *net, struct dst_entry **dst,
- 		   struct flowi *fl, bool strict)
- {
-@@ -243,36 +228,3 @@ int br_ip6_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(br_ip6_fragment);
--
--static const struct nf_ipv6_ops ipv6ops = {
--#if IS_MODULE(CONFIG_IPV6)
--	.chk_addr		= ipv6_chk_addr,
--	.route_me_harder	= ip6_route_me_harder,
--	.dev_get_saddr		= ipv6_dev_get_saddr,
--	.route			= __nf_ip6_route,
--#if IS_ENABLED(CONFIG_SYN_COOKIES)
--	.cookie_init_sequence	= __cookie_v6_init_sequence,
--	.cookie_v6_check	= __cookie_v6_check,
--#endif
--#endif
--	.route_input		= ip6_route_input,
--	.fragment		= ip6_fragment,
--	.reroute		= nf_ip6_reroute,
--#if IS_MODULE(CONFIG_IPV6)
--	.br_fragment		= br_ip6_fragment,
--#endif
--};
--
--int __init ipv6_netfilter_init(void)
--{
--	RCU_INIT_POINTER(nf_ipv6_ops, &ipv6ops);
--	return 0;
--}
--
--/* This can be called from inet6_init() on errors, so it cannot
-- * be marked __exit. -DaveM
-- */
--void ipv6_netfilter_fini(void)
--{
--	RCU_INIT_POINTER(nf_ipv6_ops, NULL);
--}
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index d5df44ea9e7b..675a1034b340 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -27,9 +27,6 @@
- 
- #include "nf_internals.h"
- 
--const struct nf_ipv6_ops __rcu *nf_ipv6_ops __read_mostly;
--EXPORT_SYMBOL_GPL(nf_ipv6_ops);
--
- #ifdef CONFIG_JUMP_LABEL
- struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
- EXPORT_SYMBOL(nf_hooks_needed);
-diff --git a/net/netfilter/nf_nat_masquerade.c b/net/netfilter/nf_nat_masquerade.c
-index a5a23c03fda9..4de6e0a51701 100644
---- a/net/netfilter/nf_nat_masquerade.c
-+++ b/net/netfilter/nf_nat_masquerade.c
-@@ -220,23 +220,6 @@ static struct notifier_block masq_inet_notifier = {
- };
- 
- #if IS_ENABLED(CONFIG_IPV6)
--static int
--nat_ipv6_dev_get_saddr(struct net *net, const struct net_device *dev,
--		       const struct in6_addr *daddr, unsigned int srcprefs,
--		       struct in6_addr *saddr)
--{
--#ifdef CONFIG_IPV6_MODULE
--	const struct nf_ipv6_ops *v6_ops = nf_get_ipv6_ops();
--
--	if (!v6_ops)
--		return -EHOSTUNREACH;
--
--	return v6_ops->dev_get_saddr(net, dev, daddr, srcprefs, saddr);
--#else
--	return ipv6_dev_get_saddr(net, dev, daddr, srcprefs, saddr);
--#endif
--}
--
- unsigned int
- nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 		       const struct net_device *out)
-@@ -251,8 +234,8 @@ nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range2 *range,
- 	WARN_ON(!(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
- 			 ctinfo == IP_CT_RELATED_REPLY)));
- 
--	if (nat_ipv6_dev_get_saddr(nf_ct_net(ct), out,
--				   &ipv6_hdr(skb)->daddr, 0, &src) < 0)
-+	if (ipv6_dev_get_saddr(nf_ct_net(ct), out,
-+			       &ipv6_hdr(skb)->daddr, 0, &src) < 0)
- 		return NF_DROP;
- 
- 	nat = nf_ct_nat_ext_add(ct);
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index a91ae07db059..2aa2380d976a 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -356,9 +356,25 @@ static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry
- 	return 0;
- }
- 
-+static int nf_ip6_reroute(struct sk_buff *skb,
-+			  const struct nf_queue_entry *entry)
-+{
-+	struct ip6_rt_info *rt_info = nf_queue_entry_reroute(entry);
-+
-+	if (entry->state.hook == NF_INET_LOCAL_OUT) {
-+		const struct ipv6hdr *iph = ipv6_hdr(skb);
-+
-+		if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
-+		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
-+		    skb->mark != rt_info->mark)
-+			return nf_ip6_route_me_harder(entry->state.net,
-+						      entry->state.sk, skb);
-+	}
-+	return 0;
-+}
-+
- static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
- {
--	const struct nf_ipv6_ops *v6ops;
- 	int ret = 0;
- 
- 	switch (entry->state.pf) {
-@@ -366,9 +382,7 @@ static int nf_reroute(struct sk_buff *skb, struct nf_queue_entry *entry)
- 		ret = nf_ip_reroute(skb, entry);
- 		break;
- 	case AF_INET6:
--		v6ops = rcu_dereference(nf_ipv6_ops);
--		if (v6ops)
--			ret = v6ops->reroute(skb, entry);
-+		ret = nf_ip6_reroute(skb, entry);
- 		break;
- 	}
- 	return ret;
-diff --git a/net/netfilter/utils.c b/net/netfilter/utils.c
-index 008419db815a..29c4dcc362c7 100644
---- a/net/netfilter/utils.c
-+++ b/net/netfilter/utils.c
-@@ -163,7 +163,6 @@ EXPORT_SYMBOL_GPL(nf_checksum_partial);
- int nf_route(struct net *net, struct dst_entry **dst, struct flowi *fl,
- 	     bool strict, unsigned short family)
- {
--	const struct nf_ipv6_ops *v6ops __maybe_unused;
- 	int ret = 0;
- 
- 	switch (family) {
+3) Fix a syzkaller reported data race in ipset, from Jozsef Kadlecsik.
+
+4) nfnetlink_log needs to zero padding to prevent infoleak to userspace,
+   from Weiming Shi.
+
+5) pay more attention to xtables hook masks + NFPROTO_UNSPEC.
+   UNSPEC+hook_mask is only valid for ipv4, ipv6 and bridge families.
+   This can cause a crash because arp family has different meaning for
+   hook constants. We need to reject rule adds when we have a match that
+   sets both a hook mask and proto_unspec, unless the requesting family
+   is one of ip/ip6/bridge. Also from Weiming Shi.
+
+6) xtables ip6t_rt module never validated that addrnr length is within the
+   allowed array boundary. Reject bogus values.  From Ren Wei.
+
+7) Fix high memory usage in rbtree set backend that was unwanted side-effect
+   of the recently added binary search blob. From Pablo Neira Ayuso.
+
+Patches 8 to 12, also from Pablo, address long-standing RCU safety bugs
+in conntracks handling of expectations: We can never safely defer
+a conntrack extension area without holding a reference. Yet expectation
+handling does so in multiple places.  Fix this by avoiding the need to
+look into the master conntrack to begin with and by extending locked
+sections in a few places.
+
+13) fix use of uninitialized rtp_addr in the sip conntrack helper,
+    also from Weiming Shi.
+
+14) Add stricter netlink policy checks in ctnetlink, from David Carlier.
+    This avoids undefined behaviour when userspace provides huge wscale
+    value.
+
+Please, pull these changes from:
+The following changes since commit c4ea7d8907cf72b259bf70bd8c2e791e1c4ff70f:
+
+  net: mana: fix use-after-free in add_adev() error path (2026-03-24 21:07:58 -0700)
+
+are available in the Git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-03-25
+
+for you to fetch changes up to 65182deffd243cb451c7e1f532e7de1ed59afbeb:
+
+  netfilter: ctnetlink: use netlink policy range checks (2026-03-25 13:36:45 +0100)
+
+----------------------------------------------------------------
+netfilter pull request nf-26-03-25
+
+----------------------------------------------------------------
+David Carlier (1):
+  netfilter: ctnetlink: use netlink policy range checks
+
+Florian Westphal (2):
+  netfilter: nft_set_pipapo_avx2: don't return non-matching entry on expiry
+  selftests: netfilter: nft_concat_range.sh: add check for flush+reload bug
+
+Jozsef Kadlecsik (1):
+  netfilter: ipset: Fix data race between add and list header in all hash types
+
+Pablo Neira Ayuso (6):
+  netfilter: nft_set_rbtree: revisit array resize logic
+  netfilter: nf_conntrack_expect: honor expectation helper field
+  netfilter: nf_conntrack_expect: use expect->helper
+  netfilter: ctnetlink: ensure safe access to master conntrack
+  netfilter: nf_conntrack_expect: store netns and zone in expectation
+  netfilter: nf_conntrack_expect: skip expectations in other netns via proc
+
+Ren Wei (1):
+  netfilter: ip6t_rt: reject oversized addrnr in rt_mt6_check()
+
+Weiming Shi (3):
+  netfilter: nfnetlink_log: fix uninitialized padding leak in NFULA_PAYLOAD
+  netfilter: x_tables: reject unsupported families in xt_check_match/xt_check_target
+  netfilter: nf_conntrack_sip: fix use of uninitialized rtp_addr in process_sdp
+
+ include/net/netfilter/nf_conntrack_core.h     |  5 +
+ include/net/netfilter/nf_conntrack_expect.h   | 20 +++-
+ .../linux/netfilter/nf_conntrack_common.h     |  4 +
+ net/ipv6/netfilter/ip6t_rt.c                  |  4 +
+ net/netfilter/ipset/ip_set_core.c             |  4 +-
+ net/netfilter/nf_conntrack_broadcast.c        |  2 +-
+ net/netfilter/nf_conntrack_ecache.c           |  2 +
+ net/netfilter/nf_conntrack_expect.c           | 30 +++++-
+ net/netfilter/nf_conntrack_h323_main.c        | 12 +--
+ net/netfilter/nf_conntrack_helper.c           | 11 ++-
+ net/netfilter/nf_conntrack_netlink.c          | 73 ++++++++-------
+ net/netfilter/nf_conntrack_proto_tcp.c        | 10 +-
+ net/netfilter/nf_conntrack_sip.c              | 18 ++--
+ net/netfilter/nfnetlink_log.c                 |  8 +-
+ net/netfilter/nft_set_pipapo_avx2.c           | 20 ++--
+ net/netfilter/nft_set_rbtree.c                | 92 +++++++++++++++----
+ net/netfilter/x_tables.c                      | 36 ++++++++
+ net/netfilter/xt_devgroup.c                   |  5 +
+ .../net/netfilter/nft_concat_range.sh         | 70 +++++++++++++-
+ 19 files changed, 323 insertions(+), 103 deletions(-)
+
 -- 
-2.53.0
-
+2.52.0
