@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E673B224B15;
-	Thu, 26 Mar 2026 12:52:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E004256C61;
+	Thu, 26 Mar 2026 12:52:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774529523; cv=none; b=Wj9r5gFw+Kmq/3jbACe617sacPQxibx9b/nN2bBfrN28PM6AA7Srs6Ia8jR9J9dZLF+J8+tnZb6fyCOMyzpHBLasmaLKB1l6k/P45mkWeZA7q8eqS9b6gEIAUbmcXpJkXpeI6ueXunSjeAK1inFAoLpBdMc/S5zbIBOwrPr0zXI=
+	t=1774529524; cv=none; b=W7WLyziDEEHsdco7ZeQGFIHGW1ZwjkeXlKjhA8H1amTWGcs1NYHBR5Qx5rVcE/JWNMdSa7XkccQeeQEeA1Hi8P7IpRLo7GerBXXE+Inv1RD2m8maigGOzRCrWO10bjZGBOHMyvGS6KAwvgEUqe9SM4ASKbi55J0npcYV25fCZ74=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774529523; c=relaxed/simple;
-	bh=v3QnGyrqEuj20HYOOxgD1tNsF7IXViS2JzxvkJaONFQ=;
+	s=arc-20240116; t=1774529524; c=relaxed/simple;
+	bh=K7RSrdEFZy6Z+RlJPtEraPlErH2kH671nvcT1Ug4334=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=CMVM0kiDIqo9eGWOU4uFV14Ok7f3JTZR5LeNCgmOnyT+FziLZ5zo5dIksxTayXcn7mNmslBQDotDKE8v4+qC8SMxSFmikB1prdnTAYtn3ksDTencw3a/dWuvML1K8ZczCY+uQsO5rIl9Q589OMXM7/X2kw+SGInkfPR+DXKJiws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=k5f9KOVg; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=rz8kOW0aeL6ibpCSqceHa0MzBQbQGbaSK2CaB+jX7xhQWoGDgV45XmjJPRrWKmsk+Dh0QEVdTGnUFzKFGEFuYCn6a4QFUstAkZzQOGXM9uhxZgUXwnWz2TsCNfCXAQhtwHw0L9mlqVhajWUZj6E9/NU+qWOP35ZVgPo8jUzvr8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=LSvCT8AR; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="k5f9KOVg"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="LSvCT8AR"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B6FEA6026E;
-	Thu, 26 Mar 2026 13:51:59 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 0709D6026D;
+	Thu, 26 Mar 2026 13:52:00 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774529520;
-	bh=b5pdKOs5AE9x+8GGiMULGY+8VbgnoPwjO4IvUfTiWWQ=;
+	s=2025; t=1774529521;
+	bh=PIh+oFx3ncJBBFZxKgZDh/cS8gnROLybKH/NG8EuEkg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=k5f9KOVgfBnMIUBYYwmXYDmI73mslWQ2M431fbuNm5a10As1BbHlYH09fDiFXjOCf
-	 /7Z+r6evAMvmVsqTRwzmAr+DLIMzGKexMo0myCIE0lsw1mlEgaLZ5unsYayQ/G8071
-	 Nb14FOAvPaLd5V+iYvapdxha99FD6LJhBQn02YJje1/N+dR/LtcKcmnhWU//t9IzTq
-	 VII5cSVGTZFW/xrS4M2duW/kKb/7zCabcbl0h6T1zUc1nvvU04RFNWDEjbAM5HBLtb
-	 9K72NF94oHo8U3lnO6YxMs5zb07FnMZo/loWBgcZrBphx5aILcR8cNqzco2pdY5E7I
-	 NAzj0iK8isSJw==
+	b=LSvCT8ARHlTgOPN8iOjchAkpapDdUP+zMSysoHauixmpFgfWNDNujXdRHIjg9pn8z
+	 W3MEA1qMciJRFojm+GkOOJ1gBSbwE8J3EfMCFC1B0iW81P36+5UOKn0TGm6lyzGlbl
+	 vzRj3SNysA8QMxAkEqwT9kdP0wmPmH3aEE0VsEGWw0neeZJsxTozzFYqICTgdHl30x
+	 QcO90ORFBECeY1AMEsCBoML56tPiKXN5j2eE1EnDiFbw2q+7rHqRuPc+LpZaJMCHr8
+	 ++ogzn/ZvF6eUrqtdNsrWWFLZr2ipJ4B0Bo0nRp7NR27IAVIrO9ZY/VnyBR7fIzNSn
+	 p2maHa5FHpArg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 02/12] selftests: netfilter: nft_concat_range.sh: add check for flush+reload bug
-Date: Thu, 26 Mar 2026 13:51:43 +0100
-Message-ID: <20260326125153.685915-3-pablo@netfilter.org>
+Subject: [PATCH net 03/12] netfilter: nfnetlink_log: fix uninitialized padding leak in NFULA_PAYLOAD
+Date: Thu, 26 Mar 2026 13:51:44 +0100
+Message-ID: <20260326125153.685915-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260326125153.685915-1-pablo@netfilter.org>
 References: <20260326125153.685915-1-pablo@netfilter.org>
@@ -52,117 +52,52 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Weiming Shi <bestswngs@gmail.com>
 
-This test will fail without
-the preceding commit ("netfilter: nft_set_pipapo_avx2: fix match retart if found element is expired"):
+__build_packet_message() manually constructs the NFULA_PAYLOAD netlink
+attribute using skb_put() and skb_copy_bits(), bypassing the standard
+nla_reserve()/nla_put() helpers. While nla_total_size(data_len) bytes
+are allocated (including NLA alignment padding), only data_len bytes
+of actual packet data are copied. The trailing nla_padlen(data_len)
+bytes (1-3 when data_len is not 4-byte aligned) are never initialized,
+leaking stale heap contents to userspace via the NFLOG netlink socket.
 
-  reject overlapping range on add       0s                              [ OK ]
-  reload with flush                 /dev/stdin:59:32-52: Error: Could not process rule: File exists
-add element inet filter test { 10.0.0.29 . 10.0.2.29 }
+Replace the manual attribute construction with nla_reserve(), which
+handles the tailroom check, header setup, and padding zeroing via
+__nla_reserve(). The subsequent skb_copy_bits() fills in the payload
+data on top of the properly initialized attribute.
 
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
+Fixes: df6fb868d611 ("[NETFILTER]: nfnetlink: convert to generic netlink attribute functions")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- .../net/netfilter/nft_concat_range.sh         | 70 ++++++++++++++++++-
- 1 file changed, 69 insertions(+), 1 deletion(-)
+ net/netfilter/nfnetlink_log.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nft_concat_range.sh b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-index 394166f224a4..ffdc6ccc6511 100755
---- a/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_concat_range.sh
-@@ -29,7 +29,8 @@ TYPES="net_port port_net net6_port port_proto net6_port_mac net6_port_mac_proto
-        net6_port_net6_port net_port_mac_proto_net"
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index b35a90955e2e..fcbe54940b2e 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -647,15 +647,11 @@ __build_packet_message(struct nfnl_log_net *log,
  
- # Reported bugs, also described by TYPE_ variables below
--BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch doublecreate insert_overlap"
-+BUGS="flush_remove_add reload net_port_proto_match avx2_mismatch doublecreate
-+      insert_overlap load_flush_load4 load_flush_load8"
+ 	if (data_len) {
+ 		struct nlattr *nla;
+-		int size = nla_attr_size(data_len);
  
- # List of possible paths to pktgen script from kernel tree for performance tests
- PKTGEN_SCRIPT_PATHS="
-@@ -432,6 +433,30 @@ race_repeat	0
- perf_duration	0
- "
+-		if (skb_tailroom(inst->skb) < nla_total_size(data_len))
++		nla = nla_reserve(inst->skb, NFULA_PAYLOAD, data_len);
++		if (!nla)
+ 			goto nla_put_failure;
  
-+TYPE_load_flush_load4="
-+display		reload with flush, 4bit groups
-+type_spec	ipv4_addr . ipv4_addr
-+chain_spec	ip saddr . ip daddr
-+dst		addr4
-+proto		icmp
-+
-+race_repeat	0
-+
-+perf_duration	0
-+"
-+
-+TYPE_load_flush_load8="
-+display		reload with flush, 8bit groups
-+type_spec	ipv4_addr . ipv4_addr
-+chain_spec	ip saddr . ip daddr
-+dst		addr4
-+proto		icmp
-+
-+race_repeat	0
-+
-+perf_duration	0
-+"
-+
- # Set template for all tests, types and rules are filled in depending on test
- set_template='
- flush ruleset
-@@ -1997,6 +2022,49 @@ test_bug_insert_overlap()
- 	return 0
- }
- 
-+test_bug_load_flush_load4()
-+{
-+	local i
-+
-+	setup veth send_"${proto}" set || return ${ksft_skip}
-+
-+	for i in $(seq 0 255); do
-+		local addelem="add element inet filter test"
-+		local j
-+
-+		for j in $(seq 0 20); do
-+			echo "$addelem { 10.$j.0.$i . 10.$j.1.$i }"
-+			echo "$addelem { 10.$j.0.$i . 10.$j.2.$i }"
-+		done
-+	done > "$tmp"
-+
-+	nft -f "$tmp" || return 1
-+
-+	( echo "flush set inet filter test";cat "$tmp") | nft -f -
-+	[ $? -eq 0 ] || return 1
-+
-+	return 0
-+}
-+
-+test_bug_load_flush_load8()
-+{
-+	local i
-+
-+	setup veth send_"${proto}" set || return ${ksft_skip}
-+
-+	for i in $(seq 1 100); do
-+		echo "add element inet filter test { 10.0.0.$i . 10.0.1.$i }"
-+		echo "add element inet filter test { 10.0.0.$i . 10.0.2.$i }"
-+	done > "$tmp"
-+
-+	nft -f "$tmp" || return 1
-+
-+	( echo "flush set inet filter test";cat "$tmp") | nft -f -
-+	[ $? -eq 0 ] || return 1
-+
-+	return 0
-+}
-+
- test_reported_issues() {
- 	eval test_bug_"${subtest}"
- }
+-		nla = skb_put(inst->skb, nla_total_size(data_len));
+-		nla->nla_type = NFULA_PAYLOAD;
+-		nla->nla_len = size;
+-
+ 		if (skb_copy_bits(skb, 0, nla_data(nla), data_len))
+ 			BUG();
+ 	}
 -- 
 2.47.3
 
