@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 380282798ED;
-	Thu, 26 Mar 2026 12:52:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5829923EA8B;
+	Thu, 26 Mar 2026 12:52:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774529525; cv=none; b=HhhyadEJ2FOnYd/z18ij/c/PpIgLFVzi3gSpsRuZrmFs5AL6a9hEy4vgeNNTX9oz+gkql7zVsJbeIK6BvzMttTq1iwrDLlkTStnxCd3sUyorAEvOFnbHiUh7DBmkWjF6RYiN/H0YjEGuxiRa3XaFHo57ue6JKzQvTiVI93cKKA8=
+	t=1774529526; cv=none; b=tBW+h4y7e9npYZD61U48Vn+QokwonbWVQrbIWev5iBjNbYTQ7YGw7BbM6qSbohMZJjqw35bdcFP5IuSxaqF9JEP4pfcVbtnZNSx50MD4vcZKOdgIMj+4JJoXO57kGr6BnH1ZFhH4dSYBCojZ6cD0BheZxny7y0J1SVoqdv/zvPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774529525; c=relaxed/simple;
-	bh=3M8SeXoNHLSfSINMUuDheIWOSxvuF8h+a8P9Ia2Rlqc=;
+	s=arc-20240116; t=1774529526; c=relaxed/simple;
+	bh=bSSQeRLAt8ztWJBujreX42RmbME573EsxO32BJwsp4Y=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EwZPxVW2VgUgwMdRD2yr0VMddUjUd/G7S4lDFkIEcQs/zaQrF8W+4B4vOQ8ElaE2DyCIjd0buIWfrrLMrp6y8L7R+2vJLJPBiLU/GxnrkGDDxS7PVmZiaHir6YbuB64zvlF9/vH8MYmLzbUNO+EpdQsGxC39aT2HRzefzjCl+9s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rqC4uTyt; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=i7koPfSsfGwGqHmSWk1GTnA8zZkzYoJX0ju+Gl6jQuSsxUIRxsNd3M+02xT3W2zzyFs9To7r3SekTlwpEoxcpm317RtxsZwsK1wcJWjtzRDYHi1HYhLgVDY6nlc0Iqsa85YatcpU8R0R6K4bPaWL92NnKZV+EX6BObwz3ppxsVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vUS0uSbF; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rqC4uTyt"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vUS0uSbF"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2D19660272;
-	Thu, 26 Mar 2026 13:52:02 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5193560273;
+	Thu, 26 Mar 2026 13:52:03 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774529522;
-	bh=GWPRWf1+yS2roJCPasyquMCXNaZuktYHTHQ8GKT903w=;
+	s=2025; t=1774529523;
+	bh=WNxZdluDIh5L9aujGAa+6rLbauRkSSIt5jI038ei7zg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=rqC4uTytLlUsw0OJOGg0IIe1fICqMoszoWr8hKbg2u5s5x7V2/VJKzcyTlLrr5wOB
-	 wSUitWrFnkLTmOzuqVeqlmpN4fqOGfSDHv6sSXDwd9ql8pd6VSoY2nv6lCZfMIaQTq
-	 K1J8m0fRLCn1oE1gW09KXCm/bjdE2s8Sbg4/J8Xm6LSXW5MIog7oMufPso0i0/Zcm+
-	 6tH5nvKZTtwkqRuRsbfgocaxIVirSFZ/E6cPon3wyHjKg2PMst/FfZUL4O3zeplpMN
-	 l0xkrDTGjbn3s/2YiQvAGmo4anAtYWKgLiuAOgFg+3Fpuu+VJAQa7MtkS208xtMKgt
-	 WiW/+CpWGQCQA==
+	b=vUS0uSbF28zD9gIlxnfbBYZfC6uiVwLcp9iMcdqy+80c0+ulIhlbuCO+LYYCYizqH
+	 3PpLlMoFmlJOLPfcCOZhExJ78QLaFG+Q8os7ZbgNbKWv3NNj5jmPLPdfaBBQSp21rE
+	 OKoFtTNhGkQP7Fx4jKjOsIQeUT41IVSfUxx8Kw3WY9T42NT+4XlnnGubOwc7+LElt4
+	 FocTNw/mMkvJ8NoB3DaQsQPcXy8IKC0L487J9IPpcfqi+wNPsvsy5yq9puCptCaN6i
+	 22Ins5Sg3u5H52qRXu3xEZCew5su/fEtbckm4AITrbH0dP81AFR3I6zap3t8LCZ/nA
+	 JtQYxbPTQnBFA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 04/12] netfilter: ip6t_rt: reject oversized addrnr in rt_mt6_check()
-Date: Thu, 26 Mar 2026 13:51:45 +0100
-Message-ID: <20260326125153.685915-5-pablo@netfilter.org>
+Subject: [PATCH net 05/12] netfilter: nft_set_rbtree: revisit array resize logic
+Date: Thu, 26 Mar 2026 13:51:46 +0100
+Message-ID: <20260326125153.685915-6-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260326125153.685915-1-pablo@netfilter.org>
 References: <20260326125153.685915-1-pablo@netfilter.org>
@@ -52,43 +52,182 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ren Wei <n05ec@lzu.edu.cn>
+Chris Arges reports high memory consumption with thousands of
+containers, this patch revisits the array allocation logic.
 
-Reject rt match rules whose addrnr exceeds IP6T_RT_HOPS.
+For anonymous sets, start by 16 slots (which takes 256 bytes on x86_64).
+Expand it by x2 until threshold of 512 slots is reached, over that
+threshold, expand it by x1.5.
 
-rt_mt6() expects addrnr to stay within the bounds of rtinfo->addrs[].
-Validate addrnr during rule installation so malformed rules are rejected
-before the match logic can use an out-of-range value.
+For non-anonymous set, start by 1024 slots in the array (which takes 16
+Kbytes initially on x86_64). Expand it by x1.5.
 
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reported-by: Yifan Wu <yifanwucs@gmail.com>
-Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-Co-developed-by: Yuan Tan <yuantan098@gmail.com>
-Signed-off-by: Yuan Tan <yuantan098@gmail.com>
-Suggested-by: Xin Liu <bird@lzu.edu.cn>
-Tested-by: Yuhang Zheng <z1652074432@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+Use set->ndeact to subtract deactivated elements when calculating the
+number of the slots in the array, otherwise the array size array gets
+increased artifically. Add special case shrink logic to deal with flush
+set too.
+
+The shrink logic is skipped by anonymous sets.
+
+Use check_add_overflow() to calculate the new array size.
+
+Add a WARN_ON_ONCE check to make sure elements fit into the new array
+size.
+
+Reported-by: Chris Arges <carges@cloudflare.com>
+Fixes: 7e43e0a1141d ("netfilter: nft_set_rbtree: translate rbtree to array for binary search")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_rt.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nft_set_rbtree.c | 92 +++++++++++++++++++++++++++-------
+ 1 file changed, 75 insertions(+), 17 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index 4ad8b2032f1f..5561bd9cea81 100644
---- a/net/ipv6/netfilter/ip6t_rt.c
-+++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -157,6 +157,10 @@ static int rt_mt6_check(const struct xt_mtchk_param *par)
- 		pr_debug("unknown flags %X\n", rtinfo->invflags);
- 		return -EINVAL;
- 	}
-+	if (rtinfo->addrnr > IP6T_RT_HOPS) {
-+		pr_debug("too many addresses specified\n");
-+		return -EINVAL;
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index fe8bd497d74a..737c339decd0 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -572,14 +572,12 @@ static struct nft_array *nft_array_alloc(u32 max_intervals)
+ 	return array;
+ }
+ 
+-#define NFT_ARRAY_EXTRA_SIZE	10240
+-
+ /* Similar to nft_rbtree_{u,k}size to hide details to userspace, but consider
+  * packed representation coming from userspace for anonymous sets too.
+  */
+ static u32 nft_array_elems(const struct nft_set *set)
+ {
+-	u32 nelems = atomic_read(&set->nelems);
++	u32 nelems = atomic_read(&set->nelems) - set->ndeact;
+ 
+ 	/* Adjacent intervals are represented with a single start element in
+ 	 * anonymous sets, use the current element counter as is.
+@@ -595,27 +593,87 @@ static u32 nft_array_elems(const struct nft_set *set)
+ 	return (nelems / 2) + 2;
+ }
+ 
+-static int nft_array_may_resize(const struct nft_set *set)
++#define NFT_ARRAY_INITIAL_SIZE		1024
++#define NFT_ARRAY_INITIAL_ANON_SIZE	16
++#define NFT_ARRAY_INITIAL_ANON_THRESH	(8192U / sizeof(struct nft_array_interval))
++
++static int nft_array_may_resize(const struct nft_set *set, bool flush)
+ {
+-	u32 nelems = nft_array_elems(set), new_max_intervals;
++	u32 initial_intervals, max_intervals, new_max_intervals, delta;
++	u32 shrinked_max_intervals, nelems = nft_array_elems(set);
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	struct nft_array *array;
+ 
+-	if (!priv->array_next) {
+-		array = nft_array_alloc(nelems + NFT_ARRAY_EXTRA_SIZE);
+-		if (!array)
+-			return -ENOMEM;
++	if (nft_set_is_anonymous(set))
++		initial_intervals = NFT_ARRAY_INITIAL_ANON_SIZE;
++	else
++		initial_intervals = NFT_ARRAY_INITIAL_SIZE;
++
++	if (priv->array_next) {
++		max_intervals = priv->array_next->max_intervals;
++		new_max_intervals = priv->array_next->max_intervals;
++	} else {
++		if (priv->array) {
++			max_intervals = priv->array->max_intervals;
++			new_max_intervals = priv->array->max_intervals;
++		} else {
++			max_intervals = 0;
++			new_max_intervals = initial_intervals;
++		}
 +	}
- 	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
- 	    (!(rtinfo->flags & IP6T_RT_TYP) ||
- 	     (rtinfo->rt_type != 0) ||
+ 
+-		priv->array_next = array;
++	if (nft_set_is_anonymous(set))
++		goto maybe_grow;
++
++	if (flush) {
++		/* Set flush just started, nelems still report elements.*/
++		nelems = 0;
++		new_max_intervals = NFT_ARRAY_INITIAL_SIZE;
++		goto realloc_array;
+ 	}
+ 
+-	if (nelems < priv->array_next->max_intervals)
+-		return 0;
++	if (check_add_overflow(new_max_intervals, new_max_intervals,
++			       &shrinked_max_intervals))
++		return -EOVERFLOW;
++
++	shrinked_max_intervals = DIV_ROUND_UP(shrinked_max_intervals, 3);
+ 
+-	new_max_intervals = priv->array_next->max_intervals + NFT_ARRAY_EXTRA_SIZE;
+-	if (nft_array_intervals_alloc(priv->array_next, new_max_intervals) < 0)
++	if (shrinked_max_intervals > NFT_ARRAY_INITIAL_SIZE &&
++	    nelems < shrinked_max_intervals) {
++		new_max_intervals = shrinked_max_intervals;
++		goto realloc_array;
++	}
++maybe_grow:
++	if (nelems > new_max_intervals) {
++		if (nft_set_is_anonymous(set) &&
++		    new_max_intervals < NFT_ARRAY_INITIAL_ANON_THRESH) {
++			new_max_intervals <<= 1;
++		} else {
++			delta = new_max_intervals >> 1;
++			if (check_add_overflow(new_max_intervals, delta,
++					       &new_max_intervals))
++				return -EOVERFLOW;
++		}
++	}
++
++realloc_array:
++	if (WARN_ON_ONCE(nelems > new_max_intervals))
+ 		return -ENOMEM;
+ 
++	if (priv->array_next) {
++		if (max_intervals == new_max_intervals)
++			return 0;
++
++		if (nft_array_intervals_alloc(priv->array_next, new_max_intervals) < 0)
++			return -ENOMEM;
++	} else {
++		array = nft_array_alloc(new_max_intervals);
++		if (!array)
++			return -ENOMEM;
++
++		priv->array_next = array;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -630,7 +688,7 @@ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 
+ 	nft_rbtree_maybe_reset_start_cookie(priv, tstamp);
+ 
+-	if (nft_array_may_resize(set) < 0)
++	if (nft_array_may_resize(set, false) < 0)
+ 		return -ENOMEM;
+ 
+ 	do {
+@@ -741,7 +799,7 @@ nft_rbtree_deactivate(const struct net *net, const struct nft_set *set,
+ 	    nft_rbtree_interval_null(set, this))
+ 		priv->start_rbe_cookie = 0;
+ 
+-	if (nft_array_may_resize(set) < 0)
++	if (nft_array_may_resize(set, false) < 0)
+ 		return NULL;
+ 
+ 	while (parent != NULL) {
+@@ -811,7 +869,7 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
+ 
+ 	switch (iter->type) {
+ 	case NFT_ITER_UPDATE_CLONE:
+-		if (nft_array_may_resize(set) < 0) {
++		if (nft_array_may_resize(set, true) < 0) {
+ 			iter->err = -ENOMEM;
+ 			break;
+ 		}
 -- 
 2.47.3
 
