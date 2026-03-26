@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7110125A357;
-	Thu, 26 Mar 2026 12:52:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1223223D2AB;
+	Thu, 26 Mar 2026 12:52:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774529536; cv=none; b=QTlXSh5cqxWT9eiL2J5v5ZuabL84VT2T0e+8lyeudsWrAFPmD+A0eI0y2KHuxiI5xsB1cfUAX2e+8I/ojXAnx/mQG9K3150Yr9EvDoWa4mskoR0l47fQ6hSoLUm0h7rtsgoKz2VG/2BP0qk9tkWhMHpEfTEbSbizFbVg1ZRm5Z4=
+	t=1774529537; cv=none; b=cEFS7oKr1BdxXhCRfTMTeNyrZWClmBsfvKmzPriq1EUZP0pdOCsI6IJMTRBILhx/7+7Z44twp+NztDkeQT1AT7IE/C3QI6lZ8rtnxKHiGEdskCKDAKyW36EUhrUazwUTpNVQxsh8S4fB4qPoP9bIIaQVcnx5EI0H1i+QpwBDww8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774529536; c=relaxed/simple;
-	bh=m36HQ+19ZssWkfaGsMyZothAnBVP41gw6eqpJzjoGZo=;
+	s=arc-20240116; t=1774529537; c=relaxed/simple;
+	bh=p3BC6hh9fW+7jRDjxwF/oC2PzTjoSAf5VECZcqHqTJc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=R9lm3WCu4n8s6+9T9Fc+MrnEMqW/uEV49K4/OyC+kJGg3Sw+W3cViMAohtCdLJKtjUA1kLdEXw+8RURSMUm9ChsUySkoDYn10tMyrnbLe9RrjeIPnETWBXW01Apc3HGYzO/l0Hsc92no5RMJKP2T9kvw8GVPNyqzFfuvBy2M7Tk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AuS2kxKW; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=ekctovfvduBrwqXsrT4S/kn9kiKxJKMM50qxEb7fRPosvH4lEpTl4cmottYQWSAoLQ7McG0PfnFRxVLuphqBcF+SuuyzWDmNl/i8x80KGtbYVDWAVCu3oOCstrt8uVbKnkEFqVtEs+7RZ00FgnTsR5JBwu323Y9KqGF6u2lMIxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pb0HrXW+; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AuS2kxKW"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pb0HrXW+"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6F0DF600B9;
-	Thu, 26 Mar 2026 13:52:09 +0100 (CET)
+	by mail.netfilter.org (Postfix) with ESMTPSA id DA1096026D;
+	Thu, 26 Mar 2026 13:52:11 +0100 (CET)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774529529;
-	bh=mXgMC5zMq/Jg0azTBih3uHFHbM9VtWyIjy7qNUxWoeU=;
+	s=2025; t=1774529532;
+	bh=lm1MgmEPExXmZ/44UAb/bzWwRl79gcVYhzAAvZyGJmk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=AuS2kxKWHTnOttWOTcKQMsVEAKNL3T23JiCiQSueuX2hkqPGuoBkpcyLX+LH9TB6q
-	 Ez7/OHuTutAD63T8vVqKDfwgpRZ7q80b1NDPCjsBDxvDYONF/oyRadgiZwnr+0n+my
-	 UIWTejmL+36s5B/7Fd34P98T1UhzONrs1dUyT2FMF9d0qAhiqJpFZlmhxKko3FMqPk
-	 We9oaiAyCGpQ3ylXE+D4xIEjgPG7rMDQZKrwv8YFDmN95KqRMYkjW+D8BNaOPYgX4q
-	 vEoWszRJwyWD7njk/s0GoiSREDfZV4bgfnpvwrRZhiYGvqzXEOY/aotYn1SpBMeMJj
-	 y9JIynMp69zug==
+	b=pb0HrXW+mnB15IPW0LGaJMA5UlV2XuUnD8i/1+tcLbY2BrGuwzFRYF2JUJdRxi4oC
+	 Be3lMhLbhMKTbyO5tQnjtaXJwc0TEU95/zr577HM/sL0fLswYvb1IKzbNe/XtWrJvg
+	 uPbs/HZ6FKMgeVghEYcjmDUmZ8c4Ow1Au8qjWTlD1kRKH1W60JIVesfku+w7gJ4VI6
+	 nlbR2o+5hHl94uWI2g8XXu/xxSiI7DEhfTUTogIaZT/Q8NjYEkbjYnyGqmnSj8E7LI
+	 Paxaw90QDGc9lK3E8uhsUPbpLJUUo09QJnufkrSTjT2oBaXxypN84+CsR8HJYHmEB9
+	 3H6FD52MRFFbw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 10/12] netfilter: nf_conntrack_expect: skip expectations in other netns via proc
-Date: Thu, 26 Mar 2026 13:51:51 +0100
-Message-ID: <20260326125153.685915-11-pablo@netfilter.org>
+Subject: [PATCH net 12/12] netfilter: ctnetlink: use netlink policy range checks
+Date: Thu, 26 Mar 2026 13:51:53 +0100
+Message-ID: <20260326125153.685915-13-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260326125153.685915-1-pablo@netfilter.org>
 References: <20260326125153.685915-1-pablo@netfilter.org>
@@ -52,38 +52,122 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Skip expectations that do not reside in this netns.
+From: David Carlier <devnexen@gmail.com>
 
-Similar to e77e6ff502ea ("netfilter: conntrack: do not dump other netns's
-conntrack entries via proc").
+Replace manual range and mask validations with netlink policy
+annotations in ctnetlink code paths, so that the netlink core rejects
+invalid values early and can generate extack errors.
 
-Fixes: 9b03f38d0487 ("netfilter: netns nf_conntrack: per-netns expectations")
-Signed-off-by: Florian Westphal <fw@strlen.de>
+- CTA_PROTOINFO_TCP_STATE: reject values > TCP_CONNTRACK_SYN_SENT2 at
+  policy level, removing the manual >= TCP_CONNTRACK_MAX check.
+- CTA_PROTOINFO_TCP_WSCALE_ORIGINAL/REPLY: reject values > TCP_MAX_WSCALE
+  (14). The normal TCP option parsing path already clamps to this value,
+  but the ctnetlink path accepted 0-255, causing undefined behavior when
+  used as a u32 shift count.
+- CTA_FILTER_ORIG_FLAGS/REPLY_FLAGS: use NLA_POLICY_MASK with
+  CTA_FILTER_F_ALL, removing the manual mask checks.
+- CTA_EXPECT_FLAGS: use NLA_POLICY_MASK with NF_CT_EXPECT_MASK, adding
+  a new mask define grouping all valid expect flags.
+
+Extracted from a broader nf-next patch by Florian Westphal, scoped to
+ctnetlink for the fixes tree.
+
+Fixes: c8e2078cfe41 ("[NETFILTER]: ctnetlink: add support for internal tcp connection tracking flags handling")
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Co-developed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_expect.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ .../uapi/linux/netfilter/nf_conntrack_common.h   |  4 ++++
+ net/netfilter/nf_conntrack_netlink.c             | 16 +++++-----------
+ net/netfilter/nf_conntrack_proto_tcp.c           | 10 +++-------
+ 3 files changed, 12 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index db28801b1688..24d0576d84b7 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -652,11 +652,15 @@ static int exp_seq_show(struct seq_file *s, void *v)
- {
- 	struct nf_conntrack_expect *expect;
- 	struct nf_conntrack_helper *helper;
-+	struct net *net = seq_file_net(s);
- 	struct hlist_node *n = v;
- 	char *delim = "";
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 26071021e986..56b6b60a814f 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -159,5 +159,9 @@ enum ip_conntrack_expect_events {
+ #define NF_CT_EXPECT_INACTIVE		0x2
+ #define NF_CT_EXPECT_USERSPACE		0x4
  
- 	expect = hlist_entry(n, struct nf_conntrack_expect, hnode);
++#ifdef __KERNEL__
++#define NF_CT_EXPECT_MASK	(NF_CT_EXPECT_PERMANENT | NF_CT_EXPECT_INACTIVE | \
++				 NF_CT_EXPECT_USERSPACE)
++#endif
  
-+	if (!net_eq(nf_ct_exp_net(expect), net))
-+		return 0;
-+
- 	if (expect->timeout.function)
- 		seq_printf(s, "%ld ", timer_pending(&expect->timeout)
- 			   ? (long)(expect->timeout.expires - jiffies)/HZ : 0);
+ #endif /* _UAPI_NF_CONNTRACK_COMMON_H */
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 6e6aeb0ab0a1..3f408f3713bb 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -910,8 +910,8 @@ struct ctnetlink_filter {
+ };
+ 
+ static const struct nla_policy cta_filter_nla_policy[CTA_FILTER_MAX + 1] = {
+-	[CTA_FILTER_ORIG_FLAGS]		= { .type = NLA_U32 },
+-	[CTA_FILTER_REPLY_FLAGS]	= { .type = NLA_U32 },
++	[CTA_FILTER_ORIG_FLAGS]		= NLA_POLICY_MASK(NLA_U32, CTA_FILTER_F_ALL),
++	[CTA_FILTER_REPLY_FLAGS]	= NLA_POLICY_MASK(NLA_U32, CTA_FILTER_F_ALL),
+ };
+ 
+ static int ctnetlink_parse_filter(const struct nlattr *attr,
+@@ -925,17 +925,11 @@ static int ctnetlink_parse_filter(const struct nlattr *attr,
+ 	if (ret)
+ 		return ret;
+ 
+-	if (tb[CTA_FILTER_ORIG_FLAGS]) {
++	if (tb[CTA_FILTER_ORIG_FLAGS])
+ 		filter->orig_flags = nla_get_u32(tb[CTA_FILTER_ORIG_FLAGS]);
+-		if (filter->orig_flags & ~CTA_FILTER_F_ALL)
+-			return -EOPNOTSUPP;
+-	}
+ 
+-	if (tb[CTA_FILTER_REPLY_FLAGS]) {
++	if (tb[CTA_FILTER_REPLY_FLAGS])
+ 		filter->reply_flags = nla_get_u32(tb[CTA_FILTER_REPLY_FLAGS]);
+-		if (filter->reply_flags & ~CTA_FILTER_F_ALL)
+-			return -EOPNOTSUPP;
+-	}
+ 
+ 	return 0;
+ }
+@@ -2634,7 +2628,7 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
+ 	[CTA_EXPECT_HELP_NAME]	= { .type = NLA_NUL_STRING,
+ 				    .len = NF_CT_HELPER_NAME_LEN - 1 },
+ 	[CTA_EXPECT_ZONE]	= { .type = NLA_U16 },
+-	[CTA_EXPECT_FLAGS]	= { .type = NLA_U32 },
++	[CTA_EXPECT_FLAGS]	= NLA_POLICY_MASK(NLA_BE32, NF_CT_EXPECT_MASK),
+ 	[CTA_EXPECT_CLASS]	= { .type = NLA_U32 },
+ 	[CTA_EXPECT_NAT]	= { .type = NLA_NESTED },
+ 	[CTA_EXPECT_FN]		= { .type = NLA_NUL_STRING },
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 0c1d086e96cb..b67426c2189b 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1385,9 +1385,9 @@ static int tcp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ }
+ 
+ static const struct nla_policy tcp_nla_policy[CTA_PROTOINFO_TCP_MAX+1] = {
+-	[CTA_PROTOINFO_TCP_STATE]	    = { .type = NLA_U8 },
+-	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = { .type = NLA_U8 },
+-	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = { .type = NLA_U8 },
++	[CTA_PROTOINFO_TCP_STATE]	    = NLA_POLICY_MAX(NLA_U8, TCP_CONNTRACK_SYN_SENT2),
++	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL] = NLA_POLICY_MAX(NLA_U8, TCP_MAX_WSCALE),
++	[CTA_PROTOINFO_TCP_WSCALE_REPLY]    = NLA_POLICY_MAX(NLA_U8, TCP_MAX_WSCALE),
+ 	[CTA_PROTOINFO_TCP_FLAGS_ORIGINAL]  = { .len = sizeof(struct nf_ct_tcp_flags) },
+ 	[CTA_PROTOINFO_TCP_FLAGS_REPLY]	    = { .len = sizeof(struct nf_ct_tcp_flags) },
+ };
+@@ -1414,10 +1414,6 @@ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (tb[CTA_PROTOINFO_TCP_STATE] &&
+-	    nla_get_u8(tb[CTA_PROTOINFO_TCP_STATE]) >= TCP_CONNTRACK_MAX)
+-		return -EINVAL;
+-
+ 	spin_lock_bh(&ct->lock);
+ 	if (tb[CTA_PROTOINFO_TCP_STATE])
+ 		ct->proto.tcp.state = nla_get_u8(tb[CTA_PROTOINFO_TCP_STATE]);
 -- 
 2.47.3
 
