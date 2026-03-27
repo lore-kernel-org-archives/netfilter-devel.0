@@ -1,51 +1,65 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C9D53CBE7F;
-	Fri, 27 Mar 2026 09:24:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B23E3D3CFB
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2026 09:47:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774603500; cv=none; b=NNnaWOeuka6Bvt/pNkp/X1svDGKz1dV9nZ+pJo2ZLeVUN7YL3GR21SpWYC/ve+tdCKTGVbNXjFBR8zApVCtIxxb2WYvddYUsA6D23xMuZVdQ7Mj2DCqxck3ZLFRsEIP7ldDtk78vDXYTuV2Hs10/2bYBGHogs/jwYrEa/uNjtcY=
+	t=1774604866; cv=none; b=JKQNwRRJh09B850eexZrIMkZhKvztlI1VBWIW69HP637YgoheVIIi/wTIWcclzCDOU+95NnIiRTzKBIBhiWdyfyyAsblxGUNYqTvaOfSdYWjtFQY+0JjB+UEzA/Lqkg6ERXLMKWQz4OTstS83b8TmM6PeoQhWZl9UTodK2POSXI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774603500; c=relaxed/simple;
-	bh=qJm6pDnzsN9A+Wle9K581NgqCbPN5k4qbYPIvW7F/aM=;
+	s=arc-20240116; t=1774604866; c=relaxed/simple;
+	bh=E6E2z4FS73XjsMfcdTdAK6V4UK7Fr/CAf1sLTo8wqPE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rFSxk0aveP4LcOqAMl9cg3QHkbgc3v40AFuTvZE2pxOB8aeLw+ShZjtgZHali2Lj1pNSnT75GwDMa2vS+udGvV+FQFibRj9UySePG3p2wfV2M5SCZT5XufEEvMYHsVY8rHgIdVwWNg+jE+9CWKMIfRTmoHgvPCXvsPD9gea3nyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lNTY/ZqA; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=Y8thl6j1kA1z9W7xhZOgh8eM7+Piu2cHbBuU2kTwFfde5JuHOdI+emZx9W2FR294SernH0QrFsAu9Iy2p3EgRisWCiBlymHJCWyFwjxSv10XOHMJ2tNQEn+bQL/JKj+c2aXPMdTrAOs7R6pSFOayieZeh/hoBA8WIDbZSVlY7TQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=U5TUWOg5; arc=none smtp.client-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lNTY/ZqA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1774603498; x=1806139498;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=qJm6pDnzsN9A+Wle9K581NgqCbPN5k4qbYPIvW7F/aM=;
-  b=lNTY/ZqAmo/ccEgD+XgxH3Qygr6VqFr73ue8zZB1pz/IA85DLNc40Nil
-   GrDJc2MwwcR5+ZUVYhfPWxxVE5HCD4HM5xtqf0E7g4+G+DiUP4DCRtDJU
-   0XpN3g/MCSaFd8I/0gjDnWnGOgpKrpHiW/xihWFY8CTUsOtjS/H5Q02Rw
-   olYQiMT3kHF3fq0HIu18OKOx55VWGfkmcVqgK8+9J7stwdh1nDsBc2vyr
-   CfDfJTkEN9WEcLDSzV4WH1fTHLBBtShf2FbzSPPjQfn3U+yIgqiWRvcQG
-   rm8yFlWVudXgtb7rGrWszwDT2UHwXqhDN58a0Gp2JgtksPX+46K5lJdqD
-   Q==;
-X-CSE-ConnectionGUID: jBQqzcj0RwCStpP4M8LxiA==
-X-CSE-MsgGUID: Nh3eU0gmRmqfX/YVwafGKw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11741"; a="79577823"
-X-IronPort-AV: E=Sophos;i="6.23,143,1770624000"; 
-   d="scan'208";a="79577823"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2026 02:24:57 -0700
-X-CSE-ConnectionGUID: tzczHYdqTAyV/N9Z5YCVnA==
-X-CSE-MsgGUID: uQP1u3pARJyk5ylijKxydA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,143,1770624000"; 
-   d="scan'208";a="230191724"
-Received: from vpanait-mobl.ger.corp.intel.com (HELO localhost) ([10.245.244.127])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2026 02:24:52 -0700
-Date: Fri, 27 Mar 2026 11:24:50 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: David Laight <david.laight.linux@gmail.com>
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="U5TUWOg5"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-48700b1ba53so17994685e9.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2026 02:47:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=suse.com; s=google; t=1774604864; x=1775209664; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=2mdluSqt1yk4k5MVkcX8zZG5tNI3T4/zHh0y72VEmZo=;
+        b=U5TUWOg5d8cHyanp+3uJebuL3p9oGXAOSXqYe7auYwtoKOHflKfmNuHk6dZKkyBSCZ
+         au7VrkXiaf3Jg6f8HpbLNcO68Ya644FUo7tr3pceOnEQnkKNu/9LK/dDocMGBAMYpQX9
+         COBBc82QROH2Gqva3TyFlCRAbCth1c8qn40jpJp2lQy4qXZXnaqAO8mBnzpChHdr7OyZ
+         s/D3MJ8F0TakSgjZdfJqafE+F/kJVHBVPetytwSWpajACLrU8bqIdOV/saoBBNG6JCXv
+         pjRjSsV+Tdoc6RhcSRJPPJvXPsPV2qnqDNtctU2X2NpK3hLYyKewq8dtghsgWj/09TDB
+         2mgQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1774604864; x=1775209664;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=2mdluSqt1yk4k5MVkcX8zZG5tNI3T4/zHh0y72VEmZo=;
+        b=duN/U9hyDs5dgGqHKSko8njUZ/CA6MOp32Qede20Xh4v2xZZ4iNdMcH1KrK9w3ksYQ
+         zQZWxTKe9sqamxcxOxnovuYM0LTgrM60VTuyxA8m7D7wqjN8bHi+8+uj/3jRUgGP99W7
+         4kkgNqgQ2JS8GSMSCJRJs0cX3r1QoY4Qjn6SucQEYTfeguW2rqeEhdsu2JUDSwpOyWjj
+         3bJoXwxJVHxMK9AMZmkmqdMNsAzCcm0xVqyRfQjoEiVMKFU2AJe2shNXXyjL1CsDx3ag
+         Je5COR6uzkuZTcTETF8+FgrfxIe+4Mmus7VHg1syW8JxNPAdGalH42vjpq5NutxYsxgq
+         jnhw==
+X-Forwarded-Encrypted: i=1; AJvYcCXobwT0ssS5g8tJX8U3Wbzr0HZSDjVn9NYCCKoNxcVYqCNQ/PSVr28YtBwpeltqNIOBTPj39fbttTudCIIAPJY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzWUVB+Sj1SS51KVcrSsp5R65A/mpCzuF60oB/IfWQHi6VfGbms
+	pD2R+y9E0CWdeZ2hKGhJrMylJ3kZbHdKYYLsjESpd9oBeMgvcOS8oMjX4vEJw0nGKKg=
+X-Gm-Gg: ATEYQzwDlTPASJekD1xajRg5y+6lPmM7+++VLn6I6EHkyh0WI5UkKz/VeUkmekV803t
+	ouQufPGw+hz0GktqBVICW3abL4HOzpWDxL4IPR/tTaQk/A2jDoCoTUGOdXD9/2qg6x20aUHEu5O
+	eWW4MkW+4uVLO/AV38rsaGW5cqBbOAvbgsHxZuzOOsywGZixOlDMKI+QV9im191g6zz3hcosQue
+	Yz+i0EnVwbUYxdov4O7YncqiDdTfLHn0Eer70qJ/afsrZ9sJ1z1LLQVVq8HReneR3vZBd1eUWHJ
+	aIT4WU8L7Tk03pYpQgY8V8aWUhjOqok6AtxyMODqd1kAQgw28XiQj4ZW3cYQWNp8ytVGBnlmvnI
+	zLUTfrREM6YrPDzYFNZlNXQcZiNMnOhMd/tJNUt6NuDtodaeH6ZgxOHcEwjg7zXD/RPCbxQeMNp
+	cUmr54jaC/X30PSbHTW59pHmZAOQ==
+X-Received: by 2002:a05:600c:8489:b0:485:39b2:a47c with SMTP id 5b1f17b1804b1-4872809fdb3mr29506825e9.25.1774604863667;
+        Fri, 27 Mar 2026 02:47:43 -0700 (PDT)
+Received: from pathway.suse.cz ([176.114.240.130])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48722c9f58fsm133350695e9.11.2026.03.27.02.47.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 Mar 2026 02:47:43 -0700 (PDT)
+Date: Fri, 27 Mar 2026 10:47:41 +0100
+From: Petr Mladek <pmladek@suse.com>
+To: david.laight.linux@gmail.com
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -55,17 +69,15 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	coreteam@netfilter.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Masami Hiramatsu <mhiramat@kernel.org>,
-	Petr Mladek <pmladek@suse.com>,
 	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Steven Rostedt <rostedt@goodmis.org>,
 	Sergey Senozhatsky <senozhatsky@chromium.org>,
 	Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: [PATCH next] netfilter: nf_conntrack_h323: Correct indentation
  when H323_TRACE defined
-Message-ID: <acZM4qwEtWqANece@ashevche-desk.local>
+Message-ID: <acZSPeowuYC7ivgA@pathway.suse.cz>
 References: <20260326201819.3900-1-david.laight.linux@gmail.com>
- <acWWBxmPd_BNqUHF@chamomile>
- <20260326221809.0b99df3f@pumpkin>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -74,33 +86,48 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260326221809.0b99df3f@pumpkin>
-Organization: Intel Finland Oy - BIC 0357606-4 - c/o Alberga Business Park, 6
- krs, Bertel Jungin Aukio 5, 02600 Espoo
+In-Reply-To: <20260326201819.3900-1-david.laight.linux@gmail.com>
 
-On Thu, Mar 26, 2026 at 10:18:09PM +0000, David Laight wrote:
-> On Thu, 26 Mar 2026 21:24:39 +0100
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Mar 26, 2026 at 08:18:19PM +0000, david.laight.linux@gmail.com wrote:
-> > > 
-> > > The trace lines are indented using PRINT("%*.s", xx, " ").
-> > > Userspace will treat this as "%*.0s" and will output no characters
-> > > when 'xx' is zero, the kernel treats it as "%*s" and will output
-> > > a single ' ' - which is probably what is intended.
-> > > 
-> > > Change all the formats to "%*s" removing the default precision.
-> > > This gives a single space indent when level is zero.  
-> > 
-> > Do you have a setup using this helper? Or you just found this via
-> > visual inspection?
+On Thu 2026-03-26 20:18:19, david.laight.linux@gmail.com wrote:
+> From: David Laight <david.laight.linux@gmail.com>
 > 
-> Found with grep looking for places which might be affected by 'fixing'
-> the kernel printf code to be POSIX compliant.
+> The trace lines are indented using PRINT("%*.s", xx, " ").
+> Userspace will treat this as "%*.0s" and will output no characters
+> when 'xx' is zero, the kernel treats it as "%*s" and will output
+> a single ' ' - which is probably what is intended.
+> 
+> Change all the formats to "%*s" removing the default precision.
+> This gives a single space indent when level is zero.
+> 
+> Signed-off-by: David Laight <david.laight.linux@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_h323_asn1.c | 38 +++++++++++++-------------
+>  1 file changed, 19 insertions(+), 19 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+> index 7b1497ed97d2..287402428975 100644
+> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+> @@ -276,7 +276,7 @@ static unsigned int get_uint(struct bitstr *bs, int b)
+>  static int decode_nul(struct bitstr *bs, const struct field_t *f,
+>                        char *base, int level)
+>  {
+> -	PRINT("%*.s%s\n", level * TAB_SIZE, " ", f->name);
+> +	PRINT("%*s%s\n", level * TAB_SIZE, " ", f->name);
+>  
+>  	return H323_ERROR_NONE;
+>  }
 
-Do we have the respective test case in printf_kunit?
+The change is important for making the kernel %*.s handling POSIX
+compliant. The dot '.' without any following number is handled
+a zero precision by POSIX. It would print no space "" when
+also the field width was zero, aka when level == 0.
 
--- 
-With Best Regards,
-Andy Shevchenko
+It has no efect if the field width (@level) is always > 0 because
+vsprintf() would add the required emptry spaces ' ' anyway.
 
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+
+Best Regards,
+Petr
 
