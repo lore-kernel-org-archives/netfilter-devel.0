@@ -1,231 +1,193 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8702826B2AD
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2026 20:57:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FFEF39C003;
+	Mon, 30 Mar 2026 21:34:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774904277; cv=none; b=Dno5gwzZD0wJ2gWL621LuTQC6lvQrZ/ScT8rijFnBJZ7WQIsu0uGrXnMDicJXPCTRLqJP3XczP36PmpSWCgXycFYC2FUAPNhdAGQgVHtUf/U/DA/Xf3f6dg7Wlu5dJhs3RPxpI8aDKGEs21niHzZmQFjJcbKPv1xzGzqvVdCK38=
+	t=1774906498; cv=none; b=dBvucjKa0KvjYg8G1XbhbyKpY0Nnk+YMi0K1aMSsR1ccZ754pA9ZB4WlxnqvR2aDSWl7VZyTa9ZRQOEE/fIaMzIWqefSvP/RN4zJdnFLJgjWPM3x/BtYUKqLNEftRvPY79w/I6ZlV0rS8mE2DF36TSOf9JflY0PSHyrsQ1lNClo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774904277; c=relaxed/simple;
-	bh=JaMrL7lC6+aLXX5tQHJJYAGtD37CXoJLYo9WGS+M1QI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Nr7Z/0co4PuCRkliVq4w9a48v8bO7ZcF+hrAFZVWvDAqmn9drUpBVT/VLZjd4xeWlK+ovtDJ3WTYAHIfej3aGuIfd0TMQHMk5tPCgARpxpE7lB5ExAPRyU6MJAFuIVCa6/ySie/aGi4GvLQ2f4E0uAoM6WesioEgqn0TA5wsrZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=xsv94jsK; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=TVTXZvPp; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=DwMdDQug; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ieZPkYsj; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1774906498; c=relaxed/simple;
+	bh=v6ogNXQHJTDTX4v1/AvGYA8+sEBVNoiI9Ngz1bKXkNo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UNb2UMPVVIQ9KlaG5IavzNjTGBT0Qam6bSTMV8ZhMbcgC1XrrUK/IK0VzJPlpw5PtK+uSmPcTYfobDPg9XjeZTV29VLY/ksIChwtRYeQtsa41cOM0mZ8hCaYztfY0oqBDbYnjeGCDFSO+ZQICPLyFVYH9a9eSuWzU1ajhrBW03E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YOHJ/bms; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="xsv94jsK";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="TVTXZvPp";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="DwMdDQug";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ieZPkYsj"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 957465BD67;
-	Mon, 30 Mar 2026 20:57:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1774904274; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uR/oix3JsfagVJTlxQfxETZ5nBQJRFuFMR7PhhHjCLo=;
-	b=xsv94jsKszEDp5yoxFQ4p5FsxAH0JqKxAbpaA8mIAOQlc3OC8G2TWm7z0raJRZZj7DpcqD
-	WoIzdBnSY6ltKjv2GHtFFfXXwxxUk+JyLpKm6PBeBayFi85iX9aPoxa66DrWEtBUI9GhcJ
-	49FnDfXCrZzHTF5cII27/4d6ZKtJ6IU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1774904274;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uR/oix3JsfagVJTlxQfxETZ5nBQJRFuFMR7PhhHjCLo=;
-	b=TVTXZvPp8WDQqdEsrPscCVa0B1oquHLExO8Sa0nrutVTU9DwswO/8O4TLZTsFoElkr7aPF
-	3kyEvoGINbBb1cDA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1774904273; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uR/oix3JsfagVJTlxQfxETZ5nBQJRFuFMR7PhhHjCLo=;
-	b=DwMdDQugKxwPq0c+IENg8Ok09ccR9V1nqYYrPphg518nEOI92FntttiWUBKmOyKDMp6jU/
-	Mb7Vld0OhcZzNLNe7ZxRqW79Ey/3pvy3pbzLEf1O2urmM1gPfGTS6/iZtTCRQ447bqMisG
-	4JndcL2OpkWRcWjOY2yfnD+cm8q/ic8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1774904273;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uR/oix3JsfagVJTlxQfxETZ5nBQJRFuFMR7PhhHjCLo=;
-	b=ieZPkYsjqqFvBrzxlSu19oCBsBdBFAJoqoXjc05uWFeonojqakCkAfAwJamYlmmG/XlMFj
-	ENcxpDnCZo1eC3Dw==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 4C5A04A0A2;
-	Mon, 30 Mar 2026 20:57:53 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id z/LvDtHjymkMZQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 30 Mar 2026 20:57:53 +0000
-Message-ID: <7c0c962a-aca2-432e-855b-e4b2d3a8a80d@suse.de>
-Date: Mon, 30 Mar 2026 22:57:52 +0200
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YOHJ/bms"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1774906496; x=1806442496;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=v6ogNXQHJTDTX4v1/AvGYA8+sEBVNoiI9Ngz1bKXkNo=;
+  b=YOHJ/bmsIrY1vWN+Nw/lBKlZq/rCMH4B1BSz2hiGmR8IwUrVJIKgbsI8
+   WynM6paYoHDEh+bJQ3N7MrdaoFMgfjlrdyWW/gZdhXWvvAEBMRQvigxiR
+   1jezxyN41hBBNyF+Yo7NAXW1IMFdzpd0UoUp18cnfnnPYnqHM3oaiRq1q
+   XxZHNkm+F+QbnH/vskx619dyrewk3DYHMTlpVko2ZqMxxUqj5jwxajW/q
+   JmRH6+zDnerw0sXgMBp7tyktveqkrNdIWjr61ZJBrSMYGkPfp3GyCqHFh
+   kFaToQuTVvgA7P1w39dm8MDIlO8vwVIUari6O6MmLWiq48hiz3BtknkV6
+   g==;
+X-CSE-ConnectionGUID: i35L3VadRPG0SRwrM83M8g==
+X-CSE-MsgGUID: cCIdC7LxQgioBAdL+tLaCQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11744"; a="75927261"
+X-IronPort-AV: E=Sophos;i="6.23,150,1770624000"; 
+   d="scan'208";a="75927261"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2026 14:34:53 -0700
+X-CSE-ConnectionGUID: hSMDTCmdQAS6Fr+I7pGzuw==
+X-CSE-MsgGUID: EuWSIXlYQOyv8nI2jfNKsA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,150,1770624000"; 
+   d="scan'208";a="230642865"
+Received: from lkp-server01.sh.intel.com (HELO 283bf2e1b94a) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 30 Mar 2026 14:34:48 -0700
+Received: from kbuild by 283bf2e1b94a with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1w7KFw-000000001kD-2pDh;
+	Mon, 30 Mar 2026 21:34:44 +0000
+Date: Tue, 31 Mar 2026 05:34:34 +0800
+From: kernel test robot <lkp@intel.com>
+To: Qi Tang <tpluszz77@gmail.com>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+Cc: oe-kbuild-all@lists.linux.dev, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Qi Tang <tpluszz77@gmail.com>
+Subject: Re: [PATCH] netfilter: ctnetlink: zero expect NAT fields when
+ CTA_EXPECT_NAT absent
+Message-ID: <202603310541.XVM8V7WG-lkp@intel.com>
+References: <20260329165217.241038-1-tpluszz77@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf,v4] netfilter: ctnetlink: ignore explicit helper on new
- expectations
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, ffmancera@suse.de
-References: <20260330143627.892413-1-pablo@netfilter.org>
- <609becce-893f-43ea-ac1b-dbfd11a7e60d@suse.de> <acrSzf1HIUhy8DTf@chamomile>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <acrSzf1HIUhy8DTf@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	ARC_NA(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_THREE(0.00)[4];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email,netfilter.org:email]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spam-Level: 
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260329165217.241038-1-tpluszz77@gmail.com>
 
-On 3/30/26 9:45 PM, Pablo Neira Ayuso wrote:
-> On Mon, Mar 30, 2026 at 05:46:16PM +0200, Fernando Fernandez Mancera wrote:
->> On 3/30/26 4:36 PM, Pablo Neira Ayuso wrote:
->>> Use the existing master conntrack helper, anything else is not really
->>> supported and it just makes validation more complicated, so just ignore
->>> what helper userspace suggests for this expectation.
->>>
->>> This was uncovered when validating CTA_EXPECT_CLASS via different helper
->>> provided by userspace than the existing master conntrack helper:
->>>
->>>     BUG: KASAN: slab-out-of-bounds in nf_ct_expect_related_report+0x2479/0x27c0
->>>     Read of size 4 at addr ffff8880043fe408 by task poc/102
->>>     Call Trace:
->>>      nf_ct_expect_related_report+0x2479/0x27c0
->>>      ctnetlink_create_expect+0x22b/0x3b0
->>>      ctnetlink_new_expect+0x4bd/0x5c0
->>>      nfnetlink_rcv_msg+0x67a/0x950
->>>      netlink_rcv_skb+0x120/0x350
->>>
->>> Allowing to read kernel memory bytes off the expectation boundary.
->>>
->>> CTA_EXPECT_HELP_NAME is still used to offer the helper name to userspace
->>> via netlink dump.
->>>
->>> Fixes: bd0779370588 ("netfilter: nfnetlink_queue: allow to attach expectations to conntracks")
->>> Reported-by: Qi Tang <tpluszz77@gmail.com>
->>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->>> ---
->>> v4: actually... remove this entire refetch
->>>
->>> @@ -3576,8 +3569,6 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
->>>    #ifdef CONFIG_NF_CONNTRACK_ZONES
->>>           exp->zone = ct->zone;
->>>    #endif
->>> -       if (!helper)
->>> -               helper = rcu_dereference(help->helper);
->>>           rcu_assign_pointer(exp->helper, helper);
->>>           exp->tuple = *tuple;
->>>           exp->mask.src.u3 = mask->src.u3;
->>>
->>
->> Just a note, I spend some time trying to apply the patch due to this. Drop
->> it before running git am if you are experiencing the same problem.
->>
->>>
->>>    net/netfilter/nf_conntrack_netlink.c | 54 +++++-----------------------
->>>    1 file changed, 9 insertions(+), 45 deletions(-)
->>>
->>> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
->>> index 35f859b24103..ec6771a0926c 100644
->>> --- a/net/netfilter/nf_conntrack_netlink.c
->>> +++ b/net/netfilter/nf_conntrack_netlink.c
->>> @@ -2636,7 +2636,6 @@ static const struct nla_policy exp_nla_policy[CTA_EXPECT_MAX+1] = {
->>>    static struct nf_conntrack_expect *
->>>    ctnetlink_alloc_expect(const struct nlattr *const cda[], struct nf_conn *ct,
->>> -		       struct nf_conntrack_helper *helper,
->>>    		       struct nf_conntrack_tuple *tuple,
->>>    		       struct nf_conntrack_tuple *mask);
->>> @@ -2865,7 +2864,6 @@ ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
->>>    {
->>>    	struct nlattr *cda[CTA_EXPECT_MAX+1];
->>>    	struct nf_conntrack_tuple tuple, mask;
->>> -	struct nf_conntrack_helper *helper = NULL;
->>>    	struct nf_conntrack_expect *exp;
->>>    	int err;
->>> @@ -2879,17 +2877,8 @@ ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
->>>    	if (err < 0)
->>>    		return err;
->>> -	if (cda[CTA_EXPECT_HELP_NAME]) {
->>> -		const char *helpname = nla_data(cda[CTA_EXPECT_HELP_NAME]);
->>> -
->>> -		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
->>> -						    nf_ct_protonum(ct));
->>> -		if (helper == NULL)
->>> -			return -EOPNOTSUPP;
->>> -	}
->>> -
->>
->> I wonder if we should return -EOPNOTSUPP here and be explicit about it.
-> 
-> You mean:
-> 
->          if (cda[CTA_EXPECT_HELP_NAME])
->                  return -EOPNOTSUPP;
-> 
-> I cannot do it, there is at least one userspace conntrack helper that
-> would break (ssdp).
-> 
+Hi Qi,
 
-Ah, I was not aware of it sorry.
+kernel test robot noticed the following build errors:
 
->> I know the rule is "do not break userspace" but as you mentioned on the
->> commit message, this was not really supported. Better just explicitly fail
->> so if by any chance someone expects this to work, they will notice.
-> 
-> What I could do is to check if the helper name specified by
-> CTA_EXPECT_HELP_NAME is the same as the master conntrack helper. But
-> then I have to keep this code only to validate that expectation is
-> using. And this attribute has been an optional attribute this far,
-> userspace could just skip it.
-> 
-> I could only find one conntrack helper in userspace that sets on this
-> attribute (ssdp), and it is setting it to the same helper that the
-> master conntrack is using.
-> 
-> I think it is not worth the effort, simply removing this code to fix
-> this issue should be fine, this simplifies this control plane path.
-> 
+[auto build test ERROR on netfilter-nf/main]
+[also build test ERROR on linus/master nf-next/master horms-ipvs/master v7.0-rc6 next-20260327]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-I think you are right. Thanks for explaining. Then, it looks good to me.
+url:    https://github.com/intel-lab-lkp/linux/commits/Qi-Tang/netfilter-ctnetlink-zero-expect-NAT-fields-when-CTA_EXPECT_NAT-absent/20260330-195347
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20260329165217.241038-1-tpluszz77%40gmail.com
+patch subject: [PATCH] netfilter: ctnetlink: zero expect NAT fields when CTA_EXPECT_NAT absent
+config: sh-randconfig-001-20260331 (https://download.01.org/0day-ci/archive/20260331/202603310541.XVM8V7WG-lkp@intel.com/config)
+compiler: sh4-linux-gcc (GCC) 15.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260331/202603310541.XVM8V7WG-lkp@intel.com/reproduce)
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202603310541.XVM8V7WG-lkp@intel.com/
 
+All errors (new ones prefixed by >>):
+
+   net/netfilter/nf_conntrack_netlink.c: In function 'ctnetlink_alloc_expect':
+>> net/netfilter/nf_conntrack_netlink.c:3592:28: error: 'struct nf_conntrack_expect' has no member named 'saved_addr'
+    3592 |                 memset(&exp->saved_addr, 0, sizeof(exp->saved_addr));
+         |                            ^~
+   net/netfilter/nf_conntrack_netlink.c:3592:55: error: 'struct nf_conntrack_expect' has no member named 'saved_addr'
+    3592 |                 memset(&exp->saved_addr, 0, sizeof(exp->saved_addr));
+         |                                                       ^~
+>> net/netfilter/nf_conntrack_netlink.c:3593:28: error: 'struct nf_conntrack_expect' has no member named 'saved_proto'
+    3593 |                 memset(&exp->saved_proto, 0, sizeof(exp->saved_proto));
+         |                            ^~
+   net/netfilter/nf_conntrack_netlink.c:3593:56: error: 'struct nf_conntrack_expect' has no member named 'saved_proto'
+    3593 |                 memset(&exp->saved_proto, 0, sizeof(exp->saved_proto));
+         |                                                        ^~
+>> net/netfilter/nf_conntrack_netlink.c:3594:20: error: 'struct nf_conntrack_expect' has no member named 'dir'
+    3594 |                 exp->dir = 0;
+         |                    ^~
+
+
+vim +3592 net/netfilter/nf_conntrack_netlink.c
+
+  3528	
+  3529	static struct nf_conntrack_expect *
+  3530	ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+  3531			       struct nf_conntrack_helper *helper,
+  3532			       struct nf_conntrack_tuple *tuple,
+  3533			       struct nf_conntrack_tuple *mask)
+  3534	{
+  3535		struct net *net = read_pnet(&ct->ct_net);
+  3536		struct nf_conntrack_expect *exp;
+  3537		struct nf_conn_help *help;
+  3538		u32 class = 0;
+  3539		int err;
+  3540	
+  3541		help = nfct_help(ct);
+  3542		if (!help)
+  3543			return ERR_PTR(-EOPNOTSUPP);
+  3544	
+  3545		if (cda[CTA_EXPECT_CLASS] && helper) {
+  3546			class = ntohl(nla_get_be32(cda[CTA_EXPECT_CLASS]));
+  3547			if (class > helper->expect_class_max)
+  3548				return ERR_PTR(-EINVAL);
+  3549		}
+  3550		exp = nf_ct_expect_alloc(ct);
+  3551		if (!exp)
+  3552			return ERR_PTR(-ENOMEM);
+  3553	
+  3554		if (cda[CTA_EXPECT_FLAGS]) {
+  3555			exp->flags = ntohl(nla_get_be32(cda[CTA_EXPECT_FLAGS]));
+  3556			exp->flags &= ~NF_CT_EXPECT_USERSPACE;
+  3557		} else {
+  3558			exp->flags = 0;
+  3559		}
+  3560		if (cda[CTA_EXPECT_FN]) {
+  3561			const char *name = nla_data(cda[CTA_EXPECT_FN]);
+  3562			struct nf_ct_helper_expectfn *expfn;
+  3563	
+  3564			expfn = nf_ct_helper_expectfn_find_by_name(name);
+  3565			if (expfn == NULL) {
+  3566				err = -EINVAL;
+  3567				goto err_out;
+  3568			}
+  3569			exp->expectfn = expfn->expectfn;
+  3570		} else
+  3571			exp->expectfn = NULL;
+  3572	
+  3573		exp->class = class;
+  3574		exp->master = ct;
+  3575		write_pnet(&exp->net, net);
+  3576	#ifdef CONFIG_NF_CONNTRACK_ZONES
+  3577		exp->zone = ct->zone;
+  3578	#endif
+  3579		if (!helper)
+  3580			helper = rcu_dereference(help->helper);
+  3581		rcu_assign_pointer(exp->helper, helper);
+  3582		exp->tuple = *tuple;
+  3583		exp->mask.src.u3 = mask->src.u3;
+  3584		exp->mask.src.u.all = mask->src.u.all;
+  3585	
+  3586		if (cda[CTA_EXPECT_NAT]) {
+  3587			err = ctnetlink_parse_expect_nat(cda[CTA_EXPECT_NAT],
+  3588							 exp, nf_ct_l3num(ct));
+  3589			if (err < 0)
+  3590				goto err_out;
+  3591		} else {
+> 3592			memset(&exp->saved_addr, 0, sizeof(exp->saved_addr));
+> 3593			memset(&exp->saved_proto, 0, sizeof(exp->saved_proto));
+> 3594			exp->dir = 0;
+  3595		}
+  3596		return exp;
+  3597	err_out:
+  3598		nf_ct_expect_put(exp);
+  3599		return ERR_PTR(err);
+  3600	}
+  3601	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
