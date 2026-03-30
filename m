@@ -1,37 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 862983D47BB;
-	Mon, 30 Mar 2026 12:39:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83203D6664;
+	Mon, 30 Mar 2026 12:39:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774874350; cv=none; b=cSPVEhRmXjGTzLznkhtJEepvl+9e9RLqlDt0MmirzAJeZYNbCAT8L/5XqA8nCaVnz2i3V30a/9uidyFUN2h5LcsBesUqdUfRQfkKQ2qidUdeHT0LiZ+U5APLKxPGenqCuKAMnormamKdIfjUoek4D3IMomn4OWqk35DiWp1bCAo=
+	t=1774874355; cv=none; b=AKZHmpbUCSH57PXTBIzqyiUCyFF2znR2xD0PpWqXzeHD5buB6XFNlCSrXow2EirwKzUtPvsIDSjqVYYIt6PTc/JJILsGGBn/8K6uAjITkH4ZEY8iaQVVIxlWyvkLc5NbuVKH0vLaeoW6nuqZ+xjp0GM4uS4xnccIgl6U5Hdp1FA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774874350; c=relaxed/simple;
-	bh=UVpgCV1aTySU0IUWgQUSPmO//Fid8a2xLvaG6hbweyA=;
+	s=arc-20240116; t=1774874355; c=relaxed/simple;
+	bh=C2YzQJdoXLopSLDEyQSgi7aaS7NKyueiaeg0lyq6DVU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=UCPVH95ZQfRi5pM8S4LNmI1Wf3S2WtMKLXDya4wWdECJuXS0IQ0qSAZkfVEkebmx9DTqaWEm8+9HdSmARbkgg6u7jCu7/sFN9v72D2IsDnTQdCEWmiuLgWmZxk4jFjAXDpzUkqHsYtPbJZHKAC58PRSTimirWr3lLMeG8dp6kAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lkqGAS8t; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=CrUnqQ0wi+CeMr08lHRGM1dsJCgFQUNrtuci4I4GWqcKtCBihMFHhB7vsOlOWFYhJxh9hfCoOxfYntydstEH9aTUoHJF5vcl4iPN3t7Ti2VpcdxbsJuF+A5+fmrjjIkLEXPBG2TRn1BTng241PySCfSzUhX7hzsCi6K6jEbILOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Uq3X21EM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lkqGAS8t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0765AC4CEF7;
-	Mon, 30 Mar 2026 12:39:08 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Uq3X21EM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3477DC2BCB2;
+	Mon, 30 Mar 2026 12:39:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774874350;
-	bh=UVpgCV1aTySU0IUWgQUSPmO//Fid8a2xLvaG6hbweyA=;
+	s=k20201202; t=1774874355;
+	bh=C2YzQJdoXLopSLDEyQSgi7aaS7NKyueiaeg0lyq6DVU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=lkqGAS8tDl/9pPvSn6Vr8GK/RT/BzFnwC/BvZuW9VH8go4uFIhRyHcgZjw3DM81lS
-	 iC5UVcsWYzgPIcy0SD5XfevtWGqRobMyNa752q1pzH8DZB5rSi1CxT1NlwOWgum87a
-	 JIgjf0gB8CrBf92H3ZYmhLHhytocQ8Fbrl7WQXiJwa1m3mWs7Ecwma6+1JYy6dAfzV
-	 Svvm1E5FvcJLBrP0N4Fqy7tNQY0xf5s0KvOurOnv97kPIHfwRZt4d9437AGa7AyeOr
-	 ITy6+ALV9szz0rA2LStK6wf6Dd9sw2H3ia2xwM3S14uQt40ZMXjYCcBVWPitkWlAWa
-	 F6M3mbQk+4JhA==
+	b=Uq3X21EMU3YwWEk8iVQ2ciQSK9f/4YSvfiyABNiQ1+P5Wvz85AvNdlKFVNFcGiw0V
+	 TSEpdN1bFgBv7BFn+h41JdWpVKyWvkq4Y/Fapk54yoMBHr1RR8LOtg8cwORN6e18ny
+	 7YHd4Jw1ptzg0zzg02Pfn7GvAztIXT9lb25rTg7BpRUDd1JkBzojkd95oURLliKNgn
+	 sJZOAKAevoEVC5L/T6t04X3b+D0gJxXVyODDW9DgnK3ogfgs/C/QmUaTR/prFP+l6y
+	 JLEtEIz+o8lItbQJFRKX1MwEFIrpFXobOm42wNnw5MP9NfVwQeJvuYULXg+z/WfTju
+	 gSg3kul2LD+fg==
 From: Sasha Levin <sashal@kernel.org>
 To: patches@lists.linux.dev,
 	stable@vger.kernel.org
-Cc: Florian Westphal <fw@strlen.de>,
-	Stefano Brivio <sbrivio@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
 	Sasha Levin <sashal@kernel.org>,
 	davem@davemloft.net,
 	edumazet@google.com,
@@ -41,9 +40,9 @@ Cc: Florian Westphal <fw@strlen.de>,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.19-5.10] netfilter: nft_set_pipapo_avx2: don't return non-matching entry on expiry
-Date: Mon, 30 Mar 2026 08:38:32 -0400
-Message-ID: <20260330123842.756154-19-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.19-6.18] netfilter: ctnetlink: ensure safe access to master conntrack
+Date: Mon, 30 Mar 2026 08:38:35 -0400
+Message-ID: <20260330123842.756154-22-sashal@kernel.org>
 X-Mailer: git-send-email 2.53.0
 In-Reply-To: <20260330123842.756154-1-sashal@kernel.org>
 References: <20260330123842.756154-1-sashal@kernel.org>
@@ -59,567 +58,612 @@ X-stable-base: Linux 6.19.10
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-[ Upstream commit d3c0037ffe1273fa1961e779ff6906234d6cf53c ]
+[ Upstream commit bffcaad9afdfe45d7fc777397d3b83c1e3ebffe5 ]
 
-New test case fails unexpectedly when avx2 matching functions are used.
+Holding reference on the expectation is not sufficient, the master
+conntrack object can just go away, making exp->master invalid.
 
-The test first loads a ranomly generated pipapo set
-with 'ipv4 . port' key, i.e.  nft -f foo.
+To access exp->master safely:
 
-This works.  Then, it reloads the set after a flush:
-(echo flush set t s; cat foo) | nft -f -
+- Grab the nf_conntrack_expect_lock, this gets serialized with
+  clean_from_lists() which also holds this lock when the master
+  conntrack goes away.
 
-This is expected to work, because its the same set after all and it was
-already loaded once.
+- Hold reference on master conntrack via nf_conntrack_find_get().
+  Not so easy since the master tuple to look up for the master conntrack
+  is not available in the existing problematic paths.
 
-But with avx2, this fails: nft reports a clashing element.
+This patch goes for extending the nf_conntrack_expect_lock section
+to address this issue for simplicity, in the cases that are described
+below this is just slightly extending the lock section.
 
-The reported clash is of following form:
+The add expectation command already holds a reference to the master
+conntrack from ctnetlink_create_expect().
 
-    We successfully re-inserted
-      a . b
-      c . d
+However, the delete expectation command needs to grab the spinlock
+before looking up for the expectation. Expand the existing spinlock
+section to address this to cover the expectation lookup. Note that,
+the nf_ct_expect_iterate_net() calls already grabs the spinlock while
+iterating over the expectation table, which is correct.
 
-Then we try to insert a . d
+The get expectation command needs to grab the spinlock to ensure master
+conntrack does not go away. This also expands the existing spinlock
+section to cover the expectation lookup too. I needed to move the
+netlink skb allocation out of the spinlock to keep it GFP_KERNEL.
 
-avx2 finds the already existing a . d, which (due to 'flush set') is marked
-as invalid in the new generation.  It skips the element and moves to next.
+For the expectation events, the IPEXP_DESTROY event is already delivered
+under the spinlock, just move the delivery of IPEXP_NEW under the
+spinlock too because the master conntrack event cache is reached through
+exp->master.
 
-Due to incorrect masking, the skip-step finds the next matching
-element *only considering the first field*,
+While at it, add lockdep notations to help identify what codepaths need
+to grab the spinlock.
 
-i.e. we return the already reinserted "a . b", even though the
-last field is different and the entry should not have been matched.
-
-No such error is reported for the generic c implementation (no avx2) or when
-the last field has to use the 'nft_pipapo_avx2_lookup_slow' fallback.
-
-Bisection points to
-7711f4bb4b36 ("netfilter: nft_set_pipapo: fix range overlap detection")
-but that fix merely uncovers this bug.
-
-Before this commit, the wrong element is returned, but erronously
-reported as a full, identical duplicate.
-
-The root-cause is too early return in the avx2 match functions.
-When we process the last field, we should continue to process data
-until the entire input size has been consumed to make sure no stale
-bits remain in the map.
-
-Link: https://lore.kernel.org/netfilter-devel/20260321152506.037f68c0@elisabeth/
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Reviewed-by: Stefano Brivio <sbrivio@redhat.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
 
 LLM Generated explanations, may be completely bogus:
 
-All verified. Now I have the complete and verified picture. Let me write
-the final answer.
+Now I have all the verification I need. Let me compile the final
+analysis.
 
 ===============================================================
-## PHASE 1: COMMIT MESSAGE FORENSICS
+PHASE 1: COMMIT MESSAGE FORENSICS
 ===============================================================
 
-**Step 1.1: Subject Line**
-Record: [netfilter: nft_set_pipapo_avx2] [don't return / fix] [Prevent
-AVX2 pipapo lookup helpers from returning a non-matching entry when an
-expired/invalid element is skipped]
+**Step 1.1: PARSE THE SUBJECT LINE**
+Record: [netfilter: ctnetlink] [ensure] [safe access to master conntrack
+— "ensure" strongly implies a missing safety mechanism, i.e., a bug fix]
 
-**Step 1.2: Tags**
+**Step 1.2: PARSE ALL COMMIT MESSAGE TAGS**
 Record:
-- Link: `https://lore.kernel.org/netfilter-
-  devel/20260321152506.037f68c0@elisabeth/`
-- Signed-off-by: Florian Westphal `<fw@strlen.de>` (author, netfilter
-  maintainer)
-- Reviewed-by: Stefano Brivio `<sbrivio@redhat.com>` (original author of
-  pipapo AVX2 implementation)
-- Signed-off-by: Pablo Neira Ayuso `<pablo@netfilter.org>` (netfilter
-  subsystem maintainer)
+- Signed-off-by: Florian Westphal <fw@strlen.de> — Author, core
+  netfilter developer
+- Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org> — Netfilter
+  subsystem maintainer
 - No Fixes: tag (expected for manual review)
-- No Reported-by: tag
-- No Cc: stable (expected for manual review)
-Notable: Reviewed by the original pipapo AVX2 code author — strong
-correctness signal for this specialized code.
+- No Cc: stable tag (expected for manual review)
+- No Reported-by:, Tested-by:, Reviewed-by:, or Link: tags
 
-**Step 1.3: Commit Body Analysis**
-Record: [Bug: After flushing and reloading a pipapo set with multi-field
-keys (e.g., `ipv4 . port`), the AVX2 code incorrectly reports element
-clashes] [Symptom: `nft -f` fails with clash error on valid set reload]
-[Root cause: Early `return b` in AVX2 helper functions when processing
-the last field causes the loop to exit before all 256-bit map chunks are
-processed, leaving stale bits from previous field matching. When an
-expired/inactive element is skipped via `pipapo_refill()`, those stale
-bits produce matches based only on the first key field, returning
-incorrect elements] [Bisection points to 7711f4bb4b36 which merely
-exposed the bug]
+**Step 1.3: ANALYZE THE COMMIT BODY TEXT**
+Record: The commit describes a real lifetime bug: holding a reference on
+the expectation is not sufficient because the master conntrack object
+`exp->master` can be freed independently, leaving a dangling pointer.
+The fix serializes access via `nf_conntrack_expect_lock`, which overlaps
+with `clean_from_lists()` in the conntrack teardown path. Affected
+paths: expectation get, delete, and IPEXP_NEW event delivery. The
+failure mode is a use-after-free / stale pointer dereference through
+`exp->master`.
 
-**Step 1.4: Hidden Bug Fix Detection**
-Record: Not hidden — the commit message explicitly describes a concrete
-bug with a clear reproducer and root-cause explanation.
+**Step 1.4: DETECT HIDDEN BUG FIXES**
+Record: This IS a bug fix. Despite using "ensure" rather than "fix", the
+body explicitly describes a use-after-free class bug where `exp->master`
+becomes invalid.
 
 ===============================================================
-## PHASE 2: DIFF ANALYSIS
+PHASE 2: DIFF ANALYSIS — LINE BY LINE
 ===============================================================
 
-**Step 2.1: Inventory**
-Record: Single file changed: `net/netfilter/nft_set_pipapo_avx2.c`. 10
-identical one-token changes across 10 functions:
-`nft_pipapo_avx2_lookup_4b_{2,4,8,12,32}` and
-`nft_pipapo_avx2_lookup_8b_{1,2,4,6,16}`. Each changes `return b;` to
-`ret = b;`. Scope: single-file surgical fix.
-
-**Step 2.2: Code Flow Change**
-Record: For each of the 10 hunks: Before — when processing the last
-field (`last == true`) and a match is found via
-`nft_pipapo_avx2_refill()`, the helper immediately returns `b`, skipping
-processing of remaining 256-bit chunks. After — the match index is
-stored in `ret` and the loop continues via `continue`, processing all
-remaining chunks (clearing/updating the map for each). The function
-returns `ret` at the end of the loop (line unchanged). This ensures the
-full bitmap is consistent before the caller uses it.
-
-**Step 2.3: Bug Mechanism**
-Record: [Category: Logic/state correctness bug in bitmap processing] The
-AVX2 helpers process the result map in `m256_size` chunks. When the last
-field is being processed and a match is found in chunk `i`, the early
-`return b` skips chunks `i+1`, `i+2`, etc. Those chunks retain stale
-bits from the previous field's matching. When `pipapo_get_avx2()` (line
-1240-1244) finds the matched element is expired/inactive and calls
-`pipapo_refill()` on the same `res` map, those stale bits are found and
-return incorrect matches that match only on a subset of key fields. The
-generic C path and `nft_pipapo_avx2_lookup_slow` don't have this issue
-because they process the full map in one pass.
-
-**Step 2.4: Fix Quality**
-Record: Obviously correct — mechanical, identical change across all 10
-helpers. The loop simply continues processing remaining chunks (which is
-already the behavior for non-last fields). Reviewed by the original AVX2
-implementation author (Stefano Brivio). No public API changes.
-Negligible regression risk — marginally more SIMD iterations when `last`
-is true, but this is the correct behavior.
-
-===============================================================
-## PHASE 3: GIT HISTORY INVESTIGATION
-===============================================================
-
-**Step 3.1: Blame**
-Record: `git blame` confirms all buggy `if (last) return b;` lines were
-introduced by commit `7400b063969bd` (Stefano Brivio, 2020-03-07) —
-"nft_set_pipapo: Introduce AVX2-based lookup implementation", first in
-v5.7-rc1. The bug has existed since the original AVX2 pipapo code was
-written.
-
-**Step 3.2: Fixes Tag**
-Record: No explicit Fixes: tag. The commit body references
-`7711f4bb4b36` ("fix range overlap detection") as the commit that
-exposed the bug (by changing duplicate comparison from
-`sizeof(*dup_key->data)` to `set->klen`). Verified: `7711f4bb4b36` first
-appeared in v6.19-rc5, and has been backported to v6.18 stable (as
-`704c0258f0d79`).
-
-**Step 3.3: File History and Related Changes**
-Record: The critical prerequisite chain is:
-1. `416e53e395167` (v6.18-rc1) — Split `nft_pipapo_avx2_lookup()` into
-   `pipapo_get_avx2()` helper + thin wrapper. Created the shared AVX2
-   lookup function.
-2. `84c1da7b38d9a` (v6.18-rc1) — Made control-plane `pipapo_get()`
-   dispatch to `pipapo_get_avx2()` when AVX2 is available. Made
-   `pipapo_get_avx2()` non-static.
-3. `5823699a11cf3` (v6.18-rc1) — Fixed expired-entry retry from full-
-   loop restart to `pipapo_refill()` on existing map. This is the commit
-   that makes stale bits in the map a real problem — because now
-   `pipapo_refill()` operates on the existing `res` map which has stale
-   bits left by the early-returning helpers.
-
-**Step 3.4: Author Context**
-Record: Florian Westphal is a netfilter maintainer. Stefano Brivio
-(reviewer) is the original pipapo AVX2 author. Pablo Neira Ayuso (co-
-signer) is the netfilter subsystem maintainer.
-
-**Step 3.5: Dependencies**
-Record: The fix itself is self-contained and applies cleanly. However,
-the bug is only reachable in trees that contain all three prerequisites
-(`416e53e395167`, `84c1da7b38d9a`, `5823699a11cf3`). Verified via `git
-merge-base --is-ancestor`:
-- v5.15: none present (exit code 1)
-- v6.1: none present (exit code 1)
-- v6.6: none present (exit code 1)
-- v6.12: none present (exit code 1)
-- v6.18: all present (exit code 0)
-- v6.19: all present (exit code 0)
-
-===============================================================
-## PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
-===============================================================
-
-**Step 4.1: Patch Discussion**
-Record: Direct lore.kernel.org fetch blocked by Anubis anti-bot
-protection. The Link: tag points to the netfilter-devel discussion.
-
-**Step 4.2: Bug Report**
-Record: Bug was found via a new test case (described in the commit
-message), not via an external bug report. The test exercises
-flush+reload of pipapo sets with multi-field keys.
-
-**Step 4.3: Related Patches**
-Record: This is patch 1 of a 2-patch series. Patch 2 adds a regression
-selftest (`selftests: netfilter: nft_concat_range.sh`). The code fix is
-standalone.
-
-**Step 4.4: Stable Discussion**
-Record: Could not search lore stable archives due to access
-restrictions. No evidence found of prior stable discussion.
-
-===============================================================
-## PHASE 5: CODE SEMANTIC ANALYSIS
-===============================================================
-
-**Step 5.1: Functions Modified**
-Record: 10 AVX2 lookup helpers: `nft_pipapo_avx2_lookup_{4b_2, 4b_4,
-4b_8, 4b_12, 4b_32, 8b_1, 8b_2, 8b_4, 8b_6, 8b_16}`.
-
-**Step 5.2: Callers**
-Record: All 10 helpers are called from `pipapo_get_avx2()` via the
-`NFT_SET_PIPAPO_AVX2_LOOKUP` macro (lines 1186-1222).
-`pipapo_get_avx2()` is called from:
-1. **Control plane**: `pipapo_get()` in `nft_set_pipapo.c` (line 534),
-   which is called during element insertion/duplicate checking
-   (`nft_pipapo_insert()` at lines 1309, 1330), element retrieval
-   (`nft_pipapo_get()` at line 605), and deactivation (line 1905).
-2. **Data path**: `nft_pipapo_avx2_lookup()` (line 1298), called during
-   packet classification.
-
-Both paths are affected when an expired/inactive element is found and
-`pipapo_refill()` is invoked on a stale bitmap.
-
-**Step 5.3: Callees**
-Record: Each helper calls `nft_pipapo_avx2_refill()` which for
-`last==true` returns the first set bit index in the current chunk. The
-caller (`pipapo_get_avx2()`) then checks expiry/genmask and may call
-`pipapo_refill()` for retry (line 1242).
-
-**Step 5.4: Call Chain**
-Record: Control plane: `nf_tables_newsetelem()` → `nft_add_set_elem()` →
-`nft_pipapo_insert()` → `pipapo_get()` → `pipapo_get_avx2()` → AVX2
-helpers. Data path: packet → `nft_pipapo_avx2_lookup()` →
-`pipapo_get_avx2()` → AVX2 helpers. Both are reachable — control plane
-from nftables netlink, data path from every packet hitting a pipapo set.
-
-**Step 5.5: Similar Patterns**
-Record: `nft_pipapo_avx2_lookup_slow()` has the same `if (last) return
-b;` at line 1078 but is NOT affected because its `pipapo_refill()` call
-processes the entire map, not per-chunk. All 10 affected helpers have
-the identical pattern.
-
-===============================================================
-## PHASE 6: CROSS-REFERENCING AND STABLE TREE ANALYSIS
-===============================================================
-
-**Step 6.1: Bug Existence in Stable Trees**
-Record: Verified via `git merge-base --is-ancestor`:
-- The early `return b` pattern exists since v5.7 in all stable trees
-- BUT the bug is only triggerable after the retry-via-`pipapo_refill()`
-  mechanism from `5823699a11cf3` is present
-- `5823699a11cf3`, `416e53e395167`, and `84c1da7b38d9a` are NOT in
-  v5.15, v6.1, v6.6, or v6.12 (exit code 1)
-- All three ARE in v6.18 and v6.19 (exit code 0)
-- Confirmed: v6.18.20 and v6.19.10 still contain the buggy `return b;`
-  in all 10 helpers
-- Confirmed: v6.18.20 and v6.19.10 both contain the `pipapo_refill()`
-  retry at line 1242
-- Confirmed: v6.18.20 has the `pipapo_get_avx2()` dispatch in
-  `pipapo_get()`
-- Confirmed: v6.6 has zero references to `pipapo_get_avx2` in
-  `nft_set_pipapo.c`
-
-**Step 6.2: Backport Complications**
-Record: Clean apply expected for v6.18.y and v6.19.y. The buggy lines
-are identical in both trees. Not relevant to v6.12 and older.
-
-**Step 6.3: Related Fixes in Stable**
-Record: `7711f4bb4b36` (range overlap detection fix) was backported to
-v6.18 stable as `704c0258f0d79`. This backport makes the false-clash
-symptom more visible on v6.18. No equivalent of the commit under review
-is present in any stable tree.
-
-===============================================================
-## PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
-===============================================================
-
-**Step 7.1: Subsystem Criticality**
-Record: [netfilter / nftables] [IMPORTANT — core packet
-filtering/firewalling infrastructure used by virtually all Linux
-systems]
-
-**Step 7.2: Subsystem Activity**
-Record: Actively maintained with frequent correctness fixes. The pipapo
-AVX2 implementation has seen several related fixes recently
-(5823699a11cf3, 7711f4bb4b36, etc.), indicating this area is under
-active maintenance.
-
-===============================================================
-## PHASE 8: IMPACT AND RISK ASSESSMENT
-===============================================================
-
-**Step 8.1: Who Is Affected**
-Record: All x86_64 systems with AVX2 (essentially all modern x86 since
-Haswell/2013) running kernel v6.18+ that use nftables with concatenated
-range sets (pipapo). Affects both:
-- **Control plane**: Element insertion/overlap checking fails with false
-  clashes
-- **Data path**: Packet lookup can return wrong element/verdict when
-  expired entries exist in the set
-
-**Step 8.2: Trigger Conditions**
+**Step 2.1: INVENTORY THE CHANGES**
 Record:
-- Control plane: Load a pipapo set, flush it, reload it → false clash
-  reported
-- Data path: Any packet hitting a pipapo set where an expired element
-  exists and the map spans >1 YMM chunk
-- Trigger is realistic for any system that periodically reloads firewall
-  rules or uses element timeouts
-- Requires no special privileges beyond nftables administration for
-  control-plane path
+- `include/net/netfilter/nf_conntrack_core.h`: +5 lines (new
+  `lockdep_nfct_expect_lock_held()` inline)
+- `net/netfilter/nf_conntrack_ecache.c`: +2 lines (lockdep annotation in
+  `nf_ct_expect_event_report`)
+- `net/netfilter/nf_conntrack_expect.c`: +9/-1 lines (lockdep
+  annotations; IPEXP_NEW moved inside lock)
+- `net/netfilter/nf_conntrack_netlink.c`: +22/-12 lines (spinlock
+  sections extended in get/delete)
 
-**Step 8.3: Failure Mode Severity**
-Record:
-- Control plane: False element clashes → nftables set reload fails →
-  **firewall update/deployment breaks** → HIGH
-- Data path: Wrong element matched → **wrong firewall verdict applied to
-  packet** → **CRITICAL** (security-relevant: packets could be
-  incorrectly allowed or denied)
-- Combined severity: **HIGH**
+Total: ~38 insertions, ~13 deletions across 4 files. Scope: small,
+single-subsystem surgical locking fix.
 
-**Step 8.4: Risk-Benefit Ratio**
-Record:
-- Benefit: **HIGH** — fixes both control-plane set operations and
-  potential data-path incorrect matching
-- Risk: **VERY LOW** — 10 identical one-token changes, each replacing
-  `return b` with `ret = b`, letting the loop finish naturally. Reviewed
-  by original pipapo AVX2 author. No API/ABI changes.
-- Ratio: Strongly favors backporting
+Functions modified: `lockdep_nfct_expect_lock_held()` (new trivial
+helper), `nf_ct_expect_event_report()`, `nf_ct_unlink_expect_report()`,
+`nf_ct_remove_expect()`, `nf_ct_find_expectation()`,
+`__nf_ct_expect_check()`, `nf_ct_expect_related_report()`,
+`ctnetlink_get_expect()`, `ctnetlink_del_expect()`.
+
+**Step 2.2: UNDERSTAND THE CODE FLOW CHANGE**
+- `ctnetlink_get_expect()`: Before — finds expectation via
+  `nf_ct_expect_find_get()` under RCU, then fills reply skb
+  dereferencing `exp->master` without expect lock. After — allocates skb
+  first (GFP_KERNEL), takes `nf_conntrack_expect_lock`, does lookup +
+  fill under lock, releases lock after put.
+- `ctnetlink_del_expect()`: Before — finds expectation and checks ID
+  before taking lock; only deletion protected. After — takes lock first,
+  find + ID check + deletion all under lock.
+- `nf_ct_expect_related_report()`: Before — unlocks before calling
+  `nf_ct_expect_event_report(IPEXP_NEW, ...)`. After — delivers
+  IPEXP_NEW under lock, then unlocks.
+- Lockdep annotations added to `nf_ct_expect_event_report`,
+  `nf_ct_unlink_expect_report`, `nf_ct_remove_expect`,
+  `nf_ct_find_expectation`, and `__nf_ct_expect_check` to document and
+  enforce locking requirements.
+
+**Step 2.3: IDENTIFY THE BUG MECHANISM**
+Record: Category: **Race condition → Use-after-free on `exp->master`**.
+
+The race:
+1. Thread A (ctnetlink GET/DELETE): calls `nf_ct_expect_find_get()`
+   which bumps `exp->use` but does NOT pin the master conntrack
+2. Thread B (conntrack destruction): `clean_from_lists()` →
+   `nf_ct_remove_expectations()` → takes `nf_conntrack_expect_lock`,
+   removes expectations
+3. Thread B continues: master conntrack `nf_conn` object freed via RCU
+4. Thread A: dereferences `exp->master` → **USE-AFTER-FREE**
+
+Verified: `clean_from_lists()` at line 511 of `nf_conntrack_core.c`
+calls `nf_ct_remove_expectations(ct)`, which takes
+`nf_conntrack_expect_lock` at line 238 of `nf_conntrack_expect.c`. After
+expectations are removed, the master ct is freed.
+
+The specific `exp->master` dereferences in `ctnetlink_exp_dump_expect()`
+(lines 3012-3067 of `nf_conntrack_netlink.c`) include:
+- `master->tuplehash[IP_CT_DIR_ORIGINAL].tuple` (line 3029)
+- `nf_ct_l3num(master)` and `nf_ct_protonum(master)` (lines 3043, 3045)
+- `nfct_help(master)` (line 3059)
+
+In `nf_ct_expect_event_report()`, `nf_ct_ecache_find(exp->master)`
+dereferences the master conntrack.
+
+**Step 2.4: ASSESS THE FIX QUALITY**
+Record: The fix is obviously correct — it extends the existing
+`nf_conntrack_expect_lock` to cover accesses that were previously
+unprotected. The `GFP_KERNEL` skb allocation is moved before the lock to
+avoid sleeping under spinlock. IPEXP_DESTROY was already delivered under
+the lock; now IPEXP_NEW is too. Very low regression risk — slightly
+longer lock hold on admin netlink paths.
 
 ===============================================================
-## PHASE 9: FINAL SYNTHESIS
+PHASE 3: GIT HISTORY INVESTIGATION
 ===============================================================
 
-**Step 9.1: Evidence Compilation**
+**Step 3.1: BLAME THE CHANGED LINES**
+Record: `git blame` confirms the core of `ctnetlink_get_expect()` was
+introduced by `c1d10adb4a521d` (Pablo Neira Ayuso, 2006-01-05) —
+original ctnetlink support. The unlocked expectation lookup pattern has
+existed since kernel 2.6.x and is present in ALL active stable trees.
 
-FOR backporting:
-- Real, verified correctness bug in netfilter set matching with concrete
-  reproducer
-- Affects both control-plane (set reload fails) and data-path (wrong
-  packet matching — security-relevant)
-- Extremely minimal fix: 10 identical one-token changes in a single file
-- Reviewed by original pipapo AVX2 implementation author (Stefano
-  Brivio)
-- Applied through proper netfilter maintainer chain (Florian Westphal →
-  Pablo Neira Ayuso)
-- Bug has existed since v5.7 but only reachable after v6.18-rc1
-  refactoring
-- Both v6.18.20 and v6.19.10 confirmed to still contain the buggy
-  pattern
-- Netfilter is critical security/networking infrastructure
+**Step 3.2: FOLLOW THE FIXES TAG**
+Record: N/A — no Fixes: tag present.
 
-AGAINST backporting:
-- Only relevant to v6.18.y and v6.19.y (not older stable trees)
-- No explicit Fixes: or Cc: stable tags (expected for manual review)
+**Step 3.3: CHECK FILE HISTORY FOR RELATED CHANGES**
+Record: Recent git log for `nf_conntrack_netlink.c` shows multiple
+related UAF/refcount fixes in the same code:
+- `cd541f15b60e2` — "fix use-after-free in ctnetlink_dump_exp_ct()" —
+  KASAN slab-use-after-free confirmed in expectation dumping
+- `1492e3dcb2be3` — "remove refcounting in expectation dumpers"
+- `de788b2e62274` — "fix refcount leak on table dump"
 
-UNRESOLVED:
-- Could not fetch lore.kernel.org discussion due to anti-bot protection
-- Could not verify whether reviewer suggested Cc: stable in discussion
+The `cd541f15b60e2` commit includes an actual KASAN stack trace proving
+UAF bugs in this exact code area are real and exploitable.
 
-**Step 9.2: Stable Rules Checklist**
-1. Obviously correct and tested? **YES** — trivial change, reviewed by
-   original author, companion selftest exists
-2. Fixes a real bug? **YES** — false element clashes on set reload,
-   potential wrong packet matching
-3. Important issue? **YES** — breaks firewall management, potentially
-   wrong packet filtering (security)
-4. Small and contained? **YES** — 10 lines changed in 1 file, all
-   identical
-5. No new features or APIs? **YES** — pure bug fix
-6. Can apply to stable? **YES** — clean apply to v6.18.y and v6.19.y
-   (not relevant to older trees)
+**Step 3.4: CHECK THE AUTHOR'S OTHER COMMITS**
+Record: Florian Westphal is a core netfilter developer (verified via
+MAINTAINERS and git log). Pablo Neira Ayuso is THE netfilter subsystem
+maintainer. Both SOBs on this commit.
 
-**Step 9.3: Exception Categories**
-Record: Not applicable — standard bug fix, not an exception category.
+**Step 3.5: CHECK FOR DEPENDENT/PREREQUISITE COMMITS**
+Record: The diff is self-contained. The new
+`lockdep_nfct_expect_lock_held()` is trivial (wraps
+`lockdep_assert_held`). All referenced functions and data structures
+exist in current stable trees. No external dependencies detected.
 
-**Step 9.4: Decision**
-This is a clear, surgical fix for a serious correctness bug in
-netfilter's AVX2 pipapo matching. The bug causes incorrect element
-matching that can break firewall rule reload operations (false clashes)
-and potentially cause wrong data-path packet classification (security-
-relevant). The fix is minimal (10 identical one-token changes), reviewed
-by the original code author, and carries virtually no regression risk.
-It should be backported to v6.18.y and v6.19.y stable trees, which are
-the only active stable branches containing the prerequisite code that
-makes this bug reachable.
+===============================================================
+PHASE 4: MAILING LIST AND EXTERNAL RESEARCH
+===============================================================
+
+**Step 4.1: SEARCH LORE.KERNEL.ORG**
+Record: Direct lore.kernel.org access blocked by Anubis proof-of-work.
+Alternate sources: spinics.net netdev archive and patchwork.ozlabs.org
+confirmed v1→v2→v3 iterations. The v3 cover letter states: "patches 5 to
+10 address long-standing RCU safety bugs in conntrack's handling of
+expectations."
+
+**Step 4.2: SEARCH FOR BUG REPORT**
+Record: No standalone syzbot report or specific bug report for this
+exact race, but the related commit `cd541f15b60e2` has a confirmed KASAN
+slab-use-after-free trace proving this class of bugs is real and
+triggerable.
+
+**Step 4.3: CHECK FOR RELATED PATCHES**
+Record: Part of a multi-patch series addressing expectation safety. This
+specific patch is standalone — it only extends locking and adds lockdep
+annotations, independent of companion patches.
+
+**Step 4.4: CHECK STABLE MAILING LIST**
+Record: Could not verify stable-specific discussion due to lore access
+issues.
+
+===============================================================
+PHASE 5: CODE SEMANTIC ANALYSIS
+===============================================================
+
+**Step 5.1: KEY FUNCTIONS**
+Record: `ctnetlink_get_expect`, `ctnetlink_del_expect`,
+`nf_ct_expect_related_report`, `nf_ct_expect_event_report`,
+`ctnetlink_exp_dump_expect`
+
+**Step 5.2: TRACE CALLERS**
+Record: Verified `ctnetlink_get_expect` and `ctnetlink_del_expect` are
+wired into the `ctnl_exp_cb` netlink callback table (lines 3830-3848 of
+`nf_conntrack_netlink.c`) for `IPCTNL_MSG_EXP_GET` and
+`IPCTNL_MSG_EXP_DELETE`. These are directly reachable from userspace via
+`AF_NETLINK`/`NETLINK_NETFILTER` (requires `CAP_NET_ADMIN`).
+
+`nf_ct_expect_related()` (wrapper around
+`nf_ct_expect_related_report()`) is called from 16+ files including SIP,
+H323, FTP, IRC, TFTP, AMANDA, broadcast, nft_ct, PPTP, SANE, NAT
+helpers, and IPVS. This is NOT a niche path.
+
+**Step 5.3: TRACE CALLEES**
+Record: `ctnetlink_exp_dump_expect()` (lines 3008-3077) dereferences
+`exp->master` extensively: `master->tuplehash`, `nf_ct_l3num(master)`,
+`nf_ct_protonum(master)`, `nfct_help(master)`.
+`nf_ct_expect_event_report()` calls `nf_ct_ecache_find(exp->master)`.
+
+**Step 5.4: FOLLOW CALL CHAIN**
+Record: Userspace → nfnetlink_rcv → nfnetlink_rcv_msg →
+ctnetlink_get/del_expect → nf_ct_expect_find_get → exp->master
+dereference. Directly reachable from userspace with CAP_NET_ADMIN.
+
+**Step 5.5: SIMILAR PATTERNS**
+Record: `expect_iter_name()` in v6.6 also dereferences `exp->master` via
+`nfct_help(exp->master)` — same class of vulnerability in the same file.
+
+===============================================================
+PHASE 6: STABLE TREE ANALYSIS
+===============================================================
+
+**Step 6.1: DOES THE BUGGY CODE EXIST IN STABLE TREES?**
+Record: **YES** — verified directly. In v6.6:
+- `ctnetlink_get_expect()` does `nf_ct_expect_find_get()` at line 3333
+  WITHOUT `nf_conntrack_expect_lock`, then calls
+  `ctnetlink_exp_fill_info()` which dereferences `exp->master`
+- `ctnetlink_del_expect()` does `nf_ct_expect_find_get()` at line 3408
+  before taking `nf_conntrack_expect_lock` at line 3421
+- `nf_ct_expect_related_report()` unlocks at line 501, THEN calls
+  `nf_ct_expect_event_report(IPEXP_NEW, ...)` at line 502
+
+The buggy code originated in 2006 (`c1d10adb4a521d`) and is present in
+ALL active stable trees (5.4.y, 5.10.y, 5.15.y, 6.1.y, 6.6.y, 6.12.y).
+
+**Step 6.2: BACKPORT COMPLICATIONS**
+Record: Minor API differences in older trees: `timer_delete` vs
+`del_timer` (treewide rename in `8fa7292fee5c5`), and the `struct
+nfnl_info` ctnetlink interface. Core logic change (extending spinlock
+sections) applies conceptually. Expected: clean or near-clean apply on
+6.6+; minor manual adaptation needed for 5.x trees.
+
+**Step 6.3: RELATED FIXES IN STABLE**
+Record: `cd541f15b60e2` (KASAN UAF fix in ctnetlink_dump_exp_ct) is
+already in stable. No alternative fix for the specific
+get/delete/IPEXP_NEW races addressed by this patch.
+
+===============================================================
+PHASE 7: SUBSYSTEM AND MAINTAINER CONTEXT
+===============================================================
+
+**Step 7.1: SUBSYSTEM AND CRITICALITY**
+Record: [netfilter / conntrack / ctnetlink] [IMPORTANT — widely deployed
+in firewalls, NAT gateways, containers, Kubernetes, orchestration
+tooling, conntrack-tools monitoring]
+
+**Step 7.2: SUBSYSTEM ACTIVITY**
+Record: Active subsystem with frequent fixes. The longstanding nature of
+the bug (2006) means it affects more stable trees.
+
+===============================================================
+PHASE 8: IMPACT AND RISK ASSESSMENT
+===============================================================
+
+**Step 8.1: DETERMINE WHO IS AFFECTED**
+Record: Systems using conntrack expectations (FTP/SIP/H323/TFTP/IRC/etc.
+helpers) AND userspace tools querying/managing expectations via
+ctnetlink (conntrack-tools, orchestration). Also affected: any path
+creating expectations that triggers IPEXP_NEW events.
+
+**Step 8.2: DETERMINE TRIGGER CONDITIONS**
+Record: Concurrent expectation access (GET/DELETE via netlink, or
+IPEXP_NEW event delivery) with master conntrack destruction (normal
+connection timeout/teardown). Timing-dependent race but realistic under
+load — high conntrack churn with active monitoring is a real-world
+scenario.
+
+**Step 8.3: FAILURE MODE SEVERITY**
+Record: UAF on `exp->master` → kernel crash/oops (accessing freed slab
+memory), memory corruption, or potential security vulnerability.
+Severity: **HIGH**. This is corroborated by the KASAN slab-use-after-
+free trace in the related commit `cd541f15b60e2`.
+
+**Step 8.4: RISK-BENEFIT RATIO**
+Record:
+- **Benefit: HIGH** — closes verified unsafe dereference windows in
+  userspace-facing netlink operations and expectation event delivery
+- **Risk: VERY LOW** — extends existing lock scope slightly, no new
+  APIs, no logic changes, GFP_KERNEL allocation correctly moved out of
+  lock
+- **Ratio: Strongly favorable**
+
+===============================================================
+PHASE 9: FINAL SYNTHESIS
+===============================================================
+
+**Step 9.1: COMPILE THE EVIDENCE**
+
+Evidence FOR backporting:
+- Fixes a real use-after-free race condition on `exp->master` in
+  ctnetlink
+- Bug has existed since 2006 (commit `c1d10adb4a521d`), present in ALL
+  active stable trees
+- Verified directly: v6.6 has the same vulnerable pattern (unlocked
+  expectation lookup + exp->master dereference)
+- Written by netfilter subsystem maintainer (Pablo Neira Ayuso) and core
+  developer (Florian Westphal)
+- Small, surgical fix (~38 insertions, ~13 deletions) across 4 files in
+  one subsystem
+- Reachable from userspace via AF_NETLINK/NETLINK_NETFILTER
+  (CAP_NET_ADMIN)
+- Related KASAN UAF confirmed in same code area (`cd541f15b60e2`)
+- IPEXP_NEW event path affects 16+ helper/NAT modules — not a niche path
+- Part of a series explicitly described as fixing "long-standing RCU
+  safety bugs" in expectations
+- Low regression risk — only extends existing lock scope
+
+Evidence AGAINST backporting:
+- No specific crash report or syzbot report for THIS exact race window
+- Part of a multi-patch series (but this patch is standalone)
+- May need minor manual adaptation for older stable trees (API renames)
+
+**Step 9.2: STABLE RULES CHECKLIST**
+1. Obviously correct and tested? **YES** — extends lock to cover
+   unprotected accesses; pattern matches existing serialization
+2. Fixes a real bug? **YES** — UAF on `exp->master`, verified via code
+   analysis and corroborated by related KASAN reports
+3. Important issue? **YES** — crash, memory corruption, potential
+   security (UAF from userspace-triggerable netlink path)
+4. Small and contained? **YES** — ~50 lines net across 4 files in one
+   subsystem
+5. No new features or APIs? **YES** — only lockdep annotation helper
+   added (debug instrumentation)
+6. Can apply to stable? **YES** — may need minor adaptation for API
+   renames in older trees
+
+**Step 9.3: EXCEPTION CATEGORIES**
+Record: N/A — this is a standard bug fix, not an exception category.
+
+**Step 9.4: DECISION**
+This commit fixes a real, longstanding use-after-free race condition in
+netfilter conntrack expectation handling that can lead to kernel crashes
+or memory corruption. The fix is small, surgical, obviously correct,
+authored by the subsystem maintainer and core developer, and applies to
+all active stable trees. The risk-benefit ratio is strongly favorable.
 
 ## Verification
 
-- [Phase 1] Parsed tags: Reviewed-by from Stefano Brivio (original
-  pipapo AVX2 author), Signed-off-by from Pablo Neira Ayuso (netfilter
-  maintainer), Link to lore discussion
-- [Phase 2] Diff analysis: 10 identical changes `return b;` → `ret = b;`
-  across 10 AVX2 lookup functions in single file `nft_set_pipapo_avx2.c`
-- [Phase 3] `git blame -L 240,260`: buggy `return b` introduced by
-  `7400b063969bd` (Stefano Brivio, v5.7-rc1)
-- [Phase 3] `git describe --contains 7400b063969bd`: confirmed v5.7-rc1
-- [Phase 3] `git log --oneline -30 --
-  net/netfilter/nft_set_pipapo_avx2.c`: verified complete file history
-  including all prerequisite commits
-- [Phase 3] `git show 84c1da7b38d9a`: confirmed it creates
-  `pipapo_get()` dispatcher calling `pipapo_get_avx2()` from control
-  plane, and renames old `pipapo_get()` to `pipapo_get_slow()`
-- [Phase 3] `git show 5823699a11cf3`: confirmed it changes expired-entry
-  retry from full-loop restart to `pipapo_refill()` on existing map
-- [Phase 3] `git show 416e53e395167`: confirmed it splits
-  `nft_pipapo_avx2_lookup()` into `pipapo_get_avx2()` helper
-- [Phase 3] `git describe --contains`: 84c1da7b38d9a → v6.18-rc1,
-  5823699a11cf3 → v6.18-rc1, 7711f4bb4b36 → v6.19-rc5
-- [Phase 3] `git merge-base --is-ancestor 84c1da7b38d9a v6.6`: exit code
-  1 (NOT present)
-- [Phase 3] `git merge-base --is-ancestor 84c1da7b38d9a v6.12`: exit
-  code 1 (NOT present)
-- [Phase 3] `git merge-base --is-ancestor 84c1da7b38d9a v6.18`: exit
-  code 0 (present)
-- [Phase 3] `git merge-base --is-ancestor 84c1da7b38d9a v6.19`: exit
-  code 0 (present)
-- [Phase 3] `git merge-base --is-ancestor 416e53e395167 v6.18`: exit
-  code 0 (present)
-- [Phase 3] `git merge-base --is-ancestor 5823699a11cf3 v6.18`: exit
-  code 0 (present)
-- [Phase 3] Same two commits also verified present in v6.19
-- [Phase 4] UNVERIFIED: lore.kernel.org blocked by Anubis anti-bot
-  protection
-- [Phase 5] Grep `pipapo_get_avx2` in `net/netfilter/`: confirmed called
-  from `pipapo_get()` (control plane, line 534 of nft_set_pipapo.c) and
-  `nft_pipapo_avx2_lookup()` (datapath, line 1298 of avx2 file)
-- [Phase 5] Read lines 1228-1261: confirmed retry path with
-  `pipapo_refill()` at line 1242, `goto next_match` at line 1244
-- [Phase 5] Grep `pipapo_get` in `nft_set_pipapo.c`: confirmed call
-  sites at insert path (lines 1309, 1330), get path (line 605),
-  deactivation (line 1905)
-- [Phase 6] `git show v6.19.10:net/netfilter/nft_set_pipapo_avx2.c |
-  grep 'return b;'`: 11 matches confirm buggy pattern still present
-- [Phase 6] `git show v6.18.20:net/netfilter/nft_set_pipapo_avx2.c |
-  grep 'return b;'`: 11 matches confirm buggy pattern still present
-- [Phase 6] `git show v6.18.20:net/netfilter/nft_set_pipapo_avx2.c |
-  grep pipapo_refill`: confirmed retry mechanism at line 1242
-- [Phase 6] `git show v6.18.20:net/netfilter/nft_set_pipapo.c | grep
-  pipapo_get_avx2`: confirmed control-plane dispatch present
-- [Phase 6] `git show v6.6:net/netfilter/nft_set_pipapo.c | grep -c
-  pipapo_get_avx2`: 0 matches — NOT present in v6.6
-- [Phase 6] `git log v6.18..v6.18.20 --
-  net/netfilter/nft_set_pipapo*.c`: confirmed no equivalent fix already
-  backported
-- [Phase 8] Failure mode: control-plane false clashes (HIGH), data-path
-  wrong matching (CRITICAL for security), combined severity HIGH
+- [Phase 1] Parsed commit message: only SOBs from Florian Westphal and
+  Pablo Neira Ayuso; no Fixes/Reported-by/Cc:stable tags
+- [Phase 2] Read `ctnetlink_exp_dump_expect()` at lines 3008-3077 of
+  `nf_conntrack_netlink.c`: confirmed multiple `exp->master`
+  dereferences (`master->tuplehash`, `nf_ct_l3num(master)`,
+  `nfct_help(master)`)
+- [Phase 2] Read `clean_from_lists()` at line 511 of
+  `nf_conntrack_core.c`: confirmed it calls
+  `nf_ct_remove_expectations(ct)` before master ct is freed
+- [Phase 2] Read `nf_ct_remove_expectations()` at line 228 of
+  `nf_conntrack_expect.c`: confirmed it takes `nf_conntrack_expect_lock`
+  at line 238 — this is the serialization point
+- [Phase 2] Read `nf_ct_expect_related_report()` at line 500-507:
+  confirmed `spin_unlock_bh` at line 501 THEN
+  `nf_ct_expect_event_report(IPEXP_NEW)` at line 502 — the unlocked
+  window
+- [Phase 3] `git blame` on `ctnetlink_get_expect`: lines 3342, 3354-3362
+  trace to `c1d10adb4a521d` (Pablo Neira Ayuso, 2006-01-05)
+- [Phase 3] `git log --oneline -20 --
+  net/netfilter/nf_conntrack_netlink.c`: found related UAF fixes
+  `cd541f15b60e2`, `1492e3dcb2be3`, `de788b2e62274`
+- [Phase 3] `git show cd541f15b60e2`: confirmed KASAN slab-use-after-
+  free stack trace in same ctnetlink expectation code
+- [Phase 3] `git log --author` for both authors: verified as core
+  netfilter contributors
+- [Phase 4] Lore.kernel.org blocked by Anubis; used spinics.net and
+  patchwork.ozlabs.org mirrors to verify v1→v2→v3 iterations and cover
+  letter content
+- [Phase 5] Read `ctnl_exp_cb` callback table at lines 3830-3848:
+  confirmed `ctnetlink_get_expect` and `ctnetlink_del_expect` are
+  userspace-reachable via NETLINK_NETFILTER
+- [Phase 5] `rg nf_ct_expect_related` across net/netfilter/: 16 files
+  use this function (SIP, FTP, H323, TFTP, IRC, AMANDA, broadcast,
+  nft_ct, PPTP, SANE, NAT helpers, IPVS)
+- [Phase 6] `git show v6.6:net/netfilter/nf_conntrack_netlink.c`:
+  confirmed unlocked `nf_ct_expect_find_get()` at line 3333 and
+  `ctnetlink_exp_fill_info()` dereferences `exp->master` without expect
+  lock
+- [Phase 6] `git show v6.6:net/netfilter/nf_conntrack_expect.c`:
+  confirmed `spin_unlock_bh` at line 501, then
+  `nf_ct_expect_event_report(IPEXP_NEW)` at line 502 — same vulnerable
+  pattern as mainline
+- [Phase 8] Failure mode: UAF on `exp->master` → kernel
+  crash/corruption; severity HIGH (corroborated by KASAN trace in
+  related commit)
+- UNVERIFIED: Exact privilege requirements for ctnetlink expectation
+  operations (assumed CAP_NET_ADMIN based on netfilter conventions)
+- UNVERIFIED: Whether patch applies cleanly to stable trees older than
+  6.6 (API renames expected)
+- UNVERIFIED: Full lore.kernel.org review thread (blocked by Anubis
+  proof-of-work)
+- UNVERIFIED: Stable trees older than v5.15 individually checked
 
 **YES**
 
- net/netfilter/nft_set_pipapo_avx2.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h |  5 ++++
+ net/netfilter/nf_conntrack_ecache.c       |  2 ++
+ net/netfilter/nf_conntrack_expect.c       | 10 +++++++-
+ net/netfilter/nf_conntrack_netlink.c      | 28 +++++++++++++++--------
+ 4 files changed, 35 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nft_set_pipapo_avx2.c b/net/netfilter/nft_set_pipapo_avx2.c
-index 7ff90325c97fa..6395982e4d95c 100644
---- a/net/netfilter/nft_set_pipapo_avx2.c
-+++ b/net/netfilter/nft_set_pipapo_avx2.c
-@@ -242,7 +242,7 @@ static int nft_pipapo_avx2_lookup_4b_2(unsigned long *map, unsigned long *fill,
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 3384859a89210..8883575adcc1e 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -83,6 +83,11 @@ void nf_conntrack_lock(spinlock_t *lock);
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+ extern spinlock_t nf_conntrack_expect_lock;
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -319,7 +319,7 @@ static int nft_pipapo_avx2_lookup_4b_4(unsigned long *map, unsigned long *fill,
++static inline void lockdep_nfct_expect_lock_held(void)
++{
++	lockdep_assert_held(&nf_conntrack_expect_lock);
++}
++
+ /* ctnetlink code shared by both ctnetlink and nf_conntrack_bpf */
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+ static inline void __nf_ct_set_timeout(struct nf_conn *ct, u64 timeout)
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index 81baf20826046..9df159448b897 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -247,6 +247,8 @@ void nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ 	struct nf_ct_event_notifier *notify;
+ 	struct nf_conntrack_ecache *e;
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -414,7 +414,7 @@ static int nft_pipapo_avx2_lookup_4b_8(unsigned long *map, unsigned long *fill,
++	lockdep_nfct_expect_lock_held();
++
+ 	rcu_read_lock();
+ 	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
+ 	if (!notify)
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index cfc2daa3fc7f3..f9e65f03dc5ea 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -51,6 +51,7 @@ void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
+ 	struct net *net = nf_ct_exp_net(exp);
+ 	struct nf_conntrack_net *cnet;
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
++	lockdep_nfct_expect_lock_held();
+ 	WARN_ON(!master_help);
+ 	WARN_ON(timer_pending(&exp->timeout));
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -505,7 +505,7 @@ static int nft_pipapo_avx2_lookup_4b_12(unsigned long *map, unsigned long *fill,
+@@ -118,6 +119,8 @@ nf_ct_exp_equal(const struct nf_conntrack_tuple *tuple,
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+ bool nf_ct_remove_expect(struct nf_conntrack_expect *exp)
+ {
++	lockdep_nfct_expect_lock_held();
++
+ 	if (timer_delete(&exp->timeout)) {
+ 		nf_ct_unlink_expect(exp);
+ 		nf_ct_expect_put(exp);
+@@ -177,6 +180,8 @@ nf_ct_find_expectation(struct net *net,
+ 	struct nf_conntrack_expect *i, *exp = NULL;
+ 	unsigned int h;
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -641,7 +641,7 @@ static int nft_pipapo_avx2_lookup_4b_32(unsigned long *map, unsigned long *fill,
++	lockdep_nfct_expect_lock_held();
++
+ 	if (!cnet->expect_count)
+ 		return NULL;
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+@@ -442,6 +447,8 @@ static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect,
+ 	unsigned int h;
+ 	int ret = 0;
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -699,7 +699,7 @@ static int nft_pipapo_avx2_lookup_8b_1(unsigned long *map, unsigned long *fill,
++	lockdep_nfct_expect_lock_held();
++
+ 	if (!master_help) {
+ 		ret = -ESHUTDOWN;
+ 		goto out;
+@@ -498,8 +505,9 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+ 	nf_ct_expect_insert(expect);
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -764,7 +764,7 @@ static int nft_pipapo_avx2_lookup_8b_2(unsigned long *map, unsigned long *fill,
+-	spin_unlock_bh(&nf_conntrack_expect_lock);
+ 	nf_ct_expect_event_report(IPEXP_NEW, expect, portid, report);
++	spin_unlock_bh(&nf_conntrack_expect_lock);
++
+ 	return 0;
+ out:
+ 	spin_unlock_bh(&nf_conntrack_expect_lock);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d9f33a6c807c8..f5cb09eb31a34 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3357,31 +3357,37 @@ static int ctnetlink_get_expect(struct sk_buff *skb,
+ 	if (err < 0)
+ 		return err;
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
++	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!skb2)
++		return -ENOMEM;
++
++	spin_lock_bh(&nf_conntrack_expect_lock);
+ 	exp = nf_ct_expect_find_get(info->net, &zone, &tuple);
+-	if (!exp)
++	if (!exp) {
++		spin_unlock_bh(&nf_conntrack_expect_lock);
++		kfree_skb(skb2);
+ 		return -ENOENT;
++	}
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -839,7 +839,7 @@ static int nft_pipapo_avx2_lookup_8b_4(unsigned long *map, unsigned long *fill,
+ 	if (cda[CTA_EXPECT_ID]) {
+ 		__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+ 		if (id != nf_expect_get_id(exp)) {
+ 			nf_ct_expect_put(exp);
++			spin_unlock_bh(&nf_conntrack_expect_lock);
++			kfree_skb(skb2);
+ 			return -ENOENT;
+ 		}
+ 	}
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -925,7 +925,7 @@ static int nft_pipapo_avx2_lookup_8b_6(unsigned long *map, unsigned long *fill,
+-	skb2 = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+-	if (!skb2) {
+-		nf_ct_expect_put(exp);
+-		return -ENOMEM;
+-	}
+-
+ 	rcu_read_lock();
+ 	err = ctnetlink_exp_fill_info(skb2, NETLINK_CB(skb).portid,
+ 				      info->nlh->nlmsg_seq, IPCTNL_MSG_EXP_NEW,
+ 				      exp);
+ 	rcu_read_unlock();
+ 	nf_ct_expect_put(exp);
++	spin_unlock_bh(&nf_conntrack_expect_lock);
++
+ 	if (err <= 0) {
+ 		kfree_skb(skb2);
+ 		return -ENOMEM;
+@@ -3431,22 +3437,26 @@ static int ctnetlink_del_expect(struct sk_buff *skb,
+ 		if (err < 0)
+ 			return err;
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
++		spin_lock_bh(&nf_conntrack_expect_lock);
++
+ 		/* bump usage count to 2 */
+ 		exp = nf_ct_expect_find_get(info->net, &zone, &tuple);
+-		if (!exp)
++		if (!exp) {
++			spin_unlock_bh(&nf_conntrack_expect_lock);
+ 			return -ENOENT;
++		}
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
-@@ -1019,7 +1019,7 @@ static int nft_pipapo_avx2_lookup_8b_16(unsigned long *map, unsigned long *fill,
+ 		if (cda[CTA_EXPECT_ID]) {
+ 			__be32 id = nla_get_be32(cda[CTA_EXPECT_ID]);
  
- 		b = nft_pipapo_avx2_refill(i_ul, &map[i_ul], fill, f->mt, last);
- 		if (last)
--			return b;
-+			ret = b;
+ 			if (id != nf_expect_get_id(exp)) {
+ 				nf_ct_expect_put(exp);
++				spin_unlock_bh(&nf_conntrack_expect_lock);
+ 				return -ENOENT;
+ 			}
+ 		}
  
- 		if (unlikely(ret == -1))
- 			ret = b / XSAVE_YMM_SIZE;
+ 		/* after list removal, usage count == 1 */
+-		spin_lock_bh(&nf_conntrack_expect_lock);
+ 		if (timer_delete(&exp->timeout)) {
+ 			nf_ct_unlink_expect_report(exp, NETLINK_CB(skb).portid,
+ 						   nlmsg_report(info->nlh));
 -- 
 2.53.0
 
