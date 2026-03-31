@@ -1,42 +1,48 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B56A73BFE2F
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2026 21:50:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56C84199D8
+	for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2026 23:29:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774993802; cv=none; b=NG0vhaQr/1Yhpe4ms5kSgPvyrX77Hm9JD9y9Mzv43+WtX4J3yM/kGP5w/UViD9/J7FE1SLYRJIJCvPT1+QOGC8TykX4mtNebVigZdLC5j8d06265Fhd+bnpG5Ew9xNYHMh5ME4TJkr9+H2TcozoG6P00mUJRRUt5JvdvPwpnvJA=
+	t=1774999782; cv=none; b=JSOT4aHWkuuGR34E6zizGEvYS3supKiOJIrXrIf7c+kM9K9pJEqNjFah4DRs3kCAa+jBqZZYA6a0FCjvj1Vcviz5bGIUv7kxqmgB8NHWE15ZhC4ER1KhAlE7uk7jcUxov9+hpfu6G3la4qGK2t7Kqr6IZCitdq2P51OAmJ8zV0Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774993802; c=relaxed/simple;
-	bh=4/dRqnERZjoJs36qsQnK+hmkkLgiGU/rXHgOKaRn0Eg=;
+	s=arc-20240116; t=1774999782; c=relaxed/simple;
+	bh=EiKEYkGc1qeQLVdYx8/L3piL9chVRbHPsR0E8Dqea8A=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=MX6mlvsFJrA6kcNvJw68d4ZO5CP3prNt2VbDER9CEvmRvYZ8RK7VvR+vuk9yQAvrrttyxCb1ps4tOKXJj71gDAaFVIWqBZMZSnd7lGwSYSI7CcxLXZdpPKvcKfGjTfyarAEJCnlJVD1ztJKzaxR0tXSDbpLFtbakMNuhN3kdzk0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=bwP80jG0; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=StgqSSRj8UFWOo0mq9WYzAqMfI1HEhCX1VzXN9CGaFBatTWzV6lcpJ/at+5EN64E1TTIKhf3K0kXeq2uQkwJPe2r8rmCvLnmjwRwUcPNBceqQy9Haq6hTfjmWT8dMyCX73tyCxOfAd/Tj285RXSpsLOQ5prFgfiy6TkGbRSmcc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ulvBmjZd; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="bwP80jG0"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ulvBmjZd"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id ADE2C60251;
-	Tue, 31 Mar 2026 23:49:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 1C20960180;
+	Wed,  1 Apr 2026 01:29:38 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1774993798;
-	bh=w2DjJDLtkkiioie7Oe4qkH6vhrTQcL/G4QLg6t4Q3V4=;
+	s=2025; t=1774999778;
+	bh=8G8il/F+aIt2UF1qG6EQLO2DK/MKEYRsKxsXyZHNV6s=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=bwP80jG0nGfoM1s9ki1IqSkC274JDxGnYqioJvY5xxTR6Yj4OpVnTdsA/exvUaUTp
-	 +JvI8HwK1IT4vIo0MWr8G2Y34F6KILJydaZcHR59o1ues3glQPhGJJp2I16A28ix8y
-	 ByR8QYkQBmrR2pji2DsnsUMDUJk8VBYIga7miY7qxsTQgiM0koTNJ5ScmalwfOCyZz
-	 O2hhZJZco8yQhZucIvDumuAJ9QUO8QgzIa5KD0OXN4pJxXYD5zi2B9yDhFtlRE8ccj
-	 qgeDIb8mOzXiQXCpVql1JN7x3PgD3/K/ChGwyOPQ7gu9cWARGW0IEyjYB3Tnm078Ow
-	 iRyZvsBhO5y/Q==
-Date: Tue, 31 Mar 2026 23:49:55 +0200
+	b=ulvBmjZdi7dIzZ1KRMiQKVAxGuectYDvfGWxkf2Wly6dPoB8y2vhc1Y3AC4aajGnB
+	 kuwo8per1ckEGk6/9zcXLn63svTMBTwPMMmvSCYbmrVXXAY3s0q3l7aZe4cfMAUQmh
+	 Fpv+f/4HlHm5WO/daP3WtVLqmiHByAAG4YDXwdGCUwng6PRx8eFnJogabA+gk6cWUZ
+	 6QUxnCWBCZP1YIX1vl3V5JjbxfHaE402Cu4pMbtSGnd1rVZkA6yE2HOK+N+4OjYmqZ
+	 mFT4+xknU8Q9B8iFhGpCYiOtl4BakZeCQ4CsMrR6MDkOaKAEBByUy0xlc5oLPErmsa
+	 pg18Fdq4zdu8A==
+Date: Wed, 1 Apr 2026 01:29:35 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: Re: [PATCH nf] netfilter: nf_tables: reject immediate NF_QUEUE
- verdict
-Message-ID: <acxBg87ddKWwbhtI@chamomile>
-References: <20260331214145.976722-1-pablo@netfilter.org>
+To: Ren Wei <n05ec@lzu.edu.cn>
+Cc: netfilter-devel@vger.kernel.org, security@kernel.org, fw@strlen.de,
+	phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	shuah@kernel.org, yuantan098@gmail.com, bird@lzu.edu.cn,
+	z1652074432@gmail.com, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp, yifanwucs@gmail.com,
+	tomapufckgml@gmail.com, enjou1224z@gmail.com
+Subject: Re: [PATCH v2] netfilter: xt_multiport: reject trailing range markers
+Message-ID: <acxY3z1h2qkpzaEw@chamomile>
+References: <cover.1774624314.git.n05ec@lzu.edu.cn>
+ <dc1b0139fc250e188657e874ce4bb67f60af6e0c.1774659119.git.n05ec@lzu.edu.cn>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,56 +51,124 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260331214145.976722-1-pablo@netfilter.org>
+In-Reply-To: <dc1b0139fc250e188657e874ce4bb67f60af6e0c.1774659119.git.n05ec@lzu.edu.cn>
 
-On Tue, Mar 31, 2026 at 11:41:45PM +0200, Pablo Neira Ayuso wrote:
-> nft_queue is always used from userspace nftables to deliver the NF_QUEUE
-> verdict, reject immediate NF_QUEUE verdict.
+Hi,
 
-Actually, a bit terse description, maybe this version is better:
-
-    netfilter: nf_tables: reject immediate NF_QUEUE verdict
-    
-    nft_queue is always used from userspace nftables to deliver the NF_QUEUE
-    verdict. Immediately emitting an NF_QUEUE verdict is never used by the
-    userspace nft tools, so reject immediate NF_QUEUE verdicts.
-    
-    The arp family does not provide queue support, but such an immediate
-    verdict is still reachable. Globally reject NF_QUEUE immediate verdicts
-    to address this issue.
-
-> Fixes: f342de4e2f33 ("netfilter: nf_tables: reject QUEUE/DROP verdict parameters")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/nf_tables_api.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 3922cff1bb3d..8c42247a176c 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -11667,8 +11667,6 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
->  	switch (data->verdict.code) {
->  	case NF_ACCEPT:
->  	case NF_DROP:
-> -	case NF_QUEUE:
-> -		break;
->  	case NFT_CONTINUE:
->  	case NFT_BREAK:
->  	case NFT_RETURN:
-> @@ -11703,6 +11701,11 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+On Sat, Mar 28, 2026 at 10:51:23PM +0800, Ren Wei wrote:
+> diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+> index 44a00f5acde8..38aa5b90d38e 100644
+> --- a/net/netfilter/xt_multiport.c
+> +++ b/net/netfilter/xt_multiport.c
+> @@ -26,10 +26,10 @@ MODULE_ALIAS("ip6t_multiport");
+>  /* Returns 1 if the port is matched by the test, 0 otherwise. */
+>  static inline bool
+>  ports_match_v1(const struct xt_multiport_v1 *minfo,
+> -	       u_int16_t src, u_int16_t dst)
+> +	       u16 src, u16 dst)
+>  {
+>  	unsigned int i;
+> -	u_int16_t s, e;
+> +	u16 s, e;
 >  
->  		data->verdict.chain = chain;
->  		break;
-> +	case NF_QUEUE:
-> +		/* The nft_queue expression is used for this purpose, an
-> +		 * immediate NF_QUEUE verdict should not ever be seen here.
-> +		 */
-> +		fallthrough;
->  	default:
->  		return -EINVAL;
->  	}
+>  	for (i = 0; i < minfo->count; i++) {
+>  		s = minfo->ports[i];
+
+I see, this is a cleanup to use preferred datatypes.
+
+> @@ -106,20 +106,36 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  }
+>  
+>  static inline bool
+> -check(u_int16_t proto,
+> -      u_int8_t ip_invflags,
+> -      u_int8_t match_flags,
+> -      u_int8_t count)
+> +multiport_valid_ranges(const struct xt_multiport_v1 *multiinfo)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < multiinfo->count; i++) {
+> +		if (!multiinfo->pflags[i])
+> +			continue;
+> +
+> +		if (i == multiinfo->count - 1)
+> +			return false;
+> +
+> +		i++;
+> +	}
+
+Why so convoluted? This should just fix this bug:
+
+static bool multiport_valid_ranges(const struct xt_multiport_v1 *multiinfo)
+{
+        return multiinfo->pflags[multiinfo->count - 1] == 0;
+}
+
+This is an off-by-one read bug from packet path that is possible
+because the last slot in the multiport array _must_ be zero.
+
+pflags[i] non-zero means beginning of a range, and pflags[i+1] zero
+means end of range (or singleton port).
+
+Actually multiport_valid_ranges() can just go away too given the more
+simple fix.
+
+> +
+> +	return true;
+> +}
+> +
+> +static inline bool
+> +check(u16 proto, u8 ip_invflags, const struct xt_multiport_v1 *multiinfo)
+>  {
+>  	/* Must specify supported protocol, no unknown flags or bad count */
+> -	return (proto == IPPROTO_TCP || proto == IPPROTO_UDP
+> -		|| proto == IPPROTO_UDPLITE
+> -		|| proto == IPPROTO_SCTP || proto == IPPROTO_DCCP)
+> -		&& !(ip_invflags & XT_INV_PROTO)
+> -		&& (match_flags == XT_MULTIPORT_SOURCE
+> -		    || match_flags == XT_MULTIPORT_DESTINATION
+> -		    || match_flags == XT_MULTIPORT_EITHER)
+> -		&& count <= XT_MULTI_PORTS;
+> +	return (proto == IPPROTO_TCP || proto == IPPROTO_UDP ||
+> +		proto == IPPROTO_UDPLITE ||
+> +		proto == IPPROTO_SCTP || proto == IPPROTO_DCCP) &&
+> +	       !(ip_invflags & XT_INV_PROTO) &&
+> +	       (multiinfo->flags == XT_MULTIPORT_SOURCE ||
+> +		multiinfo->flags == XT_MULTIPORT_DESTINATION ||
+> +		multiinfo->flags == XT_MULTIPORT_EITHER) &&
+> +	       multiinfo->count <= XT_MULTI_PORTS &&
+> +	       multiport_valid_ranges(multiinfo);
+
+It took me a while to review this cleanup-in-fix is doing what it is
+intended. While this coding style is preferred these days, I'm unsure
+I want this cleanup in this fix.
+
+I think this fix can be turned into a oneliner...
+
+>  }
+>  
+>  static int multiport_mt_check(const struct xt_mtchk_param *par)
+> @@ -127,8 +143,7 @@ static int multiport_mt_check(const struct xt_mtchk_param *par)
+>  	const struct ipt_ip *ip = par->entryinfo;
+>  	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
+>  
+> -	return check(ip->proto, ip->invflags, multiinfo->flags,
+> -		     multiinfo->count) ? 0 : -EINVAL;
+> +	return check(ip->proto, ip->invflags, multiinfo) ? 0 : -EINVAL;
+>  }
+>  
+>  static int multiport_mt6_check(const struct xt_mtchk_param *par)
+> @@ -136,8 +151,7 @@ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+>  	const struct ip6t_ip6 *ip = par->entryinfo;
+>  	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
+>  
+> -	return check(ip->proto, ip->invflags, multiinfo->flags,
+> -		     multiinfo->count) ? 0 : -EINVAL;
+> +	return check(ip->proto, ip->invflags, multiinfo) ? 0 : -EINVAL;
+>  }
+>  
+>  static struct xt_match multiport_mt_reg[] __read_mostly = {
 > -- 
-> 2.47.3
-> 
+> 2.51.0
 > 
