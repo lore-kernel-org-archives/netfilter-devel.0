@@ -1,73 +1,27 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B72C9426EA2
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2026 16:50:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BE643D6CBE
+	for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2026 21:13:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774975854; cv=none; b=KLP0JhqCimXnTceMAf0RgIbTKkckxcF9gMGIwwns1DkL1t9IWpGFsUWlkku1Qf37Jpb5pUZ4tvvle9F+l6bxYVeM1KLbypbubcX5BNOeWjU2mr6AH85oRy3sCSyfvbTSaPFnKfvF+Zh3bvH5a8iUtko7HEHeFBoqTrEIouqXDi4=
+	t=1774991627; cv=none; b=nobO1MJ37fOtNg6LMMSMHGZh/L9yclPj0a3Wi9WVpzUDDHzjARVsiGAVq9AZMixvD0zHZg5c5+hSgozD7qiZsTs88sBjzy+v6BCABSl8tQvSuC6SfGOy6uVdHhkMX4nYeSvMau/ptZ33eCokl9Eyny5eBw+HLlNkA8qdWTvcCoU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774975854; c=relaxed/simple;
-	bh=ZyVbSFWmIU7uDytGreLAcaUQEeqjF+w10rnvomXCMqY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=am1q8dUqIsyOvTZ+0Jvhy5Eqv1K3YmiFWRsB2H68X32NJh+kW6qJoLt03j1Ae2ES2AER4GCeUMeqbYTx0VZsqEiHz7ndw2m021Q5zdTsXpLQRaqipwblMDm1QvDSSmhP6dzezel/1SUoSNuLhujmTh9qmEM/8/eJIZuwaF3bzmo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=VI2JNtc8; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VI2JNtc8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1774975852;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Smk7qzOFqWQpEDvgIootgLUtedzkckjlb8UVNDwFioI=;
-	b=VI2JNtc8TZ1eqfuk2be86jIBfWjoEWNTDQOQu42l1iwjz7IHUB55w8HCSuBaqtSjOfasAM
-	Jr9VO8az3s2OtIouP/zF2FNOht/o3b2hnQaq3qiK45jwgVZAxpJ8nr0lKxuF0UnsLMJqq1
-	urlonkBbZQv3U0NckzbIuoZEfn9MjWk=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-516-koyYgahXNDmXFd0erQnMjg-1; Tue,
- 31 Mar 2026 12:50:47 -0400
-X-MC-Unique: koyYgahXNDmXFd0erQnMjg-1
-X-Mimecast-MFC-AGG-ID: koyYgahXNDmXFd0erQnMjg_1774975845
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id D2E681800371;
-	Tue, 31 Mar 2026 16:50:43 +0000 (UTC)
-Received: from llong-thinkpadp16vgen1.westford.csb (unknown [10.22.80.26])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id AE87B180036E;
-	Tue, 31 Mar 2026 16:50:40 +0000 (UTC)
-From: Waiman Long <longman@redhat.com>
-To: Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Frederic Weisbecker <frederic@kernel.org>,
-	Chen Ridong <chenridong@huawei.com>,
-	Phil Auld <pauld@redhat.com>
-Cc: linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	sheviks <sheviks@gmail.com>,
-	Waiman Long <longman@redhat.com>
-Subject: [PATCH-next v2 2/2] ipvs: Guard access of HK_TYPE_KTHREAD cpumask with RCU
-Date: Tue, 31 Mar 2026 12:50:15 -0400
-Message-ID: <20260331165015.2777765-3-longman@redhat.com>
-In-Reply-To: <20260331165015.2777765-1-longman@redhat.com>
-References: <20260331165015.2777765-1-longman@redhat.com>
+	s=arc-20240116; t=1774991627; c=relaxed/simple;
+	bh=ONI0eIM/MQUr55TFlQd/wY01Vj3g/Xo+o7+2ZFpM4zE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uOL8jiZvLKmr+858r2XqXr7N1r5vSm15eDJGOsJU07PskT+aAnzl6prSUGDv8HL1/gyKcCnnljMjyymQP9awADIaEivPc9F07yzQIE1UVxnpD1NiYvZ6i/EKWVTXapEaYhZJLWHHRc70OTEVPuhruouSXCS8ig8Tt31vf/NIk1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 63D226078E; Tue, 31 Mar 2026 23:13:43 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf] netfilter: x_tables: ensure names are nul-terminated
+Date: Tue, 31 Mar 2026 23:13:36 +0200
+Message-ID: <20260331211338.15995-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -75,108 +29,63 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
 
-The ip_vs_ctl.c file and the associated ip_vs.h file are the only places
-in the kernel where HK_TYPE_KTHREAD cpumask is being retrieved and used.
-Now that HK_TYPE_KTHREAD/HK_TYPE_DOMAIN cpumask can be changed at run
-time. We need to use RCU to guard access to this cpumask to avoid a
-potential UAF problem as the returned cpumask may be freed before it
-is being used.
+Reject names that lack a \0 character before feeding them
+to functions that expect c-strings.
 
-We can replace HK_TYPE_KTHREAD by HK_TYPE_DOMAIN as they are aliases
-of each other, but keeping the HK_TYPE_KTHREAD name can highlight the
-fact that it is the kthread initiated by ipvs that is being controlled.
+Fixes tag is the most recent commit that needs this change.
 
-Signed-off-by: Waiman Long <longman@redhat.com>
+Fixes: c38c4597e4bf ("netfilter: implement xt_cgroup cgroup2 path match")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/ip_vs.h            | 20 ++++++++++++++++----
- net/netfilter/ipvs/ip_vs_ctl.c | 13 ++++++++-----
- 2 files changed, 24 insertions(+), 9 deletions(-)
+ v2: drop physdev hunk, its not strictly needed, ifname_compare_aligned()
+ doesn't reply on '\0'.
+ I'll followup in nf-next to also reject empty strings in physdev.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 72d325c81313..7bda92fd3fe6 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1411,7 +1411,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
- 	return ipvs->sysctl_run_estimation;
- }
+ net/netfilter/xt_cgroup.c  | 6 ++++++
+ net/netfilter/xt_rateest.c | 5 +++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
+index c437fbd59ec1..43d2ae2be628 100644
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -65,6 +65,9 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
  
--static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
-+static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
- {
- 	if (ipvs->est_cpulist_valid)
- 		return ipvs->sysctl_est_cpulist;
-@@ -1529,7 +1529,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
- 	return 1;
- }
- 
--static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
-+static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
- {
- 	return housekeeping_cpumask(HK_TYPE_KTHREAD);
- }
-@@ -1564,6 +1564,18 @@ static inline int sysctl_svc_lfactor(struct netns_ipvs *ipvs)
- 	return READ_ONCE(ipvs->sysctl_svc_lfactor);
- }
- 
-+static inline bool sysctl_est_cpulist_empty(struct netns_ipvs *ipvs)
-+{
-+	guard(rcu)();
-+	return cpumask_empty(__sysctl_est_cpulist(ipvs));
-+}
+ 	info->priv = NULL;
+ 	if (info->has_path) {
++		if (strnlen(info->path, sizeof(info->path)) >= sizeof(info->path))
++			return -ENAMETOOLONG;
 +
-+static inline unsigned int sysctl_est_cpulist_weight(struct netns_ipvs *ipvs)
-+{
-+	guard(rcu)();
-+	return cpumask_weight(__sysctl_est_cpulist(ipvs));
-+}
+ 		cgrp = cgroup_get_from_path(info->path);
+ 		if (IS_ERR(cgrp)) {
+ 			pr_info_ratelimited("invalid path, errno=%ld\n",
+@@ -102,6 +105,9 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ 
+ 	info->priv = NULL;
+ 	if (info->has_path) {
++		if (strnlen(info->path, sizeof(info->path)) >= sizeof(info->path))
++			return -ENAMETOOLONG;
 +
- /* IPVS core functions
-  * (from ip_vs_core.c)
-  */
-@@ -1895,7 +1907,7 @@ static inline void ip_vs_est_stopped_recalc(struct netns_ipvs *ipvs)
- 	/* Stop tasks while cpulist is empty or if disabled with flag */
- 	ipvs->est_stopped = !sysctl_run_estimation(ipvs) ||
- 			    (ipvs->est_cpulist_valid &&
--			     cpumask_empty(sysctl_est_cpulist(ipvs)));
-+			     sysctl_est_cpulist_empty(ipvs));
- #endif
- }
+ 		cgrp = cgroup_get_from_path(info->path);
+ 		if (IS_ERR(cgrp)) {
+ 			pr_info_ratelimited("invalid path, errno=%ld\n",
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index 72324bd976af..b1d736c15fcb 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -91,6 +91,11 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
+ 		goto err1;
+ 	}
  
-@@ -1911,7 +1923,7 @@ static inline bool ip_vs_est_stopped(struct netns_ipvs *ipvs)
- static inline int ip_vs_est_max_threads(struct netns_ipvs *ipvs)
- {
- 	unsigned int limit = IPVS_EST_CPU_KTHREADS *
--			     cpumask_weight(sysctl_est_cpulist(ipvs));
-+			     sysctl_est_cpulist_weight(ipvs);
- 
- 	return max(1U, limit);
- }
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 032425025d88..e253a1ceef48 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2338,11 +2338,14 @@ static int ipvs_proc_est_cpumask_get(const struct ctl_table *table,
- 
- 	mutex_lock(&ipvs->est_mutex);
- 
--	if (ipvs->est_cpulist_valid)
--		mask = *valp;
--	else
--		mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
--	ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
-+	/* HK_TYPE_KTHREAD cpumask needs RCU protection */
-+	scoped_guard(rcu) {
-+		if (ipvs->est_cpulist_valid)
-+			mask = *valp;
-+		else
-+			mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
-+		ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
-+	}
- 
- 	mutex_unlock(&ipvs->est_mutex);
- 
++	if (strnlen(info->name1, sizeof(info->name1)) >= sizeof(info->name1))
++		return -ENAMETOOLONG;
++	if (strnlen(info->name2, sizeof(info->name2)) >= sizeof(info->name2))
++		return -ENAMETOOLONG;
++
+ 	ret  = -ENOENT;
+ 	est1 = xt_rateest_lookup(par->net, info->name1);
+ 	if (!est1)
 -- 
-2.53.0
+2.52.0
 
