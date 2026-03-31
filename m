@@ -1,90 +1,204 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE09736404A;
-	Tue, 31 Mar 2026 13:52:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 667593F7A8D
+	for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2026 14:24:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774965178; cv=none; b=dEj/JMA2gf9MN2jVN7MQtUL3jfZ5u97MUP0pZdcV0tiMBrA0aJbw9xauNOZT2XGvMcmRQk7NKYlp9IXZoSnYIEpxjRt2MrwD9Hd3T0nmn+ACtLaAVVv+zMtsxdBtv2r0ZnrT0nD2Oh8KXKDOH+AapQc1N8tAcHN0Wursdaz86nQ=
+	t=1774967098; cv=none; b=nLnE/JJI39TYeuo+946Kr++nOmt+0Bakkfid2nAFfw2k3tbqLlko4vlQpdezTSN5OXetOPjjbVJYOSuWpOl9+Cm1Z5ljbCAalarm8HXvshmubwxKcEyIJrcZl3UrU1s+NCMqvOvUfLTRvrixU/B5qqdyaMbI2p/4+KumIeDZ1Kw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774965178; c=relaxed/simple;
-	bh=prbm10eNdmBAEZ68HQ1Mz5wCeXTnVVO8QHLqYnyPlZE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rSVwjUvW0j30Lldh3G9npaHDE598cXQwhlT65woQ+HUvuZHrqS5TiJ/oSt4hdltD+3gEGFRPQSHcjQYOYOIxkgkv6jdmS0U2Yjdm2Mp0iQ0dfAxNpKpSxwFWLsu/+r1cPUdXuDRmLLdkeVrbeLziVxyOHWTLHabZqLtNFFAsvd8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=buJnJfsT; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
+	s=arc-20240116; t=1774967098; c=relaxed/simple;
+	bh=qq8PLy0+8DA4C0FTyjzMTsfyH4GsvOGNzncTx4/Waq4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Y3Vc7c3yRQGsHtXfDxQ6O+JxGDCukgiYooR12sDtyNbMPCvBm44DfLarONrAXJqJPvEKT+yDIs/I7aLndfOnoeBP0AFVr5/+WgIpD167dgMDut4CI4xhAeoju2mDEa7g+z5yHxK8r6iGe4p8rT++fHtXc4bswOuKkTWaqFm4XG0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=U7VDlINX; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="buJnJfsT"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=Y0LAvJK+bo1EaO3jYEUqONAi8JVAJhJZIiSqGSTglbE=; b=buJnJfsTpEkK+ciPQPn13F1m+t
-	cm98KSvZzjsXMRetoEvtSUV8HjtVBa3uLYbEU+4AcQ4UXZycJqnpc2YIZgNmSzdEcwq/P5TUtV+ke
-	XhST+7LUHfF/sJXPezYdFxaMiA9Moo3cxaiEa41Wpj751hhZmDbKSPSDzG2xdeTzctNsU3pEJlj5j
-	aMfM30L4OXVfIR7zf6VN4a4jVa7gM1KTEiK8L9Ld6ywOuZwIW58oyWT2x/XQrOgrPlwe2BkKC0hQP
-	jpulYhLIu6ZdPXiCaYUYv2dVu7A7pkyFcOYufRtEYkgB8FeeZXD4QjnA9h7dMoEG5k3T8yCuZak/h
-	q6UOzKpg==;
-Received: from n0-1 by orbyte.nwl.cc with local (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1w7ZKH-000000003LK-3nrv;
-	Tue, 31 Mar 2026 15:40:13 +0200
-Date: Tue, 31 Mar 2026 15:40:13 +0200
-From: Phil Sutter <phil@nwl.cc>
-To: Qi Tang <tpluszz77@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nf_conntrack_helper: pass helper to expect
- cleanup
-Message-ID: <acvOvaiEBVA9kbvw@orbyte.nwl.cc>
-References: <20260329165036.240932-1-tpluszz77@gmail.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="U7VDlINX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1774967096;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=xGbExH2WyJPhqEH/I3Ex4mJo86JJcu+eMS2b1MQ0hyc=;
+	b=U7VDlINXk+kHDY0y7FWqWTlqnoSSokJI/vqnP/RjvZXNoVcJ7CSkkWeHfgbhrFlsvUGihL
+	x3GIdRm48nMTaAv3RAcHHXI2X40HAYSuENJttkh2wmGJq1yBZVVzIIx3tOe9D+3bOkPJQ8
+	+FQeBUgCOr0C5Wz6fjuq1gnQYVdWNkA=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-84-JphZul2mPUKkspbNxYcMHQ-1; Tue,
+ 31 Mar 2026 10:24:45 -0400
+X-MC-Unique: JphZul2mPUKkspbNxYcMHQ-1
+X-Mimecast-MFC-AGG-ID: JphZul2mPUKkspbNxYcMHQ_1774967082
+Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 937301886BE2;
+	Tue, 31 Mar 2026 14:23:49 +0000 (UTC)
+Received: from [10.22.80.26] (unknown [10.22.80.26])
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 921FD19560AB;
+	Tue, 31 Mar 2026 14:23:45 +0000 (UTC)
+Message-ID: <b2fea411-de12-4e1a-bfc5-fdc14b2e29d5@redhat.com>
+Date: Tue, 31 Mar 2026 10:23:44 -0400
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260329165036.240932-1-tpluszz77@gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 2/2] ipvs: Guard access of HK_TYPE_KTHREAD cpumask with
+ RCU
+To: Julian Anastasov <ja@ssi.bg>
+Cc: Simon Horman <horms@verge.net.au>, "David S. Miller"
+ <davem@davemloft.net>, David Ahern <dsahern@kernel.org>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+ Frederic Weisbecker <frederic@kernel.org>,
+ Chen Ridong <chenridong@huawei.com>, Phil Auld <pauld@redhat.com>,
+ linux-kernel <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org,
+ lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org, sheviks <sheviks@gmail.com>
+References: <20260324151827.2006656-1-longman@redhat.com>
+ <20260324151827.2006656-3-longman@redhat.com>
+ <6b8f1536-444c-e75a-c4b3-d5cbe7c1786e@ssi.bg>
+Content-Language: en-US
+From: Waiman Long <longman@redhat.com>
+In-Reply-To: <6b8f1536-444c-e75a-c4b3-d5cbe7c1786e@ssi.bg>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-On Mon, Mar 30, 2026 at 12:50:36AM +0800, Qi Tang wrote:
-> nf_conntrack_helper_unregister() calls nf_ct_expect_iterate_destroy()
-> to remove expectations belonging to the helper being unregistered.
-> However, it passes NULL instead of the helper pointer as the data
-> argument, so expect_iter_me() never matches any expectation and all
-> of them survive the cleanup.
-> 
-> After unregister returns, nfnl_cthelper_del() frees the helper
-> object immediately.  Subsequent expectation dumps or packet-driven
-> init_conntrack() calls then dereference the freed exp->helper,
-> causing a use-after-free.
-> 
-> Pass the actual helper pointer so expectations referencing it are
-> properly destroyed before the helper object is freed.
-> 
->   BUG: KASAN: slab-use-after-free in string+0x38f/0x430
->   Read of size 1 at addr ffff888003b14d20 by task poc/103
->   Call Trace:
->    string+0x38f/0x430
->    vsnprintf+0x3cc/0x1170
->    seq_printf+0x17a/0x240
->    exp_seq_show+0x2e5/0x560
->    seq_read_iter+0x419/0x1280
->    proc_reg_read+0x1ac/0x270
->    vfs_read+0x179/0x930
->    ksys_read+0xef/0x1c0
->   Freed by task 103:
->   The buggy address is located 32 bytes inside of
->    freed 192-byte region [ffff888003b14d00, ffff888003b14dc0)
-> 
-> Fixes: ac7b84839003 ("netfilter: expect: add and use nf_ct_expect_iterate helpers")
-> Signed-off-by: Qi Tang <tpluszz77@gmail.com>
+On 3/26/26 4:32 AM, Julian Anastasov wrote:
+> 	Hello,
+>
+> On Tue, 24 Mar 2026, Waiman Long wrote:
+>
+>> The ip_vs_ctl.c file and the associated ip_vs.h file are the only places
+>> in the kernel where HK_TYPE_KTHREAD cpumask is being retrieved and used.
+>> Now that HK_TYPE_KTHREAD/HK_TYPE_DOMAIN cpumask can be changed at run
+>> time. We need to use RCU to guard access to this cpumask to avoid a
+>> potential UAF problem as the returned cpumask may be freed before it
+>> is being used.
+>>
+>> Signed-off-by: Waiman Long <longman@redhat.com>
+>> ---
+>>   include/net/ip_vs.h            | 20 ++++++++++++++++----
+>>   net/netfilter/ipvs/ip_vs_ctl.c | 13 ++++++++-----
+>>   2 files changed, 24 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+>> index 29a36709e7f3..17c85a575ef4 100644
+>> --- a/include/net/ip_vs.h
+>> +++ b/include/net/ip_vs.h
+>> @@ -1155,7 +1155,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
+>>   	return ipvs->sysctl_run_estimation;
+>>   }
+>>   
+>> -static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
+>> +static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
+>>   {
+>>   	if (ipvs->est_cpulist_valid)
+>>   		return ipvs->sysctl_est_cpulist;
+>> @@ -1273,7 +1273,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
+>>   	return 1;
+>>   }
+>>   
+>> -static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
+>> +static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
+>>   {
+>>   	return housekeeping_cpumask(HK_TYPE_KTHREAD);
+>>   }
+>> @@ -1290,6 +1290,18 @@ static inline int sysctl_est_nice(struct netns_ipvs *ipvs)
+>>   
+>>   #endif
+>>   
+> 	May be there is little fuzz here, due to the recent
+> changes in the nf-next tree. If this is a bugfix due to the
+> missing RCU protection, may be you should add Fixes line too
+> and use the nf tree. Probably, there will be fuzz/collisions with
+> the changes in the nf-next tree...
+Thanks for the suggestion, I will rebase the patches on top of the 
+nf-next tree.
+>
+>> +static inline bool sysctl_est_cpulist_empty(struct netns_ipvs *ipvs)
+>> +{
+>> +	guard(rcu)();
+>> +	return cpumask_empty(__sysctl_est_cpulist(ipvs));
+>> +}
+>> +
+>> +static inline unsigned int sysctl_est_cpulist_weight(struct netns_ipvs *ipvs)
+>> +{
+>> +	guard(rcu)();
+>> +	return cpumask_weight(__sysctl_est_cpulist(ipvs));
+>> +}
+>> +
+>>   /* IPVS core functions
+>>    * (from ip_vs_core.c)
+>>    */
+>> @@ -1604,7 +1616,7 @@ static inline void ip_vs_est_stopped_recalc(struct netns_ipvs *ipvs)
+>>   	/* Stop tasks while cpulist is empty or if disabled with flag */
+>>   	ipvs->est_stopped = !sysctl_run_estimation(ipvs) ||
+>>   			    (ipvs->est_cpulist_valid &&
+>> -			     cpumask_empty(sysctl_est_cpulist(ipvs)));
+>> +			     sysctl_est_cpulist_empty(ipvs));
+>>   #endif
+>>   }
+>>   
+>> @@ -1620,7 +1632,7 @@ static inline bool ip_vs_est_stopped(struct netns_ipvs *ipvs)
+>>   static inline int ip_vs_est_max_threads(struct netns_ipvs *ipvs)
+>>   {
+>>   	unsigned int limit = IPVS_EST_CPU_KTHREADS *
+>> -			     cpumask_weight(sysctl_est_cpulist(ipvs));
+>> +			     sysctl_est_cpulist_weight(ipvs);
+>>   
+>>   	return max(1U, limit);
+>>   }
+>> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+>> index 35642de2a0fe..f38a2e2a9dc5 100644
+>> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+>> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+>> @@ -1973,11 +1973,14 @@ static int ipvs_proc_est_cpumask_get(const struct ctl_table *table,
+>>   
+>>   	mutex_lock(&ipvs->est_mutex);
+>>   
+>> -	if (ipvs->est_cpulist_valid)
+>> -		mask = *valp;
+>> -	else
+>> -		mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
+>> -	ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
+>> +	/* HK_TYPE_KTHREAD cpumask needs RCU protection */
+> 	Can we switch IPVS to use HK_TYPE_DOMAIN? The initial
+> intention was to follow the code in kthread.c. Then you can
+> reconsider if HK_TYPE_KTHREAD should be alias to HK_TYPE_DOMAIN,
+> may be not if there are no other users...
 
-Reviewed-by: Phil Sutter <phil@nwl.cc>
+Yes, I can certainly switch to use HK_TYPE_DOMAIN instead. The reason I 
+keep HK_TYPE_KTHREAD is that it may not be obvious to others that 
+kthread is now following the HK_TYPE_DOMAIN cpumask, 
+keeping  HK_TYPE_KTHREAD but making it an alias can make that clear.
 
-Thanks, Phil
+
+>> +	scoped_guard(rcu) {
+>> +		if (ipvs->est_cpulist_valid)
+>> +			mask = *valp;
+>> +		else
+>> +			mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
+>> +		ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
+>> +	}
+>>   
+>>   	mutex_unlock(&ipvs->est_mutex);
+>>   
+>> -- 
+>> 2.53.0
+> Regards
+>
+> --
+> Julian Anastasov <ja@ssi.bg>
+>
+
