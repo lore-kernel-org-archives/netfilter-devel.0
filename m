@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC8143F8E1F;
-	Wed,  1 Apr 2026 10:37:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC46A3F8DFD;
+	Wed,  1 Apr 2026 10:37:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775039828; cv=none; b=DxZ3PHAZEw6X0b4BgWkKKyohCJ8LcjZim4mYrRjeAlcVJ1uDpeANXUbvEvX5zjy+kdReHgvTPVNmlAZEAcYs3mnl4Q+LJtfVa3gqLDpg5jrPV4Z35NFGw3+npT5xaMfhQDbY+xhoZ/LFiceHAgtAWZB5/XXqCu7McBcMtxbacGs=
+	t=1775039828; cv=none; b=l5ROR0De9XK4u9IHa0hSdjaxb/v04HqWaPGRmy6OK0rHftXx+90vBX/APmMCaBvVmPuSWlvg2ZfkqzJeWiegr1Uy3SYp2OT6Zgli7HUquuA0MHzMija0IHl317bhddTonbb+Pea+bzu8quYzIc2ml8F9pJgPg4zZBB++UrkyL8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1775039828; c=relaxed/simple;
-	bh=CzPSJapt1DbwA+j0vgoQk9f9m0ONreQaBAqQO7KtdMQ=;
+	bh=nOrYf/IMx6gxtyNB26R22xBOp5onhSiSZFVuQ29Nk68=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gwxZkVToIEFkSR0APq9uhJDnh3+0JwNskAKawtQ2UAIW+XcXOBUw6wEfVgpn2xoGmQLvVEIQz9NLRRNwJjTwfDVSWNgrEwSbhdFDvxvkOED0bNzIQnBO3dUuUPasLhAqD+4+AR/277WE3aiSvSsWRt29IhGiycBLONkmAm+VBGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=GLavjX85; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=bbaMVSUppdbc0y7QKf1cqTwZ2SvsglUU/0eJ3Lxzl0F2LkxbqmcUoy1XWF8y1NFG22zX84ekmt1VwXSx+bpXSwn9gsKJa/Vblr/tMex4/Yq1sQSW3Zdo2PM2oE3kXyWkJcjJ9F2wgWTQZ1UWxkFAqw1AiCGUZp6ZHSdNTwuhiSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=SwHPz7XY; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="GLavjX85"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="SwHPz7XY"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5DBE860275;
-	Wed,  1 Apr 2026 12:37:03 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9B74C60273;
+	Wed,  1 Apr 2026 12:37:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775039823;
-	bh=GJuux1UkH0MYTO5Mrxr7dQYCFODMTuquZ2nsGDGYy2U=;
+	s=2025; t=1775039825;
+	bh=+IqVeh6fcqQR1yjRdh4IDMPM19qNlFOEOVlD6u4VHlA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=GLavjX857fZp3WE4GM4L0/Gh9qPWBsecxbQMILd0peYwnMmTd79xMGxx5VUZVLsyC
-	 rnC0sbnKZAWFGRro9pnonrTPy3vvOOhVZU/HmQHMr4UUAa4CKyZFl4Tzx7NhvPzpK2
-	 jTvdDe3H9/yei55IweXo7ltpPcqJZxQ4vmxHhA3ajZ1QFpyphG5jISLrTkSLrpv5+L
-	 c1WJZQ3+DFYrrKFyN0crSnCOZxIh6yBCmcsxyBO4dxI4JRpTT55rgxCgtoroFeXINs
-	 sv3bui4hnA/vVZim106Dl7czZ0FTTMdgU0gMompS2C3vIJr9S9dFreerAWS5GD0uQf
-	 Z8gNnQUeR5pGA==
+	b=SwHPz7XYeISSIn6nrk7vy5p99BE2IgKvg6lYqLpBvnEctCkcZeRj6zkVwHlBroEEQ
+	 q5bAdzAwLvCByiZ8kgmIv1rLBKcSOGz3hi7bwCWcazAM44u5X603OycElhfXwolHKp
+	 Dz4wejQDMusrh0CNxqnJrRm5nyrN4pkcDuQX6VPiYNy+iRr4kXn9UxncFohCU7Rzo5
+	 jddqbroKBlPbvWRaJLeYIOaiMiJJeuhMVWV1dF28bjUtmUy1/u1pfuNwdsRxc2aiGb
+	 FRMT28AiSZwjkK6oIpClj7fwtgUo1KPJDnYYKAvzhO7w2NBkRKWf1jNM40F58mi2vb
+	 ZcjEQIhFw9IKw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 09/10] netfilter: x_tables: restrict xt_check_match/xt_check_target extensions for NFPROTO_ARP
-Date: Wed,  1 Apr 2026 12:36:45 +0200
-Message-ID: <20260401103646.1015423-10-pablo@netfilter.org>
+Subject: [PATCH net 10/10] netfilter: nf_tables: reject immediate NF_QUEUE verdict
+Date: Wed,  1 Apr 2026 12:36:46 +0200
+Message-ID: <20260401103646.1015423-11-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260401103646.1015423-1-pablo@netfilter.org>
 References: <20260401103646.1015423-1-pablo@netfilter.org>
@@ -52,93 +52,45 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Weiming Shi says:
+nft_queue is always used from userspace nftables to deliver the NF_QUEUE
+verdict. Immediately emitting an NF_QUEUE verdict is never used by the
+userspace nft tools, so reject immediate NF_QUEUE verdicts.
 
-xt_match and xt_target structs registered with NFPROTO_UNSPEC can be
-loaded by any protocol family through nft_compat. When such a
-match/target sets .hooks to restrict which hooks it may run on, the
-bitmask uses NF_INET_* constants. This is only correct for families
-whose hook layout matches NF_INET_*: IPv4, IPv6, INET, and bridge
-all share the same five hooks (PRE_ROUTING ... POST_ROUTING).
+The arp family does not provide queue support, but such an immediate
+verdict is still reachable. Globally reject NF_QUEUE immediate verdicts
+to address this issue.
 
-ARP only has three hooks (IN=0, OUT=1, FORWARD=2) with different
-semantics. Because NF_ARP_OUT == 1 == NF_INET_LOCAL_IN, the .hooks
-validation silently passes for the wrong reasons, allowing matches to
-run on ARP chains where the hook assumptions (e.g. state->in being
-set on input hooks) do not hold. This leads to NULL pointer
-dereferences; xt_devgroup is one concrete example:
-
- Oops: general protection fault, probably for non-canonical address 0xdffffc0000000044: 0000 [#1] SMP KASAN NOPTI
- KASAN: null-ptr-deref in range [0x0000000000000220-0x0000000000000227]
- RIP: 0010:devgroup_mt+0xff/0x350
- Call Trace:
-  <TASK>
-  nft_match_eval (net/netfilter/nft_compat.c:407)
-  nft_do_chain (net/netfilter/nf_tables_core.c:285)
-  nft_do_chain_arp (net/netfilter/nft_chain_filter.c:61)
-  nf_hook_slow (net/netfilter/core.c:623)
-  arp_xmit (net/ipv4/arp.c:666)
-  </TASK>
- Kernel panic - not syncing: Fatal exception in interrupt
-
-Fix it by restricting arptables to NFPROTO_ARP extensions only.
-Note that arptables-legacy only supports:
-
-- arpt_CLASSIFY
-- arpt_mangle
-- arpt_MARK
-
-that provide explicit NFPROTO_ARP match/target declarations.
-
-Fixes: 9291747f118d ("netfilter: xtables: add device group match")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: f342de4e2f33 ("netfilter: nf_tables: reject QUEUE/DROP verdict parameters")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/x_tables.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ net/netfilter/nf_tables_api.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index e594b3b7ad82..b39017c80548 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -501,6 +501,17 @@ int xt_check_match(struct xt_mtchk_param *par,
- 				    par->match->table, par->table);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 3922cff1bb3d..8c42247a176c 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -11667,8 +11667,6 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 	switch (data->verdict.code) {
+ 	case NF_ACCEPT:
+ 	case NF_DROP:
+-	case NF_QUEUE:
+-		break;
+ 	case NFT_CONTINUE:
+ 	case NFT_BREAK:
+ 	case NFT_RETURN:
+@@ -11703,6 +11701,11 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 
+ 		data->verdict.chain = chain;
+ 		break;
++	case NF_QUEUE:
++		/* The nft_queue expression is used for this purpose, an
++		 * immediate NF_QUEUE verdict should not ever be seen here.
++		 */
++		fallthrough;
+ 	default:
  		return -EINVAL;
  	}
-+
-+	/* NFPROTO_UNSPEC implies NF_INET_* hooks which do not overlap with
-+	 * NF_ARP_IN,OUT,FORWARD, allow explicit extensions with NFPROTO_ARP
-+	 * support.
-+	 */
-+	if (par->family == NFPROTO_ARP &&
-+	    par->match->family != NFPROTO_ARP) {
-+		pr_info_ratelimited("%s_tables: %s match: not valid for this family\n",
-+				    xt_prefix[par->family], par->match->name);
-+		return -EINVAL;
-+	}
- 	if (par->match->hooks && (par->hook_mask & ~par->match->hooks) != 0) {
- 		char used[64], allow[64];
- 
-@@ -1016,6 +1027,18 @@ int xt_check_target(struct xt_tgchk_param *par,
- 				    par->target->table, par->table);
- 		return -EINVAL;
- 	}
-+
-+	/* NFPROTO_UNSPEC implies NF_INET_* hooks which do not overlap with
-+	 * NF_ARP_IN,OUT,FORWARD, allow explicit extensions with NFPROTO_ARP
-+	 * support.
-+	 */
-+	if (par->family == NFPROTO_ARP &&
-+	    par->target->family != NFPROTO_ARP) {
-+		pr_info_ratelimited("%s_tables: %s target: not valid for this family\n",
-+				    xt_prefix[par->family], par->target->name);
-+		return -EINVAL;
-+	}
-+
- 	if (par->target->hooks && (par->hook_mask & ~par->target->hooks) != 0) {
- 		char used[64], allow[64];
- 
 -- 
 2.47.3
 
