@@ -1,94 +1,82 @@
-Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7955639936F;
-	Wed,  1 Apr 2026 07:45:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAEA2386C3E
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2026 08:00:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775029551; cv=none; b=QStxo3oX22odQeZUxJUqej3TKP6nKvsheTL722f3WlV5u3PPMatXiqt7qNmdzSdVFIkWPPfy6we2vHsrFwzWqO+616JAFCCjOmvgN6/jTH+vKIBbdvDOd3Q02C3Pap5jM5FEie5Lm1R00RekRW9yu1bxeuao7CZhIjctJnQlWZ4=
+	t=1775030448; cv=none; b=Srr9MyFIQpeFInJlbJ2fbkH7yEMkk/eh8NAbi8izuR/r5TGDOTWFU9qgJ2xUhnKM/ZIW8IR+Auc0OR3un4NtPCPCNqoJbMApX1Q5A+sFZVDlBcP137hZeczLSvYB2liyqMq/YmecyNfQSEB06b8+32R6VrWhHm+XDZZCl2n++WE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775029551; c=relaxed/simple;
-	bh=+tR2lkGhY7EMKxIv9XlfDa5D+Kafii4siVw1srfeq1Y=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=X0JuGKPmSa1LGWrvJIkwGnVqqDsyermBI/0eNFSBgUIOeI/VWso4r2I8pTyny0QzwTRcKp0t8PH2JRxt4PfV8nrElkIAi47/bM+0abWaTRxyv+a7VcwucG69hlnW39hBIm0FfIjbQ+qJKe16bVMiplAVsZsVfPcMPCbo+JLvSUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=desiato.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=XmZ0vjW/; arc=none smtp.client-ip=90.155.92.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=desiato.srs.infradead.org
+	s=arc-20240116; t=1775030448; c=relaxed/simple;
+	bh=IPr2oYPn/26eQSmWxcSleR1D2ek6vWmOS678MnORj2o=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GgUx+m8ghMctwF716N0aUdju0lQSwvZ7y0teMS0/31rhzt4winIMBud9ispcHMbgXyGUd45tSVVXlGbxCuHCkTIbyMZSjQH8mngjM1XM62aIiSGvC0+ub417m8oW2hc5FVHfJZ49fYa3xp7B2coWPYIhxlHAgod261Yz1g/mJuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HnlDtbNi; arc=none smtp.client-ip=209.85.215.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="XmZ0vjW/"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=desiato.20200630; h=Sender:Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:To:From:Reply-To:
-	Cc:Content-Type:Content-ID:Content-Description;
-	bh=rUPZcZvnz7m4wObN0nRKDSPdiuPMBaSG6sDNy+wfNnY=; b=XmZ0vjW/LAOkBb5O+5LmfCk5YI
-	n8C7/YEH/1OL7qrT9tmUxRH1AvhkSP1DC33BAFZa/XLf4jRDI2N3NZqjWHOn+7sUESjIM1aasCgA4
-	JBIzZF6GADalqzb484AmGNw/yymN7DMeWwDe63XCJwHL4+6jeB8/s2BCmtK9Y9DjhZl2LXE2exenv
-	5UNcjFFLrHczGy9tgX4x9RLKNa0chk+2fuONLjXfVSiQoITjn3ij5WJNeyhuBO28yKyWy0KYFAtDd
-	34i6caZsumKmuoFkoLuH0sqvSRVFs3CPszxsTh9RD6P2LkTvTFD/fIbqcapt5G6lIiaqPKWm+nVz3
-	HfXKpo5Q==;
-Received: from [2001:8b0:10b:1::425] (helo=i7.infradead.org)
-	by desiato.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w7qGN-0000000HLQQ-0Bmv;
-	Wed, 01 Apr 2026 07:45:19 +0000
-Received: from dwoodhou by i7.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w7qGM-00000007xeB-26NS;
-	Wed, 01 Apr 2026 08:45:18 +0100
-From: David Woodhouse <dwmw2@infradead.org>
-To: Saeed Mahameed <saeedm@nvidia.com>,
-	Leon Romanovsky <leon@kernel.org>,
-	Tariq Toukan <tariqt@nvidia.com>,
-	Mark Bloch <mbloch@nvidia.com>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Nikolay Aleksandrov <razor@blackwall.org>,
-	Ido Schimmel <idosch@nvidia.com>,
-	Martin KaFai Lau <martin.lau@linux.dev>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	John Fastabend <john.fastabend@gmail.com>,
-	Stanislav Fomichev <sdf@fomichev.me>,
-	Alexei Starovoitov <ast@kernel.org>,
-	Andrii Nakryiko <andrii@kernel.org>,
-	Eduard Zingerman <eddyz87@gmail.com>,
-	Song Liu <song@kernel.org>,
-	Yonghong Song <yonghong.song@linux.dev>,
-	KP Singh <kpsingh@kernel.org>,
-	Hao Luo <haoluo@google.com>,
-	Jiri Olsa <jolsa@kernel.org>,
-	Kuniyuki Iwashima <kuniyu@google.com>,
-	Willem de Bruijn <willemb@google.com>,
-	David Ahern <dsahern@kernel.org>,
-	Neal Cardwell <ncardwell@google.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HnlDtbNi"
+Received: by mail-pg1-f170.google.com with SMTP id 41be03b00d2f7-c74244dc0b3so3942755a12.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Apr 2026 01:00:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1775030446; x=1775635246; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=2y8dUPGFi+UBO55SBUip5Hfz6jHTFtt4ylYjmLjQEmw=;
+        b=HnlDtbNiLMneGLpWqFnifSQaPv14PcjRdIP6OuLaTJvhit+92zAPvm5zwqbtO26tub
+         zMEWYmhjaJX0lxSMph241x1sJVwJTNgpKrhlwbs4w4kD0J1+JggpTaknNKWswBOpyuoE
+         58Q4acqJXuJaio+Q4xObL2vVC7zzD8d55YsOLGA5+HtnKPdbJevveFsKWtqjgLvzN8ZK
+         7Dn8wtHseyeJymCBbbMvAADrvGifMvI8Vj/1wsiR1CA1p3YPr/ZkihAefaD7g3LnjExa
+         KwcuJGZQY/Bl4EXCrAzdg4oNaWbhjx1ruCJ/wEsoEyLhbIkKgkGFf/LVEAsUlWizCkhe
+         ZBWQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775030446; x=1775635246;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2y8dUPGFi+UBO55SBUip5Hfz6jHTFtt4ylYjmLjQEmw=;
+        b=Yqo3w7fyYbXtYbDrRFmXWij8hU1GZcv239+8Vawsv9yypv43tQa1TKgeOj7plQhQHy
+         Yl8egSJzqxWYAQmYjXwkxAliPp7CO7ctQPdEvooiCh587SoJgIbLL+8MhxOmSYSvgzgk
+         Fj9ovXsqzMSPjbGBCdwwtqAuDOq1XpNvYWJ2mfjDvL87nIPGOD93uaC/jgvrR83O7Qqz
+         8yL0V/0misyXBQr0/ZtGmkQnKL30Iv/YnSoVwV/7cTxkSkWS2NCQPYE/f8pxoLiet61K
+         Qe58G5Fj2MscJ7MoLkMw9fIiUA1Gxkhph7AuOB7q1o1fMd1t9Wpri6VwtC0y0smyG6Iz
+         pUWQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWcQ34mHerCihbjRWL6Me24i/T+y89cOKILmGAfiteH+LYDXeEr1Y57fi2xoDY6nqL3yt4inA//0mYi1RUKrnI=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxoRkajfqF1lYqbbFo3bV4guEgtIyXxY1GxQ85r1uwS3xFVwXPg
+	CGvA0eR6+onFp+qcbATIDcPeXOww39tZkCKp46Iv6panU5KWNHTWGyEk
+X-Gm-Gg: ATEYQzzjKhq9Rwi2rThDc4At3OLQrq9nGnr/jSCELgV0NZesvGOoKp8inHoxhWcOs2G
+	z6AMEcKV/k5yW0n6zkzQUF6nKlbl8nRq8LUrpXUjgSEAx7XPHrF7b1J13jNUkmt2i1IstBlFRqX
+	LDBIKA0cAno2YBClzIHaHDeYY4xQg+ejMtPo2GPhXjigNMZaEnPX7zRUEHNh5JVRy/Oohieogtu
+	h0m2Bb3urDj07RBDyrotvYOfg3Z2gPxt1ji/rhDhm/N6LB8xlEj1t8aaWrpOULw6VuaKy/OapqV
+	ncDGPPKHxFxSylC/i5AgMwHG9mZM7u/VqOUPG7Ox4IBpZs9o4JGAqQ0NZdkKyyvZnGkd/DQoQNu
+	dFc+hri8SnbWVMVSzQITbwJ/wN9bL8pUxq9xuezRqv2VWeMbtV+vacdMvVU48hpX52AWWxNJOda
+	VFNN31STWEnPPFQXP0eYqe+rPngGx6toSyrCtpAZMESjiot/UgoLcx6vczN7Ne3raG11s1WR0m3
+	tLzX4d+IUHE
+X-Received: by 2002:a05:6a20:2592:b0:394:5513:ce5 with SMTP id adf61e73a8af0-39ef774ffadmr2721870637.51.1775030446152;
+        Wed, 01 Apr 2026 01:00:46 -0700 (PDT)
+Received: from SLSGDTSWING002.tail0ac356.ts.net ([129.126.109.177])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-82ca846e08dsm12865913b3a.24.2026.04.01.01.00.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Apr 2026 01:00:45 -0700 (PDT)
+From: Weiming Shi <bestswngs@gmail.com>
+To: Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	Guillaume Nault <gnault@redhat.com>,
-	David Woodhouse <dwmw@amazon.co.uk>,
-	Kees Cook <kees@kernel.org>,
-	Alexei Lazar <alazar@nvidia.com>,
-	Gal Pressman <gal@nvidia.com>,
-	Paul Moore <paul@paul-moore.com>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Phil Sutter <phil@nwl.cc>,
 	netdev@vger.kernel.org,
-	linux-rdma@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	oss-drivers@corigine.com,
-	bridge@lists.linux.dev,
-	bpf@vger.kernel.org,
-	linux-wireless@vger.kernel.org,
+	lvs-devel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org,
-	torvalds@linux-foundation.org,
-	jon.maddog.hall@gmail.com
-Subject: [PATCH 3/6] net: Guard Legacy IP entry points with CONFIG_LEGACY_IP
-Date: Wed,  1 Apr 2026 08:44:17 +0100
-Message-ID: <20260401074509.1897527-4-dwmw2@infradead.org>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260401074509.1897527-1-dwmw2@infradead.org>
-References: <20260401074509.1897527-1-dwmw2@infradead.org>
+	Xiang Mei <xmei5@asu.edu>,
+	Weiming Shi <bestswngs@gmail.com>
+Subject: [PATCH net v2] ipvs: fix NULL deref in ip_vs_add_service error path
+Date: Wed,  1 Apr 2026 15:58:01 +0800
+Message-ID: <20260401075800.3344266-2-bestswngs@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -96,203 +84,59 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Sender: David Woodhouse <dwmw2@infradead.org>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <dwmw2@infradead.org> by desiato.infradead.org. See http://www.infradead.org/rpr.html
 
-From: David Woodhouse <dwmw@amazon.co.uk>
+When ip_vs_bind_scheduler() succeeds in ip_vs_add_service(), the local
+variable sched is set to NULL.  If ip_vs_start_estimator() subsequently
+fails, the out_err cleanup calls ip_vs_unbind_scheduler(svc, sched)
+with sched == NULL.  ip_vs_unbind_scheduler() passes the cur_sched NULL
+check (because svc->scheduler was set by the successful bind) but then
+dereferences the NULL sched parameter at sched->done_service, causing a
+kernel panic at offset 0x30 from NULL.
 
-Wrap the IPv4-specific registrations in inet_init() with
-CONFIG_LEGACY_IP guards. When LEGACY_IP is disabled, the kernel
-will not:
- - Register the AF_INET socket family
- - Register the ETH_P_IP packet handler (ip_rcv)
- - Initialize ARP, ICMP, IGMP, or IPv4 routing
- - Register IPv4 protocol handlers (TCP/UDP/ICMP over IPv4)
- - Initialize IPv4 multicast routing, proc entries, or fragmentation
+ Oops: general protection fault, probably for non-canonical address 0xdffffc0000000006: 0000 [#1] PREEMPT SMP KASAN NOPTI
+ KASAN: null-ptr-deref in range [0x0000000000000030-0x0000000000000037]
+ RIP: 0010:ip_vs_unbind_scheduler (net/netfilter/ipvs/ip_vs_sched.c:69)
+ Call Trace:
+  <TASK>
+  ip_vs_add_service.isra.0 (net/netfilter/ipvs/ip_vs_ctl.c:1500)
+  do_ip_vs_set_ctl (net/netfilter/ipvs/ip_vs_ctl.c:2809)
+  nf_setsockopt (net/netfilter/nf_sockopt.c:102)
+  ip_setsockopt (net/ipv4/ip_sockglue.c:1427)
+  raw_setsockopt (net/ipv4/raw.c:850)
+  do_sock_setsockopt (net/socket.c:2322)
+  __sys_setsockopt (net/socket.c:2339)
+  __x64_sys_setsockopt (net/socket.c:2350)
+  do_syscall_64 (arch/x86/entry/syscall_64.c:94)
+  entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:130)
+  </TASK>
 
-The shared INET infrastructure (tcp_prot, udp_prot, tcp_init, etc.)
-remains initialized for use by IPv6.
+Fix by simply not clearing the local sched variable after a successful
+bind.  ip_vs_unbind_scheduler() already detects whether a scheduler is
+installed via svc->scheduler, and keeping sched non-NULL ensures the
+error path passes the correct pointer to both ip_vs_unbind_scheduler()
+and ip_vs_scheduler_put().
 
-Also update INDIRECT_CALL_INET to not use ip_rcv/ip_list_rcv as
-direct call targets when LEGACY_IP is disabled, avoiding a link-time
-reference to functions that will eventually be compiled out.
-
-Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
+Fixes: 05f00505a89a ("ipvs: fix crash if scheduler is changed")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 ---
- include/linux/indirect_call_wrapper.h |  4 +++-
- net/ipv4/af_inet.c                    | 20 +++++++++++++-----
- net/ipv4/devinet.c                    |  2 ++
- net/ipv4/route.c                      |  1 -
- net/ipv4/tcp_ipv4.c                   | 30 ++++++++++++++-------------
- 5 files changed, 36 insertions(+), 21 deletions(-)
+v2: Remove "sched = NULL" instead of recovering it in out_err (Julian)
 
-diff --git a/include/linux/indirect_call_wrapper.h b/include/linux/indirect_call_wrapper.h
-index dc272b514a01..25a3873da462 100644
---- a/include/linux/indirect_call_wrapper.h
-+++ b/include/linux/indirect_call_wrapper.h
-@@ -57,9 +57,11 @@
-  * builtin, this macro simplify dealing with indirect calls with only ipv4/ipv6
-  * alternatives
-  */
--#if IS_BUILTIN(CONFIG_IPV6)
-+#if IS_BUILTIN(CONFIG_IPV6) && IS_ENABLED(CONFIG_LEGACY_IP)
- #define INDIRECT_CALL_INET(f, f2, f1, ...) \
- 	INDIRECT_CALL_2(f, f2, f1, __VA_ARGS__)
-+#elif IS_BUILTIN(CONFIG_IPV6)
-+#define INDIRECT_CALL_INET(f, f2, f1, ...) INDIRECT_CALL_1(f, f2, __VA_ARGS__)
- #elif IS_ENABLED(CONFIG_INET)
- #define INDIRECT_CALL_INET(f, f2, f1, ...) INDIRECT_CALL_1(f, f1, __VA_ARGS__)
- #else
-diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
-index c7731e300a44..dc358faa1647 100644
---- a/net/ipv4/af_inet.c
-+++ b/net/ipv4/af_inet.c
-@@ -1922,7 +1922,15 @@ static int __init inet_init(void)
- 	/*
- 	 *	Tell SOCKET that we are alive...
- 	 */
-+	/* Initialize the socket-side protocol switch tables. */
-+	for (r = &inetsw[0]; r < &inetsw[SOCK_MAX]; ++r)
-+		INIT_LIST_HEAD(r);
-+
-+#ifdef CONFIG_XFRM
-+	xfrm_init();
-+#endif
- 
-+#ifdef CONFIG_LEGACY_IP
- 	(void)sock_register(&inet_family_ops);
- 
- #ifdef CONFIG_SYSCTL
-@@ -1957,10 +1965,6 @@ static int __init inet_init(void)
- 		pr_crit("%s: Cannot add IGMP protocol\n", __func__);
- #endif
- 
--	/* Register the socket-side information for inet_create. */
--	for (r = &inetsw[0]; r < &inetsw[SOCK_MAX]; ++r)
--		INIT_LIST_HEAD(r);
--
- 	for (q = inetsw_array; q < &inetsw_array[INETSW_ARRAY_LEN]; ++q)
- 		inet_register_protosw(q);
- 
-@@ -1975,6 +1979,7 @@ static int __init inet_init(void)
- 	 */
- 
- 	ip_init();
-+#endif /* CONFIG_LEGACY_IP */
- 
- 	/* Initialise per-cpu ipv4 mibs */
- 	if (init_ipv4_mibs())
-@@ -1987,7 +1992,8 @@ static int __init inet_init(void)
- 	udp_init();
- 
- 	/* Add UDP-Lite (RFC 3828) */
--	udplite4_register();
-+	if (IS_ENABLED(CONFIG_LEGACY_IP))
-+		udplite4_register();
- 
- 	raw_init();
- 
-@@ -1997,6 +2003,7 @@ static int __init inet_init(void)
- 	 *	Set the ICMP layer up
- 	 */
- 
-+#ifdef CONFIG_LEGACY_IP
- 	if (icmp_init() < 0)
- 		panic("Failed to create the ICMP control socket.\n");
- 
-@@ -2007,10 +2014,12 @@ static int __init inet_init(void)
- 	if (ip_mr_init())
- 		pr_crit("%s: Cannot init ipv4 mroute\n", __func__);
- #endif
-+#endif /* CONFIG_LEGACY_IP */
- 
- 	if (init_inet_pernet_ops())
- 		pr_crit("%s: Cannot init ipv4 inet pernet ops\n", __func__);
- 
-+#ifdef CONFIG_LEGACY_IP
- 	ipv4_proc_init();
- 
- 	ipfrag_init();
-@@ -2018,6 +2027,7 @@ static int __init inet_init(void)
- 	dev_add_pack(&ip_packet_type);
- 
- 	ip_tunnel_core_init();
-+#endif /* CONFIG_LEGACY_IP */
- 
- 	rc = 0;
- out:
-diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
-index 537bb6c315d2..9b9db10e5db2 100644
---- a/net/ipv4/devinet.c
-+++ b/net/ipv4/devinet.c
-@@ -348,7 +348,9 @@ static int __init inet_blackhole_dev_init(void)
- 
- 	return PTR_ERR_OR_ZERO(in_dev);
- }
-+#ifdef CONFIG_LEGACY_IP
- late_initcall(inet_blackhole_dev_init);
-+#endif
- 
- int inet_addr_onlink(struct in_device *in_dev, __be32 a, __be32 b)
- {
-diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-index 463236e0dc2d..125614f552c7 100644
---- a/net/ipv4/route.c
-+++ b/net/ipv4/route.c
-@@ -3773,7 +3773,6 @@ int __init ip_rt_init(void)
- 	if (ip_rt_proc_init())
- 		pr_err("Unable to create route proc files\n");
- #ifdef CONFIG_XFRM
--	xfrm_init();
- 	xfrm4_init();
- #endif
- 	rtnl_register_many(ip_rt_rtnl_msg_handlers);
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index c7b2463c2e25..7660bd45aac7 100644
---- a/net/ipv4/tcp_ipv4.c
-+++ b/net/ipv4/tcp_ipv4.c
-@@ -3717,25 +3717,27 @@ static void __init bpf_iter_register(void)
- 
- void __init tcp_v4_init(void)
- {
--	int cpu, res;
-+	if (IS_ENABLED(CONFIG_LEGACY_IP)) {
-+		int cpu, res;
- 
--	for_each_possible_cpu(cpu) {
--		struct sock *sk;
-+		for_each_possible_cpu(cpu) {
-+			struct sock *sk;
- 
--		res = inet_ctl_sock_create(&sk, PF_INET, SOCK_RAW,
--					   IPPROTO_TCP, &init_net);
--		if (res)
--			panic("Failed to create the TCP control socket.\n");
--		sock_set_flag(sk, SOCK_USE_WRITE_QUEUE);
-+			res = inet_ctl_sock_create(&sk, PF_INET, SOCK_RAW,
-+						   IPPROTO_TCP, &init_net);
-+			if (res)
-+				panic("Failed to create the TCP control socket.\n");
-+			sock_set_flag(sk, SOCK_USE_WRITE_QUEUE);
- 
--		/* Please enforce IP_DF and IPID==0 for RST and
--		 * ACK sent in SYN-RECV and TIME-WAIT state.
--		 */
--		inet_sk(sk)->pmtudisc = IP_PMTUDISC_DO;
-+			/* Please enforce IP_DF and IPID==0 for RST and
-+			 * ACK sent in SYN-RECV and TIME-WAIT state.
-+			 */
-+			inet_sk(sk)->pmtudisc = IP_PMTUDISC_DO;
- 
--		sk->sk_clockid = CLOCK_MONOTONIC;
-+			sk->sk_clockid = CLOCK_MONOTONIC;
- 
--		per_cpu(ipv4_tcp_sk.sock, cpu) = sk;
-+			per_cpu(ipv4_tcp_sk.sock, cpu) = sk;
-+		}
+ net/netfilter/ipvs/ip_vs_ctl.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 35642de2a0fee..2aaf50f52c8e8 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1452,7 +1452,6 @@ ip_vs_add_service(struct netns_ipvs *ipvs, struct ip_vs_service_user_kern *u,
+ 		ret = ip_vs_bind_scheduler(svc, sched);
+ 		if (ret)
+ 			goto out_err;
+-		sched = NULL;
  	}
- 	if (register_pernet_subsys(&tcp_sk_ops))
- 		panic("Failed to create the TCP control socket.\n");
+ 
+ 	ret = ip_vs_start_estimator(ipvs, &svc->stats);
 -- 
-2.51.0
+2.43.0
 
