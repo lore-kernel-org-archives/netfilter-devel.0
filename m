@@ -1,96 +1,125 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f42.google.com (mail-dl1-f42.google.com [74.125.82.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0689B3AEF51
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2026 19:15:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9EEB2F90E0
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2026 19:57:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775070908; cv=none; b=kIc4D8Nmrfgs05GP51QxJCtfVmTwoHoZBD4dD+eWnAVPLcnD57lm5it6b+IFlsNP2a9ptpGaedpdvGFVjD8Qamn2CtjF1I4PbkgbtTtzURrwXN2+Ht3GeFoySap9JLQ84R3FkrAafgVKXaaGd1n3pox3ey5K5JuFqY2uS4DIUdQ=
+	t=1775073475; cv=none; b=dvlC7ACtqUwgzSU1bchfExUYXIhF3dL67D/y5g8K0vHpIA807U+tbqRO9ZosZdj4Esg38hcKbagIy1XaQT/6lYfI2LT8ERqi0omuzt/h4jZ4KrF5PD+VWB6VEQl1Jn2k3Q1XDju4D/C8n6H+ZTlV9fjJwJqZznf8hGRMwwOBr4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775070908; c=relaxed/simple;
-	bh=B8CnCgpCTH2hsvlq558P+O9Ay89YUwTpdotepbzRSNE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=J4hVq3Z7eLt2ZchWIxr6f41vErWZ77kgz2eExLqEeJUWBsFcZMsyWT69IJSgcdSK3tj2HZRwB+kZlynL1LlF2TbVteRao8x82dq5CbLtv9rCkNSinMKcvlwBkHp72O408QW6zbYxjuNt+NRLZlt5UHFxMSEp33h8mzupX7F6Xcs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 231EF605E7; Wed, 01 Apr 2026 21:14:56 +0200 (CEST)
-Date: Wed, 1 Apr 2026 21:14:57 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Ren Wei <n05ec@lzu.edu.cn>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc,
-	yifanwucs@gmail.com, tomapufckgml@gmail.com, yuantan098@gmail.com,
-	bird@lzu.edu.cn, enjou1224z@gmail.com, zcliangcn@gmail.com
-Subject: Re: [PATCH 1/1] netfilter: ip6t_eui64: validate MAC header before
- using it
-Message-ID: <ac1uqcDxsmmQ-oxH@strlen.de>
-References: <cover.1774859629.git.zcliangcn@gmail.com>
- <5267bb5b37997fa793c28c4b928a828cfb3a3927.1774859629.git.zcliangcn@gmail.com>
- <acuTO7bnCukKSpme@strlen.de>
- <acus9gpd-oKl_6dg@strlen.de>
+	s=arc-20240116; t=1775073475; c=relaxed/simple;
+	bh=unEbOdgeG11Dld7ycx+4oWww6aKqjFlb3XITUjj8xJg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uwmyB2a3SXIMYP6o82tTY6iYRaKUeMbWlrJAkGZyAC+MsSWCEV558Oe96xcE8iT3VNqjzYLvw7yO4wV9lFWszoTdkvDBL2I4tsSE0UsOUDpBO+4vrQZ5lrbswDUui7R9QsRsowmmgCbYuSEUIiZHH25jNYysb3AP7dviLvH63EA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=STdnQ0+l; arc=none smtp.client-ip=74.125.82.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="STdnQ0+l"
+Received: by mail-dl1-f42.google.com with SMTP id a92af1059eb24-1271195d2a7so695509c88.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Apr 2026 12:57:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=asu.edu; s=google; t=1775073473; x=1775678273; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=aeITYxK34c/QDzcWz7FhrmR9ZS2GxFl1Q0wwk/XvrR0=;
+        b=STdnQ0+lWiocYIJyVmuvCHrqzSz+dRo/lEVN1klQ30ZmXgXbjqOdItypPfyMrslnse
+         n5wfRZXHt4fcHY8lAfy3UfBaB83h3vftY4vj4fE1OgXwpSycNgZAkmMJSFzRr3LLszxa
+         xVKBM2uh+Vz3N7l9gQJve27K0xMU71vasEXpE9EvjWHR0gnAJrfVr+YhiuaICMOELYRm
+         aVVNKHNdc9tR1wM10UA5YKQomrudAgDL+DDtycDIyNyCUWxFD65U9H6UfZP5OT9GfUgC
+         vDv0P49q/3Z/ot5q66fnTPM1xnKlli+VsDiia+ONNzoLPaqxnsmojLqnSmzZXp5D41U8
+         2biw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775073473; x=1775678273;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=aeITYxK34c/QDzcWz7FhrmR9ZS2GxFl1Q0wwk/XvrR0=;
+        b=JlvnvbFTT5QeIAap79xVcngz27BaQIhN0bGuUrzreLKnQBcexKALk3uAve3AU1yON/
+         uiqQBZjdcwDXFyeRehAslSgBovZTx/babVTatoZ+O9hu8AmUjRfmlGfI641kYUEsknNJ
+         Jqw3TKZjmxh8WKRJH9539iVuCZYy+CWijKOIUud6Nbp1USQH8inhuxZIyzb7oB8DiKPo
+         iszmrKYryDmMJJjtFUxC+J1rgsgTGAwn91rvWTEyl8wchT5RBVUKfrhmojwI2t/DiiQv
+         PBhVxJ5kpUxtXGQBVOLBRo4fx7wYPL1SyNYoctarr16atcaGk3nkRzL5VMcDXLd9HfXn
+         0zvg==
+X-Gm-Message-State: AOJu0Yz9FDIVmmuFFE9H+RRSsouuVKZNzhBXa77DA5mGpL376vztaot5
+	+8v2ODwvLsesbYtymQs+C+OE8teqbpB0M52o5eKQBbujB7lcMZl11AHOu0xlBq3Cz6XswSCDBB6
+	74xFaPTYY
+X-Gm-Gg: ATEYQzz3pjzkaIXpQsrfRKSgwiMdgaqmwLROrFOMsLvxqK1gREqYRp002At/J+UWImC
+	YjIG3Adu9YUVbIyzjpPzsIQwWGt0ncRd1C7V24J0TBgol2Fr1DTUz6DrL6gmIEtdE4WNBDPVhZj
+	YaRN19LXgTIKVyA1MHyx+Y8ZsUjoywr+ifXIvkVP26hR/CCXGiMh6t/sulBMd3FhKYP4QW1h2ji
+	TAcTLZjg//tTVUCIr0fmZBit+MAcX7Rijxk9uuuvOX0iow+FF4mSLEo0wA/t5FghhyjzLBtCsMV
+	60k4fC2iMvnOHLHhtKzZfzBxG/NUbtymf7Ws5ZPG598LiXpwjCU/YkMJNCX+NnlcXg0Il6AdaEX
+	Q7eVpsYffJbFInc6CadTS6M/AxkSHYLFB7xhYrj4wEe6FvRGpLVKr8uJZkXSpX/+uNPcNT1MTsy
+	fB7ahqLsMrDVqbATYm5stQ7+1FI8qE5bNjIpcMy9E1Rlsl6r7oarEkrw==
+X-Received: by 2002:a05:7022:fd07:b0:12b:ed30:5b85 with SMTP id a92af1059eb24-12bed305f94mr912158c88.2.1775073472682;
+        Wed, 01 Apr 2026 12:57:52 -0700 (PDT)
+Received: from p1.scai.dhcp.asu.edu (209-147-138-15.nat.asu.edu. [209.147.138.15])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12bed93f861sm1540852c88.0.2026.04.01.12.57.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 01 Apr 2026 12:57:52 -0700 (PDT)
+From: Xiang Mei <xmei5@asu.edu>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	davem@davemloft.net,
+	eric@inl.fr,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	bestswngs@gmail.com,
+	Xiang Mei <xmei5@asu.edu>
+Subject: [PATCH net] netfilter: nfnetlink_log: initialize nfgenmsg in NLMSG_DONE terminator
+Date: Wed,  1 Apr 2026 12:57:35 -0700
+Message-ID: <20260401195735.564488-1-xmei5@asu.edu>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <acus9gpd-oKl_6dg@strlen.de>
+Content-Transfer-Encoding: 8bit
 
-[ Trimming Cc list ]
+When batching multiple NFLOG messages (inst->qlen > 1), __nfulnl_send()
+appends an NLMSG_DONE terminator with sizeof(struct nfgenmsg) payload via
+nlmsg_put(), but never initializes the nfgenmsg bytes. The nlmsg_put()
+helper only zeroes alignment padding after the payload, not the payload
+itself, so four bytes of stale kernel heap data are leaked to userspace
+in the NLMSG_DONE message body.
 
-Florian Westphal <fw@strlen.de> wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > Ren Wei <n05ec@lzu.edu.cn> wrote:
-> > > From: Zhengchuan Liang <zcliangcn@gmail.com>
-> > > 
-> > > `eui64_mt6()` derives a modified EUI-64 from the Ethernet source
-> > > address and compares it with the low 64 bits of the IPv6 source
-> > > address.
-> > > 
-> > > The match unconditionally reaches `skb_mac_header()` and `eth_hdr(skb)`
-> > > after a guard that only rejects an invalid MAC header when
-> > > `par->fragoff != 0`. As a result, non-fragment packets can still reach
-> > > `eth_hdr(skb)` even when the skb has no MAC header set, or when the MAC
-> > > header does not cover a full Ethernet header.
-> > > 
-> > > Fix this by first checking that the MAC header is set and spans a full
-> > > Ethernet header before accessing it, then using that validated header
-> > > directly for the EUI-64 comparison. Preserve the existing hotdrop
-> > > behavior for non-first fragments with an invalid MAC header.
-> > 
-> > I find this rather confusing.  E.g. why is net/netfilter/xt_mac.c safe?
-> > I get the feeling that this patch is not sufficient?
-> > 
-> > > +	if (!skb_mac_header_was_set(skb)) {
-> > 
-> > Makes sense to me.
-> > 
-> > > +	mac = skb_mac_header(skb);
-> > > +	if (mac < skb->head || mac + ETH_HLEN > skb->data) {
-> > > +		if (par->fragoff != 0)
-> > > +			par->hotdrop = true;
-> > > +		return false;
-> > 
-> > Why do we still need this stunt?  Why not:
-> > 
-> > mac_len = skb_mac_header_len(skb);
-> > if (mac_len < ETH_HLEN) {
-> > 	par->hotdrop = true;
-> > 	return false;
-> > }
-> > 
-> > ?
-> > 
-> > I also feel there should be a check for ethernet, i.e.
-> >         if (skb->dev == NULL || skb->dev->type != ARPHRD_ETHER)
-> > 
-> > ... like in xt_mac.c.
-> 
-> There are other suspicious spots, e.g. in nf_log_syslog.c and in ipset.
-> 
-> Will you make a patch to cover all of these?
+Initialize the nfgenmsg struct after nlmsg_put(), consistent with how
+__build_packet_message() populates nfgenmsg for regular NFULNL_MSG_PACKET
+messages, to prevent leaking kernel heap data to userspace.
 
-Ping.  Will you followup or do you expect us to take over?
+Fixes: 29c5d4afba51 ("[NETFILTER]: nfnetlink_log: fix sending of multipart messages")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
+---
+ net/netfilter/nfnetlink_log.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index fcbe54940b2e..ad4eaf27590e 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -361,6 +361,7 @@ static void
+ __nfulnl_send(struct nfulnl_instance *inst)
+ {
+ 	if (inst->qlen > 1) {
++		struct nfgenmsg *nfmsg;
+ 		struct nlmsghdr *nlh = nlmsg_put(inst->skb, 0, 0,
+ 						 NLMSG_DONE,
+ 						 sizeof(struct nfgenmsg),
+@@ -370,6 +371,10 @@ __nfulnl_send(struct nfulnl_instance *inst)
+ 			kfree_skb(inst->skb);
+ 			goto out;
+ 		}
++		nfmsg = nlmsg_data(nlh);
++		nfmsg->nfgen_family = AF_UNSPEC;
++		nfmsg->version = NFNETLINK_V0;
++		nfmsg->res_id = htons(inst->group_num);
+ 	}
+ 	nfnetlink_unicast(inst->skb, inst->net, inst->peer_portid);
+ out:
+-- 
+2.43.0
+
