@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52A503F54CB;
-	Wed,  1 Apr 2026 10:37:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84C8B3F8814;
+	Wed,  1 Apr 2026 10:37:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775039821; cv=none; b=rVqxZTbdEyBemPA10cFQjOAsZCLi42Ny9HoGmlG5FT6AIV7PQzUAX0FX0tpaqAJruvsIHO5mV5N6bRfSMqCmIJ5G5E4RQ7rSehh9acEIG02RKvj7q5tap66NxsEoPSqfYf1IDP1nUcLK31kuyXjGdk6i+pYoUei4r0IVylz3b48=
+	t=1775039824; cv=none; b=DspdN4htRFUzeLVbXU2U3KwbrcQD9MUwFtcRZWeZuucFJCEEb7rpaSxkXTAYmkXW4rvj6x+OvIUAhxLmI6X+7+yrj6GrePu6OqPHBGgB27YSbxjyVvBklJqNkq4VKbdYucYjmwEPEhPsqjFjQ9IxpruV2SJOZv8TA6H3DVxxxsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775039821; c=relaxed/simple;
-	bh=gShAa7NnnYCC9RFxYT0qPEQldMCD0WLC/ctpQHLWUWU=;
+	s=arc-20240116; t=1775039824; c=relaxed/simple;
+	bh=Tqr1aN/Ur/VuXzMuNfJZiX+Ig/Bu/+C8ySXbOw2Z47M=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pxmTVj/10XVjkoF/kOo74Lo8fqFD+yPvVHEVe2ppizmdDiWf+/hy6+iRmdo7MxHg5vzHpfVBl5ZqG/fQdgZlAVeik1dZvm+CaXvwZ5EZIXYWBSF5oA8eCXCmqR7MEWMaWJPcACTff+/KBfbZMXsi2AtZPZkDjc8Pt2g8S1JcoJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=RwphFpw6; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=J+/+0FOMEcUOKTCHYcVOKcqfCvUBh+n/T/y6HUTkw8RAVu6dBx7lUIUPy7jdv+3D/rKS3sP70bNnAj67QQN/cvIKLLmYBK1P1rcE53G6+4m5iUyuTJ619Pk2KPlecOLUGvjQSr+R3lLpT7Zs1cncn2MKSFMDfFXs0vkJ/E70tl4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=knvfLF+E; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="RwphFpw6"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="knvfLF+E"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 6A25660272;
-	Wed,  1 Apr 2026 12:36:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9B60760273;
+	Wed,  1 Apr 2026 12:36:59 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775039818;
-	bh=pwvi4jCSImEyJFwxRg1jmJE0qOXahd+tq95vSzpM08w=;
+	s=2025; t=1775039820;
+	bh=UYgOAwQm64h1KCB28H/YfUCYmOhCIrUdcDI7vWgzGFI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=RwphFpw6F77p1LK1dquzjNwVcmIYhlZCp449SiN8nbpFeiHuj5CQTa3D2RY09yvJr
-	 r6M74/Epcz+LCT15oX/gxT/qVFugHGHzuptwIpX+B2VxYBGyNHspv0IeI/G0+WIHOF
-	 vnSJGQc8twkUpNZqjfUkJUneKBNuaIN2s/kntF87Ki+VV6UXjpJGsNnnSqO5Giy4YM
-	 qIHiIK5qyVVM2+uOkG5if4ggvNaAKxllrvHBuQ9S+9ymTOL6cdHsCdPPCFaq+mmg1N
-	 ihyy3EuwuCZWXs+6UZEgkZ8pGGucGfggQEQjqZ9ZMqHmK6RzeWjJ5vXwvWjfaVXI29
-	 4jQvxqwc8FB3w==
+	b=knvfLF+EQDXyRX0PTnnu+0YDGMMA5B2b8R0e4U2ZeIzh6WG+kpFO7SaUb/6PHgGN4
+	 Q7bkjHMAqMwXmACLiSTG30/zFkdNTPn0McTuqFM9wDysH9FcmtEggRndes4iGAhc8p
+	 S4D9vnnDIvY5I5P0NtU9CtMChv1OGGMaCNc7HXLFQw257vHaaoFMr4J//Ed8FELQDv
+	 n10vXLrap2uKIP0NiNEsyCi096PNzwvdLaQj/oKr2+fa7iidmo3wFqdG0i6o7fYAZ2
+	 K3s4n+IAzbx1Y/y91Ju9rzlDT7eQzBCjzvDc+dLxbm+kH9KBQ5hT/W+ayz+dvlyU5G
+	 mUrAr02v7yeWw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 05/10] netfilter: nf_conntrack_helper: pass helper to expect cleanup
-Date: Wed,  1 Apr 2026 12:36:41 +0200
-Message-ID: <20260401103646.1015423-6-pablo@netfilter.org>
+Subject: [PATCH net 06/10] netfilter: ctnetlink: zero expect NAT fields when CTA_EXPECT_NAT absent
+Date: Wed,  1 Apr 2026 12:36:42 +0200
+Message-ID: <20260401103646.1015423-7-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260401103646.1015423-1-pablo@netfilter.org>
 References: <20260401103646.1015423-1-pablo@netfilter.org>
@@ -54,56 +54,50 @@ Content-Transfer-Encoding: 8bit
 
 From: Qi Tang <tpluszz77@gmail.com>
 
-nf_conntrack_helper_unregister() calls nf_ct_expect_iterate_destroy()
-to remove expectations belonging to the helper being unregistered.
-However, it passes NULL instead of the helper pointer as the data
-argument, so expect_iter_me() never matches any expectation and all
-of them survive the cleanup.
+ctnetlink_alloc_expect() allocates expectations from a non-zeroing
+slab cache via nf_ct_expect_alloc().  When CTA_EXPECT_NAT is not
+present in the netlink message, saved_addr and saved_proto are
+never initialized.  Stale data from a previous slab occupant can
+then be dumped to userspace by ctnetlink_exp_dump_expect(), which
+checks these fields to decide whether to emit CTA_EXPECT_NAT.
 
-After unregister returns, nfnl_cthelper_del() frees the helper
-object immediately.  Subsequent expectation dumps or packet-driven
-init_conntrack() calls then dereference the freed exp->helper,
-causing a use-after-free.
+The safe sibling nf_ct_expect_init(), used by the packet path,
+explicitly zeroes these fields.
 
-Pass the actual helper pointer so expectations referencing it are
-properly destroyed before the helper object is freed.
+Zero saved_addr, saved_proto and dir in the else branch, guarded
+by IS_ENABLED(CONFIG_NF_NAT) since these fields only exist when
+NAT is enabled.
 
-  BUG: KASAN: slab-use-after-free in string+0x38f/0x430
-  Read of size 1 at addr ffff888003b14d20 by task poc/103
-  Call Trace:
-   string+0x38f/0x430
-   vsnprintf+0x3cc/0x1170
-   seq_printf+0x17a/0x240
-   exp_seq_show+0x2e5/0x560
-   seq_read_iter+0x419/0x1280
-   proc_reg_read+0x1ac/0x270
-   vfs_read+0x179/0x930
-   ksys_read+0xef/0x1c0
-  Freed by task 103:
-  The buggy address is located 32 bytes inside of
-   freed 192-byte region [ffff888003b14d00, ffff888003b14dc0)
+Confirmed by priming the expect slab with NAT-bearing expectations,
+freeing them, creating a new expectation without CTA_EXPECT_NAT,
+and observing that the ctnetlink dump emits a spurious
+CTA_EXPECT_NAT containing stale data from the prior allocation.
 
-Fixes: ac7b84839003 ("netfilter: expect: add and use nf_ct_expect_iterate helpers")
+Fixes: 076a0ca02644 ("netfilter: ctnetlink: add NAT support for expectations")
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Qi Tang <tpluszz77@gmail.com>
-Reviewed-by: Phil Sutter <phil@nwl.cc>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_helper.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_netlink.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 1b330ba6613b..a715304a53d8 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -415,7 +415,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	 */
- 	synchronize_rcu();
- 
--	nf_ct_expect_iterate_destroy(expect_iter_me, NULL);
-+	nf_ct_expect_iterate_destroy(expect_iter_me, me);
- 	nf_ct_iterate_destroy(unhelp, me);
- 
- 	/* nf_ct_iterate_destroy() does an unconditional synchronize_rcu() as
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 3f408f3713bb..38bd7124d9f7 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3588,6 +3588,12 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
+ 						 exp, nf_ct_l3num(ct));
+ 		if (err < 0)
+ 			goto err_out;
++#if IS_ENABLED(CONFIG_NF_NAT)
++	} else {
++		memset(&exp->saved_addr, 0, sizeof(exp->saved_addr));
++		memset(&exp->saved_proto, 0, sizeof(exp->saved_proto));
++		exp->dir = 0;
++#endif
+ 	}
+ 	return exp;
+ err_out:
 -- 
 2.47.3
 
