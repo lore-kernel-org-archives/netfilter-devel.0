@@ -1,123 +1,143 @@
-Received: from mail-dy1-f176.google.com (mail-dy1-f176.google.com [74.125.82.176])
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F002C08D0
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2026 21:21:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.176
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775078479; cv=none; b=uQQfr9FbcxAw7eoRaNiXNFFQYvemYerjoAyP8LgW3CGLHwcwRS467KcFxnqMS9heN2+NbGPaFqH4qYBMpKFFj+efZzJXm3aixzgRlULhY8RjobtakUMzXGO0wmnKxsTw+3nbfL5M3PNUqPc0xNzyURego7SkHNeL3xX4g1qw8qg=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775078479; c=relaxed/simple;
-	bh=ceiUWFuE6/YmjPbAR+dTCdL3AyF7U/F+ps+er5MNyl8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IprWVw7hHLuOVvXOzKy3R10F1YvZgPJrccIiD7repqU03pb+qZvkS0guGwKtShY7x5qLlTCA5P1GCK4g/SXrJiAeQYSdJAwffVs6y3YzqcaiyuGjJ2O05d3H/n0MSHMaapb1VSLYlfTkowhNgdP4qX32yKVf9AfJ4U50lbrutWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=Mg6TteOv; arc=none smtp.client-ip=74.125.82.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDC537C101
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2026 21:23:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.181
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775078602; cv=pass; b=CExN6EdrOD0BCg+rkdyTf04PC8iin2+xDefGVoLzYjg1dH7htsjzFsvAdyGoJTDB0J8yLB2jZsrBtAAc6tSllx5Qoq0NM3leKC07w3tIlD96gAqoVOylngWz+YAiQUxvIE6M33LpXdDnJsnzNPH5VOj+JY1lMmslTe5IfHNPf44=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775078602; c=relaxed/simple;
+	bh=22PzYe4g+q67LhAXGP8TetwrwN45cW7JKmWdgg88E+8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=npK9Eh8yvnwSMQFAJ/wMqFPgnQQ4jJ4Ep5jIQOu5MP55HtugrvG2MxvFUuBKhrvrimrlTaKZaw+wRDAwyaeIS+22fQwo5XIxmHoW8EVlCqvNsFANmfBmWUq22EdTdKvhn1K8NzO7ilxP4bJq8rB1YHz+QLCpZzQMtYWiZhoTaNE=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=a7XtP6CY; arc=pass smtp.client-ip=209.85.214.181
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="Mg6TteOv"
-Received: by mail-dy1-f176.google.com with SMTP id 5a478bee46e88-2c1632faeb9so493924eec.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Apr 2026 14:21:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="a7XtP6CY"
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2a9296b3926so867245ad.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Apr 2026 14:23:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1775078600; cv=none;
+        d=google.com; s=arc-20240605;
+        b=VONDFVrdJ9/Q/W2qZKJTdv0vjCq6f3h2uB21fPepNj/2RSO2Iny0ea/AXiaTlQVpt7
+         1lRliWH/JaEyeLadjSP0/UE84CEQaDvMnnbESr/yvN9ZfX2l1/687p60IDksZaMfXSlB
+         g9NnqM9UrJyfMPtsp3Y+CMnrj7Vdeqibuw1xyuOQgikY5w56vbgeee85XQLiA1iDv6pj
+         BDGNWuLHH4bHVZLyIjOczgA/YkiBYlckWNu/7tUkfMTT8l2aBqPrUf11i4bHzz0U07nD
+         25iOSjNvHL0B0WTI9Kpp0aErke+c+8p74w+w94Bjv7hQsjwm2cTpHgEfT6hyDJP8LEwn
+         0r4w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=7Om6Yg/2zA/cbTNg7qKf7Hf+m++Wf8FwyUUwYISosbw=;
+        fh=3XSCj8idsmYTIjrElbtibxD6L12Lz816qkj2R+0Iw+s=;
+        b=fwWV6ZSDQeMFxYCamiKUKsMjBaidb9sLuoeUpDrkRXFFQqq2p1T2iZ2hj1E0y+Gfl1
+         mNU/3r4kiIYW/vw09kzIzMHlB3153h5y/PeIjxuiskEanK2IICL86uJhnnlYSsBOVzIy
+         sbGywX9rTy6C9NjmJRWHqCNErsTx0xm+IFH3w8mu4HTEJC5Xb/Ny1s2F2MOB+ZPwmhGr
+         uFriWHvK2M40wPN66wd9wSPuKh6n5940xpHRGxkaJ31MScwkIhg+GvEqOXmQRhdAr9MW
+         H57hfzfkOWMlbwp+T0KMC4C8s91F6RrnAKa/5/jYHpgJact/e2uYgc27zP3Egini3xDt
+         ywzg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=asu.edu; s=google; t=1775078477; x=1775683277; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Mj7P4G0mBP6nG/9FnTYA1QuSPTWr/jns+CKVmZY9R/U=;
-        b=Mg6TteOvkj/yTagOYA70ENvVsvilvyE7knDqiG1cIrghyWKkqo5OlZiQdyuWHYAMMr
-         un+Hob1rh4BU7UikzHeZJLLOlvvi08Djf2GXm2RfWPTm1Gz+3242ylGJGaqKxfKAqSma
-         4gxSL4oDipPv/X1guF/LTqdzjrwN9FUCrMhMhDErXjcTQqGXxfQ1lIj6NHfpfXIN2ivc
-         QLMqvK6zdQn6s7sjw46wEfPP4CTVHDSDNxUPonEF/doMlCJJZMkqvRJdy28W0gfjPEp0
-         PGMTwyNAvBaWY2W+2uRXu17t5e7KXcjWPn7zJmMAnnJ02Xe8eNgLBH7pstHX4OChcM86
-         A1sQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775078477; x=1775683277;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=asu.edu; s=google; t=1775078600; x=1775683400; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Mj7P4G0mBP6nG/9FnTYA1QuSPTWr/jns+CKVmZY9R/U=;
-        b=sTpuv3tbQTivOu9vUw5sZFUVZUVAbMxKlNInuCCOfIbX///qv4Wtj9yIt8AgBRycvJ
-         YdFggPcmsP7nbTZBYp0059l4IpsxMW3xygnBpKaROLB69yATIv6Go68y8iZEvamtgpNt
-         z6nKRVuA9GEfTmnhuX0Rww8gk7xOQGntFG0/iEAYeMSoTrr2m6nhqbQhTEbUbs/C2Rw1
-         ginNGiEXcAv0dmv+0vsXHtTvC37q1XhEBd34nwGbixjp7/w6+SJPZv78mqpsPew5MStT
-         3+xF3saDJHTN89jJThloZH/LbZJHDcVxWpqPZbkrvMWXDxj2MwkS2epF+qhEkj6TXzAR
-         Fqvw==
-X-Gm-Message-State: AOJu0YzkOcnH9u8Ki+/75iGjnLb5C0b5koM2Vdcn0nuFKk8fTu/7679z
-	z0S/qV6qLTf9dzU7h5xJVWP9o43uLJDO3eLvq5VtiaWSzVN62LRiKldej5H25vQirfpyrnfa11L
-	JzNo6nrEf
-X-Gm-Gg: ATEYQzwEt1J8Ma/YSC9sRh0mqVSBxZA1GprESCW5eX1t0rhA7d30wtgMo2kfrLQ23A6
-	Ild0vkLQ9dm+5aaWiqNrYmClWp+uh722p5OHEmPBS8W04LGMVbK7scjan12DCO6IFP9zPC4Tnvn
-	WSKs48ljk2ec9CsLfP7N27aINKXae/2sRxI+CY754/z9iamDNiWHurW4UhnJfzFXN+iV4mxBGx7
-	Em3KIHMhAOq+MBtNni3LQJE77r44C7pHd57b2RqqGETv3+ldTu2N1LluaOSVE03ahJCRuZJA7Em
-	UJTUQgGSbb3e4vGj2+D7oIIf2KHXMdkw34gGBSCggUIzPwoyY5OSD1BL/970UpDf1afACszfjaT
-	OTKnteFTEAD9JBiNWN1wnhDIccvYCqIMqiiHtk9FtTMiBzswq9LyBdWX75J8u94vyoDp4ttirji
-	F+b+LIePCYchKIlUEB7+h6bpMy/607dWAa5C4x+ocmdyzzsnnEqrupOg==
-X-Received: by 2002:a05:7301:4188:b0:2c5:347:e642 with SMTP id 5a478bee46e88-2c932eae777mr3121226eec.33.1775078476962;
-        Wed, 01 Apr 2026 14:21:16 -0700 (PDT)
-Received: from p1.scai.dhcp.asu.edu (209-147-138-15.nat.asu.edu. [209.147.138.15])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2ca7c7f268esm690144eec.20.2026.04.01.14.21.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 Apr 2026 14:21:16 -0700 (PDT)
-From: Xiang Mei <xmei5@asu.edu>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	phil@nwl.cc,
-	davem@davemloft.net,
-	eric@inl.fr,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	bestswngs@gmail.com,
-	Xiang Mei <xmei5@asu.edu>
-Subject: [PATCH net v2] netfilter: nfnetlink_log: initialize nfgenmsg in NLMSG_DONE terminator
-Date: Wed,  1 Apr 2026 14:20:57 -0700
-Message-ID: <20260401212057.773357-1-xmei5@asu.edu>
-X-Mailer: git-send-email 2.43.0
+        bh=7Om6Yg/2zA/cbTNg7qKf7Hf+m++Wf8FwyUUwYISosbw=;
+        b=a7XtP6CYpk2D1P8nvPBbQN9lYgaqZEi+UvWCVN+6OZCf9TdSywDKXViI0NqSydX12S
+         Sv+mHFBRc7XREjuSDG9ugckrJSsfUfD/Efs38xrBwJE51JvOQQkIQIVopyJJFfTYK7I9
+         064Ofax+eE4r80zbwpPSI2EwDLWUdBZ8PhT38BMFlB2y9goV9eleMIEGNCZPbANFM4hy
+         ep++x1ouoJfdtML9qs8jkSEB2oE/3lZ9Oaea+nQtwK3Xil4xv1alv8cGyeOuzBaBCIRF
+         0FhA5LY8gnkU2lr4s/JTGMprn7dm0JFll00eDUR2T9ibdB/9xOJMJwrXt63RQNih4kQ5
+         in1g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775078600; x=1775683400;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=7Om6Yg/2zA/cbTNg7qKf7Hf+m++Wf8FwyUUwYISosbw=;
+        b=Gi5WsyWWlNfwRNTXS4pjCNo9mqUdn/PPhJVaiqigDQn2Q1fW6ldDQ2PB/15kk39A6/
+         5tyIaEdslwh38Do5uBG/QskSJMNUSSB6gotNgkaNvqAVcmWaKUj7FujF0eWAMfaFnX4r
+         AqwArRKGWUm4bBAehd53oo6xW/GxV5hJxUv3oo9YrjncGr14lxylGV5pCvdbH0I4BT3O
+         hcEEuxqQwQ30kJKbT3UV7OIF8QWph1oxGUlfPoM7cPHL15M5zLonyPHlX08c9SVhxDQC
+         h2w/6KJrn4IP419ciGrwWQcffcq2umjbwzTgmag8Gszy/CFZiSO0oYAoHloQBKZr7pki
+         np0A==
+X-Gm-Message-State: AOJu0YwFmTzqoptVBAPEdfPDYLNxGVM00698rZI3CMYwx4zn/60+6MoD
+	eLLM4En1JNvW/6uL2VD+KeIN6C5Sm2HUAKGFXxveoCFZtOLbGZZo2mNmBG9T1BOEpd77+Z9bLBy
+	9UbLsDDqprIxecmpH3eb5lufFWD4SgyJnsBeRmjhz
+X-Gm-Gg: ATEYQzxfNMNJWIZuidPrAi5/gmfV1HMr8aL+jf76farm/igWEnequiP/586SzfsJRCY
+	omJi+VEwDOgDV3aNKK/UnpzJcG+2t8RfwokD9NM2+m83bBRtKFaZBo06rFHj8wLO3Ga9oh4H85y
+	fHRVKdg9QgAW0Tx05nBLqhOphFLm/Hk/SwgztynPQRjbfEcobOSGKwvHepRPjVoYGWBdCkwNgkC
+	EPc9O/+lEzXkKFksUeu17d6+q3r4uzk0Tvg6tV7sbbt6ViQI7HfgOsieYjfKdAobblaeXj9bBdH
+	P0IGtvG+
+X-Received: by 2002:a17:903:380e:b0:2b2:45b7:307f with SMTP id
+ d9443c01a7336-2b269a9cd8bmr52451315ad.9.1775078600243; Wed, 01 Apr 2026
+ 14:23:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260401195735.564488-1-xmei5@asu.edu> <ac2Ce-hHidTY8Z6V@strlen.de>
+In-Reply-To: <ac2Ce-hHidTY8Z6V@strlen.de>
+From: Xiang Mei <xmei5@asu.edu>
+Date: Wed, 1 Apr 2026 14:23:09 -0700
+X-Gm-Features: AQROBzAuT3Beam5f520OlCmTfwlIezeqz2pdvsn7A46gMGM5WFHjqfS7FU4c3fU
+Message-ID: <CAPpSM+QfQxotFf0cBWRQcnZyTZH_6bNtSrK_CBEBaMri6upYbw@mail.gmail.com>
+Subject: Re: [PATCH net] netfilter: nfnetlink_log: initialize nfgenmsg in
+ NLMSG_DONE terminator
+To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org, phil@nwl.cc, 
+	davem@davemloft.net, coreteam@netfilter.org, netdev@vger.kernel.org, 
+	bestswngs@gmail.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-When batching multiple NFLOG messages (inst->qlen > 1), __nfulnl_send()
-appends an NLMSG_DONE terminator with sizeof(struct nfgenmsg) payload via
-nlmsg_put(), but never initializes the nfgenmsg bytes. The nlmsg_put()
-helper only zeroes alignment padding after the payload, not the payload
-itself, so four bytes of stale kernel heap data are leaked to userspace
-in the NLMSG_DONE message body.
+Thanks for the review, v2 is sent. Please let me know if the usage of
+`nfnl_msg_put` is incorrect.
 
-Use nfnl_msg_put() to build the NLMSG_DONE terminator, which initializes
-the nfgenmsg payload via nfnl_fill_hdr(), consistent with how
-__build_packet_message() already constructs NFULNL_MSG_PACKET headers.
-
-Fixes: 29c5d4afba51 ("[NETFILTER]: nfnetlink_log: fix sending of multipart messages")
-Reported-by: Weiming Shi <bestswngs@gmail.com>
-Signed-off-by: Xiang Mei <xmei5@asu.edu>
----
-v2: use nfnl_msg_put to init
-
- net/netfilter/nfnetlink_log.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index fcbe54940b2e..66ff23c444a6 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -361,10 +361,10 @@ static void
- __nfulnl_send(struct nfulnl_instance *inst)
- {
- 	if (inst->qlen > 1) {
--		struct nlmsghdr *nlh = nlmsg_put(inst->skb, 0, 0,
--						 NLMSG_DONE,
--						 sizeof(struct nfgenmsg),
--						 0);
-+		struct nlmsghdr *nlh = nfnl_msg_put(inst->skb, 0, 0,
-+						    NLMSG_DONE, 0,
-+						    AF_UNSPEC, NFNETLINK_V0,
-+						    htons(inst->group_num));
- 		if (WARN_ONCE(!nlh, "bad nlskb size: %u, tailroom %d\n",
- 			      inst->skb->len, skb_tailroom(inst->skb))) {
- 			kfree_skb(inst->skb);
--- 
-2.43.0
-
+On Wed, Apr 1, 2026 at 1:39=E2=80=AFPM Florian Westphal <fw@strlen.de> wrot=
+e:
+>
+> Xiang Mei <xmei5@asu.edu> wrote:
+> > When batching multiple NFLOG messages (inst->qlen > 1), __nfulnl_send()
+> > appends an NLMSG_DONE terminator with sizeof(struct nfgenmsg) payload v=
+ia
+> > nlmsg_put(), but never initializes the nfgenmsg bytes. The nlmsg_put()
+> > helper only zeroes alignment padding after the payload, not the payload
+> > itself, so four bytes of stale kernel heap data are leaked to userspace
+> > in the NLMSG_DONE message body.
+> >
+> > Initialize the nfgenmsg struct after nlmsg_put(), consistent with how
+> > __build_packet_message() populates nfgenmsg for regular NFULNL_MSG_PACK=
+ET
+> > messages, to prevent leaking kernel heap data to userspace.
+> >
+> > Fixes: 29c5d4afba51 ("[NETFILTER]: nfnetlink_log: fix sending of multip=
+art messages")
+> > Reported-by: Weiming Shi <bestswngs@gmail.com>
+> > Signed-off-by: Xiang Mei <xmei5@asu.edu>
+> > ---
+> >  net/netfilter/nfnetlink_log.c | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> > diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_lo=
+g.c
+> > index fcbe54940b2e..ad4eaf27590e 100644
+> > --- a/net/netfilter/nfnetlink_log.c
+> > +++ b/net/netfilter/nfnetlink_log.c
+> > @@ -361,6 +361,7 @@ static void
+> >  __nfulnl_send(struct nfulnl_instance *inst)
+> >  {
+> >       if (inst->qlen > 1) {
+> > +             struct nfgenmsg *nfmsg;
+> >               struct nlmsghdr *nlh =3D nlmsg_put(inst->skb, 0, 0,
+> >                                                NLMSG_DONE,
+> >                                                sizeof(struct nfgenmsg),
+>
+> Would you mind sending a v2 that replaces nlmsg_put with nfnl_msg_put() ?
+>
+> We already use this helper in __build_packet_message() and it takes
+> care of initialising the nfgenmsg.
