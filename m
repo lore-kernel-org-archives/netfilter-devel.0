@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0579E3F2110;
-	Wed,  1 Apr 2026 10:36:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BA023F23C3;
+	Wed,  1 Apr 2026 10:36:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775039819; cv=none; b=LFsEHTwuGqvYbw2U9G0vGUWaDflZlg6k2siBGZuVqB27+gPSsdQAoRfynJ1sWIeoTZLaNVW9lqjgjKBDmGKZGcxgyvbfX/DxYoKsV3r4MlkKuOHYO3NITMB3ZpBMOt34ekcpv5E9YshNk3im1u4TATuKCidCL6DGj/uedDhC9oM=
+	t=1775039820; cv=none; b=WTN8Y5jDxVAQAwed//MR43V/QiA/i5VImtKVLt2wnaQF3ZrXDLqFC5zumULeo8swD661l68PilcMqoULDRsGofxxY0RrVK5idtG/o5Yy969xRG2+/EnJobICQXkS/YueCrAUSvUw9QPU+OHPbjyoaARdbDaSwgcxBTWKy52Qkyc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775039819; c=relaxed/simple;
-	bh=lHbfzDCL4CQjhVTC9VBEUuxaFaMpd1hReq6nHALFb4c=;
+	s=arc-20240116; t=1775039820; c=relaxed/simple;
+	bh=P96j9/JjHZVqzr61Gk/gAbqgK2D92UIC8YDZohy4O+I=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=JfYH7EdOZ+Nsk5+3XheUIupyVx0V2dydHHsuXyHJdKPFLNOSI6jY0W/vXZjPZtI7gqHP4uc4ftphQe9fwYX9G4ZGf6ZUFYNceA6VDs4DN3Pq9+MI5y5lEJCqNWI37QMIbKuQxqekc7TioiTjj7zREQ2PFCnVm9KrYfC4p04dk00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=L7ZILSZ/; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=qVjtEmEfLNMJSa5cm8bi/psvRDIjlZl7lF3qi1N888BR0EIvYr8LjIfH4CDKCOXsdUi/GlgUzI8r8KxsAms7i7oWycviNrMlXUU6v1kT/cK/LCuTxo8ijLLonlx2E5rBs1K6glM24r2Ke9WfeJ35alHJMUuN+r6ZahVHpDVxSnU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=E9GRYl9A; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="L7ZILSZ/"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="E9GRYl9A"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id EE26D60262;
-	Wed,  1 Apr 2026 12:36:55 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3290E60278;
+	Wed,  1 Apr 2026 12:36:57 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775039816;
-	bh=iUs+PYCF8WXjzWUpXuoiflvf9L6KRJafjcWAbyG9VH0=;
+	s=2025; t=1775039817;
+	bh=WcgNw8HbCMKDS4wX/l+9LYNEMlRxuCeJ4nMOjy9fO/Y=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=L7ZILSZ/+1bi+ZkJLcUQ/Bqq8XPysVheENKtX0DUTvrEv6aE6RvanR8eCPy8doJM1
-	 HI9SrJ5mNEVmNlT8qffKyve29ef/FCyJUUPfMtRxHThBJpwMMJBpgWzSaMwx8xUbUe
-	 gL52e8pU/V2+pkkL7PGiyszw6KNl5WxcA32oyMCqrsNTDz3i5TTbJB4VFYDlZ6WDrm
-	 F52+P9a30aWfb3hoZFlAyc9sJbCGt7IodSUk7SqHDSr5u8vr/gdxh560M1dP4Im+w1
-	 SspZjjqUhG9yl7aTmIm5Ekf9AqkOfCS2QjK31qJCOYz3Ph5B33RWTdB/gPrclq83Et
-	 0b72PVr/1OhWg==
+	b=E9GRYl9AyQ8PjPqSdhWfYfAz9OFJse5SPBJAPpNvt8c7eBgKs6GBI1iw/17LBo/lW
+	 Xd5sTDBgSfDn67gQqYXQ5KsMQBNC73nh2RiSRlBzLdutEmG/RJeaInT7Z/3U6MxVgH
+	 YQXs0ZGTKQUUj4uwNvCel20677t/+8ZY3hR73OsxCMdLfUpYsc+B29RKsS+SzJ1j9Y
+	 NoxSn1UQiyuTs4EuLogZyCN4HD3maCRSZ11ZC/hgvoBV1sgjIrkXpY3MASeHnujIna
+	 G80zwR3DxGv3mHBLUNwwlAr1+58ztAKZXlrM6Bv5kZs2KR5sSvj+yyFtSfKkanjMk5
+	 m8OoDoYE0tfTQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 03/10] netfilter: x_tables: ensure names are nul-terminated
-Date: Wed,  1 Apr 2026 12:36:39 +0200
-Message-ID: <20260401103646.1015423-4-pablo@netfilter.org>
+Subject: [PATCH net 04/10] netfilter: ipset: use nla_strcmp for IPSET_ATTR_NAME attr
+Date: Wed,  1 Apr 2026 12:36:40 +0200
+Message-ID: <20260401103646.1015423-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260401103646.1015423-1-pablo@netfilter.org>
 References: <20260401103646.1015423-1-pablo@netfilter.org>
@@ -54,59 +54,78 @@ Content-Transfer-Encoding: 8bit
 
 From: Florian Westphal <fw@strlen.de>
 
-Reject names that lack a \0 character before feeding them
-to functions that expect c-strings.
+IPSET_ATTR_NAME and IPSET_ATTR_NAMEREF are of NLA_STRING type, they
+cannot be treated like a c-string.
 
-Fixes tag is the most recent commit that needs this change.
+They either have to be switched to NLA_NUL_STRING, or the compare
+operations need to use the nla functions.
 
-Fixes: c38c4597e4bf ("netfilter: implement xt_cgroup cgroup2 path match")
+Fixes: f830837f0eed ("netfilter: ipset: list:set set type support")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_cgroup.c  | 6 ++++++
- net/netfilter/xt_rateest.c | 5 +++++
- 2 files changed, 11 insertions(+)
+ include/linux/netfilter/ipset/ip_set.h | 2 +-
+ net/netfilter/ipset/ip_set_core.c      | 4 ++--
+ net/netfilter/ipset/ip_set_list_set.c  | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
-index c437fbd59ec1..43d2ae2be628 100644
---- a/net/netfilter/xt_cgroup.c
-+++ b/net/netfilter/xt_cgroup.c
-@@ -65,6 +65,9 @@ static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index e9f4f845d760..b98331572ad2 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -309,7 +309,7 @@ enum {
  
- 	info->priv = NULL;
- 	if (info->has_path) {
-+		if (strnlen(info->path, sizeof(info->path)) >= sizeof(info->path))
-+			return -ENAMETOOLONG;
-+
- 		cgrp = cgroup_get_from_path(info->path);
- 		if (IS_ERR(cgrp)) {
- 			pr_info_ratelimited("invalid path, errno=%ld\n",
-@@ -102,6 +105,9 @@ static int cgroup_mt_check_v2(const struct xt_mtchk_param *par)
+ /* register and unregister set references */
+ extern ip_set_id_t ip_set_get_byname(struct net *net,
+-				     const char *name, struct ip_set **set);
++				     const struct nlattr *name, struct ip_set **set);
+ extern void ip_set_put_byindex(struct net *net, ip_set_id_t index);
+ extern void ip_set_name_byindex(struct net *net, ip_set_id_t index, char *name);
+ extern ip_set_id_t ip_set_nfnl_get_byindex(struct net *net, ip_set_id_t index);
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index a2fe711cb5e3..d0c9fe59c67d 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -821,7 +821,7 @@ EXPORT_SYMBOL_GPL(ip_set_del);
+  *
+  */
+ ip_set_id_t
+-ip_set_get_byname(struct net *net, const char *name, struct ip_set **set)
++ip_set_get_byname(struct net *net, const struct nlattr *name, struct ip_set **set)
+ {
+ 	ip_set_id_t i, index = IPSET_INVALID_ID;
+ 	struct ip_set *s;
+@@ -830,7 +830,7 @@ ip_set_get_byname(struct net *net, const char *name, struct ip_set **set)
+ 	rcu_read_lock();
+ 	for (i = 0; i < inst->ip_set_max; i++) {
+ 		s = rcu_dereference(inst->ip_set_list)[i];
+-		if (s && STRNCMP(s->name, name)) {
++		if (s && nla_strcmp(name, s->name) == 0) {
+ 			__ip_set_get(s);
+ 			index = i;
+ 			*set = s;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 98b91b34c314..1cef84f15e8c 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -367,7 +367,7 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	ret = ip_set_get_extensions(set, tb, &ext);
+ 	if (ret)
+ 		return ret;
+-	e.id = ip_set_get_byname(map->net, nla_data(tb[IPSET_ATTR_NAME]), &s);
++	e.id = ip_set_get_byname(map->net, tb[IPSET_ATTR_NAME], &s);
+ 	if (e.id == IPSET_INVALID_ID)
+ 		return -IPSET_ERR_NAME;
+ 	/* "Loop detection" */
+@@ -389,7 +389,7 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
  
- 	info->priv = NULL;
- 	if (info->has_path) {
-+		if (strnlen(info->path, sizeof(info->path)) >= sizeof(info->path))
-+			return -ENAMETOOLONG;
-+
- 		cgrp = cgroup_get_from_path(info->path);
- 		if (IS_ERR(cgrp)) {
- 			pr_info_ratelimited("invalid path, errno=%ld\n",
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 72324bd976af..b1d736c15fcb 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -91,6 +91,11 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
- 		goto err1;
- 	}
- 
-+	if (strnlen(info->name1, sizeof(info->name1)) >= sizeof(info->name1))
-+		return -ENAMETOOLONG;
-+	if (strnlen(info->name2, sizeof(info->name2)) >= sizeof(info->name2))
-+		return -ENAMETOOLONG;
-+
- 	ret  = -ENOENT;
- 	est1 = xt_rateest_lookup(par->net, info->name1);
- 	if (!est1)
+ 	if (tb[IPSET_ATTR_NAMEREF]) {
+ 		e.refid = ip_set_get_byname(map->net,
+-					    nla_data(tb[IPSET_ATTR_NAMEREF]),
++					    tb[IPSET_ATTR_NAMEREF],
+ 					    &s);
+ 		if (e.refid == IPSET_INVALID_ID) {
+ 			ret = -IPSET_ERR_NAMEREF;
 -- 
 2.47.3
 
