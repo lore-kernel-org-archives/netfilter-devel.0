@@ -1,37 +1,37 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA86338A2BE;
-	Wed,  1 Apr 2026 07:45:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7955639936F;
+	Wed,  1 Apr 2026 07:45:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775029550; cv=none; b=Z6bHQ81uw1i/gM5bR2E1SirY/sogUn3g7X/+/vMwd5SqRZBVBM5N/stBVrmE7VFNathS3ev+HPbQmFxnK2os04IJWyBCONljQ/Pc6qBxhPYhC42SSaMcz8SWkyBoCkeH3ySdfQhGoGbfJI6M1Uih5gyzonxNwb1TyLDNXV0Ohik=
+	t=1775029551; cv=none; b=QStxo3oX22odQeZUxJUqej3TKP6nKvsheTL722f3WlV5u3PPMatXiqt7qNmdzSdVFIkWPPfy6we2vHsrFwzWqO+616JAFCCjOmvgN6/jTH+vKIBbdvDOd3Q02C3Pap5jM5FEie5Lm1R00RekRW9yu1bxeuao7CZhIjctJnQlWZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775029550; c=relaxed/simple;
-	bh=rXA64fn6y56PibOyI9IkFgYw3RfBJKBTSkxUiNBk0fg=;
+	s=arc-20240116; t=1775029551; c=relaxed/simple;
+	bh=+tR2lkGhY7EMKxIv9XlfDa5D+Kafii4siVw1srfeq1Y=;
 	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bFTQ22hYND0eoMexycJGRNYvoIP5I6aHr9r6TUPC1BfMOflw9pE2kMTB3w719zTuUadSPqbijlNHvbyBOw2yfcw0mIwOp5DjoYFGrzDos0tjsQN8K+S8qmBSCCVTLBIYF/g9p6yXAMJ559YrH4zOHpkGS2laf6udKbxzOa67Zyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=casper.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=IKoGyQZr; arc=none smtp.client-ip=90.155.50.34
+	 MIME-Version; b=X0JuGKPmSa1LGWrvJIkwGnVqqDsyermBI/0eNFSBgUIOeI/VWso4r2I8pTyny0QzwTRcKp0t8PH2JRxt4PfV8nrElkIAi47/bM+0abWaTRxyv+a7VcwucG69hlnW39hBIm0FfIjbQ+qJKe16bVMiplAVsZsVfPcMPCbo+JLvSUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=desiato.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=XmZ0vjW/; arc=none smtp.client-ip=90.155.92.199
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=casper.srs.infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=desiato.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="IKoGyQZr"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="XmZ0vjW/"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=Sender:Content-Transfer-Encoding:
+	d=infradead.org; s=desiato.20200630; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:To:From:Reply-To:
 	Cc:Content-Type:Content-ID:Content-Description;
-	bh=pISmS11V1tQprFst6l/klCiCb/4SA1I27pPJorGm5gg=; b=IKoGyQZrkoZMy+DdfIsGPzhp0f
-	KsIQdc38aM7WkyiOFbPySG9hwJzfNFlal9JXYEWJnbzwgdeh/WsfWiBQfnKxXyVWjEKC3JnIn1wCS
-	XLH6oP6mkrblKJheY/uUD63e5eaEz3K5D/eByo/0O+mHJB+zeTTHvB69OKxY58EqDBJCB7a8N9Nta
-	6DxzwcmeiCL8m04LDqLpPO3KNROO5rmNBrfJbFnZLPDswK9grm3HKuCAtJ3rSy2DWpH52TSGMz8ss
-	gUPg2JoI4zG+A3IFRw9/IshiTVLa2XNTriAS+LQGPeDZVsm65nqSkr+qsXqvaeI8j2Vy4tlcJjAbS
-	hyDMrxrA==;
+	bh=rUPZcZvnz7m4wObN0nRKDSPdiuPMBaSG6sDNy+wfNnY=; b=XmZ0vjW/LAOkBb5O+5LmfCk5YI
+	n8C7/YEH/1OL7qrT9tmUxRH1AvhkSP1DC33BAFZa/XLf4jRDI2N3NZqjWHOn+7sUESjIM1aasCgA4
+	JBIzZF6GADalqzb484AmGNw/yymN7DMeWwDe63XCJwHL4+6jeB8/s2BCmtK9Y9DjhZl2LXE2exenv
+	5UNcjFFLrHczGy9tgX4x9RLKNa0chk+2fuONLjXfVSiQoITjn3ij5WJNeyhuBO28yKyWy0KYFAtDd
+	34i6caZsumKmuoFkoLuH0sqvSRVFs3CPszxsTh9RD6P2LkTvTFD/fIbqcapt5G6lIiaqPKWm+nVz3
+	HfXKpo5Q==;
 Received: from [2001:8b0:10b:1::425] (helo=i7.infradead.org)
-	by casper.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w7qGM-0000000A0NP-419U;
+	by desiato.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1w7qGN-0000000HLQQ-0Bmv;
 	Wed, 01 Apr 2026 07:45:19 +0000
 Received: from dwoodhou by i7.infradead.org with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w7qGM-00000007xeL-2p8k;
+	id 1w7qGM-00000007xeB-26NS;
 	Wed, 01 Apr 2026 08:45:18 +0100
 From: David Woodhouse <dwmw2@infradead.org>
 To: Saeed Mahameed <saeedm@nvidia.com>,
@@ -83,9 +83,9 @@ To: Saeed Mahameed <saeedm@nvidia.com>,
 	coreteam@netfilter.org,
 	torvalds@linux-foundation.org,
 	jon.maddog.hall@gmail.com
-Subject: [PATCH 5/6] net: Change CONFIG_INET to CONFIG_LEGACY_IP for IPv4-only code
-Date: Wed,  1 Apr 2026 08:44:19 +0100
-Message-ID: <20260401074509.1897527-6-dwmw2@infradead.org>
+Subject: [PATCH 3/6] net: Guard Legacy IP entry points with CONFIG_LEGACY_IP
+Date: Wed,  1 Apr 2026 08:44:17 +0100
+Message-ID: <20260401074509.1897527-4-dwmw2@infradead.org>
 X-Mailer: git-send-email 2.51.0
 In-Reply-To: <20260401074509.1897527-1-dwmw2@infradead.org>
 References: <20260401074509.1897527-1-dwmw2@infradead.org>
@@ -97,185 +97,202 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: David Woodhouse <dwmw2@infradead.org>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <dwmw2@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+X-SRS-Rewrite: SMTP reverse-path rewritten from <dwmw2@infradead.org> by desiato.infradead.org. See http://www.infradead.org/rpr.html
 
 From: David Woodhouse <dwmw@amazon.co.uk>
 
-Several functions guarded by CONFIG_INET are actually IPv4-specific
-and should be gated by CONFIG_LEGACY_IP instead:
+Wrap the IPv4-specific registrations in inet_init() with
+CONFIG_LEGACY_IP guards. When LEGACY_IP is disabled, the kernel
+will not:
+ - Register the AF_INET socket family
+ - Register the ETH_P_IP packet handler (ip_rcv)
+ - Initialize ARP, ICMP, IGMP, or IPv4 routing
+ - Register IPv4 protocol handlers (TCP/UDP/ICMP over IPv4)
+ - Initialize IPv4 multicast routing, proc entries, or fragmentation
 
- - bpf_out_neigh_v4(): BPF IPv4 neighbour output helper
- - bpf_ipv4_fib_lookup(): BPF IPv4 FIB lookup
- - case AF_INET in bpf_xdp_fib_lookup/bpf_skb_fib_lookup switch
- - br_arp_send(): bridge ARP proxy (ARP is IPv4-only)
+The shared INET infrastructure (tcp_prot, udp_prot, tcp_init, etc.)
+remains initialized for use by IPv6.
 
-This allows the compiler to eliminate these functions when
-LEGACY_IP=n.
+Also update INDIRECT_CALL_INET to not use ip_rcv/ip_list_rcv as
+direct call targets when LEGACY_IP is disabled, avoiding a link-time
+reference to functions that will eventually be compiled out.
 
 Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
 ---
- net/bridge/br_arp_nd_proxy.c    |  2 +-
- net/bridge/br_private.h         |  8 ++++++++
- net/core/filter.c               | 10 +++++-----
- net/core/sock.c                 |  2 +-
- net/mac80211/main.c             | 10 +++++-----
- net/netfilter/nfnetlink_queue.c |  2 +-
- 6 files changed, 21 insertions(+), 13 deletions(-)
+ include/linux/indirect_call_wrapper.h |  4 +++-
+ net/ipv4/af_inet.c                    | 20 +++++++++++++-----
+ net/ipv4/devinet.c                    |  2 ++
+ net/ipv4/route.c                      |  1 -
+ net/ipv4/tcp_ipv4.c                   | 30 ++++++++++++++-------------
+ 5 files changed, 36 insertions(+), 21 deletions(-)
 
-diff --git a/net/bridge/br_arp_nd_proxy.c b/net/bridge/br_arp_nd_proxy.c
-index 1e2b51769eec..e056fa0cd1fe 100644
---- a/net/bridge/br_arp_nd_proxy.c
-+++ b/net/bridge/br_arp_nd_proxy.c
-@@ -39,7 +39,7 @@ void br_recalculate_neigh_suppress_enabled(struct net_bridge *br)
- 	br_opt_toggle(br, BROPT_NEIGH_SUPPRESS_ENABLED, neigh_suppress);
- }
- 
--#if IS_ENABLED(CONFIG_INET)
-+#if IS_ENABLED(CONFIG_LEGACY_IP)
- static void br_arp_send(struct net_bridge *br, struct net_bridge_port *p,
- 			struct net_device *dev, __be32 dest_ip, __be32 src_ip,
- 			const unsigned char *dest_hw,
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index 9b55d38ea9ed..28131fa0a7c5 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -2347,8 +2347,16 @@ static inline void br_switchdev_init(struct net_bridge *br)
- 
- /* br_arp_nd_proxy.c */
- void br_recalculate_neigh_suppress_enabled(struct net_bridge *br);
-+#if IS_ENABLED(CONFIG_LEGACY_IP)
- void br_do_proxy_suppress_arp(struct sk_buff *skb, struct net_bridge *br,
- 			      u16 vid, struct net_bridge_port *p);
-+#else
-+static inline void br_do_proxy_suppress_arp(struct sk_buff *skb,
-+					    struct net_bridge *br,
-+					    u16 vid, struct net_bridge_port *p)
-+{
-+}
+diff --git a/include/linux/indirect_call_wrapper.h b/include/linux/indirect_call_wrapper.h
+index dc272b514a01..25a3873da462 100644
+--- a/include/linux/indirect_call_wrapper.h
++++ b/include/linux/indirect_call_wrapper.h
+@@ -57,9 +57,11 @@
+  * builtin, this macro simplify dealing with indirect calls with only ipv4/ipv6
+  * alternatives
+  */
+-#if IS_BUILTIN(CONFIG_IPV6)
++#if IS_BUILTIN(CONFIG_IPV6) && IS_ENABLED(CONFIG_LEGACY_IP)
+ #define INDIRECT_CALL_INET(f, f2, f1, ...) \
+ 	INDIRECT_CALL_2(f, f2, f1, __VA_ARGS__)
++#elif IS_BUILTIN(CONFIG_IPV6)
++#define INDIRECT_CALL_INET(f, f2, f1, ...) INDIRECT_CALL_1(f, f2, __VA_ARGS__)
+ #elif IS_ENABLED(CONFIG_INET)
+ #define INDIRECT_CALL_INET(f, f2, f1, ...) INDIRECT_CALL_1(f, f1, __VA_ARGS__)
+ #else
+diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
+index c7731e300a44..dc358faa1647 100644
+--- a/net/ipv4/af_inet.c
++++ b/net/ipv4/af_inet.c
+@@ -1922,7 +1922,15 @@ static int __init inet_init(void)
+ 	/*
+ 	 *	Tell SOCKET that we are alive...
+ 	 */
++	/* Initialize the socket-side protocol switch tables. */
++	for (r = &inetsw[0]; r < &inetsw[SOCK_MAX]; ++r)
++		INIT_LIST_HEAD(r);
++
++#ifdef CONFIG_XFRM
++	xfrm_init();
 +#endif
- void br_do_suppress_nd(struct sk_buff *skb, struct net_bridge *br,
- 		       u16 vid, struct net_bridge_port *p, struct nd_msg *msg);
- struct nd_msg *br_is_nd_neigh_msg(const struct sk_buff *skb, struct nd_msg *m);
-diff --git a/net/core/filter.c b/net/core/filter.c
-index ad71ceefcb5e..ef99bd9fddd6 100644
---- a/net/core/filter.c
-+++ b/net/core/filter.c
-@@ -2310,7 +2310,7 @@ static int __bpf_redirect_neigh_v6(struct sk_buff *skb, struct net_device *dev,
- }
- #endif /* CONFIG_IPV6 */
  
--#if IS_ENABLED(CONFIG_INET)
-+#if IS_ENABLED(CONFIG_LEGACY_IP)
- static int bpf_out_neigh_v4(struct net *net, struct sk_buff *skb,
- 			    struct net_device *dev, struct bpf_nh_params *nh)
- {
-@@ -2419,7 +2419,7 @@ static int __bpf_redirect_neigh_v4(struct sk_buff *skb, struct net_device *dev,
- 	kfree_skb(skb);
- 	return NET_XMIT_DROP;
- }
--#endif /* CONFIG_INET */
++#ifdef CONFIG_LEGACY_IP
+ 	(void)sock_register(&inet_family_ops);
+ 
+ #ifdef CONFIG_SYSCTL
+@@ -1957,10 +1965,6 @@ static int __init inet_init(void)
+ 		pr_crit("%s: Cannot add IGMP protocol\n", __func__);
+ #endif
+ 
+-	/* Register the socket-side information for inet_create. */
+-	for (r = &inetsw[0]; r < &inetsw[SOCK_MAX]; ++r)
+-		INIT_LIST_HEAD(r);
+-
+ 	for (q = inetsw_array; q < &inetsw_array[INETSW_ARRAY_LEN]; ++q)
+ 		inet_register_protosw(q);
+ 
+@@ -1975,6 +1979,7 @@ static int __init inet_init(void)
+ 	 */
+ 
+ 	ip_init();
 +#endif /* CONFIG_LEGACY_IP */
  
- static int __bpf_redirect_neigh(struct sk_buff *skb, struct net_device *dev,
- 				struct bpf_nh_params *nh)
-@@ -6095,7 +6095,7 @@ static int bpf_fib_set_fwd_params(struct bpf_fib_lookup *params, u32 mtu)
- }
+ 	/* Initialise per-cpu ipv4 mibs */
+ 	if (init_ipv4_mibs())
+@@ -1987,7 +1992,8 @@ static int __init inet_init(void)
+ 	udp_init();
+ 
+ 	/* Add UDP-Lite (RFC 3828) */
+-	udplite4_register();
++	if (IS_ENABLED(CONFIG_LEGACY_IP))
++		udplite4_register();
+ 
+ 	raw_init();
+ 
+@@ -1997,6 +2003,7 @@ static int __init inet_init(void)
+ 	 *	Set the ICMP layer up
+ 	 */
+ 
++#ifdef CONFIG_LEGACY_IP
+ 	if (icmp_init() < 0)
+ 		panic("Failed to create the ICMP control socket.\n");
+ 
+@@ -2007,10 +2014,12 @@ static int __init inet_init(void)
+ 	if (ip_mr_init())
+ 		pr_crit("%s: Cannot init ipv4 mroute\n", __func__);
  #endif
++#endif /* CONFIG_LEGACY_IP */
  
--#if IS_ENABLED(CONFIG_INET)
-+#if IS_ENABLED(CONFIG_LEGACY_IP)
- static int bpf_ipv4_fib_lookup(struct net *net, struct bpf_fib_lookup *params,
- 			       u32 flags, bool check_mtu)
+ 	if (init_inet_pernet_ops())
+ 		pr_crit("%s: Cannot init ipv4 inet pernet ops\n", __func__);
+ 
++#ifdef CONFIG_LEGACY_IP
+ 	ipv4_proc_init();
+ 
+ 	ipfrag_init();
+@@ -2018,6 +2027,7 @@ static int __init inet_init(void)
+ 	dev_add_pack(&ip_packet_type);
+ 
+ 	ip_tunnel_core_init();
++#endif /* CONFIG_LEGACY_IP */
+ 
+ 	rc = 0;
+ out:
+diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
+index 537bb6c315d2..9b9db10e5db2 100644
+--- a/net/ipv4/devinet.c
++++ b/net/ipv4/devinet.c
+@@ -348,7 +348,9 @@ static int __init inet_blackhole_dev_init(void)
+ 
+ 	return PTR_ERR_OR_ZERO(in_dev);
+ }
++#ifdef CONFIG_LEGACY_IP
+ late_initcall(inet_blackhole_dev_init);
++#endif
+ 
+ int inet_addr_onlink(struct in_device *in_dev, __be32 a, __be32 b)
  {
-@@ -6390,7 +6390,7 @@ BPF_CALL_4(bpf_xdp_fib_lookup, struct xdp_buff *, ctx,
- 		return -EINVAL;
+diff --git a/net/ipv4/route.c b/net/ipv4/route.c
+index 463236e0dc2d..125614f552c7 100644
+--- a/net/ipv4/route.c
++++ b/net/ipv4/route.c
+@@ -3773,7 +3773,6 @@ int __init ip_rt_init(void)
+ 	if (ip_rt_proc_init())
+ 		pr_err("Unable to create route proc files\n");
+ #ifdef CONFIG_XFRM
+-	xfrm_init();
+ 	xfrm4_init();
+ #endif
+ 	rtnl_register_many(ip_rt_rtnl_msg_handlers);
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index c7b2463c2e25..7660bd45aac7 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -3717,25 +3717,27 @@ static void __init bpf_iter_register(void)
  
- 	switch (params->family) {
--#if IS_ENABLED(CONFIG_INET)
-+#if IS_ENABLED(CONFIG_LEGACY_IP)
- 	case AF_INET:
- 		return bpf_ipv4_fib_lookup(dev_net(ctx->rxq->dev), params,
- 					   flags, true);
-@@ -6431,7 +6431,7 @@ BPF_CALL_4(bpf_skb_fib_lookup, struct sk_buff *, skb,
- 		check_mtu = true;
+ void __init tcp_v4_init(void)
+ {
+-	int cpu, res;
++	if (IS_ENABLED(CONFIG_LEGACY_IP)) {
++		int cpu, res;
  
- 	switch (params->family) {
--#if IS_ENABLED(CONFIG_INET)
-+#if IS_ENABLED(CONFIG_LEGACY_IP)
- 	case AF_INET:
- 		rc = bpf_ipv4_fib_lookup(net, params, flags, check_mtu);
- 		break;
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 5976100a9d55..6b2914702a38 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -4267,7 +4267,7 @@ int sock_load_diag_module(int family, int protocol)
- 				      NETLINK_SOCK_DIAG, family);
+-	for_each_possible_cpu(cpu) {
+-		struct sock *sk;
++		for_each_possible_cpu(cpu) {
++			struct sock *sk;
+ 
+-		res = inet_ctl_sock_create(&sk, PF_INET, SOCK_RAW,
+-					   IPPROTO_TCP, &init_net);
+-		if (res)
+-			panic("Failed to create the TCP control socket.\n");
+-		sock_set_flag(sk, SOCK_USE_WRITE_QUEUE);
++			res = inet_ctl_sock_create(&sk, PF_INET, SOCK_RAW,
++						   IPPROTO_TCP, &init_net);
++			if (res)
++				panic("Failed to create the TCP control socket.\n");
++			sock_set_flag(sk, SOCK_USE_WRITE_QUEUE);
+ 
+-		/* Please enforce IP_DF and IPID==0 for RST and
+-		 * ACK sent in SYN-RECV and TIME-WAIT state.
+-		 */
+-		inet_sk(sk)->pmtudisc = IP_PMTUDISC_DO;
++			/* Please enforce IP_DF and IPID==0 for RST and
++			 * ACK sent in SYN-RECV and TIME-WAIT state.
++			 */
++			inet_sk(sk)->pmtudisc = IP_PMTUDISC_DO;
+ 
+-		sk->sk_clockid = CLOCK_MONOTONIC;
++			sk->sk_clockid = CLOCK_MONOTONIC;
+ 
+-		per_cpu(ipv4_tcp_sk.sock, cpu) = sk;
++			per_cpu(ipv4_tcp_sk.sock, cpu) = sk;
++		}
  	}
- 
--#ifdef CONFIG_INET
-+#ifdef CONFIG_LEGACY_IP
- 	if (family == AF_INET &&
- 	    protocol != IPPROTO_RAW &&
- 	    protocol < MAX_INET_PROTOS &&
-diff --git a/net/mac80211/main.c b/net/mac80211/main.c
-index 616f86b1a7e4..7c1bbbb2c5c7 100644
---- a/net/mac80211/main.c
-+++ b/net/mac80211/main.c
-@@ -558,7 +558,7 @@ void ieee80211_restart_hw(struct ieee80211_hw *hw)
- }
- EXPORT_SYMBOL(ieee80211_restart_hw);
- 
--#ifdef CONFIG_INET
-+#ifdef CONFIG_LEGACY_IP
- static int ieee80211_ifa_changed(struct notifier_block *nb,
- 				 unsigned long data, void *arg)
- {
-@@ -1624,7 +1624,7 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
- 	wiphy_unlock(hw->wiphy);
- 	rtnl_unlock();
- 
--#ifdef CONFIG_INET
-+#ifdef CONFIG_LEGACY_IP
- 	local->ifa_notifier.notifier_call = ieee80211_ifa_changed;
- 	result = register_inetaddr_notifier(&local->ifa_notifier);
- 	if (result)
-@@ -1642,11 +1642,11 @@ int ieee80211_register_hw(struct ieee80211_hw *hw)
- 
- #if IS_ENABLED(CONFIG_IPV6)
-  fail_ifa6:
--#ifdef CONFIG_INET
-+#ifdef CONFIG_LEGACY_IP
- 	unregister_inetaddr_notifier(&local->ifa_notifier);
- #endif
- #endif
--#if defined(CONFIG_INET) || defined(CONFIG_IPV6)
-+#if defined(CONFIG_LEGACY_IP) || defined(CONFIG_IPV6)
-  fail_ifa:
- #endif
- 	wiphy_unregister(local->hw.wiphy);
-@@ -1673,7 +1673,7 @@ void ieee80211_unregister_hw(struct ieee80211_hw *hw)
- 	tasklet_kill(&local->tx_pending_tasklet);
- 	tasklet_kill(&local->tasklet);
- 
--#ifdef CONFIG_INET
-+#ifdef CONFIG_LEGACY_IP
- 	unregister_inetaddr_notifier(&local->ifa_notifier);
- #endif
- #if IS_ENABLED(CONFIG_IPV6)
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 47f7f62906e2..e453fdb2254c 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -339,7 +339,7 @@ static struct nf_hook_entries *nf_hook_entries_head(const struct net *net, u8 pf
- 
- static int nf_ip_reroute(struct sk_buff *skb, const struct nf_queue_entry *entry)
- {
--#ifdef CONFIG_INET
-+#ifdef CONFIG_LEGACY_IP
- 	const struct ip_rt_info *rt_info = nf_queue_entry_reroute(entry);
- 
- 	if (entry->state.hook == NF_INET_LOCAL_OUT) {
+ 	if (register_pernet_subsys(&tcp_sk_ops))
+ 		panic("Failed to create the TCP control socket.\n");
 -- 
 2.51.0
 
