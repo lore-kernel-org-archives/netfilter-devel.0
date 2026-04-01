@@ -1,185 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3707F405ABE;
-	Wed,  1 Apr 2026 12:54:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775048063; cv=none; b=QsW0sQMZs3XGzOZrnYCxSkFSbK2rBhuCJ4Y8r8bA8+2DF23IhiaOuBMgvddY8yWOJkWGDhBConFXo6LeECwFmnG6ao8V8LOtDTfrqdPCVpEX2Ncmpbgv8r9xkFmRvecOp3yWO6yuETFh96T38dcVrVON5xQ8zFKYQNKeACXy5DI=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775048063; c=relaxed/simple;
-	bh=FlhZRZdq6n/vz7LDAF+uUuhTAP88A7gBM+WGCqzHIJw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=YcdyNPi/29cpjZllDA5/643vdVEoI8iOWXwg2HZQeq4QtSlVcJEQrdljjDsF4VJhv0EGgq0op4Gym7nZmZgiLiqX0PWHZEyPYF+4RJhyNizwDc5tGQ2c2PL4I4mhrL4vA7gEZhf3SzxlBCV6UB/hXuB3++PunRwcnrn+veheGIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=dE9qenm7; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A92A642EEC3
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Apr 2026 13:30:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.210.172
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775050240; cv=pass; b=hX1iBeprn+xh/y9h5iI231JwOIHTeSK1W3QE7paBS35pOLMJ4HXWKHj9nF+3HJm9iJ7HHp8WC3xsvlOFodiJGktgN1L+AL0HVIsUBdU04LFnQnBO4K5DbJbRfhYy2uIzuPgpborkokBzb9D07I55KDNvfn9xPonxXJp+r/7IZIY=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775050240; c=relaxed/simple;
+	bh=BRfaxlgXcaC4MwKGbrVI1gU9LqJpM6bbpHxRtdhQuco=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=G7ZRvxkGmdLbNSTTcyqQwKjCM2wAuaiCzePiQ1fqTz0s2ls8ezzDti0bhngyyGIChaPN75Pe59aTr+f3S8loWtf87a+NppXmQTJUx8rRkrdnMMrh4wMgd8Z11fCA/4JiIzmNlqeShNl7d5Q2DotPfXpkTdgnn6xmhgx6+vQSzTQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com; spf=none smtp.mailfrom=mojatatu.com; dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b=cT6XySWH; arc=pass smtp.client-ip=209.85.210.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mojatatu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mojatatu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="dE9qenm7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C96C4CEF7;
-	Wed,  1 Apr 2026 12:54:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775048062;
-	bh=FlhZRZdq6n/vz7LDAF+uUuhTAP88A7gBM+WGCqzHIJw=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=dE9qenm7GQTd/0YjD1k5c5nr/1GVFv7H4Jwtd1kmtUgfXnijnz/k8LITsKw94OlHz
-	 zkcdIgID0w8UnCP6X1+3y6d8neFeGfBGFoyTGnxB8jdLdWJ3Nj1PWNpO19LUkoFg/7
-	 tGCFGoim5CL9OZVw5USxEtlAmB9mLV1Fe1+Hjz6NftEBSrRYqSvfGeXOfeE0yijLci
-	 bnzvAcPn7uIa0bUdML2iqcnJB3eMhgK/+84ca5Y0V/y52DF3ISduR8lEZYw9RcKdmF
-	 ZdTxj949sIYVnC7+3Cp2QhlDgbcQoaf2ImFy9oHspjkr5rGZetXtOKDsAVrE0vL8FY
-	 Nm3GFC0WSfu9g==
-Date: Wed, 1 Apr 2026 14:54:20 +0200
-From: Frederic Weisbecker <frederic@kernel.org>
-To: Waiman Long <longman@redhat.com>
-Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-	"David S. Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	Chen Ridong <chenridong@huawei.com>, Phil Auld <pauld@redhat.com>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, sheviks <sheviks@gmail.com>
-Subject: Re: [PATCH-next v2 2/2] ipvs: Guard access of HK_TYPE_KTHREAD
- cpumask with RCU
-Message-ID: <ac0VfO3XiD_F1gv-@localhost.localdomain>
-References: <20260331165015.2777765-1-longman@redhat.com>
- <20260331165015.2777765-3-longman@redhat.com>
+	dkim=pass (2048-bit key) header.d=mojatatu-com.20230601.gappssmtp.com header.i=@mojatatu-com.20230601.gappssmtp.com header.b="cT6XySWH"
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-82cdb4ab547so881611b3a.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Apr 2026 06:30:38 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1775050238; cv=none;
+        d=google.com; s=arc-20240605;
+        b=T/XywXZywqfL+PGqATo5x5ATtMlyDVcrZfJNqnqRqAOE439YRyhZY9//2sI+q4Dhez
+         KquqsDRMV6eyvA6h5bTwtkYcZzcrDRRJQ4GvKFbT/DVxbyJQrxN+CSYrA4Zf3h1m0bvm
+         fwkLHiTKizMPxmqs+M6WgnNkP2S8tmcC7Gs59gJBhIl0oXvu0Dg13cXGwOFffKpAlcak
+         EqkYUvNCvJ1nuMJW4s7vLHHtpn/SfHcQykUP6EZGc01G5/wDTvjqsuk4AAt5FO4Rc/KH
+         rS7moP2UZ6h+OXEDceF5f9kWpxLVY/RwiL/Jn5WxnH6n3+J69JiFhsHK1cy/08yaKeGO
+         ItSw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:dkim-signature;
+        bh=T7NuR3Bw6Qb5rckRbbyyN8y03wjGHotEoDAqQmFwpLY=;
+        fh=uJAyq4SE7/ZZNiyxnDVdxHN8Jsiykw3Q+tGoBVeh+xg=;
+        b=fmoVi70QsKEcUvFQrp9lNVq1/OGBmv6rJB+lUlEWdP7B1I4jLjm5Qn+ETngw6boJFv
+         2Pq27uog+a2P0Bt5m06nBfLOJeIeBBSXE+3kEV6/7JrvJBK7GDM5v8QdOM3n/BjhDflL
+         EQT5YhtdOOZkFdx2gK4A/aDj/6JT1tP0ZYG9VxMVQFXqD2wUQq/8k7txU1mWvLf5sMtA
+         06aNRzZfs7+i7QWOn2g3f5zSMmIIOeIrxl4/kkGdExtw6wG0oQSDo3abhV5+7KU7w94M
+         pB8XSqiLt9ppZ3H+ubD0tsxulZN3vyMKRydztk48+RoL6dsWdJqPEwQ+2kRgGn17JObY
+         IsNg==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mojatatu-com.20230601.gappssmtp.com; s=20230601; t=1775050238; x=1775655038; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=T7NuR3Bw6Qb5rckRbbyyN8y03wjGHotEoDAqQmFwpLY=;
+        b=cT6XySWHg+aq2S3NYpIbVDLzA6BLpKc/ISkf9xBq6afb207oeqC1/cdQe1m5xDu4yf
+         eTd43MbdP9pd4TUhtWRGmYqt6cakNFdgF76ZA7OkRT22JnSu+iwLLQs0Hxo0aKSVCk1u
+         JBYMnulLL5ck1Gdha4ujyJHiBMzhX5nXyZ8m2td9lP/Jc6niogzJ6WgPlMS1iYw2eBEZ
+         s1QmwZOynzNhZBbcuLnSTkYJ4YeAeKBKP+ISSia+7Gtc1YBUtjm+QuBiGgurh1irFyIC
+         t8/DGgQjZOqjDHdCd7/zcuM5VzPU6KRqcCWaoekQ+pbfr5IaSFzCXg0t6Uu+M7o2X8XV
+         l/lg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775050238; x=1775655038;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=T7NuR3Bw6Qb5rckRbbyyN8y03wjGHotEoDAqQmFwpLY=;
+        b=ZcjjAo0E2LIPFxM7VAthUzRPqrflKK1z++AXJTiaiVd4BR9+lhEFI9IoK4COPlQ66B
+         HQsGsHxACYQhh8bwnkfI+XkTlH5VMurzf1TvpaAIh8iDhr77c3QJ/qVFN3ryftFCkPpc
+         nI/3TFuskCOmJSpptnNpz8Ugtxdg7sTaevLUbg4QKBn2/TjcmMHXwktVYJGZFcYkZYRz
+         koqrR2tpwnW+66iffJxNVLaOqC5NFux1dzWnwGqmY+zLoZE8hang2c3jjqhSptomZq5d
+         ZHWqUvgh13TxHGaV1rS2kU/ABkKce9G5RTFxg50h25vEFJcqUiv/G08R0GK+ax5ZFugU
+         G/jQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXdWW37TGrF/ickDVeCKKFKEawsSY6ZNCIDOgKV66+M/Fr9n6VWFgdWEtSLoQAVBp/kx7cMvI7ilgU7NpZLmac=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzvJMPX7tYdwhZUaDmMoCq9Yd63AY6uqgvuaWO1qnch3c9JVrrY
+	6ToXzLl+/+/Eg9uoR/2f6dA/P9PjFKdFBf1CMj2B1EM26y4cDDnTah3KgJlYv4ZBIU4hBE/VilH
+	Uoo/0cAlzq11BjmGFEEdy8G1fILRq0Tn18rrYEsK8
+X-Gm-Gg: ATEYQzzgPfbWKbDsvF+4UB7wUs8fA+Z4iL0tBc/ULbV+sdvVLAxWpRsJgjKLAhqsMdF
+	uluGdMZ5yuWu7B0p62JarytOZCO6cQl5vM5LrE3i4P2UfUQy9dFAouo+YxInfqzraIkcilamIfP
+	vYlYJvHg7s7IgxCtz0VZze1XZoINXMzsylUJzGBkNHkIKaWLE/yfe2rApQbFgQciSzOeoqMDULJ
+	f1UE2bKxU0IXoXUu7ZVHxR1/QdVKEDN55bdp6r7tqhrWmqpSKtqcg3HjigjHXg60SONL+rYrPry
+	hoePdCzuGdWM2GIiWKlsGL+v8aUAQw==
+X-Received: by 2002:aa7:908f:0:b0:82c:ebbd:9eca with SMTP id
+ d2e1a72fcca58-82cebbdba6cmr2579095b3a.11.1775050236598; Wed, 01 Apr 2026
+ 06:30:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260331165015.2777765-3-longman@redhat.com>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Date: Wed, 1 Apr 2026 09:30:24 -0400
+X-Gm-Features: AQROBzBVzmwXdf2WGM_n4Zy09fnWYZkggVAvYshhunotULUmqQbgAETJrZK1gAM
+Message-ID: <CAM0EoMkHo-e5Smq2yi7c4HxA1dJWzXRYkOo0A6NmbF-HkzaAgQ@mail.gmail.com>
+Subject: 0x1A: Dates And Location for upcoming conference
+To: people <people@netdevconf.info>
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>, Christie Geldart <christie@ambedia.com>, 
+	Kimberley Jeffries <kimberleyjeffries@gmail.com>, LWN <lwn@lwn.net>, 
+	"board@netdevconf.org" <board@netdevconf.info>, linux-wireless <linux-wireless@vger.kernel.org>, 
+	netfilter-devel@vger.kernel.org, lartc@vger.kernel.org, 
+	Stefano Salsano <stefano.salsano@uniroma2.it>, Andrea Mayer <andrea.mayer@uniroma2.it>, 
+	Carlo Filippi <carlo@common-net.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Le Tue, Mar 31, 2026 at 12:50:15PM -0400, Waiman Long a écrit :
-> The ip_vs_ctl.c file and the associated ip_vs.h file are the only places
-> in the kernel where HK_TYPE_KTHREAD cpumask is being retrieved and used.
-> Now that HK_TYPE_KTHREAD/HK_TYPE_DOMAIN cpumask can be changed at run
-> time. We need to use RCU to guard access to this cpumask to avoid a
-> potential UAF problem as the returned cpumask may be freed before it
-> is being used.
-> 
-> We can replace HK_TYPE_KTHREAD by HK_TYPE_DOMAIN as they are aliases
-> of each other, but keeping the HK_TYPE_KTHREAD name can highlight the
-> fact that it is the kthread initiated by ipvs that is being controlled.
-> 
-> Signed-off-by: Waiman Long <longman@redhat.com>
+Hi,
 
-Oh I see you're handling a few concerns here. But it's too late, the previous
-patch broke bisection.
+This is a pre-announcement so folks can plan travel etc.
 
-> ---
->  include/net/ip_vs.h            | 20 ++++++++++++++++----
->  net/netfilter/ipvs/ip_vs_ctl.c | 13 ++++++++-----
->  2 files changed, 24 insertions(+), 9 deletions(-)
-> 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 72d325c81313..7bda92fd3fe6 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -1411,7 +1411,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
->  	return ipvs->sysctl_run_estimation;
->  }
->  
-> -static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
-> +static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
->  {
->  	if (ipvs->est_cpulist_valid)
->  		return ipvs->sysctl_est_cpulist;
-> @@ -1529,7 +1529,7 @@ static inline int sysctl_run_estimation(struct netns_ipvs *ipvs)
->  	return 1;
->  }
->  
-> -static inline const struct cpumask *sysctl_est_cpulist(struct netns_ipvs *ipvs)
-> +static inline const struct cpumask *__sysctl_est_cpulist(struct netns_ipvs *ipvs)
->  {
->  	return housekeeping_cpumask(HK_TYPE_KTHREAD);
->  }
-> @@ -1564,6 +1564,18 @@ static inline int sysctl_svc_lfactor(struct netns_ipvs *ipvs)
->  	return READ_ONCE(ipvs->sysctl_svc_lfactor);
->  }
->  
-> +static inline bool sysctl_est_cpulist_empty(struct netns_ipvs *ipvs)
-> +{
-> +	guard(rcu)();
-> +	return cpumask_empty(__sysctl_est_cpulist(ipvs));
-> +}
-> +
-> +static inline unsigned int sysctl_est_cpulist_weight(struct netns_ipvs *ipvs)
-> +{
-> +	guard(rcu)();
-> +	return cpumask_weight(__sysctl_est_cpulist(ipvs));
-> +}
-> +
->  /* IPVS core functions
->   * (from ip_vs_core.c)
->   */
-> @@ -1895,7 +1907,7 @@ static inline void ip_vs_est_stopped_recalc(struct netns_ipvs *ipvs)
->  	/* Stop tasks while cpulist is empty or if disabled with flag */
->  	ipvs->est_stopped = !sysctl_run_estimation(ipvs) ||
->  			    (ipvs->est_cpulist_valid &&
-> -			     cpumask_empty(sysctl_est_cpulist(ipvs)));
-> +			     sysctl_est_cpulist_empty(ipvs));
+Netdev conf 0x1A will be a hybrid conference.  We will update you with
+the exact coordinates in the near future.
+Either watch https://netdevconf.info/0x1A/ or join people@ mailing
+list[1] for more frequent updates.
 
-It's not needed, if ipvs->est_cpulist_valid, sysctl_est_cpulist() doesn't
-refer to housekeeping.
+Netdev 0x1A is scheduled to be in Rome - Italy July 13th-16th.
+Location: Universit=C3=A0 Roma TRE - Via Ostiense, 236, 00144 Rome RM, Ital=
+y
 
->  #endif
->  }
->  
-> @@ -1911,7 +1923,7 @@ static inline bool ip_vs_est_stopped(struct netns_ipvs *ipvs)
->  static inline int ip_vs_est_max_threads(struct netns_ipvs *ipvs)
->  {
->  	unsigned int limit = IPVS_EST_CPU_KTHREADS *
-> -			     cpumask_weight(sysctl_est_cpulist(ipvs));
-> +			     sysctl_est_cpulist_weight(ipvs);
+Be ready to share your work with the community. CFS coming soon.
 
-That probably works for callers ip_vs_start_estimator().
+sincerely,
+Netdev Society Board:
+PJ, Roopa Prabhu, Shrijeet Mukherjee, Tom Herbert, Jamal Hadi Salim
 
-But this is not handling the core issue that related kthreads should be updated,
-as is done in ipvs_proc_est_cpumask_set(), when HK_TYPE_DOMAIN mask changes.
-
->  
->  	return max(1U, limit);
->  }
-> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> index 032425025d88..e253a1ceef48 100644
-> --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> @@ -2338,11 +2338,14 @@ static int ipvs_proc_est_cpumask_get(const struct ctl_table *table,
->  
->  	mutex_lock(&ipvs->est_mutex);
->  
-> -	if (ipvs->est_cpulist_valid)
-> -		mask = *valp;
-> -	else
-> -		mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
-> -	ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
-> +	/* HK_TYPE_KTHREAD cpumask needs RCU protection */
-> +	scoped_guard(rcu) {
-> +		if (ipvs->est_cpulist_valid)
-> +			mask = *valp;
-> +		else
-> +			mask = (struct cpumask *)housekeeping_cpumask(HK_TYPE_KTHREAD);
-> +		ret = scnprintf(buffer, size, "%*pbl\n", cpumask_pr_args(mask));
-> +	}
-
-And that works.
-
-Thanks.
-
->  
->  	mutex_unlock(&ipvs->est_mutex);
->  
-> -- 
-> 2.53.0
-> 
-
--- 
-Frederic Weisbecker
-SUSE Labs
+[1] https://lists.netdevconf.info/postorius/lists/people.netdevconf.info/
