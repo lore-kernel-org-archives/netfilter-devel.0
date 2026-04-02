@@ -1,97 +1,94 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 826561C84DC;
-	Thu,  2 Apr 2026 00:24:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 829D3CA6F;
+	Thu,  2 Apr 2026 02:30:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775089444; cv=none; b=XBUniX78UKo8nSrivRohKff0Ee6w2DsP8cUDl+hVNG7j6UVpxw0P1uqhkF1IOTrn0istbqHFXFzJPoGan+xL+38LLgZspuPfqNeVAwKgY+jq3LbZUrc1bXCQJZZLenZNXoxYk2H1QPFGN+ZMh7/lmH/PkWKG3oJE0OGBIQIl1bg=
+	t=1775097033; cv=none; b=Rl/WcRACKv/5GGx8zEEi9ATDWgI0VfZlhJUs9zIhY+b5O6d9jEbXgFWBthsLM+EWpDjOeJC/Kd9QFWon0dhjxMERI4PdsTCoyQt+4O4vW0CtCfgz9a3QsbXhB3a9NeOyfzebis8AY14SpZlpaTVXfmT4FUih4SIcRjZvlLvaNB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775089444; c=relaxed/simple;
-	bh=EOi2ONHFkZ7HVDG2V6IsB9nDlSSaQOiYvCtTGJCt0B4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=s9adWhEZ2ajuyK31iJJBq2C9+VlxBxz1BbC0hugvKBlS1MQvCbuwUJaRiM2Hhulie6/41omxR6/6JkyqCDSSoYmICLLBRQ7zrUy0aDmMqFllsJgx3DoniWlp0kj8yW60pRRAFltmFurISeza+DuUG3ey5dbD4vIGZQRoZ+YsMTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bSE4OCdp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775097033; c=relaxed/simple;
+	bh=0t2FTGPpUs8MIzO5VovB547dkJjFvPxp7Cug6WWD60I=;
+	h=Content-Type:MIME-Version:Subject:From:Message-Id:Date:References:
+	 In-Reply-To:To:Cc; b=dyqGJHgAkL2vtZiSC0r3yvtrp1uxX+RfhQBCPewcSubTH1fumY/Wx8wR8pko1aD9UU4FMGWfzdhnkg1RofLlqA33gTCfmdn6WVEHFEqZIGhyhHl4jwrOK02VWYuItyDMvy1U1x3DYyMYgXcoWIoG3kft8cI6RLLg0Oi9mE7hZJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tc0skWy9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bSE4OCdp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3554C4CEF7;
-	Thu,  2 Apr 2026 00:24:01 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tc0skWy9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12C39C4CEF7;
+	Thu,  2 Apr 2026 02:30:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775089444;
-	bh=EOi2ONHFkZ7HVDG2V6IsB9nDlSSaQOiYvCtTGJCt0B4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=bSE4OCdphnhOFz1IR/oaKM/RcfetOMfwYEzuiGQkh4hYOFrGSlut7d9/Dtm8fefds
-	 B3eDUkHReirOO4ZRAMM5c5sMO72LL0pEZLENcDGyGwLCgwEWmwKZimlTqiBTQj7RIa
-	 P9qqPOGrCWy6cI3RaXjY4I5KK8dve1YNL5rzsL6KAOlJcAJTwKB6u1dAE+hrv0xs+t
-	 sVu6aEPpSRc1R2s681WT+pYodXzXGgYFIDRFAmPoNoJ0F9QgKfd9Xr9yNxAknk42eT
-	 5c/YNeNtjPK8Y07qpI28SqpDVQp5kdFQzA921ADZlaldO+F8ETnM3BASXxWBG25Fhx
-	 DXLpdvQqWa5HQ==
-Date: Wed, 1 Apr 2026 17:24:00 -0700
-From: patchwork-bot+netdevbpf <kuba@kernel.org>
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: Saeed Mahameed <saeedm@nvidia.com>, Leon Romanovsky <leon@kernel.org>,
- Tariq Toukan <tariqt@nvidia.com>, Mark Bloch <mbloch@nvidia.com>, Andrew
- Lunn <andrew+netdev@lunn.ch>, "David S. Miller" <davem@davemloft.net>, Eric
- Dumazet <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Simon
- Horman <horms@kernel.org>, Nikolay Aleksandrov <razor@blackwall.org>, Ido
- Schimmel <idosch@nvidia.com>, Martin KaFai Lau <martin.lau@linux.dev>,
- Daniel Borkmann <daniel@iogearbox.net>, John Fastabend
- <john.fastabend@gmail.com>, Stanislav Fomichev <sdf@fomichev.me>, Alexei
- Starovoitov <ast@kernel.org>, Andrii Nakryiko <andrii@kernel.org>, Eduard
- Zingerman <eddyz87@gmail.com>, Song Liu <song@kernel.org>, Yonghong Song
- <yonghong.song@linux.dev>, KP Singh <kpsingh@kernel.org>, Hao Luo
- <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>, Kuniyuki Iwashima
- <kuniyu@google.com>, Willem de Bruijn <willemb@google.com>, David Ahern
- <dsahern@kernel.org>, Neal Cardwell <ncardwell@google.com>, Johannes Berg
- <johannes@sipsolutions.net>, Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, Guillaume Nault
- <gnault@redhat.com>, David Woodhouse <dwmw@amazon.co.uk>, Kees Cook
- <kees@kernel.org>, Alexei Lazar <alazar@nvidia.com>, Gal Pressman
- <gal@nvidia.com>, Paul Moore <paul@paul-moore.com>, netdev@vger.kernel.org,
- linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org,
- oss-drivers@corigine.com, bridge@lists.linux.dev, bpf@vger.kernel.org,
- linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org, torvalds@linux-foundation.org,
- jon.maddog.hall@gmail.com
-Subject: Re: [PATCH 0/6] Deprecate Legacy IP
-Message-ID: <20260401172400.41df7edf@kernel.org>
-In-Reply-To: <20260401074509.1897527-1-dwmw2@infradead.org>
-References: <20260401074509.1897527-1-dwmw2@infradead.org>
+	s=k20201202; t=1775097033;
+	bh=0t2FTGPpUs8MIzO5VovB547dkJjFvPxp7Cug6WWD60I=;
+	h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+	b=tc0skWy9NtWVgafam0nyP7sKy7W734ZMjZy2O088/BeKASmhmbr+qaxOwnkZdaYw2
+	 f7EZgtHwo2arUzZ2InnJxjUZ6czyrsrqrpTl3xCwuyG9x/HzutqLdY0uwoQXke3+3e
+	 VK90V40lgJWYAUtl3iJk0E28GZmO3TrWXSB6MECPax6UhMesBzWb+ycmxeHyTP8Ks5
+	 2o+VOS8nQvW339qugUhQY2msIK2yEYinH2IsgmJXDPkktohlDYMwXj/KCfoae/pEMc
+	 GmI77MX7atD48GIiZYGV7EqXVCQDweVCFpvvji4URmaGHT71Z1AeaKW0KD+jRxQhqn
+	 iTGlTyRMbKG+w==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02F273808203;
+	Thu,  2 Apr 2026 02:30:17 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH net 01/10] netfilter: flowtable: strictly check for
+ maximum
+ number of actions
+From: patchwork-bot+netdevbpf@kernel.org
+Message-Id: 
+ <177509701579.3957493.7764709553225868642.git-patchwork-notify@kernel.org>
+Date: Thu, 02 Apr 2026 02:30:15 +0000
+References: <20260401103646.1015423-2-pablo@netfilter.org>
+In-Reply-To: <20260401103646.1015423-2-pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+ netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+ edumazet@google.com, fw@strlen.de, horms@kernel.org
 
 Hello:
 
-This series was applied to netdev/net-next.git (main)
-by Jakub Kicinski <kuba@kernel.org>:
+This series was applied to netdev/net.git (main)
+by Pablo Neira Ayuso <pablo@netfilter.org>:
 
-On Wed,  1 Apr 2026 08:44:14 +0100 David Woodhouse wrote:
-> RFC1883, the IPv6 standard, was published in the final decade of the 1900s.
-> That's closer in time to the Apollo 11 moon landing than it was to today.
+On Wed,  1 Apr 2026 12:36:37 +0200 you wrote:
+> The maximum number of flowtable hardware offload actions in IPv6 is:
 > 
-> Even our esteemed Maddog has worked with computers for longer in the IPv6
-> era, than he ever did before it.
+> * ethernet mangling (4 payload actions, 2 for each ethernet address)
+> * SNAT (4 payload actions)
+> * DNAT (4 payload actions)
+> * Double VLAN (4 vlan actions, 2 for popping vlan, and 2 for pushing)
+>   for QinQ.
+> * Redirect (1 action)
+> 
 > [...]
 
 Here is the summary with links:
-  - [net-next,v4,1/6] net: Simplify tautological CONFIG_INET/CONFIG_IPV6 guards
-    https://git.kernel.org/netdev/net-next/c/8888bf4fb980
-  - [net-next,v4,2/6] net: Add CONFIG_LEGACY_IP option
-    https://git.kernel.org/netdev/net-next/c/9b29afa11660
-  - [net-next,v4,3/6] net: Guard Legacy IP entry points with CONFIG_LEGACY_IP
-    https://git.kernel.org/netdev/net-next/c/f26d43acf12f
-  - [net-next,v4,4/6] net: Make IPv4-only Kconfig options depend on LEGACY_IP
-    https://git.kernel.org/netdev/net-next/c/ba5d4128fca8
-  - [net-next,v4,5/6] net: Change CONFIG_INET to CONFIG_LEGACY_IP for IPv4-only code
-    https://git.kernel.org/netdev/net-next/c/ff1cb3ad2abc
-  - [net-next,v4,6/6] net: Warn when processes listen on AF_INET sockets
-    https://git.kernel.org/netdev/net-next/c/7dae8ffb0987
+  - [net,01/10] netfilter: flowtable: strictly check for maximum number of actions
+    https://git.kernel.org/netdev/net/c/76522fcdbc3a
+  - [net,02/10] netfilter: nfnetlink_log: account for netlink header size
+    https://git.kernel.org/netdev/net/c/6d52a4a0520a
+  - [net,03/10] netfilter: x_tables: ensure names are nul-terminated
+    https://git.kernel.org/netdev/net/c/a958a4f90ddd
+  - [net,04/10] netfilter: ipset: use nla_strcmp for IPSET_ATTR_NAME attr
+    https://git.kernel.org/netdev/net/c/b7e8590987aa
+  - [net,05/10] netfilter: nf_conntrack_helper: pass helper to expect cleanup
+    https://git.kernel.org/netdev/net/c/a242a9ae58aa
+  - [net,06/10] netfilter: ctnetlink: zero expect NAT fields when CTA_EXPECT_NAT absent
+    https://git.kernel.org/netdev/net/c/35177c687713
+  - [net,07/10] netfilter: ctnetlink: ignore explicit helper on new expectations
+    https://git.kernel.org/netdev/net/c/917b61fa2042
+  - [net,08/10] netfilter: ipset: drop logically empty buckets in mtype_del
+    https://git.kernel.org/netdev/net/c/9862ef9ab0a1
+  - [net,09/10] netfilter: x_tables: restrict xt_check_match/xt_check_target extensions for NFPROTO_ARP
+    https://git.kernel.org/netdev/net/c/3d5d488f1177
+  - [net,10/10] netfilter: nf_tables: reject immediate NF_QUEUE verdict
+    https://git.kernel.org/netdev/net/c/da107398cbd4
 
 You are awesome, thank you!
 -- 
