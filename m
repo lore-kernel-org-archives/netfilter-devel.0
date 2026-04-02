@@ -1,46 +1,45 @@
-Received: from orbyte.nwl.cc (orbyte.nwl.cc [151.80.46.58])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7C8B1BF33
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Apr 2026 14:52:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=151.80.46.58
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.75.44.102])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8600031079B
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Apr 2026 17:35:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.75.44.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775141552; cv=none; b=llh7uG1Kgv4Q94R0YHc3PKbrWemj3vq1os8KHHlOTUOz6yP71DLqs/t15rKWDE4TP8bou1EPNIxRbwnYLnLPmEjdBN9FQGXmXpoWuXbRB0dUBn46YOUsIGhtJqH4NqrYD67T/2oztjVQfzbqOXki3NgRuIyxG6puk5dKMOzdDAo=
+	t=1775151328; cv=none; b=X2OGoG8TlkNZabMXFXf2CFfJTi05O+GuQknoj2VYrQrtymvA7O6/yT4tf+0a5LG+8ZbM7QVokJ3VxVk/Vp8nWGCnSo29Ez3S9DvcGsLfkJELHi5xdT/Ig9pl+DuPbosUeBHyR6HBhMOEVAH9wBvFg6dKh3MKUPwl+XaToP8xaD4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775141552; c=relaxed/simple;
-	bh=0AMGpzrfEs3qmwa9gPSBMtYVJZ9aaspj7SHKEE3Sujk=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=rlIcesF93lu5GnYDINegtCbPh8ewWR7uV19UbPDRY07g+T3UCZ6deBMTedrh638v1oOCSX6Lpdc8agfknOL2NqRXFVRNpZ4I5/cMoqjPBljs+OWBJwtYn3+M7x8DWpq6Pmn2AOqRAKjMVn2suHZtGhsewf9hNKXhAQAeRyambDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc; spf=pass smtp.mailfrom=nwl.cc; dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b=qKr0zmtc; arc=none smtp.client-ip=151.80.46.58
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nwl.cc
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=nwl.cc header.i=@nwl.cc header.b="qKr0zmtc"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=nwl.cc;
-	s=mail2022; h=Content-Transfer-Encoding:MIME-Version:Message-ID:Date:Subject:
-	To:From:Sender:Reply-To:Cc:Content-Type:Content-ID:Content-Description:
-	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
-	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
-	List-Post:List-Owner:List-Archive;
-	bh=5dQxFu/qvAEnaKU1KLhCW0Cz1F29XCNmzuKPqw0bh7E=; b=qKr0zmtcfRDlh/iw2A0eI7i+yt
-	GROqZYp4MyaIkaCv+vrag/1cdwla5DmocKIGzq8plMN99EuvErcwwqLwCMEH06kw4QRRKwFK/DmB9
-	CLyeZW4BHZ4a4JaPkSkb6TrKgHloxsM4kYaRcxJ0lFNfjJixLlqRJVohwMxce5eFbF1R4qpDikFAO
-	E+QPVpjItT63Khma7FXLVn+kS9H+Opy/m+NPalW7fz62EL273lpAOkLcpZiZ3CiCH1COe7+UnxOq6
-	57ISUCps6juGB1hLZvZyVuUKTHhLQenCtNXHrnzJg5opRv5d53ML6KbI048JyKjY0EZgDylBosJfk
-	B9GhT4Jg==;
-Authentication-Results: mail.nwl.cc;
-	iprev=pass (localhost) smtp.remote-ip=::1
-Received: from localhost ([::1] helo=xic)
-	by orbyte.nwl.cc with esmtp (Exim 4.98.2)
-	(envelope-from <phil@nwl.cc>)
-	id 1w8JPB-000000001Eo-31YB
-	for netfilter-devel@vger.kernel.org;
-	Thu, 02 Apr 2026 16:52:21 +0200
-From: Phil Sutter <phil@nwl.cc>
+	s=arc-20240116; t=1775151328; c=relaxed/simple;
+	bh=uhdDD/SfNZaymQ1EJI5Y8ATJeISuWmxw9+RsC6xCVWk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rzOZ428eS8/Tpj9I49KvDuB3PqR5GGK7PRTiILiCRnYSA6jQQ2ZVv5Jh/EUb8oftYX5NzSCPcOAeTAvV3WAdGDU/27NFfngNJWIn+755a3SViKJ2Bl6gE5khFa5MCp+A4dMDJ0THqyPxjRljtBkpPVD/v6qsSBKFYoQQA7HaUuU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=13.75.44.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
+	by app1 (Coremail) with SMTP id ygmowADnXwCvqM5pTmKhAA--.37297S2;
+	Fri, 03 Apr 2026 01:34:39 +0800 (CST)
+From: Ren Wei <n05ec@lzu.edu.cn>
 To: netfilter-devel@vger.kernel.org
-Subject: [iptables PATCH] arptables: Warn when ignoring '-p' option
-Date: Thu,  2 Apr 2026 16:52:16 +0200
-Message-ID: <20260402145216.32228-1-phil@nwl.cc>
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp,
+	yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,
+	yuantan098@gmail.com,
+	bird@lzu.edu.cn,
+	z1652074432@gmail.com,
+	n05ec@lzu.edu.cn,
+	enjou1224z@gmail.com
+Subject: [PATCH v2] netfilter: xt_multiport: validate range encoding in checkentry
+Date: Fri,  3 Apr 2026 01:34:39 +0800
+Message-ID: <d5c0d106e724c732436b985dd694272bcb813bb1.1775149327.git.n05ec@lzu.edu.cn>
 X-Mailer: git-send-email 2.51.0
+In-Reply-To: <cover.1774624314.git.n05ec@lzu.edu.cn>
+References: <cover.1774624314.git.n05ec@lzu.edu.cn>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,61 +47,106 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:ygmowADnXwCvqM5pTmKhAA--.37297S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxZw45Cw4UuF45ur18urW7Arb_yoW5CrW5pa
+	y5GF15GrWkXFWaqFs2yr1kJF15CrWkJw48ua43G347trsxWr95ta1rtFWqvFs8Ary5CFW8
+	JF4qvrn0kw45u37anT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUBY1xkIjI8I6I8E6xAIw20EY4v20xvaj40_JFC_Wr1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVWUCVW8JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwA2z4x0Y4vEx4A2
+	jsIE14v26F4j6r4UJwA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_Gr0_Gr1UM2AIxVAIcxkEcV
+	Aq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j
+	6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64
+	vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7M4IIrI8v6xkF7I0E8cxan2IY04v7MxkF7I0E
+	n4kS14v26r4a6rW5MxkIecxEwVCm-wCF04k20xvY0x0EwIxGrwCF04k20xvE74AGY7Cv6c
+	x26r48MxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCj
+	r7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc40Y0x0EwIxGrwCI42IY6x
+	IIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAI
+	w20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x
+	0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7sRi_HU3UUUUU==
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQQFCWnOkPwAygAAsI
 
-Legacy arptables has been silently ignoring this flag (plus mandatory
-argument) since day 1. Retain compatibility to that behaviour but inform
-users that a part of their rule does nothing.
+ports_match_v1() treats any non-zero pflags entry as the start of a
+port range and unconditionally consumes the next ports[] element as
+the range end.
 
-Since arp is the only family which didn't provide a proto_parse
-callback, implement one for the sole purpose of printing the warning. As
-a side-effect, caller no longer has to check callback's existence.
+The checkentry path currently validates protocol, flags and count, but
+it does not validate the range encoding itself. As a result, malformed
+rules can mark the last slot as a range start or place two range starts
+back to back, leaving ports_match_v1() to step past the last valid
+ports[] element while interpreting the rule.
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
+Reject malformed multiport v1 rules in checkentry by validating that
+each range start has a following element and that the following element
+is not itself marked as another range start.
+
+Fixes: a89ecb6a2ef7 ("[NETFILTER]: x_tables: unify IPv4/IPv6 multiport match")
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Co-developed-by: Yuan Tan <yuantan098@gmail.com>
+Signed-off-by: Yuan Tan <yuantan098@gmail.com>
+Suggested-by: Xin Liu <bird@lzu.edu.cn>
+Tested-by: Yuhang Zheng <z1652074432@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
 ---
- iptables/nft-arp.c | 8 ++++++++
- iptables/xshared.c | 3 +--
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ net/netfilter/xt_multiport.c | 30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 2140a88d4a6a9..d1e352e54f97c 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -452,6 +452,13 @@ static int get16_and_mask(const char *from, uint16_t *to,
- 	return ret;
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index 44a00f5acde8..07a0f2a3fc75 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -105,6 +105,24 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
  }
  
-+static void nft_arp_proto_parse_warn(struct iptables_command_state *cs,
-+				     struct xtables_args *args)
++static inline bool
++multiport_valid_ranges(const struct xt_multiport_v1 *multiinfo)
 +{
-+	fprintf(stderr,
-+		"Warning: Ignoring '-p' option not supported by arptables\n");
++	unsigned int i;
++
++	for (i = 0; i < multiinfo->count; i++) {
++		if (!multiinfo->pflags[i])
++			continue;
++
++		if (i + 1 >= multiinfo->count || multiinfo->pflags[i + 1])
++			return false;
++
++		i++;
++	}
++
++	return true;
 +}
 +
- static void nft_arp_post_parse(int command,
- 			       struct iptables_command_state *cs,
- 			       struct xtables_args *args)
-@@ -831,6 +838,7 @@ struct nft_family_ops nft_family_ops_arp = {
- 	.save_chain		= nft_arp_save_chain,
- 	.rule_parse		= &nft_ruleparse_ops_arp,
- 	.cmd_parse		= {
-+		.proto_parse	= nft_arp_proto_parse_warn,
- 		.post_parse	= nft_arp_post_parse,
- 		.option_name	= nft_arp_option_name,
- 		.option_invert	= nft_arp_option_invert,
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 26e91e370eb84..263dcc32e5eb1 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -1657,8 +1657,7 @@ void do_parse(int argc, char *argv[],
- 			cs->protocol = optarg;
+ static inline bool
+ check(u_int16_t proto,
+       u_int8_t ip_invflags,
+@@ -127,8 +145,10 @@ static int multiport_mt_check(const struct xt_mtchk_param *par)
+ 	const struct ipt_ip *ip = par->entryinfo;
+ 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
  
- 			/* This needs to happen here to parse extensions */
--			if (p->ops->proto_parse)
--				p->ops->proto_parse(cs, args);
-+			p->ops->proto_parse(cs, args);
- 			break;
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count) ? 0 : -EINVAL;
++	if (!check(ip->proto, ip->invflags, multiinfo->flags, multiinfo->count))
++		return -EINVAL;
++
++	return multiport_valid_ranges(multiinfo) ? 0 : -EINVAL;
+ }
  
- 		case 's':
+ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+@@ -136,8 +156,10 @@ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+ 	const struct ip6t_ip6 *ip = par->entryinfo;
+ 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
+ 
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count) ? 0 : -EINVAL;
++	if (!check(ip->proto, ip->invflags, multiinfo->flags, multiinfo->count))
++		return -EINVAL;
++
++	return multiport_valid_ranges(multiinfo) ? 0 : -EINVAL;
+ }
+ 
+ static struct xt_match multiport_mt_reg[] __read_mostly = {
 -- 
 2.51.0
 
