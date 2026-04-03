@@ -1,127 +1,132 @@
-Received: from mail-ua1-f45.google.com (mail-ua1-f45.google.com [209.85.222.45])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD2C3CB2E1
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 Apr 2026 15:55:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.222.45
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775231740; cv=pass; b=S5Wl3HjQr0ToP5UP3iGJKUMCvNutYrIjkBhdjwCj0VixLZgv+KVfAMw9opXVYLeG5kc3h79pOn5aGjGXS2zh5/3e/a2HIxKnDfSr7fzVBUzgMd+W6UD8bErVgcCKAlgdt3Ys9RIZ1eHHw/gjFE4onl92mmjcvAvgg7g2OiRfWaU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775231740; c=relaxed/simple;
-	bh=vvWbGlNi6TFlplucfWZOlihteJtMnLTcNCquKtF8bUU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ngpSK200AfWjiqpKfFvQ+ycCbjHlY5skUtUgBKDbr09frzVZfpjMjmGZOHIx7n0N+FdAR2YxiXn/YS6Mv2FnI/ew4X9XBGqkwH6H3vRwjt6IrZ3Tx0gyQVcxfydo+4qF5Nvly/564yRENLUpoMKVOG+RMVlH+XqLus1/S0a4ZBg=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F11tEcvP; arc=pass smtp.client-ip=209.85.222.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 823BC3C343C
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 Apr 2026 18:53:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775242429; cv=none; b=OBTJNMq3qxn1/CLtrcZCRdElqHS6MI3N9joHabdm7656CFflW5k8ZIyY0ptM+ocM2jFGIdmjD4GsG1vcD8xT6FtbooyljRPcMKptN7MmhfPqYs0lRdZxOqaWArDGeLub4B0Wb/kFgqkqRK/M5C2CRd6MEQb96dQkoYNY9HcRXUc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775242429; c=relaxed/simple;
+	bh=/jVVlaYZFAwlin52R+2Ey9DOou+ZLFQYY+l+kE8eSHc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mszJkJyG3pCKma2cj09h4sn8MeGeIacAbaUfXYZuhuA3PlzWRNbiDhce3j7OYzmlEetCU+B9JZyMy95014YtEMO3d8Ly6v2QL5NA0KeFpycEcsueQIj62OrpaoQoVY2YntUc9QUTv0HJ8DhYlMhQFQw7t3kK0/uOHZ5xIEoLbo0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KtK5YBSn; arc=none smtp.client-ip=209.85.221.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F11tEcvP"
-Received: by mail-ua1-f45.google.com with SMTP id a1e0cc1a2514c-953b9fd8ebdso1318507241.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 03 Apr 2026 08:55:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775231738; cv=none;
-        d=google.com; s=arc-20240605;
-        b=FwWXuLy0AGGBIEvtJ68LaiNpx5qgUMqrEvyqYQJbYNOwFliu0jI25PIr9+wb7s61oA
-         OwnOmgGBx24yqc+cPW/yh2pny0WVlEGMs/AJ1XGI6CuqQ26l7JarEL3Uo563Yj20rHgN
-         AXGiEkt94zTX6xlgzK/k1dvsEstVRa1kap8/19VwDKDkIVzt2tgGg2QoHfXCB5q3yiqU
-         tTmkRC+uccTM3PlXmXNNusUjYrYwvyTvBMaWDrs9unwHbLjPO2P6i07cEjlHwasyrXUQ
-         1obMEZDygxTmKAvROivOshffzQMAPtzOF7qwVJ0o0/prXgY8SrONqY2aqPI9hhZiT6aq
-         D/IA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=bSlULmnrafbTFmkOz05b2qK30GDxC9T/cfATlW/fQBg=;
-        fh=n5dbouMqIJ5MdRme7pWNhtW7d6Cas+P+7EHDjxWUlbg=;
-        b=YTujGcv2KxdCtv6/yvtwyK8O9MgoPcq32ip5aqDT9++dwiGXSuVAMQn8yPkia8K+4D
-         1KkF96ZXBOsQmLsCc5VLedMtu/eGhwjaSU0L34S2kP4cS5UgbI10Gb0qvkNR7v3ARx8Z
-         1kGW2xGwboPZA3WiQ28UzXIbaoYkN5z2pBBr3UY6cvlvkV6nGnYmebzAYDXI95n7XCJV
-         J1RvrW6BF1p2pMNjdhj5JCWNVRBCWstY99JuFaIQ4PQ9eQv9Q/ANRgIgD4+9IrE2elp2
-         bGpajl0gveBaX54jfkxckGkRFBwQEAAq/A2yqEKdHtGDasVU+dp2S5UC2/kmqS++Pm7e
-         beMg==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KtK5YBSn"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-43ba1f3fa7eso2132326f8f.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 03 Apr 2026 11:53:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775231738; x=1775836538; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=bSlULmnrafbTFmkOz05b2qK30GDxC9T/cfATlW/fQBg=;
-        b=F11tEcvPgqKYb4KPaaxtaHz3a+/FG9H+7KF3zMtysUDl+QqDCj8NDdfo7HDVjEQWQD
-         qjWK7b3ASXW4y7mkbFYc2KjDoxGE5JJE8LQz4YMAlTgNdCf741vK8AcMzTlisf+Cq1Ze
-         onMNXEXJTvJP/apFU3SJ4x1CX43iWesyQcXBlJ/oRdqvFtjeMUWjZEuUESQvfQHOYjHc
-         XtHk7425VGN3jbe2a75NNatKsJC2LhrbfybRuz8w2W670txaLoOrlqCTbfRW9++jbFux
-         7rmqCTfR+LzPyVyBp81XLiexTZ3E5aC0oTap28BYYvlIKLDy6KmsXPvpBZTg/yPf9lAd
-         MBDw==
+        d=gmail.com; s=20251104; t=1775242427; x=1775847227; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=maeNfYkM/3PGyOug4UakihZPv8oRILxVm2J09dLBdmo=;
+        b=KtK5YBSnLPeC3oqAHwG2IFdDU6RrqXWDmlCpSUYaeo9plyoWLTvCpiB4IpOzZMW8XP
+         8DHrhlwvzYkpfb2eZUIkV71iwRK5X4IMSo6LJOoSqCmz2HyjDcheHkaYyBcr0YHnCzap
+         zfIUBtw6W8e1+w+lnicYEE6M+Uz3R8DvyZL7XXhpzfxfXnWg79iwr2aNO94/sF8FmIJ8
+         oL+HvTWvZIFMxMqp/LKsdf3tm8cs8zTTrNMPukaOEB83JpbPH8qSxwFlvzsZMMuwoQbT
+         Uf4KPTLab4Nx1NudHdA0sW7Bi8sEAur4hLgl2t1QiFKvBjcvmxFfpHeP87fL3C594O5T
+         dTsQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775231738; x=1775836538;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20251104; t=1775242427; x=1775847227;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=bSlULmnrafbTFmkOz05b2qK30GDxC9T/cfATlW/fQBg=;
-        b=htcmbxBuIRohSzFpxcbysV52ryugoLZn8LHmVGAdDHEJaBh8JyDaYpQ0T8Flr2aQp/
-         xbo1u7pCAHAHknufd0qrfdcVbEbHLBCBn5Os3xg1lCgr4BSvw9Y+w9bHgY+4pUNAY+EC
-         tfRLr8mrTAcnOse3Am+Dc6fDS1g0LfqZt8Jjbs+MFBDEsIGOEvs90TcDMJ6OmQ+fMdNn
-         KJZ2O0parhzBo1w748pse2PVczEjnr3YAtApLvTWhBH9dLKiDDi/bdBMwW6n6SDenm7w
-         zHICjjpphRQK3l2ou8azvtWN401z9BJe3NGmMBp/ManAC5zrCNbReixgaii7JWvrapaC
-         68yQ==
-X-Gm-Message-State: AOJu0Yzt4uENw6oHP8Wnqbq3X/FzNWUGSXzB/B69alsAyZ226cuWec7B
-	Z/R4wRYs8GaB2hM2EJys6vcO/ABg3ubdlwGh3t2ZAEdGc0TAJCSYawbbEM82kNN7dHTlKQvHVg8
-	/kEwk8e6inIRS9aM9c3wYN9e71fRRvQij/XP7
-X-Gm-Gg: AeBDietib4ck44MwfJ7KRwtt72KVhoruvvHRmwTy0kD0nYv+QEAvVbZMnL5FY9dr3dN
-	1E6SS0NlkK+zS2XpV7NT7NrOLmbBg0CXKkO0jx+sVfM2EC1nDOkvNykzKG/+9tB1gl2SP/LdR0j
-	Uh31S3bOz979eQxLCeoRiZ9GR5uUwznRAWO9gK5WB7BZrdo5wPTpwakiLjOILdDWnWd/dp1R7Yk
-	lFi5zwlQUz0PZ94rhmt6pzFxb011Vuxjs0/8Gfu0E1MfKPtZ3NLuHlZoUS/vesIyWB9Vy9z3vK2
-	tPWqHqE=
-X-Received: by 2002:a05:6102:358d:b0:5ff:be25:894a with SMTP id
- ada2fe7eead31-605a5139644mr1403489137.32.1775231738311; Fri, 03 Apr 2026
- 08:55:38 -0700 (PDT)
+        bh=maeNfYkM/3PGyOug4UakihZPv8oRILxVm2J09dLBdmo=;
+        b=oQqDZFM16uFKCKezUwAlqnvSHHa15oJICEUEM/0ViehcuO+7/JMe+kX1gjVPpFIZ+C
+         ZssCZ0XMfPs61uh3lF+3H+ZgoULVlKTNobnn8e57+kCrO8XkfZUBWHqHZ0cBV8i2DiW5
+         gOjVv7K9xaq9f374oqJZnd4XW8zsqCRpDwz/NxwaOCahXwnp6t/yqVajZZteiyqfRD80
+         VsOtwVzOItlNyeLKlfgl0ujNhwZBY3lZfuqIyZsF1chNx0b/QaLd8ZsHm4GyntwQymZQ
+         EUQdO4cPXXNYIz5yzSq/snnQjat7YkP0SE4MgZ33iZuyy+Bc8WLxzKO/ZZT5uf0IE32n
+         B/OA==
+X-Gm-Message-State: AOJu0Ywx1FIux4RZax8qQMLiqibzseyo2oAIGIVeqZET0J2NJTOZmIpW
+	PQ2398MzMRpLf2vU8ixCK7EMIYt992tfa3+XHTWEq8DDyKMaAW+RMv19
+X-Gm-Gg: AeBDieumd+Wl4vKmtSuBtOKPojjpkqtC8l5uFMrdaROlrERrYglOMKYerHZSxuD27Gy
+	piaxwW+7LUIwDE1vSE3cTEtH0RvX4eKdz0n5jnKCpikFusd4Dcub8ThMrwkOYibSIcpDguXZuWb
+	o9dgdqIfwfgWTGhx06Xxac9VIoxL6okjiNoS2JdP2hIyOIiiV6bmGTSBuOW3iTIOC28mGxGrB9S
+	9DOa9iln4rJjX0HQOFMbIBD+YRimEb3idkYpTHgO02hMrsek0bA4WtLzhE5LVIB47tnyripuJCh
+	GlbkMPI09/qc2IkVHXTGCGFH4s7wgja8H19D+l0px9r2SCsQviSyxY8DFpRD/UBHC/ifDbM2KFS
+	p1XbAtESF90emQyuPBOl7j657X1qLhHuJyd0BRAJvMKw2LjLYm7MmBMmYgVtXoOCvroOy38Ox7J
+	wNxuM7V/tU5BHTSSZGHKDjj33pTb0NCcniGHkYiUnTq4KAZxPrZYSou75P08Bv0r5WoedYTJK6G
+	c5YZv4XQy4p6eyEd84rwrVQmCL2sp8o8BvdzTY2aqSXHmrjaPw=
+X-Received: by 2002:a05:6000:401f:b0:43d:2be:e4e with SMTP id ffacd0b85a97d-43d292ff520mr6572751f8f.46.1775242426634;
+        Fri, 03 Apr 2026 11:53:46 -0700 (PDT)
+Received: from localhost.localdomain (cpe-188-129-81-72.dynamic.amis.hr. [188.129.81.72])
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43d1e4d289asm17855349f8f.19.2026.04.03.11.53.45
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Fri, 03 Apr 2026 11:53:46 -0700 (PDT)
+From: Marino Dzalto <marino.dzalto@gmail.com>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Marino Dzalto <marino.dzalto@icloud.com>
+Subject: [PATCH] netfilter: xt_dscp: replace -EDOM with -EINVAL and unify match functions
+Date: Fri,  3 Apr 2026 20:53:37 +0200
+Message-ID: <20260403185337.87676-1-marino.dzalto@gmail.com>
+X-Mailer: git-send-email 2.50.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <ac-w6e33txkgTRJj@strlen.de> <ac_EY9ciqt5yQ6wr@strlen.de>
-In-Reply-To: <ac_EY9ciqt5yQ6wr@strlen.de>
-From: Scott Mitchell <scott.k.mitch1@gmail.com>
-Date: Fri, 3 Apr 2026 08:55:27 -0700
-X-Gm-Features: AQROBzDt5ARLDV79X-KOKclhATQ7c5tLSV8mUTRzkTu_Zfk9b8SQmhf-nx8sbrY
-Message-ID: <CAFn2buDAPLPjS5fXejDiuY5pV1rduMes2Ho=sSYmFVMVmh5xAw@mail.gmail.com>
-Subject: Re: nfnetlink_queue crashes kernel
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-> index 47f7f62906e2..15c6276f6592 100644
-> --- a/net/netfilter/nfnetlink_queue.c
-> +++ b/net/netfilter/nfnetlink_queue.c
-> @@ -60,29 +60,10 @@
->   */
->  #define NFQNL_MAX_COPY_RANGE (0xffff - NLA_HDRLEN)
+From: Marino Dzalto <marino.dzalto@icloud.com>
 
-NFQNL_HASH_MIN (1024) and NFQNL_HASH_MAX(1048576) were set when the
-table was global, but if table is moved to per queue it can likely be
-reduced. Suggested values:
+Signed-off-by: Marino Dzalto <marino.dzalto@icloud.com>
+---
+ net/netfilter/xt_dscp.c | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-#define NFQNL_HASH_MIN 8
-#define NFQNL_HASH_MAX 32768
+diff --git a/net/netfilter/xt_dscp.c b/net/netfilter/xt_dscp.c
+index fb0169a8f..00137bff3 100644
+--- a/net/netfilter/xt_dscp.c
++++ b/net/netfilter/xt_dscp.c
+@@ -25,16 +25,12 @@ static bool
+ dscp_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_dscp_info *info = par->matchinfo;
+-	u_int8_t dscp = ipv4_get_dsfield(ip_hdr(skb)) >> XT_DSCP_SHIFT;
++	u8 dscp;
+ 
+-	return (dscp == info->dscp) ^ !!info->invert;
+-}
+-
+-static bool
+-dscp_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+-{
+-	const struct xt_dscp_info *info = par->matchinfo;
+-	u_int8_t dscp = ipv6_get_dsfield(ipv6_hdr(skb)) >> XT_DSCP_SHIFT;
++	if (xt_family(par) == NFPROTO_IPV4)
++		dscp = ipv4_get_dsfield(ip_hdr(skb)) >> XT_DSCP_SHIFT;
++	else
++		dscp = ipv6_get_dsfield(ipv6_hdr(skb)) >> XT_DSCP_SHIFT;
+ 
+ 	return (dscp == info->dscp) ^ !!info->invert;
+ }
+@@ -44,7 +40,7 @@ static int dscp_mt_check(const struct xt_mtchk_param *par)
+ 	const struct xt_dscp_info *info = par->matchinfo;
+ 
+ 	if (info->dscp > XT_DSCP_MAX)
+-		return -EDOM;
++		return -EINVAL;
+ 
+ 	return 0;
+ }
+@@ -74,7 +70,7 @@ static struct xt_match dscp_mt_reg[] __read_mostly = {
+ 		.name		= "dscp",
+ 		.family		= NFPROTO_IPV6,
+ 		.checkentry	= dscp_mt_check,
+-		.match		= dscp_mt6,
++		.match		= dscp_mt,
+ 		.matchsize	= sizeof(struct xt_dscp_info),
+ 		.me		= THIS_MODULE,
+ 	},
+-- 
+2.50.1 (Apple Git-155)
 
->
-> -cleanup_netlink_subsys:
-> -       nfnetlink_subsys_unregister(&nfqnl_subsys);
-> -cleanup_netlink_notifier:
-> +cleanup_nfqnl_subsys:
-> +       netlink_unregister_notifier(&nfqnl_dev_notifier);
-
-Should `netlink_unregister_notifier(&nfqnl_dev_notifier);` be
-'unregister_netdevice_notifier(&nfqnl_dev_notifier);' ?
-
-> +cleanup_dev_notifier:
->         netlink_unregister_notifier(&nfqnl_rtnl_notifier);
-> +cleanup_rtnl_notifier:
->         unregister_pernet_subsys(&nfnl_queue_net_ops);
-> -cleanup_rhashtable:
-> -       rhashtable_destroy(&nfqnl_packet_map);
-> +cleanup_pernet_subsys:
-> +       destroy_workqueue(nfq_cleanup_wq);
->         return status;
->  }
