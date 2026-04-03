@@ -1,152 +1,112 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D80E31D375;
-	Fri,  3 Apr 2026 11:38:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C508D1DF254
+	for <netfilter-devel@vger.kernel.org>; Fri,  3 Apr 2026 12:22:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775216305; cv=none; b=sZo+wmBYoFab3gkfKfJyfYsjq8dvf9w7u8Gk9kGqOt5ifa3X3sDKbSuv4Ey/sUBoNo6B5Hs4AjEw/m9NfTjMexCj8byL7c1NrfVflqcdiDSvyX3QURk8le/fDd8VtuF8ikHCcqNdfSrB5sm/skWQQXdtQomZPB3vC0YfHikT218=
+	t=1775218931; cv=none; b=h8T3d2sZA7IIMwrG4yHbrpXffkS4wuWToPIXy2bJt7dGX4ors8xQVsYBuJUmblIdR9PlTMNWflY3WqCC8OzZNC6npUevLygk0DARXbCLoPLG3sJIoKjaE5qv2X15GAI8Kjq4UwPy6NjnF7q0D2nEu6bh+c7mJygdJIH7mzzx2DE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775216305; c=relaxed/simple;
-	bh=Vpm56VZ1GZ1Y7W9CVZyWBqubGh02QR8XtmUh7YGRPUc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ktTYvJTfgI1OKwjSL9V9pEyKEhRtD67eOqc0WHM8lWX1oc9bh+DKUoaCDwmD43qbpM5h9kRTkJ17jC/WyEbgkgqEqk05kRFFOLKCayN7EDTdR9tUr1mFcJhJVASDtxbj/61SMFUaC8PFCt1dPZDTgSNqr2GuZV8I4VlJ5rI5Izs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pGM/W+k4; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pGM/W+k4"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 01C0560251;
-	Fri,  3 Apr 2026 13:38:22 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775216302;
-	bh=b7Q9vhu468ezbsFTKuz/mFheQzvf86bCacmkT7oDh4g=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=pGM/W+k4sf9TU1cj1tAL9bQwvZSBUfsYhxKpA/i4SVcREdOSqPv/c53jV5jM4E1h9
-	 NdDbeKwtndII6cv4Ju30pW12SNnWMI8k3BphFUXUL0as0J4hZFvyAHlTDCSCmuob+k
-	 PlXC8pJX5vPMhevmqM29wUMihN8OX73PzeyL9k7W4gvGWHbU3sqg4XkmarUPdVChCi
-	 ORhui7I4ZtVIkf7hful83LIJszwv6aP8VJdN5g65V++zEhRWqGhxgifPnLUzyn4GO/
-	 jtEccGGASv9mBOujSrCt+WXOzMdLh9uXLpjIhs9mhAbefHJnLQKh7Dujoh5RdZzz1P
-	 Ha/WDlBX98aGw==
-Date: Fri, 3 Apr 2026 13:38:18 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Ren Wei <n05ec@lzu.edu.cn>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, fw@strlen.de,
-	phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
-	yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
-	yifanwucs@gmail.com, tomapufckgml@gmail.com, yuantan098@gmail.com,
-	bird@lzu.edu.cn, z1652074432@gmail.com
-Subject: Re: [PATCH v3] netfilter: xt_multiport: validate range encoding in
- checkentry
-Message-ID: <ac-mqkVOMHu673UC@lemonverbena>
-References: <cover.1774624314.git.n05ec@lzu.edu.cn>
- <d5c0d106e724c732436b985dd694272bcb813bb1.1775153311.git.n05ec@lzu.edu.cn>
- <ac-lHcg6NTg9sWGY@lemonverbena>
+	s=arc-20240116; t=1775218931; c=relaxed/simple;
+	bh=EUBtIWsN+iC/3KXf8rU44ziWp48iFUK+cv9y3wIISmw=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition; b=sWOYcJWWmZDCXHlJIf1gWjscP17HQPIYC2EL2ZfIU+yIq07Vs+PYwEis1F8WYl1Q0Xh9nuTtBHuLP9HCl7vyolMBm55TohG31Q9T5jnsVqVd3upiJBf2JA1Jji8L7WuQqzeWqrRLaws0mYNyZ6KqwMADhgETMAdhger7vRMrSRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id F396B60913; Fri, 03 Apr 2026 14:22:01 +0200 (CEST)
+Date: Fri, 3 Apr 2026 14:22:01 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Scott Mitchell <scott.k.mitch1@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+Subject: nfnetlink_queue crashes kernel
+Message-ID: <ac-w6e33txkgTRJj@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ac-lHcg6NTg9sWGY@lemonverbena>
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 03, 2026 at 01:31:41PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Apr 03, 2026 at 02:21:17AM +0800, Ren Wei wrote:
-> > ports_match_v1() treats any non-zero pflags entry as the start of a
-> > port range and unconditionally consumes the next ports[] element as
-> > the range end.
-> > 
-> > The checkentry path currently validates protocol, flags and count, but
-> > it does not validate the range encoding itself. As a result, malformed
-> > rules can mark the last slot as a range start or place two range starts
-> > back to back, leaving ports_match_v1() to step past the last valid
-> > ports[] element while interpreting the rule.
-> > 
-> > Reject malformed multiport v1 rules in checkentry by validating that
-> > each range start has a following element and that the following element
-> > is not itself marked as another range start.
-> > 
-> > Fixes: a89ecb6a2ef7 ("[NETFILTER]: x_tables: unify IPv4/IPv6 multiport match")
-> > Reported-by: Yifan Wu <yifanwucs@gmail.com>
-> > Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-> > Co-developed-by: Yuan Tan <yuantan098@gmail.com>
-> > Signed-off-by: Yuan Tan <yuantan098@gmail.com>
-> > Suggested-by: Xin Liu <bird@lzu.edu.cn>
-> > Tested-by: Yuhang Zheng <z1652074432@gmail.com>
-> > Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-> > ---
-> > Changes in v2:
-> > - drop the selftest patch
-> > - send the fix publicly to netfilter-devel
-> > 
-> > Changes in v3:
-> > - drop datatype cleanup from the fix
-> > - keep the original check() interface unchanged
-> > - validate malformed range encoding in checkentry
-> > 
-> >  net/netfilter/xt_multiport.c | 30 ++++++++++++++++++++++++++----
-> >  1 file changed, 26 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
-> > index 44a00f5acde8..07a0f2a3fc75 100644
-> > --- a/net/netfilter/xt_multiport.c
-> > +++ b/net/netfilter/xt_multiport.c
-> > @@ -105,6 +105,24 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> >  	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
-> >  }
-> >  
-> > +static inline bool
-> > +multiport_valid_ranges(const struct xt_multiport_v1 *multiinfo)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < multiinfo->count; i++) {
-> > +		if (!multiinfo->pflags[i])
-> > +			continue;
-> > +
-> > +		if (i + 1 >= multiinfo->count || multiinfo->pflags[i + 1])
-> > +			return false;
-> > +
-> > +		i++;
-> > +	}
-> > +
-> > +	return true;
-> > +}
-> 
-> I'd suggest:
-> 
-> static inline bool
+Hello,
 
-Actually, inline is silly here, no inline here.
+nfnetlink_queue is currently broken in at least two ways.
+1). kernel will crash under pressure because
+    struct nf_queue_entry is freed via kfree, but parallel
+    cpu can still observe this while walking the (global) rhashtable.
 
-> multiport_valid_ranges(const struct xt_multiport_v1 *multiinfo)
-> {
->         unsigned int i;
->  
->         for (i = 0; i < multiinfo->count; i++) {
->                 if (!multiinfo->pflags[i])
->                         continue;
-> 
->                 if (++i >= multiinfo->count)
->                         return false;
->          
->                 if (multiinfo->pflags[i])
->                         return false;
->          
->                 if (multiinfo->ports[i - 1] > multiinfo->ports[i])
->                         return false;
->         }
->  
->         return true;
-> }
-> 
-> Then, this validate non-sense ports array too.
+2) a4400a5b343d ("netfilter: nfnetlink_queue: nfqnl_instance GFP_ATOMIC -> =
+GFP_KERNEL_ACCOUNT allocation") should have updated the spinlock to use the=
+ _bh variant, if the queue exists we risk deadlock via softirq recursion.
 
-You can also mention in the patch description that this leads to
-off-by-one read after the array that is reported via UBSAN.
+Minimal fix, that I am not a fan of:
 
-Thanks.
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_qu=
+eue.h
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -24,6 +24,7 @@ struct nf_queue_entry {
+ 	bool			nf_ct_is_unconfirmed;
+ 	u16			size; /* sizeof(entry) + saved route keys */
+ 	u16			queue_num;
++	struct rcu_head		head;
+=20
+ 	/* extra space to store route keys */
+ };
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 7f12e56e6e52..385d1fe704ae 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -74,7 +74,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_e=
+ntry *entry)
+ void nf_queue_entry_free(struct nf_queue_entry *entry)
+ {
+ 	nf_queue_entry_release_refs(entry);
+-	kfree(entry);
++	kfree_rcu(entry, head);
+ }
+ EXPORT_SYMBOL_GPL(nf_queue_entry_free);
+=20
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queu=
+e.c
+index 47f7f62906e2..fc44ea4e5128 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -190,7 +190,7 @@ instance_create(struct nfnl_queue_net *q, u_int16_t que=
+ue_num, u32 portid)
+ 	spin_lock_init(&inst->lock);
+ 	INIT_LIST_HEAD(&inst->queue_list);
+=20
+-	spin_lock(&q->instances_lock);
++	spin_lock_bh(&q->instances_lock);
+ 	if (instance_lookup(q, queue_num)) {
+ 		err =3D -EEXIST;
+ 		goto out_unlock;
+@@ -204,7 +204,7 @@ instance_create(struct nfnl_queue_net *q, u_int16_t que=
+ue_num, u32 portid)
+ 	h =3D instance_hashfn(queue_num);
+ 	hlist_add_head_rcu(&inst->hlist, &q->instance_table[h]);
+=20
+-	spin_unlock(&q->instances_lock);
++	spin_unlock_bh(&q->instances_lock);
+=20
+ 	return inst;
+=20
+
+
+
+A probably better fix is to make the rhashtable perqueue, which is
+much more intrusive at this late stage.
+
+I prefer to revert both changes and not accept a reworked hashtable
+until we have an extension to nft_queue.sh selftest.
+
+Anything using queue balancing (pacing packets to n queues) with
+enough streams to have parallel invocation of the rhashtable should
+demonstrate the crash.
+
+Thoughts?
