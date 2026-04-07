@@ -1,137 +1,117 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97D2233A9DE
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 19:34:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775590471; cv=none; b=khxmdgktcMZc2KvV0eRj9KBmbqkJyHems53b89hyiOh/msZ1ZDulHp2G3SID2MklSmM/QMsRPYuMOwewtFtJNopbPF5Z7B0LpvkZEDfbrxWMedEyGN8vrYK6gVMqFQMP/R56pXHzp80pj1gKAyEZP2YNpW4dZ3zAWAuMmZZEHSM=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775590471; c=relaxed/simple;
-	bh=V7Gh+845xYvIW26UARQxpPHsgFaPVEP4TUiyr1n5ezA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=BX5IByFK3fzDkP7YlnqBTofg48FF5gsaqbyPq/6rOVSAATBmQIRVwzAQiW/9W0flOg4rH2fmk4QAXWuosUhxLJL5YUk3buSlLzHDLQO8Qpxse/5ZbDVbC2HrgxvFqgWVwVoxMKs3cOZPyFAsSD9K+b/ZFi8gl+CEQ3d7C5O69GA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=RwZJOrgX; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=4jb4KF+A; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=RwZJOrgX; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=4jb4KF+A; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45E493783C3
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 20:19:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.208.49
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775593195; cv=pass; b=keGRagurGGq2VUYI1W1UNBynuWnsTAEzD19QuId8liZJ3reW7odBQ3GCYDm8tIQeq6Nxz2j49VOVvwGRGkyGlMHmriD7y/DlSZJL0Kgkug5dR9qg7xzKxKmynTgBO19iyaNEs5Xh121trwPv+71RsOse6g41fm21llE5mXBTxZI=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775593195; c=relaxed/simple;
+	bh=cIcwh02YeJrScNHPq9X6XdHj5CJSHTdteY/DkuKKTzM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Wz4DeWY9MrMJ2HdABbljw2jv70xVapUbgVdtiolBbAnuVFPy1fAiugOlTeixCZW0EYXbrvPoIkvkA9DrcdO+wMAVVhc1Qdof5/6NXhLS7hu2ygID7C5nKwEx/pRpqOZzambjK+cFzJZSllz6IOZxhUc3rWHCbgo89Z4rB+OypRQ=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=t4JYq1KP; arc=pass smtp.client-ip=209.85.208.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="RwZJOrgX";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="4jb4KF+A";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="RwZJOrgX";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="4jb4KF+A"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id C0D774E5D3;
-	Tue,  7 Apr 2026 19:34:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1775590468; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=62uM43zB43uvccMyvsDAM55ssBOUwtlrlov1fgW9N9o=;
-	b=RwZJOrgXvGBK8mY4W0NDrc+DFymu8Rn/xcitlrJ5JH9TK7HQofskYGSs9itzTd7L9yOlG1
-	DvzHwDFCdsui2I2CljaV2IoXR94CeIUG0dtD19AYVjS5ksUBRssFRKl7Gg5H+s2oXHI33N
-	wvlspd0o61gajcuPtjVoqJU0r2/xp5A=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1775590468;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=62uM43zB43uvccMyvsDAM55ssBOUwtlrlov1fgW9N9o=;
-	b=4jb4KF+AVbwMVpvgUUMs4Anui+TKTphnTdRxgapp6UL25EoVGPPs1OPUiAKXS44ueEzF0h
-	4xplj1zK9lAztHAQ==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1775590468; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=62uM43zB43uvccMyvsDAM55ssBOUwtlrlov1fgW9N9o=;
-	b=RwZJOrgXvGBK8mY4W0NDrc+DFymu8Rn/xcitlrJ5JH9TK7HQofskYGSs9itzTd7L9yOlG1
-	DvzHwDFCdsui2I2CljaV2IoXR94CeIUG0dtD19AYVjS5ksUBRssFRKl7Gg5H+s2oXHI33N
-	wvlspd0o61gajcuPtjVoqJU0r2/xp5A=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1775590468;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=62uM43zB43uvccMyvsDAM55ssBOUwtlrlov1fgW9N9o=;
-	b=4jb4KF+AVbwMVpvgUUMs4Anui+TKTphnTdRxgapp6UL25EoVGPPs1OPUiAKXS44ueEzF0h
-	4xplj1zK9lAztHAQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1A3814A0B0;
-	Tue,  7 Apr 2026 19:34:27 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id pU14O0Nc1WmrQgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 07 Apr 2026 19:34:27 +0000
-Message-ID: <44245235-03b0-4dc5-88a1-6b05d8119b7a@suse.de>
-Date: Tue, 7 Apr 2026 21:34:17 +0200
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="t4JYq1KP"
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-65c4152313fso7153905a12.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Apr 2026 13:19:54 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1775593193; cv=none;
+        d=google.com; s=arc-20240605;
+        b=hE2s1ReFrkyCfxEh9ZvIfn7cTLhaUYjEqpz+HEyHlXUgAwWkOPvkmsan29aJvQh+R5
+         6W0axaxv4TwreLqgWZvEdsqW9nOqrgwrsJSEBqnWtTBuQnU+6zSZ91SP9S7+vaHyInPH
+         1x10P6PIUUFZILdTrAvfmM1GpF8khGrNT9qT6Fo7QN982E58kk51SPTKyp/bB99jwg6v
+         a5FNMltpPW8wnQ7v9nzNafywv4pNqMxboWXKPQYwIZiDB1vDnWrldePvgNugRhWALXfp
+         wNNj7vS6w8PNLoEl14G2YJDtxakRYqEdhn4JCymUw/wPfh1+9DIDQLyypFiVCOvFZgZc
+         hlyA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:dkim-signature;
+        bh=5F/h7KugE6fbvjgPOHVFnVDYl0H2cgQ8aKqNXa/3w5M=;
+        fh=mgOvn/qRSKAsPHiY/1udALgzvxa0KKMOdtDlWlvUqtM=;
+        b=GrYGquuYd06/EVT15wjNZ9ZnM2PxdkxPE6yVM3ybRNuTVghCLww/5ni7h0b2oHJ/nU
+         CvEiTnMy5PkQ+FocWmgxh93F/w1t9iD0LOAE4cCK0h2U54mwG6U9y5PaMHxAfhxcRhqa
+         WOI8RBJQ4f/6A0JijynNKZQIDID6DJJK/+UH3PyBhtb+H8XkdE6I+hu2fkt/4wekW4MD
+         NQUDwSNfsuvBxhCo/zpMVmzVYHU9EtgvxUJ3z5BxzwLnoIkFIB9HzZhf/lIwp6RgmD2m
+         b3yNu/rnWQB8Fg/wnmyTXLGufa7ayATR+o0p/9Bw3HDb2Pxohx7qMOb4HgzzBhfLx3xk
+         mmEA==;
+        darn=vger.kernel.org
+ARC-Authentication-Results: i=1; mx.google.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1775593193; x=1776197993; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5F/h7KugE6fbvjgPOHVFnVDYl0H2cgQ8aKqNXa/3w5M=;
+        b=t4JYq1KPWphomxLwlxZw2h52L+wJN/krZfUbfEyboUwujMfUydewGc9bVWZiTOtINg
+         z2pcM1htrDAmXF3K6Wn9IRu98sZ7prefzavrXARvujxIVsoezieOIxkWfZmftHlJTOoR
+         s1JQlVIqOnHeWXhpHFPRW67O+nCrng8WczRcKfh+qqH3dCW5JMxAYTqnuTi3/y/PMD3q
+         uKA5bWy/yZlDmkL22Jd8/H4CysmMmeXGy9RDOOQpTSG4rKevZcUGEUYD2H/EtofU1UHK
+         haAbc+dLSLg9p4EeaSMe2/lJjBNT/CT8hBjnwSFMdjl7TVGIip2i4Knw953SvCCpmZqh
+         QnKQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775593193; x=1776197993;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=5F/h7KugE6fbvjgPOHVFnVDYl0H2cgQ8aKqNXa/3w5M=;
+        b=l2NEagMWTAFHhZbe7lyf/92Jzq/hE7SBxk/U6C8AYM3V0IM9pfS3NJ0i2pZ12E8ZF8
+         KpE1IUgaec47KSzzF9yso/qawX2pBAdQG5c9/929qP3Vlfa8W5gFXcFvyImgEPQ5EZ/Y
+         n+oix7iK7yC+5P82hybwzRwaJAwwamtQtPZn6/JtA24PoWFUKhQ5SG966h6JbWyvSATN
+         08VHhYDdqXTG58Jjq6b/6C0Sw7TWsF0bDuwaKdKYAr5ZHz2GRQVFbgy0ZEXCMwBf0NTE
+         ZeOO7v5aoHgJudHefxKkKJImu55erUI72mMRYU4gKCYIfhMrBzGPWM5gU82r6/XQiFB6
+         +Oag==
+X-Forwarded-Encrypted: i=1; AJvYcCUXYwvBG3JNvx7LqvtPJdHjKxqNZGQ9ZGs2CgGWUTshv3tQgxnsYo6SztVsvQL0C0aYC/CyxtCl4oQP0e9hDao=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyJdxl/yZVRanJJyVNal1onen4MQxlAfAycGktRVoLcD8mM85SV
+	yE+WARQEdpRN0oCqUgjmsx3LPGmf9Zs8EDF/PbJ43eQD3O3wI7Yn1AvqkLQkP5ZtH1RCL+f+efw
+	QXXqsmRjU6KUGwyTVqB2Nb/DpRdT9KsFwdHSZyMM=
+X-Gm-Gg: AeBDiesArQsI+i28fuxtnGeMiUsHJGDcqAVBSLinAY5gAy9OhS3/hNlsQNqLkOAMNv/
+	eM5ryuawKqInebgL8uh+jygoECRM3vw2Rawkzqbham5BQE7hfhSGEyjF7UhFV9kEzCHjcxwwrVz
+	PDem7+kgeXOEJ3lgKg91gVI3OOlUyIAtUSQDE3leqai1g2+p9qhtEZQCH1bQlcCdDFVHM7nNWfv
+	u1/49QTulJL7H1iOWP/yqZ1PhddtcZvslzINyOZiPg+jt3YR3qHc7IY5vIUsimvzepZZv4OI72N
+	b0SiZ3YOhJdyXmcjoNgqphS7tVAVUWJl99j8
+X-Received: by 2002:a17:907:3e99:b0:b97:7d03:68c1 with SMTP id
+ a640c23a62f3a-b9c67957b45mr816891966b.30.1775593192032; Tue, 07 Apr 2026
+ 13:19:52 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf] selftests: nft_queue.sh: add a parallel stress test
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
- pablo@netfilter.org
-References: <20260406211831.3758-1-fmancera@suse.de>
- <adVILlipGGN76rcw@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <adVILlipGGN76rcw@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-0.996];
-	MIME_GOOD(-0.10)[text/plain];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[5];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:email]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spam-Level: 
+References: <20260407083219.478203185@kernel.org> <20260407083248.035227538@kernel.org>
+In-Reply-To: <20260407083248.035227538@kernel.org>
+From: John Stultz <jstultz@google.com>
+Date: Tue, 7 Apr 2026 13:19:39 -0700
+X-Gm-Features: AQROBzB5Kk-9wmWuv1ZegtmjY7I9xuAgB8C2jMw495vm72Eo-cG6s6UJbujlAjQ
+Message-ID: <CANDhNCp9TRWAF1EHQAcFHLv3eRusVycTrNDk=UFpzg0oTBjQyQ@mail.gmail.com>
+Subject: Re: [patch 08/12] alarmtimer: Convert posix timer functions to alarmtimer_start()
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Stephen Boyd <sboyd@kernel.org>, 
+	Calvin Owens <calvin@wbinvd.org>, Peter Zijlstra <peterz@infradead.org>, 
+	Anna-Maria Behnsen <anna-maria@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>, 
+	Ingo Molnar <mingo@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, 
+	Sebastian Reichel <sre@kernel.org>, linux-pm@vger.kernel.org, 
+	Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, 
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 4/7/26 8:08 PM, Florian Westphal wrote:
-> Fernando Fernandez Mancera <fmancera@suse.de> wrote:
->> diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
->> index ea766bdc5d04..1e1949c6a918 100755
->> --- a/tools/testing/selftests/net/netfilter/nft_queue.sh
->> +++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
->> @@ -11,6 +11,7 @@ ret=0
->>   timeout=5
->>   
->>   SCTP_TEST_TIMEOUT=60
->> +STRESS_TEST_TIMEOUT=300
-> 
-> I changed this to 30s, I think the full 5m dance is a bit
-> too long for the selftest.
-> 
-> I know 30s is likely not enough to trigger the bug reliably but given this
-> test will run may times per day on netdev infra I think 30s is ok.
+On Tue, Apr 7, 2026 at 1:54=E2=80=AFAM Thomas Gleixner <tglx@kernel.org> wr=
+ote:
+>
+> Use the new alarmtimer_start() for arming and rearming posix interval
+> timers and for clock_nanosleep() so that already expired timers do not go
+> through the full timer interrupt cycle.
+>
+> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
+> Cc: John Stultz <jstultz@google.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
+> ---
+>  kernel/time/alarmtimer.c |   20 +++++++++++++-------
+>  1 file changed, 13 insertions(+), 7 deletions(-)
 
-It makes sense. Indeed, it is enough time. At least as tested on my system.
+Acked-by: John Stultz <jstultz@google.com>
