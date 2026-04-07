@@ -1,43 +1,43 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 899FD39A7F8;
-	Tue,  7 Apr 2026 08:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9E7F39A7E5;
+	Tue,  7 Apr 2026 08:54:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775552086; cv=none; b=HHPlYP+eHvGoVdqgYf0gE6pQk1FQhAQN1EKYBnMXeCNt/j8GWrEO+TTGyugmYBbCaqqOye1nYpfo3nShgeZ/upr1yhz0rdQ6GMfVcmeab0yrEcuIciU5WB+TMVPDng5OcxVkD3cLBes4D29WzXS5vFls4xz5jf82Vqsy9tZt6uQ=
+	t=1775552091; cv=none; b=n4fA6ubmxN5AwIPxILYTBy84FmnMJRierInFvV0AQwPeE99BfwpbGJlOA/fTtcXIPV2RExXScnincRtQXD16iE7G4seUjNWtERxFcol3QaGTqfEEbUzR9mkfg5c0pKCDUW8ft72M0UWNvxx8PKR6AjGSr8kpsJyg/R75B3atqs0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775552086; c=relaxed/simple;
-	bh=SjBcneGtGEBBNpNj//JNTkqgCJxRCk2wahLRcyQu83M=;
+	s=arc-20240116; t=1775552091; c=relaxed/simple;
+	bh=HVbYIByFSN+TWQMQtOO5s/XrlbdzeKGowXqhoZ1SPWU=;
 	h=Date:Message-ID:From:To:Cc:Subject:References:MIME-Version:
-	 Content-Type; b=IfoR/nuX+re4LJatjJiAaFKOCRl4KFmS2fkNRNVTwHb1PEbSt/gcfafy3OQgNMgvT85vhP83lXyJwvFsNVdVaDXi8PeknpbxM5Z8AlRfQVd2jTnpDqLSkmxddP322BTPHKVb9EX637ArAbU5teb9c859ibHKoICKhikOnsbJDNE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ndIuyLJn; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type; b=hZQXmiFDS0AfbGm8fH5gl1kdtmN8/RT3TyvGs8vjyjJuCBoREb/9RH2GFP6GPctVTHLhcg4U9CSLzmW1Y/l0fHDU1Sko8DkYSUmwtExZ/w3y0eYantiQIQoRELVa7M1pdQP3x5oUmE4VqpNKAyBpyO33ZFREY5WkM3VfX1CjYWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=B0+sjaJI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ndIuyLJn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F3B3C2BC9E;
-	Tue,  7 Apr 2026 08:54:45 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="B0+sjaJI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D49B7C116C6;
+	Tue,  7 Apr 2026 08:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775552086;
-	bh=SjBcneGtGEBBNpNj//JNTkqgCJxRCk2wahLRcyQu83M=;
+	s=k20201202; t=1775552091;
+	bh=HVbYIByFSN+TWQMQtOO5s/XrlbdzeKGowXqhoZ1SPWU=;
 	h=Date:From:To:Cc:Subject:References:From;
-	b=ndIuyLJnqI4xTXK8fAk0gJhLGYSqS9IVQnjgQr9yi/hh/j8Z3mUC0glA8C2s4E3AM
-	 KL3ziHhdsMj7VZm01vEc18AMd3vMBigSAblgHUV/0NbRGR9GOdHTuJNRZieV0eZ8lx
-	 JTco+fCBHhjilmukPJ1hf+QQMGiACiN1fdB6VX4XwN30paB5ZjbHw7nXrCs5CxfqcF
-	 vDdStCbbkezwEPf4VASCsLggWtcRWidwcVbiNg49LmV8olNqALIMg1kCv2MIezjUea
-	 hWgvdl0UcVAZEUt4UImTRaj5IUSaxPZ+f/E/OF3KljHfDAOlrZ/8oz5pBMHDtdDA1P
-	 lfJHo8jlIpypg==
-Date: Tue, 07 Apr 2026 10:54:43 +0200
-Message-ID: <20260407083247.898494239@kernel.org>
+	b=B0+sjaJIuGE4mFMigwRoPUvZUWwbO5cH8Gdbg09DMFOnVTG0FQYDSTQHLNVCXdK3V
+	 X7O+NDyKp+SaDBp730XnWN+59hG8wavraM+vUSg8bnAmLjFJjd0KnrE+R8aZ7SOSh3
+	 +FPJKIEsg7lQehOafwPnpQvypqLZw4RelwCUHOcXB2U7YtKIxEgKcPeVVgJxOw7nRd
+	 dHrwRPHNxLOXTuvAmvm4le081QJSzMJ54bfotCe/hQBkehWK4cyFt1iqt4sW3DNoFN
+	 B2+lYl5z30N9T5m8C991EZPdLx1BrYZ+f8vLdcVmk4YAPdhSNX+OTxM3wvSow9vxeH
+	 8yBNvJKIew7eQ==
+Date: Tue, 07 Apr 2026 10:54:48 +0200
+Message-ID: <20260407083247.965539525@kernel.org>
 User-Agent: quilt/0.68
 From: Thomas Gleixner <tglx@kernel.org>
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>,
- Frederic Weisbecker <frederic@kernel.org>,
+Cc: John Stultz <jstultz@google.com>,
+ Stephen Boyd <sboyd@kernel.org>,
  Calvin Owens <calvin@wbinvd.org>,
  Peter Zijlstra <peterz@infradead.org>,
+ Anna-Maria Behnsen <anna-maria@linutronix.de>,
+ Frederic Weisbecker <frederic@kernel.org>,
  Ingo Molnar <mingo@kernel.org>,
- John Stultz <jstultz@google.com>,
- Stephen Boyd <sboyd@kernel.org>,
  Alexander Viro <viro@zeniv.linux.org.uk>,
  Christian Brauner <brauner@kernel.org>,
  Jan Kara <jack@suse.cz>,
@@ -49,7 +49,7 @@ Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>,
  Phil Sutter <phil@nwl.cc>,
  netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org
-Subject: [patch 06/12] posix-timers: Switch to hrtimer_start_expires_user()
+Subject: [patch 07/12] alarmtimer: Provide alarmtimer_start()
 References: <20260407083219.478203185@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -59,42 +59,77 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 
-Switch the arm and rearm callbacks for hrtimer based posix timers over to
-hrtimer_start_expires_user() so that already expired timers are not
-queued. Hand the result back to the caller, which then queues the signal.
+Alarm timers utilize hrtimers for normal operation and only switch to the
+RTC on suspend. In order to catch already expired timers early and without
+going through a timer interrupt cycle, provide a new start function which
+internally uses hrtimer_start_range_ns_user().
+
+If hrtimer_start_range_ns_user() detects an already expired timer, it does
+not queue it. In that case remove the timer from the alarm base as well.
+
+Return the status queued or not back to the caller to handle the early
+expiry.
 
 Signed-off-by: Thomas Gleixner <tglx@kernel.org>
-Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
-Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: John Stultz <jstultz@google.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
 ---
- kernel/time/posix-timers.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/alarmtimer.h |    6 ++++++
+ kernel/time/alarmtimer.c   |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+)
 
---- a/kernel/time/posix-timers.c
-+++ b/kernel/time/posix-timers.c
-@@ -293,8 +293,7 @@ static bool common_hrtimer_rearm(struct
- 	struct hrtimer *timer = &timr->it.real.timer;
+--- a/include/linux/alarmtimer.h
++++ b/include/linux/alarmtimer.h
+@@ -42,8 +42,14 @@ struct alarm {
+ 	void			*data;
+ };
  
- 	timr->it_overrun += hrtimer_forward_now(timer, timr->it_interval);
--	hrtimer_restart(timer);
--	return true;
-+	return hrtimer_start_expires_user(timer, HRTIMER_MODE_ABS);
- }
- 
- static bool __posixtimer_deliver_signal(struct kernel_siginfo *info, struct k_itimer *timr)
-@@ -829,9 +828,11 @@ static bool common_hrtimer_arm(struct k_
- 		expires = ktime_add_safe(expires, hrtimer_cb_get_time(timer));
- 	hrtimer_set_expires(timer, expires);
- 
--	if (!sigev_none)
--		hrtimer_start_expires(timer, HRTIMER_MODE_ABS);
--	return true;
-+	/* For sigev_none pretend that the timer is queued */
-+	if (sigev_none)
-+		return true;
++static __always_inline ktime_t alarm_get_expires(struct alarm *alarm)
++{
++	return alarm->node.expires;
++}
 +
-+	return hrtimer_start_expires_user(timer, HRTIMER_MODE_ABS);
+ void alarm_init(struct alarm *alarm, enum alarmtimer_type type,
+ 		void (*function)(struct alarm *, ktime_t));
++bool alarmtimer_start(struct alarm *alarm, ktime_t expires, bool relative);
+ void alarm_start(struct alarm *alarm, ktime_t start);
+ void alarm_start_relative(struct alarm *alarm, ktime_t start);
+ void alarm_restart(struct alarm *alarm);
+--- a/kernel/time/alarmtimer.c
++++ b/kernel/time/alarmtimer.c
+@@ -365,6 +365,34 @@ void alarm_start_relative(struct alarm *
  }
+ EXPORT_SYMBOL_GPL(alarm_start_relative);
  
- static int common_hrtimer_try_to_cancel(struct k_itimer *timr)
++/**
++ * alarmtimer_start - Sets an alarm to fire
++ * @alarm:	Pointer to alarm to set
++ * @expires:	Expiry time
++ * @relative:	True if @expires is relative
++ *
++ * Returns: True if the alarm was queued. False if it already expired
++ */
++bool alarmtimer_start(struct alarm *alarm, ktime_t expires, bool relative)
++{
++	struct alarm_base *base = &alarm_bases[alarm->type];
++
++	if (relative)
++		expires = ktime_add_safe(expires, base->get_ktime());
++
++	trace_alarmtimer_start(alarm, base->get_ktime());
++
++	guard(spinlock_irqsave)(&base->lock);
++	alarm->node.expires = expires;
++	alarmtimer_enqueue(base, alarm);
++	if (!hrtimer_start_range_ns_user(&alarm->timer, expires, 0, HRTIMER_MODE_ABS)) {
++		alarmtimer_dequeue(base, alarm);
++		return false;
++	}
++	return true;
++}
++EXPORT_SYMBOL_GPL(alarmtimer_start);
++
+ void alarm_restart(struct alarm *alarm)
+ {
+ 	struct alarm_base *base = &alarm_bases[alarm->type];
 
