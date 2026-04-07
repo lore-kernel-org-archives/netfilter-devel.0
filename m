@@ -1,64 +1,57 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from desiato.infradead.org (desiato.infradead.org [90.155.92.199])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C07B83ACF05;
-	Tue,  7 Apr 2026 11:44:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6535C303A37;
+	Tue,  7 Apr 2026 11:49:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.92.199
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775562282; cv=none; b=o6sEiWvhnbb2/4qR03vBc7Q9hzzePhj/jT6ZQOwM5mtpadae7D16Ft8o+868crFaTo/k1aOCxiHN1G+pCsNrMG87Gjd7MLXIATboHu9CHeLnOFRsNkdwXBdVCtnnysbnRQUrSBcpsvIWtLNeP0Y9NVufZVG80Ko8rJQpNpswQjo=
+	t=1775562555; cv=none; b=loheEGCmDFUDb1jhJ2sC6EmqfoZ9aD54qWAu6L4lhV2gtScmwspKtf47LDhs0zZ+Oh1PR+/CUAR+PCwlg3C4/1F19bGtVIkbjDY3Gpf9n875hI+G4vqwaNun5IQWkUwpkgCXqwK5UXVGynU0lgje5U6IqAMDoxbxldLV0VdNOFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775562282; c=relaxed/simple;
-	bh=RjtcSwRYgYtgUOHjB5w0Veky1jao+R/vSyC9jiZubNs=;
+	s=arc-20240116; t=1775562555; c=relaxed/simple;
+	bh=MO9im/xFLEozcyFMqpvs9dswnDFDbnWFniJcvlkhh24=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oKyE+yHONGriiTzOi6JvxtQazleicOSKfr2wibDxOm7fnqMTrK3VPTa0QOtbLXUhrn2kaw7k16D73tY8Umf587rf8NtVx3yPvKJnyFnLViOgrcqJiZ0jsgXSbnXAriHx1JsNa+0oTevc0ooTS1IQ6+iha3mJOYiJZgeECsDBoAw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iYKLunS4; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=JApeR5ZGTRczuAIRayoCBciR0T65+T5dNjvIK98ymSQ7E8SwEAKakGQiVpn1UAHEOeMstXIx6eAUIoYCXysAvTJFx/U29PavmsbJ8LGD2QSz/E5A6fYQDidj6GmgOMvoM3tB9Ti5nylevana6aSp6DErYFu0d/f0EOflrW1id9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=D5WWuZ/n; arc=none smtp.client-ip=90.155.92.199
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iYKLunS4"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1775562279; x=1807098279;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=RjtcSwRYgYtgUOHjB5w0Veky1jao+R/vSyC9jiZubNs=;
-  b=iYKLunS4vLP/hnHX4MR89r9SXWBc4vA+sDmC3Iq3H25O1SkseIv5OPf8
-   ykoo/bhg8dZxQ72o/kc0SwTfMOsE2mnZisDYbdm57ROc+YNGocZWGQEdx
-   AsNw/x4YR+86w3CxhEikDLQ7vqdfv5AbnhTuc8P949yqMWGO2F/Nc6648
-   l/tJlTs/PaA5SWiO+W+R8z1zdo3a7tJpnLVKcKQMHYxpcokl7eH2nfwkH
-   jTO68R4zn+5LowNvttQmOSfjZYVNbuqhVdxMe6Kd3CIU6mH4CXGdc6pEs
-   C54a/7eNN3bWjx6dq+vLWKe6H8obKZaAymiNRY00sF4Wk+VPT2ETj4cFQ
-   g==;
-X-CSE-ConnectionGUID: gnY22n+vSeSgqJZ2981dnA==
-X-CSE-MsgGUID: KG9RW/HwSeu2Igl7WAfHqg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11751"; a="76405084"
-X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
-   d="scan'208";a="76405084"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Apr 2026 04:44:39 -0700
-X-CSE-ConnectionGUID: elfRy3mGQ6q95nFL2OIOoQ==
-X-CSE-MsgGUID: qsKB1a2dRXigTdXZ6WAidQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,165,1770624000"; 
-   d="scan'208";a="223361885"
-Received: from igk-lkp-server01.igk.intel.com (HELO 9958d990ccf2) ([10.211.93.152])
-  by fmviesa006.fm.intel.com with ESMTP; 07 Apr 2026 04:44:36 -0700
-Received: from kbuild by 9958d990ccf2 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wA4rB-00000000AHF-3uaf;
-	Tue, 07 Apr 2026 11:44:33 +0000
-Date: Tue, 7 Apr 2026 13:43:46 +0200
-From: kernel test robot <lkp@intel.com>
-To: Yingnan Zhang <342144303@qq.com>, horms@verge.net.au, ja@ssi.bg
-Cc: oe-kbuild-all@lists.linux.dev, pablo@netfilter.org, fw@strlen.de,
-	phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	Yingnan Zhang <342144303@qq.com>
-Subject: Re: [PATCH net v2] ipvs: fix MTU check for GSO packets in tunnel mode
-Message-ID: <202604071309.RskiawHA-lkp@intel.com>
-References: <tencent_CA2C1C219C99D315086BE55E8654AF7E6009@qq.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="D5WWuZ/n"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=AOiov/rJ08Wqv5Fg1zDIZQIesob5WeDWCeODzqso7UU=; b=D5WWuZ/nlqC5dXoZA7LA0EqEBZ
+	OHmSa3QmVSMwpsw4Xzh6SD0HSTXUd5XvG4T7RD3ZuWN/0VRudfvxaoASr7EJfaAQoeZbs660dhgG2
+	PMwi2C5BlRpZIk+5totSG8YpwHaCGrFaJ2cUKqZGcNCeVr5MpKaJyL0nZusX7Zn6Om6O/PKYU8oVm
+	/ClWQ0naH4ibGkXpwizELgMjsR2UMkrZOAJLc0us4xrVwBAtD+g6VwHeQbzJkILez1nGzow8fh4co
+	+a+vj3zrl3z6keKFjEOGlmA0IZMYZnsni2XV3v79SxJ6CIHvb5nHDe7DWHJvN8JSOrK43YACy4ZHI
+	tgLHgkig==;
+Received: from 2001-1c00-8d85-4b00-266e-96ff-fe07-7dcc.cable.dynamic.v6.ziggo.nl ([2001:1c00:8d85:4b00:266e:96ff:fe07:7dcc] helo=noisy.programming.kicks-ass.net)
+	by desiato.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1wA4va-00000008AsO-3bg3;
+	Tue, 07 Apr 2026 11:49:06 +0000
+Received: by noisy.programming.kicks-ass.net (Postfix, from userid 1000)
+	id D48A63005E5; Tue, 07 Apr 2026 13:49:05 +0200 (CEST)
+Date: Tue, 7 Apr 2026 13:49:05 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Calvin Owens <calvin@wbinvd.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch 01/12] clockevents: Prevent timer interrupt starvation
+Message-ID: <20260407114905.GH3738786@noisy.programming.kicks-ass.net>
+References: <20260407083219.478203185@kernel.org>
+ <20260407083247.562657657@kernel.org>
+ <20260407094206.GL2872@noisy.programming.kicks-ass.net>
+ <87o6jv57od.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -67,65 +60,55 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <tencent_CA2C1C219C99D315086BE55E8654AF7E6009@qq.com>
+In-Reply-To: <87o6jv57od.ffs@tglx>
 
-Hi Yingnan,
+On Tue, Apr 07, 2026 at 01:30:42PM +0200, Thomas Gleixner wrote:
+> On Tue, Apr 07 2026 at 11:42, Peter Zijlstra wrote:
+> > On Tue, Apr 07, 2026 at 10:54:17AM +0200, Thomas Gleixner wrote:
+> >> @@ -324,16 +324,23 @@ int clockevents_program_event(struct clo
+> >>  		return dev->set_next_ktime(expires, dev);
+> >>  
+> >>  	delta = ktime_to_ns(ktime_sub(expires, ktime_get()));
+> >>  
+> >> +	if (delta > (int64_t)dev->min_delta_ns) {
+> >> +		delta = min(delta, (int64_t) dev->max_delta_ns);
+> >> +		clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
+> >> +		if (!dev->set_next_event((unsigned long) clc, dev))
+> >> +			return 0;
+> >> +	}
+> >>  
+> >> +	if (dev->next_event_forced)
+> >> +		return 0;
+> >>  
+> >> +	if (dev->set_next_event(dev->min_delta_ticks, dev)) {
+> >> +		if (!force || clockevents_program_min_delta(dev))
+> >> +			return -ETIME;
+> >> +	}
+> >> +	dev->next_event_forced = 1;
+> >> +	return 0;
+> >>  }
+> >
+> > Looking at the implementation of clockevents_program_min_delta() doing
+> > that dev->set_next_event(dev->min_delta_ticks,) right before it seems a
+> > bit daft.
+> >
+> > But yes, this is effectively also what the old code did.
+> 
+> yes. I looked at that and didn't come up with a good plan.
+> 
+> > The only thing that seems to be different, is that the old code would
+> > return the ->set_next_event() error code, rather than 0 in the !force
+> > case.
+> 
+> You mean when dev->next_event_forced is set and the set_event() callback
+> above failed?
 
-kernel test robot noticed the following build errors:
+next_event_foced = 0;
+force = 0;
 
-[auto build test ERROR on net/main]
+Then the old code would return rc (return value of ->set_next_event),
+while the new code will return -ETIME.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Yingnan-Zhang/ipvs-fix-MTU-check-for-GSO-packets-in-tunnel-mode/20260407-141549
-base:   net/main
-patch link:    https://lore.kernel.org/r/tencent_CA2C1C219C99D315086BE55E8654AF7E6009%40qq.com
-patch subject: [PATCH net v2] ipvs: fix MTU check for GSO packets in tunnel mode
-config: x86_64-rhel-9.4-ltp (https://download.01.org/0day-ci/archive/20260407/202604071309.RskiawHA-lkp@intel.com/config)
-compiler: gcc-14 (Debian 14.2.0-19) 14.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260407/202604071309.RskiawHA-lkp@intel.com/reproduce)
+(not 0 like I said).
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202604071309.RskiawHA-lkp@intel.com/
-
-All error/warnings (new ones prefixed by >>):
-
->> net/netfilter/ipvs/ip_vs_xmit.c:115:11: error: expected identifier or '(' before 'else'
-     115 |         } else if (skb->len > mtu &&
-         |           ^~~~
->> net/netfilter/ipvs/ip_vs_xmit.c:119:9: error: expected identifier or '(' before 'return'
-     119 |         return false;
-         |         ^~~~~~
->> net/netfilter/ipvs/ip_vs_xmit.c:120:1: error: expected identifier or '(' before '}' token
-     120 | }
-         | ^
-   net/netfilter/ipvs/ip_vs_xmit.c: In function '__mtu_check_toobig_v6':
->> net/netfilter/ipvs/ip_vs_xmit.c:115:9: warning: control reaches end of non-void function [-Wreturn-type]
-     115 |         } else if (skb->len > mtu &&
-         |         ^
-
-
-vim +115 net/netfilter/ipvs/ip_vs_xmit.c
-
-   104	
-   105	static inline bool
-   106	__mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
-   107	{
-   108		if (IP6CB(skb)->frag_max_size) {
-   109			/* frag_max_size tell us that, this packet have been
-   110			 * defragmented by netfilter IPv6 conntrack module.
-   111			 */
-   112			if (IP6CB(skb)->frag_max_size > mtu)
-   113				return true; /* largest fragment violate MTU */
-   114		}
- > 115		} else if (skb->len > mtu &&
-   116			   !(skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))) {
-   117			return true; /* Packet size violate MTU size */
-   118		}
- > 119		return false;
- > 120	}
-   121	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+I suppose ->set_next_event() will only ever fail with -ETIME?
