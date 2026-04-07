@@ -1,72 +1,52 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADAB33939C9;
-	Tue,  7 Apr 2026 18:03:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F64534EF05
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 18:08:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775585024; cv=none; b=Ad/OviOsiuor+Asw8u2b7ChFdD1SxUmLovjnv8aPJB5+l/wq3QxBXWqSh0ed7/reeCCrRYwtbQMLw3ZzQ00H/Cl05vr51a4Q41q+AKFQx4SIlpNI4vQt4oG+x0wxJ7mgCTqT89wFWrJ2kPaDlbO2PdkwRH9c6TXO4u5H8Hpry54=
+	t=1775585337; cv=none; b=l2DttbI1J6PwF8LqZ9ZHvLWX2Jgeu4TWS2UJKZAYDG6dmc3dn25BTbrdYW9BaotGxyewQHiNulHd4V26OXP6cmYX4uo/WH+NqFQyqA5pt5LfbpOLbVk/nc/c6hW3n9M47i4OWfnxRWzicY5YM2aDth3RWgtDMvwEIIE5Kjb16Dg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775585024; c=relaxed/simple;
-	bh=PCVX5+MJaDtv/5QhBK4sEVcRXCI5vHo43oyqAw9jfPE=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=Falfi8LjMtAq/4ZyVVggPrPtOzk6jVLakMf1JPKWnLcffE/5xPgU4WbLKWCrLZb820OG1kde5aoardJQaSJh+LK+Z2hKTbwbJL5YKymjlClGT+HZbIiasm+1vRnvwWlgt7ttwrBSzQVsBwSIfWUc9hOhuNyuYVXJ4rLBbAZ3xnk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JCAvlZFC; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JCAvlZFC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B267C19424;
-	Tue,  7 Apr 2026 18:03:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775585024;
-	bh=PCVX5+MJaDtv/5QhBK4sEVcRXCI5vHo43oyqAw9jfPE=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=JCAvlZFCbL40yalBtx+vibMzq1gI0LuOkr9zf7wT+0s9dpq0I4d5U9ZHv4rMIwoN/
-	 lOaHUp7VLggxIpmS3tjRVqJxdTCHT7rw1f0JrPRceWOXpDY8EM9v44cuLv65/1ZW6s
-	 wsBIDGdekvhUlGZneUCm68A+jviQj0jkKZJRzTh2WpKWFeO1dSoqZwi3oei5FT3Q14
-	 fcBg7ZQvEIfp0pfxLyM5NSyW2jQpLeq+NJwYCvB1rRtY1Jo0fDYfYtWd4ppviFmmkx
-	 KeBRgqZ3zbApsODuNYkbgy7xUAYpumLGGcWLLfZjLoeNTTDtxOzy/yX6OAHzAlkRAI
-	 LNHJidhDWpG+w==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Calvin Owens <calvin@wbinvd.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra
- <peterz@infradead.org>, Anna-Maria Behnsen <anna-maria@linutronix.de>,
- Frederic Weisbecker <frederic@kernel.org>, Ingo Molnar <mingo@kernel.org>,
- John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner
- <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
- linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, Florian
- Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [patch 00/12] hrtimers: Prevent hrtimer interrupt starvation
-In-Reply-To: <adVA_uv1srA_bsKj@mozart.vkv.me>
-References: <20260407083219.478203185@kernel.org>
- <adVA_uv1srA_bsKj@mozart.vkv.me>
-Date: Tue, 07 Apr 2026 20:03:40 +0200
-Message-ID: <87ika24phf.ffs@tglx>
+	s=arc-20240116; t=1775585337; c=relaxed/simple;
+	bh=BgP9YTtKtdp11V1qurfEh6r6WWSsqXAYo4cJFs8lW8U=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K+m1XSybh+XI4Dxg9jTweABP0ioSE8K7AEXLekbmWkCFcSENJo3/LrZ3/kkhojcbQZCOOs5RRdAxmZ1rVkf6oWUU+A/17FIvj09DrvtyNKmv4LwHgfkWaTjeMNTqNPoi7SI1I652v3m6vgppLxWTTPSGSJBOG1xy+hEf3awtbKk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id A388B60660; Tue, 07 Apr 2026 20:08:46 +0200 (CEST)
+Date: Tue, 7 Apr 2026 20:08:46 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
+	pablo@netfilter.org
+Subject: Re: [PATCH nf] selftests: nft_queue.sh: add a parallel stress test
+Message-ID: <adVILlipGGN76rcw@strlen.de>
+References: <20260406211831.3758-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260406211831.3758-1-fmancera@suse.de>
 
-On Tue, Apr 07 2026 at 10:38, Calvin Owens wrote:
-> On Tuesday 04/07 at 10:54 +0200, Thomas Gleixner wrote:
->> He provided a reproducer, which sets up a timerfd based timer and then
->> rearms it in a loop with an absolute expiry time of 1ns.
->
-> The original AMD machines survive the reproducer with this series.
->
-> Tested-by: Calvin Owens <calvin@wbinvd.org>
->
-> I'm happy to test subsets of it and stable backports too, if that's
-> helpful, just let me know.
+Fernando Fernandez Mancera <fmancera@suse.de> wrote:
+> diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
+> index ea766bdc5d04..1e1949c6a918 100755
+> --- a/tools/testing/selftests/net/netfilter/nft_queue.sh
+> +++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
+> @@ -11,6 +11,7 @@ ret=0
+>  timeout=5
+>  
+>  SCTP_TEST_TIMEOUT=60
+> +STRESS_TEST_TIMEOUT=300
 
-We'll only backport the first patch, so confirming that it still
-prevents the issue would be nice. The rest is slated for upstream only.
+I changed this to 30s, I think the full 5m dance is a bit
+too long for the selftest.
 
-Thanks,
-
-        tglx
+I know 30s is likely not enough to trigger the bug reliably but given this
+test will run may times per day on netdev infra I think 30s is ok.
