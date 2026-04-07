@@ -1,93 +1,93 @@
-Received: from mail-ej1-f45.google.com (mail-ej1-f45.google.com [209.85.218.45])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3B0436AB4B
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 20:21:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9D7234A76B
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 20:23:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.218.44
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775593301; cv=pass; b=U/tyllh2adi6W8ezGMaSGbam3Io3qPqiH+V9cxWNjNpf/QT1YBjYIGmQ7YEze7VedRIipjFm7wnC7sANTqFr3oWkz5arN6egFX/Hkd5JDRHwt+h5YFYzzVpLesJSyDr4tJ0xYPUji+iYn89/bQrAvbhftG83qXFCimxpgNSOAFs=
+	t=1775593400; cv=pass; b=YtZ7thTbo+auzp7hOPL8t9QB1b5BtIo3XdboNvJ47HnzXwVTxPFAME8QXOSrq4p4quHSOX7BMbpDt/mX9EOwKu+ZU1MUbnl2lutoVd6EGzAV8u59NO8PA9AxH/+7UvEk1jg+DFWa5vGmxsWGJXrOl8Pe2Vmjv1IzhzY3UJKClv0=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775593301; c=relaxed/simple;
-	bh=OJ1tQJvTeGMBujVZAtwZtubFV7cagCryNfAmpVWvX2I=;
+	s=arc-20240116; t=1775593400; c=relaxed/simple;
+	bh=/vo8Ho9uK7QNdoBdsxzXkL/VUAV5uKB8HFsyFKhwoOw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=aYg4gUrlOFrAXiT5S90B3jJ1XNysTQsKypSCp34+Mz02CYkk2yi8F/E5XFwZBl4ZJJ7RJCaz7GVbJVKr86t0uKXSUb+7/2TkGxkswOtCXSaxwOcPVCkSkA0K65pS9SyMrMQ3yAbuo4g/uga1TMUW8VNyAKWlNtuoU4bV1F89yaw=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=Digbjsaj; arc=pass smtp.client-ip=209.85.218.45
+	 To:Cc:Content-Type; b=Fb8d0NhUVWl15A0yIuv+6Y2raKk4tOmocPkAZrK6+EaM075sQMm1nvO8SPsafOg9oVX7RW5w2cWCeBJKWYIgBHh0HjzZHzUbmjJyuqDYzce2GoPj2tp5WWaFNjIq6693be8Vc2SqkC3edQ9WVP7i4WOl7P9+oNJnnVY6GQr7DWI=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=C9ShAHrh; arc=pass smtp.client-ip=209.85.218.44
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="Digbjsaj"
-Received: by mail-ej1-f45.google.com with SMTP id a640c23a62f3a-b941762394aso740011166b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 07 Apr 2026 13:21:39 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775593298; cv=none;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="C9ShAHrh"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-b932fe2e1a7so734101766b.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Apr 2026 13:23:18 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1775593397; cv=none;
         d=google.com; s=arc-20240605;
-        b=RaJHG/E/bOwnPLviJXHWi29X3s+8uqeUF22tTFboGuGplYf9Gh1Cr99dQfXAZ8YhmH
-         3nmpepU9nR2ko/NNRvNbW9cDcFjw5bkCi2iIF+QpNsvPPV5MSJafI6/VywybJebxFhVs
-         tw3vpEN8f/N0ID3VHY61jBc++ha3Q9+wj/Kkl5O1/qRS6xnqigqTVZxTZhIDySu7PtFe
-         JGYe6wYThRv0JbgJz9/+2cGYjSgnGr4FVaO5E5DJWG/AVeyfPONIYYKdQ8i9dQu+RZ8d
-         2mvzuJAdNTyi87HR0Q4NRrUOALoqXUUj4YNt8CNfZIpMWj8FguFFIrytLIrHCAGEj78A
-         JhkA==
+        b=GZyFx03a1ZoNtgagdGm9U1spe1RJ4nTvGmnsenh1kEdnKaO6vsi2WaauwZajTsk13p
+         5pS2TBY/nYwk7Rbzl3S3JLxxR7/zcnywuQE+0JCVxM+Y+uYvLzkGGDJrMrucb8juyTsl
+         sTECjsv7i5OQmulAlZUurxyUyJMtnUdByLpm6x7FAMHRvbC6Fqy0cfqp/dsLNJ+SdGxm
+         mKxculjyj7qYyokMMDgpFxUYyDg88kF7cRYqS/mU7vEuLUr2cAgiWIg6jb9zGzXTXGzb
+         b6ImHZjmyJzwIz+nWH2PcVzAsAltHlSnUxQ8IdNborE3NYVfUboQfNeXDrez3N/8C56/
+         kalA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:dkim-signature;
-        bh=OJ1tQJvTeGMBujVZAtwZtubFV7cagCryNfAmpVWvX2I=;
-        fh=CFtcNuEImR1/T3IuR8Bq5+Zu+ktxYk85Hk/DHVclikM=;
-        b=dMd1FWpwYXxaSySl8ShxIjhqyjgQhvyun4k4ZYN5ppmdilNiAt7uyzOV601MgJZnz+
-         lpQ3gafzD9vB7dR8dLFB3TXQzk1risHeYA3fHmSjUC/R8CHnuZIgxL/FNmpMYsIBfSnw
-         PlvCDr1rLDQQ+uuUiol5v++HO+SJZAeAqK9DkfHY1GlokupPS+SnygGEqCfOrhjUXTpQ
-         UdsefVEoONYcbVb3zIK5OkZ69vDq2Z6ECnKoiBcLw2LZWMh++ZAvAOPQpW+UxxTeV5v4
-         1sGqWP5QAFDH2DWspz9DvVSL37ay/92T64FhjUgJ3RFWQ+1SYY0Un2pNYtCXepFvOpnd
-         UNlw==;
+        bh=ZCx8twqJvR9nn7bLFe0MWiBT1PMklf9crqW/etIEYlw=;
+        fh=v5H0m4ia9YSs8TFcwCANGF98GfP7pcn6eqq5c3gwfu0=;
+        b=CkmSF4mlYIcL7Rv/x+C3warNMyYnHyIUeba9DY8+QYj7ffqCTz7jLlARqi9FTaI0cl
+         wclzlVkp4AsDTvKzWdvxJVNaNiDJ1ahmbZM009/bGMJ+UQM5ybfe948xKsVBY4FVxnhM
+         +Vj/RUYF6NrMHuIpoiJow8+9y7lweJaZl9bH7ICZabK7E/Kz4at3JGN758gMOCJRJXlJ
+         4FNA8vUIzP9hA6/++OE2BDogo72YHtvPj8JQk0/ndJI5VB/RFFxcrrBsE+nykUR8/VG2
+         bNUe0qTbA4M58Jcin8rWnaWMVTb39+29RzIV6dq2ulu+CLizeX/JZgclZChojzbV6ORA
+         R0lA==;
         darn=vger.kernel.org
 ARC-Authentication-Results: i=1; mx.google.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20251104; t=1775593298; x=1776198098; darn=vger.kernel.org;
+        d=google.com; s=20251104; t=1775593397; x=1776198197; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=OJ1tQJvTeGMBujVZAtwZtubFV7cagCryNfAmpVWvX2I=;
-        b=Digbjsaj5m93nHOVCFbrS3mEpKIjOF4kS6gA7CWIqEpP3wvyqeZ/dsdw3MIxmi27HL
-         VZWC9n+VFO/hCZ3c5zbfPz3WafWZBytYKl8NbTq7Pn8ejMvVECeP8s1DHrLCFz/WVzHg
-         U8DgyM+IEaU1tBI4PlQ8DB7kI+czlsSQL0bgKEX+/lLwjTruuJ+J4EtQI7aEqlIopIZs
-         5pBtHrWzBBRMy49lhxL6D4ksvk7rueuqlp/8QGqAbYgfnykffsJMEhVqqcKgKbP9TCWW
-         aGYogSMDWI5ArIpl8vGQRgVQzrKgMMJibmE543+XHuFjJsAl4lw5hm1G1PjwKwKWXzlJ
-         j6YQ==
+        bh=ZCx8twqJvR9nn7bLFe0MWiBT1PMklf9crqW/etIEYlw=;
+        b=C9ShAHrhqE76X97cIBZf5dHkbyR9lBkcPtM+Vqw/Bvk1yZN3HIKf1hCEQr3YmNY1N7
+         Zx02UaezcXaHGuceYyemshxBMYz0Q/bbb1pB0Ex/qlRtQLLnRiNAUskOnqDjFEGTLDQ4
+         okgc8+lIi1gAObQ0N7NcDC44RicH5dBkpoZNBfyWaKZ1eiVD6Fe9YLnXQyG3dbxfesl3
+         T/tCW5VB3BF50RiBp3tqT7OqZgdo4+quvZPicECm0I7YroE9ExG/CcU5hrRb6xkuICaX
+         S1g06lzf1PSG1V3vxwuibGeD0kj5OFskWhQHFaNph4P+Q0n7ZLmU1xvD8dIApmw5wMaQ
+         TpEA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775593298; x=1776198098;
+        d=1e100.net; s=20251104; t=1775593397; x=1776198197;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=OJ1tQJvTeGMBujVZAtwZtubFV7cagCryNfAmpVWvX2I=;
-        b=QtHEeObrralToKi50bgk/YeQc+xf24jJHr3t40SpZNbXgyxbxAltVbvbKqDcfKWMX8
-         Zykw7bRzBRId7juPNwWfJQiITcWCY6dgWqbfpmQWoH81OcqelLDf0feL6lbsxuPJ+06h
-         EAHNBvQL+bUxx5OtOalapSc1GQ7orC4EuVsZ5f+LKgHfmphzgvW6P9628S/rbV+W3bN9
-         6kqoUKARYRtTWuux/whStmFExoAG0rYHxAn3YtBr+j2mg6TY9X6kmUz4jqYbWdwDWpu/
-         MFiqT77uVUhPKSg4xObHUCwGzv0HulO5qYCPuQcD3k3wrA++x3DXAvDPPhH9jjXBtXbS
-         OTUQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU5wsQc9HWtg4nG++sL/ymeGp6rbdCVBh1FlGXun2Sbt0wgrhIbbTfwra9Pi961fbH9uME3O7lA9jzfFLk/gkk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzNJsZ6+FieBKqDhG51qIetH6vPdh9NrejUlwK+XUKHEajtdZA1
-	RTG6tYYdhvFXnOWclHEjmLomABQxEjFFbzX9mT5kJ7UmFhzjWh56I3/TJ9oIrLI4yfKUKpoRzGq
-	iCRo1yP5+Z3KBfBC1SkrVmVz8B+bHv6+213yJIc4=
-X-Gm-Gg: AeBDiesmGl1mv2P6PvhOsoshDjufxhmg6d/ep728S8yUQkAF4DZxywch7t8rwfvrk+a
-	jpTlLojfGp939D8vdczgrG7ByRZ+sSP8P6c9q2QS9NZQjXarcwraNaCj0NTGet9mT1Nxu4yEz3V
-	tYEqLrqpJCKtuYDFP9DP/9TTLFy6elkQaxpp0vPw33q+ugtx7jegCdFWXEPCuRdVpi8UhktuKgv
-	hXMZiIS9N4b9nN+2WGDGvPbW9PFYUKHwqezdq5+cRVO3+e3ZVKumvLtGLkHqZs8kyUVQyFOjdTt
-	o3PU/quMYw8Amrjn0nw2r36euEhsOQjYAk52
-X-Received: by 2002:a17:907:d87:b0:b9c:9594:e10 with SMTP id
- a640c23a62f3a-b9c9594137dmr648296266b.14.1775593297523; Tue, 07 Apr 2026
- 13:21:37 -0700 (PDT)
+        bh=ZCx8twqJvR9nn7bLFe0MWiBT1PMklf9crqW/etIEYlw=;
+        b=KXqRFKavFY2QulYP0+BJJPwKMaTyRw8oV1rFHNKngsWGZ745plkfs0wOEWRrXeEBRm
+         F8i4xWK2R/Au4fBeTdvlfGdrgPJMiEsqPbWYQiTubayCDK0Tm9ZA/JOqRb2SpAKJTaen
+         ACSxx0AiPsiiOMGDlQDsxvU+lgNFDEyBWSLdtn7lUFJiQeQDBgWUmYY6fJzm6qi+t83/
+         GITXXJ3kQC3LG+mYcUNYInxhfLUw9S0814AKFfCkYB+5QdTXzfIqAgj0inr9yzCe1/pd
+         t+Sz/yoro9xI5LdhANYUjrSwii7WOuy7h/H2Z5oAulWSqoCVhVKGi2M2X3ImOsiGHux9
+         EfZQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVm30LzoCQCTG4zWzv73kZUxWYP0uzCx8UDQT2rW5YXs0ahb3wobOlu6cWdhOi8ElBs/oNYtTb37MPUjlyciYc=@vger.kernel.org
+X-Gm-Message-State: AOJu0YybghmTd5YoqfIJtXLbJ8/PCrMxznUBVLHtaJP4hySV+kXhco0p
+	rvhw/5kvAM2qffk9uG82AOfQTdnmhvJe5E1HpPg0hPZckrhhGGFxb4NQvkeOcW16LfytMxHHVYE
+	zPmpjaxcjsv8vM5YHB3EqUUuaHvevMkbzCoQfTVk=
+X-Gm-Gg: AeBDievMiY+p+jB/RzUIFws+HDyUZ2jWslxwkMeFwDk7l6xATKzu/c2EsJ1LOWP/mhc
+	/0nIOkF3jkPRsCwtq1zqVTYKAMpPhqrBnd+W1OABO7JphLJyK3o5wklHkawO2MgvOp6HSwT98qN
+	cbwoaA3hOfZo9yWyVdfxFXq74qwkTwPIo1JLq4bMYsWxgEibbhzX53mZKqZrfzXzWt5f7L3tiG5
+	CiA/XWDf+PtEp7Dz5KliMjnxPh/MPD9RV8s6DfEs7hdiSda5xqpxOc6GpmTLUTH7tm1RizlQYaX
+	p1mmEPliAH9oybJ4oNk1jRScSGUyERfjObPM
+X-Received: by 2002:a17:907:8703:b0:b98:4c58:f499 with SMTP id
+ a640c23a62f3a-b9c67957ff5mr691793266b.28.1775593396835; Tue, 07 Apr 2026
+ 13:23:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260407083219.478203185@kernel.org> <20260407083248.303293327@kernel.org>
-In-Reply-To: <20260407083248.303293327@kernel.org>
+References: <20260407083219.478203185@kernel.org> <20260407083247.965539525@kernel.org>
+In-Reply-To: <20260407083247.965539525@kernel.org>
 From: John Stultz <jstultz@google.com>
-Date: Tue, 7 Apr 2026 13:21:25 -0700
-X-Gm-Features: AQROBzC7PDFv8vCtFbIbXkiDn8QPhKuu5um8yGzNerNDgS5PLItAWlJfqN0nP1w
-Message-ID: <CANDhNCoTUyvQ_-Vn3neffN_Cu2uwPW36O4CtZLCu2JHPztW8Kg@mail.gmail.com>
-Subject: Re: [patch 12/12] alarmtimer: Remove unused interfaces
+Date: Tue, 7 Apr 2026 13:23:04 -0700
+X-Gm-Features: AQROBzB82cXuNdt0Ng1iSzJ-7D2GJGPn4Rejnm3RvPTfCJRZuUw3Y0MamQBLYuk
+Message-ID: <CANDhNCo9QZKoEwX0r8JeP_8YTSvKg5ENTSw5Zjj9Po-FywBftQ@mail.gmail.com>
+Subject: Re: [patch 07/12] alarmtimer: Provide alarmtimer_start()
 To: Thomas Gleixner <tglx@kernel.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, Stephen Boyd <sboyd@kernel.org>, 
 	Calvin Owens <calvin@wbinvd.org>, Peter Zijlstra <peterz@infradead.org>, 
@@ -100,14 +100,25 @@ Cc: LKML <linux-kernel@vger.kernel.org>, Stephen Boyd <sboyd@kernel.org>,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 7, 2026 at 1:55=E2=80=AFAM Thomas Gleixner <tglx@kernel.org> wr=
+On Tue, Apr 7, 2026 at 1:54=E2=80=AFAM Thomas Gleixner <tglx@kernel.org> wr=
 ote:
 >
-> All alarmtimer users are converted to alarmtimer_start(). Remove the now
-> unused interfaces.
+> Alarm timers utilize hrtimers for normal operation and only switch to the
+> RTC on suspend. In order to catch already expired timers early and withou=
+t
+> going through a timer interrupt cycle, provide a new start function which
+> internally uses hrtimer_start_range_ns_user().
+>
+> If hrtimer_start_range_ns_user() detects an already expired timer, it doe=
+s
+> not queue it. In that case remove the timer from the alarm base as well.
+>
+> Return the status queued or not back to the caller to handle the early
+> expiry.
 >
 > Signed-off-by: Thomas Gleixner <tglx@kernel.org>
 > Cc: John Stultz <jstultz@google.com>
 > Cc: Stephen Boyd <sboyd@kernel.org>
 
-Acked-by: John Stultz <jstultz@google.com>
+Acked-by: John Stultz <jstultz@google.com>   (also with Peter's
+suggested name change)
