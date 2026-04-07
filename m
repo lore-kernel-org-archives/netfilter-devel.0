@@ -1,359 +1,147 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31BBC2F690F
-	for <netfilter-devel@vger.kernel.org>; Mon,  6 Apr 2026 21:18:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BC5113959D;
+	Tue,  7 Apr 2026 08:54:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775510323; cv=none; b=s8sRfS9OJSn2K2fo6yNXepSvx1npN95XngFwdi6xUE5GoQqNI4BSyikD7DaSqnfxCVoDZXIjq7rHgOIvc2HUysgFSbgafepjhZsZw7RqtFiI449Ce53KJ7f5yWiUCFZEkLThWPe/7hu348bWqIaqnNyTr+tSou8ZGdC7xfwkBec=
+	t=1775552056; cv=none; b=eTxdr9G6JgaLAiZQ9p6d8W/oi9dEk4FnIFFIu0nxJXekK31jUp+a6+tOv02fv/Eb98t3c5FJzhWIhoDtgL/dofWM73JyYzu61knTFnEK7nGmt9ohGbciUtX80A2UzkFKQaN9bk5/hbcKW8KsRvvEv9pEZMRiK5LfK6icIc79+88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775510323; c=relaxed/simple;
-	bh=v6EVKbIWpLhlaG23jNkBdRtjv2Xhxal/iMgd8gicg4o=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IDlGuFCsX93yHQLUoLkE/l7zXt7tzMKoxzZTcrMXixlrxhR5uzAB4K78FnEN6SS9aO1uHUEQA3Pe94BWX8bAH7XLpaTZflXs7v2T4/yt3vPFWtdHZkUeAojJhdTk78ca/E2UozzDmxYsHCzZskxdiAivemgPiGM5nr0qCCRaOjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wNCkcWmv; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=+K4I52z9; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=wNCkcWmv; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=+K4I52z9; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1775552056; c=relaxed/simple;
+	bh=/UVoU8W1t8K+EOuKoQSmXAaZim6qPp6ckYNHHxZ9hfM=;
+	h=Date:Message-ID:From:To:Subject:cc; b=WUpx0Bt6GCSXph0QMM1Z28b3R38hn2BGX9e3LYld5LC06Z9Lxsn2Rt8LuldhPZJupoOX7hQCGFyoEeIhgwi0my/LLbW+mOXhYSV7VNYFy1E2eJqGrWMigMUYlMWLlbdI2Iilcd6V+j2npEVIw9+qNQlbGYPpTxswZp39LhA+It8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HugIpB0f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wNCkcWmv";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="+K4I52z9";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="wNCkcWmv";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="+K4I52z9"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 368E25BD48;
-	Mon,  6 Apr 2026 21:18:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1775510320; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=JNShLGtF/R+q5EqfrfnvrzpMVHk6e2J804m0xooKGAo=;
-	b=wNCkcWmvRYv4vrrlXDSAiAPXLcMzNKRpY4Cf5g+kZolUUHOTCt1jWBJuEdUYQvbPN2NY+R
-	T84ByONZyQ9zXonG1/xlYBwaHmdgy+sIACMo0aASi8aGXa62k64S0gyrPDsPe8i0JvD7VB
-	BM569OrN+FRGr434IQf/KvcceACaGLw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1775510320;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=JNShLGtF/R+q5EqfrfnvrzpMVHk6e2J804m0xooKGAo=;
-	b=+K4I52z9G1bBYN914RpJKi5f//GrIY+L1u8jDwsTsLgelmn9/FlRtYA9TI6TKhpaPR5oPe
-	7iw6kiLmpNF2+RAA==
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=wNCkcWmv;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=+K4I52z9
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1775510320; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=JNShLGtF/R+q5EqfrfnvrzpMVHk6e2J804m0xooKGAo=;
-	b=wNCkcWmvRYv4vrrlXDSAiAPXLcMzNKRpY4Cf5g+kZolUUHOTCt1jWBJuEdUYQvbPN2NY+R
-	T84ByONZyQ9zXonG1/xlYBwaHmdgy+sIACMo0aASi8aGXa62k64S0gyrPDsPe8i0JvD7VB
-	BM569OrN+FRGr434IQf/KvcceACaGLw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1775510320;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=JNShLGtF/R+q5EqfrfnvrzpMVHk6e2J804m0xooKGAo=;
-	b=+K4I52z9G1bBYN914RpJKi5f//GrIY+L1u8jDwsTsLgelmn9/FlRtYA9TI6TKhpaPR5oPe
-	7iw6kiLmpNF2+RAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B5B894A0B0;
-	Mon,  6 Apr 2026 21:18:39 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 3jJUKC8j1GlMAQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 06 Apr 2026 21:18:39 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	phil@nwl.cc,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf] selftests: nft_queue.sh: add a parallel stress test
-Date: Mon,  6 Apr 2026 23:18:31 +0200
-Message-ID: <20260406211831.3758-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HugIpB0f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4457C116C6;
+	Tue,  7 Apr 2026 08:54:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775552055;
+	bh=/UVoU8W1t8K+EOuKoQSmXAaZim6qPp6ckYNHHxZ9hfM=;
+	h=Date:From:To:Subject:cc:From;
+	b=HugIpB0fmydogp5EXRfDc4cCc5LM83rTvVXhu5K0HStS9X6dGvHkUivRxy1LpkvCI
+	 kCp5zccEBfFQkwsWbW9SOKKPD3VM+PwcPmUULsXhj2Gwo4EcF7OAOHtsa+1vOXD3dV
+	 MGvYCMPtUTACJI8xtB8ErH+jORoSYazaTyozMRLHbpUXr5HWa/VpOxCPiCBcM3FaQ9
+	 2aueWXdJ5OXgIW982W5kscBjtD0CzVGXdO6tXe00RtRTqqJSls760tRXvh4l93mH1k
+	 hkIZvX53+xSxZtE/WmrN/Wbo/yAuWsch0IEWYF8/5GT7g/TubOn+C6Ko6M7wmbn2BY
+	 Chc6BEo/CkDRg==
+Date: Tue, 07 Apr 2026 10:54:12 +0200
+Message-ID: <20260407083219.478203185@kernel.org>
+User-Agent: quilt/0.68
+From: Thomas Gleixner <tglx@kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Subject: [patch 00/12] hrtimers: Prevent hrtimer interrupt starvation
+cc: Calvin Owens <calvin@wbinvd.org>,
+ Peter Zijlstra <peterz@infradead.org>,
+ Anna-Maria Behnsen <anna-maria@linutronix.de>,
+ Frederic Weisbecker <frederic@kernel.org>,
+ Ingo Molnar <mingo@kernel.org>,
+ John Stultz <jstultz@google.com>,
+ Stephen Boyd <sboyd@kernel.org>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>,
+ Jan Kara <jack@suse.cz>,
+ linux-fsdevel@vger.kernel.org,
+ Sebastian Reichel <sre@kernel.org>,
+ linux-pm@vger.kernel.org,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>,
+ netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-3.01 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:mid,suse.de:dkim,suse.de:email];
-	FROM_HAS_DN(0.00)[];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	TO_DN_SOME(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[6];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Action: no action
-X-Spam-Flag: NO
-X-Spam-Score: -3.01
-X-Spam-Level: 
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 368E25BD48
 
-Introduce a new stress test to check for race conditions in the
-nfnetlink_queue subsystem, where an entry is freed while another CPU is
-concurrently walking the global rhashtable.
+Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
+up in user space:
 
-To trigger this, `nf_queue.c` is extended with two new flags:
-  * -O (out-of-order): Buffers packet IDs and flushes them in reverse.
-  * -b (bogus verdicts): Floods the kernel with non-existent packet IDs.
+  https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
 
-The bogus verdict loop forces the kernel's lookup function to perform
-full rhashtable bucket traversals (-ENOENT). Combined with reverse-order
-flushing and heavy parallel UDP/ping flooding across 8 queues, this puts
-the nfnetlink_queue code under pressure.
+He provided a reproducer, which sets up a timerfd based timer and then
+rearms it in a loop with an absolute expiry time of 1ns.
 
-Joint work with Florian Westphal.
+As the expiry time is in the past, the timer ends up as the first expiring
+timer in the per CPU hrtimer base and the clockevent device is programmed
+with the minimum delta value. If the machine is fast enough, this ends up
+in a endless loop of programming the delta value to the minimum value
+defined by the clock event device, before the timer interrupt can fire,
+which starves the interrupt and consequently triggers the lockup detector
+because the hrtimer callback of the lockup mechanism is never invoked.
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+The first patch in the series changes the clockevent set next event
+mechanism to prevent reprogramming of the clockevent device when the
+minimum delta value was programmed unless the new delta is larger than
+that. It's a less convoluted variant of the patch which was posted in the
+above linked thread and was confirmed to prevent the starvation problem.
+
+But that's only to be considered the last resort because it results in an
+insane amount of avoidable hrtimer interrupts.
+
+The problem of user controlled timers is that the input value is only
+sanity checked vs. validity of the provided timespec and clamped to be in
+the maximum allowable range. But for performance reasons for in kernel
+usage there is no check whether a to be armed timer might have been expired
+already at enqueue time.
+
+The rest of the series addresses this by providing a separate interface to
+arm user controlled timers. This works the same way as the existing
+hrtimer_start_range_ns(), but in case that the timer ends up as the first
+timer in the clock base after enqueue it provides additional checks:
+
+      - Whether the timer becomes the first expiring timer in the CPU base.
+
+      	If not the timer is considered to expire in the future as there is
+	already an earlier event programmed.
+
+      - Whether the timer has expired already by comparing the expiry value
+        against current time.
+
+	If it is expired, the timer is removed from the clock base and the
+	function returns false, so that the caller can handle it. That's
+	required because the function cannot invoke the callback as that
+	might need to acquire a lock which is held by the caller.
+
+This function is then used for the user controlled timer arming interfaces
+mainly by converting hrtimer sleeper over to it. That affects a few in
+kernel users too, but the overhead is minimal in that case and it spares a
+tedious whack the mole game all over the tree.
+
+The other usage sites in posixtimers, alarmtimers and timerfd are converted
+as well, which should cover the vast majority of user space controllable
+timers as far as my investigation goes.
+
+The series applies against Linux tree and is also available from git:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git hrtimer-exp-v1
+
+There needs to be some discussion about the scope of backporting. The first
+patch preventing the stall is obviously a backport candidate. The remaining
+series can be obviously argued about, but in my opinion it should be
+backported as well as it prevents stupid or malicious user space from
+generating tons of pointless timer interrupts.
+
+Thanks,
+
+	tglx
 ---
- .../selftests/net/netfilter/nf_queue.c        | 50 +++++++++--
- .../selftests/net/netfilter/nft_queue.sh      | 83 ++++++++++++++++---
- 2 files changed, 115 insertions(+), 18 deletions(-)
+ drivers/power/supply/charger-manager.c |   12 +-
+ fs/timerfd.c                           |  115 +++++++++++++++-----------
+ include/linux/alarmtimer.h             |    9 +-
+ include/linux/clockchips.h             |    2 
+ include/linux/hrtimer.h                |   20 +++-
+ include/trace/events/timer.h           |   13 +++
+ kernel/time/alarmtimer.c               |   70 +++++++---------
+ kernel/time/clockevents.c              |   23 +++--
+ kernel/time/hrtimer.c                  |  142 +++++++++++++++++++++++++++++----
+ kernel/time/posix-cpu-timers.c         |   18 ++--
+ kernel/time/posix-timers.c             |   35 +++++---
+ kernel/time/posix-timers.h             |    4 
+ kernel/time/tick-common.c              |    1 
+ kernel/time/tick-sched.c               |    1 
+ net/netfilter/xt_IDLETIMER.c           |   24 ++++-
+ 15 files changed, 341 insertions(+), 148 deletions(-)
 
-diff --git a/tools/testing/selftests/net/netfilter/nf_queue.c b/tools/testing/selftests/net/netfilter/nf_queue.c
-index 116c0ca0eabb..8bbec37f5356 100644
---- a/tools/testing/selftests/net/netfilter/nf_queue.c
-+++ b/tools/testing/selftests/net/netfilter/nf_queue.c
-@@ -19,6 +19,8 @@ struct options {
- 	bool count_packets;
- 	bool gso_enabled;
- 	bool failopen;
-+	bool out_of_order;
-+	bool bogus_verdict;
- 	int verbose;
- 	unsigned int queue_num;
- 	unsigned int timeout;
-@@ -31,7 +33,7 @@ static struct options opts;
- 
- static void help(const char *p)
- {
--	printf("Usage: %s [-c|-v [-vv] ] [-o] [-t timeout] [-q queue_num] [-Qdst_queue ] [ -d ms_delay ] [-G]\n", p);
-+	printf("Usage: %s [-c|-v [-vv] ] [-o] [-O] [-b] [-t timeout] [-q queue_num] [-Qdst_queue ] [ -d ms_delay ] [-G]\n", p);
- }
- 
- static int parse_attr_cb(const struct nlattr *attr, void *data)
-@@ -275,7 +277,9 @@ static int mainloop(void)
- 	unsigned int buflen = 64 * 1024 + MNL_SOCKET_BUFFER_SIZE;
- 	struct mnl_socket *nl;
- 	struct nlmsghdr *nlh;
-+	uint32_t ooo_ids[16];
- 	unsigned int portid;
-+	int ooo_count = 0;
- 	char *buf;
- 	int ret;
- 
-@@ -308,6 +312,9 @@ static int mainloop(void)
- 
- 		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, NULL);
- 		if (ret < 0) {
-+			/* bogus verdict mode will generate ENOENT error messages */
-+			if (opts.bogus_verdict && errno == ENOENT)
-+				continue;
- 			perror("mnl_cb_run");
- 			exit(EXIT_FAILURE);
- 		}
-@@ -316,10 +323,35 @@ static int mainloop(void)
- 		if (opts.delay_ms)
- 			sleep_ms(opts.delay_ms);
- 
--		nlh = nfq_build_verdict(buf, id, opts.queue_num, opts.verdict);
--		if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
--			perror("mnl_socket_sendto");
--			exit(EXIT_FAILURE);
-+		if (opts.bogus_verdict) {
-+			for (int i = 0; i < 50; i++) {
-+				nlh = nfq_build_verdict(buf, id + 0x7FFFFFFF + i,
-+							opts.queue_num, opts.verdict);
-+				mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
-+			}
-+		}
-+
-+		if (opts.out_of_order) {
-+			ooo_ids[ooo_count] = id;
-+			if (ooo_count >= 15) {
-+				for (ooo_count; ooo_count >= 0; ooo_count--) {
-+					nlh = nfq_build_verdict(buf, ooo_ids[ooo_count],
-+								opts.queue_num, opts.verdict);
-+					if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+						perror("mnl_socket_sendto");
-+						exit(EXIT_FAILURE);
-+					}
-+				}
-+				ooo_count = 0;
-+			} else {
-+				ooo_count++;
-+			}
-+		} else {
-+			nlh = nfq_build_verdict(buf, id, opts.queue_num, opts.verdict);
-+			if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+				perror("mnl_socket_sendto");
-+				exit(EXIT_FAILURE);
-+			}
- 		}
- 	}
- 
-@@ -332,7 +364,7 @@ static void parse_opts(int argc, char **argv)
- {
- 	int c;
- 
--	while ((c = getopt(argc, argv, "chvot:q:Q:d:G")) != -1) {
-+	while ((c = getopt(argc, argv, "chvoObt:q:Q:d:G")) != -1) {
- 		switch (c) {
- 		case 'c':
- 			opts.count_packets = true;
-@@ -375,6 +407,12 @@ static void parse_opts(int argc, char **argv)
- 		case 'v':
- 			opts.verbose++;
- 			break;
-+		case 'O':
-+			opts.out_of_order = true;
-+			break;
-+		case 'b':
-+			opts.bogus_verdict = true;
-+			break;
- 		}
- 	}
- 
-diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
-index ea766bdc5d04..1e1949c6a918 100755
---- a/tools/testing/selftests/net/netfilter/nft_queue.sh
-+++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
-@@ -11,6 +11,7 @@ ret=0
- timeout=5
- 
- SCTP_TEST_TIMEOUT=60
-+STRESS_TEST_TIMEOUT=300
- 
- cleanup()
- {
-@@ -719,6 +720,74 @@ EOF
- 	fi
- }
- 
-+check_tainted()
-+{
-+	local msg="$1"
-+
-+	if [ "$tainted_then" -ne 0 ];then
-+		return
-+	fi
-+
-+	read tainted_now < /proc/sys/kernel/tainted
-+	if [ "$tainted_now" -eq 0 ];then
-+		echo "PASS: $msg"
-+	else
-+		echo "TAINT: $msg"
-+		dmesg
-+		ret=1
-+	fi
-+}
-+
-+test_queue_stress()
-+{
-+	read tainted_then < /proc/sys/kernel/tainted
-+	local i
-+
-+        ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
-+flush ruleset
-+table inet t {
-+	chain forward {
-+		type filter hook forward priority 0; policy accept;
-+
-+		queue flags bypass to numgen random mod 8
-+	}
-+}
-+EOF
-+	timeout "$STRESS_TEST_TIMEOUT" ip netns exec "$ns2" \
-+		socat -u UDP-LISTEN:12345,fork,pf=ipv4 STDOUT > /dev/null &
-+
-+	timeout "$STRESS_TEST_TIMEOUT" ip netns exec "$ns3" \
-+		socat -u UDP-LISTEN:12345,fork,pf=ipv4 STDOUT > /dev/null &
-+
-+	for i in $(seq 0 7); do
-+		ip netns exec "$nsrouter" timeout "$STRESS_TEST_TIMEOUT" \
-+			./nf_queue -q $i -t 2 -O -b > /dev/null &
-+	done
-+
-+	ip netns exec "$ns1" timeout "$STRESS_TEST_IMEOUT" \
-+		ping -q -f 10.0.2.99 > /dev/null 2>&1 &
-+	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
-+		ping -q -f 10.0.3.99 > /dev/null 2>&1 &
-+	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
-+		ping -q -f "dead:2::99" > /dev/null 2>&1 &
-+	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
-+		ping -q -f "dead:3::99" > /dev/null 2>&1 &
-+
-+	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns2" 12345
-+	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns3" 12345
-+
-+	for i in $(seq 1 4);do
-+		ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
-+			socat -u STDIN UDP-DATAGRAM:10.0.2.99:12345 < /dev/zero > /dev/null &
-+		ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
-+			socat -u STDIN UDP-DATAGRAM:10.0.3.99:12345 < /dev/zero > /dev/null &
-+	done
-+
-+	wait
-+
-+	check_tainted "concurrent queueing"
-+}
-+
- test_queue_removal()
- {
- 	read tainted_then < /proc/sys/kernel/tainted
-@@ -742,18 +811,7 @@ EOF
- 
- 	ip netns exec "$ns1" nft flush ruleset
- 
--	if [ "$tainted_then" -ne 0 ];then
--		return
--	fi
--
--	read tainted_now < /proc/sys/kernel/tainted
--	if [ "$tainted_now" -eq 0 ];then
--		echo "PASS: queue program exiting while packets queued"
--	else
--		echo "TAINT: queue program exiting while packets queued"
--		dmesg
--		ret=1
--	fi
-+	check_tainted "queue program exiting while packets queued"
- }
- 
- ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
-@@ -799,6 +857,7 @@ test_sctp_forward
- test_sctp_output
- test_udp_nat_race
- test_udp_gro_ct
-+test_queue_stress
- 
- # should be last, adds vrf device in ns1 and changes routes
- test_icmp_vrf
--- 
-2.53.0
 
