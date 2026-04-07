@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BC5113959D;
-	Tue,  7 Apr 2026 08:54:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B7B338C2B5;
+	Tue,  7 Apr 2026 08:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775552056; cv=none; b=eTxdr9G6JgaLAiZQ9p6d8W/oi9dEk4FnIFFIu0nxJXekK31jUp+a6+tOv02fv/Eb98t3c5FJzhWIhoDtgL/dofWM73JyYzu61knTFnEK7nGmt9ohGbciUtX80A2UzkFKQaN9bk5/hbcKW8KsRvvEv9pEZMRiK5LfK6icIc79+88=
+	t=1775552061; cv=none; b=YWvNSgnfzumMH6xF/ShiFugPmXW0xjML4ng8l/EilGXY5LlISWgzIIPYLxQkBerCLPT3XYrYN/ySFMeJ7mV6fxG6Ven8ISk1HkLo8pDj0yJ1fL4GNnEUk28wPdbI1jC5hO+r6T8Po6PFle6fvMi35dAz3uM0evJyul/HXSvdo7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775552056; c=relaxed/simple;
-	bh=/UVoU8W1t8K+EOuKoQSmXAaZim6qPp6ckYNHHxZ9hfM=;
-	h=Date:Message-ID:From:To:Subject:cc; b=WUpx0Bt6GCSXph0QMM1Z28b3R38hn2BGX9e3LYld5LC06Z9Lxsn2Rt8LuldhPZJupoOX7hQCGFyoEeIhgwi0my/LLbW+mOXhYSV7VNYFy1E2eJqGrWMigMUYlMWLlbdI2Iilcd6V+j2npEVIw9+qNQlbGYPpTxswZp39LhA+It8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=HugIpB0f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775552061; c=relaxed/simple;
+	bh=/xYs3O0kL0sYfj4X83LKJJkUOaxeLjU6FZ9MnfIN9Dc=;
+	h=Date:Message-ID:From:To:Cc:Subject:References:MIME-Version:
+	 Content-Type; b=Jxh4wDHm3/s2DkWqy7oSJrSXMzeUtVvPvarNLuE+s5WwwgLEN6X2ZDOl+V8Lbg7zGJQ0IKhaBuR/ZsN3WIVIxKr2pt6vtEQzTSV8bbqI5ATe72JK8vnzwBd333VgC06XJPsafFJ+OgT03e7S3GXJ9qUuh46EwFyJHRn25Ine1SM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eexOg75U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="HugIpB0f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4457C116C6;
-	Tue,  7 Apr 2026 08:54:14 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eexOg75U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58966C116C6;
+	Tue,  7 Apr 2026 08:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775552055;
-	bh=/UVoU8W1t8K+EOuKoQSmXAaZim6qPp6ckYNHHxZ9hfM=;
-	h=Date:From:To:Subject:cc:From;
-	b=HugIpB0fmydogp5EXRfDc4cCc5LM83rTvVXhu5K0HStS9X6dGvHkUivRxy1LpkvCI
-	 kCp5zccEBfFQkwsWbW9SOKKPD3VM+PwcPmUULsXhj2Gwo4EcF7OAOHtsa+1vOXD3dV
-	 MGvYCMPtUTACJI8xtB8ErH+jORoSYazaTyozMRLHbpUXr5HWa/VpOxCPiCBcM3FaQ9
-	 2aueWXdJ5OXgIW982W5kscBjtD0CzVGXdO6tXe00RtRTqqJSls760tRXvh4l93mH1k
-	 hkIZvX53+xSxZtE/WmrN/Wbo/yAuWsch0IEWYF8/5GT7g/TubOn+C6Ko6M7wmbn2BY
-	 Chc6BEo/CkDRg==
-Date: Tue, 07 Apr 2026 10:54:12 +0200
-Message-ID: <20260407083219.478203185@kernel.org>
+	s=k20201202; t=1775552060;
+	bh=/xYs3O0kL0sYfj4X83LKJJkUOaxeLjU6FZ9MnfIN9Dc=;
+	h=Date:From:To:Cc:Subject:References:From;
+	b=eexOg75UKzbZNb3GzltnQtK9klmrNpQkDWWUEByY54h7u0xNb/ev5e5LtUKXPRgfB
+	 Me1olXlOEEahjOtRCXiK9JcGOnEx/asFDIl5YcflKbJ5dGWGtNCpAK4wPI25vjnv1W
+	 eftegC0fHHElzJcLwlnFbGwyHkG0u7yipY5s64/tCMGtnBbyaL+e7V120l/Sxld9x8
+	 z4GeZCc8f4llZv7kDVmCqk7hmzK+XxZ4UNcw88vStrFc2HCtyyR/3+rsOvNH7yXy3K
+	 i1345GBKs2uaUWn3DdImYl8CnvsoAaWmMOfxbVZyV9nPwXsouXnh0TRak+Us4k5D/M
+	 acST9SMUSQU+Q==
+Date: Tue, 07 Apr 2026 10:54:17 +0200
+Message-ID: <20260407083247.562657657@kernel.org>
 User-Agent: quilt/0.68
 From: Thomas Gleixner <tglx@kernel.org>
 To: LKML <linux-kernel@vger.kernel.org>
-Subject: [patch 00/12] hrtimers: Prevent hrtimer interrupt starvation
-cc: Calvin Owens <calvin@wbinvd.org>,
+Cc: Calvin Owens <calvin@wbinvd.org>,
  Peter Zijlstra <peterz@infradead.org>,
  Anna-Maria Behnsen <anna-maria@linutronix.de>,
  Frederic Weisbecker <frederic@kernel.org>,
@@ -49,19 +49,21 @@ cc: Calvin Owens <calvin@wbinvd.org>,
  Phil Sutter <phil@nwl.cc>,
  netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org
+Subject: [patch 01/12] clockevents: Prevent timer interrupt starvation
+References: <20260407083219.478203185@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+From: Thomas Gleixner <tglx@kernel.org>
 
 Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
-up in user space:
-
-  https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
-
-He provided a reproducer, which sets up a timerfd based timer and then
-rearms it in a loop with an absolute expiry time of 1ns.
+up in user space. He provided a reproducer, which sets up a timerfd based
+timer and then rearms it in a loop with an absolute expiry time of 1ns.
 
 As the expiry time is in the past, the timer ends up as the first expiring
 timer in the per CPU hrtimer base and the clockevent device is programmed
@@ -71,77 +73,133 @@ defined by the clock event device, before the timer interrupt can fire,
 which starves the interrupt and consequently triggers the lockup detector
 because the hrtimer callback of the lockup mechanism is never invoked.
 
-The first patch in the series changes the clockevent set next event
-mechanism to prevent reprogramming of the clockevent device when the
-minimum delta value was programmed unless the new delta is larger than
-that. It's a less convoluted variant of the patch which was posted in the
-above linked thread and was confirmed to prevent the starvation problem.
+As a first step to prevent this, avoid reprogramming the clock event device
+when:
+     - a forced minimum delta event is pending
+     - the new expiry delta is less then or equal to the minimum delta
 
-But that's only to be considered the last resort because it results in an
-insane amount of avoidable hrtimer interrupts.
+Thanks to Calvin for providing the reproducer and to Borislav for testing
+and providing data from his Zen5 machine.
 
-The problem of user controlled timers is that the input value is only
-sanity checked vs. validity of the provided timespec and clamped to be in
-the maximum allowable range. But for performance reasons for in kernel
-usage there is no check whether a to be armed timer might have been expired
-already at enqueue time.
+The problem is not limited to Zen5, but depending on the underlying
+clock event device (e.g. TSC deadline timer on Intel) and the CPU speed
+not necessarily observable.
 
-The rest of the series addresses this by providing a separate interface to
-arm user controlled timers. This works the same way as the existing
-hrtimer_start_range_ns(), but in case that the timer ends up as the first
-timer in the clock base after enqueue it provides additional checks:
+This change serves only as the last resort and further changes will be made
+to prevent this scenario earlier in the call chain as far as possible.
 
-      - Whether the timer becomes the first expiring timer in the CPU base.
-
-      	If not the timer is considered to expire in the future as there is
-	already an earlier event programmed.
-
-      - Whether the timer has expired already by comparing the expiry value
-        against current time.
-
-	If it is expired, the timer is removed from the clock base and the
-	function returns false, so that the caller can handle it. That's
-	required because the function cannot invoke the callback as that
-	might need to acquire a lock which is held by the caller.
-
-This function is then used for the user controlled timer arming interfaces
-mainly by converting hrtimer sleeper over to it. That affects a few in
-kernel users too, but the overhead is minimal in that case and it spares a
-tedious whack the mole game all over the tree.
-
-The other usage sites in posixtimers, alarmtimers and timerfd are converted
-as well, which should cover the vast majority of user space controllable
-timers as far as my investigation goes.
-
-The series applies against Linux tree and is also available from git:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git hrtimer-exp-v1
-
-There needs to be some discussion about the scope of backporting. The first
-patch preventing the stall is obviously a backport candidate. The remaining
-series can be obviously argued about, but in my opinion it should be
-backported as well as it prevents stupid or malicious user space from
-generating tons of pointless timer interrupts.
-
-Thanks,
-
-	tglx
+Fixes: d316c57ff6bf ("[PATCH] clockevents: add core functionality")
+Reported-by: Calvin Owens <calvin@wbinvd.org>
+Signed-off-by: Thomas Gleixner <tglx@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Link: https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
 ---
- drivers/power/supply/charger-manager.c |   12 +-
- fs/timerfd.c                           |  115 +++++++++++++++-----------
- include/linux/alarmtimer.h             |    9 +-
- include/linux/clockchips.h             |    2 
- include/linux/hrtimer.h                |   20 +++-
- include/trace/events/timer.h           |   13 +++
- kernel/time/alarmtimer.c               |   70 +++++++---------
- kernel/time/clockevents.c              |   23 +++--
- kernel/time/hrtimer.c                  |  142 +++++++++++++++++++++++++++++----
- kernel/time/posix-cpu-timers.c         |   18 ++--
- kernel/time/posix-timers.c             |   35 +++++---
- kernel/time/posix-timers.h             |    4 
- kernel/time/tick-common.c              |    1 
- kernel/time/tick-sched.c               |    1 
- net/netfilter/xt_IDLETIMER.c           |   24 ++++-
- 15 files changed, 341 insertions(+), 148 deletions(-)
-
+V2: Simplified the clockevents code - Peter
+---
+ include/linux/clockchips.h |    2 ++
+ kernel/time/clockevents.c  |   23 +++++++++++++++--------
+ kernel/time/hrtimer.c      |    1 +
+ kernel/time/tick-common.c  |    1 +
+ kernel/time/tick-sched.c   |    1 +
+ 5 files changed, 20 insertions(+), 8 deletions(-)
+--- a/include/linux/clockchips.h
++++ b/include/linux/clockchips.h
+@@ -80,6 +80,7 @@ enum clock_event_state {
+  * @shift:		nanoseconds to cycles divisor (power of two)
+  * @state_use_accessors:current state of the device, assigned by the core code
+  * @features:		features
++ * @next_event_forced:	True if the last programming was a forced event
+  * @retries:		number of forced programming retries
+  * @set_state_periodic:	switch state to periodic
+  * @set_state_oneshot:	switch state to oneshot
+@@ -108,6 +109,7 @@ struct clock_event_device {
+ 	u32			shift;
+ 	enum clock_event_state	state_use_accessors;
+ 	unsigned int		features;
++	unsigned int		next_event_forced;
+ 	unsigned long		retries;
+ 
+ 	int			(*set_state_periodic)(struct clock_event_device *);
+--- a/kernel/time/clockevents.c
++++ b/kernel/time/clockevents.c
+@@ -172,6 +172,7 @@ void clockevents_shutdown(struct clock_e
+ {
+ 	clockevents_switch_state(dev, CLOCK_EVT_STATE_SHUTDOWN);
+ 	dev->next_event = KTIME_MAX;
++	dev->next_event_forced = 0;
+ }
+ 
+ /**
+@@ -305,7 +306,6 @@ int clockevents_program_event(struct clo
+ {
+ 	unsigned long long clc;
+ 	int64_t delta;
+-	int rc;
+ 
+ 	if (WARN_ON_ONCE(expires < 0))
+ 		return -ETIME;
+@@ -324,16 +324,23 @@ int clockevents_program_event(struct clo
+ 		return dev->set_next_ktime(expires, dev);
+ 
+ 	delta = ktime_to_ns(ktime_sub(expires, ktime_get()));
+-	if (delta <= 0)
+-		return force ? clockevents_program_min_delta(dev) : -ETIME;
+ 
+-	delta = min(delta, (int64_t) dev->max_delta_ns);
+-	delta = max(delta, (int64_t) dev->min_delta_ns);
++	if (delta > (int64_t)dev->min_delta_ns) {
++		delta = min(delta, (int64_t) dev->max_delta_ns);
++		clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
++		if (!dev->set_next_event((unsigned long) clc, dev))
++			return 0;
++	}
+ 
+-	clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
+-	rc = dev->set_next_event((unsigned long) clc, dev);
++	if (dev->next_event_forced)
++		return 0;
+ 
+-	return (rc && force) ? clockevents_program_min_delta(dev) : rc;
++	if (dev->set_next_event(dev->min_delta_ticks, dev)) {
++		if (!force || clockevents_program_min_delta(dev))
++			return -ETIME;
++	}
++	dev->next_event_forced = 1;
++	return 0;
+ }
+ 
+ /*
+--- a/kernel/time/hrtimer.c
++++ b/kernel/time/hrtimer.c
+@@ -1888,6 +1888,7 @@ void hrtimer_interrupt(struct clock_even
+ 	BUG_ON(!cpu_base->hres_active);
+ 	cpu_base->nr_events++;
+ 	dev->next_event = KTIME_MAX;
++	dev->next_event_forced = 0;
+ 
+ 	raw_spin_lock_irqsave(&cpu_base->lock, flags);
+ 	entry_time = now = hrtimer_update_base(cpu_base);
+--- a/kernel/time/tick-common.c
++++ b/kernel/time/tick-common.c
+@@ -110,6 +110,7 @@ void tick_handle_periodic(struct clock_e
+ 	int cpu = smp_processor_id();
+ 	ktime_t next = dev->next_event;
+ 
++	dev->next_event_forced = 0;
+ 	tick_periodic(cpu);
+ 
+ 	/*
+--- a/kernel/time/tick-sched.c
++++ b/kernel/time/tick-sched.c
+@@ -1513,6 +1513,7 @@ static void tick_nohz_lowres_handler(str
+ 	struct tick_sched *ts = this_cpu_ptr(&tick_cpu_sched);
+ 
+ 	dev->next_event = KTIME_MAX;
++	dev->next_event_forced = 0;
+ 
+ 	if (likely(tick_nohz_handler(&ts->sched_timer) == HRTIMER_RESTART))
+ 		tick_program_event(hrtimer_get_expires(&ts->sched_timer), 1);
 
