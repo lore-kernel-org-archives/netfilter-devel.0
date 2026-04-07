@@ -1,342 +1,188 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f178.google.com (mail-dy1-f178.google.com [74.125.82.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 161C733B95C
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 17:06:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C983342CB4
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2026 17:38:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775581593; cv=none; b=rCvLpE0NSHLTMZpiSLO5bra5Wwza+3AupAmhM3fx9JzBlBk6+i1fGAtjGtw2lZ1LUIZxVomnBfJatYlgYSw01FRtfzhKNB1EKLoiv2z8BQXGZXdeoQVuRvECoItsyj8Unq3EyJ553xfbtali9xc+vAZAKg+7AMxHwZvFxOs8vsM=
+	t=1775583492; cv=none; b=ssP4faDD9wVSIV29UzO+WqhbaSuCkPK/Kbma3D5Ldgid0bv0fkenYzX+a+eV8Iik0CSlC0WcdIkNBK7YAbiJli5kjR4ZdlVedh3w6tW7LRiLeDXEPv9ssJXHyWqxU605HdWZBJ0vk5UuCN6u0h5I0JYVlABMcbsXymZtip4fT9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775581593; c=relaxed/simple;
-	bh=vXcNxM5cNEBSKRozeVPflOORDVkGweQ6wn3pVaQvh3s=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MY8m0+ayZnNbRPMFN61wjRImmMwDd075L4Hdg2a2Woi0d0iFjW0rxfsggD/zW0yUbXiIZqW+vhsKvzBVKhmG0+qIF6+qi+S9bvg8PAfLZGqZxuXcPzw4CTJRdPqrO59A/SU0I7W2D5BF5I/aHzvC3889zJxZzc6kN0a96+Q+HfM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id CA4756066A; Tue, 07 Apr 2026 19:06:28 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Scott Mitchell <scott.k.mitch1@gmail.com>
-Subject: [PATCH nf] netfilter: nfnetlink_queue: make hash table per queue
-Date: Tue,  7 Apr 2026 19:06:09 +0200
-Message-ID: <20260407170612.1436-1-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
+	s=arc-20240116; t=1775583492; c=relaxed/simple;
+	bh=tvdUOATrbfQbm/otRmotSEVug48Q7PpH/fmsCZHFm/c=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=MSWMeMfi+79/xzdar4oOiBpSC488kciP9gdhYgHTqZ7ixtI6KGAUcCyZrLa27vSL/uifRfQMTsVXiXZ4RpBXq6hjhTHQX2WoWf8wTbrWCERMGqYbJvZ+VcIDsRn4PDSNZzbde56XKxzWaYoWx4lmPMHRbRfH1ccGP95o/3fe5nI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wbinvd.org; spf=pass smtp.mailfrom=wbinvd.org; dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b=W0VTYY3f; arc=none smtp.client-ip=74.125.82.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wbinvd.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wbinvd.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b="W0VTYY3f"
+Received: by mail-dy1-f178.google.com with SMTP id 5a478bee46e88-2c156c4a9efso6901070eec.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 07 Apr 2026 10:38:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=wbinvd.org; s=wbinvd; t=1775583490; x=1776188290; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=hqUr7UMuRskj68PpjSrDblmslOlX4kFlkF++X6DCkjE=;
+        b=W0VTYY3ft7bUlo7blCkv7uvh2n+fbI1geytaWAqleOxemFlBdqAOBh2yH73beInRyr
+         p0fueHUxvNR4a3YdozjFgRWwPRgNPsMUAbuSKfCsSK9pG29BKZGAyiGOgLiPGijgs4BY
+         Fa3s+Qodwcnci/Q8bNt4481CyvK18QpJciMvhWQmf7tDtyi/TxTW7kO7XsgaeVrkhkNi
+         8R65EmNicM5ZjtPYsgwuRexusJGwlwQLEugTdKSNQHs6NSdkDcOV4zR4W8K5Ln+3SAIa
+         yysFTD1Bmh09jwfz4RSqo11OVqw8mOsvdwU+QxFHnLmNVazJF/1XCs3WVb7AiFW8/PQu
+         YIbg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1775583490; x=1776188290;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=hqUr7UMuRskj68PpjSrDblmslOlX4kFlkF++X6DCkjE=;
+        b=gNSYDhekwbOfWfewom8MY9IDuoti/wJA1fqH95a17L/KAIux4aPlCipwtU9rWNqc7V
+         Wl3bSoDgYz3OIy3cMZqRQChLZ1Q2JgurOLneN8F+8V5dqidNR/qVW0INoUBkEmtcyyMq
+         1I7elxikfZhEtRqDfpz0viifu0zIfUfrh2ZnkZptf2I9W8d7JJMJ5gb9G1eoH0WtQN26
+         7hjUkLCdmrqAN21pIiYLlA3X2f+9PcMXVuENF8tEX7A3DnKeCv3T7cF68YGiIUAKvYB9
+         h6zcsWR60Ayis0GSX3KaVSfuUPwYOYNc1Bc2ewprlpbEra8eSYxtOlbwgcXOCcNWR43F
+         q57Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXwjNWeiAxAhlJazrR2ZQrjLqjFO7+MbsZcuBeWC6nTtkSFymV5tYIa15ahc4edYikHBnXLT5mIFFN1ThbLD2s=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzoqW1VBwSKyiRiMtArENJ/5+SgVyr3YYI+AmBJdk03sGrpSilW
+	O/krqB8BlgLbGjqrDG3ncqIxzbW5bZWBrkhlfSHnaq5ZiGpc6cPN8imSPTD9SYUgFBU=
+X-Gm-Gg: AeBDievjzrwlBvO4ZyHB2WtzB6vWl+0LYM9eF0IWK19NzhlC+kDPTLf5f+ZTyfURNdo
+	/fhOwXkR1oqIlNkZ8Ta0OJ7ruUVQLu+d4c9/Id6F+qJGumOcc9lKCl/AKs7sYcK6P8tK5aQ/MB6
+	M7epxJFl6GMigITeDEdfGEij5HmNr99QMWQgtqH3RA/3LCHePjtFtEI1IhwccFzsh1qChazjVvX
+	6T6ZkOBtiKMLJtjjdeK2JxHji8WNmi5ZFM9rCu64DSiKtFg3BF3OM4SuoJkDA1UDdeOCk1iay+n
+	OcH4nwq57peW2NPQ+8rlTPg2adqck1H8px4Mv0rF92Aif6P7E4I2SaaJ5uUPUxpZbQVrOefgPE0
+	P+m5RzX+nB2Xh6TO4nZ4v9F3EEZm9nRM8PI48Ur/KSZ+erwTAoub9glBJXzDpWwP3x9R2z0iIQ9
+	1SlsVPahG4Xha0421y9nYR2N/AfQ==
+X-Received: by 2002:a05:7301:1010:b0:2ba:a2fb:403f with SMTP id 5a478bee46e88-2cbfb995d49mr8269797eec.21.1775583490260;
+        Tue, 07 Apr 2026 10:38:10 -0700 (PDT)
+Received: from mozart.vkv.me ([2001:5a8:468b:d015:412a:9f09:7acb:b69f])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2cba5df5c24sm15761050eec.27.2026.04.07.10.38.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Apr 2026 10:38:09 -0700 (PDT)
+Date: Tue, 7 Apr 2026 10:38:06 -0700
+From: Calvin Owens <calvin@wbinvd.org>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch 00/12] hrtimers: Prevent hrtimer interrupt starvation
+Message-ID: <adVA_uv1srA_bsKj@mozart.vkv.me>
+References: <20260407083219.478203185@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260407083219.478203185@kernel.org>
 
-Sharing a global hash table among all queues is tempting, but
-it can cause crash:
+On Tuesday 04/07 at 10:54 +0200, Thomas Gleixner wrote:
+> Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
+> up in user space:
+> 
+>   https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
+> 
+> He provided a reproducer, which sets up a timerfd based timer and then
+> rearms it in a loop with an absolute expiry time of 1ns.
 
-BUG: KASAN: slab-use-after-free in nfqnl_recv_verdict+0x11ac/0x15e0 [nfnetlink_queue]
-[..]
- nfqnl_recv_verdict+0x11ac/0x15e0 [nfnetlink_queue]
- nfnetlink_rcv_msg+0x46a/0x930
- kmem_cache_alloc_node_noprof+0x11e/0x450
+The original AMD machines survive the reproducer with this series.
 
-struct nf_queue_entry is freed via kfree, but parallel cpu can still
-encounter such an nf_queue_entry when walking the list.
+Tested-by: Calvin Owens <calvin@wbinvd.org>
 
-Alternative fix is to free the nf_queue_entry via kfree_rcu() instead,
-but as we have to alloc/free for each skb this will cause more mem
-pressure.
+I'm happy to test subsets of it and stable backports too, if that's
+helpful, just let me know.
 
-Cc: Scott Mitchell <scott.k.mitch1@gmail.com>
-Fixes: e19079adcd26 ("netfilter: nfnetlink_queue: optimize verdict lookup with hash table")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- The 'Fixes' patch doesn't revert cleanly anymore; this patch isn't
- larger than the (mangled) revert.
- So I would prefer this change in nf rather than going with
- my initial proposal to revert and followup in nf-next.
+Thanks,
+Calvin
 
- include/net/netfilter/nf_queue.h |   1 -
- net/netfilter/nfnetlink_queue.c  | 139 +++++++++++--------------------
- 2 files changed, 49 insertions(+), 91 deletions(-)
-
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 45eb26b2e95b..d17035d14d96 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -23,7 +23,6 @@ struct nf_queue_entry {
- 	struct nf_hook_state	state;
- 	bool			nf_ct_is_unconfirmed;
- 	u16			size; /* sizeof(entry) + saved route keys */
--	u16			queue_num;
- 
- 	/* extra space to store route keys */
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 47f7f62906e2..8e02f84784da 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -49,8 +49,8 @@
- #endif
- 
- #define NFQNL_QMAX_DEFAULT 1024
--#define NFQNL_HASH_MIN     1024
--#define NFQNL_HASH_MAX     1048576
-+#define NFQNL_HASH_MIN     8
-+#define NFQNL_HASH_MAX     32768
- 
- /* We're using struct nlattr which has 16bit nla_len. Note that nla_len
-  * includes the header length. Thus, the maximum packet length that we
-@@ -60,29 +60,10 @@
-  */
- #define NFQNL_MAX_COPY_RANGE (0xffff - NLA_HDRLEN)
- 
--/* Composite key for packet lookup: (net, queue_num, packet_id) */
--struct nfqnl_packet_key {
--	possible_net_t net;
--	u32 packet_id;
--	u16 queue_num;
--} __aligned(sizeof(u32));  /* jhash2 requires 32-bit alignment */
--
--/* Global rhashtable - one for entire system, all netns */
--static struct rhashtable nfqnl_packet_map __read_mostly;
--
--/* Helper to initialize composite key */
--static inline void nfqnl_init_key(struct nfqnl_packet_key *key,
--				  struct net *net, u32 packet_id, u16 queue_num)
--{
--	memset(key, 0, sizeof(*key));
--	write_pnet(&key->net, net);
--	key->packet_id = packet_id;
--	key->queue_num = queue_num;
--}
--
- struct nfqnl_instance {
- 	struct hlist_node hlist;		/* global list of queues */
--	struct rcu_head rcu;
-+	struct rhashtable nfqnl_packet_map;
-+	struct rcu_work	rwork;
- 
- 	u32 peer_portid;
- 	unsigned int queue_maxlen;
-@@ -106,6 +87,7 @@ struct nfqnl_instance {
- 
- typedef int (*nfqnl_cmpfn)(struct nf_queue_entry *, unsigned long);
- 
-+static struct workqueue_struct *nfq_cleanup_wq __read_mostly;
- static unsigned int nfnl_queue_net_id __read_mostly;
- 
- #define INSTANCE_BUCKETS	16
-@@ -124,34 +106,10 @@ static inline u_int8_t instance_hashfn(u_int16_t queue_num)
- 	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
- }
- 
--/* Extract composite key from nf_queue_entry for hashing */
--static u32 nfqnl_packet_obj_hashfn(const void *data, u32 len, u32 seed)
--{
--	const struct nf_queue_entry *entry = data;
--	struct nfqnl_packet_key key;
--
--	nfqnl_init_key(&key, entry->state.net, entry->id, entry->queue_num);
--
--	return jhash2((u32 *)&key, sizeof(key) / sizeof(u32), seed);
--}
--
--/* Compare stack-allocated key against entry */
--static int nfqnl_packet_obj_cmpfn(struct rhashtable_compare_arg *arg,
--				  const void *obj)
--{
--	const struct nfqnl_packet_key *key = arg->key;
--	const struct nf_queue_entry *entry = obj;
--
--	return !net_eq(entry->state.net, read_pnet(&key->net)) ||
--	       entry->queue_num != key->queue_num ||
--	       entry->id != key->packet_id;
--}
--
- static const struct rhashtable_params nfqnl_rhashtable_params = {
- 	.head_offset = offsetof(struct nf_queue_entry, hash_node),
--	.key_len = sizeof(struct nfqnl_packet_key),
--	.obj_hashfn = nfqnl_packet_obj_hashfn,
--	.obj_cmpfn = nfqnl_packet_obj_cmpfn,
-+	.key_offset = offsetof(struct nf_queue_entry, id),
-+	.key_len = sizeof(u32),
- 	.automatic_shrinking = true,
- 	.min_size = NFQNL_HASH_MIN,
- 	.max_size = NFQNL_HASH_MAX,
-@@ -190,6 +148,10 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
- 	spin_lock_init(&inst->lock);
- 	INIT_LIST_HEAD(&inst->queue_list);
- 
-+	err = rhashtable_init(&inst->nfqnl_packet_map, &nfqnl_rhashtable_params);
-+	if (err < 0)
-+		goto out_free;
-+
- 	spin_lock(&q->instances_lock);
- 	if (instance_lookup(q, queue_num)) {
- 		err = -EEXIST;
-@@ -210,6 +172,8 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
- 
- out_unlock:
- 	spin_unlock(&q->instances_lock);
-+	rhashtable_destroy(&inst->nfqnl_packet_map);
-+out_free:
- 	kfree(inst);
- 	return ERR_PTR(err);
- }
-@@ -217,15 +181,18 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
- static void nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn,
- 			unsigned long data);
- 
--static void
--instance_destroy_rcu(struct rcu_head *head)
-+static void instance_destroy_work(struct work_struct *work)
- {
--	struct nfqnl_instance *inst = container_of(head, struct nfqnl_instance,
--						   rcu);
-+	struct nfqnl_instance *inst;
- 
-+	inst = container_of(to_rcu_work(work), struct nfqnl_instance,
-+			    rwork);
- 	rcu_read_lock();
- 	nfqnl_flush(inst, NULL, 0);
- 	rcu_read_unlock();
-+
-+	rhashtable_destroy(&inst->nfqnl_packet_map);
-+
- 	kfree(inst);
- 	module_put(THIS_MODULE);
- }
-@@ -234,7 +201,9 @@ static void
- __instance_destroy(struct nfqnl_instance *inst)
- {
- 	hlist_del_rcu(&inst->hlist);
--	call_rcu(&inst->rcu, instance_destroy_rcu);
-+
-+	INIT_RCU_WORK(&inst->rwork, instance_destroy_work);
-+	queue_rcu_work(nfq_cleanup_wq, &inst->rwork);
- }
- 
- static void
-@@ -250,9 +219,7 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
- 	int err;
- 
--	entry->queue_num = queue->queue_num;
--
--	err = rhashtable_insert_fast(&nfqnl_packet_map, &entry->hash_node,
-+	err = rhashtable_insert_fast(&queue->nfqnl_packet_map, &entry->hash_node,
- 				     nfqnl_rhashtable_params);
- 	if (unlikely(err))
- 		return err;
-@@ -266,23 +233,19 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- static void
- __dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
--	rhashtable_remove_fast(&nfqnl_packet_map, &entry->hash_node,
-+	rhashtable_remove_fast(&queue->nfqnl_packet_map, &entry->hash_node,
- 			       nfqnl_rhashtable_params);
- 	list_del(&entry->list);
- 	queue->queue_total--;
- }
- 
- static struct nf_queue_entry *
--find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id,
--		   struct net *net)
-+find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- {
--	struct nfqnl_packet_key key;
- 	struct nf_queue_entry *entry;
- 
--	nfqnl_init_key(&key, net, id, queue->queue_num);
--
- 	spin_lock_bh(&queue->lock);
--	entry = rhashtable_lookup_fast(&nfqnl_packet_map, &key,
-+	entry = rhashtable_lookup_fast(&queue->nfqnl_packet_map, &id,
- 				       nfqnl_rhashtable_params);
- 
- 	if (entry)
-@@ -1531,7 +1494,7 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 	verdict = ntohl(vhdr->verdict);
- 
--	entry = find_dequeue_entry(queue, ntohl(vhdr->id), info->net);
-+	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
- 	if (entry == NULL)
- 		return -ENOENT;
- 
-@@ -1880,40 +1843,38 @@ static int __init nfnetlink_queue_init(void)
- {
- 	int status;
- 
--	status = rhashtable_init(&nfqnl_packet_map, &nfqnl_rhashtable_params);
--	if (status < 0)
--		return status;
-+	nfq_cleanup_wq = alloc_ordered_workqueue("nfq_workqueue", 0);
-+	if (!nfq_cleanup_wq)
-+		return -ENOMEM;
- 
- 	status = register_pernet_subsys(&nfnl_queue_net_ops);
--	if (status < 0) {
--		pr_err("failed to register pernet ops\n");
--		goto cleanup_rhashtable;
--	}
-+	if (status < 0)
-+		goto cleanup_pernet_subsys;
- 
--	netlink_register_notifier(&nfqnl_rtnl_notifier);
--	status = nfnetlink_subsys_register(&nfqnl_subsys);
--	if (status < 0) {
--		pr_err("failed to create netlink socket\n");
--		goto cleanup_netlink_notifier;
--	}
-+	status = netlink_register_notifier(&nfqnl_rtnl_notifier);
-+	if (status < 0)
-+	       goto cleanup_rtnl_notifier;
- 
- 	status = register_netdevice_notifier(&nfqnl_dev_notifier);
--	if (status < 0) {
--		pr_err("failed to register netdevice notifier\n");
--		goto cleanup_netlink_subsys;
--	}
-+	if (status < 0)
-+		goto cleanup_dev_notifier;
-+
-+	status = nfnetlink_subsys_register(&nfqnl_subsys);
-+	if (status < 0)
-+		goto cleanup_nfqnl_subsys;
- 
- 	nf_register_queue_handler(&nfqh);
- 
- 	return status;
- 
--cleanup_netlink_subsys:
--	nfnetlink_subsys_unregister(&nfqnl_subsys);
--cleanup_netlink_notifier:
-+cleanup_nfqnl_subsys:
-+	unregister_netdevice_notifier(&nfqnl_dev_notifier);
-+cleanup_dev_notifier:
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
-+cleanup_rtnl_notifier:
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
--cleanup_rhashtable:
--	rhashtable_destroy(&nfqnl_packet_map);
-+cleanup_pernet_subsys:
-+	destroy_workqueue(nfq_cleanup_wq);
- 	return status;
- }
- 
-@@ -1924,9 +1885,7 @@ static void __exit nfnetlink_queue_fini(void)
- 	nfnetlink_subsys_unregister(&nfqnl_subsys);
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
--
--	rhashtable_destroy(&nfqnl_packet_map);
--
-+	destroy_workqueue(nfq_cleanup_wq);
- 	rcu_barrier(); /* Wait for completion of call_rcu()'s */
- }
- 
--- 
-2.52.0
-
+> As the expiry time is in the past, the timer ends up as the first expiring
+> timer in the per CPU hrtimer base and the clockevent device is programmed
+> with the minimum delta value. If the machine is fast enough, this ends up
+> in a endless loop of programming the delta value to the minimum value
+> defined by the clock event device, before the timer interrupt can fire,
+> which starves the interrupt and consequently triggers the lockup detector
+> because the hrtimer callback of the lockup mechanism is never invoked.
+> 
+> The first patch in the series changes the clockevent set next event
+> mechanism to prevent reprogramming of the clockevent device when the
+> minimum delta value was programmed unless the new delta is larger than
+> that. It's a less convoluted variant of the patch which was posted in the
+> above linked thread and was confirmed to prevent the starvation problem.
+> 
+> But that's only to be considered the last resort because it results in an
+> insane amount of avoidable hrtimer interrupts.
+> 
+> The problem of user controlled timers is that the input value is only
+> sanity checked vs. validity of the provided timespec and clamped to be in
+> the maximum allowable range. But for performance reasons for in kernel
+> usage there is no check whether a to be armed timer might have been expired
+> already at enqueue time.
+> 
+> The rest of the series addresses this by providing a separate interface to
+> arm user controlled timers. This works the same way as the existing
+> hrtimer_start_range_ns(), but in case that the timer ends up as the first
+> timer in the clock base after enqueue it provides additional checks:
+> 
+>       - Whether the timer becomes the first expiring timer in the CPU base.
+> 
+>       	If not the timer is considered to expire in the future as there is
+> 	already an earlier event programmed.
+> 
+>       - Whether the timer has expired already by comparing the expiry value
+>         against current time.
+> 
+> 	If it is expired, the timer is removed from the clock base and the
+> 	function returns false, so that the caller can handle it. That's
+> 	required because the function cannot invoke the callback as that
+> 	might need to acquire a lock which is held by the caller.
+> 
+> This function is then used for the user controlled timer arming interfaces
+> mainly by converting hrtimer sleeper over to it. That affects a few in
+> kernel users too, but the overhead is minimal in that case and it spares a
+> tedious whack the mole game all over the tree.
+> 
+> The other usage sites in posixtimers, alarmtimers and timerfd are converted
+> as well, which should cover the vast majority of user space controllable
+> timers as far as my investigation goes.
+> 
+> The series applies against Linux tree and is also available from git:
+> 
+>     git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git hrtimer-exp-v1
+> 
+> There needs to be some discussion about the scope of backporting. The first
+> patch preventing the stall is obviously a backport candidate. The remaining
+> series can be obviously argued about, but in my opinion it should be
+> backported as well as it prevents stupid or malicious user space from
+> generating tons of pointless timer interrupts.
+> 
+> Thanks,
+> 
+> 	tglx
+> ---
+>  drivers/power/supply/charger-manager.c |   12 +-
+>  fs/timerfd.c                           |  115 +++++++++++++++-----------
+>  include/linux/alarmtimer.h             |    9 +-
+>  include/linux/clockchips.h             |    2 
+>  include/linux/hrtimer.h                |   20 +++-
+>  include/trace/events/timer.h           |   13 +++
+>  kernel/time/alarmtimer.c               |   70 +++++++---------
+>  kernel/time/clockevents.c              |   23 +++--
+>  kernel/time/hrtimer.c                  |  142 +++++++++++++++++++++++++++++----
+>  kernel/time/posix-cpu-timers.c         |   18 ++--
+>  kernel/time/posix-timers.c             |   35 +++++---
+>  kernel/time/posix-timers.h             |    4 
+>  kernel/time/tick-common.c              |    1 
+>  kernel/time/tick-sched.c               |    1 
+>  net/netfilter/xt_IDLETIMER.c           |   24 ++++-
+>  15 files changed, 341 insertions(+), 148 deletions(-)
+> 
+> 
