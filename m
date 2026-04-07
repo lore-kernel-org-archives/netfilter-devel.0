@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F64A22083;
-	Tue,  7 Apr 2026 14:33:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C41B41A9FB0;
+	Tue,  7 Apr 2026 14:43:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775572430; cv=none; b=LJleGqVeVhTAhUwxv1VWRYOOP+D2smD8RXxpKr0OuqIAtvLCKaEa0tF3xuZ0OhgyIwcuUdfiYDd7PTCjlmd4zJIZGeRtIUg1TYhdYd2WMtBI+SR/w33LXHB4X3Z2Z+Dg07pac3oZBm+zMtKv0F90Rr3glf4Af3ZIRUzfN7jKAcQ=
+	t=1775572996; cv=none; b=k3RNVqHlODmTWBuQLxpAD4oMSiHadDqFlvR+ENGVNhRfmYRCrOgC3hTjcrpqXa1rOnKQ8W9RmgDedu5G+VIkkieLMP7C+vWLKz8nYWl2YW49hIxfsMy2RP8zZLds9o06ATTl0445/RaB05FbnkNojNJKeHMCU5lNYdDBNwXdF8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775572430; c=relaxed/simple;
-	bh=c1UWCjgwFCzeY3oC22UZNQKZhUQeoeGwKeI7oZChdzk=;
+	s=arc-20240116; t=1775572996; c=relaxed/simple;
+	bh=x0V8HDMD/+ttteoDJUS2U88l+YhpYc2Fl6aWUWMCqok=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=KWXVQtUlqd636ikoVtUceE2F85E6QCR41D72JcvXszrorS/ayx/wTav7ip3WFPUNj6nd9HE5xYlCptHbe4QkcZYZB+gMuQhRehpmF6Rg58ANTMBhCok02lmYxje6dGTORZvLHV7n8SNHU5mrvpfs+7sVBfIkKCCdEX6VtWE6M9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F77WaqmB; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=QTr7FUADV7sZqWfL/0/TcCvRtFxqNwmdl/yUHgjuytKLAiGC1gUCsbxGjMfjgdz7gMVsiN5dJt5FHOmL9My4beE4fKr5s2PN2tiO1TEIiCc26JC056b24GhtvltCmGusCrzn1bQJS9BWBGyyoMXH/q7vUTm8eyGIbCsYhLsekkc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cgEZXQhl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F77WaqmB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBAFC116C6;
-	Tue,  7 Apr 2026 14:33:49 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cgEZXQhl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B59A2C116C6;
+	Tue,  7 Apr 2026 14:43:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775572430;
-	bh=c1UWCjgwFCzeY3oC22UZNQKZhUQeoeGwKeI7oZChdzk=;
+	s=k20201202; t=1775572996;
+	bh=x0V8HDMD/+ttteoDJUS2U88l+YhpYc2Fl6aWUWMCqok=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=F77WaqmBAH9iU0nJ2xb+VzdV0jLmo7aypOBP3uqgytPiv5roeC2nq8DxgSQDZFEs0
-	 +/NL5Ux6Rti5wwKEtQDn4xxDGREld11yHoLVEn9UUzUxhISAbl4a5FKNaPV0YRY8qK
-	 fnUKaU2Rrc097AcglXWNjYHaE3WgrfJUHVhchJSbl7VwU7/2q+xnFDUFhoby9bG97F
-	 cQODvHx/iap8crqKFc3+AAQML/3Vpt2wLv8bEVVIh+aAfdClY58h15NB3G6BrLiQyU
-	 +BR2d9yRvsX0uavWrkm+LaZrtWw+sJwQkSoeHAH2cbMTqbFxLQUxyBI92JAMDP4sXz
-	 CFIaJFbHBQgCQ==
+	b=cgEZXQhlUkaZWRnOU01DIi6XvkoZTXLmpvxfJEv5ObbEvAfkis42+82Rx1GtRblUH
+	 52I4eR2pw8DzuAAkIsYojEYtExUnKEiGccUTWBmxBxYmx5sqLp+cJ2PDbRkeEiS3T6
+	 h4D+yrB994XCj2OtlWoL/u+lW34T1uYoLC4ipDC/aOFbRTdmT6OTKpHiaqtecX/fLD
+	 uF7FZ6g3UIyXQNi234QAAH6tSrtqxYPWzedwnfBsa48ORmOB4Xr1Fd+nbELRak58w3
+	 WPpsp5a4TKpGpL5TEumDy+EKbQY1vkazGFN11WFGsPMsMYQ/mCjCmN4MHAd8uUZind
+	 RLvFPmrHC9v9g==
 From: Thomas Gleixner <tglx@kernel.org>
 To: LKML <linux-kernel@vger.kernel.org>
 Cc: Calvin Owens <calvin@wbinvd.org>, Peter Zijlstra <peterz@infradead.org>,
@@ -37,12 +37,11 @@ Cc: Calvin Owens <calvin@wbinvd.org>, Peter Zijlstra <peterz@infradead.org>,
  <sre@kernel.org>, linux-pm@vger.kernel.org, Pablo Neira Ayuso
  <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter
  <phil@nwl.cc>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [patch 01/12] clockevents: Prevent timer interrupt starvation
-In-Reply-To: <20260407083247.562657657@kernel.org>
+Subject: Re: [patch 00/12] hrtimers: Prevent hrtimer interrupt starvation
+In-Reply-To: <20260407083219.478203185@kernel.org>
 References: <20260407083219.478203185@kernel.org>
- <20260407083247.562657657@kernel.org>
-Date: Tue, 07 Apr 2026 16:33:46 +0200
-Message-ID: <87zf3e4z79.ffs@tglx>
+Date: Tue, 07 Apr 2026 16:43:12 +0200
+Message-ID: <87wlyi4yrj.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -51,41 +50,31 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain
 
-Calvin!
-
 On Tue, Apr 07 2026 at 10:54, Thomas Gleixner wrote:
-> From: Thomas Gleixner <tglx@kernel.org>
->
-> Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
-> up in user space. He provided a reproducer, which sets up a timerfd based
-> timer and then rearms it in a loop with an absolute expiry time of 1ns.
->
-> As the expiry time is in the past, the timer ends up as the first expiring
-> timer in the per CPU hrtimer base and the clockevent device is programmed
-> with the minimum delta value. If the machine is fast enough, this ends up
-> in a endless loop of programming the delta value to the minimum value
-> defined by the clock event device, before the timer interrupt can fire,
-> which starves the interrupt and consequently triggers the lockup detector
-> because the hrtimer callback of the lockup mechanism is never invoked.
->
-> As a first step to prevent this, avoid reprogramming the clock event device
-> when:
->      - a forced minimum delta event is pending
->      - the new expiry delta is less then or equal to the minimum delta
->
-> Thanks to Calvin for providing the reproducer and to Borislav for testing
-> and providing data from his Zen5 machine.
->
-> The problem is not limited to Zen5, but depending on the underlying
-> clock event device (e.g. TSC deadline timer on Intel) and the CPU speed
-> not necessarily observable.
->
-> This change serves only as the last resort and further changes will be made
-> to prevent this scenario earlier in the call chain as far as possible.
+> There needs to be some discussion about the scope of backporting. The first
+> patch preventing the stall is obviously a backport candidate. The remaining
+> series can be obviously argued about, but in my opinion it should be
+> backported as well as it prevents stupid or malicious user space from
+> generating tons of pointless timer interrupts.
 
-It'd be great if you could re-test this one independently of the other
-changes, so we can get that on the way ASAP.
+Peter and me just discussed it over IRC. With the clockevents prevention
+in place, the effect of stupid/malicious code is pretty much affecting
+only the user space task itself. As the timer is forced to expire once
+the clockevent device has been force armed, it won't have other side
+effects as device interrupts or IPIs are not blocked out and in the
+worst case marginally delayed by the high frequency timer interrupt.
+
+Once the task is scheduled out that subsides as there is nothing which
+re-arms the timer anymore.
+
+So we should be fine with backporting the clockevents fix and leave the
+other parts of the series for upstream only. I still need to investigate
+how all of that affects the pending changes vs. TSC deadline timer (and
+similar devices) which are not going to reach that modified clockevents
+code anymore.
 
 Thanks,
 
         tglx
+
+
