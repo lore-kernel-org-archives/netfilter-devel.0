@@ -1,152 +1,91 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A8E01DE8BE;
-	Tue,  7 Apr 2026 14:16:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F64A22083;
+	Tue,  7 Apr 2026 14:33:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775571404; cv=none; b=G8nDGWGPCDSsFi2TVkSTrHh7XPrSjdpzmaeWD3ZzSpeggecBCqmP1NogZ6vQd8Eg74vbCIe3/1SOF+BHTG6P+yt/M7jgrPfKoRFduIl923JtB3RNwUCAnep0hlsQNsitL6whukbNRQ1Nl5DOI+MA9ULoDYKQOHv1GLRa2oVLuxI=
+	t=1775572430; cv=none; b=LJleGqVeVhTAhUwxv1VWRYOOP+D2smD8RXxpKr0OuqIAtvLCKaEa0tF3xuZ0OhgyIwcuUdfiYDd7PTCjlmd4zJIZGeRtIUg1TYhdYd2WMtBI+SR/w33LXHB4X3Z2Z+Dg07pac3oZBm+zMtKv0F90Rr3glf4Af3ZIRUzfN7jKAcQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775571404; c=relaxed/simple;
-	bh=v0zaOz4qnzWUWk338zzIA8jHyBLptz+OOx0+ik6/ICE=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=chHJBk9GF2h981OlZaq7VukLriLJGOpDWZXOmO/byX1WQGdliddJcw+JHTIGoBrrbN6jfwsM+lAAvn9OSikNHwP0kFlaXJqLZSNEwYiApRyM47dqg4B9IT8+ERJnZC2UGrHYbAj0EUUB6ui/wMQ+DRNrC7ho8yrPfODNm1gwK7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id B61FF606B8; Tue, 07 Apr 2026 16:16:41 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net-next 13/13] netfilter: ctnetlink: restrict expectfn to helper
-Date: Tue,  7 Apr 2026 16:15:40 +0200
-Message-ID: <20260407141540.11549-14-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260407141540.11549-1-fw@strlen.de>
-References: <20260407141540.11549-1-fw@strlen.de>
+	s=arc-20240116; t=1775572430; c=relaxed/simple;
+	bh=c1UWCjgwFCzeY3oC22UZNQKZhUQeoeGwKeI7oZChdzk=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=KWXVQtUlqd636ikoVtUceE2F85E6QCR41D72JcvXszrorS/ayx/wTav7ip3WFPUNj6nd9HE5xYlCptHbe4QkcZYZB+gMuQhRehpmF6Rg58ANTMBhCok02lmYxje6dGTORZvLHV7n8SNHU5mrvpfs+7sVBfIkKCCdEX6VtWE6M9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F77WaqmB; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F77WaqmB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EBAFC116C6;
+	Tue,  7 Apr 2026 14:33:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775572430;
+	bh=c1UWCjgwFCzeY3oC22UZNQKZhUQeoeGwKeI7oZChdzk=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=F77WaqmBAH9iU0nJ2xb+VzdV0jLmo7aypOBP3uqgytPiv5roeC2nq8DxgSQDZFEs0
+	 +/NL5Ux6Rti5wwKEtQDn4xxDGREld11yHoLVEn9UUzUxhISAbl4a5FKNaPV0YRY8qK
+	 fnUKaU2Rrc097AcglXWNjYHaE3WgrfJUHVhchJSbl7VwU7/2q+xnFDUFhoby9bG97F
+	 cQODvHx/iap8crqKFc3+AAQML/3Vpt2wLv8bEVVIh+aAfdClY58h15NB3G6BrLiQyU
+	 +BR2d9yRvsX0uavWrkm+LaZrtWw+sJwQkSoeHAH2cbMTqbFxLQUxyBI92JAMDP4sXz
+	 CFIaJFbHBQgCQ==
+From: Thomas Gleixner <tglx@kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Calvin Owens <calvin@wbinvd.org>, Peter Zijlstra <peterz@infradead.org>,
+ Anna-Maria Behnsen <anna-maria@linutronix.de>, Frederic Weisbecker
+ <frederic@kernel.org>, Ingo Molnar <mingo@kernel.org>, John Stultz
+ <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>, Alexander Viro
+ <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan
+ Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, Sebastian Reichel
+ <sre@kernel.org>, linux-pm@vger.kernel.org, Pablo Neira Ayuso
+ <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>, Phil Sutter
+ <phil@nwl.cc>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch 01/12] clockevents: Prevent timer interrupt starvation
+In-Reply-To: <20260407083247.562657657@kernel.org>
+References: <20260407083219.478203185@kernel.org>
+ <20260407083247.562657657@kernel.org>
+Date: Tue, 07 Apr 2026 16:33:46 +0200
+Message-ID: <87zf3e4z79.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Calvin!
 
-The expectfn callback determines how nf_nat_setup_info() is invoked for
-this expectation.
+On Tue, Apr 07 2026 at 10:54, Thomas Gleixner wrote:
+> From: Thomas Gleixner <tglx@kernel.org>
+>
+> Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
+> up in user space. He provided a reproducer, which sets up a timerfd based
+> timer and then rearms it in a loop with an absolute expiry time of 1ns.
+>
+> As the expiry time is in the past, the timer ends up as the first expiring
+> timer in the per CPU hrtimer base and the clockevent device is programmed
+> with the minimum delta value. If the machine is fast enough, this ends up
+> in a endless loop of programming the delta value to the minimum value
+> defined by the clock event device, before the timer interrupt can fire,
+> which starves the interrupt and consequently triggers the lockup detector
+> because the hrtimer callback of the lockup mechanism is never invoked.
+>
+> As a first step to prevent this, avoid reprogramming the clock event device
+> when:
+>      - a forced minimum delta event is pending
+>      - the new expiry delta is less then or equal to the minimum delta
+>
+> Thanks to Calvin for providing the reproducer and to Borislav for testing
+> and providing data from his Zen5 machine.
+>
+> The problem is not limited to Zen5, but depending on the underlying
+> clock event device (e.g. TSC deadline timer on Intel) and the CPU speed
+> not necessarily observable.
+>
+> This change serves only as the last resort and further changes will be made
+> to prevent this scenario earlier in the call chain as far as possible.
 
-This patch restricts expectfn to the master conntrack helper, there is
-nf_nat_follow_master() that is used by most expectations to deal with
-nat. However, sip and h.323 helpers still offer their own variants for
-different purpose.
+It'd be great if you could re-test this one independently of the other
+changes, so we can get that on the way ASAP.
 
-Add a new helper field to struct nf_ct_helper_expectfn to restrict the
-expectfn to its helper. If NULL, then this can be used by any
-expectation, which is the case nf_nat_follow_master().
+Thanks,
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack_helper.h | 3 ++-
- net/ipv4/netfilter/nf_nat_h323.c            | 2 ++
- net/netfilter/nf_conntrack_helper.c         | 5 +++--
- net/netfilter/nf_conntrack_netlink.c        | 2 +-
- net/netfilter/nf_nat_sip.c                  | 1 +
- 5 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index de2f956abf34..dc566921cc73 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -145,6 +145,7 @@ int nf_conntrack_broadcast_help(struct sk_buff *skb, struct nf_conn *ct,
- 
- struct nf_ct_helper_expectfn {
- 	struct list_head head;
-+	const char *helper;
- 	const char *name;
- 	void (*expectfn)(struct nf_conn *ct, struct nf_conntrack_expect *exp);
- };
-@@ -156,7 +157,7 @@ void nf_ct_helper_log(struct sk_buff *skb, const struct nf_conn *ct,
- void nf_ct_helper_expectfn_register(struct nf_ct_helper_expectfn *n);
- void nf_ct_helper_expectfn_unregister(struct nf_ct_helper_expectfn *n);
- struct nf_ct_helper_expectfn *
--nf_ct_helper_expectfn_find_by_name(const char *name);
-+nf_ct_helper_expectfn_find_by_name(const char *helper, const char *name);
- struct nf_ct_helper_expectfn *
- nf_ct_helper_expectfn_find_by_symbol(const void *symbol);
- 
-diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
-index faee20af4856..21353623130c 100644
---- a/net/ipv4/netfilter/nf_nat_h323.c
-+++ b/net/ipv4/netfilter/nf_nat_h323.c
-@@ -518,11 +518,13 @@ static int nat_callforwarding(struct sk_buff *skb, struct nf_conn *ct,
- }
- 
- static struct nf_ct_helper_expectfn q931_nat = {
-+	.helper		= "RAS",
- 	.name		= "Q.931",
- 	.expectfn	= ip_nat_q931_expect,
- };
- 
- static struct nf_ct_helper_expectfn callforwarding_nat = {
-+	.helper		= "Q.931",
- 	.name		= "callforwarding",
- 	.expectfn	= ip_nat_callforwarding_expect,
- };
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index a715304a53d8..5e6d2687a558 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -285,13 +285,14 @@ EXPORT_SYMBOL_GPL(nf_ct_helper_expectfn_unregister);
- 
- /* Caller should hold the rcu lock */
- struct nf_ct_helper_expectfn *
--nf_ct_helper_expectfn_find_by_name(const char *name)
-+nf_ct_helper_expectfn_find_by_name(const char *helper, const char *name)
- {
- 	struct nf_ct_helper_expectfn *cur;
- 	bool found = false;
- 
- 	list_for_each_entry_rcu(cur, &nf_ct_helper_expectfn_list, head) {
--		if (!strcmp(cur->name, name)) {
-+		if ((cur->helper && !strcmp(cur->helper, helper)) ||
-+		    !strcmp(cur->name, name)) {
- 			found = true;
- 			break;
- 		}
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index eda5fe4a75c8..7744f67a0fbe 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3552,7 +3552,7 @@ ctnetlink_alloc_expect(const struct nlattr * const cda[], struct nf_conn *ct,
- 		const char *name = nla_data(cda[CTA_EXPECT_FN]);
- 		struct nf_ct_helper_expectfn *expfn;
- 
--		expfn = nf_ct_helper_expectfn_find_by_name(name);
-+		expfn = nf_ct_helper_expectfn_find_by_name(helper->name, name);
- 		if (expfn == NULL) {
- 			err = -EINVAL;
- 			goto err_out;
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index cf4aeb299bde..047733012963 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -641,6 +641,7 @@ static unsigned int nf_nat_sdp_media(struct sk_buff *skb, unsigned int protoff,
- }
- 
- static struct nf_ct_helper_expectfn sip_nat = {
-+	.helper		= "sip",
- 	.name		= "sip",
- 	.expectfn	= nf_nat_sip_expected,
- };
--- 
-2.52.0
-
+        tglx
