@@ -1,41 +1,41 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 216C23BADBF
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 11:59:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66F823B95F9
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 11:59:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775649574; cv=none; b=VehdguFrbOOByu4tTWXvOsfXKo+FbYpBas4f/29heSl+r2RHiCdTyEellpKWU7jXcUe9upuuwzKF2V995rJ3/6IV2+6/Y6oXt7kN46z96+/9K4T3ij5zuAmPLnRElBE8CDRSMtTAIP3V0Tb+DN2BN1dIhImWamFhXqyWa2kCA0Y=
+	t=1775649575; cv=none; b=Jnb2xq2aXQeWnt/uKZvNIJPFuWkqGXvP0cRuMoZIsXdNzc8BqG2yJGBMkioReerb18MJ3atK4SWrWbJxbqv9jgT9fxyaie+0poBxHuEI79bGekOiaR9L11p8mLnMOMnZ0AuKM6636ykeUnrPzOn+GIHtFH+r6j5QU+R70d7tgx8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775649574; c=relaxed/simple;
-	bh=fDEXEB2kskSwuPvaSNC3rLfPdpCGJjEMiseheJHEVKY=;
+	s=arc-20240116; t=1775649575; c=relaxed/simple;
+	bh=/uNecMsE5RmCjB517QwujTzEK/hrOz6YCdmztEHsnLM=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=UHX2lZQPQRsFXj2QsOgt9tTuhN15jwu75KUxwhoa2ixeiqeZGLtbKREiR1KAEMQ/EYujb/Q0aCnm2ItsrFcaBtcUMSelQ+3qVh5Lgi102JUUvCuaontXGmde01AW/d02V6Hirdc6Cw5WD393gokttiC0dXIdjnaJ8zzZdZI9JC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CWHO9b9J; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=P61TD1X6Ff40CgjWWVoCkMez1gQXBtdz0aYqnEnN/AYJFyUHVqsdjFLORdi9Mdru5FYgShTQB61AXxtZTJSjJJK2VJ+Z2YJF4MxrS8pJMgjYuTRFs7dyU2v1acD3qxG3sJ8Uo9NCtt4dtQPyDym+O9JgOddcTfVSJJ6+5uI8/jU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FZTprBf+; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CWHO9b9J"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FZTprBf+"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7585E6033D;
-	Wed,  8 Apr 2026 13:59:31 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5DE706033E;
+	Wed,  8 Apr 2026 13:59:32 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775649571;
-	bh=N2s2UR1EWijMM2odnIthaVG0+z4aXJs2zb7F5psM3sE=;
+	s=2025; t=1775649572;
+	bh=K5g/Ny+u1Z5k6emKUFuLoeUV7U209dMuKQTFoNcWQ2U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=CWHO9b9Jx6RXVwVugKuYRRz+Hd7WgO85+qdaw9iPQxWoQ3u6U+VMX+W2EtYAksdFH
-	 qdDHpMIU9W8iw76MUJRe7q9AoN/Wnbud2zvWAy0dUd5pR+wcPHiOtQ5n4XoTASu6z1
-	 mrkZir8s6GKHF2AB4s1f/RYW2BWEfcKDKPtO4EezHjdjeibDVBRm5jVC5vAK7q5zw7
-	 zdZJHYMm1tOyGoSoJ/aKR1nMz7oO20ystgDewgQgGSF0MdHZzfnfIGbXVVPUXImt2b
-	 G+LT9LSVHpLH8/hKl1/ppKRkVRjAY3uL8/wO/bIoThcNDhMqgEPQSJknrivTbMtX1Y
-	 xGcSzKV41EYFw==
+	b=FZTprBf+zNx4ftyhVPNhXmu2kCpQHBiiSNaem/fv8+xigPLpCBp9Rrt1kr2H8VYmk
+	 0rLY1m8gL2Jt4Gs8vpHN7w8J4GGAW4Iu8UWz7CWayqlZaY9+Mq3+uZYeEVRCJSD06Q
+	 xXwxJlKrauatGSEMwU7U4ODlSWfoq8LuzxTpliMzEIIpVerrHHgntoFsCQJoMwNxE2
+	 YrOXby70ZcANvdh4Awh8Zo/cokuYtAUch2jGAXkXL9PvB/arwCp6MJ+rObydcPUXPf
+	 w6jy92rT1zLgs83BSYcUihdN93W2AOuNKNNhnh89VA3TT9Aggy++nbNFAy+C4GzzTB
+	 Z6IWw+GgyzVeA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: phil@nwl.cc,
 	fw@strlen.de
-Subject: [PATCH nft 3/5] libnftables: consolidate evaluation and netlink run
-Date: Wed,  8 Apr 2026 13:59:20 +0200
-Message-ID: <20260408115922.48676-4-pablo@netfilter.org>
+Subject: [PATCH nft 4/5] libnftables: use nft_eval_run_cmds() in nft_run_cmd_from_filename()
+Date: Wed,  8 Apr 2026 13:59:21 +0200
+Message-ID: <20260408115922.48676-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260408115922.48676-1-pablo@netfilter.org>
 References: <20260408115922.48676-1-pablo@netfilter.org>
@@ -47,117 +47,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a helper function to wrap the code that evaluates the list of
-commands and serialize them into the netlink batch.
+Update nft_run_cmd_from_filename() to use this new helper function.
 
-Add a first user: nft_run_cmd_from_buffer(), there is a follow up patch
-which will do the same for nft_run_cmd_from_filename().
+Move err: tag to a later stage, which is run by the variables defined
+via --define option, this should be safe.
 
 No functional changes are intended, this comes in preparation to
 support several list/reset commands in a batch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/libnftables.c | 61 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 37 insertions(+), 24 deletions(-)
+ src/libnftables.c | 33 ++++-----------------------------
+ 1 file changed, 4 insertions(+), 29 deletions(-)
 
 diff --git a/src/libnftables.c b/src/libnftables.c
-index 46d9c0df590b..5471ccf6f789 100644
+index 5471ccf6f789..987f5d73ade4 100644
 --- a/src/libnftables.c
 +++ b/src/libnftables.c
-@@ -618,22 +618,13 @@ static void nft_run_cmd_release(struct nft_ctx *nft,
- 	}
- }
- 
--EXPORT_SYMBOL(nft_run_cmd_from_buffer);
--int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
-+static int nft_eval_run_cmds(struct nft_ctx *nft, struct list_head *msgs,
-+			     struct list_head *cmds, int rc)
+@@ -761,9 +761,9 @@ static struct error_record *filename_is_useable(struct nft_ctx *nft, const char
+ static int __nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename)
  {
--	int rc = -EINVAL, parser_rc;
--	LIST_HEAD(msgs);
--	LIST_HEAD(cmds);
--	char *nlbuf;
-+	int parser_rc;
+ 	struct error_record *erec;
+-	int rc, parser_rc;
+ 	LIST_HEAD(msgs);
+ 	LIST_HEAD(cmds);
++	int rc;
  
--	nlbuf = xzalloc(strlen(buf) + 2);
--	sprintf(nlbuf, "%s\n", buf);
+ 	erec = filename_is_useable(nft, filename);
+ 	if (erec) {
+@@ -782,35 +782,17 @@ static int __nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename
+ 	if (rc == -EINVAL)
+ 		rc = nft_parse_bison_filename(nft, filename, &msgs, &cmds);
+ 
+-	parser_rc = rc;
 -
--	if (nft_output_json(&nft->output) || nft_input_json(&nft->input))
--		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &cmds);
--	if (rc == -EINVAL)
--		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds,
--					    &indesc_cmdline);
-+	if (rc < 0)
-+		goto err;
- 
- #if HAVE_FUZZER_BUILD
- 	if (nft->afl_ctx_stage == NFT_AFL_FUZZER_PARSER)
-@@ -641,7 +632,7 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
- #endif
- 	parser_rc = rc;
+ 	if (nft->optimize_flags)
+ 		nft_optimize(nft, &cmds);
  
 -	rc = nft_evaluate(nft, &msgs, &cmds);
-+	rc = nft_evaluate(nft, msgs, cmds);
- 	if (rc < 0) {
- 		if (errno == EPERM) {
- 			fprintf(stderr, "%s (you must be root)\n",
-@@ -655,17 +646,10 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
- 		goto err;
- 	}
- 
--	if (nft_netlink(nft, &cmds, &msgs) != 0)
-+	if (nft_netlink(nft, cmds, msgs) != 0)
- 		rc = -1;
- err:
--	nft_run_cmd_release(nft, &msgs, &cmds);
--
--	iface_cache_release();
--	if (nft->scanner) {
--		scanner_destroy(nft);
--		nft->scanner = NULL;
+-	if (rc < 0) {
+-		if (errno == EPERM) {
+-			fprintf(stderr, "%s (you must be root)\n",
+-				strerror(errno));
+-		}
+-		goto err;
 -	}
--	free(nlbuf);
-+	nft_run_cmd_release(nft, msgs, cmds);
- 
- 	if (!rc &&
- 	    nft_output_json(&nft->output) &&
-@@ -678,6 +662,35 @@ err:
- 	return rc;
- }
- 
-+EXPORT_SYMBOL(nft_run_cmd_from_buffer);
-+int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
-+{
-+	int rc = -EINVAL;
-+	LIST_HEAD(msgs);
-+	LIST_HEAD(cmds);
-+	char *nlbuf;
-+
-+	nlbuf = xzalloc(strlen(buf) + 2);
-+	sprintf(nlbuf, "%s\n", buf);
-+
-+	if (nft_output_json(&nft->output) || nft_input_json(&nft->input))
-+		rc = nft_parse_json_buffer(nft, nlbuf, &msgs, &cmds);
-+	if (rc == -EINVAL)
-+		rc = nft_parse_bison_buffer(nft, nlbuf, &msgs, &cmds,
-+					    &indesc_cmdline);
-+
+-
+-	if (parser_rc) {
+-		rc = parser_rc;
+-		goto err;
+-	}
+-
+-	if (nft_netlink(nft, &cmds, &msgs) != 0)
+-		rc = -1;
+-err:
+-	nft_run_cmd_release(nft, &msgs, &cmds);
 +	rc = nft_eval_run_cmds(nft, &msgs, &cmds, rc);
-+
-+	free(nlbuf);
-+	iface_cache_release();
-+	if (nft->scanner) {
-+		scanner_destroy(nft);
-+		nft->scanner = NULL;
-+	}
-+
-+	return rc;
-+}
-+
- static int load_cmdline_vars(struct nft_ctx *ctx, struct list_head *msgs)
- {
- 	unsigned int bufsize, ret, i, offset = 0;
+ 
+ 	iface_cache_release();
+ 	if (nft->scanner) {
+ 		scanner_destroy(nft);
+ 		nft->scanner = NULL;
+ 	}
++err:
+ 	if (!list_empty(&nft->vars_ctx.indesc_list)) {
+ 		struct input_descriptor *indesc, *next;
+ 
+@@ -821,15 +803,8 @@ err:
+ 			free(indesc);
+ 		}
+ 	}
+-	free_const(nft->vars_ctx.buf);
+-
+-	if (!rc &&
+-	    nft_output_json(&nft->output) &&
+-	    nft_output_echo(&nft->output))
+-		json_print_echo(nft);
+ 
+-	if (rc || nft->check)
+-		nft_cache_release(&nft->cache);
++	free_const(nft->vars_ctx.buf);
+ 
+ 	scope_release(nft->state->scopes[0]);
+ 
 -- 
 2.47.3
 
