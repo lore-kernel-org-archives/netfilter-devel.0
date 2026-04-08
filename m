@@ -1,80 +1,101 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 856713D3304
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 14:12:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB72C3D333C;
+	Wed,  8 Apr 2026 14:15:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775657532; cv=none; b=Gfotu8UouCsWIIIt5Nigl95bgzmHchmqg2H4p1exIEd5KiBerDhVNktd+NbZe5Rjhpm9w26Ok4LtLie/soyvRD1SvdMnxS1PsOser68ctT+X/5mkyCQ+mEhTCV0+RqyWU5YO5NBpWkiSO0EmWrFto9fpKnNPGJi94PsrzuUJqUc=
+	t=1775657714; cv=none; b=OJpTODdXaBZDcbBLITSgn9c3zsJDh52+kuaw+XB9SHyxvQT61d7FsxBMSv1xoxqCaU7+c19qwhpgBseISoRXTDMyRFjxi2oi0YsvaoSrtyooOO14Cdr/CE+Y8mmmFCNAzD3279c3K9xwOD4Wi8EXuSJ6pmiDPkGoH04ZDgKp06M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775657532; c=relaxed/simple;
-	bh=K9ieUjYbDBMqZKltftnrsH7MwPRGTVxnwtZS1MSZ+zs=;
+	s=arc-20240116; t=1775657714; c=relaxed/simple;
+	bh=2GKBWezh0wJ1rxI7mwwrI3CADIBrRX0kcY4kXY4Vgws=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LPp0+9KeUPuNv5fCvCEmT5ct6q30zJ+JLn0B3cA1oHTMtwMnlcrtEqb507IDP8U6i4nP0XbxQmTmU8V/udAvxtwHLPE2naJ1hVdFS/XnuVuQBf6i9NVRjnH/hwdXQ8DAvheUWJbPo0WZFmBDIBdH9NJXv2L3DFpeYdqTfdBEhZA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=o0OGah6d; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=lHh2BLL5KKEoTgPFzanJTY4RWUYDev0yyGDR3Ie1fkReHT0YBW/PhyWIhkrwiY9WIcSpSLic11UtN3A/QRSoIzQ++UT1OhKEeS5wgN/7u9x49CS0GQbxp157oC+pM/ca0yArrYYvC7RQofUmnYgv1U+jmy9sqke7dWRb9ylKTOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S7RMpuEh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="o0OGah6d"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 96D2E6017D;
-	Wed,  8 Apr 2026 16:12:05 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775657525;
-	bh=zVpw5f2C8z8g7TLx99LrF4RNqTu3/Oo/ou2fmRS/4t8=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S7RMpuEh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5A9AC19421;
+	Wed,  8 Apr 2026 14:15:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775657713;
+	bh=2GKBWezh0wJ1rxI7mwwrI3CADIBrRX0kcY4kXY4Vgws=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=o0OGah6drMOITm/3jQAEZ7HIFS8c3Vh7jHAMWjwEB1f1S97VDsAd8VQjvP3xx6l0o
-	 f2tMCN4KMFvKlZtPewNewHl2SU44oKrnqQWrW0BsKU2orUuCRtCyrIIyQGU+xmxi6s
-	 CR/T9U/mzqpyX2mz4DfE3uXjtYVlxRjqCGOiekIZ4oRAhjciosluIp0D2fPejYbOwb
-	 P0IcNucEKnwTkkg0SNgH9chQ4NBRXNOT1vq+Y4hO3VIrTxjek4//fNJAVXWneAa9hE
-	 3OTonnTAwRqWnhxAvMcDfXtpAyWEuVl1CnvhiKYeUkglgwXrak2A4Rr5/+vGmk+5kC
-	 2X2TIJKQauIsw==
-Date: Wed, 8 Apr 2026 16:12:02 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org, phil@nwl.cc
-Subject: Re: [PATCH nft 1/5] libnftables: report EPERM to non-root users with
- -f/--filename
-Message-ID: <adZiMtndiQnSaLZw@chamomile>
-References: <20260408115922.48676-1-pablo@netfilter.org>
- <20260408115922.48676-2-pablo@netfilter.org>
- <adZEAkrcCcXEau_1@strlen.de>
+	b=S7RMpuEhAPW7AoOpjukUkXJY+0IaS3EO36qhsh4pHP7RO2qD8o4j/LAfL2PLYnA9E
+	 ipxgcOMKMjHnufFqMlmIaFmx6ikF9fMJpZSIjwzaA5QqgBONm/RUc6COFkqhGC/aXw
+	 QzVD/keNQftVMS5w6AV3K6rQT2wVra5sdjm5ElRAeT99Jyk5UibxzfyoQ5mDAJTfpL
+	 8bCNhdEucCP4sh76TdoEf+0DZHkNbt2zoXyZpFbNJ2nVZlprWaE7Ssn7oGmMfkPm6h
+	 QFQXp64lSaUeTm976GITCQtllOBMqK5ELfwfUpBigReRcSwN8/oPD/yPVp7KL5peTw
+	 D0jjt1EBvBonQ==
+Date: Wed, 8 Apr 2026 16:15:10 +0200
+From: Frederic Weisbecker <frederic@kernel.org>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Calvin Owens <calvin@wbinvd.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch 01/12] clockevents: Prevent timer interrupt starvation
+Message-ID: <adZi7iFB8hqoaPcu@localhost.localdomain>
+References: <20260407083219.478203185@kernel.org>
+ <20260407083247.562657657@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <adZEAkrcCcXEau_1@strlen.de>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260407083247.562657657@kernel.org>
 
-On Wed, Apr 08, 2026 at 02:03:24PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Similar to 3cfb9e4b3e40 ("src: report EPERM for non-root users").
-> > 
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  src/libnftables.c | 7 ++++++-
-> >  1 file changed, 6 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/src/libnftables.c b/src/libnftables.c
-> > index 66b03a1170bb..e3218da9f48f 100644
-> > --- a/src/libnftables.c
-> > +++ b/src/libnftables.c
-> > @@ -767,8 +767,13 @@ static int __nft_run_cmd_from_filename(struct nft_ctx *nft, const char *filename
-> >  		nft_optimize(nft, &cmds);
-> >  
-> >  	rc = nft_evaluate(nft, &msgs, &cmds);
-> > -	if (rc < 0)
-> > +	if (rc < 0) {
-> > +		if (errno == EPERM) {
-> > +			fprintf(stderr, "%s (you must be root)\n",
-> > +				strerror(errno));
-> > +		}
-> >  		goto err;
-> > +	}
+Le Tue, Apr 07, 2026 at 10:54:17AM +0200, Thomas Gleixner a écrit :
+> From: Thomas Gleixner <tglx@kernel.org>
 > 
-> Hmm, should the library leave stderr alone?
+> Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
+> up in user space. He provided a reproducer, which sets up a timerfd based
+> timer and then rearms it in a loop with an absolute expiry time of 1ns.
+> 
+> As the expiry time is in the past, the timer ends up as the first expiring
+> timer in the per CPU hrtimer base and the clockevent device is programmed
+> with the minimum delta value. If the machine is fast enough, this ends up
+> in a endless loop of programming the delta value to the minimum value
+> defined by the clock event device, before the timer interrupt can fire,
+> which starves the interrupt and consequently triggers the lockup detector
+> because the hrtimer callback of the lockup mechanism is never invoked.
+> 
+> As a first step to prevent this, avoid reprogramming the clock event device
+> when:
+>      - a forced minimum delta event is pending
+>      - the new expiry delta is less then or equal to the minimum delta
+> 
+> Thanks to Calvin for providing the reproducer and to Borislav for testing
+> and providing data from his Zen5 machine.
+> 
+> The problem is not limited to Zen5, but depending on the underlying
+> clock event device (e.g. TSC deadline timer on Intel) and the CPU speed
+> not necessarily observable.
+> 
+> This change serves only as the last resort and further changes will be made
+> to prevent this scenario earlier in the call chain as far as possible.
+> 
+> Fixes: d316c57ff6bf ("[PATCH] clockevents: add core functionality")
+> Reported-by: Calvin Owens <calvin@wbinvd.org>
+> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
+> Cc: Frederic Weisbecker <frederic@kernel.org>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Link: https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
 
-This can be handled instead from src/main.c
+Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
+
+-- 
+Frederic Weisbecker
+SUSE Labs
