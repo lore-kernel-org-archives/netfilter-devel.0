@@ -1,21 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEF5C346FC4;
-	Wed,  8 Apr 2026 16:35:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B8793B27CA;
+	Wed,  8 Apr 2026 16:35:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775666144; cv=none; b=gCrw+b+D8LvCuheqK1LchPYeAoHBzbIFU8HxYdvcUBwM+7vEfGrM1jpwA8smrtxLTCIN/FMityGyA+yUlTBGjszTvDHGTrhvVzBrLSbh4O19JOP6sVXO07b+3fZkfA62XNwfhlc2XZvMjLPIavt4HiiMV2vxqR8svSiaxdp5UYw=
+	t=1775666148; cv=none; b=LVTskgK0kVhbc13mY4Mw0xDdX9WZyJbxwZK74msq+Jh5NU8uifh2qYC7/YEtN9U71uG+P8BnTbzL0Pv3zx17A88wdgu/ZU4c45OZY0Tk6vpAvQWgRx1k9CDth0b0SXFYp6gaIG0es9hDyxDKYvEE9tny+uDp43FjMzZtlgY5bo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775666144; c=relaxed/simple;
-	bh=CzZif/O5X4SQxebPcaSgyr1O7l/aJlPWUVSucWTKmGo=;
+	s=arc-20240116; t=1775666148; c=relaxed/simple;
+	bh=+/rOeXhg1Ya6DR1P4O5XVmtQB/QwnQxKxP2BrEMvFko=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mrTij8yKbTcBYENcqBN9xNKSpOesdG73JmIEgDIbh4raEeBzMzns3OBAQFXHSKFB93unJUB7Xja5zmssK92GsfpqMihn5ZR8WzIUZroRYKS3pzx95sPhG3Vm7K3TTH+dYcHTfnF/IhsbNSSdUvlCUZquanAN6MuIdZC3mmebHeY=
+	 MIME-Version; b=ERePwnZqvn3UY2kEKT3t7WkEFu9oC7QBaT+SvLm0totqSwWPpr80DqxvDQPGGy+gUZU4mxt4U2dymrTuDTQ/5ftc0sxOAUu1Hm+xSHVJYaFb9Mi61eeUNvtp71jgnuKf9sfR19DA1nDXktdAfSN+ASJOtM+9hOdydHbIjneSKHg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 5E57560560; Wed, 08 Apr 2026 18:35:41 +0200 (CEST)
+	id B5D7460560; Wed, 08 Apr 2026 18:35:45 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,9 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net 6/7] netfilter: nfnetlink_queue: make hash table per queue
-Date: Wed,  8 Apr 2026 18:35:11 +0200
-Message-ID: <20260408163512.30537-7-fw@strlen.de>
+Subject: [PATCH net 7/7] selftests: nft_queue.sh: add a parallel stress test
+Date: Wed,  8 Apr 2026 18:35:12 +0200
+Message-ID: <20260408163512.30537-8-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
 In-Reply-To: <20260408163512.30537-1-fw@strlen.de>
 References: <20260408163512.30537-1-fw@strlen.de>
@@ -38,307 +38,249 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Sharing a global hash table among all queues is tempting, but
-it can cause crash:
+From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-BUG: KASAN: slab-use-after-free in nfqnl_recv_verdict+0x11ac/0x15e0 [nfnetlink_queue]
-[..]
- nfqnl_recv_verdict+0x11ac/0x15e0 [nfnetlink_queue]
- nfnetlink_rcv_msg+0x46a/0x930
- kmem_cache_alloc_node_noprof+0x11e/0x450
+Introduce a new stress test to check for race conditions in the
+nfnetlink_queue subsystem, where an entry is freed while another CPU is
+concurrently walking the global rhashtable.
 
-struct nf_queue_entry is freed via kfree, but parallel cpu can still
-encounter such an nf_queue_entry when walking the list.
+To trigger this, `nf_queue.c` is extended with two new flags:
+  * -O (out-of-order): Buffers packet IDs and flushes them in reverse.
+  * -b (bogus verdicts): Floods the kernel with non-existent packet IDs.
 
-Alternative fix is to free the nf_queue_entry via kfree_rcu() instead,
-but as we have to alloc/free for each skb this will cause more mem
-pressure.
+The bogus verdict loop forces the kernel's lookup function to perform
+full rhashtable bucket traversals (-ENOENT). Combined with reverse-order
+flushing and heavy parallel UDP/ping flooding across 8 queues, this puts
+the nfnetlink_queue code under pressure.
 
-Cc: Scott Mitchell <scott.k.mitch1@gmail.com>
-Fixes: e19079adcd26 ("netfilter: nfnetlink_queue: optimize verdict lookup with hash table")
+Joint work with Florian Westphal.
+
+Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_queue.h |   1 -
- net/netfilter/nfnetlink_queue.c  | 139 +++++++++++--------------------
- 2 files changed, 49 insertions(+), 91 deletions(-)
+ .../selftests/net/netfilter/nf_queue.c        | 50 +++++++++--
+ .../selftests/net/netfilter/nft_queue.sh      | 83 ++++++++++++++++---
+ 2 files changed, 115 insertions(+), 18 deletions(-)
 
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index 45eb26b2e95b..d17035d14d96 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -23,7 +23,6 @@ struct nf_queue_entry {
- 	struct nf_hook_state	state;
- 	bool			nf_ct_is_unconfirmed;
- 	u16			size; /* sizeof(entry) + saved route keys */
--	u16			queue_num;
+diff --git a/tools/testing/selftests/net/netfilter/nf_queue.c b/tools/testing/selftests/net/netfilter/nf_queue.c
+index 116c0ca0eabb..8bbec37f5356 100644
+--- a/tools/testing/selftests/net/netfilter/nf_queue.c
++++ b/tools/testing/selftests/net/netfilter/nf_queue.c
+@@ -19,6 +19,8 @@ struct options {
+ 	bool count_packets;
+ 	bool gso_enabled;
+ 	bool failopen;
++	bool out_of_order;
++	bool bogus_verdict;
+ 	int verbose;
+ 	unsigned int queue_num;
+ 	unsigned int timeout;
+@@ -31,7 +33,7 @@ static struct options opts;
  
- 	/* extra space to store route keys */
- };
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 47f7f62906e2..8e02f84784da 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -49,8 +49,8 @@
- #endif
- 
- #define NFQNL_QMAX_DEFAULT 1024
--#define NFQNL_HASH_MIN     1024
--#define NFQNL_HASH_MAX     1048576
-+#define NFQNL_HASH_MIN     8
-+#define NFQNL_HASH_MAX     32768
- 
- /* We're using struct nlattr which has 16bit nla_len. Note that nla_len
-  * includes the header length. Thus, the maximum packet length that we
-@@ -60,29 +60,10 @@
-  */
- #define NFQNL_MAX_COPY_RANGE (0xffff - NLA_HDRLEN)
- 
--/* Composite key for packet lookup: (net, queue_num, packet_id) */
--struct nfqnl_packet_key {
--	possible_net_t net;
--	u32 packet_id;
--	u16 queue_num;
--} __aligned(sizeof(u32));  /* jhash2 requires 32-bit alignment */
--
--/* Global rhashtable - one for entire system, all netns */
--static struct rhashtable nfqnl_packet_map __read_mostly;
--
--/* Helper to initialize composite key */
--static inline void nfqnl_init_key(struct nfqnl_packet_key *key,
--				  struct net *net, u32 packet_id, u16 queue_num)
--{
--	memset(key, 0, sizeof(*key));
--	write_pnet(&key->net, net);
--	key->packet_id = packet_id;
--	key->queue_num = queue_num;
--}
--
- struct nfqnl_instance {
- 	struct hlist_node hlist;		/* global list of queues */
--	struct rcu_head rcu;
-+	struct rhashtable nfqnl_packet_map;
-+	struct rcu_work	rwork;
- 
- 	u32 peer_portid;
- 	unsigned int queue_maxlen;
-@@ -106,6 +87,7 @@ struct nfqnl_instance {
- 
- typedef int (*nfqnl_cmpfn)(struct nf_queue_entry *, unsigned long);
- 
-+static struct workqueue_struct *nfq_cleanup_wq __read_mostly;
- static unsigned int nfnl_queue_net_id __read_mostly;
- 
- #define INSTANCE_BUCKETS	16
-@@ -124,34 +106,10 @@ static inline u_int8_t instance_hashfn(u_int16_t queue_num)
- 	return ((queue_num >> 8) ^ queue_num) % INSTANCE_BUCKETS;
+ static void help(const char *p)
+ {
+-	printf("Usage: %s [-c|-v [-vv] ] [-o] [-t timeout] [-q queue_num] [-Qdst_queue ] [ -d ms_delay ] [-G]\n", p);
++	printf("Usage: %s [-c|-v [-vv] ] [-o] [-O] [-b] [-t timeout] [-q queue_num] [-Qdst_queue ] [ -d ms_delay ] [-G]\n", p);
  }
  
--/* Extract composite key from nf_queue_entry for hashing */
--static u32 nfqnl_packet_obj_hashfn(const void *data, u32 len, u32 seed)
--{
--	const struct nf_queue_entry *entry = data;
--	struct nfqnl_packet_key key;
--
--	nfqnl_init_key(&key, entry->state.net, entry->id, entry->queue_num);
--
--	return jhash2((u32 *)&key, sizeof(key) / sizeof(u32), seed);
--}
--
--/* Compare stack-allocated key against entry */
--static int nfqnl_packet_obj_cmpfn(struct rhashtable_compare_arg *arg,
--				  const void *obj)
--{
--	const struct nfqnl_packet_key *key = arg->key;
--	const struct nf_queue_entry *entry = obj;
--
--	return !net_eq(entry->state.net, read_pnet(&key->net)) ||
--	       entry->queue_num != key->queue_num ||
--	       entry->id != key->packet_id;
--}
--
- static const struct rhashtable_params nfqnl_rhashtable_params = {
- 	.head_offset = offsetof(struct nf_queue_entry, hash_node),
--	.key_len = sizeof(struct nfqnl_packet_key),
--	.obj_hashfn = nfqnl_packet_obj_hashfn,
--	.obj_cmpfn = nfqnl_packet_obj_cmpfn,
-+	.key_offset = offsetof(struct nf_queue_entry, id),
-+	.key_len = sizeof(u32),
- 	.automatic_shrinking = true,
- 	.min_size = NFQNL_HASH_MIN,
- 	.max_size = NFQNL_HASH_MAX,
-@@ -190,6 +148,10 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
- 	spin_lock_init(&inst->lock);
- 	INIT_LIST_HEAD(&inst->queue_list);
+ static int parse_attr_cb(const struct nlattr *attr, void *data)
+@@ -275,7 +277,9 @@ static int mainloop(void)
+ 	unsigned int buflen = 64 * 1024 + MNL_SOCKET_BUFFER_SIZE;
+ 	struct mnl_socket *nl;
+ 	struct nlmsghdr *nlh;
++	uint32_t ooo_ids[16];
+ 	unsigned int portid;
++	int ooo_count = 0;
+ 	char *buf;
+ 	int ret;
  
-+	err = rhashtable_init(&inst->nfqnl_packet_map, &nfqnl_rhashtable_params);
-+	if (err < 0)
-+		goto out_free;
+@@ -308,6 +312,9 @@ static int mainloop(void)
+ 
+ 		ret = mnl_cb_run(buf, ret, 0, portid, queue_cb, NULL);
+ 		if (ret < 0) {
++			/* bogus verdict mode will generate ENOENT error messages */
++			if (opts.bogus_verdict && errno == ENOENT)
++				continue;
+ 			perror("mnl_cb_run");
+ 			exit(EXIT_FAILURE);
+ 		}
+@@ -316,10 +323,35 @@ static int mainloop(void)
+ 		if (opts.delay_ms)
+ 			sleep_ms(opts.delay_ms);
+ 
+-		nlh = nfq_build_verdict(buf, id, opts.queue_num, opts.verdict);
+-		if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+-			perror("mnl_socket_sendto");
+-			exit(EXIT_FAILURE);
++		if (opts.bogus_verdict) {
++			for (int i = 0; i < 50; i++) {
++				nlh = nfq_build_verdict(buf, id + 0x7FFFFFFF + i,
++							opts.queue_num, opts.verdict);
++				mnl_socket_sendto(nl, nlh, nlh->nlmsg_len);
++			}
++		}
 +
- 	spin_lock(&q->instances_lock);
- 	if (instance_lookup(q, queue_num)) {
- 		err = -EEXIST;
-@@ -210,6 +172,8 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
++		if (opts.out_of_order) {
++			ooo_ids[ooo_count] = id;
++			if (ooo_count >= 15) {
++				for (ooo_count; ooo_count >= 0; ooo_count--) {
++					nlh = nfq_build_verdict(buf, ooo_ids[ooo_count],
++								opts.queue_num, opts.verdict);
++					if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++						perror("mnl_socket_sendto");
++						exit(EXIT_FAILURE);
++					}
++				}
++				ooo_count = 0;
++			} else {
++				ooo_count++;
++			}
++		} else {
++			nlh = nfq_build_verdict(buf, id, opts.queue_num, opts.verdict);
++			if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++				perror("mnl_socket_sendto");
++				exit(EXIT_FAILURE);
++			}
+ 		}
+ 	}
  
- out_unlock:
- 	spin_unlock(&q->instances_lock);
-+	rhashtable_destroy(&inst->nfqnl_packet_map);
-+out_free:
- 	kfree(inst);
- 	return ERR_PTR(err);
- }
-@@ -217,15 +181,18 @@ instance_create(struct nfnl_queue_net *q, u_int16_t queue_num, u32 portid)
- static void nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn,
- 			unsigned long data);
- 
--static void
--instance_destroy_rcu(struct rcu_head *head)
-+static void instance_destroy_work(struct work_struct *work)
+@@ -332,7 +364,7 @@ static void parse_opts(int argc, char **argv)
  {
--	struct nfqnl_instance *inst = container_of(head, struct nfqnl_instance,
--						   rcu);
-+	struct nfqnl_instance *inst;
+ 	int c;
  
-+	inst = container_of(to_rcu_work(work), struct nfqnl_instance,
-+			    rwork);
- 	rcu_read_lock();
- 	nfqnl_flush(inst, NULL, 0);
- 	rcu_read_unlock();
+-	while ((c = getopt(argc, argv, "chvot:q:Q:d:G")) != -1) {
++	while ((c = getopt(argc, argv, "chvoObt:q:Q:d:G")) != -1) {
+ 		switch (c) {
+ 		case 'c':
+ 			opts.count_packets = true;
+@@ -375,6 +407,12 @@ static void parse_opts(int argc, char **argv)
+ 		case 'v':
+ 			opts.verbose++;
+ 			break;
++		case 'O':
++			opts.out_of_order = true;
++			break;
++		case 'b':
++			opts.bogus_verdict = true;
++			break;
+ 		}
+ 	}
+ 
+diff --git a/tools/testing/selftests/net/netfilter/nft_queue.sh b/tools/testing/selftests/net/netfilter/nft_queue.sh
+index ea766bdc5d04..d80390848e85 100755
+--- a/tools/testing/selftests/net/netfilter/nft_queue.sh
++++ b/tools/testing/selftests/net/netfilter/nft_queue.sh
+@@ -11,6 +11,7 @@ ret=0
+ timeout=5
+ 
+ SCTP_TEST_TIMEOUT=60
++STRESS_TEST_TIMEOUT=30
+ 
+ cleanup()
+ {
+@@ -719,6 +720,74 @@ EOF
+ 	fi
+ }
+ 
++check_tainted()
++{
++	local msg="$1"
 +
-+	rhashtable_destroy(&inst->nfqnl_packet_map);
++	if [ "$tainted_then" -ne 0 ];then
++		return
++	fi
 +
- 	kfree(inst);
- 	module_put(THIS_MODULE);
- }
-@@ -234,7 +201,9 @@ static void
- __instance_destroy(struct nfqnl_instance *inst)
- {
- 	hlist_del_rcu(&inst->hlist);
--	call_rcu(&inst->rcu, instance_destroy_rcu);
++	read tainted_now < /proc/sys/kernel/tainted
++	if [ "$tainted_now" -eq 0 ];then
++		echo "PASS: $msg"
++	else
++		echo "TAINT: $msg"
++		dmesg
++		ret=1
++	fi
++}
 +
-+	INIT_RCU_WORK(&inst->rwork, instance_destroy_work);
-+	queue_rcu_work(nfq_cleanup_wq, &inst->rwork);
- }
- 
- static void
-@@ -250,9 +219,7 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
- 	int err;
- 
--	entry->queue_num = queue->queue_num;
--
--	err = rhashtable_insert_fast(&nfqnl_packet_map, &entry->hash_node,
-+	err = rhashtable_insert_fast(&queue->nfqnl_packet_map, &entry->hash_node,
- 				     nfqnl_rhashtable_params);
- 	if (unlikely(err))
- 		return err;
-@@ -266,23 +233,19 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- static void
- __dequeue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
--	rhashtable_remove_fast(&nfqnl_packet_map, &entry->hash_node,
-+	rhashtable_remove_fast(&queue->nfqnl_packet_map, &entry->hash_node,
- 			       nfqnl_rhashtable_params);
- 	list_del(&entry->list);
- 	queue->queue_total--;
- }
- 
- static struct nf_queue_entry *
--find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id,
--		   struct net *net)
-+find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- {
--	struct nfqnl_packet_key key;
- 	struct nf_queue_entry *entry;
- 
--	nfqnl_init_key(&key, net, id, queue->queue_num);
--
- 	spin_lock_bh(&queue->lock);
--	entry = rhashtable_lookup_fast(&nfqnl_packet_map, &key,
-+	entry = rhashtable_lookup_fast(&queue->nfqnl_packet_map, &id,
- 				       nfqnl_rhashtable_params);
- 
- 	if (entry)
-@@ -1531,7 +1494,7 @@ static int nfqnl_recv_verdict(struct sk_buff *skb, const struct nfnl_info *info,
- 
- 	verdict = ntohl(vhdr->verdict);
- 
--	entry = find_dequeue_entry(queue, ntohl(vhdr->id), info->net);
-+	entry = find_dequeue_entry(queue, ntohl(vhdr->id));
- 	if (entry == NULL)
- 		return -ENOENT;
- 
-@@ -1880,40 +1843,38 @@ static int __init nfnetlink_queue_init(void)
- {
- 	int status;
- 
--	status = rhashtable_init(&nfqnl_packet_map, &nfqnl_rhashtable_params);
--	if (status < 0)
--		return status;
-+	nfq_cleanup_wq = alloc_ordered_workqueue("nfq_workqueue", 0);
-+	if (!nfq_cleanup_wq)
-+		return -ENOMEM;
- 
- 	status = register_pernet_subsys(&nfnl_queue_net_ops);
--	if (status < 0) {
--		pr_err("failed to register pernet ops\n");
--		goto cleanup_rhashtable;
--	}
-+	if (status < 0)
-+		goto cleanup_pernet_subsys;
- 
--	netlink_register_notifier(&nfqnl_rtnl_notifier);
--	status = nfnetlink_subsys_register(&nfqnl_subsys);
--	if (status < 0) {
--		pr_err("failed to create netlink socket\n");
--		goto cleanup_netlink_notifier;
--	}
-+	status = netlink_register_notifier(&nfqnl_rtnl_notifier);
-+	if (status < 0)
-+	       goto cleanup_rtnl_notifier;
- 
- 	status = register_netdevice_notifier(&nfqnl_dev_notifier);
--	if (status < 0) {
--		pr_err("failed to register netdevice notifier\n");
--		goto cleanup_netlink_subsys;
--	}
-+	if (status < 0)
-+		goto cleanup_dev_notifier;
++test_queue_stress()
++{
++	read tainted_then < /proc/sys/kernel/tainted
++	local i
 +
-+	status = nfnetlink_subsys_register(&nfqnl_subsys);
-+	if (status < 0)
-+		goto cleanup_nfqnl_subsys;
++        ip netns exec "$nsrouter" nft -f /dev/stdin <<EOF
++flush ruleset
++table inet t {
++	chain forward {
++		type filter hook forward priority 0; policy accept;
++
++		queue flags bypass to numgen random mod 8
++	}
++}
++EOF
++	timeout "$STRESS_TEST_TIMEOUT" ip netns exec "$ns2" \
++		socat -u UDP-LISTEN:12345,fork,pf=ipv4 STDOUT > /dev/null &
++
++	timeout "$STRESS_TEST_TIMEOUT" ip netns exec "$ns3" \
++		socat -u UDP-LISTEN:12345,fork,pf=ipv4 STDOUT > /dev/null &
++
++	for i in $(seq 0 7); do
++		ip netns exec "$nsrouter" timeout "$STRESS_TEST_TIMEOUT" \
++			./nf_queue -q $i -t 2 -O -b > /dev/null &
++	done
++
++	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
++		ping -q -f 10.0.2.99 > /dev/null 2>&1 &
++	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
++		ping -q -f 10.0.3.99 > /dev/null 2>&1 &
++	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
++		ping -q -f "dead:2::99" > /dev/null 2>&1 &
++	ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
++		ping -q -f "dead:3::99" > /dev/null 2>&1 &
++
++	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns2" 12345
++	busywait "$BUSYWAIT_TIMEOUT" udp_listener_ready "$ns3" 12345
++
++	for i in $(seq 1 4);do
++		ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
++			socat -u STDIN UDP-DATAGRAM:10.0.2.99:12345 < /dev/zero > /dev/null &
++		ip netns exec "$ns1" timeout "$STRESS_TEST_TIMEOUT" \
++			socat -u STDIN UDP-DATAGRAM:10.0.3.99:12345 < /dev/zero > /dev/null &
++	done
++
++	wait
++
++	check_tainted "concurrent queueing"
++}
++
+ test_queue_removal()
+ {
+ 	read tainted_then < /proc/sys/kernel/tainted
+@@ -742,18 +811,7 @@ EOF
  
- 	nf_register_queue_handler(&nfqh);
+ 	ip netns exec "$ns1" nft flush ruleset
  
- 	return status;
- 
--cleanup_netlink_subsys:
--	nfnetlink_subsys_unregister(&nfqnl_subsys);
--cleanup_netlink_notifier:
-+cleanup_nfqnl_subsys:
-+	unregister_netdevice_notifier(&nfqnl_dev_notifier);
-+cleanup_dev_notifier:
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
-+cleanup_rtnl_notifier:
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
--cleanup_rhashtable:
--	rhashtable_destroy(&nfqnl_packet_map);
-+cleanup_pernet_subsys:
-+	destroy_workqueue(nfq_cleanup_wq);
- 	return status;
+-	if [ "$tainted_then" -ne 0 ];then
+-		return
+-	fi
+-
+-	read tainted_now < /proc/sys/kernel/tainted
+-	if [ "$tainted_now" -eq 0 ];then
+-		echo "PASS: queue program exiting while packets queued"
+-	else
+-		echo "TAINT: queue program exiting while packets queued"
+-		dmesg
+-		ret=1
+-	fi
++	check_tainted "queue program exiting while packets queued"
  }
  
-@@ -1924,9 +1885,7 @@ static void __exit nfnetlink_queue_fini(void)
- 	nfnetlink_subsys_unregister(&nfqnl_subsys);
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
- 	unregister_pernet_subsys(&nfnl_queue_net_ops);
--
--	rhashtable_destroy(&nfqnl_packet_map);
--
-+	destroy_workqueue(nfq_cleanup_wq);
- 	rcu_barrier(); /* Wait for completion of call_rcu()'s */
- }
+ ip netns exec "$nsrouter" sysctl net.ipv6.conf.all.forwarding=1 > /dev/null
+@@ -799,6 +857,7 @@ test_sctp_forward
+ test_sctp_output
+ test_udp_nat_race
+ test_udp_gro_ct
++test_queue_stress
  
+ # should be last, adds vrf device in ns1 and changes routes
+ test_icmp_vrf
 -- 
 2.52.0
 
