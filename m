@@ -1,33 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED8AC3B8BBF;
-	Wed,  8 Apr 2026 11:54:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D46AB3B27F9;
+	Wed,  8 Apr 2026 11:54:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775649255; cv=none; b=UB/KMr3b9mKHdxAlWOHcmn58SXp9Z+LJpXLGy8DIE8kW0lXamP8o4C0KcoPAHHC6gbR8M8d+wvY5BxVn7nSPx+SSmyW61+e8Rjh7TVJxNIxXy0288D8FTGZkj2LJv1brhIhG0cfPJ2E8AzuTKbTYIywm1GtPiWmAaZ14EQe2aWI=
+	t=1775649258; cv=none; b=Cndn6ymEpAHpGq9g6oevKC6/0p6ehwvFVWtxcmPPTx6IW4v4hJO+IoROip/FELVbPPsX+nNSFCpyI9P2FHuYFqi85TX+LOIdWMfmnAa3C9GOLjkBtv4Jlgv+WlEx42N+8p8sApLdxJDOO5K+jNuH3Dj7ZSSOwqWUJjNKv1R83dk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775649255; c=relaxed/simple;
-	bh=YIwK+oTFsr7FtmUMtD6jU5Zh3TOHfMdcCbzlxv+EOgE=;
+	s=arc-20240116; t=1775649258; c=relaxed/simple;
+	bh=vG3iCoV1k8fk4KDtM9Pf5Kh5C80uU4kxJ0l9q20QI6Y=;
 	h=Date:Message-ID:From:To:Cc:Subject:References:MIME-Version:
-	 Content-Type; b=m5dafwh9VSoMf2rIpEYduN3Mmh+36XVW1P5OHDIVeXv7ujo6EgyKU+/lcA0rzAjfUqCC84MmFNxkXoCcrmpr3KLNI9Lmr27NLBX98VvqEtvHgdx71Ont4BPdHzIhQf1aH4b1jUuSxCZDa4+DlrvugGdgRvGDUtEOqaGm/Rns4EU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aUWORh8j; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type; b=WWrxFVZciMjirrJLeqzqktc9KewApbO5jIGvlWLeFkH6RoTLyRFMr3lkG1ekZhcD/BfGdTB7NyeA9AZTtCCeBTibOq2n9Ope/gPMJBaWSp7y3QOPssRNmdzlZNvMp6t5SKctbhJzHmsncUulMMpL/g4GzSX4YqJ0Jyk9mj6VG2s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EHc079Co; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aUWORh8j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E01BC19421;
-	Wed,  8 Apr 2026 11:54:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EHc079Co"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55788C19421;
+	Wed,  8 Apr 2026 11:54:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775649254;
-	bh=YIwK+oTFsr7FtmUMtD6jU5Zh3TOHfMdcCbzlxv+EOgE=;
+	s=k20201202; t=1775649258;
+	bh=vG3iCoV1k8fk4KDtM9Pf5Kh5C80uU4kxJ0l9q20QI6Y=;
 	h=Date:From:To:Cc:Subject:References:From;
-	b=aUWORh8jnpJkqBZ9MPr6oE8wBea+vpybbs9uFZPPCfx8Vpea7tIT1P00holD6vWH0
-	 peVGZhybxP3x+wMR/JvxURC3ttXcr+cX55L/4BIT9yXbT2kSl0PhuV3wZGhLFL7eZJ
-	 eI3+O8Ifs2YcjXRdhr6nzvt9IWFY/4Hxur+RKhlOiZ5fvMq2JjwxsHj14cFqG9ahbc
-	 eqbSPFIgLVzOGfAHjOweyNGoIElXybHrmqBZXa9dQnLOzky3tuWD8PhrxV45rajp12
-	 tGvZJaMJUOEyhQl+v7uRerhkfjy2yDO/ZX3P9ApQyJNk9wRsHyBBR3XADXRsjzObu3
-	 louz+F6zsTisg==
-Date: Wed, 08 Apr 2026 13:54:11 +0200
-Message-ID: <20260408114952.332822525@kernel.org>
+	b=EHc079CovQfn3Hb67IAa3y5x2eFgTcUByt7J7brNa8lC2z93ZsUfavTUqwXKT298r
+	 4nPOidEPGfTZWPbSRZZEuINE+OrlB1dO1ThVupyA13zeLqcQPv+EVQnrF8muXJHiWA
+	 UqDpPIg853b9QfDoDBUMHltGfZjvs8RwCXe+Sr8yVjD9e22j2x+8EYcD2ObiY9r7Qu
+	 yhrl7wRZ3A48nsIcyw0Ex+nApnjNOLWOJg+SvzGmd3obna9XqlIlvElSbuN9HGJ107
+	 rXrHccNiXnIUMDg6koAaxLdMxuUg9daC7aS9Hn1E06jsIdv1VyvhOGHdO9jPWxNc5z
+	 3kqpVdAFpozNA==
+Date: Wed, 08 Apr 2026 13:54:16 +0200
+Message-ID: <20260408114952.400451460@kernel.org>
 User-Agent: quilt/0.68
 From: Thomas Gleixner <tglx@kernel.org>
 To: LKML <linux-kernel@vger.kernel.org>
@@ -48,7 +48,8 @@ Cc: John Stultz <jstultz@google.com>,
  Phil Sutter <phil@nwl.cc>,
  netfilter-devel@vger.kernel.org,
  coreteam@netfilter.org
-Subject: [patch V2 06/11] alarmtimer: Provide alarm_start_timer()
+Subject: [patch V2 07/11] alarmtimer: Convert posix timer functions to
+ alarm_start_timer()
 References: <20260408102356.783133335@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -58,78 +59,60 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 
-Alarm timers utilize hrtimers for normal operation and only switch to the
-RTC on suspend. In order to catch already expired timers early and without
-going through a timer interrupt cycle, provide a new start function which
-internally uses hrtimer_start_range_ns_user().
-
-If hrtimer_start_range_ns_user() detects an already expired timer, it does
-not queue it. In that case remove the timer from the alarm base as well.
-
-Return the status queued or not back to the caller to handle the early
-expiry.
+Use the new alarm_start_timer() for arming and rearming posix interval
+timers and for clock_nanosleep() so that already expired timers do not go
+through the full timer interrupt cycle.
 
 Signed-off-by: Thomas Gleixner <tglx@kernel.org>
 Acked-by: John Stultz <jstultz@google.com>
 Cc: Stephen Boyd <sboyd@kernel.org>
 ---
-V2: Rename to alarm_start_timer() - Peter
+V2: Rename to alarm_start_timer()
 ---
- include/linux/alarmtimer.h |    6 ++++++
- kernel/time/alarmtimer.c   |   28 ++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+)
---- a/include/linux/alarmtimer.h
-+++ b/include/linux/alarmtimer.h
-@@ -42,8 +42,14 @@ struct alarm {
- 	void			*data;
- };
- 
-+static __always_inline ktime_t alarm_get_expires(struct alarm *alarm)
-+{
-+	return alarm->node.expires;
-+}
-+
- void alarm_init(struct alarm *alarm, enum alarmtimer_type type,
- 		void (*function)(struct alarm *, ktime_t));
-+bool alarm_start_timer(struct alarm *alarm, ktime_t expires, bool relative);
- void alarm_start(struct alarm *alarm, ktime_t start);
- void alarm_start_relative(struct alarm *alarm, ktime_t start);
- void alarm_restart(struct alarm *alarm);
+ kernel/time/alarmtimer.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 --- a/kernel/time/alarmtimer.c
 +++ b/kernel/time/alarmtimer.c
-@@ -365,6 +365,34 @@ void alarm_start_relative(struct alarm *
- }
- EXPORT_SYMBOL_GPL(alarm_start_relative);
+@@ -560,8 +560,7 @@ static bool alarm_timer_rearm(struct k_i
+ 	struct alarm *alarm = &timr->it.alarm.alarmtimer;
  
-+/**
-+ * alarm_start_timer - Sets an alarm to fire
-+ * @alarm:	Pointer to alarm to set
-+ * @expires:	Expiry time
-+ * @relative:	True if @expires is relative
-+ *
-+ * Returns: True if the alarm was queued. False if it already expired
-+ */
-+bool alarm_start_timer(struct alarm *alarm, ktime_t expires, bool relative)
-+{
-+	struct alarm_base *base = &alarm_bases[alarm->type];
+ 	timr->it_overrun += alarm_forward_now(alarm, timr->it_interval);
+-	alarm_start(alarm, alarm->node.expires);
+-	return true;
++	return alarm_start_timer(alarm, alarm->node.expires, false);
+ }
+ 
+ /**
+@@ -625,11 +624,16 @@ static bool alarm_timer_arm(struct k_iti
+ 
+ 	if (!absolute)
+ 		expires = ktime_add_safe(expires, base->get_ktime());
+-	if (sigev_none)
 +
-+	if (relative)
-+		expires = ktime_add_safe(expires, base->get_ktime());
-+
-+	trace_alarmtimer_start(alarm, base->get_ktime());
-+
-+	guard(spinlock_irqsave)(&base->lock);
-+	alarm->node.expires = expires;
-+	alarmtimer_enqueue(base, alarm);
-+	if (!hrtimer_start_range_ns_user(&alarm->timer, expires, 0, HRTIMER_MODE_ABS)) {
-+		alarmtimer_dequeue(base, alarm);
-+		return false;
++	/*
++	 * sigev_none needs to update the expires value and pretend
++	 * that the timer is queued
++	 */
++	if (sigev_none) {
+ 		alarm->node.expires = expires;
+-	else
+-		alarm_start(&timr->it.alarm.alarmtimer, expires);
+-	return true;
++		return true;
 +	}
-+	return true;
-+}
-+EXPORT_SYMBOL_GPL(alarm_start_timer);
++	return alarm_start_timer(&timr->it.alarm.alarmtimer, expires, false);
+ }
+ 
+ /**
+@@ -736,7 +740,9 @@ static int alarmtimer_do_nsleep(struct a
+ 	alarm->data = (void *)current;
+ 	do {
+ 		set_current_state(TASK_INTERRUPTIBLE);
+-		alarm_start(alarm, absexp);
++		if (!alarm_start_timer(alarm, absexp, false))
++			alarm->data = NULL;
 +
- void alarm_restart(struct alarm *alarm)
- {
- 	struct alarm_base *base = &alarm_bases[alarm->type];
+ 		if (likely(alarm->data))
+ 			schedule();
+ 
 
