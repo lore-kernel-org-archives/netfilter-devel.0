@@ -1,153 +1,244 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp-8faa.mail.infomaniak.ch (smtp-8faa.mail.infomaniak.ch [83.166.143.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75593EED8
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 07:35:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7880F3AB280
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 10:27:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=83.166.143.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775633749; cv=none; b=ASV3qo2OWeyYQb+lgD122+kCFaDp663rlyUeVZm5hAHxsTWtRJzIxT2k6T7AQrp7XjsU9/bcrQzK6RKqcGqJ7lKcbTC8vI051OghSuEPxh5xEapJtdb+g0CXxEmW8UD9YbLSr7fYFOlG0CkqXM9VbatMNDin2kvEL5dfBEcGxhU=
+	t=1775644041; cv=none; b=laRk99woPrLzm/+POQZxqBGQKMQ3+M8YOFuiwlAVrlTyr2qBUSCjrjg0qEE4QjsBtjrhvEx/46JZM8m7dmXgxNaPB26I/BII+Gr+GlIYqBfLyQfxCxfcVxpODZbSwUUs5yW9DcH/KDeXZqFkxmC0SkkPPb/9I/3Ejsnamq82OHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775633749; c=relaxed/simple;
-	bh=R7PA/g6K4REX21a1EZN0dOR2dm5+usLDZ0alII/Z+OM=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=cjVh0ye2dLy7kZ2zMle1xVumnBx0+nuA4BP16d+u+ubOuggKoMzx+3jNqw6/J3OjQ5l8ePG9E9CRFxLP9aW8zmlf50easy28QbIwvq6vDL9R78DbqnVFMrGw416kjWkRvdszN/QBAd9R4IuUdcXsMO7ZDDHuPl97TgpeWWsNygw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dxoi6Qpo; arc=none smtp.client-ip=209.85.216.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1775644041; c=relaxed/simple;
+	bh=sc1JMkY3UgErp6Dsnyry9IezKMrK1lzsKMC8DHOacuU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sWvv2vwKRV2apAD0r+5AnsDNhMAMs17t/1RyVzoK6NIy1UIb8X73Wvxf7TqEHXmmUGF8bJp3nGosD5Z+KxMlZI8SAGVLbFcFHCvMtzl/vMXy0YNd5OITmss+qw68J8kI3jBqGaGwdnIGTnziCHI3KJ4Asq2OH+8aJMVwM5eyCtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net; spf=pass smtp.mailfrom=digikod.net; dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b=PS8+bs48; arc=none smtp.client-ip=83.166.143.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=digikod.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=digikod.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dxoi6Qpo"
-Received: by mail-pj1-f52.google.com with SMTP id 98e67ed59e1d1-354bc7c2c46so3739389a91.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Apr 2026 00:35:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775633748; x=1776238548; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=h3bM1X10xUppCtHTO+2IL4JdoVmrCaHQpNjU1IvmstQ=;
-        b=dxoi6QpoDyeuiYCxMCzajRbf3uxydcZbn6q7ZnXbu2f8PbeFQeng5VhVbK3MAciHhA
-         jGUKr9KNhm7CA9hqmKTdFUsc+LdcwEivZn6zmoHcQXsz58msejenVbwp9AbAaSqWeX4v
-         /E0WQJ2xpLIhDtHrACr8ZUDZXSY1vL3w9c2B1xCYuelV7XQO5D1oIcIoNKRuKLcv1Io9
-         y5uiNERWz7xYiXLIn+aaGZYORUknZM/fhiAvdEj5JKKD5gL9tYPWRk09XHPNd99iYBHK
-         +V3W3PM9ECnxgzOojcHe//GBE7+eO9cSoYyqwooIAd3WAdrNAm4zso4k/3jUmEbHNSiW
-         pOcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775633748; x=1776238548;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=h3bM1X10xUppCtHTO+2IL4JdoVmrCaHQpNjU1IvmstQ=;
-        b=Zoac9NSpCP+U4IunSE6w3G4XcS1iC+CM2gtALlYaTKWkQ04TQx7u9IUNOjVhDRjepW
-         ymFVAUIOt3m7/wueBiKad8ycmEClNG/x6SxBX+DgrcHfFdP7o5XB/JpcKatpOD0JIQXY
-         aK4papPYHosjVR/qlrGb2WzkDR700BxlJK3KVK8yX4VsFELTpT+UXYmzf0CSH/J1D/uh
-         iwixvOjPN88xBkE5VubwKQO9MxOfGe33IXHysFIYIe3NuR6VEwPa2sx57PTV3X7nEE3I
-         Us0VdO7FsTApejTsPqf+KDQHGP3ZUlIztuqmlRWYf7m3Ihk/Dv7K9PlFwJT4fTYL1y0k
-         JxSg==
-X-Forwarded-Encrypted: i=1; AJvYcCUmuWuC17053mewL0V7NADqSSy/PQ9jBuYY4LLoD3AAnq9iUgU8B5a1ysA8dXidW+oRnG38vtLp29q22j0w018=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz2y/zcEM1JDDHyUh0pzgOHktgFhy6hCXuuIJbzf2PNIO186L5w
-	rFNMRgv4bIS54Q+LVe5rMoLXg2o4/r5moHytdJ3KOnmhrOtypAbv5pt3
-X-Gm-Gg: AeBDieuNJvsPf8B3r8a2+jSroa/58ACCScUiRj5QNy989hlGDIS5WF4oUapvNzsf1/2
-	Pyvylq+O465adBJqA6i78QuNHU1P6WCGxOv/NZQwtRsMp24rNLoKyuFEj3OUkIOcHV4iu7IA1ef
-	UDRsL/z1dLCH5az2WH0QVtE1NpVcV4CckkKkhyfE4RDoUutCCgoGAUOQkz0uGLL4VvahBG0HGXr
-	6Z6XIdeoPqs/lRfFgJ7J1dwRLca0h+478YfbYYvgRqhOgZ/0CIp8rVviqq8UxP5pJFRC/t31m3X
-	Ow8IEsZ8cbr5FsUaVw/F5vB496Yc1xBxF/fd6hIu7+6ubXoLG2abjjF9Cmis4enT/KWeUL8hDWm
-	ieQDMMKSbXnyGfXE2ipLTw92ipL4w768vI+fPto8HtLNSWKugnkvWw/hWqE3s6UZoB8SXFdL1gY
-	k2AT3O+ARCK4lTpZZD2SgkmcUr5XH0ivgB76R1HXeGbClMffG6l3rAp71/m5q7MA8UJTSmTvNC4
-	cbU8kKYarO4
-X-Received: by 2002:a17:90b:2e0d:b0:35d:982d:96c7 with SMTP id 98e67ed59e1d1-35de6980b71mr21542963a91.27.1775633747539;
-        Wed, 08 Apr 2026 00:35:47 -0700 (PDT)
-Received: from SLSGDTSWING002.tail0ac356.ts.net ([129.126.109.177])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35e2734c88asm1311610a91.2.2026.04.08.00.35.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Apr 2026 00:35:46 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S . Miller" <davem@davemloft.net>,
-	David Ahern <dsahern@kernel.org>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: [PATCH nf] netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
-Date: Wed,  8 Apr 2026 15:35:16 +0800
-Message-ID: <20260408073515.79296-2-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (1024-bit key) header.d=digikod.net header.i=@digikod.net header.b="PS8+bs48"
+Received: from smtp-3-0001.mail.infomaniak.ch (smtp-3-0001.mail.infomaniak.ch [10.4.36.108])
+	by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4frK4T0kZyzYT9;
+	Wed,  8 Apr 2026 12:27:05 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=digikod.net;
+	s=20191114; t=1775644024;
+	bh=oYloD+uUZHW/PQ9KIAsFWQ7AEeM0J797FcnQco3MYso=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=PS8+bs48VJVWEpX8sXC7eJnUxIUVLljQIAqSsEQFuTmexP+nKJyNWszMqKlZAT/un
+	 ewxAHw5sgpcvvGFaeNb6W2k8UEk8GoYDErvm95nWmHEqqXfWKX8zxNzpZL7tBhlReI
+	 lBNFHX55tadziY8/N0fDkP68knExg896n2vt5tIc=
+Received: from unknown by smtp-3-0001.mail.infomaniak.ch (Postfix) with ESMTPA id 4frK4S22KbzKhg;
+	Wed,  8 Apr 2026 12:27:03 +0200 (CEST)
+Date: Wed, 8 Apr 2026 12:26:58 +0200
+From: =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>
+To: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
+Cc: gnoack@google.com, willemdebruijn.kernel@gmail.com, matthieu@buffet.re, 
+	linux-security-module@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, 
+	yusongping@huawei.com, artem.kuzin@huawei.com, konstantin.meskhidze@huawei.com
+Subject: Re: [RFC PATCH v4 00/19] Support socket access-control
+Message-ID: <20260408.icooCaighie2@digikod.net>
+References: <20251118134639.3314803-1-ivanov.mikhail1@huawei-partners.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20251118134639.3314803-1-ivanov.mikhail1@huawei-partners.com>
+X-Infomaniak-Routing: alpha
 
-arp_packet_match() unconditionally parses the ARP payload assuming two
-hardware addresses are present (source and target). However,
-IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
-field, and arp_hdr_len() already accounts for this by returning a
-shorter length for ARPHRD_IEEE1394 devices.
+Hi Mikhail,
 
-As a result, on IEEE1394 interfaces arp_packet_match() advances past a
-nonexistent target hardware address and reads the wrong bytes for both
-the target device address comparison and the target IP address. This
-causes arptables rules to match against garbage data, leading to
-incorrect filtering decisions: packets that should be accepted may be
-dropped and vice versa.
+On Tue, Nov 18, 2025 at 09:46:20PM +0800, Mikhail Ivanov wrote:
+> Hello! This is v4 RFC patch dedicated to socket protocols restriction.
+> 
+> It is based on the landlock's mic-next branch on top of Linux 6.16-rc2
+> kernel version.
+> 
+> Objective
+> =========
+> Extend Landlock with a mechanism to restrict any set of protocols in
+> a sandboxed process.
+> 
+> Closes: https://github.com/landlock-lsm/linux/issues/6
+> 
+> Motivation
+> ==========
+> Landlock implements the `LANDLOCK_RULE_NET_PORT` rule type, which provides
+> fine-grained control of actions for a specific protocol. Any action or
+> protocol that is not supported by this rule can not be controlled. As a
+> result, protocols for which fine-grained control is not supported can be
+> used in a sandboxed system and lead to vulnerabilities or unexpected
+> behavior.
+> 
+> Controlling the protocols used will allow to use only those that are
+> necessary for the system and/or which have fine-grained Landlock control
+> through others types of rules (e.g. TCP bind/connect control with
+> `LANDLOCK_RULE_NET_PORT`, UNIX bind control with
+> `LANDLOCK_RULE_PATH_BENEATH`).
+> 
+> Consider following examples:
+> * Server may want to use only TCP sockets for which there is fine-grained
+>   control of bind(2) and connect(2) actions [1].
+> * System that does not need a network or that may want to disable network
+>   for security reasons (e.g. [2]) can achieve this by restricting the use
+>   of all possible protocols.
+> 
+> [1] https://lore.kernel.org/all/ZJvy2SViorgc+cZI@google.com/
+> [2] https://cr.yp.to/unix/disablenetwork.html
+> 
+> Implementation
+> ==============
+> This patchset adds control over the protocols used by implementing a
+> restriction of socket creation. This is possible thanks to the new type
+> of rule - `LANDLOCK_RULE_SOCKET`, that allows to restrict actions on
+> sockets, and a new access right - `LANDLOCK_ACCESS_SOCKET_CREATE`, that
+> corresponds to user space sockets creation. The key in this rule
+> corresponds to communication protocol signature from socket(2) syscall.
 
-The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
-handles this correctly by skipping the target hardware address for
-ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match().
+FYI, I sent a new patch series that adds a handled_perm field to
+rulesets:
+https://lore.kernel.org/all/20260312100444.2609563-6-mic@digikod.net/
+See also the rationale:
+https://lore.kernel.org/all/20260312100444.2609563-12-mic@digikod.net/
 
-Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
----
- net/ipv4/netfilter/arp_tables.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+I think that would work well with the socket creation permission.  WDYT?
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 1cdd9c28ab2da..4b2392bdcd0a6 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -86,7 +86,7 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 				   const struct arpt_arp *arpinfo)
- {
- 	const char *arpptr = (char *)(arphdr + 1);
--	const char *src_devaddr, *tgt_devaddr;
-+	const char *src_devaddr, *tgt_devaddr = NULL;
- 	__be32 src_ipaddr, tgt_ipaddr;
- 	long ret;
- 
-@@ -110,13 +110,23 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 	arpptr += dev->addr_len;
- 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
- 	arpptr += sizeof(u32);
--	tgt_devaddr = arpptr;
--	arpptr += dev->addr_len;
-+	switch (dev->type) {
-+#if IS_ENABLED(CONFIG_FIREWIRE_NET)
-+	case ARPHRD_IEEE1394:
-+		break;
-+#endif
-+	default:
-+		tgt_devaddr = arpptr;
-+		arpptr += dev->addr_len;
-+		break;
-+	}
- 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
- 
- 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
--					dev->addr_len)) ||
-+					dev->addr_len)))
-+		return 0;
-+	if (tgt_devaddr &&
- 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
- 					dev->addr_len)))
--- 
-2.43.0
+Do you think you'll be able to continue this work or would you like me
+or Günther to complete the remaining last bits (while of course keeping
+you as the main author)?
 
+
+> 
+> The right to create a socket is checked in the LSM hook which is called
+> in the __sock_create method. The following user space operations are
+> subject to this check: socket(2), socketpair(2), io_uring(7).
+> 
+> `LANDLOCK_ACCESS_SOCKET_CREATE` does not restrict socket creation
+> performed by accept(2), because created socket is used for messaging
+> between already existing endpoints.
+> 
+> Design discussion
+> ===================
+> 1. Should `SCTP_SOCKOPT_PEELOFF` and socketpair(2) be restricted?
+> 
+> SCTP socket can be connected to a multiple endpoints (one-to-many
+> relation). Calling setsockopt(2) on such socket with option
+> `SCTP_SOCKOPT_PEELOFF` detaches one of existing connections to a separate
+> UDP socket. This detach is currently restrictable.
+> 
+> Same applies for the socketpair(2) syscall. It was noted that denying
+> usage of socketpair(2) in sandboxed environment may be not meaninful [1].
+> 
+> Currently both operations use general socket interface to create sockets.
+> Therefore it's not possible to distinguish between socket(2) and those
+> operations inside security_socket_create LSM hook which is currently
+> used for protocols restriction. Providing such separation may require
+> changes in socket layer (eg. in __sock_create) interface which may not be
+> acceptable.
+> 
+> [1] https://lore.kernel.org/all/ZurZ7nuRRl0Zf2iM@google.com/
+> 
+> Code coverage
+> =============
+> Code coverage(gcov) report with the launch of all the landlock selftests:
+> * security/landlock:
+> lines......: 94.0% (1200 of 1276 lines)
+> functions..: 95.0% (134 of 141 functions)
+> 
+> * security/landlock/socket.c:
+> lines......: 100.0% (56 of 56 lines)
+> functions..: 100.0% (5 of 5 functions)
+> 
+> Currently landlock-test-tools fails on mini.kernel_socket test due to lack
+> of SMC protocol support.
+> 
+> General changes v3->v4
+> ======================
+> * Implementation
+>   * Adds protocol field to landlock_socket_attr.
+>   * Adds protocol masks support via wildcards values in
+>     landlock_socket_attr.
+>   * Changes LSM hook used from socket_post_create to socket_create.
+>   * Changes protocol ranges acceptable by socket rules.
+>   * Adds audit support.
+>   * Changes ABI version to 8.
+> * Tests
+>   * Adds 5 new tests:
+>     * mini.rule_with_wildcard, protocol_wildcard.access,
+>       mini.ruleset_with_wildcards_overlap:
+>       verify rulesets containing rules with wildcard values.
+>     * tcp_protocol.alias_restriction: verify that Landlock doesn't
+>       perform protocol mappings.
+>     * audit.socket_create: tests audit denial logging.
+>   * Squashes tests corresponding to Landlock rule adding to a single commit.
+> * Documentation
+>   * Refactors Documentation/userspace-api/landlock.rst.
+> * Commits
+>   * Rebases on mic-next.
+>   * Refactors commits.
+> 
+> Previous versions
+> =================
+> v3: https://lore.kernel.org/all/20240904104824.1844082-1-ivanov.mikhail1@huawei-partners.com/
+> v2: https://lore.kernel.org/all/20240524093015.2402952-1-ivanov.mikhail1@huawei-partners.com/
+> v1: https://lore.kernel.org/all/20240408093927.1759381-1-ivanov.mikhail1@huawei-partners.com/
+> 
+> Mikhail Ivanov (19):
+>   landlock: Support socket access-control
+>   selftests/landlock: Test creating a ruleset with unknown access
+>   selftests/landlock: Test adding a socket rule
+>   selftests/landlock: Testing adding rule with wildcard value
+>   selftests/landlock: Test acceptable ranges of socket rule key
+>   landlock: Add hook on socket creation
+>   selftests/landlock: Test basic socket restriction
+>   selftests/landlock: Test network stack error code consistency
+>   selftests/landlock: Test overlapped rulesets with rules of protocol
+>     ranges
+>   selftests/landlock: Test that kernel space sockets are not restricted
+>   selftests/landlock: Test protocol mappings
+>   selftests/landlock: Test socketpair(2) restriction
+>   selftests/landlock: Test SCTP peeloff restriction
+>   selftests/landlock: Test that accept(2) is not restricted
+>   lsm: Support logging socket common data
+>   landlock: Log socket creation denials
+>   selftests/landlock: Test socket creation denial log for audit
+>   samples/landlock: Support socket protocol restrictions
+>   landlock: Document socket rule type support
+> 
+>  Documentation/userspace-api/landlock.rst      |   48 +-
+>  include/linux/lsm_audit.h                     |    8 +
+>  include/uapi/linux/landlock.h                 |   60 +-
+>  samples/landlock/sandboxer.c                  |  118 +-
+>  security/landlock/Makefile                    |    2 +-
+>  security/landlock/access.h                    |    3 +
+>  security/landlock/audit.c                     |   12 +
+>  security/landlock/audit.h                     |    1 +
+>  security/landlock/limits.h                    |    4 +
+>  security/landlock/ruleset.c                   |   37 +-
+>  security/landlock/ruleset.h                   |   46 +-
+>  security/landlock/setup.c                     |    2 +
+>  security/landlock/socket.c                    |  198 +++
+>  security/landlock/socket.h                    |   20 +
+>  security/landlock/syscalls.c                  |   61 +-
+>  security/lsm_audit.c                          |    4 +
+>  tools/testing/selftests/landlock/base_test.c  |    2 +-
+>  tools/testing/selftests/landlock/common.h     |   14 +
+>  tools/testing/selftests/landlock/config       |   47 +
+>  tools/testing/selftests/landlock/net_test.c   |   11 -
+>  .../selftests/landlock/protocols_define.h     |  169 +++
+>  .../testing/selftests/landlock/socket_test.c  | 1169 +++++++++++++++++
+>  22 files changed, 1990 insertions(+), 46 deletions(-)
+>  create mode 100644 security/landlock/socket.c
+>  create mode 100644 security/landlock/socket.h
+>  create mode 100644 tools/testing/selftests/landlock/protocols_define.h
+>  create mode 100644 tools/testing/selftests/landlock/socket_test.c
+> 
+> 
+> base-commit: 6dde339a3df80a57ac3d780d8cfc14d9262e2acd
+> -- 
+> 2.34.1
+> 
+> 
