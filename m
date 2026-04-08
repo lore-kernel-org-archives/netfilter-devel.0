@@ -1,101 +1,89 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB72C3D333C;
-	Wed,  8 Apr 2026 14:15:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A10AF33CEA8;
+	Wed,  8 Apr 2026 15:18:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775657714; cv=none; b=OJpTODdXaBZDcbBLITSgn9c3zsJDh52+kuaw+XB9SHyxvQT61d7FsxBMSv1xoxqCaU7+c19qwhpgBseISoRXTDMyRFjxi2oi0YsvaoSrtyooOO14Cdr/CE+Y8mmmFCNAzD3279c3K9xwOD4Wi8EXuSJ6pmiDPkGoH04ZDgKp06M=
+	t=1775661536; cv=none; b=YIDqanZrVvQ9lKC7T1+Fas+O/MvGd14zjpMkvCCX0e7LSje0UIY9zk6pPb6REhPuEjviKz+KX2m3ZET0m/pdbcK2P0Azujz+la2j3mqj0hR0s+JpyrnoNr7RNg9uxp19g60hUEltBLkL234oT9U6+tkxHga3jJHVAwivD0Abadk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775657714; c=relaxed/simple;
-	bh=2GKBWezh0wJ1rxI7mwwrI3CADIBrRX0kcY4kXY4Vgws=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lHh2BLL5KKEoTgPFzanJTY4RWUYDev0yyGDR3Ie1fkReHT0YBW/PhyWIhkrwiY9WIcSpSLic11UtN3A/QRSoIzQ++UT1OhKEeS5wgN/7u9x49CS0GQbxp157oC+pM/ca0yArrYYvC7RQofUmnYgv1U+jmy9sqke7dWRb9ylKTOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=S7RMpuEh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775661536; c=relaxed/simple;
+	bh=K0smtATRRlPhzZC/f2FuIGBbZSELomfitHg/FX7/F+c=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=iEO/y9+6ejXZVaGCFO8haC0YEsA72V0c4lpaJJlMixkC2GaNgYG0N4sZ5wMzjKjUqqgX9gaZ8xGBeCvVEiu18ACdbDwM9LI0qYC6vpqUu/pp2MdvvSOw+zg9c0ERRt8/VitzKZfBugCoz6pN6kRiuK9r4J1v326pYY457tTYw4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VW/ctqfW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="S7RMpuEh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5A9AC19421;
-	Wed,  8 Apr 2026 14:15:12 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VW/ctqfW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43AAAC19421;
+	Wed,  8 Apr 2026 15:18:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775657713;
-	bh=2GKBWezh0wJ1rxI7mwwrI3CADIBrRX0kcY4kXY4Vgws=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=S7RMpuEhAPW7AoOpjukUkXJY+0IaS3EO36qhsh4pHP7RO2qD8o4j/LAfL2PLYnA9E
-	 ipxgcOMKMjHnufFqMlmIaFmx6ikF9fMJpZSIjwzaA5QqgBONm/RUc6COFkqhGC/aXw
-	 QzVD/keNQftVMS5w6AV3K6rQT2wVra5sdjm5ElRAeT99Jyk5UibxzfyoQ5mDAJTfpL
-	 8bCNhdEucCP4sh76TdoEf+0DZHkNbt2zoXyZpFbNJ2nVZlprWaE7Ssn7oGmMfkPm6h
-	 QFQXp64lSaUeTm976GITCQtllOBMqK5ELfwfUpBigReRcSwN8/oPD/yPVp7KL5peTw
-	 D0jjt1EBvBonQ==
-Date: Wed, 8 Apr 2026 16:15:10 +0200
-From: Frederic Weisbecker <frederic@kernel.org>
-To: Thomas Gleixner <tglx@kernel.org>
+	s=k20201202; t=1775661536;
+	bh=K0smtATRRlPhzZC/f2FuIGBbZSELomfitHg/FX7/F+c=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=VW/ctqfWbUrk670cLw5GbIb5IloiAdZviNrvkFPmmqRL6p6+EHv5DTHowzQ3ovPHw
+	 aRyqchU1bT7LNV6SxiCzsNRrDzSIksRADxnKGdFnxZu5htqCFFWMc5u4QUutAHEU1e
+	 bbeMUvdRBC/OUqesuEbPWcgFzb7v3IPc6PFqJ5FWwDz5RC8ZiqmsiYY+EOitBJtd7e
+	 +CqsG0M1uIUi6yhv0paoxwNL2WB4EdiwtIPK93Jo3LVqSamcT+azpoKYqcMOBSsiMo
+	 dcSjPFgJA5WWka/2nOwZ8pzHBEmYJXn6Y5bhs6DwVHhWS5jUB27L4TVtnPgc+wdJD+
+	 nz239NiXc2oxw==
+From: Thomas Gleixner <tglx@kernel.org>
+To: Thomas =?utf-8?Q?Wei=C3=9Fschuh?= <thomas.weissschuh@linutronix.de>
 Cc: LKML <linux-kernel@vger.kernel.org>, Calvin Owens <calvin@wbinvd.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Anna-Maria Behnsen <anna-maria@linutronix.de>,
-	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
-	Stephen Boyd <sboyd@kernel.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
-	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+ Peter Zijlstra <peterz@infradead.org>, Anna-Maria Behnsen
+ <anna-maria@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>,
+ Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>, Stephen
+ Boyd <sboyd@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+ linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>, Florian
+ Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+ netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Subject: Re: [patch 01/12] clockevents: Prevent timer interrupt starvation
-Message-ID: <adZi7iFB8hqoaPcu@localhost.localdomain>
+In-Reply-To: <20260408155353-42aeefa4-db66-48aa-ab07-0538a8cfdbf0@linutronix.de>
 References: <20260407083219.478203185@kernel.org>
  <20260407083247.562657657@kernel.org>
+ <20260408143313-ac6c3b82-70e6-4ce3-b33a-20f5e6ba160b@linutronix.de>
+ <20260408155353-42aeefa4-db66-48aa-ab07-0538a8cfdbf0@linutronix.de>
+Date: Wed, 08 Apr 2026 17:18:52 +0200
+Message-ID: <87zf3d32g3.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260407083247.562657657@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Le Tue, Apr 07, 2026 at 10:54:17AM +0200, Thomas Gleixner a écrit :
-> From: Thomas Gleixner <tglx@kernel.org>
-> 
-> Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
-> up in user space. He provided a reproducer, which sets up a timerfd based
-> timer and then rearms it in a loop with an absolute expiry time of 1ns.
-> 
-> As the expiry time is in the past, the timer ends up as the first expiring
-> timer in the per CPU hrtimer base and the clockevent device is programmed
-> with the minimum delta value. If the machine is fast enough, this ends up
-> in a endless loop of programming the delta value to the minimum value
-> defined by the clock event device, before the timer interrupt can fire,
-> which starves the interrupt and consequently triggers the lockup detector
-> because the hrtimer callback of the lockup mechanism is never invoked.
-> 
-> As a first step to prevent this, avoid reprogramming the clock event device
-> when:
->      - a forced minimum delta event is pending
->      - the new expiry delta is less then or equal to the minimum delta
-> 
-> Thanks to Calvin for providing the reproducer and to Borislav for testing
-> and providing data from his Zen5 machine.
-> 
-> The problem is not limited to Zen5, but depending on the underlying
-> clock event device (e.g. TSC deadline timer on Intel) and the CPU speed
-> not necessarily observable.
-> 
-> This change serves only as the last resort and further changes will be made
-> to prevent this scenario earlier in the call chain as far as possible.
-> 
-> Fixes: d316c57ff6bf ("[PATCH] clockevents: add core functionality")
-> Reported-by: Calvin Owens <calvin@wbinvd.org>
-> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
-> Cc: Frederic Weisbecker <frederic@kernel.org>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Link: https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
+On Wed, Apr 08 2026 at 15:55, Thomas Wei=C3=9Fschuh wrote:
+> On Wed, Apr 08, 2026 at 02:41:20PM +0200, Thomas Wei=C3=9Fschuh wrote:
+> --- a/kernel/time/clockevents.c
+> +++ b/kernel/time/clockevents.c
+> @@ -369,7 +369,7 @@ int clockevents_program_event(struct clock_event_devi=
+ce *dev, ktime_t expires, b
+>         if (dev->next_event_forced)
+>                 return 0;
+>=20=20
+> -       if (dev->set_next_event(dev->min_delta_ticks, dev)) {
+> +       if (dev->set_next_event(dev->min_delta_ns, dev)) {
 
-Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
+That's wrong as the callback expects cycles (ticks) not nanoseconds.
 
--- 
-Frederic Weisbecker
-SUSE Labs
+I've just pushed out an updated version to tip timers/urgent which
+addresses a potentially related issue. Delta patch below.
+
+Thanks,
+
+        tglx
+---
+--- a/kernel/time/clockevents.c
++++ b/kernel/time/clockevents.c
+@@ -324,6 +324,8 @@ int clockevents_program_event(struct clo
+ 		return dev->set_next_ktime(expires, dev);
+=20
+ 	delta =3D ktime_to_ns(ktime_sub(expires, ktime_get()));
++	if (delta <=3D 0 && !force)
++		return -ETIME;
+=20
+ 	if (delta > (int64_t)dev->min_delta_ns) {
+ 		delta =3D min(delta, (int64_t) dev->max_delta_ns);
