@@ -1,55 +1,54 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C54F3C1992;
-	Wed,  8 Apr 2026 11:54:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01FB33B8BA1;
+	Wed,  8 Apr 2026 11:54:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775649272; cv=none; b=o3q/IR5DiHazdEF91VTZIL5lB3xhyQFCUR30NwNLIXT8mdi2f4B1/ZOcgTk2c1MHz0Ov3z2Yr9AYsg9BDJsOfeF1gxJJy8+OASP45a3eOkIdKvWjulJCdI7cVhT4i4UoM7Z7wxUj4FoLz7rnJXCItZ2n7Er2vaKI3uZFrnHbcSU=
+	t=1775649276; cv=none; b=TXjm5ZAGYNF99+ZY+TfF2oEY+zfEkv2kkG0WEubbD2QVB02dvTHOQPbITMfjc5zh2fH4gdISTnuSSkLYNkXlisfNoouNSgRKTBOz12uHDUOzYCbO5t0+XEfscR948OL7J1j76MLexkaB2350W/DVb7i59LfKJnZ4YqLHmELAm3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775649272; c=relaxed/simple;
-	bh=efxNzTSqI1QvLYqqvv6gR0CW8wLFKTsZf9UzQJz2oZs=;
+	s=arc-20240116; t=1775649276; c=relaxed/simple;
+	bh=i/wmEqzr8cLPxjWlHlsd+92dfmzqBOEHLkGGWjyw9LI=;
 	h=Date:Message-ID:From:To:Cc:Subject:References:MIME-Version:
-	 Content-Type; b=L+xxnNS89dHQJPLML8j1M1C2FISpUtvJjTfLwabj2KJkvJLwi7sefI/zHkBHzb6Rwmh62vx9RC0lDYCngujYkeUDgT72MT1K9saMaiEIwfRtVbaJ7MqXSAtFXWMVY35wzQfscAagATO+ygeqTYQPuQndj3X2n1Sa2w2og2QRCSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=hMsU+yTj; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type; b=gr7iWNf5NXVCCrubHrBuXgLSi2+q2oEjP0x4VwtBj8ZvA/SQDfXsW5gLGktbXcF9Eq4zp/vDcUw1t9wguSoR6NMQV+jFT0vuCw0g3Vhqccd0nmmlZTbmI9EFMh4O45fePkcJiu3iBTFiiHeS/6Nk+YAVrtzgWu54xeXg3TBCgEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iyB1bTwk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="hMsU+yTj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C3ABC19424;
-	Wed,  8 Apr 2026 11:54:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iyB1bTwk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76911C19421;
+	Wed,  8 Apr 2026 11:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775649271;
-	bh=efxNzTSqI1QvLYqqvv6gR0CW8wLFKTsZf9UzQJz2oZs=;
+	s=k20201202; t=1775649275;
+	bh=i/wmEqzr8cLPxjWlHlsd+92dfmzqBOEHLkGGWjyw9LI=;
 	h=Date:From:To:Cc:Subject:References:From;
-	b=hMsU+yTjwOBVM5ofTn3qtOcoy5Li/qNXKaQGrQ05mznlTpAKoq/hU9j5yAixOfCBY
-	 5Ulimf9LwPbw+jI+EV47OLO7IxAAGkCpV51YQsBOVmVjBbrKj8Pq2tHIvlElPKaEzf
-	 teWw0wMFZ/oCVek/KaEWSNcafoBKG2FqzlZrr66pIQZESzbQNDEssrQuINOSaJCQep
-	 GVnoKUoiaJgY9afkGcsAh4sk0G/aPb8A6UmKW9+GZgEptsY2dI6R9DsvKc5swHZ8Or
-	 tjZC0mT9SkkYpRCqx4rv0A6peiJC3U3JBDeg5v/+2wasuuca42wMVg9Zj1AdyJc1NM
-	 chmV1gw8Du9VQ==
-Date: Wed, 08 Apr 2026 13:54:29 +0200
-Message-ID: <20260408114952.604232981@kernel.org>
+	b=iyB1bTwkN+T08pJYvRFU5eniRw5AJo7Sm893nl3t1fkXfREHMYyh5j1ra1e7Vp8yS
+	 TzXasolokBsFZJ4CEqS+Zsf+Img6CFTsRxClak5P98JNVMQvZxZ+OAfmCoCKlfFy0C
+	 UTIxkgEXOOS2mCBYjFIM4p5Eh/hoKrT9dh3nZD/LdjIcARxhVMF+MUP3zqDdyz96H5
+	 NJSmC6Ex8eaYtdmIb32tUQ3Of9Jf2VPrECZrr/XRpCkSUaSDeWqTP2zY24vXXoGAKj
+	 dkwGt3f07u0s1l9xZWaUslyQ2SLw5JSCBJ9ijNXCs/mJTn3bQPGKGBpxZPzrmLJOvu
+	 7jmoaGC9YNAog==
+Date: Wed, 08 Apr 2026 13:54:33 +0200
+Message-ID: <20260408114952.670899355@kernel.org>
 User-Agent: quilt/0.68
 From: Thomas Gleixner <tglx@kernel.org>
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>,
- Phil Sutter <phil@nwl.cc>,
- netfilter-devel@vger.kernel.org,
- coreteam@netfilter.org,
+Cc: John Stultz <jstultz@google.com>,
+ Stephen Boyd <sboyd@kernel.org>,
  Calvin Owens <calvin@wbinvd.org>,
  Anna-Maria Behnsen <anna-maria@linutronix.de>,
  Frederic Weisbecker <frederic@kernel.org>,
  "Peter Zijlstra (Intel)" <peterz@infradead.org>,
- John Stultz <jstultz@google.com>,
- Stephen Boyd <sboyd@kernel.org>,
  Alexander Viro <viro@zeniv.linux.org.uk>,
  Christian Brauner <brauner@kernel.org>,
  Jan Kara <jack@suse.cz>,
  linux-fsdevel@vger.kernel.org,
  Sebastian Reichel <sre@kernel.org>,
- linux-pm@vger.kernel.org
-Subject: [patch V2 10/11] netfilter: xt_IDLETIMER: Switch to
- alarm_start_timer()
+ linux-pm@vger.kernel.org,
+ Pablo Neira Ayuso <pablo@netfilter.org>,
+ Florian Westphal <fw@strlen.de>,
+ Phil Sutter <phil@nwl.cc>,
+ netfilter-devel@vger.kernel.org,
+ coreteam@netfilter.org
+Subject: [patch V2 11/11] alarmtimer: Remove unused interfaces
 References: <20260408102356.783133335@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -59,81 +58,87 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 
-The existing alarm_start() interface is replaced with the new
-alarm_start_timer() mechanism, which does not longer queue an already
-expired timer and returns the state.
-
-Adjust the code to utilize this so it schedules the work in the case that
-the timer was already expired. Unlikely to happen as the timeout is at
-least a second, but not impossible especially with virtualization.
-
-No functional change intended
+All alarmtimer users are converted to alarm_start_timer(). Remove the now
+unused interfaces.
 
 Signed-off-by: Thomas Gleixner <tglx@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: Phil Sutter <phil@nwl.cc>
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
+Cc: John Stultz <jstultz@google.com>
+Cc: Stephen Boyd <sboyd@kernel.org>
 
 ---
- net/netfilter/xt_IDLETIMER.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -115,6 +115,21 @@ static void idletimer_tg_alarmproc(struc
- 	schedule_work(&timer->work);
+ include/linux/alarmtimer.h |    3 ---
+ kernel/time/alarmtimer.c   |   44 --------------------------------------------
+ 2 files changed, 47 deletions(-)
+--- a/include/linux/alarmtimer.h
++++ b/include/linux/alarmtimer.h
+@@ -50,9 +50,6 @@ static __always_inline ktime_t alarm_get
+ void alarm_init(struct alarm *alarm, enum alarmtimer_type type,
+ 		void (*function)(struct alarm *, ktime_t));
+ bool alarm_start_timer(struct alarm *alarm, ktime_t expires, bool relative);
+-void alarm_start(struct alarm *alarm, ktime_t start);
+-void alarm_start_relative(struct alarm *alarm, ktime_t start);
+-void alarm_restart(struct alarm *alarm);
+ int alarm_try_to_cancel(struct alarm *alarm);
+ int alarm_cancel(struct alarm *alarm);
+ 
+--- a/kernel/time/alarmtimer.c
++++ b/kernel/time/alarmtimer.c
+@@ -333,39 +333,6 @@ void alarm_init(struct alarm *alarm, enu
+ EXPORT_SYMBOL_GPL(alarm_init);
+ 
+ /**
+- * alarm_start - Sets an absolute alarm to fire
+- * @alarm: ptr to alarm to set
+- * @start: time to run the alarm
+- */
+-void alarm_start(struct alarm *alarm, ktime_t start)
+-{
+-	struct alarm_base *base = &alarm_bases[alarm->type];
+-
+-	scoped_guard(spinlock_irqsave, &base->lock) {
+-		alarm->node.expires = start;
+-		alarmtimer_enqueue(base, alarm);
+-		hrtimer_start(&alarm->timer, alarm->node.expires, HRTIMER_MODE_ABS);
+-	}
+-
+-	trace_alarmtimer_start(alarm, base->get_ktime());
+-}
+-EXPORT_SYMBOL_GPL(alarm_start);
+-
+-/**
+- * alarm_start_relative - Sets a relative alarm to fire
+- * @alarm: ptr to alarm to set
+- * @start: time relative to now to run the alarm
+- */
+-void alarm_start_relative(struct alarm *alarm, ktime_t start)
+-{
+-	struct alarm_base *base = &alarm_bases[alarm->type];
+-
+-	start = ktime_add_safe(start, base->get_ktime());
+-	alarm_start(alarm, start);
+-}
+-EXPORT_SYMBOL_GPL(alarm_start_relative);
+-
+-/**
+  * alarm_start_timer - Sets an alarm to fire
+  * @alarm:	Pointer to alarm to set
+  * @expires:	Expiry time
+@@ -393,17 +360,6 @@ bool alarm_start_timer(struct alarm *ala
  }
+ EXPORT_SYMBOL_GPL(alarm_start_timer);
  
-+static void idletimer_start_alarm_ktime(struct idletimer_tg *timer, ktime_t timeout)
-+{
-+	/*
-+	 * The timer should always be queued as @tout it should be least one
-+	 * second, but handle it correctly in any case. Virt will manage!
-+	 */
-+	if (!alarm_start_timer(&timer->alarm, timeout, true))
-+		schedule_work(&timer->work);
-+}
-+
-+static void idletimer_start_alarm_sec(struct idletimer_tg *timer, unsigned int seconds)
-+{
-+	idletimer_start_alarm_ktime(timer, ktime_set(seconds, 0));
-+}
-+
- static int idletimer_check_sysfs_name(const char *name, unsigned int size)
- {
- 	int ret;
-@@ -220,12 +235,10 @@ static int idletimer_tg_create_v1(struct
- 	INIT_WORK(&info->timer->work, idletimer_tg_work);
- 
- 	if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
--		ktime_t tout;
- 		alarm_init(&info->timer->alarm, ALARM_BOOTTIME,
- 			   idletimer_tg_alarmproc);
- 		info->timer->alarm.data = info->timer;
--		tout = ktime_set(info->timeout, 0);
--		alarm_start_relative(&info->timer->alarm, tout);
-+		idletimer_start_alarm_sec(info->timer, info->timeout);
- 	} else {
- 		timer_setup(&info->timer->timer, idletimer_tg_expired, 0);
- 		mod_timer(&info->timer->timer,
-@@ -271,8 +284,7 @@ static unsigned int idletimer_tg_target_
- 		 info->label, info->timeout);
- 
- 	if (info->timer->timer_type & XT_IDLETIMER_ALARM) {
--		ktime_t tout = ktime_set(info->timeout, 0);
--		alarm_start_relative(&info->timer->alarm, tout);
-+		idletimer_start_alarm_sec(info->timer, info->timeout);
- 	} else {
- 		mod_timer(&info->timer->timer,
- 				secs_to_jiffies(info->timeout) + jiffies);
-@@ -378,7 +390,7 @@ static int idletimer_tg_checkentry_v1(co
- 			if (ktimespec.tv_sec > 0) {
- 				pr_debug("time_expiry_remaining %lld\n",
- 					 ktimespec.tv_sec);
--				alarm_start_relative(&info->timer->alarm, tout);
-+				idletimer_start_alarm_ktime(info->timer, tout);
- 			}
- 		} else {
- 				mod_timer(&info->timer->timer,
+-void alarm_restart(struct alarm *alarm)
+-{
+-	struct alarm_base *base = &alarm_bases[alarm->type];
+-
+-	guard(spinlock_irqsave)(&base->lock);
+-	hrtimer_set_expires(&alarm->timer, alarm->node.expires);
+-	hrtimer_restart(&alarm->timer);
+-	alarmtimer_enqueue(base, alarm);
+-}
+-EXPORT_SYMBOL_GPL(alarm_restart);
+-
+ /**
+  * alarm_try_to_cancel - Tries to cancel an alarm timer
+  * @alarm: ptr to alarm to be canceled
 
