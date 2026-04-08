@@ -1,48 +1,48 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5583F374E5B
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 07:13:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E2C437754C
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2026 07:13:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775632396; cv=none; b=Hgtez2FaxcQlqtdbEBdgpdS01NDkMTz0q6LjbJHHzEqbM130aCPZDV6K1ckWI88k5IlMNzQeTuwyITXj73eVwQ3wJ/77IScm/BhQCMKCtDd5NTAuv2+NfJI9TwO7JFhI9jfSCGPXQvA8CPyMn+p0Lbz0X3OscHgPngw0B4xyCIA=
+	t=1775632396; cv=none; b=cSD/1aJkBY/h2rM73Ce1ThT6GryekvWqUUVbAUqpPmVUC2zP45vm9G0ToiIo0N+PV/JUvcV32j3qV8WKBkDJsGsQfj3srFYJeLVuGjU3aK0fBN5QSqwkf3LNmuKLZ3qmmqPBA6xiipJZVHI5jSdEyZqyBBftLy+uaGQZOHCOvKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1775632396; c=relaxed/simple;
-	bh=ceBuwgOrGdTJRMGljasRbtuSVZswPAXGOGqSqWSmMWU=;
+	bh=mhivghAY4iqzWA8QMbRoxlpLf9wlOsy2eI7mzmhbFMM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=p5HH/GhbZ4wgaUc25sMs1p5/dfzd7vUZAjKnzclvT77Rh7n8sX/gKe1e2QqoBhUpfgIaNUTd9VYiCKfUhU+LV19YtVXZiXJz+UxMAyqOwERh3Wu0rEprtEt2Z9HlAwGIKMnWsZqCMNdvfAjGypKV4aVjPcbv7vKNIfmPSR+Ct+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=GjW/wwJp; arc=none smtp.client-ip=148.6.0.51
+	 MIME-Version; b=XqnjEj4TOz258uhsp7ffDg4PUESI8NdiTugBmNKWE1DGggjocucqB6JRI27j8VCPnyLe76ZTHppt/38BF4ifi01sxzjumTopEn85CBo385Rg1UoGGcFS+dBUw/s6q4USIZmHsAXFKAuJntCC/+P0bSBRMBHnusmNSs6o2kOIWNA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=JhgfFbUs; arc=none smtp.client-ip=148.6.0.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="GjW/wwJp"
+	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="JhgfFbUs"
 Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4frDXz1qFBz7s85c;
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4frDXz297bz3sb8d;
 	Wed,  8 Apr 2026 09:02:59 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	blackhole.kfki.hu; h=mime-version:references:in-reply-to
 	:x-mailer:message-id:date:date:from:from:received:received
-	:received; s=20151130; t=1775631777; x=1777446178; bh=wMXc7XMZgr
-	Xyg7Y3UM17LRW1mDQQUfQ91BE2SkA1rAQ=; b=GjW/wwJpxqvleyIpqFnPyQrRii
-	/PRTPmUQBjLk5NgZMIuvYKTpiywQJthHAcEvD/iWCQkIzEl2mIyILNoEcwQxMu9M
-	rD8FQEo3jb3M0xxQv38chEHMpjVf+70ckbof57WAl6PmKKZGtUOx1sV4WTXx/olN
-	LgOPhRfOUhTqD8v0o=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id QBF8QebXEkj2; Wed,  8 Apr 2026 09:02:57 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4frDXx17VRz7s85Y;
+	:received; s=20151130; t=1775631777; x=1777446178; bh=UPYFQnNHUB
+	vCFSBcJlCDrBtq0YeZvIr5oN6GY29vYpg=; b=JhgfFbUsqZxDai6GCw3BXglII4
+	gA6O5ZprkCHnrugh8KGT8a0FDcChX3lGsmCrRzApNKkM4oAiN/sFOj12b5Yh/9Ix
+	MIyNNDdsaEdU2VMgE1zMX55mieLy/h42SkAcMUC8/Bav87m4rOBC2zUY9HE1l44F
+	OsCaNyK/eUcKYrv8A=
+X-Virus-Scanned: Debian amavis at smtp0.kfki.hu
+Received: from smtp0.kfki.hu ([127.0.0.1])
+ by localhost (smtp0.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
+ id pMJ1KZFxPMup; Wed,  8 Apr 2026 09:02:57 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
+	by smtp0.kfki.hu (Postfix) with ESMTP id 4frDXx0wCvz3sb8c;
 	Wed,  8 Apr 2026 09:02:57 +0200 (CEST)
 Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 1736A34316C; Wed,  8 Apr 2026 09:02:57 +0200 (CEST)
+	id 1463734316B; Wed,  8 Apr 2026 09:02:57 +0200 (CEST)
 From: Jozsef Kadlecsik <kadlec@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/2] netfilter: ipset: Fix data race between add and dump in all hash types
-Date: Wed,  8 Apr 2026 09:02:57 +0200
-Message-Id: <20260408070257.2437291-3-kadlec@netfilter.org>
+Subject: [PATCH 1/2] netfilter: ipset: Fix data race between add and list header in all hash types
+Date: Wed,  8 Apr 2026 09:02:56 +0200
+Message-Id: <20260408070257.2437291-2-kadlec@netfilter.org>
 X-Mailer: git-send-email 2.39.5
 In-Reply-To: <20260408070257.2437291-1-kadlec@netfilter.org>
 References: <20260408070257.2437291-1-kadlec@netfilter.org>
@@ -54,62 +54,40 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 
-When adding a new entry to the next position in the existing hash bucket,
-the position index was incremented too early and parallel dump could
-read it before the entry was populated with the value. Move the setting
-of the position index after populating the entry.
+The "ipset list -terse" command is actually a dump operation which
+may run parallel with "ipset add" commands, which can trigger an
+internal resizing of the hash type of sets just being dumped. However,
+dumping just the header part of the set was not protected against
+underlying resizing. Fix it by protecting the header dumping part
+as well.
 
-Reported-by: syzbot+786c889f046e8b003ca6@syzkaller.appspotmail.com
-Reported-by: syzbot+1da17e4b41d795df059e@syzkaller.appspotmail.com
-Reported-by: syzbot+421c5f3ff8e9493084d9@syzkaller.appspotmail.com
 Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/=
-ip_set_hash_gen.h
-index b79e5dd2af03..492c2095c11b 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -844,7 +844,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	const struct mtype_elem *d =3D value;
- 	struct mtype_elem *data;
- 	struct hbucket *n, *old =3D ERR_PTR(-ENOENT);
--	int i, j =3D -1, ret;
-+	int i, j =3D -1, npos, ret;
- 	bool flag_exist =3D flags & IPSET_FLAG_EXIST;
- 	bool deleted =3D false, forceadd =3D false, reuse =3D false;
- 	u32 r, key, multi =3D 0, elements, maxelem;
-@@ -889,6 +889,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 			ext_size(AHASH_INIT_SIZE, set->dsize);
- 		goto copy_elem;
- 	}
-+	npos =3D n->pos;
- 	for (i =3D 0; i < n->pos; i++) {
- 		if (!test_bit(i, n->used)) {
- 			/* Reuse first deleted entry */
-@@ -962,7 +963,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	}
-=20
- copy_elem:
--	j =3D n->pos++;
-+	j =3D npos =3D n->pos + 1;
- 	data =3D ahash_data(n, j, set->dsize);
- copy_data:
- 	t->hregion[r].elements++;
-@@ -985,6 +986,7 @@ mtype_add(struct ip_set *set, void *value, const stru=
-ct ip_set_ext *ext,
- 	if (SET_WITH_TIMEOUT(set))
- 		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
- 	smp_mb__before_atomic();
-+	n->pos =3D npos;
- 	set_bit(j, n->used);
- 	if (old !=3D ERR_PTR(-ENOENT)) {
- 		rcu_assign_pointer(hbucket(t, key), n);
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_s=
+et_core.c
+index d0c9fe59c67d..e6a8b3acc556 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -1648,13 +1648,13 @@ ip_set_dump_do(struct sk_buff *skb, struct netlin=
+k_callback *cb)
+ 			if (cb->args[IPSET_CB_PROTO] > IPSET_PROTOCOL_MIN &&
+ 			    nla_put_net16(skb, IPSET_ATTR_INDEX, htons(index)))
+ 				goto nla_put_failure;
++			if (set->variant->uref)
++				set->variant->uref(set, cb, true);
+ 			ret =3D set->variant->head(set, skb);
+ 			if (ret < 0)
+ 				goto release_refcount;
+ 			if (dump_flags & IPSET_FLAG_LIST_HEADER)
+ 				goto next_set;
+-			if (set->variant->uref)
+-				set->variant->uref(set, cb, true);
+ 			fallthrough;
+ 		default:
+ 			ret =3D set->variant->list(set, skb, cb);
 --=20
 2.39.5
 
