@@ -1,107 +1,97 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA4D73D646A;
-	Thu,  9 Apr 2026 13:52:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9DB53CCFD3
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Apr 2026 13:53:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775742768; cv=none; b=Q38ul4KHsJzl4oSihY0zisC0ZWsQ4MdzIEg1nFaeGihCCK544U6w/kSXW0x57DjJ8xs2n1Ln8ndIz8at5IVHO08nYdA1AZB5JT/B8oKwwb9PdG00TnbZlhgfM01mNUpK2q24yniHQZv76IIN7Q4x4NYHgtXiwsAcbt5zrUVpt8U=
+	t=1775742798; cv=none; b=UaYosYFTNQp8SX2T6aMI3+kwwzh8fhCH+5v4stxt4EcGas78GjAfA3BaKsfpE9jsxHbx+w63m+NNN2Le4k9Nw6POWPtEfS6mmEIuotM06XGFoJRP95fNK5IyaOoGra9PWu6IASMIaZoOrYZyOKiqLKo6ENO/sizX9IZ9fQmNQnY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775742768; c=relaxed/simple;
-	bh=22bWjfBPSJNqnW3obSFGY+DfmkXrKL/eqvH4q6bKYtw=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Jm/vaDli/YK3OGSnS7pPI1IBtXt+QEIqnqTec0UGki59L0GP6I87nXQGNzR6aSZBjPopzK9fHMvmboIp+wcSoqz1onXeR8Jlqb+Buc6h+g4gMb5kdItlnK14aAo0xuZpM+F8n6bWfemvG6NXqCGgIEb+LlcAsKjow/ciuA7jESM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NdyAj/K3; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1775742798; c=relaxed/simple;
+	bh=9u6ngc0ZuFsLWmVJgMpInLo4LBvVV3K2EPyYBVxtFXY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=RN2NHb6SHyZrKvP8mpQ1XrR8cCXBL9RilXmxigAA8BsTD+F474J/ZSma8Ue3HlTglWTGS1bzZ7A9Skg6WaRwxiDmGeLfqMjtGytMe3QH1/a1LYWRFhIjHBuQgK4PJLZPtSuAdcQu5XNV9BGNBnwjKvT6f8lmNwsOMMZoXAJZuQU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=pVqNEfWO; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NdyAj/K3"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 23EDC60179;
-	Thu,  9 Apr 2026 15:52:44 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="pVqNEfWO"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id B7A0660181;
+	Thu,  9 Apr 2026 15:53:14 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775742764;
-	bh=24hA1l9NAmNo3LU0r4Q8hfjssSJC6vwBl2Dt0Dwe1A4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=NdyAj/K3A2fPx/giXVVKQfyeH1WrYGjmd5lMbaoH1QqoyrngAHcQzJ3fRY/9OoY1A
-	 NjZ6OQLJnbvbkIOfUfmcyapser63R/ikzngMBy2uW/5y45Zh3PNUUcVWIyhtNJdlIO
-	 BDcFCa5yWR1P01MYbLfQgaBmyr49Ai8Iz9nPqwuuw5ARrwxQ6LhMv+FCWUtQX8zSrr
-	 aSY7vcjWtGcJ/BCtwkDNumkVzR7KzNlcAyi9gPan7X+vn0zG4aXjXkcDin0MeXZe6+
-	 ZCGJSK4iUmtZMnfkXlRBA1texNhTbl4s2z7GndweiSlFXJfrHzWsBco+zErMdXGCP+
-	 RDDEAuVznrUMg==
-Date: Thu, 9 Apr 2026 15:52:41 +0200
+	s=2025; t=1775742795;
+	bh=2UPQ5oMClfE6GCt3zBww21zcRdq2X/3rTwxhiiYG3Hg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=pVqNEfWOZrKuPUmwzP0yILcmw+vr4snGi+TQ8Np+wMIhV0Yr60JIYyAMHcnrU6xAL
+	 05BXohasuGpALHNXgiXlANdp+QprYf+TMimxFQ+HwekoQ3b9PxmQ9BmxcFNm3py+6C
+	 rg2pYCC+DRz7pClJdpu8xsUsX3Wxbt5aq9Phezo+faczXXLKPt1CW/9Lrx2ai5Oer+
+	 W3IM+ChF8Uq6cU//BYhZ7YJY0L7ROlIrSKgL7h5+IysZ5a11qQIc5O9ueW5VmuM/PP
+	 +2joCGV78ONgwq2IY4FuKPgeg/JLTVj9K5zzMEhyCqFnowBFb70JSPTzjTlIEN6DOW
+	 28TqxiKugyl0w==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Daniel Golle <daniel@makrotopia.org>
-Cc: Felix Fietkau <nbd@nbd.name>, John Crispin <john@phrozen.org>,
-	Lorenzo Bianconi <lorenzo@kernel.org>,
-	Andrew Lunn <andrew+netdev@lunn.ch>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	Simon Horman <horms@kernel.org>, Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-Subject: Re: [PATCH RFC net-next 0/4] improve hw flow offload byte accounting
-Message-ID: <adevKeasLkEB5zZ4@chamomile>
-References: <cover.1775739840.git.daniel@makrotopia.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	phil@nwl.cc
+Subject: [PATCH nft,v2 1/5] main: consolidate EPERM to non-root users
+Date: Thu,  9 Apr 2026 15:53:11 +0200
+Message-ID: <20260409135311.49221-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <cover.1775739840.git.daniel@makrotopia.org>
+Content-Transfer-Encoding: 8bit
 
-On Thu, Apr 09, 2026 at 02:07:22PM +0100, Daniel Golle wrote:
-> Hardware flow counters report raw byte counts whose semantics
-> vary by vendor -- some count ingress L2 frames, others egress
-> L2, others L3. The nf_flow_table framework currently passes
-> these bytes straight to conntrack without conversion, and
-> sub-interfaces (VLAN, PPPoE) that are bypassed by hw offload
-> never see any counter updates at all.
+Move the check added by 3cfb9e4b3e40 ("src: report EPERM for non-root users")
+to the main function.
 
-I see, but that is part of the feature itself? Why pretend that these
-interface are really seeing traffic while they don't. This aspiration
-of trying to do all hardware offload fully transparent (when it is not
-the case, not mentioning semantic changes in how packet handling is
-done compared to the software plane) does not sound convincing to me.
+EPERM is also possible when removing a ruleset that is owned by a
+process, tone it down to suggest that root is maybe needed.
 
-On top of this, this issue also exists in the software plane: Devices
-that are bypasses do not get their counters bumped.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: handle EPERM from main, per Florian.
+    I'm not resending the entire series at this stage,
+    patch 2/5, 3/5, 4/5 and 5/5 got no changes.
 
-Maybe if this is really a requirement, then this should address the
-issue for software too, but is it worth the effort to add
-infrastructure for this purpose?
+ src/libnftables.c | 7 +------
+ src/main.c        | 2 ++
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-> This series lets drivers declare what their counters represent,
-> so the framework can normalize to L3 for conntrack and
-> propagate per-layer stats to encap sub-interfaces.
-> 
-> Questions:
->  - Sub-interface stats accesses vlan_dev_priv() directly --
->    should there be a generic netdev callback instead?
->  - Are there hw offload drivers whose counters do not fit the
->    ingress-L2 / egress-L2 / L3 model?
-> 
-> Daniel Golle (4):
->   net: flow_offload: let drivers report byte counter semantics
->   nf_flow_table: track sub-interface and bridge ifindex in flow tuple
->   nf_flow_table: convert hw byte counts and update sub-interface stats
->   net: ethernet: mtk_eth_soc: report INGRESS_L2 byte_type in flow stats
-> 
->  .../net/ethernet/mediatek/mtk_ppe_offload.c   |   1 +
->  include/net/flow_offload.h                    |   7 +
->  include/net/netfilter/nf_flow_table.h         |   5 +
->  net/netfilter/nf_flow_table_core.c            |   2 +
->  net/netfilter/nf_flow_table_offload.c         | 174 +++++++++++++++++-
->  net/netfilter/nf_flow_table_path.c            |   8 +
->  6 files changed, 195 insertions(+), 2 deletions(-)
-> 
-> -- 
-> 2.53.0
+diff --git a/src/libnftables.c b/src/libnftables.c
+index 66b03a1170bb..bc42c32de889 100644
+--- a/src/libnftables.c
++++ b/src/libnftables.c
+@@ -630,13 +630,8 @@ int nft_run_cmd_from_buffer(struct nft_ctx *nft, const char *buf)
+ 	parser_rc = rc;
+ 
+ 	rc = nft_evaluate(nft, &msgs, &cmds);
+-	if (rc < 0) {
+-		if (errno == EPERM) {
+-			fprintf(stderr, "%s (you must be root)\n",
+-				strerror(errno));
+-		}
++	if (rc < 0)
+ 		goto err;
+-	}
+ 
+ 	if (parser_rc) {
+ 		rc = parser_rc;
+diff --git a/src/main.c b/src/main.c
+index 29b0533dee7c..4cb51ff7f5fe 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -548,6 +548,8 @@ int main(int argc, char * const *argv)
+ 		goto out_fail;
+ 	}
+ 
++	if (rc && errno == EPERM)
++		 fprintf(stderr, "Error: %s (perhaps you must be root?)\n", strerror(errno));
+ out:
+ 	nft_ctx_free(nft);
+ 	return rc;
+-- 
+2.47.3
+
