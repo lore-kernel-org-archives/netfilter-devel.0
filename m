@@ -1,74 +1,64 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10F593DD524
-	for <netfilter-devel@vger.kernel.org>; Thu,  9 Apr 2026 15:12:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CA9C3BBA0B;
+	Thu,  9 Apr 2026 15:23:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775747558; cv=none; b=pvSumObCCrUG6qmwqEXZkr0U1vLpkwiK2o9G37nlze39O9wiUMmYH2Jbb8Xm/eS9rHOrM92/V+bLDK8Q6r6lNUvhuwSf8ByBIHc8YMKL1fjyvF43VRP5IoA4U6nWPHcjTPWnrKcIB8rMpXH/FrbrB02jpRhBHjyUv4wJyy9kbzU=
+	t=1775748183; cv=none; b=kLpLsZ2nbvYrUTrVRg7sJH6O29bf6vwKqqi/v1Hs1p7w2LEGVzbIe/vqH0cTuh3Iiod1Lp45WZ5/Lyp7YZX+K3f+s54zCx6XaA2lCUx2On/0lgqRrKokCE9F3udASRdOqQeQ5Jh152qta5cXMoPoA1LFbRbRMaC1hITw+kPx82E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775747558; c=relaxed/simple;
-	bh=J7GoitVHIjtYXm7nb37BNfDX0gi/NO1WvmzZwVMuYwU=;
+	s=arc-20240116; t=1775748183; c=relaxed/simple;
+	bh=8/jykii4ONZsNxIPmPDh82fKjzULUq2Qfn/VCvywlZg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=GmFjalQ5ltQ2OVHIGn5dyU5ZBIymd4TO9+x4+LbfFI0bNnN2dzbfB+MSOlBnFJqrbwdH7WKeCucV3xcmq2V32gz+dD06DZ7gYDbBSiHem7KqOUaTpqTruI7biJTxqEr25jA1+6p33d3YF6lf6NtlihIdiysyDFvo86401YNw3+U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gd4PyB2d; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gd4PyB2d"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5B75F60178;
-	Thu,  9 Apr 2026 17:12:33 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775747553;
-	bh=A2dwcWRD9Q2UykttaY/JcJRxY+P6KtVH+jisG9N4uOk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gd4PyB2dtbiVAnSgffpeOpsemaBfbpgsANB117Oxx6roUBT950eWToBMsOZ3Nt6fP
-	 wA/tE9nIEXa/Ttvi/rwPiarqv0ZwJuaG2hjwGsW7f0P6mUK1d46lj/73Upq+KgVZuL
-	 qdusGlcup5Ea/OYk+UljAkQCfg2hbkpjCGKxa/QuCj+Hs7ptpc4mWEyaffb5PEt3tJ
-	 gzCoVz2Pr7tP7UXY7TEiBGX4cLrjubO0gbhIjflEi477Z5Dra743Se5bXFrHmyFkGm
-	 fBUxgNrDvcRiFZQCMowZaB2GnHs/2Pjd+F/EzegIG7HqafkM67e619YN/IFnGiG+5X
-	 eknCp8YXnBmRw==
-Date: Thu, 9 Apr 2026 17:12:30 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: [PATCH nft] doc: ct count should be restricted via new
-Message-ID: <adfB3qNaLyuEYz-X@chamomile>
-References: <20260409115756.27931-1-fw@strlen.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=dtbvWbiQHdAyemdU7tX1jLAxTPrzblNY7Mi4VZKKbVTqxgEGoPPAF9kGKZRc7Ubs0+yW4IrhT0fIzhGfrMqPh+axQ+QJGXjAGiEQYRsNLes6Q9lAQdY5whUTmdos74HU72+R2iRkbIV0UQCVKJJyuH57Fq8seAhzZz83GKGzydI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 0D77B60640; Thu, 09 Apr 2026 17:22:58 +0200 (CEST)
+Date: Thu, 9 Apr 2026 17:22:58 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Weiming Shi <bestswngs@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>,
+	Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Xiang Mei <xmei5@asu.edu>
+Subject: Re: [PATCH nf] netfilter: nf_conntrack_sip: fix OOB read in
+ epaddr_len and ct_sip_parse_header_uri
+Message-ID: <adfEUtiiLzjtKd8m@strlen.de>
+References: <20260409095056.706441-2-bestswngs@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260409115756.27931-1-fw@strlen.de>
+In-Reply-To: <20260409095056.706441-2-bestswngs@gmail.com>
 
-On Thu, Apr 09, 2026 at 01:57:53PM +0200, Florian Westphal wrote:
-> Not doing it will affect existing flows, which is likely not wanted.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+Weiming Shi <bestswngs@gmail.com> wrote:
+> In epaddr_len() and ct_sip_parse_header_uri(), after sip_parse_addr()
+> successfully parses an IP address, the code checks whether the next
+> character is ':' to determine if a port number follows. However,
+> neither function verifies that the pointer is still within bounds
+> before dereferencing it.
 
-Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
+I already queued up:
+https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260313195256.2783257-1-qguanni@gmail.com/
 
-> ---
->  doc/payload-expression.txt | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/doc/payload-expression.txt b/doc/payload-expression.txt
-> index 8b538968c84b..817b7a3c76b1 100644
-> --- a/doc/payload-expression.txt
-> +++ b/doc/payload-expression.txt
-> @@ -934,5 +934,5 @@ ct_id|
->  .restrict the number of parallel connections to a server
->  --------------------
->  nft add set filter ssh_flood '{ type ipv4_addr; flags dynamic; }'
-> -nft add rule filter input tcp dport 22 add @ssh_flood '{ ip saddr ct count over 2 }' reject
-> +nft add rule filter input ct state new tcp dport 22 add @ssh_flood '{ ip saddr ct count over 2 }' reject
->  --------------------
-> -- 
-> 2.52.0
-> 
-> 
+for nf-next (I already sent the 'last' PR for 7.0).
+
+Could you check if that resolves the problem you're reporting?
+
+>  		p = simple_strtoul(c, (char **)&c, 10);
+
+All of these functions require a c-string, which we usually
+don't have with network packet parsing.
+
+IOW, sip helper needs to be audited for these problems
+but I don't know when I can get to it.
