@@ -1,106 +1,71 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE4F312832
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 11:41:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2E64175A9C;
+	Fri, 10 Apr 2026 12:37:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775821315; cv=none; b=qRkteQatIE867scqTgYsUKz+ITTeK8h3cVRQKUfUeqA2EF1xJpMrsuh6wXDQourKOsQoncWYrCUzk4OLn9bqGdA4XipOwgCHvBLu8GuSrPkiRkiCPT86WNWB3qaCU29I5ByjUTwtGxEFiXhIvjtOPv2WnaqKPWLyMpusQGApCs0=
+	t=1775824645; cv=none; b=uxg1G5M/TS8xuJh9Kw6YOstuBbYjW7Hni1fPGCbArQ1EzrbTZuuLpMSF0Cg/byEsIwZrfn1KmqQAhEqOIudLQ+lLD3B928Guvk5m66tVMA3FEw3z2x5tPl15l7fcUW130PSDBewvTRfFB9jBYbpu0EtNFKgyyxGPbrclBHis2ws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775821315; c=relaxed/simple;
-	bh=FSX0U4E9Ywv9e5U4nRaUtDh5Jpuxs5Ql9zSAIOIN0lI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GFi2Tbc8XR5TRL4ItI7ddl59NUVjmoxSMbhHoEkM+sgqhRQ3hTLm8TT+TBSVyOZXbX5A/2TUifQygfVbFu67tokTZoavO84aUR+yS5I0BrilHHK8pFr82xPpSt9q+NO0KRdrAQwkaexGyhgUTEyn+9v52xGAgGM6VT2+kVGvXzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8232E60CFA; Fri, 10 Apr 2026 13:41:51 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nat: switch release of ops to kfree_rcu
-Date: Fri, 10 Apr 2026 13:41:38 +0200
-Message-ID: <20260410114144.10785-1-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
+	s=arc-20240116; t=1775824645; c=relaxed/simple;
+	bh=wkqkcVxmZ2uKiOxR7eiu0tIr4+iX8LqTb5bke0QKe4g=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=crjJgjpqP7NdFhPh7qTDFGUbJQr4uI9Bno2ClllElA0jWbMTF43gy71npRPo5ZdeFFNI2FRpHSRz3voY5CrUHQ2kAsui+81XlG8G7Qtm42NfwwMPAhG8NbN7x7TUR8jaV1/QfKGKnOyBkhJ69oCZ6cL71YkIC7wVT104NBYJjHo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=rI7NAcx0; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="rI7NAcx0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 019B4C19421;
+	Fri, 10 Apr 2026 12:37:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775824645;
+	bh=wkqkcVxmZ2uKiOxR7eiu0tIr4+iX8LqTb5bke0QKe4g=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=rI7NAcx0hsLrLhwwvejqPOI14FViYvZTMJx6ipRhVPrUA29EuuuFgJ0UCeL5pgG5w
+	 vWKp+ElmoGwTkUQAcywZME4SSUXQQvw5ZAYb4S5bzO6vXEBNYWhBa6OiRPPuLstooi
+	 HbzGVcDlW1WOBJ6By5LWceYYAzkoCP2Dq0ygtkn0qiNEskoVJXNjHd0AwxgN/Dc3Jb
+	 EA6C7gG/+/DqxAlL4EWqCAiHkR3pg6E6imDHGxBIktBwOG2ayVVb4PLZrZzB5xZQFi
+	 m8a9QjEvZlJTMgUnePEim6pGO5dw1B7wgyN9VAF/pDDDKLLYqe1z4b4+GYQAevPhZw
+	 r9gbUXP843UFg==
+Date: Fri, 10 Apr 2026 14:37:22 +0200
+From: Frederic Weisbecker <frederic@kernel.org>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, John Stultz <jstultz@google.com>,
+	Stephen Boyd <sboyd@kernel.org>, Calvin Owens <calvin@wbinvd.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch V2 07/11] alarmtimer: Convert posix timer functions to
+ alarm_start_timer()
+Message-ID: <adjvAgaEw0hKWNTs@localhost.localdomain>
+References: <20260408102356.783133335@kernel.org>
+ <20260408114952.400451460@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260408114952.400451460@kernel.org>
 
-Historically this is't an issue, even for normal base hooks: the data
-path doesn't use the original nf_hook_ops that are used to register
-the callbacks.
+Le Wed, Apr 08, 2026 at 01:54:16PM +0200, Thomas Gleixner a écrit :
+> Use the new alarm_start_timer() for arming and rearming posix interval
+> timers and for clock_nanosleep() so that already expired timers do not go
+> through the full timer interrupt cycle.
+> 
+> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
+> Acked-by: John Stultz <jstultz@google.com>
+> Cc: Stephen Boyd <sboyd@kernel.org>
 
-However, in v5.14 I added the ability to dump the active netfilter
-hooks from userspace.
+Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
 
-This code will peek back into the nf_hook_ops that are available
-at the tail of the pointer-array blob used by the datapath.
-
-The nat hooks are special, because they are called indirectly from
-the central nat dispatcher hook.  They are currently invisible to
-the nfnl hook dump subsystem.
-
-But once that changes the nat ops structures have to be deferred too.
-
-Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- @pablo: route via nf if you prefer, in that case you can
- add:
-  Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
-
- But as explained above, I don't think its a problem for current
- nf/net; the nat hooks are currently not dumpable from nfnl_hook.
-
- net/ipv4/netfilter/iptable_nat.c  | 2 +-
- net/ipv6/netfilter/ip6table_nat.c | 2 +-
- net/netfilter/nf_nat_core.c       | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
-index a5db7c67d61b..3b1de7f82bf8 100644
---- a/net/ipv4/netfilter/iptable_nat.c
-+++ b/net/ipv4/netfilter/iptable_nat.c
-@@ -100,7 +100,7 @@ static void ipt_nat_unregister_lookups(struct net *net)
- 	for (i = 0; i < ARRAY_SIZE(nf_nat_ipv4_ops); i++)
- 		nf_nat_ipv4_unregister_fn(net, &ops[i]);
- 
--	kfree(ops);
-+	kfree_rcu(ops, rcu);
- }
- 
- static int iptable_nat_table_init(struct net *net)
-diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
-index e119d4f090cc..9adfbfeaab0c 100644
---- a/net/ipv6/netfilter/ip6table_nat.c
-+++ b/net/ipv6/netfilter/ip6table_nat.c
-@@ -102,7 +102,7 @@ static void ip6t_nat_unregister_lookups(struct net *net)
- 	for (i = 0; i < ARRAY_SIZE(nf_nat_ipv6_ops); i++)
- 		nf_nat_ipv6_unregister_fn(net, &ops[i]);
- 
--	kfree(ops);
-+	kfree_rcu(ops, rcu);
- }
- 
- static int ip6table_nat_table_init(struct net *net)
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 3b5434e4ec9c..e8beefa503e5 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -1294,7 +1294,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
- 		}
- 
- 		nat_proto_net->nat_hook_ops = NULL;
--		kfree(nat_ops);
-+		kfree_rcu(nat_ops, rcu);
- 	}
- unlock:
- 	mutex_unlock(&nf_nat_proto_mutex);
 -- 
-2.52.0
-
+Frederic Weisbecker
+SUSE Labs
