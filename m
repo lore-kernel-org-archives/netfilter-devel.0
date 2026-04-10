@@ -1,67 +1,73 @@
-Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
+Received: from mail-dl1-f44.google.com (mail-dl1-f44.google.com [74.125.82.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 774C93A75B9
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 14:08:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 091FA2F5491
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 20:48:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775830130; cv=none; b=dTCC7jvLrbLWGaqSHRw5kZR5HuQkXMwt/gcP4rtPWxDmdaO0QTc8Wvo5hj4m8hJUXsonHvU0G4/vtpImR6SQlpsX5xGHZfr3N1pdbETfGNJ4JIAIPaRoxyrOJEXQ8bTZk4ab3IlI/xtRft6n2AU0k8UY23iwlUcMGihfqGPZZ+Q=
+	t=1775854131; cv=none; b=rNBspOtFlFqV3usIICsIsFvKE9XyHTNynCuUdm9sTyvzyZfC/0C1B6spFsBZ1G+ldijAYUJxP9Ia/OaJess2R5jTUWWQX5LSgd74hKvunSK2Lr8NQTMaDIfYefBzXYWLPem1pFiwFOmd1eRBfXA+xxMnZkVf2ZE4rgE92jkNOvo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775830130; c=relaxed/simple;
-	bh=Jfy2usjb7LD5diX+bK57ihlhuNRqd/S/obMi4Uou+C4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=B7oSQuGlDNxZStWFF3GfKZthQhfIOQwCZ7tAMqgGdtJ3vJmjp5wDubvVzgWPvTubMQ31/imBSq5OtCcxL06lOb7ufi3BWUUxvVrPnhxs98CBYa2i1INU9tdGJiJ8BEYo3qCASKoiVH4KYIiacOyilogAnPCiyYoxvCakVcORTV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Z7RvrodS; arc=none smtp.client-ip=209.85.221.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1775854131; c=relaxed/simple;
+	bh=7ikf22Yk9gDKjKnQ4vG7L4LBTt9F/m2LDetXkk9Vbcw=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tM9Am8wMDDpkCFMViMWFpO6EYXCn6zIvcVdhtX22bjsgv8lT0naeiCReba8nfU1c2ndSBtWlIqCLARfP/VpiROxSTAy1WipyCfk0fyEoj+MY0MQg/r0blYWn1O9tJ4EUb3QeLcpmt/Zi9jEOhyEt6vxufZ3XTlOh//M/xpNJ6dM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=HioFDOg8; arc=none smtp.client-ip=74.125.82.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z7RvrodS"
-Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-43d572f7437so1448855f8f.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 07:08:49 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="HioFDOg8"
+Received: by mail-dl1-f44.google.com with SMTP id a92af1059eb24-12c19d23b19so2572730c88.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 13:48:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775830128; x=1776434928; darn=vger.kernel.org;
+        d=asu.edu; s=google; t=1775854129; x=1776458929; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=aK+3YdeKNNJBdXuNMI1GNmLQlCMgDOjeM6utJ1G5yTg=;
-        b=Z7RvrodS43h+b1+a6//5902vMsOLFTUeqfXODh3+vqshZhF1J7XFE6ti4wpv9HQLGG
-         e1v4URDjXalZ/QhJr0BgY7RhErT3SppFbtndcIvpMsMfl7vvLWVZmqhhEMBKrp52qiJ9
-         07CRMaHPP4NEJ0v3sIFAr8sblrzSnrnXKM8+MrkMKbBIs1OS57qliAByf1Y8DikMvLJj
-         7l5QYfA9n9IHPf81PnWwv1h3xkCC7N/KnsIGJleqaV9m0M8GtPpBDKEO21gdeUyqimbz
-         8dkvBebDLRbJ22P8c8Svfe7cA6N+A4pH5tgeqxw+srVy7XWSXJ+aAsK+SGJpeHpVErpm
-         Fcpg==
+        bh=o8Z8RVZ7gmrp+TUiE+Acjq5yoAXHwEewB9LLWN/bJr4=;
+        b=HioFDOg88DYUziL3eaKgknZujplVAZLVfZqxF8lAMocSrgJ6MXId9sRgxVEH96yCLT
+         8br/Sa1f+42LvO0IGSoB725YYe0ItRnxx0nHlDemqvyOmy0O53FZ44bUm6z/mGqo1k/r
+         y/MzgTzLMUL+FAZ5xjpCrRJiHyWgMWQ9jCycpecsrJX+5Ilx23GWaZHx5IvdWsqUUWeu
+         oWX3gZ1h8INlydsKui6pTBIz/TqyXEU+HDVbFpNAZosoDeKAxXUlu2cTuRiWFjoFyxIP
+         O1VnrFVeEQFcInv2xjPaLyAIizyV5gFHgJKvDWxDEPJOYQ0EcX88nrfBrF4l4INefZwU
+         6djg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775830128; x=1776434928;
+        d=1e100.net; s=20251104; t=1775854129; x=1776458929;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=aK+3YdeKNNJBdXuNMI1GNmLQlCMgDOjeM6utJ1G5yTg=;
-        b=jsYvITTV39VQt51OxBuF0fuExeyG5d4euHEf/s+TySEfZ3wclcqOkNKIBCa2cqB8CN
-         4UVMYm4ej0DIm/gmCwJ0XtCys/FO7MhNyKeEgY4QnAINtklxap0okLgD9pv9mLJOFFN2
-         W9zgt1GvvJcS+Kh8h24q9mjyoXjHnxTq4xJ+6FdZMFfyNEYpxbTgTINiaRLtAYTPlbcZ
-         6IfccTcfhjTVleyQr6ebWjn//DtGGWB+AVLsXyzPf1bggBazZRribFwNC63V+LK3co1f
-         Pn1Q0t8YHbUDlrS7qjR0FaB3K1AmeqeNQRDXzfMMY+pQtZx9gJTzqi5P1QikNTPy0RhN
-         AFeg==
-X-Gm-Message-State: AOJu0YwitxGacopXrGhaNIt+PXk4ETnr/edg28KA3e8xFcuzyZfqM7Xn
-	O4Wg4+nXDbMBS33Lk1ZNDj36ni8GObJ3I/Wg+lzdr3hA+fDuVKreRG9TphZfas8sd5kYVw==
-X-Gm-Gg: AeBDievUU3JnbzA46PekAHBV5cy547Tv+p0PpCkL4q4ICgbkUedLnLzXyqNLa3r18OG
-	DN1XqmJ/ahWv2FsY20Di0sQwcVH5N/72+pRzGk9pAoQPrsqbEujp+3whVpcApt72Nhd7IQ1Rv1k
-	V3cnANZLB8RiAuXVDauuZXPwAQRR7f4fvzFyS7c+nEFRW30rNIbwsY0H2e7GCKCAqR61SA7bIE3
-	ZqwAd4oa/7Dyu5EeQpAd7mVWB6DpHrlq1z8EzB3jKBeF9ztv74L8LuJ6vrBwoFSNBcedZKijDnX
-	UTEykAzQPDA9IoP8BwT93c8CsRkne3vHkeJ7YK4t2HrKwWot+Zs5UJzN9mHVXlXNhzKHdiqUXTf
-	DT4xWUMqhwtU6i/faGU0E/a7mUtGM9CUAjYPtWTKiwK3JL1mdxBAX2bDNTMF54yGoNErnHUQIAi
-	G2DProMauCuagJPfae9aVEH4TAE/QCaDPYCLDq/Fach20+fmBD7xZxe4I0HknQbK2c/bEp
-X-Received: by 2002:a05:6000:2403:b0:43d:4b00:9ee7 with SMTP id ffacd0b85a97d-43d642d1b1cmr4856702f8f.33.1775830127576;
-        Fri, 10 Apr 2026 07:08:47 -0700 (PDT)
-Received: from kali.station (net-2-39-22-72.cust.vodafonedsl.it. [2.39.22.72])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-43d63e462fdsm7276172f8f.22.2026.04.10.07.08.47
+        bh=o8Z8RVZ7gmrp+TUiE+Acjq5yoAXHwEewB9LLWN/bJr4=;
+        b=VsbpVlgJm4PLrv6k+N76YqRxeuBvReQt2ys93FO2DtWzoPoJFqOt/5AWXFSEsM/QMA
+         P9CaoM6E4pWhjkbLzhuIJ5orBXpLyYRKYDc0nRt9e2dDKEnz5xDcwWdgR5u69Y2GZH7b
+         JVETRbu+unRHWJT3+zluIQqZ1y/qx73zzs3ZI8Ao4c45CJaPAtPHkwTdCg+tw2E0qhss
+         88aa+laZZxaAysb2VebL37zLm+xZD+RJMs1Aoc2W3RgrtkOjUqE4duP+NRPMNFtxKzCW
+         5w1kz/ojadaPHhRl8vw4UrHmMVwAu7Q46KtKh78GVlquGFma3VQdYqYLE57W+bBytcbb
+         IEmA==
+X-Gm-Message-State: AOJu0Yxcre7fFD5aNNxNVe/q/mbyLb0WjOG0+T4iL6Tz29QC0hSxn0oN
+	IBZearScVMZlyMxSsSd94ELzj7PwcWtplxQWzl08hnlZgm7THi7HJGpyJ+Tp40koLRd7ypLI0+c
+	Jc4kITw==
+X-Gm-Gg: AeBDietWzCwfhKswjFDu1PDVcvHyBoUFf1VqGKR3rv8NI2IBxm3kdaULBbCkqLJTWi7
+	GOZdFZqCqisXHHHGy+HOc1TiQCbN/JJNNe5WVIM1IHmLdJ6H4MtEXSYBnW2mHvVm6JnEuMAsE/t
+	2OzS0SPYd7sOYUxldcS3ROmJnjYR+Vn/nwEa2A8RNrwIE+V4qXrGP0cZRUAWL86ud/ZyiDHs4Pf
+	hCoaL85r3140wMBV18UtEsqeKazNcmAZYWePxTO+bWZBforZB0RK7BlHXQRraC6bvomg2Pwtft9
+	RQLdM28Zx37oi0xlQHbMsW3tbHTG+Gf+ARKtGC5zMBgMHHnqedkVGtbT5+svce0uxXJEFKvMmDQ
+	nIXAA3Hd/d7ob1EfJTPIQHvRPM7BkqzO0WOreSek8wxDM14oetKkxgGqOrVje8Pvl6asuZQrK5M
+	xOJQknD2vmfAyCayo3o9yAkDCUKrrnbOxOKERwht5sNqtp3+cifkmx9A==
+X-Received: by 2002:a05:7022:4589:b0:12a:6902:ddce with SMTP id a92af1059eb24-12c34e6012fmr2803898c88.10.1775854128840;
+        Fri, 10 Apr 2026 13:48:48 -0700 (PDT)
+Received: from p1.scai.dhcp.asu.edu (209-147-138-15.nat.asu.edu. [209.147.138.15])
+        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12c345a9623sm4796228c88.4.2026.04.10.13.48.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Apr 2026 07:08:47 -0700 (PDT)
-From: Cyber-JA <giuseppecaruso0990@gmail.com>
+        Fri, 10 Apr 2026 13:48:48 -0700 (PDT)
+From: Xiang Mei <xmei5@asu.edu>
 To: netfilter-devel@vger.kernel.org
-Cc: Cyber-JA <giuseppecaruso0990@gmail.com>
-Subject: [PATCH 2/2] netfilter: validate values parsed by try_number
-Date: Fri, 10 Apr 2026 10:08:43 -0400
-Message-ID: <20260410140843.52027-1-giuseppecaruso0990@gmail.com>
-X-Mailer: git-send-email 2.53.0
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	Phil Sutter <phil@nwl.cc>,
+	coreteam@netfilter.org,
+	Weiming Shi <bestswngs@gmail.com>,
+	Xiang Mei <xmei5@asu.edu>
+Subject: [PATCH nf] netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
+Date: Fri, 10 Apr 2026 13:48:43 -0700
+Message-ID: <20260410204843.64259-1-xmei5@asu.edu>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -70,49 +76,56 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-try_number() parses comma-separated decimal values from FTP PORT and
-EPRT commands into a u_int32_t array, but does not validate that each
-value fits in a single octet. RFC 959 specifies that PORT parameters
-are decimal integers in the range 0-255, representing the four octets
-of an IP address followed by two octets encoding the port number.
+The OSF_WSS_MODULO branch in nf_osf_match_one() performs:
 
-Values exceeding 255 are silently accepted. In try_rfc959(), the raw
-u32 values are combined via shift-and-OR to form the IP and port:
+  ctx->window % f->wss.val
 
-  cmd->u3.ip = htonl((array[0] << 24) | (array[1] << 16) |
-                     (array[2] << 8) | array[3]);
-  cmd->u.tcp.port = htons((array[4] << 8) | array[5]);
+without guarding against f->wss.val == 0.  A user with CAP_NET_ADMIN
+can add an OSF fingerprint with wss.wc = OSF_WSS_MODULO and wss.val = 0
+via nfnetlink.  When a matching TCP SYN packet arrives, the kernel
+executes a division by zero and panics.
 
-When array elements exceed 255, bits from one field bleed into adjacent
-fields after shifting, producing IP addresses and port numbers that
-differ from what the text representation suggests. For example,
-"PORT 10,0,1,2,256,22" yields port (256<<8)|22 = 65558, truncated to
-u16 = 22. This mismatch between the textual and computed values can
-confuse network monitoring tools that parse FTP commands independently.
+The OSF_WSS_PLAIN case already treats val == 0 as a wildcard (match
+everything).  Apply the same semantics to OSF_WSS_MODULO: if val is 0,
+any window value matches rather than dividing by zero.
 
-Reject the command by returning 0 (no match) when any accumulated
-value exceeds 255.
+Crash:
+ Oops: divide error: 0000 [#1] SMP KASAN NOPTI
+ RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
+ Call Trace:
+ <IRQ>
+  nf_osf_match (net/netfilter/nfnetlink_osf.c:220 (discriminator 6))
+  xt_osf_match_packet (net/netfilter/xt_osf.c:32)
+  ipt_do_table (net/ipv4/netfilter/ip_tables.c:348)
+  nf_hook_slow (net/netfilter/core.c:622 (discriminator 1))
+  ip_local_deliver (net/ipv4/ip_input.c:265)
+  ip_rcv (include/linux/skbuff.h:1162)
+  __netif_receive_skb_one_core (net/core/dev.c:6181)
+  process_backlog (.include/linux/skbuff.h:2502 net/core/dev.c:6642)
+  __napi_poll (net/core/dev.c:7710)
+  net_rx_action (net/core/dev.c:7945)
+  handle_softirqs (kernel/softirq.c:622)
 
-Signed-off-by: Giuseppe Caruso <giuseppecaruso0990@gmail.com>
+Fixes: 31a9c29210e2 ("netfilter: nf_osf: add struct nf_osf_hdr_ctx")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
 ---
- net/netfilter/nf_conntrack_ftp.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ net/netfilter/nfnetlink_osf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 5e00f9123c38..12a6d9dd16a5 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -126,6 +126,10 @@ static int try_number(const char *data, size_t dlen, u_int32_t array[],
- 	for (i = 0, len = 0; len < dlen && i < array_size; len++, data++) {
- 		if (*data >= '0' && *data <= '9') {
- 			array[i] = array[i]*10 + *data - '0';
-+			if (array[i] > 255) {
-+				pr_debug("try_number: %u > 255\n", array[i]);
-+				return 0;
-+			}
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 45d9ad231..193436aa9 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -150,7 +150,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+ 				fmatch = FMATCH_OK;
+ 			break;
+ 		case OSF_WSS_MODULO:
+-			if ((ctx->window % f->wss.val) == 0)
++			if (f->wss.val == 0 || (ctx->window % f->wss.val) == 0)
+ 				fmatch = FMATCH_OK;
+ 			break;
  		}
- 		else if (*data == sep)
- 			i++;
 -- 
-2.53.0
+2.43.0
 
