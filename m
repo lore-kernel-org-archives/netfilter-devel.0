@@ -1,35 +1,28 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B0EF39EF0E;
-	Fri, 10 Apr 2026 11:24:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDE4F312832
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 11:41:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775820287; cv=none; b=VVYoye3wOoiBYZTRIvOsIbdgp8rh1JTDFxpu1OIDOE2XV4efaZtHlpFrk4/N6ukpiIYF6JdkdrLg0KvpTmSf0gtP0bT5Y3aTqaSC5QMBjZM7cbRfc39N3hmqMLR8p5sGWvYUFQaqylRGYnAOQqKnkeucLC72n4jggEwiFvzvRB4=
+	t=1775821315; cv=none; b=qRkteQatIE867scqTgYsUKz+ITTeK8h3cVRQKUfUeqA2EF1xJpMrsuh6wXDQourKOsQoncWYrCUzk4OLn9bqGdA4XipOwgCHvBLu8GuSrPkiRkiCPT86WNWB3qaCU29I5ByjUTwtGxEFiXhIvjtOPv2WnaqKPWLyMpusQGApCs0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775820287; c=relaxed/simple;
-	bh=l8eqKPw4VBFkae+sqDnJAoR0w1YLMWEY7HtRpB6fItI=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=TuxHYTAiAgPO2JwNwqSP1XXeA5zMpesmifTixjGCAj/zD/cHh3iGaht28DCYs8IwXUJnBWL2Ncke7ySvureGi1atmpThrGVRStN6xoJMIXxL3abeE+qmv+iEsO7iJayV8RtJVCDbIDytSY64i/ZgixVcgpRLJkk/FayLr8pTRjA=
+	s=arc-20240116; t=1775821315; c=relaxed/simple;
+	bh=FSX0U4E9Ywv9e5U4nRaUtDh5Jpuxs5Ql9zSAIOIN0lI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=GFi2Tbc8XR5TRL4ItI7ddl59NUVjmoxSMbhHoEkM+sgqhRQ3hTLm8TT+TBSVyOZXbX5A/2TUifQygfVbFu67tokTZoavO84aUR+yS5I0BrilHHK8pFr82xPpSt9q+NO0KRdrAQwkaexGyhgUTEyn+9v52xGAgGM6VT2+kVGvXzg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id D50CC60C9C; Fri, 10 Apr 2026 13:24:43 +0200 (CEST)
+	id 8232E60CFA; Fri, 10 Apr 2026 13:41:51 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
-To: <netdev@vger.kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	pablo@netfilter.org
-Subject: [PATCH net-next 11/11] netfilter: require Ethernet MAC header before using eth_hdr()
-Date: Fri, 10 Apr 2026 13:23:52 +0200
-Message-ID: <20260410112352.23599-12-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nat: switch release of ops to kfree_rcu
+Date: Fri, 10 Apr 2026 13:41:38 +0200
+Message-ID: <20260410114144.10785-1-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260410112352.23599-1-fw@strlen.de>
-References: <20260410112352.23599-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -38,178 +31,76 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Zhengchuan Liang <zcliangcn@gmail.com>
+Historically this is't an issue, even for normal base hooks: the data
+path doesn't use the original nf_hook_ops that are used to register
+the callbacks.
 
-`ip6t_eui64`, `xt_mac`, the `bitmap:ip,mac`, `hash:ip,mac`, and
-`hash:mac` ipset types, and `nf_log_syslog` access `eth_hdr(skb)`
-after either assuming that the skb is associated with an Ethernet
-device or checking only that the `ETH_HLEN` bytes at
-`skb_mac_header(skb)` lie between `skb->head` and `skb->data`.
+However, in v5.14 I added the ability to dump the active netfilter
+hooks from userspace.
 
-Make these paths first verify that the skb is associated with an
-Ethernet device, that the MAC header was set, and that it spans at
-least a full Ethernet header before accessing `eth_hdr(skb)`.
+This code will peek back into the nf_hook_ops that are available
+at the tail of the pointer-array blob used by the datapath.
 
-Suggested-by: Florian Westphal <fw@strlen.de>
-Tested-by: Ren Wei <enjou1224z@gmail.com>
-Signed-off-by: Zhengchuan Liang <zcliangcn@gmail.com>
-Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+The nat hooks are special, because they are called indirectly from
+the central nat dispatcher hook.  They are currently invisible to
+the nfnl hook dump subsystem.
+
+But once that changes the nat ops structures have to be deferred too.
+
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv6/netfilter/ip6t_eui64.c           | 7 +++++--
- net/netfilter/ipset/ip_set_bitmap_ipmac.c | 5 +++--
- net/netfilter/ipset/ip_set_hash_ipmac.c   | 9 +++++----
- net/netfilter/ipset/ip_set_hash_mac.c     | 5 +++--
- net/netfilter/nf_log_syslog.c             | 8 +++++++-
- net/netfilter/xt_mac.c                    | 4 +---
- 6 files changed, 24 insertions(+), 14 deletions(-)
+ @pablo: route via nf if you prefer, in that case you can
+ add:
+  Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
 
-diff --git a/net/ipv6/netfilter/ip6t_eui64.c b/net/ipv6/netfilter/ip6t_eui64.c
-index da69a27e8332..bbb684f9964c 100644
---- a/net/ipv6/netfilter/ip6t_eui64.c
-+++ b/net/ipv6/netfilter/ip6t_eui64.c
-@@ -7,6 +7,7 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ipv6.h>
-+#include <linux/if_arp.h>
- #include <linux/if_ether.h>
+ But as explained above, I don't think its a problem for current
+ nf/net; the nat hooks are currently not dumpable from nfnl_hook.
+
+ net/ipv4/netfilter/iptable_nat.c  | 2 +-
+ net/ipv6/netfilter/ip6table_nat.c | 2 +-
+ net/netfilter/nf_nat_core.c       | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index a5db7c67d61b..3b1de7f82bf8 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -100,7 +100,7 @@ static void ipt_nat_unregister_lookups(struct net *net)
+ 	for (i = 0; i < ARRAY_SIZE(nf_nat_ipv4_ops); i++)
+ 		nf_nat_ipv4_unregister_fn(net, &ops[i]);
  
- #include <linux/netfilter/x_tables.h>
-@@ -21,8 +22,10 @@ eui64_mt6(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	unsigned char eui64[8];
+-	kfree(ops);
++	kfree_rcu(ops, rcu);
+ }
  
--	if (!(skb_mac_header(skb) >= skb->head &&
--	      skb_mac_header(skb) + ETH_HLEN <= skb->data)) {
-+	if (!skb->dev || skb->dev->type != ARPHRD_ETHER)
-+		return false;
-+
-+	if (!skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN) {
- 		par->hotdrop = true;
- 		return false;
+ static int iptable_nat_table_init(struct net *net)
+diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
+index e119d4f090cc..9adfbfeaab0c 100644
+--- a/net/ipv6/netfilter/ip6table_nat.c
++++ b/net/ipv6/netfilter/ip6table_nat.c
+@@ -102,7 +102,7 @@ static void ip6t_nat_unregister_lookups(struct net *net)
+ 	for (i = 0; i < ARRAY_SIZE(nf_nat_ipv6_ops); i++)
+ 		nf_nat_ipv6_unregister_fn(net, &ops[i]);
+ 
+-	kfree(ops);
++	kfree_rcu(ops, rcu);
+ }
+ 
+ static int ip6table_nat_table_init(struct net *net)
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 3b5434e4ec9c..e8beefa503e5 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1294,7 +1294,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		}
+ 
+ 		nat_proto_net->nat_hook_ops = NULL;
+-		kfree(nat_ops);
++		kfree_rcu(nat_ops, rcu);
  	}
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 2c625e0f49ec..752f59ef8744 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -11,6 +11,7 @@
- #include <linux/etherdevice.h>
- #include <linux/skbuff.h>
- #include <linux/errno.h>
-+#include <linux/if_arp.h>
- #include <linux/if_ether.h>
- #include <linux/netlink.h>
- #include <linux/jiffies.h>
-@@ -220,8 +221,8 @@ bitmap_ipmac_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		return -IPSET_ERR_BITMAP_RANGE;
- 
- 	/* Backward compatibility: we don't check the second flag */
--	if (skb_mac_header(skb) < skb->head ||
--	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
-+	if (!skb->dev || skb->dev->type != ARPHRD_ETHER ||
-+	    !skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN)
- 		return -EINVAL;
- 
- 	e.id = ip_to_id(map, ip);
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmac.c b/net/netfilter/ipset/ip_set_hash_ipmac.c
-index 467c59a83c0a..b9a2681e2488 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmac.c
-@@ -11,6 +11,7 @@
- #include <linux/skbuff.h>
- #include <linux/errno.h>
- #include <linux/random.h>
-+#include <linux/if_arp.h>
- #include <linux/if_ether.h>
- #include <net/ip.h>
- #include <net/ipv6.h>
-@@ -89,8 +90,8 @@ hash_ipmac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_ipmac4_elem e = { .ip = 0, { .foo[0] = 0, .foo[1] = 0 } };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	if (skb_mac_header(skb) < skb->head ||
--	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
-+	if (!skb->dev || skb->dev->type != ARPHRD_ETHER ||
-+	    !skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN)
- 		return -EINVAL;
- 
- 	if (opt->flags & IPSET_DIM_TWO_SRC)
-@@ -205,8 +206,8 @@ hash_ipmac6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	if (skb_mac_header(skb) < skb->head ||
--	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
-+	if (!skb->dev || skb->dev->type != ARPHRD_ETHER ||
-+	    !skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN)
- 		return -EINVAL;
- 
- 	if (opt->flags & IPSET_DIM_TWO_SRC)
-diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
-index 718814730acf..41a122591fe2 100644
---- a/net/netfilter/ipset/ip_set_hash_mac.c
-+++ b/net/netfilter/ipset/ip_set_hash_mac.c
-@@ -8,6 +8,7 @@
- #include <linux/etherdevice.h>
- #include <linux/skbuff.h>
- #include <linux/errno.h>
-+#include <linux/if_arp.h>
- #include <linux/if_ether.h>
- #include <net/netlink.h>
- 
-@@ -77,8 +78,8 @@ hash_mac4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	struct hash_mac4_elem e = { { .foo[0] = 0, .foo[1] = 0 } };
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	if (skb_mac_header(skb) < skb->head ||
--	    (skb_mac_header(skb) + ETH_HLEN) > skb->data)
-+	if (!skb->dev || skb->dev->type != ARPHRD_ETHER ||
-+	    !skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN)
- 		return -EINVAL;
- 
- 	if (opt->flags & IPSET_DIM_ONE_SRC)
-diff --git a/net/netfilter/nf_log_syslog.c b/net/netfilter/nf_log_syslog.c
-index 0507d67cad27..7a8952b049d1 100644
---- a/net/netfilter/nf_log_syslog.c
-+++ b/net/netfilter/nf_log_syslog.c
-@@ -78,7 +78,10 @@ dump_arp_packet(struct nf_log_buf *m,
- 	else
- 		logflags = NF_LOG_DEFAULT_MASK;
- 
--	if (logflags & NF_LOG_MACDECODE) {
-+	if ((logflags & NF_LOG_MACDECODE) &&
-+	    skb->dev && skb->dev->type == ARPHRD_ETHER &&
-+	    skb_mac_header_was_set(skb) &&
-+	    skb_mac_header_len(skb) >= ETH_HLEN) {
- 		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
- 			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
- 		nf_log_dump_vlan(m, skb);
-@@ -797,6 +800,9 @@ static void dump_mac_header(struct nf_log_buf *m,
- 
- 	switch (dev->type) {
- 	case ARPHRD_ETHER:
-+		if (!skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN)
-+			return;
-+
- 		nf_log_buf_add(m, "MACSRC=%pM MACDST=%pM ",
- 			       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest);
- 		nf_log_dump_vlan(m, skb);
-diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
-index 81649da57ba5..4798cd2ca26e 100644
---- a/net/netfilter/xt_mac.c
-+++ b/net/netfilter/xt_mac.c
-@@ -29,9 +29,7 @@ static bool mac_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	if (skb->dev == NULL || skb->dev->type != ARPHRD_ETHER)
- 		return false;
--	if (skb_mac_header(skb) < skb->head)
--		return false;
--	if (skb_mac_header(skb) + ETH_HLEN > skb->data)
-+	if (!skb_mac_header_was_set(skb) || skb_mac_header_len(skb) < ETH_HLEN)
- 		return false;
- 	ret  = ether_addr_equal(eth_hdr(skb)->h_source, info->srcaddr);
- 	ret ^= info->invert;
+ unlock:
+ 	mutex_unlock(&nf_nat_proto_mutex);
 -- 
 2.52.0
 
