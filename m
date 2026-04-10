@@ -1,131 +1,246 @@
-Received: from mail-dl1-f44.google.com (mail-dl1-f44.google.com [74.125.82.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 091FA2F5491
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 20:48:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C4A73806A1;
+	Fri, 10 Apr 2026 20:52:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775854131; cv=none; b=rNBspOtFlFqV3usIICsIsFvKE9XyHTNynCuUdm9sTyvzyZfC/0C1B6spFsBZ1G+ldijAYUJxP9Ia/OaJess2R5jTUWWQX5LSgd74hKvunSK2Lr8NQTMaDIfYefBzXYWLPem1pFiwFOmd1eRBfXA+xxMnZkVf2ZE4rgE92jkNOvo=
+	t=1775854330; cv=none; b=dUJ+R2M207IBv8ZLgzRkkpbA5FkC44xg1zWgpCgEQ8rSun9AtixU9zqBQErITxUFO3HCNUwJ8ZbAB7+CdRNkRIOwEYr5IVvGKCqUnxH98kL44GbxZ4ykKtQlvNyvX1HcUGGEGxCGUfbtw4wDOQ4t/NbbU7BW4nOHema6WyvLewk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775854131; c=relaxed/simple;
-	bh=7ikf22Yk9gDKjKnQ4vG7L4LBTt9F/m2LDetXkk9Vbcw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=tM9Am8wMDDpkCFMViMWFpO6EYXCn6zIvcVdhtX22bjsgv8lT0naeiCReba8nfU1c2ndSBtWlIqCLARfP/VpiROxSTAy1WipyCfk0fyEoj+MY0MQg/r0blYWn1O9tJ4EUb3QeLcpmt/Zi9jEOhyEt6vxufZ3XTlOh//M/xpNJ6dM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=HioFDOg8; arc=none smtp.client-ip=74.125.82.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
+	s=arc-20240116; t=1775854330; c=relaxed/simple;
+	bh=hBqpsCVdBkMH3lEvzZjgPQlx4m7L2aIZuZIfc35yxMY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hLN/nRPfq2mx/s0CxcMimK09y8Fd8p2BA9O3eJlq4jklK6yAdj9Ck3lbjG8Q+/4x5P+bB0VelkzjswFqdLYe1JBkFvaQt9WpGWy208rZAkVNsdKmOCg6nYAmZALETguuZMVe9f1B5lz0u240eqqgYhia3tmc82DUjhUorcwDAVE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LkPaaR1x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="HioFDOg8"
-Received: by mail-dl1-f44.google.com with SMTP id a92af1059eb24-12c19d23b19so2572730c88.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 13:48:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=asu.edu; s=google; t=1775854129; x=1776458929; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=o8Z8RVZ7gmrp+TUiE+Acjq5yoAXHwEewB9LLWN/bJr4=;
-        b=HioFDOg88DYUziL3eaKgknZujplVAZLVfZqxF8lAMocSrgJ6MXId9sRgxVEH96yCLT
-         8br/Sa1f+42LvO0IGSoB725YYe0ItRnxx0nHlDemqvyOmy0O53FZ44bUm6z/mGqo1k/r
-         y/MzgTzLMUL+FAZ5xjpCrRJiHyWgMWQ9jCycpecsrJX+5Ilx23GWaZHx5IvdWsqUUWeu
-         oWX3gZ1h8INlydsKui6pTBIz/TqyXEU+HDVbFpNAZosoDeKAxXUlu2cTuRiWFjoFyxIP
-         O1VnrFVeEQFcInv2xjPaLyAIizyV5gFHgJKvDWxDEPJOYQ0EcX88nrfBrF4l4INefZwU
-         6djg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775854129; x=1776458929;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=o8Z8RVZ7gmrp+TUiE+Acjq5yoAXHwEewB9LLWN/bJr4=;
-        b=VsbpVlgJm4PLrv6k+N76YqRxeuBvReQt2ys93FO2DtWzoPoJFqOt/5AWXFSEsM/QMA
-         P9CaoM6E4pWhjkbLzhuIJ5orBXpLyYRKYDc0nRt9e2dDKEnz5xDcwWdgR5u69Y2GZH7b
-         JVETRbu+unRHWJT3+zluIQqZ1y/qx73zzs3ZI8Ao4c45CJaPAtPHkwTdCg+tw2E0qhss
-         88aa+laZZxaAysb2VebL37zLm+xZD+RJMs1Aoc2W3RgrtkOjUqE4duP+NRPMNFtxKzCW
-         5w1kz/ojadaPHhRl8vw4UrHmMVwAu7Q46KtKh78GVlquGFma3VQdYqYLE57W+bBytcbb
-         IEmA==
-X-Gm-Message-State: AOJu0Yxcre7fFD5aNNxNVe/q/mbyLb0WjOG0+T4iL6Tz29QC0hSxn0oN
-	IBZearScVMZlyMxSsSd94ELzj7PwcWtplxQWzl08hnlZgm7THi7HJGpyJ+Tp40koLRd7ypLI0+c
-	Jc4kITw==
-X-Gm-Gg: AeBDietWzCwfhKswjFDu1PDVcvHyBoUFf1VqGKR3rv8NI2IBxm3kdaULBbCkqLJTWi7
-	GOZdFZqCqisXHHHGy+HOc1TiQCbN/JJNNe5WVIM1IHmLdJ6H4MtEXSYBnW2mHvVm6JnEuMAsE/t
-	2OzS0SPYd7sOYUxldcS3ROmJnjYR+Vn/nwEa2A8RNrwIE+V4qXrGP0cZRUAWL86ud/ZyiDHs4Pf
-	hCoaL85r3140wMBV18UtEsqeKazNcmAZYWePxTO+bWZBforZB0RK7BlHXQRraC6bvomg2Pwtft9
-	RQLdM28Zx37oi0xlQHbMsW3tbHTG+Gf+ARKtGC5zMBgMHHnqedkVGtbT5+svce0uxXJEFKvMmDQ
-	nIXAA3Hd/d7ob1EfJTPIQHvRPM7BkqzO0WOreSek8wxDM14oetKkxgGqOrVje8Pvl6asuZQrK5M
-	xOJQknD2vmfAyCayo3o9yAkDCUKrrnbOxOKERwht5sNqtp3+cifkmx9A==
-X-Received: by 2002:a05:7022:4589:b0:12a:6902:ddce with SMTP id a92af1059eb24-12c34e6012fmr2803898c88.10.1775854128840;
-        Fri, 10 Apr 2026 13:48:48 -0700 (PDT)
-Received: from p1.scai.dhcp.asu.edu (209-147-138-15.nat.asu.edu. [209.147.138.15])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12c345a9623sm4796228c88.4.2026.04.10.13.48.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Apr 2026 13:48:48 -0700 (PDT)
-From: Xiang Mei <xmei5@asu.edu>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	coreteam@netfilter.org,
-	Weiming Shi <bestswngs@gmail.com>,
-	Xiang Mei <xmei5@asu.edu>
-Subject: [PATCH nf] netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
-Date: Fri, 10 Apr 2026 13:48:43 -0700
-Message-ID: <20260410204843.64259-1-xmei5@asu.edu>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LkPaaR1x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42AF0C19421;
+	Fri, 10 Apr 2026 20:52:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1775854330;
+	bh=hBqpsCVdBkMH3lEvzZjgPQlx4m7L2aIZuZIfc35yxMY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LkPaaR1xRFqDx54O67j4HSoPLu47W6nIYCxJYd3O0OcKuVWWFKtVAELoM+emOfe2M
+	 xAq01klxGmncNFQ5pVyXlRfHFRTnDPJBnpYkPrUqUiQyYrT5staWKtvAeQHqrrsOW6
+	 oPi4cb1XEhHPfSDWkLn2bF+VHYrsHqdIhk7J8Cjk7XIYsAOGmp6UUTJhaQlo7/bobw
+	 o4n4v8eliqMr5ecBxiUtoUZYwVvvqYuPczwGAc46iaNI/JLyT9UqQMBTiFxFNZbvIy
+	 3WGqZiK414YBZAJgDjnJ+f/CGivBXH8I99MTqKZBaBcSEoYu7fOKlCln30wZVvfd6a
+	 tk9PQlaDgsivQ==
+Date: Fri, 10 Apr 2026 13:52:03 -0700
+From: Nathan Chancellor <nathan@kernel.org>
+To: Thomas Gleixner <tglx@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Calvin Owens <calvin@wbinvd.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: [patch 01/12] clockevents: Prevent timer interrupt starvation
+Message-ID: <20260410205203.GA3922321@ax162>
+References: <20260407083219.478203185@kernel.org>
+ <20260407083247.562657657@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260407083247.562657657@kernel.org>
 
-The OSF_WSS_MODULO branch in nf_osf_match_one() performs:
+Hi Thomas,
 
-  ctx->window % f->wss.val
+On Tue, Apr 07, 2026 at 10:54:17AM +0200, Thomas Gleixner wrote:
+> From: Thomas Gleixner <tglx@kernel.org>
+> 
+> Calvin reported an odd NMI watchdog lockup which claims that the CPU locked
+> up in user space. He provided a reproducer, which sets up a timerfd based
+> timer and then rearms it in a loop with an absolute expiry time of 1ns.
+> 
+> As the expiry time is in the past, the timer ends up as the first expiring
+> timer in the per CPU hrtimer base and the clockevent device is programmed
+> with the minimum delta value. If the machine is fast enough, this ends up
+> in a endless loop of programming the delta value to the minimum value
+> defined by the clock event device, before the timer interrupt can fire,
+> which starves the interrupt and consequently triggers the lockup detector
+> because the hrtimer callback of the lockup mechanism is never invoked.
+> 
+> As a first step to prevent this, avoid reprogramming the clock event device
+> when:
+>      - a forced minimum delta event is pending
+>      - the new expiry delta is less then or equal to the minimum delta
+> 
+> Thanks to Calvin for providing the reproducer and to Borislav for testing
+> and providing data from his Zen5 machine.
+> 
+> The problem is not limited to Zen5, but depending on the underlying
+> clock event device (e.g. TSC deadline timer on Intel) and the CPU speed
+> not necessarily observable.
+> 
+> This change serves only as the last resort and further changes will be made
+> to prevent this scenario earlier in the call chain as far as possible.
+> 
+> Fixes: d316c57ff6bf ("[PATCH] clockevents: add core functionality")
+> Reported-by: Calvin Owens <calvin@wbinvd.org>
+> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
+> Cc: Frederic Weisbecker <frederic@kernel.org>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Link: https://lore.kernel.org/lkml/acMe-QZUel-bBYUh@mozart.vkv.me/
 
-without guarding against f->wss.val == 0.  A user with CAP_NET_ADMIN
-can add an OSF fingerprint with wss.wc = OSF_WSS_MODULO and wss.val = 0
-via nfnetlink.  When a matching TCP SYN packet arrives, the kernel
-executes a division by zero and panics.
+This change in -next as commit 1c2eabb8805d ("clockevents: Prevent timer
+interrupt starvation") appears to make one of my test machines
+consistently lock up on boot (at least I never get to userspace). Most
+of the time I get stall messages such as
 
-The OSF_WSS_PLAIN case already treats val == 0 as a wildcard (match
-everything).  Apply the same semantics to OSF_WSS_MODULO: if val is 0,
-any window value matches rather than dividing by zero.
+  rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+  rcu:    14-...!: (20 GPs behind) idle=f380/0/0x0 softirq=1272/1273 fqs=4 (false positive?)
+  rcu:    (detected by 2, t=60002 jiffies, g=3673, q=12382 ncpus=16)
+  Sending NMI from CPU 2 to CPUs 14:
+  NMI backtrace for cpu 14 skipped: idling at cpu_idle_poll.isra.0+0x50/0x170
+  rcu: rcu_preempt kthread timer wakeup didn't happen for 59984 jiffies! g3673 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402
+  rcu:    Possible timer handling issue on cpu=4 timer-softirq=170
+  rcu: rcu_preempt kthread starved for 59987 jiffies! g3673 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=4
+  rcu:    Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+  rcu: RCU grace-period kthread stack dump:
+  task:rcu_preempt     state:I stack:0     pid:16    tgid:16    ppid:2      task_flags:0x208040 flags:0x00000010
+  Call trace:
+   __switch_to+0x100/0x1c8 (T)
+   __schedule+0x2b0/0x710
+   schedule+0x3c/0xc0
+   schedule_timeout+0x88/0x128
+   rcu_gp_fqs_loop+0x12c/0x640
+   rcu_gp_kthread+0x308/0x350
+   kthread+0x10c/0x128
+   ret_from_fork+0x10/0x20
+  rcu: Stack dump where RCU GP kthread last ran:
+  Sending NMI from CPU 2 to CPUs 4:
+  NMI backtrace for cpu 4 skipped: idling at cpu_idle_poll.isra.0+0x50/0x170
+  rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+  rcu:    0-...!: (21 GPs behind) idle=a4a0/0/0x0 softirq=1775/1776 fqs=0 (false positive?)
+  rcu:    3-...!: (28 GPs behind) idle=5b00/0/0x0 softirq=1437/1438 fqs=0 (false positive?)
+  rcu:    7-...!: (21 GPs behind) idle=0c18/0/0x0 softirq=1658/1659 fqs=0 (false positive?)
+  rcu:    8-...!: (21 GPs behind) idle=1418/0/0x0 softirq=1231/1231 fqs=0 (false positive?)
+  rcu:    9-...!: (18 GPs behind) idle=1288/0/0x0 softirq=1440/1440 fqs=0 (false positive?)
+  rcu:    12-...!: (21 GPs behind) idle=ae70/0/0x0 softirq=1339/1339 fqs=0 (false positive?)
+  rcu:    13-...!: (28 GPs behind) idle=02c8/0/0x0 softirq=1785/1787 fqs=0 (false positive?)
+  rcu:    14-...!: (21 GPs behind) idle=f428/0/0x0 softirq=1272/1273 fqs=0 (false positive?)
+  rcu:    15-...!: (21 GPs behind) idle=0fb8/0/0x0 softirq=1562/1562 fqs=0 (false positive?)
+  rcu:    (detected by 5, t=60002 jiffies, g=3677, q=12637 ncpus=16)
+  Sending NMI from CPU 5 to CPUs 0:
+  NMI backtrace for cpu 0 skipped: idling at cpu_idle_poll.isra.0+0x38/0x170
+  Sending NMI from CPU 5 to CPUs 3:
+  NMI backtrace for cpu 3 skipped: idling at cpu_idle_poll.isra.0+0x38/0x170
+  Sending NMI from CPU 5 to CPUs 7:
+  NMI backtrace for cpu 7 skipped: idling at cpu_idle_poll.isra.0+0x40/0x170
+  Sending NMI from CPU 5 to CPUs 8:
+  NMI backtrace for cpu 8 skipped: idling at cpu_idle_poll.isra.0+0x40/0x170
+  Sending NMI from CPU 5 to CPUs 9:
+  NMI backtrace for cpu 9 skipped: idling at cpu_idle_poll.isra.0+0x40/0x170
+  Sending NMI from CPU 5 to CPUs 12:
+  NMI backtrace for cpu 12 skipped: idling at cpu_idle_poll.isra.0+0x40/0x170
+  Sending NMI from CPU 5 to CPUs 13:
+  NMI backtrace for cpu 13 skipped: idling at cpu_idle_poll.isra.0+0x50/0x170
+  Sending NMI from CPU 5 to CPUs 14:
+  NMI backtrace for cpu 14 skipped: idling at cpu_idle_poll.isra.0+0x50/0x170
+  Sending NMI from CPU 5 to CPUs 15:
+  NMI backtrace for cpu 15 skipped: idling at cpu_idle_poll.isra.0+0x38/0x170
+  rcu: rcu_preempt kthread timer wakeup didn't happen for 60008 jiffies! g3677 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402
+  rcu:    Possible timer handling issue on cpu=4 timer-softirq=170
+  rcu: rcu_preempt kthread starved for 60011 jiffies! g3677 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=4
+  rcu:    Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+  rcu: RCU grace-period kthread stack dump:
+  task:rcu_preempt     state:I stack:0     pid:16    tgid:16    ppid:2      task_flags:0x208040 flags:0x00000010
+  Call trace:
+   __switch_to+0x100/0x1c8 (T)
+   __schedule+0x2b0/0x710
+   schedule+0x3c/0xc0
+   schedule_timeout+0x88/0x128
+   rcu_gp_fqs_loop+0x12c/0x640
+   rcu_gp_kthread+0x308/0x350
+   kthread+0x10c/0x128
+   ret_from_fork+0x10/0x20
+  rcu: Stack dump where RCU GP kthread last ran:
+  Sending NMI from CPU 5 to CPUs 4:
+  NMI backtrace for cpu 4
+  CPU: 4 UID: 0 PID: 0 Comm: swapper/4 Not tainted 7.0.0-rc7-next-20260409 #1 PREEMPT(lazy)
+  Hardware name: SolidRun Ltd. SolidRun CEX7 Platform, BIOS EDK II Jun 21 2022
+  pstate: 60400005 (nZCv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+  pc : tick_check_broadcast_expired+0x4/0x40
+  lr : cpu_idle_poll.isra.0+0x54/0x170
+  sp : ffff80008017be20
+  x29: ffff80008017be20 x28: 0000000000000000 x27: 0000000000000000
+  x26: 0000000000000000 x25: 0000000000000000 x24: 0000000000000000
+  x23: 00000000000000c0 x22: ffffb3ce21fad000 x21: 0000000000000004
+  x20: ffffb3ce21fadd50 x19: ffffb3ce21fad000 x18: 0000000000000004
+  x17: 0000000000000000 x16: 0000000000000000 x15: ffffb3ce21fb3b98
+  x14: ffffb3ce21788180 x13: 0000000000000000 x12: 000000124d69be59
+  x11: 00000000000000c0 x10: 0000000000001c80 x9 : ffffb3ce1f8a6e68
+  x8 : 0000000000000000 x7 : 0000000000000000 x6 : 0000000000000004
+  x5 : ffff00275c3682c8 x4 : 0000000000020a3c x3 : 0000000000000000
+  x2 : 0000000000000004 x1 : ffffb3ce223ca0c0 x0 : ffff002020da2140
+  Call trace:
+   tick_check_broadcast_expired+0x4/0x40 (P)
+   do_idle+0x64/0x130
+   cpu_startup_entry+0x40/0x50
+   secondary_start_kernel+0xe4/0x128
+   __secondary_switched+0xc0/0xc8
+  rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
+  rcu:    0-...!: (22 GPs behind) idle=ae48/0/0x0 softirq=1775/1776 fqs=0 (false positive?)
+  rcu:    3-...!: (29 GPs behind) idle=7ce8/0/0x0 softirq=1437/1438 fqs=0 (false positive?)
+  rcu:    7-...!: (22 GPs behind) idle=0df8/0/0x0 softirq=1658/1659 fqs=0 (false positive?)
+  rcu:    8-...!: (22 GPs behind) idle=1548/0/0x0 softirq=1231/1231 fqs=0 (false positive?)
+  rcu:    9-...!: (19 GPs behind) idle=1360/0/0x0 softirq=1440/1440 fqs=0 (false positive?)
+  rcu:    12-...!: (22 GPs behind) idle=af40/0/0x0 softirq=1339/1339 fqs=0 (false positive?)
+  rcu:    13-...!: (29 GPs behind) idle=04e0/0/0x0 softirq=1785/1787 fqs=0 (false positive?)
+  rcu:    14-...!: (22 GPs behind) idle=f528/0/0x0 softirq=1272/1273 fqs=0 (false positive?)
+  rcu:    15-...!: (22 GPs behind) idle=0fd8/0/0x0 softirq=1562/1562 fqs=0 (false positive?)
+  rcu:    (detected by 5, t=60002 jiffies, g=3681, q=13149 ncpus=16)
 
-Crash:
- Oops: divide error: 0000 [#1] SMP KASAN NOPTI
- RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
- Call Trace:
- <IRQ>
-  nf_osf_match (net/netfilter/nfnetlink_osf.c:220 (discriminator 6))
-  xt_osf_match_packet (net/netfilter/xt_osf.c:32)
-  ipt_do_table (net/ipv4/netfilter/ip_tables.c:348)
-  nf_hook_slow (net/netfilter/core.c:622 (discriminator 1))
-  ip_local_deliver (net/ipv4/ip_input.c:265)
-  ip_rcv (include/linux/skbuff.h:1162)
-  __netif_receive_skb_one_core (net/core/dev.c:6181)
-  process_backlog (.include/linux/skbuff.h:2502 net/core/dev.c:6642)
-  __napi_poll (net/core/dev.c:7710)
-  net_rx_action (net/core/dev.c:7945)
-  handle_softirqs (kernel/softirq.c:622)
+but other times, there is no output after it locks up. Is there any
+initial information I can provide to help debug this? Reverting the
+change on top of next-20260409 avoids the issue.
 
-Fixes: 31a9c29210e2 ("netfilter: nf_osf: add struct nf_osf_hdr_ctx")
-Reported-by: Weiming Shi <bestswngs@gmail.com>
-Signed-off-by: Xiang Mei <xmei5@asu.edu>
----
- net/netfilter/nfnetlink_osf.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Cheers,
+Nathan
 
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 45d9ad231..193436aa9 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -150,7 +150,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- 				fmatch = FMATCH_OK;
- 			break;
- 		case OSF_WSS_MODULO:
--			if ((ctx->window % f->wss.val) == 0)
-+			if (f->wss.val == 0 || (ctx->window % f->wss.val) == 0)
- 				fmatch = FMATCH_OK;
- 			break;
- 		}
--- 
-2.43.0
-
+# bad: [3fa7d958829eb9bc3b469ed07f11de3d2804ef71] Add linux-next specific files for 20260409
+# good: [7f87a5ea75f011d2c9bc8ac0167e5e2d1adb1594] Merge tag 'hid-for-linus-2026040801' of git://git.kernel.org/pub/scm/linux/kernel/git/hid/hid
+git bisect start '3fa7d958829eb9bc3b469ed07f11de3d2804ef71' '7f87a5ea75f011d2c9bc8ac0167e5e2d1adb1594'
+# bad: [443e04732ac2cdc17e3b90aa2345730a298fab37] Merge branch 'for-next' of https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next.git
+git bisect bad 443e04732ac2cdc17e3b90aa2345730a298fab37
+# bad: [ea33e83d9fa24b34e79c8df57b8927a8d94deb15] Merge branch 'xtensa-for-next' of https://github.com/jcmvbkbc/linux-xtensa.git
+git bisect bad ea33e83d9fa24b34e79c8df57b8927a8d94deb15
+# bad: [429057750b3d3a7477df48d17aa605dc47bc2344] Merge branch 'for-next/perf' of https://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git
+git bisect bad 429057750b3d3a7477df48d17aa605dc47bc2344
+# bad: [e98894f89da72f392141d9eecf1c7a8f13faa67f] Merge branch 'mm-stable' of https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+git bisect bad e98894f89da72f392141d9eecf1c7a8f13faa67f
+# good: [668937b7b2256f4b2a982e8f69b07d9ee8f81d36] mm: allow handling of stacked mmap_prepare hooks in more drivers
+git bisect good 668937b7b2256f4b2a982e8f69b07d9ee8f81d36
+# good: [a0fbc8dd44a27011537268e2a974b1180b848796] Merge branch 'dma-mapping-fixes' of https://git.kernel.org/pub/scm/linux/kernel/git/mszyprowski/linux.git
+git bisect good a0fbc8dd44a27011537268e2a974b1180b848796
+# good: [8a23051ed8584215b22368e9501f771ef98f0c1d] Merge tag 'pin-init-v7.1' of https://github.com/Rust-for-Linux/linux into rust-next
+git bisect good 8a23051ed8584215b22368e9501f771ef98f0c1d
+# good: [716b25a9dc20f4fb94d521581331a0565a43f3bb] Merge branch 'urgent' of https://git.kernel.org/pub/scm/linux/kernel/git/efi/efi.git
+git bisect good 716b25a9dc20f4fb94d521581331a0565a43f3bb
+# bad: [1a49dc272e25dae6cbb506a02bb70e0201a1498e] Merge branch 'tip/urgent' of https://git.kernel.org/pub/scm/linux/kernel/git/tip/tip.git
+git bisect bad 1a49dc272e25dae6cbb506a02bb70e0201a1498e
+# good: [30023353b2171cd36b10615a788a985f5caa29e3] Merge branch into tip/master: 'sched/urgent'
+git bisect good 30023353b2171cd36b10615a788a985f5caa29e3
+# good: [34ef164adaf00982d5f45037a7e37689c4555271] Merge branch 'i2c/i2c-host-fixes' of https://git.kernel.org/pub/scm/linux/kernel/git/andi.shyti/linux.git
+git bisect good 34ef164adaf00982d5f45037a7e37689c4555271
+# bad: [4fc7108ff756267ad53ecdeaa1e847d378887511] Merge branch into tip/master: 'timers/urgent'
+git bisect bad 4fc7108ff756267ad53ecdeaa1e847d378887511
+# bad: [1c2eabb8805d9fd79a19de5c76d4a64c9ad3cdf4] clockevents: Prevent timer interrupt starvation
+git bisect bad 1c2eabb8805d9fd79a19de5c76d4a64c9ad3cdf4
+# good: [82b915051d32a68ea3bbe261c93f5620699ff047] tick/nohz: Fix inverted return value in check_tick_dependency() fast path
+git bisect good 82b915051d32a68ea3bbe261c93f5620699ff047
+# first bad commit: [1c2eabb8805d9fd79a19de5c76d4a64c9ad3cdf4] clockevents: Prevent timer interrupt starvation
