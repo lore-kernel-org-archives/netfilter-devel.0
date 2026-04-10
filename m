@@ -1,73 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0656E329C67;
-	Fri, 10 Apr 2026 10:20:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8819B34572B;
+	Fri, 10 Apr 2026 10:31:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775816413; cv=none; b=Pla3kNh/zJqBsHc5dnlFPCfCwFU4515tVF37INawm88T2u16nBtFRCbg/kOClfJCyuAYBkrc9JKtBawoCT8ZpDzw82gycHHukfeX6ja8BbmGVu/Kytrq0d8b+teAmAy4IiDSePIZJnh8/LG+hIJTz+jG+eWOlAsBLb3ewuFczZc=
+	t=1775817105; cv=none; b=rlkcSLmX7MqmcNpYeTVM7EmQGw2ih4u61xcd4d67sHnTGQaXp8UaVjJUXba2Appj9cQqONamLwdDA4mkZdavATH2wcaB42w/mOmWQ9RBLU97g7kF5eT3qrFGeTZZ/mS3RwRPSqJu8/ztqIjX530GjbhduK1YWvDrKeouTZwO9Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775816413; c=relaxed/simple;
-	bh=KWb5/jmAk10UfhNvrbw8u9CU09mcsX2bncAWPbXDiMI=;
+	s=arc-20240116; t=1775817105; c=relaxed/simple;
+	bh=TEMszoT24S5Fp2NWULGdBLvJaraVJqOg9DNqqM6UkMc=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qlqZujywQ0LnbepZCNvc3QmMDYMq15N4a2kYOjViOsbbDrMQDimKTCcsw4Xsk8jteAbAxKbRKOyPlhmtWXVi1RQuYCagb10rV1iaB0J5eAc7vim4vg0Kix2ckQIWKujAVcOWcY+ydgVDVPDtqHxftvhVYkofxWIE7rtRXX5a3B0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gNb/tKl5; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gNb/tKl5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F735C19421;
-	Fri, 10 Apr 2026 10:20:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775816412;
-	bh=KWb5/jmAk10UfhNvrbw8u9CU09mcsX2bncAWPbXDiMI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gNb/tKl5gQcgrsD4HoB/WsKlT4pYq/gLGFcEOiCMg937UaCHIJV77uyGpuMo0DoU0
-	 1UZo9rzoTRHkvsqthqIvN5d4sZoRluXnOXGHXKs5o7vsQt9fA2qmUQJp1wp6sO/bKW
-	 h0E1l6wkvdlRt6kj1n5yg9G15RJ14hSVEvaGACXV1QIPJSb8p3s1NTNC28DNhn0Wuj
-	 RDd5sATs7MSPxEVOkNQUhj2CO72wu7WtMIVu7T4qiXxaDzmgUmiiXrNmB6plkeBxv8
-	 feE8v/wl+0tO99pfNEevK6rcBTTxbEKnSczs4CQOkhf+U6dv9WnA73ftPe0kxROi05
-	 NDU5UWqcCppIQ==
-Date: Fri, 10 Apr 2026 12:20:07 +0200
-From: Frederic Weisbecker <frederic@kernel.org>
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Peter Zijlstra (Intel)" <peterz@infradead.org>,
-	Anna-Maria Behnsen <anna-maria@linutronix.de>,
-	Calvin Owens <calvin@wbinvd.org>, John Stultz <jstultz@google.com>,
-	Stephen Boyd <sboyd@kernel.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
-	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Subject: Re: [patch V2 05/11] posix-timers: Switch to
- hrtimer_start_expires_user()
-Message-ID: <adjO1yvB2akP7iKw@localhost.localdomain>
-References: <20260408102356.783133335@kernel.org>
- <20260408114952.266001916@kernel.org>
+	 Content-Type:Content-Disposition:In-Reply-To; b=FyhcW0PAo4tGM9JbzXLeWaA7exGuLQfULCqIzAvD0kTXWKu14SaM4XG0AYcal8PW/Yab/gYER7hSTHm8xUSFbqZUSjgX4epBqSvQBX1CN/lZBQNJo9416hO7jOjy0Hm8GyvmqxKM5AqAM6cGB3n8P5gHKd69v9XgjMzqMVOthKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 030996065C; Fri, 10 Apr 2026 12:31:35 +0200 (CEST)
+Date: Fri, 10 Apr 2026 12:31:36 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Weiming Shi <bestswngs@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Xiang Mei <xmei5@asu.edu>
+Subject: Re: [PATCH nf] netfilter: nf_tables: use RCU-safe list primitives
+ for basechain hook list
+Message-ID: <adjRiG_Bp3WpRYOz@strlen.de>
+References: <20260410101321.915190-2-bestswngs@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260408114952.266001916@kernel.org>
+In-Reply-To: <20260410101321.915190-2-bestswngs@gmail.com>
 
-Le Wed, Apr 08, 2026 at 01:54:06PM +0200, Thomas Gleixner a écrit :
-> Switch the arm and rearm callbacks for hrtimer based posix timers over to
-> hrtimer_start_expires_user() so that already expired timers are not
-> queued. Hand the result back to the caller, which then queues the signal.
+Weiming Shi <bestswngs@gmail.com> wrote:
+> NFT_MSG_GETCHAIN runs as an NFNL_CB_RCU callback, so chain dumps
+> traverse basechain->hook_list under rcu_read_lock() without holding
+> commit_mutex. Meanwhile, nft_delchain_hook() mutates that same live
+> hook_list with plain list_move() and list_splice(), and the commit/abort
+> paths splice hooks back with plain list_splice(). None of these are
+> RCU-safe list operations.
 > 
-> Signed-off-by: Thomas Gleixner <tglx@kernel.org>
-> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> Cc: Anna-Maria Behnsen <anna-maria@linutronix.de>
-> Cc: Frederic Weisbecker <frederic@kernel.org>
+> A concurrent GETCHAIN dump can observe partially updated list pointers,
+> follow them into stack-local or transaction-private list heads, and
+> crash when container_of() produces a bogus struct nft_hook pointer.
 
-Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
+Right, but this is broken by design.
 
--- 
-Frederic Weisbecker
-SUSE Labs
+> Replace list_move() in nft_delchain_hook() with list_del_rcu() plus an
+> intermediate pointer array, followed by synchronize_rcu() before the
+> deleted hooks' list pointers are reused to link them into the
+> transaction's private list. In the error paths, put hooks back with
+> list_add_tail_rcu() which is safe for concurrent RCU readers (they
+> either continue to the original successor or see the list head and
+> terminate the walk).
+
+I don't understand the existing code.
+
+I don't even understand why
+we have a difference between the 'update delete' and chain delete cases.
+
+I think its wrong to unlink and then relink on abort.
+What prevents nft_delchain_hook() from using the normal approach done
+by nft_delchain()...?
+
+This existing code appears to be way too complex.
