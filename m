@@ -1,110 +1,97 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40FEF271A9A
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Apr 2026 01:36:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F41F3264FF;
+	Fri, 10 Apr 2026 06:52:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775784982; cv=none; b=l5f+tWsMKUdHDcs1MgOETxn+9F4orZifSVZTYSBisbyN4LbTYYDggGc4oK5p90DRIo6t90bKFs1vMZW8eZ4DmbyreGMXvyWPTrSY/F68yStggrQwZpLLz685hOJA7Eqa9ufeg9iHa2uov8NlGHt+p3wgrDL4tjZ3Bryy3uX0oRw=
+	t=1775803928; cv=none; b=MJRy9+5dHXcFLbY8uNsGt1ECxf3ek115RLMh6HZX5HHwkp9NXW5aaXWEBZC3+j0pkp7maVxwEUfuVh2ftG2oBmACm9R+pBGfQEi6SZ6czmwIfQY6u9yvXax8W5VaDoNQiKQGqNRvjZ06fkqdXNoYj2oh1Q1mfsTbL1Cgtkq2IC4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775784982; c=relaxed/simple;
-	bh=4f1uV1/D2NMKkySZxEoC8c4upNX8NdJCGj53j64irYA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XlSjqbybxlJ2ThslU/qgS8ETxmHU7/lA8+vs1oEM6EC5hEjivG60IEoYLrFPsHij2lf+zjq6v/SYSi53mrfEvGq+dNZpmNsHmNe4GlsMyx8ohPSFIR3aowL0OIt8YZ8DZyj6XrBOf6ux8FL8+0AH6BuI3XxH/ea9QA3TmUNu1i4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FpMy8Ojv; arc=none smtp.client-ip=209.85.214.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1775803928; c=relaxed/simple;
+	bh=1PoxhyRSV7JrRuAtwTi+CblKJwRESpqiBPV+2q1EFPU=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=I+Tr9vdUCsTWlW66yyLqKijEwRlDNIhOllM2s6oFzi7E8jnolCXei0uCSL0Vcb6i7j6da6T4slfPl2H5T0+qSzzMloA3Eays0KEj08TwjoYyUlmQJ3LDoewTkQDV94ZmXVOVdDPdocNz/qUdfR2350bOrNpVS6I09GIe08Y7AO8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=evB2pfiA; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FpMy8Ojv"
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-2b25cf1b5f0so11422275ad.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Apr 2026 18:36:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775784980; x=1776389780; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=exy9c+Pc6XoRk2nfa9LmtWLNBniIdYcQRFjHjMsl1oA=;
-        b=FpMy8OjvGzFUEkOH9XgSnRsHgzzzScgVHDNijh/p9XcnRJdTnMGkTey6qYBZ0oTEYA
-         QYfktJdXWiot5uDC0Zb5pl8yncME2t8tv2WMHZgMky1Eo+xKAk7U2iCz4NUpLBCU8R2n
-         6y0EThM7isE7zuAVNtrPS0/JUib063mp9x6tIKuJ+BpIFJvik3v85FeE95QREvONSHuf
-         +AmksOqL8wWd+lq95GQotm6hpImg7Xoq1kPxD0lk1M7H0IRFjsHixOXAgc/nT215Toso
-         VKZjxAxvhdvhf9I9tC7kOZ77CAq8K7HEa50lBwQYJm9vZ4EkzqJEpIL4s9UwBij09W18
-         XakQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775784980; x=1776389780;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=exy9c+Pc6XoRk2nfa9LmtWLNBniIdYcQRFjHjMsl1oA=;
-        b=VkPHXG5L7wqzPoZbBAOsqtFKuMP62TKFz/w6bRWO0uF3YUQX11DfSgq9F1eT3rsnxF
-         59OoGwxLXWZX9O8wGPyKqX6rAnFGayayDfLSguqlXh+i+m45wRNPNtK61IBXfjpcpq3J
-         ad2wighZy/HSrVINzKS1xB9NaQhE3S60cq+8rIcPNGJXtbri9yW6GJNFFT+zC3CdLDjC
-         ahUzgnWduGKTCUS+oh14xv+Dredux1JoT33ySp6OH72ajRwvPd3N1eQb6cziJK1bgPYu
-         KrqeBeAmPZCsa9dTm1yNrSyaANWn4gwI+IHfhbNA+DcoeKqQTUwOQGSRalv1YUDMPRuY
-         vflA==
-X-Forwarded-Encrypted: i=1; AJvYcCUvw1d4bpxukCMAMv7ix+brpynieTLoFE5bVtbd78BchrkOk/NvtciBEBn2K3sovrYQNlt2qeXdDkG/x0vv0HI=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzB5A/xb5px3WaY1J1zGXZ0YvOJbcncPTKZBQqtL9YCIa/HggSF
-	h3PB6/ASNSRDY/8e54NSVAe4U0F97s3Is/c1YR573UlzNa5+R4ESXEX5
-X-Gm-Gg: AeBDietVzKn0dL4kXys5QRU3dUZteGDcU/f3FgoFVu26Yg/X6ROMx8I5xeXlz2canYG
-	dZjm7uOdbXgS0NczwEMrKO+L+X8NfGD+cT37pL8AolSPts/LJNJnyvLZ6vsWttPH1v+IBhyf+hL
-	f6t0e26qevP7UPNxpL7TSWbESYFyUAhp/f1IA3WRbtTXC0/Pd29OX7TfaO6elDenUa0rA0egb59
-	0Phfe6lgIgt6XIwvp7XyoEaZuir1qhDk8MaT4AmrXCUGmm3V5xM9EuVBONGoa0oAqpxNVfpKEFG
-	E6FXO3ySFfsSRO+QdInD0cStuRPtiQ0W7/B9RYbTCWYpVro+eG/S2Pn4XNAo+qmnElhoAX2eT2w
-	sthFbqd3IQp+uwwyoyJkvZkYy1sHzsKrg5524W8MyjFQbC7RmenSWZwEy//7qYuHcXyjFSn9IDq
-	nksk67GTP2GOerQXl9UYEbFfNdDbnfXDfPaAhxRQpsidAetD7E6aqGmbWKaZCy
-X-Received: by 2002:a17:903:b0b:b0:2b0:6d56:8d29 with SMTP id d9443c01a7336-2b2d5a40027mr12672945ad.32.1775784980479;
-        Thu, 09 Apr 2026 18:36:20 -0700 (PDT)
-Received: from SLSGDTSWING002 ([129.126.109.177])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b2d4df9bb8sm8810605ad.30.2026.04.09.18.36.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Apr 2026 18:36:19 -0700 (PDT)
-Date: Fri, 10 Apr 2026 09:36:14 +0800
-From: Weiming Shi <bestswngs@gmail.com>
-To: Florian Westphal <fw@strlen.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>,
-	Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Xiang Mei <xmei5@asu.edu>
-Subject: Re: [PATCH nf] netfilter: nf_conntrack_sip: fix OOB read in
- epaddr_len and ct_sip_parse_header_uri
-Message-ID: <adhUDoTTSK_N5cU2@SLSGDTSWING002>
-References: <20260409095056.706441-2-bestswngs@gmail.com>
- <adfEUtiiLzjtKd8m@strlen.de>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="evB2pfiA"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 6BD8921CC0;
+	Fri, 10 Apr 2026 09:51:53 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=dpthAZ+MnRKjRDQ0XeJ9wZ/6Fb5SFuCP4ejYX5TNaLw=; b=evB2pfiAfE+S
+	n6qD2bu+JvPghX8UZEugmYXY7dHkPRrgr7n/DklFBvzme1U5zfwgryyYHDp3Or86
+	Q6XBEkSRyWGwIsDEykciCU0d/xQVbkeAhN98blFJDv7mv1LTVkuUfwhhLc+XUg7j
+	0xUMyQ1P0Qyi16/L+PrIVIa58wvKnZtlfRANx0ENwTyq2VGgn/QMdsUuXZXW7wza
+	+jyNy2rUdpTNOt969xJZKd1sYYjI2rV1weo4P7dCVdDwh3rPmxDnD4dw+R4lHX49
+	yiFYYAe9fdufhNd0BhT3o6NLLwPFaxV5wh5k9A3xdMIAXt70Lmf/UCvwkRLFx6yV
+	H9r526JX/OXtp6GnfF+q5h4nMaxbaxC8HcfQPy3qIN1znFDkXryrOVL6L33YJJn5
+	mK/5p96qP4QK83tJ9Q+AzwTuRPN2GP+7YN/a7aN8z5rry9e4fCISbPuGqRaOZrkN
+	OoJHlMVQDfoPmIl/9vnnfcvxafVOa6aOD5lQd4uuKZz1qSk8d9hd5aR5EVOavA3y
+	NfJ3qm6SJi8uggkTbQX7tWAMyAP7Pl6SU9rWj4vlUCY177wz56L/GlKv/0URQ2t5
+	CIxeVhb9CwnIuBrLCvz5d5FtbIGgdpGOtTf2qh/tB6/DmcDMNgFMJqqgoI+Fqrna
+	QgTtJme7cf5kP4X5Gxs+zHSA78I4pw0=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Fri, 10 Apr 2026 09:51:52 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 2FDBA6098D;
+	Fri, 10 Apr 2026 09:51:48 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63A6pVLA014912;
+	Fri, 10 Apr 2026 09:51:32 +0300
+Date: Fri, 10 Apr 2026 09:51:31 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+cc: Yingnan Zhang <342144303@qq.com>, horms@verge.net.au, fw@strlen.de,
+        phil@nwl.cc, davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH net v3] ipvs: fix MTU check for GSO packets in tunnel
+ mode
+In-Reply-To: <adhOOC6hF_vNDl1g@chamomile>
+Message-ID: <f8946f64-2d31-d792-e23a-3bd7566f0f17@ssi.bg>
+References: <tencent_73010FBD5FA1C05C3BC23A07A50B11CEC90A@qq.com> <adhOOC6hF_vNDl1g@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <adfEUtiiLzjtKd8m@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
 
-On 26-04-09 17:22, Florian Westphal wrote:
-> Weiming Shi <bestswngs@gmail.com> wrote:
-> > In epaddr_len() and ct_sip_parse_header_uri(), after sip_parse_addr()
-> > successfully parses an IP address, the code checks whether the next
-> > character is ':' to determine if a port number follows. However,
-> > neither function verifies that the pointer is still within bounds
-> > before dereferencing it.
-> 
-> I already queued up:
-> https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260313195256.2783257-1-qguanni@gmail.com/
-> 
-> for nf-next (I already sent the 'last' PR for 7.0).
-> 
-> Could you check if that resolves the problem you're reporting?
-> 
-> >  		p = simple_strtoul(c, (char **)&c, 10);
-> 
-> All of these functions require a c-string, which we usually
-> don't have with network packet parsing.
-> 
-> IOW, sip helper needs to be audited for these problems
-> but I don't know when I can get to it.
 
-Tested-by: Weiming Shi <bestswngs@gmail.com>
+	Hello,
+
+On Fri, 10 Apr 2026, Pablo Neira Ayuso wrote:
+
+> On Thu, Apr 02, 2026 at 10:46:16PM +0800, Yingnan Zhang wrote:
+> > +	} else if (skb->len > mtu &&
+> > +		   !(skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))) {
+> 
+> Maybe helper function helps make this more readable?
+> 
+> /* Based on ip_exceeds_mtu(). */
+> static bool ip_vs_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
+> {
+>         if (skb->len <= mtu)
+>                 return false;
+> 
+>         if (skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))
+>                 return false;
+> 
+>         return true;
+> }
+
+	Good idea! Yingnan Zhang, please send v4 by adding
+this new function before __mtu_check_toobig_v6()...
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
