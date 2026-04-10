@@ -1,45 +1,45 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 099B52D5C8E;
-	Fri, 10 Apr 2026 01:11:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2C8EEAC7;
+	Fri, 10 Apr 2026 01:19:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775783486; cv=none; b=pWseH+DEs7fhCehsmccln6a4dt9CrAxozgz7WSCWADE1mNcnsCiPkri3FOrRBnBz8sx4wVo/4hwAQn3iWXGVyZ74RAGQ3TcGzqPMjooEeEc7ZdPPLo7w9ch4eiMLWAW8u7Rsqn36hR4U0xHtys+WOzqt6jG4sA1UHUz6iYZ6TIQ=
+	t=1775783950; cv=none; b=g5mop6jt8rMKhwpcF1ndZ7PBUe7xSYo4/OY+D3IZ0qRS4xFlVx4UJ4/LQF+NkunEW7ZIisww5TFEmJRy9ZJQfz9NiBJavxZQ+bdhPuADdOFFIufC33gklwP6y4QdR5852BZnNCcfMx7eLurvFDKwoPbqVYxOeK4TAeocOVjriUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775783486; c=relaxed/simple;
-	bh=87h/Xu7wS8geKggg/q13T8v9/3cx/DJOSoRVzQn7DNk=;
+	s=arc-20240116; t=1775783950; c=relaxed/simple;
+	bh=NQIRCKH+CF9ksKxlcfEDpouEfLcVH3VnVzfJylyaHxM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Rpv4q9OYYzNnG/Uy4f+GwQVSD3l4YyUA1ivowo9Gdhuir4KkvnOq0WdR9Mu0xiXKtx1DRcQDWFS5kL/Ik1UWndr7Pp3T/7CecN8oi7RuV8EnVtMKc+kUejgvFzZ5XcxDMFvpB5oNlXZ8oeDX+F3ITu0u3x9Jn3eCyoWZ118I/Ts=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=DFxhTFz3; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=JPcM9/GaOQfp4t5lSv9rFe2MGxvl7c6Goy5GD62KVAerCj5hlxY0of8nbpXkPcj93AyRSbNz6MXMawUqLiu7Krf54UR3DlcJZiSXfqPmv//n+2QEtDy909xJBp/WP9njNM7zLp6LwUv6FimRqrGrRf3SYWlCObifIPqhO/L/VzE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=D6mRqMsC; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="DFxhTFz3"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="D6mRqMsC"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 0800860255;
-	Fri, 10 Apr 2026 03:11:23 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A9AD060254;
+	Fri, 10 Apr 2026 03:19:07 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1775783483;
-	bh=/3ol8TcYNhnm6h5sjGfmupw+IQV4fRUDrGmbRxPlP+w=;
+	s=2025; t=1775783947;
+	bh=lBxJLuvHYfhTOkYj2DWEcTgFWyXVb+fj1QepW/OVbX4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DFxhTFz3o/lCrJ0LjqNl/f/F7JU5N+e++YwDRMyiBUVHMsnMx7U1bbp5j7xs3H21I
-	 jgplTSI//zsIzxD8uCOoJA/596Nk55lIEe8VhQfNw5hq1saHjshBtcASOONdAUVukr
-	 yYE5qCpvm8hrtn3f5ek7C+zehy9KnMOKNcIx9f9NR5xowumqGaKi5BaPq9xldb8MEK
-	 eXPX+XiTD/0RZJpLw/OZX0lixzkiIbIPvfIRHe4v71DMXZF3UVF2dR/tRLQbsjKyaY
-	 2qk7ftRg3EKrMbrX7vjWWNVmFooQlUiwSWtcyz2eYRYyA2T4YYjjRJ7yOoZsMY4mlX
-	 cC3WWiPUJL/Ww==
-Date: Fri, 10 Apr 2026 03:11:20 +0200
+	b=D6mRqMsCYYbbPVaIR1DLFnhWtLvo78L6gLh+7anOfp8R9l3zQsusSeL3E8KgMDpHO
+	 AWm4c5kW1jbe5m8L2kjG2ccnTHaNKV9L3RSkzxvWoiQxBBj7XP4EInbP2ObQcXrF7K
+	 ussIVdEBaFZBE1tCNBA4Pdr9CP31N5MnsZ5BrDVnssHNL7aOwbJtKjTHDvpgIEnGlQ
+	 y9q2Mpy2HrJmg++e3A9MeR4DmwXOieh9fS03LH3x9PKU5rJP9PSbut5cqhb2XTSl0d
+	 R6NYlJnDB/DuvLKWGB0a8qK8/oxiNDRr8I3Aq+H+514jkopdaGUW6jj8J+kUEbDfVf
+	 PMe2pMqtCIFxw==
+Date: Fri, 10 Apr 2026 03:19:04 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Yingnan Zhang <342144303@qq.com>
-Cc: horms@verge.net.au, ja@ssi.bg, fw@strlen.de, phil@nwl.cc,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v3] ipvs: fix MTU check for GSO packets in tunnel mode
-Message-ID: <adhOOC6hF_vNDl1g@chamomile>
-References: <tencent_73010FBD5FA1C05C3BC23A07A50B11CEC90A@qq.com>
+To: David Baum <davidbaum461@gmail.com>
+Cc: fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ipset: harden payload calculation in call_ad()
+Message-ID: <adhQCKL9nO68m4nC@chamomile>
+References: <20260313180132.75655-1-davidbaum461@gmail.com>
+ <adhMzvFhTcmTMZTV@chamomile>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -48,96 +48,68 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <tencent_73010FBD5FA1C05C3BC23A07A50B11CEC90A@qq.com>
+In-Reply-To: <adhMzvFhTcmTMZTV@chamomile>
 
-On Thu, Apr 02, 2026 at 10:46:16PM +0800, Yingnan Zhang wrote:
-> Currently, IPVS skips MTU checks for GSO packets by excluding them with
-> the !skb_is_gso(skb) condition. This creates problems when IPVS tunnel
-> mode encapsulates GSO packets with IPIP headers.
+On Fri, Apr 10, 2026 at 03:05:18AM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Mar 13, 2026 at 01:01:32PM -0500, David Baum wrote:
+> > call_ad() computes the netlink error payload size with
+> > min(SIZE_MAX, sizeof(*errmsg) + nlmsg_len(nlh)), but min(SIZE_MAX, x)
+> > is always x, so the guard is a no-op.
+> > 
+> > Replace it with an explicit negative-length check and
+> > check_add_overflow() so the addition is validated before being passed
+> > to nlmsg_new().
+> > 
+> > Signed-off-by: David Baum <davidbaum461@gmail.com>
+> > ---
+> >  net/netfilter/ipset/ip_set_core.c | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> > index a2fe711cb5e3..11d3854d9b11 100644
+> > --- a/net/netfilter/ipset/ip_set_core.c
+> > +++ b/net/netfilter/ipset/ip_set_core.c
+> > @@ -10,6 +10,7 @@
+> >  #include <linux/module.h>
+> >  #include <linux/moduleparam.h>
+> >  #include <linux/ip.h>
+> > +#include <linux/overflow.h>
+> >  #include <linux/skbuff.h>
+> >  #include <linux/spinlock.h>
+> >  #include <linux/rculist.h>
+> > @@ -1763,13 +1764,18 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+> >  		struct nlmsghdr *rep, *nlh = nlmsg_hdr(skb);
+> >  		struct sk_buff *skb2;
+> >  		struct nlmsgerr *errmsg;
+> > -		size_t payload = min(SIZE_MAX,
+> > -				     sizeof(*errmsg) + nlmsg_len(nlh));
+> > +		int nlmsg_payload_len = nlmsg_len(nlh);
+> > +		size_t payload;
+> >  		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+> >  		struct nlattr *cda[IPSET_ATTR_CMD_MAX + 1];
+> >  		struct nlattr *cmdattr;
+> >  		u32 *errline;
+> >  
+> > +		if (nlmsg_payload_len < 0 ||
 > 
-> The issue manifests in two ways:
+> Hm, nlh was already sanitized by nfnetlink?
 > 
-> 1. MTU violation after encapsulation:
->    When a GSO packet passes through IPVS tunnel mode, the original MTU
->    check is bypassed. After adding the IPIP tunnel header, the packet
->    size may exceed the outgoing interface MTU, leading to unexpected
->    fragmentation at the IP layer.
+> > +		    check_add_overflow(sizeof(*errmsg),
+> > +				       (size_t)nlmsg_payload_len, &payload))
 > 
-> 2. Fragmentation with problematic IP IDs:
->    When net.ipv4.vs.pmtu_disc=1 and a GSO packet with multiple segments
->    is fragmented after encapsulation, each segment gets a sequentially
->    incremented IP ID (0, 1, 2, ...). This happens because:
+> Maybe cap this to int:
 > 
->    a) The GSO packet bypasses MTU check and gets encapsulated
->    b) At __ip_finish_output, the oversized GSO packet is split into
->       separate SKBs (one per segment), with IP IDs incrementing
->    c) Each SKB is then fragmented again based on the actual MTU
-> 
->    This sequential IP ID allocation differs from the expected behavior
->    and can cause issues with fragment reassembly and packet tracking.
-> 
-> Fix this by properly validating GSO packets using
-> skb_gso_validate_network_len(). This function correctly validates
-> whether the GSO segments will fit within the MTU after segmentation. If
-> validation fails, send an ICMP Fragmentation Needed message to enable
-> proper PMTU discovery.
-> 
-> Fixes: 4cdd34084d53 ("netfilter: nf_conntrack_ipv6: improve fragmentation handling")
-> Signed-off-by: Yingnan Zhang <342144303@qq.com>
-> ---
-> v3:
-> - Fixed compilation error (removed extra closing brace in IPv6 function)
-> - Fixed indentation to match kernel style
-> 
-> v2: https://lore.kernel.org/netdev/20260402030541.27855-1-342144303@qq.com/
-> v1: https://lore.kernel.org/netdev/20260401152228.31190-1-342144303@qq.com/
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 3601eb86d..a4ca7cad0 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -111,8 +111,8 @@ __mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
->  		 */
->  		if (IP6CB(skb)->frag_max_size > mtu)
->  			return true; /* largest fragment violate MTU */
-> -	}
-> -	else if (skb->len > mtu && !skb_is_gso(skb)) {
-> +	} else if (skb->len > mtu &&
-> +		   !(skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))) {
+>                 int payload = sizeof(struct nlmsgerr);
+>                 ...
+>         
+>                 if (check_add_overflow(payload, nlmsg_payload_len, &payload))
 
-Maybe helper function helps make this more readable?
+Wait, then payload and nlmsg_payload_len should be __u32, not int.
 
-/* Based on ip_exceeds_mtu(). */
-static bool ip_vs_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
-{
-        if (skb->len <= mtu)
-                return false;
-
-        if (skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))
-                return false;
-
-        return true;
-}
-
-
->  		return true; /* Packet size violate MTU size */
->  	}
->  	return false;
-> @@ -232,8 +232,9 @@ static inline bool ensure_mtu_is_adequate(struct netns_ipvs *ipvs, int skb_af,
->  			return true;
->  
->  		if (unlikely(ip_hdr(skb)->frag_off & htons(IP_DF) &&
-> -			     skb->len > mtu && !skb_is_gso(skb) &&
-> -			     !ip_vs_iph_icmp(ipvsh))) {
-> +			     skb->len > mtu && !ip_vs_iph_icmp(ipvsh) &&
-> +			     !(skb_is_gso(skb) &&
-> +			       skb_gso_validate_network_len(skb, mtu)))) {
->  			icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
->  				  htonl(mtu));
->  			IP_VS_DBG(1, "frag needed for %pI4\n",
-> -- 
-> 2.51.0
+> 
+> > +			return -ENOMEM;
+> > +
+> >  		skb2 = nlmsg_new(payload, GFP_KERNEL);
+> >  		if (!skb2)
+> >  			return -ENOMEM;
 > 
