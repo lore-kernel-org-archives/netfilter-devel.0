@@ -1,110 +1,109 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACEAB395DA9;
-	Thu,  9 Apr 2026 22:35:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CEAA2E717B;
+	Fri, 10 Apr 2026 01:05:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775774150; cv=none; b=GpOJ52SINGT2aLNjMzWyJqCRdI2FW3gv82zfJkTmaihDSMrg2TFOEQidgCZgZRQ8EJSHQW8/fh5EL39jbT/x8emIEH7u2/UzOeupsNkzyq5Cg3x4C/pgzOXFozjYelLvCIo85eaxOrWcNUZYjX8goqmmsWxXeJoLgANmmyP5hGI=
+	t=1775783126; cv=none; b=KAzAg1mMHCO/3Qh2UmJTemwM3WNR5CtGgnr7Ng1gS947lrXvWKEmR+06IF1zEDHB8Z99CZ27S2w7JHuZOA1/CRvfVX+sGB7Fd6N2blpIZCk9pfThLA4SEYFZIKfqRwcskiYmvOD3is1em+dH9VsqhPLpkFlATMdDhd47m7gX0TY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775774150; c=relaxed/simple;
-	bh=J/2ZuFqPndxjtk3a4BAUjbPeGRBmaU9iiJajKE46LAs=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=bdoc//029K4XH+KfkQfKozsUQJwTgQFMktbhkECPb5J/A9dEjSiTh1jSJN5INjh87Voa1h5Roif6/4m1nnrZZym+xWnlo9fHVA9wFzS8BME5M5rCq1u2+hdamKANWwgDy0559j+GKCU5a5pcWRFdn1KbeNcg40B/ahuZXKlXJ3E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=sY6ukHw2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775783126; c=relaxed/simple;
+	bh=qdgssJRMwz1d2TGXRBVH2TXjsMcaKk+grK57WDmuzlo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=f2t4MA/F5ntKC063b1p8Qw+qMT74wltb5LRS1zyDZvVZpEq2e3oehTqS2GkO1/OBCJspvhLMNZzPTgKk48HbskfFZ090gUx7uduNcqandiP41y/3yw+4sDaNqJ7PB2wuCAMQPGvN6IVmdVhCDbKvyHZghZOYvc+Z5pE6QWOEmhU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=KnNqZkcF; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sY6ukHw2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74285C2BC87;
-	Thu,  9 Apr 2026 22:35:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1775774150;
-	bh=J/2ZuFqPndxjtk3a4BAUjbPeGRBmaU9iiJajKE46LAs=;
-	h=Date:From:To:Cc:Subject:From;
-	b=sY6ukHw2RK3yFOrsBaDr1fi35Wj3daX+cGyFXiJU+td55zqp7UTyrkyF8PwYUhnew
-	 CrHTtnESfl9Dh3msfXnkXgtK4hbayqmhK0xFnZSxfoYlQd1xDUQRLPelRZ/qHEEwY2
-	 DHjicNmXyRoxFeprGuK5ofhMbEXkPA8CVfgRE/XJu8pP8/5OAtAmVtCHzz5SN+Js4B
-	 4jnSj6jxWIWJ2MEMOB3lIRdqh5IF4ps6OAj6tTnK1iyv2F13et/hqvIbwDy3qPY7uS
-	 UUoSr6NUwZZ8YrfsYnGZjo+BYaTF9FcHc2SIhIeYS5HtXSM4QX09g0++LmTOdpumFb
-	 Cl1HgDSAcNadw==
-Date: Thu, 9 Apr 2026 16:34:43 -0600
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	linux-hardening@vger.kernel.org, Kees Cook <kees@kernel.org>
-Subject: [PATCH v3][next] netfilter: x_tables: Avoid a couple
- -Wflex-array-member-not-at-end warnings
-Message-ID: <adgpg3W5FiX9m49-@kspp>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="KnNqZkcF"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A4C3360272;
+	Fri, 10 Apr 2026 03:05:20 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1775783120;
+	bh=D8yT3WK1RCLIZ7KuYQ/Z4fBg4zEVaxOQdKATrK3a1Z0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=KnNqZkcFJc3H9nGytG+6AN3L893XjWFjU0aVFPZrgtY5fNXmdtfufa1MfCY4RqOOT
+	 /yZyEhwzJqCOVPZTcRzvs6QCPbtyv6cZqLQdw3G79ccgvwKyzY73wLYZq9vU1zHRgn
+	 HnBodWADDbejEmkkNKpqzrOpOHgNUZBNLSqbu09iF3MEs6Ii1CxyrqH8KDs6FuII0l
+	 CsztsFy50ErvPQUOBvPfjX2wFYsP6dhWj9ekcaDvU2mnuPv/QjvaQBdP7ad/kNGkn4
+	 QU1UPg2sPUAHJtcjqJtrJhKD1bH111et9pSRCqB93ySDnKF/EpyehsLp5UorV9p7T/
+	 a8Pxz7AI8ipDA==
+Date: Fri, 10 Apr 2026 03:05:18 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: David Baum <davidbaum461@gmail.com>
+Cc: fw@strlen.de, phil@nwl.cc, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+Subject: Re: [PATCH] netfilter: ipset: harden payload calculation in call_ad()
+Message-ID: <adhMzvFhTcmTMZTV@chamomile>
+References: <20260313180132.75655-1-davidbaum461@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+In-Reply-To: <20260313180132.75655-1-davidbaum461@gmail.com>
 
--Wflex-array-member-not-at-end was introduced in GCC-14, and we are
-getting ready to enable it, globally.
+On Fri, Mar 13, 2026 at 01:01:32PM -0500, David Baum wrote:
+> call_ad() computes the netlink error payload size with
+> min(SIZE_MAX, sizeof(*errmsg) + nlmsg_len(nlh)), but min(SIZE_MAX, x)
+> is always x, so the guard is a no-op.
+> 
+> Replace it with an explicit negative-length check and
+> check_add_overflow() so the addition is validated before being passed
+> to nlmsg_new().
+> 
+> Signed-off-by: David Baum <davidbaum461@gmail.com>
+> ---
+>  net/netfilter/ipset/ip_set_core.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index a2fe711cb5e3..11d3854d9b11 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/module.h>
+>  #include <linux/moduleparam.h>
+>  #include <linux/ip.h>
+> +#include <linux/overflow.h>
+>  #include <linux/skbuff.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/rculist.h>
+> @@ -1763,13 +1764,18 @@ call_ad(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+>  		struct nlmsghdr *rep, *nlh = nlmsg_hdr(skb);
+>  		struct sk_buff *skb2;
+>  		struct nlmsgerr *errmsg;
+> -		size_t payload = min(SIZE_MAX,
+> -				     sizeof(*errmsg) + nlmsg_len(nlh));
+> +		int nlmsg_payload_len = nlmsg_len(nlh);
+> +		size_t payload;
+>  		int min_len = nlmsg_total_size(sizeof(struct nfgenmsg));
+>  		struct nlattr *cda[IPSET_ATTR_CMD_MAX + 1];
+>  		struct nlattr *cmdattr;
+>  		u32 *errline;
+>  
+> +		if (nlmsg_payload_len < 0 ||
 
-Use the TRAILING_OVERLAP() helper to fix the following warnings:
+Hm, nlh was already sanitized by nfnetlink?
 
-1 net/netfilter/x_tables.c:816:39: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
-1 net/netfilter/x_tables.c:811:39: warning: structure containing a flexible array member is not at the end of another structure [-Wflex-array-member-not-at-end]
+> +		    check_add_overflow(sizeof(*errmsg),
+> +				       (size_t)nlmsg_payload_len, &payload))
 
-This helper creates a union between a flexible-array member (FAM)
-and a set of members that would otherwise follow it. This overlays
-the trailing members onto the FAM while preserving the original
-memory layout.
+Maybe cap this to int:
 
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
----
-Changes in v3:
- - Use the TRAILING_OVERLAP() helper.
-  - Update changelog text.
+                int payload = sizeof(struct nlmsgerr);
+                ...
+        
+                if (check_add_overflow(payload, nlmsg_payload_len, &payload))
 
-Changes in v2:
- - Update verdict after (compat_uint_t *)st->data;
- - Link: https://lore.kernel.org/linux-hardening/adgL5wPm9VpaV3MO@kspp/
-
-v1:
- - Link: https://lore.kernel.org/linux-hardening/adbIKC0cZcK7VcCF@kspp/
-
- net/netfilter/x_tables.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index b39017c80548..9f837fb5ceb4 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -819,13 +819,17 @@ EXPORT_SYMBOL_GPL(xt_compat_match_to_user);
- 
- /* non-compat version may have padding after verdict */
- struct compat_xt_standard_target {
--	struct compat_xt_entry_target t;
--	compat_uint_t verdict;
-+	/* Must be last as it ends in a flexible-array member. */
-+	TRAILING_OVERLAP(struct compat_xt_entry_target, t, data,
-+		compat_uint_t verdict;
-+	);
- };
- 
- struct compat_xt_error_target {
--	struct compat_xt_entry_target t;
--	char errorname[XT_FUNCTION_MAXNAMELEN];
-+	/* Must be last as it ends in a flexible-array member. */
-+	TRAILING_OVERLAP(struct compat_xt_entry_target, t, data,
-+		char errorname[XT_FUNCTION_MAXNAMELEN];
-+	);
- };
- 
- int xt_compat_check_entry_offsets(const void *base, const char *elems,
--- 
-2.43.0
-
+> +			return -ENOMEM;
+> +
+>  		skb2 = nlmsg_new(payload, GFP_KERNEL);
+>  		if (!skb2)
+>  			return -ENOMEM;
