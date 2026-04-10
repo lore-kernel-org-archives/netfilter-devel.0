@@ -1,20 +1,21 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E115134B192;
-	Fri, 10 Apr 2026 11:23:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C97A284B37;
+	Fri, 10 Apr 2026 11:24:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775820239; cv=none; b=EAP1pz5NBsatzHP3vETMgndJbC4sAsUCmOAqeQIPeDqttV2ov89oITKAj03zzTPz9xA0UhqtTz7duoN6S8+Qrh43+CTH8FAnSVCvlYTM3L3npydW+JjfL28jdEyJDdvsfiOGazMrlv2pawsDsPooLharfumnIh007wH6/Jxucl0=
+	t=1775820244; cv=none; b=kphW/GrCl/YM+Bl/LRY60uXpwExDJQ5yOEEtEmXdso7cRnBDnMQxcG9m6l1nXWYC9LG1wNRIsknamYCkInkeW2jgT9AUMjoYZrpen9F4i6HsUORMNgUD8UrmKZpOQghZRexqDKDDUZxbcEd9C1JoZue6vhRH5hfmBSjQnYBbm4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775820239; c=relaxed/simple;
-	bh=vtIR3FIYzpiDeiCkHJL8ZnOcVyGXuOxYTDfFbWfMPAY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Qx64VYf02YVQwgha/TEkNAjzPlrI95gomOyt5xhzD9qUGKHCkO5V/j0WmxYbyB5ldN1XPG7H7ybrZubYDf2YCC41unR0k0ZYfOflVNXElJqGzbEA1lfPSbB6tCOfwoquF1Es+nfGk6rIeOYOLdvrr/HDqdcA0CV6iire9bq4OyA=
+	s=arc-20240116; t=1775820244; c=relaxed/simple;
+	bh=1fWEgmOFVGjp9hv2Jv4wS+znp2ySD6MMvhLvl8kgT7U=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BWqWM3vG+d+WtSV0ysBWUSRon4nq7G3ZtOosEKy+wlfwYxBh7bmehg7DbxAVT085Py07VNubNwGfjm+9vmd0uLcYmwfxwUBMjbB4Giq56H7tIV+dcJkjRDViO31sZQqkYXrVzWxYmLTYnPOWhx7B/A9HaYaJGoNox7gwIz+MLPM=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 443B26065F; Fri, 10 Apr 2026 13:23:56 +0200 (CEST)
+	id 966566065F; Fri, 10 Apr 2026 13:24:00 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netdev@vger.kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>,
@@ -23,10 +24,12 @@ Cc: Paolo Abeni <pabeni@redhat.com>,
 	Jakub Kicinski <kuba@kernel.org>,
 	<netfilter-devel@vger.kernel.org>,
 	pablo@netfilter.org
-Subject: [PATCH net-next 00/11] netfilter: updates for net-next
-Date: Fri, 10 Apr 2026 13:23:41 +0200
-Message-ID: <20260410112352.23599-1-fw@strlen.de>
+Subject: [PATCH net-next 01/11] ipvs: show the current conn_tab size to users
+Date: Fri, 10 Apr 2026 13:23:42 +0200
+Message-ID: <20260410112352.23599-2-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260410112352.23599-1-fw@strlen.de>
+References: <20260410112352.23599-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,113 +38,86 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Julian Anastasov <ja@ssi.bg>
 
-The following patchset contains Netfilter updates for *net-next*:
+As conn_tab is per-net, better to show the current hash table size
+to users instead of the ip_vs_conn_tab_size (max).
 
-1-3) IPVS updates from Julian Anastasov to enhance visibility into
-     IPVS internal state by exposing hash size, load factor etc and
-     allows userspace to tune the load factor used for resizing hash
-     tables.
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c | 26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-4) reject empty/not nul terminated device names from xt_physdev.
-   This isn't a bug fix; existing code doesn't require a c-string.
-   But clean this up anyway because conceptually the interface name
-   definitely should be a c-string.
-
-5) Switch nfnetlink to skb_mac_header helpers that didn't exist back
-   when this code was written.  This gives us additional debug checks
-   but is not intended to change functionality.
-
-6) Let the xt ttl/hoplimit match reject unknown operator modes.
-   This is a cleanup, the evaluation function simply returns false when
-   the mode is out of range.  From Marino Dzalto.
-
-7) xt_socket match should enable defrag after all other checks. This
-   bug is harmless, historically defrag could not be disabled either
-   except by rmmod.
-
-8) remove UDP-Lite conntrack support, from Fernando Fernandez Mancera.
-
-9) Avoid a couple -Wflex-array-member-not-at-end warnings in the old
-   xtables 32bit compat code, from Gustavo A. R. Silva.
-
-10) nftables fwd expression should drop packets when their ttl/hl has
-    expired.  This is a bug fix deferred, its not deemed important
-    enough for -rc8.
-11) Add additional checks before assuming the mac header is an ethernet
-    header, from Zhengchuan Liang.
-
-
-Please, pull these changes from:
-The following changes since commit 42f9b4c6ef19e71d2c7d9bfd3c5037d4fe434ad7:
-
-  tools: ynl: tests: fix leading space on Makefile target (2026-04-09 20:41:40 -0700)
-
-are available in the Git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf-next.git tags/nf-next-26-04-10
-
-for you to fetch changes up to 62443dc21114c0bbc476fa62973db89743f2f137:
-
-  netfilter: require Ethernet MAC header before using eth_hdr() (2026-04-10 12:16:27 +0200)
-
-----------------------------------------------------------------
-netfilter pull request nf-next-26-04-10
-
-----------------------------------------------------------------
-
-Fernando Fernandez Mancera (1):
-  netfilter: conntrack: remove UDP-Lite conntrack support
-
-Florian Westphal (4):
-  netfilter: x_physdev: reject empty or not-nul terminated device names
-  netfilter: nfnetlink: prefer skb_mac_header helpers
-  netfilter: xt_socket: enable defrag after all other checks
-  netfilter: nft_fwd_netdev: check ttl/hl before forwarding
-
-Gustavo A. R. Silva (1):
-  netfilter: x_tables: Avoid a couple -Wflex-array-member-not-at-end warnings
-
-Julian Anastasov (3):
-  ipvs: show the current conn_tab size to users
-  ipvs: add ip_vs_status info
-  ipvs: add conn_lfactor and svc_lfactor sysctl vars
-
-Marino Dzalto (1):
-  netfilter: xt_HL: add pr_fmt and checkentry validation
-
-Zhengchuan Liang (1):
-  netfilter: require Ethernet MAC header before using eth_hdr()
-
- Documentation/networking/ipvs-sysctl.rst      |  37 +++
- .../net/netfilter/ipv4/nf_conntrack_ipv4.h    |   3 -
- include/net/netfilter/nf_conntrack_l4proto.h  |   7 -
- net/ipv6/netfilter/ip6t_eui64.c               |   7 +-
- net/netfilter/Kconfig                         |  11 -
- net/netfilter/ipset/ip_set_bitmap_ipmac.c     |   5 +-
- net/netfilter/ipset/ip_set_hash_ipmac.c       |   9 +-
- net/netfilter/ipset/ip_set_hash_mac.c         |   5 +-
- net/netfilter/ipvs/ip_vs_ctl.c                | 247 +++++++++++++++++-
- net/netfilter/nf_conntrack_core.c             |   8 -
- net/netfilter/nf_conntrack_proto.c            |   3 -
- net/netfilter/nf_conntrack_proto_udp.c        | 108 --------
- net/netfilter/nf_conntrack_standalone.c       |   2 -
- net/netfilter/nf_log_syslog.c                 |   8 +-
- net/netfilter/nf_nat_core.c                   |   6 -
- net/netfilter/nf_nat_proto.c                  |  20 --
- net/netfilter/nfnetlink_cttimeout.c           |   1 -
- net/netfilter/nfnetlink_log.c                 |  19 +-
- net/netfilter/nfnetlink_queue.c               |  25 +-
- net/netfilter/nft_ct.c                        |   1 -
- net/netfilter/nft_fwd_netdev.c                |  10 +
- net/netfilter/x_tables.c                      |  12 +-
- net/netfilter/xt_hl.c                         |  27 ++
- net/netfilter/xt_mac.c                        |   4 +-
- net/netfilter/xt_physdev.c                    |  22 ++
- net/netfilter/xt_socket.c                     |  23 +-
- 26 files changed, 399 insertions(+), 231 deletions(-)
-
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index a1f070cb76c3..1322dd54ed7c 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -281,6 +281,20 @@ static void est_reload_work_handler(struct work_struct *work)
+ 	mutex_unlock(&ipvs->est_mutex);
+ }
+ 
++static int get_conn_tab_size(struct netns_ipvs *ipvs)
++{
++	const struct ip_vs_rht *t;
++	int size = 0;
++
++	rcu_read_lock();
++	t = rcu_dereference(ipvs->conn_tab);
++	if (t)
++		size = t->size;
++	rcu_read_unlock();
++
++	return size;
++}
++
+ int
+ ip_vs_use_count_inc(void)
+ {
+@@ -2741,10 +2755,13 @@ static void ip_vs_info_seq_stop(struct seq_file *seq, void *v)
+ 
+ static int ip_vs_info_seq_show(struct seq_file *seq, void *v)
+ {
++	struct net *net = seq_file_net(seq);
++	struct netns_ipvs *ipvs = net_ipvs(net);
++
+ 	if (v == SEQ_START_TOKEN) {
+ 		seq_printf(seq,
+ 			"IP Virtual Server version %d.%d.%d (size=%d)\n",
+-			NVERSION(IP_VS_VERSION_CODE), ip_vs_conn_tab_size);
++			NVERSION(IP_VS_VERSION_CODE), get_conn_tab_size(ipvs));
+ 		seq_puts(seq,
+ 			 "Prot LocalAddress:Port Scheduler Flags\n");
+ 		seq_puts(seq,
+@@ -3425,7 +3442,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 		char buf[64];
+ 
+ 		sprintf(buf, "IP Virtual Server version %d.%d.%d (size=%d)",
+-			NVERSION(IP_VS_VERSION_CODE), ip_vs_conn_tab_size);
++			NVERSION(IP_VS_VERSION_CODE), get_conn_tab_size(ipvs));
+ 		if (copy_to_user(user, buf, strlen(buf)+1) != 0) {
+ 			ret = -EFAULT;
+ 			goto out;
+@@ -3437,8 +3454,9 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	case IP_VS_SO_GET_INFO:
+ 	{
+ 		struct ip_vs_getinfo info;
++
+ 		info.version = IP_VS_VERSION_CODE;
+-		info.size = ip_vs_conn_tab_size;
++		info.size = get_conn_tab_size(ipvs);
+ 		info.num_services =
+ 			atomic_read(&ipvs->num_services[IP_VS_AF_INET]);
+ 		if (copy_to_user(user, &info, sizeof(info)) != 0)
+@@ -4447,7 +4465,7 @@ static int ip_vs_genl_get_cmd(struct sk_buff *skb, struct genl_info *info)
+ 		if (nla_put_u32(msg, IPVS_INFO_ATTR_VERSION,
+ 				IP_VS_VERSION_CODE) ||
+ 		    nla_put_u32(msg, IPVS_INFO_ATTR_CONN_TAB_SIZE,
+-				ip_vs_conn_tab_size))
++				get_conn_tab_size(ipvs)))
+ 			goto nla_put_failure;
+ 		break;
+ 	}
 -- 
 2.52.0
 
