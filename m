@@ -1,122 +1,94 @@
-Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8DD3B6C07
-	for <netfilter-devel@vger.kernel.org>; Sat, 11 Apr 2026 18:57:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2DCE23C8C7
+	for <netfilter-devel@vger.kernel.org>; Sat, 11 Apr 2026 20:41:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775933848; cv=none; b=H8HvIyeDAtjm85z0Zayilb1aDSbszpt9c9hmk8zZvPuT06dCoX2GiXFUV95ie190FIUQGSW7xorzRKYzp/exp96usO01MRiZly2QhC8A7m67PM841K8tQADrFYK3ijB4v1LGTqBWDnCfA5/gla+mA2Csn0aP2ayxlL3DXlkqgDY=
+	t=1775940097; cv=none; b=p/BNg8gQiVJCcXF6ADyAED/l7NOMbPYqtV58EMVU07rC1nstRujpXMW4zMxKnlHFohjLj1MLE6/NFYPiNpU0fhTLKSSN6geRTQgrUz9VK/UqlHdwAmv9M/WBVs9OjNkeGhw9DtCaaSnQVwhweoWAcAX8jQOru5r9uyvpNZtor4E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775933848; c=relaxed/simple;
-	bh=s8DvPKpa7mA+qHyXVl0NHzUIBYxwCvFo6gHuWEJk5ds=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=FTQomQe+zxhA74VdxdnIR7GULyelx9DrnxKizikpEktBjhskLlRiBRtQKIaoanW6iVdfMaX33GTJdaCxBYL3KmDBcYcLSutvX051AE9HhkvAhRA1O6kbU2SkARBdSCihgKhmaVON0MfWiXlotGdq2B0b/MeCkIV4eGOV8bJuIiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hYeH1gIm; arc=none smtp.client-ip=209.85.128.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hYeH1gIm"
-Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-4887fd35e60so21508375e9.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 11 Apr 2026 11:57:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1775933845; x=1776538645; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=asmRMjtAdynfNNM/fvaGPOkC+0FMwoOWdK0OJmKnM5g=;
-        b=hYeH1gImvN7NJBo9KDzRBfBCU34VMqRUt3zcgO3EWYAsUqIY5OTjRLykxui8j5YE+L
-         XOfSgf5Ktids1LRZsNLletkNN9fgWzWM/0YSYo/l5NiRTt6XKsttoOnDhLty1t4+Bw7z
-         /pSrJZ1CAMvWigIzzRCz6oBAPrxKYkN/4Ml7zKuVJGLsl3kmUWJy9lX/xJWy28H5irfm
-         IQUUXCSxLLeWFulg0mLsBmgj5JwH1PxeAAObMroxcbsQHLFDn5/cf3wUC5PlZEVxXo6w
-         SCffgYGNqdPVFQGYyn4nd9Woq3OiPmOxpFv/4EL5o6aVzXJZosgZ/1KY1CCl8L3XLk21
-         py9w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775933845; x=1776538645;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=asmRMjtAdynfNNM/fvaGPOkC+0FMwoOWdK0OJmKnM5g=;
-        b=QoRICbMVMDKTAQhyS97y43wbK5K53oxB2eUjLK9ABI0Hxo3fOSklPHmGeFwCV6AQUI
-         o0D4UWhYNsT/nAtOTmoRVBpEKIPQEP+HzVpksMsxQAOdQpePaCAbubs8BWf8/prOyR+3
-         HqpERt06dQEU4Mm57N+qkUPpTa4z83/vR4t4ze2TUo6qdgGyKyn41vILFDgmeN1UjhHh
-         /Udw/YsNVfQrD5ycRSV543tsJ5N9SWXZWsBe/apBnjfLJQDm5UtXm0eZlDLhXAIyHX6X
-         KgHk8BHkYL0/Gj5DI39WwGRDQZVNhYK2V6/sMSzBag0LTSNfaO76dY3VKAFHpcy+1LnN
-         W+6g==
-X-Forwarded-Encrypted: i=1; AJvYcCX107IQ78SrpJw7MkLdC0SV90LTxu/f/+dsd5rWkKPHkmWb1UlTGOXl2UXAD4C4P+rs9JsEtq/xTNmHr4q2ezg=@vger.kernel.org
-X-Gm-Message-State: AOJu0YzPUIW1HSKosTQIHJeq2t6VoYb77dbLGSqhjqTMvDaE/MgDCx46
-	7m9FI7i66//bJjAzlM/gViT8qkP01Swr8vF8w1grmni+JwRmtBMtaWDL
-X-Gm-Gg: AeBDiesKF0b0nkuMYrFwdWwJ1jt3usoZUSosSKXc7L4z+OOQvsFzbbIyqypdh5bFrQz
-	xihrpn66zn62kTAboFDcIA7kCFxu8Skn1H3YDehqf14OG29hEHp7BVZwocxFupsglJJnheXNSnN
-	oOtrgB2YDcShzz5BngDrRwNBGzvAya2jIOAinwunO1XlLVLM0sZxT6EaviE7j4OX0lMXdThSLTD
-	SHqbjjTLcrBZs0UqzzXer3Aa4rtNiV5+dP/0ggmUlqTSfWGkJ70Vw4eYfVVu/HpaS6KU7RzJth9
-	6dR1I2ZEsVp4IVQ/+y8pxNtBGLf3gIYumOHu0gUOOkWQYgYfOl9PdQE2jS/FJCE5Vecjjp9QCl3
-	KvRV/Ao98EUAy4Y/lT9QZMFeml47fJ3EfgQoI4QecZNN41Fk+dEpKuUCwKgHQJRfa+KO5sOsbKM
-	YzZsgv7q7MPsRYZmgLGKwEY6MC8GjYuBgVXUzJZWv8lVuZh2MCinmdsWN7SvJRw84RIXHyNh5cB
-	Mytg0Xg4quO
-X-Received: by 2002:a05:600c:350c:b0:488:9661:2570 with SMTP id 5b1f17b1804b1-488d67ce8c2mr100910025e9.8.1775933844696;
-        Sat, 11 Apr 2026 11:57:24 -0700 (PDT)
-Received: from dohko.chello.ie (188-141-5-72.dynamic.upc.ie. [188.141.5.72])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-488d5d703c1sm52012375e9.3.2026.04.11.11.57.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 11 Apr 2026 11:57:24 -0700 (PDT)
-From: David Carlier <devnexen@gmail.com>
-To: pablo@netfilter.org
-Cc: fw@strlen.de,
-	phil@nwl.cc,
-	kadlec@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	David Carlier <devnexen@gmail.com>,
-	stable@vger.kernel.org
-Subject: [PATCH] netfilter: nfnl_cthelper: apply per-class values when updating policies
-Date: Sat, 11 Apr 2026 19:57:21 +0100
-Message-ID: <20260411185721.234936-1-devnexen@gmail.com>
-X-Mailer: git-send-email 2.53.0
+	s=arc-20240116; t=1775940097; c=relaxed/simple;
+	bh=k3uSAKgJ5e+kSEYFPOzcdC5jfSTGDfjv4S4sFkIOF+E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jJTK1Fhgx6xahjF/jJCIh+L9vDWccgjzQWQhLKmWVLWrio8hgu4pRIk1bMoSv4MNiC+HkG7xHUK1j83c0uWhez75g5jMBquToIehD3Sd9lvTmDSvkfvEOoGLF5JBS3msbB1Y/IYYxaFQV0KPA7lgK4vWkzRH38wuulgvT0ePWNs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id AA40D60491; Sat, 11 Apr 2026 22:41:32 +0200 (CEST)
+Date: Sat, 11 Apr 2026 22:41:32 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Xiang Mei <xmei5@asu.edu>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>, Phil Sutter <phil@nwl.cc>,
+	coreteam@netfilter.org, Weiming Shi <bestswngs@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nfnetlink_osf: fix divide-by-zero in
+ OSF_WSS_MODULO
+Message-ID: <adqx_IBgoyAMIJ5I@strlen.de>
+References: <20260410204843.64259-1-xmei5@asu.edu>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260410204843.64259-1-xmei5@asu.edu>
 
-When a userspace conntrack helper with multiple expectation classes is
-updated via nfnetlink, every class ends up with the first class's
-max_expected and timeout values.
+Xiang Mei <xmei5@asu.edu> wrote:
+> The OSF_WSS_MODULO branch in nf_osf_match_one() performs:
+> 
+>   ctx->window % f->wss.val
+> 
+> without guarding against f->wss.val == 0.  A user with CAP_NET_ADMIN
+> can add an OSF fingerprint with wss.wc = OSF_WSS_MODULO and wss.val = 0
+> via nfnetlink.  When a matching TCP SYN packet arrives, the kernel
+> executes a division by zero and panics.
+> 
+> The OSF_WSS_PLAIN case already treats val == 0 as a wildcard (match
+> everything).  Apply the same semantics to OSF_WSS_MODULO: if val is 0,
+> any window value matches rather than dividing by zero.
+> 
+> Crash:
+>  Oops: divide error: 0000 [#1] SMP KASAN NOPTI
+>  RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
+>  Call Trace:
+>  <IRQ>
+>   nf_osf_match (net/netfilter/nfnetlink_osf.c:220 (discriminator 6))
+>   xt_osf_match_packet (net/netfilter/xt_osf.c:32)
+>   ipt_do_table (net/ipv4/netfilter/ip_tables.c:348)
+>   nf_hook_slow (net/netfilter/core.c:622 (discriminator 1))
+>   ip_local_deliver (net/ipv4/ip_input.c:265)
+>   ip_rcv (include/linux/skbuff.h:1162)
+>   __netif_receive_skb_one_core (net/core/dev.c:6181)
+>   process_backlog (.include/linux/skbuff.h:2502 net/core/dev.c:6642)
+>   __napi_poll (net/core/dev.c:7710)
+>   net_rx_action (net/core/dev.c:7945)
+>   handle_softirqs (kernel/softirq.c:622)
+> 
+> Fixes: 31a9c29210e2 ("netfilter: nf_osf: add struct nf_osf_hdr_ctx")
 
-nfnl_cthelper_update_policy_all() validates each new policy into the
-corresponding slot of the temporary new_policy array, but the second
-loop that commits the values into the live helper dereferences
-new_policy as a pointer instead of indexing it, so every iteration
-reads new_policy[0] regardless of i.  An update that changes per-class
-values is silently collapsed onto class 0's values with no error
-returned to userspace.
+Hmm, why?  AFAICS the bug was there from start:
 
-Index the temporary array by i in the commit loop so each class gets
-its own validated values.
+11eeef41d5f63 case OSF_WSS_MODULO:
+11eeef41d5f63    if ((window % f->wss.val) == 0)
+11eeef41d5f63        fmatch = FMATCH_OK;
 
-Fixes: 2c422257550f ("netfilter: nfnl_cthelper: fix runtime expectation policy updates")
-Cc: stable@vger.kernel.org
-Signed-off-by: David Carlier <devnexen@gmail.com>
----
- net/netfilter/nfnetlink_cthelper.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+So:
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 0d16ad82d70c..34af6840803e 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -346,8 +346,8 @@ static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
- 	for (i = 0; i < helper->expect_class_max + 1; i++) {
- 		policy = (struct nf_conntrack_expect_policy *)
- 				&helper->expect_policy[i];
--		policy->max_expected = new_policy->max_expected;
--		policy->timeout	= new_policy->timeout;
-+		policy->max_expected = new_policy[i].max_expected;
-+		policy->timeout	= new_policy[i].timeout;
- 	}
- 
- err:
--- 
-2.53.0
+> diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+> index 45d9ad231..193436aa9 100644
+> --- a/net/netfilter/nfnetlink_osf.c
+> +++ b/net/netfilter/nfnetlink_osf.c
+> @@ -150,7 +150,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
+>  				fmatch = FMATCH_OK;
+>  			break;
+>  		case OSF_WSS_MODULO:
+> -			if ((ctx->window % f->wss.val) == 0)
+> +			if (f->wss.val == 0 || (ctx->window % f->wss.val) == 0)
 
+Could you send a v2 that rejects this from control plane instead?
+Nobody is using a 0 value, else we'd have gotted such crash reports by
+now.
