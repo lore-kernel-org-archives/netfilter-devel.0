@@ -1,98 +1,79 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9EB72D238A;
-	Sun, 12 Apr 2026 18:07:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A11E372618;
+	Sun, 12 Apr 2026 18:58:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776017253; cv=none; b=FQf3y1gFk92VsdkFw+cwMl5KPGN/oYu/P74PzY/gzwplhxbavPY+tzn2NL8KMWvVhrlvGpaQSXGqv46J7WCmsN4MEodKxOdm2BIQA1AfVsMebWt/i01pXN1jZ47P+DRplAoif8vtyE0eKNRl/cZRDaO+wRMtIzv5Qqxi4C0nbKM=
+	t=1776020319; cv=none; b=im2J+Y32/GOM33mXnwP//8OhCASfb7vbfm4oH89pGmhzuvmyb9tNmk2bdVcUNFoHt29jIZMB4/9H/6vXqp7bIqce5vl3TBa5meFtt+2qavu9V0c2kdJXtYZNT7difgutz03oLAqKppRfI+8hoNYRy+e6eyX2I07726256yYHEsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776017253; c=relaxed/simple;
-	bh=BlImpXzU1+FypWFY2NS5LdLFajvyLK5G2mmgfJe81H4=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=R/5A9fJDeMBzmGQZhPIFefnc2ByQT8OyjBq1dCXlwyEYsJiE/bjhLSvY8RiXpMdiejuQvieAF3t7M4A7ofhWAU2FJPE/WQwDP6qQuHipSvec/gtWdz0v16QoMl5Xqn5KJKOvxkfyYNWv7ZfbY5Mh2xfvq64JQLOY3Lucz38wOTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=O71YxBrf; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1776020319; c=relaxed/simple;
+	bh=iH4EvmRxOqT/IYuz0dKeLrMxKd9QUf80jI4i495BgSk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=fxr+H5QNo4kBHvTiIJ4n8z+RhLmyjVBxLwajbk8BUpEqK6DQ6PdhOboxq++OqnZjMJUgzXG1Ps+9GiQn12cOY+zcv1hLvarLFVDn1+wz0ay3Ef0Kughvj4zmpLe7JqmBxc9ikEzoWb9U4rQ4NpOBNy1U0Qbr1doi63uMFXq9v6w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Q2wy5pv9; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="O71YxBrf"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 4547D210DD;
-	Sun, 12 Apr 2026 21:07:20 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=7NuE3eIiaPEDL2WpXu4zuQg1p1lC9om6LlQ2mQwVTzU=; b=O71YxBrfWMD1
-	WkHs1ML3CmhTrr7fYbCk72w1Md9kGjrLOoJggD7RWKCTEs+WaoSrlzsdIx0B/DfX
-	bl91rx4GzQRgTT6G3njw7G9TbhfDYl68D7aHW6l3j5a30+qKyXrFJ0Mwo4XJs6/j
-	z/1pyK/Z5V3fJqjO9EDb5TwvCwBiLIGCvPUn1w4cnEmWhnnvj8CCJNuM+rAShF9n
-	JyElF79djQlcxKqi1FFmR2p38jQ76WWCBWHW3LkuapAbAGYpgazYRo9IazR1N2zv
-	90skRi4eA6MsOhEHN0n/YNc/saGj4qsDR/Ywup1dwl2NbD17oHLwHIfZxyg10yBf
-	p0dWclBa3XZ9uX3U07TJv+W8lqZh1ytuUjUhW0TiINCRwOsV32FxFSE1uTHPJrxN
-	N/gp/z+7eYouUZ1QJ/+dqU5OZZxqClqv331HBzUHHNIZda8Luc4G/HNkRU8y8ine
-	2hxatOMZpvDAJcafYIiTA2tHHhZOnTJh+EtRdHCI9Gj2EApJmkjOYmc7vaADqP5J
-	HRBCsZMnfrhQeBk4lOMrwTZiG9UNrK6vzJOQzI5XsLb3SA1ZpeVc9ByNOTg84xEG
-	4F/f1kCUoxDTSTfTgIASB7/PkQ6cov/RY6XXOkQlxOIRIOsa/6p31dMiX/FQVHQ6
-	xtnRk7FjsiUe39i4+3IzekfsIYXpnp8=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Sun, 12 Apr 2026 21:07:19 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 7D10B6071C;
-	Sun, 12 Apr 2026 21:07:17 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63CI7FVS027800;
-	Sun, 12 Apr 2026 21:07:15 +0300
-Date: Sun, 12 Apr 2026 21:07:15 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Jakub Kicinski <kuba@kernel.org>
-cc: Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-        Paolo Abeni <pabeni@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org,
-        pablo@netfilter.org
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Q2wy5pv9"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 16BF5600B9;
+	Sun, 12 Apr 2026 20:58:27 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776020307;
+	bh=T76DMLgCKqyBHsu8SuyCwla4NQBeBWedWAkvLEuxUJc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Q2wy5pv9u5hq6HDQp6YHgcTi8S5MDCl4sEZNO1oGfsomcL7PjzAS2p/6cK6fqbXFZ
+	 WAAEPD4DI1VFCWARowzqU1hHnL6DTLlWIf/Xywjbr/IBH+Quw3ZxsnloKuMUkf45Vk
+	 J0ZO3d8F4NO2uUmsw0wX5F2dIrVhueB80lDAv7shQirE6QIQhl96KmuqxeJl1/dugU
+	 wA3BnktPPk0zwRtMRcW+lqw6g9UenTuhIOUHgMylCHxmM6CJxiybqur9NYnbZgBIPe
+	 +BklFx8h6bAto2NmFM7RJKSWt6W4IBHNZuO9gZcTtTgiJ7XPK8F6PIWkVD1YhG1n2E
+	 iS+f1Eb3nilrg==
+Date: Sun, 12 Apr 2026 20:58:24 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Cc: Jakub Kicinski <kuba@kernel.org>, netdev@vger.kernel.org,
+	Paolo Abeni <pabeni@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org
 Subject: Re: [PATCH net-next 00/11] netfilter: updates for net-next
-In-Reply-To: <20260412105344.5e14fe70@kernel.org>
-Message-ID: <ac54646b-a857-9aeb-058a-49647298f8a8@ssi.bg>
-References: <20260410112352.23599-1-fw@strlen.de> <20260412094049.7b01dd7b@kernel.org> <advOUl92VLlqaiCJ@strlen.de> <20260412105344.5e14fe70@kernel.org>
+Message-ID: <advrUCdRWruZt2ud@chamomile>
+References: <20260410112352.23599-1-fw@strlen.de>
+ <20260412094049.7b01dd7b@kernel.org>
+ <advOUl92VLlqaiCJ@strlen.de>
+ <advTosG9qZ_ZW355@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <advTosG9qZ_ZW355@strlen.de>
 
-
-	Hello,
-
-On Sun, 12 Apr 2026, Jakub Kicinski wrote:
-
-> On Sun, 12 Apr 2026 18:54:49 +0200 Florian Westphal wrote:
+On Sun, Apr 12, 2026 at 07:17:22PM +0200, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
 > > Jakub Kicinski <kuba@kernel.org> wrote:
-> > > On Fri, 10 Apr 2026 13:23:41 +0200 Florian Westphal wrote:  
-> > > > 1-3) IPVS updates from Julian Anastasov to enhance visibility into
-> > > >      IPVS internal state by exposing hash size, load factor etc and
-> > > >      allows userspace to tune the load factor used for resizing hash
-> > > >      tables.  
-> > > 
-> > > Someone should take a look at the Sashiko reports for those, please?  
-> > 
 > > https://sashiko.dev/#/patchset/20260410112352.23599-1-fw%40strlen.de
-> > 
-> > Sorry Pablo I am dumping this on you.  Already wasted 3h on saturday
-> > on LLM crap 8-(
 > 
-> Sorry, I was quoting the IPVS section of the PR because I meant that
-> someone should look at the IPVS portion. The rest looked like a waste
-> of time, indeed. The netns dismantle vs ipvs smelled like it could be
-> legit.
+> Forgot to mention this:
+> 
+> ---------------
+> AF_PACKET raw sockets or tun devices, the network_header might be
+> uninitialized (~0U). In this state, skb_mac_header_len() will evaluate to
+> a very large number, bypassing the ETH_HLEN check completely.
+> ---------------
+> 
+> Really?  TIL.
+> 
+> ---------------------
+> Furthermore, skb_mac_header_len() only verifies the logical distance between
+> header offsets, rather than ensuring the bytes are actually present in the
+> physical linear buffer.
+> 
+> ---------------
+> 
+> Really?  Total news to me :-(
 
-	I'll check the IPVS part, there are probably
-some problems to fix...
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
-
+No problem, taking a look into this.
