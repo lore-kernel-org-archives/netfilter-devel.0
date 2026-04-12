@@ -1,22 +1,22 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60FB5201113;
-	Sun, 12 Apr 2026 16:54:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D653E2BE7CD;
+	Sun, 12 Apr 2026 17:17:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776012900; cv=none; b=XX+uqeL2lrlGATgKaJ6j/WmctDcQoTi0jotSHgZaiAzLHwVP3u2UYkZ/JFnqk1mjy+rkftG2AIa6JKkBEEgsVF49ELSCYUXy0krzTnhOZOm/LWLmNu37yZiX+HzCS9DguXANczS3/JvskkgbnHRSrEYyRtb0s/lQTJxoGUcq/No=
+	t=1776014246; cv=none; b=GgBb4RvgMN708aXM/3j/FjrFzLLj+0AdGryE0FYHGK/3xtVLlrf7J0D/c5SXXmCIvscs0r5/pf9xrPO+n8fylcihNwCFq/u4WOK5muW8Tv5jRox6W7DRtE+KJpcwKhM2XmjS/jVgsCdA76P/7Or+zgLiHw3FBimGyG/DZBXS6HI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776012900; c=relaxed/simple;
-	bh=mfCDb1wTLzEZ0086Uc8EtQKquHg23wphbTpWO/EeuNA=;
+	s=arc-20240116; t=1776014246; c=relaxed/simple;
+	bh=CzfTOj4mUNn2bmRFGl/gGFgp2GcpRDFPE4OAXwXXrJs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CD1y0fYgJLMpm7FK1MVuUEsrbcqGToqf4yA/fkno5O97MgYI3gve0vE0oc4TD6L8/Z+p0gS7/c/l+FvvWr3bbsp3/RWQFlto41hRlTmWIj7jygx+peslJ16KiqjRiQ7G7c4lu1jddZTiW+bJtDE9IAkp9iCRGV1yDDDZb9uHO8Y=
+	 Content-Type:Content-Disposition:In-Reply-To; b=n0MDq3BKJWN+9nC0uJX5NwEmCKb5BaKnV72AKfKs6H9KnWZuTr026crufOg+6C6KyUgQA7CINbf2hk3X8It6GKTMVkbYLlBSd3RvTdeZxW6MCNfJf76G7vfokPoPkm9aAzIeHh0D9l95Q45qUG3pzDPKki4lTv2evmLnrKIgTG0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8FF8D60490; Sun, 12 Apr 2026 18:54:49 +0200 (CEST)
-Date: Sun, 12 Apr 2026 18:54:49 +0200
+	id C6D26602AB; Sun, 12 Apr 2026 19:17:22 +0200 (CEST)
+Date: Sun, 12 Apr 2026 19:17:22 +0200
 From: Florian Westphal <fw@strlen.de>
 To: Jakub Kicinski <kuba@kernel.org>
 Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
@@ -24,9 +24,10 @@ Cc: netdev@vger.kernel.org, Paolo Abeni <pabeni@redhat.com>,
 	Eric Dumazet <edumazet@google.com>, netfilter-devel@vger.kernel.org,
 	pablo@netfilter.org
 Subject: Re: [PATCH net-next 00/11] netfilter: updates for net-next
-Message-ID: <advOUl92VLlqaiCJ@strlen.de>
+Message-ID: <advTosG9qZ_ZW355@strlen.de>
 References: <20260410112352.23599-1-fw@strlen.de>
  <20260412094049.7b01dd7b@kernel.org>
+ <advOUl92VLlqaiCJ@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -35,46 +36,27 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20260412094049.7b01dd7b@kernel.org>
+In-Reply-To: <advOUl92VLlqaiCJ@strlen.de>
 
-Jakub Kicinski <kuba@kernel.org> wrote:
-> On Fri, 10 Apr 2026 13:23:41 +0200 Florian Westphal wrote:
-> > 1-3) IPVS updates from Julian Anastasov to enhance visibility into
-> >      IPVS internal state by exposing hash size, load factor etc and
-> >      allows userspace to tune the load factor used for resizing hash
-> >      tables.
-> 
-> Someone should take a look at the Sashiko reports for those, please?
+Florian Westphal <fw@strlen.de> wrote:
+> Jakub Kicinski <kuba@kernel.org> wrote:
+> https://sashiko.dev/#/patchset/20260410112352.23599-1-fw%40strlen.de
 
-https://sashiko.dev/#/patchset/20260410112352.23599-1-fw%40strlen.de
+Forgot to mention this:
 
-Sorry Pablo I am dumping this on you.  Already wasted 3h on saturday
-on LLM crap 8-(
+---------------
+AF_PACKET raw sockets or tun devices, the network_header might be
+uninitialized (~0U). In this state, skb_mac_header_len() will evaluate to
+a very large number, bypassing the ETH_HLEN check completely.
+---------------
 
----------
-Could this trigger the DEBUG_NET_WARN_ON_ONCE() inside skb_mac_header_len()?
-If a user program sends a verdict containing the NFQA_L2HDR attribute for a
-packet where the MAC header is not set, it seems this code would call
-skb_mac_header_len() without first checking skb_mac_header_was_set(entry->skb).
----------
+Really?  TIL.
 
-And thus a new era of cargo cult programming will be born.
+---------------------
+Furthermore, skb_mac_header_len() only verifies the logical distance between
+header offsets, rather than ensuring the bytes are actually present in the
+physical linear buffer.
 
-Because I have no idea how on earth PF_BRIDGE packets cannot have
-a mac header attached to them.
+---------------
 
-Do I add this check as LLM overlord demands?
-
--------------
-Is it safe to access the IP header here without ensuring the packet length
-is sufficient and the header is in the linear data area?
-Looking at the surrounding code in nft_fwd_neigh_eval(),
-skb_try_make_writable() is called with sizeof(*iph), which is 20 bytes. At
-the netdev hook, skb->data points to the MAC header, meaning the 20 bytes
-only covers the Ethernet header and the first 6 bytes of the IP header.
-Should this code use pskb_may_pull() or skb_ensure_writable() with an
-offset that accounts for skb_network_offset(skb) + sizeof(*iph) before
-dereferencing iph->ttl to avoid out-of-bounds accesses?
--------------
-
-Dunno.  Existing code does that.
+Really?  Total news to me :-(
