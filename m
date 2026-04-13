@@ -1,54 +1,69 @@
-Received: from n169-111.mail.139.com (n169-111.mail.139.com [120.232.169.111])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5C866389111;
-	Mon, 13 Apr 2026 07:34:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=120.232.169.111
+Received: from mail-pl1-f194.google.com (mail-pl1-f194.google.com [209.85.214.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF403ACA7B
+	for <netfilter-devel@vger.kernel.org>; Mon, 13 Apr 2026 08:48:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776065675; cv=none; b=V0MCgo/tmj7FOXgDd8K8LwxpPw1FiN2+C72wtj64eYr6zHEVTuEjcrOrr5erNueHrE+qwunnXsY0Ab/BFYyYKnpbEIXBJYv/P+tNEx1zej7Z/y8fWMo5tzuQTecZ95u48QcZ5qmyvNNcD5wC6qLn8FzR/GWPISvO0slJhzgnYfw=
+	t=1776070109; cv=none; b=sSQyJHOj77nU19HwgAoeIIDUPlinoJqqFb37kqX+Yj3GVH9F8GaNC+yK/5wZmUkDtKNz9YpTZCO/MJ79EgVxj3rUxT7jlqs+MZlYKymMNqvzP2ctBWsO5l6fXpwpCZrS79lrnOLRJIb4XceRY786yjnnHAkLkePNy4+9kdVQppo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776065675; c=relaxed/simple;
-	bh=V3WFhOJ14ldxim/GRHhxMiMs5RksmKIiGzmv36LwcGI=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=iL6S//ELhSFqoUIihBvVnixsjAwK0UQjJXYRedEysWipI11KqtYzCXnCceeV2lGCbDjgDTqqEd1ey1+svzoxerP+zkwsRMAr92E//XHKJ+xTcy7vZy5lROXYw3/2b93g3X3e615mbpuFO6ScUNogXPmClXik0AEeBo2w+5WpZlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com; spf=pass smtp.mailfrom=139.com; dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b=qQaMmMcp; arc=none smtp.client-ip=120.232.169.111
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=139.com
+	s=arc-20240116; t=1776070109; c=relaxed/simple;
+	bh=8IMLk3ne7Zq7gCFJB45nqzF2wesVtWkMU7SvQqsWypM=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=RdJarcUaPaUwX1SnyS2qoQYjXAKp6du6BJ9eUIs7m16x1mOcNl79UjOBQQM8TSfsjW/p9mndADSx2EyiAeNmRgAJS6FkGZu2pfGHDE0PKEZa+NMZ1xws0qCPVDLnnecMtziSjRstGBb6quNwahoBJmTzDgBkCu3g/WLQR+VY0Io=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GLHREnpX; arc=none smtp.client-ip=209.85.214.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b="qQaMmMcp"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GLHREnpX"
+Received: by mail-pl1-f194.google.com with SMTP id d9443c01a7336-2b4583f0a1aso5894875ad.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Apr 2026 01:48:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=139.com; s=dkim; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=qQaMmMcpmhrOyLVt+UcXfuamFbGCHqy2bsfNiyFJ3axIZgV/OKtZbZ0dZOzWtKWNqVtbPCkU/9l0g
-	 kbhMszL2hnbpar21iqRGufUkcZ/Oijrh7KhdCaJyGU3pkYW9+qrbo6LUCyYDwVGq94u2D2Mr5JNFf1
-	 iFA2xTGBo62Qh2zc=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM:                                                                                        
-X-RM-SPAM-FLAG:00000000
-Received:from NTT-kernel-dev (unknown[60.247.85.88])
-	by rmsmtp-lg-appmail-10-12088 (RichMail) with SMTP id 2f3869dc9bb6403-0141d;
-	Mon, 13 Apr 2026 15:31:06 +0800 (CST)
-X-RM-TRANSID:2f3869dc9bb6403-0141d
-From: Li hongliang <1468888505@139.com>
-To: gregkh@linuxfoundation.org,
-	stable@vger.kernel.org,
-	fw@strlen.de
-Cc: patches@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	pablo@netfilter.org,
-	kadlec@netfilter.org,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	horms@kernel.org,
-	kaber@trash.net,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	imv4bel@gmail.com
-Subject: [PATCH 6.12.y] netfilter: conntrack: add missing netlink policy validations
-Date: Mon, 13 Apr 2026 15:31:05 +0800
-Message-Id: <20260413073105.2990210-1-1468888505@139.com>
-X-Mailer: git-send-email 2.34.1
+        d=gmail.com; s=20251104; t=1776070107; x=1776674907; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=m2fS7SSQov1oj9aq4GgwHcUoeWbd2x4UWXUE2U4OB5I=;
+        b=GLHREnpXg2a+q2L9xxD/+X2Vd/XDjE0foMM92JQByGylOAP+sejpV2/ZOZRxJjhFMl
+         EGea/6F+kn8irW+VSs1VaP7ZbAmAnwlJyvZKRJdYZRdlpG7wV2EuWIDSE4lPY8oXLRx4
+         exWUITP9JJc65I19kG9nPAQVNXEvOhEEWTibNdSDJ4bsDJFZ7dvV64VE00AE9XIb/1g0
+         XP1Zy2FKTYSWCOeMhSKIgcfc0PfBuxH952PCDPT3XMM4tgvayLd0B0BLCgay0mLbQsQZ
+         bZM53pZnJeCNURz18aMMEFnSFf8xT/o5AOfbQYpVVnPbP2o2OZj9mHDCFDxQPEPwvtNj
+         oHUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776070107; x=1776674907;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=m2fS7SSQov1oj9aq4GgwHcUoeWbd2x4UWXUE2U4OB5I=;
+        b=Zti2eraxnr/UqVJFyMrAwPlNKPWicgWG/yGDoh0xm6/r4F3F6eX12FmZ/vqZJLb1fl
+         nzKELq7vx5p4xKSYeZoCW/V8CSDyXqURi92u2DxRqXFGjBtEF6VMPaiCxS15vjhs4gk4
+         6Y4IR6ptoNlhpxU68iayFMPL7m2cHTPY6szm8l3uj85rcVND5FB1IaBspZVv1bTwO+eg
+         2QiExIkQ74c0xzavDKwsSNpHIywOD2WD6Fu7EHqKFQiSsDpiwrKtjD6nbcTSoxmqhEVu
+         Kx0k206CYJWomvzSKDaa0GfJN+1RcjzV+s/Dr6Wtckgn1CPV9QEoRh6YgJKaTQRZq+XG
+         +r3Q==
+X-Gm-Message-State: AOJu0YwnUM31+pjEIgAVEi3XJL/PT8D9RzSP/k89a0V0zlakvpVHOpY9
+	tuxLSglRcI9ic8UFsN3rTI4FJnyx3IPdngMnWw/wTgoV6W1HwHoZyyVrFrRtsakS
+X-Gm-Gg: AeBDiesPNcowk5ys6AkWgl3gH3jnBlUpimj6v1xbfFke+C5A3a3ZdmLFKZfRn5yg+ZS
+	HScxrnDJDV7DeuXv3C9Xaw2JwL2NWymBYyMg0HZ2I8TEeYrI2HRZwSo95dNKnpsY4qeMBfmpXJx
+	b8yxltWfUZgl58H9zRS4F59aD8/8Lbze6y2sbL/Tbm3XeTI/80ESGiUNAwnRAZ5cGvhYXVq35zg
+	MjE3RjZroQ9z/utY5FfFgTZw2vNq+37jKc8+tSGgrY/4v8LgSzWWTRjHe0N43iYy4ygMuQ2TGNY
+	O5x59WFzVx2xcp9zbhyI+t0ObFTc8ccgfb+4aCwnrRXAsgYJKqrKLcHqiv/pZhVqfdjWlde6CaT
+	VpTo0p2jIRL8q24mH+X3vLQmCXfHKAzlHUMjbIz/DnFK1m4Pp0XwXYL4hEahm4OqNEH759+YXLq
+	hTsZksxYWZcQkVLP7N89BkFQQc1LKn8OLk7A7+FfHQepW4miQHqA6ZkAFi3whtsAIu
+X-Received: by 2002:a17:902:d590:b0:2b2:b117:1e1b with SMTP id d9443c01a7336-2b2d599f553mr124015995ad.17.1776070107246;
+        Mon, 13 Apr 2026 01:48:27 -0700 (PDT)
+Received: from gmail.com (69-172-89-235.static.imsbiz.com. [69.172.89.235])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b2d4daede9sm141700485ad.14.2026.04.13.01.48.25
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Mon, 13 Apr 2026 01:48:26 -0700 (PDT)
+From: Dudu Lu <phx0fer@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	Dudu Lu <phx0fer@gmail.com>
+Subject: [PATCH] netfilter: nfnetlink_cthelper: fix expect policy update copying only first class values to all classes
+Date: Mon, 13 Apr 2026 16:48:22 +0800
+Message-Id: <20260413084822.70754-1-phx0fer@gmail.com>
+X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -57,63 +72,54 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Florian Westphal <fw@strlen.de>
+In nfnl_cthelper_update_policy_all(), when updating the expect policies
+of a multi-class conntrack helper, the loop iterates over all expect
+classes but always reads from new_policy[0] instead of new_policy[i]:
 
-[ Upstream commit f900e1d77ee0ef87bfb5ab3fe60f0b3d8ad5ba05 ]
+    for (i = 0; i < helper->expect_class_max + 1; i++) {
+        policy = &helper->expect_policy[i];
+        policy->max_expected = new_policy->max_expected;  /* always [0] */
+        policy->timeout      = new_policy->timeout;       /* always [0] */
+    }
 
-Hyunwoo Kim reports out-of-bounds access in sctp and ctnetlink.
+The new_policy array was correctly parsed per-class by
+nfnl_cthelper_update_policy_one() in the validation loop above (line
+336-342), with each new_policy[i] holding its respective class values.
+However, the copy loop dereferences new_policy as a pointer
+(new_policy->x) rather than indexing it as an array
+(new_policy[i].x), creating a security vulnerability.
 
-These attributes are used by the kernel without any validation.
-Extend the netlink policies accordingly.
+As a result, all expect classes of a multi-class helper get overwritten
+with the values of class 0, discarding the per-class differentiation.
 
-Quoting the reporter:
-  nlattr_to_sctp() assigns the user-supplied CTA_PROTOINFO_SCTP_STATE
-  value directly to ct->proto.sctp.state without checking that it is
-  within the valid range. [..]
+This affects helpers like H.323 which use multiple expect classes
+(RTP, RTCP, T.120) with different max_expected and timeout values.
+After a policy update, all classes get identical limits, breaking the
+per-class expect enforcement.
 
-  and: ... with exp->dir = 100, the access at
-  ct->master->tuplehash[100] reads 5600 bytes past the start of a
-  320-byte nf_conn object, causing a slab-out-of-bounds read confirmed by
-  UBSAN.
+Fix by indexing new_policy with the loop variable.
 
-Fixes: 076a0ca02644 ("netfilter: ctnetlink: add NAT support for expectations")
-Fixes: a258860e01b8 ("netfilter: ctnetlink: add full support for SCTP to ctnetlink")
-Reported-by: Hyunwoo Kim <imv4bel@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Li hongliang <1468888505@139.com>
+Fixes: 2c422257550f ("netfilter: nfnl_cthelper: fix runtime expectation policy updates")
+Signed-off-by: Dudu Lu <phx0fer@gmail.com>
 ---
- net/netfilter/nf_conntrack_netlink.c    | 2 +-
- net/netfilter/nf_conntrack_proto_sctp.c | 3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_cthelper.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 323e147fe282..f51cdfba68fb 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -3460,7 +3460,7 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x,
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index d545fa459455..1e605d77796d 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -346,8 +346,8 @@ static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
+ 	for (i = 0; i < helper->expect_class_max + 1; i++) {
+ 		policy = (struct nf_conntrack_expect_policy *)
+ 				&helper->expect_policy[i];
+-		policy->max_expected = new_policy->max_expected;
+-		policy->timeout	= new_policy->timeout;
++		policy->max_expected = new_policy[i].max_expected;
++		policy->timeout	= new_policy[i].timeout;
+ 	}
  
- #if IS_ENABLED(CONFIG_NF_NAT)
- static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
--	[CTA_EXPECT_NAT_DIR]	= { .type = NLA_U32 },
-+	[CTA_EXPECT_NAT_DIR]	= NLA_POLICY_MAX(NLA_BE32, IP_CT_DIR_REPLY),
- 	[CTA_EXPECT_NAT_TUPLE]	= { .type = NLA_NESTED },
- };
- #endif
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 4cc97f971264..fabb2c1ca00a 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -587,7 +587,8 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
- }
- 
- static const struct nla_policy sctp_nla_policy[CTA_PROTOINFO_SCTP_MAX+1] = {
--	[CTA_PROTOINFO_SCTP_STATE]	    = { .type = NLA_U8 },
-+	[CTA_PROTOINFO_SCTP_STATE]	    = NLA_POLICY_MAX(NLA_U8,
-+							 SCTP_CONNTRACK_HEARTBEAT_SENT),
- 	[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]  = { .type = NLA_U32 },
- 	[CTA_PROTOINFO_SCTP_VTAG_REPLY]     = { .type = NLA_U32 },
- };
+ err:
 -- 
-2.34.1
-
+2.39.3 (Apple Git-145)
 
