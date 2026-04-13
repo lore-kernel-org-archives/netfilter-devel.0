@@ -1,125 +1,117 @@
-Received: from mail-pl1-f194.google.com (mail-pl1-f194.google.com [209.85.214.194])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EF403ACA7B
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Apr 2026 08:48:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.194
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2296D36404A;
+	Mon, 13 Apr 2026 09:47:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776070109; cv=none; b=sSQyJHOj77nU19HwgAoeIIDUPlinoJqqFb37kqX+Yj3GVH9F8GaNC+yK/5wZmUkDtKNz9YpTZCO/MJ79EgVxj3rUxT7jlqs+MZlYKymMNqvzP2ctBWsO5l6fXpwpCZrS79lrnOLRJIb4XceRY786yjnnHAkLkePNy4+9kdVQppo=
+	t=1776073641; cv=none; b=ubAMoRnZUng7jUIMeP29lbydPwT3mTxaV3ixF2fNZs993Q9RSQNMq+JxKelVPZa3AyUiRfyiRlfcw4F/YErc1ULNYiZo64cT8lQIknDXZISrxYu8GL7YipVy52SImsfq2bszuRCfR9ndMhQ84AMAJx/N9KwLo8/mfZpYNpuVXrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776070109; c=relaxed/simple;
-	bh=8IMLk3ne7Zq7gCFJB45nqzF2wesVtWkMU7SvQqsWypM=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=RdJarcUaPaUwX1SnyS2qoQYjXAKp6du6BJ9eUIs7m16x1mOcNl79UjOBQQM8TSfsjW/p9mndADSx2EyiAeNmRgAJS6FkGZu2pfGHDE0PKEZa+NMZ1xws0qCPVDLnnecMtziSjRstGBb6quNwahoBJmTzDgBkCu3g/WLQR+VY0Io=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GLHREnpX; arc=none smtp.client-ip=209.85.214.194
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776073641; c=relaxed/simple;
+	bh=4aOb6ThLDBQYCx+aG1KLR6zwtxTjCP+veRl36Kco2eo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lfjXlWYQ+BikFZkOfl6BeV+QBib94NliXn+mqHV6ev20hUKuTHSimBOg3tyulA0qs1vDi/Z9ItRRoQSUaMpCKGMXry5pMlqBW6nUoGkhSnKLIKn6IzS3c5q6t10kJiOxy1Fw8HYYhrGvf/fp9cRU8FCxjyhbc5QF6FOQAB5HzKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZD4W9kNu; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GLHREnpX"
-Received: by mail-pl1-f194.google.com with SMTP id d9443c01a7336-2b4583f0a1aso5894875ad.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Apr 2026 01:48:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776070107; x=1776674907; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=m2fS7SSQov1oj9aq4GgwHcUoeWbd2x4UWXUE2U4OB5I=;
-        b=GLHREnpXg2a+q2L9xxD/+X2Vd/XDjE0foMM92JQByGylOAP+sejpV2/ZOZRxJjhFMl
-         EGea/6F+kn8irW+VSs1VaP7ZbAmAnwlJyvZKRJdYZRdlpG7wV2EuWIDSE4lPY8oXLRx4
-         exWUITP9JJc65I19kG9nPAQVNXEvOhEEWTibNdSDJ4bsDJFZ7dvV64VE00AE9XIb/1g0
-         XP1Zy2FKTYSWCOeMhSKIgcfc0PfBuxH952PCDPT3XMM4tgvayLd0B0BLCgay0mLbQsQZ
-         bZM53pZnJeCNURz18aMMEFnSFf8xT/o5AOfbQYpVVnPbP2o2OZj9mHDCFDxQPEPwvtNj
-         oHUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776070107; x=1776674907;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=m2fS7SSQov1oj9aq4GgwHcUoeWbd2x4UWXUE2U4OB5I=;
-        b=Zti2eraxnr/UqVJFyMrAwPlNKPWicgWG/yGDoh0xm6/r4F3F6eX12FmZ/vqZJLb1fl
-         nzKELq7vx5p4xKSYeZoCW/V8CSDyXqURi92u2DxRqXFGjBtEF6VMPaiCxS15vjhs4gk4
-         6Y4IR6ptoNlhpxU68iayFMPL7m2cHTPY6szm8l3uj85rcVND5FB1IaBspZVv1bTwO+eg
-         2QiExIkQ74c0xzavDKwsSNpHIywOD2WD6Fu7EHqKFQiSsDpiwrKtjD6nbcTSoxmqhEVu
-         Kx0k206CYJWomvzSKDaa0GfJN+1RcjzV+s/Dr6Wtckgn1CPV9QEoRh6YgJKaTQRZq+XG
-         +r3Q==
-X-Gm-Message-State: AOJu0YwnUM31+pjEIgAVEi3XJL/PT8D9RzSP/k89a0V0zlakvpVHOpY9
-	tuxLSglRcI9ic8UFsN3rTI4FJnyx3IPdngMnWw/wTgoV6W1HwHoZyyVrFrRtsakS
-X-Gm-Gg: AeBDiesPNcowk5ys6AkWgl3gH3jnBlUpimj6v1xbfFke+C5A3a3ZdmLFKZfRn5yg+ZS
-	HScxrnDJDV7DeuXv3C9Xaw2JwL2NWymBYyMg0HZ2I8TEeYrI2HRZwSo95dNKnpsY4qeMBfmpXJx
-	b8yxltWfUZgl58H9zRS4F59aD8/8Lbze6y2sbL/Tbm3XeTI/80ESGiUNAwnRAZ5cGvhYXVq35zg
-	MjE3RjZroQ9z/utY5FfFgTZw2vNq+37jKc8+tSGgrY/4v8LgSzWWTRjHe0N43iYy4ygMuQ2TGNY
-	O5x59WFzVx2xcp9zbhyI+t0ObFTc8ccgfb+4aCwnrRXAsgYJKqrKLcHqiv/pZhVqfdjWlde6CaT
-	VpTo0p2jIRL8q24mH+X3vLQmCXfHKAzlHUMjbIz/DnFK1m4Pp0XwXYL4hEahm4OqNEH759+YXLq
-	hTsZksxYWZcQkVLP7N89BkFQQc1LKn8OLk7A7+FfHQepW4miQHqA6ZkAFi3whtsAIu
-X-Received: by 2002:a17:902:d590:b0:2b2:b117:1e1b with SMTP id d9443c01a7336-2b2d599f553mr124015995ad.17.1776070107246;
-        Mon, 13 Apr 2026 01:48:27 -0700 (PDT)
-Received: from gmail.com (69-172-89-235.static.imsbiz.com. [69.172.89.235])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b2d4daede9sm141700485ad.14.2026.04.13.01.48.25
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Mon, 13 Apr 2026 01:48:26 -0700 (PDT)
-From: Dudu Lu <phx0fer@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: pablo@netfilter.org,
-	fw@strlen.de,
-	Dudu Lu <phx0fer@gmail.com>
-Subject: [PATCH] netfilter: nfnetlink_cthelper: fix expect policy update copying only first class values to all classes
-Date: Mon, 13 Apr 2026 16:48:22 +0800
-Message-Id: <20260413084822.70754-1-phx0fer@gmail.com>
-X-Mailer: git-send-email 2.39.3 (Apple Git-145)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZD4W9kNu"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 867C860177;
+	Mon, 13 Apr 2026 11:47:16 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776073636;
+	bh=pqKjOvCMf0uhkn7M/yAMIhfsnybJGiM7MI7A8LqwbwY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ZD4W9kNuzSdcIhn28usvUu5YdOueHnKtT3fEDGoIfaHMZwbPm9RmncOhgTg3mMwkn
+	 xoxo9PKfnyhIpnrz6ue9dnhVTiqFk6VnHFqq+tnpOWcWW1mYsY9B9uQF/x8bTH/JOk
+	 piNxO7BoKj/F9UcmWDXAwzCMPTtkeJvmtrDtYEc4axDdOOKKR9CiJirNzwomNwxf1H
+	 xCMiXqo3o2cR87kj1Wh8vaXB/XaNoaB50zFinbjstYoxmltTz7PYEvO1yoZS62wpXO
+	 RD6/DLUlwH+1SGbsi2vCxOJzl9PEQ0Zx58UEzSBSje/4M4YnwtjRStsK0zok2E9kO4
+	 Cly0m/iILmytw==
+Date: Mon, 13 Apr 2026 11:47:13 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Li hongliang <1468888505@139.com>
+Cc: gregkh@linuxfoundation.org, stable@vger.kernel.org, fw@strlen.de,
+	patches@lists.linux.dev, linux-kernel@vger.kernel.org,
+	kadlec@netfilter.org, davem@davemloft.net, edumazet@google.com,
+	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
+	kaber@trash.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org, imv4bel@gmail.com
+Subject: Re: [PATCH 6.12.y] netfilter: conntrack: add missing netlink policy
+ validations
+Message-ID: <ady7oZdDQ5OfQILP@chamomile>
+References: <20260413073105.2990210-1-1468888505@139.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260413073105.2990210-1-1468888505@139.com>
 
-In nfnl_cthelper_update_policy_all(), when updating the expect policies
-of a multi-class conntrack helper, the loop iterates over all expect
-classes but always reads from new_policy[0] instead of new_policy[i]:
+Why only 6.12?
 
-    for (i = 0; i < helper->expect_class_max + 1; i++) {
-        policy = &helper->expect_policy[i];
-        policy->max_expected = new_policy->max_expected;  /* always [0] */
-        policy->timeout      = new_policy->timeout;       /* always [0] */
-    }
-
-The new_policy array was correctly parsed per-class by
-nfnl_cthelper_update_policy_one() in the validation loop above (line
-336-342), with each new_policy[i] holding its respective class values.
-However, the copy loop dereferences new_policy as a pointer
-(new_policy->x) rather than indexing it as an array
-(new_policy[i].x), creating a security vulnerability.
-
-As a result, all expect classes of a multi-class helper get overwritten
-with the values of class 0, discarding the per-class differentiation.
-
-This affects helpers like H.323 which use multiple expect classes
-(RTP, RTCP, T.120) with different max_expected and timeout values.
-After a policy update, all classes get identical limits, breaking the
-per-class expect enforcement.
-
-Fix by indexing new_policy with the loop variable.
-
-Fixes: 2c422257550f ("netfilter: nfnl_cthelper: fix runtime expectation policy updates")
-Signed-off-by: Dudu Lu <phx0fer@gmail.com>
----
- net/netfilter/nfnetlink_cthelper.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index d545fa459455..1e605d77796d 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -346,8 +346,8 @@ static int nfnl_cthelper_update_policy_all(struct nlattr *tb[],
- 	for (i = 0; i < helper->expect_class_max + 1; i++) {
- 		policy = (struct nf_conntrack_expect_policy *)
- 				&helper->expect_policy[i];
--		policy->max_expected = new_policy->max_expected;
--		policy->timeout	= new_policy->timeout;
-+		policy->max_expected = new_policy[i].max_expected;
-+		policy->timeout	= new_policy[i].timeout;
- 	}
- 
- err:
--- 
-2.39.3 (Apple Git-145)
-
+On Mon, Apr 13, 2026 at 03:31:05PM +0800, Li hongliang wrote:
+> From: Florian Westphal <fw@strlen.de>
+> 
+> [ Upstream commit f900e1d77ee0ef87bfb5ab3fe60f0b3d8ad5ba05 ]
+> 
+> Hyunwoo Kim reports out-of-bounds access in sctp and ctnetlink.
+> 
+> These attributes are used by the kernel without any validation.
+> Extend the netlink policies accordingly.
+> 
+> Quoting the reporter:
+>   nlattr_to_sctp() assigns the user-supplied CTA_PROTOINFO_SCTP_STATE
+>   value directly to ct->proto.sctp.state without checking that it is
+>   within the valid range. [..]
+> 
+>   and: ... with exp->dir = 100, the access at
+>   ct->master->tuplehash[100] reads 5600 bytes past the start of a
+>   320-byte nf_conn object, causing a slab-out-of-bounds read confirmed by
+>   UBSAN.
+> 
+> Fixes: 076a0ca02644 ("netfilter: ctnetlink: add NAT support for expectations")
+> Fixes: a258860e01b8 ("netfilter: ctnetlink: add full support for SCTP to ctnetlink")
+> Reported-by: Hyunwoo Kim <imv4bel@gmail.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Li hongliang <1468888505@139.com>
+> ---
+>  net/netfilter/nf_conntrack_netlink.c    | 2 +-
+>  net/netfilter/nf_conntrack_proto_sctp.c | 3 ++-
+>  2 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+> index 323e147fe282..f51cdfba68fb 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -3460,7 +3460,7 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x,
+>  
+>  #if IS_ENABLED(CONFIG_NF_NAT)
+>  static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
+> -	[CTA_EXPECT_NAT_DIR]	= { .type = NLA_U32 },
+> +	[CTA_EXPECT_NAT_DIR]	= NLA_POLICY_MAX(NLA_BE32, IP_CT_DIR_REPLY),
+>  	[CTA_EXPECT_NAT_TUPLE]	= { .type = NLA_NESTED },
+>  };
+>  #endif
+> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+> index 4cc97f971264..fabb2c1ca00a 100644
+> --- a/net/netfilter/nf_conntrack_proto_sctp.c
+> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
+> @@ -587,7 +587,8 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+>  }
+>  
+>  static const struct nla_policy sctp_nla_policy[CTA_PROTOINFO_SCTP_MAX+1] = {
+> -	[CTA_PROTOINFO_SCTP_STATE]	    = { .type = NLA_U8 },
+> +	[CTA_PROTOINFO_SCTP_STATE]	    = NLA_POLICY_MAX(NLA_U8,
+> +							 SCTP_CONNTRACK_HEARTBEAT_SENT),
+>  	[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]  = { .type = NLA_U32 },
+>  	[CTA_PROTOINFO_SCTP_VTAG_REPLY]     = { .type = NLA_U32 },
+>  };
+> -- 
+> 2.34.1
+> 
+> 
