@@ -1,78 +1,121 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from n169-112.mail.139.com (n169-112.mail.139.com [120.232.169.112])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 643E212B93;
-	Tue, 14 Apr 2026 00:11:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 340F72D8391;
+	Tue, 14 Apr 2026 02:59:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=120.232.169.112
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776125492; cv=none; b=tg6VIjg7sWW8GWtW61ZhZG5oh/9htPSkcXszpe4JWSmuEOI981He/7YW4fr5zD56x6OZDPiJrasDlOiIkyvmZ3KByVdWAlNw9q1CIIN9An3es/FsQ1U58rScU9ySLDi+ZlCgKjgQWnL15hGodYds6UrO/fH/sbnbI3m4gGeCMw8=
+	t=1776135553; cv=none; b=Hf2/P5Ja7ccM8hdQq3DdS+WtIBGtDUgiC+pXXvFRhkNFN1HbpxP0iYnv5frVC46d5HOHmWGBY5KrU0/yAWpw2UZz52eI4tWCmpS+Da0kq/jP0GYRcej8JaejWAiblfIjiPGnxU5QB67ooHCS9ta/9nihcmtvCHIh3uik75TCIL8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776125492; c=relaxed/simple;
-	bh=BsJ44EHp9plgRWqro2dZPO4rDiLIW6QcDNIeoNvIS1c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LCIDm/n/CpNNstL12WG4pWdUdd1dzwGc+1xugyNIu0NpV7YvI6sBSYvWVy4MwQawVA32SAN7HxJS+QrGEJrFDQZRXj0m3uJMk04SA5aIBDO+RU+HSUOYsht7oUka3y7NXDQrszLuJAxOTFctpgB7QOqFtoKPHxZkHt+/ITUD7W4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=U3zd1/5P; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1776135553; c=relaxed/simple;
+	bh=Gju3hMPOQJHrtrP/OEqqpTQEAsKDXPlJqo6PvpOF8Go=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=dl+vx6FEse2fh/Ms3HZpSUenuaXUyIQ+rn//245F8G/ENH+ZlMyk7G3DajHLsvD/U34+Tp63XTIWhqqaUbMXItFqZfPM3z8vezVCg7yCI4awWqReNmH9OXoaaENOZX2FPXZvEVsHxJ9wNOkxP1/K14dgg0JQKwo950rDdCEdClA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com; spf=pass smtp.mailfrom=139.com; dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b=UccZ6Vg3; arc=none smtp.client-ip=120.232.169.112
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=139.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="U3zd1/5P"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 5162560177;
-	Tue, 14 Apr 2026 02:11:29 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776125489;
-	bh=NvfB7f0eOiBdW3wAIWp57z2zunsl+ur5h/Olq4MZt50=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=U3zd1/5PXjK7qonqD6c0rFazYmPOeAL5ygx886wH1wRG3FSXRlUkIYMOCHVAlY2FC
-	 UPwQVw1sQTMDex2bN4qSpD5V7/IUvA/8T0wABTL+l2yqMGSfIXVyneN4jz8LM4IwEe
-	 Pq62AKWDYivSJ5BXE7kerS86mapw4Ey1p2+Xh0oCUsNvnSgu7yOg/JaX/vNuTzE3IW
-	 Qs1XF3xFRFU/eaRDi/7YJNDLQ7VuBXg2DQglNv25iLn2qg+Egr38xXwM2gHwgxFfaO
-	 aZwRx8dfrgA1DUVStXsrRgUyVYLIuH06swDcsYK4g1JtNdehYnXPOzfr+v3dQ4v8hj
-	 5ziXkU5xWlfSw==
-Date: Tue, 14 Apr 2026 02:11:26 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Marko Jevtic <marko.jevtic@codereflect.io>
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org, phil@nwl.cc,
-	coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH net v3] netfilter: nft_set_rbtree: fix use count leak on
- transaction abort
-Message-ID: <ad2GLmdP2wRVyd5c@chamomile>
-References: <20260412222801.34965-1-marko.jevtic@codereflect.io>
+	dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b="UccZ6Vg3"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=139.com; s=dkim; l=0;
+	h=from:subject:message-id:to:cc:mime-version;
+	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
+	b=UccZ6Vg3OWFDhRDZosqAYSrfjL9/5P1a4icLpLO5bLmQqU08sqUGnBEEcy+tdzSTUyFQHfFqI6540
+	 zHBaK6fnv2Se+O9J8xa/EGUwrZOKcu6GjoHNganYvxR3fQIM1vwyK5EBz70t/Y1RQXpFaGDXt1lbu1
+	 c6jBr458ChuORWS0=
+X-RM-TagInfo: emlType=0                                       
+X-RM-SPAM:                                                                                        
+X-RM-SPAM-FLAG:00000000
+Received:from NTT-kernel-dev (unknown[60.247.85.88])
+	by rmsmtp-lg-appmail-23-12026 (RichMail) with SMTP id 2efa69ddad7344f-00454;
+	Tue, 14 Apr 2026 10:59:02 +0800 (CST)
+X-RM-TRANSID:2efa69ddad7344f-00454
+From: Li hongliang <1468888505@139.com>
+To: gregkh@linuxfoundation.org,
+	stable@vger.kernel.org,
+	fw@strlen.de
+Cc: patches@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	kaber@trash.net,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	imv4bel@gmail.com
+Subject: [PATCH 6.1.y] netfilter: conntrack: add missing netlink policy validations
+Date: Tue, 14 Apr 2026 10:59:00 +0800
+Message-Id: <20260414025900.3605300-1-1468888505@139.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260412222801.34965-1-marko.jevtic@codereflect.io>
+Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Florian Westphal <fw@strlen.de>
 
-On Mon, Apr 13, 2026 at 12:28:01AM +0200, Marko Jevtic wrote:
-> nft_rbtree_abort() does not handle elements moved to the expired list
-> by inline GC during __nft_rbtree_insert(). When inline GC encounters
-> expired elements during overlap detection, it calls
-> nft_rbtree_gc_elem_move() which deactivates element data (decrementing
-> chain/object use counts), removes the element from the rbtree, and
-> queues it for deferred freeing. On commit, these elements are freed
-> via nft_rbtree_gc_queue(). On abort, however, the expired list is
-> ignored entirely.
-> 
-> This leaves use counts permanently decremented after abort.
+[ Upstream commit f900e1d77ee0ef87bfb5ab3fe60f0b3d8ad5ba05 ]
 
-Yes, but that is expected?
+Hyunwoo Kim reports out-of-bounds access in sctp and ctnetlink.
 
-Expired elements reside in priv->expired, these elements are already
-deactivated, ie. removed from the rbtree and chain reference is
-decremented.
+These attributes are used by the kernel without any validation.
+Extend the netlink policies accordingly.
 
-From abort path, the deactivated element simply remains there until
-there is a commit run that gets rid of it.
+Quoting the reporter:
+  nlattr_to_sctp() assigns the user-supplied CTA_PROTOINFO_SCTP_STATE
+  value directly to ct->proto.sctp.state without checking that it is
+  within the valid range. [..]
 
-I can't make any sense of this bug report so far.
+  and: ... with exp->dir = 100, the access at
+  ct->master->tuplehash[100] reads 5600 bytes past the start of a
+  320-byte nf_conn object, causing a slab-out-of-bounds read confirmed by
+  UBSAN.
 
-Why do you think there is a need to restore an expired element?
+Fixes: 076a0ca02644 ("netfilter: ctnetlink: add NAT support for expectations")
+Fixes: a258860e01b8 ("netfilter: ctnetlink: add full support for SCTP to ctnetlink")
+Reported-by: Hyunwoo Kim <imv4bel@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Li hongliang <1468888505@139.com>
+---
+ net/netfilter/nf_conntrack_netlink.c    | 2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 89cec02de68b..bcbd77608365 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -3458,7 +3458,7 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x,
+ 
+ #if IS_ENABLED(CONFIG_NF_NAT)
+ static const struct nla_policy exp_nat_nla_policy[CTA_EXPECT_NAT_MAX+1] = {
+-	[CTA_EXPECT_NAT_DIR]	= { .type = NLA_U32 },
++	[CTA_EXPECT_NAT_DIR]	= NLA_POLICY_MAX(NLA_BE32, IP_CT_DIR_REPLY),
+ 	[CTA_EXPECT_NAT_TUPLE]	= { .type = NLA_NESTED },
+ };
+ #endif
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 7ffd698497f2..90458799324e 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -600,7 +600,8 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ }
+ 
+ static const struct nla_policy sctp_nla_policy[CTA_PROTOINFO_SCTP_MAX+1] = {
+-	[CTA_PROTOINFO_SCTP_STATE]	    = { .type = NLA_U8 },
++	[CTA_PROTOINFO_SCTP_STATE]	    = NLA_POLICY_MAX(NLA_U8,
++							 SCTP_CONNTRACK_HEARTBEAT_SENT),
+ 	[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]  = { .type = NLA_U32 },
+ 	[CTA_PROTOINFO_SCTP_VTAG_REPLY]     = { .type = NLA_U32 },
+ };
+-- 
+2.34.1
+
+
