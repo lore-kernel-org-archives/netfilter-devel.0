@@ -1,71 +1,40 @@
-Received: from mail-dl1-f48.google.com (mail-dl1-f48.google.com [74.125.82.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E04E3EE1C0
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 17:25:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0911D248166;
+	Tue, 14 Apr 2026 18:04:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776187546; cv=none; b=Y1zzbuqkg7bYBu4x/7Etsvgctb5ZuXW5/X+74dCiwP698YhQuwRk7ZL419D1Z+8EzdNO1kc8HMyprXnbwFIo0noU3pJ5n5J0FtSNtkZP8ruAaMssMW0RA82u97nbtrAnMIbCRWWvemZBUeEFYoNAGHxH1AXZhzju+EY5ywPc/U0=
+	t=1776189880; cv=none; b=MZ80eeUYqXYFf7d79cMxMwMHQNs+RdnF2sd2XGCFoGsQ15V5hVelJS7WJRLophORPl6Wo1Va29uuOLbjA2LFsHEVubT1ldTa61jMpUg2wuJvvt2JftwBY4+1WMONduyEqgAMuN1yQ5SK0iaGKLmVat7fn1PI+wRUPDJ4Jc7fyCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776187546; c=relaxed/simple;
-	bh=Q9Li6IEfFolCG0UHL7CcRmbINp9qWSGmAYv9wveCFmc=;
+	s=arc-20240116; t=1776189880; c=relaxed/simple;
+	bh=iR7rlrGmwA/rHAX7iIBtarDaDTWAcc7zO/ecbr5nem8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CQeYaKRyRatQ3xYClVmHy/0uohOXRBDE9Ti2vpOhuP3EuvJWJUQE4+DKIAXUKdVhrbMP0wohXn0O8jRv+X+RRjWfQl55xBWF7mQH2MEmtUJwSc+x5kT0UxEHFBWq7LmGcdE4OaqZYtzMQegCWiuB6VteXR+mSFvogS2y81MSeV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wbinvd.org; spf=pass smtp.mailfrom=wbinvd.org; dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b=XCG7he9g; arc=none smtp.client-ip=74.125.82.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wbinvd.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wbinvd.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=Eun3raj8kHWgjjUjKChkFcCiW6T9WBPVWU4O19sjS5HzKCuSv6f22a2QEdo564RzTcH7qUHdIw6fSOQKs9F1B5KnjlmPHYHX7g/UPBvA+HFXirH84f82+W/Gz9vdpykqGsHqiubJPAqJCouT/sZdOvNRtshlAjermcsWgMt93iA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=SItFgwXN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b="XCG7he9g"
-Received: by mail-dl1-f48.google.com with SMTP id a92af1059eb24-12c565476d7so3065621c88.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 10:25:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=wbinvd.org; s=wbinvd; t=1776187539; x=1776792339; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=v0I/6gn6yL3+F/vGBALh7XtrJMo526TaxSYPqk338Bo=;
-        b=XCG7he9gu5CmHUOaYVyo/KsBRc3L1Oaz48GijqjD7WqC1zm4NYbY0Sgyz0CRFHYqTh
-         6U7Ewt6HUoKacTF7Oqpo5/Yc+KqvLHxyIRs33HFyhUEECMDB3cSJO9enKKiuV4BDIjMC
-         w049v07J+r2JrHRSN0CNG75T4m4itaF+kTaCK+pKj+dTvLteBGjVG0QF1ZSMGkJjH1zO
-         Mo3ji9BjDTYtSt/sRwUyF3NZbVJR4ERPt3YQViRLZxKRD70Z6HSoClxzpsfGkiUdyQJv
-         cz4LQmv2H5YnWWPVgy+tF8Kd8eRmoVdhyVVXMBpWD165F3AE3T2MoecHp8zlHJNsqgRa
-         jWxQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776187539; x=1776792339;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=v0I/6gn6yL3+F/vGBALh7XtrJMo526TaxSYPqk338Bo=;
-        b=Qw7vu6be9VJS4pVG6iaVQwAQfcGClsIoC1MNP0AoO0pY9G/8d963UfCz+Dds7TI7DF
-         SqhdMNppz48wT+0E6+8wqrsXvKFolC10YEZA3vty/ZAfE5b+4Pza+tBwrjUFdFcEteku
-         rWytIPVkFAX4cxkn00oxDBGv10IqBWyj6umosefQyY6VutdFxIQDkLh/L6GKoRdP+6sd
-         +lbQzZneyKFjK8WZ0HdmDpeaErArhgrU9baU3Hj5c52TwaCRlabzJWCGQ3idzZAtsjpN
-         rI1nppWHBJzSmVND9jXTlLf6Nf2Mca+PXIbgBazBqN2z7lCQUw+ypjRmVKJ/EmrTrUvH
-         WmKA==
-X-Forwarded-Encrypted: i=1; AFNElJ/rV0Tyjsi8y/5ZA3qaVgN/Cohi8tBAhFlFR1KmFjsxX7htMOgJtJ+rrxksZ9h0kgmuP6TJt7Rg5Mfe0UHGE74=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyPgj/gGbvCWbNrnmG04K5CDhVrWmdgq4Fhgof30qJzSJEqMbN4
-	TU6jgavjSKSiF4q/V36tApqyLnpzeDSOdZc2yaS6GR2IORnxn0ZreFMsA3lOb3wVdkI=
-X-Gm-Gg: AeBDiev0rMQpkdKBxdPnR+GsGpJ8GxCzZkK3mQzGg+McYUYDtftq1A7AX9QDE54yIbr
-	HfqNtjPZRNADKMiy7xERMdW7CBaz/GoXVTxcwzTnK/e35kMk4pR+GM7kLgAQCEhLiZbNuENycrA
-	fekF072CwVIW5drgunxQpVCz4QPU4rxUhxKLaFqCtsxXGNb3j0ZuJUZRAwq0pFDlpBYwZqD/5/i
-	4Qx2YU1gtK/acD9P8YdmbM0ZIDMH7alTLeDHK1SY6c3AU0ZXvysjZ151CUGZUnfsaUKcrvhJDDC
-	omf9/uF9DcK9bMvU+xOQdqJMa3hE8VrEaprw7hl3STB+kZfN+qAKLXk/Fv9vB5qCyK+nMkMQTUe
-	kZsleKSUHVs2W0wc3zEd1L5oA1hEhk99tX029XjT2feLjfzgmKk96quzPk4SAaWyIyOhPSvfHkc
-	KFUR8Z7YpNg7ZLwB16f+8z4UhK
-X-Received: by 2002:a05:7022:eac5:b0:128:d2b3:5df with SMTP id a92af1059eb24-12c34ecea05mr10134040c88.23.1776187539356;
-        Tue, 14 Apr 2026 10:25:39 -0700 (PDT)
-Received: from mozart.vkv.me ([2001:5a8:468b:d015:93b7:bacf:b594:6a9])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2d940083f49sm9555914eec.13.2026.04.14.10.25.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Apr 2026 10:25:38 -0700 (PDT)
-Date: Tue, 14 Apr 2026 10:25:36 -0700
-From: Calvin Owens <calvin@wbinvd.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="SItFgwXN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D36DC19425;
+	Tue, 14 Apr 2026 18:04:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776189879;
+	bh=iR7rlrGmwA/rHAX7iIBtarDaDTWAcc7zO/ecbr5nem8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=SItFgwXNnrWiBMII6fkX82ETct3p5t0zsp5Sq1G712Zw7c0tO3M49217Bs6JOnTtP
+	 l2r3+F6zbLRk/wXIputOEMrbAEzfYhqiJNrVklo82qAMJMnQkmH1yfJkYODdZ3/g+Y
+	 PG87DYavrhwzXiBx5hqPgjVJt+lEUaJyyGkgP8WhGUKIPaygOGT/uIQGec6zDy+55n
+	 x/kBiqbxEQV8WL1hm8JD8qsi959poFXqctAmhqtmWalm877JgmefZkyJKhZ6zc2Uoa
+	 MEJR4H5/u73eZ9viNG+uL4xQ7qNyJZkWMdpoDAi7DfiGwOnoi2ph7+YVjNkuVT/kmV
+	 mZlBSAUJW/Liw==
+Date: Tue, 14 Apr 2026 20:04:36 +0200
+From: Frederic Weisbecker <frederic@kernel.org>
 To: Eric Naim <dnaim@cachyos.org>
 Cc: Hanabishi <i.r.e.c.c.a.k.u.n+kernel.org@gmail.com>,
 	Thomas Gleixner <tglx@kernel.org>,
 	LKML <linux-kernel@vger.kernel.org>,
+	Calvin Owens <calvin@wbinvd.org>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Anna-Maria Behnsen <anna-maria@linutronix.de>,
-	Frederic Weisbecker <frederic@kernel.org>,
 	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
 	Stephen Boyd <sboyd@kernel.org>,
 	Alexander Viro <viro@zeniv.linux.org.uk>,
@@ -76,7 +45,7 @@ Cc: Hanabishi <i.r.e.c.c.a.k.u.n+kernel.org@gmail.com>,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Subject: Re: The "clockevents: Prevent timer interrupt starvation" patch
  causes lockups
-Message-ID: <ad54kGakZkvCoRaT@mozart.vkv.me>
+Message-ID: <ad6BtKRj1GyreNCS@localhost.localdomain>
 References: <20260407083219.478203185@kernel.org>
  <20260407083247.562657657@kernel.org>
  <68d1e9ac-2780-4be3-8ee3-0788062dd3a4@gmail.com>
@@ -87,11 +56,12 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 In-Reply-To: <aeb848aa-404a-40fb-bd41-329644623b1d@cachyos.org>
 
-On Tuesday 04/14 at 15:39 +0000, Eric Naim wrote:
+Le Tue, Apr 14, 2026 at 03:39:00PM +0000, Eric Naim a écrit :
 > On 4/14/26 5:20 AM, Hanabishi wrote:
 > > 
 > > Hello.
@@ -113,9 +83,103 @@ On Tuesday 04/14 at 15:39 +0000, Eric Naim wrote:
 > the same bisection. One of the users that could reproduce this reliably
 > reproduced this just by watching a YouTube video in a browser, and observed
 > freezes and stutters when interacting with the system.
+> 
+> I had an LLM generate a fix (patch attached), and it fixed the regression for
+> that user. Full disclosure: it is written completely by AI, and I am also not
+> familiar with this subsystem. I just hope that this patch can be helpful in
+> fixing the regression.
+> 
+> Please don't hesitate to tell me off if utilizing AI in this way is not
+> helpful, so I can keep this in mind for future contributions.
+> 
+> 
+> -- 
+> Regards,
+>   Eric
 
-Huh, I can't reproduce this at all across 10+ machines. Can you share
-the Kconfig you're seeing this on?
+> diff --git a/kernel/time/clockevents.c b/kernel/time/clockevents.c
+> index 38570998a19b..37b10045572e 100644
+> --- a/kernel/time/clockevents.c
+> +++ b/kernel/time/clockevents.c
+> @@ -332,8 +332,10 @@ int clockevents_program_event(struct clock_event_device *dev, ktime_t expires,
+>  	if (delta > (int64_t)dev->min_delta_ns) {
+>  		delta = min(delta, (int64_t) dev->max_delta_ns);
+>  		clc = ((unsigned long long) delta * dev->mult) >> dev->shift;
+> -		if (!dev->set_next_event((unsigned long) clc, dev))
+> +		if (!dev->set_next_event((unsigned long) clc, dev)) {
+> +			dev->next_event_forced = 0;
+>  			return 0;
+> +		}
+>  	}
+>  
+>  	if (dev->next_event_forced)
+> diff --git a/kernel/time/tick-oneshot.c b/kernel/time/tick-oneshot.c
+> index 7472597f3225..bf411472d4f7 100644
+> --- a/kernel/time/tick-oneshot.c
+> +++ b/kernel/time/tick-oneshot.c
+> @@ -34,6 +34,7 @@ int tick_program_event(ktime_t expires, int force)
+>  		 */
+>  		clockevents_switch_state(dev, CLOCK_EVT_STATE_ONESHOT_STOPPED);
+>  		dev->next_event = KTIME_MAX;
+> +		dev->next_event_forced = 0;
+>  		return 0;
+>  	}
+>  
+> @@ -43,6 +44,7 @@ int tick_program_event(ktime_t expires, int force)
+>  		 * before using it.
+>  		 */
+>  		clockevents_switch_state(dev, CLOCK_EVT_STATE_ONESHOT);
+> +		dev->next_event_forced = 0;
+>  	}
+>  
+>  	return clockevents_program_event(dev, expires, force);
 
-Thanks,
-Calvin
+That diff suggest that dev->next_event_forced is not properly cleared by
+a handler or when the device is stopped.
+
+For example it's not cleared when the device is oneshot stopped.
+
+It's also not cleared when the device is detached (though that shouldn't
+matter much) and also when the broadcast wakeup thing is used.
+
+Can you try the following?
+
+diff --git a/kernel/time/clockevents.c b/kernel/time/clockevents.c
+index b4d730604972..5c6dfd6bed28 100644
+--- a/kernel/time/clockevents.c
++++ b/kernel/time/clockevents.c
+@@ -100,6 +100,7 @@ static int __clockevents_switch_state(struct clock_event_device *dev,
+ 		/* The clockevent device is getting replaced. Shut it down. */
+ 
+ 	case CLOCK_EVT_STATE_SHUTDOWN:
++		dev->next_event_forced = 0;
+ 		if (dev->set_state_shutdown)
+ 			return dev->set_state_shutdown(dev);
+ 		return 0;
+@@ -127,10 +128,12 @@ static int __clockevents_switch_state(struct clock_event_device *dev,
+ 			      clockevent_get_state(dev)))
+ 			return -EINVAL;
+ 
+-		if (dev->set_state_oneshot_stopped)
++		if (dev->set_state_oneshot_stopped) {
++			dev->next_event_forced = 0;
+ 			return dev->set_state_oneshot_stopped(dev);
+-		else
++		} else {
+ 			return -ENOSYS;
++		}
+ 
+ 	default:
+ 		return -ENOSYS;
+diff --git a/kernel/time/tick-broadcast.c b/kernel/time/tick-broadcast.c
+index 7e57fa31ee26..115e0bf01276 100644
+--- a/kernel/time/tick-broadcast.c
++++ b/kernel/time/tick-broadcast.c
+@@ -108,6 +108,7 @@ static struct clock_event_device *tick_get_oneshot_wakeup_device(int cpu)
+ 
+ static void tick_oneshot_wakeup_handler(struct clock_event_device *wd)
+ {
++	wd->next_event_forced = 0;
+ 	/*
+ 	 * If we woke up early and the tick was reprogrammed in the
+ 	 * meantime then this may be spurious but harmless.
