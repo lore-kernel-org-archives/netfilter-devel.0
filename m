@@ -1,128 +1,204 @@
-Received: from mail.ptr1337.dev (mail.ptr1337.dev [202.61.224.105])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A51673D8135;
-	Tue, 14 Apr 2026 15:40:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.61.224.105
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D359B2773F7
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 17:14:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776181210; cv=none; b=gEpzTYWjdjZqAnyfXTgfe6L4unacXjhjAi5Sn0WQ+HUXk9WTtYQ4P/fXfl3eBMozQ2KfONcLOLo697l1kbJxsNTxu4c88xPblthU640zWVOpzEs2U1j3pzD1W2dPBGSjQpm45R9pIRMKsfSK/NdBm2gn5VXGHMJJbjY6NVsPw98=
+	t=1776186849; cv=none; b=cLWjJj89/WKe3ohBMCyYePTM1fMNqlgWsTe0wt2xlRvIcsSIcHQh9Q7OmNgknC9LBGtqlvcQ3XWmPTIAnOlTuT3j5JguslRfBds0xOSBaaKJkF+ueUuhsb6JCoGtGOPW3c6NqEHVNVqlHGPi9cOtRWALYMjs6wDPD09hnYO8JBY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776181210; c=relaxed/simple;
-	bh=/hbq9f62sy3zTymZ/tCBjj9yBX6FjRzT54Jp86YE5Eg=;
-	h=Content-Type:Message-ID:Date:MIME-Version:Subject:To:Cc:
-	 References:From:In-Reply-To; b=H6uCUy6l5hv67WyOVwctig9mfckXwxqiVjJtCdzENA0MmchRLg4yQMiXawFn9pfGf7MqvKXcZ6wDqCiGb1cSqdmEgEy8+rqBRG1huCL288hq+aXSZ2DVmxJgJM7PS3lBFWj8JuAy2iFqCpqg3zlbBy+VEt6I6LmafrfxapPUeyg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cachyos.org; spf=pass smtp.mailfrom=cachyos.org; dkim=pass (2048-bit key) header.d=cachyos.org header.i=@cachyos.org header.b=N8DG4Rra; arc=none smtp.client-ip=202.61.224.105
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=cachyos.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cachyos.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cachyos.org header.i=@cachyos.org header.b="N8DG4Rra"
-Received: from [127.0.0.1] (localhost [127.0.0.1]) by localhost (Mailerdaemon) with ESMTPSA id 64A0528601B;
-	Tue, 14 Apr 2026 17:39:48 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cachyos.org; s=dkim;
-	t=1776181206; h=from:subject:date:message-id:to:cc:mime-version:content-type:
-	 in-reply-to:references; bh=TRkUVuOQeq5Z5SjZhRD6qZFJgCtwbDEy/Asrr2F24NA=;
-	b=N8DG4Rra4KLwOyKjeHa+N8iEQYdRlSKj88SKiopR37J/JDfRZtyzFNNDIeADwcch505Xy8
-	YSkqXZ+wIuGDmsHnsYuXzbuPYi6dYmv6kzI+0ByILJd5aD2wKKN/RqxgSVjeuHuLbSsups
-	CFwXntF75VWv1dsYJMwdr7RdfS4ZATCJgIiMthF5LMGV+ISVVfzxGcZu4rKQpXXeoxYrZT
-	/wGKLdLpqAaxOWbZnle3hAk7QtnMDUsL9EzNi9oWlIajDQ8jqy0QrooOD4J40oLsmmtYx7
-	AV4zSYlpt/dun2f9rDKasT0jynylvaiSd6hKEV53/75HZsaqcJ0NxkrrPZAFiQ==
-Content-Type: multipart/mixed; boundary="------------vQ8liQkI7bMgytpMGm0FanKR"
-Message-ID: <aeb848aa-404a-40fb-bd41-329644623b1d@cachyos.org>
-Date: Tue, 14 Apr 2026 15:39:00 +0000
+	s=arc-20240116; t=1776186849; c=relaxed/simple;
+	bh=nZPP+VJqUM66G5XJx1eayQdRf3Esp9eX9+sQcwTMC90=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oXRGmN+Ia8xxHLAjVeiO+eXE2CMsb/N0df++1Q7CFgPr8JPAb+2Zpp3KBbacLjgtg0ycGVzCVHTkzXy9k7dmwtyjuOs+mSSEq/fBIwLJlshAMaKvCgunyVena5Cnbynv8p1d2FWQw5engZgFjJK4Yj7qF+QO9LiH8oGsdf0NqtE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id 8B172608DB; Tue, 14 Apr 2026 19:14:05 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>,
+	Yiming Qian <yimingqian591@gmail.com>
+Subject: [PATCH nf 1/2] netfilter: conntrack: remove sprintf usage
+Date: Tue, 14 Apr 2026 19:13:46 +0200
+Message-ID: <20260414171351.31212-1-fw@strlen.de>
+X-Mailer: git-send-email 2.52.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: The "clockevents: Prevent timer interrupt starvation" patch
- causes lockups
-To: Hanabishi <i.r.e.c.c.a.k.u.n+kernel.org@gmail.com>,
- Thomas Gleixner <tglx@kernel.org>, LKML <linux-kernel@vger.kernel.org>
-Cc: Calvin Owens <calvin@wbinvd.org>, Peter Zijlstra <peterz@infradead.org>,
- Anna-Maria Behnsen <anna-maria@linutronix.de>,
- Frederic Weisbecker <frederic@kernel.org>, Ingo Molnar <mingo@kernel.org>,
- John Stultz <jstultz@google.com>, Stephen Boyd <sboyd@kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
- linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
- Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-References: <20260407083219.478203185@kernel.org>
- <20260407083247.562657657@kernel.org>
- <68d1e9ac-2780-4be3-8ee3-0788062dd3a4@gmail.com>
-From: Eric Naim <dnaim@cachyos.org>
-In-Reply-To: <68d1e9ac-2780-4be3-8ee3-0788062dd3a4@gmail.com>
-X-Last-TLS-Session-Version: TLSv1.3
+Content-Transfer-Encoding: 8bit
 
-This is a multi-part message in MIME format.
---------------vQ8liQkI7bMgytpMGm0FanKR
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Replace it with scnprintf, the buffer sizes are expected to be large enough
+to hold the result, no need for snprintf+overflow check.
 
-On 4/14/26 5:20 AM, Hanabishi wrote:
-> 
-> Hello.
-> 
-> Sorry, but this patch as of 7.0 introduced *severe* periodic lockups on my
-> Ryzen 7700X machine.
-> I see such messages in the log:
-> 
-> clocksource: Long readout interval, skipping watchdog check: cs_nsec:
-> 2897344852 wd_nsec: 2897356996
-> 
-> Reverting d6e152d905bdb1f32f9d99775e2f453350399a6a for mainline fixes the
-> issue for me.
-> 
+Increase buffer size in mangle_content_len() while at it.
 
-Hi maintainers,
+BUG: KASAN: stack-out-of-bounds in vsnprintf+0xea5/0x1270
+Write of size 1 at addr [..]
+ vsnprintf+0xea5/0x1270
+ sprintf+0xb1/0xe0
+ mangle_content_len+0x1ac/0x280
+ nf_nat_sdp_session+0x1cc/0x240
+ process_sdp+0x8f8/0xb80
+ process_invite_request+0x108/0x2b0
+ process_sip_msg+0x5da/0xf50
+ sip_help_tcp+0x45e/0x780
+ nf_confirm+0x34d/0x990
+ [..]
 
-several users from CachyOS has reported this regression as well. We landed on
-the same bisection. One of the users that could reproduce this reliably
-reproduced this just by watching a YouTube video in a browser, and observed
-freezes and stutters when interacting with the system.
+Fixes: 9fafcd7b2032 ("[NETFILTER]: nf_conntrack/nf_nat: add SIP helper port")
+Reported-by: Yiming Qian <yimingqian591@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_nat_amanda.c |  2 +-
+ net/netfilter/nf_nat_sip.c    | 33 ++++++++++++++++++---------------
+ 2 files changed, 19 insertions(+), 16 deletions(-)
 
-I had an LLM generate a fix (patch attached), and it fixed the regression for
-that user. Full disclosure: it is written completely by AI, and I am also not
-familiar with this subsystem. I just hope that this patch can be helpful in
-fixing the regression.
-
-Please don't hesitate to tell me off if utilizing AI in this way is not
-helpful, so I can keep this in mind for future contributions.
-
-
+diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
+index 98deef6cde69..8f1054920a85 100644
+--- a/net/netfilter/nf_nat_amanda.c
++++ b/net/netfilter/nf_nat_amanda.c
+@@ -50,7 +50,7 @@ static unsigned int help(struct sk_buff *skb,
+ 		return NF_DROP;
+ 	}
+ 
+-	sprintf(buffer, "%u", port);
++	snprintf(buffer, sizeof(buffer), "%u", port);
+ 	if (!nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
+ 				      protoff, matchoff, matchlen,
+ 				      buffer, strlen(buffer))) {
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index cf4aeb299bde..c845b6d1a2bd 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -68,25 +68,27 @@ static unsigned int mangle_packet(struct sk_buff *skb, unsigned int protoff,
+ }
+ 
+ static int sip_sprintf_addr(const struct nf_conn *ct, char *buffer,
++			    size_t size,
+ 			    const union nf_inet_addr *addr, bool delim)
+ {
+ 	if (nf_ct_l3num(ct) == NFPROTO_IPV4)
+-		return sprintf(buffer, "%pI4", &addr->ip);
++		return scnprintf(buffer, size, "%pI4", &addr->ip);
+ 	else {
+ 		if (delim)
+-			return sprintf(buffer, "[%pI6c]", &addr->ip6);
++			return scnprintf(buffer, size, "[%pI6c]", &addr->ip6);
+ 		else
+-			return sprintf(buffer, "%pI6c", &addr->ip6);
++			return scnprintf(buffer, size, "%pI6c", &addr->ip6);
+ 	}
+ }
+ 
+ static int sip_sprintf_addr_port(const struct nf_conn *ct, char *buffer,
++				 size_t size,
+ 				 const union nf_inet_addr *addr, u16 port)
+ {
+ 	if (nf_ct_l3num(ct) == NFPROTO_IPV4)
+-		return sprintf(buffer, "%pI4:%u", &addr->ip, port);
++		return scnprintf(buffer, size, "%pI4:%u", &addr->ip, port);
+ 	else
+-		return sprintf(buffer, "[%pI6c]:%u", &addr->ip6, port);
++		return scnprintf(buffer, size, "[%pI6c]:%u", &addr->ip6, port);
+ }
+ 
+ static int map_addr(struct sk_buff *skb, unsigned int protoff,
+@@ -119,7 +121,7 @@ static int map_addr(struct sk_buff *skb, unsigned int protoff,
+ 	if (nf_inet_addr_cmp(&newaddr, addr) && newport == port)
+ 		return 1;
+ 
+-	buflen = sip_sprintf_addr_port(ct, buffer, &newaddr, ntohs(newport));
++	buflen = sip_sprintf_addr_port(ct, buffer, sizeof(buffer), &newaddr, ntohs(newport));
+ 	return mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 			     matchoff, matchlen, buffer, buflen);
+ }
+@@ -212,7 +214,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 					       &addr, true) > 0 &&
+ 		    nf_inet_addr_cmp(&addr, &ct->tuplehash[dir].tuple.src.u3) &&
+ 		    !nf_inet_addr_cmp(&addr, &ct->tuplehash[!dir].tuple.dst.u3)) {
+-			buflen = sip_sprintf_addr(ct, buffer,
++			buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer),
+ 					&ct->tuplehash[!dir].tuple.dst.u3,
+ 					true);
+ 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+@@ -229,7 +231,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 					       &addr, false) > 0 &&
+ 		    nf_inet_addr_cmp(&addr, &ct->tuplehash[dir].tuple.dst.u3) &&
+ 		    !nf_inet_addr_cmp(&addr, &ct->tuplehash[!dir].tuple.src.u3)) {
+-			buflen = sip_sprintf_addr(ct, buffer,
++			buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer),
+ 					&ct->tuplehash[!dir].tuple.src.u3,
+ 					false);
+ 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+@@ -247,7 +249,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
+ 		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
+ 			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
+-			buflen = sprintf(buffer, "%u", ntohs(p));
++			buflen = scnprintf(buffer, sizeof(buffer), "%u", ntohs(p));
+ 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 					   poff, plen, buffer, buflen)) {
+ 				nf_ct_helper_log(skb, ct, "cannot mangle rport");
+@@ -418,7 +420,8 @@ static unsigned int nf_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	if (!nf_inet_addr_cmp(&exp->tuple.dst.u3, &exp->saved_addr) ||
+ 	    exp->tuple.dst.u.udp.port != exp->saved_proto.udp.port) {
+-		buflen = sip_sprintf_addr_port(ct, buffer, &newaddr, port);
++		buflen = sip_sprintf_addr_port(ct, buffer, sizeof(buffer),
++					       &newaddr, port);
+ 		if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 				   matchoff, matchlen, buffer, buflen)) {
+ 			nf_ct_helper_log(skb, ct, "cannot mangle packet");
+@@ -438,8 +441,8 @@ static int mangle_content_len(struct sk_buff *skb, unsigned int protoff,
+ {
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
++	char buffer[sizeof("4294967295")];
+ 	unsigned int matchoff, matchlen;
+-	char buffer[sizeof("65536")];
+ 	int buflen, c_len;
+ 
+ 	/* Get actual SDP length */
+@@ -454,7 +457,7 @@ static int mangle_content_len(struct sk_buff *skb, unsigned int protoff,
+ 			      &matchoff, &matchlen) <= 0)
+ 		return 0;
+ 
+-	buflen = sprintf(buffer, "%u", c_len);
++	buflen = scnprintf(buffer, sizeof(buffer), "%u", c_len);
+ 	return mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 			     matchoff, matchlen, buffer, buflen);
+ }
+@@ -491,7 +494,7 @@ static unsigned int nf_nat_sdp_addr(struct sk_buff *skb, unsigned int protoff,
+ 	char buffer[INET6_ADDRSTRLEN];
+ 	unsigned int buflen;
+ 
+-	buflen = sip_sprintf_addr(ct, buffer, addr, false);
++	buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer), addr, false);
+ 	if (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen,
+ 			      sdpoff, type, term, buffer, buflen))
+ 		return 0;
+@@ -509,7 +512,7 @@ static unsigned int nf_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
+ 	char buffer[sizeof("nnnnn")];
+ 	unsigned int buflen;
+ 
+-	buflen = sprintf(buffer, "%u", port);
++	buflen = scnprintf(buffer, sizeof(buffer), "%u", port);
+ 	if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
+ 			   matchoff, matchlen, buffer, buflen))
+ 		return 0;
+@@ -529,7 +532,7 @@ static unsigned int nf_nat_sdp_session(struct sk_buff *skb, unsigned int protoff
+ 	unsigned int buflen;
+ 
+ 	/* Mangle session description owner and contact addresses */
+-	buflen = sip_sprintf_addr(ct, buffer, addr, false);
++	buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer), addr, false);
+ 	if (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen, sdpoff,
+ 			      SDP_HDR_OWNER, SDP_HDR_MEDIA, buffer, buflen))
+ 		return 0;
 -- 
-Regards,
-  Eric
---------------vQ8liQkI7bMgytpMGm0FanKR
-Content-Type: text/x-patch; charset=UTF-8; name="ai.patch"
-Content-Disposition: attachment; filename="ai.patch"
-Content-Transfer-Encoding: base64
+2.52.0
 
-ZGlmZiAtLWdpdCBhL2tlcm5lbC90aW1lL2Nsb2NrZXZlbnRzLmMgYi9rZXJuZWwvdGltZS9j
-bG9ja2V2ZW50cy5jCmluZGV4IDM4NTcwOTk4YTE5Yi4uMzdiMTAwNDU1NzJlIDEwMDY0NAot
-LS0gYS9rZXJuZWwvdGltZS9jbG9ja2V2ZW50cy5jCisrKyBiL2tlcm5lbC90aW1lL2Nsb2Nr
-ZXZlbnRzLmMKQEAgLTMzMiw4ICszMzIsMTAgQEAgaW50IGNsb2NrZXZlbnRzX3Byb2dyYW1f
-ZXZlbnQoc3RydWN0IGNsb2NrX2V2ZW50X2RldmljZSAqZGV2LCBrdGltZV90IGV4cGlyZXMs
-CiAJaWYgKGRlbHRhID4gKGludDY0X3QpZGV2LT5taW5fZGVsdGFfbnMpIHsKIAkJZGVsdGEg
-PSBtaW4oZGVsdGEsIChpbnQ2NF90KSBkZXYtPm1heF9kZWx0YV9ucyk7CiAJCWNsYyA9ICgo
-dW5zaWduZWQgbG9uZyBsb25nKSBkZWx0YSAqIGRldi0+bXVsdCkgPj4gZGV2LT5zaGlmdDsK
-LQkJaWYgKCFkZXYtPnNldF9uZXh0X2V2ZW50KCh1bnNpZ25lZCBsb25nKSBjbGMsIGRldikp
-CisJCWlmICghZGV2LT5zZXRfbmV4dF9ldmVudCgodW5zaWduZWQgbG9uZykgY2xjLCBkZXYp
-KSB7CisJCQlkZXYtPm5leHRfZXZlbnRfZm9yY2VkID0gMDsKIAkJCXJldHVybiAwOworCQl9
-CiAJfQogCiAJaWYgKGRldi0+bmV4dF9ldmVudF9mb3JjZWQpCmRpZmYgLS1naXQgYS9rZXJu
-ZWwvdGltZS90aWNrLW9uZXNob3QuYyBiL2tlcm5lbC90aW1lL3RpY2stb25lc2hvdC5jCmlu
-ZGV4IDc0NzI1OTdmMzIyNS4uYmY0MTE0NzJkNGY3IDEwMDY0NAotLS0gYS9rZXJuZWwvdGlt
-ZS90aWNrLW9uZXNob3QuYworKysgYi9rZXJuZWwvdGltZS90aWNrLW9uZXNob3QuYwpAQCAt
-MzQsNiArMzQsNyBAQCBpbnQgdGlja19wcm9ncmFtX2V2ZW50KGt0aW1lX3QgZXhwaXJlcywg
-aW50IGZvcmNlKQogCQkgKi8KIAkJY2xvY2tldmVudHNfc3dpdGNoX3N0YXRlKGRldiwgQ0xP
-Q0tfRVZUX1NUQVRFX09ORVNIT1RfU1RPUFBFRCk7CiAJCWRldi0+bmV4dF9ldmVudCA9IEtU
-SU1FX01BWDsKKwkJZGV2LT5uZXh0X2V2ZW50X2ZvcmNlZCA9IDA7CiAJCXJldHVybiAwOwog
-CX0KIApAQCAtNDMsNiArNDQsNyBAQCBpbnQgdGlja19wcm9ncmFtX2V2ZW50KGt0aW1lX3Qg
-ZXhwaXJlcywgaW50IGZvcmNlKQogCQkgKiBiZWZvcmUgdXNpbmcgaXQuCiAJCSAqLwogCQlj
-bG9ja2V2ZW50c19zd2l0Y2hfc3RhdGUoZGV2LCBDTE9DS19FVlRfU1RBVEVfT05FU0hPVCk7
-CisJCWRldi0+bmV4dF9ldmVudF9mb3JjZWQgPSAwOwogCX0KIAogCXJldHVybiBjbG9ja2V2
-ZW50c19wcm9ncmFtX2V2ZW50KGRldiwgZXhwaXJlcywgZm9yY2UpOwo=
-
---------------vQ8liQkI7bMgytpMGm0FanKR--
