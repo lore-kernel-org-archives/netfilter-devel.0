@@ -1,28 +1,30 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D359B2773F7
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 17:14:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A04D2773F7
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 17:14:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776186849; cv=none; b=cLWjJj89/WKe3ohBMCyYePTM1fMNqlgWsTe0wt2xlRvIcsSIcHQh9Q7OmNgknC9LBGtqlvcQ3XWmPTIAnOlTuT3j5JguslRfBds0xOSBaaKJkF+ueUuhsb6JCoGtGOPW3c6NqEHVNVqlHGPi9cOtRWALYMjs6wDPD09hnYO8JBY=
+	t=1776186852; cv=none; b=sxUDTSj4OAh6d20s4GqTws9xCmPhPM+mlLDjzdUoi6bVE/JE4bSHOOhSb0ke0qAlT6GLtjrKOBOgNZkAbO+jab11yePDWkHk/cIUr3+2HSnqHmsYMUNzTUMACkXTFE8HJyb+g3wVKxP1Tu6AjIae54AAPuSZHWsjPnniV3UognE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776186849; c=relaxed/simple;
-	bh=nZPP+VJqUM66G5XJx1eayQdRf3Esp9eX9+sQcwTMC90=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oXRGmN+Ia8xxHLAjVeiO+eXE2CMsb/N0df++1Q7CFgPr8JPAb+2Zpp3KBbacLjgtg0ycGVzCVHTkzXy9k7dmwtyjuOs+mSSEq/fBIwLJlshAMaKvCgunyVena5Cnbynv8p1d2FWQw5engZgFjJK4Yj7qF+QO9LiH8oGsdf0NqtE=
+	s=arc-20240116; t=1776186852; c=relaxed/simple;
+	bh=pVk+bUqDXOHWJDOkoGosU4C74QU7W88WC3KXlxYwuTA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=Ux1MHLDVR9/kELqJmnYzoZq0CIEKGd+UyqycULM0lc6TOBwyX3GudGkftl0Ym3PiFoLwxexi4Pn8STYadh8dlpinq/GhfDF6zdzxWJG7fkQpWqBG7JUXMPiahDpA8QQc6EolCFM0UUqRzQtYJuDNWjPRS1LryPB3uUsU7m7rXt8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 8B172608DB; Tue, 14 Apr 2026 19:14:05 +0200 (CEST)
+	id DEC7E608DB; Tue, 14 Apr 2026 19:14:09 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>,
-	Yiming Qian <yimingqian591@gmail.com>
-Subject: [PATCH nf 1/2] netfilter: conntrack: remove sprintf usage
-Date: Tue, 14 Apr 2026 19:13:46 +0200
-Message-ID: <20260414171351.31212-1-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf 2/2] netfilter: nf_conntrack_sip: don't use strtoul_simple
+Date: Tue, 14 Apr 2026 19:13:47 +0200
+Message-ID: <20260414171351.31212-2-fw@strlen.de>
 X-Mailer: git-send-email 2.52.0
+In-Reply-To: <20260414171351.31212-1-fw@strlen.de>
+References: <20260414171351.31212-1-fw@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -31,174 +33,211 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace it with scnprintf, the buffer sizes are expected to be large enough
-to hold the result, no need for snprintf+overflow check.
+Probably 'safe' because struct shinfo is stored at end of linear data area
+and simple_strotul bails out on first character thats not a number.
 
-Increase buffer size in mangle_content_len() while at it.
+Prefer a stricter version instead.  There are intentional changes:
 
-BUG: KASAN: stack-out-of-bounds in vsnprintf+0xea5/0x1270
-Write of size 1 at addr [..]
- vsnprintf+0xea5/0x1270
- sprintf+0xb1/0xe0
- mangle_content_len+0x1ac/0x280
- nf_nat_sdp_session+0x1cc/0x240
- process_sdp+0x8f8/0xb80
- process_invite_request+0x108/0x2b0
- process_sip_msg+0x5da/0xf50
- sip_help_tcp+0x45e/0x780
- nf_confirm+0x34d/0x990
- [..]
+- Bail out if number is > UINT_MAX and indicate a failure.
+  We don't expect huge values here.
 
-Fixes: 9fafcd7b2032 ("[NETFILTER]: nf_conntrack/nf_nat: add SIP helper port")
-Reported-by: Yiming Qian <yimingqian591@gmail.com>
+- Bail out if we get more characters than expected, we don't expect
+  something like 'expires=9999999999999999999999999999999999'.
+
+- In ct_sip_parse_numerical_param() base 10 is enforced. This is used
+  to fetch 'expire=' and 'rports='; both are expected to be base-10 values.
+
+- In nf_nat_sip.c, only accept the parsed value if its within the 1k-64k
+  range.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_nat_amanda.c |  2 +-
- net/netfilter/nf_nat_sip.c    | 33 ++++++++++++++++++---------------
- 2 files changed, 19 insertions(+), 16 deletions(-)
+ Could be deferred to nf-next, but given we're in merge window I think nf is fine.
 
-diff --git a/net/netfilter/nf_nat_amanda.c b/net/netfilter/nf_nat_amanda.c
-index 98deef6cde69..8f1054920a85 100644
---- a/net/netfilter/nf_nat_amanda.c
-+++ b/net/netfilter/nf_nat_amanda.c
-@@ -50,7 +50,7 @@ static unsigned int help(struct sk_buff *skb,
+ net/netfilter/nf_conntrack_sip.c | 73 ++++++++++++++++++++++++++------
+ net/netfilter/nf_nat_sip.c       |  1 +
+ 2 files changed, 62 insertions(+), 12 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 939502ff7c87..02c65415f309 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -228,6 +228,51 @@ static int skp_epaddr_len(const struct nf_conn *ct, const char *dptr,
+ 	return epaddr_len(ct, dptr, limit, shift);
+ }
+ 
++/* simple_stroul stops after first non-number character.
++ * But as we're not dealing with c-strings, we can't rely on
++ * hitting \r,\n,\0 etc. before moving past end of buffer.
++ *
++ * This is a variant of simple_stroul, but doesn't require
++ * a c-string.
++ *
++ * If value exceeds UINT_MAX, 0 is returned.
++ */
++static unsigned int sip_strtouint(const char *cp, unsigned int len, char **endp)
++{
++	const unsigned int max = sizeof("4294967295");
++	unsigned int olen = len;
++	const char *s = cp;
++	u64 result = 0;
++
++	if (len > max)
++		len = max;
++
++	while (olen > 0 && isdigit(*s)) {
++		unsigned int value;
++
++		if (len == 0)
++			goto err;
++
++		value = *s - '0';
++		result = result * 10 + value;
++
++		if (result > UINT_MAX)
++			goto err;
++		s++;
++		len--;
++		olen--;
++	}
++
++	if (endp)
++		*endp = (char *)s;
++
++	return result;
++err:
++	if (endp)
++		*endp = (char *)cp;
++	return 0;
++}
++
+ /* Parse a SIP request line of the form:
+  *
+  * Request-Line = Method SP Request-URI SP SIP-Version CRLF
+@@ -269,7 +314,7 @@ int ct_sip_parse_request(const struct nf_conn *ct,
+ 		return -1;
+ 	if (end < limit && *end == ':') {
+ 		end++;
+-		p = simple_strtoul(end, (char **)&end, 10);
++		p = sip_strtouint(end, limit - end, (char **)&end);
+ 		if (p < 1024 || p > 65535)
+ 			return -1;
+ 		*port = htons(p);
+@@ -522,7 +567,7 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ 		return -1;
+ 	if (*c == ':') {
+ 		c++;
+-		p = simple_strtoul(c, (char **)&c, 10);
++		p = sip_strtouint(c, limit - c, (char **)&c);
+ 		if (p < 1024 || p > 65535)
+ 			return -1;
+ 		*port = htons(p);
+@@ -609,7 +654,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
+ 		return 0;
+ 
+ 	start += strlen(name);
+-	*val = simple_strtoul(start, &end, 0);
++	*val = sip_strtouint(start, limit - start, (char **)&end);
+ 	if (start == end)
+ 		return -1;
+ 	if (matchoff && matchlen) {
+@@ -1065,6 +1110,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	mediaoff = sdpoff;
+ 	for (i = 0; i < ARRAY_SIZE(sdp_media_types); ) {
++		char *end;
++
+ 		if (ct_sip_get_sdp_header(ct, *dptr, mediaoff, *datalen,
+ 					  SDP_HDR_MEDIA, SDP_HDR_UNSPEC,
+ 					  &mediaoff, &medialen) <= 0)
+@@ -1080,8 +1127,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 		mediaoff += t->len;
+ 		medialen -= t->len;
+ 
+-		port = simple_strtoul(*dptr + mediaoff, NULL, 10);
+-		if (port == 0)
++		port = sip_strtouint(*dptr + mediaoff, *datalen - mediaoff, (char **)&end);
++		if (port == 0 || *dptr + mediaoff == end)
+ 			continue;
+ 		if (port < 1024 || port > 65535) {
+ 			nf_ct_helper_log(skb, ct, "wrong port %u", port);
+@@ -1255,7 +1302,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
+ 	 */
+ 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
+ 			      &matchoff, &matchlen) > 0)
+-		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
++		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
+ 
+ 	ret = ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
+ 				      SIP_HDR_CONTACT, NULL,
+@@ -1359,7 +1406,7 @@ static int process_register_response(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
+ 			      &matchoff, &matchlen) > 0)
+-		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
++		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
+ 
+ 	while (1) {
+ 		unsigned int c_expires = expires;
+@@ -1422,7 +1469,8 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	if (*datalen < strlen("SIP/2.0 200"))
+ 		return NF_ACCEPT;
+-	code = simple_strtoul(*dptr + strlen("SIP/2.0 "), NULL, 10);
++	code = sip_strtouint(*dptr + strlen("SIP/2.0 "),
++			     *datalen - strlen("SIP/2.0"), NULL);
+ 	if (!code) {
+ 		nf_ct_helper_log(skb, ct, "cannot get code");
+ 		return NF_DROP;
+@@ -1433,7 +1481,7 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
+ 		nf_ct_helper_log(skb, ct, "cannot parse cseq");
  		return NF_DROP;
  	}
+-	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
++	cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
+ 	if (!cseq && *(*dptr + matchoff) != '0') {
+ 		nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 		return NF_DROP;
+@@ -1483,6 +1531,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
  
--	sprintf(buffer, "%u", port);
-+	snprintf(buffer, sizeof(buffer), "%u", port);
- 	if (!nf_nat_mangle_udp_packet(skb, exp->master, ctinfo,
- 				      protoff, matchoff, matchlen,
- 				      buffer, strlen(buffer))) {
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
+ 		const struct sip_handler *handler;
++		char *end;
+ 
+ 		handler = &sip_handlers[i];
+ 		if (handler->request == NULL)
+@@ -1499,8 +1548,8 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
+ 			nf_ct_helper_log(skb, ct, "cannot parse cseq");
+ 			return NF_DROP;
+ 		}
+-		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
+-		if (!cseq && *(*dptr + matchoff) != '0') {
++		cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
++		if (*dptr + matchoff == end) {
+ 			nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 			return NF_DROP;
+ 		}
+@@ -1576,7 +1625,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 				      &matchoff, &matchlen) <= 0)
+ 			break;
+ 
+-		clen = simple_strtoul(dptr + matchoff, (char **)&end, 10);
++		clen = sip_strtouint(dptr + matchoff, datalen - matchoff, (char **)&end);
+ 		if (dptr + matchoff == end)
+ 			break;
+ 
 diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index cf4aeb299bde..c845b6d1a2bd 100644
+index c845b6d1a2bd..9fbfc6bff0c2 100644
 --- a/net/netfilter/nf_nat_sip.c
 +++ b/net/netfilter/nf_nat_sip.c
-@@ -68,25 +68,27 @@ static unsigned int mangle_packet(struct sk_buff *skb, unsigned int protoff,
- }
- 
- static int sip_sprintf_addr(const struct nf_conn *ct, char *buffer,
-+			    size_t size,
- 			    const union nf_inet_addr *addr, bool delim)
- {
- 	if (nf_ct_l3num(ct) == NFPROTO_IPV4)
--		return sprintf(buffer, "%pI4", &addr->ip);
-+		return scnprintf(buffer, size, "%pI4", &addr->ip);
- 	else {
- 		if (delim)
--			return sprintf(buffer, "[%pI6c]", &addr->ip6);
-+			return scnprintf(buffer, size, "[%pI6c]", &addr->ip6);
- 		else
--			return sprintf(buffer, "%pI6c", &addr->ip6);
-+			return scnprintf(buffer, size, "%pI6c", &addr->ip6);
- 	}
- }
- 
- static int sip_sprintf_addr_port(const struct nf_conn *ct, char *buffer,
-+				 size_t size,
- 				 const union nf_inet_addr *addr, u16 port)
- {
- 	if (nf_ct_l3num(ct) == NFPROTO_IPV4)
--		return sprintf(buffer, "%pI4:%u", &addr->ip, port);
-+		return scnprintf(buffer, size, "%pI4:%u", &addr->ip, port);
- 	else
--		return sprintf(buffer, "[%pI6c]:%u", &addr->ip6, port);
-+		return scnprintf(buffer, size, "[%pI6c]:%u", &addr->ip6, port);
- }
- 
- static int map_addr(struct sk_buff *skb, unsigned int protoff,
-@@ -119,7 +121,7 @@ static int map_addr(struct sk_buff *skb, unsigned int protoff,
- 	if (nf_inet_addr_cmp(&newaddr, addr) && newport == port)
- 		return 1;
- 
--	buflen = sip_sprintf_addr_port(ct, buffer, &newaddr, ntohs(newport));
-+	buflen = sip_sprintf_addr_port(ct, buffer, sizeof(buffer), &newaddr, ntohs(newport));
- 	return mangle_packet(skb, protoff, dataoff, dptr, datalen,
- 			     matchoff, matchlen, buffer, buflen);
- }
-@@ -212,7 +214,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
- 					       &addr, true) > 0 &&
- 		    nf_inet_addr_cmp(&addr, &ct->tuplehash[dir].tuple.src.u3) &&
- 		    !nf_inet_addr_cmp(&addr, &ct->tuplehash[!dir].tuple.dst.u3)) {
--			buflen = sip_sprintf_addr(ct, buffer,
-+			buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer),
- 					&ct->tuplehash[!dir].tuple.dst.u3,
- 					true);
- 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
-@@ -229,7 +231,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
- 					       &addr, false) > 0 &&
- 		    nf_inet_addr_cmp(&addr, &ct->tuplehash[dir].tuple.dst.u3) &&
- 		    !nf_inet_addr_cmp(&addr, &ct->tuplehash[!dir].tuple.src.u3)) {
--			buflen = sip_sprintf_addr(ct, buffer,
-+			buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer),
- 					&ct->tuplehash[!dir].tuple.src.u3,
- 					false);
- 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
-@@ -247,7 +249,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+@@ -246,6 +246,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 		if (ct_sip_parse_numerical_param(ct, *dptr, matchend, *datalen,
+ 						 "rport=", &poff, &plen,
+ 						 &n) > 0 &&
++		    n >= 1024 && n <= 65535 &&
  		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
  		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
  			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
--			buflen = sprintf(buffer, "%u", ntohs(p));
-+			buflen = scnprintf(buffer, sizeof(buffer), "%u", ntohs(p));
- 			if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
- 					   poff, plen, buffer, buflen)) {
- 				nf_ct_helper_log(skb, ct, "cannot mangle rport");
-@@ -418,7 +420,8 @@ static unsigned int nf_nat_sip_expect(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (!nf_inet_addr_cmp(&exp->tuple.dst.u3, &exp->saved_addr) ||
- 	    exp->tuple.dst.u.udp.port != exp->saved_proto.udp.port) {
--		buflen = sip_sprintf_addr_port(ct, buffer, &newaddr, port);
-+		buflen = sip_sprintf_addr_port(ct, buffer, sizeof(buffer),
-+					       &newaddr, port);
- 		if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
- 				   matchoff, matchlen, buffer, buflen)) {
- 			nf_ct_helper_log(skb, ct, "cannot mangle packet");
-@@ -438,8 +441,8 @@ static int mangle_content_len(struct sk_buff *skb, unsigned int protoff,
- {
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-+	char buffer[sizeof("4294967295")];
- 	unsigned int matchoff, matchlen;
--	char buffer[sizeof("65536")];
- 	int buflen, c_len;
- 
- 	/* Get actual SDP length */
-@@ -454,7 +457,7 @@ static int mangle_content_len(struct sk_buff *skb, unsigned int protoff,
- 			      &matchoff, &matchlen) <= 0)
- 		return 0;
- 
--	buflen = sprintf(buffer, "%u", c_len);
-+	buflen = scnprintf(buffer, sizeof(buffer), "%u", c_len);
- 	return mangle_packet(skb, protoff, dataoff, dptr, datalen,
- 			     matchoff, matchlen, buffer, buflen);
- }
-@@ -491,7 +494,7 @@ static unsigned int nf_nat_sdp_addr(struct sk_buff *skb, unsigned int protoff,
- 	char buffer[INET6_ADDRSTRLEN];
- 	unsigned int buflen;
- 
--	buflen = sip_sprintf_addr(ct, buffer, addr, false);
-+	buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer), addr, false);
- 	if (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen,
- 			      sdpoff, type, term, buffer, buflen))
- 		return 0;
-@@ -509,7 +512,7 @@ static unsigned int nf_nat_sdp_port(struct sk_buff *skb, unsigned int protoff,
- 	char buffer[sizeof("nnnnn")];
- 	unsigned int buflen;
- 
--	buflen = sprintf(buffer, "%u", port);
-+	buflen = scnprintf(buffer, sizeof(buffer), "%u", port);
- 	if (!mangle_packet(skb, protoff, dataoff, dptr, datalen,
- 			   matchoff, matchlen, buffer, buflen))
- 		return 0;
-@@ -529,7 +532,7 @@ static unsigned int nf_nat_sdp_session(struct sk_buff *skb, unsigned int protoff
- 	unsigned int buflen;
- 
- 	/* Mangle session description owner and contact addresses */
--	buflen = sip_sprintf_addr(ct, buffer, addr, false);
-+	buflen = sip_sprintf_addr(ct, buffer, sizeof(buffer), addr, false);
- 	if (mangle_sdp_packet(skb, protoff, dataoff, dptr, datalen, sdpoff,
- 			      SDP_HDR_OWNER, SDP_HDR_MEDIA, buffer, buflen))
- 		return 0;
 -- 
 2.52.0
 
