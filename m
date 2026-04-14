@@ -1,135 +1,154 @@
-Received: from mail-dl1-f46.google.com (mail-dl1-f46.google.com [74.125.82.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D7B389472
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 22:14:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C886B35C19D
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 23:35:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776204854; cv=none; b=NqYVKqUy8OBz0HBDc4CUZeCKoK6V0rYYxYGbmQWz+iAXnc7D9JFZzaRAa+Z2IwqY0fAxtVLXRRBAR2vSMN0k4xGzBrfAL11ng4KF6WhMtAeM6FhHSE/jjCffV28SiJDNVKW26Mx2W7zgamagGmXkd++oYyd060efJ8aAhzl8PNg=
+	t=1776209758; cv=none; b=kUhHHS0q0BEzsu/EgdId1dst4fjZL03Gy+YNeQpWxZLHS45pxqZj/V2qJczbmOmPYpyluxqdIYBfyx75BFr82NJ+6uAjxGzE3sw+V+bHw6b+MhnIV9yVsEzU01QEjkbrtPLNlx0ZMViY8++SJrLKGeHgxPyHXbMlXXAPrhX9cHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776204854; c=relaxed/simple;
-	bh=/CumOeAjJXXsmb/6L/suQapO1UW2/F8scULcYprsNlI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bCExhRF5TgiveryQsr4Mf4KKpqlg4dBRtSEOvLf8tP1hjSfFCN5+LdDLxg8ULCvLmVIbH25Aesp8/6MQiZu2hUy92wln+ik77V6/exfa8RPA196ZB8aFu2PS5JpFrRpZ0Vg/aGf0s12iHy3ywykaFNary+XfmVpM8VUJvnICX6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=qboAuy7t; arc=none smtp.client-ip=74.125.82.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
+	s=arc-20240116; t=1776209758; c=relaxed/simple;
+	bh=tqlWiYAD68Gl+Hslj6H/L4RPn/LGorgQ3tkA/f3ctA8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=RC/USrSD6bm8WWLuIe/imtDzR+BLnVXA3FNQ3x7P81309JTje2QUoEwbwR4wj9Gdcu6omXsxzQCzA27MLajxM2V02vvPdRmbp2MwSSDBtiJvgeU3UmVbqF/MgY4W5MKHlSSOQ+x8WKH2uteNrHbnjl4btWAoZ/YmETbJd4ttoM0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V23DGvM5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="qboAuy7t"
-Received: by mail-dl1-f46.google.com with SMTP id a92af1059eb24-126ea4b77adso15187139c88.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 15:14:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=asu.edu; s=google; t=1776204852; x=1776809652; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=/8oDk6Bv3/p8vkApYwMdU44Wt3x0ddwL222gIoY0s4w=;
-        b=qboAuy7tnwO0jvVNjO9eA86rTj/BEHhJ3THfVZ6aLU60f7La0Jz3hU2XqV65z0v8Re
-         l53Cp0PCtfRll7h0BeOUWkVx/u1ILtHG/D/sLAkC1XdYCp92l+iYTr3xE3pBwPpbBafM
-         cPYzJnB/udl4meL4EMdqMtHdwHxNL30M8XlsK18BIe4mfbQILklY68yg2LqBg19ueYJ/
-         50qWpuS4wJOqgymQhvCgRnPlNAN5sStJtbVIgWQ7PzAefpAYWfrqWlI2C9DcDlzwyhcs
-         pYIPqBUzsFg9y8rwnMVs4EsqYr9NNekeVIgGZ04tGRutOEQdPoKTXr2FxBpfJMZPHMCj
-         ix8A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776204852; x=1776809652;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/8oDk6Bv3/p8vkApYwMdU44Wt3x0ddwL222gIoY0s4w=;
-        b=G6EnW+B3VzRYMX8JlFbG662q2JkR4wKv247DVA2xsa86M8tpdXC3zr2MNmm6H1ULKb
-         Sgj2POEk73WroINBcnHQ5bRLZJU25lW7kAvwF6uD3BsnceEok1C/X3nYUqqfjZyU4ldb
-         xPb0/0F/lYRkF0k5pDRAVjl0+UOUsE8qonabyjAlN0AQT80551Z1hvkF/FPufL8GhlLR
-         AJioY5QsHnR4aPLpBsGIACkiUS7Z43fLItyJjYge6bsPQ5LhMedDywJ+eECe+bOZexfR
-         cQ7EotfpaoOCDGkGLzmxfsltF1y7SZVaMmd1CK/IvVId1ETOyFiuSWZMWU6B9YCRcbPH
-         kDuw==
-X-Gm-Message-State: AOJu0Ywd0l89xkpOyZvV0iHOjUUzC9Kj2jCElXyJS64Y8XpiZ5l0v55W
-	CNC/yDrT/+v6wGQFW2wrH1C1gDHwPY0Wu5tLLQYDnlHMkrxJ5QQtgkzUrHHlLRca/BhMTWj3cWZ
-	1HKxJiw==
-X-Gm-Gg: AeBDiesUb2Gypy9b+Y4K+jekjh83LpsJ1iYy485Hi5lA2/f3unTJUfJoYVkzwsZiRcw
-	xdgcX3/kjNplxJwBz+OJw1LNWyf/mBbyormYLhNeDFzABUsZpTr7U1YyzNUB8L9BS0+O/e7neM8
-	QfI/4VypP+H5Bgjh9J4Ygrk6ULsaJhNGSWOytME7S7uc14hmgkZuZGYcdOjev2KfrkQ5ljCNFud
-	zH4cwPcWzPrranYhazpEp0l9ajhnBJAcYSr5ILq8IupY02I8zS+vT6ykYaZm9mdE7BgXJq12DwG
-	Tm6VleqKYRpQvIlLFgPFvmvyRAJTzvVL3AbrDwUdJi+97JJwa8p31O6Qi+PLpk9GGRW/HRN56yI
-	adWdRmPPpMCIEvsjm0xB7K06xxY6wyxeGcR3kRRYMZ0BbQv6nxE6Qc+L5vFRZ2D7k7uhN/roHKU
-	5u4yo61nVVv4mIgxrK3B+24qvbhQLVLaJReCtpGRVs8kQVqGkEvEOjxQby7R3mcvys
-X-Received: by 2002:a05:7022:6726:b0:119:e56c:18ae with SMTP id a92af1059eb24-12c34ede8e2mr10335876c88.22.1776204851535;
-        Tue, 14 Apr 2026 15:14:11 -0700 (PDT)
-Received: from p1.scai.dhcp.asu.edu (209-147-138-15.nat.asu.edu. [209.147.138.15])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-12c4b323428sm13517785c88.4.2026.04.14.15.14.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Apr 2026 15:14:11 -0700 (PDT)
-From: Xiang Mei <xmei5@asu.edu>
-To: netfilter-devel@vger.kernel.org
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>,
-	coreteam@netfilter.org,
-	Weiming Shi <bestswngs@gmail.com>,
-	Xiang Mei <xmei5@asu.edu>
-Subject: [PATCH nf v2] netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
-Date: Tue, 14 Apr 2026 15:14:01 -0700
-Message-ID: <20260414221401.2809350-1-xmei5@asu.edu>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V23DGvM5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549E9C19425;
+	Tue, 14 Apr 2026 23:35:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776209758;
+	bh=tqlWiYAD68Gl+Hslj6H/L4RPn/LGorgQ3tkA/f3ctA8=;
+	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+	b=V23DGvM5zibBtPDYebFR6SeUNOFrZ7yNKmZFGv1BwKFOBnjJRAX1KyYChBZbX0MXN
+	 hYV6jEnbbBxb0N04EEvtGxAJHSxOxbXI4fWR1e43HscMWoh1RXUW5tmXHjChjYqywY
+	 Sm7def8fvdwsJbPP1vsZrs7MsjD6+15KngSbSkUNpbDI1AB0CC/Hi4cEeYxa7CJZ8X
+	 B7DfUBEDo/kCgTYfdV1LCBX3/zjhiA8NBbvsKoAgb3lQNNf9aKMLUx4NKN5n32fQ2s
+	 2nzyDzQmmMe+oSqgLnlOowANhLAxVj1jHzoavvbbtuC2VsAjyIQ3fUb8xfWL8nIHJl
+	 TZ8mp2nZVSmlQ==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+	id CFC30CE13BF; Tue, 14 Apr 2026 16:35:57 -0700 (PDT)
+Date: Tue, 14 Apr 2026 16:35:57 -0700
+From: "Paul E. McKenney" <paulmck@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, joelagnelf@nvidia.com,
+	josh@joshtriplett.org, boqun@kernel.org, urezki@gmail.com,
+	rostedt@goodmis.org, mathieu.desnoyers@efficios.com,
+	jiangshanlai@gmail.com, qiang.zhang@linux.dev, fw@strlen.de
+Subject: Re: [PATCH nf 1/3] rculist: add list_splice_rcu() for private lists
+Message-ID: <25a270bf-0011-4784-9a32-5a62b64a6200@paulmck-laptop>
+Reply-To: paulmck@kernel.org
+References: <20260413220415.43221-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260413220415.43221-1-pablo@netfilter.org>
 
-nf_osf_match_one() computes ctx->window % f->wss.val in the
-OSF_WSS_MODULO branch with no guard for f->wss.val == 0. A
-CAP_NET_ADMIN user can add such a fingerprint via nfnetlink; a
-subsequent matching TCP SYN divides by zero and panics the kernel.
+On Tue, Apr 14, 2026 at 12:04:15AM +0200, Pablo Neira Ayuso wrote:
+> This patch adds a helper function, list_splice_rcu(), to safely splice
+> a private (non-RCU-protected) list into an RCU-protected list.
+> 
+> The function ensures that only the pointer visible to RCU readers
+> (prev->next) is updated using rcu_assign_pointer(), while the rest of
+> the list manipulations are performed with regular assignments, as the
+> source list is private and not visible to concurrent RCU readers.
+> 
+> This is useful for moving elements from a private list into a global
+> RCU-protected list, ensuring safe publication for RCU readers.
+> Subsystems with some sort of batching mechanism from userspace can
+> benefit from this new function.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Reject the bogus fingerprint in nfnl_osf_add_callback() above the
-per-option for-loop. f->wss is per-fingerprint, not per-option, so
-the check must run regardless of f->opt_num (including 0). Also
-reject wss.wc >= OSF_WSS_MAX; nf_osf_match_one() already treats that
-as "should not happen".
+Looks plausible and useful.  Please see some comments inline below.
 
-Crash:
- Oops: divide error: 0000 [#1] SMP KASAN NOPTI
- RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
- Call Trace:
- <IRQ>
-  nf_osf_match (net/netfilter/nfnetlink_osf.c:220)
-  xt_osf_match_packet (net/netfilter/xt_osf.c:32)
-  ipt_do_table (net/ipv4/netfilter/ip_tables.c:348)
-  nf_hook_slow (net/netfilter/core.c:622)
-  ip_local_deliver (net/ipv4/ip_input.c:265)
-  ip_rcv (include/linux/skbuff.h:1162)
-  __netif_receive_skb_one_core (net/core/dev.c:6181)
-  process_backlog (net/core/dev.c:6642)
-  __napi_poll (net/core/dev.c:7710)
-  net_rx_action (net/core/dev.c:7945)
-  handle_softirqs (kernel/softirq.c:622)
+> ---
+> @I need this to fix a unsafe list_splice() of a private list to an
+> existing RCU-protected list. This is based on an existing idiom in
+> __list_splice_init_rcu().
+> 
+>  include/linux/rculist.h | 35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+> 
+> diff --git a/include/linux/rculist.h b/include/linux/rculist.h
+> index 2abba7552605..3c18c3336459 100644
+> --- a/include/linux/rculist.h
+> +++ b/include/linux/rculist.h
+> @@ -261,6 +261,41 @@ static inline void list_replace_rcu(struct list_head *old,
+>  	old->prev = LIST_POISON2;
+>  }
+>  
+> +/**
+> + * __list_splice_rcu - join a non-RCU list into an existing list.
+> + * @list:	the RCU-protected list to splice
 
-Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
-Reported-by: Weiming Shi <bestswngs@gmail.com>
-Suggested-by: Florian Westphal <fw@strlen.de>
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Xiang Mei <xmei5@asu.edu>
----
-v2: Fix the bug in configure path and correct the fix tag
+This is actually not RCU-protected, correct?  Sure, its elements
+(aside from the list header) are RCU-protected upon exit from this
+function, but by then they are in the {@prev,@next} list, not in
+this @list.
 
- net/netfilter/nfnetlink_osf.c | 4 ++++
- 1 file changed, 4 insertions(+)
+> + * @prev:	points to the last element of the existing list
+> + * @next:	points to the first element of the existing list
+> + *
+> + * The list pointed to by @prev and @next can be RCU-read traversed
+> + * concurrently with this function.
 
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 45d9ad231..70172ca07 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -320,6 +320,10 @@ static int nfnl_osf_add_callback(struct sk_buff *skb,
- 	if (f->opt_num > ARRAY_SIZE(f->opt))
- 		return -EINVAL;
- 
-+	if (f->wss.wc >= OSF_WSS_MAX ||
-+	    (f->wss.wc == OSF_WSS_MODULO && f->wss.val == 0))
-+		return -EINVAL;
-+
- 	for (i = 0; i < f->opt_num; i++) {
- 		if (!f->opt[i].length || f->opt[i].length > MAX_IPOPTLEN)
- 			return -EINVAL;
--- 
-2.43.0
+Doesn't this last sentence also need to go into the list_splice_rcu()
+function's kernel-doc header?  But please see below.
 
+> + */
+> +static inline void __list_splice_rcu(struct list_head *list,
+> +				     struct list_head *prev,
+> +				     struct list_head *next)
+> +{
+> +	struct list_head *first = list->next;
+> +	struct list_head *last = list->prev;
+> +
+> +	last->next = next;
+> +	rcu_assign_pointer(list_next_rcu(prev), first);
+> +	first->prev = prev;
+> +	next->prev = last;
+
+Although putting these last two after the rcu_assign_pointer() is safe,
+given that RCU readers do not traverse ->prev pointers, it would be
+better to place them before the rcu_assign_pointer() in order to avoid
+false sharing between this code path and any concurrent RCU readers.
+
+> +}
+> +
+> +/**
+> + * list_splice_rcu - splice a non-RCU list into an RCU-protected list,
+> + *                   designed for stacks.
+> + * @list:	the non RCU-protected list to splice
+> + * @head:	the place in the existing list to splice the first list into
+
+Please add something about @head being RCU-protected.
+
+> + */
+> +static inline void list_splice_rcu(struct list_head *list,
+> +				   struct list_head *head)
+> +{
+> +	if (!list_empty(list))
+> +		__list_splice_rcu(list, head, head->next);
+> +}
+
+I don't understand the purpose of having __list_splice_rcu() split out
+from list_splice_rcu().  If you are planning to add more callers of
+__list_splice_rcu(), you can always do the split when you add the first
+such caller.  In the meantime, why the extra code?
+
+Yes, we do have __list_splice_init_rcu(), but that is because it is
+called from both list_splice_init_rcu() and list_splice_tail_init_rcu().
+
+> +
+>  /**
+>   * __list_splice_init_rcu - join an RCU-protected list into an existing list.
+>   * @list:	the RCU-protected list to splice
+> -- 
+> 2.47.3
+> 
