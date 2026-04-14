@@ -1,81 +1,68 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FE0B3D9DB0
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 11:53:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91BC38D005
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 12:01:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776167598; cv=none; b=A843vvqzv2Xq0vwHyJqazhyHq8y1B/42ZFcOGH7Z0ZpNkD5+mKLqLHFmhDxO5YqWWRhUS5CgPS/OSkBCAzca4phZuX4rGVITlQ2VOI9KHUxb9bllsoT3rf9oqd7+tm+qqZgzGH//O0qCSsKlJ7g6Ls2hkWprU+BbszvUXK3vRhE=
+	t=1776168065; cv=none; b=dGAM0g0914zW0fQkzKCaqxIna9DpuY3bVP3tJWK8DwcDV47DZBn7DQisoO9hCQ7ebo+DLV2HZxm9FKpmIipiIqnnDCLZIEHEIvqZYE9oBapUQYpsIETOeKuuhHbWjEHpib9pmybzG+E0Hb3ZFyNjyreHkE30Q6ynUXsxya4pg9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776167598; c=relaxed/simple;
-	bh=Ejrfq3VFhT/J0R+ccrI8LeQQfxTuDuK0frfKpDYB8Yg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=bKYp1UymjvYnt9uSYHmdH1nfggYKMwYC3y8Lx+nzzrgb9u+GtPgYEMUqCugj0stT3ZqGMOBcOPLuUls1erT8jl2qxleD4kx7mNKUIQaJd3dfnq2l7W3Co4GJP+OZSebcZXbobK0AtK16t3Ywbe2gBUDAVKN69WkdwvpxL6UmfCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=fPIQPrbk; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2cM47wTt; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=fPIQPrbk; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2cM47wTt; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1776168065; c=relaxed/simple;
+	bh=HXU24dwSM6A1AxV04g/pB5XxRZxXiy1LoONcd+loM3Y=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=bH5TIeL7RmQ/AW8UGf9LO/A6vtwKEEOL3T0BhtTSBecZdm20nKxe14lESCv08SJUoJXn344xr+iMVUrt32FTb3Wa7FD+ujXjPOXFDyMY/SlD8ARGUZ+7zkPDQhkwSxfIhrZxRTlSAj7R7MYSySwFnImCv+afCITPVsXZ9RUcAUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iHnPXdgh; arc=none smtp.client-ip=209.85.218.53
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="fPIQPrbk";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2cM47wTt";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="fPIQPrbk";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2cM47wTt"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 6DA9C6A8C1;
-	Tue, 14 Apr 2026 11:53:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776167595; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=4FsOkb+P87jMNviLVfjRBTOBnNows2LTl7VpPyWDw18=;
-	b=fPIQPrbkmEfj9/lFI6dtzTGVLQcrypXnRA30AHeRK+ukMA5Qjm6fjBt9Re9zYGJw63oC+V
-	HEx3k3tB3r0twhkD89XWZyOnkO4oWsuCtDGX5aC6NwUOGQ0CINwUm9vfayZzolfXyMghcP
-	WPQ+wjQ31+ixg7CHl1/NaY0AP2yhF94=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776167595;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=4FsOkb+P87jMNviLVfjRBTOBnNows2LTl7VpPyWDw18=;
-	b=2cM47wTtB1Sw9/S4JFK4RIJORHg7I15oaLTFPsSQkILozewe16LKgdppS4u6uefxYzYzeC
-	hIFNorxs6zd09ACQ==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=fPIQPrbk;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=2cM47wTt
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776167595; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=4FsOkb+P87jMNviLVfjRBTOBnNows2LTl7VpPyWDw18=;
-	b=fPIQPrbkmEfj9/lFI6dtzTGVLQcrypXnRA30AHeRK+ukMA5Qjm6fjBt9Re9zYGJw63oC+V
-	HEx3k3tB3r0twhkD89XWZyOnkO4oWsuCtDGX5aC6NwUOGQ0CINwUm9vfayZzolfXyMghcP
-	WPQ+wjQ31+ixg7CHl1/NaY0AP2yhF94=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776167595;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=4FsOkb+P87jMNviLVfjRBTOBnNows2LTl7VpPyWDw18=;
-	b=2cM47wTtB1Sw9/S4JFK4RIJORHg7I15oaLTFPsSQkILozewe16LKgdppS4u6uefxYzYzeC
-	hIFNorxs6zd09ACQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 43C084B41F;
-	Tue, 14 Apr 2026 11:53:15 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id pkl+Dasq3ml6XwAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 14 Apr 2026 11:53:15 +0000
-Message-ID: <981ce550-bc53-4724-85f2-fd66d364433c@suse.de>
-Date: Tue, 14 Apr 2026 13:53:14 +0200
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iHnPXdgh"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b9c603ec2dfso736788766b.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 05:01:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776168060; x=1776772860; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=2d7SDP4tYVNHF5RjK6Z4XWLo0StG4PwjgZJsw7TAjok=;
+        b=iHnPXdghhNhZxQbXGPpMQAy/WghyKP2lAqDKIiIHKVP2ztJFDYMq53D48MDqEdRDO7
+         6ViTDklUvBoUzzELRjXzMFeGMW8aH2tAUofR8+0D2flzvi0k0sDcF21Jla/JfFWLMGtC
+         N19iii2ppBH+JXZsnOC1V/mfn/ZV0kgJPE0lBmm9z1tbJDqzqZ8DCML/yT1YGNrfYDpj
+         cXQbZx8uP+MydG2v+QhdZ0+p3ACbAJcEwok93FL5OHndXiDkxBE9dzLDMbjzE46wgv2J
+         anz+RbGttUpBQ21ZTv3zNiRyhk5CMV1NfSOpV8Hka03hd+MF61Kg1gT5bqQItvRRFtRv
+         2MIQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776168060; x=1776772860;
+        h=content-transfer-encoding:in-reply-to:content-language:from
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=2d7SDP4tYVNHF5RjK6Z4XWLo0StG4PwjgZJsw7TAjok=;
+        b=n7XAaKdSE+THJyLG2o2Gepj5MwtN33X6QWU7SS8X7UKwUZlIa3ElIkBx3x69oH7Pn9
+         fVaOROCkLXE6DoKEV1hUxpFLIqZXC36pC7OBHg7if99fEy7qEl4fnF2/6F6nVLKBiR0w
+         bbK/oYv5gcvSaOkDvwbsADzab6DFjB3lSDSNqyl+ohf4sBu5HcSnQ3LfxoqaHMy1dkt6
+         XLcuY67WBLyh9eCuMHAlCKhi/36bF7ZBgdjM3LidUZpP6G9l/M3KhdMqyYClWyU9Pewz
+         lqpOoUze+OVChxOtMbUeMZMrvzxpDGv/JkQT/7VgbzXY7yxk1nL5vgs1ggfsPzW9o7mu
+         8QnA==
+X-Forwarded-Encrypted: i=1; AFNElJ8NqDjqdCNkmt4+6Q+GVOC2eecU6xQphRrZ8F6ESejLZIQkgNwcS08hfso978aRmgQDPQz3b0S/3f8gYEnYYqA=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyefFvDA9oDmYtSlXZrvxzrnN97OyKiV8pp0kHmg5Vri8Si7f6X
+	AyT5CAkvPnapR6eb8IbXXu4GtFncqalHYf9qEdfEAuybgjMuLDLPiWkX
+X-Gm-Gg: AeBDiesTQ0mO6QCj7dlbQZ2vsiGMDBUurqEsGTv0LJhSG/6m9FxQ1RpSAeyrMF0Ll/x
+	E/vePh3oEQ/he8ykGe0XcJ5MLTGZuBXt+vc55IOKaK0bn7NtHoThIlPWbQe3NEBwvzZyGJa1vNh
+	PC7uXVXOWs6TwUcFcQbzFSgKyPBtqGYWUQQ6vclAeJAlYA7TtEHeiPQjBHc611wc9wsdkO41Eqx
+	2lTLJmq/IDv6fZ16XtUZgsvv2CLWwD76ej3AgVEPGKy3pLDiQDs0oxFivJqm/Be5zOUo+YBNffF
+	W8t4zNiucS8q6pmG+l86HWw9XUXykDtK96P/N1TnUf0xxasA4Rx4Vlbl/JnNd2O+ugGc4yrOcRu
+	hyCMZHjO+mIz527dFgp5jqlHI9cWia0+j7wXzireUiI9GaENCN8IFjCXYeIbmpJ7eCMM7/NXwdj
+	yfUNTZekKHZ+F2WEWgVJQxH0tE1zaNN+BEhy9utoRCVwPKKG5G2d8enFkUbxBpZMpN7lqAf295N
+	ACSL65jFq6GsN9mJGdNyC3oYBfNbbw3rEk6TRy1iUjGUH3Xbl9Ulql6/5BLk7x+rF1Wv0R5SODc
+	rlTw8LGqaLdjjPjGTdg4ZBULZ+jdQHds3TL7uZWOaLOr
+X-Received: by 2002:a17:907:a2c5:b0:b97:1009:7536 with SMTP id a640c23a62f3a-b9d72792d3amr965295766b.15.1776168059396;
+        Tue, 14 Apr 2026 05:00:59 -0700 (PDT)
+Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6717ae8cb15sm1358146a12.19.2026.04.14.05.00.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 14 Apr 2026 05:00:58 -0700 (PDT)
+Message-ID: <0f0f217e-a32b-4c9a-ab65-1cac5c86c76f@gmail.com>
+Date: Tue, 14 Apr 2026 14:00:57 +0200
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -83,80 +70,96 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH nf] netfilter: nft_osf: restrict it to ipv6
-To: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter-devel@vger.kernel.org
-References: <20260414110811.6178-1-pablo@netfilter.org>
+Subject: Re: [PATCH v2 nf] netfilter: nf_flow_table_ip: Introduce
+ nf_flow_vlan_push()
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+ "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
+ Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
+ netdev@vger.kernel.org
+References: <20260414112120.248744-1-ericwouds@gmail.com>
+ <ad4nQzsbeF1S53zt@chamomile>
+From: Eric Woudstra <ericwouds@gmail.com>
 Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <20260414110811.6178-1-pablo@netfilter.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+In-Reply-To: <ad4nQzsbeF1S53zt@chamomile>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-4.51 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	MX_GOOD(-0.01)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	TO_DN_SOME(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,netfilter.org:email,suse.de:dkim,suse.de:mid,suse.de:email];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Queue-Id: 6DA9C6A8C1
-X-Spam-Flag: NO
-X-Spam-Score: -4.51
-X-Spam-Level: 
 
-On 4/14/26 1:08 PM, Pablo Neira Ayuso wrote:
-> This expression only supports for ipv4, restrict it.
+
+
+On 4/14/26 1:38 PM, Pablo Neira Ayuso wrote:
+> On Tue, Apr 14, 2026 at 01:21:20PM +0200, Eric Woudstra wrote:
+>> Calling skb_reset_mac_header() before calling skb_vlan_push() does
+>> remove the error:
+>>
+>> "skb_vlan_push got skb with skb->data not at mac header (offset 18)"
+>>
+>> But the inner vlan tag is still not inserted correctly.
+>>
+>> skb_vlan_push() uses __vlan_insert_inner_tag() to insert the tag
+>> at offset ETH_HLEN. But the inner tag should only be pushed, without
+>> offset, similar to nf_flow_pppoe_push().
 > 
-> Fixes: b96af92d6eaf ("netfilter: nf_tables: implement Passive OS fingerprint module in nft_osf")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->   net/netfilter/nft_osf.c | 6 +++++-
->   1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nft_osf.c b/net/netfilter/nft_osf.c
-> index 1c0b493ef0a9..bdc2f6c90e2f 100644
-> --- a/net/netfilter/nft_osf.c
-> +++ b/net/netfilter/nft_osf.c
-> @@ -28,6 +28,11 @@ static void nft_osf_eval(const struct nft_expr *expr, struct nft_regs *regs,
->   	struct nf_osf_data data;
->   	struct tcphdr _tcph;
->   
-> +	if (nft_pf(pkt) != NFPROTO_IPV4) {
-> +		regs->verdict.code = NFT_BREAK;
-> +		return;
-> +	}
-> +
->   	if (pkt->tprot != IPPROTO_TCP) {
->   		regs->verdict.code = NFT_BREAK;
->   		return;
-> @@ -114,7 +119,6 @@ static int nft_osf_validate(const struct nft_ctx *ctx,
->   
->   	switch (ctx->family) {
->   	case NFPROTO_IPV4:
-> -	case NFPROTO_IPV6:
->   	case NFPROTO_INET:
->   		hooks = (1 << NF_INET_LOCAL_IN) |
->   			(1 << NF_INET_PRE_ROUTING) |
+> It is doubled-tagged-vlan that is broken, right? I observed this once
+> but I have been burdened into a few things.
 
-Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
+That is correct, both q-in-q and q-in-ad (that may not be the correct
+terms, but I think it is clear).
 
-I have the feeling I should re-review everything I did 7 years ago :-)
+>> Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
+>> Fixes: a3aca98aec9a ("netfilter: nf_flow_table_ip: reset mac header before vlan push")
+>> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
+>>
+>> ---
+>>
+>>  net/netfilter/nf_flow_table_ip.c | 25 ++++++++++++++++++++++---
+>>  1 file changed, 22 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+>> index fd56d663cb5b..0086f8a1a0d6 100644
+>> --- a/net/netfilter/nf_flow_table_ip.c
+>> +++ b/net/netfilter/nf_flow_table_ip.c
+>> @@ -544,6 +544,26 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+>>  	return 1;
+>>  }
+>>  
+>> +static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id)
+>> +{
+>> +	if (skb_vlan_tag_present(skb)) {
+>> +		struct vlan_hdr *vhdr;
+>> +
+>> +		if (skb_cow_head(skb, VLAN_HLEN))
+>> +			return -1;
+>> +
+>> +		__skb_push(skb, VLAN_HLEN);
+>> +		skb_reset_network_header(skb);
+>> +		vhdr = (struct vlan_hdr *)(skb->data);
+>> +		vhdr->h_vlan_TCI = htons(id);
+>> +		vhdr->h_vlan_encapsulated_proto = skb->protocol;
+>> +		skb->protocol = proto;
+>> +	} else {
+>> +		__vlan_hwaccel_put_tag(skb, proto, id);
+>> +	}
+>> +	return 0;
+>> +}
+>> +
+>>  static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
+>>  {
+>>  	int data_len = skb->len + sizeof(__be16);
+>> @@ -738,9 +758,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+>>  		switch (tuple->encap[i].proto) {
+>>  		case htons(ETH_P_8021Q):
+>>  		case htons(ETH_P_8021AD):
+>> -			skb_reset_mac_header(skb);
+>> -			if (skb_vlan_push(skb, tuple->encap[i].proto,
+>> -					  tuple->encap[i].id) < 0)
+>> +			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
+>> +					      tuple->encap[i].id) < 0)
+>>  				return -1;
+>>  			break;
+>>  		case htons(ETH_P_PPP_SES):
+>> -- 
+>> 2.53.0
+>>
 
-Thanks!
