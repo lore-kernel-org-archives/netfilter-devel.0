@@ -1,97 +1,149 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f80.google.com (mail-oo1-f80.google.com [209.85.161.80])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B87F939449F;
-	Tue, 14 Apr 2026 09:19:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171713D5246
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 10:30:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.80
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776158395; cv=none; b=DHugoVe0yQRavKZzGKkgD7jvUOEtl77zq8IWQQKZwhbBungUTe1Vdoe8ggAahNpL2709iIZiM0InnBvf+w0FUxc3SlaMPta/R4t8B39JM38keCBC2HzmOEKHnazWr/gKfi7J3TMW/atT9DONIN0oxtc+Sxpcv0AkbajPNDKUFx0=
+	t=1776162636; cv=none; b=vCZ+lDnvDHulZM4NxkmNScbvaPx2yq6NJ+YEG1R0YS5hHcofi2Alwq3z5rlCB7MxPRn0i4ZI+w2uXgFcY8p+Sf90mh4Jsgz8mYiyqT7YGrUfkPhI7Q2yFJeFMszfQTZ3JGBz8uMwM1tlIpByunYNEVo7ASZnvcCH3V9/Bk0r6ps=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776158395; c=relaxed/simple;
-	bh=sKcZLVNvHb8yRmI5awUWTQYuQwCIJK/UBSfJEIr4aDA=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qjvIE/QXEPHm2QperPMIxEe1mmD3y+TiaE3pJDH4Yq30spAz7B35MDAMl+BDc2ApGm3hmrEkTG7IFRnHjrx7lwG0gJns9p7x+tndWfYYExJhJm83FjnRPSPN8xgbScqmzIyO1a7lefRgKZFqMQacB/UalmyoPV+/f5W+z6yd1HA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Nd4HUkeC; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Nd4HUkeC"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C853A60177;
-	Tue, 14 Apr 2026 11:19:52 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776158392;
-	bh=enhIhzXsyFp7SQFqWZ5qyLY/Tha2IbAP5uxa7ljAgCU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Nd4HUkeCQIE9WHRXag+SQsjaW8Jf1IIhzD0zrvZY/I5zJfKJDCqpPTOxBD3sg4y6E
-	 WwhV7gjIubLFcgr69eQz9EvikaQfqnicZoYEHKeGZBy+Gv5FR9aqqzHb3Cvve0yWJQ
-	 2xr9xR1//WcTzwFua7tn8kS6wmL0VaD7mFCzR610UhYMMatzQWGJX+2+oHEVZo97yD
-	 I7/m92lmBKn4p4pFf7H0SvI5jtBIHguqsP/c0wWT2aEuoz6G4kCLqFhsmW0ps3ghwh
-	 g/1MW03sybdsM2UD6O+5l00CJe9/bEFWDBgFA36+9CqmJ6ezrHvDAt7KdwiL0TenZ4
-	 4ouVo5HNbulvQ==
-Date: Tue, 14 Apr 2026 11:19:50 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Kito Xu (veritas501)" <hxzene@gmail.com>
-Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
-	"David S. Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Simon Horman <horms@kernel.org>,
-	Fernando Fernandez Mancera <ffmancera@riseup.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: nfnetlink_osf: fix null-ptr-deref in
- nf_osf_ttl
-Message-ID: <ad4GtgPqTcXl8hUC@chamomile>
-References: <20260414074556.2512750-1-hxzene@gmail.com>
+	s=arc-20240116; t=1776162636; c=relaxed/simple;
+	bh=FCSBefH/oTmdgHdyyArq8Sd+rdXE9JmhilR3WYZJjdE=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=HWuLSPO4sBwqFK1FZD1izTCw5VJ16hgGqvQAVtplhP5dyLynM3G2w632A9FFNQxy412m0+T0y66phqQA0BkJYGd9sicbBaGirOZbc7pynNt42f7icrV0O1dWIKFeStctXsXLcW8MEYjJARUDIkPvKK+X0n6ZS3lU/VED+SFsAqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.161.80
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-oo1-f80.google.com with SMTP id 006d021491bc7-6853c2438b9so10258509eaf.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 03:30:29 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776162627; x=1776767427;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=H9YZZSGezJHiuJUYElsZmyJ9oq+8X/IHgJLyoXz58+k=;
+        b=oKxESqpB+sDXpCSxHCsYWacY2Mtyf/7e8burgwN9tRX4mNUXPRYphVafrVhLWRJo5e
+         6+3+4wwuaZuTDj3tpY4RoXI6fKT8BEMVDvhmY4EYRkMPCIRiNvbxPKRS9i4aLdmHe1e4
+         dkMT7qmcOyrrbH7GlOCwgPe4kqtnKct//oF/tmozzs7ysO+7nH6e7KeTaj1HnNezqL8Z
+         0kjhPrH+oS0uIeCDOUH9JgV2uRMlDusnCcxPqkDKGvvK8cYMyui16S3X80oY6+8RyGKi
+         Mp65OyIrQTIYbX7uVl36OgrklcTQIrHlNQSQ4UnCWY7e1a8KVoD4USLF5SfAIU7mDF/r
+         JAhA==
+X-Forwarded-Encrypted: i=1; AFNElJ9jhCw7i4u2zBMNcevDD3iISg/kmlrykvFYN3oK+XqccQ6csPjUmqXfemGenwSfRiGCLXpEJN/wMNznJWlzH58=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzdrVI+gvICn4I/5YWePwm7DdGw77+4QPXst6HYyiwzKxFbcX3D
+	n7qVvjRQqjrxy2KUXKeNYsZ5cwUEVQYQEh49NfeMyFl2oVmygg7/Sa4TnK2NSde7gXFt6vUBkTW
+	zX60f/sJ7lLg1wDs8yhYNMFHsbdg8rp23bj4cHt+T0t43mDUoohuoKEMOBGo=
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260414074556.2512750-1-hxzene@gmail.com>
+X-Received: by 2002:a05:6820:16a5:b0:682:7662:ccfa with SMTP id
+ 006d021491bc7-691bfecef49mr821814eaf.49.1776162627631; Tue, 14 Apr 2026
+ 03:30:27 -0700 (PDT)
+Date: Tue, 14 Apr 2026 03:30:27 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <69de1743.a00a0220.475f0.0040.GAE@google.com>
+Subject: [syzbot] [lvs?] BUG: sleeping function called from invalid context in ip_vs_conn_expire
+From: syzbot <syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com>
+To: coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com, 
+	fw@strlen.de, horms@verge.net.au, ja@ssi.bg, kuba@kernel.org, 
+	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org, 
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com, 
+	pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Apr 14, 2026 at 03:45:56PM +0800, Kito Xu (veritas501) wrote:
-> diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-> index d64ce21c7b55..85dbd47dbbd4 100644
-> --- a/net/netfilter/nfnetlink_osf.c
-> +++ b/net/netfilter/nfnetlink_osf.c
-> @@ -43,6 +43,9 @@ static inline int nf_osf_ttl(const struct sk_buff *skb,
->  	else if (ip->ttl <= f_ttl)
->  		return 1;
->  
-> +	if (!in_dev)
-> +		return 0;
-> +
+Hello,
 
-I suggest you add this check a bit earlier:
+syzbot found the following issue on:
 
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 5d15651c74f0..e8069f4e139b 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -36,6 +36,9 @@ static inline int nf_osf_ttl(const struct sk_buff *skb,
-        const struct in_ifaddr *ifa;
-        int ret = 0;
- 
-+       if (!in_dev)
-+               return 0;
-+
-        if (ttl_check == NF_OSF_TTL_TRUE)
-                return ip->ttl == f_ttl;
-        if (ttl_check == NF_OSF_TTL_NOCHECK)
-@@ -43,9 +46,6 @@ static inline int nf_osf_ttl(const struct sk_buff *skb,
-        else if (ip->ttl <= f_ttl)
-                return 1;
- 
--       if (!in_dev)
--               return 0;
--
-        in_dev_for_each_ifa_rcu(ifa, in_dev) {
-                if (inet_ifa_match(ip->saddr, ifa)) {
-                        ret = (ip->ttl == f_ttl);
+HEAD commit:    1c7cc4904160 Add linux-next specific files for 20260413
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=10327cd2580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=56c2b36de3316f1b
+dashboard link: https://syzkaller.appspot.com/bug?extid=504e778ddaecd36fdd17
+compiler:       Debian clang version 21.1.8 (++20251221033036+2078da43e25a-1~exp1~20251221153213.50), Debian LLD 21.1.8
 
-Thanks!
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/91a765b703da/disk-1c7cc490.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/da75a3061146/vmlinux-1c7cc490.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/d55367ced048/bzImage-1c7cc490.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com
+
+BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 16, name: ktimers/0
+preempt_count: 2, expected: 0
+RCU nest depth: 3, expected: 3
+8 locks held by ktimers/0/16:
+ #0: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+ #1: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+ #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
+ #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: timer_base_lock_expiry kernel/time/timer.c:1502 [inline]
+ #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: __run_timer_base+0x120/0x9f0 kernel/time/timer.c:2384
+ #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
+ #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
+ #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __rt_spin_lock kernel/locking/spinlock_rt.c:50 [inline]
+ #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1e0/0x400 kernel/locking/spinlock_rt.c:57
+ #4: ffffc90000157a80 ((&cp->timer)){+...}-{0:0}, at: call_timer_fn+0xd4/0x5e0 kernel/time/timer.c:1745
+ #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
+ #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
+ #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:315 [inline]
+ #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_expire+0x257/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+ #6: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+ #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
+ #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
+ #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+Preemption disabled at:
+[<ffffffff898a6358>] bit_spin_lock include/linux/bit_spinlock.h:38 [inline]
+[<ffffffff898a6358>] hlist_bl_lock+0x18/0x110 include/linux/list_bl.h:149
+CPU: 0 UID: 0 PID: 16 Comm: ktimers/0 Tainted: G        W    L      syzkaller #0 PREEMPT_{RT,(full)} 
+Tainted: [W]=WARN, [L]=SOFTLOCKUP
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/18/2026
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ __might_resched+0x329/0x480 kernel/sched/core.c:9162
+ __rt_spin_lock kernel/locking/spinlock_rt.c:48 [inline]
+ rt_spin_lock+0xc2/0x400 kernel/locking/spinlock_rt.c:57
+ spin_lock include/linux/spinlock_rt.h:45 [inline]
+ ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
+ ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+ call_timer_fn+0x192/0x5e0 kernel/time/timer.c:1748
+ expire_timers kernel/time/timer.c:1799 [inline]
+ __run_timers kernel/time/timer.c:2374 [inline]
+ __run_timer_base+0x6a3/0x9f0 kernel/time/timer.c:2386
+ run_timer_base kernel/time/timer.c:2395 [inline]
+ run_timer_softirq+0xb7/0x170 kernel/time/timer.c:2405
+ handle_softirqs+0x1de/0x6d0 kernel/softirq.c:622
+ __do_softirq kernel/softirq.c:656 [inline]
+ run_ktimerd+0x69/0x100 kernel/softirq.c:1151
+ smpboot_thread_fn+0x541/0xa50 kernel/smpboot.c:160
+ kthread+0x388/0x470 kernel/kthread.c:436
+ ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
