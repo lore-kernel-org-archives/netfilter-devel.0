@@ -1,243 +1,121 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dl1-f48.google.com (mail-dl1-f48.google.com [74.125.82.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A04D2773F7
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 17:14:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E04E3EE1C0
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 17:25:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776186852; cv=none; b=sxUDTSj4OAh6d20s4GqTws9xCmPhPM+mlLDjzdUoi6bVE/JE4bSHOOhSb0ke0qAlT6GLtjrKOBOgNZkAbO+jab11yePDWkHk/cIUr3+2HSnqHmsYMUNzTUMACkXTFE8HJyb+g3wVKxP1Tu6AjIae54AAPuSZHWsjPnniV3UognE=
+	t=1776187546; cv=none; b=Y1zzbuqkg7bYBu4x/7Etsvgctb5ZuXW5/X+74dCiwP698YhQuwRk7ZL419D1Z+8EzdNO1kc8HMyprXnbwFIo0noU3pJ5n5J0FtSNtkZP8ruAaMssMW0RA82u97nbtrAnMIbCRWWvemZBUeEFYoNAGHxH1AXZhzju+EY5ywPc/U0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776186852; c=relaxed/simple;
-	bh=pVk+bUqDXOHWJDOkoGosU4C74QU7W88WC3KXlxYwuTA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ux1MHLDVR9/kELqJmnYzoZq0CIEKGd+UyqycULM0lc6TOBwyX3GudGkftl0Ym3PiFoLwxexi4Pn8STYadh8dlpinq/GhfDF6zdzxWJG7fkQpWqBG7JUXMPiahDpA8QQc6EolCFM0UUqRzQtYJuDNWjPRS1LryPB3uUsU7m7rXt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id DEC7E608DB; Tue, 14 Apr 2026 19:14:09 +0200 (CEST)
-From: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Cc: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 2/2] netfilter: nf_conntrack_sip: don't use strtoul_simple
-Date: Tue, 14 Apr 2026 19:13:47 +0200
-Message-ID: <20260414171351.31212-2-fw@strlen.de>
-X-Mailer: git-send-email 2.52.0
-In-Reply-To: <20260414171351.31212-1-fw@strlen.de>
-References: <20260414171351.31212-1-fw@strlen.de>
+	s=arc-20240116; t=1776187546; c=relaxed/simple;
+	bh=Q9Li6IEfFolCG0UHL7CcRmbINp9qWSGmAYv9wveCFmc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=CQeYaKRyRatQ3xYClVmHy/0uohOXRBDE9Ti2vpOhuP3EuvJWJUQE4+DKIAXUKdVhrbMP0wohXn0O8jRv+X+RRjWfQl55xBWF7mQH2MEmtUJwSc+x5kT0UxEHFBWq7LmGcdE4OaqZYtzMQegCWiuB6VteXR+mSFvogS2y81MSeV4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wbinvd.org; spf=pass smtp.mailfrom=wbinvd.org; dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b=XCG7he9g; arc=none smtp.client-ip=74.125.82.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wbinvd.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wbinvd.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=wbinvd.org header.i=@wbinvd.org header.b="XCG7he9g"
+Received: by mail-dl1-f48.google.com with SMTP id a92af1059eb24-12c565476d7so3065621c88.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 10:25:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=wbinvd.org; s=wbinvd; t=1776187539; x=1776792339; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=v0I/6gn6yL3+F/vGBALh7XtrJMo526TaxSYPqk338Bo=;
+        b=XCG7he9gu5CmHUOaYVyo/KsBRc3L1Oaz48GijqjD7WqC1zm4NYbY0Sgyz0CRFHYqTh
+         6U7Ewt6HUoKacTF7Oqpo5/Yc+KqvLHxyIRs33HFyhUEECMDB3cSJO9enKKiuV4BDIjMC
+         w049v07J+r2JrHRSN0CNG75T4m4itaF+kTaCK+pKj+dTvLteBGjVG0QF1ZSMGkJjH1zO
+         Mo3ji9BjDTYtSt/sRwUyF3NZbVJR4ERPt3YQViRLZxKRD70Z6HSoClxzpsfGkiUdyQJv
+         cz4LQmv2H5YnWWPVgy+tF8Kd8eRmoVdhyVVXMBpWD165F3AE3T2MoecHp8zlHJNsqgRa
+         jWxQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776187539; x=1776792339;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=v0I/6gn6yL3+F/vGBALh7XtrJMo526TaxSYPqk338Bo=;
+        b=Qw7vu6be9VJS4pVG6iaVQwAQfcGClsIoC1MNP0AoO0pY9G/8d963UfCz+Dds7TI7DF
+         SqhdMNppz48wT+0E6+8wqrsXvKFolC10YEZA3vty/ZAfE5b+4Pza+tBwrjUFdFcEteku
+         rWytIPVkFAX4cxkn00oxDBGv10IqBWyj6umosefQyY6VutdFxIQDkLh/L6GKoRdP+6sd
+         +lbQzZneyKFjK8WZ0HdmDpeaErArhgrU9baU3Hj5c52TwaCRlabzJWCGQ3idzZAtsjpN
+         rI1nppWHBJzSmVND9jXTlLf6Nf2Mca+PXIbgBazBqN2z7lCQUw+ypjRmVKJ/EmrTrUvH
+         WmKA==
+X-Forwarded-Encrypted: i=1; AFNElJ/rV0Tyjsi8y/5ZA3qaVgN/Cohi8tBAhFlFR1KmFjsxX7htMOgJtJ+rrxksZ9h0kgmuP6TJt7Rg5Mfe0UHGE74=@vger.kernel.org
+X-Gm-Message-State: AOJu0YyPgj/gGbvCWbNrnmG04K5CDhVrWmdgq4Fhgof30qJzSJEqMbN4
+	TU6jgavjSKSiF4q/V36tApqyLnpzeDSOdZc2yaS6GR2IORnxn0ZreFMsA3lOb3wVdkI=
+X-Gm-Gg: AeBDiev0rMQpkdKBxdPnR+GsGpJ8GxCzZkK3mQzGg+McYUYDtftq1A7AX9QDE54yIbr
+	HfqNtjPZRNADKMiy7xERMdW7CBaz/GoXVTxcwzTnK/e35kMk4pR+GM7kLgAQCEhLiZbNuENycrA
+	fekF072CwVIW5drgunxQpVCz4QPU4rxUhxKLaFqCtsxXGNb3j0ZuJUZRAwq0pFDlpBYwZqD/5/i
+	4Qx2YU1gtK/acD9P8YdmbM0ZIDMH7alTLeDHK1SY6c3AU0ZXvysjZ151CUGZUnfsaUKcrvhJDDC
+	omf9/uF9DcK9bMvU+xOQdqJMa3hE8VrEaprw7hl3STB+kZfN+qAKLXk/Fv9vB5qCyK+nMkMQTUe
+	kZsleKSUHVs2W0wc3zEd1L5oA1hEhk99tX029XjT2feLjfzgmKk96quzPk4SAaWyIyOhPSvfHkc
+	KFUR8Z7YpNg7ZLwB16f+8z4UhK
+X-Received: by 2002:a05:7022:eac5:b0:128:d2b3:5df with SMTP id a92af1059eb24-12c34ecea05mr10134040c88.23.1776187539356;
+        Tue, 14 Apr 2026 10:25:39 -0700 (PDT)
+Received: from mozart.vkv.me ([2001:5a8:468b:d015:93b7:bacf:b594:6a9])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2d940083f49sm9555914eec.13.2026.04.14.10.25.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 14 Apr 2026 10:25:38 -0700 (PDT)
+Date: Tue, 14 Apr 2026 10:25:36 -0700
+From: Calvin Owens <calvin@wbinvd.org>
+To: Eric Naim <dnaim@cachyos.org>
+Cc: Hanabishi <i.r.e.c.c.a.k.u.n+kernel.org@gmail.com>,
+	Thomas Gleixner <tglx@kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Anna-Maria Behnsen <anna-maria@linutronix.de>,
+	Frederic Weisbecker <frederic@kernel.org>,
+	Ingo Molnar <mingo@kernel.org>, John Stultz <jstultz@google.com>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-fsdevel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
+	linux-pm@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+Subject: Re: The "clockevents: Prevent timer interrupt starvation" patch
+ causes lockups
+Message-ID: <ad54kGakZkvCoRaT@mozart.vkv.me>
+References: <20260407083219.478203185@kernel.org>
+ <20260407083247.562657657@kernel.org>
+ <68d1e9ac-2780-4be3-8ee3-0788062dd3a4@gmail.com>
+ <aeb848aa-404a-40fb-bd41-329644623b1d@cachyos.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <aeb848aa-404a-40fb-bd41-329644623b1d@cachyos.org>
 
-Probably 'safe' because struct shinfo is stored at end of linear data area
-and simple_strotul bails out on first character thats not a number.
+On Tuesday 04/14 at 15:39 +0000, Eric Naim wrote:
+> On 4/14/26 5:20 AM, Hanabishi wrote:
+> > 
+> > Hello.
+> > 
+> > Sorry, but this patch as of 7.0 introduced *severe* periodic lockups on my
+> > Ryzen 7700X machine.
+> > I see such messages in the log:
+> > 
+> > clocksource: Long readout interval, skipping watchdog check: cs_nsec:
+> > 2897344852 wd_nsec: 2897356996
+> > 
+> > Reverting d6e152d905bdb1f32f9d99775e2f453350399a6a for mainline fixes the
+> > issue for me.
+> > 
+> 
+> Hi maintainers,
+> 
+> several users from CachyOS has reported this regression as well. We landed on
+> the same bisection. One of the users that could reproduce this reliably
+> reproduced this just by watching a YouTube video in a browser, and observed
+> freezes and stutters when interacting with the system.
 
-Prefer a stricter version instead.  There are intentional changes:
+Huh, I can't reproduce this at all across 10+ machines. Can you share
+the Kconfig you're seeing this on?
 
-- Bail out if number is > UINT_MAX and indicate a failure.
-  We don't expect huge values here.
-
-- Bail out if we get more characters than expected, we don't expect
-  something like 'expires=9999999999999999999999999999999999'.
-
-- In ct_sip_parse_numerical_param() base 10 is enforced. This is used
-  to fetch 'expire=' and 'rports='; both are expected to be base-10 values.
-
-- In nf_nat_sip.c, only accept the parsed value if its within the 1k-64k
-  range.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Could be deferred to nf-next, but given we're in merge window I think nf is fine.
-
- net/netfilter/nf_conntrack_sip.c | 73 ++++++++++++++++++++++++++------
- net/netfilter/nf_nat_sip.c       |  1 +
- 2 files changed, 62 insertions(+), 12 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 939502ff7c87..02c65415f309 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -228,6 +228,51 @@ static int skp_epaddr_len(const struct nf_conn *ct, const char *dptr,
- 	return epaddr_len(ct, dptr, limit, shift);
- }
- 
-+/* simple_stroul stops after first non-number character.
-+ * But as we're not dealing with c-strings, we can't rely on
-+ * hitting \r,\n,\0 etc. before moving past end of buffer.
-+ *
-+ * This is a variant of simple_stroul, but doesn't require
-+ * a c-string.
-+ *
-+ * If value exceeds UINT_MAX, 0 is returned.
-+ */
-+static unsigned int sip_strtouint(const char *cp, unsigned int len, char **endp)
-+{
-+	const unsigned int max = sizeof("4294967295");
-+	unsigned int olen = len;
-+	const char *s = cp;
-+	u64 result = 0;
-+
-+	if (len > max)
-+		len = max;
-+
-+	while (olen > 0 && isdigit(*s)) {
-+		unsigned int value;
-+
-+		if (len == 0)
-+			goto err;
-+
-+		value = *s - '0';
-+		result = result * 10 + value;
-+
-+		if (result > UINT_MAX)
-+			goto err;
-+		s++;
-+		len--;
-+		olen--;
-+	}
-+
-+	if (endp)
-+		*endp = (char *)s;
-+
-+	return result;
-+err:
-+	if (endp)
-+		*endp = (char *)cp;
-+	return 0;
-+}
-+
- /* Parse a SIP request line of the form:
-  *
-  * Request-Line = Method SP Request-URI SP SIP-Version CRLF
-@@ -269,7 +314,7 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- 		return -1;
- 	if (end < limit && *end == ':') {
- 		end++;
--		p = simple_strtoul(end, (char **)&end, 10);
-+		p = sip_strtouint(end, limit - end, (char **)&end);
- 		if (p < 1024 || p > 65535)
- 			return -1;
- 		*port = htons(p);
-@@ -522,7 +567,7 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 		return -1;
- 	if (*c == ':') {
- 		c++;
--		p = simple_strtoul(c, (char **)&c, 10);
-+		p = sip_strtouint(c, limit - c, (char **)&c);
- 		if (p < 1024 || p > 65535)
- 			return -1;
- 		*port = htons(p);
-@@ -609,7 +654,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
- 		return 0;
- 
- 	start += strlen(name);
--	*val = simple_strtoul(start, &end, 0);
-+	*val = sip_strtouint(start, limit - start, (char **)&end);
- 	if (start == end)
- 		return -1;
- 	if (matchoff && matchlen) {
-@@ -1065,6 +1110,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
- 
- 	mediaoff = sdpoff;
- 	for (i = 0; i < ARRAY_SIZE(sdp_media_types); ) {
-+		char *end;
-+
- 		if (ct_sip_get_sdp_header(ct, *dptr, mediaoff, *datalen,
- 					  SDP_HDR_MEDIA, SDP_HDR_UNSPEC,
- 					  &mediaoff, &medialen) <= 0)
-@@ -1080,8 +1127,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
- 		mediaoff += t->len;
- 		medialen -= t->len;
- 
--		port = simple_strtoul(*dptr + mediaoff, NULL, 10);
--		if (port == 0)
-+		port = sip_strtouint(*dptr + mediaoff, *datalen - mediaoff, (char **)&end);
-+		if (port == 0 || *dptr + mediaoff == end)
- 			continue;
- 		if (port < 1024 || port > 65535) {
- 			nf_ct_helper_log(skb, ct, "wrong port %u", port);
-@@ -1255,7 +1302,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
- 	 */
- 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
- 			      &matchoff, &matchlen) > 0)
--		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
-+		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
- 
- 	ret = ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
- 				      SIP_HDR_CONTACT, NULL,
-@@ -1359,7 +1406,7 @@ static int process_register_response(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
- 			      &matchoff, &matchlen) > 0)
--		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
-+		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
- 
- 	while (1) {
- 		unsigned int c_expires = expires;
-@@ -1422,7 +1469,8 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (*datalen < strlen("SIP/2.0 200"))
- 		return NF_ACCEPT;
--	code = simple_strtoul(*dptr + strlen("SIP/2.0 "), NULL, 10);
-+	code = sip_strtouint(*dptr + strlen("SIP/2.0 "),
-+			     *datalen - strlen("SIP/2.0"), NULL);
- 	if (!code) {
- 		nf_ct_helper_log(skb, ct, "cannot get code");
- 		return NF_DROP;
-@@ -1433,7 +1481,7 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
- 		nf_ct_helper_log(skb, ct, "cannot parse cseq");
- 		return NF_DROP;
- 	}
--	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
-+	cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
- 	if (!cseq && *(*dptr + matchoff) != '0') {
- 		nf_ct_helper_log(skb, ct, "cannot get cseq");
- 		return NF_DROP;
-@@ -1483,6 +1531,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 
- 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
- 		const struct sip_handler *handler;
-+		char *end;
- 
- 		handler = &sip_handlers[i];
- 		if (handler->request == NULL)
-@@ -1499,8 +1548,8 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
- 			nf_ct_helper_log(skb, ct, "cannot parse cseq");
- 			return NF_DROP;
- 		}
--		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
--		if (!cseq && *(*dptr + matchoff) != '0') {
-+		cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
-+		if (*dptr + matchoff == end) {
- 			nf_ct_helper_log(skb, ct, "cannot get cseq");
- 			return NF_DROP;
- 		}
-@@ -1576,7 +1625,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
- 				      &matchoff, &matchlen) <= 0)
- 			break;
- 
--		clen = simple_strtoul(dptr + matchoff, (char **)&end, 10);
-+		clen = sip_strtouint(dptr + matchoff, datalen - matchoff, (char **)&end);
- 		if (dptr + matchoff == end)
- 			break;
- 
-diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
-index c845b6d1a2bd..9fbfc6bff0c2 100644
---- a/net/netfilter/nf_nat_sip.c
-+++ b/net/netfilter/nf_nat_sip.c
-@@ -246,6 +246,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
- 		if (ct_sip_parse_numerical_param(ct, *dptr, matchend, *datalen,
- 						 "rport=", &poff, &plen,
- 						 &n) > 0 &&
-+		    n >= 1024 && n <= 65535 &&
- 		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
- 		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
- 			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
--- 
-2.52.0
-
+Thanks,
+Calvin
