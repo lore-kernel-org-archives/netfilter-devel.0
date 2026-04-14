@@ -1,165 +1,125 @@
-Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-179.mta0.migadu.com (out-179.mta0.migadu.com [91.218.175.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E91BC38D005
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 12:01:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 314CA3E0C4E
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 12:09:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776168065; cv=none; b=dGAM0g0914zW0fQkzKCaqxIna9DpuY3bVP3tJWK8DwcDV47DZBn7DQisoO9hCQ7ebo+DLV2HZxm9FKpmIipiIqnnDCLZIEHEIvqZYE9oBapUQYpsIETOeKuuhHbWjEHpib9pmybzG+E0Hb3ZFyNjyreHkE30Q6ynUXsxya4pg9g=
+	t=1776168574; cv=none; b=WogOJ0qUa0vrIOCPo5fUtFDp1DBEc5yr8cuvMtm+8RphcciX3YKr0A/tu2nVbIbFz5qRhDPTrThRK38D4YujXixoWdMCxHm08fquFBrbbaS4P0QVB/eH91nuh5lULfpLD/L2Xr8HX2IQdxt+ikUfuXQrWkHvsYvKFcQkPalsI8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776168065; c=relaxed/simple;
-	bh=HXU24dwSM6A1AxV04g/pB5XxRZxXiy1LoONcd+loM3Y=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=bH5TIeL7RmQ/AW8UGf9LO/A6vtwKEEOL3T0BhtTSBecZdm20nKxe14lESCv08SJUoJXn344xr+iMVUrt32FTb3Wa7FD+ujXjPOXFDyMY/SlD8ARGUZ+7zkPDQhkwSxfIhrZxRTlSAj7R7MYSySwFnImCv+afCITPVsXZ9RUcAUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iHnPXdgh; arc=none smtp.client-ip=209.85.218.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776168574; c=relaxed/simple;
+	bh=v1fK/1cChZ6rrt99Qr8LYZy9YUmvcWvPUtcVecbwhLI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=IpRjiBUYBjrXd2sY35Ei4+xi5toP5MosCf55oOa65TFtTgmkh3OW2YEU2/p2bQ7AmRAALvTbOPM4SyQ98xQaKZGkgqK/ubxKyx3+5/kkp6G5c8V1DY+iuz3s262i0ozEBVbucUTobgAYz2I5KgQ1KCo9heSNeWyr153PYI9Ciik=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Mhd4qYrp; arc=none smtp.client-ip=91.218.175.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iHnPXdgh"
-Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-b9c603ec2dfso736788766b.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 05:01:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776168060; x=1776772860; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=2d7SDP4tYVNHF5RjK6Z4XWLo0StG4PwjgZJsw7TAjok=;
-        b=iHnPXdghhNhZxQbXGPpMQAy/WghyKP2lAqDKIiIHKVP2ztJFDYMq53D48MDqEdRDO7
-         6ViTDklUvBoUzzELRjXzMFeGMW8aH2tAUofR8+0D2flzvi0k0sDcF21Jla/JfFWLMGtC
-         N19iii2ppBH+JXZsnOC1V/mfn/ZV0kgJPE0lBmm9z1tbJDqzqZ8DCML/yT1YGNrfYDpj
-         cXQbZx8uP+MydG2v+QhdZ0+p3ACbAJcEwok93FL5OHndXiDkxBE9dzLDMbjzE46wgv2J
-         anz+RbGttUpBQ21ZTv3zNiRyhk5CMV1NfSOpV8Hka03hd+MF61Kg1gT5bqQItvRRFtRv
-         2MIQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776168060; x=1776772860;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-gg:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=2d7SDP4tYVNHF5RjK6Z4XWLo0StG4PwjgZJsw7TAjok=;
-        b=n7XAaKdSE+THJyLG2o2Gepj5MwtN33X6QWU7SS8X7UKwUZlIa3ElIkBx3x69oH7Pn9
-         fVaOROCkLXE6DoKEV1hUxpFLIqZXC36pC7OBHg7if99fEy7qEl4fnF2/6F6nVLKBiR0w
-         bbK/oYv5gcvSaOkDvwbsADzab6DFjB3lSDSNqyl+ohf4sBu5HcSnQ3LfxoqaHMy1dkt6
-         XLcuY67WBLyh9eCuMHAlCKhi/36bF7ZBgdjM3LidUZpP6G9l/M3KhdMqyYClWyU9Pewz
-         lqpOoUze+OVChxOtMbUeMZMrvzxpDGv/JkQT/7VgbzXY7yxk1nL5vgs1ggfsPzW9o7mu
-         8QnA==
-X-Forwarded-Encrypted: i=1; AFNElJ8NqDjqdCNkmt4+6Q+GVOC2eecU6xQphRrZ8F6ESejLZIQkgNwcS08hfso978aRmgQDPQz3b0S/3f8gYEnYYqA=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyefFvDA9oDmYtSlXZrvxzrnN97OyKiV8pp0kHmg5Vri8Si7f6X
-	AyT5CAkvPnapR6eb8IbXXu4GtFncqalHYf9qEdfEAuybgjMuLDLPiWkX
-X-Gm-Gg: AeBDiesTQ0mO6QCj7dlbQZ2vsiGMDBUurqEsGTv0LJhSG/6m9FxQ1RpSAeyrMF0Ll/x
-	E/vePh3oEQ/he8ykGe0XcJ5MLTGZuBXt+vc55IOKaK0bn7NtHoThIlPWbQe3NEBwvzZyGJa1vNh
-	PC7uXVXOWs6TwUcFcQbzFSgKyPBtqGYWUQQ6vclAeJAlYA7TtEHeiPQjBHc611wc9wsdkO41Eqx
-	2lTLJmq/IDv6fZ16XtUZgsvv2CLWwD76ej3AgVEPGKy3pLDiQDs0oxFivJqm/Be5zOUo+YBNffF
-	W8t4zNiucS8q6pmG+l86HWw9XUXykDtK96P/N1TnUf0xxasA4Rx4Vlbl/JnNd2O+ugGc4yrOcRu
-	hyCMZHjO+mIz527dFgp5jqlHI9cWia0+j7wXzireUiI9GaENCN8IFjCXYeIbmpJ7eCMM7/NXwdj
-	yfUNTZekKHZ+F2WEWgVJQxH0tE1zaNN+BEhy9utoRCVwPKKG5G2d8enFkUbxBpZMpN7lqAf295N
-	ACSL65jFq6GsN9mJGdNyC3oYBfNbbw3rEk6TRy1iUjGUH3Xbl9Ulql6/5BLk7x+rF1Wv0R5SODc
-	rlTw8LGqaLdjjPjGTdg4ZBULZ+jdQHds3TL7uZWOaLOr
-X-Received: by 2002:a17:907:a2c5:b0:b97:1009:7536 with SMTP id a640c23a62f3a-b9d72792d3amr965295766b.15.1776168059396;
-        Tue, 14 Apr 2026 05:00:59 -0700 (PDT)
-Received: from ?IPV6:2001:1c00:20d:1300:1b1c:4449:176a:89ea? (2001-1c00-020d-1300-1b1c-4449-176a-89ea.cable.dynamic.v6.ziggo.nl. [2001:1c00:20d:1300:1b1c:4449:176a:89ea])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-6717ae8cb15sm1358146a12.19.2026.04.14.05.00.58
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 14 Apr 2026 05:00:58 -0700 (PDT)
-Message-ID: <0f0f217e-a32b-4c9a-ab65-1cac5c86c76f@gmail.com>
-Date: Tue, 14 Apr 2026 14:00:57 +0200
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Mhd4qYrp"
+Message-ID: <927be094-315b-48ab-8e89-45bbe9183d5b@linux.dev>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1776168559;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=QVtXc7JLuD25nmtQ2i0cFNoD/wmAUFxwAuqwgL+A5s0=;
+	b=Mhd4qYrpk0vHcZ6XtlaxOCrsqiOVGVafokFS+/nVPJBuE8TZTDC7yeH4F27Gugz4qkBBGr
+	l1wk4HFGFCIMQJiB83Mp4skTGCxIKO+Ewzp7RlFrmRK8i9bXmir72e7NkHW5EbHEvsbvQu
+	ofP0rK18INZLsc9rOuFm4wVulFrJxqs=
+Date: Tue, 14 Apr 2026 20:09:05 +0800
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 nf] netfilter: nf_flow_table_ip: Introduce
- nf_flow_vlan_push()
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>, Phil Sutter <phil@nwl.cc>,
- "David S. Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>,
- Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
- Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org,
- netdev@vger.kernel.org
-References: <20260414112120.248744-1-ericwouds@gmail.com>
- <ad4nQzsbeF1S53zt@chamomile>
-From: Eric Woudstra <ericwouds@gmail.com>
-Content-Language: en-US
-In-Reply-To: <ad4nQzsbeF1S53zt@chamomile>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: Re: [syzbot] [lvs?] BUG: sleeping function called from invalid
+ context in ip_vs_conn_expire
+To: syzbot <syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com>,
+ coreteam@netfilter.org, davem@davemloft.net, edumazet@google.com,
+ fw@strlen.de, horms@verge.net.au, ja@ssi.bg, kuba@kernel.org,
+ linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
+ netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, pabeni@redhat.com,
+ pablo@netfilter.org, phil@nwl.cc, syzkaller-bugs@googlegroups.com
+References: <69de1743.a00a0220.475f0.0040.GAE@google.com>
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Jiayuan Chen <jiayuan.chen@linux.dev>
+In-Reply-To: <69de1743.a00a0220.475f0.0040.GAE@google.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
+
+
+On 4/14/26 6:30 PM, syzbot wrote:
+
+[...]
+
+> if you fix the issue, please add the following tag to the commit:
+> Reported-by: syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com
+>
+> BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
 
 
 
-On 4/14/26 1:38 PM, Pablo Neira Ayuso wrote:
-> On Tue, Apr 14, 2026 at 01:21:20PM +0200, Eric Woudstra wrote:
->> Calling skb_reset_mac_header() before calling skb_vlan_push() does
->> remove the error:
->>
->> "skb_vlan_push got skb with skb->data not at mac header (offset 18)"
->>
->> But the inner vlan tag is still not inserted correctly.
->>
->> skb_vlan_push() uses __vlan_insert_inner_tag() to insert the tag
->> at offset ETH_HLEN. But the inner tag should only be pushed, without
->> offset, similar to nf_flow_pppoe_push().
-> 
-> It is doubled-tagged-vlan that is broken, right? I observed this once
-> but I have been burdened into a few things.
+The problem occurs under PREEMPT_RT. conn_tab_lock pair with spin_lock 
+has the problem:
 
-That is correct, both q-in-q and q-in-ad (that may not be the correct
-terms, but I think it is clear).
+     conn_tab_lock(...) -> hlist_bl_lock -> preempt_disable()  ==> 
+disables preemption
+     spin_lock(&cp->lock) -> rt_mutex  ==> sleepable under RT, but 
+preemption is already disabled by conn_tab_lock
 
->> Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
->> Fixes: a3aca98aec9a ("netfilter: nf_flow_table_ip: reset mac header before vlan push")
->> Signed-off-by: Eric Woudstra <ericwouds@gmail.com>
->>
->> ---
->>
->>  net/netfilter/nf_flow_table_ip.c | 25 ++++++++++++++++++++++---
->>  1 file changed, 22 insertions(+), 3 deletions(-)
->>
->> diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
->> index fd56d663cb5b..0086f8a1a0d6 100644
->> --- a/net/netfilter/nf_flow_table_ip.c
->> +++ b/net/netfilter/nf_flow_table_ip.c
->> @@ -544,6 +544,26 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
->>  	return 1;
->>  }
->>  
->> +static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id)
->> +{
->> +	if (skb_vlan_tag_present(skb)) {
->> +		struct vlan_hdr *vhdr;
->> +
->> +		if (skb_cow_head(skb, VLAN_HLEN))
->> +			return -1;
->> +
->> +		__skb_push(skb, VLAN_HLEN);
->> +		skb_reset_network_header(skb);
->> +		vhdr = (struct vlan_hdr *)(skb->data);
->> +		vhdr->h_vlan_TCI = htons(id);
->> +		vhdr->h_vlan_encapsulated_proto = skb->protocol;
->> +		skb->protocol = proto;
->> +	} else {
->> +		__vlan_hwaccel_put_tag(skb, proto, id);
->> +	}
->> +	return 0;
->> +}
->> +
->>  static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
->>  {
->>  	int data_len = skb->len + sizeof(__be16);
->> @@ -738,9 +758,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
->>  		switch (tuple->encap[i].proto) {
->>  		case htons(ETH_P_8021Q):
->>  		case htons(ETH_P_8021AD):
->> -			skb_reset_mac_header(skb);
->> -			if (skb_vlan_push(skb, tuple->encap[i].proto,
->> -					  tuple->encap[i].id) < 0)
->> +			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
->> +					      tuple->encap[i].id) < 0)
->>  				return -1;
->>  			break;
->>  		case htons(ETH_P_PPP_SES):
->> -- 
->> 2.53.0
->>
 
+> in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 16, name: ktimers/0
+> preempt_count: 2, expected: 0
+> RCU nest depth: 3, expected: 3
+> 8 locks held by ktimers/0/16:
+>   #0: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+>   #1: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+>   #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
+>   #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: timer_base_lock_expiry kernel/time/timer.c:1502 [inline]
+>   #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: __run_timer_base+0x120/0x9f0 kernel/time/timer.c:2384
+>   #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
+>   #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
+>   #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __rt_spin_lock kernel/locking/spinlock_rt.c:50 [inline]
+>   #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1e0/0x400 kernel/locking/spinlock_rt.c:57
+>   #4: ffffc90000157a80 ((&cp->timer)){+...}-{0:0}, at: call_timer_fn+0xd4/0x5e0 kernel/time/timer.c:1745
+>   #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
+>   #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
+>   #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:315 [inline]
+>   #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_expire+0x257/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+>   #6: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+>   #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
+>   #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
+>   #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+> Preemption disabled at:
+> [<ffffffff898a6358>] bit_spin_lock include/linux/bit_spinlock.h:38 [inline]
+> [<ffffffff898a6358>] hlist_bl_lock+0x18/0x110 include/linux/list_bl.h:149
+> CPU: 0 UID: 0 PID: 16 Comm: ktimers/0 Tainted: G        W    L      syzkaller #0 PREEMPT_{RT,(full)}
+> Tainted: [W]=WARN, [L]=SOFTLOCKUP
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/18/2026
+> Call Trace:
+>   <TASK>
+>   dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+>   __might_resched+0x329/0x480 kernel/sched/core.c:9162
+>   __rt_spin_lock kernel/locking/spinlock_rt.c:48 [inline]
+>   rt_spin_lock+0xc2/0x400 kernel/locking/spinlock_rt.c:57
+>   spin_lock include/linux/spinlock_rt.h:45 [inline]
+>   ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
+>   ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+>   call_timer_fn+0x192/0x5e0 kernel/time/timer.c:1748
+>   expire_timers kernel/time/timer.c:1799 [inline]
+>   __run_timers kernel/time/timer.c:2374 [inline]
+>   __run_timer_base+0x6a3/0x9f0 kernel/time/timer.c:2386
+>   run_timer_base kernel/time/timer.c:2395 [inline]
+>   run_timer_softirq+0xb7/0x170 kernel/time/timer.c:2405
+>   handle_softirqs+0x1de/0x6d0 kernel/softirq.c:622
+>   __do_softirq kernel/softirq.c:656 [inline]
+>   run_ktimerd+0x69/0x100 kernel/softirq.c:1151
+>   smpboot_thread_fn+0x541/0xa50 kernel/smpboot.c:160
+>   kthread+0x388/0x470 kernel/kthread.c:436
+>   ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+>   ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+>   </TASK>
+>
