@@ -1,110 +1,216 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E850A1DDC37
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 09:55:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C96B5337BB5
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 10:22:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776246934; cv=none; b=DYVdd7+vWmfroc0FXmgc7hZyF/xtkJ2ZGSpES6yz+NIt8CWKg+H0y/+WVgCD4uYPadP6iHGlsBICwY3HxCgYT6aqiI275bf5W5mnUdgvGyLwgNNCJc312TEfnl6hPZqGG25+T65256paohIfXS3rZpCnDVsVpqCdxhKucf8zZTs=
+	t=1776248530; cv=none; b=gD/xljW5GxrATiulBII8Jnn1R8DofPcuUso2TqAwbzEbnjQo0iBU81xw6v6oodev98rt7ZVma46Yc+aEQzaT6P3VEwgy3krhFmBK1nED9ga6wxxjvyl8CsWamjTDhMpDsUWqmLfP47vJygOxlbzY8SaGM+xf+s7pNAnDVjV6YzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776246934; c=relaxed/simple;
-	bh=NnOE/jo7PzoGIHhyFyqlI/69A/YCBZh2x347XKVH1MI=;
+	s=arc-20240116; t=1776248530; c=relaxed/simple;
+	bh=qutAotB3W84SBojsd0uqK5ZPCD4ZssnMBA2Fo3MzLW0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lJva2cnyiB2QaAeTPMqHiCZ52tdPxkhpQESueyNowRdIX4uB5FL2qo9q3JFJHzsFDkadBNnyhBS89RTFPtB59MAAXsjP+ZJ1biqelPivJm/6XmrnbcbglHEMaJ8h9gNzi5a4YyI5Kq0/8ucz0AqmX5SHr0DKOiY4/FHqAgZci3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=oswYsteU; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="oswYsteU"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 014AE60177;
-	Wed, 15 Apr 2026 11:55:31 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776246931;
-	bh=JaMxTj6ILXESUfmgJz+FNkPvQCKN/A5rJaO7Rk0gKxI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=oswYsteUN3bJT5c2Ji0kfZHaqWN9EoKo6m4Sj4Y0mygtORawgKfLipipbu0oY1nOe
-	 QpnCH1r6r41aS3lcXFILm6TZSLBT+mCBig6qlndj3r5BbhutAMFSK8dlQp10o6c7un
-	 vj/XgFCktWdV7pajGafOVMlgEYdrMbj0f3h4ned1UdqyQsimYSij7i3GrBgsf6rUpo
-	 aW9GO05Phl9jdiuXgkVv5H/dF7q91f6AEfiDDYjilBij4J4cn/Lah5e2yj6K9/xyln
-	 ik3RuGHpX/r7vTPtvV3mfFpN9mJ2GttyJU4myQr9Xkmzo4JkwyjO/J4vVStlqQUKdG
-	 p0Z6sOAX1Luaw==
-Date: Wed, 15 Apr 2026 11:55:28 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Xiang Mei <xmei5@asu.edu>
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Phil Sutter <phil@nwl.cc>, coreteam@netfilter.org,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: Re: [PATCH nf v2] netfilter: nfnetlink_osf: fix divide-by-zero in
- OSF_WSS_MODULO
-Message-ID: <ad9gkDM9VFJL_rFU@chamomile>
-References: <20260414221401.2809350-1-xmei5@asu.edu>
- <ad9aX5IDPWt3F6OF@chamomile>
+	 Content-Type:Content-Disposition:In-Reply-To; b=KwixQNxCNbIwlrFAePclxADz2r6uLTTn1MA8MVnLQMa1HHAOBuCRDMPyXy+KTBBwY0h53p8XxRq+ElnHLgIZt8FcOtJGeKSwY5BbLA1w9zbdkMFFM9u1J4QtVyOR7QNEMpwFDnaHrzr++N15FKy+CbzaeLM8AppuIoZg3pNMWnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id EE0FF6066A; Wed, 15 Apr 2026 12:22:05 +0200 (CEST)
+Date: Wed, 15 Apr 2026 12:22:05 +0200
+From: Florian Westphal <fw@strlen.de>
+To: Jozsef Kadlecsik <kadlec@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/2] netfilter: ipset: Fix data race between add and dump
+ in all hash types
+Message-ID: <ad9mzYNk5JpDfklg@strlen.de>
+References: <20260415082039.4133308-1-kadlec@netfilter.org>
+ <20260415082039.4133308-3-kadlec@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <ad9aX5IDPWt3F6OF@chamomile>
+In-Reply-To: <20260415082039.4133308-3-kadlec@netfilter.org>
 
-On Wed, Apr 15, 2026 at 11:29:06AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Apr 14, 2026 at 03:14:01PM -0700, Xiang Mei wrote:
-> > nf_osf_match_one() computes ctx->window % f->wss.val in the
-> > OSF_WSS_MODULO branch with no guard for f->wss.val == 0. A
-> > CAP_NET_ADMIN user can add such a fingerprint via nfnetlink; a
-> > subsequent matching TCP SYN divides by zero and panics the kernel.
-> > 
-> > Reject the bogus fingerprint in nfnl_osf_add_callback() above the
-> > per-option for-loop. f->wss is per-fingerprint, not per-option, so
-> > the check must run regardless of f->opt_num (including 0). Also
-> > reject wss.wc >= OSF_WSS_MAX; nf_osf_match_one() already treats that
-> > as "should not happen".
-> > 
-> > Crash:
-> >  Oops: divide error: 0000 [#1] SMP KASAN NOPTI
-> >  RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
-> >  Call Trace:
-> >  <IRQ>
-> >   nf_osf_match (net/netfilter/nfnetlink_osf.c:220)
-> >   xt_osf_match_packet (net/netfilter/xt_osf.c:32)
-> >   ipt_do_table (net/ipv4/netfilter/ip_tables.c:348)
-> >   nf_hook_slow (net/netfilter/core.c:622)
-> >   ip_local_deliver (net/ipv4/ip_input.c:265)
-> >   ip_rcv (include/linux/skbuff.h:1162)
-> >   __netif_receive_skb_one_core (net/core/dev.c:6181)
-> >   process_backlog (net/core/dev.c:6642)
-> >   __napi_poll (net/core/dev.c:7710)
-> >   net_rx_action (net/core/dev.c:7945)
-> >   handle_softirqs (kernel/softirq.c:622)
-> > 
-> > Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
-> > Reported-by: Weiming Shi <bestswngs@gmail.com>
-> > Suggested-by: Florian Westphal <fw@strlen.de>
-> > Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Xiang Mei <xmei5@asu.edu>
-> > ---
-> > v2: Fix the bug in configure path and correct the fix tag
-> > 
-> >  net/netfilter/nfnetlink_osf.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-> > index 45d9ad231..70172ca07 100644
-> > --- a/net/netfilter/nfnetlink_osf.c
-> > +++ b/net/netfilter/nfnetlink_osf.c
-> > @@ -320,6 +320,10 @@ static int nfnl_osf_add_callback(struct sk_buff *skb,
-> >  	if (f->opt_num > ARRAY_SIZE(f->opt))
-> >  		return -EINVAL;
-> >  
-> > +	if (f->wss.wc >= OSF_WSS_MAX ||
-> > +	    (f->wss.wc == OSF_WSS_MODULO && f->wss.val == 0))
-> > +		return -EINVAL;
+Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
+> When adding a new entry to the next position in the existing hash bucket,
+> the position index was incremented too early and parallel dump could
+> read it before the entry was populated with the value. Move the setting
+> of the position index after populating the entry.
 > 
-> Maybe, more explicit, it is more lengthy but cristal clear:
+> Reported-by: syzbot+786c889f046e8b003ca6@syzkaller.appspotmail.com
+> Reported-by: syzbot+1da17e4b41d795df059e@syzkaller.appspotmail.com
+> Reported-by: syzbot+421c5f3ff8e9493084d9@syzkaller.appspotmail.com
+> Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
+> ---
+>  net/netfilter/ipset/ip_set_hash_gen.h | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+> index b79e5dd2af03..0da02a8dfbae 100644
+> --- a/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -844,7 +844,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+>  	const struct mtype_elem *d = value;
+>  	struct mtype_elem *data;
+>  	struct hbucket *n, *old = ERR_PTR(-ENOENT);
+> -	int i, j = -1, ret;
+> +	int i, j = -1, npos = 0, ret;
+>  	bool flag_exist = flags & IPSET_FLAG_EXIST;
+>  	bool deleted = false, forceadd = false, reuse = false;
+>  	u32 r, key, multi = 0, elements, maxelem;
+> @@ -889,6 +889,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+>  			ext_size(AHASH_INIT_SIZE, set->dsize);
+>  		goto copy_elem;
+>  	}
+> +	npos = n->pos;
+>  	for (i = 0; i < n->pos; i++) {
+>  		if (!test_bit(i, n->used)) {
+>  			/* Reuse first deleted entry */
+> @@ -962,7 +963,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+>  	}
+>  
+>  copy_elem:
+> -	j = n->pos++;
+> +	j = npos = n->pos + 1;
 
-Not really, this needs to be done out of loop as you do.
+Hmm. Should that be:
++	j = npos;
++	npos = n->pos + 1;
 
-I'll take your patch, thanks!
+As-is j is advanced by 1 compared to old code.
+
+>  	data = ahash_data(n, j, set->dsize);
+>  copy_data:
+>  	t->hregion[r].elements++;
+> @@ -985,6 +986,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+>  	if (SET_WITH_TIMEOUT(set))
+>  		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
+>  	smp_mb__before_atomic();
+> +	n->pos = npos;
+>  	set_bit(j, n->used);
+
+I think this needs a followup-patch to switch this to smp_store_release
+and readers to smp_load_acquire helpers.
+
+Here is a diff for this (generated by LLM and only compile tested).
+I think this can be a separate patch to not make this change too big and
+to not mix different fixes.
+
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 0da02a8dfbae..2ca674e51699 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -682,10 +682,13 @@ mtype_resize(struct ip_set *set, bool retried)
+ 		rcu_read_lock_bh();
+ 		for (i = ahash_bucket_start(r, orig->htable_bits);
+ 		     i < ahash_bucket_end(r, orig->htable_bits); i++) {
++			u8 pos;
++
+ 			n = __ipset_dereference(hbucket(orig, i));
+ 			if (!n)
+ 				continue;
+-			for (j = 0; j < n->pos; j++) {
++			pos = smp_load_acquire(&n->pos);
++			for (j = 0; j < pos; j++) {
+ 				if (!test_bit(j, n->used))
+ 					continue;
+ 				data = ahash_data(n, j, dsize);
+@@ -817,10 +820,13 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
+ 	for (r = 0; r < ahash_numof_locks(t->htable_bits); r++) {
+ 		for (i = ahash_bucket_start(r, t->htable_bits);
+ 		     i < ahash_bucket_end(r, t->htable_bits); i++) {
++			u8 pos;
++
+ 			n = rcu_dereference_bh(hbucket(t, i));
+ 			if (!n)
+ 				continue;
+-			for (j = 0; j < n->pos; j++) {
++			pos = smp_load_acquire(&n->pos);
++			for (j = 0; j < pos; j++) {
+ 				if (!test_bit(j, n->used))
+ 					continue;
+ 				data = ahash_data(n, j, set->dsize);
+@@ -963,7 +969,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	}
+ 
+ copy_elem:
+-	j = npos = n->pos + 1;
++	j = npos;
++	npos = n->pos + 1;
+ 	data = ahash_data(n, j, set->dsize);
+ copy_data:
+ 	t->hregion[r].elements++;
+@@ -985,8 +992,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	/* Must come last for the case when timed out entry is reused */
+ 	if (SET_WITH_TIMEOUT(set))
+ 		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
+-	smp_mb__before_atomic();
+-	n->pos = npos;
++	/* Ensure all data writes are visible before updating position */
++	smp_store_release(&n->pos, npos);
+ 	set_bit(j, n->used);
+ 	if (old != ERR_PTR(-ENOENT)) {
+ 		rcu_assign_pointer(hbucket(t, key), n);
+@@ -1172,6 +1179,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 	int ret, i, j = 0;
+ #endif
+ 	u32 key, multi = 0;
++	u8 pos;
+ 
+ 	pr_debug("test by nets\n");
+ 	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
+@@ -1189,7 +1197,8 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
+ 		n = rcu_dereference_bh(hbucket(t, key));
+ 		if (!n)
+ 			continue;
+-		for (i = 0; i < n->pos; i++) {
++		pos = smp_load_acquire(&n->pos);
++		for (i = 0; i < pos; i++) {
+ 			if (!test_bit(i, n->used))
+ 				continue;
+ 			data = ahash_data(n, i, set->dsize);
+@@ -1223,6 +1232,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	struct mtype_elem *data;
+ 	int i, ret = 0;
+ 	u32 key, multi = 0;
++	u8 pos;
+ 
+ 	rcu_read_lock_bh();
+ 	t = rcu_dereference_bh(h->table);
+@@ -1245,7 +1255,8 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		ret = 0;
+ 		goto out;
+ 	}
+-	for (i = 0; i < n->pos; i++) {
++	pos = smp_load_acquire(&n->pos);
++	for (i = 0; i < pos; i++) {
+ 		if (!test_bit(i, n->used))
+ 			continue;
+ 		data = ahash_data(n, i, set->dsize);
+@@ -1373,6 +1384,8 @@ mtype_list(const struct ip_set *set,
+ 	rcu_read_lock();
+ 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
+ 	     cb->args[IPSET_CB_ARG0]++) {
++		u8 pos;
++
+ 		cond_resched_rcu();
+ 		incomplete = skb_tail_pointer(skb);
+ 		n = rcu_dereference(hbucket(t, cb->args[IPSET_CB_ARG0]));
+@@ -1380,7 +1393,9 @@ mtype_list(const struct ip_set *set,
+ 			 cb->args[IPSET_CB_ARG0], t, n);
+ 		if (!n)
+ 			continue;
+-		for (i = 0; i < n->pos; i++) {
++		/* Acquire ordering with smp_store_release in mtype_add */
++		pos = smp_load_acquire(&n->pos);
++		for (i = 0; i < pos; i++) {
+ 			if (!test_bit(i, n->used))
+ 				continue;
+ 			e = ahash_data(n, i, set->dsize);
+
+
