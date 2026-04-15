@@ -1,154 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C886B35C19D
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 23:35:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45EEC330B15
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 03:43:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776209758; cv=none; b=kUhHHS0q0BEzsu/EgdId1dst4fjZL03Gy+YNeQpWxZLHS45pxqZj/V2qJczbmOmPYpyluxqdIYBfyx75BFr82NJ+6uAjxGzE3sw+V+bHw6b+MhnIV9yVsEzU01QEjkbrtPLNlx0ZMViY8++SJrLKGeHgxPyHXbMlXXAPrhX9cHo=
+	t=1776224644; cv=none; b=Gd/YrxVN/nbHa7nIYWYNUPS/OPz7TvRmszlU30floLWj3ZlJqfhdEmYCddv/PoUPqhEOm5vkK+toSfIEJZnlCM/qMFeuD1Y7x1wXCi2H1cu9rvo/2lLoGCDpztzueQCsERRJ+oRyj3jN9PyB/bJgepXeEQ6jVRk8NSmKq1YwgR8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776209758; c=relaxed/simple;
-	bh=tqlWiYAD68Gl+Hslj6H/L4RPn/LGorgQ3tkA/f3ctA8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RC/USrSD6bm8WWLuIe/imtDzR+BLnVXA3FNQ3x7P81309JTje2QUoEwbwR4wj9Gdcu6omXsxzQCzA27MLajxM2V02vvPdRmbp2MwSSDBtiJvgeU3UmVbqF/MgY4W5MKHlSSOQ+x8WKH2uteNrHbnjl4btWAoZ/YmETbJd4ttoM0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=V23DGvM5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776224644; c=relaxed/simple;
+	bh=uGI8GPnr9VXAA69kZ/s2eB6gRTG6FQSN6oJeK6M8pWE=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=EsO0+mRODumnIyVJS7nnn34LtnEzLUQsoZwIXaesttIXJDWn911GtN64rvtajpQXHquLIa1A5aGw7YMoXHoreLAJVOXdWlvNbd2FDRtle4zgOus+M+8B/CNQN2HMfk+6P+R0oTZa6OHyW+R+WvEG6wjbRMCY1HE4vlN01fkYdE4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AC0tC2I3; arc=none smtp.client-ip=209.85.214.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="V23DGvM5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549E9C19425;
-	Tue, 14 Apr 2026 23:35:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776209758;
-	bh=tqlWiYAD68Gl+Hslj6H/L4RPn/LGorgQ3tkA/f3ctA8=;
-	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
-	b=V23DGvM5zibBtPDYebFR6SeUNOFrZ7yNKmZFGv1BwKFOBnjJRAX1KyYChBZbX0MXN
-	 hYV6jEnbbBxb0N04EEvtGxAJHSxOxbXI4fWR1e43HscMWoh1RXUW5tmXHjChjYqywY
-	 Sm7def8fvdwsJbPP1vsZrs7MsjD6+15KngSbSkUNpbDI1AB0CC/Hi4cEeYxa7CJZ8X
-	 B7DfUBEDo/kCgTYfdV1LCBX3/zjhiA8NBbvsKoAgb3lQNNf9aKMLUx4NKN5n32fQ2s
-	 2nzyDzQmmMe+oSqgLnlOowANhLAxVj1jHzoavvbbtuC2VsAjyIQ3fUb8xfWL8nIHJl
-	 TZ8mp2nZVSmlQ==
-Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
-	id CFC30CE13BF; Tue, 14 Apr 2026 16:35:57 -0700 (PDT)
-Date: Tue, 14 Apr 2026 16:35:57 -0700
-From: "Paul E. McKenney" <paulmck@kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, joelagnelf@nvidia.com,
-	josh@joshtriplett.org, boqun@kernel.org, urezki@gmail.com,
-	rostedt@goodmis.org, mathieu.desnoyers@efficios.com,
-	jiangshanlai@gmail.com, qiang.zhang@linux.dev, fw@strlen.de
-Subject: Re: [PATCH nf 1/3] rculist: add list_splice_rcu() for private lists
-Message-ID: <25a270bf-0011-4784-9a32-5a62b64a6200@paulmck-laptop>
-Reply-To: paulmck@kernel.org
-References: <20260413220415.43221-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AC0tC2I3"
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2b23fcf90b2so59862295ad.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Apr 2026 20:43:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776224636; x=1776829436; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=SNhZ4rollUkSxm2n10gtXaqIbxDOKMY7jgWaxNLfqIc=;
+        b=AC0tC2I3MGoA0QxRj+i7bNb0yRLDqJxdePAAo7BiHLPTQBhEMNs9L1riDtVSUa7yLS
+         gI78K4ux83nGd4BQuumcDYPaHhrPA21XVOcwfocqJUB2HQa4EhQJPArg2tucCiaNKPSw
+         +fdsaSBFWfWpGodfQF7LbiTGmX/A+zVF+i71/wLPWT//Nc50hHr51KgPVMvxwE6mNq5X
+         vYmbjR7TBTIDMVbhs9O4wcbLVCpuCMd9Y8laqeBVXmqyFX0TbYvUMKrJq8OR44HzMhNC
+         vG1X3v1jRwXL+2kOaNiljmb8sTInUe1lCxVJuIkt4FwyrSrRUzhkazJSiH9PpMSW/kU9
+         pguQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776224636; x=1776829436;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=SNhZ4rollUkSxm2n10gtXaqIbxDOKMY7jgWaxNLfqIc=;
+        b=oYsAmqESSJ5bnNX7DGjoLzDj2ZYAEpiOQYDUJ9z/fhdUNA3/Y5hkH82m82K2DO2qZ3
+         ZADJULPLGa7YXDbjNbm0HjOH/V0W3QgpAxqeEZS94xZ0OqmH1bC2wDU6y8yr8bdIH97b
+         d3cqBhSgbBo7Tpg0G+7VMMJ+Z89Pe6jQMO6XUf2kLexx+EDIwuKPrNja7/V8n6ODIc7r
+         xXYfMek1nIsliCTmDekoUvp33PeQgESAOKU/H9tuSo/EoEzlPwvHcs1D02oc3hmg8VFG
+         WznfNJxNg3R7366o/XHeGIZcbrV87g2FNDR4g962le49rtOIoS+NA9TH9EAar1waDFvK
+         KTZQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8OhMTZiwpG7/7D0UAg4R5CttkThHouijig1xPzihKCjvUXAq4nEFOl7idAj+DbXyoHVdqjZxVVI3RGnmMS0yY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxDtKKrRtcxC9rLwSGYqqevPQNu+bTIrKXe0ePoBtupYTyA34F2
+	tRlbMMx66tGOXIoWcHhZp4banhB1O94l0x9l37o7B7djxM16WdY/5QEO
+X-Gm-Gg: AeBDieuGJsr6d0lU3tmS/PUwlVAB6r2EaayqKDyF78iIw3+ah9s5ZgckKiHNAi+0pok
+	ZSgnauZ3mB6775cDS4Ki3aG74IUOdNzcz7kVlHMWrqpkMQqw6eSTD8/EGzO1W/AtTSmYJkvNPbT
+	iBPRtmEXSVF0wAat7jOiMX5I9RTIVKXa5kk0ozedLv82qJ/hb5TpBqhQsSf1xqPuYG+HTdvKu9s
+	KZ18OsrloKOnccXnE3cfwxZ5iLQikGpWAG4C1zkTwNvGM4DXC7bDxZ48mCogthc8ejrfhT79fo1
+	fBt0DbpArNnwwalAychX9a9ijdoQLFWFT5uZKdeH/dPMo0yHZE9C0MxiLvHJ8ix+03S0lZPuXur
+	0Yi5/e9qJ+A3p4XIVxcTET8JeYsEsmDX8eXtNK51aSuzdzqCm2qoFwZez4HFkobQ6Hbkr8edT7/
+	iG+iGKWoTXHFT5Q4168j7dsKsQ5RBifscGP2E1yiMo9r1xd+c=
+X-Received: by 2002:a17:903:3c30:b0:2b4:5f69:715d with SMTP id d9443c01a7336-2b45f697b4bmr107939525ad.25.1776224636000;
+        Tue, 14 Apr 2026 20:43:56 -0700 (PDT)
+Received: from home-hyperv.mshome.net ([103.136.124.6])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2b4782cb32csm4742175ad.79.2026.04.14.20.43.51
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 14 Apr 2026 20:43:55 -0700 (PDT)
+From: "Kito Xu (veritas501)" <hxzene@gmail.com>
+To: pablo@netfilter.org
+Cc: fw@strlen.de,
+	phil@nwl.cc,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	horms@kernel.org,
+	jengelh@medozas.de,
+	kaber@trash.net,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	"Kito Xu (veritas501)" <hxzene@gmail.com>
+Subject: [PATCH] netfilter: xt_realm: fix null-ptr-deref in realm_mt()
+Date: Wed, 15 Apr 2026 11:43:43 +0800
+Message-Id: <20260415034343.107920-1-hxzene@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260413220415.43221-1-pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Apr 14, 2026 at 12:04:15AM +0200, Pablo Neira Ayuso wrote:
-> This patch adds a helper function, list_splice_rcu(), to safely splice
-> a private (non-RCU-protected) list into an RCU-protected list.
-> 
-> The function ensures that only the pointer visible to RCU readers
-> (prev->next) is updated using rcu_assign_pointer(), while the rest of
-> the list manipulations are performed with regular assignments, as the
-> source list is private and not visible to concurrent RCU readers.
-> 
-> This is useful for moving elements from a private list into a global
-> RCU-protected list, ensuring safe publication for RCU readers.
-> Subsystems with some sort of batching mechanism from userspace can
-> benefit from this new function.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+realm_mt() unconditionally dereferences skb_dst(skb) without a NULL
+check. The xt_realm match registers with .family = NFPROTO_UNSPEC,
+making it available to all netfilter protocol families. Through the
+nftables compat layer (nft_compat), an unprivileged user inside a
+user/net namespace can load this match into a bridge-family chain.
 
-Looks plausible and useful.  Please see some comments inline below.
+nft_match_validate() explicitly permits NFPROTO_BRIDGE, and the hook
+bitmask check cannot distinguish bridge hooks from inet hooks because
+NF_BR_FORWARD and NF_INET_FORWARD share the same numeric value (2).
+The match also has no .checkentry callback to reject non-IP families.
 
-> ---
-> @I need this to fix a unsafe list_splice() of a private list to an
-> existing RCU-protected list. This is based on an existing idiom in
-> __list_splice_init_rcu().
-> 
->  include/linux/rculist.h | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
-> 
-> diff --git a/include/linux/rculist.h b/include/linux/rculist.h
-> index 2abba7552605..3c18c3336459 100644
-> --- a/include/linux/rculist.h
-> +++ b/include/linux/rculist.h
-> @@ -261,6 +261,41 @@ static inline void list_replace_rcu(struct list_head *old,
->  	old->prev = LIST_POISON2;
->  }
->  
-> +/**
-> + * __list_splice_rcu - join a non-RCU list into an existing list.
-> + * @list:	the RCU-protected list to splice
+When a pure L2 bridged packet traverses the chain, it has never gone
+through IP routing, so skb_dst() returns NULL. realm_mt() then
+dereferences this NULL pointer at dst->tclassid, causing a kernel oops.
 
-This is actually not RCU-protected, correct?  Sure, its elements
-(aside from the list header) are RCU-protected upon exit from this
-function, but by then they are in the {@prev,@next} list, not in
-this @list.
+Add a NULL check for the dst_entry pointer. When dst is NULL, return
+false (no match), which is the correct semantic since a packet without
+a routing realm cannot match any realm-based rule.
 
-> + * @prev:	points to the last element of the existing list
-> + * @next:	points to the first element of the existing list
-> + *
-> + * The list pointed to by @prev and @next can be RCU-read traversed
-> + * concurrently with this function.
+Oops: general protection fault, probably for non-canonical address 0xdffffc000000000c: 0000 [#1] SMP KASAN NOPTI
+KASAN: null-ptr-deref in range [0x0000000000000060-0x0000000000000067]
+CPU: 1 UID: 0 PID: 169 Comm: poc Not tainted 7.0.0-rc7-next-20260410+ #15 PREEMPTLAZY
+Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+RIP: 0010:realm_mt+0xa0/0x180
+Call Trace:
+ <IRQ>
+ nft_match_eval+0x1b7/0x310
+ nft_do_chain+0x261/0x1740
+ nft_do_chain_bridge+0x20c/0xe10
+ nf_hook_slow+0xac/0x1e0
+ __br_forward+0x33a/0x480
+ br_handle_frame_finish+0xab8/0x1d10
+ br_handle_frame+0x80f/0x12c0
+ __netif_receive_skb_core.constprop.0+0xbd4/0x2c10
+ __netif_receive_skb_one_core+0xae/0x1b0
+ process_backlog+0x197/0x590
+ __napi_poll+0xa1/0x540
+ net_rx_action+0x401/0xd80
+ handle_softirqs+0x19f/0x610
+ do_softirq.part.0+0x3b/0x60
+ </IRQ>
+ <TASK>
+ __local_bh_enable_ip+0x64/0x70
+ __dev_queue_xmit+0x9f3/0x30e0
+ packet_sendmsg+0x2126/0x5470
+ __sys_sendto+0x34e/0x3a0
+ __x64_sys_sendto+0xe0/0x1c0
+ do_syscall_64+0x64/0x680
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+ </TASK>
+Kernel panic - not syncing: Fatal exception in interrupt
 
-Doesn't this last sentence also need to go into the list_splice_rcu()
-function's kernel-doc header?  But please see below.
+Fixes: ab4f21e6fb1c ("netfilter: xtables: use NFPROTO_UNSPEC in more extensions")
+Signed-off-by: Kito Xu (veritas501) <hxzene@gmail.com>
+---
+ net/netfilter/xt_realm.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> + */
-> +static inline void __list_splice_rcu(struct list_head *list,
-> +				     struct list_head *prev,
-> +				     struct list_head *next)
-> +{
-> +	struct list_head *first = list->next;
-> +	struct list_head *last = list->prev;
-> +
-> +	last->next = next;
-> +	rcu_assign_pointer(list_next_rcu(prev), first);
-> +	first->prev = prev;
-> +	next->prev = last;
+diff --git a/net/netfilter/xt_realm.c b/net/netfilter/xt_realm.c
+index 6df485f4403d..6d3a86647cae 100644
+--- a/net/netfilter/xt_realm.c
++++ b/net/netfilter/xt_realm.c
+@@ -24,6 +24,9 @@ realm_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	const struct xt_realm_info *info = par->matchinfo;
+ 	const struct dst_entry *dst = skb_dst(skb);
+ 
++	if (!dst)
++		return false;
++
+ 	return (info->id == (dst->tclassid & info->mask)) ^ info->invert;
+ }
+ 
+-- 
+2.43.0
 
-Although putting these last two after the rcu_assign_pointer() is safe,
-given that RCU readers do not traverse ->prev pointers, it would be
-better to place them before the rcu_assign_pointer() in order to avoid
-false sharing between this code path and any concurrent RCU readers.
-
-> +}
-> +
-> +/**
-> + * list_splice_rcu - splice a non-RCU list into an RCU-protected list,
-> + *                   designed for stacks.
-> + * @list:	the non RCU-protected list to splice
-> + * @head:	the place in the existing list to splice the first list into
-
-Please add something about @head being RCU-protected.
-
-> + */
-> +static inline void list_splice_rcu(struct list_head *list,
-> +				   struct list_head *head)
-> +{
-> +	if (!list_empty(list))
-> +		__list_splice_rcu(list, head, head->next);
-> +}
-
-I don't understand the purpose of having __list_splice_rcu() split out
-from list_splice_rcu().  If you are planning to add more callers of
-__list_splice_rcu(), you can always do the split when you add the first
-such caller.  In the meantime, why the extra code?
-
-Yes, we do have __list_splice_init_rcu(), but that is because it is
-called from both list_splice_init_rcu() and list_splice_tail_init_rcu().
-
-> +
->  /**
->   * __list_splice_init_rcu - join an RCU-protected list into an existing list.
->   * @list:	the RCU-protected list to splice
-> -- 
-> 2.47.3
-> 
