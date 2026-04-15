@@ -1,170 +1,150 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f48.google.com (mail-lf1-f48.google.com [209.85.167.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D406E3DFC78;
-	Wed, 15 Apr 2026 15:35:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55ABC3D9DBC
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 15:57:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776267340; cv=none; b=eA4Qv39ZiEKNYtHB9akUbcz/Iwn/zzY8NxWRoCP8GfsoJwgiHQF1EXe9S+kkEo57YRlzBDXnzqypeKkI1AnRnW6Rq561RXJ4EBxnURw1BD0Gv8B0SNjd338gbkpP1oJkiYb6YN50uaMp0AyUCdP3/Mj7q/CF+raGgdkdWo3zj8s=
+	t=1776268654; cv=none; b=AMd+uAdZ7iLqMLM3ZJWTqGox4iVGbBLuyq0UuiOUN+OMWLPsnx4xZQ9cpLs9RWpzKp3iIJ8VAmQ4L09rrnWhkUJh/Yt0Gt+MBn53w0ydEOiPEmvWGtkPQswLyVyG1X7++x2YFs5yIO7ZtgQaD7j9gAzLyh0FZ/K26uyCsIioHrY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776267340; c=relaxed/simple;
-	bh=PSHo872UTpSY7Pd7+/Sgn/7YWlvCJs+jK6EXZQzMhfY=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=p+8nI0uuHGY0afAprBdykRZJdpGf6FN9T9I5oZWm8wdyOq4MUXQMcqhNTQjpCiL16HxeHiNlnDhP8ov7pCoarUR6HIDpYrTMQjTx3PeFIY/IBWtEa8NyDzhWYyRRDe1tnqrBCEz3PIthEqRvlf4TD14eN15TY+LZDI/HiW1EGQo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=UVO4X2mZ; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1776268654; c=relaxed/simple;
+	bh=Y+5t2LUujsBeGQ2602CmouD/PmlA7btFSTn98swxgqE=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=IJ3PcL7vBt539KU48fjCYLjO3dFvxdPx31eZktIvgPf63wsq1y3QELYnJh31Y0LKdWnsAA0nG9ii0RSXDCn/Lb28rS6gl6l0MuArC/l15nP+CBhJCqlAmlClfdkF6ruo5ONLFo0Q7vjfcS81XP4zLv19TmtCsPZCxeK2ES9g6uk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ekKll8Y/; arc=none smtp.client-ip=209.85.167.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="UVO4X2mZ"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 236FC21107;
-	Wed, 15 Apr 2026 18:35:19 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=OUQKghrpmJGe/+qFiqhRsCk1OBnY75g47ZnibPNkAnc=; b=UVO4X2mZF2We
-	YVrfnNa0vWaQN0olivm7j5OAMUwiElxHCRXUs94wj/4nEx8wilxOmesQp8Bt7xy5
-	lwXre+RBqyqO8oS1NJ+VSQwsT6YVHT5AW/mFKB0gjXjEkYByMhUabrdVbAo4+aHJ
-	AQauZbAAdazl0pLxlZg7fVDEbVrWPvuI7sEUF561IVThPDhqb4B/VgjO22eJ737A
-	PWQ5XCfeVzcAvLNl3NMwX5BjO8eeVr9vD/hV5YL8Ai3Z/ZZOx+FoIOTxydpdoOL+
-	t28e2pWuBHw38a7NzSVIBKL6EQ9q0uk+9LSXR1/2Hv6SeucZivtIDhU0tgcOikFT
-	BcugsptzPtDh2XGFByYPN5yrOHJzn3W0M7hrmwZ9MqIJJYgqufD40+Ic6724CIYg
-	sj6inbLzVWyMbPbLWrnzGJHZSDQyHJtS8E3Y935SlerFqYYu+SeRX4TI9GwL7VU3
-	mCsr2qt3dIkVlc/zWj5dLdH3FXl0vEhObLI0qQLvHIgVYomIR/PxbBOItn5plr+q
-	sh2RsTHxzb227gSg/94ioFntkUpeRtrIfjMaR31bDSdmf2G8uHYdL3D2U+9r2Pi7
-	dE+3lAqfuW1qIZUeE+/4CFUZZ2GRqf2TQ/zeDTO9Tp0cOB1U1xAuyRInFJkgD5rB
-	6QgjYmtva8tB115e2VMj/4X43HCf+Xw=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 15 Apr 2026 18:35:17 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 450DF608CD;
-	Wed, 15 Apr 2026 18:35:15 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63FFZ3hV058241;
-	Wed, 15 Apr 2026 18:35:04 +0300
-Date: Wed, 15 Apr 2026 18:35:03 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Yingnan Zhang <342144303@qq.com>
-cc: pablo@netfilter.org, coreteam@netfilter.org, davem@davemloft.net,
-        edumazet@google.com, fw@strlen.de, horms@verge.net.au, kuba@kernel.org,
-        linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org,
-        netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-        pabeni@redhat.com, phil@nwl.cc
-Subject: Re: [PATCH net v4] ipvs: fix MTU check for GSO packets in tunnel
- mode
-In-Reply-To: <tencent_7F7B107ECA750C095D05C19C3B723AFFA60A@qq.com>
-Message-ID: <72814fe9-7abc-111e-6142-d2f3455aa220@ssi.bg>
-References: <tencent_7F7B107ECA750C095D05C19C3B723AFFA60A@qq.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ekKll8Y/"
+Received: by mail-lf1-f48.google.com with SMTP id 2adb3069b0e04-5a2c9c5ff87so7126760e87.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 08:57:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776268650; x=1776873450; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=8Oz7Hg5VPkcfsV8MYTcL9qKZLX0S8mgkehyBtj32+kM=;
+        b=ekKll8Y/WJKqTkcElt3euQFBxpBb29SivKFtC/djBi/WbUMOnanQpAbCo/q7VI3zYE
+         +HjkL6SAlnX9rRejGQueJSl6R5Nm/zXJiQAT6+P68ImQYgm3OnlziikN0pjZo3+oFoNo
+         +54C0qGLkREHVgsgl/hj1wd5cZnX9iJSkzA0H80PnKlnBEsoPaf6maUMcVHSi6sfbs/g
+         yiwXNu5SIpN/bo6Dft7XTBBAXW4lU02GQWDLq2NpYxlc3m/NuS0DiLOCn42/GY7I0gbN
+         2wkm4qQMOM6nVUzHFdjr8xaH0jrn6z9rRBbnP4B4dCssDlgWJ+/elIIF/wjMnchESuMJ
+         Ag6A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776268650; x=1776873450;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8Oz7Hg5VPkcfsV8MYTcL9qKZLX0S8mgkehyBtj32+kM=;
+        b=HfyQdgjnjqqUZgSIzIXfWw1wq3faE9/2xNftdcqTT+Lk1PQP6yoNPodj9ivsdougza
+         l9XXB75paVrky5LCZKoUCmjGw5dr2p4+iFzQZTmjzQWsUWD+QHiEugd+qpSnB2uBt2XJ
+         0dO6s9cnMJ0SuAf3+6VJjQIyep2+V2FVoGugAsc1xFZEs380+l5RQ7XNvh/Zc4sr8hqr
+         dxU41Sce8hKG4T2n4UDOFL+6RrtojFiS/6iuM+KwZEeN7ncqjOi+XbxYbjKhudMpkIkw
+         o3gKKhC8P6u3VeJ+cpgArIR6GSP8NRpq5QtCgas1Z4szgXBsYG1cVlnWIiuAnrtS+2qW
+         FiyQ==
+X-Gm-Message-State: AOJu0YwT6IGpzkl96BZaFKLMbUbXYuxrL7lrbERP/gCTxzKvSJKr33/o
+	gE3bGCrLRq8LPd5VZklzqwplIjwOtjK/MrbrYxq4cLCWXSwrQ+p0iMDhZUwCdQgrzPA5NQ==
+X-Gm-Gg: AeBDievl0xyF9WV1XpFhVliOmzLL/sHNFUpdgYfG9RFlOLLgTwy1Eo4kXuniUQkc4j8
+	2b6LhnUQ2kU6+xfhgy7tSzQ7a7qthp4CuHTgU6fTb8SJe9tIRO/Wa0GeHZzkOSYsfXVWr4OWmEZ
+	2TiWBIgNklQT6Gkcjb0xUClOMXKCYTYNUXT/UeOrLmc54zf+GFdz1mcwp55yweRbn0s6Z45WtLM
+	XE04hmnsfNlUIzZ7IA/GFOrF6Ggi7lm8ST5wxQXZAty7cxg0OEc/+Z4otf4eIyeLae/7v3nlqff
+	PRj2SmlqlqOy+hAgvitAtBPOJN58Y6DQfqzz3OCM26WEZwt0Cwet79RLcpNdw1k23EOQKfMjlLr
+	GFt5et9YUG095mQIkztDcP0AGZec09gT65NkNtwCZHk/gRxRhlSGLPEXTnUAxgV2m0jTU2Ga5jl
+	eTHFzcszO9cOQ4JHG/qUPogqJVx2wTM89ssZygLurSsBtz+nFN52Vw1ve8ieO0JOhdCQ==
+X-Received: by 2002:a05:6512:3e28:b0:5a2:ad98:3685 with SMTP id 2adb3069b0e04-5a3efd90bbfmr6708769e87.35.1776268650160;
+        Wed, 15 Apr 2026 08:57:30 -0700 (PDT)
+Received: from CNLFI0022 (91-156-17-56.elisa-laajakaista.fi. [91.156.17.56])
+        by smtp.gmail.com with ESMTPSA id 2adb3069b0e04-5a40a2728d4sm558091e87.15.2026.04.15.08.57.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Apr 2026 08:57:29 -0700 (PDT)
+From: Tommi Rantala <tt.rantala@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Cc: Tommi Rantala <tommi.rantala@cujo.com>
+Subject: [PATCH iptables] extensions: libipt_REJECT: Drop ancient kernel compat hack
+Date: Wed, 15 Apr 2026 18:57:20 +0300
+Message-ID: <20260415155720.313166-1-tt.rantala@gmail.com>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 
+From: Tommi Rantala <tommi.rantala@cujo.com>
 
-	Hello,
+The IPT_ICMP_ADMIN_PROHIBITED fallback define and associated
+compatibility notes were relevant for 2.4 kernels. The INCOMPATIBILITIES
+file referencing these was already dropped in commit 92ce78d04677
+("Drop INCOMPATIBILITIES file"), so clean up the remaining leftovers in
+the REJECT extension source and man page.
 
-On Wed, 15 Apr 2026, Yingnan Zhang wrote:
+Signed-off-by: Tommi Rantala <tommi.rantala@cujo.com>
+---
+ extensions/libipt_REJECT.c   | 14 +-------------
+ extensions/libipt_REJECT.man |  4 +---
+ 2 files changed, 2 insertions(+), 16 deletions(-)
 
-> Currently, IPVS skips MTU checks for GSO packets by excluding them with
-> the !skb_is_gso(skb) condition. This creates problems when IPVS tunnel
-> mode encapsulates GSO packets with IPIP headers.
-> 
-> The issue manifests in two ways:
-> 
-> 1. MTU violation after encapsulation:
->    When a GSO packet passes through IPVS tunnel mode, the original MTU
->    check is bypassed. After adding the IPIP tunnel header, the packet
->    size may exceed the outgoing interface MTU, leading to unexpected
->    fragmentation at the IP layer.
-> 
-> 2. Fragmentation with problematic IP IDs:
->    When net.ipv4.vs.pmtu_disc=1 and a GSO packet with multiple segments
->    is fragmented after encapsulation, each segment gets a sequentially
->    incremented IP ID (0, 1, 2, ...). This happens because:
-> 
->    a) The GSO packet bypasses MTU check and gets encapsulated
->    b) At __ip_finish_output, the oversized GSO packet is split into
->       separate SKBs (one per segment), with IP IDs incrementing
->    c) Each SKB is then fragmented again based on the actual MTU
-> 
->    This sequential IP ID allocation differs from the expected behavior
->    and can cause issues with fragment reassembly and packet tracking.
-> 
-> Fix this by properly validating GSO packets using
-> skb_gso_validate_network_len(). This function correctly validates
-> whether the GSO segments will fit within the MTU after segmentation. If
-> validation fails, send an ICMP Fragmentation Needed message to enable
-> proper PMTU discovery.
-> 
-> Fixes: 4cdd34084d53 ("netfilter: nf_conntrack_ipv6: improve fragmentation handling")
-> Signed-off-by: Yingnan Zhang <342144303@qq.com>
-
-	Looks good to me for the nf tree, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
-> v4:
-> - Introduce a new helper function ip_vs_exceeds_mtu() to improve readability (reviewer feedback)
-> 
-> v3: https://lore.kernel.org/netdev/tencent_73010FBD5FA1C05C3BC23A07A50B11CEC90A@qq.com/
-> v2: https://lore.kernel.org/netdev/tencent_CA2C1C219C99D315086BE55E8654AF7E6009@qq.com/
-> v1: https://lore.kernel.org/netdev/tencent_4A3E1C339C75D359093BE4F08648AFAA6009@qq.com/
-> ---
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c | 16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 0fb5162992e5..64dfdf8b00c4 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -102,6 +102,18 @@ __ip_vs_dst_check(struct ip_vs_dest *dest)
->  	return dest_dst;
->  }
->  
-> +/* Based on ip_exceeds_mtu(). */
-> +static bool ip_vs_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
-> +{
-> +	if (skb->len <= mtu)
-> +		return false;
-> +
-> +	if (skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))
-> +		return false;
-> +
-> +	return true;
-> +}
-> +
->  static inline bool
->  __mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
->  {
-> @@ -112,7 +124,7 @@ __mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
->  		if (IP6CB(skb)->frag_max_size > mtu)
->  			return true; /* largest fragment violate MTU */
->  	}
-> -	else if (skb->len > mtu && !skb_is_gso(skb)) {
-> +	else if (ip_vs_exceeds_mtu(skb, mtu)) {
->  		return true; /* Packet size violate MTU size */
->  	}
->  	return false;
-> @@ -232,7 +244,7 @@ static inline bool ensure_mtu_is_adequate(struct netns_ipvs *ipvs, int skb_af,
->  			return true;
->  
->  		if (unlikely(ip_hdr(skb)->frag_off & htons(IP_DF) &&
-> -			     skb->len > mtu && !skb_is_gso(skb) &&
-> +			     ip_vs_exceeds_mtu(skb, mtu) &&
->  			     !ip_vs_iph_icmp(ipvsh))) {
->  			icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
->  				  htonl(mtu));
-> -- 
-> 2.51.0.windows.1
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/extensions/libipt_REJECT.c b/extensions/libipt_REJECT.c
+index 743dfffc..8bfe0fd7 100644
+--- a/extensions/libipt_REJECT.c
++++ b/extensions/libipt_REJECT.c
+@@ -6,16 +6,6 @@
+ #include <string.h>
+ #include <xtables.h>
+ #include <linux/netfilter_ipv4/ipt_REJECT.h>
+-#include <linux/version.h>
+-
+-/* If we are compiling against a kernel that does not support
+- * IPT_ICMP_ADMIN_PROHIBITED, we are emulating it.
+- * The result will be a plain DROP of the packet instead of
+- * reject. -- Maciej Soltysiak <solt@dns.toxicfilms.tv>
+- */
+-#ifndef IPT_ICMP_ADMIN_PROHIBITED
+-#define IPT_ICMP_ADMIN_PROHIBITED	IPT_TCP_RESET + 1
+-#endif
+ 
+ struct reject_names {
+ 	const char *name;
+@@ -73,7 +63,7 @@ static const struct reject_names reject_table[] = {
+ 	},
+ 	[IPT_ICMP_ADMIN_PROHIBITED] = {
+ 		"icmp-admin-prohibited", "admin-prohib",
+-		"ICMP administratively prohibited (*)",
++		"ICMP administratively prohibited",
+ 		"admin-prohibited",
+ 	},
+ };
+@@ -102,8 +92,6 @@ static void REJECT_help(void)
+ "                                a reply packet according to type:\n");
+ 
+ 	print_reject_types();
+-
+-	printf("(*) See man page or read the INCOMPATIBILITES file for compatibility issues.\n");
+ }
+ 
+ static const struct xt_option_entry REJECT_opts[] = {
+diff --git a/extensions/libipt_REJECT.man b/extensions/libipt_REJECT.man
+index a7196cdc..ea4d92e6 100644
+--- a/extensions/libipt_REJECT.man
++++ b/extensions/libipt_REJECT.man
+@@ -19,7 +19,7 @@ The type given can be
+ \fBicmp\-proto\-unreachable\fP,
+ \fBicmp\-net\-prohibited\fP,
+ \fBicmp\-host\-prohibited\fP, or
+-\fBicmp\-admin\-prohibited\fP (*),
++\fBicmp\-admin\-prohibited\fP,
+ which return the appropriate ICMP error message (\fBicmp\-port\-unreachable\fP is
+ the default).  The option
+ \fBtcp\-reset\fP
+@@ -28,8 +28,6 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
+ .I ident
+ (113/tcp) probes which frequently occur when sending mail to broken mail
+ hosts (which won't accept your mail otherwise).
+-.IP
+-(*) Using icmp\-admin\-prohibited with kernels that do not support it will result in a plain DROP instead of REJECT
+ .PP
+ \fIWarning:\fP You should not indiscriminately apply the REJECT target to
+ packets whose connection state is classified as INVALID; instead, you should
+-- 
+2.53.0
 
