@@ -1,49 +1,49 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68AD134A767;
-	Wed, 15 Apr 2026 16:21:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E944B3BD64D;
+	Wed, 15 Apr 2026 16:54:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776270096; cv=none; b=en3gIfGNbfceFVz4CNBHMd2qQJPfEziYWsGkp50urbCVqCJJaVEJ3T2ItIHwnCrUhHQrMqYOwdPn6TCz2SrB5JlAS37/gG0fbIafieLuUUR2F8rqr9IgyYMg2jo8nEU3u6TZdPT8eEZkr6DNtY7bKegXKIRRUM5Mdl1HUtp7oRI=
+	t=1776272091; cv=none; b=SZTj4uM1wngWwihA75P9AsZqQdTzT+DHnnVAy8Mh9fR3h0wvssWo5+VtC9d7x6PNqftMpVs3NfXuwwRJIDuCulJZ5tUiBGJGn7IDRm1wHdJ/OfIWl8OMqUFPkTDIV0dB6+aIztIDiE/Wio8y/NGvXFFh9RzhTflIGUOsBlhhhbE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776270096; c=relaxed/simple;
-	bh=nKY2FNElFVAaM0L4ieLyB49PFRaTeWKOhpywzm9fA3o=;
+	s=arc-20240116; t=1776272091; c=relaxed/simple;
+	bh=6DNTZ0ERM+6asbMeGGsrZ6aDsAY5gnasAF9NXF3KX/I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RrQ0KgwDGtneEAPXxpeDTnbsYxkslaeaRByMattvLKDFivR05qz7EvSJ0wJhx+MeWUz8HLQKhWglOiPNgWYXxFIKy3DsqseF+9tRzBJJxVeXNVRL+J6h+ZTl+FR7cDoI6S2YZJ3dLH9A7gTX57zH8Aldk6aBLdk64xQyW5EzetI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZERztMOD; arc=none smtp.client-ip=217.70.190.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=O9N30p79KGHe+wCpzCw9Urbm1kE2FowSixPw1TaYIosJv4Guw9Tk+DZJRn6O5q8Sere3jW62caOVF+ZZj13f1Y5z1RfLP/0JLKsChquiBgut/+aBiHSJyHGqWCOLubRf1vFt+FlEf7n1z4TWNY/WOfiZ4x/E6zZUGWtBHkLPygI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=USudHZsI; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZERztMOD"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="USudHZsI"
 Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id A4B68600B5;
-	Wed, 15 Apr 2026 18:21:31 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id C119E60177;
+	Wed, 15 Apr 2026 18:54:47 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776270091;
-	bh=X3T8CYcKtn+rhTvs0sJGYEhOtkqxJirQRB4VejoqTE4=;
+	s=2025; t=1776272087;
+	bh=wI1AsDb3z2P6i589haHLZlIIadhnDuo0oWVn9mLJshA=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ZERztMOD1VYnc5lgHlY9682sI0x7f7U4z8PDJ0wqO28JscZxacxPYJKkTyl1b4LQ0
-	 lOjCsg4xrMRgAzGl2N60196BAkdx2/FDgatUksyHbBAOd0Grm6QMMfRYU343idDioG
-	 UpYf0pJbs7/z5nwwhqGoEojXhyo8u3b+lDK4R+VXdjdE9/HnGSQKnSQ+jC13zP788k
-	 tJHV4G7NPo127jW3gR35+DnaeUhZSK4SINmEIpSl7kIuO2sr/DtkRWtPFvCMa8SY0g
-	 vo6Iwo026C95UH6rt+azD5yGwr+wrQ/NjA15SnRxqqJep8Om85Wx6QHiheRAn+qfKT
-	 ftKgu13eReIug==
-Date: Wed, 15 Apr 2026 18:21:28 +0200
+	b=USudHZsIvGmL8Zp3SEelOosguhygRWXOemwMzscPov6DdONVtsBsjeY3c77AQylZ8
+	 KfsyxDDwi0zzTBU+3Jm1P5WKV37IzyT0c+PbxsjM6F02Jgc8LR1+3GWVmOAHNXffY4
+	 a8WhGFvPLXh8A3J++H3zCxZrwYUk7yAF9N1Is3ood5khhdsMYzgGCJBSPWy6aOjOUB
+	 0qJoCk9c7NgIM/dFOc3y0NngnkHRSGXPH9VbuNJ5+m2bJSmArSLQovJPfXTt1CCENw
+	 WyiMIWNoeRHbf7XIMv8o9wLxVGZ3kIFaJrNihkGUvCY8XBLuQeneDLzCOhRHhA7noZ
+	 lxdCi1/eg0cig==
+Date: Wed, 15 Apr 2026 18:54:45 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
-Cc: "Kito Xu (veritas501)" <hxzene@gmail.com>, phil@nwl.cc,
-	davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
-	pabeni@redhat.com, horms@kernel.org, jengelh@medozas.de,
-	kaber@trash.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] netfilter: xt_realm: fix null-ptr-deref in realm_mt()
-Message-ID: <ad-7CNqWLz23NVVe@chamomile>
-References: <20260415034343.107920-1-hxzene@gmail.com>
- <ad9UF5Cr12YGJnbi@strlen.de>
- <ad9aDziQEBR0h3U8@chamomile>
- <ad9d52dQWrS1H_ju@strlen.de>
+To: Weiming Shi <bestswngs@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+	Phil Sutter <phil@nwl.cc>, Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Xiang Mei <xmei5@asu.edu>
+Subject: Re: [PATCH nf] netfilter: nf_tables: use RCU-safe list primitives
+ for basechain hook list
+Message-ID: <ad_C1f2cW5-kctHi@chamomile>
+References: <20260410101321.915190-2-bestswngs@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -52,57 +52,20 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <ad9d52dQWrS1H_ju@strlen.de>
+In-Reply-To: <20260410101321.915190-2-bestswngs@gmail.com>
 
-On Wed, Apr 15, 2026 at 11:44:07AM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Apr 15, 2026 at 11:02:15AM +0200, Florian Westphal wrote:
-> > > Kito Xu (veritas501) <hxzene@gmail.com> wrote:
-> > > > realm_mt() unconditionally dereferences skb_dst(skb) without a NULL
-> > > > check. The xt_realm match registers with .family = NFPROTO_UNSPEC,
-> > > > making it available to all netfilter protocol families. Through the
-> > > > nftables compat layer (nft_compat), an unprivileged user inside a
-> > > > user/net namespace can load this match into a bridge-family chain.
-> > > 
-> > > I do not think this bug is related to nft_compat.
-> > > You can also use ebtables setsockopt api to request xt_realm, no?
-> > > 
-> > > > Fixes: ab4f21e6fb1c ("netfilter: xtables: use NFPROTO_UNSPEC in more extensions")
-> > > 
-> > > Looks correct.  Alternatively we could revert the xt_realm.c change.
-> > > But I don't have a strong opinion here, patch looks correct.
-> > 
-> > Maybe partial revert makes sense, since in ab4f21e6fb1c:
-> > 
-> > - xt_MARK: OK
-> > - xt_NOTRACK: OK
-> > - xt_comment: OK
+On Fri, Apr 10, 2026 at 06:13:22PM +0800, Weiming Shi wrote:
+> NFT_MSG_GETCHAIN runs as an NFNL_CB_RCU callback, so chain dumps
+> traverse basechain->hook_list under rcu_read_lock() without holding
+> commit_mutex. Meanwhile, nft_delchain_hook() mutates that same live
+> hook_list with plain list_move() and list_splice(), and the commit/abort
+> paths splice hooks back with plain list_splice(). None of these are
+> RCU-safe list operations.
 > 
-> Agree.
-> 
-> > - xt_mac: There is a better way to do this in bridge.
-> 
-> Right.
-> 
-> > - xt_owner, no sockets in bridge.
-> 
-> Output/postrouting maybe?
-> 
-> > - xt_physdev, which makes no sense in bridge, this is for br_netfilter
-> >   only.
-> 
-> Agree.
-> 
-> > - xt_realm (as already mentioned).
-> > That is, a partial revert of this patch for:
-> > 
-> > - xt_mac
-> > - xt_owner
-> > - xt_physdev
-> > - xt_realm
-> 
-> I'm ok with that too.
+> A concurrent GETCHAIN dump can observe partially updated list pointers,
+> follow them into stack-local or transaction-private list heads, and
+> crash when container_of() produces a bogus struct nft_hook pointer.
 
-For the record, this patch has been replaced by:
+For the record, v1 of proposed series to fix this is here:
 
-https://patchwork.ozlabs.org/project/netfilter-devel/patch/20260415113334.61008-1-pablo@netfilter.org/
+https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=499757
