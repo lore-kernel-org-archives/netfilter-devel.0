@@ -1,248 +1,278 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.50])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85ADA328B5E
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 10:33:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B46C6314B76
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 10:47:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776249223; cv=none; b=oXFY/L6PSaQXtHb85QOqDxiiMQL0CIddGBwLQNlrkC2Ya8LiP3BeHj6N2Lr6iwAo5cHtuvn0/0sdNnnOi7mUcpStZtm2IUpzf6+vV7LodhUNSjgQ4uFy6iFmXo1RCreOtnLKFvJ3TOu+StoDlQUXRX7fIF/OaehjpmBVk4WKFj0=
+	t=1776250036; cv=none; b=ZB4mTkcGiIfOfeuU86DOE4D8+GnywnmaOYQ9GwwFF4mxTmGsLKtZoPFKriwERZAa9bFybt74g7fuoavY1ZYiXAp1qfyWcXBH7YIpTIW6BYarpwLPN9icxmDHoPQSRaEi1j1dL1ivDcSiucZb4GDE6O41VlNQmUSkItZ3jks6Khk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776249223; c=relaxed/simple;
-	bh=GEztm2x3YJlz7eFkN2ag2hM5gd04XoP7eVga1xtupJU=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=DS1bKOg3pm+3GHId1scy9hR4UURk/sPJFOjnWE+IdPBnXA6rkkD1m+Al0kG/MZ2Zxpp7Svde6QiO1ZMmU16Weaw+6Wj/XglhUIjnJhL1OLM42YyLI27oybIyOackHtat/pV313cuQYpyzB4E+owu9Fps5gunID1tgvcIr1Cq16k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=o9gWWUjy; arc=none smtp.client-ip=148.6.0.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1776250036; c=relaxed/simple;
+	bh=zre4LGf00RLwLfaD17aEHynkNwu4BAmfxv0aL3ttB3I=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=j5Qa3QOI/zfW3BfkqAR4x3aUljwC1PxPEKLw2c4uEDxaVgSSVh73aFQYbLcCgtXzvCHtNd/ZuUprC+MPayLKmO/bbGpJpBkQjrAjgASkWRkhCBxhW3F8cZkYbVw+3pG1Zs7BZ2x+fw+u25QY2PtqNI9NkgM3NJJt1RDfqlTHhl0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=rzLoyTsm; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="o9gWWUjy"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4fwctp51CpzGFDMM;
-	Wed, 15 Apr 2026 12:33:38 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1776249216; x=1778063617; bh=24m1BNrb0V
-	10LOtLF8eYd7yYZKEWgrXt9M3fhqFO2aQ=; b=o9gWWUjyCNq4DPJ7hsFW1BV+JS
-	Za4xTbrof0jysuQgXjvh7DcxfX45fxsXe0sjkWWQop4xna6ioXp5YDlc1SZ7Af17
-	AT+9YbFvWc5ysGiJQmw34cUQI3f1/lyBg+c8sYpo5QelIhNMhcxkbaO05IOz/8zQ
-	mvDuIS72599Z+APCY=
-X-Virus-Scanned: Debian amavis at smtp1.kfki.hu
-Received: from smtp1.kfki.hu ([127.0.0.1])
- by localhost (smtp1.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id RToBENkFv7JE; Wed, 15 Apr 2026 12:33:36 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [IPv6:2001:738:5001:1::240:2])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 4fwctm5XqBzGFDM6;
-	Wed, 15 Apr 2026 12:33:36 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id AEEC334316A; Wed, 15 Apr 2026 12:33:36 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id AD1A5340D75;
-	Wed, 15 Apr 2026 12:33:36 +0200 (CEST)
-Date: Wed, 15 Apr 2026 12:33:36 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Florian Westphal <fw@strlen.de>
-cc: Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org, 
-    Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: ipset: Fix data race between add and dump
- in all hash types
-In-Reply-To: <ad9mzYNk5JpDfklg@strlen.de>
-Message-ID: <93dd963e-7577-83a5-244f-f19f49ddcd78@blackhole.kfki.hu>
-References: <20260415082039.4133308-1-kadlec@netfilter.org> <20260415082039.4133308-3-kadlec@netfilter.org> <ad9mzYNk5JpDfklg@strlen.de>
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="rzLoyTsm"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 32AB260177;
+	Wed, 15 Apr 2026 12:47:11 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776250031;
+	bh=cgDCGzIr16YL9BibCxZpNEb97j6uNpU1e/ypiiD9Dhs=;
+	h=From:To:Cc:Subject:Date:From;
+	b=rzLoyTsmeMv8WY6HmdgdlGwgPftm/J/aPKLzN+AcscY7LpC+BFyF+l2q25hbsDYx6
+	 BvtPowctcR7a8wKWl9Lq2BWH7tZ/JOuc6jCjpAozP1r932D77rtj9CncG2jxnJnwuW
+	 9TalvovLQQVXm2+Bz4MGLi0NsJ/m1gV9ED8gKp3z/NfI97UZEsKKuJP0O/LfAxR81z
+	 uLzIlpSIEKVPkiA0bANUksGu1bHZ8Ruz938d9oWxYJxCeQTYgt5lYjDC6ZkwQgOZpe
+	 bSQnF4h8kbOI9OU94Ztkh/VVtli8uxt3Js/+8vcjj3mi5KjYKCRZAD3+08Aq3z/5N2
+	 Y7KkpbdDdqKfg==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de
+Subject: [PATCH nf] netfilter: xtables: restrict several matches to ipv4 and ipv6
+Date: Wed, 15 Apr 2026 12:47:07 +0200
+Message-ID: <20260415104707.55946-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+This is a partial revert of:
 
-On Wed, 15 Apr 2026, Florian Westphal wrote:
+  ab4f21e6fb1c ("netfilter: xtables: use NFPROTO_UNSPEC in more extensions")
 
-> Jozsef Kadlecsik <kadlec@netfilter.org> wrote:
->> When adding a new entry to the next position in the existing hash bucket,
->> the position index was incremented too early and parallel dump could
->> read it before the entry was populated with the value. Move the setting
->> of the position index after populating the entry.
->>
->> Reported-by: syzbot+786c889f046e8b003ca6@syzkaller.appspotmail.com
->> Reported-by: syzbot+1da17e4b41d795df059e@syzkaller.appspotmail.com
->> Reported-by: syzbot+421c5f3ff8e9493084d9@syzkaller.appspotmail.com
->> Signed-off-by: Jozsef Kadlecsik <kadlec@netfilter.org>
->> ---
->>  net/netfilter/ipset/ip_set_hash_gen.h | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
->> index b79e5dd2af03..0da02a8dfbae 100644
->> --- a/net/netfilter/ipset/ip_set_hash_gen.h
->> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
->> @@ -844,7 +844,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->>  	const struct mtype_elem *d = value;
->>  	struct mtype_elem *data;
->>  	struct hbucket *n, *old = ERR_PTR(-ENOENT);
->> -	int i, j = -1, ret;
->> +	int i, j = -1, npos = 0, ret;
->>  	bool flag_exist = flags & IPSET_FLAG_EXIST;
->>  	bool deleted = false, forceadd = false, reuse = false;
->>  	u32 r, key, multi = 0, elements, maxelem;
->> @@ -889,6 +889,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->>  			ext_size(AHASH_INIT_SIZE, set->dsize);
->>  		goto copy_elem;
->>  	}
->> +	npos = n->pos;
->>  	for (i = 0; i < n->pos; i++) {
->>  		if (!test_bit(i, n->used)) {
->>  			/* Reuse first deleted entry */
->> @@ -962,7 +963,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->>  	}
->>
->>  copy_elem:
->> -	j = n->pos++;
->> +	j = npos = n->pos + 1;
->
-> Hmm. Should that be:
-> +	j = npos;
-> +	npos = n->pos + 1;
->
-> As-is j is advanced by 1 compared to old code.
->
->>  	data = ahash_data(n, j, set->dsize);
->>  copy_data:
->>  	t->hregion[r].elements++;
->> @@ -985,6 +986,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->>  	if (SET_WITH_TIMEOUT(set))
->>  		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
->>  	smp_mb__before_atomic();
->> +	n->pos = npos;
->>  	set_bit(j, n->used);
->
-> I think this needs a followup-patch to switch this to smp_store_release
-> and readers to smp_load_acquire helpers.
+to allow ipv4 and ipv6 only.
 
-Your comments are sharp, thanks! I'd better resend the batch in a new 
-version.
+- xt_mac
+- xt_owner
+- xt_physdev
+- xt_realm
 
-Best regards,
-Jozsef
+these extensions are not used by ebtables in userspace.
 
-> Here is a diff for this (generated by LLM and only compile tested).
-> I think this can be a separate patch to not make this change too big and
-> to not mix different fixes.
->
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 0da02a8dfbae..2ca674e51699 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -682,10 +682,13 @@ mtype_resize(struct ip_set *set, bool retried)
-> 		rcu_read_lock_bh();
-> 		for (i = ahash_bucket_start(r, orig->htable_bits);
-> 		     i < ahash_bucket_end(r, orig->htable_bits); i++) {
-> +			u8 pos;
-> +
-> 			n = __ipset_dereference(hbucket(orig, i));
-> 			if (!n)
-> 				continue;
-> -			for (j = 0; j < n->pos; j++) {
-> +			pos = smp_load_acquire(&n->pos);
-> +			for (j = 0; j < pos; j++) {
-> 				if (!test_bit(j, n->used))
-> 					continue;
-> 				data = ahash_data(n, j, dsize);
-> @@ -817,10 +820,13 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
-> 	for (r = 0; r < ahash_numof_locks(t->htable_bits); r++) {
-> 		for (i = ahash_bucket_start(r, t->htable_bits);
-> 		     i < ahash_bucket_end(r, t->htable_bits); i++) {
-> +			u8 pos;
-> +
-> 			n = rcu_dereference_bh(hbucket(t, i));
-> 			if (!n)
-> 				continue;
-> -			for (j = 0; j < n->pos; j++) {
-> +			pos = smp_load_acquire(&n->pos);
-> +			for (j = 0; j < pos; j++) {
-> 				if (!test_bit(j, n->used))
-> 					continue;
-> 				data = ahash_data(n, j, set->dsize);
-> @@ -963,7 +969,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	}
->
-> copy_elem:
-> -	j = npos = n->pos + 1;
-> +	j = npos;
-> +	npos = n->pos + 1;
-> 	data = ahash_data(n, j, set->dsize);
-> copy_data:
-> 	t->hregion[r].elements++;
-> @@ -985,8 +992,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	/* Must come last for the case when timed out entry is reused */
-> 	if (SET_WITH_TIMEOUT(set))
-> 		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
-> -	smp_mb__before_atomic();
-> -	n->pos = npos;
-> +	/* Ensure all data writes are visible before updating position */
-> +	smp_store_release(&n->pos, npos);
-> 	set_bit(j, n->used);
-> 	if (old != ERR_PTR(-ENOENT)) {
-> 		rcu_assign_pointer(hbucket(t, key), n);
-> @@ -1172,6 +1179,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
-> 	int ret, i, j = 0;
-> #endif
-> 	u32 key, multi = 0;
-> +	u8 pos;
->
-> 	pr_debug("test by nets\n");
-> 	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
-> @@ -1189,7 +1197,8 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
-> 		n = rcu_dereference_bh(hbucket(t, key));
-> 		if (!n)
-> 			continue;
-> -		for (i = 0; i < n->pos; i++) {
-> +		pos = smp_load_acquire(&n->pos);
-> +		for (i = 0; i < pos; i++) {
-> 			if (!test_bit(i, n->used))
-> 				continue;
-> 			data = ahash_data(n, i, set->dsize);
-> @@ -1223,6 +1232,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	struct mtype_elem *data;
-> 	int i, ret = 0;
-> 	u32 key, multi = 0;
-> +	u8 pos;
->
-> 	rcu_read_lock_bh();
-> 	t = rcu_dereference_bh(h->table);
-> @@ -1245,7 +1255,8 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 		ret = 0;
-> 		goto out;
-> 	}
-> -	for (i = 0; i < n->pos; i++) {
-> +	pos = smp_load_acquire(&n->pos);
-> +	for (i = 0; i < pos; i++) {
-> 		if (!test_bit(i, n->used))
-> 			continue;
-> 		data = ahash_data(n, i, set->dsize);
-> @@ -1373,6 +1384,8 @@ mtype_list(const struct ip_set *set,
-> 	rcu_read_lock();
-> 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
-> 	     cb->args[IPSET_CB_ARG0]++) {
-> +		u8 pos;
-> +
-> 		cond_resched_rcu();
-> 		incomplete = skb_tail_pointer(skb);
-> 		n = rcu_dereference(hbucket(t, cb->args[IPSET_CB_ARG0]));
-> @@ -1380,7 +1393,9 @@ mtype_list(const struct ip_set *set,
-> 			 cb->args[IPSET_CB_ARG0], t, n);
-> 		if (!n)
-> 			continue;
-> -		for (i = 0; i < n->pos; i++) {
-> +		/* Acquire ordering with smp_store_release in mtype_add */
-> +		pos = smp_load_acquire(&n->pos);
-> +		for (i = 0; i < pos; i++) {
-> 			if (!test_bit(i, n->used))
-> 				continue;
-> 			e = ahash_data(n, i, set->dsize);
->
->
->
+Fixes: ab4f21e6fb1c ("netfilter: xtables: use NFPROTO_UNSPEC in more extensions")
+Reported-by: "Kito Xu (veritas501)" <hxzene@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_mac.c     | 34 +++++++++++++++++++++++-----------
+ net/netfilter/xt_owner.c   | 37 +++++++++++++++++++++++++------------
+ net/netfilter/xt_physdev.c | 29 +++++++++++++++++++----------
+ net/netfilter/xt_realm.c   | 31 +++++++++++++++++++++----------
+ 4 files changed, 88 insertions(+), 43 deletions(-)
+
+diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
+index 81649da57ba5..bd2354760895 100644
+--- a/net/netfilter/xt_mac.c
++++ b/net/netfilter/xt_mac.c
+@@ -38,25 +38,37 @@ static bool mac_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ret;
+ }
+ 
+-static struct xt_match mac_mt_reg __read_mostly = {
+-	.name      = "mac",
+-	.revision  = 0,
+-	.family    = NFPROTO_UNSPEC,
+-	.match     = mac_mt,
+-	.matchsize = sizeof(struct xt_mac_info),
+-	.hooks     = (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_IN) |
+-	             (1 << NF_INET_FORWARD),
+-	.me        = THIS_MODULE,
++static struct xt_match mac_mt_reg[] __read_mostly = {
++	{
++		.name		= "mac",
++		.family		= NFPROTO_IPV4,
++		.match		= mac_mt,
++		.matchsize	= sizeof(struct xt_mac_info),
++		.hooks		= (1 << NF_INET_PRE_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN) |
++				  (1 << NF_INET_FORWARD),
++		.me		= THIS_MODULE,
++	},
++	{
++		.name		= "mac",
++		.family		= NFPROTO_IPV6,
++		.match		= mac_mt,
++		.matchsize	= sizeof(struct xt_mac_info),
++		.hooks		= (1 << NF_INET_PRE_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN) |
++				  (1 << NF_INET_FORWARD),
++		.me		= THIS_MODULE,
++	},
+ };
+ 
+ static int __init mac_mt_init(void)
+ {
+-	return xt_register_match(&mac_mt_reg);
++	return xt_register_matches(mac_mt_reg, ARRAY_SIZE(mac_mt_reg));
+ }
+ 
+ static void __exit mac_mt_exit(void)
+ {
+-	xt_unregister_match(&mac_mt_reg);
++	xt_unregister_matches(mac_mt_reg, ARRAY_SIZE(mac_mt_reg));
+ }
+ 
+ module_init(mac_mt_init);
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index 50332888c8d2..4786ea157269 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -127,26 +127,39 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return true;
+ }
+ 
+-static struct xt_match owner_mt_reg __read_mostly = {
+-	.name       = "owner",
+-	.revision   = 1,
+-	.family     = NFPROTO_UNSPEC,
+-	.checkentry = owner_check,
+-	.match      = owner_mt,
+-	.matchsize  = sizeof(struct xt_owner_match_info),
+-	.hooks      = (1 << NF_INET_LOCAL_OUT) |
+-	              (1 << NF_INET_POST_ROUTING),
+-	.me         = THIS_MODULE,
++static struct xt_match owner_mt_reg[] __read_mostly = {
++	{
++		.name       = "owner",
++		.revision   = 1,
++		.family     = NFPROTO_IPV4,
++		.checkentry = owner_check,
++		.match      = owner_mt,
++		.matchsize  = sizeof(struct xt_owner_match_info),
++		.hooks      = (1 << NF_INET_LOCAL_OUT) |
++		              (1 << NF_INET_POST_ROUTING),
++		.me         = THIS_MODULE,
++	},
++	{
++		.name       = "owner",
++		.revision   = 1,
++		.family     = NFPROTO_IPV6,
++		.checkentry = owner_check,
++		.match      = owner_mt,
++		.matchsize  = sizeof(struct xt_owner_match_info),
++		.hooks      = (1 << NF_INET_LOCAL_OUT) |
++		              (1 << NF_INET_POST_ROUTING),
++		.me         = THIS_MODULE,
++	}
+ };
+ 
+ static int __init owner_mt_init(void)
+ {
+-	return xt_register_match(&owner_mt_reg);
++	return xt_register_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
+ }
+ 
+ static void __exit owner_mt_exit(void)
+ {
+-	xt_unregister_match(&owner_mt_reg);
++	xt_unregister_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
+ }
+ 
+ module_init(owner_mt_init);
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 343e65f377d4..130842c35c6f 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -115,24 +115,33 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
+-static struct xt_match physdev_mt_reg __read_mostly = {
+-	.name       = "physdev",
+-	.revision   = 0,
+-	.family     = NFPROTO_UNSPEC,
+-	.checkentry = physdev_mt_check,
+-	.match      = physdev_mt,
+-	.matchsize  = sizeof(struct xt_physdev_info),
+-	.me         = THIS_MODULE,
++static struct xt_match physdev_mt_reg[] __read_mostly = {
++	{
++		.name		= "physdev",
++		.family		= NFPROTO_IPV4,
++		.checkentry	= physdev_mt_check,
++		.match		= physdev_mt,
++		.matchsize	= sizeof(struct xt_physdev_info),
++		.me		= THIS_MODULE,
++	},
++	{
++		.name		= "physdev",
++		.family		= NFPROTO_IPV6,
++		.checkentry	= physdev_mt_check,
++		.match		= physdev_mt,
++		.matchsize	= sizeof(struct xt_physdev_info),
++		.me		= THIS_MODULE,
++	},
+ };
+ 
+ static int __init physdev_mt_init(void)
+ {
+-	return xt_register_match(&physdev_mt_reg);
++	return xt_register_matches(physdev_mt_reg, ARRAY_SIZE(physdev_mt_reg));
+ }
+ 
+ static void __exit physdev_mt_exit(void)
+ {
+-	xt_unregister_match(&physdev_mt_reg);
++	xt_unregister_matches(physdev_mt_reg, ARRAY_SIZE(physdev_mt_reg));
+ }
+ 
+ module_init(physdev_mt_init);
+diff --git a/net/netfilter/xt_realm.c b/net/netfilter/xt_realm.c
+index 6df485f4403d..130ebe5d1c43 100644
+--- a/net/netfilter/xt_realm.c
++++ b/net/netfilter/xt_realm.c
+@@ -27,24 +27,35 @@ realm_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return (info->id == (dst->tclassid & info->mask)) ^ info->invert;
+ }
+ 
+-static struct xt_match realm_mt_reg __read_mostly = {
+-	.name		= "realm",
+-	.match		= realm_mt,
+-	.matchsize	= sizeof(struct xt_realm_info),
+-	.hooks		= (1 << NF_INET_POST_ROUTING) | (1 << NF_INET_FORWARD) |
+-			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_LOCAL_IN),
+-	.family		= NFPROTO_UNSPEC,
+-	.me		= THIS_MODULE
++static struct xt_match realm_mt_reg[] __read_mostly = {
++	{
++		.name		= "realm",
++		.match		= realm_mt,
++		.matchsize	= sizeof(struct xt_realm_info),
++		.hooks		= (1 << NF_INET_POST_ROUTING) | (1 << NF_INET_FORWARD) |
++				  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_LOCAL_IN),
++		.family		= NFPROTO_IPV4,
++		.me		= THIS_MODULE
++	},
++	{
++		.name		= "realm",
++		.match		= realm_mt,
++		.matchsize	= sizeof(struct xt_realm_info),
++		.hooks		= (1 << NF_INET_POST_ROUTING) | (1 << NF_INET_FORWARD) |
++				  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_LOCAL_IN),
++		.family		= NFPROTO_IPV6,
++		.me		= THIS_MODULE
++	}
+ };
+ 
+ static int __init realm_mt_init(void)
+ {
+-	return xt_register_match(&realm_mt_reg);
++	return xt_register_matches(realm_mt_reg, ARRAY_SIZE(realm_mt_reg));
+ }
+ 
+ static void __exit realm_mt_exit(void)
+ {
+-	xt_unregister_match(&realm_mt_reg);
++	xt_unregister_matches(realm_mt_reg, ARRAY_SIZE(realm_mt_reg));
+ }
+ 
+ module_init(realm_mt_init);
+-- 
+2.47.3
+
