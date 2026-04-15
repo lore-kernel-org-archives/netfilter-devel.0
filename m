@@ -1,366 +1,149 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD2683A75B7
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 17:10:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1ED6314A82;
+	Wed, 15 Apr 2026 17:39:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776273049; cv=none; b=W9dnjyE7Bu9FIy/tp0wykDlsJRh17ILnICZCvP1t66hcb/UroXhGgJFWwBptquJDTAWvcwCW0wbpyztbk8JseczXL84qvoVmRNR/o8Su2s41OgP5hfeOFia40TO7ZvZFt9xm2L35NpoAwxrpH7ABZu2AA+fIbzbwblCstWp+YBs=
+	t=1776274774; cv=none; b=cXuOVk+hPoFuJK2uplairrauGIkdR07WzQz9K+PxeMiPeWQtp4UfoRL+zyP8VOnkeZ9kkbT3FdBRgElR7HIqWlh3jk4Y9VaPZJGkj5zDshyj1/T9thV8vdWFPnVscDODK2SJZoT1WKFk+cgBiftp94hM86F/osNyV4JD6tdNWDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776273049; c=relaxed/simple;
-	bh=/cl8xPrwU4M6zAoVvUk8j/1b83xhRq7TXgynUxBrqxw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=LhNZtlo4+XCn3EGhkyCR6t67KhV+Gv6DSOFLwFjPBYqpvpGQKDk2nKxe42AEJyf5ejvx0TdmCSDxbXBti3C46UIC1LKjh6FiY0Yl6+oidAYo6H44y3P1E7bJlCxO7JAuJX2D6rDRUl+RYYoSmb2KQ/LVj2OdR4+o7RPdq3j7Tdg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tcPPYU5D; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1776274774; c=relaxed/simple;
+	bh=gPGHF3cu/RG4HIb6IsiMrXmvpuVwVLlNLA7KZZAJZV8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hUWzop2pTq1ZFzBOkfUl6hQKfcyiOXs/W8zljI9mUCHlvQsqkU8pTXixDB9Itcik8e7nu740ZgNsPl4A8Qbbldl+XmPzJO97v3AwTP4XfWGWPYs4Dbw6khpya8admKSxbaZ+QJ0XG5lgI7pVmP2b/xuxQZIwCjkCd5KsSOKxagA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=KvNpJEJT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tcPPYU5D"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 7E7D7600B5;
-	Wed, 15 Apr 2026 19:10:45 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776273045;
-	bh=kTV8XdpTgY+ZAAdccwvCMOgpH0YbW9qXzlgZliYEi04=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=tcPPYU5D1ZPzMrzz8UbJJW9FtBsRe31mL5SWQ9xqmN6yKKOjCkG9DxwFXtAyreHkr
-	 fPLpiCtkir33c6z6IhtTrszTBIjgLX3lD3Wo9QZr6l3DlwTzMPe72pqQTywSIj7EII
-	 RdXGHmwgK37US+hgTtWAy2Jj6IoXVphYYy8Dz+owD+orUeWjn6MlvlhUovxhucPfvX
-	 FLhB7k6++/8YPsuU/drN9D1DFUEZ2Vogro8icvbIgVRpgsNd0OAFvzBmt7RTdtuX05
-	 ySfmI4JXMIog/FNUlLIA8fOSeSsIRN+hUmW64ax4n1ZevzTYwjr91Xw4rFhOKYdyff
-	 8J9PvLSkUUbjg==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf,v2 3/3] netfilter: nf_tables: add hook transactions for device deletions
-Date: Wed, 15 Apr 2026 19:10:38 +0200
-Message-ID: <20260415171038.41442-2-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260415171038.41442-1-pablo@netfilter.org>
-References: <20260415171038.41442-1-pablo@netfilter.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="KvNpJEJT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 004B1C19424;
+	Wed, 15 Apr 2026 17:39:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776274774;
+	bh=gPGHF3cu/RG4HIb6IsiMrXmvpuVwVLlNLA7KZZAJZV8=;
+	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+	b=KvNpJEJTZzxeF/asC9lOsWr0VJ1wskeSDoV2h1oqRp/5db6vmR7BrvVG0JAtoA6IQ
+	 lq+LvzuKaCZeJ99zWBdaLQ1vO4Lb0Gqu4XXx7hXOEv0YkDwjkaxwxtuvHBi3i0gtLk
+	 LHxK5KUs2mGDZfm801QCIhJgbpa71orsntHgjztcUNS/m4IAC5O+8IG7Crckij9M7N
+	 AzdrLbcI3LKsRwK/dfCV8nvw7Fz78fy2FSySWe/SgA3jfoJtlghab5SAifpiPn33Br
+	 lesJNG/6BtmsymgG52TBzAgxJ8vv1oogI3Cpyy3gHPh1sgjaPHFwJa3Ywe6kpzAYuJ
+	 YkNdGG0aedeEw==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+	id 93032CE0781; Wed, 15 Apr 2026 10:39:33 -0700 (PDT)
+Date: Wed, 15 Apr 2026 10:39:33 -0700
+From: "Paul E. McKenney" <paulmck@kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
+	edumazet@google.com, fw@strlen.de, horms@kernel.org,
+	joelagnelf@nvidia.com, josh@joshtriplett.org, boqun@kernel.org,
+	urezki@gmail.com, rostedt@goodmis.org,
+	mathieu.desnoyers@efficios.com, jiangshanlai@gmail.com,
+	qiang.zhang@linux.dev, rcu@vger.kernel.org
+Subject: Re: [PATCH nf,v2 1/3] rculist: add list_splice_rcu() for private
+ lists
+Message-ID: <9210a276-8158-40f4-b3b5-6431f5f13541@paulmck-laptop>
+Reply-To: paulmck@kernel.org
+References: <20260415170844.41355-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260415170844.41355-1-pablo@netfilter.org>
 
-Restore the flag that indicates that the hook is going away, ie.
-NFT_HOOK_REMOVE, but add a new transaction object to track deletion
-of hooks without altering the basechain/flowtable hook_list during
-the preparation phase.
+On Wed, Apr 15, 2026 at 07:08:44PM +0200, Pablo Neira Ayuso wrote:
+> This patch adds a helper function, list_splice_rcu(), to safely splice
+> a private (non-RCU-protected) list into an RCU-protected list.
+> 
+> The function ensures that only the pointer visible to RCU readers
+> (prev->next) is updated using rcu_assign_pointer(), while the rest of
+> the list manipulations are performed with regular assignments, as the
+> source list is private and not visible to concurrent RCU readers.
+> 
+> This is useful for moving elements from a private list into a global
+> RCU-protected list, ensuring safe publication for RCU readers.
+> Subsystems with some sort of batching mechanism from userspace can
+> benefit from this new function.
+> 
+> The function __list_splice_rcu() has been added for clarity and to
+> follow the same pattern as in the existing list_splice*() interfaces,
+> where there is a check to ensure that that the list to splice is not
+> empty. Note that __list_splice_rcu() has no documentation for this
+> reason.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> v2: including comments by Paul McKenney.
+> 
+>     Except, I have deliberately keep back the suggestion to squash
+>     __list_splice_rcu() into list_splice_rcu(), I instead removed
+>     the documentation for __list_splice_rcu(). I am looking
+>     at other existing list_splice*() function in list.h and rculist.h
+>     to get this aligned with __list_splice(), which also has no users
+>     in the tree and no documentation. I find it easier to read with
+>     __list_splice(), but if this explaination is not sound so...
+> 
+>     @Paul: I can post v3 squashing __list_splice_rcu(), just let me
+>            know.
 
-The existing approach that moves the hook from the basechain/flowtable
-hook_list to transaction hook_list breaks netlink dump path readers
-of this RCU-protected list.
+Removing the comment addresses most of my concerns.  I do have a slight
+but not overwhelming preference for the squashed version, but either way:
 
-It should be possible use an array for nft_trans_hook to store the
-deleted hooks to compact the representation but I am not expecting
-many hook object, specially now that wildcard support for devices
-is in place.
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
 
-Note that the nft_trans_chain_hooks() list contains a list of struct
-nft_trans_hook objects for DELCHAIN and DELFLOWTABLE commands, while
-this list stores struct nft_hook objects for NEWCHAIN and NEWFLOWTABLE.
-Note that new commands can be updated to use nft_trans_hook for
-consistency.
+Or if you want this to go in via RCU, please let us know.  My guess is
+that it would be easier for you to take it in with the code using it.
 
-Fixes: 7d937b107108 ("netfilter: nf_tables: support for deleting devices in an existing netdev chain")
-Fixes: b6d9014a3335 ("netfilter: nf_tables: delete flowtable hooks via transaction list")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: no changes.
+							Thanx, Paul
 
- include/net/netfilter/nf_tables.h |  13 ++++
- net/netfilter/nf_tables_api.c     | 124 ++++++++++++++++++++++++++----
- 2 files changed, 120 insertions(+), 17 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index ec8a8ec9c0aa..3ec41574af77 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -1216,12 +1216,15 @@ struct nft_stats {
- 	struct u64_stats_sync	syncp;
- };
- 
-+#define NFT_HOOK_REMOVE	(1 << 0)
-+
- struct nft_hook {
- 	struct list_head	list;
- 	struct list_head	ops_list;
- 	struct rcu_head		rcu;
- 	char			ifname[IFNAMSIZ];
- 	u8			ifnamelen;
-+	u8			flags;
- };
- 
- struct nf_hook_ops *nft_hook_find_ops(const struct nft_hook *hook,
-@@ -1676,6 +1679,16 @@ struct nft_trans {
- 	u8				put_net:1;
- };
- 
-+/**
-+ * struct nft_trans_hook - nf_tables hook update in transaction
-+ * @list: used internally
-+ * @hook: struct nft_hook with the device hook
-+ */
-+struct nft_trans_hook {
-+	struct list_head		list;
-+	struct nft_hook			*hook;
-+};
-+
- /**
-  * struct nft_trans_binding - nf_tables object with binding support in transaction
-  * @nft_trans:    base structure, MUST be first member
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 4d7c2794c87d..2ea94a534280 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -374,6 +374,25 @@ static void nft_netdev_hook_free_rcu(struct nft_hook *hook)
- 	call_rcu(&hook->rcu, __nft_netdev_hook_free_rcu);
- }
- 
-+static void nft_netdev_unregister_trans_hook(struct net *net,
-+					     struct list_head *hook_list)
-+{
-+	struct nft_trans_hook *trans_hook, *next;
-+	struct nf_hook_ops *ops;
-+	struct nft_hook *hook;
-+
-+	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
-+		hook = trans_hook->hook;
-+		list_for_each_entry(ops, &hook->ops_list, list)
-+			nf_unregister_net_hook(net, ops);
-+
-+		list_del(&hook->list);
-+		nft_netdev_hook_free_rcu(hook);
-+		list_del(&trans_hook->list);
-+		kfree(trans_hook);
-+	}
-+}
-+
- static void nft_netdev_unregister_hooks(struct net *net,
- 					struct list_head *hook_list,
- 					bool release_netdev)
-@@ -2395,8 +2414,12 @@ static struct nft_hook *nft_hook_list_find(struct list_head *hook_list,
- 
- 	list_for_each_entry(hook, hook_list, list) {
- 		if (!strncmp(hook->ifname, this->ifname,
--			     min(hook->ifnamelen, this->ifnamelen)))
-+			     min(hook->ifnamelen, this->ifnamelen))) {
-+			if (hook->flags & NFT_HOOK_REMOVE)
-+				continue;
-+
- 			return hook;
-+		}
- 	}
- 
- 	return NULL;
-@@ -3160,6 +3183,7 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
- {
- 	const struct nft_chain *chain = &basechain->chain;
- 	const struct nlattr * const *nla = ctx->nla;
-+	struct nft_trans_hook *trans_hook, *next;
- 	struct nft_chain_hook chain_hook = {};
- 	struct nft_hook *this, *hook;
- 	LIST_HEAD(chain_del_list);
-@@ -3180,7 +3204,14 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
- 			err = -ENOENT;
- 			goto err_chain_del_hook;
- 		}
--		list_move(&hook->list, &chain_del_list);
-+		trans_hook = kmalloc(sizeof(*trans_hook), GFP_KERNEL);
-+		if (!trans_hook) {
-+			err = -ENOMEM;
-+			goto err_chain_del_hook;
-+		}
-+		trans_hook->hook = hook;
-+		list_add_tail(&trans_hook->list, &chain_del_list);
-+		hook->flags |= NFT_HOOK_REMOVE;
- 	}
- 
- 	trans = nft_trans_alloc_chain(ctx, NFT_MSG_DELCHAIN);
-@@ -3200,7 +3231,11 @@ static int nft_delchain_hook(struct nft_ctx *ctx,
- 	return 0;
- 
- err_chain_del_hook:
--	list_splice(&chain_del_list, &basechain->hook_list);
-+	list_for_each_entry_safe(trans_hook, next, &chain_del_list, list) {
-+		list_del(&trans_hook->list);
-+		trans_hook->hook->flags &= ~NFT_HOOK_REMOVE;
-+		kfree(trans_hook);
-+	}
- 	nft_chain_release_hook(&chain_hook);
- 
- 	return err;
-@@ -8984,6 +9019,20 @@ static int nft_register_flowtable_net_hooks(struct net *net,
- 	return err;
- }
- 
-+static void nft_hooks_trans_destroy(struct list_head *hook_list)
-+{
-+	struct nft_trans_hook *trans_hook, *next;
-+	struct nft_hook *hook;
-+
-+	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
-+		hook = trans_hook->hook;
-+		list_del_rcu(&hook->list);
-+		nft_netdev_hook_free_rcu(hook);
-+		list_del(&trans_hook->list);
-+		kfree(trans_hook);
-+	}
-+}
-+
- static void nft_hooks_destroy(struct list_head *hook_list)
- {
- 	struct nft_hook *hook, *next;
-@@ -8994,6 +9043,27 @@ static void nft_hooks_destroy(struct list_head *hook_list)
- 	}
- }
- 
-+static void nft_flowtable_unregister_hooks_trans(struct net *net,
-+						 struct nft_flowtable *flowtable,
-+						 struct list_head *hook_list)
-+{
-+	struct nft_trans_hook *trans_hook, *next;
-+	struct nf_hook_ops *ops;
-+	struct nft_hook *hook;
-+
-+	list_for_each_entry_safe(trans_hook, next, hook_list, list) {
-+		hook = trans_hook->hook;
-+		list_for_each_entry(ops, &hook->ops_list, list)
-+			nft_unregister_flowtable_ops(net, flowtable, ops);
-+
-+		list_del(&hook->list);
-+		nft_netdev_hook_free_rcu(hook);
-+		list_del(&trans_hook->list);
-+		kfree(trans_hook);
-+
-+	}
-+}
-+
- static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
- 				struct nft_flowtable *flowtable,
- 				struct netlink_ext_ack *extack)
-@@ -9237,6 +9307,7 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- {
- 	const struct nlattr * const *nla = ctx->nla;
- 	struct nft_flowtable_hook flowtable_hook;
-+	struct nft_trans_hook *trans_hook, *next;
- 	LIST_HEAD(flowtable_del_list);
- 	struct nft_hook *this, *hook;
- 	struct nft_trans *trans;
-@@ -9253,7 +9324,14 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 			err = -ENOENT;
- 			goto err_flowtable_del_hook;
- 		}
--		list_move(&hook->list, &flowtable_del_list);
-+		trans_hook = kmalloc(sizeof(*trans_hook), GFP_KERNEL);
-+		if (!trans_hook) {
-+			err = -ENOMEM;
-+			goto err_flowtable_del_hook;
-+		}
-+		trans_hook->hook = hook;
-+		list_add_tail(&trans_hook->list, &flowtable_del_list);
-+		hook->flags |= NFT_HOOK_REMOVE;
- 	}
- 
- 	trans = nft_trans_alloc(ctx, NFT_MSG_DELFLOWTABLE,
-@@ -9274,7 +9352,11 @@ static int nft_delflowtable_hook(struct nft_ctx *ctx,
- 	return 0;
- 
- err_flowtable_del_hook:
--	list_splice(&flowtable_del_list, &flowtable->hook_list);
-+	list_for_each_entry_safe(trans_hook, next, &flowtable_del_list, list) {
-+		list_del(&trans_hook->list);
-+		trans_hook->hook->flags &= ~NFT_HOOK_REMOVE;
-+		kfree(trans_hook);
-+	}
- 	nft_flowtable_hook_release(&flowtable_hook);
- 
- 	return err;
-@@ -10112,7 +10194,7 @@ static void nft_commit_release(struct nft_trans *trans)
- 	case NFT_MSG_DELCHAIN:
- 	case NFT_MSG_DESTROYCHAIN:
- 		if (nft_trans_chain_update(trans))
--			nft_hooks_destroy(&nft_trans_chain_hooks(trans));
-+			nft_hooks_trans_destroy(&nft_trans_chain_hooks(trans));
- 		else
- 			nf_tables_chain_destroy(nft_trans_chain(trans));
- 		break;
-@@ -10135,7 +10217,7 @@ static void nft_commit_release(struct nft_trans *trans)
- 	case NFT_MSG_DELFLOWTABLE:
- 	case NFT_MSG_DESTROYFLOWTABLE:
- 		if (nft_trans_flowtable_update(trans))
--			nft_hooks_destroy(&nft_trans_flowtable_hooks(trans));
-+			nft_hooks_trans_destroy(&nft_trans_flowtable_hooks(trans));
- 		else
- 			nf_tables_flowtable_destroy(nft_trans_flowtable(trans));
- 		break;
-@@ -10928,9 +11010,8 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 				nf_tables_chain_notify(&ctx, NFT_MSG_DELCHAIN,
- 						       &nft_trans_chain_hooks(trans));
- 				if (!(table->flags & NFT_TABLE_F_DORMANT)) {
--					nft_netdev_unregister_hooks(net,
--								    &nft_trans_chain_hooks(trans),
--								    true);
-+					nft_netdev_unregister_trans_hook(net,
-+								    &nft_trans_chain_hooks(trans));
- 				}
- 			} else {
- 				nft_chain_del(nft_trans_chain(trans));
-@@ -11060,9 +11141,9 @@ static int nf_tables_commit(struct net *net, struct sk_buff *skb)
- 							   nft_trans_flowtable(trans),
- 							   &nft_trans_flowtable_hooks(trans),
- 							   trans->msg_type);
--				nft_unregister_flowtable_net_hooks(net,
--								   nft_trans_flowtable(trans),
--								   &nft_trans_flowtable_hooks(trans));
-+				nft_flowtable_unregister_hooks_trans(net,
-+								     nft_trans_flowtable(trans),
-+								     &nft_trans_flowtable_hooks(trans));
- 			} else {
- 				list_del_rcu(&nft_trans_flowtable(trans)->list);
- 				nf_tables_flowtable_notify(&ctx,
-@@ -11158,6 +11239,17 @@ static void nft_set_abort_update(struct list_head *set_update_list)
- 	}
- }
- 
-+static void nft_hooks_trans_abort(struct list_head *trans_hook_list)
-+{
-+	struct nft_trans_hook *trans_hook, *next;
-+
-+	list_for_each_entry_safe(trans_hook, next, trans_hook_list, list) {
-+		trans_hook->hook->flags &= ~NFT_HOOK_REMOVE;
-+		list_del(&trans_hook->list);
-+		kfree(trans_hook);
-+	}
-+}
-+
- static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- {
- 	struct nftables_pernet *nft_net = nft_pernet(net);
-@@ -11231,8 +11323,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_DELCHAIN:
- 		case NFT_MSG_DESTROYCHAIN:
- 			if (nft_trans_chain_update(trans)) {
--				list_splice(&nft_trans_chain_hooks(trans),
--					    &nft_trans_basechain(trans)->hook_list);
-+				nft_hooks_trans_abort(&nft_trans_chain_hooks(trans));
- 			} else {
- 				nft_use_inc_restore(&table->use);
- 				nft_clear(trans->net, nft_trans_chain(trans));
-@@ -11346,8 +11437,7 @@ static int __nf_tables_abort(struct net *net, enum nfnl_abort_action action)
- 		case NFT_MSG_DELFLOWTABLE:
- 		case NFT_MSG_DESTROYFLOWTABLE:
- 			if (nft_trans_flowtable_update(trans)) {
--				list_splice(&nft_trans_flowtable_hooks(trans),
--					    &nft_trans_flowtable(trans)->hook_list);
-+				nft_hooks_trans_abort(&nft_trans_flowtable_hooks(trans));
- 			} else {
- 				nft_use_inc_restore(&table->use);
- 				nft_clear(trans->net, nft_trans_flowtable(trans));
--- 
-2.47.3
-
+>     Thanks!
+> 
+>  include/linux/rculist.h | 29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+> 
+> diff --git a/include/linux/rculist.h b/include/linux/rculist.h
+> index 2abba7552605..e3bc44225692 100644
+> --- a/include/linux/rculist.h
+> +++ b/include/linux/rculist.h
+> @@ -261,6 +261,35 @@ static inline void list_replace_rcu(struct list_head *old,
+>  	old->prev = LIST_POISON2;
+>  }
+>  
+> +static inline void __list_splice_rcu(struct list_head *list,
+> +				     struct list_head *prev,
+> +				     struct list_head *next)
+> +{
+> +	struct list_head *first = list->next;
+> +	struct list_head *last = list->prev;
+> +
+> +	last->next = next;
+> +	first->prev = prev;
+> +	next->prev = last;
+> +	rcu_assign_pointer(list_next_rcu(prev), first);
+> +}
+> +
+> +/**
+> + * list_splice_rcu - splice a non-RCU list into an RCU-protected list,
+> + *                   designed for stacks.
+> + * @list:	the non RCU-protected list to splice
+> + * @head:	the place in the existing RCU-protected list to splice
+> + *
+> + * The list pointed to by @head can be RCU-read traversed concurrently with
+> + * this function.
+> + */
+> +static inline void list_splice_rcu(struct list_head *list,
+> +				   struct list_head *head)
+> +{
+> +	if (!list_empty(list))
+> +		__list_splice_rcu(list, head, head->next);
+> +}
+> +
+>  /**
+>   * __list_splice_init_rcu - join an RCU-protected list into an existing list.
+>   * @list:	the RCU-protected list to splice
+> -- 
+> 2.47.3
+> 
+> 
