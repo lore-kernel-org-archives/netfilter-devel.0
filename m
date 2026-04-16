@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E17C3BF68F;
-	Thu, 16 Apr 2026 13:15:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA5F114A4F0;
+	Thu, 16 Apr 2026 13:15:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776345314; cv=none; b=i2fwnFb9WCDU8yIvAWez62t1ngjiGMn2M+wtgoj2PDkrNkyfu0IQfhyucVRNIhs/io+ZUzQ4sAE4mPqGMcsSBku7Of/hKwoaVEZ98T1nJ1yUx+/YNy46v/PHuuuZ4zlZJOCwetjwSQ4zN0INyt8uYiMOgYnvMzpkLYkJUVYhFSU=
+	t=1776345316; cv=none; b=IjOLyT6d6dSClzIxE+R+o3rL065B1Tpqk4J2T8cJpAATEKfwpD8mGJRQOQmzLCXqGVQuskNOl36QnBV+2BmVZ9E//DivyP++WHM8uviPcSJbx9cXI2F5bWbbNL26nFmvUgdQ9OG6dK92moSTobRpmgaXkZaS6+mP0CkOlR94EPs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776345314; c=relaxed/simple;
-	bh=K3jCvsals8BPY7qGgU/izMTL7eFMYcpuqpfYf5bWk6I=;
+	s=arc-20240116; t=1776345316; c=relaxed/simple;
+	bh=jWNtBiJWIpYxwolPoOMkNL7+aqGxrJiBMSP6x7yL/fU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fP1ZYr364hVeFZqvYueZ2iJiFIa9qhEEqAzNnMm4trtNVGCVYgP30utedD33OYMa+5vJao5bsNZPOMNk/i2Kk6c/x0dORkLkwGe+xVFDctzxgLx9Ab8s6BWPIqr32CKtrT3Fvjzad5jutvoW1w/+KGDND3BnlBSPxv55zPVKaIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=JnKpWhU4; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=EHgiWfqA/mxNzWXN4/8BFzbN/w11wzlEjskz75PWUmsoJyMPzOpEJgJNIQcc1djRm8a/GRv10VMqJBCKTpKQdzRQ3Nb0/DyRYpr0ixQoQ8nwkmjbNibs+jawyeoZLySYoTELmvNEzROwN2Qv3M5BmZejloopvWN4Q8b4bbqFBfs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=AM5Nki2J; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="JnKpWhU4"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="AM5Nki2J"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 31FA160177;
-	Thu, 16 Apr 2026 15:15:11 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 8D30D60253;
+	Thu, 16 Apr 2026 15:15:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776345311;
-	bh=fkRYP2uZVZjeOQ1Q6YgYeZAja49M92t1g5wZ2mqC/nQ=;
+	s=2025; t=1776345313;
+	bh=5QNR3mcO0k9+CBSb1u9iJUDckZR+6/nZaFLs5budQho=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=JnKpWhU4bus84SpADQ/4rc5FznTivDPkz3xaavLN07iuZeef2KgyMdQ/bIivrbxD6
-	 oM4+H0CP9SWWuzHbaHf5OF+0nxF3syy/zohpm6wcB9t3hM0QTDEnoTfZ1d/KrkFLNr
-	 ljh7RxurnbF/j6aLjNMPrHnD3H5s+ktrGdrrGCrBVArLdTOjOSbVM3vqMpTQrTcqM/
-	 wq8vpT4skwCs6Mk2WO2hk4gq4Rnk6IIsLbv7m6z0PNneof6teo7wHfhd8EBTNCmGcD
-	 YmkZ6sM6eFZxZ/0G0mh3Ssqit+v+f0ZHIzerxfJJk6P3nBBMIsmZUa7Dr4ykGD8pka
-	 S4IXfzgYiWPlg==
+	b=AM5Nki2JBXrv7bFaytTL9ui745c9FcaeNkDAh0azeh0vg6hsN5m+HX/uJXcGcTf6Q
+	 c5GJ1XmSc/vPxPucWHL3vcQ8l4VqlLDV8bciNIBVlOPgBmmI5zR6SWUc4/wSeairC5
+	 Dv7J8KhDpipgmtPBchQU8STJG8CCk9Y1LByPVYd9liP7+IpAi5dDDeGU4mJkf47sXB
+	 G2FaIqonWil1oEeeTFLqmy/H5ZuSMKtzefD6cSoAGkXZTz64ZHRubzZUnLlbSTTOPV
+	 KNr+7ofFTgbY2CQSxXL7XoXxsyAcHagvKg78eR8gjasGQhR2FunH7G4v3Pl98FUwuT
+	 ZfAhDT0O9cl0w==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 08/11] ipvs: fix MTU check for GSO packets in tunnel mode
-Date: Thu, 16 Apr 2026 15:14:50 +0200
-Message-ID: <20260416131453.308611-9-pablo@netfilter.org>
+Subject: [PATCH net 09/11] netfilter: nf_tables: use list_del_rcu for netlink hooks
+Date: Thu, 16 Apr 2026 15:14:51 +0200
+Message-ID: <20260416131453.308611-10-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260416131453.308611-1-pablo@netfilter.org>
 References: <20260416131453.308611-1-pablo@netfilter.org>
@@ -52,92 +52,132 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Yingnan Zhang <342144303@qq.com>
+From: Florian Westphal <fw@strlen.de>
 
-Currently, IPVS skips MTU checks for GSO packets by excluding them with
-the !skb_is_gso(skb) condition. This creates problems when IPVS tunnel
-mode encapsulates GSO packets with IPIP headers.
+nft_netdev_unregister_hooks and __nft_unregister_flowtable_net_hooks need
+to use list_del_rcu(), this list can be walked by concurrent dumpers.
 
-The issue manifests in two ways:
+Add a new helper and use it consistently.
 
-1. MTU violation after encapsulation:
-   When a GSO packet passes through IPVS tunnel mode, the original MTU
-   check is bypassed. After adding the IPIP tunnel header, the packet
-   size may exceed the outgoing interface MTU, leading to unexpected
-   fragmentation at the IP layer.
-
-2. Fragmentation with problematic IP IDs:
-   When net.ipv4.vs.pmtu_disc=1 and a GSO packet with multiple segments
-   is fragmented after encapsulation, each segment gets a sequentially
-   incremented IP ID (0, 1, 2, ...). This happens because:
-
-   a) The GSO packet bypasses MTU check and gets encapsulated
-   b) At __ip_finish_output, the oversized GSO packet is split into
-      separate SKBs (one per segment), with IP IDs incrementing
-   c) Each SKB is then fragmented again based on the actual MTU
-
-   This sequential IP ID allocation differs from the expected behavior
-   and can cause issues with fragment reassembly and packet tracking.
-
-Fix this by properly validating GSO packets using
-skb_gso_validate_network_len(). This function correctly validates
-whether the GSO segments will fit within the MTU after segmentation. If
-validation fails, send an ICMP Fragmentation Needed message to enable
-proper PMTU discovery.
-
-Fixes: 4cdd34084d53 ("netfilter: nf_conntrack_ipv6: improve fragmentation handling")
-Signed-off-by: Yingnan Zhang <342144303@qq.com>
-Acked-by: Julian Anastasov <ja@ssi.bg>
+Fixes: f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_xmit.c | 19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ net/netfilter/nf_tables_api.c | 44 ++++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 26 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-index 3601eb86d025..7c570f48ade2 100644
---- a/net/netfilter/ipvs/ip_vs_xmit.c
-+++ b/net/netfilter/ipvs/ip_vs_xmit.c
-@@ -102,6 +102,18 @@ __ip_vs_dst_check(struct ip_vs_dest *dest)
- 	return dest_dst;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8c42247a176c..090d4d688a33 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -374,6 +374,12 @@ static void nft_netdev_hook_free_rcu(struct nft_hook *hook)
+ 	call_rcu(&hook->rcu, __nft_netdev_hook_free_rcu);
  }
  
-+/* Based on ip_exceeds_mtu(). */
-+static bool ip_vs_exceeds_mtu(const struct sk_buff *skb, unsigned int mtu)
++static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
 +{
-+	if (skb->len <= mtu)
-+		return false;
-+
-+	if (skb_is_gso(skb) && skb_gso_validate_network_len(skb, mtu))
-+		return false;
-+
-+	return true;
++	list_del_rcu(&hook->list);
++	nft_netdev_hook_free_rcu(hook);
 +}
 +
- static inline bool
- __mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
- {
-@@ -111,10 +123,9 @@ __mtu_check_toobig_v6(const struct sk_buff *skb, u32 mtu)
- 		 */
- 		if (IP6CB(skb)->frag_max_size > mtu)
- 			return true; /* largest fragment violate MTU */
--	}
--	else if (skb->len > mtu && !skb_is_gso(skb)) {
-+	} else if (ip_vs_exceeds_mtu(skb, mtu))
- 		return true; /* Packet size violate MTU size */
--	}
-+
- 	return false;
+ static void nft_netdev_unregister_hooks(struct net *net,
+ 					struct list_head *hook_list,
+ 					bool release_netdev)
+@@ -384,10 +390,8 @@ static void nft_netdev_unregister_hooks(struct net *net,
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+ 			nf_unregister_net_hook(net, ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			nft_netdev_hook_free_rcu(hook);
+-		}
++		if (release_netdev)
++			nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
  }
  
-@@ -232,7 +243,7 @@ static inline bool ensure_mtu_is_adequate(struct netns_ipvs *ipvs, int skb_af,
- 			return true;
+@@ -2323,10 +2327,8 @@ void nf_tables_chain_destroy(struct nft_chain *chain)
  
- 		if (unlikely(ip_hdr(skb)->frag_off & htons(IP_DF) &&
--			     skb->len > mtu && !skb_is_gso(skb) &&
-+			     ip_vs_exceeds_mtu(skb, mtu) &&
- 			     !ip_vs_iph_icmp(ipvsh))) {
- 			icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
- 				  htonl(mtu));
+ 		if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
+ 			list_for_each_entry_safe(hook, next,
+-						 &basechain->hook_list, list) {
+-				list_del_rcu(&hook->list);
+-				nft_netdev_hook_free_rcu(hook);
+-			}
++						 &basechain->hook_list, list)
++				nft_netdev_hook_unlink_free_rcu(hook);
+ 		}
+ 		module_put(basechain->type->owner);
+ 		if (rcu_access_pointer(basechain->stats)) {
+@@ -3026,6 +3028,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 				list_for_each_entry(ops, &h->ops_list, list)
+ 					nf_unregister_net_hook(ctx->net, ops);
+ 			}
++			/* hook.list is on stack, no need for list_del_rcu() */
+ 			list_del(&h->list);
+ 			nft_netdev_hook_free_rcu(h);
+ 		}
+@@ -8903,10 +8906,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+ 			nft_unregister_flowtable_ops(net, flowtable, ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			nft_netdev_hook_free_rcu(hook);
+-		}
++		if (release_netdev)
++			nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ }
+ 
+@@ -8977,8 +8978,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 
+ 			nft_unregister_flowtable_ops(net, flowtable, ops);
+ 		}
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
++		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ 
+ 	return err;
+@@ -8988,10 +8988,8 @@ static void nft_hooks_destroy(struct list_head *hook_list)
+ {
+ 	struct nft_hook *hook, *next;
+ 
+-	list_for_each_entry_safe(hook, next, hook_list, list) {
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
+-	}
++	list_for_each_entry_safe(hook, next, hook_list, list)
++		nft_netdev_hook_unlink_free_rcu(hook);
+ }
+ 
+ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+@@ -9079,8 +9077,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 				nft_unregister_flowtable_ops(ctx->net,
+ 							     flowtable, ops);
+ 		}
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
++		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ 
+ 	return err;
+@@ -9586,13 +9583,8 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
+ 
+ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ {
+-	struct nft_hook *hook, *next;
+-
+ 	flowtable->data.type->free(&flowtable->data);
+-	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
+-	}
++	nft_hooks_destroy(&flowtable->hook_list);
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
+ 	kfree(flowtable);
 -- 
 2.47.3
 
