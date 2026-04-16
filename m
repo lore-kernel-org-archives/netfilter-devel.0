@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9D8A21B905;
-	Thu, 16 Apr 2026 01:31:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670F7B640;
+	Thu, 16 Apr 2026 01:31:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776303073; cv=none; b=eBGatmiP9hU7kZP60tG2hFWU+AcJn2o8S/7fDPezD219IZ2yRADO3fXMa9YBhPFgOxQrq7INrEOM406/5MnmuOEvGaFRstf0jVeEReN3h4Y61GQqoLGTwsgAf/u5RgD8IVAt+bqaRiHWm+A9KHHJ0lQsaxYG+mFKl0IuovFaabo=
+	t=1776303074; cv=none; b=IoDiu0zgGV/Iw2JCoOieq9lhpNpH5LRsHQZVAotp+CIJNYnWjaBnzaLGbJPcwWPYlvdBHGEMtKxx4qB0wsT2roMH6D8bPYLaja8ZoaXYLD4wA/eQpv14LcAhUb4QY5rJotMysDrqQpZ0eh9ZQfcWttCvV/wch0Lxk97UwoeDTYI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776303073; c=relaxed/simple;
-	bh=h9dzILytnraSyC4jJF1+qQRHVZdhYM7t0Dx8tdod588=;
+	s=arc-20240116; t=1776303074; c=relaxed/simple;
+	bh=E+TqY3nur+I/j7EktcUsc/tC9j0NrLrhL7r3Z7S4k0Q=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=cQssngOSgshxodKC80AkIzhzl21b+unrri4AgblXjfeSIozREleMA8Gh32jD7l/O6bj5wHA2SwP9ZILJ+GsSx/WoeuHzkr5Cill31w47OAp4gig+7PgG32c44iGY/hV/1Uw4rpy4pkBD1+KqWFJEqNplVF88O0r0msd+upVSo18=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vjthiwsb; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=esmatvy/Sa2Wl9rFCFuXq3TVxCfXBdY5WJ3Ep+jGDvEyS6cj1kyA++cnH0ZEtqNCUP8X2NzvMRVC+KVcNtPR7LMTNPoZI5n0GhKs3lDs4bjF/Cktz4oChQCxmKc5EcAtWqGUtFUDLk2EPSoeb33u7kaFpZ3kFDz9J3USuWT99no=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=p+3ST/Mj; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vjthiwsb"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="p+3ST/Mj"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id A0C1660180;
-	Thu, 16 Apr 2026 03:31:09 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 1C9CD60181;
+	Thu, 16 Apr 2026 03:31:11 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776303070;
-	bh=eOKSVAkAUvqYwcEXVIlJ9lnNgAS+udtzZX7xRvXm5eg=;
+	s=2025; t=1776303071;
+	bh=UKA+A3aFYBFFgnZcbNAbiR56Du+bLjEnS3Riajgl8fg=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vjthiwsbOhu/Hig3/XgSqdPV1Mh11ZzuUFjoPc1VLtO+YP3MZlrX1gbBa/1EJdlXN
-	 S4wITuwRYJCtIfK42YWWpfbSVNeZDioJUw/qQMbjRZdLPoFn+yZ7yMoS5/TkVe6q4N
-	 3/fdQ33p9LFCOEYhdCPxyJyZ4rxEuKxeMiKiRHTeywgJEwW9b9bL77Y7ZOFpBgJC1L
-	 zWkSjby37I+6YMvTsm6Cg4vKymw6v9KWGzpNLib3Ycp4IwyG9fWB4elp1S+mrj6kEy
-	 dRdR9Y6CLtISQH9RLhdcZMab/d9m8x5bGwrxUaIRs2IluqRYsv8k8i4GPR61x7QiFG
-	 lFZ6Qr9zXQ07Q==
+	b=p+3ST/Mj4MsmKiS4ruy5p3jwy3l7PrQFLwblq5q/EOaxjpT0Y+UBj7vxErUxqX+KY
+	 gikKhnu/FmuY1b5s8uRs21N4k8gLQo4az9FMSQNqhtHsc9Q1vILz7b0zPYY5aTOTna
+	 TvmZrzEEG9aOYTZW8ChR/eyLNl+DVIVtnYh6IpOK1K7GwPufuBrVSJLzCi7HlTUHxu
+	 7Fc9mt+4/XerfLkfzu2i79jSnd+NxZ1Klg7N+pjF8FH5fjvG1cxYVNXqao8R47cely
+	 f82IxLR5rjp2IKraFxyNLLt+Vjo5ouzFto7QobBfSj1iFW3vE5nuG3I4f+ERDXLqhr
+	 QEc9W7zr1Sa9A==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 02/14] netfilter: nf_conntrack_sip: add bounds-checked port parsing helper
-Date: Thu, 16 Apr 2026 03:30:49 +0200
-Message-ID: <20260416013101.221555-3-pablo@netfilter.org>
+Subject: [PATCH net 03/14] netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
+Date: Thu, 16 Apr 2026 03:30:50 +0200
+Message-ID: <20260416013101.221555-4-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260416013101.221555-1-pablo@netfilter.org>
 References: <20260416013101.221555-1-pablo@netfilter.org>
@@ -50,164 +50,67 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Jenny Guanni Qu <qguanni@gmail.com>
+From: Weiming Shi <bestswngs@gmail.com>
 
-Replace unsafe port parsing in epaddr_len(), ct_sip_parse_header_uri(),
-and ct_sip_parse_request() with a new sip_parse_port() helper that
-validates each digit against the buffer limit, eliminating the use of
-simple_strtoul() which assumes NUL-terminated strings.
+arp_packet_match() unconditionally parses the ARP payload assuming two
+hardware addresses are present (source and target). However,
+IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
+field, and arp_hdr_len() already accounts for this by returning a
+shorter length for ARPHRD_IEEE1394 devices.
 
-The previous code dereferenced pointers without bounds checks after
-sip_parse_addr() and relied on simple_strtoul() on non-NUL-terminated
-skb data. A port that reaches the buffer limit without a trailing
-character is also rejected as malformed.
+As a result, on IEEE1394 interfaces arp_packet_match() advances past a
+nonexistent target hardware address and reads the wrong bytes for both
+the target device address comparison and the target IP address. This
+causes arptables rules to match against garbage data, leading to
+incorrect filtering decisions: packets that should be accepted may be
+dropped and vice versa.
 
-Based on a suggestion by Florian Westphal.
+The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
+handles this correctly by skipping the target hardware address for
+ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match().
 
-[ fw@strlen.de: make port range check unconditional ]
+[ Pablo has mangled this patch to include Simon Horman's suggestions ]
 
-Fixes: 05e3ced297fe ("[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper")
-Reported-by: Klaudia Kloc <klaudia@vidocsecurity.com>
-Reported-by: Dawid Moczadło <dawid@vidocsecurity.com>
-Suggested-by: Florian Westphal <fw@strlen.de>
-Tested-by: Jenny Guanni Qu <qguanni@gmail.com>
-Tested-by: Weiming Shi <bestswngs@gmail.com>
-Signed-off-by: Jenny Guanni Qu <qguanni@gmail.com>
+Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_sip.c | 80 +++++++++++++++++++++++---------
- 1 file changed, 57 insertions(+), 23 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 939502ff7c87..38a55a3b3d19 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -181,6 +181,57 @@ static int sip_parse_addr(const struct nf_conn *ct, const char *cp,
- 	return 1;
- }
- 
-+/* Parse optional port number after IP address.
-+ * Returns false on malformed input, true otherwise.
-+ * If port is non-NULL, stores parsed port in network byte order.
-+ * If no port is present, sets *port to default SIP port.
-+ */
-+static bool sip_parse_port(const char *dptr, const char **endp,
-+			   const char *limit, __be16 *port)
-+{
-+	unsigned int p = 0;
-+	int len = 0;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 1cdd9c28ab2d..a7a56890b5b5 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -110,13 +110,21 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
+ 	arpptr += dev->addr_len;
+ 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
+ 	arpptr += sizeof(u32);
+-	tgt_devaddr = arpptr;
+-	arpptr += dev->addr_len;
 +
-+	if (dptr >= limit)
-+		return false;
-+
-+	if (*dptr != ':') {
-+		if (port)
-+			*port = htons(SIP_PORT);
-+		if (endp)
-+			*endp = dptr;
-+		return true;
++	if (IS_ENABLED(CONFIG_FIREWIRE_NET) && dev->type == ARPHRD_IEEE1394) {
++		tgt_devaddr = NULL;
++	} else {
++		tgt_devaddr = arpptr;
++		arpptr += dev->addr_len;
 +	}
-+
-+	dptr++; /* skip ':' */
-+
-+	while (dptr < limit && isdigit(*dptr)) {
-+		p = p * 10 + (*dptr - '0');
-+		dptr++;
-+		len++;
-+		if (len > 5) /* max "65535" */
-+			return false;
-+	}
-+
-+	if (len == 0)
-+		return false;
-+
-+	/* reached limit while parsing port */
-+	if (dptr >= limit)
-+		return false;
-+
-+	if (p < 1024 || p > 65535)
-+		return false;
-+
-+	if (port)
-+		*port = htons(p);
-+
-+	if (endp)
-+		*endp = dptr;
-+
-+	return true;
-+}
-+
- /* skip ip address. returns its length. */
- static int epaddr_len(const struct nf_conn *ct, const char *dptr,
- 		      const char *limit, int *shift)
-@@ -193,11 +244,8 @@ static int epaddr_len(const struct nf_conn *ct, const char *dptr,
- 		return 0;
- 	}
+ 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
  
--	/* Port number */
--	if (*dptr == ':') {
--		dptr++;
--		dptr += digits_len(ct, dptr, limit, shift);
--	}
-+	if (!sip_parse_port(dptr, &dptr, limit, NULL))
+ 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
+-					dev->addr_len)) ||
++					dev->addr_len)))
 +		return 0;
- 	return dptr - aux;
- }
- 
-@@ -241,7 +289,6 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- {
- 	const char *start = dptr, *limit = dptr + datalen, *end;
- 	unsigned int mlen;
--	unsigned int p;
- 	int shift = 0;
- 
- 	/* Skip method and following whitespace */
-@@ -267,14 +314,8 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- 
- 	if (!sip_parse_addr(ct, dptr, &end, addr, limit, true))
- 		return -1;
--	if (end < limit && *end == ':') {
--		end++;
--		p = simple_strtoul(end, (char **)&end, 10);
--		if (p < 1024 || p > 65535)
--			return -1;
--		*port = htons(p);
--	} else
--		*port = htons(SIP_PORT);
-+	if (!sip_parse_port(end, &end, limit, port))
-+		return -1;
- 
- 	if (end == dptr)
- 		return 0;
-@@ -509,7 +550,6 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 			    union nf_inet_addr *addr, __be16 *port)
- {
- 	const char *c, *limit = dptr + datalen;
--	unsigned int p;
- 	int ret;
- 
- 	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
-@@ -520,14 +560,8 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
- 
- 	if (!sip_parse_addr(ct, dptr + *matchoff, &c, addr, limit, true))
- 		return -1;
--	if (*c == ':') {
--		c++;
--		p = simple_strtoul(c, (char **)&c, 10);
--		if (p < 1024 || p > 65535)
--			return -1;
--		*port = htons(p);
--	} else
--		*port = htons(SIP_PORT);
-+	if (!sip_parse_port(c, &c, limit, port))
-+		return -1;
- 
- 	if (dataoff)
- 		*dataoff = c - dptr;
++
++	if (tgt_devaddr &&
+ 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
+ 					dev->addr_len)))
 -- 
 2.47.3
 
