@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 069B63BADB2;
-	Thu, 16 Apr 2026 13:15:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B189C3BD246;
+	Thu, 16 Apr 2026 13:15:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776345304; cv=none; b=mCDGLSCtOkZrVR1B3uZUvrJWkKU18jL83QkH7bFptNBYvtFF75gIttptJYhL/YEb3wj3cUZIXIsqyulzn4+YW4x78PwaDIF/LyHPTJNJBYx+kcHipcm5YkBSwHuYnfRcKa6RFPYlSIpAvNCKmJAn+qK77yiNgfDBuStz4OShEFg=
+	t=1776345305; cv=none; b=Ww9l7LK91gHr+FZacMXaGh4HPiR/sZ1L3R6/5R9BL/oPA/Pt2AHhSaa3pMV3XqRLuIzSkvK1vW4jjzsAJeUwaP+ioK3Ymt/udrMwVrb5/soz8FDhy413pBJDHPTNbnDD1sXDJU/ZsHzp14908SVauWImnoM5nQlwca1E8JNEXAc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776345304; c=relaxed/simple;
-	bh=MEkI7aITToFM51ZvKPF33ezO4om+Qb5bLtE2lW0njQ0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=CGbKDZvrGXsDQ/QmPRLSQXrhVpMxK0qgwcri0wk0uGIQoh4ySxzPnQZyjZvesQzXSpHg8yS8jboY0+g24TKMC/BCk+KonDQSweniXsbDPSxHgV6YNqS51l7BUDpN6C4RPrYAKVc/IAjozTCeyhmDIXhNXJGhsAxOT6LuKHxosHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=L0JqJq9a; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1776345305; c=relaxed/simple;
+	bh=E+TqY3nur+I/j7EktcUsc/tC9j0NrLrhL7r3Z7S4k0Q=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=iCtaNXMtoZq415nenhB0EQoKhwgydXLHV6Y3gtMDBK4b60vHTTg5BtFp1HhWfX/eA3E1vGPwu30V6k9YumVvfIxBkuoqExXYaJaR3Lhxoj0XcOoQzp76vI+DkOTmLB+o/EnJLid9IDxQy7wnNKdbow9dPEggR9z5lAPM7bak+Y0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=NgZPu9kl; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="L0JqJq9a"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="NgZPu9kl"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 18E1B60177;
-	Thu, 16 Apr 2026 15:14:59 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 51F4060253;
+	Thu, 16 Apr 2026 15:15:01 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776345299;
-	bh=9cPyt+zpIE+QtwPwtxpfK53WRIAEHMmlGYQFCYycX/E=;
-	h=From:To:Cc:Subject:Date:From;
-	b=L0JqJq9ap32ma4Xgyi8zIdyK1MwFu18hwN20RnlOtZl7yw/gL+s72BNPzTL2auI4V
-	 7OWwpJqcoMz78SAOOqYnT00S2X1/Fafam7qfN96sxALtNKhT965q8DsMAoGXMyXFM9
-	 i2h2rYR3fbzDn0GrMDj45Hr7QewSkXQq+LvZzOvE625mtGDj4Wj7b6X9Co9VqxX/Fn
-	 Lj+4JlqaAtr9i/zp+mV7Yhi9eqO3JzxBnGhf/6f/ffO/dlaALEftlpfdVwoMqzZPhh
-	 5GfUVZkR6+RtghRskPCeHyK658LizaWTNzkd0kOLgart+5mF0V9zy1rP8La/er2tFk
-	 oW0w4Y+PgtidA==
+	s=2025; t=1776345301;
+	bh=UKA+A3aFYBFFgnZcbNAbiR56Du+bLjEnS3Riajgl8fg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=NgZPu9klyq8xsRfNTXWB/oar9AdUGeNFczkn5IWtOiSMtBhJdeE8Ft46z1BpGeiSv
+	 9JoNTyWRavFYK4QSbXW61SPS2maOkzqC2XEXKOyJqZkMKf8KrmesV5ii32QbmTb/PS
+	 GnBJYR8Hib1iYhom2JzprK7CyHQKRBDzWriLgnppWPjMVNz51WlynUa9FopsVGSYQJ
+	 BPMatb7MOsm09gSGNz2kiZmg+qTd+8o0PNuFYSZj72fuPj9SRBLz8cYfDeSYEoKcTC
+	 sc73LIrCE1jrRzSd7JSOeNk4QmDjesac0EOihgriHwbocZ4Jk+qfCle0+BRSf8nAYt
+	 AnRas55T9RX7g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,10 +38,12 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net,v2 00/11] Netfilter/IPVS fixes for net
-Date: Thu, 16 Apr 2026 15:14:42 +0200
-Message-ID: <20260416131453.308611-1-pablo@netfilter.org>
+Subject: [PATCH net 01/11] netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
+Date: Thu, 16 Apr 2026 15:14:43 +0200
+Message-ID: <20260416131453.308611-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260416131453.308611-1-pablo@netfilter.org>
+References: <20260416131453.308611-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -49,112 +52,65 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-v2: Keep back patches that have lengthy feedback by AI, they might
-    need more work.
+From: Weiming Shi <bestswngs@gmail.com>
 
--o-
+arp_packet_match() unconditionally parses the ARP payload assuming two
+hardware addresses are present (source and target). However,
+IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
+field, and arp_hdr_len() already accounts for this by returning a
+shorter length for ARPHRD_IEEE1394 devices.
 
-Hi,
+As a result, on IEEE1394 interfaces arp_packet_match() advances past a
+nonexistent target hardware address and reads the wrong bytes for both
+the target device address comparison and the target IP address. This
+causes arptables rules to match against garbage data, leading to
+incorrect filtering decisions: packets that should be accepted may be
+dropped and vice versa.
 
-The following patchset contains Netfilter/IPVS fixes for net: Mostly
-addressing very old bugs in the SIP conntrack helper string parser,
-unsafe arp_tables match support with legacy IEEE1394, restrict xt_realm
-to IPv4 and incorrect use of RCU lists in nat core and nftables. This
-batch also includes one IPVS MTU fix.
+The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
+handles this correctly by skipping the target hardware address for
+ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match().
 
-1) Fix arp_tables match with IEEE1394 ARP payload, allowing to
-   reach bytes off the skb boundary, note that matching on the
-   target address is deliberately ignored, patch from Weiming Shi.
+[ Pablo has mangled this patch to include Simon Horman's suggestions ]
 
-2) Reject unsafe nfnetlink_osf configurations from control plane,
-   this is addressing a possible division by zero, from Xiang Mei.
+Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/arp_tables.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-3) nft_osf actually only supports IPv4, restrict it.
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 1cdd9c28ab2d..a7a56890b5b5 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -110,13 +110,21 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
+ 	arpptr += dev->addr_len;
+ 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
+ 	arpptr += sizeof(u32);
+-	tgt_devaddr = arpptr;
+-	arpptr += dev->addr_len;
++
++	if (IS_ENABLED(CONFIG_FIREWIRE_NET) && dev->type == ARPHRD_IEEE1394) {
++		tgt_devaddr = NULL;
++	} else {
++		tgt_devaddr = arpptr;
++		arpptr += dev->addr_len;
++	}
+ 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
+ 
+ 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
+-					dev->addr_len)) ||
++					dev->addr_len)))
++		return 0;
++
++	if (tgt_devaddr &&
+ 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
+ 					dev->addr_len)))
+-- 
+2.47.3
 
-4) Possible null-ptr-deref in nfnetlink_osf, check__in_dev_get_rcu
-   return NULL, from Kito Xu.
-
-5) Remove unsafe use of sprintf to fix possible buffer overflow
-   in the SIP NAT helper, from Florian Westphal.
-
-6) Restrict xt_mac, xt_owner and xt_physdev to inet families only;
-   xt_realm is only for ipv4, otherwise null-pointer-deref is possible.
-
-7) Use kfree_rcu() in nat core to release hooks, this can be an issue
-   once nfnetlink_hook gets support to dump NAT hook information,
-   not currently a real issue but better fix it now.
-
-8) Fix MTU checks in IPVS, from Yingnan Zhang.
-
-9) Use list_del_rcu() in chain and flowtable hook unregistration,
-   concurrent RCU reader could be walking over the hook list,
-   from Florian Westphal
-
-10) Add list_splice_rcu(), this is required to fix unsafe
-    splice to RCU protected hook list. Reviewed by Paul McKenney.
-
-11) Use list_splice_rcu() to splice new chain and flowtable hooks.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-04-16
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 2dddb34dd0d07b01fa770eca89480a4da4f13153:
-
-  net: ethernet: mtk_eth_soc: initialize PPE per-tag-layer MTU registers (2026-04-12 15:22:58 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-04-16
-
-for you to fetch changes up to 985f517db19a734d4267e003438b5d6995669aff:
-
-  netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase (2026-04-16 14:53:52 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-04-16
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: conntrack: remove sprintf usage
-      netfilter: nf_tables: use list_del_rcu for netlink hooks
-
-Kito Xu (veritas501) (1):
-      netfilter: nfnetlink_osf: fix null-ptr-deref in nf_osf_ttl
-
-Pablo Neira Ayuso (5):
-      netfilter: nft_osf: restrict it to ipv4
-      netfilter: xtables: restrict several matches to inet family
-      netfilter: nat: use kfree_rcu to release ops
-      rculist: add list_splice_rcu() for private lists
-      netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase
-
-Weiming Shi (1):
-      netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
-
-Xiang Mei (1):
-      netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
-
-Yingnan Zhang (1):
-      ipvs: fix MTU check for GSO packets in tunnel mode
-
- include/linux/rculist.h           | 29 ++++++++++++++++++++++
- net/ipv4/netfilter/arp_tables.c   | 14 ++++++++---
- net/ipv4/netfilter/iptable_nat.c  |  2 +-
- net/ipv6/netfilter/ip6table_nat.c |  2 +-
- net/netfilter/ipvs/ip_vs_xmit.c   | 19 +++++++++++---
- net/netfilter/nf_nat_amanda.c     |  2 +-
- net/netfilter/nf_nat_core.c       | 10 +++++---
- net/netfilter/nf_nat_sip.c        | 33 ++++++++++++++-----------
- net/netfilter/nf_tables_api.c     | 52 +++++++++++++++++----------------------
- net/netfilter/nfnetlink_osf.c     |  7 ++++++
- net/netfilter/nft_osf.c           |  6 ++++-
- net/netfilter/xt_mac.c            | 34 ++++++++++++++++---------
- net/netfilter/xt_owner.c          | 37 +++++++++++++++++++---------
- net/netfilter/xt_physdev.c        | 29 ++++++++++++++--------
- net/netfilter/xt_realm.c          |  2 +-
- 15 files changed, 184 insertions(+), 94 deletions(-)
