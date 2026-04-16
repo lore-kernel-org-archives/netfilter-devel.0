@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670F7B640;
-	Thu, 16 Apr 2026 01:31:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEE6123ABB9;
+	Thu, 16 Apr 2026 01:31:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776303074; cv=none; b=IoDiu0zgGV/Iw2JCoOieq9lhpNpH5LRsHQZVAotp+CIJNYnWjaBnzaLGbJPcwWPYlvdBHGEMtKxx4qB0wsT2roMH6D8bPYLaja8ZoaXYLD4wA/eQpv14LcAhUb4QY5rJotMysDrqQpZ0eh9ZQfcWttCvV/wch0Lxk97UwoeDTYI=
+	t=1776303076; cv=none; b=ukUT4zBHH4GCAljRC82uj/aCFMkXoUGjM1E7NbywlxJu9kcg3/gQwn0cTv2ZRdwpSQCnKRUzB88RZco08bYoefS1A6Z2Bg36qKhT/onlooAf9sNW+RDPfFlbrAdFAJcytoS+Cq35anzvfpRND+sIH/0fGrBKQdoAoU4aS77EWQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776303074; c=relaxed/simple;
-	bh=E+TqY3nur+I/j7EktcUsc/tC9j0NrLrhL7r3Z7S4k0Q=;
+	s=arc-20240116; t=1776303076; c=relaxed/simple;
+	bh=PawOKsjU/i0MTF68zbUb+VsSAv0gXGWmxITDx7vkR6k=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=esmatvy/Sa2Wl9rFCFuXq3TVxCfXBdY5WJ3Ep+jGDvEyS6cj1kyA++cnH0ZEtqNCUP8X2NzvMRVC+KVcNtPR7LMTNPoZI5n0GhKs3lDs4bjF/Cktz4oChQCxmKc5EcAtWqGUtFUDLk2EPSoeb33u7kaFpZ3kFDz9J3USuWT99no=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=p+3ST/Mj; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=kmULh/Y1rQ/jbzIoUO0XqYtZcAx5Q1nUJFY7rrRPBQ3hhz0vum7tzHFXIu14tcK8MqbSF09huWVziV5NqDfnvtRoEbfkELk1zv4iBGGBBaHvASs+60LNguFI+I12kVjzjwCfaVahP0PUboKoxHMrrX/PQxjoIBzaLU21A1h1DIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=I4Xrco8g; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="p+3ST/Mj"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="I4Xrco8g"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 1C9CD60181;
-	Thu, 16 Apr 2026 03:31:11 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 7E6396017D;
+	Thu, 16 Apr 2026 03:31:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776303071;
-	bh=UKA+A3aFYBFFgnZcbNAbiR56Du+bLjEnS3Riajgl8fg=;
+	s=2025; t=1776303073;
+	bh=0HS0505hGdVF8P/vAEeHwqgAoOpv+wYp7KMbrpsv3RI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=p+3ST/Mj4MsmKiS4ruy5p3jwy3l7PrQFLwblq5q/EOaxjpT0Y+UBj7vxErUxqX+KY
-	 gikKhnu/FmuY1b5s8uRs21N4k8gLQo4az9FMSQNqhtHsc9Q1vILz7b0zPYY5aTOTna
-	 TvmZrzEEG9aOYTZW8ChR/eyLNl+DVIVtnYh6IpOK1K7GwPufuBrVSJLzCi7HlTUHxu
-	 7Fc9mt+4/XerfLkfzu2i79jSnd+NxZ1Klg7N+pjF8FH5fjvG1cxYVNXqao8R47cely
-	 f82IxLR5rjp2IKraFxyNLLt+Vjo5ouzFto7QobBfSj1iFW3vE5nuG3I4f+ERDXLqhr
-	 QEc9W7zr1Sa9A==
+	b=I4Xrco8gKpG1A+Zqd4h9vxB2wpbPVXl6EnestYRhk5rJQL1eGnmycuetQMOa4veI/
+	 FSx2gJpT36wZFrbJaUOE49J4LA7sz2dj2a9+ZN0xcpQW9dgWPwbcNgWuEqzAF+y2rb
+	 IPYJPUzFMhv1gyoPT2XPYzXG9ClKGgHaxD0daq4zqacdsauF+wsX9eMqFcSR1EkAKn
+	 NueN2nwRncHd9nMK6DdyWFM6hKBrd+38VDIRngm/tqVIqIHlPyXpKGPc5rrU2gslz5
+	 WH8b0H0k0lmG4p2OgSvKxSb8Jid6Uw6ke8ptx2GtIk3EMbl29ZvhxGHY4aB45/kLZP
+	 W9fZG+FJ/NKFA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 03/14] netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
-Date: Thu, 16 Apr 2026 03:30:50 +0200
-Message-ID: <20260416013101.221555-4-pablo@netfilter.org>
+Subject: [PATCH net 04/14] netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
+Date: Thu, 16 Apr 2026 03:30:51 +0200
+Message-ID: <20260416013101.221555-5-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260416013101.221555-1-pablo@netfilter.org>
 References: <20260416013101.221555-1-pablo@netfilter.org>
@@ -52,65 +52,62 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Weiming Shi <bestswngs@gmail.com>
+From: Xiang Mei <xmei5@asu.edu>
 
-arp_packet_match() unconditionally parses the ARP payload assuming two
-hardware addresses are present (source and target). However,
-IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
-field, and arp_hdr_len() already accounts for this by returning a
-shorter length for ARPHRD_IEEE1394 devices.
+nf_osf_match_one() computes ctx->window % f->wss.val in the
+OSF_WSS_MODULO branch with no guard for f->wss.val == 0. A
+CAP_NET_ADMIN user can add such a fingerprint via nfnetlink; a
+subsequent matching TCP SYN divides by zero and panics the kernel.
 
-As a result, on IEEE1394 interfaces arp_packet_match() advances past a
-nonexistent target hardware address and reads the wrong bytes for both
-the target device address comparison and the target IP address. This
-causes arptables rules to match against garbage data, leading to
-incorrect filtering decisions: packets that should be accepted may be
-dropped and vice versa.
+Reject the bogus fingerprint in nfnl_osf_add_callback() above the
+per-option for-loop. f->wss is per-fingerprint, not per-option, so
+the check must run regardless of f->opt_num (including 0). Also
+reject wss.wc >= OSF_WSS_MAX; nf_osf_match_one() already treats that
+as "should not happen".
 
-The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
-handles this correctly by skipping the target hardware address for
-ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match().
+Crash:
+ Oops: divide error: 0000 [#1] SMP KASAN NOPTI
+ RIP: 0010:nf_osf_match_one (net/netfilter/nfnetlink_osf.c:98)
+ Call Trace:
+ <IRQ>
+  nf_osf_match (net/netfilter/nfnetlink_osf.c:220)
+  xt_osf_match_packet (net/netfilter/xt_osf.c:32)
+  ipt_do_table (net/ipv4/netfilter/ip_tables.c:348)
+  nf_hook_slow (net/netfilter/core.c:622)
+  ip_local_deliver (net/ipv4/ip_input.c:265)
+  ip_rcv (include/linux/skbuff.h:1162)
+  __netif_receive_skb_one_core (net/core/dev.c:6181)
+  process_backlog (net/core/dev.c:6642)
+  __napi_poll (net/core/dev.c:7710)
+  net_rx_action (net/core/dev.c:7945)
+  handle_softirqs (kernel/softirq.c:622)
 
-[ Pablo has mangled this patch to include Simon Horman's suggestions ]
-
-Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
+Reported-by: Weiming Shi <bestswngs@gmail.com>
+Suggested-by: Florian Westphal <fw@strlen.de>
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Xiang Mei <xmei5@asu.edu>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_osf.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 1cdd9c28ab2d..a7a56890b5b5 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -110,13 +110,21 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 	arpptr += dev->addr_len;
- 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
- 	arpptr += sizeof(u32);
--	tgt_devaddr = arpptr;
--	arpptr += dev->addr_len;
-+
-+	if (IS_ENABLED(CONFIG_FIREWIRE_NET) && dev->type == ARPHRD_IEEE1394) {
-+		tgt_devaddr = NULL;
-+	} else {
-+		tgt_devaddr = arpptr;
-+		arpptr += dev->addr_len;
-+	}
- 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
+diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
+index 45d9ad231a92..70172ca07858 100644
+--- a/net/netfilter/nfnetlink_osf.c
++++ b/net/netfilter/nfnetlink_osf.c
+@@ -320,6 +320,10 @@ static int nfnl_osf_add_callback(struct sk_buff *skb,
+ 	if (f->opt_num > ARRAY_SIZE(f->opt))
+ 		return -EINVAL;
  
- 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
--					dev->addr_len)) ||
-+					dev->addr_len)))
-+		return 0;
++	if (f->wss.wc >= OSF_WSS_MAX ||
++	    (f->wss.wc == OSF_WSS_MODULO && f->wss.val == 0))
++		return -EINVAL;
 +
-+	if (tgt_devaddr &&
- 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
- 					dev->addr_len)))
+ 	for (i = 0; i < f->opt_num; i++) {
+ 		if (!f->opt[i].length || f->opt[i].length > MAX_IPOPTLEN)
+ 			return -EINVAL;
 -- 
 2.47.3
 
