@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9281D1C01;
-	Thu, 16 Apr 2026 01:31:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7086BB640;
+	Thu, 16 Apr 2026 01:31:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776303070; cv=none; b=BmpH/CY7yNruN8ZImZx64aOtR3NruaW9/ucXeILxlChpmxdoeeesssq3o4CDcGst28qqeqTyO3Zm2TJdoHSVyxAdlkzWc513GzocHvtkSJR8vWjpT6GbH3LSDdfhNVy00l3eUnvqCG+t/AiTxdyl2Y/5PDMsFdXwxWm0qSAVy2s=
+	t=1776303072; cv=none; b=hPG2Q+7LINJyfbCPW1qSacfT1xVpS+EkyvqhOW/i3vWwIEbiwS/rvFzBajVz/xjYbA+H6wGUV5clizR5tOt8NQoiKgikqxR8piyghCymceh4LyTAZNIGRk8Qt2cALJ0nQTKmPRHDqjuOH91leAJmuEQMXvL9KHgRu/qWcFej2DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776303070; c=relaxed/simple;
-	bh=W4J1g0SGdTYd55MVE62p7vJvZcT65hHbWjiLkYDBLeQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=A72t3iqamTiYhSM/AiJUjIujSGxUtq/D94dN1fS7XnJZJJbPzjnkoBGqtdAcsTVjnvp+bLo5dQDuphGz1GTinjf6IQXDLexw6buASKOUA9AblzeX4IPeIBZugL/1a4rtfkStpWhnnWN+x9FMeccy4/ltbh/WHe9ASLSdsnt9vak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ihet1Z2Q; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1776303072; c=relaxed/simple;
+	bh=KtxfLt/oWykY8oTaPQo1JT9xA7ZSb744uumJEXYVKlU=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=jtD53Ae77UvZ/Hov6IBAZdsTQjbrSXkynfyxPHVwcMcZZIc/0OSjSCcwpDkMZIYVZWcoGtxuV/rLvY71jsPuaBStjcZFGXfXVbqUYCssS9tTYacOba/I397DDq+bdZ1zkq102r3LB7uhfVSDQw01ygX2f3U0rDryWZI7VvdGylw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kf/5jmVi; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ihet1Z2Q"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kf/5jmVi"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id CEF686017D;
-	Thu, 16 Apr 2026 03:31:05 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3758D6017E;
+	Thu, 16 Apr 2026 03:31:08 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776303066;
-	bh=kb1iEJJ1xJNOPhsWOO3F8fIgcWoAxwR1KMm4A/CB50k=;
-	h=From:To:Cc:Subject:Date:From;
-	b=ihet1Z2QcuM9GKWTKjxhk8sSzxE+U4wD0tD5/eMyJ+3nfQ2JVTQCbQopBSiI3P2oy
-	 a48GgLmpStL7/cBu6+dJUUFxNj6IY35PgX3MC6bwAvFFkkXJdjtuw0ynkb1OfvMaK+
-	 I8qRGr6UOw3QNNt+/4pkGMSt/AuwqMyW1Zcapvb5Q1vtdhuD2ieBzHauDeI20XSexS
-	 zH2hF25RPHOPXP2GruVZUuMGggRmBmWl9cJKKRemFECdBB/7dfUaEKQexD4Kl5P5WS
-	 gZ1ZBguBHoCdeiDjKbQc/snwLKMuGOfh+XXsHg9OhQF3ZoYCQ0TMaGaaC9fYCvZSF3
-	 bs2tVg8WMe/ww==
+	s=2025; t=1776303068;
+	bh=oByUcGpenIY1XZsmXVVFXXQyKtnUZiH40rAFcVIDGx0=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=kf/5jmViOF8H2Bf/Dbl4bppaCb/hhbMzZ1uTEw83wBfnwVJkfdiNq9TPmZR1T9L/8
+	 Bj+8Ed/V8HEbeA7sYMyr6aLiSKNNKnkzengOg6MuRcmEzOw8OX2GwUjwfN2IvdnJ1n
+	 GxQfbDfiyYWQYaNz5N5soHQZkqgvNt0CHiGXH6O3d/xxfKtQBJbcC8E1+xND/NSbGp
+	 W+6bKPAqX5hSsdWIjXo4pYPSjOBYHaPb/3cC7PWKFWpvTnMCkcqmxnSgTMoZfI3bB/
+	 Lvc+Wxq9HP0VjenMLuZExNTvkArDCkxRRnW4wZwTS7HSK6zp0dwdwIpp9NBySzC1Y7
+	 vSoqB0DevnOEA==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,141 +38,123 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 00/14] Netfilter/IPVS fixes for net
-Date: Thu, 16 Apr 2026 03:30:47 +0200
-Message-ID: <20260416013101.221555-1-pablo@netfilter.org>
+Subject: [PATCH net 01/14] netfilter: nft_fwd_netdev: use recursion counter in neigh egress path
+Date: Thu, 16 Apr 2026 03:30:48 +0200
+Message-ID: <20260416013101.221555-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260416013101.221555-1-pablo@netfilter.org>
+References: <20260416013101.221555-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi,
+From: Weiming Shi <bestswngs@gmail.com>
 
-The following patchset contains Netfilter/IPVS fixes for net: Mostly
-addressing very old bugs in the SIP conntrack helper string parser,
-unsafe arp_tables match support with legacy IEEE1394, restrict xt_realm
-to IPv4 and incorrect use of RCU lists in nat core and nftables. This
-batch also includes one IPVS MTU fix. The exception is a fix for a
-recent issue related to broken double-tagged vlan in the flowtable.
+nft_fwd_neigh can be used in egress chains (NF_NETDEV_EGRESS). When the
+forwarding rule targets the same device or two devices forward to each
+other, neigh_xmit() triggers dev_queue_xmit() which re-enters
+nf_hook_egress(), causing infinite recursion and stack overflow.
 
-1) Fix possible stack recursion in nft_fwd_netdev from egress path,
-   from Weiming Shi.
+Move the nf_get_nf_dup_skb_recursion() accessor and NF_RECURSION_LIMIT
+to the shared header nf_dup_netdev.h as a static inline, so that
+nft_fwd_netdev can use the recursion counter directly without exported
+function call overhead. Guard neigh_xmit() with the same recursion
+limit already used in nf_do_netdev_egress().
 
-2) Fix unsafe port parser in SIP helper, from Jenny Guanni Qu.
+Fixes: f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_dup_netdev.h | 13 +++++++++++++
+ net/netfilter/nf_dup_netdev.c         | 16 ----------------
+ net/netfilter/nft_fwd_netdev.c        |  7 +++++++
+ 3 files changed, 20 insertions(+), 16 deletions(-)
 
-3) Fix arp_tables match with IEEE1394 ARP payload, allowing to
-   reach bytes off the skb boundary, from Weiming Shi.
+diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
+index b175d271aec9..609bcf422a9b 100644
+--- a/include/net/netfilter/nf_dup_netdev.h
++++ b/include/net/netfilter/nf_dup_netdev.h
+@@ -3,10 +3,23 @@
+ #define _NF_DUP_NETDEV_H_
+ 
+ #include <net/netfilter/nf_tables.h>
++#include <linux/netdevice.h>
++#include <linux/sched.h>
+ 
+ void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
+ void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
+ 
++#define NF_RECURSION_LIMIT	2
++
++static inline u8 *nf_get_nf_dup_skb_recursion(void)
++{
++#ifndef CONFIG_PREEMPT_RT
++	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
++#else
++	return &current->net_xmit.nf_dup_skb_recursion;
++#endif
++}
++
+ struct nft_offload_ctx;
+ struct nft_flow_rule;
+ 
+diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
+index fab8b9011098..a958a1b0c5be 100644
+--- a/net/netfilter/nf_dup_netdev.c
++++ b/net/netfilter/nf_dup_netdev.c
+@@ -13,22 +13,6 @@
+ #include <net/netfilter/nf_tables_offload.h>
+ #include <net/netfilter/nf_dup_netdev.h>
+ 
+-#define NF_RECURSION_LIMIT	2
+-
+-#ifndef CONFIG_PREEMPT_RT
+-static u8 *nf_get_nf_dup_skb_recursion(void)
+-{
+-	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
+-}
+-#else
+-
+-static u8 *nf_get_nf_dup_skb_recursion(void)
+-{
+-	return &current->net_xmit.nf_dup_skb_recursion;
+-}
+-
+-#endif
+-
+ static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
+ 				enum nf_dev_hooks hook)
+ {
+diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
+index 152a9fb4d23a..492bb599a499 100644
+--- a/net/netfilter/nft_fwd_netdev.c
++++ b/net/netfilter/nft_fwd_netdev.c
+@@ -141,13 +141,20 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+ 		goto out;
+ 	}
+ 
++	if (*nf_get_nf_dup_skb_recursion() > NF_RECURSION_LIMIT) {
++		verdict = NF_DROP;
++		goto out;
++	}
++
+ 	dev = dev_get_by_index_rcu(nft_net(pkt), oif);
+ 	if (dev == NULL)
+ 		return;
+ 
+ 	skb->dev = dev;
+ 	skb_clear_tstamp(skb);
++	(*nf_get_nf_dup_skb_recursion())++;
+ 	neigh_xmit(neigh_table, dev, addr, skb);
++	(*nf_get_nf_dup_skb_recursion())--;
+ out:
+ 	regs->verdict.code = verdict;
+ }
+-- 
+2.47.3
 
-4) Reject unsafe nfnetlink_osf configurations from control plane,
-   this is addressing a possible division by zero, from Xiang Mei.
-
-5) nft_osf actually only supports IPv4, restrict it.
-
-6) Fix double-tagged-vlan support (again) in the flowtable, from
-   Eric Woudstra.
-
-7) Remove unsafe use of sprintf to fix possible buffer overflow
-   in the SIP NAT helper, from Florian Westphal.
-
-8) Restrict xt_mac, xt_owner and xt_physdev to inet families only;
-   xt_realm is only for ipv4, otherwise null-pointer-deref is possible.
-
-9) Use kfree_rcu() in nat core to release hooks, this can be an issue
-   once nfnetlink_hook gets support to dump NAT hook information,
-   not currently a real issue but better fix it now.
-
-10) Fix MTU checks in IPVS, from Yingnan Zhang.
-
-11) Use list_del_rcu() in chain and flowtable hook unregistration,
-    concurrent RCU reader could be walking over the hook list,
-    from Florian Westphal.
-
-12) Add list_splice_rcu(), this is required to fix unsafe
-    splice to RCU protected hook list. Reviewed by Paul McKenney.
-
-13) Use list_splice_rcu() to splice new chain and flowtable hooks.
-
-14) Add shim nft_trans_hook object to track chain and flowtable
-    hook deletions and flag them as removed, instead of unsafely
-    moving around hooks in the RCU-protected hook list. This allows
-    to restore the previous state from the abort path.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-04-16
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 2dddb34dd0d07b01fa770eca89480a4da4f13153:
-
-  net: ethernet: mtk_eth_soc: initialize PPE per-tag-layer MTU registers (2026-04-12 15:22:58 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-04-16
-
-for you to fetch changes up to e349f90da812aeddd22c3914a2cc639b51e4eb48:
-
-  netfilter: nf_tables: add hook transactions for device deletions (2026-04-16 02:47:58 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-04-16
-
-----------------------------------------------------------------
-Eric Woudstra (1):
-      netfilter: nf_flow_table_ip: Introduce nf_flow_vlan_push()
-
-Florian Westphal (2):
-      netfilter: conntrack: remove sprintf usage
-      netfilter: nf_tables: use list_del_rcu for netlink hooks
-
-Jenny Guanni Qu (1):
-      netfilter: nf_conntrack_sip: add bounds-checked port parsing helper
-
-Pablo Neira Ayuso (6):
-      netfilter: nft_osf: restrict it to ipv4
-      netfilter: xtables: restrict several matches to inet family
-      netfilter: nat: use kfree_rcu to release ops
-      rculist: add list_splice_rcu() for private lists
-      netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase
-      netfilter: nf_tables: add hook transactions for device deletions
-
-Weiming Shi (2):
-      netfilter: nft_fwd_netdev: use recursion counter in neigh egress path
-      netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
-
-Xiang Mei (1):
-      netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
-
-Yingnan Zhang (1):
-      ipvs: fix MTU check for GSO packets in tunnel mode
-
- include/linux/rculist.h               |  29 ++++++
- include/net/netfilter/nf_dup_netdev.h |  13 +++
- include/net/netfilter/nf_tables.h     |  13 +++
- net/ipv4/netfilter/arp_tables.c       |  14 ++-
- net/ipv4/netfilter/iptable_nat.c      |   2 +-
- net/ipv6/netfilter/ip6table_nat.c     |   2 +-
- net/netfilter/ipvs/ip_vs_xmit.c       |  19 +++-
- net/netfilter/nf_conntrack_sip.c      |  80 +++++++++++-----
- net/netfilter/nf_dup_netdev.c         |  16 ----
- net/netfilter/nf_flow_table_ip.c      |  25 ++++-
- net/netfilter/nf_nat_amanda.c         |   2 +-
- net/netfilter/nf_nat_core.c           |  10 +-
- net/netfilter/nf_nat_sip.c            |  33 ++++---
- net/netfilter/nf_tables_api.c         | 168 ++++++++++++++++++++++++----------
- net/netfilter/nfnetlink_osf.c         |   4 +
- net/netfilter/nft_fwd_netdev.c        |   7 ++
- net/netfilter/nft_osf.c               |   6 +-
- net/netfilter/xt_mac.c                |  34 ++++---
- net/netfilter/xt_owner.c              |  37 +++++---
- net/netfilter/xt_physdev.c            |  29 ++++--
- net/netfilter/xt_realm.c              |   2 +-
- 21 files changed, 393 insertions(+), 152 deletions(-)
