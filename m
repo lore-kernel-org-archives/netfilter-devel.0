@@ -1,130 +1,184 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5DFE31F9A2
-	for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2026 04:30:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.214.181
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776313833; cv=pass; b=LTb9TFKkh6Ag2hy4b+sxdyYcTrr7HQyQe5EalR+cM8TSxEvF/gSj4wl/N4y8vphH1Ae2ljmxYbK5o1s2akvrTqq9Q/DpSKWk93K1Bvtio5V4JAXCK6gjrdSsq2sPl+/kdvP1iEvQpQTUrrBSH88RUY5v8JFX8mRmlmWeJRzsWQA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776313833; c=relaxed/simple;
-	bh=eBwEvLyvW5ty9QcQNpdbMGy+nVAi1rn9GyGF/2Ur5sE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uWbA+YafThXUChMkS8Vye6PpQIZWT6H08lsqN0TjCiyD4BDbdpOWZkcVLufX14K28VCLhXtSjB1j0fzZLnkbGZMWP7pRe/H/7uNI9B8Tj9u3aS9WM1hvId0sG+KU/vm0m2Dcap15y50fzQ7Qid3KYvf3DmFCtdccxtzbP0D5qTE=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu; spf=pass smtp.mailfrom=asu.edu; dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b=VvJil7dD; arc=pass smtp.client-ip=209.85.214.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=asu.edu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asu.edu
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91598379EFE;
+	Thu, 16 Apr 2026 07:26:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1776324366; cv=none; b=jcQAoEEjJq6hQhiOyuFWaxfPKWn9J/vM2tGGyJJjvo7eqsw0bk67ZR+vEWV5tm1h/CSv8sqg9nVgAm8isrUKxooRrNfgKmnyMV0HwNneUyHTagMMk/LNXLYljCF0Xm1cHbIfZnmGjC98+lyZoM8pNjzBB18KAL1i9Ct7xrvDgqQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1776324366; c=relaxed/simple;
+	bh=8XOGHuG7DL0SKI+wzf4TpVXG791hIIaFSOk5D96MHNg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=WvkpDnf4Fw/uWcSZKS9hhiPu5GX8mDAKncwb4PUsxCmdw9wGZss6uz/j5sWtWXWj+pxu5RHJbp6Vg94+Yej15ByLZFobvFI4MPYCl9kj9QIRJZvZ+iLYxr1NYt1ngVEYhubgl9v8npqXaQDbm7ClzylmTQZl/rib1St9n3b2AXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FvxadmrQ; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asu.edu header.i=@asu.edu header.b="VvJil7dD"
-Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-2b2503753efso66383615ad.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2026 21:30:31 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1776313831; cv=none;
-        d=google.com; s=arc-20240605;
-        b=HoqpUuC3El6tIWVaDj45fOA4zBsxZ0IVuIFCmDXFO0R3dIA82zIK/cjHeyy1X8sLIe
-         rUCJlZiwIJHmgpO8jRrhCHQmGzHH8MYmrCKC5ApIHZmHziZezg98CrhOgf5ZjoSi4LL3
-         p8bXq0/h/aVzvDrb+CPPFW7vY5xWBo0JyogOwYeZkHcuX+N1KVp6lWdT0ddCId/A4gw4
-         W4yeGj8SVm+chYUa1zxgveT4GFcnOMgsRjeJ+Y6p7qhDvDp7W4SQiKIhEgKlDerUcqdc
-         ruWSxf6zduZqw7bKxtKZvFOf/Iq0dgKFbif2yp5NNCYWnUBGwTYd3VMFHppklrRPUTOG
-         iXJg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=eBwEvLyvW5ty9QcQNpdbMGy+nVAi1rn9GyGF/2Ur5sE=;
-        fh=PMfVofhUmrhqMq3ynGxxlDHw1LjZozyyd2v6p5KUSds=;
-        b=OaqG/lGrcIUpo73fbMwLqjFjptPRTAPq5EFR4QtbvR//RwnBHCLvJIvIh4/Gi4wDbq
-         i29ePLT2izPqq+9+JaBaNhtpLiRkFJq4NSiihUs0uKA5omzHXmY9f/ak4S3QF36Xp4V2
-         h8OsUoyE6PEWAfyPRoaOgi5g9uLc+vJhuHPMpG/8annEz3PHvUhaANLZlr+JkfhmxRfk
-         e/7JRAQ5ijDenCD0DcurW3oKnTRX4rT77xQa8y537IvvJoVjdEUlZUQdanax6oSo6YrB
-         QizoDIlAXcrtDJut9y8DaN2NFNX27cCZ8BpamekVBnkndjODUOvf1AfRFAyjlSPWS5Vq
-         r6UQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=asu.edu; s=google; t=1776313831; x=1776918631; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=eBwEvLyvW5ty9QcQNpdbMGy+nVAi1rn9GyGF/2Ur5sE=;
-        b=VvJil7dDSM3pzbsfhd8hsLU8WjpiLTMSVFqpebNd0WzoQh44CdszYLFISosexLRJDt
-         Rn28tsBJxrma1aILOPMzQyRAmQMOTWqExl/CFbYqTAQ1XxB4jdoQQYt9Dv5e14kKACrD
-         zly2eUlXdT06FYYYtvHEMipUj+bEIsEATW8NIyF5R/7SwngKGxU/9aF3QKNJGnomihC1
-         NkN/HqzDQrJc2rosTXUG+XFlZER4Xngb67vhrYhxnlDhLdkYctin3CaEu6GQnuMxJtZ/
-         FQrpiWA+srrkIs0OH7CXnvnyBUV2kmLu5hptEibQFstxiJPFSzI4rV7B4udLOhAzX8YQ
-         TjVQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776313831; x=1776918631;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=eBwEvLyvW5ty9QcQNpdbMGy+nVAi1rn9GyGF/2Ur5sE=;
-        b=gwT/6nYQRQXYfvcT4Fz73RwBuqNWh0CRdkjM3KSnMgVE+csLVJ8E3vFbL+KBEqbXM9
-         bh+utY6uhaZDfCVLHriYk2Q9h/V0eLGJn1zD8gRXBcR1ljKzT+GGI+GZseRaOPvLkYuK
-         bQ9yZMN+VOz+GoC0+Ajdvp7vc1lV2/a2mRFfWreVJBNgfYDITq0QLkZnSO5dqYru5F3Z
-         yaekTMMIMP+Z9LhO3zFHSMFtzCKGActxZhXTgBaXcXFbw1/LJx0MZZKQKhTl4VJHBe5a
-         KmiCHfwWsddPcFMz0I18v8qOhrxUDSgTUnm70eRlPkYMkpO8kEQ8aJTtLnlB1UmA1t0o
-         TUqA==
-X-Forwarded-Encrypted: i=1; AFNElJ9aDTmyHsyN3Z7tJe/0cyMy7HHhzptfwIkNiMcE2EUBX4JZCVr/xiZmOAqpIbMoOAg7ZijDcDzPwZFTAFIC+uk=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxhoCAj+XQ0E/p2eH6AkXf2KXOu+Uqwhd8RFN5MMeFoAIY34cmG
-	wKkKhDFArpItZFdTupUk8k+iAKp6tYN59f8XuhRiK2J/HvWHHma5Z7y0aIEpQ+ZtF7Jx7Aes7ND
-	2uPeK2U0WfdHQbrilHlD3xNt4Dpjsm5a966B+sSNh
-X-Gm-Gg: AeBDieuAYOgBB94vRYSwM+t2V5utcDLI2VIRmsDKBLIMw6LKhKytPLhwGZKIxd6Crlc
-	ldeTxFSIIwzkHYWkcQ+mgdYZ3C2siLUJqNkB7UVbxYfm1EoLKR5g5Ouynfbc3s9SqFkv2v9W/x/
-	Nn+AqVKv75mrD1wIL9R2R/nqZQQjJo5YeW9km/YLjjvK8rU5V0XCSonzYYtwSmRPBMJdpf/56Db
-	b2RjLqxsI8anKPXK3bTdOWSCkV0IfF6UNum4ZAQh6IrOh3gEnDOhZ6vJGQA0/nQvb5BYrucQGBA
-	ZRCERr6sSWSteV/9b9k=
-X-Received: by 2002:a17:902:bd82:b0:2b2:4eec:9806 with SMTP id
- d9443c01a7336-2b2d59435e7mr175378765ad.8.1776313831108; Wed, 15 Apr 2026
- 21:30:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FvxadmrQ"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 2DCDA60177;
+	Thu, 16 Apr 2026 09:26:02 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776324362;
+	bh=iK2gR/+LE4a4ZAYal36ygKmYu5CbrxnT6MXmEhNpe2Y=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=FvxadmrQ7iZeKJgVUh/qpqmqdNY2EE9AlvB4RXlUokEFWXtcalLjfCGITmT9DP21b
+	 fhG0h5EAzfPeQIGftW/8/SWTAr15Xl28SfZwNAnCVBij/wCjR2DXF+JmPoY3jGydbm
+	 t9vVYXnsj9KQ6jQ0lZWS0FhhPv8z4kjBWeXdqn2uuegm4xPUqw2BucBlvPRRe/3mvM
+	 lethOs/WwN7YQAwDILs8YowkZ4XdBkj3rmCXMOFvt6urOQ5W+uCwm6/19w4z9jhTTV
+	 KfDMcoc3KdcXAbbBpgy1mKAdF8HiECHTmJGPXovL7lSOBxz3i/NXRVuZUB9k2Nm1jI
+	 6u2g4neBv818g==
+Date: Thu, 16 Apr 2026 09:25:59 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org, kuba@kernel.org,
+	pabeni@redhat.com, edumazet@google.com, fw@strlen.de,
+	horms@kernel.org
+Subject: Re: [PATCH net 00/14] Netfilter/IPVS fixes for net
+Message-ID: <aeCPB1_WaFOX-Xos@chamomile>
+References: <20260416013101.221555-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260410101321.915190-2-bestswngs@gmail.com> <ad_C1f2cW5-kctHi@chamomile>
-In-Reply-To: <ad_C1f2cW5-kctHi@chamomile>
-From: Xiang Mei <xmei5@asu.edu>
-Date: Wed, 15 Apr 2026 21:30:19 -0700
-X-Gm-Features: AQROBzArZIGP7P6PYpJC0RLfY5oWoqPDja93CqgujU7BKVV_JgidCYZGHAKQ3wE
-Message-ID: <CAPpSM+Q7GTCwzYwJmcvRz2_XP12Dstwtm4cViyRo16C00C3FDA@mail.gmail.com>
-Subject: Re: [PATCH nf] netfilter: nf_tables: use RCU-safe list primitives for
- basechain hook list
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Weiming Shi <bestswngs@gmail.com>, Florian Westphal <fw@strlen.de>, 
-	"David S . Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, 
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Phil Sutter <phil@nwl.cc>, 
-	Simon Horman <horms@kernel.org>, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, 
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260416013101.221555-1-pablo@netfilter.org>
 
-On Wed, Apr 15, 2026 at 9:55=E2=80=AFAM Pablo Neira Ayuso <pablo@netfilter.=
-org> wrote:
->
-> On Fri, Apr 10, 2026 at 06:13:22PM +0800, Weiming Shi wrote:
-> > NFT_MSG_GETCHAIN runs as an NFNL_CB_RCU callback, so chain dumps
-> > traverse basechain->hook_list under rcu_read_lock() without holding
-> > commit_mutex. Meanwhile, nft_delchain_hook() mutates that same live
-> > hook_list with plain list_move() and list_splice(), and the commit/abor=
-t
-> > paths splice hooks back with plain list_splice(). None of these are
-> > RCU-safe list operations.
-> >
-> > A concurrent GETCHAIN dump can observe partially updated list pointers,
-> > follow them into stack-local or transaction-private list heads, and
-> > crash when container_of() produces a bogus struct nft_hook pointer.
->
-> For the record, v1 of proposed series to fix this is here:
->
-> https://patchwork.ozlabs.org/project/netfilter-devel/list/?series=3D49975=
-7
+Hi,
 
-Hi Pablo,
+I am preparing a v2 to address so AI generated comment, I should be
+ready in a few hours.
 
-Thanks for working on this.
-If this addresses the issue I originally reported, could you please
-consider adding:
-Reported-by: Xiang Mei <xmei5@asu.edu>
+Thanks.
 
-Thanks,
-Xiang
+On Thu, Apr 16, 2026 at 03:30:47AM +0200, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> The following patchset contains Netfilter/IPVS fixes for net: Mostly
+> addressing very old bugs in the SIP conntrack helper string parser,
+> unsafe arp_tables match support with legacy IEEE1394, restrict xt_realm
+> to IPv4 and incorrect use of RCU lists in nat core and nftables. This
+> batch also includes one IPVS MTU fix. The exception is a fix for a
+> recent issue related to broken double-tagged vlan in the flowtable.
+> 
+> 1) Fix possible stack recursion in nft_fwd_netdev from egress path,
+>    from Weiming Shi.
+> 
+> 2) Fix unsafe port parser in SIP helper, from Jenny Guanni Qu.
+> 
+> 3) Fix arp_tables match with IEEE1394 ARP payload, allowing to
+>    reach bytes off the skb boundary, from Weiming Shi.
+> 
+> 4) Reject unsafe nfnetlink_osf configurations from control plane,
+>    this is addressing a possible division by zero, from Xiang Mei.
+> 
+> 5) nft_osf actually only supports IPv4, restrict it.
+> 
+> 6) Fix double-tagged-vlan support (again) in the flowtable, from
+>    Eric Woudstra.
+> 
+> 7) Remove unsafe use of sprintf to fix possible buffer overflow
+>    in the SIP NAT helper, from Florian Westphal.
+> 
+> 8) Restrict xt_mac, xt_owner and xt_physdev to inet families only;
+>    xt_realm is only for ipv4, otherwise null-pointer-deref is possible.
+> 
+> 9) Use kfree_rcu() in nat core to release hooks, this can be an issue
+>    once nfnetlink_hook gets support to dump NAT hook information,
+>    not currently a real issue but better fix it now.
+> 
+> 10) Fix MTU checks in IPVS, from Yingnan Zhang.
+> 
+> 11) Use list_del_rcu() in chain and flowtable hook unregistration,
+>     concurrent RCU reader could be walking over the hook list,
+>     from Florian Westphal.
+> 
+> 12) Add list_splice_rcu(), this is required to fix unsafe
+>     splice to RCU protected hook list. Reviewed by Paul McKenney.
+> 
+> 13) Use list_splice_rcu() to splice new chain and flowtable hooks.
+> 
+> 14) Add shim nft_trans_hook object to track chain and flowtable
+>     hook deletions and flag them as removed, instead of unsafely
+>     moving around hooks in the RCU-protected hook list. This allows
+>     to restore the previous state from the abort path.
+> 
+> Please, pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-04-16
+> 
+> Thanks.
+> 
+> ----------------------------------------------------------------
+> 
+> The following changes since commit 2dddb34dd0d07b01fa770eca89480a4da4f13153:
+> 
+>   net: ethernet: mtk_eth_soc: initialize PPE per-tag-layer MTU registers (2026-04-12 15:22:58 -0700)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-04-16
+> 
+> for you to fetch changes up to e349f90da812aeddd22c3914a2cc639b51e4eb48:
+> 
+>   netfilter: nf_tables: add hook transactions for device deletions (2026-04-16 02:47:58 +0200)
+> 
+> ----------------------------------------------------------------
+> netfilter pull request 26-04-16
+> 
+> ----------------------------------------------------------------
+> Eric Woudstra (1):
+>       netfilter: nf_flow_table_ip: Introduce nf_flow_vlan_push()
+> 
+> Florian Westphal (2):
+>       netfilter: conntrack: remove sprintf usage
+>       netfilter: nf_tables: use list_del_rcu for netlink hooks
+> 
+> Jenny Guanni Qu (1):
+>       netfilter: nf_conntrack_sip: add bounds-checked port parsing helper
+> 
+> Pablo Neira Ayuso (6):
+>       netfilter: nft_osf: restrict it to ipv4
+>       netfilter: xtables: restrict several matches to inet family
+>       netfilter: nat: use kfree_rcu to release ops
+>       rculist: add list_splice_rcu() for private lists
+>       netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase
+>       netfilter: nf_tables: add hook transactions for device deletions
+> 
+> Weiming Shi (2):
+>       netfilter: nft_fwd_netdev: use recursion counter in neigh egress path
+>       netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
+> 
+> Xiang Mei (1):
+>       netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
+> 
+> Yingnan Zhang (1):
+>       ipvs: fix MTU check for GSO packets in tunnel mode
+> 
+>  include/linux/rculist.h               |  29 ++++++
+>  include/net/netfilter/nf_dup_netdev.h |  13 +++
+>  include/net/netfilter/nf_tables.h     |  13 +++
+>  net/ipv4/netfilter/arp_tables.c       |  14 ++-
+>  net/ipv4/netfilter/iptable_nat.c      |   2 +-
+>  net/ipv6/netfilter/ip6table_nat.c     |   2 +-
+>  net/netfilter/ipvs/ip_vs_xmit.c       |  19 +++-
+>  net/netfilter/nf_conntrack_sip.c      |  80 +++++++++++-----
+>  net/netfilter/nf_dup_netdev.c         |  16 ----
+>  net/netfilter/nf_flow_table_ip.c      |  25 ++++-
+>  net/netfilter/nf_nat_amanda.c         |   2 +-
+>  net/netfilter/nf_nat_core.c           |  10 +-
+>  net/netfilter/nf_nat_sip.c            |  33 ++++---
+>  net/netfilter/nf_tables_api.c         | 168 ++++++++++++++++++++++++----------
+>  net/netfilter/nfnetlink_osf.c         |   4 +
+>  net/netfilter/nft_fwd_netdev.c        |   7 ++
+>  net/netfilter/nft_osf.c               |   6 +-
+>  net/netfilter/xt_mac.c                |  34 ++++---
+>  net/netfilter/xt_owner.c              |  37 +++++---
+>  net/netfilter/xt_physdev.c            |  29 ++++--
+>  net/netfilter/xt_realm.c              |   2 +-
+>  21 files changed, 393 insertions(+), 152 deletions(-)
+> 
