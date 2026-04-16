@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A59871F09A8;
-	Thu, 16 Apr 2026 13:15:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08CF814A4F0;
+	Thu, 16 Apr 2026 13:15:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776345312; cv=none; b=u547kjPQxcgUylo3QJca8G+aHIY2ciPG8zPr1LInnd0jq1YrTavPgDhNibSdyN7ccsVaoK2bA8/4tFNpJXhTqxl0F8X55Adx0IQPDEsXPISpgz2QS7LLbGEJ9jiHCYcaZDDY70BogPO4QhpypxnWVB7zHI0bt1QcAjOYnaenvDg=
+	t=1776345313; cv=none; b=eY+OioVwKvHbxwqMHnU+wK9Q93xCwKTTp9NimHr9pnAS7jA92FcPsGlIntc98e2uTO8N8+5374Z18lUBJz6JxQXutCaw6G5ExZdO9JHk9aNhC8QHMaCLQBLjeZSmZLAAUDL+L/npo2St/RRxrb9+0BPi0GDz8nDmXr5DSPNGPj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776345312; c=relaxed/simple;
-	bh=rbIvlvw0B6QuUQslAtCLoplcDKyo0sCdkYuUELvG14M=;
+	s=arc-20240116; t=1776345313; c=relaxed/simple;
+	bh=qeMJhnYimVlICJ5eTnyKmjZw7xRdiqN4RqTkKuKW6j8=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gickTyPJ6Ux0GwE0ufmFyZTsvI0FFG5NRVM/20jbZLdf8VMrzm7gKEziXoG75J7u11zvMzCdl/iPaosl80cVHCV1GL/0FRxVDFWgnGnneKK8G1et3Cc3WnmoTDnCFJRzPkmH7JYxLeY7a5ItGfgwWREthpoeQeTJyjdh2RHkFxk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=ZMXAQXrh; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=U4+KUwh0sJjtkNbUkD4fv89xylpElM32E/ac/9je++B+P9X+WWKGREUHvSOtFX/qCFFm3JF96LwE28VUo/GxCMAVBVbSnthcOel6umBWYuuCayt8P5ZMfzPRVbI/v45mfv2PBlkz5IDdf6MxejXd50tWI5QWBDtiWXyoDjwdyWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Fw03q+8R; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="ZMXAQXrh"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Fw03q+8R"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 63BC260253;
-	Thu, 16 Apr 2026 15:15:08 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id D2E2960254;
+	Thu, 16 Apr 2026 15:15:09 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776345309;
-	bh=gGNB9aJV8o7MG46EcPHArVIj/WD14c4FSu6EJOu+zTM=;
+	s=2025; t=1776345310;
+	bh=1b6i10nqRPpCr482KhE186G03DU2qm9L1tneVbMcDng=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ZMXAQXrhZoU536q1niJYyKU2Sk/X+x6yYCCvFuOxR32ewVZtQ+TKwuJVwp4l7l04n
-	 Bvg3wW7aeX0YIT/B28X15s+B7ho94ZngqNR/lJiS+I6VlKdpr6ALVWFIi/A9AoSdH5
-	 aZhndHmIVB/mRTRwSBrx0YUQ6pd7/F9R6cCxBq/XcHdKQ87ka2YXk9oE/6KdnIWtia
-	 jhbuNJRZw7qgbTLqL+CZIxgyg8P3WVqnvvambWv7W5G6IdlfXjze9Zqij40CQAgYry
-	 Pi51GxubVneBVJ/mSESTFXG0EKcLO/iiiw1izb7SLkLBmK0MNn93ZjPRAJtRQwe3LJ
-	 RhBNzVNv1FCxw==
+	b=Fw03q+8RcxtyOSLKZTg+yM7ZA3UMnjHEUwfi199xOB/0vcaOb5DY4EmCz/x1Ci7Cj
+	 38JCvi6mHMf2ThyjY8zw8gCdqo3QI2IJ3COO+/nyH27mojW5aRBpU21/AUMowAIzqJ
+	 GEDADUtK+qWnMI3G7kqTe6O5PiOjHncX/ls84Q4ExhChVyp/jZtsHXAqg0SQWcqhyU
+	 tAm+435xqZjCEK20Id9P1K9w7lU8PPgdp0XDt86x5IfunAEMAk9+IQmdd+lwph5YQL
+	 +prnnMrEgWXi6GdL2R3cq/H3HRjflotwKMHJLJmLryO/vdbwyOO0zwRIGxM6TXxlfW
+	 GKjBAiQUBNH+A==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/11] netfilter: xtables: restrict several matches to inet family
-Date: Thu, 16 Apr 2026 15:14:48 +0200
-Message-ID: <20260416131453.308611-7-pablo@netfilter.org>
+Subject: [PATCH net 07/11] netfilter: nat: use kfree_rcu to release ops
+Date: Thu, 16 Apr 2026 15:14:49 +0200
+Message-ID: <20260416131453.308611-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260416131453.308611-1-pablo@netfilter.org>
 References: <20260416131453.308611-1-pablo@netfilter.org>
@@ -52,201 +52,89 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is a partial revert of:
+Florian Westphal says:
 
-  commit ab4f21e6fb1c ("netfilter: xtables: use NFPROTO_UNSPEC in more extensions")
+"Historically this is not an issue, even for normal base hooks: the data
+path doesn't use the original nf_hook_ops that are used to register the
+callbacks.
 
-to allow ipv4 and ipv6 only.
+However, in v5.14 I added the ability to dump the active netfilter
+hooks from userspace.
 
-- xt_mac
-- xt_owner
-- xt_physdev
+This code will peek back into the nf_hook_ops that are available
+at the tail of the pointer-array blob used by the datapath.
 
-These extensions are not used by ebtables in userspace.
+The nat hooks are special, because they are called indirectly from
+the central nat dispatcher hook. They are currently invisible to
+the nfnl hook dump subsystem though.
 
-Moreover, xt_realm is only for ipv4, since dst->tclassid is ipv4
-specific.
+But once that changes the nat ops structures have to be deferred too."
 
-Fixes: ab4f21e6fb1c ("netfilter: xtables: use NFPROTO_UNSPEC in more extensions")
-Reported-by: "Kito Xu (veritas501)" <hxzene@gmail.com>
+Update nf_nat_register_fn() to deal with partial exposition of the hooks
+from error path which can be also an issue for nfnetlink_hook.
+
+Fixes: e2cf17d3774c ("netfilter: add new hook nfnl subsystem")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_mac.c     | 34 +++++++++++++++++++++++-----------
- net/netfilter/xt_owner.c   | 37 +++++++++++++++++++++++++------------
- net/netfilter/xt_physdev.c | 29 +++++++++++++++++++----------
- net/netfilter/xt_realm.c   |  2 +-
- 4 files changed, 68 insertions(+), 34 deletions(-)
+ net/ipv4/netfilter/iptable_nat.c  |  2 +-
+ net/ipv6/netfilter/ip6table_nat.c |  2 +-
+ net/netfilter/nf_nat_core.c       | 10 ++++++----
+ 3 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/xt_mac.c b/net/netfilter/xt_mac.c
-index 81649da57ba5..bd2354760895 100644
---- a/net/netfilter/xt_mac.c
-+++ b/net/netfilter/xt_mac.c
-@@ -38,25 +38,37 @@ static bool mac_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	return ret;
+diff --git a/net/ipv4/netfilter/iptable_nat.c b/net/ipv4/netfilter/iptable_nat.c
+index a5db7c67d61b..3b1de7f82bf8 100644
+--- a/net/ipv4/netfilter/iptable_nat.c
++++ b/net/ipv4/netfilter/iptable_nat.c
+@@ -100,7 +100,7 @@ static void ipt_nat_unregister_lookups(struct net *net)
+ 	for (i = 0; i < ARRAY_SIZE(nf_nat_ipv4_ops); i++)
+ 		nf_nat_ipv4_unregister_fn(net, &ops[i]);
+ 
+-	kfree(ops);
++	kfree_rcu(ops, rcu);
  }
  
--static struct xt_match mac_mt_reg __read_mostly = {
--	.name      = "mac",
--	.revision  = 0,
--	.family    = NFPROTO_UNSPEC,
--	.match     = mac_mt,
--	.matchsize = sizeof(struct xt_mac_info),
--	.hooks     = (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_IN) |
--	             (1 << NF_INET_FORWARD),
--	.me        = THIS_MODULE,
-+static struct xt_match mac_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "mac",
-+		.family		= NFPROTO_IPV4,
-+		.match		= mac_mt,
-+		.matchsize	= sizeof(struct xt_mac_info),
-+		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN) |
-+				  (1 << NF_INET_FORWARD),
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "mac",
-+		.family		= NFPROTO_IPV6,
-+		.match		= mac_mt,
-+		.matchsize	= sizeof(struct xt_mac_info),
-+		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN) |
-+				  (1 << NF_INET_FORWARD),
-+		.me		= THIS_MODULE,
-+	},
- };
+ static int iptable_nat_table_init(struct net *net)
+diff --git a/net/ipv6/netfilter/ip6table_nat.c b/net/ipv6/netfilter/ip6table_nat.c
+index e119d4f090cc..9adfbfeaab0c 100644
+--- a/net/ipv6/netfilter/ip6table_nat.c
++++ b/net/ipv6/netfilter/ip6table_nat.c
+@@ -102,7 +102,7 @@ static void ip6t_nat_unregister_lookups(struct net *net)
+ 	for (i = 0; i < ARRAY_SIZE(nf_nat_ipv6_ops); i++)
+ 		nf_nat_ipv6_unregister_fn(net, &ops[i]);
  
- static int __init mac_mt_init(void)
- {
--	return xt_register_match(&mac_mt_reg);
-+	return xt_register_matches(mac_mt_reg, ARRAY_SIZE(mac_mt_reg));
+-	kfree(ops);
++	kfree_rcu(ops, rcu);
  }
  
- static void __exit mac_mt_exit(void)
- {
--	xt_unregister_match(&mac_mt_reg);
-+	xt_unregister_matches(mac_mt_reg, ARRAY_SIZE(mac_mt_reg));
- }
+ static int ip6table_nat_table_init(struct net *net)
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 3b5434e4ec9c..b30ca94c2bb7 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -1228,9 +1228,11 @@ int nf_nat_register_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		ret = nf_register_net_hooks(net, nat_ops, ops_count);
+ 		if (ret < 0) {
+ 			mutex_unlock(&nf_nat_proto_mutex);
+-			for (i = 0; i < ops_count; i++)
+-				kfree(nat_ops[i].priv);
+-			kfree(nat_ops);
++			for (i = 0; i < ops_count; i++) {
++				priv = nat_ops[i].priv;
++				kfree_rcu(priv, rcu_head);
++			}
++			kfree_rcu(nat_ops, rcu);
+ 			return ret;
+ 		}
  
- module_init(mac_mt_init);
-diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
-index 50332888c8d2..7be2fe22b067 100644
---- a/net/netfilter/xt_owner.c
-+++ b/net/netfilter/xt_owner.c
-@@ -127,26 +127,39 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	return true;
- }
+@@ -1294,7 +1296,7 @@ void nf_nat_unregister_fn(struct net *net, u8 pf, const struct nf_hook_ops *ops,
+ 		}
  
--static struct xt_match owner_mt_reg __read_mostly = {
--	.name       = "owner",
--	.revision   = 1,
--	.family     = NFPROTO_UNSPEC,
--	.checkentry = owner_check,
--	.match      = owner_mt,
--	.matchsize  = sizeof(struct xt_owner_match_info),
--	.hooks      = (1 << NF_INET_LOCAL_OUT) |
--	              (1 << NF_INET_POST_ROUTING),
--	.me         = THIS_MODULE,
-+static struct xt_match owner_mt_reg[] __read_mostly = {
-+	{
-+		.name       = "owner",
-+		.revision   = 1,
-+		.family     = NFPROTO_IPV4,
-+		.checkentry = owner_check,
-+		.match      = owner_mt,
-+		.matchsize  = sizeof(struct xt_owner_match_info),
-+		.hooks      = (1 << NF_INET_LOCAL_OUT) |
-+			      (1 << NF_INET_POST_ROUTING),
-+		.me         = THIS_MODULE,
-+	},
-+	{
-+		.name       = "owner",
-+		.revision   = 1,
-+		.family     = NFPROTO_IPV6,
-+		.checkentry = owner_check,
-+		.match      = owner_mt,
-+		.matchsize  = sizeof(struct xt_owner_match_info),
-+		.hooks      = (1 << NF_INET_LOCAL_OUT) |
-+			      (1 << NF_INET_POST_ROUTING),
-+		.me         = THIS_MODULE,
-+	}
- };
- 
- static int __init owner_mt_init(void)
- {
--	return xt_register_match(&owner_mt_reg);
-+	return xt_register_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
- }
- 
- static void __exit owner_mt_exit(void)
- {
--	xt_unregister_match(&owner_mt_reg);
-+	xt_unregister_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
- }
- 
- module_init(owner_mt_init);
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index 343e65f377d4..130842c35c6f 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -115,24 +115,33 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
- 	return 0;
- }
- 
--static struct xt_match physdev_mt_reg __read_mostly = {
--	.name       = "physdev",
--	.revision   = 0,
--	.family     = NFPROTO_UNSPEC,
--	.checkentry = physdev_mt_check,
--	.match      = physdev_mt,
--	.matchsize  = sizeof(struct xt_physdev_info),
--	.me         = THIS_MODULE,
-+static struct xt_match physdev_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "physdev",
-+		.family		= NFPROTO_IPV4,
-+		.checkentry	= physdev_mt_check,
-+		.match		= physdev_mt,
-+		.matchsize	= sizeof(struct xt_physdev_info),
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "physdev",
-+		.family		= NFPROTO_IPV6,
-+		.checkentry	= physdev_mt_check,
-+		.match		= physdev_mt,
-+		.matchsize	= sizeof(struct xt_physdev_info),
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init physdev_mt_init(void)
- {
--	return xt_register_match(&physdev_mt_reg);
-+	return xt_register_matches(physdev_mt_reg, ARRAY_SIZE(physdev_mt_reg));
- }
- 
- static void __exit physdev_mt_exit(void)
- {
--	xt_unregister_match(&physdev_mt_reg);
-+	xt_unregister_matches(physdev_mt_reg, ARRAY_SIZE(physdev_mt_reg));
- }
- 
- module_init(physdev_mt_init);
-diff --git a/net/netfilter/xt_realm.c b/net/netfilter/xt_realm.c
-index 6df485f4403d..61b2f1e58d15 100644
---- a/net/netfilter/xt_realm.c
-+++ b/net/netfilter/xt_realm.c
-@@ -33,7 +33,7 @@ static struct xt_match realm_mt_reg __read_mostly = {
- 	.matchsize	= sizeof(struct xt_realm_info),
- 	.hooks		= (1 << NF_INET_POST_ROUTING) | (1 << NF_INET_FORWARD) |
- 			  (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_LOCAL_IN),
--	.family		= NFPROTO_UNSPEC,
-+	.family		= NFPROTO_IPV4,
- 	.me		= THIS_MODULE
- };
- 
+ 		nat_proto_net->nat_hook_ops = NULL;
+-		kfree(nat_ops);
++		kfree_rcu(nat_ops, rcu);
+ 	}
+ unlock:
+ 	mutex_unlock(&nf_nat_proto_mutex);
 -- 
 2.47.3
 
