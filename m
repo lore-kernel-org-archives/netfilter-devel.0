@@ -1,160 +1,159 @@
-Received: from n169-113.mail.139.com (n169-113.mail.139.com [120.232.169.113])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD0C63A9DA1;
-	Fri, 17 Apr 2026 08:22:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=120.232.169.113
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5254D39F17E;
+	Fri, 17 Apr 2026 09:14:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776414177; cv=none; b=HQ/l32N/Lx7zRVnHknPsLBtGwtwb2+mFufruXR9MTTe2qrV6Bu2ZEFa32gIz/GGQesTJZnQ8l9VitzNz53ppF3qsq31+CLo/c+fqTayByZ+50hZ1GI6mRr4zT3JA6c/UzOQFbdyxsg+/96u/BTaV5DIqk7O9+hKQ01Qwkzgjq6E=
+	t=1776417274; cv=none; b=lAkoeavvUm4rIuS8az1CUI+hNDBRa3t3rIK9VYO/fRKav+nIOLtcvDtZlaftzMxNscwJNZHlbXKjBQBarRp6gntdj9G/zNy7eITH+98TXHo51bn0y20f4Oqhlprcg6HGi7lItri0MzqapyLrS7eaMG1D+ysL0MKruKdQdvpqMoM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776414177; c=relaxed/simple;
-	bh=KyWH9WrRsB7SfQ2c73Pw9DmEu/wFTMyZukemJdiPTF8=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=btP8lvsbJhc3tbeG54Iq6lIkTuMztUaYxOssWFQ0jda76uJ+B2xuyLdw1XSGsk+q5ttdS1mQWq9eEZx3Xp3NKAs+hEiRyv5mB5pFqer9y4ErKYrzY5Ov9oHoETW6rN0/WOUGgmhNHMwwQR/9lK7tIpB4ZotWQC2lOigvP+6aAa0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com; spf=pass smtp.mailfrom=139.com; dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b=zwEg4qUI; arc=none smtp.client-ip=120.232.169.113
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=139.com
+	s=arc-20240116; t=1776417274; c=relaxed/simple;
+	bh=apBX6wAZOFpRvuTkgStG4E5Tw2QnsWLT7AZqsMqkY9U=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=b03o7Q3iom9t33SbSRDiWJqOdDwF0UQaTdd8zmg7iEANA+OmIeuMNCvAUvJ6NFbNhHn5aAkqmXqmw0zdfFYws19NqmLP+KVVJ21uEST7+nKU6Aw4d/LQWudxh3sxTnlY2seqGXmN6mMUkqudK7C0a8WS9uMap+rKOojBTdwPVUQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OUGxnpAz; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b="zwEg4qUI"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=139.com; s=dkim; l=0;
-	h=from:subject:message-id:to:cc:mime-version;
-	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=zwEg4qUIg1/tGPzrrQpOcDk59QqrIlaIwRV2jQN4W10McLBhudDx5/qYLqomtWKfPVKTXqRTAMc/p
-	 0m0LK0/7YB5pLsZ5Mv11wRQo47KEIovjv764k3aG6CORfNS5scu2JDHnp3dnnU8NXwSpK6IfJuPbaU
-	 uAyIz9omibA+HLTE=
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM:                                                                                        
-X-RM-SPAM-FLAG:00000000
-Received:from NTT-kernel-dev (unknown[60.247.85.88])
-	by rmsmtp-lg-appmail-31-12045 (RichMail) with SMTP id 2f0d69e1edd2a2b-01a4b;
-	Fri, 17 Apr 2026 16:22:43 +0800 (CST)
-X-RM-TRANSID:2f0d69e1edd2a2b-01a4b
-From: Li hongliang <1468888505@139.com>
-To: gregkh@linuxfoundation.org,
-	stable@vger.kernel.org,
-	pablo@netfilter.org
-Cc: patches@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	kadlec@netfilter.org,
-	fw@strlen.de,
-	davem@davemloft.net,
-	edumazet@google.com,
-	kuba@kernel.org,
-	pabeni@redhat.com,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	giki.shergill@proton.me
-Subject: [PATCH 5.15.y] nf_tables: nft_dynset: fix possible stateful expression memleak in error path
-Date: Fri, 17 Apr 2026 16:22:42 +0800
-Message-Id: <20260417082242.3254196-1-1468888505@139.com>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OUGxnpAz"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DF52760253;
+	Fri, 17 Apr 2026 11:14:29 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776417270;
+	bh=v7CyyGXbXFYajaxKcvL6QvbWbXVdB61An37V9m/xwWY=;
+	h=From:To:Cc:Subject:Date:From;
+	b=OUGxnpAzOuTyUNI4n8jiLN3DDmuyCUZ2r+GHBXCIMHlRr+ENNSpr+ntAlBPMT+buW
+	 vK+3LmyhfsaTL5Cdb/48dV1vd+EHHhOsdPBeiT6XGC59KRe9w4sARTFIVKCC5LGrLv
+	 38Hfkzx31oYtfx9Hwwr5PZskWc8d1NqnJHAWXTZaG6Aut8pjeLF/Prtg5jqWohPqQ+
+	 4aPxGOaiPQd6CFaYmKJCDcElO6gun//MoCraO0cTChfaWfOJUBUo1sM1fPdvI9KC5E
+	 msxLY268hl+UFRFX/gEJ7w1OumV6gzJSgKaQ4q28uRCuDIPtduCjHU3nZeIk84qhYb
+	 2iAm/e0XUW8qQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: fw@strlen.de,
+	netdev@vger.kernel.org
+Subject: [PATCH nf,v2] netfilter: arp_tables: fix IEEE1394 ARP payload parsing in arp_packet_match()
+Date: Fri, 17 Apr 2026 11:14:22 +0200
+Message-ID: <20260417091422.342615-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+Weiming Shi says:
 
-[ Upstream commit 0548a13b5a145b16e4da0628b5936baf35f51b43 ]
+"arp_packet_match() unconditionally parses the ARP payload assuming two
+hardware addresses are present (source and target). However,
+IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
+field, and arp_hdr_len() already accounts for this by returning a
+shorter length for ARPHRD_IEEE1394 devices.
 
-If cloning the second stateful expression in the element via GFP_ATOMIC
-fails, then the first stateful expression remains in place without being
-released.
+As a result, on IEEE1394 interfaces arp_packet_match() advances past a
+nonexistent target hardware address and reads the wrong bytes for both
+the target device address comparison and the target IP address. This
+causes arptables rules to match against garbage data, leading to
+incorrect filtering decisions: packets that should be accepted may be
+dropped and vice versa.
 
-   unreferenced object (percpu) 0x607b97e9cab8 (size 16):
-     comm "softirq", pid 0, jiffies 4294931867
-     hex dump (first 16 bytes on cpu 3):
-       00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-     backtrace (crc 0):
-       pcpu_alloc_noprof+0x453/0xd80
-       nft_counter_clone+0x9c/0x190 [nf_tables]
-       nft_expr_clone+0x8f/0x1b0 [nf_tables]
-       nft_dynset_new+0x2cb/0x5f0 [nf_tables]
-       nft_rhash_update+0x236/0x11c0 [nf_tables]
-       nft_dynset_eval+0x11f/0x670 [nf_tables]
-       nft_do_chain+0x253/0x1700 [nf_tables]
-       nft_do_chain_ipv4+0x18d/0x270 [nf_tables]
-       nf_hook_slow+0xaa/0x1e0
-       ip_local_deliver+0x209/0x330
+The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
+handles this correctly by skipping the target hardware address for
+ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match()."
 
-Fixes: 563125a73ac3 ("netfilter: nftables: generalize set extension to support for several expressions")
-Reported-by: Gurpreet Shergill <giki.shergill@proton.me>
+Mangle the original patch to always return 0 (no match) in case user
+matches on the target hardware address which is never present in
+IEEE1394.
+
+Moreover, adjust arpt_mangle too as AI suggests:
+
+In arpt_mangle, the logic assumes a standard ARP layout. Because
+IEEE1394 (FireWire) omits the target hardware address, the linear
+pointer arithmetic miscalculates the offset for the target IP address.
+This causes mangling operations to write to the wrong location, leading
+to packet corruption. To ensure safety, this patch drops packets
+(NF_DROP) when mangling is requested for these fields on IEEE1394
+devices, as the current implementation cannot correctly map the FireWire
+ARP payload.
+
+This omits both mangling target hardware and IP address. Even if IP
+address mangling should be possible in IEEE1394, this would require
+to adjust arpt_mangle offset calculation, which has been never
+supported.
+
+Based on patch from Weiming Shi <bestswngs@gmail.com>.
+
+Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
+Reported-by: Xiang Mei <xmei5@asu.edu>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-[ Minor conflict resolved. ]
-Signed-off-by: Li hongliang <1468888505@139.com>
 ---
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     |  4 ++--
- net/netfilter/nft_dynset.c        | 10 +++++++++-
- 3 files changed, 13 insertions(+), 3 deletions(-)
+v2: addressing AI suggestions.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 605d4c0a63e9..1f805590b838 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -821,6 +821,8 @@ void *nft_set_elem_init(const struct nft_set *set,
- 			u64 timeout, u64 expiration, gfp_t gfp);
- int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
- 			    struct nft_expr *expr_array[]);
-+void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
-+			       struct nft_set_elem_expr *elem_expr);
- void nft_set_elem_destroy(const struct nft_set *set, void *elem,
- 			  bool destroy_expr);
- void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index cbec5fc23719..b78949933acf 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -5919,8 +5919,8 @@ static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
- 	}
- }
- 
--static void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
--				      struct nft_set_elem_expr *elem_expr)
-+void nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
-+			       struct nft_set_elem_expr *elem_expr)
- {
- 	struct nft_expr *expr;
- 	u32 size;
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index ecdd4a60db9c..673c5e6a3e8d 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -30,18 +30,26 @@ static int nft_dynset_expr_setup(const struct nft_dynset *priv,
- 				 const struct nft_set_ext *ext)
- {
- 	struct nft_set_elem_expr *elem_expr = nft_set_ext_expr(ext);
-+	struct nft_ctx ctx = {
-+		.net	= read_pnet(&priv->set->net),
-+		.family	= priv->set->table->family,
-+	};
- 	struct nft_expr *expr;
- 	int i;
- 
- 	for (i = 0; i < priv->num_exprs; i++) {
- 		expr = nft_setelem_expr_at(elem_expr, elem_expr->size);
- 		if (nft_expr_clone(expr, priv->expr_array[i], GFP_ATOMIC) < 0)
--			return -1;
-+			goto err_out;
- 
- 		elem_expr->size += priv->expr_array[i]->ops->size;
- 	}
- 
- 	return 0;
-+err_out:
-+	nft_set_elem_expr_destroy(&ctx, elem_expr);
+ net/ipv4/netfilter/arp_tables.c  | 18 +++++++++++++++---
+ net/ipv4/netfilter/arpt_mangle.c |  8 ++++++++
+ 2 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 1cdd9c28ab2d..97ead883e4a1 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -110,13 +110,25 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
+ 	arpptr += dev->addr_len;
+ 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
+ 	arpptr += sizeof(u32);
+-	tgt_devaddr = arpptr;
+-	arpptr += dev->addr_len;
 +
-+	return -1;
- }
++	if (IS_ENABLED(CONFIG_FIREWIRE_NET) && dev->type == ARPHRD_IEEE1394) {
++		if (unlikely(memchr_inv(arpinfo->tgt_devaddr.mask, 0,
++					sizeof(arpinfo->tgt_devaddr.mask))))
++			return 0;
++
++		tgt_devaddr = NULL;
++	} else {
++		tgt_devaddr = arpptr;
++		arpptr += dev->addr_len;
++	}
+ 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
  
- static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
+ 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
+-					dev->addr_len)) ||
++					dev->addr_len)))
++		return 0;
++
++	if (tgt_devaddr &&
+ 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
+ 					dev->addr_len)))
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index a4e07e5e9c11..f65dd339208e 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -40,6 +40,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ 	}
+ 	arpptr += pln;
+ 	if (mangle->flags & ARPT_MANGLE_TDEV) {
++		if (unlikely(IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++			     skb->dev->type == ARPHRD_IEEE1394))
++			return NF_DROP;
++
+ 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
+ 		   (arpptr + hln > skb_tail_pointer(skb)))
+ 			return NF_DROP;
+@@ -47,6 +51,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ 	}
+ 	arpptr += hln;
+ 	if (mangle->flags & ARPT_MANGLE_TIP) {
++		if (unlikely(IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++			     skb->dev->type == ARPHRD_IEEE1394))
++			return NF_DROP;
++
+ 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
+ 		   (arpptr + pln > skb_tail_pointer(skb)))
+ 			return NF_DROP;
 -- 
-2.34.1
-
+2.47.3
 
