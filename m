@@ -1,135 +1,116 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDFAF244694
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2026 09:17:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE4823822B1;
+	Fri, 17 Apr 2026 09:18:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776417437; cv=none; b=Q62FLPfobXbCGtGu2RFDDuDYvXaIP7BRJeY70VtYEMlEC8Q525xrB+L/si0b/78qhDcgiP4es4GNCja/6ap0+1+lFtIoUzSI86FTqbLMRTkP0/vtiTEIzqxydLv/ENRP/V97NkE1t0oQXuqqC9BWDoMAzkdPuGFvy3Rhn8zOM2s=
+	t=1776417493; cv=none; b=Ltb2rp27ap4JM1naIZlCABIa28IGnpv5IxsZSBb/W4g8qmQGqdbDh57/TCcC1ZE6+x+w9kQoloc3HgWdt0yM5jSq8d0okbIDBPgJXqO8c9VZcDYQI+l6LFcvxyhq7r2u6H3+DCZlv9TzSxa4ggloZFWHOPhj9B3Lci3owiFI4PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776417437; c=relaxed/simple;
-	bh=53G/T0vtuVDUDEIsLPezKFbyfG9x46Qlm3EVjx4PUGY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=sewJfwbsq1rvL52KHmvWUZTELaxI8A+MJCTOh0rcCnA0qEd0SXejPAUYfRC0F8x1HLWA/wJQFO6GA7BKWZPzJof5DdfMHc3XZXbssppgJF+tU2GtIpzhgh0yoIGPcyKJcz7RdNlCU0Fk5841YkUhFx4DVr9ZFhm+mKc5UCaD0n8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=uV2U5UTE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q/AY4b8+; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=uV2U5UTE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=q/AY4b8+; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1776417493; c=relaxed/simple;
+	bh=Be4QM8M4GIRdb+GnA7dhdp6cy7LBvw8G9JsG+y+BXys=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=pVlcFnR8X7fIxW7VQfXRGhBZcPdamha+nF30m2DUaanavEuFo9mDsC32e6uepSl559wWqA54DfJsqwjXwAZFakHKFoC4sgoA0Koayo0SqxrV7F/n8LMY2+mTBV/ZNdGtsAXOId09zHqxm7CfZl59UG7KGdD/Oi/Q0iVrfUrsPFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=PZuJJ7+Z; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="uV2U5UTE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q/AY4b8+";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="uV2U5UTE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="q/AY4b8+"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 30EF25BD05;
-	Fri, 17 Apr 2026 09:17:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776417428; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jJwDx2KWVN2ui/r0NppSEtiurd1+rrW1h0GUdaDPYr4=;
-	b=uV2U5UTEq7PI55wIJTZxgWm8j2nxKtzlOlvlTQnhg9gOq530pDOaZgMS0FtwDY92kpkbpV
-	yMubyRUFasQoTaO1DZC1nPB5c5M9ZfXSB4u+SYtS5Oqd6W6pr+FF/SaCrMDvp2n3gLEcuZ
-	cRPomxJaDmbIhEawj+CCIAJLS5U2BTg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776417428;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jJwDx2KWVN2ui/r0NppSEtiurd1+rrW1h0GUdaDPYr4=;
-	b=q/AY4b8+H4gMGl+nSBcZykW0ny079nzdxOGU2yBrlXdG3A1WiwRrBlgOR1sw9a4T8jFarX
-	b8dvb8VZkj3NgtAA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776417428; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jJwDx2KWVN2ui/r0NppSEtiurd1+rrW1h0GUdaDPYr4=;
-	b=uV2U5UTEq7PI55wIJTZxgWm8j2nxKtzlOlvlTQnhg9gOq530pDOaZgMS0FtwDY92kpkbpV
-	yMubyRUFasQoTaO1DZC1nPB5c5M9ZfXSB4u+SYtS5Oqd6W6pr+FF/SaCrMDvp2n3gLEcuZ
-	cRPomxJaDmbIhEawj+CCIAJLS5U2BTg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776417428;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jJwDx2KWVN2ui/r0NppSEtiurd1+rrW1h0GUdaDPYr4=;
-	b=q/AY4b8+H4gMGl+nSBcZykW0ny079nzdxOGU2yBrlXdG3A1WiwRrBlgOR1sw9a4T8jFarX
-	b8dvb8VZkj3NgtAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id ABF38593AE;
-	Fri, 17 Apr 2026 09:17:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 8hZIJ5P64WmVbgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 17 Apr 2026 09:17:07 +0000
-Message-ID: <29523179-02d3-4be6-96f6-862d930146cc@suse.de>
-Date: Fri, 17 Apr 2026 11:16:59 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="PZuJJ7+Z"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9698260292;
+	Fri, 17 Apr 2026 11:18:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776417489;
+	bh=7zl85BkB8pp5TRkk9evhYJSyDH2iAtcOJbeqVTRphQA=;
+	h=From:To:Cc:Subject:Date:From;
+	b=PZuJJ7+ZwxN6QHkXJCxwktZgK7KAt3UjYNgLUvVjEx6kE3iX9VFipJvIynRlkkanu
+	 u1K/hlAVeHawT/gM3eNitABr4jdx3MV9YKtW86cKUt3uh9WZMFBkIeSkqQXID8rW3i
+	 vaAGdSiAcXx9ds0xQyeQYQo0ckl67XbA7TlbO9n1E1wQRHyW6FhC5BH2+1+dRb/wpw
+	 ChEexkW2zwfs7O89pldA2SiykCqwGMYjAF5FLyHeE3ds1OJiF/t59GInSc/BZwfDPB
+	 u8uTqdVgk84AlnTCib2atprGpAoNkeM/sApnj4pseGhZySNPL4hRG/EO3gAoO1gzou
+	 0GupewYacgk8A==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Cc: netdev@vger.kernel.org,
+	fw@strlen.de
+Subject: [PATCH nf,v5 1/3] rculist: add list_splice_rcu() for private lists
+Date: Fri, 17 Apr 2026 11:18:04 +0200
+Message-ID: <20260417091806.342830-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH net,v2 00/11] Netfilter/IPVS fixes for net
-To: Florian Westphal <fw@strlen.de>, Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
- netdev@vger.kernel.org, kuba@kernel.org, pabeni@redhat.com,
- edumazet@google.com, horms@kernel.org
-References: <20260416131453.308611-1-pablo@netfilter.org>
- <aeFRt__YQqJ84ZaN@strlen.de>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <aeFRt__YQqJ84ZaN@strlen.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	RCPT_COUNT_SEVEN(0.00)[9];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spam-Level: 
+Content-Transfer-Encoding: 8bit
 
-On 4/16/26 11:16 PM, Florian Westphal wrote:
-[...] /* snip */
-> I hope we get shashiko to also digest netfilter-devel;
-> otherwise this situation will persist forever or can
-> dissolve nf-devel and spam netdev@ directly :-|
-> 
+This patch adds a helper function, list_splice_rcu(), to safely splice
+a private (non-RCU-protected) list into an RCU-protected list.
 
-FWIW, I just checked that sashiko already digest 
-https://lore.kernel.org/all/ - that means we can already check the 
-results for netfilter-devel patches although we need to search for them 
-manually.
+The function ensures that only the pointer visible to RCU readers
+(prev->next) is updated using rcu_assign_pointer(), while the rest of
+the list manipulations are performed with regular assignments, as the
+source list is private and not visible to concurrent RCU readers.
 
-I reached out to them so we can have a netfilter-devel filter, but I 
-think we should start checking the results of sashiko on the patches 
-sent to netfilter-devel by manual search.
+This is useful for moving elements from a private list into a global
+RCU-protected list, ensuring safe publication for RCU readers.
+Subsystems with some sort of batching mechanism from userspace can
+benefit from this new function.
+
+The function __list_splice_rcu() has been added for clarity and to
+follow the same pattern as in the existing list_splice*() interfaces,
+where there is a check to ensure that the list to splice is not
+empty. Note that __list_splice_rcu() has no documentation for this
+reason.
+
+Reviewed-by: Paul E. McKenney <paulmck@kernel.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v5: no changes, just including the full series to address AI report.
+
+ include/linux/rculist.h | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/include/linux/rculist.h b/include/linux/rculist.h
+index 2abba7552605..e3bc44225692 100644
+--- a/include/linux/rculist.h
++++ b/include/linux/rculist.h
+@@ -261,6 +261,35 @@ static inline void list_replace_rcu(struct list_head *old,
+ 	old->prev = LIST_POISON2;
+ }
+ 
++static inline void __list_splice_rcu(struct list_head *list,
++				     struct list_head *prev,
++				     struct list_head *next)
++{
++	struct list_head *first = list->next;
++	struct list_head *last = list->prev;
++
++	last->next = next;
++	first->prev = prev;
++	next->prev = last;
++	rcu_assign_pointer(list_next_rcu(prev), first);
++}
++
++/**
++ * list_splice_rcu - splice a non-RCU list into an RCU-protected list,
++ *                   designed for stacks.
++ * @list:	the non RCU-protected list to splice
++ * @head:	the place in the existing RCU-protected list to splice
++ *
++ * The list pointed to by @head can be RCU-read traversed concurrently with
++ * this function.
++ */
++static inline void list_splice_rcu(struct list_head *list,
++				   struct list_head *head)
++{
++	if (!list_empty(list))
++		__list_splice_rcu(list, head, head->next);
++}
++
+ /**
+  * __list_splice_init_rcu - join an RCU-protected list into an existing list.
+  * @list:	the RCU-protected list to splice
+-- 
+2.47.3
 
