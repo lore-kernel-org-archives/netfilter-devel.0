@@ -1,34 +1,34 @@
-Received: from n169-112.mail.139.com (n169-112.mail.139.com [120.232.169.112])
+Received: from n169-113.mail.139.com (n169-113.mail.139.com [120.232.169.113])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7339361666;
-	Fri, 17 Apr 2026 08:21:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=120.232.169.112
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD0C63A9DA1;
+	Fri, 17 Apr 2026 08:22:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=120.232.169.113
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776414097; cv=none; b=FH41HTGvodkDH2GVouBSAljt2SV01qkKXBkticatwMoKIu5dnFCc0PSdGySj/mR0fVYNcIM44fPCvJdctR1jn+gxoCvWoqRfM8Zy50jxtXXZ18SHYbj9TLhA+3Nt5TdMkKDqRWYEmXgLMjc1VChHA0U1jq/OuH9qaOlAJl2Tiro=
+	t=1776414177; cv=none; b=HQ/l32N/Lx7zRVnHknPsLBtGwtwb2+mFufruXR9MTTe2qrV6Bu2ZEFa32gIz/GGQesTJZnQ8l9VitzNz53ppF3qsq31+CLo/c+fqTayByZ+50hZ1GI6mRr4zT3JA6c/UzOQFbdyxsg+/96u/BTaV5DIqk7O9+hKQ01Qwkzgjq6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776414097; c=relaxed/simple;
-	bh=LW+i+YA4Xwa7gsP0NIlf6qViFPK7ke20h2C1/t3Lgtg=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=q6m3ZbvPv40dLjgeXlk1q7RM/qYGH4JeyH6vl+L/CpZDVsN+7MEu7YCSF537s+lyji1x4b4CfeDTXZHQBqRf3sQkY7w+a0jw9JOiLasJDRSAYH0CwrtJgpC0ytsiFAjZIP6q2O7hclGU/yguhv448DueOSw2PinbVf00GTaQfEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com; spf=pass smtp.mailfrom=139.com; dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b=EJEdDCci; arc=none smtp.client-ip=120.232.169.112
+	s=arc-20240116; t=1776414177; c=relaxed/simple;
+	bh=KyWH9WrRsB7SfQ2c73Pw9DmEu/wFTMyZukemJdiPTF8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=btP8lvsbJhc3tbeG54Iq6lIkTuMztUaYxOssWFQ0jda76uJ+B2xuyLdw1XSGsk+q5ttdS1mQWq9eEZx3Xp3NKAs+hEiRyv5mB5pFqer9y4ErKYrzY5Ov9oHoETW6rN0/WOUGgmhNHMwwQR/9lK7tIpB4ZotWQC2lOigvP+6aAa0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com; spf=pass smtp.mailfrom=139.com; dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b=zwEg4qUI; arc=none smtp.client-ip=120.232.169.113
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=139.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=139.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b="EJEdDCci"
+	dkim=pass (1024-bit key) header.d=139.com header.i=@139.com header.b="zwEg4qUI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
 	d=139.com; s=dkim; l=0;
 	h=from:subject:message-id:to:cc:mime-version;
 	bh=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=;
-	b=EJEdDCci5Zq0PihilTDXlwECvfhn0jbZc3A7uVsYAWun8BjR+0BFaWsYiLvE5eWfHhbfJ55r9hRfh
-	 nfNGSv73//hcl981/LMAfy/RALv+wNq7RRxKBd39Gs+zTF8cvur8lrnjTfN2B3Ckcz6pr8Ynzb74WY
-	 Z9Zw+Z0QlFZU95wI=
+	b=zwEg4qUIg1/tGPzrrQpOcDk59QqrIlaIwRV2jQN4W10McLBhudDx5/qYLqomtWKfPVKTXqRTAMc/p
+	 0m0LK0/7YB5pLsZ5Mv11wRQo47KEIovjv764k3aG6CORfNS5scu2JDHnp3dnnU8NXwSpK6IfJuPbaU
+	 uAyIz9omibA+HLTE=
 X-RM-TagInfo: emlType=0                                       
 X-RM-SPAM:                                                                                        
 X-RM-SPAM-FLAG:00000000
 Received:from NTT-kernel-dev (unknown[60.247.85.88])
-	by rmsmtp-lg-appmail-19-12022 (RichMail) with SMTP id 2ef669e1ed8240b-00410;
-	Fri, 17 Apr 2026 16:21:25 +0800 (CST)
-X-RM-TRANSID:2ef669e1ed8240b-00410
+	by rmsmtp-lg-appmail-31-12045 (RichMail) with SMTP id 2f0d69e1edd2a2b-01a4b;
+	Fri, 17 Apr 2026 16:22:43 +0800 (CST)
+X-RM-TRANSID:2f0d69e1edd2a2b-01a4b
 From: Li hongliang <1468888505@139.com>
 To: gregkh@linuxfoundation.org,
 	stable@vger.kernel.org,
@@ -45,9 +45,9 @@ Cc: patches@lists.linux.dev,
 	coreteam@netfilter.org,
 	netdev@vger.kernel.org,
 	giki.shergill@proton.me
-Subject: [PATCH 6.1.y] nf_tables: nft_dynset: fix possible stateful expression memleak in error path
-Date: Fri, 17 Apr 2026 16:21:24 +0800
-Message-Id: <20260417082124.3253986-1-1468888505@139.com>
+Subject: [PATCH 5.15.y] nf_tables: nft_dynset: fix possible stateful expression memleak in error path
+Date: Fri, 17 Apr 2026 16:22:42 +0800
+Message-Id: <20260417082242.3254196-1-1468888505@139.com>
 X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -95,10 +95,10 @@ Signed-off-by: Li hongliang <1468888505@139.com>
  3 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 38c74f9fcce2..dafa0a32e6e1 100644
+index 605d4c0a63e9..1f805590b838 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -838,6 +838,8 @@ void *nft_set_elem_init(const struct nft_set *set,
+@@ -821,6 +821,8 @@ void *nft_set_elem_init(const struct nft_set *set,
  			u64 timeout, u64 expiration, gfp_t gfp);
  int nft_set_elem_expr_clone(const struct nft_ctx *ctx, struct nft_set *set,
  			    struct nft_expr *expr_array[]);
@@ -108,10 +108,10 @@ index 38c74f9fcce2..dafa0a32e6e1 100644
  			  bool destroy_expr);
  void nf_tables_set_elem_destroy(const struct nft_ctx *ctx,
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index fb3d529ebf5a..0c4224282638 100644
+index cbec5fc23719..b78949933acf 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -6025,8 +6025,8 @@ static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
+@@ -5919,8 +5919,8 @@ static void __nft_set_elem_expr_destroy(const struct nft_ctx *ctx,
  	}
  }
  
@@ -123,7 +123,7 @@ index fb3d529ebf5a..0c4224282638 100644
  	struct nft_expr *expr;
  	u32 size;
 diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 953aba871f45..5f58ac874005 100644
+index ecdd4a60db9c..673c5e6a3e8d 100644
 --- a/net/netfilter/nft_dynset.c
 +++ b/net/netfilter/nft_dynset.c
 @@ -30,18 +30,26 @@ static int nft_dynset_expr_setup(const struct nft_dynset *priv,
