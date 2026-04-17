@@ -1,78 +1,70 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F2A3351C14
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2026 16:21:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0E4F3264CE
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2026 18:34:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776442916; cv=none; b=D2DOQX+CB6RzPqE7lPByF8ROEpulSzm3WRJMbtwgtsW0iVqWyXljZ0KKV3052c3oQRWWVYu5fJtenm7q2PPlfGeP5InfsVmc0gwUnN3tGkmDiYUkkFgK6GIEq2LJR2HjlsJr5qAp6C3GmKhGNI5/ifvSLJnt8l19aO4X0QNPqmU=
+	t=1776450899; cv=none; b=JzfEvZihg8pl3FCxL3+KE82HHZaXLrPoQqLdPtyIaUrIzlqp6O3v5vPCECswE/v9EN1HbPpWS1WvIaEWcA7t+8+T239rOghy22uNj7iXBReaEeOJP8+oLNfvNor3rBgngLfM1HJcngIC/6zM6CddDKbU2tjQm83YQiM5ejxavvM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776442916; c=relaxed/simple;
-	bh=hS+9/c0wkyuDAsKloIIceu/S6QTx+mwr25Zziy7MZOA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=jWyiqwfWwus4gbbTD/Pn9R8wBGr4/GIq+tgRUrzq2drD7Dk2D86BlBnw4nXR7MNTkVOM8v046+qF0cvgu1Sy257f/gmMNm26BwjrumzVmwpv+mVuebgVkZNgrIfo99BvciyuWvEyiar6D7gvacKj8yv16zOsU/of0ilVq13xOiE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=TDUO9Koh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=LZeRX3OI; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=ZN23vV+i; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=aZb2fu9A; arc=none smtp.client-ip=195.135.223.131
+	s=arc-20240116; t=1776450899; c=relaxed/simple;
+	bh=3raNyK+HitSIc8NPZf6Wg6VHIuW2luRiHcR3S5+8KY4=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=lDPcjbbCTvDGj0bjsv9YnYgtPSR3IA4SuPcQT7NEkum1qqkwbASi4DWd+hDA6VPhdlj71kFDshmVEAxlgwzZXZqS47Hu3i/ZzM+r3hi4a7WntsXxMI93/NZs+t084lDShYsGRDebrslJIPlJi35tdtaszF1XHqhFRQ4zFx2PDi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=YoG4bUjs; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=8iQNfNR8; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=1mY9xQE1; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ZXnyoCTL; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="TDUO9Koh";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="LZeRX3OI";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="ZN23vV+i";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="aZb2fu9A"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="YoG4bUjs";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="8iQNfNR8";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="1mY9xQE1";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ZXnyoCTL"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 2D3B85BD6A;
-	Fri, 17 Apr 2026 16:21:45 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id AC1836A9E8;
+	Fri, 17 Apr 2026 18:34:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776442909; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QRgpWyM7ORPv84VXfXpsGgufMh6mX8Pkm5cLRpDYg5A=;
-	b=TDUO9KohXAuFprlLyGR518y4nVbUcscrr4HMCcMzDauSYYEcyy69yHxkj3cnSJikgjVDz6
-	Xh7PhfPbGfDPIz4F297cbv19HZZasyyyXZ4+Bl1aneF5oEdUAAGoMHoga5HSoj0ovOXzwN
-	TTUFOCNuoc9VhuP69bealO/hGsBLxfY=
+	t=1776450895; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=UrX/uUMR+k8sq29o+DdfIXyRnJnVrZizQl8wASbQ+6k=;
+	b=YoG4bUjsvo68H18CelugOJUgbHTZW9vLIr8XvPFHknu8HTb9QI3Q9gUhSR42AGHUywbKSv
+	1rGJ+0zsPQGQ0sk1Uaq4Ie8XVgS++d21ax+Rlc6k159G2HLtYFUhy9t5lsnEY9yHpAUFKn
+	PvdG4Soj5omMu5qWik04RvEU6dFiv6E=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776442909;
+	s=susede2_ed25519; t=1776450895;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QRgpWyM7ORPv84VXfXpsGgufMh6mX8Pkm5cLRpDYg5A=;
-	b=LZeRX3OIlAWHCWy61BrWt3otkh/R3y9tUH7zmtMc3LwfIxRPJWmYZKN4iW4txRjRqs2nCY
-	d+l9wJ2zU6cO7lBQ==
-Authentication-Results: smtp-out2.suse.de;
-	none
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=UrX/uUMR+k8sq29o+DdfIXyRnJnVrZizQl8wASbQ+6k=;
+	b=8iQNfNR8PTKB5Vo1zGhuTo5OQjmGS3BHWKsABjaa8npI284CZJTJeg8gLOWGHJCsCZUjt+
+	jaqoKu7dcrTeehBQ==
+Authentication-Results: smtp-out1.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=1mY9xQE1;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=ZXnyoCTL
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776442905; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QRgpWyM7ORPv84VXfXpsGgufMh6mX8Pkm5cLRpDYg5A=;
-	b=ZN23vV+iwzefUsQNBhtwWyRBEr94g6muDEdOofwYqUZaXJAHo+3XwCfUo23l2AcgPBb0cH
-	U1g827cPCUQJWunjfwaYVX80eL9U7Z8h17wU0rYR/q8Ilx0y8fVeOCrRnKOHTqsgWCIl4u
-	ow0dix8uzVoxnIFoi2wAxZcR5YiGC/E=
+	t=1776450894; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=UrX/uUMR+k8sq29o+DdfIXyRnJnVrZizQl8wASbQ+6k=;
+	b=1mY9xQE1zold+Jxo6zRhvQA9X1+X8p5NwGfKdasWvByNdyJVYcLJCxpwlCwF7WpyomlN39
+	npkEmdplhhvq5o17pYCth71o33qIL7mWYTlg+dfAtXEo1gJpRuNgRv2xpcKXsQwpu6lyw3
+	1QUtrs5277Ko8cpjhPgp+42BMkKLB1E=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776442905;
+	s=susede2_ed25519; t=1776450894;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QRgpWyM7ORPv84VXfXpsGgufMh6mX8Pkm5cLRpDYg5A=;
-	b=aZb2fu9A2MaDqWMhx4AhcQK9Eu/nZp7eUKODHI0kqC+cJEAeg4vZav2ZG5dGGZLQiBoPIv
-	OR0iVfWI1+s2LZBw==
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=UrX/uUMR+k8sq29o+DdfIXyRnJnVrZizQl8wASbQ+6k=;
+	b=ZXnyoCTLmeBZqkKUuOxZjOwwjIY4gF1I7vSlnEH6ZvyLIXPPyePA+c55b6xbAGsfMIClIl
+	DSVf2mt9GtlQSPBg==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id AA224593AE;
-	Fri, 17 Apr 2026 16:21:44 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 4083B593AE;
+	Fri, 17 Apr 2026 18:34:54 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id cGLFJhhe4mlAFQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Fri, 17 Apr 2026 16:21:44 +0000
+	id qd3zDE594mmFFQAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Fri, 17 Apr 2026 18:34:54 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: netdev@vger.kernel.org,
@@ -80,14 +72,11 @@ Cc: netdev@vger.kernel.org,
 	pablo@netfilter.org,
 	fw@strlen.de,
 	phil@nwl.cc,
-	Fernando Fernandez Mancera <fmancera@suse.de>,
-	"Kito Xu (veritas501)" <hxzene@gmail.com>
-Subject: [PATCH 2/2 nf] netfilter: nfnetlink_osf: fix potential NULL dereference in ttl check
-Date: Fri, 17 Apr 2026 18:20:57 +0200
-Message-ID: <20260417162057.3732-2-fmancera@suse.de>
+	Fernando Fernandez Mancera <fmancera@suse.de>
+Subject: [PATCH 1/4 nf] netfilter: nft_exthdr: skip SCTP chunk evaluation for non-first fragments
+Date: Fri, 17 Apr 2026 20:34:30 +0200
+Message-ID: <20260417183433.4739-1-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
-In-Reply-To: <20260417162057.3732-1-fmancera@suse.de>
-References: <20260417162057.3732-1-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -95,93 +84,71 @@ List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-6.80 / 50.00];
-	REPLY(-4.00)[];
-	BAYES_HAM(-3.00)[100.00%];
+X-Spamd-Result: default: False [-3.01 / 50.00];
+	BAYES_HAM(-3.00)[99.99%];
 	MID_CONTAINS_FROM(1.00)[];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
 	R_MISSING_CHARSET(0.50)[];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_HAS_DN(0.00)[];
+	MX_GOOD(-0.01)[];
 	ARC_NA(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	FREEMAIL_CC(0.00)[vger.kernel.org,netfilter.org,strlen.de,nwl.cc,suse.de,gmail.com];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCPT_COUNT_SEVEN(0.00)[8];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email];
-	RCVD_TLS_ALL(0.00)[];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
 	TO_DN_SOME(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com]
+	MIME_TRACE(0.00)[0:+];
+	FUZZY_RATELIMITED(0.00)[rspamd.com];
+	URIBL_BLOCKED(0.00)[suse.de:mid,suse.de:dkim,suse.de:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	RCVD_COUNT_TWO(0.00)[2];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	RCPT_COUNT_SEVEN(0.00)[7];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,suse.de:dkim,suse.de:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Rspamd-Action: no action
 X-Spam-Flag: NO
-X-Spam-Score: -6.80
+X-Spam-Score: -3.01
 X-Spam-Level: 
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Rspamd-Queue-Id: AC1836A9E8
 
-The nf_osf_ttl() function accessed skb->dev to perform a local interface
-address lookup without verifying that the device pointer was valid.
+The SCTP chunk matching logic in nft_exthdr relies on SCTP common header
+being present at the transport header offset. For fragmented packets at
+IP level, only the first fragment would match this condition.
 
-Additionally, the implementation utilized an in_dev_for_each_ifa_rcu
-loop to match the packet source address against local interface
-addresses. It assumed that packets from the same subnet should not see a
-decrement on the initial TTL. A packet might appear it is from the same
-subnet but it actually isn't especially in modern environments with
-containers and virtual switching.
+The nft_exthdr could be used in a PREROUTING chain with a priority lower
+than -400. This would bypass defragmentation. In addition, it can be use
+in stateless environments so it should work on a environment where
+defragmentation is not being performed at all.
 
-Remove the device dereference and interface loop. Replace the logic with
-a switch statement that evaluates the TTL according to the ttl_check.
+Add a check for pkt->fragoff to ensure exthdr SCTP only evaluates
+unfragmented packets or the first fragment in the stream.
 
-Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
-Reported-by: Kito Xu (veritas501) <hxzene@gmail.com>
-Closes: https://lore.kernel.org/netfilter-devel/20260414074556.2512750-1-hxzene@gmail.com/
+Fixes: 133dc203d77d ("netfilter: nft_exthdr: Support SCTP chunks")
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
-Note: if some help is needed during the backport I can assist.
----
- net/netfilter/nfnetlink_osf.c | 22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ net/netfilter/nft_exthdr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index f58267986453..f0d1e596e146 100644
---- a/net/netfilter/nfnetlink_osf.c
-+++ b/net/netfilter/nfnetlink_osf.c
-@@ -31,26 +31,18 @@ EXPORT_SYMBOL_GPL(nf_osf_fingers);
- static inline int nf_osf_ttl(const struct sk_buff *skb,
- 			     int ttl_check, unsigned char f_ttl)
- {
--	struct in_device *in_dev = __in_dev_get_rcu(skb->dev);
- 	const struct iphdr *ip = ip_hdr(skb);
--	const struct in_ifaddr *ifa;
--	int ret = 0;
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 7eedf4e3ae9c..8eb708bb8cff 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -376,7 +376,7 @@ static void nft_exthdr_sctp_eval(const struct nft_expr *expr,
+ 	const struct sctp_chunkhdr *sch;
+ 	struct sctp_chunkhdr _sch;
  
--	if (ttl_check == NF_OSF_TTL_TRUE)
-+	switch (ttl_check) {
-+	case NF_OSF_TTL_TRUE:
- 		return ip->ttl == f_ttl;
--	if (ttl_check == NF_OSF_TTL_NOCHECK)
--		return 1;
--	else if (ip->ttl <= f_ttl)
-+		break;
-+	case NF_OSF_TTL_NOCHECK:
- 		return 1;
--
--	in_dev_for_each_ifa_rcu(ifa, in_dev) {
--		if (inet_ifa_match(ip->saddr, ifa)) {
--			ret = (ip->ttl == f_ttl);
--			break;
--		}
-+	case NF_OSF_TTL_LESS:
-+	default:
-+		return ip->ttl <= f_ttl;
- 	}
--
--	return ret;
- }
+-	if (pkt->tprot != IPPROTO_SCTP)
++	if (pkt->tprot != IPPROTO_SCTP || pkt->fragoff)
+ 		goto err;
  
- struct nf_osf_hdr_ctx {
+ 	do {
 -- 
 2.53.0
 
