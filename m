@@ -1,122 +1,127 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99CD12E4274;
-	Sat, 18 Apr 2026 11:29:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F042E6CC7
+	for <netfilter-devel@vger.kernel.org>; Sat, 18 Apr 2026 16:32:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776511754; cv=none; b=iNyQ29/pgcxDI0SZ9hMpY5PC3T5dj/Sej4Brg9BiPH9S0Z61bJ5YV0nwihsIfX+i3Nb/KbHwJMag/jDovUq+QnTdgKIADk0l8wmbwfW1+xWwI4Wxj/ghWIcOYuMG5EcAWYpMTSv1TUQFQK62rFTvI1R9wTj+UXvZyt8DN/Oo9Lc=
+	t=1776529942; cv=none; b=M6zAqN7uYWAxDq/Dvs12pFrc+6kSR1yzwXlJK1Y+2c721Yp+uPOA5y0n3ZsGsw99OZthiQc7KNDRgG7cwI2w0qVtXjFNhJGZ94SFSaHHbMfH74Kwgy0EC9hL5Q+O4M1zIh9X7ISWazwlvtr0n+/SK1VzdYCukVjO6UwxqIRdQMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776511754; c=relaxed/simple;
-	bh=6O/pb8vvHaHRxbC+obPeX028Zh1XWHYTz00dyoHREA4=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
-	 In-Reply-To:Content-Type; b=b+MueW45HNmUaV0wxg0G7oSW09woKEgv7N/bKo1aEI2xHfHL9bDMVkbOeTjdZyrrzBmX9dZxl+e9QPwkqHtOaV9hxCYAFczlkMPSeBnaVT6oh3b8znsyyvn9SqVLqKyTDJuV3d/AHntyhOTjIK9bHXynEVWS2kyaAPwTV+hYxes=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com; spf=pass smtp.mailfrom=huawei-partners.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei-partners.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei-partners.com
-Received: from mail.maildlp.com (unknown [172.18.224.107])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTPS id 4fyTyX5Xc9zJ467k;
-	Sat, 18 Apr 2026 19:28:20 +0800 (CST)
-Received: from mscpeml500004.china.huawei.com (unknown [7.188.26.250])
-	by mail.maildlp.com (Postfix) with ESMTPS id BAB6C4058B;
-	Sat, 18 Apr 2026 19:29:08 +0800 (CST)
-Received: from [10.123.123.159] (10.123.123.159) by
- mscpeml500004.china.huawei.com (7.188.26.250) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Sat, 18 Apr 2026 14:29:06 +0300
-Message-ID: <d7b3a4ed-034e-a0a3-4a68-9bc5fdc6e2ff@huawei-partners.com>
-Date: Sat, 18 Apr 2026 14:29:04 +0300
+	s=arc-20240116; t=1776529942; c=relaxed/simple;
+	bh=M7B2FiAQ68bmq17gT51ms1yjCM5hrhJ8ivTJGQv6vmI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EarGMnSRBZmscgWP/qKHwyUd6GE2Ulb+3vzyCkJ1CqoBkf/hGMFqbQvSpjizRVacucOVs/l/G/L4SElOiDbtPtFGBUgeSBY4M8RAMdtF8vy/YLtZNGOIWih49OI0y1IJvT7lDnDWKXp/2fPrRY0USi8OoqGZo9sUANUiW3lGkm4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=To7DAt54; arc=none smtp.client-ip=74.125.82.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="To7DAt54"
+Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-2e622a9da9cso2429860eec.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 18 Apr 2026 09:32:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20251104; t=1776529940; x=1777134740; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=3kxoQx5x6kYpwthdIyOArHGCLCerv98lrw2KVJASpKc=;
+        b=To7DAt54CBNFikgfoMwt+Ya3cmFxCxyD2DJ+v0gEiFWAKqQr/40RXAYp4UXnokoipq
+         IvRQPVJJ6uDmPe1b+7gQ8p25CwcVYdG1iUcHWOLDfN9DtSjsBCfz8+0AfxhCzsqA4L1s
+         9p0FmEj1ddfNcl8m0/cbT5EEdqe8nvTMVdEoNDix/b8Hp1SZVD7d5EVuSsM6tzMBYSHH
+         3Yqyt/b+IDS8b6vcmmj2edgVDr5DtFbhhyGBaStBfNh7/xocyY6Fnslep1MdxcZ7g5Gy
+         2boB6h1Pw/Nlj7A9250L+4IpiitDzpmdzmK/cO8W9LB8x9xDmaNQ3r5xDNGWR448CJax
+         k28Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776529940; x=1777134740;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3kxoQx5x6kYpwthdIyOArHGCLCerv98lrw2KVJASpKc=;
+        b=ax83qj7LHysbLvxOZGelyyFFuiVSdUFH1QzElF7X6LAdxhs9PZZgi9hZBKEtLqgUCZ
+         3Vi+59WRYst7R7w6TlEvnI8oCWpyfkd91SLbQAdLKRTgvkCf1OUeIiMdqZpS/fnx44Th
+         tV2qdSSJL16EElLVaEf2ZQFwkYv1X99FX3Y2t7t1qpanCHTs6zMOPHySD52XBRxVImsZ
+         M7Q6RMjwxRy+Kq+TGHBpWaOUrLxIoCv9O+481w2PIxBAl8XZyJ8N3GqfPkhsiRxEB2ei
+         TqObIhK7/2shrPlTB2EzE4re1OK0akGeImfQf7jEhABpw5WDwen0wl5mbx3sEDhu5izc
+         llAQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8WEgNoPzZ42icZ14WHPH4b0+iFqr9dL5d9pAoDACARnF539w0ZoQ4oFNLHZMvWjLDI0E30dW53mt/f7hAnkIY=@vger.kernel.org
+X-Gm-Message-State: AOJu0YxH8yPyKSYw21ZNODApQYydmLJUh2T49y5JsKOD9Vn3ELWDbDAP
+	jeB6HtR44ABagcdWRZeK8dlGmQV8qeOFjGhd2ImsSPbXyaRKdwoynRTC
+X-Gm-Gg: AeBDieselSf5Rk2/ENtQGAPg2dYhDIklKuMr2dCVtsLrG5igBRnOxnMf7Bxduy5KnQT
+	IXswi2l3xkPkSBEx6//t1UKsahLlQkIbeizGmFEB2QJdPGEpaKohIpx9d2acEAf1jVSO/QINg78
+	ZUrmk2Zs9d9MW4/AsinHpWnjEdfGbTcOag8TanZqFUpollAZtwXUii8X4fgH2UZpZQewnDS/Slu
+	DP+y3/4FcSkl9TQIbibSyn6oFrN7mUMEjQWQhOukv8pbRBMMMxoImdCaLgE6hxqMpHgcPzYkaMw
+	tP7cn6HcI+g2isEWoUOTo60Jnn/zcNSZ5kO+d3b6JAnVcSr34Q3ZwDfKMv6GetjYrRqndzt0kgE
+	bkRSY/f18cHrBMzEK9ZZfOUockSjtguOvs2wCL2RbSFPt5RWhXayVrZ7/1k6t6wpnD4iruXN0U1
+	wVkTeY/toFwK5yrIjwXBNRySc5XyYZuYZOhjCt0VGAHt2nNnoAQLJN4hYS+7cwMuEL084rE/ZhH
+	KmcS1sh9EC+HfsNUa+z
+X-Received: by 2002:a05:7301:5784:b0:2de:c5ca:c1f3 with SMTP id 5a478bee46e88-2e465293dfdmr3688244eec.4.1776529939859;
+        Sat, 18 Apr 2026 09:32:19 -0700 (PDT)
+Received: from efaec68ba852.tailc0aff1.ts.net ([206.206.192.132])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2e536e54562sm6894368eec.0.2026.04.18.09.32.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 18 Apr 2026 09:32:18 -0700 (PDT)
+From: Weiming Shi <bestswngs@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>,
+	"David S . Miller" <davem@davemloft.net>,
+	Eric Dumazet <edumazet@google.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	Paolo Abeni <pabeni@redhat.com>
+Cc: Phil Sutter <phil@nwl.cc>,
+	Simon Horman <horms@kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	Xiang Mei <xmei5@asu.edu>,
+	Weiming Shi <bestswngs@gmail.com>
+Subject: [PATCH nf] netfilter: xt_TCPMSS: check skb_dst before path-MTU clamping
+Date: Sat, 18 Apr 2026 09:30:58 -0700
+Message-ID: <20260418163057.2611503-2-bestswngs@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v4 01/19] landlock: Support socket access-control
-Content-Language: ru
-From: Mikhail Ivanov <ivanov.mikhail1@huawei-partners.com>
-To: =?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack3000@gmail.com>
-CC: <mic@digikod.net>, <gnoack@google.com>, <willemdebruijn.kernel@gmail.com>,
-	<matthieu@buffet.re>, <linux-security-module@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<yusongping@huawei.com>, <artem.kuzin@huawei.com>,
-	<konstantin.meskhidze@huawei.com>
-References: <20251118134639.3314803-1-ivanov.mikhail1@huawei-partners.com>
- <20251118134639.3314803-2-ivanov.mikhail1@huawei-partners.com>
- <20251122.e645d2f1b8a1@gnoack.org>
- <af464773-b01b-f3a4-474d-0efb2cfae142@huawei-partners.com>
-In-Reply-To: <af464773-b01b-f3a4-474d-0efb2cfae142@huawei-partners.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: lhrpeml100010.china.huawei.com (7.191.174.197) To
- mscpeml500004.china.huawei.com (7.188.26.250)
 
-On 11/22/2025 2:13 PM, Mikhail Ivanov wrote:
-> On 11/22/2025 1:49 PM, Günther Noack wrote:
->> On Tue, Nov 18, 2025 at 09:46:21PM +0800, Mikhail Ivanov wrote:
->>> +/**
->>> + * struct landlock_socket_attr - Socket protocol definition
->>> + *
->>> + * Argument of sys_landlock_add_rule().
->>> + */
->>> +struct landlock_socket_attr {
->>> +    /**
->>> +     * @allowed_access: Bitmask of allowed access for a socket protocol
->>> +     * (cf. `Socket flags`_).
->>> +     */
->>> +    __u64 allowed_access;
->>> +    /**
->>> +     * @family: Protocol family used for communication
->>> +     * (cf. include/linux/socket.h).
->>> +     */
->>> +    __s32 family;
->>> +    /**
->>> +     * @type: Socket type (cf. include/linux/net.h)
->>> +     */
->>> +    __s32 type;
->>> +    /**
->>> +     * @protocol: Communication protocol specific to protocol family 
->>> set in
->>> +     * @family field.
->>
->> This is specific to both the @family and the @type, not just the @family.
->>
->>> From socket(2):
->>
->>    Normally only a single protocol exists to support a particular
->>    socket type within a given protocol family.
->>
->> For instance, in your commit message above the protocol in the example
->> is IPPROTO_TCP, which would imply the type SOCK_STREAM, but not work
->> with SOCK_DGRAM.
-> 
-> You're right.
-> 
+When TCPMSS with CLAMP_PMTU is used via nft_compat in a non-base
+chain, par->hook_mask is set to 0, bypassing the checkentry hook
+validation. The target can then run at PRE_ROUTING where skb_dst is
+NULL, causing a null-ptr-deref in tcpmss_mangle_packet():
 
-I revised the socket(2) semantics and this part is about that kernel
-maps (family, type, 0) to the default protocol of given family and type.
-Eg. (AF_INET, SOCK_STREAM, 0) is mapped to (AF_INET, SOCK_STREAM,
-IPPROTO_TCP). I would like to clarify that such mapping is taking place
-in landlock_socket_attr.protocol field doc.
+ KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
+ RIP: 0010:tcpmss_mangle_packet (include/net/dst.h:219 net/netfilter/xt_TCPMSS.c:105)
+  tcpmss_tg4 (net/netfilter/xt_TCPMSS.c:202)
+  nft_target_eval_xt (net/netfilter/nft_compat.c:87)
+  nft_do_chain (net/netfilter/nf_tables_core.c:287)
+  nf_hook_slow (net/netfilter/core.c:623)
 
-There should be list of protocols defined per protocol family. From
-socket(2):
-	The domain argument specifies a communication domain.
-	...
-	The protocol number to use is specific to the “communication
-	domain” in which communication is to take place.
+Check skb_dst() for NULL before calling dst_mtu().
 
-Such mapping allows to define strange socket rules if setting @type=-1.
-For example:
-	struct landlock_socket_attr attr = {
-		.family = AF_INET,
-		.type = -1,
-		.protocol = 0,
-	};
+Fixes: 493618a92c6a ("netfilter: nft_compat: fix hook validation for non-base chains")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Weiming Shi <bestswngs@gmail.com>
+---
+ net/netfilter/xt_TCPMSS.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-This definition corresponds to (AF_INET, SOCK_STREAM, 0->IPPROTO_TCP)
-and to (AF_INET, SOCK_DGRAM, 0->IPPROTO_UDP).
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 116a885adb3c..79b5e475e23e 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -102,7 +102,12 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
+ 		struct net *net = xt_net(par);
+ 		unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
+-		unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
++		unsigned int min_mtu;
++
++		if (!skb_dst(skb))
++			return -1;
++
++		min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
+ 
+ 		if (min_mtu <= minlen) {
+ 			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
+-- 
+2.43.0
 
-I don't see this as a bad thing as far as there is proper documentation
-for landlock_socket_attr.
