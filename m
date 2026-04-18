@@ -1,127 +1,269 @@
-Received: from mail-dy1-f170.google.com (mail-dy1-f170.google.com [74.125.82.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F042E6CC7
-	for <netfilter-devel@vger.kernel.org>; Sat, 18 Apr 2026 16:32:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD4D822A80D;
+	Sat, 18 Apr 2026 17:56:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776529942; cv=none; b=M6zAqN7uYWAxDq/Dvs12pFrc+6kSR1yzwXlJK1Y+2c721Yp+uPOA5y0n3ZsGsw99OZthiQc7KNDRgG7cwI2w0qVtXjFNhJGZ94SFSaHHbMfH74Kwgy0EC9hL5Q+O4M1zIh9X7ISWazwlvtr0n+/SK1VzdYCukVjO6UwxqIRdQMg=
+	t=1776534964; cv=none; b=F4qNdb6qTJtBQcav14xXIjEDwZnj++5CWktYtyVFiv4ystKlLtFBuNpDoJ0bPQSH1W/dKfvQPj2YGFfl8UbzCRj+rru/Ojpx9rUxszCo9ZT1/cBtajOGX1iVC/XgiisNawWs0y8EunOLE0sW/jiCyw67F5yqoPk0g4hV18gk9EQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776529942; c=relaxed/simple;
-	bh=M7B2FiAQ68bmq17gT51ms1yjCM5hrhJ8ivTJGQv6vmI=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EarGMnSRBZmscgWP/qKHwyUd6GE2Ulb+3vzyCkJ1CqoBkf/hGMFqbQvSpjizRVacucOVs/l/G/L4SElOiDbtPtFGBUgeSBY4M8RAMdtF8vy/YLtZNGOIWih49OI0y1IJvT7lDnDWKXp/2fPrRY0USi8OoqGZo9sUANUiW3lGkm4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=To7DAt54; arc=none smtp.client-ip=74.125.82.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1776534964; c=relaxed/simple;
+	bh=0hq0tMHEz4C12C9QP6VN9owVx7l1dH0Z8ycYdij2GxA=;
+	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
+	 MIME-Version:Content-Type; b=JslRw8s1GCojJbGEdrnva0xZJv81bu84Ik481j8QXoTB17moGhm9H9MWEhvnqOlaJZwJtVzQt132MtSDTwzNIwplNl38mamlWDH36Z67o2VEpYNSBjWVxi7lzo6h1tAipRJsJ28ZfPe7uJWS+bdKrP0CX2CdRiStzVtAleLeQbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=kODIVuRz; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="To7DAt54"
-Received: by mail-dy1-f170.google.com with SMTP id 5a478bee46e88-2e622a9da9cso2429860eec.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 18 Apr 2026 09:32:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1776529940; x=1777134740; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=3kxoQx5x6kYpwthdIyOArHGCLCerv98lrw2KVJASpKc=;
-        b=To7DAt54CBNFikgfoMwt+Ya3cmFxCxyD2DJ+v0gEiFWAKqQr/40RXAYp4UXnokoipq
-         IvRQPVJJ6uDmPe1b+7gQ8p25CwcVYdG1iUcHWOLDfN9DtSjsBCfz8+0AfxhCzsqA4L1s
-         9p0FmEj1ddfNcl8m0/cbT5EEdqe8nvTMVdEoNDix/b8Hp1SZVD7d5EVuSsM6tzMBYSHH
-         3Yqyt/b+IDS8b6vcmmj2edgVDr5DtFbhhyGBaStBfNh7/xocyY6Fnslep1MdxcZ7g5Gy
-         2boB6h1Pw/Nlj7A9250L+4IpiitDzpmdzmK/cO8W9LB8x9xDmaNQ3r5xDNGWR448CJax
-         k28Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1776529940; x=1777134740;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3kxoQx5x6kYpwthdIyOArHGCLCerv98lrw2KVJASpKc=;
-        b=ax83qj7LHysbLvxOZGelyyFFuiVSdUFH1QzElF7X6LAdxhs9PZZgi9hZBKEtLqgUCZ
-         3Vi+59WRYst7R7w6TlEvnI8oCWpyfkd91SLbQAdLKRTgvkCf1OUeIiMdqZpS/fnx44Th
-         tV2qdSSJL16EElLVaEf2ZQFwkYv1X99FX3Y2t7t1qpanCHTs6zMOPHySD52XBRxVImsZ
-         M7Q6RMjwxRy+Kq+TGHBpWaOUrLxIoCv9O+481w2PIxBAl8XZyJ8N3GqfPkhsiRxEB2ei
-         TqObIhK7/2shrPlTB2EzE4re1OK0akGeImfQf7jEhABpw5WDwen0wl5mbx3sEDhu5izc
-         llAQ==
-X-Forwarded-Encrypted: i=1; AFNElJ8WEgNoPzZ42icZ14WHPH4b0+iFqr9dL5d9pAoDACARnF539w0ZoQ4oFNLHZMvWjLDI0E30dW53mt/f7hAnkIY=@vger.kernel.org
-X-Gm-Message-State: AOJu0YxH8yPyKSYw21ZNODApQYydmLJUh2T49y5JsKOD9Vn3ELWDbDAP
-	jeB6HtR44ABagcdWRZeK8dlGmQV8qeOFjGhd2ImsSPbXyaRKdwoynRTC
-X-Gm-Gg: AeBDieselSf5Rk2/ENtQGAPg2dYhDIklKuMr2dCVtsLrG5igBRnOxnMf7Bxduy5KnQT
-	IXswi2l3xkPkSBEx6//t1UKsahLlQkIbeizGmFEB2QJdPGEpaKohIpx9d2acEAf1jVSO/QINg78
-	ZUrmk2Zs9d9MW4/AsinHpWnjEdfGbTcOag8TanZqFUpollAZtwXUii8X4fgH2UZpZQewnDS/Slu
-	DP+y3/4FcSkl9TQIbibSyn6oFrN7mUMEjQWQhOukv8pbRBMMMxoImdCaLgE6hxqMpHgcPzYkaMw
-	tP7cn6HcI+g2isEWoUOTo60Jnn/zcNSZ5kO+d3b6JAnVcSr34Q3ZwDfKMv6GetjYrRqndzt0kgE
-	bkRSY/f18cHrBMzEK9ZZfOUockSjtguOvs2wCL2RbSFPt5RWhXayVrZ7/1k6t6wpnD4iruXN0U1
-	wVkTeY/toFwK5yrIjwXBNRySc5XyYZuYZOhjCt0VGAHt2nNnoAQLJN4hYS+7cwMuEL084rE/ZhH
-	KmcS1sh9EC+HfsNUa+z
-X-Received: by 2002:a05:7301:5784:b0:2de:c5ca:c1f3 with SMTP id 5a478bee46e88-2e465293dfdmr3688244eec.4.1776529939859;
-        Sat, 18 Apr 2026 09:32:19 -0700 (PDT)
-Received: from efaec68ba852.tailc0aff1.ts.net ([206.206.192.132])
-        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2e536e54562sm6894368eec.0.2026.04.18.09.32.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 18 Apr 2026 09:32:18 -0700 (PDT)
-From: Weiming Shi <bestswngs@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	"David S . Miller" <davem@davemloft.net>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>,
-	Paolo Abeni <pabeni@redhat.com>
-Cc: Phil Sutter <phil@nwl.cc>,
-	Simon Horman <horms@kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org,
-	netdev@vger.kernel.org,
-	Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: [PATCH nf] netfilter: xt_TCPMSS: check skb_dst before path-MTU clamping
-Date: Sat, 18 Apr 2026 09:30:58 -0700
-Message-ID: <20260418163057.2611503-2-bestswngs@gmail.com>
-X-Mailer: git-send-email 2.43.0
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="kODIVuRz"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id 370CB21186;
+	Sat, 18 Apr 2026 20:55:52 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-type:content-type:date:from:from:in-reply-to:message-id
+	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
+	 bh=XhosEcUWIxPrLwPY7iKLmGNz9xVeBQ3zl8QN7RbSQzQ=; b=kODIVuRzR/fq
+	QkYcByXQJcEmzEu1uUQUn7gCYbY7JEr48wIAxMaRpa4NbRPJmfMQ+12zaft1mWCY
+	mGpKnesD7Kigfn/bmmXEr0npU7mRFvespEaGrnzgaBvyddWhIWPQ3NXcfE0j8sGN
+	D9RVbW0It51NSfX/VicgXAfYR9KcdmCp0MGNdGjFIpzS1l50Rf7n9V4hjgVWeYlH
+	3no6mvVgKUuT9RLZvMewAv2cE6AONhVgCkwv6JfSImzRGI+HCujijP4RM5Wq4CPL
+	hM2d0O/7dLkozN7hcuj9v3ZFwa2+0hQL9tOhBiwr+MN3Kg2jVbdzbirOObV4Idah
+	gkpESESIIA7VZkS5VemdUKTz4WXLo43szNndUOgG4Edqg033lSa9HoCRt+aUpN/O
+	JEVnETsRpJYgXLpj7KmCr+zXubJ8tV5q88X5oKddTXj+ilXoJHNFkLLm9pTtuFDM
+	aKys4MpqQRKevN1UZOleMdCbldm9TzXwNHw3PrgR3T/p97O9SNX9G8hAym0QNlAP
+	2pW7ibkTJu4F4sXl+Br6Q7ZbdG6eYVJJQm7a6FJQQM8WIInXlcf8FP86lYpCjdPK
+	ngPIw6/t6Y9AiWeBDlywRdjLSGBqrzakyu+J/eMU36QBJ19WQD5AVngOkgFJpvqc
+	fO2BvUE29k0P9pFXAyEyIYmluBriOfU=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Sat, 18 Apr 2026 20:55:50 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 4D2AD603CB;
+	Sat, 18 Apr 2026 20:55:49 +0300 (EEST)
+Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63IHtd8K031330;
+	Sat, 18 Apr 2026 20:55:41 +0300
+Date: Sat, 18 Apr 2026 20:55:39 +0300 (EEST)
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH net 3/3] ipvs: fix the spin_lock usage for RT build
+In-Reply-To: <20260415200216.79699-4-ja@ssi.bg>
+Message-ID: <5dab98de-542a-83d3-cdc9-5898022d6f32@ssi.bg>
+References: <20260415200216.79699-1-ja@ssi.bg> <20260415200216.79699-4-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 
-When TCPMSS with CLAMP_PMTU is used via nft_compat in a non-base
-chain, par->hook_mask is set to 0, bypassing the checkentry hook
-validation. The target can then run at PRE_ROUTING where skb_dst is
-NULL, causing a null-ptr-deref in tcpmss_mangle_packet():
 
- KASAN: null-ptr-deref in range [0x0000000000000008-0x000000000000000f]
- RIP: 0010:tcpmss_mangle_packet (include/net/dst.h:219 net/netfilter/xt_TCPMSS.c:105)
-  tcpmss_tg4 (net/netfilter/xt_TCPMSS.c:202)
-  nft_target_eval_xt (net/netfilter/nft_compat.c:87)
-  nft_do_chain (net/netfilter/nf_tables_core.c:287)
-  nf_hook_slow (net/netfilter/core.c:623)
+	Hello,
 
-Check skb_dst() for NULL before calling dst_mtu().
+On Wed, 15 Apr 2026, Julian Anastasov wrote:
 
-Fixes: 493618a92c6a ("netfilter: nft_compat: fix hook validation for non-base chains")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
----
- net/netfilter/xt_TCPMSS.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+> syzbot reports for sleeping function called from invalid context [1].
+> The recently added code for resizable hash tables uses
+> hlist_bl bit locks in combination with spin_lock for
+> the connection fields (cp->lock).
+> 
+> Fix the following problems:
+> 
+> * avoid using spin_lock(&cp->lock) under locked bit lock
+> because it sleeps on PREEMPT_RT
+> 
+> * as the recent changes call ip_vs_conn_hash() only for newly
+> allocated connection, the spin_lock can be removed there because
+> the connection is still not linked to table and does not need
+> cp->lock protection.
+> 
+> * the lock can be removed also from ip_vs_conn_unlink() where we
+> are the last connection user.
+> 
+> * the last place that is fixed is ip_vs_conn_fill_cport()
+> where the locks can be reordered to follow the RT rules.
+> 
+> [1]:
+> BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
+> in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 16, name: ktimers/0
+> preempt_count: 2, expected: 0
+> RCU nest depth: 3, expected: 3
+> 8 locks held by ktimers/0/16:
+>  #0: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+>  #1: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+>  #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
+>  #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: timer_base_lock_expiry kernel/time/timer.c:1502 [inline]
+>  #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: __run_timer_base+0x120/0x9f0 kernel/time/timer.c:2384
+>  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
+>  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
+>  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __rt_spin_lock kernel/locking/spinlock_rt.c:50 [inline]
+>  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1e0/0x400 kernel/locking/spinlock_rt.c:57
+>  #4: ffffc90000157a80 ((&cp->timer)){+...}-{0:0}, at: call_timer_fn+0xd4/0x5e0 kernel/time/timer.c:1745
+>  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
+>  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
+>  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:315 [inline]
+>  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_expire+0x257/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+>  #6: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
+>  #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
+>  #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
+>  #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+> Preemption disabled at:
+> [<ffffffff898a6358>] bit_spin_lock include/linux/bit_spinlock.h:38 [inline]
+> [<ffffffff898a6358>] hlist_bl_lock+0x18/0x110 include/linux/list_bl.h:149
+> CPU: 0 UID: 0 PID: 16 Comm: ktimers/0 Tainted: G        W    L      syzkaller #0 PREEMPT_{RT,(full)}
+> Tainted: [W]=WARN, [L]=SOFTLOCKUP
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/18/2026
+> Call Trace:
+>  <TASK>
+>  dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+>  __might_resched+0x329/0x480 kernel/sched/core.c:9162
+>  __rt_spin_lock kernel/locking/spinlock_rt.c:48 [inline]
+>  rt_spin_lock+0xc2/0x400 kernel/locking/spinlock_rt.c:57
+>  spin_lock include/linux/spinlock_rt.h:45 [inline]
+>  ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
+>  ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
+>  call_timer_fn+0x192/0x5e0 kernel/time/timer.c:1748
+>  expire_timers kernel/time/timer.c:1799 [inline]
+>  __run_timers kernel/time/timer.c:2374 [inline]
+>  __run_timer_base+0x6a3/0x9f0 kernel/time/timer.c:2386
+>  run_timer_base kernel/time/timer.c:2395 [inline]
+>  run_timer_softirq+0xb7/0x170 kernel/time/timer.c:2405
+>  handle_softirqs+0x1de/0x6d0 kernel/softirq.c:622
+>  __do_softirq kernel/softirq.c:656 [inline]
+>  run_ktimerd+0x69/0x100 kernel/softirq.c:1151
+>  smpboot_thread_fn+0x541/0xa50 kernel/smpboot.c:160
+>  kthread+0x388/0x470 kernel/kthread.c:436
+>  ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
+>  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+>  </TASK>
+> 
+> Reported-by: syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com
+> Fixes: 2fa7cc9c7025 ("ipvs: switch to per-net connection table")
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index 116a885adb3c..79b5e475e23e 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -102,7 +102,12 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
- 		struct net *net = xt_net(par);
- 		unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
--		unsigned int min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
-+		unsigned int min_mtu;
-+
-+		if (!skb_dst(skb))
-+			return -1;
-+
-+		min_mtu = min(dst_mtu(skb_dst(skb)), in_mtu);
- 
- 		if (min_mtu <= minlen) {
- 			net_err_ratelimited("unknown or invalid path-MTU (%u)\n",
--- 
-2.43.0
+	According to Sashiko, this patch needs more
+work, I'll send new patchset version when I'm ready...
+
+pw-bot: changes-requested
+
+> ---
+>  net/netfilter/ipvs/ip_vs_conn.c | 49 ++++++++++++++-------------------
+>  1 file changed, 21 insertions(+), 28 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+> index 84a4921a7865..cf19dc06c65d 100644
+> --- a/net/netfilter/ipvs/ip_vs_conn.c
+> +++ b/net/netfilter/ipvs/ip_vs_conn.c
+> @@ -267,27 +267,20 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
+>  		hash_key2 = hash_key;
+>  		use2 = false;
+>  	}
+> +
+>  	conn_tab_lock(t, cp, hash_key, hash_key2, use2, true /* new_hash */,
+>  		      &head, &head2);
+> -	spin_lock(&cp->lock);
+> -
+> -	if (!(cp->flags & IP_VS_CONN_F_HASHED)) {
+> -		cp->flags |= IP_VS_CONN_F_HASHED;
+> -		WRITE_ONCE(cp->hn0.hash_key, hash_key);
+> -		WRITE_ONCE(cp->hn1.hash_key, hash_key2);
+> -		refcount_inc(&cp->refcnt);
+> -		hlist_bl_add_head_rcu(&cp->hn0.node, head);
+> -		if (use2)
+> -			hlist_bl_add_head_rcu(&cp->hn1.node, head2);
+> -		ret = 1;
+> -	} else {
+> -		pr_err("%s(): request for already hashed, called from %pS\n",
+> -		       __func__, __builtin_return_address(0));
+> -		ret = 0;
+> -	}
+>  
+> -	spin_unlock(&cp->lock);
+> +	cp->flags |= IP_VS_CONN_F_HASHED;
+> +	WRITE_ONCE(cp->hn0.hash_key, hash_key);
+> +	WRITE_ONCE(cp->hn1.hash_key, hash_key2);
+> +	refcount_inc(&cp->refcnt);
+> +	hlist_bl_add_head_rcu(&cp->hn0.node, head);
+> +	if (use2)
+> +		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
+> +
+>  	conn_tab_unlock(head, head2);
+> +	ret = 1;
+>  
+>  	/* Schedule resizing if load increases */
+>  	if (atomic_read(&ipvs->conn_count) > t->u_thresh &&
+> @@ -321,7 +314,6 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
+>  
+>  	conn_tab_lock(t, cp, hash_key, hash_key2, use2, false /* new_hash */,
+>  		      &head, &head2);
+> -	spin_lock(&cp->lock);
+>  
+>  	if (cp->flags & IP_VS_CONN_F_HASHED) {
+>  		/* Decrease refcnt and unlink conn only if we are last user */
+> @@ -334,7 +326,6 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
+>  		}
+>  	}
+>  
+> -	spin_unlock(&cp->lock);
+>  	conn_tab_unlock(head, head2);
+>  
+>  	rcu_read_unlock();
+> @@ -637,6 +628,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
+>  	struct ip_vs_conn_hnode *hn;
+>  	u32 hash_key, hash_key_new;
+>  	struct ip_vs_conn_param p;
+> +	bool changed = false;
+>  	int ntbl;
+>  	int dir;
+>  
+> @@ -709,9 +701,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
+>  		goto retry;
+>  	}
+>  
+> -	spin_lock(&cp->lock);
+> -	if ((cp->flags & IP_VS_CONN_F_NO_CPORT) &&
+> -	    (cp->flags & IP_VS_CONN_F_HASHED)) {
+> +	if (cp->flags & IP_VS_CONN_F_NO_CPORT) {
+>  		/* We do not recalc hash_key_r under lock, we assume the
+>  		 * parameters in cp do not change, i.e. cport is
+>  		 * the only possible change.
+> @@ -726,19 +716,22 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
+>  			hlist_bl_del_rcu(&hn->node);
+>  			hlist_bl_add_head_rcu(&hn->node, head_new);
+>  		}
+> -		if (!dir) {
+> -			atomic_dec(&ipvs->no_cport_conns[af_id]);
+> -			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
+> -			cp->cport = cport;
+> -		}
+> +		if (!dir)
+> +			changed = true;
+>  	}
+> -	spin_unlock(&cp->lock);
+>  
+>  	if (head != head2)
+>  		hlist_bl_unlock(head2);
+>  	hlist_bl_unlock(head);
+>  	write_seqcount_end(&t->seqc[hash_key & t->seqc_mask]);
+>  	preempt_enable_nested();
+> +	if (changed) {
+> +		atomic_dec(&ipvs->no_cport_conns[af_id]);
+> +		spin_lock(&cp->lock);
+> +		cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
+> +		cp->cport = cport;
+> +		spin_unlock(&cp->lock);
+> +	}
+>  	spin_unlock_bh(&t->lock[hash_key & t->lock_mask].l);
+>  	if (dir--)
+>  		goto next_dir;
+> -- 
+> 2.53.0
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
 
