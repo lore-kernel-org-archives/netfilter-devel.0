@@ -1,104 +1,167 @@
 Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACCE1282F23
-	for <netfilter-devel@vger.kernel.org>; Sun, 19 Apr 2026 11:19:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD3DB37BE87
+	for <netfilter-devel@vger.kernel.org>; Sun, 19 Apr 2026 13:38:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776597582; cv=none; b=YKRuHxABIz9SBaLiGhbtopRn32tbgoP/Z8VZjmXoY8EKIIxufhH+oRXQLglTFoC5uaiFXTNa2pAEEgAJF/KwaDM3bPx/vs4FGDmdyFHz/567jcgd97yR1KLNL4hrP9LgufGGfipKYy+lASBUViHcccGvw4pc+DkxxXXHo5w/hkw=
+	t=1776605893; cv=none; b=qwtOxA9arGNOzY77OUNLI9axwsRZzIBjAkxehBrjABlDJChsVosmdAW12oZFge37VTIhu9G8wf4O3ibcu5Pk+sZoB6lrymjjIqh0L0DfiNlkjf/6bsHQCtCde6FDS5VloA78AJJXAMd4tvqg9dShcRQRe/4QGUMQ2X+waQ48OHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776597582; c=relaxed/simple;
-	bh=Zry8i5jSf1AdlXFh/eoB9JzPvcwj9J388W2PSzuaR5o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j4aTQf7QIL1cXvUTS5yU4r5wNBAA5OmyIyn8y19g0J0z8J9QTPeeKgYrv8i/+pkCOFhsWhfCD5pX7mP//X/PlKTVCUo7fnaNz7fFWxeH96N9bBTnZ7LHuL7iCXCGijQ/JXs6wQthTBCyO67OXYnPuHUIAGdc76FKsVXCTWpURl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
+	s=arc-20240116; t=1776605893; c=relaxed/simple;
+	bh=RBsrRCkgzv3ZIjXHHOPbj8oY3UIhHlnafgODE+J/thk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=TKCPBtPBObGDftGKOywcpq2zjd6Uq9lzqtO9UHcuvS2yL8L1Aupu2LXB42Xf8l5arfGygGsDJ4HJPVVmfVl8Gg8Soc4PLA/sIZT9dlfhSEAD48lCc21C6l4Z0UaeOtTAJfOmokg4caiI/agX7qtM+iOABpi+B/WpbGT/VOIaiSI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
 Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id E827160681; Sun, 19 Apr 2026 13:19:38 +0200 (CEST)
-Date: Sun, 19 Apr 2026 13:19:38 +0200
+	id 6930060681; Sun, 19 Apr 2026 15:38:09 +0200 (CEST)
 From: Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Xiang Mei <xmei5@asu.edu>,
-	Weiming Shi <bestswngs@gmail.com>
-Subject: Re: [PATCH nf] netfilter: x_tables: add late validate callback for
- nft_compat sake
-Message-ID: <aeS6ShOT2gAnijPo@strlen.de>
-References: <20260419104509.42196-1-fw@strlen.de>
- <aeSzcx9YmM3usuez@chamomile>
- <aeS1iwP8ra-yU_Qu@strlen.de>
- <aeS3G7h1fX8uot3B@chamomile>
+To: <netfilter-devel@vger.kernel.org>
+Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH iptables] tests: shell: add test case for checkentry hook validations
+Date: Sun, 19 Apr 2026 15:37:47 +0200
+Message-ID: <20260419133803.46227-1-fw@strlen.de>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aeS3G7h1fX8uot3B@chamomile>
+Content-Transfer-Encoding: 8bit
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Apr 19, 2026 at 12:59:23PM +0200, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > On Sun, Apr 19, 2026 at 12:45:05PM +0200, Florian Westphal wrote:
-> > > > x_tables and nftables are fundamentally different.
-> > > > In x_tables, one gets the full ruleset graph via setsockopt().
-> > > > ->checkentry() gets called at ruleset validation time.
-> > > > 
-> > > > In nf_tables, you get a transactional request (rule add in this case)
-> > > > in netlink format.  At this time, it is not yet knowm from which
-> > > > basechain(s) the new expression is reachable.
-> > > >
-> > > > In nf_tables, there is one final hook validation pass right before the
-> > > > point-of-no-return when the new state is fully known.
-> > > >
-> > > > However, nft_compat calls the x_tables checkentry functions way too
-> > > > early, at expression instantiation time, when we have the netlink
-> > > > info available but not the base chain info (not yet known).
-> > > 
-> > > There used to be full validation of the table in each transaction in
-> > > nf_tables.
-> > > 
-> > > What happened?
-> > 
-> > As far as I can see this never worked correctly.
-> > 
-> > A few matches/targets perform hook_mask checks in ->checkentry(), but
-> > nft_compat calls ->checkentry() at expression init stage, which is too
-> > early and only catches problems if the target/match is called from
-> > basechain.
-> 
-> There is nft_{match,target}_validate() which check against
-> {match,target}->hooks and select_ops sets ops->validate accordingly.
+A few matches/targets reject based on the calling hook mask
+from their checkentry functions.  Some are cosmetic (reject
+nonsensical rule that would not work, but others are mandatory
+rejects, in particular TCPMSS which may need skb_dst()
+depending on the requested mode of operation.
 
-This problem is not related to target->hooks, which is 0 for xt_TCPMSS.
+For -legacy this yields:
+xt_TCPMSS: path-MTU clamping only supported in FORWARD, OUTPUT and POSTROUTING hooks
+xt_addrtype: output interface limitation not valid in PREROUTING and INPUT
+xt_addrtype: input interface limitation not valid in POSTROUTING and OUTPUT
+xt_physdev: --physdev-out and --physdev-is-out only supported in the FORWARD and POSTROUTING chains with bridged traffic
+xt_physdev: --physdev-out and --physdev-is-out only supported in the FORWARD and POSTROUTING chains with bridged traffic
+xt_policy: input policy not valid in POSTROUTING and OUTPUT
+xt_policy: output policy not valid in PREROUTING and INPUT
 
-Have a look at tcpmss_tg6_check().  I don't think this ever worked
-for nft_compat.
+... in dmesg.  -j SET is currently missing, could be added
+later (needs an existing ipset).
 
- 367         ret = nft_chain_validate_hooks(ctx->chain,
- 368                                        (1 << NF_INET_PRE_ROUTING) |
- 369                                        (1 << NF_INET_LOCAL_IN) |
- 370                                        (1 << NF_INET_FORWARD) |
- 371                                        (1 << NF_INET_LOCAL_OUT) |
- 372                                        (1 << NF_INET_POST_ROUTING));
- 373         if (ret)
- 374                 return ret;
- 375
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ .../iptables/0012-bad-matches-and-targets_0   | 102 ++++++++++++++++++
+ 1 file changed, 102 insertions(+)
+ create mode 100755 iptables/tests/shell/testcases/iptables/0012-bad-matches-and-targets_0
 
-I don't see what this validates.  Can probable be axed?
-(but unrelated).
+diff --git a/iptables/tests/shell/testcases/iptables/0012-bad-matches-and-targets_0 b/iptables/tests/shell/testcases/iptables/0012-bad-matches-and-targets_0
+new file mode 100755
+index 000000000000..08a1411ecddc
+--- /dev/null
++++ b/iptables/tests/shell/testcases/iptables/0012-bad-matches-and-targets_0
+@@ -0,0 +1,102 @@
++#!/bin/sh
++
++set -x
++
++die() {
++
++	echo "$1: $2 was accepted"
++	$XT_MULTI "$flavor-save"
++	exit 1
++}
++
++die_err() {
++	echo "$1: $2 should work"
++	$XT_MULTI "$flavor-save"
++	exit 1
++}
++
++do_link() {
++	local flavor="$1"
++	local chain="$2"
++
++	$XT_MULTI "$flavor" -t mangle -A "$chain" -j USERCHAIN && die "$flavor" "PREROUTING -j USERCHAIN"
++
++	$XT_MULTI "$flavor" -t mangle -F USERCHAIN || die_err "$flavor" "flush USERCHAIN"
++}
++
++do_link_prerouting() {
++	do_link "$1" "PREROUTING"
++}
++
++do_link_output() {
++	do_link "$1" "OUTPUT"
++}
++
++check_TCPMSS() {
++	local flavor="$1"
++
++	$XT_MULTI "$flavor" -t mangle -A PREROUTING -p tcp --syn -j TCPMSS --clamp-mss-to-pmtu && die "$flavor" "TCPMSS in PREROUTING"
++
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -p tcp --syn -j TCPMSS --clamp-mss-to-pmtu || die_err "$flavor" "TCPMSS in USERCHAIN"
++	do_link_prerouting "$flavor"
++}
++
++check_addrtype() {
++	local flavor="$1"
++
++	$XT_MULTI "$flavor" -t mangle -A PREROUTING -m addrtype --limit-iface-out --src-type UNICAST && die "$flavor" "addrtype iface-out in PREROUTING"
++
++	$XT_MULTI "$flavor" -t mangle -A OUTPUT -m addrtype --limit-iface-in  --src-type UNICAST && die "$flavor" "addrtype in iface-in OUTPUT"
++
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m addrtype --limit-iface-out --src-type UNICAST || die_err "$flavor" "addrtype iface-out in USERCHAIN"
++	do_link_prerouting "$flavor"
++
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m addrtype --limit-iface-in  --src-type UNICAST || die_err "$flavor" "addrtype iface-in in USERCHAIN"
++	do_link_output "$flavor"
++}
++
++check_devgroup() {
++	local flavor="$1"
++
++	$XT_MULTI "$flavor" -t mangle -A PREROUTING -m devgroup --dst-group 1 && die "$flavor" "dst-group in PREROUTING"
++
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m devgroup --dst-group 1 || die_err  "$flavor" "dst-group in USERCHAIN"
++	do_link_prerouting "$flavor"
++
++	$XT_MULTI "$flavor" -t mangle -A OUTPUT -m devgroup --src-group 1 && die "$flavor" "src-group in PREROUTING"
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m devgroup --src-group 1 || die_err "$flavor" "src-group in USERCHAIN"
++	do_link_output "$flavor"
++}
++
++check_physdev() {
++	local flavor="$1"
++
++	$XT_MULTI "$flavor" -t mangle -A OUTPUT -m physdev --physdev-out "foo" && die "$flavor" "physdev-out in OUTPUT"
++	$XT_MULTI "$flavor" -t mangle -A OUTPUT -m physdev --physdev-out "foo" --physdev-is-out && die "$flavor" "physdev-out in OUTPUT"
++
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m physdev --physdev-out "foo" || die_err "$flavor" "physdev-out in USERCHAIN"
++	do_link_output "$flavor"
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m physdev --physdev-out "foo" --physdev-is-out || die_err "$flavor" "physdev-out in USERCHAIN"
++	do_link_output "$flavor"
++}
++
++check_policy() {
++	local flavor="$1"
++
++	$XT_MULTI "$flavor" -t mangle -A OUTPUT -m policy --dir in --pol none && die "$flavor" "policy dir in OUTPUT"
++	$XT_MULTI "$flavor" -t mangle -A PREROUTING -m policy --dir out --pol none && die "$flavor" "policy dir out PREROUTING"
++
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m policy --dir in --pol none || die_err "$flavor" "policy dir in USERCHAIN"
++	do_link_output "$flavor"
++	$XT_MULTI "$flavor" -t mangle -A USERCHAIN -m policy --dir out --pol none || die_err "$flavor" "policy dir out USERCHAIN"
++	do_link_prerouting "$flavor"
++}
++
++for f in "iptables" "ip6tables";do
++	$XT_MULTI "$f" -t mangle -N USERCHAIN || die_err "$f" "cannot create USERCHAIN"
++	check_TCPMSS "$f"
++	check_addrtype "$f"
++	check_devgroup "$f"
++	check_physdev "$f"
++	check_policy "$f"
++done
+-- 
+2.53.0
 
- 376         if (nft_is_base_chain(ctx->chain)) {
- 377                 const struct nft_base_chain *basechain =
- 378                                                 nft_base_chain(ctx->chain);
- 379                 const struct nf_hook_ops *ops = &basechain->ops;
- 380 
- 381                 hook_mask = 1 << ops->hooknum;
- 382                 if (target->hooks && !(hook_mask & target->hooks))
- 383                         return -EINVAL;
-
-target->hooks is 0, so nothing is validated.
-xt_FOO that set .hooks to a nonzero value are handled correctly, even
-before this patch.
