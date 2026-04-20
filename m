@@ -1,226 +1,167 @@
-Received: from smtp-out.kfki.hu (smtp-out.kfki.hu [148.6.0.51])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8B81399019
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 13:11:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.6.0.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A15D23ED5B;
+	Mon, 20 Apr 2026 13:16:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776690692; cv=none; b=pf7UUjH9MsjXunV9dNeS5FAQCeCaWqUkMgnnhF/lGo60C6YSpQ5ksn0W66h6maMRfQQsmUWjsAevnnzunrXoIDdWveMb0DunjHOU1MzqzvawiMCZCj/38zVU5wImS8xOuDkqYrDaVOKsLKOAeJmxwv7IpEx7R1CAkXmxOrj6KF8=
+	t=1776690968; cv=none; b=XwKKR0IQ/3SLVN9EM4CzbM6CnqaUyeYVaoEoaQLo2bNLl2yL7sz6iMlmlOVHvtmyzyS/HWkMBPYesLmwK0+3DsD30NVoTxkmE06zECil6ZlWHANYPSkuEt5v+gapva5RhmQPiSe6r5Op3evRZvO52kw+8bkGpJah41uwGOcgbdw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776690692; c=relaxed/simple;
-	bh=6X9w+a1doJSDKdQBjPF0L27atXhSk1iynvIRjrh6O7o=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=EgBD9fC1NVFD6JKygSddq/DYbPuSO6mGbH0uw+HDf6BGZUATDTB4u951/tJkMcf/8D0bZAVhiC2yG38gcQ2gjV84eA63PVTSP6WLJu280F2SidmvjW7qmB3XnrdnISXpWCV9/yRE7O45DcFmRyXOmkXbxMPIkSzi2NCv5vlX6A4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu; spf=pass smtp.mailfrom=blackhole.kfki.hu; dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b=oM/3mySC; arc=none smtp.client-ip=148.6.0.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=blackhole.kfki.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=blackhole.kfki.hu
+	s=arc-20240116; t=1776690968; c=relaxed/simple;
+	bh=PY00X5IV4JpUSmoJ41N7TTVq2lNmpdVturPjoc87vBE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=A+Gd5bpps9HPNlsG2wKTmhEwsn72CreNr3PYD38p+TPPc145sEaoU9EAwQlfqsXGSXFkrvqMnRN9cZzpU0tjb/Lidtz00X2qMbGhO5G/Z8GxlmzBp25DLaZ8cVPCxCv+8BNVoa4b6HBNE5Cz4PG9eohJYyWlrFubkynxROZNzz4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eSFWE5at; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=blackhole.kfki.hu header.i=@blackhole.kfki.hu header.b="oM/3mySC"
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4fzm8V25yYz7s85C;
-	Mon, 20 Apr 2026 15:11:22 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	blackhole.kfki.hu; h=mime-version:references:message-id
-	:in-reply-to:from:from:date:date:received:received:received
-	:received; s=20151130; t=1776690680; x=1778505081; bh=aVfqHj2Jyw
-	BWpt+gfxLGgQSvAZL4GsZ86QxpWgIr+yo=; b=oM/3mySCUgVhjLdBkL5S9MCcHO
-	l5g7ZLdEzm2sbwtsyk7VU/JIRe+cRMThHfAi9EqlIYFO9sxXPo49JGeDAfojW/F0
-	8SRDuyqs62Q5GjmCu52a/fohkcwnzb+xMRpsykPP8y78CkpjR7RkySfB6vsxq7I0
-	62mVKxzNb1F08/3W8=
-X-Virus-Scanned: Debian amavis at smtp2.kfki.hu
-Received: from smtp2.kfki.hu ([127.0.0.1])
- by localhost (smtp2.kfki.hu [127.0.0.1]) (amavis, port 10026) with ESMTP
- id AaIniT8gAok0; Mon, 20 Apr 2026 15:11:20 +0200 (CEST)
-Received: from blackhole.kfki.hu (blackhole.szhk.kfki.hu [148.6.240.2])
-	by smtp2.kfki.hu (Postfix) with ESMTP id 4fzm8S17fBz7s856;
-	Mon, 20 Apr 2026 15:11:20 +0200 (CEST)
-Received: by blackhole.kfki.hu (Postfix, from userid 1000)
-	id 1B75334316A; Mon, 20 Apr 2026 15:11:20 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by blackhole.kfki.hu (Postfix) with ESMTP id 1976F340D75;
-	Mon, 20 Apr 2026 15:11:20 +0200 (CEST)
-Date: Mon, 20 Apr 2026 15:11:20 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Florian Westphal <fw@strlen.de>
-cc: Jozsef Kadlecsik <kadlec@netfilter.org>, netfilter-devel@vger.kernel.org, 
-    Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: ipset: Fix data race between add and dump
- in all hash types
-In-Reply-To: <ad9mzYNk5JpDfklg@strlen.de>
-Message-ID: <4e01c555-2f4c-81b7-e6c4-d1f7b3e2e99f@blackhole.kfki.hu>
-References: <20260415082039.4133308-1-kadlec@netfilter.org> <20260415082039.4133308-3-kadlec@netfilter.org> <ad9mzYNk5JpDfklg@strlen.de>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eSFWE5at"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4738C2BCB4;
+	Mon, 20 Apr 2026 13:16:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776690967;
+	bh=PY00X5IV4JpUSmoJ41N7TTVq2lNmpdVturPjoc87vBE=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=eSFWE5atr2IlZCpKkm3Xbngja437Kg45hCRI3yvoR4ZoOwwzG6ri5NpVTLe6Fxxqv
+	 wpEbHcQfR6uBHkVwhT5WyhQRRNcosTzFOqOaUXOth7aG8qIm03jZkhnVT3CCl8eem8
+	 f+qwyeWeLDIQS3z+cJ9pW2WP4Vv0Bh83EsJCdjw9dCzzo/Avrx3j6h1K92nnead54m
+	 dqFqXu0kzjSN0KUmn9vGHezQwP2leTDN4B4wTFghAaBDgFOqZl2/fMrB2078aeyjIg
+	 NU1dTwbhgDq5R0cs0IvQfkQJd/CPc0A56Y/Q91nocYYop4V5Bin5mMsLLSFRbHnfo1
+	 j9ZbimYBUBeFQ==
+From: Sasha Levin <sashal@kernel.org>
+To: patches@lists.linux.dev,
+	stable@vger.kernel.org
+Cc: Ren Wei <n05ec@lzu.edu.cn>,
+	Yifan Wu <yifanwucs@gmail.com>,
+	Juefei Pu <tomapufckgml@gmail.com>,
+	Yuan Tan <yuantan098@gmail.com>,
+	Xin Liu <bird@lzu.edu.cn>,
+	Yuhang Zheng <z1652074432@gmail.com>,
+	Florian Westphal <fw@strlen.de>,
+	Sasha Levin <sashal@kernel.org>,
+	pablo@netfilter.org,
+	kadlec@netfilter.org,
+	davem@davemloft.net,
+	edumazet@google.com,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	yasuyuki.kozakai@toshiba.co.jp,
+	kaber@trash.net,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.18] netfilter: xt_multiport: validate range encoding in checkentry
+Date: Mon, 20 Apr 2026 09:08:02 -0400
+Message-ID: <20260420131539.986432-16-sashal@kernel.org>
+X-Mailer: git-send-email 2.53.0
+In-Reply-To: <20260420131539.986432-1-sashal@kernel.org>
+References: <20260420131539.986432-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.18.23
+Content-Transfer-Encoding: 8bit
 
-Hi Florian,
+From: Ren Wei <n05ec@lzu.edu.cn>
 
-On Wed, 15 Apr 2026, Florian Westphal wrote:
+[ Upstream commit ff64c5bfef12461df8450e0f50bb693b5269c720 ]
 
->>  	data = ahash_data(n, j, set->dsize);
->>  copy_data:
->>  	t->hregion[r].elements++;
->> @@ -985,6 +986,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
->>  	if (SET_WITH_TIMEOUT(set))
->>  		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
->>  	smp_mb__before_atomic();
->> +	n->pos = npos;
->>  	set_bit(j, n->used);
->
-> I think this needs a followup-patch to switch this to smp_store_release
-> and readers to smp_load_acquire helpers.
+ports_match_v1() treats any non-zero pflags entry as the start of a
+port range and unconditionally consumes the next ports[] element as
+the range end.
 
-I'm pondering over the helpers and unsure. The hash bucket structure is as 
-follows:
+The checkentry path currently validates protocol, flags and count, but
+it does not validate the range encoding itself. As a result, malformed
+rules can mark the last slot as a range start or place two range starts
+back to back, leaving ports_match_v1() to step past the last valid
+ports[] element while interpreting the rule.
 
-/* A hash bucket */
-struct hbucket {
-         struct rcu_head rcu;    /* for call_rcu */
-         /* Which positions are used in the array */
-         DECLARE_BITMAP(used, AHASH_MAX_TUNED);
-         u8 size;                /* size of the array */
-         u8 pos;                 /* position of the first free entry */
-         unsigned char value[]   /* the array of the values */
-                 __aligned(__alignof__(u64));
-};
+Reject malformed multiport v1 rules in checkentry by validating that
+each range start has a following element and that the following element
+is not itself marked as another range start.
 
-The elements in "value" are filled up successively, "pos" is there to 
-limit the searching range for existing elements (which might be timed out 
-as well). So until the "size" is unchanged (no growing/shrinking), the 
-worst things which can happen if it's not "correct":
+Fixes: a89ecb6a2ef7 ("[NETFILTER]: x_tables: unify IPv4/IPv6 multiport match")
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Co-developed-by: Yuan Tan <yuantan098@gmail.com>
+Signed-off-by: Yuan Tan <yuantan098@gmail.com>
+Suggested-by: Xin Liu <bird@lzu.edu.cn>
+Tested-by: Yuhang Zheng <z1652074432@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
 
-- new element added but dump/test don't "find" it
-- element deleted but dump/test find it
+LLM Generated explanations, may be completely bogus:
 
-The critical part is when "size" changes. But "size" never updated 
-directly: a completely new bucket is created when growing/shrinking and 
-the new bucket is assigned via RCU mechanism.
+Error: Failed to generate final synthesis
 
-So why do you thing the helpers are required to read/update the "pos" 
-element of the hash bucket? I might not see the wood for the trees.
+ net/netfilter/xt_multiport.c | 34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-Best regards,
-Jozsef
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index 44a00f5acde8a..a1691ff405d3c 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -105,6 +105,28 @@ multiport_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
+ }
+ 
++static bool
++multiport_valid_ranges(const struct xt_multiport_v1 *multiinfo)
++{
++	unsigned int i;
++
++	for (i = 0; i < multiinfo->count; i++) {
++		if (!multiinfo->pflags[i])
++			continue;
++
++		if (++i >= multiinfo->count)
++			return false;
++
++		if (multiinfo->pflags[i])
++			return false;
++
++		if (multiinfo->ports[i - 1] > multiinfo->ports[i])
++			return false;
++	}
++
++	return true;
++}
++
+ static inline bool
+ check(u_int16_t proto,
+       u_int8_t ip_invflags,
+@@ -127,8 +149,10 @@ static int multiport_mt_check(const struct xt_mtchk_param *par)
+ 	const struct ipt_ip *ip = par->entryinfo;
+ 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
+ 
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count) ? 0 : -EINVAL;
++	if (!check(ip->proto, ip->invflags, multiinfo->flags, multiinfo->count))
++		return -EINVAL;
++
++	return multiport_valid_ranges(multiinfo) ? 0 : -EINVAL;
+ }
+ 
+ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+@@ -136,8 +160,10 @@ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+ 	const struct ip6t_ip6 *ip = par->entryinfo;
+ 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
+ 
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count) ? 0 : -EINVAL;
++	if (!check(ip->proto, ip->invflags, multiinfo->flags, multiinfo->count))
++		return -EINVAL;
++
++	return multiport_valid_ranges(multiinfo) ? 0 : -EINVAL;
+ }
+ 
+ static struct xt_match multiport_mt_reg[] __read_mostly = {
+-- 
+2.53.0
 
-> Here is a diff for this (generated by LLM and only compile tested).
-> I think this can be a separate patch to not make this change too big and
-> to not mix different fixes.
->
-> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-> index 0da02a8dfbae..2ca674e51699 100644
-> --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> @@ -682,10 +682,13 @@ mtype_resize(struct ip_set *set, bool retried)
-> 		rcu_read_lock_bh();
-> 		for (i = ahash_bucket_start(r, orig->htable_bits);
-> 		     i < ahash_bucket_end(r, orig->htable_bits); i++) {
-> +			u8 pos;
-> +
-> 			n = __ipset_dereference(hbucket(orig, i));
-> 			if (!n)
-> 				continue;
-> -			for (j = 0; j < n->pos; j++) {
-> +			pos = smp_load_acquire(&n->pos);
-> +			for (j = 0; j < pos; j++) {
-> 				if (!test_bit(j, n->used))
-> 					continue;
-> 				data = ahash_data(n, j, dsize);
-> @@ -817,10 +820,13 @@ mtype_ext_size(struct ip_set *set, u32 *elements, size_t *ext_size)
-> 	for (r = 0; r < ahash_numof_locks(t->htable_bits); r++) {
-> 		for (i = ahash_bucket_start(r, t->htable_bits);
-> 		     i < ahash_bucket_end(r, t->htable_bits); i++) {
-> +			u8 pos;
-> +
-> 			n = rcu_dereference_bh(hbucket(t, i));
-> 			if (!n)
-> 				continue;
-> -			for (j = 0; j < n->pos; j++) {
-> +			pos = smp_load_acquire(&n->pos);
-> +			for (j = 0; j < pos; j++) {
-> 				if (!test_bit(j, n->used))
-> 					continue;
-> 				data = ahash_data(n, j, set->dsize);
-> @@ -963,7 +969,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	}
->
-> copy_elem:
-> -	j = npos = n->pos + 1;
-> +	j = npos;
-> +	npos = n->pos + 1;
-> 	data = ahash_data(n, j, set->dsize);
-> copy_data:
-> 	t->hregion[r].elements++;
-> @@ -985,8 +992,8 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	/* Must come last for the case when timed out entry is reused */
-> 	if (SET_WITH_TIMEOUT(set))
-> 		ip_set_timeout_set(ext_timeout(data, set), ext->timeout);
-> -	smp_mb__before_atomic();
-> -	n->pos = npos;
-> +	/* Ensure all data writes are visible before updating position */
-> +	smp_store_release(&n->pos, npos);
-> 	set_bit(j, n->used);
-> 	if (old != ERR_PTR(-ENOENT)) {
-> 		rcu_assign_pointer(hbucket(t, key), n);
-> @@ -1172,6 +1179,7 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
-> 	int ret, i, j = 0;
-> #endif
-> 	u32 key, multi = 0;
-> +	u8 pos;
->
-> 	pr_debug("test by nets\n");
-> 	for (; j < NLEN && h->nets[j].cidr[0] && !multi; j++) {
-> @@ -1189,7 +1197,8 @@ mtype_test_cidrs(struct ip_set *set, struct mtype_elem *d,
-> 		n = rcu_dereference_bh(hbucket(t, key));
-> 		if (!n)
-> 			continue;
-> -		for (i = 0; i < n->pos; i++) {
-> +		pos = smp_load_acquire(&n->pos);
-> +		for (i = 0; i < pos; i++) {
-> 			if (!test_bit(i, n->used))
-> 				continue;
-> 			data = ahash_data(n, i, set->dsize);
-> @@ -1223,6 +1232,7 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 	struct mtype_elem *data;
-> 	int i, ret = 0;
-> 	u32 key, multi = 0;
-> +	u8 pos;
->
-> 	rcu_read_lock_bh();
-> 	t = rcu_dereference_bh(h->table);
-> @@ -1245,7 +1255,8 @@ mtype_test(struct ip_set *set, void *value, const struct ip_set_ext *ext,
-> 		ret = 0;
-> 		goto out;
-> 	}
-> -	for (i = 0; i < n->pos; i++) {
-> +	pos = smp_load_acquire(&n->pos);
-> +	for (i = 0; i < pos; i++) {
-> 		if (!test_bit(i, n->used))
-> 			continue;
-> 		data = ahash_data(n, i, set->dsize);
-> @@ -1373,6 +1384,8 @@ mtype_list(const struct ip_set *set,
-> 	rcu_read_lock();
-> 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
-> 	     cb->args[IPSET_CB_ARG0]++) {
-> +		u8 pos;
-> +
-> 		cond_resched_rcu();
-> 		incomplete = skb_tail_pointer(skb);
-> 		n = rcu_dereference(hbucket(t, cb->args[IPSET_CB_ARG0]));
-> @@ -1380,7 +1393,9 @@ mtype_list(const struct ip_set *set,
-> 			 cb->args[IPSET_CB_ARG0], t, n);
-> 		if (!n)
-> 			continue;
-> -		for (i = 0; i < n->pos; i++) {
-> +		/* Acquire ordering with smp_store_release in mtype_add */
-> +		pos = smp_load_acquire(&n->pos);
-> +		for (i = 0; i < pos; i++) {
-> 			if (!test_bit(i, n->used))
-> 				continue;
-> 			e = ahash_data(n, i, set->dsize);
->
->
->
