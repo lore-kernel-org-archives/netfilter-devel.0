@@ -1,38 +1,45 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70E0838836A
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 21:11:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E4B82147F9;
+	Mon, 20 Apr 2026 22:02:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776719478; cv=none; b=HxTfLYmMXq0f7KHTQym2RaOA22JfuvRzu9DutpAe7vru+rXyoEDi/OqLjTCfPp8VQeV/q3UPoAmE6+/21ef2GupCR8cg8h3voSiHYcNV11D9W/wVy5GSd4CDFDss381VTiultjewIe9aXuCU8vhlySZxBz4B9AY6I3nc1PH6odk=
+	t=1776722543; cv=none; b=QNENfDiY4Q6ub9EnIlklN4VOH5JdgoL0/PpAGrAmE8RTFwojwLb79fv600Mt/nzxb1ABg3gt+2oU7jfvbJMnEI9Kp+M6/vVwiL3Wjna/HM4Wk8B4Kz7NxyOwACEV6vcdXObnHRVw3Aig/EDmvjX8J9IzO6Q9ZHAF++8bbuv8cy0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776719478; c=relaxed/simple;
-	bh=tDNVRmC+8FUJaz3cjMfWgYLqy/u5Hf9J5F1oNtwnwt0=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=CBAVRTpq8FOn/Dby0nqtbIFkwRgtXA2/iq5sCXUJgvFUrBN3qIkeLexjIMMad0sRcVW6FiolmgQU7WVX6p4JXxPwakrDBCriYHEkb7wI8sI49EiOh6BEfRNcX+daJMYcfzcnp2gKqWS9n9HC5FS4kdjFFZ1akxsuOLCKMCKpwM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Gu/QNdki; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1776722543; c=relaxed/simple;
+	bh=62x1WzfEb0ccT7e3EvMGCt9289fKT2axCIwUEPqFv/w=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=l3KsJTLbYALHFjfMmCMozoockRy/xrP0m4aevbv0EZ4g2yx05jnpv9FfrPhgnSi5AgTZzUVUKwLhcgtqf4T9e879oX+gKYkkST13NfCyjDAcLiJUPyJ9Og3IXX2fRWSkNTdYo4AWJI5OuS9dqj8Ebl27dyvdOcpjwaOslNtFBNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gDKqIOsD; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Gu/QNdki"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gDKqIOsD"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id DCFC960181
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 23:11:13 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id CAB5C6017E;
+	Tue, 21 Apr 2026 00:02:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776719474;
-	bh=CbJQsbTyQz0Pdj/+YEnzMEJr2U6zOThwT8P3ALasvMQ=;
-	h=From:To:Subject:Date:From;
-	b=Gu/QNdkid+5eeIxcY75Ng1qLx9/j/aoWrmVJKEJpcvl9QIXHj5I3NAI6IGf06cP2P
-	 EzHYVOkL0wC7di6uvAb26W7KFQLeDS5w7ELt2donS1s8njSb4rKzFsoP5QsAe1ycXK
-	 2XlWkFfWokFx/bFRtzPnA+pcykgdAxJ6PApMPb5N3ZpavO1PVgMSqrkfNidzfOfTRb
-	 g097l7Bp5LuCsRe5e0yfZXnVYHyVyHDrs33Hso12n841kX6yMNrKTMdSH9qvjyjG8f
-	 MWP4HBgdb1h5ibRCPWmvH/1q2CL8KVggwL6885qIky6dBZjXSnGjcJ3Z7K+HBc8pOX
-	 jL5fgso3PCVaw==
+	s=2025; t=1776722539;
+	bh=EVrBbQ74Psqq42IjC9L/dsxq9oV3R/lVXUOfHOqhevo=;
+	h=From:To:Cc:Subject:Date:From;
+	b=gDKqIOsDaJGVIKHJQWd+DY9oem6cJhkpgU0xUkaLtPnODgixBV8GMQzmSx9isldhX
+	 8kSF+MOsfjlr6OoI0MHQCifp0MTz0Gtfg23Q7k6SjUdUQYZR87iAigdgjY4htSUe/p
+	 NO7nNh/QvK41KkIINggq7gY7pNzPtK0PdUzuJ32p8XxW+0ZzUJFgZp6Cju55ebaCmR
+	 EqI2JHY3z9aAxz2ls0BeIhzFcquQxGf5eXTgcYtCzhurnrEFfGeNYyDLsct7JpYE5W
+	 4Z+4ysS8RDO2NEouwazpA25uE9dbfVSpDO2W8pjn1HgXXt0ECgXSui4LcsJyzCLAuv
+	 E7byAgy1Ba/LQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2] netfilter: nft_compat: run checkentry() from .validate
-Date: Mon, 20 Apr 2026 23:11:04 +0200
-Message-ID: <20260420211105.55177-1-pablo@netfilter.org>
+Cc: davem@davemloft.net,
+	netdev@vger.kernel.org,
+	kuba@kernel.org,
+	pabeni@redhat.com,
+	edumazet@google.com,
+	fw@strlen.de,
+	horms@kernel.org
+Subject: [PATCH net 0/8] Netfilter/IPVS fixes for net
+Date: Tue, 21 Apr 2026 00:02:07 +0200
+Message-ID: <20260420220215.111510-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -42,306 +49,91 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Several matches and one target check that the hook is correct from
-checkentry(), however, the basechain is only available from
-nft_table_validate().
+Hi,
 
-This patch calls checkentry() for matches and targets from the
-nft_compat expression .validate path for the following matches/target:
+The following batch contains Netfilter/IPVS fixes for net:
 
-- addrtype
-- devgroup
-- physdev
-- policy
-- set
-- TCPMSS
-- SET
+1) nft_osf actually only supports IPv4, restrict it.
 
-The .destroy indirection is also called to restore the xt_set refcounts
-that is performed by .checkentry. The remaining extensions provide no
-.destroy interface.
+2) Address possible division by zero in nfnetlink_osf, from Xiang Mei.
 
-This patch sets the table in the nft_ctx struct in nft_table_validate()
-which is required by this patch.
+3) Remove unsafe use of sprintf to fix possible buffer overflow
+   in the SIP NAT helper, from Florian Westphal.
 
-The nft_compat_check_match() and nft_compat_check_target() helper
-functions are added to wrap common code used from .init and .validate
-path.
+4) Restrict xt_mac, xt_owner and xt_physdev to inet families only;
+   xt_realm is only for ipv4, otherwise null-pointer-deref is possible.
 
-The protocol and inverse flags are set to always match from the
-expression .validate path, this is already checked from the init path.
+5) Use kfree_rcu() in nat core to release hooks, this can be an issue
+   once nfnetlink_hook gets support to dump NAT hook information, not
+   currently a real issue but better fix it now. From Florian Westphal.
 
-Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: add SET target. Posting to the ML until it is decided where to go with this.
+6) Fix MTU checks in IPVS, from Yingnan Zhang.
 
- net/netfilter/nf_tables_api.c |   1 +
- net/netfilter/nft_compat.c    | 152 +++++++++++++++++++++++++++-------
- 2 files changed, 125 insertions(+), 28 deletions(-)
+7) Fix possible out-of-bounds when matching TCP options in
+   nfnetlink_osf, from Fernando Fernandez Mancera.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index d20ce5c36d31..38e33c66c618 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4205,6 +4205,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
- 	struct nft_chain *chain;
- 	struct nft_ctx ctx = {
- 		.net	= net,
-+		.table	= (struct nft_table *)table,
- 		.family	= table->family,
- 	};
- 	int err = 0;
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index decc725a33c2..5a5f4f07deab 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -229,6 +229,20 @@ static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
- 	return 0;
- }
- 
-+static int nft_compat_check_target(const struct nft_ctx *ctx,
-+				   const struct nft_expr *expr,
-+				   void *info, size_t size,
-+				   u16 proto, bool inv)
-+{
-+	struct xt_target *target = expr->ops->data;
-+	struct xt_tgchk_param par;
-+	union nft_entry e = {};
-+
-+	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
-+
-+	return xt_check_target(&par, size, proto, inv);
-+}
-+
- static void nft_compat_wait_for_destructors(struct net *net)
- {
- 	/* xtables matches or targets can have side effects, e.g.
-@@ -244,13 +258,11 @@ static int
- nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		const struct nlattr * const tb[])
- {
--	void *info = nft_expr_priv(expr);
- 	struct xt_target *target = expr->ops->data;
--	struct xt_tgchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
--	u16 proto = 0;
-+	void *info = nft_expr_priv(expr);
- 	bool inv = false;
--	union nft_entry e = {};
-+	u16 proto = 0;
- 	int ret;
- 
- 	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
-@@ -261,11 +273,9 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			return ret;
- 	}
- 
--	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
--
- 	nft_compat_wait_for_destructors(ctx->net);
- 
--	ret = xt_check_target(&par, size, proto, inv);
-+	ret = nft_compat_check_target(ctx, expr, info, size, proto, inv);
- 	if (ret < 0) {
- 		if (ret == -ENOENT) {
- 			const char *modname = NULL;
-@@ -296,21 +306,29 @@ static void __nft_mt_tg_destroy(struct module *me, const struct nft_expr *expr)
- 	kfree(expr->ops);
- }
- 
--static void
--nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+static void nft_tg_destroy(const struct nft_ctx *ctx, struct xt_target *target,
-+			   void *info)
- {
--	struct xt_target *target = expr->ops->data;
--	void *info = nft_expr_priv(expr);
--	struct module *me = target->me;
- 	struct xt_tgdtor_param par;
- 
-+	if (!target->destroy)
-+		return;
-+
- 	par.net = ctx->net;
- 	par.target = target;
- 	par.targinfo = info;
- 	par.family = ctx->family;
--	if (par.target->destroy != NULL)
--		par.target->destroy(&par);
-+	par.target->destroy(&par);
-+}
- 
-+static void
-+nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+{
-+	struct xt_target *target = expr->ops->data;
-+	void *info = nft_expr_priv(expr);
-+	struct module *me = target->me;
-+
-+	nft_tg_destroy(ctx, target, info);
- 	__nft_mt_tg_destroy(me, expr);
- }
- 
-@@ -382,6 +400,32 @@ static int nft_target_validate(const struct nft_ctx *ctx,
- 		if (target->hooks && !(hook_mask & target->hooks))
- 			return -EINVAL;
- 
-+		/* At least one target needs to validate hooks at checkentry()
-+		 * stage because such validation depends on the match
-+		 * configuration. This cannot be enabled for all matches,
-+		 * because some of them perform more than simple validation,
-+		 * such as bumping reference counter on objects.
-+		 */
-+		if (!strcmp(target->name, "TCPMSS") ||
-+		    !strcmp(target->name, "SET")) {
-+			struct xt_target *target = expr->ops->data;
-+			size_t size = XT_ALIGN(target->targetsize);
-+			void *info = nft_expr_priv(expr);
-+
-+			/* nft_target_init() already checked for protocol and
-+			 * inverse, not available in this patch, lie here.
-+			 */
-+			ret = nft_compat_check_target(ctx, expr, info, size,
-+						      target->proto, false);
-+			if (ret < 0)
-+				return ret;
-+
-+			 /* The set target bumps reference count, restore after
-+			  * this checkentry call.
-+			  */
-+			nft_tg_destroy(ctx, target, info);
-+		}
-+
- 		ret = nft_compat_chain_validate_dependency(ctx, target->table);
- 		if (ret < 0)
- 			return ret;
-@@ -494,17 +538,29 @@ static void match_compat_from_user(struct xt_match *m, void *in, void *out)
- 		memset(out + m->matchsize, 0, pad);
- }
- 
-+static int nft_compat_check_match(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr,
-+				  void *info, size_t size,
-+				  u16 proto, bool inv)
-+{
-+	struct xt_match *match = expr->ops->data;
-+	struct xt_mtchk_param par;
-+	union nft_entry e = {};
-+
-+	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
-+
-+	return xt_check_match(&par, size, proto, inv);
-+}
-+
- static int
- __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		 const struct nlattr * const tb[],
- 		 void *info)
- {
--	struct xt_match *match = expr->ops->data;
--	struct xt_mtchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
--	u16 proto = 0;
-+	struct xt_match *match = expr->ops->data;
- 	bool inv = false;
--	union nft_entry e = {};
-+	u16 proto = 0;
- 	int ret;
- 
- 	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
-@@ -515,11 +571,9 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			return ret;
- 	}
- 
--	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
--
- 	nft_compat_wait_for_destructors(ctx->net);
- 
--	return xt_check_match(&par, size, proto, inv);
-+	return nft_compat_check_match(ctx, expr, info, size, proto, inv);
- }
- 
- static int
-@@ -547,21 +601,29 @@ nft_match_large_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	return ret;
- }
- 
--static void
--__nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
--		    void *info)
-+static void nft_mt_destroy(const struct nft_ctx *ctx, struct xt_match *match,
-+			   void *info)
- {
--	struct xt_match *match = expr->ops->data;
--	struct module *me = match->me;
- 	struct xt_mtdtor_param par;
- 
-+	if (!match->destroy)
-+		return;
-+
- 	par.net = ctx->net;
- 	par.match = match;
- 	par.matchinfo = info;
- 	par.family = ctx->family;
--	if (par.match->destroy != NULL)
--		par.match->destroy(&par);
-+	par.match->destroy(&par);
-+}
- 
-+static void
-+__nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
-+		    void *info)
-+{
-+	struct xt_match *match = expr->ops->data;
-+	struct module *me = match->me;
-+
-+	nft_mt_destroy(ctx, match, info);
- 	__nft_mt_tg_destroy(me, expr);
- }
- 
-@@ -643,6 +705,40 @@ static int nft_match_validate(const struct nft_ctx *ctx,
- 		if (match->hooks && !(hook_mask & match->hooks))
- 			return -EINVAL;
- 
-+		/* Several matches need to validate hooks at checkentry() stage
-+		 * because such validation depends on the match configuration.
-+		 */
-+		if (!strcmp(match->name, "addrtype") ||
-+		    !strcmp(match->name, "devgroup") ||
-+		    !strcmp(match->name, "physdev") ||
-+		    !strcmp(match->name, "policy") ||
-+		    !strcmp(match->name, "set")) {
-+			struct xt_match *match = expr->ops->data;
-+			size_t size = XT_ALIGN(match->matchsize);
-+			void *info;
-+
-+			if (NFT_EXPR_SIZE(size) > NFT_MATCH_LARGE_THRESH) {
-+				struct nft_xt_match_priv *priv = nft_expr_priv(expr);
-+
-+				info = priv->info;
-+			} else {
-+				info = nft_expr_priv(expr);
-+			}
-+
-+			/* __nft_match_init() already checked for protocol and
-+			 * inverse, not available in this patch, lie here.
-+			 */
-+			ret = nft_compat_check_match(ctx, expr, info, size,
-+						     match->proto, false);
-+			if (ret < 0)
-+				return ret;
-+
-+			 /* The set match bumps reference count, restore after
-+			  * this checkentry call.
-+			  */
-+			nft_mt_destroy(ctx, match, info);
-+		}
-+
- 		ret = nft_compat_chain_validate_dependency(ctx, match->table);
- 		if (ret < 0)
- 			return ret;
--- 
-2.47.3
+8) Fix potential nul-ptr-deref in ttl check in nfnetlink_osf,
+   remove useless loop to fix this, also from Fernando.
 
+This is a smaller batch, there are more patches pending in the queue
+to arm another pull request as soon as this is considered good enough.
+
+AI might complain again about one more issue regarding osf and
+big-endian arches in osf but this batch is targetting crash fixes for
+osf at this stage.
+
+Please, pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-04-20
+
+Thanks.
+
+----------------------------------------------------------------
+
+The following changes since commit a663bac71a2f0b3ac6c373168ca57b2a6e6381aa:
+
+  net: mctp: fix don't require received header reserved bits to be zero (2026-04-20 11:46:57 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-04-20
+
+for you to fetch changes up to 711987ba281fd806322a7cd244e98e2a81903114:
+
+  netfilter: nfnetlink_osf: fix potential NULL dereference in ttl check (2026-04-20 23:45:44 +0200)
+
+----------------------------------------------------------------
+netfilter pull request 26-04-20
+
+----------------------------------------------------------------
+Fernando Fernandez Mancera (2):
+      netfilter: nfnetlink_osf: fix out-of-bounds read on option matching
+      netfilter: nfnetlink_osf: fix potential NULL dereference in ttl check
+
+Florian Westphal (1):
+      netfilter: conntrack: remove sprintf usage
+
+Pablo Neira Ayuso (3):
+      netfilter: nft_osf: restrict it to ipv4
+      netfilter: xtables: restrict several matches to inet family
+      netfilter: nat: use kfree_rcu to release ops
+
+Xiang Mei (1):
+      netfilter: nfnetlink_osf: fix divide-by-zero in OSF_WSS_MODULO
+
+Yingnan Zhang (1):
+      ipvs: fix MTU check for GSO packets in tunnel mode
+
+ net/ipv4/netfilter/iptable_nat.c  |  4 ++--
+ net/ipv6/netfilter/ip6table_nat.c |  4 ++--
+ net/netfilter/ipvs/ip_vs_xmit.c   | 19 +++++++++++++----
+ net/netfilter/nf_nat_amanda.c     |  2 +-
+ net/netfilter/nf_nat_core.c       | 10 +++++----
+ net/netfilter/nf_nat_sip.c        | 33 +++++++++++++++-------------
+ net/netfilter/nfnetlink_osf.c     | 45 +++++++++++++++++----------------------
+ net/netfilter/nft_osf.c           |  6 +++++-
+ net/netfilter/xt_mac.c            | 34 +++++++++++++++++++----------
+ net/netfilter/xt_owner.c          | 37 +++++++++++++++++++++-----------
+ net/netfilter/xt_physdev.c        | 29 ++++++++++++++++---------
+ net/netfilter/xt_realm.c          |  2 +-
+ 12 files changed, 136 insertions(+), 89 deletions(-)
