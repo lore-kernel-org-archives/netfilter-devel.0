@@ -1,264 +1,173 @@
-Received: from fhigh-a6-smtp.messagingengine.com (fhigh-a6-smtp.messagingengine.com [103.168.172.157])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F8EF40DFC6
-	for <netfilter-devel@vger.kernel.org>; Sun, 19 Apr 2026 15:57:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D69971891A9
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 06:19:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776614276; cv=none; b=oCqpIAAIei3Qab1yawgmkbq6Xcmm/gHm4I8nuEkZVrI9j4VEcbR8wpBLTaIc3TpfDPXVJc9H0m+1IxzB970SFmehDTh2AbtGUE9nKBZa2ueyJ5J0eTy4y2e8JrRPQiliT64bsB1CH7gzXGyDguHcbPnfqJoPnf245leOCyezmto=
+	t=1776665974; cv=none; b=rYWQk8BZzpsd58M+7BzIEThFMxTIJKSlTNK/iKCVZZb/+7PLZGVGd2nsiLHoHH6SHAI9Q2laDUGCUdElEJrfBpub2xvzxJwk7+mKSahbrKvkfBrHwmgsN0zPkbge9a4S9hASY8+kz0GRzmggLnUVUx7CIe1qNY7fnvGgGIAMKAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776614276; c=relaxed/simple;
-	bh=Ubb3KTyQooudbu1epEsMEo2qVzAae/4EhZO577wV9wU=;
-	h=MIME-Version:Date:From:To:Message-Id:Subject:Content-Type; b=XNYJg1JYFhWH8snpcz3CFs3naQPzuEiJOANbtliGKPKEXQvuAVO1km4N/lEIZNLbtHgv4swJy0e7kAdGGl4BhGHJDICKPRnOAsVCUYm9CXaN1A6RpZofKO1j+M8btZmq7Q+mx24KFiF/OC2Y0tJ37yb01CFWsZCx4pcKf8EQndI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=backscattering.de; spf=pass smtp.mailfrom=backscattering.de; dkim=pass (2048-bit key) header.d=backscattering.de header.i=@backscattering.de header.b=AVH1b8B9; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=aEwFqN+K; arc=none smtp.client-ip=103.168.172.157
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=backscattering.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=backscattering.de
+	s=arc-20240116; t=1776665974; c=relaxed/simple;
+	bh=iMcD6b6Me6O6lojDg+I3aPhZLrZGIucvZy9bFgfcTzs=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=ZixQY7e3b2NbpDUlahHSZwLi1oSUrXxMJc+lRaAd6eTwMgkHBoiWNIrL9u2KdLQ/moZxi8yIiUmli5VimO1Isl3yH+l2tyTSVLu0KK6yL+KZmstxLeOJpZVK8DFfCOd7ytt+TnAI/Qzeiuwq8L0x9cRYHMifTxXucj/Q5cgxqew=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=CGb849z4; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=backscattering.de header.i=@backscattering.de header.b="AVH1b8B9";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="aEwFqN+K"
-Received: from phl-compute-02.internal (phl-compute-02.internal [10.202.2.42])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 23997140007C
-	for <netfilter-devel@vger.kernel.org>; Sun, 19 Apr 2026 11:57:51 -0400 (EDT)
-Received: from phl-imap-17 ([10.202.2.105])
-  by phl-compute-02.internal (MEProxy); Sun, 19 Apr 2026 11:57:51 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	backscattering.de; h=cc:content-transfer-encoding:content-type
-	:content-type:date:date:from:from:in-reply-to:message-id
-	:mime-version:reply-to:subject:subject:to:to; s=fm3; t=
-	1776614271; x=1776700671; bh=UtVnYOYrzASVX/2V9mmdosmGwe3eh9s9kmS
-	B1L4sm9Y=; b=AVH1b8B9RNx7L35cOEE2sQ/SvSmsva2DPps4S8WeVWkkfFnxsWK
-	jB9lt51LU/lI4CX2aS6B3kZCiF2BA/mmh/DkoIt15Ks8yYcnUwEwHq0X+obc/7N2
-	fy/KDDFWRmyvcXa/6U6UW2OMKZdwslxhoHBgXgyc+yHdKyead/7gz6JK/yxB/ECE
-	tlIAi3Pr5nFZoLzFWJimZLphH0AlDs5XWncqeOAVIsAgjDyeJIV+fuOrfm9gsFAp
-	9bv7uQLOmxbQI5/D07Fs+gdlmSYoNWSD9qjcnbhLwehy44bCWLOQDjn7/JDnM6ap
-	IUz7ELB+vydNTR0213++rPsICGImteib2RQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-	1776614271; x=1776700671; bh=UtVnYOYrzASVX/2V9mmdosmGwe3eh9s9kmS
-	B1L4sm9Y=; b=aEwFqN+KiKXq/ZOhRKTavJn/q3nOETteNFCB+fu0XnsOn843qHq
-	TxCSn/vuW2Rl0bLXg81YWwMr7rhyx0dM3HRe0aFXzYbQwljucrJB33m9ZsTIG14Z
-	5R33+RpKxIbsdqon9MaCajjs2H5oxe+JuNugNgIVIpgjbjFQI9guqv1Qyr7xJ4Va
-	HH+StC+9YTRAS0pVF/WhLwP3bRHdi9MVDjwTUs312vC/P2392Y5513PkaOs/MdrJ
-	RpArptyTS09yqk3BLPpVaC9TS3DCHs9wjxEiXQLPGHSGt3T8S2urCQHABuv3VP+h
-	Ztal136rp04pjpODe35W4RLLFCHPVfH+dVA==
-X-ME-Sender: <xms:fvvkaRqtDx2aAxn41_OoIO5atpOSj4HsJXXOgXi6aJuEM-yNmeR_vg>
-    <xme:fvvkaefjuHB1AsfPGRklDCo58wjVEqKm-vjNQN-ZEkpAskH4SAAmodja7aIxKqN94
-    EEsWkRsjfKwYnPaW0N9ThI8tv9hmJXv8AQuO6qJs0XT1BRGLwwZvRU>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeefhedrtddtgdehiedtiecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
-    ihhlohhuthemuceftddtnecunecujfgurhepofggfffhvffkufgtgfesthejredtredttd
-    enucfhrhhomhepfdfpihhklhgrshcuhfhivghkrghsfdcuoehnihhklhgrshdrfhhivghk
-    rghssegsrggtkhhstggrthhtvghrihhnghdruggvqeenucggtffrrghtthgvrhhnpeette
-    effedtjeetteegudehfeetgfdvfeevheegiedvgfelhfdthedvveeigeekheenucevlhhu
-    shhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehnihhklhgrshdrfh
-    hivghkrghssegsrggtkhhstggrthhtvghrihhnghdruggvpdhnsggprhgtphhtthhopedu
-    pdhmohguvgepshhmthhpohhuthdprhgtphhtthhopehnvghtfhhilhhtvghrqdguvghvvg
-    hlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:fvvkab4vsE4s-D0_ZnBs9wbivtq41GAUxv5RVUetLkK0JLXOVnSZKA>
-    <xmx:fvvkaQ2JhvvpPD2Bn2eLxBR3tBPGTqFaLhR-ggLORHwXhtAsbuJTvA>
-    <xmx:fvvkafX9ijb4h_ITmYst84e6dYDxy80npbsJ_GwTZ5RLJnKnD3NABw>
-    <xmx:fvvkaT4s326wfVSYX09MtEktB_aJO8qmegJzkhlxgVn5o6GoSN2vpA>
-    <xmx:f_vkaWMdwTsGYdLkOP4BmzqhavIFHzgH5VJkzgBlC_r-pYkxVRP5pUQi>
-Feedback-ID: iabb64814:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id D7E23C40071; Sun, 19 Apr 2026 11:57:50 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="CGb849z4"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DB59360177
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 08:19:28 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776665969;
+	bh=ZrzHuiicz9yWjCZVh3K5jv2UywpHODoIAzsY1iJMJTs=;
+	h=From:To:Subject:Date:From;
+	b=CGb849z445YNewgxBoeparQD/lxKG8ebz+1TFpcK3mWGaq93EWmfnNhgvv/rypim7
+	 39+/NnSubK61RjTbI+3Cfs8DcrTK52vk1tybehuF3U4tDDb3zkGkDJ8AxBKDeiWz63
+	 yor87OyS5DJE70f9QdmAlH27NKtSEwjpXjC7EvdJeVIjT1Vq77IrjX0ajZSC6b5hmN
+	 JArxXvgcRXkt0fSyygYi4/zL2TfNbXuoRGYRJn9OSatnN1aV2hMAjFEm5/Im6QmXhm
+	 q6FuOBE0NTkMdNTdB+47UmVWtVlAcwx/2SlX3cBCiTZdBza89d6xSROd38l/g8x3EJ
+	 q5vZjCS0o7BBQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v7 1/4] netfilter: nf_tables: use list_del_rcu for netlink hooks
+Date: Mon, 20 Apr 2026 08:19:21 +0200
+Message-ID: <20260420061924.69302-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Date: Sun, 19 Apr 2026 17:57:30 +0200
-From: "Niklas Fiekas" <niklas.fiekas@backscattering.de>
-To: netfilter-devel@vger.kernel.org
-Message-Id: <ad31ed84-1ce4-4ec9-b970-6d09f8d69152@app.fastmail.com>
-Subject: [PATCH nft] json: output set/map element count
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Useful with --terse, when dumping all elements is too expensive.
+From: Florian Westphal <fw@strlen.de>
 
-Mirrors non-json dumps, which already include "... # count 12345".
+nft_netdev_unregister_hooks and __nft_unregister_flowtable_net_hooks need
+to use list_del_rcu(), this list can be walked by concurrent dumpers.
 
-Signed-off-by: Niklas Fiekas <niklas.fiekas@backscattering.de>
+Add a new helper and use it consistently.
+
+Fixes: f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- doc/libnftables-json.adoc                                     | 4 ++++
- src/json.c                                                    | 4 ++++
- .../testcases/rule_management/dumps/0011reset_0.json-nft      | 1 +
- tests/shell/testcases/sets/dumps/0016element_leak_0.json-nft  | 1 +
- .../shell/testcases/sets/dumps/0017add_after_flush_0.json-nft | 1 +
- .../shell/testcases/sets/dumps/0018set_check_size_1.json-nft  | 1 +
- .../shell/testcases/sets/dumps/0019set_check_size_0.json-nft  | 1 +
- .../testcases/sets/dumps/0045concat_ipv4_service.json-nft     | 1 +
- .../testcases/sets/dumps/0057set_create_fails_0.json-nft      | 1 +
- tests/shell/testcases/sets/dumps/0060set_multistmt_1.json-nft | 1 +
- tests/shell/testcases/sets/dumps/interval_size.json-nft       | 2 ++
- 11 files changed, 18 insertions(+)
+ net/netfilter/nf_tables_api.c | 44 ++++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 26 deletions(-)
 
-diff --git a/doc/libnftables-json.adoc b/doc/libnftables-json.adoc
-index 23a928df..697fdfa4 100644
---- a/doc/libnftables-json.adoc
-+++ b/doc/libnftables-json.adoc
-@@ -346,6 +346,7 @@ ____
- 	"timeout":* 'NUMBER'*,
- 	"gc-interval":* 'NUMBER'*,
- 	"size":* 'NUMBER'*,
-+	"count":* 'NUMBER'*,
- 	"auto-merge":* 'BOOLEAN'
- *}}*
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8537b94653d3..07e151245765 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -374,6 +374,12 @@ static void nft_netdev_hook_free_rcu(struct nft_hook *hook)
+ 	call_rcu(&hook->rcu, __nft_netdev_hook_free_rcu);
+ }
  
-@@ -362,6 +363,7 @@ ____
- 	"timeout":* 'NUMBER'*,
- 	"gc-interval":* 'NUMBER'*,
- 	"size":* 'NUMBER'*,
-+	"count":* 'NUMBER'*,
- 	"auto-merge":* 'BOOLEAN'
- *}}*
++static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
++{
++	list_del_rcu(&hook->list);
++	nft_netdev_hook_free_rcu(hook);
++}
++
+ static void nft_netdev_unregister_hooks(struct net *net,
+ 					struct list_head *hook_list,
+ 					bool release_netdev)
+@@ -384,10 +390,8 @@ static void nft_netdev_unregister_hooks(struct net *net,
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+ 			nf_unregister_net_hook(net, ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			nft_netdev_hook_free_rcu(hook);
+-		}
++		if (release_netdev)
++			nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ }
  
-@@ -402,6 +404,8 @@ that they translate a unique key to a value.
- 	Garbage collector interval in seconds.
- *size*::
- 	Maximum number of elements supported.
-+*count*::
-+	Current number of elements. Not used in input.
- *auto-merge*::
- 	Automatic merging of adjacent/overlapping set elements in interval sets.
+@@ -2271,10 +2275,8 @@ void nf_tables_chain_destroy(struct nft_chain *chain)
  
-diff --git a/src/json.c b/src/json.c
-index 7312215d..dd1bdb04 100644
---- a/src/json.c
-+++ b/src/json.c
-@@ -203,6 +203,10 @@ static json_t *set_print_json(struct output_ctx *octx, const struct set *set)
- 		if (set->desc.size) {
- 			tmp = nft_json_pack("i", set->desc.size);
- 			json_object_set_new(root, "size", tmp);
-+			if (set->count) {
-+				tmp = nft_json_pack("i", set->count);
-+				json_object_set_new(root, "count", tmp);
-+			}
+ 		if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
+ 			list_for_each_entry_safe(hook, next,
+-						 &basechain->hook_list, list) {
+-				list_del_rcu(&hook->list);
+-				nft_netdev_hook_free_rcu(hook);
+-			}
++						 &basechain->hook_list, list)
++				nft_netdev_hook_unlink_free_rcu(hook);
  		}
+ 		module_put(basechain->type->owner);
+ 		if (rcu_access_pointer(basechain->stats)) {
+@@ -2974,6 +2976,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 				list_for_each_entry(ops, &h->ops_list, list)
+ 					nf_unregister_net_hook(ctx->net, ops);
+ 			}
++			/* hook.list is on stack, no need for list_del_rcu() */
+ 			list_del(&h->list);
+ 			nft_netdev_hook_free_rcu(h);
+ 		}
+@@ -8852,10 +8855,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+ 			nft_unregister_flowtable_ops(net, flowtable, ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			nft_netdev_hook_free_rcu(hook);
+-		}
++		if (release_netdev)
++			nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ }
+ 
+@@ -8926,8 +8927,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 
+ 			nft_unregister_flowtable_ops(net, flowtable, ops);
+ 		}
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
++		nft_netdev_hook_unlink_free_rcu(hook);
  	}
  
-diff --git a/tests/shell/testcases/rule_management/dumps/0011reset_0.json-nft b/tests/shell/testcases/rule_management/dumps/0011reset_0.json-nft
-index bc242467..ebeec1d3 100644
---- a/tests/shell/testcases/rule_management/dumps/0011reset_0.json-nft
-+++ b/tests/shell/testcases/rule_management/dumps/0011reset_0.json-nft
-@@ -38,6 +38,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 65535,
-+        "count": 1,
-         "flags": [
-           "dynamic"
-         ],
-diff --git a/tests/shell/testcases/sets/dumps/0016element_leak_0.json-nft b/tests/shell/testcases/sets/dumps/0016element_leak_0.json-nft
-index 96b9714a..bf09eada 100644
---- a/tests/shell/testcases/sets/dumps/0016element_leak_0.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0016element_leak_0.json-nft
-@@ -22,6 +22,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 2,
-+        "count": 1,
-         "elem": [
-           "1.1.1.1"
-         ]
-diff --git a/tests/shell/testcases/sets/dumps/0017add_after_flush_0.json-nft b/tests/shell/testcases/sets/dumps/0017add_after_flush_0.json-nft
-index 96b9714a..bf09eada 100644
---- a/tests/shell/testcases/sets/dumps/0017add_after_flush_0.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0017add_after_flush_0.json-nft
-@@ -22,6 +22,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 2,
-+        "count": 1,
-         "elem": [
-           "1.1.1.1"
-         ]
-diff --git a/tests/shell/testcases/sets/dumps/0018set_check_size_1.json-nft b/tests/shell/testcases/sets/dumps/0018set_check_size_1.json-nft
-index d226811c..e16c7b4b 100644
---- a/tests/shell/testcases/sets/dumps/0018set_check_size_1.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0018set_check_size_1.json-nft
-@@ -22,6 +22,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 2,
-+        "count": 2,
-         "elem": [
-           "1.1.1.1",
-           "1.1.1.2"
-diff --git a/tests/shell/testcases/sets/dumps/0019set_check_size_0.json-nft b/tests/shell/testcases/sets/dumps/0019set_check_size_0.json-nft
-index d226811c..e16c7b4b 100644
---- a/tests/shell/testcases/sets/dumps/0019set_check_size_0.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0019set_check_size_0.json-nft
-@@ -22,6 +22,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 2,
-+        "count": 2,
-         "elem": [
-           "1.1.1.1",
-           "1.1.1.2"
-diff --git a/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.json-nft b/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.json-nft
-index 8473c333..39343478 100644
---- a/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0045concat_ipv4_service.json-nft
-@@ -33,6 +33,7 @@
-         ],
-         "handle": 0,
-         "size": 65536,
-+        "count": 1,
-         "flags": [
-           "timeout",
-           "dynamic"
-diff --git a/tests/shell/testcases/sets/dumps/0057set_create_fails_0.json-nft b/tests/shell/testcases/sets/dumps/0057set_create_fails_0.json-nft
-index 79d7257e..9d43ce1b 100644
---- a/tests/shell/testcases/sets/dumps/0057set_create_fails_0.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0057set_create_fails_0.json-nft
-@@ -22,6 +22,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 65535,
-+        "count": 1,
-         "elem": [
-           "1.1.1.1"
-         ]
-diff --git a/tests/shell/testcases/sets/dumps/0060set_multistmt_1.json-nft b/tests/shell/testcases/sets/dumps/0060set_multistmt_1.json-nft
-index aea0fe49..7ba55f5f 100644
---- a/tests/shell/testcases/sets/dumps/0060set_multistmt_1.json-nft
-+++ b/tests/shell/testcases/sets/dumps/0060set_multistmt_1.json-nft
-@@ -34,6 +34,7 @@
-         "type": "ipv4_addr",
-         "handle": 0,
-         "size": 65535,
-+        "count": 3,
-         "flags": [
-           "dynamic"
-         ],
-diff --git a/tests/shell/testcases/sets/dumps/interval_size.json-nft b/tests/shell/testcases/sets/dumps/interval_size.json-nft
-index 3ae54e08..d8551406 100644
---- a/tests/shell/testcases/sets/dumps/interval_size.json-nft
-+++ b/tests/shell/testcases/sets/dumps/interval_size.json-nft
-@@ -29,6 +29,7 @@
-         },
-         "handle": 0,
-         "size": 1,
-+        "count": 1,
-         "flags": [
-           "interval"
-         ],
-@@ -58,6 +59,7 @@
-         },
-         "handle": 0,
-         "size": 1,
-+        "count": 1,
-         "flags": [
-           "interval"
-         ],
+ 	return err;
+@@ -8937,10 +8937,8 @@ static void nft_hooks_destroy(struct list_head *hook_list)
+ {
+ 	struct nft_hook *hook, *next;
+ 
+-	list_for_each_entry_safe(hook, next, hook_list, list) {
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
+-	}
++	list_for_each_entry_safe(hook, next, hook_list, list)
++		nft_netdev_hook_unlink_free_rcu(hook);
+ }
+ 
+ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+@@ -9028,8 +9026,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 				nft_unregister_flowtable_ops(ctx->net,
+ 							     flowtable, ops);
+ 		}
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
++		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ 
+ 	return err;
+@@ -9535,13 +9532,8 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
+ 
+ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ {
+-	struct nft_hook *hook, *next;
+-
+ 	flowtable->data.type->free(&flowtable->data);
+-	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
+-	}
++	nft_hooks_destroy(&flowtable->hook_list);
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
+ 	kfree(flowtable);
 -- 
-2.53.0
+2.47.3
 
