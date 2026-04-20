@@ -1,102 +1,87 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8D4264612;
-	Mon, 20 Apr 2026 15:23:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F54619CD1B;
+	Mon, 20 Apr 2026 16:56:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776698616; cv=none; b=RSdQmBaIInQqcb9CXaIHT+mjAt85WiZCSfcElRaGjWub+/YFJqf7S+rum/kfG8OxeVxZ44ZdL7GN84lD2IScSItPqXxZxr3h53Q2xxEoYxAtoI+O1N1N8pLyOBRQYpqS5CfsIs8+FQuOkVxqlPWNm4J0LqujvYLPh5MJd8wL31U=
+	t=1776704187; cv=none; b=U7q3YpkyOzKn14yoKsaweBQQUZefFV6f1Y87LM6dfPvRAPgvmkMihRYg2A5x/3dDicge4i/XLuXzmai0KGLCW3qwhpjMGTTVFHUWE3VBL8dRmnE0o88hgxOfbDbuYB2xPe07km/42RjSpHnGtaoWm1NGlBULkUp56kzFiybWY88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776698616; c=relaxed/simple;
-	bh=Rt7p+f8035FwrglIyG/el9HvMHbr+wpImxFBHqJMTSs=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=KNddmhYGlyffLGp8uVy/Dr6cl41CmLqgDOy48WRdhO99iMPJeu+V7f0XAnewjoqmj+Icw8nMnxb8CoJ1Ab4O0zglkcbdZpW3fzgaweP0etCXp+IsoL+FQJsJk6XVMjFiXl5abLbah45nhS7wZrZBWGZN5T47RQpUy3J3FfKiCvc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z4sex0i0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776704187; c=relaxed/simple;
+	bh=93V6hpTgnjumJAGFzE3PjQqJ2JHpN7gM3pJjadsIycg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Az4fPYQHjalWA9aL1w7Ipr7GQIZFJpAiMJwOyCHiKUm/g1skA6SBInuehg3NrAKEqaslg2xLc6zXp7rhOWxbyQtDO7tDh5kPbK4YsuVBgSleNcWFgbr+BsaVaQ5uYuWkLBVyDaKlLgr/sVHR3AnVFxYWjZsaD9712X77AC5CO4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=Fu7Ws23g; arc=none smtp.client-ip=193.238.174.39
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z4sex0i0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 949CDC2BCB4;
-	Mon, 20 Apr 2026 15:23:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1776698616;
-	bh=Rt7p+f8035FwrglIyG/el9HvMHbr+wpImxFBHqJMTSs=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Z4sex0i0zWSKoFotw7bLfFZLHBh637MQHPf1EejQCwYYCKxdG10vZ8N3GOO7lEOac
-	 96qjPzuN8ebdmcgO48coFKzp4MXm//Fa6/mVBojlvxL3C3npxMbIFIlmnBKyw41r2F
-	 JGfdNkYdYM/BfsKU2fdRe37gtAev3FTvjnYUiHQeoVz1ErY6MDRUKfJllbQv2M/s8H
-	 RlkSN2G86MbzB6PMzHgDcKHemgKYmxf/piBhQlzr6mZyq18+u37mRPR9mHKH4Uh4oD
-	 EuZVSJWbTJX2gi5j3gAjmU25p1o2/cPJ+Gvq87cNs7NjM5Zj6PhTt2JPeDv8V7fite
-	 d3dzkF0cYOxJA==
-Date: Mon, 20 Apr 2026 08:23:34 -0700
-From: Jakub Kicinski <kuba@kernel.org>
-To: Yi Chen <yiche.cy@gmail.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal
- <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, Long Xin <lucien.xin@gmail.com>,
- "David S . Miller" <davem@davemloft.net>, Eric Dumazet
- <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
- <horms@kernel.org>, Shuah Khan <shuah@kernel.org>, coreteam@netfilter.org,
- netfilter-devel@vger.kernel.org, linux-kselftest@vger.kernel.org,
- linux-kernel@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH net v2] selftests: netfilter:
- conntrack_sctp_collision.sh: Introduce SCTP INIT collision test
-Message-ID: <20260420082334.7db8cbf4@kernel.org>
-In-Reply-To: <20260418195843.303946-1-yiche.cy@gmail.com>
-References: <20260418195843.303946-1-yiche.cy@gmail.com>
+	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="Fu7Ws23g"
+Received: from mx.ssi.bg (localhost [127.0.0.1])
+	by mx.ssi.bg (Potsfix) with ESMTP id E2406210CF;
+	Mon, 20 Apr 2026 19:56:13 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
+	:content-transfer-encoding:date:from:from:message-id
+	:mime-version:reply-to:subject:subject:to:to; s=ssi; bh=EZE1k82P
+	vjDiHHrAOcX5sT+O+gEAAUVS6oFRq0SlIGg=; b=Fu7Ws23ge43dpAtUFtCYEo2N
+	yAWyZX80rRX1cdvuxX5kZZOyVEPKWSDRpWAzeKPlszIHYMSyoCKCBgGfkDA7AKQH
+	7ciB5JsWW6kN4/VBeiC5XDpiRFK6kfcQi9kW5cLXbUaOJeIAeTY1gjBZaXv3FC13
+	g692XAvb4gCszyrJEEnt0xddmcrewxyJ/Hm083mI6czZTsJPDN76i8hdqfPPK+ve
+	yxCdndq765a4GPMHnfvvXgfED072YACNLWTr1KXrSJLwUYc/wDzy1ulIyEejRbah
+	y8sdCN2y+TARwpo4TFs1PSZFwZGl+bkMkvOq+FlODcz9fN+chOD8ZWLdC85KnIoB
+	jP9xj9zFn5qV4bw4WWtm4a1Ijv8wYrzTgLzJJiwf3bmHz2xAijrhvKbWFQZIpLda
+	t3k/L2+kIvadjCvQoyZDW0/W8peiKdemxMhBT3l/nCG7xDwMnFrexf9xoh8gEGHo
+	1/9091tqW/qbZgQYAM8ttHDdSDldtopx2B38QyU/RXM5H/bQ44e7lnzbHvFp+vW1
+	Id12qZ8WvNAoKtvrf8yjURwtvH+A0MQy7Vpvfe9uQDURJlsohtWZxeSvELYhPuov
+	3MZI8SBmUZTIeO908aZeK7snSnhfwsi9GqHB8zqcKEmmA49tVlf/owW5a/6tDTta
+	r8xPE13BiHskz3Vnx/s=
+Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
+	by mx.ssi.bg (Potsfix) with ESMTPS;
+	Mon, 20 Apr 2026 19:56:13 +0300 (EEST)
+Received: from ja.ssi.bg (unknown [213.16.62.126])
+	by box.ssi.bg (Potsfix) with ESMTPSA id 90A6F60548;
+	Mon, 20 Apr 2026 19:56:12 +0300 (EEST)
+Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
+	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63KGu4wm085552;
+	Mon, 20 Apr 2026 19:56:04 +0300
+Received: (from root@localhost)
+	by ja.home.ssi.bg (8.18.1/8.18.1/Submit) id 63KGu0bx085550;
+	Mon, 20 Apr 2026 19:56:00 +0300
+From: Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
+        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Subject: [PATCHv2 net 0/3] IPVS: fixes after the new hash tables
+Date: Mon, 20 Apr 2026 19:55:36 +0300
+Message-ID: <20260420165539.85174-1-ja@ssi.bg>
+X-Mailer: git-send-email 2.53.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On Sun, 19 Apr 2026 03:58:43 +0800 Yi Chen wrote:
-> The existing test covered a scenario where a delayed INIT_ACK chunk
-> updates the vtag in conntrack after the association has already been
-> established.
+        Hello,
 
-AI says:
+        This patchset contains fixes after the recent net-next
+work for resizable hash tables. We target 2 reports from
+Sashiko and one from syzkaller. The patches are based on the
+net tree where the fixed commits are present...
 
-The conntrack_sctp_collision.sh selftest is now failing in the NIPA CI on
-both the normal and debug kernel builds:
+v2:
+* patch 3: remove cp->lock from ip_vs_conn_fill_cport() and avoid
+  races with resizing and possible multiple attempts to fill cport.
 
-  not ok 1 1 selftests: net/netfilter: conntrack_sctp_collision.sh # exit=1
+Julian Anastasov (3):
+  ipvs: fixes for the new ip_vs_status info
+  ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
+  ipvs: fix the spin_lock usage for RT build
 
-  # Test for SCTP INIT_ACK Collision in nf_conntrack:
-  # Invalid netns name ""
-  # Invalid netns name ""
+ net/netfilter/ipvs/ip_vs_conn.c | 52 ++++++++++++---------------
+ net/netfilter/ipvs/ip_vs_ctl.c  | 63 +++++++++++++++++++++++----------
+ 2 files changed, 68 insertions(+), 47 deletions(-)
 
-The root cause is a shell variable scoping bug introduced by this patch.
-The new test structure wraps `topo_setup` in a subshell:
+-- 
+2.53.0
 
-  (topo_setup && conf_delay $SERVER_NS link0 2) || exit $?
-  if ! do_test; then
-      ...
-  fi
 
-`topo_setup` calls `setup_ns CLIENT_NS SERVER_NS ROUTER_NS`, which sets
-those variables inside the subshell. Those assignments do not propagate
-back to the parent shell, so when `do_test` is called afterwards, both
-`$SERVER_NS` and `$CLIENT_NS` expand to empty strings. The `ip net exec ""`
-calls then fail with "Invalid netns name """.
-
-The second test case (SCTP INIT Collision) would have the same problem.
-
-The fix is to avoid the subshell or ensure the namespace variables are
-visible to `do_test`. The simplest approach is to remove the subshell
-wrapping and call `topo_setup`, `conf_delay`, and `do_test` in the same
-shell scope:
-
-  topo_setup && conf_delay "$SERVER_NS" link0 2 || exit $?
-  if ! do_test; then
-      exit $ksft_fail
-  fi
-
-  topo_setup && conf_delay "$CLIENT_NS" link3 1 || exit $?
-  if ! do_test; then
-      exit $ksft_fail
-  fi
-
-Please also note that `conf_delay` references `$ROUTER_NS` directly
-(not via a parameter), so it too requires that those variables be set
-in the same shell scope.
