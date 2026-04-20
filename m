@@ -1,66 +1,102 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2751C35B64B
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 14:03:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8D4264612;
+	Mon, 20 Apr 2026 15:23:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776693817; cv=none; b=m7i7uQneOdUqfyr/1BislmydEM7f1865jr68apxoeRsyNj5FP1SPlhbWCybvGecKWdvnFnnZFlrzQTvgO1HLqgTkXIpdoccab4FsalIciGU3M85xP0iLGd1NOCzKW0gpFbSBBXD3VbjF03LbYv5vEAF/gRsJukr2/QWo3TKg0mQ=
+	t=1776698616; cv=none; b=RSdQmBaIInQqcb9CXaIHT+mjAt85WiZCSfcElRaGjWub+/YFJqf7S+rum/kfG8OxeVxZ44ZdL7GN84lD2IScSItPqXxZxr3h53Q2xxEoYxAtoI+O1N1N8pLyOBRQYpqS5CfsIs8+FQuOkVxqlPWNm4J0LqujvYLPh5MJd8wL31U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776693817; c=relaxed/simple;
-	bh=hMzUSV3qYUm7kcpMbXCteh3du5pUrpurDeRDnvmQd6o=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=M7qZmO0HcOWXswxTnsY2OU4TiBx2IPQKIHzpdZ+aqjiibIZbkkv3JMY7M6CDL1jn3uRtyVNhCYjQJ9Fkt4uBn/OfBviotsL5OOcasrv40induTcOGdNHUxO/QMqv0I2MaEq7VlMTxq9ZYW+JlZC73rWGKkdlBx9N3ak3RYAuuzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 5D55460490; Mon, 20 Apr 2026 16:03:27 +0200 (CEST)
-Date: Mon, 20 Apr 2026 16:03:26 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: ipset: Fix data race between add and dump
- in all hash types
-Message-ID: <aeYyIjzGGupy99Fv@strlen.de>
-References: <20260415082039.4133308-1-kadlec@netfilter.org>
- <20260415082039.4133308-3-kadlec@netfilter.org>
- <ad9mzYNk5JpDfklg@strlen.de>
- <4e01c555-2f4c-81b7-e6c4-d1f7b3e2e99f@blackhole.kfki.hu>
+	s=arc-20240116; t=1776698616; c=relaxed/simple;
+	bh=Rt7p+f8035FwrglIyG/el9HvMHbr+wpImxFBHqJMTSs=;
+	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=KNddmhYGlyffLGp8uVy/Dr6cl41CmLqgDOy48WRdhO99iMPJeu+V7f0XAnewjoqmj+Icw8nMnxb8CoJ1Ab4O0zglkcbdZpW3fzgaweP0etCXp+IsoL+FQJsJk6XVMjFiXl5abLbah45nhS7wZrZBWGZN5T47RQpUy3J3FfKiCvc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z4sex0i0; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z4sex0i0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 949CDC2BCB4;
+	Mon, 20 Apr 2026 15:23:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776698616;
+	bh=Rt7p+f8035FwrglIyG/el9HvMHbr+wpImxFBHqJMTSs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Z4sex0i0zWSKoFotw7bLfFZLHBh637MQHPf1EejQCwYYCKxdG10vZ8N3GOO7lEOac
+	 96qjPzuN8ebdmcgO48coFKzp4MXm//Fa6/mVBojlvxL3C3npxMbIFIlmnBKyw41r2F
+	 JGfdNkYdYM/BfsKU2fdRe37gtAev3FTvjnYUiHQeoVz1ErY6MDRUKfJllbQv2M/s8H
+	 RlkSN2G86MbzB6PMzHgDcKHemgKYmxf/piBhQlzr6mZyq18+u37mRPR9mHKH4Uh4oD
+	 EuZVSJWbTJX2gi5j3gAjmU25p1o2/cPJ+Gvq87cNs7NjM5Zj6PhTt2JPeDv8V7fite
+	 d3dzkF0cYOxJA==
+Date: Mon, 20 Apr 2026 08:23:34 -0700
+From: Jakub Kicinski <kuba@kernel.org>
+To: Yi Chen <yiche.cy@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal
+ <fw@strlen.de>, Phil Sutter <phil@nwl.cc>, Long Xin <lucien.xin@gmail.com>,
+ "David S . Miller" <davem@davemloft.net>, Eric Dumazet
+ <edumazet@google.com>, Paolo Abeni <pabeni@redhat.com>, Simon Horman
+ <horms@kernel.org>, Shuah Khan <shuah@kernel.org>, coreteam@netfilter.org,
+ netfilter-devel@vger.kernel.org, linux-kselftest@vger.kernel.org,
+ linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH net v2] selftests: netfilter:
+ conntrack_sctp_collision.sh: Introduce SCTP INIT collision test
+Message-ID: <20260420082334.7db8cbf4@kernel.org>
+In-Reply-To: <20260418195843.303946-1-yiche.cy@gmail.com>
+References: <20260418195843.303946-1-yiche.cy@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e01c555-2f4c-81b7-e6c4-d1f7b3e2e99f@blackhole.kfki.hu>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
-> limit the searching range for existing elements (which might be timed out 
-> as well). So until the "size" is unchanged (no growing/shrinking), the 
-> worst things which can happen if it's not "correct":
-> 
-> - new element added but dump/test don't "find" it
-> - element deleted but dump/test find it
-> 
-> The critical part is when "size" changes. But "size" never updated 
-> directly: a completely new bucket is created when growing/shrinking and 
-> the new bucket is assigned via RCU mechanism.
-> 
-> So why do you thing the helpers are required to read/update the "pos" 
-> element of the hash bucket? I might not see the wood for the trees.
+On Sun, 19 Apr 2026 03:58:43 +0800 Yi Chen wrote:
+> The existing test covered a scenario where a delayed INIT_ACK chunk
+> updates the vtag in conntrack after the association has already been
+> established.
 
-As-is it is confusing. Pos is updated concurrently to dumpers
-with no ordering and no annotations (READ_ONCE, WRITE_ONCE).
+AI says:
 
-Maybe they are not required, but then there should be WRITE_ONCE()
-and READ_ONCE and a comment explaining that this is deliberately racy.
+The conntrack_sctp_collision.sh selftest is now failing in the NIPA CI on
+both the normal and debug kernel builds:
 
-Basically what you wrote above.  It would help to understand what
-guarantees there are and that this is good enough.
+  not ok 1 1 selftests: net/netfilter: conntrack_sctp_collision.sh # exit=1
 
-As-is KCSAN will surely splat without data race annotations.
+  # Test for SCTP INIT_ACK Collision in nf_conntrack:
+  # Invalid netns name ""
+  # Invalid netns name ""
+
+The root cause is a shell variable scoping bug introduced by this patch.
+The new test structure wraps `topo_setup` in a subshell:
+
+  (topo_setup && conf_delay $SERVER_NS link0 2) || exit $?
+  if ! do_test; then
+      ...
+  fi
+
+`topo_setup` calls `setup_ns CLIENT_NS SERVER_NS ROUTER_NS`, which sets
+those variables inside the subshell. Those assignments do not propagate
+back to the parent shell, so when `do_test` is called afterwards, both
+`$SERVER_NS` and `$CLIENT_NS` expand to empty strings. The `ip net exec ""`
+calls then fail with "Invalid netns name """.
+
+The second test case (SCTP INIT Collision) would have the same problem.
+
+The fix is to avoid the subshell or ensure the namespace variables are
+visible to `do_test`. The simplest approach is to remove the subshell
+wrapping and call `topo_setup`, `conf_delay`, and `do_test` in the same
+shell scope:
+
+  topo_setup && conf_delay "$SERVER_NS" link0 2 || exit $?
+  if ! do_test; then
+      exit $ksft_fail
+  fi
+
+  topo_setup && conf_delay "$CLIENT_NS" link3 1 || exit $?
+  if ! do_test; then
+      exit $ksft_fail
+  fi
+
+Please also note that `conf_delay` references `$ROUTER_NS` directly
+(not via a parameter), so it too requires that those variables be set
+in the same shell scope.
