@@ -1,228 +1,347 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65C43946C
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 21:08:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70E0838836A
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 21:11:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776719302; cv=none; b=bN5p8j35Y+cc+msEIm+xLwdbJo4QvxC3YSyLHKwgwGWAICO8BTJcOcrKGEiKN/G5Iw9f7PoFCXLaCXaEtcTHd+Wzqh/nxvzXQlDuV+ZeqXlZc/VX1Zn1Qt9dKWFSnYYKD3OTYbegef5St4WwzIrxtGfqCekFhQ770FWfHi/VvFw=
+	t=1776719478; cv=none; b=HxTfLYmMXq0f7KHTQym2RaOA22JfuvRzu9DutpAe7vru+rXyoEDi/OqLjTCfPp8VQeV/q3UPoAmE6+/21ef2GupCR8cg8h3voSiHYcNV11D9W/wVy5GSd4CDFDss381VTiultjewIe9aXuCU8vhlySZxBz4B9AY6I3nc1PH6odk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776719302; c=relaxed/simple;
-	bh=eiig7UqC7KYu9Rke6U1ChITvIvOG/LCyJoCC3uipSys=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Osf0jZ3LJaAglbyRz9TnCxK8Cx/wvuNDRU7codt9GyZjzOJCrJv1ZIGvn3cS48iQPeUvv3+MT5/sOn61iC+RMRF1woL+svbMEsbunQaCiZ9YJgaXU+pOlA8XKOHWinJaZEdGEi86HU52hVLYR3ZH1PNgNgI/5MGpm2MGGFef9m4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=oXlmcrPh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vIwgJe1k; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=oXlmcrPh; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=vIwgJe1k; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1776719478; c=relaxed/simple;
+	bh=tDNVRmC+8FUJaz3cjMfWgYLqy/u5Hf9J5F1oNtwnwt0=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=CBAVRTpq8FOn/Dby0nqtbIFkwRgtXA2/iq5sCXUJgvFUrBN3qIkeLexjIMMad0sRcVW6FiolmgQU7WVX6p4JXxPwakrDBCriYHEkb7wI8sI49EiOh6BEfRNcX+daJMYcfzcnp2gKqWS9n9HC5FS4kdjFFZ1akxsuOLCKMCKpwM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Gu/QNdki; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="oXlmcrPh";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vIwgJe1k";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="oXlmcrPh";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="vIwgJe1k"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 726FE6A7D5;
-	Mon, 20 Apr 2026 21:08:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776719299; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jilQR9GE8PoSmPRNaPz/68BpmSh+Xm9AVr4GLf+/mms=;
-	b=oXlmcrPhwPIZZDVN4L6TDPVYorvQ8p+AEAQ/qXh0o3K0yBZ30a9HOTcU4dpMmzj4CBR6Kt
-	Lq4ZcbUwq1FzwRtmkx+NjRK+6ncCbaoCk4P2NvXr4xPRijWJBB1SAFwHbTm2B4yKtT9pvA
-	gmnor4clBqgySs9p0QNz+7+qDxHDjZM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776719299;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jilQR9GE8PoSmPRNaPz/68BpmSh+Xm9AVr4GLf+/mms=;
-	b=vIwgJe1kKkMK5D82jCeLr2/136AQgXcyLB3hU6jMKF1Yu9mLumHQ7xhhjDwo0c4Xr6NbbI
-	dTLlEbjpXy9wHZAA==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776719299; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jilQR9GE8PoSmPRNaPz/68BpmSh+Xm9AVr4GLf+/mms=;
-	b=oXlmcrPhwPIZZDVN4L6TDPVYorvQ8p+AEAQ/qXh0o3K0yBZ30a9HOTcU4dpMmzj4CBR6Kt
-	Lq4ZcbUwq1FzwRtmkx+NjRK+6ncCbaoCk4P2NvXr4xPRijWJBB1SAFwHbTm2B4yKtT9pvA
-	gmnor4clBqgySs9p0QNz+7+qDxHDjZM=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776719299;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=jilQR9GE8PoSmPRNaPz/68BpmSh+Xm9AVr4GLf+/mms=;
-	b=vIwgJe1kKkMK5D82jCeLr2/136AQgXcyLB3hU6jMKF1Yu9mLumHQ7xhhjDwo0c4Xr6NbbI
-	dTLlEbjpXy9wHZAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1C023593AE;
-	Mon, 20 Apr 2026 21:08:19 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id SdUWBMOV5ml7ZQAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 20 Apr 2026 21:08:19 +0000
-Message-ID: <44c867f4-a9f7-4ca2-8c4e-ba13a5353815@suse.de>
-Date: Mon, 20 Apr 2026 23:08:14 +0200
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Gu/QNdki"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id DCFC960181
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 23:11:13 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776719474;
+	bh=CbJQsbTyQz0Pdj/+YEnzMEJr2U6zOThwT8P3ALasvMQ=;
+	h=From:To:Subject:Date:From;
+	b=Gu/QNdkid+5eeIxcY75Ng1qLx9/j/aoWrmVJKEJpcvl9QIXHj5I3NAI6IGf06cP2P
+	 EzHYVOkL0wC7di6uvAb26W7KFQLeDS5w7ELt2donS1s8njSb4rKzFsoP5QsAe1ycXK
+	 2XlWkFfWokFx/bFRtzPnA+pcykgdAxJ6PApMPb5N3ZpavO1PVgMSqrkfNidzfOfTRb
+	 g097l7Bp5LuCsRe5e0yfZXnVYHyVyHDrs33Hso12n841kX6yMNrKTMdSH9qvjyjG8f
+	 MWP4HBgdb1h5ibRCPWmvH/1q2CL8KVggwL6885qIky6dBZjXSnGjcJ3Z7K+HBc8pOX
+	 jL5fgso3PCVaw==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf,v2] netfilter: nft_compat: run checkentry() from .validate
+Date: Mon, 20 Apr 2026 23:11:04 +0200
+Message-ID: <20260420211105.55177-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 2/2 nf v2] netfilter: xtables: fix L4 header parsing for
- non-first fragments
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
- ecklm94@gmail.com, phil@nwl.cc, fw@strlen.de
-References: <20260420104745.10338-1-fmancera@suse.de>
- <20260420104745.10338-2-fmancera@suse.de> <aeaQcrEMN-IYE7xI@chamomile>
- <aeaTcpPAk1HDjUoD@chamomile>
-Content-Language: en-US
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-In-Reply-To: <aeaTcpPAk1HDjUoD@chamomile>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Spamd-Result: default: False [-4.30 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_HAS_DN(0.00)[];
-	FREEMAIL_CC(0.00)[vger.kernel.org,netfilter.org,gmail.com,nwl.cc,strlen.de];
-	RCPT_COUNT_FIVE(0.00)[6];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Score: -4.30
-X-Spam-Level: 
+Content-Transfer-Encoding: 8bit
 
-Hi Pablo,
+Several matches and one target check that the hook is correct from
+checkentry(), however, the basechain is only available from
+nft_table_validate().
 
-On 4/20/26 10:58 PM, Pablo Neira Ayuso wrote:
-> On Mon, Apr 20, 2026 at 10:45:41PM +0200, Pablo Neira Ayuso wrote:
->> Hi Fernando,
->>
->> On Mon, Apr 20, 2026 at 12:47:45PM +0200, Fernando Fernandez Mancera wrote:
->>> diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
->>> index 76e01f292aaf..d366e294f1aa 100644
->>> --- a/net/netfilter/xt_socket.c
->>> +++ b/net/netfilter/xt_socket.c
->>> @@ -55,8 +55,11 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
->>>   	if (sk && !net_eq(xt_net(par), sock_net(sk)))
->>>   		sk = NULL;
->>>   
->>> -	if (!sk)
->>> +	if (!sk) {
->>> +		if (par->fragoff)
->>> +			return false;
->>>   		sk = nf_sk_lookup_slow_v4(xt_net(par), skb, xt_in(par));
->>> +	}
->>>   
->>>   	if (sk) {
->>>   		bool wildcard;
->>> @@ -116,8 +119,11 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
->>>   	if (sk && !net_eq(xt_net(par), sock_net(sk)))
->>>   		sk = NULL;
->>>   
->>> -	if (!sk)
->>> +	if (!sk) {
->>> +		if (par->fragoff)
->>> +			return false;
->>
->> Your patch will work as intented in iptables over nf_tables, because
->> it always sets on fragoff regardless user policy.
->>
->> But, if ipv6_find_hdr() finds no layer 4 protocol, then fragoff
->> remains zero, and pkt->flags does not set on NFT_PKTINFO_L4PROTO.
->> There, in nftables, par->fragoff but itself is not reliable because
->> maybe the layer 4 was not found.
-> 
-> This is where pkt->tprot comes into play. I think this series is fine
-> with nf_tables, it is just ip6_tables legacy that lags behind.
-> 
+This patch calls checkentry() for matches and targets from the
+nft_compat expression .validate path for the following matches/target:
 
-Hm, I didn't know this. Thanks for explaining. Then xt_socket is safe 
-for IPv6 as the code does:
+- addrtype
+- devgroup
+- physdev
+- policy
+- set
+- TCPMSS
+- SET
 
-         tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
-         if (tproto < 0) {
-                 pr_debug("unable to find transport header in IPv6 
-packet, dropping\n");
-                 return NULL;
-         }
+The .destroy indirection is also called to restore the xt_set refcounts
+that is performed by .checkentry. The remaining extensions provide no
+.destroy interface.
 
-at nf_socket_get_sock_v6()
+This patch sets the table in the nft_ctx struct in nft_table_validate()
+which is required by this patch.
 
-Okay, let me re-send adjusting the IPv6 part..
+The nft_compat_check_match() and nft_compat_check_target() helper
+functions are added to wrap common code used from .init and .validate
+path.
 
->> Then, there is ip6_tables legacy which does not behave like ip_tables
->> for fragments.
->>
->> ip6t_do_table() only sets fragoff if IP6T_F_PROTO (-p in userspace) is
->> used, unlike nftables which always sets on fragoff.
->>
->> So par->fragoff is unreliable in ip6_tables legacy, and
->> ipv6_find_hdr() is called over and over again ip6_packet_match() loop
->> for each rule.
->>
->> One way would be to call ipv6_find_hdr() inconditionally from
->> ip6_tables legacy, but that belongs to a different patch and that
->> would be touch core ip6_tables legacy.
->>
->> Rewinding a bit, coming to back to the original issue: osf only
->> supports ipv4 :-)
->>
+The protocol and inverse flags are set to always match from the
+expression .validate path, this is already checked from the init path.
 
-Right, but we need to fix this everywhere not only in osf.
+Fixes: 0ca743a55991 ("netfilter: nf_tables: add compatibility layer for x_tables")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: add SET target. Posting to the ML until it is decided where to go with this.
 
-Thanks,
-Fernando.
+ net/netfilter/nf_tables_api.c |   1 +
+ net/netfilter/nft_compat.c    | 152 +++++++++++++++++++++++++++-------
+ 2 files changed, 125 insertions(+), 28 deletions(-)
 
->>>   		sk = nf_sk_lookup_slow_v6(xt_net(par), skb, xt_in(par));
->>> +	}
->>>   
->>>   	if (sk) {
->>>   		bool wildcard;
->>> diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
->>> index 0d32d4841cb3..69844cc8dbb8 100644
->>> --- a/net/netfilter/xt_tcpmss.c
->>> +++ b/net/netfilter/xt_tcpmss.c
->>> @@ -32,6 +32,9 @@ tcpmss_mt(const struct sk_buff *skb, struct xt_action_param *par)
->>>   	u8 _opt[15 * 4 - sizeof(_tcph)];
->>>   	unsigned int i, optlen;
->>>   
->>> +	if (par->fragoff)
->>> +		return false;
->>> +
->>>   	/* If we don't have the whole header, drop packet. */
->>>   	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
->>>   	if (th == NULL)
->>> -- 
->>> 2.53.0
->>>
-> 
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index d20ce5c36d31..38e33c66c618 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4205,6 +4205,7 @@ static int nft_table_validate(struct net *net, const struct nft_table *table)
+ 	struct nft_chain *chain;
+ 	struct nft_ctx ctx = {
+ 		.net	= net,
++		.table	= (struct nft_table *)table,
+ 		.family	= table->family,
+ 	};
+ 	int err = 0;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index decc725a33c2..5a5f4f07deab 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -229,6 +229,20 @@ static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+ 	return 0;
+ }
+ 
++static int nft_compat_check_target(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr,
++				   void *info, size_t size,
++				   u16 proto, bool inv)
++{
++	struct xt_target *target = expr->ops->data;
++	struct xt_tgchk_param par;
++	union nft_entry e = {};
++
++	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
++
++	return xt_check_target(&par, size, proto, inv);
++}
++
+ static void nft_compat_wait_for_destructors(struct net *net)
+ {
+ 	/* xtables matches or targets can have side effects, e.g.
+@@ -244,13 +258,11 @@ static int
+ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		const struct nlattr * const tb[])
+ {
+-	void *info = nft_expr_priv(expr);
+ 	struct xt_target *target = expr->ops->data;
+-	struct xt_tgchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
+-	u16 proto = 0;
++	void *info = nft_expr_priv(expr);
+ 	bool inv = false;
+-	union nft_entry e = {};
++	u16 proto = 0;
+ 	int ret;
+ 
+ 	target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
+@@ -261,11 +273,9 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			return ret;
+ 	}
+ 
+-	nft_target_set_tgchk_param(&par, ctx, target, info, &e, proto, inv);
+-
+ 	nft_compat_wait_for_destructors(ctx->net);
+ 
+-	ret = xt_check_target(&par, size, proto, inv);
++	ret = nft_compat_check_target(ctx, expr, info, size, proto, inv);
+ 	if (ret < 0) {
+ 		if (ret == -ENOENT) {
+ 			const char *modname = NULL;
+@@ -296,21 +306,29 @@ static void __nft_mt_tg_destroy(struct module *me, const struct nft_expr *expr)
+ 	kfree(expr->ops);
+ }
+ 
+-static void
+-nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
++static void nft_tg_destroy(const struct nft_ctx *ctx, struct xt_target *target,
++			   void *info)
+ {
+-	struct xt_target *target = expr->ops->data;
+-	void *info = nft_expr_priv(expr);
+-	struct module *me = target->me;
+ 	struct xt_tgdtor_param par;
+ 
++	if (!target->destroy)
++		return;
++
+ 	par.net = ctx->net;
+ 	par.target = target;
+ 	par.targinfo = info;
+ 	par.family = ctx->family;
+-	if (par.target->destroy != NULL)
+-		par.target->destroy(&par);
++	par.target->destroy(&par);
++}
+ 
++static void
++nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
++{
++	struct xt_target *target = expr->ops->data;
++	void *info = nft_expr_priv(expr);
++	struct module *me = target->me;
++
++	nft_tg_destroy(ctx, target, info);
+ 	__nft_mt_tg_destroy(me, expr);
+ }
+ 
+@@ -382,6 +400,32 @@ static int nft_target_validate(const struct nft_ctx *ctx,
+ 		if (target->hooks && !(hook_mask & target->hooks))
+ 			return -EINVAL;
+ 
++		/* At least one target needs to validate hooks at checkentry()
++		 * stage because such validation depends on the match
++		 * configuration. This cannot be enabled for all matches,
++		 * because some of them perform more than simple validation,
++		 * such as bumping reference counter on objects.
++		 */
++		if (!strcmp(target->name, "TCPMSS") ||
++		    !strcmp(target->name, "SET")) {
++			struct xt_target *target = expr->ops->data;
++			size_t size = XT_ALIGN(target->targetsize);
++			void *info = nft_expr_priv(expr);
++
++			/* nft_target_init() already checked for protocol and
++			 * inverse, not available in this patch, lie here.
++			 */
++			ret = nft_compat_check_target(ctx, expr, info, size,
++						      target->proto, false);
++			if (ret < 0)
++				return ret;
++
++			 /* The set target bumps reference count, restore after
++			  * this checkentry call.
++			  */
++			nft_tg_destroy(ctx, target, info);
++		}
++
+ 		ret = nft_compat_chain_validate_dependency(ctx, target->table);
+ 		if (ret < 0)
+ 			return ret;
+@@ -494,17 +538,29 @@ static void match_compat_from_user(struct xt_match *m, void *in, void *out)
+ 		memset(out + m->matchsize, 0, pad);
+ }
+ 
++static int nft_compat_check_match(const struct nft_ctx *ctx,
++				  const struct nft_expr *expr,
++				  void *info, size_t size,
++				  u16 proto, bool inv)
++{
++	struct xt_match *match = expr->ops->data;
++	struct xt_mtchk_param par;
++	union nft_entry e = {};
++
++	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
++
++	return xt_check_match(&par, size, proto, inv);
++}
++
+ static int
+ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 		 const struct nlattr * const tb[],
+ 		 void *info)
+ {
+-	struct xt_match *match = expr->ops->data;
+-	struct xt_mtchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
+-	u16 proto = 0;
++	struct xt_match *match = expr->ops->data;
+ 	bool inv = false;
+-	union nft_entry e = {};
++	u16 proto = 0;
+ 	int ret;
+ 
+ 	match_compat_from_user(match, nla_data(tb[NFTA_MATCH_INFO]), info);
+@@ -515,11 +571,9 @@ __nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			return ret;
+ 	}
+ 
+-	nft_match_set_mtchk_param(&par, ctx, match, info, &e, proto, inv);
+-
+ 	nft_compat_wait_for_destructors(ctx->net);
+ 
+-	return xt_check_match(&par, size, proto, inv);
++	return nft_compat_check_match(ctx, expr, info, size, proto, inv);
+ }
+ 
+ static int
+@@ -547,21 +601,29 @@ nft_match_large_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	return ret;
+ }
+ 
+-static void
+-__nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
+-		    void *info)
++static void nft_mt_destroy(const struct nft_ctx *ctx, struct xt_match *match,
++			   void *info)
+ {
+-	struct xt_match *match = expr->ops->data;
+-	struct module *me = match->me;
+ 	struct xt_mtdtor_param par;
+ 
++	if (!match->destroy)
++		return;
++
+ 	par.net = ctx->net;
+ 	par.match = match;
+ 	par.matchinfo = info;
+ 	par.family = ctx->family;
+-	if (par.match->destroy != NULL)
+-		par.match->destroy(&par);
++	par.match->destroy(&par);
++}
+ 
++static void
++__nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr,
++		    void *info)
++{
++	struct xt_match *match = expr->ops->data;
++	struct module *me = match->me;
++
++	nft_mt_destroy(ctx, match, info);
+ 	__nft_mt_tg_destroy(me, expr);
+ }
+ 
+@@ -643,6 +705,40 @@ static int nft_match_validate(const struct nft_ctx *ctx,
+ 		if (match->hooks && !(hook_mask & match->hooks))
+ 			return -EINVAL;
+ 
++		/* Several matches need to validate hooks at checkentry() stage
++		 * because such validation depends on the match configuration.
++		 */
++		if (!strcmp(match->name, "addrtype") ||
++		    !strcmp(match->name, "devgroup") ||
++		    !strcmp(match->name, "physdev") ||
++		    !strcmp(match->name, "policy") ||
++		    !strcmp(match->name, "set")) {
++			struct xt_match *match = expr->ops->data;
++			size_t size = XT_ALIGN(match->matchsize);
++			void *info;
++
++			if (NFT_EXPR_SIZE(size) > NFT_MATCH_LARGE_THRESH) {
++				struct nft_xt_match_priv *priv = nft_expr_priv(expr);
++
++				info = priv->info;
++			} else {
++				info = nft_expr_priv(expr);
++			}
++
++			/* __nft_match_init() already checked for protocol and
++			 * inverse, not available in this patch, lie here.
++			 */
++			ret = nft_compat_check_match(ctx, expr, info, size,
++						     match->proto, false);
++			if (ret < 0)
++				return ret;
++
++			 /* The set match bumps reference count, restore after
++			  * this checkentry call.
++			  */
++			nft_mt_destroy(ctx, match, info);
++		}
++
+ 		ret = nft_compat_chain_validate_dependency(ctx, match->table);
+ 		if (ret < 0)
+ 			return ret;
+-- 
+2.47.3
 
