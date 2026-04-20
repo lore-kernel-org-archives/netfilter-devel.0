@@ -1,69 +1,69 @@
 Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A51137D126
-	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 17:06:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 950F6378830
+	for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2026 17:06:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776704762; cv=none; b=BRQLN6PyH3FIGvkseIudFgSxIYOdlvw2GA1x9JdpECsHzWV34MMYaLsGWCHMdW8SL+zUjtZFqD9xYhmJMgsLPPiZPJZIQOLSLmDpVqkQCURLcSsH+OTSNe+57oOKqwb/R5OhjVu6K/oH75rzz85W8vWZhH2wpauif0dAw2UcCO8=
+	t=1776704819; cv=none; b=mufw9zz+jB6ppz2sD5Y/qTOgOrC2PxQSDALRe1VslznKxqkZRtW6gqnxgVO7DI4EZr600pX2cLhjJJlZjO+fS2GRlUm0fNNrzfQuGeXWTTo879AA6lE1t2lRmIHb+9MQreORPP3rDH0tocMqdSjNsNac+2qXE/Udjgz7rQqovIU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776704762; c=relaxed/simple;
-	bh=Wc9XyJvudYZrV2kjFLhnBq5JSK7wWH/1YudY8tnrN4E=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=iIxcwwiYYIITtV7KMHr7eYrGoyJ5pQkM1heEy/scLNmfxZtUIUULrU1/8yoVoTyysWCwUARK/KpjFkORXV5s7H+u3uLsP6qGT0CEViU/aPaoya7y8AArNhd3StEh9/rAFbuW4fmbf2SBUSdrvxUDgC+q7vANkENZ0yOtXzOx9TY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=mXGmO8Qf; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=4OBrUyfR; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=mXGmO8Qf; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=4OBrUyfR; arc=none smtp.client-ip=195.135.223.130
+	s=arc-20240116; t=1776704819; c=relaxed/simple;
+	bh=KRoucZdtKhn8bxecQT1BI9h/5fx6zJ45TmRNjfcnnzk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=q5wAm5iqF51VXLC68SCvXDLMkYa4DZGAwtF/PABGohpI6/oICIN2x+Pa3cIWJg+GAwJpV6DK3BawG/7qi/ytbmcOgpWmNGDMBaKl46FvsgZEOogRdhVH4c4OeFdFxcSFLmo86HtAEtBb/zD6m4510ASiDomvLqyZ3imLn3UuRrE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=j/myUb1y; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=uYwGjUi4; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=j/myUb1y; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=uYwGjUi4; arc=none smtp.client-ip=195.135.223.130
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="mXGmO8Qf";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="4OBrUyfR";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="mXGmO8Qf";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="4OBrUyfR"
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="j/myUb1y";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="uYwGjUi4";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="j/myUb1y";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="uYwGjUi4"
 Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 591DC6A7E0;
-	Mon, 20 Apr 2026 17:05:59 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id CE9196A7DC;
+	Mon, 20 Apr 2026 17:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776704759; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1776704815; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=MuCLAXW57Q8lA+x75KHGBeAqfdDiS51Udty/IYN6aw0=;
-	b=mXGmO8Qf+70lLq3wKYs98bRNAbs7K91w/urRoQbaCGN5bu129JKJDb1l8Lt8CTOxIb/mhp
-	OMQCxDQ8lk1PQPr5I7hRzkFUwtArU52iGDo+Oe4MbS5Wx00TSIcO9sPW2PQnN8mW4eFslw
-	FybgzBDR/ky2rGL5II8a2YKMVHUxn4A=
+	bh=BQiBgztjhi0+v/VAEFKigtPnlQ1fJW8I0AYtJ4PxcJ0=;
+	b=j/myUb1yPSYxDp4+OQnKVxR3MBYV6bTW2LdgUsdQgmYaoOdYrFU2hlA4ZADBHNpDMoIstz
+	VkciX1sb7QGHlHxUFSiVhZtq+PXPhBZkPACfDuahcYbo63JMawH8fymnw5prso177zn0Al
+	ri1QEdprxWQWc3/Wd/6PIrXnUdqCUqA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776704759;
+	s=susede2_ed25519; t=1776704815;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=MuCLAXW57Q8lA+x75KHGBeAqfdDiS51Udty/IYN6aw0=;
-	b=4OBrUyfRD1nqDEvQ/g+hk880W5BmlP25kwIQNYEUTWghK5d1DiI+3yWj6MwzO+5bAPVBHg
-	pX5bqcFX+eO3RGCg==
+	bh=BQiBgztjhi0+v/VAEFKigtPnlQ1fJW8I0AYtJ4PxcJ0=;
+	b=uYwGjUi43TsyU4856p84fD81os6J5lm+qkLgDQSp8f4pks9Q8blLDyiHyjiEMOOtDCVjDO
+	NSYa3iOsc8mJYwCQ==
 Authentication-Results: smtp-out1.suse.de;
 	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776704759; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1776704815; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=MuCLAXW57Q8lA+x75KHGBeAqfdDiS51Udty/IYN6aw0=;
-	b=mXGmO8Qf+70lLq3wKYs98bRNAbs7K91w/urRoQbaCGN5bu129JKJDb1l8Lt8CTOxIb/mhp
-	OMQCxDQ8lk1PQPr5I7hRzkFUwtArU52iGDo+Oe4MbS5Wx00TSIcO9sPW2PQnN8mW4eFslw
-	FybgzBDR/ky2rGL5II8a2YKMVHUxn4A=
+	bh=BQiBgztjhi0+v/VAEFKigtPnlQ1fJW8I0AYtJ4PxcJ0=;
+	b=j/myUb1yPSYxDp4+OQnKVxR3MBYV6bTW2LdgUsdQgmYaoOdYrFU2hlA4ZADBHNpDMoIstz
+	VkciX1sb7QGHlHxUFSiVhZtq+PXPhBZkPACfDuahcYbo63JMawH8fymnw5prso177zn0Al
+	ri1QEdprxWQWc3/Wd/6PIrXnUdqCUqA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776704759;
+	s=susede2_ed25519; t=1776704815;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=MuCLAXW57Q8lA+x75KHGBeAqfdDiS51Udty/IYN6aw0=;
-	b=4OBrUyfRD1nqDEvQ/g+hk880W5BmlP25kwIQNYEUTWghK5d1DiI+3yWj6MwzO+5bAPVBHg
-	pX5bqcFX+eO3RGCg==
+	bh=BQiBgztjhi0+v/VAEFKigtPnlQ1fJW8I0AYtJ4PxcJ0=;
+	b=uYwGjUi43TsyU4856p84fD81os6J5lm+qkLgDQSp8f4pks9Q8blLDyiHyjiEMOOtDCVjDO
+	NSYa3iOsc8mJYwCQ==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id EB9E0593AE;
-	Mon, 20 Apr 2026 17:05:58 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 7086F593AE;
+	Mon, 20 Apr 2026 17:06:55 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id Mh6VNvZc5mn6AgAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Mon, 20 Apr 2026 17:05:58 +0000
+	id PJjEGC9d5mk+BAAAD6G6ig
+	(envelope-from <fmancera@suse.de>); Mon, 20 Apr 2026 17:06:55 +0000
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 To: netfilter-devel@vger.kernel.org
 Cc: coreteam@netfilter.org,
@@ -71,9 +71,9 @@ Cc: coreteam@netfilter.org,
 	fw@strlen.de,
 	pablo@netfilter.org,
 	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH nf-next v4] netfilter: nf_tables: add math expression support
-Date: Mon, 20 Apr 2026 19:05:42 +0200
-Message-ID: <20260420170541.22039-2-fmancera@suse.de>
+Subject: [PATCH libnftnl v3] expr: add support to math expression
+Date: Mon, 20 Apr 2026 19:06:44 +0200
+Message-ID: <20260420170644.22075-1-fmancera@suse.de>
 X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
@@ -84,99 +84,65 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-Spamd-Result: default: False [-2.80 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
 	MID_CONTAINS_FROM(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
 	R_MISSING_CHARSET(0.50)[];
 	NEURAL_HAM_SHORT(-0.20)[-1.000];
 	MIME_GOOD(-0.10)[text/plain];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
 	ARC_NA(0.00)[];
 	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
 	RCVD_COUNT_TWO(0.00)[2];
+	TO_DN_SOME(0.00)[];
 	FUZZY_RATELIMITED(0.00)[rspamd.com];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
 	RCPT_COUNT_FIVE(0.00)[6];
-	RCVD_TLS_ALL(0.00)[]
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:email]
 X-Spam-Flag: NO
 X-Spam-Score: -2.80
 X-Spam-Level: 
 
-Historically, users have requested support for increasing and decreasing
-TTL value in nftables in order to migrate from iptables.
-
-Following the nftables spirit of flexible and multipurpose expressions,
-this patch introduces "nft_math" expression. This expression allows to
-increase and decrease values stored in the register.
-
-The math expression intends to be flexible enough in case it needs to be
-extended in the future, e.g implement non-contiguous bitfields
-operations. But for now, non-contiguous payloads are not supported.
-
-When loading a u8 or u16 payload into a register we don't know if the
-value is stored at least significant byte or most significant byte. In
-order to handle such cases, introduce a bitmask indicating what is the
-target bit and also use it to handle limits to prevent overflow or
-underflow. Keep on mind that math expression expects that the sreg and
-dreg are in host byteorder, so the user must use nft_byteorder
-expressions as needed.
-
-This implementation comes with a libnftnl patch that allows the user to
-generate the following example bytecodes:
-
-- Bytecode to increase the TTL of a packet
-
-table filter inet flags 0 use 1 handle 1
-inet filter input use 1 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
-inet filter input 4
-  [ payload load 2b @ network header + 8 => reg 1 ]
-  [ math mask 0x000000ff reg 1 + 1 => 1]
-  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-
-- Bytecode to decrease the TTL of a packet
-
-table filter inet flags 0 use 1 handle 1
-inet filter input use 1 type filter hook input prio 0 policy accept packets 0 bytes 0 flags 1
-inet filter input 4
-  [ payload load 2b @ network header + 8 => reg 1 ]
-  [ math mask 0x000000ff reg 1 - 1 => 1]
-  [ payload write reg 1 => 2b @ network header + 8 csum_type 1 csum_off 10 csum_flags 0x0 ]
-
-- Bytecode to increase the meta mark of a packet
-
-table mangle inet flags 0 use 1 handle 6
-inet mangle output use 1 type filter hook output prio 0 policy accept packets 0 bytes 0 flags 1
-inet mangle output 2
-  [ meta load mark => reg 1 ]
-  [ math mask 0xffffffff reg 1 + 1 => 1]
-  [ meta set mark with reg 1 ]
-
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 ---
-v2: dropped the byteorder netlink attribute, added bitmask to handle
-LSB/MSB when dealing with u8 and u16, simplified eval logic. I've kept
-nft_math as module, IMHO it would be too much to make it built-in.
-v3: fixed checkpatch warnings, improved Kconfig description and fixed a
-wrong EINVAL return.
-v4: removed NFTA_MATH_LEN as discussed with Phil, added a non-contiguous
-bitmask check
+v2: adjusted the new fields and fixed the duplicated "math" on print
+v3: removed NFTNL_EXPR_MATH_LEN and simplified printing
 ---
- include/uapi/linux/netfilter/nf_tables.h |  25 ++++
- net/netfilter/Kconfig                    |   9 ++
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_math.c                 | 154 +++++++++++++++++++++++
- 4 files changed, 189 insertions(+)
- create mode 100644 net/netfilter/nft_math.c
+ include/libnftnl/expr.h             |   8 ++
+ include/linux/netfilter/nf_tables.h |  25 ++++
+ src/Makefile.am                     |   1 +
+ src/expr/math.c                     | 178 ++++++++++++++++++++++++++++
+ src/expr_ops.c                      |   2 +
+ 5 files changed, 214 insertions(+)
+ create mode 100644 src/expr/math.c
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 0b708153469c..36a5b42c3ddf 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -2019,4 +2019,29 @@ enum nft_tunnel_attributes {
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 41e9f30..e21752f 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -364,6 +364,14 @@ enum {
+ 	__NFTNL_EXPR_INNER_MAX
+ };
+ 
++enum {
++	NFTNL_EXPR_MATH_SREG	= NFTNL_EXPR_BASE,
++	NFTNL_EXPR_MATH_DREG,
++	NFTNL_EXPR_MATH_OP,
++	NFTNL_EXPR_MATH_BITMASK,
++	__NFTNL_EXPR_MATH_MAX
++};
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 7c0c915..ee8df9a 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -2015,4 +2015,29 @@ enum nft_tunnel_attributes {
  };
  #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
  
@@ -206,198 +172,222 @@ index 0b708153469c..36a5b42c3ddf 100644
 +#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
 +
  #endif /* _LINUX_NF_TABLES_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index f3ea0cb26f36..49e723f0dcc8 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -667,6 +667,15 @@ config NFT_SYNPROXY
- 	  server. This allows to avoid conntrack and server resource usage
- 	  during SYN-flood attacks.
- 
-+config NFT_MATH
-+	tristate "Netfilter nf_tables math expression support"
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This option enables support for the nftables math expression.
-+	  It allows arithmetic operations to be performed on nft registers
-+	  content, such as incrementing or decrementing values. Math
-+	  expressions can be used in nftables rules to modify packet fields.
-+
- if NF_TABLES_NETDEV
- 
- config NF_DUP_NETDEV
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6bfc250e474f..fe25b1d1ce0a 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -131,6 +131,7 @@ obj-$(CONFIG_NFT_OSF)		+= nft_osf.o
- obj-$(CONFIG_NFT_TPROXY)	+= nft_tproxy.o
- obj-$(CONFIG_NFT_XFRM)		+= nft_xfrm.o
- obj-$(CONFIG_NFT_SYNPROXY)	+= nft_synproxy.o
-+obj-$(CONFIG_NFT_MATH)		+= nft_math.o
- 
- obj-$(CONFIG_NFT_NAT)		+= nft_chain_nat.o
- 
-diff --git a/net/netfilter/nft_math.c b/net/netfilter/nft_math.c
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 1c38d00..90eafc4 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -62,6 +62,7 @@ libnftnl_la_SOURCES = utils.c		\
+ 		      expr/synproxy.c	\
+ 		      expr/osf.c	\
+ 		      expr/xfrm.c	\
++		      expr/math.c	\
+ 		      obj/counter.c	\
+ 		      obj/ct_helper.c	\
+ 		      obj/quota.c	\
+diff --git a/src/expr/math.c b/src/expr/math.c
 new file mode 100644
-index 000000000000..d9538e227bbf
+index 0000000..f1997e4
 --- /dev/null
-+++ b/net/netfilter/nft_math.c
-@@ -0,0 +1,154 @@
-+// SPDX-License-Identifier: GPL-2.0
++++ b/src/expr/math.c
+@@ -0,0 +1,178 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * (C) 2025 by Fernando Fernandez Mancera <fmancera@suse.de>
++ */
 +
-+#include <net/netlink.h>
-+#include <net/netfilter/nf_tables.h>
++#include <arpa/inet.h>
++#include <linux/netfilter/nf_tables.h>
 +
-+struct nft_math {
-+	u8			sreg;
-+	u8			dreg;
-+	u32			bitmask;
-+	enum nft_math_op	op;
++#include "internal.h"
++#include <libmnl/libmnl.h>
++#include <libnftnl/expr.h>
++#include <libnftnl/rule.h>
++
++struct nftnl_expr_math {
++	enum nft_registers sreg;
++	enum nft_registers dreg;
++	enum nft_math_op   op;
++	uint32_t	   bitmask;
 +};
 +
-+static const struct nla_policy nft_math_policy[NFTA_MATH_MAX + 1] = {
-+	[NFTA_MATH_SREG]	= { .type = NLA_U32 },
-+	[NFTA_MATH_DREG]	= { .type = NLA_U32 },
-+	[NFTA_MATH_OP]		= { .type = NLA_U32 },
-+	[NFTA_MATH_BITMASK]	= { .type = NLA_U32 },
-+};
-+
-+static void nft_math_eval_bitmask(u32 *src, u32 *dst,
-+				  const struct nft_math *priv)
++static int nftnl_expr_math_set(struct nftnl_expr *e, uint16_t type,
++			       const void *data, uint32_t data_len,
++			       uint32_t byteorder)
 +{
-+	u32 target, keep, bit_unit;
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
 +
-+	target = *src & priv->bitmask;
-+	keep = *src & ~priv->bitmask;
-+	bit_unit = priv->bitmask & -priv->bitmask;
++	switch(type) {
++	case NFTNL_EXPR_MATH_SREG:
++		memcpy(&math->sreg, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_DREG:
++		memcpy(&math->dreg, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_OP:
++		memcpy(&math->op, data, data_len);
++		break;
++	case NFTNL_EXPR_MATH_BITMASK:
++		memcpy(&math->bitmask, data, data_len);
++		break;
++	}
++	return 0;
++}
 +
-+	switch (priv->op) {
++static const void *
++nftnl_expr_math_get(const struct nftnl_expr *e, uint16_t type,
++		    uint32_t *data_len)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++
++	switch(type) {
++	case NFTNL_EXPR_MATH_SREG:
++		*data_len = sizeof(math->sreg);
++		return &math->sreg;
++	case NFTNL_EXPR_MATH_DREG:
++		*data_len = sizeof(math->dreg);
++		return &math->dreg;
++	case NFTNL_EXPR_MATH_OP:
++		*data_len = sizeof(math->op);
++		return &math->op;
++	case NFTNL_EXPR_MATH_BITMASK:
++		*data_len = sizeof(math->bitmask);
++		return &math->bitmask;
++	}
++	return NULL;
++}
++
++static void
++nftnl_expr_math_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++
++	if ((e->flags & (1 << NFTNL_EXPR_MATH_SREG)) &&
++	    (e->flags & (1 << NFTNL_EXPR_MATH_DREG)) &&
++	    (e->flags & (1 << NFTNL_EXPR_MATH_BITMASK)) &&
++	    (e->flags & (1 << NFTNL_EXPR_MATH_OP))) {
++		mnl_attr_put_u32(nlh, NFTA_MATH_BITMASK, htonl(math->bitmask));
++		mnl_attr_put_u32(nlh, NFTA_MATH_SREG, htonl(math->sreg));
++		mnl_attr_put_u32(nlh, NFTA_MATH_DREG, htonl(math->dreg));
++		mnl_attr_put_u32(nlh, NFTA_MATH_OP, htonl(math->op));
++	}
++
++}
++
++static int nftnl_expr_math_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_MATH_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch(type) {
++	case NFTNL_EXPR_MATH_SREG:
++	case NFTNL_EXPR_MATH_DREG:
++	case NFTNL_EXPR_MATH_BITMASK:
++	case NFTNL_EXPR_MATH_OP:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
++	}
++
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++static int
++nftnl_expr_math_parse(struct nftnl_expr *e, struct nlattr *attr)
++{
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
++	struct nlattr *tb[NFTA_MATH_MAX + 1] = {};
++
++	if (mnl_attr_parse_nested(attr, nftnl_expr_math_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_MATH_SREG]) {
++		math->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_SREG]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_SREG);
++	}
++
++	if (tb[NFTA_MATH_DREG]) {
++		math->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_DREG]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_DREG);
++	}
++
++	if (tb[NFTA_MATH_OP]) {
++		math->op = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_OP]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_OP);
++	}
++
++	if (tb[NFTA_MATH_BITMASK]) {
++		math->bitmask = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_BITMASK]));
++		e->flags |= (1 << NFTNL_EXPR_MATH_BITMASK);
++	}
++
++	return 0;
++}
++
++static const char op2char(enum nft_math_op op)
++{
++	switch (op) {
 +	case NFT_MATH_OP_INC:
-+		if (target == priv->bitmask) {
-+			*dst = *src;
-+			break;
-+		}
-+
-+		target = target + bit_unit;
-+		*dst = target | keep;
-+		break;
++		return '+';
 +	case NFT_MATH_OP_DEC:
-+		if (!target) {
-+			*dst = *src;
-+			break;
-+		}
-+
-+		target = target - bit_unit;
-+		*dst = target | keep;
-+		break;
++		return '-';
 +	default:
-+		break;
++		return '?';
 +	}
 +}
 +
-+static void nft_math_eval(const struct nft_expr *expr,
-+			  struct nft_regs *regs,
-+			  const struct nft_pktinfo *pkt)
++static int
++nftnl_expr_math_snprintf(char *buf, size_t len,
++			 uint32_t flags, const struct nftnl_expr *e)
 +{
-+	const struct nft_math *priv = nft_expr_priv(expr);
-+	u32 *src = &regs->data[priv->sreg];
-+	u32 *dst = &regs->data[priv->dreg];
++	struct nftnl_expr_math *math = nftnl_expr_data(e);
 +
-+	nft_math_eval_bitmask(src, dst, priv);
++	return snprintf(buf, len, "mask 0x%.8x reg %u %c 1 => %u",
++			math->bitmask, math->sreg, op2char(math->op),
++			math->dreg);
 +}
 +
-+static int nft_math_init(const struct nft_ctx *ctx,
-+			 const struct nft_expr *expr,
-+			 const struct nlattr * const tb[])
-+{
-+	struct nft_math *priv = nft_expr_priv(expr);
-+	u32 bitmask_check;
-+	int err;
-+
-+	if (!tb[NFTA_MATH_SREG] ||
-+	    !tb[NFTA_MATH_DREG] ||
-+	    !tb[NFTA_MATH_BITMASK] ||
-+	    !tb[NFTA_MATH_OP])
-+		return -EINVAL;
-+
-+	priv->op = ntohl(nla_get_u32(tb[NFTA_MATH_OP]));
-+	priv->bitmask = ntohl(nla_get_u32(tb[NFTA_MATH_BITMASK]));
-+
-+	if (priv->op > NFT_MATH_OP_MAX)
-+		return -EOPNOTSUPP;
-+
-+	if (!priv->bitmask)
-+		return -EINVAL;
-+
-+	/* check if the bitmask is contiguous, otherwise reject it */
-+	bitmask_check = priv->bitmask + (priv->bitmask & -priv->bitmask);
-+	if (bitmask_check & (bitmask_check - 1))
-+		return -EINVAL;
-+
-+	err = nft_parse_register_load(ctx, tb[NFTA_MATH_SREG], &priv->sreg,
-+				      sizeof(u32));
-+	if (err < 0)
-+		return err;
-+
-+	return nft_parse_register_store(ctx, tb[NFTA_MATH_DREG],
-+					&priv->dreg, NULL, NFT_DATA_VALUE,
-+					sizeof(u32));
-+}
-+
-+static int nft_math_dump(struct sk_buff *skb,
-+			 const struct nft_expr *expr, bool reset)
-+{
-+	const struct nft_math *priv = nft_expr_priv(expr);
-+
-+	if (nft_dump_register(skb, NFTA_MATH_SREG, priv->sreg))
-+		goto nla_put_failure;
-+	if (nft_dump_register(skb, NFTA_MATH_DREG, priv->dreg))
-+		goto nla_put_failure;
-+	if (nla_put_u32(skb, NFTA_MATH_BITMASK, htonl(priv->bitmask)))
-+		goto nla_put_failure;
-+	if (nla_put_u32(skb, NFTA_MATH_OP, htonl(priv->op)))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_math_type;
-+static const struct nft_expr_ops nft_math_op = {
-+	.eval		= nft_math_eval,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_math)),
-+	.init		= nft_math_init,
-+	.dump		= nft_math_dump,
-+	.type		= &nft_math_type,
++static struct attr_policy math_attr_policy[__NFTNL_EXPR_MATH_MAX] = {
++	[NFTNL_EXPR_MATH_SREG]		= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_DREG]		= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_BITMASK]	= { .maxlen = sizeof(uint32_t) },
++	[NFTNL_EXPR_MATH_OP]		= { .maxlen = sizeof(uint32_t) },
 +};
 +
-+static struct nft_expr_type nft_math_type __read_mostly = {
-+	.ops		= &nft_math_op,
++struct expr_ops expr_ops_math = {
 +	.name		= "math",
-+	.owner		= THIS_MODULE,
-+	.policy		= nft_math_policy,
-+	.maxattr	= NFTA_MATH_MAX,
++	.alloc_len	= sizeof(struct nftnl_expr_math),
++	.nftnl_max_attr	= __NFTNL_EXPR_MATH_MAX - 1,
++	.attr_policy	= math_attr_policy,
++	.set		= nftnl_expr_math_set,
++	.get		= nftnl_expr_math_get,
++	.parse		= nftnl_expr_math_parse,
++	.build		= nftnl_expr_math_build,
++	.output		= nftnl_expr_math_snprintf,
 +};
-+
-+static int __init nft_math_module_init(void)
-+{
-+	return nft_register_expr(&nft_math_type);
-+}
-+
-+static void __exit nft_math_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_math_type);
-+}
-+
-+module_init(nft_math_module_init);
-+module_exit(nft_math_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Fernando Fernandez Mancera <fmancera@suse.de>");
-+MODULE_ALIAS_NFT_EXPR("math");
-+MODULE_DESCRIPTION("nftables math support to operate with values");
+diff --git a/src/expr_ops.c b/src/expr_ops.c
+index b85f472..b654fa0 100644
+--- a/src/expr_ops.c
++++ b/src/expr_ops.c
+@@ -43,6 +43,7 @@ extern struct expr_ops expr_ops_synproxy;
+ extern struct expr_ops expr_ops_tunnel;
+ extern struct expr_ops expr_ops_osf;
+ extern struct expr_ops expr_ops_xfrm;
++extern struct expr_ops expr_ops_math;
+ 
+ static struct expr_ops expr_ops_notrack = {
+ 	.name	= "notrack",
+@@ -89,6 +90,7 @@ static struct expr_ops *expr_ops[] = {
+ 	&expr_ops_tunnel,
+ 	&expr_ops_osf,
+ 	&expr_ops_xfrm,
++	&expr_ops_math,
+ 	NULL,
+ };
+ 
 -- 
 2.53.0
 
