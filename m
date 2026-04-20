@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F513D16E7;
-	Mon, 20 Apr 2026 22:02:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7880B3D1706;
+	Mon, 20 Apr 2026 22:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776722551; cv=none; b=Z3IL9sYR5Y0Q+DQP5fXce7ALmlUSGCBp9Iuu/EkcuLL/dqi/trCOQSVQvh6DMyhj6gXjZNAB2giWqtpobzFIoJjB117SW4Rtpd3VFmb2dr6P0nNZRnt15QgBNICHUL5JFzYBqIeOR0BK4LYVOT7/jEX+HA6FszGl/0QuDpnVSNU=
+	t=1776722552; cv=none; b=UuXtrmvGDb9VWjIsFqsEWAnFS83ACfhNBwyMIwfb/A3Sv/zZ9iOFfHJVwQqabdKLefOGutNkcgOzYdGazgfDT7WiUw1HhATbHjRqZxhY9gtl9sXQ/MhhlYjps/G/Get1ebtbrwREB0G9/Can5WdNd8t80IfgwTZSwtvcBA5MSro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776722551; c=relaxed/simple;
-	bh=AgaNzu1I6apmtJBryk603dr+KoFw6oDh9jzwgMwbWF8=;
+	s=arc-20240116; t=1776722552; c=relaxed/simple;
+	bh=kUfeTFZk5IgFgJ7dBcDAuHKs7DNUx3pWt+DeQ56Keao=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=p9+FCrqqfHoXTpvNaIrl/gEzr2+ZlwjO7tTlBPrkOaumN7VJt8+e4PtlbRq25V+jxYkhS+fuOsjoh/XA/GexpdwEOfiJdoYgfl+DD8RWjz0CSe6DPBctYTCATfJbP7z9bquwtMwziYwp443sjItcixsiuS/ziZWu5SH1XPtR7CU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=kz1geMoX; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=f5wbYA7qrM2+uQufFuPSSNUK9FVLfGK0/gbpDB5DYoREiZi4wPnttn+WpdLizR9hnUmUX04nz5rYC09JnhB8QUJEajdihiehQ86/UvDh7LsU1dFhe470MZKjVie8ztCjE2j79u7l+p+H2RkfnrTE2EPveydU1irL6bKzr/T7fek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=OhmsNA/0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="kz1geMoX"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="OhmsNA/0"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 2508B60269;
-	Tue, 21 Apr 2026 00:02:28 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 5BBF660255;
+	Tue, 21 Apr 2026 00:02:29 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776722548;
-	bh=PVB7UXPbS7DPHrW/VNCAqGnK0ENCpHD4L9AlwzELepY=;
+	s=2025; t=1776722549;
+	bh=y4oVjl5IwBD7c8hLHPmuW/Dp/NU6BKcOEDJo3EB03Ug=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kz1geMoX6i/wSSkOU2X07IvPq/PKB2y2cJuC8SampOUjF2JHxufN92c+KkCtesBr0
-	 /EwDoov1XpyEVp6WhFtbRDN2iaTin1p8R565iHLuTp9R2JDaEr7TW+3/V38jr3z9U2
-	 PQJapKY+yAP6JOgXP9SMcR59WOYBtj+WKGFx+qkXPdLc4rrULmBt1V0X8VhjTk3IF5
-	 OMUwvmGvSM+ZmCxp/Daflj8ITJZY3LD8ZI2xaMGz5f2ZLqsLBfhKdb2X8tBrQuNSke
-	 6LoVqC46nMbcQbrIFKNGoQDL0wzpUnjfe3ypWhS/KHDQeFKf2teOk1r+BvFDtggO/l
-	 pLHw5Ga03gutA==
+	b=OhmsNA/0kIWioJeEG9T+2U5S55+5hkBhPCeWIyPOubKajBcUGjjbc6WZpSKzqZQyF
+	 4mKJn/wqDJeohJfS1qi0/gUBt1o2JrbTyx+EEjjauwqqR+xREtBFMfqCghkD4iGBev
+	 YKT8aawQGl3sgvAMhaBIsFtdeISvhiKzrtiZDAhxclKtWv9F4TMH44GGl0lRSLlBXJ
+	 WJqdL9UyEaBCLHXKPib7pexwLhXG9uY54bQeFGbA01pVId7fEtSLwwEp+6nWHUl8Vy
+	 9Os8XcOOnGLGIDG2CCkmmLlSTrjvOc5x3l9vCnUsKSx4IT5NDapfHE8YpiKMwGSEze
+	 al6U+caxK3c/g==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 7/8] netfilter: nfnetlink_osf: fix out-of-bounds read on option matching
-Date: Tue, 21 Apr 2026 00:02:14 +0200
-Message-ID: <20260420220215.111510-8-pablo@netfilter.org>
+Subject: [PATCH net 8/8] netfilter: nfnetlink_osf: fix potential NULL dereference in ttl check
+Date: Tue, 21 Apr 2026 00:02:15 +0200
+Message-ID: <20260420220215.111510-9-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260420220215.111510-1-pablo@netfilter.org>
 References: <20260420220215.111510-1-pablo@netfilter.org>
@@ -54,93 +54,67 @@ Content-Transfer-Encoding: 8bit
 
 From: Fernando Fernandez Mancera <fmancera@suse.de>
 
-In nf_osf_match(), the nf_osf_hdr_ctx structure is initialized once
-and passed by reference to nf_osf_match_one() for each fingerprint
-checked. During TCP option parsing, nf_osf_match_one() advances the
-shared ctx->optp pointer.
+The nf_osf_ttl() function accessed skb->dev to perform a local interface
+address lookup without verifying that the device pointer was valid.
 
-If a fingerprint perfectly matches, the function returns early without
-restoring ctx->optp to its initial state. If the user has configured
-NF_OSF_LOGLEVEL_ALL, the loop continues to the next fingerprint.
-However, because ctx->optp was not restored, the next call to
-nf_osf_match_one() starts parsing from the end of the options buffer.
-This causes subsequent matches to read garbage data and fail
-immediately, making it impossible to log more than one match or logging
-incorrect matches.
+Additionally, the implementation utilized an in_dev_for_each_ifa_rcu
+loop to match the packet source address against local interface
+addresses. It assumed that packets from the same subnet should not see a
+decrement on the initial TTL. A packet might appear it is from the same
+subnet but it actually isn't especially in modern environments with
+containers and virtual switching.
 
-Instead of using a shared ctx->optp pointer, pass the context as a
-constant pointer and use a local pointer (optp) for TCP option
-traversal. This makes nf_osf_match_one() strictly stateless from the
-caller's perspective, ensuring every fingerprint check starts at the
-correct option offset.
+Remove the device dereference and interface loop. Replace the logic with
+a switch statement that evaluates the TTL according to the ttl_check.
 
-Fixes: 1a6a0951fc00 ("netfilter: nfnetlink_osf: add missing fmatch check")
-Suggested-by: Florian Westphal <fw@strlen.de>
+Fixes: 11eeef41d5f6 ("netfilter: passive OS fingerprint xtables match")
+Reported-by: Kito Xu (veritas501) <hxzene@gmail.com>
+Closes: https://lore.kernel.org/netfilter-devel/20260414074556.2512750-1-hxzene@gmail.com/
 Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Reviewed-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_osf.c | 19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ net/netfilter/nfnetlink_osf.c | 22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
 diff --git a/net/netfilter/nfnetlink_osf.c b/net/netfilter/nfnetlink_osf.c
-index 9de91fdd107c..9b209241029b 100644
+index 9b209241029b..acb753ec5697 100644
 --- a/net/netfilter/nfnetlink_osf.c
 +++ b/net/netfilter/nfnetlink_osf.c
-@@ -64,9 +64,9 @@ struct nf_osf_hdr_ctx {
- static bool nf_osf_match_one(const struct sk_buff *skb,
- 			     const struct nf_osf_user_finger *f,
- 			     int ttl_check,
--			     struct nf_osf_hdr_ctx *ctx)
-+			     const struct nf_osf_hdr_ctx *ctx)
+@@ -31,26 +31,18 @@ EXPORT_SYMBOL_GPL(nf_osf_fingers);
+ static inline int nf_osf_ttl(const struct sk_buff *skb,
+ 			     int ttl_check, unsigned char f_ttl)
  {
--	const __u8 *optpinit = ctx->optp;
-+	const __u8 *optp = ctx->optp;
- 	unsigned int check_WSS = 0;
- 	int fmatch = FMATCH_WRONG;
- 	int foptsize, optnum;
-@@ -95,17 +95,17 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- 	check_WSS = f->wss.wc;
+-	struct in_device *in_dev = __in_dev_get_rcu(skb->dev);
+ 	const struct iphdr *ip = ip_hdr(skb);
+-	const struct in_ifaddr *ifa;
+-	int ret = 0;
  
- 	for (optnum = 0; optnum < f->opt_num; ++optnum) {
--		if (f->opt[optnum].kind == *ctx->optp) {
-+		if (f->opt[optnum].kind == *optp) {
- 			__u32 len = f->opt[optnum].length;
--			const __u8 *optend = ctx->optp + len;
-+			const __u8 *optend = optp + len;
- 
- 			fmatch = FMATCH_OK;
- 
--			switch (*ctx->optp) {
-+			switch (*optp) {
- 			case OSFOPT_MSS:
--				mss = ctx->optp[3];
-+				mss = optp[3];
- 				mss <<= 8;
--				mss |= ctx->optp[2];
-+				mss |= optp[2];
- 
- 				mss = ntohs((__force __be16)mss);
- 				break;
-@@ -113,7 +113,7 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- 				break;
- 			}
- 
--			ctx->optp = optend;
-+			optp = optend;
- 		} else
- 			fmatch = FMATCH_OPT_WRONG;
- 
-@@ -156,9 +156,6 @@ static bool nf_osf_match_one(const struct sk_buff *skb,
- 		}
- 	}
- 
--	if (fmatch != FMATCH_OK)
--		ctx->optp = optpinit;
+-	if (ttl_check == NF_OSF_TTL_TRUE)
++	switch (ttl_check) {
++	case NF_OSF_TTL_TRUE:
+ 		return ip->ttl == f_ttl;
+-	if (ttl_check == NF_OSF_TTL_NOCHECK)
+-		return 1;
+-	else if (ip->ttl <= f_ttl)
++		break;
++	case NF_OSF_TTL_NOCHECK:
+ 		return 1;
 -
- 	return fmatch == FMATCH_OK;
+-	in_dev_for_each_ifa_rcu(ifa, in_dev) {
+-		if (inet_ifa_match(ip->saddr, ifa)) {
+-			ret = (ip->ttl == f_ttl);
+-			break;
+-		}
++	case NF_OSF_TTL_LESS:
++	default:
++		return ip->ttl <= f_ttl;
+ 	}
+-
+-	return ret;
  }
  
+ struct nf_osf_hdr_ctx {
 -- 
 2.47.3
 
