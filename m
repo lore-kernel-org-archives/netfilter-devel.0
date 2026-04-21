@@ -1,393 +1,137 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3479C362156
-	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 16:00:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE8462ED17B;
+	Tue, 21 Apr 2026 16:24:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776787217; cv=none; b=fOzCYWgleAN1iXT0vrBlZEWPImsKx9OWd3AZ7AWzr+VSD1kCo6cgjPg0xqef0uo4cPd8F9SadTH+7hNKswQU4j4lpJ2dmtlzpplPscq3eRrgx0mkK2+3p1LIg3yjb43iIbT+7w+MlbR+NgY3CkqLSv6XhO2aUY6r16ME0bIKEeo=
+	t=1776788666; cv=none; b=TkLsRzateJqTWDgoTWtt1jnU3MZxU0Fjt3RC2yj2wLFogIuUV5NyyVyxjgqJ26OkcykcVVXX9Hcu9/3JTGAJ0C4VwyqdWw0MQUuGaZ7F3Ov+JTEs4oUffOPXEjPcNnKqfQCp8ygmnSnWUzgIiiG8g/DL9QZ6Wc6SfkVelvE0l08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776787217; c=relaxed/simple;
-	bh=h0svwFw5ZLI9YBtWwmGGOtn+tk/DjQU/w4o8pYVjGes=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=AeMldjPuFJyA3vvNVjv1UN4hCEGSg7aciJttBFWE874Wb7/uTKk+9/STFwjunjYhfA2CqNbPpstSxfCzI/QMOl1P5iySdls9lIyvqMGNea/YBiFDgVfgHM+kGsKCaUKg2eNGk5CIIQ8zHwuHP5ibxUdQQ5r7QML+2aWb8ueVKPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KjZHgkyt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2ejZoXkP; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=KjZHgkyt; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=2ejZoXkP; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1776788666; c=relaxed/simple;
+	bh=nQunemQjmq7J3pbxI2AqF1xIeNDWFBx1/5BRlXisaCw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=PfAwvU8iiIGlzlKLalJfnPl+6kxvZXBUT9X1JuqVtW/rdAMSFa5exbBrOgX9xejW53iSwH3G+zMr1s1v1a0xYLjtRI4O4OWlM5wWexsjpO8Zxs+m/p5sZOPQz93dixFAaWSAWQOZayvIJRt04IRXnJ9ItTZm0aKSAbzaELQ1s9I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LXsfyIGB; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KjZHgkyt";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2ejZoXkP";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="KjZHgkyt";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="2ejZoXkP"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 6F3075BD00;
-	Tue, 21 Apr 2026 16:00:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776787214; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=uCH6vOyrfDmMEajra3XyTxKqzgr1LRN6ZT+DCOMK4EI=;
-	b=KjZHgkytPLedrwEEI/qLzDfko9N2ack7LFQKFok2gr2HIn5JpI8PjesOJW2kFQOOyoKG23
-	SH64hFBcDZuBVmPBq94ty/xaSVu7CWn6pvC+55/AFCBxmq4tTx5EI04AeR1XjHdof+sI/t
-	v4OnnddAdv3gfD+YWYirCJnSHKLi1Fc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776787214;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=uCH6vOyrfDmMEajra3XyTxKqzgr1LRN6ZT+DCOMK4EI=;
-	b=2ejZoXkPVqB2AKTzBswXCwws0uSeNQdZZRt90gF3YAMDzlZ5YKRVhGSSIbaHp/kUmAjOp9
-	Z2q8WUf2Wnon9CCA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1776787214; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=uCH6vOyrfDmMEajra3XyTxKqzgr1LRN6ZT+DCOMK4EI=;
-	b=KjZHgkytPLedrwEEI/qLzDfko9N2ack7LFQKFok2gr2HIn5JpI8PjesOJW2kFQOOyoKG23
-	SH64hFBcDZuBVmPBq94ty/xaSVu7CWn6pvC+55/AFCBxmq4tTx5EI04AeR1XjHdof+sI/t
-	v4OnnddAdv3gfD+YWYirCJnSHKLi1Fc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1776787214;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=uCH6vOyrfDmMEajra3XyTxKqzgr1LRN6ZT+DCOMK4EI=;
-	b=2ejZoXkPVqB2AKTzBswXCwws0uSeNQdZZRt90gF3YAMDzlZ5YKRVhGSSIbaHp/kUmAjOp9
-	Z2q8WUf2Wnon9CCA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0585D593AF;
-	Tue, 21 Apr 2026 16:00:13 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id Gz/hOQ2f52ndJAAAD6G6ig
-	(envelope-from <fmancera@suse.de>); Tue, 21 Apr 2026 16:00:13 +0000
-From: Fernando Fernandez Mancera <fmancera@suse.de>
-To: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org,
-	phil@nwl.cc,
-	fw@strlen.de,
-	pablo@netfilter.org,
-	Fernando Fernandez Mancera <fmancera@suse.de>
-Subject: [PATCH libnftnl v4] expr: add support to math expression
-Date: Tue, 21 Apr 2026 17:59:57 +0200
-Message-ID: <20260421155957.7065-1-fmancera@suse.de>
-X-Mailer: git-send-email 2.51.0
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LXsfyIGB"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1776788665; x=1808324665;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=nQunemQjmq7J3pbxI2AqF1xIeNDWFBx1/5BRlXisaCw=;
+  b=LXsfyIGBOeBxu0oFodWD/AuMLAGytfgVd24jLAr2kztEYbMgdR1C3N4w
+   kS79zwBW4DAg32Ce7t4tfoFu4u9EX7vdBunS5Rfc7eMDNzozqr2AaRcjB
+   3gUeFlbI9Rv1M2HbGyasXdGnygZEemsUYrqTvHS81331Pcm6yACP6CBBl
+   XTmLtRn1MW2j4PO0TYa1BfhHjAmGBOeyhovx43m5QQ7meg0xLCmlA2yaS
+   BI0dXEKxhHReWKBT+ENKDVjGhTSqMebqO5btJ0yjBHNVSXZAJowpagEqB
+   l1/7enSsseJD4i6vpP6J3JtlPlpeA2RviwbwokUhc9IaHswoIchAbAUjk
+   A==;
+X-CSE-ConnectionGUID: k5qnTxCuT4WG0bbUze8DZw==
+X-CSE-MsgGUID: 2/CH0A2sSQ+VMG6HBMr5fQ==
+X-IronPort-AV: E=McAfee;i="6800,10657,11763"; a="88427201"
+X-IronPort-AV: E=Sophos;i="6.23,192,1770624000"; 
+   d="scan'208";a="88427201"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2026 09:24:24 -0700
+X-CSE-ConnectionGUID: owCl++O5Q26diS7PURbSEQ==
+X-CSE-MsgGUID: QxmqOUo2RwujnCUiyc/PeQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,192,1770624000"; 
+   d="scan'208";a="237059148"
+Received: from lkp-server01.sh.intel.com (HELO 7e48d0ff8e22) ([10.239.97.150])
+  by fmviesa005.fm.intel.com with ESMTP; 21 Apr 2026 09:24:22 -0700
+Received: from kbuild by 7e48d0ff8e22 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wFDtb-000000003ki-34Tq;
+	Tue, 21 Apr 2026 16:24:19 +0000
+Date: Wed, 22 Apr 2026 00:24:07 +0800
+From: kernel test robot <lkp@intel.com>
+To: Marino Dzalto <marino.dzalto@gmail.com>, pablo@netfilter.org,
+	fw@strlen.de
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Marino Dzalto <marino.dzalto@gmail.com>
+Subject: Re: [PATCH] netfilter: xt_HL: add pr_fmt, default case and NULL
+ checks
+Message-ID: <202604220024.iITt6Hv8-lkp@intel.com>
+References: <20260403193929.89449-1-marino.dzalto@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-2.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_MISSING_CHARSET(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	ARC_NA(0.00)[];
-	FUZZY_RATELIMITED(0.00)[rspamd.com];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	RCPT_COUNT_FIVE(0.00)[6];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	RCVD_TLS_ALL(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Score: -2.80
-X-Spam-Level: 
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260403193929.89449-1-marino.dzalto@gmail.com>
 
-Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
----
-v2: adjusted the new fields and fixed the duplicated "math" on print
-v3: removed NFTNL_EXPR_MATH_LEN and simplified printing
-v4: adjusted byteordering, both bitmask and op are u32
----
- include/libnftnl/expr.h             |   8 ++
- include/linux/netfilter/nf_tables.h |  25 ++++
- src/Makefile.am                     |   1 +
- src/expr/math.c                     | 178 ++++++++++++++++++++++++++++
- src/expr_ops.c                      |   2 +
- 5 files changed, 214 insertions(+)
- create mode 100644 src/expr/math.c
+Hi Marino,
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 41e9f30..e21752f 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -364,6 +364,14 @@ enum {
- 	__NFTNL_EXPR_INNER_MAX
- };
- 
-+enum {
-+	NFTNL_EXPR_MATH_SREG	= NFTNL_EXPR_BASE,
-+	NFTNL_EXPR_MATH_DREG,
-+	NFTNL_EXPR_MATH_OP,
-+	NFTNL_EXPR_MATH_BITMASK,
-+	__NFTNL_EXPR_MATH_MAX
-+};
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 7c0c915..ee8df9a 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -2015,4 +2015,29 @@ enum nft_tunnel_attributes {
- };
- #define NFTA_TUNNEL_MAX	(__NFTA_TUNNEL_MAX - 1)
- 
-+/**
-+ * enum nft_math_attributes - nftables math expression netlink attributes
-+ *
-+ * @NFTA_MATH_SREG: source register (NLA_U32: nft_registers)
-+ * @NFTA_MATH_DREG: destination register (NLA_U32: nft_registers)
-+ * @NFTA_MATH_OP: operation to be performed (NLA_U32)
-+ * @NFTA_MATH_BITMASK: bitmask to be applied on the operation (NLA_U32)
-+ */
-+enum nft_math_attributes {
-+	NFTA_MATH_UNSPEC,
-+	NFTA_MATH_SREG,
-+	NFTA_MATH_DREG,
-+	NFTA_MATH_OP,
-+	NFTA_MATH_BITMASK,
-+	__NFTA_MATH_MAX,
-+};
-+#define NFTA_MATH_MAX (__NFTA_MATH_MAX - 1)
-+
-+enum nft_math_op {
-+	NFT_MATH_OP_INC,
-+	NFT_MATH_OP_DEC,
-+	__NFT_MATH_OP_MAX,
-+};
-+#define NFT_MATH_OP_MAX (__NFT_MATH_OP_MAX - 1)
-+
- #endif /* _LINUX_NF_TABLES_H */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 1c38d00..90eafc4 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -62,6 +62,7 @@ libnftnl_la_SOURCES = utils.c		\
- 		      expr/synproxy.c	\
- 		      expr/osf.c	\
- 		      expr/xfrm.c	\
-+		      expr/math.c	\
- 		      obj/counter.c	\
- 		      obj/ct_helper.c	\
- 		      obj/quota.c	\
-diff --git a/src/expr/math.c b/src/expr/math.c
-new file mode 100644
-index 0000000..2658e91
---- /dev/null
-+++ b/src/expr/math.c
-@@ -0,0 +1,178 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/*
-+ * (C) 2025 by Fernando Fernandez Mancera <fmancera@suse.de>
-+ */
-+
-+#include <arpa/inet.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include "internal.h"
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/expr.h>
-+#include <libnftnl/rule.h>
-+
-+struct nftnl_expr_math {
-+	enum nft_registers sreg;
-+	enum nft_registers dreg;
-+	enum nft_math_op   op;
-+	uint32_t	   bitmask;
-+};
-+
-+static int nftnl_expr_math_set(struct nftnl_expr *e, uint16_t type,
-+			       const void *data, uint32_t data_len,
-+			       uint32_t byteorder)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	switch(type) {
-+	case NFTNL_EXPR_MATH_SREG:
-+		memcpy(&math->sreg, data, data_len);
-+		break;
-+	case NFTNL_EXPR_MATH_DREG:
-+		memcpy(&math->dreg, data, data_len);
-+		break;
-+	case NFTNL_EXPR_MATH_OP:
-+		memcpy(&math->op, data, data_len);
-+		break;
-+	case NFTNL_EXPR_MATH_BITMASK:
-+		memcpy(&math->bitmask, data, data_len);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static const void *
-+nftnl_expr_math_get(const struct nftnl_expr *e, uint16_t type,
-+		    uint32_t *data_len)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	switch(type) {
-+	case NFTNL_EXPR_MATH_SREG:
-+		*data_len = sizeof(math->sreg);
-+		return &math->sreg;
-+	case NFTNL_EXPR_MATH_DREG:
-+		*data_len = sizeof(math->dreg);
-+		return &math->dreg;
-+	case NFTNL_EXPR_MATH_OP:
-+		*data_len = sizeof(math->op);
-+		return &math->op;
-+	case NFTNL_EXPR_MATH_BITMASK:
-+		*data_len = sizeof(math->bitmask);
-+		return &math->bitmask;
-+	}
-+	return NULL;
-+}
-+
-+static void
-+nftnl_expr_math_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	if ((e->flags & (1 << NFTNL_EXPR_MATH_SREG)) &&
-+	    (e->flags & (1 << NFTNL_EXPR_MATH_DREG)) &&
-+	    (e->flags & (1 << NFTNL_EXPR_MATH_BITMASK)) &&
-+	    (e->flags & (1 << NFTNL_EXPR_MATH_OP))) {
-+		mnl_attr_put_u32(nlh, NFTA_MATH_BITMASK, math->bitmask);
-+		mnl_attr_put_u32(nlh, NFTA_MATH_SREG, htonl(math->sreg));
-+		mnl_attr_put_u32(nlh, NFTA_MATH_DREG, htonl(math->dreg));
-+		mnl_attr_put_u32(nlh, NFTA_MATH_OP, math->op);
-+	}
-+
-+}
-+
-+static int nftnl_expr_math_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_MATH_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch(type) {
-+	case NFTNL_EXPR_MATH_SREG:
-+	case NFTNL_EXPR_MATH_DREG:
-+	case NFTNL_EXPR_MATH_BITMASK:
-+	case NFTNL_EXPR_MATH_OP:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+	return MNL_CB_OK;
-+}
-+
-+static int
-+nftnl_expr_math_parse(struct nftnl_expr *e, struct nlattr *attr)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+	struct nlattr *tb[NFTA_MATH_MAX + 1] = {};
-+
-+	if (mnl_attr_parse_nested(attr, nftnl_expr_math_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_MATH_SREG]) {
-+		math->sreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_SREG]));
-+		e->flags |= (1 << NFTNL_EXPR_MATH_SREG);
-+	}
-+
-+	if (tb[NFTA_MATH_DREG]) {
-+		math->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_MATH_DREG]));
-+		e->flags |= (1 << NFTNL_EXPR_MATH_DREG);
-+	}
-+
-+	if (tb[NFTA_MATH_OP]) {
-+		math->op = mnl_attr_get_u32(tb[NFTA_MATH_OP]);
-+		e->flags |= (1 << NFTNL_EXPR_MATH_OP);
-+	}
-+
-+	if (tb[NFTA_MATH_BITMASK]) {
-+		math->bitmask = mnl_attr_get_u32(tb[NFTA_MATH_BITMASK]);
-+		e->flags |= (1 << NFTNL_EXPR_MATH_BITMASK);
-+	}
-+
-+	return 0;
-+}
-+
-+static const char op2char(enum nft_math_op op)
-+{
-+	switch (op) {
-+	case NFT_MATH_OP_INC:
-+		return '+';
-+	case NFT_MATH_OP_DEC:
-+		return '-';
-+	default:
-+		return '?';
-+	}
-+}
-+
-+static int
-+nftnl_expr_math_snprintf(char *buf, size_t len,
-+			 uint32_t flags, const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_math *math = nftnl_expr_data(e);
-+
-+	return snprintf(buf, len, "mask 0x%.8x reg %u %c 1 => %u",
-+			math->bitmask, math->sreg, op2char(math->op),
-+			math->dreg);
-+}
-+
-+static struct attr_policy math_attr_policy[__NFTNL_EXPR_MATH_MAX] = {
-+	[NFTNL_EXPR_MATH_SREG]		= { .maxlen = sizeof(uint32_t) },
-+	[NFTNL_EXPR_MATH_DREG]		= { .maxlen = sizeof(uint32_t) },
-+	[NFTNL_EXPR_MATH_BITMASK]	= { .maxlen = sizeof(uint32_t) },
-+	[NFTNL_EXPR_MATH_OP]		= { .maxlen = sizeof(uint32_t) },
-+};
-+
-+struct expr_ops expr_ops_math = {
-+	.name		= "math",
-+	.alloc_len	= sizeof(struct nftnl_expr_math),
-+	.nftnl_max_attr	= __NFTNL_EXPR_MATH_MAX - 1,
-+	.attr_policy	= math_attr_policy,
-+	.set		= nftnl_expr_math_set,
-+	.get		= nftnl_expr_math_get,
-+	.parse		= nftnl_expr_math_parse,
-+	.build		= nftnl_expr_math_build,
-+	.output		= nftnl_expr_math_snprintf,
-+};
-diff --git a/src/expr_ops.c b/src/expr_ops.c
-index b85f472..b654fa0 100644
---- a/src/expr_ops.c
-+++ b/src/expr_ops.c
-@@ -43,6 +43,7 @@ extern struct expr_ops expr_ops_synproxy;
- extern struct expr_ops expr_ops_tunnel;
- extern struct expr_ops expr_ops_osf;
- extern struct expr_ops expr_ops_xfrm;
-+extern struct expr_ops expr_ops_math;
- 
- static struct expr_ops expr_ops_notrack = {
- 	.name	= "notrack",
-@@ -89,6 +90,7 @@ static struct expr_ops *expr_ops[] = {
- 	&expr_ops_tunnel,
- 	&expr_ops_osf,
- 	&expr_ops_xfrm,
-+	&expr_ops_math,
- 	NULL,
- };
- 
+kernel test robot noticed the following build errors:
+
+[auto build test ERROR on netfilter-nf/main]
+[also build test ERROR on linus/master v7.0 next-20260420]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Marino-Dzalto/netfilter-xt_HL-add-pr_fmt-default-case-and-NULL-checks/20260420-185652
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
+patch link:    https://lore.kernel.org/r/20260403193929.89449-1-marino.dzalto%40gmail.com
+patch subject: [PATCH] netfilter: xt_HL: add pr_fmt, default case and NULL checks
+config: s390-allmodconfig (https://download.01.org/0day-ci/archive/20260422/202604220024.iITt6Hv8-lkp@intel.com/config)
+compiler: clang version 18.1.8 (https://github.com/llvm/llvm-project 3b5b5c1ec4a3095ab096dd780e84d7ab81f3d7ff)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260422/202604220024.iITt6Hv8-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202604220024.iITt6Hv8-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+>> net/netfilter/xt_hl.c:34:6: error: cannot assign to variable 'ttl' with const-qualified type 'const u8' (aka 'const unsigned char')
+      34 |         ttl = ip_hdr(skb)->ttl;
+         |         ~~~ ^
+   net/netfilter/xt_hl.c:29:11: note: variable 'ttl' declared const here
+      29 |         const u8 ttl;
+         |         ~~~~~~~~~^~~
+   1 error generated.
+
+
+vim +34 net/netfilter/xt_hl.c
+
+    25	
+    26	static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
+    27	{
+    28		const struct ipt_ttl_info *info = par->matchinfo;
+    29		const u8 ttl;
+    30	
+    31		if (!skb)
+    32			return false;
+    33	
+  > 34		ttl = ip_hdr(skb)->ttl;
+    35	
+    36		switch (info->mode) {
+    37		case IPT_TTL_EQ:
+    38			return ttl == info->ttl;
+    39		case IPT_TTL_NE:
+    40			return ttl != info->ttl;
+    41		case IPT_TTL_LT:
+    42			return ttl < info->ttl;
+    43		case IPT_TTL_GT:
+    44			return ttl > info->ttl;
+    45		default:
+    46			pr_warn("Unknown TTL match mode: %d\n", info->mode);
+    47			return false;
+    48		}
+    49	}
+    50	
+
 -- 
-2.53.0
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
