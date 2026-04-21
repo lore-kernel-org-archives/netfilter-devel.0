@@ -1,146 +1,131 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C52F3845D8;
-	Tue, 21 Apr 2026 11:56:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+Received: from azure-sdnproxy.icoremail.net (azure-sdnproxy.icoremail.net [13.75.44.102])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA1163845D8
+	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 12:49:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=13.75.44.102
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776772588; cv=none; b=Ptq+uiqBvB2hO9tknkNVJmidOWzqwAW4/HI1e10KS2j2yP71QsFq/lHrWaLIGTIB4XihlkO2VHBCnIh1ss2t1ekE0A1V2+zpcYjNTG7J0Hq9bGZwbBloxTD+ssVE3akMNy7Yf9Y54N7Eceihekp9nc0aDz2j3glp97hoKaN+fzs=
+	t=1776775754; cv=none; b=K7AEqeXQCflGrXWHOFQYXfCyrGXY1Qf8PKZ1aGdTL6Yf5mXN0xnmQlaZ2tC77XBZ1u839xP0BRSTOFT8Q6Ts8V4pO0W60biLN1XM+u9b7L5o4v/e0fKVhzKBySQrJ1FoJuDDKeOBiTbG3eL19qu1X+xcXbxe9BeegEtq+NaHd4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776772588; c=relaxed/simple;
-	bh=pQOQW0F37RiB3H/Va07FzlVZh/8VsGGpDYSzXTQ/d5w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q3XDqNJFJYq/c8iK9XPDgYNNkRxX6fATCnc8Ojqkoe/JdylGBEl1DV1qBySUwY+2T2hMW6BA48cau/PfehxYEv1/DKac4f+wKkza+Bs7Ge4Ru0SWlkjY7FnXxqwnrirPDxp31+EQXIETJbG5xxOacGKhas2p2Us+D43dVGZhZS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qF96Y7Vr; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qF96Y7Vr"
-Received: from netfilter.org (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 805D2600B5;
-	Tue, 21 Apr 2026 13:56:24 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776772584;
-	bh=phTSxWHX76RLznCdquM07h7FzBmO2ORr8wdwNAd/4Gk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qF96Y7VrJHSPJduyqVsLtC/vW8wMD/ILOSroqM4ptqFg0kVJRiogQFCGtkfjridwb
-	 diuI915zzp+VidQQc1HN0kCVNFkFfpAv4O+UdVZuK/LPWExzOk50TDNs8EnW4Op7Ij
-	 O7B+lYHN4Vd6Le+rKiQ7IBLcohomH6/Ovgeg9T6HFfbd/dz97WUtD20Zc23/9KOVzP
-	 0z3be00o1R2XCLFNmgeyrujSJyzn1wbUMocdWmiDtwVcPfmUDVXGCTXYe0OslVF3OK
-	 jqkoKq2gzA4c+aLjBUqS4WkFCuOAGSk3Ebgwbpm90C4sHgTRoL/MLCrAhZr32hW16i
-	 iJ87ljw1zIunw==
-Date: Tue, 21 Apr 2026 13:56:21 +0200
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Marino Dzalto <marino.dzalto@gmail.com>
-Cc: fw@strlen.de, jacob.e.keller@intel.com, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3] netfilter: xt_HL: add pr_fmt and checkentry validation
-Message-ID: <aedl5SY8M6LtFxa2@chamomile>
-References: <20260403205907.92749-1-marino.dzalto@gmail.com>
+	s=arc-20240116; t=1776775754; c=relaxed/simple;
+	bh=pLtUm3OqzCQeZJmni3gZn1EAGz4h84MfZk1Zqlt3Vq4=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=NAmAS3Son95dyc8ahjRNMHHTVX+U0DxSRkquo3ubRUdgbVwb73qBmObPYLBzfVB0BP7NvZxfGX89GeE26rIuxOPHvI2QXnqvHu5ZASRdQR70UbFTLKyJ32aEr5Qzod0xN9b+9KNiHtmRevDnSTjYR+ToLzU8gLR+jJOOZFI+uSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn; spf=pass smtp.mailfrom=lzu.edu.cn; arc=none smtp.client-ip=13.75.44.102
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lzu.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lzu.edu.cn
+Received: from enjou-Legion-Y7000P-2019.coin-barley.ts.net (unknown [172.23.56.36])
+	by app1 (Coremail) with SMTP id ygmowAC3Kvs3cudpsdDYAA--.16054S2;
+	Tue, 21 Apr 2026 20:48:56 +0800 (CST)
+From: Ren Wei <n05ec@lzu.edu.cn>
+To: netfilter-devel@vger.kernel.org
+Cc: pablo@netfilter.org,
+	fw@strlen.de,
+	jeremy@azazel.net,
+	yuantan098@gmail.com,
+	yifanwucs@gmail.com,
+	tomapufckgml@gmail.com,
+	bird@lzu.edu.cn,
+	k4729.23098@gmail.com,
+	n05ec@lzu.edu.cn
+Subject: [PATCH net 1/1] netfilter: shift-out-of-bounds in nft_bitwise
+Date: Tue, 21 Apr 2026 20:42:34 +0800
+Message-ID: <5166c80ac3006080e4542ef4c3bf28bc78c696bc.1776667409.git.k4729.23098@gmail.com>
+X-Mailer: git-send-email 2.51.0
+In-Reply-To: <cover.1776667409.git.k4729.23098@gmail.com>
+References: <cover.1776667409.git.k4729.23098@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20260403205907.92749-1-marino.dzalto@gmail.com>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:ygmowAC3Kvs3cudpsdDYAA--.16054S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7CrWrGr13Jry5tr1xWFyxuFg_yoW8tw43pa
+	sxK34ftFZrJFy2gw1Syry0yFn5Jrn3Cr13CrnxZFykZ3WUJr1rJ3WrK39Ivw1UGFs29Fs3
+	ZanIvFn3Kan5CFJanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUB01xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVW5JVW7JwA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1l84ACjcxK6I8E
+	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
+	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_JrI_
+	JrylYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
+	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1lFIxGxcIEc7CjxVA2Y2ka0xkIwI1lc7CjxVAa
+	w2AFwI0_Jw0_GFylc2xSY4AK6svPMxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v1sIEY2
+	0_Gr4l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8G
+	jcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2I
+	x0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42xK
+	8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I
+	0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUFg4SDUUUU
+X-CM-SenderInfo: zqqvvuo6o23hxhgxhubq/1tbiAQsECWnnOeEFwgAAsW
 
-On Fri, Apr 03, 2026 at 10:59:07PM +0200, Marino Dzalto wrote:
-> Add pr_fmt to prefix log messages with the module name for
-> easier debugging in dmesg.
-> 
-> Add checkentry functions for IPv4 (ttl_mt_check) and IPv6
-> (hl_mt6_check) to validate the match mode at rule registration
-> time, rejecting invalid modes with -EINVAL.
-> 
-> Signed-off-by: Marino Dzalto <marino.dzalto@gmail.com>
-> ---
+From: Kai Ma <k4729.23098@gmail.com>
 
-BTW, please use "nf-next" as target tree for this.
+Handle zero shift operands explicitly in nft_bitwise_eval_lshift() and
+nft_bitwise_eval_rshift().
 
-And use _ratelimited as suggested by the AI reviewer.
+Shift expressions accept values in the range [0, 31], but the carry
+propagation code assumes a non-zero shift and computes the carry from the
+adjacent 32-bit word unconditionally. For a zero shift operand, the
+expected result is to leave the value unchanged.
 
-Send us a v4, thanks
+Treat zero shift as a no-op before entering the carry propagation loops.
+This preserves the existing behaviour for non-zero shifts and matches the
+expected semantics of shifting by zero.
 
-> v3: Remove mention of NULL checks from commit message, as they
->     were never part of the original code.
-> v2: Remove NULL checks for skb as suggested by Florian Westphal
->     (skb is guaranteed non-NULL by netfilter core). Move mode
->     validation to checkentry functions instead of match function,
->     also as suggested by Florian Westphal.
-> ---
->  net/netfilter/xt_hl.c | 27 +++++++++++++++++++++++++++
->  1 file changed, 27 insertions(+)
-> 
-> diff --git a/net/netfilter/xt_hl.c b/net/netfilter/xt_hl.c
-> index c1a70f8f0441..4a12a757ecbf 100644
-> --- a/net/netfilter/xt_hl.c
-> +++ b/net/netfilter/xt_hl.c
-> @@ -6,6 +6,7 @@
->   * Hop Limit matching module
->   * (C) 2001-2002 Maciej Soltysiak <solt@dns.toxicfilms.tv>
->   */
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->  
->  #include <linux/ip.h>
->  #include <linux/ipv6.h>
-> @@ -22,6 +23,18 @@ MODULE_LICENSE("GPL");
->  MODULE_ALIAS("ipt_ttl");
->  MODULE_ALIAS("ip6t_hl");
->  
-> +static int ttl_mt_check(const struct xt_mtchk_param *par)
-> +{
-> +	const struct ipt_ttl_info *info = par->matchinfo;
-> +
-> +	if (info->mode > IPT_TTL_GT) {
-> +		pr_err("Unknown TTL match mode: %d\n", info->mode);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  {
->  	const struct ipt_ttl_info *info = par->matchinfo;
-> @@ -41,6 +54,18 @@ static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  	return false;
->  }
->  
-> +static int hl_mt6_check(const struct xt_mtchk_param *par)
-> +{
-> +	const struct ip6t_hl_info *info = par->matchinfo;
-> +
-> +	if (info->mode > IP6T_HL_GT) {
-> +		pr_err("Unknown Hop Limit match mode: %d\n", info->mode);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static bool hl_mt6(const struct sk_buff *skb, struct xt_action_param *par)
->  {
->  	const struct ip6t_hl_info *info = par->matchinfo;
-> @@ -65,6 +90,7 @@ static struct xt_match hl_mt_reg[] __read_mostly = {
->  		.name       = "ttl",
->  		.revision   = 0,
->  		.family     = NFPROTO_IPV4,
-> +		.checkentry = ttl_mt_check,
->  		.match      = ttl_mt,
->  		.matchsize  = sizeof(struct ipt_ttl_info),
->  		.me         = THIS_MODULE,
-> @@ -73,6 +99,7 @@ static struct xt_match hl_mt_reg[] __read_mostly = {
->  		.name       = "hl",
->  		.revision   = 0,
->  		.family     = NFPROTO_IPV6,
-> +		.checkentry = hl_mt6_check,
->  		.match      = hl_mt6,
->  		.matchsize  = sizeof(struct ip6t_hl_info),
->  		.me         = THIS_MODULE,
-> -- 
-> 2.50.1 (Apple Git-155)
-> 
+Fixes: 567d746b55bc ("netfilter: bitwise: add support for shifts.")
+Cc: stable@kernel.org
+Reported-by: Yuan Tan <yuantan098@gmail.com>
+Reported-by: Yifan Wu <yifanwucs@gmail.com>
+Reported-by: Juefei Pu <tomapufckgml@gmail.com>
+Reported-by: Xin Liu <bird@lzu.edu.cn>
+Signed-off-by: Kai Ma <k4729.23098@gmail.com>
+Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
+---
+ net/netfilter/nft_bitwise.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index d550910aabec..f74774b176af 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -39,10 +39,16 @@ static void nft_bitwise_eval_lshift(u32 *dst, const u32 *src,
+ 				    const struct nft_bitwise *priv)
+ {
+ 	u32 shift = priv->data.data[0];
+-	unsigned int i;
++	unsigned int i, n = DIV_ROUND_UP(priv->len, sizeof(u32));
+ 	u32 carry = 0;
+ 
+-	for (i = DIV_ROUND_UP(priv->len, sizeof(u32)); i > 0; i--) {
++	if (!shift) {
++		for (i = 0; i < n; i++)
++			dst[i] = src[i];
++		return;
++	}
++
++	for (i = n; i > 0; i--) {
+ 		dst[i - 1] = (src[i - 1] << shift) | carry;
+ 		carry = src[i - 1] >> (BITS_PER_TYPE(u32) - shift);
+ 	}
+@@ -52,10 +58,16 @@ static void nft_bitwise_eval_rshift(u32 *dst, const u32 *src,
+ 				    const struct nft_bitwise *priv)
+ {
+ 	u32 shift = priv->data.data[0];
+-	unsigned int i;
++	unsigned int i, n = DIV_ROUND_UP(priv->len, sizeof(u32));
+ 	u32 carry = 0;
+ 
+-	for (i = 0; i < DIV_ROUND_UP(priv->len, sizeof(u32)); i++) {
++	if (!shift) {
++		for (i = 0; i < n; i++)
++			dst[i] = src[i];
++		return;
++	}
++
++	for (i = 0; i < n; i++) {
+ 		dst[i] = carry | (src[i] >> shift);
+ 		carry = src[i] << (BITS_PER_TYPE(u32) - shift);
+ 	}
+-- 
+2.43.0
+
