@@ -1,42 +1,40 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12DD4341AD6
-	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 18:17:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0D772BE7BE
+	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 18:35:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776795427; cv=none; b=RbHKFRlAZGVv5/eGNyscRfqEsWttEsNSB7nVXU2BAT8DTr5M72MOxAHmzAlpLQgUAdEftDXZPuWSaYnWAZ1zkusLcUDCxnNRa6XLYfqDWqotUfSmMtjxPHjV/GIgF/9dUx4GlrFV66VGkATNNPoWoVeOp69wKcFi1TOdWZXpVP8=
+	t=1776796526; cv=none; b=obbQ92he0gbCTo9wD1SaIUy2hh7WRUuighEuJ4mkMAaG0/x40wWS9uvHEZXw2DQxYdsqn2O9Abz1MdNyKHrpy5yVuVh7TFOv135qCkOnLgb/B0dkv+RUSB7Qx+r9FUEaPSSslJXXJDRYVwlvnRmELmrcY0f3FAVe60XhBdtTv4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776795427; c=relaxed/simple;
-	bh=/YUh5XHOtUIgcUqDAwMhUMmnophTt7Um0NN0XI197WE=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=logxlKjhw+CO8uFrmjyc59jHSCbKJJXeUu0tnMD7IZfTutq4GuJ5Wwc4wGJwxH9cqb4146XLuGGZFRUKsHPZKY5EZQL1SpoU1/DV2AxetxGfcbu5BeCbcBNDVekVOfKvg29ZfbshqcQkYq8dYKj6j615pAD3GxatNf/Z0USS4vE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=v9i+cYKl; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1776796526; c=relaxed/simple;
+	bh=kC8ZCTDsJAYQL8OlZ+k+6JY9z8/Sqx7fYh1Qpcb4iqU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nj9T62NNOtQW3dRB05js2N8DmiNJHEW67h0S6FgiHWI902I4pDypVZSq38w9MqEClW7VMvOcHBZe8ly+jswQ/K/PIs0nbH6Ei8Cw03kTwu3M1Hz019zwuMowCaXFGwu8xw4RGlyLz1+ugvP5q0TMm51VP6qrr6jj7JH/edcOQ7Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gBld8f+x; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="v9i+cYKl"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gBld8f+x"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5867760181
-	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 20:16:58 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 343D960255;
+	Tue, 21 Apr 2026 20:35:18 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776795418;
-	bh=/8lu3xgNOu26KIqyIV/ovhUuuonLToSPSq6JAw3raF0=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=v9i+cYKl66E7dfJYIWstt+YtqnbjnS9ekc712dR2knHESTr5xRRm6h28Flzy7diN4
-	 51rDK2yAXl9RmTXy5oGvX1IjbJcOtr8Bq1FZLqQGKi8PAbDRRZIfqekmnIaEq3m2He
-	 R5q2jWEWwGCtV3hqPkEUB7i3x3hUgt0L6kcjpQS3z6Q/JfcgR/KIYXqA1BOXmnM84q
-	 7SU800tf9rNbBdKo5SFVt1cSoVD+/9CYWTZmF0m3TT4XPYYpBjSPC/jatP1IPssGq0
-	 yLin5obx48xk1Jl9Cz/JqsdOZ/Hokjp2XciZWL5VuLt4VpKVl17mLVrkGsz5ahibj0
-	 QAZ5UNedWHyoQ==
+	s=2025; t=1776796518;
+	bh=4F8FKUzN+rQdLlW6EPbWJ59sgS7CjxTIoDPe8l9IDcg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=gBld8f+x0TGRciqKPq3qRPG3jWmKiJCKkeEdJzgllOVZxbvjZRUGhPHfH6mUhxIcs
+	 qwFeVLM69tccs5E8vofkLuZdl2mllhUIIzq0+ZBuHoz64Os66sV5MKy+qsPRtNyR39
+	 ll6Mg6P30D/KcGNklA7KBpdqCnu9/lRr4BkhO+KrSenbC6t6wAw3cfhhK4BSmTBX+M
+	 UoH/OHFd1SH7VxqtiGDVUBO6eWcWAuc1owSeAJvgLNumKy29qefmaOYJBc4X+/hMii
+	 HPejTkyfYqG+ewPMsg1uzn5wbNqjkQdT1gXR2siHLkVAoC9xxTmlzipPNjC7FRz+S/
+	 luZikbXRW1wdw==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 3/3] netfilter: nft_fwd_netdev: use recursion counter in neigh egress path
-Date: Tue, 21 Apr 2026 20:16:52 +0200
-Message-ID: <20260421181652.161719-3-pablo@netfilter.org>
+Cc: fw@strlen.de
+Subject: [PATCH nf,v5] netfilter: arp_tables: fix IEEE1394 ARP payload parsing
+Date: Tue, 21 Apr 2026 20:35:14 +0200
+Message-ID: <20260421183514.167201-1-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260421181652.161719-1-pablo@netfilter.org>
-References: <20260421181652.161719-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -45,110 +43,108 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Weiming Shi <bestswngs@gmail.com>
+Weiming Shi says:
 
-nft_fwd_neigh can be used in egress chains (NF_NETDEV_EGRESS). When the
-forwarding rule targets the same device or two devices forward to each
-other, neigh_xmit() triggers dev_queue_xmit() which re-enters
-nf_hook_egress(), causing infinite recursion and stack overflow.
+"arp_packet_match() unconditionally parses the ARP payload assuming two
+hardware addresses are present (source and target). However,
+IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
+field, and arp_hdr_len() already accounts for this by returning a
+shorter length for ARPHRD_IEEE1394 devices.
 
-Move the nf_get_nf_dup_skb_recursion() accessor and NF_RECURSION_LIMIT
-to the shared header nf_dup_netdev.h as a static inline, so that
-nft_fwd_netdev can use the recursion counter directly without exported
-function call overhead. Guard neigh_xmit() with the same recursion
-limit already used in nf_do_netdev_egress().
+As a result, on IEEE1394 interfaces arp_packet_match() advances past a
+nonexistent target hardware address and reads the wrong bytes for both
+the target device address comparison and the target IP address. This
+causes arptables rules to match against garbage data, leading to
+incorrect filtering decisions: packets that should be accepted may be
+dropped and vice versa.
 
-Fixes: f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
+The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
+handles this correctly by skipping the target hardware address for
+ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match()."
+
+This patch always returns 0 (no match) in case user matches on the target
+hardware address which is never present in IEEE1394.
+
+Note that this returns 0 (no match) for either normal and inverse match
+because matching in the target hardware address in ARPHRD_IEEE1394 has
+never been supported by arptables. This is intentional, matching on the
+target hardware address should never evaluate true for ARPHRD_IEEE1394.
+
+Moreover, adjust arpt_mangle to drop the packet if user tries to mangle
+target hardware and IP address in IEEE1394, this has never been
+supported.
+
+Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
 Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_dup_netdev.h | 13 +++++++++++++
- net/netfilter/nf_dup_netdev.c         | 16 ----------------
- net/netfilter/nft_fwd_netdev.c        |  7 +++++++
- 3 files changed, 20 insertions(+), 16 deletions(-)
+v5: check for arphdr->ar_hrd == htons(ARPHRD_IEEE1394) in
+    arp_packet_match() too.
 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index b175d271aec9..609bcf422a9b 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -3,10 +3,23 @@
- #define _NF_DUP_NETDEV_H_
- 
- #include <net/netfilter/nf_tables.h>
-+#include <linux/netdevice.h>
-+#include <linux/sched.h>
- 
- void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
-+#define NF_RECURSION_LIMIT	2
+ net/ipv4/netfilter/arp_tables.c  | 19 ++++++++++++++++---
+ net/ipv4/netfilter/arpt_mangle.c |  8 ++++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 1cdd9c28ab2d..e4b2106d0456 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -110,13 +110,26 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
+ 	arpptr += dev->addr_len;
+ 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
+ 	arpptr += sizeof(u32);
+-	tgt_devaddr = arpptr;
+-	arpptr += dev->addr_len;
 +
-+static inline u8 *nf_get_nf_dup_skb_recursion(void)
-+{
-+#ifndef CONFIG_PREEMPT_RT
-+	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
-+#else
-+	return &current->net_xmit.nf_dup_skb_recursion;
-+#endif
-+}
++	if (IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++	    arphdr->ar_hrd == htons(ARPHRD_IEEE1394)) {
++		if (unlikely(memchr_inv(arpinfo->tgt_devaddr.mask, 0,
++					sizeof(arpinfo->tgt_devaddr.mask))))
++			return 0;
 +
- struct nft_offload_ctx;
- struct nft_flow_rule;
- 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index e348fb90b8dc..3b0a70e154cd 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -13,22 +13,6 @@
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
- 
--#define NF_RECURSION_LIMIT	2
--
--#ifndef CONFIG_PREEMPT_RT
--static u8 *nf_get_nf_dup_skb_recursion(void)
--{
--	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
--}
--#else
--
--static u8 *nf_get_nf_dup_skb_recursion(void)
--{
--	return &current->net_xmit.nf_dup_skb_recursion;
--}
--
--#endif
--
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
- {
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index 8b6394660d1b..1feb2aa43191 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -151,6 +151,11 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 		goto out;
- 	}
- 
-+	if (*nf_get_nf_dup_skb_recursion() > NF_RECURSION_LIMIT) {
-+		verdict = NF_DROP;
-+		goto out;
++		tgt_devaddr = NULL;
++	} else {
++		tgt_devaddr = arpptr;
++		arpptr += dev->addr_len;
 +	}
-+
- 	dev = dev_get_by_index_rcu(nft_net(pkt), oif);
- 	if (dev == NULL) {
- 		verdict = NF_DROP;
-@@ -159,7 +164,9 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
+ 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
  
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
-+	(*nf_get_nf_dup_skb_recursion())++;
- 	neigh_xmit(neigh_table, dev, addr, skb);
-+	(*nf_get_nf_dup_skb_recursion())--;
- out:
- 	regs->verdict.code = verdict;
- }
+ 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
+-					dev->addr_len)) ||
++					dev->addr_len)))
++		return 0;
++
++	if (tgt_devaddr &&
+ 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
+ 					dev->addr_len)))
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index a4e07e5e9c11..285b1123b05c 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -40,6 +40,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ 	}
+ 	arpptr += pln;
+ 	if (mangle->flags & ARPT_MANGLE_TDEV) {
++		if (IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++		    arp->ar_hrd == htons(ARPHRD_IEEE1394))
++			return NF_DROP;
++
+ 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
+ 		   (arpptr + hln > skb_tail_pointer(skb)))
+ 			return NF_DROP;
+@@ -47,6 +51,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ 	}
+ 	arpptr += hln;
+ 	if (mangle->flags & ARPT_MANGLE_TIP) {
++		if (IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++		    arp->ar_hrd == htons(ARPHRD_IEEE1394))
++			return NF_DROP;
++
+ 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
+ 		   (arpptr + pln > skb_tail_pointer(skb)))
+ 			return NF_DROP;
 -- 
 2.47.3
 
