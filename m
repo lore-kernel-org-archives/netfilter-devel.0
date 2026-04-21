@@ -1,150 +1,165 @@
-Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
+Received: from azazel.net (taras.nevrast.org [35.176.194.208])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0D772BE7BE
-	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 18:35:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A63B382391
+	for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2026 20:08:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=35.176.194.208
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776796526; cv=none; b=obbQ92he0gbCTo9wD1SaIUy2hh7WRUuighEuJ4mkMAaG0/x40wWS9uvHEZXw2DQxYdsqn2O9Abz1MdNyKHrpy5yVuVh7TFOv135qCkOnLgb/B0dkv+RUSB7Qx+r9FUEaPSSslJXXJDRYVwlvnRmELmrcY0f3FAVe60XhBdtTv4s=
+	t=1776802091; cv=none; b=rxNRVVtsRQtkgD7j3ZNDOZpmCF7b6uTk0pdQyc1frSs4maBAUXAB0Wesq0M29IbOBt8qMkyosQbJzpnZIjY+Hd0Lrj1YFijy1nsQ3BLd7M39x9+zQ+hHv+j1rc4YtGlSjEc4OA65AWWQTg5n3jtVEFnbNPi8BRc5yijmSG+S3jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776796526; c=relaxed/simple;
-	bh=kC8ZCTDsJAYQL8OlZ+k+6JY9z8/Sqx7fYh1Qpcb4iqU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nj9T62NNOtQW3dRB05js2N8DmiNJHEW67h0S6FgiHWI902I4pDypVZSq38w9MqEClW7VMvOcHBZe8ly+jswQ/K/PIs0nbH6Ei8Cw03kTwu3M1Hz019zwuMowCaXFGwu8xw4RGlyLz1+ugvP5q0TMm51VP6qrr6jj7JH/edcOQ7Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=gBld8f+x; arc=none smtp.client-ip=217.70.190.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+	s=arc-20240116; t=1776802091; c=relaxed/simple;
+	bh=8xHF7dEWH8gC5oOu5fMiPUOBUmcx/65H1uNj0Vfvgho=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=NFOwG+5/1i+kviaE9vcsb6Ezbro89TQsJOh1GnlkloWWIobnCwLhWtqF69eLULtMUjBENBlb4EHIzHiozLRbOlexionerIhdaVX292iuxby3Urrjce2VMzSb/OgaIf/ParDbfWNupId0i1PpEF7lDNw71bJ3vCFMQKBGqMfJHwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net; spf=pass smtp.mailfrom=azazel.net; dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b=WUyWK46u; arc=none smtp.client-ip=35.176.194.208
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=azazel.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=azazel.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="gBld8f+x"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 343D960255;
-	Tue, 21 Apr 2026 20:35:18 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1776796518;
-	bh=4F8FKUzN+rQdLlW6EPbWJ59sgS7CjxTIoDPe8l9IDcg=;
-	h=From:To:Cc:Subject:Date:From;
-	b=gBld8f+x0TGRciqKPq3qRPG3jWmKiJCKkeEdJzgllOVZxbvjZRUGhPHfH6mUhxIcs
-	 qwFeVLM69tccs5E8vofkLuZdl2mllhUIIzq0+ZBuHoz64Os66sV5MKy+qsPRtNyR39
-	 ll6Mg6P30D/KcGNklA7KBpdqCnu9/lRr4BkhO+KrSenbC6t6wAw3cfhhK4BSmTBX+M
-	 UoH/OHFd1SH7VxqtiGDVUBO6eWcWAuc1owSeAJvgLNumKy29qefmaOYJBc4X+/hMii
-	 HPejTkyfYqG+ewPMsg1uzn5wbNqjkQdT1gXR2siHLkVAoC9xxTmlzipPNjC7FRz+S/
-	 luZikbXRW1wdw==
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Cc: fw@strlen.de
-Subject: [PATCH nf,v5] netfilter: arp_tables: fix IEEE1394 ARP payload parsing
-Date: Tue, 21 Apr 2026 20:35:14 +0200
-Message-ID: <20260421183514.167201-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+	dkim=pass (2048-bit key) header.d=azazel.net header.i=@azazel.net header.b="WUyWK46u"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=azazel.net;
+	s=20220717; h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=I4kHa3T2sQxFZGqNFgsyL+g/Ld8nU+akMCOuCDmIP7I=; b=WUyWK46uZ6v6MH8RCZMuo/Jykw
+	9t6F5b7awvJnq5kxRDUYRZdE5iM0vWGigynVsKFJFv3ywVO/LA6KEMnJKsaY2UXenCaTEJm/MhGLT
+	ASRuREAV/LsYI9HXxXW0XgGMf7vaJu5glMUMsRllrIOOcmk4j6PH8sDm0e/lq8kj+YgahE0+v1wLh
+	C9stW5/bgdZQgL9bislyw5+0bFHH7Ms6J69cJYPiGJufNOXvAH/j6GAyxynS822UeeK5wYJrb/akc
+	KHg5XOGM0I4wNpsK4rNpqBMn/dsh7/m7itau7zCluwxxUTbJ8j967QVT9/BtgDqTpGVXkKEZFKhCY
+	v6r5Hr/Q==;
+Received: from celephais.dreamlands.azazel.net ([2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f] helo=celephais.dreamlands)
+	by taras.nevrast.org with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.98.2)
+	(envelope-from <jeremy@azazel.net>)
+	id 1wFH6W-00000009lyL-0YCc;
+	Tue, 21 Apr 2026 20:49:52 +0100
+Date: Tue, 21 Apr 2026 20:49:51 +0100
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
+	fw@strlen.de, pablo@netfilter.org
+Subject: Re: [PATCH nf] netfilter: nft_bitwise: fix dst corruption in same
+ register shifts
+Message-ID: <20260421194951.GA1976704@celephais.dreamlands>
+References: <20260421173851.7945-2-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="F81ePTK3g0a3riya"
+Content-Disposition: inline
+In-Reply-To: <20260421173851.7945-2-fmancera@suse.de>
+X-SA-Exim-Connect-IP: 2001:8b0:fb7d:d6d7:3c21:9cff:fe2f:35f
+X-SA-Exim-Mail-From: jeremy@azazel.net
+X-SA-Exim-Scanned: No (on taras.nevrast.org); SAEximRunCond expanded to false
 
-Weiming Shi says:
 
-"arp_packet_match() unconditionally parses the ARP payload assuming two
-hardware addresses are present (source and target). However,
-IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
-field, and arp_hdr_len() already accounts for this by returning a
-shorter length for ARPHRD_IEEE1394 devices.
+--F81ePTK3g0a3riya
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As a result, on IEEE1394 interfaces arp_packet_match() advances past a
-nonexistent target hardware address and reads the wrong bytes for both
-the target device address comparison and the target IP address. This
-causes arptables rules to match against garbage data, leading to
-incorrect filtering decisions: packets that should be accepted may be
-dropped and vice versa.
+On 2026-04-21, at 19:38:52 +0200, Fernando Fernandez Mancera wrote:
+> For lshift and rshift, the shift operations are performed in a loop over
+> 32-bit words. The loop calculates the shifted value and write it to dst,
+> and then immediately reads from src to calculate the carry for the next
+> iteration. Because src and dst could point to the same memory location,
+> the carry is incorrectly calculated using the newly modified dst value
+> instead of the original src value.
+>=20
+> Adding a temporal local variable to cache the original value before
+            ^^^^^^^^
 
-The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
-handles this correctly by skipping the target hardware address for
-ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match()."
+"Temporary"?
 
-This patch always returns 0 (no match) in case user matches on the target
-hardware address which is never present in IEEE1394.
+> writing to dst and using it for the carry calculation solves the
+> problem. This was tested with the following payload:
+>=20
+> table test_table ip flags 0 use 1 handle 1
+> ip test_table test_chain use 3 type filter hook input prio 0 policy accep=
+t packets 0 bytes 0 flags 1
+> ip test_table test_chain 2
+>   [ immediate reg 1 0x44332211 0x88776655 ]
+>   [ bitwise reg 1 =3D ( reg 1 << 0x08000000 ) ]
+>   [ cmp eq reg 1 0x66443322 0x00887766 ]
+>   [ counter pkts 0 bytes 0 ]
+> ip test_table test_chain 4 3
+>   [ immediate reg 1 0x44332211 0x88776655 ]
+>   [ bitwise reg 1 =3D ( reg 1 << 0x08000000 ) ]
+>   [ cmp eq reg 1 0x55443322 0x00887766 ]
+>   [ counter pkts 21794 bytes 1917798 ]
+>=20
+> Fixes: 567d746b55bc ("netfilter: bitwise: add support for shifts.")
+> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
 
-Note that this returns 0 (no match) for either normal and inverse match
-because matching in the target hardware address in ARPHRD_IEEE1394 has
-never been supported by arptables. This is intentional, matching on the
-target hardware address should never evaluate true for ARPHRD_IEEE1394.
+Acked-By: Jeremy Sowden <jeremy@azazel.net>
 
-Moreover, adjust arpt_mangle to drop the packet if user tries to mangle
-target hardware and IP address in IEEE1394, this has never been
-supported.
+> ---
+> Note: I found this issue while digging into the lshift/rshift operation
+> ---
+>  net/netfilter/nft_bitwise.c | 12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+> index 13808e9cd999..136e8f3a71c5 100644
+> --- a/net/netfilter/nft_bitwise.c
+> +++ b/net/netfilter/nft_bitwise.c
+> @@ -43,8 +43,10 @@ static void nft_bitwise_eval_lshift(u32 *dst, const u3=
+2 *src,
+>  	u32 carry =3D 0;
+>=20
+>  	for (i =3D DIV_ROUND_UP(priv->len, sizeof(u32)); i > 0; i--) {
+> -		dst[i - 1] =3D (src[i - 1] << shift) | carry;
+> -		carry =3D src[i - 1] >> (BITS_PER_TYPE(u32) - shift);
+> +		u32 tmp_src =3D src[i - 1];
+> +
+> +		dst[i - 1] =3D (tmp_src << shift) | carry;
+> +		carry =3D tmp_src >> (BITS_PER_TYPE(u32) - shift);
+>  	}
+>  }
+>=20
+> @@ -56,8 +58,10 @@ static void nft_bitwise_eval_rshift(u32 *dst, const u3=
+2 *src,
+>  	u32 carry =3D 0;
+>=20
+>  	for (i =3D 0; i < DIV_ROUND_UP(priv->len, sizeof(u32)); i++) {
+> -		dst[i] =3D carry | (src[i] >> shift);
+> -		carry =3D src[i] << (BITS_PER_TYPE(u32) - shift);
+> +		u32 tmp_src =3D src[i];
+> +
+> +		dst[i] =3D carry | (tmp_src >> shift);
+> +		carry =3D tmp_src << (BITS_PER_TYPE(u32) - shift);
+>  	}
+>  }
+>=20
+> --=20
+> 2.53.0
+>=20
 
-Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v5: check for arphdr->ar_hrd == htons(ARPHRD_IEEE1394) in
-    arp_packet_match() too.
+--F81ePTK3g0a3riya
+Content-Type: application/pgp-signature; name="signature.asc"
 
- net/ipv4/netfilter/arp_tables.c  | 19 ++++++++++++++++---
- net/ipv4/netfilter/arpt_mangle.c |  8 ++++++++
- 2 files changed, 24 insertions(+), 3 deletions(-)
+-----BEGIN PGP SIGNATURE-----
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 1cdd9c28ab2d..e4b2106d0456 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -110,13 +110,26 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 	arpptr += dev->addr_len;
- 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
- 	arpptr += sizeof(u32);
--	tgt_devaddr = arpptr;
--	arpptr += dev->addr_len;
-+
-+	if (IS_ENABLED(CONFIG_FIREWIRE_NET) &&
-+	    arphdr->ar_hrd == htons(ARPHRD_IEEE1394)) {
-+		if (unlikely(memchr_inv(arpinfo->tgt_devaddr.mask, 0,
-+					sizeof(arpinfo->tgt_devaddr.mask))))
-+			return 0;
-+
-+		tgt_devaddr = NULL;
-+	} else {
-+		tgt_devaddr = arpptr;
-+		arpptr += dev->addr_len;
-+	}
- 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
- 
- 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
--					dev->addr_len)) ||
-+					dev->addr_len)))
-+		return 0;
-+
-+	if (tgt_devaddr &&
- 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
- 					dev->addr_len)))
-diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
-index a4e07e5e9c11..285b1123b05c 100644
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -40,6 +40,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
- 	}
- 	arpptr += pln;
- 	if (mangle->flags & ARPT_MANGLE_TDEV) {
-+		if (IS_ENABLED(CONFIG_FIREWIRE_NET) &&
-+		    arp->ar_hrd == htons(ARPHRD_IEEE1394))
-+			return NF_DROP;
-+
- 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
- 		   (arpptr + hln > skb_tail_pointer(skb)))
- 			return NF_DROP;
-@@ -47,6 +51,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
- 	}
- 	arpptr += hln;
- 	if (mangle->flags & ARPT_MANGLE_TIP) {
-+		if (IS_ENABLED(CONFIG_FIREWIRE_NET) &&
-+		    arp->ar_hrd == htons(ARPHRD_IEEE1394))
-+			return NF_DROP;
-+
- 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
- 		   (arpptr + pln > skb_tail_pointer(skb)))
- 			return NF_DROP;
--- 
-2.47.3
+wsG7BAABCgBvBYJp59TPCRAphqwKvfEEDUcUAAAAAAAeACBzYWx0QG5vdGF0aW9u
+cy5zZXF1b2lhLXBncC5vcmepyEWhGcxG5ilGBKyYbzXkTGzocQWwSdk+IinsjGLw
+3xYhBGwdtFNj70A3vVbVFymGrAq98QQNAAAxfA//WuabiO8vAq28HQeNrHCiTcBY
+XdNBDWwUfzTu2NHHavgTx9qQKUbmcuBSysLdHXT7nHj4rN1AkbBGfWuACB65jz0N
+61wjRHpNfTgIV7ZAOsXdEbvZC6L+CNpCdkL/vPX1lzudvpETFIfmJQWnnJEvEPdE
+wJlIH7PKn7++dOYYK7Da0iv2GvnQ3rnmTLY7oqM7konVRNJDGDO2WBcRPUjm8JSr
+OPCWj8BeA515LThBGNLIFe7cx61Qc6BfphEAq379SJu8ra2PL97esJzYLGy/45nO
+vSMD+T+qLmPnaf5a1wmciJHWN3Bm6T8qNu6vLHGaNzAtNFscaZ4JJi+I5S5TSFyA
+xnicBcvXzMJPcO2NvbOFctmoI4rXNMLFLlZY7y/EG4BeoBwhzeK0suzZmFeHV+dI
+Lo0H2rfxMPlcSSJf64kE0067Gu+zV4SKX2qTxF6FJltPwbZt/o9JxSpKGGS0qt8e
+NiybR4zD5MElCBxyasKbwv1XlD7DBUG6h33zhxfdZdInwmjuQP1vfro8de5cDi7q
+E013JpvQ4KgA7Kb4T/mhhtOHU6rbSsi1BN7f2A+cxF5tEwM2E3BYagnPir2vkK6N
+iWEHUY5PSReSiODW+aRUQb+NYxnqmCAP6crqII6ZXaPRCiysMpbNDwc3PUhABMI7
+3Zz1O4dY45ePZ3F/Sxk=
+=nTfW
+-----END PGP SIGNATURE-----
 
+--F81ePTK3g0a3riya--
