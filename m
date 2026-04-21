@@ -1,134 +1,146 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6AB937FF49;
-	Tue, 21 Apr 2026 11:49:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C52F3845D8;
+	Tue, 21 Apr 2026 11:56:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776772196; cv=none; b=j386PO8BIBHd74eXQ59zY/n9L62uSkyyvvUlC4bsNvrSza3KIY7bDrW/pHe2og1PkTbTYcK234D0Ge6suWoyLaU8c4nqKdEJf4GSd8Wr+wlJhvOC1xmk2jRLuUXZIXt1/G5e7j5qyHzt3yDLz96ykwd70uH91kbP/6B/iNp4Vy0=
+	t=1776772588; cv=none; b=Ptq+uiqBvB2hO9tknkNVJmidOWzqwAW4/HI1e10KS2j2yP71QsFq/lHrWaLIGTIB4XihlkO2VHBCnIh1ss2t1ekE0A1V2+zpcYjNTG7J0Hq9bGZwbBloxTD+ssVE3akMNy7Yf9Y54N7Eceihekp9nc0aDz2j3glp97hoKaN+fzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776772196; c=relaxed/simple;
-	bh=uuRDbH7KRxOKKZlcf1KF1ZvZpDGq5h2ULvk6YWb9YpA=;
+	s=arc-20240116; t=1776772588; c=relaxed/simple;
+	bh=pQOQW0F37RiB3H/Va07FzlVZh/8VsGGpDYSzXTQ/d5w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oX2Jy8r2d3y9XaOTMW3elwQN9C/RssGwF7pmCfKymvRN2L2z2ZRWBLMQPVG3dCo46wl0I71hpNLjJYvHuVZzyIBAbu1fl88Vf83Pz0Z83JOfO3gVmNeNSRKur5uJZZ2KbIc3HsrQ4poAekcjAwl+oErI9ey25sRA0h1fn8SzahY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=E0t9BphM; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=q3XDqNJFJYq/c8iK9XPDgYNNkRxX6fATCnc8Ojqkoe/JdylGBEl1DV1qBySUwY+2T2hMW6BA48cau/PfehxYEv1/DKac4f+wKkza+Bs7Ge4Ru0SWlkjY7FnXxqwnrirPDxp31+EQXIETJbG5xxOacGKhas2p2Us+D43dVGZhZS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=qF96Y7Vr; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="E0t9BphM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1776772194; x=1808308194;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=uuRDbH7KRxOKKZlcf1KF1ZvZpDGq5h2ULvk6YWb9YpA=;
-  b=E0t9BphMD8FUqCw9mK3xlD9RxmbRezLoXvNKvUINq7ZlZMhffzGJMOkV
-   OA/dqwZEw6dg5GPRzxjNGWu3HWcrHYZq46p/LCxVszMTdBF6cXO+H3LHh
-   eQOLJUt6sVqzvnylnshd1IvbAwNXlfsZwLMzS13L8ZNC9o0Cdvt9jecA1
-   /sY6tqrgViTymCAIbp8yyT9s+d6VhJqF3rhnhzax9NThfdzIxl/qifSNU
-   CUaVAaoN+wTvTfba14Mn4C/JRraKQ5hFAES/Q492trHwOf/pSlMP3nQs+
-   hB6+yU0d+AngJT361qiAKO1QTkmpo44dRxlblw6biqqB6TgRbirKXUa4t
-   A==;
-X-CSE-ConnectionGUID: HqOYzKmGQV+cC+gBgd55NA==
-X-CSE-MsgGUID: k8xRjuQMQiKZov8hkqmg2w==
-X-IronPort-AV: E=McAfee;i="6800,10657,11762"; a="81570450"
-X-IronPort-AV: E=Sophos;i="6.23,191,1770624000"; 
-   d="scan'208";a="81570450"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2026 04:49:53 -0700
-X-CSE-ConnectionGUID: ddKaYSOzS0qlHzI1zxETiw==
-X-CSE-MsgGUID: i5VMa8ZhS4+kSj9vA0U/YA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,191,1770624000"; 
-   d="scan'208";a="270102600"
-Received: from lkp-server01.sh.intel.com (HELO 7e48d0ff8e22) ([10.239.97.150])
-  by orviesa001.jf.intel.com with ESMTP; 21 Apr 2026 04:49:50 -0700
-Received: from kbuild by 7e48d0ff8e22 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wF9bw-000000003Sa-1KoJ;
-	Tue, 21 Apr 2026 11:49:48 +0000
-Date: Tue, 21 Apr 2026 19:48:50 +0800
-From: kernel test robot <lkp@intel.com>
-To: Marino Dzalto <marino.dzalto@gmail.com>, pablo@netfilter.org,
-	fw@strlen.de
-Cc: oe-kbuild-all@lists.linux.dev, netfilter-devel@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="qF96Y7Vr"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 805D2600B5;
+	Tue, 21 Apr 2026 13:56:24 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1776772584;
+	bh=phTSxWHX76RLznCdquM07h7FzBmO2ORr8wdwNAd/4Gk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=qF96Y7VrJHSPJduyqVsLtC/vW8wMD/ILOSroqM4ptqFg0kVJRiogQFCGtkfjridwb
+	 diuI915zzp+VidQQc1HN0kCVNFkFfpAv4O+UdVZuK/LPWExzOk50TDNs8EnW4Op7Ij
+	 O7B+lYHN4Vd6Le+rKiQ7IBLcohomH6/Ovgeg9T6HFfbd/dz97WUtD20Zc23/9KOVzP
+	 0z3be00o1R2XCLFNmgeyrujSJyzn1wbUMocdWmiDtwVcPfmUDVXGCTXYe0OslVF3OK
+	 jqkoKq2gzA4c+aLjBUqS4WkFCuOAGSk3Ebgwbpm90C4sHgTRoL/MLCrAhZr32hW16i
+	 iJ87ljw1zIunw==
+Date: Tue, 21 Apr 2026 13:56:21 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Marino Dzalto <marino.dzalto@gmail.com>
+Cc: fw@strlen.de, jacob.e.keller@intel.com, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Marino Dzalto <marino.dzalto@gmail.com>
-Subject: Re: [PATCH] netfilter: xt_HL: add pr_fmt, default case and NULL
- checks
-Message-ID: <202604211905.6ZPE3dFs-lkp@intel.com>
-References: <20260403193929.89449-1-marino.dzalto@gmail.com>
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3] netfilter: xt_HL: add pr_fmt and checkentry validation
+Message-ID: <aedl5SY8M6LtFxa2@chamomile>
+References: <20260403205907.92749-1-marino.dzalto@gmail.com>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20260403193929.89449-1-marino.dzalto@gmail.com>
+In-Reply-To: <20260403205907.92749-1-marino.dzalto@gmail.com>
 
-Hi Marino,
+On Fri, Apr 03, 2026 at 10:59:07PM +0200, Marino Dzalto wrote:
+> Add pr_fmt to prefix log messages with the module name for
+> easier debugging in dmesg.
+> 
+> Add checkentry functions for IPv4 (ttl_mt_check) and IPv6
+> (hl_mt6_check) to validate the match mode at rule registration
+> time, rejecting invalid modes with -EINVAL.
+> 
+> Signed-off-by: Marino Dzalto <marino.dzalto@gmail.com>
+> ---
 
-kernel test robot noticed the following build errors:
+BTW, please use "nf-next" as target tree for this.
 
-[auto build test ERROR on netfilter-nf/main]
-[also build test ERROR on nf-next/master horms-ipvs/master linus/master v7.0 next-20260420]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+And use _ratelimited as suggested by the AI reviewer.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Marino-Dzalto/netfilter-xt_HL-add-pr_fmt-default-case-and-NULL-checks/20260420-185652
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git main
-patch link:    https://lore.kernel.org/r/20260403193929.89449-1-marino.dzalto%40gmail.com
-patch subject: [PATCH] netfilter: xt_HL: add pr_fmt, default case and NULL checks
-config: m68k-allmodconfig (https://download.01.org/0day-ci/archive/20260421/202604211905.6ZPE3dFs-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 15.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260421/202604211905.6ZPE3dFs-lkp@intel.com/reproduce)
+Send us a v4, thanks
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202604211905.6ZPE3dFs-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   net/netfilter/xt_hl.c: In function 'ttl_mt':
->> net/netfilter/xt_hl.c:34:13: error: assignment of read-only variable 'ttl'
-      34 |         ttl = ip_hdr(skb)->ttl;
-         |             ^
-
-
-vim +/ttl +34 net/netfilter/xt_hl.c
-
-    25	
-    26	static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
-    27	{
-    28		const struct ipt_ttl_info *info = par->matchinfo;
-    29		const u8 ttl;
-    30	
-    31		if (!skb)
-    32			return false;
-    33	
-  > 34		ttl = ip_hdr(skb)->ttl;
-    35	
-    36		switch (info->mode) {
-    37		case IPT_TTL_EQ:
-    38			return ttl == info->ttl;
-    39		case IPT_TTL_NE:
-    40			return ttl != info->ttl;
-    41		case IPT_TTL_LT:
-    42			return ttl < info->ttl;
-    43		case IPT_TTL_GT:
-    44			return ttl > info->ttl;
-    45		default:
-    46			pr_warn("Unknown TTL match mode: %d\n", info->mode);
-    47			return false;
-    48		}
-    49	}
-    50	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> v3: Remove mention of NULL checks from commit message, as they
+>     were never part of the original code.
+> v2: Remove NULL checks for skb as suggested by Florian Westphal
+>     (skb is guaranteed non-NULL by netfilter core). Move mode
+>     validation to checkentry functions instead of match function,
+>     also as suggested by Florian Westphal.
+> ---
+>  net/netfilter/xt_hl.c | 27 +++++++++++++++++++++++++++
+>  1 file changed, 27 insertions(+)
+> 
+> diff --git a/net/netfilter/xt_hl.c b/net/netfilter/xt_hl.c
+> index c1a70f8f0441..4a12a757ecbf 100644
+> --- a/net/netfilter/xt_hl.c
+> +++ b/net/netfilter/xt_hl.c
+> @@ -6,6 +6,7 @@
+>   * Hop Limit matching module
+>   * (C) 2001-2002 Maciej Soltysiak <solt@dns.toxicfilms.tv>
+>   */
+> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+>  
+>  #include <linux/ip.h>
+>  #include <linux/ipv6.h>
+> @@ -22,6 +23,18 @@ MODULE_LICENSE("GPL");
+>  MODULE_ALIAS("ipt_ttl");
+>  MODULE_ALIAS("ip6t_hl");
+>  
+> +static int ttl_mt_check(const struct xt_mtchk_param *par)
+> +{
+> +	const struct ipt_ttl_info *info = par->matchinfo;
+> +
+> +	if (info->mode > IPT_TTL_GT) {
+> +		pr_err("Unknown TTL match mode: %d\n", info->mode);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  {
+>  	const struct ipt_ttl_info *info = par->matchinfo;
+> @@ -41,6 +54,18 @@ static bool ttl_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	return false;
+>  }
+>  
+> +static int hl_mt6_check(const struct xt_mtchk_param *par)
+> +{
+> +	const struct ip6t_hl_info *info = par->matchinfo;
+> +
+> +	if (info->mode > IP6T_HL_GT) {
+> +		pr_err("Unknown Hop Limit match mode: %d\n", info->mode);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static bool hl_mt6(const struct sk_buff *skb, struct xt_action_param *par)
+>  {
+>  	const struct ip6t_hl_info *info = par->matchinfo;
+> @@ -65,6 +90,7 @@ static struct xt_match hl_mt_reg[] __read_mostly = {
+>  		.name       = "ttl",
+>  		.revision   = 0,
+>  		.family     = NFPROTO_IPV4,
+> +		.checkentry = ttl_mt_check,
+>  		.match      = ttl_mt,
+>  		.matchsize  = sizeof(struct ipt_ttl_info),
+>  		.me         = THIS_MODULE,
+> @@ -73,6 +99,7 @@ static struct xt_match hl_mt_reg[] __read_mostly = {
+>  		.name       = "hl",
+>  		.revision   = 0,
+>  		.family     = NFPROTO_IPV6,
+> +		.checkentry = hl_mt6_check,
+>  		.match      = hl_mt6,
+>  		.matchsize  = sizeof(struct ip6t_hl_info),
+>  		.me         = THIS_MODULE,
+> -- 
+> 2.50.1 (Apple Git-155)
+> 
