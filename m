@@ -1,294 +1,366 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
+Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35BF82DEA98;
-	Wed, 22 Apr 2026 14:00:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85A893ED5CF
+	for <netfilter-devel@vger.kernel.org>; Wed, 22 Apr 2026 14:41:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776866455; cv=none; b=LKof2exQwOd8cmesmL9XrsWfLHBnJTYmMFshxDW4WkxGaGXCQqwkq26r3i6ACYrylbMUQGLJFBOKVbeQ3iPOotFt2KsHiKD+Zcv6/5QH7lyJVsP1qGHDdpr2rjmoor/xUGD5JPvnMhmV/akACa1fhajOysbV0CrC9aXQJUaF+T8=
+	t=1776868867; cv=none; b=S80Z3ZmpGjw7G7tw9Wso6oLScGA51wWad1M7qSLD35CytR1knwC7HIYDklovR3PBiweuGOWfOam8ZawJCFFMBsJNB6b86rt0QRz03/y0OYWJFdAp3YPBVX/FuDtJYKdTVTMsm0M0T+CwdqZjNv4kJXJI09ethMRQ//rpZIq+t/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776866455; c=relaxed/simple;
-	bh=eRDmAq43fHFSygwj1J9RoqXEd7yW7ZReHCkjsgyazwU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=GujevntiIA33N9km9+uAygDyNG3ilLobLx0+R/WmMwiZ+m2kv85wF0YEANxR3HN7p2mtueiRPSe3aUphVtkVqGPl905vlEQh9RnoGsIw44QZW6x+x2HCtuuwqCLyulJKVIII5K1EifjfjH3gZ9uNA8hUFglUuoWjJm9f5B3j9Rs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=5ALr6T/f; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="5ALr6T/f"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id 7327721269;
-	Wed, 22 Apr 2026 17:00:44 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-transfer-encoding:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=Skcb5NYkia7bgOtu62s+YmwelAiwEhcYBtNYgrRURU8=; b=5ALr6T/fme5X
-	nZv4ZFsfrGtH/shgZCaRQvDvZy0TTmoimy8FsiPmuk9vAEbGwGFvqW/TZXH6f9ZW
-	JnpWLsCcrDmdJviZmxf9sm93dD6foFjkRWaGcUiMh/JLb4o9aBxZulp+EJOjVnDN
-	HtKuc2y2wNQOJXvJBVQ9pmu36fRgIjCGo+Er2UIKMZRzTRBKaGI3MVBg819oT7bF
-	o70c9GIzevsBbu2qWgNNCkJlcqt2SXaElpy/aJpwJ7dxDz1CC984ITsZCPrq7h67
-	yaYPPlkq/u5x0U5FjRMgKEvSyq8OOScWmAwEZLXBruclVbimVbSTNvsd2xVt1qKN
-	vFFthfs/zlZGBzhj3B6Xt7YnIdA3oTbc13GF3usu4XJmWUKRn6LDp71/KIfCnH/n
-	dt6klJ44XACpsH1I2uJVzuZs0hTrOyptrEccBRfCNDP4nul8DTZd0V2aHFVyzzdg
-	KqE/8MvOPw+dvnvIGiP+0+1LODJ8qOTs7qmFiVopDwAazbDo1ShKEzUDBImffKBs
-	zpdhrazFA0bLB2D0iEFohcUVJ9y7GS/TQ6HoJPDAo21eoEK0mgoRE2mCj6DtuwGS
-	wQmDG6uhZV8idaf1ZsUMB92dVC7wj5blK5xbB3s734b5sGcYECtiPoFArJmVo3Zc
-	Lrhas+s679ZBG9wGra6JEqqeKM4dZGc=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Wed, 22 Apr 2026 17:00:39 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id 753EB6291E;
-	Wed, 22 Apr 2026 17:00:39 +0300 (EEST)
-Received: from ja.home.ssi.bg (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63MDwYjS050521;
-	Wed, 22 Apr 2026 16:58:34 +0300
-Received: (from root@localhost)
-	by ja.home.ssi.bg (8.18.1/8.18.1/Submit) id 63MDwYJc050520;
-	Wed, 22 Apr 2026 16:58:34 +0300
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCHv3 net 3/3] ipvs: fix the spin_lock usage for RT build
-Date: Wed, 22 Apr 2026 16:58:23 +0300
-Message-ID: <20260422135823.50489-4-ja@ssi.bg>
+	s=arc-20240116; t=1776868867; c=relaxed/simple;
+	bh=mwDxI2VhfDkjQMkhjBgiNtDNs+Gs1vHB/dr7FA0ev00=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Nbh9/X+p34ttO4tYSuM0lQH4c6stPmCLELLButqXPc48DjqlyS5FxdTgCyEcrIi+QdSHt0FaG5aFKXF17itRCJDYMVbiZuVnEHcPNIM8czwdrBRnEIl4Iyb7QjuFUXxZdrxxT4xhvpDWGsJOnlfqThMWvtkHhHmB6MuGSUqA1wI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc; arc=none smtp.client-ip=91.216.245.30
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=Chamillionaire.breakpoint.cc
+Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
+	id E516660890; Wed, 22 Apr 2026 16:41:02 +0200 (CEST)
+From: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Subject: [PATCH v2 nf] netfilter: nf_conntrack_sip: don't use simple_strtoul
+Date: Wed, 22 Apr 2026 16:40:51 +0200
+Message-ID: <20260422144057.14763-1-fw@strlen.de>
 X-Mailer: git-send-email 2.53.0
-In-Reply-To: <20260422135823.50489-1-ja@ssi.bg>
-References: <20260422135823.50489-1-ja@ssi.bg>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-syzbot reports for sleeping function called from invalid context [1].
-The recently added code for resizable hash tables uses
-hlist_bl bit locks in combination with spin_lock for
-the connection fields (cp->lock).
+Replace unsafe port parsing in epaddr_len(), ct_sip_parse_header_uri(),
+and ct_sip_parse_request() with a new sip_parse_port() helper that
+validates each digit against the buffer limit, eliminating the use of
+simple_strtoul() which assumes NUL-terminated strings.
 
-Fix the following problems:
+The previous code dereferenced pointers without bounds checks after
+sip_parse_addr() and relied on simple_strtoul() on non-NUL-terminated
+skb data. A port that reaches the buffer limit without a trailing
+character is also rejected as malformed.
 
-* avoid using spin_lock(&cp->lock) under locked bit lock
-because it sleeps on PREEMPT_RT
+Also get rid of all simple_strtoul() usage in conntrack, prefer a
+stricter version instead.  There are intentional changes:
 
-* as the recent changes call ip_vs_conn_hash() only for newly
-allocated connection, the spin_lock can be removed there because
-the connection is still not linked to table and does not need
-cp->lock protection.
+- Bail out if number is > UINT_MAX and indicate a failure, same for
+  too long sequences.
+  While we do accept 05535 as port 5535, we will not accept e.g.
+  'sip:10.0.0.1:005060'.  While its syntactically valid under RFC 3261,
+  we should restrict this to not waste cycles when presented with
+  malformed packets with 64k '0' characters.
 
-* the lock can be removed also from ip_vs_conn_unlink() where we
-are the last connection user.
+- Force base 10 in ct_sip_parse_numerical_param(). This is used to fetch
+  'expire=' and 'rports='; both are expected to use base-10.
 
-* the last place that is fixed is ip_vs_conn_fill_cport()
-where now the cp->lock is locked before the other locks to
-ensure other packets do not modify the cp->flags in non-atomic
-way. Here we make sure cport and flags are changed only once
-if two or more packets race to fill the cport. Also, we fill
-cport early, so that if we race with resizing there will be
-valid cport key for the hashing. Problems reported by Sashiko.
+- In nf_nat_sip.c, only accept the parsed value if its within the 1k-64k
+  range.
 
-[1]:
-BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
-in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 16, name: ktimers/0
-preempt_count: 2, expected: 0
-RCU nest depth: 3, expected: 3
-8 locks held by ktimers/0/16:
- #0: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
- #1: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
- #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
- #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: timer_base_lock_expiry kernel/time/timer.c:1502 [inline]
- #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: __run_timer_base+0x120/0x9f0 kernel/time/timer.c:2384
- #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
- #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
- #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __rt_spin_lock kernel/locking/spinlock_rt.c:50 [inline]
- #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1e0/0x400 kernel/locking/spinlock_rt.c:57
- #4: ffffc90000157a80 ((&cp->timer)){+...}-{0:0}, at: call_timer_fn+0xd4/0x5e0 kernel/time/timer.c:1745
- #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
- #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
- #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:315 [inline]
- #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_expire+0x257/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
- #6: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
- #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
- #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
- #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
-Preemption disabled at:
-[<ffffffff898a6358>] bit_spin_lock include/linux/bit_spinlock.h:38 [inline]
-[<ffffffff898a6358>] hlist_bl_lock+0x18/0x110 include/linux/list_bl.h:149
-CPU: 0 UID: 0 PID: 16 Comm: ktimers/0 Tainted: G        W    L      syzkaller #0 PREEMPT_{RT,(full)}
-Tainted: [W]=WARN, [L]=SOFTLOCKUP
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/18/2026
-Call Trace:
- <TASK>
- dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
- __might_resched+0x329/0x480 kernel/sched/core.c:9162
- __rt_spin_lock kernel/locking/spinlock_rt.c:48 [inline]
- rt_spin_lock+0xc2/0x400 kernel/locking/spinlock_rt.c:57
- spin_lock include/linux/spinlock_rt.h:45 [inline]
- ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
- ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
- call_timer_fn+0x192/0x5e0 kernel/time/timer.c:1748
- expire_timers kernel/time/timer.c:1799 [inline]
- __run_timers kernel/time/timer.c:2374 [inline]
- __run_timer_base+0x6a3/0x9f0 kernel/time/timer.c:2386
- run_timer_base kernel/time/timer.c:2395 [inline]
- run_timer_softirq+0xb7/0x170 kernel/time/timer.c:2405
- handle_softirqs+0x1de/0x6d0 kernel/softirq.c:622
- __do_softirq kernel/softirq.c:656 [inline]
- run_ktimerd+0x69/0x100 kernel/softirq.c:1151
- smpboot_thread_fn+0x541/0xa50 kernel/smpboot.c:160
- kthread+0x388/0x470 kernel/kthread.c:436
- ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
- ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
- </TASK>
+- epaddr_len now returns 0 if the port is invalid, as it already does
+  for invalid ip addresses.  This is intentional. nf_conntrack_sip
+  performs lots of guesswork to find the right parts of the message
+  to parse.  Being stricter could break existing setups.
+  Connection tracking helpers are designed to allow traffic to
+  pass, not to block it.
 
-Reported-by: syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com
-Link: https://sashiko.dev/#/patchset/20260415200216.79699-1-ja%40ssi.bg
-Link: https://sashiko.dev/#/patchset/20260420165539.85174-4-ja%40ssi.bg
-Fixes: 2fa7cc9c7025 ("ipvs: switch to per-net connection table")
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Based on an earlier patch from Jenny Guanni Qu <qguanni@gmail.com>.
+
+Fixes: 05e3ced297fe ("[NETFILTER]: nf_conntrack_sip: introduce SIP-URI parsing helper")
+Reported-by: Klaudia Kloc <klaudia@vidocsecurity.com>
+Reported-by: Dawid Moczadło <dawid@vidocsecurity.com>
+Reported-by: Jenny Guanni Qu <qguanni@gmail.com>.
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 64 ++++++++++++++++-----------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+ v2: supersedes all inflight sip patches into one single changeset.
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index 84a4921a7865..5c7951a60462 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -267,27 +267,20 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		hash_key2 = hash_key;
- 		use2 = false;
- 	}
-+
- 	conn_tab_lock(t, cp, hash_key, hash_key2, use2, true /* new_hash */,
- 		      &head, &head2);
--	spin_lock(&cp->lock);
--
--	if (!(cp->flags & IP_VS_CONN_F_HASHED)) {
--		cp->flags |= IP_VS_CONN_F_HASHED;
--		WRITE_ONCE(cp->hn0.hash_key, hash_key);
--		WRITE_ONCE(cp->hn1.hash_key, hash_key2);
--		refcount_inc(&cp->refcnt);
--		hlist_bl_add_head_rcu(&cp->hn0.node, head);
--		if (use2)
--			hlist_bl_add_head_rcu(&cp->hn1.node, head2);
--		ret = 1;
--	} else {
--		pr_err("%s(): request for already hashed, called from %pS\n",
--		       __func__, __builtin_return_address(0));
--		ret = 0;
--	}
- 
--	spin_unlock(&cp->lock);
-+	cp->flags |= IP_VS_CONN_F_HASHED;
-+	WRITE_ONCE(cp->hn0.hash_key, hash_key);
-+	WRITE_ONCE(cp->hn1.hash_key, hash_key2);
-+	refcount_inc(&cp->refcnt);
-+	hlist_bl_add_head_rcu(&cp->hn0.node, head);
-+	if (use2)
-+		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
-+
- 	conn_tab_unlock(head, head2);
-+	ret = 1;
- 
- 	/* Schedule resizing if load increases */
- 	if (atomic_read(&ipvs->conn_count) > t->u_thresh &&
-@@ -321,7 +314,6 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 
- 	conn_tab_lock(t, cp, hash_key, hash_key2, use2, false /* new_hash */,
- 		      &head, &head2);
--	spin_lock(&cp->lock);
- 
- 	if (cp->flags & IP_VS_CONN_F_HASHED) {
- 		/* Decrease refcnt and unlink conn only if we are last user */
-@@ -334,7 +326,6 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
- 		}
- 	}
- 
--	spin_unlock(&cp->lock);
- 	conn_tab_unlock(head, head2);
- 
- 	rcu_read_unlock();
-@@ -637,6 +628,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	struct ip_vs_conn_hnode *hn;
- 	u32 hash_key, hash_key_new;
- 	struct ip_vs_conn_param p;
-+	bool by_me = false;
- 	int ntbl;
- 	int dir;
- 
-@@ -683,10 +675,13 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 	if (head > head2 && t == t2)
- 		swap(head, head2);
- 
-+	/* Protect the cp->flags modification */
-+	spin_lock_bh(&cp->lock);
-+
- 	/* Lock seqcount only for the old bucket, even if we are on new table
- 	 * because it affects the del operation, not the adding.
- 	 */
--	spin_lock_bh(&t->lock[hash_key & t->lock_mask].l);
-+	spin_lock(&t->lock[hash_key & t->lock_mask].l);
- 	preempt_disable_nested();
- 	write_seqcount_begin(&t->seqc[hash_key & t->seqc_mask]);
- 
-@@ -704,14 +699,23 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 		hlist_bl_unlock(head);
- 		write_seqcount_end(&t->seqc[hash_key & t->seqc_mask]);
- 		preempt_enable_nested();
--		spin_unlock_bh(&t->lock[hash_key & t->lock_mask].l);
-+		spin_unlock(&t->lock[hash_key & t->lock_mask].l);
-+		spin_unlock_bh(&cp->lock);
- 		hash_key = hash_key_new;
- 		goto retry;
- 	}
- 
--	spin_lock(&cp->lock);
--	if ((cp->flags & IP_VS_CONN_F_NO_CPORT) &&
--	    (cp->flags & IP_VS_CONN_F_HASHED)) {
-+	/* Fill cport once, even if multiple packets try to do it */
-+	if (cp->flags & IP_VS_CONN_F_NO_CPORT && (!cp->cport || by_me)) {
-+		/* If we race with resizing make sure cport is set for dir 1 */
-+		if (!cp->cport) {
-+			cp->cport = cport;
-+			by_me = true;
-+		}
-+		if (!dir) {
-+			atomic_dec(&ipvs->no_cport_conns[af_id]);
-+			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
-+		}
- 		/* We do not recalc hash_key_r under lock, we assume the
- 		 * parameters in cp do not change, i.e. cport is
- 		 * the only possible change.
-@@ -726,21 +730,17 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
- 			hlist_bl_del_rcu(&hn->node);
- 			hlist_bl_add_head_rcu(&hn->node, head_new);
- 		}
--		if (!dir) {
--			atomic_dec(&ipvs->no_cport_conns[af_id]);
--			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
--			cp->cport = cport;
--		}
- 	}
--	spin_unlock(&cp->lock);
- 
- 	if (head != head2)
- 		hlist_bl_unlock(head2);
- 	hlist_bl_unlock(head);
- 	write_seqcount_end(&t->seqc[hash_key & t->seqc_mask]);
- 	preempt_enable_nested();
--	spin_unlock_bh(&t->lock[hash_key & t->lock_mask].l);
--	if (dir--)
-+	spin_unlock(&t->lock[hash_key & t->lock_mask].l);
-+
-+	spin_unlock_bh(&cp->lock);
-+	if (dir-- && by_me)
- 		goto next_dir;
+ net/netfilter/nf_conntrack_sip.c | 149 ++++++++++++++++++++++++-------
+ net/netfilter/nf_nat_sip.c       |   1 +
+ 2 files changed, 117 insertions(+), 33 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 182cfb119448..aa5da83c74f0 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -181,6 +181,57 @@ static int sip_parse_addr(const struct nf_conn *ct, const char *cp,
+ 	return 1;
  }
  
++/* Parse optional port number after IP address.
++ * Returns false on malformed input, true otherwise.
++ * If port is non-NULL, stores parsed port in network byte order.
++ * If no port is present, sets *port to default SIP port.
++ */
++static bool sip_parse_port(const char *dptr, const char **endp,
++			   const char *limit, __be16 *port)
++{
++	unsigned int p = 0;
++	int len = 0;
++
++	if (dptr >= limit)
++		return false;
++
++	if (*dptr != ':') {
++		if (port)
++			*port = htons(SIP_PORT);
++		if (endp)
++			*endp = dptr;
++		return true;
++	}
++
++	dptr++; /* skip ':' */
++
++	while (dptr < limit && isdigit(*dptr)) {
++		p = p * 10 + (*dptr - '0');
++		dptr++;
++		len++;
++		if (len > 5) /* max "65535" */
++			return false;
++	}
++
++	if (len == 0)
++		return false;
++
++	/* reached limit while parsing port */
++	if (dptr >= limit)
++		return false;
++
++	if (p < 1024 || p > 65535)
++		return false;
++
++	if (port)
++		*port = htons(p);
++
++	if (endp)
++		*endp = dptr;
++
++	return true;
++}
++
+ /* skip ip address. returns its length. */
+ static int epaddr_len(const struct nf_conn *ct, const char *dptr,
+ 		      const char *limit, int *shift)
+@@ -193,11 +244,8 @@ static int epaddr_len(const struct nf_conn *ct, const char *dptr,
+ 		return 0;
+ 	}
+ 
+-	/* Port number */
+-	if (*dptr == ':') {
+-		dptr++;
+-		dptr += digits_len(ct, dptr, limit, shift);
+-	}
++	if (!sip_parse_port(dptr, &dptr, limit, NULL))
++		return 0;
+ 	return dptr - aux;
+ }
+ 
+@@ -228,6 +276,51 @@ static int skp_epaddr_len(const struct nf_conn *ct, const char *dptr,
+ 	return epaddr_len(ct, dptr, limit, shift);
+ }
+ 
++/* simple_strtoul stops after first non-number character.
++ * But as we're not dealing with c-strings, we can't rely on
++ * hitting \r,\n,\0 etc. before moving past end of buffer.
++ *
++ * This is a variant of simple_strtoul, but doesn't require
++ * a c-string.
++ *
++ * If value exceeds UINT_MAX, 0 is returned.
++ */
++static unsigned int sip_strtouint(const char *cp, unsigned int len, char **endp)
++{
++	const unsigned int max = sizeof("4294967295");
++	unsigned int olen = len;
++	const char *s = cp;
++	u64 result = 0;
++
++	if (len > max)
++		len = max;
++
++	while (olen > 0 && isdigit(*s)) {
++		unsigned int value;
++
++		if (len == 0)
++			goto err;
++
++		value = *s - '0';
++		result = result * 10 + value;
++
++		if (result > UINT_MAX)
++			goto err;
++		s++;
++		len--;
++		olen--;
++	}
++
++	if (endp)
++		*endp = (char *)s;
++
++	return result;
++err:
++	if (endp)
++		*endp = (char *)cp;
++	return 0;
++}
++
+ /* Parse a SIP request line of the form:
+  *
+  * Request-Line = Method SP Request-URI SP SIP-Version CRLF
+@@ -241,7 +334,6 @@ int ct_sip_parse_request(const struct nf_conn *ct,
+ {
+ 	const char *start = dptr, *limit = dptr + datalen, *end;
+ 	unsigned int mlen;
+-	unsigned int p;
+ 	int shift = 0;
+ 
+ 	/* Skip method and following whitespace */
+@@ -267,14 +359,8 @@ int ct_sip_parse_request(const struct nf_conn *ct,
+ 
+ 	if (!sip_parse_addr(ct, dptr, &end, addr, limit, true))
+ 		return -1;
+-	if (end < limit && *end == ':') {
+-		end++;
+-		p = simple_strtoul(end, (char **)&end, 10);
+-		if (p < 1024 || p > 65535)
+-			return -1;
+-		*port = htons(p);
+-	} else
+-		*port = htons(SIP_PORT);
++	if (!sip_parse_port(end, &end, limit, port))
++		return -1;
+ 
+ 	if (end == dptr)
+ 		return 0;
+@@ -509,7 +595,6 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ 			    union nf_inet_addr *addr, __be16 *port)
+ {
+ 	const char *c, *limit = dptr + datalen;
+-	unsigned int p;
+ 	int ret;
+ 
+ 	ret = ct_sip_walk_headers(ct, dptr, dataoff ? *dataoff : 0, datalen,
+@@ -520,14 +605,8 @@ int ct_sip_parse_header_uri(const struct nf_conn *ct, const char *dptr,
+ 
+ 	if (!sip_parse_addr(ct, dptr + *matchoff, &c, addr, limit, true))
+ 		return -1;
+-	if (*c == ':') {
+-		c++;
+-		p = simple_strtoul(c, (char **)&c, 10);
+-		if (p < 1024 || p > 65535)
+-			return -1;
+-		*port = htons(p);
+-	} else
+-		*port = htons(SIP_PORT);
++	if (!sip_parse_port(c, &c, limit, port))
++		return -1;
+ 
+ 	if (dataoff)
+ 		*dataoff = c - dptr;
+@@ -609,7 +688,7 @@ int ct_sip_parse_numerical_param(const struct nf_conn *ct, const char *dptr,
+ 		return 0;
+ 
+ 	start += strlen(name);
+-	*val = simple_strtoul(start, &end, 0);
++	*val = sip_strtouint(start, limit - start, (char **)&end);
+ 	if (start == end)
+ 		return -1;
+ 	if (matchoff && matchlen) {
+@@ -1064,6 +1143,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	mediaoff = sdpoff;
+ 	for (i = 0; i < ARRAY_SIZE(sdp_media_types); ) {
++		char *end;
++
+ 		if (ct_sip_get_sdp_header(ct, *dptr, mediaoff, *datalen,
+ 					  SDP_HDR_MEDIA, SDP_HDR_UNSPEC,
+ 					  &mediaoff, &medialen) <= 0)
+@@ -1079,8 +1160,8 @@ static int process_sdp(struct sk_buff *skb, unsigned int protoff,
+ 		mediaoff += t->len;
+ 		medialen -= t->len;
+ 
+-		port = simple_strtoul(*dptr + mediaoff, NULL, 10);
+-		if (port == 0)
++		port = sip_strtouint(*dptr + mediaoff, *datalen - mediaoff, (char **)&end);
++		if (port == 0 || *dptr + mediaoff == end)
+ 			continue;
+ 		if (port < 1024 || port > 65535) {
+ 			nf_ct_helper_log(skb, ct, "wrong port %u", port);
+@@ -1254,7 +1335,7 @@ static int process_register_request(struct sk_buff *skb, unsigned int protoff,
+ 	 */
+ 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
+ 			      &matchoff, &matchlen) > 0)
+-		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
++		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
+ 
+ 	ret = ct_sip_parse_header_uri(ct, *dptr, NULL, *datalen,
+ 				      SIP_HDR_CONTACT, NULL,
+@@ -1358,7 +1439,7 @@ static int process_register_response(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
+ 			      &matchoff, &matchlen) > 0)
+-		expires = simple_strtoul(*dptr + matchoff, NULL, 10);
++		expires = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
+ 
+ 	while (1) {
+ 		unsigned int c_expires = expires;
+@@ -1421,7 +1502,8 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	if (*datalen < strlen("SIP/2.0 200"))
+ 		return NF_ACCEPT;
+-	code = simple_strtoul(*dptr + strlen("SIP/2.0 "), NULL, 10);
++	code = sip_strtouint(*dptr + strlen("SIP/2.0 "),
++			     *datalen - strlen("SIP/2.0"), NULL);
+ 	if (!code) {
+ 		nf_ct_helper_log(skb, ct, "cannot get code");
+ 		return NF_DROP;
+@@ -1432,7 +1514,7 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
+ 		nf_ct_helper_log(skb, ct, "cannot parse cseq");
+ 		return NF_DROP;
+ 	}
+-	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
++	cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, NULL);
+ 	if (!cseq && *(*dptr + matchoff) != '0') {
+ 		nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 		return NF_DROP;
+@@ -1482,6 +1564,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
+ 		const struct sip_handler *handler;
++		char *end;
+ 
+ 		handler = &sip_handlers[i];
+ 		if (handler->request == NULL)
+@@ -1498,8 +1581,8 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
+ 			nf_ct_helper_log(skb, ct, "cannot parse cseq");
+ 			return NF_DROP;
+ 		}
+-		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
+-		if (!cseq && *(*dptr + matchoff) != '0') {
++		cseq = sip_strtouint(*dptr + matchoff, *datalen - matchoff, (char **)&end);
++		if (*dptr + matchoff == end) {
+ 			nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 			return NF_DROP;
+ 		}
+@@ -1575,7 +1658,7 @@ static int sip_help_tcp(struct sk_buff *skb, unsigned int protoff,
+ 				      &matchoff, &matchlen) <= 0)
+ 			break;
+ 
+-		clen = simple_strtoul(dptr + matchoff, (char **)&end, 10);
++		clen = sip_strtouint(dptr + matchoff, datalen - matchoff, (char **)&end);
+ 		if (dptr + matchoff == end)
+ 			break;
+ 
+diff --git a/net/netfilter/nf_nat_sip.c b/net/netfilter/nf_nat_sip.c
+index c845b6d1a2bd..9fbfc6bff0c2 100644
+--- a/net/netfilter/nf_nat_sip.c
++++ b/net/netfilter/nf_nat_sip.c
+@@ -246,6 +246,7 @@ static unsigned int nf_nat_sip(struct sk_buff *skb, unsigned int protoff,
+ 		if (ct_sip_parse_numerical_param(ct, *dptr, matchend, *datalen,
+ 						 "rport=", &poff, &plen,
+ 						 &n) > 0 &&
++		    n >= 1024 && n <= 65535 &&
+ 		    htons(n) == ct->tuplehash[dir].tuple.dst.u.udp.port &&
+ 		    htons(n) != ct->tuplehash[!dir].tuple.src.u.udp.port) {
+ 			__be16 p = ct->tuplehash[!dir].tuple.src.u.udp.port;
 -- 
 2.53.0
-
 
