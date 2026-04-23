@@ -1,309 +1,450 @@
-Received: from mx.ssi.bg (mx.ssi.bg [193.238.174.39])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86725328B7A;
-	Thu, 23 Apr 2026 10:10:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.238.174.39
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30CCD3793DD
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2026 10:11:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776939046; cv=none; b=nzodwCeEmZeil4NZ6U0G2X0LS03+6EySt4quwjBupxTWuGRrYQrOiK5KEATsTaJN/XHl4cYsMy4FXnU7Uy1wSj2CshwW4dngYgRH/SoolPHHDE71CMzDf1vZBfVk3V48+9NRRA+1nB300Usa3HEBg2F9bxxf1pZnuvLlC/qlWw8=
+	t=1776939083; cv=none; b=lvjhzAaPCaW/Q+tep6ez3QprZan2vtUap0KBFJ7M+yacN+iBW0QAB4xyG0Mf7gs0y8lwg7OaU2uvcyR4+DkzvlKVd8ojizBN9lGf0pkZVp9WSGtS7ihd/05/qrDwxNIilgjOnH9PACX0VZHvaB0e3wUV4mmdF/7DyY7nf0yr8VA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776939046; c=relaxed/simple;
-	bh=seH4ZENbPfoXrT+CaxAwPCEEnfaPdoXDyWIiHqy+SS8=;
-	h=Date:From:To:cc:Subject:In-Reply-To:Message-ID:References:
-	 MIME-Version:Content-Type; b=TwHotZhfYcEYWUVAObISPs/2ozNq3L41MIar1K55xtn/TqqM7wzdoxKOcOa56VMvJUHuuPgPdryXs1n65Cc7XrmVvoJqlSD4owMDfh/enwmC0pMAhbCE2xOvAmBL+tBd//AEMA2zo4ISZq+fL40znmVl+ud7mkcqswRMP8Wy7m0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg; spf=pass smtp.mailfrom=ssi.bg; dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b=mhqFGvpw; arc=none smtp.client-ip=193.238.174.39
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=ssi.bg
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=ssi.bg
+	s=arc-20240116; t=1776939083; c=relaxed/simple;
+	bh=xjQUjWjbpDAiISDQNBMkUDGCtKyrq84sk+A4kzEog4c=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EvavGtQ2WgW8Nol7hQ/FpnH9SpJgfGFzzQ5cI6KW7Fh55xiHzFnxlI7MedfgsUUZoYoKXukIIPALdSo+jb6cFOan8E38FwBDkdiBRaPHHKHotyGHsu71WFYMyKke9bTnbTnUCX7lRGOOCc03FxFK2Zq8eVGJnKCHqfHCHjawRYo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=snu.ac.kr; spf=pass smtp.mailfrom=snu.ac.kr; dkim=pass (1024-bit key) header.d=snu.ac.kr header.i=@snu.ac.kr header.b=eDZPijHU; arc=none smtp.client-ip=209.85.215.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=snu.ac.kr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=snu.ac.kr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (4096-bit key) header.d=ssi.bg header.i=@ssi.bg header.b="mhqFGvpw"
-Received: from mx.ssi.bg (localhost [127.0.0.1])
-	by mx.ssi.bg (Potsfix) with ESMTP id AE24821267;
-	Thu, 23 Apr 2026 13:03:08 +0300 (EEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ssi.bg; h=cc:cc
-	:content-type:content-type:date:from:from:in-reply-to:message-id
-	:mime-version:references:reply-to:subject:subject:to:to; s=ssi;
-	 bh=16QDNobm/qlBA4jR1h+YOsqJr8tmJMGVmzgltUmmsEo=; b=mhqFGvpwEStI
-	0S4FLIcyhBjXBhliaOtOayJ4cmpxY80CWIsGmHmLHZDOFrO551hymJ8iOgQ8fwWq
-	7kMeOzX7npPI8CzXJrXcHV2PtGpDf9v8KrxyLOVhca5WoOIwjHIplZwulIynNIxJ
-	RGr3PiMGUjoW1Xj4PBx6xWRj6kZTHJ0IW65556KfYbUVs+B61otrf5Y620tHq5wV
-	1vunicQQaQuDjuPvxKj38VlXQhjSCbkSYoBlit+pesQaEgiGNyGPEUUBLt+0Vk/d
-	/2BrTfhv3loO9BoE1aI6cAECbrOb3il4gHWvfBJpH3xO+qG/w0onV69WosubMP4c
-	zTQi6EuaokfpPtUTptWKUgqF7gMcH6MkPcQoZl8YB+MicBbjtbu/2mmnxpw2LBTk
-	uwzIrSv/pulYodBYrRS9Xg7IJ49e7Tn5Z8YgFb0r0NHNymBXfLYBJU5pFJ+UvDpO
-	CkrJpv2gYDQQ7bUo9yguO0AjrpQY3G7t53ISNkBX53/WdvehdkqQ7D5NRbfXraGU
-	MgKo1HWqQYWEfhc/K2/Mu2Q4VyxNAF2HsAozwPhUDfeo7ekdsfikfj564dXx8DRA
-	UxYKSUsHk0PhqPL06e62853NOvtyRVMph30WvsegQ0D2GUi/ijWLOxd9ulUlMX3S
-	rmXfmbGSbBiW8LbQV0FNfWkg8PQ7gRU=
-Received: from box.ssi.bg (box.ssi.bg [193.238.174.46])
-	by mx.ssi.bg (Potsfix) with ESMTPS;
-	Thu, 23 Apr 2026 13:03:03 +0300 (EEST)
-Received: from ja.ssi.bg (unknown [213.16.62.126])
-	by box.ssi.bg (Potsfix) with ESMTPSA id E04586298D;
-	Thu, 23 Apr 2026 13:03:02 +0300 (EEST)
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by ja.ssi.bg (8.18.1/8.18.1) with ESMTP id 63NA2vXN027309;
-	Thu, 23 Apr 2026 13:03:01 +0300
-Date: Thu, 23 Apr 2026 13:02:57 +0300 (EEST)
-From: Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-cc: Pablo Neira Ayuso <pablo@netfilter.org>, Florian Westphal <fw@strlen.de>,
-        lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: Re: [PATCHv3 net 3/3] ipvs: fix the spin_lock usage for RT build
-In-Reply-To: <20260422135823.50489-4-ja@ssi.bg>
-Message-ID: <de8fd075-4aa7-5155-83db-624e2e2a36f4@ssi.bg>
-References: <20260422135823.50489-1-ja@ssi.bg> <20260422135823.50489-4-ja@ssi.bg>
+	dkim=pass (1024-bit key) header.d=snu.ac.kr header.i=@snu.ac.kr header.b="eDZPijHU"
+Received: by mail-pg1-f178.google.com with SMTP id 41be03b00d2f7-c7961d7bc09so2435714a12.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Apr 2026 03:11:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=snu.ac.kr; s=google; t=1776939078; x=1777543878; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=jCJAV9MpeZ+Wu2TainXnJP9CzYoU6zUtFE0pUXLwBhA=;
+        b=eDZPijHUvDeoRVEZLTUS6CM9bRqOHy3YNJMuRaD+Vdr3JV2LWkAls/8Rh1xN7aAUMp
+         ikh8h6BcW7f/Ff2a6Ldxm/nItCBKLUpWxC/K7qzizt/FhVCYdAwF9nyDPJx1hPhegFM7
+         zoA/0lId3Ivnd4No4VqPXYdaE6cEqw5oApipg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776939078; x=1777543878;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=jCJAV9MpeZ+Wu2TainXnJP9CzYoU6zUtFE0pUXLwBhA=;
+        b=VfGlMBjhGFmzvUfKi9vMluNjHzEakmcWLlsL0ceXlP6CWCAx559hiea1xE9/aSZ1WW
+         l1n3t/mcsBmTkjMN0DknANJejc6eFAQQtIKAH7oRTHBRGSPYEMkJuKXzZeOzDfH5wK6e
+         /RRGxW5jtOh/AoFUmzR/eXim9WsPNiB/mDN9kIeQE9skQ4dlbJw/9le7u03n5kDJZDHT
+         KmlVzCvoWH09qyDL/EnJbIcmPRHEtSDKsJytXVNHb20cSyC01oDKW9wV4E6ZsbiAFBPY
+         H5vM27pf/DqJzBB+DNCAItRKWIXE1+OOqnuc6w5UQAXmJ+HcnODJjZ2b01PFniKFz95J
+         4XfQ==
+X-Forwarded-Encrypted: i=1; AFNElJ8zD4tLlZMlVrqx0W4AnuUvNjoJbyhlsN8pmBsrp6++hiHB6efWzeB0rShVAzGrYP3HwMzqccuDMy7Wtc2fZl4=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw9LS45Jni0q2I8L0I7onsOpysHWFt3jq8X5tf65IGiEMTyyQf4
+	j8MsGM4JXTwfqhdhlp5yugKEEZx/HtDP/hDYV6HRj1cQyRV+7SKC76TtzPioElBr91hKQoQtO1l
+	K+CVVIWSUGQ==
+X-Gm-Gg: AeBDietelMG4j6HRK0fNC5zDqSmS6jNv/m7ACiK3V7iPmlADfzmZ7u83x9DqB757oMQ
+	UlNh/S8oHfGHHBIvlpdJcgeCvp4ySivngUnBsKVpAZjoZ776XxJgqCh0vh6ilue/6/laD4BFf6w
+	U76Jm2fT/RIM6Q/w3JX7FIuNGRSq2hPmrX/6ts7jDYyTdd9WHKaAKRyfOIpX/w48auke/DBJpUy
+	qJe1+aY04WPJvYpjN4BDvAg08OsN0FTiiMsAgxmnweaphE5YDhWRDON++EFLGeAVwYpmMlE13Yw
+	1X7SWpimGDy+D40l5w82hJ/F+aREwQwb1em61JM5ssbsVyGkWOZkVk0DmwbGGF31etbDZJGH+7a
+	Nnpgcwlm12yUw05xvy9+9aib0sojiXddCIxg3Z918iZsZirt+K1bik63aE3aLtEXOGGOSoEUnLd
+	Qm/RZOgl7V/9QdvUIfJqBnXflSbnv8CSxTPqbTPWsSqECYLpMpzuBZj4ATmm+b1q6qjjAqAtH9v
+	krEYunffwc+
+X-Received: by 2002:a05:6a21:9992:b0:398:7769:f869 with SMTP id adf61e73a8af0-3a08d73bff1mr28383600637.20.1776939078265;
+        Thu, 23 Apr 2026 03:11:18 -0700 (PDT)
+Received: from eulgyu-desktop.localdomain ([147.46.174.223])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c797703059fsm15040577a12.24.2026.04.23.03.11.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 23 Apr 2026 03:11:17 -0700 (PDT)
+From: Eulgyu Kim <eulgyukim@snu.ac.kr>
+To: pablo@netfilter.org,
+	fw@strlen.de
+Cc: phil@nwl.cc,
+	netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	byoungyoung@snu.ac.kr,
+	jjy600901@snu.ac.kr
+Subject: [BUG] KASAN: slab-use-after-free in hash_ipportip6_resize
+Date: Thu, 23 Apr 2026 19:11:10 +0900
+Message-ID: <20260423101110.1791588-1-eulgyukim@snu.ac.kr>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+
+Hello,
+
+We encountered a "KASAN: slab-use-after-free in hash_ipportip6_resize"
+on kernel version v7.0.
+
+As this memory corruption bug requires `CAP_NET_ADMIN`,
+we report this in public mailing list.
+
+We have included the following items below:
+- C reproducer (~150 lines)
+- kernel delay patch
+- KASAN crash log
+
+To reliably trigger the race condition bug, we patched the kernel
+to inject a delay at a specific point.
+
+The kernel config used is the same as the syzbot configuration.
+
+Unfortunately, we do not have a fix ready for this bug yet.
+As this issue was identified via fuzzing and we have limited background,
+we find it challenging to propose a correct fix or evaluate
+its potential severity.
+
+We hope this report helps address the issue. Please let us know
+if any further information is needed.
+
+Thank you.
+
+Best Regards,
+Eulgyu Kim
 
 
-	Hello,
 
-On Wed, 22 Apr 2026, Julian Anastasov wrote:
+kernel delay patch:
+==================================================================
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index b79e5dd2a..babe708ea 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -674,6 +674,8 @@ mtype_resize(struct ip_set *set, bool retried)
+         */
+        orig = ipset_dereference_bh_nfnl(h->table);
+        atomic_set(&orig->ref, 1);
++       if (!strcmp(current->comm, "slowme"))
++               mdelay(3000);
+        atomic_inc(&orig->uref);
+        pr_debug("attempt to resize set %s from %u to %u, t %p\n",
+                 set->name, orig->htable_bits, htable_bits, orig);
+==================================================================
 
-> syzbot reports for sleeping function called from invalid context [1].
-> The recently added code for resizable hash tables uses
-> hlist_bl bit locks in combination with spin_lock for
-> the connection fields (cp->lock).
-> 
-> Fix the following problems:
-> 
-> * avoid using spin_lock(&cp->lock) under locked bit lock
-> because it sleeps on PREEMPT_RT
-> 
-> * as the recent changes call ip_vs_conn_hash() only for newly
-> allocated connection, the spin_lock can be removed there because
-> the connection is still not linked to table and does not need
-> cp->lock protection.
-> 
-> * the lock can be removed also from ip_vs_conn_unlink() where we
-> are the last connection user.
-> 
-> * the last place that is fixed is ip_vs_conn_fill_cport()
-> where now the cp->lock is locked before the other locks to
-> ensure other packets do not modify the cp->flags in non-atomic
-> way. Here we make sure cport and flags are changed only once
-> if two or more packets race to fill the cport. Also, we fill
-> cport early, so that if we race with resizing there will be
-> valid cport key for the hashing. Problems reported by Sashiko.
-> 
-> [1]:
-> BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
-> in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 16, name: ktimers/0
-> preempt_count: 2, expected: 0
-> RCU nest depth: 3, expected: 3
-> 8 locks held by ktimers/0/16:
->  #0: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
->  #1: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
->  #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
->  #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: timer_base_lock_expiry kernel/time/timer.c:1502 [inline]
->  #2: ffff8880b8826360 (&base->expiry_lock){+...}-{3:3}, at: __run_timer_base+0x120/0x9f0 kernel/time/timer.c:2384
->  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
->  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
->  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: __rt_spin_lock kernel/locking/spinlock_rt.c:50 [inline]
->  #3: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rt_spin_lock+0x1e0/0x400 kernel/locking/spinlock_rt.c:57
->  #4: ffffc90000157a80 ((&cp->timer)){+...}-{0:0}, at: call_timer_fn+0xd4/0x5e0 kernel/time/timer.c:1745
->  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_lock_acquire include/linux/rcupdate.h:300 [inline]
->  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: rcu_read_lock include/linux/rcupdate.h:838 [inline]
->  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:315 [inline]
->  #5: ffffffff8dfc80c0 (rcu_read_lock){....}-{1:3}, at: ip_vs_conn_expire+0x257/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
->  #6: ffffffff8de5f260 (local_bh){.+.+}-{1:3}, at: __local_bh_disable_ip+0x3c/0x420 kernel/softirq.c:163
->  #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: spin_lock include/linux/spinlock_rt.h:45 [inline]
->  #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
->  #7: ffff888068d4c3f0 (&cp->lock#2){+...}-{3:3}, at: ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
-> Preemption disabled at:
-> [<ffffffff898a6358>] bit_spin_lock include/linux/bit_spinlock.h:38 [inline]
-> [<ffffffff898a6358>] hlist_bl_lock+0x18/0x110 include/linux/list_bl.h:149
-> CPU: 0 UID: 0 PID: 16 Comm: ktimers/0 Tainted: G        W    L      syzkaller #0 PREEMPT_{RT,(full)}
-> Tainted: [W]=WARN, [L]=SOFTLOCKUP
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/18/2026
-> Call Trace:
->  <TASK>
->  dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
->  __might_resched+0x329/0x480 kernel/sched/core.c:9162
->  __rt_spin_lock kernel/locking/spinlock_rt.c:48 [inline]
->  rt_spin_lock+0xc2/0x400 kernel/locking/spinlock_rt.c:57
->  spin_lock include/linux/spinlock_rt.h:45 [inline]
->  ip_vs_conn_unlink net/netfilter/ipvs/ip_vs_conn.c:324 [inline]
->  ip_vs_conn_expire+0xd4a/0x2390 net/netfilter/ipvs/ip_vs_conn.c:1260
->  call_timer_fn+0x192/0x5e0 kernel/time/timer.c:1748
->  expire_timers kernel/time/timer.c:1799 [inline]
->  __run_timers kernel/time/timer.c:2374 [inline]
->  __run_timer_base+0x6a3/0x9f0 kernel/time/timer.c:2386
->  run_timer_base kernel/time/timer.c:2395 [inline]
->  run_timer_softirq+0xb7/0x170 kernel/time/timer.c:2405
->  handle_softirqs+0x1de/0x6d0 kernel/softirq.c:622
->  __do_softirq kernel/softirq.c:656 [inline]
->  run_ktimerd+0x69/0x100 kernel/softirq.c:1151
->  smpboot_thread_fn+0x541/0xa50 kernel/smpboot.c:160
->  kthread+0x388/0x470 kernel/kthread.c:436
->  ret_from_fork+0x514/0xb70 arch/x86/kernel/process.c:158
->  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
->  </TASK>
-> 
-> Reported-by: syzbot+504e778ddaecd36fdd17@syzkaller.appspotmail.com
-> Link: https://sashiko.dev/#/patchset/20260415200216.79699-1-ja%40ssi.bg
-> Link: https://sashiko.dev/#/patchset/20260420165539.85174-4-ja%40ssi.bg
-> Fixes: 2fa7cc9c7025 ("ipvs: switch to per-net connection table")
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
 
-	According to Sashiko, this patch needs more
-work, I'll send new patchset version soon...
 
-pw-bot: changes-requested
+C reproducer:
+==================================================================
+#include <arpa/inet.h>
+#include <linux/netfilter/ipset/ip_set.h>
+#include <linux/netfilter/nfnetlink.h>
+#include <linux/netlink.h>
+#include <string.h>
+#include <sys/prctl.h>
+#include <sys/socket.h>
 
-> ---
->  net/netfilter/ipvs/ip_vs_conn.c | 64 ++++++++++++++++-----------------
->  1 file changed, 32 insertions(+), 32 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-> index 84a4921a7865..5c7951a60462 100644
-> --- a/net/netfilter/ipvs/ip_vs_conn.c
-> +++ b/net/netfilter/ipvs/ip_vs_conn.c
-> @@ -267,27 +267,20 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
->  		hash_key2 = hash_key;
->  		use2 = false;
->  	}
-> +
->  	conn_tab_lock(t, cp, hash_key, hash_key2, use2, true /* new_hash */,
->  		      &head, &head2);
-> -	spin_lock(&cp->lock);
-> -
-> -	if (!(cp->flags & IP_VS_CONN_F_HASHED)) {
-> -		cp->flags |= IP_VS_CONN_F_HASHED;
-> -		WRITE_ONCE(cp->hn0.hash_key, hash_key);
-> -		WRITE_ONCE(cp->hn1.hash_key, hash_key2);
-> -		refcount_inc(&cp->refcnt);
-> -		hlist_bl_add_head_rcu(&cp->hn0.node, head);
-> -		if (use2)
-> -			hlist_bl_add_head_rcu(&cp->hn1.node, head2);
-> -		ret = 1;
-> -	} else {
-> -		pr_err("%s(): request for already hashed, called from %pS\n",
-> -		       __func__, __builtin_return_address(0));
-> -		ret = 0;
-> -	}
->  
-> -	spin_unlock(&cp->lock);
-> +	cp->flags |= IP_VS_CONN_F_HASHED;
-> +	WRITE_ONCE(cp->hn0.hash_key, hash_key);
-> +	WRITE_ONCE(cp->hn1.hash_key, hash_key2);
-> +	refcount_inc(&cp->refcnt);
-> +	hlist_bl_add_head_rcu(&cp->hn0.node, head);
-> +	if (use2)
-> +		hlist_bl_add_head_rcu(&cp->hn1.node, head2);
-> +
->  	conn_tab_unlock(head, head2);
-> +	ret = 1;
->  
->  	/* Schedule resizing if load increases */
->  	if (atomic_read(&ipvs->conn_count) > t->u_thresh &&
-> @@ -321,7 +314,6 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
->  
->  	conn_tab_lock(t, cp, hash_key, hash_key2, use2, false /* new_hash */,
->  		      &head, &head2);
-> -	spin_lock(&cp->lock);
->  
->  	if (cp->flags & IP_VS_CONN_F_HASHED) {
->  		/* Decrease refcnt and unlink conn only if we are last user */
-> @@ -334,7 +326,6 @@ static inline bool ip_vs_conn_unlink(struct ip_vs_conn *cp)
->  		}
->  	}
->  
-> -	spin_unlock(&cp->lock);
->  	conn_tab_unlock(head, head2);
->  
->  	rcu_read_unlock();
-> @@ -637,6 +628,7 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
->  	struct ip_vs_conn_hnode *hn;
->  	u32 hash_key, hash_key_new;
->  	struct ip_vs_conn_param p;
-> +	bool by_me = false;
->  	int ntbl;
->  	int dir;
->  
-> @@ -683,10 +675,13 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
->  	if (head > head2 && t == t2)
->  		swap(head, head2);
->  
-> +	/* Protect the cp->flags modification */
-> +	spin_lock_bh(&cp->lock);
-> +
->  	/* Lock seqcount only for the old bucket, even if we are on new table
->  	 * because it affects the del operation, not the adding.
->  	 */
-> -	spin_lock_bh(&t->lock[hash_key & t->lock_mask].l);
-> +	spin_lock(&t->lock[hash_key & t->lock_mask].l);
->  	preempt_disable_nested();
->  	write_seqcount_begin(&t->seqc[hash_key & t->seqc_mask]);
->  
-> @@ -704,14 +699,23 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
->  		hlist_bl_unlock(head);
->  		write_seqcount_end(&t->seqc[hash_key & t->seqc_mask]);
->  		preempt_enable_nested();
-> -		spin_unlock_bh(&t->lock[hash_key & t->lock_mask].l);
-> +		spin_unlock(&t->lock[hash_key & t->lock_mask].l);
-> +		spin_unlock_bh(&cp->lock);
->  		hash_key = hash_key_new;
->  		goto retry;
->  	}
->  
-> -	spin_lock(&cp->lock);
-> -	if ((cp->flags & IP_VS_CONN_F_NO_CPORT) &&
-> -	    (cp->flags & IP_VS_CONN_F_HASHED)) {
-> +	/* Fill cport once, even if multiple packets try to do it */
-> +	if (cp->flags & IP_VS_CONN_F_NO_CPORT && (!cp->cport || by_me)) {
-> +		/* If we race with resizing make sure cport is set for dir 1 */
-> +		if (!cp->cport) {
-> +			cp->cport = cport;
-> +			by_me = true;
-> +		}
-> +		if (!dir) {
-> +			atomic_dec(&ipvs->no_cport_conns[af_id]);
-> +			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
-> +		}
->  		/* We do not recalc hash_key_r under lock, we assume the
->  		 * parameters in cp do not change, i.e. cport is
->  		 * the only possible change.
-> @@ -726,21 +730,17 @@ void ip_vs_conn_fill_cport(struct ip_vs_conn *cp, __be16 cport)
->  			hlist_bl_del_rcu(&hn->node);
->  			hlist_bl_add_head_rcu(&hn->node, head_new);
->  		}
-> -		if (!dir) {
-> -			atomic_dec(&ipvs->no_cport_conns[af_id]);
-> -			cp->flags &= ~IP_VS_CONN_F_NO_CPORT;
-> -			cp->cport = cport;
-> -		}
->  	}
-> -	spin_unlock(&cp->lock);
->  
->  	if (head != head2)
->  		hlist_bl_unlock(head2);
->  	hlist_bl_unlock(head);
->  	write_seqcount_end(&t->seqc[hash_key & t->seqc_mask]);
->  	preempt_enable_nested();
-> -	spin_unlock_bh(&t->lock[hash_key & t->lock_mask].l);
-> -	if (dir--)
-> +	spin_unlock(&t->lock[hash_key & t->lock_mask].l);
-> +
-> +	spin_unlock_bh(&cp->lock);
-> +	if (dir-- && by_me)
->  		goto next_dir;
->  }
->  
-> -- 
-> 2.53.0
-> 
-> 
-> 
-> 
+#define SET "syz1"
+#define TYPE "hash:ip,port,ip"
 
-Regards
+#ifndef IPSET_ATTR_INITVAL
+#define IPSET_ATTR_INITVAL 17
+#define IPSET_ATTR_HASHSIZE 18
+#define IPSET_ATTR_BUCKETSIZE 21
+#endif
 
---
-Julian Anastasov <ja@ssi.bg>
+struct req {
+	struct nlmsghdr n;
+	struct nfgenmsg g;
+	char buf[256];
+};
 
+static const unsigned char src[16] = {0xfe, 0x80, [15] = 0xaa};
+static const unsigned char dst[16] = {0xfc, [15] = 1};
+
+static void put(struct nlmsghdr *n, int type, const void *data, int len)
+{
+	struct nlattr *a = (void *)n + NLMSG_ALIGN(n->nlmsg_len);
+
+	a->nla_type = type;
+	a->nla_len = NLA_HDRLEN + len;
+	memcpy((char *)a + NLA_HDRLEN, data, len);
+	memset((char *)a + a->nla_len, 0, NLA_ALIGN(a->nla_len) - a->nla_len);
+	n->nlmsg_len = NLMSG_ALIGN(n->nlmsg_len) + NLA_ALIGN(a->nla_len);
+}
+
+static struct nlattr *nest(struct nlmsghdr *n, int type)
+{
+	struct nlattr *a = (void *)n + NLMSG_ALIGN(n->nlmsg_len);
+
+	put(n, type | NLA_F_NESTED, "", 0);
+	return a;
+}
+
+static void done(struct nlmsghdr *n, struct nlattr *a)
+{
+	a->nla_len = (void *)n + n->nlmsg_len - (void *)a;
+}
+
+static void prep(struct req *r, int cmd)
+{
+	memset(r, 0, sizeof(*r));
+	r->n.nlmsg_len = NLMSG_LENGTH(sizeof(r->g));
+	r->n.nlmsg_type = (NFNL_SUBSYS_IPSET << 8) | cmd;
+	r->n.nlmsg_flags = NLM_F_REQUEST;
+}
+
+static void send_req(int fd, struct nlmsghdr *n)
+{
+	struct sockaddr_nl sa = {.nl_family = AF_NETLINK};
+	struct iovec iov = {.iov_base = n, .iov_len = n->nlmsg_len};
+	struct msghdr msg = {
+		.msg_name = &sa,
+		.msg_namelen = sizeof(sa),
+		.msg_iov = &iov,
+		.msg_iovlen = 1,
+	};
+
+	sendmsg(fd, &msg, 0);
+}
+
+static void create_set(int fd)
+{
+	struct req r;
+	struct nlattr *data;
+	unsigned char proto = IPSET_PROTOCOL;
+	unsigned char family = AF_INET6;
+	unsigned char rev = 6;
+	unsigned char bucketsize = 2;
+	unsigned int hashsize = htonl(64);
+	unsigned int initval = htonl(0x11223344);
+	unsigned int timeout = 0;
+
+	prep(&r, IPSET_CMD_CREATE);
+	put(&r.n, IPSET_ATTR_PROTOCOL, &proto, 1);
+	put(&r.n, IPSET_ATTR_SETNAME, SET, sizeof(SET));
+	put(&r.n, IPSET_ATTR_TYPENAME, TYPE, sizeof(TYPE));
+	put(&r.n, IPSET_ATTR_FAMILY, &family, 1);
+	put(&r.n, IPSET_ATTR_REVISION, &rev, 1);
+
+	data = nest(&r.n, IPSET_ATTR_DATA);
+	put(&r.n, IPSET_ATTR_HASHSIZE | NLA_F_NET_BYTEORDER, &hashsize, 4);
+	put(&r.n, IPSET_ATTR_INITVAL | NLA_F_NET_BYTEORDER, &initval, 4);
+	put(&r.n, IPSET_ATTR_BUCKETSIZE, &bucketsize, 1);
+	put(&r.n, IPSET_ATTR_TIMEOUT | NLA_F_NET_BYTEORDER, &timeout, 4);
+	done(&r.n, data);
+
+	send_req(fd, &r.n);
+}
+
+static void add_elem(int fd, int port)
+{
+	struct req r;
+	struct nlattr *data;
+	struct nlattr *ip;
+	unsigned char proto = IPSET_PROTOCOL;
+	unsigned char l4 = IPPROTO_TCP;
+	unsigned short p = htons(port);
+
+	prep(&r, IPSET_CMD_ADD);
+	put(&r.n, IPSET_ATTR_PROTOCOL, &proto, 1);
+	put(&r.n, IPSET_ATTR_SETNAME, SET, sizeof(SET));
+
+	data = nest(&r.n, IPSET_ATTR_DATA);
+
+	ip = nest(&r.n, IPSET_ATTR_IP);
+	put(&r.n, IPSET_ATTR_IPADDR_IPV6 | NLA_F_NET_BYTEORDER, src, 16);
+	done(&r.n, ip);
+
+	ip = nest(&r.n, IPSET_ATTR_IP2);
+	put(&r.n, IPSET_ATTR_IPADDR_IPV6 | NLA_F_NET_BYTEORDER, dst, 16);
+	done(&r.n, ip);
+
+	put(&r.n, IPSET_ATTR_PORT | NLA_F_NET_BYTEORDER, &p, 2);
+	put(&r.n, IPSET_ATTR_PROTO, &l4, 1);
+	done(&r.n, data);
+
+	send_req(fd, &r.n);
+}
+
+int main(void)
+{
+	int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_NETFILTER);
+
+	create_set(fd);
+	add_elem(fd, 1);
+	add_elem(fd, 29);
+	prctl(PR_SET_NAME, "slowme");
+	add_elem(fd, 37);
+}
+
+==================================================================
+
+
+
+KASAN crash log:
+==================================================================
+BUG: KASAN: slab-use-after-free in instrument_atomic_read_write include/linux/instrumented.h:112 [inline]
+BUG: KASAN: slab-use-after-free in atomic_inc include/linux/atomic/atomic-instrumented.h:435 [inline]
+BUG: KASAN: slab-use-after-free in hash_ipportip6_resize+0x525/0x1d90 net/netfilter/ipset/ip_set_hash_gen.h:679
+Write of size 4 at addr ffff888178410004 by task slowme/10152
+CPU: 2 UID: 0 PID: 10152 Comm: slowme Not tainted 7.0.0-g20d60d956cd5 #27 PREEMPT(full)
+Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0xe8/0x150 lib/dump_stack.c:120
+ print_address_description mm/kasan/report.c:378 [inline]
+ print_report+0xca/0x240 mm/kasan/report.c:482
+ kasan_report+0x118/0x150 mm/kasan/report.c:595
+ check_region_inline mm/kasan/generic.c:-1 [inline]
+ kasan_check_range+0x2b0/0x2c0 mm/kasan/generic.c:200
+ instrument_atomic_read_write include/linux/instrumented.h:112 [inline]
+ atomic_inc include/linux/atomic/atomic-instrumented.h:435 [inline]
+ hash_ipportip6_resize+0x525/0x1d90 net/netfilter/ipset/ip_set_hash_gen.h:679
+ call_ad+0x54d/0xb00 net/netfilter/ipset/ip_set_core.c:1757
+ ip_set_ad+0x791/0x930 net/netfilter/ipset/ip_set_core.c:1841
+ nfnetlink_rcv_msg+0xb4d/0x1130 net/netfilter/nfnetlink.c:302
+ netlink_rcv_skb+0x208/0x470 net/netlink/af_netlink.c:2550
+ nfnetlink_rcv+0x282/0x2590 net/netfilter/nfnetlink.c:669
+ netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+ netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1344
+ netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1894
+ sock_sendmsg_nosec net/socket.c:727 [inline]
+ __sock_sendmsg net/socket.c:742 [inline]
+ ____sys_sendmsg+0x981/0xa00 net/socket.c:2592
+ ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2646
+ __sys_sendmsg net/socket.c:2678 [inline]
+ __do_sys_sendmsg net/socket.c:2683 [inline]
+ __se_sys_sendmsg net/socket.c:2681 [inline]
+ __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2681
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x160/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x412a64
+Code: 00 00 04 00 89 01 e9 c1 fe ff ff e8 d6 01 00 00 66 0f 1f 44 00 00 f3 0f 1e fa 80 3d 1d 80 09 00 00 74 13 b8 2e 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 4c c3 0f 1f 00 55 48 89 e5 48 83 ec 20 89 55
+RSP: 002b:00007fff9a547278 EFLAGS: 00000202 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 0000000000412a64
+RDX: 0000000000000000 RSI: 00007fff9a5472b0 RDI: 0000000000000003
+RBP: 00007fff9a5472f0 R08: 00000000004aa240 R09: 0000000000000110
+R10: 0000000000412a64 R11: 0000000000000202 R12: 00007fff9a547588
+R13: 00007fff9a547598 R14: 00000000004a5f68 R15: 0000000000000001
+ </TASK>
+Allocated by task 10152:
+ kasan_save_stack mm/kasan/common.c:57 [inline]
+ kasan_save_track+0x3e/0x80 mm/kasan/common.c:78
+ poison_kmalloc_redzone mm/kasan/common.c:398 [inline]
+ __kasan_kmalloc+0x93/0xb0 mm/kasan/common.c:415
+ kasan_kmalloc include/linux/kasan.h:263 [inline]
+ __do_kmalloc_node mm/slub.c:5260 [inline]
+ __kvmalloc_node_noprof+0x552/0x8d0 mm/slub.c:6752
+ hash_ipportip_create+0x358/0x1040 net/netfilter/ipset/ip_set_hash_gen.h:1569
+ ip_set_create+0xa9a/0x19c0 net/netfilter/ipset/ip_set_core.c:1109
+ nfnetlink_rcv_msg+0xb4d/0x1130 net/netfilter/nfnetlink.c:302
+ netlink_rcv_skb+0x208/0x470 net/netlink/af_netlink.c:2550
+ nfnetlink_rcv+0x282/0x2590 net/netfilter/nfnetlink.c:669
+ netlink_unicast_kernel net/netlink/af_netlink.c:1318 [inline]
+ netlink_unicast+0x82f/0x9e0 net/netlink/af_netlink.c:1344
+ netlink_sendmsg+0x805/0xb30 net/netlink/af_netlink.c:1894
+ sock_sendmsg_nosec net/socket.c:727 [inline]
+ __sock_sendmsg net/socket.c:742 [inline]
+ ____sys_sendmsg+0x981/0xa00 net/socket.c:2592
+ ___sys_sendmsg+0x21f/0x2a0 net/socket.c:2646
+ __sys_sendmsg net/socket.c:2678 [inline]
+ __do_sys_sendmsg net/socket.c:2683 [inline]
+ __se_sys_sendmsg net/socket.c:2681 [inline]
+ __x64_sys_sendmsg+0x19b/0x260 net/socket.c:2681
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x160/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+Freed by task 44:
+ kasan_save_stack mm/kasan/common.c:57 [inline]
+ kasan_save_track+0x3e/0x80 mm/kasan/common.c:78
+ kasan_save_free_info+0x46/0x50 mm/kasan/generic.c:584
+ poison_slab_object mm/kasan/common.c:253 [inline]
+ __kasan_slab_free+0x5c/0x80 mm/kasan/common.c:285
+ kasan_slab_free include/linux/kasan.h:235 [inline]
+ slab_free_hook mm/slub.c:2685 [inline]
+ slab_free mm/slub.c:6165 [inline]
+ kfree+0x1c3/0x640 mm/slub.c:6483
+ hash_ipportip6_ahash_destroy net/netfilter/ipset/ip_set_hash_gen.h:445 [inline]
+ hash_ipportip6_gc+0x3e1/0x610 net/netfilter/ipset/ip_set_hash_gen.h:587
+ process_one_work kernel/workqueue.c:3288 [inline]
+ process_scheduled_works+0xb5a/0x1890 kernel/workqueue.c:3371
+ worker_thread+0xa54/0xfc0 kernel/workqueue.c:3452
+ kthread+0x389/0x480 kernel/kthread.c:436
+ ret_from_fork+0x513/0xba0 arch/x86/kernel/process.c:158
+ ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:245
+The buggy address belongs to the object at ffff888178410000
+ which belongs to the cache kmalloc-cg-1k of size 1024
+The buggy address is located 4 bytes inside of
+ freed 1024-byte region [ffff888178410000, ffff888178410400)
+The buggy address belongs to the physical page:
+page: refcount:0 mapcount:0 mapping:0000000000000000 index:0xffff888178414000 pfn:0x178410
+head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+memcg:ffff888178410411
+flags: 0x17ff00000000240(workingset|head|node=0|zone=2|lastcpupid=0x7ff)
+page_type: f5(slab)
+raw: 017ff00000000240 ffff888100084000 ffffea0005afea10 ffffea00046f7a10
+raw: ffff888178414000 000008000010000c 00000000f5000000 ffff888178410411
+head: 017ff00000000240 ffff888100084000 ffffea0005afea10 ffffea00046f7a10
+head: ffff888178414000 000008000010000c 00000000f5000000 ffff888178410411
+head: 017ff00000000003 ffffea0005e10401 00000000ffffffff 00000000ffffffff
+head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000008
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 3, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 5493, tgid 5493 ((udev-worker)), ts 20315379036, free_ts 20313606043
+ set_page_owner include/linux/page_owner.h:32 [inline]
+ post_alloc_hook+0x23d/0x2a0 mm/page_alloc.c:1889
+ prep_new_page mm/page_alloc.c:1897 [inline]
+ get_page_from_freelist+0x24e0/0x2580 mm/page_alloc.c:3962
+ __alloc_frozen_pages_noprof+0x181/0x370 mm/page_alloc.c:5250
+ alloc_slab_page mm/slub.c:3292 [inline]
+ allocate_slab+0x77/0x670 mm/slub.c:3481
+ new_slab mm/slub.c:3539 [inline]
+ refill_objects+0x33a/0x3d0 mm/slub.c:7175
+ refill_sheaf mm/slub.c:2812 [inline]
+ __pcs_replace_empty_main+0x2e8/0x730 mm/slub.c:4615
+ alloc_from_pcs mm/slub.c:4717 [inline]
+ slab_alloc_node mm/slub.c:4851 [inline]
+ __do_kmalloc_node mm/slub.c:5259 [inline]
+ __kmalloc_noprof+0x473/0x770 mm/slub.c:5272
+ kmalloc_noprof include/linux/slab.h:954 [inline]
+ kzalloc_noprof include/linux/slab.h:1188 [inline]
+ alloc_pipe_info+0x1fd/0x4d0 fs/pipe.c:817
+ get_pipe_inode fs/pipe.c:896 [inline]
+ create_pipe_files+0x8a/0x7e0 fs/pipe.c:928
+ __do_pipe_flags+0x46/0x1f0 fs/pipe.c:990
+ do_pipe2+0x9c/0x170 fs/pipe.c:1038
+ __do_sys_pipe2 fs/pipe.c:1056 [inline]
+ __se_sys_pipe2 fs/pipe.c:1054 [inline]
+ __x64_sys_pipe2+0x5a/0x70 fs/pipe.c:1054
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x160/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+page last free pid 5394 tgid 5394 stack trace:
+ reset_page_owner include/linux/page_owner.h:25 [inline]
+ __free_pages_prepare mm/page_alloc.c:1433 [inline]
+ __free_frozen_pages+0xc43/0xde0 mm/page_alloc.c:2978
+ __slab_free+0x263/0x2b0 mm/slub.c:5573
+ qlink_free mm/kasan/quarantine.c:163 [inline]
+ qlist_free_all+0x97/0x100 mm/kasan/quarantine.c:179
+ kasan_quarantine_reduce+0x148/0x160 mm/kasan/quarantine.c:286
+ __kasan_slab_alloc+0x22/0x80 mm/kasan/common.c:350
+ kasan_slab_alloc include/linux/kasan.h:253 [inline]
+ slab_post_alloc_hook mm/slub.c:4538 [inline]
+ slab_alloc_node mm/slub.c:4866 [inline]
+ kmem_cache_alloc_noprof+0x2bd/0x660 mm/slub.c:4873
+ vm_area_dup+0x2b/0x680 mm/vma_init.c:123
+ dup_mmap+0x865/0x1d30 mm/mmap.c:1787
+ dup_mm kernel/fork.c:1531 [inline]
+ copy_mm+0x13c/0x4a0 kernel/fork.c:1583
+ copy_process+0x1883/0x3c60 kernel/fork.c:2223
+ kernel_clone+0x21e/0x890 kernel/fork.c:2653
+ __do_sys_clone kernel/fork.c:2794 [inline]
+ __se_sys_clone kernel/fork.c:2778 [inline]
+ __x64_sys_clone+0x18b/0x1e0 kernel/fork.c:2778
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x160/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+Memory state around the buggy address:
+ ffff88817840ff00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88817840ff80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff888178410000: fa fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                   ^
+ ffff888178410080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888178410100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
