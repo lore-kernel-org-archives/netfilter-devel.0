@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D73C3F9F48;
-	Fri, 24 Apr 2026 19:05:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE6483FA5CF;
+	Fri, 24 Apr 2026 19:05:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777057554; cv=none; b=POlTLK/Gs8B/yrNerMJRhQtyxMfiKVf4I8yuOJzS2yKC61KFmlK5bBm1otbsgF5R2U/ytQYeNDzvIvLmBCG7bZBnHYDq7nvJ1yIBcaCR7qPUmZggY7NENHbCfEUzQT3hDEtrfmwUvSDNX0KfcN/qhaMSLYOKE1V6HgRJBM+CJs4=
+	t=1777057556; cv=none; b=WAJMquZJPoR+5NpU7WDd4m0U6NoPLPeyjl6fT482zXzkTWuKSUYVCLRKKm7C95UYApQ9Od0tpsDGEmHLQKiASauEAFX8nH8lCbtEyKzXfAJX7G7cfnlLuQhruYGGNiu5p+Okf3RFFSicXTSXpiS4Dd6mT0+32SdPJvwXSxKpXfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777057554; c=relaxed/simple;
-	bh=028gpVSnt0h4/WQhaGMCn9U2LguktmS13hyrI6Ir5yU=;
+	s=arc-20240116; t=1777057556; c=relaxed/simple;
+	bh=5auVh159NgHYnY9KURAEEAM3LkKuat/4fjrsARva74g=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Iy6mCG+uYPJI/b+EdZ8qxO98Kxso3/V75TKZjYGnAsG54Xy8F3l7OJ5xtMWWSVfP6LXrVp1VVFkVx2JQnQxjbiLEnXsuKN7rhLZjoxsl8XBqNgFzWPzXsgMF9xxCFhcv25HwaCxar7LOx+mR5vjnKuRX0S9jReLF6v8FY8xWyGk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=sLgORmHO; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=l+gwxq5YAE7FDKj0or5sSELxXKgCM7ly8dqKqD61mfR7VRF99jt33d+D48Z4Q0LAr1TwJ1YIMn8d8Rlk5B/KoFC4gUfpYvTOPsSaKjMdVjUHwNIHiueh5vZ/psNlg7ycjnZPJ8iozagEcbtdDaHQSx20v60XG4UDhv1Ab/bqlUg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Mxp3wkU0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="sLgORmHO"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Mxp3wkU0"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 54AEC60178;
-	Fri, 24 Apr 2026 21:05:51 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id C3A2560284;
+	Fri, 24 Apr 2026 21:05:52 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777057551;
-	bh=ATsz83rZMAw5OYOOuuCL9l+aXZu+YgWCziiIs7DSmG4=;
+	s=2025; t=1777057553;
+	bh=kvO4NiWkgz6Po7XmbFpN2ojH9hOJD7U1mcp/a6giG88=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=sLgORmHOhD+ZEaDRdVZ1iJCdJqSBKRPvtZ3sMFvms1urCxXTZw/XFNHyCfdVYCv5h
-	 tChOQhJDZE5tY3R3/K4AV9d9bjAtdjMrUrC8DbAaMdOxf4Uv6SZaC+K5iELYyljorL
-	 AUObL4cQrLfQlroJa5h/yaGlapuOGKc4ZBdiuNRaayotsMrm7j2vvZp80XSCjeuskB
-	 hqZVrLU/NkyOT5NGza0Gl0rlHUB12TdbrSPHOamz5NqV6rYf3G4wcHcknR/ZuuSaOD
-	 DjhhPQuKwH1JG1L89RE+QiscFwzsOeeAW7XxJNJYAjEzVvxTGrEvgRpfLgORD5Mneu
-	 jyjDrhO5/vx8g==
+	b=Mxp3wkU09wdIEhKbv3xqGmr8WWckbK9o0hazTHE8qLlyyLdSBCfGM1Gm+Jhe7NYs0
+	 5k5LZqCDBJoWDL4f2Z+eFm7EnzkralreC3f/U98l09e2o//65b4ClWIDFgge4yM7LQ
+	 kmtVKIvAFc1X79TFvm+exEXIzkRkKMdvXUv2GLlltNnc/4i16+P/OtKBDwayNe+8l6
+	 kwM300UqNxkurzipXqxe78DSV3gxuC7JGTf8huVlBQwOGSg0Ff5qrx6Ie23pkeePcu
+	 +RxppTt2FHADe5vVyfe3kgbWXdx37JjCcMjUET/w2WwS3epKGzZo15ewZPS5nDxVqI
+	 Kq0YL18svY/AQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 06/11] netfilter: xt_policy: fix strict mode inbound policy matching
-Date: Fri, 24 Apr 2026 21:05:08 +0200
-Message-ID: <20260424190513.32823-7-pablo@netfilter.org>
+Subject: [PATCH net 07/11] netfilter: reject zero shift in nft_bitwise
+Date: Fri, 24 Apr 2026 21:05:09 +0200
+Message-ID: <20260424190513.32823-8-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260424190513.32823-1-pablo@netfilter.org>
 References: <20260424190513.32823-1-pablo@netfilter.org>
@@ -52,42 +52,47 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Jiexun Wang <wangjiexun2025@gmail.com>
+From: Kai Ma <k4729.23098@gmail.com>
 
-match_policy_in() walks sec_path entries from the last transform to the
-first one, but strict policy matching needs to consume info->pol[] in
-the same forward order as the rule layout.
+Reject zero shift operands for nft_bitwise left and right shift
+expressions during initialization.
 
-Derive the strict-match policy position from the number of transforms
-already consumed so that multi-element inbound rules are matched
-consistently.
+The carry propagation logic computes the carry from the adjacent 32-bit
+word using BITS_PER_TYPE(u32) - shift. A zero shift operand turns this
+into a 32-bit shift, which is undefined behaviour.
 
-Fixes: c4b885139203 ("[NETFILTER]: x_tables: replace IPv4/IPv6 policy match by address family independant version")
+Reject zero shift operands in the control plane, alongside the existing
+check for values greater than or equal to 32, so malformed rules never
+reach the packet path.
+
+Fixes: 567d746b55bc ("netfilter: bitwise: add support for shifts.")
+Cc: stable@kernel.org
 Reported-by: Yuan Tan <yuantan098@gmail.com>
 Reported-by: Yifan Wu <yifanwucs@gmail.com>
 Reported-by: Juefei Pu <tomapufckgml@gmail.com>
 Reported-by: Xin Liu <bird@lzu.edu.cn>
-Signed-off-by: Jiexun Wang <wangjiexun2025@gmail.com>
+Signed-off-by: Kai Ma <k4729.23098@gmail.com>
 Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-Acked-by: Florian Westphal <fw@strlen.de>
+Reviewed-by: Fernando Fernandez Mancera <fmancera@suse.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_policy.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nft_bitwise.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
-index cb6e8279010a..b5fa65558318 100644
---- a/net/netfilter/xt_policy.c
-+++ b/net/netfilter/xt_policy.c
-@@ -63,7 +63,7 @@ match_policy_in(const struct sk_buff *skb, const struct xt_policy_info *info,
- 		return 0;
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index 13808e9cd999..94dccdcfa06b 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -196,7 +196,8 @@ static int nft_bitwise_init_shift(struct nft_bitwise *priv,
+ 	if (err < 0)
+ 		return err;
  
- 	for (i = sp->len - 1; i >= 0; i--) {
--		pos = strict ? i - sp->len + 1 : 0;
-+		pos = strict ? sp->len - i - 1 : 0;
- 		if (pos >= info->len)
- 			return 0;
- 		e = &info->pol[pos];
+-	if (priv->data.data[0] >= BITS_PER_TYPE(u32)) {
++	if (!priv->data.data[0] ||
++	    priv->data.data[0] >= BITS_PER_TYPE(u32)) {
+ 		nft_data_release(&priv->data, desc.type);
+ 		return -EINVAL;
+ 	}
 -- 
 2.47.3
 
