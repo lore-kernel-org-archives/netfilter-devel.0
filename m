@@ -1,34 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D92E33F5B2;
-	Fri, 24 Apr 2026 19:05:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 430B63F9F55;
+	Fri, 24 Apr 2026 19:05:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777057546; cv=none; b=sgp+bHvO3WOlMKdftGKbHdCgwPAlLyrCzyZhVAl/zZYfLGbpX7VBTwHY/eVjDk9hkD7jLWBfAvQ3Dm3AZYCxOuLIcE0hZH0hrOYk3mjvyAN5y73O39c1oQ07/P2RNU1Y3X+JqAoqjKbh2rMn3feZXfmpsicijHAzaOieABfNvDQ=
+	t=1777057548; cv=none; b=tbxgk+54Ccyhgr55LPNLqpENcr4UI+HxFSNRpi+VePg5Ts53MYIQ38Vzu0n6fPTdNtmUQ1Cf3YwcebU/z/1lJidSzqTwJoW4hWQeALMAGjE3/rsfP6OfZdXdiQctJAAi35Qyj9NasxCO7d+SuT/cNsoc1rNGJgypGd4wwr1vF0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777057546; c=relaxed/simple;
-	bh=4TpnoGjRSoLIQb7evGhMk6ujRLC6J9qdffSjgzK06EQ=;
+	s=arc-20240116; t=1777057548; c=relaxed/simple;
+	bh=iMcD6b6Me6O6lojDg+I3aPhZLrZGIucvZy9bFgfcTzs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hBd8bT/yKBBfUcCIhSrWr3OvD7TPKp4r6NI6mbypcye3daLylGjj/WTcUp99a80WiYxF9SE/ZkaTKfVmDe09DL/7tAC6u0DGcizmWTSGNzpp6cLnJUKlf5P4mbmFDk+LTUrbX3JYrP4pqDDT/Gi2msBmYRfwyRmvk8A5nJqJSBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Uc6bQQqm; arc=none smtp.client-ip=217.70.190.124
+	 MIME-Version; b=DenGaZulDjol/Efk4lQKYDIjn/rt9Cb98M8Zq3qYue8TCb3j/+Br02JYuowgWQmK8JJw/DdN9mjlw6hAwpWIfhu0+K4eXuKc7ZqS+UYNOMDaOBPdKXneQqOGuqGut8oTZL8waoliD/Cyis25603mjr0DUcucH2jKGLsO/r6jhbM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=BzwEU0ro; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Uc6bQQqm"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="BzwEU0ro"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id B558660178;
-	Fri, 24 Apr 2026 21:05:42 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id DE7596027C;
+	Fri, 24 Apr 2026 21:05:44 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777057543;
-	bh=fCkyGJOfm3ztMTfgTiri4BVXee3hN6p8Uv6Ouul4F+A=;
+	s=2025; t=1777057545;
+	bh=ZrzHuiicz9yWjCZVh3K5jv2UywpHODoIAzsY1iJMJTs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=Uc6bQQqmaI62wphfu56ok+JUyaLzaC2Pn9rvHJtm4Jkx4z2pULfGi1wmv2H8KtVnj
-	 OJF6RsSGcrb1fhyES+/cyy6pFfmQkjI9HBzYJHb7JRa8b1blJQpYAJKFj6vl1KQTIp
-	 1tMcou4SM7u9OTkvcQzKmYqLtRDwSNp8umdC1fUW5za4TCCrAb4YzSKqZULrkEa+/p
-	 fe3W9ebngm7XNhgRCgVwWKoY/m8dGn1cWzdbqMiv44V30rzuOjp5cXr8pJNZ/frrzq
-	 3vshhF0wTaDhkbhcJmuX4gIUF4u0eiAunbJxWKtRC0etI2DWXpb/cIyY8sKwsqCGcl
-	 en46j59l4nqcg==
+	b=BzwEU0roZYA+OHFAaF/9H2lx7Be+8S88C7Uz++8MB684BwoFtlN8Bi9+OmvUjw8vO
+	 3kZMCmjt0A5xjK32TObCmPlObIqUh2FMcdLgpZtWh7gtVyI8edMJrVhoEv9MsPCRVf
+	 GJ5ppJwhYHiwBe+NuUiwG7ebVVy60bOv64mA70FRPwDIPpSuDjASRqV+mo+yMj7HcY
+	 ALM75o53Ll2icDM5/bSeVR5bwMsSmlVLyXj5mE0eWYHnC0M6oqsW4elIYkGlTJtRmD
+	 fEuWnMoH++a7Tu+58/fDD4VyVOHcX44dRgQKWS6n1YLSujPGpw2S5LwwAbYNJciQI3
+	 ALErP1HzGUVhg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -38,9 +38,9 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 01/11] netfilter: arp_tables: fix IEEE1394 ARP payload parsing
-Date: Fri, 24 Apr 2026 21:05:03 +0200
-Message-ID: <20260424190513.32823-2-pablo@netfilter.org>
+Subject: [PATCH net 02/11] netfilter: nf_tables: use list_del_rcu for netlink hooks
+Date: Fri, 24 Apr 2026 21:05:04 +0200
+Message-ID: <20260424190513.32823-3-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
 In-Reply-To: <20260424190513.32823-1-pablo@netfilter.org>
 References: <20260424190513.32823-1-pablo@netfilter.org>
@@ -52,119 +52,132 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Weiming Shi says:
+From: Florian Westphal <fw@strlen.de>
 
-"arp_packet_match() unconditionally parses the ARP payload assuming two
-hardware addresses are present (source and target). However,
-IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
-field, and arp_hdr_len() already accounts for this by returning a
-shorter length for ARPHRD_IEEE1394 devices.
+nft_netdev_unregister_hooks and __nft_unregister_flowtable_net_hooks need
+to use list_del_rcu(), this list can be walked by concurrent dumpers.
 
-As a result, on IEEE1394 interfaces arp_packet_match() advances past a
-nonexistent target hardware address and reads the wrong bytes for both
-the target device address comparison and the target IP address. This
-causes arptables rules to match against garbage data, leading to
-incorrect filtering decisions: packets that should be accepted may be
-dropped and vice versa.
+Add a new helper and use it consistently.
 
-The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
-handles this correctly by skipping the target hardware address for
-ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match()."
-
-Mangle the original patch to always return 0 (no match) in case user
-matches on the target hardware address which is never present in
-IEEE1394.
-
-Note that this returns 0 (no match) for either normal and inverse match
-because matching in the target hardware address in ARPHRD_IEEE1394 has
-never been supported by arptables. This is intentional, matching on the
-target hardware address should never evaluate true for ARPHRD_IEEE1394.
-
-Moreover, adjust arpt_mangle to drop the packet too as AI suggests:
-
-In arpt_mangle, the logic assumes a standard ARP layout. Because
-IEEE1394 (FireWire) omits the target hardware address, the linear
-pointer arithmetic miscalculates the offset for the target IP address.
-This causes mangling operations to write to the wrong location, leading
-to packet corruption. To ensure safety, this patch drops packets
-(NF_DROP) when mangling is requested for these fields on IEEE1394
-devices, as the current implementation cannot correctly map the FireWire
-ARP payload.
-
-This omits both mangling target hardware and IP address. Even if IP
-address mangling should be possible in IEEE1394, this would require
-to adjust arpt_mangle offset calculation, which has never been
-supported.
-
-Based on patch from Weiming Shi <bestswngs@gmail.com>.
-
-Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
-Reported-by: Xiang Mei <xmei5@asu.edu>
+Fixes: f9a43007d3f7 ("netfilter: nf_tables: double hook unregistration in netns path")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/arp_tables.c  | 18 +++++++++++++++---
- net/ipv4/netfilter/arpt_mangle.c |  8 ++++++++
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ net/netfilter/nf_tables_api.c | 44 ++++++++++++++---------------------
+ 1 file changed, 18 insertions(+), 26 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 1cdd9c28ab2d..97ead883e4a1 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -110,13 +110,25 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
- 	arpptr += dev->addr_len;
- 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
- 	arpptr += sizeof(u32);
--	tgt_devaddr = arpptr;
--	arpptr += dev->addr_len;
-+
-+	if (IS_ENABLED(CONFIG_FIREWIRE_NET) && dev->type == ARPHRD_IEEE1394) {
-+		if (unlikely(memchr_inv(arpinfo->tgt_devaddr.mask, 0,
-+					sizeof(arpinfo->tgt_devaddr.mask))))
-+			return 0;
-+
-+		tgt_devaddr = NULL;
-+	} else {
-+		tgt_devaddr = arpptr;
-+		arpptr += dev->addr_len;
-+	}
- 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 8537b94653d3..07e151245765 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -374,6 +374,12 @@ static void nft_netdev_hook_free_rcu(struct nft_hook *hook)
+ 	call_rcu(&hook->rcu, __nft_netdev_hook_free_rcu);
+ }
  
- 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
--					dev->addr_len)) ||
-+					dev->addr_len)))
-+		return 0;
++static void nft_netdev_hook_unlink_free_rcu(struct nft_hook *hook)
++{
++	list_del_rcu(&hook->list);
++	nft_netdev_hook_free_rcu(hook);
++}
 +
-+	if (tgt_devaddr &&
- 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
- 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
- 					dev->addr_len)))
-diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
-index a4e07e5e9c11..f65dd339208e 100644
---- a/net/ipv4/netfilter/arpt_mangle.c
-+++ b/net/ipv4/netfilter/arpt_mangle.c
-@@ -40,6 +40,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ static void nft_netdev_unregister_hooks(struct net *net,
+ 					struct list_head *hook_list,
+ 					bool release_netdev)
+@@ -384,10 +390,8 @@ static void nft_netdev_unregister_hooks(struct net *net,
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+ 			nf_unregister_net_hook(net, ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			nft_netdev_hook_free_rcu(hook);
+-		}
++		if (release_netdev)
++			nft_netdev_hook_unlink_free_rcu(hook);
  	}
- 	arpptr += pln;
- 	if (mangle->flags & ARPT_MANGLE_TDEV) {
-+		if (unlikely(IS_ENABLED(CONFIG_FIREWIRE_NET) &&
-+			     skb->dev->type == ARPHRD_IEEE1394))
-+			return NF_DROP;
-+
- 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
- 		   (arpptr + hln > skb_tail_pointer(skb)))
- 			return NF_DROP;
-@@ -47,6 +51,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ }
+ 
+@@ -2271,10 +2275,8 @@ void nf_tables_chain_destroy(struct nft_chain *chain)
+ 
+ 		if (nft_base_chain_netdev(table->family, basechain->ops.hooknum)) {
+ 			list_for_each_entry_safe(hook, next,
+-						 &basechain->hook_list, list) {
+-				list_del_rcu(&hook->list);
+-				nft_netdev_hook_free_rcu(hook);
+-			}
++						 &basechain->hook_list, list)
++				nft_netdev_hook_unlink_free_rcu(hook);
+ 		}
+ 		module_put(basechain->type->owner);
+ 		if (rcu_access_pointer(basechain->stats)) {
+@@ -2974,6 +2976,7 @@ static int nf_tables_updchain(struct nft_ctx *ctx, u8 genmask, u8 policy,
+ 				list_for_each_entry(ops, &h->ops_list, list)
+ 					nf_unregister_net_hook(ctx->net, ops);
+ 			}
++			/* hook.list is on stack, no need for list_del_rcu() */
+ 			list_del(&h->list);
+ 			nft_netdev_hook_free_rcu(h);
+ 		}
+@@ -8852,10 +8855,8 @@ static void __nft_unregister_flowtable_net_hooks(struct net *net,
+ 	list_for_each_entry_safe(hook, next, hook_list, list) {
+ 		list_for_each_entry(ops, &hook->ops_list, list)
+ 			nft_unregister_flowtable_ops(net, flowtable, ops);
+-		if (release_netdev) {
+-			list_del(&hook->list);
+-			nft_netdev_hook_free_rcu(hook);
+-		}
++		if (release_netdev)
++			nft_netdev_hook_unlink_free_rcu(hook);
  	}
- 	arpptr += hln;
- 	if (mangle->flags & ARPT_MANGLE_TIP) {
-+		if (unlikely(IS_ENABLED(CONFIG_FIREWIRE_NET) &&
-+			     skb->dev->type == ARPHRD_IEEE1394))
-+			return NF_DROP;
-+
- 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
- 		   (arpptr + pln > skb_tail_pointer(skb)))
- 			return NF_DROP;
+ }
+ 
+@@ -8926,8 +8927,7 @@ static int nft_register_flowtable_net_hooks(struct net *net,
+ 
+ 			nft_unregister_flowtable_ops(net, flowtable, ops);
+ 		}
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
++		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ 
+ 	return err;
+@@ -8937,10 +8937,8 @@ static void nft_hooks_destroy(struct list_head *hook_list)
+ {
+ 	struct nft_hook *hook, *next;
+ 
+-	list_for_each_entry_safe(hook, next, hook_list, list) {
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
+-	}
++	list_for_each_entry_safe(hook, next, hook_list, list)
++		nft_netdev_hook_unlink_free_rcu(hook);
+ }
+ 
+ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+@@ -9028,8 +9026,7 @@ static int nft_flowtable_update(struct nft_ctx *ctx, const struct nlmsghdr *nlh,
+ 				nft_unregister_flowtable_ops(ctx->net,
+ 							     flowtable, ops);
+ 		}
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
++		nft_netdev_hook_unlink_free_rcu(hook);
+ 	}
+ 
+ 	return err;
+@@ -9535,13 +9532,8 @@ static void nf_tables_flowtable_notify(struct nft_ctx *ctx,
+ 
+ static void nf_tables_flowtable_destroy(struct nft_flowtable *flowtable)
+ {
+-	struct nft_hook *hook, *next;
+-
+ 	flowtable->data.type->free(&flowtable->data);
+-	list_for_each_entry_safe(hook, next, &flowtable->hook_list, list) {
+-		list_del_rcu(&hook->list);
+-		nft_netdev_hook_free_rcu(hook);
+-	}
++	nft_hooks_destroy(&flowtable->hook_list);
+ 	kfree(flowtable->name);
+ 	module_put(flowtable->data.type->owner);
+ 	kfree(flowtable);
 -- 
 2.47.3
 
