@@ -1,98 +1,231 @@
-Received: from Chamillionaire.breakpoint.cc (Chamillionaire.breakpoint.cc [91.216.245.30])
+Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAB423264E2
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 09:52:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.216.245.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56BAD3624CC
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 10:08:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777024342; cv=none; b=MpD560smoswzXSwv9TurXv4vDPBp4Xt3jOSJLfZq7fIYhi5n8eIKqTQ3VMGSG6rFR0Dr4fCVSkQKptzTE1QPYJIeCOabDlvksazV42vHly+mp5WhVIxYA2gdUlhvXxqHX5YxGMQPDIpn3mxAhhzcBfr089LkWIX8U5kxTz+U2EE=
+	t=1777025293; cv=none; b=qQspwK/yt35IJEV19W5S5AtX8PFztTvXt4eLXmAEZdrcuI+LfiNB4u7JhPG/+vx6FqNjr7exz+YhS9epzONbes1RIRujfmNjpLVmXor4z0WmQ2AMV5btZ2lUuI7Dh+Xw3lcqQMQZqhTqiOqrpdYf7j5fq54meKjShqro0BQohH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777024342; c=relaxed/simple;
-	bh=XyHFxLW08zH56ek4JeZXjLTlwXrhoacLwNL/r7W01w4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=g7G4MQc00d2SbIgXHF1A/f8ePqkVZIXbgNMHPDen1fQxzthUyWYgc4uWZ3s5QPWrkxhLVxHKsLH/A575XqpSTnfLaS3pvB2LL5qw5JA5v1h0Mmj4Uw51+FUfpF0a7nUbS5SuwB3uSsN/3bzx3jxgeUlVkgjCizvlCZuSqE6cfhU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de; spf=pass smtp.mailfrom=strlen.de; arc=none smtp.client-ip=91.216.245.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=strlen.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=strlen.de
-Received: by Chamillionaire.breakpoint.cc (Postfix, from userid 1003)
-	id 5ECD960425; Fri, 24 Apr 2026 11:52:17 +0200 (CEST)
-Date: Fri, 24 Apr 2026 11:52:11 +0200
-From: Florian Westphal <fw@strlen.de>
-To: Ren Wei <n05ec@lzu.edu.cn>
-Cc: netfilter-devel@vger.kernel.org, bridge@lists.linux.dev,
-	pablo@netfilter.org, phil@nwl.cc, razor@blackwall.org,
-	idosch@nvidia.com, davem@davemloft.net, edumazet@google.com,
-	kuba@kernel.org, pabeni@redhat.com, horms@kernel.org,
-	yuantan098@gmail.com, yifanwucs@gmail.com, tomapufckgml@gmail.com,
-	bird@lzu.edu.cn, rakukuip@gmail.com
-Subject: Re: [PATCH nf 1/1] netfilter: ebtables: fix OOB read in
- compat_mtw_from_user
-Message-ID: <aes9S-ToE9yOXrIM@strlen.de>
-References: <cover.1776834093.git.rakukuip@gmail.com>
- <4e714f6189f9691fa5980087ce378a57cf625976.1776834093.git.rakukuip@gmail.com>
+	s=arc-20240116; t=1777025293; c=relaxed/simple;
+	bh=Kn7qpbsEjHUjVfeHD0PjL9Z+9BzPId0tuVAkFRIuSj0=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Y4vmlDxlZLUpsxHDuv5LhS6NbQa4x74cBxoytx8xTX9TKonVKA6cW6+5l4joWAuCUKnOHpNVkrTgN0d6Mnf667kWk2J8dw56cLcgi8dBQhe0/4/ZJTyobdjAj5Fknr8nuG85BKeWwOyKPpRDhKCPicTUQ8kHuJUeaxCQKFkasMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FyAKOLDp; arc=none smtp.client-ip=217.70.190.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FyAKOLDp"
+Received: from localhost.localdomain (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with ESMTPSA id 919FD6026E
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 12:08:02 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
+	s=2025; t=1777025282;
+	bh=/UOP88FHSKprpLjSecWaFxFefbVtXxZ+giN3alsBGRo=;
+	h=From:To:Subject:Date:From;
+	b=FyAKOLDpm79fu27LmP/9Mi6ibBKxNe2X0jZssk/dOhyDHb/Sk3iT68P03JZOJ0D8g
+	 mtpdB6Sm3Mj+902kdQ26cc0VaWrTiVR4Urtqp6/hxkSeO6li3+VUwVZpi0tj7SWJ9K
+	 pgRg8CizlLJ9bog5yA1xDicn7eZ0OCJw6sFDnt2yYA0tLBEKDWwI+/cVgL8e3WgkYS
+	 /Ba3F5AE7gsMCDVo++KSMIEG5pUj5SY+fjn7wGrYiGwRad9L17TUlRY0uaLJrYDHKY
+	 oSVCflhuBsUYbqBEk025WS+HfVArUU/oX+6GU11Y/fqmqL8+qjA7UMLIMQrWaAjEuV
+	 ti8dwfWKPhYxQ==
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Subject: [PATCH nf 1/2] netfilter: flowtable: fix inline vlan encapsulation in xmit path
+Date: Fri, 24 Apr 2026 12:07:58 +0200
+Message-ID: <20260424100759.534113-1-pablo@netfilter.org>
+X-Mailer: git-send-email 2.47.3
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e714f6189f9691fa5980087ce378a57cf625976.1776834093.git.rakukuip@gmail.com>
+Content-Transfer-Encoding: 8bit
 
-Ren Wei <n05ec@lzu.edu.cn> wrote:
-> From: Luxiao Xu <rakukuip@gmail.com>
-> 
-> The function compat_mtw_from_user() converts ebtables extensions from
-> 32-bit user structures to kernel native structures. However, it lacks
-> proper validation of the user-supplied match_size/target_size.
-> 
-> When certain extensions are processed, the kernel-side translation
-> logic may perform memory accesses based on the extension's expected
-> size. If the user provides a size smaller than what the extension
-> requires, it results in an out-of-bounds read as reported by KASAN.
-> 
-> This fix introduces a check to ensure match_size is at least as large
-> as the extension's required compatsize. This covers matches, watchers,
-> and targets, while maintaining compatibility with standard targets.
-> 
-> Fixes: 81e675c227ec ("netfilter: ebtables: add CONFIG_COMPAT support")
-> Cc: stable@kernel.org
-> Reported-by: Yuan Tan <yuantan098@gmail.com>
-> Reported-by: Yifan Wu <yifanwucs@gmail.com>
-> Reported-by: Juefei Pu <tomapufckgml@gmail.com>
-> Reported-by: Xin Liu <bird@lzu.edu.cn>
-> Signed-off-by: Luxiao Xu <rakukuip@gmail.com>
-> Signed-off-by: Ren Wei <n05ec@lzu.edu.cn>
-> ---
->  net/bridge/netfilter/ebtables.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index aea3e19875c6..80cd0233c088 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -1977,6 +1977,11 @@ static int compat_mtw_from_user(const struct compat_ebt_entry_mwt *mwt,
->  		if (IS_ERR(match))
->  			return PTR_ERR(match);
->  
-> +		if (match_size < match->compatsize) {
-> +			module_put(match->me);
-> +			return -EINVAL;
-> +		}
-> +
+Several issues in the inline vlan support:
 
-Are you sure this catches all bad requests? AFAIR compatsize is 0
-in most cases, which bypasses this test.
+- The layer 2 encapsulation representation in the tuple takes encap[0] as
+  the outer header and encap[1] as the inner header as seen from the ingress
+  path. Reverse the encap loop to push first the inner then the outer vlan
+  header.
 
-should this be:
+- Postpone pushing the layer 2 header once destination device is known.
+  This allows to calculate the needed hearoom via LL_RESERVED_SPACE to
+  accommodate the layer 2 headers.
 
-u16 csize = match->compatsize ? : match->matchsize;
-...
-if (match_size < csize) {
-...
+- Add and use nf_flow_vlan_push() as suggested by Eric Woudstra, this
+  is a simplified version of skb_vlan_push() for egress path only.
 
-?
+Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Tested with ip netns enviroment both with single vlan and vlan-in-vlan, it
+needs a bit of tidy up before submission for selftests.
 
-@Pablo: I think the 32bit compat layer should be removed in -next, or
-at least strongly discouraged and slated for removal soon.
+I originally tested this submission with a script that I discover it was wrong:
+netns configuration with vlan-in-vlan devices but that only used a single vlan
+device.
+
+ net/netfilter/nf_flow_table_ip.c | 91 ++++++++++++++++++++++----------
+ 1 file changed, 63 insertions(+), 28 deletions(-)
+
+diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
+index dbd7644fdbeb..1573189a23a1 100644
+--- a/net/netfilter/nf_flow_table_ip.c
++++ b/net/netfilter/nf_flow_table_ip.c
+@@ -462,23 +462,6 @@ static void nf_flow_encap_pop(struct nf_flowtable_ctx *ctx,
+ 		nf_flow_ip_tunnel_pop(ctx, skb);
+ }
+ 
+-struct nf_flow_xmit {
+-	const void		*dest;
+-	const void		*source;
+-	struct net_device	*outdev;
+-};
+-
+-static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+-				       struct nf_flow_xmit *xmit)
+-{
+-	skb->dev = xmit->outdev;
+-	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
+-			xmit->dest, xmit->source, skb->len);
+-	dev_queue_xmit(skb);
+-
+-	return NF_STOLEN;
+-}
+-
+ static struct flow_offload_tuple_rhash *
+ nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
+ 		       struct nf_flowtable *flow_table, struct sk_buff *skb)
+@@ -544,6 +527,31 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
+ 	return 1;
+ }
+ 
++/* Similar to skb_vlan_push. */
++static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id,
++			     u32 needed_headroom)
++{
++	if (skb_vlan_tag_present(skb)) {
++		struct vlan_hdr *vhdr;
++
++		if (skb_cow_head(skb, needed_headroom + VLAN_HLEN))
++			return -1;
++
++		skb_push(skb, VLAN_HLEN);
++		if (skb_mac_header_was_set(skb))
++			skb->mac_header -= VLAN_HLEN;
++
++		vhdr = (struct vlan_hdr *)skb->data;
++		skb->network_header -= VLAN_HLEN;
++		vhdr->h_vlan_TCI = htons(skb_vlan_tag_get(skb));
++		vhdr->h_vlan_encapsulated_proto = skb->protocol;
++		skb->protocol = skb->vlan_proto;
++	}
++	__vlan_hwaccel_put_tag(skb, proto, id);
++
++	return 0;
++}
++
+ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
+ {
+ 	int data_len = skb->len + sizeof(__be16);
+@@ -730,17 +738,19 @@ static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
+ }
+ 
+ static int nf_flow_encap_push(struct sk_buff *skb,
+-			      struct flow_offload_tuple *tuple)
++			      struct flow_offload_tuple *tuple,
++			      struct net_device *outdev)
+ {
++	u32 needed_headroom = LL_RESERVED_SPACE(outdev);
+ 	int i;
+ 
+-	for (i = 0; i < tuple->encap_num; i++) {
++	for (i = tuple->encap_num - 1; i >= 0; i--) {
+ 		switch (tuple->encap[i].proto) {
+ 		case htons(ETH_P_8021Q):
+ 		case htons(ETH_P_8021AD):
+-			skb_reset_mac_header(skb);
+-			if (skb_vlan_push(skb, tuple->encap[i].proto,
+-					  tuple->encap[i].id) < 0)
++			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
++					      tuple->encap[i].id,
++					      needed_headroom) < 0)
+ 				return -1;
+ 			break;
+ 		case htons(ETH_P_PPP_SES):
+@@ -753,6 +763,35 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++struct nf_flow_xmit {
++	const void		*dest;
++	const void		*source;
++	struct net_device	*outdev;
++	struct flow_offload_tuple *tuple;
++};
++
++static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
++				    struct nf_flow_xmit *xmit)
++{
++	skb->dev = xmit->outdev;
++	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
++			xmit->dest, xmit->source, skb->len);
++	dev_queue_xmit(skb);
++}
++
++static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
++				       struct nf_flow_xmit *xmit)
++{
++	if (xmit->tuple->encap_num) {
++		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
++			return NF_DROP;
++	}
++
++	__nf_flow_queue_xmit(net, skb, xmit);
++
++	return NF_STOLEN;
++}
++
+ unsigned int
+ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 			const struct nf_hook_state *state)
+@@ -797,9 +836,6 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
+ 		return NF_DROP;
+ 
+-	if (nf_flow_encap_push(skb, other_tuple) < 0)
+-		return NF_DROP;
+-
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rtable(tuplehash->tuple.dst_cache);
+@@ -829,6 +865,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
+ 		WARN_ON_ONCE(1);
+ 		return NF_DROP;
+ 	}
++	xmit.tuple = other_tuple;
+ 
+ 	return nf_flow_queue_xmit(state->net, skb, &xmit);
+ }
+@@ -1119,9 +1156,6 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 				   &ip6_daddr, encap_limit) < 0)
+ 		return NF_DROP;
+ 
+-	if (nf_flow_encap_push(skb, other_tuple) < 0)
+-		return NF_DROP;
+-
+ 	switch (tuplehash->tuple.xmit_type) {
+ 	case FLOW_OFFLOAD_XMIT_NEIGH:
+ 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
+@@ -1151,6 +1185,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
+ 		WARN_ON_ONCE(1);
+ 		return NF_DROP;
+ 	}
++	xmit.tuple = other_tuple;
+ 
+ 	return nf_flow_queue_xmit(state->net, skb, &xmit);
+ }
+-- 
+2.47.3
+
