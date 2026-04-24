@@ -1,39 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56BAD3624CC
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 10:08:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44555359A91
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 10:08:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777025293; cv=none; b=qQspwK/yt35IJEV19W5S5AtX8PFztTvXt4eLXmAEZdrcuI+LfiNB4u7JhPG/+vx6FqNjr7exz+YhS9epzONbes1RIRujfmNjpLVmXor4z0WmQ2AMV5btZ2lUuI7Dh+Xw3lcqQMQZqhTqiOqrpdYf7j5fq54meKjShqro0BQohH0=
+	t=1777025294; cv=none; b=VKuflN4kciOCmg4lyBEgYrkTZJzGOiEuZ20FIdipHlK3aztSO54tCt/4SsmedM/RdTvzGujo9v+fPYvvm9xSwBVos71NKwDP3c7U6ZYcIEEWqh6beodbA23jMKS+JajFmkqq7bi6DeHG3UTqRg/EIQ6NUyJ/pqMrUJ4gFY5bOOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777025293; c=relaxed/simple;
-	bh=Kn7qpbsEjHUjVfeHD0PjL9Z+9BzPId0tuVAkFRIuSj0=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=Y4vmlDxlZLUpsxHDuv5LhS6NbQa4x74cBxoytx8xTX9TKonVKA6cW6+5l4joWAuCUKnOHpNVkrTgN0d6Mnf667kWk2J8dw56cLcgi8dBQhe0/4/ZJTyobdjAj5Fknr8nuG85BKeWwOyKPpRDhKCPicTUQ8kHuJUeaxCQKFkasMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=FyAKOLDp; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777025294; c=relaxed/simple;
+	bh=ybh+W5mYrTYlmU3R/xbF1OKm+cxOsTFb4m5Ks7osgqw=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=GDwVv3Nw2sBTNercChJ4LXY8tJQgn1UJNUZbTOVA9fW1I+4mU5NObzKtiFrSFmh+r+w4qnvzGEdql411Dn+8kSptVuwQkKJqM9ahP4bFdmYyeWijnCsKsylSJHI0yCwi69DmMy4efi+rIDU1CZK1JLwzmOZkYOxd7mBuTawj7lQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=v8ucVnj0; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="FyAKOLDp"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="v8ucVnj0"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 919FD6026E
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 12:08:02 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 3C92C60273
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2026 12:08:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777025282;
-	bh=/UOP88FHSKprpLjSecWaFxFefbVtXxZ+giN3alsBGRo=;
-	h=From:To:Subject:Date:From;
-	b=FyAKOLDpm79fu27LmP/9Mi6ibBKxNe2X0jZssk/dOhyDHb/Sk3iT68P03JZOJ0D8g
-	 mtpdB6Sm3Mj+902kdQ26cc0VaWrTiVR4Urtqp6/hxkSeO6li3+VUwVZpi0tj7SWJ9K
-	 pgRg8CizlLJ9bog5yA1xDicn7eZ0OCJw6sFDnt2yYA0tLBEKDWwI+/cVgL8e3WgkYS
-	 /Ba3F5AE7gsMCDVo++KSMIEG5pUj5SY+fjn7wGrYiGwRad9L17TUlRY0uaLJrYDHKY
-	 oSVCflhuBsUYbqBEk025WS+HfVArUU/oX+6GU11Y/fqmqL8+qjA7UMLIMQrWaAjEuV
-	 ti8dwfWKPhYxQ==
+	s=2025; t=1777025284;
+	bh=FBRIyjrJW8V7/10pYI0D3ipZCNBV3Szr6/L6LixOyYU=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=v8ucVnj0jFVR/S5qKXgOWXJd1k5vM12x2hoWGBEqbOvyZDKPhgWaG2tuh3XAWechi
+	 cVfTh92Dy9Zmbzx4DEP32Hh6u6tDhrTXLPTO2Rw4W/TaCRPvMSdhDURZQ2RVaYCkq/
+	 r9AUuCbU58vAQMflr+k0M1kCaCTOVxeKq5KoxzxZWsgC4f8bp1d2tM29z0i03CVM+8
+	 rt0lDGHe8iACFpHXE4eCxzXS9fTqQQoqT+S+D3E6eI5M6TSJFNW/9OKeI2sgnO/X6N
+	 BuCUmLn0v4k+g7eWvKT8+q9ivHGMp8X7ki5K9jDzvRQdstS27h5wauauXlsVI+7cb2
+	 U62WyS77TOAvQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf 1/2] netfilter: flowtable: fix inline vlan encapsulation in xmit path
-Date: Fri, 24 Apr 2026 12:07:58 +0200
-Message-ID: <20260424100759.534113-1-pablo@netfilter.org>
+Subject: [PATCH nf 2/2] netfilter: flowtable: fix inline pppoe encapsulation in xmit path
+Date: Fri, 24 Apr 2026 12:07:59 +0200
+Message-ID: <20260424100759.534113-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260424100759.534113-1-pablo@netfilter.org>
+References: <20260424100759.534113-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -42,190 +45,167 @@ List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Several issues in the inline vlan support:
+Address two issues in the inline pppoe encapsulation:
 
-- The layer 2 encapsulation representation in the tuple takes encap[0] as
-  the outer header and encap[1] as the inner header as seen from the ingress
-  path. Reverse the encap loop to push first the inner then the outer vlan
-  header.
+- Add needs_gso_segment flag to segment PPPoE packets in software
+  given that there is no GSO support for this.
 
-- Postpone pushing the layer 2 header once destination device is known.
-  This allows to calculate the needed hearoom via LL_RESERVED_SPACE to
-  accommodate the layer 2 headers.
+- Use FLOW_OFFLOAD_XMIT_DIRECT since neighbour cache is not available
+  in point-to-point device, use the hardware address that is obtained
+  via flowtable path discovery (ie. fill_forward_path).
 
-- Add and use nf_flow_vlan_push() as suggested by Eric Woudstra, this
-  is a simplified version of skb_vlan_push() for egress path only.
-
-Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
+Fixes: 18d27bed0880 ("netfilter: flowtable: inline pppoe encapsulation in xmit path")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Tested with ip netns enviroment both with single vlan and vlan-in-vlan, it
-needs a bit of tidy up before submission for selftests.
+Tested locally with a pppoe server in my network and pppoe client in a netns inside VM,
+it shows an improvement of 70% in bandwith with iperf3 when forwarding pppoe traffic
+through the flowtable here compared to classic forwarding.
 
-I originally tested this submission with a script that I discover it was wrong:
-netns configuration with vlan-in-vlan devices but that only used a single vlan
-device.
+ include/net/netfilter/nf_flow_table.h |  4 +++-
+ net/netfilter/nf_flow_table_core.c    |  1 +
+ net/netfilter/nf_flow_table_ip.c      | 34 ++++++++++++++++++++++++---
+ net/netfilter/nf_flow_table_path.c    |  7 +++++-
+ 4 files changed, 41 insertions(+), 5 deletions(-)
 
- net/netfilter/nf_flow_table_ip.c | 91 ++++++++++++++++++++++----------
- 1 file changed, 63 insertions(+), 28 deletions(-)
-
+diff --git a/include/net/netfilter/nf_flow_table.h b/include/net/netfilter/nf_flow_table.h
+index b09c11c048d5..7b23b245a5a8 100644
+--- a/include/net/netfilter/nf_flow_table.h
++++ b/include/net/netfilter/nf_flow_table.h
+@@ -148,9 +148,10 @@ struct flow_offload_tuple {
+ 	/* All members above are keys for lookups, see flow_offload_hash(). */
+ 	struct { }			__hash;
+ 
+-	u8				dir:2,
++	u16				dir:2,
+ 					xmit_type:3,
+ 					encap_num:2,
++					needs_gso_segment:1,
+ 					tun_num:2,
+ 					in_vlan_ingress:2;
+ 	u16				mtu;
+@@ -232,6 +233,7 @@ struct nf_flow_route {
+ 			u32			hw_ifindex;
+ 			u8			h_source[ETH_ALEN];
+ 			u8			h_dest[ETH_ALEN];
++			u8			needs_gso_segment:1;
+ 		} out;
+ 		enum flow_offload_xmit_type	xmit_type;
+ 	} tuple[FLOW_OFFLOAD_DIR_MAX];
+diff --git a/net/netfilter/nf_flow_table_core.c b/net/netfilter/nf_flow_table_core.c
+index 2c4140e6f53c..785d8c244a77 100644
+--- a/net/netfilter/nf_flow_table_core.c
++++ b/net/netfilter/nf_flow_table_core.c
+@@ -122,6 +122,7 @@ static int flow_offload_fill_route(struct flow_offload *flow,
+ 
+ 	flow_tuple->tun = route->tuple[dir].in.tun;
+ 	flow_tuple->encap_num = route->tuple[dir].in.num_encaps;
++	flow_tuple->needs_gso_segment = route->tuple[dir].out.needs_gso_segment;
+ 	flow_tuple->tun_num = route->tuple[dir].in.num_tuns;
+ 
+ 	switch (route->tuple[dir].xmit_type) {
 diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index dbd7644fdbeb..1573189a23a1 100644
+index 1573189a23a1..c3aa5df9b724 100644
 --- a/net/netfilter/nf_flow_table_ip.c
 +++ b/net/netfilter/nf_flow_table_ip.c
-@@ -462,23 +462,6 @@ static void nf_flow_encap_pop(struct nf_flowtable_ctx *ctx,
- 		nf_flow_ip_tunnel_pop(ctx, skb);
- }
- 
--struct nf_flow_xmit {
--	const void		*dest;
--	const void		*source;
--	struct net_device	*outdev;
--};
--
--static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
--				       struct nf_flow_xmit *xmit)
--{
--	skb->dev = xmit->outdev;
--	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
--			xmit->dest, xmit->source, skb->len);
--	dev_queue_xmit(skb);
--
--	return NF_STOLEN;
--}
--
- static struct flow_offload_tuple_rhash *
- nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
- 		       struct nf_flowtable *flow_table, struct sk_buff *skb)
-@@ -544,6 +527,31 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
- 	return 1;
- }
- 
-+/* Similar to skb_vlan_push. */
-+static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id,
-+			     u32 needed_headroom)
-+{
-+	if (skb_vlan_tag_present(skb)) {
-+		struct vlan_hdr *vhdr;
-+
-+		if (skb_cow_head(skb, needed_headroom + VLAN_HLEN))
-+			return -1;
-+
-+		skb_push(skb, VLAN_HLEN);
-+		if (skb_mac_header_was_set(skb))
-+			skb->mac_header -= VLAN_HLEN;
-+
-+		vhdr = (struct vlan_hdr *)skb->data;
-+		skb->network_header -= VLAN_HLEN;
-+		vhdr->h_vlan_TCI = htons(skb_vlan_tag_get(skb));
-+		vhdr->h_vlan_encapsulated_proto = skb->protocol;
-+		skb->protocol = skb->vlan_proto;
-+	}
-+	__vlan_hwaccel_put_tag(skb, proto, id);
-+
-+	return 0;
-+}
-+
- static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
- {
- 	int data_len = skb->len + sizeof(__be16);
-@@ -730,17 +738,19 @@ static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
- }
- 
- static int nf_flow_encap_push(struct sk_buff *skb,
--			      struct flow_offload_tuple *tuple)
-+			      struct flow_offload_tuple *tuple,
-+			      struct net_device *outdev)
- {
-+	u32 needed_headroom = LL_RESERVED_SPACE(outdev);
- 	int i;
- 
--	for (i = 0; i < tuple->encap_num; i++) {
-+	for (i = tuple->encap_num - 1; i >= 0; i--) {
- 		switch (tuple->encap[i].proto) {
- 		case htons(ETH_P_8021Q):
- 		case htons(ETH_P_8021AD):
--			skb_reset_mac_header(skb);
--			if (skb_vlan_push(skb, tuple->encap[i].proto,
--					  tuple->encap[i].id) < 0)
-+			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
-+					      tuple->encap[i].id,
-+					      needed_headroom) < 0)
- 				return -1;
- 			break;
- 		case htons(ETH_P_PPP_SES):
-@@ -753,6 +763,35 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+@@ -552,7 +552,8 @@ static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id,
  	return 0;
  }
  
-+struct nf_flow_xmit {
-+	const void		*dest;
-+	const void		*source;
-+	struct net_device	*outdev;
-+	struct flow_offload_tuple *tuple;
-+};
-+
-+static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
-+				    struct nf_flow_xmit *xmit)
+-static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
++static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id,
++			      u32 needed_headroom)
+ {
+ 	int data_len = skb->len + sizeof(__be16);
+ 	struct ppp_hdr {
+@@ -561,7 +562,7 @@ static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
+ 	} *ph;
+ 	__be16 proto;
+ 
+-	if (skb_cow_head(skb, PPPOE_SES_HLEN))
++	if (skb_cow_head(skb, needed_headroom + PPPOE_SES_HLEN))
+ 		return -1;
+ 
+ 	switch (skb->protocol) {
+@@ -754,7 +755,8 @@ static int nf_flow_encap_push(struct sk_buff *skb,
+ 				return -1;
+ 			break;
+ 		case htons(ETH_P_PPP_SES):
+-			if (nf_flow_pppoe_push(skb, tuple->encap[i].id) < 0)
++			if (nf_flow_pppoe_push(skb, tuple->encap[i].id,
++					       needed_headroom) < 0)
+ 				return -1;
+ 			break;
+ 		}
+@@ -779,10 +781,36 @@ static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+ 	dev_queue_xmit(skb);
+ }
+ 
++static unsigned int nf_flow_encap_gso_xmit(struct net *net, struct sk_buff *skb,
++					   struct nf_flow_xmit *xmit)
 +{
-+	skb->dev = xmit->outdev;
-+	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
-+			xmit->dest, xmit->source, skb->len);
-+	dev_queue_xmit(skb);
-+}
++	struct sk_buff *segs, *nskb;
 +
-+static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
-+				       struct nf_flow_xmit *xmit)
-+{
-+	if (xmit->tuple->encap_num) {
-+		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
++	segs = skb_gso_segment(skb, 0);
++	if (IS_ERR(segs) || !segs)
++		return NF_DROP;
++
++	skb_list_walk_safe(segs, segs, nskb) {
++		skb_mark_not_on_list(segs);
++
++		if (nf_flow_encap_push(segs, xmit->tuple, xmit->outdev) < 0) {
++			kfree_skb_list(nskb);
 +			return NF_DROP;
++		}
++		__nf_flow_queue_xmit(net, segs, xmit);
 +	}
-+
-+	__nf_flow_queue_xmit(net, skb, xmit);
++	consume_skb(skb);
 +
 +	return NF_STOLEN;
 +}
 +
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -797,9 +836,6 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
- 		return NF_DROP;
- 
--	if (nf_flow_encap_push(skb, other_tuple) < 0)
--		return NF_DROP;
--
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rtable(tuplehash->tuple.dst_cache);
-@@ -829,6 +865,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		WARN_ON_ONCE(1);
- 		return NF_DROP;
+ static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
+ 				       struct nf_flow_xmit *xmit)
+ {
+ 	if (xmit->tuple->encap_num) {
++		if (skb_is_gso(skb) && xmit->tuple->needs_gso_segment)
++			return nf_flow_encap_gso_xmit(net, skb, xmit);
++
+ 		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
+ 			return NF_DROP;
  	}
-+	xmit.tuple = other_tuple;
+diff --git a/net/netfilter/nf_flow_table_path.c b/net/netfilter/nf_flow_table_path.c
+index 6bb9579dcc2a..37f7b590c531 100644
+--- a/net/netfilter/nf_flow_table_path.c
++++ b/net/netfilter/nf_flow_table_path.c
+@@ -86,6 +86,7 @@ struct nft_forward_info {
+ 	u8 ingress_vlans;
+ 	u8 h_source[ETH_ALEN];
+ 	u8 h_dest[ETH_ALEN];
++	bool needs_gso_segment;
+ 	enum flow_offload_xmit_type xmit_type;
+ };
  
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
-@@ -1119,9 +1156,6 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 				   &ip6_daddr, encap_limit) < 0)
- 		return NF_DROP;
- 
--	if (nf_flow_encap_push(skb, other_tuple) < 0)
--		return NF_DROP;
--
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
-@@ -1151,6 +1185,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 		WARN_ON_ONCE(1);
- 		return NF_DROP;
+@@ -138,8 +139,11 @@ static void nft_dev_path_info(const struct net_device_path_stack *stack,
+ 					path->encap.proto;
+ 				info->num_encaps++;
+ 			}
+-			if (path->type == DEV_PATH_PPPOE)
++			if (path->type == DEV_PATH_PPPOE) {
+ 				memcpy(info->h_dest, path->encap.h_dest, ETH_ALEN);
++				info->xmit_type = FLOW_OFFLOAD_XMIT_DIRECT;
++				info->needs_gso_segment = 1;
++			}
+ 			break;
+ 		case DEV_PATH_BRIDGE:
+ 			if (is_zero_ether_addr(info->h_source))
+@@ -279,6 +283,7 @@ static void nft_dev_forward_path(const struct nft_pktinfo *pkt,
+ 		memcpy(route->tuple[dir].out.h_dest, info.h_dest, ETH_ALEN);
+ 		route->tuple[dir].xmit_type = info.xmit_type;
  	}
-+	xmit.tuple = other_tuple;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
++	route->tuple[!dir].out.needs_gso_segment = info.needs_gso_segment;
  }
+ 
+ int nft_flow_route(const struct nft_pktinfo *pkt, const struct nf_conn *ct,
 -- 
 2.47.3
 
