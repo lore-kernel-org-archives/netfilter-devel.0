@@ -1,33 +1,34 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C02993E3172;
-	Fri, 24 Apr 2026 19:05:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D92E33F5B2;
+	Fri, 24 Apr 2026 19:05:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777057527; cv=none; b=bJdp4fg5fDmBw3pKEkX9x2js387DuN3lh+I7F2Khb2pp9z5SH7H4ej2yMFG2POS/yXHJORAG34TNLupkbLP/7Auc8JIpPsGVQ+aJ3gycQMPX5lVgH4C9qsl63g1xqXBL6HuYXrLjUruqtXzusXK9qrxlKNjJl5IA4H9kvmgTp3A=
+	t=1777057546; cv=none; b=sgp+bHvO3WOlMKdftGKbHdCgwPAlLyrCzyZhVAl/zZYfLGbpX7VBTwHY/eVjDk9hkD7jLWBfAvQ3Dm3AZYCxOuLIcE0hZH0hrOYk3mjvyAN5y73O39c1oQ07/P2RNU1Y3X+JqAoqjKbh2rMn3feZXfmpsicijHAzaOieABfNvDQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777057527; c=relaxed/simple;
-	bh=Ad5r06sCwO1/aatRHb6He45AvYPfO9m5ELuf+y2fzwc=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version:Content-Type; b=Xf8SoBKRdMFutoBn0Qpivm+isij64GokQdj5HsB6OCF0+3dnTXZNHCa9bKlEX4STCFBhVNzPcwVqJ4FoayP4yCch8ekFdiccimr96HCcuB0ltNKuamEjLzpodVra0u4To7FooQEZhh0eYcb+a4JVorCNTVVR24a/Avs/8awTx3Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=tYeZBxP9; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777057546; c=relaxed/simple;
+	bh=4TpnoGjRSoLIQb7evGhMk6ujRLC6J9qdffSjgzK06EQ=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=hBd8bT/yKBBfUcCIhSrWr3OvD7TPKp4r6NI6mbypcye3daLylGjj/WTcUp99a80WiYxF9SE/ZkaTKfVmDe09DL/7tAC6u0DGcizmWTSGNzpp6cLnJUKlf5P4mbmFDk+LTUrbX3JYrP4pqDDT/Gi2msBmYRfwyRmvk8A5nJqJSBU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=Uc6bQQqm; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="tYeZBxP9"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="Uc6bQQqm"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id DA68760178;
-	Fri, 24 Apr 2026 21:05:21 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id B558660178;
+	Fri, 24 Apr 2026 21:05:42 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777057522;
-	bh=/0/KtJBrhZnTGCQeHQRR7kXaLmPrAka7XZTGDprQ2YI=;
-	h=From:To:Cc:Subject:Date:From;
-	b=tYeZBxP9Aez6teFhmWoiCcNHcTr/B2Bprt2ecU7x8MDUF8xdMNH8o6KNRjayUhOQa
-	 uEuJk2hSggijVLsDYykpDqod54n+KK1+eg78lJWOAI/vuC5j8LJpSU2/U0850VnC8l
-	 oh4qnlvfpEUOoU9JC/nmskufoIan0L9d+4CsUaOoJ+nKbvsgSOy8Xl9D6AbB9FEqWz
-	 W3Yr3qtEVNyqviyzT/0D2f7VQyDkVrous3hUccl8YIyeZPANcB1viqrpvN4zacA8a1
-	 28XTJZk3HSOKpA4+PNqzqkcnLsho7/2YFaKRoLVN/KNfwOSxQwTTIcQdV6ufigLnCy
-	 LQu6lawFFyqGQ==
+	s=2025; t=1777057543;
+	bh=fCkyGJOfm3ztMTfgTiri4BVXee3hN6p8Uv6Ouul4F+A=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Uc6bQQqmaI62wphfu56ok+JUyaLzaC2Pn9rvHJtm4Jkx4z2pULfGi1wmv2H8KtVnj
+	 OJF6RsSGcrb1fhyES+/cyy6pFfmQkjI9HBzYJHb7JRa8b1blJQpYAJKFj6vl1KQTIp
+	 1tMcou4SM7u9OTkvcQzKmYqLtRDwSNp8umdC1fUW5za4TCCrAb4YzSKqZULrkEa+/p
+	 fe3W9ebngm7XNhgRCgVwWKoY/m8dGn1cWzdbqMiv44V30rzuOjp5cXr8pJNZ/frrzq
+	 3vshhF0wTaDhkbhcJmuX4gIUF4u0eiAunbJxWKtRC0etI2DWXpb/cIyY8sKwsqCGcl
+	 en46j59l4nqcg==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Cc: davem@davemloft.net,
@@ -37,136 +38,133 @@ Cc: davem@davemloft.net,
 	edumazet@google.com,
 	fw@strlen.de,
 	horms@kernel.org
-Subject: [PATCH net 00/11] Netfilter/IPVS fixes for net
-Date: Fri, 24 Apr 2026 21:05:02 +0200
-Message-ID: <20260424190513.32823-1-pablo@netfilter.org>
+Subject: [PATCH net 01/11] netfilter: arp_tables: fix IEEE1394 ARP payload parsing
+Date: Fri, 24 Apr 2026 21:05:03 +0200
+Message-ID: <20260424190513.32823-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260424190513.32823-1-pablo@netfilter.org>
+References: <20260424190513.32823-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Hi,
+Weiming Shi says:
 
-The following patchset contains Netfilter/IPVS fixes for net:
+"arp_packet_match() unconditionally parses the ARP payload assuming two
+hardware addresses are present (source and target). However,
+IPv4-over-IEEE1394 ARP (RFC 2734) omits the target hardware address
+field, and arp_hdr_len() already accounts for this by returning a
+shorter length for ARPHRD_IEEE1394 devices.
 
-1) IEEE1394 ARP payload contains no target hardware address in the
-   ARP packet. Apparently, arp_tables was never updated to deal with
-   IEEE1394 ARP properly. To deal with this, return no match in case
-   the target hardware address selector is used, either for inverse or
-   normal match. Moreover, arpt_mangle disallows mangling of the target
-   hardware and IP address because, it is not worth to adjust the
-   offset calculation to fix this, we suspect no users of arp_tables
-   for this family.
+As a result, on IEEE1394 interfaces arp_packet_match() advances past a
+nonexistent target hardware address and reads the wrong bytes for both
+the target device address comparison and the target IP address. This
+causes arptables rules to match against garbage data, leading to
+incorrect filtering decisions: packets that should be accepted may be
+dropped and vice versa.
 
-2) Use list_del_rcu() to delete device hooks in nf_tables, this hook
-   list is RCU protected, concurrent netlink dump readers can be
-   walking on this list, fix it by adding a helper function and use it
-   for consistency. From Florian Westphal.
+The ARP stack in net/ipv4/arp.c (arp_create and arp_process) already
+handles this correctly by skipping the target hardware address for
+ARPHRD_IEEE1394. Apply the same pattern to arp_packet_match()."
 
-3) Add list_splice_rcu(), this is useful for joining the local list of
-   new device hooks to the RCU protected hook list in chain and
-   flowtable. Reviewed by Paul E. McKenney.
+Mangle the original patch to always return 0 (no match) in case user
+matches on the target hardware address which is never present in
+IEEE1394.
 
-4) Use list_splice_rcu() to publish the new device hooks in chain and
-   flowtable to fix concurrent netlink dump traversal.
+Note that this returns 0 (no match) for either normal and inverse match
+because matching in the target hardware address in ARPHRD_IEEE1394 has
+never been supported by arptables. This is intentional, matching on the
+target hardware address should never evaluate true for ARPHRD_IEEE1394.
 
-5) Add a new hook transaction object to track device hook deletions.
-   The current approach moves device hooks to be deleted around during
-   the preparation phase, this breaks concurrent RCU reader via netlink
-   dump. This new hook transaction is combined with NFT_HOOK_REMOVE
-   flag to annotate hooks for removal in the preparation phase.
+Moreover, adjust arpt_mangle to drop the packet too as AI suggests:
 
-6) xt_policy inbound policy check in strict mode can lead to
-   out-of-bound access of the secpath array due to incorrect.
-   The iteration over the secpath needs to be reversed in the inbound
-   to check for the human readable policy, expecting inner in first
-   position and outer in second position, the secpath from inbound
-   actually stores outer in first position then in second position.
-   From Jiexun Wang.
+In arpt_mangle, the logic assumes a standard ARP layout. Because
+IEEE1394 (FireWire) omits the target hardware address, the linear
+pointer arithmetic miscalculates the offset for the target IP address.
+This causes mangling operations to write to the wrong location, leading
+to packet corruption. To ensure safety, this patch drops packets
+(NF_DROP) when mangling is requested for these fields on IEEE1394
+devices, as the current implementation cannot correctly map the FireWire
+ARP payload.
 
-7) Fix possible zero shift in nft_bitwise triggering UBSAN splat,
-   reject zero shift from control plane, from Kai Ma.
+This omits both mangling target hardware and IP address. Even if IP
+address mangling should be possible in IEEE1394, this would require
+to adjust arpt_mangle offset calculation, which has never been
+supported.
 
-8) Replace simple_strtoul() in the conntrack SIP helper since it relies
-   on nul-terminated strings. From Florian Westphal.
+Based on patch from Weiming Shi <bestswngs@gmail.com>.
 
-The IPVS fixes for recent net-next updates, from Julian Anastasov:
+Fixes: 6752c8db8e0c ("firewire net, ipv4 arp: Extend hardware address and remove driver-level packet inspection.")
+Reported-by: Xiang Mei <xmei5@asu.edu>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/arp_tables.c  | 18 +++++++++++++++---
+ net/ipv4/netfilter/arpt_mangle.c |  8 ++++++++
+ 2 files changed, 23 insertions(+), 3 deletions(-)
 
-9) Fix several issues in the new /proc/net/ip_vs_status interface:
-   prevent use-after-free by properly updating svc_table_changes
-   during service deletion/flushing; bound bucket traversal and add
-   loop detection to prevent infinite loops and overflows; use div_u64
-   for safer 32-bit math; and restrict file permissions to 0440 to
-   protect hash distribution info from non-root users.
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 1cdd9c28ab2d..97ead883e4a1 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -110,13 +110,25 @@ static inline int arp_packet_match(const struct arphdr *arphdr,
+ 	arpptr += dev->addr_len;
+ 	memcpy(&src_ipaddr, arpptr, sizeof(u32));
+ 	arpptr += sizeof(u32);
+-	tgt_devaddr = arpptr;
+-	arpptr += dev->addr_len;
++
++	if (IS_ENABLED(CONFIG_FIREWIRE_NET) && dev->type == ARPHRD_IEEE1394) {
++		if (unlikely(memchr_inv(arpinfo->tgt_devaddr.mask, 0,
++					sizeof(arpinfo->tgt_devaddr.mask))))
++			return 0;
++
++		tgt_devaddr = NULL;
++	} else {
++		tgt_devaddr = arpptr;
++		arpptr += dev->addr_len;
++	}
+ 	memcpy(&tgt_ipaddr, arpptr, sizeof(u32));
+ 
+ 	if (NF_INVF(arpinfo, ARPT_INV_SRCDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->src_devaddr, src_devaddr,
+-					dev->addr_len)) ||
++					dev->addr_len)))
++		return 0;
++
++	if (tgt_devaddr &&
+ 	    NF_INVF(arpinfo, ARPT_INV_TGTDEVADDR,
+ 		    arp_devaddr_compare(&arpinfo->tgt_devaddr, tgt_devaddr,
+ 					dev->addr_len)))
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index a4e07e5e9c11..f65dd339208e 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -40,6 +40,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ 	}
+ 	arpptr += pln;
+ 	if (mangle->flags & ARPT_MANGLE_TDEV) {
++		if (unlikely(IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++			     skb->dev->type == ARPHRD_IEEE1394))
++			return NF_DROP;
++
+ 		if (ARPT_DEV_ADDR_LEN_MAX < hln ||
+ 		   (arpptr + hln > skb_tail_pointer(skb)))
+ 			return NF_DROP;
+@@ -47,6 +51,10 @@ target(struct sk_buff *skb, const struct xt_action_param *par)
+ 	}
+ 	arpptr += hln;
+ 	if (mangle->flags & ARPT_MANGLE_TIP) {
++		if (unlikely(IS_ENABLED(CONFIG_FIREWIRE_NET) &&
++			     skb->dev->type == ARPHRD_IEEE1394))
++			return NF_DROP;
++
+ 		if (ARPT_MANGLE_ADDR_LEN_MAX < pln ||
+ 		   (arpptr + pln > skb_tail_pointer(skb)))
+ 			return NF_DROP;
+-- 
+2.47.3
 
-10) Fix a race condition between the sysctl interface and the teardown
-    of IPVS hash tables. Specifically, it prevents the system from
-    trying to schedulework on a table that has already been destroyed.
-
-11) Fix sleeping function called from invalid context bug. On RT
-    kernels, standard spinlocks can sleep, but "bit locks" (used by the
-    new hash table) do not. Holding a sleeping lock while a non-sleeping
-    bit lock is held is illegal.
-
-Please, pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git nf-26-04-24
-
-Thanks.
-
-----------------------------------------------------------------
-
-The following changes since commit 711987ba281fd806322a7cd244e98e2a81903114:
-
-  netfilter: nfnetlink_osf: fix potential NULL dereference in ttl check (2026-04-20 23:45:44 +0200)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/netfilter/nf.git tags/nf-26-04-24
-
-for you to fetch changes up to b51edb039b1dbcdc83e00c31cf5887bd75486dcc:
-
-  ipvs: fix the spin_lock usage for RT build (2026-04-24 20:09:57 +0200)
-
-----------------------------------------------------------------
-netfilter pull request 26-04-24
-
-----------------------------------------------------------------
-Florian Westphal (2):
-      netfilter: nf_tables: use list_del_rcu for netlink hooks
-      netfilter: nf_conntrack_sip: don't use simple_strtoul
-
-Jiexun Wang (1):
-      netfilter: xt_policy: fix strict mode inbound policy matching
-
-Julian Anastasov (3):
-      ipvs: fixes for the new ip_vs_status info
-      ipvs: fix races around the conn_lfactor and svc_lfactor sysctl vars
-      ipvs: fix the spin_lock usage for RT build
-
-Kai Ma (1):
-      netfilter: reject zero shift in nft_bitwise
-
-Pablo Neira Ayuso (4):
-      netfilter: arp_tables: fix IEEE1394 ARP payload parsing
-      rculist: add list_splice_rcu() for private lists
-      netfilter: nf_tables: join hook list via splice_list_rcu() in commit phase
-      netfilter: nf_tables: add hook transactions for device deletions
-
- include/linux/rculist.h           |  29 ++++
- include/net/netfilter/nf_tables.h |  13 ++
- net/ipv4/netfilter/arp_tables.c   |  18 ++-
- net/ipv4/netfilter/arpt_mangle.c  |   8 +
- net/netfilter/ipvs/ip_vs_conn.c   |  71 ++++-----
- net/netfilter/ipvs/ip_vs_ctl.c    |  63 +++++---
- net/netfilter/nf_conntrack_sip.c  | 152 +++++++++++++-----
- net/netfilter/nf_nat_sip.c        |   1 +
- net/netfilter/nf_tables_api.c     | 314 +++++++++++++++++++++++++++-----------
- net/netfilter/nft_bitwise.c       |   3 +-
- net/netfilter/xt_policy.c         |   2 +-
- 11 files changed, 494 insertions(+), 180 deletions(-)
