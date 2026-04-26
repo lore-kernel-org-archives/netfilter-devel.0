@@ -1,64 +1,64 @@
-Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CADCA23507C
-	for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2026 14:48:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0FD23507C
+	for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2026 14:49:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777214941; cv=none; b=r6LW+HR7yuMxbpR3AKMCEeSKIL5/M+k9hVgDPlriIVyXhES40YJmoJbYajkligNiWIN8qOs5k81ewzgy9bb3BQwZEKGQbOehdYegXKQPoKutqWKzD+ld4aTwkr+r+ph538DMNCKmzlm3PHaVmvziDT//oYL9q9OZCmA3e927v54=
+	t=1777214942; cv=none; b=Ko+qj0NJYK1DDi95y36k9g/WyZS3JuaTynt1LJc3CQ82ZG9icRuqiXCC2rRQ1AwwkVEVmEJYckFVk6/THWNKtxwORfSUwyx7J6SnN7FPO/f6ogC/zAI9tNCE+jGuvOxx+qWyMuGF08n4uTLqebbxXjvS+mFB0b/3boDVYMDx4GY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777214941; c=relaxed/simple;
-	bh=EzaF9ukZm+IAKve3Rcdx43rJkgsEruseuaZXvOJfxUQ=;
+	s=arc-20240116; t=1777214942; c=relaxed/simple;
+	bh=vsm/Vin6fhEHMK5Rg/gfXmdGW6NjOiPfcld3a7a7Zqo=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=aSOPoLr/FZYMy4n6J4j//Bblcu7FxNfaD2PBIfmZ5UtQFyG7RBxyVxgKvvi6Q42MsLNaUlfDrOyFeHJNHIUaiZb/u0AexQvZLjBZ9LfANFMExXizppAviciE6F/Tnya0QtyH+210DOq0r5GuKYJVduOix4K1xzxM08/KYaeOaeg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=drDRW9oD; arc=none smtp.client-ip=209.85.219.47
+	 MIME-Version:Content-Type; b=GJnWuwQLrcF90zBPGcHXWcu2NoqPkFOZIKCynJPEWo9KfDzaeDm+fxYhVtLHnZVClqkvAXmX+KlrhSAjZHKuWmZX4OelO3U0sNtJd6mY9dc4rNgT8cEcPaBaHXAB6Nkh9DmUkdiytlo7PikI6CQzjSZvnm44nMd+9gri/KLTIkY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NenE3BRc; arc=none smtp.client-ip=209.85.219.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="drDRW9oD"
-Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-8a48deebe95so73244616d6.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2026 07:48:59 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NenE3BRc"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-8acae26e564so113142676d6.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2026 07:49:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20251104; t=1777214939; x=1777819739; darn=vger.kernel.org;
+        d=gmail.com; s=20251104; t=1777214941; x=1777819741; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=pagQ43wFSn3iS5OfTh2ag4EpAzA+S21IQdQp4DAN0tc=;
-        b=drDRW9oDKstVlaxXvZmK7xt0hNw0a+hWj1qkNKcTFwMMcBlivtzWqtXDFHf0fcpr8U
-         Jium+jf3yPX1QcY1TGs9u9XBni6BmJeQJk10fGoZdtJQSg0+hxXuwU4DPS5CL9S7jDWh
-         KkflcSraz8MADhna7IscqciRiJUSLDDNsNRKWFMOtSDxfQAelGM0Y/XpFqRnQut2sDtF
-         TEBhq4je2/DXQpy8vvelvtroAQ1Fso2P9cmqQL6XZ0I/Wg7mb+GbQ43SF1eN+C057Tx1
-         6S9QE18KAIOkfHJup+ksoRGDBPlKrKDSrXCju+YoSRfWZxXCrP6Dm30G6q4sEleLcefs
-         bmbA==
+        bh=ZLYe3X7mIdfpi7a+4xLOp68gaR+hsDkG8LtdUaDQjF4=;
+        b=NenE3BRcLW34Jayeyr81Rdt1Zunk2n3OcSKDbKUkSndZ0irM9vsWGeFB2cTG+SK39g
+         f2ZRdW8UlOO/tGmmespooz6WOSBI1CBQoYWX6oLnkpqeEQDp3hcU3LwsU1RNTpd1nI7o
+         /WNuy3zwMo751bQ3AJW7Ij0y8BrNIT0M+Js8Thf89EX03zHW3f0+CLdB9/yweyKi7m0g
+         vcByteO/ISTpDr+pQcDLCovC6WC3LJBMdP8s0IgY2ic+pJg6DowPYqoL60Oyt4qSd3By
+         1AiR1DnQuGNNmmHfmtw55B5QLnq8xQx3vMqTQBjEd7M3mn8C4pJsQ7bXphAUzPtcv88g
+         rE+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1777214939; x=1777819739;
+        d=1e100.net; s=20251104; t=1777214941; x=1777819741;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=pagQ43wFSn3iS5OfTh2ag4EpAzA+S21IQdQp4DAN0tc=;
-        b=iuso+uOrIBpU8u+GUK8GBcb+0xsOL+rbToVZOsVEIXflqiXWv2d0ZDSTvYZq35tea2
-         /R6OPufJkdu/gKdce2uAelTJ1CGvaL/MIeX80x6hvaVCndYtx/hP+hKLvnxJwHlFKCm+
-         PARW5gWg8PTBQmzPm1KDWfG+luW3B7QbhrOFxLt9icV30RYsiDSIAW0yV268ElRv0Gqg
-         ny/Tg28dHAxzDkv7iF4laYnlOVbZ/5vrowe5wc0CJ9H1cABkBikgcJeYx0SK4QBaX0N6
-         4Ng7pT1jOrzNqyon22LKixLze5IJaCM6nVPKzWPsRygr+V/GwT24y9gdZIAaTwmvSdwx
-         kVSQ==
-X-Forwarded-Encrypted: i=1; AFNElJ9M71SZ0mPRLGR9/4PkAj8t8JP8yW9BWULRnfFn6hAV2WOoFXYQkHdJ5LnWUT3GSsmV+LaoLmJj8wIuuX3tF8I=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz78Ld54p9WjvCQbRTqUObzPL9UDq9Bi0qiZhbhtLAnsHn4eGat
-	uPs1oibHt2/K5beqcVA+6jOIszhOfhOGh5xOZSy235aG2O5uEbXfKf2a
-X-Gm-Gg: AeBDies3emhuUxZS2KIdEcNIjxUgL024RKUrHWNLzQyoMlHJouI6im+8KShpSOmxFEU
-	8/h4loI0ll90FVYgeSvaipp/qGkivy9jnzfu1UCqnRg1IynGIMfMXQXrCsxlU9DTNAKXfFkbMO1
-	xanhTreMLbr6Ql1F2U/3XBq2Kb4v//eANG+5UZKEP4IiujR/dct/FJ1xT6yuBdItML/xCVcVGIO
-	JnAOHo23hhu9OJpxhxe8h0lC4LWCyTSONsi7Y7pYBIfKWAysnMbIM8yV5nQcYTWeAbUjEwbZ0QU
-	eMHSTsBauvF2WJ3XdXaLVVM9bS577wmCUo5MLjWogm0HdSwbhTppSFrPoyi1l0wNEesiXTFzdeM
-	XcIUxOJGX5qlZ5Li8YRPYqjoxdaJvAGd6xwFcMCg7654TaPrj7D5EGzjGyX7FZH+wa0jHQAchd2
-	ncFOHKmd75jIw/m77ckCMhmH90fTo5MWcOzwipEvbtjTqKPEM6A8DNN1ZlubGvNvanASiXfXa0I
-	1vczON9UBtMHFfFp1r4PBGGV3m/n8yWgdturv2EspNJAyzrKKQH05ue1th/YZvQxV1ORvvga1s=
-X-Received: by 2002:a05:6214:43c8:b0:8ac:b1ad:3a1f with SMTP id 6a1803df08f44-8b0281108f1mr602566766d6.35.1777214938809;
-        Sun, 26 Apr 2026 07:48:58 -0700 (PDT)
+        bh=ZLYe3X7mIdfpi7a+4xLOp68gaR+hsDkG8LtdUaDQjF4=;
+        b=j1UTOfyFMGwFA+SnzktoYHsHxtbVCNB0aSieYAONvb6QTOD9/38jvb3QT53grqsfnL
+         dBaX1zQM/8ymbg8eq/DK3djtJ871iCguprV1g+BgLxnOyIGr/CyIv6o9LE53ESShTtb8
+         NohlxItjWeJyVr2zaQ3I2SFQ09AlmYxtTmjBReK2r8clKQdrkVrlF0tuOkm09fi+oGdi
+         jTK0BAnzOFuJSGA6WjchuiFFO0p9VdjEuQjzLFIIa0POXkuVje3b2QOxXF9Q8d7+eKky
+         IOqa5iIf/mQEbQ7AxcZDvHK/dd07t5eGCxfJQYcxRBicPKLo0qCKn9X7FFTK5NEzeAbA
+         u49Q==
+X-Forwarded-Encrypted: i=1; AFNElJ/bbXbIPbWwJBfO5nZMV66jbXN24BH7EKvlSppHjJdNz/33NxiZStS2fVrDp+j2oi9aCrzHL5/wSD4AyHVQb28=@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNo3p6FpYXP+cTjPulIgXX5Pj+9Ff5pzLM+S6N/tmHukr5aGI5
+	Bkl8vwpciF/mNyQcKCabCnwtxNrCiQ5amrsMA8qI+B33VJozgzb1L1XG
+X-Gm-Gg: AeBDieuv+2PxMK78LaAfqJu3hVYZZFoHPXL0Sw7RtNV8DRKd9pTdToKtTwP84Fd2eya
+	Y0+f3E/j991RWmJbaIJYJkflRKXfI8cTuowtJpUnsjJNaDSwoxsyPS7GFjxyrMSYxSiZh0Vbd+/
+	8ojiZo8CPsGowrWnTndo6tzpNAQu4+4VTtW9AmCj3KOBAXicxeqHRWQSQ4EJ3X/eq0Sje9fRdob
+	sKlA0fNVRPKpGKedjdhaiAQICq2IcRWkUnVgfJ/uAT+LYbevZm5Gn9fJbnDDSgQyhDtCiLLE8Fj
+	mCXsiIbsnUHUJHfIanPxYV4VUOadnW/cTiI0FoRBl02VAQgNl34stTaZzQM7HpnzGO/m/cx2m2v
+	7pIyl7e/pSg5M9xm0T/k6I9HQAjD5nIvjcckTSioiX3OefAg8n7Gk13KpjCIZVxF5c0LZDihV+z
+	z2sSbgqfkzEcca8TpzUGp21RPu2UEiEOweL3R7k+FXq1VpDYHhK77bRrYvqbhlSw8DtQoJhHEcH
+	NvyVhLPTDc0TYzoLdfRWqoRzf7kAlUj6P72IcCfVg1wBTpyL+tX0BWghqKMVVHev1CBU4iTkqk=
+X-Received: by 2002:ad4:5bef:0:b0:8ac:ae21:46e with SMTP id 6a1803df08f44-8b03a1885ecmr509647676d6.31.1777214940620;
+        Sun, 26 Apr 2026 07:49:00 -0700 (PDT)
 Received: from wsfd-netdev58.anl.eng.rdu2.dc.redhat.com ([66.187.232.140])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b02aebc655sm232579146d6.48.2026.04.26.07.48.57
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-8b02aebc655sm232579146d6.48.2026.04.26.07.48.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Apr 2026 07:48:57 -0700 (PDT)
+        Sun, 26 Apr 2026 07:48:59 -0700 (PDT)
 From: Xin Long <lucien.xin@gmail.com>
 To: network dev <netdev@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org,
@@ -73,9 +73,9 @@ Cc: davem@davemloft.net,
 	Phil Sutter <phil@nwl.cc>,
 	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
 	Yi Chen <yiche.cy@gmail.com>
-Subject: [PATCH net v2 1/2] netfilter: skip recording stale or retransmitted INIT
-Date: Sun, 26 Apr 2026 10:46:40 -0400
-Message-ID: <ee56c3e416452b2a40589a2a85245ac2ad5e9f4b.1777214801.git.lucien.xin@gmail.com>
+Subject: [PATCH net v2 2/2] sctp: discard stale INIT after handshake completion
+Date: Sun, 26 Apr 2026 10:46:41 -0400
+Message-ID: <5788c76c1ee122a3ed00189e88dcf9df1fba226c.1777214801.git.lucien.xin@gmail.com>
 X-Mailer: git-send-email 2.47.1
 In-Reply-To: <cover.1777214801.git.lucien.xin@gmail.com>
 References: <cover.1777214801.git.lucien.xin@gmail.com>
@@ -85,56 +85,44 @@ List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-An INIT whose init_tag matches the peer's vtag does not provide new state
-information. It indicates either:
+After an association reaches ESTABLISHED, the peer’s init_tag is already
+known from the handshake. Any subsequent INIT with the same init_tag is
+not a valid restart, but a delayed or duplicate INIT.
 
-- a stale INIT (after INIT-ACK has already been seen on the same side), or
-- a retransmitted INIT (after INIT has already been recorded on the same
-  side).
+Drop such INIT chunks in sctp_sf_do_unexpected_init() instead of
+processing them as new association attempts.
 
-In both cases, the INIT must not update ct->proto.sctp.init[] state, since
-it does not advance the handshake tracking and may otherwise corrupt
-INIT/INIT-ACK validation logic.
-
-Allow INIT processing only when the conntrack entry is newly created
-(SCTP_CONNTRACK_NONE), or when the init_tag differs from the stored peer
-vtag.
-
-Note it skips the check for the ct with old_state SCTP_CONNTRACK_NONE in
-nf_conntrack_sctp_packet(), as it is just created in sctp_new() where it
-set ct->proto.sctp.vtag[IP_CT_DIR_REPLY] = ih->init_tag.
-
-Fixes: 9fb9cbb1082d ("[NETFILTER]: Add nf_conntrack subsystem.")
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
 Signed-off-by: Xin Long <lucien.xin@gmail.com>
-Reviewed-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Acked-by: Florian Westphal <fw@strlen.de>
+Acked-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 ---
- net/netfilter/nf_conntrack_proto_sctp.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+v2:
+  - Fix INIT tag comparison by converting the on-wire init_tag to host byte
+    order before comparing it with asoc->peer.i.init_tag.
+---
+ net/sctp/sm_statefuns.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 645d2c43ebf7..7e10fa65cbdd 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -466,9 +466,13 @@ int nf_conntrack_sctp_packet(struct nf_conn *ct,
- 			if (!ih)
- 				goto out_unlock;
+diff --git a/net/sctp/sm_statefuns.c b/net/sctp/sm_statefuns.c
+index 7b823d759141..8e89a870780c 100644
+--- a/net/sctp/sm_statefuns.c
++++ b/net/sctp/sm_statefuns.c
+@@ -1556,6 +1556,12 @@ static enum sctp_disposition sctp_sf_do_unexpected_init(
+ 	/* Tag the variable length parameters.  */
+ 	chunk->param_hdr.v = skb_pull(chunk->skb, sizeof(struct sctp_inithdr));
  
--			if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir])
--				ct->proto.sctp.init[!dir] = 0;
--			ct->proto.sctp.init[dir] = 1;
-+			/* Do not record INIT matching peer vtag (stale or retransmitted INIT). */
-+			if (old_state == SCTP_CONNTRACK_NONE ||
-+			    ct->proto.sctp.vtag[!dir] != ih->init_tag) {
-+				if (ct->proto.sctp.init[dir] && ct->proto.sctp.init[!dir])
-+					ct->proto.sctp.init[!dir] = 0;
-+				ct->proto.sctp.init[dir] = 1;
-+			}
- 
- 			pr_debug("Setting vtag %x for dir %d\n", ih->init_tag, !dir);
- 			ct->proto.sctp.vtag[!dir] = ih->init_tag;
++	if (asoc->state >= SCTP_STATE_ESTABLISHED) {
++		/* Discard INIT matching peer vtag after handshake completion (stale INIT). */
++		if (ntohl(chunk->subh.init_hdr->init_tag) == asoc->peer.i.init_tag)
++			return sctp_sf_pdiscard(net, ep, asoc, type, arg, commands);
++	}
++
+ 	/* Verify the INIT chunk before processing it. */
+ 	err_chunk = NULL;
+ 	if (!sctp_verify_init(net, ep, asoc, chunk->chunk_hdr->type,
 -- 
 2.47.1
 
