@@ -1,234 +1,86 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 396283E121A
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 17:14:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154BF3DCD8E
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 17:23:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777310059; cv=none; b=DqhPBh23g986aI+jgLjMxao3wHNM2PyGGKWQNAN0T0qRrLtjuLV86zV5bEp0bi1sfmcTepG2SVpQ72e8icTlEN7a8NCE1o2FNAdaCnteJf6Va/8lYQAvoxuA6J0uzR/yhTnTRwJeetVML0bKnd4z0U9EWDn6NuuV5md64Q53TQk=
+	t=1777310617; cv=none; b=u0Shr9c9UCCCc/b22Fxp9F8togpWXwu2gwnxPypH5BFqi/BGe7s82LglO1BSlaS+DTIllgWZuS9iCxYpI6dOm4QdsSYHTqaPT+Op3E3cVgH97sb3pfheNULChzR1HLr0uhBhSF6Q+qpjaQw2FUMyB47czzufK5zSn8aXP3flcG4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777310059; c=relaxed/simple;
-	bh=c8qwr8hpFSAA7XPdf4vQwky8AsTs0mQgsbBp4jyBNg8=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=XKJkWkye2vP4jiNK/SDC6wNmBcEtSubknuBBNjvifjHJf8GtLDfoubQZW7YBG4ATHjcPweN8trzlIlvzKd+ehfSS5djqIbVHm+x0U403gLLT+vwa0YdWp4oWpjru1rgn5l6ndNNZ1KsbXFJrf5WpXle0g2vHQ8CU/HS6C1PAhJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=do7JGdZM; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777310617; c=relaxed/simple;
+	bh=YuL3x3hXkBGsGf4KWUcUGEgQxWyhk/Gk/vOygvCEJh0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=r4E5Z3dagL2/yI6qHoOKtqLLtSznvNkehpHJjQF+XSRhxsY1t5xv4ulCML1Xj6Li8n/+bCDfTgoJc6KpuBzi2sYci3dhwUnpNgjrS/9ofQWvuiKH6FWTGloByjYlD8KqVl3RcQ4OVXYCCTWzQM6Esg4iHno5OxccRfbCLv3ypBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=H9y9IaK6; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="do7JGdZM"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 5E20360178
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 19:14:12 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="H9y9IaK6"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 1639B60181;
+	Mon, 27 Apr 2026 19:23:34 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777310052;
-	bh=nVUcpAc9NDYqUyTn6N1pBijEFa49qXFuRs+jcZ+rG98=;
-	h=From:To:Subject:Date:From;
-	b=do7JGdZMwniM8yPEVNeaNcWBem/Bui5hE/7JuVSI6IxvImJNU7ZiYM9wLGHs4TNhc
-	 CaxvCEK/iMeLWhi4hRRcfxXBs39vNv/TxeKyqanUIKy0qxDHQrQOaAmU1s6GTy6fip
-	 rP7g8fE4DRGMfMBtnqNAikm59ybQ68h1M5iyVPnvz1mMuVpDvNxp9NfmFA4AOD2gA4
-	 81PGR50pf3VpuE1VqIVOXKU59XZ5ji9eYQ4ceQOULq9B2z4sYJWX8gEca+zpUtCfna
-	 vJWsn/ZnAehQsNaotq4fAeqCIlaus70H6883Tjb1RwT2I0FDTMlzBu+0ubWwQsyAB6
-	 nw762apCYfltQ==
+	s=2025; t=1777310614;
+	bh=MmPY/9ZsFfSnxLjBt22TfxjyPKqFzUnb5mcg7vZsCM4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=H9y9IaK67ThvjKt9eRbj5Wy2/GgGBTRVq3G7wtjH7wr6CdKK1iKU3lLESYYTKyTxd
+	 QHDS77UdQ2AQehG7cNz+DaVndMnMrhoEO4hiHL39MytFXQPZISxARbl0gRWsNqOxwR
+	 /sy0UzsX0uGBpmFpEEum6X5DK3ISKgoGvxi6jHq5qvXhq0qK1T6odYfrSsITp7rWh1
+	 DC1N2Pll9b2LGp111L5uaEUROhx4p7GQtnLNRSjSiuMkWPEnL58ZaCpkPxdIV5ZK7+
+	 meybmalGoUrtQRotuUqudaujN57cfa4ESmEpAd0PpQXPhZkiptf4Bo4vG5p7vYY0Yp
+	 4JsSlRwHD/WIA==
+Date: Mon, 27 Apr 2026 19:23:31 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v2 1/2] netfilter: flowtable: fix inline vlan encapsulation in xmit path
-Date: Mon, 27 Apr 2026 19:14:07 +0200
-Message-ID: <20260427171408.23018-1-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
+To: Florian Westphal <fw@strlen.de>
+Cc: Fernando Fernandez Mancera <fmancera@suse.de>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	phil@nwl.cc
+Subject: Re: [PATCH 3/3 nf v4] netfilter: xtables: fix L4 header parsing for
+ non-first fragments
+Message-ID: <ae-bk_I_8CZyg5qA@chamomile>
+References: <20260427112720.5128-1-fmancera@suse.de>
+ <20260427112720.5128-3-fmancera@suse.de>
+ <ae-MRZ47QurmXY7z@chamomile>
+ <ae-P4Sbl-0vpFrUY@strlen.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <ae-P4Sbl-0vpFrUY@strlen.de>
 
-Several issues in the inline vlan support:
+On Mon, Apr 27, 2026 at 06:33:37PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > -               if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
+> > +               if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+> >                         return false;
+> 
+> What is NFT_PKTINFO_L4PROTO supposed to mean?
 
-- The layer 2 encapsulation representation in the tuple takes encap[0] as
-  the outer header and encap[1] as the inner header as seen from the ingress
-  path. Reverse the encap loop to push first the inner then the outer vlan
-  header.
+"IP packet has been fully parsed"
 
-- Postpone pushing the layer 2 header once destination device is known.
-  This allows to calculate the needed hearoom via LL_RESERVED_SPACE to
-  accommodate the layer 2 headers.
+> I thought it meant there is an l4 header but its set unconditionally
+> for ipv4.
 
-- Add and use nf_flow_vlan_push() as suggested by Eric Woudstra, this
-  is a simplified version of skb_vlan_push() for egress path only.
+Flag name is a misleading.
 
-Fixes: c653d5a78f34 ("netfilter: flowtable: inline vlan encapsulation in xmit path")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: no changes.
+See my recent comment in this function:
 
-Severals comments for AI:
+static void nft_meta_pktinfo_may_update(struct nft_pktinfo *pkt)
+{                       
+        struct sk_buff *skb = pkt->skb;
+        struct vlan_ethhdr *veth;
+        __be16 ethertype;
+        int nhoff;
+                
+        /* Is this an IP packet? Then, skip. */
+        if (pkt->flags) 
+                return;
 
-- This is catching skbuffs from ingress, skb->data points to network
-  header. The existing mac header from ingress can be overwritten
-  when xmitting packets to the egress path.
-- skb->network_header is updated to point to the VLAN header with
-  double-tagged VLAN as usual.
+> Only the ipv6 handling makes sense to me.
 
- net/netfilter/nf_flow_table_ip.c | 91 ++++++++++++++++++++++----------
- 1 file changed, 63 insertions(+), 28 deletions(-)
-
-diff --git a/net/netfilter/nf_flow_table_ip.c b/net/netfilter/nf_flow_table_ip.c
-index dbd7644fdbeb..6da0bc3965df 100644
---- a/net/netfilter/nf_flow_table_ip.c
-+++ b/net/netfilter/nf_flow_table_ip.c
-@@ -462,23 +462,6 @@ static void nf_flow_encap_pop(struct nf_flowtable_ctx *ctx,
- 		nf_flow_ip_tunnel_pop(ctx, skb);
- }
- 
--struct nf_flow_xmit {
--	const void		*dest;
--	const void		*source;
--	struct net_device	*outdev;
--};
--
--static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
--				       struct nf_flow_xmit *xmit)
--{
--	skb->dev = xmit->outdev;
--	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
--			xmit->dest, xmit->source, skb->len);
--	dev_queue_xmit(skb);
--
--	return NF_STOLEN;
--}
--
- static struct flow_offload_tuple_rhash *
- nf_flow_offload_lookup(struct nf_flowtable_ctx *ctx,
- 		       struct nf_flowtable *flow_table, struct sk_buff *skb)
-@@ -544,6 +527,31 @@ static int nf_flow_offload_forward(struct nf_flowtable_ctx *ctx,
- 	return 1;
- }
- 
-+/* Similar to skb_vlan_push. */
-+static int nf_flow_vlan_push(struct sk_buff *skb, __be16 proto, u16 id,
-+			     u32 needed_headroom)
-+{
-+	if (skb_vlan_tag_present(skb)) {
-+		struct vlan_hdr *vhdr;
-+
-+		if (skb_cow_head(skb, needed_headroom + VLAN_HLEN))
-+			return -1;
-+
-+		__skb_push(skb, VLAN_HLEN);
-+		if (skb_mac_header_was_set(skb))
-+			skb->mac_header -= VLAN_HLEN;
-+
-+		vhdr = (struct vlan_hdr *)skb->data;
-+		skb->network_header -= VLAN_HLEN;
-+		vhdr->h_vlan_TCI = htons(skb_vlan_tag_get(skb));
-+		vhdr->h_vlan_encapsulated_proto = skb->protocol;
-+		skb->protocol = skb->vlan_proto;
-+	}
-+	__vlan_hwaccel_put_tag(skb, proto, id);
-+
-+	return 0;
-+}
-+
- static int nf_flow_pppoe_push(struct sk_buff *skb, u16 id)
- {
- 	int data_len = skb->len + sizeof(__be16);
-@@ -730,17 +738,19 @@ static int nf_flow_tunnel_v6_push(struct net *net, struct sk_buff *skb,
- }
- 
- static int nf_flow_encap_push(struct sk_buff *skb,
--			      struct flow_offload_tuple *tuple)
-+			      struct flow_offload_tuple *tuple,
-+			      struct net_device *outdev)
- {
-+	u32 needed_headroom = LL_RESERVED_SPACE(outdev);
- 	int i;
- 
--	for (i = 0; i < tuple->encap_num; i++) {
-+	for (i = tuple->encap_num - 1; i >= 0; i--) {
- 		switch (tuple->encap[i].proto) {
- 		case htons(ETH_P_8021Q):
- 		case htons(ETH_P_8021AD):
--			skb_reset_mac_header(skb);
--			if (skb_vlan_push(skb, tuple->encap[i].proto,
--					  tuple->encap[i].id) < 0)
-+			if (nf_flow_vlan_push(skb, tuple->encap[i].proto,
-+					      tuple->encap[i].id,
-+					      needed_headroom) < 0)
- 				return -1;
- 			break;
- 		case htons(ETH_P_PPP_SES):
-@@ -753,6 +763,35 @@ static int nf_flow_encap_push(struct sk_buff *skb,
- 	return 0;
- }
- 
-+struct nf_flow_xmit {
-+	const void		*dest;
-+	const void		*source;
-+	struct net_device	*outdev;
-+	struct flow_offload_tuple *tuple;
-+};
-+
-+static void __nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
-+				    struct nf_flow_xmit *xmit)
-+{
-+	skb->dev = xmit->outdev;
-+	dev_hard_header(skb, skb->dev, ntohs(skb->protocol),
-+			xmit->dest, xmit->source, skb->len);
-+	dev_queue_xmit(skb);
-+}
-+
-+static unsigned int nf_flow_queue_xmit(struct net *net, struct sk_buff *skb,
-+				       struct nf_flow_xmit *xmit)
-+{
-+	if (xmit->tuple->encap_num) {
-+		if (nf_flow_encap_push(skb, xmit->tuple, xmit->outdev) < 0)
-+			return NF_DROP;
-+	}
-+
-+	__nf_flow_queue_xmit(net, skb, xmit);
-+
-+	return NF_STOLEN;
-+}
-+
- unsigned int
- nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 			const struct nf_hook_state *state)
-@@ -797,9 +836,6 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 	if (nf_flow_tunnel_v4_push(state->net, skb, other_tuple, &ip_daddr) < 0)
- 		return NF_DROP;
- 
--	if (nf_flow_encap_push(skb, other_tuple) < 0)
--		return NF_DROP;
--
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rtable(tuplehash->tuple.dst_cache);
-@@ -829,6 +865,7 @@ nf_flow_offload_ip_hook(void *priv, struct sk_buff *skb,
- 		WARN_ON_ONCE(1);
- 		return NF_DROP;
- 	}
-+	xmit.tuple = other_tuple;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
-@@ -1119,9 +1156,6 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 				   &ip6_daddr, encap_limit) < 0)
- 		return NF_DROP;
- 
--	if (nf_flow_encap_push(skb, other_tuple) < 0)
--		return NF_DROP;
--
- 	switch (tuplehash->tuple.xmit_type) {
- 	case FLOW_OFFLOAD_XMIT_NEIGH:
- 		rt = dst_rt6_info(tuplehash->tuple.dst_cache);
-@@ -1151,6 +1185,7 @@ nf_flow_offload_ipv6_hook(void *priv, struct sk_buff *skb,
- 		WARN_ON_ONCE(1);
- 		return NF_DROP;
- 	}
-+	xmit.tuple = other_tuple;
- 
- 	return nf_flow_queue_xmit(state->net, skb, &xmit);
- }
--- 
-2.47.3
-
+Maybe a helper function can be added, eg. nft_ip() then this flag can
+be renamed.
