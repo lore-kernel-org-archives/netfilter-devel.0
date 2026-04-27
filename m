@@ -1,166 +1,219 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A48F31F9BE
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 15:05:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6E6E3469F4
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 16:18:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777302308; cv=none; b=OL0urcmL0MYy/XnAwDY3hGY1jM4l5y4RaAxrNQXmrzQTPDK6BGvLdW4thgy+jFgLlUewSRSaopYbcv44osDqSxVserav6CYUJYH0nI4PCOCGpauMmCWLHf/MprONF59hfLBc9HBYd0cC++v0jybvUXudtr8NVBuY8Tl+PfhGqNE=
+	t=1777306701; cv=none; b=q9V8TTvDos4t2ouYb778Qpzis6qBIVjVB6FI/2B6/T4BaRN//hUFBWamGRe1gSiG7FiECMMmnpeXMLJ9MHKFLe80ElezJcuNL1vNLNGl+isnqGatiPg9kdGUq6RFIKb0djeYfzBIfqjqbcDhc9h8ewB9S7w3O2SeLUxLVM8TVZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777302308; c=relaxed/simple;
-	bh=WYf8vmUKZCf9LfliQ48s5rAtFUvMEeuxXsDMeinDapY=;
-	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Age7sF9XGVcA5Q8gcYQMXymD3SV+U9DLZoe8NQlKt/QmGBcaFnDcx+yqqB1Z9DTP0oPFtIulnD06GDiBWykWs7xKD9N+AyPo7QHsD8NYtwRFIaiUiowncZeX4hBkzXYHJRYpkiKH+rw+MXWrULajSm8+14neakwbEH4ErT+gXc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=VteptDJU; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777306701; c=relaxed/simple;
+	bh=Qqd0yG33obHfTMTkFErcSP2TYH7+3b0hXdl3KkB3QLI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=gCcTqGsT4mJPNAfp1ma4FNaupUplIFnY5U235sam73boe4k36VCmPnJoGEsu6jkUIlFdRPInoznR8ZRDoZ/UhQ1qarYVuSEs+oyubtL5+EaPUpT1s0oucs5vf99NW8G9xHSmlhYyijtZCjtRWQBvj4irWL3yrv4fVb+pEOBxbpg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=vw+7divw; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="VteptDJU"
-Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 65C2F60255
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 17:05:05 +0200 (CEST)
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="vw+7divw"
+Received: from netfilter.org (mail-agni [217.70.190.124])
+	by mail.netfilter.org (Postfix) with UTF8SMTPSA id 63E4D60178;
+	Mon, 27 Apr 2026 18:18:16 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777302305;
-	bh=AaQMBA9tZjn2JyJ2rECwzkiQtV3KoAhPk/5DEMh8n8o=;
-	h=From:To:Subject:Date:In-Reply-To:References:From;
-	b=VteptDJUhB7LzjHvubc2sxrItesoGW23Ygf97Rf1gxVMM2V/C5rnxy1s/k6urVAnD
-	 pDPoKLcpYu0SKn2gz6DvTqd8FwwM40mkKpsU3DbTQjbZqtQC/MGBUd45K5ax5ye/rw
-	 TOx/ajSeG90xrcmD7n7wL/eCkRmfXx0rftbCPKT6DilEq688J00xy11PWaLOcO3iJC
-	 2nYpj2isbnE8/oWvs4rwLxkNMlIZOkUIKLWZpGjZNQs9hYgYqTFGLaGy6TIHo1zKoo
-	 QFdvUGdHrV21N4jSOTUka8axj0DYZ4wVMbO/SGaUUclH8UsBgmxxlociIzfrbzOAAe
-	 1haN3wiztl/Iw==
+	s=2025; t=1777306696;
+	bh=Cq15HYyVZuFbBhsX0bzY1CnlFcZ2mTW9XZQSTCFuSyw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=vw+7divwKt69k0WUBJXFUM4XcSMWgHW9luS0/vE4LMy92xuSQKzN/a5lIFZ8W3cdc
+	 ZFJLLZO6ED95mtMGIeXSVlWgDM3D8XJqHeKv5cU+sqWIvt/pEFiAhT6fc10bcq9GuA
+	 aMlPKVtQvY7LKvTk5Um/GZwNTTlLzfWN/TV2dnPO44D+RHAgHnwoYSUl++QhvX7Ss9
+	 1yn/nm6YmlWhfcsD4gMHAmHZH7FynLqD+p/qxD3AWxeYh5kAq1OsAHMhl77vetbydo
+	 7Y9zQe5V/fSMS42Ki6T5xi0AYV0PgChqAwmW6n/7NaMBnNOX7cJ9siS88FtLjOc5HY
+	 ajHguqgp3ZXDQ==
+Date: Mon, 27 Apr 2026 18:18:13 +0200
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v6 3/3] netfilter: nft_fwd_netdev: use recursion counter in neigh egress path
-Date: Mon, 27 Apr 2026 17:05:00 +0200
-Message-ID: <20260427150500.13754-3-pablo@netfilter.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260427150500.13754-1-pablo@netfilter.org>
-References: <20260427150500.13754-1-pablo@netfilter.org>
+To: Fernando Fernandez Mancera <fmancera@suse.de>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org, phil@nwl.cc,
+	fw@strlen.de
+Subject: Re: [PATCH 3/3 nf v4] netfilter: xtables: fix L4 header parsing for
+ non-first fragments
+Message-ID: <ae-MRZ47QurmXY7z@chamomile>
+References: <20260427112720.5128-1-fmancera@suse.de>
+ <20260427112720.5128-3-fmancera@suse.de>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
 List-Subscribe: <mailto:netfilter-devel+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:netfilter-devel+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260427112720.5128-3-fmancera@suse.de>
 
-From: Weiming Shi <bestswngs@gmail.com>
+Hi Fernando,
 
-nft_fwd_neigh can be used in egress chains (NF_NETDEV_EGRESS). When the
-forwarding rule targets the same device or two devices forward to each
-other, neigh_xmit() triggers dev_queue_xmit() which re-enters
-nf_hook_egress(), causing infinite recursion and stack overflow.
+On Mon, Apr 27, 2026 at 01:27:20PM +0200, Fernando Fernandez Mancera wrote:
+> Multiple targets and matches relies on L4 header to operate. For
+> fragmented packets, every fragment carries the transport protocol
+> identifier, but only the first fragment contains the L4 header.
+> 
+> As the 'raw' table can be configured to run at priority -450 (before
+> defragmentation at -400), the target/match can be reached before
+> reassembly. In this case, non-first fragments have their payload
+> incorrectly parsed as a TCP/UDP header. This would be of course a
+> misconfiguration scenario. In most of the cases this just lead to a
+> unreliable behavior for fragmented traffic.
+> 
+> Add a fragment check to ensure target/match only evaluates unfragmented
+> packets or the first fragment in the stream.
+> 
+> Fixes: 902d6a4c2a4f ("netfilter: nf_defrag: Skip defrag if NOTRACK is set")
+> Signed-off-by: Fernando Fernandez Mancera <fmancera@suse.de>
+> ---
+> v2: handled ecn, socket and tcpmss matches
+> v3: extracted socket to its own patch with a generic solution for
+> nft/xt, added a comment specifying that par->fragoff is fine for
+> ecn/tcpmss ipv6 as they enforce -p tcp. Keep on mind that osf only
+> supports ipv4.
+> v4: handled xt_hashlimit too
 
-Move the nf_get_nf_dup_skb_recursion() accessor and NF_RECURSION_LIMIT
-to the shared header nf_dup_netdev.h as a static inline, so that
-nft_fwd_netdev can use the recursion counter directly without exported
-function call overhead. Guard neigh_xmit() with the same recursion
-limit already used in nf_do_netdev_egress().
+Please, send a v5 including nft_payload_fast_eval():
 
-[ Updated to cache the nf_get_nf_dup_skb_recursion pointer. --pablo ]
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 5ddd5b6e135f..8ab186f86dd4 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -153,7 +153,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+        if (priv->base == NFT_PAYLOAD_NETWORK_HEADER)
+                ptr = skb_network_header(skb) + pkt->nhoff;
+        else {
+-               if (!(pkt->flags & NFT_PKTINFO_L4PROTO))
++               if (!(pkt->flags & NFT_PKTINFO_L4PROTO) || pkt->fragoff)
+                        return false;
+                ptr = skb->data + nft_thoff(pkt);
+        }
 
-Fixes: f87b9464d152 ("netfilter: nft_fwd_netdev: Support egress hook")
-Reported-by: Xiang Mei <xmei5@asu.edu>
-Signed-off-by: Weiming Shi <bestswngs@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v6: no changes
 
- include/net/netfilter/nf_dup_netdev.h | 13 +++++++++++++
- net/netfilter/nf_dup_netdev.c         | 16 ----------------
- net/netfilter/nft_fwd_netdev.c        |  8 ++++++++
- 3 files changed, 21 insertions(+), 16 deletions(-)
+Thanks.
 
-diff --git a/include/net/netfilter/nf_dup_netdev.h b/include/net/netfilter/nf_dup_netdev.h
-index b175d271aec9..609bcf422a9b 100644
---- a/include/net/netfilter/nf_dup_netdev.h
-+++ b/include/net/netfilter/nf_dup_netdev.h
-@@ -3,10 +3,23 @@
- #define _NF_DUP_NETDEV_H_
- 
- #include <net/netfilter/nf_tables.h>
-+#include <linux/netdevice.h>
-+#include <linux/sched.h>
- 
- void nf_dup_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- void nf_fwd_netdev_egress(const struct nft_pktinfo *pkt, int oif);
- 
-+#define NF_RECURSION_LIMIT	2
-+
-+static inline u8 *nf_get_nf_dup_skb_recursion(void)
-+{
-+#ifndef CONFIG_PREEMPT_RT
-+	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
-+#else
-+	return &current->net_xmit.nf_dup_skb_recursion;
-+#endif
-+}
-+
- struct nft_offload_ctx;
- struct nft_flow_rule;
- 
-diff --git a/net/netfilter/nf_dup_netdev.c b/net/netfilter/nf_dup_netdev.c
-index e348fb90b8dc..3b0a70e154cd 100644
---- a/net/netfilter/nf_dup_netdev.c
-+++ b/net/netfilter/nf_dup_netdev.c
-@@ -13,22 +13,6 @@
- #include <net/netfilter/nf_tables_offload.h>
- #include <net/netfilter/nf_dup_netdev.h>
- 
--#define NF_RECURSION_LIMIT	2
--
--#ifndef CONFIG_PREEMPT_RT
--static u8 *nf_get_nf_dup_skb_recursion(void)
--{
--	return this_cpu_ptr(&softnet_data.xmit.nf_dup_skb_recursion);
--}
--#else
--
--static u8 *nf_get_nf_dup_skb_recursion(void)
--{
--	return &current->net_xmit.nf_dup_skb_recursion;
--}
--
--#endif
--
- static void nf_do_netdev_egress(struct sk_buff *skb, struct net_device *dev,
- 				enum nf_dev_hooks hook)
- {
-diff --git a/net/netfilter/nft_fwd_netdev.c b/net/netfilter/nft_fwd_netdev.c
-index c484a757cfb5..65768cbcc211 100644
---- a/net/netfilter/nft_fwd_netdev.c
-+++ b/net/netfilter/nft_fwd_netdev.c
-@@ -95,6 +95,7 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 			      struct nft_regs *regs,
- 			      const struct nft_pktinfo *pkt)
- {
-+	u8 *nf_dup_skb_recursion = nf_get_nf_dup_skb_recursion();
- 	struct nft_fwd_neigh *priv = nft_expr_priv(expr);
- 	void *addr = &regs->data[priv->sreg_addr];
- 	int oif = regs->data[priv->sreg_dev];
-@@ -153,6 +154,11 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 		goto out;
- 	}
- 
-+	if (*nf_dup_skb_recursion > NF_RECURSION_LIMIT) {
-+		verdict = NF_DROP;
-+		goto out;
-+	}
-+
- 	dev = dev_get_by_index_rcu(nft_net(pkt), oif);
- 	if (dev == NULL) {
- 		verdict = NF_DROP;
-@@ -170,7 +176,9 @@ static void nft_fwd_neigh_eval(const struct nft_expr *expr,
- 
- 	skb->dev = dev;
- 	skb_clear_tstamp(skb);
-+	(*nf_dup_skb_recursion)++;
- 	neigh_xmit(neigh_table, dev, addr, skb);
-+	(*nf_dup_skb_recursion)--;
- out:
- 	regs->verdict.code = verdict;
- }
--- 
-2.47.3
 
+> ---
+>  net/netfilter/xt_TPROXY.c    | 11 +++++++++--
+>  net/netfilter/xt_ecn.c       |  4 ++++
+>  net/netfilter/xt_hashlimit.c |  4 +++-
+>  net/netfilter/xt_osf.c       |  3 +++
+>  net/netfilter/xt_tcpmss.c    |  4 ++++
+>  5 files changed, 23 insertions(+), 3 deletions(-)
+> 
+> diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+> index e4bea1d346cf..5f60e7298a1e 100644
+> --- a/net/netfilter/xt_TPROXY.c
+> +++ b/net/netfilter/xt_TPROXY.c
+> @@ -86,6 +86,9 @@ tproxy_tg4_v0(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+>  	const struct xt_tproxy_target_info *tgi = par->targinfo;
+>  
+> +	if (par->fragoff)
+> +		return NF_DROP;
+> +
+>  	return tproxy_tg4(xt_net(par), skb, tgi->laddr, tgi->lport,
+>  			  tgi->mark_mask, tgi->mark_value);
+>  }
+> @@ -95,6 +98,9 @@ tproxy_tg4_v1(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+>  	const struct xt_tproxy_target_info_v1 *tgi = par->targinfo;
+>  
+> +	if (par->fragoff)
+> +		return NF_DROP;
+> +
+>  	return tproxy_tg4(xt_net(par), skb, tgi->laddr.ip, tgi->lport,
+>  			  tgi->mark_mask, tgi->mark_value);
+>  }
+> @@ -106,6 +112,7 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+>  	const struct ipv6hdr *iph = ipv6_hdr(skb);
+>  	const struct xt_tproxy_target_info_v1 *tgi = par->targinfo;
+> +	unsigned short fragoff = 0;
+>  	struct udphdr _hdr, *hp;
+>  	struct sock *sk;
+>  	const struct in6_addr *laddr;
+> @@ -113,8 +120,8 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
+>  	int thoff = 0;
+>  	int tproto;
+>  
+> -	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
+> -	if (tproto < 0)
+> +	tproto = ipv6_find_hdr(skb, &thoff, -1, &fragoff, NULL);
+> +	if (tproto < 0 || fragoff)
+>  		return NF_DROP;
+>  
+>  	hp = skb_header_pointer(skb, thoff, sizeof(_hdr), &_hdr);
+> diff --git a/net/netfilter/xt_ecn.c b/net/netfilter/xt_ecn.c
+> index b96e8203ac54..a8503f5d26bf 100644
+> --- a/net/netfilter/xt_ecn.c
+> +++ b/net/netfilter/xt_ecn.c
+> @@ -30,6 +30,10 @@ static bool match_tcp(const struct sk_buff *skb, struct xt_action_param *par)
+>  	struct tcphdr _tcph;
+>  	const struct tcphdr *th;
+>  
+> +	/* this is fine for IPv6 as ecn_mt_check6() enforces -p tcp */
+> +	if (par->fragoff)
+> +		return false;
+> +
+>  	/* In practice, TCP match does this, so can't fail.  But let's
+>  	 * be good citizens.
+>  	 */
+> diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+> index 3bd127bfc114..2704b4b60d1e 100644
+> --- a/net/netfilter/xt_hashlimit.c
+> +++ b/net/netfilter/xt_hashlimit.c
+> @@ -658,6 +658,8 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hinfo,
+>  		if (!(hinfo->cfg.mode &
+>  		      (XT_HASHLIMIT_HASH_DPT | XT_HASHLIMIT_HASH_SPT)))
+>  			return 0;
+> +		if (ntohs(ip_hdr(skb)->frag_off) & IP_OFFSET)
+> +			return -1;
+>  		nexthdr = ip_hdr(skb)->protocol;
+>  		break;
+>  #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+> @@ -681,7 +683,7 @@ hashlimit_init_dst(const struct xt_hashlimit_htable *hinfo,
+>  			return 0;
+>  		nexthdr = ipv6_hdr(skb)->nexthdr;
+>  		protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr, &frag_off);
+> -		if ((int)protoff < 0)
+> +		if ((int)protoff < 0 || ntohs(frag_off) & IP6_OFFSET)
+>  			return -1;
+>  		break;
+>  	}
+> diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
+> index dc9485854002..e8807caede68 100644
+> --- a/net/netfilter/xt_osf.c
+> +++ b/net/netfilter/xt_osf.c
+> @@ -27,6 +27,9 @@
+>  static bool
+>  xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
+>  {
+> +	if (p->fragoff)
+> +		return false;
+> +
+>  	return nf_osf_match(skb, xt_family(p), xt_hooknum(p), xt_in(p),
+>  			    xt_out(p), p->matchinfo, xt_net(p), nf_osf_fingers);
+>  }
+> diff --git a/net/netfilter/xt_tcpmss.c b/net/netfilter/xt_tcpmss.c
+> index 0d32d4841cb3..b9da8269161d 100644
+> --- a/net/netfilter/xt_tcpmss.c
+> +++ b/net/netfilter/xt_tcpmss.c
+> @@ -32,6 +32,10 @@ tcpmss_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	u8 _opt[15 * 4 - sizeof(_tcph)];
+>  	unsigned int i, optlen;
+>  
+> +	/* this is fine for IPv6 as xt_tcpmss enforces -p tcp */
+> +	if (par->fragoff)
+> +		return false;
+> +
+>  	/* If we don't have the whole header, drop packet. */
+>  	th = skb_header_pointer(skb, par->thoff, sizeof(_tcph), &_tcph);
+>  	if (th == NULL)
+> -- 
+> 2.53.0
+> 
+> 
