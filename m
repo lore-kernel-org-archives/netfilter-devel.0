@@ -1,39 +1,42 @@
 Received: from mail.netfilter.org (mail.netfilter.org [217.70.190.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDA3A322527
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 15:05:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F97931F98B
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 15:05:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=217.70.190.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777302307; cv=none; b=BsYNkqjF4vV+so0OSqAbCklW9mxjQWIw6UE6MjncLLaI2qiNRDtTesyfypYoMZTsr6M173ksHIgWiM9+tfhKi87thJ3PjwHHQ4HI5gRH9iMc9xRgtH/eZQakxYhhzcpJKZ5hz1HsR7mEGpZ6aXWJ7FsiMV6YmH4YQ6rLRtWN56Y=
+	t=1777302308; cv=none; b=i8geO6Hsa2DrcuOTTAkSsZ2YEwMFsHjObfgz/wTjfMT9UiwKwbh9iKPCncsBZoo9VA2IsjatypNEciQWMXaR8wL5Lb1+iPM5pGv8BasnBIelL6OtqjAyChOH2vnrE/T07tsdGDPWGxGqWi/FByT3oS5TlFk/Q1UY0vzbVLzhbns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777302307; c=relaxed/simple;
-	bh=GExkixpSy0Tc9Bs1MPUi6H8QuO2zghzq6iRs0ynBpK0=;
-	h=From:To:Subject:Date:Message-ID:MIME-Version; b=EC7N+4wRMZRsMMo8TDWxZaBkB8DgRBbPp+C3QAyAa1V7vhvrO6aaXvYiWZH37f5/AXJe6+9+qDCIvd1K+ASpyWMaKzedAT2QekM2WZg5JkBJ3T7ZV6x5wXO1iJkr5zKBR6BevcZ7uovmNJ7bCf2xaK93obdW0O6XT97lFQjfseU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=lLpofRDl; arc=none smtp.client-ip=217.70.190.124
+	s=arc-20240116; t=1777302308; c=relaxed/simple;
+	bh=+o9lRJiwLvjUUTVmmChwvZpLGipGAkQRAeqR7pf/n08=;
+	h=From:To:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=iMXbIQwziBTH1MOhcuAL0VtpWMwVAx5q2ogAbaGFrAb/oIxnXL7ml+4SR5OFszURXC3s5zbnel2NwS5JKIsLFa717t8DGTpbxgkr4NIjrAqhFaJ9opI8tLJ0u1c/p1+JnnFOKEHCUOebpMVM910bYmA9mnxZRHfljozJROLaigo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org; spf=pass smtp.mailfrom=netfilter.org; dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b=dgpudO23; arc=none smtp.client-ip=217.70.190.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=netfilter.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="lLpofRDl"
+	dkim=pass (2048-bit key) header.d=netfilter.org header.i=@netfilter.org header.b="dgpudO23"
 Received: from localhost.localdomain (mail-agni [217.70.190.124])
-	by mail.netfilter.org (Postfix) with ESMTPSA id 9E5B760178
-	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 17:05:03 +0200 (CEST)
+	by mail.netfilter.org (Postfix) with ESMTPSA id 9B7DA60254
+	for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2026 17:05:04 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=netfilter.org;
-	s=2025; t=1777302303;
-	bh=l2ZZU+mRkXoa4cz3nO+vTZTAGRtHiVpmWLmYIBXn0Q8=;
-	h=From:To:Subject:Date:From;
-	b=lLpofRDlnxWMGluB7TSiD40fzYxVNbkJ81RJf8j9nL/RZS4WggC7LgkvyZPDWpR7z
-	 f5pc/ISGqyTBwbtgbPpk4G7HvOvzA1kBCiLYX3eB/ZTg883jrAV3BpBRCSuLkYf7d6
-	 UHqNBD8fnCBPmord1bYKn9qqH9dTkKz51Pes1xh492DeHgf810oAVjsYGEqhFqwRdC
-	 OPQzFa7tzZeMOJYwYblGL/PjOVBIcRWdw8Y9YmqniSyQhWrhVGirmzqQuCSoGea7SG
-	 hZPYbAezeEezQQxjfsODNzdTTIU1WKFpAuEC7BYqzPMzLR4gRPkBQVLq8vTuDErPFN
-	 D3FFFm5V4gM8A==
+	s=2025; t=1777302304;
+	bh=DTm8/y9EdR+sWf0X9Kb/4I/BsEC7MdwNf2XTVP9IoF8=;
+	h=From:To:Subject:Date:In-Reply-To:References:From;
+	b=dgpudO23sjg+ZsjECcSxRZhD7M7SJFTwETQcVqWGF4x6JUJaOA9Iutx7tHO2R2Mg+
+	 J3w+4wgdGi6DNGvSer62zwkNQEam5b5Syvm9iedoVGsAi325HvI/Q1X5RiDein9oAv
+	 TwZCYByN4boUblnUOek7lia4Ps0ARuLDPREh08KBFJoWCmh0w0Jl1UsW31+jwaCFli
+	 NOrKOfNXeN7I1TxGKMo1OF20+nf1Jj6JQNfCKGyN/PyZQYIn6Fy2HdXrUJVwYyiyHT
+	 Ly7sVDCtrCZlKozvxeN6MeZHbjG/ZaQSxsjL0+ZxJs1QJMfv8HI7tquiDtemTyN6H2
+	 +hbGaU1fzYWlQ==
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
-Subject: [PATCH nf,v6 1/3] netfilter: nft_fwd_netdev: add device and headroom validate with neigh forwarding
-Date: Mon, 27 Apr 2026 17:04:58 +0200
-Message-ID: <20260427150500.13754-1-pablo@netfilter.org>
+Subject: [PATCH nf,v6 2/3] netfilter: nft_fwd_netdev: add device and headroom validate with neigh forwarding
+Date: Mon, 27 Apr 2026 17:04:59 +0200
+Message-ID: <20260427150500.13754-2-pablo@netfilter.org>
 X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260427150500.13754-1-pablo@netfilter.org>
+References: <20260427150500.13754-1-pablo@netfilter.org>
 Precedence: bulk
 X-Mailing-List: netfilter-devel@vger.kernel.org
 List-Id: <netfilter-devel.vger.kernel.org>
@@ -47,13 +50,14 @@ would proceed, just drop this packet instead if there is no destination
 device to forwards this packet. This is exactly what nf_dup already does
 in this case.
 
-Moreover, use skb_cow_head() to ensure there is sufficient headroom when
-forwarding this via neigh_xmit().
+Moreover, check for headroom and call skb_expand_head() like in the IP
+output path to ensure there is sufficient headroom when forwarding this
+via neigh_xmit().
 
 Fixes: d32de98ea70f ("netfilter: nft_fwd_netdev: allow to forward packets via neighbour layer")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v6: no changes
+v6: use similar idiom that is used in the IP output path.
 
  net/netfilter/nft_fwd_netdev.c | 16 ++++++++++++++--
  1 file changed, 14 insertions(+), 2 deletions(-)
